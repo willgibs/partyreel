@@ -8,13 +8,19 @@ import type { ReviewReport } from "@/lib/db/queries/reports";
  * THE OPERATOR'S REPORTS AS ADMIN-TRIAGE ROUND ONE LEFT THEM (Will, 2026-09-28). The portal cannot be
  * signed in locally, so this proves the wiring in the component: every verdict is handed the report's
  * id and the note the operator wrote, the confirms say what is true AFTER the press, the hold reads
- * what it reaches before it asks, and a closed line offers Undo only where its own removal waits.
+ * what it reaches before it asks, and a closed line offers Undo only where its own removal waits or
+ * its dismissal is inside its window (build 19's red-team), as Dismiss's toast does.
  */
 
 const actions = vi.hoisted(() => ({
-  dismissReportAction: vi.fn(async () => ({ ok: true as const })),
+  dismissReportAction: vi.fn(
+    async (): Promise<
+      { ok: true } | { ok: false; code: string; message: string }
+    > => ({ ok: true as const }),
+  ),
   actionReportAction: vi.fn(async () => ({ ok: true as const })),
   undoReportAction: vi.fn(async () => ({ ok: true as const })),
+  reopenReportAction: vi.fn(async () => ({ ok: true as const })),
   holdScopeAction: vi.fn(async () => ({
     ok: true as const,
     scope: {
@@ -29,7 +35,21 @@ const actions = vi.hoisted(() => ({
 vi.mock("@/app/admin/reports/actions", () => actions);
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
+const { toast } = await import("sonner");
 const { ReportReviewList } = await import("./report-review");
+
+/** The Undo a success toast carried, pressed as sonner presses it. */
+function pressToastUndo(message: string) {
+  const call = vi
+    .mocked(toast.success)
+    .mock.calls.find(([text]) => text === message);
+  expect(call, `a "${message}" toast`).toBeDefined();
+  const options = call![1] as {
+    action?: { label: string; onClick: () => void };
+  };
+  expect(options.action?.label).toBe("Undo");
+  options.action!.onClick();
+}
 
 const ITEM_ID = "8d2f0b14-6a37-4c51-9f0e-2b7a41c9de83";
 
@@ -66,6 +86,8 @@ function openPicker() {
 
 beforeEach(() => {
   for (const fn of Object.values(actions)) fn.mockClear();
+  vi.mocked(toast.success).mockClear();
+  vi.mocked(toast.error).mockClear();
 });
 
 describe("a report with nothing said (`reason=marked`)", () => {
@@ -102,6 +124,38 @@ describe("the verdict (`verdict=note`)", () => {
     );
     // One press: no confirm opened on the way.
     expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("★ Dismiss's toast carries its way back: Undo reopens the report, and says so", async () => {
+    const user = userEvent.setup();
+    render(<ReportReviewList reports={[report()]} />);
+    await user.click(screen.getByRole("button", { name: "Dismiss" }));
+    await vi.waitFor(() => expect(toast.success).toHaveBeenCalled());
+    expect(actions.reopenReportAction).not.toHaveBeenCalled();
+
+    pressToastUndo("Report dismissed.");
+    expect(actions.reopenReportAction).toHaveBeenCalledWith(ITEM_ID);
+    await vi.waitFor(() =>
+      expect(toast.success).toHaveBeenCalledWith("The report is open again."),
+    );
+  });
+
+  it("a Dismiss that failed says why, and offers nothing to undo", async () => {
+    const user = userEvent.setup();
+    actions.dismissReportAction.mockResolvedValueOnce({
+      ok: false,
+      code: "validation",
+      message: "That report was already decided. The page has the latest.",
+    });
+    render(<ReportReviewList reports={[report()]} />);
+    await user.click(screen.getByRole("button", { name: "Dismiss" }));
+    await vi.waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith("Couldn't dismiss the report.", {
+        description:
+          "That report was already decided. The page has the latest.",
+      }),
+    );
+    expect(toast.success).not.toHaveBeenCalled();
   });
 
   it("★ Remove opens the one confirm, starting from the note, saying what is true after the press", async () => {
@@ -278,8 +332,38 @@ describe("a closed report is one line (`closed=window`)", () => {
 
     await user.click(within(undo).getByRole("button", { name: /Undo/ }));
     expect(actions.undoReportAction).toHaveBeenCalledWith(undoId);
+    expect(actions.reopenReportAction).not.toHaveBeenCalled();
     expect(
       screen.getByText(/only Forensics releases a hold/),
+    ).toBeInTheDocument();
+  });
+
+  it("★ a dismissal inside its window reopens from its line, and restores nothing", async () => {
+    const user = userEvent.setup();
+    const reopenId = "66666666-6666-4666-8666-666666666666";
+    render(
+      <ReportReviewList
+        reports={[
+          closed(reopenId, {
+            status: "dismissed",
+            wayBack: "reopen",
+            resolution_note: "Not harm.",
+          }),
+        ]}
+      />,
+    );
+    const line = document.querySelector("[data-closed-report]") as HTMLElement;
+    expect(within(line).getByText("Dismissed")).toBeInTheDocument();
+    await user.click(
+      within(line).getByRole("button", { name: "Undo: reopen the report" }),
+    );
+    expect(actions.reopenReportAction).toHaveBeenCalledWith(reopenId);
+    expect(actions.undoReportAction).not.toHaveBeenCalled();
+    await vi.waitFor(() =>
+      expect(toast.success).toHaveBeenCalledWith("The report is open again."),
+    );
+    expect(
+      screen.getByText(/a dismissal reopens its report/),
     ).toBeInTheDocument();
   });
 });

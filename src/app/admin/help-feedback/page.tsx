@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { AlertTriangle, ArrowUpRight } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import Link from "next/link";
 
 import { PageHeading } from "@/components/shared/page-heading";
@@ -12,27 +12,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { healthBadge } from "@/lib/admin/tone";
 import { requireAdmin } from "@/lib/auth/admin-context";
-import { SITE_URL } from "@/lib/constants/site";
 import { getArticle, getCategory } from "@/lib/content/help";
 import {
   getArticleFeedbackSummary,
   type ArticleFeedbackSummaryRow,
 } from "@/lib/db/queries/article-feedback";
 import { getJobSignals } from "@/lib/db/queries/jobs";
-import { formatAdminTimestamp } from "@/lib/format/admin-time";
 import { formatCount } from "@/lib/format/count";
 
 import { signalHealth, type JobHealth } from "../jobs/catalog";
+import { type ArticleFeedbackRow, ByArticleTable } from "./by-article-table";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Help feedback" };
@@ -58,14 +49,7 @@ const HEALTH_WORDS: Partial<Record<JobHealth, string>> = {
   never: "No activity",
 };
 
-type Row = ArticleFeedbackSummaryRow & {
-  title: string;
-  categoryTitle: string | null;
-  /** The slug still names a published article (a renamed or retired one keeps its counts). */
-  published: boolean;
-};
-
-function withTitles(rows: ArticleFeedbackSummaryRow[]): Row[] {
+function withTitles(rows: ArticleFeedbackSummaryRow[]): ArticleFeedbackRow[] {
   return rows.map((row) => {
     const article = getArticle(row.slug);
     return {
@@ -79,16 +63,11 @@ function withTitles(rows: ArticleFeedbackSummaryRow[]): Row[] {
   });
 }
 
-function share(row: ArticleFeedbackSummaryRow): string {
-  const total = row.helpful + row.notHelpful;
-  return total === 0 ? "" : `${Math.round((row.helpful / total) * 100)}%`;
-}
-
 export default async function HelpFeedbackPage() {
   const ctx = await requireAdmin();
   if (ctx.aal !== "aal2") return null;
 
-  let rows: Row[] = [];
+  let rows: ArticleFeedbackRow[] = [];
   let signal: { ok24h: number; failed24h: number } | null = null;
   let unreadable: string | null = null;
   try {
@@ -204,58 +183,7 @@ export default async function HelpFeedbackPage() {
                 No feedback yet.
               </p>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Article</TableHead>
-                    <TableHead className="text-right">Yes</TableHead>
-                    <TableHead className="text-right">No</TableHead>
-                    <TableHead className="text-right">Helpful</TableHead>
-                    <TableHead>Last click</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {rows.map((row) => (
-                    <TableRow
-                      key={row.slug}
-                      tone={
-                        row.notHelpful > row.helpful ? "warning" : undefined
-                      }
-                    >
-                      <TableCell className="max-w-[22rem]">
-                        {/* The admin portal is its own host, so the article's link is the
-                            site's absolute address, in a new tab. */}
-                        <a
-                          href={`${SITE_URL}/help/${row.slug}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="group inline-flex items-center gap-1 font-medium text-foreground underline-offset-4 hover:underline"
-                        >
-                          <span className="truncate">{row.title}</span>
-                          <ArrowUpRight className="size-3.5 shrink-0 text-muted-foreground" />
-                        </a>
-                        <span className="block truncate text-xs text-muted-foreground">
-                          {row.published
-                            ? row.categoryTitle
-                            : "No longer published"}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right tabular-nums">
-                        {formatCount(row.helpful)}
-                      </TableCell>
-                      <TableCell className="text-right tabular-nums">
-                        {formatCount(row.notHelpful)}
-                      </TableCell>
-                      <TableCell className="text-right text-muted-foreground tabular-nums">
-                        {share(row)}
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap text-muted-foreground">
-                        {formatAdminTimestamp(row.lastAt)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <ByArticleTable rows={rows} />
             )}
           </CardContent>
         </Card>

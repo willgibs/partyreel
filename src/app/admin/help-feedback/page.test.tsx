@@ -5,7 +5,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * THE BEACON'S ADMIN SURFACE (help-center r1 `feedback=beacon`: "visible only in admin"): the counts
  * per article, newest first, with the signal's health above them. Pinned: the seam (nothing renders
  * below AAL2), the order and the numbers as the summary gives them, a row that loses its reader
- * tinted, and a failed read said in words, never drawn as "No feedback yet".
+ * tinted, the last click's day carried under the article for a phone that drops its column, and a
+ * failed read said in words, never drawn as "No feedback yet".
  */
 const mocks = vi.hoisted(() => ({
   requireAdmin: vi.fn(async () => ({ aal: "aal2" as "aal1" | "aal2" })),
@@ -93,6 +94,26 @@ describe("/admin/help-feedback", () => {
     expect(link.getAttribute("target")).toBe("_blank");
     expect(screen.getByText(/5 Yes, 3 No, on 2 articles/)).toBeTruthy();
     expect(screen.getByText(/3 recorded/)).toBeTruthy();
+  });
+
+  it("★ carries the last click's day under the article, where a phone reads it without its column", async () => {
+    // Build 19's red-team: at 375 the five columns overflowed a 343 px scroller, Last click
+    // off-screen. A phone keeps Article, Yes and No, so the day rides with the article's shelf.
+    mocks.getArticleFeedbackSummary.mockResolvedValue([
+      {
+        slug: "an-upload-wont-finish",
+        helpful: 1,
+        notHelpful: 2,
+        lastAt: "2026-09-29T04:24:39.000000+00:00",
+      },
+    ]);
+    await mount();
+    const [, row] = screen.getAllByRole("row");
+    const [article] = within(row).getAllByRole("cell");
+    expect(within(article).getByText("Troubleshooting")).toBeTruthy();
+    expect(within(article).getByText("Sep 29, 2026 UTC")).toBeTruthy();
+    // The desk's own column still says it whole.
+    expect(within(row).getByText("Sep 29, 2026, 04:24 UTC")).toBeTruthy();
   });
 
   it("keeps a retired article's counts, and says it is no longer published", async () => {

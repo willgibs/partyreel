@@ -52,7 +52,9 @@ export function MyUploadsGallery({
 
   return (
     <div className="space-y-4">
-      {/* Likes toggle in place here (mode "keep"); delete-your-own is the separate Trash action. */}
+      {/* Likes toggle in place here (mode "keep"), except on an upload to an album that reads
+          private to her: `getMyUploadCards` marks it `likeable: false` and it offers no heart,
+          since `like_media` would refuse it. Delete-your-own is the separate Trash action. */}
       <LikesProvider mediaIds={optimisticItems.map((m) => m.id)}>
         <MasonryColumns
           items={optimisticItems}

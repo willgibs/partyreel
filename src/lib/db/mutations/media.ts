@@ -442,10 +442,26 @@ function mapRestoreRefusal(
   }
 }
 
-/** Restore a soft-removed media item (capacity-gated in the RPC; pure status flip). */
+/**
+ * Where a restore landed an item: `restore_media` returns it to the status it held before its removal
+ * (QA #24: a hidden item comes back hidden, a pending one to Review), and answers that status.
+ */
+export type RestoredStatus = "approved" | "hidden" | "pending";
+
+function restoredStatusOf(raw: unknown): RestoredStatus | undefined {
+  return raw === "approved" || raw === "hidden" || raw === "pending"
+    ? raw
+    : undefined;
+}
+
+/**
+ * Restore a soft-removed media item (capacity-gated in the RPC; pure status flip). The answer carries
+ * where it landed, so a caller says what the restore did rather than "back in the album" for an item
+ * that came back hidden; `status` is absent only if the RPC ever answers without one.
+ */
 export async function restoreMedia(
   mediaId: string,
-): Promise<MutationResult<{ id: string }>> {
+): Promise<MutationResult<{ id: string; status?: RestoredStatus }>> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -464,7 +480,10 @@ export async function restoreMedia(
   }
   const result = data as unknown as RestoreResult;
   if (!result.ok) return mapRestoreRefusal(result);
-  return { ok: true, data: { id: mediaId } };
+  return {
+    ok: true,
+    data: { id: mediaId, status: restoredStatusOf(result.status) },
+  };
 }
 
 /** Restore a soft-deleted event (slot- + capacity-gated in the RPC). Independently-removed

@@ -45,7 +45,6 @@ import { getSiteUrl } from "@/lib/site-url";
 import {
   NOTIFICATION_PREF_COLUMNS,
   resolveNotificationPrefs,
-  type NotificationPrefsRow,
 } from "@/lib/social/notification-prefs";
 
 /** What a rotating sweep's tally adds: the isolation counts, and where to resume when it stopped. */
@@ -202,11 +201,7 @@ export async function readRenewalOptOuts(
         .select(`user_id, ${NOTIFICATION_PREF_COLUMNS}`)
         .in("user_id", chunk);
       if (error) throw error;
-      // The generated types learn notify_pass_renewal when its migration is applied; the row's shape
-      // is NotificationPrefsRow's either way (notification-prefs.ts).
-      return (data ?? []) as unknown as (NotificationPrefsRow & {
-        user_id: string;
-      })[];
+      return data ?? [];
     },
   );
   const byId = new Map(rows.map((row) => [row.user_id, row]));

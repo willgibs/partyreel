@@ -7,8 +7,11 @@ import { type ActionResult } from "@/app/(app)/dashboard/actions";
 import {
   type HoldScope,
   normalizeNote,
+  PAST_WINDOW_MESSAGE,
+  reopenFloor,
   REPORT_NOTE_MAX,
   wayBackOf,
+  withinReopenWindow,
 } from "@/lib/admin/reports";
 import { requireAdminAction } from "@/lib/auth/admin-context";
 import { readAllPages } from "@/lib/db/read-all";
@@ -90,6 +93,75 @@ export async function dismissReportAction(
       reportId: id.data,
     });
     return failed("Couldn't dismiss the report. Please try again.");
+  }
+  if (!data || data.length === 0) return DECIDED;
+
+  revalidatePath("/admin/reports");
+  return { ok: true };
+}
+
+/**
+ * THE DISMISSAL'S WAY BACK (build 19's red-team; `closed=window`): a report an operator dismissed
+ * reopens inside the product's own window, from the toast's Undo or its closed line. Dismiss is one
+ * press with no confirm, so this is where a slip is caught; a dismissal touched nothing but the
+ * report, so reopening it is the whole of its undo (the verdict's note goes with it, as a removal's
+ * Undo clears its own).
+ *
+ * ★ THE GUARDS ARE IN THE WRITE, not only in the read before it: only a report still `dismissed`,
+ * and only while its verdict is inside the window (`reopenFloor`), so a stale page or a second tab
+ * can never reopen a report nobody dismissed, and an actioned one keeps its own Undo, which restores
+ * what it removed. A report already open is what the press asked for, and answers done.
+ */
+export async function reopenReportAction(
+  reportId: string,
+): Promise<ActionResult> {
+  const auth = await requireAdminAction();
+  if (!auth.ok) return auth.result;
+  const id = reportIdSchema.safeParse(reportId);
+  if (!id.success) return INVALID;
+
+  const admin = createAdminClient();
+  const { data: report, error: readErr } = await admin
+    .from("reports")
+    .select("id, status, resolved_at")
+    .eq("id", id.data)
+    .maybeSingle();
+  if (readErr) {
+    captureError("admin", new Error(readErr.message), {
+      action: "reopen_report_read",
+      reportId: id.data,
+    });
+    return failed("Couldn't read the report. Please try again.");
+  }
+  if (!report) return failed("That report no longer exists.");
+  if (report.status === "open") {
+    revalidatePath("/admin/reports");
+    return { ok: true };
+  }
+  if (report.status !== "dismissed") return DECIDED;
+  const now = Date.now();
+  if (!withinReopenWindow(report.resolved_at, now)) {
+    return { ok: false, code: "validation", message: PAST_WINDOW_MESSAGE };
+  }
+
+  const { data, error } = await admin
+    .from("reports")
+    .update({
+      status: "open",
+      resolved_by: null,
+      resolved_at: null,
+      resolution_note: null,
+    })
+    .eq("id", id.data)
+    .eq("status", "dismissed")
+    .gte("resolved_at", reopenFloor(now))
+    .select("id");
+  if (error) {
+    captureError("admin", new Error(error.message), {
+      action: "reopen_report",
+      reportId: id.data,
+    });
+    return failed("Couldn't reopen the report. Please try again.");
   }
   if (!data || data.length === 0) return DECIDED;
 
@@ -233,18 +305,21 @@ export async function undoReportAction(
     });
     return failed("Couldn't read the reported item. Please try again.");
   }
-  const way = wayBackOf({
-    status: report.status,
-    resolvedAt: report.resolved_at,
-    item: item
-      ? {
-          status: item.status,
-          removedByAdmin: item.removed_by_admin,
-          removedAt: item.removed_at,
-          held: item.legal_hold_at !== null,
-        }
-      : null,
-  });
+  const way = wayBackOf(
+    {
+      status: report.status,
+      resolvedAt: report.resolved_at,
+      item: item
+        ? {
+            status: item.status,
+            removedByAdmin: item.removed_by_admin,
+            removedAt: item.removed_at,
+            held: item.legal_hold_at !== null,
+          }
+        : null,
+    },
+    Date.now(),
+  );
   if (way === "held")
     return failed("It is held, and only Forensics releases a hold.");
   if (way !== "undo")

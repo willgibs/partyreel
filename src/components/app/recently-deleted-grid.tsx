@@ -59,6 +59,28 @@ export type BinActions = {
 };
 
 /**
+ * WHAT A RESTORE DID, in the words of where the item landed (a ROADMAP carry-over from `crumbs-8`).
+ * `restore_media` returns an item to the status it held before it was removed, so one that was hidden
+ * comes back hidden and one waiting in Review comes back to Review: "back in the album" said of those
+ * was a promise the album did not keep. An answer with no status says what is always true, as Let
+ * back in does ("back where it was").
+ */
+export function restoredWords(
+  status: "approved" | "hidden" | "pending" | undefined,
+): string {
+  switch (status) {
+    case "approved":
+      return "Restored. It's back in the album.";
+    case "hidden":
+      return "Restored. It's back, still hidden from everyone.";
+    case "pending":
+      return "Restored. It's back in Review.";
+    default:
+      return "Restored. It's back where it was.";
+  }
+}
+
+/**
  * THE ONE HOME FOR THE BIN'S WRITES AND THEIR WORDS, shared by the tile pane and the viewer. An
  * item that leaves the bin (restored, or deleted for good) leaves the list at once (`onGone`); a
  * restore the plan has no room for offers the room sheet (`onOutOfRoom`); a write that never
@@ -92,7 +114,7 @@ export function useBinActions(
       return;
     }
     if (result.ok) {
-      toast.success("Restored. It's back in the album.");
+      toast.success(restoredWords(result.status));
       onGone?.(item.id);
       onRestored?.();
       return;

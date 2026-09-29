@@ -313,3 +313,27 @@ describe("every shape stands on the keyboard", () => {
     expect(panel()!.style.getPropertyValue("--kb-inset")).toBe("307px")
   })
 })
+
+/**
+ * THE BODY KEEPS ITS CHILDREN WHOLE (a ROADMAP carry-over from `crumbs-8`: build 17's Event Settings
+ * laid its body out as a flex column, and the column shrank its clipping Cards to their padding). The
+ * body is where the popup scrolls, so no child of it may shrink to fit it, whatever layout a caller
+ * gives it; jsdom lays nothing out, so the pin is the rule the body carries, as the settings sheet's is.
+ */
+describe("the body", () => {
+  it("never lets a child shrink to fit, even when a caller lays it out as a flex column", () => {
+    render(
+      <Popup defaultOpen>
+        <PopupContent kind="share" aria-describedby={undefined}>
+          <PopupHeader title="Share" />
+          <PopupBody className="flex flex-col gap-5">
+            <section>A card that clips</section>
+          </PopupBody>
+        </PopupContent>
+      </Popup>,
+    )
+    const body = document.querySelector<HTMLElement>('[data-slot="popup-body"]')!
+    const classes = body.className.split(/\s+/)
+    expect(classes).toEqual(expect.arrayContaining(["flex", "flex-col", "*:shrink-0"]))
+  })
+})

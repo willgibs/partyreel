@@ -20,15 +20,16 @@ import { Button } from "@/components/ui/button";
  * would start yet another.
  *
  * A refusal is the route's own sentence under the page's one heading, with a way on: a pass that
- * has already ended ("start a new Event Pass from the pricing page"), an account on Pro. Nothing
- * here is a dead end, and nothing is charged until Stripe's own page.
+ * has already ended ("start a new Event Pass from the pricing page"), an account that holds no pass
+ * at all, an account on Pro. Nothing here is a dead end, and nothing is charged until Stripe's own
+ * page.
  */
 
 /** What the page does with the checkout route's answer. Pure, so the test reads every branch. */
 export type RenewOutcome =
   | { kind: "redirect"; url: string }
   | { kind: "signin" }
-  /** `code` is the route's own (`not_eligible`: the pass has ended; `already_subscribed`: Pro). */
+  /** `code` is the route's own (`not_eligible`: no pass running, ended or never held; `already_subscribed`: Pro). */
   | { kind: "refused"; message: string; code: string | null }
   | { kind: "failed" };
 
@@ -152,8 +153,8 @@ export function RenewCheckout() {
           icon={TicketX}
           title="Renew Event Pass"
           description={view.message}
-          // An ended pass is bought fresh, and its sentence says so ("from the pricing page"); any
-          // other refusal (Pro) is read on the plan it names.
+          // A pass that ended, or none at all, is bought fresh, and both sentences say so ("from the
+          // pricing page"); any other refusal (Pro) is read on the plan it names.
           actions={waysOn(view.code === "not_eligible" ? "pricing" : "plan")}
         />
       ) : (

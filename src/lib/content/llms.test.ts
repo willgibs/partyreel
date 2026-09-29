@@ -118,6 +118,19 @@ describe("buildLlmsTxt", () => {
     expect(txt).toContain(`The full help center (${articles.length} articles`);
   });
 
+  it("names the album's three visibilities as the product has them, and no fourth", () => {
+    // A ROADMAP carry-over from crumbs-8: it said "open, link-only, or password locked", naming
+    // no private album and calling an open one link-only (an open album IS anyone with the link).
+    const line = txt
+      .split("\n")
+      .find((l) => l.startsWith("- **Privacy as a default"));
+    expect(line).toBeDefined();
+    expect(line).toMatch(/public to anyone with its link/);
+    expect(line).toMatch(/password/);
+    expect(line).toMatch(/private to its host/);
+    expect(line).not.toMatch(/link-only/);
+  });
+
   it("lists only the newest posts (the archive outgrew the lean budget)", () => {
     const posts = getPostListItems();
     const listed = posts.filter((p) => txt.includes(`/blog/${p.slug})`));

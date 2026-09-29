@@ -26,7 +26,19 @@ import { cn } from "@/lib/utils";
  * ★ EACH READS ITS OWN ID'S HEART (`useIsLiked`), never the whole liked set, so
  * a like re-renders the mark and the glyph of that one photograph and nothing
  * else in the album (`likes-provider.tsx`'s head note has the measurement).
+ *
+ * ★ NO HEART WHERE THE LIKE WOULD BE REFUSED. An item marked `likeable: false`
+ * (the Uploads feed's upload to an album that reads private to her, where
+ * `like_media` likes nothing but the host's) offers neither the viewer's
+ * button nor the desk's glyph, because a press there could only ever answer
+ * "Couldn't save that like." A like she already gave still shows as the tile's
+ * mark, which is a fact and not a verb, and she takes it back from Likes.
  */
+
+/** Whether a surface may offer the like verb on this item (see the head note). */
+function offersLike(item: { likeable?: boolean }): boolean {
+  return item.likeable !== false;
+}
 
 /** The like verb's words, by state: the bar's glyph and the viewer's button say the same. */
 export function likeLabel(liked: boolean): string {
@@ -101,10 +113,13 @@ export function TileLikeMark({
  * it never re-renders for a like and the action's content never changes with
  * one (which is what lets the memoized tile compare actions by content).
  */
-export function useLikeAction(): (item: { id: string }) => TileAction | null {
+export function useLikeAction(): (item: {
+  id: string;
+  likeable?: boolean;
+}) => TileAction | null {
   const likes = useLikes();
   return (item) => {
-    if (!likes) return null;
+    if (!likes || !offersLike(item)) return null;
     return {
       id: "like",
       label: likeLabel(false),
@@ -121,10 +136,14 @@ export function useLikeAction(): (item: { id: string }) => TileAction | null {
  * (size-5, no container), white at rest, rose on hover and when liked. The
  * lightbox is client-only (ssr:false) so this ActionTooltip is hydration-safe.
  */
-export function LikeButton({ item }: { item: { id: string } }) {
+export function LikeButton({
+  item,
+}: {
+  item: { id: string; likeable?: boolean };
+}) {
   const likes = useLikes();
   const liked = useIsLiked(item.id);
-  if (!likes) return null;
+  if (!likes || !offersLike(item)) return null;
 
   return (
     <ActionTooltip label={likeLabel(liked)}>

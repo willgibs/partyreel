@@ -14,7 +14,9 @@ import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
  *    the same words on both arms (`NO_REASON`).
  *  - `verdict=note`: every verdict can carry one note, written to `reports.resolution_note`.
  *  - `closed=window`: a closed report is one line, and a removal it made can be undone for as long as
- *    the removed item's copy exists, the product's own 30-day window (`wayBackOf`).
+ *    the removed item's copy exists, the product's own 30-day window (`wayBackOf`). A dismissal
+ *    reopens inside the same 30 days (build 19's red-team: one press with no way back let a slip
+ *    close a harm report for good).
  *  - `escalate=door`: Hold for forensics opens the portal's one confirm, filled in from the report
  *    (`holdReasonFor`, `holdTouches`).
  */
@@ -119,10 +121,45 @@ export type ReportedItemState = {
 };
 
 /**
- * A closed report's way back (`closed=window`): "undo" while the removal ITS verdict made still
- * waits out the window (the copy exists until the purge takes it, so Undo lasts exactly as long as a
- * removed item would anyway, one clock), "held" for an item under a legal hold (only Forensics
- * releases one, so it has no Undo), and nothing otherwise.
+ * A closed line's way back: "undo" restores the item its verdict removed and reopens the report,
+ * "reopen" reopens a dismissed report, "held" says why an item stays down, and null offers nothing.
+ */
+export type WayBack = "undo" | "reopen" | "held" | null;
+
+/**
+ * How long a dismissal can be taken back: the product's own window, in the number a removal's Undo
+ * already lasts (`closed=window`: "one lifecycle rule instead of two clocks that can disagree").
+ */
+export const REOPEN_WINDOW_MS = RECENTLY_DELETED_WINDOW_DAYS * 86_400_000;
+
+/**
+ * The earliest verdict a reopen can still take back at `nowMs`: the floor the reopen's guarded
+ * write compares `resolved_at` against, so the line's offer and the write's refusal are one rule.
+ */
+export function reopenFloor(nowMs: number): string {
+  return new Date(nowMs - REOPEN_WINDOW_MS).toISOString();
+}
+
+/** Whether a verdict stamped `resolvedAt` is still inside the window at `nowMs` (the floor's own test). */
+export function withinReopenWindow(
+  resolvedAt: string | null | undefined,
+  nowMs: number,
+): boolean {
+  if (!resolvedAt) return false;
+  const at = Date.parse(resolvedAt);
+  return Number.isFinite(at) && at >= nowMs - REOPEN_WINDOW_MS;
+}
+
+/**
+ * A closed report's way back (`closed=window`), measured at `nowMs`: "undo" while the removal ITS
+ * verdict made still waits out the window (the copy exists until the purge takes it, so Undo lasts
+ * exactly as long as a removed item would anyway, one clock), "reopen" for a dismissal inside the
+ * same 30 days, "held" for an item under a legal hold (only Forensics releases one, so its removal
+ * has no Undo), and nothing otherwise.
+ *
+ * ★ A DISMISSAL TOUCHED ONLY THE REPORT, so reopening is the whole of its undo, and a hold is no bar
+ * to it: reopening restores nothing. A report held and then dismissed by a slip is the one that most
+ * needs its way back, so a dismissal reads "reopen" before an item's hold is asked about.
  *
  * ★ ONLY THE REMOVAL THE VERDICT MADE. The action stamps the removal and the verdict with one
  * instant, so `removedAt` equal to `resolvedAt` is how a line knows the item left because of this
@@ -130,11 +167,20 @@ export type ReportedItemState = {
  * the verdict (so the host cannot bring it back), and undoing THAT is not this line's to guess: it is
  * restored from Albums if at all.
  */
-export function wayBackOf(report: {
-  status: ReportStatus;
-  resolvedAt: string | null;
-  item: ReportedItemState | null;
-}): "undo" | "held" | null {
+export function wayBackOf(
+  report: {
+    status: ReportStatus;
+    resolvedAt: string | null;
+    item: ReportedItemState | null;
+  },
+  nowMs: number,
+): WayBack {
+  if (
+    report.status === "dismissed" &&
+    withinReopenWindow(report.resolvedAt, nowMs)
+  ) {
+    return "reopen";
+  }
   const { item } = report;
   if (!item) return null;
   if (item.held) return "held";
@@ -143,8 +189,17 @@ export function wayBackOf(report: {
   return sameInstant(item.removedAt, report.resolvedAt) ? "undo" : null;
 }
 
-/** The line under the closed log that says what its Undo does and for how long. */
-export const WAY_BACK_LINE = `An Undo restores the item and reopens the report, for as long as the removed copy exists: the product's own ${RECENTLY_DELETED_WINDOW_DAYS}-day window. A held item has no Undo: only Forensics releases a hold.`;
+/** The line under the album arm's closed log that says what its Undo does and for how long. */
+export const WAY_BACK_LINE = `Undo takes a verdict back inside the product's own ${RECENTLY_DELETED_WINDOW_DAYS}-day window: a dismissal reopens its report, and a removal restores its item too, for as long as the copy exists. A held item is never restored here: only Forensics releases a hold.`;
+
+/** The same line for the People arm, whose verdicts remove nothing. */
+export const REOPEN_LINE = `Undo reopens a dismissed report inside the product's own ${RECENTLY_DELETED_WINDOW_DAYS}-day window.`;
+
+/** What a reopen says once it lands, from the toast's Undo or the closed line's. */
+export const REOPENED_MESSAGE = "The report is open again.";
+
+/** Why a dismissal past its window stays closed, in the window's own number. */
+export const PAST_WINDOW_MESSAGE = `That dismissal is older than ${RECENTLY_DELETED_WINDOW_DAYS} days, past its window, so it stays closed.`;
 
 /** The reason a hold from a report starts with (the runbook's step two: "the report's reference"). */
 export function holdReasonFor(reportId: string): string {

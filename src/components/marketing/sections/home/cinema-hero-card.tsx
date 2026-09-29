@@ -10,11 +10,13 @@ import { cn } from "@/lib/utils";
 
 import {
   FACE_OFFSET,
+  FRAME_SIZES,
   LG_MIN,
   OBJECT,
   OBJECT_EVENT,
   OBJECT_PRINTS,
   type ObjectGeo,
+  STREAM_FRAMES,
   TABLET_MIN,
 } from "./hero-stream";
 
@@ -28,7 +30,9 @@ import {
  * the phone's drawing, the desk's and the composed tablet's between them with
  * no copy per breakpoint: its four photographs are requested once, eagerly,
  * because they are lit on the first paint as the band's resting frames are,
- * and the server's HTML already carries every size, so nothing shifts.
+ * and the server's HTML already carries every size, so nothing shifts. While
+ * they are the band's own photographs, "once" is the band's request
+ * (`printSizes`).
  *
  * ★ PAPER IS LITERAL WHITE, and its words wear `.surface-paper`'s ink. On the
  * cinema ground `bg-card` is near-black, a dark box with a grey hairline. The
@@ -61,8 +65,28 @@ function lenRound(pick: (o: ObjectGeo) => number): string {
 /** The photograph's own window inside a print, in px, per geometry. */
 const inner = (o: ObjectGeo) => o.print.w - o.print.border * 2;
 
-/** What each photograph asks for: its window at each geometry, never a vw. */
+/** What a print's own photograph asks for: its window at each geometry, never a vw. */
 const PHOTO_SIZES = `(min-width: ${LG_MIN}px) ${Math.ceil(inner(OBJECT.lg))}px, (min-width: ${TABLET_MIN}px) ${Math.ceil(inner(OBJECT.tablet))}px, ${Math.ceil(inner(OBJECT.base))}px`;
+
+/**
+ * ★ A PRINT OF ONE OF THE BAND'S PHOTOGRAPHS ASKS FOR THE BAND'S COPY (build
+ * 19's red-team). React's server render preloads every eager image it draws,
+ * one preload per srcset and sizes, and Chrome shows a larger candidate of the
+ * same srcset when one is already in memory: a print asking for its own small
+ * window was preloaded at `w=96` and then drawn from the band's `w=384`, so each
+ * load fetched up to four copies nobody saw and logged them as preloaded but
+ * not used. Asking the band's sizes makes a print's srcset and sizes the band
+ * frame's own: one preload for the two, one file on screen in every browser,
+ * and not a byte more than the band already spends. The prints are stand-ins
+ * on the band's photographs until ASSETS row 33 gives them their own, and a
+ * photograph the band does not carry asks for its own window again, with no
+ * edit here.
+ */
+export function printSizes(photo: string): string {
+  return (STREAM_FRAMES as readonly string[]).includes(photo)
+    ? FRAME_SIZES
+    : PHOTO_SIZES;
+}
 
 /** The paper's own shadow (the QR door's plate, `.rvr-plate`), see the header. */
 const PAPER_SHADOW =
@@ -130,7 +154,7 @@ function Print({ i }: { i: number }) {
           src={img.src}
           alt=""
           fill
-          sizes={PHOTO_SIZES}
+          sizes={printSizes(print.photo)}
           loading="eager"
           className="object-cover"
         />

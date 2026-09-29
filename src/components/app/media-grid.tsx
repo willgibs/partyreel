@@ -48,6 +48,13 @@ export type GridMedia = {
   eventDateLabel?: string | null;
   eventQrToken?: string | null;
   /**
+   * False where the viewer's like would be refused, so no heart is offered: set ONLY by the personal
+   * Uploads feed, on an upload to an album that reads private to her (a private album's guest, or an
+   * account the event blocked; `like_media` likes nothing there but the host's). Absent = likeable,
+   * as on every other surface, whose LikesProvider already answers who may like.
+   */
+  likeable?: boolean;
+  /**
    * Likes (Phase 5). `likeCount` is HOST-ONLY (set solely on the host management gallery via
    * get_event_like_counts; never on a guest surface) and drives the read-only count badge/chip. Omitted on
    * surfaces without likes (guest galleries, recovery bin, operator), leaving them unchanged. (Per-user

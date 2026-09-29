@@ -229,7 +229,10 @@ describe("the bin's viewer carries its two verbs", () => {
   });
 
   it("restores from the viewer at once: it closes, the write runs, and the item leaves the bin", async () => {
-    vi.mocked(restoreMediaAction).mockResolvedValue({ ok: true });
+    vi.mocked(restoreMediaAction).mockResolvedValue({
+      ok: true,
+      status: "approved",
+    });
     const { open, capsule, onGone, onRestored } = openBin();
     open(1);
     expect(window.location.search).toContain(id(1));
@@ -245,6 +248,30 @@ describe("the bin's viewer carries its two verbs", () => {
     expect(toast.success).toHaveBeenCalledWith(
       "Restored. It's back in the album.",
     );
+  });
+
+  it("★ says where a restore landed the item: hidden stays hidden, a Review item goes back to Review", async () => {
+    // A ROADMAP carry-over from crumbs-8: every restore said "It's back in the album.", though
+    // restore_media returns an item to the status it held before its removal and answers it.
+    const { open, capsule } = openBin();
+    const said: string[] = [];
+    for (const status of ["hidden", "pending", undefined] as const) {
+      vi.mocked(toast.success).mockClear();
+      vi.mocked(restoreMediaAction).mockResolvedValue({ ok: true, status });
+      open(1);
+      fireEvent.click(
+        within(capsule()!).getByRole("button", { name: "Restore" }),
+      );
+      await act(async () => {});
+      said.push(String(vi.mocked(toast.success).mock.calls[0]?.[0]));
+    }
+    expect(said).toEqual([
+      "Restored. It's back, still hidden from everyone.",
+      "Restored. It's back in Review.",
+      // No status (a fake or an older RPC): the words that are always true, as Let back in's.
+      "Restored. It's back where it was.",
+    ]);
+    expect(said.join(" ")).not.toMatch(/in the album/);
   });
 
   it("deletes for good from the viewer only behind its confirm", async () => {
