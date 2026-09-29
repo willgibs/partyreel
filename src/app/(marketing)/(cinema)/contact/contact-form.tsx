@@ -30,6 +30,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { track } from "@/lib/analytics/web";
 import {
   CONTACT_TOPICS,
+  type ContactHint,
   type ContactTopicValue,
   REPLY_LINE,
 } from "@/lib/constants/contact";
@@ -134,6 +135,36 @@ export function ContactFacts() {
   );
 }
 
+/**
+ * The topic's own note and answers (contact-page r1 `urgency`: "custom per topic
+ * instead of one generic 'try troubleshooting'"): one sentence, then the help
+ * articles that settle THIS topic's questions, so a visitor can be answered
+ * before writing. The links leave the page, which is why the hint stands above
+ * the fields: a pick comes first, and nothing typed yet is lost to a click.
+ */
+function TopicHint({ hint }: { hint: ContactHint }) {
+  return (
+    <div className="flex animate-in flex-col gap-3 rounded-xl bg-background px-4 py-3.5 text-sm duration-200 fade-in slide-in-from-bottom-1 motion-reduce:animate-none">
+      <p className="text-pretty text-muted-foreground">{hint.text}</p>
+      {/* Stacked in a hand (one edge to scan, a row a thumb can hit), one
+          wrapping line from sm up. */}
+      <ul className="-my-1 flex flex-col sm:flex-row sm:flex-wrap sm:gap-x-5">
+        {hint.links.map((link) => (
+          <li key={link.href}>
+            <Link
+              href={link.href}
+              className="mkt-learn inline-flex items-center gap-1 py-1.5 font-medium text-foreground"
+            >
+              {link.label}
+              <LearnChevron />
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export function ContactForm({
   helpSubjects,
 }: {
@@ -171,7 +202,12 @@ export function ContactForm({
   useEffect(() => {
     if (!helpSubjects) return;
     const slug = new URLSearchParams(window.location.search).get("about");
-    const entry = slug ? helpSubjects[slug] : undefined;
+    // An OWN key only: a plain object also answers "constructor" and
+    // "__proto__" with an inherited member, which would prefill "Help: undefined".
+    const entry =
+      slug && Object.hasOwn(helpSubjects, slug)
+        ? helpSubjects[slug]
+        : undefined;
     if (!entry) return;
     const values = form.getValues();
     if (values.subject || values.topic) return;
@@ -348,24 +384,18 @@ export function ContactForm({
               </FormItem>
             )}
           />
-          {/* The fastest-path hint swaps with the topic (keyed remount so the
+          {/* The topic's own answers, under the picker (keyed remount so the
               entrance replays per pick; on the gray panel the hint sits on
-              paper white for contrast). */}
-          {hint && (
-            <div
-              key={topicValue}
-              className="flex animate-in flex-wrap items-baseline gap-x-2 gap-y-1 rounded-xl bg-background px-4 py-3 text-sm text-muted-foreground duration-200 fade-in slide-in-from-bottom-1 motion-reduce:animate-none"
-            >
-              <span className="text-pretty">{hint.text}</span>
-              <Link
-                href={hint.href}
-                className="mkt-learn inline-flex items-center gap-1 font-medium text-foreground"
-              >
-                {hint.linkLabel}
-                <LearnChevron />
-              </Link>
-            </div>
-          )}
+              paper white for contrast). Its text also rides a persistent live
+              region: the picker keeps focus after a pick, so a screen reader
+              would never meet the swap otherwise. sr-only is out of flow, so it
+              adds no gap to the form's flex column. */}
+          {hint && <TopicHint key={topicValue} hint={hint} />}
+          <p role="status" className="sr-only">
+            {hint
+              ? `${hint.text} ${hint.links.map((link) => link.label).join(", ")}.`
+              : ""}
+          </p>
           <div className="grid gap-5 sm:grid-cols-2">
             <FormField
               control={form.control}
