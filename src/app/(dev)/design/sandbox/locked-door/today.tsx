@@ -1,15 +1,18 @@
 "use client";
 
-import { Clock, Lock, QrCode } from "lucide-react";
+import { Clock } from "lucide-react";
 
-import { AlmostIn, DoorHeading } from "@/components/guest/door/heading";
-import { HelpLine, NotFoundScreen } from "@/components/shared/not-found-screen";
-import { Button } from "@/components/ui/button";
+import GuestNotFound from "@/app/(guest)/e/[token]/not-found";
+import { DoorHeading } from "@/components/guest/door/heading";
+import { DoorGlyph } from "@/components/guest/door/lit";
+import { ShutDoor, shutDoorCopy } from "@/components/guest/door/shut-door";
+import { waitingCopy, WaitingDoor } from "@/components/guest/door/waiting-step";
+import { NotFoundScreen } from "@/components/shared/not-found-screen";
 
 import { type DoorProps, seesAlbum } from "./door-props";
+import { EVENT, HOST } from "./fixtures";
 import {
   AlbumBehind,
-  AskedMark,
   BeatWords,
   Byline,
   Foot,
@@ -21,37 +24,37 @@ import {
   RiverBehind,
   Rows,
   revealAt,
+  WaitHold,
   WelcomeFoot,
 } from "./furniture";
-import {
-  BEAT,
-  LOST,
-  prose,
-  shutWords,
-  UNLISTED,
-  waitWords,
-  WAY_OUT,
-  WELCOME,
-} from "./words";
+import { BEAT, HELD, TOLD, type WaitId, WELCOME } from "./words";
 
 /**
- * TODAY'S DOOR, AS IT SHIPS: the measure every step grades against.
+ * TODAY'S DOOR, AS IT SHIPS: the measure every step grades against, drawn by
+ * production's own pieces wherever one stands alone (`settings-wiring` built
+ * them beside round two, so the round's own prediction of them is gone):
  *
- * The welcome is `entry-modal.tsx`'s `WelcomeStep` quoted class for class (its
- * hero, its byline, its two promise rows on pools, Continue and the consent
- * line, standing 55svh in a hand). The wait is the pick `settings-wiring`
- * builds from event-settings' `waiting=held` (the lit door heading "Almost in",
- * one line, a still mark). The shut door is the not-found family wearing a lock
- * (`e/[token]/page.tsx`'s private branch, word for word), and the line someone
- * who was in reads is the one `settings-wiring` adds to it.
+ *  - the wait is `WaitingDoor` itself, the held door's face without its
+ *    check-in loop (as the help center draws it), in the entry modal's step box;
+ *  - the shut door is `ShutDoor` itself on the page it ships on: its words
+ *    (`shutDoorCopy`), the line someone who was in reads (its `previous`), the
+ *    unlisted reader's own foot (`UnlistedAsk`), and the way back in for a
+ *    visitor signed out;
+ *  - the 404 is `e/[token]/not-found.tsx`'s page itself.
  *
- * ★ TODAY'S SHUT DOOR DRAWS NO BACK-IN LINE, because production's does not; the
- * unlisted ask is drawn, because `settings-wiring` builds it on this screen.
+ * What production draws inline, with no export, is quoted class for class: the
+ * welcome (`entry-modal.tsx`'s `WelcomeStep`: its hero, its byline, its two
+ * promise rows on pools, Continue and the consent line, standing 55svh in a
+ * hand) and "You're in" (`SuccessStep`). The page wears production's own
+ * padding (`py-20`, the shut door's and the 404's `main`).
  *
- * Its three shapes are the family's own: `split` is today exactly (the sheet
- * that opens, the page that does not); `shared` holds the shut door in the lit
- * sheet too (round one's "the door, held shut", in today's words); `bespoke`
- * gives the wait a page of its own (event-settings' `waiting=page`).
+ * ★ TODAY'S THREE SHAPES ARE THE FAMILY'S OWN: `split` is today exactly (the
+ * sheet that opens, the page that does not); `shared` holds the shut door in
+ * the lit sheet too, `DoorHeading` in `shutDoorCopy`'s words (round one's "the
+ * door, held shut"); `bespoke` gives the wait a page of its own (event-settings'
+ * `waiting=page`), the not-found family in `waitingCopy`'s words. The two waits
+ * that do not ship (`live`, `pick`) are today's held door with the option's
+ * addition, composed from its heading and its words.
  */
 export function TodayDoor(p: DoorProps) {
   const { reader, wait, album } = p;
@@ -61,7 +64,7 @@ export function TodayDoor(p: DoorProps) {
   if (p.container === "page") {
     if (p.state === "beat") {
       return (
-        <Page reader={reader}>
+        <Page reader={reader} className="py-20">
           <NotFoundScreen
             visual={<QuotedCheck hues={album} />}
             title={BEAT.title}
@@ -78,58 +81,31 @@ export function TodayDoor(p: DoorProps) {
       );
     }
     if (p.state === "wait") {
-      const words = waitWords("today", wait);
+      const copy = waitingCopy(HOST.name);
       return (
-        <Page reader={reader}>
+        <Page reader={reader} className="py-20">
           <NotFoundScreen
             icon={Clock}
-            title={words.title}
-            description={<span data-ld-words>{prose(words.lines)}</span>}
-            actions={
-              wait === "pick" ? (
-                <div className="w-full max-w-sm text-left">
-                  <PickBlock phase="ready" />
-                </div>
-              ) : null
+            title={copy.title}
+            description={
+              wait === "live" ? `${TOLD.text} ${copy.reason}` : copy.reason
             }
-            footnote={<AskedMark live={wait === "live"} hue={HOUSE[0]} />}
+            actions={<WaitHold wait={wait} align="center" />}
           />
         </Page>
       );
     }
-    // The shut door, and the line someone who was in reads on it.
-    const words = shutWords("today", reader.wasIn);
+    // The shut door as it ships, and the line someone who was in reads on it.
     return (
-      <Page reader={reader}>
-        <NotFoundScreen
-          icon={Lock}
-          title={words.title}
-          description={<span data-ld-words>{prose(words.lines)}</span>}
-          actions={
-            reader.unlisted ? (
-              <div data-ld-ask className="flex flex-col gap-2">
-                <Button size="cta" tabIndex={-1}>
-                  {UNLISTED.ask}
-                </Button>
-                <Button
-                  size="cta"
-                  variant="ghost"
-                  className="text-muted-foreground"
-                  tabIndex={-1}
-                >
-                  {UNLISTED.other}
-                </Button>
-              </div>
-            ) : (
-              <Button
-                data-ld-way-out
-                size="cta"
-                variant="outline"
-                tabIndex={-1}
-              >
-                {WAY_OUT}
-              </Button>
-            )
+      <Page reader={reader} className="py-20">
+        <ShutDoor
+          previous={reader.wasIn}
+          signedIn={reader.confirmed}
+          returnTo={`/e/${EVENT.token}`}
+          ask={
+            reader.unlisted
+              ? { qrToken: EVENT.token, hostName: HOST.name }
+              : null
           }
         />
       </Page>
@@ -180,90 +156,82 @@ export function TodayDoor(p: DoorProps) {
     );
   }
 
-  if (p.state === "wait" || p.state === "beat") {
-    const words = waitWords("today", wait);
-    const beat = p.state === "beat";
+  if (p.state === "beat") {
     return (
       <Held
         reader={reader}
         behind={<RiverBehind named />}
-        hues={beat ? album : HOUSE}
-        lamp={beat ? "bloom" : "base"}
+        hues={album}
+        lamp="bloom"
       >
-        {beat ? (
-          <div className="flex flex-col items-center gap-4 py-8 text-center">
-            <QuotedCheck hues={album} />
-            <BeatWords pick={wait === "pick"} />
-          </div>
-        ) : (
-          <div className="flex flex-col gap-5">
-            <DoorHeading
-              eyebrow={
-                <AlmostIn>
-                  <span data-ld-words>{words.eyebrow}</span>
-                </AlmostIn>
-              }
-              title={
-                <span data-ld-words data-ld-title>
-                  {words.title}
-                </span>
-              }
-              reason={<span data-ld-words>{prose(words.lines)}</span>}
-            />
-            <span className="flex">
-              <AskedMark live={wait === "live"} hue={HOUSE[0]} />
-            </span>
-            {wait === "pick" && <PickBlock phase="ready" />}
-          </div>
-        )}
+        <div className="flex flex-col items-center gap-4 py-8 text-center">
+          <QuotedCheck hues={album} />
+          <BeatWords pick={wait === "pick"} />
+        </div>
       </Held>
     );
   }
 
-  // `shared`: the shut door held in the lit sheet, in today's words.
-  const words = shutWords("today", reader.wasIn);
+  // Every held step but the welcome and the beat stands in the entry modal's
+  // step box, whose `pt-7` clears the back chevron's row.
+  if (p.state === "wait") {
+    return (
+      <Held reader={reader} behind={<RiverBehind named />} hues={HOUSE}>
+        <div className="pt-7">
+          <TodayWait wait={wait} />
+        </div>
+      </Held>
+    );
+  }
+
+  // `shared`: the shut door held in the lit sheet, in today's words, on its foot.
+  const copy = shutDoorCopy(reader.wasIn);
   return (
     <Held reader={reader} behind={<RiverBehind named={false} />} hues={HOUSE}>
-      <div className="flex flex-col gap-6">
-        <DoorHeading
-          title={
-            <span data-ld-words data-ld-title>
-              {words.title}
-            </span>
-          }
-          reason={<span data-ld-words>{prose(words.lines)}</span>}
-        />
-        <Foot reader={reader} backIn={false} />
+      <div className="flex flex-col gap-6 pt-7">
+        <DoorHeading title={copy.title} reason={copy.description} />
+        <Foot reader={reader} />
       </div>
     </Held>
   );
 }
 
 /**
- * THE 404 AS IT SHIPS (`e/[token]/not-found.tsx`), word for word, under the
- * session-less bar: the `lost=own` answer in every direction, and today's
- * `follows` too, since today's shut door is already its sibling.
+ * THE WAIT IN TODAY'S SHEET: `WaitingDoor` itself for the wait as it ships
+ * (`still`); for the two that do not ship, its heading (the clock in the
+ * eyebrow, `waitingCopy`'s words, the told line first under `live`) over the
+ * option's hold (`WaitHold`: the ticking clock, or her picks under today's mark).
+ */
+function TodayWait({ wait }: { wait: WaitId }) {
+  if (wait === "still") return <WaitingDoor hostName={HOST.name} />;
+  const copy = waitingCopy(HOST.name);
+  return (
+    <div className="flex flex-col gap-6">
+      <DoorHeading
+        eyebrow={
+          <>
+            <DoorGlyph icon={Clock} hue={1} className="size-3" />
+            {HELD.eyebrow}
+          </>
+        }
+        title={copy.title}
+        reason={wait === "live" ? `${TOLD.text} ${copy.reason}` : copy.reason}
+      />
+      <WaitHold wait={wait} />
+    </div>
+  );
+}
+
+/**
+ * THE 404 AS IT SHIPS: `e/[token]/not-found.tsx`'s page itself (its
+ * session-less bar, its words, its help line and its demo link), the `lost=own`
+ * answer in every direction, and today's `follows` too, since today's shut door
+ * is already its sibling.
  */
 export function TodayLost() {
   return (
-    <Page bar>
-      <NotFoundScreen
-        icon={QrCode}
-        eyebrow={LOST.eyebrow}
-        title={LOST.title}
-        description={<span data-ld-words>{LOST.line}</span>}
-        actions={
-          <Button data-ld-way-out size="cta" tabIndex={-1}>
-            {WAY_OUT}
-          </Button>
-        }
-        help={<HelpLine href="/help">{LOST.help.link}</HelpLine>}
-        footnote={
-          <span className="font-medium text-brand underline-offset-4">
-            {LOST.demo}
-          </span>
-        }
-      />
-    </Page>
+    <div className="flex min-h-svh flex-col bg-background text-foreground">
+      <GuestNotFound />
+    </div>
   );
 }

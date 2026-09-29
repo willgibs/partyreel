@@ -25,6 +25,18 @@ predecessor did, what remains and what it measured, read from its transcript
 checkpoint or finish a lane's work for it (Will: see every agent's vision through); only a lane that handed off is
 integrated as it stands.
 
+## Consult the Advisor
+
+Fable advises; the Orchestrator decides (Will, 2026-09-29: two differently intelligent models working off each other).
+The Advisor is a read-only agent spawned once a session from `advisor-prompt.txt` (`subagent_type: Plan`, model
+`fable`; its id in the pickup) and asked by SendMessage, one question at a time, so its context carries from one
+consult to the next; from another session, respawn it. Ask it when a second mind pays for itself: a migration that
+drops, revokes or replaces a function, before it is applied (the SQL and its proofs against the live schema); a red
+gate or a live bug whose cause is not plain; a brief for a big, ambiguous lane, before the cut; a one-way door, before
+it goes to Will; a change across systems (auth and RLS, billing, storage, the purge); a milestone's risk read. Never a
+routine integration. A question carries its facts with their evidence, the leaning and what would settle it; where the
+answer changes a call, the record says so, and a disagreement on a one-way door goes to Will with both views.
+
 ## Run a round
 
 - **A board opens** on his ask (one line in chat, or `redesign` on a catalog entry) or on an improvement the
@@ -182,7 +194,8 @@ by a true hotfix: fixed on `main`, verified, back-merged to `launch-prep` the sa
 - `scope.sh code|lab|boards`: which of the paths on stdin need more than `pnpm test`, which the lab renders (its header
   holds the classes), and which boards they reach (`all` when it cannot tell); a path it does not know widens the gate.
 - `record.py`: the In-flight row and ROADMAP lines (its docstring); it refuses a changelog and a STATUS row.
-- `cut-lane.py`: a manifest from a spec. `spawn-prompt.txt`: the spawn prompt.
+- `cut-lane.py`: a manifest from a spec. `spawn-prompt.txt`: the spawn prompt. `advisor-prompt.txt`: the Advisor's
+  standing brief ("Consult the Advisor").
 - `negative.sh`: every refusal fed its known-bad input, after any kit change and before a day's first integration
   (`cost-readings.mjs` re-reads the cost each refusal was written for).
 - `alias-ensure.mjs` (with `vercel-lib.mjs`): the alias deployment; `DRY=1` reports without creating.

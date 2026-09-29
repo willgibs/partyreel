@@ -50,6 +50,8 @@ like the tool rather than the product, are [CLAUDE.md](../../CLAUDE.md)'s.
 Live testing uses disposable test data only.
 - **Accounts:** `willg97@gmail.com` the host on Pro, `hi@willgibs.com` a host on Free, `partyr33l@gmail.com` the
   operator (TOTP MFA). Google through the account chooser is authorized; typing a password or a code never is.
+  ★ willg97's and partyr33l's addresses each carry a dismissed child-abuse report (build 23's red-team), and that bar on
+  instant hides never lapses: a walk of the instant hide needs a fresh confirmed address.
 - **Seed through real uploads, never raw rows:** a `media` row with no R2 object renders broken and poisons later
   checks. The media fixtures are at `/Users/gibby/local/ai/partyreel-test-media`, and
   `node scripts/seed-demo-event.mjs <folder> [--host <email>] [--name <event>] [--guests "Maya J.,Tom R."] [--dry-run]`

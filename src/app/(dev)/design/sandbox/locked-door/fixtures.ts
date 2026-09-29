@@ -32,6 +32,11 @@ import { marketingImage } from "@/lib/constants/marketing-media";
 
 export const EVENT = {
   name: "Maya & Jay",
+  /**
+   * The album's address, for the real pieces that carry one (the unlisted ask,
+   * the shut door's way back in). Nothing is ever sent: every frame is inert.
+   */
+  token: "ld-maya-and-jay",
   /** `formatEventDate` reads it as the welcome's byline does. */
   date: "2026-09-12",
   /** The album's live count, as the welcome's promise row says it. */
@@ -56,9 +61,9 @@ export type Reader = {
   /** Who the header says this device is (`guest-header.tsx`'s two states). */
   who: { kind: "stranger" } | { kind: "member"; name: string; seed: string };
   /**
-   * A confirmed email on this device. The back-in line ("Already a guest?
-   * Confirm your email") is for a phone that has none: a confirmed reader has
-   * nothing left to prove, so it is not drawn for her.
+   * Signed in on this device, to a confirmed account, which is what the shut
+   * door reads (`ShutDoor`'s `signedIn`): its way back in ("Already a guest?
+   * Log in") is for a visitor signed out, so it is not drawn for her.
    */
   confirmed: boolean;
   /** Past the door before: the server knows it from her cookie or her account. */

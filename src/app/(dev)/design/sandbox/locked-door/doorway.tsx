@@ -6,7 +6,6 @@ import { type DoorProps, type Hues, seesAlbum } from "./door-props";
 import { ALBUM } from "./fixtures";
 import {
   AlbumBehind,
-  AskedMark,
   BeatWords,
   Eyebrow,
   Foot,
@@ -17,10 +16,10 @@ import {
   litVars,
   LostFoot,
   Page,
-  PickBlock,
   RiverBehind,
   Rows,
   revealAt,
+  WaitHold,
   WelcomeFoot,
 } from "./furniture";
 import {
@@ -137,7 +136,7 @@ const WAY: Record<DoorProps["state"], WayState> = {
 };
 
 const EYEBROW_MARK: Partial<Record<DoorProps["state"], Mark>> = {
-  wait: "lock",
+  wait: "clock",
   shut: "lock",
   "was-in": "lock",
 };
@@ -221,14 +220,7 @@ export function DoorwayDoor(p: DoorProps) {
                 ))}
               </div>
               {state === "wait" && (
-                <div className="mt-5 flex w-full flex-col items-center gap-4">
-                  <AskedMark live={wait === "live"} hue={HOUSE[0]} />
-                  {wait === "pick" && (
-                    <div className="w-full text-left">
-                      <PickBlock phase="ready" />
-                    </div>
-                  )}
-                </div>
+                <WaitHold wait={wait} align="center" className="mt-5" />
               )}
               {state !== "wait" && (
                 <div className="mt-8 w-full">
@@ -316,14 +308,7 @@ export function DoorwayDoor(p: DoorProps) {
             </p>
           </div>
           <Rows lines={words.lines} hues={hues} from={3} />
-          {state === "wait" && (
-            <div className="flex flex-col gap-4">
-              <span className="flex">
-                <AskedMark live={wait === "live"} hue={HOUSE[0]} />
-              </span>
-              {wait === "pick" && <PickBlock phase="ready" />}
-            </div>
-          )}
+          {state === "wait" && <WaitHold wait={wait} />}
           {state === "welcome" ? (
             <WelcomeFoot className="mt-auto" />
           ) : state === "wait" ? null : (

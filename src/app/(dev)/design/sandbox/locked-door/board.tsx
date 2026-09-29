@@ -20,7 +20,8 @@ import type { DirectionId, WaitId } from "./words";
  * THE PREVIEWS, AND NOTHING ELSE: every option is the door as a guest meets it,
  * in real frames at the width the Screen knob names, drawn by the direction's
  * own file (`today.tsx`, `host.tsx`, `lit.tsx`, `doorway.tsx`) through one
- * entry point (`family.tsx`'s `Door`) from `words.ts`.
+ * entry point (`family.tsx`'s `Door`): today by production's own pieces, the
+ * other three from `words.ts`.
  *
  * ★ `family` DRAWS EACH DIRECTION IN ITS OWN SHAPE (`NATURAL`); every later ask
  * is drawn in the direction the step hands it (the pick, the recommendation

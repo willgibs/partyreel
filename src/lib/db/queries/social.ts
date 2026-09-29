@@ -18,7 +18,7 @@
  *     for everyone"): every guest with an approved upload is on it, except a person the host
  *     blocked there (the per-event block, migration 20260928120000); a nameless upload never
  *     appears, and a named guest who proved no email is listed as a plain name with the mark,
- *     never as a profile card. `events.show_guest_list` is read by nothing.
+ *     never as a profile card.
  *   - ★ NO ADDRESS EVER LEAVES THIS MODULE (the guest identity round, 2026-09-22). `guests` reads
  *     here name their columns, and `pending_email` is never one of them: the unproved address a
  *     guest types at the door is inert, and the host sees the unverified mark, never it. A
@@ -987,8 +987,7 @@ export type GuestListItem = GuestListEntry | UnverifiedGuestListEntry;
  *
  * ★ ALWAYS ON (Will, event-safety `room=always`, 2026-09-28: "make the guest list always on, so a
  * host doesn't have to turn it on or learn special handling ... Always on for everyone"): there is no
- * host key to read, so [] means only "nobody has added a photo yet". `events.show_guest_list` stays
- * in the schema, unread, until a contract migration drops it.
+ * host key to read, so [] means only "nobody has added a photo yet".
  *
  * WHY the admin client: this is server-side composition for BOTH surfaces (the host event page
  * after getUser() ownership, and the guest /e/ page after the qr_token capability + password gate).

@@ -204,12 +204,8 @@ describe("the retired key is read and written by nothing (Will, `room=always`)",
   }
 
   it("★ no code in the tree names `show_guest_list` or `showGuestList` outside a comment", () => {
-    // The generated types keep the column until the contract migration drops it, and the Library's
-    // gallery fixture is a whole `events` row of those types, so both still spell it.
-    const allowed = new Set([
-      "src/lib/db/types.ts",
-      "src/app/(dev)/design/sandbox/gallery-fixtures.ts",
-    ]);
+    // The generated types keep the column until 20260929160000 is applied and they regenerate.
+    const allowed = new Set(["src/lib/db/types.ts"]);
     const naming = sources(join(process.cwd(), "src"))
       .map((file) => relative(process.cwd(), file))
       .filter((file) => !allowed.has(file))

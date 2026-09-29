@@ -15,8 +15,8 @@ A one-way door; `/privacy` and the Terms word it, so a change here changes them 
 - **A profile is public by existence:** claiming a handle is the consent act, and no `discoverable` flag exists. The
   marketing promise matches: a handle buys a page, not invisibility (`profiles-section.tsx` and two help articles say
   the same sentence, so all three move with the guest list's membership).
-- **Every event's guest list is always on** (Will, `room=always`: no host turns it on or learns special handling;
-  `events.show_guest_list` is read and written by nothing until a contract migration drops it): every named guest who
+- **Every event's guest list is always on** (Will, `room=always`: no host turns it on or learns special handling,
+  and no switch exists): every named guest who
   added photos is listed, confirmed or wearing the unverified mark, with no per-guest opt-in, and a person the host
   blocked from the event is on no list. A per-guest opt-in leaves lists
   near-empty (a disappointed host, a starved social side, one more thing for a new guest to read before uploading),
@@ -117,9 +117,8 @@ A one-way door; `/privacy` and the Terms word it, so a change here changes them 
   relationship and service mail default on with a per-category opt-out, for account holders only (a guest without an
   account receives none of it); marketing stays explicit opt-in. Every send resolves them through
   `resolveNotificationPrefs`, and one send has a switch today: the renewal nudge, Event Pass reminders
-  (`notify_pass_renewal`). The card draws only switches with a mail behind them; the three columns for mail nothing
-  sends (`notify_album_shared`, `notify_new_uploads_digest`, `notify_new_follower`) are read and written by nothing
-  and wait on Will's yes to drop. Rows are lazy (absent means `NOTIFICATION_PREF_DEFAULTS`; a parity test pins
+  (`notify_pass_renewal`). The card draws only switches with a mail behind them, and the table holds no others. Rows
+  are lazy (absent means `NOTIFICATION_PREF_DEFAULTS`; a parity test pins
   TypeScript to SQL), and `user_id` is insertable, never updatable, so `setNotificationPrefs` updates then inserts (a
   PostgREST upsert would `SET user_id`).
 - **The event settings' `ProfileSocialCard` sits outside the settings form:** its one switch (Show on my profile) is
