@@ -62,6 +62,27 @@ export const PRESS_PAGE = defineExploration({
   },
   context:
     "Will's stacking steer (2026-09-19): /press is unprotected, open to relitigate from the ground up. Seven decisions on PageHero, PressSection, PressSheet and the copy buttons. Not in this round: any production byte, the kit's build script, or the killed sitewide media kit.",
+  opening: {
+    about:
+      "What Partyreel hands the press on /press: who the page is for, the assets, the words, the facts, and how it closes.",
+    settled: [
+      "Press folds into /about (your who-for pick); the About round redraws the page there.",
+      "The asset sheet carries one plain line on how the marks may be used (your usage-note pick).",
+      "How the words hand over and how checkable the facts are came back not clear, and wait for that round.",
+    ],
+  },
+  terms: [
+    {
+      term: "fact sheet",
+      means:
+        "The /press section of plain facts about Partyreel, the press contact among them.",
+    },
+    {
+      term: "no-names rule",
+      means:
+        "The site names nobody on the team; /about's origin story is the one place it bends.",
+    },
+  ],
   asks: [
     /* ── 1. Who the page is for ─────────────────────────────────────────── */
     {
@@ -69,7 +90,7 @@ export const PRESS_PAGE = defineExploration({
       label: "Who the page is for",
       question: "Who should /press be built for?",
       context:
-        "One page serves a reporter, a partner and a curious guest alike today: one masthead, one kit, one line. The ROADMAP notes /press \"grows into the partnerships kit\"; /contact already serves both through one topic, \"Press & partnerships\".",
+        'One page serves a reporter, a partner and a curious guest alike today: one masthead, one kit, one line. The ROADMAP notes /press "grows into the partnerships kit"; /contact already serves both through one topic, "Press & partnerships".',
       options: [
         {
           id: "one-page",
@@ -136,7 +157,8 @@ export const PRESS_PAGE = defineExploration({
         "A publication downloading these marks today is told nothing about what it may do with them; one line closes that real gap without reopening the internal brand book (clear space, minimum size), which is a design team's own business, not a press reader's.",
       overrule:
         "If even one line reads as a brand book creeping onto a press page, the plain eight plates stay the cleaner, silent version; a curious editor can still ask.",
-      lands: "press-sheet.tsx's Frame list; PRESS_KIT's shape stays whatever wins.",
+      lands:
+        "press-sheet.tsx's Frame list; PRESS_KIT's shape stays whatever wins.",
     },
 
     /* ── 3. How the words are handed over ───────────────────────────────── */
@@ -161,7 +183,8 @@ export const PRESS_PAGE = defineExploration({
         {
           id: "founder-voice",
           label: "A written voice, attributed",
-          means: "The same two lengths, plus one first-person line signed with a name.",
+          means:
+            "The same two lengths, plus one first-person line signed with a name.",
         },
       ],
       recommended: "paragraph-and-line",
@@ -169,7 +192,8 @@ export const PRESS_PAGE = defineExploration({
         "A sentence and a paragraph already cover a caption and a story; a third length is real writing nobody has asked for, and a signed line reopens the zero-team rule for a page that reads fine without a face.",
       overrule:
         "If a longer written account would save a partner or a feature real work, the three lengths.",
-      lands: "constants/press.ts's boilerplate family and the Words section's copy blocks.",
+      lands:
+        "constants/press.ts's boilerplate family and the Words section's copy blocks.",
     },
 
     /* ── 4. How checkable the facts are ─────────────────────────────────── */
@@ -178,7 +202,7 @@ export const PRESS_PAGE = defineExploration({
       label: "How checkable the facts are",
       question: "How checkable should the fact sheet be?",
       context:
-        "PRESS_FACTS renders twelve rows, prices from tiers.ts. It already feeds /llms.txt and /llms-full.txt with no link from the page. The reel round retells two rows in place, \"Hosts get\" and \"Not this\" (press.ts:61, :80).",
+        'PRESS_FACTS renders twelve rows, prices from tiers.ts. It already feeds /llms.txt and /llms-full.txt with no link from the page. The reel round retells two rows in place, "Hosts get" and "Not this" (press.ts:61, :80).',
       options: [
         {
           id: "rendered-rows",
@@ -188,18 +212,21 @@ export const PRESS_PAGE = defineExploration({
         {
           id: "rows-plus-url",
           label: "Rows, plus a linked copy for a script",
-          means: "The same rows, with a small link to the llms-full.txt table beside them.",
+          means:
+            "The same rows, with a small link to the llms-full.txt table beside them.",
         },
         {
           id: "stat-strip",
           label: "A stat strip in the masthead",
-          means: "Three or four headline facts move into the hero; the full sheet stays below.",
+          means:
+            "Three or four headline facts move into the hero; the full sheet stays below.",
         },
       ],
       recommended: "rows-plus-url",
       because:
         "The machine-readable file already exists and is fed by this exact array, so pointing at it costs one link and hands a copy desk's tooling the same table a person reads.",
-      overrule: "If the hero should argue in facts before anything else, the stat strip.",
+      overrule:
+        "If the hero should argue in facts before anything else, the stat strip.",
       lands: "The fact-sheet PressSection's aside, beside How it works.",
     },
 
@@ -208,32 +235,49 @@ export const PRESS_PAGE = defineExploration({
       id: "a-human",
       label: "Whether anyone is named",
       question: "Should anyone be named on the page?",
+      where: ["Marketing", "The press page", "The fact sheet's contact"],
+      when: "A reporter on /press looks for who to write to; the fact sheet lists help@partyreel.com and no name.",
       context:
-        "The fact sheet reads help@partyreel.com today, the sitewide zero-team rule's default. No spokesperson appears anywhere on /press; the retired press-identity round's reasoning survives only as a code comment pointing at a deleted doc.",
+        "Today the fact sheet gives help@partyreel.com, as the no-names rule has it, and nobody is named anywhere on /press. Each option keeps that row and its address; only what sits beside it changes.",
       options: [
         {
           id: "role-only",
           label: "A role address only, as today",
           means: "help@partyreel.com on the fact sheet; no name anywhere.",
+          gains:
+            "No name to keep current, and anyone on the team can answer it.",
+          costs:
+            "Reads faceless: a reporter can't tell who, if anyone, is behind it.",
         },
         {
           id: "named-contact",
           label: "One named press contact",
           means:
             "A real name sits beside the role, no biography, the way a masthead lists an editor.",
+          gains:
+            "A real person to write to, the way a masthead lists an editor.",
+          costs:
+            "A name to keep current, and the no-names rule bends a second time.",
         },
         {
           id: "founder-card",
           label: "A founder card",
           means:
             "A small card names someone with a title and a line, reopening the rule /about already relaxes once.",
+          gains:
+            "The warmest: a name, a title and a line about who runs Partyreel.",
+          costs: "Reopens the no-names rule that /about already bent once.",
         },
       ],
       recommended: "role-only",
       because:
-        "The zero-team rule holds sitewide with one relaxation already spent on /about's origin story; a role address is also the one contact a small team can always answer, whoever is on call.",
-      overrule: "If reporters keep asking who to actually write to, the named contact, short of a full card.",
-      lands: "PRESS_FACTS's Press contact row, and whether a name joins it.",
+        "A role address holds the no-names rule and is the one contact a small team can always answer, whoever is on call.",
+      overrule:
+        "If reporters keep asking who to actually write to, the named contact, short of a full card.",
+      lands:
+        "The fact sheet's press contact row, and whether a person's name joins it.",
+      matters:
+        "A named person earns a reporter's trust faster, but every name on the site is one someone must answer to.",
     },
 
     /* ── 6. How the page closes (waits on a-human: the close names whoever that names) ── */
@@ -241,32 +285,44 @@ export const PRESS_PAGE = defineExploration({
       id: "the-close",
       label: "How the page closes",
       question: "How should the page close?",
+      where: ["Marketing", "The press page", "Its last section"],
+      when: "A reporter reaches the foot of /press and wants to get in touch.",
       context:
-        "The close today is a centred block, a heading, a line, and a button to /contact with no topic picked; the masthead's own subhead also carries a plain mailto. /contact's topic list already has a Press chip, unused by either.",
+        "Today the page ends on a heading, a line and a button to /contact with no topic picked, and its top carries a plain email link. /contact already offers a Press topic, which neither uses.",
       options: [
         {
           id: "as-today",
           label: "A plain link to /contact, as today",
           means: "One button, no topic carried, unchanged.",
+          gains: "Nothing changes: one plain button.",
+          costs: "She lands on /contact and must find the Press topic herself.",
         },
         {
           id: "contact-door",
           label: "The same door, Press pre-picked",
           means:
             "The button hands /contact its own Press chip already chosen, the way a help article's link already does for its topic.",
+          gains: "One tap lands her on /contact with Press already chosen.",
+          costs: "Still a page away before she can write.",
         },
         {
           id: "inline-form",
           label: "A short form, inline",
-          means: "A note and a way to reply sit right here; the page never hands the reader off.",
+          means:
+            "A note and a way to reply sit right here; the page never hands the reader off.",
+          gains: "She writes right here and is never sent to another page.",
+          costs: "A second form to build and keep in step with /contact's.",
         },
       ],
       recommended: "contact-door",
       because:
-        "The chip already exists and the handoff pattern already exists for help articles; pre-picking Press is a small, honest extension of both rather than a new mechanism.",
+        "The Press topic already exists and help articles already pre-pick theirs, so carrying it here is a small, honest step.",
       overrule:
         "If a page hop costs more than this button is pressed to be worth routing at all, the plain link stays right.",
-      lands: "The close section's href in page.tsx, and a query param /contact would need to read it.",
+      lands:
+        "Where the page's last button goes, and whether /contact opens with Press already picked.",
+      matters:
+        "It is the one action the page asks for; how far it sends a reporter decides whether the note gets written.",
       after: { ask: "a-human" },
     },
 
@@ -281,7 +337,8 @@ export const PRESS_PAGE = defineExploration({
         {
           id: "today-order",
           label: "Masthead, assets, words, facts, close, as today",
-          means: "The sheet opens the body; the checkable version comes right before the close.",
+          means:
+            "The sheet opens the body; the checkable version comes right before the close.",
         },
         {
           id: "facts-words-first",
@@ -292,7 +349,8 @@ export const PRESS_PAGE = defineExploration({
         {
           id: "one-screen",
           label: "One sheet, no scroll, at 1440",
-          means: "All three sections compress into one dense screen at 1440; a phone still stacks.",
+          means:
+            "All three sections compress into one dense screen at 1440; a phone still stacks.",
         },
       ],
       recommended: "today-order",
