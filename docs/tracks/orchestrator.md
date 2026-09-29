@@ -44,6 +44,33 @@ a lane").
 | `crumbs-14` | the hub row's stick loop, the screen popup's back label, the admin sign-in's asked page, a refused sign-out, the pricing teaser's price, a lowercase bullet | running (agent `a0de18f02690ad5a8`) | Opus, 3135 | |
 | `lab-revamp` | stage two, the plumbing: a board as one self-registering folder, scoped lab checks, the trimmed API, the words renamed, the kit following (holds registry.ts and boards.ts; PROGRAM.md's lines come in its Handoff) | running, resumed (agent `a6b4519e3d363d7dd`) | Opus, 3133 | |
 
+**Handoff across accounts (written 2026-09-29, the old account at ~97% of its weekly limit).** The old Orchestrator
+session is `b01c012e-f59c-432b-9873-9f4226c036f2`; its agent ids above are unreachable from a new session, so each
+running lane is respawned on its worktree per the runbook's "Resume a lane" (`usher/kit/README.md`): kill by port any
+dev server left on 3131 to 3135 first, then give the fresh agent `spawn-prompt.txt` filled (same track, same port)
+plus: "You are resuming a lane whose agent was cut off by a usage limit: read your manifest's `## Where I am` (each lane
+was asked to write it and push a WIP commit at the limit), `git log` and `git status` in your worktree, and your
+predecessor's transcript at `~/.claude/projects/-Users-gibby-local-ai-partyreel/b01c012e-f59c-432b-9873-9f4226c036f2/subagents/agent-<id>.jsonl`
+only where those leave a gap; a stale `.next/dev/lock` may be deleted; continue to your own handoff." The lanes:
+- `settings-wiring` (`../partyreel-wt/settings-wiring`, 3131, agent `aefdc4b3cecd92f74`): mid-work. The Orchestrator's
+  relays it took mid-lane, to re-send if its `## Where I am` lacks them: skip every legal draft (legal is rewritten once
+  before launch); crumbs-12's notes (`EVENT_ROOMS` order, `edge-fade-scroller.tsx`, headings `font-heading` alone at
+  700, the SWC space trap, `your-event-page-explained.mdx`'s old card order); `unlisted=ask` on the shut door's foot
+  ("Ask Maya to let me in", then "Use a different email"); a sheet opened from a link cannot be closed
+  (`event-share-provider.tsx:113-115`) and the custom link's error is unannounced; revoke PUBLIC EXECUTE when replacing
+  `get_event_by_qr_token`.
+- `triage-r2-wiring` (`../partyreel-wt/triage-r2-wiring`, 3134, agent `a432fe0336dc35587`): mid-work, no relays.
+- `crumbs-14` (`../partyreel-wt/crumbs-14`, 3135, agent `a0de18f02690ad5a8`): mid-work, no relays.
+- `lab-revamp` stage two (`../partyreel-wt/lab-revamp`, 3133, agent `a6b4519e3d363d7dd`): mid-work; its notes
+  `../partyreel-wt/_scratch/lab-revamp/stage-two.md`.
+- Build 22's red-team (agent `a90806c230d378b26`): if its report never arrived, respawn it from
+  `../partyreel-wt/_scratch/redteam-22/brief.md`, skipping what its `ledger.txt` already shows done.
+- `schema-pass` is not running: it handed off blocked (the classifier refused its migration file). On Will's yes,
+  respawn it into `../partyreel-wt/schema-pass` (3132) with his words quoted, from its manifest on `origin/lp/schema-pass`.
+The old session's scratchpad (`/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/b01c012e-f59c-432b-9873-9f4226c036f2/scratchpad`,
+until a reboot) holds the batch's specs (`specs/<track>.json`) and gate logs; nothing there is needed that these lines
+and the manifests do not carry.
+
 Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcribed at `31de6aa0`: 41 answers on ten
 boards). Wave A: `settings-wiring` (all nine event-settings picks, the doors end to end), `locked-door` r2 (the door
 family), `disposable-mode` r2, `crumbs-12`. Batch 7 is merged whole; its records carry the rest.
