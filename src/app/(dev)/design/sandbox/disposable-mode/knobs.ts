@@ -1,14 +1,15 @@
 import type { Control } from "@/components/lab/board-spec";
 
 /**
- * THE BOARD'S TWO KNOBS, AS PURE DATA: split from the client files so
- * `spec.ts` can declare them without importing React into a module
- * `registry.ts` hands to a server page (`registry.test.ts`'s own rule).
+ * THE BOARD'S KNOBS, AS PURE DATA: split from the client files so `spec.ts`
+ * can declare them without importing React into a module `registry.ts` hands
+ * to a server page (`registry.test.ts`'s own rule).
  *
  * ★ 375 FIRST. A disposable is shot standing up at a party, so every guest
- * frame is a phone and only a phone. The host's two surfaces (Create and
- * Settings) are set up at a desk as often as in a hand, so the decision about
- * them carries this knob and draws both.
+ * frame is a phone and only a phone. The host's two surfaces (her hub and
+ * Create) are used at a desk as often as in a hand, so the decisions about
+ * them carry the Screen knob and draw both. The room's screen is its own
+ * size: a 16:9 wall.
  */
 export const SCREEN: Control = {
   id: "screen",
@@ -23,29 +24,50 @@ export const SCREEN: Control = {
 export const SCREENS = {
   "375": { w: 375, h: 812, name: "a phone" },
   "1440": { w: 1440, h: 900, name: "a laptop" },
+  /** The room's screen: a 16:9 television or a projector, at 1440 wide. */
+  wall: { w: 1440, h: 810, name: "the room's screen" },
 } as const;
 
 export type ScreenId = keyof typeof SCREENS;
 
-export const screenOf = (v: unknown): ScreenId =>
+export const screenOf = (v: unknown): "375" | "1440" =>
   v === "1440" ? "1440" : "375";
 
 /**
- * SHOTS EACH, on the price decision: the roll's length is what a Free event's
- * room is spent on, so every estimate is drawn at the length the knob holds.
- * 24 is the default (the carried call `shots`); 10 is a dinner, 36 a long
- * roll.
+ * THE ROLL'S LOOK, the host's pick (round one's `look=stocks`, settled as
+ * never baked): every frame that shows a photograph wears it, so each camera
+ * and each room can be read in each of the three. Warm is the default
+ * because it is the disposable's own cast.
  */
-export const SHOTS: Control = {
-  id: "shots",
-  label: "Shots each",
+export const STOCK: Control = {
+  id: "stock",
+  label: "The roll's look",
   options: [
-    { id: "10", label: "10 each" },
-    { id: "24", label: "24 each" },
-    { id: "36", label: "36 each" },
+    { id: "warm", label: "Warm" },
+    { id: "cool", label: "Cool" },
+    { id: "mono", label: "B&W" },
   ],
-  default: "24",
+  default: "warm",
 };
 
-export const shotsOf = (v: unknown): number =>
-  v === "10" ? 10 : v === "36" ? 36 : 24;
+export type StockId = "warm" | "cool" | "mono";
+
+export const stockOf = (v: unknown): StockId =>
+  v === "cool" ? "cool" : v === "mono" ? "mono" : "warm";
+
+/**
+ * REVIEW, on the host's peek: with review on a shot develops once she
+ * approves it (settled), so each way of hiding the roll has to say what the
+ * queue shows. Off is a new event's default.
+ */
+export const REVIEW: Control = {
+  id: "review",
+  label: "Review uploads",
+  options: [
+    { id: "off", label: "Review off" },
+    { id: "on", label: "Review on" },
+  ],
+  default: "off",
+};
+
+export const reviewOf = (v: unknown): boolean => v === "on";
