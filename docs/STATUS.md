@@ -39,9 +39,9 @@ on /about and its facts); the two older asks retired into them as carried calls.
   door redirects; the signed-in pass PASS (the renew return, the hub past 1,000, the list always on, the look's
   Block, Settings whole, the reel, the owner's password album, the slug refusal). `admin.partyreel.com` is served by `partyreel-admin`
   (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel` (`=app`).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 25 (`c038e4eb`), red-teamed live
-  23 of 23 (Settings whole, the doors, triage, the contact note, the FAQ and the egg, the desk); its finds are
-  `crumbs-19`'s. Build 26 (menu-depth's record) is deploying, its red-team next.
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 26 (`d67e94ba`): build 25
+  (red-teamed live, 23 of 23) plus crumbs-17's door and report fixes, crumbs-18's history and help fixes, the album
+  page's hero, the dropdown's third level, and the desk's two new boards; its red-team runs.
 - **The shared database** runs eleven migrations applied 2026-09-29 (the block, the free shift, the operator removal
   purge, the help's feedback, the pass reminders switch, likes on private albums, the slug family, the doors, the triage
   rebuild, the invite list's admit, and schema-pass part 1: six unused columns and their indexes dropped, `anon`'s table

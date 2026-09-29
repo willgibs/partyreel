@@ -79,11 +79,12 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
 
 1. **Integrate each lane as it hands off** (crumbs-19, privacy-hero-r4, crumbs-20, crumbs-21), each migration by protocol, one at a time: drift check, apply verbatim, the rolled-back refusals,
    advisors, types.
-2. **Build 26** (`[preview]` at menu-depth's record, `alias-ensure.mjs`, prune): crumbs-17, unfence, album-motion, the
+2. **Build 26 is on the alias** (`d67e94ba`, 2026-09-29; its red-team running, agent `a60d7ff323978f40e`): crumbs-17, unfence, album-motion, the
    types after both migrations, crumbs-18, demo-framing r2, about-press r1 and menu-depth. Then its red-team (Opus, the
    build 25 brief's shape): crumbs-17's listed walks, crumbs-18's seven (`git show cdc979a6^2:docs/tracks/crumbs-18.md`),
    the account menu's Theme at 375 and at a desk (menu-depth, merged at `2becfa60`), and the desk with its two new boards
-   (the brief: `../partyreel-wt/_scratch/redteam-26/brief.md`). Then milestone 31
+   (the brief and its ledger: `../partyreel-wt/_scratch/redteam-26/`; from another session, respawn from the brief after
+   the ledger's last line). Then milestone 31
    is proposed to Will (his yes); schema-pass's part 2 applies after it ships.
 3. **Seats as they free** (at most four lanes; `memory_pressure` before each; app work first, Will's note): the lab's
    phone fold (ROADMAP's line: at 375 every standing board's step starts its stage past a screen, found by three lanes).
