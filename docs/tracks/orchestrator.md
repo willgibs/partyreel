@@ -40,14 +40,13 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `crumbs-8` | build 17's red-team findings: the card route's per-viewer answer behind a public cache, Event Settings' crushed cards, `like_media`'s tell (a migration), the dark slider, the 1% floor, the restore toast, two stale lines, /pricing's wrapping toggle; /features/guests and the blog's FAQ | running, agent `aed5ac7c3fa44326b` | Opus, :3131 | |
 | `crumbs-9` | eight small ROADMAP items: the untyped `article_feedback` seams, the help's ⌘K chip on a phone and `report-a-problem-as-a-guest`'s screens, the hero's headline fold at 470 to 767, two stale notes, the portal's Library specimens, a restore losing its custom link in silence | running, agent `ae2f802a7cf6d56e9` | Sonnet, :3134 | |
 
 Batch 7 (cut `35601390`, 2026-09-28) answers Will's sitting on build 15 (transcribed at `69afdbc5`: 21 answers on
 hero-card, voice-guest, host-storage, event-safety, export-flow). Wave A, four lanes: three new boards and the block.
 Wave B follows as seats free. Batch 6 (sixteen lanes) is merged whole; its records carry the rest.
 
-Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, event-settings, voice-wiring, pricing-wiring, triage-r2, safety-wiring, hero-wiring, triage-wiring, export-wiring, help-wiring, emails-wiring, demo-framing.
+Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, event-settings, voice-wiring, pricing-wiring, triage-r2, safety-wiring, hero-wiring, triage-wiring, export-wiring, help-wiring, emails-wiring, demo-framing, crumbs-8.
 
 ## Next, in order
 
