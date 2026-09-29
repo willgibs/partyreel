@@ -40,9 +40,10 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `crumbs-16` | build 23's HIGH bug at its root (a history call hands Next its own `__NA` state, so Settings rows never open their page and a page's back arrow never returns), the same shape swept and held by a policy test; triage-r2-wiring's relayed help article | handed back after gate 71: with its change `demo-framing.names` hangs (`Page.navigate` never answers; it passes on `61a4ee00` without the change), so the unpushed merge was undone; resumed to fix it at its root with a failing test and re-run `lab:demo` over every board (agent `a5ddc145d2b108533`; worktree `../partyreel-wt/crumbs-16`) | Sonnet, 3133 | |
-| `schema-pass` | the data architecture audited, its migration refused by the classifier; resumed on Will's yes (2026-09-29): asked "May the lane write its two migration files and run those proofs?", he answered "Yes, write and prove"; told to close `public.reports`' default grants too (the red-team's note) | running (agent `ad2f22b2fb01a8a6e`; worktree `../partyreel-wt/schema-pass`) | Opus, 3132 | |
+| `schema-pass` | the data architecture trimmed on Will's yes (asked "May the lane write its two migration files and run those proofs?", he answered "Yes, write and prove") | merged at `57b17ace` (gate 73); part 1 (`20260929160000`) waits for the Advisor's read, then applies by protocol; part 2 after milestone 31 | Opus, 3132 | `54f414f9` |
 | `event-ready` | r1, a board: how a host knows her event is ready (an event checklist, the settings' mini wizard and whether Create shares it, a never-empty "what needs you", the hub's code as the live door); the first board authored in the one-folder shape | running (agent `a758ad3af55bfe3a7`; worktree `../partyreel-wt/event-ready`) | Opus, 3135 | |
 | `album-motion-wiring` | album-motion r1: the hero's two symmetrical streams, each photograph drawn in and dissolving at the album's edge, then pushed into the album from the left as a real upload arrives; retires `sandbox/album-motion/` in-lane | running (agent `a59b9b5183feee95f`; worktree `../partyreel-wt/album-motion-wiring`) | Opus, 3131 | |
+| `window-notes` | a note of Will's binds only what it was given on: stop the lab merging board-less window notes into every board (his three brand-voice notes of 2026-09-17 have bound every board since), window notes expire with their sitting, program-wide notes are the Orchestrator's to fold in; a read-only audit of other board notes turned rules | running (agent `a8e2499b27081d552`; worktree `../partyreel-wt/window-notes`) | Sonnet, 3132 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
 its first question was the `demo-framing.names` hang. From another session, respawn it from `usher/kit/advisor-prompt.txt`.
@@ -62,6 +63,8 @@ account, and the relays below, which live only in the agents:
   finishes; the Vercel MCP does not reach the P3 team.
 - `schema-pass`: Will's yes quoted (its row), and `public.reports`' default anon and authenticated grants closed in
   part 1.
+- `event-ready` (and every board lane until `window-notes` merges): the desk's three "every board" notes were Will's
+  notes on the retired brand-voice board, misfiled; they bind no board.
 - `crumbs-16`: handed back with the evidence (its row): reproduce the `demo-framing.names` hang on its own port, fix it at
   its root with a test that fails on its current code, re-run `lab:demo` over every board and `lab:smoke`, hand off again.
 
