@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import { BrowserFrame, PhoneShell } from "@/components/marketing/frames";
 import { useAmbientPause } from "@/lib/shared/use-ambient-pause";
 import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
@@ -9,7 +11,8 @@ import {
   EVERYWHERE_FRAME_H,
   EVERYWHERE_SEED_COUNT,
 } from "./album-fill-fixtures";
-import { AlbumFillGrid } from "./album-fill-grid";
+import { AlbumFillGrid, type PeekRequest } from "./album-fill-grid";
+import { EverywherePeek } from "./everywhere-peek";
 import { useAlbumFill } from "./use-album-fill";
 
 /**
@@ -24,20 +27,35 @@ import { useAlbumFill } from "./use-album-fill";
  * the laptop keeps the hero's three. Quiet by design: no lamp, no count line,
  * no Replay, no upload prelude, a slower beat, and a loop bounded to four
  * tiles a column so the DOM never grows.
+ *
+ * ★ THE EASTER EGG (`loose-ends` r1, `everywhere-pill=corner`): the newest tile
+ * on each screen wears a small expand mark, and a press on any tile opens that
+ * photograph in a small lightbox that says it is a demo and closes on any tap
+ * (`everywhere-peek.tsx`). Pointer-only, so the stage stays `aria-hidden`: this
+ * is decoration with a surprise in it, and a tab stop inside an aria-hidden
+ * region would be worse than none. The loop holds still while the lightbox is
+ * up, so the album is where the visitor left it when it closes.
  */
 export function EverywhereStage() {
   const reduced = usePrefersReducedMotion();
   const { ref, paused } = useAmbientPause<HTMLDivElement>();
+  // `peek` outlives `open`: the lightbox's exit still draws its photograph.
+  const [peek, setPeek] = useState<PeekRequest | null>(null);
+  const [open, setOpen] = useState(false);
   const view = useAlbumFill({
     fixtures: EVERYWHERE_FIXTURES,
     seedCount: EVERYWHERE_SEED_COUNT,
-    paused,
+    paused: paused || open,
     reduced,
     beatMs: 1600,
     upload: false,
     loop: true,
     maxPerColumn: 4,
   });
+  const openPeek = (request: PeekRequest) => {
+    setPeek(request);
+    setOpen(true);
+  };
 
   return (
     <div
@@ -61,6 +79,7 @@ export function EverywhereStage() {
           showCount={false}
           sizes="140px"
           reduced={reduced}
+          peek={openPeek}
         />
       </BrowserFrame>
       <PhoneShell
@@ -75,9 +94,11 @@ export function EverywhereStage() {
           showCount={false}
           sizes="90px"
           reduced={reduced}
+          peek={openPeek}
           className="[--fill-scale:0.72] sm:[--fill-scale:0.9]"
         />
       </PhoneShell>
+      <EverywherePeek peek={peek} open={open} onOpenChange={setOpen} />
     </div>
   );
 }

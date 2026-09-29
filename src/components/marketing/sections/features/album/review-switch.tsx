@@ -29,7 +29,18 @@ const SEGMENTS: { mode: Mode; label: string; Icon: typeof Radio }[] = [
   { mode: "review", label: "Review", Icon: ShieldCheck },
 ];
 
-const UPLOAD = "wedding-toast";
+/**
+ * The one photograph that travels through all three plates (`loose-ends` r1,
+ * `review-photo=rings`). It has to read at the host's queue tile, 56px, where
+ * the champagne toast it replaces went to warm texture and, landed in the
+ * album, sat as quiet as the warm tiles beside it: the rings are two hands
+ * and a bouquet in open light, and they stay a candid upload, not decor. A
+ * stand-in like every marketing still: the generated kit replaces it (an
+ * ASSETS row names this slot), so nothing else here may depend on what the
+ * picture shows. It must not be one of ALBUM's three, or its arrival reads
+ * as nothing new.
+ */
+const UPLOAD = "wedding-rings";
 const ALBUM = ["wedding-golden", "party-balloons", "reception-table"];
 
 /** The travelling photograph: keyed by its destination so a mode change
