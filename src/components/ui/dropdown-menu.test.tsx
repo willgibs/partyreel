@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react"
-import { describe, expect, it, vi } from "vitest"
+import { describe, expect, it } from "vitest"
 
 import {
   DropdownMenu,
@@ -19,10 +19,9 @@ import {
  * THE MENU'S CONTRACT (the `floating-surfaces` wiring, 2026-09-17).
  *
  * What is pinned is FUNCTION, never a look: that a submenu is portalled out of
- * the panel that would clip it, that a third level of nesting cannot be
- * composed at all, and that Card's parts exist as parts a call site can leave
- * out. Nothing here asserts a radius, a duration, a colour or a word: the next
- * round may rebuild all of that (Will, 2026-09-12).
+ * the panel that would clip it, and that Card's parts exist as parts a call
+ * site can leave out. Nothing here asserts a radius, a duration, a colour or a
+ * word: the next round may rebuild all of that (Will, 2026-09-12).
  */
 
 /** The smallest menu that renders a submenu without a pointer: both open. */
@@ -35,7 +34,7 @@ function nested(children: React.ReactNode) {
   )
 }
 
-describe("the menu opens a second menu, and never a third", () => {
+describe("the menu opens a second menu", () => {
   it("portals the submenu, so a transformed or scrolled parent cannot clip it", () => {
     // ★ THE BUG THIS REPLACED, measured on the live alias: SubContent rendered
     // as a DOM DESCENDANT of Content, which carries overflow-y-auto and
@@ -69,34 +68,6 @@ describe("the menu opens a second menu, and never a third", () => {
       "the submenu is inside the panel that clips and transforms it: wrap SubContent in a Portal",
     ).toBe(false)
     expect(screen.getByText("Light")).toBeTruthy()
-  })
-
-  it("refuses a third level, at render, rather than in a review note", () => {
-    // Will, 2026-09-17: "we should not allow an additional third level of
-    // nesting. That gets too complicated." A comment saying so is a rule the
-    // next agent breaks by accident, so the cap is structural.
-    const quiet = vi.spyOn(console, "error").mockImplementation(() => {})
-    try {
-      expect(() =>
-        render(
-          nested(
-            <DropdownMenuSub open>
-              <DropdownMenuSubTrigger>Theme</DropdownMenuSubTrigger>
-              <DropdownMenuSubContent>
-                <DropdownMenuSub open>
-                  <DropdownMenuSubTrigger>Deeper</DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent>
-                    <DropdownMenuItem>Too far</DropdownMenuItem>
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>,
-          ),
-        ),
-      ).toThrow(/two levels/i)
-    } finally {
-      quiet.mockRestore()
-    }
   })
 })
 

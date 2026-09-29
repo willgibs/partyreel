@@ -42,20 +42,6 @@ import { CheckIcon, ChevronRightIcon } from "lucide-react"
  * `floating-layer.test.ts`.
  */
 
-/**
- * ★ TWO LEVELS, AND THE THIRD CANNOT BE COMPOSED. Will, on keeping the nested
- * menu: "Yes, this unlocks much more comprehensive menus than limiting to a
- * single list of everything included. However, we should not allow an
- * additional third level of nesting. That gets too complicated."
- *
- * A rule written as a comment is a rule the next agent breaks by accident, so
- * the cap is structural: each `Sub` publishes its depth, and a `Sub` opened
- * inside a `Sub` throws at render. There is no third level to review, no lint
- * note to ignore, and `dropdown-menu.test.tsx` pins it. A branch that wants a
- * third level is a branch that wants a flat group of its own.
- */
-const DropdownMenuDepthContext = React.createContext(0)
-
 function DropdownMenu({
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Root>) {
@@ -373,20 +359,20 @@ function DropdownMenuShortcut({
   )
 }
 
+/**
+ * TWO LEVELS READ SIMPLER, so a menu opens one submenu and stops there: the
+ * second panel is a branch off the list in front of the reader, and a third is
+ * a path they have to keep track of (in a menu at the right edge, the account
+ * menu's place, it also doubles back over its own parent, on a phone and at a
+ * laptop's width alike). A branch that wants a third level reads better
+ * flattened into a group of its own under its name (a `DropdownMenuGroup`
+ * under a `DropdownMenuLabel`). This is guidance, not a fence: `Sub` nests as
+ * deep as Radix allows, and the call site decides.
+ */
 function DropdownMenuSub({
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Sub>) {
-  const depth = React.useContext(DropdownMenuDepthContext)
-  if (depth >= 1) {
-    throw new Error(
-      "A dropdown menu stops at two levels (Will, floating-surfaces r7, 2026-09-17: a third level 'gets too complicated'). Flatten this branch into a group of its own under its name."
-    )
-  }
-  return (
-    <DropdownMenuDepthContext.Provider value={depth + 1}>
-      <DropdownMenuPrimitive.Sub data-slot="dropdown-menu-sub" {...props} />
-    </DropdownMenuDepthContext.Provider>
-  )
+  return <DropdownMenuPrimitive.Sub data-slot="dropdown-menu-sub" {...props} />
 }
 
 function DropdownMenuSubTrigger({

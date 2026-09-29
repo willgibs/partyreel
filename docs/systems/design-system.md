@@ -489,8 +489,9 @@ Transition is its one sanctioned hole ([host-app.md](host-app.md)).
   carries a door's own scrim.
 - ★ **An unportalled submenu can open with a real box and paint nothing.** `SubContent` sits in a `Portal`: inside the
   scrolling, transform-animated `Content`, the transformed ancestor becomes the containing block for fixed
-  descendants, so a submenu opened by a click mid-close paints nothing, while hover on a settled parent works. A menu
-  stops at two levels: each `Sub` publishes its depth, and a third throws.
+  descendants, so a submenu opened by a click mid-close paints nothing, while hover on a settled parent works. Two
+  levels read simpler, so a branch that wants a third is a group of its own under its name (guidance, not a fence:
+  `Sub` nests as deep as Radix allows).
 
 ## Toasts
 
