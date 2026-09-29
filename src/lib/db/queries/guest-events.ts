@@ -9,6 +9,8 @@ import { cache } from "react";
 
 import { readAllPages } from "@/lib/db/read-all";
 import type { Database } from "@/lib/db/types";
+import type { Door } from "@/lib/event/door/door";
+import type { DoorPass } from "@/lib/event/door/pass.server";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -54,6 +56,23 @@ export type GuestEvent = {
   /** The host's default hold in seconds; null is the product's default (`resolveHoldSec` reads it).
    *  A viewer's own hold overrides it on their device. */
   reel_hold_sec: number | null;
+  /**
+   * Whether this album takes a video from a guest (a paid tier and the host's Videos switch on), so
+   * the picker offers photos alone where the upload would be refused. It says nothing a presign would
+   * not: a Free album and a switched-off one read the same.
+   */
+  accepts_video: boolean;
+  /**
+   * THE DOOR AS THIS VIEWER MEETS IT, set only by the door's resolution (`closed-door.server.ts`,
+   * from `event_door_standing`): the anon read answers a gated album as a private one, so until the
+   * door is resolved this is absent and the album reads as its stored visibility (the safe side).
+   */
+  door?: Door;
+  /**
+   * The door's pass, when it let this request through: the proof the album's own server reads ask
+   * for before they read a gated album (`lib/event/door/pass.server.ts`). Never sent to a browser.
+   */
+  doorPass?: DoorPass | null;
 };
 
 export type GuestEventResult =
@@ -163,6 +182,11 @@ export const getEventByQrToken = cache(async function getEventByQrToken(
     // ★ Typed `number` by the generated RETURNS TABLE, yet NULL until a host sets it: kept as NULL
     // (the default), never coerced to 0 s. An RPC from before the column never returned it.
     reel_hold_sec: (row.reel_hold_sec as number | null | undefined) ?? null,
+    // The guest picker's flag (the doors' migration, 20260929120000). An RPC from before it never
+    // returned it: the picker then offers videos as it always did, and the presign still refuses one
+    // an album cannot take.
+    accepts_video:
+      (row as { accepts_video?: boolean | null }).accepts_video !== false,
   };
 
   return { ok: true, data: await rehydrateUnlockedDetails(event) };

@@ -142,6 +142,7 @@ function guestEvent(over: Partial<GuestEvent> = {}): GuestEvent {
     show_reel: true,
     reel_style_id: null,
     reel_hold_sec: null,
+    accepts_video: true,
     ...over,
   };
 }

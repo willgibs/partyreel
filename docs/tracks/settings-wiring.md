@@ -64,6 +64,7 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/app/share/event-sheets.tsx
   - src/components/ui/popup.tsx
   - src/components/app/event-blocks/
+  - src/lib/errors/codes
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/reviews/event-settings.json
   - docs/reviews/locked-door.json
