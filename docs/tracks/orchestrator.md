@@ -42,6 +42,8 @@ a lane").
 | `schema-pass` | the data architecture trimmed | merged at `57b17ace`; part 1 applied on Will's go-ahead (2026-09-29, his answer "Yes, apply part 1"; recorded `20260929210010`, the payload the file's md5; advisors 18/4/33; anon REST 42501; types regenerated at `c7a50adc`); a signed-in host walk on partyreel.com rides build 25's red-team as a follow-up; part 2 (`20260929170000`) after milestone 31 ships | Opus, 3132 | `54f414f9` |
 | `lab-focus` | on Will's note (2026-09-29, "a Jackson Pollock painting of text" above the options): the lab's question view rebuilt pictures first, the stage whole on the first screen at a desk and a phone, everything else one click away; a `lab:demo` reach gate | running (worktree `../partyreel-wt/lab-focus`) | Opus, 3131 | |
 | `crumbs-22` | seven small ROADMAP items: the 404's sheet off every page, find-in-page opening a closed FAQ answer, the FAQ's thin wrapper gone, the reduced mail's contradiction, one useHydrated and one layerIsUp, the refresh-then-write reload audited | running (worktree `../partyreel-wt/crumbs-22`) | Sonnet, 3135 | |
+| `crumbs-23` | build 26's red-team finds: a live pushed arrival without its fade, a double tap at a phone never landing in the sheet it opened, the invite list's door line, the first keystroke after a load, the Library's album-stream width | running (worktree `../partyreel-wt/crumbs-23`) | Sonnet, 3132 | |
+| `shared-claims` | build 26's red-team find: on a shared phone an anonymous guest's photos claimed only by whoever they can belong to, a claim never erasing what the guest typed (a migration likely) | running (worktree `../partyreel-wt/shared-claims`) | Opus, 3133 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
 no question open (Q1, the `names` hang; Q2, schema-pass part 1; Q3, the notes-into-laws audit; Q4, the door migration:
@@ -77,7 +79,9 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
 
 1. **Integrate each lane as it hands off** (lab-focus, crumbs-22), each migration by protocol, one at a time: drift check, apply verbatim, the rolled-back refusals,
    advisors, types.
-2. **Build 26 is on the alias** (`d67e94ba`, 2026-09-29; its red-team running, agent `a60d7ff323978f40e`): crumbs-17, unfence, album-motion, the
+2. **Build 26 was red-teamed live** (`d67e94ba`, 2026-09-29, `../partyreel-wt/_scratch/redteam-26/ledger.txt`): every walk
+   PASS but crumbs-18's live arrival (its fade holds on an arrival nothing decoded first); its finds are `crumbs-23`'s
+   and `shared-claims`' (running). It carried crumbs-17, unfence, album-motion, the
    types after both migrations, crumbs-18, demo-framing r2, about-press r1 and menu-depth. Then its red-team (Opus, the
    build 25 brief's shape): crumbs-17's listed walks, crumbs-18's seven (`git show cdc979a6^2:docs/tracks/crumbs-18.md`),
    the account menu's Theme at 375 and at a desk (menu-depth, merged at `2becfa60`), and the desk with its two new boards
