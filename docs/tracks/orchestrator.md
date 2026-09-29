@@ -42,6 +42,7 @@ a lane").
 | `lab-revamp` | stage two, the plumbing: a board as one self-registering folder, scoped lab checks, the trimmed API, the words renamed, the kit following (holds registry.ts and boards.ts; PROGRAM.md's lines come in its Handoff) | running, resumed (agent `a6b4519e3d363d7dd`) | Opus, 3133 | |
 | `crumbs-15` | the dead missing-schema seams of the doors and the triage rebuild, no behaviour changed | running (agent `a7a881960265d2c2a`; worktree `../partyreel-wt/crumbs-15`) | Sonnet, 3131 | |
 | `loose-ends-wiring` | loose-ends r1: the FAQ heading, the rings, the corner mark and its easter-egg lightbox (the board's folder is lab-revamp's: retire it at the merge) | running (agent `af847f8233bb3aa19`; worktree `../partyreel-wt/loose-ends-wiring`) | Sonnet, 3134 | |
+| `contact-wiring` | contact-page r1: the routed form in the desk's chapter, a note and link per topic, a delightful receipt, the directory with icons (the board's folder is lab-revamp's: retire it at the merge) | running (agent `af668bf0060d434b3`; worktree `../partyreel-wt/contact-wiring`) | Sonnet, 3135 | |
 
 **Handoff across accounts (written 2026-09-29, the old account at ~97% of its weekly limit).** The old Orchestrator
 session is `b01c012e-f59c-432b-9873-9f4226c036f2`; its agent ids above are unreachable from a new session, so each
@@ -59,7 +60,8 @@ only where those leave a gap; a stale `.next/dev/lock` may be deleted; continue 
   (`event-share-provider.tsx:113-115`) and the custom link's error is unannounced; revoke PUBLIC EXECUTE when replacing
   `get_event_by_qr_token`.
 - `crumbs-15` (`../partyreel-wt/crumbs-15`, 3131, agent `a7a881960265d2c2a`) and `loose-ends-wiring` (`../partyreel-wt/loose-ends-wiring`,
-  3134, agent `af847f8233bb3aa19`): cut late, no relays; respawn the same way.
+  3134, agent `af847f8233bb3aa19`), and `contact-wiring` (`../partyreel-wt/contact-wiring`, 3135, agent `af668bf0060d434b3`):
+  cut late, no relays; respawn the same way.
 - Build 23's red-team (agent `ab63a0b9ec16c1fe1`): if its report never arrived, respawn it from
   `../partyreel-wt/_scratch/redteam-23/brief.md` after its `ledger.txt`'s last line (a relay it took: close every report it opens).
 - `lab-revamp` stage two (`../partyreel-wt/lab-revamp`, 3133, agent `a6b4519e3d363d7dd`): mid-work; its notes
