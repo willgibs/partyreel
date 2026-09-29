@@ -39,10 +39,12 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `crumbs-16` | build 23's HIGH bug at its root (a history call hands Next its own `__NA` state, so Settings rows never open their page and a page's back arrow never returns), the same shape swept and held by a policy test; triage-r2-wiring's relayed help article | running (agent `a5ddc145d2b108533`; worktree `../partyreel-wt/crumbs-16`) | Sonnet, 3133 | |
+| `crumbs-16` | build 23's HIGH bug at its root (a history call hands Next its own `__NA` state, so Settings rows never open their page and a page's back arrow never returns), the same shape swept and held by a policy test; triage-r2-wiring's relayed help article | handed back after gate 71: with its change `demo-framing.names` hangs (`Page.navigate` never answers; it passes on `61a4ee00` without the change), so the unpushed merge was undone; resumed to fix it at its root with a failing test and re-run `lab:demo` over every board (agent `a5ddc145d2b108533`; worktree `../partyreel-wt/crumbs-16`) | Sonnet, 3133 | |
 | `schema-pass` | the data architecture audited, its migration refused by the classifier; resumed on Will's yes (2026-09-29): asked "May the lane write its two migration files and run those proofs?", he answered "Yes, write and prove"; told to close `public.reports`' default grants too (the red-team's note) | running (agent `ad2f22b2fb01a8a6e`; worktree `../partyreel-wt/schema-pass`) | Opus, 3132 | |
-| `desk-tune` | the door family board made true before his sitting: its "as today" drawn from the doors settings-wiring shipped, its asks re-read against them, every option its own picture at 375 | running (agent `a6f3e22f6d222b7e8`; worktree `../partyreel-wt/desk-tune`) | Opus, 3131 | |
 | `event-ready` | r1, a board: how a host knows her event is ready (an event checklist, the settings' mini wizard and whether Create shares it, a never-empty "what needs you", the hub's code as the live door); the first board authored in the one-folder shape | running (agent `a758ad3af55bfe3a7`; worktree `../partyreel-wt/event-ready`) | Opus, 3135 | |
+
+**The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
+its first question was the `demo-framing.names` hang. From another session, respawn it from `usher/kit/advisor-prompt.txt`.
 
 **Handoff across accounts.** The Orchestrator session is `157caa18-ec54-4aa9-a12a-04c86d5a667b` (the second account,
 seated 2026-09-29 12:23 EDT); the first account's `b01c012e` is retired and must not resume. Its agent ids live only
@@ -59,6 +61,8 @@ account, and the relays below, which live only in the agents:
   finishes; the Vercel MCP does not reach the P3 team.
 - `schema-pass`: Will's yes quoted (its row), and `public.reports`' default anon and authenticated grants closed in
   part 1.
+- `crumbs-16`: handed back with the evidence (its row): reproduce the `demo-framing.names` hang on its own port, fix it at
+  its root with a test that fails on its current code, re-run `lab:demo` over every board and `lab:smoke`, hand off again.
 
 If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` holds a merge made after this note (push
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
@@ -71,7 +75,7 @@ Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcr
 boards). Batch 7 is merged whole; its records carry the rest.
 
 Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, disposable-mode r2, crumbs-13, lab-revamp
-stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, crumbs-15, loose-ends-wiring, contact-wiring.
+stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, crumbs-15, loose-ends-wiring, contact-wiring, desk-tune.
 
 ## Next, in order
 
@@ -93,18 +97,13 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
    triage-r2-wiring 11: `git show 7c0fbcb1^2:docs/tracks/settings-wiring.md`, `git show 1b29be3a^2:docs/tracks/triage-r2-wiring.md`),
    lab-revamp's six calls (its merge message), and the proof mail's yes, due now (the recommendation keeps it off until
    the emails round, per his email-policy note).
-2. **Integrate each lane as it hands off** (crumbs-16, desk-tune, schema-pass, whose part 1 I then apply, and event-ready), each migration by
+2. **Integrate each lane as it hands off** (crumbs-16 again, schema-pass, whose part 1 the Advisor reads before I apply it, event-ready, album-motion-wiring), each migration by
    protocol, one at a time: drift check, apply verbatim, the rolled-back refusals, advisors, types. The two wiring
    lanes' ledgers are gone with their boards;
    `../partyreel-wt/_scratch/triage-r2-wiring/` goes after crumbs-16's merge (it holds the relayed help article).
-3. **The PREMISE re-read before his sitting** (lab-revamp's look-at-first): settings-wiring changed the guest page,
-   `entry-modal.tsx` and `guest-flow.md`, which locked-door r2's four open asks and disposable-mode r2's eight describe.
-   Re-read both boards (`board-card.mjs`) against build 23's code, and locked-door's `shape` at 375 (two options drawn
-   as one picture). Anything stale: a `desk-tune` lane takes the next seat ahead of item 4. Then tell Will the desk is
-   ready; his paste from build 23's desk transcribes with the new `lab:review` (the words renamed, the grammar kept;
-   `--dry` first). Read: `locked-door`'s "as today" draws its own prediction of the wait and the shut door, never the
-   shipped `WaitingStep`/`ShutDoor`, so `desk-tune` (running) redraws it; `disposable-mode`'s eight hold (Create is
-   untouched, and the Videos and door facts they lean on match what shipped), so he may sit on it now.
+3. **The PREMISE re-read is done:** `disposable-mode`'s eight hold on build 23 (he may sit on it now); `locked-door`'s
+   "as today" is production's doors since `desk-tune` (merged at `643c46e9`), so its four reach him with build 24. His
+   paste from either desk transcribes with the new `lab:review` (the words renamed, the grammar kept; `--dry` first).
 4. **Seats as they free** (at most four lanes; `memory_pressure` before each; app work first, Will's note):
    - `schema-pass` (running): it re-verifies every item
      against the schema as it stands (event_doors and triage_r2 applied since its audit), then writes and proves part
@@ -127,7 +126,8 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
      lane's idea of the premiere on the wall, the reel's screen counting down to the develop time and playing the roll
      as an event of its own) and the door family's wiring (if the doorway wins, its reveal: walking through the opened
      door into the album, drawn first as motion options; ASSETS row 36 if the host's door wins).
-5. **Build 24** once crumbs-16 lands and build 23's red-team is done (`[preview]`, `alias-ensure.mjs`, prune), then its
+5. **Build 24** once build 23's red-team is done (it carries the redrawn door family for his sitting; crumbs-16 rides it
+   if it has landed, else build 25) (`[preview]`, `alias-ensure.mjs`, prune), then its
    red-team: BUG-1's fix live and the new lanes' walks, crumbs-15's signed-in surfaces among them (a host changing a
    disposable album's door and opening Guests and Blocked; `/account`'s social sections; the operator's
    `/admin/reports` and Ask for proof; a host's Delete permanently on a removed item, then the purge cron's next run in
