@@ -1,9 +1,13 @@
 import { ImageResponse } from "next/og";
 
 import { BRAND_HEX } from "@/lib/constants/site";
-import { getEventByQrToken } from "@/lib/db/queries/guest-events";
-import { isClosedToThisBrowser } from "@/lib/events/closed-door.server";
-import { EVENT_CARD_ALT, EVENT_CARD_SIZE } from "@/lib/guest/event-card";
+import { getEventCardName } from "@/lib/db/queries/event-card";
+import {
+  EVENT_CARD_ALT,
+  EVENT_CARD_CACHE_CONTROL,
+  EVENT_CARD_SIZE,
+  PRIVATE_CARD_PARAM,
+} from "@/lib/guest/event-card";
 
 /**
  * THE EVENT'S SHARE CARD: the event name on the branded dark surface, so a pasted event link unfurls
@@ -15,19 +19,22 @@ import { EVENT_CARD_ALT, EVENT_CARD_SIZE } from "@/lib/guest/event-card";
  * outranks `generateMetadata` (Next's own rule), so no photograph could ever take the place of a
  * convention-file card. The page names this route as the image for every other link.
  *
- * ★ A VIEWER THE EVENT BLOCKED gets the generic card too, as for a private event (the closed door,
- * `closed-door.server.ts`): an unfurler carries no ticket and costs nothing extra.
+ * ★ THE SAME CARD FOR EVERY VIEWER, because the edge shares it (`EVENT_CARD_CACHE_CONTROL`: public,
+ * an hour, served to whoever asks next). So it follows the EVENT's own visibility, read as nobody in
+ * particular (`getEventCardName`), never this request's session, cookie or ticket: drawn per viewer
+ * (build 17's red-team), one blocked fetch left an open album unfurling nameless for an hour, and the
+ * blocked viewer got the named card while her page said private. A viewer the closed door masks is
+ * never pointed here: her page names the private album's card (`?private`, generic by its address
+ * alone), as a private album's page does (`privateEventCardPath`).
  */
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ token: string }> },
 ) {
   const { token } = await params;
-  const result = await getEventByQrToken(token);
+  const privateCard = new URL(request.url).searchParams.has(PRIVATE_CARD_PARAM);
   const eventName =
-    result.ok && !(await isClosedToThisBrowser(result.data))
-      ? result.data.name
-      : EVENT_CARD_ALT;
+    (privateCard ? null : await getEventCardName(token)) ?? EVENT_CARD_ALT;
   // Guard against pathological names blowing out the layout.
   const heading =
     eventName.length > 70 ? `${eventName.slice(0, 69)}…` : eventName;
@@ -100,9 +107,7 @@ export async function GET(
     </div>,
     {
       ...EVENT_CARD_SIZE,
-      // Unfurlers fetch this once per paste; an hour spares the render for a busy group chat
-      // without holding a renamed event's old card for long.
-      headers: { "Cache-Control": "public, max-age=3600" },
+      headers: { "Cache-Control": EVENT_CARD_CACHE_CONTROL },
     },
   );
 }

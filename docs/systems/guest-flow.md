@@ -260,10 +260,11 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
   ★ **A person the host blocked meets it word for word** (Will's "Sneaky block"): an account or confirmed address a
   block holds reads the event as `private` from `get_event_by_qr_token` itself, and a ticket (the cookie, a body
   token) is asked by the one closed door, `lib/events/closed-door.server.ts`, whenever a request carries one, on a
-  private album too, so a block and a private album answer the same with the same work: the page and its metadata,
-  the card, the join, the unlock, the export, the album's read and every guest write (which asks with its body ticket
-  alone), and the write RPCs refuse a held ticket in the private album's words. Her own dashboard and picker read the
-  event as private too ([host-app.md](host-app.md)), so nothing she can reach says blocked.
+  private album too, so a block and a private album answer the same with the same work: the page and its metadata
+  (which names the private album's card, below), the join, the unlock, the export, the album's read and every guest
+  write (which asks with its body ticket alone), and the write RPCs refuse a held ticket in the private album's words.
+  Her own dashboard and picker read the event as private too ([host-app.md](host-app.md)), so nothing she can reach
+  says blocked.
 - **`password`** → access `none`: the **ghosted RIVER backdrop** (`GhostRiver`, the empty album's own
   picture at its own depth: one absence, one picture) + the real "N photos & videos inside" count tease
   (name shown: it's link-shared, not the secret) under the door's password step, until a signed unlock
@@ -279,7 +280,11 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
 - **The link's image** is the event's card, drawn by the route
   [`card/route.tsx`](<../../src/app/(guest)/e/[token]/card/route.tsx>) at `/e/<token>/card` (the name on the
   branded dark surface; a private or unknown event draws the generic card) and named by `generateMetadata`
-  from [`event-card.ts`](../../src/lib/guest/event-card.ts). ★ It is a route, not an `opengraph-image`
+  from [`event-card.ts`](../../src/lib/guest/event-card.ts). ★ **One answer per address, whoever asks:** the card is
+  public for an hour and the edge serves its copy to everyone, so it follows the EVENT's own visibility, read with no
+  caller (`getEventCardName`, the anon client), never the request's session, cookie or ticket, and every closed door
+  (a private album, a viewer a block masks) names the private album's card instead (`?private`, generic by its
+  address alone), so the two pages carry the same image. ★ It is a route, not an `opengraph-image`
   file, because a file-based image outranks `generateMetadata` and the image depends on the query:
   `/e/<token>?photo=<id>` (the viewer's own address, read with its own `readPhotoParam`, so the card and
   the viewer answer the same links) unfurls as THAT photograph, titled "A photo from <event name>" (its preview, or a

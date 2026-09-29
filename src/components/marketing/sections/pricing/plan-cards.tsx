@@ -3,11 +3,13 @@
 import { Check, Minus } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, type CSSProperties, type ReactNode } from "react";
+import { useId, useState, type CSSProperties, type ReactNode } from "react";
 
 import { CheckoutButton } from "@/components/app/checkout-button";
+import { yearlySavingTag } from "@/components/app/pricing/cadence";
 import { PricePop } from "@/components/marketing/sections/home/price-pop";
 import { Reveal } from "@/components/marketing/system/reveal";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { trackAttrs } from "@/lib/analytics/events";
 import { marketingImage } from "@/lib/constants/marketing-media";
@@ -263,6 +265,12 @@ export function StatRow({
  * hit) and leaves the thumb's position to the browser. Firefox paints the same
  * fill through ::-moz-range-progress, which is why the gradient is webkit-only.
  * The two percentage stops are the SAME value, so the fill has a hard edge.
+ *
+ * ★ THE GRADIENT READS `var(--background)`, the colour the thumb and the stops
+ * wear, resolved where it is used, NEVER `var(--color-background)`: that theme
+ * alias is computed once at `:root`, which a dark system theme makes near-black
+ * while this card sits in a paper chapter (`surface-paper`), so the track
+ * vanished into the ink.
  */
 function SizeSlider({
   plans,
@@ -296,7 +304,7 @@ function SizeSlider({
           "focus-visible:ring-2 focus-visible:ring-background/70",
           // The track, and the fill painted into it.
           "[&::-webkit-slider-runnable-track]:h-1.5 [&::-webkit-slider-runnable-track]:rounded-full",
-          "[&::-webkit-slider-runnable-track]:bg-[linear-gradient(to_right,var(--color-background)_var(--fill),color-mix(in_oklch,var(--color-background)_20%,transparent)_var(--fill))]",
+          "[&::-webkit-slider-runnable-track]:bg-[linear-gradient(to_right,var(--background)_var(--fill),color-mix(in_oklch,var(--background)_20%,transparent)_var(--fill))]",
           "[&::-moz-range-track]:h-1.5 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:bg-background/20",
           "[&::-moz-range-progress]:h-1.5 [&::-moz-range-progress]:rounded-full [&::-moz-range-progress]:bg-background",
           // The thumb, centred on a 6px track inside a 24px row.
@@ -340,15 +348,21 @@ export function PlanPair() {
   const proDisplay = cadence === "year" ? (annualPlanFor(proId) ?? pro) : pro;
   const freeCap = friendlyCapacity(free.storageBytes);
   const proCap = friendlyCapacity(pro.storageBytes);
+  const savingTag = yearlySavingTag();
+  const savingTagId = useId();
 
   return (
     <Reveal className="mx-auto max-w-4xl">
       {/* The cadence toggle (the reserved slot, now earned): one control above
-          the pair, since it changes only what Pro costs. */}
+          the pair, since it changes only what Pro costs. ★ THE SAVING IS A TAG
+          BESIDE IT, NOT INSIDE IT, as the plan sheet sets it (`cadence-toggle.tsx`):
+          inside the segment, "Yearly, 2 months free" outgrew half a phone and
+          wrapped to two lines at 375. The words are computed from the prices
+          (`yearlySavingTag`), and Yearly names them to a screen reader. */}
       <div
         data-mkt-reveal
         style={{ "--i": 0 } as CSSProperties}
-        className="mb-8 flex justify-center"
+        className="mb-8 flex flex-wrap items-center justify-center gap-2"
       >
         <div
           role="group"
@@ -365,13 +379,16 @@ export function PlanPair() {
           {(
             [
               { value: "month", label: "Monthly" },
-              { value: "year", label: "Yearly, 2 months free" },
+              { value: "year", label: "Yearly" },
             ] as const
           ).map((opt) => (
             <button
               key={opt.value}
               type="button"
               aria-pressed={cadence === opt.value}
+              aria-describedby={
+                opt.value === "year" && savingTag ? savingTagId : undefined
+              }
               onClick={() => setCadence(opt.value)}
               className={cn(
                 "relative z-10 rounded-md px-4 py-1.5 text-sm font-medium transition-colors outline-none",
@@ -386,6 +403,11 @@ export function PlanPair() {
             </button>
           ))}
         </div>
+        {savingTag ? (
+          <Badge id={savingTagId} variant="success" data-saving-tag="">
+            {savingTag}
+          </Badge>
+        ) : null}
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">

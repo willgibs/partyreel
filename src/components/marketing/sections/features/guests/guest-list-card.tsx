@@ -1,16 +1,15 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
-
-import { TextSwap } from "@/components/marketing/sections/features/shared/text-swap";
-import { Switch } from "@/components/ui/switch";
+import { Eye } from "lucide-react";
+import { useCallback, useRef } from "react";
 
 /**
  * THE GUEST LIST CARD (/features/guests, paper). A calm mock of the host's
  * "Guests" section: the shipped GuestList chip shape (avatar + display name in
- * an h-8 pill, one wearing the small unverified mark) over the setting that
- * governs it, quoting the real settings label ("Show the guest list on the
- * album") verbatim.
+ * an h-8 pill, one wearing the small unverified mark) over who sees it. ★ NO
+ * SWITCH: the list is always on, on every plan (Will, event-safety
+ * `room=always`), so the card says who sees it rather than drawing a setting
+ * the product no longer has; the host's one say in who is on it is the block.
  *
  * THE AVATAR COMB (R4's one new delight, recipe 11-avatar-group-hover): the chip
  * row is the most row-like people strip on the page, so hovering one guest lifts
@@ -37,7 +36,6 @@ export type GuestListEntry = { name: string; unverified?: boolean };
 
 export function GuestListCard({ names }: { names: GuestListEntry[] }) {
   const rowRef = useRef<HTMLUListElement>(null);
-  const [onAlbum, setOnAlbum] = useState(false);
 
   const comb = useCallback((activeIdx: number | null, phase: "in" | "out") => {
     const row = rowRef.current;
@@ -114,29 +112,19 @@ export function GuestListCard({ names }: { names: GuestListEntry[] }) {
         A name with no verified email behind it wears a small mark.
       </p>
 
-      {/* The switch the copy beside this card is about, with the settings
-          screen's own label. Live on purpose: flipping it is the fastest way to
-          understand that the list is private until the host says otherwise. */}
-      <div className="mt-5 flex items-start justify-between gap-4 border-t pt-4">
+      {/* Who sees it, the copy beside this card's subject: the room, always. */}
+      <div className="mt-5 flex items-start gap-3 border-t pt-4">
+        <Eye
+          aria-hidden
+          className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+        />
         <span className="min-w-0 flex-1">
-          <span className="block text-sm font-medium">
-            Show the guest list on the album
-          </span>
+          <span className="block text-sm font-medium">Shown on the album</span>
           <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">
-            <TextSwap
-              value={
-                onAlbum
-                  ? "Everyone who can open the album sees these names."
-                  : "Right now the list is yours alone."
-              }
-            />
+            Everyone who can open the album sees these names, on every plan. A
+            guest you block leaves the list.
           </span>
         </span>
-        <Switch
-          checked={onAlbum}
-          onCheckedChange={setOnAlbum}
-          aria-label="Show the guest list on the album"
-        />
       </div>
     </div>
   );

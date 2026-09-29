@@ -33,7 +33,8 @@ const FAQ_ITEMS: FaqItem[] = [
   },
   {
     q: "Who sees the guest list?",
-    a: "You do, on your event page. It appears on the shared album only if you switch that on; otherwise guests just see the names on the photos. A name with no verified email behind it wears a small mark, on the list and on the photo alike.",
+    // Always on, on every plan (Will, event-safety `room=always`): there is no switch to describe.
+    a: "Everyone who can open the album, on every plan: it names each guest who added photos, and a guest you block leaves it. A name with no verified email behind it wears a small mark, on the list and on the photo alike.",
   },
   {
     q: "Do guests have to verify their email?",

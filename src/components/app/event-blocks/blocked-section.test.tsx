@@ -146,7 +146,7 @@ describe("BlockedSection", () => {
     );
     expect(toast.success).toHaveBeenCalledWith("Sam can join again.", {
       description:
-        "1 upload is back in the album. 1 stayed in Deleted: the album is full.",
+        "1 upload is back where it was. 1 stayed in Deleted: the album is full.",
     });
   });
 

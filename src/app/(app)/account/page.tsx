@@ -405,8 +405,8 @@ export default async function AccountPage({
                 </p>
                 <p className="text-xs text-muted-foreground">
                   Tap a cover to show it on your page; each one is private until
-                  you do. Hiding one never removes you from that event&rsquo;s
-                  own guest list (the host controls that).
+                  you do. Hiding one never takes you off that event&rsquo;s own
+                  guest list, which is everyone with a photo in the album.
                 </p>
               </div>
               <AttendedEventsVisibility events={attendedEvents} />
