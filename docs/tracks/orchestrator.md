@@ -83,24 +83,15 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
 
 ## Next, in order
 
-1. **Build 23's red-team is running** (agent `a26fc2a59dd39c154`, resumed from its ledger; build 23 is `6c64d5c8` with
-   settings-wiring and triage-r2-wiring, both migrations applied). Its BUG-1 (HIGH: Settings rows never open their page
-   in the panel; root-caused in `replaceSettingsPage`) went to `crumbs-16`; its NIT-1 (one extra welcome step after
-   the shut door's ask) waits for the next crumbs lane with its other findings. Triage's AAL2 steps wait at the admin
-   portal's "Verify it's you" for Will's code: ask him when it parks, then resume it by SendMessage. It parked there at
-   17:35Z with the settings walks done (nine PASS; W5 not driven, a password; W8 is BUG-1) and three more finds for the
-   next crumbs lane: BUG-2 MEDIUM (listing a waiting newcomer's address never admits her waiting row, so she shows
-   joined and still at the door, the pulse and the bell count her, and Decline there would block a guest already in),
-   BUG-3 LOW (the host's own album through `/e/` offers Report on everything: `viewerIsHost` reaches only the
-   dashboard grids), NIT-2 to NIT-6 (its ledger, `../partyreel-wt/_scratch/redteam-23/ledger.txt`); its note on
-   `public.reports`' default grants is schema-pass's. Nine open reports on event A and events A to D (`9490405b`,
-   `18fc375e`, `9ed81b8b`, `37ab40b1`) wait for its cleanup; if his code never comes by 04:00 UTC, close A's reports
-   myself (test data the Orchestrator restores). After its report,
-   read-only SQL confirms no report open before 04:48 UTC (partyreel.com's purge runs milestone-30 code, which ignores
-   open reports) and events A and B gone. With its result, relay to Will: both lanes' Questions (settings-wiring 13,
-   triage-r2-wiring 11: `git show 7c0fbcb1^2:docs/tracks/settings-wiring.md`, `git show 1b29be3a^2:docs/tracks/triage-r2-wiring.md`),
-   lab-revamp's six calls (its merge message), and the proof mail's yes, due now (the recommendation keeps it off until
-   the emails round, per his email-policy note).
+1. **Build 23 was red-teamed live** (2026-09-29, `../partyreel-wt/_scratch/redteam-23/ledger.txt`; the cleanup read back
+   by SQL: no open report, its four events deleted, nothing held): settings 9 of 11 PASS (W5 not driven, a password;
+   W8 is BUG-1, `crumbs-16`), triage 7 of 7 (T4's purge and T6's after-yes half not drivable). Its finds are
+   `crumbs-17`'s, the next free seat (Opus: BUG-2 touches the doors' SQL): BUG-2 MEDIUM (listing a waiting newcomer's
+   address never admits her waiting row: she stays at the door, the pulse and the bell count her, Decline would block
+   a joined guest), BUG-3 LOW (the host's own album through `/e/` offers Report; `viewerIsHost` reaches only the
+   dashboard grids), LOW-2 (the operator cannot tell a host's report from a guest's), NIT-1 to NIT-11 (the ledger),
+   and the ROADMAP's two dead-seam lines from `crumbs-15`. The calls to overrule and his two decisions (the proof mail,
+   the instant-hide bar's permanence) went to him in one file.
 2. **Integrate each lane as it hands off** (crumbs-16 again, schema-pass, whose part 1 the Advisor reads before I apply it, event-ready, album-motion-wiring), each migration by
    protocol, one at a time: drift check, apply verbatim, the rolled-back refusals, advisors, types. The two wiring
    lanes' ledgers are gone with their boards;
@@ -128,8 +119,9 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
      lane's idea of the premiere on the wall, the reel's screen counting down to the develop time and playing the roll
      as an event of its own) and the door family's wiring (if the doorway wins, its reveal: walking through the opened
      door into the album, drawn first as motion options; ASSETS row 36 if the host's door wins).
-5. **Build 24** once build 23's red-team is done (it carries the redrawn door family for his sitting; crumbs-16 rides it
-   if it has landed, else build 25) (`[preview]`, `alias-ensure.mjs`, prune), then its
+5. **Build 24 is this record** (`[preview]`: lab-revamp, crumbs-15, loose-ends, contact, desk-tune's door family,
+   schema-pass's code with part 1 not yet applied); its red-team waits for build 25 (crumbs-16's fix, crumbs-17, part 1
+   applied), then its
    red-team: BUG-1's fix live and the new lanes' walks, crumbs-15's signed-in surfaces among them (a host changing a
    disposable album's door and opening Guests and Blocked; `/account`'s social sections; the operator's
    `/admin/reports` and Ask for proof; a host's Delete permanently on a removed item, then the purge cron's next run in
@@ -147,12 +139,11 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
 
 ## Waiting on Will
 
-- **His desk:** `locked-door` r2 (four asks) and `disposable-mode` r2 (eight) wait for the PREMISE re-read (Next,
-  item 3). Two older asks wait on the rounds that replace their boards: demo-framing's `names` (behind `story=?`) and
+- **His desk:** `disposable-mode` r2 (eight asks) and, from build 24, `locked-door` r2 (four, redrawn from
+  production); `event-ready` r1 joins when it lands. Two older asks wait on the rounds that replace their boards: demo-framing's `names` (behind `story=?`) and
   press-page's `a-human` (the About round).
-- **The admin portal's code**, when build 23's red-team parks at "Verify it's you" in his Chrome.
-- **With the red-team's result:** the calls to overrule (settings-wiring 13, triage-r2-wiring 11, lab-revamp 6,
-  crumbs-15 3; drafted plainly in this session's scratchpad, `relay-calls.md`) and the proof mail's yes.
+- **His answer on the calls file** (28 calls to overrule, numbered; sent 2026-09-29): A, the proof mail (recommended
+  off until the emails round) and B, the instant-hide bar's permanence (recommended permanent until launch).
 - **The morning of 2026-09-30, on his phone** (his word): `disposable-mode` r2's Measure a phone on the alias (the
   board's dock: Open the camera, Take a frame, the camera app's photo, on his iPhone and an Android if he has one; paste
   the line back: the full-size promise rides on it); Q1 (on a phone the code card fills the screen, but Back
