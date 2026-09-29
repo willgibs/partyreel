@@ -86,7 +86,8 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
    the ledger's last line). Then milestone 31
    is proposed to Will (his yes); schema-pass's part 2 applies after it ships. Build 27's red-team walks crumbs-19's
    steps (`git show 647858ef^2:docs/tracks/crumbs-19.md`, "Look at first"), crumbs-20's five signed-in steps
-   (`git show e0a22b4d^2:docs/tracks/crumbs-20.md`) and each later lane's.
+   (`git show e0a22b4d^2:docs/tracks/crumbs-20.md`), crumbs-21's four after its migrations
+   (`git show 39426a2f^2:docs/tracks/crumbs-21.md`) and each later lane's.
 3. **Seats as they free** (at most four lanes; `memory_pressure` before each; app work first, Will's note; `lab-focus`
    took the lab's phone fold with it). After his desk picks: the demo event (below); about-press's wiring (its three wiring calls,
    `git show 3ded6ba9^2:docs/tracks/about-press.md`: /press a temporary redirect, the llms summary kept, the kit's files

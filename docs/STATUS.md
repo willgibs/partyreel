@@ -42,11 +42,12 @@ on /about and its facts); the two older asks retired into them as carried calls.
 - **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 26 (`d67e94ba`): build 25
   (red-teamed live, 23 of 23) plus crumbs-17's door and report fixes, crumbs-18's history and help fixes, the album
   page's hero, the dropdown's third level, and the desk's two new boards; its red-team runs.
-- **The shared database** runs eleven migrations applied 2026-09-29 (the block, the free shift, the operator removal
+- **The shared database** runs fourteen migrations applied 2026-09-29 (the block, the free shift, the operator removal
   purge, the help's feedback, the pass reminders switch, likes on private albums, the slug family, the doors, the triage
-  rebuild, the invite list's admit, and schema-pass part 1: six unused columns and their indexes dropped, `anon`'s table
-  access and the client roles' default grants closed, three length checks). partyreel.com's milestone-30 build was
-  walked signed in after part 1, 5 of 5; part 2 (the contract) applies after milestone 31 ships.
+  rebuild, the invite list's admit, schema-pass part 1, a password ending every ask, a report keeping what it named,
+  and the host's like counts limited to what she sees). partyreel.com's milestone-30 build was walked signed in after
+  schema-pass part 1, 5 of 5, and reads the later three as it read the rows before; part 2 (the contract) applies after
+  milestone 31 ships.
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md).
