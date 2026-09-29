@@ -29,14 +29,7 @@ reads:                  # single-sources you depend on: never duplicate, never e
 
 ## Where I am
 
-Restarted after the first agent hit a usage limit while booting (nothing of its work existed); `origin/launch-prep` fast-forwarded in at `38373a35`, deps and `.env.local` were already in the worktree. Order of work, each its own commit on `lp/contact-wiring`: (1) the board retired; (2) the route moved into `(cinema)` under a dark hero and one `PaperChapter`, `(paper)` retired; (3) the per-topic hints; (4) the directory beside the form; (5) the receipt; (6) the gate, the walks, the record. Done so far: the manifest's `owns` widened.
-
-**Paths:** your owns are a start. A path you need beyond them: add it to `owns` in your manifest before editing, or name a one-line exception.
-
-**Starts from.** CLAUDE.md's working loop, the bible's ten and production as it is; the tests say what has to keep
-working.
-
-**Verify on.** The gate on the synced tree (CLAUDE.md's four steps), each step on its own exit code; `pnpm lab:smoke --base http://localhost:<port>` whole when the lane changes anything under `src/` but tests (the Library renders the product's components); and the surfaces the Handoff is judged on, local and live.
+Restarted after the first agent hit a usage limit while booting (nothing of its work existed); `origin/launch-prep` fast-forwarded in at `38373a35`. Commits on `lp/contact-wiring`, each with typecheck, lint and the whole test suite green: the board retired (`c46eac80`); the route moved into `(cinema)` under a dark hero and one `PaperChapter`, `(paper)` retired (`3d0afc5c`); each topic names its own answers (`6c7b630e`); the directory beside the form with icons and the heavier address (`0dbe5e1c`); the receipt (`8a6a6b06`). Next, in order: the walks (1440, 768, 375, the palette on the new ground, keyboard, hostile input), `pnpm build` and `pnpm lab:smoke --base http://localhost:3135`, `docs/systems/marketing-content.md` refined in place, the Questions and Handoff below, then `status: handed-off`.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
