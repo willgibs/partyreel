@@ -145,13 +145,7 @@ function tsx(dir: string): string[] {
  * Found and not yet fixed, each with where it shows. Empty is the steady state: an entry is a
  * debt, and the scan fails once its site is fixed until the entry goes too.
  */
-const DEBTS: Readonly<Record<string, string>> = {
-  // /terms reads "By us.We may terminate" (the `</strong>` before it, `60 days&rsquo; notice`
-  // later in the text: `’` for the entity is the whole fix). The legal words are Will's and are
-  // rewritten once before launch, so it is the Orchestrator's to fix or to carry into that rewrite.
-  'src/lib/constants/legal-terms.tsx: "We may terminate"':
-    "the Terms' Termination section, By us.",
-};
+const DEBTS: Readonly<Record<string, string>> = {};
 
 describe("the space before a word survives the build", () => {
   beforeAll(async () => {
