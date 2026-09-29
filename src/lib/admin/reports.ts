@@ -345,12 +345,22 @@ export const LANE_WORDS: Record<QueueLane, { label: string; line: string }> = {
   },
 };
 
-/** What a report shows of who sent it (the carried call `reporter`): signed in or not, and whether she can be asked. */
+/**
+ * What a report shows of who sent it (the carried call `reporter`): signed in or not, and whether she can be asked.
+ * On the worst kind, which is never asked for proof, the same fact reads as what it decided: a confirmed address is
+ * what let the report hide its photograph at once.
+ */
 export function reporterWords(report: {
   signedIn: boolean;
   canAsk: boolean;
+  kind?: ReportKind;
 }): string {
   const who = report.signedIn ? "Signed-in guest" : "Signed-out guest";
+  if (report.kind === INSTANT_HIDE_KIND) {
+    return report.canAsk
+      ? `${who}, email confirmed`
+      : `${who}, no confirmed email`;
+  }
   return report.canAsk ? `${who}, can be asked` : `${who}, can't be asked`;
 }
 

@@ -466,14 +466,23 @@ function Fact({
   );
 }
 
-function FactLines({ entry }: { entry: ReviewEntry }) {
+/** A tile's facts. The peek lists every report with who sent it, so it asks for the rest without `who`. */
+function FactLines({
+  entry,
+  who = true,
+}: {
+  entry: ReviewEntry;
+  who?: boolean;
+}) {
   const newest = entry.reports[0];
   const sent = uploaderLine(entry);
   return (
     <div className="flex min-w-0 flex-col gap-1 text-caption text-muted-foreground">
-      <Fact id="who" icon={newest.signedIn ? <BadgeCheck /> : <UserRound />}>
-        {reporterWords(newest)}, {formatAdminTimestamp(newest.createdAt)}
-      </Fact>
+      {who ? (
+        <Fact id="who" icon={newest.signedIn ? <BadgeCheck /> : <UserRound />}>
+          {reporterWords(newest)}, {formatAdminTimestamp(newest.createdAt)}
+        </Fact>
+      ) : null}
       {sent ? (
         <Fact id="uploader" icon={<Upload />}>
           {sent}
@@ -1236,7 +1245,7 @@ function Peek({
                     </li>
                   ))}
                 </ol>
-                <FactLines entry={entry} />
+                <FactLines entry={entry} who={false} />
               </div>
             </PopupBody>
             <PopupFooter>

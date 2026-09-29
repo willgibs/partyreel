@@ -264,6 +264,9 @@ export async function readProofMailEnabled(): Promise<boolean> {
   return row?.enabled ?? false;
 }
 
+/** Postgres' undefined_column: a column the migration adds, read before it is applied. */
+const UNDEFINED_COLUMN = "42703";
+
 /**
  * WHAT AN ANSWER LINK OPENS (`/report/<token>`): the operator's question on the report the token names, while
  * that report is open and unanswered, and the album's name. Null for anything else (a used, closed or unknown
@@ -274,13 +277,14 @@ export async function readProofAsk(tokenHash: string): Promise<{
   eventName: string | null;
 } | null> {
   const admin = createAdminClient();
-  const row = (await mustQuery(
-    seamFrom(admin, "reports")
-      .select("id, status, event_id, proof_question, proof_answered_at")
-      .eq("proof_token_hash", tokenHash)
-      .maybeSingle(),
-    "report answer: the ask",
-  )) as {
+  const { data, error } = await seamFrom(admin, "reports")
+    .select("id, status, event_id, proof_question, proof_answered_at")
+    .eq("proof_token_hash", tokenHash)
+    .maybeSingle();
+  // Before 20260929140000 the column is missing (42703) and no link can exist yet: the page reads as a spent link.
+  if (error?.code === UNDEFINED_COLUMN) return null;
+  if (error) throw new Error(`report answer: the ask: ${error.message}`);
+  const row = data as {
     status: string;
     event_id: string | null;
     proof_question: string | null;

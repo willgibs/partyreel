@@ -81,7 +81,10 @@
 -- create_report its parameters, and the four new functions appear), then drop the lane's typed seams named in
 -- its handoff. ★ DEPLOY RIGHT AFTER THE APPLY: the build before this lane never asks `kept_media_ids`, so its
 -- purge would delete an open-reported item's OBJECT while this SQL keeps its row. The build after it is safe on
--- either side (its report route falls back to the three-argument call while the new one is missing).
+-- either side for guests and hosts (while the new signature and columns are missing, the report route falls back
+-- to the three-argument call, her Delete permanently to the held rows, and an answer link reads as spent); the
+-- purge cron deletes nothing until the apply (a batch that cannot ask what to keep stops, loudly), and the
+-- portal's Reports reads the new columns, so both wait on it.
 
 -- =============================================================================================
 -- 1. What a report is, and who sent it (only as long as it is open).

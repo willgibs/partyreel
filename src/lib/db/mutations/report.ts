@@ -163,6 +163,9 @@ export async function answerProof(input: {
     .eq("status", "open")
     .is("proof_answered_at", null)
     .select("id");
-  if (error) return { ok: false, code: "unknown" };
+  // Before the migration the columns are missing (42703) and no link can exist yet: it reads as a spent link.
+  if (error) {
+    return { ok: false, code: error.code === "42703" ? "gone" : "unknown" };
+  }
   return (data ?? []).length > 0 ? { ok: true } : { ok: false, code: "gone" };
 }

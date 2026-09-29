@@ -217,4 +217,29 @@ describe("answerProof", () => {
     ).resolves.toEqual({ ok: false, code: "gone" });
     expect(row().proof_answer).toBeNull();
   });
+
+  it("reads a database without the migration's columns as a spent link, never a failure", async () => {
+    fake = createFakePostgrest({ tables: { reports: [] } });
+    const from = fake.from.bind(fake);
+    fake.from = (table: string) => {
+      const t = from(table);
+      t.update = () =>
+        ({
+          eq: () => ({
+            eq: () => ({
+              is: () => ({
+                select: async () => ({
+                  data: null,
+                  error: { code: "42703", message: "column does not exist" },
+                }),
+              }),
+            }),
+          }),
+        }) as never;
+      return t;
+    };
+    await expect(
+      answerProof({ tokenHash: "hash-1", answer: "Here." }),
+    ).resolves.toEqual({ ok: false, code: "gone" });
+  });
 });
