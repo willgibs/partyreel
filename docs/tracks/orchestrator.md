@@ -43,6 +43,7 @@ a lane").
 | `demo-framing-r2` | demo-framing r2, a board: the demo's slug in the host's voice or a typewriter of slugs, how the typewriter and the stream share the home hero (or the stream moves to the QR page), the hero's clickable touch in place of its eyebrow | running (agent `ac4d9d8416d49b653`; worktree `../partyreel-wt/demo-framing-r2`) | Opus, 3133 | |
 | `crumbs-18` | five small app items: the host's report help article brought to what shipped, the help's phone screens mounting once, the hub's sheet history on a double tap and a reload, phone popups after a refresh, a pushed arrival that no longer fades | running (agent `a5e41e0c0ab4f3c16`; worktree `../partyreel-wt/crumbs-18`) | Sonnet, 3131 | |
 | `about-press` | about-press r1, a board: the press kit folded into /about (with or without its four facts, as a usage note or none) or dropped; the press-page board retired in-lane | running (agent `ac39cec52094cc601`; worktree `../partyreel-wt/about-press`) | Opus, 3135 | |
+| `menu-depth` | on Will's word ("Remove it"), the dropdown's render-time throw on a third submenu level removed, its guidance kept as a comment and the sub-menu's portal test kept | running (agent `a5c372b3de31ef79b`; worktree `../partyreel-wt/menu-depth`) | Sonnet, 3132 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
 Q3, the audit of board notes hardened into laws: one lane (`unfence`) on its dispositions (two A grades were
