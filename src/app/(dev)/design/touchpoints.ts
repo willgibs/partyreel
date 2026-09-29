@@ -25,7 +25,6 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 
 /** The boards standing in sandbox/, one row each below. */
 export type SandboxId =
-  | "export-flow"
   | "admin-triage"
   | "emails"
   | "locked-door"
@@ -54,34 +53,6 @@ export type Ruling = {
 };
 
 export const RULINGS: Ruling[] = [
-  {
-    id: "export-flow",
-    title: "Getting everything out",
-    surface: "shared",
-    asks: "what Download hands a guest, where the wait is said, a request that never answers, whether an empty zip is refused, the item limit, and where the file lands on a phone",
-    why: "Taking everything home is where a host and a guest end, so it is asked from the foundation on the real download menu, phone first.",
-    lives: [
-      "docs/systems/uploads-and-r2.md",
-      "src/components/app/export/export-dialog.tsx",
-      "src/components/app/export/use-export-download.ts",
-      "src/components/app/export/download-all-button.tsx",
-      "src/components/guest/live-gallery.tsx",
-      "src/lib/export/export-service.ts",
-      "src/app/api/export/host/route.ts",
-      "workers/export/src/index.ts",
-    ],
-    board: {
-      note: "Six decisions on the shipped Download menu (rows at the thumb, a menu under the button at a desk) with fixture summaries, phone first at 375 with 1440 on the knob: what Download hands a guest, where the wait is said once the menu closes, what a mint that never answers does, whether a zip with nothing in it is refused, what the 2,000 item limit does to a row, and where the file lands on a phone",
-      variants: [
-        "What a guest takes",
-        "The wait",
-        "A tap with no answer",
-        "A zip with nothing in it",
-        "The limit",
-        "Where the file lands",
-      ],
-    },
-  },
   {
     id: "admin-triage",
     title: "Acting on a report",
@@ -375,7 +346,6 @@ export const RULINGS: Ruling[] = [
  * registry.test.ts holds this list and `BOARDS` to the same members.
  */
 export const DESK_ORDER: readonly SandboxId[] = [
-  "export-flow",
   "admin-triage",
   "help-center",
   "event-settings",
