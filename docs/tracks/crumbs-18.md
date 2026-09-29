@@ -15,6 +15,7 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/ui/popup-back.test.tsx                                # new: the pin for item 4
   - src/components/app/media-grid.test.tsx                               # new: the pin for item 5
   - content/help/AUTHORING.md                                            # one line: rule 6 still taught "no per-photo reports"
+  - content/help/report-a-problem-as-a-guest.mdx                         # two words: the form now says a confirmed email "can" hide (crumbs-17's NIT-6)
   - docs/systems/host-app.md                                             # the two places bullet (item 3)
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/marketing-content.md
