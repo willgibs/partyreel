@@ -31,8 +31,6 @@ export type SandboxId =
   | "locked-door"
   | "help-center"
   | "event-settings"
-  | "host-storage"
-  | "event-safety"
   | "press-page"
   | "contact-page"
   | "disposable-mode"
@@ -88,8 +86,8 @@ export const RULINGS: Ruling[] = [
     id: "admin-triage",
     title: "Acting on a report",
     surface: "admin",
-    asks: "a report in the queue, a wordless one, what a verdict costs and records, a closed report, the legal hold, the phone, one idiom for four inboxes, and what the host is told",
-    why: "The operator's act on a report, asked from the ground up inside the portal's own shape: an on-brand devtool.",
+    asks: "the reports queue as a batch-first sweep with every fact on every report, what puts clear harm in front, how a reporter is asked for proof, and what a phone may do",
+    why: "Round two, from his notes: a fast, batch-first queue where each report says all it takes to decide, and a way to ask for proof before anything comes down.",
     lives: [
       "docs/systems/admin-observability.md",
       "docs/systems/trust-safety-forensics.md",
@@ -97,19 +95,20 @@ export const RULINGS: Ruling[] = [
       "src/app/admin/reports/person-report-list.tsx",
       "src/components/app/report-review.tsx",
       "src/components/admin/destructive-sheet.tsx",
-      "src/components/admin/triage-status-control.tsx",
-      "src/app/admin/forensics/forensics-controls.tsx",
-      "src/components/app/recently-deleted-grid.tsx",
-      "src/lib/moderation/operator-actions.ts",
+      "src/components/guest/report-dialog.tsx",
+      "src/app/api/reports/route.ts",
+      "src/lib/validation/report.ts",
+      "src/lib/db/queries/reports.ts",
+      "src/lib/email/templates.ts",
+      "content/help/report-a-problem-as-a-guest.mdx",
     ],
     board: {
-      note: "Eight decisions on presentational forks of the real admin pieces with fixtures, inside the portal's shipped shell, at 1440 by 900 with 375 on a knob: what a report looks like in the queue under its People section, what a wordless one says, what a verdict costs and records, what a closed report leaves, how a legal hold is reached from the report, what an operator can do from a phone, whether four inboxes speak one language, and what the host is told once the uploader already is",
+      note: "Four decisions on a Saturday night of 15 open reports in the portal as it ships, wearing his round one picks: the queue four ways at 1440 (a sheet, a list beside the report, the review grid with words, grouped by album), each with every fact and a front no sweep can take; then, on his queue, what puts clear harm in front (the guest's Report at 375 beside it), how a reporter is asked for proof (her form, her inbox, the report), and what a phone may do at 375",
       variants: [
-        "The first look",
-        "The verdict",
-        "The legal hold",
-        "Once it is closed",
-        "Who is told",
+        "The queue",
+        "Clear harm, in front",
+        "Asking for proof",
+        "What a phone may do",
       ],
     },
   },
@@ -221,58 +220,6 @@ export const RULINGS: Ruling[] = [
         "A setting that does nothing yet",
         "The one Pro lock",
         "Who can get in",
-        "The invite list",
-      ],
-    },
-  },
-  {
-    id: "host-storage",
-    title: "Where the largest files are",
-    surface: "host",
-    asks: "how a Pro host's six prices sit in her plan, including the size that cannot hold what she stores: every price, how much room, what to change, build the plan, or the one change that suits her",
-    why: "Round one settled the list, the strip and the refusal; prices came back asking for better ideas, seen where a host really meets them, so round two draws five.",
-    lives: [
-      "docs/systems/billing-caps.md",
-      "src/lib/constants/tiers.ts",
-      "src/lib/billing/storage-guard.ts",
-      "src/components/ui/popup-kinds.ts",
-      "src/components/app/pricing/pricing-sheet.tsx",
-      "src/components/app/pricing/pro-price-list.tsx",
-      "src/components/app/dashboard/storage-meter.tsx",
-      "src/app/(app)/account/page.tsx",
-    ],
-    board: {
-      note: "Round two asks prices alone, five answers each drawn twice on the plan as it ships over one videographer's 110.8 GB on Pro 500 GB: opened from her Plan card, then from the storage meter with Pro 100 GB tapped, his round-one list and strip live under it",
-      variants: ["The six prices"],
-    },
-  },
-  {
-    id: "event-safety",
-    title: "Keeping an event safe",
-    surface: "host",
-    asks: "where a host blocks someone, the door a blocked person meets, the blocked list and letting back in, the Guests room with its list off, and the three closed doors",
-    why: "A bad actor with a verified email can be hidden photo by photo but never stopped; a block and three closed doors, all free, end that.",
-    lives: [
-      "docs/systems/guest-flow.md",
-      "docs/systems/host-app.md",
-      "docs/systems/trust-safety-forensics.md",
-      "src/components/shared/media-lightbox.tsx",
-      "src/components/shared/media-lightbox-parts/credit.tsx",
-      "src/components/social/guest-peek.tsx",
-      "src/app/(app)/dashboard/[eventId]/guests/page.tsx",
-      "src/components/app/event-feed/review-room.tsx",
-      "src/components/app/event-feed/review-section.tsx",
-      "src/components/app/event-settings/visibility-section.tsx",
-      "src/components/app/event-settings/uploads-section.tsx",
-      "src/components/guest/entry-modal.tsx",
-      "src/components/guest/upload/failure-sheet.tsx",
-    ],
-    board: {
-      note: "Twelve decisions over Maya and Jay's wedding, where Dom Hale keeps sending a nightclub to a wedding, at 375 with 1440 on the knob, drawn on production as it stands: where Block lives, the door a blocked person meets, the blocked list and what letting back in restores, the Guests room with its list off, how a host chooses who can join, and the doors of approving newcomers, closing to them and an invite list",
-      variants: [
-        "Where Block lives",
-        "The blocked door",
-        "Who can join",
         "The invite list",
       ],
     },
@@ -428,8 +375,6 @@ export const RULINGS: Ruling[] = [
  * registry.test.ts holds this list and `BOARDS` to the same members.
  */
 export const DESK_ORDER: readonly SandboxId[] = [
-  "host-storage",
-  "event-safety",
   "export-flow",
   "admin-triage",
   "help-center",

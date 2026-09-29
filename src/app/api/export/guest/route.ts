@@ -14,6 +14,7 @@ import { z } from "zod";
 
 import { mustQuery } from "@/lib/db/must-query";
 import { getEventByQrToken } from "@/lib/db/queries/guest-events";
+import { isClosedToThisBrowser } from "@/lib/events/closed-door.server";
 import { inChunks } from "@/lib/db/read-all";
 import { isDemoToken } from "@/lib/demo";
 import {
@@ -57,8 +58,10 @@ export async function POST(request: Request) {
   if (!parsed.success) return bad();
   const { step, qr_token, types } = parsed.data;
 
+  // A private album, or one closed to this browser by a block (the closed door: the same answer and
+  // the same work, `closed-door.server.ts`), exports nothing.
   const event = await getEventByQrToken(qr_token);
-  if (!event.ok || event.data.visibility === "private") {
+  if (!event.ok || (await isClosedToThisBrowser(event.data))) {
     return NextResponse.json({ ok: false, code: "forbidden" }, { status: 403 });
   }
 

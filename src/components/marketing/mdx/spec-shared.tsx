@@ -22,6 +22,7 @@ import { marketingImage } from "@/lib/constants/marketing-media";
 import { slugify } from "@/lib/content/help";
 import {
   AVG_PHOTO_BYTES,
+  ESTIMATE_BASIS,
   EVENT_PASS_RENEWAL_PRICE_LABEL,
   MAX_EVENTS,
   MAX_REEL_SECONDS,
@@ -106,16 +107,31 @@ export const PlanPrice = ({ id }: { id: PlanId }) => (
 export const EventPassRenewalPrice = () => (
   <>{EVENT_PASS_RENEWAL_PRICE_LABEL}</>
 );
-/** The rule-of-thumb sizes behind every capacity estimate ("about 4 MB a photo"). */
+/** The rule-of-thumb sizes behind every capacity estimate ("about 3.5 MB a photo"): an iPhone's
+ *  24 MP default photo and a minute of its default 1080p video (tiers.ts carries Apple's sources). */
 export const PhotoAverageSize = () => <>{formatBytes(AVG_PHOTO_BYTES)}</>;
 export const VideoMinuteSize = () => <>{formatBytes(VIDEO_BYTES_PER_MIN)}</>;
-/** "19,200 photos or 9 hours of video" for a plan; photos only where the tier has no video
- *  (so `plan="free"` renders the photo count alone, with no second component to reach for). */
-export const CapacityEstimate = ({ plan }: { plan: PlanId }) => {
+/** "at an iPhone's default camera settings": the camera every estimate assumes, for prose that
+ *  states it once before several figures (host-storage r2: an estimate always says its basis). */
+export const EstimateBasis = () => <>{ESTIMATE_BASIS}</>;
+/** "21,943 photos or 20 hours of video at an iPhone's default camera settings" for a plan; photos
+ *  only where the tier has no video (so `plan="free"` renders the photo count alone). The basis
+ *  rides along; `basis="off"` only where the sentence or the table's caption already says it
+ *  (<EstimateBasis />), so no estimate ever reaches a reader without its camera. */
+export const CapacityEstimate = ({
+  plan,
+  basis,
+}: {
+  plan: PlanId;
+  basis?: "off";
+}) => {
   const p = planById(plan);
   return (
     <>
-      {formatCapacity(p.storageBytes, { video: videosAllowedForTier(p.tier) })}
+      {formatCapacity(p.storageBytes, {
+        video: videosAllowedForTier(p.tier),
+        basis: basis !== "off",
+      })}
     </>
   );
 };
@@ -512,6 +528,7 @@ export const sharedComponents = {
   EventPassRenewalPrice,
   PhotoAverageSize,
   VideoMinuteSize,
+  EstimateBasis,
   CapacityEstimate,
   Yes,
   No,

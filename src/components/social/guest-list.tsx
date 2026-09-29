@@ -19,13 +19,14 @@ import {
   PopupHeader,
   PopupTrigger,
 } from "@/components/ui/popup";
+import type { BlockTarget } from "@/lib/events/event-blocks";
 import type { ProfileCardItem } from "@/lib/social/cards";
 
 /**
- * The named "Guests" list (profiles-social.md: renders ONLY when the host turned on
- * show_guest_list). One presentational component for BOTH surfaces (the host event
- * page section and the guest album), so the two can never drift. Items arrive fully
- * hydrated (avatar URLs, never storage paths).
+ * The named "Guests" list, ALWAYS ON (Will, event-safety `room=always`, 2026-09-28:
+ * "Always on for everyone"). One presentational component for BOTH surfaces (the
+ * host's Guests room and the guest album), so the two can never drift. Items arrive
+ * fully hydrated (avatar URLs, never storage paths).
  *
  * ★ EVERY NAME OPENS A LOOK (`popups` r1, `peek=card`, Will 2026-09-27): a
  * card beside the name at a desk, the Sheet in a hand (`guest-peek.tsx`). A
@@ -81,6 +82,11 @@ import type { ProfileCardItem } from "@/lib/social/cards";
  * and a name nobody proved never shows an address even if one were somehow
  * handed over. It shows in the chips and in the opened names panel alike (both
  * are `Chips`); the faces row names nobody, so it shows none.
+ *
+ * ★ AND THE HOST ALONE CAN BLOCK FROM A NAME'S LOOK (event-safety `entry=all`):
+ * `blockFrom`, like `emails`, is passed only by the Guests room, and each look
+ * gets the one way the room knows its person (a confirmed guest's account, a
+ * typed name's row). A person the host blocked is not on this list at all.
  */
 
 /** A guest with no proof: a `guests` row carrying a typed name and nothing else. */
@@ -201,16 +207,35 @@ function Face({ item }: { item: GuestListItem }) {
   );
 }
 
+/** Who a name's Block would name, as the Guests room knows them (never on the album). */
+function blockFor(
+  item: GuestListItem,
+  blockFrom: { eventId: string } | undefined,
+): { target: BlockTarget } | undefined {
+  if (!blockFrom) return undefined;
+  return isUnverified(item)
+    ? { target: { kind: "row", guestId: item.id } }
+    : {
+        target: {
+          kind: "account",
+          eventId: blockFrom.eventId,
+          userId: item.id,
+        },
+      };
+}
+
 function Chips({
   items,
   viewerId,
   followingIds,
   emails,
+  blockFrom,
 }: {
   items: GuestListItem[];
   viewerId?: string | null;
   followingIds?: ReadonlySet<string>;
   emails?: ReadonlyMap<string, string>;
+  blockFrom?: { eventId: string };
 }) {
   return (
     <ul className="flex flex-wrap items-center gap-1.5">
@@ -224,7 +249,11 @@ function Chips({
                   sits BESIDE the name's button, never inside it (it is a
                   button of its own). */}
               <span className={`${CHIP} text-muted-foreground`}>
-                <GuestPeek item={item} canFollow={false}>
+                <GuestPeek
+                  item={item}
+                  canFollow={false}
+                  block={blockFor(item, blockFrom)}
+                >
                   <button
                     type="button"
                     className={`-my-1 -ml-1 flex min-w-0 items-center gap-2 rounded-full py-1 pr-1 pl-1 ${NAME_BUTTON}`}
@@ -272,7 +301,12 @@ function Chips({
         );
         return (
           <li key={item.id} className="flex items-center gap-1.5">
-            <GuestPeek item={item} email={email} canFollow={canFollow}>
+            <GuestPeek
+              item={item}
+              email={email}
+              canFollow={canFollow}
+              block={blockFor(item, blockFrom)}
+            >
               <button
                 type="button"
                 className={`${chipClass} ${item.slug ? "text-foreground" : "text-muted-foreground"} ${NAME_BUTTON}`}
@@ -299,6 +333,7 @@ export function GuestList({
   viewerId,
   followingIds,
   emails,
+  blockFrom,
 }: {
   items: GuestListItem[];
   /** The signed-in viewer, so a Follow can appear on somebody else's chip. */
@@ -311,11 +346,14 @@ export function GuestList({
    * album never does, so no guest ever sees another guest's address.
    */
   emails?: ReadonlyMap<string, string>;
+  /**
+   * HOST-ONLY: the event a name's look can block its person from. Only the
+   * Guests room passes it; the album never does.
+   */
+  blockFrom?: { eventId: string };
 }) {
   if (items.length === 0) {
-    // [] means the host's key is ON and nobody has added a photograph yet. null
-    // (the key is off) never reaches this component: both callers gate on it,
-    // which is what getEventGuestList's null-against-[] return is for. ★ The
+    // [] means nobody has added a photograph yet (the list is always on). ★ The
     // line dropped "signed-in" at the identity reshape: every uploader carries a
     // name now, so the old qualifier described a distinction the product no
     // longer has.
@@ -333,6 +371,7 @@ export function GuestList({
         viewerId={viewerId}
         followingIds={followingIds}
         emails={emails}
+        blockFrom={blockFrom}
       />
     );
   }
@@ -343,6 +382,7 @@ export function GuestList({
       viewerId={viewerId}
       followingIds={followingIds}
       emails={emails}
+      blockFrom={blockFrom}
     />
   );
 }
@@ -358,11 +398,13 @@ function GuestListPanel({
   viewerId,
   followingIds,
   emails,
+  blockFrom,
 }: {
   items: GuestListItem[];
   viewerId?: string | null;
   followingIds?: ReadonlySet<string>;
   emails?: ReadonlyMap<string, string>;
+  blockFrom?: { eventId: string };
 }) {
   // How many names the open list shows, a page at a time; back to one page
   // whenever it closes, so it always opens at its head.
@@ -398,6 +440,7 @@ function GuestListPanel({
             viewerId={viewerId}
             followingIds={followingIds}
             emails={emails}
+            blockFrom={blockFrom}
           />
           {rest > 0 && (
             <button

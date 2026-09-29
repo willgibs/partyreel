@@ -19,12 +19,17 @@ below).
 - **Stripe Prices are the billing truth**, referenced by env key; `tiers.ts` carries the plan shape and the display
   labels, and `tier_limits()` in SQL mirrors its limits. A price change is a new Stripe Price, its env value (a
   redeploy) and the label, together.
-- **Pro's case is what one big event needs (videos, more storage, longer clips), never only hosting again:** most
-  paid hosts hold one event, a wedding above all, so a line that sells Pro as "for your next event" loses them.
+- **Pro's case is what one big event needs (video, more storage, clips with no mark), never only hosting again:**
+  most paid hosts hold one event, a wedding above all, so a line that sells Pro as "for your next event" loses them.
+- **Free is nearly the whole experience, sized for a small gathering,** so what paid adds is a short list a host can
+  read at a glance: video, more storage, unlimited events, clips with no mark. The password, the custom link and
+  full-length clips are on every plan; Free keeps 100 MB (about 30 photos at an iPhone's defaults), photos only, one
+  event and the mark on clips, so a real event is the reason to pay. Set before launch, so the only-move-up rule
+  below starts from 100 MB.
 - **The monthly ingress meter** (bytes uploaded per month; never refunded on delete; unmarketed) is the anti-abuse
-  guard, because storage caps alone don't stop delete-and-re-upload bandwidth burn. Free's bound is a flat 20 GB; a
-  paid plan's is a multiple of its effective storage cap (`INGRESS_CAP_MULTIPLIER`, 3), so the bound scales with
-  what the host pays for, needs no new figure per plan and stays silently tunable. It is generous by design (3× is a
+  guard, because storage caps alone don't stop delete-and-re-upload bandwidth burn. Every plan's bound is a multiple
+  of its effective storage cap (`INGRESS_CAP_MULTIPLIER`, 3; Free's is 300 MB), so the bound scales with the room a
+  host has, needs no new figure per plan and stays silently tunable. It is generous by design (3× is a
   full extra refill of headroom), because the one outcome worth engineering against is a false positive quietly
   blocking a paying host; nothing in `/admin` shows a host's meter, and there is no manual override.
 - **A marketed number can only ever move UP.** Grandfathering makes every published limit sticky, so each one lands at
@@ -38,14 +43,18 @@ below).
 
 | Plan           | Price                      | Storage | ≈ holds                              | Events                      |
 | -------------- | -------------------------- | ------- | ------------------------------------ | --------------------------- |
-| **Free**       | $0                         | 2 GB    | 512 photos (photos only)             | 1                           |
-| **Pro 100 GB** | $9/mo or $90/yr            | 100 GB  | 25,600 photos or 11 hours of video   | unlimited                   |
-| **Pro 500 GB** | $19/mo or $190/yr          | 500 GB  | 128,000 photos or 57 hours of video  | unlimited                   |
-| **Pro 2 TB**   | $39/mo or $390/yr          | 2 TB    | 524,288 photos or 233 hours of video | unlimited                   |
-| **Event Pass** | $24 one-time, $15 to renew | 75 GB   | 19,200 photos or 9 hours of video    | 1 per pass, each for a year |
+| **Free**       | $0                         | 100 MB  | 29 photos (photos only)              | 1                           |
+| **Pro 100 GB** | $9/mo or $90/yr            | 100 GB  | 29,257 photos or 26 hours of video   | unlimited                   |
+| **Pro 500 GB** | $19/mo or $190/yr          | 500 GB  | 146,286 photos or 131 hours of video | unlimited                   |
+| **Pro 2 TB**   | $39/mo or $390/yr          | 2 TB    | 599,186 photos or 538 hours of video | unlimited                   |
+| **Event Pass** | $24 one-time, $15 to renew | 75 GB   | 21,943 photos or 20 hours of video   | 1 per pass, each for a year |
 
-The ≈ column is `formatCapacity` in `tiers.ts` (about 4 MB a photo and 150 MB a minute of 1080p video), the phrase
-/pricing and the app print; the site derives it from the GB and never types it.
+The ≈ column is `formatCapacity` in `tiers.ts`, the phrase /pricing, the plan sheet, the help and the blog print; the
+site derives it from the GB and never types it. **It assumes an iPhone at its default camera settings, and every
+surface says so**, because an estimate with no camera behind it is a random claim: a 24 MP High
+Efficiency photo at about 3.5 MB and a minute of 1080p at 30 fps at about 65 MB, from Apple's own figures (the
+derivation and the sources are the constants' comment). `ESTIMATE_BASIS` is the phrase and `ESTIMATE_BASIS_NOTE` the
+working.
 
 - **Annual Pro is exactly ×10 the monthly, marketed as "two months free"** (a Vitest pin holds each yearly label at
   10× its sibling). Why not deeper: a full 2 TB plan costs about $369 a year in storage, about what a 20% discount
@@ -53,7 +62,8 @@ The ≈ column is `formatCapacity` in `tiers.ts` (about 4 MB a photo and 150 MB 
   going underwater, and starting conservative leaves deepening as a later gift. The yearly Stripe prices live on the
   SAME products as the monthly ones (one product per size, so the size reads the same in Checkout and on Stripe's
   confirm page); env keys `STRIPE_PRICE_PRO_{100,500,2TB}_YR`. A Pro host moves between sizes and cadences from the
-  app's plan sheet (`/api/stripe/change-plan`, `proration_behavior: always_invoice`), and a pass holder's prorated
+  app's plan sheet (her three sizes under one Monthly / Yearly toggle, the saving tagged beside Yearly and computed
+  from these labels; `/api/stripe/change-plan`, `proration_behavior: always_invoice`), and a pass holder's prorated
   credit lands as customer balance, which pays the NEXT invoice: on yearly, that is a year out (never lost).
 - **A plan change never leaves a host storing more than the new cap** (Will, 2026-09-22). Any Pro purchase or Pro
   size change must hold what the host already stores (active bytes against the plan's plain cap); a smaller one
@@ -61,18 +71,22 @@ The ≈ column is `formatCapacity` in `tiers.ts` (about 4 MB a photo and 150 MB 
   Pro 500 GB.") until they remove enough. An Event Pass is never refused (passes stack). So Partyreel never
   removes media, or pays for storage beyond the plan, because of a purchase; the 45-day over-capacity grace
   remains for a plan that ENDS. The mechanism: [`systems/billing-caps.md`](systems/billing-caps.md).
-- **What Free gates.** Password locks and custom links are paid (`GATED_EVENT_SETTINGS` in `tiers.ts`, locked on
-  Free), and **video is paid** (Pro and the Event Pass; a free event is photos-only for guests AND the host, enforced
-  at upload in `create_media` / `create_media_as_host` and mirrored client-side by `videosAllowedForTier`). **Require
-  verified emails** and **Require an upload to view** are free on every plan: the first on by default (allowing a
-  typed, unverified name is the opt-in), the second off. **Clip length is tier-capped** (`MAX_REEL_SECONDS`:
-  30s Free / 60s paid), and making a clip is free on every tier (a small mark on Free); the live reel itself has no cap
-  and no mark anywhere, and adding a clip to the album is a video upload, so it is paid. 30s is the free-tier category
-  norm and still holds a real 12 to 15 moment montage: 15s reads stingy, and past 60s a montage sags while losing its
-  Reels and TikTok reach.
+- **What Free gates.** **Video is paid** (Pro and the Event Pass; a free event is photos-only for guests AND the host,
+  enforced at upload in `create_media` / `create_media_as_host` and mirrored client-side by `videosAllowedForTier`),
+  and so is a clip without the mark. **No event setting is paid:** the password lock and the custom link are on every
+  plan (`GATED_EVENT_SETTINGS` is empty, and the setter RPCs refuse no tier; the lock machinery stays for video, so
+  a setting can be gated again in one list and one migration). **Require verified emails** and **Require an upload to
+  view** are free on every plan: the first on by default (allowing a typed, unverified name is the opt-in), the
+  second off. **A clip runs 60 s on every plan** (`MAX_REEL_SECONDS`: its length is the least of what a host pays
+  for, and past 60 s a montage sags while losing its Reels and TikTok reach), and making one is free on
+  every tier (a small mark on Free); the live reel itself has no cap and no mark anywhere, and adding a clip to the
+  album is a video upload, so it is paid.
   The first-event experience must still shine; it sells the upgrade. **The upgrade triggers** (each opens the in-app
-  pricing sheet on its own reason): a second event, outgrowing the first event's storage, wanting video, or a password
-  lock or custom link.
+  pricing sheet on its own reason): a second event, outgrowing Free's 100 MB, or wanting video.
+- **A custom link on Free is guarded against squatting** (a throwaway account can now hold one): `set_event_slug`
+  refuses the reserved words in SQL (`RESERVED_SLUGS`, mirrored and parity-tested), since the RPC is callable past
+  the server action; and a slug frees when its event is deleted, for good: a restore brings it back only while it is
+  still free.
 - **Event Pass economics.** Passes **STACK**: each purchase is a ledger row granting +1 event slot and +75 GB for its
   own one-year window (`event_passes` + `profiles.event_slots`). Moving to Pro converts every live pass into
   **PRORATED CREDIT**: the unused fraction of what was actually paid becomes Stripe customer balance that pays down
@@ -113,9 +127,10 @@ no app code.
 
 [`src/lib/constants/tiers.ts`](../src/lib/constants/tiers.ts) is the source of truth: read it, never a doc copy.
 Beyond the tables above it holds the `Plan` records with their Stripe price env keys, `MAX_EVENTS`, the ingress model
-(`MONTHLY_INGRESS_BYTES.free` = 20 GB; paid plans derive `INGRESS_CAP_MULTIPLIER` (3) × the storage cap through
-`monthlyIngressCap`), `GATED_EVENT_SETTINGS` (password + custom_slug), `MAX_REEL_SECONDS` (a clip's 30/60), and the display
-helpers `friendlyCapacity` and `formatCapacity`. The DB `tier_type` enum still lists a retired `max` (coerced by
+(every plan derives `INGRESS_CAP_MULTIPLIER` (3) × its storage cap through `monthlyIngressCap`; no tier keeps a static
+`MONTHLY_INGRESS_BYTES` today), `GATED_EVENT_SETTINGS` (empty; `password` and `custom_slug` are the settings it can
+gate), `MAX_REEL_SECONDS` (60 on every tier), the estimate's basis (`AVG_PHOTO_BYTES`, `VIDEO_BYTES_PER_MIN`,
+`ESTIMATE_BASIS`), and the display helpers `friendlyCapacity` and `formatCapacity`. The DB `tier_type` enum still lists a retired `max` (coerced by
 `toBillingTier()`), and the SQL `tier_limits()` must mirror the file (`tier-limits-parity.test.ts` guards it).
 
 ## Stripe setup

@@ -43,6 +43,7 @@ import { NextResponse } from "next/server";
 
 import { setGuestPendingEmail } from "@/lib/db/mutations/guest";
 import { getEventByQrToken } from "@/lib/db/queries/guest-events";
+import { isClosedDoor } from "@/lib/events/closed-door.server";
 import {
   applyGuestCookies,
   guestSessionCookieIfChanged,
@@ -121,7 +122,10 @@ export async function POST(request: Request) {
       { status: 404 },
     );
   }
-  if (eventResult.data.visibility === "private") {
+  // A ticket a block holds meets the private album's refusal, word for word (the closed door,
+  // `closed-door.server.ts`, asked with the body's ticket alone: a write route never reads the
+  // cookie; set_guest_pending_email refuses the blocked ticket too).
+  if (await isClosedDoor(eventResult.data, [session_token])) {
     return NextResponse.json(
       { ok: false, code: "unauthorized", message: "This event is private." },
       { status: 403 },

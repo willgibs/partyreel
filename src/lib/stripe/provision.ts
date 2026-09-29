@@ -14,7 +14,7 @@ export type ProfilePatch = {
   /** Maps to profiles.stripe_customer_id (how we find the host). */
   customerId: string;
   tier: Tier;
-  /** null → falls back to the tier default in create_media (Free = 2 GB). */
+  /** null → falls back to the tier default in create_media (tier_limits(), mirroring tiers.ts). */
   storageCapBytes: number | null;
   /** What profiles.stripe_subscription_id becomes: the granting subscription, or null on a downgrade. */
   subscriptionId: string | null;
@@ -87,9 +87,9 @@ export function resolveSubscriptionUpdate(
   }
 
   // Cancellation (or any other non-active state) → downgrade to Free. cap null →
-  // the 2 GB Free default applies in create_media; existing media stays, new
-  // uploads are blocked once over cap (minimal over-capacity; full grace is a
-  // fast-follow).
+  // Free's tiers.ts default applies in create_media; existing media stays, new
+  // uploads are blocked once over cap, and the nightly over-cap sweep opens the
+  // grace window (lifecycle-recovery.md).
   if (
     event.type === "customer.subscription.deleted" ||
     !ACTIVE_STATUSES.has(sub.status)

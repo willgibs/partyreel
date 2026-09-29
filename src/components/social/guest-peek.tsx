@@ -1,8 +1,12 @@
 "use client";
 
-import type { ReactElement, ReactNode } from "react";
+import { useState, type ReactElement, type ReactNode } from "react";
 import Link from "next/link";
 
+import {
+  BlockLookAction,
+  LazyBlockConfirm,
+} from "@/components/app/event-blocks/block-look-action";
 import { UnverifiedMark } from "@/components/shared/unverified-mark";
 import { FollowButton } from "@/components/social/follow-button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -20,6 +24,7 @@ import {
   PopupTrigger,
 } from "@/components/ui/popup";
 import { DESK_QUERY, shapeFor } from "@/components/ui/popup-kinds";
+import type { BlockTarget } from "@/lib/events/event-blocks";
 import { useMediaQuery } from "@/lib/use-media-query";
 
 import type { GuestListItem } from "./guest-list";
@@ -46,6 +51,12 @@ import type { GuestListItem } from "./guest-list";
  * which needs a read the guest list does not carry (their approved uploads by
  * guest row or account, presigned). It is the manifest's question with its
  * follow-up line; the look is built so the strip slots in under the name.
+ *
+ * ★ AND FOR THE HOST ALONE, A QUIET BLOCK (event-safety `entry=all`): `block`
+ * is passed only by a host's surface (the Guests room, the host's viewer
+ * credit), and the look keeps leading with the person; Block is its last,
+ * smallest line (`BlockLookAction`), which closes the look and opens the one
+ * block screen.
  */
 
 function Face({ item }: { item: GuestListItem }) {
@@ -107,6 +118,7 @@ export function GuestPeek({
   item,
   email,
   canFollow,
+  block,
   children,
 }: {
   item: GuestListItem;
@@ -114,63 +126,98 @@ export function GuestPeek({
   email?: string | null;
   /** A signed-in viewer who is somebody else and does not follow them yet. */
   canFollow: boolean;
+  /** HOST-ONLY: who Block would put out of this event, as this surface knows them. */
+  block?: { target: BlockTarget };
   /** The name that opens it: one button. */
   children: ReactElement;
 }) {
   const desk = useMediaQuery(DESK_QUERY);
   const name = nameOf(item);
+  const [open, setOpen] = useState(false);
+  // The block screen mounts on the first press and stays, so it closes with its own exit.
+  const [confirmMounted, setConfirmMounted] = useState(false);
+  const [blocking, setBlocking] = useState(false);
+
+  const blockAct = block ? (
+    <BlockLookAction
+      onPress={() => {
+        setOpen(false);
+        setConfirmMounted(true);
+        setBlocking(true);
+      }}
+    />
+  ) : null;
+  const blockScreen =
+    block && confirmMounted ? (
+      <LazyBlockConfirm
+        open={blocking}
+        onOpenChange={setBlocking}
+        target={block.target}
+        name={item.displayName ?? null}
+      />
+    ) : null;
 
   if (shapeFor("peek", desk) === "anchored") {
     return (
-      <Popover>
-        <PopoverTrigger asChild>{children}</PopoverTrigger>
-        <PopoverContent
-          align="start"
-          data-slot="guest-peek"
-          className="w-80 space-y-3 p-4"
-        >
-          <div className="flex items-center gap-3">
-            <Face item={item} />
-            <div className="min-w-0 space-y-0.5">
-              <p className="truncate font-heading text-card-title font-medium">
-                {name}
-              </p>
-              <p className="text-sm text-muted-foreground">{lookLine(item)}</p>
+      <>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>{children}</PopoverTrigger>
+          <PopoverContent
+            align="start"
+            data-slot="guest-peek"
+            className="w-80 space-y-3 p-4"
+          >
+            <div className="flex items-center gap-3">
+              <Face item={item} />
+              <div className="min-w-0 space-y-0.5">
+                <p className="truncate font-heading text-card-title font-medium">
+                  {name}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {lookLine(item)}
+                </p>
+              </div>
             </div>
-          </div>
-          {email ? (
-            <p className="truncate text-caption text-muted-foreground">
-              {email}
-            </p>
-          ) : null}
-          <LookActions item={item} canFollow={canFollow} />
-        </PopoverContent>
-      </Popover>
+            {email ? (
+              <p className="truncate text-caption text-muted-foreground">
+                {email}
+              </p>
+            ) : null}
+            <LookActions item={item} canFollow={canFollow} />
+            {blockAct}
+          </PopoverContent>
+        </Popover>
+        {blockScreen}
+      </>
     );
   }
 
   return (
-    <Popup>
-      <PopupTrigger asChild>{children}</PopupTrigger>
-      <PopupContent kind="peek" data-slot="guest-peek">
-        <PopupHeader
-          title={
-            <span className="flex items-center gap-3">
-              <Face item={item} />
-              <span className="min-w-0 truncate">{name}</span>
-            </span>
-          }
-          description={lookLine(item)}
-        />
-        <PopupBody className="space-y-3">
-          {email ? (
-            <p className="truncate text-caption text-muted-foreground">
-              {email}
-            </p>
-          ) : null}
-          <LookActions item={item} canFollow={canFollow} />
-        </PopupBody>
-      </PopupContent>
-    </Popup>
+    <>
+      <Popup open={open} onOpenChange={setOpen}>
+        <PopupTrigger asChild>{children}</PopupTrigger>
+        <PopupContent kind="peek" data-slot="guest-peek">
+          <PopupHeader
+            title={
+              <span className="flex items-center gap-3">
+                <Face item={item} />
+                <span className="min-w-0 truncate">{name}</span>
+              </span>
+            }
+            description={lookLine(item)}
+          />
+          <PopupBody className="space-y-3">
+            {email ? (
+              <p className="truncate text-caption text-muted-foreground">
+                {email}
+              </p>
+            ) : null}
+            <LookActions item={item} canFollow={canFollow} />
+            {blockAct}
+          </PopupBody>
+        </PopupContent>
+      </Popup>
+      {blockScreen}
+    </>
   );
 }

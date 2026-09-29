@@ -41,9 +41,10 @@ import {
   TIER_NAMES,
   planById,
   effectiveStorageCap,
+  formatCapacity,
   formatLimit,
-  friendlyCapacity,
   toBillingTier,
+  videosAllowedForTier,
   withinLimit,
 } from "@/lib/constants/tiers";
 import {
@@ -215,7 +216,10 @@ export default async function AccountPage({
   // enforce_event_limit does in SQL.
   const planMaxEvents = profile.event_slots ?? MAX_EVENTS[tier];
   const planAtCap = !withinLimit(liveEventCount, planMaxEvents);
-  const planCapacity = planCap ? friendlyCapacity(planCap) : null;
+  // The shared estimate, with its camera (host-storage r2), and video only where the plan takes it.
+  const planCapacity = planCap
+    ? formatCapacity(planCap, { video: videosAllowedForTier(tier) })
+    : null;
   const passExpiry =
     tier === "event_pass" && profile.tier_expires_at
       ? formatDateInZone(profile.tier_expires_at, viewerZone)
@@ -283,7 +287,7 @@ export default async function AccountPage({
               </dt>
               <dd className="text-sm">
                 {planCapacity
-                  ? `About ${formatCount(planCapacity.photos)} photos or ${formatCount(planCapacity.videoMinutes)} min of video`
+                  ? `About ${planCapacity}`
                   : `${formatBytesUp(planUsed)} used`}
               </dd>
             </div>

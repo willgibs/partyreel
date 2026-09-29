@@ -7,6 +7,11 @@ import { describe, expect, it } from "vitest";
  * ONE RULE, ONE COMPONENT, AND NO WAY BACK OUT OF THE APP (`words=chip` and
  * `first=trigger`, Will 2026-09-20).
  *
+ * (Since the free/pro shift, 2026-09-28, the video row is the one control a
+ * Free host meets locked; the password panel, its visibility line and the
+ * custom link keep their locked branch for the day GATED_EVENT_SETTINGS gates
+ * either again, and that branch still wears the chip.)
+ *
  * Four gated controls used to word one rule four ways ("Password-protected
  * albums are a paid feature", "Password protection is a paid feature", "A
  * custom link is a paid feature", "Upgrade to allow video") and three cap
@@ -26,7 +31,13 @@ const read = (...parts: string[]) =>
 
 /** The four controls this rule names, at their shipped paths. */
 const GATED_SITES = [
-  ["the password panel", "src", "components", "app", "event-password-control.tsx"],
+  [
+    "the password panel",
+    "src",
+    "components",
+    "app",
+    "event-password-control.tsx",
+  ],
   [
     "the visibility section's password line",
     "src",
@@ -64,11 +75,37 @@ describe("nothing in the host app leaves for the marketing page", () => {
   const DOORS = [
     ["the dashboard", "src", "app", "(app)", "dashboard", "page.tsx"],
     ["the account page", "src", "app", "(app)", "account", "page.tsx"],
-    ["the storage meter", "src", "components", "app", "dashboard", "storage-meter.tsx"],
-    ["the create wizard", "src", "components", "app", "create-event-wizard.tsx"],
-    ["the restore button", "src", "components", "app", "restore-event-button.tsx"],
+    [
+      "the storage meter",
+      "src",
+      "components",
+      "app",
+      "dashboard",
+      "storage-meter.tsx",
+    ],
+    [
+      "the create wizard",
+      "src",
+      "components",
+      "app",
+      "create-event-wizard.tsx",
+    ],
+    [
+      "the restore button",
+      "src",
+      "components",
+      "app",
+      "restore-event-button.tsx",
+    ],
     ["the bin grid", "src", "components", "app", "recently-deleted-grid.tsx"],
-    ["the pulse's storage step", "src", "components", "app", "dashboard", "next-step-band.tsx"],
+    [
+      "the pulse's storage step",
+      "src",
+      "components",
+      "app",
+      "dashboard",
+      "next-step-band.tsx",
+    ],
   ] as const;
 
   /** An href in any spelling: a JSX attribute, a braced string, or a field. */

@@ -13,75 +13,35 @@ import { ALERTS, type NavEntry, surfaceGroups } from "./fixtures";
 /**
  * THE PORTAL AROUND EVERY PICTURE ON THIS BOARD, AND IT IS NOT A DECISION HERE.
  *
- * It was drawn while the `admin` board was still asking for the portal's
- * shape, wearing its recommendations; that board retired at 290bbd3e with its
- * answers wired (`AdminShell`). The parts these questions lean on match what
- * shipped: the 232 px rail with its search row (`nav = rail-palette`, drawn
- * closed), the 44 px devtool bar with a breadcrumb and a live tag (`chrome =
- * devtool`). The four-hue chip is the one piece that did not ship as drawn
- * (`colour = rows`: stock badge tones, and the report cards still wear the
- * stock Badge); it stays so the untouched steps stay as drawn, and no question
- * here is about a chip's hue. What this board asks about is what happens
- * INSIDE that frame after the home's "reports are open" row is clicked.
+ * The parts every frame leans on match what shipped (`AdminShell`, the retired
+ * `admin` board's answers): the 232 px rail with its search row, the 44 px
+ * devtool bar with its crumb and live tag, and the bell. Every state on a
+ * report wears the shipped `Badge` tones (`colour=rows`); the rail's one dot
+ * beside Reports is the only hue this sheet adds.
  *
- * ★ NO HEALTH BAND, AND THAT IS THE ADMIN BOARD'S OWN ANSWER RATHER THAN A
- * DEPARTURE FROM IT. Its recommended `portal` band is loud only when something
- * is wrong and "on a good day it is not there at all". Tonight the backend is
- * fine and the reports are not, so the band is absent on every frame here,
- * which is both honest and the only way eight decisions about a queue are not
- * read through a red stripe that belongs to another board's question.
+ * ★ NO HEALTH BAND. It is loud only when something is wrong and "on a good day
+ * it is not there at all"; tonight the backend is fine and the reports are
+ * not, so four decisions about a queue are never read through a red stripe
+ * that belongs to another board's question.
  *
  * ★ THE SHELL IS COPIED, NOT IMPORTED, AND THE REASON IS THE SEAM. The shipped
- * `AdminShell` mounts a bar that imports `signOutAction` (a live server action)
- * and is handed its counts by a layout that has already called `requireAdmin()`.
- * The lab must never put a live action one click from a board or touch that
- * seam, so the markup is reproduced on the same primitives. `OperatorAlerts`
- * is the REAL component (a client one that takes three numbers) and the rail's
- * icons come from the real `src/lib/admin/nav.ts`, so what is copied is layout
- * and nothing that could drift into a second source of truth.
+ * bar imports `signOutAction` (a live server action) and is handed its counts
+ * by a layout that has already called `requireAdmin()`. The lab must never put
+ * a live action one click from a board, so the markup is reproduced on the
+ * same primitives. `OperatorAlerts` is the REAL component (a client one that
+ * takes three numbers) and the rail's icons come from the real
+ * `src/lib/admin/nav.ts`, so what is copied is layout and nothing that could
+ * drift into a second source of truth.
  */
 
-/* ── The state chip, one hue per level ───────────────────────────────────── */
-
-export type Level = "open" | "actioned" | "dismissed" | "held" | "quiet";
-
-const HUE: Record<Level, string> = {
-  open: "var(--tri-fail)",
-  actioned: "var(--tri-warn)",
-  dismissed: "var(--tri-ok)",
-  held: "var(--tri-info)",
-  quiet: "var(--color-muted-foreground)",
-};
-
-const hue = (level: Level): CSSProperties =>
-  ({ "--tri": HUE[level] }) as CSSProperties;
-
-export function StateChip({
-  level,
-  children,
-  className,
-}: {
-  level: Level;
-  children: ReactNode;
-  className?: string;
-}) {
+/** The rail's urgent dot, in the portal's failure hue. */
+function StateDot({ className }: { className?: string }) {
   return (
-    <span className={cn("tri-chip", className)} style={hue(level)}>
-      <span className="tri-dot" style={{ background: "currentColor" }} />
-      {children}
-    </span>
-  );
-}
-
-export function StateDot({
-  level,
-  className,
-}: {
-  level: Level;
-  className?: string;
-}) {
-  return (
-    <span aria-hidden className={cn("tri-dot", className)} style={hue(level)} />
+    <span
+      aria-hidden
+      className={cn("tri-dot", className)}
+      style={{ "--tri": "var(--tri-fail)" } as CSSProperties}
+    />
   );
 }
 
@@ -109,7 +69,7 @@ function RailEntry({ item, active }: { item: NavEntry; active: boolean }) {
       {item.count > 0 ? (
         urgent ? (
           <span className="flex items-center gap-1.5">
-            <StateDot level="open" />
+            <StateDot />
             <span className="text-xs tabular-nums opacity-70">
               {item.count}
             </span>

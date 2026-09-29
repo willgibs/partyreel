@@ -115,7 +115,9 @@ export function WelcomeToPro({
                 ? `Room for about ${formatCapacity(capBytes, { video: true })}`
                 : "More room, on every event",
               "Video from you and every guest",
-              "Password locks, custom links and clean reels",
+              // What paid adds since the free/pro shift: the password and the custom
+              // link are on every plan, so the receipt names the mark it takes off.
+              "Clips with no watermark",
             ].map((line) => (
               <li key={line} className="flex items-start gap-2 text-sm">
                 <Check

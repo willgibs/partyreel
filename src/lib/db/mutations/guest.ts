@@ -219,6 +219,15 @@ export async function setGuestDisplayName(input: {
     }
     if (error.code === CHECK_VIOLATION) {
       const m = error.message.toLowerCase();
+      // ★ "This event is private." — the per-event block's refusal of a blocked ticket (migration
+      // 20260928120000), the private album's own words and its 403, ahead of every other refusal.
+      if (m.includes("event is private")) {
+        return {
+          ok: false,
+          code: "unauthorized",
+          message: "This event is private.",
+        };
+      }
       // "Your name comes from your account." — a VERIFIED guest's identity is their profile's, so
       // there is no second name to set. `unauthorized` (403) rather than a fourth code: this
       // session genuinely may not do this, and the RPC's own sentence carries the reason.
@@ -291,6 +300,15 @@ export async function setGuestPendingEmail(input: {
       };
     }
     if (error.code === CHECK_VIOLATION) {
+      // ★ "This event is private." — a blocked ticket (migration 20260928120000), the private
+      // album's own words and its 403.
+      if (error.message.toLowerCase().includes("event is private")) {
+        return {
+          ok: false,
+          code: "unauthorized",
+          message: "This event is private.",
+        };
+      }
       // "Your email comes from your account." — a VERIFIED guest already has a proved address, so
       // there is no unproved one to set beside it. 403 rather than a fourth code, exactly as the
       // name door does: this session genuinely may not do this, and the RPC carries the reason.
@@ -389,6 +407,7 @@ export type CreateMediaResult =
       ok: false;
       code:
         | "invalid_session"
+        | "unauthorized"
         | "uploads_closed"
         | "verification_required"
         | "cap_reached"
@@ -464,6 +483,16 @@ export async function createMedia(input: {
 // size/duration/caps/accepting-uploads, so reaching here is usually a race.
 function mapCheckViolation(message: string): CreateMediaResult {
   const m = message.toLowerCase();
+  // ★ THE SNEAKY BLOCK FIRST (migration 20260928120000): a blocked ticket's completion is refused in
+  // the private album's own words, which the complete route's own private branch answers with the
+  // same code and sentence, so a race between the two reads the same to the guest.
+  if (m.includes("event is private")) {
+    return {
+      ok: false,
+      code: "unauthorized",
+      message: "This event is private.",
+    };
+  }
   // ★ THE IDENTITY GATE COMES FIRST, AND THE ORDER IS THE WHOLE POINT. create_media's refusal reads
   // "This event is not accepting uploads without a verified email.", which ALSO contains the
   // general "not accepting": test the SPECIFIC substring above the general one, or the identity

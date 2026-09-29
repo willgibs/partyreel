@@ -13,8 +13,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
+  ESTIMATE_BASIS_NOTE,
   EVENT_PASS_RENEWAL_PRICE_LABEL,
   friendlyCapacity,
+  GATED_EVENT_SETTINGS,
   MAX_EVENTS,
   MAX_REEL_SECONDS,
   planById,
@@ -104,7 +106,8 @@ function buildGroups(): MatrixGroup[] {
         },
         {
           label: "Holds about",
-          tip: "A friendly estimate from typical phone photos and 1080p video.",
+          // host-storage r2: an estimate names the camera it assumes, with its working.
+          tip: ESTIMATE_BASIS_NOTE,
           values: [
             `${freePhotos.toLocaleString()} photos`,
             `${passCap.photos.toLocaleString()} photos or ${Math.round(passCap.videoMinutes / 60)} h of video`,
@@ -188,8 +191,15 @@ function buildGroups(): MatrixGroup[] {
           tip: "The album fills in while the event is still going.",
           values: [true, true, true],
         },
-        { label: "Password lock", values: [false, true, true] },
-        { label: "Custom link name", values: [false, true, true] },
+        // On every plan since the free/pro shift; read from the one list that gates them.
+        {
+          label: "Password lock",
+          values: [!GATED_EVENT_SETTINGS.includes("password"), true, true],
+        },
+        {
+          label: "Custom link name",
+          values: [!GATED_EVENT_SETTINGS.includes("custom_slug"), true, true],
+        },
         {
           label: "Public host page",
           tip: "Claim /u/you and list the events you host, free on every plan. Guests never need one.",

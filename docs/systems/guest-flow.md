@@ -257,6 +257,13 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
 
 - **`private`** = the master lock → a locked screen (no name / gallery / upload): the not-found family
   wearing a lock, one link home, under the real `GuestHeader`; `generateMetadata` hides the name.
+  ★ **A person the host blocked meets it word for word** (Will's "Sneaky block"): an account or confirmed address a
+  block holds reads the event as `private` from `get_event_by_qr_token` itself, and a ticket (the cookie, a body
+  token) is asked by the one closed door, `lib/events/closed-door.server.ts`, whenever a request carries one, on a
+  private album too, so a block and a private album answer the same with the same work: the page and its metadata,
+  the card, the join, the unlock, the export, the album's read and every guest write (which asks with its body ticket
+  alone), and the write RPCs refuse a held ticket in the private album's words. Her own dashboard and picker read the
+  event as private too ([host-app.md](host-app.md)), so nothing she can reach says blocked.
 - **`password`** → access `none`: the **ghosted RIVER backdrop** (`GhostRiver`, the empty album's own
   picture at its own depth: one absence, one picture) + the real "N photos & videos inside" count tease
   (name shown: it's link-shared, not the secret) under the door's password step, until a signed unlock
@@ -510,7 +517,8 @@ through flags in the sheet. No step counter to desync.
   removes them again. A LIVE upload is one whose `media.status` is not `removed` (pending, approved or hidden), whoever removed it. What OTHER
   people see needs an APPROVED one: the guest list, the Guests room, every guest count and a profile's "guest at"
   line, all read through ONE function (`getEventGuests`, [`event-guests.ts`](../../src/lib/events/event-guests.ts):
-  a confirmed guest once per person, a named unconfirmed one once per row, never the host, never a nameless row).
+  a confirmed guest once per person, a named unconfirmed one once per row, never the host, never a nameless row,
+  never a person the host blocked from the event).
   The account's OWN list of the events it added to takes any live one (→ [host-app.md](host-app.md), the Guest
   cards). A `guests` row stays what it is, the device's upload ticket minted at the door: nothing reads a row as
   attendance, and there is no save. A clip added to the album is an upload like any other. A host removing all of a

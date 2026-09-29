@@ -41,6 +41,7 @@ import {
 import { splitGuestList, withAvatarUrls } from "@/lib/social/cards";
 import { isDemoToken } from "@/lib/demo";
 import { resolveGalleryDecision } from "@/lib/events/gallery-access";
+import { pageIsClosed } from "@/lib/events/closed-door.server";
 import { isRequestOwner } from "@/lib/events/gallery-access-owner.server";
 import {
   resolveViewerDecision,
@@ -72,7 +73,9 @@ export const dynamic = "force-dynamic";
 // isn't the secret) but no description; OPEN gets the full unfurl, one invitation for
 // every open event whatever its identity switch (below). The IMAGE is the event's own
 // card (`/e/<token>/card`), or, for a link to one photograph on an album anyone may open,
-// that photograph (`photoCard` below).
+// that photograph (`photoCard` below). ★ A VIEWER THIS EVENT BLOCKED gets the private
+// event's metadata too (the closed door, `closed-door.server.ts`): the tab's title is as
+// much the door as the page is.
 export async function generateMetadata({
   params,
   searchParams,
@@ -82,7 +85,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { token } = await params;
   const result = await getEventByQrToken(token);
-  if (!result.ok || result.data.visibility === "private") {
+  if (
+    !result.ok ||
+    (await pageIsClosed(result.data.id, result.data.visibility))
+  ) {
     return {
       title: result.ok ? "Private event" : "Join event",
       robots: { index: false },
@@ -261,6 +267,14 @@ export default async function GuestEventPage({
 
   // Private: master lock — reveal nothing (no name, gallery, or upload).
   //
+  // ★ AND A VIEWER THIS EVENT BLOCKED MEETS IT WORD FOR WORD (Will, event-safety
+  // `door=private`: "reusing an existing lock screen to lock out blocked users,
+  // without the 'blocked' experience feeling distinct ... Sneaky block"). An
+  // account or confirmed address the event blocked already reads the event as
+  // private (`get_event_by_qr_token`); a ticket this browser holds is asked here,
+  // whether or not the album is private, so a block and a private album take the
+  // same work and render the same bytes (`closed-door.server.ts`).
+  //
   // ★ IT IS THE NOT-FOUND FAMILY, WEARING A LOCK: NotFoundScreen itself, never
   // a hand-rolled stack mirroring it by eye (the same icon circle, title step
   // and centered column, free to drift). Its one action is a link to the
@@ -273,7 +287,7 @@ export default async function GuestEventPage({
   // live qr_token and event id, so the header can resolve a session and a
   // returning host meets their own menu. The two surfaces that wear GuestBar
   // are the ones that have neither.
-  if (event.visibility === "private") {
+  if (await pageIsClosed(event.id, event.visibility)) {
     return (
       <div className="flex min-h-full flex-1 flex-col">
         <GuestHeader
@@ -444,10 +458,10 @@ export default async function GuestEventPage({
 
   // The named Guests section (profiles-social.md): ONLY at full access (a teaser viewer
   // hasn't finished the gate; a locked page reveals name + count only), never in
-  // the demo. getEventGuestList re-checks the host key server-side and returns
-  // null when it's off (or pre-apply), so the section can't render unauthorized.
-  // Composed HERE as a slot: EventExperience is a client island and must never
-  // receive storage markers, only hydrated public avatar URLs.
+  // the demo. It is ALWAYS ON (Will, event-safety `room=always`): no host key to
+  // read, and a person the host blocked is on no list. Composed HERE as a slot:
+  // EventExperience is a client island and must never receive storage markers,
+  // only hydrated public avatar URLs.
   let guestListSlot: React.ReactNode = null;
   if (access === "full" && !isDemo) {
     // ★ NAME-ONLY GUESTS ARE ON IT, listed with the unverified mark. They
@@ -457,7 +471,7 @@ export default async function GuestEventPage({
     const guestList = await getEventGuestList(event.id, {
       includeUnverified: true,
     });
-    if (guestList && guestList.length > 0) {
+    if (guestList.length > 0) {
       // The union splits before hydration (lib/social/cards.ts owns why): only a
       // profile card has an avatar to resolve, and the unverified half rejoins
       // as-is, after it, in the query's own order.

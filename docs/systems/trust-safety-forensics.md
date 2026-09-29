@@ -46,7 +46,8 @@ only CSAM.
   SELECT-granted to `authenticated`, so the owning host (who may BE the investigated uploader) cannot see one, and
   `restore_media` refuses a held item with a reason the wrapper maps to the vague default copy. The host's
   `update(status, removed_at)` grant would still let one PATCH move a held item back onto the live gallery, so the
-  `media_guard_privileged_transitions` trigger SKIPS (`return null`) any direct client write to a held row. Skip, never
+  `media_guard_privileged_transitions` trigger SKIPS (`return null`) any direct client write to a held row, and the
+  host's own DEFINER acts skip one the same way (the per-event block neither removes nor restores it). Skip, never
   raise: an exception aborts a whole bulk statement, which would make "Approve all fails on this album" a hold oracle;
   the skip yields PGRST116, the same "That item is no longer available." a missing row produces.
 - **Preservation objects are deleted only by hand,** audited, on the REPORT Act's one-year clock. Releasing a hold

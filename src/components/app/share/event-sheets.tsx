@@ -35,7 +35,6 @@ export function EventSheets({
   pendingCount: number;
   social: {
     displayInProfile: boolean;
-    showGuestList: boolean;
     hostHasSlug: boolean;
   } | null;
   joinUrl: string;

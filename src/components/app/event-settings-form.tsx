@@ -42,7 +42,7 @@ type EventSettingsFormProps = {
  * (FormProvider), the one dirty state, and the one "Save changes" button. The
  * field cards are section components that read the form via useFormContext
  * (details / visibility / uploads), so the file stays small while the form stays
- * unified. The instant-save cards (the Highlight reel, Profile & guests) and the
+ * unified. The instant-save cards (the Highlight reel, Profile) and the
  * danger zone live OUTSIDE it, in the sheet, the danger zone last of all.
  *
  * Preserved invariants: isDirty + form.reset(values) re-baseline on save; the
@@ -59,10 +59,12 @@ export function EventSettingsForm({
 }: EventSettingsFormProps) {
   const [isSaving, startSaving] = useTransition();
 
-  // Tier-gated settings: locked controls are disabled with an upgrade hint. The
-  // server re-enforces the gate — this is UX, not the boundary. (Require verified emails and
-  // Require an upload to view are both free on every tier, not gated: the first default-on with
-  // an opt-out confirm, the second default-off with an opt-in confirm, both in UploadsSection.)
+  // Tier-gated settings: a locked control shows the lock chip with an upgrade hint, and the
+  // server re-enforces the gate — this is UX, not the boundary. Nothing is gated since the
+  // free/pro shift (GATED_EVENT_SETTINGS is empty: the password is on every plan), and the
+  // branch stays for the day a setting is gated again. (Require verified emails and Require an
+  // upload to view are free on every tier: the first default-on with an opt-out confirm, the
+  // second default-off with an opt-in confirm, both in UploadsSection.)
   const passwordLocked = isSettingLocked("password", tier);
   // Video is a paid feature (Phase 2). This is a read-only STATUS, not a toggle —
   // the gate is tier-driven and enforced at upload (create_media), not a host switch.

@@ -3,6 +3,9 @@ import { join, relative } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { monthlyIngressCap, PLANS } from "@/lib/constants/tiers";
+import { formatBytes } from "@/lib/utils";
+
 // Content-policy guard for the marketing/reading surfaces (Track B, B3). Two halves:
 //
 //   1. The em-dash walk over `content/**/*.mdx`. The AST guard
@@ -17,12 +20,14 @@ import { describe, expect, it } from "vitest";
 //      no "trusted by", no user/host counts, no testimonials), CSAM/NCMEC/
 //      law-enforcement language (counsel + ESP registration pending), and marketing
 //      the ingress backstop numbers (an anti-abuse bound, deliberately unmarketed -
-//      see MONTHLY_INGRESS_BYTES / monthlyIngressCap in lib/constants/tiers.ts:
-//      free 20 GB flat; derived 225 GB event-pass and 300 GB / 1.5 TB / 6 TB pro).
+//      see monthlyIngressCap in lib/constants/tiers.ts: 3x every plan's cap, so
+//      300 MB free, 225 GB event-pass and 300 GB / 1.5 TB / 6 TB pro). The numbers
+//      are DERIVED from the plans here (the free/pro shift moved Free's from a flat
+//      20 GB to 300 MB, and a typed list would have kept fencing the old one).
 //      Scope = every MDX file + the marketing copy single-sources. Deliberately
 //      NARROW patterns - a false positive here would train people to ignore it.
 //
-// Numbers that ARE marketed (2 GB free, 75 GB pass, 100 GB / 500 GB / 2 TB pro)
+// Numbers that ARE marketed (100 MB free, 75 GB pass, 100 GB / 500 GB / 2 TB pro)
 // must reach MDX via the spec-tag components (UploadSize/FreeStorage/...), so a
 // literal ingress figure in content is always a mistake, never a legit spec.
 
@@ -42,6 +47,27 @@ function collectMdx(dir: string): string[] {
 }
 
 const mdxFiles = collectMdx(join(ROOT, "content"));
+
+/**
+ * Every plan's monthly ingress bound as it would print ("300 MB", "1.5 TB"), word-bounded and
+ * space-optional, so the fence follows tiers.ts: no bound is typed here. A marketed plan size is
+ * never an ingress bound (each is 3x a cap), so the marketed numbers stay legal by construction.
+ */
+const INGRESS_NUMBERS_RE = new RegExp(
+  [
+    ...new Set(
+      PLANS.map((plan) => monthlyIngressCap(plan.tier, plan.storageBytes))
+        .filter((bound): bound is number => bound !== null)
+        .map((bound) => formatBytes(bound)),
+    ),
+  ]
+    .map((label) => {
+      const [value, unit] = label.split(" ");
+      return `\\b${value.replace(".", "\\.")} ?${unit}\\b`;
+    })
+    .join("|"),
+  "i",
+);
 
 // The human-promise fence (the neutralization pass) walks the
 // WHOLE user-facing copy surface, not just the claim single-sources: every
@@ -137,7 +163,7 @@ describe("content policy", () => {
       // The literal byte numbers (word-bounded so 100 GB / 500 GB / 2 TB stay legal).
       {
         why: "ingress cap number",
-        re: /\b(?:20|225|300) ?GB\b|\b(?:1\.5|6) ?TB\b/i,
+        re: INGRESS_NUMBERS_RE,
       },
     ];
     const found = scanLines([...mdxFiles, ...CLAIM_FILES], (line) => {

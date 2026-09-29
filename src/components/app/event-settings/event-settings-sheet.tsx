@@ -56,9 +56,10 @@ import { useUnsavedChangesGuard } from "@/lib/use-unsaved-changes-guard";
  *
  * ★ THE ORDER: the form's cards (Details, Visibility, Guest uploads) and its one
  * Save, then the instant cards, the Highlight reel first (`reel-host`, Will
- * 2026-09-25: its own section, placed after Guest uploads), then Profile &
- * guests, and the Danger zone LAST, so the one irreversible act on the sheet is
- * never the thing between a host and a setting.
+ * 2026-09-25: its own section, placed after Guest uploads), then Profile (the
+ * guest list is always on, so it has no switch here), and the Danger zone LAST,
+ * so the one irreversible act on the sheet is never the thing between a host
+ * and a setting.
  */
 export function EventSettingsSheet({
   open,
@@ -77,7 +78,6 @@ export function EventSettingsSheet({
   /** Null pre-apply (the graceful runtime seam), exactly as on the old route. */
   social: {
     displayInProfile: boolean;
-    showGuestList: boolean;
     hostHasSlug: boolean;
   } | null;
   /** One of the event's own photographs to show the reel's looks on, or null before the first. */
@@ -127,7 +127,6 @@ export function EventSettingsSheet({
               <ProfileSocialCard
                 eventId={event.id}
                 displayInProfile={social.displayInProfile}
-                showGuestList={social.showGuestList}
                 hostHasSlug={social.hostHasSlug}
               />
             )}

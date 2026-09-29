@@ -44,19 +44,25 @@ function chip(props: React.ComponentProps<typeof LockChip>) {
 }
 
 describe("every gated control wears the same chip", () => {
-  it.each(FEATURES)("%s is a pressable button, never a disabled label", (feature) => {
-    chip({ feature });
-    const button = screen.getByRole("button");
-    expect(button).toBeEnabled();
-    expect(button.getAttribute("data-lock-chip")).toBe(feature);
-  });
+  it.each(FEATURES)(
+    "%s is a pressable button, never a disabled label",
+    (feature) => {
+      chip({ feature });
+      const button = screen.getByRole("button");
+      expect(button).toBeEnabled();
+      expect(button.getAttribute("data-lock-chip")).toBe(feature);
+    },
+  );
 
-  it.each(FEATURES)("%s names itself and the plan to a screen reader", (feature) => {
-    chip({ feature });
-    const name = screen.getByRole("button").getAttribute("aria-label") ?? "";
-    expect(name).toContain(LOCKED_FEATURES[feature].name);
-    expect(name).toContain(TIER_NAMES.pro);
-  });
+  it.each(FEATURES)(
+    "%s names itself and the plan to a screen reader",
+    (feature) => {
+      chip({ feature });
+      const name = screen.getByRole("button").getAttribute("aria-label") ?? "";
+      expect(name).toContain(LOCKED_FEATURES[feature].name);
+      expect(name).toContain(TIER_NAMES.pro);
+    },
+  );
 });
 
 describe("pressing it opens the surface that explains and sells", () => {
@@ -73,8 +79,10 @@ describe("pressing it opens the surface that explains and sells", () => {
   it("hands the sheet the control's page, so Checkout can finish the job", async () => {
     // `back=finish`: the chip is the only thing that knows which page the host
     // was refused on, and the route re-validates whatever it passes.
-    const returnTo = "/dashboard/9f1c2b3a-4d5e-6f70-8192-a3b4c5d6e7f8?room=settings";
-    chip({ feature: "password", returnTo });
+    const returnTo =
+      "/dashboard/9f1c2b3a-4d5e-6f70-8192-a3b4c5d6e7f8?room=settings";
+    // (Video: the one lock left since the free/pro shift put the password on Free.)
+    chip({ feature: "video", returnTo });
     await userEvent.click(screen.getByRole("button"));
     await screen.findByRole("dialog");
     // The buy buttons are what carry it; their presence with the chip's page is

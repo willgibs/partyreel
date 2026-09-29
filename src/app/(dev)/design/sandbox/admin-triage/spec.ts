@@ -1,407 +1,262 @@
-import type { Control } from "@/components/lab/board-spec";
 import { defineExploration } from "@/components/lab/exploration";
 
 /**
- * THE OPERATOR'S ACT ON A REPORT, ROUND ONE (2026-09-19).
+ * THE OPERATOR'S ACT ON A REPORT, ROUND TWO (2026-09-28).
  *
- * Will (2026-09-18): the admin portal "could likely be
- * rethought from the ground up", carrying over a foundational identity and
- * otherwise free to be "an on-brand devtool". The `admin` board asked him for
- * the portal's SHAPE (answered and wired, retired at 290bbd3e); this one owns
- * what happens after its home's "reports are open" row is clicked, from a
- * stranger tapping Report at a wedding to the record the night leaves behind.
+ * Round one's answers (docs/reviews/admin-triage.json): `reason=marked`,
+ * `verdict=note`, `closed=window`, `escalate=door`, `idiom=shape` and
+ * `notice=deleted` (his note refining it: a reported removal is purged from
+ * the event, never left in the host's Deleted). Those six leave the asks, and
+ * `triage-wiring` builds them beside this round, so every frame here WEARS
+ * them: a wordless report says "No reason provided.", Dismiss is one press
+ * with Add a note beside it and Remove opens the portal's confirm, an item
+ * carries Hold for forensics, and the filter bar is the shared one in
+ * Reports' own words.
  *
- * ★ THE SHELL IS NOT A VARIABLE HERE: it was `admin`'s own board, asked and
- * answered there. Every picture wears the rail and the 44 px devtool bar as
- * they shipped (see `shell.tsx` for the one piece that did not ship as drawn).
- * Nothing below re-asks them, and the health band is absent because tonight
- * the backend is fine and the reports are not. The security seam is never a
- * design variable either: no preview imports a server action, mounts the admin
- * shell or sits behind `requireAdmin`.
+ * ★ HIS NOTES ARE THIS ROUND'S DIRECTION. `look=split`, with: "I don't
+ * believe these are our best ideas. I think some balance of this option plus
+ * option 3's review queue grid, but reshaped for better speed workflows
+ * (fast/batch handling) rather than slow, one at a time. Each report should
+ * provide all the context needed to handle or make a decision." And: "we may
+ * need some way to collect that proof (like email the reporter if needed).
+ * Otherwise, we risk taking down real media because of fake reports ... The
+ * report mechanism is truly meant for harmful content." `phone=?`: "Is this
+ * simply the mobile version of the question I just answered?" It was not; it
+ * asked what a phone is trusted with, and is reworded so it cannot read so.
  *
- * ★ THE BOARDS REFRESH (2026-09-24): five of the eight asks held one shape
- * against a single alternative; each gains a genuine third, on its own case
- * rather than as a wall the shell's own picks stand behind. `look` gains a bolder
- * queue shape (many thumbnails, not another one-report layout); `reason`,
- * `verdict`, `closed` and `phone` each gain the honest middle their own
- * `overrule` line already named or implied.
+ * ★ FOUR QUESTIONS, ONE ROOT. `look` is the queue itself: four shapes that
+ * balance the split row's words against the grid's speed, each carrying the
+ * same facts, the host queue's keys and Undo, and a front for clear harm that
+ * no sweep can take. The other three are drawn ON his queue, so each waits on
+ * it: `harm` (what puts a report in front: his eye, as today, or a kind the
+ * reporter picks), `proof` (how a reporter is asked to back a claim, and what
+ * the form must keep for that), and `phone` (which acts a phone gets).
  *
- * ★ THE STAGING IS TWO ROOTS AND TWO LOOSE PIECES. What a report IS on screen
- * unlocks three questions that only exist once it has a shape (a report with
- * nothing said, the door to a legal hold, the same act in a hand); what a
- * verdict COSTS unlocks what is left of a closed one. The shared vocabulary of
- * four inboxes and the question of who is told depend on neither and can be
- * taken in any order.
- *
- * ★ THE PRODUCTION REFRESH (2026-09-28). A read-only audit found five asks
- * drawn on a product that no longer existed, and each was redrawn on the code
- * at its base: `look` draws the People section the page lists first and
- * redraws `grid` in the host review queue's picked grammar (`host-curation`'s
- * `queue=uniform`, `peek=verdict`, `keys=arrows`); `reason`'s today is the
- * muted "No reason provided." `ReportCard` has always printed, not a blank;
- * `verdict` no longer leans on a sheet Remove never opened (it acts at once,
- * and nothing writes `resolution_note`); `escalate`'s door opens the portal's
- * one confirm, the centred dialog only Release hold opens today; `notice`
- * draws the uploader as already told and asks only about the host, since
- * mailing the reporter moved to `emails`' `guest`. `closed` and `idiom` had
- * their words corrected; `phone` is exactly as it was. The refresh also found
- * a gap no ask here decides, and the context says it: the guest's Report
- * (`report-dialog.tsx`) has only ever named the whole album, so the item
- * reports every picture draws are ones `/api/reports` accepts but no control
- * sends yet.
- *
- * ★ WHAT IS DELIBERATELY NOT ASKED. The guest's report dialog is `guest-shape`'s
- * (`dialogs`); the portal's home, nav, density, colour, destructive grammar and
- * bar were the `admin` board's, answered and shipped; the album seen from the
- * guest's side is not this, and the words her uploads list uses are
- * `voice-guest`'s. The doctrine is drawn, never redesigned: a report never
- * auto-hides, held media is never hard deleted, nothing any party is told ever
- * tells a hold from a takedown, and the reporter is anonymous by construction.
- * The pins (`report.test.ts`, `triage.test.ts`, `operator-actions.test.ts`,
- * `escalation-guards.test.ts`, `legal-hold.test.ts`) guard function and
- * survive every shape below; none of them renders a card.
+ * ★ WHAT IS DELIBERATELY NOT ASKED. The mail's wrapper is the emails board's,
+ * and its answered `reporter=note` is the line `proof` rides: a report keeps
+ * a confirmed address only, until it closes, for one closing note in the same
+ * words (not drawn here); and his emails note holds every new automatic mail
+ * for a later round, so Ask for proof is a mail sent by hand. The report
+ * dialog's shape is `popups`' (settled); a per-photo Report control is its
+ * own future board (ROADMAP). The doctrine is drawn, never redesigned: a
+ * report never auto-hides, held media is never hard deleted, nothing anyone
+ * is told tells a hold from a takedown, and no one is asked for proof of the
+ * worst kind. The pins (`report.test.ts`,
+ * `triage.test.ts`, `operator-actions.test.ts`, `escalation-guards.test.ts`,
+ * `legal-hold.test.ts`) guard function and survive every shape here.
  */
-
-/**
- * THE SCREEN, the knob the desk decisions share, so one real viewport is on the
- * stage at a time. 1440 by 900 by default, which is a laptop and where an
- * operator is; 375 is there because a report arrives at eleven at night and the
- * portal has no phone layout at all, which is what `phone` asks about.
- */
-const SCREEN: Control = {
-  id: "screen",
-  label: "Screen",
-  options: [
-    { id: "1440", label: "1440, a laptop" },
-    { id: "375", label: "375, a phone" },
-  ],
-  default: "1440",
-};
-
-const DRAFT = defineExploration({
+export const ADMIN_TRIAGE = defineExploration({
   id: "admin-triage",
   title: "Acting on a report",
   round: {
-    n: 1,
+    n: 2,
     date: "2026-09-28",
     changed:
-      "The production refresh: look draws the People section and redraws grid in the host queue's picked grammar; reason and verdict are reframed on what ships; escalate's door is the portal's own confirm; notice asks only about the host, with a third answer in her Deleted; closed and idiom's words fixed.",
+      "From your round one notes: the queue drawn four ways for batch sweeps with every fact on every report, what puts clear harm in front, how an operator asks a reporter for proof, and phone reworded as what a phone may do.",
   },
+  history: [
+    {
+      n: 1,
+      date: "2026-09-28",
+      changed:
+        "Eight decisions on the operator's act. You took marked, note, window, door, shape and deleted; look came back as split with a note to balance it with the grid for fast, batch work, and phone asked whether it was look's phone version.",
+    },
+  ],
   context:
-    "A Saturday night of reports as /admin/reports draws them: any reported person first, then albums and items, each card titled with its event, a badge, a time, a 160 px square of what was flagged and two buttons that act at once. The operator's reasoning column has never been written, and no id renders anywhere. One gap sits under every picture: a guest's Report names only the whole album today, so each photograph here is a report the API takes but no control sends yet. Every picture is that portal on that night, with one thing changed.",
+    "Round two, from your notes. A Saturday night of 15 open reports on 14 things in the portal as it ships, wearing your six round one picks, which triage-wiring builds now. Most are not harm, so a shape is judged on how fast the rest is swept and how much a report says at a glance. One gap stands: a guest's Report names only the whole album today, so each photo here is a report the API takes but no control sends yet.",
+  carried: [
+    {
+      id: "keys",
+      question: "Which keys decide a report?",
+      taken:
+        "The review queue's, mapped: arrows move, X ticks, Enter dismisses (the photo stays, as Approve keeps it), Space opens it whole, H moves it to the front.",
+      overrule:
+        "If Enter should never close a report, Dismiss moves to D and Enter only opens.",
+    },
+    {
+      id: "one-entry",
+      question: "Is a photo reported twice one entry or two?",
+      taken:
+        "One, counted, with every reason inside it; a verdict answers all of its reports at once.",
+      overrule:
+        "If each reporter's words must be judged apart, each report keeps its own row.",
+    },
+    {
+      id: "reporter",
+      question: "What does a report show of who sent it?",
+      taken:
+        "Whether she was signed in, as one fact, never who: the confirmed address your emails pick keeps is only ever mailed, never printed.",
+      overrule:
+        "If even signed in or not is too much, the line goes and every report reads as anonymous.",
+    },
+    {
+      id: "front",
+      question: "Can a sweep ever take a report that is in front?",
+      taken:
+        "Never: the front has no ticks, so clear harm is always its own act, judged one at a time.",
+      overrule:
+        "If someone floods the front with false kinds, its reports gain ticks too.",
+    },
+  ],
   asks: [
     {
       id: "look",
-      label: "The first look",
+      label: "The queue",
       question:
-        "What should a report look like, the one inbox where the thing judged is a picture?",
+        "What shape should the reports queue take, so most reports are swept in a batch and each still says everything needed to decide it?",
       context:
-        "Support and Applicants read as a list beside the message, and the host's review queue, as he picked it, is a 4:5 grid with its verdict on a peek. Reports lists people first, then what was flagged: a row each, the frame whole, or that grid.",
+        "Split balanced with the grid, fast and batch-first, as your note asked. Each shape carries the same facts, the host queue's keys and Undo, and a front no sweep can take. Mid-night: one moved to the front with H, seven ticked.",
       options: [
         {
-          id: "split",
-          label: "One row each, as the other inboxes",
+          id: "rows",
+          label: "A sheet, one row a report",
           means:
-            "The frame on the left at a size you can judge, the words and the verdict on the right, the same row every prose inbox now wears.",
+            "Every fact on its row beside a small 4:5 frame; tick many, one Dismiss. Every report's facts at once, the smallest picture, Space for it whole.",
         },
         {
-          id: "frame",
-          label: "The picture, full width, a caption",
+          id: "pane",
+          label: "A list beside the report, as Support reads",
           means:
-            "The card becomes the reported frame with a caption. One report fills most of a screen, so the queue is scrolled rather than scanned.",
+            "The portal's own list and pane: the queue down the left, the report in focus whole on the right. Enter dismisses it and the next is already there.",
         },
         {
           id: "grid",
-          label: "The review queue's 4:5 grid, judged on a peek",
+          label: "The review grid, words on every tile",
           means:
-            "Every report a 4:5 tile, as he picked the host's queue. A tap opens it large with its words and the verdict on it; the arrows step and Escape closes.",
+            "The host queue's 4:5 tiles and keys, the front as split cards; each reason, who reported and who sent it under its tile, and Space opens it whole.",
+        },
+        {
+          id: "albums",
+          label: "Grouped by album, swept an album at a time",
+          means:
+            "Reports gathered under their album, its facts said once, each a tile with its words; one party's junk dismissed in one press.",
         },
       ],
-      recommended: "split",
+      recommended: "grid",
       because:
-        "A report is a picture and a sentence, and the sentence is half the judgement: a row keeps both in one glance, three to a screen. The host's queue has no words to read, which is why its grid works there and hides too much here.",
+        "Your note's balance, literally: the front wears split's words beside its frame, and the sweep wears the host queue's grid, one grammar for both queues, the most reports on a screen with each reason under its tile and the rest one Space away.",
       overrule:
-        "If busy nights bring dozens of reports and most are easy, the host's own grid and peek get an operator past them fastest, one grammar for both queues.",
+        "If judging each report whole matters more than sweeping many, the pane keeps the one in focus whole, as Support reads.",
       lands:
-        "What /admin/reports draws, and whether judging one report or scanning many is the more common night.",
-      configs: [SCREEN],
+        "What /admin/reports draws, its keys and its batch bar, and which facts every report carries.",
     },
     {
-      id: "reason",
-      label: "Nothing said",
+      id: "harm",
+      label: "Clear harm, in front",
       question:
-        "A report with no reason says so in its place today: should it keep that line, draw nothing there, or sink under the ones with words?",
+        "How should a report of clear harm reach the front of the queue, ahead of everything a sweep can take?",
       context:
-        "A reason is optional. Today a wordless report keeps its place in time order and prints a muted 'No reason provided.' where the sentence would sit; app-shape r2 rules an empty block absent, never hollow.",
+        "No report says what it is today, so only your eye sorts the night. Drawn on your queue and on two guests' Report at 375: the mother, and a guest who looks awful in a photo. What is in front is judged alone, never ticked.",
       options: [
         {
-          id: "last",
-          label: "Ranked under every report with words",
+          id: "eye",
+          label: "Your eye alone, as today",
           means:
-            "Wordless reports fall to the foot of the queue and say so. The queue sorts by how much a stranger typed.",
+            "The form keeps its one box. Reports arrive by time and H moves one to the front; the licence and the student wait in the sweep until you reach them.",
         },
         {
-          id: "chrono",
-          label: "Keeps its place, draws nothing",
+          id: "kinds",
+          label: "The reporter says what it is",
           means:
-            "No reordering and no line: the row simply has no sentence, as app-shape r2's absent block would have it, so nothing marks the silence out.",
+            "The form asks one of five kinds or Something else. Harm arrives in front, worst first, the worst covered; Something else joins the sweep.",
         },
         {
-          id: "marked",
-          label: "Keeps its place and says so, as today",
+          id: "steer",
+          label: "Only harm is filed",
           means:
-            "No reordering; a muted 'No reason provided.' sits where the sentence would, which is what every wordless report says now.",
+            "The same kinds, but Something else is not a report: the form sends her to the host, who removes a photo in one tap, or to Contact.",
         },
       ],
-      recommended: "marked",
-      // What `ReportCard` has printed since 734133d9. The board drew `chrono`'s
-      // blank as today until the production refresh read the card.
-      today: "marked",
+      today: "eye",
+      recommended: "kinds",
       because:
-        "Nothing typed is not nothing wrong: a panicked stranger often has no words at all. Saying so in place tells an operator the silence is the reporter's and not a page that failed to load, without teaching the queue that a wordless report can wait.",
+        "One tap from a guest sorts the night before anyone reads it, and the worst kind arrives covered, as the runbook asks. Something else still reaches you, so nothing unforeseen is turned away at the door.",
       overrule:
-        "If wordless reports turn out to be mostly griefing, sorting them down is the cheapest triage the queue can do.",
+        "If the queue should hold only harm, steer turns the rest away at the form, and the sweep all but ends.",
       lands:
-        "Whether a wordless report ever reorders, and whether its card says so or draws nothing.",
+        "Whether the Report form asks a kind, what the queue puts in front, and whether a report that is not harm is filed at all.",
       after: { ask: "look" },
-      configs: [SCREEN],
     },
     {
-      id: "verdict",
-      label: "The verdict",
+      id: "proof",
+      label: "Asking for proof",
       question:
-        "What should a verdict cost, and what should it leave on the record?",
+        "Who should an operator be able to ask to back a claim, before acting on it?",
       context:
-        "Both verbs act at once with a toast today. Remove skips the portal's one confirm, which every other destructive act opens (Albums' own Remove included), and nothing has ever written resolution_note.",
+        "Your emails pick keeps a report's confirmed address until it closes, for its closing note. This asks who Ask for proof can reach with it, a mail you send by hand. Drawn on the mother's report: her form, her inbox, the report.",
       options: [
         {
-          id: "two",
-          label: "Two presses and no words, as today",
+          id: "none",
+          label: "No one, as today",
           means:
-            "One press each and nothing typed; Remove acts at once with a toast, and a year later the record of a takedown is a status and a time.",
+            "Ask for proof does not exist. A claim stands on its words alone, and you dismiss what they cannot carry.",
         },
         {
-          id: "note",
-          label: "Remove confirms; a note if you want one",
+          id: "account",
+          label: "Only a guest already signed in",
           means:
-            "Remove opens the portal's one confirm, as Albums' Remove does, with an optional note in it; Dismiss stays a press with Add a note beside it.",
+            "No new field: the confirmed address a signed-in guest's report keeps is the one you can ask. Signed out, as the mother is, no one.",
         },
         {
-          id: "always",
-          label: "A note every time, Dismiss included",
+          id: "confirm",
+          label: "Anyone who confirms her email as she reports",
           means:
-            "The same with the line required: Remove's confirm and Dismiss's field both wait for it, so resolution_note is never empty.",
+            "The form offers Confirm your email with the door's own code, so a signed-out guest can be asked too, on the address kept until it closes.",
         },
       ],
-      recommended: "note",
-      today: "two",
+      today: "none",
+      recommended: "confirm",
       because:
-        "The portal's own rule is that a destructive act opens its one confirm, and this is the one that skips it. Letting that confirm carry an optional line, one prop at its source, fills resolution_note where a verdict took thought and costs nothing where it did not.",
+        "Most guests at a party are signed out, so only a confirm on the form reaches the mother at all. It is the door's own code and the one address your emails pick already keeps, and her answer lands on the report beside its photo.",
       overrule:
-        "If every verdict should leave a record a year on, 'always' requires the line, Dismiss included.",
+        "If a report form should never ask for a code, only guests already signed in can be asked.",
       lands:
-        "Whether Remove opens the portal's confirm, whether that confirm can carry a note, and whether resolution_note is ever written.",
-      configs: [SCREEN],
-    },
-    {
-      id: "closed",
-      label: "Once it is closed",
-      question:
-        "What should a closed report leave, now All draws each one as its read-only card?",
-      context:
-        "Once All is pressed, history is still every report as its card, the answered ones read-only with a status and a time. What's left is whether a way back rides along: a line in the log, or the same line with a day's Undo.",
-      options: [
-        {
-          id: "line",
-          label: "A closed report is one line",
-          means:
-            "The verdict, the note it left, the album and when, in a row under the open queue. History reads as a log.",
-        },
-        {
-          id: "undo",
-          label: "A line, and a way back for a day",
-          means:
-            "The same log, with an Undo for twenty-four hours that restores the item and reopens the report. A held item has none.",
-        },
-        {
-          id: "window",
-          label: "A line, undoable while the copy exists",
-          means:
-            "The same log, but Undo lasts as long as a removed item would anyway: the product's own 30-day Trash, not a separate clock.",
-        },
-      ],
-      recommended: "window",
-      because:
-        "A day is an arbitrary line the moment a removed item's real lifespan is 30 days elsewhere in the product; matching the two means one lifecycle rule instead of two clocks that can disagree.",
-      overrule:
-        "If a portal-side act should always close faster than the product's own recovery window, a day keeps Undo tight and deliberate.",
-      lands:
-        "The All view, whether the portal keeps an operator's own log, and how long a misfire stays fixable.",
-      after: { ask: "verdict" },
-      configs: [SCREEN],
-    },
-    {
-      id: "escalate",
-      label: "The legal hold",
-      question:
-        "How should an operator reach a legal hold from the report in front of them?",
-      context:
-        "Setting a hold is an inline form on /admin/forensics that takes a pasted media id and a reason; only releasing one opens the portal's confirm. What's open is a report's distance from it: nothing on the card, ids to copy, or one control.",
-      options: [
-        {
-          id: "retype",
-          label: "The ids live elsewhere, as today",
-          means:
-            "Nothing on the card is an id. Forensics takes a UUID the operator has to go to another surface and find.",
-        },
-        {
-          id: "copy",
-          label: "The ids on the card, one click each",
-          means:
-            "The report reference and the media id sit on the report, copyable. Forensics still asks for them to be pasted in.",
-        },
-        {
-          id: "door",
-          label: "Hold for forensics, from the report",
-          means:
-            "One control on the report opens the portal's own confirm, filled in: what the hold touches, this photo and what else this guest sent here, and its reason.",
-        },
-      ],
-      recommended: "door",
-      today: "retype",
-      because:
-        "The worst step of the runbook happens under the most pressure, and today it starts with a UUID read off one surface and retyped into another. The portal already has a confirm that lists what an act touches; a report that opens it, filled in, takes the distance away.",
-      overrule:
-        "If the hold must stay a deliberate, separate act so it is never pressed casually, showing the ids is the whole improvement.",
-      lands:
-        "Whether a report and Forensics are one act, and what the confirm says before a hold commits.",
+        "Whether the Report form offers Confirm your email, who Ask for proof can reach, and where an answer lands.",
       after: { ask: "look" },
-      configs: [SCREEN],
     },
     {
       id: "phone",
-      label: "In a hand",
+      label: "What a phone may do",
       question:
-        "Now the portal's own bar reaches a phone, what should an operator be trusted to do there?",
+        "Away from a desk, which acts on a report should a phone be trusted with?",
       context:
-        "Admin r1 already measures the portal's bar for a thumb at 44 px, so the shell reaches 375 regardless of the answer here. What's open is how much of the act a small screen is trusted with. Drawn at 375 on every option.",
+        "Not the queue's phone layout: that follows your queue pick. This asks which acts a phone gets at all, drawn at 375 on that queue with the report in front open. Today nothing is withheld: a phone can do everything a laptop does.",
       options: [
         {
-          id: "act",
-          label: "See it and stop it, nothing else",
+          id: "stop",
+          label: "Take it down, nothing more",
           means:
-            "The frame, the reason and one verb: take it down now. The report stays open until the record is written at a desk.",
+            "One act: the photo leaves the album now. Sweeps, notes, proof and holds wait for a desk, and the report stays open until then.",
         },
         {
-          id: "all",
-          label: "The whole act at 375",
+          id: "sweep",
+          label: "Take it down, and sweep the rest",
           means:
-            "Both verbs, the note, the ids and the hold door in a phone column. Everything the desk does, typed with a thumb.",
+            "The same, plus the sweep's ticks and one Dismiss, since a dismissal has its Undo. Notes, proof and holds wait for a desk.",
         },
         {
           id: "hold",
-          label: "Stop it, and flag it for the record",
+          label: "Take it down, and start a hold",
           means:
-            "The one verb of 'act', plus a single Preserve tap that opens the hold untyped; its note waits for a desk.",
+            "The same one act, plus Hold for forensics without its reason, so evidence cannot vanish first. The reason and the rest wait.",
+        },
+        {
+          id: "all",
+          label: "Everything a desk does, as today",
+          means:
+            "The sweep, Remove with its note, Ask for proof and the hold, all typed with a thumb at a party.",
         },
       ],
-      recommended: "act",
+      today: "all",
+      recommended: "stop",
       because:
-        "The only thing that cannot wait is a photograph that should not be up, and the only thing that should not be done at a party is writing a record somebody may read in a courtroom. One verb is the whole of what a phone is for here.",
+        "The one thing that cannot wait is a photo that should not be up, and the thing not to do at a party is write a record someone may read in a courtroom. One act is the whole of what a phone is for.",
       overrule:
-        "If evidence a party keeps deleting cannot wait for a desk either, 'hold' starts the preservation now and leaves only its note for later.",
+        "If junk piles up while you are out, sweep clears it from a phone, each Dismiss with its Undo.",
       lands:
-        "Which acts a small screen is trusted with, and whether preservation is one of them.",
+        "Which acts a small screen gets, and whether a sweep or a hold is one of them.",
       after: { ask: "look" },
-    },
-    {
-      id: "idiom",
-      label: "One language",
-      question:
-        "Now every inbox but Reports shares one control, should Reports also speak the others' status words?",
-      context:
-        "Admin r1 shares one control and filter bar across every inbox but Reports; the album folds its own behind one button too (app-vocabulary r2). What's open is Reports: its own words, the others', or none.",
-      options: [
-        {
-          id: "three",
-          label: "Keep Reports apart: three controls",
-          means:
-            "Reports keeps its own filter bar and badge, unlike the shared picker admin r1 already gives Support and Applicants. The one inbox that still looks apart.",
-        },
-        {
-          id: "shape",
-          label: "One control, each its own words",
-          means:
-            "The shared picker and filter bar; Reports still says Open, Dismissed, Actioned while the others say New, In progress, Closed.",
-        },
-        {
-          id: "one-inbox",
-          label: "One inbox, filtered by kind",
-          means:
-            "Everything an operator answers becomes one list on one vocabulary. A report's outcome stops being a status and becomes its closing line.",
-        },
-      ],
-      recommended: "shape",
-      because:
-        "Admin r1 and app-vocabulary r2 already settle the furniture: one control, one filter bar, everywhere but Reports. Generalising it still costs one prop, while merging the words costs the difference between dismissed and actioned.",
-      overrule:
-        "If the home already ranks everything waiting, one inbox under it is the surface that ranking implies.",
-      lands:
-        "The filter and status control on four surfaces, and whether Reports' own words survive the merge.",
-      configs: [SCREEN],
-    },
-    {
-      id: "notice",
-      label: "Who is told",
-      question:
-        "The uploader is already told Not in the album: should the host be told anything when an operator removes a photo?",
-      context:
-        "The uploader's list says Not in the album for a Reject, a takedown and a hold alike. The host is sent nothing, and the photo waits in her Deleted with a Restore that answers only 'That item is no longer available.'",
-      options: [
-        {
-          id: "silence",
-          label: "Nothing to the host, as today",
-          means:
-            "The photo leaves the album and waits in her Deleted, where Restore answers only 'That item is no longer available.', the line a missing row gives.",
-        },
-        {
-          id: "deleted",
-          label: "Said where she looks, in Deleted",
-          means:
-            "Nothing is sent. In her Deleted the photo reads Removed by Partyreel, with no Restore to fail, in the same words for a takedown and a hold.",
-        },
-        {
-          id: "host",
-          label: "One plain line to the host",
-          means:
-            "A notice: Partyreel removed an item from your album. No reason, no reporter, no appeal, the same words whatever the removal was; Deleted says the same.",
-        },
-      ],
-      recommended: "deleted",
-      today: "silence",
-      because:
-        "His own direction on voice-guest is to tell people where they already are, without interruption, if at all. A host who never misses the photo loses nothing; one who goes looking finds a line instead of a Restore that fails, in words that never tell a hold from a takedown.",
-      overrule:
-        "If a host should never find a gap in her own album before she is told, the plain line reaches her first, in the same words for a hold.",
-      lands:
-        "Whether the portal ever sends a host anything, and what her Deleted says about an operator's removal.",
-      configs: [SCREEN],
+      tile: "phone",
     },
   ],
 });
-
-/**
- * ★ ONE KNOB PER ID, NOT ONE PER DECISION THAT USES IT.
- * `defineExploration` flattens every decision's `configs` into the board's
- * controls, so a knob five decisions share arrives five times: the dock would
- * draw it five times and React would warn on the duplicate key. Each decision
- * keeps it on its own strip (that is what `configs` is for); the board declares
- * it once. `guest-upload` found this and left the finding for the constructor,
- * which could dedupe by id itself; it still stands.
- */
-export const ADMIN_TRIAGE: typeof DRAFT = {
-  ...DRAFT,
-  controls: DRAFT.controls?.filter(
-    (c, i, all) => all.findIndex((d) => d.id === c.id) === i,
-  ),
-};

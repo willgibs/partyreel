@@ -126,12 +126,17 @@ describe("the result card", () => {
   it("opens /login for Free and Checkout for anything paid", () => {
     render(<Configurator />);
 
-    // Photos only, inside the Free cap: the door is a link, never Checkout.
+    // Photos only, at the Free cap (100 MB since the free/pro shift; this landed on 1 GB when
+    // Free was 2 GB): the door is a link, never Checkout.
+    const free = planById("free");
     fireEvent.click(screen.getByRole("switch"));
-    dragTo(1);
+    dragTo(free.storageBytes / GIGABYTE);
     expect(
-      recommendPlan({ bytes: GIGABYTE, video: false, hostingAgain: false })
-        .planId,
+      recommendPlan({
+        bytes: free.storageBytes,
+        video: false,
+        hostingAgain: false,
+      }).planId,
       "the brain agrees this is the Free case",
     ).toBe("free");
     expect(screen.getByRole("link").getAttribute("href")).toBe("/login");

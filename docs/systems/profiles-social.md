@@ -15,16 +15,18 @@ A one-way door; `/privacy` and the Terms word it, so a change here changes them 
 - **A profile is public by existence:** claiming a handle is the consent act, and no `discoverable` flag exists. The
   marketing promise matches: a handle buys a page, not invisibility (`profiles-section.tsx` and two help articles say
   the same sentence, so all three move with the guest list's membership).
-- **The event's guest list has one key, the host's** (`events.show_guest_list`): when on, every named guest who added
-  photos is listed, confirmed or wearing the unverified mark, with no per-guest opt-in. A per-guest opt-in leaves lists
+- **Every event's guest list is always on** (Will, `room=always`: no host turns it on or learns special handling;
+  `events.show_guest_list` is read and written by nothing until a contract migration drops it): every named guest who
+  added photos is listed, confirmed or wearing the unverified mark, with no per-guest opt-in, and a person the host
+  blocked from the event is on no list. A per-guest opt-in leaves lists
   near-empty (a disappointed host, a starved social side, one more thing for a new guest to read before uploading),
   while attribution is already public by name on the same album. A guest who wants no linkage can decline to upload,
   and a host can turn off Require verified emails, which trades a confirmed identity for a marked name, never for no
   name. So the GDPR posture rests on legitimate interest over already-public attribution, not opt-in consent.
 - **A guest's own profile publishes no event until chosen:** `profile_shown_events` is an opt-in (never backfilled,
-  which would publish what must stay private until chosen), while the guest stays on each event's own list, the
-  host's key, either way. An empty page says only how many it keeps private, of the events the visitor could already
-  see her on through that key (The public profile, below). A person is on a list, a count or a profile line only through an approved upload of theirs.
+  which would publish what must stay private until chosen), while the guest stays on each event's own list either
+  way. An empty page says only how many it keeps private, of the events the visitor could already see her on through
+  that list (The public profile, below). A person is on a list, a count or a profile line only through an approved upload of theirs.
   Choosing is one control, the cover picker (`attended-events-visibility.tsx`), in Account and in the setup wizard;
   the wizard's Show all / Keep all private applies once, to the events she has at Finish, and later ones start private.
 - **Follows are open any-to-any, and the graph is owner-private:** lists and counts render only to their owner (as on
@@ -37,8 +39,10 @@ A one-way door; `/privacy` and the Terms word it, so a change here changes them 
   approved uploaders; a PROVED identity once per person, keyed on `verified_at`, never on `user_id` alone; a named
   unverified row once per row; never the host, never a nameless row. It reads twice, keyed on `event_id` and paged past
   the row cap, never an `.in()` of guest ids (that URL grows with the party). The hub's Guests card and header and the
-  album's header count it; `getEventGuestList` lists it (null when `show_guest_list` is off). Every caller runs these
-  AFTER its own access gate (the host: ownership; the album: full access, never demo).
+  album's header count it; `getEventGuestList` lists it. ★ The rows a block holds (`event_blocked_guest_ids`) leave
+  before the rows become people, so a blocked person is in no count and on no list, even with a photograph the host
+  restored. Every caller runs these AFTER its own access gate (the host: ownership; the album: full access, never
+  demo).
 - **Profile cards hydrate by an explicit id list** (the PGRST201 landmine: [database-security.md](database-security.md)) through `inChunks`,
   selecting exactly the four card columns (the row also holds the account's email). Nothing in `queries/social.ts`
   reads an address, and its outputs are pinned address-free; only the host's Guests room shows a confirmed guest's
@@ -46,14 +50,16 @@ A one-way door; `/privacy` and the Terms word it, so a change here changes them 
 - **Every card paints its person's colour** from `seedFor(card.id)` (`withAvatarUrls`), a server-side hash, so one
   person is one colour everywhere and no raw id reaches a browser ([auth-accounts.md](auth-accounts.md)).
 - **`getMyAttendedEvents`** (the picker's events) takes an approved upload on a PROVED row and deliberately ignores
-  `show_guest_list`, visibility and the album's viewer gates: the choice is the guest's own key, settable whatever the
-  host chose. `getMyAttendedEventPicks` masks each tile by the album's own rules through `guestEventCardProps`, as her
+  visibility and the album's viewer gates: the choice is the guest's own key, settable whatever the host chose. An
+  event that blocked her keeps the tile it had, locked as a private album's (`blocked_events_for`), because the block
+  moved her uploads to Deleted and a vanished tile would tell her what the door hides. `getMyAttendedEventPicks` masks each tile by the album's own rules through `guestEventCardProps`, as her
   dashboard's Guest card is: an open album's cover, a password album's name with no cover, a private album neither.
 
 ## The public profile
 
 - **Attendance is not a capability grant.** The attended arm of `get_public_profile` returns no `qr_token` or
-  `custom_slug`, and a line shows only with `show_guest_list` on, the owner's opt-in, `visibility = 'open'`, a PROVED
+  `custom_slug`, and a line shows only with the owner's opt-in, no block holding the owner or the viewer there (a
+  blocked viewer also reads a host's event as private), `visibility = 'open'`, a PROVED
   identity (`guests.verified_at`; a name-only or pending-email row publishes nothing) and an approved upload, plus the
   album's own viewer gates. On a Require verified emails event only the host or a viewer with a confirmed email sees
   it, because the album holds anyone else at the teaser, which never renders its Guests list. ★ On a Require an upload
@@ -66,8 +72,8 @@ A one-way door; `/privacy` and the Terms word it, so a change here changes them 
 - **The hosted arm is deliberately ungated on visibility:** `display_in_profile` is the host publishing their own album
   link (discovery decoupled from access), and a gated event still meets its lock at `/e/`. Matching it to the attended
   arm would be a regression.
-- **The attended covers re-prove their scope** (`getPublicProfileAttendedCoverUrls` checks `show_guest_list`,
-  `open`, the opt-in and the approved upload on a proved row again before presigning): a presign turns an id into
+- **The attended covers re-prove their scope** (`getPublicProfileAttendedCoverUrls` checks `open`, the opt-in, the
+  approved upload on a proved row and that no block holds the owner there again before presigning): a presign turns an id into
   someone else's photograph. The viewer's gate is the RPC's alone, inherited through the ids it returned.
 - **Every card's cover is `event_covers`:** the newest approved, non-removed photo, as a small preview where one
   exists, the same rule as the dashboard's cards.
@@ -113,5 +119,5 @@ A one-way door; `/privacy` and the Terms word it, so a change here changes them 
   `resolveNotificationPrefs`. Rows are lazy (absent means `NOTIFICATION_PREF_DEFAULTS`; a parity test pins TypeScript
   to SQL), and `user_id` is insertable, never updatable, so `setNotificationPrefs` updates then inserts (a PostgREST
   upsert would `SET user_id`). No send path reads them.
-- **The event settings' `ProfileSocialCard` sits outside the settings form:** each switch is its own consented act,
-  saved the moment it flips.
+- **The event settings' `ProfileSocialCard` sits outside the settings form:** its one switch (Show on my profile) is
+  its own consented act, saved the moment it flips.

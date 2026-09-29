@@ -13,12 +13,21 @@ import { CtaBand } from "@/components/marketing/system/cta-band";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
-import { GOLDEN_LINES } from "@/lib/constants/marketing-voice";
+import { ESTIMATE_BASIS_NOTE } from "@/lib/constants/tiers";
+
+/**
+ * THE PAGE'S LINE (the free/pro shift, Will 2026-09-28). It was the golden line "Start free,
+ * upgrade when you host again", which named hosting again as the reason to pay; with Free at 100 MB
+ * and photos only, a host's FIRST real event is the reason, and his own list names what paid is:
+ * video and more storage first. `GOLDEN_LINES.pricing` stays in marketing-voice.ts as the history it
+ * is; this is the working line, his to overrule.
+ */
+const PRICING_LINE = "Start free, upgrade for video and more room";
 
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Simple storage-based pricing. Start free with one event, upgrade to Pro for every event you host, or buy a one-time Event Pass. No per-guest fees, no guest limit.",
+    "Simple storage-based pricing. Start free with one event, upgrade to Pro for video and unlimited events, or buy a one-time Event Pass. No per-guest fees, no guest limit.",
   alternates: { canonical: "/pricing" },
 };
 
@@ -88,12 +97,17 @@ export default function PricingPage() {
           scale="lg"
           reveal="none"
           eyebrow="Pricing"
-          heading={<>{GOLDEN_LINES.pricing}.</>}
+          heading={<>{PRICING_LINE}.</>}
           subhead="No per-guest fees. Plans are sized by storage, so pick the room your event actually needs."
         >
           <div className="mt-12">
             <PlanPair />
             <PassCard />
+            {/* Every photo and video count above assumes one camera, and says
+                which (host-storage r2): once, under the plans it qualifies. */}
+            <p className="mx-auto mt-5 max-w-4xl text-center text-xs text-pretty text-faint">
+              {ESTIMATE_BASIS_NOTE}
+            </p>
           </div>
         </SectionShell>
 
@@ -126,7 +140,7 @@ export default function PricingPage() {
       {/* No border-t: the FAQ's quiet close hands straight to the band. */}
       <CtaBand
         heading="Ready when you are."
-        subhead="Start your first event free, and upgrade only when you host again."
+        subhead="Start your first event free, and upgrade when it needs video or more room."
         demoLink
       />
     </>

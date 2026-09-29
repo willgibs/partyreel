@@ -455,12 +455,19 @@ export function getHelpFacts(): {
       value: `${RECENTLY_DELETED_WINDOW_DAYS} days`,
       href: "/help/hide-remove-and-restore",
     },
-    {
-      // The CLIP's cap: the live reel itself runs uncapped on every plan.
-      label: "Clip, free / paid",
-      value: `${MAX_REEL_SECONDS.free}s / ${MAX_REEL_SECONDS.pro}s`,
-      href: "/help/reel-styles-length-and-layout",
-    },
+    // The CLIP's cap: the live reel itself runs uncapped on every plan. One length on every plan
+    // since the free/pro shift, so one number; the pair comes back if the tiers part again.
+    MAX_REEL_SECONDS.free === MAX_REEL_SECONDS.pro
+      ? {
+          label: "Clip length",
+          value: `${MAX_REEL_SECONDS.pro}s`,
+          href: "/help/reel-styles-length-and-layout",
+        }
+      : {
+          label: "Clip, free / paid",
+          value: `${MAX_REEL_SECONDS.free}s / ${MAX_REEL_SECONDS.pro}s`,
+          href: "/help/reel-styles-length-and-layout",
+        },
     {
       label: "Event Pass storage",
       value: formatBytes(planById("event_pass").storageBytes),
