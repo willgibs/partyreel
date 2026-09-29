@@ -51,6 +51,8 @@ Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, 
 
 1. **Integrate each running lane as it hands off** (rows above), each migration by protocol, one at a time: drift
    check, apply verbatim, the rolled-back refusals, advisors, types.
+   - Applied 2026-09-29: `like_private` (`20260929032343`, md5 `fd4f0cbc`; like_media's body as its header says, ACL
+     unchanged, the rolled-back proof 5/5, advisors unchanged, no types).
    - Applied 2026-09-29: `pass_renewal_pref` (`20260929025049`, md5 `a2b8a3c8`; the column on by default, authenticated's
      insert and update on it alone, anon nothing; types regenerated).
    - Applied 2026-09-29: `article_feedback` (`20260929021217`, md5 `e4ef348c`; RLS on with no policy, no client
@@ -74,7 +76,7 @@ Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, 
    restored through the UI; the ledger is `../partyreel-wt/_scratch/redteam-17/ledger.txt`). Its two majors (the share
    card shared across viewers by the edge; Event Settings' last three cards crushed) and three minors go to
    `crumbs-8`. **Build 18** (deployed 2026-09-29 for his desk: wave B whole and `demo-framing`'s board, 45 open asks).
-   **Build 19** adds `crumbs-8` and `crumbs-9`; its red-team walks the new hero, the export flow short of any download, the triage portal on staged reports
+   **Build 19** adds `crumbs-8` and `crumbs-9` (every lane merged; brief `../partyreel-wt/_scratch/redteam-19/brief.md`); its red-team walks the new hero, the export flow short of any download, the triage portal on staged reports
    (`triage-wiring`'s Handoff names the rows), the help, the two majors re-checked, and the standing scope. Drafted
    specs wait in this session's scratchpad (`specs/<track>.json`); a new session writes them from these lines.
 4. **His next paste** (build 16's 38 open asks; emails r1 is transcribed at `1b394476`) transcribed; the join doors

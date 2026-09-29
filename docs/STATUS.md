@@ -44,12 +44,11 @@ His aim is zero before his other to-dos.
   console error, the lab and `/admin/reels` 404, the admin door redirects, no runtime error.
   `admin.partyreel.com` is served by `partyreel-admin` (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel`
   (`=app`).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 18: wave B whole (the hero's
-  card, the export flow on the deployed Worker, triage's round one, the help, the emails' wrapper) and the
-  `demo-framing` board; build 17's red-team fixes (`crumbs-8`) and `crumbs-9` ride build 19, whose live red-team covers
-  everything since build 17.
-- **The shared database** runs the block and Free at 100 MB since 2026-09-29 (`event_blocks`, `free_shift`), under
-  partyreel.com too, whose milestone-29 pages still say 2 GB until milestone 30; no Free account holds more.
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 19: wave B whole, build 17's
+  red-team fixes (`crumbs-8`), eight cleanups (`crumbs-9`) and the `demo-framing` board; its live red-team is running.
+- **The shared database** runs six migrations applied 2026-09-29 (the block, the free shift, the operator removal purge,
+  the help's feedback, the pass reminders switch, likes on private albums), under partyreel.com too, whose
+  milestone-29 pages still say 2 GB until milestone 30; no Free account holds more.
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md).
