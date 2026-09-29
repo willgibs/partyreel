@@ -1007,6 +1007,7 @@ export type Database = {
           id: string
           kind: Database["public"]["Enums"]["report_kind"]
           media_id: string | null
+          media_type: Database["public"]["Enums"]["media_type"] | null
           profile_id: string | null
           proof_answer: string | null
           proof_answered_at: string | null
@@ -1030,6 +1031,7 @@ export type Database = {
           id?: string
           kind?: Database["public"]["Enums"]["report_kind"]
           media_id?: string | null
+          media_type?: Database["public"]["Enums"]["media_type"] | null
           profile_id?: string | null
           proof_answer?: string | null
           proof_answered_at?: string | null
@@ -1053,6 +1055,7 @@ export type Database = {
           id?: string
           kind?: Database["public"]["Enums"]["report_kind"]
           media_id?: string | null
+          media_type?: Database["public"]["Enums"]["media_type"] | null
           profile_id?: string | null
           proof_answer?: string | null
           proof_answered_at?: string | null
@@ -1075,13 +1078,6 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reports_media_id_fkey"
-            columns: ["media_id"]
-            isOneToOne: false
-            referencedRelation: "media"
             referencedColumns: ["id"]
           },
           {
