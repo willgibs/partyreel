@@ -2,7 +2,6 @@ import type { BoardSpec } from "@/components/lab/board-spec";
 import { DESK_ORDER } from "@/app/(dev)/design/touchpoints";
 
 import { HERO_CARD } from "./hero-card/spec";
-import { EXPORT_FLOW } from "./export-flow/spec";
 import { ADMIN_TRIAGE } from "./admin-triage/spec";
 import { EMAILS } from "./emails/spec";
 import { LOCKED_DOOR } from "./locked-door/spec";
@@ -46,7 +45,6 @@ import { PRIVACY_HERO } from "./privacy-hero/spec";
 const REGISTERED: readonly BoardSpec[] = [
   HERO_CARD,
 
-  EXPORT_FLOW,
   ADMIN_TRIAGE,
   HELP_CENTER,
   EVENT_SETTINGS,
