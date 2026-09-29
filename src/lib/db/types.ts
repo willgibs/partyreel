@@ -1525,6 +1525,7 @@ export type Database = {
         Args: { p_event_id: string; p_user_id: string }
         Returns: boolean
       }
+      event_door_admit_listed: { Args: { p_event_id: string }; Returns: number }
       event_door_check_in: {
         Args: { p_event_id: string; p_tickets?: string[]; p_user_id?: string }
         Returns: Json
