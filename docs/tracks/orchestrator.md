@@ -40,7 +40,6 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `crumbs-16` | build 23's HIGH bug at its root (a history call hands Next its own `__NA` state, so Settings rows never open their page and a page's back arrow never returns), the same shape swept and held by a policy test; triage-r2-wiring's relayed help article | running (agent `a5ddc145d2b108533`; worktree `../partyreel-wt/crumbs-16`) | Sonnet, 3133 | |
-| `contact-wiring` | contact-page r1: the routed form in the desk's chapter, a note and link per topic, a delightful receipt, the directory with icons; retires `sandbox/contact-page/` in-lane | running, restarted (agent `a4ce33378df03e2b8`; worktree `../partyreel-wt/contact-wiring`) | Sonnet, 3135 | |
 | `schema-pass` | the data architecture audited, its migration refused by the classifier; resumed on Will's yes (2026-09-29): asked "May the lane write its two migration files and run those proofs?", he answered "Yes, write and prove"; told to close `public.reports`' default grants too (the red-team's note) | running (agent `ad2f22b2fb01a8a6e`; worktree `../partyreel-wt/schema-pass`) | Opus, 3132 | |
 | `desk-tune` | the door family board made true before his sitting: its "as today" drawn from the doors settings-wiring shipped, its asks re-read against them, every option its own picture at 375 | running (agent `a6f3e22f6d222b7e8`; worktree `../partyreel-wt/desk-tune`) | Opus, 3131 | |
 
@@ -52,8 +51,6 @@ note naming its pushed commits, what remains, its predecessor's transcript at
 `~/.claude/projects/-Users-gibby-local-ai-partyreel/157caa18-ec54-4aa9-a12a-04c86d5a667b/subagents/agent-<id>.jsonl`
 (grep it, never read it whole), that a stale `.next/dev/lock` may be deleted and that MCP tool ids change with the
 account, and the relays below, which live only in the agents:
-- `contact-wiring`: `git merge origin/launch-prep` first; retire `sandbox/contact-page/` in-lane; `marketing-content.md`
-  stays its own.
 - Build 23's red-team (agent `a26fc2a59dd39c154`): respawn from `../partyreel-wt/_scratch/redteam-23/brief.md` after
   its `ledger.txt`'s last line, with: BUG-1 and NIT-1 filed (reach a settings page by its deep link); park at the admin
   portal's "Verify it's you" and report the steps waiting on Will's code; close every report it opens before 04:48
@@ -73,7 +70,7 @@ Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcr
 boards). Batch 7 is merged whole; its records carry the rest.
 
 Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, disposable-mode r2, crumbs-13, lab-revamp
-stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, crumbs-15, loose-ends-wiring.
+stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, crumbs-15, loose-ends-wiring, contact-wiring.
 
 ## Next, in order
 
@@ -95,9 +92,9 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
    triage-r2-wiring 11: `git show 7c0fbcb1^2:docs/tracks/settings-wiring.md`, `git show 1b29be3a^2:docs/tracks/triage-r2-wiring.md`),
    lab-revamp's six calls (its merge message), and the proof mail's yes, due now (the recommendation keeps it off until
    the emails round, per his email-policy note).
-2. **Integrate each lane as it hands off** (contact-wiring, crumbs-16, desk-tune, schema-pass, whose part 1 I then apply), each migration by
+2. **Integrate each lane as it hands off** (crumbs-16, desk-tune, schema-pass, whose part 1 I then apply, and event-ready), each migration by
    protocol, one at a time: drift check, apply verbatim, the rolled-back refusals, advisors, types. The two wiring
-   lanes' ledgers go at their records (`contact-page.json` is left);
+   lanes' ledgers are gone with their boards;
    `../partyreel-wt/_scratch/triage-r2-wiring/` goes after crumbs-16's merge (it holds the relayed help article).
 3. **The PREMISE re-read before his sitting** (lab-revamp's look-at-first): settings-wiring changed the guest page,
    `entry-modal.tsx` and `guest-flow.md`, which locked-door r2's four open asks and disposable-mode r2's eight describe.
