@@ -9,11 +9,12 @@ import { GuestListCard } from "./guest-list-card";
 
 /**
  * /features/guests paper section 1: THE GUEST LIST. The card itself (mock +
- * the avatar comb + the live "show on the album" switch) lives in the
- * GuestListCard island; this section is the copy half and the settings truth:
- * every guest who added photos appears, a verified name plain and an
- * unverified one wearing the small mark, and showing the list ON the album
- * is the host's own switch.
+ * the avatar comb + who sees it) lives in the GuestListCard island; this
+ * section is the copy half and the product's truth: every guest who added
+ * photos appears, a verified name plain and an unverified one wearing the
+ * small mark, and the list shows on the album to everyone who can open it,
+ * always, on every plan (Will, event-safety `room=always`). There is no switch
+ * to sell: the host's one say in who is on it is the block.
  */
 
 const GUESTS: { name: string; unverified?: boolean }[] = [
@@ -33,7 +34,7 @@ export function GuestListSection() {
 
   return (
     // R4 / review B15: the chapter read thin: a ~180px card adrift in a ~470px
-    // white section. The card carries its governing setting now (and the comb),
+    // white section. The card carries who sees the list now (and the comb),
     // and the section runs one rhythm step tighter so paper reads dense and
     // confident like the album/curation chapters.
     //
@@ -63,21 +64,19 @@ export function GuestListSection() {
       >
         <Reveal className="flex flex-col gap-4">
           <Eyebrow {...rise(0)}>The guest list</Eyebrow>
-          <h2
-            {...rise(1)}
-            className="font-heading text-section text-balance"
-          >
+          <h2 {...rise(1)} className="font-heading text-section text-balance">
             See who showed up for the album.
           </h2>
           <p {...rise(2)} className="text-pretty text-muted-foreground">
             Your event page keeps a live list of everyone adding photos, a
-            verified name or a marked one. Names and faces, not a
-            spreadsheet, so you know who actually filled the album.
+            verified name or a marked one. Names and faces, not a spreadsheet,
+            so you know who actually filled the album.
           </p>
           <p {...rise(3)} className="text-pretty text-muted-foreground">
-            Want the room to see it too? One switch shows the guest list on the
-            shared album, for anyone who can open it. Until you flip it, the
-            list is yours alone.
+            The room sees it too: the list shows on the album for anyone who can
+            open it, on every plan. Someone you would rather not see there?
+            Block them from the event, and they leave the list and the album in
+            one step.
           </p>
         </Reveal>
       </MediaSplit>

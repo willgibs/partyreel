@@ -109,7 +109,12 @@ export function EventSettingsSheet({
             back={event.name}
           />
 
-          <PopupBody className="flex flex-col gap-6 pb-6">
+          {/* ★ BLOCK FLOW, as the form lays its own cards, NEVER A FLEX COLUMN: the body is
+              the scroller, a flex column shrinks its children to fit it, and a Card clips
+              (`overflow-hidden`), which zeroes its automatic minimum height. So a column
+              crushed every card past the form to its padding, Delete event (its only home)
+              with them. Block flow never shrinks a card: the body scrolls. */}
+          <PopupBody className="space-y-6 pb-6">
             <EventSettingsForm
               event={event}
               tier={tier}

@@ -205,17 +205,19 @@ here too; `../help/AUTHORING.md` lists them.
   photos, the album or the live reel on any plan; only a free event's clips carry a small mark.
 - **Privacy.** Location data is stripped in the browser before a photo ever uploads, for the
   common formats (JPEG, PNG and WebP photos, MP4 and MOV video; HEIC, HEIF, AVIF and WebM are
-  stored as the phone sends them). Albums are open, password-locked (paid) or private (the app's
-  labels: Public, Password, Private); a locked album shows the name and the count and no media;
-  teaser access shows the newest few photos with a count. The host controls whether a guest list
-  shows. View and scan counts are aggregate with no personal data. No ads; event media is never
-  used to train models or sold.
-- **Plans.** Free: one event, photos only, the album and its live reel, short marked clips. Event
-  Pass: one-time, one event with video and every paid control for about a year, renewable, and
-  passes stack. Pro: monthly or yearly (two months free), unlimited events, video, longer unmarked clips,
-  password locks, custom links. No guest limit and no per-guest fee on any plan: pricing is by
-  storage. Moving from a pass to Pro converts the unused part to credit. A handle and a public
-  profile page (the events a host chooses to list on it included) are free on every plan.
+  stored as the phone sends them). Albums are open, password-locked or private on every plan (the
+  app's labels: Public, Password, Private); a locked album shows the name and the count and no
+  media; teaser access shows the newest few photos with a count. Every album has a guest list,
+  naming each guest who added photos, confirmed or marked, to anyone who can open the album, with
+  no switch to hide it; a guest the host blocks leaves it. View and scan counts are aggregate with
+  no personal data. No ads; event media is never used to train models or sold.
+- **Plans.** Free: one event, photos only, the album and its live reel, clips with a small mark.
+  Event Pass: one-time, one event with video and unmarked clips for about a year, renewable, and
+  passes stack. Pro: monthly or yearly (two months free), unlimited events, video, unmarked clips.
+  A password lock, a custom link and a clip's full length are on every plan. No guest limit and
+  no per-guest fee on any plan: pricing is by storage. Moving from a pass to Pro converts the
+  unused part to credit. A handle and a public profile page (the events a host chooses to list on
+  it included) are free on every plan.
 - **Lifecycle.** An event has no end date; deleting it is the only exit (the anti-abuse reason:
   otherwise fill, end, repeat would be free storage). Deleted events and media wait in Deleted
   (one word everywhere: the app, the marketing pages and the posts; never "trash" or "bin") for

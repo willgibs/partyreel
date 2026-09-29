@@ -199,11 +199,21 @@ describe("the Blocked list and the way back", () => {
     expect(letBackInToast("Sam", 0, 0)).toEqual({
       title: "Sam can join again.",
     });
+    // ★ Back where each was, never "back in the album": the restore returns an upload to the status
+    // it had, so a hidden one comes back hidden (build 17's red-team read the old line on one).
     expect(letBackInToast(null, 2, 1)).toEqual({
       title: "They can join again.",
       description:
-        "2 uploads are back in the album. 1 stayed in Deleted: the album is full.",
+        "2 uploads are back where they were. 1 stayed in Deleted: the album is full.",
     });
+    expect(letBackInToast("Sam", 1, 0).description).toBe(
+      "1 upload is back where it was.",
+    );
+    for (const restored of [1, 2, 40]) {
+      expect(letBackInToast("Sam", restored, 0).description).not.toMatch(
+        /in the album/,
+      );
+    }
   });
 });
 

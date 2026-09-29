@@ -28,6 +28,11 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
     `show_reel`, `reel_style_id`, `reel_hold_sec`) come back unredacted, as presentation settings. A leak is fixed
     in the payload, never by revoking the grant. ★ To an account or confirmed address the event blocked, it reads the
     event as `private`, so every caller's private branch serves the block ([guest-flow.md](guest-flow.md)). `get_public_profile`'s attended arm applies the album's own gates ([profiles-social.md](profiles-social.md)).
+  - ★ **A response the edge shares asks with NO caller.** A public `Cache-Control` hands the first viewer's answer
+    to every next one, and these reads answer a session personally (the block above), so a shared response reads
+    through `createAnonClient` (`lib/supabase/anon.ts`: the publishable key, no session, no cookie), never the
+    request client; the share card drew a blocked viewer's answer behind a public cache once
+    ([guest-flow.md](guest-flow.md)). A response that must differ per viewer is `private, no-store`.
   - ★ **A RETURNS TABLE is the allow-list, and changing one is DROP + CREATE, which drops the grants:** re-grant
     `anon` and `authenticated` explicitly. `get_event_by_qr_token` also keeps the PUBLIC EXECUTE its recreates
     inherited.
@@ -59,9 +64,11 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
     address a Partyreel guest?", and an unconfirmed caller gets an empty set even for their own address. Its answer is
     the allow-list: names, counts, the event's door and up to four of the row's own approved preview keys from an open
     album, never the album's link (a claim's follow-up read gives that, for an event the caller is now a guest of).
-  - **A like is only as visible as its media.** `like_media` accepts media the caller can see, and `like_many`
-    (authenticated, SECURITY INVOKER, at most 2,000 ids a call) sends each id through it, so `like_media` stays the
-    only insert; `get_my_likes` re-applies that predicate, so a like on media that has since closed never presigns.
+  - **A like is only as visible as its media.** `like_media` accepts media the caller can see, and on a private album
+    only its host's like (every guest of one gets the not_found a blocked account gets, so a known photo id tells
+    neither apart); `like_many` (authenticated, SECURITY INVOKER, at most 2,000 ids a call) sends each id through it,
+    so `like_media` stays the only insert; `get_my_likes` re-applies that predicate, so a like on media that has since
+    closed never presigns.
     The counts are host-only through two paths, `get_event_like_counts` and `media_like_counts`, so no count reaches
     a guest.
 - **SECURITY INVOKER is the default for a new read** (in neither list): a grant that reached the wrong role reads

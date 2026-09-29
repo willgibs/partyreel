@@ -52,6 +52,7 @@ import {
   EVENT_CARD_ALT,
   EVENT_CARD_SIZE,
   eventCardPath,
+  privateEventCardPath,
 } from "@/lib/guest/event-card";
 import { readGuestSessionCookie } from "@/lib/guest/session-cookie";
 import { PHOTO_PARAM, readPhotoParam } from "@/lib/media/share-save";
@@ -75,7 +76,10 @@ export const dynamic = "force-dynamic";
 // card (`/e/<token>/card`), or, for a link to one photograph on an album anyone may open,
 // that photograph (`photoCard` below). ★ A VIEWER THIS EVENT BLOCKED gets the private
 // event's metadata too (the closed door, `closed-door.server.ts`): the tab's title is as
-// much the door as the page is.
+// much the door as the page is. ★ AND THE PRIVATE ALBUM'S CARD, never the event's own:
+// every closed door names `privateEventCardPath` (generic by its address), because the
+// event's card answers the event's own visibility to everyone (the edge shares it), so an
+// open event's is named, and naming it here would tell her what the door hides.
 export async function generateMetadata({
   params,
   searchParams,
@@ -92,8 +96,11 @@ export async function generateMetadata({
     return {
       title: result.ok ? "Private event" : "Join event",
       robots: { index: false },
-      openGraph: { images: [eventCardImage(token)] },
-      twitter: { card: "summary_large_image", images: [eventCardImage(token)] },
+      openGraph: { images: [privateCardImage(token)] },
+      twitter: {
+        card: "summary_large_image",
+        images: [privateCardImage(token)],
+      },
     };
   }
 
@@ -169,12 +176,16 @@ export async function generateMetadata({
 
 /** The event's own card (the route beside this page draws it). */
 function eventCardImage(qrToken: string) {
-  return {
-    url: eventCardPath(qrToken),
-    ...EVENT_CARD_SIZE,
-    alt: EVENT_CARD_ALT,
-    type: "image/png",
-  };
+  return cardImage(eventCardPath(qrToken));
+}
+
+/** The private album's card, by the address the visitor arrived on: every closed door names it. */
+function privateCardImage(token: string) {
+  return cardImage(privateEventCardPath(token));
+}
+
+function cardImage(url: string) {
+  return { url, ...EVENT_CARD_SIZE, alt: EVENT_CARD_ALT, type: "image/png" };
 }
 
 const photoIdSchema = z.uuid();

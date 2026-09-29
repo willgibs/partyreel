@@ -314,10 +314,24 @@ function FitBar({
               : "text-muted-foreground",
         )}
       >
-        {over
-          ? `${formatBytesUp(stored)} of ${formatBytes(bytes)} · over by ${formatBytesUp(stored - bytes)}`
-          : `${formatBytesUp(stored)} of ${formatBytes(bytes)} · ${Math.max(1, Math.round(ratio * 100))}% full`}
+        {fitBarLine(stored, bytes)}
       </p>
     </div>
   );
+}
+
+/**
+ * The bar's line: what she stores of this size, and how full that makes it, or how far over. ★ UNDER
+ * ONE PERCENT IT SAYS SO: floored at 1%, 97.9 MB of 2 TB read "1% full" of a size it barely touches.
+ * The bar draws only once she stores something, so a size is never "0% full" here.
+ */
+export function fitBarLine(stored: number, bytes: number): string {
+  const of = `${formatBytesUp(stored)} of ${formatBytes(bytes)}`;
+  if (stored > bytes) {
+    return `${of} · over by ${formatBytesUp(stored - bytes)}`;
+  }
+  const percent = (stored / bytes) * 100;
+  return percent < 1
+    ? `${of} · under 1% full`
+    : `${of} · ${Math.round(percent)}% full`;
 }

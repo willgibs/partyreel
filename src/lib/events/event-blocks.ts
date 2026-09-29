@@ -222,7 +222,12 @@ export function restoreOffer(
   };
 }
 
-/** The toast after letting someone back in: who, and what came back or could not. */
+/**
+ * The toast after letting someone back in: who, and what came back or could not. ★ "BACK WHERE IT
+ * WAS", NEVER "BACK IN THE ALBUM": the restore returns each upload to the status it had before the
+ * block (a hidden one comes back hidden), and `let_back_in` counts them without saying which, so
+ * the line says what it did for every one of them.
+ */
 export function letBackInToast(
   name: string | null | undefined,
   restored: number,
@@ -233,8 +238,8 @@ export function letBackInToast(
   if (restored > 0) {
     lines.push(
       restored === 1
-        ? "1 upload is back in the album."
-        : `${formatMediaUploads(restored)} are back in the album.`,
+        ? "1 upload is back where it was."
+        : `${formatMediaUploads(restored)} are back where they were.`,
     );
   }
   if (noRoom > 0) {

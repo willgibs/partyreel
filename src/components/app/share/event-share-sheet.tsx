@@ -50,10 +50,11 @@ import "./share.css";
  * night before, which is when paper is actually wanted. It opens in a new tab so
  * the album is still behind it when the print dialog closes.
  *
- * ★ THE PRO GATE ON THE SLUG IS UNTOUCHED. `EventSlugControl` decides what a
- * Free host sees from `locked`, which the server computes from the tier; moving
- * the control to a new surface must not become a second opinion about who may
- * claim a link. It is imported whole, props unchanged.
+ * ★ WHO MAY CLAIM A LINK IS THE SERVER'S ANSWER, NEVER THIS SHEET'S. A custom
+ * link is on every plan now (the free/pro shift), and `EventSlugControl` still
+ * reads `locked` from the server's `isSettingLocked` (tiers.ts, the one home of
+ * a gated setting), so a gate that ever returns returns there, and this surface
+ * never holds a second opinion. It is imported whole, props unchanged.
  *
  * ★ EVERYTHING HERE ENCODES THE PERMANENT LINK. A printed code outlives a slug.
  *
@@ -117,10 +118,7 @@ export function EventShareSheet({
         {/* ONE LINE. "Share <name>" plus a sentence explaining what a QR code
             is spent two lines of a phone's screen on words nobody standing at
             a door reads; the code below says the rest by being a code. */}
-        <PopupHeader
-          title={`Share ${eventName}`}
-          titleClassName="truncate"
-        />
+        <PopupHeader title={`Share ${eventName}`} titleClassName="truncate" />
 
         <PopupBody className="flex flex-col gap-5 pb-6">
           <EventQr

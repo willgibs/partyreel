@@ -2530,6 +2530,48 @@ describe("the per-event block and the always-on guest list (20260928120000)", ()
   });
 });
 
+describe("a private album likes nothing but its host (20260929100000)", () => {
+  // Build 17's red-team: like_media told a block from a private album. A private album's guest with a
+  // row got ok where a blocked account got not_found, so a photo id she already knew revealed the
+  // block. The private album's answer is now the block's: every guest of it gets the same not_found,
+  // and its host still likes. Each pin reads CODE (comments stripped), the grants the winning file's.
+  const FILE = "20260929100000_like_private.sql";
+  const code = (name: string) =>
+    collapse(latestDefinition(name).body.replace(/--[^\n]*/g, ""));
+
+  it("is like_media's winning definition", () => {
+    expect(latestDefinition("like_media").file).toBe(
+      readFileSync(join(MIGRATIONS_DIR, FILE), "utf8"),
+    );
+  });
+
+  it("★ the guest arm refuses a private album, keeps the block, and leaves the host's arm alone", () => {
+    expect(code("like_media")).toContain(
+      "e.host_id = v_uid or ( e.visibility <> 'private' and not public.event_block_holds_account(e.id, v_uid) and ( e.visibility = 'open' or exists (select 1 from public.guests g where g.event_id = e.id and g.user_id = v_uid) ) )",
+    );
+  });
+
+  it("answers every refusal with the one not_found, and inserts only past the check", () => {
+    expect(code("like_media")).toContain(
+      ") then return jsonb_build_object('ok', false, 'reason', 'not_found'); end if; insert into public.media_likes (media_id, user_id) values (p_media_id, v_uid) on conflict (media_id, user_id) do nothing;",
+    );
+  });
+
+  it("stays authenticated only: the file's grants, and never anon or PUBLIC anywhere", () => {
+    const file = collapse(
+      readFileSync(join(MIGRATIONS_DIR, FILE), "utf8").replace(/--[^\n]*/g, ""),
+    );
+    expect(file).toContain(
+      "revoke all on function public.like_media(uuid) from public, anon; grant execute on function public.like_media(uuid) to authenticated;",
+    );
+    for (const { file: name, sql } of executableMigrations()) {
+      expect(sql, name).not.toMatch(
+        /grant execute on function public\.like_media\(uuid\) to [^;]*\b(anon|public)\b/,
+      );
+    }
+  });
+});
+
 describe("an operator's removal leaves the host's view (20260928140000)", () => {
   // Will, admin-triage r1 (2026-09-28), `notice=deleted` as his note refines it: "in the case of a report
   // leading to media removal, it should be fully purged from the event, not moved to deleted". The copy
