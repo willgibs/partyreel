@@ -17,19 +17,20 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 
 - **Milestone 29 is live** (`ab30a7f8`, 2026-09-26). Batches 4 to 7 ride `launch-prep` toward milestone 30.
 - **Batch 6 landed whole** (sixteen lanes, builds 13 to 15, red-teamed live).
-- **Will's sitting on build 15** is transcribed (2026-09-28, 21 answers): the hero's `guests` card, the guest voice's
-  last three, host-storage's prices, event-safety's block, export-flow's six. Wave A draws three new boards
-  (event-settings, locked-door, disposable-mode) and builds the per-event block; wave B wires pricing (his free/pro
-  shift: Free at 100 MB with the password, custom link and 60 s reels), the voice, the export flow and the hero.
+- **Will's sitting on build 15** is transcribed (2026-09-28: 21 answers, then emails' ten). Wave A drew three boards
+  (event-settings, locked-door, disposable-mode) and built the per-event block; wave B has wired the guest voice and
+  pricing (his free/pro shift: Free at 100 MB with the password, custom link and 60 s clips) and drawn admin-triage
+  r2. The hero, the export flow, triage's round one and the help are being wired; the emails' wrapper is queued.
 
 ## The desk
 
-Build 16's desk: 38 open asks. His `emails` r1 is transcribed (all ten): the wrapper on today's mail is queued as
+Build 17's desk: 42 open asks. His `emails` r1 is transcribed (all ten): the wrapper on today's mail is queued as
 `emails-wiring`, and every new mail is banked for one email exploration once the features settle.
 - **From build 15** (21): `privacy-hero`, `album-motion`, `loose-ends`, `contact-page`, `press-page`.
-- **New** (17): `event-settings` (nine, its structure first), `locked-door` (two), `disposable-mode` (six).
+- **From build 16** (17): `event-settings` (nine, its structure first), `locked-door` (two), `disposable-mode` (six).
+- **New** (4): `admin-triage` r2 (`look` first).
 
-`admin-triage` r2 and the wiring follow. His aim is zero before his other to-dos.
+His aim is zero before his other to-dos.
 
 ## Live state
 
@@ -40,13 +41,15 @@ Build 16's desk: 38 open asks. His `emails` r1 is transcribed (all ten): the wra
   console error, the lab and `/admin/reels` 404, the admin door redirects, no runtime error.
   `admin.partyreel.com` is served by `partyreel-admin` (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel`
   (`=app`).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 16 (`49269fad`): the desk's 48
-  open asks with the three new boards, loading clean headless. A lab-only round, the red-team's carve-out; build 17
-  carries the wiring and its red-team.
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 17 (`1407daf6`): the per-event
+  block and the guest list always on, the free/pro shift, the guest voice, admin-triage r2 on the desk, loading clean
+  headless; its live red-team is running.
+- **The shared database** runs the block and Free at 100 MB since 2026-09-29 (`event_blocks`, `free_shift`), under
+  partyreel.com too, whose milestone-29 pages still say 2 GB until milestone 30; no Free account holds more.
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** about 5,700 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
+- **Tests:** about 6,000 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
 - **Jobs:** the daily purge cron (Vercel Hobby fires it at 04:48 UTC; its first run on milestone 28's sweeps was green:
   every sweep ok, none stopped early, the orphan scan read 1,368 objects and deleted none, the standby budget's one host
   willg97 with the withdrawals out), the media-backup Worker and the daily DB-backup Action are live; the deletion-aware

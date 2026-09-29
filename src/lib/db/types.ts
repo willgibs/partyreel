@@ -176,6 +176,53 @@ export type Database = {
           },
         ]
       }
+      event_blocks: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          email: string | null
+          event_id: string
+          guest_id: string | null
+          id: string
+          last_upload_at: string | null
+          profile_eligible: boolean
+          removed_media_ids: string[]
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          event_id: string
+          guest_id?: string | null
+          id?: string
+          last_upload_at?: string | null
+          profile_eligible?: boolean
+          removed_media_ids?: string[]
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          event_id?: string
+          guest_id?: string | null
+          id?: string
+          last_upload_at?: string | null
+          profile_eligible?: boolean
+          removed_media_ids?: string[]
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_blocks_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_passes: {
         Row: {
           consumed_at: string | null
@@ -1247,7 +1294,19 @@ export type Database = {
         }
         Returns: number
       }
+      block_from_event: {
+        Args: {
+          p_event_id?: string
+          p_guest_id?: string
+          p_media_id?: string
+          p_preview?: boolean
+          p_require_verified_email?: boolean
+          p_user_id?: string
+        }
+        Returns: Json
+      }
       block_user: { Args: { p_blocked: string }; Returns: undefined }
+      blocked_events_for: { Args: { p_user_id: string }; Returns: Json }
       capture_guest_email: {
         Args: {
           p_email: string
@@ -1319,12 +1378,41 @@ export type Database = {
         Args: { p_event_ids: string[] }
         Returns: number
       }
+      event_block_holds_account: {
+        Args: { p_event_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      event_block_holds_row: {
+        Args: { p_guest: Database["public"]["Tables"]["guests"]["Row"] }
+        Returns: boolean
+      }
+      event_block_names_account: {
+        Args: { p_account: string; p_email: string; p_user_id: string }
+        Returns: boolean
+      }
+      event_block_names_row: {
+        Args: {
+          p_email: string
+          p_guest: Database["public"]["Tables"]["guests"]["Row"]
+          p_guest_id: string
+          p_user_id: string
+        }
+        Returns: boolean
+      }
+      event_blocked_guest_ids: {
+        Args: { p_event_id: string }
+        Returns: string[]
+      }
       event_card_stats: { Args: { p_event_ids: string[] }; Returns: Json }
       event_covers: { Args: { p_event_ids: string[] }; Returns: Json }
       event_link_totals: { Args: { p_event_id: string }; Returns: Json }
       event_stills: {
         Args: { p_event_ids: string[]; p_per_event: number }
         Returns: Json
+      }
+      event_ticket_blocked: {
+        Args: { p_event_id: string; p_session_tokens: string[] }
+        Returns: boolean
       }
       follow_user: { Args: { p_followee: string }; Returns: undefined }
       get_event_by_qr_token: {
@@ -1442,6 +1530,10 @@ export type Database = {
           active_bytes: number
           standby_bytes: number
         }[]
+      }
+      let_back_in: {
+        Args: { p_block_id: string; p_restore?: boolean }
+        Returns: Json
       }
       like_many: { Args: { p_media_ids: string[] }; Returns: Json }
       like_media: { Args: { p_media_id: string }; Returns: Json }

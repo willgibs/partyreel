@@ -40,83 +40,47 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `safety-wiring` | event-safety's answers: the per-event block (a migration to apply), soft in every look, the private door, the Guests room's Blocked list, Let back in with a restore toggle; the guest list always on; event-safety retires | running, agent `a976ee6de796172b4` | Opus, :3134 | |
-| `hero-wiring` | hero-card r2: the `guests` card as the hero's object (`partyreel.com/` quieter so the slug leads), the bloom light, the composed tablet table; ASSETS rows 33 and 34 from its Handoff; hero-card retires | running, agent `aa32a485242b5c773` | Opus, :3133 | |
+| `emails-wiring` | emails r1 on the ten mails that already send: one shell, the wordmark, light only, tagged operator subjects, the foot with no address and the renewal nudge's unsubscribe (a migration), a plain-text twin; the three dead switches leave; nothing new sends; emails retires | running, agent `adc42bfa207564886` | Opus, :3133 | |
+| `export-wiring` | export-flow's six: the Yours row filtered on the server, the toast that stays with a subtle cancel, the one-line empty refusal, parts in plain words, a phone's Download all to Files; the Worker backward compatible (I deploy it after the merge); export-flow retires | running, agent `aa10025fff8b6ba0e` | Opus, :3131 | |
+| `triage-wiring` | admin-triage r1's six: the marked reason, the verdict's note, the window, the escalation door, the shape idiom, a reported removal purged from the host's view (a migration; legal hold and preservation kept); the reports clause drafted | running, agent `a347eb3bf09ed556f` | Opus, :3132 | |
+| `help-wiring` | help-center's seven: host first, the strip with quick questions in the focused search, illustrated steps, contextual links and a Help row in the menus, the feedback beacon (a migration) with its admin view, the rung, Search in the header and footer; help-center retires | running, agent `a6ca95d7a7aab7b4b` | Opus, :3134 | |
 
 Batch 7 (cut `35601390`, 2026-09-28) answers Will's sitting on build 15 (transcribed at `69afdbc5`: 21 answers on
 hero-card, voice-guest, host-storage, event-safety, export-flow). Wave A, four lanes: three new boards and the block.
 Wave B follows as seats free. Batch 6 (sixteen lanes) is merged whole; its records carry the rest.
 
-Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, event-settings, voice-wiring, pricing-wiring, triage-r2.
+Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, event-settings, voice-wiring, pricing-wiring, triage-r2, safety-wiring, hero-wiring.
 
 ## Next, in order
 
 1. **Integrate each running lane as it hands off** (rows above), each migration by protocol, one at a time: drift
    check, apply verbatim, the rolled-back refusals, advisors, types.
-   - `safety-wiring` merged at `c656a24c`; its `event_blocks` apply (a helper agent, `acba0e34b5c4836b3`, runs the
-     protocol) and its record (the regenerated types, `docs/reviews/event-safety.json` deleted) follow.
-   - `pricing-wiring` merged at `9e257530` (a hand-merged `touchpoints.ts` skeleton); its `free_shift` applies after
-     `event_blocks` (drift checked: the four live bodies match their newest files; types unchanged).
+   - Applied 2026-09-29: `event_blocks` (recorded `20260929002900`, the file's md5 `f0c3ff6d`; 23 bodies as the header
+     says, the rolled-back proof 10/10 after the apply, advisors 0029 at 29, 0028 at 4, no-policy at 16) and
+     `free_shift` (`20260929004003`, md5 `58e7f00a`; four bodies, grants unchanged, Free at 100 MB, no Free account
+     over it). Large files go through a helper that transcribes, `cmp`s, applies and proves; the recorded md5 is the
+     check.
 2. **Wave B into each free seat**, in this order (his answers are in the ledgers; each brief carries his notes).
-   - `export-wiring` (Opus), cut once `safety-wiring` merges (it holds `src/app/api/export/guest/` and
-     `event-experience.tsx` for the block):
-     - `means=mine`: the Yours row, filtered on the server;
-     - `wait=toast`: it stays until ready, with a subtle cancel × (`stuck`);
-     - `hollow=refuse`: one line;
-     - `cap=split`: parts walked through in plain words, never "in 2 zips", saying when every part is saved;
-     - a phone's Download all to Files.
-
-     The export Worker (`partyreel-export`, shared with partyreel.com) stays backward compatible with milestone 29's
-     app, proved by a test; I deploy it after the merge (`wrangler whoami` first). Retires export-flow.
-   - `triage-wiring` (Opus), from his admin-triage r1 (`docs/reviews/admin-triage.json`):
-     - `reason=marked` (one muted line for both arms);
-     - `verdict=note` (Remove through the one confirm with an optional note, Dismiss's note, `resolution_note` written);
-     - `closed=window`;
-     - `escalate=door`;
-     - `idiom=shape`;
-     - `notice=deleted` built as his note refines it: a reported removal leaves the host's album and Deleted at once,
-       with nothing said; the event's copy purged on a sweep, never while a legal hold stands; the preservation copy
-       and the CSAM runbook's order kept;
-     - the admin confirm's "already says" line in voice-wiring's new words;
-     - report wording for the Terms and Privacy drafted under Questions (his "legal terms shouldn't imply every report
-       leads to takedown").
-
-     Its spec was drafted this session: owns `src/components/admin/`, `report-review`, `recently-deleted-grid`, the
-     report help, and a migration.
-   - `help-wiring` (Opus), from his help-center r1 (`docs/reviews/help-center.json`, all seven); `voice-wiring` merged
-     at `dbba6a0e`, so the refused row and the name menu are its paths now:
-     - `who-first=host`;
-     - `hub=strip`, the quick questions dropping from the focused search;
-     - `article=screen`;
-     - `from-product=contextual`, plus a Help row in the guest's and the host's menus;
-     - `feedback=beacon`: a rate-limited insert, never read back, an admin view with its health signal, a migration;
-     - `dead-end=rung`;
-     - `search=visible`: Search rows in the header and footer; the help palette never mounts in admin.
-
-     Retires help-center.
-   - `emails-wiring` (Opus), from his emails r1 (`docs/reviews/emails.json`, all ten), on the ten mails that already
-     send; nothing new sends (his `moments` note banks every new mail for one email exploration, ROADMAP's Emails):
-     - `shell=unified`: one `layout()`, the four operator alerts on it, a host foot and an operator foot;
-     - `brand=wordmark`: a hosted PNG on a light plate (no mail client renders SVG reliably), the button in ink;
-     - `dark=light`: color-scheme light on a white card, colours that survive a forced invert;
-     - `sender=tagged`: "[Partyreel]" on all four operator subjects;
-     - `foot=commercial` as his note refines it: no address on any mail; the reason line under a divider; an unsubscribe on the
-       renewal nudge alone (a new Email preferences switch, a migration), since the over-cap three warn before
-       files are removed (my narrowing, his to overrule);
-     - `moments=identity`: the three switches for mail nothing sends leave (columns kept for his yes);
-     - a `text/plain` twin beside every `html`, and the renewal nudge's Renew going where it says.
-
-     Retires emails.
-3. **Build 16 is live** (`49269fad`; wave A's three boards, a lab-only round: the red-team's carve-out) for his
-   sitting. **Build 17** carries the wiring as it lands. Its red-team:
-   - the block, live (partyr33l blocked at a willg97 test event, then let back in with and without restore);
-   - the pricing page and plan sheet;
-   - the export flow, short of any download;
-   - the review room's new words;
+   - `demo-framing` (Opus), a new board at the next free seat (spec in the scratchpad's `specs/`): the story the demo
+     tells, on the home hero's link card and the album it opens. His note (2026-09-29): "I don't love our working title
+     of 'Mia & Theo', it feels kind of weird for a demo name ... let's land on the best framing of it." Its asks:
+     `story` (what party), `names` (who it names, if anyone), `demo` (one demo renamed and re-seeded, a dedicated
+     hero event, or the card as an illustration). Registered after `disposable-mode`.
+   - After his `demo-framing` pick (his full permission, 2026-09-29): the demo event made or renamed to the story, its
+     slug claimed so the card's printed address opens it, `hero-stream.ts`' `OBJECT_EVENT` to match, and ASSETS rows
+     33 and 34 unparked.
+3. **Build 17 is live** (`1407daf6`, both migrations applied; pruned; the desk, admin-triage and event-settings boards
+   and the Library clean headless; 42 open asks). Its red-team is running (agent `a21c3c40aeb5e59ff`) (`../partyreel-wt/_scratch/redteam-17/`, from `redteam-15/brief.md`):
+   - the block, live: partyr33l blocked at a willg97 test event from one of the three roads meets the private door and
+     can neither upload, like nor claim; the Blocked foot; let back in without, then with, the restore;
+   - the free/pro shift: /pricing and the plan sheet (the toggle, the tag, each estimate's basis), and a Free account
+     setting a password and a custom link, then clearing both;
+   - the review room's host note and her uploads' words; the guest list always on; the settings card's "Profile";
    - the standing scope.
 
-   Drafted specs for the queued lanes are in this session's scratchpad (`specs/<track>.json`); a new session writes
-   them from the lines above.
+   **Build 18** carries export, hero, triage-wiring, help and emails; its red-team walks the export flow short of any
+   download. `emails-wiring`'s drafted spec is in this session's scratchpad (`specs/emails-wiring.json`); a new session
+   writes it from the lines above.
 4. **His next paste** (build 16's 38 open asks; emails r1 is transcribed at `1b394476`) transcribed; the join doors
    (`newcomer=same`, `unlisted=ask`) are built after `event-settings` picks how "who can join" is set.
 5. **Milestone 30** on his yes, once his legal wording is in (the private count; the guest list always on); after it,
