@@ -42,9 +42,13 @@ a lane").
 | `schema-pass` | the data architecture trimmed on Will's yes (asked "May the lane write its two migration files and run those proofs?", he answered "Yes, write and prove") | merged at `57b17ace` (gate 73); part 1 (`20260929160000`) reviewed by the Advisor (apply verbatim: nothing main reads is dropped or loses a grant) and drift-checked clean (6 columns, 4 indexes, 1 policy; 20 events inside the bounds), but the permission classifier refused its apply (2026-09-29 ~19:50Z): it waits on Will's explicit go-ahead, never a retry by another route; part 2 after milestone 31 | Opus, 3132 | `54f414f9` |
 | `album-motion-wiring` | album-motion r1: the hero's two symmetrical streams, each photograph drawn in and dissolving at the album's edge, then pushed into the album from the left as a real upload arrives; retires `sandbox/album-motion/` in-lane | running (agent `a59b9b5183feee95f`; worktree `../partyreel-wt/album-motion-wiring`) | Opus, 3131 | |
 | `crumbs-17` | build 23's red-team finds: BUG-2 (the invited guest left at the door, likely a function replaced by migration), BUG-3 (the host's Report on her own album), LOW-2, the uncovered dismissed worst kind, eleven nits; two dead seams from crumbs-15 | running (agent `a6c1aa7bbba36b7fe`; worktree `../partyreel-wt/crumbs-17`) | Opus, 3135 | |
+| `demo-framing-r2` | demo-framing r2, a board: the demo's slug in the host's voice or a typewriter of slugs, how the typewriter and the stream share the home hero (or the stream moves to the QR page), the hero's clickable touch in place of its eyebrow | running (agent `ac4d9d8416d49b653`; worktree `../partyreel-wt/demo-framing-r2`) | Opus, 3133 | |
+| `unfence` | every note of Will's to one board that hardened into a program-wide law (window-notes' audit, the Advisor's dispositions) turned back into guidance with its reason; the dropdown's third-level throw removed; bug-catching tests kept; the bible's lines proposed; PROGRAM.md's lines relayed | running (agent `a622927650684d585`; worktree `../partyreel-wt/unfence`) | Opus, 3132 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
-Q1, the `demo-framing.names` hang: it changed the call (attribution unproven, since my A/B ran on two server
+Q3, the audit of board notes hardened into laws: one lane (`unfence`) on its dispositions (two A grades were
+wrong, two fences stay for engineering reasons, the Glass refusal was a doc claim only). Q1, the `demo-framing.names`
+hang: it changed the call (attribution unproven, since my A/B ran on two server
 instances and the lane saw it hang with its lab files reverted; bisect first, the probe's stack decides; relayed to
 `crumbs-16` whole). Q2, schema-pass part 1 before its apply, is open. From another session, respawn it from
 `usher/kit/advisor-prompt.txt`.
@@ -117,9 +121,9 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
      lane's idea of the premiere on the wall, the reel's screen counting down to the develop time and playing the roll
      as an event of its own) and the door family's wiring (if the doorway wins, its reveal: walking through the opened
      door into the album, drawn first as motion options; ASSETS row 36 if the host's door wins).
-5. **Build 24 is this record** (`[preview]`: lab-revamp, crumbs-15, loose-ends, contact, desk-tune's door family,
-   schema-pass's code with part 1 not yet applied); its red-team waits for build 25 (crumbs-16's fix, crumbs-17, part 1
-   applied), then its
+5. **Build 25 is this record** (`[preview]`: build 24's plus event-ready r1's board, window-notes' desk, crumbs-16's
+   Settings fix, Frame fix and help article); its red-team walks crumbs-16's, crumbs-15's, contact's and the desk's
+   Look-at-first lines now; build 26 carries crumbs-17, unfence, album-motion and part 1 once applied, then its
    red-team: BUG-1's fix live and the new lanes' walks, crumbs-15's signed-in surfaces among them (a host changing a
    disposable album's door and opening Guests and Blocked; `/account`'s social sections; the operator's
    `/admin/reports` and Ask for proof; a host's Delete permanently on a removed item, then the purge cron's next run in
