@@ -43,6 +43,7 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/auth/return-path.test.ts
   - src/components/auth/login-form.tsx                        # `location.hash` is client-only: the form reads it, the page cannot
   - src/components/auth/login-form.test.tsx
+  - src/app/(auth)/auth/callback/route.test.ts                # the callback follows the anchored pair and no other fragment
   - src/lib/bare-login-policy.test.ts                         # refuses a bare `/login` from client code
   - src/components/app/pricing/checkout-button.test.tsx       # tests `components/app/checkout-button.tsx`
   - src/components/app/renew-checkout.test.tsx
@@ -70,6 +71,9 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/app/recently-deleted-grid.test.tsx
   - src/components/reel/clip-creator.test.tsx
   - src/components/social/profile-actions-menu.test.tsx
+  # ── added: the facts this lane made true, refined in place in their one home
+  - docs/systems/auth-accounts.md                             # the return path, the anchor, the 401 fallbacks, the name rule
+  - docs/systems/architecture.md                              # a press before hydration
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/host-app.md
   - docs/systems/marketing-content.md

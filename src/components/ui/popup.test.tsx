@@ -100,8 +100,7 @@ describe("a kind reaches the shape its row names", () => {
 
 describe("a kind is announced as what it is (crumbs-20)", () => {
   // ★ A confirm stops the person to ask one thing and waits: that is an ALERT dialog, which a screen
-  // reader reads on open (its name AND its question), where a plain dialog reads only its name. It was
-  // `role="dialog"` for every kind. The role is one more column of the kind's row, so a later answer on
+  // reader announces as an alert and reads with its question. It was `role="dialog"` for every kind. The role is one more column of the kind's row, so a later answer on
   // a kind is still one line.
   it("a confirm is an alertdialog, at a desk and in a hand", () => {
     for (const width of [1024, 375]) {

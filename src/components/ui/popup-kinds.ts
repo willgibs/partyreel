@@ -80,9 +80,10 @@ export type PopupRow = {
   deskFocus: "first" | "panel"
   /**
    * How a screen reader announces it, when it is not the Dialog's own. A confirmation is an ALERT
-   * dialog: it stops the person to ask one thing and waits for the answer, so a screen reader reads
-   * its question the moment it opens (the role's whole point), where a plain `dialog` reads only
-   * its name. Only a kind that asks says so; every other kind is Radix's `dialog`.
+   * dialog: it stops the person to ask one thing and waits for the answer, so a screen reader
+   * announces it as an alert and reads its question with its name (a plain `dialog` leaves the
+   * question to whichever readers announce descriptions). Only a kind that asks says so; every
+   * other kind is Radix's `dialog`.
    */
   role?: "alertdialog"
 }

@@ -302,7 +302,7 @@ function PopupContent({
           }}
           className={cn(CONTENT, floatingPopupShapes, className)}
           // ★ A kind that asks (a confirm) is announced as the alert dialog it is, so a screen reader
-          // reads its question on open. Spread only when the row names one: Radix writes
+          // reads its question with its name. Spread only when the row names one: Radix writes
           // `role="dialog"` BEFORE the props it is handed, so an explicit `undefined` here would
           // erase it, and a caller's own `role` (in `props`, below) still wins.
           {...(row.role ? { role: row.role } : {})}
