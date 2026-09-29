@@ -48,6 +48,8 @@ also the rollback. Both projects build every route; the security boundary is RLS
   never signs anyone into the portal.
 - **Verifying:** auth and MFA complete only on a real host, and `lab:smoke` can never reach `/admin`; the Library's
   compositions page renders the real rail, band, queue, table, palette and sheet, the one automated eye on the portal.
+  The admin host's sign-in plumbing short of Google (the gate's page, the login form's cookie, the callback) walks
+  locally under `NEXT_PUBLIC_ADMIN_HOST=admin.localhost pnpm dev` at `http://admin.localhost:<port>`.
 
 ## Building a surface
 
