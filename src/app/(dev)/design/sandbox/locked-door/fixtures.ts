@@ -24,7 +24,7 @@ import { marketingImage } from "@/lib/constants/marketing-media";
  * why she is out.
  *
  * ★ A SEPARATE FILE, NEVER AN IMPORT FROM ANOTHER BOARD (`identity-door`'s rule,
- * carried by every board since): a board's directory leaves whole at its ruling.
+ * carried by every board since): a board's folder leaves whole when it retires.
  *
  * ★ NOTHING HERE IS A REAL PERSON, and every photograph is one of the bootstrap
  * stills every board reuses (bible 9: no new asset, nothing to track).

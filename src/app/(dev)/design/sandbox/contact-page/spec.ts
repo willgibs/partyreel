@@ -129,7 +129,7 @@ export const CONTACT_PAGE = defineExploration({
       label: "The topic picker",
       question: "Should picking a topic stay required before a note can send?",
       context:
-        "The first field is a required Select of seven topics; picking one reveals a fastest-path hint. first-event r1 has since ruled the same shape elsewhere: one classifier picked immediately (style=step), the rest deferred.",
+        "The first field is a required Select of seven topics; picking one reveals a fastest-path hint. first-event r1 has since picked the same shape elsewhere: one classifier picked immediately (style=step), the rest deferred.",
       options: [
         {
           id: "required",
@@ -152,7 +152,7 @@ export const CONTACT_PAGE = defineExploration({
       ],
       recommended: "required",
       because:
-        "It costs one tap and it is what routes a note today; first-event r1 has since ruled the same trade elsewhere (style=step, picked up front, the rest deferred), which is this field's own case made for a different door.",
+        "It costs one tap and it is what routes a note today; first-event r1 has since picked the same trade elsewhere (style=step, picked up front, the rest deferred), which is this field's own case made for a different door.",
       overrule:
         "If most visitors arrive with no clear category, optional keeps the field for the ones who do know and drops the tax on the ones who do not.",
       lands:

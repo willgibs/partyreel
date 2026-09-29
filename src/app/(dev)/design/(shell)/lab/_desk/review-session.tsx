@@ -57,7 +57,7 @@ import { holdId, itemHoldId } from "./step-id";
  *
  * A STEP IS AN ASK OR A CATALOG (the revamp, 2026-09-16). A board that
  * declares its candidates ARE a catalog contributes ONE step carrying every
- * card, ruled `keep | refine | kill` on a row of its own; away from the board
+ * card, each given `keep | refine | kill` on a row of its own; away from the board
  * the rows are all there is to show, so the step lists them, and on the board
  * the same rows are under the cards themselves.
  *
@@ -323,7 +323,7 @@ export function ReviewSession({
                                       held < of && "text-muted-foreground/70",
                                     )}
                                   >
-                                    {`${held} of ${of} ruled`}
+                                    {`${held} of ${of} answered`}
                                   </span>
                                 </button>
                               </li>

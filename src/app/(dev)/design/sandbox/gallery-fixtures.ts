@@ -11,7 +11,7 @@ import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
  * ★ NOT A BOARD. This is a plain file directly under `sandbox/`, never a
  * directory with a `spec.ts` (`registry.test.ts`'s own scan only requires
  * registration for a directory that has one), so no board owns its
- * lifecycle: it outlives any one board's ruling. Extracted from
+ * lifecycle: it outlives any one board. Extracted from
  * `app-vocabulary/fixtures.ts` when that board retired at its wiring
  * (`controls-home-wiring`, `app-vocabulary` r2, 2026-09-20) — `host-curation`
  * was already reusing these six pools verbatim, so the board's own

@@ -33,7 +33,7 @@
  * dependency, reduced motion emulated so a still stage compares as still.
  *
  * WHAT IT JUDGES. The steps are the desk's own "waiting" links (`?session=`), so
- * a ruled step is never pressed. A step passes when at least one pair of its
+ * an answered step is never pressed. A step passes when at least one pair of its
  * pictured options draws stages that differ by more than `--threshold` percent
  * of the stage's pixels (default 0.1: the frozen corner this was written for
  * moved 0.06 percent, its real menu's corners alone, and the fix moves it 0.9 to

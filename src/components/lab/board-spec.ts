@@ -71,7 +71,7 @@ export const optionCosts = (o: AskOption): string | undefined =>
  * WHAT AN ASK WAITS ON (the stepped review, 2026-09-16). A question that only
  * exists once another is answered a certain way (the aurora's landing once the
  * aurora is kept; the accent's reach once `accent=own`) is STAGED: kept off the
- * desk and out of the walk until its prerequisite is held or ruled, and moot
+ * desk and out of the walk until its prerequisite is held or answered, and moot
  * when the prerequisite goes the other way. `option` or `verdict` left out
  * means "answered at all".
  */
@@ -150,8 +150,8 @@ export type Verdict = {
 
 export type Departure<SectionId extends string = string> = {
   id: string;
-  /** A bible principle by number (1..10), or a shipped decision the idea departs from ("ruling" or "precedent"). */
-  from: number | "ruling" | "precedent";
+  /** A bible principle by number (1..10), or a shipped decision the idea departs from ("pick" or "precedent"). */
+  from: number | "pick" | "precedent";
   /** The departure and its cost, not the argument. */
   text: string;
   evidence?: SectionId;

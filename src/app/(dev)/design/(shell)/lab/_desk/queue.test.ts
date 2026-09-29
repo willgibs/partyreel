@@ -51,7 +51,7 @@ function status(
   spec: BoardSpec = SAMPLE_BOARD,
 ): BoardStatus {
   const held = new Map(answers);
-  const ruled = new Map(items);
+  const verdicts = new Map(items);
   const asks = (spec.asks ?? []).map((ask) => {
     const choice = held.get(ask.id);
     return choice
@@ -63,12 +63,12 @@ function status(
       : ({ ask, state: "open" } as const);
   });
   const cards = (spec.catalog ? spec.candidates : []).map((item) => {
-    const verdict = ruled.get(item.id);
+    const verdict = verdicts.get(item.id);
     return verdict
       ? ({
           item,
-          state: "ruled",
-          ruling: { item: item.id, verdict, by: "Will", at: AT },
+          state: "answered",
+          answer: { item: item.id, verdict, by: "Will", at: AT },
         } as const)
       : ({ item, state: "open" } as const);
   });
@@ -103,13 +103,13 @@ function status(
     moot: [],
     orphaned: [],
     items: [...cards],
-    ruled: cards.filter((c) => c.state === "ruled"),
+    answeredItems: cards.filter((c) => c.state === "answered"),
     openItems: cards.filter((c) => c.state === "open"),
     orphanedItems: [],
     notes: [],
     complete:
       asks.every((a) => a.state === "answered") &&
-      cards.every((c) => c.state === "ruled"),
+      cards.every((c) => c.state === "answered"),
   };
 }
 
@@ -125,7 +125,7 @@ const noSpec: BoardStatus = {
   moot: [],
   orphaned: [],
   items: [],
-  ruled: [],
+  answeredItems: [],
   openItems: [],
   orphanedItems: [],
   notes: [],
@@ -234,18 +234,18 @@ describe("the catalog's cards", () => {
     expect(states.map((s) => s.item.id)).toEqual(
       SAMPLE_BOARD.candidates.map((c) => c.id),
     );
-    expect(states.every((s) => s.ruling === null)).toBe(true);
+    expect(states.every((s) => s.answer === null)).toBe(true);
   });
 
-  it("closes a card ruled in the board's current round", () => {
+  it("closes a card given its verdict in the board's current round", () => {
     const states = itemStates(
       BOARD,
       status(SAMPLE_BOARD.round.n, [], [["as-prose", "kill"]]),
     );
-    expect(states.find((s) => s.item.id === "as-prose")?.ruling?.verdict).toBe(
+    expect(states.find((s) => s.item.id === "as-prose")?.answer?.verdict).toBe(
       "kill",
     );
-    expect(states.filter((s) => s.ruling === null)).toHaveLength(
+    expect(states.filter((s) => s.answer === null)).toHaveLength(
       SAMPLE_BOARD.candidates.length - 1,
     );
   });
@@ -255,7 +255,7 @@ describe("the catalog's cards", () => {
       BOARD,
       status(SAMPLE_BOARD.round.n - 1, [], [["as-prose", "kill"]]),
     );
-    expect(states.every((s) => s.ruling === null)).toBe(true);
+    expect(states.every((s) => s.answer === null)).toBe(true);
   });
 
   it("queues nothing for a board whose candidates are not a catalog", () => {

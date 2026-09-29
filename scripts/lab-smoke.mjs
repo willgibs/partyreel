@@ -50,7 +50,7 @@ const SEEDS = ["/design/library", "/design/lab"];
 // EMPTY, AND THAT IS CORRECT, NOT A GAP: no standing board draws its stage in
 // an iframe scene route any more. type-scale's and floating-surfaces' scenes
 // left with their boards on 2026-09-17, and rounding's `screen/` (the last one)
-// left with its board at its ruling on 2026-09-18. A board that adds a scene
+// left with its board when its picks were built on 2026-09-18. A board that adds a scene
 // route adds it here in the same change, or the crawl never visits it.
 const SCENES = [];
 // The boundary probe throws during server render on purpose (its page.tsx).
@@ -352,7 +352,7 @@ export function visibleWords(html) {
         name === "iframe" ||
         /\sdata-stage-fit(?=[\s>=])/.test(attrs) ||
         /\sdata-lab-specimen(?=[\s>=])/.test(attrs);
-      // A paste block (`<pre>`: the CSS a ruling would land) is copied, not
+      // A paste block (`<pre>`: the CSS a pick would land) is copied, not
       // read; the palette's weighed 695 words of tokens (2026-09-16).
       const paste = name === "pre";
       if (hidden || folded || specimen || paste) skip = depth;

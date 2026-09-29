@@ -217,7 +217,7 @@ const GAP: AskStep = {
   section: "gap",
   control: "gap",
   after: { ask: "pace" },
-  afterRuled: "slow",
+  afterAnswered: "slow",
   boardHref: "/design/lab/hero",
 };
 
@@ -604,7 +604,7 @@ describe("a step, staged behind another", () => {
 
   it("wears the ledger's answer from an earlier sitting when this one holds none", () => {
     const board = fakeBoard();
-    step("hero.gap", board, "hero", [{ ...GAP, ruled: { pace: "slow" } }]);
+    step("hero.gap", board, "hero", [{ ...GAP, answered: { pace: "slow" } }]);
     const gaps = board.drawn.filter(([id]) => id === "gap");
     expect(gaps.every(([, at]) => at.pace === "slow")).toBe(true);
   });

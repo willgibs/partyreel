@@ -182,7 +182,7 @@ const lines = (n: number) => `${n} line${n === 1 ? "" : "s"}`;
  * How many lines a block of text runs, read off its own line boxes (the rects
  * a Range draws over each text node, clustered by top so a glyph's rounding is
  * never a second line): `voice-guest`'s measure, retyped, since a board's
- * directory leaves with its ruling.
+ * folder leaves when the board retires.
  */
 function lineCount(el: Element | null): number {
   if (!el) return 0;

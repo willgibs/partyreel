@@ -12,7 +12,7 @@ import { githubFor, hrefFor, parseRef } from "@/app/(dev)/design/_data/links";
 
 /**
  * THE SHELL'S MARKDOWN (the Library x Lab round, 2026-09-15): repo markdown
- * (a system doc, a proposal, a ruling, a manifest section) rendered as prose.
+ * (a system doc, a proposal, a board's answers, a manifest section) rendered as prose.
  *
  * FORMAT "md" IS LOAD-BEARING. The docs carry braces, angle brackets and the
  * ★ glyph in running text; MDX's own syntax would read `{…}` as an expression

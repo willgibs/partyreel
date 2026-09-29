@@ -72,7 +72,7 @@ export function Answer({
  * collapsed rest.
  *
  * ★ THE ASKS ARE NOT RESTATED HERE (the stepped review, 2026-09-16). They were,
- * so that a stranger scrolling the board could tell which ruling a specimen
+ * so that a stranger scrolling the board could tell which answer a specimen
  * belonged to; a review is now a walk through the questions themselves, each
  * one with its own evidence under it, and the restatement was one of four
  * printings of the same question on one page.
@@ -147,7 +147,7 @@ function Fold({ label, lines }: { label: string; lines?: readonly string[] }) {
 
 /**
  * THE META PANEL, derived from the spec rather than retyped: the candidates,
- * the departures from the bible or a standing ruling, and the assets the board
+ * the departures from the bible or a standing pick, and the assets the board
  * asks Will for. The Orchestrator folds these exact lines into the track
  * manifest and `docs/ASSETS.md`, so a board that words them differently in two
  * places costs an integration.

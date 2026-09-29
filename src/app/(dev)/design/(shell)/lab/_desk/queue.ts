@@ -27,8 +27,8 @@ import { holdId, itemHoldId } from "./step-id";
  * queue the session walks.
  *
  * ★ AND THE CATALOG'S CARDS RIDE THE SAME ROW (the revamp, 2026-09-16). A
- * board that declares `catalog` is asking to be ruled on card by card, so its
- * unruled candidates queue exactly as its unanswered asks do; a board without
+ * board that declares `catalog` is asking for a verdict card by card, so its
+ * cards without one queue exactly as its unanswered asks do; a board without
  * one carries none, because every board has candidates and only some of them
  * are a catalog.
  *
@@ -54,15 +54,15 @@ export type AskState = {
   moot: boolean;
 };
 
-/** One catalog card of one board, with the ruling standing against it (or none). */
+/** One catalog card of one board, with the verdict standing against it (or none). */
 export type ItemState = {
   board: string;
   boardTitle: string;
   /** The SPEC's round, which is the round a ledger line must quote. */
   round: number;
   item: Candidate;
-  /** Null when nobody has ruled on this card in this round. */
-  ruling: { verdict: string; note?: string } | null;
+  /** Null when the card has no verdict in this round. */
+  answer: { verdict: string; note?: string } | null;
 };
 
 /** A standing board on the desk: its spec when it has one, its asks, its verdict. */
@@ -81,7 +81,7 @@ export type BoardRow = {
   open: AskState[];
   /** The catalog's cards, or none when the board declares no catalog. */
   items: ItemState[];
-  /** The cards with no ruling this round: what the items step asks for. */
+  /** The cards with no verdict this round: what the items step asks for. */
   openItems: ItemState[];
   /** The notes aimed at THIS board: its ledger's own, and the window's on it. */
   notes: Note[];
@@ -156,9 +156,9 @@ export function itemStates(board: DeskBoard, status: BoardStatus): ItemState[] {
     boardTitle: board.title,
     round: spec.round.n,
     item: i.item,
-    ruling:
-      current && i.state === "ruled"
-        ? { verdict: i.ruling.verdict, note: i.ruling.note }
+    answer:
+      current && i.state === "answered"
+        ? { verdict: i.answer.verdict, note: i.answer.note }
         : null,
   }));
 }
@@ -187,7 +187,7 @@ export function deskRows(
       // A pick-one catalog's cards are not a wait (status.ts): its decision is
       // the winner ask, so `status.openItems` is already empty for it.
       openItems: items.filter(
-        (i) => i.ruling === null && status.openItems.some((o) => o.item.id === i.item.id),
+        (i) => i.answer === null && status.openItems.some((o) => o.item.id === i.item.id),
       ),
       // ★ A TRANSCRIBED "NOT CLEAR TO ME" LEAVES THE WALK (Will's ninth
       // batch, 2026-09-18). It used to stay, so the next sitting asked the
@@ -234,8 +234,8 @@ export function boardWork(rows: BoardRow[]) {
     asks: r.open,
     items: r.openItems,
     // The open work is what the ledger does NOT hold, so a staged step's
-    // prerequisite is never in it: the standing rulings ride along separately.
-    ruled: ledgerSideOf(r),
+    // prerequisite is never in it: the standing answers ride along separately.
+    ledger: ledgerSideOf(r),
   }));
 }
 
@@ -247,7 +247,7 @@ function ledgerSideOf(row: BoardRow) {
   }
   const items: Record<string, string> = {};
   for (const i of row.items) {
-    if (i.ruling) items[i.item.id] = i.ruling.verdict;
+    if (i.answer) items[i.item.id] = i.answer.verdict;
   }
   return { answers, items };
 }
@@ -276,10 +276,10 @@ export function transcribedFrom(rows: BoardRow[]): Transcribed {
         };
     }
     for (const i of r.items) {
-      if (i.ruling)
+      if (i.answer)
         items[itemHoldId(i.board, i.round, i.item.id)] = {
-          verdict: i.ruling.verdict,
-          note: i.ruling.note,
+          verdict: i.answer.verdict,
+          note: i.answer.note,
         };
     }
   }

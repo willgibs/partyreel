@@ -137,8 +137,8 @@ export const both =
 
 /**
  * SCROLLS THE FRAME SO ITS OWN SPOT SITS AT THE TOP, once the frame has
- * settled (`voice-guest`'s `ScrollHere`, retyped: a board's directory leaves
- * with its ruling). The album's rows sit below a phone's first screen, so a
+ * settled (`voice-guest`'s `ScrollHere`, retyped: a board's folder leaves
+ * when the board retires). The album's rows sit below a phone's first screen, so a
  * frame about what stands there opens scrolled to them. Re-runs as the
  * webfont lands; a second run is a no-op.
  */

@@ -20,7 +20,7 @@ import {
   LedgerSchema,
   LIBRARY_LEDGER,
   LibraryLedgerSchema,
-  libraryRulings,
+  libraryAnswers,
   readLedger,
   REVIEWS_DIR,
   WINDOW_LEDGER,
@@ -44,7 +44,7 @@ const CATALOG_IDS = readLibraryEntries(process.cwd()) ?? new Set<string>();
  *
  * The check that matters most is the last one: every stored choice is one of
  * the options its ask declares. A ledger that says `model=registers` for an
- * ask whose options are `pairs | ramps` is a ruling nobody can act on, and it
+ * ask whose options are `pairs | ramps` is an answer nobody can act on, and it
  * would otherwise sit there looking answered.
  */
 const dir = join(process.cwd(), REVIEWS_DIR);
@@ -76,9 +76,9 @@ describe("the review ledgers", () => {
   it("checks the library ledger against its own schema, when there is one", () => {
     const file = join(dir, `${LIBRARY_LEDGER}.json`);
     if (!all.includes(`${LIBRARY_LEDGER}.json`)) {
-      // Nothing has been ruled on in the Library yet; the reader says so
+      // No Library entry has a verdict yet; the reader says so
       // rather than throwing, which is what keeps the desk rendering.
-      expect(libraryRulings()).toEqual([]);
+      expect(libraryAnswers()).toEqual([]);
       return;
     }
     const parsed = LibraryLedgerSchema.safeParse(
@@ -88,10 +88,10 @@ describe("the review ledgers", () => {
       parsed.success ? [] : parsed.error.issues.map((i) => i.message),
       "_library.json does not match the library ledger schema",
     ).toEqual([]);
-    for (const r of libraryRulings()) {
+    for (const r of libraryAnswers()) {
       expect(
         CATALOG_IDS.has(r.entry),
-        `_library.json rules on "${r.entry}", which is not a library entry`,
+        `_library.json holds a verdict on "${r.entry}", which is not a library entry`,
       ).toBe(true);
       expect(
         LIBRARY_VERDICTS as readonly string[],
@@ -177,14 +177,14 @@ describe("a board's status", () => {
   it("rules every catalog card with a word the vocabulary has", () => {
     for (const spec of BOARDS) {
       const status = boardStatus(spec.id);
-      // A board that declares no catalog offers nothing to rule on, however
+      // A board that declares no catalog offers nothing to give a verdict on, however
       // many candidates it carries.
       if (!spec.catalog) expect(status.items).toEqual([]);
-      for (const row of status.ruled) {
+      for (const row of status.answeredItems) {
         expect(
           ITEM_VERDICTS as readonly string[],
-          `${spec.id}/${row.item.id}: the ledger stores "${row.ruling.verdict}"`,
-        ).toContain(row.ruling.verdict);
+          `${spec.id}/${row.item.id}: the ledger stores "${row.answer.verdict}"`,
+        ).toContain(row.answer.verdict);
       }
       expect(
         status.orphanedItems.map((i) => i.item),

@@ -20,7 +20,7 @@ import type { GalleryEntry } from "@/app/(dev)/design/gallery/entry";
  * is the vocabulary. Will named the coloured light the AURORA and kept three
  * forms of it (2026-09-17), so the entry presents the family rather than the
  * primitive: one live specimen per kept form, each on a dark ground, because
- * the fourth ruling of that round was that none of them goes on a light one.
+ * the fourth pick of that round was that none of them goes on a light one.
  *
  * ★ EVERY SPECIMEN HERE CARRIES ITS OWN `dark`, and that is not decoration. The
  * Foundations page follows the root next-themes theme, and the field's fence
