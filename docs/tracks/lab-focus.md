@@ -8,6 +8,7 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/app/(dev)/design/(shell)/lab/[board]/
   - src/app/(dev)/design/(shell)/lab/kit/
   - scripts/lab-demo.mjs
+  - src/app/(dev)/design/design.css
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/PROGRAM.md
   - docs/systems/design-system.md
