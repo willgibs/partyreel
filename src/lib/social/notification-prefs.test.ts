@@ -135,6 +135,29 @@ describe("notification_prefs defaults parity (TS <-> migration SQL)", () => {
     expect(standing.get("notify_pass_renewal")).toBe(true);
   });
 
+  // ★ A SWITCH THE CARD CANNOT WRITE FAILS EVERY SAVE (database-security.md, Gotchas): each mapped
+  // column needs its own insert and update grant to authenticated, added beside the others, and no
+  // migration after the create may revoke on the table, which would cascade to every column grant.
+  it("every mapped column is insertable and updatable by its owner, and no later revoke undoes it", () => {
+    const grants = MIGRATIONS.join("\n");
+    for (const column of Object.values(COLUMN_FOR_FIELD)) {
+      for (const verb of ["insert", "update"]) {
+        expect(
+          new RegExp(
+            `grant[^;]*\\b${verb} \\([^)]*\\b${column}\\b[^)]*\\)[^;]*on public\\.notification_prefs to authenticated`,
+          ).test(grants),
+          `${verb}(${column}) is granted to authenticated`,
+        ).toBe(true);
+      }
+    }
+    const revokes = MIGRATIONS.slice(
+      MIGRATIONS.findIndex((sql) =>
+        sql.includes("create table public.notification_prefs"),
+      ) + 1,
+    ).filter((sql) => /revoke[^;]*on public\.notification_prefs/.test(sql));
+    expect(revokes).toEqual([]);
+  });
+
   it("tier 1 (transactional) has NO column: it can never be toggled off", () => {
     expect(prefsTableBlock()).not.toMatch(
       /transactional|security|otp|billing/i,
