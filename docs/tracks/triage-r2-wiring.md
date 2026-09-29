@@ -9,12 +9,22 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/app/admin/forensics/
   - src/app/admin/albums/
   - src/components/admin/
-  - src/components/app/report-review.tsx
+  - src/components/app/report-review
   - src/components/guest/report-dialog.tsx
+  - src/components/guest/report-answer-form.tsx
   - src/app/api/reports/
+  - src/app/(guest)/report/
   - src/lib/validation/report.ts
   - src/lib/db/queries/reports.ts
   - src/lib/db/mutations/reports
+  - src/lib/db/mutations/report.ts
+  - src/lib/db/mutations/media
+  - src/lib/db/triage-seam.ts
+  - src/lib/reports/
+  - src/lib/admin/reports
+  - src/lib/admin/pending.ts
+  - src/lib/admin/nav.ts
+  - src/lib/guest/report-door.ts
   - src/lib/email/templates.ts
   - src/components/shared/media-lightbox-parts/
   - src/lib/lifecycle/
