@@ -31,6 +31,7 @@ export type SandboxId =
   | "press-page"
   | "contact-page"
   | "disposable-mode"
+  | "demo-framing"
   | "album-motion"
   | "loose-ends"
   | "privacy-hero";
@@ -209,6 +210,28 @@ export const RULINGS: Ruling[] = [
     },
   },
   {
+    id: "demo-framing",
+    title: "The demo's story",
+    surface: "marketing",
+    asks: "what party the demo is, what it is called on the card's link and at the album's head, and which event the home hero's card opens",
+    why: "Will's note: 'Mia & Theo' feels weird for a demo name, so the framing lands before the demo event is made or renamed to match.",
+    lives: [
+      "docs/systems/marketing-content.md",
+      "src/components/marketing/sections/home/hero-stream.ts",
+      "src/components/marketing/sections/home/cinema-hero-card.tsx",
+      "src/lib/demo.ts",
+      "scripts/seed-demo-event.mjs",
+    ],
+    board: {
+      note: "Three decisions on the home hero's own stage, the link card a mock over its real pieces at 1440 and 375, beside the demo album's first screen at 375: the party (a wedding as today, a 30th, a weekend away, a family reunion, a work party), what it is called where it is said (the card's link, the welcome, the album's title), and which event the card opens",
+      variants: [
+        "The demo's party",
+        "What it is called",
+        "Which event it opens",
+      ],
+    },
+  },
+  {
     id: "album-motion",
     title: "The album's falling-in",
     surface: "marketing",
@@ -289,6 +312,7 @@ export const DESK_ORDER: readonly SandboxId[] = [
   "loose-ends",
   "contact-page",
   "disposable-mode",
+  "demo-framing",
   "press-page",
 ];
 

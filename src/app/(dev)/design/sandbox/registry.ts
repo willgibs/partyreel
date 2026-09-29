@@ -8,6 +8,7 @@ import { EVENT_SETTINGS } from "./event-settings/spec";
 import { PRESS_PAGE } from "./press-page/spec";
 import { CONTACT_PAGE } from "./contact-page/spec";
 import { DISPOSABLE_MODE } from "./disposable-mode/spec";
+import { DEMO_FRAMING } from "./demo-framing/spec";
 import { ALBUM_MOTION } from "./album-motion/spec";
 
 import { LOOSE_ENDS } from "./loose-ends/spec";
@@ -48,6 +49,7 @@ const REGISTERED: readonly BoardSpec[] = [
   LOOSE_ENDS,
   CONTACT_PAGE,
   DISPOSABLE_MODE,
+  DEMO_FRAMING,
   PRESS_PAGE,
 ];
 
