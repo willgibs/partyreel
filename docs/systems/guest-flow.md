@@ -289,7 +289,7 @@ its metadata and every guest route act on through
   the join limiter, and answers a shut door 403 in the private album's words.
 - **`waiting`**, the held door ([`waiting-step.tsx`](../../src/components/guest/door/waiting-step.tsx), `waiting=held`):
   the host will let her in, with nothing of the album behind it; it checks in every 30 s and on the tab's return
-  (`POST /api/guests/door`: `waiting` | `in` | `moved`, `private, no-store`; a missing schema or event answers
+  (`POST /api/guests/door`: `waiting` | `in` | `moved`, `private, no-store`; a missing event answers
   `moved`), which stamps her rows for the banked let-in mail, and opens onto the album by itself on `in`.
 - **`newcomer {gate}`**, no confirmed email yet at approve or invite: the door's own steps (the welcome, the email)
   with no teaser; the welcome counts what is inside, as a password album's does. Confirming asks at approve and lets

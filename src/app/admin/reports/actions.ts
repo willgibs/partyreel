@@ -24,7 +24,7 @@ import { SITE_URL } from "@/lib/constants/site";
 import { mustQuery } from "@/lib/db/must-query";
 import { inChunks, readAllPages } from "@/lib/db/read-all";
 import { readProofMailEnabled } from "@/lib/db/queries/reports";
-import { seamFrom } from "@/lib/db/triage-seam";
+import type { Tables } from "@/lib/db/types";
 import { sendOnce } from "@/lib/email/send";
 import { reportProofAskEmail } from "@/lib/email/templates";
 import { formatCount } from "@/lib/format/count";
@@ -96,11 +96,7 @@ type ReportRow = {
   resolved_at: string | null;
 };
 
-type EntryReportRow = {
-  id: string;
-  kind: string | null;
-  hid_at: string | null;
-};
+type EntryReportRow = Pick<Tables<"reports">, "id" | "kind" | "hid_at">;
 
 type Entry = {
   mediaId: string | null;
@@ -127,7 +123,8 @@ async function readEntry(admin: Admin, report: ReportRow): Promise<Entry> {
   const { rows } = await readAllPages(
     "admin reports: the entry's open reports",
     (after: string | null, limit) => {
-      let q = seamFrom(admin, "reports")
+      let q = admin
+        .from("reports")
         .select("id, kind, hid_at")
         .eq("status", "open")
         .order("id", { ascending: true })
@@ -137,10 +134,7 @@ async function readEntry(admin: Admin, report: ReportRow): Promise<Entry> {
         q = q.eq("event_id", report.event_id).is("media_id", null);
       else q = q.eq("profile_id", report.profile_id ?? "");
       if (after) q = q.gt("id", after);
-      return q as unknown as PromiseLike<{
-        data: EntryReportRow[] | null;
-        error: null;
-      }>;
+      return q;
     },
     (row) => row.id,
   );
@@ -272,18 +266,14 @@ async function redoHides(admin: Admin, reportIds: readonly string[]) {
     "admin reports: reopened hides",
     reportIds,
     async (chunk) =>
-      ((await mustQuery(
-        seamFrom(admin, "reports")
+      (await mustQuery(
+        admin
+          .from("reports")
           .select("id, media_id, kind, hid_at")
           .in("id", chunk)
           .not("hid_at", "is", null),
         "admin reports: reopened hides",
-      )) ?? []) as unknown as {
-        id: string;
-        media_id: string | null;
-        kind: string | null;
-        hid_at: string | null;
-      }[],
+      )) ?? [],
   );
   for (const report of rows) {
     if (parseReportKind(report.kind) !== INSTANT_HIDE_KIND || !report.media_id)
@@ -302,7 +292,8 @@ async function redoHides(admin: Admin, reportIds: readonly string[]) {
         "admin reports: hide again",
       );
       await mustQuery(
-        seamFrom(admin, "reports")
+        admin
+          .from("reports")
           .update({ hid_at: at.toISOString() })
           .eq("id", report.id)
           .select("id"),
@@ -1121,19 +1112,14 @@ export async function askProofAction(
     if (!(await readProofMailEnabled())) {
       return { ok: false, code: "validation", message: PROOF_OFF_LINE };
     }
-    const report = (await mustQuery(
-      seamFrom(admin, "reports")
+    const report = await mustQuery(
+      admin
+        .from("reports")
         .select("id, status, kind, reporter_email, event_id")
         .eq("id", id.data)
         .maybeSingle(),
       "admin reports: proof report",
-    )) as {
-      id: string;
-      status: string;
-      kind: string | null;
-      reporter_email: string | null;
-      event_id: string | null;
-    } | null;
+    );
     if (!report || report.status !== "open") return DECIDED;
     const kind = parseReportKind(report.kind);
     if (!askableProof({ kind, canAsk: Boolean(report.reporter_email) })) {
@@ -1160,7 +1146,8 @@ export async function askProofAction(
     const token = newProofToken();
     const askedAt = new Date().toISOString();
     const written = await mustQuery(
-      seamFrom(admin, "reports")
+      admin
+        .from("reports")
         .update({
           proof_asked_at: askedAt,
           proof_question: asked,
@@ -1191,7 +1178,8 @@ export async function askProofAction(
       });
     } catch (e) {
       // The mail never went: take the ask back, so the report never says it asked.
-      await seamFrom(admin, "reports")
+      await admin
+        .from("reports")
         .update({
           proof_asked_at: null,
           proof_question: null,
