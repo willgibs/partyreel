@@ -34,6 +34,12 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/app/(dev)/design/(shell)/_shell/markdown.tsx
   - scripts/lab-scope.mjs
   - scripts/new-board.mjs
+  - src/app/(dev)/design/design.css
+  - src/app/(dev)/design/(shell)/_shell/page-markdown.test.tsx
+  - src/app/(dev)/design/(shell)/library/foundations/gallery-demos.tsx
+  - src/app/(dev)/design/sandbox/gallery-fixtures.ts
+  - src/lib/type-ladder-policy.test.ts
+  - src/lib/jsx-text-space-policy.test.ts
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/reviews/README.md
   - CLAUDE.md
