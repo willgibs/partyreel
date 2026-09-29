@@ -93,9 +93,11 @@ Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, dis
      `settings-wiring`'s merge, since it rewrites the guest path; with the lane's idea of the premiere on the wall, the
      reel's screen counting down to the develop time and playing the roll as an event of its own) and the door family's wiring (if the doorway wins, its reveal: walking through the
      opened door into the album, drawn first as motion options; ASSETS row 36 if the host's door wins).
-4. **Build 22** (this record's `[preview]`): his sitting on `locked-door` r2 and `disposable-mode` r2 (4 and 8 asks), each
+4. **Build 22 is live** (`54cd706c`; alias-ensure green, pruned, the desk served, the context layer read on the served
+   desk): his sitting on `locked-door` r2 and `disposable-mode` r2 (4 and 8 asks), each
    with its context now (where, what brings someone there, why it matters, each option's gain and cost, the
-   recommendation's reason, each board's opening), and `crumbs-13`'s sign-out. Build 22's
+   recommendation's reason, each board's opening), and `crumbs-13`'s sign-out. Its red-team runs (agent `a90806c230d378b26`,
+   `../partyreel-wt/_scratch/redteam-22/brief.md`): the four sign-out walks and the desk's context headless. Build 22's
    red-team also walks `crumbs-13`'s sign-out (its Handoff's four live walks: two browsers, the admin portal's session
    kept, Sign out everywhere, the guest header). Its red-team rides the claims walk: crumbs-12's hub row at
    1440, 768 and 375 resting and stuck, "restore it for 30 days", the reports lede, the headings at 700, /terms'
