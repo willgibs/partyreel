@@ -196,11 +196,29 @@ export const ProPlans = () => {
   );
 };
 export const RecoveryDays = () => <>{RECENTLY_DELETED_WINDOW_DAYS} days</>;
-/** "one event" / "unlimited events" for a tier. */
-export const MaxEvents = ({ tier = "free" }: { tier?: Tier }) => {
+/**
+ * "one event" / "unlimited events" for a tier, mid-sentence; `capitalized`
+ * where the phrase opens a sentence or a bullet ("One event at a time."), which
+ * only the article knows (crumbs-14: the free plan's first bullet read "one
+ * event at a time.").
+ */
+export const MaxEvents = ({
+  tier = "free",
+  capitalized = false,
+}: {
+  tier?: Tier;
+  capitalized?: boolean;
+}) => {
   const max = MAX_EVENTS[tier];
-  if (max === null) return <>unlimited events</>;
-  return <>{max === 1 ? "one event" : `${max} events`}</>;
+  const phrase =
+    max === null
+      ? "unlimited events"
+      : max === 1
+        ? "one event"
+        : `${max} events`;
+  return (
+    <>{capitalized ? phrase[0].toUpperCase() + phrase.slice(1) : phrase}</>
+  );
 };
 export const UploadCapFloor = () => <>{formatBytes(MIN_UPLOAD_CAP_BYTES)}</>;
 /** "about 6 months": the free-tier inactivity window, from the day count. */

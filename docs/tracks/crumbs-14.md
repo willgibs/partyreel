@@ -23,8 +23,8 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/app/(auth)/auth/callback/route.test.ts
   - src/components/auth/login-form.tsx
   - src/components/auth/login-form.test.tsx
-  - src/components/auth/sign-out-form.tsx
-  - src/components/auth/sign-out-form.test.tsx
+  - src/components/auth/sign-out.ts
+  - src/components/auth/sign-out.test.ts
   - src/components/app/user-menu.tsx
   - src/components/app/user-menu.test.tsx
   - docs/systems/auth-accounts.md

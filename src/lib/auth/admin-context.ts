@@ -21,6 +21,7 @@ import { notFound, redirect } from "next/navigation";
 
 import type { ActionResult } from "@/app/(app)/dashboard/actions";
 import { isAdminHost } from "@/lib/auth/admin-host";
+import { loginPath, REQUEST_PATH_HEADER } from "@/lib/auth/return-path";
 import { env } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 import { servesAdmin } from "@/lib/surface";
@@ -114,9 +115,24 @@ async function readGate(): Promise<AdminGate> {
 export async function requireAdmin(): Promise<AdminContext> {
   await assertAdminSurface();
   const gate = await readGate();
-  if (gate.status === "anonymous") redirect("/login?next=/admin");
+  if (gate.status === "anonymous") redirect(await portalLoginPath());
   if (gate.status === "forbidden") notFound();
   return gate.ctx;
+}
+
+/**
+ * THE SIGN-IN CARRIES THE PAGE THAT WAS ASKED FOR (crumbs-14): a signed-out `/admin/reports` used
+ * to come back to `/admin` whatever was asked. The proxy hands this gate its path as it does the
+ * app's (`x-pr-path`, a layout cannot read its own URL), and the path rides only when it is one of
+ * the portal's pages and this is the admin host (`return-path.ts`); anything else, or no header,
+ * is the bare `/login`, whose landing on this host is the portal anyway.
+ */
+async function portalLoginPath(): Promise<string> {
+  const request = await headers();
+  return loginPath(
+    request.get(REQUEST_PATH_HEADER),
+    isAdminHost(request.get("host")),
+  );
 }
 
 const NOT_AUTHORIZED: ActionResult = {
