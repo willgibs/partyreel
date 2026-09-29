@@ -36,6 +36,9 @@ export const PHONE_SCREENS = {
   "door-photo": "Add your photos, with Skip for now",
   "door-keep": "Sent, then Keep this event",
   "mail-search": "A mailbox searched for Partyreel, the email found in spam",
+  "report-open": "The Report this event form, freshly opened",
+  "report-reason": "The report form's Reason box, filled in and marked",
+  "report-sent": "Thanks, your report has been sent for review",
 } as const;
 
 export const DESK_SCREENS = {
@@ -76,9 +79,7 @@ export function stepScreenLabel(id: StepScreenId): string {
 
 /**
  * Articles whose steps may stand without screens, each with why. Kept short on purpose: every
- * other how-to's every step pictures its surface (`step-screens.test.ts`).
+ * other how-to's every step pictures its surface (`step-screens.test.ts`). Empty is the steady
+ * state; an entry here is always a debt owed to a lane still in flight.
  */
-export const STEPS_WITHOUT_SCREENS: Readonly<Record<string, string>> = {
-  "report-a-problem-as-a-guest":
-    "triage-wiring owns the article this round (its report wording); the report sheet's three screens join it after that lane merges",
-};
+export const STEPS_WITHOUT_SCREENS: Readonly<Record<string, string>> = {};

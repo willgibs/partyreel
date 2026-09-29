@@ -1,12 +1,24 @@
 "use client";
 
 import { useState } from "react";
+import { ShieldAlert, Undo2 } from "lucide-react";
 
 import { AdminRail } from "@/components/admin/admin-rail";
+import { DestructiveSheet } from "@/components/admin/destructive-sheet";
 import { HealthBand } from "@/components/admin/health-band";
 import { QueueList } from "@/components/admin/queue-list";
+import { StatusPicker } from "@/components/admin/triage-status-control";
+import {
+  AddNoteLink,
+  ClosedLine,
+  ClosedLog,
+  NoteField,
+  ReasonLine,
+  useVerdictNote,
+} from "@/components/app/report-review";
 import { FilterChips } from "@/components/app/dashboard/filter-chips";
 import { StorageMeter } from "@/components/app/dashboard/storage-meter";
+import { MediaTile } from "@/components/app/media-grid";
 import { ReviewRoom } from "@/components/app/event-feed/review-room";
 import type { ReviewWrites } from "@/components/app/event-feed/use-review-triage";
 import { ProPriceList } from "@/components/app/pricing/pro-price-list";
@@ -17,14 +29,33 @@ import {
   type StorageSource,
 } from "@/components/app/storage/storage-source";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import type { PlanFacts } from "@/lib/billing/plan-facts";
+import {
+  heldMessage,
+  holdReasonFor,
+  holdTouches,
+  type HoldScope,
+  REPORT_NOTE_MAX,
+  REPORT_WORDS,
+  type ReportWord,
+  WAY_BACK_LINE,
+} from "@/lib/admin/reports";
 import type { QrStyleKey } from "@/lib/constants/qr-presets";
 import { GIGABYTE, planById } from "@/lib/constants/tiers";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import type { StorageItem } from "@/lib/db/queries/storage-list";
 import { buildOperatorQueue } from "@/lib/admin/queue";
 import type { FilterValue } from "@/lib/dashboard/filters";
+import { formatAdminTimestamp } from "@/lib/format/admin-time";
 import type { JobHealthReport } from "@/lib/jobs/health-summary";
+import { operatorRemovalTouches } from "@/lib/moderation/operator-actions";
 
 import { SAMPLE, SAMPLE_MEDIA } from "@/app/(dev)/design/reference/sample-data";
 
@@ -108,8 +139,8 @@ export function ReviewSectionDemo() {
 
 // WHAT'S USING SPACE, OVER AN INERT ACCOUNT (storage-wiring): the real storage meter, whose popover
 // opens the size list, and a Pro host's six prices, whose Too small flips to the refusal and opens
-// the same list with the goal strip. The account is the host-storage board's videographer on Pro
-// 500 GB monthly, 110.8 GB across four events (a handful of long videos are most of it). The
+// the same list with the goal strip. The account is a videographer on Pro's 500 GB monthly size,
+// 110.8 GB across four events (a handful of long videos are most of it). The
 // source answers after a real round trip's pause and changes nothing: a reviewer here can never
 // remove anyone's photograph, and the strip's switch stops at a note instead of Stripe. (The six
 // rows' own Switch is the product's button, which a signed-out Library sends to sign in.)
@@ -374,4 +405,165 @@ export function AdminHealthBandDemo() {
 
 export function AdminQueueDemo() {
   return <QueueList items={OPS_QUEUE} />;
+}
+
+/**
+ * THE SHEET, AND REPORTS' OWN CARD (admin-triage r1, `verdict=note`): `report-review.tsx`'s
+ * `OpenReportCard` hard-wires the real Server Actions (`dismissReportAction`, `actionReportAction`,
+ * `holdFromReportAction`), so it is redrawn here from its own exported pieces (`ReasonLine`,
+ * `NoteField`, `AddNoteLink`, `ClosedLog`, `ClosedLine`, `useVerdictNote`) and `StatusPicker`, over
+ * writes that answer after a round trip and change nothing — Review and Storage's own convention,
+ * so a reviewer here can never touch anyone's report. Remove… opens `DestructiveSheet` with its
+ * note OPTIONAL (a verdict's own reason, left blank or filled); Hold for forensics opens the second,
+ * whose note is REQUIRED (the confirm waits for a line, as an unmatched typed identifier does).
+ */
+const REPORT_TOUCHES = operatorRemovalTouches({
+  kind: "photo",
+  eventName: "Priya & Sam's baby shower",
+  from: "album",
+  wayBack: "undo",
+});
+const REPORT_HOLD_SCOPE: HoldScope = {
+  kind: "photo",
+  eventName: "Priya & Sam's baby shower",
+  others: 2,
+  uploader: "guest",
+};
+const REPORT_DEMO_ID = "8f21e3a0-9b44-4c1a-9e77-2d6f0c9a4b21";
+
+export function AdminReportCardDemo() {
+  const [asking, setAsking] = useState<"verdict" | "hold" | null>(null);
+  const note = useVerdictNote();
+  const item = SAMPLE_MEDIA[0];
+
+  return (
+    <div className="w-full max-w-md space-y-4">
+      <Card data-report-id={REPORT_DEMO_ID}>
+        <CardHeader>
+          <div className="flex items-start justify-between gap-3">
+            <CardTitle className="min-w-0 break-words">
+              Priya &amp; Sam&rsquo;s baby shower
+            </CardTitle>
+            <StatusPicker
+              status={"open" as ReportWord}
+              words={REPORT_WORDS}
+              moves={["dismissed", "actioned"]}
+              moveLabel={(next) =>
+                next === "actioned" ? "Actioned…" : "Dismissed"
+              }
+              onPick={() => {}}
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {formatAdminTimestamp("2026-09-27T21:14:00.000Z")} · item reported
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="aspect-square w-40 overflow-hidden rounded-lg bg-black/10">
+            <MediaTile item={item} />
+          </div>
+          <ReasonLine reason="The third photo from the top is of my child, and nobody asked us before posting it." />
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setAsking("hold")}
+            >
+              <ShieldAlert />
+              Hold for forensics
+            </Button>
+            <span className="text-caption text-muted-foreground">
+              Sets the hold, preserves the evidence and keeps this report open.
+            </span>
+          </div>
+          {note.open ? (
+            <NoteField
+              id={`${REPORT_DEMO_ID}-note`}
+              value={note.text}
+              onChange={note.setText}
+            />
+          ) : null}
+        </CardContent>
+        <CardFooter className="flex-wrap items-center gap-2">
+          <Button type="button" variant="outline" size="sm">
+            Dismiss
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            onClick={() => setAsking("verdict")}
+          >
+            Remove…
+          </Button>
+          {note.open ? null : <AddNoteLink onPress={note.show} />}
+        </CardFooter>
+      </Card>
+
+      <ClosedLog lede={WAY_BACK_LINE}>
+        <ClosedLine
+          lead={
+            <div className="size-8 shrink-0 overflow-hidden rounded bg-muted">
+              <MediaTile item={SAMPLE_MEDIA[1]} playBadge="none" />
+            </div>
+          }
+          status="actioned"
+          note="Cropped out of frame before the album reopened"
+          where="Jordan & Lee's wedding"
+          resolvedAt="2026-09-20T18:04:00.000Z"
+          end={
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="shrink-0"
+              aria-label="Undo: restore the item and reopen the report"
+            >
+              <Undo2 />
+              <span className="hidden sm:inline">Undo</span>
+            </Button>
+          }
+        />
+      </ClosedLog>
+
+      <DestructiveSheet
+        open={asking === "verdict"}
+        onOpenChange={(open) => setAsking(open ? "verdict" : null)}
+        title="Remove this photo?"
+        lede="It leaves the album and the host's Deleted now, and the report closes as Actioned."
+        verb="Remove"
+        touches={REPORT_TOUCHES}
+        severity="reversible"
+        note={{
+          label: "Note",
+          defaultValue: note.text,
+          placeholder: "Why, in one line",
+          hint: "Kept on the report with the verdict. Only this portal reads it.",
+          maxLength: REPORT_NOTE_MAX,
+        }}
+        successMessage="Removed, and the report is actioned."
+        onConfirm={answered}
+      />
+      <DestructiveSheet
+        open={asking === "hold"}
+        onOpenChange={(open) => setAsking(open ? "hold" : null)}
+        title="Hold and preserve this photo?"
+        lede="It stays out of every purge until the hold is released from Forensics, and this report stays open."
+        verb="Set hold and preserve"
+        touches={holdTouches(REPORT_HOLD_SCOPE)}
+        severity="reversible"
+        note={{
+          label: "Reason, on the record",
+          required: true,
+          defaultValue: holdReasonFor(REPORT_DEMO_ID),
+          placeholder: "e.g. report reference, CyberTipline filing",
+          hint: "Written on each hold and in the forensic audit log.",
+          maxLength: REPORT_NOTE_MAX,
+        }}
+        successMessage={heldMessage(1 + REPORT_HOLD_SCOPE.others)}
+        onConfirm={answered}
+      />
+    </div>
+  );
 }

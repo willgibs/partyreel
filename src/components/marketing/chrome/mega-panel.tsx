@@ -246,14 +246,16 @@ function FeaturedCard({
 }
 
 /**
- * THE FEATURES PANE'S DOOR: the frame every other demo door now wears,
- * centred on the same card ground `FeaturedCard` sits on rather than that
- * card's own full-bleed photo anatomy — a nav pane is the one place the
- * object stands ALONE, no words beside it (the board's own `stage`, drawn as
- * "nothing stands here: the pane stays a clean column", was the alternative
- * with no demo configured; this is the alternative with one). No `title` or
- * `blurb`: the round's own rule (doors.tsx, `spec.ts`) is that none of the
- * four objects carries words, and a caption here would be the one exception.
+ * THE FEATURES PANE'S DOOR: `DemoFrame` (`system/demo-ticket.tsx`), the
+ * Features pane's own object now that the home hero's door is the link card
+ * (`sections/home/cinema-hero-card.tsx`) — centred on the same card ground
+ * `FeaturedCard` sits on rather than that card's own full-bleed photo anatomy
+ * — a nav pane is the one place the object stands ALONE, no words beside it
+ * (the board's own `stage`, drawn as "nothing stands here: the pane stays a
+ * clean column", was the alternative with no demo configured; this is the
+ * alternative with one). No `title` or `blurb`: the round's own rule
+ * (doors.tsx, `spec.ts`) is that none of the four objects carries words, and a
+ * caption here would be the one exception.
  */
 function FeaturedDemo({ href, value }: { href: string; value: string }) {
   return (

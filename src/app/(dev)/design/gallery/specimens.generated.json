@@ -164,6 +164,9 @@
       "<AdminHealthBandDemo />",
       "<AdminQueueDemo />"
     ],
+    "admin-report-cards": [
+      "<AdminReportCardDemo />"
+    ],
     "event-card": [
       "<EventCard\n  variant=\"hosted\"\n  href=\"#\"\n  name={SAMPLE.eventName}\n  coverUrl={SAMPLE.cover}\n  dateLabel={SAMPLE.dateLabel}\n  itemsLabel=\"128 items\"\n  statusLabel=\"Open\"\n  pendingCount={3}\n  qrSlot={qrSlot}\n/>",
       "<EventCard\n  variant=\"hosted\"\n  href=\"#\"\n  name=\"Office Summer Party\"\n  coverUrl={null}\n  dateLabel=\"Aug 2\"\n  itemsLabel=\"0 items\"\n  statusLabel=\"Open\"\n  pendingCount={0}\n/>",

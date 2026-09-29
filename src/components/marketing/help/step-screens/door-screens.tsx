@@ -1,6 +1,13 @@
 "use client";
 
-import { Camera, ChevronLeft, Images, Search } from "lucide-react";
+import {
+  Camera,
+  ChevronLeft,
+  CircleCheckIcon,
+  Flag,
+  Images,
+  Search,
+} from "lucide-react";
 import Image from "next/image";
 import type { ReactNode } from "react";
 
@@ -30,6 +37,8 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { cn, formatEventDate } from "@/lib/utils";
 
@@ -387,6 +396,123 @@ function MailSearchScreen() {
   );
 }
 
+/* ── The report path: the discreet control at the album's foot (`event-experience.tsx`,
+   `report-dialog.tsx`), quoted rather than mounted — its own open state and its toast are not
+   reachable through a prop, so the shell and the words are drawn from the real classes and the
+   real strings instead. Past the door the album is real, never blurred: only what is not yet
+   earned stays behind a blur. ─────────────────────────────────────────────────────────────── */
+
+const REPORT_ALBUM = [
+  "wedding-golden",
+  "reception-table",
+  "party-balloons",
+  "wedding-toast",
+  "concert-confetti",
+  "wedding-rings",
+] as const;
+
+/** The event page's own foot: the album, then the hairline and the discreet Report row. */
+function ReportPageBehind() {
+  return (
+    <div aria-hidden className="absolute inset-0 flex flex-col bg-background">
+      <div className="grid grid-cols-3 gap-0.5">
+        {REPORT_ALBUM.map((id) => (
+          <span
+            key={id}
+            className="relative block aspect-square overflow-hidden"
+          >
+            <Image
+              src={marketingImage(id).src}
+              alt=""
+              fill
+              sizes="125px"
+              className="object-cover"
+            />
+          </span>
+        ))}
+      </div>
+      <footer className="mx-3 mt-8 flex justify-center border-t border-border/60 pt-5">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-muted-foreground"
+          tabIndex={-1}
+        >
+          <Flag /> Report
+        </Button>
+      </footer>
+    </div>
+  );
+}
+
+type ReportStep = "open" | "reason" | "sent";
+
+/** The report dialog's dialog shape (`popup.tsx`'s `data-shape="dialog"`, quoted: a `Popup` portals
+ *  to the top document, which escapes the phone's own iframe, so its shell is redrawn here rather
+ *  than mounted). */
+function ReportScreen({ step }: { step: ReportStep }) {
+  if (step === "sent") {
+    return (
+      <div className="relative h-full">
+        <ReportPageBehind />
+        <div className="absolute inset-x-4 top-20 flex items-center gap-2 rounded-float bg-popover px-4 py-3 text-sm text-popover-foreground shadow-layer ring-1 ring-foreground/10">
+          <CircleCheckIcon className="size-4 shrink-0 text-success" />
+          Thanks. Your report has been sent for review.
+        </div>
+      </div>
+    );
+  }
+  const reason =
+    step === "reason"
+      ? "The third photo from the top is of my child, and nobody asked us before posting it."
+      : "";
+  return (
+    <div className="relative h-full">
+      <ReportPageBehind />
+      <div aria-hidden className="absolute inset-0 bg-black/10" />
+      <div className="absolute inset-x-4 top-1/2 flex max-h-[calc(100%-2rem)] -translate-y-1/2 flex-col overflow-hidden rounded-float bg-popover text-popover-foreground shadow-layer ring-1 ring-foreground/10">
+        <div className="flex shrink-0 flex-col gap-1 p-4 pr-12">
+          <p className="font-heading text-card-title font-medium text-pretty text-foreground">
+            Report this event
+          </p>
+          <p className="text-sm text-pretty text-muted-foreground">
+            Tell us what&rsquo;s wrong and our team will review it. Reports are
+            anonymous.
+          </p>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
+          <div
+            className={cn(
+              "flex flex-col gap-2 rounded-md",
+              step === "reason" &&
+                "bg-warning/15 ring-2 ring-warning/70 ring-offset-2 ring-offset-popover",
+            )}
+          >
+            <Label>
+              Reason{" "}
+              <span className="font-normal text-muted-foreground">
+                (optional)
+              </span>
+            </Label>
+            <Textarea
+              rows={4}
+              readOnly
+              value={reason}
+              placeholder="What's the problem here?"
+            />
+          </div>
+        </div>
+        <div className="flex shrink-0 flex-col-reverse gap-2 border-t bg-muted/50 p-4 sm:flex-row sm:justify-end">
+          <Button variant="outline" tabIndex={-1}>
+            Cancel
+          </Button>
+          <Button tabIndex={-1}>Submit report</Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /** Every phone screen, by id: `Record` over the registry's ids, so a missing one is a type error. */
 const SCREENS: Record<PhoneScreenId, () => ReactNode> = {
   "door-scan": () => <ScanScreen />,
@@ -442,6 +568,9 @@ const SCREENS: Record<PhoneScreenId, () => ReactNode> = {
     </DoorSheet>
   ),
   "mail-search": () => <MailSearchScreen />,
+  "report-open": () => <ReportScreen step="open" />,
+  "report-reason": () => <ReportScreen step="reason" />,
+  "report-sent": () => <ReportScreen step="sent" />,
 };
 
 /** One phone screen's content, for `phone-document.tsx` to hold. */
