@@ -437,7 +437,7 @@ export function PlanPair() {
             <Item>
               {MAX_EVENTS.free} event, every guest, the album and the reel
             </Item>
-            <Item>A password lock and a custom link</Item>
+            <Item>Every gate and a custom link</Item>
             <Item>No watermark on photos or the album</Item>
             <Item>Verified-email uploads, on by default</Item>
             <Item limit>Photos only</Item>

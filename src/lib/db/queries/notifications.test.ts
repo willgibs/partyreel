@@ -35,6 +35,13 @@ vi.mock("@/lib/supabase/request-auth", () => ({
   }),
 }));
 
+// The door's read (the doors, event-settings r1), stood in for: the service-role RPC it wraps is
+// `event-doors.ts`'s to test. By default nobody waits.
+const getHostDoorWaiting = vi.fn(async (_hostId: string) => new Map<string, number>());
+vi.mock("@/lib/db/queries/event-doors", () => ({
+  getHostDoorWaiting: (hostId: string) => getHostDoorWaiting(hostId),
+}));
+
 const { getNotificationData } = await import("@/lib/db/queries/notifications");
 
 const live = { host_id: HOST, deleted_at: null };
@@ -164,5 +171,31 @@ describe("the bell's review queue", () => {
     expect(data.pendingCount).toBe(1);
     // Undefined, never []: the builder then draws its single row over the head count.
     expect(data.pendingByEvent).toBeUndefined();
+  });
+});
+
+describe("the bell's door (the doors, event-settings r1)", () => {
+  it("names each event with someone at its door, read for the caller's own account", async () => {
+    fake = createFakePostgrest({
+      tables: {
+        media: [],
+        events: [
+          event("ruby", "Ruby's 30th", "2026-09-24T00:00:00+00:00"),
+          event("wedding", "Mia & Theo's wedding", "2026-09-10T00:00:00+00:00"),
+        ],
+      },
+    });
+    getHostDoorWaiting.mockResolvedValueOnce(new Map([["wedding", 2]]));
+    const data = await getNotificationData();
+    expect(getHostDoorWaiting).toHaveBeenCalledWith(HOST);
+    expect(data.doorByEvent).toEqual([
+      { eventId: "wedding", eventName: "Mia & Theo's wedding", waiting: 2 },
+    ]);
+  });
+
+  it("a failed door read shows no door row and keeps the page up", async () => {
+    getHostDoorWaiting.mockRejectedValueOnce(new Error("rpc down"));
+    const data = await getNotificationData();
+    expect(data.doorByEvent).toEqual([]);
   });
 });

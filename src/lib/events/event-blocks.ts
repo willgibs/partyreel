@@ -118,7 +118,8 @@ export function namesOnlyOffer(verified: boolean): {
   description: string;
 } {
   return {
-    label: "Also require verified emails",
+    // The door's own words for the switch (event-settings r1: step 3 of Who can get in).
+    label: "Also ask for an email first",
     description: verified
       ? "This album also takes typed names, so they could come back under one. With this on, everyone confirms an email before adding, so a new name alone can't bring them back."
       : "They typed a name, so this block holds on the phone they used. With this on, everyone confirms an email before adding, so a new name alone can't bring them back.",

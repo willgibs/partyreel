@@ -7,9 +7,15 @@ import {
   useContext,
   useMemo,
   useState,
+  useSyncExternalStore,
 } from "react";
 import { flushSync } from "react-dom";
 
+import {
+  resolveSettingsPage,
+  SETTINGS_PAGE_PARAM,
+  type SettingsPage,
+} from "@/components/app/event-settings/settings-pages";
 import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
 import {
   EVENT_SHEET_PARAM,
@@ -63,6 +69,10 @@ type ShareValue = {
   sheet: EventSheet | null;
   openSheet: (sheet: EventSheet) => void;
   closeSheet: () => void;
+  /** The settings page open inside the Settings sheet, or null for its four rows. */
+  settingsPage: SettingsPage | null;
+  openSettingsPage: (page: SettingsPage) => void;
+  closeSettingsPage: () => void;
   codeOpen: boolean;
   openCode: () => void;
   closeCode: () => void;
@@ -84,6 +94,21 @@ export function useEventShare(): ShareValue {
   return ctx;
 }
 
+/** Nothing to subscribe to: the snapshot only ever moves from the server's answer to the client's. */
+const noSubscription = () => () => {};
+
+/**
+ * Whether this render is past hydration. The server and the hydrating client both answer false, so the
+ * first paint matches; every render after it answers true.
+ */
+function useHydrated(): boolean {
+  return useSyncExternalStore(
+    noSubscription,
+    () => true,
+    () => false,
+  );
+}
+
 export function EventShareProvider({
   initialSheet,
   children,
@@ -94,6 +119,7 @@ export function EventShareProvider({
 }) {
   const searchParams = useSearchParams();
   const reduced = usePrefersReducedMotion();
+  const hydrated = useHydrated();
 
   const [codeOpen, setCodeOpen] = useState(false);
   const [headerCodeHidden, setHeaderCodeHidden] = useState(false);
@@ -109,14 +135,34 @@ export function EventShareProvider({
    *
    * `initialSheet` is the server's reading of the same parameter, kept as the
    * value for the first paint so a deep link opens WITH the page.
+   *
+   * ★ AND FOR THE FIRST PAINT ALONE (milestone 30's production pass: a sheet
+   * opened from a link could not be closed). Once the page is live the URL is
+   * the whole answer: closing a deep-linked sheet drops the parameter in place,
+   * and a fallback that outlived hydration read the missing parameter as "the
+   * sheet this page was first loaded with" and opened it again, so Escape and
+   * the X did nothing until Back or a reload. The ways in were the `/settings`
+   * route, a sign-in returning to it, Checkout's return and every bookmark.
    */
-  const sheet =
-    resolveEventSheet(searchParams.get(EVENT_SHEET_PARAM) ?? undefined) ??
-    (searchParams.has(EVENT_SHEET_PARAM) ? null : initialSheet);
+  const fromUrl = resolveEventSheet(
+    searchParams.get(EVENT_SHEET_PARAM) ?? undefined,
+  );
+  const sheet = hydrated ? fromUrl : (fromUrl ?? initialSheet);
+
+  /**
+   * THE SETTINGS PAGE, read off the URL beside the sheet (`settings-pages.ts`): only while Settings is
+   * the sheet, so a stray parameter never opens a page of a closed sheet.
+   */
+  const settingsPage =
+    sheet === "settings"
+      ? resolveSettingsPage(searchParams.get(SETTINGS_PAGE_PARAM))
+      : null;
 
   const openSheet = useCallback((next: EventSheet) => {
     const url = new URL(window.location.href);
     url.searchParams.set(EVENT_SHEET_PARAM, next);
+    // A sheet opens on its first level: a page left in the URL by an earlier visit is not this one's.
+    url.searchParams.delete(SETTINGS_PAGE_PARAM);
     // The marker is a FIELD, never the whole state: see the header comment.
     window.history.pushState(
       { [HISTORY_MARKER]: true },
@@ -142,11 +188,37 @@ export function EventShareProvider({
       return;
     }
     // Landed here directly (a bookmark, a shared link): there is nothing of
-    // ours behind, so drop the parameter in place rather than leaving the app.
+    // ours behind, so drop the parameter in place rather than leaving the app,
+    // and the page a deep link opened inside Settings with it.
     const url = new URL(window.location.href);
     url.searchParams.delete(EVENT_SHEET_PARAM);
+    url.searchParams.delete(SETTINGS_PAGE_PARAM);
     window.history.replaceState({}, "", `${url.pathname}${url.search}`);
   }, []);
+
+  /**
+   * A SETTINGS PAGE REPLACES THE ENTRY IN PLACE (`settings-pages.ts` says why): the state Next and we
+   * keep on it rides along untouched, so the sheet's own marker, and with it `closeSheet`'s Back, stay
+   * exactly what they were.
+   */
+  const replaceSettingsPage = useCallback((page: SettingsPage | null) => {
+    const url = new URL(window.location.href);
+    if (page) url.searchParams.set(SETTINGS_PAGE_PARAM, page);
+    else url.searchParams.delete(SETTINGS_PAGE_PARAM);
+    window.history.replaceState(
+      window.history.state,
+      "",
+      `${url.pathname}${url.search}`,
+    );
+  }, []);
+  const openSettingsPage = useCallback(
+    (page: SettingsPage) => replaceSettingsPage(page),
+    [replaceSettingsPage],
+  );
+  const closeSettingsPage = useCallback(
+    () => replaceSettingsPage(null),
+    [replaceSettingsPage],
+  );
 
   /**
    * The code's morph. `startViewTransition` snapshots the page, runs the
@@ -207,6 +279,9 @@ export function EventShareProvider({
       sheet,
       openSheet,
       closeSheet,
+      settingsPage,
+      openSettingsPage,
+      closeSettingsPage,
       codeOpen,
       openCode,
       closeCode,
@@ -219,6 +294,9 @@ export function EventShareProvider({
       sheet,
       openSheet,
       closeSheet,
+      settingsPage,
+      openSettingsPage,
+      closeSettingsPage,
       codeOpen,
       openCode,
       closeCode,

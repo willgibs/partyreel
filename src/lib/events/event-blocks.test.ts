@@ -112,8 +112,9 @@ describe("the confirm's words", () => {
   });
 
   it("the names-only offer says why a block can be walked around, fitted to who is blocked", () => {
-    expect(namesOnlyOffer(false).label).toBe("Also require verified emails");
-    expect(namesOnlyOffer(true).label).toBe("Also require verified emails");
+    // The switch's own name since the doors (event-settings r1: step 3, "An email first").
+    expect(namesOnlyOffer(false).label).toBe("Also ask for an email first");
+    expect(namesOnlyOffer(true).label).toBe("Also ask for an email first");
     // A typed name is held on its phone; a confirmed guest on their account, yet a typed name is open.
     expect(namesOnlyOffer(true).description).toContain(
       "could come back under one",

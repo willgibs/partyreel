@@ -194,9 +194,12 @@ export async function loadGalleryRowsForAccess(
   // full: the whole album, each arm read in keyset pages on the album's own display order.
   const [identities, rows, approvedTotal] = await Promise.all([
     identitiesPromise,
-    event.visibility === "password"
-      ? getApprovedMediaForUnlock(event.id) // self-guarded: the unlock cookie, or the host
-      : getEventMediaByQrToken(event.qr_token), // anon RPC, gates on visibility='open'
+    // ★ Behind a door (a password, or a gate the album is stored private for), the self-guarded
+    // admin read, which asks the unlock cookie, the door's pass or the host; an open album, the anon
+    // RPC, which gates on visibility='open'.
+    event.visibility === "open"
+      ? getEventMediaByQrToken(event.qr_token)
+      : getApprovedMediaForUnlock(event),
     approvedTotalPromise,
   ]);
   return { rows, identities, teaserTotal: null, approvedTotal };

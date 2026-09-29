@@ -3,6 +3,16 @@
 import { useState } from "react";
 import { ShieldAlert, Undo2 } from "lucide-react";
 
+import {
+  AtTheDoor,
+  type DoorActs,
+  type DoorPerson,
+} from "@/app/(app)/dashboard/[eventId]/guests/at-the-door";
+import {
+  InvitedSection,
+  type InviteActs,
+  type InvitedPerson,
+} from "@/app/(app)/dashboard/[eventId]/guests/invited-section";
 import { AdminRail } from "@/components/admin/admin-rail";
 import { DestructiveSheet } from "@/components/admin/destructive-sheet";
 import { HealthBand } from "@/components/admin/health-band";
@@ -20,6 +30,20 @@ import { FilterChips } from "@/components/app/dashboard/filter-chips";
 import { StorageMeter } from "@/components/app/dashboard/storage-meter";
 import { MediaTile } from "@/components/app/media-grid";
 import { ReviewRoom } from "@/components/app/event-feed/review-room";
+import { DoorPage } from "@/components/app/event-settings/door-page";
+import type { SettingsPage } from "@/components/app/event-settings/settings-pages";
+import { SettingsRows } from "@/components/app/event-settings/settings-rows";
+import {
+  SettingsProvider,
+  type SettingsWrites,
+} from "@/components/app/event-settings/settings-state";
+import {
+  hostEvent,
+  NO_COUNTS,
+} from "@/components/app/event-settings/testing/host-event";
+import { AddsPage } from "@/components/app/event-settings/adds-page";
+import { EventPage } from "@/components/app/event-settings/event-page";
+import { ReelPage } from "@/components/app/event-settings/reel-page";
 import type { ReviewWrites } from "@/components/app/event-feed/use-review-triage";
 import { ProPriceList } from "@/components/app/pricing/pro-price-list";
 import { QrPresetPicker } from "@/components/app/qr-preset-picker";
@@ -563,6 +587,189 @@ export function AdminReportCardDemo() {
         }}
         successMessage={heldMessage(1 + REPORT_HOLD_SCOPE.others)}
         onConfirm={answered}
+      />
+    </div>
+  );
+}
+
+/* ── SETTINGS (event-settings r1), on one wedding, its writes inert ─────────────────────────────── */
+
+/** A round trip that changes nothing, then the answer each write gives when it lands. */
+const settle = <T,>(value: T) =>
+  new Promise<T>((resolve) => setTimeout(() => resolve(value), 350));
+
+const SETTINGS_WRITES: SettingsWrites = {
+  updateEvent: async () => settle({ ok: true as const }),
+  setDoor: async (_id, door) =>
+    settle({
+      ok: true as const,
+      emailHeld: door === "approve" || door === "invite",
+      admitted: door === "open" ? 2 : 0,
+    }),
+  setReel: async (input) =>
+    settle({
+      ok: true as const,
+      defaults: {
+        showReel: input.showReel ?? true,
+        styleId: input.styleId ?? null,
+        holdSec: input.holdSec ?? null,
+      },
+    }),
+  setProfile: async () => settle({ ok: true as const }),
+};
+
+const WEDDING = hostEvent({
+  name: "Maya & Jay's Wedding",
+  event_date: "2026-10-10",
+  description: "Add everything from the ceremony too.",
+});
+
+/**
+ * Settings at rest and one level in, drawn inline (never in the popup, which would cover the page):
+ * the four rows, and whichever page a row opens, with the back row up.
+ */
+export function SettingsDemo({ tier = "pro" }: { tier?: "free" | "pro" }) {
+  const [page, setPage] = useState<SettingsPage | null>(null);
+  return (
+    <SettingsProvider
+      event={WEDDING}
+      tier={tier}
+      // A Public album holds nobody at its door (turning Public lets everyone waiting in).
+      counts={{ ...NO_COUNTS, in: 31, invited: 24 }}
+      pendingCount={3}
+      social={{ displayInProfile: false, hostHasSlug: true }}
+      reelSample={null}
+      writes={SETTINGS_WRITES}
+    >
+      <div className="max-w-md space-y-4 rounded-xl bg-popover p-4 text-popover-foreground shadow-layer">
+        {page ? (
+          <button
+            type="button"
+            onClick={() => setPage(null)}
+            className="text-sm text-muted-foreground underline underline-offset-4"
+          >
+            Back to Settings
+          </button>
+        ) : (
+          <p className="font-heading text-card-title">Settings</p>
+        )}
+        {page === "door" ? (
+          <DoorPage guestsHref="#guests" />
+        ) : page === "adds" ? (
+          <AddsPage />
+        ) : page === "reel" ? (
+          <ReelPage />
+        ) : page === "event" ? (
+          <EventPage />
+        ) : (
+          <SettingsRows onOpenPage={setPage} />
+        )}
+      </div>
+    </SettingsProvider>
+  );
+}
+
+/** The door's page on its own, a Private album letting each person in, two waiting. */
+export function DoorPageDemo() {
+  return (
+    <SettingsProvider
+      event={hostEvent({ ...WEDDING, visibility: "private", door: "approve" })}
+      tier="pro"
+      counts={{ ...NO_COUNTS, in: 31, waiting: 2, invited: 24 }}
+      pendingCount={0}
+      social={null}
+      reelSample={null}
+      writes={SETTINGS_WRITES}
+    >
+      <div className="max-w-md rounded-xl bg-popover p-4 text-popover-foreground shadow-layer">
+        <DoorPage guestsHref="#guests" />
+      </div>
+    </SettingsProvider>
+  );
+}
+
+/* ── THE GUESTS ROOM'S DOOR (event-settings r1), on the same wedding, its acts inert ──────────── */
+
+const DOOR_ACTS: DoorActs = {
+  letIn: async () => settle({ ok: true as const, admitted: 1 }),
+  decline: async () => settle({ ok: true as const, blockId: "demo-block" }),
+  letBackIn: async () => settle({ ok: true as const, restored: 0, noRoom: 0 }),
+};
+
+const INVITE_ACTS: InviteActs = {
+  add: async (input) => {
+    const emails = (input as { emails?: string[] }).emails ?? [];
+    return settle({
+      ok: true as const,
+      result: {
+        added: emails.length,
+        already: 0,
+        invalid: 0,
+        overCap: 0,
+        total: INVITED.length + emails.length,
+      },
+    });
+  },
+  remove: async () => settle({ ok: true as const }),
+};
+
+const WAITING: DoorPerson[] = [
+  {
+    guestId: "demo-door-1",
+    userId: "demo-user-1",
+    name: "Priya Shah",
+    email: "priya@example.com",
+    asked: "5 minutes ago",
+    seed: "priya",
+  },
+  {
+    guestId: "demo-door-2",
+    userId: "demo-user-2",
+    name: null,
+    email: "tom.okafor@example.com",
+    asked: "just now",
+    seed: "tom",
+  },
+  {
+    guestId: "demo-door-3",
+    userId: "demo-user-3",
+    name: "Ines Moreau",
+    email: "ines@example.com",
+    asked: "yesterday",
+    seed: "ines",
+  },
+];
+
+const INVITED: InvitedPerson[] = [
+  { email: "aunt.rosa@example.com", joined: true },
+  { email: "sam.lee@example.com", joined: true },
+  { email: "jules@example.com", joined: false },
+  { email: "the.chens@example.com", joined: false },
+];
+
+/** At the door, three waiting: Let in and Decline answer after a round trip and change nothing. */
+export function AtTheDoorDemo() {
+  return (
+    <div className="max-w-2xl">
+      <AtTheDoor
+        eventId="demo-event"
+        people={WAITING}
+        total={WAITING.length}
+        acts={DOOR_ACTS}
+      />
+    </div>
+  );
+}
+
+/** Invited, the invite list being the door: type or paste addresses; the saves answer and change nothing. */
+export function InvitedDemo() {
+  return (
+    <div className="max-w-2xl">
+      <InvitedSection
+        eventId="demo-event"
+        invited={INVITED}
+        listIsTheDoor
+        acts={INVITE_ACTS}
       />
     </div>
   );

@@ -1,4 +1,5 @@
 import type { Database } from "@/lib/db/types";
+import { doorOf } from "@/lib/event/door/door";
 import { formatEventDate } from "@/lib/utils";
 
 /**
@@ -12,11 +13,16 @@ import { formatEventDate } from "@/lib/utils";
  * kept server-free so it is unit-testable and safe to import anywhere.
  *
  * ★ THE MASKING IS THE ALBUM'S OWN, because a card is a window onto somebody else's album and must
- * never show more than the album would:
- *   - PRIVATE: blank and locked. No name, no date, no host, no link and no cover, whatever is passed
+ * never show more than the album would. The album's door is `doorOf(visibility, gate)`:
+ *   - ONLY ME: blank and locked. No name, no date, no host, no link and no cover, whatever is passed
  *     in: the host has closed the album to everyone, the guest included.
- *   - PASSWORD: named and linked, but never a cover, because gated media must never leak as a
- *     thumbnail (the album shows nothing before the password).
+ *   - A PASSWORD, OR A GATE (the host lets each person in, an invite list, only people already in):
+ *     named and linked, but never a cover, because media behind a door must never leak as a
+ *     thumbnail. ★ A GATE NEVER LOCKS THIS CARD: a card is for someone with a live upload there, who
+ *     is past the door by construction (a waiting guest cannot upload), and a gate stops newcomers,
+ *     never the guests inside, so her album still opens (event-settings r1's doors, where a gated
+ *     album is stored private: read without its gate, a card went dark the moment the host chose
+ *     "only people already in" after the party).
  *   - OPEN: named, linked, and a cover from the album's newest approved photograph.
  * A cover is presigned server-side and passed in; raw R2 keys never reach this module.
  */
@@ -26,6 +32,8 @@ export type GuestEventRow = {
   name: string;
   eventDate: string | null;
   visibility: Database["public"]["Enums"]["event_visibility"];
+  /** A private album's gate (`readEventGates`), or none: a private album without one is Only me. */
+  gate?: string | null;
   qrToken: string;
   /** The host's display name, for the byline; null when they set none. */
   hostName: string | null;
@@ -52,8 +60,9 @@ export function guestEventCardProps(
   row: GuestEventRow,
   coverUrl: string | null,
 ): GuestEventCardData {
-  const accessible = row.visibility !== "private";
-  const passwordProtected = row.visibility === "password";
+  const door = doorOf(row.visibility, row.gate);
+  const accessible = door !== "private";
+  const passwordProtected = door === "password";
   return {
     eventId: row.eventId,
     lastUploadAt: row.lastUploadAt,
@@ -70,7 +79,7 @@ export function guestEventCardProps(
         ? `Hosted by ${row.hostName.trim()}`
         : null,
     // Defense in depth: whatever the caller passed, only an OPEN album ever shows a cover.
-    coverUrl: row.visibility === "open" ? coverUrl : null,
+    coverUrl: door === "open" ? coverUrl : null,
     passwordProtected,
   };
 }
@@ -80,6 +89,10 @@ export function sortGuestEventCards(
   cards: GuestEventCardData[],
 ): GuestEventCardData[] {
   return [...cards].sort((a, b) =>
-    a.lastUploadAt < b.lastUploadAt ? 1 : a.lastUploadAt > b.lastUploadAt ? -1 : 0,
+    a.lastUploadAt < b.lastUploadAt
+      ? 1
+      : a.lastUploadAt > b.lastUploadAt
+        ? -1
+        : 0,
   );
 }

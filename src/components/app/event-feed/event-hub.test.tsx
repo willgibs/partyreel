@@ -298,16 +298,13 @@ describe("the album, and the bin as its filter", () => {
 });
 
 describe("the settings sheet", () => {
-  it("opens over the album from a deep link, and keeps the form single-sourced", () => {
-    const sheet = read(
-      "src/components/app/event-settings/event-settings-sheet.tsx",
-    );
-    // The page of cards is not rebuilt: the shipped orchestrator is imported
-    // whole, so the sheet and the retired route cannot disagree about what a
-    // setting does.
-    expect(/import \{ EventSettingsForm \}/.test(sheet)).toBe(true);
-    // The retired route survives as a door to the sheet, so a bookmark to the
-    // URL we published for months still lands somewhere.
+  it("opens over the album from a deep link, a page riding beside it", () => {
+    // Scar: this pinned the retired form imported whole ("the sheet and the retired route cannot
+    // disagree"). The form retired with event-settings r1 (every control saves itself), so what is
+    // single-sourced now is the URL: the sheet's page is read off it by the provider, and the
+    // retired route still lands on the sheet.
+    const sheets = read("src/components/app/share/event-sheets.tsx");
+    expect(/page=\{settingsPage\}/.test(sheets)).toBe(true);
     const redirect = read(
       "src/app/(app)/dashboard/[eventId]/settings/page.tsx",
     );
@@ -316,15 +313,16 @@ describe("the settings sheet", () => {
     ).toBe(true);
   });
 
-  it("confirms before discarding unsaved edits, whichever way it is closed", () => {
-    // The route guarded a hard nav and its back-LINK. A sheet has no back-link
-    // and three ways out (the scrim, Escape, the close button), so all of them
-    // land on one guarded close.
-    const sheet = read(
+  it("closes from any page, with nothing to discard", () => {
+    // Scar: this pinned a guarded close ("confirms before discarding unsaved edits"). The reason
+    // expired with the form's Save (event-settings r1): nothing waits on a save, so no close is
+    // guarded, and every way out (Back, the X, Escape, the scrim) closes at once.
+    const sheet = code(
       "src/components/app/event-settings/event-settings-sheet.tsx",
     );
-    expect(/onOpenChange=\{requestClose\}/.test(sheet)).toBe(true);
-    expect(/if \(dirty\) \{\s*setConfirmOpen\(true\);/.test(sheet)).toBe(true);
-    expect(/useUnsavedChangesGuard\(dirty\)/.test(sheet)).toBe(true);
+    expect(/useUnsavedChangesGuard/.test(sheet)).toBe(false);
+    expect(/Discard changes/.test(sheet)).toBe(false);
+    expect(/onOpenChange=\{onOpenChange\}/.test(sheet)).toBe(true);
   });
 });
+

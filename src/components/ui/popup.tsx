@@ -337,6 +337,7 @@ function PopupHeader({
   title,
   description,
   back,
+  up,
   className,
   titleClassName,
   children,
@@ -345,12 +346,31 @@ function PopupHeader({
   description?: React.ReactNode
   /** Where the back arrow returns to, in words: a hand's `screen` only. */
   back?: string
+  /**
+   * A LEVEL IN (event-settings r1, `opens=page`): the head of a page one level down a place, whose
+   * back arrow goes UP a level rather than closing the popup. In a hand it is the bar's own back
+   * arrow, naming where it returns; at a desk a small back row above the title, the close staying in
+   * its corner, as the board drew it.
+   */
+  up?: { label: string; onUp: () => void }
   className?: string
   titleClassName?: string
   children?: React.ReactNode
 }) {
   const shape = usePopupShape()
   if (shape === "screen") {
+    const arrow = (
+      <Button
+        variant="ghost"
+        size="sm"
+        data-popup-up={up ? "" : undefined}
+        className="max-w-full justify-self-start gap-0.5 px-1.5 text-muted-foreground"
+        onClick={up?.onUp}
+      >
+        <ChevronLeftIcon className="size-5" />
+        <span className="truncate">{up?.label ?? back ?? "Back"}</span>
+      </Button>
+    )
     return (
       <div
         data-slot="popup-header"
@@ -358,16 +378,11 @@ function PopupHeader({
         className={cn("shrink-0 border-b", className)}
       >
         <div className="grid h-13 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 px-2">
-          <PopupPrimitive.Close asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="max-w-full justify-self-start gap-0.5 px-1.5 text-muted-foreground"
-            >
-              <ChevronLeftIcon className="size-5" />
-              <span className="truncate">{back ?? "Back"}</span>
-            </Button>
-          </PopupPrimitive.Close>
+          {up ? (
+            arrow
+          ) : (
+            <PopupPrimitive.Close asChild>{arrow}</PopupPrimitive.Close>
+          )}
           <PopupPrimitive.Title
             className={cn(
               "max-w-[55vw] truncate text-center font-heading text-base text-foreground",
@@ -392,6 +407,18 @@ function PopupHeader({
       data-slot="popup-header"
       className={cn("flex shrink-0 flex-col gap-1 p-4 pr-12", className)}
     >
+      {up ? (
+        <Button
+          variant="ghost"
+          size="sm"
+          data-popup-up=""
+          className="-mt-1 mb-1 -ml-2 gap-0.5 self-start px-1.5 text-muted-foreground"
+          onClick={up.onUp}
+        >
+          <ChevronLeftIcon className="size-4" />
+          {up.label}
+        </Button>
+      ) : null}
       <PopupPrimitive.Title
         className={cn(
           // The ladder's `card-title` step, the Dialog's and the Sheet's own,

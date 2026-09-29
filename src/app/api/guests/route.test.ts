@@ -49,18 +49,21 @@ vi.mock("next/headers", () => ({
   cookies: async () => ({ get: () => undefined }),
 }));
 
-// ★ THE CLOSED DOOR (the per-event block, 20260928120000): a private album, or a ticket a block holds.
-// Its own rule is closed-door.server.test.ts's; here a held ticket stands in for one, so the route's
-// answer to it can be read against its answer to a private album, word for word.
+// ★ THE DOOR (the doors, 20260929120000): a private album, or a ticket a block holds, shuts it. Its own
+// rule is decide.test.ts's and closed-door.server.test.ts's; here a held ticket stands in for a shut
+// door, so the route's answer to it can be read against its answer to a private album, word for word.
 const ticketBlocked = vi.fn();
-vi.mock("@/lib/events/closed-door.server", () => ({
-  isClosedToThisBrowser: async (
-    event: { visibility?: string },
-    tickets: unknown[] = [],
-  ) =>
-    event.visibility === "private" ||
-    (await ticketBlocked(event, tickets)) === true,
-}));
+const callerOptions = vi.fn();
+// The door's own decision where a case needs one (someone already in, a held door); none falls back
+// to the double's stranger.
+const doorDecides = vi.fn();
+vi.mock("@/lib/events/closed-door.server", async () =>
+  (await import("@/lib/events/testing/door-double")).doorDouble({
+    blocked: (event, tickets) => ticketBlocked(event, tickets),
+    decide: (event, caller) => doorDecides(event, caller),
+    callerOptions: (options) => callerOptions(options),
+  }),
+);
 
 const { POST } = await import("@/app/api/guests/route");
 
@@ -487,5 +490,70 @@ describe("the closed door: a browser a block holds meets the private album's ref
       message: "This event is private.",
     });
     expect(createGuest).not.toHaveBeenCalled();
+  });
+});
+
+describe("the doors (event-settings r1): the join mints what the door says", () => {
+  it("★ someone already in passes a password without its unlock cookie", async () => {
+    event(false, "password");
+    mayUploadPastLock.mockResolvedValue(false);
+    doorDecides.mockResolvedValueOnce({ kind: "through", admitted: true });
+    const res = await post({ qr_token: TOKEN, display_name: "Sam" });
+    expect(res.status).toBe(200);
+    expect(createGuest).toHaveBeenCalledWith(
+      expect.objectContaining({ unlockProven: true }),
+    );
+  });
+
+  it("a stranger at a password door still needs the unlock", async () => {
+    event(false, "password");
+    mayUploadPastLock.mockResolvedValue(false);
+    expect(await refusal({ qr_token: TOKEN, display_name: "Sam" })).toEqual({
+      status: 403,
+      code: "unlock_required",
+    });
+    expect(createGuest).not.toHaveBeenCalled();
+  });
+
+  it("an invite list that does not name her address refuses the join (her ask is its own route)", async () => {
+    session({ id: "u1", email: "sam@example.com", email_confirmed_at: "2026-09-29" });
+    createGuest.mockResolvedValue({
+      ok: false,
+      code: "unlisted",
+      message: "Ask the host to let you in.",
+    });
+    const res = await post({ qr_token: TOKEN });
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({
+      ok: false,
+      code: "unlisted",
+      message: "Ask the host to let you in.",
+    });
+  });
+
+  it("whether the door held the ticket rides the answer", async () => {
+    session({ id: "u1", email: "sam@example.com", email_confirmed_at: "2026-09-29" });
+    createGuest.mockResolvedValue({
+      ok: true,
+      data: {
+        session_token: "s1",
+        guest_id: "g1",
+        event_id: "event-1",
+        display_name: null,
+        verified: true,
+        emailAttached: false,
+        admission: "waiting",
+      },
+    });
+    const body = (await (await post({ qr_token: TOKEN })).json()) as {
+      admission?: string;
+    };
+    expect(body.admission).toBe("waiting");
+  });
+
+  it("the join's door is this browser's (the cookie and the account), never a body ticket", async () => {
+    event(false);
+    await post({ qr_token: TOKEN, display_name: "Sam" });
+    expect(callerOptions).toHaveBeenLastCalledWith({});
   });
 });

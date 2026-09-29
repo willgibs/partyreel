@@ -4,6 +4,7 @@ import {
   computeDoor,
   contributionAnswered,
   doorBack,
+  stepOpensAlbum,
   type DoorPath,
   type EntryStep,
 } from "@/lib/guest/entry-steps";
@@ -608,5 +609,72 @@ describe("doorBack: the keep", () => {
         isDemo: false,
       }),
     ).toBeNull();
+  });
+});
+
+describe("computeDoor: the doors (event-settings r1)", () => {
+  it("★ a gate's newcomer confirms an email over nothing real, and the email ENDS the door", () => {
+    expect(computeDoor({ ...base, access: "none", gate: "account" })).toEqual({
+      steps: ["welcome", "identify"],
+      autoOpen: true,
+    });
+    // Not even a pick made earlier reaches past it: nothing behind the door is knowable yet.
+    expect(
+      computeDoor({
+        ...base,
+        access: "none",
+        gate: "account",
+        welcomeSeen: true,
+        path: "guest",
+      }).steps,
+    ).toEqual(["identify"]);
+  });
+
+  it("the held door and the ask each end the itinerary, after the welcome", () => {
+    expect(computeDoor({ ...base, access: "none", gate: "waiting" })).toEqual({
+      steps: ["welcome", "waiting"],
+      autoOpen: true,
+    });
+    expect(
+      computeDoor({ ...base, access: "none", gate: "ask", welcomeSeen: true })
+        .steps,
+    ).toEqual(["ask"]);
+  });
+
+  it("the owner never meets a door of her own album", () => {
+    expect(
+      computeDoor({ ...base, isOwner: true, access: "none", gate: "waiting" }),
+    ).toEqual({ steps: [], autoOpen: false });
+  });
+});
+
+describe("doorBack: the doors", () => {
+  const at = (current: EntryStep) =>
+    doorBack({
+      current,
+      path: null,
+      gate: null,
+      isVerified: true,
+      isDemo: false,
+    });
+
+  it("the ask goes back to the welcome; the held door goes back nowhere (she has asked)", () => {
+    expect(at("ask")).toBe("welcome");
+    expect(at("waiting")).toBeNull();
+  });
+});
+
+describe("stepOpensAlbum: the beat waits for the door itself", () => {
+  it("★ a gate's email step and the ask lead to the held door, never into the album", () => {
+    expect(stepOpensAlbum({ access: "none", gate: "account" })).toBe(false);
+    expect(stepOpensAlbum({ access: "none", gate: "ask" })).toBe(false);
+  });
+
+  it("being let in, a password and every step at a teaser or the full album open it", () => {
+    expect(stepOpensAlbum({ access: "none", gate: "waiting" })).toBe(true);
+    expect(stepOpensAlbum({ access: "none", gate: "password" })).toBe(true);
+    expect(stepOpensAlbum({ access: "teaser", gate: "account" })).toBe(true);
+    expect(stepOpensAlbum({ access: "teaser", gate: "upload" })).toBe(true);
+    expect(stepOpensAlbum({ access: "full", gate: null })).toBe(true);
   });
 });

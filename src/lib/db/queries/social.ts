@@ -45,6 +45,7 @@ import {
   getBlockedEventsFor,
   getBlockedGuestIds,
 } from "@/lib/db/queries/event-blocks";
+import { readEventGates } from "@/lib/db/queries/event-doors";
 import { readCoverUrls } from "@/lib/db/queries/events";
 import { inChunks, readAllPages } from "@/lib/db/read-all";
 import type { Database } from "@/lib/db/types";
@@ -696,6 +697,11 @@ export type AttendedEventSetting = {
   shownOnProfile: boolean;
   /** The album's own door, which the picker's tile follows (`getMyAttendedEventPicks`). */
   visibility: Database["public"]["Enums"]["event_visibility"];
+  /**
+   * A private album's gate (`readEventGates`): a gated album is stored private and still opens for
+   * her. Null for Only me, and for an event that blocked me (it reads as the private album it shows).
+   */
+  gate: string | null;
   /** Server-side only: the masking helper takes it, and nothing hands it to a browser. */
   qrToken: string;
 };
@@ -773,6 +779,12 @@ export async function getMyAttendedEvents(): Promise<AttendedEventSetting[]> {
       getMyShownEventIds(),
     ]);
     const shown = new Set(shownIds);
+    // A gated album is stored private; its gate says it still opens for her (`guestEventCardProps`).
+    const gates = await readEventGates(
+      events
+        .filter((e) => e.visibility === "private" && !blocked.has(e.id))
+        .map((e) => e.id),
+    );
     return events
       .sort((a, b) =>
         a.created_at < b.created_at ? 1 : a.created_at > b.created_at ? -1 : 0,
@@ -784,6 +796,7 @@ export async function getMyAttendedEvents(): Promise<AttendedEventSetting[]> {
         shownOnProfile: shown.has(e.id),
         // An event that blocked her reads as the private album it shows her.
         visibility: blocked.has(e.id) ? ("private" as const) : e.visibility,
+        gate: blocked.has(e.id) ? null : (gates.get(e.id) ?? null),
         qrToken: e.qr_token,
       }));
   } catch (error) {
@@ -819,6 +832,7 @@ export async function getMyAttendedEventPicks(): Promise<AttendedEventPick[]> {
         name: e.name,
         eventDate: e.event_date,
         visibility: e.visibility,
+        gate: e.gate,
         qrToken: e.qrToken,
         hostName: null,
         // The card's recency key; a pick keeps the list's own order, so it is never read.
@@ -843,8 +857,8 @@ export async function getMyAttendedEventPicks(): Promise<AttendedEventPick[]> {
  * its own latest live upload. A card leaves the moment its last live upload does, because this list
  * is read from the uploads themselves.
  *
- * Masked by the album's own rules (`guestEventCardProps`, lib/dashboard/guest-events.ts): a private
- * album blank and locked, a password album linked with no cover, and covers only for OPEN albums,
+ * Masked by the album's own rules (`guestEventCardProps`, lib/dashboard/guest-events.ts): an Only me
+ * album blank and locked, one behind a password or a gate linked with no cover, and covers only for OPEN albums,
  * through `adminCoverUrls` (the newest approved photograph, the same rule every other card uses).
  * Admin reads, scoped hard to the caller's own rows.
  */
@@ -893,7 +907,7 @@ export async function getMyGuestEventCards(): Promise<GuestEventCardData[]> {
     );
     if (events.length === 0) return [];
 
-    const [hosts, covers] = await Promise.all([
+    const [hosts, covers, gates] = await Promise.all([
       inChunks(
         "social: guest cards, hosts",
         events.map((e) => e.host_id),
@@ -906,6 +920,12 @@ export async function getMyGuestEventCards(): Promise<GuestEventCardData[]> {
       adminCoverUrls(
         events
           .filter((e) => e.visibility === "open" && !blocked.has(e.id))
+          .map((e) => e.id),
+      ),
+      // A gated album is stored private; its gate says it still opens for her (`guestEventCardProps`).
+      readEventGates(
+        events
+          .filter((e) => e.visibility === "private" && !blocked.has(e.id))
           .map((e) => e.id),
       ),
     ]);
@@ -922,6 +942,7 @@ export async function getMyGuestEventCards(): Promise<GuestEventCardData[]> {
             eventDate: e.event_date,
             // An event that blocked her reads as the private album it shows her, word for word.
             visibility: blocked.has(e.id) ? "private" : e.visibility,
+            gate: blocked.has(e.id) ? null : (gates.get(e.id) ?? null),
             qrToken: e.qr_token,
             hostName: hostNames.get(e.host_id) ?? null,
             lastUploadAt: latest.get(e.id) as string,

@@ -17,6 +17,7 @@ import {
 } from "@/components/auth/email-sign-in";
 import { DoorChooser } from "@/components/guest/door/chooser";
 import { AlmostIn, DoorHeading } from "@/components/guest/door/heading";
+import { WaitingDoor } from "@/components/guest/door/waiting-step";
 import { DoorLamp, DoorPool, LiveCount } from "@/components/guest/door/lit";
 import { DOOR_SHEET } from "@/components/guest/entry-shell";
 import { GuestNameStep } from "@/components/guest/guest-name-step";
@@ -48,7 +49,8 @@ import type { PhoneScreenId } from "./registry";
  * THE DOOR AS IT SHIPS, ONE SCREEN A STEP (help-center r1 `article=screen`, moved in from the
  * board's `door-screens.tsx`, which Will picked): the lit door's sheet over the blurred album,
  * drawn from the door's own pieces wherever they stand alone (`PasswordGate`, `DoorChooser`,
- * `GuestNameStep`, `IdentifyStep`, `UploadIntentBody`, `KeepOffer`, `DoorHeading`, `DoorLamp`) and
+ * `GuestNameStep`, `IdentifyStep`, `UploadIntentBody`, `KeepOffer`, `WaitingDoor`, `DoorHeading`,
+ * `DoorLamp`) and
  * quoted, classes and words, where they cannot (the welcome is `entry-modal.tsx`'s unexported
  * `WelcomeStep`; the code screen is `AccountDoor`'s state after a send, which no prop reaches).
  *
@@ -555,6 +557,12 @@ const SCREENS: Record<PhoneScreenId, () => ReactNode> = {
   "door-code-link": () => <CodeScreen mark="link" />,
   "door-code-different": () => <CodeScreen mark="different" />,
   "door-photo": () => <PhotoScreen />,
+  // The held door's face alone (`WaitingDoor`), never `WaitingStep`, whose loop would check in.
+  "door-waiting": () => (
+    <DoorSheet back={false}>
+      <WaitingDoor hostName={HOST} />
+    </DoorSheet>
+  ),
   "door-keep": () => (
     <DoorSheet back={false}>
       <KeepOffer

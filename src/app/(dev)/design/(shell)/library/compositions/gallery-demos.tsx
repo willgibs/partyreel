@@ -23,6 +23,10 @@ import {
   AdminQueueDemo,
   AdminRailDemo,
   AdminReportCardDemo,
+  AtTheDoorDemo,
+  DoorPageDemo,
+  InvitedDemo,
+  SettingsDemo,
 } from "./composition-demos";
 
 /**
@@ -412,6 +416,57 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
         label: "Review room",
         hint: "triage · the peek's verdict · the keys · Undo · the line",
         node: <ReviewSectionDemo />,
+      },
+    ],
+  },
+
+  {
+    id: "event-settings",
+    badge: "new",
+    family: "compositions",
+    section: "Event settings",
+    file: "src/components/app/event-settings/event-settings-sheet.tsx",
+    test: "src/components/app/event-settings/event-settings-sheet.test.tsx",
+    title: "Settings, four sentences",
+    lede: "An event's settings at rest: four rows, each one sentence of where its group stands with its key words live (tap one to change it there), each opening its own page; Delete a quiet row at the foot. Every control saves as it is made. Its writes are inert here (they answer after a round trip and change nothing).",
+    specimens: [
+      {
+        label: "On Pro",
+        hint: "tap a word to change it · tap a row to open its page",
+        node: <SettingsDemo />,
+      },
+      {
+        label: "On Free",
+        hint: "What guests can add › Videos: drawn off with the Pro mark, and it opens the plans",
+        node: <SettingsDemo tier="free" />,
+      },
+      {
+        label: "The door, in steps",
+        hint: "Private, letting each person in: 31 in, 2 at the door; try Only me, or Public",
+        node: <DoorPageDemo />,
+      },
+    ],
+  },
+
+  {
+    id: "guests-door",
+    badge: "new",
+    family: "compositions",
+    section: "Guests room",
+    file: "src/app/(app)/dashboard/[eventId]/guests/at-the-door.tsx",
+    test: "src/app/(app)/dashboard/[eventId]/guests/at-the-door.test.tsx",
+    title: "At the door and Invited",
+    lede: "The Guests room's door, above its guests: At the door lists who confirmed an email and waits for the host, Let in opening the album where each one waits and Decline blocking them, with Undo on its toast; Invited holds the invite list, one field taking a typed address or a pasted list, each address Joined or Not yet. Its acts are inert here (they answer after a round trip and change nothing).",
+    specimens: [
+      {
+        label: "At the door",
+        hint: "Let in · Decline, then Undo on its toast",
+        node: <AtTheDoorDemo />,
+      },
+      {
+        label: "Invited",
+        hint: "type one and press Enter, or paste a list with a bad entry in it",
+        node: <InvitedDemo />,
       },
     ],
   },

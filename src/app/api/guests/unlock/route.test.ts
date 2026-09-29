@@ -59,8 +59,8 @@ vi.mock("@/lib/supabase/admin", () => ({
 }));
 
 // The event as the album resolves it for this caller (`get_event_by_qr_token`, read off the fake's own
-// row), and the closed door over it (the per-event block, 20260928120000): its own rule is
-// closed-door.server.test.ts's; here a held ticket stands in for one.
+// row), and the door over it (the doors, 20260929120000): its own rule is decide.test.ts's and
+// closed-door.server.test.ts's; here a held ticket stands in for a shut door.
 vi.mock("@/lib/db/queries/guest-events", () => ({
   getEventByQrToken: async (qr: string) => {
     const row = db.fake?.tables.events.find(
@@ -72,10 +72,11 @@ vi.mock("@/lib/db/queries/guest-events", () => ({
   },
 }));
 const ticketBlocked = vi.hoisted(() => ({ held: false }));
-vi.mock("@/lib/events/closed-door.server", () => ({
-  isClosedToThisBrowser: async (event: { visibility?: string }) =>
-    event.visibility === "private" || ticketBlocked.held,
-}));
+vi.mock("@/lib/events/closed-door.server", async () =>
+  (await import("@/lib/events/testing/door-double")).doorDouble({
+    blocked: () => ticketBlocked.held,
+  }),
+);
 
 const { POST } = await import("@/app/api/guests/unlock/route");
 const { isUnlocked } = await import("@/lib/events/unlock-cookie");

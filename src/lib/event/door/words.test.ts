@@ -1,0 +1,34 @@
+import { describe, expect, it } from "vitest";
+
+import { askedAgo, peopleWaiting } from "@/lib/event/door/words";
+
+/**
+ * THE DOOR'S SMALL WORDS: how long someone waited, and how many wait. Pinned for their arithmetic and
+ * their agreement (one person, two people), never their exact phrasing beyond that.
+ */
+const NOW = Date.parse("2026-09-29T12:00:00Z");
+const ago = (ms: number) => new Date(NOW - ms).toISOString();
+
+describe("askedAgo", () => {
+  it("counts up from just now, in the largest whole unit", () => {
+    expect(askedAgo(ago(20_000), NOW)).toBe("just now");
+    expect(askedAgo(ago(60_000), NOW)).toBe("1 minute ago");
+    expect(askedAgo(ago(5 * 60_000), NOW)).toBe("5 minutes ago");
+    expect(askedAgo(ago(60 * 60_000), NOW)).toBe("1 hour ago");
+    expect(askedAgo(ago(26 * 60 * 60_000), NOW)).toBe("yesterday");
+    expect(askedAgo(ago(3 * 24 * 60 * 60_000), NOW)).toBe("3 days ago");
+  });
+
+  it("a clock a little ahead, or a date it cannot read, is just now", () => {
+    expect(askedAgo(ago(-30_000), NOW)).toBe("just now");
+    expect(askedAgo("not a date", NOW)).toBe("just now");
+  });
+});
+
+describe("peopleWaiting", () => {
+  it("agrees in number", () => {
+    expect(peopleWaiting(1)).toBe("1 person");
+    expect(peopleWaiting(2)).toBe("2 people");
+    expect(peopleWaiting(1200)).toBe("1,200 people");
+  });
+});

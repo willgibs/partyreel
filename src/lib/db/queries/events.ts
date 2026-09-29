@@ -37,6 +37,7 @@ import {
 import { mustQuery, QueryFailedError } from "@/lib/db/must-query";
 import { inChunks, readAllPages } from "@/lib/db/read-all";
 import type { Database, Tables } from "@/lib/db/types";
+import { doorOf, type Door } from "@/lib/event/door/door";
 import { REEL_MINIMUM } from "@/lib/event/reel-progress";
 import {
   RECENTLY_DELETED_WINDOW_DAYS,
@@ -47,16 +48,35 @@ import { getRequestAuth } from "@/lib/supabase/request-auth";
 
 export type { EventCardStats };
 
-/** A host event row with the bcrypt password hash dropped + `has_password` derived. */
+/**
+ * A host event row with the bcrypt password hash dropped + `has_password` derived, and `door`, the
+ * one reading of `visibility` beside `gate` (`lib/event/door/door.ts`): what the link opens.
+ */
 export type HostEvent = Omit<Tables<"events">, "event_password_hash"> & {
   has_password: boolean;
+  door: Door;
+  /**
+   * The host's Videos switch (`events.allow_videos`, default on). ★ Read off the row for the same
+   * reason as the gate, until the types regenerate past the doors' migration: a row from before the
+   * column reads as on, which is what the column's default says.
+   */
+  allow_videos: boolean;
 };
 
 function toHostEvent(row: Tables<"events">): HostEvent {
   // `event_password_hash` is referenced (to derive the boolean) but excluded from
   // `rest`, so the returned object never carries the hash.
   const { event_password_hash, ...rest } = row;
-  return { ...rest, has_password: event_password_hash != null };
+  return {
+    ...rest,
+    has_password: event_password_hash != null,
+    // ★ THE GATE IS READ OFF THE ROW, NOT ITS TYPE, until the types regenerate past the doors'
+    // migration (20260929120000): `select("*")` returns the column the moment it exists, and a row
+    // from before it has none, which reads as no gate (the three doors the schema had).
+    door: doorOf(row.visibility, (row as { gate?: string | null }).gate),
+    allow_videos:
+      (row as { allow_videos?: boolean | null }).allow_videos !== false,
+  };
 }
 
 /** A page's cursor on a newest-first list: the last row's raw timestamp string and its id. */

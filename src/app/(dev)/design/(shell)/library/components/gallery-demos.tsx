@@ -116,6 +116,8 @@ import { Row } from "@/app/(dev)/design/reference/reference-ui";
 import {
   CommandPaletteDemo,
   ConfirmSwitchDemo,
+  ConsequenceLineDemo,
+  DormantDemo,
   DestructiveSheetDemo,
   EmptyAlbumDemo,
   FormDemo,
@@ -736,6 +738,23 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
     ],
   },
   {
+    id: "dormant",
+    file: "src/components/ui/dormant.tsx",
+    for: "a setting with no effect right now, tucked under the switch that controls it as one quiet line, unfolding into its controls when that switch wakes it",
+    test: "src/components/ui/dormant.test.tsx",
+    badge: "new",
+    family: "components",
+    section: "Inputs",
+    lede: "A setting that does nothing yet stays in view as one quiet line naming what waits, nested on the rule its controls stand on, and unfolds when its switch turns on; asleep, its controls are out of reach, and under reduced motion nothing moves. The reel's look and hold, A photo first while uploads are paused, the size cap under Videos and the door's steps under Only me all ride it.",
+    specimens: [
+      {
+        label: "Turn the reel on",
+        hint: "awake={on}: the line folds away as the controls unfold",
+        node: <DormantDemo />,
+      },
+    ],
+  },
+  {
     id: "select",
     file: "src/components/ui/select.tsx",
     for: "the option picker; the contact form's topic is its one call site today",
@@ -1103,6 +1122,23 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
             <Progress value={72} />
           </div>
         ),
+      },
+    ],
+  },
+  {
+    id: "consequence-line",
+    file: "src/components/ui/consequence-line.tsx",
+    for: "a change that reaches people already in, said before it happens, in the control's own place rather than a dialog over it",
+    test: "src/components/ui/consequence-line.test.tsx",
+    badge: "new",
+    family: "components",
+    section: "Feedback",
+    lede: "The one sentence of what a change does to people, under the control that asked, with the change as its primary act and the way back beside it; nothing is written until the first is pressed, and the sentence is announced. The door's swaps ride it; the disposable camera's mode switch will.",
+    specimens: [
+      {
+        label: "Only me, with 31 guests inside",
+        hint: "announced, never focused: the control that asked keeps focus",
+        node: <ConsequenceLineDemo />,
       },
     ],
   },
