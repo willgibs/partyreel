@@ -40,7 +40,6 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `schema-pass` | the data architecture trimmed on Will's yes (asked "May the lane write its two migration files and run those proofs?", he answered "Yes, write and prove") | merged at `57b17ace` (gate 73); part 1 (`20260929160000`) reviewed by the Advisor (apply verbatim: nothing main reads is dropped or loses a grant) and drift-checked clean (6 columns, 4 indexes, 1 policy; 20 events inside the bounds), but the permission classifier refused its apply (2026-09-29 ~19:50Z): it waits on Will's explicit go-ahead, never a retry by another route; part 2 after milestone 31 | Opus, 3132 | `54f414f9` |
-| `crumbs-17` | build 23's red-team finds | merged at `cba704dd` (gate 78); its migration `20260929220000_door_invite_admits` (BUG-2: a helper and three door functions carried verbatim but for the admission; an expand) waits for the Advisor's read (Q4), then applies by protocol and the types regenerate | Opus, 3135 | `6e72c406` |
 | `demo-framing-r2` | demo-framing r2, a board: the demo's slug in the host's voice or a typewriter of slugs, how the typewriter and the stream share the home hero (or the stream moves to the QR page), the hero's clickable touch in place of its eyebrow | running (agent `ac4d9d8416d49b653`; worktree `../partyreel-wt/demo-framing-r2`) | Opus, 3133 | |
 | `unfence` | every note of Will's to one board that hardened into a program-wide law (window-notes' audit, the Advisor's dispositions) turned back into guidance with its reason; the dropdown's third-level throw removed; bug-catching tests kept; the bible's lines proposed; PROGRAM.md's lines relayed | running (agent `a622927650684d585`; worktree `../partyreel-wt/unfence`) | Opus, 3132 | |
 | `crumbs-18` | five small app items: the host's report help article brought to what shipped, the help's phone screens mounting once, the hub's sheet history on a double tap and a reload, phone popups after a refresh, a pushed arrival that no longer fades | running (agent `a5e41e0c0ab4f3c16`; worktree `../partyreel-wt/crumbs-18`) | Sonnet, 3131 | |
@@ -80,7 +79,7 @@ Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcr
 boards). Batch 7 is merged whole; its records carry the rest.
 
 Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, disposable-mode r2, crumbs-13, lab-revamp
-stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, crumbs-15, loose-ends-wiring, contact-wiring, desk-tune, event-ready r1, window-notes, crumbs-16, album-motion-wiring, crumbs-17 (its migration pending).
+stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, crumbs-15, loose-ends-wiring, contact-wiring, desk-tune, event-ready r1, window-notes, crumbs-16, album-motion-wiring, crumbs-17 (its migration applied by protocol, 20260929204753).
 
 ## Next, in order
 
