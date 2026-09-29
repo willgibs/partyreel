@@ -344,7 +344,6 @@ export type Database = {
           reel_style_id: string | null
           require_upload_to_view: boolean
           require_verified_email: boolean
-          show_guest_list: boolean
           show_reel: boolean
           updated_at: string
           visibility: Database["public"]["Enums"]["event_visibility"]
@@ -372,7 +371,6 @@ export type Database = {
           reel_style_id?: string | null
           require_upload_to_view?: boolean
           require_verified_email?: boolean
-          show_guest_list?: boolean
           show_reel?: boolean
           updated_at?: string
           visibility?: Database["public"]["Enums"]["event_visibility"]
@@ -400,7 +398,6 @@ export type Database = {
           reel_style_id?: string | null
           require_upload_to_view?: boolean
           require_verified_email?: boolean
-          show_guest_list?: boolean
           show_reel?: boolean
           updated_at?: string
           visibility?: Database["public"]["Enums"]["event_visibility"]
@@ -560,7 +557,6 @@ export type Database = {
           links: string | null
           message: string
           name: string
-          resume_url: string | null
           role_slug: string
           source: string | null
           status: string
@@ -575,7 +571,6 @@ export type Database = {
           links?: string | null
           message: string
           name: string
-          resume_url?: string | null
           role_slug: string
           source?: string | null
           status?: string
@@ -590,7 +585,6 @@ export type Database = {
           links?: string | null
           message?: string
           name?: string
-          resume_url?: string | null
           role_slug?: string
           source?: string | null
           status?: string
@@ -818,7 +812,6 @@ export type Database = {
           email: string
           event_id: string | null
           id: string
-          opted_in_at: string
           source: string | null
         }
         Insert: {
@@ -826,7 +819,6 @@ export type Database = {
           email: string
           event_id?: string | null
           id?: string
-          opted_in_at?: string
           source?: string | null
         }
         Update: {
@@ -834,7 +826,6 @@ export type Database = {
           email?: string
           event_id?: string | null
           id?: string
-          opted_in_at?: string
           source?: string | null
         }
         Relationships: [
@@ -851,9 +842,6 @@ export type Database = {
         Row: {
           created_at: string
           marketing_opt_in: boolean
-          notify_album_shared: boolean
-          notify_new_follower: boolean
-          notify_new_uploads_digest: boolean
           notify_pass_renewal: boolean
           updated_at: string
           user_id: string
@@ -861,9 +849,6 @@ export type Database = {
         Insert: {
           created_at?: string
           marketing_opt_in?: boolean
-          notify_album_shared?: boolean
-          notify_new_follower?: boolean
-          notify_new_uploads_digest?: boolean
           notify_pass_renewal?: boolean
           updated_at?: string
           user_id: string
@@ -871,9 +856,6 @@ export type Database = {
         Update: {
           created_at?: string
           marketing_opt_in?: boolean
-          notify_album_shared?: boolean
-          notify_new_follower?: boolean
-          notify_new_uploads_digest?: boolean
           notify_pass_renewal?: boolean
           updated_at?: string
           user_id?: string
