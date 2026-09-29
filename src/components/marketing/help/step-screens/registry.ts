@@ -38,9 +38,12 @@ export const PHONE_SCREENS = {
     "Waiting at the door: the host will let you in, and the album opens by itself",
   "door-keep": "Sent, then Keep this event",
   "mail-search": "A mailbox searched for Partyreel, the email found in spam",
-  "report-open": "The Report this event form, freshly opened",
-  "report-reason": "The report form's Reason box, filled in and marked",
-  "report-sent": "Thanks, your report has been sent for review",
+  "report-open":
+    "The photo viewer, with Report, the flag at the end of the row of buttons, picked out",
+  "report-reason":
+    "The photo's report form: This photo, and only this one, a kind picked and the Reason box filled in",
+  "report-sent":
+    "Back in the photo viewer: Thanks, your report has been sent for review",
 } as const;
 
 export const DESK_SCREENS = {
