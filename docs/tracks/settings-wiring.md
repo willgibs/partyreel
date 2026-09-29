@@ -31,7 +31,6 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - docs/systems/guest-flow.md
   - src/app/(dev)/design/sandbox/event-settings/
   # added at boot (2026-09-29): the paths the doors reach beyond the starting list
-  - src/lib/db/migration-guards.test.ts
   - src/lib/db/row-cap-sql.test.ts
   - src/lib/db/queries/guest-events
   - src/lib/db/queries/album-guest
@@ -69,7 +68,6 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/dashboard/next-step
   - src/lib/notifications/build
   - src/components/app/share/event-sheets.tsx
-  - src/components/ui/popup.tsx
   - src/components/ui/popup.test.tsx
   - src/components/app/event-blocks/
   - src/lib/errors/codes
@@ -89,7 +87,6 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/ui/consequence-line
   - src/components/app/event-slug-control
   - src/lib/use-unsaved-changes-guard.ts
-  - src/components/app/event-feed/event-hub.test.tsx
   - src/components/app/pricing/gated-sites.test.ts
   - src/lib/events/visibility-labels.test.ts
   - src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx

@@ -36,11 +36,14 @@ const guestPresignStrategy: PresignStrategy<typeof presignUploadSchema> = {
         },
       };
     }
-    // The write path inherits the read gate (database-security.md): it re-checks the event's LOCK
-    // per request, so a session token minted while the event was open dies the moment the host
-    // locks it (the leaked-link remediation). The lock outranks every other upload state — a viewer
-    // who can't see the album learns nothing else about it. `private` refuses everyone (owner uploads
-    // ride the host routes); `password` accepts the unlock cookie or the owner (mayUploadPastLock).
+    // The write path inherits the read gate (database-security.md), re-checked per request: the
+    // context answers the DOOR as this ticket sees it (`get_upload_context`, the doors' migration
+    // 20260929120000). A ticket past the door reads open, under a password or a gate added later too
+    // (a gate stops newcomers, never the guests inside); a waiting, declined or blocked ticket reads
+    // private, as every ticket does at Only me, which is how a leaked link's stranger is put out. The
+    // lock outranks every other upload state: a viewer who can't see the album learns nothing else
+    // about it. Owner uploads ride the host routes. `password` still decides on a database before the
+    // doors' migration: the unlock cookie or the owner (mayUploadPastLock).
     if (ctx.data.visibility === "private") {
       return {
         ok: false,

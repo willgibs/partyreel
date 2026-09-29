@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 
 import {
@@ -20,6 +20,11 @@ const NOTE_MAX = 2000;
  * it"). What was typed is the field's own until it is left; then it is trimmed, checked, and written if
  * it changed. A refusal is said under the field, where the eye already is, and announced
  * (`aria-live`), with the field marked invalid and described by the sentence (`aria-describedby`).
+ *
+ * ★ CLOSING THE PANEL LEAVES THE FIELD TOO. Escape, or Back, takes the page away with focus still in
+ * it, and a field removed from the page never blurs (React hears no event from a node it no longer
+ * holds), so what was typed and not yet left is committed as the field unmounts: every control saves
+ * itself, and a closed panel never swallows a name.
  */
 function SavingField({
   label,
@@ -47,8 +52,12 @@ function SavingField({
   const [typed, setTyped] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const shown = typed ?? value;
+  // What was typed and not yet committed, and the latest commit, for the unmount below.
+  const pending = useRef<string | null>(null);
+  const commitLatest = useRef<(raw: string) => Promise<void>>(async () => {});
 
   async function commit(raw: string) {
+    pending.current = null;
     const next = type === "date" ? raw : raw.trim();
     if (next === value) {
       setTyped(null);
@@ -71,6 +80,22 @@ function SavingField({
   async function leave() {
     if (typed === null) return;
     await commit(typed);
+  }
+
+  useEffect(() => {
+    commitLatest.current = commit;
+  });
+  useEffect(
+    () => () => {
+      const left = pending.current;
+      if (left !== null) void commitLatest.current(left);
+    },
+    [],
+  );
+
+  function onTyped(next: string) {
+    pending.current = next;
+    setTyped(next);
   }
 
   const describedBy =
@@ -96,14 +121,14 @@ function SavingField({
         <Textarea
           {...common}
           rows={3}
-          onChange={(e) => setTyped(e.target.value)}
+          onChange={(e) => onTyped(e.target.value)}
         />
       ) : (
         <Input
           {...common}
           type={type}
           onChange={(e) => {
-            setTyped(e.target.value);
+            onTyped(e.target.value);
             // A date picker commits a whole value at once, and a phone's may never blur: it saves as
             // it changes. A typed name saves when it is left, or when Return is pressed.
             if (type === "date") void commit(e.target.value);
