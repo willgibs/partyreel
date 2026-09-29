@@ -47,6 +47,10 @@ file for limits. Field notes:
   the In-short card. Leave it empty when the article applies to every plan.
 - `action` (optional): `{ label, href }`, the one door under the short answer
   ("Open your dashboard" to `/dashboard`). Most articles have none.
+- `rung` (troubleshooting only, and required there): `{ label, href }`, the
+  line a fix ends on, "Working now?" and a link back to the calm, working
+  version of the same act ("See what a smooth upload looks like"). It lands on
+  an article outside troubleshooting, never another fix; a test holds all three.
 
 ## Writing rules
 
@@ -94,9 +98,10 @@ file for limits. Field notes:
 9. **Link the ladder.** Link related articles inline where they help, and
    link UP to the marketing rung when the reader may want the bigger picture
    (the category registry's `feature` entry names the rung for every category
-   but troubleshooting; the article page already renders it in the end
-   matter, and guest articles end on `/how-it-works` instead). A test
-   resolves every `/help/...` link and every `#section` anchor.
+   but troubleshooting, whose articles carry their own `rung`; the article
+   page renders it in the end matter, and guest articles end on
+   `/how-it-works` instead). A test resolves every `/help/...` link and every
+   `#section` anchor.
 10. **One Callout at most, usually.** They are punctuation, not paragraphs.
 11. **The pinned slugs.** Marketing pages, the legal drafts, /about, and the
     contact directory link some articles by literal slug; the list lives in
@@ -130,8 +135,13 @@ the shared file or the blog's (each file's header says whose it is).
 
 - `<Callout type="info | tip | warning" title="...">` for the one aside that
   earns it.
-- `<Steps>` / `<Step title="...">` for numbered procedures (the numeral rail;
-  use it for any "do this, then this" flow instead of a bare `1.` list).
+- `<Steps>` / `<Step title="..." screen="...">` for numbered procedures (the
+  numeral rail; use it for any "do this, then this" flow instead of a bare `1.`
+  list). Every step keeps the screen it describes beside its sentence: `screen`
+  names one from `src/components/marketing/help/step-screens/registry.ts`,
+  drawn from the product's own pieces, and a new surface is drawn there first.
+  A test fails a step without one. A `<Callout>` takes a `screen` the same way
+  when the surface it describes has no step of its own.
 - `<Path>Dashboard › Your event › Settings</Path>` for "where to find it": a
   breadcrumb row of chips, the first element of any how-to. Plain text with
   `›` between segments.

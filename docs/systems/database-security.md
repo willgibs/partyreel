@@ -13,7 +13,7 @@ DEFINER RPCs validate inside; `anon` never touches a table. A feature's own RPC 
 
 ## The RPC inventory and the advisor set
 
-`get_advisors` (security) after every schema change reads 16 `rls_enabled_no_policy`, 4 in lint `0028` and 29 in
+`get_advisors` (security) after every schema change reads 17 `rls_enabled_no_policy`, 4 in lint `0028` and 29 in
 `0029`.
 Leaked Password Protection is on, so its WARN never shows. A function in the wrong list means a grant slipped.
 
@@ -68,7 +68,8 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
   only that role's own rows, where a DEFINER body would read everyone's. The dashboard cards' `event_stills` (up to
   12 previewed, approved photos an event, one jsonb) is this shape, authenticated-only: another host's event is
   simply absent, and it may name only media columns the host's SELECT grant holds.
-- **Service-role only, never in either list:** the server-mediated set above, `action_rate`, `purge_media_rows`,
+- **Service-role only, never in either list:** the server-mediated set above, `action_rate`, `article_feedback_summary`
+  (an INVOKER read, one jsonb, behind the admin seam), `purge_media_rows`,
   `record_link_hit`, `host_active_bytes`, `host_storage_summary`, `monthly_ingress_cap`, the paged album's reader
   `album_changes_since` (an INVOKER read the Next routes call after their own capability check), `media_like_counts`
   (an INVOKER read the host's links route and the hub page call after their `getEvent` check), the per-event block's
@@ -85,7 +86,9 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
   `job_applications`, `event_passes`, `job_runs`, `export_log` (an HMAC of the IP, never the IP), `ops_flags` (the
   kill switches), `upload_forensics` and `forensic_audit_log` (raw IP by design; the deny-all is the containment:
   [trust-safety-forensics.md](trust-safety-forensics.md)), `album_state` and `album_changes` (the paged album's
-  versions and change log: service_role SELECT only, written by the deferred triggers alone).
+  versions and change log: service_role SELECT only, written by the deferred triggers alone), `article_feedback` (the
+  help center's feedback beacon: a slug, Yes or No and a time, no identity of any kind, with every client grant revoked,
+  reads included, so `anon` has no table access at all).
 
 ## Grants
 
@@ -187,7 +190,9 @@ under Gotchas).
 - ★ **The public forms (`/contact`, `/careers`) are the one limiter that fails CLOSED:** nothing stands behind them,
   so failing open would open a pipe to the monthly email quota the breaker alerts also send on. Their scope is the
   bare IP; the check runs after the honeypot (a caught bot must not spend a shared office's budget) and before the
-  insert and the send, and the swallowed error is captured where it is swallowed.
+  insert and the send, and the swallowed error is captured where it is swallowed. The help center's feedback beacon
+  (`help_feedback`, scope the IP and the article, breadth across articles) fails closed for the same reason, at no real
+  cost: its limiter and its insert share one database.
 - **The account kinds (`email_change`) key on the signed-in user's id** (HMAC'd, in its own domain), have no breadth,
   and fail CLOSED like the public forms: the limiter is the only bound on the `email_exists` oracle.
 - Volumetric DoS is the Vercel edge firewall's job, not the app's; the guest OTP door is throttled only by Supabase

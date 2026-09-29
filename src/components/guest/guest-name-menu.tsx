@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { LogIn, Pencil } from "lucide-react";
+import { LifeBuoy, LogIn, Pencil } from "lucide-react";
 
 import { ConfirmEmailDialog } from "@/components/auth/confirm-email-dialog";
 import {
@@ -12,6 +12,7 @@ import {
 import { DoorLamp } from "@/components/guest/door/lit";
 import { KEEP_TITLE } from "@/components/guest/save-account-prompt";
 import { UNVERIFIED_LABEL } from "@/components/shared/unverified-mark";
+import { HELP_CENTER_HREF } from "@/lib/content/help-links";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -35,7 +36,7 @@ import { requestNameDoor } from "@/lib/guest/name-door";
  * had just become, and give them no way to change a name they had mistyped in a
  * dark room.
  *
- * ★ HER NAME, THEN THE CARD, THEN TWO ROWS (Will, `identity-door` r1 `menu=card`: "add the name +
+ * ★ HER NAME, THEN THE CARD, THEN THE ROWS (Will, `identity-door` r1 `menu=card`: "add the name +
  * 'Unverified' stack above the 'add your email' card in the menu, and change the 'You're
  * Unverified' copy in the card to 'Save this event for later' to feel more beneficial. This keeps
  * their name in the menu, keeps one instance of unverified, but shifts adding their email to a
@@ -53,6 +54,8 @@ import { requestNameDoor } from "@/lib/guest/name-door";
  *     header is a SIBLING island of the page that owns the modal.
  *   - "Log in", the chooser's word, for somebody who already has an account and wants tonight's
  *     photographs in it.
+ *   - "Help center" (help-center r1: "globally accessible for general questions as well"), under
+ *     Log in as the board drew it, opening in a new tab.
  *
  * ★ THIS IS THE ONE SURFACE THAT KNOWS ABOUT THE UNCONFIRMED ADDRESS. Publicly
  * every unconfirmed guest is handled the same, so the mark says "Unverified"
@@ -179,6 +182,19 @@ export function GuestNameMenu({
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => openDoor("signin")}>
             <LogIn /> Log in
+          </DropdownMenuItem>
+          {/* THE STANDING DOOR INTO HELP (help-center r1, Will: "Let's also include the help
+              center entry in the menu too. That way it's globally accessible for general
+              questions as well, not only when encountering trouble"). A new tab, the host
+              menu's own habit: the album, and anything still uploading, stay where they are. */}
+          <DropdownMenuItem asChild>
+            <a
+              href={HELP_CENTER_HREF}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <LifeBuoy /> Help center
+            </a>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

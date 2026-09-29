@@ -4,7 +4,6 @@ import { DESK_ORDER } from "@/app/(dev)/design/touchpoints";
 import { ADMIN_TRIAGE } from "./admin-triage/spec";
 import { EMAILS } from "./emails/spec";
 import { LOCKED_DOOR } from "./locked-door/spec";
-import { HELP_CENTER } from "./help-center/spec";
 import { EVENT_SETTINGS } from "./event-settings/spec";
 
 import { PRESS_PAGE } from "./press-page/spec";
@@ -43,7 +42,6 @@ import { PRIVACY_HERO } from "./privacy-hero/spec";
  */
 const REGISTERED: readonly BoardSpec[] = [
   ADMIN_TRIAGE,
-  HELP_CENTER,
   EVENT_SETTINGS,
   EMAILS,
   LOCKED_DOOR,

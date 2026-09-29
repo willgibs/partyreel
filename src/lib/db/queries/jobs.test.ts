@@ -20,7 +20,8 @@ vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => asSupabase(state.fake!),
 }));
 
-const { getJobStates, readSweepCursor } = await import("@/lib/db/queries/jobs");
+const { getJobSignals, getJobStates, readSweepCursor } =
+  await import("@/lib/db/queries/jobs");
 
 const CURSOR_A = "0a1b2c3d-4e5f-4061-8273-8495a6b7c8d9";
 const CURSOR_B = "1b2c3d4e-5f60-4172-8384-95a6b7c8d9ea";
@@ -158,5 +159,76 @@ describe("getJobStates", () => {
     const orphans = states.find((s) => s.job === "purge_orphans");
     expect(cron?.lastRun?.stoppedEarly).toBe(true);
     expect(orphans?.lastRun?.stoppedEarly).toBe(false);
+  });
+});
+
+describe("getJobSignals", () => {
+  // The feedback beacon's window (help-center r1 `feedback=beacon`): the success half is its own
+  // rows in the last 24 hours, the failure half the `job_runs` error rows the route writes, so the
+  // console can tell "nobody answered" from "every answer was dropped".
+  it("windows the help feedback signal on its own rows and its failures", async () => {
+    const now = Date.parse("2026-09-28T12:00:00.000Z");
+    state.fake = createFakePostgrest({
+      tables: {
+        sent_emails: [],
+        action_attempts: [],
+        unlock_attempts: [],
+        article_feedback: [
+          {
+            slug: "you-cant-sign-in",
+            helpful: true,
+            created_at: "2026-09-28T11:00:00.000000+00:00",
+          },
+          {
+            slug: "you-cant-sign-in",
+            helpful: false,
+            created_at: "2026-09-28T02:00:00.000000+00:00",
+          },
+          {
+            slug: "a-video-wont-play",
+            helpful: true,
+            created_at: "2026-09-26T12:00:00.000000+00:00",
+          },
+        ],
+        job_runs: [
+          runRow(
+            1,
+            "help_feedback",
+            "error",
+            "2026-09-28T10:00:00.000000+00:00",
+            null,
+          ),
+          runRow(
+            2,
+            "help_feedback",
+            "error",
+            "2026-09-25T10:00:00.000000+00:00",
+            null,
+          ),
+          runRow(
+            3,
+            "abuse_limiter",
+            "error",
+            "2026-09-28T10:00:00.000000+00:00",
+            null,
+          ),
+        ],
+      },
+    });
+    const signals = await getJobSignals(now);
+    expect(signals.help_feedback).toEqual({ ok24h: 2, failed24h: 1 });
+    expect(signals.abuse_limiter).toEqual({ ok24h: 0, failed24h: 1 });
+  });
+
+  it("throws when the beacon's table cannot be read, never reading it as quiet", async () => {
+    state.fake = createFakePostgrest({
+      tables: {
+        sent_emails: [],
+        action_attempts: [],
+        unlock_attempts: [],
+        job_runs: [],
+      },
+    });
+    await expect(getJobSignals()).rejects.toThrow(/help feedback/);
   });
 });
