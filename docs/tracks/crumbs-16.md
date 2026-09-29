@@ -20,9 +20,13 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/test-utils/next-history.test.tsx
   # added while building (2026-09-29): the lab's URL write had no test of its own; its first-commit order is the whole point
   - src/components/lab/board-state.test.tsx
+  # added on the coordinator's hand-back (2026-09-29): gate 71's lab:demo hung on demo-framing.names with the lab's writes telling Next; the mechanism is in Frame (a portal into the iframe's first document)
+  - src/components/lab/frame.tsx
+  - src/components/lab/frame.test.tsx
+  # and the symptom's one line, where the next tester looks (a wedged dev image optimizer reads as a hung page)
+  - docs/systems/testing-verification.md
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/host-app.md
-  - docs/systems/testing-verification.md
 ---
 
 # lp/crumbs-16
@@ -63,6 +67,20 @@ Each recommended answer is BUILT and his to overrule; none is a one-way door.
   trip (no `_rsc` request) and, written after Next's patch, leaves `__NA` and the tree on the entry (Back through it
   did not reload). The policy test's allow-list stays empty. The overrule: keep the lab's writes router-silent, one
   allow-list entry each with its why, and `CopyLink` reading the address at the click.
+- **The gate's `lab:demo` hang on `demo-framing.names` was `Frame`'s race, not the lab's write, so the writes keep
+  telling Next (the bullet above stands).** A portalled `Frame` is an iframe with a `srcdoc`, born holding an
+  `about:blank` document that the srcdoc one replaces a task or more later; its copy effect portalled the scene into
+  whichever document it found. Next hearing the landing write adds a RESTORE render, which put that effect ahead of the
+  srcdoc commit: every scene mounted twice, and the first documents' images (`/_next/image`) were cancelled as they
+  went. `next dev` hands every request for one image the same pending result and a cancelled first request leaves it
+  pending for ever, so the frames' later requests never answered, the six connections to the server filled and the
+  demo's second `Page.navigate` (the pictures pass, the same URL) could not start, while the server answered the page in
+  200 ms and the renderer ran timers. The first handoff's "the base's own lab files hang too" was wrong: that run had
+  already wedged its server. Built (`frame.tsx`, `frame.test.tsx`): the copy effect never portals into a first
+  document; it waits for the frame's own `load`, and goes straight on for a document that reads `about:srcdoc` (a
+  frame in the server's HTML, whose load React never heard). The narrower fix, one allow-list entry keeping
+  `board-state.tsx` router-silent, also turned the demo green (measured) but leaves the race for anything else that
+  renders in a frame's insertion task, so it was not taken. The overrule: that entry, with the bullet above's.
 - **Three writes run on a page's first commit, so each waits one microtask** (the account's email hint, the catalog's
   card, and `board-state`'s `setState` when a step lands). A child's effect runs before its parent's and Next installs
   its patch in the Router's effect, so a `null` handed from a mount effect meets the browser's own `replaceState` and
@@ -123,8 +141,14 @@ Each recommended answer is BUILT and his to overrule; none is a one-way door.
 - Popups: `ui/popup-back.ts` keeps a marker on the entry that a `router.refresh()` rewrites away, so, by reading, a
   phone's place-shaped popup closed after a refresh skips its `history.back()` and leaves a dead entry; the provider's
   `pushedRef` is the shape of the fix (not driven at phone width) (from `crumbs-16`).
-- Lab: `lab:demo --board demo-framing` fails `demo-framing.names` with "Page.navigate did not answer in 60000ms" on this
-  lane's tree AND with the base's own lab files (the other boards press fine); not looked into (from `crumbs-16`).
+- Lab and testing: `lab:demo` names nothing of what stopped a navigation ("Page.navigate did not answer in 60000ms"),
+  and a `Runtime.evaluate` ceiling would not have either (the renderer answered throughout): listing the requests
+  still pending when a navigation stalls (the script could already see them) would have named this cause in one run,
+  not in three lanes' bisects (from `crumbs-16`).
+- Help: `marketing/help/step-screens/phone-document.tsx` has the shape `Frame` had (its effect mounts the phone's
+  children into the iframe's first document at once, and again on `load`), so a phone screen probably mounts twice
+  and, on a dev server, cancels its first images the way the wedge above needed; not driven in a browser, and the fix
+  is `Frame`'s (wait for the first `load` unless the document reads `about:srcdoc`) (from `crumbs-16`).
 - Lab: `CopyLink` builds from the six lab params, so a board's own switches (`?welcome=gate&was=dom`) never ride the
   copied link though the address bar holds them, against `board-state.tsx`'s "the URL is the share format" (from
   `crumbs-16`).
@@ -142,7 +166,8 @@ Each recommended answer is BUILT and his to overrule; none is a one-way door.
   build` 0; `lab:smoke --base http://localhost:3133` 0 (scope all: the lab's shell or kit changed; 171 checks). No
   board, so the gate's `lab:demo` step does not apply; run anyway on the boards whose walks this lane's write moves:
   disposable-mode (8 steps), locked-door (4) and press-page (1) press 13 of 13 ok (`labdemo.log`, `labdemo3.log`);
-  demo-framing.names times out on `Page.navigate` here and on the base's own lab files alike (Deferred). `66abfefc`
+  demo-framing.names timed out on `Page.navigate` here (the hand-back below found why; this pass wrongly blamed the
+  base's own lab files too). `66abfefc`
   (comment-only edits to `help-search-signal.ts`, the policy header and `next-history.ts`) followed the gate: format,
   typecheck, lint and the 28 test files of the areas it touches re-ran on it (292 tests, green).
 - **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = the owned paths + this file, and one exception,
