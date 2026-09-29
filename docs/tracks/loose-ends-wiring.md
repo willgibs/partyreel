@@ -5,12 +5,21 @@ cut: "818555b8"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   - src/components/marketing/faq-accordion.tsx
+  - src/components/marketing/faq-accordion.test.tsx
   - src/components/marketing/sections/home/faq-accordion.tsx
   - src/components/marketing/sections/features/album/review-switch.tsx
   - src/components/marketing/sections/features/album/everywhere-stage.tsx
+  # added for the corner mark and its lightbox (the mark rides the newest tile, so the grid and the fill's
+  # derivation carry it; the lightbox is a new file beside the stage)
+  - src/components/marketing/sections/features/album/album-fill-grid.tsx
+  - src/components/marketing/sections/features/album/use-album-fill.ts
+  - src/components/marketing/sections/features/album/use-album-fill.test.ts
+  - src/components/marketing/sections/features/album/everywhere-peek.tsx
+  - src/components/marketing/sections/features/album/everywhere-peek.test.tsx
+  # the one system-doc fact this lane falsifies (the FAQ is no longer native <details>), refined in place
+  - docs/systems/marketing-content.md
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/reviews/loose-ends.json
-  - docs/systems/marketing-content.md
   - docs/systems/design-system.md
 ---
 
