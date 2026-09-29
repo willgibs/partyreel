@@ -275,7 +275,6 @@ The app:
 - Guest: `get_event_by_qr_token` does not return `events.max_upload_bytes`, so the upload sheet's terms line states the product's limits rather than the host's own cap; add the column (with the types and `queries/guest-events.ts`) and `uploadTermsLine`'s `capBytes` seam takes it.
 - Guest: the album, the door and the report dialog carry no link to `/help` (only the guest 404s do).
 - Guest: the media viewer's own image and video have no loading state (a tile has a skeleton; the opened photograph pops in when the full-size presign lands, the slowest picture in the product on venue Wi-Fi).
-- Guest: `/api/reports` accepts a `media_id` the report dialog never sends; where one photograph is reported (a per-photo Report) wants a board of its own (from `triage-refresh`).
 - Guest, the demo: the per-tile Save and Share and the export routes enforce no `isDemo` server-side (the guest export serves the demo album in full; the UI hides the rest); decide whether the demo's capability token carries a read-only claim.
 - Exports: the mint has no timeout and no cancel (a hung request leaves the toast spinning and Download disabled until a reload), the dialog prints raw integers ("2440 items"), and the album's bulk Download mints with hidden items in and no confirmation.
 - Exports: the Worker skips an R2 object it cannot find in silence, so an album emptied between mint and stream downloads as a valid, empty zip; a failed-export state.

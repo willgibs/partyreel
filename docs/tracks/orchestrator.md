@@ -42,6 +42,7 @@ a lane").
 | `settings-wiring` | every event-settings pick: settings as four sentences, the doors end to end, the Guests room, the hub | running (agent `aefdc4b3cecd92f74`) | Opus, 3131 | |
 | `locked-door` | r2, the door family (open, waiting, shut, the previous guest's line) | running (agent `a5d27bd296c7b917e`) | Opus, 3132 | |
 | `disposable-mode` | r2: the camera, the waiting room, the room's screen, Create's step, video | running (agent `a1dbe1bf5ccc5042e`) | Opus, 3133 | |
+| `triage-r2-wiring` | admin-triage r2 wired; the hold rebuilt (Hold takes down by default; storage released at an operator's removal; an open report guards its item; the child-abuse instant hide) | running (agent `a432fe0336dc35587`) | Opus, 3134 | |
 
 Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcribed at `31de6aa0`: 41 answers on ten
 boards). Wave A: `settings-wiring` (all nine event-settings picks, the doors end to end), `locked-door` r2 (the door
@@ -61,25 +62,7 @@ Merged in batch 8 (their records carry the rest): crumbs-12.
 3. **Wave B into each free seat, app first** (Will's note, a fuller one to come: app work first, so marketing and admin
    stop reshaping off trickle-down changes). Drafted specs wait in this session's scratchpad (`specs/<track>.json`); a
    new session writes them from these lines.
-   - `triage-r2-wiring` (Opus): admin-triage r2's `grid`, `kinds`, `confirm`; a phone gets both Take it down and Hold
-     (his note is the board's `hold` option), each one press, the hold's reason the report's reference; the per-photo
-     report gap; a reporter's confirmed address kept only until the report closes; Ask for proof is a new mail, built
-     behind a switch left off for his yes (his emails rule); no guest-path function replaced; retires admin-triage.
-     And the hold, rebuilt on his word (2026-09-29: a hold is for what police should see, so nothing held stays
-     visible by default): Take it down and Hold for forensics stay two acts; Hold's confirm has "Take it down too"
-     on by default (the reported item and the same uploader's other items the hold covers leave the album and the
-     host's Deleted at once, each restorable by an operator after review), and unticking it is the quiet hold for a
-     police preservation request (nothing removed; the host's delete looks like any delete, restore refused, purge
-     skipped), so there is no third act. An operator's removal (takedown or hold) stops counting against the host's
-     storage at once, so no number tells the two apart; an open report protects its item from every permanent
-     delete (the host's, the uploader's, an event's or an account's) until it closes, the item leaving view as the
-     deleter expects while its bytes wait, done at the media table's guard (the guest-path functions are
-     `settings-wiring`'s this batch). The child-abuse kind (his yes, 2026-09-29, with the anti-abuse below): the
-     report itself is never gated (anyone, signed in or not, and it heads the queue); a report from an address
-     confirmed in the form hides the item from every viewer at once pending review, an unconfirmed one heads the
-     queue without hiding and the form says so; limits per address and per event; an address whose child-abuse
-     report is dismissed as false loses the instant hide; and the operator is alerted at once (the portal's signal
-     and a mail to the operator's own inbox, internal, not a product mail) so a false hide lasts minutes.
+   - `triage-r2-wiring` is running (its manifest carries admin-triage r2 and the hold's rebuild, his words whole).
    - The lab revamp (step 8), once `locked-door` r2 and `disposable-mode` r2 merge; a board cut meanwhile is converted at
      its sync, since lab work never delays a board.
    - `event-ready` r1 (Opus), once `settings-wiring` merges: his event checklist and the settings' mini wizard (and
