@@ -29,6 +29,11 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/app/(dev)/design/sandbox/privacy-hero/
   - src/app/(dev)/design/sandbox/demo-framing/
   - src/app/(dev)/design/sandbox/press-page/
+  - src/app/(dev)/design/_data/
+  - src/app/(dev)/design/review/
+  - src/app/(dev)/design/(shell)/_shell/markdown.tsx
+  - scripts/lab-scope.mjs
+  - scripts/new-board.mjs
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/reviews/README.md
   - CLAUDE.md
