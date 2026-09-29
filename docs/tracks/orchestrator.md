@@ -40,7 +40,6 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `hero-wiring` | hero-card r2: the `guests` card as the hero's object (`partyreel.com/` quieter so the slug leads), the bloom light, the composed tablet table; hero-card retires | handed off at `f312267f` (gate green on `ce76844f`); its integration waits on Will (below) | Opus | ASSETS rows 33 and 34 from its Handoff |
 | `emails-wiring` | emails r1 on the ten mails that already send: one shell, the wordmark, light only, tagged operator subjects, the foot with no address and the renewal nudge's unsubscribe (a migration), a plain-text twin; the three dead switches leave; nothing new sends; emails retires | running, agent `adc42bfa207564886` | Opus, :3133 | |
 | `export-wiring` | export-flow's six: the Yours row filtered on the server, the toast that stays with a subtle cancel, the one-line empty refusal, parts in plain words, a phone's Download all to Files; the Worker backward compatible (I deploy it after the merge); export-flow retires | running, agent `aa10025fff8b6ba0e` | Opus, :3131 | |
 | `triage-wiring` | admin-triage r1's six: the marked reason, the verdict's note, the window, the escalation door, the shape idiom, a reported removal purged from the host's view (a migration; legal hold and preservation kept); the reports clause drafted | running, agent `a347eb3bf09ed556f` | Opus, :3132 | |
@@ -50,7 +49,7 @@ Batch 7 (cut `35601390`, 2026-09-28) answers Will's sitting on build 15 (transcr
 hero-card, voice-guest, host-storage, event-safety, export-flow). Wave A, four lanes: three new boards and the block.
 Wave B follows as seats free. Batch 6 (sixteen lanes) is merged whole; its records carry the rest.
 
-Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, event-settings, voice-wiring, pricing-wiring, triage-r2, safety-wiring.
+Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, event-settings, voice-wiring, pricing-wiring, triage-r2, safety-wiring, hero-wiring.
 
 ## Next, in order
 
@@ -62,7 +61,14 @@ Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, 
      over it). Large files go through a helper that transcribes, `cmp`s, applies and proves; the recorded md5 is the
      check.
 2. **Wave B into each free seat**, in this order (his answers are in the ledgers; each brief carries his notes).
-   - (none queued: every wave B lane is cut)
+   - `demo-framing` (Opus), a new board at the next free seat (spec in the scratchpad's `specs/`): the story the demo
+     tells, on the home hero's link card and the album it opens. His note (2026-09-29): "I don't love our working title
+     of 'Mia & Theo', it feels kind of weird for a demo name ... let's land on the best framing of it." Its asks:
+     `story` (what party), `names` (who it names, if anyone), `demo` (one demo renamed and re-seeded, a dedicated
+     hero event, or the card as an illustration). Registered after `disposable-mode`.
+   - After his `demo-framing` pick (his full permission, 2026-09-29): the demo event made or renamed to the story, its
+     slug claimed so the card's printed address opens it, `hero-stream.ts`' `OBJECT_EVENT` to match, and ASSETS rows
+     33 and 34 unparked.
 3. **Build 17 is live** (`1407daf6`, both migrations applied; pruned; the desk, admin-triage and event-settings boards
    and the Library clean headless; 42 open asks). Its red-team is running (agent `a21c3c40aeb5e59ff`) (`../partyreel-wt/_scratch/redteam-17/`, from `redteam-15/brief.md`):
    - the block, live: partyr33l blocked at a willg97 test event from one of the three roads meets the private door and
@@ -89,15 +95,6 @@ Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, 
 
 ## Waiting on Will
 
-- **Two actions the permission classifier refused me (2026-09-29), his to decide:**
-  - hero-wiring's integration (`integrate.sh hero-wiring f312267f`), refused as "Auto-Mode Bypass" right after the
-    refusal below; the lane's head and its gate stand, so a word from him (or his allowing it) resumes it.
-  - hero-wiring's Question: the homepage card prints `partyreel.com/e/mia-and-theo`, which no event holds (a 404 that
-    any host could later claim). The demo event taking that slug is one row; the classifier refused it as a
-    shared-resource change: `update public.events set custom_slug = 'mia-and-theo' where id =
-    '2485e1e6-12b1-4d02-aee3-1e2bb5d38d4f' and custom_slug = 'partyreel-demo';` (the demo door rides its token, and
-    nothing prints `partyreel-demo`). He runs it, allows it, or picks the fallback (`RESERVED_SLUGS`, which only stops
-    the claim).
 - **His desk, first** (his aim: zero open questions before the to-dos below, which stay stacked until then): build
   16's 38 open asks (privacy-hero, album-motion, loose-ends, contact-page, press-page; new: event-settings,
   locked-door, disposable-mode); admin-triage r2 follows.
