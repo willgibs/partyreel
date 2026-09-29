@@ -190,7 +190,7 @@ beneath, newest first.
   control stops being the page's accessible name). ★ It carries no status chips: a paused event dims the code, and
   visibility rides the Settings card. The link row shows the readable URL and copies the permanent one, confirmed in
   place, never by a toast.
-- **The cards row** (Review, Highlight reel, Guests, Settings last) is a group of links, never tabs, since nothing
+- **The cards row** (Highlight reel, Guests, Review, Settings) is a group of links, never tabs, since nothing
   switches a panel in place. ★ The Guests card and the header read THE ONE COUNT (`getEventGuests`, the album header's
   own function), so the hub, the Guests room and the album say one number. The row is sticky and condenses in place,
   because a remount would drop the QR pill's `view-transition-name` mid-morph. ★ Share's place in the row is a QR pill
