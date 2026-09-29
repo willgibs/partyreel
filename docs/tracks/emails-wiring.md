@@ -12,6 +12,17 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - public/email/
   - supabase/migrations/20260928160000_pass_renewal_pref.sql
   - src/app/(dev)/design/sandbox/emails/
+  - src/lib/lifecycle/sweeps/passes.test.ts
+  - src/lib/lifecycle/sweeps/inactivity.ts
+  - src/lib/lifecycle/sweeps/over-capacity.ts
+  - src/lib/lifecycle/sweeps/orphans.ts
+  - src/app/(marketing)/(cinema)/careers/actions.ts
+  - src/app/(marketing)/(paper)/contact/actions.ts
+  - src/app/api/internal/backup-prune/route.ts
+  - src/lib/db/queries/social.ts
+  - src/app/(app)/account/renew/
+  - src/components/app/renew-checkout
+  - content/help/notifications-and-emails.mdx
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/reviews/emails.json
   - docs/systems/lifecycle-recovery.md
@@ -60,7 +71,21 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **Where does the renewal nudge's Renew Event Pass land?** A mail link cannot POST, and the renewal Checkout is a
+  POST. Built: `/account/renew`, a page that starts the same renewal the Plan card's Renew starts (the existing
+  checkout route, untouched) and hands a signed-in holder to Stripe in one tap; a refusal (the pass ended, the account
+  is on Pro) shows the route's own sentence with a way on. Overrule: link `/account#plan` (the Plan card, first on the
+  page, its Renew one tap away) and build no page.
+- **The foot's reason line, per host mail.** Built, one true to each: the over-cap three "...because your Partyreel
+  account is over its storage limit" / "...is still over..." / "...because we removed files from your Partyreel
+  account"; the renewal nudge "...because you hold a Partyreel Event Pass." with the unsubscribe; the inactivity pair
+  "...because you host <event> on Partyreel's Free plan" / "...because <event> was removed from your Partyreel
+  account". Overrule: one line for all six ("...because you have a Partyreel account").
+- **The unsubscribe's words and landing.** Built: "Unsubscribe from Event Pass reminders", landing on the switch
+  (`/account#event-pass-reminders`, sign-in first when signed out), not a one-click unsubscribe. Overrule: a signed
+  one-click link (a token route), banked with the newsletter's first send.
+- **Who sees the Event Pass reminders switch.** Built: every account (a Free host may buy a pass later, and the row
+  costs nothing). Overrule: pass holders only.
 
 ## System-doc edits (in place, owned facts only)
 
