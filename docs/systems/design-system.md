@@ -471,7 +471,8 @@ Transition is its one sanctioned hole ([host-app.md](host-app.md)).
   would otherwise shrink a clipping Card to its padding instead of scrolling, as build 17's Event Settings did.
   ★ Every shape stands on the keyboard (the Dialog learned the Sheet's rule; a centred shape's `top` is
   `var(--vv-top) + var(--vv-h) / 2`, exactly `top-1/2` with nothing written). ★ A screen or a cover in a hand is a place
-  the phone's Back closes (`ui/popup-back.ts`: one same-URL history entry, its marker a field on the state Next merges,
+  the phone's Back closes (`ui/popup-back.ts`, on `lib/history-entry.ts` with the hub's sheets and the reel: one same-URL
+  history entry, its marker a field on the state Next merges,
   taken back one tick late so StrictMode's double effect cannot close it; where a router refresh took the marker, its
   own word that it pushed the entry at this address still takes it back, and never at another address, where a link
   inside it navigated on), unless its page already routes it (`routed`, `?room=`). ★ In a hand focus lands on the popup itself; at a desk the row's `deskFocus` says; a popup with

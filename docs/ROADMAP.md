@@ -17,6 +17,7 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Host: `/account` sets no trail (plainly empty since `crumbs-19`, where it once wore the last event's); a one-step `Partyreel > Account` is three lines, his call (from `crumbs-19`).
 - Marketing: `/features/qr`'s hero could take the demo card and its stream whatever the home picks: "One scan and they're in." over the album pouring out of the code, drawn on `demo-framing`'s `stage=centre` second screen (from `demo-framing-r2`).
 - The lab and the kit: a loop's score, a timeline read off the engine its frames run (`sandbox/demo-framing/score.tsx`), as a kit piece for motion boards; a motion option is otherwise judged only by watching it (from `demo-framing-r2`).
 - Tests: `src/components/guest/password-gate.test.tsx`'s stalled-hold Retry failed once under the full suite's load and passed alone 3 of 3: its timing budget wants widening (from `demo-framing-r2`).
