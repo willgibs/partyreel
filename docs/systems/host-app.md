@@ -207,20 +207,24 @@ beneath, newest first.
   (`event-feed/room-card.ts`), so all four doors show at 375.
 - **Review and Guests are rooms (routes with a crumb); Settings and the share kit are places in the settings kind (a panel at a desk, the whole screen in a hand); the Highlight reel is a door.**
   ★ The crumb trail lands at hydration (a page cannot hand a prop up, and CSS cannot carry an event's name); the bar's
-  fixed height keeps it from shifting anything.
+  fixed height keeps it from shifting anything. ★ It is drawn only while its route's `SetCrumbs` is mounted, so a route
+  that sets none, an error and a not-found page draw none; `RouteSkeleton` holds the last trail through a
+  `loading.tsx`'s wait (`CrumbsHold`), because the new address commits with the skeleton on screen and the page lands
+  later, so a bar that followed the address or let go with the old page blinked for the whole wait
+  (`shared/crumbs.tsx`).
 - ★ **The two places ride `?room=`, and it IS the state** (`share/event-share-provider.tsx`, read from
   `useSearchParams` with no mirrored `useState`, so a `router.refresh()` after a settings action cannot close the
   panel). ★ Every native history call hands Next a FRESH object (the marker as a field) or `null`, never
-  `window.history.state`: Next's patched `pushState` and `replaceState` copy their own `__NA` and tree onto a fresh
-  object and apply the URL, but take one that already carries `__NA` for their own bookkeeping and apply nothing, so
-  `useSearchParams` never moves and the next router commit writes the stale address back over the bar
+  `window.history.state`: Next's patched `pushState` and `replaceState` apply the URL only to a state without `__NA`
   (`history-state-policy.test.ts` refuses the shape; a write from a mount effect waits a microtask, because it would
-  meet the browser's own function before Next patches it: `lab/board-state.tsx` says why). Opening pushes an entry
-  carrying the marker (a sheet already open is left alone, so a double tap pushes one entry, never two); closing calls
-  `history.back()` only when the entry is ours: the marker says so, or this page pushed it. `router.refresh()`
-  rewrites an entry without the marker, and a reload keeps the marker but forgets what the page pushed, so after each
-  render with a sheet open an effect remembers an entry that carries the marker and gives it back to one this page
-  pushed that lost it; a place opened from a link or a bookmark never had one and closes in place. ★ The server's
+  meet the browser's own function before Next patches it: `lab/board-state.tsx` says why). ★ Whose entry a place
+  stands on is `lib/history-entry.ts`'s, which the hub's sheets, a phone's screen-shaped popup and the reel all use
+  (its header holds what Next does to an entry). Opening pushes an entry carrying the marker (a sheet already open is
+  left alone, so a double tap pushes one entry, never two); closing goes Back only when the entry is ours (the marker
+  says so, or this page pushed it) and only once until that Back lands (two taps on the X used to leave the hub);
+  `router.refresh()` rewrites an entry without the marker and a reload forgets what the page pushed, so `keep` runs
+  after each render with a sheet open (it adopts a marker it finds and gives an entry this page pushed that lost it its
+  marker back); a place opened from a link or a bookmark never had one and closes in place. ★ The server's
   `initialSheet` paints the first frame alone (a hydration gate): once hydrated the URL is the only answer, so a place
   opened from a link (`/settings`, a sign-in's return, Checkout's `?room=`) closes like one opened from its card. A
   settings page is `&setting=<page>` on the same entry, moved with `replaceState`, so its back arrow and Back never

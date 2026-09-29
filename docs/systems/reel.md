@@ -99,8 +99,10 @@ The reel stores nothing, so the server says only WHETHER a viewer's album has on
   bars and Editorial's inset card are set aside and a mismatched photograph stays whole on its own darkened blur.
   ★ **`?reel` is its address** ([`reel-url.ts`](../../src/lib/guest/reel-url.ts)): opening PUSHES an entry marked in its
   own history state (`prReelPushed`), so a phone's back gesture closes it; closing a pushed entry goes back and closing a
-  deep link REPLACES the address, so closing never leaves the page. Only the `reel` segment is touched, never a
-  re-serialised query.
+  deep link REPLACES the address, so closing never leaves the page. Whose entry it is stands on `lib/history-entry.ts`
+  (shared with the hub's sheets and a phone's popups): a `router.refresh()` takes the marker off, so the page keeps its
+  own word and gives the entry its marker back, and a close after a refresh or a reload still goes Back, once, however
+  many times the X is tapped. Only the `reel` segment is touched, never a re-serialised query.
   - **The chrome**: a slim glass bar at rest (play and progress) that pointer movement, or a tap on touch, grows into
     the dock (a `clip-path` morph, [`live-reel.css`](../../src/components/guest/reel/live-reel.css), instant under
     reduced motion); a resting pointer settles it back (2.4 s; 4.2 s after a touch). Every control has a tooltip.

@@ -27,9 +27,9 @@ import { describe, expect, it } from "vitest";
  * receiver or off any `history`, alone, in a spread (`{ ...window.history.state, x }`), through `??`,
  * `||`, `&&` or a conditional, through `Object.assign` or `structuredClone`, or through a variable
  * declared in the same file from any of those (`const s = window.history.state`, or destructured off
- * `history`). What it hands over instead is a fresh object holding only what is OURS (the sheet's
- * marker, `event-share-provider.tsx`; a reel's `prReelPushed` key, `reel-url.ts`) or `null`, and Next
- * copies its own state onto it. A value DERIVED from the state (`Boolean(window.history.state?.[KEY])`,
+ * `history`). What it hands over instead is a fresh object holding only what is OURS (a place's marker,
+ * which the hub's sheets, a phone's popup and the reel each write through `lib/history-entry.ts`) or
+ * `null`, and Next copies its own state onto it. A value DERIVED from the state (`Boolean(window.history.state?.[KEY])`,
  * a marker read to decide what to hand over) is not the state and is fine.
  *
  * ★ WHEN THE CALL RUNS IS PART OF THE SHAPE, and no static scan can see it. Next installs its patch in
@@ -273,19 +273,18 @@ describe("no native history call is handed the entry's own state", () => {
       (n, rel) => n + writesIn(readFileSync(join(ROOT, rel), "utf8")),
       0,
     );
+    // 14 today (crumbs-19 folded the hub's four writes, the popup's one and the reel's two into the helper's
+    // four): the floor stays a few under it, so a directory that stops being walked is still noticed.
     expect(
       writes,
       "the scan saw too few history writes",
-    ).toBeGreaterThanOrEqual(15);
-    // The provider's calls are the first that mattered: they are in the tree and inspected.
+    ).toBeGreaterThanOrEqual(10);
+    // The shared helper's calls are the first that mattered (the provider's were, before crumbs-19 moved
+    // them here): every place that pushes an entry of its own stands on them, so they are in the tree
+    // and inspected.
     expect(
-      writesIn(
-        readFileSync(
-          join(ROOT, "src/components/app/share/event-share-provider.tsx"),
-          "utf8",
-        ),
-      ),
-      "the provider's history writes are not being scanned",
+      writesIn(readFileSync(join(ROOT, "src/lib/history-entry.ts"), "utf8")),
+      "the shared history helper's writes are not being scanned",
     ).toBeGreaterThanOrEqual(3);
   });
 

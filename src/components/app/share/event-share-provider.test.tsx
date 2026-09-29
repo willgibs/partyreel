@@ -17,6 +17,13 @@
  * takes the page's memory, so the two in either order used to leave neither, and a panel closed by
  * replacing in place left a duplicate entry (a dead Back).
  *
+ * And a close asked twice closes once (crumbs-19): two taps on the X before the first Back's popstate lands
+ * called `history.back()` twice and left the hub for the page before it. The shared helper
+ * (`@/lib/history-entry`, which has its own test) lets the second go until the first has landed.
+ *
+ * And the mini-modal is a look at the code, never a destination: opening and closing it writes no history
+ * (this was once a scan of the provider's source between two names; it is a behavior now).
+ *
  * ★ THE STAND-IN IS NEXT'S PATCH, NOT A FIRING LISTENER (build 23's red-team, HIGH: a Settings row never
  * opened its page and a page's back arrow never returned). This file's first stand-in told its listeners
  * on EVERY `replaceState`, and the shipped code handed `replaceState` the entry's own state, which
@@ -67,10 +74,20 @@ function Probe() {
     settingsPage,
     openSettingsPage,
     closeSettingsPage,
+    codeOpen,
+    openCode,
+    closeCode,
   } = useEventShare();
   return (
     <div>
       <p data-testid="sheet">{sheet ?? "none"}</p>
+      <p data-testid="code">{codeOpen ? "open" : "closed"}</p>
+      <button type="button" onClick={openCode}>
+        open the code
+      </button>
+      <button type="button" onClick={closeCode}>
+        close the code
+      </button>
       <p data-testid="page">{settingsPage ?? "rows"}</p>
       <button type="button" onClick={() => openSheet("settings")}>
         open settings
@@ -361,5 +378,107 @@ describe("the entry stays ours through a refresh and a reload", () => {
     expect(back).not.toHaveBeenCalled();
     expect(window.location.search).toBe("");
     expect(shown()).toBe("none");
+  });
+});
+
+describe("a sheet closed twice", () => {
+  /** Two closes in one tick, then wait out both possible landings (a second Back, if one was called, lands a beat after the first). */
+  const closeTwice = () =>
+    act(async () => {
+      const landed = new Promise<void>((resolve) => {
+        window.addEventListener("popstate", () => resolve(), { once: true });
+      });
+      const button = screen.getByRole("button", { name: "close" });
+      fireEvent.click(button);
+      fireEvent.click(button);
+      await Promise.race([landed, new Promise((r) => setTimeout(r, 2000))]);
+      await new Promise((r) => setTimeout(r, 60));
+    });
+
+  it("★ goes Back once, so the hub stays the page it was", async () => {
+    // A page before the hub, so a second Back has somewhere to take the reader.
+    next.land("/elsewhere");
+    window.history.pushState(null, "", "/dashboard/e1");
+    next.land("/dashboard/e1");
+    hub(null);
+    press("open settings");
+    expect(shown()).toBe("settings");
+    const back = vi.spyOn(window.history, "back");
+    await closeTwice();
+    // The old code called it twice and stood on /elsewhere.
+    expect(back).toHaveBeenCalledTimes(1);
+    expect(window.location.pathname).toBe("/dashboard/e1");
+    expect(window.location.search).toBe("");
+    expect(shown()).toBe("none");
+    expect(next.reloads).toBe(0);
+  });
+
+  it("★ and a Back that never lands does not strand the panel open: a later close goes through", () => {
+    vi.useFakeTimers();
+    try {
+      next.land("/dashboard/e1");
+      hub(null);
+      press("open settings");
+      // The browser ignores the Back (or its popstate is lost): no traversal happens, nothing lands.
+      const back = vi
+        .spyOn(window.history, "back")
+        .mockImplementation(() => {});
+      press("close");
+      press("close");
+      expect(back).toHaveBeenCalledTimes(1);
+      act(() => {
+        vi.advanceTimersByTime(1500);
+      });
+      press("close");
+      expect(back).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("closes once again for the next panel: a Back that landed leaves no closing flag behind", async () => {
+    next.land("/elsewhere");
+    window.history.pushState(null, "", "/dashboard/e1");
+    next.land("/dashboard/e1");
+    hub(null);
+    for (let round = 0; round < 2; round += 1) {
+      press("open settings");
+      expect(shown()).toBe("settings");
+      const back = vi.spyOn(window.history, "back");
+      await closeTwice();
+      expect(back).toHaveBeenCalledTimes(1);
+      expect(shown()).toBe("none");
+      back.mockRestore();
+    }
+    expect(window.location.pathname).toBe("/dashboard/e1");
+  });
+
+  it("a deep-linked panel closed twice replaces in place both times and never goes Back", () => {
+    next.land("/dashboard/e1?room=settings");
+    hub("settings");
+    const back = vi.spyOn(window.history, "back");
+    press("close");
+    press("close");
+    expect(back).not.toHaveBeenCalled();
+    expect(window.location.search).toBe("");
+    expect(shown()).toBe("none");
+  });
+});
+
+describe("the mini-modal is a look, never a destination", () => {
+  it("opens and closes without writing history", () => {
+    next.land("/dashboard/e1");
+    hub(null);
+    const before = window.history.length;
+    const push = vi.spyOn(window.history, "pushState");
+    const replace = vi.spyOn(window.history, "replaceState");
+    press("open the code");
+    expect(screen.getByTestId("code").textContent).toBe("open");
+    press("close the code");
+    expect(screen.getByTestId("code").textContent).toBe("closed");
+    expect(push).not.toHaveBeenCalled();
+    expect(replace).not.toHaveBeenCalled();
+    expect(window.history.length).toBe(before);
+    expect(window.location.pathname).toBe("/dashboard/e1");
   });
 });
