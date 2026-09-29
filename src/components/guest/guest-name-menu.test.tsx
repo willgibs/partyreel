@@ -90,6 +90,19 @@ describe("name only", () => {
       screen.queryByRole("menuitem", { name: /sign (in|out)/i }),
     ).toBeNull();
   });
+
+  // help-center r1: "include the help center entry in the menu too ... globally accessible for
+  // general questions as well". Under Log in, in a new tab, so the album stays where it is.
+  it("then a standing Help center row, opening the help center in a new tab", async () => {
+    open();
+    const help = await screen.findByRole("menuitem", { name: /help center/i });
+    expect(help).toHaveAttribute("href", "/help");
+    expect(help).toHaveAttribute("target", "_blank");
+    const items = screen
+      .getAllByRole("menuitem")
+      .map((item) => item.textContent?.trim());
+    expect(items.indexOf("Help center")).toBe(items.indexOf("Log in") + 1);
+  });
 });
 
 describe("an address added, not yet confirmed", () => {

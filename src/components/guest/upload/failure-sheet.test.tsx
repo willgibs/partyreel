@@ -106,3 +106,15 @@ describe("everything on it is one tap from going again", () => {
     expect(onRetry).not.toHaveBeenCalled();
   });
 });
+
+describe("the link at the moment of trouble", () => {
+  // help-center r1 `from-product=contextual`: the sheet a guest is already reading links to the
+  // article that answers it, in a NEW TAB, because the files she can retry live in this page.
+  it("links to what stops an upload, in a new tab", () => {
+    mount([failure("IMG_1.jpg"), failure("IMG_2.jpg")]);
+    const link = screen.getByRole("link", { name: "What stops an upload" });
+    expect(link).toHaveAttribute("href", "/help/an-upload-wont-finish");
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", expect.stringContaining("noopener"));
+  });
+});
