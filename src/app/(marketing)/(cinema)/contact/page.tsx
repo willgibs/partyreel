@@ -13,6 +13,7 @@ import {
 import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
 import { CtaBand } from "@/components/marketing/system/cta-band";
 import { PageHero } from "@/components/marketing/system/page-hero";
+import { PaperChapter } from "@/components/marketing/system/paper-chapter";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { REPLY_LINE, type ContactTopicValue } from "@/lib/constants/contact";
@@ -113,8 +114,11 @@ export default function ContactPage() {
       />
       <ContactPageJsonLd />
 
-      {/* Hero: the utility trio's blur register on PageHero (2026-09-11),
-          the calm paper-page header; the h1 holds at paint. */}
+      {/* Hero: the utility trio's blur register on PageHero (2026-09-11), the
+          h1 held at paint. The room starts at the very top of the page: the
+          negative margin slides the lockup under the overlay header (a sticky
+          header still takes its 64px of flow) and the top padding clears the
+          bar again, the mechanism /press, /about and the legal pages share. */}
       <PageHero
         entrance="blur"
         scale="lg"
@@ -126,92 +130,98 @@ export default function ContactPage() {
             something that broke. {REPLY_LINE}
           </>
         }
-        className="border-b py-20 sm:py-28"
+        className="-mt-[var(--mkt-header-h)] pt-28 pb-14 sm:pt-36 sm:pb-20"
       />
 
-      {/* The form chapter: the page's instrument. Form leads on mobile (the
+      {/* Everything under the hero is ONE paper chapter (contact-page r1
+          `page=chapter`): the desk opens it, the self-serve band and the close
+          follow, so the cut from the dark room is a single hard line and the
+          page reads dark hero, paper body, ink footer like its siblings. */}
+      <PaperChapter>
+        {/* The form chapter: the page's instrument. Form leads on mobile (the
           page's purpose); the rail sits beside it from lg. */}
-      <SectionShell reveal="none" className="border-b">
-        {/* Three placed children so MOBILE reads heading -> form -> email
+        <SectionShell reveal="none" className="border-b">
+          {/* Three placed children so MOBILE reads heading -> form -> email
             (the form right after the intro; the alternative door after the
             commitment) while lg keeps the asymmetric two-column chapter:
             header + email card stacked left, the form spanning right. */}
-        <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[1fr_1.6fr] lg:grid-rows-[auto_1fr] lg:gap-x-14 lg:gap-y-8">
-          <div className="flex flex-col gap-5 lg:col-start-1 lg:row-start-1 lg:pt-2">
-            <h2 className="font-heading text-prose">Send a note</h2>
-            <p className="text-pretty text-muted-foreground">
-              Pick a topic so it lands in the right place, say what&rsquo;s
-              going on, and that&rsquo;s it.
-            </p>
-          </div>
-          <div className="lg:col-start-2 lg:row-span-2 lg:row-start-1">
-            <ContactForm helpSubjects={helpSubjects} />
-          </div>
-          {/* Plain email stays a first-class door: the desk's definition rows
+          <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[1fr_1.6fr] lg:grid-rows-[auto_1fr] lg:gap-x-14 lg:gap-y-8">
+            <div className="flex flex-col gap-5 lg:col-start-1 lg:row-start-1 lg:pt-2">
+              <h2 className="font-heading text-prose">Send a note</h2>
+              <p className="text-pretty text-muted-foreground">
+                Pick a topic so it lands in the right place, say what&rsquo;s
+                going on, and that&rsquo;s it.
+              </p>
+            </div>
+            <div className="lg:col-start-2 lg:row-span-2 lg:row-start-1">
+              <ContactForm helpSubjects={helpSubjects} />
+            </div>
+            {/* Plain email stays a first-class door: the desk's definition rows
               (copy affordance included), bottom-anchored against the card. */}
-          <div className="lg:col-start-1 lg:row-start-2 lg:self-end">
-            <ContactFacts />
+            <div className="lg:col-start-1 lg:row-start-2 lg:self-end">
+              <ContactFacts />
+            </div>
           </div>
-        </div>
-      </SectionShell>
+        </SectionShell>
 
-      {/* Self-serve: the help library, searchable right here (the palette is
+        {/* Self-serve: the help library, searchable right here (the palette is
           mounted page-wide), on the light band variation. */}
-      <SectionShell
-        eyebrow="Self-serve"
-        heading="Answers, ready now."
-        subhead="Search the help center without leaving this page, or start from a common question."
-        className="border-b bg-muted/40"
-      >
-        <div className="mx-auto mt-10 flex max-w-xl flex-col items-center gap-5">
-          <HelpSearchTrigger variant="hero" />
-          <div className="flex flex-wrap justify-center gap-2">
-            {HELP_QUICK_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="rounded-full border bg-card px-3.5 py-1.5 text-sm text-muted-foreground transition-colors duration-150 hover:border-foreground/25 hover:text-foreground"
-              >
-                {link.label}
-              </Link>
-            ))}
+        <SectionShell
+          eyebrow="Self-serve"
+          heading="Answers, ready now."
+          subhead="Search the help center without leaving this page, or start from a common question."
+          className="border-b bg-muted/40"
+        >
+          <div className="mx-auto mt-10 flex max-w-xl flex-col items-center gap-5">
+            <HelpSearchTrigger variant="hero" />
+            <div className="flex flex-wrap justify-center gap-2">
+              {HELP_QUICK_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="rounded-full border bg-card px-3.5 py-1.5 text-sm text-muted-foreground transition-colors duration-150 hover:border-foreground/25 hover:text-foreground"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
-        <Reveal className="mx-auto mt-16 grid max-w-4xl gap-x-10 gap-y-10 sm:grid-cols-3">
-          {DIRECTORY.map((tile, i) => (
-            <Link
-              key={tile.href}
-              href={tile.href}
-              data-mkt-reveal
-              style={{ "--i": 3 + i } as CSSProperties}
-              className="mkt-learn group flex flex-col gap-2.5 border-t pt-5 transition-colors duration-150 hover:border-foreground/40"
-            >
-              {/* An index numeral is data, so it sits on the BODY face with
+          <Reveal className="mx-auto mt-16 grid max-w-4xl gap-x-10 gap-y-10 sm:grid-cols-3">
+            {DIRECTORY.map((tile, i) => (
+              <Link
+                key={tile.href}
+                href={tile.href}
+                data-mkt-reveal
+                style={{ "--i": 3 + i } as CSSProperties}
+                className="mkt-learn group flex flex-col gap-2.5 border-t pt-5 transition-colors duration-150 hover:border-foreground/40"
+              >
+                {/* An index numeral is data, so it sits on the BODY face with
                   tabular figures like every other ordinal on the site (/careers,
                   the album's stages); it wore a 14px heading face here, the
                   one ordinal off the ladder (2026-09-18). */}
-              <span className="text-xs font-medium text-faint tabular-nums">
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <h3 className="font-heading text-subsection">{tile.title}</h3>
-              <p className="text-sm text-pretty text-muted-foreground">
-                {tile.body}
-              </p>
-              <span className="mt-auto inline-flex items-center gap-1 pt-1 text-sm font-medium text-muted-foreground transition-colors duration-150 group-hover:text-foreground">
-                {tile.linkLabel}
-                <LearnChevron />
-              </span>
-            </Link>
-          ))}
-        </Reveal>
-      </SectionShell>
+                <span className="text-xs font-medium text-faint tabular-nums">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <h3 className="font-heading text-subsection">{tile.title}</h3>
+                <p className="text-sm text-pretty text-muted-foreground">
+                  {tile.body}
+                </p>
+                <span className="mt-auto inline-flex items-center gap-1 pt-1 text-sm font-medium text-muted-foreground transition-colors duration-150 group-hover:text-foreground">
+                  {tile.linkLabel}
+                  <LearnChevron />
+                </span>
+              </Link>
+            ))}
+          </Reveal>
+        </SectionShell>
 
-      {/* Quiet close: curiosity has somewhere to go. */}
-      <CtaBand
-        heading="See what guests see."
-        subhead="The live demo album is open, and the reel is one tap away. Then make one of your own."
-        demoLink
-      />
+        {/* Quiet close: curiosity has somewhere to go. */}
+        <CtaBand
+          heading="See what guests see."
+          subhead="The live demo album is open, and the reel is one tap away. Then make one of your own."
+          demoLink
+        />
+      </PaperChapter>
     </HelpPaletteProvider>
   );
 }
