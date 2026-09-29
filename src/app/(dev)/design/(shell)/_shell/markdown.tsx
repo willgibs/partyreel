@@ -21,7 +21,7 @@ import { githubFor, hrefFor, parseRef } from "@/app/(dev)/design/_data/links";
  * nothing, which is the right amount of trust for a file an agent wrote.
  *
  * Heading ids run the same counter as `headingsOf` (docs.ts), so an anchor
- * from the touchpoints registry lands on the heading the sidebar lists.
+ * from a board's spec lands on the heading the sidebar lists.
  */
 type Ctx = {
   nextId: (text: string) => string;

@@ -21,11 +21,11 @@ import {
 } from "@/app/(dev)/design/review/ledger";
 import { itemById } from "@/app/(dev)/design/gallery/registry";
 import { BOARDS } from "@/app/(dev)/design/sandbox/registry";
-import { SANDBOX, SURFACE_LABEL } from "@/app/(dev)/design/touchpoints";
 
 import {
   type BoardRow,
   boardWork,
+  deskBoards,
   deskRows,
   transcribedFrom,
 } from "./_desk/queue";
@@ -122,15 +122,7 @@ export default async function DeskPage({
   // which ride its row.
   const windowNotes = windowNotesFor(null);
 
-  const rows = deskRows(
-    SANDBOX.map((r) => ({
-      id: r.id,
-      title: r.title,
-      surfaceLabel: SURFACE_LABEL[r.surface],
-      note: r.board?.note ?? r.why,
-      tracks: r.board?.tracks ?? [r.id],
-    })),
-  );
+  const rows = deskRows(deskBoards());
 
   const specOf = (board: string) => BOARDS.find((b) => b.id === board);
   const steps = toSteps(boardWork(rows), specOf, key);
@@ -380,7 +372,7 @@ export default async function DeskPage({
       <Section
         id="boards"
         title="Every standing board"
-        blurb="In registry order, the same order the board pages page through. A board with a spec shows its verdict and its questions; one without shows what it is exploring."
+        blurb="In desk order, the same order the board pages page through. A board with a spec shows its verdict and its questions; one without shows what it is exploring."
       >
         <ol className="space-y-2">
           {rows.map((row) => (

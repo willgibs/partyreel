@@ -47,6 +47,13 @@ import { defineExploration } from "@/components/lab/exploration";
 export const PRIVACY_HERO = defineExploration({
   id: "privacy-hero",
   title: "The privacy page's hero",
+  surface: "marketing",
+  desk: 40,
+  lives: [
+    "src/app/(marketing)/(cinema)/features/privacy/page.tsx",
+    "src/components/marketing/system/page-hero.tsx",
+  ],
+  tracks: ["heroes"],
   round: {
     n: 3,
     date: "2026-09-24",

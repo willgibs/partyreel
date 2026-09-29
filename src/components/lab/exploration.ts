@@ -8,6 +8,7 @@ import {
   type CarriedCall,
   type Control,
   defineBoard,
+  type DeskFacts,
   type Opening,
   type Section,
   type Term,
@@ -152,8 +153,20 @@ export type Decision = {
 };
 
 export type ExplorationInput = {
+  /** The board's folder under sandbox/ (`sandbox/<id>/spec.ts`), and the id every ledger line names. */
   readonly id: string;
   readonly title: string;
+  /**
+   * ★ WHERE THE BOARD STANDS, IN ITS OWN SPEC (`DeskFacts`: the surface it
+   * redraws, its place on the desk, the paths it redraws). No shared list holds
+   * a board any more: the registry finds its folder. Optional in the type only
+   * because two specs cut before this predate it; `registry.test.ts` refuses
+   * any other board without them.
+   */
+  readonly surface?: DeskFacts["surface"];
+  readonly desk?: DeskFacts["desk"];
+  readonly lives?: DeskFacts["lives"];
+  readonly tracks?: DeskFacts["tracks"];
   readonly round: {
     readonly n: number;
     readonly date: string;
@@ -313,6 +326,10 @@ export function defineExploration<const E extends ExplorationInput>(
   return defineBoard({
     id: input.id,
     title: input.title,
+    surface: input.surface,
+    desk: input.desk,
+    lives: input.lives,
+    tracks: input.tracks,
     // The board's own headline question is the first decision's, because an
     // exploration has no thesis of its own any more: it is its decisions.
     question: first.question,

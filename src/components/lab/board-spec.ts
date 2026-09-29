@@ -340,6 +340,46 @@ export type Opening = {
  */
 export type Term = { term: string; means: string };
 
+/** The surface a board redraws; the sidebar groups the desk by it. */
+export type Surface = "guest" | "host" | "marketing" | "shared" | "admin";
+
+/** Surface display labels, in one home: the sidebar and the board header read
+ *  these, so a label changes everywhere at once. */
+export const SURFACE_LABEL: Record<Surface, string> = {
+  guest: "Guest",
+  host: "Host",
+  marketing: "Marketing",
+  shared: "Shared",
+  // The ops portal is its own deployment, so it is a surface of its own rather
+  // than shared machinery.
+  admin: "Admin",
+};
+
+/**
+ * ★ WHAT A BOARD IS ON THE DESK, IN ITS OWN FOLDER (the lab revamp, 2026-09-29).
+ *
+ * These lived in three shared lists (touchpoints.ts's rows and `DESK_ORDER`,
+ * registry.ts's imports, boards.ts's map), so two boards cut in parallel
+ * collided on every merge and retiring one touched three files. Now a board is
+ * `sandbox/<id>/`: its spec carries these, the registry finds the folder, and
+ * retiring the board is deleting it.
+ *
+ * `desk` is its place on the desk, lower first, BY LEVERAGE (Will, 2026-09-19:
+ * the earlier influence first): a board whose answers change another board's
+ * questions takes the smaller number, and boards that touch nothing else sit at
+ * the foot in any order. Tens leave room; a tie reads in id order. A new board's
+ * lane writes the number its brief names, and the Orchestrator moves it at the
+ * record by editing that one line.
+ */
+export type DeskFacts = {
+  surface: Surface;
+  desk: number;
+  /** The system docs and production paths the board redraws: a wiring lane's owns start here, and a merge that touches one flags the board's open asks. */
+  lives: readonly [string, ...string[]];
+  /** The lp/<track> branches building it, when they are not the board's own id. */
+  tracks?: readonly string[];
+};
+
 export type BoardLinks = {
   /** Defaults to docs/tracks/<id>.md. */
   track?: string;
@@ -350,9 +390,14 @@ export type BoardLinks = {
 };
 
 export type BoardSpec<S extends readonly Section[] = readonly Section[]> = {
-  /** The sandbox directory and the SandboxId in touchpoints.ts. */
+  /** The board's folder under sandbox/, and the id every ledger line names. */
   id: string;
   title: string;
+  /** Its surface, desk place and `lives` (`DeskFacts`); the registry holds every standing board to them. */
+  surface?: Surface;
+  desk?: number;
+  lives?: DeskFacts["lives"];
+  tracks?: DeskFacts["tracks"];
   question: string;
   /** This round, and one line of what changed (above the fold). */
   round: Round;

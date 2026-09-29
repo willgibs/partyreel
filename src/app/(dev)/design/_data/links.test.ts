@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { BIBLE } from "@/app/(dev)/design/rules/bible";
-import { RULINGS, SANDBOX } from "@/app/(dev)/design/touchpoints";
+import { BOARDS } from "@/app/(dev)/design/sandbox/registry";
 
 import {
   editorFor,
@@ -27,13 +27,13 @@ const onDisk = (file: string) => existsSync(join(ROOT, file));
 
 describe("parseRef: the boards and the bible", () => {
   // ★ NEVER A NAMED BOARD. The URL form validates against the STANDING ids
-  // (touchpoints' SANDBOX, which is what parseRef reads), and a named example
+  // (the registry's BOARDS, which is what parseRef reads), and a named example
   // turned this red at every retirement: the palette, light, then rounding
   // (2026-09-17 and -18). So the example is whichever board stands first, and
   // with none standing there is nothing to parse and the case skips, never
   // fails. `board:` does not validate, so its case reads an id that left long
   // ago and always runs.
-  const standing = SANDBOX[0]?.id;
+  const standing = BOARDS[0]?.id;
   it.runIf(standing !== undefined)(
     "reads a standing board's /design/c/ and /design/lab/ URLs as that board",
     () => {
@@ -239,7 +239,7 @@ describe("githubFor, editorFor and fileFor", () => {
 
 describe("the registries resolve through the grammar", () => {
   it("parses every board's lives entry to a lab ref with a real file", () => {
-    for (const board of RULINGS) {
+    for (const board of BOARDS) {
       for (const text of board.lives) {
         const ref = parseRef(text);
         expect(ref.kind, `${board.id}: ${text}`).not.toBe("external");

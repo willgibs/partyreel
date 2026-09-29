@@ -1,6 +1,13 @@
 import "server-only";
 
-import type { Ask, BoardSpec, Candidate } from "@/components/lab/board-spec";
+import {
+  type Ask,
+  type BoardSpec,
+  type Candidate,
+  SURFACE_LABEL,
+} from "@/components/lab/board-spec";
+
+import { BOARDS, boardNote } from "@/app/(dev)/design/sandbox/registry";
 
 import { type Note, windowNotesFor } from "@/app/(dev)/design/review/ledger";
 import {
@@ -14,11 +21,10 @@ import { holdId, itemHoldId } from "./step-id";
 /**
  * THE DESK'S ROWS (the Library x Lab round, 2026-09-15): one standing board,
  * with the asks that still wait on Will beside the registry's own facts (its
- * title, its surface, the tracks building it). The derivation itself is the
- * rules track's (`design/review/status.ts`: a board's asks minus its ledger,
- * joined on the ask id); this only joins it to `touchpoints.ts` and flattens
- * the result into the queue the session walks. This track carried a local
- * ledger reader until that module landed, and it is gone.
+ * title, its surface, the tracks building it). The derivation itself is
+ * `design/review/status.ts`'s (a board's asks minus its ledger, joined on the
+ * ask id); this only joins it to the registry and flattens the result into the
+ * queue the session walks.
  *
  * ★ AND THE CATALOG'S CARDS RIDE THE SAME ROW (the revamp, 2026-09-16). A
  * board that declares `catalog` is asking to be ruled on card by card, so its
@@ -64,7 +70,7 @@ export type BoardRow = {
   id: string;
   title: string;
   surfaceLabel: string;
-  /** The touchpoints note, shown when no spec argues the board yet. */
+  /** The board's one line (`boardNote`), shown when no spec argues the board yet. */
   note: string;
   spec: BoardSpec | null;
   /** True while the board predates the kit's template (no spec, no asks). */
@@ -92,6 +98,20 @@ export type DeskBoard = {
   note: string;
   tracks: string[];
 };
+
+/**
+ * Every standing board as the desk reads it, in desk order: one derivation for
+ * the desk and the board route, which both walk the same queue.
+ */
+export function deskBoards(): DeskBoard[] {
+  return BOARDS.map((b) => ({
+    id: b.id,
+    title: b.title,
+    surfaceLabel: SURFACE_LABEL[b.surface],
+    note: boardNote(b),
+    tracks: [...(b.tracks ?? [b.id])],
+  }));
+}
 
 /**
  * The asks of one board against one status reading.
@@ -144,9 +164,8 @@ export function itemStates(board: DeskBoard, status: BoardStatus): ItemState[] {
 }
 
 /**
- * The desk's rows, in registry order. `boards` is the standing-board registry
- * (touchpoints.ts, mapped to plain data by the caller); a board with no spec is
- * `legacy` and carries no asks. `statusOf` is injected so the test can walk a
+ * The desk's rows, in desk order. `boards` is the standing boards as plain
+ * data (`deskBoards()`); a board with no spec is `legacy` and carries no asks. `statusOf` is injected so the test can walk a
  * fixture board, which is the only way to prove this before the standing
  * boards carry their specs.
  */

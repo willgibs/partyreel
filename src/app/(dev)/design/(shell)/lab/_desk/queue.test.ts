@@ -37,7 +37,7 @@ const BOARD = {
   id: SAMPLE_BOARD.id,
   title: SAMPLE_BOARD.title,
   surfaceLabel: "Shared",
-  note: "the touchpoints note",
+  note: "the board's one line",
   tracks: ["lab-kit"],
 };
 

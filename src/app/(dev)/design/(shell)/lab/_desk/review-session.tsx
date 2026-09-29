@@ -48,7 +48,7 @@ import { holdId, itemHoldId } from "./step-id";
  * step change costs no server round trip and a reload still resumes where the
  * reader stopped. The answers live in localStorage, per viewer, so closing the
  * tab mid-review loses nothing either. No board is called `end`, and none will
- * be: the ids are descriptive (touchpoints.ts).
+ * be: a board's id is its folder's descriptive name.
  *
  * Keys: 1..9 picks an option, Enter goes on, the arrows step; Escape lets a
  * note field go so the digits work again.

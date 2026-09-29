@@ -33,6 +33,15 @@ import { defineExploration } from "@/components/lab/exploration";
 export const CONTACT_PAGE = defineExploration({
   id: "contact-page",
   title: "Reaching a person",
+  surface: "marketing",
+  desk: 70,
+  lives: [
+    "docs/systems/marketing-content.md",
+    "src/app/(marketing)/(paper)/contact/page.tsx",
+    "src/app/(marketing)/(paper)/contact/contact-form.tsx",
+    "src/app/(marketing)/(paper)/contact/actions.ts",
+    "src/lib/constants/contact.ts",
+  ],
   round: {
     n: 1,
     date: "2026-09-28",

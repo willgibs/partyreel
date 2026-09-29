@@ -6,33 +6,34 @@ import { PageHeader } from "@/app/(dev)/design/(shell)/_shell/page-header";
 import { Ref } from "@/app/(dev)/design/(shell)/_shell/ref";
 import { Tag } from "@/app/(dev)/design/(shell)/_shell/tag";
 import { WidePage } from "@/app/(dev)/design/(shell)/_shell/wide";
+import { SURFACE_LABEL } from "@/components/lab/board-spec";
+
 import { readTrackStates } from "@/app/(dev)/design/_data/tracks";
-import { boardSpec } from "@/app/(dev)/design/sandbox/registry";
-import {
-  getRuling,
-  SANDBOX,
-  type SandboxId,
-  SURFACE_LABEL,
-} from "@/app/(dev)/design/touchpoints";
+import { BOARDS, boardSpec } from "@/app/(dev)/design/sandbox/registry";
 import { BoardFrame } from "./board-frame";
+import { BOARD_COMPONENTS } from "./board-components";
 import { SampleBoardPage } from "./sample-board";
 import { SAMPLE_BOARD } from "../_desk/sample-spec";
-import { BOARD_COMPONENTS } from "../boards";
 import { buildStamp } from "@/app/(dev)/design/_data/build-stamp";
 
-import { boardWork, deskRows, transcribedFrom } from "../_desk/queue";
+import {
+  boardWork,
+  deskBoards,
+  deskRows,
+  transcribedFrom,
+} from "../_desk/queue";
 import { toSteps } from "../_desk/session-step";
 
 /**
  * THE BOARD PAGE (the Library x Lab round, 2026-09-15): one open question and
- * its candidates on the real tokens, inside the shell. The header is the
- * catalog record (the ruling so far in one line, the pointers); the page is
- * wide (the sidebar tucks away by preference, the TOC column yields to the
- * dock's Sections menu); the dock reads the board's neighbours from the
- * context this page provides. A board with a spec (sandbox/registry.ts) renders
- * through the kit's template and answers in its own first block, so this header
- * stays a record card and says nothing the Answer is about to say; a board
- * without one is `legacy` and draws its own body under its note.
+ * its options on the real tokens, inside the shell. The header is the record
+ * card (the surface, the asks by name, the tracks); the page is wide (the
+ * sidebar tucks away by preference, the TOC column yields to the dock's
+ * Sections menu); the dock reads the board's neighbours from the context this
+ * page provides. The board is its folder (`sandbox/<id>/`): the registry finds
+ * its spec and `board-components.ts` its board, so a folder with either missing
+ * is no board and answers 404. The kit's template answers in its own first
+ * block, so this header says nothing the Answer is about to say.
  *
  * `?session=<this board>.<ask>` turns it into the ANSWERING surface too (the
  * clarity round, 2026-09-15): the route builds the same open queue the desk
@@ -51,7 +52,7 @@ export default async function BoardPage({
   const { board: slug } = await params;
   // ★ THE TEMPLATE'S OWN DRY RUN (lab-tides, 2026-09-19). `/design/lab/sample`
   // renders the fixture board through the kit's template, so a change to the
-  // template is looked at on a board nobody is being asked to rule on. It is
+  // template is looked at on a board nobody is being asked to answer. It is
   // deliberately not in the registry: it is a tool, not a board.
   if (slug === SAMPLE_BOARD.id) {
     return (
@@ -71,39 +72,26 @@ export default async function BoardPage({
   }
   const session = (await searchParams).session;
   const param = typeof session === "string" ? session : null;
-  const ruling = getRuling(slug);
-  const board = ruling?.board;
-  const entry = ruling ? BOARD_COMPONENTS[ruling.id as SandboxId] : undefined;
-  if (!ruling || !board || !entry) notFound();
+  const spec = boardSpec(slug);
+  const Component = spec ? BOARD_COMPONENTS[spec.id] : undefined;
+  if (!spec || !Component) notFound();
 
-  const spec = boardSpec(ruling.id);
-  // A board built by a track links its manifest; a board that predates the
-  // manifests (the two legacy marketing boards, the glow pair) has none.
+  // A board built by a track links its manifest; a board no manifest names
+  // (its track integrated long ago) says so.
   const tracks = readTrackStates();
-  const i = SANDBOX.findIndex((r) => r.id === ruling.id);
-  const prev = SANDBOX[i - 1];
-  const next = SANDBOX[i + 1];
-  const { Component } = entry;
+  const i = BOARDS.findIndex((b) => b.id === spec.id);
+  const prev = BOARDS[i - 1];
+  const next = BOARDS[i + 1];
 
   // Marketing boards render inside the production marketing skin so the
   // [data-mkt-*] grammar (marketing.css, loaded by the root layout) reaches
   // them with the real tokens.
-  const skin = ruling.surface === "marketing" ? { "data-mkt": "" } : {};
+  const skin = spec.surface === "marketing" ? { "data-mkt": "" } : {};
 
   // The review, when the session names an ask here. The whole queue rides
   // along (not just this board's), because "Ask 12 of 47" counts the review
   // and Next has to reach the next board's first open ask.
-  const rows = param?.startsWith(`${ruling.id}.`)
-    ? deskRows(
-        SANDBOX.map((r) => ({
-          id: r.id,
-          title: r.title,
-          surfaceLabel: SURFACE_LABEL[r.surface],
-          note: r.board.note,
-          tracks: r.board.tracks ?? [r.id],
-        })),
-      )
-    : null;
+  const rows = param?.startsWith(`${spec.id}.`) ? deskRows(deskBoards()) : null;
   const review = rows
     ? {
         steps: toSteps(boardWork(rows), boardSpec, key),
@@ -119,9 +107,9 @@ export default async function BoardPage({
 
   return (
     <BoardFrame
-      id={ruling.id}
-      title={ruling.title}
-      sections={spec?.sections.map((s) => ({ id: s.id, label: s.title })) ?? []}
+      id={spec.id}
+      title={spec.title}
+      sections={spec.sections.map((s) => ({ id: s.id, label: s.title }))}
       prev={prev && { href: `/design/lab/${prev.id}`, label: prev.title }}
       next={next && { href: `/design/lab/${next.id}`, label: next.title }}
       review={review}
@@ -133,25 +121,22 @@ export default async function BoardPage({
             the spine says which board this is and links the whole thing. */}
         {review ? null : (
           <PageHeader
-            title={ruling.title}
-            // A board on the template answers in its own first block (the kit's
-            // Answer: the question, the verdict, the asks as pills), so the
-            // header must not say it first: two statements of the same question,
-            // one above the other, is the density the template exists to end.
-            description={spec ? undefined : `${board.note}.`}
+            title={spec.title}
+            // The kit's Answer states the question in the board's own first
+            // block, so the header does not: two statements of the same
+            // question, one above the other, is the density the template ends.
             badges={
               <>
-                <Tag>{SURFACE_LABEL[ruling.surface]}</Tag>
+                <Tag>{SURFACE_LABEL[spec.surface]}</Tag>
                 <Tag badge="exploring" />
-                {entry.legacy && <Tag badge="legacy">legacy layout</Tag>}
               </>
             }
             meta={[
-              ["Asks", ruling.asks],
+              ["Asks", spec.sections.map((s) => s.title).join(" · ")],
               [
                 "Track",
                 <span key="tracks" className="inline-flex flex-wrap gap-x-2">
-                  {(board.tracks ?? [ruling.id]).map((t) =>
+                  {(spec.tracks ?? [spec.id]).map((t) =>
                     tracks.has(t) ? (
                       <Ref key={t} to={{ kind: "track", name: t }} quiet>
                         {t}
@@ -164,11 +149,6 @@ export default async function BoardPage({
               ],
             ]}
           />
-        )}
-        {!review && !spec && (
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-            {ruling.why}
-          </p>
         )}
         <div className="mt-4" {...skin}>
           <Component />

@@ -62,9 +62,19 @@ function readSpec(board) {
   if (!existsSync(file)) return null;
   const src = readFileSync(file, "utf8");
   const sf = ts.createSourceFile(file, src, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
-  const spec = { board, file, round: null, opening: null, terms: [], decisions: new Map(), items: new Map() };
+  const spec = { board, file, round: null, title: null, surface: null, desk: null, lives: [], tracks: [], opening: null, terms: [], decisions: new Map(), items: new Map() };
   const walk = (node) => {
     if (ts.isObjectLiteralExpression(node)) {
+      // The board's own object (it names its asks): its title and its desk facts, which are the board's own since the
+      // lab revamp (a board is its folder; nothing else lists it).
+      if (prop(node, "asks") && prop(node, "round") && prop(node, "id")) {
+        spec.title = str(prop(node, "title"));
+        spec.surface = str(prop(node, "surface"));
+        const desk = prop(node, "desk");
+        if (desk && ts.isNumericLiteral(desk)) spec.desk = Number(desk.text);
+        spec.lives = strs(prop(node, "lives"));
+        spec.tracks = strs(prop(node, "tracks"));
+      }
       const q = prop(node, "question"), opts = prop(node, "options"), id = prop(node, "id");
       if (q && opts && id && ts.isArrayLiteralExpression(opts)) {
         // The context layer (2026-09-29) rides beside the question: where it happens, the state that brings
@@ -149,7 +159,47 @@ function parsePaste(text) {
   return { build, reviews };
 }
 
-export { readSpec, parsePaste, reading };
+/**
+ * The desk facts the registry holds for the boards whose specs predate them (`PREDATES` in sandbox/registry.ts), by
+ * board id: read off the file so a board that retires takes its line with it.
+ */
+function readPredates() {
+  const file = join(SANDBOX, "registry.ts");
+  if (!existsSync(file)) return {};
+  const sf = ts.createSourceFile(file, readFileSync(file, "utf8"), ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+  const out = {};
+  const walk = (node) => {
+    if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.name.text === "PREDATES" && node.initializer && ts.isObjectLiteralExpression(node.initializer)) {
+      for (const p of node.initializer.properties) {
+        if (!ts.isPropertyAssignment(p) || !ts.isObjectLiteralExpression(p.initializer)) continue;
+        const id = ts.isStringLiteral(p.name) || ts.isIdentifier(p.name) ? p.name.text : null;
+        const desk = prop(p.initializer, "desk");
+        if (id) out[id] = { surface: str(prop(p.initializer, "surface")), desk: desk && ts.isNumericLiteral(desk) ? Number(desk.text) : null, lives: strs(prop(p.initializer, "lives")), tracks: strs(prop(p.initializer, "tracks")) };
+      }
+    }
+    ts.forEachChild(node, walk);
+  };
+  walk(sf);
+  return out;
+}
+
+/**
+ * Every standing board (a folder under sandbox/ with a spec.ts), its desk facts filled from PREDATES where its spec has
+ * none, in desk order: its own `desk` place, lower first, a tie in id order, as the registry sorts `BOARDS`.
+ */
+function readBoards() {
+  const predates = readPredates();
+  const ids = existsSync(SANDBOX) ? readdirSync(SANDBOX, { withFileTypes: true }).filter((e) => e.isDirectory() && existsSync(join(SANDBOX, e.name, "spec.ts"))).map((e) => e.name) : [];
+  return ids
+    .map((id) => {
+      const spec = readSpec(id);
+      const facts = predates[id] ?? {};
+      return { ...spec, surface: spec.surface ?? facts.surface ?? null, desk: spec.desk ?? facts.desk ?? null, lives: spec.lives.length ? spec.lives : (facts.lives ?? []), tracks: spec.tracks.length ? spec.tracks : (facts.tracks ?? []) };
+    })
+    .sort((a, b) => (a.desk ?? Infinity) - (b.desk ?? Infinity) || a.board.localeCompare(b.board));
+}
+
+export { readSpec, readBoards, parsePaste, reading };
 
 /* ---------- the reading ---------- */
 

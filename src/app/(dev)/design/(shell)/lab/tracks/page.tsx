@@ -11,7 +11,7 @@ import {
   trackAlias,
   trackList,
 } from "@/app/(dev)/design/_data/tracks";
-import { SANDBOX } from "@/app/(dev)/design/touchpoints";
+import { BOARDS } from "@/app/(dev)/design/sandbox/registry";
 
 /**
  * THE TRACKS (the Library x Lab round, 2026-09-15): every lp/<track> branch
@@ -33,7 +33,7 @@ export default async function TracksPage({
   const handedOff = tracks.filter((t) => t.status === "handed-off");
 
   const boardOf = (name: string) =>
-    SANDBOX.find((r) => r.id === name || r.board?.tracks?.includes(name));
+    BOARDS.find((b) => b.id === name || b.tracks?.includes(name));
 
   const card = (t: TrackState) => {
     const board = boardOf(t.track);

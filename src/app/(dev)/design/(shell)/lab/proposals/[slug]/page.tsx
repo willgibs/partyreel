@@ -13,7 +13,7 @@ import { Ref } from "@/app/(dev)/design/(shell)/_shell/ref";
 import { Tag } from "@/app/(dev)/design/(shell)/_shell/tag";
 import { inlineText, listSpecs, readDoc } from "@/app/(dev)/design/_data/docs";
 import { readTrackStates } from "@/app/(dev)/design/_data/tracks";
-import { SANDBOX } from "@/app/(dev)/design/touchpoints";
+import { BOARDS } from "@/app/(dev)/design/sandbox/registry";
 
 import { proposalStatus } from "../status";
 
@@ -50,9 +50,9 @@ export default async function ProposalPage({
         ? "A board's settled argument; not law until Will rules."
         : "A settled spec, not an open proposal."),
   };
-  const board = SANDBOX.find((r) => r.id === slug);
+  const board = BOARDS.find((b) => b.id === slug);
   const tracks = readTrackStates();
-  const builders = (board?.board?.tracks ?? (board ? [board.id] : [])).filter(
+  const builders = (board?.tracks ?? (board ? [board.id] : [])).filter(
     (n) => tracks.has(n),
   );
 

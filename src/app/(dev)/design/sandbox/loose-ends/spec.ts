@@ -35,6 +35,15 @@ import { defineExploration } from "@/components/lab/exploration";
 export const LOOSE_ENDS = defineExploration({
   id: "loose-ends",
   title: "Five loose ends",
+  surface: "shared",
+  desk: 60,
+  lives: [
+    "src/app/globals.css",
+    "src/components/marketing/faq-accordion.tsx",
+    "src/components/marketing/sections/features/album/getting-in-stage.tsx",
+    "src/components/marketing/sections/features/album/review-switch.tsx",
+    "src/components/marketing/sections/features/album/everywhere-stage.tsx",
+  ],
   round: {
     n: 1,
     date: "2026-09-28",
