@@ -46,7 +46,10 @@ a lane").
 | `window-notes` | a note of Will's binds only what it was given on: stop the lab merging board-less window notes into every board (his three brand-voice notes of 2026-09-17 have bound every board since), window notes expire with their sitting, program-wide notes are the Orchestrator's to fold in; a read-only audit of other board notes turned rules | running (agent `a8e2499b27081d552`; worktree `../partyreel-wt/window-notes`) | Sonnet, 3132 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
-its first question was the `demo-framing.names` hang. From another session, respawn it from `usher/kit/advisor-prompt.txt`.
+Q1, the `demo-framing.names` hang: it changed the call (attribution unproven, since my A/B ran on two server
+instances and the lane saw it hang with its lab files reverted; bisect first, the probe's stack decides; relayed to
+`crumbs-16` whole). Q2, schema-pass part 1 before its apply, is open. From another session, respawn it from
+`usher/kit/advisor-prompt.txt`.
 
 **Handoff across accounts.** The Orchestrator session is `157caa18-ec54-4aa9-a12a-04c86d5a667b` (the second account,
 seated 2026-09-29 12:23 EDT); the first account's `b01c012e` is retired and must not resume. Its agent ids live only
