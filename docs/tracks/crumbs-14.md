@@ -77,3 +77,45 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am
+
+**Done (1 of 6):** the hub row's stick loop, `ea8027c0` (typecheck, lint on the touched files, `pnpm test` 570 files
+green before it). The row sticks as a footprint (`useStuckBand`, `event-cards-row.tsx`) whose floor is the resting
+band's height, read only while the band rests and no transition runs; the band condenses inside it, its hairline
+present and clear at rest. Evidence in `../partyreel-wt/_scratch/crumbs-14/`: `row-before.log` (the old row: 121 flips
+at 375, 118 at 768/1440, jumps past the band 99/59 px short) and `row-after.log` (every jump one flip, landed where
+asked, fades true), both from `row-probe.mjs` (headless Chrome on the temporary harness). The unit test fails on the old
+row (40 flips; 385 for 485) and passes on the new.
+
+**Half-done:** item 2 (the popup's back label): a temporary harness renders one real screen popup at
+`/design/crumbs14-harness/popup?title=&back=&kind=list` (375 wide); nothing measured or changed yet.
+★ `src/app/(dev)/design/crumbs14-harness/` is TEMPORARY: never stage it, delete it before the handoff.
+
+**Next, in order (the plan each was reasoned to):**
+1. Item 2, `popup.tsx`'s screen header: the side columns `minmax(auto,1fr)` (their base is the back label's own
+   width, reserved before the centred title grows) with a vw cap on the back button so a long event name cannot starve
+   the title; measure "Dashboard" + "Photos waiting for you" at 375 before and after. `settings-wiring` claimed
+   `popup.tsx` at its boot too (untouched at `e865f622`): name the overlap in the Handoff.
+2. Item 3, the admin sign-in: `requireAdmin` sends `loginPath(the proxy's x-pr-path)`; `return-path.ts` becomes
+   host-aware (the portal's pages and its sections only on the admin host, the app's only off it: never the apex from
+   the admin host); the admin host's Google callback stays BARE (its allow-list entry is exact), so the page rides a
+   short-lived host-only cookie the login form writes on the admin host and the callback reads, re-checks and clears.
+   Tests: every `lib/admin/nav.ts` section accepted on the admin host and refused off it, and hostile paths.
+   Add to `owns` first: `src/components/auth/login-form.tsx` (+ test), `src/app/(auth)/auth/callback/route.ts`,
+   `src/app/(auth)/login/page.tsx`.
+3. Item 4, the device Sign out: `signOutAction` returns the refusal like `signOutEverywhereAction`; a shared client
+   `src/components/auth/sign-out-form.tsx` toasts it; `src/components/app/user-menu.tsx` uses it (add both to `owns`);
+   `src/components/admin/admin-bar.tsx` (triage-r2-wiring's) needs the same two-line swap, since a form action cannot
+   return a value in the types: check `tsc`, then a named exception or a relay.
+4. Item 5, the pricing teaser: `price-pop.tsx`'s root `whitespace-nowrap` (a price is one token; the digits are
+   inline-blocks, each boundary a wrap opportunity) and the teaser's grid `max-w-3xl` to `max-w-4xl` (measured at 1440:
+   "from $9/mo" 215.1 px and "$24 one-time" 209.4 px in a 195.3 px column; 4xl gives 238 px), never a one-off type
+   size (his type-phone ruling; `type-ladder-policy.test.ts`). Measure 640 to 1920.
+5. Item 6, the lowercase bullet: `MaxEvents` takes `capitalized`; `content/help/what-the-free-plan-includes.mdx:25`
+   (settings-wiring's path) adopts it as a one-line exception or a relay.
+6. Doc facts in place: `auth-accounts.md` (the return, the sign-out); `host-app.md` (the row's footprint) and
+   `admin-observability.md` (`requireAdmin`'s login path) belong to settings-wiring and triage-r2-wiring: one sentence
+   each, named in System-doc edits.
+7. The gate on the synced tree (dev server on 3135 killed first), `pnpm lab:smoke --base http://localhost:3135`, the
+   harness deleted, the Handoff.
