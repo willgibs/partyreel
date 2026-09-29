@@ -68,9 +68,12 @@ function report(n: number, over: Partial<EntryReport> = {}): EntryReport {
     kind: "other",
     signedIn: false,
     canAsk: false,
+    byHost: false,
     hidAt: null,
     proof: null,
     ...over,
+    // A report that can be asked was sent from a confirmed address.
+    confirmed: over.confirmed ?? over.canAsk ?? false,
   };
 }
 
@@ -313,6 +316,41 @@ describe("the report whole", () => {
     expect(
       within(peek).getAllByText(/Signed-in guest, can't be asked/).length,
     ).toBeGreaterThan(0);
+  });
+
+  it("★ the album's own host reads as the host, never as a guest (build 23's LOW-2)", async () => {
+    const { peek } = await openPeek(
+      entry(1, {}, [
+        report(1, {
+          kind: "violence",
+          signedIn: true,
+          canAsk: true,
+          byHost: true,
+        }),
+      ]),
+    );
+    expect(
+      within(peek).getAllByText(/The host, can be asked/).length,
+    ).toBeGreaterThan(0);
+    expect(within(peek).queryByText(/Signed-in guest/)).toBeNull();
+  });
+
+  it("one upload is one (build 23's NIT-10)", async () => {
+    const { peek } = await openPeek(
+      entry(1, {
+        event: {
+          id: "e1",
+          name: "RT23 Free D",
+          host: "Partyreel",
+          uploads: 1,
+          guests: 0,
+        },
+      }),
+    );
+    expect(
+      within(peek).getByText(/RT23 Free D · 1 upload · Partyreel/),
+    ).toBeInTheDocument();
+    expect(within(peek).queryByText(/1 uploads/)).toBeNull();
   });
 
   it("★ Dismiss is one press, carries the note Add a note opened, and its Undo reopens every report it closed", async () => {

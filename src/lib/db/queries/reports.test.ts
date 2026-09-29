@@ -36,10 +36,15 @@ let fake: FakePostgrest;
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => asSupabase(fake),
 }));
+// The address's keyed hash, as a readable stand-in (the real one needs the rate-limit secret).
+vi.mock("@/lib/reports/reporter.server", () => ({
+  reporterAddressHash: (email: string) => `hash:${email.trim().toLowerCase()}`,
+}));
 
 const {
   countOpenReports,
   countUrgentReports,
+  listOpenEntries,
   listProfileReports,
   listReports,
   oldestOpenReportAt,
@@ -511,5 +516,140 @@ describe("the verdict's record and the item's standing", () => {
       [uuid("q", 3), "reopen"],
       [uuid("q", 4), null],
     ]);
+  });
+});
+
+describe("the closed log keeps the worst kinds covered (build 23's NIT-7)", () => {
+  const T_JS = "2026-09-28T20:00:00.123Z";
+  const report = (i: number, media: number, over: FakeRow) => ({
+    id: uuid("r", i),
+    reason: null,
+    created_at: at(i),
+    status: "dismissed",
+    resolved_at: T_JS,
+    resolution_note: null,
+    event_id: uuid("e", 1),
+    media_id: uuid("m", media),
+    profile_id: null,
+    ...over,
+  });
+  const media = (i: number) => ({
+    id: uuid("m", i),
+    type: "photo",
+    original_key: `key-${i}`,
+    preview_key: `preview-${i}`,
+    status: "approved",
+    removed_by_admin: false,
+    removed_at: null,
+    legal_hold_at: null,
+  });
+
+  it("★ signs no picture for an item any report names as a covered kind, open or closed", async () => {
+    fake = createFakePostgrest({
+      tables: {
+        events: [{ id: uuid("e", 1), name: "RT23 doors A" }],
+        media: [media(1), media(2), media(3)],
+        reports: [
+          // A child-abuse report, dismissed (the red-team's line).
+          report(1, 1, { kind: "child" }),
+          // Dismissed as violence, while another report calls the same photo sexual content.
+          report(2, 2, { kind: "violence" }),
+          report(3, 2, { kind: "sexual", status: "open", resolved_at: null }),
+          // Violence alone: its frame is the operator's to see.
+          report(4, 3, { kind: "violence" }),
+        ],
+      },
+    });
+    const { reports } = await listReports("dismissed", 50, NOW);
+    const itemOf = (i: number) =>
+      reports.find((r) => r.id === uuid("r", i))?.media;
+    for (const i of [1, 2]) {
+      expect(itemOf(i)).toMatchObject({
+        covered: true,
+        url: null,
+        previewUrl: null,
+      });
+    }
+    expect(itemOf(4)).toMatchObject({
+      covered: false,
+      url: "signed:key-3",
+      previewUrl: "signed:preview-3",
+    });
+    // Nothing of a covered item was signed at all.
+    const urls = reports.flatMap((r) => [r.media?.url, r.media?.previewUrl]);
+    expect(urls.filter((u) => /key-[12]|preview-[12]/.test(String(u)))).toEqual(
+      [],
+    );
+  });
+});
+
+describe("the open queue says who sent each report (build 23's LOW-2 and NIT-8)", () => {
+  const HOST = uuid("p", 1);
+  const report = (i: number, over: FakeRow) => ({
+    id: uuid("r", i),
+    reason: null,
+    created_at: at(i),
+    status: "open",
+    event_id: uuid("e", 1),
+    media_id: uuid("m", i),
+    kind: "violence",
+    reporter_signed_in: true,
+    reporter_email: null,
+    reporter_hash: null,
+    hid_at: null,
+    ...over,
+  });
+  const media = (i: number) => ({
+    id: uuid("m", i),
+    type: "photo",
+    original_key: `key-${i}`,
+    preview_key: null,
+    status: "approved",
+    removed_by_admin: false,
+    removed_at: null,
+    legal_hold_at: null,
+    event_id: uuid("e", 1),
+    guest_id: null,
+    guests: null,
+  });
+
+  it("★ tells the album's own host from a guest, and a reopened report's confirmed address from none", async () => {
+    fake = createFakePostgrest({
+      tables: {
+        events: [{ id: uuid("e", 1), name: "RT23 doors A", host_id: HOST }],
+        profiles: [
+          { id: HOST, display_name: "Will Gibson", email: "Host@Example.com" },
+        ],
+        media: [1, 2, 3, 4].map(media),
+        reports: [
+          // The host's own report, its address still kept.
+          report(1, { reporter_email: "host@example.com" }),
+          // A guest's.
+          report(2, { reporter_email: "guest@example.com" }),
+          // The host's worst-kind report, dismissed and reopened: the address forgotten, its hash kept.
+          report(3, { kind: "child", reporter_hash: "hash:host@example.com" }),
+          // A guest's worst-kind report, reopened the same way.
+          report(4, { kind: "child", reporter_hash: "hash:guest@example.com" }),
+        ],
+      },
+      rpc: { report_queue_facts: () => ({}) },
+    });
+    const { entries } = await listOpenEntries(50);
+    const said = Object.fromEntries(
+      entries.map((e) => [
+        e.reportId,
+        {
+          byHost: e.reports[0].byHost,
+          confirmed: e.reports[0].confirmed,
+          canAsk: e.reports[0].canAsk,
+        },
+      ]),
+    );
+    expect(said).toEqual({
+      [uuid("r", 1)]: { byHost: true, confirmed: true, canAsk: true },
+      [uuid("r", 2)]: { byHost: false, confirmed: true, canAsk: true },
+      [uuid("r", 3)]: { byHost: true, confirmed: true, canAsk: false },
+      [uuid("r", 4)]: { byHost: false, confirmed: true, canAsk: false },
+    });
   });
 });

@@ -28,6 +28,7 @@ import {
   type DoorStep,
   type PrivateGate,
 } from "@/lib/event/door/door";
+import { cameInLine } from "@/lib/event/door/words";
 import {
   DOOR_STEP_LABELS,
   DOOR_STEP_LINES,
@@ -173,9 +174,7 @@ export function DoorPage({ guestsHref }: { guestsHref: string }) {
     setPending(null);
     const answer = await s.saveDoor(next);
     if (answer && answer.admitted > 0) {
-      toast.success(
-        `${people(answer.admitted, "person", "people")} waiting at the door came in.`,
-      );
+      toast.success(cameInLine(answer.admitted));
     }
   }
 

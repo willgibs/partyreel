@@ -217,7 +217,10 @@ describe("getEventMediaByQrToken: the open album, read whole", () => {
     });
   });
 
-  it("carries reel_eligible through, and reads it as eligible when an older RPC omits it", async () => {
+  // ★ RESHAPED ON PURPOSE (crumbs-17, crumbs-15's dead seam; scar kept: a clip added to the album never
+  // plays in the reel). Its second half read "an older RPC omits it" as eligible, the shape before the live
+  // reel's expand; that migration is applied and typed, so every answer carries the flag.
+  it("carries reel_eligible through: the album's clip plays in no reel", async () => {
     const media = album(5);
     const { handler } = albumRpc(media);
     fake = createFakePostgrest({
@@ -226,18 +229,9 @@ describe("getEventMediaByQrToken: the open album, read whole", () => {
     const rows = await getEventMediaByQrToken(OPEN_QR);
     // uid(4) is index 3: the fixture's clip.
     expect(rows.find((r) => r.id === uid(4))?.reel_eligible).toBe(false);
-
-    const bare = album(3).map((row) => {
-      const { reel_eligible: _dropped, ...rest } = row;
-      void _dropped;
-      return rest;
-    });
-    const older = albumRpc(bare);
-    fake = createFakePostgrest({
-      rpc: { get_event_media_by_qr_token: older.handler },
-    });
-    const legacy = await getEventMediaByQrToken(OPEN_QR);
-    expect(legacy.every((r) => r.reel_eligible === true)).toBe(true);
+    expect(
+      rows.filter((r) => r.id !== uid(4)).every((r) => r.reel_eligible),
+    ).toBe(true);
   });
 
   it("an album the RPC will not show (not open, deleted, a wrong token) is empty, in one request", async () => {
@@ -320,13 +314,15 @@ describe("getEventByQrToken: the live reel's event facts", () => {
     expect(result.ok && result.data.reel_style_id).toBe("mono");
   });
 
-  it("reads an RPC from before the column as the defaults", async () => {
-    const row = eventRow();
-    delete row.reel_hold_sec;
-    delete row.show_reel;
-    answer(row);
-    const result = await getEventByQrToken(OPEN_QR);
-    expect(result.ok && result.data.reel_hold_sec).toBeNull();
-    expect(result.ok && result.data.show_reel).toBe(true);
+  // ★ RESHAPED ON PURPOSE (crumbs-17, crumbs-15's dead seam; scar kept: the reel's switch reads as the host
+  // left it). This read "an RPC from before the column as the defaults"; the reel's migrations are applied
+  // and typed, so the switch comes back on every answer, off included.
+  it("reads the host's reel switch as the RPC answers it, off included", async () => {
+    answer(eventRow({ show_reel: false }));
+    const off = await getEventByQrToken(OPEN_QR);
+    expect(off.ok && off.data.show_reel).toBe(false);
+    answer(eventRow());
+    const on = await getEventByQrToken(OPEN_QR);
+    expect(on.ok && on.data.show_reel).toBe(true);
   });
 });

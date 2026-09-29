@@ -35,6 +35,19 @@ function builder(client: "admin" | "host", table: string) {
       only = { column, values: new Set(values) };
       return b;
     },
+    /** One row or none, as PostgREST's `maybeSingle` answers. */
+    maybeSingle() {
+      return {
+        then: (resolve: (value: unknown) => unknown) =>
+          b.then((answer) => {
+            const { data, error } = answer as {
+              data: Row[] | null;
+              error: unknown;
+            };
+            return resolve({ data: data?.[0] ?? null, error });
+          }),
+      };
+    },
     then(resolve: (value: unknown) => unknown) {
       const answer = tables[`${table}:error`];
       if (answer)
@@ -212,7 +225,10 @@ describe("getEventBlocks: the host's Blocked list", () => {
     expect(reads).toEqual([]);
   });
 
-  it("★ the rows are the host's own read (RLS proves the event is theirs); only counts and faces are admin", async () => {
+  // ★ RESHAPED ON PURPOSE (crumbs-17, build 23's NIT-3; scar kept: the block rows are the host's own
+  // read, and the admin client reads only over the ids those rows returned): where each one stands at
+  // the door joins the counts and the faces, since the words of Let back in depend on it.
+  it("★ the rows are the host's own read (RLS proves the event is theirs); only counts, faces and standing are admin", async () => {
     await getEventBlocks(EVENT, format);
     expect(reads.filter((r) => r.table === "event_blocks")).toEqual([
       { client: "host", table: "event_blocks" },
@@ -222,7 +238,7 @@ describe("getEventBlocks: the host's Blocked list", () => {
         .filter((r) => r.client === "admin")
         .map((r) => r.table)
         .sort(),
-    ).toEqual(["media", "profiles"]);
+    ).toEqual(["guests", "guests", "media", "profiles"]);
   });
 
   it("newest first; a confirmed guest by their profile and address, a typed name by its own words", async () => {
@@ -247,6 +263,7 @@ describe("getEventBlocks: the host's Blocked list", () => {
       since: "since 2026-09-27T10:00:00+00:00",
       restorable: 0,
       restorableUntil: null,
+      atDoor: false,
     });
   });
 
@@ -266,5 +283,71 @@ describe("getEventBlocks: the host's Blocked list", () => {
     );
     const withWithdrawal = (await getEventBlocks(EVENT, format))[0].restorable;
     expect(withHold).toBe(withWithdrawal);
+  });
+});
+
+describe("getEventBlocks: where Let back in leaves each one (build 23's NIT-3)", () => {
+  const block = (over: Row): Row => ({
+    event_id: EVENT,
+    user_id: null,
+    email: null,
+    guest_id: null,
+    display_name: null,
+    removed_media_ids: [],
+    created_at: AT,
+    ...over,
+  });
+
+  beforeEach(() => {
+    tables.media = [];
+    tables.profiles = [];
+    tables.event_blocks = [
+      // Declined at the door: her only row waits.
+      block({ id: "b-wren", user_id: "u-wren", email: "wren@example.com" }),
+      // Was in, then blocked: her row is in.
+      block({ id: "b-sam", user_id: "u-sam", email: "sam@example.com" }),
+      // Declined at the door, but her address is on the invite list.
+      block({ id: "b-lou", user_id: "u-lou", email: "lou@example.com" }),
+    ];
+    tables.guests = [
+      {
+        id: "g-wren",
+        event_id: EVENT,
+        user_id: "u-wren",
+        admission: "waiting",
+      },
+      { id: "g-sam", event_id: EVENT, user_id: "u-sam", admission: "in" },
+      { id: "g-lou", event_id: EVENT, user_id: "u-lou", admission: "waiting" },
+    ];
+    tables.event_invites = [{ event_id: EVENT, email: "lou@example.com" }];
+  });
+
+  const standing = async () =>
+    Object.fromEntries(
+      (await getEventBlocks(EVENT, format)).map((p) => [p.id, p.atDoor]),
+    );
+
+  it("★ a declined newcomer goes back to the door; someone who was in comes back in", async () => {
+    tables.events = [{ id: EVENT, visibility: "private", gate: "approve" }];
+    await expect(standing()).resolves.toEqual({
+      "b-wren": true,
+      "b-sam": false,
+      "b-lou": true,
+    });
+  });
+
+  it("★ the invite list, while it is the door, lets a listed one straight in, as let_back_in does", async () => {
+    tables.events = [{ id: EVENT, visibility: "private", gate: "invite" }];
+    await expect(standing()).resolves.toEqual({
+      "b-wren": true,
+      "b-sam": false,
+      "b-lou": false,
+    });
+    // The door and the list are the host's own reads, never the admin client's.
+    expect(
+      reads
+        .filter((r) => r.table === "events" || r.table === "event_invites")
+        .map((r) => r.client),
+    ).toEqual(["host", "host"]);
   });
 });

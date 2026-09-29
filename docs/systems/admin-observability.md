@@ -151,7 +151,9 @@ test (admin-triage r2):
   is open (a BEFORE trigger forgets it and the answer link's hash at the close; a CHECK refuses a closed row holding
   either). A child-abuse report also keeps `reporter_hash`, the address's HMAC under `UNLOCK_COOKIE_SECRET` in its own
   `r-addr:` domain, which its limits and its bar read after the address is gone. Nothing tells the host or the person
-  reported who filed a report.
+  reported who filed a report. The queue says only what the session proved (`reporterWords`): the album's own host
+  (the kept address, or the kept hash, is hers), else a guest signed in or not; and whether she can be asked, which a
+  report reopened after its close no longer can, though its hash still says a confirmed address sent it.
 - ★ **The instant hide** (`create_report`): a `child` report of an item from a confirmed address makes the item an
   operator's removal at once (`hid_at` equal to its `removed_at`). Never for the event's own host, never for an
   address a dismissed child-abuse report bars, at most 3 an address and 5 an event in 24 hours (advisory-locked);
@@ -159,7 +161,8 @@ test (admin-triage r2):
   tells the operator after the response (`alertUrgentReport`: a Sentry warning every time, an ops-inbox mail once
   per album per ten minutes) and on the rail and the bell (the urgent count).
 - **The open queue is the review grid** (`components/admin/report-queue.tsx`): the five harm kinds in front, worst
-  first, the two sexual kinds covered until View; People between; Something else in the sweep, ticked and dismissed
+  first, the two sexual kinds covered until View (★ and covered on every closed line whose item any report names as
+  one, with no picture signed: build 23's NIT-7); People between; Something else in the sweep, ticked and dismissed
   in one press. Space opens a report whole. At phone width each report carries Take it down and Hold for forensics,
   one press each; sweeps, notes and proof wait for a desk. The Library's compositions page renders it over writes
   that change nothing.

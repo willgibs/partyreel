@@ -30,3 +30,12 @@ export function askedAgo(askedAt: string, now: number): string {
 export function peopleWaiting(n: number): string {
   return `${formatCount(n)} ${n === 1 ? "person" : "people"}`;
 }
+
+/**
+ * What the host is told once people waiting at the door are in without her pressing Let in: the album
+ * turned Public, or the invite list became the door, or the list gained an address that waited (build
+ * 23's BUG-2). One sentence for all three, because to the host it is one event.
+ */
+export function cameInLine(n: number): string {
+  return `${peopleWaiting(n)} waiting at the door came in.`;
+}

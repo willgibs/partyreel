@@ -664,12 +664,15 @@ describe("sweepDeletedAccounts on the clamping fake", () => {
     expect(result.remaining).toBe(210);
   });
 
-  it("reports not_provisioned before the deletion column exists", async () => {
+  // ★ RESHAPED ON PURPOSE (crumbs-17, crumbs-15's dead seam; scar kept: the queue's read decides the run).
+  // This read "reports not_provisioned before the deletion column exists": a missing-schema code answered as
+  // nothing to do. Migration 20260902130000 is applied and typed, so the seam went, and a missing object is a
+  // failure like any other: the sweep throws, and its run closes red rather than green on an empty queue.
+  it("fails, never reads as nothing to do, when the queue cannot be read", async () => {
     const w = world({ profiles: [], events: [], media: [] });
-    // The fake answers an unknown table with PGRST205, one of the missing-schema codes.
+    // The fake answers an unknown table with PGRST205.
     delete (w.fake.tables as Record<string, unknown>).profiles;
-    const result = await sweepDeletedAccounts(w.client, NOW);
-    expect(result.skipped).toBe("not_provisioned");
+    await expect(sweepDeletedAccounts(w.client, NOW)).rejects.toThrow();
   });
 });
 

@@ -154,6 +154,7 @@ const person = (over: Partial<BlockedPerson> = {}): BlockedPerson => ({
   since: "Blocked Sep 28",
   restorable: 0,
   restorableUntil: null,
+  atDoor: false,
   ...over,
 });
 
@@ -214,6 +215,25 @@ describe("the Blocked list and the way back", () => {
       expect(letBackInToast("Sam", restored, 0).description).not.toMatch(
         /in the album/,
       );
+    }
+  });
+
+  it("★ a newcomer declined at the door is told she goes back there, not into the album (build 23's NIT-3)", () => {
+    expect(letBackInLede("Maya's 30th", true)).toBe(
+      "They'll be back at the door, and you can let them in from there.",
+    );
+    expect(letBackInToast("Wren", 0, 0, true)).toEqual({
+      title: "Wren is back at the door.",
+    });
+    expect(letBackInToast(null, 0, 0, true)).toEqual({
+      title: "They're back at the door.",
+    });
+    // Neither promises the album she still has to be let into.
+    for (const said of [
+      letBackInLede("Maya's 30th", true),
+      letBackInToast("Wren", 0, 0, true).title,
+    ]) {
+      expect(said).not.toMatch(/open|add photos|join again/);
     }
   });
 });

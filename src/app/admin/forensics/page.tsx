@@ -166,7 +166,7 @@ export default async function ForensicsPage() {
                       className="text-caption whitespace-nowrap tabular-nums"
                       title={h.holdReason ?? ""}
                     >
-                      {h.id.slice(0, 8)}\u2026
+                      {`${h.id.slice(0, 8)}\u2026`}
                     </TableCell>
                     <TableCell>
                       {h.eventName ?? `${h.eventId.slice(0, 8)}\u2026`}
