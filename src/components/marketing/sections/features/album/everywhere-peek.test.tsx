@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { setReducedMotion } from "../../../../../../vitest.setup";
 
@@ -9,7 +9,14 @@ import {
 } from "./album-fill-fixtures";
 import { AlbumFillGrid, type PeekRequest } from "./album-fill-grid";
 import { EverywherePeek } from "./everywhere-peek";
+import { EverywhereStage } from "./everywhere-stage";
 import { deriveAlbumFill } from "./use-album-fill";
+
+// jsdom has no IntersectionObserver, so the stage would sit paused for want of
+// an observer: the stage's own pause (the lightbox) is what its test is about.
+vi.mock("@/lib/shared/use-ambient-pause", () => ({
+  useAmbientPause: () => ({ ref: () => {}, paused: false }),
+}));
 
 /**
  * THE EVERYWHERE STAGE'S EASTER EGG (`loose-ends` r1, `everywhere-pill=corner`
@@ -121,7 +128,7 @@ describe("the lightbox", () => {
     expect(onOpenChange).toHaveBeenLastCalledWith(false);
   });
 
-  it("keeps the photograph through its exit: `peek` outlives `open`", () => {
+  it("goes when `open` turns false while `peek` stays held, so its exit still has a photograph to draw", () => {
     const { rerender } = render(
       <EverywherePeek peek={REQUEST} open onOpenChange={vi.fn()} />,
     );
@@ -233,5 +240,59 @@ describe("the stage's tiles", () => {
     const { container } = grid(undefined);
     expect(container.querySelector("svg.lucide-maximize2")).toBeNull();
     expect(() => fireEvent.click(tiles(container)[0])).not.toThrow();
+  });
+});
+
+describe("the stage that holds them", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  /** What is on screen: every tile's photograph, on both screens. */
+  const onScreen = (root: HTMLElement) =>
+    [...root.querySelectorAll("[data-mkt-fly] img")]
+      .map((img) => img.getAttribute("src"))
+      .join("|");
+  /** One beat at a time: each tick's timer is scheduled by the render before it. */
+  const ticks = (n: number) => {
+    for (let i = 0; i < n; i++) {
+      act(() => {
+        vi.advanceTimersByTime(800);
+      });
+    }
+  };
+
+  it("holds its loop still while the lightbox is up and lets it carry on when it closes", () => {
+    const { container } = render(<EverywhereStage />);
+    const start = onScreen(container);
+    ticks(6);
+    expect(onScreen(container), "the loop runs").not.toBe(start);
+
+    fireEvent.click(container.querySelector("[data-mkt-fly]")!);
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    const held = onScreen(container);
+    // The album is where the visitor left it, however long they look.
+    ticks(12);
+    expect(onScreen(container), "and holds").toBe(held);
+
+    fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
+    expect(screen.queryByRole("dialog")).toBeNull();
+    ticks(6);
+    expect(onScreen(container), "then carries on").not.toBe(held);
+  });
+
+  it("stays aria-hidden decoration: the tiles are pressed, never tabbed to", () => {
+    const { container } = render(<EverywhereStage />);
+    const stage = container.firstElementChild as HTMLElement;
+    expect(stage).toHaveAttribute("aria-hidden", "true");
+    expect(stage.querySelectorAll("[data-mkt-fly]").length).toBeGreaterThan(4);
+    // A focusable inside an aria-hidden region is worse than none.
+    const tabStops = [...stage.querySelectorAll<HTMLElement>("*")].filter(
+      (el) => el.tabIndex >= 0,
+    );
+    expect(tabStops).toHaveLength(0);
   });
 });
