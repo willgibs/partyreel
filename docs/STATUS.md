@@ -41,8 +41,9 @@ His aim is zero before his other to-dos.
   console error, the lab and `/admin/reels` 404, the admin door redirects, no runtime error.
   `admin.partyreel.com` is served by `partyreel-admin` (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel`
   (`=app`).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 17: the per-event block and
-  the guest list always on, the free/pro shift, the guest voice, admin-triage r2 on the desk; its red-team follows.
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 17 (`1407daf6`): the per-event
+  block and the guest list always on, the free/pro shift, the guest voice, admin-triage r2 on the desk, loading clean
+  headless; its live red-team is running.
 - **The shared database** runs the block and Free at 100 MB since 2026-09-29 (`event_blocks`, `free_shift`), under
   partyreel.com too, whose milestone-29 pages still say 2 GB until milestone 30; no Free account holds more.
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);

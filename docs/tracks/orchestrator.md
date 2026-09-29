@@ -74,8 +74,8 @@ Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, 
      - a `text/plain` twin beside every `html`, and the renewal nudge's Renew going where it says.
 
      Retires emails.
-3. **Build 17** to the alias (both migrations applied): `alias-ensure`, the prune, the desk headless (admin-triage r2's
-   four join build 16's 38), then its red-team (`../partyreel-wt/_scratch/redteam-17/`, from `redteam-15/brief.md`):
+3. **Build 17 is live** (`1407daf6`, both migrations applied; pruned; the desk, admin-triage and event-settings boards
+   and the Library clean headless; 42 open asks). Its red-team is running (agent `a21c3c40aeb5e59ff`) (`../partyreel-wt/_scratch/redteam-17/`, from `redteam-15/brief.md`):
    - the block, live: partyr33l blocked at a willg97 test event from one of the three roads meets the private door and
      can neither upload, like nor claim; the Blocked foot; let back in without, then with, the restore;
    - the free/pro shift: /pricing and the plan sheet (the toggle, the tag, each estimate's basis), and a Free account
