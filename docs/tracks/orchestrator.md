@@ -41,6 +41,7 @@ a lane").
 | `settings-wiring` | every event-settings pick: settings as four sentences, the doors end to end, the Guests room, the hub | running (agent `aefdc4b3cecd92f74`) | Opus, 3131 | |
 | `triage-r2-wiring` | admin-triage r2 wired; the hold rebuilt (Hold takes down by default; storage released at an operator's removal; an open report guards its item; the child-abuse instant hide) | running (agent `a432fe0336dc35587`) | Opus, 3134 | |
 | `lab-revamp` | a board as one self-registering folder, scoped lab checks, the trimmed API, the words renamed, the kit following (holds registry.ts and boards.ts; PROGRAM.md's lines come in its Handoff) | running (agent `a6b4519e3d363d7dd`) | Opus, 3133 | |
+| `schema-pass` | the data architecture audited and bettered (his four drops, the reel's dormant columns, the latent grants, anything nothing reads), clear of the two SQL lanes | running (agent `a0331d8060838304a`) | Opus, 3132 | |
 
 Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcribed at `31de6aa0`: 41 answers on ten
 boards). Wave A: `settings-wiring` (all nine event-settings picks, the doors end to end), `locked-door` r2 (the door
@@ -84,14 +85,8 @@ Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, dis
      with and without a four-fact strip and with no kit; the boilerplate dropped; then /press redirects to /about, the
      nav, footer, sitemap and llms files kept current; press-page's `a-human` reshaped); `privacy-hero` r4 (the veil
      and three variations; the sealed cards out).
-   - `schema-pass` (Opus), once `settings-wiring` merges (it owns the guest path this batch): the whole data
-     architecture audited (tables, columns, functions, grants, indexes, RLS), the dead dropped (the reel's dormant
-     `media.highlight_score` and `clip_*`, the latent TRUNCATE, REFERENCES and TRIGGER grants, `get_event_by_qr_token`'s
-     PUBLIC EXECUTE, and his four yes'd drops: `events.show_guest_list` and the three `notification_prefs` columns
-     for mail nothing sends, safe since milestone 30 stopped partyreel.com reading them) and what can be better
-     simplified, reported as a list. His standing permission (2026-09-29): the
-     data architecture is the Orchestrator's, anything useless dropped, timed so partyreel.com's live build never
-     reads a dropped thing.
+   - `schema-pass` is running (cut before `settings-wiring`'s merge, clear of every function and column the two SQL
+     lanes change; what it finds there waits in its Handoff for after their merges).
    - After their rounds: the disposable wiring (after `disposable-mode` r2's picks, Will's Measure a phone, and
      `settings-wiring`'s merge, since it rewrites the guest path; with the lane's idea of the premiere on the wall, the
      reel's screen counting down to the develop time and playing the roll as an event of its own) and the door family's wiring (if the doorway wins, its reveal: walking through the
