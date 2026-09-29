@@ -61,11 +61,8 @@ note naming its pushed commits, what remains, its predecessor's transcript at
 `~/.claude/projects/-Users-gibby-local-ai-partyreel/157caa18-ec54-4aa9-a12a-04c86d5a667b/subagents/agent-<id>.jsonl`
 (grep it, never read it whole), that a stale `.next/dev/lock` may be deleted and that MCP tool ids change with the
 account, and the relays below, which live only in the agents:
-- Build 23's red-team (agent `a26fc2a59dd39c154`): respawn from `../partyreel-wt/_scratch/redteam-23/brief.md` after
-  its `ledger.txt`'s last line, with: BUG-1 and NIT-1 filed (reach a settings page by its deep link); park at the admin
-  portal's "Verify it's you" and report the steps waiting on Will's code; close every report it opens before 04:48
-  UTC; delete events A `9490405b` and B `18fc375e` through the product at the end; the alias stays on build 23 until it
-  finishes; the Vercel MCP does not reach the P3 team.
+- Build 25's red-team (agent `a777878702cf5d407`): respawn from `../partyreel-wt/_scratch/redteam-25/brief.md` after its
+  `ledger.txt`'s last line (the brief carries every rule and restore).
 - `schema-pass`: Will's yes quoted (its row), and `public.reports`' default anon and authenticated grants closed in
   part 1.
 - `album-motion-wiring`: `design-system.md`'s "light never goes on gallery arrivals" was one board's note (`light` r8,
