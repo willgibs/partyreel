@@ -84,7 +84,8 @@ his batch is in; merges and migrations go on (neither touches the served build o
    **Build 19 is live and red-teamed** (`fd196846`; all seven journeys PASS, no major; the ledger is
    `../partyreel-wt/_scratch/redteam-19/ledger.txt`); its three minors and three nits are `crumbs-10`'s, and
    `crumbs-11` closes the slug family and the sign-in return path; both merged (`ceda6dc2`, `2482d367`). **Build 20**
-   carries both, once his review hold lifts; its red-team walks the
+   carries both, once his review hold lifts (its red-team's brief is drafted at
+   `../partyreel-wt/_scratch/redteam-20/brief.md`, `{SHA}` filled at the deploy); its red-team walks the
    signed-out mail links through the chooser and re-checks the six. Build 19's red-team walked the new hero, the export flow short of any download, the triage portal on staged reports
    (`triage-wiring`'s Handoff names the rows), the help, the two majors re-checked, and the standing scope. Drafted
    specs wait in this session's scratchpad (`specs/<track>.json`); a new session writes them from these lines.
