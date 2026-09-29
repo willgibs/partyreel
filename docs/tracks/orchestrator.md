@@ -40,7 +40,6 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `safety-wiring` | event-safety's answers: the per-event block (a migration to apply), soft in every look, the private door, the Guests room's Blocked list, Let back in with a restore toggle; the guest list always on; event-safety retires | running, agent `a976ee6de796172b4` | Opus, :3134 | |
 | `hero-wiring` | hero-card r2: the `guests` card as the hero's object (`partyreel.com/` quieter so the slug leads), the bloom light, the composed tablet table; ASSETS rows 33 and 34 from its Handoff; hero-card retires | running, agent `aa32a485242b5c773` | Opus, :3133 | |
 | `export-wiring` | export-flow's six: the Yours row filtered on the server, the toast that stays with a subtle cancel, the one-line empty refusal, parts in plain words, a phone's Download all to Files; the Worker backward compatible (I deploy it after the merge); export-flow retires | running, agent `aa10025fff8b6ba0e` | Opus, :3131 | |
 | `triage-wiring` | admin-triage r1's six: the marked reason, the verdict's note, the window, the escalation door, the shape idiom, a reported removal purged from the host's view (a migration; legal hold and preservation kept); the reports clause drafted | running, agent `a347eb3bf09ed556f` | Opus, :3132 | |
@@ -50,16 +49,17 @@ Batch 7 (cut `35601390`, 2026-09-28) answers Will's sitting on build 15 (transcr
 hero-card, voice-guest, host-storage, event-safety, export-flow). Wave A, four lanes: three new boards and the block.
 Wave B follows as seats free. Batch 6 (sixteen lanes) is merged whole; its records carry the rest.
 
-Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, event-settings, voice-wiring, pricing-wiring, triage-r2.
+Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, event-settings, voice-wiring, pricing-wiring, triage-r2, safety-wiring.
 
 ## Next, in order
 
 1. **Integrate each running lane as it hands off** (rows above), each migration by protocol, one at a time: drift
    check, apply verbatim, the rolled-back refusals, advisors, types.
-   - `safety-wiring` merged at `c656a24c`; its `event_blocks` apply (a helper agent, `acba0e34b5c4836b3`, runs the
-     protocol) and its record (the regenerated types, `docs/reviews/event-safety.json` deleted) follow.
-   - `pricing-wiring` merged at `9e257530` (a hand-merged `touchpoints.ts` skeleton); its `free_shift` applies after
-     `event_blocks` (drift checked: the four live bodies match their newest files; types unchanged).
+   - Applied 2026-09-29: `event_blocks` (recorded `20260929002900`, the file's md5 `f0c3ff6d`; 23 bodies as the header
+     says, the rolled-back proof 10/10 after the apply, advisors 0029 at 29, 0028 at 4, no-policy at 16) and
+     `free_shift` (`20260929004003`, md5 `58e7f00a`; four bodies, grants unchanged, Free at 100 MB, no Free account
+     over it). Large files go through a helper that transcribes, `cmp`s, applies and proves; the recorded md5 is the
+     check.
 2. **Wave B into each free seat**, in this order (his answers are in the ledgers; each brief carries his notes).
    - `emails-wiring` (Opus), from his emails r1 (`docs/reviews/emails.json`, all ten), on the ten mails that already
      send; nothing new sends (his `moments` note banks every new mail for one email exploration, ROADMAP's Emails):
