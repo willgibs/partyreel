@@ -40,11 +40,10 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `schema-pass` | the data architecture trimmed | merged at `57b17ace`; part 1 applied on Will's go-ahead (2026-09-29, his answer "Yes, apply part 1"; recorded `20260929210010`, the payload the file's md5; advisors 18/4/33; anon REST 42501; types regenerated at `c7a50adc`); a signed-in host walk on partyreel.com rides build 25's red-team as a follow-up; part 2 (`20260929170000`) after milestone 31 ships | Opus, 3132 | `54f414f9` |
-| `menu-depth` | on Will's word ("Remove it"), the dropdown's render-time throw on a third submenu level removed, its guidance kept as a comment and the sub-menu's portal test kept | handed off; integrating (agent `a5c372b3de31ef79b`) | Sonnet, 3132 | `df5f9605` |
 | `crumbs-19` | build 25's red-team finds (the app bar's trail on a route that sets none, the guest report article's screens drawing the photo's own Report) and crumbs-18's three follow-ups (the hub's sheet closed once on a double close, the reel's entry through a refresh, the text-distance test retired) | running (agent `a74fa1c6a2ff11799`; worktree `../partyreel-wt/crumbs-19`) | Sonnet, 3131 | |
 | `privacy-hero-r4` | privacy-hero r4, a board: the veil as drawn and three variations of it, the sealed cards out, the sweep and the aperture banked | running (agent `ac010b14ad42386af`; worktree `../partyreel-wt/privacy-hero-r4`) | Opus, 3133 | |
-| `crumbs-20` | five hardening items: no form sends its fields into the address before hydration, the brand family reaching display names, every 401 fallback and the renewal nudge's anchor surviving a sign-in, a confirm announced as one | running (worktree `../partyreel-wt/crumbs-20`) | Sonnet, 3135 | |
-| `crumbs-21` | four data-integrity items: a waiting newcomer's ticket settled when her door moves, the admin album covering the worst kind, what a report named outliving its photo's row, the host's like counts limited to what she sees (migrations, to apply by protocol) | running (worktree `../partyreel-wt/crumbs-21`) | Opus, 3134 | |
+| `crumbs-20` | five hardening items: no form sends its fields into the address before hydration, the brand family reaching display names, every 401 fallback and the renewal nudge's anchor surviving a sign-in, a confirm announced as one | running (agent `afcdac799225fed65`; worktree `../partyreel-wt/crumbs-20`) | Sonnet, 3135 | |
+| `crumbs-21` | four data-integrity items: a waiting newcomer's ticket settled when her door moves, the admin album covering the worst kind, what a report named outliving its photo's row, the host's like counts limited to what she sees (migrations, to apply by protocol) | running (agent `a34b45f3aca9068fc`; worktree `../partyreel-wt/crumbs-21`) | Opus, 3134 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
 no question open (Q1, the `names` hang; Q2, schema-pass part 1; Q3, the notes-into-laws audit; Q4, the door migration:
@@ -74,17 +73,17 @@ Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcr
 boards). Batch 7 is merged whole; its records carry the rest.
 
 Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, disposable-mode r2, crumbs-13, lab-revamp
-stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, crumbs-15, loose-ends-wiring, contact-wiring, desk-tune, event-ready r1, window-notes, crumbs-16, album-motion-wiring, crumbs-17 (its migration applied by protocol, 20260929204753), unfence, crumbs-18, demo-framing-r2, about-press.
+stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, crumbs-15, loose-ends-wiring, contact-wiring, desk-tune, event-ready r1, window-notes, crumbs-16, album-motion-wiring, crumbs-17 (its migration applied by protocol, 20260929204753), unfence, crumbs-18, demo-framing-r2, about-press, menu-depth.
 
 ## Next, in order
 
-1. **Integrate each lane as it hands off** (menu-depth first, at `df5f9605`; then crumbs-19, privacy-hero-r4, crumbs-20,
-   crumbs-21), each migration by protocol, one at a time: drift check, apply verbatim, the rolled-back refusals,
+1. **Integrate each lane as it hands off** (crumbs-19, privacy-hero-r4, crumbs-20, crumbs-21), each migration by protocol, one at a time: drift check, apply verbatim, the rolled-back refusals,
    advisors, types.
-2. **Build 26** (`[preview]`, `alias-ensure.mjs`, prune) once menu-depth lands: crumbs-17, unfence, album-motion, the
+2. **Build 26** (`[preview]` at menu-depth's record, `alias-ensure.mjs`, prune): crumbs-17, unfence, album-motion, the
    types after both migrations, crumbs-18, demo-framing r2, about-press r1 and menu-depth. Then its red-team (Opus, the
    build 25 brief's shape): crumbs-17's listed walks, crumbs-18's seven (`git show cdc979a6^2:docs/tracks/crumbs-18.md`),
-   the account menu's Theme at 375 and at a desk (menu-depth), and the desk with its two new boards. Then milestone 31
+   the account menu's Theme at 375 and at a desk (menu-depth, merged at `2becfa60`), and the desk with its two new boards
+   (the brief: `../partyreel-wt/_scratch/redteam-26/brief.md`). Then milestone 31
    is proposed to Will (his yes); schema-pass's part 2 applies after it ships.
 3. **Seats as they free** (at most four lanes; `memory_pressure` before each; app work first, Will's note): the lab's
    phone fold (ROADMAP's line: at 375 every standing board's step starts its stage past a screen, found by three lanes).

@@ -41,7 +41,7 @@ on /about and its facts); the two older asks retired into them as carried calls.
   (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel` (`=app`).
 - **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 25 (`c038e4eb`), red-teamed live
   23 of 23 (Settings whole, the doors, triage, the contact note, the FAQ and the egg, the desk); its finds are
-  `crumbs-19`'s. Build 26 follows menu-depth's merge.
+  `crumbs-19`'s. Build 26 (menu-depth's record) is deploying, its red-team next.
 - **The shared database** runs eleven migrations applied 2026-09-29 (the block, the free shift, the operator removal
   purge, the help's feedback, the pass reminders switch, likes on private albums, the slug family, the doors, the triage
   rebuild, the invite list's admit, and schema-pass part 1: six unused columns and their indexes dropped, `anon`'s table
