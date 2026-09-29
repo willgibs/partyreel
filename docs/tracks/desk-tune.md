@@ -1,6 +1,6 @@
 ---
 track: desk-tune
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "4d8e9e0e"            # the launch-prep SHA the branch was cut from
 board: locked-door
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -41,25 +41,31 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- none: every call is built and listed under the Handoff's calls; nothing here is a one-way door.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none (the lane owns the board's folder alone, and no system fact changed).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- The lab and the kit: `lab:demo` hands `Page.captureScreenshot` an in-window frame box in viewport coordinates, which Chrome reads as page coordinates, so on a step taller than its 3000px capture window every frame comes back flat or shifted (every stacked step at `--width 375`, and the laptops the `screen=1440` knob stacks); adding `scrollX` and `scrollY` to that box fixes it (probed: locked-door at 375 then draws every option with no same picture) (from `desk-tune`).
+- Guests: `entry-modal.tsx` exports neither `WelcomeStep` nor `SuccessStep`, so the door family board and the help center's door screens quote both class for class; exported (or moved beside `door/`), both draw the real welcome and "You're in" (from `desk-tune`).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- Work commit `2ff1436b`, pushed. No sync: launch-prep moved to `61a4ee00` (crumbs-15, loose-ends-wiring, contact-wiring) with nothing under this lane's paths or the door files it draws; its one line in a read (`guest-flow.md`, "a missing event answers moved") touches no ask, re-read.
+- Gates on `2ff1436b`, each on its own exit (logs in `partyreel-wt/_scratch/desk-tune/`): typecheck 0 (`typecheck-head.log`), lint 0 (`lint-head.log`), test 0, 600 files and 6953 tests (`test.log`), build 0 through build-lock (`build.log`), lab:smoke 0, 6 checks, the board at 836 of 1200 words (`smoke.log`), lab:demo 0, four steps ok at 1440 (`demo-1440.log`).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = the ten files under `src/app/(dev)/design/sandbox/locked-door/` + this file; no exception.
+- Today is production (`today.tsx`): the wait is `WaitingDoor` in the entry modal's `pt-7` step box; the shut door is `ShutDoor` on its page (its words, `previous` for Priya and Dom, `UnlistedAsk` for Lena unlisted, "Already a guest? Log in" for the newcomer); the 404 is `e/[token]/not-found.tsx`'s page itself. The welcome and "You're in" stay quoted (unexported: Deferred). `waitWords("today")`, `shutWords("today")` and `UNLISTED` are retired from `words.ts`.
+- `lives` gains `waiting-step.tsx`, `shut-door.tsx`, `ask-step.tsx`, `unlisted-ask.tsx` (`spec.ts`).
+- Context re-read against the doors, every id kept (`spec.ts`): `family.today` (closed to a newcomer, private to someone who was in; its cost now the plain page), `family.lit` (shut, today's page and words with the lock lit: the build took its words), `wait.still` relabelled "Today's wait, as it ships" with `live` and `pick` building on it, the settled lines and the `unlisted` call marked built.
+- The directions say today's words where they say what today says (`words.ts`, `furniture.tsx`): the wait reads `waitingCopy` with today's eyebrow (a clock, "Asked"), live mark and way out (`WaitHold`); the lit column's shut door reads `shutDoorCopy`; the unlisted foot is `UnlistedAsk`; the way back in is the shipped "Log in".
+- At 375, a phone-width lab stacks the four phones (`scene.tsx`'s `useOnPhone`), so shape's split and bespoke differ where they differ (the wait, a sheet against a page) and pressing between two options is a blink at any state. `lab:demo --width 375` as it stands captures the stacks flat (`demo-375-upstream.log`, the Deferred line); with that line's fix (`lab-demo-docclip.mjs`) every step draws its options with no same picture, at the defaults and wearing `family=today|host|lit` (`demo-375-docclip.log`, `fixed-375-*.log`, frames beside them). OUT OF REACH at 375 is the lab's layout, left alone as briefed.
+- The other asks at 375: `family` and `wait` distinct in every direction, and `lost` in all but `family=today`, where it draws one picture by design (the spec's header: today's shut door is already the 404's sibling; `follows` says "as they are today").
+- Every frame is inert (`scene.tsx`): production's pieces are live (their links, the ask's POST, Use a different email's sign-out), and a frame is a picture (read in the browser: every frame `[inert]`, no focusable outside it).
+- Assets requested from Will: none.
+- Board ideas: production's ask (`AskStep`, "Maya lets each guest in", Ask to join) is a door state the family never draws, a fifth frame; and the welcome at a door Maya answers or an invite list shows her face and no date, which the `welcome` knob's two options do not draw.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Calls his to overrule: `wait.still` is today's wait in every direction, so the directions' waits say today's words (overrule: the round's predicted still wait, and no today in the ask); the directions' way back in is the shipped "Log in" (the round drew event-safety's "Confirm your email"); at a phone's width the strips stack (overrule: a sideways row, its difference off screen).
+- Look at first: the `wait` step (still is production's held door; live and pick build on it), then `shape` at 375 (split against bespoke on the wait).
