@@ -19,8 +19,13 @@ import { askTexts, openingTexts, termsIn } from "@/components/lab/terms";
 
 import { ITEMS_STEP } from "@/app/(dev)/design/(shell)/lab/_desk/step-id";
 
-import { BOARDS, boardSpec } from "./registry";
-import { DESK_ORDER } from "@/app/(dev)/design/touchpoints";
+import {
+  BOARD_FOLDERS,
+  BOARDS,
+  boardSpec,
+  SPEC_EXPORTS,
+  SPECS,
+} from "./registry";
 
 // The catalog's entry ids, read the way lab:review reads them (gallery.test.ts
 // holds that reader to the TypeScript parse of the same files).
@@ -316,7 +321,7 @@ describe("the board registry", () => {
       .sort();
     expect(
       BOARDS.map((b) => b.id).sort(),
-      "a spec.ts the registry does not import",
+      "a spec.ts the registry does not find, or a board with no folder",
     ).toEqual(onDisk);
   });
 
@@ -415,7 +420,7 @@ describe("the board registry", () => {
 
   /**
    * A CATALOG'S OWN CONTRACT (the revamp, 2026-09-16). Declaring `catalog` is a
-   * board saying "rule on these card by card", and four things have to line up
+   * board asking for "a verdict on each card", and four things have to line up
    * for that to work at all: the grid has a section to live in, the Pick button
    * sets a control whose options ARE the cards, and the two compare controls
    * exist and start on different cards (or A and B open identical and the first
@@ -627,18 +632,103 @@ describe("the asks, in plain words", () => {
 });
 
 /**
- * THE DESK'S ORDER NAMES EVERY STANDING BOARD ONCE AND NOTHING ELSE (Will,
- * 2026-09-19: the earlier influence first). `DESK_ORDER` in touchpoints.ts is
- * the order's one home; a board registered without a place there would sort to
- * the foot in silence, and a retired board left in the list would name nothing.
+ * ★ A BOARD IS ONE FOLDER (the lab revamp, 2026-09-29). What three shared
+ * lists held (touchpoints.ts's rows and `DESK_ORDER`, this registry's imports,
+ * boards.ts's map), each board now says in its own `sandbox/<id>/`: the
+ * registry finds its spec, the board route finds its board, and retiring it is
+ * deleting the folder. These hold what those lists' tests held, each with its
+ * reason, where a folder can break them.
+ */
+describe("a board is one folder", () => {
+  it("names itself by its folder", () => {
+    // The folder is how it is found and the id is what every ledger line and
+    // URL names, so the two can never disagree.
+    for (const folder of BOARD_FOLDERS)
+      expect(
+        BOARDS.filter((b) => b.id === folder).length,
+        `sandbox/${folder}/spec.ts does not define the board "${folder}" (one spec per folder, its id the folder's name)`,
+      ).toBe(1);
+  });
+
+  it("exports its spec and nothing else from spec.ts", () => {
+    // The registry takes the folder's one export as the board, so a second
+    // would be a board nobody meant, or a helper mistaken for one.
+    for (const [folder, names] of Object.entries(SPEC_EXPORTS))
+      expect(names, `sandbox/${folder}/spec.ts`).toHaveLength(1);
+  });
+
+  it("exports its board and nothing else from board.tsx", () => {
+    // The route draws a folder's one export; with two it cannot tell which is
+    // the board and answers 404.
+    for (const b of BOARDS) {
+      const file = join(ROOT, SANDBOX, b.id, "board.tsx");
+      const src = readFileSync(file, "utf8");
+      const exported = [
+        ...src.matchAll(
+          /^export\s+(?:default\s+)?(?:async\s+)?(?:function|const|class|let)\s+(\w+)|^export\s+default\s|^export\s*\{/gm,
+        ),
+      ];
+      expect(exported.length, `sandbox/${b.id}/board.tsx`).toBe(1);
+    }
+  });
+
+  it("carries nothing the scaffold left to write", () => {
+    // `pnpm new-board` writes every line a board owes as a TODO, so a folder
+    // is a board only once each is written; the failure is the list of what
+    // is left, in the scaffold's own words.
+    const left: string[] = [];
+    for (const folder of BOARD_FOLDERS)
+      for (const file of ["spec.ts", "board.tsx"]) {
+        const lines = readFileSync(
+          join(ROOT, SANDBOX, folder, file),
+          "utf8",
+        ).split("\n");
+        lines.forEach((line, i) => {
+          if (/\bTODO\b/.test(line))
+            left.push(`${folder}/${file}:${i + 1} ${line.trim()}`);
+        });
+      }
+    expect(left, "write what the scaffold left").toEqual([]);
+  });
+
+  it("carries its surface, its place on the desk and what it redraws", () => {
+    // What a touchpoints.ts row said, in the board's own spec: the sidebar
+    // groups by surface, the desk orders by place, and `lives` is where a
+    // wiring lane's owns start (and what flags a board's open asks when a merge
+    // changes it). `defineExploration` requires them; this holds the rest.
+    for (const spec of SPECS) {
+      expect(
+        spec.surface,
+        `${spec.id}/spec.ts declares no surface`,
+      ).toBeTruthy();
+      expect(
+        Number.isFinite(spec.desk),
+        `${spec.id}/spec.ts declares no desk place`,
+      ).toBe(true);
+      const lives = spec.lives ?? [];
+      expect(
+        lives.length,
+        `${spec.id}/spec.ts: lives is empty`,
+      ).toBeGreaterThan(0);
+      expect(new Set(lives).size, `${spec.id}: lives repeats a path`).toBe(
+        lives.length,
+      );
+    }
+  });
+});
+
+/**
+ * THE DESK'S ORDER IS BY LEVERAGE (Will, 2026-09-19: the earlier influence
+ * first), and its one home is each board's own `desk` place: a board whose
+ * answers change another's questions takes the smaller number. This holds that
+ * the desk, the paging and every walk read that order and no other.
  */
 describe("the desk's order", () => {
-  it("names every standing board exactly once", () => {
-    expect([...DESK_ORDER].sort()).toEqual(BOARDS.map((b) => b.id).sort());
-    expect(new Set(DESK_ORDER).size).toBe(DESK_ORDER.length);
-  });
-  it("is the order BOARDS exports", () => {
-    expect(BOARDS.map((b) => b.id)).toEqual([...DESK_ORDER]);
+  it("is each board's own place, lower first, a tie in id order", () => {
+    const sorted = [...BOARDS].sort(
+      (a, b) => a.desk - b.desk || a.id.localeCompare(b.id),
+    );
+    expect(BOARDS.map((b) => b.id)).toEqual(sorted.map((b) => b.id));
   });
 });
 

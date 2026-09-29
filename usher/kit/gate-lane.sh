@@ -4,9 +4,11 @@
 # read from the merge's two parents through scope.sh:
 #   light: the merge differs from the lane's head (HEAD^2) only in docs, so every code path in it is one the lane's own
 #     gate ran on, and `pnpm test` (which parses the docs the lab reads) is the whole gate;
-#   full: lint, `pnpm test` and the build; then the lab (lab:smoke, and lab:demo on the lane's board) only when the lane's
-#     own diff (HEAD^1 to HEAD) holds a path the lab renders.
-# A HEAD with one parent (a gate at a record, or at a round's close) and FULL=1 take the full gate with the lab. Every
+#   full: lint, `pnpm test` and the build; then the lab only when the lane's own diff (HEAD^1 to HEAD) holds a path the
+#     lab renders, scoped to what that diff reached (scripts/lab-scope.mjs, through scope.sh's `boards`): lab:smoke on
+#     those boards, the Library when a production path changed and the lab's pages when the desk moved; lab:demo on those
+#     boards. The lane's own <board> is pressed too, whatever its diff.
+# A HEAD with one parent (a gate at a record, or at a round's close) and FULL=1 take the full gate with the whole lab. Every
 # step prints EXIT[step]=<its own exit code> (<seconds>s), its whole output in $S/gate<N>-<slug>.log; the last line,
 # `GATE<N> DONE ... red steps: <n>`, is the one to wait on (a milestone's gate runs alone, with no integrate.sh to count).
 N="$1"; BOARD="$2"
@@ -46,7 +48,7 @@ run() {
   tail -n "$n" "$S/gate$N-$slug.log"; echo "EXIT[$step]=$rc ($(( SECONDS - t ))s)"
   [ "$rc" = 0 ] || RED=$(( RED + 1 ))
 }
-# The catalog's specimen code is regenerated and staged by the merge (merge-lane.sh, hand-merge.sh) before its commit;
+# The catalog's specimen code is regenerated and staged by the merge (merge-lane.sh) before its commit;
 # the gate reads the tree as committed, so a stale artifact is specimens.test.ts's red, never hidden by a rerun here.
 if [ "$SCOPE" = light ]; then run test "pnpm test" 15 pnpm -s vitest run
 else
@@ -71,16 +73,22 @@ else
     echo "dev ready after ${i}x2s"
     for j in $(seq 1 120); do curl -s -o /dev/null -w '%{http_code}' "http://localhost:$PORT/design/library?key=$DESIGN_PREVIEW_KEY" 2>/dev/null | grep -q '^200' && break; sleep 2; done
     echo "lab ready after ${j}x2s"
-    run smoke "lab:smoke" 8 pnpm -s lab:smoke --base http://localhost:$PORT
-    # lab:demo presses the open steps of one board (lab-demo.mjs filters the desk's steps by `<board>.`), so a lane
-    # without a board has none to press.
-    if [ "$BOARD" = none ]; then echo "lab:demo: no board, so no step of this lane's to press"
+    # The lab's scope: the whole lab on a full gate, else what the merge's own diff reached (the SCOPE and PREMISE lines).
+    if [ "$SCOPE" = full ] && { [ "${FULL:-}" = 1 ] || ! git rev-parse -q --verify 'HEAD^2' >/dev/null; }; then LABSCOPE=(--all)
+    else LABSCOPE=(--since 'HEAD^1'); fi
+    node scripts/lab-scope.mjs "${LABSCOPE[@]}" 2>&1 | grep -E '^(SCOPE|PREMISE)' | sed 's/^SCOPE/SCOPE lab/'
+    run smoke "lab:smoke" 8 pnpm -s lab:smoke --base http://localhost:$PORT "${LABSCOPE[@]}"
+    # lab:demo presses the open steps of the boards the merge reached, and the lane's own board whatever its diff.
+    if [ "${LABSCOPE[1]}" = --all ]; then DEMOBOARDS=all
+    else DEMOBOARDS=$( (git diff --no-renames --name-only 'HEAD^1' HEAD | zsh "$KIT/scope.sh" boards; [ "$BOARD" = none ] || print -r -- "$BOARD") | sort -u | tr '\n' ',' | sed 's/,$//'); fi
+    case ",$DEMOBOARDS," in *,all,*) DEMOARGS=(--all) ;; *) DEMOARGS=(--board "$DEMOBOARDS") ;; esac
+    if [ -z "$DEMOBOARDS" ]; then echo "lab:demo: the merge reached no board, so no step to press"
     else
       # a cold frame compile under load stalls CDP past its 60 s (gate 62, 2026-09-20: two TIMED OUT steps, green on the
       # warm re-run): one retry on the warm server; both logs kept; the exit is the last attempt's.
       t=$SECONDS; DEMO=1
       for a in 1 2; do
-        perl -e 'alarm 420; exec @ARGV' pnpm -s lab:demo --board "$BOARD" --base http://localhost:$PORT > "$S/gate$N-demo-$a.log" 2>&1; DEMO=$?
+        perl -e 'alarm 420; exec @ARGV' pnpm -s lab:demo "${DEMOARGS[@]}" --base http://localhost:$PORT > "$S/gate$N-demo-$a.log" 2>&1; DEMO=$?
         tail -14 "$S/gate$N-demo-$a.log"; [ "$DEMO" = 0 ] && break; echo "lab:demo attempt $a red; retrying warm"
       done
       cp "$S/gate$N-demo-$a.log" "$S/gate$N-demo.log"
@@ -90,7 +98,7 @@ else
       MOVED=$(grep -cE '^[a-z0-9-]+\.[^ ]+ +ok ' "$S/gate$N-demo.log"); FROZE=$(grep -cE '^[a-z0-9-]+\.[^ ]+ +FROZEN ' "$S/gate$N-demo.log")
       if [ "$MOVED" -gt 0 ]; then echo "HARNESS sees: $MOVED step(s) moved in this run, so a FROZEN step here is the board's"
       elif [ "$FROZE" -gt 0 ]; then echo "HARNESS unproven: no step moved in this run; read $S/gate$N-demo.log per step before calling a FROZEN the board's"; fi
-      echo "EXIT[lab:demo $BOARD]=$DEMO ($(( SECONDS - t ))s)"; [ "$DEMO" = 0 ] || RED=$(( RED + 1 ))
+      echo "EXIT[lab:demo $DEMOBOARDS]=$DEMO ($(( SECONDS - t ))s)"; [ "$DEMO" = 0 ] || RED=$(( RED + 1 ))
     fi
     lsof -ti tcp:$PORT | xargs -r kill 2>/dev/null
   fi

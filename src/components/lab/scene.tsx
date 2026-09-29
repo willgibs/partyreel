@@ -6,8 +6,8 @@ import { useLabPrefs } from "./lab-prefs";
 
 /**
  * THE TWO PIECES UNDER EVERY BOARD'S OWN `Scene`, LIFTED HERE BECAUSE THEY
- * NEVER VARIED (the rulings round's ROADMAP line, widened by the Orchestrator's
- * maps): `Fit` was copied byte-for-byte into twelve board files (`guest-capture`,
+ * NEVER VARIED (a ROADMAP line, widened by the Orchestrator's maps): `Fit`
+ * was copied byte-for-byte into twelve board files (`guest-capture`,
  * `host-curation`, `host-storage` (its picker is `/pricing`'s size configurator
  * now, since retired), `identity-claims`, `identity-door`,
  * `identity-profile`, `profile-page`, `reel-cut`, `reel-front`, `reel-host`,
@@ -19,8 +19,8 @@ import { useLabPrefs } from "./lab-prefs";
  * ★ `Scene` STAYS PER BOARD, ON PURPOSE — IT IS NOT LIFTED HERE. Its props
  * differ board to board (`screen`, `short`, `tall`, a `caption` that is
  * sometimes a string and sometimes a node, a `measure` that is sometimes
- * required and sometimes absent), and a board's directory is deleted whole at
- * its ruling, so the signature painted over this machinery is never the part
+ * required and sometimes absent), and a board's folder is deleted whole when
+ * it retires, so the signature painted over this machinery is never the part
  * worth sharing. `site-chrome/stage.tsx` carries a wholly different `Scene`
  * with its own `Measured` TYPE (a three-number shape, not this component),
  * built for a different measuring job; it has no call on this file either.

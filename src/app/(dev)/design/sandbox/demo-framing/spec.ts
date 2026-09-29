@@ -38,6 +38,15 @@ import { defineExploration } from "@/components/lab/exploration";
 export const DEMO_FRAMING = defineExploration({
   id: "demo-framing",
   title: "The demo's story",
+  surface: "marketing",
+  desk: 90,
+  lives: [
+    "docs/systems/marketing-content.md",
+    "src/components/marketing/sections/home/hero-stream.ts",
+    "src/components/marketing/sections/home/cinema-hero-card.tsx",
+    "src/lib/demo.ts",
+    "scripts/seed-demo-event.mjs",
+  ],
   round: {
     n: 1,
     date: "2026-09-29",

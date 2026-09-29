@@ -1,6 +1,6 @@
 #!/bin/zsh
-# scope.sh code|lab: prints the paths on stdin (one per line, as `git diff --no-renames --name-only` prints them) that
-# need the check named; nothing printed means the check has nothing to add. merge-lane.sh and gate-lane.sh pipe the
+# scope.sh code|lab|boards: prints the paths on stdin (one per line, as `git diff --no-renames --name-only` prints them)
+# that need the check named; nothing printed means the check has nothing to add. merge-lane.sh and gate-lane.sh pipe the
 # integration's diffs through it, and negative.sh feeds it paths it must never let through.
 #   code: the paths some gate step other than `pnpm test` reads: lint, the typecheck, the build or the lab's render.
 #     Everything else is the docs class, which `pnpm test` alone covers: `docs/` (the lab reads its manifests, specs and
@@ -10,10 +10,18 @@
 #     `src/`.
 #   lab: the paths the lab could render: everything but the docs class, tests, `supabase/` and `workers/` (nothing
 #     under `src/` imports either).
+#   boards: the lab's own reading of the paths (scripts/lab-scope.mjs): `all`, or the board folders they reach (a board's
+#     own folder, its ledger, a production file its drawings import), one per line; the gate's lab:demo presses those.
+#     A path it does not know, a diff it cannot read and FULL=1 all print `all`.
 # A path this does not know is code and the lab's, so a new directory widens the gate until it is classed here. A
 # path git quotes (an unusual character) matches no class and is printed, which also widens it.
 set -u
-case "${1:-}" in code|lab) ;; *) print -u2 "usage: scope.sh code|lab < paths"; exit 2 ;; esac
+case "${1:-}" in code|lab|boards) ;; *) print -u2 "usage: scope.sh code|lab|boards < paths"; exit 2 ;; esac
+if [ "$1" = boards ]; then
+  ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+  (cd "$ROOT" && node scripts/lab-scope.mjs --stdin --boards) || print -r -- all
+  exit 0
+fi
 docs() {
   case "$1" in
     docs/*.(ts|tsx|js|jsx|mjs|cjs|mts|cts|css)) return 1 ;;

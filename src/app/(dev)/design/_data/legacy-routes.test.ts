@@ -1,9 +1,9 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { SANDBOX } from "../touchpoints";
+import { BOARDS } from "../sandbox/registry";
 import { LAB_REDIRECTS, TRACED_DOC_GLOBS } from "./legacy-routes";
 
 /**
@@ -15,9 +15,9 @@ import { LAB_REDIRECTS, TRACED_DOC_GLOBS } from "./legacy-routes";
  * the page file the App Router would serve for it (strip the /design/ prefix,
  * walk into the (shell) group, a `:param` segment landing in its `[param]`
  * directory) and that file must exist. The dynamic case gets the whole
- * population: `/design/lab/:board` is served by the board page only for an id
- * its dispatcher knows, so every standing board in SANDBOX is expanded and
- * looked up in the map the page dispatches from. The traced-doc globs get the
+ * population: `/design/lab/:board` is served by the board page only for a
+ * folder that holds a board, so every standing board is expanded and its
+ * `board.tsx` looked for on disk. The traced-doc globs get the
  * same treatment, because a glob that matches nothing traces nothing, silently.
  */
 const ROOT = process.cwd();
@@ -75,67 +75,29 @@ describe("every destination is a page on disk", () => {
 });
 
 /**
- * The board page 404s any id missing from the map it indexes by
- * `ruling.id as SandboxId`, and that cast hides a board registered in
- * touchpoints.ts but never wired. The map is found by following the page's own
- * source (the name it indexes, the module it imports that from, the keys at the
- * top of that object literal), so a rename or a move is followed, not pinned.
+ * The board page 404s a folder with no `board.tsx` of its own
+ * (`(shell)/lab/[board]/board-components.ts` finds boards by folder, as the
+ * registry finds specs), so a spec whose board was never written is a board on
+ * the desk that opens onto a 404.
  */
-function dispatchedIds(): string[] {
-  const page = readFileSync(join(ROOT, BOARD_PAGE), "utf8");
-  const name = page.match(/(\w+)\[ruling\.id as SandboxId\]/)?.[1];
-  if (!name) return [];
-  const from = page.match(
-    new RegExp(`import \\{[^}]*\\b${name}\\b[^}]*\\} from "([^"]+)"`),
-  )?.[1];
-  const file = from ? resolveImport(from) : BOARD_PAGE;
-  if (!file) return [];
-  const body = readFileSync(join(ROOT, file), "utf8").match(
-    new RegExp(`\\b${name}\\b[^=]*=\\s*\\{([\\s\\S]*?)\\n\\};`),
-  )?.[1];
-  return topLevelKeys(body ?? "");
-}
-
-function resolveImport(spec: string): string | undefined {
-  const stem = spec.startsWith("@/")
-    ? join("src", spec.slice(2))
-    : join(dirname(BOARD_PAGE), spec);
-  return [".ts", ".tsx", "/index.ts", "/index.tsx"]
-    .map((ext) => stem + ext)
-    .find((f) => existsSync(join(ROOT, f)));
-}
-
-/** The keys at brace depth zero of an object literal's body. */
-function topLevelKeys(body: string): string[] {
-  const keys: string[] = [];
-  let depth = 0;
-  for (const line of body.split("\n")) {
-    const key =
-      depth === 0 ? line.match(/^\s*(?:"([^"]+)"|([\w$]+))\s*:/) : null;
-    if (key) keys.push(key[1] ?? key[2]);
-    for (const ch of line)
-      depth += "{[(".includes(ch) ? 1 : "}])".includes(ch) ? -1 : 0;
-  }
-  return keys;
-}
+const hasBoard = (id: string) =>
+  existsSync(join(ROOT, "src/app/(dev)/design/sandbox", id, "board.tsx"));
 
 describe("the board destination serves every standing board", () => {
   const boardRedirects = LAB_REDIRECTS.filter(
     (r) => pageFor(r.destination) === BOARD_PAGE,
   );
-  const dispatched = dispatchedIds();
 
-  it("the old board URL still has a home, and the board page still has a map", () => {
+  it("the old board URL still has a home", () => {
     expect(boardRedirects.length).toBeGreaterThan(0);
-    expect(dispatched.length).toBeGreaterThan(0);
   });
 
-  it.each(SANDBOX.map((r) => r.id))("/design/lab/%s", (id) => {
+  it.each(BOARDS.map((b) => b.id))("/design/lab/%s", (id) => {
     // One clean segment, or it would fall past [board] into a deeper route.
     expect(id).toMatch(/^[a-z0-9-]+$/);
     for (const { destination } of boardRedirects)
       expect(destination.replace(/:\w+/, id)).toBe(`/design/lab/${id}`);
-    expect(dispatched).toContain(id);
+    expect(hasBoard(id), `sandbox/${id}/ has no board.tsx`).toBe(true);
   });
 });
 

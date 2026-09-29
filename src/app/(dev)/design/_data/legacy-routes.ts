@@ -9,8 +9,8 @@
  * The Library's retired pages land on the page that now carries what they
  * pointed at: the policies, the guidance and the doctrine on the Library's
  * home (its design recipe says the tests are the real rules and production is
- * the reference), a principle's own page on the ten, and the old rulings
- * record on the ten as well.
+ * the reference), a principle's own page on the ten, and the old record of
+ * his picks on the ten as well.
  */
 export const LAB_REDIRECTS: { source: string; destination: string }[] = [
   { source: "/design/components", destination: "/design/library/components" },

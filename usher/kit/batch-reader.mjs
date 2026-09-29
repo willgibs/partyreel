@@ -62,9 +62,19 @@ function readSpec(board) {
   if (!existsSync(file)) return null;
   const src = readFileSync(file, "utf8");
   const sf = ts.createSourceFile(file, src, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
-  const spec = { board, file, round: null, opening: null, terms: [], decisions: new Map(), items: new Map() };
+  const spec = { board, file, round: null, title: null, surface: null, desk: null, lives: [], tracks: [], opening: null, terms: [], decisions: new Map(), items: new Map() };
   const walk = (node) => {
     if (ts.isObjectLiteralExpression(node)) {
+      // The board's own object (it names its asks): its title and its desk facts, which are the board's own since the
+      // lab revamp (a board is its folder; nothing else lists it).
+      if (prop(node, "asks") && prop(node, "round") && prop(node, "id")) {
+        spec.title = str(prop(node, "title"));
+        spec.surface = str(prop(node, "surface"));
+        const desk = prop(node, "desk");
+        if (desk && ts.isNumericLiteral(desk)) spec.desk = Number(desk.text);
+        spec.lives = strs(prop(node, "lives"));
+        spec.tracks = strs(prop(node, "tracks"));
+      }
       const q = prop(node, "question"), opts = prop(node, "options"), id = prop(node, "id");
       if (q && opts && id && ts.isArrayLiteralExpression(opts)) {
         // The context layer (2026-09-29) rides beside the question: where it happens, the state that brings
@@ -149,7 +159,18 @@ function parsePaste(text) {
   return { build, reviews };
 }
 
-export { readSpec, parsePaste, reading };
+/**
+ * Every standing board (a folder under sandbox/ with a spec.ts) with the desk facts its spec carries, in desk order: its
+ * own `desk` place, lower first, a tie in id order, as the registry sorts `BOARDS`.
+ */
+function readBoards() {
+  const ids = existsSync(SANDBOX) ? readdirSync(SANDBOX, { withFileTypes: true }).filter((e) => e.isDirectory() && existsSync(join(SANDBOX, e.name, "spec.ts"))).map((e) => e.name) : [];
+  return ids
+    .map((id) => readSpec(id))
+    .sort((a, b) => (a.desk ?? Infinity) - (b.desk ?? Infinity) || a.board.localeCompare(b.board));
+}
+
+export { readSpec, readBoards, parsePaste, reading };
 
 /* ---------- the reading ---------- */
 

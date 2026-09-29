@@ -10,8 +10,9 @@ import {
   type GalleryItem,
   ITEMS,
 } from "../gallery/registry";
-import { boardSpec } from "../sandbox/registry";
-import { SANDBOX, SURFACE_LABEL, type Surface } from "../touchpoints";
+import { type Surface, SURFACE_LABEL } from "@/components/lab/board-spec";
+
+import { BOARDS, boardNote, boardSpec } from "../sandbox/registry";
 import { flatten, type Nav, type NavItem, type NavSection } from "./catalog";
 import { listSpecs, listTracks } from "./docs";
 import { GLOSSARY, RETIRED } from "./glossary";
@@ -142,18 +143,18 @@ export async function buildNav(): Promise<Nav> {
   const trackList = listTracks();
 
   const boards: NavSection[] = SURFACE_ORDER.flatMap((surface) => {
-    const items = SANDBOX.filter((r) => r.surface === surface);
+    const items = BOARDS.filter((b) => b.surface === surface);
     if (items.length === 0) return [];
     return [
       {
         id: `boards-${surface}`,
         label: `${SURFACE_LABEL[surface]} boards`,
-        items: items.map((r) => ({
-          href: `/design/lab/${r.id}`,
-          label: r.title,
-          id: r.id,
-          note: r.board.note,
-          badge: roundBadge(r.id) ?? ("exploring" as const),
+        items: items.map((b) => ({
+          href: `/design/lab/${b.id}`,
+          label: b.title,
+          id: b.id,
+          note: boardNote(b),
+          badge: roundBadge(b.id) ?? ("exploring" as const),
           match: "prefix" as const,
         })),
       },
@@ -339,15 +340,15 @@ export function buildSearchIndex(nav: Nav): SearchIndex {
       ),
     );
 
-  for (const r of SANDBOX)
+  for (const b of BOARDS)
     out.push(
       entry(
         "board",
-        r.id,
-        r.title,
-        `/design/lab/${r.id}`,
-        r.board.note,
-        [SURFACE_LABEL[r.surface], ...(r.board.tracks ?? [])],
+        b.id,
+        b.title,
+        `/design/lab/${b.id}`,
+        boardNote(b),
+        [SURFACE_LABEL[b.surface], ...(b.tracks ?? [])],
       ),
     );
 

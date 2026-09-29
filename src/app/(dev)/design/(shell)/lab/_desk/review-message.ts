@@ -45,8 +45,8 @@ export type SessionItem = {
 
 export type SessionNote = { board: string; round: number; text: string };
 
-/** One ruling on one Library entry; the Library has no rounds. */
-export type LibraryEntryRuling = {
+/** One verdict on one Library entry; the Library has no rounds. */
+export type LibraryEntryAnswer = {
   entry: string;
   verdict: string;
   note?: string;
@@ -73,7 +73,7 @@ function clause(head: string, value: string, note?: string): string {
     : `${head}=${value}`;
 }
 
-/** One board's line; empty when the board has nothing answered, ruled or noted. */
+/** One board's line; empty when the board has nothing answered or noted. */
 export function composeBoardLine(
   board: string,
   round: number,
@@ -94,9 +94,9 @@ export function composeBoardLine(
   return `review ${board} r${round}: ${parts.join("; ")}`;
 }
 
-/** The Library's own line; empty when nothing was ruled. */
-export function composeLibraryLine(rulings: LibraryEntryRuling[]): string {
-  const parts = rulings
+/** The Library's own line; empty when no entry has a verdict. */
+export function composeLibraryLine(entries: LibraryEntryAnswer[]): string {
+  const parts = entries
     .filter((r) => r.verdict)
     .map((r) => clause(r.entry, r.verdict, r.note));
   return parts.length === 0 ? "" : `review library: ${parts.join("; ")}`;
@@ -130,7 +130,7 @@ export function composeMessage(
   answers: SessionAnswer[],
   notes: SessionNote[] = [],
   items: SessionItem[] = [],
-  library: LibraryEntryRuling[] = [],
+  library: LibraryEntryAnswer[] = [],
   build?: string | null,
 ): string {
   const order: { board: string; round: number }[] = [];
@@ -249,7 +249,7 @@ export function alreadySent(
  * ALREADY HOLDS (Will, 2026-09-17, rereading a paste: "some of the notes aren't
  * actually attached to the correct questions"). They were attached correctly;
  * what he saw was the light board's `paper` step, withdrawn INSIDE round seven
- * after he ruled on it, whose text his browser still held: a cleared choice
+ * after he answered it, whose text his browser still held: a cleared choice
  * with a surviving note, sent as `note: "on paper: ..."` at the end of every
  * later line, which reads as a note on whatever he answered last. Two causes,
  * two guards. An entry is only sent for an ask or a card the open round's spec

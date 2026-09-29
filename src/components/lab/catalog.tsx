@@ -20,7 +20,7 @@ import { useDesignKey } from "./walk";
 
 /**
  * THE CATALOG (the revamp, 2026-09-16): an exploration as a grid of polished
- * ideas, each ruled on where it stands.
+ * ideas, each given its verdict where it stands.
  *
  * ★ THE SHAPE IS WILL'S BRIEF, VERBATIM. Tracks "should return design catalogs
  * of ideas to ship in the lab" that he can "kill, refine, or promote the best

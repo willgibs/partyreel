@@ -16,16 +16,16 @@ import { Tag } from "@/app/(dev)/design/(shell)/_shell/tag";
 import { listSpecs } from "@/app/(dev)/design/_data/docs";
 import { readTrackStates, trackAlias } from "@/app/(dev)/design/_data/tracks";
 import {
-  libraryRulings,
+  libraryAnswers,
   windowNotesFor,
 } from "@/app/(dev)/design/review/ledger";
 import { itemById } from "@/app/(dev)/design/gallery/registry";
 import { BOARDS } from "@/app/(dev)/design/sandbox/registry";
-import { SANDBOX, SURFACE_LABEL } from "@/app/(dev)/design/touchpoints";
 
 import {
   type BoardRow,
   boardWork,
+  deskBoards,
   deskRows,
   transcribedFrom,
 } from "./_desk/queue";
@@ -88,7 +88,7 @@ type Params = Promise<Record<string, string | string[] | undefined>>;
  * One line of "Waiting on you": an unanswered ask, or a board's catalog as a
  * single row. The catalog comes FIRST for its board, the order the session
  * walks it in, because a board's asks are what is left open once its cards have
- * been ruled on.
+ * their verdicts.
  */
 /**
  * ★ A QUEUE ROW STACKS ON A PHONE (the sweep's finding, 2026-09-16). The board
@@ -122,15 +122,7 @@ export default async function DeskPage({
   // which ride its row.
   const windowNotes = windowNotesFor(null);
 
-  const rows = deskRows(
-    SANDBOX.map((r) => ({
-      id: r.id,
-      title: r.title,
-      surfaceLabel: SURFACE_LABEL[r.surface],
-      note: r.board?.note ?? r.why,
-      tracks: r.board?.tracks ?? [r.id],
-    })),
-  );
+  const rows = deskRows(deskBoards());
 
   const specOf = (board: string) => BOARDS.find((b) => b.id === board);
   const steps = toSteps(boardWork(rows), specOf, key);
@@ -139,7 +131,7 @@ export default async function DeskPage({
   // this rides the paste and `lab:review` compares it with the tree it writes.
   const build = buildStamp()?.sha ?? null;
   // A staged step is listed (dim) but not counted: it is not a question yet.
-  const waiting = steps.filter((s) => !s.after || s.afterRuled).length;
+  const waiting = steps.filter((s) => !s.after || s.afterAnswered).length;
 
   // The dry run: one fixture board, walked the same way, so the session can be
   // judged before a standing board carries a spec. It carries a catalog too,
@@ -155,7 +147,7 @@ export default async function DeskPage({
                 boardTitle: SAMPLE_BOARD.title,
                 round: SAMPLE_BOARD.round.n,
                 item,
-                ruling: null,
+                answer: null,
               })),
               asks: SAMPLE_BOARD.asks.map((ask) => ({
                 board: SAMPLE_BOARD.id,
@@ -163,7 +155,7 @@ export default async function DeskPage({
                 round: SAMPLE_BOARD.round.n,
                 ask,
                 answer: null,
-                // Nothing is ruled on a dry run, so a staged ask is staged
+                // Nothing is on record for a dry run, so a staged ask is staged
                 // until the walk itself answers what it waits on.
                 staged: Boolean(ask.after),
                 moot: false,
@@ -203,7 +195,7 @@ export default async function DeskPage({
   // with no verdict yet. A board with no catalog contributes nothing.
   const itemsNow = rows.reduce((n, r) => n + r.items.length, 0);
   const openItemsNow = rows.reduce((n, r) => n + r.openItems.length, 0);
-  const redesigns = libraryRulings().filter((r) => r.verdict !== "keep");
+  const redesigns = libraryAnswers().filter((r) => r.verdict !== "keep");
   // Asks Will marked "not clear to me": still waiting, and the board owes a
   // clearer question before he is asked again.
   const unclearNow = rows.reduce(
@@ -235,7 +227,7 @@ export default async function DeskPage({
       <StatRow
         stats={[
           ["waiting on you", waiting],
-          ["items to rule", `${openItemsNow} of ${itemsNow}`],
+          ["cards awaiting a verdict", `${openItemsNow} of ${itemsNow}`],
           ["answered this round", answeredNow],
           ["asked for a clearer question", unclearNow],
           ["standing boards", rows.length],
@@ -246,7 +238,7 @@ export default async function DeskPage({
       <Section
         id="waiting"
         title="Waiting on you"
-        blurb="Every catalog with a card still unruled and every question with no answer, in board order. The review walks them one at a time and ends in one message to paste."
+        blurb="Every catalog with a card still waiting on a verdict and every question with no answer, in board order. The review walks them one at a time and ends in one message to paste."
         aside={
           steps.length > 0 ? (
             <span className="flex flex-wrap items-center gap-2">
@@ -267,7 +259,7 @@ export default async function DeskPage({
               // A staged step is dim and says what it waits on: it is on the
               // list so the reviewer can see the round has more in it, and out
               // of the way so it is not a question he thinks he owes an answer.
-              const staged = Boolean(step.after) && !step.afterRuled;
+              const staged = Boolean(step.after) && !step.afterAnswered;
               return (
                 <li
                   key={stepParam(step)}
@@ -312,7 +304,7 @@ export default async function DeskPage({
             <p className="text-sm">
               {withSpec.length === 0
                 ? "No board carries a spec yet, so nothing is queued here."
-                : "Every question is answered and every catalog is ruled on this round."}
+                : "Every question is answered and every catalog card has its verdict this round."}
             </p>
             <p className="mt-1.5 max-w-2xl text-xs leading-relaxed text-muted-foreground">
               {withSpec.length === 0
@@ -380,7 +372,7 @@ export default async function DeskPage({
       <Section
         id="boards"
         title="Every standing board"
-        blurb="In registry order, the same order the board pages page through. A board with a spec shows its verdict and its questions; one without shows what it is exploring."
+        blurb="In desk order, the same order the board pages page through. A board with a spec shows its verdict and its questions; one without shows what it is exploring."
       >
         <ol className="space-y-2">
           {rows.map((row) => (
@@ -630,7 +622,7 @@ function BoardCard({
           <span className="text-muted-foreground">
             {answered} of {row.asks.length} answered
             {row.items.length > 0
-              ? `, ${row.items.length - row.openItems.length} of ${row.items.length} ruled`
+              ? `, ${row.items.length - row.openItems.length} of ${row.items.length} given a verdict`
               : ""}
           </span>
         )}

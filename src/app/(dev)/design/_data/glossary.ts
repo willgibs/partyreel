@@ -66,13 +66,13 @@ export const GLOSSARY: Term[] = [
   {
     term: "Board",
     meaning:
-      "One open question and the ideas answering it, on the real tokens. A board is two files: its spec (the question, the answer so far, the questions for Will, the ideas, the sections) and its evidence.",
+      "A list of decisions for Will, each option drawn on the real tokens. A board is one folder under sandbox/: its spec (the decisions, their context, and where the board stands on the desk) and its board (a preview per option). Nothing else names it; retiring it is deleting the folder.",
     href: "/design/lab",
   },
   {
-    term: "Idea, question, departure, asset",
+    term: "Decision, pick, verdict, answer",
     meaning:
-      "An idea (the code calls it a candidate) is one answer the board argues; a question (an ask) is one Will answers in a word; a departure is a principle or a shipped decision the idea departs from, and what that costs; an asset is what the design needs Will to make.",
+      "A decision (the code calls it an ask) is one question with its options drawn; Will answers it with a pick, the option he chose, and an optional note. A verdict is his keep, refine or kill on a catalog card (keep, redesign or retire on a Library entry). An answer is either, and the board's ledger records every answer.",
   },
   {
     term: "The desk",
@@ -89,7 +89,7 @@ export const GLOSSARY: Term[] = [
   {
     term: "Kit",
     meaning:
-      "The pieces every board composes: the dock, the stage, the frame, the compare, the specimen.",
+      "What a board draws with, through its front door (the board, the frame, fit and measured), and the machinery it rides on (the template, the dock, the step, the review's store).",
     href: "/design/lab/kit",
   },
   {
@@ -99,9 +99,9 @@ export const GLOSSARY: Term[] = [
     href: "/design/lab/tools/motion",
   },
   {
-    term: "Stage",
+    term: "Frame",
     meaning:
-      "The kit's viewport: a real viewport's pixels on a real ground, 1:1 by default. Only the kit's; the catalog's frame is a specimen.",
+      "The kit's real viewport: a same-origin iframe a preview is drawn into, so breakpoints and vw read the frame's width rather than the lab's. The catalog's frame is a specimen.",
   },
 ];
 
@@ -118,9 +118,9 @@ export const RETIRED: { term: string; now: string }[] = [
   { term: "Sandbox", now: "the Lab; the directory keeps its name" },
   {
     term: "Touchpoint",
-    now: "a board (in the UI); the registry file keeps its name",
+    now: "a board: its spec says what it redraws (`lives`) and where it stands on the desk",
   },
-  { term: "Variants (of a board)", now: "ideas (the spec's `candidates`)" },
+  { term: "Variants, ideas (of a board)", now: "a decision's options" },
   {
     term: "The mono sheet",
     now: "the real tokens; there is one design language",
@@ -131,8 +131,8 @@ export const RETIRED: { term: string; now: string }[] = [
     now: "a test: the tests say what has to keep working, and a catalog entry names the one that pins its behavior",
   },
   {
-    term: "Ruling",
-    now: "a pick: the best of what one round drew, built into production as a working version",
+    term: "Ruling, ruled, ratified",
+    now: "a pick, an answer, a verdict: the best of what one round drew, built into production as a working version, never a rule",
   },
   {
     term: "Guidance, doctrine, landmine",

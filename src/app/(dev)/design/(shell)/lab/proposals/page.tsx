@@ -9,7 +9,7 @@ import { StatRow } from "@/app/(dev)/design/(shell)/_shell/stat-row";
 import { Tag } from "@/app/(dev)/design/(shell)/_shell/tag";
 import { listSpecs, readDoc } from "@/app/(dev)/design/_data/docs";
 import { readTrackStates } from "@/app/(dev)/design/_data/tracks";
-import { SANDBOX } from "@/app/(dev)/design/touchpoints";
+import { BOARDS } from "@/app/(dev)/design/sandbox/registry";
 
 import { proposalStatus } from "./status";
 
@@ -30,8 +30,8 @@ export default async function ProposalsPage({
   await requireDesignKey(searchParams);
   const tracks = readTrackStates();
   const specs = listSpecs().map((s) => {
-    const board = SANDBOX.find((r) => r.id === s.slug);
-    const builders = board?.board?.tracks ?? (board ? [board.id] : []);
+    const board = BOARDS.find((b) => b.id === s.slug);
+    const builders = board?.tracks ?? (board ? [board.id] : []);
     return {
       ...s,
       status: proposalStatus(readDoc(`docs/specs/${s.slug}.md`).body),
@@ -80,7 +80,7 @@ export default async function ProposalsPage({
     <div className="mx-auto w-full max-w-4xl px-4 pb-20 sm:px-6">
       <PageHeader
         title="Proposals"
-        description="Every board's settled argument under docs/specs, rendered from the repo. A proposal is not law until Will rules on it; a bible rule that inherits one says so on its page."
+        description="Every board's settled argument under docs/specs, rendered from the repo. A proposal is a board's recommendation until Will answers it; a bible principle that inherits one says so on its page."
       />
       <StatRow
         stats={[

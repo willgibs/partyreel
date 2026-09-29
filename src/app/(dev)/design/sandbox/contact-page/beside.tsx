@@ -67,9 +67,7 @@ export function BesidePreview({ shape }: { shape: BesideShape }) {
                   <span className="text-xs font-medium text-faint tabular-nums">
                     {String(i + 1).padStart(2, "0")}
                   </span>
-                  <span className="font-heading text-sm font-medium">
-                    {d.title}
-                  </span>
+                  <span className="font-heading text-sm">{d.title}</span>
                   <span className="text-sm text-pretty text-muted-foreground">
                     {d.body}
                   </span>

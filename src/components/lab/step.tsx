@@ -260,13 +260,13 @@ export function Step({
 
   /**
    * THE BOARD'S DECIDED ANSWERS, AS THE CONTROLS THAT DRAW THEM: the ledger's
-   * from an earlier sitting (`ruled`, resolved on the server), then this
+   * from an earlier sitting (`answered`, resolved on the server), then this
    * sitting's from the store, which are newer and win. An exploration's control
-   * IS its ask (`defineExploration`), so a ruled answer lands on the control of
+   * IS its ask (`defineExploration`), so an answer on record lands on the control of
    * the same id; an ask in this walk also lends its option's own patch.
    */
   const wearing = (s: AskStep): Record<string, string> => {
-    const out: Record<string, string> = { ...s.ruled };
+    const out: Record<string, string> = { ...s.answered };
     for (const t of steps) {
       if (t.kind !== "ask" || t.board !== s.board || t.round !== s.round)
         continue;

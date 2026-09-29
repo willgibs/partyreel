@@ -1,11 +1,11 @@
 "use client";
 
-import { ExplorationBoard } from "@/components/lab";
 import {
   type BoardState,
+  ExplorationBoard,
   optionId,
   optionLabel,
-} from "@/components/lab/board-spec";
+} from "@/components/lab";
 import type { PreviewsFor } from "@/components/lab/exploration";
 
 import type { WelcomeAt } from "./door-props";

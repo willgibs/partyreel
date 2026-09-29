@@ -84,7 +84,7 @@ export const SAMPLE_BOARD = defineBoard({
     recommendation:
       "Answer in one word per ask, and leave the reasons to the notes.",
     because:
-      "A ruling that fits in a word can be recorded, counted and reversed; a paragraph cannot. The note beside it carries everything the word leaves out.",
+      "An answer that fits in a word can be recorded, counted and reversed; a paragraph cannot. The note beside it carries everything the word leaves out.",
     overrule:
       "An ask that cannot be answered in a word is the wrong ask, and splitting it is cheaper than widening the grammar.",
   },
@@ -191,7 +191,7 @@ export const SAMPLE_BOARD = defineBoard({
       id: "notes",
       question: "Where do the reasons go?",
       context:
-        "A ruling is one option; the reason you picked it has to live somewhere the next round can read.",
+        "A pick is one option; the reason you picked it has to live somewhere the next round can read.",
       look: "The ledger section: the note field under every ask, and the line the session composes.",
       options: [
         {
@@ -212,7 +212,7 @@ export const SAMPLE_BOARD = defineBoard({
       ],
       recommended: "the-note",
       because:
-        "The note rides the answer into the ledger, so the reason and the ruling stay together for ever.",
+        "The note rides the answer into the ledger, so the reason and the pick stay together for ever.",
       evidence: "ledger",
       // Staged: the question only exists once the winner is the declared shape,
       // and it is moot the moment the winner goes the other way.

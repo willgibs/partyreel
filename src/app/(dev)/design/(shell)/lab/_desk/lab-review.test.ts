@@ -218,7 +218,7 @@ describe("the spec scanner", () => {
         `${board.id}: recommended`,
       ).toEqual(board.asks.map((a) => a.recommended));
       expect(spec.catalog, `${board.id}: catalog`).toBe(Boolean(board.catalog));
-      // A catalog board must be readable off the page, or no ruling on its
+      // A catalog board must be readable off the page, or no verdict on its
       // cards can ever be validated.
       if (board.catalog) {
         expect(spec.items, `${board.id}: items`).toEqual(
@@ -475,7 +475,7 @@ describe("the grammar", () => {
     expect(word.column).toBe(`${head}item:as-data=`.length + 1);
 
     const twice = at(`${head}item:as-data=keep; item:as-data=kill`);
-    expect(twice.message).toContain("ruled twice");
+    expect(twice.message).toContain("given a verdict twice");
 
     const entry = at("review library: not-a-component=keep");
     expect(entry.message).toContain("is not a library entry");
@@ -526,9 +526,9 @@ describe("the grammar", () => {
       lab.parseLine(`review ${BOARD} r1: a=b "unclosed`),
     ).toThrowError(/closing quote/);
     expect(() => lab.parseLine(`review ${BOARD} r1:`)).toThrowError(
-      /no answer, no ruling and no note/,
+      /no answer, no verdict and no note/,
     );
-    expect(() => lab.parseLine("review library:")).toThrowError(/no ruling/);
+    expect(() => lab.parseLine("review library:")).toThrowError(/no verdict/);
     expect(() => lab.parseLine(`review ${BOARD} r1: item:a`)).toThrowError(
       /"="/,
     );
@@ -618,7 +618,7 @@ describe("the ledgers", () => {
     expect(again[0].note).toBeUndefined();
   });
 
-  it("writes the Library's rulings to their own file, one per entry", () => {
+  it("writes the Library's verdicts to their own file, one per entry", () => {
     const result = lab.run(
       'review library: masonry=redesign "the columns fight the phone"',
       { root, at: "2026-09-16T09:00:00Z" },
