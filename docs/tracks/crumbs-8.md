@@ -21,6 +21,8 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/db/queries/event-card
   - src/lib/supabase/anon
   - src/lib/db/migration-guards.test.ts
+  - src/app/(marketing)/(cinema)/features/guests/page.tsx
+  - src/lib/content/llms.ts
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/guest-flow.md
   - docs/systems/database-security.md
