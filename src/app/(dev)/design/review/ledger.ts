@@ -1,6 +1,6 @@
 import "server-only";
 
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { cache } from "react";
 
@@ -11,11 +11,11 @@ import { z } from "zod";
  *
  * `docs/reviews/<board>.json` is Will's answers and notes on one board and, since
  * the revamp (2026-09-16), his verdict on each of its catalog items; `_window.json`
- * holds the notes that bind every board in a round, and `_library.json` the
- * redesigns asked for on Library entries. The lab NEVER
- * writes this directory (his decision, 2026-09-15): the review panel composes
- * a message he pastes into chat, the Orchestrator validates it against the
- * board's spec and appends. So everything here reads and validates; nothing
+ * logs what he said at a sitting outside any board's own review (on a board, or
+ * on none), and `_library.json` the redesigns asked for on Library entries. The
+ * lab NEVER writes this directory (his decision, 2026-09-15): the review panel
+ * composes a message he pastes into chat, the Orchestrator validates it against
+ * the board's spec and appends. So everything here reads and validates; nothing
  * mutates.
  *
  * Validated with zod rather than trusted, because a ledger is hand-edited
@@ -38,7 +38,11 @@ const Answer = z.object({
 });
 
 const Note = z.object({
-  /** A board id, or null for the whole window. */
+  /**
+   * The board this was said on, or null when it was said on none. In a board's
+   * own ledger null is that board (the ledger is the board); in `_window.json`
+   * it is the sitting, said on no board, and it binds nothing.
+   */
   on: z.string().nullable().optional(),
   text: z.string().min(1),
   by: z.string().min(1),
@@ -124,15 +128,15 @@ export const LIBRARY_LEDGER = "_library";
 /** A board id is one path segment; anything else never reaches the disk. */
 const BOARD_ID = /^[a-z0-9][a-z0-9-]*$/;
 
-function ledgerPath(board: string): string {
+function ledgerPath(board: string, root: string): string {
   if (!BOARD_ID.test(board) && board !== WINDOW_LEDGER) {
     throw new Error(`readLedger: refusing "${board}" as a board id`);
   }
-  return join(process.cwd(), REVIEWS_DIR, `${board}.json`);
+  return join(root, REVIEWS_DIR, `${board}.json`);
 }
 
-const readLedgerCached = cache((board: string): Ledger | null => {
-  const file = ledgerPath(board);
+const readLedgerCached = cache((root: string, board: string): Ledger | null => {
+  const file = ledgerPath(board, root);
   if (!existsSync(file)) return null;
   const parsed = LedgerSchema.safeParse(JSON.parse(readFileSync(file, "utf8")));
   if (!parsed.success) {
@@ -146,9 +150,16 @@ const readLedgerCached = cache((board: string): Ledger | null => {
   return parsed.data;
 });
 
-/** One board's ledger, or null when no review has opened on it yet. */
-export function readLedger(board: string): Ledger | null {
-  return readLedgerCached(board);
+/**
+ * One board's ledger, or null when no review has opened on it yet. `root` is
+ * the repo to read (the tests point it at a scratch tree, never at the live
+ * ledgers).
+ */
+export function readLedger(
+  board: string,
+  root: string = process.cwd(),
+): Ledger | null {
+  return readLedgerCached(root, board);
 }
 
 /** The round with the highest `n`, which is the one a board is being reviewed in. */
@@ -195,13 +206,95 @@ export function libraryAnswers(): LibraryAnswer[] {
 }
 
 /**
- * The window's notes for one board: the notes whose `on` names it, and the
- * ones that bind every board (`on: null`). These are the lines a board must
- * still be answering in the round it is in.
+ * ★ A NOTE BINDS ONLY WHAT IT WAS GIVEN ON, AND A SITTING ENDS (Will, 2026-09-29).
+ *
+ * This used to hand every board the window's board-less notes ("the lines a
+ * board must still be answering") and the desk printed them as what "binds
+ * every board". Three notes he gave on the brand-voice board were filed on no
+ * board, and because nothing ever opened a newer window round they stayed the
+ * latest one for twelve days and pushed every lane toward a form he never asked
+ * of it. Two things were wrong at once: a note on no board was a standing rule
+ * by default, and a round stayed current until something replaced it.
+ *
+ * So the window is a log of sittings and nothing in it binds. Its latest round
+ * is the current sitting until a board opens a round on a LATER DAY (his next
+ * sitting: the ledgers are the only clock, so nobody has to remember to close
+ * anything), and then it says nothing to anyone. What he said on a board rides
+ * that board's row; what he said on none is shown once on the desk as what he
+ * said at that sitting, never as a rule. A note meant for the whole program is
+ * the Orchestrator's to synthesize into the doc it refines, and deleting it
+ * here is the record that it was folded: no mark to set, so no mark to forget.
+ *
+ * Days, not timestamps: the same sitting's paste lands minutes after its notes
+ * are filed, and comparing instants would expire the notes on the paste that
+ * came with them.
  */
-export function windowNotesFor(board: string | null): Note[] {
-  const round = latestRound(readLedger(WINDOW_LEDGER));
-  return (round?.notes ?? []).filter(
-    (n) => n.on == null || (board !== null && n.on === board),
+export type Sitting = {
+  /** The window round's date. */
+  opened: string;
+  /** Every note of that round, on a board or on none. */
+  notes: Note[];
+};
+
+/** A round's date as the day it names: an `opened` that carries a time is still a day. */
+const day = (opened: string) => opened.slice(0, 10);
+
+/**
+ * The window's latest round, unless a board has opened a round on a later day.
+ * Pure, so a test hands in fixtures and asserts on those, never on what the
+ * live ledgers happen to hold.
+ */
+export function sittingIn(
+  window: Ledger | null,
+  boards: readonly Ledger[],
+): Sitting | null {
+  const round = latestRound(window);
+  if (!round) return null;
+  const newer = boards.some((ledger) =>
+    ledger.rounds.some((r) => day(r.opened) > day(round.opened)),
   );
+  return newer ? null : { opened: round.opened, notes: round.notes };
+}
+
+/** What he said at the sitting on no board: shown on the desk, bound to nothing. */
+export function saidOnNoBoard(sitting: Sitting | null): Note[] {
+  return (sitting?.notes ?? []).filter((n) => n.on == null);
+}
+
+/** What he said at the sitting on this board: the board's own, and only its own. */
+export function saidOnBoard(sitting: Sitting | null, board: string): Note[] {
+  return (sitting?.notes ?? []).filter((n) => n.on === board);
+}
+
+/**
+ * Every board ledger on disk: the files named like a board. `_window` is the
+ * window itself, `_library` a second shape (the reader refuses it as a board
+ * id), and the README is not a ledger at all.
+ */
+function boardLedgersAt(root: string): Ledger[] {
+  const dir = join(root, REVIEWS_DIR);
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir)
+    .filter((f) => f.endsWith(".json"))
+    .map((f) => f.slice(0, -".json".length))
+    .filter((id) => BOARD_ID.test(id))
+    .map((id) => readLedger(id, root))
+    .filter((ledger): ledger is Ledger => ledger !== null);
+}
+
+const currentSittingCached = cache((root: string): Sitting | null =>
+  sittingIn(readLedger(WINDOW_LEDGER, root), boardLedgersAt(root)),
+);
+
+/** The sitting the window is at, or null once a board has opened a later day. */
+export function currentSitting(root: string = process.cwd()): Sitting | null {
+  return currentSittingCached(root);
+}
+
+/** The notes filed on this board at the current sitting (`on` names it), and no others. */
+export function windowNotesFor(
+  board: string,
+  root: string = process.cwd(),
+): Note[] {
+  return saidOnBoard(currentSitting(root), board);
 }

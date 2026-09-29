@@ -94,7 +94,7 @@ export type BoardStatus = {
   openItems: OpenItem[];
   /** A verdict whose candidate the spec no longer declares: a stale ledger row. */
   orphanedItems: ItemAnswer[];
-  /** This round's notes on this board, and the window's own. */
+  /** This round's notes on this board, and the ones filed on it at the current sitting: a board's own, never another's. */
   notes: Note[];
   /** Every ask answered AND every catalog card given its verdict, and there was something to answer. */
   complete: boolean;

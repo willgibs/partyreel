@@ -326,3 +326,44 @@ describe("what the ledger already holds", () => {
     expect(transcribedFrom(rows).notes).toEqual({});
   });
 });
+
+/**
+ * A BOARD'S NOTES ARE ITS OWN (Will, 2026-09-29). Three notes he gave on the
+ * brand-voice board were filed on no board and rode every other board for
+ * twelve days. A row carries what its own ledger holds (where a null `on` means
+ * the board itself) and what was filed on it, and never a note that names
+ * another board or none, whatever the reader handed it: what he said on no
+ * board is the desk's to show once, not a board's to answer.
+ */
+describe("a board's notes are its own", () => {
+  const filed = (on: string | null, text: string) => ({
+    on,
+    text,
+    by: "Will",
+    at: AT,
+  });
+
+  it("carries its ledger's notes and the ones filed on it, and nothing said on no board", () => {
+    const base = status(SAMPLE_BOARD.round.n, []);
+    const reading: BoardStatus = {
+      ...base,
+      round: base.round && {
+        ...base.round,
+        notes: [filed(null, "its own, in its own ledger")],
+      },
+    };
+    const [row] = deskRows(
+      [BOARD],
+      () => reading,
+      () => [
+        filed(null, "said on no board"),
+        filed("another-board", "filed on another board"),
+        filed(BOARD.id, "filed on this board"),
+      ],
+    );
+    expect(row.notes.map((n) => n.text)).toEqual([
+      "its own, in its own ledger",
+      "filed on this board",
+    ]);
+  });
+});

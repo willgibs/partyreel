@@ -16,8 +16,9 @@ import { Tag } from "@/app/(dev)/design/(shell)/_shell/tag";
 import { listSpecs } from "@/app/(dev)/design/_data/docs";
 import { readTrackStates, trackAlias } from "@/app/(dev)/design/_data/tracks";
 import {
+  currentSitting,
   libraryAnswers,
-  windowNotesFor,
+  saidOnNoBoard,
 } from "@/app/(dev)/design/review/ledger";
 import { itemById } from "@/app/(dev)/design/gallery/registry";
 import { BOARDS } from "@/app/(dev)/design/sandbox/registry";
@@ -118,9 +119,11 @@ export default async function DeskPage({
 
   const tracks = readTrackStates();
   const proposals = new Set(listSpecs().map((s) => s.slug));
-  // The notes that bind every board this round, as opposed to a board's own,
-  // which ride its row.
-  const windowNotes = windowNotesFor(null);
+  // What he said at the latest sitting on no board, as opposed to a board's
+  // own notes, which ride its row. It binds nothing (ledger.ts: a note binds
+  // only what it was given on), and it is gone once a newer sitting opens.
+  const sitting = currentSitting();
+  const saidOnNone = saidOnNoBoard(sitting);
 
   const rows = deskRows(deskBoards());
 
@@ -452,19 +455,16 @@ export default async function DeskPage({
         )}
       </Section>
 
-      {windowNotes.length > 0 && (
+      {sitting && saidOnNone.length > 0 && (
         <Section
           id="notes"
-          title="Your notes this window"
-          blurb="From docs/reviews/_window.json: what you said this round that binds every board, not one of them."
+          title="What you said at your last sitting"
+          blurb={`From docs/reviews/_window.json, your sitting of ${sitting.opened}, about no one board. It binds nothing: the Orchestrator folds a note meant for the whole program into its doc, and this leaves the desk when a newer sitting opens.`}
         >
           <ul className="space-y-2">
-            {windowNotes.map((n, i) => (
-              <li key={`${n.on ?? "all"}-${i}`}>
-                <Callout
-                  kind={n.by === "Will" ? "will" : "note"}
-                  title={n.on ? `On ${n.on}` : "Every board"}
-                >
+            {saidOnNone.map((n, i) => (
+              <li key={`${n.at}-${i}`}>
+                <Callout kind={n.by === "Will" ? "will" : "note"}>
                   {n.text}
                 </Callout>
               </li>
@@ -523,8 +523,9 @@ function BoardCard({
       </p>
 
       {/* What you already said about THIS board, which is what the round it is
-          in is answering. The notes that bind every board are printed once, at
-          the foot of the page, rather than on all fourteen rows. */}
+          in is answering. What you said on no board is not a board's: it is
+          printed once, at the foot of the page, while its sitting is the
+          latest. */}
       {row.notes.length > 0 && (
         <ul className="mt-2 space-y-1 border-l border-border pl-3">
           {row.notes.map((n, i) => (
