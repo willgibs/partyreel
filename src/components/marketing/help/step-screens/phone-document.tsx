@@ -109,7 +109,10 @@ export function PhoneDocument({
           "class",
           document.documentElement.className.replace(/\bdark\b/g, " ").trim(),
         );
-        // A sheet that arrives later (a lazily loaded piece's own CSS) is copied as it lands.
+        // A sheet that arrives later (a lazily loaded piece's own CSS) is copied as it lands. The
+        // `srcdoc` swaps the frame's first blank document for its own on load, so a watcher over the
+        // one it replaced is let go first: one watcher, one live document.
+        watcher?.disconnect();
         watcher = new MutationObserver((records) => {
           for (const record of records) {
             record.addedNodes.forEach((node) => {
