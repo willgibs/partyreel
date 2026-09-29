@@ -8,9 +8,11 @@
  * server (and takes them away again if the server refuses); the whole queue approves in batches of
  * the bulk cap, so Approve all reaches past it; the last tile plays the all-caught-up beat, unless
  * uploads wait behind the line, which never join the grid on their own; a verdict never runs twice
- * on one upload; an upload decided somewhere else leaves, one the room acted on never does; the
- * peek moves on from what it just judged; and moderation off is its own state whatever the queue
- * holds. Not a duration, a class or a word of copy is pinned beyond the verdict's own sentence.
+ * on one upload; an upload decided somewhere else leaves, one the room acted on never does while
+ * the album has not read that write back, and once it has, the album is its truth again (an upload
+ * decided here that comes back to waiting is new, behind the line); the peek moves on from what it
+ * just judged; and moderation off is its own state whatever the queue holds. Not a duration, a
+ * class or a word of copy is pinned beyond the verdict's own sentence.
  */
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -91,8 +93,16 @@ function liveQueue(
     waiting,
     decided: new Set(decided),
     media,
-    sync: vi.fn<() => void>(),
+    // The album's catch-up, answered at once: the room's write has been read back.
+    sync: vi.fn(async () => {}),
   };
+}
+
+/** A live queue whose catch-ups are still in the air: nothing the room writes is read back yet. */
+function unanswered(waiting: string[], decided: string[] = []) {
+  const live = liveQueue(waiting, decided);
+  live.sync.mockImplementation(() => new Promise<void>(() => {}));
+  return live;
 }
 
 describe("the queue's states", () => {
@@ -315,7 +325,9 @@ describe("the last tile", () => {
   });
 
   it("promises nothing while uploads wait behind the line", async () => {
-    const { result } = triage([item(1)], true, liveQueue(["m9", "m1"]));
+    // The album still shows m1 waiting because its catch-up is in the air (`unanswered`): the
+    // line counts m9 alone, since the room's own verdict speaks for m1 until it is read back.
+    const { result } = triage([item(1)], true, unanswered(["m9", "m1"]));
     await act(async () => {
       await result.current.run("approve", ["m1"]);
     });
@@ -386,7 +398,7 @@ describe("the live queue (the host's album)", () => {
     const { result, rerender } = triage(
       queue,
       true,
-      liveQueue(["m1", "m2", "m3", "m4"]),
+      unanswered(["m1", "m2", "m3", "m4"]),
     );
     await act(async () => {
       await result.current.decide("approve", "m4");
@@ -394,13 +406,97 @@ describe("the live queue (the host's album)", () => {
     await act(async () => {
       undoOn("success")();
     });
-    // m2 approved in another tab, m3 taken back by its guest, m4's Undo not read yet (decided).
+    // m2 approved in another tab, m3 taken back by its guest, m4's Undo not read back yet (a poll
+    // read before it landed says decided).
     rerender({
       items: queue,
       moderationOn: true,
-      live: liveQueue(["m1"], ["m2", "m4"]),
+      live: unanswered(["m1"], ["m2", "m4"]),
     });
     expect(ids(result.current.pending)).toEqual(["m1", "m4"]);
+  });
+
+  // ★ ROADMAP's review-room line (build 15's red-team): an upload the room decided never left
+  // `known`, so one that returned to waiting from elsewhere was neither in the grid nor on the line,
+  // and Approve all could play "All caught up" over it, until a reload.
+  it("★ counts an upload decided here that comes back from elsewhere as new, once the album read the verdict back", async () => {
+    const queue = [item(1), item(2)];
+    const { result, rerender } = triage(queue, true, liveQueue(["m1", "m2"]));
+    await act(async () => {
+      await result.current.decide("approve", "m1");
+    });
+    // The catch-up read the verdict back: m1 decided.
+    rerender({
+      items: queue,
+      moderationOn: true,
+      live: liveQueue(["m2"], ["m1"]),
+    });
+    expect(result.current.arrivals).toBe(0);
+    // A second room tab's Undo puts m1 back in the queue.
+    rerender({
+      items: queue,
+      moderationOn: true,
+      live: liveQueue(["m1", "m2"]),
+    });
+    expect(ids(result.current.pending)).toEqual(["m2"]);
+    expect(result.current.arrivals).toBe(1);
+    // So clearing the grid plays no "All caught up": m1 waits behind the line.
+    await act(async () => {
+      await result.current.run("approve", ["m2"]);
+    });
+    rerender({
+      items: queue,
+      moderationOn: true,
+      live: liveQueue(["m1"], ["m2"]),
+    });
+    expect(result.current.visualState).toBe("pending");
+    expect(result.current.arrivals).toBe(1);
+    await act(async () => {
+      await result.current.foldIn();
+    });
+    expect(ids(result.current.pending)).toEqual(["m1"]);
+  });
+
+  it("never counts its own verdict as new while the album has not read it back", async () => {
+    const queue = [item(1), item(2)];
+    const { result, rerender } = triage(queue, true, unanswered(["m1", "m2"]));
+    await act(async () => {
+      await result.current.decide("approve", "m1");
+    });
+    // A poll read before the verdict landed still says m1 is waiting.
+    rerender({
+      items: queue,
+      moderationOn: true,
+      live: unanswered(["m1", "m2"]),
+    });
+    expect(result.current.arrivals).toBe(0);
+    expect(ids(result.current.pending)).toEqual(["m2"]);
+  });
+
+  it("drops an upload put back here and decided elsewhere, once the album read the Undo back", async () => {
+    const queue = [item(1), item(2)];
+    const { result, rerender } = triage(queue, true, liveQueue(["m1", "m2"]));
+    await act(async () => {
+      await result.current.decide("approve", "m1");
+    });
+    await act(async () => {
+      undoOn("success")();
+    });
+    await waitFor(() =>
+      expect(ids(result.current.pending)).toEqual(["m1", "m2"]),
+    );
+    // Read back (m1 waiting again), then approved in another tab.
+    rerender({
+      items: queue,
+      moderationOn: true,
+      live: liveQueue(["m1", "m2"]),
+    });
+    rerender({
+      items: queue,
+      moderationOn: true,
+      live: liveQueue(["m2"], ["m1"]),
+    });
+    expect(ids(result.current.pending)).toEqual(["m2"]);
   });
 
   it("counts one that comes back into the queue as new again, behind the line", () => {

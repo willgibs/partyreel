@@ -10,11 +10,12 @@
  *
  * ★ NEVER A SECOND COPY OF THE ALBUM. No tile box, play badge, hover row or viewer wiring of its own:
  * one `AlbumTile` serves every album grid. What lives here is what is genuinely the GUEST's: what this
- * DEVICE has sent that is not in the album yet, and a desk hover set with no moderation in it.
+ * DEVICE is sending, and a desk hover set with no moderation in it.
  *
- * ★ THE HEAD IS THE SEAM, and the whole of it is two objects: one stack for a pick in flight, led by
- * the file actually in the air, and one waiting tile per file a hold-for-approval event keeps back.
- * Each takes a square slot of its own at the album's head. ★ THE STACK SUBSCRIBES TO ITS OWN
+ * ★ THE HEAD IS THE SEAM, and the whole of it is one object: one stack for a pick in flight, led by
+ * the file actually in the air, in a square slot of its own at the album's head. A file a
+ * hold-for-approval event keeps back draws nothing here (`voice-guest` r2, Will's `held=uploads`):
+ * it shows only in her uploads, the badge beside Add counting it. ★ THE STACK SUBSCRIBES TO ITS OWN
  * PROGRESS (`useQueueProgress`): a tick re-renders the stack's bar and nothing else, never the album.
  *
  * ★ A FILE THAT DID NOT GO IS DRAWN NOWHERE (the failure sheet reads it at the run's end), and no Add
@@ -24,10 +25,7 @@ import type { Ref } from "react";
 import { Download } from "lucide-react";
 
 import type { GridMedia } from "@/components/app/media-grid";
-import {
-  UploadStackTile,
-  WaitingTile,
-} from "@/components/guest/upload/stack-tile";
+import { UploadStackTile } from "@/components/guest/upload/stack-tile";
 import { useLikeAction } from "@/components/likes/like-button";
 import {
   MasonryColumns,
@@ -41,19 +39,16 @@ import {
 import type { RowStep } from "@/lib/shared/album-rows";
 
 /**
- * A FILE THIS DEVICE HAS SENT OR IS SENDING, drawn at the album's head. `url` is the object URL the
- * live gallery's own ledger owns, and `file` rides along so an undrawable one (an iPhone clip, a HEIC
+ * A FILE THIS DEVICE IS SENDING, drawn at the album's head. `url` is the object URL the live
+ * gallery's own ledger owns, and `file` rides along so an undrawable one (an iPhone clip, a HEIC
  * outside Safari) can be NAMED rather than drawn as an empty black box.
- *
- * `held` is the third state, drawn as a waiting tile: the upload finished, the host has not approved
- * it, and only this device knows it exists at all.
  */
 export type PendingTile = {
   queueId: string;
   url: string;
   file: File;
   kind: "photo" | "video";
-  status: "queued" | "uploading" | "held";
+  status: "queued" | "uploading";
   /** The file's progress as the queue last said it on a status change; the stack reads it live. */
   progress: number;
 };
@@ -98,7 +93,7 @@ export function GalleryRows({
   landedIds,
 }: {
   items: GridMedia[];
-  /** This device's in-flight and held files, drawn FIRST, at the head. */
+  /** This device's files in flight, drawn FIRST, at the head. */
   pending?: PendingTile[];
   /** The queue's live progress, which the stack reads itself. */
   progress?: QueueProgress | null;
@@ -147,9 +142,7 @@ export function GalleryRows({
   // ONE PICK IS ONE OBJECT: everything still flying collapses into a single stack led by the file
   // actually in the air (the queue runs one at a time). The fallback to the first of the batch covers
   // the beat between one file completing and the next one's first byte, so the stack never blinks.
-  const flying = pending.filter((p) => p.status !== "held");
-  const lead = flying.find((p) => p.status === "uploading") ?? flying[0];
-  const held = pending.filter((p) => p.status === "held");
+  const lead = pending.find((p) => p.status === "uploading") ?? pending[0];
 
   return (
     <MasonryColumns
@@ -177,13 +170,10 @@ export function GalleryRows({
             <LiveStackTile
               key={lead.queueId}
               lead={lead}
-              remaining={flying.length}
+              remaining={pending.length}
               progress={progress}
             />
           )}
-          {held.map((p) => (
-            <WaitingTile key={p.queueId} file={p.file} url={p.url} />
-          ))}
         </>
       }
     />

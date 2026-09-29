@@ -62,8 +62,9 @@ export const YOUR_CALL = {
     "Guests only ever see approved photos. Whether that means the moment they land, or after you say so, is one switch.",
   hints: {
     live: "Uploads appear the moment they land. Hide any with a tap.",
+    // Her uploads' own words for a held photograph (pinned by mock-parity).
     review:
-      "Every upload waits for you. Guests see: Sent, waiting for host approval",
+      "Every upload waits for you. The guest who sent it sees Waiting for approval.",
   },
   settings: [
     {

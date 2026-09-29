@@ -26,7 +26,6 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 /** The boards standing in sandbox/, one row each below. */
 export type SandboxId =
   | "hero-card"
-  | "voice-guest"
   | "export-flow"
   | "admin-triage"
   | "emails"
@@ -75,29 +74,6 @@ export const RULINGS: Ruling[] = [
         "The link card",
         "The card's own light",
         "The hero at a tablet",
-      ],
-    },
-  },
-  {
-    id: "voice-guest",
-    title: "The voice of the guest journey",
-    surface: "guest",
-    asks: "where a held photo shows to the guest who sent it, what her uploads call one the host is deciding on and one left out, and the keep's words on the door's last screen",
-    why: 'Round one built five lines; a held photo and the keep came back unclear, and host-curation asked for clearer words than "Not in the album".',
-    lives: [
-      "docs/systems/guest-flow.md",
-      "src/components/guest/upload/stack-tile.tsx",
-      "src/components/guest/gallery-rows.tsx",
-      "src/components/guest/upload-tracker.tsx",
-      "src/lib/guest/upload-tracker.ts",
-      "src/components/guest/save-account-prompt.tsx",
-    ],
-    board: {
-      note: "Round two over Priya at Maya and Jay's wedding, every frame a 375 phone in the album as it ships: a held photo's place drawn as the moment, later and her uploads' own screen, her uploads' words for waiting and left out, and the keep's ask in round one's registers",
-      variants: [
-        "Where a held photo shows",
-        "Her uploads' words",
-        "Keeping it",
       ],
     },
   },
@@ -453,7 +429,6 @@ export const RULINGS: Ruling[] = [
  */
 export const DESK_ORDER: readonly SandboxId[] = [
   "hero-card",
-  "voice-guest",
   "event-safety",
   "export-flow",
   "admin-triage",

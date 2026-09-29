@@ -148,9 +148,64 @@ export type LiveQueue = {
 };
 
 /**
+ * ★ THE ROOM'S OWN WRITES THAT THE ALBUM HAS NOT READ BACK YET: every upload the room acted on (a
+ * verdict, its Undo, an Undo refused), keyed to the serial of the room's latest write on it. While
+ * an upload is here the room's own write is its truth, because a poll read before that write
+ * landed would contradict it: pull a tile the host just put back, or count an upload the host just
+ * decided as new. ★ AND ONLY UNTIL THE ALBUM HAS BEEN ASKED SINCE (the catch-up the room asks for
+ * once a write lands; a refused write, nothing to read, at once): from then on the album is its
+ * truth again, so an upload decided here that returns to waiting from elsewhere (a second room
+ * tab's Undo, a direct write) is an arrival the line counts, and one put back here that is decided
+ * elsewhere leaves. Held for ever, both went unseen until a reload.
+ */
+export type OwnWrites = ReadonlyMap<string, number>;
+
+/** `ids` carry the room's write `serial` now: a later write on one replaces an earlier one's. */
+export function ownWrite(
+  writes: OwnWrites,
+  ids: Iterable<string>,
+  serial: number,
+): OwnWrites {
+  const next = new Map(writes);
+  for (const id of ids) next.set(id, serial);
+  return next;
+}
+
+/**
+ * Write `serial` has been read back: those of `ids` still carrying it are the album's again, and
+ * one the room has written since keeps the later write's claim. The same map when nothing moved.
+ */
+export function readBack(
+  writes: OwnWrites,
+  ids: Iterable<string>,
+  serial: number,
+): OwnWrites {
+  let next: Map<string, number> | null = null;
+  for (const id of ids) {
+    if (writes.get(id) !== serial) continue;
+    next ??= new Map(writes);
+    next.delete(id);
+  }
+  return next ?? writes;
+}
+
+/**
+ * EVERY UPLOAD THE ROOM COUNTS AS SHOWN: its grid, and what it acted on that the album has not
+ * read back yet. One the album holds waiting outside it is NEW, and waits behind the line.
+ */
+export function knownIds(
+  queue: readonly { id: string }[],
+  writes: OwnWrites,
+): Set<string> {
+  const known = new Set(writes.keys());
+  for (const { id } of queue) known.add(id);
+  return known;
+}
+
+/**
  * THE LINE'S UPLOADS (host-curation `arrivals=prompt`): every waiting upload this room has not
- * shown, newest first. They never join the grid on their own; the line counts them and a tap folds
- * them in, so nothing moves under a selection or a host working down the queue.
+ * shown (`knownIds`), newest first. They never join the grid on their own; the line counts them and
+ * a tap folds them in, so nothing moves under a selection or a host working down the queue.
  */
 export function arrivals(
   waiting: readonly string[],
@@ -162,20 +217,19 @@ export function arrivals(
 /**
  * Which of the room's items left the queue somewhere else: decided on the server (another tab, a
  * co-host's phone), or seen waiting once and gone from the album now (its guest took it back).
- * ★ NEVER ONE THIS ROOM ACTED ON (`touched`): the room's own write is that item's truth, and a poll
- * read before the write landed (or before its Undo did) would contradict it and pull a tile the
- * host just put back.
+ * ★ NEVER ONE THE ROOM'S OWN WRITE STILL SPEAKS FOR (`OwnWrites`): a poll read before the write
+ * landed (or before its Undo did) would contradict it and pull a tile the host just put back.
  */
 export function departed(
   items: readonly { id: string }[],
   live: LiveQueue,
   seen: ReadonlySet<string>,
-  touched: ReadonlySet<string>,
+  own: { has(id: string): boolean },
 ): Set<string> {
   const waiting = new Set(live.waiting);
   const out = new Set<string>();
   for (const { id } of items) {
-    if (touched.has(id)) continue;
+    if (own.has(id)) continue;
     if (live.decided.has(id) || (seen.has(id) && !waiting.has(id))) out.add(id);
   }
   return out;

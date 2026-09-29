@@ -24,8 +24,9 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 
 ## The desk
 
-Build 16's desk: 48 open asks.
-- **From build 15** (31): `emails`, `privacy-hero`, `album-motion`, `loose-ends`, `contact-page`, `press-page`.
+Build 16's desk: 38 open asks. His `emails` r1 is transcribed (all ten): the wrapper on today's mail is queued as
+`emails-wiring`, and every new mail is banked for one email exploration once the features settle.
+- **From build 15** (21): `privacy-hero`, `album-motion`, `loose-ends`, `contact-page`, `press-page`.
 - **New** (17): `event-settings` (nine, its structure first), `locked-door` (two), `disposable-mode` (six).
 
 `admin-triage` r2 and the wiring follow. His aim is zero before his other to-dos.
