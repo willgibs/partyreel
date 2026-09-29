@@ -40,8 +40,6 @@ export type ScreenId = keyof typeof SCREENS;
 export const screenOf = (s: BoardState): ScreenId =>
   s.screen === "1440" ? "1440" : "375";
 
-export const deskOf = (screen: ScreenId) => screen === "1440";
-
 /** A link pressed inside a drawing goes nowhere (the lab's router would take it). */
 export function Inert({ children }: { children: ReactNode }) {
   return (

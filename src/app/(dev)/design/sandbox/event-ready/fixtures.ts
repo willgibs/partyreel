@@ -16,8 +16,8 @@ import type { JobEvent, ReadyFacts } from "./readiness";
  * could live in, so a reader compares homes, never events.
  *
  * Her dashboard holds three: the 30th, a wedding she is hosting next month
- * (Private, she lets each guest in herself), and last summer's reunion, long
- * done. Friday 2 October 2026 is "today" for every date the drawings read.
+ * (Private, she lets each guest in herself), and last weekend's reunion, its
+ * album still filling. Friday 2 October 2026 is "today" for every date the drawings read.
  *
  * ★ A SEPARATE FILE, NEVER AN IMPORT FROM ANOTHER BOARD: a board's folder
  * leaves whole when it retires. ★ NOTHING HERE IS A REAL PERSON, and every
@@ -159,7 +159,6 @@ export function countsAt(m: Moment, waiting = 0): DoorCounts {
 }
 
 export const THIRTIETH_URL = `${SITE}/e/${THIRTIETH_TOKEN}`;
-export const THIRTIETH_READABLE = "partyreel.com/e/3f0c1d2e…";
 
 /* ── the code's five doors (the `door` ask) ──────────────────────────────── */
 
@@ -258,13 +257,13 @@ const wedding: DashEvent = {
 const reunion: DashEvent = {
   id: "8b1f5e0a-30a0-4c30-8a30-0000000e2025",
   name: "The Lake Reunion",
-  dateLabel: "July 19, 2025",
+  dateLabel: "September 26",
   ...BASE,
   approved: 214,
   playable: 214,
   reelItems: 214,
-  eventDate: "2025-07-19",
-  description: "Five days at the lake, every photo from everyone.",
+  eventDate: "2026-09-26",
+  description: "A weekend at the lake, every photo from everyone.",
   opened: 88,
   guestsIn: 23,
   pending: 0,

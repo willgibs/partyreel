@@ -129,7 +129,7 @@ describe("ready", () => {
 describe("what needs you, never empty", () => {
   const TODAY = "2026-10-02";
 
-  it("names one job for every event, whatever its state", () => {
+  it("names one job for every event before its date and in the month after it", () => {
     const states: Partial<JobEvent>[] = [
       {},
       {
@@ -139,13 +139,7 @@ describe("what needs you, never empty", () => {
         eventDate: "2026-10-10",
         description: "Hi",
       },
-      {
-        opened: 5,
-        approved: 12,
-        playable: 12,
-        eventDate: "2025-07-04",
-        description: "Hi",
-      },
+      { eventDate: "2026-09-26" },
       { door: "private" },
       { acceptingUploads: false },
       { pending: 4 },
@@ -153,30 +147,46 @@ describe("what needs you, never empty", () => {
     ];
     for (const s of states) {
       const job = nextJob(event(s), TODAY);
-      expect(job.label.length).toBeGreaterThan(0);
-      expect(job.eventId).toBe("e1");
+      expect(job?.label.length).toBeGreaterThan(0);
+      expect(job?.eventId).toBe("e1");
     }
   });
 
+  it("lets a party long past go quiet until something waits", () => {
+    const old = { eventDate: "2025-07-19", opened: 88, approved: 214 };
+    expect(nextJob(event(old), TODAY)).toBeNull();
+    expect(nextJob(event({ ...old, pending: 3 }), TODAY)?.kind).toBe("review");
+    // The month after: its album, whatever the checklist left undone.
+    expect(nextJob(event({ eventDate: "2026-09-26" }), TODAY)?.kind).toBe(
+      "album",
+    );
+    expect(nextJob(event({ eventDate: "2026-09-02" }), TODAY)?.kind).toBe(
+      "album",
+    );
+    expect(nextJob(event({ eventDate: "2026-09-01" }), TODAY)).toBeNull();
+  });
+
   it("keeps production's order for what waits, first", () => {
-    expect(nextJob(event({ waiting: 2, pending: 4 }), TODAY).kind).toBe("door");
-    expect(nextJob(event({ pending: 4 }), TODAY).kind).toBe("review");
-    expect(nextJob(event({ acceptingUploads: false }), TODAY).kind).toBe(
+    expect(nextJob(event({ waiting: 2, pending: 4 }), TODAY)?.kind).toBe(
+      "door",
+    );
+    expect(nextJob(event({ pending: 4 }), TODAY)?.kind).toBe("review");
+    expect(nextJob(event({ acceptingUploads: false }), TODAY)?.kind).toBe(
       "paused",
     );
     // The day before, the code's own step leads, as it does today.
-    expect(nextJob(event({ eventDate: "2026-10-03" }), TODAY).kind).toBe(
+    expect(nextJob(event({ eventDate: "2026-10-03" }), TODAY)?.kind).toBe(
       "print",
     );
   });
 
   it("then the checklist's first item left, its essentials first", () => {
-    expect(nextJob(event(), TODAY).kind).toBe("code");
-    expect(nextJob(event({ door: "private" }), TODAY).kind).toBe("door-shut");
-    expect(nextJob(event({ opened: 2 }), TODAY).kind).toBe("photos");
+    expect(nextJob(event(), TODAY)?.kind).toBe("code");
+    expect(nextJob(event({ door: "private" }), TODAY)?.kind).toBe("door-shut");
+    expect(nextJob(event({ opened: 2 }), TODAY)?.kind).toBe("photos");
   });
 
-  it("and, with nothing left, guests before the date and the album after it", () => {
+  it("and, with nothing left, guests before the date", () => {
     const done = {
       opened: 5,
       approved: 12,
@@ -184,11 +194,12 @@ describe("what needs you, never empty", () => {
       description: "Bring everything",
     };
     expect(
-      nextJob(event({ ...done, eventDate: "2026-10-10" }), TODAY).kind,
+      nextJob(event({ ...done, eventDate: "2026-10-10" }), TODAY)?.kind,
     ).toBe("invite");
-    expect(
-      nextJob(event({ ...done, eventDate: "2025-07-04" }), TODAY).kind,
-    ).toBe("album");
+    // Undated, the welcome still wants its date, so that is the job.
+    expect(nextJob(event({ ...done, eventDate: null }), TODAY)?.kind).toBe(
+      "welcome",
+    );
   });
 
   it("counts what is left, or says ready", () => {

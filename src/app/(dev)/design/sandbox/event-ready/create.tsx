@@ -36,8 +36,6 @@ import type { Readiness } from "./readiness";
  * first-event pick, `asks=one`, and says so.
  */
 
-export type CreateStep = { label: string };
-
 const TODAY_STEPS = ["Name", "Style", "Ready"] as const;
 export const SHARED_STEPS = [
   "Name",

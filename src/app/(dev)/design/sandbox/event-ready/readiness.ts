@@ -338,23 +338,50 @@ const JOB_OF: Partial<
   code: (name) => ["code", `Scan the code for ${name}`, "Scan the code once"],
 };
 
-/** `today` is past the event's own date. */
-const isPast = (eventDate: string | null, today: string) =>
-  Boolean(eventDate) && (eventDate as string) < today;
+/**
+ * How long after its date a party keeps a job of its own when nothing waits:
+ * the month its album is shared and downloaded in. Past it, an event speaks
+ * only when something waits, so years of parties never fold into a long band.
+ */
+export const AFTER_PARTY_DAYS = 30;
+
+/** Whole days from the event's date to `today`, by the date parts alone (null when undated). */
+function daysSince(eventDate: string | null, today: string): number | null {
+  if (!eventDate) return null;
+  const day = (d: string) => {
+    const [y, m, dd] = d.split("-").map(Number);
+    return Date.UTC(y ?? 0, (m ?? 1) - 1, dd ?? 1);
+  };
+  return Math.round((day(today) - day(eventDate)) / 86_400_000);
+}
 
 /**
- * ONE JOB PER EVENT, ALWAYS. What waits comes first, in production's own order
- * and words (`nextStepForEvent`: the door, a queue, paused uploads, a reel one
- * photo short, the code the day before); then the checklist's first item left,
- * its essentials before its suggestions; and an event with nothing left says
- * the one thing a live event always wants, guests, or once its date has passed
- * the album shared, which is the same link. So the band is never a void and no
- * job is filler: each is a door onto something real.
+ * ONE JOB PER EVENT. What waits comes first, in production's own order and
+ * words (`nextStepForEvent`: the door, a queue, paused uploads, a reel one
+ * photo short, the code the day before). Before the party, the checklist's
+ * first item left, its essentials before what is worth doing, and with
+ * nothing left the one thing a live event always wants, guests. After it, the
+ * checklist is moot and the album is what she shares (the same link), for a
+ * month; then the event is quiet until something waits. So the band is never
+ * a void while a party is coming or just past, and no job is filler.
  */
-export function nextJob(event: JobEvent, today: string): Job {
+export function nextJob(event: JobEvent, today: string): Job | null {
   const waiting = nextStepForEvent(event, today);
   if (waiting) return waiting;
   const href = `/dashboard/${event.id}`;
+  const since = daysSince(event.eventDate, today);
+  if (since !== null && since > 0) {
+    return since <= AFTER_PARTY_DAYS
+      ? {
+          kind: "album",
+          eventId: event.id,
+          label: `Share the album of ${event.name}`,
+          short: "Share the album",
+          href: `${href}?room=share`,
+          tone: "quiet",
+        }
+      : null;
+  }
   const { items } = readiness(event);
   const next =
     items.find((i) => !i.done && i.essential && i.id !== "room") ??
@@ -364,23 +391,14 @@ export function nextJob(event: JobEvent, today: string): Job {
     const [kind, label, short] = phrase;
     return { kind, eventId: event.id, label, short, href, tone: "quiet" };
   }
-  return isPast(event.eventDate, today)
-    ? {
-        kind: "album",
-        eventId: event.id,
-        label: `Share the album of ${event.name}`,
-        short: "Share the album",
-        href: `${href}?room=share`,
-        tone: "quiet",
-      }
-    : {
-        kind: "invite",
-        eventId: event.id,
-        label: `Invite guests to ${event.name}`,
-        short: "Invite guests",
-        href: `${href}?room=share`,
-        tone: "quiet",
-      };
+  return {
+    kind: "invite",
+    eventId: event.id,
+    label: `Invite guests to ${event.name}`,
+    short: "Invite guests",
+    href: `${href}?room=share`,
+    tone: "quiet",
+  };
 }
 
 /** How ready an event is, in the band's words: the count option's one line. */

@@ -156,8 +156,10 @@ function cardLine(
   if (variant === "quiet") return null;
   const waiting = nextStepForEvent(e, TODAY);
   if (variant === "job") {
-    const job: Job = waiting ?? nextJob(e, TODAY);
-    return { text: job.short, tone: job.tone, icon: ICONS[job.kind] };
+    const job: Job | null = waiting ?? nextJob(e, TODAY);
+    return job
+      ? { text: job.short, tone: job.tone, icon: ICONS[job.kind] }
+      : null;
   }
   if (waiting)
     return {
@@ -191,19 +193,23 @@ function BandFor({
     });
     return <NextStepBand steps={steps} />;
   }
-  const chips: Chip[] = events.map((e) => {
+  const chips: Chip[] = events.flatMap((e): Chip[] => {
     const waiting = nextStepForEvent(e, TODAY);
     if (variant === "job" || waiting) {
-      const job: Job = waiting ?? nextJob(e, TODAY);
-      return { key: e.id, kind: job.kind, label: job.label, tone: job.tone };
+      const job: Job | null = waiting ?? nextJob(e, TODAY);
+      return job
+        ? [{ key: e.id, kind: job.kind, label: job.label, tone: job.tone }]
+        : [];
     }
     const word = readyWord(e);
-    return {
-      key: e.id,
-      kind: word.short.startsWith("Ready") ? "ready" : "left",
-      label: word.label,
-      tone: "quiet",
-    };
+    return [
+      {
+        key: e.id,
+        kind: word.short.startsWith("Ready") ? "ready" : "left",
+        label: word.label,
+        tone: "quiet",
+      },
+    ];
   });
   return <Band chips={chips} />;
 }

@@ -69,7 +69,7 @@ export const EVENT_READY = defineExploration({
       "From your event settings note: how a host knows her event is ready, where its checklist lives, a walk through Settings, Create's hand-off, a What needs you that is never empty, and the code as the door.",
   },
   context:
-    "Maya's 30th is the party throughout: made an hour ago, then three photos in with the code never opened, then the night before with everything done. Her dashboard adds a wedding next month and last summer's reunion. Every drawing reads one checklist, computed from the event's own state.",
+    "Maya's 30th is the party throughout: made an hour ago, then three photos in with the code never opened, then the night before with everything done. Her dashboard adds a wedding next month and last weekend's reunion. Every drawing reads one checklist, computed from the event's own state.",
   opening: {
     about:
       "How a host knows her event is ready for guests and what she does next: a checklist, a walk through Settings, Create's hand-off, the dashboard, the code.",
@@ -149,6 +149,15 @@ export const EVENT_READY = defineExploration({
         "No: ready waits on what a guest needs (a door that lets her in, uploads open, the code opened once); the rest are worth doing.",
       overrule:
         "Hold ready until every item is done, and the note, the date and the photos become things a host must do.",
+    },
+    {
+      id: "window",
+      question:
+        "How long does a party keep a job of its own once its date has passed?",
+      taken:
+        "A month: it offers Share the album, then it speaks only when something waits on it.",
+      overrule:
+        "Keep a job on every event for good, and years of parties fold into a long band.",
     },
     {
       id: "opened",
@@ -317,7 +326,7 @@ export const EVENT_READY = defineExploration({
       question:
         "When nothing is waiting on an event, what should What needs you say about it?",
       where: ["Host", "Your dashboard", "What needs you"],
-      when: "Maya hosts three: her 30th next week, a wedding next month, a reunion last summer. Nothing waits on any of them.",
+      when: "Maya hosts three: her 30th next week, a wedding next month, a reunion last weekend. Nothing waits on any of them.",
       matters:
         "It leads her dashboard, and today it goes quiet exactly when she could be getting ahead.",
       lands:
@@ -338,7 +347,7 @@ export const EVENT_READY = defineExploration({
           id: "job",
           label: "Its next job, always",
           means:
-            "Each event names one job: what waits first, else its checklist's next item, else Invite guests, or Share the album once its date has passed.",
+            "Each event names one job: what waits first, else its checklist's next item, else Invite guests, or Share the album in the month after its date.",
           gains:
             "Every event offers one real thing to do, on the band and under its card.",
           costs: "The band always holds a chip per event, so it folds sooner.",
