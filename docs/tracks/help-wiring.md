@@ -15,6 +15,31 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/guest/guest-name-menu
   - src/components/guest/guest-account-menu
   - src/components/app/user-menu
+  - src/components/marketing/mdx/spec-help.tsx
+  - src/components/marketing/mdx/spec-shared.tsx
+  - src/lib/content/help
+  - content/help/AUTHORING.md
+  - content/help/how-guests-join-and-upload.mdx
+  - content/help/how-partyreel-works.mdx
+  - content/help/print-or-display-your-qr.mdx
+  - content/help/play-the-reel-on-a-screen.mdx
+  - content/help/why-an-event-asks-for-your-email.mdx
+  - content/help/the-email-code-didnt-arrive.mdx
+  - content/help/a-clip-wont-finish-or-save.mdx
+  - content/help/a-photo-is-missing-from-the-album.mdx
+  - content/help/a-video-wont-play.mdx
+  - content/help/an-upload-wont-finish.mdx
+  - content/help/messages-guests-might-see.mdx
+  - content/help/you-cant-sign-in.mdx
+  - content/help/the-qr-wont-scan-or-the-link-wont-open.mdx
+  - src/app/api/help/
+  - src/lib/validation/help-feedback
+  - src/lib/db/mutations/article-feedback
+  - src/lib/db/queries/article-feedback
+  - src/lib/db/queries/jobs
+  - src/app/admin/jobs/catalog
+  - src/lib/admin/nav
+  - src/lib/security/abuse-rate-limit.ts
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/reviews/help-center.json
   - docs/systems/marketing-content.md
