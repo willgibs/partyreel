@@ -390,8 +390,10 @@ server answering the poll, the writes and the bin's routes as the real ones do.
   open photograph rides `?photo=<id>` (`lib/media/share-save.ts`), claimed by one grid per page.
 - **A tile shimmers until its photograph decodes, then fades it in**, only while on screen (`data-inview` from the
   grid's one observer) and after a beat, so a cached photograph never flickers; the shimmer is linear, because a strong
-  curve stutters at the loop point. The first row loads eager and first, every photograph decodes async, and a mounted
-  tile keeps its URL across a presign rollover (the same object path), taking the fresh one only on an error.
+  curve stutters at the loop point. ★ A photograph already complete when its image mounts shows at once, never fades
+  (`data-instant`, read in the mount's own layout phase and switching the transition off in that commit), or a pushed
+  arrival's wipe would run over a fade. The first row loads eager and first, every photograph decodes async, and a
+  mounted tile keeps its URL across a presign rollover (the same object path), taking the fresh one only on an error.
 - ★ **The album grid is one placeholder in a session replay** (`data-sentry-block`): the replay buffers every session,
   serialized every node the album mounted and measured every photograph (one forced layout each), the largest cost of
   a throttled phone's fling; the photographs are blocked from replays anyway.
@@ -470,8 +472,9 @@ Transition is its one sanctioned hole ([host-app.md](host-app.md)).
   ★ Every shape stands on the keyboard (the Dialog learned the Sheet's rule; a centred shape's `top` is
   `var(--vv-top) + var(--vv-h) / 2`, exactly `top-1/2` with nothing written). ★ A screen or a cover in a hand is a place
   the phone's Back closes (`ui/popup-back.ts`: one same-URL history entry, its marker a field on the state Next merges,
-  taken back one tick late so StrictMode's double effect cannot close it), unless its page already routes it
-  (`routed`, `?room=`). ★ In a hand focus lands on the popup itself; at a desk the row's `deskFocus` says; a popup with
+  taken back one tick late so StrictMode's double effect cannot close it; where a router refresh took the marker, its
+  own word that it pushed the entry at this address still takes it back, and never at another address, where a link
+  inside it navigated on), unless its page already routes it (`routed`, `?room=`). ★ In a hand focus lands on the popup itself; at a desk the row's `deskFocus` says; a popup with
   no trigger of its own gives focus back to the control that opened it: inside the layer still open behind it when it
   was stacked over one (a confirm over the viewer or Settings), else on the page; only a menu or a listbox, which close
   as the next popup opens, is never a return target. ★ Size a dialog with `size`, never a width

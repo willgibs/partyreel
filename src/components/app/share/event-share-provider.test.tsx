@@ -11,6 +11,12 @@
  * And the settings' pages (event-settings r1, `opens=page`): a page rides beside the sheet and REPLACES
  * the entry, so the sheet stays one entry deep and closes whole from any page, a deep link included.
  *
+ * And the panel's history stays one entry deep whatever happens to the page (crumbs-18): a double tap
+ * on its card pushes one entry, not two (the first close used to go Back to the panel still open), and
+ * "this entry is ours" outlives what holds it: a router refresh takes the entry's marker and a reload
+ * takes the page's memory, so the two in either order used to leave neither, and a panel closed by
+ * replacing in place left a duplicate entry (a dead Back).
+ *
  * ★ THE STAND-IN IS NEXT'S PATCH, NOT A FIRING LISTENER (build 23's red-team, HIGH: a Settings row never
  * opened its page and a page's back arrow never returned). This file's first stand-in told its listeners
  * on EVERY `replaceState`, and the shipped code handed `replaceState` the entry's own state, which
@@ -82,14 +88,18 @@ function Probe() {
   );
 }
 
-function hub(initialSheet: "settings" | "share" | null) {
-  return render(
+function hubTree(initialSheet: "settings" | "share" | null) {
+  return (
     <NextRouterStandIn>
       <EventShareProvider initialSheet={initialSheet}>
         <Probe />
       </EventShareProvider>
-    </NextRouterStandIn>,
+    </NextRouterStandIn>
   );
+}
+
+function hub(initialSheet: "settings" | "share" | null) {
+  return render(hubTree(initialSheet));
 }
 
 const shown = () => screen.getByTestId("sheet").textContent;
@@ -267,5 +277,89 @@ describe("the settings' pages", () => {
     press("open settings");
     expect(shown()).toBe("settings");
     expect(pageShown()).toBe("rows");
+  });
+});
+
+describe("a sheet opened twice", () => {
+  it("★ a double tap on its card pushes one entry, and the first close goes Back to the page", async () => {
+    next.land("/dashboard/e1");
+    hub(null);
+    const before = window.history.length;
+    // Two taps in one tick: the second meets the address the first wrote, before the page has re-rendered.
+    act(() => {
+      const card = screen.getByRole("button", { name: "open settings" });
+      fireEvent.click(card);
+      fireEvent.click(card);
+    });
+    expect(shown()).toBe("settings");
+    expect(window.history.length).toBe(before + 1);
+    await pressAndWaitForPopstate("close");
+    // The old code stood on its first entry with the panel still open.
+    expect(window.location.search).toBe("");
+    expect(shown()).toBe("none");
+    expect(next.reloads).toBe(0);
+  });
+
+  it("a second tap after the panel has rendered opens nothing more either, and keeps the page it is on", () => {
+    next.land("/dashboard/e1");
+    hub(null);
+    press("open settings");
+    press("open the door page");
+    const depth = window.history.length;
+    press("open settings");
+    expect(window.history.length).toBe(depth);
+    // Already open: it is left as it is, on its page.
+    expect(pageShown()).toBe("door");
+  });
+});
+
+describe("the entry stays ours through a refresh and a reload", () => {
+  it("★ a panel reloaded onto, then refreshed by a settings action, still closes by going Back", async () => {
+    next.land("/dashboard/e1");
+    const before = hub(null);
+    press("open settings");
+    // A reload: the page is gone and a new one reads the entry, which kept its marker (Next's first
+    // commit preserves the state it finds; a page remembers nothing).
+    before.unmount();
+    expect(ourMarker()).toBe(true);
+    hub("settings");
+    // The reel switch's refresh: the entry loses its marker, and this page never pushed it.
+    act(() => next.refresh());
+    expect(ourMarker()).toBe(false);
+    const back = vi.spyOn(window.history, "back");
+    await pressAndWaitForPopstate("close");
+    expect(back).toHaveBeenCalledTimes(1);
+    expect(window.location.search).toBe("");
+    expect(shown()).toBe("none");
+  });
+
+  it("★ a refresh and then a reload: the entry is given its marker back, so the new page still finds it ours", async () => {
+    next.land("/dashboard/e1");
+    const before = hub(null);
+    press("open settings");
+    act(() => next.refresh());
+    expect(ourMarker()).toBe(false);
+    // The hub's slots re-render after a refresh, and the provider with them.
+    before.rerender(hubTree(null));
+    expect(ourMarker()).toBe(true);
+    before.unmount();
+    hub("settings");
+    const back = vi.spyOn(window.history, "back");
+    await pressAndWaitForPopstate("close");
+    expect(back).toHaveBeenCalledTimes(1);
+    expect(window.location.search).toBe("");
+    expect(shown()).toBe("none");
+  });
+
+  it("never gives a marker to an entry this page did not push (a bookmark, a shared link)", () => {
+    next.land("/dashboard/e1?room=settings");
+    const view = hub("settings");
+    view.rerender(hubTree("settings"));
+    expect(ourMarker()).toBe(false);
+    const back = vi.spyOn(window.history, "back");
+    press("close");
+    expect(back).not.toHaveBeenCalled();
+    expect(window.location.search).toBe("");
+    expect(shown()).toBe("none");
   });
 });

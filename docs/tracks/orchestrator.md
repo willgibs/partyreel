@@ -1,7 +1,7 @@
 ---
 track: orchestrator
 status: open
-cut: "38373a35"          # the launch-prep SHA this state was written at
+cut: "794750cf"          # the launch-prep SHA this state was written at
 owns:                    # the standing claims no lane touches
   - src/app/(dev)/design/rules/bible.ts
   - src/app/(dev)/design/rules/bible.test.ts
@@ -40,17 +40,15 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `schema-pass` | the data architecture trimmed | merged at `57b17ace`; part 1 applied on Will's go-ahead (2026-09-29, his answer "Yes, apply part 1"; recorded `20260929210010`, the payload the file's md5; advisors 18/4/33; anon REST 42501; types regenerated at `c7a50adc`); a signed-in host walk on partyreel.com rides build 25's red-team as a follow-up; part 2 (`20260929170000`) after milestone 31 ships | Opus, 3132 | `54f414f9` |
-| `demo-framing-r2` | demo-framing r2, a board: the demo's slug in the host's voice or a typewriter of slugs, how the typewriter and the stream share the home hero (or the stream moves to the QR page), the hero's clickable touch in place of its eyebrow | running (agent `ac4d9d8416d49b653`; worktree `../partyreel-wt/demo-framing-r2`) | Opus, 3133 | |
-| `crumbs-18` | five small app items: the host's report help article brought to what shipped, the help's phone screens mounting once, the hub's sheet history on a double tap and a reload, phone popups after a refresh, a pushed arrival that no longer fades | running (agent `a5e41e0c0ab4f3c16`; worktree `../partyreel-wt/crumbs-18`) | Sonnet, 3131 | |
-| `about-press` | about-press r1, a board: the press kit folded into /about (with or without its four facts, as a usage note or none) or dropped; the press-page board retired in-lane | running (agent `ac39cec52094cc601`; worktree `../partyreel-wt/about-press`) | Opus, 3135 | |
+| `demo-framing-r2` | demo-framing r2, a board: the demo's slug in the host's voice or a typewriter of slugs, how the typewriter and the stream share the home hero (or the stream moves to the QR page), the hero's clickable touch in place of its eyebrow | handed off; integrating (agent `ac4d9d8416d49b653`) | Opus, 3133 | `5c32f5c8` |
+| `about-press` | about-press r1, a board: the press kit folded into /about (with or without its four facts, as a usage note or none) or dropped; the press-page board retired in-lane | handed off; integrating after demo-framing-r2 (agent `ac39cec52094cc601`) | Opus, 3135 | `87b4bb6f` |
+| `menu-depth` | on Will's word ("Remove it"), the dropdown's render-time throw on a third submenu level removed, its guidance kept as a comment and the sub-menu's portal test kept | running (agent `a5c372b3de31ef79b`; worktree `../partyreel-wt/menu-depth`) | Sonnet, 3132 | |
+| `crumbs-19` | build 25's red-team finds (the app bar's trail on a route that sets none, the guest report article's screens drawing the photo's own Report) and crumbs-18's three follow-ups (the hub's sheet closed once on a double close, the reel's entry through a refresh, the text-distance test retired) | running (agent `a74fa1c6a2ff11799`; worktree `../partyreel-wt/crumbs-19`) | Sonnet, 3131 | |
+| `privacy-hero-r4` | privacy-hero r4, a board: the veil as drawn and three variations of it, the sealed cards out, the sweep and the aperture banked | running (agent `ac010b14ad42386af`; worktree `../partyreel-wt/privacy-hero-r4`) | Opus, 3133 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
-Q3, the audit of board notes hardened into laws: one lane (`unfence`) on its dispositions (two A grades were
-wrong, two fences stay for engineering reasons, the Glass refusal was a doc claim only). Q1, the `demo-framing.names`
-hang: it changed the call (attribution unproven, since my A/B ran on two server
-instances and the lane saw it hang with its lab files reverted; bisect first, the probe's stack decides; relayed to
-`crumbs-16` whole). Q2, schema-pass part 1 before its apply, is open. From another session, respawn it from
-`usher/kit/advisor-prompt.txt`.
+no question open (Q1, the `names` hang; Q2, schema-pass part 1; Q3, the notes-into-laws audit; Q4, the door migration:
+each answered and acted on). From another session, respawn it from `usher/kit/advisor-prompt.txt`.
 
 **Handoff across accounts.** The Orchestrator session is `157caa18-ec54-4aa9-a12a-04c86d5a667b` (the second account,
 seated 2026-09-29 12:23 EDT); the first account's `b01c012e` is retired and must not resume. Its agent ids live only
@@ -69,14 +67,14 @@ If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` ho
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
 staged, uncommitted merge is finished by `usher/kit/merge-lane.sh`'s own steps or reset with `git merge --abort`.
 This session's scratchpad (`/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/157caa18-ec54-4aa9-a12a-04c86d5a667b/scratchpad`,
-until a reboot) holds the specs and gate logs (the next gate is 68); nothing there is needed that these lines and the
+until a reboot) holds the specs and gate logs (the next gate is 80); nothing there is needed that these lines and the
 manifests do not carry.
 
 Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcribed at `31de6aa0`: 41 answers on ten
 boards). Batch 7 is merged whole; its records carry the rest.
 
 Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, disposable-mode r2, crumbs-13, lab-revamp
-stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, crumbs-15, loose-ends-wiring, contact-wiring, desk-tune, event-ready r1, window-notes, crumbs-16, album-motion-wiring, crumbs-17 (its migration applied by protocol, 20260929204753), unfence.
+stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, crumbs-15, loose-ends-wiring, contact-wiring, desk-tune, event-ready r1, window-notes, crumbs-16, album-motion-wiring, crumbs-17 (its migration applied by protocol, 20260929204753), unfence, crumbs-18.
 
 ## Next, in order
 
@@ -115,14 +113,16 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
      lane's idea of the premiere on the wall, the reel's screen counting down to the develop time and playing the roll
      as an event of its own) and the door family's wiring (if the doorway wins, its reveal: walking through the opened
      door into the album, drawn first as motion options; ASSETS row 36 if the host's door wins).
-5. **Build 25 is this record** (`[preview]`: build 24's plus event-ready r1's board, window-notes' desk, crumbs-16's
-   Settings fix, Frame fix and help article); its red-team walks crumbs-16's, crumbs-15's, contact's and the desk's
-   Look-at-first lines now; build 26 carries crumbs-17, unfence, album-motion and part 1 once applied, then its
-   red-team: BUG-1's fix live and the new lanes' walks, crumbs-15's signed-in surfaces among them (a host changing a
-   disposable album's door and opening Guests and Blocked; `/account`'s social sections; the operator's
-   `/admin/reports` and Ask for proof; a host's Delete permanently on a removed item, then the purge cron's next run in
-   `/admin/jobs`). Then milestone 31 is proposed to Will (his yes); schema-pass's
-   part 2 applies after it ships.
+5. **Build 25 was red-teamed live** (`c038e4eb`, `../partyreel-wt/_scratch/redteam-25/ledger.txt`): 23 of 23 PASS,
+   Settings whole (BUG-1 fixed), the doors and triage as build 23, the contact note end to end, the egg and the FAQ, the
+   desk clean. Its finds are `crumbs-19`'s (running): BUG-A LOW (`SetCrumbs` never clears on unmount, so the
+   app bar keeps a left event's crumb on `/dashboard` and `/account`, a deleted event's included), NIT-a (the guest
+   report article's step screens draw the album's form while its text leads with a photo's own Report), NIT-b (answered by
+   `crumbs-18`'s "can be hidden"). The signed-in walk on partyreel.com after schema-pass
+   part 1 passed 5 of 5 (the Orchestrator, on Will's explicit yes in chat after the classifier refused the agent twice;
+   every restore read back by SQL; the ledger's last lines). Build 26 carries crumbs-17, unfence, album-motion, the types after both migrations, crumbs-18
+   (merged at `cdc979a6`; its seven red-team walks in its merge's Handoff) and menu-depth when it lands, then its red-team; then milestone 31 is proposed to Will (his yes); schema-pass's part
+   2 applies after it ships.
 6. **The demo event**, after `demo-framing` r2 (his full permission, 2026-09-29; the r1 board merged at `51db72fc`):
    the demo renamed (or made) to its pick, its slug claimed so the card's printed address opens it (today
    `mia-and-theo`, held by no event, left as is on his word), one home for the slug in `lib/demo.ts` that the card

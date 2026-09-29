@@ -77,8 +77,9 @@ file for limits. Field notes:
    JS-expression braces). A test greps every `<UiLabel>` against the app
    source, so an invented or paraphrased label fails the suite.
 6. **Never promise what is not shipped.** No SLAs, no roadmap features, no
-   music in the reel, no co-hosts, no per-photo reports (a report names the
-   event, or a person from their profile). The claims fence in
+   music in the reel, no co-hosts. A report names only what ships: the event,
+   one photo or video from its own Report in the viewer, or a person from
+   their profile. The claims fence in
    `src/lib/content-policy.test.ts` is binding: read its two pattern lists
    (the claims fence and the neutralization fence) before writing about
    moderation, support replies, security, or limits, and reuse the sanctioned

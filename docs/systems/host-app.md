@@ -216,12 +216,15 @@ beneath, newest first.
   `useSearchParams` never moves and the next router commit writes the stale address back over the bar
   (`history-state-policy.test.ts` refuses the shape; a write from a mount effect waits a microtask, because it would
   meet the browser's own function before Next patches it: `lab/board-state.tsx` says why). Opening pushes an entry
-  carrying the marker; closing calls `history.back()` only when the marker is ours, or this page pushed the entry
-  (`router.refresh()` rewrites an entry without the marker, and a reload does too: a panel reloaded onto closes like
-  a bookmark's, in place). ★ The server's `initialSheet` paints the first frame
-  alone (a hydration gate): once hydrated the URL is the only answer, so a place opened from a link (`/settings`, a
-  sign-in's return, Checkout's `?room=`) closes like one opened from its card. A settings page is `&setting=<page>` on
-  the same entry, moved with `replaceState`, so its back arrow and Back never stack entries.
+  carrying the marker (a sheet already open is left alone, so a double tap pushes one entry, never two); closing calls
+  `history.back()` only when the entry is ours: the marker says so, or this page pushed it. `router.refresh()`
+  rewrites an entry without the marker, and a reload keeps the marker but forgets what the page pushed, so after each
+  render with a sheet open an effect remembers an entry that carries the marker and gives it back to one this page
+  pushed that lost it; a place opened from a link or a bookmark never had one and closes in place. ★ The server's
+  `initialSheet` paints the first frame alone (a hydration gate): once hydrated the URL is the only answer, so a place
+  opened from a link (`/settings`, a sign-in's return, Checkout's `?room=`) closes like one opened from its card. A
+  settings page is `&setting=<page>` on the same entry, moved with `replaceState`, so its back arrow and Back never
+  stack entries.
 - **The code card is every share's first surface** (`share/code-card.tsx`: the code on white filling a phone, a 384
   card at a desk, Copy link, the device's own Share where it has one, and Everything into the kit,
   `share/event-share-sheet.tsx`, which holds the downloads, the designer and the custom link). Every door to it reads
