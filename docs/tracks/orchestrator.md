@@ -40,7 +40,6 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `demo-framing` | a new board, round one: the story the demo tells (`story`, `names`, `demo`) on the home hero's link card and the album it opens; registered after `disposable-mode` | running, agent `ad22c252b4ce52c45` | Opus, :3132 | |
 | `crumbs-8` | build 17's red-team findings: the card route's per-viewer answer behind a public cache, Event Settings' crushed cards, `like_media`'s tell (a migration), the dark slider, the 1% floor, the restore toast, two stale lines, /pricing's wrapping toggle; /features/guests and the blog's FAQ | running, agent `aed5ac7c3fa44326b` | Opus, :3131 | |
 | `crumbs-9` | eight small ROADMAP items: the untyped `article_feedback` seams, the help's ⌘K chip on a phone and `report-a-problem-as-a-guest`'s screens, the hero's headline fold at 470 to 767, two stale notes, the portal's Library specimens, a restore losing its custom link in silence | running, agent `ae2f802a7cf6d56e9` | Sonnet, :3134 | |
 
@@ -48,7 +47,7 @@ Batch 7 (cut `35601390`, 2026-09-28) answers Will's sitting on build 15 (transcr
 hero-card, voice-guest, host-storage, event-safety, export-flow). Wave A, four lanes: three new boards and the block.
 Wave B follows as seats free. Batch 6 (sixteen lanes) is merged whole; its records carry the rest.
 
-Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, event-settings, voice-wiring, pricing-wiring, triage-r2, safety-wiring, hero-wiring, triage-wiring, export-wiring, help-wiring, emails-wiring.
+Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, event-settings, voice-wiring, pricing-wiring, triage-r2, safety-wiring, hero-wiring, triage-wiring, export-wiring, help-wiring, emails-wiring, demo-framing.
 
 ## Next, in order
 
@@ -67,9 +66,12 @@ Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, 
      over it). Large files go through a helper that transcribes, `cmp`s, applies and proves; the recorded md5 is the
      check.
 2. **Wave B into each free seat**, in this order (his answers are in the ledgers; each brief carries his notes).
-   - After his `demo-framing` pick (his full permission, 2026-09-29): the demo event made or renamed to the story, its
-     slug claimed so the card's printed address opens it, `hero-stream.ts`' `OBJECT_EVENT` to match, and ASSETS rows
-     33 and 34 unparked.
+   - After his `demo-framing` pick (his full permission, 2026-09-29; the board merged at `51db72fc`): the demo event
+     renamed (or made) to the story, its slug claimed so the card's printed address opens it (today `mia-and-theo`,
+     held by no event, left as is on his word), one home for the slug in `lib/demo.ts` that the card prints and the
+     seed sets, `OBJECT_EVENT` and `OBJECT_PRINTS` to match, a demo host account if `host` stands, `partyreel-demo`
+     reserved with the `partyreel` family (ROADMAP's Security line, a `set_event_slug` migration), and ASSETS rows 5,
+     33 and 34 unparked with the party's subjects (the board lists them per party).
 3. **Build 17 is live and red-teamed** (`1407daf6`; every journey PASS, the block walked live on all three roads and
    restored through the UI; the ledger is `../partyreel-wt/_scratch/redteam-17/ledger.txt`). Its two majors (the share
    card shared across viewers by the edge; Event Settings' last three cards crushed) and three minors go to

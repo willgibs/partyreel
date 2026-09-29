@@ -17,6 +17,8 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Security: `RESERVED_SLUGS` and `set_event_slug` refuse whole slugs only, so `partyreel-demo` (free once the demo is renamed), `partyreel-support` or `official-partyreel` are open to any account on any plan since Free holds custom links; refusing any slug that contains `partyreel` in both (the parity `tiers-sql.test.ts` holds) closes the family, before launch opens signups (from `demo-framing`).
+- Marketing: every demo door opens the one demo whatever its page (the /events objects, the footer, the nav's pane), so /events/conferences opens the same party; a party per event type is a board once the one demo lands (from `demo-framing`).
 - Emails: the reduced mail says "You're over your limit, so upgrade or free up space first, then restore them" just after saying the removal brought the account back under its plan; it means a restore would put it over again, and its words could say so (emails-wiring kept every body word) (from `emails-wiring`).
 - Emails: a signed-out host pressing a mail's button (Renew Event Pass, Manage storage) lands on the dashboard after sign-in, not the button's page: `/login` takes no return path and the `(app)` gate redirects bare; the checkout's allow-list (`return-path.ts`) is the shape a safe return would reuse (from `emails-wiring`).
 - Code hygiene: the three casts marked "the generated types learn notify_pass_renewal" (`lifecycle/sweeps/passes.ts`, `db/queries/social.ts`, `db/mutations/social.ts`) can go now that `types.ts` carries the column (from `emails-wiring`).
