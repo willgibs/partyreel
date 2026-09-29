@@ -1,4 +1,5 @@
 import { act, render } from "@testing-library/react";
+import { renderToString } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PhotoSection } from "./photo-section";
@@ -15,7 +16,7 @@ import { ROOM_FRAMES, SCROLL_STEPS } from "./room-frames";
  *     photographs from other people's events; a keyboard walks straight past
  *     the backdrop; the section adds no door of its own.
  *  2  it SAYS SOMETHING WHEN NOTHING CAN MOVE. Every photograph is in the first
- *     paint and the sheet stands the section on the first of them, so a reader
+ *     render and the sheet stands the section on the first of them, so a reader
  *     with scripting off, a reader who asked for less motion and a crawler all
  *     get a room rather than a black box.
  *  3  it COSTS NOTHING WHEN NOBODY IS MOVING. No frame loop off screen, none
@@ -232,16 +233,26 @@ describe("it is atmosphere, and the copy is the only thing in it", () => {
 });
 
 describe("it says something when nothing can move", () => {
-  it("paints every photograph into the first render, with the first eager", () => {
-    // The pool IS the preload: the next photograph is whichever way the reader
-    // moves, so there is nothing to fetch on demand, and the rest state must
-    // not wait on a lazy load.
+  it("paints every photograph into the first render, and preloads none of them", () => {
+    // The pool IS the DOM: the next photograph is whichever way the reader
+    // moves, so there is nothing to fetch on demand. ★ Reshaped on purpose
+    // (crumbs-13): the rest state used to be eager so it would never wait on a
+    // lazy load, and that reason expired, because the section is never a
+    // page's first screen and an eager image is a page-load preload (React's
+    // server render emits one for each). On the home it was the golden
+    // photograph's second preload beside the hero's copy, left unused (build
+    // 20's red-team). Lazy loading starts well before the section arrives.
     const { container } = render(<PhotoSection />);
     const images = [...container.querySelectorAll("img")];
     expect(images).toHaveLength(ROOM_FRAMES.length);
-    expect(images[0]).not.toHaveAttribute("loading", "lazy");
-    for (const img of images)
+    for (const img of images) {
       expect(img.getAttribute("src")).not.toMatch(/undefined|NaN/);
+      expect(img).toHaveAttribute("loading", "lazy");
+      expect(img).not.toHaveAttribute("fetchpriority", "high");
+    }
+    expect(renderToString(<PhotoSection />)).not.toMatch(
+      /<link rel="preload" as="image"/,
+    );
   });
 
   it("writes no inline style before the loop has run", () => {
