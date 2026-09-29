@@ -38,7 +38,6 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `triage-r2-wiring` | admin-triage r2 wired; the hold rebuilt (Hold takes down by default; storage released at an operator's removal; an open report guards its item; the child-abuse instant hide) | running (agent `a432fe0336dc35587`) | Opus, 3134 | |
 | `schema-pass` | the data architecture audited; its migration BLOCKED: the permission classifier refused the lane's write of the file (no retry). The audit is its manifest at `origin/lp/schema-pass` (`66794756`): Q1 his permission to write and prove, Q2 the reel's three columns wait for milestone 31 (main reads them), Q3 default privileges closed for anon and authenticated, Q4 the monthly meter deny-all, Q5 three CHECKs | handed off blocked; resumed on his yes | Opus | `66794756` |
 | `crumbs-14` | the hub row's stick loop, the screen popup's back label, the admin sign-in's asked page, a refused sign-out, the pricing teaser's price, a lowercase bullet | running (agent `a0de18f02690ad5a8`) | Opus, 3135 | |
 | `lab-revamp` | stage two, the plumbing: a board as one self-registering folder, scoped lab checks, the trimmed API, the words renamed, the kit following (holds registry.ts and boards.ts; PROGRAM.md's lines come in its Handoff) | running, resumed (agent `a6b4519e3d363d7dd`) | Opus, 3133 | |
@@ -58,7 +57,6 @@ only where those leave a gap; a stale `.next/dev/lock` may be deleted; continue 
   ("Ask Maya to let me in", then "Use a different email"); a sheet opened from a link cannot be closed
   (`event-share-provider.tsx:113-115`) and the custom link's error is unannounced; revoke PUBLIC EXECUTE when replacing
   `get_event_by_qr_token`.
-- `triage-r2-wiring` (`../partyreel-wt/triage-r2-wiring`, 3134, agent `a432fe0336dc35587`): mid-work, no relays.
 - `crumbs-14` (`../partyreel-wt/crumbs-14`, 3135, agent `a0de18f02690ad5a8`): mid-work, no relays.
 - `lab-revamp` stage two (`../partyreel-wt/lab-revamp`, 3133, agent `a6b4519e3d363d7dd`): mid-work; its notes
   `../partyreel-wt/_scratch/lab-revamp/stage-two.md`.
@@ -75,7 +73,7 @@ Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcr
 boards). Wave A: `settings-wiring` (all nine event-settings picks, the doors end to end), `locked-door` r2 (the door
 family), `disposable-mode` r2, `crumbs-12`. Batch 7 is merged whole; its records carry the rest.
 
-Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, disposable-mode r2, crumbs-13, lab-revamp stage one, settings-wiring.
+Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, disposable-mode r2, crumbs-13, lab-revamp stage one, settings-wiring, triage-r2-wiring.
 
 ## Next, in order
 
@@ -89,6 +87,9 @@ Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, dis
    recorded md5 against `md5 -q`, advisors 0029 from 29 to 33), then regenerate `src/lib/db/types.ts`. Then build 23
    and its red-team on the lane's eleven walks (`git show 7c0fbcb1^2:docs/tracks/settings-wiring.md`, Handoff), and
    his thirteen calls to relay (its Questions). `list_migrations` says whether a cut-off landed before or after the apply.
+   **`triage-r2-wiring` merged at `1b29be3a`** (gate 65 green, pushed); its `20260929140000_triage_r2.sql` (89 KB) applies
+   second, by its own header, after `event_doors`. One helper applies both in order (spawned 2026-09-29 ~13:00Z);
+   then types, then build 23 with both lanes' walks (`git show 1b29be3a^2:docs/tracks/triage-r2-wiring.md`).
 3. **Integrate each lane as it hands off**, each migration by protocol, one at a time: drift check, apply verbatim, the
    rolled-back refusals, advisors, types. `negative.sh` runs once before the first (the kit changed with
    merge-lane.sh's id-less sweep). `settings-wiring` owns every guest-path function replacement this batch; no other
