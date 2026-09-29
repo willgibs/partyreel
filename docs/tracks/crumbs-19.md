@@ -25,7 +25,6 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/history-state-policy.test.ts                                 # one line: its "sees the calls it exists for" pin names the provider's four writes, which move into the helper
   - src/components/marketing/help/step-screens/step-screens.test.ts      # its quote lists pin the album form's title the three screens no longer draw
   - docs/systems/host-app.md                                             # the two places' bullet and the crumb trail's
-  - docs/systems/design-system.md                                        # the phone place's entry (popup-back) now stands on the helper
   - docs/systems/reel.md                                                 # the `?reel` address bullet
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/marketing-content.md
