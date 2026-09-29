@@ -68,7 +68,7 @@ board still asks it, nothing rides for an ask or a card the open round no longer
 withdrawn inside a round), and a note the ledger already holds is never sent twice (Will,
 2026-09-17). A quoted note belongs to the clause in front of it; `note:` clauses are the board's own
 and always print last, so a trailing one is never a note on the last answer. A pick-one catalog is
-decided by one ask whose options are its card ids plus `none`, so "None of these: new directions"
+decided by one ask whose options are its card ids, usually with `none` beside them, so "None of these: new directions"
 lands as `<board> r<n>: <ask>=none "what to try instead"` and the grammar never grew a fourth word.
 
 `review <board> r<n>: <ask>=? "what was unclear"` records "not clear to me" (the note is required).
