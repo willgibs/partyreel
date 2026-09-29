@@ -1,17 +1,25 @@
 ---
 track: schema-pass
-status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
+status: open            # open -> handed-off; deleted in the merge commit that integrates it
 cut: "932649e4"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   - supabase/migrations/20260929160000_schema_pass.sql
+  - supabase/migrations/20260929170000_schema_pass_contract.sql
   - src/lib/db/queries/media.ts
   - docs/systems/database-security.md
+  - docs/systems/profiles-social.md
   - src/lib/db/migration-guards.test.ts
+  - src/lib/forensics/migration-guards.test.ts
+  - src/lib/social/notification-prefs.test.ts
+  - src/lib/social/notification-prefs.ts
+  - src/lib/db/queries/social.ts
+  - src/lib/db/mutations/social.ts
+  - src/components/admin/applicants-list.tsx
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/reel.md
-  - docs/systems/profiles-social.md
   - docs/systems/billing-caps.md
+  - src/lib/validation/event.ts
 ---
 
 # lp/schema-pass
@@ -62,6 +70,8 @@ working.
   rollback;`). **Recommended: yes.** Will allows the lane to write its two files and run their proofs, then the
   Orchestrator resumes `lp/schema-pass`. The files are applied only by the Orchestrator, one at a time, by protocol;
   every change is test data, and the proofs roll back.
+  **Resolved (Will, 2026-09-29).** The Orchestrator asked him "May the lane write its two migration files and run
+  those proofs?", and he answered "Yes, write and prove." The lane resumed on it.
 - **Q2. The reel's three dormant columns wait for milestone 31.** partyreel.com still reads them: `main`'s
   `MEDIA_HOST_COLUMNS` (`src/lib/db/queries/media.ts:40`) selects `highlight_score`, `clip_start_seconds` and
   `clip_end_seconds`, so dropping them now would 400 every host album read on milestone-30. **Recommended:** part 2
