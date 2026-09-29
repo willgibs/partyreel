@@ -207,11 +207,15 @@ export const WALK_COPY = {
    * at 375 and at a desk (measured on the toaster's own font; "Download part 2" wraps both).
    */
   nextPart: (part: number) => `Get part ${part}`,
-  /** The walk's last word: every part is on its way, and that is the whole of it. */
+  /**
+   * The walk's last word: every part is on its way, and that is the whole of it. "That's everything."
+   * is held together (a no-break space), so where the line runs out at 375 it moves down whole
+   * instead of leaving "That's" behind.
+   */
   allStarted: (parts: number) =>
     parts === 2
-      ? "Both parts are downloading. That's everything."
-      : `All ${parts} parts are downloading. That's everything.`,
+      ? "Both parts are downloading. That's\u00a0everything."
+      : `All ${parts} parts are downloading. That's\u00a0everything.`,
   /** A walk whose later parts the album emptied meanwhile: what was taken is all there is. */
   everything: "That's everything.",
   /** A short zip, `failed=exact`'s register: the count first, then the act. */

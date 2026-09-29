@@ -492,7 +492,7 @@ describe("a big album, in parts (cap=split)", () => {
     expect(h.posted.map(([, t]) => t)).toEqual(["t1", "t2", "t3"]);
     expect(h.now()).toEqual({
       tone: "done",
-      title: "All 3 parts are downloading. That's everything.",
+      title: "All 3 parts are downloading. That's\u00a0everything.",
       duration: 7000,
     });
   });
@@ -510,7 +510,7 @@ describe("a big album, in parts (cap=split)", () => {
     await settle();
     expect(h.now()).toMatchObject({
       tone: "done",
-      title: "Both parts are downloading. That's everything.",
+      title: "Both parts are downloading. That's\u00a0everything.",
     });
   });
 
