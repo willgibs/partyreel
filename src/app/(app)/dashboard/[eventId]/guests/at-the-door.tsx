@@ -25,6 +25,19 @@ export type DoorPerson = {
   seed: string | null;
 };
 
+/** The room's three door acts. The Library hands in acts that answer and change nothing. */
+export type DoorActs = {
+  letIn: typeof letInAtDoorAction;
+  decline: typeof declineAtDoorAction;
+  letBackIn: typeof letBackInAction;
+};
+
+const SERVER_DOOR_ACTS: DoorActs = {
+  letIn: letInAtDoorAction,
+  decline: declineAtDoorAction,
+  letBackIn: letBackInAction,
+};
+
 /**
  * AT THE DOOR, AT THE HEAD OF THE GUESTS ROOM (event-settings r1, `queue=room`: "An At the door section
  * above the guests, Let in and Decline on each row"). The room is where the host already sees every
@@ -39,10 +52,12 @@ export function AtTheDoor({
   eventId,
   people,
   total,
+  acts = SERVER_DOOR_ACTS,
 }: {
   eventId: string;
   people: DoorPerson[];
   total: number;
+  acts?: DoorActs;
 }) {
   // Rows answered on this visit, gone at once; the page's own read agrees on its next render.
   const [answered, setAnswered] = useState<ReadonlySet<string>>(new Set());
@@ -63,7 +78,7 @@ export function AtTheDoor({
   function letIn(person: DoorPerson) {
     settle(person.guestId, true);
     startTransition(async () => {
-      const result = await letInAtDoorAction({
+      const result = await acts.letIn({
         eventId,
         guestId: person.guestId,
       });
@@ -81,7 +96,7 @@ export function AtTheDoor({
   function declineOne(person: DoorPerson) {
     settle(person.guestId, true);
     startTransition(async () => {
-      const result = await declineAtDoorAction({
+      const result = await acts.decline({
         eventId,
         guestId: person.guestId,
         userId: person.userId,
@@ -96,8 +111,9 @@ export function AtTheDoor({
         action: {
           label: "Undo",
           onClick: () => {
-            void letBackInAction({ blockId: result.blockId, restore: false }).then(
-              (undone) => {
+            void acts
+              .letBackIn({ blockId: result.blockId, restore: false })
+              .then((undone) => {
                 if (!undone.ok) {
                   toast.error("Couldn't undo that.", {
                     description: undone.message,
@@ -105,8 +121,7 @@ export function AtTheDoor({
                   return;
                 }
                 settle(person.guestId, false);
-              },
-            );
+              });
           },
         },
       });
@@ -120,7 +135,10 @@ export function AtTheDoor({
       data-at-the-door=""
       className="space-y-2"
     >
-      <FeedSectionHeader label="At the door" count={Math.max(total - answered.size, shown.length)} />
+      <FeedSectionHeader
+        label="At the door"
+        count={Math.max(total - answered.size, shown.length)}
+      />
       <p className="text-xs text-muted-foreground">
         They confirmed an email and are waiting for you. Let in opens the album
         for them; Decline blocks them.

@@ -12,12 +12,20 @@ import {
 import { FeedSectionHeader } from "@/components/app/event-feed/feed-section-header";
 import { settingsPageHref } from "@/components/app/event-settings/settings-pages";
 import { Button } from "@/components/ui/button";
-import {
-  INVITE_LIST_CAP,
-  readAddresses,
-} from "@/lib/event/door/invite-list";
+import { INVITE_LIST_CAP, readAddresses } from "@/lib/event/door/invite-list";
 import { formatCount } from "@/lib/format/count";
 import { cn } from "@/lib/utils";
+
+/** The list's two acts. The Library hands in acts that answer and change nothing. */
+export type InviteActs = {
+  add: typeof addInvitesAction;
+  remove: typeof removeInviteAction;
+};
+
+const SERVER_INVITE_ACTS: InviteActs = {
+  add: addInvitesAction,
+  remove: removeInviteAction,
+};
 
 /** One address on the list, as the page hands it to the room. */
 export type InvitedPerson = { email: string; joined: boolean };
@@ -42,11 +50,13 @@ export function InvitedSection({
   eventId,
   invited,
   listIsTheDoor,
+  acts = SERVER_INVITE_ACTS,
 }: {
   eventId: string;
   invited: InvitedPerson[];
   /** The invite list is the way in right now (Private, your invite list). */
   listIsTheDoor: boolean;
+  acts?: InviteActs;
 }) {
   const fieldId = useId();
   const statusId = useId();
@@ -68,7 +78,7 @@ export function InvitedSection({
     setTyped("");
     if (addresses.length === 0) return;
     startSaving(async () => {
-      const result = await addInvitesAction({ eventId, emails: addresses });
+      const result = await acts.add({ eventId, emails: addresses });
       if (!result.ok) {
         // Nothing landed: the addresses go back into the field, to try again.
         setTyped(addresses.join(", "));
@@ -98,7 +108,7 @@ export function InvitedSection({
   function remove(email: string) {
     setRemoved((s) => new Set([...s, email]));
     startSaving(async () => {
-      const result = await removeInviteAction({ eventId, email });
+      const result = await acts.remove({ eventId, email });
       if (!result.ok) {
         setRemoved((s) => {
           const next = new Set(s);
@@ -115,7 +125,9 @@ export function InvitedSection({
   const status = tally
     ? [
         tally.added > 0 ? `${formatCount(tally.added)} added.` : null,
-        tally.already > 0 ? `${formatCount(tally.already)} were already on it.` : null,
+        tally.already > 0
+          ? `${formatCount(tally.already)} were already on it.`
+          : null,
         tally.overCap > 0
           ? `${formatCount(tally.overCap)} left off: the list holds ${formatCount(INVITE_LIST_CAP)}.`
           : null,
@@ -137,7 +149,9 @@ export function InvitedSection({
           "These addresses come straight in once they confirm their email. Anyone else can ask you."
         ) : (
           <>
-            {"Your list lets these addresses in while the invite list is the way in. "}
+            {
+              "Your list lets these addresses in while the invite list is the way in. "
+            }
             <Link
               href={settingsPageHref(eventId, "door")}
               className="font-medium text-foreground underline underline-offset-4"
@@ -228,7 +242,9 @@ export function InvitedSection({
                   person.joined ? "text-foreground" : "text-muted-foreground",
                 )}
               >
-                {person.joined ? <Check className="size-3.5" aria-hidden /> : null}
+                {person.joined ? (
+                  <Check className="size-3.5" aria-hidden />
+                ) : null}
                 {person.joined ? "Joined" : "Not yet"}
               </span>
               <Button
