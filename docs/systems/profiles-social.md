@@ -102,9 +102,9 @@ A one-way door; `/privacy` and the Terms word it, so a change here changes them 
   account's seed, per device.
 - **`profiles.slug` is service-role-write-only;** its format is a CHECK (lowercase, 3 to 30 of `[a-z0-9-]`, no edge
   hyphen) plus a PLAIN partial unique index, since the CHECK already forces lowercase and the RPC's
-  `slug = lower(trim(input))` can use only a plain index. The handle is free on every tier; custom EVENT slugs are the
-  paid ones. `checkProfileSlugAction` requires `getUser()` (no anon availability check, so it stays off the
-  enumeration surface).
+  `slug = lower(trim(input))` can use only a plain index. The handle is free on every tier, and `profileSlugSchema` is
+  its only reserved-word gate: both reserved lists and the brand's whole family ([host-app.md](host-app.md)).
+  `checkProfileSlugAction` requires `getUser()` (no anon availability check, so it stays off the enumeration surface).
 - **`profiles.bio` is the same write class:** one line, at most 160 (mirrored by the `profiles_bio_len` CHECK), no
   links or bare domains, empty becomes null, and `containsProfanity` runs server-side in the action.
 - **A person can be reported** (`reports.profile_id`, under a CHECK that one subject is set): signed in, rate-limited

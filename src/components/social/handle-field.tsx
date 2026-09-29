@@ -49,21 +49,26 @@ export function useHandleStatus(
   const reqId = useRef(0);
 
   const trimmed = value.trim().toLowerCase();
-  const parsed = trimmed ? profileSlugSchema.safeParse(trimmed) : null;
+  // ★ The held handle is read BEFORE the rules: one claimed before a rule grew (the brand's family,
+  // reserved-slugs.ts) is still her page, so Change opens on it as current, never as a refusal.
+  const isCurrent = trimmed !== "" && trimmed === current;
+  const parsed =
+    trimmed && !isCurrent ? profileSlugSchema.safeParse(trimmed) : null;
   const evaluated:
     | { kind: "idle" }
     | { kind: "invalid"; message: string }
     | { kind: "current" }
     | { kind: "check"; normalized: string } = !trimmed
     ? { kind: "idle" }
-    : !parsed || !parsed.success
-      ? {
-          kind: "invalid",
-          message:
-            parsed?.error.issues[0]?.message ?? "That handle isn't available.",
-        }
-      : parsed.data === current
-        ? { kind: "current" }
+    : isCurrent
+      ? { kind: "current" }
+      : !parsed || !parsed.success
+        ? {
+            kind: "invalid",
+            message:
+              parsed?.error.issues[0]?.message ??
+              "That handle isn't available.",
+          }
         : { kind: "check", normalized: parsed.data };
   const checkTarget = evaluated.kind === "check" ? evaluated.normalized : null;
 

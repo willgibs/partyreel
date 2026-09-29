@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import { loginPathForRequest } from "@/lib/auth/login-redirect";
 import { getRequestAuth } from "@/lib/supabase/request-auth";
 
 /**
@@ -24,7 +25,8 @@ import { getRequestAuth } from "@/lib/supabase/request-auth";
  * `(app)` gate, which is exactly the trap a new group sets: a page that looks
  * protected because its sibling is. `getUser()` (never `getSession()`: the
  * proxy only refreshes the cookie and is not a security boundary) runs first,
- * and the page re-checks the event through RLS on top of it.
+ * and the page re-checks the event through RLS on top of it. Its redirect
+ * carries the page like the (app) gate's (lib/auth/login-redirect.ts).
  *
  * Not a ROOT layout: `src/app/layout.tsx` still owns <html> and <body>, so this
  * one renders a fragment and inherits the fonts, the tokens and the providers.
@@ -35,7 +37,7 @@ export default async function PrintLayout({
   children: React.ReactNode;
 }) {
   const { user } = await getRequestAuth();
-  if (!user) redirect("/login");
+  if (!user) redirect(await loginPathForRequest());
   // surface-paper forces the whole subtree light (globals.css): the host app is
   // dark, paper is not, and a print preview that shows white-on-black is a print
   // preview nobody trusts.

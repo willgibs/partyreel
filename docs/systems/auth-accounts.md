@@ -42,6 +42,14 @@ Google, and a password as a quiet second door; passkeys wait behind a flag. `get
   session the flow just made, and `verifyOtp({ type: 'email' })` needs no redirect. `email-sign-in.tsx` owns no
   navigation; each wear's `onVerified` decides what follows. A tapped link lands on `/auth/callback` and loses any
   in-page step, which is accepted.
+- **A sign-in lands on the page that asked for it.** The `(app)` and `(print)` gates send a signed-out request to
+  `/login?next=<its path>` (a layout cannot read its URL, so the proxy hands it over in `x-pr-path`), and `/login`, its
+  in-page code or password, Google and the email's link through `/auth/callback` all land there, a failed link
+  carrying it back to `/login`; so a mail's button (Renew Event Pass, Manage storage) lands where it points. ★ `next`
+  is followed only when it is one of `lib/auth/return-path.ts`'s exact shapes (the host app's pages, `/admin`, an
+  album or a profile page), never a query or a fragment: anything else, however it is encoded, reads as no `next` at
+  all (`return-path.test.ts` pins each refusal). `signInLanding` is the one landing rule the page, the form and the
+  callback share.
 - **The password refusal is generic by design:** wrong password, no password and unknown address read the same (the
   `password_mismatch` line, with a code, a new password and Google as the ways out); `door-failure.test.ts` refuses
   a specific one. Every failure maps through `door-failure.ts`'s one table, and a surface's own recoveries are not
@@ -118,7 +126,9 @@ Dashboard state, held nowhere in the repo, that the code assumes:
   and a first Google sign-in are refused, so a live walk of them uses an existing test account. The OAuth Server
   (project-as-IdP) OFF.
 - The redirect allow-list holds `https://partyreel.com/auth/callback**` (a guest's link carries `?next=/e/[token]`
-  back) and the admin callbacks ([admin-observability.md](admin-observability.md)).
+  back, a host's the page a gate sent them from) and the admin callbacks ([admin-observability.md](admin-observability.md)).
+  ★ The admin callback's entry is EXACT: GoTrue answers `…/auth/callback?next=` there with the Site URL, so the admin
+  host's door always sends the bare callback (`login-form.tsx`), the portal being its landing anyway.
 - Passkeys enabled with the RP id on the apex before `NEXT_PUBLIC_PASSKEYS=1` ships anywhere.
 - Rate limits (Authentication, Rate Limits): emails 100 an hour project-wide on the custom SMTP; code and link
   verifications, sign-ups and sign-ins, and token refreshes 150 per 5 minutes per IP; anonymous sign-ins 30 an hour

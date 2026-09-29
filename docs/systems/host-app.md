@@ -149,6 +149,12 @@ change, and the slug is NOT a second capability.
   `get_event_by_qr_token` resolves a token or a slug (the token wins) and returns the canonical token. The control lives
   in the share sheet (`event-slug-control.tsx`: debounced, race-guarded availability through `check_slug_available`,
   a warning before a change or removal).
+- ★ **The brand is refused as a part, not only as a word:** any slug containing `partyreel`, read with its hyphens
+  dropped and a look-alike digit as its letter (`party-reel`, `p4rtyr33l`), in `eventSlugSchema` and in
+  `set_event_slug` by one fold (`reserved-slugs.ts`; `tiers-sql.test.ts` holds the two halves together); the `/u/`
+  handle refuses it too. A dropped or doubled letter is left alone (folding it refuses `party-relay`). A link held
+  before a rule grew keeps working (no resolver re-validates; the demo's `partyreel-demo` is one), and the controls
+  read a held value as current, never as refused.
 - **Slugs are mutable, with deliberately no redirects**: a change frees the old string at once and the old link 404s,
   because an alias that outlived its event would be a worse promise than a dead one; a soft-deleted event frees its slug
   too, for good: `restore_event` brings it back only while it is still free, else restores on the permanent link

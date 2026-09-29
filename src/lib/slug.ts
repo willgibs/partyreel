@@ -4,7 +4,7 @@
  *
  * Client-safe (only zod + the reserved list), so the host UI imports it directly.
  */
-import { RESERVED_SLUGS } from "@/lib/constants/reserved-slugs";
+import { isReservedSlug } from "@/lib/constants/reserved-slugs";
 import { eventSlugSchema } from "@/lib/validation/event";
 
 /**
@@ -28,15 +28,16 @@ const SLUG_MAX = 50;
 
 /**
  * A custom-slug SUGGESTION derived from an event name, or null when there's no decent one
- * (too short after slugging, token-shaped, or reserved). The result is guaranteed to satisfy
- * eventSlugSchema's FORMAT — only availability is left to the live check.
+ * (too short after slugging, token-shaped, a reserved word or the brand's family: "Our party
+ * reel" suggests nothing). The result is guaranteed to satisfy eventSlugSchema — only
+ * availability is left to the live check.
  */
 export function suggestSlug(name: string): string | null {
   // Slug to the schema's max, then trim a hyphen the slice may have left dangling.
   const s = slugify(name, SLUG_MAX).replace(/-+$/g, "");
   if (s.length < 3) return null;
   if (/^[0-9a-f]{32}$/.test(s)) return null; // token-shaped — never suggest
-  if (RESERVED_SLUGS.has(s)) return null;
+  if (isReservedSlug(s)) return null;
   return s;
 }
 
@@ -49,16 +50,24 @@ export type SlugInputEval =
 
 /**
  * Pure, synchronous evaluation of what the host typed — the half of the live-availability
- * state machine that needs no network. Empty → idle; a format/reserved/token-shape failure →
- * invalid (with the zod message); equal to the saved slug → current (a no-op, nothing to
- * save); otherwise → check (the caller debounces, then calls check_slug_available). The value
- * is normalized through eventSlugSchema, so `normalized` is what would actually be saved.
+ * state machine that needs no network. Empty → idle; equal to the saved slug → current (a no-op,
+ * nothing to save); a format/reserved/token-shape failure → invalid (with the zod message);
+ * otherwise → check (the caller debounces, then calls check_slug_available). The value is
+ * normalized through eventSlugSchema, so `normalized` is what would actually be saved.
+ *
+ * ★ THE SAVED SLUG IS READ BEFORE THE RULES. A link held before a rule grew (the brand's family,
+ * reserved-slugs.ts) still resolves, and "Change" opens the field on it: it reads as the host's
+ * current link, never as a refusal of the link they already have. Any other value obeys the rules.
  */
 export function evaluateSlugInput(
   value: string,
   currentSlug: string | null,
 ): SlugInputEval {
-  if (value.trim() === "") return { kind: "idle" };
+  const typed = value.trim().toLowerCase();
+  if (typed === "") return { kind: "idle" };
+  if (currentSlug && typed === currentSlug.toLowerCase()) {
+    return { kind: "current", normalized: typed };
+  }
   const parsed = eventSlugSchema.safeParse({ slug: value });
   if (!parsed.success) {
     return {
@@ -67,9 +76,5 @@ export function evaluateSlugInput(
         parsed.error.issues[0]?.message ?? "That custom link isn't valid.",
     };
   }
-  const normalized = parsed.data.slug;
-  if (currentSlug && normalized === currentSlug.toLowerCase()) {
-    return { kind: "current", normalized };
-  }
-  return { kind: "check", normalized };
+  return { kind: "check", normalized: parsed.data.slug };
 }

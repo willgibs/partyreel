@@ -40,17 +40,23 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
+| `crumbs-10` | build 19's red-team findings (Dismiss's way back, the help-feedback table at 375, the home's wasted preloads, /account/renew for a never-held pass, the phone menu's description) and five ROADMAP carry-overs | running, agent `a45041ebf338a446a` | Opus, :3131 | |
 
 Batch 7 (cut `35601390`, 2026-09-28) answers Will's sitting on build 15 (transcribed at `69afdbc5`: 21 answers on
 hero-card, voice-guest, host-storage, event-safety, export-flow). Wave A, four lanes: three new boards and the block.
 Wave B follows as seats free. Batch 6 (sixteen lanes) is merged whole; its records carry the rest.
 
-Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, event-settings, voice-wiring, pricing-wiring, triage-r2, safety-wiring, hero-wiring, triage-wiring, export-wiring, help-wiring, emails-wiring, demo-framing, crumbs-8, crumbs-9.
+Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, event-settings, voice-wiring, pricing-wiring, triage-r2, safety-wiring, hero-wiring, triage-wiring, export-wiring, help-wiring, emails-wiring, demo-framing, crumbs-8, crumbs-9, crumbs-11.
 
 ## Next, in order
 
+**Hold (Will, 2026-09-29): he is mid-review on build 19.** No alias deploy and no red-team in his Chrome until he says
+his batch is in; merges and migrations go on (neither touches the served build or his session).
+
 1. **Integrate each running lane as it hands off** (rows above), each migration by protocol, one at a time: drift
    check, apply verbatim, the rolled-back refusals, advisors, types.
+   - Applied 2026-09-29: `slug_family` (`20260929060131`, md5 `02544c04`; set_event_slug `1b1e914e`, ACL unchanged,
+     the held `partyreel-demo` and `partyr33l` untouched and resolving, the proof 6/6, advisors unchanged).
    - Applied 2026-09-29: `like_private` (`20260929032343`, md5 `fd4f0cbc`; like_media's body as its header says, ACL
      unchanged, the rolled-back proof 5/5, advisors unchanged, no types).
    - Applied 2026-09-29: `pass_renewal_pref` (`20260929025049`, md5 `a2b8a3c8`; the column on by default, authenticated's
@@ -69,15 +75,17 @@ Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, 
    - After his `demo-framing` pick (his full permission, 2026-09-29; the board merged at `51db72fc`): the demo event
      renamed (or made) to the story, its slug claimed so the card's printed address opens it (today `mia-and-theo`,
      held by no event, left as is on his word), one home for the slug in `lib/demo.ts` that the card prints and the
-     seed sets, `OBJECT_EVENT` and `OBJECT_PRINTS` to match, a demo host account if `host` stands, `partyreel-demo`
-     reserved with the `partyreel` family (ROADMAP's Security line, a `set_event_slug` migration), and ASSETS rows 5,
+     seed sets, `OBJECT_EVENT` and `OBJECT_PRINTS` to match, a demo host account if `host` stands (`partyreel-demo` stays
+     refused to anyone else by the brand family, `crumbs-11`), and ASSETS rows 5,
      33 and 34 unparked with the party's subjects (the board lists them per party).
 3. **Build 17 is live and red-teamed** (`1407daf6`; every journey PASS, the block walked live on all three roads and
    restored through the UI; the ledger is `../partyreel-wt/_scratch/redteam-17/ledger.txt`). Its two majors (the share
    card shared across viewers by the edge; Event Settings' last three cards crushed) and three minors go to
    `crumbs-8`. **Build 18** (deployed 2026-09-29 for his desk: wave B whole and `demo-framing`'s board, 45 open asks).
-   **Build 19 is live** (`fd196846`: `crumbs-8` and `crumbs-9` on top; every lane merged). Its red-team is running
-   (agent `ab2f0823c7a4e7a6e`, brief `../partyreel-wt/_scratch/redteam-19/brief.md`); it walks the new hero, the export flow short of any download, the triage portal on staged reports
+   **Build 19 is live and red-teamed** (`fd196846`; all seven journeys PASS, no major; the ledger is
+   `../partyreel-wt/_scratch/redteam-19/ledger.txt`); its three minors and three nits are `crumbs-10`'s, and
+   `crumbs-11` closes the slug family and the sign-in return path. **Build 20** carries both; its red-team walks the
+   signed-out mail links through the chooser and re-checks the six. Build 19's red-team walked the new hero, the export flow short of any download, the triage portal on staged reports
    (`triage-wiring`'s Handoff names the rows), the help, the two majors re-checked, and the standing scope. Drafted
    specs wait in this session's scratchpad (`specs/<track>.json`); a new session writes them from these lines.
 4. **His next paste** (build 16's 38 open asks; emails r1 is transcribed at `1b394476`) transcribed; the join doors
