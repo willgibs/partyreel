@@ -3,7 +3,6 @@ import { DESK_ORDER } from "@/app/(dev)/design/touchpoints";
 
 import { ADMIN_TRIAGE } from "./admin-triage/spec";
 import { LOCKED_DOOR } from "./locked-door/spec";
-import { EVENT_SETTINGS } from "./event-settings/spec";
 
 import { PRESS_PAGE } from "./press-page/spec";
 import { CONTACT_PAGE } from "./contact-page/spec";
@@ -42,7 +41,6 @@ import { PRIVACY_HERO } from "./privacy-hero/spec";
  */
 const REGISTERED: readonly BoardSpec[] = [
   ADMIN_TRIAGE,
-  EVENT_SETTINGS,
   LOCKED_DOOR,
   PRIVACY_HERO,
   ALBUM_MOTION,
