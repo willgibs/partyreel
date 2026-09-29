@@ -49,7 +49,7 @@ family), `disposable-mode` r2, `crumbs-12`. Batch 7 is merged whole; its records
 
 ## Next, in order
 
-1. **Build 20** (the batch-8 record's `[preview]`): crumbs-10 and crumbs-11 on the alias. Its red-team runs from
+1. **Build 20 is live** (`18491027`, alias-ensure green, Vercel pruned, the desk served): crumbs-10 and crumbs-11. Its red-team (agent `a4f105c9a26336597`) runs from
    `../partyreel-wt/_scratch/redteam-20/brief.md` in Will's Chrome (about an hour; his own alias checks wait for it or
    use a private window); its findings go to the next crumbs lane.
 2. **Integrate each lane as it hands off**, each migration by protocol, one at a time: drift check, apply verbatim, the
