@@ -18,13 +18,15 @@ import json, pathlib, sys
 if len(sys.argv) < 3:
     sys.exit(__doc__)
 cut = sys.argv[1][:8]
-LAB_VERIFY = ("The board at 1440 and 375 with reduced motion honoured; `pnpm lab:smoke --base http://localhost:<port>` whole; "
+LAB_VERIFY = ("The board at 1440 and 375 with reduced motion honoured; `pnpm lab:smoke --base http://localhost:<port>` (it crawls "
+              "what your change reaches, the board and the desk; `--all` for the whole lab); "
               "`pnpm lab:demo --board <board> --base http://localhost:<port>` pressing every step.")
 # A lane that changes src/ runs the lab crawl itself: an integration whose merge adds only docs to the lane's head runs
 # pnpm test alone (usher/kit/gate-lane.sh), so the crawl a wiring lane skips is a crawl nobody runs.
 PROD_VERIFY = ("The gate on the synced tree (CLAUDE.md's four steps), each step on its own exit code; "
-               "`pnpm lab:smoke --base http://localhost:<port>` whole when the lane changes anything under `src/` but tests "
-               "(the Library renders the product's components); and the surfaces the Handoff is judged on, local and live.")
+               "`pnpm lab:smoke --base http://localhost:<port>` when the lane changes anything under `src/` but tests (it crawls "
+               "what the change reaches: the Library, and every board whose drawings import a changed file); and the surfaces "
+               "the Handoff is judged on, local and live.")
 
 SANDBOX = "src/app/(dev)/design/sandbox/"
 # The lists a board once registered itself in; a board lane never owns one (the registry finds its folder).
