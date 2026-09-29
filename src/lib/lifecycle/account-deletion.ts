@@ -151,27 +151,6 @@ export async function scrubAccountGuestRows(
 }
 
 /**
- * PostgREST codes that mean "the deletion column is not in the live database
- * yet" (the orchestrator applies 20260902130000 at integration). Modelled on
- * queries/social.ts' runtime seam: a missing schema degrades to a clean refusal
- * or a skipped sweep, never a half-finished deletion, while real errors still
- * throw. Reads `.code` off either a raw PostgrestError or the QueryFailedError
- * mustQuery wraps it in.
- */
-const MISSING_SCHEMA_CODES = new Set([
-  "42703",
-  "42P01",
-  "PGRST202",
-  "PGRST204",
-  "PGRST205",
-]);
-
-export function isDeletionSchemaMissing(error: unknown): boolean {
-  const code = (error as { code?: string | null } | null)?.code ?? "";
-  return MISSING_SCHEMA_CODES.has(code);
-}
-
-/**
  * The deletion queue's page size. Not a per-run cap any more: the sweep reads the queue page by page,
  * oldest request first, until its deadline, so a queue held at its head by forensic holds (a held
  * account never leaves it) can never starve the requests behind it.
@@ -195,8 +174,6 @@ export type AccountDeletionSweepResult = {
   r2_deleted: number;
   r2_errored: number;
   freed_bytes: number;
-  /** Present only before migration 20260902130000 is applied. */
-  skipped?: "not_provisioned";
   /** Accounts this run isolated and failed on, so its heartbeat closes as an error (QA #27). */
   rows_failed?: number;
   rows_not_attempted?: number;
@@ -525,25 +502,14 @@ export async function sweepDeletedAccounts(
       stoppedAt = after;
       break;
     }
-    let page: AllPages<QueueRow, QueueCursor>;
-    try {
-      page = await readAllPages(
-        "sweepDeletedAccounts: candidates",
-        (cursor: QueueCursor | null, limit) =>
-          deletionQueuePage(admin, cursor, limit),
-        // `deletion_requested_at` is never null here: the page filters `not.is.null`.
-        (row) => ({ at: row.deletion_requested_at as string, id: row.id }),
-        { budget: QUEUE_PAGE, after },
-      );
-    } catch (error) {
-      // Pre-apply the column does not exist. Report "nothing to do" rather than
-      // failing the sweep; the orchestrator applies the migration before wiring
-      // the call, so this branch should never fire in production.
-      if (isDeletionSchemaMissing(error)) {
-        return { ...result, skipped: "not_provisioned" };
-      }
-      throw error;
-    }
+    const page: AllPages<QueueRow, QueueCursor> = await readAllPages(
+      "sweepDeletedAccounts: candidates",
+      (cursor: QueueCursor | null, limit) =>
+        deletionQueuePage(admin, cursor, limit),
+      // `deletion_requested_at` is never null here: the page filters `not.is.null`.
+      (row) => ({ at: row.deletion_requested_at as string, id: row.id }),
+      { budget: QUEUE_PAGE, after },
+    );
     if (page.rows.length === 0) break;
 
     // ★ PER-ROW ISOLATION (QA #27). One account whose R2 delete or auth delete threw used to abort
@@ -623,8 +589,7 @@ export type AccountDeletionState = {
 /**
  * The operator-facing read behind the /admin/accounts/[id] card: has this
  * account asked to be deleted, and is anything holding it open? Service-role
- * (there is no cross-host profile read elsewhere) and READ-ONLY. Degrades to
- * "not requested" before the migration lands rather than 500-ing the page.
+ * (there is no cross-host profile read elsewhere) and READ-ONLY.
  * The event count is COUNTED (a head count, never a list's length), and the held
  * count is `held_event_ids`' answer over the account's events read whole.
  */
@@ -633,23 +598,15 @@ export async function getAccountDeletionState(
 ): Promise<AccountDeletionState> {
   const admin = createAdminClient();
 
-  let requestedAt: string | null = null;
-  try {
-    const row = await mustQuery(
-      // Selected by name; the column is in the generated types since the apply.
-      admin
-        .from("profiles")
-        .select("deletion_requested_at")
-        .eq("id", userId)
-        .maybeSingle(),
-      "getAccountDeletionState: profile",
-    );
-    requestedAt =
-      (row as { deletion_requested_at?: string | null } | null)
-        ?.deletion_requested_at ?? null;
-  } catch (error) {
-    if (!isDeletionSchemaMissing(error)) throw error;
-  }
+  const row = await mustQuery(
+    admin
+      .from("profiles")
+      .select("deletion_requested_at")
+      .eq("id", userId)
+      .maybeSingle(),
+    "getAccountDeletionState: profile",
+  );
+  const requestedAt = row?.deletion_requested_at ?? null;
 
   const eventCount = await mustCount(
     admin

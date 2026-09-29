@@ -36,7 +36,7 @@ import {
   type LiveGalleryHandle,
 } from "@/components/guest/live-gallery";
 import { LiveReel, LiveReelTile } from "@/components/guest/reel/live-reel";
-import { ReportDialog } from "@/components/guest/report-dialog";
+import { ReportFoot } from "@/components/guest/report-dialog";
 import {
   createUploadTrackerStore,
   UploadTracker,
@@ -1393,17 +1393,10 @@ export function EventExperience({
             }
           />
 
-          {/* Discreet anonymous report path (the report capability is the qr_token).
-              The rule under the album runs the album's width, so it reads as the
-              page's last line rather than a stray hairline under the words —
-              the BLEED's gutter as a margin rather than its padding, because the
-              hairline IS the alignment, and a padded box would run its border
-              under the gutter to the window's edge. */}
-          {!isDemo && (
-            <footer className="mx-3 mt-8 flex justify-center border-t border-border/60 pt-5 sm:mx-5">
-              <ReportDialog qrToken={qrToken} />
-            </footer>
-          )}
+          {/* Discreet anonymous report path (the report capability is the qr_token), never
+              for the album's own host: without it no photo offers Report to her either
+              (build 23's BUG-3, `ReportFoot`). */}
+          <ReportFoot qrToken={qrToken} isOwner={isOwner} isDemo={isDemo} />
           <ToldNameForm
             onRenamed={(renamed) => {
               galleryRef.current?.renameMine(renamed);

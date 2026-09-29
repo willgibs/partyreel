@@ -499,9 +499,12 @@ const queueReport = (
   kind: "other",
   signedIn: false,
   canAsk: false,
+  byHost: false,
   hidAt: null,
   proof: null,
   ...over,
+  // A report that can be asked was sent from a confirmed address.
+  confirmed: over.confirmed ?? over.canAsk ?? false,
 });
 
 const QUEUE_ENTRIES: ReviewEntry[] = [
@@ -718,6 +721,7 @@ const INVITE_ACTS: InviteActs = {
         invalid: 0,
         overCap: 0,
         total: INVITED.length + emails.length,
+        admitted: 0,
       },
     });
   },

@@ -83,6 +83,10 @@
  *      bounds, anon granted no table ever again, the default privileges left revoked, tier_limits kept
  *      from the client roles across a recreate, the dropped columns never re-added, and the contract
  *      dropping exactly the reel's three dormant columns behind its milestone-31 gate.
+ *  20. The list lets in who waits (build 23's BUG-2, migration 20260929220000): while the invite list
+ *      is the door, a waiting person it names is in, by the door's own predicates, no client role
+ *      runs the rule, and each act that can bring it about (the listing, the door becoming the list,
+ *      Let back in) settles it and says how many.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -3168,5 +3172,93 @@ describe("the schema pass (20260929160000) and its contract (20260929170000)", (
         "★ APPLY ONLY AFTER MILESTONE 31 SHIPS (destructive)",
       );
     });
+  });
+});
+
+describe("the list lets in who waits (20260929220000)", () => {
+  // Build 23's red-team (BUG-2): a newcomer who asked at an invite list stayed At the door after the host
+  // listed her, counted by the pulse and the bell beside her Joined address, while the door let her through
+  // on a ticket every upload refused. The rule, once: while the list is the door, a waiting person it
+  // names is in, decided by the door's own predicates, and each act that can bring that about settles it.
+  const FILE = "20260929220000_door_invite_admits.sql";
+  const sql = collapse(
+    readFileSync(join(MIGRATIONS_DIR, FILE), "utf8").replace(/--[^\n]*/g, ""),
+  );
+  const code = (name: string) =>
+    collapse(latestDefinition(name).body.replace(/--[^\n]*/g, ""));
+  const ADMIT = "public.event_door_admit_listed(";
+
+  it("admits only while the list is the door, by the door's own match, every row of a person at once, no block through", () => {
+    const admit = code("event_door_admit_listed");
+    expect(admit).not.toContain("security definer");
+    expect(admit).toContain("set search_path = ''");
+    expect(admit).toContain(
+      "perform 1 from public.events e where e.id = p_event_id and e.deleted_at is null and e.visibility = 'private' and e.gate = 'invite'; if not found then return 0; end if;",
+    );
+    expect(admit).toContain(
+      "update public.guests g set admission = 'in' where g.event_id = p_event_id and g.admission = 'waiting' and g.user_id is not null and public.event_door_lists_account(p_event_id, g.user_id) and not public.event_block_holds_account(p_event_id, g.user_id) and not public.event_block_holds_row(g) returning g.user_id",
+    );
+    // Counted as people, as every door count is: an account once, however many devices asked.
+    expect(admit).toContain("count(distinct a.user_id)");
+  });
+
+  it("no client role runs the rule: the host's acts reach it, as the owner", () => {
+    expect(sql).toContain(
+      "revoke all on function public.event_door_admit_listed(uuid) from public, anon, authenticated;",
+    );
+    expect(sql).toContain(
+      "grant execute on function public.event_door_admit_listed(uuid) to service_role;",
+    );
+    for (const { file, sql: text } of executableMigrations()) {
+      expect(text, file).not.toMatch(
+        /grant execute on function public\.event_door_admit_listed\([^)]*\) to [^;]*\b(anon|authenticated|public)\b/,
+      );
+    }
+  });
+
+  it("add_event_invites lets in whom the list now names, after its insert, and says how many", () => {
+    const add = code("add_event_invites");
+    expect(add.indexOf(`v_admitted := ${ADMIT}p_event_id);`)).toBeGreaterThan(
+      add.indexOf("insert into public.event_invites (event_id, email)"),
+    );
+    expect(add).toContain("'admitted', v_admitted");
+  });
+
+  it("set_event_door lets in whom the list names as it becomes the door, counted with the door opening's", () => {
+    const door = code("set_event_door");
+    const admit = door.indexOf(
+      `if p_door = 'invite' then v_listed := ${ADMIT}v_event.id); end if;`,
+    );
+    expect(admit).toBeGreaterThan(
+      door.indexOf(
+        "update public.events set visibility = v_visibility, gate = v_gate, require_verified_email = v_email where id = v_event.id;",
+      ),
+    );
+    expect(door).toContain("'admitted', v_waiting + v_listed");
+  });
+
+  it("let_back_in lets a listed newcomer in once the block is gone, and says so", () => {
+    const lift = code("let_back_in");
+    expect(
+      lift.indexOf(`v_admitted := ${ADMIT}v_block.event_id);`),
+    ).toBeGreaterThan(
+      lift.indexOf("delete from public.event_blocks where id = v_block.id;"),
+    );
+    expect(lift).toContain("'admitted', v_admitted");
+  });
+
+  it("restates the three acts' grants exactly as they stood: authenticated only", () => {
+    for (const signature of [
+      "public.add_event_invites(uuid, text[])",
+      "public.set_event_door(uuid, text)",
+      "public.let_back_in(uuid, boolean)",
+    ]) {
+      expect(sql).toContain(
+        `revoke all on function ${signature} from public, anon, authenticated;`,
+      );
+      expect(sql).toContain(
+        `grant execute on function ${signature} to authenticated;`,
+      );
+    }
   });
 });

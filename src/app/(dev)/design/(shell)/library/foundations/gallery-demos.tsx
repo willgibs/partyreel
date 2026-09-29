@@ -20,7 +20,10 @@ import type { GalleryEntry } from "@/app/(dev)/design/gallery/entry";
  * is the vocabulary. Will named the coloured light the AURORA and kept three
  * forms of it (2026-09-17), so the entry presents the family rather than the
  * primitive: one live specimen per kept form, each on a dark ground, because
- * the fourth pick of that round was that none of them goes on a light one.
+ * the Aurora is off light grounds for now. On paper it read as a stray shadow
+ * rather than a glow, and nothing re-tunes the lamps for a light ground until
+ * the app's light mode gives lit surfaces their own answer (ROADMAP's
+ * light-mode line).
  *
  * ★ EVERY SPECIMEN HERE CARRIES ITS OWN `dark`, and that is not decoration. The
  * Foundations page follows the root next-themes theme, and the field's fence
@@ -40,14 +43,14 @@ export const FOUNDATION_ENTRIES: GalleryEntry[] = [
     badge: "updated",
     family: "foundations",
     section: "Light",
-    lede: "The coloured light of the house, in three forms: the SEAM, a band where two grounds meet; the THROW, cast from a point on an object; the FIELD, a whole chapter lit at its own edges. Two marks sit beside them: the BLOOM, a one-time glow that rests lit, and the HALO, which lights an object from behind. One engine, the same five hues, one clock; it lives on dark grounds, and each place composes its own.",
+    lede: "The coloured light of the house, in three forms: the SEAM, a band where two grounds meet; the THROW, cast from a point on an object; the FIELD, a whole chapter lit at its own edges. Two marks sit beside them: the BLOOM, a one-time glow that rests lit, and the HALO, which lights an object from behind. One engine, the same five hues, one clock; for now it lives on dark grounds, and each place composes its own.",
     play: "glow",
     variants: [
       {
         prop: "shape",
         source: "prop",
         options: ["seam", "throw", "sweep", "bloom", "halo"],
-        note: "The recipe, and the only required prop. Two of the five are Aurora forms (the seam, the throw); the field is mounted by SectionLight. A bloom is a one-time glow that settles to a resting light and never to nothing (kept). A halo lights an OBJECT from behind, a plate or a frame, and never a button (kept, in those words). A sweep travels and is still open on the light board.",
+        note: "The recipe, and the only required prop. Two of the five are Aurora forms (the seam, the throw); the field is mounted by SectionLight. A bloom is a one-time glow that settles to a resting light and never to nothing (kept). A halo lights an OBJECT from behind, a plate or a frame; around a button it reads as decoration on a control rather than light from a thing, so it is drawn on objects. A sweep travels; the one mark that would wear it, a shimmer over media, is banked in the ROADMAP.",
       },
       {
         prop: "drive",
@@ -185,12 +188,12 @@ export const FOUNDATION_ENTRIES: GalleryEntry[] = [
         ),
       },
       {
-        // THE HALO, kept 2026-09-17 with its fence in Will's words: "Do not
-        // like as a button wrapper, only to light objects from behind." So the
-        // specimen is an OBJECT (a dark frame), the wash sits on it clipped to
-        // its own corner, and its face stays clean. There is no button usage.
+        // THE HALO lights an OBJECT from behind: a dark frame here, the wash
+        // clipped to its own corner and its face clean. Drawn around a button
+        // (the light board tried it and kept the halo for objects), it reads as
+        // decoration on a control rather than light coming from a thing.
         label: "The halo",
-        hint: 'shape="halo" · an object lit from behind, its face clean · never a button',
+        hint: 'shape="halo" · an object lit from behind, its face clean · objects, not buttons',
         node: (
           <div className="dark flex justify-center bg-background p-10">
             <div

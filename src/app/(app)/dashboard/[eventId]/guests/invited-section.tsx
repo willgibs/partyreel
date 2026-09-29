@@ -13,6 +13,7 @@ import { FeedSectionHeader } from "@/components/app/event-feed/feed-section-head
 import { settingsPageHref } from "@/components/app/event-settings/settings-pages";
 import { Button } from "@/components/ui/button";
 import { INVITE_LIST_CAP, readAddresses } from "@/lib/event/door/invite-list";
+import { cameInLine } from "@/lib/event/door/words";
 import { formatCount } from "@/lib/format/count";
 import { cn } from "@/lib/utils";
 
@@ -31,7 +32,16 @@ const SERVER_INVITE_ACTS: InviteActs = {
 export type InvitedPerson = { email: string; joined: boolean };
 
 /** What the last save did, said under the field. */
-type Tally = { added: number; already: number; overCap: number } | null;
+type Tally = {
+  added: number;
+  already: number;
+  overCap: number;
+  /** People waiting at the door whom the list now named, and so came in (build 23's BUG-2). */
+  admitted: number;
+} | null;
+
+/** Nothing hidden: the set a new read of the list starts from. */
+const NONE: ReadonlySet<string> = new Set();
 
 /**
  * INVITED, IN THE GUESTS ROOM (event-settings r1, `editor=both` with Will's note: "Could this be more
@@ -45,6 +55,10 @@ type Tally = { added: number; already: number; overCap: number } | null;
  *
  * ★ EACH ADDRESS SAYS WHETHER IT JOINED: an address matches only once its guest confirms it, so the
  * list reads Joined or Not yet, and removing one never puts out someone it already let in.
+ *
+ * ★ LISTING SOMEONE WHO WAITS LETS HER IN (build 23's BUG-2, 20260929220000): while the list is the door,
+ * an address that asked at it comes in the moment it is listed, so she leaves At the door above (the
+ * page's own read, revalidated by the save) and the line under the field says who came in.
  */
 export function InvitedSection({
   eventId,
@@ -63,10 +77,17 @@ export function InvitedSection({
   const [typed, setTyped] = useState("");
   const [flagged, setFlagged] = useState<string[]>([]);
   const [tally, setTally] = useState<Tally>(null);
-  const [removed, setRemoved] = useState<ReadonlySet<string>>(new Set());
+  // ★ A REMOVAL HIDES ITS ADDRESS ONLY UNTIL THE PAGE READS THE LIST AGAIN (build 23's NIT-4 shape, swept
+  // here): the save revalidates the room, and from that read on the read is the truth, so an address
+  // removed and added again comes back with the read that has it, rather than staying hidden all visit.
+  const [removed, setRemoved] = useState<{
+    from: InvitedPerson[];
+    emails: ReadonlySet<string>;
+  }>(() => ({ from: invited, emails: NONE }));
+  const hidden = removed.from === invited ? removed.emails : NONE;
   const [saving, startSaving] = useTransition();
 
-  const list = invited.filter((p) => !removed.has(p.email));
+  const list = invited.filter((p) => !hidden.has(p.email));
   const joined = list.filter((p) => p.joined).length;
   const full = list.length >= INVITE_LIST_CAP;
 
@@ -91,6 +112,7 @@ export function InvitedSection({
         added: result.result.added,
         already: result.result.already,
         overCap: result.result.overCap,
+        admitted: result.result.admitted,
       });
     });
   }
@@ -106,14 +128,17 @@ export function InvitedSection({
   }
 
   function remove(email: string) {
-    setRemoved((s) => new Set([...s, email]));
+    setRemoved((r) => ({
+      from: invited,
+      emails: new Set([...(r.from === invited ? r.emails : NONE), email]),
+    }));
     startSaving(async () => {
       const result = await acts.remove({ eventId, email });
       if (!result.ok) {
-        setRemoved((s) => {
-          const next = new Set(s);
+        setRemoved((r) => {
+          const next = new Set(r.emails);
           next.delete(email);
-          return next;
+          return { from: r.from, emails: next };
         });
         toast.error("Couldn't remove that address.", {
           description: result.message,
@@ -131,6 +156,7 @@ export function InvitedSection({
         tally.overCap > 0
           ? `${formatCount(tally.overCap)} left off: the list holds ${formatCount(INVITE_LIST_CAP)}.`
           : null,
+        tally.admitted > 0 ? cameInLine(tally.admitted) : null,
       ]
         .filter(Boolean)
         .join(" ")

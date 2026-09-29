@@ -175,13 +175,13 @@ export const getEventByQrToken = cache(async function getEventByQrToken(
     qr_style: row.qr_style,
     host_display_name: row.host_display_name ?? null,
     custom_slug: row.custom_slug ?? null,
-    // The live reel's two event facts. `?? true` / `?? null`: an RPC from before the expand never
-    // returned them, and a missing switch must read as the default (on), never as off.
-    show_reel: row.show_reel ?? true,
+    // The live reel's event facts. The switch is NOT NULL; the mood is NULL until a host picks one,
+    // which the generated types understate, like `description` above.
+    show_reel: row.show_reel,
     reel_style_id: row.reel_style_id ?? null,
     // ★ Typed `number` by the generated RETURNS TABLE, yet NULL until a host sets it: kept as NULL
-    // (the default), never coerced to 0 s. An RPC from before the column never returned it.
-    reel_hold_sec: (row.reel_hold_sec as number | null | undefined) ?? null,
+    // (the default), never coerced to 0 s.
+    reel_hold_sec: row.reel_hold_sec ?? null,
     // The guest picker's flag (the doors' migration, 20260929120000).
     accepts_video: row.accepts_video,
   };
@@ -285,8 +285,7 @@ export async function getEventMediaByQrToken(
     width: m.width ?? null,
     height: m.height ?? null,
     duration_seconds: m.duration_seconds ?? null,
-    // Absent (an RPC from before the expand) reads as eligible: a stale shape must not empty the reel.
-    reel_eligible: m.reel_eligible ?? true,
+    reel_eligible: m.reel_eligible,
     created_at: m.created_at,
   }));
 }

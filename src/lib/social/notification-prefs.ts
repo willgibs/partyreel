@@ -27,6 +27,7 @@
  *
  * Import-safe from client components (constants + pure logic, no secrets).
  */
+import type { Tables } from "@/lib/db/types";
 
 export type NotificationPrefs = {
   /** Tier 2: Event Pass reminders, the renewal nudge two weeks before a pass expires. */
@@ -41,15 +42,13 @@ export const NOTIFICATION_PREF_DEFAULTS: NotificationPrefs = {
 };
 
 /**
- * The snake_case DB row (or the relevant subset of it). Declared here rather
- * than via Tables<"notification_prefs"> because src/lib/db/types.ts regenerates
- * only when the orchestrator applies the migration at integration; when it
- * does, this shape stays structurally identical, so nothing needs to change.
+ * The snake_case DB row's preference columns: the generated row, narrowed to the columns this file maps
+ * (a column it has let go of is never read, so it is never in the type either).
  */
-export type NotificationPrefsRow = {
-  notify_pass_renewal: boolean;
-  marketing_opt_in: boolean;
-};
+export type NotificationPrefsRow = Pick<
+  Tables<"notification_prefs">,
+  "notify_pass_renewal" | "marketing_opt_in"
+>;
 
 /**
  * The row's preference columns as one select list, so every reader (the /account card's read, the

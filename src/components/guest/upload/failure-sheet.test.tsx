@@ -10,14 +10,20 @@ import { UploadFailureSheet } from "@/components/guest/upload/failure-sheet";
  *
  * FUNCTION ONLY, and the function is: every refused file is NAMED, its reason is
  * the SERVER's own sentence rather than a house paraphrase, and every one of
- * them is one tap from going again. The words in the header and the order of the
- * buttons are not pinned. WHEN the sheet opens (the end of a run, once) belongs to
- * the engine and is pinned in `guest-upload.test.tsx`.
+ * them a retry could land is one tap from going again. The words in the header and
+ * the order of the buttons are not pinned. WHEN the sheet opens (the end of a run,
+ * once) belongs to the engine and is pinned in `guest-upload.test.tsx`.
+ *
+ * ★ RESHAPED ON PURPOSE (crumbs-17, build 23's NIT-2; scar kept: a failure a retry
+ * could land is one tap from going again): "every one of them is one tap from going
+ * again" offered Retry for "This event accepts photos only", which no retry can pass.
+ * A refusal of the file itself now stands with its sentence and no Retry.
  */
-const failure = (name: string, error?: string) => ({
+const failure = (name: string, error?: string, code?: string) => ({
   id: name,
   file: new File([new Uint8Array([1])], name, { type: "image/jpeg" }),
   error,
+  code,
 });
 
 const mount = (
@@ -104,6 +110,42 @@ describe("everything on it is one tap from going again", () => {
     fireEvent.click(screen.getByRole("button", { name: "Not now" }));
     expect(onOpenChange).toHaveBeenCalledWith(false);
     expect(onRetry).not.toHaveBeenCalled();
+  });
+});
+
+describe("a Retry only where a retry could pass (build 23's NIT-2)", () => {
+  it("★ a refusal of the file itself stands with its sentence, and no Retry", () => {
+    const { onOpenChange } = mount([
+      failure(
+        "clip.mp4",
+        "This event accepts photos only.",
+        "video_not_allowed",
+      ),
+    ]);
+    expect(
+      screen.getByText("This event accepts photos only."),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Retry/ })).toBeNull();
+    // "Not now" would promise a later go there is none of.
+    fireEvent.click(screen.getByRole("button", { name: "Done" }));
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it("in a mixed run, Retry takes only what could go", () => {
+    const { onRetry } = mount([
+      failure("a.jpg", "That upload did not finish."),
+      failure(
+        "clip.mp4",
+        "This event accepts photos only.",
+        "video_not_allowed",
+      ),
+      failure("b.jpg", undefined, "complete_failed"),
+    ]);
+    // Two could go, so the primary says both, and each of the two keeps its own.
+    fireEvent.click(screen.getByRole("button", { name: /Retry both/ }));
+    expect(onRetry.mock.calls.map(([id]) => id)).toEqual(["a.jpg", "b.jpg"]);
+    const clipLine = screen.getByText("clip.mp4").closest("li")!;
+    expect(clipLine.querySelector("button")).toBeNull();
   });
 });
 

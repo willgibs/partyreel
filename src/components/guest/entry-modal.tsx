@@ -34,10 +34,7 @@ import {
   type LitHue,
 } from "@/components/guest/door/lit";
 import { SigninStep, signinCopy } from "@/components/guest/door/signin-step";
-import {
-  waitingCopy,
-  WaitingStep,
-} from "@/components/guest/door/waiting-step";
+import { waitingCopy, WaitingStep } from "@/components/guest/door/waiting-step";
 import { EntryShell, type DismissMode } from "@/components/guest/entry-shell";
 import { EntryStepTransition } from "@/components/guest/entry-step-transition";
 import {
@@ -763,6 +760,7 @@ export const EntryModal = forwardRef<
               hostAvatarUrl={hostAvatarUrl}
               hostSeed={hostSeed}
               mediaTotal={mediaTotal}
+              acceptsVideo={acceptsVideo}
               onContinue={() => {
                 setDirection("fwd");
                 setBackView(null);
@@ -812,6 +810,7 @@ export const EntryModal = forwardRef<
               hostAvatarUrl={hostAvatarUrl}
               hostSeed={hostSeed}
               mediaTotal={mediaTotal}
+              acceptsVideo={acceptsVideo}
               onContinue={continueFromWelcome}
             />
           )}
@@ -1196,6 +1195,16 @@ function PromiseRow({
   );
 }
 
+/**
+ * The invitation's first promise, in the album's own kinds (build 23's NIT-9): a photos-only album (a
+ * Free event, or the host's Videos switched off) says photos, since its picker then takes nothing else.
+ */
+export function welcomeAddLine(acceptsVideo: boolean): string {
+  return acceptsVideo
+    ? "Add your photos and videos in seconds. No app required."
+    : "Add your photos in seconds. No app required.";
+}
+
 // THE INVITATION: the warm front door. An eyebrow over the event name as the
 // heading face's hero, the host's byline, the count as social proof, then two
 // reading rows in the host's event voice (minimal Partyreel branding), each on a
@@ -1225,6 +1234,7 @@ function WelcomeStep({
   hostAvatarUrl,
   hostSeed,
   mediaTotal,
+  acceptsVideo,
   onContinue,
 }: {
   eventName: string;
@@ -1233,6 +1243,8 @@ function WelcomeStep({
   hostAvatarUrl?: string | null;
   hostSeed?: string | null;
   mediaTotal?: number;
+  /** Whether this album takes a video from a guest: the invitation promises only what the picker takes. */
+  acceptsVideo: boolean;
   onContinue: () => void;
 }) {
   const host = hostName?.trim();
@@ -1300,7 +1312,7 @@ function WelcomeStep({
 
       <div className="flex flex-col gap-4">
         <PromiseRow icon={Camera} hue={1} line={2 + byline}>
-          Add your photos and videos in seconds. No app required.
+          {welcomeAddLine(acceptsVideo)}
         </PromiseRow>
         <PromiseRow icon={Images} hue={2} line={3 + byline}>
           {/* The count ticks as photos land behind the door (`LiveCount`, the page's live number).

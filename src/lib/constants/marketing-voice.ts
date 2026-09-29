@@ -10,8 +10,8 @@
  *    each entry), so they ship as the working line until a replacement is drafted.
  *
  * The voice around all of it: warm-host ease x big-event stakes, disciplined by concise
- * clarity; "night" is BANNED as identity language; collection value co-leads the reel. Byte-match
- * pins make any rewrite a deliberate act, never drift.
+ * clarity; "night" is BANNED as identity language; collection value co-leads the reel. No test
+ * pins these bytes: this file is the one home, so a rewrite is one deliberate edit here.
  *
  * ───────────────────────────────────────────────────────────────────────────────────────────────
  * ★ THE ACCOUNT RULE (`voice` r1 `absence=named`).
@@ -37,18 +37,19 @@
  *
  * ★ THE SUBHEAD SHAPE (Will, 2026-09-19, `hero-sub`). SITE_SUBHEAD below is his own sentence, and
  * he named what makes it work: "This frames the opportunity, then what we do, then the benefit
- * all together." That ORDER is the rule every subhead written after it takes. The opportunity is
- * the READER'S, not ours (their guests already shot the best photographs of the day); what we do
- * is one clause with no mechanism in it; the benefit is the failure it spares them.
+ * all together." It is the reference a new subhead is graded against, not a template it must
+ * fill: the opportunity is the READER'S, not ours (their guests already shot the best photographs
+ * of the day); what we do is one clause with no mechanism in it; the benefit is the failure it
+ * spares them. A subhead that reads better in its own place another way is free to.
  *
  * ★ THE EMPTY-STATE VOICE (the finding of `voice` r1). Two questions were put deliberately
  * identically, one for the host with no events (`host-empty`) and one for the guest in an album
  * with no photographs (`empty`), and he picked the same voice for both: the ALBUM as the noun and
  * "starts" as the verb ("Your first album starts here" / "The album starts with you"). His reason
  * is about the VERB rather than the noun: "This incentivizes action (first upload) rather than
- * feeling passive and waiting for a picture to land." An empty state here names the thing that is
- * about to exist and puts the reader at the start of it. It never describes the void, and it
- * never waits.
+ * feeling passive and waiting for a picture to land." So the reference for an empty state here
+ * names the thing about to exist and puts the reader at the start of it, because a line that
+ * describes the void or waits for a picture leaves the reader passive.
  * ───────────────────────────────────────────────────────────────────────────────────────────────
  * ★ THE IDENTITY RULE (the identity reshape). Anonymity left the product: the host's switch is Require verified
  * emails, on by default; off, a guest still types a display name at the door and uploads under
@@ -81,7 +82,7 @@ export const SITE_THESIS_STATUS: "provisional" | "ruled" = "ruled";
  * which opened on the mechanism ("with one QR code") and asserted what we do before the reader had
  * anything at stake.
  *
- * The shape is the rule (see the head comment): the opportunity, then what we do, then the
+ * Its shape is the head comment's reference: the opportunity, then what we do, then the
  * benefit. Note it never names the QR code. The mechanism is the page's job below the fold; the
  * hero's job is that the best photographs of the event already exist and are not yours yet.
  *
@@ -118,12 +119,13 @@ export const SITE_DESCRIPTION_LINE =
  * "Close, but let's go with 'For videos and unlimited events.' States direct benefit, but longer
  * reel isn't as important. Videos and unlimited events is huge."
  *
- * ★ ONE HOME, and an ORDER the four siblings share. `plan-cards.tsx` renders this constant; the
- * four other places Pro's value is stated in one breath (`pricing-teaser.tsx`, `faq-data.ts`,
- * `how-much-fits.tsx` and `llms.ts`) are DIFFERENT sentences for different readers, so they are
- * not made to import it (`single-source-policy.test.ts` would refuse a second UPPER_SNAKE home
- * anyway). What they share is his ranking: VIDEO FIRST, unlimited events second. Before this
- * round three of them led with unlimited events, which is the weaker half of the pair.
+ * ★ ONE HOME. `plan-cards.tsx` renders this constant; the four other places Pro's value is
+ * stated in one breath (`pricing-teaser.tsx`, `faq-data.ts`, `how-much-fits.tsx` and `llms.ts`)
+ * are DIFFERENT sentences for different readers, so they are not made to import it
+ * (`single-source-policy.test.ts` would refuse a second UPPER_SNAKE home anyway). What the voice
+ * round gave them is his ranking of the pair on this line, videos above unlimited events (three
+ * had led with unlimited events, the weaker half); nothing enforces it, so a sibling that reads
+ * better for its reader the other way round is free to.
  */
 export const PRO_LINE = "For videos and unlimited events.";
 
@@ -156,8 +158,8 @@ export type HeaderStatus = "ruled" | "provisional";
 
 /**
  * The home-arc section headers. status "provisional" = the current line ships as the
- * working copy while alternatives are drafted (the appetite for a change recorded in `note`); NEVER silently
- * replace a line here: a change lands with a status change and a pin update.
+ * working copy while alternatives are drafted (the appetite for a change recorded in `note`); a
+ * changed line lands with its status and note updated, so the map keeps saying which are open.
  */
 export const SECTION_HEADERS: Record<
   string,

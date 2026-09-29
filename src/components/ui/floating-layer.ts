@@ -17,12 +17,12 @@
  * for now. We can always adjust later once we start implementing everything
  * into the app", 2026-09-17).
  *
- * ★ NO TRANSLUCENCY LIVES HERE, ON PURPOSE. Will picked Card and said of the
- * glass he liked: "I prefer not to create a one-off instance of glass here.
- * Rather, let's bank a near-term agent for a dedicated Glass exploration across
- * marketing and app so it feels more infused to our product." A
- * `backdrop-filter` added to this module would be that one-off, applied to
- * every surface at once. The Glass exploration owns that change.
+ * ★ NO TRANSLUCENCY HERE YET. Will picked Card's opaque material and banked
+ * the glass he liked for a dedicated Glass exploration across marketing and
+ * app, so that glass arrives as one material the product wears rather than a
+ * one-off. A `backdrop-filter` added to this module first would be exactly that
+ * one-off, applied to every floating surface at once, so the Glass exploration
+ * (ROADMAP) owns that change. Nothing refuses one: this is guidance.
  */
 
 /**

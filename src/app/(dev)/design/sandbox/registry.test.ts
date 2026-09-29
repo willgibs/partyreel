@@ -277,7 +277,7 @@ describe("the board registry", () => {
           // The pick IS the preview: the card sets the control to the option
           // picked, which only works when the two id sets are the same set.
           // A clearable control's default is "nothing picked", never a choice.
-          // A pick-one catalog's winner ask offers the cleared default too,
+          // A pick-one catalog's winner ask may offer the cleared default too,
           // as "None of these" (the stepped review, 2026-09-16): choosing it
           // clears the board, which is the right preview of "none".
           const all = c!.options.map((o) => o.id).sort();
@@ -326,31 +326,19 @@ describe("the board registry", () => {
   });
 
   /**
-   * ★ A ROUND IS NOT OPENED UNTIL THE LAST ONE WAS REVIEWED (Will, 2026-09-17).
+   * ★ A BOARD PAST ROUND 1 HAS A REVIEW ON THE RECORD, because the round is a
+   * loop: a board's next round is shaped by his answers to the last
+   * (docs/PROGRAM.md "The round"), and a lane that deepens a board without them
+   * does the cheapest work there is and the least useful. The scar: this was
+   * prose until `brand-voice` reached round seven with no review recorded, six
+   * voices deep and not one verdict, and was killed for it.
    *
-   * `docs/PROGRAM.md` has said "never a second round of the same work without
-   * his notes between" since the revamp, and it was prose, so nothing noticed
-   * when `brand-voice` reached ROUND SEVEN with no review ever recorded: six
-   * voices, 24 spots, 510 strings, 4,121 lines, and not one verdict. He killed
-   * it for exactly that ("we kept running in through unreviewed rounds to dig
-   * deeper into each without shaping along the way"). Deepening is the cheapest
-   * thing an agent can do and the least useful, so the prose gets a test.
-   *
-   * The check is deliberately the weakest one that catches the disease: past
-   * round 1, SOME round must have been recorded. It does not demand the
-   * previous round specifically, because a board reviewed at r7 after being
-   * rebuilt at r6 is fine and common here.
-   *
-   * IN DEBT, and this list only ever shrinks: four boards were already past
-   * round 1 unreviewed when the rule landed. Each was on Will's queue and its
-   * line was deleted the day he walked it; the last two, album-hero r3 and
-   * river-visual r2, in his ninth batch (2026-09-18), so the debt is paid.
-   * Adding a board here is not a way to pass the test, it is a promise to get
-   * it reviewed before it moves again. `<string>` because an empty `Set([])`
-   * infers `Set<never>` and `.has(b.id)` stops typechecking.
+   * Deliberately the weakest check that catches that: past round 1, SOME round
+   * is on the record, not the previous one, because a board reviewed at r7
+   * after a rebuild at r6 is fine. (The grandfather list that excused the four
+   * boards already past round 1 when this landed went with its last entry,
+   * reviewed 2026-09-18.)
    */
-  const UNREVIEWED_BEFORE_THE_RULE = new Set<string>();
-
   it("has a review on the record before a board opens a second round", () => {
     for (const b of BOARDS) {
       if (b.round.n <= 1) continue;
@@ -363,19 +351,9 @@ describe("the board registry", () => {
       } catch {
         rounds = 0;
       }
-      if (UNREVIEWED_BEFORE_THE_RULE.has(b.id)) {
-        // The grandfather list is a debt, not a category: the moment a board
-        // here gets its first review the exemption is stale and must go, or it
-        // would quietly cover the board's NEXT unreviewed round too.
-        expect(
-          rounds,
-          `${b.id} has been reviewed, so drop it from UNREVIEWED_BEFORE_THE_RULE`,
-        ).toBe(0);
-        continue;
-      }
       expect(
         rounds,
-        `${b.id} is at round ${b.round.n} with no review in docs/reviews/${b.id}.json: a round is not opened until the last one was reviewed`,
+        `${b.id} is at round ${b.round.n} with no review in docs/reviews/${b.id}.json: a board's next round is shaped by his review of one before it`,
       ).toBeGreaterThan(0);
     }
   });
@@ -482,8 +460,13 @@ describe("the board registry", () => {
       }
 
       // The stepped review (2026-09-16): a pick-one catalog is decided by ONE
-      // ask, which mirrors the pick control and offers "none" as the
-      // new-directions exit; a walk is a keep-any's choice; a stage is a section.
+      // ask, which mirrors the pick control; a walk is a keep-any's choice; a
+      // stage is a section. The winner ask usually offers "none" as well ("None
+      // of these: new directions"), so a reviewer who wants none of the cards
+      // can say so rather than crown the least wrong one. This test required it
+      // of every pick-one catalog until 2026-09-29; that caught no bug (the
+      // step draws the cards alone just as well, and draws "none" when it is
+      // offered), so offering it is the board's call.
       const cat = b.catalog;
       if (cat.mode === "pick-one") {
         expect(
@@ -505,10 +488,6 @@ describe("the board registry", () => {
           w!.control,
           `${b.id}: the winner ask ${cat.winner} must mirror the pick control`,
         ).toBe(cat.control);
-        expect(
-          w!.options.map(optionId),
-          `${b.id}: the winner ask ${cat.winner} offers no "none" (the new-directions exit)`,
-        ).toContain("none");
       }
       if (cat.stage !== undefined) {
         expect(

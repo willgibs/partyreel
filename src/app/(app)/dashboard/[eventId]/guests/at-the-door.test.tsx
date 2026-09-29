@@ -7,12 +7,13 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { toast, letInAtDoorAction, declineAtDoorAction, letBackInAction } = vi.hoisted(() => ({
-  toast: Object.assign(vi.fn(), { success: vi.fn(), error: vi.fn() }),
-  letInAtDoorAction: vi.fn(),
-  declineAtDoorAction: vi.fn(),
-  letBackInAction: vi.fn(),
-}));
+const { toast, letInAtDoorAction, declineAtDoorAction, letBackInAction } =
+  vi.hoisted(() => ({
+    toast: Object.assign(vi.fn(), { success: vi.fn(), error: vi.fn() }),
+    letInAtDoorAction: vi.fn(),
+    declineAtDoorAction: vi.fn(),
+    letBackInAction: vi.fn(),
+  }));
 vi.mock("sonner", () => ({ toast }));
 vi.mock("@/app/(app)/dashboard/[eventId]/guests/actions", () => ({
   letInAtDoorAction: (...a: unknown[]) => letInAtDoorAction(...a),
@@ -38,7 +39,9 @@ beforeEach(() => {
 
 describe("at the door", () => {
   it("is not drawn while nobody waits", () => {
-    const { container } = render(<AtTheDoor eventId={EVENT} people={[]} total={0} />);
+    const { container } = render(
+      <AtTheDoor eventId={EVENT} people={[]} total={0} />,
+    );
     expect(container.innerHTML).toBe("");
   });
 
@@ -55,13 +58,22 @@ describe("at the door", () => {
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: "Let in" }));
     });
-    expect(letInAtDoorAction).toHaveBeenCalledWith({ eventId: EVENT, guestId: WREN.guestId });
+    expect(letInAtDoorAction).toHaveBeenCalledWith({
+      eventId: EVENT,
+      guestId: WREN.guestId,
+    });
     expect(screen.queryByText("Wren")).toBeNull();
-    expect(toast.success).toHaveBeenCalledWith("Wren is in.", expect.anything());
+    expect(toast.success).toHaveBeenCalledWith(
+      "Wren is in.",
+      expect.anything(),
+    );
   });
 
   it("a failed answer puts the row back, with a sentence", async () => {
-    letInAtDoorAction.mockResolvedValue({ ok: false, message: "That didn't go through." });
+    letInAtDoorAction.mockResolvedValue({
+      ok: false,
+      message: "That didn't go through.",
+    });
     render(<AtTheDoor eventId={EVENT} people={[WREN]} total={1} />);
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: "Let in" }));
@@ -93,7 +105,28 @@ describe("at the door", () => {
     await act(async () => {
       options.action.onClick();
     });
-    expect(letBackInAction).toHaveBeenCalledWith({ blockId: "block-1", restore: false });
+    expect(letBackInAction).toHaveBeenCalledWith({
+      blockId: "block-1",
+      restore: false,
+    });
+    expect(screen.getByText("Wren")).toBeTruthy();
+  });
+
+  it("★ declined, then let back in from Blocked, she is at the door again in the next read (build 23's NIT-4)", async () => {
+    declineAtDoorAction.mockResolvedValue({ ok: true, blockId: "block-1" });
+    const view = render(
+      <AtTheDoor eventId={EVENT} people={[WREN]} total={1} />,
+    );
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Decline" }));
+    });
+    expect(screen.queryByText("Wren")).toBeNull();
+    // The decline's own revalidation: nobody waits.
+    view.rerender(<AtTheDoor eventId={EVENT} people={[]} total={0} />);
+    // Let back in, pressed under Blocked, revalidates the room: she waits again, and shows.
+    view.rerender(
+      <AtTheDoor eventId={EVENT} people={[{ ...WREN }]} total={1} />,
+    );
     expect(screen.getByText("Wren")).toBeTruthy();
   });
 });

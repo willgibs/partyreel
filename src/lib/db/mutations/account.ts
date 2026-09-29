@@ -37,7 +37,6 @@ import { mustCount, mustQuery } from "@/lib/db/must-query";
 import { readAllPages } from "@/lib/db/read-all";
 import {
   ANONYMISED_PROFILE_PATCH,
-  isDeletionSchemaMissing,
   scrubAccountGuestRows,
 } from "@/lib/lifecycle/account-deletion";
 import { captureError } from "@/lib/observability/sentry";
@@ -89,16 +88,9 @@ export type AccountDeletionResult =
     }
   | {
       ok: false;
-      code: "not_found" | "not_provisioned" | "subscription" | "unknown";
+      code: "not_found" | "subscription" | "unknown";
       message: string;
     };
-
-type DeletionProfileRow = {
-  id: string;
-  email: string | null;
-  stripe_subscription_id: string | null;
-  deletion_requested_at?: string | null;
-};
 
 export async function requestAccountDeletion({
   userId,
@@ -106,30 +98,15 @@ export async function requestAccountDeletion({
 }: AccountDeletionRequest): Promise<AccountDeletionResult> {
   const admin = createAdminClient();
 
-  // 1. Read the profile. Selecting deletion_requested_at is also the migration
-  // pre-flight: if the column is not live yet this fails HERE, before Stripe is
-  // touched, so a pre-apply attempt destroys nothing.
-  let profile: DeletionProfileRow | null;
-  try {
-    profile = (await mustQuery(
-      admin
-        .from("profiles")
-        .select("id, email, stripe_subscription_id, deletion_requested_at")
-        .eq("id", userId)
-        .maybeSingle(),
-      "requestAccountDeletion: profile",
-    )) as DeletionProfileRow | null;
-  } catch (error) {
-    if (isDeletionSchemaMissing(error)) {
-      return {
-        ok: false,
-        code: "not_provisioned",
-        message:
-          "Account deletion isn't available yet. Please try again later.",
-      };
-    }
-    throw error;
-  }
+  // 1. Read the profile, with its stamp: a request already queued changes nothing.
+  const profile = await mustQuery(
+    admin
+      .from("profiles")
+      .select("id, email, stripe_subscription_id, deletion_requested_at")
+      .eq("id", userId)
+      .maybeSingle(),
+    "requestAccountDeletion: profile",
+  );
   if (!profile) {
     return { ok: false, code: "not_found", message: "No such account." };
   }
