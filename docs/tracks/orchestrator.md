@@ -40,6 +40,8 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
+| `crumbs-10` | build 19's red-team findings (Dismiss's way back, the help-feedback table at 375, the home's wasted preloads, /account/renew for a never-held pass, the phone menu's description) and five ROADMAP carry-overs | running, agent `a45041ebf338a446a` | Opus, :3131 | |
+| `crumbs-11` | the `partyreel` slug family refused in both halves (a migration); a mail button's return path through sign-in, never an open redirect | running, agent `a5c6c37e3e052b639` | Opus, :3132 | |
 
 Batch 7 (cut `35601390`, 2026-09-28) answers Will's sitting on build 15 (transcribed at `69afdbc5`: 21 answers on
 hero-card, voice-guest, host-storage, event-safety, export-flow). Wave A, four lanes: three new boards and the block.
@@ -76,8 +78,10 @@ Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, 
    restored through the UI; the ledger is `../partyreel-wt/_scratch/redteam-17/ledger.txt`). Its two majors (the share
    card shared across viewers by the edge; Event Settings' last three cards crushed) and three minors go to
    `crumbs-8`. **Build 18** (deployed 2026-09-29 for his desk: wave B whole and `demo-framing`'s board, 45 open asks).
-   **Build 19 is live** (`fd196846`: `crumbs-8` and `crumbs-9` on top; every lane merged). Its red-team is running
-   (agent `ab2f0823c7a4e7a6e`, brief `../partyreel-wt/_scratch/redteam-19/brief.md`); it walks the new hero, the export flow short of any download, the triage portal on staged reports
+   **Build 19 is live and red-teamed** (`fd196846`; all seven journeys PASS, no major; the ledger is
+   `../partyreel-wt/_scratch/redteam-19/ledger.txt`); its three minors and three nits are `crumbs-10`'s, and
+   `crumbs-11` closes the slug family and the sign-in return path. **Build 20** carries both; its red-team walks the
+   signed-out mail links through the chooser and re-checks the six. Build 19's red-team walked the new hero, the export flow short of any download, the triage portal on staged reports
    (`triage-wiring`'s Handoff names the rows), the help, the two majors re-checked, and the standing scope. Drafted
    specs wait in this session's scratchpad (`specs/<track>.json`); a new session writes them from these lines.
 4. **His next paste** (build 16's 38 open asks; emails r1 is transcribed at `1b394476`) transcribed; the join doors

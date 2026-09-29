@@ -17,6 +17,7 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Admin: a guest can report only the whole event (the Report link at the event page's foot, `report-dialog.tsx`), so the portal's item path (Remove, its Undo, Hold for forensics) is reachable only through `/api/reports` with a media id; a Report this photo in the viewer rides admin-triage round two's wiring, whose `harm` redraws the form (from build 19's red-team).
 - Host: her Uploads feed (`my-uploads-gallery.tsx`, mode `keep`) shows a heart on a private album's photo that now always refuses ("Couldn't save that like."), as it already did on a blocked account's; hide the heart where the event reads private (from `crumbs-8`).
 - Host: the Deleted view's Restore says "Restored. It's back in the album." (`recently-deleted-grid.tsx:95`) for an item `restore_media` returns hidden (it answers `status`); say what it did, as Let back in now does (from `crumbs-8`).
 - Design system: `PopupBody` could keep its children whole itself (`*:shrink-0`), so no flex-column body can crush a clipping Card again; `event-share-sheet.tsx:123` and `claims-review.tsx:269` are flex columns today, safe only because no child clips (from `crumbs-8`).
