@@ -234,7 +234,14 @@ export async function deleteMyAccountAction(
     };
   }
 
-  await supabase.auth.signOut();
+  // ★ EVERY SESSION, AND IT IS THE BAN'S BELT. A deleted account keeps no
+  // device signed in. The ban inside requestAccountDeletion is what normally
+  // ends them (GoTrue refuses a banned user's refresh and getUser), and then
+  // GoTrue answers this call 403 user_banned, which auth-js counts as done and
+  // still clears this device's cookies. But the ban is best-effort (a failure is
+  // captured, never fatal), and when it failed this global scope is what
+  // revokes the account's other devices.
+  await supabase.auth.signOut({ scope: "global" });
   return { ok: true };
 }
 

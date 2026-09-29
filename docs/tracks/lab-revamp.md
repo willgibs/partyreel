@@ -1,7 +1,7 @@
 ---
 track: lab-revamp
 status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "a13a3bd0"            # the launch-prep SHA the branch was cut from
+cut: "54cd706c"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   - src/app/(dev)/design/sandbox/registry.ts
@@ -10,6 +10,7 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/app/(dev)/design/(shell)/lab/page.tsx
   - src/app/(dev)/design/(shell)/lab/[board]/
   - src/app/(dev)/design/(shell)/lab/kit/
+  - src/app/(dev)/design/(shell)/lab/_desk/
   - src/app/(dev)/design/(shell)/lab/tools/
   - src/app/(dev)/design/(shell)/lab/proposals/
   - src/app/(dev)/design/(shell)/lab/tracks/
@@ -37,9 +38,11 @@ reads:                  # single-sources you depend on: never duplicate, never e
 
 # lp/lab-revamp
 
-**Goal.** Rebuild the lab's plumbing: a board as one self-registering folder (no shared list a lane edits, retirement a folder deletion), lab checks scoped to the lane's own boards, the authoring API trimmed, the lab's 'ruled/ratified' words renamed, and the kit and docs following, so a fresh agent can author the next board from the docs alone.
+**Goal.** Stage two of the lab revamp, the plumbing: a board as one self-registering folder (no shared list a lane edits, retirement a folder deletion), lab checks scoped to the lane's own boards, the authoring API trimmed, the lab's 'ruled/ratified' words renamed, and the kit and docs following, so a fresh agent can author the next board from the docs alone. Stage one (the context layer) is merged.
 
 ## The brief
+
+**Stage one is merged** at `a17725c3` (the context layer: every open ask's `where`, `when`, `matters`, each option's `gains` and `costs`, `because`, each board's `opening` and `terms`; `registry.test.ts` refuses an open ask without them). Stage two keeps every one of those rules whole in the new home. Your notes from stage one are `../partyreel-wt/_scratch/lab-revamp/stage-two.md` (`require.context` works under `next dev` and Vitest, untried under `next build`: try the build first). Since stage one, the Orchestrator made press-page's `a-human` moot behind `who-for` (one line in its spec).
 
 **The lab revamp**, long planned for the moment the desk emptied (the Orchestrator's pickup, `docs/tracks/orchestrator.md` "The lab revamp"). The lab is where every design idea reaches Will (`/design/lab`, his desk; `docs/PROGRAM.md` "The round" and "A round returns DECISIONS"), and its plumbing now costs more than it should.
 
@@ -60,7 +63,7 @@ reads:                  # single-sources you depend on: never duplicate, never e
 
 **Every standing board converts.** The boards on the desk now: `locked-door` r2 and `disposable-mode` r2 (Will reviews both on build 21 while you work, so keep them rendering and their ledgers' round keys intact), and the answered boards waiting on their wiring or next round (`loose-ends`, `contact-page`, `album-motion`, `privacy-hero`, `demo-framing`, `press-page`). Two more (`event-settings`, `admin-triage`) are owned by running wiring lanes that retire them at their merge: leave their folders alone; your registry must still find them while they exist, and their retirement becomes a folder deletion the Orchestrator resolves at integration.
 
-**Not yours now:** `crumbs-13` owns `(shell)/lab/_desk/review-session.tsx` until it merges (announced in `docs/tracks/orchestrator.md`); sync then and add it to `owns` if you need it. Library-lean's ideas (a Surfaces family of live frames per route, the Library's sidebar open by default, a plain-text view of Library pages, a retire-or-reuse call on `anonymous-info.tsx` and `floating-add-button.tsx`) are a lane after yours: leave them.
+**Not yours now:** Library-lean's ideas (a Surfaces family of live frames per route, the Library's sidebar open by default, a plain-text view of Library pages, a retire-or-reuse call on `anonymous-info.tsx` and `floating-add-button.tsx`) are a lane after yours: leave them.
 
 **The proof:** the first board cut after your merge is authored by a fresh agent from the docs alone; write the docs so it can. Your Handoff names what that agent should find hardest.
 

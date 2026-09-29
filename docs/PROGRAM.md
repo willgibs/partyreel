@@ -75,8 +75,17 @@ words asking for one winner, every option previewed whole on the real surface wi
 pick and an optional note. A few designed variations beat any amount of argument: no verdict essays, no keep / refine
 / kill over N cards.
 
+**Context comes before the options.** He decides across every open board at once, so a question never drops him in
+the middle of a screen: it opens with where it happens (the surface and the moment), the combination of state that
+brings someone there, and what is being decided and why it matters; each option says in a line what it gains and what
+it costs; the recommendation gives its reason in a line; a board opens with what it is about and what is already
+settled, his earlier picks and notes included. A term a board coins gets its plain meaning where it first appears. He
+should never have to click through the options to learn what he is being asked.
+
 - Author with `defineExploration` (`src/components/lab/exploration.ts`) and nothing else; the newest board built on
-  it is the worked example.
+  it is the worked example. Its context layer is an ask's `where` (a breadcrumb), `when` and `matters` beside `lands`,
+  each option's `gains` and `costs`, `because` in a line, and the board's `opening` (`about`, `settled`, `earlier`)
+  and `terms`; `registry.test.ts` refuses an open ask without them.
 - Shape a big goal progressively (`after` stages a question behind another answer); more rounds of narrower questions
   beat one wide one.
 - Options are real contenders for one decision: never force them apart, and two that land on the same answer are a

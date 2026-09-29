@@ -134,7 +134,6 @@ export function ReviewSession({
   const [chosen, setChosen] = useState<number | null>(null);
   const at = chosen ?? startAt(steps, param, store, END);
 
-  const step = steps[at];
   const atEnd = at >= steps.length;
 
   // No useCallback anywhere below: the React compiler memoises these, and a
@@ -213,7 +212,8 @@ export function ReviewSession({
         </LabLink>
         {atEnd && (
           <p className="text-xs text-muted-foreground tabular-nums">
-            {answered} answered{sample && <span className="ml-2">· dry run</span>}
+            {answered} answered
+            {sample && <span className="ml-2">· dry run</span>}
           </p>
         )}
       </div>

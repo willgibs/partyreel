@@ -8,7 +8,9 @@ import {
   type CarriedCall,
   type Control,
   defineBoard,
+  type Opening,
   type Section,
+  type Term,
 } from "./board-spec";
 
 /**
@@ -53,14 +55,18 @@ import {
  * reaches back into `Catalog`, which needs a hand-written board.
  */
 
-/** One option: the token the ledger stores, the name he reads, the cost. */
+/** One option: the token the ledger stores, the name he reads, its trade. */
 export type DecisionOption = {
   /** One word, hyphens allowed. The ledger stores this. */
   readonly id: string;
   /** What he reads on the tile: "On the ladder: 18 at a phone". */
   readonly label: string;
-  /** One sentence: what picking it does, and what it costs. */
+  /** One sentence: what the option is, or what picking it does. */
   readonly means?: string;
+  /** A line: what picking it gains. Printed with its preview. */
+  readonly gains?: string;
+  /** A line: what picking it costs. Printed with its preview. */
+  readonly costs?: string;
 };
 
 /** One decision: a question, its options, and which one the agent recommends. */
@@ -76,7 +82,21 @@ export type Decision = {
    * rarely as good as a name.
    */
   readonly label?: string;
-  /** What the thing is and where it lives, for someone who has not read anything. */
+  /**
+   * ★ CONTEXT COMES BEFORE THE OPTIONS (Will, 2026-09-29: "for some questions
+   * I'm just getting dropped off in the middle of nowhere"). The step prints
+   * these above everything else, a line each:
+   *  - `where`: a breadcrumb, the surface first, then the screen and the
+   *    moment: `["Guest", "The album's door", "Before it opens"]`;
+   *  - `when`: the combination of state that brings someone there;
+   *  - `matters`: why the answer matters, beside `lands` (what it decides).
+   * Optional in the type because answered asks predate them; an OPEN ask
+   * without them fails `registry.test.ts`.
+   */
+  readonly where?: readonly [string, string, ...string[]];
+  readonly when?: string;
+  readonly matters?: string;
+  /** What the previews draw: the frames, the moment and who is in them. */
   readonly context: string;
   /** Two or more. Each one is drawn; there is no shape here where it is not. */
   readonly options: readonly [
@@ -107,7 +127,7 @@ export type Decision = {
    * board is untouched by this.
    */
   readonly today?: string;
-  /** Why, in one or two sentences. */
+  /** The recommendation's reason, in a line: printed wherever the recommendation shows. */
   readonly because?: string;
   /** The one thing that would change the recommendation. */
   readonly overrule?: string;
@@ -140,8 +160,16 @@ export type ExplorationInput = {
     readonly changed: string;
   };
   readonly history?: BoardSpec["history"];
-  /** How the exploration got here, if it needs saying at all. */
+  /** How the exploration got here, if it needs saying at all (collapsed at the foot). */
   readonly context?: string;
+  /**
+   * What his sitting reads as it enters the board, a line each: what it is
+   * about, what is already settled, and his earlier picks and notes it
+   * answers. Required once the board has an open ask (`registry.test.ts`).
+   */
+  readonly opening?: Opening;
+  /** The words the board coins, each with its plain meaning, glossed where they appear. */
+  readonly terms?: readonly Term[];
   readonly asks: readonly [Decision, ...Decision[]];
   /**
    * The calls this lane's goal left open and it took on its own recommendation
@@ -247,11 +275,16 @@ const byId = (controls: readonly Control[]): Control[] =>
 const askFor = (d: Decision): Ask => ({
   id: d.id,
   question: d.question,
+  where: d.where,
+  when: d.when,
+  matters: d.matters,
   context: d.context,
   options: d.options.map((o) => ({
     id: o.id,
     label: o.label,
     means: o.means,
+    gains: o.gains,
+    costs: o.costs,
     // The patch the step hands `evidence`, which is how a preview is found.
     state: { [d.id]: o.id },
   })) as unknown as Ask["options"],
@@ -286,6 +319,8 @@ export function defineExploration<const E extends ExplorationInput>(
     round: input.round,
     history: input.history,
     context: input.context,
+    opening: input.opening,
+    terms: input.terms,
     verdict: {
       recommendation: first.options.find((o) => o.id === first.recommended)!
         .label,

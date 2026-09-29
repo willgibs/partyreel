@@ -35,6 +35,7 @@ import { rememberDoor, rememberPasskey } from "@/lib/auth/remembered-email";
 
 const flags = vi.hoisted(() => ({ passkeys: false }));
 const signInWithPasskey = vi.hoisted(() => vi.fn());
+const signOut = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/supabase/client", () => ({
   get PASSKEYS_ENABLED() {
@@ -42,7 +43,7 @@ vi.mock("@/lib/supabase/client", () => ({
   },
   createClient: () => ({
     auth: {
-      signOut: vi.fn().mockResolvedValue({ error: null }),
+      signOut,
       signInWithOAuth: vi.fn().mockResolvedValue({ error: null }),
       signInWithPasskey,
       registerPasskey: vi.fn().mockResolvedValue({ error: null }),
@@ -109,6 +110,8 @@ beforeEach(() => {
   flags.passkeys = false;
   localStorage.clear();
   signInWithPasskey.mockReset();
+  signOut.mockReset();
+  signOut.mockResolvedValue({ error: null });
 });
 
 afterEach(() => {
@@ -318,6 +321,23 @@ describe("the account the address already had", () => {
       screen.getByTestId("stub-verify-existing").click();
     });
     expect(screen.getByText(/Not you\?/i)).toBeTruthy();
+  });
+
+  it("★ the way out signs out this device only, and the door stands again", async () => {
+    // The session the code just made, never the account's others: choosing
+    // another address here must not sign its owner out of their phone.
+    const onVerified = renderDoor("create");
+    act(() => {
+      screen.getByTestId("stub-verify-existing").click();
+    });
+    await act(async () => {
+      screen.getByText(/Not you\?/i).click();
+    });
+    expect(signOut).toHaveBeenCalledTimes(1);
+    expect(signOut).toHaveBeenCalledWith({ scope: "local" });
+    expect(screen.queryByText(/already had/i)).toBeNull();
+    expect(screen.getByTestId("email-sign-in")).toBeTruthy();
+    expect(onVerified).not.toHaveBeenCalled();
   });
 
   it("stays silent for a brand-new account", () => {

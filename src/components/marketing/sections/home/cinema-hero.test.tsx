@@ -1,6 +1,8 @@
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
+import MarketingHome from "@/app/(marketing)/(cinema)/page";
+
 import { CinemaHero } from "./cinema-hero";
 import { printSizes } from "./cinema-hero-card";
 import { FRAME_SIZES, OBJECT_PRINTS, STREAM_FRAMES } from "./hero-stream";
@@ -15,6 +17,12 @@ import { FRAME_SIZES, OBJECT_PRINTS, STREAM_FRAMES } from "./hero-stream";
  * window: a second preload of a photograph the band was already fetching bigger, which Chrome then drew
  * from the band's copy, leaving the small one unused. Pinned on the server's own HTML: no photograph
  * is preloaded twice, and a print of a band photograph asks exactly what the band's frame asks.
+ *
+ * ★ AND ACROSS THE WHOLE PAGE, NOT ONLY THE HERO (build 20's red-team): the switching photograph six
+ * sections down preloaded the golden photograph a second time at full bleed, beside the hero's copy,
+ * and Chrome then drew the bigger one everywhere and left the hero's unused. A hero-only render could
+ * not see it, so the page is rendered whole, and its first paint preloads the hero's photographs and
+ * nothing further down: the hero is the home's first screen at every width.
  */
 
 /** The file a preload or an image asks for: the photograph's name in `/_next/image?url=`. */
@@ -34,6 +42,13 @@ function imagePreloads(html: string): { photo: string; sizes: string }[] {
   );
 }
 
+/** Each photograph preloaded more than once, with its count. */
+function preloadedTwice(preloads: { photo: string }[]): [string, number][] {
+  const seen = new Map<string, number>();
+  for (const p of preloads) seen.set(p.photo, (seen.get(p.photo) ?? 0) + 1);
+  return [...seen].filter(([, n]) => n > 1);
+}
+
 describe("the home hero's first paint", () => {
   const html = renderToString(<CinemaHero />);
   const preloads = imagePreloads(html);
@@ -43,10 +58,10 @@ describe("the home hero's first paint", () => {
   });
 
   it("★ never preloads one photograph twice", () => {
-    const seen = new Map<string, number>();
-    for (const p of preloads) seen.set(p.photo, (seen.get(p.photo) ?? 0) + 1);
-    const twice = [...seen].filter(([, n]) => n > 1);
-    expect(twice, "photographs preloaded more than once").toEqual([]);
+    expect(
+      preloadedTwice(preloads),
+      "photographs preloaded more than once",
+    ).toEqual([]);
   });
 
   it("★ a print of a band photograph asks for the band's copy, so it adds no preload", () => {
@@ -66,5 +81,26 @@ describe("the home hero's first paint", () => {
     expect(printSizes("a-photograph-of-its-own")).toMatch(
       /^\(min-width: \d+px\) \d+px, \(min-width: \d+px\) \d+px, \d+px$/,
     );
+  });
+});
+
+describe("the home page's first paint, every section of it", () => {
+  const page = imagePreloads(renderToString(<MarketingHome />));
+  const hero = imagePreloads(renderToString(<CinemaHero />));
+  const key = (p: { photo: string; sizes: string }) =>
+    `${p.photo} @ ${p.sizes}`;
+
+  it("★ never preloads one photograph twice, however many sections paint it", () => {
+    expect(page.length).toBeGreaterThan(0);
+    expect(
+      preloadedTwice(page),
+      "photographs preloaded more than once",
+    ).toEqual([]);
+  });
+
+  it("★ preloads what its first screen paints and nothing further down", () => {
+    // A section below the hero that draws an eager image spends the first
+    // paint on a photograph the reader cannot see yet: it loads lazily.
+    expect(page.map(key).sort()).toEqual(hero.map(key).sort());
   });
 });

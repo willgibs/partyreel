@@ -2,6 +2,7 @@
 
 Open this before you:
 - change sign-in: the one account door, codes and links, passwords, Google, passkeys;
+- add or change a sign-out, or anything else that ends a session;
 - change a Supabase Auth dashboard setting (they move in lockstep with code);
 - change how an account's email changes, or what follows it;
 - touch a display name, an avatar or the `/welcome` gate;
@@ -65,6 +66,24 @@ Google, and a password as a quiet second door; passkeys wait behind a flag. `get
   device hint (`pr_passkey_hint`), never a load-time browser prompt, which would throw a system sheet at a
   stranger; Google's hinted "Continue as" sends `login_hint` with `prompt=select_account`, so a shared laptop
   always sees the chooser.
+
+## Signing out
+
+- ★ **Every sign-out names its scope,** because auth-js's bare `signOut()` is global: it revokes every session the
+  account holds, an operator's admin portal session included (Google and her second factor again). Sign out is
+  `local`, this session and its refresh token alone, since one account is kept open on a desk and a phone for
+  different jobs: the menu's (`signOutAction`, which the admin bar posts too), the guest header's and the door's
+  "Not you?". `/account`'s Sign out everywhere (`signOutEverywhereAction`) is `global`, this device included, behind a
+  confirm that says so, and never a menu row; it answers a refusal instead of landing on `/login` as if it had
+  worked. Deleting an account is `global` too, as the ban's belt: after the ban GoTrue answers it 403 `user_banned`
+  (auth-js still clears the cookies), and when the best-effort ban failed it is what ends the other devices. Each
+  scope is pinned beside its call site.
+- ★ **No scope reaches an access token already issued:** it stays valid by its signature until its own expiry.
+  `getUser()` refuses a revoked session at once (a signature check such as `getClaims()` would not), so only a
+  caller using the raw token against the database directly keeps what is left of it.
+- The two menus' Sign out and Sign out everywhere also put down every guest ticket on the device
+  ([guest-flow.md](guest-flow.md)); the door's "Not you?" keeps them, since the same person carries on with another
+  address.
 
 ## Passwords
 

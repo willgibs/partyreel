@@ -5,9 +5,13 @@ import {
   type BoardSpec,
   type BuilderVerdict,
   ITEM_VERDICTS,
+  type Opening,
+  optionCosts,
+  optionGains,
   optionId,
   optionLabel,
   optionMeans,
+  type Term,
 } from "@/components/lab/board-spec";
 
 import { withDesignKey } from "@/lib/design-gate/links";
@@ -56,6 +60,9 @@ export type SessionOption = {
   id: string;
   label: string;
   means?: string;
+  /** What picking it gains and what it costs, a line each, printed with its preview. */
+  gains?: string;
+  costs?: string;
   /**
    * The declared controls that DRAW this option on the ask's specimen, merged
    * over the ask's own state. An option with neither this nor a control mirror
@@ -94,7 +101,13 @@ export type AskStep = StepBase & {
   kind: "ask";
   askId: string;
   question: string;
-  /** What the thing is and where it lives, for a reader who has not read the board. */
+  /** Where it happens, as a breadcrumb: the surface, then the screen and the moment. */
+  where?: readonly string[];
+  /** The combination of state that brings someone there. */
+  when?: string;
+  /** Why the answer matters, beside `lands` (what it decides). */
+  matters?: string;
+  /** What the previews draw, for a reader who has not read the board. */
   context?: string;
   /** Where to look and what to compare. */
   look?: string;
@@ -129,6 +142,15 @@ export type AskStep = StepBase & {
    * ledger, so it rides here. "Not clear to me" is not a decision and is left out.
    */
   ruled?: Readonly<Record<string, string>>;
+  /**
+   * ★ THE BOARD'S OPENING AND ITS TERMS RIDE EVERY STEP OF IT (the context
+   * layer, 2026-09-29). Which step is the one his sitting ENTERS the board on
+   * is the walk's to say (a staged step is skipped until its answer lands, and
+   * that answer is often in this very sitting), so each step carries the
+   * opening and the step draws it on the first one the walk reaches.
+   */
+  opening?: Opening;
+  terms?: readonly Term[];
 };
 
 /** One catalog card, as a step's list renders it. */
@@ -345,7 +367,8 @@ function toAskStep(
     specOf,
     key,
   );
-  const catalog = specOf(a.board)?.catalog;
+  const spec = specOf(a.board);
+  const catalog = spec?.catalog;
   const winner = catalog?.winner === a.ask.id;
   return {
     kind: "ask",
@@ -354,14 +377,21 @@ function toAskStep(
     round: a.round,
     askId: a.ask.id,
     question: a.ask.question,
+    where: a.ask.where,
+    when: a.ask.when,
+    matters: a.ask.matters,
     context: a.ask.context,
     look: a.ask.look,
     options: a.ask.options.map((o) => ({
       id: optionId(o),
       label: optionLabel(o),
       means: optionMeans(o),
+      gains: optionGains(o),
+      costs: optionCosts(o),
       state: optionState(o),
     })),
+    opening: spec?.opening,
+    terms: spec?.terms,
     recommended: a.ask.recommended,
     because: a.ask.because,
     overrule: a.ask.overrule,

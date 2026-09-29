@@ -414,7 +414,10 @@ export function AccountDoor({
           onContinue={() => void afterSignIn(step.result)}
           onNotYou={async () => {
             const supabase = createClient();
-            await supabase.auth.signOut();
+            // This device's session alone, the one the code just made:
+            // choosing another address here must not sign the account out of
+            // its other devices.
+            await supabase.auth.signOut({ scope: "local" });
             forgetRememberedDoor();
             setHint(undefined);
             setHintMethod(null);
