@@ -60,7 +60,7 @@ describe("ConfirmSwitch", () => {
     fireEvent.click(screen.getByRole("switch"));
     expect(onChange).toHaveBeenCalledWith(true);
     expect(screen.getByRole("switch")).toHaveAttribute("aria-checked", "true");
-    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.queryByRole("alertdialog")).toBeNull();
   });
 
   it("asks on the edge confirmWhen names, and applies nothing until confirmed", () => {
@@ -81,7 +81,7 @@ describe("ConfirmSwitch", () => {
     act(() => {
       vi.advanceTimersByTime(0);
     });
-    expect(screen.getByRole("dialog")).toBeTruthy();
+    expect(screen.getByRole("alertdialog")).toBeTruthy();
     expect(screen.getByText("Let guests upload without verifying?")).toBeTruthy();
     // Still unapplied: the confirm is a decision, not a side effect of opening.
     expect(onChange).toHaveBeenCalledTimes(1);
@@ -98,7 +98,7 @@ describe("ConfirmSwitch", () => {
     fireEvent.click(screen.getByText("Allow unverified uploads"));
     expect(onChange).toHaveBeenLastCalledWith(false);
     expect(screen.getByRole("switch")).toHaveAttribute("aria-checked", "false");
-    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.queryByRole("alertdialog")).toBeNull();
   });
 
   it("leaves the value untouched on Cancel", () => {
@@ -114,6 +114,6 @@ describe("ConfirmSwitch", () => {
     // calls back.
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(screen.getByRole("switch")).toHaveAttribute("aria-checked", "true");
-    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.queryByRole("alertdialog")).toBeNull();
   });
 });

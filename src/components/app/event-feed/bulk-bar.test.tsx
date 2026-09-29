@@ -105,7 +105,7 @@ describe("BulkBar", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "Delete" }));
     expect(onRun).not.toHaveBeenCalled();
-    expect(screen.getByRole("dialog")).toBeTruthy();
+    expect(screen.getByRole("alertdialog")).toBeTruthy();
     expect(screen.getByText("Remove 2 items?")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Remove" }));
     expect(onRun).toHaveBeenCalledWith("delete");

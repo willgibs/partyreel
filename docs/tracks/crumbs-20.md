@@ -39,10 +39,42 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/constants/reserved-names.test.ts
   - src/lib/validation/profile.ts                             # `displayNameSchema` asks `isReservedName`
   - src/lib/validation/profile.test.ts
+  # ── added: items 3 and 4, a sign-in carries its page (the six 401 fallbacks) and the mail's anchor
+  - src/lib/auth/return-path.test.ts
+  - src/components/auth/login-form.tsx                        # `location.hash` is client-only: the form reads it, the page cannot
+  - src/components/auth/login-form.test.tsx
+  - src/lib/bare-login-policy.test.ts                         # refuses a bare `/login` from client code
+  - src/components/app/pricing/checkout-button.test.tsx       # tests `components/app/checkout-button.tsx`
+  - src/components/app/renew-checkout.test.tsx
+  - src/components/app/manage-billing-button.test.tsx         # new
+  - src/components/app/pricing/change-plan-button.test.tsx    # new
+  - src/components/app/storage/storage-list.test.tsx
+  # ── added: item 5, a confirm announced as one (the role at its source, the layers that key on it, and every test that queried a confirm as a `dialog`)
+  - src/components/ui/popup.tsx                               # the role, spread from the kind's row (never `role={undefined}`)
+  - src/components/ui/popup-kinds.ts                          # `confirm` speaks as an alertdialog: one more column of its one row
+  - src/components/ui/popup.test.tsx
+  - src/components/ui/popup-kinds.test.ts
+  - src/components/ui/confirm-switch.test.tsx
+  - src/app/(app)/account/sign-out-everywhere-card.test.tsx
+  - src/components/shared/media-lightbox-parts/actions.tsx    # the viewer's own two confirms are bare Dialogs: `role="alertdialog"` on each
+  - src/components/shared/media-lightbox.test.tsx
+  - src/components/app/event-feed/review-keys.ts              # "another layer is up" must see an alertdialog, or the keys judge under a confirm
+  - src/components/app/event-feed/review-room.test.tsx
+  - src/components/admin/report-queue.tsx                     # the same selector, the operator's keys
+  - src/components/admin/report-queue.test.tsx
+  - src/components/admin/moderation-grid.test.tsx
+  - src/app/admin/reports/person-report-list.test.tsx
+  - src/components/app/dashboard/claims-review.test.tsx
+  - src/components/app/event-blocks/blocked-section.test.tsx
+  - src/components/app/event-feed/bulk-bar.test.tsx
+  - src/components/app/recently-deleted-grid.test.tsx
+  - src/components/reel/clip-creator.test.tsx
+  - src/components/social/profile-actions-menu.test.tsx
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/host-app.md
   - docs/systems/marketing-content.md
   - src/lib/constants/reserved-slugs.ts                       # `BRAND_STEM`, the brand's one home
+  - src/lib/email/links.ts                                    # `PASS_REMINDERS_PATH`, the mail's anchor
 ---
 
 # lp/crumbs-20

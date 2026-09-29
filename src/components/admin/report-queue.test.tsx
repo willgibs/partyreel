@@ -277,6 +277,35 @@ describe("the sweep (`look=grid`: tick many, one Dismiss)", () => {
   });
 });
 
+describe("a confirm standing over the queue (crumbs-20)", () => {
+  // Every confirm popup is an `alertdialog` now (ui/popup.tsx), so "another layer is up: its keys are its
+  // own" has to see it as one; a queue that only looked for `dialog` swept and dismissed under a confirm.
+  it("★ leaves every key to it, and takes them back once it is gone", async () => {
+    render(<ReportQueue proofOn={false} entries={[entry(1), entry(2)]} />);
+    const confirm = document.createElement("div");
+    confirm.setAttribute("role", "alertdialog");
+    document.body.appendChild(confirm);
+    fireEvent.keyDown(document.body, { key: "ArrowRight" });
+    fireEvent.keyDown(document.body, { key: "x" });
+    fireEvent.keyDown(document.body, { key: "Enter" });
+    expect(actions.dismissReportAction).not.toHaveBeenCalled();
+    expect(actions.dismissReportsAction).not.toHaveBeenCalled();
+    expect(
+      document.querySelectorAll(
+        "[data-report-lane='sweep'] [aria-pressed='true']",
+      ),
+    ).toHaveLength(0);
+
+    confirm.remove();
+    fireEvent.keyDown(document.body, { key: "ArrowRight" });
+    fireEvent.keyDown(document.body, { key: "x" });
+    fireEvent.keyDown(document.body, { key: "Enter" });
+    await vi.waitFor(() =>
+      expect(actions.dismissReportAction).toHaveBeenCalledTimes(1),
+    );
+  });
+});
+
 describe("the report whole", () => {
   async function openPeek(e: ReviewEntry, proofOn = false) {
     const user = userEvent.setup();
@@ -387,7 +416,7 @@ describe("the report whole", () => {
     const { user, verbs } = await openPeek(entry(1));
     await user.click(within(verbs).getByRole("button", { name: "Remove…" }));
     const confirm = screen
-      .getAllByRole("dialog")
+      .getAllByRole("alertdialog")
       .find((d) => within(d).queryByText("Remove this photo?"))!;
     const touches = within(confirm)
       .getAllByRole("listitem")
@@ -416,7 +445,7 @@ describe("the report whole", () => {
     const confirm = await vi.waitFor(
       () =>
         screen
-          .getAllByRole("dialog")
+          .getAllByRole("alertdialog")
           .find((d) => within(d).queryByText("Hold and preserve this photo?"))!,
     );
     const toggle = within(confirm).getByRole("switch", {
@@ -484,7 +513,7 @@ describe("the report whole", () => {
       within(verbs).getByRole("button", { name: "Ask for proof" }),
     );
     const confirm = screen
-      .getAllByRole("dialog")
+      .getAllByRole("alertdialog")
       .find((d) => within(d).queryByText("Ask the reporter for proof?"))!;
     await user.type(
       within(confirm).getByRole("textbox", { name: /your question/i }),

@@ -83,7 +83,7 @@ describe("BlockedSection", () => {
   it("with nothing to bring back, Let back in confirms with no switch and restores nothing", async () => {
     render(<BlockedSection eventName="Party" people={[person()]} />);
     fireEvent.click(screen.getByRole("button", { name: "Let back in" }));
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole("alertdialog");
     expect(within(dialog).getByText("Let Sam back in?")).toBeInTheDocument();
     expect(within(dialog).queryByRole("switch")).toBeNull();
     fireEvent.click(
@@ -109,7 +109,7 @@ describe("BlockedSection", () => {
       />,
     );
     fireEvent.click(screen.getByRole("button", { name: "Let back in" }));
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole("alertdialog");
     expect(
       within(dialog).getByText(
         "They'll be back at the door, and you can let them in from there.",
@@ -135,7 +135,7 @@ describe("BlockedSection", () => {
       />,
     );
     fireEvent.click(screen.getByRole("button", { name: "Let back in" }));
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole("alertdialog");
     const offer = within(dialog).getByRole("switch", {
       name: /Also restore their uploads/,
     });
@@ -160,7 +160,7 @@ describe("BlockedSection", () => {
       <BlockedSection eventName="Party" people={[person({ restorable: 2 })]} />,
     );
     fireEvent.click(screen.getByRole("button", { name: "Let back in" }));
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole("alertdialog");
     fireEvent.click(within(dialog).getByRole("switch"));
     fireEvent.click(
       within(dialog).getByRole("button", { name: "Let back in" }),
@@ -184,7 +184,7 @@ describe("BlockedSection", () => {
     });
     render(<BlockedSection eventName="Party" people={[person()]} />);
     fireEvent.click(screen.getByRole("button", { name: "Let back in" }));
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole("alertdialog");
     fireEvent.click(
       within(dialog).getByRole("button", { name: "Let back in" }),
     );
@@ -193,7 +193,7 @@ describe("BlockedSection", () => {
         "That person or event is no longer available.",
       ),
     );
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByRole("alertdialog")).toBeInTheDocument();
     expect(refresh).not.toHaveBeenCalled();
   });
 });

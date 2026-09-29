@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { NAV } from "@/lib/admin/nav";
+import { PASS_REMINDERS_PATH } from "@/lib/email/links";
 
 import {
   ADMIN_RETURN_COOKIE,
@@ -10,6 +11,7 @@ import {
   matchesPathShape,
   NEXT_PARAM,
   RETURN_PATH_MAX,
+  returnWithAnchor,
   signInLanding,
   signInReturn,
   withReturn,
@@ -294,5 +296,150 @@ describe("the landing and the links that carry it", () => {
     expect(withReturn("/login?error=expired_link", null)).toBe(
       "/login?error=expired_link",
     );
+  });
+});
+
+/**
+ * ★ THE MAIL'S ANCHOR SURVIVES A SIGN-IN (crumbs-20: the ROADMAP's renewal-nudge line, from
+ * `crumbs-11`). The renewal nudge's foot link is `/account#event-pass-reminders`, the Email
+ * preferences row. A fragment never reaches a server, so the gate sends `/login?next=/account` and
+ * the browser keeps `#event-pass-reminders`; `/login` reads it off `location.hash` and asks
+ * `returnWithAnchor`. The allow-list takes one fragment, exactly, on exactly its page, named once
+ * beside the mail (`lib/email/links.ts`): every other fragment reads as none, and the page stands.
+ */
+describe("the mail's anchor (a fragment, only as one named pair)", () => {
+  const ANCHORED = "/account#event-pass-reminders";
+
+  it("is the very string the mail links to, read from its one home", () => {
+    expect(PASS_REMINDERS_PATH).toBe(ANCHORED);
+    expect(signInReturn(PASS_REMINDERS_PATH)).toBe(PASS_REMINDERS_PATH);
+  });
+
+  it("returns to the page WITH its anchor, and every link that carries it keeps it whole", () => {
+    expect(signInReturn(ANCHORED)).toBe(ANCHORED);
+    expect(signInLanding(ANCHORED, false)).toBe(ANCHORED);
+    // The callback's `next`: the fragment is encoded, so it survives any query it is joined to.
+    expect(loginPath(ANCHORED)).toBe(
+      "/login?next=%2Faccount%23event-pass-reminders",
+    );
+    expect(withReturn("https://partyreel.com/auth/callback", ANCHORED)).toBe(
+      "https://partyreel.com/auth/callback?next=%2Faccount%23event-pass-reminders",
+    );
+    const url = new URL(
+      withReturn("https://partyreel.com/auth/callback", ANCHORED),
+    );
+    expect(signInReturn(url.searchParams.get(NEXT_PARAM))).toBe(ANCHORED);
+  });
+
+  it("is the app's alone: the admin host never lands on it", () => {
+    expect(signInReturn(ANCHORED, true)).toBeNull();
+    expect(signInLanding(ANCHORED, true)).toBe("/admin");
+  });
+
+  // Shaped like the pair, and not it: each is refused whole (the page's own bare return stands).
+  const lookalikes: [string, string][] = [
+    ["another anchor on the page", "/account#plan"],
+    ["the anchor on another page", "/dashboard#event-pass-reminders"],
+    [
+      "the anchor under the renewal page",
+      "/account/renew#event-pass-reminders",
+    ],
+    ["another case", "/account#Event-Pass-Reminders"],
+    ["a longer anchor", "/account#event-pass-reminders-2"],
+    ["a shorter anchor", "/account#event-pass-reminder"],
+    ["the anchor twice", "/account#event-pass-reminders#event-pass-reminders"],
+    ["a query on the page", "/account?x=1#event-pass-reminders"],
+    ["a query after the anchor", "/account#event-pass-reminders?x=1"],
+    ["a trailing slash", "/account/#event-pass-reminders"],
+    ["a trailing space", "/account#event-pass-reminders "],
+    [
+      "a newline splice",
+      "/account#event-pass-reminders\r\nLocation: https://evil.example",
+    ],
+    ["an empty fragment", "/account#"],
+    ["an encoded fragment mark", "/account%23event-pass-reminders"],
+    ["a script in the fragment", "/account#event-pass-reminders<script>"],
+    [
+      "a host dressed as the page",
+      "//evil.example/account#event-pass-reminders",
+    ],
+    [
+      "the absolute address",
+      "https://partyreel.com/account#event-pass-reminders",
+    ],
+  ];
+
+  it.each(lookalikes)("refuses %s", (_, value) => {
+    expect(signInReturn(value)).toBeNull();
+    expect(signInLanding(value, false)).toBe("/dashboard");
+    expect(loginPath(value)).toBe("/login");
+  });
+
+  describe("returnWithAnchor: what /login hands the landing", () => {
+    it("adds the visitor's fragment when the pair is on the list", () => {
+      expect(returnWithAnchor("/account", "#event-pass-reminders")).toBe(
+        ANCHORED,
+      );
+    });
+
+    it("keeps the page and drops any other fragment: the scroll is all a hostile hash can cost", () => {
+      for (const hash of [
+        "#plan",
+        "#EVENT-PASS-REMINDERS",
+        "#event-pass-reminders-2",
+        "#event-pass-reminders#x",
+        "#event-pass-reminders?x=1",
+        "#event-pass-reminders\r\nLocation: https://evil.example",
+        "#access_token=abc&refresh_token=def",
+        "#error=access_denied&error_code=otp_expired",
+        "event-pass-reminders",
+        "#",
+        "",
+      ]) {
+        expect(returnWithAnchor("/account", hash), hash).toBe("/account");
+      }
+    });
+
+    it("keeps the page, whatever it is, when the fragment does not belong to it", () => {
+      expect(returnWithAnchor("/dashboard", "#event-pass-reminders")).toBe(
+        "/dashboard",
+      );
+      expect(returnWithAnchor("/account/renew", "#event-pass-reminders")).toBe(
+        "/account/renew",
+      );
+      expect(
+        returnWithAnchor("/admin/reports", "#event-pass-reminders", true),
+      ).toBe("/admin/reports");
+    });
+
+    it("is nothing when there is no page, and never invents one for a hash", () => {
+      expect(returnWithAnchor(null, "#event-pass-reminders")).toBeNull();
+      expect(returnWithAnchor(undefined, "#event-pass-reminders")).toBeNull();
+      expect(
+        returnWithAnchor("//evil.example", "#event-pass-reminders"),
+      ).toBeNull();
+      expect(returnWithAnchor("/login", "#event-pass-reminders")).toBeNull();
+    });
+
+    it("takes a next that already carries the anchor, and never doubles it", () => {
+      expect(returnWithAnchor(ANCHORED, "")).toBe(ANCHORED);
+      expect(returnWithAnchor(ANCHORED, "#event-pass-reminders")).toBe(
+        ANCHORED,
+      );
+      expect(returnWithAnchor(ANCHORED, "#plan")).toBe(ANCHORED);
+    });
+
+    it("refuses anything that is not a string for the hash", () => {
+      for (const hash of [
+        undefined,
+        null,
+        42,
+        true,
+        {},
+        ["#event-pass-reminders"],
+      ]) {
+        expect(returnWithAnchor("/account", hash)).toBe("/account");
+      }
+    });
   });
 });

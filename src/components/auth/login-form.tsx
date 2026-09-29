@@ -1,15 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 
 import { AccountDoor } from "@/components/auth/account-door";
 import { isAdminHost } from "@/lib/auth/admin-host";
 import type { DoorFailureKind } from "@/lib/auth/door-failure";
 import {
   adminReturnCookie,
+  returnWithAnchor,
   signInLanding,
-  signInReturn,
   withReturn,
 } from "@/lib/auth/return-path";
 import { env } from "@/lib/env";
@@ -41,6 +41,17 @@ function callbackUrl(next: string | null) {
 }
 
 /**
+ * `location.hash`, read as the browser's own value once React has attached: the server's first
+ * paint and the hydrating client both read "", so the two match, and the anchor a mail linked into
+ * (`/account#event-pass-reminders`) arrives on the render after. A fragment never reaches a server,
+ * so this is the only place it can be read (`returnWithAnchor` says what may ride back).
+ */
+function subscribeToHash(onChange: () => void) {
+  window.addEventListener("hashchange", onChange);
+  return () => window.removeEventListener("hashchange", onChange);
+}
+
+/**
  * The host `/login` door: `<AccountDoor>` in its `login` wear, and the landing.
  *
  * Everything this file used to be — the password form, the create-account flow,
@@ -66,8 +77,17 @@ export function LoginForm({
   next?: string | null;
 }) {
   const router = useRouter();
+  // ★ THE ANCHOR SURVIVES THE SIGN-IN (crumbs-20). The gate's redirect drops the page's query but the
+  // browser keeps its fragment, so a mail's link to `/account#event-pass-reminders` arrives here
+  // carrying `#event-pass-reminders`; it rides the landing and the callback's `next` only as one of
+  // the listed pairs (`returnWithAnchor`), so the row is scrolled to on the other side.
+  const hash = useSyncExternalStore(
+    subscribeToHash,
+    () => window.location.hash,
+    () => "",
+  );
   // The app's pages alone ride a callback URL: the admin host's is always bare.
-  const appReturn = signInReturn(next);
+  const appReturn = returnWithAnchor(next, hash);
 
   // On the admin host, the page rides the cookie the callback reads instead, and
   // a /login with none (or one off the portal's pages) clears what an earlier
@@ -93,7 +113,10 @@ export function LoginForm({
       onVerified={() => {
         // Checked again for the host it lands on: the portal's pages on the
         // admin host, the app's everywhere else.
-        router.push(signInLanding(next, isAdminHost(window.location.host)));
+        const onAdminHost = isAdminHost(window.location.host);
+        router.push(
+          signInLanding(returnWithAnchor(next, hash, onAdminHost), onAdminHost),
+        );
         router.refresh();
       }}
     />

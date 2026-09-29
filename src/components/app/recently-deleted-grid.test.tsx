@@ -282,7 +282,9 @@ describe("the bin's viewer carries its two verbs", () => {
       within(capsule()!).getByRole("button", { name: "Delete permanently" }),
     );
     expect(purgeMediaNowAction).not.toHaveBeenCalled();
-    const dialog = screen.getByRole("dialog", { name: "Delete permanently?" });
+    const dialog = screen.getByRole("alertdialog", {
+      name: "Delete permanently?",
+    });
     fireEvent.click(
       within(dialog).getByRole("button", { name: "Delete permanently" }),
     );
@@ -332,7 +334,7 @@ describe("the bin's viewer carries its two verbs", () => {
     );
     fireEvent.click(
       within(
-        screen.getByRole("dialog", { name: "Delete permanently?" }),
+        screen.getByRole("alertdialog", { name: "Delete permanently?" }),
       ).getByRole("button", { name: "Delete permanently" }),
     );
     await act(async () => {});

@@ -468,7 +468,7 @@ export const ActionCapsule = memo(function ActionCapsule({
               </button>
             </DialogTrigger>
           </ActionTooltip>
-          <DialogContent>
+          <DialogContent role="alertdialog">
             <DialogHeader>
               <DialogTitle>Delete this upload?</DialogTitle>
               <DialogDescription>
@@ -546,7 +546,7 @@ export const ActionCapsule = memo(function ActionCapsule({
                   </button>
                 </DialogTrigger>
               </ActionTooltip>
-              <DialogContent>
+              <DialogContent role="alertdialog">
                 <DialogHeader>
                   <DialogTitle>Remove this item?</DialogTitle>
                   <DialogDescription>

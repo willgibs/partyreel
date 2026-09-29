@@ -6,6 +6,7 @@ import { CircleAlert, Loader2, TicketX } from "lucide-react";
 
 import { NotFoundScreen } from "@/components/shared/not-found-screen";
 import { Button } from "@/components/ui/button";
+import { loginPath } from "@/lib/auth/return-path";
 
 /**
  * THE RENEWAL NUDGE'S BUTTON, FINISHED (`emails` r1: "Renew Event Pass goes where it says"). A mail
@@ -91,7 +92,7 @@ export function RenewCheckout() {
       return;
     }
     if (outcome.kind === "signin") {
-      window.location.replace("/login");
+      window.location.replace(loginPath(window.location.pathname));
       return;
     }
     setView(outcome);
