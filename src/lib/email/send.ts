@@ -37,6 +37,12 @@ export type SendOnceArgs = {
   to: string;
   subject: string;
   html: string;
+  /**
+   * The plain-text twin, from the same parts as `html` (every template's `Mail`). Required, so no
+   * send can forget it: without one Resend writes its own from the HTML, and that one carries the
+   * table layout and the preview's invisible tail instead of the mail's words.
+   */
+  text: string;
   /** Optional Reply-To — e.g. so an operator can reply straight to a form submitter. */
   replyTo?: string;
 };
@@ -81,6 +87,7 @@ export async function sendOnce(args: SendOnceArgs): Promise<boolean> {
     to: args.to,
     subject: args.subject,
     html: args.html,
+    text: args.text,
     replyTo: args.replyTo,
   });
   if (sendError) {

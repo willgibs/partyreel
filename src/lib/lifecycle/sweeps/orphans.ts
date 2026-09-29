@@ -176,7 +176,7 @@ export async function sweepOrphans(
       // SEND the alert must never become a delete, so swallow it: the Sentry capture above is the
       // primary signal, and we still return without deleting.
       try {
-        const { subject, html } = orphanBreakerEmail({
+        const { subject, html, text } = orphanBreakerEmail({
           reason: reason ?? "unknown",
           candidates: orphanKeys.length,
           mediaCount,
@@ -188,6 +188,7 @@ export async function sweepOrphans(
           to: serverEnv.CONTACT_NOTIFY_EMAIL ?? SUPPORT_EMAIL,
           subject,
           html,
+          text,
         });
       } catch (e) {
         captureError("cron", e, { sweep: "orphans", phase: "breaker_alert" });

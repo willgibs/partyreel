@@ -181,7 +181,7 @@ export async function sweepInactiveFreeEvents(
       }
       removed += 1;
       if (e.profiles.email) {
-        const { subject, html } = inactivityRemovedEmail({
+        const { subject, html, text } = inactivityRemovedEmail({
           eventName: e.name,
           recoverableUntil: emailDate(purgeAt),
           dashboardUrl,
@@ -193,10 +193,11 @@ export async function sweepInactiveFreeEvents(
           to: e.profiles.email,
           subject,
           html,
+          text,
         });
       }
     } else if (e.profiles.email) {
-      const { subject, html } = inactivityWarningEmail({
+      const { subject, html, text } = inactivityWarningEmail({
         eventName: e.name,
         deadline: emailDate(new Date(activityMs + INACTIVE_DAYS * 86_400_000)),
         dashboardUrl,
@@ -208,6 +209,7 @@ export async function sweepInactiveFreeEvents(
         to: e.profiles.email,
         subject,
         html,
+        text,
       });
       if (sent) warned += 1;
     }

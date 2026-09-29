@@ -220,7 +220,7 @@ export async function sweepOverCapacity(
         if (error) throw new QueryFailedError("cron/purge: open grace", error);
         graceOpened += 1;
         if (p.email) {
-          const { subject, html } = overCapGraceStartEmail({
+          const { subject, html, text } = overCapGraceStartEmail({
             capLabel: formatBytes(cap),
             deadline: emailDate(graceUntil),
             dashboardUrl,
@@ -232,6 +232,7 @@ export async function sweepOverCapacity(
             to: p.email,
             subject,
             html,
+            text,
           });
         }
         return;
@@ -263,7 +264,7 @@ export async function sweepOverCapacity(
         await clearGrace(p.id);
         reduced += 1;
         if (p.email) {
-          const { subject, html } = overCapReducedEmail({
+          const { subject, html, text } = overCapReducedEmail({
             recoverableUntil: emailDate(
               new Date(
                 now.getTime() + RECENTLY_DELETED_WINDOW_DAYS * 86_400_000,
@@ -278,6 +279,7 @@ export async function sweepOverCapacity(
             to: p.email,
             subject,
             html,
+            text,
           });
         }
       } else if (
@@ -285,7 +287,7 @@ export async function sweepOverCapacity(
         graceUntil.getTime() - OVER_CAP_REMINDER_DAYS * 86_400_000
       ) {
         if (p.email) {
-          const { subject, html } = overCapReminderEmail({
+          const { subject, html, text } = overCapReminderEmail({
             deadline: emailDate(graceUntil),
             dashboardUrl,
           });
@@ -296,6 +298,7 @@ export async function sweepOverCapacity(
             to: p.email,
             subject,
             html,
+            text,
           });
           if (sent) reminded += 1;
         }

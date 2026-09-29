@@ -1,45 +1,46 @@
 /**
  * Notification consent defaults (profiles-social.md point 6) — the app-side twin of the
- * notification_prefs table (migration 20260708120000). SHAPED for R5: nothing
- * sends yet; R5's send paths must consult resolveNotificationPrefs before any
- * tier-2 send.
+ * notification_prefs table (migration 20260708120000, plus 20260928160000's Event Pass reminders).
+ * Every send that has a switch resolves it here first; today that is one mail, the renewal nudge
+ * (src/lib/lifecycle/sweeps/passes.ts).
  *
  * The tier model (from the T1 options-doc, uncontested):
- *   - Tier 1 (transactional/security: OTP, billing, deletion warnings) is ALWAYS
+ *   - Tier 1 (transactional/security: OTP, billing, storage and deletion warnings) is ALWAYS
  *     sent. Deliberately NO column and NO field here, so it can never be
  *     toggled off by code that "just maps the table".
  *   - Tier 2 (relationship/service) is default-ON with per-category opt-out for
- *     ACCOUNT holders only: the notify* fields. (The reel-ready email left with
- *     the stored reel: the live reel is never "ready", it plays from the second
- *     photo, and its column drops with the stored reel's tables.)
+ *     ACCOUNT holders only: the notify* fields. The renewal nudge moved here from tier 1 (Will,
+ *     `emails` r1 `foot=commercial`): it asks for a purchase, so it carries an unsubscribe, and the
+ *     unsubscribe is its switch.
  *   - Tier 3 (marketing) is explicit OPT-IN: marketingOptIn defaults false.
  *   - Anonymous-email guests never have a row (no account): they receive nothing
  *     beyond explicitly requested one-shots.
  *
+ * ★ THREE COLUMNS NOTHING READS: notify_album_shared, notify_new_uploads_digest and
+ * notify_new_follower were switches with no mail behind them, so they left Email preferences
+ * (`emails` r1 `moments=identity`: a dead switch is ruled absent, never drawn) and left this file with
+ * them. The columns stay until Will says yes to dropping them (destructive); nothing reads or writes
+ * them meanwhile, so the drop needs no code change first (the reel-ready column's path: the app let
+ * go, then the migration dropped it).
+ *
  * Rows are LAZY: an absent row means "all defaults", so these constants MUST
- * mirror the column defaults in the migration. A Vitest parity test
+ * mirror the column defaults in the migrations. A Vitest parity test
  * (notification-prefs.test.ts) pins the two together by parsing the migrations'
- * SQL (the create, less any column a later migration drops): change one,
- * change both.
+ * SQL (the create, plus every column a later migration adds, less every column one drops or this
+ * file lets go of): change one, change both.
  *
  * Import-safe from client components (constants + pure logic, no secrets).
  */
 
 export type NotificationPrefs = {
-  /** Tier 2: a host shared/published an album you uploaded to. */
-  notifyAlbumShared: boolean;
-  /** Tier 2: digest of new uploads landing in your event (hosts). */
-  notifyNewUploadsDigest: boolean;
-  /** Tier 2: someone followed you. */
-  notifyNewFollower: boolean;
+  /** Tier 2: Event Pass reminders, the renewal nudge two weeks before a pass expires. */
+  notifyPassRenewal: boolean;
   /** Tier 3: marketing. OPT-IN, never defaulted on. */
   marketingOptIn: boolean;
 };
 
 export const NOTIFICATION_PREF_DEFAULTS: NotificationPrefs = {
-  notifyAlbumShared: true,
-  notifyNewUploadsDigest: true,
-  notifyNewFollower: true,
+  notifyPassRenewal: true,
   marketingOptIn: false,
 };
 
@@ -50,15 +51,21 @@ export const NOTIFICATION_PREF_DEFAULTS: NotificationPrefs = {
  * does, this shape stays structurally identical, so nothing needs to change.
  */
 export type NotificationPrefsRow = {
-  notify_album_shared: boolean;
-  notify_new_uploads_digest: boolean;
-  notify_new_follower: boolean;
+  notify_pass_renewal: boolean;
   marketing_opt_in: boolean;
 };
 
 /**
+ * The row's preference columns as one select list, so every reader (the /account card's read, the
+ * renewal sweep's) selects exactly what resolveNotificationPrefs maps, and a new column is added in
+ * one place. notification-prefs.test.ts pins it to the parity.
+ */
+export const NOTIFICATION_PREF_COLUMNS =
+  "notify_pass_renewal, marketing_opt_in";
+
+/**
  * Resolve a (possibly absent) DB row into effective prefs. null/undefined =
- * the lazy no-row case = all defaults; a row maps 1:1. Every future send path
+ * the lazy no-row case = all defaults; a row maps 1:1. Every send path
  * goes through this so "absent row" and "row of defaults" are indistinguishable
  * by construction.
  */
@@ -67,9 +74,7 @@ export function resolveNotificationPrefs(
 ): NotificationPrefs {
   if (!row) return { ...NOTIFICATION_PREF_DEFAULTS };
   return {
-    notifyAlbumShared: row.notify_album_shared,
-    notifyNewUploadsDigest: row.notify_new_uploads_digest,
-    notifyNewFollower: row.notify_new_follower,
+    notifyPassRenewal: row.notify_pass_renewal,
     marketingOptIn: row.marketing_opt_in,
   };
 }

@@ -9,7 +9,10 @@
  *    opens). `storage_used_bytes` is left alone.
  *  - `renewal_nudges` emails the holders whose pass expires within `RENEWAL_NUDGE_DAYS`, so they can
  *    renew (cheaper) before it lapses into the over-capacity grace; `sendOnce` dedupes per
- *    (profile, expiry). An already-expired pass is `expired_passes`' business.
+ *    (profile, expiry). An already-expired pass is `expired_passes`' business. ★ It is the one mail
+ *    with an off switch (Will, `emails` r1 `foot=commercial`: Email preferences' Event Pass
+ *    reminders, `notification_prefs.notify_pass_renewal`), so it reads the switch before it sends,
+ *    and a failed read stops the sweep rather than mailing someone who said no.
  *
  * WHOLE, AND IN ROTATION (the 1,000-row round, 2026-09-23): each candidate list is read whole through
  * `readAllPages` (it was two reads cut at 1,000 rows each), then taken in id order from the cursor the
@@ -18,8 +21,9 @@
  */
 import "server-only";
 
-import { readAllPages } from "@/lib/db/read-all";
+import { inChunks, readAllPages } from "@/lib/db/read-all";
 import { recomputePassEntitlement } from "@/lib/db/mutations/event-passes";
+import { PASS_REMINDERS_PATH, RENEW_PASS_PATH } from "@/lib/email/links";
 import { renewalNudgeEmail } from "@/lib/email/templates";
 import { sendOnce } from "@/lib/email/send";
 import { tallyNote } from "@/lib/jobs/isolate";
@@ -38,6 +42,11 @@ import {
 } from "@/lib/lifecycle/sweeps/rotation";
 import { captureError } from "@/lib/observability/sentry";
 import { getSiteUrl } from "@/lib/site-url";
+import {
+  NOTIFICATION_PREF_COLUMNS,
+  resolveNotificationPrefs,
+  type NotificationPrefsRow,
+} from "@/lib/social/notification-prefs";
 
 /** What a rotating sweep's tally adds: the isolation counts, and where to resume when it stopped. */
 type RotatingTally = {
@@ -56,6 +65,8 @@ export type ExpiredPassesTally = RotatingTally & {
 export type RenewalNudgesTally = RotatingTally & {
   eligible: number;
   nudged: number;
+  /** Holders in the window who turned Event Pass reminders off, so were not mailed. */
+  opted_out: number;
 };
 
 type SweepOptions = { deadline?: Deadline; resumeAfter?: string | null };
@@ -167,24 +178,77 @@ export async function readRenewalCandidates(
   return rows;
 }
 
+/**
+ * THE SWITCH, READ BEFORE ANY SEND: which of these holders turned Event Pass reminders off. Each
+ * answer goes through `resolveNotificationPrefs`, the one path every send resolves through, so an
+ * account with no row (rows are lazy) gets the default exactly as its /account card shows it. The
+ * ids ride the URL, so they go in chunks (`inChunks`), each answering at most one row an id.
+ *
+ * A failed read THROWS (`inChunks` labels it): the sweep stops and its run says so on /admin/jobs,
+ * because guessing "on" would mail someone who said no, and guessing "off" would silently drop every
+ * reminder of the night.
+ */
+export async function readRenewalOptOuts(
+  admin: AdminClient,
+  ids: readonly string[],
+): Promise<Set<string>> {
+  const rows = await inChunks(
+    "cron/purge: pass reminder switches",
+    ids,
+    async (chunk) => {
+      // row-cap: user_id is notification_prefs' primary key, so a chunk answers at most one row an id
+      const { data, error } = await admin
+        .from("notification_prefs")
+        .select(`user_id, ${NOTIFICATION_PREF_COLUMNS}`)
+        .in("user_id", chunk);
+      if (error) throw error;
+      // The generated types learn notify_pass_renewal when its migration is applied; the row's shape
+      // is NotificationPrefsRow's either way (notification-prefs.ts).
+      return (data ?? []) as unknown as (NotificationPrefsRow & {
+        user_id: string;
+      })[];
+    },
+  );
+  const byId = new Map(rows.map((row) => [row.user_id, row]));
+  return new Set(
+    ids.filter(
+      (id) => !resolveNotificationPrefs(byId.get(id)).notifyPassRenewal,
+    ),
+  );
+}
+
 export async function sweepRenewalNudges(
   admin: AdminClient,
   now: Date,
   opts: SweepOptions = {},
 ): Promise<RenewalNudgesTally> {
   const candidates = await readRenewalCandidates(admin, now);
-  const renewUrl = `${await getSiteUrl()}/dashboard`;
+  const optedOut = await readRenewalOptOuts(
+    admin,
+    candidates.map((p) => p.id),
+  );
+  // The button starts the pass's own renewal Checkout, and the foot's unsubscribe lands on its
+  // switch (`emails` r1): the button used to open the dashboard, which renews nothing by itself.
+  const site = await getSiteUrl();
+  const renewUrl = `${site}${RENEW_PASS_PATH}`;
+  const preferencesUrl = `${site}${PASS_REMINDERS_PATH}`;
   let nudged = 0;
+  let optedOutCount = 0;
   const { tally, resumeAfter } = await forEachInRotation(
     candidates,
     (p) => p.id,
     opts.resumeAfter ?? null,
     opts.deadline ?? NO_DEADLINE,
     async (p) => {
+      if (optedOut.has(p.id)) {
+        optedOutCount += 1;
+        return;
+      }
       if (!p.email || !p.tier_expires_at) return;
-      const { subject, html } = renewalNudgeEmail({
+      const { subject, html, text } = renewalNudgeEmail({
         expiresOn: emailDate(new Date(p.tier_expires_at)),
         renewUrl,
+        preferencesUrl,
       });
       const sent = await sendOnce({
         kind: "renewal_nudge",
@@ -193,6 +257,7 @@ export async function sweepRenewalNudges(
         to: p.email,
         subject,
         html,
+        text,
       });
       if (sent) nudged += 1;
     },
@@ -202,6 +267,7 @@ export async function sweepRenewalNudges(
   return {
     eligible: candidates.length,
     nudged,
+    opted_out: optedOutCount,
     rows_failed: tally.failed,
     rows_not_attempted: tally.skipped,
     rows_note: tallyNote("accounts", tally) ?? undefined,

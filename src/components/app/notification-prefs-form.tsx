@@ -9,6 +9,7 @@ import {
 } from "@/app/(app)/account/actions";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { PASS_REMINDERS_ANCHOR } from "@/lib/email/links";
 import type { NotificationPrefs } from "@/lib/social/notification-prefs";
 
 /**
@@ -19,6 +20,11 @@ import type { NotificationPrefs } from "@/lib/social/notification-prefs";
  * is NOT here: tier 1 (sign-in codes, billing, storage and deletion warnings)
  * has no switch, because it is not a preference. The tier-2 rows are
  * default-on with an opt-out; marketing is tier 3 and opt-in.
+ *
+ * ★ EVERY SWITCH HERE GOVERNS A MAIL THAT SENDS (Will, `emails` r1). Event Pass reminders is the
+ * renewal nudge's, and the nudge's unsubscribe lands on this very row (`PASS_REMINDERS_ANCHOR`). The
+ * three switches for mail nothing sent (an album shared, a digest of uploads, a new follower) left,
+ * because a dead switch is ruled absent, never drawn; their columns wait on Will's yes to drop.
  *
  * ★ MARKETING OFF DOES TWO THINGS. It clears the account's own consent flag AND
  * takes the address off the newsletter list, which is the whole point: the
@@ -33,23 +39,16 @@ type Row = {
   key: keyof NotificationPrefs;
   label: string;
   hint: string;
+  /** The row's own address, for a mail that links straight to its switch. */
+  anchor?: string;
 };
 
 const TIER_2_ROWS: Row[] = [
   {
-    key: "notifyAlbumShared",
-    label: "An album you joined was shared",
-    hint: "When a host publishes an album you added photos to.",
-  },
-  {
-    key: "notifyNewUploadsDigest",
-    label: "New uploads to your events",
-    hint: "A single summary, never one email per photo.",
-  },
-  {
-    key: "notifyNewFollower",
-    label: "Someone followed you",
-    hint: "Only for accounts with a public profile.",
+    key: "notifyPassRenewal",
+    label: "Event Pass reminders",
+    hint: "A note two weeks before your Event Pass expires, so you can renew it.",
+    anchor: PASS_REMINDERS_ANCHOR,
   },
 ];
 
@@ -81,19 +80,32 @@ export function NotificationPrefsForm({
     });
   }
 
-  function row(key: keyof NotificationPrefs, label: string, hint: string) {
+  function row(
+    key: keyof NotificationPrefs,
+    label: string,
+    hint: string,
+    anchor?: string,
+  ) {
     const id = `pref-${key}`;
     return (
       <li
         key={key}
-        className="flex items-center justify-between gap-4 py-2.5 first:pt-0 last:pb-0"
+        id={anchor}
+        // A mail's link lands the row just under the page's top edge, as the Plan card's own
+        // anchor does.
+        className="flex scroll-mt-6 items-center justify-between gap-4 py-2.5 first:pt-0 last:pb-0"
       >
+        {/* `flex-col items-start`: Label is a flex ROW by default, which set the hint beside the
+            name and wrapped the name into a three-line column at a phone's width. Stacked, as the
+            event settings' switch rows (profile-social-card.tsx) draw the same pair. */}
         <Label
           htmlFor={id}
-          className="min-w-0 flex-1 cursor-pointer font-normal"
+          className="min-w-0 flex-1 cursor-pointer flex-col items-start gap-1 font-normal"
         >
-          <span className="block text-sm text-foreground">{label}</span>
-          <span className="block text-xs text-muted-foreground">{hint}</span>
+          <span className="text-sm text-foreground">{label}</span>
+          <span className="text-xs leading-relaxed text-muted-foreground">
+            {hint}
+          </span>
         </Label>
         <Switch
           id={id}
@@ -107,7 +119,7 @@ export function NotificationPrefsForm({
   return (
     <div className="space-y-6">
       <ul className="divide-y divide-border/60">
-        {TIER_2_ROWS.map((r) => row(r.key, r.label, r.hint))}
+        {TIER_2_ROWS.map((r) => row(r.key, r.label, r.hint, r.anchor))}
       </ul>
 
       <div className="space-y-2 border-t border-border/60 pt-5">

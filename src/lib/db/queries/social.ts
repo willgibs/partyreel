@@ -54,6 +54,7 @@ import {
   type GuestRowFacts,
 } from "@/lib/events/event-guests";
 import {
+  NOTIFICATION_PREF_COLUMNS,
   resolveNotificationPrefs,
   type NotificationPrefs,
   type NotificationPrefsRow,
@@ -290,8 +291,8 @@ export async function getMyBlocks(): Promise<BlockEntry[]> {
 
 /**
  * My effective notification prefs. Rows are LAZY (absent = all defaults), so
- * this always resolves through resolveNotificationPrefs; R5 send paths must
- * consult this, never the raw row.
+ * this always resolves through resolveNotificationPrefs, the same path a send
+ * takes (the renewal sweep reads the same columns for the same answer).
  */
 export async function getNotificationPrefs(): Promise<NotificationPrefs> {
   const { supabase, user } = await getRequestAuth();
@@ -299,16 +300,17 @@ export async function getNotificationPrefs(): Promise<NotificationPrefs> {
 
   const { data, error } = await supabase
     .from("notification_prefs")
-    .select(
-      "notify_album_shared, notify_new_uploads_digest, notify_new_follower, marketing_opt_in",
-    )
+    .select(NOTIFICATION_PREF_COLUMNS)
     .eq("user_id", user.id)
     .maybeSingle();
   if (error) {
     if (isSocialSchemaMissing(error)) return resolveNotificationPrefs(null);
     throw error;
   }
-  return resolveNotificationPrefs(data as NotificationPrefsRow | null);
+  // `as unknown`: the generated types learn notify_pass_renewal when its migration is applied.
+  return resolveNotificationPrefs(
+    data as unknown as NotificationPrefsRow | null,
+  );
 }
 
 /**
