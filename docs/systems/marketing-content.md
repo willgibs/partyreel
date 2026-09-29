@@ -115,6 +115,12 @@ routes.
   landing a tile in a laptop and a phone at once): its FLIP wrapper carries no transform of its own, its `layoutKey` is
   the mounted count, never the tick, and the beat stays above `--tune-reorder-ms`, or a landing re-runs the layout
   effect mid-slide and snaps the column.
+- ★ **The album page's hero is the live album taking uploads** (`album/arrivals-hero.tsx`): the stream
+  (`shared/album-stream/`) hands each photograph over as it dissolves at the album's edge, and the stage's `LiveAlbum`
+  (a ring of the twelve stills, each arrival taken from its hidden tail) lets the rows push it in as a guest's arrival.
+  The stage's clip is the album's own scroller, never only a clip: the rows anchor whatever scrolls them, and with the
+  page as their scroller every arrival moved the page under a reader a little past the album's first row. The stream,
+  the stage and the hero's floor change composition together at 1280 (`STREAM_LG_MIN`, `stream-engine.test.ts`).
 - **`/events`**: one `[slug]` template for the four types, all copy and per-type media in `constants/events.ts`
   (`EVENT_TYPE*`, named apart from the real `events` domain). ★ `media` is the single home of a per-type photograph: no
   component names a still of its own. ★ **Every event object carries the demo's real code, never a dead link**: the

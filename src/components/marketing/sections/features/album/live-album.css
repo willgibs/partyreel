@@ -1,30 +1,28 @@
 /* THE LIVE ALBUM STAGE'S OWN SHEET (the album-wiring lane, 2026-09-19).
    Classes under `alb-` only and NO keyframe (src/app/keyframe-uniqueness.test.ts
-   reads every sheet in the repo); the light is the Glow engine's own clock. */
+   reads every sheet in the repo); the light is the Glow engine's own clock, and
+   an arrival's push and glow are `arrival.css`'s, as on every album. */
 
-/* ★ THE COLUMN COUNT IS THE PRODUCT'S, NOT THE STAGE'S. An earlier draft drove
-   it from outside through a variable, because `GuestMasonry` was `columns-2` at
-   every width and a marketing stage at 896 wanted three. `gallery-wiring` then
-   landed its own answer on the same sitting (`tile=240`, `width=full`): the
-   album asks for as many columns of about 220 px as its box holds, so at 896 it
-   draws four and at a phone two, with no help from here. A stage whose whole
-   value is that it IS the guest album may not then draw a different album, so
-   the override is gone and `masonry.tsx`'s `--album-column` is the one knob.
-   Left here as a note because the temptation to re-add it is obvious: three
-   columns is what his `visual=live` note describes, and it is what the board
-   drew before the gallery change moved underneath it. */
+/* ★ THE PHOTOGRAPHS PER ROW ARE THE PRODUCT'S, NOT THE STAGE'S. The rows ask
+   the step for a count by their own box's width (`perRowFor`: three a row at
+   896, two at a phone), with no help from here. A stage whose whole value is
+   that it IS the guest album may not then draw a different album, so nothing
+   here reaches into the grid; the temptation to is obvious, since an earlier
+   masonry stage was driven from outside before the album's own answer landed. */
 
 /* THE STAGE'S TWO GEOMETRIES, chosen here so every number stays in the engine
    (`STAGE` and `GAP`, stream-engine.ts) and arrives as a custom property. A
    Tailwind breakpoint variant cannot read a module, and writing 600 and 430
    into a class string would put the album's edge in two places while the
-   stream aims at one of them. 1024 is `LG_MIN`, the home hero's breakpoint. */
+   stream aims at one of them. 1280 is the stream's own swap
+   (`STREAM_LG_MIN`): the stage and the stream change composition together, or
+   the frames aim at an edge the album is not drawn at. */
 .alb-stage {
   --alb-h: var(--alb-h-base);
   --alb-fade: var(--alb-fade-base);
   margin-top: var(--alb-gap-base);
 }
-@media (min-width: 1024px) {
+@media (min-width: 1280px) {
   .alb-stage {
     --alb-h: var(--alb-h-lg);
     --alb-fade: var(--alb-fade-lg);
@@ -36,10 +34,23 @@
    visual too tall, we can fade out the bottom. May look better either way." So
    the frame is clipped to a height and its last stretch fades to nothing, and
    the album reads as going on rather than as a box with a floor. A MASK, never
-   a scrim: nothing is laid over a photograph. */
+   a scrim: nothing is laid over a photograph.
+
+   ★ AND THE CLIP IS THE ALBUM'S OWN WINDOW: a scroller that never scrolls. The
+   rows mount the photographs around their scroller's view and keep what a
+   reader is looking at still by scrolling it as far as a change moved it
+   (`album-window.tsx`); they find the nearest ancestor that really scrolls,
+   else the page. A stage that only clipped them left the page as their
+   scroller, where a reader a little past the album's first row made every
+   arrival scroll the PAGE by however far the rows below the head moved, under
+   the dissolve where nothing is seen to move. As the scroller, the clip is the
+   whole view: nothing in it is ever deep, so nothing is ever anchored. `inert`
+   takes it off the pointer and the keyboard (a wheel over it scrolls the page),
+   so it stays at its top, and its bar is never drawn. */
 .alb-clip {
   height: var(--alb-h);
-  overflow: hidden;
+  overflow: hidden auto;
+  scrollbar-width: none;
   -webkit-mask-image: linear-gradient(
     to bottom,
     #000 calc(100% - var(--alb-fade)),
@@ -55,6 +66,9 @@
     transparent 100%
   );
 }
+.alb-clip::-webkit-scrollbar {
+  display: none;
+}
 
 /* THE HALO'S OBJECT. Will's `light=halo`: "The Glow halo, lighting the frame
    from behind so its rim and chrome glow while the photographs stay clean." The
@@ -66,8 +80,7 @@
    thing it backlights (globals.css's halo block: rendered in a padded box AROUND
    an object it reads as a soft rectangle floating behind it). `clip-path` says
    that exactly, in the object's own silhouette, where `overflow: hidden` would
-   say "cut this light at a straight edge" and rightly trip
-   glow-placement.test.ts. The radius is the frame's own. */
+   say "cut this light at a straight edge". The radius is the frame's own. */
 .alb-halo {
   background: var(--card);
   border-radius: var(--radius-2xl);
