@@ -1306,9 +1306,9 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
                   <Heart /> Saved
                   <DropdownMenuMeta>412</DropdownMenuMeta>
                 </DropdownMenuItem>
-                {/* The one branch the family allows, and the last one: a Sub
-                    inside a Sub throws at render (Will: a third level "gets too
-                    complicated"). */}
+                {/* One branch, and it stops there: two levels read simpler,
+                    and a branch that wants a third is a group of its own
+                    under its name. */}
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger>
                     <Settings /> Who can upload
