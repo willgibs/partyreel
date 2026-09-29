@@ -17,6 +17,10 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- The lab and the kit: `/design/lab/kit` (`kit/page.tsx`) says `lab:demo` "refuses two options that draw the same picture", but `scripts/lab-demo.mjs` only notes `same picture:` in a step's row and fails a frozen stage, and PROGRAM.md calls a same-answer pair "a finding" (from `window-notes`).
+- The lab and the kit: `src/components/lab/dock.tsx` exports `AppliedBadge`, `ReplayButton` and `MotionToggle`, imported nowhere (from `window-notes`).
+- Docs: `kit/README.md` sets Urbanist 600 for card and subsection titles while `docs/systems/design-system.md` says one heading weight, 700 (from `window-notes`).
+- The lab and the kit: the desk's end-of-walk message has no place for a note about the whole program (it reaches the Orchestrator only through chat); a "for the whole program" note composing `note: "..."` would give the transcript's bare note a producer (`_desk/review-message.ts`, `review-session.tsx`) (a board idea from `window-notes`).
 - Host: the dashboard card says Closed for paused uploads (`statusLabel`, `app/(app)/dashboard/page.tsx`) while the hub's Settings card words the gate Only people already in as "Private · Closed" (`doorLabel`): one word, two states; the card could say Paused, the code's own word (from `event-ready`).
 - Host: at 375 the album's "Before the first photo" wraps to two lines under Add photos and View (`event-feed/event-gallery.tsx`); it retires with the launch list if `event-ready`'s `list` moves it (from `event-ready`).
 - The lab and the kit: a portalled frame is not its own world: a production `<Link>` pressed in it navigates the lab (boards carry `stopLinks` or `Inert`), radix layers portal to the lab's document, and a `loading="lazy"` image never loads; `Frame` swallowing links and handing radix a frame-scoped portal container would let a board draw production whole (from `event-ready`).

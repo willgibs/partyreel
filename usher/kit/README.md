@@ -52,7 +52,9 @@ answer changes a call, the record says so, and a disagreement on a one-way door 
   to open first when the order changed.
 - **His sitting** walks one step per question, each answered from its dock with a note where the pick is not enough,
   and ends in one paste. Read the paste beside the boards it answers (`review-sheet.mjs`), transcribe it with
-  `pnpm lab:review` on STDIN (`--dry` first), and ask the follow-ups in chat.
+  `pnpm lab:review` on STDIN (`--dry` first), and ask the follow-ups in chat. A note he gives on no board binds
+  nothing: fold it into the doc it refines (synthesized, never quoted) or file it on its board, and file it in
+  `_window.json` as a round dated that day only if he should see his own words on the desk that sitting.
 - **An answer that reaches a question still open on another board** is judged: a question whose options still hold
   an idea that could beat the current path, even one his pick diverged from, is adapted to the current context with
   that road kept open; only a question already solved at its best is removed.

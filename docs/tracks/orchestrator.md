@@ -42,7 +42,6 @@ a lane").
 | `crumbs-16` | build 23's HIGH bug at its root (a history call hands Next its own `__NA` state, so Settings rows never open their page and a page's back arrow never returns), the same shape swept and held by a policy test; triage-r2-wiring's relayed help article | handed back after gate 71: with its change `demo-framing.names` hangs (`Page.navigate` never answers; it passes on `61a4ee00` without the change), so the unpushed merge was undone; resumed to fix it at its root with a failing test and re-run `lab:demo` over every board (agent `a5ddc145d2b108533`; worktree `../partyreel-wt/crumbs-16`) | Sonnet, 3133 | |
 | `schema-pass` | the data architecture trimmed on Will's yes (asked "May the lane write its two migration files and run those proofs?", he answered "Yes, write and prove") | merged at `57b17ace` (gate 73); part 1 (`20260929160000`) reviewed by the Advisor (apply verbatim: nothing main reads is dropped or loses a grant) and drift-checked clean (6 columns, 4 indexes, 1 policy; 20 events inside the bounds), but the permission classifier refused its apply (2026-09-29 ~19:50Z): it waits on Will's explicit go-ahead, never a retry by another route; part 2 after milestone 31 | Opus, 3132 | `54f414f9` |
 | `album-motion-wiring` | album-motion r1: the hero's two symmetrical streams, each photograph drawn in and dissolving at the album's edge, then pushed into the album from the left as a real upload arrives; retires `sandbox/album-motion/` in-lane | running (agent `a59b9b5183feee95f`; worktree `../partyreel-wt/album-motion-wiring`) | Opus, 3131 | |
-| `window-notes` | a note of Will's binds only what it was given on: stop the lab merging board-less window notes into every board (his three brand-voice notes of 2026-09-17 have bound every board since), window notes expire with their sitting, program-wide notes are the Orchestrator's to fold in; a read-only audit of other board notes turned rules | running (agent `a8e2499b27081d552`; worktree `../partyreel-wt/window-notes`) | Sonnet, 3132 | |
 | `crumbs-17` | build 23's red-team finds: BUG-2 (the invited guest left at the door, likely a function replaced by migration), BUG-3 (the host's Report on her own album), LOW-2, the uncovered dismissed worst kind, eleven nits; two dead seams from crumbs-15 | running (agent `a6c1aa7bbba36b7fe`; worktree `../partyreel-wt/crumbs-17`) | Opus, 3135 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
@@ -66,8 +65,6 @@ account, and the relays below, which live only in the agents:
   finishes; the Vercel MCP does not reach the P3 team.
 - `schema-pass`: Will's yes quoted (its row), and `public.reports`' default anon and authenticated grants closed in
   part 1.
-- `event-ready` (and every board lane until `window-notes` merges): the desk's three "every board" notes were Will's
-  notes on the retired brand-voice board, misfiled; they bind no board.
 - `crumbs-16`: handed back with the evidence (its row): reproduce the `demo-framing.names` hang on its own port, fix it at
   its root with a test that fails on its current code, re-run `lab:demo` over every board and `lab:smoke`, hand off again.
 
@@ -82,7 +79,7 @@ Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcr
 boards). Batch 7 is merged whole; its records carry the rest.
 
 Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, disposable-mode r2, crumbs-13, lab-revamp
-stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, crumbs-15, loose-ends-wiring, contact-wiring, desk-tune, event-ready r1.
+stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, crumbs-15, loose-ends-wiring, contact-wiring, desk-tune, event-ready r1, window-notes.
 
 ## Next, in order
 
@@ -95,7 +92,7 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
    dashboard grids), LOW-2 (the operator cannot tell a host's report from a guest's), NIT-1 to NIT-11 (the ledger),
    and the ROADMAP's two dead-seam lines from `crumbs-15`. The calls to overrule and his two decisions (the proof mail,
    the instant-hide bar's permanence) went to him in one file.
-2. **Integrate each lane as it hands off** (crumbs-16 again, window-notes, album-motion-wiring, crumbs-17), each migration by
+2. **Integrate each lane as it hands off** (crumbs-16 again, album-motion-wiring, crumbs-17), each migration by
    protocol, one at a time: drift check, apply verbatim, the rolled-back refusals, advisors, types. The two wiring
    lanes' ledgers are gone with their boards;
    `../partyreel-wt/_scratch/triage-r2-wiring/` goes after crumbs-16's merge (it holds the relayed help article).
