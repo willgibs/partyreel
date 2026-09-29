@@ -212,7 +212,10 @@ export function CrumbsBar() {
         {trail.map((step, i) => {
           const isLast = i === trail.length - 1;
           return (
-            <li key={`${step.label}-${i}`} className="flex min-w-0 items-center gap-1">
+            <li
+              key={`${step.label}-${i}`}
+              className="flex min-w-0 items-center gap-1"
+            >
               {i > 0 && (
                 <ChevronRight
                   className="size-3.5 shrink-0 text-muted-foreground/60"

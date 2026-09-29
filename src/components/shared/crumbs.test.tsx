@@ -76,10 +76,13 @@ describe("the trail in the bar", () => {
     expect(
       screen.getByRole("navigation", { name: /breadcrumb/i }),
     ).toBeTruthy();
-    const current = screen.getAllByText("Review").find((el) =>
-      el.getAttribute("aria-current") === "page",
-    );
-    expect(current, "the last step marks itself as the current page").toBeTruthy();
+    const current = screen
+      .getAllByText("Review")
+      .find((el) => el.getAttribute("aria-current") === "page");
+    expect(
+      current,
+      "the last step marks itself as the current page",
+    ).toBeTruthy();
   });
 
   it("makes every step but the last a walkable link", () => {
@@ -149,7 +152,8 @@ const ROOM = [
 
 /** What the bar shows right now: its text, or null when it draws nothing. */
 const bar = () =>
-  screen.queryByRole("navigation", { name: /breadcrumb/i })?.textContent ?? null;
+  screen.queryByRole("navigation", { name: /breadcrumb/i })?.textContent ??
+  null;
 
 /**
  * The bar as each COMMIT of it leaves it, recorded by a Profiler around it (its callback runs in the commit,
@@ -174,11 +178,12 @@ const routeWith = (key: string, trail: { label: string; href?: string }[]) => (
     <SetCrumbs trail={trail} />
   </div>
 );
-const routeWithNone = (key: string) => <div key={key}>a page that sets none</div>;
+const routeWithNone = (key: string) => (
+  <div key={key}>a page that sets none</div>
+);
 const skeleton = (key: string) => (
   <div key={key}>
-    <CrumbsHold />
-    a route&rsquo;s skeleton
+    <CrumbsHold />a route&rsquo;s skeleton
   </div>
 );
 
@@ -189,13 +194,18 @@ describe("a trail is drawn while its route is on screen, and not after", () => {
     expect(bar()).toContain("Sarah and Tom");
     // The delete's redirect, the account menu's Account, Back to /dashboard: a route with no SetCrumbs.
     view.rerender(shell(routeWithNone("dashboard"), seen));
-    expect(bar(), "the last route's trail is still on a route that sets none").toBeNull();
+    expect(
+      bar(),
+      "the last route's trail is still on a route that sets none",
+    ).toBeNull();
   });
 
   it("★ and so does an error or a not-found page in the route's own place", () => {
     const view = render(shell(routeWith("hub", ROOM), []));
     // The page throws or calls notFound(): the boundary's UI stands where the page was, and nothing claims.
-    view.rerender(shell(<p key="not-found">We couldn&rsquo;t find that event</p>, []));
+    view.rerender(
+      shell(<p key="not-found">We couldn&rsquo;t find that event</p>, []),
+    );
     expect(bar()).toBeNull();
   });
 
@@ -209,10 +219,13 @@ describe("a trail is drawn while its route is on screen, and not after", () => {
     view.rerender(shell(routeWith("hub", HUB), seen));
     expect(bar()).not.toContain("Guests");
     const steps = seen.slice(first);
-    expect(steps.length, "the steps were not recorded").toBeGreaterThanOrEqual(2);
-    expect(steps, "an empty bar was committed between two routes that both set a trail").not.toContain(
-      null,
+    expect(steps.length, "the steps were not recorded").toBeGreaterThanOrEqual(
+      2,
     );
+    expect(
+      steps,
+      "an empty bar was committed between two routes that both set a trail",
+    ).not.toContain(null);
   });
 
   it("★ a skeleton holds the last trail through the wait, and the page that lands replaces it in the same commit", () => {
@@ -221,7 +234,9 @@ describe("a trail is drawn while its route is on screen, and not after", () => {
     const first = seen.length;
     // The address commits, the old page is gone and the new one has not arrived: only its skeleton is up.
     view.rerender(shell(skeleton("guests-loading"), seen));
-    expect(bar(), "the bar blinked for the length of the wait").toContain("Sarah and Tom");
+    expect(bar(), "the bar blinked for the length of the wait").toContain(
+      "Sarah and Tom",
+    );
     expect(bar()).not.toContain("Guests");
     view.rerender(shell(routeWith("guests", ROOM), seen));
     expect(bar()).toContain("Guests");
@@ -236,7 +251,10 @@ describe("a trail is drawn while its route is on screen, and not after", () => {
     view.rerender(shell(skeleton("dashboard-loading"), []));
     expect(bar()).toContain("Guests");
     view.rerender(shell(routeWithNone("dashboard"), []));
-    expect(bar(), "the trail outlived the skeleton that was holding it").toBeNull();
+    expect(
+      bar(),
+      "the trail outlived the skeleton that was holding it",
+    ).toBeNull();
   });
 
   it("★ and it is spent: the next route's skeleton holds nothing of an event left two routes ago", () => {
@@ -250,14 +268,7 @@ describe("a trail is drawn while its route is on screen, and not after", () => {
   });
 
   it("holds until the LAST skeleton is gone, and lets go when the count returns to none", () => {
-    const view = render(
-      shell(
-        <>
-          {routeWith("hub", HUB)}
-        </>,
-        [],
-      ),
-    );
+    const view = render(shell(<>{routeWith("hub", HUB)}</>, []));
     view.rerender(
       shell(
         <>
@@ -305,9 +316,13 @@ describe("a trail is drawn while its route is on screen, and not after", () => {
   });
 
   it("is claimed under StrictMode's extra effect cycle, and released for good when the route goes", () => {
-    const view = render(<StrictMode>{shell(routeWith("hub", HUB), [])}</StrictMode>);
+    const view = render(
+      <StrictMode>{shell(routeWith("hub", HUB), [])}</StrictMode>,
+    );
     expect(bar()).toContain("Sarah and Tom");
-    view.rerender(<StrictMode>{shell(routeWithNone("dashboard"), [])}</StrictMode>);
+    view.rerender(
+      <StrictMode>{shell(routeWithNone("dashboard"), [])}</StrictMode>,
+    );
     expect(bar()).toBeNull();
   });
 

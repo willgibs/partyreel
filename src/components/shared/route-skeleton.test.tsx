@@ -135,11 +135,15 @@ describe("RouteSkeleton holds the trail", () => {
     const files = readdirSync(join(ROOT, "src/app/(app)"), { recursive: true })
       .map((f) => `src/app/(app)/${String(f).replace(/\\/g, "/")}`)
       .filter((rel) => rel.endsWith("/loading.tsx"));
-    expect(files.length, "found the host app's loading files").toBeGreaterThanOrEqual(2);
+    expect(
+      files.length,
+      "found the host app's loading files",
+    ).toBeGreaterThanOrEqual(2);
     for (const rel of files) {
-      expect(read(rel), `${rel} draws its own fallback and holds nothing`).toMatch(
-        /\bRouteSkeleton\b/,
-      );
+      expect(
+        read(rel),
+        `${rel} draws its own fallback and holds nothing`,
+      ).toMatch(/\bRouteSkeleton\b/);
     }
   });
 
