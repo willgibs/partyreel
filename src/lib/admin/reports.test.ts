@@ -237,6 +237,9 @@ describe("the hold from a report (`escalate=door`)", () => {
     );
   });
 
+  // ★ RESHAPED ON PURPOSE (triage-r2-wiring, Will 2026-09-29: "a hold is for what police should see"; scar
+  // kept: every line true of what the act does). The hold takes it down too, by default, so its second line
+  // says where each item goes; the quiet hold says nothing leaves.
   it("says what it reaches: the item, the same uploader's others, the copies, and that nobody is told", () => {
     expect(
       holdTouches({
@@ -247,9 +250,35 @@ describe("the hold from a report (`escalate=door`)", () => {
       }),
     ).toEqual([
       "This photo in Hannah and Theo, and the 3 other uploads this guest sent there",
+      "Each leaves the album and the host's Deleted at once and stops counting against her storage; restore any from Albums after review",
       "Each original and its forensic record, copied to the preservation store",
       "The host and the guest are sent nothing",
     ]);
+    expect(
+      holdTouches(
+        {
+          kind: "photo",
+          eventName: "Okafor Reunion",
+          others: 0,
+          uploader: "guest",
+        },
+        { takeDown: true },
+      )[1],
+    ).toMatch(/^It leaves the album and the host's Deleted at once/);
+    // The quiet hold: nothing leaves, and what the host does to it looks like any act of hers.
+    expect(
+      holdTouches(
+        {
+          kind: "photo",
+          eventName: "Okafor Reunion",
+          others: 2,
+          uploader: "guest",
+        },
+        { takeDown: false },
+      )[1],
+    ).toBe(
+      "Nothing leaves the album: the host's own removal of one looks like any other",
+    );
     expect(
       holdTouches({
         kind: "video",
@@ -280,8 +309,14 @@ describe("the hold from a report (`escalate=door`)", () => {
     );
   });
 
-  it("toasts the count the confirm showed", () => {
+  it("toasts the count the confirm showed, and what it did", () => {
     expect(heldMessage(1)).toBe("Held and preserved.");
     expect(heldMessage(4)).toBe("Held and preserved 4 items.");
+    expect(heldMessage(1, { takeDown: true })).toBe(
+      "Held, taken down and preserved.",
+    );
+    expect(heldMessage(4, { takeDown: true })).toBe(
+      "Held, taken down and preserved 4 items.",
+    );
   });
 });

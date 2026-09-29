@@ -48,6 +48,8 @@ export const MEDIA_HOST_COLUMNS =
 // the same reason: an operator takedown carries the trust-safety-forensics.md discretion posture (the host may BE
 // the reported party), and the prior-status stamp is machinery, not host-facing state. Types.ts
 // will list all three after the post-apply regen — that is exactly when this Omit earns its keep.
+// `purge_asked_at` (admin-triage r2, 20260929140000) too: a permanent delete a hold or an open report defers,
+// and a host who could read it would learn that something keeps her row.
 export type MediaRow = Omit<
   Tables<"media">,
   | "legal_hold_at"
@@ -55,6 +57,7 @@ export type MediaRow = Omit<
   | "removed_by_system"
   | "removed_by_admin"
   | "status_before_removed"
+  | "purge_asked_at"
 >;
 
 /** A keyset cursor: the last row's raw timestamp string and its id (the tiebreak). */

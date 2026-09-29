@@ -68,6 +68,18 @@ export type ConfirmNote = {
   maxLength?: number;
 };
 
+/**
+ * ONE OPTION A CONFIRM CAN CARRY (admin-triage r2, the hold rebuilt on Will's word, 2026-09-29): a switch in the
+ * panel whose state changes what the act reaches, like a hold's "Take it down too", ON by default. So "What this
+ * touches" and the toast can each be a function of it, and the act is handed its state.
+ */
+export type ConfirmOption = {
+  label: string;
+  /** One quiet line under it: what unticking it means. */
+  hint?: string;
+  defaultChecked?: boolean;
+};
+
 export type DestructiveSheetProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -76,8 +88,8 @@ export type DestructiveSheetProps = {
   lede: string;
   /** The confirm button's words. A verb, never "OK". */
   verb: string;
-  /** Everything this act reaches, one line each. Never empty. */
-  touches: string[];
+  /** Everything this act reaches, one line each. Never empty. With an `option`, it may read the option's state. */
+  touches: string[] | ((optionOn: boolean) => string[]);
   /**
    * `permanent` = nothing comes back, so the operator types `confirmText`.
    * `reversible` = there is a way back, so there is nothing to type.
@@ -94,6 +106,8 @@ export type DestructiveSheetProps = {
   confirmText?: string;
   /** A line the act leaves on its record (see the header). */
   note?: ConfirmNote;
+  /** A switch whose state changes what the act reaches (`ConfirmOption`). */
+  option?: ConfirmOption;
   /**
    * ★ IT IS HANDED WHAT WAS ACTUALLY TYPED, and a permanent act must pass that
    * on rather than the string it was expecting. The account delete's server
@@ -102,8 +116,12 @@ export type DestructiveSheetProps = {
    * that guard into a tautology and leave only this panel between an operator
    * and the wrong account. The note arrives trimmed, "" when none was written.
    */
-  onConfirm: (typed: string, note: string) => Promise<ActionResult>;
-  successMessage: string;
+  onConfirm: (
+    typed: string,
+    note: string,
+    optionOn: boolean,
+  ) => Promise<ActionResult>;
+  successMessage: string | ((optionOn: boolean) => string);
 };
 
 export function DestructiveSheet(props: DestructiveSheetProps) {
@@ -134,10 +152,14 @@ function ConfirmBody({
   severity,
   confirmText,
   note,
+  option,
   onConfirm,
   successMessage,
 }: Omit<DestructiveSheetProps, "open">) {
   const [typed, setTyped] = useState("");
+  const [optionOn, setOptionOn] = useState(option?.defaultChecked ?? false);
+  const optionId = useId();
+  const reached = typeof touches === "function" ? touches(optionOn) : touches;
   // Seeded once per opening: the body unmounts with the panel, so a reopened
   // confirm starts from the caller's value again, never from a half-edit.
   const [noteText, setNoteText] = useState(note?.defaultValue ?? "");
@@ -155,12 +177,20 @@ function ConfirmBody({
   function confirm() {
     if (!matched || noteMissing || pending) return;
     startTransition(async () => {
-      const result = await onConfirm(typed.trim(), note ? noteText.trim() : "");
+      const result = await onConfirm(
+        typed.trim(),
+        note ? noteText.trim() : "",
+        optionOn,
+      );
       if (!result.ok) {
         toast.error(result.message ?? "That did not go through.");
         return;
       }
-      toast.success(successMessage);
+      toast.success(
+        typeof successMessage === "function"
+          ? successMessage(optionOn)
+          : successMessage,
+      );
       onOpenChange(false);
     });
   }
@@ -175,7 +205,7 @@ function ConfirmBody({
             What this touches
           </p>
           <ul data-slot="destructive-touches" className="space-y-1">
-            {touches.map((touch) => (
+            {reached.map((touch) => (
               <li key={touch} className="flex gap-2 text-caption">
                 <span aria-hidden className="text-muted-foreground">
                   -
@@ -185,6 +215,25 @@ function ConfirmBody({
             ))}
           </ul>
         </div>
+
+        {option ? (
+          <div className="mt-4 flex items-start justify-between gap-4">
+            <div className="space-y-0.5">
+              <Label htmlFor={optionId}>{option.label}</Label>
+              {option.hint ? (
+                <p className="text-caption text-muted-foreground">
+                  {option.hint}
+                </p>
+              ) : null}
+            </div>
+            <Switch
+              id={optionId}
+              checked={optionOn}
+              onCheckedChange={setOptionOn}
+              disabled={pending}
+            />
+          </div>
+        ) : null}
 
         {note ? (
           <div className="mt-4 space-y-1.5">

@@ -34,6 +34,14 @@
  * `standby_hosts` leave it out), the removed_media sweep takes it only once its `purge_at` passes,
  * and `held_event_ids` answers an event holding one inside its window as held, so expired events
  * and account deletion keep that event whole until the window ends.
+ *
+ * ★ AN OPEN REPORT KEEPS ITS ITEM THE SAME WAY (admin-triage r2, 20260929140000): until the report closes,
+ * nothing it names is hard-deleted (its item, or every item of the album an album report names).
+ * `kept_media_ids(uuid[])` answers which rows of a batch a hold or an open report keeps: `reclaimMedia` and
+ * purgeMediaNow ask it before a single object is deleted, `purge_media_rows` asks it again at the row, and
+ * `held_event_ids` answers an event with an open report as held. A permanent delete of a kept row is DEFERRED,
+ * never refused (`purge_asked_at`): the row leaves the host's view and meter at once, and the removed_media
+ * sweep takes it the night its keeper lets go.
  */
 
 export type LegalHoldRow = { legal_hold_at: string | null };

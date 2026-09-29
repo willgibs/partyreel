@@ -98,11 +98,15 @@ describe("sweepRemovedMedia", () => {
     const { world, due } = fixture();
     const handled = new Set<string>();
     const tally = await sweepRemovedMedia(world.client, NOW, handled);
+    // ★ RESHAPED ON PURPOSE (triage-r2-wiring, 2026-09-29; scar kept: a held row is never touched). The three held
+    // rows past their window are now DEFERRED (`defer_kept_due_media`: asked, so their bytes leave the host's
+    // meter the night any other removal's would), and nothing of them is deleted.
     expect(tally).toEqual({
       media_rows: 2_500,
       r2_deleted: 5_000,
       r2_errored: 0,
       freed_bytes: 2_500_000,
+      deferred: 3,
     });
 
     const expected = [...due]
