@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { askedAgo, peopleWaiting } from "@/lib/event/door/words";
+import { askedAgo, cameInLine, peopleWaiting } from "@/lib/event/door/words";
 
 /**
  * THE DOOR'S SMALL WORDS: how long someone waited, and how many wait. Pinned for their arithmetic and
@@ -30,5 +30,12 @@ describe("peopleWaiting", () => {
     expect(peopleWaiting(1)).toBe("1 person");
     expect(peopleWaiting(2)).toBe("2 people");
     expect(peopleWaiting(1200)).toBe("1,200 people");
+  });
+});
+
+describe("cameInLine", () => {
+  it("says who came in without a press, in number", () => {
+    expect(cameInLine(1)).toBe("1 person waiting at the door came in.");
+    expect(cameInLine(3)).toBe("3 people waiting at the door came in.");
   });
 });

@@ -88,15 +88,19 @@ should never have to click through the options to learn what he is being asked.
   board's `opening` (`about`, `settled`, `earlier`) and `terms`; `registry.test.ts` refuses an open ask without them.
 - Shape a big goal progressively (`after` stages a question behind another answer); more rounds of narrower questions
   beat one wide one.
-- Options are real contenders for one decision: never force them apart, and two that land on the same answer are a
+- Options are real contenders for one decision, as far apart as the real answers are: pushed apart for the
+  exploration's sake, each turns into a caricature nobody would ship, and two that land on the same answer are a
   finding. Ask nothing an open ask on another standing board already asks (your brief names the nearest).
-- **Offer the fix at its source**: when a question is a symptom of the system (a token is wrong), an option fixes the
-  system, not only the page.
+- **Offer the fix at its source**: when a question is a symptom of the system (a token is wrong), an option that fixes
+  the system is worth drawing beside the page's own, since a fix to one page leaves the next page asking the same
+  question.
 - **Measure every tile before it ships**: a preview shows what its option's words claim, read on screen, never
   computed.
-- **Answer a relative note against a reference**: a note like "a bit more calm" gets options graded against something
-  he already likes, never a cap that makes every option calm by construction.
-- Placeholder copy is judged for its size and wrapping, not its words.
+- **Answer a relative note against a reference**: a note like "a bit more calm" is best answered by options graded
+  against something he already likes, since a cap that made every option calm by construction would leave him nothing
+  to choose between.
+- A board that is not about the words judges its placeholder copy for size and wrapping; the words are the voice's
+  (`marketing-voice.ts`).
 - A board is one folder, `sandbox/<id>/`, and nothing else names it:
   `pnpm new-board <id> "<title>" --surface <s> --desk <n>` writes it (every owed line a `TODO` that `registry.test.ts`
   refuses), the toolbox page (`/design/lab/kit`) teaches the rest, and retiring a board is deleting its folder.

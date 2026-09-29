@@ -6,7 +6,12 @@
 
 export type BibleGroup = "rising tides" | "experience" | "identity" | "copy";
 
-export const BIBLE_GROUPS: BibleGroup[] = ["rising tides", "experience", "identity", "copy"];
+export const BIBLE_GROUPS: BibleGroup[] = [
+  "rising tides",
+  "experience",
+  "identity",
+  "copy",
+];
 
 export type BibleRule = {
   /** A stable slug: the principle's anchor in the Library. */
@@ -72,7 +77,8 @@ export const BIBLE: BibleRule[] = [
     id: "guest-surface-is-the-host",
     n: 7,
     group: "identity",
-    statement: "A guest surface belongs to the host's event: the host's name first, and as little Partyreel as possible.",
+    statement:
+      "A guest surface belongs to the host's event: the host's name first, and as little Partyreel as possible.",
     why: "Guests came for the event, not for us, and the QR works as our growth loop because the page feels like the host's; our reach to guests is email for those who sign up, not the event page.",
   },
   {
@@ -89,15 +95,15 @@ export const BIBLE: BibleRule[] = [
     group: "identity",
     statement:
       "Every frame is ours: a page argues in real photographs made for the slot they fill, never stock, and each marketing chapter opens strong before it ramps down.",
-    why: "\"Here is a real event\" over someone else's photograph reads false, and a page of equal-weight sections has no rhythm.",
+    why: '"Here is a real event" over someone else\'s photograph reads false, and a page of equal-weight sections has no rhythm.',
   },
   {
     id: "affirmative-only",
     n: 10,
     group: "copy",
     statement:
-      "Say what we are: name what a guest is spared rather than defining us against someone else, never promise \"no account\", write no em-dashes, and treat every line as open to a better one.",
-    why: "Many events ask for an account, so \"no account\" would be untrue, and an em-dash reads as an AI tell. The voice is won one line at a time in its real place, with `marketing-voice.ts` the one home for the lines that ship.",
+      'Say what we are: name what a guest is spared rather than defining us against someone else, never promise "no account", write no em-dashes, and treat every line as open to a better one.',
+    why: 'It is about who we are, not who we are not, and a use we fence off is one a host might have found. Many events ask for an account, so "no account" would be untrue, and an em-dash reads as an AI tell; `marketing-voice.ts` is the one home for the lines that ship.',
   },
 ];
 

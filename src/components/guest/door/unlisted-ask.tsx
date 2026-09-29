@@ -7,6 +7,7 @@ import { switchEmail } from "@/components/guest/door/switch-email";
 import { Button } from "@/components/ui/button";
 import { askToJoinEvent } from "@/lib/guest/join";
 import { setStoredSession } from "@/lib/guest/use-stored-session";
+import { markWelcomeSeen } from "@/lib/guest/use-welcome-seen";
 
 /**
  * THE UNLISTED READER'S TWO WORDS (event-safety r1, `unlisted=ask`: "Ask Maya to let me in" as the
@@ -56,6 +57,10 @@ export function UnlistedAsk({
     // The ticket rides this device as a join's does (the cookie half came back on the response), so
     // the held door's check-in carries it beside the account.
     setStoredSession(qrToken, result.guest.sessionToken);
+    // ★ SHE HAS MET THE EVENT AT ITS DOOR AND ASKED (build 23's NIT-1): the refresh lands on the held door
+    // with no welcome in front of it, as the ask where the host lets each guest in already does (that
+    // one comes after the welcome).
+    markWelcomeSeen(qrToken);
     router.refresh();
   }
 

@@ -346,18 +346,39 @@ export const LANE_WORDS: Record<QueueLane, { label: string; line: string }> = {
 };
 
 /**
+ * Who sent a report, in the queue's words: the album's own host (build 23's LOW-2: the operator reads a host's
+ * report on her own album apart from a guest's), else a guest, signed in or not. Never who she is.
+ */
+export function reporterWho(report: {
+  signedIn: boolean;
+  byHost?: boolean;
+}): string {
+  if (report.byHost) return "The host";
+  return report.signedIn ? "Signed-in guest" : "Signed-out guest";
+}
+
+/**
  * What a report shows of who sent it (the carried call `reporter`): signed in or not, and whether she can be asked.
  * On the worst kind, which is never asked for proof, the same fact reads as what it decided: a confirmed address is
  * what let the report hide its photograph at once.
+ *
+ * ★ TRUE AFTER A REOPEN TOO (build 23's NIT-8): the close forgets the address, so a report reopened by Undo can no
+ * longer be asked, which its words say; but it was still SENT from a confirmed address, which on the worst kind
+ * its kept hash remembers (`confirmed`), so it never reads "no confirmed email" beside "Hidden right away". The
+ * host's own report never hides (create_report bars her), so on the worst kind it says only who sent it.
  */
 export function reporterWords(report: {
   signedIn: boolean;
   canAsk: boolean;
+  /** A confirmed address sent it: one still kept, or, on the worst kind, the hash that outlives it. */
+  confirmed?: boolean;
+  byHost?: boolean;
   kind?: ReportKind;
 }): string {
-  const who = report.signedIn ? "Signed-in guest" : "Signed-out guest";
+  const who = reporterWho(report);
   if (report.kind === INSTANT_HIDE_KIND) {
-    return report.canAsk
+    if (report.byHost) return who;
+    return (report.confirmed ?? report.canAsk)
       ? `${who}, email confirmed`
       : `${who}, no confirmed email`;
   }

@@ -12,7 +12,7 @@
     ],
     "album-stream": [
       "<CinemaGround>{<LiveAlbumStage />}</CinemaGround>",
-      "<div className=\"max-w-full overflow-x-auto\">\n  <CinemaGround>\n    <div\n      className=\"relative isolate overflow-x-clip\"\n      style={{ width: 1280 }}\n    >\n      <AlbumStream />\n      <div style={{ height: 520 }} />\n      <LiveAlbumStage />\n      <div style={{ height: 150 }} />\n    </div>\n  </CinemaGround>\n</div>"
+      "<div className=\"max-w-full overflow-x-auto\">\n  <CinemaGround>\n    <LiveAlbum>\n      <div\n        className=\"relative isolate overflow-x-clip\"\n        style={{ width: 1280 }}\n      >\n        <AlbumStream />\n        <div style={{ height: 520 }} />\n        <LiveAlbumStage />\n        <div style={{ height: 150 }} />\n      </div>\n    </LiveAlbum>\n  </CinemaGround>\n</div>"
     ],
     "trail": [
       "<div className=\"surface-paper overflow-hidden rounded-lg border bg-background text-foreground\">\n  <Trail\n    source=\"pointer\"\n    className=\"flex min-h-[26rem] flex-col items-center justify-center px-6 py-12\"\n  >\n    <TrailWords />\n  </Trail>\n</div>",

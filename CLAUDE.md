@@ -77,8 +77,9 @@ actually running.
   never `getSession()` (the proxy refreshes cookies and is no boundary), AND relies on RLS or SECURITY DEFINER RPCs
   ([database-security.md](docs/systems/database-security.md)). Anonymous guests use capability tokens validated inside
   those RPCs; `anon` never gets direct table access; the service-role key is server-only.
-- ★ A function created through the Supabase MCP inherits an `anon` EXECUTE grant that a bare `revoke … from public`
-  leaves in place: revoke it from `anon` explicitly unless guests must call it.
+- ★ New objects in `public` grant `anon` and `authenticated` nothing by default: a table a client must reach takes its
+  column grants in its own migration, or its read is a 42501, and a function still revokes from `public` (Postgres's
+  own default) before it grants exactly.
 - ★ Host table writes are COLUMN-locked: revoke at the table level first, then re-grant the legitimate columns.
 - ★ Never expose raw R2 keys or URLs to the browser; presign server-side
   ([uploads-and-r2.md](docs/systems/uploads-and-r2.md)).

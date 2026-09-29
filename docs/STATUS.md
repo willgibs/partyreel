@@ -28,8 +28,7 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 ## The desk
 
 Build 22's desk: `locked-door` r2 (four asks: the door family's direction first) and `disposable-mode` r2 (eight: the
-camera first), every ask with its context, both served on build 24 (the door family's "as today" redrawn from
-production's doors). Two older asks wait on the rounds that replace their boards (demo-framing's `names`,
+camera first) and `event-ready` r1 (five), every ask with its context, served on build 25. Two older asks wait on the rounds that replace their boards (demo-framing's `names`,
 press-page's `a-human`).
 
 ## Live state
@@ -39,9 +38,10 @@ press-page's `a-human`).
   door redirects; the signed-in pass PASS (the renew return, the hub past 1,000, the list always on, the look's
   Block, Settings whole, the reel, the owner's password album, the slug refusal). `admin.partyreel.com` is served by `partyreel-admin`
   (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel` (`=app`).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 24 (`343e059e`): build 23's doors,
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 25 (`c038e4eb`): build 23's doors,
   settings, reports and hold, plus the lab as one folder a board, the contact page, the FAQ look and the Everywhere
-  egg, and the door family board redrawn from production. Build 23 was red-teamed live: settings 9 of 11 (BUG-1 in
+  egg, the door family board redrawn from production, the event-ready board, Settings' pages fixed (BUG-1) and the
+  guest's report article; its red-team runs. Build 23 was red-teamed live: settings 9 of 11 (BUG-1 in
   `crumbs-16`), triage 7 of 7; its other finds are `crumbs-17`'s.
 - **The shared database** runs nine migrations applied 2026-09-29 (the block, the free shift, the operator removal purge,
   the help's feedback, the pass reminders switch, likes on private albums, the slug family, the doors, the triage rebuild), which partyreel.com's milestone-30 build now

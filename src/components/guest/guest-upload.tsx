@@ -212,6 +212,7 @@ export function GuestUpload({
           id: it.id,
           file: it.file,
           error: it.error,
+          code: it.errorCode,
         }))}
         sent={sentThisRun}
         hostName={hostName}

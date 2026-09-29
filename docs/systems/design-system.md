@@ -105,8 +105,9 @@ is near it; **beam** marks the object that is the live subject. Ink tends to tak
   Pro card, lit at rest, is the one exception.
 - **Scarcity is a distance**: roughly a viewport of unlit page between lamps.
 - **Light never goes** on nav panels (the most-used controls get no theater), near a cap or an upload error (it would
-  read as a warning; failure is `--destructive`), on skeletons, on every `CtaBand`, in the admin, or on gallery
-  arrivals (a batch would bury an album's top; arrivals wear `shared/arrival.css`).
+  read as a warning; failure is `--destructive`), on skeletons, on every `CtaBand`, or in the admin.
+- **Gallery arrivals wear their own glow** (`shared/arrival.css`) rather than a lamp: a second light at the album's head
+  on every beat reads as a pulse, not light, and a batch of them would bury the album's top.
 - **A new lamp answers four questions first**: what emits (or what place is lit), from where, sampled from what, and
   what above admits it.
 - **The lamp set is light, never UI**: five hues (coral 25, amber 85, green 155, blue 255, violet 305) in three
@@ -165,8 +166,8 @@ is near it; **beam** marks the object that is the live subject. Ink tends to tak
 
 The Aurora is the coloured light as one family (code keeps the older names: `Glow`, SPILL, `--glw-*`, `--lamp-*`): the
 **seam** where two grounds meet, the **throw** cast from a point on an object, the **field** lighting a chapter at its
-edges, and two marks, the **bloom** (a one-time glow that rests lit) and the **halo** (an object lit from behind, never a
-button).
+edges, and two marks, the **bloom** (a one-time glow that rests lit) and the **halo** (an object lit from behind: around a
+button it reads as decoration on a control rather than light from a thing).
 
 - **The field is `SectionLight`** (`marketing/system/section-light.tsx`): two seams at the section's own boundaries,
   the bottom one the top one flipped (the engine grows no bottom shape; a vector is the caller's to turn), `placement`
@@ -177,13 +178,14 @@ button).
   site's with a comment saying why, so `SectionLight` has no default placement and a page never repeats a composition.
 - ★ **A section with no boundary line of its own cannot take a band or a floor cast**: the box clips the falloff into a
   hard line. A side cast, vertically centred, with a reach under about 64 percent finishes inside the box.
-- ★ **An Aurora on a light ground reads as an artifact, so a CSS fence switches it off**:
-  `[data-section-light]:not(.dark *), .surface-paper [data-section-light] { display: none }`, both halves needed (a paper
-  chapter sits inside a forced-dark wrapper; a cinema page in a light session has no `.dark` on `<html>`).
+- ★ **The Aurora is not on a light ground yet, and a CSS fence switches it off there**: on paper it read as a stray
+  shadow rather than a glow, and nothing re-tunes the lamp set for paper, so a media-less lamp there would paint the dark
+  register on white. The app's light mode owes lit surfaces their own answer first (ROADMAP's light-mode line). The
+  fence, both halves needed (a paper chapter sits inside a forced-dark wrapper; a cinema page in a light session has no
+  `.dark` on `<html>`): `[data-section-light]:not(.dark *), .surface-paper [data-section-light] { display: none }`.
 - ★ **A second copy of that fence is the one that drifts.** It is ONE rule listing lamp boxes (the share card's
   `[data-rxp-cardlight]` is on it; the Studio's twin, in a near-black room, is not), hooked on the light's own box, never
-  the object, and never widened to `[data-glw]`, which would switch off the shipped seams. Nothing re-tunes the lamp set
-  for paper, so a media-less lamp on paper would paint the dark register on white.
+  the object, and never widened to `[data-glw]`, which would switch off the shipped seams.
 
 ## Type: the heading face + the ladder
 
@@ -210,11 +212,12 @@ button).
   emblem's glyph), which a viewport clamp would size by the wrong box; an Inter label inside a heading tag, kept for the
   outline (the feed's section header, the dashboard's section labels, the admin bands), never "fixed" onto a step; and
   `app/global-error.tsx`, which replaces the whole document, stylesheet included, so its h1 is sized inline.
-- **One heading weight, 700, and its one home is the `font-heading` utility**: no weight class sits beside it, since
-  Tailwind emits the custom utility ahead of the stock weights and `font-heading font-medium` paints 500
-  (type-ladder-policy refuses it), so a heading that should weigh otherwise is the utility's change. `PageHeading` is
-  the one source of every app and admin `<h1>` (a stock size passed in takes it off the ladder); labels and eyebrows
-  are Inter 500.
+- ★ **A weight class beside `font-heading` beats it, silently**: Tailwind emits the custom utility ahead of the stock
+  weights, so `font-heading font-medium` paints 500 while the class names the heading face (type-ladder-policy refuses
+  it; shadcn's generator writes a weight onto every title it adds). So the heading weight lives in the utility alone:
+  700 is the current preference (the heavier weight read better than the thin app headings it replaced), and a heading
+  that should weigh otherwise changes the utility. `PageHeading` is the one source of every app and admin `<h1>` (a
+  stock size passed in takes it off the ladder); labels and eyebrows are Inter 500.
 - **Marketing heroes compose `PageHero`** (eyebrow, h1, subhead, actions; `scale` picks the step, `children` is the
   stage, `backdrop` sits behind; the heading always an `<h1>`, as `SectionShell`'s `as` is for sections). Its entrances
   are named registers (`rise`, `cut`, `blur`), and the h1 never moves in any: an h1 resting at `opacity: 0` is an LCP
@@ -303,8 +306,10 @@ named in `lib/glass.ts`. `PosterCardChip` (the stored reel's poster) is the one 
   brightest photograph, and white fails the same way on a pale sky. A tint strong enough would sink every dark
   photograph, so the glyph wears a halo. Judge over the raw photograph, never an already-dimmed album.
 - **Dark in both themes**: chrome over a photograph is the same on any page, so `.dark` redeclares no `--glass-*`.
-- ★ **Glass is media chrome, never a popover**: a floating panel is opaque with a step and a ring, and
-  `floating-layer.ts` refuses a backdrop filter on one. A scrim's blur is not a panel's material.
+- **Glass is media chrome, and not yet a popover's**: a floating panel is opaque with a step and a ring, and
+  `floating-layer.ts` carries no backdrop filter until the banked Glass exploration (ROADMAP's glass line) designs
+  the material across marketing and app; one added there first would be a one-off on every panel at once. A scrim's
+  blur is not a panel's material.
 - **The section plate's two numbers are local and measured** (`backdrop/photo-section.css`: reading copy over a
   full-bleed photograph needs a darker brightness and tint to clear 4.5:1); retune them by measuring.
 - **A phone pays nothing measurable for the ground**: the viewer's swipe holds 16.7ms frames blurred or flat, even at
@@ -444,7 +449,8 @@ primitives name their transition properties, never `transition-all`.
 `floatingCorner` (`rounded-float`) around rows derived from the panel's own padding; `floatingEntrance` (anchored: a
 fade, a hair of scale, 8px from the anchor) and `floatingEdgeEntrance` (the sheet's slide); and `floatingClock`, whose
 three rungs follow frequency: instant for what opens dozens of times an hour (a tooltip, a dropdown, a select),
-standard for a popover or dialog, edge for the sheet. The light is `shadow-layer`, and no panel is translucent.
+standard for a popover or dialog, edge for the sheet. The light is `shadow-layer`, and every panel is opaque until the
+Glass exploration answers its material.
 `drawer.tsx` (vaul's, drawn only by the Library's gallery now) and `sonner.tsx` sit outside the family by name; the QR mini-modal's View
 Transition is its one sanctioned hole ([host-app.md](host-app.md)).
 

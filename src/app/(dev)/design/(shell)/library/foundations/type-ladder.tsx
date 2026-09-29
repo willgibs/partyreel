@@ -21,12 +21,13 @@ import { cn } from "@/lib/utils";
  * variables some utility happens to use, and a token you cannot read is not a
  * token.)
  *
- * ★ A SPECIMEN WHOSE SIZE IS BEING JUDGED IS NEVER SCALED. Will, on the board's
- * fourth round: "the previews throw off anything related to size, and the whole
- * point is reviewing accurate sizing." So a rung that does not fit CLIPS at the
- * column edge instead of shrinking, exactly the way a 160px masthead meets the
- * edge of a page. The thing you compare is the cap height, and it is true to
- * the pixel. That idea is all this kept from `sandbox/type-scale`.
+ * ★ A RUNG CLIPS RATHER THAN SCALES, because its size is what this page is read
+ * for. Will, on the type-scale board's fourth round: "the previews throw off
+ * anything related to size, and the whole point is reviewing accurate sizing."
+ * So a rung that does not fit CLIPS at the column edge instead of shrinking,
+ * exactly the way a 160px masthead meets the edge of a page. The thing you
+ * compare is the cap height, and it is true to the pixel. That idea is all
+ * this kept from `sandbox/type-scale`.
  *
  * ★ AND THE WORDS ARE THE SITE'S OWN. A specimen set in "Aa Bb Cc" is a font
  * sample; a ladder is judged on the copy that actually stands at each step.
@@ -38,11 +39,13 @@ import { cn } from "@/lib/utils";
  * is that it is the thing itself. The `label` row wears `uppercase` for the
  * same reason — 0.08em of tracking on lowercase is not what that step is.
  *
- * ★ EVERY HEADING ROW AT THE FACE'S ONE WEIGHT. The rows under `page` wore a
- * `font-semibold` for a "tiered" 600 that the product dropped with the thin
- * headings (Will, 2026-09-29: "it looks very bad compared to our standard
- * heavier weight"), so each heading step is drawn in `font-heading` alone, at
- * the 700 every heading on the site now wears.
+ * ★ EVERY HEADING ROW IN `font-heading` ALONE, because a weight class beside it
+ * wins: Tailwind emits the custom utility ahead of the stock weights, so the
+ * `font-semibold` the rows under `page` once wore painted a "tiered" 600 while
+ * the class named the heading face. Drawn alone, each row shows the weight the
+ * product's headings wear, 700 today (the heavier weight the thin app headings
+ * were dropped for, 2026-09-29); a heading that should weigh otherwise changes
+ * the utility, and this ladder follows it.
  */
 
 type Register = "marketing" | "app" | "body";

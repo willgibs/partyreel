@@ -108,7 +108,10 @@ export async function setEventDoor(
       data: {
         /** The email step was turned on with it (an address gate holds it on). */
         emailHeld: boolean;
-        /** People waiting at the door who came in because the album turned Public. */
+        /**
+         * People waiting at the door who came in with it: everyone, as the album turned Public, or
+         * those the list names, as the invite list became the door (20260929220000).
+         */
         admitted: number;
       };
     }
@@ -159,6 +162,12 @@ export type InviteAddResult = {
   overCap: number;
   /** Addresses on the list now. */
   total: number;
+  /**
+   * People waiting at the door whom the list now names, and so came in (build 23's BUG-2,
+   * 20260929220000): only while the list is the door. A database before that migration answers no
+   * such key, which reads 0.
+   */
+  admitted: number;
 };
 
 /** Addresses onto the invite list (already read by the field; the database normalises and caps). */
@@ -182,6 +191,7 @@ export async function addEventInvites(
       invalid: count(d.invalid),
       overCap: count(d.over_cap),
       total: count(d.total),
+      admitted: count(d.admitted),
     },
   };
 }

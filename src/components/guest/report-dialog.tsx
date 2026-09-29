@@ -78,17 +78,52 @@ const TITLE: Record<"event" | "photo" | "video", string> = {
   video: "Report this video",
 };
 
-/** The one line under the kinds when the worst is picked, true of what sending will do. */
+/**
+ * The one line under the kinds when the worst is picked, true of what sending CAN do. ★ IT NEVER
+ * PROMISES THE HIDE (build 23's NIT-6): the server decides it when the report lands, past limits this
+ * form cannot see (a few an address and an event a day, and never for an address a false report
+ * barred), so the line says what a confirmed email can do and the toast after says what it did.
+ */
 export function instantHideLine(
   subject: Subject["kind"],
   confirmed: boolean,
 ): string {
   if (subject === "album") {
-    return "Report the photo itself, from its own Report, and a confirmed email hides it right away.";
+    return "Report the photo itself, from its own Report, where a confirmed email can hide it right away.";
   }
   return confirmed
-    ? "It's hidden from everyone the moment you send this, while we look."
-    : "Confirm your email and it's hidden from everyone the moment you send this, while we look.";
+    ? "Your confirmed email can hide it from everyone the moment you send this, while we look."
+    : "Confirm your email and it can be hidden from everyone the moment you send this, while we look.";
+}
+
+/**
+ * THE ALBUM'S REPORT FOOT, AND WITH IT EVERY PHOTO'S REPORT (build 23's BUG-3). The form mounts only for
+ * a viewer who is not the album's host: a photo's capsule offers Report only while a form listens
+ * (`useReportDoorOpen`), so the host looking at her own album through its link gets neither the foot
+ * nor a Report on any photo, her own uploads included. Her album is hers to curate (Hide and Remove, in
+ * her dashboard), never to report, whichever door she came in by. The demo keeps no report either:
+ * nothing in it is real.
+ *
+ * The rule under the album runs the album's width, so it reads as the page's last line rather than a
+ * stray hairline under the words: the gutter as a margin rather than its padding, because the hairline
+ * IS the alignment, and a padded box would run its border under the gutter to the window's edge.
+ */
+export function ReportFoot({
+  qrToken,
+  isOwner,
+  isDemo,
+}: {
+  qrToken: string;
+  /** The viewer hosts this album (the page's own owner answer). */
+  isOwner: boolean;
+  isDemo: boolean;
+}) {
+  if (isOwner || isDemo) return null;
+  return (
+    <footer className="mx-3 mt-8 flex justify-center border-t border-border/60 pt-5 sm:mx-5">
+      <ReportDialog qrToken={qrToken} />
+    </footer>
+  );
 }
 
 export function ReportDialog({ qrToken }: { qrToken: string }) {

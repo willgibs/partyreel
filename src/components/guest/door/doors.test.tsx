@@ -40,15 +40,12 @@ vi.mock("@/lib/guest/use-stored-session", () => ({
   setStoredSession: (...args: unknown[]) => setStoredSession(...args),
 }));
 
-const { ShutDoor, shutDoorCopy } = await import(
-  "@/components/guest/door/shut-door"
-);
-const { UnlistedAsk, unlistedAskCopy } = await import(
-  "@/components/guest/door/unlisted-ask"
-);
-const { WaitingStep, waitingCopy, WAITING_CHECK_IN_MS } = await import(
-  "@/components/guest/door/waiting-step"
-);
+const { ShutDoor, shutDoorCopy } =
+  await import("@/components/guest/door/shut-door");
+const { UnlistedAsk, unlistedAskCopy } =
+  await import("@/components/guest/door/unlisted-ask");
+const { WaitingStep, waitingCopy, WAITING_CHECK_IN_MS } =
+  await import("@/components/guest/door/waiting-step");
 const { AskStep, askCopy } = await import("@/components/guest/door/ask-step");
 
 const QR = "tok-door";
@@ -61,6 +58,7 @@ afterEach(() => {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  localStorage.clear();
 });
 
 /** The message a shut door shows: its heading and its line, nothing else. */
@@ -83,14 +81,18 @@ describe("the shut door", () => {
   });
 
   it("a visitor signed out gets the quiet way back in; someone signed in does not", () => {
-    render(<ShutDoor previous={false} signedIn={false} returnTo={`/e/${QR}`} />);
+    render(
+      <ShutDoor previous={false} signedIn={false} returnTo={`/e/${QR}`} />,
+    );
     const back = screen.getByRole("link", { name: "Log in" });
     expect(back.getAttribute("href")).toContain("/login");
     expect(back.getAttribute("href")).toContain(encodeURIComponent(`/e/${QR}`));
     cleanup();
     render(<ShutDoor previous={false} signedIn returnTo={`/e/${QR}`} />);
     expect(screen.queryByRole("link", { name: "Log in" })).toBeNull();
-    expect(screen.getByRole("link", { name: "What is Partyreel?" })).toBeTruthy();
+    expect(
+      screen.getByRole("link", { name: "What is Partyreel?" }),
+    ).toBeTruthy();
   });
 
   it("★ the unlisted reader's foot replaces the way home, and the message never moves", () => {
@@ -112,7 +114,9 @@ describe("the shut door", () => {
     expect(
       screen.getByRole("button", { name: "Use a different email" }),
     ).toBeTruthy();
-    expect(screen.queryByRole("link", { name: "What is Partyreel?" })).toBeNull();
+    expect(
+      screen.queryByRole("link", { name: "What is Partyreel?" }),
+    ).toBeNull();
   });
 });
 
@@ -137,6 +141,19 @@ describe("the unlisted reader's ask", () => {
     expect(setStoredSession).toHaveBeenCalledWith(QR, TICKET);
   });
 
+  it("★ asking marks the welcome seen, so the held door comes with no welcome in front of it (build 23's NIT-1)", async () => {
+    askToJoinEvent.mockResolvedValue({
+      ok: true,
+      guest: { sessionToken: TICKET, admission: "waiting" },
+    });
+    render(<UnlistedAsk qrToken={QR} hostName="Maya" />);
+    fireEvent.click(
+      screen.getByRole("button", { name: unlistedAskCopy("Maya").primary }),
+    );
+    await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
+    expect(localStorage.getItem(`pr_welcome_${QR}`)).toBe("1");
+  });
+
   it("a refused ask says why, stores nothing and stays put", async () => {
     askToJoinEvent.mockResolvedValue({
       ok: false,
@@ -152,11 +169,15 @@ describe("the unlisted reader's ask", () => {
     );
     expect(setStoredSession).not.toHaveBeenCalled();
     expect(refresh).not.toHaveBeenCalled();
+    // Nothing was asked, so nothing is marked: the welcome still greets her on the album's own door.
+    expect(localStorage.getItem(`pr_welcome_${QR}`)).toBeNull();
   });
 
-  it("\"Use a different email\" switches the address", () => {
+  it('"Use a different email" switches the address', () => {
     render(<UnlistedAsk qrToken={QR} hostName="Maya" />);
-    fireEvent.click(screen.getByRole("button", { name: "Use a different email" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Use a different email" }),
+    );
     expect(switchEmail).toHaveBeenCalledOnce();
   });
 });
@@ -245,7 +266,9 @@ describe("the ask where the host lets each guest in", () => {
     const onAsked = vi.fn();
     render(<AskStep qrToken={QR} hostName="Maya" onAsked={onAsked} />);
     expect(askCopy("Maya").title).toContain("Maya");
-    fireEvent.click(screen.getByRole("button", { name: askCopy("Maya").primary }));
+    fireEvent.click(
+      screen.getByRole("button", { name: askCopy("Maya").primary }),
+    );
     await waitFor(() => expect(onAsked).toHaveBeenCalledWith(guest));
   });
 });

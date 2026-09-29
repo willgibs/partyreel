@@ -1,7 +1,7 @@
 ---
 track: orchestrator
 status: open
-cut: "38373a35"          # the launch-prep SHA this state was written at
+cut: "794750cf"          # the launch-prep SHA this state was written at
 owns:                    # the standing claims no lane touches
   - src/app/(dev)/design/rules/bible.ts
   - src/app/(dev)/design/rules/bible.test.ts
@@ -39,15 +39,15 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `schema-pass` | the data architecture trimmed on Will's yes (asked "May the lane write its two migration files and run those proofs?", he answered "Yes, write and prove") | merged at `57b17ace` (gate 73); part 1 (`20260929160000`) reviewed by the Advisor (apply verbatim: nothing main reads is dropped or loses a grant) and drift-checked clean (6 columns, 4 indexes, 1 policy; 20 events inside the bounds), but the permission classifier refused its apply (2026-09-29 ~19:50Z): it waits on Will's explicit go-ahead, never a retry by another route; part 2 after milestone 31 | Opus, 3132 | `54f414f9` |
-| `album-motion-wiring` | album-motion r1: the hero's two symmetrical streams, each photograph drawn in and dissolving at the album's edge, then pushed into the album from the left as a real upload arrives; retires `sandbox/album-motion/` in-lane | running (agent `a59b9b5183feee95f`; worktree `../partyreel-wt/album-motion-wiring`) | Opus, 3131 | |
-| `crumbs-17` | build 23's red-team finds: BUG-2 (the invited guest left at the door, likely a function replaced by migration), BUG-3 (the host's Report on her own album), LOW-2, the uncovered dismissed worst kind, eleven nits; two dead seams from crumbs-15 | running (agent `a6c1aa7bbba36b7fe`; worktree `../partyreel-wt/crumbs-17`) | Opus, 3135 | |
+| `schema-pass` | the data architecture trimmed | merged at `57b17ace`; part 1 applied on Will's go-ahead (2026-09-29, his answer "Yes, apply part 1"; recorded `20260929210010`, the payload the file's md5; advisors 18/4/33; anon REST 42501; types regenerated at `c7a50adc`); a signed-in host walk on partyreel.com rides build 25's red-team as a follow-up; part 2 (`20260929170000`) after milestone 31 ships | Opus, 3132 | `54f414f9` |
+| `demo-framing-r2` | demo-framing r2, a board: the demo's slug in the host's voice or a typewriter of slugs, how the typewriter and the stream share the home hero (or the stream moves to the QR page), the hero's clickable touch in place of its eyebrow | running (agent `ac4d9d8416d49b653`; worktree `../partyreel-wt/demo-framing-r2`) | Opus, 3133 | |
+| `crumbs-18` | five small app items: the host's report help article brought to what shipped, the help's phone screens mounting once, the hub's sheet history on a double tap and a reload, phone popups after a refresh, a pushed arrival that no longer fades | running (agent `a5e41e0c0ab4f3c16`; worktree `../partyreel-wt/crumbs-18`) | Sonnet, 3131 | |
+| `about-press` | about-press r1, a board: the press kit folded into /about (with or without its four facts, as a usage note or none) or dropped; the press-page board retired in-lane | running (agent `ac39cec52094cc601`; worktree `../partyreel-wt/about-press`) | Opus, 3135 | |
+| `menu-depth` | on Will's word ("Remove it"), the dropdown's render-time throw on a third submenu level removed, its guidance kept as a comment and the sub-menu's portal test kept | running (agent `a5c372b3de31ef79b`; worktree `../partyreel-wt/menu-depth`) | Sonnet, 3132 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
-Q1, the `demo-framing.names` hang: it changed the call (attribution unproven, since my A/B ran on two server
-instances and the lane saw it hang with its lab files reverted; bisect first, the probe's stack decides; relayed to
-`crumbs-16` whole). Q2, schema-pass part 1 before its apply, is open. From another session, respawn it from
-`usher/kit/advisor-prompt.txt`.
+no question open (Q1, the `names` hang; Q2, schema-pass part 1; Q3, the notes-into-laws audit; Q4, the door migration:
+each answered and acted on). From another session, respawn it from `usher/kit/advisor-prompt.txt`.
 
 **Handoff across accounts.** The Orchestrator session is `157caa18-ec54-4aa9-a12a-04c86d5a667b` (the second account,
 seated 2026-09-29 12:23 EDT); the first account's `b01c012e` is retired and must not resume. Its agent ids live only
@@ -57,28 +57,23 @@ note naming its pushed commits, what remains, its predecessor's transcript at
 `~/.claude/projects/-Users-gibby-local-ai-partyreel/157caa18-ec54-4aa9-a12a-04c86d5a667b/subagents/agent-<id>.jsonl`
 (grep it, never read it whole), that a stale `.next/dev/lock` may be deleted and that MCP tool ids change with the
 account, and the relays below, which live only in the agents:
-- Build 23's red-team (agent `a26fc2a59dd39c154`): respawn from `../partyreel-wt/_scratch/redteam-23/brief.md` after
-  its `ledger.txt`'s last line, with: BUG-1 and NIT-1 filed (reach a settings page by its deep link); park at the admin
-  portal's "Verify it's you" and report the steps waiting on Will's code; close every report it opens before 04:48
-  UTC; delete events A `9490405b` and B `18fc375e` through the product at the end; the alias stays on build 23 until it
-  finishes; the Vercel MCP does not reach the P3 team.
+- Build 25's red-team (agent `a777878702cf5d407`): respawn from `../partyreel-wt/_scratch/redteam-25/brief.md` after its
+  `ledger.txt`'s last line (the brief carries every rule and restore).
 - `schema-pass`: Will's yes quoted (its row), and `public.reports`' default anon and authenticated grants closed in
   part 1.
-- `album-motion-wiring`: `design-system.md`'s "light never goes on gallery arrivals" was one board's note (`light` r8,
-  one shimmer): guidance, not a law; its rewording is the record's after that lane merges.
 
 If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` holds a merge made after this note (push
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
 staged, uncommitted merge is finished by `usher/kit/merge-lane.sh`'s own steps or reset with `git merge --abort`.
 This session's scratchpad (`/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/157caa18-ec54-4aa9-a12a-04c86d5a667b/scratchpad`,
-until a reboot) holds the specs and gate logs (the next gate is 68); nothing there is needed that these lines and the
+until a reboot) holds the specs and gate logs (the next gate is 80); nothing there is needed that these lines and the
 manifests do not carry.
 
 Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcribed at `31de6aa0`: 41 answers on ten
 boards). Batch 7 is merged whole; its records carry the rest.
 
 Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, disposable-mode r2, crumbs-13, lab-revamp
-stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, crumbs-15, loose-ends-wiring, contact-wiring, desk-tune, event-ready r1, window-notes, crumbs-16.
+stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, crumbs-15, loose-ends-wiring, contact-wiring, desk-tune, event-ready r1, window-notes, crumbs-16, album-motion-wiring, crumbs-17 (its migration applied by protocol, 20260929204753), unfence.
 
 ## Next, in order
 
@@ -91,7 +86,7 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
    dashboard grids), LOW-2 (the operator cannot tell a host's report from a guest's), NIT-1 to NIT-11 (the ledger),
    and the ROADMAP's two dead-seam lines from `crumbs-15`. The calls to overrule and his two decisions (the proof mail,
    the instant-hide bar's permanence) went to him in one file.
-2. **Integrate each lane as it hands off** (album-motion-wiring, crumbs-17, demo-framing-r2, unfence), each migration by
+2. **Integrate each lane as it hands off** (demo-framing-r2, crumbs-18, about-press, menu-depth), each migration by
    protocol, one at a time: drift check, apply verbatim, the rolled-back refusals, advisors, types. The two wiring
    lanes' ledgers are gone with their boards;
    `../partyreel-wt/_scratch/triage-r2-wiring/` goes after crumbs-16's merge (it holds the relayed help article).
@@ -117,14 +112,16 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
      lane's idea of the premiere on the wall, the reel's screen counting down to the develop time and playing the roll
      as an event of its own) and the door family's wiring (if the doorway wins, its reveal: walking through the opened
      door into the album, drawn first as motion options; ASSETS row 36 if the host's door wins).
-5. **Build 24 is this record** (`[preview]`: lab-revamp, crumbs-15, loose-ends, contact, desk-tune's door family,
-   schema-pass's code with part 1 not yet applied); its red-team waits for build 25 (crumbs-16's fix, crumbs-17, part 1
-   applied), then its
-   red-team: BUG-1's fix live and the new lanes' walks, crumbs-15's signed-in surfaces among them (a host changing a
-   disposable album's door and opening Guests and Blocked; `/account`'s social sections; the operator's
-   `/admin/reports` and Ask for proof; a host's Delete permanently on a removed item, then the purge cron's next run in
-   `/admin/jobs`). Then milestone 31 is proposed to Will (his yes); schema-pass's
-   part 2 applies after it ships.
+5. **Build 25 was red-teamed live** (`c038e4eb`, `../partyreel-wt/_scratch/redteam-25/ledger.txt`): 23 of 23 PASS,
+   Settings whole (BUG-1 fixed), the doors and triage as build 23, the contact note end to end, the egg and the FAQ, the
+   desk clean. Its finds go to the next crumbs lane (queued): BUG-A LOW (`SetCrumbs` never clears on unmount, so the
+   app bar keeps a left event's crumb on `/dashboard` and `/account`, a deleted event's included), NIT-a (the guest
+   report article's step screens draw the album's form while its text leads with a photo's own Report), NIT-b (its
+   callout promises the instant hide with no limit). The signed-in walk on partyreel.com after schema-pass
+   part 1 is Will's: the classifier refused the agent twice, the second time after his yes (its five steps and
+   restores end the ledger). Build 26 carries crumbs-17, unfence, album-motion, the types after both migrations, crumbs-18
+   and menu-depth when they land, then its red-team; then milestone 31 is proposed to Will (his yes); schema-pass's part
+   2 applies after it ships.
 6. **The demo event**, after `demo-framing` r2 (his full permission, 2026-09-29; the r1 board merged at `51db72fc`):
    the demo renamed (or made) to its pick, its slug claimed so the card's printed address opens it (today
    `mia-and-theo`, held by no event, left as is on his word), one home for the slug in `lib/demo.ts` that the card
@@ -141,6 +138,9 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
   `event-ready` r1 (five, merged at `5a027e53`; its three settled calls, ready never stored nor shown to a guest among
   them, are his to overrule) reaches him with build 25. Two older asks wait on the rounds that replace their boards: demo-framing's `names` (behind `story=?`) and
   press-page's `a-human` (the About round).
+- **The signed-in walk on partyreel.com** after schema-pass part 1 (the classifier refused it to agents twice): five
+  steps on event `340fcc7b`, each restored, at the end of `../partyreel-wt/_scratch/redteam-25/ledger.txt`; I read
+  the restores back by SQL after.
 - **His answer on the calls file** (28 calls to overrule, numbered; sent 2026-09-29): A, the proof mail (recommended
   off until the emails round) and B, the instant-hide bar's permanence (recommended permanent until launch).
 - **The morning of 2026-09-30, on his phone** (his word): `disposable-mode` r2's Measure a phone on the alias (the

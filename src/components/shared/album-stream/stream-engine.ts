@@ -3,33 +3,38 @@ import {
   type Bp,
   FLIGHT as HOME_FLIGHT,
   GEO as HOME_GEO,
-  LG_MIN,
   placeAt as homePlaceAt,
+  STREAM_FRAMES,
 } from "@/components/marketing/sections/home/hero-stream";
 
 /**
- * THE ALBUM STREAM: photographs falling into the live album (the album-wiring
- * lane, 2026-09-19).
+ * THE ALBUM STREAM: photographs falling into the live album, each one pushed
+ * into it as an upload (the album-wiring lane, 2026-09-19; the push,
+ * album-motion r1, 2026-09-29).
  *
- * Will's `motion=stream` on the album page's hero: "Small photographs appear
- * beside the words and glide down into the album's top edge." And on what it
- * still owes: "I love the images falling into the album. I was just curious to
- * see maybe two to three variations of this concept to get an idea of what the
- * best version is." So the composition is PARAMETERISED here rather than drawn
- * once: `glide` is the shipped version, `gather` and `cascade` are the two
- * the `album-motion` board draws beside it on the wired hero, and switching is a
- * one-word change to `SHIPPED` below.
+ * Will's `motion=stream` on the album page's hero ("Small photographs appear
+ * beside the words and glide down into the album's top edge"), and his pick of
+ * how they reach it, `fall=push`, with his note: "I'd like to keep the stream
+ * coming in from both sides to stay symmetrical and feel balanced. New items
+ * can still push in from the left, using that as the entry point source. Both
+ * streams are simply drawn in & dissolved, then their item is pushed in as an
+ * upload." So a photograph falls beside the words on either side, is drawn in
+ * (born larger than it lands, converging on the album) and dissolves at the
+ * album's top edge, and as it goes the album takes it the way a real upload
+ * arrives: its row opens from the left edge (`arrival=push`, `arrival.css`).
+ * This module decides every frame and the moment each one is handed over;
+ * `album-stream.tsx` draws them and announces the handovers, and the stage
+ * (`live-album-stage.tsx`) opens its row.
  *
  * ── WHAT CHANGED ON THE WAY OUT OF THE LAB ───────────────────────────────────
  *
- * ★ THE CANVAS IS GONE. The board (`sandbox/album-page/margins.ts`) solved two
- * fixed canvases, 1440 and 375, and stored every position in canvas pixels; a
- * real viewport is any width. The home hero hit this first and answered it by
- * storing the horizontal as a fraction of the hero's HALF-WIDTH (hero-stream.ts
- * "what changed on the way out of the lab"), and this goes one step further,
- * because this composition has to clear a lockup whose column is a FIXED 768 px
- * at every width it is drawn at. So a horizontal is an AFFINE function of the
- * half-width, `x = a + b * half` px from the hero's centre line:
+ * ★ THE CANVAS IS GONE. The first board solved two fixed canvases, 1440 and
+ * 375, in canvas pixels; a real viewport is any width. The home hero answered
+ * that by storing the horizontal as a fraction of the hero's HALF-WIDTH, and
+ * this goes one step further, because this composition has to clear a lockup
+ * whose column is a FIXED 768 px at every width it is drawn at. So a
+ * horizontal is an AFFINE function of the half-width, `x = a + b * half` px
+ * from the hero's centre line:
  *
  *   a frame born beside the words   a = (1 - f) * LOCK, b = f     f across the side band
  *   a frame landing in the album    a = g * ALBUM_HALF, b = 0     g across the album
@@ -38,20 +43,20 @@ import {
  * BETWEEN the lockup and the screen's edge; the second is pinned to the album's
  * own column, which does not move once the window is wide enough to hold it.
  * One string of CSS `calc()` carries both (`frameAt`), so the composition is
- * correct at 1024 and at 1920 with no second table and no measurement.
+ * correct at 1280 and at 1920 with no second table and no measurement.
  *
  * ★ THE VERTICAL IS ANCHORED ON THE ALBUM'S TOP EDGE, not on the section's top.
  * Every `y` here is px measured DOWN from the edge the photographs fall into
  * (negative above it), and the layer places that origin at a fixed distance
  * from the hero's FOOT (`STAGE.h + STAGE.floor`), which is a constant the hero
- * and this module share. So the lockup may wrap to three lines at 1100 px and
- * the stream does not move relative to the one thing it is aimed at. No layout
- * is read at any point: not on the server, not on resize, not in a frame.
+ * and this module share. So the lockup may wrap to another line and the stream
+ * does not move relative to the one thing it is aimed at. No layout is read at
+ * any point: not on the server, not on resize, not in a frame.
  *
  * ★ PURE, AND THAT IS LOAD-BEARING (hero-stream.ts's rule, kept). No React, no
- * stylesheet, no `env`: every variant solves at module load, the server and the
- * browser compute the same still, and the node tests read the same tables the
- * component draws. It is also what lets the hero's rest state render on the
+ * stylesheet, no `env`: the composition solves at module load, the server and
+ * the browser compute the same still, and the node tests read the same tables
+ * the component draws. It is also what lets the hero's rest state render on the
  * SERVER, which is Will's `no-script=settled`.
  *
  * ★ THE PACE IS READ OFF THE HOME HERO, NEVER TYPED (his round-three note: the
@@ -61,7 +66,6 @@ import {
  */
 
 export type { Bp };
-export { LG_MIN };
 
 /* ── The reference: the home hero, measured rather than retyped ──────────── */
 
@@ -134,7 +138,7 @@ export const ROLLS = [-3, 2, -1.5, 3.5, -2.5, 1.5, -3.5, 2.5] as const;
  * THE ALBUM'S STAGE, and the only place its numbers are written. The hero reads
  * them for its own box (`live-album-stage.tsx`, `arrivals-hero.tsx`) and this
  * module reads them for the stream's anchor, so the two cannot drift: the
- * photographs land on the edge the album is actually drawn at.
+ * photographs dissolve on the edge the album is actually drawn at.
  *
  * `h` is what the album shows before its foot dissolves, `fade` how much of
  * that dissolves (Will's note on the width: "If this width makes the dashboard
@@ -164,8 +168,15 @@ export const LOCK = 384;
  * to cross the words to exist. At 1280 the band is 256 px, which holds a frame
  * with air either side, so that is where the page changes its mind and
  * everything below it takes the `base` composition (the strip UNDER the words),
- * which needs no side room at all. `album-stream.css` says 1280 too, and that
- * is the one duplication here: a media query cannot read a module.
+ * which needs no side room at all.
+ *
+ * ★ THE STREAM, THE STAGE AND THE HERO'S FLOOR SWAP TOGETHER, here: the layer
+ * anchors on `STAGE`, so a stream showing one composition over a stage drawn at
+ * the other aims at an edge that is not there. `album-stream.css`,
+ * `live-album.css` and the hero's `xl:` padding say 1280 too (a media query
+ * cannot read a module); until album-motion's wiring the two sheets said 1024,
+ * so from 1024 to 1279 the side band drew frames over the words' column, which
+ * this module had never been tested at.
  */
 export const STREAM_LG_MIN = 1280;
 
@@ -191,9 +202,11 @@ const ALBUM_HALF = 448;
 
 export type Card = {
   key: string;
-  /** Position in the launch table; also the stand-in photograph's index. */
+  /** Position in the launch table: the file's order, and the arrivals'. */
   slot: number;
-  photo: number;
+  /** Which side of the words it falls on: 0 the lanes as declared (right of
+   *  the centre line), 1 their mirror on the left. */
+  side: 0 | 1;
   /** The unit box in px at transform scale 1, before `fit`. */
   w: number;
   h: number;
@@ -204,9 +217,10 @@ export type Card = {
   /** The path it walks, in (a, b, y) space, with its running length. */
   path: Path;
   /** How long THIS path takes on the reference curve, ms. The paths are not the
-   *  same length, so a frame that lands waits from its own arrival rather than
-   *  from the slowest one's. */
+   *  same length, so each frame's dissolve ends at its own arrival. */
   arrive: number;
+  /** The age, ms, at which the album takes its photograph: its row opens. */
+  handover: number;
 };
 
 /**
@@ -292,6 +306,19 @@ function bend(p: Pt, q: Pt, at: number, n = 48): Pt[] {
   });
 }
 
+/** An arm's path reflected through the hero's centre line: the lanes as
+ *  declared are the right arm, their mirror the left. A mirror is `x -> -x`,
+ *  and x is affine, so both halves of the pair negate. */
+function mirror(path: Path): Path {
+  return {
+    length: path.length,
+    at: (d) => {
+      const q = path.at(d);
+      return { a: -q.a, b: -q.b, y: q.y, u: q.u };
+    },
+  };
+}
+
 /* ── A composition ───────────────────────────────────────────────────────── */
 
 export type Field = {
@@ -306,6 +333,13 @@ export type Field = {
 };
 
 export type Solved = Field & {
+  /** Slots in the cycle: a launch's place in the arrival order needs it. */
+  slots: number;
+  /** ms between one arrival and the next: the album's own clock. */
+  beat: number;
+  /** When arrival 0 reaches the album, ms of elapsed (before the rest state, so
+   *  negative): arrival `n` is handed over at `firstHandover + n * beat`. */
+  firstHandover: number;
   /** Per card: the DOM box, the scale it divides by, the age past which the
    *  loop stops writing to it. */
   box: { w: number; h: number; fit: number; exit: number }[];
@@ -321,7 +355,7 @@ export type Solved = Field & {
     /** The fastest a lit card moves, px a second, at the design reference. */
     fastest: number;
   };
-  /** The numbers in words, for a board's caption and a handoff's measurement. */
+  /** The numbers in words, for a handoff's measurement. */
   caption: string;
 };
 
@@ -331,6 +365,51 @@ export const restAge = (c: Card) => c.at;
 /** THE ONE EXPRESSION THE LOOP RUNS: a card's age at an elapsed time. */
 export const ageOf = (c: Card, elapsed: number, cycle: number) =>
   mod(c.at + elapsed, cycle);
+
+/**
+ * WHICH ARRIVAL A CARD'S CURRENT FLIGHT IS, counted in the order the
+ * photographs reach the album. Card `k` launches `k` beats before card 0 does
+ * (less its lane's head start, always under a beat: `build`), so across the
+ * whole stream the launches, and therefore the arrivals, run in the order
+ * `m * slots - k` for its `m`th pass; offset so the oldest flight at rest is
+ * arrival 0. `stream-engine.test.ts` walks the clock and holds every arrival to
+ * this number and to its beat.
+ */
+export function launchOf(field: Solved, c: Card, elapsed: number): number {
+  const m = Math.floor((c.at + elapsed) / field.cycle);
+  return m * field.slots - c.slot + (field.slots - 1);
+}
+
+/** The arrival the album takes next at `elapsed`: the first whose handover is
+ *  still ahead (one landing exactly now has already been announced). */
+export function nextArrival(field: Solved, elapsed: number): number {
+  return Math.floor((elapsed - field.firstHandover) / field.beat) + 1;
+}
+
+/**
+ * THE PHOTOGRAPH AN ARRIVAL WEARS, `ahead` arrivals from now, given what the
+ * album will take next (`upcoming`, the album's own answer: its tail first).
+ *
+ * ★ THE ALBUM DECIDES, BECAUSE IT HOLDS EACH STILL ONCE. The stage's album is
+ * the twelve stills and nothing else, and it takes each arrival from its own
+ * tail, under the dissolve, pushing it in at the head (`live-album-stage.tsx`).
+ * So the next photograph to fall is always the one at the album's tail, the one
+ * after it the one above that, and so on: no still is ever in the album twice,
+ * and a frame's photograph is the one its row will open for. Without an album
+ * (a Library specimen), the tail is the one an album taking every arrival since
+ * the rest state would have: the twelve walked backwards from the last.
+ */
+export function arrivalPhoto(
+  field: Solved,
+  n: number,
+  elapsed: number,
+  upcoming?: ((ahead: number) => number) | null,
+): number {
+  const ahead = n - nextArrival(field, elapsed);
+  if (upcoming) return upcoming(ahead);
+  const first = nextArrival(field, 0);
+  return mod(STREAM_FRAMES.length - 1 - (n - first), STREAM_FRAMES.length);
+}
 
 /** The sampling resolution the solver walks a flight at. */
 const SCAN = 480;
@@ -344,8 +423,7 @@ const SCAN = 480;
  */
 function solve(
   field: Field,
-  beat: number,
-  caption: (f: Solved["facts"]) => string,
+  clock: { slots: number; beat: number; firstHandover: number },
 ): Solved {
   const { cards, flight, cycle, bp } = field;
   const half = HOME[bp].half;
@@ -404,11 +482,18 @@ function solve(
   const facts = {
     lit,
     nodes: cards.length,
-    beat,
+    beat: clock.beat,
     launch,
     fastest: Math.round(fastest),
   };
-  return { ...field, box, facts, caption: caption(facts) };
+  const home = HOME[bp];
+  return {
+    ...field,
+    ...clock,
+    box,
+    facts,
+    caption: `${facts.lit} lit at the busiest instant (the home hero: ${home.lit}) · one photograph every ${facts.beat} ms, the two sides in turn (home: a pair every ${home.beat}) · leaving at ${facts.launch} px a second, never faster than ${facts.fastest} · drawn in and dissolving at the album's edge as its row opens`,
+  };
 }
 
 /**
@@ -443,148 +528,52 @@ export function frameAt(
   };
 }
 
-/* ── The three variations ────────────────────────────────────────────────── */
+/* ── The push ────────────────────────────────────────────────────────────── */
 
 /**
- * THE FOUR, AND WHAT MAKES EACH ONE A DIFFERENT ANSWER rather than a knob.
- * Will asked for "two to three variations of this concept", with no direction
- * on what improvement means, so each varies on SEVERAL axes at once and is a
- * real contender: the arc of the fall, the size at birth against the size at
- * the landing, how often a photograph arrives and whether it comes alone, and
- * what happens at the moment it meets the album.
+ * THE PUSH, AS PICKED: every axis of the fall, and the moment of the handover.
  *
- * ★ BLOOM IS THE FOURTH, DRAWN FOR THE FADE RULE RATHER THAN RESCORING THE
- * FIRST THREE (the refresh). The product has since settled on its own
- * arrival grammar everywhere a photograph lands: it grows into its column
- * under a glow that fades. Cascade already tells that shape truest among the
- * first three, but none of them carries an actual glow, only scale and
- * opacity; `bloom` is born smaller and grows larger than any of the others,
- * settles the longest before it fades (a slower beat, so the hold reads as a
- * moment rather than a blip), and its arrival is lit from within
- * (`album-stream.css`'s `.als-layer[data-variant="bloom"]` glow, which piggy-
- * backs on the frame's own opacity so it fades in step with the photograph
- * rather than needing a second animated value).
+ * ★ THE FALL IS THE ONE HE CALLED "DRAWN IN & DISSOLVED" (the board's
+ * `gather`, the words his note borrows): each frame is born LARGER than it
+ * lands and shrinks the whole way, so it reads as receding INTO the album
+ * rather than coming toward the reader; the landings are pulled toward the
+ * album's middle (`into`), so both sides visibly close on it; and it gives
+ * itself up at the edge, dissolving over the last fifth of its path. Nothing
+ * about it claims to be the arrival: the album's own push is.
+ *
+ * ★ THE CLOCK IS THE PUSH'S, ONE PHOTOGRAPH AT A TIME. The board's push handed
+ * the album one photograph every one and a half of the home hero's beats (1875
+ * ms at a desk), so each arrival's glow (2 s, `ARRIVAL_GLOW_MS`, all but out
+ * by 94 per cent of its run) goes out as the next row opens. His note adds the
+ * second side and keeps that album: the two sides take the beat in turn (a
+ * single frame each beat, alternating), so each side launches every other beat
+ * and the album still takes one photograph at a time. Pairs leaving together,
+ * as the shipped glide's did, would push two at once, a batch rather than a
+ * party.
+ *
+ *   beats     the album's clock, as a multiple of the home hero's beat
+ *   unit      the frame, px at scale 1 (a phone's is 0.6 of it)
+ *   s0, s1    the scale at birth and at the path's end: drawn in
+ *   bend      how late the tuck is (see `bend`)
+ *   sink      px past the album's top edge the path ends: into the edge
+ *   into      how much of each lane's declared landing to take; below 1
+ *             pulls every landing toward the album's middle
+ *   dissolve  the share of the path where the frame begins to give itself up
+ *   handover  the share of the path at which the album takes it: the
+ *             dissolve half through (opacity one half), so the row opens as
+ *             the frame goes, and the two read as one hand-over
  */
-export const VARIANTS = ["glide", "gather", "cascade", "bloom"] as const;
-export type Variant = (typeof VARIANTS)[number];
-
-/** The shipped version, until a future round picks another. */
-export const SHIPPED: Variant = "glide";
-
-type Recipe = {
-  /** Frames leaving together each beat: a pair, or a single alternating side. */
-  readonly pair: boolean;
-  /**
-   * The beat, as a multiple of the home hero's own, per breakpoint. ★ A PHONE
-   * NEEDS A LONGER ONE and that is geometry, not taste: the fall there is about
-   * 200 px against 500, so frames launched at the home hero's clock would be
-   * half a frame apart the whole way down and read as a stack rather than a
-   * stream. The reference is still the home hero's; what changes is how many of
-   * its beats the composition lets pass.
-   */
-  readonly beats: Record<Bp, number>;
-  /** The unit box, px at scale 1. */
-  readonly unit: number;
-  /** The transform scale at birth and at the end of the path. */
-  readonly s0: number;
-  readonly s1: number;
-  /**
-   * Where the path turns, 0 to 1 of the drop: 1 falls the whole way and turns
-   * in at the last moment, 0 turns in at once and falls straight after.
-   */
-  readonly bend: number;
-  /** How far past the album's top edge the path ends, px. */
-  readonly sink: number;
-  /** How much of each lane's declared landing to take: 1 is the lane's own,
-   *  lower pulls every path toward the album's middle. */
-  readonly into: number;
-  /**
-   * The moment it meets the album.
-   *   behind   it slides under the frame's top edge and is gone, no fade
-   *   dissolve it gives itself up to the edge, fading over the last stretch
-   *   settle   it comes to rest ON the edge, holds a beat and fades there
-   */
-  readonly exit: "behind" | "dissolve" | "settle";
-};
-
-const RECIPES: Record<Variant, Recipe> = {
-  /**
-   * GLIDE, the shipped version: a pair appears in the empty space either
-   * side of the words every beat of the home hero's clock and glides down into
-   * the album's top edge on the home hero's own curve, leaving at its launch
-   * speed and gathering pace as it goes. Each frame FALLS FIRST and turns in
-   * last, so it never leans toward the words on the way down, and it slides
-   * under the album's edge with no fade: the album takes it in.
-   */
-  glide: {
-    pair: true,
-    beats: { lg: 1, base: 2 },
-    unit: 104,
-    s0: 0.86,
-    s1: 1,
-    bend: 0.9,
-    sink: 72,
-    into: 1,
-    exit: "behind",
-  },
-  /**
-   * GATHER, the album drawing them IN. Each frame is born LARGER than it lands
-   * and shrinks the whole way, so it reads as receding INTO the album rather
-   * than coming toward the reader, and the two arms converge much further in
-   * (`into` pulls every landing toward the middle), so the pair visibly closes
-   * on one place. It does not slide under the edge: it gives itself up to it,
-   * dissolving over the last stretch of its path.
-   */
-  gather: {
-    pair: true,
-    beats: { lg: 1, base: 2 },
-    unit: 116,
-    s0: 1.08,
-    s1: 0.74,
-    bend: 0.94,
-    sink: 30,
-    into: 0.62,
-    exit: "dissolve",
-  },
-  /**
-   * CASCADE, one photograph at a time: singles alternating sides at half the
-   * beat, so as many arrive but never two at once and the eye follows one event
-   * through. Smallest at birth and largest at the landing, on a near-straight
-   * drop with a late tuck, and it LANDS: it comes to rest ON the album's top
-   * edge, holds there a couple of beats and fades where it sits.
-   */
-  cascade: {
-    pair: false,
-    beats: { lg: 0.5, base: 1 },
-    unit: 108,
-    s0: 0.62,
-    s1: 1.1,
-    bend: 0.97,
-    sink: -16,
-    into: 0.98,
-    exit: "settle",
-  },
-  /**
-   * BLOOM, arriving rather than travelling. One photograph at a time, on a
-   * slower beat than any of the other three so each gets room to be noticed:
-   * born smaller and grown larger by the time it lands than any of them,
-   * turning in latest of all, and it comes to rest on the album's edge for the
-   * longest hold before it gives itself up. The glow is not this table's: it
-   * is a CSS box-shadow scoped to this variant that rides the frame's own
-   * opacity, so it lights up as the photograph fades in and dims with it.
-   */
-  bloom: {
-    pair: false,
-    beats: { lg: 1.5, base: 3 },
-    unit: 100,
-    s0: 0.5,
-    s1: 1.15,
-    bend: 0.98,
-    sink: -10,
-    into: 1,
-    exit: "settle",
-  },
-};
+const RECIPE = {
+  beats: { lg: 1.5, base: 1.5 } as Record<Bp, number>,
+  unit: 116,
+  s0: 1.08,
+  s1: 0.74,
+  bend: 0.94,
+  sink: 30,
+  into: 0.62,
+  dissolve: 0.8,
+  handover: 0.9,
+} as const;
 
 /**
  * THE LANES. A lane is one whole path: where a frame is born (`f`, a share of
@@ -597,14 +586,13 @@ const RECIPES: Record<Variant, Recipe> = {
  * at 1280 it is 256, so a SHARE of it holds the composition together at both:
  * the frames crowd in as the window narrows instead of sliding over the words.
  *
- * ★ WHY THERE ARE LANES AT ALL, AND ONLY THREE. Scattering six start points
+ * ★ WHY THERE ARE LANES AT ALL, AND ONLY TWO. Scattering six start points
  * across the band put two frames on almost exactly the same pixel, because
  * every frame walks the SAME travel curve: two born at nearly the same x with
  * different heights always meet, whatever order they leave in. A lane fixes
  * the x, so frames on one lane are a FILE, spaced by the curve itself the way
- * the home hero's are, and frames on different lanes never share a column. The
- * band holds three at 1280 and no more: a fourth would be narrower than a
- * frame. `stream-engine.test.ts` measures both facts rather than trusting them.
+ * the home hero's are, and frames on different lanes never share a column.
+ * `stream-engine.test.ts` measures that rather than trusting it.
  */
 type Lane = { f: number; y: number; into: number };
 
@@ -638,9 +626,15 @@ function intoAt(bp: Bp, g: number): { a: number; b: number } {
   return bp === "lg" ? { a: g * ALBUM_HALF, b: 0 } : { a: 0, b: g };
 }
 
-function build(bp: Bp, variant: Variant): Solved {
-  const r = RECIPES[variant];
-  const lanes = bp === "lg" ? LANES_LG : LANES_BASE;
+/** How long the home hero's curve takes to cover `px` at this breakpoint, ms. */
+function timeTo(px: number, bp: Bp): number {
+  let ms = 0;
+  while (homeTravel(ms, bp) < px && ms < 60000) ms += 25;
+  return ms;
+}
+
+function build(bp: Bp): Solved {
+  const r = RECIPE;
   const beat = Math.round(HOME[bp].beat * r.beats[bp]);
   // A phone's frames are smaller in absolute px but LARGER against their room:
   // the strip is 343 px wide against 1440, so the same share would be specks.
@@ -648,125 +642,129 @@ function build(bp: Bp, variant: Variant): Solved {
   const half = HOME[bp].half;
 
   // Each lane is one whole path: born beside the words (or under them), bending
-  // once, ending inside the album's top edge.
-  const paths = lanes.map((lane) => {
-    const p = { ...bornAt(bp, lane.f), y: lane.y };
-    const q = { ...intoAt(bp, lane.into * r.into), y: r.sink };
-    return pathOf(bend(p, q, r.bend), half);
-  });
+  // once, ending inside the album's top edge. Its timings are the home hero's
+  // curve walked along it: the pace is the reference's, never a duration here.
+  const lanes = (bp === "lg" ? LANES_LG : LANES_BASE)
+    .map((lane) => {
+      const p = { ...bornAt(bp, lane.f), y: lane.y };
+      const q = { ...intoAt(bp, lane.into * r.into), y: r.sink };
+      const path = pathOf(bend(p, q, r.bend), half);
+      return {
+        path,
+        arrive: timeTo(path.length, bp),
+        handover: timeTo(path.length * r.handover, bp),
+      };
+    })
+    // ★ THE LANE THAT HANDS OVER LAST LEADS THE FILE, so card 0 takes no head
+    // start (below) and every card's clock stays inside its cycle, which is
+    // what `launchOf`'s count of the arrivals rests on.
+    .sort((a, b) => b.handover - a.handover);
 
-  // The flight is however long the LONGEST path takes on the home hero's own
-  // travel curve: the pace is the reference's, never a duration chosen here.
-  // `arrive` is the same question per path, which is what a landing frame needs
-  // so its hold starts when IT gets there rather than when the slowest does.
-  const timeTo = (px: number) => {
-    let ms = 0;
-    while (homeTravel(ms, bp) < px && ms < 60000) ms += 25;
-    return ms;
-  };
-  const arrive = paths.map((p) => timeTo(p.length));
-  const flight = Math.max(...arrive);
-  // A landing frame does its waiting after it arrives, so the hold is part of
-  // the life rather than part of the travel.
-  const hold = r.exit === "settle" ? beat * 2 : 0;
-  const life = flight + hold;
+  const flight = Math.max(...lanes.map((l) => l.arrive));
+  const latest = lanes[0].handover;
+
   // ★ THE CYCLE HOLDS A WHOLE NUMBER OF PASSES THROUGH THE LANES, or the file
-  // breaks at the wrap. Slots are dealt to lanes in order, so a slot count that
-  // is not a multiple of the lane count puts the cycle's last frame one beat
-  // behind its own lane's first instead of a full pass, and the two land on top
-  // of each other once every cycle. Rounding the count up costs one extra
-  // sleeping node and fixes it by construction.
-  // A pair takes one slot per beat, so a full pass through the lanes is one
-  // lane count; singles alternate sides, so each side only advances every other
-  // slot and a full pass is twice that.
-  const lanesN = paths.length;
-  const period = r.pair ? lanesN : lanesN * 2;
-  const slots = Math.ceil((Math.ceil(life / beat) + 1) / period) * period;
+  // breaks at the wrap. A single alternates sides with each slot, so each side
+  // only advances every other slot and a full pass is twice the lane count;
+  // a slot count that is not a multiple of it puts the cycle's last frame one
+  // beat behind its own lane's first, and the two land on top of each other
+  // once every cycle. Rounding up costs one sleeping node and fixes it.
+  const period = lanes.length * 2;
+  const slots = Math.ceil((Math.ceil(flight / beat) + 1) / period) * period;
+  const cycle = slots * beat;
 
-  const cards: Card[] = [];
-  const arms = r.pair ? ([0, 1] as const) : ([0] as const);
-  for (let k = 0; k < slots; k++) {
-    for (const arm of arms) {
-      // A single alternates sides on its own beat; a pair takes both at once.
-      const side = r.pair ? arm : k % 2;
-      // The two arms are offset in the lane order, so a pair never leaves on
-      // the same lane: the composition is symmetric without being a reflection.
-      // A single's side alternates with the slot, so its lane advances on the
-      // side's OWN sequence; taking `k` there would put every frame in one lane.
-      const seq = r.pair ? k : (k - side) / 2;
-      const row = (seq + side) % lanesN;
+  const place = (c: Card, age: number): Place => {
+    const q = c.path.at(homeTravel(Math.min(age, c.arrive), bp));
+    return { a: q.a, b: q.b, y: q.y, s: r.s0 + (r.s1 - r.s0) * q.u };
+  };
+  const opacity = (c: Card, age: number) => {
+    if (age >= c.arrive) return 0;
+    const born = smoothstep(0, 280, age);
+    // It gives itself up over the last stretch of its own path.
+    const u = c.path.at(homeTravel(age, bp)).u;
+    return born * (1 - smoothstep(r.dissolve, 1, u));
+  };
+
+  /** The file at a given rest phase: every slot's side, lane and clock. */
+  const cardsAt = (phase: number): Card[] =>
+    Array.from({ length: slots }, (_, k) => {
+      // One frame a beat, the sides in turn; each side walks the lanes on its
+      // OWN sequence (taking `k` there would put every frame in one lane), the
+      // right arm a lane out of step with the left, so the two are symmetric
+      // without being a reflection.
+      const side = (k % 2) as 0 | 1;
+      const seq = (k - side) / 2;
+      const lane = lanes[(seq + side) % lanes.length];
       const [aw, ah] = ASPECTS[(k + side) % ASPECTS.length];
-      const path = paths[row];
-      cards.push({
-        key: `als-${variant}-${k}-${arm}`,
+      return {
+        key: `als-${bp}-${k}`,
         slot: k,
-        photo: (k * 2 + side * 5) % 12,
+        side,
         w: unit * aw,
         h: unit * ah,
-        at: k * beat,
+        // ★ THE ARRIVALS KEEP THE BEAT, NOT THE LAUNCHES. The lanes reach the
+        // album some hundreds of ms apart, so launching on the beat would open
+        // the rows on a limp; the quicker lane leaves that much later instead
+        // (its head start, always under a beat), and every row opens exactly
+        // one beat after the last.
+        at: k * beat - (latest - lane.handover) + phase,
         roll: ROLLS[(k * 2 + side) % ROLLS.length],
-        // The right arm is the left one mirrored through the centre line.
-        path: side ? mirror(path) : path,
-        arrive: arrive[row],
-      });
+        path: side ? mirror(lane.path) : lane.path,
+        arrive: lane.arrive,
+        handover: lane.handover,
+      };
+    });
+
+  // ★ THE REST STATE IS A WHOLE FRAME, CHOSEN RATHER THAN LANDED ON. It is what
+  // the server paints, what a reader who asked for less motion keeps, and the
+  // loop's first frame, so the clock's phase is the one where no frame is
+  // caught being born or dissolving, the two sides hold as many each as the
+  // count allows (an odd count leans by one), and as many as that allows are
+  // lit, in that order (`stream-engine.test.ts` holds all three): a
+  // symmetrical hero stands still balanced before it stands still full. Of the
+  // phases that score best, the middle of the longest run, so no frame rests a
+  // step from its fade.
+  const STEP = 5;
+  const scores = Array.from({ length: Math.ceil(beat / STEP) }, (_, i) => {
+    let partial = 0;
+    const whole = [0, 0];
+    for (const c of cardsAt(i * STEP)) {
+      const o = opacity(c, c.at);
+      if (o >= 0.999) whole[c.side]++;
+      else if (o > 0.004) partial++;
     }
-  }
-
-  const field: Field = {
-    bp,
-    cards,
-    cycle: slots * beat,
-    flight: life,
-    place: (c, age) => {
-      const q = c.path.at(homeTravel(Math.min(age, c.arrive), bp));
-      return { a: q.a, b: q.b, y: q.y, s: r.s0 + (r.s1 - r.s0) * q.u };
-    },
-    opacity: (c, age) => {
-      const born = smoothstep(0, 280, age);
-      if (r.exit === "behind")
-        // No fade at all: the frame is simply behind the album now.
-        return age >= c.arrive ? 0 : born;
-      if (r.exit === "dissolve") {
-        // It gives itself up over the last fifth of its own path.
-        const u = c.path.at(homeTravel(age, bp)).u;
-        return born * (1 - smoothstep(0.8, 1, u));
-      }
-      // It lands, holds on the edge, and fades where it sits.
-      return (
-        born * (1 - smoothstep(c.arrive + hold * 0.45, c.arrive + hold, age))
-      );
-    },
-  };
-
-  return solve(field, beat, (f) => {
-    const home = HOME[bp];
-    const how =
-      r.exit === "behind"
-        ? "sliding under the album's edge"
-        : r.exit === "dissolve"
-          ? "dissolving into the album's edge"
-          : "landing on the album's edge and fading there";
-    const many = r.pair ? "a pair" : "one photograph";
-    return `${f.lit} lit at the busiest instant (the home hero: ${home.lit}) · ${many} every ${f.beat} ms (home: ${home.beat}) · leaving at ${f.launch} px a second, never faster than ${f.fastest} · ${how}`;
+    return (
+      -partial * 1000 -
+      Math.abs(whole[0] - whole[1]) * 100 +
+      (whole[0] + whole[1]) * 10
+    );
   });
+  const top = Math.max(...scores);
+  let run = { from: 0, length: 0 };
+  for (let i = 0; i < scores.length; ) {
+    let j = i;
+    while (j < scores.length && scores[j] === top) j++;
+    if (j - i > run.length) run = { from: i, length: j - i };
+    i = j > i ? j : i + 1;
+  }
+  const phase = (run.from + Math.floor(run.length / 2)) * STEP;
+  const cards = cardsAt(phase);
+
+  // Arrival `n` is handed over at `(n - (slots - 1)) * beat + latest - phase`
+  // of elapsed (`launchOf`'s count, each lane's head start taken off).
+  const firstHandover = (1 - slots) * beat + latest - phase;
+
+  return solve(
+    { bp, cards, cycle, flight, place, opacity },
+    { slots, beat, firstHandover },
+  );
 }
 
-/** The left arm's path, reflected through the hero's centre line. A mirror is
- *  `x -> -x`, and x is affine, so both halves of the pair negate. */
-function mirror(path: Path): Path {
-  return {
-    length: path.length,
-    at: (d) => {
-      const q = path.at(d);
-      return { a: -q.a, b: -q.b, y: q.y, u: q.u };
-    },
-  };
-}
-
-/** Every variant at both breakpoints, solved once at module load. */
-export const STREAMS: Record<Variant, Record<Bp, Solved>> = Object.fromEntries(
-  VARIANTS.map((v) => [v, { base: build("base", v), lg: build("lg", v) }]),
-) as Record<Variant, Record<Bp, Solved>>;
+/** Both breakpoints, solved once at module load. */
+export const STREAM: Record<Bp, Solved> = {
+  base: build("base"),
+  lg: build("lg"),
+};
 
 /**
  * The `sizes` every frame carries, derived from the largest DOM box the
@@ -774,7 +772,7 @@ export const STREAMS: Record<Variant, Record<Bp, Solved>> = Object.fromEntries(
  * retunes with it. Never a `vw`, because the box is a pixel size at a given
  * breakpoint.
  */
-export function framesSizes(variant: Variant): string {
-  const big = (bp: Bp) => Math.max(...STREAMS[variant][bp].box.map((b) => b.w));
-  return `(min-width: ${LG_MIN}px) ${big("lg")}px, ${big("base")}px`;
+export function framesSizes(): string {
+  const big = (bp: Bp) => Math.max(...STREAM[bp].box.map((b) => b.w));
+  return `(min-width: ${STREAM_LG_MIN}px) ${big("lg")}px, ${big("base")}px`;
 }

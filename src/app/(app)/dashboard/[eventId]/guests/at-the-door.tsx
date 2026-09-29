@@ -38,6 +38,9 @@ const SERVER_DOOR_ACTS: DoorActs = {
   letBackIn: letBackInAction,
 };
 
+/** Nothing answered: the set a new read of the door starts from. */
+const NONE: ReadonlySet<string> = new Set();
+
 /**
  * AT THE DOOR, AT THE HEAD OF THE GUESTS ROOM (event-settings r1, `queue=room`: "An At the door section
  * above the guests, Let in and Decline on each row"). The room is where the host already sees every
@@ -47,6 +50,11 @@ const SERVER_DOOR_ACTS: DoorActs = {
  * door opens by itself at its next check-in); Decline puts her out as a block does, so she meets the one
  * shut screen and cannot keep re-asking, with Undo on its toast and Let back in under Blocked after it.
  * A row leaves the list the moment it is answered, and comes back with a sentence if the answer fails.
+ *
+ * ★ AN ANSWERED ROW STAYS HIDDEN ONLY UNTIL THE PAGE READS THE DOOR AGAIN (build 23's NIT-4): every act
+ * revalidates the room, and from that read on the read is the truth. A newcomer declined here and let
+ * back in from Blocked is at the door again in the next read, and shows at once, rather than staying
+ * hidden by this visit's memory of the decline until a reload.
  */
 export function AtTheDoor({
   eventId,
@@ -59,19 +67,23 @@ export function AtTheDoor({
   total: number;
   acts?: DoorActs;
 }) {
-  // Rows answered on this visit, gone at once; the page's own read agrees on its next render.
-  const [answered, setAnswered] = useState<ReadonlySet<string>>(new Set());
-  const shown = people.filter((p) => !answered.has(p.guestId));
+  // Rows answered against this read of the door, gone at once; the next read decides after that.
+  const [answered, setAnswered] = useState<{
+    from: DoorPerson[];
+    ids: ReadonlySet<string>;
+  }>(() => ({ from: people, ids: NONE }));
+  const gone = answered.from === people ? answered.ids : NONE;
+  const shown = people.filter((p) => !gone.has(p.guestId));
   const [, startTransition] = useTransition();
 
   if (shown.length === 0) return null;
 
-  function settle(guestId: string, gone: boolean) {
-    setAnswered((s) => {
-      const next = new Set(s);
-      if (gone) next.add(guestId);
+  function settle(guestId: string, away: boolean) {
+    setAnswered((a) => {
+      const next = new Set(a.from === people ? a.ids : NONE);
+      if (away) next.add(guestId);
       else next.delete(guestId);
-      return next;
+      return { from: people, ids: next };
     });
   }
 
@@ -137,7 +149,7 @@ export function AtTheDoor({
     >
       <FeedSectionHeader
         label="At the door"
-        count={Math.max(total - answered.size, shown.length)}
+        count={Math.max(total - gone.size, shown.length)}
       />
       <p className="text-xs text-muted-foreground">
         They confirmed an email and are waiting for you. Let in opens the album

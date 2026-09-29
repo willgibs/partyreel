@@ -13,7 +13,10 @@ import {
   GalleryEmptyState,
   GUEST_GHOST_FRAMES,
 } from "@/components/guest/gallery-empty-state";
-import { LiveAlbumStage } from "@/components/marketing/sections/features/album/live-album-stage";
+import {
+  LiveAlbum,
+  LiveAlbumStage,
+} from "@/components/marketing/sections/features/album/live-album-stage";
 import { AlbumStream } from "@/components/shared/album-stream/album-stream";
 import { PhotoSection } from "@/components/shared/backdrop/photo-section";
 import {
@@ -382,12 +385,12 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
   {
     id: "album-stream",
     file: "src/components/shared/album-stream/album-stream.tsx",
-    for: "photographs falling out of the room around a hero's words and into the album beneath it; decorative, and its resting frame is server HTML so a reader with no script still meets the composition",
+    for: "photographs falling out of the room around a hero's words and into the album beneath it, each one taken in as an upload; decorative, and its resting frame is server HTML so a reader with no script still meets the composition",
     test: "src/components/shared/album-stream/album-stream.test.tsx",
     badge: "new",
     family: "components",
     section: "Surfaces",
-    lede: "Photographs falling out of the room around a hero's words and into the album beneath it, and the album they fall into: the live guest masonry under the host's own header, its foot dissolving, lit from behind by the Glow halo.",
+    lede: "Photographs falling out of the room around a hero's words, drawn in and dissolving at the album beneath it as the album takes each one in the way it takes an upload, its row opening from the left; and the album they fall into: the guest album's own rows under the host's own header, its foot dissolving, lit from behind by the Glow halo.",
     specimens: [
       {
         label: "The album, at the scale's 896 step",
@@ -401,19 +404,21 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
         // is pinned to 1280, the narrowest window the side-band composition
         // serves, and the page itself is where it is judged.
         label: "and the fall into it",
-        hint: "1280, the narrowest window this composition serves. Decorative and inert: nothing in it is focusable, every frame carries its resting position as server HTML, and reduced motion leaves that resting frame standing with no loop at all",
+        hint: "1280, the narrowest window this composition serves, over the album that takes each photograph in (one LiveAlbum holds it for both). Decorative and inert: nothing in it is focusable, every frame carries its resting position as server HTML, and reduced motion leaves that resting frame standing with no loop at all",
         node: (
           <div className="max-w-full overflow-x-auto">
             <CinemaGround>
-              <div
-                className="relative isolate overflow-x-clip"
-                style={{ width: 1280 }}
-              >
-                <AlbumStream />
-                <div style={{ height: 520 }} />
-                <LiveAlbumStage />
-                <div style={{ height: 150 }} />
-              </div>
+              <LiveAlbum>
+                <div
+                  className="relative isolate overflow-x-clip"
+                  style={{ width: 1280 }}
+                >
+                  <AlbumStream />
+                  <div style={{ height: 520 }} />
+                  <LiveAlbumStage />
+                  <div style={{ height: 150 }} />
+                </div>
+              </LiveAlbum>
             </CinemaGround>
           </div>
         ),

@@ -31,9 +31,9 @@ type RpcRow = {
   upload_count: number;
   last_upload_at: string | null;
   pending_email_at: string;
-  // `20260927200000_claim_previews`: absent on a database without it.
-  event_visibility?: "open" | "password" | "private";
-  preview_keys?: string[] | null;
+  // `20260927200000_claim_previews`, applied and typed: every row answers both.
+  event_visibility: "open" | "password" | "private";
+  preview_keys: string[] | null;
 };
 
 let rows: RpcRow[] = [];
@@ -81,6 +81,8 @@ const row = (over: Partial<RpcRow>): RpcRow => ({
   upload_count: 2,
   last_upload_at: "2026-10-02T10:00:00Z",
   pending_email_at: "2026-09-20T10:00:00Z",
+  event_visibility: "open",
+  preview_keys: [],
   ...over,
 });
 
@@ -365,10 +367,18 @@ describe("the review's previews", () => {
     expect(presign).not.toHaveBeenCalled();
   });
 
-  it("reads a list without the two columns as an open album with nothing to show", async () => {
-    rows = [row({})];
-    const [result] = await getMyClaimableGuestRows({ previews: true });
-    expect(result).toMatchObject({ gate: null, previews: [] });
+  // ★ RESHAPED ON PURPOSE (crumbs-17, crumbs-15's dead seam; scar kept: a row with nothing to show shows
+  // nothing). This read "a list without the two columns as an open album with nothing to show", the
+  // database before `20260927200000_claim_previews`; it is applied and typed, so every row answers both,
+  // and an open album whose previews came back empty or null is the case left.
+  it("reads an open album whose previews are empty or null as nothing to show", async () => {
+    rows = [row({ guest_id: "g1", preview_keys: [] })];
+    const [empty] = await getMyClaimableGuestRows({ previews: true });
+    expect(empty).toMatchObject({ gate: null, previews: [] });
+    rows = [row({ guest_id: "g1", preview_keys: null })];
+    const [none] = await getMyClaimableGuestRows({ previews: true });
+    expect(none).toMatchObject({ gate: null, previews: [] });
+    expect(presign).not.toHaveBeenCalled();
   });
 });
 

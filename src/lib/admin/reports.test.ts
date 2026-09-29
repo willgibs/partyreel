@@ -21,6 +21,7 @@ import {
   REPORT_NOTE_MAX,
   REPORT_STATUS_META,
   REPORT_WORDS,
+  reporterWho,
   reporterWords,
   sameInstant,
   WAY_BACK_LINE,
@@ -389,6 +390,50 @@ describe("the reporter, and asking her (`proof=confirm`)", () => {
     expect(
       reporterWords({ signedIn: false, canAsk: false, kind: "child" }),
     ).toBe("Signed-out guest, no confirmed email");
+  });
+
+  it("★ tells the album's own host from a guest (build 23's LOW-2)", () => {
+    expect(
+      reporterWords({
+        signedIn: true,
+        canAsk: true,
+        byHost: true,
+        kind: "violence",
+      }),
+    ).toBe("The host, can be asked");
+    // Her report never hides, so on the worst kind nothing implies it did.
+    expect(
+      reporterWords({
+        signedIn: true,
+        canAsk: true,
+        confirmed: true,
+        byHost: true,
+        kind: "child",
+      }),
+    ).toBe("The host");
+    expect(reporterWho({ signedIn: true, byHost: true })).toBe("The host");
+    expect(reporterWho({ signedIn: true })).toBe("Signed-in guest");
+    expect(reporterWho({ signedIn: false })).toBe("Signed-out guest");
+  });
+
+  it("★ says what is true after a reopen: sent from a confirmed address, no longer askable (build 23's NIT-8)", () => {
+    // Dismissed, then Undo: the close forgot the address, the worst kind's hash remembers it was confirmed.
+    expect(
+      reporterWords({
+        signedIn: true,
+        canAsk: false,
+        confirmed: true,
+        kind: "child",
+      }),
+    ).toBe("Signed-in guest, email confirmed");
+    expect(
+      reporterWords({
+        signedIn: true,
+        canAsk: false,
+        confirmed: false,
+        kind: "consent",
+      }),
+    ).toBe("Signed-in guest, can't be asked");
   });
 
   it("★ offers Ask for proof only to a confirmed reporter, and never on the worst kind", () => {

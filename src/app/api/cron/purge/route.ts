@@ -335,8 +335,7 @@ export async function GET(request: Request): Promise<Response> {
     sweepRemovedMedia(admin, now, handled, { deadline }),
   );
   // Accounts that asked to be deleted: after removed_media so `handled` is populated, before the
-  // capacity sweeps so they never act on bytes this run is about to reclaim. Pre-apply it returns
-  // { skipped: "not_provisioned" }.
+  // capacity sweeps so they never act on bytes this run is about to reclaim.
   await runBudgeted("deleted_accounts", (deadline) =>
     sweepDeletedAccounts(admin, now, handled, { deadline }),
   );
