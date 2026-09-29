@@ -41,6 +41,8 @@ a lane").
 | `schema-pass` | the data architecture audited; its migration BLOCKED: the permission classifier refused the lane's write of the file (no retry). The audit is its manifest at `origin/lp/schema-pass` (`66794756`): Q1 his permission to write and prove, Q2 the reel's three columns wait for milestone 31 (main reads them), Q3 default privileges closed for anon and authenticated, Q4 the monthly meter deny-all, Q5 three CHECKs | handed off blocked; resumed on his yes | Opus | `66794756` |
 | `crumbs-14` | the hub row's stick loop, the screen popup's back label, the admin sign-in's asked page, a refused sign-out, the pricing teaser's price, a lowercase bullet | running (agent `a0de18f02690ad5a8`) | Opus, 3135 | |
 | `lab-revamp` | stage two, the plumbing: a board as one self-registering folder, scoped lab checks, the trimmed API, the words renamed, the kit following (holds registry.ts and boards.ts; PROGRAM.md's lines come in its Handoff) | running, resumed (agent `a6b4519e3d363d7dd`) | Opus, 3133 | |
+| `crumbs-15` | the dead missing-schema seams of the doors and the triage rebuild, no behaviour changed | running (agent `a7a881960265d2c2a`; worktree `../partyreel-wt/crumbs-15`) | Sonnet, 3131 | |
+| `loose-ends-wiring` | loose-ends r1: the FAQ heading, the rings, the corner mark and its easter-egg lightbox (the board's folder is lab-revamp's: retire it at the merge) | running (agent `af847f8233bb3aa19`; worktree `../partyreel-wt/loose-ends-wiring`) | Sonnet, 3134 | |
 
 **Handoff across accounts (written 2026-09-29, the old account at ~97% of its weekly limit).** The old Orchestrator
 session is `b01c012e-f59c-432b-9873-9f4226c036f2`; its agent ids above are unreachable from a new session, so each
@@ -58,6 +60,10 @@ only where those leave a gap; a stale `.next/dev/lock` may be deleted; continue 
   (`event-share-provider.tsx:113-115`) and the custom link's error is unannounced; revoke PUBLIC EXECUTE when replacing
   `get_event_by_qr_token`.
 - `crumbs-14` (`../partyreel-wt/crumbs-14`, 3135, agent `a0de18f02690ad5a8`): mid-work, no relays.
+- `crumbs-15` (`../partyreel-wt/crumbs-15`, 3131, agent `a7a881960265d2c2a`) and `loose-ends-wiring` (`../partyreel-wt/loose-ends-wiring`,
+  3134, agent `af847f8233bb3aa19`): cut late, no relays; respawn the same way.
+- Build 23's red-team (agent `ab63a0b9ec16c1fe1`): if its report never arrived, respawn it from
+  `../partyreel-wt/_scratch/redteam-23/brief.md` after its `ledger.txt`'s last line (a relay it took: close every report it opens).
 - `lab-revamp` stage two (`../partyreel-wt/lab-revamp`, 3133, agent `a6b4519e3d363d7dd`): mid-work; its notes
   `../partyreel-wt/_scratch/lab-revamp/stage-two.md`.
 - `schema-pass` is not running: it handed off blocked (the classifier refused its migration file). On Will's yes,
