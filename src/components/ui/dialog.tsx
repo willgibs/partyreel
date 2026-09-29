@@ -206,8 +206,9 @@ function DialogTitle({
       className={cn(
         // The ladder's `card-title` step. `leading-none` stays and deliberately
         // overrides the step's line-height: a dialog header is a tight
-        // two-element lockup where the title's own box is the spacing.
-        "font-heading text-card-title leading-none font-medium",
+        // two-element lockup where the title's own box is the spacing. No
+        // weight of its own: the face's 700 is the utility's (card.tsx).
+        "font-heading text-card-title leading-none",
         className
       )}
       {...props}

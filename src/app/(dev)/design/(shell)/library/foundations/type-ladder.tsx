@@ -37,6 +37,12 @@ import { cn } from "@/lib/utils";
  * font nobody sets them in, and the whole point of drawing a step at true size
  * is that it is the thing itself. The `label` row wears `uppercase` for the
  * same reason — 0.08em of tracking on lowercase is not what that step is.
+ *
+ * ★ EVERY HEADING ROW AT THE FACE'S ONE WEIGHT. The rows under `page` wore a
+ * `font-semibold` for a "tiered" 600 that the product dropped with the thin
+ * headings (Will, 2026-09-29: "it looks very bad compared to our standard
+ * heavier weight"), so each heading step is drawn in `font-heading` alone, at
+ * the 700 every heading on the site now wears.
  */
 
 type Register = "marketing" | "app" | "body";
@@ -199,9 +205,6 @@ const STEPS: {
   },
 ];
 
-/** The tiered weight the system documents: page titles 700, card titles 600. */
-const SEMIBOLD = new Set(["subsection", "card-title"]);
-
 const round = (n: number) => Math.round(n * 100) / 100;
 
 /** Split a function's arguments on TOP-LEVEL commas only. */
@@ -340,7 +343,6 @@ export function TypeLadder() {
                   step.face === "body" ? "font-sans" : "font-heading",
                   step.cls,
                   step.id === "label" && "uppercase",
-                  SEMIBOLD.has(step.id) && "font-semibold",
                 )}
               >
                 {step.word}

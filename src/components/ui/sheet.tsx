@@ -197,8 +197,9 @@ function SheetTitle({
       data-slot="sheet-title"
       className={cn(
         // The ladder's `card-title` step: a sheet's title is a card title that
-        // arrived from the edge, not a page title (src/app/theme.css).
-        "font-heading text-card-title font-medium text-foreground",
+        // arrived from the edge, not a page title (src/app/theme.css), at the
+        // heading face's own weight (card.tsx says why none is set here).
+        "font-heading text-card-title text-foreground",
         className
       )}
       {...props}

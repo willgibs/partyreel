@@ -63,10 +63,15 @@ export function resolveInitialEventSection(
  * for that reason, and `/dashboard/<id>/reel` survives only as a redirect for
  * old links, so it has no segment and no crumb here.
  *
- * ★ SETTINGS IS LAST, and that is his sentence rather than a layout taste:
- * "we could switch the current 'Album' card to be 'Settings' and move it to
- * last in the row". The Album card it replaced is not a door any more — the
- * album is the page under the row.
+ * ★ THE ORDER IS HIS, AND EVERY DRAWING OF THE ROW READS IT HERE (Will,
+ * `event-settings` `queue`, 2026-09-29): "the highlight reel card should be the
+ * first in the host events features row/grid. Then Guests, then Review, then
+ * Settings." The row, the phone's 2x2 grid (it fills by rows, so the reel and
+ * Guests sit over Review and Settings) and the help's picture of the row all
+ * map this list, so a reorder is this one edit. Settings stays last from his
+ * earlier sentence: "we could switch the current 'Album' card to be 'Settings'
+ * and move it to last in the row". The Album card it replaced is not a door any
+ * more — the album is the page under the row.
  */
 export type EventRoomId = "review" | "reel" | "guests" | "settings";
 
@@ -76,9 +81,9 @@ export const EVENT_ROOMS: readonly {
   /** The room's path segment, or null for a card that is not a route (the reel's door, the Settings sheet). */
   segment: string | null;
 }[] = [
-  { id: "review", label: "Review", segment: "review" },
   { id: "reel", label: "Highlight reel", segment: null },
   { id: "guests", label: "Guests", segment: "guests" },
+  { id: "review", label: "Review", segment: "review" },
   { id: "settings", label: "Settings", segment: null },
 ];
 

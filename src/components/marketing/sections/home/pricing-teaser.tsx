@@ -97,7 +97,7 @@ export function PricingTeaser() {
                     ladder's `section` step ("a stat numeral"), the one
                     /pricing's cards wear too. No tracking-tight beside it: it
                     resolves to 0em here and would cancel the step's own. */}
-                <div className="mt-3 font-heading text-section font-medium tabular-nums">
+                <div className="mt-3 font-heading text-section tabular-nums">
                   <PricePop label={card.price} />
                 </div>
                 <p className="mt-auto pt-3 text-xs leading-relaxed text-muted-foreground">

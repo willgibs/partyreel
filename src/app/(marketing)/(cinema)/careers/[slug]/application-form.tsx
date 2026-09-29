@@ -105,9 +105,7 @@ export function ApplicationForm({
             />
           </svg>
         </span>
-        <h3 className="font-heading text-subsection font-medium">
-          Application received
-        </h3>
+        <h3 className="font-heading text-subsection">Application received</h3>
         <p className="text-sm text-muted-foreground">
           Thanks for applying to {roleTitle}. We read every one, and we&rsquo;ll
           be in touch if it looks like a fit.

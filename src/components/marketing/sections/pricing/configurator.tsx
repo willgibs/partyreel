@@ -287,7 +287,7 @@ function ResultCard({
             <p className="text-caption text-faint">We recommend</p>
             <div className="mt-1 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
               <h3 className="font-heading text-subsection">{rec.plan.name}</h3>
-              <span className="font-heading text-subsection font-semibold tabular-nums">
+              <span className="font-heading text-subsection tabular-nums">
                 {/* Keyed on the label so every change re-pops the digits: the
                     price is the number a reader is dragging FOR. */}
                 <PricePop
