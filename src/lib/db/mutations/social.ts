@@ -22,7 +22,10 @@ import type { TablesUpdate } from "@/lib/db/types";
 
 import type { MutationResult } from "@/lib/db/mutations/events";
 import { inChunks } from "@/lib/db/read-all";
-import type { NotificationPrefs } from "@/lib/social/notification-prefs";
+import type {
+  NotificationPrefs,
+  NotificationPrefsRow,
+} from "@/lib/social/notification-prefs";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { profileSlugSchema } from "@/lib/validation/profile";
@@ -179,17 +182,18 @@ export async function setNotificationPrefs(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
-  const patch: TablesUpdate<"notification_prefs"> = {};
-  if (prefs.notifyAlbumShared !== undefined)
-    patch.notify_album_shared = prefs.notifyAlbumShared;
-  if (prefs.notifyNewUploadsDigest !== undefined)
-    patch.notify_new_uploads_digest = prefs.notifyNewUploadsDigest;
-  if (prefs.notifyNewFollower !== undefined)
-    patch.notify_new_follower = prefs.notifyNewFollower;
+  // Built on the row's own shape (notification-prefs.ts), then handed over as the table's: the
+  // generated types learn notify_pass_renewal only when its migration is applied, and the two agree
+  // once they do, when the cast below says nothing. Only the live switches map; the three columns
+  // nothing reads are never written either.
+  const fields: Partial<NotificationPrefsRow> = {};
+  if (prefs.notifyPassRenewal !== undefined)
+    fields.notify_pass_renewal = prefs.notifyPassRenewal;
   if (prefs.marketingOptIn !== undefined)
-    patch.marketing_opt_in = prefs.marketingOptIn;
-  if (Object.keys(patch).length === 0)
+    fields.marketing_opt_in = prefs.marketingOptIn;
+  if (Object.keys(fields).length === 0)
     return { ok: true, data: { id: user.id } };
+  const patch = fields as TablesUpdate<"notification_prefs">;
 
   const db = supabase;
   const failed = {

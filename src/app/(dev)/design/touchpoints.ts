@@ -26,7 +26,6 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 /** The boards standing in sandbox/, one row each below. */
 export type SandboxId =
   | "admin-triage"
-  | "emails"
   | "locked-door"
   | "event-settings"
   | "press-page"
@@ -79,38 +78,6 @@ export const RULINGS: Ruling[] = [
         "Clear harm, in front",
         "Asking for proof",
         "What a phone may do",
-      ],
-    },
-  },
-  {
-    id: "emails",
-    title: "Every email Partyreel sends",
-    surface: "shared",
-    asks: "one shell or two, the brand, the sender, the foot, the sign-in code, which moments send, a guest's album link, a newcomer let in, a reporter's closing note, and the dark inbox",
-    why: "Every mail is drawn from the real templates.ts in an inbox mock at a phone's width and a laptop's, so each decision is judged where mail is read.",
-    lives: [
-      "docs/systems/lifecycle-recovery.md",
-      "docs/systems/notifications-analytics-growth.md",
-      "docs/systems/guest-flow.md",
-      "src/lib/email/templates.ts",
-      "src/lib/email/send.ts",
-      "src/components/app/notification-prefs-form.tsx",
-      "src/components/guest/save-account-prompt.tsx",
-      "src/app/api/reports/route.ts",
-    ],
-    board: {
-      note: "Ten decisions on the real templates.ts functions, drawn inside an inbox mock at a phone's width and a laptop's: one wrapper or two, what it wears, who it's from, whether it carries an unsubscribe, what the sign-in mail could show, which moments deserve a send, a guest's album link after Maybe later, a newcomer let in, a reporter's closing note, and how it reads in a dark inbox",
-      variants: [
-        "One shell",
-        "The brand",
-        "The sender",
-        "The foot",
-        "The code",
-        "The moments",
-        "The guest's link",
-        "A newcomer let in",
-        "The reporter",
-        "The dark inbox",
       ],
     },
   },
@@ -316,7 +283,6 @@ export const RULINGS: Ruling[] = [
 export const DESK_ORDER: readonly SandboxId[] = [
   "admin-triage",
   "event-settings",
-  "emails",
   "locked-door",
   "privacy-hero",
   "album-motion",

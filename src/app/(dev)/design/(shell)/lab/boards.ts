@@ -1,7 +1,6 @@
 import type { ComponentType } from "react";
 
 import { AdminTriageBoard } from "@/app/(dev)/design/sandbox/admin-triage/board";
-import { EmailsBoard } from "@/app/(dev)/design/sandbox/emails/board";
 import { LockedDoorBoard } from "@/app/(dev)/design/sandbox/locked-door/board";
 import { EventSettingsBoard } from "@/app/(dev)/design/sandbox/event-settings/board";
 
@@ -30,7 +29,6 @@ export type BoardEntry = { Component: ComponentType; legacy?: true };
 
 export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   "admin-triage": { Component: AdminTriageBoard },
-  emails: { Component: EmailsBoard },
   "locked-door": { Component: LockedDoorBoard },
   "event-settings": { Component: EventSettingsBoard },
 

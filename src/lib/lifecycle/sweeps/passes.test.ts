@@ -1,7 +1,9 @@
 /**
  * SWEEPS 4 AND 6 ON THE CLAMPING FAKE (H13, M15): both pass candidate lists read whole past 1,000,
  * one failing account isolated from the rest, and a deadline that stops a sweep leaving a cursor the
- * next run resumes after, so every candidate gets its turn.
+ * next run resumes after, so every candidate gets its turn. And the renewal nudge's switch (`emails`
+ * r1): a holder who turned Event Pass reminders off is never mailed, and an unreadable switch stops
+ * the sweep before any send.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -18,7 +20,7 @@ const state = vi.hoisted(() => ({
   world: null as CronWorld | null,
   recomputed: [] as string[],
   failFor: new Set<string>(),
-  sent: [] as { kind: string; dedupeKey: string }[],
+  sent: [] as { kind: string; dedupeKey: string; to: string; text: string }[],
 }));
 
 vi.mock("server-only", () => ({}));
@@ -38,10 +40,22 @@ vi.mock("@/lib/db/mutations/event-passes", () => ({
   }),
 }));
 vi.mock("@/lib/email/send", () => ({
-  sendOnce: vi.fn(async (input: { kind: string; dedupeKey: string }) => {
-    state.sent.push({ kind: input.kind, dedupeKey: input.dedupeKey });
-    return true;
-  }),
+  sendOnce: vi.fn(
+    async (input: {
+      kind: string;
+      dedupeKey: string;
+      to: string;
+      text: string;
+    }) => {
+      state.sent.push({
+        kind: input.kind,
+        dedupeKey: input.dedupeKey,
+        to: input.to,
+        text: input.text,
+      });
+      return true;
+    },
+  ),
 }));
 
 const { readPassCandidates, sweepExpiredPasses, sweepRenewalNudges } =
@@ -169,16 +183,89 @@ describe("renewal_nudges", () => {
       email: "b@example.com",
       tier_expires_at: "2026-12-01T00:00:00.000000+00:00",
     });
-    const world = createCronWorld({ profiles, events: [], media: [] });
+    const world = createCronWorld({
+      profiles,
+      notification_prefs: [],
+      events: [],
+      media: [],
+    });
     state.world = world;
 
     const tally = await sweepRenewalNudges(world.client, NOW);
     expect(tally).toMatchObject({
       eligible: 2_100,
       nudged: 2_100,
+      opted_out: 0,
       rows_failed: 0,
     });
     expect(new Set(state.sent.map((s) => s.dedupeKey)).size).toBe(2_100);
+    // The switches are read in chunks too: 2,100 ids never ride one URL.
+    expect(
+      world.fake.requests.filter((r) => r.name === "notification_prefs").length,
+    ).toBeGreaterThan(1);
     expect(everyRequestFits(world.fake)).toBe(true);
+  });
+
+  /** Three holders in the window: one with no row, one who left reminders on, one who turned them off. */
+  function switchWorld(prefs: FakeRow[] | undefined) {
+    const holder = (i: number): FakeRow => ({
+      id: uuidOf("h", i),
+      tier: "event_pass",
+      email: `holder${i}@example.com`,
+      tier_expires_at: "2026-09-30T00:00:00.000000+00:00",
+    });
+    const tables: Record<string, FakeRow[]> = {
+      profiles: [holder(1), holder(2), holder(3)],
+      events: [],
+      media: [],
+    };
+    if (prefs) tables.notification_prefs = prefs;
+    const world = createCronWorld(tables);
+    state.world = world;
+    return world;
+  }
+
+  it("never mails a holder who turned Event Pass reminders off, and counts them", async () => {
+    const world = switchWorld([
+      {
+        user_id: uuidOf("h", 2),
+        notify_pass_renewal: true,
+        marketing_opt_in: false,
+      },
+      {
+        user_id: uuidOf("h", 3),
+        notify_pass_renewal: false,
+        marketing_opt_in: true,
+      },
+    ]);
+    const tally = await sweepRenewalNudges(world.client, NOW);
+    expect(tally).toMatchObject({ eligible: 3, nudged: 2, opted_out: 1 });
+    // No row is the default (on), exactly as the /account card shows it.
+    expect(state.sent.map((s) => s.to).sort()).toEqual([
+      "holder1@example.com",
+      "holder2@example.com",
+    ]);
+  });
+
+  it("stops before any send when the switches cannot be read", async () => {
+    const world = switchWorld(undefined); // the table answers PGRST205, as a failed read would
+    await expect(sweepRenewalNudges(world.client, NOW)).rejects.toThrow(
+      /pass reminder switches/,
+    );
+    expect(state.sent).toEqual([]);
+  });
+
+  it("the mail's button starts the renewal and its foot lands on the switch", async () => {
+    const world = switchWorld([]);
+    await sweepRenewalNudges(world.client, NOW);
+    expect(state.sent).toHaveLength(3);
+    for (const mail of state.sent) {
+      expect(mail.text).toContain(
+        "Renew Event Pass: https://partyreel.test/account/renew",
+      );
+      expect(mail.text).toContain(
+        "Unsubscribe from Event Pass reminders: https://partyreel.test/account#event-pass-reminders",
+      );
+    }
   });
 });

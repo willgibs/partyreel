@@ -90,7 +90,7 @@ export async function submitApplication(
   // Best-effort notification — never blocks the success response.
   try {
     const to = serverEnv.CONTACT_NOTIFY_EMAIL ?? SUPPORT_EMAIL;
-    const { subject, html } = applicationReceivedEmail({
+    const { subject, html, text } = applicationReceivedEmail({
       role: role.title,
       name: data.name,
       email: data.email,
@@ -103,6 +103,7 @@ export async function submitApplication(
       to,
       subject,
       html,
+      text,
       replyTo: data.email,
     });
   } catch (err) {
