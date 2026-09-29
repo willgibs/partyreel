@@ -29,6 +29,41 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - docs/systems/host-app.md
   - docs/systems/guest-flow.md
   - src/app/(dev)/design/sandbox/event-settings/
+  # added at boot (2026-09-29): the paths the doors reach beyond the starting list
+  - supabase/migrations/20260929115000_event_doors_enum.sql
+  - src/lib/db/migration-guards.test.ts
+  - src/lib/db/row-cap-sql.test.ts
+  - src/lib/db/queries/guest-events
+  - src/lib/db/queries/album-guest
+  - src/lib/db/queries/event-card
+  - src/lib/db/queries/claims
+  - src/lib/db/queries/notifications
+  - src/lib/db/queries/events
+  - src/lib/db/mutations/guest
+  - src/lib/db/mutations/events
+  - src/lib/events/closed-door
+  - src/lib/events/gallery-access
+  - src/lib/events/album-viewer
+  - src/lib/events/upload-lock
+  - src/lib/validation/event
+  - src/lib/validation/upload
+  - src/app/api/guests/
+  - src/app/api/r2/presign-upload/
+  - src/app/api/r2/complete-upload/
+  - src/app/api/export/guest/
+  - src/app/api/album/guest/
+  - src/app/(guest)/e/[token]/card/
+  - src/lib/guest/entry-steps
+  - src/lib/guest/event-card
+  - src/components/guest/entry-modal
+  - src/components/guest/event-experience.tsx
+  - src/components/guest/upload/
+  - src/lib/dashboard/guest-events
+  - src/lib/dashboard/next-step
+  - src/lib/notifications/build
+  - src/components/app/share/event-sheets.tsx
+  - src/components/ui/popup.tsx
+  - src/components/app/event-blocks/
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/reviews/event-settings.json
   - docs/reviews/locked-door.json
