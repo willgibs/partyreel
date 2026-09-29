@@ -40,13 +40,12 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `crumbs-10` | build 19's red-team findings (Dismiss's way back, the help-feedback table at 375, the home's wasted preloads, /account/renew for a never-held pass, the phone menu's description) and five ROADMAP carry-overs | running, agent `a45041ebf338a446a` | Opus, :3131 | |
 
 Batch 7 (cut `35601390`, 2026-09-28) answers Will's sitting on build 15 (transcribed at `69afdbc5`: 21 answers on
 hero-card, voice-guest, host-storage, event-safety, export-flow). Wave A, four lanes: three new boards and the block.
 Wave B follows as seats free. Batch 6 (sixteen lanes) is merged whole; its records carry the rest.
 
-Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, event-settings, voice-wiring, pricing-wiring, triage-r2, safety-wiring, hero-wiring, triage-wiring, export-wiring, help-wiring, emails-wiring, demo-framing, crumbs-8, crumbs-9, crumbs-11.
+Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, event-settings, voice-wiring, pricing-wiring, triage-r2, safety-wiring, hero-wiring, triage-wiring, export-wiring, help-wiring, emails-wiring, demo-framing, crumbs-8, crumbs-9, crumbs-11, crumbs-10.
 
 ## Next, in order
 
@@ -84,7 +83,8 @@ his batch is in; merges and migrations go on (neither touches the served build o
    `crumbs-8`. **Build 18** (deployed 2026-09-29 for his desk: wave B whole and `demo-framing`'s board, 45 open asks).
    **Build 19 is live and red-teamed** (`fd196846`; all seven journeys PASS, no major; the ledger is
    `../partyreel-wt/_scratch/redteam-19/ledger.txt`); its three minors and three nits are `crumbs-10`'s, and
-   `crumbs-11` closes the slug family and the sign-in return path. **Build 20** carries both; its red-team walks the
+   `crumbs-11` closes the slug family and the sign-in return path; both merged (`ceda6dc2`, `2482d367`). **Build 20**
+   carries both, once his review hold lifts; its red-team walks the
    signed-out mail links through the chooser and re-checks the six. Build 19's red-team walked the new hero, the export flow short of any download, the triage portal on staged reports
    (`triage-wiring`'s Handoff names the rows), the help, the two majors re-checked, and the standing scope. Drafted
    specs wait in this session's scratchpad (`specs/<track>.json`); a new session writes them from these lines.
