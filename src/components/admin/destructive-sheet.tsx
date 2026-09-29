@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Popup,
   PopupBody,
@@ -47,8 +48,27 @@ import {
  * `requireAdminAction` asserts AAL2 before any of it). A client that skipped
  * this panel entirely would still be refused; the panel exists so an operator
  * does not make the mistake, not to stop an attacker making it.
+ *
+ * ★ A CONFIRM CAN CARRY ONE NOTE (admin-triage r1, `verdict=note` and
+ * `escalate=door`, Will 2026-09-28). A line typed INTO the confirm, never a
+ * second form beside it: a report's Remove leaves its optional note on the
+ * record, and a hold from a report states its reason there, filled in. One
+ * prop at the source, so any destructive act in the portal can leave a reason.
+ * A required note holds the verb exactly as an unmatched typed identifier does.
  */
-export function DestructiveSheet(props: {
+export type ConfirmNote = {
+  label: string;
+  /** Required = the verb waits for a line; optional says so beside the label. */
+  required?: boolean;
+  /** What the field starts with (a hold's reason is filled in from its report). */
+  defaultValue?: string;
+  placeholder?: string;
+  /** One quiet line under the field: who reads it, where it is kept. */
+  hint?: string;
+  maxLength?: number;
+};
+
+export type DestructiveSheetProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
@@ -72,17 +92,21 @@ export function DestructiveSheet(props: {
    * with nothing to check is friction people learn to type through.
    */
   confirmText?: string;
+  /** A line the act leaves on its record (see the header). */
+  note?: ConfirmNote;
   /**
    * ★ IT IS HANDED WHAT WAS ACTUALLY TYPED, and a permanent act must pass that
    * on rather than the string it was expecting. The account delete's server
    * guard compares the confirmation against the row it is about to delete; a
    * client that "helpfully" sent the correct identifier every time would turn
    * that guard into a tautology and leave only this panel between an operator
-   * and the wrong account.
+   * and the wrong account. The note arrives trimmed, "" when none was written.
    */
-  onConfirm: (typed: string) => Promise<ActionResult>;
+  onConfirm: (typed: string, note: string) => Promise<ActionResult>;
   successMessage: string;
-}) {
+};
+
+export function DestructiveSheet(props: DestructiveSheetProps) {
   return (
     <Popup open={props.open} onOpenChange={props.onOpenChange}>
       <PopupContent kind="confirm" size="md" data-severity={props.severity}>
@@ -109,32 +133,29 @@ function ConfirmBody({
   touches,
   severity,
   confirmText,
+  note,
   onConfirm,
   successMessage,
-}: {
-  onOpenChange: (open: boolean) => void;
-  title: string;
-  lede: string;
-  verb: string;
-  touches: string[];
-  severity: "reversible" | "permanent";
-  confirmText?: string;
-  onConfirm: (typed: string) => Promise<ActionResult>;
-  successMessage: string;
-}) {
+}: Omit<DestructiveSheetProps, "open">) {
   const [typed, setTyped] = useState("");
+  // Seeded once per opening: the body unmounts with the panel, so a reopened
+  // confirm starts from the caller's value again, never from a half-edit.
+  const [noteText, setNoteText] = useState(note?.defaultValue ?? "");
   const [pending, startTransition] = useTransition();
   const fieldId = useId();
+  const noteId = useId();
+  const noteHintId = useId();
 
   const needsTyping = severity === "permanent" && Boolean(confirmText);
   const matched =
     !needsTyping ||
     typed.trim().toLowerCase() === (confirmText ?? "").trim().toLowerCase();
+  const noteMissing = Boolean(note?.required) && noteText.trim().length === 0;
 
   function confirm() {
-    if (!matched || pending) return;
+    if (!matched || noteMissing || pending) return;
     startTransition(async () => {
-      const result = await onConfirm(typed.trim());
+      const result = await onConfirm(typed.trim(), note ? noteText.trim() : "");
       if (!result.ok) {
         toast.error(result.message ?? "That did not go through.");
         return;
@@ -164,6 +185,32 @@ function ConfirmBody({
             ))}
           </ul>
         </div>
+
+        {note ? (
+          <div className="mt-4 space-y-1.5">
+            <Label htmlFor={noteId}>
+              {note.label}{" "}
+              <span className="font-normal text-muted-foreground">
+                {note.required ? "(required)" : "(optional)"}
+              </span>
+            </Label>
+            <Textarea
+              id={noteId}
+              rows={2}
+              value={noteText}
+              placeholder={note.placeholder}
+              maxLength={note.maxLength}
+              aria-describedby={note.hint ? noteHintId : undefined}
+              className="min-h-0 resize-none"
+              onChange={(event) => setNoteText(event.target.value)}
+            />
+            {note.hint ? (
+              <p id={noteHintId} className="text-caption text-muted-foreground">
+                {note.hint}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
 
         {needsTyping ? (
           <div className="mt-4 space-y-1.5">
@@ -200,7 +247,7 @@ function ConfirmBody({
           type="button"
           variant={severity === "permanent" ? "destructive" : "default"}
           onClick={confirm}
-          disabled={!matched || pending}
+          disabled={!matched || noteMissing || pending}
         >
           {pending ? "Working" : verb}
         </Button>

@@ -60,7 +60,11 @@ never a design variable.
   it; `nav.test.ts` fails on a page the nav cannot reach.
 - **State colour comes from one map,** `lib/admin/tone.ts`, so a chip and the row under it cannot disagree.
 - **Every destructive act opens `destructive-sheet.tsx`,** which lists what the act touches; only a permanent act
-  with something to identify asks you to type, and the server re-checks what was typed against the row.
+  with something to identify asks you to type, and the server re-checks what was typed against the row. A confirm
+  can carry one `note` (optional, or required as a hold's reason is), typed into it rather than a form beside it.
+- **Every inbox speaks through one filter bar and one status picker** (`TriageFilter`, `StatusPicker`), each given
+  its inbox's own words (`InboxWords`): Reports says Open, Dismissed and Actioned and lands on Open; Support and
+  Applicants say New, In progress and Closed and land on All.
 - ★ **The command palette jumps and never acts:** its actions scroll to the card where the switch and its sheet live,
   because a palette that fired a kill switch would be the portal's cheapest click on its most expensive act.
 - ★ **Every pending number is one read per request.** A layout cannot hand anything to a page, so
@@ -136,8 +140,22 @@ three definitions of healthy:
 `/api/reports` takes two arms, both insert-only and rate-limited: a report never hides content or blocks anyone. An
 album or item report is anonymous, its `qr_token` the capability `create_report` validates inside the RPC; a person
 report (`reports.profile_id`) needs a signed-in reporter, re-checked with `getUser()`. `reports` is deny-all and stores
-no reporter. Review is human (`/admin/reports`; no scanner or NSFW filter): actioning an item soft-removes it, while a
-reported person is actioned out of band, so marking one handled only closes the report.
+no reporter. Review is human (`/admin/reports`; no scanner or NSFW filter), and its rules are one pure module,
+`lib/admin/reports.ts` (admin-triage r1):
+- ★ **A verdict reads its own report.** The item a Remove takes down is the report's `media_id`, read by the action,
+  never an id the browser sends; a verdict lands only on an OPEN report, so a second tab is told "already decided",
+  and it writes `resolution_note` (optional, capped as a reason is). Dismiss and Mark actioned are one press;
+  Remove and an album's Action open the confirm.
+- **Actioning an item makes it an operator's removal whatever its state** (an item the host or a guest had already
+  removed is marked the operator's, keeping its `removed_at`), and one instant stamps the removal and the verdict. A
+  reported person is actioned out of band, so Mark actioned only closes the report.
+- **A closed report is one line, and its Undo lives exactly as long as the removal ITS verdict made** (the removal's
+  `removed_at` equal to the verdict's `resolved_at`, still an operator's, not held; `wayBackOf`): it reopens the
+  report first, then restores the item where it was. A held item reads Held and has no Undo.
+- **Hold for forensics on an item report** reads what it reaches first (the item and the same uploader's other items
+  in the event: its guest row, or every row the same account holds there; no guest row means the host's own
+  uploads), then preserves each through `preserveMedia`, the reported item alone first, the rest four at a time
+  inside the page's `maxDuration` (a partial run says how far it got; pressing again is safe). The report stays open.
 
 ## Sentry
 

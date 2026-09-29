@@ -13,20 +13,31 @@
  * lookups ride `inChunks` (at most 150 ids a URL), where one `.in()` carried every id; and the
  * presigns run in parallel. The count behind the rail's badge is a HEAD count, and the operator
  * queue's "oldest waiting" one row ordered oldest first.
+ *
+ * ★ EACH REPORT SAYS WHERE ITS ITEM STANDS NOW (admin-triage r1, 2026-09-28). A verdict's note
+ * (`resolution_note`) comes back with it, and the reported item's standing (up, removed by someone
+ * else, or an operator's removal) and whether it is held, because the confirm, the hold's door and
+ * the closed line's Undo (`closed=window`) each say something different about each. The item's
+ * timestamps stay here: the line's way back is decided on the server (`wayBackOf`) and only its
+ * answer goes to the browser.
  */
 import "server-only";
 
 import { readNewest } from "@/lib/admin/list-depth";
+import {
+  type ReportFilter,
+  type ReportStatus,
+  wayBackOf,
+} from "@/lib/admin/reports";
 import { mustQuery } from "@/lib/db/must-query";
 import { inChunks } from "@/lib/db/read-all";
-import type { Database } from "@/lib/db/types";
 import { presignDownload } from "@/lib/r2/presign";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-export type ReportStatus = Database["public"]["Enums"]["report_status"];
+export type { ReportFilter, ReportStatus } from "@/lib/admin/reports";
 
-/** "open" = the active queue; "all" = full history (resolved rows render read-only in the UI). */
-export type ReportFilter = "open" | "all";
+/** Where a reported item stands now: still up (any live status), removed by someone else, or an operator's removal. */
+export type ItemStanding = "live" | "removed" | "operator";
 
 export type ReviewReport = {
   id: string;
@@ -34,17 +45,42 @@ export type ReviewReport = {
   created_at: string;
   status: ReportStatus;
   resolved_at: string | null;
+  /** The verdict's note (`verdict=note`), or null when none was written. */
+  resolution_note: string | null;
   event: { id: string; name: string } | null;
   media: {
     id: string;
     type: "photo" | "video";
     /** Short-lived presigned URL for operator review; never a raw key. */
     url: string;
+    /** The small preview, for a closed report's thumbnail; null when the upload made none. */
+    previewUrl: string | null;
+    standing: ItemStanding;
+    /** Under a legal hold: the door reads Held, and a closed line offers no Undo. */
+    held: boolean;
   } | null;
+  /** A closed report's way back (`closed=window`), decided here from the item's own row. */
+  wayBack: "undo" | "held" | null;
 };
 
 /** A page's cursor on a newest-first queue: the last report's raw timestamp string and its id. */
 type NewestFirst = { at: string; id: string } | null;
+
+/** The rows a filter reads: one of the three words, or every report. */
+function statusFilter(filter: ReportFilter): ReportStatus | null {
+  return filter === "all" ? null : filter;
+}
+
+type MediaRow = {
+  id: string;
+  type: "photo" | "video";
+  original_key: string;
+  preview_key: string | null;
+  status: "pending" | "approved" | "hidden" | "removed";
+  removed_by_admin: boolean;
+  removed_at: string | null;
+  legal_hold_at: string | null;
+};
 
 /** The newest `show` album reports, and whether the queue holds more. */
 export async function listReports(
@@ -52,6 +88,7 @@ export async function listReports(
   show: number,
 ): Promise<{ reports: ReviewReport[]; more: boolean }> {
   const admin = createAdminClient();
+  const only = statusFilter(filter);
 
   // ★ THE ALBUM ARM ONLY. Since 20260919130000 a report may name a PERSON
   // instead of an event (Will, `block=report`), and those rows carry no event,
@@ -65,13 +102,13 @@ export async function listReports(
       let q = admin
         .from("reports")
         .select(
-          "id, reason, created_at, status, resolved_at, event_id, media_id",
+          "id, reason, created_at, status, resolved_at, resolution_note, event_id, media_id",
         )
         .not("event_id", "is", null)
         .order("created_at", { ascending: false })
         .order("id", { ascending: false })
         .limit(limit);
-      if (filter === "open") q = q.eq("status", "open");
+      if (only) q = q.eq("status", only);
       if (after) {
         q = q.or(
           `created_at.lt.${after.at},and(created_at.eq.${after.at},id.lt.${after.id})`,
@@ -87,44 +124,85 @@ export async function listReports(
   const mediaIds = reports.flatMap((r) => (r.media_id ? [r.media_id] : []));
 
   const [events, media] = await Promise.all([
-    inChunks("admin reports: events", eventIds, async (chunk) =>
-      (await mustQuery(
-        admin.from("events").select("id, name").in("id", chunk),
-        "admin reports: events",
-      )) ?? [],
+    inChunks(
+      "admin reports: events",
+      eventIds,
+      async (chunk) =>
+        (await mustQuery(
+          admin.from("events").select("id, name").in("id", chunk),
+          "admin reports: events",
+        )) ?? [],
     ),
-    inChunks("admin reports: media", mediaIds, async (chunk) =>
-      (await mustQuery(
-        admin.from("media").select("id, type, original_key").in("id", chunk),
-        "admin reports: media",
-      )) ?? [],
+    inChunks(
+      "admin reports: media",
+      mediaIds,
+      async (chunk) =>
+        (await mustQuery(
+          admin
+            .from("media")
+            .select(
+              "id, type, original_key, preview_key, status, removed_by_admin, removed_at, legal_hold_at",
+            )
+            .in("id", chunk),
+          "admin reports: media",
+        )) ?? [],
     ),
   ]);
   const eventById = new Map(events.map((e) => [e.id, e]));
+  const rowById = new Map((media as MediaRow[]).map((m) => [m.id, m]));
 
   // Every presign at once: each is a local signature, and signing them one after another made a
   // long queue wait on the slowest sum of them for nothing.
   const signed = await Promise.all(
-    media.map(async (m) => ({
+    (media as MediaRow[]).map(async (m) => ({
       id: m.id,
       type: m.type,
       url: await presignDownload({ key: m.original_key }),
+      previewUrl: m.preview_key
+        ? await presignDownload({ key: m.preview_key })
+        : null,
+      standing: standingOf(m),
+      held: m.legal_hold_at !== null && m.legal_hold_at !== undefined,
     })),
   );
   const mediaById = new Map(signed.map((m) => [m.id, m]));
 
   return {
-    reports: reports.map((r) => ({
-      id: r.id,
-      reason: r.reason,
-      created_at: r.created_at,
-      status: r.status,
-      resolved_at: r.resolved_at,
-      event: r.event_id ? (eventById.get(r.event_id) ?? null) : null,
-      media: r.media_id ? (mediaById.get(r.media_id) ?? null) : null,
-    })),
+    reports: reports.map((r) => {
+      const row = r.media_id ? rowById.get(r.media_id) : undefined;
+      return {
+        id: r.id,
+        reason: r.reason,
+        created_at: r.created_at,
+        status: r.status,
+        resolved_at: r.resolved_at,
+        resolution_note: r.resolution_note ?? null,
+        event: r.event_id ? (eventById.get(r.event_id) ?? null) : null,
+        media: r.media_id ? (mediaById.get(r.media_id) ?? null) : null,
+        wayBack: wayBackOf({
+          status: r.status,
+          resolvedAt: r.resolved_at,
+          item: row
+            ? {
+                status: row.status,
+                removedByAdmin: Boolean(row.removed_by_admin),
+                removedAt: row.removed_at ?? null,
+                held:
+                  row.legal_hold_at !== null && row.legal_hold_at !== undefined,
+              }
+            : null,
+        }),
+      };
+    }),
     more,
   };
+}
+
+function standingOf(
+  m: Pick<MediaRow, "status" | "removed_by_admin">,
+): ItemStanding {
+  if (m.status !== "removed") return "live";
+  return m.removed_by_admin ? "operator" : "removed";
 }
 
 /** Open-report count for the Overview badge. Cheap head+count query. */
@@ -165,9 +243,15 @@ export type ReviewProfileReport = {
   created_at: string;
   status: ReportStatus;
   resolved_at: string | null;
+  /** The verdict's note (`verdict=note`), or null when none was written. */
+  resolution_note: string | null;
   /** Null only if the reported account was deleted between the report and the
    *  read (the FK cascades, so this is a race window, not a steady state). */
-  profile: { id: string; displayName: string | null; slug: string | null } | null;
+  profile: {
+    id: string;
+    displayName: string | null;
+    slug: string | null;
+  } | null;
 };
 
 /**
@@ -188,6 +272,7 @@ export async function listProfileReports(
   show: number,
 ): Promise<{ reports: ReviewProfileReport[]; more: boolean }> {
   const admin = createAdminClient();
+  const only = statusFilter(filter);
 
   const { rows, more } = await readNewest(
     "admin reports: person reports",
@@ -195,12 +280,14 @@ export async function listProfileReports(
     (after: NewestFirst, limit) => {
       let q = admin
         .from("reports")
-        .select("id, reason, created_at, status, resolved_at, profile_id")
+        .select(
+          "id, reason, created_at, status, resolved_at, resolution_note, profile_id",
+        )
         .not("profile_id", "is", null)
         .order("created_at", { ascending: false })
         .order("id", { ascending: false })
         .limit(limit);
-      if (filter === "open") q = q.eq("status", "open");
+      if (only) q = q.eq("status", only);
       if (after) {
         q = q.or(
           `created_at.lt.${after.at},and(created_at.eq.${after.at},id.lt.${after.id})`,
@@ -239,6 +326,7 @@ export async function listProfileReports(
       created_at: r.created_at,
       status: r.status,
       resolved_at: r.resolved_at,
+      resolution_note: r.resolution_note ?? null,
       profile: byId.get(r.profile_id) ?? null,
     })),
     more,
