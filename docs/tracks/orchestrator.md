@@ -40,7 +40,8 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `hero-wiring` | hero-card r2: the `guests` card as the hero's object (`partyreel.com/` quieter so the slug leads), the bloom light, the composed tablet table; ASSETS rows 33 and 34 from its Handoff; hero-card retires | running, agent `aa32a485242b5c773` | Opus, :3133 | |
+| `hero-wiring` | hero-card r2: the `guests` card as the hero's object (`partyreel.com/` quieter so the slug leads), the bloom light, the composed tablet table; hero-card retires | handed off at `f312267f` (gate green on `ce76844f`); its integration waits on Will (below) | Opus | ASSETS rows 33 and 34 from its Handoff |
+| `emails-wiring` | emails r1 on the ten mails that already send: one shell, the wordmark, light only, tagged operator subjects, the foot with no address and the renewal nudge's unsubscribe (a migration), a plain-text twin; the three dead switches leave; nothing new sends; emails retires | running, agent `adc42bfa207564886` | Opus, :3133 | |
 | `export-wiring` | export-flow's six: the Yours row filtered on the server, the toast that stays with a subtle cancel, the one-line empty refusal, parts in plain words, a phone's Download all to Files; the Worker backward compatible (I deploy it after the merge); export-flow retires | running, agent `aa10025fff8b6ba0e` | Opus, :3131 | |
 | `triage-wiring` | admin-triage r1's six: the marked reason, the verdict's note, the window, the escalation door, the shape idiom, a reported removal purged from the host's view (a migration; legal hold and preservation kept); the reports clause drafted | running, agent `a347eb3bf09ed556f` | Opus, :3132 | |
 | `help-wiring` | help-center's seven: host first, the strip with quick questions in the focused search, illustrated steps, contextual links and a Help row in the menus, the feedback beacon (a migration) with its admin view, the rung, Search in the header and footer; help-center retires | running, agent `a6ca95d7a7aab7b4b` | Opus, :3134 | |
@@ -61,19 +62,7 @@ Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, 
      over it). Large files go through a helper that transcribes, `cmp`s, applies and proves; the recorded md5 is the
      check.
 2. **Wave B into each free seat**, in this order (his answers are in the ledgers; each brief carries his notes).
-   - `emails-wiring` (Opus), from his emails r1 (`docs/reviews/emails.json`, all ten), on the ten mails that already
-     send; nothing new sends (his `moments` note banks every new mail for one email exploration, ROADMAP's Emails):
-     - `shell=unified`: one `layout()`, the four operator alerts on it, a host foot and an operator foot;
-     - `brand=wordmark`: a hosted PNG on a light plate (no mail client renders SVG reliably), the button in ink;
-     - `dark=light`: color-scheme light on a white card, colours that survive a forced invert;
-     - `sender=tagged`: "[Partyreel]" on all four operator subjects;
-     - `foot=commercial` as his note refines it: no address on any mail; the reason line under a divider; an unsubscribe on the
-       renewal nudge alone (a new Email preferences switch, a migration), since the over-cap three warn before
-       files are removed (my narrowing, his to overrule);
-     - `moments=identity`: the three switches for mail nothing sends leave (columns kept for his yes);
-     - a `text/plain` twin beside every `html`, and the renewal nudge's Renew going where it says.
-
-     Retires emails.
+   - (none queued: every wave B lane is cut)
 3. **Build 17 is live** (`1407daf6`, both migrations applied; pruned; the desk, admin-triage and event-settings boards
    and the Library clean headless; 42 open asks). Its red-team is running (agent `a21c3c40aeb5e59ff`) (`../partyreel-wt/_scratch/redteam-17/`, from `redteam-15/brief.md`):
    - the block, live: partyr33l blocked at a willg97 test event from one of the three roads meets the private door and
@@ -100,6 +89,15 @@ Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, 
 
 ## Waiting on Will
 
+- **Two actions the permission classifier refused me (2026-09-29), his to decide:**
+  - hero-wiring's integration (`integrate.sh hero-wiring f312267f`), refused as "Auto-Mode Bypass" right after the
+    refusal below; the lane's head and its gate stand, so a word from him (or his allowing it) resumes it.
+  - hero-wiring's Question: the homepage card prints `partyreel.com/e/mia-and-theo`, which no event holds (a 404 that
+    any host could later claim). The demo event taking that slug is one row; the classifier refused it as a
+    shared-resource change: `update public.events set custom_slug = 'mia-and-theo' where id =
+    '2485e1e6-12b1-4d02-aee3-1e2bb5d38d4f' and custom_slug = 'partyreel-demo';` (the demo door rides its token, and
+    nothing prints `partyreel-demo`). He runs it, allows it, or picks the fallback (`RESERVED_SLUGS`, which only stops
+    the claim).
 - **His desk, first** (his aim: zero open questions before the to-dos below, which stay stacked until then): build
   16's 38 open asks (privacy-hero, album-motion, loose-ends, contact-page, press-page; new: event-settings,
   locked-door, disposable-mode); admin-triage r2 follows.
