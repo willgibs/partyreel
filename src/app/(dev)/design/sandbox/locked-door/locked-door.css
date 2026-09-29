@@ -1,26 +1,114 @@
-/* THE ONE THING THIS BOARD DRAWS FROM ITS OWN SHEET: the lit lock's spill
-   (`lit`, `parts.tsx`'s `LitLock`). Everything else wears production's own
-   classes: the not-found screen, the door's padding, scrim and posture, the
-   lamp's register, blobs and drift (`door/lit.css`).
+/* THE BOARD'S OWN SHEET: the host's halo (`host.tsx`), the lit column's spill
+   (`lit.tsx`), the doorway (`doorway.tsx`), and the wait's live pieces. Every
+   other rule is production's own: the lamp's register, blobs, pools, glyphs,
+   bloom and check (`door/lit.css`), the text reveal and the welcome's 55svh
+   (`door.css`).
 
-   ★ THE DOOR LAMP'S OWN BLOBS, LAID ROUND A LOCK INSTEAD OF ALONG AN EDGE.
-   `.door-lamp` supplies the register (paper in light, the atmosphere register
-   in dark), the blobs' colour and blur, the drift and its stillness under
-   reduced motion; this sheet only places them. The box sits a little above
-   the lock's centre and its mask is spent within a few pixels of the lock's
-   foot, so no light falls under the headline (in dark, a muted word inside the
-   atmosphere register reads about 2:1, design-system.md's "spill in dark stays
-   off the words").
+   ★ THE REGISTER IS THE GROUND'S, THE HUE THE ALBUM'S (or the house five), as
+   the door's own lamp has it: `--lit-l` and `--lit-c` are set here per ground,
+   `--lit-h1..3` come from each piece's element (`litVars`).
 
-   ★ NO KEYFRAMES HERE (design-system.md: a lab keyframe name is document-wide
-   and would shadow production's); the drift is `lit.css`'s own. */
+   ★ EVERY KEYFRAME CARRIES THE BOARD'S PREFIX (`ld-`): keyframe names are
+   document-global, and `keyframe-uniqueness.test.ts` reads every sheet under
+   the lab.
 
+   ★ THE REST STATE IS THE DEFAULT (bible 5): every animated element's resting
+   style is the still frame it settles on, and every movement sits behind
+   `no-preference`, so reduced motion shows the door whole and still. */
+
+/* ══ THE HOST'S PLATE: her portrait in a ring of the lamp's light ══════════ */
+
+.ld-plate {
+  --lit-l: 0.8;
+  --lit-c: 0.13;
+}
+.dark .ld-plate {
+  --lit-l: 0.74;
+  --lit-c: 0.15;
+}
+.ld-halo,
+.ld-halo-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  pointer-events: none;
+  background: conic-gradient(
+    from 210deg,
+    oklch(var(--lit-l) var(--lit-c) var(--lit-h1)),
+    oklch(var(--lit-l) var(--lit-c) var(--lit-h2)),
+    oklch(var(--lit-l) var(--lit-c) var(--lit-h3)),
+    oklch(var(--lit-l) var(--lit-c) var(--lit-h1))
+  );
+}
+/* The ring: the sweep masked to its outer 3px. */
+.ld-halo {
+  z-index: 1;
+  -webkit-mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 3px),
+    #000 calc(100% - 2.5px)
+  );
+  mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 3px),
+    #000 calc(100% - 2.5px)
+  );
+}
+/* The glow behind it: the same sweep, blurred, so the face sits in light. */
+.ld-halo-glow {
+  z-index: -1;
+  filter: blur(10px);
+  opacity: 0.55;
+  scale: 1.1;
+}
+.ld-plate-face {
+  position: relative;
+  z-index: 2;
+}
+/* Shut: the ring falls to a hairline and the glow goes out. The face stays,
+   because she is the way on. */
+.ld-plate[data-ld-plate="shut"] .ld-halo {
+  background: var(--border);
+  -webkit-mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 1.5px),
+    #000 calc(100% - 1px)
+  );
+  mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 1.5px),
+    #000 calc(100% - 1px)
+  );
+}
+.ld-plate[data-ld-plate="shut"] .ld-halo-glow,
+.ld-plate[data-ld-plate="none"] .ld-halo-glow {
+  display: none;
+}
+/* The 404: an empty ring, since no host stands at a link that opens nothing. */
+.ld-plate[data-ld-plate="none"] .ld-halo {
+  background: none;
+  -webkit-mask: none;
+  mask: none;
+  border: 1.5px dashed var(--border);
+}
+/* The bloom: she let someone in, and the light leans in. */
+.ld-plate[data-ld-plate="bloom"] .ld-halo-glow {
+  opacity: 0.85;
+  filter: blur(14px);
+  scale: 1.2;
+}
+
+/* ══ THE LIT COLUMN'S EMBLEM: the door lamp's blobs laid round a pool ═════ */
+
+/* The box sits a little above the emblem's centre and its mask is spent within
+   a few pixels of the emblem's foot, so no light falls under the headline (in
+   dark, a muted word inside the atmosphere register reads about 2:1). */
 .ld-spill {
   left: 50%;
   top: 50%;
   width: 17rem;
   height: 11rem;
-  translate: -50% -62%;
+  translate: -50% -58%;
   -webkit-mask-image: radial-gradient(
     closest-side,
     #000 0%,
@@ -52,11 +140,446 @@
   width: 46%;
   height: 58%;
 }
+/* A page has more room round its column, so the light has more to fill. */
+.ld-spill-page {
+  width: 22rem;
+  height: 14rem;
+}
+/* The state is how much light there is: the album's own pouring round the
+   welcome and the beat, the house light spent to a glow on a shut door. */
+[data-ld-emblem="open"] .ld-spill,
+[data-ld-emblem="bloom"] .ld-spill {
+  opacity: 1;
+}
+[data-ld-emblem="shut"] .ld-spill {
+  opacity: 0.24;
+}
+/* A shut door's pool keeps a breath of the light, not its colour: a lock in a
+   coral pool reads as a warning, and failure is --destructive's alone. The
+   pool's whole paint is restated at a whisper of chroma, since its glow and
+   ring carry chroma of their own (`lit.css`). */
+[data-ld-emblem="shut"] .door-pool {
+  background:
+    radial-gradient(
+      circle at 50% 30%,
+      oklch(0.99 0.01 var(--pool-h)) 0%,
+      transparent 70%
+    ),
+    oklch(0.94 0.012 var(--pool-h));
+  box-shadow:
+    inset 0 0 0 1px oklch(0.8 0.02 var(--pool-h) / 0.6),
+    0 4px 14px -6px oklch(0.55 0.03 var(--pool-h) / 0.4);
+}
+.dark [data-ld-emblem="shut"] .door-pool {
+  background:
+    radial-gradient(
+      circle at 50% 30%,
+      oklch(0.52 0.03 var(--pool-h) / 0.5) 0%,
+      transparent 72%
+    ),
+    oklch(0.3 0.014 var(--pool-h));
+  box-shadow:
+    inset 0 0 0 1px oklch(0.62 0.03 var(--pool-h) / 0.35),
+    0 0 18px -4px oklch(0.62 0.04 var(--pool-h) / 0.5);
+}
+[data-ld-emblem="lost"] .ld-spill {
+  opacity: 0;
+}
+[data-ld-emblem="lost"] .door-pool {
+  background: var(--muted);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
 
-/* A laptop's column has more room around it, so the light has more to fill. */
+/* ══ THE DOORWAY: a door of light, its leaf the state ═════════════════════ */
+
+/* ★ ON PAPER THE LIGHT RUNS DEEPER than the door lamp's paper register: light
+   cannot glow brighter than the white it falls on, so a doorway's light reads
+   as light on paper only when its colour carries it. */
+.ld-way {
+  --way-w: 116px;
+  --way-h: 176px;
+  --way-r: 14px;
+  --lit-l: 0.8;
+  --lit-c: 0.13;
+  position: relative;
+  isolation: isolate;
+  width: var(--way-w);
+  height: var(--way-h);
+  flex-shrink: 0;
+}
+.dark .ld-way {
+  --lit-l: 0.74;
+  --lit-c: 0.15;
+}
+.ld-way[data-ld-way-size="sheet"] {
+  --way-w: 38px;
+  --way-h: 58px;
+  --way-r: 6px;
+}
+/* 40rem is the Sheet's own breakpoint, where the door family turns to a desk. */
 @media (width >= 40rem) {
-  .ld-spill {
-    width: 24rem;
-    height: 14rem;
+  .ld-way[data-ld-way-size="page"] {
+    --way-w: 150px;
+    --way-h: 228px;
+    --way-r: 18px;
+  }
+}
+
+/* THE LEAF'S ANGLE IS THE STATE, and so is how far the light reaches. */
+.ld-way[data-ld-way="open"] {
+  --way-turn: 74deg;
+  --way-floor: 1;
+  --way-sill: 0;
+}
+.ld-way[data-ld-way="ajar"] {
+  --way-turn: 15deg;
+  --way-floor: 0.62;
+  --way-floor-x: 74%;
+  --way-sill: 1;
+}
+.ld-way[data-ld-way="shut"] {
+  --way-turn: 0deg;
+  --way-floor: 0.4;
+  --way-sill: 1;
+}
+.ld-way[data-ld-way="none"] {
+  --way-floor: 0;
+  --way-sill: 0;
+}
+
+/* The frame: a hairline in the ground's own border, the room inside it. */
+.ld-way-frame {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--way-r) var(--way-r) 2px 2px;
+  perspective: calc(var(--way-w) * 4.5);
+  box-shadow: 0 0 0 1px var(--border);
+  background: var(--background);
+}
+.ld-way[data-ld-way="none"] .ld-way-frame {
+  box-shadow: none;
+  outline: 1.5px dashed var(--border);
+  outline-offset: -1px;
+}
+
+/* The room: the party's own light, or the album itself seen through. */
+.ld-way-room {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  background: oklch(0.93 0.06 var(--lit-h2));
+}
+.dark .ld-way-room {
+  background: oklch(0.44 0.08 var(--lit-h2));
+}
+.ld-way-glow {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(calc(var(--way-w) * 0.14));
+}
+.ld-way-g1 {
+  background: oklch(var(--lit-l) var(--lit-c) var(--lit-h1));
+  left: -25%;
+  top: 0%;
+  width: 90%;
+  height: 55%;
+}
+.ld-way-g2 {
+  background: oklch(var(--lit-l) var(--lit-c) var(--lit-h2));
+  left: 25%;
+  top: 25%;
+  width: 95%;
+  height: 55%;
+}
+.ld-way-g3 {
+  background: oklch(var(--lit-l) var(--lit-c) var(--lit-h3));
+  left: -15%;
+  top: 55%;
+  width: 100%;
+  height: 55%;
+}
+.ld-way-album {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 2px;
+  opacity: 0.94;
+}
+.ld-way-album img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* The leaf, hinged on its left, turned by the state (perspective on the frame). */
+.ld-way-leaf {
+  position: absolute;
+  inset: 0 0 3px 0;
+  border-radius: var(--way-r) var(--way-r) 1px 1px;
+  transform-origin: 0% 50%;
+  transform: rotateY(var(--way-turn, 0deg));
+  background: linear-gradient(
+    180deg,
+    oklch(0.975 0.002 286),
+    oklch(0.925 0.003 286)
+  );
+  box-shadow:
+    inset 0 0 0 1px oklch(0.2 0.01 286 / 0.09),
+    0 1px 2px oklch(0.2 0.01 286 / 0.06);
+}
+.dark .ld-way-leaf {
+  background: linear-gradient(
+    180deg,
+    oklch(0.31 0.006 286),
+    oklch(0.245 0.006 286)
+  );
+  box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.07);
+}
+.ld-way[data-ld-way-size="sheet"] .ld-way-leaf {
+  inset: 0 0 1.5px 0;
+}
+/* Two recessed panels, so the leaf reads as a door and never a card. */
+.ld-way-panel {
+  position: absolute;
+  left: 16%;
+  right: 16%;
+  border-radius: calc(var(--way-r) * 0.3);
+  box-shadow: inset 0 0 0 1px oklch(0.2 0.01 286 / 0.08);
+}
+.dark .ld-way-panel {
+  box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.06);
+}
+.ld-way-panel-top {
+  top: 11%;
+  height: 36%;
+  border-top-left-radius: calc(var(--way-r) * 0.7);
+  border-top-right-radius: calc(var(--way-r) * 0.7);
+}
+.ld-way-panel-low {
+  top: 55%;
+  height: 33%;
+}
+.ld-way[data-ld-way-size="sheet"] .ld-way-panel {
+  display: none;
+}
+
+/* THE LIGHT UNDER THE DOOR: the party is on behind it. A line of light, not a
+   bar of colour: its core is near-white (light at its brightest has little
+   hue left), and the room's hues live in the glow it throws, which is what the
+   eye reads as coloured light. Deeper on paper, where light is a wash. */
+.ld-way-sill {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  bottom: 0;
+  height: 2px;
+  border-radius: 9999px;
+  opacity: var(--way-sill, 1);
+  background: linear-gradient(
+    90deg,
+    oklch(0.82 0.11 var(--lit-h1) / 0.7),
+    oklch(0.86 0.11 var(--lit-h2)) 50%,
+    oklch(0.82 0.11 var(--lit-h3) / 0.7)
+  );
+  box-shadow:
+    0 0 6px 1px oklch(0.7 0.16 var(--lit-h2) / 0.85),
+    0 1px 14px 3px oklch(0.74 0.14 var(--lit-h1) / 0.5);
+}
+.dark .ld-way-sill {
+  background: linear-gradient(
+    90deg,
+    oklch(0.9 0.08 var(--lit-h1) / 0.55),
+    oklch(0.96 0.05 var(--lit-h2)) 50%,
+    oklch(0.9 0.08 var(--lit-h3) / 0.55)
+  );
+  box-shadow:
+    0 0 7px 1px oklch(var(--lit-l) var(--lit-c) var(--lit-h2) / 0.95),
+    0 1px 16px 3px oklch(var(--lit-l) var(--lit-c) var(--lit-h1) / 0.5);
+}
+.ld-way[data-ld-way-size="sheet"] .ld-way-sill {
+  left: 1px;
+  right: 1px;
+  height: 1.5px;
+}
+
+/* THE FLOOR: the room's light thrown out through the doorway, as far as the
+   leaf lets it (a whole doorway, a blade from the edge, a line under it). */
+.ld-way-floor {
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  top: calc(100% - 2px);
+  width: calc(var(--way-w) * 2.6);
+  height: calc(var(--way-w) * 0.62);
+  translate: -50% 0;
+  opacity: var(--way-floor, 0.4);
+  filter: blur(calc(var(--way-w) * 0.05));
+  background: radial-gradient(
+    50% 70% at var(--way-floor-x, 50%) 0%,
+    oklch(var(--lit-l) var(--lit-c) var(--lit-h2) / 0.75),
+    oklch(var(--lit-l) var(--lit-c) var(--lit-h1) / 0.28) 55%,
+    transparent 100%
+  );
+}
+/* The ground the door stands on: one hairline, spent at both ends. */
+.ld-way-ground {
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  top: 100%;
+  width: calc(var(--way-w) * 2.8);
+  height: 1px;
+  translate: -50% 0;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+}
+
+/* ══ THE WAIT'S LIVE PIECES ═══════════════════════════════════════════════ */
+
+/* The live mark's dot: the door is listening. Still under reduced motion. */
+.ld-live-dot {
+  position: relative;
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  background: oklch(0.62 0.16 var(--pool-h));
+}
+.dark .ld-live-dot {
+  background: oklch(0.8 0.14 var(--pool-h));
+}
+
+/* A photograph of hers going in: the tile dims under a thin progress line. */
+.ld-pick-sending {
+  position: absolute;
+  inset: 0;
+  background: oklch(0 0 0 / 0.32);
+}
+.ld-pick-sending::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  bottom: 6px;
+  height: 3px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #fff 60%, rgb(255 255 255 / 0.35) 60%);
+}
+
+/* ══ MOTION, ONLY WHERE THE READER ALLOWS IT ═══════════════════════════════ */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* The live wait's host: the ring turns and its glow breathes, on the lamps'
+     own clock. */
+  .ld-plate[data-ld-breathe] .ld-halo {
+    animation: ld-turn calc(var(--spill-cadence, 8s) * 2) linear infinite;
+  }
+  .ld-plate[data-ld-breathe] .ld-halo-glow {
+    animation: ld-breathe calc(var(--spill-cadence, 8s) * 0.5) ease-in-out
+      infinite alternate;
+  }
+  /* The live wait's emblem: the pool swells and settles. */
+  [data-ld-emblem][data-ld-breathe] .door-pool {
+    animation: ld-swell calc(var(--spill-cadence, 8s) * 0.5) ease-in-out
+      infinite alternate;
+  }
+  /* The live wait's doorway: the leaf rocks on its hinge, the light with it. */
+  .ld-way[data-ld-breathe] .ld-way-leaf {
+    animation: ld-way-rock calc(var(--spill-cadence, 8s) * 0.5) ease-in-out
+      infinite alternate;
+  }
+  .ld-way[data-ld-breathe] .ld-way-floor {
+    animation: ld-way-glow calc(var(--spill-cadence, 8s) * 0.5) ease-in-out
+      infinite alternate;
+  }
+  /* An open door swings open as it lands: the welcome, and the moment she is
+     let in. The door is met once, so it may take its time (the arrival's own
+     exception to the 300ms ceiling). */
+  .ld-way-leaf {
+    transition: transform 900ms var(--ease-drawer, ease-out) 250ms;
+  }
+  @starting-style {
+    .ld-way[data-ld-way="open"] .ld-way-leaf {
+      transform: rotateY(0deg);
+    }
+    /* The beat opens a door that was ajar, so it swings from where it stood. */
+    .ld-way[data-ld-way="open"][data-ld-from="ajar"] .ld-way-leaf {
+      transform: rotateY(15deg);
+    }
+  }
+  /* The party behind the door keeps moving: the room's light drifts on the
+     lamps' own drift (`lit.css`), wherever any of it shows. */
+  .ld-way-g1 {
+    animation: door-drift-a calc(var(--spill-cadence, 8s) * 1.5) ease-in-out
+      infinite alternate;
+  }
+  .ld-way-g2 {
+    animation: door-drift-b calc(var(--spill-cadence, 8s) * 1.5) ease-in-out
+      infinite alternate;
+  }
+  .ld-way-g3 {
+    animation: door-drift-a calc(var(--spill-cadence, 8s) * 1.5) ease-in-out -4s
+      infinite alternate-reverse;
+  }
+  /* The live mark's dot pings. */
+  .ld-live-dot::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: inherit;
+    animation: ld-ping 1800ms ease-out infinite;
+  }
+}
+
+@keyframes ld-turn {
+  to {
+    rotate: 360deg;
+  }
+}
+@keyframes ld-breathe {
+  from {
+    opacity: 0.3;
+    scale: 1.02;
+  }
+  to {
+    opacity: 0.75;
+    scale: 1.16;
+  }
+}
+@keyframes ld-swell {
+  from {
+    scale: 1;
+  }
+  to {
+    scale: 1.07;
+  }
+}
+@keyframes ld-way-rock {
+  from {
+    transform: rotateY(11deg);
+  }
+  to {
+    transform: rotateY(20deg);
+  }
+}
+@keyframes ld-way-glow {
+  from {
+    opacity: 0.45;
+  }
+  to {
+    opacity: 0.85;
+  }
+}
+@keyframes ld-ping {
+  from {
+    scale: 1;
+    opacity: 0.55;
+  }
+  to {
+    scale: 3;
+    opacity: 0;
   }
 }

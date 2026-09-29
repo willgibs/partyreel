@@ -48,7 +48,11 @@ function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
         // surface COLOR: see src/app/theme.css. A small card (size="sm") keeps
         // the step: its padding is smaller, its title's ROLE is not, and the
         // generator's text-sm here was the one stock size on the component.
-        "font-heading text-card-title font-semibold",
+        // No weight of its own: the heading face's one weight is the
+        // font-heading utility's 700, and a stock weight beside it wins (it is
+        // emitted after the custom utility), which is how every card title
+        // read at 600 (Will, 2026-09-29: "the thin app heading weights").
+        "font-heading text-card-title",
         className
       )}
       {...props}

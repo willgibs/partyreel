@@ -94,7 +94,7 @@ function FinishMock() {
                 <p className="text-[9px] font-semibold tracking-[0.08em] text-white/45 uppercase sm:text-label">
                   Your clip is ready
                 </p>
-                <p className="font-heading text-sm font-semibold sm:text-xl">
+                <p className="font-heading text-sm sm:text-xl">
                   It&rsquo;s on this device.
                 </p>
                 <p className="text-xs text-white/55 max-sm:hidden">

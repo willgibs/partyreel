@@ -54,7 +54,7 @@ export function ScreenSection() {
               {DEMO_EVENT_URL && (
                 <div className="absolute right-2.5 bottom-2.5 flex items-end gap-2 sm:right-4 sm:bottom-4 sm:gap-3">
                   <div className="text-right [text-shadow:0_1px_2px_rgb(0_0_0/0.55),0_2px_24px_rgb(0_0_0/0.45)]">
-                    <p className="font-heading text-xs font-semibold text-white sm:text-base">
+                    <p className="font-heading text-xs text-white sm:text-base">
                       Scan to add yours
                     </p>
                     <p className="mt-0.5 text-[10px] text-white/90 sm:text-xs">

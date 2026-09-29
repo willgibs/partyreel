@@ -96,13 +96,20 @@ function Rule() {
  * waits (Deleted, the app's one word for it) and the window, read off the
  * constant. Two confirms say it because two doors do it: the curate group's
  * Remove, and a host deleting their OWN upload from the personal Uploads.
+ *
+ * ★ THE WINDOW AND ITS WORD ARE ONE STRING, ON PURPOSE. Next's SWC drops the
+ * leading space of a JSX text that runs over several lines and holds an entity
+ * (the `&rsquo;`), so `{N} days. Guests won&rsquo;t` read "30days" on every
+ * build (build 20's red-team), and a `{" "}` would not hold: prettier folds it
+ * back into the text. The test runner's own JSX transform keeps the space,
+ * which is why jsx-text-space-policy compiles with SWC itself.
  */
 function HostRemovalWords() {
   return (
     <>
       It disappears from the album right away and moves to Deleted, where you
-      can restore it for {RECENTLY_DELETED_WINDOW_DAYS} days. Guests won&rsquo;t
-      see it.
+      can restore it for {`${RECENTLY_DELETED_WINDOW_DAYS} days`}. Guests
+      won&rsquo;t see it.
     </>
   );
 }

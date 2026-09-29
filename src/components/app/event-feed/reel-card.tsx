@@ -184,9 +184,7 @@ function Label({ stuck }: { stuck: boolean }) {
   return stuck ? (
     <span className="text-xs font-medium">{LABEL}</span>
   ) : (
-    <span className="relative font-heading text-card-title font-medium">
-      {LABEL}
-    </span>
+    <span className="relative font-heading text-card-title">{LABEL}</span>
   );
 }
 

@@ -1,9 +1,12 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { fireEvent, render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { EVENT_ROOMS } from "@/lib/event/sections";
+
+import { EdgeFadeScroller } from "./edge-fade-scroller";
 
 /**
  * THE HUB'S ROW OF DOORS AND THE ALBUM UNDER IT (Will's `event=hub`,
@@ -34,15 +37,24 @@ const code = (rel: string) =>
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/^\s*\/\/.*$/gm, "");
 const CARDS = "src/components/app/event-feed/event-cards-row.tsx";
+const SCROLLER = "src/components/app/event-feed/edge-fade-scroller.tsx";
 const GALLERY = "src/components/app/event-feed/event-gallery.tsx";
 const HUB = "src/app/(app)/dashboard/[eventId]/page.tsx";
 
 describe("the cards row", () => {
-  it("ends on Settings, which is the card the album replaced", () => {
-    // His words: "we could switch the current 'Album' card to be 'Settings' and
-    // move it to last in the row". The album stopped being a door at all.
-    expect(EVENT_ROOMS.at(-1)!.id).toBe("settings");
-    expect(EVENT_ROOMS.map((r) => r.id)).not.toContain("album");
+  it("runs in his order: the Highlight reel, Guests, Review, and Settings last", () => {
+    // His words (`event-settings` `queue`, 2026-09-29): "the highlight reel card
+    // should be the first in the host events features row/grid. Then Guests,
+    // then Review, then Settings." Settings was already last ("we could switch
+    // the current 'Album' card to be 'Settings' and move it to last in the
+    // row"), and the album stopped being a door at all. The row, the phone's
+    // 2x2 grid (it fills by rows) and the help's picture all map this list.
+    expect(EVENT_ROOMS.map((r) => r.id)).toEqual([
+      "reel",
+      "guests",
+      "review",
+      "settings",
+    ]);
   });
 
   it("is a group of links and never a tablist", () => {
@@ -72,12 +84,21 @@ describe("the cards row", () => {
     ).toBe(true);
   });
 
-  it("scrolls sideways and fades only the edge that has something past it", () => {
-    const src = read(CARDS);
+  it("scrolls sideways inside the scroller whose fades are keyed on the overflow", () => {
+    // ★ THE RESHAPE (crumbs-12): this pin also asked the source for the names
+    // `overflowLeft` and `overflowRight`, and it stayed green for the whole life
+    // of the bug it was written to stop. `el.dataset.x = undefined` stores the
+    // string "undefined", so both flags stood at every width and both fades
+    // showed on a row of four that fits at 1440. The names prove nothing; what
+    // the fades DO is proven by driving the scroller (below). This keeps the
+    // two things only the source can say: the row rides that scroller, and each
+    // mask hangs off its own edge's flag.
+    expect(
+      /<EdgeFadeScroller>/.test(code(CARDS)),
+      "the row stopped riding the scroller",
+    ).toBe(true);
+    const src = read(SCROLLER);
     expect(/overflow-x-auto/.test(src), "the row stopped scrolling").toBe(true);
-    // Both edges are independent and both are measured, so a row of four that
-    // fits at 1440 shows no fade at all (his "conditional gradient").
-    expect(/overflowLeft/.test(src) && /overflowRight/.test(src)).toBe(true);
     expect(
       /data-\[overflow-left\]:\[mask-image/.test(src) &&
         /data-\[overflow-right\]:\[mask-image/.test(src),
@@ -105,6 +126,85 @@ describe("the cards row", () => {
       /\{headerCodeHidden && \(/.test(src),
       "the sticky QR pill stopped being gated on the header's code",
     ).toBe(true);
+  });
+});
+
+/**
+ * jsdom lays nothing out, so a test hands the scroller its geometry: how wide
+ * the row runs, how much of it shows, and how far it is scrolled.
+ */
+function layOut(
+  el: HTMLElement,
+  box: { scrollWidth: number; clientWidth: number; scrollLeft: number },
+) {
+  for (const [key, value] of Object.entries(box)) {
+    Object.defineProperty(el, key, { configurable: true, get: () => value });
+  }
+}
+
+const fades = (el: HTMLElement) => ({
+  left: el.hasAttribute("data-overflow-left"),
+  right: el.hasAttribute("data-overflow-right"),
+});
+
+describe("the row's edge fades (his `queue` note: conditional per scrollable side)", () => {
+  const mount = () => {
+    const view = render(
+      <EdgeFadeScroller>
+        <div>four doors</div>
+      </EdgeFadeScroller>,
+    );
+    return { view, el: view.container.firstElementChild as HTMLElement };
+  };
+
+  it("shows no fade on a row that fits, from its first paint", () => {
+    // "not exist in the default desktop view when wide enough that scrolling
+    // isn't needed". The first paint is jsdom's all-zero box: a row that fits.
+    const { el } = mount();
+    expect(fades(el)).toEqual({ left: false, right: false });
+    layOut(el, { scrollWidth: 600, clientWidth: 600, scrollLeft: 0 });
+    fireEvent.scroll(el);
+    expect(fades(el)).toEqual({ left: false, right: false });
+    // Nor within the pixel a fractional zoom leaves on a row that fits.
+    layOut(el, { scrollWidth: 601, clientWidth: 600, scrollLeft: 0 });
+    fireEvent.scroll(el);
+    expect(fades(el)).toEqual({ left: false, right: false });
+  });
+
+  it("fades only the side with more of the row past it, and neither end once reached", () => {
+    const { el } = mount();
+    // "if you're at the first/last that shadow disappears, showing you're at
+    // the end with nothing more hidden".
+    layOut(el, { scrollWidth: 900, clientWidth: 600, scrollLeft: 0 });
+    fireEvent.scroll(el);
+    expect(fades(el), "at the start").toEqual({ left: false, right: true });
+    layOut(el, { scrollWidth: 900, clientWidth: 600, scrollLeft: 150 });
+    fireEvent.scroll(el);
+    expect(fades(el), "in the middle").toEqual({ left: true, right: true });
+    layOut(el, { scrollWidth: 900, clientWidth: 600, scrollLeft: 300 });
+    fireEvent.scroll(el);
+    expect(fades(el), "at the end").toEqual({ left: true, right: false });
+    layOut(el, { scrollWidth: 900, clientWidth: 600, scrollLeft: 0 });
+    fireEvent.scroll(el);
+    expect(fades(el), "back at the start").toEqual({
+      left: false,
+      right: true,
+    });
+    // A flag and never a value: the variants match the attribute's presence.
+    expect(el.getAttribute("data-overflow-right")).toBe("");
+  });
+
+  it("measures again when a render changes the row without a scroll or a resize", () => {
+    // The Invite pill joins a row of tiles at a tablet's width and nothing
+    // resizes: the row simply runs further than the screen.
+    const { el, view } = mount();
+    layOut(el, { scrollWidth: 760, clientWidth: 600, scrollLeft: 0 });
+    view.rerender(
+      <EdgeFadeScroller>
+        <div>four doors and the Invite pill</div>
+      </EdgeFadeScroller>,
+    );
+    expect(fades(el)).toEqual({ left: false, right: true });
   });
 });
 

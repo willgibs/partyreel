@@ -54,11 +54,11 @@
       mode. One geometry (blur = 2× offset, single top light source), two
       sizes, one alpha ramp per ground.
     • TYPE: Urbanist is the heading face via the `font-heading` utility below
-      (bold 700 at -3% tracking). TIERED app heading scale: PAGE titles 700
-      (PageHeading), CARD/section titles 600 (CardTitle), per-setting LABELS stay
-      Inter 500 (FormLabel). Swap the brand face forever = repoint --font-display
-      + retune the weight/tracking in the font-heading utility (ONE place,
-      everywhere, no scattered orphans).
+      (bold 700 at -3% tracking), ONE weight for every heading, page titles
+      and card titles alike; per-setting LABELS stay Inter 500 (FormLabel).
+      Swap the brand face forever = repoint --font-display + retune the
+      weight/tracking in the font-heading utility (ONE place, everywhere, no
+      scattered orphans).
     • MOTION: strong custom curves only (--ease-emphasis out, --ease-in-out-
       strong move, --ease-drawer sheets), UI under 300ms, exits faster than
       enters, entrances from scale(0.98)+opacity via @starting-style,
@@ -1000,14 +1000,22 @@
 
 /* THE HEADING TYPE UTILITY (the swappable global heading face).
    `font-heading` = Urbanist for ALL app + marketing headings: PAGE titles (via
-   PageHeading), CARD/section titles (CardTitle), event names, marquees. The
-   tiered scale overrides weight per tier — PAGE 700 (the default here), CARD 600
-   (CardTitle adds font-semibold); per-setting LABELS stay Inter 500 (FormLabel).
-   Urbanist is a proper variable sans, so the Instrument-era knobs (font-size-
-   adjust, the synthetic text-stroke weight, font-synthesis) are gone — a real
-   bold weight does the work. Two knobs remain: WEIGHT (700 default) and TRACKING.
-   Swap the brand face forever by repointing --font-display (root layout) +
-   retuning these two lines.
+   PageHeading), CARD/section titles (CardTitle), event names, marquees, at ONE
+   weight; per-setting LABELS stay Inter 500 (FormLabel). Urbanist is a proper
+   variable sans, so the Instrument-era knobs (font-size-adjust, the synthetic
+   text-stroke weight, font-synthesis) are gone — a real bold weight does the
+   work. Two knobs remain: WEIGHT and TRACKING. Swap the brand face forever by
+   repointing --font-display (root layout) + retuning these two lines.
+
+   ★ THE WEIGHT HAS ONE HOME, THIS LINE, AND NO CLASS BESIDE IT. The "tiered"
+   scale that put card titles at 600 and sheet, dialog and popup titles at 500
+   did it with a stock `font-semibold` or `font-medium` beside `font-heading`,
+   and a stock weight WINS here: Tailwind emits this custom utility ahead of the
+   `font-*` weights (same (0,1,0), the later rule paints). Two dozen headings
+   read thin that way until Will's "it looks very bad compared to our standard
+   heavier weight" (2026-09-29) took them back to 700, and type-ladder-policy
+   now refuses a weight class beside the face. A heading that should weigh
+   something else is a change to this line, which moves every heading at once.
 
    ★ THE -0.03em IS A FALLBACK NOW, NOT THE RULE (the type wiring).
    Every SIZE now gets its own letter-spacing, tighter as it climbs

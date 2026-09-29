@@ -1,42 +1,39 @@
 "use client";
 
-import {
-  createContext,
-  type ReactNode,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { type ReactNode, useState } from "react";
 
 import { Fit, Frame, Measured } from "@/components/lab";
 import type { BoardState } from "@/components/lab/board-spec";
 import { HOUSE_HUES } from "@/lib/guest/door-light";
 
-import { EVENT, HOST, type ReaderId } from "./fixtures";
+import { EVENT, HOST } from "./fixtures";
 
 /**
- * THE FRAME EVERY LOCKED DOOR IS READ IN.
+ * THE FRAMES THE DOOR IS READ IN, AND WHAT EACH ONE MEASURES.
  *
  * ★ A REAL VIEWPORT, NEVER A STYLED DIV: the door's sheet is a bottom sheet
- * under 640 and a panel from the right above it (`floatingEdgeEntranceResponsive`),
- * and its lamp turns with it (`lit.css`, 40rem), so only a same-origin frame at
- * the true width shows the posture a guest gets (the kit's `vw-in-a-narrow-div`
- * trap). 375 by 812 is the phone off a printed code; 1440 by 900 the laptop.
+ * under 640 and a panel from the right above it, and its lamp turns with it
+ * (`lit.css`, 40rem), so only a same-origin frame at the true width shows the
+ * posture a guest gets (the kit's `vw-in-a-narrow-div` trap). 375 by 812 is the
+ * phone off a printed code; 1440 by 900 the laptop.
+ *
+ * ★ A FAMILY IS READ WHOLE (his note: "unlock something perfect for
+ * everything"), so a direction is four frames in one row: the welcome, the
+ * wait, the shut door, and the shut door as someone who was in reads it. Four
+ * phones stand side by side in ONE zoom-fitted canvas (so they keep one scale
+ * and one baseline); four laptops stack, since four 1440 frames side by side
+ * would be drawn at a fifth of their size.
  *
  * ★ NOTHING HERE REACHES A SESSION, A SERVER FUNCTION OR THE NETWORK, AND
  * NOTHING OPENS A RADIX PORTAL, which would land on the lab's document rather
  * than the phone being judged. So the header and the held sheet are QUOTED
- * (`parts.tsx`), and everything presentational is the real component: the
- * not-found screen, the lamp, the glyph, the heading, the ghost river.
+ * (`furniture.tsx`), and everything presentational is the real piece.
  *
- * ★ EVERY CAPTION IS READ OFF THE FRAME, NEVER COMPUTED: how many words the
- * message runs and how many lines its headline takes, what of the album the
- * screen shows (found in the drawing by its marks, not assumed from the
- * option), which light the lamp wears (its own `data-door-hues`), and how tall
- * the sheet stands.
+ * ★ EVERY CAPTION IS READ OFF THE FRAME, NEVER COMPUTED: the message's words
+ * and the headline's lines, what of the album the screen shows (found by its
+ * marks, never assumed from the option), whose light it wears (its own
+ * `data-door-hues`), how tall the sheet stands, and which way on the foot
+ * offers.
  */
 
 export const SCREENS = {
@@ -51,123 +48,123 @@ export const screenOf = (s: BoardState): ScreenId =>
 
 export type Probe = (root: HTMLElement, win: Window) => string | null;
 
+/** The gap between two frames of a row, in the lab's own pixels. */
+const GAP = 24;
+
+/**
+ * ONE FRAME. `bare` drops its own zoom-fit, for a frame standing in a row that
+ * is fitted as one canvas.
+ */
 export function Scene({
   id,
   screen,
   title,
   measure,
-  short = false,
   again,
+  bare = false,
   children,
 }: {
   id: string;
   screen: ScreenId;
   title: string;
   measure: Probe;
-  /** Anything that changes the drawing without moving its layout (the cover's
+  /** Anything that changes the drawing without moving its layout (sampled
    *  hues landing), so the caption is read again when it does. */
   again?: string;
-  /**
-   * A laptop frame standing in a stack of three (`previous` at 1440), cut to
-   * 600px so the three stay within reach (`event-safety`'s `short`, retyped).
-   * Everything a door shows at a desk is at the panel's top or the column's
-   * middle, so nothing is lost.
-   */
-  short?: boolean;
+  bare?: boolean;
   children: ReactNode;
 }) {
-  const { w, h: full, name } = SCREENS[screen];
-  const h = short && screen === "1440" ? 600 : full;
+  const { w, h, name } = SCREENS[screen];
   const [caption, setCaption] = useState("measuring");
-  return (
-    <Fit w={w}>
-      <Frame
-        id={`${id}-${screen}`}
-        w={w}
-        h={h}
-        title={`${title}, ${name}`}
-        caption={caption}
+  const frame = (
+    <Frame
+      id={`${id}-${screen}`}
+      w={w}
+      h={h}
+      title={`${title}, ${name}`}
+      caption={caption}
+    >
+      <Measured
+        probe={measure}
+        deps={[id, screen, again]}
+        onMeasure={setCaption}
+        className="min-h-full"
       >
-        <Measured
-          probe={measure}
-          deps={[id, screen, again]}
-          onMeasure={setCaption}
-          className="min-h-full"
-        >
-          {children}
-        </Measured>
-      </Frame>
-    </Fit>
+        {children}
+      </Measured>
+    </Frame>
   );
+  return bare ? frame : <Fit w={w}>{frame}</Fit>;
 }
 
-/* ── the three readers, side by side ───────────────────────────────────────── */
-
-type Heard = Partial<Record<ReaderId, string>>;
-const TrioCtx = createContext<((id: ReaderId, words: string) => void) | null>(
-  null,
-);
-
-/** A reader's frame hands its measured words to the row it stands in. */
-export function useReport(): (id: ReaderId, words: string) => void {
-  return useContext(TrioCtx) ?? noop;
-}
-const noop = () => {};
+export type StripFrame = {
+  id: string;
+  title: string;
+  node: ReactNode;
+  /** A frame whose drawing changes after layout (sampled hues landing). */
+  again?: string;
+};
 
 /**
- * THE THREE PEOPLE THE DOOR STOPS, IN ONE ROW (phones side by side; laptops
- * stacked, since three at 1440 are never side by side at 1:1), in
- * `READER_ORDER`. Above them, the one comparison the `previous` ask exists
- * for, read off the frames: whether Dom's words are Priya's, word for word,
- * and whether Priya's are the newcomer's.
+ * A STRIP OF FRAMES: phones side by side in one fitted canvas, laptops stacked.
+ * `lede` is the one line above the row saying what it holds.
  */
-export function Trio({
+export function Strip({
   screen,
-  children,
+  frames,
+  lede,
 }: {
   screen: ScreenId;
-  children: ReactNode;
+  frames: readonly StripFrame[];
+  lede?: ReactNode;
 }) {
-  const [heard, setHeard] = useState<Heard>({});
-  const report = useCallback((id: ReaderId, words: string) => {
-    setHeard((h) => (h[id] === words ? h : { ...h, [id]: words }));
-  }, []);
-  return (
-    <TrioCtx.Provider value={report}>
-      <div data-ld-trio className="flex flex-col gap-3">
-        <p
-          data-ld-compare
-          className="max-w-3xl text-sm leading-snug text-muted-foreground"
-        >
-          {compare(heard)}
-        </p>
-        <div
-          className={
-            screen === "375"
-              ? "flex flex-wrap items-start gap-6"
-              : "flex flex-col gap-6"
-          }
-        >
-          {children}
-        </div>
+  const head = lede ? (
+    <p className="max-w-3xl text-sm leading-snug text-muted-foreground">
+      {lede}
+    </p>
+  ) : null;
+  if (screen === "1440") {
+    return (
+      <div data-ld-row className="flex flex-col gap-6">
+        {head}
+        {frames.map((f) => (
+          <Scene
+            key={f.id}
+            id={f.id}
+            screen="1440"
+            title={f.title}
+            measure={measureDoor(SCREENS["1440"].h)}
+            again={f.again}
+          >
+            {f.node}
+          </Scene>
+        ))}
       </div>
-    </TrioCtx.Provider>
+    );
+  }
+  const w = frames.length * SCREENS["375"].w + (frames.length - 1) * GAP;
+  return (
+    <div data-ld-row className="flex flex-col gap-3">
+      {head}
+      <Fit w={w}>
+        <div className="flex items-start" style={{ gap: GAP }}>
+          {frames.map((f) => (
+            <Scene
+              key={f.id}
+              id={f.id}
+              screen="375"
+              title={f.title}
+              measure={measureDoor(SCREENS["375"].h)}
+              again={f.again}
+              bare
+            >
+              {f.node}
+            </Scene>
+          ))}
+        </div>
+      </Fit>
+    </div>
   );
-}
-
-function compare(h: Heard): string {
-  const { newcomer, priya, dom } = h;
-  if (!newcomer || !priya || !dom)
-    return "Measuring what each of the three reads.";
-  const trap =
-    dom === priya
-      ? "Dom, blocked, reads Priya's words, word for word"
-      : "Dom's words are NOT Priya's: this line tells a block apart";
-  const them =
-    priya === newcomer
-      ? "and Priya reads the newcomer's"
-      : "and Priya reads words of her own, not the newcomer's";
-  return `Measured: ${trap}, ${them}.`;
 }
 
 /* ── what the frames measure ───────────────────────────────────────────────── */
@@ -175,13 +172,12 @@ function compare(h: Heard): string {
 const clean = (s: string | null | undefined) =>
   (s ?? "").replace(/\s+/g, " ").trim();
 
-export const textOf = (el: Element | null | undefined) =>
+const textOf = (el: Element | null | undefined) =>
   clean((el as HTMLElement | null)?.innerText);
 
-export const wordCount = (text: string) =>
-  text.split(/\s+/).filter(Boolean).length;
+const wordCount = (text: string) => text.split(/\s+/).filter(Boolean).length;
 
-export const lines = (n: number) => `${n} line${n === 1 ? "" : "s"}`;
+const lines = (n: number) => `${n} line${n === 1 ? "" : "s"}`;
 
 /**
  * How many lines a block of text runs, read off its own line boxes (the rects
@@ -189,7 +185,7 @@ export const lines = (n: number) => `${n} line${n === 1 ? "" : "s"}`;
  * never a second line): `voice-guest`'s measure, retyped, since a board's
  * directory leaves with its ruling.
  */
-export function lineCount(el: Element | null): number {
+function lineCount(el: Element | null): number {
   if (!el) return 0;
   const doc = el.ownerDocument;
   const walker = doc.createTreeWalker(el, NodeFilter.SHOW_TEXT);
@@ -230,45 +226,55 @@ export function messageOf(root: HTMLElement): string {
 
 /**
  * What of the album the drawing shows, found by what it contains rather than
- * by the option's name: the album's name anywhere in the page, the host's
- * byline, a photograph of the album's own.
+ * by the option's name: the album's name anywhere in the page (behind the
+ * scrim counts: it is there to be read), the host's face, the album's own
+ * photographs.
  */
 function showsOf(root: HTMLElement): string {
   const page = textOf(root);
   const name = page.includes(EVENT.name);
   const host = !!root.querySelector("[data-ld-shows='host']");
-  const photo = root.querySelector<HTMLImageElement>("[data-ld-shows='photo']");
+  const photos = root.querySelectorAll("[data-ld-shows='photo']").length;
   const said = [
     name && "its name",
-    host && `its host (${HOST.name})`,
-    photo && "its newest photograph",
+    host && `its host's face (${HOST.name})`,
+    photos > 0 && `${photos} of its photographs`,
   ].filter(Boolean) as string[];
   if (!said.length) return "shows nothing of the album";
   const last = said.pop();
   return `shows ${said.length ? `${said.join(", ")} and ${last}` : last}`;
 }
 
-/** Which light the lamp wears, off its own attribute. */
-function lampOf(root: HTMLElement): string {
-  const lamp = root.querySelector("[data-door-hues]");
-  if (!lamp)
-    return root.querySelector("[data-ld-spill]")
-      ? "the lock's pool in the house light"
-      : "no lamp";
-  const hues = (lamp.getAttribute("data-door-hues") ?? "").split(",");
+/**
+ * Whose light the door wears, off the lit pieces' own attribute: the album's
+ * sampled hues, or the house five (nothing of a closed album may be sampled).
+ */
+function lightOf(root: HTMLElement): string {
+  const lit = Array.from(root.querySelectorAll("[data-door-hues]"));
+  if (!lit.length) return "no light of its own";
   const house = HOUSE_HUES.slice(0, 3).map(Math.round).join(",");
-  return hues.join(",") === house
-    ? "the lamp in the house five"
-    : `the lamp in the photograph's hues (${hues.join(", ")})`;
+  const worn = new Set(lit.map((el) => el.getAttribute("data-door-hues")));
+  const album = [...worn].filter((h) => h && h !== house);
+  return album.length
+    ? `lit by the album's own hues (${album[0]!.split(",").join(", ")})`
+    : "lit by the house five";
+}
+
+/** Which way on the foot offers, read off its marks. */
+function footOf(root: HTMLElement): string | null {
+  if (root.querySelector("[data-ld-ask]")) return "the ask drawn (unlisted)";
+  if (root.querySelector("[data-ld-backin]")) return "the back-in line drawn";
+  if (root.querySelector("[data-ld-way-out]")) return "one way out";
+  return null;
 }
 
 /**
- * THE CAPTION UNDER A LOCKED SCREEN: the message's size (the words, and the
- * headline's lines, since a headline that wraps to three at 375 is exactly what
- * a door board exists to catch), what it shows, its light, the sheet's height
- * where it stands in one, and whether the back-in line is drawn.
+ * THE CAPTION UNDER A DOOR: the message's size (the words, and the headline's
+ * lines, since a headline that wraps to three at 375 is exactly what a door
+ * board exists to catch), what it shows, its light, the sheet's height where
+ * it stands in one, and the foot.
  */
-export const measureLock =
+export const measureDoor =
   (screenH: number): Probe =>
   (root) => {
     const title = root.querySelector(TITLE);
@@ -278,7 +284,7 @@ export const measureLock =
     const parts = [
       `${wordCount(message)} words, the headline on ${lines(titleLines)}`,
       showsOf(root),
-      lampOf(root),
+      lightOf(root),
     ];
     const sheet = root.querySelector<HTMLElement>("[data-entry-sheet]");
     if (sheet) {
@@ -287,35 +293,10 @@ export const measureLock =
       parts.push(
         `the sheet stands ${h}px, ${Math.round((h / screenH) * 100)}% of the screen`,
       );
+    } else {
+      parts.push("a page, no sheet");
     }
-    parts.push(
-      root.querySelector("[data-ld-backin]")
-        ? "the back-in line drawn"
-        : "no back-in line",
-    );
+    const foot = footOf(root);
+    if (foot) parts.push(foot);
     return `Measured: ${parts.join("; ")}.`;
   };
-
-/**
- * A reader's frame in the trio: its own caption, and its words handed to the
- * row for the comparison above it.
- */
-export function useReaderProbe(id: ReaderId): Probe {
-  const report = useReport();
-  const ref = useRef(report);
-  useEffect(() => {
-    ref.current = report;
-  });
-  return useMemo<Probe>(
-    () => (root) => {
-      const message = messageOf(root);
-      if (!message) return null;
-      ref.current(id, message);
-      const back = root.querySelector("[data-ld-backin]")
-        ? "the back-in line drawn"
-        : "no back-in line (this phone's email is confirmed)";
-      return `Measured: ${wordCount(message)} words: "${message}"; ${back}.`;
-    },
-    [id],
-  );
-}

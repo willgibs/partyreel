@@ -5,7 +5,7 @@ import { Check, Copy } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 
 import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
@@ -157,8 +157,10 @@ export function ContactForm({
   const { isSubmitting } = form.formState;
 
   // The fastest-path hint for the picked topic: deflection INSIDE the form
-  // (never a wall in front of the message field).
-  const topicValue = form.watch("topic");
+  // (never a wall in front of the message field). `useWatch` rather than
+  // `form.watch()`, whose returned function the React Compiler cannot memoize,
+  // so it skipped this whole component.
+  const topicValue = useWatch({ control: form.control, name: "topic" });
   const hint = CONTACT_TOPICS.find((t) => t.value === topicValue)?.hint ?? null;
 
   // Help handoff: prefill subject + topic from ?about=<slug>, allowlisted
@@ -224,9 +226,7 @@ export function ContactForm({
               />
             </svg>
           </span>
-          <h3 className="font-heading text-subsection font-medium">
-            Message sent
-          </h3>
+          <h3 className="font-heading text-subsection">Message sent</h3>
           <p className="text-sm text-pretty text-muted-foreground">
             Thanks for reaching out. {REPLY_LINE}
           </p>
