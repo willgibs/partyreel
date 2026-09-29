@@ -84,7 +84,7 @@ export const CONTACT_TOPICS: readonly ContactTopic[] = [
       links: [
         {
           href: "/help/create-your-first-event",
-          label: "Create your first event",
+          label: "Your first event",
         },
         {
           href: "/help/customize-and-share-your-qr",
@@ -92,7 +92,7 @@ export const CONTACT_TOPICS: readonly ContactTopic[] = [
         },
         {
           href: "/help/event-settings-explained",
-          label: "Event settings, explained",
+          label: "Event settings",
         },
       ],
     },
@@ -106,15 +106,15 @@ export const CONTACT_TOPICS: readonly ContactTopic[] = [
       links: [
         {
           href: "/help/how-guests-join-and-upload",
-          label: "Join and add your photos",
+          label: "Add your photos",
         },
         {
           href: "/help/why-an-event-asks-for-your-email",
-          label: "Why an event asks for your email",
+          label: "The email step",
         },
         {
           href: "/help/report-a-problem-as-a-guest",
-          label: "Get a photo taken down",
+          label: "Get a photo removed",
         },
       ],
     },
@@ -136,7 +136,7 @@ export const CONTACT_TOPICS: readonly ContactTopic[] = [
         },
         {
           href: "/help/upgrade-downgrade-or-cancel",
-          label: "Upgrade, downgrade, or cancel",
+          label: "Change or cancel",
         },
         {
           href: "/help/payments-receipts-and-invoices",
@@ -163,11 +163,11 @@ export const CONTACT_TOPICS: readonly ContactTopic[] = [
       links: [
         {
           href: "/help/your-data-and-deleting-your-account",
-          label: "Your data and deleting your account",
+          label: "Your data",
         },
         {
           href: "/help/who-can-see-your-event",
-          label: "Who can see your event",
+          label: "Who sees your event",
         },
         {
           href: "/help/reporting-and-safety",
@@ -181,7 +181,7 @@ export const CONTACT_TOPICS: readonly ContactTopic[] = [
     label: "Something broke",
     icon: Bug,
     hint: {
-      text: "Uploads, sign-in and QR codes have quick fixes. Start with the one that sounds like yours.",
+      text: "Most breaks have a quick fix. Start with the one that sounds like yours.",
       links: [
         {
           href: "/help/an-upload-wont-finish",

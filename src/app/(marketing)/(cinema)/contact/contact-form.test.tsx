@@ -1,9 +1,14 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { toast } from "sonner";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CONTACT_TOPICS } from "@/lib/constants/contact";
 
+import { track } from "@/lib/analytics/web";
+
+import { setReducedMotion } from "../../../../../vitest.setup";
+import { submitContactForm } from "./actions";
 import { ContactForm } from "./contact-form";
 
 // The action is a Server Function (service-role insert + Resend); the form is
@@ -27,9 +32,33 @@ async function pickTopic(
   await user.click(await screen.findByRole("option", { name: label }));
 }
 
+beforeEach(() => {
+  // sonner and the analytics stub are module-level spies: each test starts clean.
+  vi.clearAllMocks();
+  vi.mocked(submitContactForm).mockReset();
+});
+
 afterEach(() => {
   window.history.replaceState({}, "", "/");
+  vi.useRealTimers();
 });
+
+/** A whole valid note, the way a person fills it: topic first, then the fields. */
+async function writeNote(
+  user: ReturnType<typeof userEvent.setup>,
+  topic = "Plans & billing",
+) {
+  await pickTopic(user, topic);
+  await user.type(screen.getByPlaceholderText("Your name"), "Sam Okafor");
+  await user.type(
+    screen.getByPlaceholderText("you@example.com"),
+    "sam@example.com",
+  );
+  await user.type(
+    screen.getByPlaceholderText("What's going on?"),
+    "Working out which plan covers a full weekend of video.",
+  );
+}
 
 describe("the topic's own answers", () => {
   it("shows the picked topic's note and links, and swaps them on the next pick", async () => {
@@ -114,4 +143,153 @@ describe("the help handoff (?about=<slug>)", () => {
       ).toBeInTheDocument();
     },
   );
+});
+
+describe("sending a note", () => {
+  it("asks for a topic before anything leaves the page", async () => {
+    const user = userEvent.setup();
+    render(<ContactForm />);
+    await user.click(screen.getByRole("button", { name: "Send message" }));
+    expect(
+      await screen.findByText(
+        "Pick a topic so your note lands in the right place.",
+      ),
+    ).toBeInTheDocument();
+    expect(submitContactForm).not.toHaveBeenCalled();
+  });
+
+  it("swaps the form for the receipt and thanks once, on the card", async () => {
+    setReducedMotion(true);
+    vi.mocked(submitContactForm).mockResolvedValue({ ok: true });
+    const user = userEvent.setup();
+    render(<ContactForm />);
+    await writeNote(user);
+    await user.click(screen.getByRole("button", { name: "Send message" }));
+
+    const heading = await screen.findByRole("heading", {
+      level: 3,
+      name: /On its way, Sam/,
+    });
+    expect(heading).toHaveFocus();
+    expect(screen.queryByRole("button", { name: "Send message" })).toBeNull();
+    expect(submitContactForm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        topic: "billing",
+        name: "Sam Okafor",
+        email: "sam@example.com",
+      }),
+    );
+    expect(track).toHaveBeenCalledWith("contact_submit");
+    // The card is the receipt: a toast saying the same thanks is gone
+    // (ROADMAP: "a sent note gets the card and a toast saying the same thanks").
+    expect(toast.success).not.toHaveBeenCalled();
+    // The sender's own words come back on the card.
+    expect(screen.getByText("Plans & billing")).toBeInTheDocument();
+    expect(screen.getByText("sam@example.com")).toBeInTheDocument();
+  });
+
+  it("lets the form leave, inert, before the receipt arrives (motion allowed)", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.mocked(submitContactForm).mockResolvedValue({ ok: true });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    const { container } = render(<ContactForm />);
+    await writeNote(user);
+    await user.click(screen.getByRole("button", { name: "Send message" }));
+
+    // The action has answered: the form is on its way out, and nothing in it
+    // takes another press; the receipt waits for the exit to finish.
+    await waitFor(() =>
+      expect(container.querySelector("form")).toHaveAttribute("inert"),
+    );
+    expect(screen.queryByRole("heading", { name: /On its way/ })).toBeNull();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(300);
+    });
+    expect(
+      await screen.findByRole("heading", { name: /On its way, Sam/ }),
+    ).toBeInTheDocument();
+    expect(container.querySelector("form")).toBeNull();
+  });
+
+  it("returns an empty form, with the keyboard on its first field, for Send another", async () => {
+    setReducedMotion(true);
+    vi.mocked(submitContactForm).mockResolvedValue({ ok: true });
+    const user = userEvent.setup();
+    render(<ContactForm />);
+    await writeNote(user);
+    await user.click(screen.getByRole("button", { name: "Send message" }));
+    await screen.findByRole("heading", { name: /On its way/ });
+
+    await user.click(screen.getByRole("button", { name: "Send another" }));
+    expect(screen.getByRole("combobox")).toHaveFocus();
+    expect(screen.getByPlaceholderText("Your name")).toHaveValue("");
+    expect(screen.getByPlaceholderText("What's going on?")).toHaveValue("");
+    expect(
+      within(screen.getByRole("combobox")).getByText("Pick a topic"),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps the help article's context across Send another", async () => {
+    setReducedMotion(true);
+    vi.mocked(submitContactForm).mockResolvedValue({ ok: true });
+    window.history.replaceState(
+      {},
+      "",
+      "/contact?about=upgrade-downgrade-or-cancel",
+    );
+    const user = userEvent.setup();
+    render(<ContactForm helpSubjects={SUBJECTS} />);
+    await screen.findByDisplayValue("Help: Upgrade, downgrade, or cancel");
+    await user.type(screen.getByPlaceholderText("Your name"), "Sam Okafor");
+    await user.type(
+      screen.getByPlaceholderText("you@example.com"),
+      "sam@example.com",
+    );
+    await user.type(
+      screen.getByPlaceholderText("What's going on?"),
+      "How do I move from a pass to Pro?",
+    );
+    await user.click(screen.getByRole("button", { name: "Send message" }));
+    await screen.findByRole("heading", { name: /On its way/ });
+
+    await user.click(screen.getByRole("button", { name: "Send another" }));
+    expect(
+      screen.getByDisplayValue("Help: Upgrade, downgrade, or cancel"),
+    ).toBeInTheDocument();
+    expect(
+      within(screen.getByRole("combobox")).getByText("Plans & billing"),
+    ).toBeInTheDocument();
+  });
+
+  it("treats a send that never answers as a failed send, words kept", async () => {
+    vi.mocked(submitContactForm).mockRejectedValue(
+      new TypeError("Failed to fetch"),
+    );
+    const user = userEvent.setup();
+    render(<ContactForm />);
+    await writeNote(user);
+    await user.click(screen.getByRole("button", { name: "Send message" }));
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalled());
+    expect(screen.getByPlaceholderText("Your name")).toHaveValue("Sam Okafor");
+    expect(screen.getByRole("button", { name: "Send message" })).toBeEnabled();
+  });
+
+  it("keeps the form and every word typed when the send fails", async () => {
+    vi.mocked(submitContactForm).mockResolvedValue({
+      ok: false,
+      code: "send_failed",
+    });
+    const user = userEvent.setup();
+    render(<ContactForm />);
+    await writeNote(user);
+    await user.click(screen.getByRole("button", { name: "Send message" }));
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalled());
+    expect(screen.queryByRole("heading", { name: /On its way/ })).toBeNull();
+    expect(screen.getByPlaceholderText("Your name")).toHaveValue("Sam Okafor");
+    expect(screen.getByRole("button", { name: "Send message" })).toBeEnabled();
+    expect(track).not.toHaveBeenCalled();
+  });
 });
