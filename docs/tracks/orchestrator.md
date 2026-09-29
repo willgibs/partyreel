@@ -117,8 +117,9 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
    desk clean. Its finds go to the next crumbs lane (queued): BUG-A LOW (`SetCrumbs` never clears on unmount, so the
    app bar keeps a left event's crumb on `/dashboard` and `/account`, a deleted event's included), NIT-a (the guest
    report article's step screens draw the album's form while its text leads with a photo's own Report), NIT-b (its
-   callout promises the instant hide with no limit). The same agent walks partyreel.com signed in after schema-pass
-   part 1 (a follow-up). Build 26 carries crumbs-17, unfence, album-motion, the types after both migrations, crumbs-18
+   callout promises the instant hide with no limit). The signed-in walk on partyreel.com after schema-pass
+   part 1 is Will's: the classifier refused the agent twice, the second time after his yes (its five steps and
+   restores end the ledger). Build 26 carries crumbs-17, unfence, album-motion, the types after both migrations, crumbs-18
    and menu-depth when they land, then its red-team; then milestone 31 is proposed to Will (his yes); schema-pass's part
    2 applies after it ships.
 6. **The demo event**, after `demo-framing` r2 (his full permission, 2026-09-29; the r1 board merged at `51db72fc`):
@@ -137,6 +138,9 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
   `event-ready` r1 (five, merged at `5a027e53`; its three settled calls, ready never stored nor shown to a guest among
   them, are his to overrule) reaches him with build 25. Two older asks wait on the rounds that replace their boards: demo-framing's `names` (behind `story=?`) and
   press-page's `a-human` (the About round).
+- **The signed-in walk on partyreel.com** after schema-pass part 1 (the classifier refused it to agents twice): five
+  steps on event `340fcc7b`, each restored, at the end of `../partyreel-wt/_scratch/redteam-25/ledger.txt`; I read
+  the restores back by SQL after.
 - **His answer on the calls file** (28 calls to overrule, numbered; sent 2026-09-29): A, the proof mail (recommended
   off until the emails round) and B, the instant-hide bar's permanence (recommended permanent until launch).
 - **The morning of 2026-09-30, on his phone** (his word): `disposable-mode` r2's Measure a phone on the alias (the
