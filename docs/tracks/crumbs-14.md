@@ -1,6 +1,6 @@
 ---
 track: crumbs-14
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "f1bf741d"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -28,8 +28,16 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/app/user-menu.tsx
   - src/components/app/user-menu.test.tsx
   - docs/systems/auth-accounts.md
-reads:                  # single-sources you depend on: never duplicate, never edit
+  # added after the sync (9371b6bd): settings-wiring and triage-r2-wiring merged, so their files are free
+  - src/components/admin/admin-bar.tsx
+  - content/help/what-the-free-plan-includes.mdx
+  - content/help/pro-vs-event-pass.mdx
+  - content/help/storage-plans-and-limits.mdx
+  - content/help/AUTHORING.md
+  - src/components/marketing/mdx/spec-shared.test.ts
   - docs/systems/host-app.md
+  - docs/systems/admin-observability.md
+reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/design-system.md
 ---
 
@@ -66,67 +74,111 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+None is a one-way door; each is built as recommended and is his to overrule.
+- **Q1, the teaser's width.** Built: the cards' row grows from `max-w-3xl` to `max-w-4xl` (cards 245 to 288 px at
+  1440), the home's other object width, so every price holds its `section` step on one line. The other answer, a
+  smaller price inside the teaser, is a one-off size his type-phone ruling refuses. Recommended: keep 4xl.
+- **Q2, a refused device Sign out.** Built as the brief said: it stays signed in and says so (a toast, "Couldn't sign
+  out. Check your connection and try again."), like Sign out everywhere. The other answer clears this device's cookies
+  anyway and leaves for /login (the device is signed out; its server session lingers until it expires). Recommended:
+  the toast, since it never claims what did not happen.
+- **Q3, a long back label.** Built: the screen bar's back label keeps its own width up to 40vw, so a long event name
+  still truncates (114 px of text at 375, was 108) and a long title beside it sits off centre. Recommended: as built.
+- **Q4, the portal's pages return on the admin host alone.** So a local dev sign-in (no admin host configured) lands
+  on the dashboard, where `next=/admin` used to land in the portal. Recommended: as built (auth does not complete on
+  localhost anyway).
+- **Q5, beyond the brief's bullet.** The same lowercase opening sat in two tables' cells beside sentence-case
+  neighbours ("one event" beside "One per pass", "about a year per pass" beside "No end date"); built: `capitalized` on
+  the three lowercase phrase inlines and a guard over every article. Recommended: keep.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `auth-accounts.md` "A sign-in lands on the page that asked for it": the portal's gate carries its page too, and
+  `next` is checked per host (the portal's pages on the admin host alone, the app's off it); the allow-list line: the
+  admin host's bare callback and `pr_admin_return`; "Signing out": both sign-outs answer a refusal, through
+  `signOutHere` in the menu and the admin bar.
+- `admin-observability.md` "The seam": `requireAdmin()`'s login path carries the asked page; the bare-callback line
+  points at the cookie; "Verifying": the admin host's sign-in plumbing walks locally under a dev admin host.
+- `host-app.md` "The cards row": it condenses inside a footprint holding the resting height, and stuck is its top at
+  the bar (the observer's root grown past the fold).
+- `content/help/AUTHORING.md`: `<MaxEvents />` renders a phrase and takes `capitalized` where it opens one.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now, retire (answered): "Auth: the device Sign out ignores a refused GoTrue call (the network, the auth server) and
+  still leaves for `/login`, ... (from `crumbs-13`)."
+- Now, retire (answered): "Help: the free-plan article's first bullet renders lowercase ("one event at a time.", ...)
+  (from milestone 30's production pass)."
+- Now, replace "Marketing: the home's pricing teaser breaks Pro's price after its 9 at 1440 (...); with it, whether a
+  unit beside a price ... wears the heading face at all (from `crumbs-12`)." by its open half alone: "Marketing:
+  whether a unit beside a price ("from", "one-time", a clip's count) wears the heading face at all (from `crumbs-12`)."
+- Now, retire as stale (crumbs-11's return path answered it; milestone 30's J1/J2 walked it on production): "Emails: a
+  signed-out host pressing a mail's button (Renew Event Pass, Manage storage) lands on the dashboard after sign-in, not
+  the button's page: ... (from `emails-wiring`)."
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
-
-## Where I am
-
-**Done (1 of 6):** the hub row's stick loop, `ea8027c0` (typecheck, lint on the touched files, `pnpm test` 570 files
-green before it). The row sticks as a footprint (`useStuckBand`, `event-cards-row.tsx`) whose floor is the resting
-band's height, read only while the band rests and no transition runs; the band condenses inside it, its hairline
-present and clear at rest. Evidence in `../partyreel-wt/_scratch/crumbs-14/`: `row-before.log` (the old row: 121 flips
-at 375, 118 at 768/1440, jumps past the band 99/59 px short) and `row-after.log` (every jump one flip, landed where
-asked, fades true), both from `row-probe.mjs` (headless Chrome on the temporary harness). The unit test fails on the old
-row (40 flips; 385 for 485) and passes on the new.
-
-**Half-done:** item 2 (the popup's back label): a temporary harness renders one real screen popup at
-`/design/crumbs14-harness/popup?title=&back=&kind=list` (375 wide); nothing measured or changed yet.
-★ `src/app/(dev)/design/crumbs14-harness/` is TEMPORARY: never stage it, delete it before the handoff.
-
-**Next, in order (the plan each was reasoned to):**
-1. Item 2, `popup.tsx`'s screen header: the side columns `minmax(auto,1fr)` (their base is the back label's own
-   width, reserved before the centred title grows) with a vw cap on the back button so a long event name cannot starve
-   the title; measure "Dashboard" + "Photos waiting for you" at 375 before and after. `settings-wiring` claimed
-   `popup.tsx` at its boot too (untouched at `e865f622`): name the overlap in the Handoff.
-2. Item 3, the admin sign-in: `requireAdmin` sends `loginPath(the proxy's x-pr-path)`; `return-path.ts` becomes
-   host-aware (the portal's pages and its sections only on the admin host, the app's only off it: never the apex from
-   the admin host); the admin host's Google callback stays BARE (its allow-list entry is exact), so the page rides a
-   short-lived host-only cookie the login form writes on the admin host and the callback reads, re-checks and clears.
-   Tests: every `lib/admin/nav.ts` section accepted on the admin host and refused off it, and hostile paths.
-   Add to `owns` first: `src/components/auth/login-form.tsx` (+ test), `src/app/(auth)/auth/callback/route.ts`,
-   `src/app/(auth)/login/page.tsx`.
-3. Item 4, the device Sign out: `signOutAction` returns the refusal like `signOutEverywhereAction`; a shared client
-   `src/components/auth/sign-out-form.tsx` toasts it; `src/components/app/user-menu.tsx` uses it (add both to `owns`);
-   `src/components/admin/admin-bar.tsx` (triage-r2-wiring's) needs the same two-line swap, since a form action cannot
-   return a value in the types: check `tsc`, then a named exception or a relay.
-4. Item 5, the pricing teaser: `price-pop.tsx`'s root `whitespace-nowrap` (a price is one token; the digits are
-   inline-blocks, each boundary a wrap opportunity) and the teaser's grid `max-w-3xl` to `max-w-4xl` (measured at 1440:
-   "from $9/mo" 215.1 px and "$24 one-time" 209.4 px in a 195.3 px column; 4xl gives 238 px), never a one-off type
-   size (his type-phone ruling; `type-ladder-policy.test.ts`). Measure 640 to 1920.
-5. Item 6, the lowercase bullet: `MaxEvents` takes `capitalized`; `content/help/what-the-free-plan-includes.mdx:25`
-   (settings-wiring's path) adopts it as a one-line exception or a relay.
-6. Doc facts in place: `auth-accounts.md` (the return, the sign-out); `host-app.md` (the row's footprint) and
-   `admin-observability.md` (`requireAdmin`'s login path) belong to settings-wiring and triage-r2-wiring: one sentence
-   each, named in System-doc edits.
-7. The gate on the synced tree (dev server on 3135 killed first), `pnpm lab:smoke --base http://localhost:3135`, the
-   harness deleted, the Handoff.
+- **Commits, pushed** (head in the chat line): the work `ea8027c0` (the row), `330c04d0` (the popup, the admin page,
+  the sign-out, the teaser, `capitalized`), `486508f6` (the help and the docs), `24c73f7a` (stuck at the bar, never the
+  fold), `3f0c0be9` (the phrase inlines), `bfd8b325` (a docs line); the owns widened in `56462601`, `330c04d0` and this
+  commit.
+  **Sync** `9371b6bd`: `git merge origin/launch-prep` at `b55e038c` (settings-wiring `7c0fbcb1`, triage-r2-wiring
+  `1b29be3a`), one conflict in `popup.tsx`, resolved onto settings-wiring's shared `arrow` (its `up` level kept whole).
+  launch-prep has since moved to `2424e409` by records and the types regen `6c64d5c8` alone, none in this lane's paths
+  or reads: no second sync.
+- **Gates** on `3f0c0be9` (the synced tree), each on its own exit code, logs `../partyreel-wt/_scratch/crumbs-14/gate3-*.log`:
+  `pnpm typecheck` 0, `pnpm lint` 0 (0 warnings), `pnpm test` 0 (600 files, 6949 tests), `zsh scripts/build-lock.sh
+  pnpm build` 0, `pnpm lab:smoke --base http://localhost:3135` 0 (169 checks, 0 failing); `pnpm test` again on
+  `bfd8b325` (docs only) 0 (`gate4-test.log`).
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): only owned paths and this file. Named: the admin
+  bar's two lines (its import and its form action) were forced, and made while triage-r2-wiring still ran, since the device
+  sign-out's new return type made its plain `<form action={signOutAction}>` a type error; the file, the three help
+  articles, `AUTHORING.md`, `host-app.md` and `admin-observability.md` joined `owns` once their lanes had merged.
+  `settings-wiring` had claimed `popup.tsx` at its boot: its change merged first, and mine rides on it (the sync).
+- **1, the hub row's stick loop:** the row sticks as a footprint whose floor is the resting band's height (read only
+  while the band rests and no transition runs, so the tiles' own 200 ms height morph cannot move it), the band
+  condenses inside it with its hairline present and clear at rest, and stuck is the footprint's top at the bar (the
+  observer's root grown a screen past the fold); scroll anchoring stays on. `row-before.log` (the old row: 121 flips in
+  2 s at 375, 118 at 768/1440, every jump past the band 99/59 px short) against `row-final.log` (every jump and
+  viewer-style `scrollIntoView` one flip, landed where asked, fades true); `row-edges-final.log` (reduced motion; a
+  phone turned while stuck; a press under the footprint's empty part reaches the album's tile); `short-before.log` /
+  `short-after.log` (a phone on its side: stuck at rest at the top, now resting). `event-hub.test.tsx` drives the jump
+  through a page model (layout, both observers, anchoring): one settle in and out, a jump past lands where sent, a short
+  screen rests unstuck, and a control that loops when the footprint follows the band; it fails on the old row.
+- **2, the popup's back label:** the screen bar's back side is `minmax(auto,1fr)` with the button capped at 40vw, so
+  the label is reserved before the centred title grows: "Dashboard" beside "Photos waiting for you" whole at 320, 375,
+  430 and 639 (was 60.9/63 at 375, 33.4/63 at 320), "Your plan" and "Album" whole, settings-wiring's "up" labels whole
+  and centred (`popup-before.log`, `popup-after-sync.log`).
+- **3, the admin sign-in's page:** `requireAdmin` sends `/login?next=<page>` from the proxy's `x-pr-path`;
+  `return-path.ts` returns each host to its own pages (the portal's home, its twelve sections by name and the account
+  and album row pages on the admin host only; the app's off it); the admin host's bare callback reads the page from
+  `pr_admin_return` (ten minutes, `Path=/auth/callback`, SameSite Lax, Secure on https), which its login form writes and
+  the callback re-checks and clears. Tests: `return-path.test.ts` (every NAV section and row page, 21 lookalikes, the
+  cookie line), `admin-context.test.ts` (16), `login-form.test.tsx`, `callback/route.test.ts` (one reshaped with its
+  scar: an app page asked on the admin host used to be followed to that deployment's 404). Walked locally on a dev
+  admin host (`admin.localhost:3135`): the gate's 307s, the callback's answers to a kept, a hostile, an app and a
+  download value (followed nowhere, cleared) and the apex ignoring it, and in Chrome the form's cookie and Google's
+  `redirect_to` left bare, stopped before it left the machine (`admin-login.log`).
+- **4, the refused device Sign out:** `signOutAction` returns `SignOutRefusal` when GoTrue refuses (the guest tickets
+  still put down), and `signOutHere`, the menu's and the admin bar's form action, toasts it; `SignOutEverywhereResult`
+  folded into the one type. Tests: `actions.test.ts`, `sign-out.test.ts`, `user-menu.test.tsx`.
+- **5, the pricing teaser:** a price never breaks (`PricePop` nowrap: every edge of an inline-block digit was a wrap
+  point) and the teaser's row is 4xl (Q1): one line inside its card at every width from 375 to 2560
+  (`price-before.log`: Pro broke from 1280 and the Event Pass from 1366 too; `price-after.log`), `/pricing` unchanged
+  (`price-pricing-after.log`), `teaser-1440.png`, `teaser-640.png`.
+- **6, the lowercase bullet:** `<MaxEvents />`, `<EventPassTerm />` and `<InactivityMonths />` share one `phrase()`
+  with `capitalized`; the free plan's first bullet reads "One event at a time." and two tables' cells sentence case
+  (Q5), as served (`/help/what-the-free-plan-includes`, `/help/pro-vs-event-pass`, `/help/storage-plans-and-limits`);
+  `spec-shared.test.ts` renders the bullet through MDX and holds every article's phrase inlines to it.
+- **Assets requested from Will:** none.
+- **Board ideas:** none beyond the lane.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none.
+- **Calls his to overrule:** Q1 the teaser's 4xl row; Q2 the refused sign-out's toast; Q3 the back label's 40vw cap;
+  Q4 the portal's pages returning on the admin host alone; Q5 the tables' cells capitalized.
+- **Look at first (the live walks, both aliases):** signed out, the admin alias's `/admin/reports` through the
+  account chooser (partyr33l) and her second factor, landing on the reports (and `/admin/accounts/<uuid>`; the admin
+  host's `/login?next=/dashboard` landing in the portal); the hub at 375 on the app alias, jumped into the band and
+  a photo opened and closed in the viewer, the row settling once with true fades, and a phone on its side resting
+  unstuck at the top; the claims review at 375 reading "Dashboard" whole; the home at 1440 with "from $9/mo" and "$24
+  one-time" each on one line; "One event at a time." on the free plan's article. The refused sign-out needs GoTrue to
+  fail, so its unit tests stand for it.
