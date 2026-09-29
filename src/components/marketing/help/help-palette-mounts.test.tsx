@@ -48,8 +48,8 @@ describe("the help palette's mounts", () => {
       (file) => !file.startsWith("src/app/(dev)/"),
     );
     expect(product.sort()).toEqual([
+      "src/app/(marketing)/(cinema)/contact/page.tsx",
       "src/app/(marketing)/(cinema)/help/layout.tsx",
-      "src/app/(marketing)/(paper)/contact/page.tsx",
     ]);
   });
 

@@ -1,14 +1,27 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
 import {
+  CONTACT_DIRECTORY,
   CONTACT_TOPIC_VALUES,
   CONTACT_TOPICS,
   contactTopicLabel,
 } from "@/lib/constants/contact";
 import { getAllSlugs, HELP_CATEGORIES } from "@/lib/content/help";
+
+const CINEMA = join(process.cwd(), "src/app/(marketing)/(cinema)");
+
+/** A marketing route that is a real page (the hints and the directory link no other kind). */
+function pageExists(path: string): boolean {
+  return existsSync(join(CINEMA, path, "page.tsx"));
+}
+
+/** Every href a topic's hint shows, with the topic that shows it. */
+const HINT_LINKS = CONTACT_TOPICS.flatMap((topic) =>
+  (topic.hint?.links ?? []).map((link) => ({ topic: topic.value, ...link })),
+);
 
 describe("CONTACT_TOPICS", () => {
   it("mirrors the DB CHECK in the topic migration (change one -> change the other)", () => {
@@ -40,27 +53,107 @@ describe("CONTACT_TOPICS", () => {
     expect(contactTopicLabel(null)).toBeNull();
   });
 
-  it("points every fastest-path hint at a real route", () => {
+  it("points every hint link at a real route, help anchor or help article", () => {
     const helpSlugs = new Set<string>(getAllSlugs());
     const categorySlugs = new Set<string>(HELP_CATEGORIES.map((c) => c.slug));
-    for (const topic of CONTACT_TOPICS) {
-      if (!topic.hint) continue;
-      const { href } = topic.hint;
-      expect(href.startsWith("/")).toBe(true);
+    expect(HINT_LINKS.length).toBeGreaterThan(0);
+    for (const { href } of HINT_LINKS) {
+      expect(href.startsWith("/"), `${href}: not a site path`).toBe(true);
       const helpAnchor = /^\/help#(.+)$/.exec(href);
+      const helpArticle = /^\/help\/([^#]+)$/.exec(href);
       if (helpAnchor) {
         expect(
           categorySlugs.has(helpAnchor[1]),
           `${href}: unknown help category anchor`,
         ).toBe(true);
-      }
-      const helpArticle = /^\/help\/([^#]+)$/.exec(href);
-      if (helpArticle) {
+      } else if (helpArticle) {
         expect(
           helpSlugs.has(helpArticle[1]),
           `${href}: unknown help article slug`,
         ).toBe(true);
+      } else {
+        expect(pageExists(href.slice(1)), `${href}: no such page`).toBe(true);
       }
+    }
+  });
+
+  // contact-page r1 `urgency` (Will: "custom per topic instead of one generic
+  // 'try troubleshooting'"): the rule is on the data, so a later edit that
+  // collapses two topics onto one shelf link fails here, naming the pair.
+  it("gives each topic its own answers, never one shared shelf", () => {
+    for (const topic of CONTACT_TOPICS) {
+      if (topic.value === "other") {
+        expect(topic.hint, "Something else has no path to name").toBeNull();
+        continue;
+      }
+      expect(topic.hint, `${topic.value} has no hint`).not.toBeNull();
+      const { text, links } = topic.hint!;
+      expect(text.length, `${topic.value}: empty note`).toBeGreaterThan(0);
+      // Two lines in the card at its narrowest; longer is an essay under a field.
+      expect(text.length, `${topic.value}: note too long`).toBeLessThanOrEqual(
+        100,
+      );
+      expect(links.length, `${topic.value}: links`).toBeGreaterThanOrEqual(1);
+      expect(links.length, `${topic.value}: links`).toBeLessThanOrEqual(4);
+      const hrefs = links.map((l) => l.href);
+      expect(new Set(hrefs).size, `${topic.value}: repeated href`).toBe(
+        hrefs.length,
+      );
+      const labels = links.map((l) => l.label);
+      expect(new Set(labels).size, `${topic.value}: repeated label`).toBe(
+        labels.length,
+      );
+    }
+    const firsts = CONTACT_TOPICS.flatMap((t) =>
+      t.hint ? [{ topic: t.value, href: t.hint.links[0].href }] : [],
+    );
+    expect(
+      new Set(firsts.map((f) => f.href)).size,
+      `two topics open on the same link: ${JSON.stringify(firsts)}`,
+    ).toBe(firsts.length);
+    // The generic shelf link was the complaint; a specific article is the fix.
+    for (const { topic, href } of HINT_LINKS) {
+      expect(href, `${topic} links a bare help shelf`).not.toMatch(
+        /^\/help(#troubleshooting)?$/,
+      );
+    }
+  });
+
+  // The only true timing for a note is REPLY_LINE (no topic runs a faster
+  // queue), and the promise-neutralization doctrine keeps published copy to
+  // outcomes: a hint that says "within a day" or "priority" would invent a
+  // service level. The product's own timings ("the moment payment clears")
+  // are not reply promises and stay legal.
+  it("makes no reply-timing promise of its own in a hint", () => {
+    const PROMISE =
+      /\b(within|hours?|days?|minutes?|asap|urgent|priority|faster)\b/i;
+    for (const topic of CONTACT_TOPICS) {
+      if (!topic.hint) continue;
+      expect(topic.hint.text, `${topic.value}: a timing promise`).not.toMatch(
+        PROMISE,
+      );
+    }
+  });
+});
+
+describe("CONTACT_DIRECTORY", () => {
+  it("opens only real pages, each once", () => {
+    expect(CONTACT_DIRECTORY.length).toBeGreaterThan(0);
+    const hrefs = CONTACT_DIRECTORY.map((d) => d.href);
+    expect(new Set(hrefs).size).toBe(hrefs.length);
+    const titles = CONTACT_DIRECTORY.map((d) => d.title);
+    expect(new Set(titles).size).toBe(titles.length);
+    for (const entry of CONTACT_DIRECTORY) {
+      expect(entry.href.startsWith("/"), `${entry.href}: not a site path`).toBe(
+        true,
+      );
+      expect(
+        pageExists(entry.href.slice(1)),
+        `${entry.href}: no such page`,
+      ).toBe(true);
+      expect(entry.body.length, `${entry.title}: empty line`).toBeGreaterThan(
+        0,
+      );
     }
   });
 });

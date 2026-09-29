@@ -6,11 +6,11 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 // The site/marketing 404 content (a lost visitor) — single-sourced so it can't drift
-// between the THREE places it renders: the root app/not-found.tsx (UNMATCHED URLs, which fall
+// between the TWO places it renders: the root app/not-found.tsx (UNMATCHED URLs, which fall
 // through to the root layout with NO route-group chrome, so that file supplies its own
-// header/footer) and the (cinema)/(paper) group not-found.tsx files (a notFound() thrown
+// header/footer) and the (cinema) group's not-found.tsx (a notFound() thrown
 // INSIDE a marketing route, where the group layout ALREADY renders the header/footer — so
-// those files must NOT add chrome, or it double-stacks). Each caller wraps this with the
+// that file must NOT add chrome, or it double-stacks). Each caller wraps this with the
 // centering right for its context. NotFoundScreen is SHARED with the guest/host boundaries:
 // style AROUND it (icon choice, footnote content), never its internals.
 export function MarketingNotFound({
