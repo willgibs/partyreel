@@ -217,7 +217,8 @@ beneath, newest first.
   (`history-state-policy.test.ts` refuses the shape; a write from a mount effect waits a microtask, because it would
   meet the browser's own function before Next patches it: `lab/board-state.tsx` says why). Opening pushes an entry
   carrying the marker; closing calls `history.back()` only when the marker is ours, or this page pushed the entry
-  (`router.refresh()` rewrites an entry without the marker). ★ The server's `initialSheet` paints the first frame
+  (`router.refresh()` rewrites an entry without the marker, and a reload does too: a panel reloaded onto closes like
+  a bookmark's, in place). ★ The server's `initialSheet` paints the first frame
   alone (a hydration gate): once hydrated the URL is the only answer, so a place opened from a link (`/settings`, a
   sign-in's return, Checkout's `?room=`) closes like one opened from its card. A settings page is `&setting=<page>` on
   the same entry, moved with `replaceState`, so its back arrow and Back never stack entries.

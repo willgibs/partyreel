@@ -74,7 +74,19 @@ import {
  * so the entry cannot be the only witness that the sheet is ours: closing then
  * took the bookmark path and left a dead entry behind. The provider remembers
  * what it pushed (`pushedRef`) and forgets it when the sheet closes, however it
- * closed.
+ * closed. A RELOAD takes the marker too (measured: Next's first commit rewrites
+ * the entry without it) and a new page remembers nothing, so a panel reloaded
+ * onto closes like a bookmark's, in place; the same shape, not yet answered.
+ *
+ * ★ ONE EDGE THIS DOES NOT CLOSE (measured under `next dev`, on an entry this
+ * provider pushed): a `router.refresh()` followed by a write that applies a URL
+ * (a page's replace, and `openSheet`'s push always did the same) in the same
+ * tick, or 20ms later, makes Next reload the page onto the same URL; 60ms later
+ * it does not (nor the other order, nor a deep-linked entry). The window is the
+ * refresh's first commit, not its round trip (a server render slowed to 1.2s
+ * changed nothing), and no product code refreshes and moves the panel in one
+ * handler (the hub no longer refreshes on a timer either): one that ever does
+ * should put a beat between them, refresh first, or do neither.
  */
 
 const HISTORY_MARKER = "prEventSheet";
