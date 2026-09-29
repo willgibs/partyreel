@@ -188,7 +188,7 @@ describe("a board's status", () => {
       }
       expect(
         status.orphanedItems.map((i) => i.item),
-        `${spec.id}: the ledger rules on a candidate the spec no longer declares`,
+        `${spec.id}: the ledger holds a verdict on a candidate the spec no longer declares`,
       ).toEqual([]);
     }
   });

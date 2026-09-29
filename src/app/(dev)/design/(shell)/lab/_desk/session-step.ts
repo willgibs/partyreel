@@ -36,8 +36,8 @@ import { holdId, itemHoldId, itemsStepId, stepId } from "./step-id";
  * ★ A STEP IS AN ASK OR A CATALOG (the revamp, 2026-09-16), and there is ONE
  * items step per board, never one per item. Twelve palettes as twelve steps
  * would be twelve screens of sticky card asking the same question, with the
- * catalog they are about scrolled off the page; one step says "rule on the
- * twelve below" and lets the cards themselves carry the controls, which is
+ * catalog they are about scrolled off the page; one step says "a verdict on
+ * each of the twelve below" and lets the cards themselves carry the controls, which is
  * what makes the catalog the evidence rather than a picture beside a form.
  * Its param is `<board>.items`, so no ask may be called `items`
  * (registry.test.ts refuses one).

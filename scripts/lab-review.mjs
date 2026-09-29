@@ -994,7 +994,7 @@ function validateItems(e, spec, at, echoItem = () => false) {
     at(
       e.line,
       fresh[0].itemAt,
-      `${e.board} declares no catalog, so it has no items to rule on`,
+      `${e.board} declares no catalog, so it has no items to give a verdict on`,
     );
     return;
   }

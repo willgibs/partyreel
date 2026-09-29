@@ -421,7 +421,7 @@ describe("the board registry", () => {
 
   /**
    * A CATALOG'S OWN CONTRACT (the revamp, 2026-09-16). Declaring `catalog` is a
-   * board saying "rule on these card by card", and four things have to line up
+   * board asking for "a verdict on each card", and four things have to line up
    * for that to work at all: the grid has a section to live in, the Pick button
    * sets a control whose options ARE the cards, and the two compare controls
    * exist and start on different cards (or A and B open identical and the first

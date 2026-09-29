@@ -238,8 +238,8 @@ export type Control = {
 };
 
 /**
- * A board whose candidates are a CATALOG: a grid of ideas Will rules on one by
- * one (keep, refine, kill, a note), the pick worn by the real pages below.
+ * A board whose candidates are a CATALOG: a grid of ideas Will gives a verdict
+ * one by one (keep, refine, kill, a note), the pick worn by the real pages below.
  * Declaring this is the opt-in; a board without it keeps its candidates as
  * the meta list.
  */

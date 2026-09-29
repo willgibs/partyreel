@@ -80,7 +80,7 @@ export default async function ProposalsPage({
     <div className="mx-auto w-full max-w-4xl px-4 pb-20 sm:px-6">
       <PageHeader
         title="Proposals"
-        description="Every board's settled argument under docs/specs, rendered from the repo. A proposal is not law until Will rules on it; a bible rule that inherits one says so on its page."
+        description="Every board's settled argument under docs/specs, rendered from the repo. A proposal is a board's recommendation until Will answers it; a bible principle that inherits one says so on its page."
       />
       <StatRow
         stats={[
