@@ -1,6 +1,6 @@
 ---
 track: lab-revamp
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "a13a3bd0"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -28,6 +28,7 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/app/(dev)/design/sandbox/privacy-hero/
   - src/app/(dev)/design/sandbox/demo-framing/
   - src/app/(dev)/design/sandbox/press-page/
+  - src/app/(dev)/design/(shell)/lab/_desk/session-step.ts
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/reviews/README.md
   - CLAUDE.md
@@ -75,25 +76,101 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Stage one (the re-scope, 2026-09-29), each built on its recommendation, his to overrule:
+
+- **The field names.** An ask's `where` (a breadcrumb of two to four crumbs, the surface first), `when` (the state that
+  brings someone there) and `matters` (why it matters, beside `lands`, what it decides); each option's `gains` and
+  `costs`; `because` as the recommendation's one-line reason; a board's `opening` (`about`, `settled`, `earlier`) and
+  `terms`. Recommended: as built (`src/components/lab/exploration.ts`, `board-spec.ts`).
+- **Which asks the test holds.** "Open" is what his walk can reach this round (no ledger entry in the spec's round, not
+  moot, not staged behind a "not clear to me"), the desk's own reading. That reaches press-page's `a-human` and
+  `the-close` as well as the twelve, so both were backfilled (with press-page's opening). Recommended: keep; overrule:
+  withdraw press-page's two from the walk until the About round replaces the board.
+- **Where the opening shows.** Open on the first step his sitting reaches on a board, folded to one line ("About this
+  board") on its later steps, and at the head of the whole board. Recommended: as built.
+- **Coined words.** A board declares them (`terms`, the bare phrase where it can be, so "the roll" and "her roll" both
+  find `roll`); the step glosses each term its own words use and the open opening the ones it uses, never twice; the
+  test refuses a term with no meaning, a meaning over a line, and a term the board never says. A coinage the author
+  does not declare no machine can catch. Recommended: as built.
+- **The reach.** `lab:demo`'s OUT OF REACH is now measured from the question's head, not the page top (the opening sits
+  above the question, once per board), still 0.6 of a 900px screen. Recommended: keep; overrule: cap the opening's
+  lines instead and measure from the top again.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none: the principle's home is `docs/PROGRAM.md` (the Orchestrator's, line proposed below) and its mechanics live in
+  `exploration.ts`, `terms.ts` and `registry.test.ts`.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Retire, closed by stage one ("The lab and the kit:" list): "The pinned stage head crushes at 375 when a step has one
+  config row: the recommended line and the knob strip share a line and the label truncates." (the label keeps a 12rem
+  floor and the strip wraps under it, `step.tsx`'s `StageHead`).
+- Refine the Now line "The lab and the kit: `defineExploration` keeps the first control of an id, ..." to its half still
+  open: "The lab and the kit: `defineExploration` keeps the first control of an id, so an ask whose id equals a config
+  knob's silently swallows the knob (`disposable-mode` r2's `screen` ate its Screen knob until it became `wall`); the
+  registry refuses the collision (from `disposable-mode` r2)." (`board-card.mjs` reads the spec's own round now.)
+- The lab and the kit: on a phone the step a sitting enters a board on reads its opening for about two screens before
+  the question (disposable-mode's five settled and four earlier lines at 375); fold the opening's two lists below `sm`
+  if he reviews on a phone.
+- The lab and the kit: a board's `opening.earlier` is authored; the ledger's own notes from the round before could ride
+  in a fold under it, word for word, so his exact sentence is one press away from the summary of it.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+**Stage one alone** (the re-scope). Stage two, the plumbing, waits with no code on any branch: its findings are notes at
+`../partyreel-wt/_scratch/lab-revamp/stage-two.md` (Turbopack's `require.context` probed in dev on the server, in SSR
+and in the browser; vitest through `import.meta.glob`; the two foreign boards' desk facts; the extra owns it needs).
+
+- **The work commit** `34cde344`, pushed; no sync commit: launch-prep moved (crumbs-13 merged at `3d2cfbd6`, records to
+  `f1bf741d`) with nothing in this lane's files or reads (`comm` of the two file lists is empty), so the record rule
+  holds and no sync was run. The head is the manifest commit in the chat line.
+- **Gates on the tree committed as `34cde344`**, each on its own exit code, logs in `../partyreel-wt/_scratch/lab-revamp/`:
+  `pnpm typecheck` 0 (`g-typecheck.log`); `pnpm lint` 0, 0 errors and 3 warnings, none in this lane's files
+  (`review-session.tsx`, `album-fill-grid.tsx`: crumbs-13's, gone on launch-prep) (`g-lint.log`); `pnpm test` 0, 568
+  files and 6497 tests (`g-test.log`); `zsh scripts/build-lock.sh pnpm build` 0 (`g-build.log`); `pnpm lab:smoke --base
+  http://localhost:3133` 0, 169 checks, 0 failing, the reading disposable-mode 1055, locked-door 826 and press-page 487
+  of 1200 (`g-smoke.log`); `pnpm lab:demo --board <b>` 0 for locked-door (4 steps, 0 failing), disposable-mode (8, 0)
+  and press-page (2, 0) (`g-demo-*.log`). A lab-only change, so the live red-team's carve-out applies; the alias shows
+  it once the Orchestrator's `[preview]` builds it.
+- **Lane check**: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file;
+  `_desk/session-step.ts` joined `owns` before it was edited (the step's data carries the new fields).
+- **The authoring format**: `Decision.where/when/matters`, `DecisionOption.gains/costs`, `because` as the reason in a
+  line, `ExplorationInput.opening/terms` (`exploration.ts`), mirrored on `Ask`, `AskOption`, `BoardSpec` and `LIMITS`
+  (`board-spec.ts`), carried to the step by `_desk/session-step.ts`.
+- **The step renders it** (`step.tsx`, `opening.tsx`, `terms.ts`): the opening open on the board's first reachable step,
+  folded after; the breadcrumb, the state and the question, with what it decides, why it matters and "The board says:
+  <pick>. <reason>" beside; the step's own terms glossed across the head, never repeating the open opening's; the
+  shown option's means, gain and cost under the sticky stage head (side by side, under each option's name); the reason
+  on the recommended dock chip; gains and costs on an option in words.
+- **The desk** (`(shell)/lab/page.tsx`): each queue row carries its breadcrumb; a board card leads with its opening's
+  line; the whole board opens with its opening (`board-page.tsx`).
+- **The test** (`registry.test.ts`, "an open ask carries its context"): an open ask without where (two to four
+  crumbs), when, lands, matters, a one-line because, or an option without its gain and cost fails, each capped to a
+  line (`LIMITS.askWhere` 32 a crumb, `askWhen` and `askMatters` 140, `optionGains` and `optionCosts` 100, `askReason`
+  160, `openingAbout` and `openingLine` 160, `term` 40, `termMeans` 120); a board past round one owes its
+  `opening.earlier`; a term needs a meaning and a place its board says it. Proven by hand to refuse a one-crumb
+  breadcrumb, a missing `matters`, a 113-character gain and an unused term; the render is pinned in `step.test.tsx`
+  (order, the trade following the shown option, the opening open then folded, the gloss said once) and the matcher in
+  `terms.test.ts`.
+- **The backfill**, from each board's spec and drawings, in plain words: locked-door r2's `family`, `shape`, `wait`,
+  `lost` and its opening and eleven terms; disposable-mode r2's eight and its opening and ten terms; press-page's
+  `a-human` and `the-close` and its opening. Ask and option ids and every round untouched; a few `means` and `context`
+  lines lost their ledger tokens and jargon (`waiting=held`, `the sync`, `latent`, `never baked`).
+- **The kit**: `board-card.mjs` prints each board's opening and terms and each ask's where, when and matters (and what
+  context an open ask still lacks), and counts only the answers of the spec's own round; `batch-reader.mjs` parses the
+  new fields and prints them in `--board` and beside every verdict of a paste.
+- **`lab:demo`** measures OUT OF REACH from the question's head (`scripts/lab-demo.mjs`, the header says why); the stage
+  head's label keeps a 12rem floor, so the knob strip wraps under it at 375 instead of crushing it.
+- **`docs/PROGRAM.md`, proposed word for word** (its "A round returns DECISIONS" first bullet, refined in place):
+  "- Author with `defineExploration` (`src/components/lab/exploration.ts`) and nothing else; the newest board built on
+  it is the worked example. Its context layer is an ask's `where` (a breadcrumb), `when` and `matters` beside `lands`,
+  each option's `gains` and `costs`, `because` in a line, and the board's `opening` (`about`, `settled`, `earlier`)
+  and `terms`; `registry.test.ts` refuses an open ask without them."
+- Assets requested from Will: none.
+- Board ideas: none beyond the two Deferred lines.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Calls his to overrule: the five Questions above, each built on its recommendation.
+- Look at first: `/design/lab/locked-door?session=locked-door.family` at 1440 (the opening, then the head, the aside,
+  the terms, the trade under the stage head), then `disposable-mode.waiting` (a later step: the opening one line away),
+  and `/design/lab` for the breadcrumbs on the queue.
