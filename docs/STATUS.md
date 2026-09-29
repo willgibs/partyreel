@@ -30,7 +30,8 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 Build 25's desk: `locked-door` r2 (four asks: the door family's direction first), `disposable-mode` r2 (eight: the camera
 first) and `event-ready` r1 (five), every ask with its context. Build 26 adds `demo-framing` r2 (three: the demo's
 address in a host's own words, its stage beside the stream, the hero's touch) and `about-press` r1 (two: the press kit
-on /about and its facts); the two older asks retired into them as carried calls.
+on /about and its facts); the two older asks retired into them as carried calls. Build 27 adds `privacy-hero` r4 (one:
+which veil).
 
 ## Live state
 
