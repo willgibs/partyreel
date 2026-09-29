@@ -116,14 +116,15 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
      lane's idea of the premiere on the wall, the reel's screen counting down to the develop time and playing the roll
      as an event of its own) and the door family's wiring (if the doorway wins, its reveal: walking through the opened
      door into the album, drawn first as motion options; ASSETS row 36 if the host's door wins).
-5. **Build 25 is this record** (`[preview]`: build 24's plus event-ready r1's board, window-notes' desk, crumbs-16's
-   Settings fix, Frame fix and help article); its red-team walks crumbs-16's, crumbs-15's, contact's and the desk's
-   Look-at-first lines now; build 26 carries crumbs-17, unfence, album-motion and part 1 once applied, then its
-   red-team: BUG-1's fix live and the new lanes' walks, crumbs-15's signed-in surfaces among them (a host changing a
-   disposable album's door and opening Guests and Blocked; `/account`'s social sections; the operator's
-   `/admin/reports` and Ask for proof; a host's Delete permanently on a removed item, then the purge cron's next run in
-   `/admin/jobs`). Then milestone 31 is proposed to Will (his yes); schema-pass's
-   part 2 applies after it ships.
+5. **Build 25 was red-teamed live** (`c038e4eb`, `../partyreel-wt/_scratch/redteam-25/ledger.txt`): 23 of 23 PASS,
+   Settings whole (BUG-1 fixed), the doors and triage as build 23, the contact note end to end, the egg and the FAQ, the
+   desk clean. Its finds go to the next crumbs lane (queued): BUG-A LOW (`SetCrumbs` never clears on unmount, so the
+   app bar keeps a left event's crumb on `/dashboard` and `/account`, a deleted event's included), NIT-a (the guest
+   report article's step screens draw the album's form while its text leads with a photo's own Report), NIT-b (its
+   callout promises the instant hide with no limit). The same agent walks partyreel.com signed in after schema-pass
+   part 1 (a follow-up). Build 26 carries crumbs-17, unfence, album-motion, the types after both migrations, crumbs-18
+   and menu-depth when they land, then its red-team; then milestone 31 is proposed to Will (his yes); schema-pass's part
+   2 applies after it ships.
 6. **The demo event**, after `demo-framing` r2 (his full permission, 2026-09-29; the r1 board merged at `51db72fc`):
    the demo renamed (or made) to its pick, its slug claimed so the card's printed address opens it (today
    `mia-and-theo`, held by no event, left as is on his word), one home for the slug in `lib/demo.ts` that the card
