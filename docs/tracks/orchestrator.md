@@ -84,7 +84,15 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
    settings-wiring and triage-r2-wiring, both migrations applied). Its BUG-1 (HIGH: Settings rows never open their page
    in the panel; root-caused in `replaceSettingsPage`) went to `crumbs-16`; its NIT-1 (one extra welcome step after
    the shut door's ask) waits for the next crumbs lane with its other findings. Triage's AAL2 steps wait at the admin
-   portal's "Verify it's you" for Will's code: ask him when it parks, then resume it by SendMessage. After its report,
+   portal's "Verify it's you" for Will's code: ask him when it parks, then resume it by SendMessage. It parked there at
+   17:35Z with the settings walks done (nine PASS; W5 not driven, a password; W8 is BUG-1) and three more finds for the
+   next crumbs lane: BUG-2 MEDIUM (listing a waiting newcomer's address never admits her waiting row, so she shows
+   joined and still at the door, the pulse and the bell count her, and Decline there would block a guest already in),
+   BUG-3 LOW (the host's own album through `/e/` offers Report on everything: `viewerIsHost` reaches only the
+   dashboard grids), NIT-2 to NIT-6 (its ledger, `../partyreel-wt/_scratch/redteam-23/ledger.txt`); its note on
+   `public.reports`' default grants is schema-pass's. Nine open reports on event A and events A to D (`9490405b`,
+   `18fc375e`, `9ed81b8b`, `37ab40b1`) wait for its cleanup; if his code never comes by 04:00 UTC, close A's reports
+   myself (test data the Orchestrator restores). After its report,
    read-only SQL confirms no report open before 04:48 UTC (partyreel.com's purge runs milestone-30 code, which ignores
    open reports) and events A and B gone. With its result, relay to Will: both lanes' Questions (settings-wiring 13,
    triage-r2-wiring 11: `git show 7c0fbcb1^2:docs/tracks/settings-wiring.md`, `git show 1b29be3a^2:docs/tracks/triage-r2-wiring.md`),
