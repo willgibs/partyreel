@@ -1,6 +1,7 @@
 /**
- * SETTINGS' HIGHLIGHT REEL SECTION SAVES EACH CHOICE THE MOMENT IT IS MADE (`reel-host`, Will
- * 2026-09-25: `style=both`, his `switch` amendment).
+ * SETTINGS' HIGHLIGHT REEL PAGE SAVES EACH CHOICE THE MOMENT IT IS MADE (`reel-host`, Will
+ * 2026-09-25: `style=both`, his `switch` amendment; event-settings r1 gave the section a page of its
+ * own, its look and hold dormant under the switch, and moved its save into the settings' one state).
  *
  * Pinned by behaviour, through the one write (`setReelDefaults`, stubbed): each control sends
  * exactly its own field; the choice shows at once and is put back, with a sentence, when the save
@@ -24,8 +25,18 @@ vi.mock("@/lib/reel/defaults-action", () => ({
 }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh }) }));
 vi.mock("sonner", () => ({ toast }));
+// The settings' other writes, never reached from this page.
+vi.mock("@/app/(app)/dashboard/actions", () => ({
+  updateEventAction: vi.fn(),
+  updateEventSocialSettingsAction: vi.fn(),
+}));
+vi.mock("@/app/(app)/dashboard/[eventId]/actions", () => ({
+  setEventDoorAction: vi.fn(),
+}));
 
-const { HighlightReelCard } = await import("./highlight-reel-card");
+const { ReelPage } = await import("./reel-page");
+const { SettingsProvider } = await import("./settings-state");
+const { hostEvent, NO_COUNTS } = await import("./testing/host-event");
 
 type Defaults = {
   showReel: boolean;
@@ -49,13 +60,21 @@ function card(
   sampleStill: string | null = "preview-1",
 ) {
   return render(
-    <HighlightReelCard
-      eventId="event-1"
-      showReel={over.showReel ?? true}
-      styleId={over.styleId === undefined ? null : over.styleId}
-      holdSec={over.holdSec === undefined ? null : over.holdSec}
-      sampleStill={sampleStill}
-    />,
+    <SettingsProvider
+      event={hostEvent({
+        id: "event-1",
+        show_reel: over.showReel ?? true,
+        reel_style_id: over.styleId === undefined ? null : over.styleId,
+        reel_hold_sec: over.holdSec === undefined ? null : over.holdSec,
+      })}
+      tier="pro"
+      counts={NO_COUNTS}
+      pendingCount={0}
+      social={null}
+      reelSample={sampleStill}
+    >
+      <ReelPage />
+    </SettingsProvider>,
   );
 }
 
@@ -186,5 +205,42 @@ describe("saving", () => {
     });
     expect(setReelDefaults).not.toHaveBeenCalled();
     expect(pressed(screen.getByRole("radio", { name: /noir/i }))).toBe(true);
+  });
+});
+
+describe("the look and the hold, dormant while the reel is off (event-settings r1, `idle`)", () => {
+  it("★ rest as one quiet line naming them, their controls out of reach, never gone", () => {
+    card({ showReel: false });
+    const dormant = document.querySelector<HTMLElement>(
+      "[data-slot='dormant']",
+    );
+    expect(dormant?.hasAttribute("data-awake")).toBe(false);
+    expect(
+      document.querySelector("[data-dormant-summary]")?.textContent,
+    ).toMatch(/look and its hold/i);
+    // Still in the page (a hint at what the reel does), and inert: a keyboard never lands in them.
+    const looks = document.querySelector("[data-highlight-reel-settings]");
+    expect(looks).not.toBeNull();
+    expect(looks?.closest("[inert]")).not.toBeNull();
+  });
+
+  it("wake with the switch", async () => {
+    setReelDefaults.mockResolvedValue(
+      answer({ showReel: true, styleId: null, holdSec: null }),
+    );
+    card({ showReel: false });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("switch"));
+    });
+    expect(
+      document
+        .querySelector("[data-slot='dormant']")
+        ?.hasAttribute("data-awake"),
+    ).toBe(true);
+    expect(
+      document
+        .querySelector("[data-highlight-reel-settings]")
+        ?.closest("[inert]"),
+    ).toBeNull();
   });
 });

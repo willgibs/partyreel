@@ -1,73 +1,187 @@
-import type { Database } from "@/lib/db/types";
-
-type Visibility = Database["public"]["Enums"]["event_visibility"];
+import type { Door } from "@/lib/event/door/door";
 
 /**
- * One plain-English sentence describing what a GUEST experiences for an event's access config. The single
- * source for the host's "what your guests will experience" cues: used live in the event settings form (as the
- * host flips the password + verified-email + upload-gate + uploads toggles). Pure (no client/server imports);
- * mirrors the VISIBILITY_HINTS single-source pattern.
+ * THE SETTINGS, READ AS SENTENCES (event-settings r1, Will 2026-09-29: `structure=summary`, with his
+ * note on the sentences option: "effectively be used as some sort of natural language overview/config
+ * of their current settings").
  *
- * `requireVerifiedEmail` reads `events.require_verified_email` directly (no inversion): on, a guest confirms
- * an email before the full album and any upload; off, a guest chooses a display name and adds under it,
- * shown with the small unverified mark (the identity reshape, 2026-09-21 — anonymity left the product, so
- * even the open branches below name a guest by something, never nobody). The account-required wording
- * respects the privacy rule: an OPEN event shows the teaser immediately, but a PASSWORD event reveals nothing
- * until the password is entered (so no "preview" lead there).
+ * Each of the four groups says where it stands in one sentence, and the sentence's key words are the
+ * controls themselves: tap "Anyone with the link" to change who gets in, "straight into the album" to
+ * hold uploads for review. So the one home for these words hands back PARTS, plain text and the words
+ * that are live, and the row renders a live word as a control and the rest as prose; `sentenceText`
+ * flattens the same parts wherever a sentence is only read (a label, a test).
  *
- * `requireUploadToView` reads `events.require_upload_to_view` directly (the door's third step, Will
- * 2026-09-21 "the door as three steps"): on (and only while uploads are open — closed uploads make the
- * gate moot, so those sentences stand as they were), a guest adds one photo or video before the album
- * opens. That branch is COMPOSED as its own sentence, never an appended clause, so the names branch
- * never reads "view and add photos under a name they choose and add a photo before they can see
- * everything".
+ * ★ WHERE THINGS STAND, NEVER WHAT A GROUP IS FOR. Its row's title already says what the group is
+ * ("Who can get in"), so the sentence answers it for this album, and only with what is true of the
+ * state it was handed: a switch that does nothing right now (A photo first while uploads are paused,
+ * the email step under Only me) is not said, since it is not what a guest meets.
+ *
+ * Pure (no client or server imports), so the rows, the hub and a test read the same words.
  */
-export function guestExperienceSummary({
-  visibility,
-  requireVerifiedEmail,
-  acceptingUploads,
-  requireUploadToView,
-}: {
-  visibility: Visibility;
+
+/** The four groups, in the order a guest meets them. */
+export type SettingsGroup = "door" | "adds" | "reel" | "event";
+
+/** The words a sentence can hand back as live controls. */
+export type SentenceWord =
+  | "door"
+  | "email"
+  | "photo"
+  | "uploads"
+  | "review"
+  | "reel"
+  | "look"
+  | "hold"
+  | "profile";
+
+/** One stretch of a sentence: prose, or a word that is a control. */
+export type SentencePart = { text: string; word?: SentenceWord };
+
+/** What the sentences are made from: the album's settings as a host has them now. */
+export type SettingsFacts = {
+  door: Door;
   requireVerifiedEmail: boolean;
-  acceptingUploads: boolean;
   requireUploadToView: boolean;
-}): string {
-  if (visibility === "private") return "Private. Only you can open this event.";
+  acceptingUploads: boolean;
+  /** Uploads wait for the host before they appear (`moderation_mode = hold_for_approval`). */
+  review: boolean;
+  /** A guest may add a video: the plan takes video and the host's Videos switch is on. */
+  videos: boolean;
+  showReel: boolean;
+  /** The look every guest starts on, by its name. */
+  lookLabel: string;
+  holdSec: number;
+  name: string;
+  /** The date as the hub writes it, or null when none is set. */
+  dateLabel: string | null;
+  /** Listed on the host's public profile, or null where the profile's key is not read. */
+  onProfile: boolean | null;
+};
 
-  const password = visibility === "password";
+/** The group titles, which the sentence under each one answers. */
+export const SETTINGS_GROUP_TITLES: Record<SettingsGroup, string> = {
+  door: "Who can get in",
+  adds: "What guests can add",
+  reel: "Highlight reel",
+  event: "This event",
+};
 
-  // The upload gate takes precedence over the plain open/verified sentences below, but only
-  // while there's something to gate: uploads closed already means "nothing to add", which is
-  // exactly what the sentences below already say, so the gate's own fail-open (get_upload_gate)
-  // is mirrored here rather than re-stated.
-  if (requireUploadToView && acceptingUploads) {
-    const identityClause = requireVerifiedEmail
-      ? "confirm their email"
-      : "give a name";
-    return password
-      ? `Guests enter the password, then ${identityClause} and add a photo, then see everything.`
-      : `Guests ${identityClause} and add a photo, then see everything.`;
+/** Who comes in at each door, as the sentence's first (live) words. */
+export const DOOR_WHO: Record<Door, string> = {
+  open: "Anyone with the link",
+  password: "Anyone with the password",
+  approve: "People you let in",
+  invite: "People you invite",
+  closed: "Only people already in",
+  private: "Only you",
+};
+
+export const secondsLabel = (s: number) =>
+  `${s} ${s === 1 ? "second" : "seconds"}`;
+
+const word = (text: string, w: SentenceWord): SentencePart => ({
+  text,
+  word: w,
+});
+const prose = (text: string): SentencePart => ({ text });
+
+/**
+ * WHO GETS IN, AND WHAT THEY DO FIRST. ★ AN ADDRESS GATE HOLDS THE EMAIL STEP ON (letting each person
+ * in and the invite list both match a confirmed address), so there it is said as prose, never as a
+ * control a host could turn off.
+ */
+function doorSentence(f: SettingsFacts): SentencePart[] {
+  const who = word(DOOR_WHO[f.door], "door");
+  if (f.door === "private") {
+    return [who, prose(". Guests meet a closed album.")];
   }
-
-  if (!requireVerifiedEmail) {
-    if (password) {
-      return acceptingUploads
-        ? "Guests enter the password, then view and add photos under a name they choose."
-        : "Guests enter the password to view the photos. Uploads are closed.";
-    }
-    return acceptingUploads
-      ? "Anyone with the link can view and add photos under a name they choose."
-      : "Anyone with the link can view the photos. Uploads are closed.";
+  if (f.door === "closed") {
+    return [who, prose(". Nobody new can join.")];
   }
-
-  // Verified email required: a guest confirms one to see everything.
-  if (password) {
-    return acceptingUploads
-      ? "Guests enter the password, then confirm their email to view everything and add their own."
-      : "Guests enter the password, then confirm their email to view everything. Uploads are closed.";
+  if (f.door === "invite") {
+    return [
+      who,
+      prose(", after confirming an email; anyone else can ask you."),
+    ];
   }
-  return acceptingUploads
-    ? "Guests see a few preview photos, then confirm their email to view everything and add their own."
-    : "Guests see a few preview photos, then confirm their email to view everything. Uploads are closed.";
+  const identity =
+    f.door === "approve"
+      ? prose("confirming an email")
+      : word(
+          f.requireVerifiedEmail ? "confirming an email" : "typing a name",
+          "email",
+        );
+  // A photo first does nothing while uploads are paused (nobody can add one), so it is not said.
+  const photo = f.requireUploadToView && f.acceptingUploads;
+  return photo
+    ? [
+        who,
+        prose(", after "),
+        identity,
+        prose(" and "),
+        word("adding a photo", "photo"),
+        prose("."),
+      ]
+    : [who, prose(", after "), identity, prose(".")];
+}
+
+function addsSentence(f: SettingsFacts): SentencePart[] {
+  if (!f.acceptingUploads) {
+    return [word("Paused", "uploads"), prose(". Guests can still look.")];
+  }
+  return [
+    word(f.videos ? "Photos and videos" : "Photos", "uploads"),
+    prose(", "),
+    word(
+      f.review ? "held until you approve them" : "straight into the album",
+      "review",
+    ),
+    prose("."),
+  ];
+}
+
+function reelSentence(f: SettingsFacts): SentencePart[] {
+  if (!f.showReel) {
+    return [word("Off", "reel"), prose(". Guests see only the album.")];
+  }
+  return [
+    word("On", "reel"),
+    prose(", in "),
+    word(f.lookLabel, "look"),
+    prose(", "),
+    word(secondsLabel(f.holdSec), "hold"),
+    prose(" a photo."),
+  ];
+}
+
+function eventSentence(f: SettingsFacts): SentencePart[] {
+  const named = f.dateLabel ? `${f.name}, ${f.dateLabel}.` : `${f.name}.`;
+  if (f.onProfile === null) return [prose(named)];
+  return [
+    prose(`${named} `),
+    word(f.onProfile ? "On your profile" : "Not on your profile", "profile"),
+    prose("."),
+  ];
+}
+
+/** The one sentence a group says about itself, as its parts. */
+export function settingsSentence(
+  group: SettingsGroup,
+  facts: SettingsFacts,
+): SentencePart[] {
+  switch (group) {
+    case "door":
+      return doorSentence(facts);
+    case "adds":
+      return addsSentence(facts);
+    case "reel":
+      return reelSentence(facts);
+    case "event":
+      return eventSentence(facts);
+  }
+}
+
+/** A sentence's parts, read as one string. */
+export function sentenceText(parts: readonly SentencePart[]): string {
+  return parts.map((p) => p.text).join("");
 }

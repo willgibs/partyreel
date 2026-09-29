@@ -39,20 +39,13 @@ const GATED_SITES = [
     "event-password-control.tsx",
   ],
   [
-    "the visibility section's password line",
+    // The door's own page carries the password gate now (event-settings r1, `join=steps`).
+    "the door page's password gate",
     "src",
     "components",
     "app",
     "event-settings",
-    "visibility-section.tsx",
-  ],
-  [
-    "the video status row",
-    "src",
-    "components",
-    "app",
-    "event-settings",
-    "uploads-section.tsx",
+    "door-page.tsx",
   ],
   ["the custom link", "src", "components", "app", "event-slug-control.tsx"],
 ] as const;
@@ -68,6 +61,31 @@ describe("every locked control wears the one chip", () => {
       expect(source).not.toMatch(/Upgrade to (enable|allow)/);
     },
   );
+});
+
+/**
+ * ★ VIDEOS IS THE LOCK ITSELF NOW, AND LOCKCHIP LEFT ITS ROW (event-settings r1, Will `lock=switch`:
+ * "We want free hosts to *know* they're missing out on videos so they upgrade ... this should have a
+ * disabled state so it's more clear they can't use it on free"). The switch, drawn off with the Pro
+ * mark, opens the plans itself, so it wears no chip; the rule the chip kept holds all the same: it
+ * words the lock from the one record (`LOCKED_FEATURES`) and opens the one sheet, never a fifth
+ * sentence or a link out. Scar: the video row was one of the four chip sites until this round.
+ */
+describe("the Videos switch words its lock from the one record", () => {
+  it("reads LOCKED_FEATURES and opens the plans sheet, with no retired wording", () => {
+    const source = read(
+      "src",
+      "components",
+      "app",
+      "event-settings",
+      "videos-switch.tsx",
+    );
+    expect(source).toContain("LOCKED_FEATURES.video");
+    expect(source).toContain("PricingSheet");
+    expect(source).not.toMatch(/is a paid feature/);
+    expect(source).not.toMatch(/Upgrade to (enable|allow)/);
+    expect(source).not.toMatch(/href=["'`]\/pricing/);
+  });
 });
 
 describe("nothing in the host app leaves for the marketing page", () => {

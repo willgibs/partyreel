@@ -546,8 +546,10 @@ describe("QA #40 — get_event_by_qr_token's redaction survives a drop + create"
   });
 
   it("re-asserts the anon EXECUTE grant its drop took away (0028)", () => {
+    // ★ Reshaped by the doors (20260929120000), which narrowed the ACL to the roles that call it
+    // (ROADMAP's security line): anon and authenticated ride one grant with service_role now.
     expect(latestDefinition("get_event_by_qr_token").file).toContain(
-      "grant execute on function public.get_event_by_qr_token(text) to anon, authenticated;",
+      "grant execute on function public.get_event_by_qr_token(text) to anon, authenticated, service_role;",
     );
   });
 });
@@ -632,8 +634,9 @@ describe("the door round, wave 0 — Require an upload to view", () => {
     expect(body).toContain(
       "e.require_verified_email, e.require_upload_to_view,",
     );
+    // ★ Reshaped by the doors (20260929120000): the client roles ride one grant with service_role.
     expect(file).toContain(
-      "grant execute on function public.get_event_by_qr_token(text) to anon, authenticated;",
+      "grant execute on function public.get_event_by_qr_token(text) to anon, authenticated, service_role;",
     );
   });
 
@@ -1735,10 +1738,18 @@ describe("the live reel: the expand (20260924100000) and the drop (2026092411000
       );
     });
 
-    it("get_event_by_qr_token restates today's whole ACL: the client roles, PUBLIC and service_role", () => {
+    it("get_event_by_qr_token restates its ACL: the client roles and service_role, PUBLIC revoked by name", () => {
+      // ★ Reshaped by the doors (20260929120000). This read "the client roles, PUBLIC and
+      // service_role": the recreates carried PUBLIC's EXECUTE along, which ROADMAP's security line
+      // named; a fresh CREATE starts from the default privileges, so PUBLIC is revoked by name and
+      // only the roles that call it are granted.
       const file = grants("get_event_by_qr_token");
+      expect(file).toContain("revoke all on function public.get_event_by_qr_token(text) from public;");
       expect(file).toContain(
-        "grant execute on function public.get_event_by_qr_token(text) to public, service_role;",
+        "grant execute on function public.get_event_by_qr_token(text) to anon, authenticated, service_role;",
+      );
+      expect(file).not.toContain(
+        "grant execute on function public.get_event_by_qr_token(text) to public",
       );
     });
   });
@@ -1923,7 +1934,7 @@ describe("the host's reel defaults (20260925100000)", () => {
       );
     });
 
-    it("drops the old signature first and restates the whole ACL (the client roles, PUBLIC and service_role)", () => {
+    it("drops the old signature first and restates the ACL (the client roles and service_role, PUBLIC revoked)", () => {
       // ★ The drop-before-create is this file's (reshaped with the carry above); the ACL is restated
       // by whichever file wins, the in-place replace too.
       const dropped = sql.indexOf(
@@ -1934,11 +1945,10 @@ describe("the host's reel defaults (20260925100000)", () => {
         sql.indexOf("create function public.get_event_by_qr_token("),
       );
       const file = grants("get_event_by_qr_token");
+      // ★ Reshaped by the doors (20260929120000), which narrowed the ACL (the test above says why).
+      expect(file).toContain("revoke all on function public.get_event_by_qr_token(text) from public;");
       expect(file).toContain(
-        "grant execute on function public.get_event_by_qr_token(text) to anon, authenticated;",
-      );
-      expect(file).toContain(
-        "grant execute on function public.get_event_by_qr_token(text) to public, service_role;",
+        "grant execute on function public.get_event_by_qr_token(text) to anon, authenticated, service_role;",
       );
     });
   });

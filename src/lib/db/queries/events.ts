@@ -55,6 +55,12 @@ export type { EventCardStats };
 export type HostEvent = Omit<Tables<"events">, "event_password_hash"> & {
   has_password: boolean;
   door: Door;
+  /**
+   * The host's Videos switch (`events.allow_videos`, default on). ★ Read off the row for the same
+   * reason as the gate, until the types regenerate past the doors' migration: a row from before the
+   * column reads as on, which is what the column's default says.
+   */
+  allow_videos: boolean;
 };
 
 function toHostEvent(row: Tables<"events">): HostEvent {
@@ -68,15 +74,9 @@ function toHostEvent(row: Tables<"events">): HostEvent {
     // migration (20260929120000): `select("*")` returns the column the moment it exists, and a row
     // from before it has none, which reads as no gate (the three doors the schema had).
     door: doorOf(row.visibility, (row as { gate?: string | null }).gate),
+    allow_videos:
+      (row as { allow_videos?: boolean | null }).allow_videos !== false,
   };
-}
-
-/**
- * The host's Videos switch (`events.allow_videos`, default on), read off the row for the same reason
- * as the gate: a row from before the column reads as on, which is what the column's default says.
- */
-export function eventAllowsVideos(event: HostEvent): boolean {
-  return (event as { allow_videos?: boolean | null }).allow_videos !== false;
 }
 
 /** A page's cursor on a newest-first list: the last row's raw timestamp string and its id. */

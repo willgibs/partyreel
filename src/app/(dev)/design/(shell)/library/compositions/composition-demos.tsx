@@ -20,6 +20,17 @@ import { FilterChips } from "@/components/app/dashboard/filter-chips";
 import { StorageMeter } from "@/components/app/dashboard/storage-meter";
 import { MediaTile } from "@/components/app/media-grid";
 import { ReviewRoom } from "@/components/app/event-feed/review-room";
+import { DoorPage } from "@/components/app/event-settings/door-page";
+import type { SettingsPage } from "@/components/app/event-settings/settings-pages";
+import { SettingsRows } from "@/components/app/event-settings/settings-rows";
+import {
+  SettingsProvider,
+  type SettingsWrites,
+} from "@/components/app/event-settings/settings-state";
+import { hostEvent, NO_COUNTS } from "@/components/app/event-settings/testing/host-event";
+import { AddsPage } from "@/components/app/event-settings/adds-page";
+import { EventPage } from "@/components/app/event-settings/event-page";
+import { ReelPage } from "@/components/app/event-settings/reel-page";
 import type { ReviewWrites } from "@/components/app/event-feed/use-review-triage";
 import { ProPriceList } from "@/components/app/pricing/pro-price-list";
 import { QrPresetPicker } from "@/components/app/qr-preset-picker";
@@ -565,5 +576,101 @@ export function AdminReportCardDemo() {
         onConfirm={answered}
       />
     </div>
+  );
+}
+
+/* ── SETTINGS (event-settings r1), on one wedding, its writes inert ─────────────────────────────── */
+
+/** A round trip that changes nothing, then the answer each write gives when it lands. */
+const settle = <T,>(value: T) =>
+  new Promise<T>((resolve) => setTimeout(() => resolve(value), 350));
+
+const SETTINGS_WRITES: SettingsWrites = {
+  updateEvent: async () => settle({ ok: true as const }),
+  setDoor: async (_id, door) =>
+    settle({
+      ok: true as const,
+      emailHeld: door === "approve" || door === "invite",
+      admitted: door === "open" ? 2 : 0,
+    }),
+  setReel: async (input) =>
+    settle({
+      ok: true as const,
+      defaults: {
+        showReel: input.showReel ?? true,
+        styleId: input.styleId ?? null,
+        holdSec: input.holdSec ?? null,
+      },
+    }),
+  setProfile: async () => settle({ ok: true as const }),
+};
+
+const WEDDING = hostEvent({
+  name: "Maya & Jay's Wedding",
+  event_date: "2026-10-10",
+  description: "Add everything from the ceremony too.",
+});
+
+/**
+ * Settings at rest and one level in, drawn inline (never in the popup, which would cover the page):
+ * the four rows, and whichever page a row opens, with the back row up.
+ */
+export function SettingsDemo({ tier = "pro" }: { tier?: "free" | "pro" }) {
+  const [page, setPage] = useState<SettingsPage | null>(null);
+  return (
+    <SettingsProvider
+      event={WEDDING}
+      tier={tier}
+      // A Public album holds nobody at its door (turning Public lets everyone waiting in).
+      counts={{ ...NO_COUNTS, in: 31, invited: 24 }}
+      pendingCount={3}
+      social={{ displayInProfile: false, hostHasSlug: true }}
+      reelSample={null}
+      writes={SETTINGS_WRITES}
+    >
+      <div className="max-w-md space-y-4 rounded-xl bg-popover p-4 text-popover-foreground shadow-layer">
+        {page ? (
+          <button
+            type="button"
+            onClick={() => setPage(null)}
+            className="text-sm text-muted-foreground underline underline-offset-4"
+          >
+            Back to Settings
+          </button>
+        ) : (
+          <p className="font-heading text-card-title">Settings</p>
+        )}
+        {page === "door" ? (
+          <DoorPage guestsHref="#guests" />
+        ) : page === "adds" ? (
+          <AddsPage />
+        ) : page === "reel" ? (
+          <ReelPage />
+        ) : page === "event" ? (
+          <EventPage />
+        ) : (
+          <SettingsRows onOpenPage={setPage} />
+        )}
+      </div>
+    </SettingsProvider>
+  );
+}
+
+/** The door's page on its own, a Private album letting each person in, two waiting. */
+export function DoorPageDemo() {
+  return (
+    <SettingsProvider
+      event={hostEvent({ ...WEDDING, visibility: "private", door: "approve" })}
+      tier="pro"
+      counts={{ ...NO_COUNTS, in: 31, waiting: 2, invited: 24 }}
+      pendingCount={0}
+      social={null}
+      reelSample={null}
+      writes={SETTINGS_WRITES}
+    >
+      <div className="max-w-md rounded-xl bg-popover p-4 text-popover-foreground shadow-layer">
+        <DoorPage guestsHref="#guests" />
+      </div>
+    </SettingsProvider>
   );
 }

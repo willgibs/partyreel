@@ -39,14 +39,14 @@ const ENTRIES: ParityEntry[] = [
     label: "album settings document: the accepting-uploads label",
     marketingFile:
       "src/components/marketing/sections/features/album/album-copy.ts",
-    appFile: "src/components/app/event-settings/uploads-section.tsx",
+    appFile: "src/components/app/event-settings/adds-page.tsx",
     literal: "Accepting uploads",
   },
   {
     label: "album settings document: the per-upload cap label",
     marketingFile:
       "src/components/marketing/sections/features/album/album-copy.ts",
-    appFile: "src/components/app/event-settings/uploads-section.tsx",
+    appFile: "src/components/app/event-settings/upload-cap-select.tsx",
     literal: "Max size per upload",
   },
   {
@@ -135,7 +135,7 @@ const ENTRIES: ParityEntry[] = [
     label: "album your-call close-uploads helper",
     marketingFile:
       "src/components/marketing/sections/features/album/album-copy.ts",
-    appFile: "src/components/app/event-settings/uploads-section.tsx",
+    appFile: "src/components/app/event-settings/adds-page.tsx",
     literal: "Turn off to freeze the album. Guests can still view it.",
   },
   {
@@ -213,7 +213,7 @@ const ENTRIES: ParityEntry[] = [
     label: "curation modes, the review switch's line",
     marketingFile:
       "src/components/marketing/sections/features/curation/review-modes.tsx",
-    appFile: "src/components/app/event-settings/uploads-section.tsx",
+    appFile: "src/components/app/event-settings/adds-page.tsx",
     literal: "Hold new photos until you approve or reject them, instead of",
   },
   // Zip export demo (/features/sharing) <-> the real download dialog.
@@ -276,11 +276,12 @@ const ENTRIES: ParityEntry[] = [
   },
   // Privacy page (/features/privacy) <-> the host's real upload settings.
   {
-    label: "privacy page require-verified-emails toggle label",
+    // Settings reads as sentences (event-settings r1): the privacy page quotes the door row's words.
+    label: "privacy page, the door row's email words",
     marketingFile:
       "src/components/marketing/sections/features/privacy/never-rides-along.tsx",
-    appFile: "src/components/app/event-settings/uploads-section.tsx",
-    literal: "Require verified emails",
+    appFile: "src/lib/events/guest-experience-summary.ts",
+    literal: "confirming an email",
   },
   // The live reel (`reel-sweep`, 2026-09-25): every surface that draws the reel
   // quotes the reel's own words, so a rename in the tile, the view or the hub
@@ -328,7 +329,7 @@ const ENTRIES: ParityEntry[] = [
     label: "how-it-works host reel step, the Settings look row",
     marketingFile:
       "src/components/marketing/sections/how-it-works/host-pictures.tsx",
-    appFile: "src/components/app/event-settings/highlight-reel-card.tsx",
+    appFile: "src/components/app/event-settings/reel-page.tsx",
     literal: "Where every guest starts.",
   },
   {
@@ -419,4 +420,28 @@ describe("marketing mock <-> app copy parity", () => {
       ).toContain(entry.literal);
     });
   }
+});
+
+describe("the privacy page's settings rows quote the app's own titles", () => {
+  it("names each row as Settings does", () => {
+    const mock = readFileSync(
+      join(
+        ROOT,
+        "src/components/marketing/sections/features/privacy/never-rides-along.tsx",
+      ),
+      "utf8",
+    );
+    const app = readFileSync(
+      join(ROOT, "src/lib/events/guest-experience-summary.ts"),
+      "utf8",
+    );
+    for (const title of ["Who can get in", "What guests can add"]) {
+      expect(mock).toContain(title);
+      expect(app).toContain(title);
+    }
+    for (const words of ["Anyone with the link", "held until you approve them"]) {
+      expect(mock).toContain(words);
+      expect(app).toContain(words);
+    }
+  });
 });

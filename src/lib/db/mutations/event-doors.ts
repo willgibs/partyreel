@@ -14,13 +14,21 @@ import "server-only";
 
 import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
 
+import { updateEvent } from "@/lib/db/mutations/events";
 import { isDoorSchemaMissing } from "@/lib/db/queries/event-doors";
 import type { Door } from "@/lib/event/door/door";
 import { createClient } from "@/lib/supabase/server";
 
 export type DoorFailure = {
   ok: false;
-  code: "unauthorized" | "not_found" | "no_password" | "blocked" | "too_many" | "unknown";
+  code:
+    | "unauthorized"
+    | "not_found"
+    | "no_password"
+    | "blocked"
+    | "too_many"
+    | "not_ready"
+    | "unknown";
   message: string;
   /** An `unknown` failure's own error, for the Server Function to report (Sentry stays out of db/). */
   cause?: unknown;
@@ -89,7 +97,7 @@ async function hostRpc(
     if (isDoorSchemaMissing(error)) {
       return {
         ok: false,
-        code: "unknown",
+        code: "not_ready",
         message: "This isn't ready yet. Please try again in a little while.",
       };
     }
@@ -123,6 +131,25 @@ export async function setEventDoor(
     p_event_id: eventId,
     p_door: door,
   });
+  // ★ BEFORE THE DOORS' MIGRATION, TODAY'S THREE DOORS STILL MOVE: Public, a password and Only me are
+  // the visibility column alone, written the way the settings always wrote it (`updateEvent`, which
+  // refuses a password with no hash behind it). A gate has nowhere to live yet, so it stays "not
+  // ready". Loud either way: `isDoorSchemaMissing` has already captured the miss.
+  if (!result.ok && result.code === "not_ready") {
+    if (door !== "open" && door !== "password" && door !== "private") {
+      return result;
+    }
+    const today = await updateEvent(eventId, { visibility: door });
+    if (!today.ok) {
+      if (today.code === "unauthorized") return UNAUTHORIZED;
+      return {
+        ok: false,
+        code: door === "password" ? "no_password" : "unknown",
+        message: today.message,
+      };
+    }
+    return { ok: true, data: { emailHeld: false, admitted: 0 } };
+  }
   if (!result.ok) return result;
   return {
     ok: true,

@@ -118,7 +118,8 @@
 --         events_door_opened()                                 f5a840313ef365e0ee4a44f84fb5c710
 --         ask_to_join(text, uuid)                              259da9137fea1f6619713d747324a215
 --   (3) The grants, as the file restates them: the new functions and the table below; every replaced
---       function exactly as today; get_event_by_qr_token's whole ACL.
+--       function exactly as today; get_event_by_qr_token's whole ACL, EXECUTE held by exactly anon,
+--       authenticated, service_role and its owner (PUBLIC revoked).
 --   (4) get_advisors (security). EXPECTED DELTA: 0029 grows by exactly four, set_event_door,
 --       let_in_at_door, add_event_invites and remove_event_invite (authenticated SECURITY DEFINER host
 --       acts, the block_from_event class); 0028 unchanged (get_event_by_qr_token stays its anon read);
@@ -973,7 +974,7 @@ grant execute on function public.ask_to_join(text, uuid) to service_role;
 -- private album to everyone but its host (no name, no metadata). The page learns the gate, and who is
 -- asking, from event_door_standing.
 -- The RETURNS TABLE grows, so this is DROP + CREATE, which drops the grants: the whole ACL is restated
--- (one of the accepted 0028 anon reads: never revoke).
+-- (one of the accepted 0028 anon reads: never revoke from the roles that call it).
 drop function public.get_event_by_qr_token(text);
 create function public.get_event_by_qr_token(p_qr_token text)
  returns table(
@@ -1028,8 +1029,13 @@ as $function$
   limit 1;
 $function$;
 
-grant execute on function public.get_event_by_qr_token(text) to anon, authenticated;
-grant execute on function public.get_event_by_qr_token(text) to public, service_role;
+-- ★ AND NARROWED TO EXACTLY THE ROLES THAT CALL IT (ROADMAP's security line, relayed 2026-09-29): its
+-- recreates had carried an EXECUTE for PUBLIC beside the three roles that hold it explicitly. A fresh
+-- CREATE starts from the default privileges (PUBLIC's among them), so PUBLIC is revoked by name, and
+-- only anon and authenticated (the album's own read) and service_role (the server's reads) are granted.
+-- The owner keeps its own.
+revoke all on function public.get_event_by_qr_token(text) from public;
+grant execute on function public.get_event_by_qr_token(text) to anon, authenticated, service_role;
 
 -- =============================================================================================
 -- 8b. get_upload_context: the door as this ticket sees it.
@@ -2075,6 +2081,12 @@ grant execute on function public.disown_guest_rows_by_email(uuid[]) to authentic
 --   the door opens  | t | Public lets the one waiting in (counted); a declined newcomer stays held by her block
 --   videos          | t | the host writes the switch through its grant; the flag, the advisory and the refusal follow it; photos still land
 --   the claims      | t | a waiting row is out of both claims (token, list, claim, disown) and C stays out; the standing bounds its tickets and knows an unknown event
+-- The album read's ACL was narrowed afterwards (the Orchestrator's relay of ROADMAP's security line) and
+-- held on its own the same day, rolled back on the live schema: a fresh CREATE carries EXECUTE for PUBLIC
+-- by default; after the file's two lines it read exactly anon, authenticated, postgres and service_role
+-- (has_function_privilege: anon, authenticated and service_role true, public false); afterwards the live
+-- body read 88c98ced3318b420e9fd2bce367bebfe with its old ACL, so nothing persisted. The block below
+-- checks the same line in its grants step.
 -- =============================================================================================
 -- do $$
 -- declare
@@ -2098,7 +2110,7 @@ grant execute on function public.disown_guest_rows_by_email(uuid[]) to authentic
 --   t_a text; t_a2 text; t_b text; t_w text; t_d text; t_u text; t_l text; t_v text;
 --   g_n uuid; g_a uuid; g_b uuid; g_w uuid; g_d uuid; g_u uuid; g_v uuid; g_x uuid;
 --   m_host uuid; m_a uuid; m_b uuid; m_n uuid;
---   v jsonb; v_n integer; v_txt text; v_bool boolean;
+--   v jsonb; v_n integer; v_txt text; v_bool boolean; v_roles text[];
 --   base_in integer; base_by_name integer;
 --   v_step text := 'setup';
 -- begin
@@ -2194,11 +2206,15 @@ grant execute on function public.disown_guest_rows_by_email(uuid[]) to authentic
 --       raise exception 'FAIL: % lost its anon read', v_txt;
 --     end if;
 --   end loop;
---   if not has_function_privilege('public', 'public.get_event_by_qr_token(text)', 'execute')
---      or not has_function_privilege('service_role', 'public.get_event_by_qr_token(text)', 'execute') then
---     raise exception 'FAIL: get_event_by_qr_token''s ACL was not restated whole';
+--   select array_agg(r order by r) into v_roles
+--     from (select case when a.grantee = 0 then 'PUBLIC' else a.grantee::regrole::text end as r
+--             from pg_proc p, aclexplode(p.proacl) a
+--            where p.oid = 'public.get_event_by_qr_token(text)'::regprocedure
+--              and a.privilege_type = 'EXECUTE') x;
+--   if v_roles is distinct from array['anon', 'authenticated', 'postgres', 'service_role'] then
+--     raise exception 'FAIL: get_event_by_qr_token''s EXECUTE reads %', v_roles;
 --   end if;
---   insert into doors_proof values ('grants', true, 'the list RLS and select-only; gate ungranted, allow_videos granted; the acts authenticated; the reads and the ask service role; the anon reads kept, the whole ACL restated');
+--   insert into doors_proof values ('grants', true, format('the list RLS and select-only; gate ungranted, allow_videos granted; the acts authenticated; the reads and the ask service role; the anon reads kept; get_event_by_qr_token EXECUTE exactly %s', v_roles));
 --
 --   -- ── 2. The shapes a door can never take, and the setter's refusals. ──
 --   v_step := 'the refusals';

@@ -16,11 +16,11 @@ keywords:
 
 Two switches shape what guests can add, and neither is tied to a date. You decide when the album is finished, and how big a single upload is allowed to be.
 
-<Path>Dashboard › Your event › Settings › Guest uploads</Path>
+<Path>Dashboard › Your event › Settings › What guests can add</Path>
 
 ## Turn off uploads
 
-Flip <UiLabel>Accepting uploads</UiLabel> off and tap <UiLabel>Save changes</UiLabel>. The upload button disappears for guests, who see <UiLabel>The host has closed uploads. You can still browse the album.</UiLabel> Everything else keeps working: viewing, the photo viewer, downloads, the highlight reel, and making clips from it (a guest just can't add a clip to the album while uploads are closed). Flip it back on any time.
+Flip <UiLabel>Accepting uploads</UiLabel> off; it saves the moment you do, and the <UiLabel>What guests can add</UiLabel> row then reads "Paused. Guests can still look." The upload button disappears for guests, who see <UiLabel>The host has closed uploads. You can still browse the album.</UiLabel> Everything else keeps working: viewing, the photo viewer, downloads, the highlight reel, and making clips from it (a guest just can't add a clip to the album while uploads are closed). Flip it back on any time.
 
 Your own <UiLabel>Add photos</UiLabel> keeps working while uploads are closed; the switch is for guests.
 
@@ -28,7 +28,7 @@ Closing uploads also stands down the other switch. If you asked everyone to add 
 
 ## Cap the file size
 
-<UiLabel>Max size per upload</UiLabel> limits how large any single guest file can be. Pick a preset from <UiLabel>No limit</UiLabel> (the universal <UploadSize /> ceiling) down to <UploadCapFloor />. A guest whose file is over the cap sees a message naming the limit and nothing uploads.
+<UiLabel>Max size per upload</UiLabel> limits how large any single guest file can be. It sits under <UiLabel>Videos</UiLabel> and applies once videos are on: its smallest step is <UploadCapFloor />, so it caps nothing an ordinary photo reaches, and while videos are off it rests as one quiet line. Pick a preset from <UiLabel>No limit</UiLabel> (the universal <UploadSize /> ceiling) down to <UploadCapFloor />. A guest whose file is over the cap sees a message naming the limit and nothing uploads.
 
 The cap is for guests only; your own uploads ignore it. It's a way to stop one enthusiastic guest's forty-minute video from eating your storage, not a way to stop uploads (use the switch above for that). The floor is <UploadCapFloor /> so a cap can never accidentally reject every ordinary photo.
 

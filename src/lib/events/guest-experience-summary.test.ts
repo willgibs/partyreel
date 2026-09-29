@@ -1,105 +1,122 @@
 import { describe, expect, it } from "vitest";
 
-import { guestExperienceSummary } from "@/lib/events/guest-experience-summary";
+import {
+  DOOR_WHO,
+  sentenceText,
+  settingsSentence,
+  type SettingsFacts,
+} from "@/lib/events/guest-experience-summary";
+import { DOORS } from "@/lib/event/door/door";
 
-const s = (
-  visibility: "open" | "password" | "private",
-  requireVerifiedEmail: boolean,
-  acceptingUploads: boolean,
-  // Defaults OFF so every existing call below still exercises the pre-door-round behavior
-  // unchanged (the eight OFF sentences stand exactly as they were).
-  requireUploadToView = false,
-) =>
-  guestExperienceSummary({
-    visibility,
-    requireVerifiedEmail,
-    acceptingUploads,
-    requireUploadToView,
+/**
+ * THE SETTINGS READ AS SENTENCES (event-settings r1, `structure=summary`): each group says where it
+ * stands in one sentence whose key words are its live controls.
+ *
+ * FUNCTION, NOT COPY: the words may be retuned freely. What is held is what makes a sentence TRUE of
+ * the state it was handed, and the one thing that makes a word a control: it names the setting that
+ * choosing it changes. So a door that holds the email step on never offers it as a word, a setting
+ * that does nothing right now is not said, and every group's first word is live.
+ */
+const BASE: SettingsFacts = {
+  door: "open",
+  requireVerifiedEmail: true,
+  requireUploadToView: false,
+  acceptingUploads: true,
+  review: false,
+  videos: false,
+  showReel: true,
+  lookLabel: "Golden hour",
+  holdSec: 3,
+  name: "Maya's 30th",
+  dateLabel: "October 10, 2026",
+  onProfile: false,
+};
+
+const say = (group: Parameters<typeof settingsSentence>[0], over: Partial<SettingsFacts> = {}) =>
+  settingsSentence(group, { ...BASE, ...over });
+
+const words = (parts: ReturnType<typeof say>) =>
+  parts.filter((p) => p.word).map((p) => p.word);
+
+describe("who can get in", () => {
+  it("leads with who, as the live word that changes the door, at every door", () => {
+    for (const door of DOORS) {
+      const parts = say("door", { door });
+      expect(parts[0]).toEqual({ text: DOOR_WHO[door], word: "door" });
+    }
   });
 
-describe("guestExperienceSummary", () => {
-  it("private collapses regardless of the other flags", () => {
-    expect(s("private", false, true)).toMatch(/^Private\./);
-    expect(s("private", true, false)).toMatch(/^Private\./);
-  });
-
-  it("open + unverified names: view and add under a chosen name (or uploads closed)", () => {
-    expect(s("open", false, true)).toBe(
-      "Anyone with the link can view and add photos under a name they choose.",
+  it("says what a guest does first, as a word that changes it", () => {
+    expect(sentenceText(say("door"))).toContain("confirming an email");
+    expect(sentenceText(say("door", { requireVerifiedEmail: false }))).toContain(
+      "typing a name",
     );
-    expect(s("open", false, false)).toContain("Uploads are closed");
-    expect(s("open", false, false)).not.toContain("add");
+    expect(words(say("door"))).toContain("email");
   });
 
-  it("password + unverified names: enter the password first, then a chosen name", () => {
-    expect(s("password", false, true)).toContain("enter the password");
-    expect(s("password", false, true)).toContain("add photos");
-    expect(s("password", false, true)).toContain("a name they choose");
+  it("★ a gate that matches an address holds the email step on: said as prose, never a control", () => {
+    for (const door of ["approve", "invite"] as const) {
+      const parts = say("door", { door, requireVerifiedEmail: false });
+      expect(sentenceText(parts)).toContain("confirming an email");
+      expect(words(parts)).not.toContain("email");
+    }
   });
 
-  it("open + verified email required: leads with the preview, then confirming an email", () => {
-    const r = s("open", true, true);
-    expect(r).toContain("preview");
-    expect(r).toContain("confirm their email");
-    expect(r).toContain("add their own");
+  it("says a photo first only when it does something: on, with uploads open", () => {
+    expect(words(say("door", { requireUploadToView: true }))).toContain("photo");
+    expect(
+      sentenceText(say("door", { requireUploadToView: true, acceptingUploads: false })),
+    ).not.toContain("photo");
+    expect(sentenceText(say("door"))).not.toContain("photo");
   });
 
-  it("password + verified email required: password THEN email, no preview lead (privacy rule)", () => {
-    const r = s("password", true, true);
-    expect(r).toContain("enter the password");
-    expect(r).toContain("confirm their email");
-    expect(r).not.toContain("preview"); // the teaser only appears AFTER the password
-  });
-
-  it("uploads closed drops the add clause", () => {
-    expect(s("open", true, false)).toContain("Uploads are closed");
-    expect(s("open", true, false)).not.toContain("add their own");
-  });
-
-  it("unverified names never claim anonymity: every add clause names a chosen name", () => {
-    expect(s("open", false, true)).toContain("a name they choose");
-    expect(s("password", false, true)).toContain("a name they choose");
+  it("Only me and a closed door say who is left out, and nothing about steps nobody reaches", () => {
+    expect(sentenceText(say("door", { door: "private" }))).toContain(
+      "closed album",
+    );
+    expect(sentenceText(say("door", { door: "closed" }))).toContain(
+      "Nobody new can join",
+    );
+    for (const door of ["private", "closed"] as const) {
+      expect(words(say("door", { door }))).toEqual(["door"]);
+    }
   });
 });
 
-describe("guestExperienceSummary: Require an upload to view (Will, the door as three steps, 2026-09-21)", () => {
-  it("open + unverified names, ON: composes its own sentence (never appends a clause)", () => {
-    expect(s("open", false, true, true)).toBe(
-      "Guests give a name and add a photo, then see everything.",
+describe("what guests can add", () => {
+  it("names what guests add, and where it goes, each a word", () => {
+    const parts = say("adds");
+    expect(sentenceText(parts)).toBe("Photos, straight into the album.");
+    expect(words(parts)).toEqual(["uploads", "review"]);
+    expect(sentenceText(say("adds", { videos: true, review: true }))).toBe(
+      "Photos and videos, held until you approve them.",
     );
   });
 
-  it("open + verified email, ON: the identity clause swaps to confirming an email", () => {
-    expect(s("open", true, true, true)).toBe(
-      "Guests confirm their email and add a photo, then see everything.",
+  it("paused says only that, and that guests can still look", () => {
+    const parts = say("adds", { acceptingUploads: false, review: true });
+    expect(sentenceText(parts)).toBe("Paused. Guests can still look.");
+    expect(words(parts)).toEqual(["uploads"]);
+  });
+});
+
+describe("the reel and this event", () => {
+  it("the reel says its look and hold only while it plays", () => {
+    expect(sentenceText(say("reel"))).toBe("On, in Golden hour, 3 seconds a photo.");
+    expect(words(say("reel"))).toEqual(["reel", "look", "hold"]);
+    expect(sentenceText(say("reel", { showReel: false }))).toBe(
+      "Off. Guests see only the album.",
     );
+    expect(sentenceText(say("reel", { holdSec: 1 }))).toContain("1 second a photo");
   });
 
-  it("password + unverified names, ON: the password leads, then the same compose", () => {
-    expect(s("password", false, true, true)).toBe(
-      "Guests enter the password, then give a name and add a photo, then see everything.",
+  it("the event says its name and date, and the profile as a word where it is read", () => {
+    expect(sentenceText(say("event"))).toBe(
+      "Maya's 30th, October 10, 2026. Not on your profile.",
     );
-  });
-
-  it("password + verified email, ON: the password leads, then confirming an email", () => {
-    expect(s("password", true, true, true)).toBe(
-      "Guests enter the password, then confirm their email and add a photo, then see everything.",
+    expect(words(say("event"))).toEqual(["profile"]);
+    expect(sentenceText(say("event", { onProfile: null, dateLabel: null }))).toBe(
+      "Maya's 30th.",
     );
-  });
-
-  it("uploads closed makes the gate moot: the OFF sentence stands even with the switch ON (mirrors get_upload_gate's fail-open)", () => {
-    expect(s("open", false, false, true)).toBe(s("open", false, false, false));
-    expect(s("open", true, false, true)).toBe(s("open", true, false, false));
-    expect(s("password", false, false, true)).toBe(
-      s("password", false, false, false),
-    );
-    expect(s("password", true, false, true)).toBe(
-      s("password", true, false, false),
-    );
-  });
-
-  it("private collapses regardless of the upload gate", () => {
-    expect(s("private", false, true, true)).toMatch(/^Private\./);
-    expect(s("private", true, true, true)).toMatch(/^Private\./);
   });
 });

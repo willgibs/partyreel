@@ -52,6 +52,10 @@ vi.mock("@/lib/db/mutations/media", () => {
 vi.mock("@/lib/db/queries/events", () => ({
   getEvent: (...a: unknown[]) => getEvent(...a),
 }));
+const setEventDoor = vi.fn();
+vi.mock("@/lib/db/mutations/event-doors", () => ({
+  setEventDoor: (...a: unknown[]) => setEventDoor(...a),
+}));
 vi.mock("@/lib/db/queries/album-host", () => ({
   readHostManifestPage: async () => ({ entries: [], next: null }),
 }));
@@ -270,5 +274,63 @@ describe("the restore's answer", () => {
     await expect(
       actions.restoreMediaAction("ev-1", uuid(1)),
     ).resolves.toMatchObject({ ok: true, status: undefined });
+  });
+});
+
+describe("the door, set (event-settings r1)", () => {
+  const EVENT = "11111111-2222-4333-8444-555555555555";
+
+  it("refuses a malformed event or an unknown door at the boundary, before any write", async () => {
+    const { setEventDoorAction } = await import(
+      "@/app/(app)/dashboard/[eventId]/actions"
+    );
+    setEventDoor.mockReset();
+    for (const [eventId, door] of [
+      ["not-a-uuid", "open"],
+      [EVENT, "wide-open"],
+      [EVENT, ""],
+    ]) {
+      expect(await setEventDoorAction(eventId, door)).toMatchObject({
+        ok: false,
+        code: "validation",
+      });
+    }
+    expect(setEventDoor).not.toHaveBeenCalled();
+  });
+
+  it("writes the door, revalidates the hub and the dashboard, and says what came with it", async () => {
+    const { setEventDoorAction } = await import(
+      "@/app/(app)/dashboard/[eventId]/actions"
+    );
+    setEventDoor.mockResolvedValue({
+      ok: true,
+      data: { emailHeld: true, admitted: 0 },
+    });
+    revalidated.length = 0;
+    expect(await setEventDoorAction(EVENT, "approve")).toEqual({
+      ok: true,
+      emailHeld: true,
+      admitted: 0,
+    });
+    expect(setEventDoor).toHaveBeenLastCalledWith(EVENT, "approve");
+    expect(revalidated).toEqual([`/dashboard/${EVENT}`, "/dashboard"]);
+  });
+
+  it("passes a refusal on in its own words, revalidating nothing", async () => {
+    const { setEventDoorAction } = await import(
+      "@/app/(app)/dashboard/[eventId]/actions"
+    );
+    setEventDoor.mockResolvedValue({
+      ok: false,
+      code: "no_password",
+      message: "Set a password first, then it becomes the way in.",
+    });
+    revalidated.length = 0;
+    expect(await setEventDoorAction(EVENT, "password")).toEqual({
+      ok: false,
+      code: "no_password",
+      message: "Set a password first, then it becomes the way in.",
+    });
+    expect(revalidated).toEqual([]);
   });
 });

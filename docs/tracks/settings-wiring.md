@@ -47,7 +47,14 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/events/upload-lock
   - src/lib/validation/event
   - src/lib/validation/upload
-  - src/app/api/guests/
+  - src/app/api/guests/route
+  - src/app/api/guests/ask/
+  - src/app/api/guests/door/
+  - src/app/api/guests/name/
+  - src/app/api/guests/email/
+  - src/app/api/guests/mine/
+  - src/app/api/guests/remove/
+  - src/app/api/guests/unlock/
   - src/app/api/r2/presign-upload/
   - src/app/api/r2/complete-upload/
   - src/app/api/export/guest/
@@ -76,6 +83,19 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/marketing/sections/features/album/visibility-frames.tsx
   - src/components/marketing/mock-parity.test.ts
   - src/components/app/share/event-share-provider
+  # added in phases 3 and 4 (the settings, the door's page)
+  - src/components/ui/dormant.tsx
+  - src/components/ui/consequence-line.tsx
+  - src/components/app/event-slug-control
+  - src/lib/use-unsaved-changes-guard.ts
+  - src/components/app/event-feed/event-hub.test.tsx
+  - src/components/app/pricing/gated-sites.test.ts
+  - src/lib/events/visibility-labels.test.ts
+  - src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx
+  - src/app/(dev)/design/(shell)/library/components/interactive-demos.tsx
+  - src/app/(dev)/design/(shell)/library/compositions/gallery-demos.tsx
+  - src/app/(dev)/design/(shell)/library/compositions/composition-demos.tsx
+  - src/app/(dev)/design/gallery/specimens.generated.json
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/reviews/event-settings.json
   - docs/reviews/locked-door.json
