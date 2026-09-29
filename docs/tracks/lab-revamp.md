@@ -105,3 +105,46 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am (checkpoint, 2026-09-29; a resuming agent reads this, then `../partyreel-wt/_scratch/lab-revamp/stage-two.md`)
+
+**Done, pushed on `lp/lab-revamp`:**
+- `f92ff5dc` a board is one self-registering folder: `sandbox/registry.ts` finds every `sandbox/<id>/spec.ts` by
+  `require.context` (Vitest: `import.meta.glob`), `(shell)/lab/[board]/board-components.ts` finds every `board.tsx`
+  the same way; each spec carries its own `surface`, `desk` (leverage order, gaps of 10), `lives`, `tracks`
+  (`DeskFacts` in `board-spec.ts`); `admin-triage` and `event-settings` ride `PREDATES` in registry.ts until their
+  wiring lanes retire them; `touchpoints.ts`, its test and `(shell)/lab/boards.ts` deleted; every consumer reads
+  `BOARDS`; registry.test.ts holds one-export specs and boards, desk facts, the order, PREDATES only shrinking, and
+  every stage-one context rule; board-card.mjs reads the round; batch-reader.mjs reads the folder.
+- `668918ef` owns widened (`_data/`, `review/`, `_shell/markdown.tsx`, `scripts/lab-scope.mjs`, `scripts/new-board.mjs`).
+- `77aa8837` lab checks scoped: `scripts/lab-scope.mjs` (a board's folder, its ledger, or a production file its
+  drawings import; widens to the whole lab on doubt; `--all`/`FULL=1`; `PREMISE` lines naming open asks whose `lives`
+  a change touched); `lab:smoke` and `lab:demo` take the scope; `scope.sh boards`, `gate-lane.sh`, `integrate.sh`
+  follow; `merge-lane.sh` lost its diff3 resolver and id-less sweep (a transitional `predates-sweep.py` instead);
+  `hand-merge.sh` deleted; `cut-lane.py` writes a board lane's folder brief and refuses a shared list in owns;
+  `negative.sh` refusals 9-12 hold.
+- Verified so far: typecheck, lint, full `pnpm test` (570 files, 6515 tests) after `f92ff5dc`; desk order identical
+  to before; scoped `lab:smoke --board locked-door` and `lab:demo --board locked-door` green; `negative.sh` all hold.
+
+**Half-done:** nothing uncommitted. `usher/kit/README.md` still names `hand-merge.sh` and the three lists (refine in
+place); `scripts/new-board.mjs` still scaffolds the retired lists; the premise-rots closure is built (the `PREMISE`
+lines) but not yet written into Deferred.
+
+**Next, in order:**
+1. Authoring API trim: refuse the id collision in `defineExploration` (a config id equal to an ask id throws) with a
+   registry test; `src/components/lab/index.ts` down to what boards import; delete kit modules no board uses; the kit
+   page (`(shell)/lab/kit/`) and `scripts/new-board.mjs` (scaffold one folder, nothing shared) follow.
+2. The words: pick, answer, verdict for ruled/ruling/ratified across the lab, the kit and `scripts/lab-*.mjs` (the
+   inventory command is in the scratch notes), with a test refusing the old words; ROADMAP's two and
+   `docs/reviews/README.md`'s one proposed word for word in the Handoff.
+3. ROADMAP lab lines: add `src/lib/type-ladder-policy.test.ts` and `src/lib/jsx-text-space-policy.test.ts` to owns,
+   drop their lab skips and fix what they find (PREDATES folders excepted); `lab:demo` compares every frame and saves
+   every frame by title (a 375 width flag); `lab:demo --state <control>=<option>`.
+4. Kit follow-through: `review-sheet.mjs`, `desk-check.mjs`, `scripts/lab-review.mjs` checked against the folder;
+   `usher/kit/README.md` refined in place.
+5. Verify: the gate whole with `FULL=1` lab steps; `negative.sh`; a scratch board added and retired in a throwaway
+   branch touching no shared file; two scratch boards merged in parallel with no conflict; the desk at 1440 and 375
+   for `locked-door` and `disposable-mode` as before (headless helpers `cdp-shot.mjs`, `cdp-eval.mjs` in the scratch
+   dir).
+6. Hand off: Questions, System-doc edits, Deferred (the ROADMAP lines closed, by their words), the Handoff with
+   PROGRAM.md's authoring lines word for word and what a fresh board author finds hardest; status handed-off.
