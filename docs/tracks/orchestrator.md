@@ -85,8 +85,9 @@ Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, dis
    bodies after, `get_event_by_qr_token` without PUBLIC; the proof 12/12 rolled back; advisors 0029 at 33, 0028 at 4,
    no-policy at 17) and `triage_r2` recorded `20260929131921` (md5 `94b7d521`; 12 bodies, `create_report` at seven
    arguments; the proof 10/10 rolled back; advisors unchanged; `report_proof_mail_enabled` false). Types regenerated
-   (the gate's typecheck and 6,829 tests green). Build 23 (this record's `[preview]`) carries both for his look and a
-   red-team on both lanes' walks (their Handoffs: `git show 7c0fbcb1^2:docs/tracks/settings-wiring.md`,
+   (the gate's typecheck and 6,829 tests green). Build 23 is live (`6c64d5c8`, alias-ensure green, pruned); its red-team
+   runs (agent `ab63a0b9ec16c1fe1`, `../partyreel-wt/_scratch/redteam-23/brief.md`, a ledger line per step: a respawn
+   picks up after its last line) on both lanes' walks (their Handoffs: `git show 7c0fbcb1^2:docs/tracks/settings-wiring.md`,
    `git show 1b29be3a^2:docs/tracks/triage-r2-wiring.md`); both lanes' Questions are his to relay (13 and more). Follow-ups:
    the two lanes' typed seams for a missing schema can go now (a crumbs lane); milestone 31 carries `kept_media_ids` to
    the production purge (milestone 30's cron never asks it; no open report names a removed item today).
