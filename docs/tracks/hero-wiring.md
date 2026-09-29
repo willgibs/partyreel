@@ -8,6 +8,7 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/marketing/sections/home/hero-stream
   - src/components/marketing/system/demo-ticket
   - src/app/(dev)/design/sandbox/hero-card/
+  - src/app/(dev)/design/(shell)/library/marketing/gallery-demos.tsx
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/reviews/hero-card.json
   - docs/systems/marketing-content.md
@@ -49,15 +50,29 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **The address the card prints resolves to nothing, and anyone can claim it.** No event holds `mia-and-theo` (read on
+  2026-09-28: the demo event's slug is `partyreel-demo`), so a visitor who types the homepage's address gets the 404,
+  and any Pro or Event Pass host could claim the slug later and put a stranger's album behind an address our homepage
+  prints (`RESERVED_SLUGS` is the app layer's, and `set_event_slug` is callable directly). **Recommended:** the demo
+  event claims `mia-and-theo` (one row, the Orchestrator's: the unique index then holds it for good, and the typed
+  address lands on the demo the card opens); nothing prints `partyreel-demo`. Built meanwhile: the address as drawn
+  (the carried call). The fallback is `mia-and-theo` in `RESERVED_SLUGS`, which only closes the share sheet's door.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/marketing-content.md`, "The demo's doors are objects built for their places": the home hero's door is
+  the link card (the faint domain, the prints and their guests, its code the short `/demo` door and a symbol); `DemoFrame`
+  is the Features pane's alone.
+- `docs/systems/marketing-content.md`, "Every pointer to the demo is a demo door": the hero's object leaves the list of
+  plain links.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Marketing: the base geometry's block sets its headline in three lines from about 470 to 767 wide (405 px against
+  the 361 `GEO.base.blockH` is solved with, measured), so a short window at those widths runs the actions past the
+  fold; a base `blockH` taken at 767, or a step in `h1Max`, ends it (from `hero-wiring`).
+- Marketing: `chrome/mega-panel.tsx`'s note still calls `DemoFrame` "the object every demo door now shares"; it is the
+  Features pane's alone since the link card took the hero, a line for the chrome's next owner (from `hero-wiring`).
 
 ## Handoff (replaces the chat report)
 
