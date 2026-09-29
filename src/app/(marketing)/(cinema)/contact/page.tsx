@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import type { CSSProperties } from "react";
 
 import {
   HelpPaletteProvider,
@@ -10,11 +9,9 @@ import {
   BreadcrumbJsonLd,
   ContactPageJsonLd,
 } from "@/components/marketing/jsonld";
-import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
 import { CtaBand } from "@/components/marketing/system/cta-band";
 import { PageHero } from "@/components/marketing/system/page-hero";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";
-import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { REPLY_LINE, type ContactTopicValue } from "@/lib/constants/contact";
 import {
@@ -25,7 +22,9 @@ import {
   type HelpCategorySlug,
 } from "@/lib/content/help";
 
-import { ContactFacts, ContactForm } from "./contact-form";
+import { ContactDirectory } from "./contact-directory";
+import { ContactFacts } from "./contact-facts";
+import { ContactForm } from "./contact-form";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -56,36 +55,6 @@ const CATEGORY_TOPIC: Record<HelpCategorySlug, ContactTopicValue> = {
   "privacy-and-safety": "privacy",
   troubleshooting: "bug",
 };
-
-// The self-serve directory (the "connected resource" onward paths), in the
-// numbered editorial register (the identity sitting's ledger steal): hairline
-// top rules + index numbers, no icon-chip template. The help entry fronts the
-// same library the search band queries.
-const DIRECTORY: {
-  title: string;
-  body: string;
-  href: string;
-  linkLabel: string;
-}[] = [
-  {
-    title: "Help center",
-    body: "Guides for every step, from the first QR to the final download.",
-    href: "/help",
-    linkLabel: "Browse the guides",
-  },
-  {
-    title: "Press",
-    body: "The boilerplate, the fact sheet, and brand files, ready to take.",
-    href: "/press",
-    linkLabel: "Open the press kit",
-  },
-  {
-    title: "Careers",
-    body: "How the team works, and the roles open right now.",
-    href: "/careers",
-    linkLabel: "See open roles",
-  },
-];
 
 export default function ContactPage() {
   const helpSubjects = Object.fromEntries(
@@ -138,14 +107,14 @@ export default function ContactPage() {
           follow, so the cut from the dark room is a single hard line and the
           page reads dark hero, paper body, ink footer like its siblings. */}
       <PaperChapter>
-        {/* The form chapter: the page's instrument. Form leads on mobile (the
-          page's purpose); the rail sits beside it from lg. */}
+        {/* The desk: the page's instrument, opening the chapter. */}
         <SectionShell reveal="none" className="border-b">
-          {/* Three placed children so MOBILE reads heading -> form -> email
-            (the form right after the intro; the alternative door after the
-            commitment) while lg keeps the asymmetric two-column chapter:
-            header + email card stacked left, the form spanning right. */}
-          <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[1fr_1.6fr] lg:grid-rows-[auto_1fr] lg:gap-x-14 lg:gap-y-8">
+          {/* The form leads on a phone (the page's purpose): heading, form, then
+              the onward paths and the plain address after the commitment. From
+              lg the rail sits beside it: the intro and the directory stacked
+              left, the address anchored to the card's foot, the form spanning
+              all three rows. */}
+          <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[1fr_1.6fr] lg:grid-rows-[auto_auto_1fr] lg:gap-x-14 lg:gap-y-10">
             <div className="flex flex-col gap-5 lg:col-start-1 lg:row-start-1 lg:pt-2">
               <h2 className="font-heading text-prose">Send a note</h2>
               <p className="text-pretty text-muted-foreground">
@@ -153,19 +122,26 @@ export default function ContactPage() {
                 going on, and that&rsquo;s it.
               </p>
             </div>
-            <div className="lg:col-start-2 lg:row-span-2 lg:row-start-1">
+            <div className="lg:col-start-2 lg:row-span-3 lg:row-start-1">
               <ContactForm helpSubjects={helpSubjects} />
             </div>
-            {/* Plain email stays a first-class door: the desk's definition rows
-              (copy affordance included), bottom-anchored against the card. */}
-            <div className="lg:col-start-1 lg:row-start-2 lg:self-end">
-              <ContactFacts />
+            {/* The directory stands beside the note it might spare (contact-page
+                r1 `beside=directory`) and the address is a fact under it, never
+                a door of its own (`reach=routed`). One column with a tighter
+                rhythm in a hand; `contents` at lg hands each its own grid row. */}
+            <div className="flex flex-col gap-6 lg:contents">
+              <div className="lg:col-start-1 lg:row-start-2">
+                <ContactDirectory />
+              </div>
+              <div className="lg:col-start-1 lg:row-start-3 lg:self-end">
+                <ContactFacts />
+              </div>
             </div>
           </div>
         </SectionShell>
 
         {/* Self-serve: the help library, searchable right here (the palette is
-          mounted page-wide), on the light band variation. */}
+            mounted page-wide), on the light band variation. */}
         <SectionShell
           eyebrow="Self-serve"
           heading="Answers, ready now."
@@ -186,33 +162,6 @@ export default function ContactPage() {
               ))}
             </div>
           </div>
-          <Reveal className="mx-auto mt-16 grid max-w-4xl gap-x-10 gap-y-10 sm:grid-cols-3">
-            {DIRECTORY.map((tile, i) => (
-              <Link
-                key={tile.href}
-                href={tile.href}
-                data-mkt-reveal
-                style={{ "--i": 3 + i } as CSSProperties}
-                className="mkt-learn group flex flex-col gap-2.5 border-t pt-5 transition-colors duration-150 hover:border-foreground/40"
-              >
-                {/* An index numeral is data, so it sits on the BODY face with
-                  tabular figures like every other ordinal on the site (/careers,
-                  the album's stages); it wore a 14px heading face here, the
-                  one ordinal off the ladder (2026-09-18). */}
-                <span className="text-xs font-medium text-faint tabular-nums">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <h3 className="font-heading text-subsection">{tile.title}</h3>
-                <p className="text-sm text-pretty text-muted-foreground">
-                  {tile.body}
-                </p>
-                <span className="mt-auto inline-flex items-center gap-1 pt-1 text-sm font-medium text-muted-foreground transition-colors duration-150 group-hover:text-foreground">
-                  {tile.linkLabel}
-                  <LearnChevron />
-                </span>
-              </Link>
-            ))}
-          </Reveal>
         </SectionShell>
 
         {/* Quiet close: curiosity has somewhere to go. */}

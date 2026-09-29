@@ -1,10 +1,9 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Check, Copy } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -35,7 +34,6 @@ import {
   REPLY_LINE,
 } from "@/lib/constants/contact";
 import { marketingImage } from "@/lib/constants/marketing-media";
-import { SUPPORT_EMAIL } from "@/lib/constants/site";
 import { showActionError } from "@/lib/errors";
 import { cn } from "@/lib/utils";
 import { contactSchema, type ContactInput } from "@/lib/validation/contact";
@@ -75,65 +73,6 @@ function FormCard({ children }: { children: ReactNode }) {
 // Marketing-scale field grammar on the gray panel: fields go bg-background
 // (paper white) so they pop against the card, per the Biograph reference.
 const FIELD = "h-11 rounded-xl bg-background text-base md:text-base";
-
-/**
- * The desk's contact facts (the V2 definition rows, replacing the old icon-chip
- * cards): plain email with the copy micro-delight, and the reply expectation.
- * Real text registers only; no mono, no icon chips.
- */
-export function ContactFacts() {
-  const [copied, setCopied] = useState(false);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(
-    () => () => {
-      if (timer.current) clearTimeout(timer.current);
-    },
-    [],
-  );
-
-  async function copy() {
-    try {
-      await navigator.clipboard.writeText(SUPPORT_EMAIL);
-      setCopied(true);
-      if (timer.current) clearTimeout(timer.current);
-      timer.current = setTimeout(() => setCopied(false), 1800);
-    } catch {
-      toast(SUPPORT_EMAIL, { description: "Copy the address from here." });
-    }
-  }
-
-  return (
-    <dl className="flex flex-col text-sm">
-      <div className="flex items-baseline justify-between gap-4 border-t py-3.5">
-        <dt className="text-muted-foreground">Plain email</dt>
-        <dd className="flex items-center gap-1.5">
-          <a
-            href={`mailto:${SUPPORT_EMAIL}`}
-            className="font-medium underline decoration-border underline-offset-4 transition-colors duration-150 hover:decoration-foreground"
-          >
-            {SUPPORT_EMAIL}
-          </a>
-          <button
-            type="button"
-            onClick={copy}
-            aria-label={copied ? "Copied" : "Copy email address"}
-            className="flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-[color,transform] duration-150 hover:text-foreground active:scale-[0.9]"
-          >
-            {copied ? (
-              <Check aria-hidden className="size-3.5 text-success" />
-            ) : (
-              <Copy aria-hidden className="size-3.5" />
-            )}
-          </button>
-        </dd>
-      </div>
-      <div className="flex items-baseline justify-between gap-4 border-y py-3.5">
-        <dt className="text-muted-foreground">Reply time</dt>
-        <dd className="text-pretty">Usually within a day</dd>
-      </div>
-    </dl>
-  );
-}
 
 /**
  * The topic's own note and answers (contact-page r1 `urgency`: "custom per topic
