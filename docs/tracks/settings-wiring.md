@@ -183,15 +183,82 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each is built as recommended and is his to overrule; no one-way door was guessed.
+
+- **Someone already in passes the password?** Yes, on every device they are signed in on or the phone they joined
+  with, so a password added mid-party stops newcomers only; a leaked link's stranger already in is put out by a block
+  or Only me (his one rule for everyone already in; `decide.ts`, `get_upload_context`).
+- **Decline is a block?** Yes: a declined newcomer meets the one shut screen and cannot ask again; Undo on its toast,
+  Let back in under Blocked.
+- **Private with no gate chosen lands where?** On "Only people already in", or back on the password when one is set
+  (`doorForStep`): the gate that changes nothing for anyone inside and stops every stranger.
+- **Videos binds whom?** Guests only: the host's own uploads and clips ignore it, as the per-upload cap does; a
+  guest's clip Add hides while it is off.
+- **Confirming at the approve door is the ask?** Yes: the email step ends at the held door with no second tap; "Ask
+  to join" shows only to someone who arrives already confirmed. At an invite list, a listed address that confirms
+  comes straight in.
+- **The unlisted ask sits on the shut door?** As locked-door r2 relayed ("Ask Maya to let me in", "Use a different
+  email", under the one message; asking takes her to the held door; a declined ask meets the shut door with no ask).
+  Nothing in the code argued against it.
+- **The invite list stays editable while it is not the door?** Yes, and Guests says so with a pointer to Change who can
+  get in, so a host can build it before switching.
+- **Back from a settings page?** Its back arrow returns to the four rows; the browser's Back closes Settings (one
+  history entry per place, the page riding `replaceState`).
+- **Whose word is "private"?** The host's settings say Only me; the visitor-facing profile, dashboard card and shut
+  screen keep "private" ("The host made this event private", "This album is private").
+- **A gate never locks a guest's own card?** Yes: the Guest card, the profile picker's tile and a claim's Open album stay
+  named and linked (never a cover) at a gated album, since their owner is past the door; only Only me and a block lock
+  them (`readEventGates`).
+- **The four host acts are authenticated SECURITY DEFINER** (`set_event_door`, `let_in_at_door`,
+  `add_event_invites`, `remove_event_invite`), the class `block_from_event`, `let_back_in` and `set_event_slug` hold,
+  so lint 0029 reads 33 against database-security.md's "a new DEFINER function is service-role only". Recommended:
+  keep (each re-checks the host with `auth.uid()` inside, as its neighbours do); the alternative is a service-role
+  DEFINER taking the Server Action's `getUser()` id. schema-pass owns the doc's line.
+- **Marketing and pricing words:** the trust strip's "Private by default" reads "Unlisted by default" (Private is now a
+  setting, Public the default); pricing's "Password lock" row and the Free card read "Every gate". The voice is his.
+- **A gated album unfurls as the generic card**, as Only me does, while a password album shows its name: the card is
+  public to everyone for an hour, so it follows the stored door (the safe side). Kept.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/host-app.md`: Settings as four sentences (the overlay, Dormant, ConsequenceLine, the Videos switch), a
+  new "The door, the host's side" (set_event_door, the consequence lines, At the door, Invited, Invite, the pulse and the
+  bell), the Guest card's gate rule, the deep link's hydration gate, the switches' new names.
+- `docs/systems/guest-flow.md`: "State follows the door" (six doors, one decision a request: shut, ask, waiting,
+  newcomer, through; the pass; the masked upload context; `accepts_video`), the switches' new names, the anon read's
+  door pass.
+- `docs/systems/billing-caps.md` (a named exception, the Videos fact being this lane's): the Videos switch binds guests
+  only, in `create_media` and `video_blocked`.
+- Proposed for `docs/systems/database-security.md` (schema-pass owns it this batch): line 37's "`get_event_by_qr_token`
+  also keeps the PUBLIC EXECUTE its recreates inherited" retires with 20260929120000 (PUBLIC revoked by name; anon,
+  authenticated and service_role granted; proven exactly that); the inventory gains the doors' service-role reads
+  (`event_door_standing`, `event_door_check_in`, `event_door_counts`, `event_door_queue`, `event_invite_list`,
+  `host_door_waiting`, `ask_to_join`), the four authenticated host acts, the invoker helpers
+  (`event_door_account_in`, `event_door_lists_account`) and the trigger (`events_door_opened`), with 0029 at 33.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Retire, by their words: "Guests: a locked door could open by itself the moment the host lets her in" (the held door
+  checks in every 30 s); "Help-sync: `day-of-checklist-for-hosts` sends a host to "the event page" to tap Approve all";
+  "Help-sync, the guest door: `a-photo-is-missing-from-the-album` gives the preview one cause" (both halves); "Host: the
+  event settings sheet as a board once the lab revamp lands" (event-settings r1, wired); Security: "Revoke the PUBLIC
+  EXECUTE `get_event_by_qr_token` carries through its recreates" (20260929120000).
+- Guests: my-uploads marks a gated album's photos unlikeable (`albumsReadingPrivate` reads a gated album as private),
+  though a guest in can like there; asking the gate (`readEventGates`) ends it (from `settings-wiring`).
+- Guests room: a waiting newcomer's face is an initial (a seed only where she has an account); her profile photo wants
+  the avatar resolve the room's people carry (from `settings-wiring`).
+- Guests: the held door's check-in (`/api/guests/door`) has no limiter of its own; it reads one standing a call and
+  stamps only the caller's waiting rows, and a limiter would bound a scripted poll (from `settings-wiring`).
+- Admin: the album view names a gated album "private" (`admin/albums/[eventId]/page.tsx` reads `visibility` alone);
+  `doorLabel(doorOf(...))` would name its gate (from `settings-wiring`; triage-r2-wiring owns the page this batch).
+- Guests room: Invite could read the phone's own contacts where there is a picker, his "would ideally work with their
+  native contacts" (from event-settings r1).
+- Share: an approve or invite album could unfurl with its name (its newcomers meet the name and host at the door),
+  where a closed door and Only me stay generic (from `settings-wiring`).
+- Host: a Guest card's "Password" label names a password its guest never meets (someone already in passes it); it
+  could go, or name the album's door (from `settings-wiring`).
+- Code hygiene: `claims-review.tsx`'s note "A private album opens for nobody" means Only me now that a claimed gated
+  album offers Open album (from `settings-wiring`).
 
 ## Handoff (replaces the chat report)
 
@@ -205,3 +272,59 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am (checkpoint for a respawned me, 2026-09-29)
+
+Working rules are the spawn brief's: dev server on 3131 only, `zsh scripts/build-lock.sh` for test, typecheck and
+build, captures and logs in `../partyreel-wt/_scratch/settings-wiring/`, an own Browser-pane tab, helpers in the
+foreground, never a question to the Orchestrator.
+
+**Done, on `lp/settings-wiring`:**
+- `e865f622` phase 1: the doors' backend (`supabase/migrations/20260929120000_event_doors.sql`, unapplied: the
+  Orchestrator applies it) and its rolled-back proof (twelve rows held on the live schema; the ACL proof in the foot).
+- `403aa329` phase 2: the guest path (`pageDoor`, the shut door, the held door, the ask, the unlisted ask on the shut
+  door, the door's pass, every guest route).
+- `384fafd7` the `event-settings` board retired (its folder; its lines in `registry.ts`, `boards.ts`, `touchpoints.ts`).
+- `46174f96` phases 3 and 4: settings as four sentences, Dormant, ConsequenceLine, the Videos switch, the door's page,
+  the deep-link close fix, the custom link's announced error, the PUBLIC EXECUTE revoke.
+- `b1c90382` phase 5: the Guests room (At the door, Invited, Invite), the hub's Guests card, the pulse, the bell.
+- `4d5531ea` phase 6: the words (help, marketing, pricing, the app), the gated album's Guest card (`readEventGates`),
+  the clip Add following Videos.
+- `96c55e9a` synced with launch-prep at `231534a0`; owns released to later cuts: `src/lib/db/migration-guards.test.ts`
+  (schema-pass), `src/components/ui/popup.tsx` and `src/components/app/event-feed/event-hub.test.tsx` (crumbs-14),
+  each edited here in `46174f96` before those cuts.
+- `b25d4595` a closed page keeps what was typed (`SavingField` commits on unmount, `event-page.test.tsx`), the upload
+  routes' comments, two help-sync lines, the three system docs. **The whole gate ran green on `b25d4595`:** typecheck 0,
+  lint 0 (0 warnings), test 0 (586 files, 6721 tests), build 0, `lab:smoke` 0 (171 checks, 0 failing).
+- `f2b717bf` WIP: an `acts` seam on `AtTheDoor` and `InvitedSection` (typecheck, lint, the room's tests green).
+- Verified headless at 1440 and 375 with reduced motion: the privacy page's switch (all three answers), the album
+  plate, the pricing row and card, the trust strip, the help's held-door screen, the Library's settings composition.
+
+**Half-done:** a Library composition for the Guests room's door (`guests-door` in
+`library/compositions/gallery-demos.tsx`, its demo beside `SettingsDemo` in `composition-demos.tsx` with inert acts
+like `SETTINGS_WRITES`: At the door with three waiting, Invited with a short list), then
+`node "src/app/(dev)/design/gallery/collect-specimens.mjs"`, then a capture of both at 1440 and 375 (the scratch
+`shoot.mjs`, headless Chrome over CDP, killed after): the room is auth-gated, so the Library is where it can be seen.
+
+**Next, in order:** (1) finish that composition; typecheck, lint, test; commit. (2) The whole gate on the final code sha,
+each step on its own exit code, the dev server killed after. (3) Fill the Handoff above: the commits, the gates and
+their sha, the lane check's seven exceptions (the three retirement lists, the three released paths, `billing-caps.md`),
+the items, the migration (its APPLY PROTOCOL; the advisor delta: 0029 from 29 to 33, 0028 and
+`rls_enabled_no_policy` unchanged) and the live red-team walks (partyr33l as the newcomer at a willg97 test event
+through every gate, after the apply). (4) `status: handed-off`, the manifest committed alone, pushed, and
+SubagentHandback "handed off at <sha>".
+
+**The Orchestrator's relays since the cut, kept:**
+- Skip the legal line entirely: neither edit nor draft any Terms or Privacy wording, and add no Questions for it.
+- crumbs-12 merged: the hub reads Highlight reel, Guests, Review, Settings; headings use `font-heading` alone at 700; a
+  number and its word are one string; `your-event-page-explained.mdx` named the cards in the old order (fixed, phase 6).
+- locked-door r2: `unlisted=ask` on the shut door itself, under the one message, as that reader's own foot ("Ask Maya to
+  let me in", "Use a different email"); asking takes her to the waiting door; a declined ask meets the shut door with no
+  ask; build it so unless the code argues against it, and say why in the Handoff if so (built so, phase 2).
+- Milestone 30's two bugs, taken in: a sheet opened from a link could not be closed (`event-share-provider.tsx`'s
+  fallback to `initialSheet`; the settings pages and their back arrow must close from a deep link too, pinned by a test;
+  done in `46174f96`), and the custom link's error line was not announced (a live region and `aria-describedby`; done).
+- `get_event_by_qr_token`'s replacement revokes EXECUTE from `public` explicitly and re-grants only the roles that must
+  call it, with a rolled-back check that the grants read exactly that (done in `46174f96`); schema-pass audits the rest
+  of the schema beside this lane and touches none of its functions or columns.
+- The account handover (this checkpoint): commit and push, keep this section, carry on.
