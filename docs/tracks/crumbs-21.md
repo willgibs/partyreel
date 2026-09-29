@@ -24,6 +24,7 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/admin/moderation-grid.tsx
   - src/components/admin/moderation-grid.test.tsx
   - src/lib/r2/grid-items.ts
+  - src/lib/r2/grid-items.covered.test.ts
   - src/lib/moderation/operator-actions.ts
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/database-security.md

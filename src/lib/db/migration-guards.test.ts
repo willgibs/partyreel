@@ -3427,3 +3427,84 @@ describe("a password ends every ask at the door (20260929230000)", () => {
     );
   });
 });
+
+describe("a report keeps what it named (20260929231000)", () => {
+  // triage-r2's find: `reports.media_id` was ON DELETE SET NULL, so a purged item's report read as its
+  // album's: under All, and reopened by a dismissal's Undo, where kept_media_ids read it as keeping every
+  // item of the album from every permanent delete. A report keeps which item it named and its kind, and
+  // nothing the purge exists to remove.
+  const FILE = "20260929231000_report_keeps_its_item.sql";
+  const sql = collapse(
+    readFileSync(join(MIGRATIONS_DIR, FILE), "utf8").replace(/--[^\n]*/g, ""),
+  );
+  const code = (name: string) =>
+    collapse(latestDefinition(name).body.replace(/--[^\n]*/g, ""));
+
+  it("★ the purge no longer touches it: media_id is no foreign key, by the last word on the constraint", () => {
+    let standing: boolean | null = null;
+    for (const { sql: text } of executableMigrations()) {
+      for (const [statement] of text.matchAll(
+        /\bmedia_id uuid references public\.media \(id\) on delete set null\b|\bdrop constraint (?:if exists )?reports_media_id_fkey\b|\badd constraint reports_media_id_fkey\b/g,
+      )) {
+        // The column's own inline key (the init file's reports table) or a named re-add stands it up.
+        standing = !statement.startsWith("drop");
+      }
+    }
+    expect(standing).toBe(false);
+  });
+
+  it("records the kind from the item as it is filed, and never from anything else", () => {
+    const fn = code("reports_name_item");
+    expect(fn).toContain(
+      "create function public.reports_name_item() returns trigger language plpgsql set search_path = ''",
+    );
+    expect(fn).not.toContain("security definer");
+    // An update that keeps its item keeps its kind: a gone item's report can close and reopen, and
+    // nothing re-kinds it.
+    expect(fn).toContain(
+      "if tg_op = 'UPDATE' and new.media_id is not distinct from old.media_id then new.media_type := old.media_type; return new; end if;",
+    );
+    expect(fn).toContain(
+      "if new.media_id is null then new.media_type := null; return new; end if;",
+    );
+    // What the key checked at insert: an id that names no item is refused as the key refused it.
+    expect(fn).toContain(
+      "select m.type into new.media_type from public.media m where m.id = new.media_id; if not found then raise exception 'A report names an item that does not exist.' using errcode = 'foreign_key_violation'; end if;",
+    );
+    expect(sql).toContain(
+      "create trigger reports_name_item before insert or update of media_id, media_type on public.reports for each row execute function public.reports_name_item();",
+    );
+    expect(sql).toContain(
+      "revoke execute on function public.reports_name_item() from public, anon, authenticated;",
+    );
+  });
+
+  it("pairs the kind with the item by a CHECK, after a backfill that stamps nothing else", () => {
+    expect(sql).toContain(
+      "alter table public.reports add column media_type public.media_type;",
+    );
+    const off = sql.indexOf(
+      "alter table public.reports disable trigger reports_set_updated_at;",
+    );
+    const backfill = sql.indexOf(
+      "update public.reports r set media_type = m.type from public.media m where m.id = r.media_id and r.media_type is null;",
+    );
+    const on = sql.indexOf(
+      "alter table public.reports enable trigger reports_set_updated_at;",
+    );
+    expect(off).toBeGreaterThan(-1);
+    expect(backfill).toBeGreaterThan(off);
+    expect(on).toBeGreaterThan(backfill);
+    expect(
+      sql.indexOf(
+        "alter table public.reports add constraint reports_media_type_named check ((media_id is null) = (media_type is null));",
+      ),
+    ).toBeGreaterThan(on);
+  });
+
+  it("an album report is still the one with no item: kept_media_ids' album arm reads media_id is null", () => {
+    expect(code("kept_media_ids")).toContain(
+      "(r.media_id = m.id or (r.media_id is null and r.event_id = m.event_id))",
+    );
+  });
+});

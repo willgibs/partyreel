@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useRef, useState, useTransition } from "react";
-import { Trash2, Undo2 } from "lucide-react";
+import { useCallback, useMemo, useRef, useState, useTransition } from "react";
+import { EyeOff, Trash2, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 import {
   type ModerationGridItem,
+  type ModerationTile as ModerationTileItem,
   operatorRemovalTouches,
 } from "@/lib/moderation/operator-actions";
 
@@ -36,6 +37,12 @@ import {
 // operator removals share (`operatorRemovalTouches`), so this and a report's Remove cannot drift.
 // The TILE is untouched here: the glass lane rewrites every tile's marks.
 // `mode="feed"` shows the album/host caption (linking to the drill-in); `mode="album"` omits it.
+//
+// ★ THE WORST KINDS ARRIVE COVERED HERE TOO (build 23's NIT-7, carried to the albums grid by crumbs-21):
+// an item a report of the worst kinds names comes with no url at all (`toModerationFeedItems` never
+// signs it), so its tile draws the reports inbox's cover and opens nothing; the viewer steps only through
+// what is seen. The runbook keeps human viewing to a minimum, and the open queue's View once is the one
+// look an operator takes.
 
 function ModerationTile({
   item,
@@ -43,8 +50,9 @@ function ModerationTile({
   mode,
   onOpen,
 }: {
-  item: ModerationGridItem;
-  index: number;
+  item: ModerationTileItem;
+  /** Its place among the seen tiles (the viewer's list), or null for a covered one. */
+  index: number | null;
   mode: "feed" | "album";
   /** The tile's box rides along, so the viewer grows out of it (`opening=grow`). */
   onOpen: (index: number, tile: Element | null) => void;
@@ -75,14 +83,27 @@ function ModerationTile({
       data-media-id={item.id}
       className="relative aspect-square overflow-hidden rounded-lg bg-black/10"
     >
-      <button
-        type="button"
-        onClick={(e) => onOpen(index, e.currentTarget.closest("li"))}
-        aria-label={item.type === "photo" ? "View photo" : "Play video"}
-        className="size-full cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-inset"
-      >
-        <MediaTile item={item} />
-      </button>
+      {item.covered || index === null ? (
+        <span
+          data-media-covered=""
+          role="img"
+          aria-label={`Covered ${item.type}`}
+          title="Covered: a report names it as the worst kind. The open report's View once is the only look."
+          className="flex size-full flex-col items-center justify-center gap-1.5 bg-foreground/85 p-2 text-center text-background"
+        >
+          <EyeOff className="size-5" aria-hidden />
+          <span className="text-caption font-medium">Covered</span>
+        </span>
+      ) : (
+        <button
+          type="button"
+          onClick={(e) => onOpen(index, e.currentTarget.closest("li"))}
+          aria-label={item.type === "photo" ? "View photo" : "Play video"}
+          className="size-full cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-inset"
+        >
+          <MediaTile item={item} />
+        </button>
+      )}
 
       <Badge
         variant="secondary"
@@ -165,12 +186,21 @@ export function ModerationGrid({
   items,
   mode,
 }: {
-  items: ModerationGridItem[];
+  items: ModerationTileItem[];
   mode: "feed" | "album";
 }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [origin, setOrigin] = useState<ViewerOrigin | undefined>(undefined);
   const listRef = useRef<HTMLUListElement | null>(null);
+  // The viewer steps through the seen tiles alone: a covered one has nothing to show.
+  const seen = useMemo(
+    () => items.filter((item): item is ModerationGridItem => !item.covered),
+    [items],
+  );
+  const seenIndex = useMemo(
+    () => new Map(seen.map((item, i) => [item.id, i] as const)),
+    [seen],
+  );
 
   // The viewer drops back into the tile of whichever report it shows at close
   // (it may have stepped on from the one tapped), and focus returns to it.
@@ -190,11 +220,11 @@ export function ModerationGrid({
         onPointerEnter={preloadMediaLightbox}
         onTouchStart={preloadMediaLightbox}
       >
-        {items.map((item, i) => (
+        {items.map((item) => (
           <ModerationTile
             key={item.id}
             item={item}
-            index={i}
+            index={item.covered ? null : (seenIndex.get(item.id) ?? null)}
             mode={mode}
             onOpen={(i, tile) => {
               setOpenIndex(i);
@@ -213,7 +243,7 @@ export function ModerationGrid({
       </ul>
 
       <MediaLightboxLazy
-        items={items}
+        items={seen}
         index={openIndex}
         origin={origin}
         onClose={() => setOpenIndex(null)}

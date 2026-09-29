@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import { EyeOff, ShieldAlert, Undo2 } from "lucide-react";
+import { EyeOff, ImageOff, ShieldAlert, Undo2, VideoOff } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -17,6 +17,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  deletedItemLine,
+  deletedItemNoun,
   HIDE_RESTORED_MESSAGE,
   NO_NOTE,
   NO_REASON,
@@ -306,6 +308,27 @@ export function ClosedLine({
 
 /* ── A closed album or item report ───────────────────────────────────────── */
 
+/**
+ * ★ A REPORT WHOSE ITEM IS GONE IS STILL THAT ITEM'S (crumbs-21, migration 20260929231000): the purge took
+ * the row once the report closed, and the report kept which item it named and its kind, so its line says
+ * a photo or a video was deleted, where an album report draws its plain square.
+ */
+function DeletedItemLead({ type }: { type: "photo" | "video" | null }) {
+  const Icon = type === "video" ? VideoOff : ImageOff;
+  const noun = deletedItemNoun(type);
+  return (
+    <span
+      data-report-deleted={type ?? "item"}
+      role="img"
+      aria-label={`${noun[0].toUpperCase()}${noun.slice(1)}, deleted`}
+      title={`${deletedItemLine(type)} The report still names it.`}
+      className="flex size-8 shrink-0 items-center justify-center rounded bg-muted text-muted-foreground"
+    >
+      <Icon className="size-3.5" aria-hidden />
+    </span>
+  );
+}
+
 function ClosedReportLine({ report }: { report: ReviewReport }) {
   const item = report.media;
 
@@ -335,6 +358,8 @@ function ClosedReportLine({ report }: { report: ReviewReport }) {
               playBadge="none"
             />
           </div>
+        ) : report.deleted ? (
+          <DeletedItemLead type={report.deleted.type} />
         ) : (
           <span
             aria-hidden
