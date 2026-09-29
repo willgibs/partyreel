@@ -90,7 +90,7 @@ export function SoftwareApplicationJsonLd() {
           // HEIF, AVIF and WebM are stored exactly as sent). Structured data is
           // quoted back by assistants verbatim, so it carries the clause too.
           "Location data is stripped in the browser before a photo ever uploads, for the common formats.",
-          "Open, link-only, or password-locked album visibility",
+          "Public, private (a password, host approval, or an invite list), or host-only albums",
         ],
       }}
     />

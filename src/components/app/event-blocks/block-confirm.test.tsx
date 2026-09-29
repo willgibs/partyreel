@@ -83,7 +83,7 @@ describe("BlockConfirm", () => {
     });
     const onOpenChange = mount();
     const offer = await screen.findByRole("switch", {
-      name: /Also require verified emails/,
+      name: /Also ask for an email first/,
     });
     expect(offer).toHaveAttribute("aria-checked", "false");
 
@@ -130,7 +130,7 @@ describe("BlockConfirm", () => {
     mount();
     fireEvent.click(
       await screen.findByRole("switch", {
-        name: /Also require verified emails/,
+        name: /Also ask for an email first/,
       }),
     );
     fireEvent.click(blockButton());

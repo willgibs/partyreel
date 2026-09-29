@@ -111,10 +111,10 @@ export function ConfirmSwitchDemo() {
       label="An email first"
       description="Every photo then has a confirmed address behind it."
       confirmWhen={(next) => !next}
-      dialogTitle="Stop requiring verified emails?"
+      dialogTitle="Stop asking for an email first?"
       dialogDescription="Guests will add photos under a name they type, with no email behind it. You can turn this back on anytime."
       confirmLabel="Use names only"
-      cancelLabel="Keep verified emails"
+      cancelLabel="Keep asking for an email"
     />
   );
 }
@@ -240,10 +240,7 @@ export function CommandPaletteDemo() {
           <CommandPaletteList label="Surfaces">
             <CommandPaletteGroup heading="Surfaces">
               {["Support", "Applicants", "Jobs"].map((name) => (
-                <CommandPaletteItem
-                  key={name}
-                  onSelect={() => setChose(name)}
-                >
+                <CommandPaletteItem key={name} onSelect={() => setChose(name)}>
                   <span className="flex-1">{name}</span>
                 </CommandPaletteItem>
               ))}
@@ -275,7 +272,11 @@ export function DestructiveSheetDemo() {
       <Button variant="outline" size="sm" onClick={() => setReversible(true)}>
         Pause the purge sweep
       </Button>
-      <Button variant="destructive" size="sm" onClick={() => setPermanent(true)}>
+      <Button
+        variant="destructive"
+        size="sm"
+        onClick={() => setPermanent(true)}
+      >
         Delete an account
       </Button>
       <DestructiveSheet

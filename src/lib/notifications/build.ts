@@ -22,6 +22,7 @@
  * Adding a new signal later (e.g. co-host invites — see ROADMAP) = one new field here + one
  * read in `getNotificationData`. Keep it that simple.
  */
+import { peopleWaiting } from "@/lib/event/door/words";
 import { RECOVERY_PURGE_NUDGE_DAYS } from "@/lib/lifecycle/recently-deleted";
 import { RENEWAL_NUDGE_DAYS } from "@/lib/lifecycle/renewal";
 
@@ -109,8 +110,8 @@ export type NotificationSummary = {
 const uploadsToReview = (n: number) =>
   `${n} ${n === 1 ? "upload" : "uploads"} to review`;
 
-const peopleAtTheDoor = (n: number) =>
-  `${n} ${n === 1 ? "person" : "people"} at the door`;
+// The door's words are the room's and the pulse's too (`lib/event/door/words.ts`).
+const peopleAtTheDoor = (n: number) => `${peopleWaiting(n)} at the door`;
 
 export function buildNotifications(
   signals: NotificationSignals,

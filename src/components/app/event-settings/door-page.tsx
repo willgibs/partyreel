@@ -425,10 +425,10 @@ export function DoorPage({ guestsHref }: { guestsHref: string }) {
                     void s.saveEvent({ requireVerifiedEmail: next })
                   }
                   confirmWhen={(next) => !next}
-                  dialogTitle="Stop requiring verified emails?"
+                  dialogTitle="Stop asking for an email first?"
                   dialogDescription="Guests will add photos under a name they type, with no email behind it. Names stay on every photo, but nothing proves who typed them, so abuse is harder to trace. You can turn this back on anytime."
                   confirmLabel="Use names only"
-                  cancelLabel="Keep verified emails"
+                  cancelLabel="Keep asking for an email"
                 />
               </Step>
 

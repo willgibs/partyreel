@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import { uploadTermsLine } from "@/components/guest/upload/upload-terms";
@@ -54,5 +57,23 @@ describe("the seam for the host's own cap", () => {
     // promise a guest a bigger allowance than the product has.
     expect(uploadTermsLine(null)).toBe(uploadTermsLine());
     expect(uploadTermsLine(undefined)).toBe(uploadTermsLine());
+  });
+});
+
+/**
+ * ★ A CLIP IS A VIDEO (the host's Videos switch, event-settings r1). The page hands the reel's clip
+ * creator a guest's Add only where the album takes a video, so a guest with Videos off saves or shares
+ * her clip instead of pressing an Add the upload would refuse (`video_blocked`). The owner's add rides
+ * the host's own route, which the switch never binds.
+ */
+describe("the guest's clip Add follows the album's own answer", () => {
+  it("is offered only while uploads are open and the album accepts video", () => {
+    const page = readFileSync(
+      join(process.cwd(), "src/components/guest/event-experience.tsx"),
+      "utf8",
+    );
+    expect(page).toMatch(
+      /addClipToAlbum=\{\s*canUpload && event\.accepts_video \? addClipToAlbum : null\s*\}/,
+    );
   });
 });

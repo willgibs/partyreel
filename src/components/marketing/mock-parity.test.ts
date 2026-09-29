@@ -148,6 +148,21 @@ const ENTRIES: ParityEntry[] = [
     literal: "This album is closed",
   },
   {
+    // The doors (event-settings r1): the privacy page's Only me panel draws the same shut door.
+    label: "privacy page access switch Only me title",
+    marketingFile:
+      "src/components/marketing/sections/features/privacy/access-switch.tsx",
+    appFile: "src/components/guest/door/shut-door.tsx",
+    literal: "This album is closed",
+  },
+  {
+    label: "privacy page access switch Only me line",
+    marketingFile:
+      "src/components/marketing/sections/features/privacy/access-switch.tsx",
+    appFile: "src/components/guest/door/shut-door.tsx",
+    literal: "Only the host can let you in.",
+  },
+  {
     label: "album visibility password gate eyebrow",
     marketingFile:
       "src/components/marketing/sections/features/album/visibility-frames.tsx",
@@ -439,7 +454,10 @@ describe("the privacy page's settings rows quote the app's own titles", () => {
       expect(mock).toContain(title);
       expect(app).toContain(title);
     }
-    for (const words of ["Anyone with the link", "held until you approve them"]) {
+    for (const words of [
+      "Anyone with the link",
+      "held until you approve them",
+    ]) {
       expect(mock).toContain(words);
       expect(app).toContain(words);
     }

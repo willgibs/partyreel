@@ -1322,7 +1322,11 @@ export function EventExperience({
                 isDemo={isDemo}
                 moderated={event.moderation_mode !== "live"}
                 onAddYours={canUpload ? openAdd : undefined}
-                addClipToAlbum={canUpload ? addClipToAlbum : null}
+                // A clip is a video: with the host's Videos off (`accepts_video`), a guest's clip
+                // stays hers to save or share, rather than an Add the upload would refuse.
+                addClipToAlbum={
+                  canUpload && event.accepts_video ? addClipToAlbum : null
+                }
                 queue={queue}
                 welcomePending={welcomePending}
                 isOwner={isOwner}

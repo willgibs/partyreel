@@ -140,7 +140,7 @@ function buildGroups(): MatrixGroup[] {
         { label: "Photo uploads", values: [true, true, true] },
         {
           label: "Video uploads",
-          tip: "Guests and hosts alike. Free events are photos only.",
+          tip: "Guests and hosts alike, and one switch keeps an album to photos. Free events are photos only.",
           values: [false, true, true],
         },
         {
@@ -191,9 +191,11 @@ function buildGroups(): MatrixGroup[] {
           tip: "The album fills in while the event is still going.",
           values: [true, true, true],
         },
-        // On every plan since the free/pro shift; read from the one list that gates them.
+        // On every plan since the free/pro shift; read from the one list that gates them. The doors
+        // (2026-09-29) put every other gate beside the password, gated by no plan.
         {
-          label: "Password lock",
+          label: "Every gate",
+          tip: "A password, letting each guest in, an invite list, or only people already in.",
           values: [!GATED_EVENT_SETTINGS.includes("password"), true, true],
         },
         {

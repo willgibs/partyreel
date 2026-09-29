@@ -34,6 +34,8 @@ export const PHONE_SCREENS = {
   "door-code-link": "The code screen: or tap the link in the same email",
   "door-code-different": "The code screen: Use a different email",
   "door-photo": "Add your photos, with Skip for now",
+  "door-waiting":
+    "Waiting at the door: the host will let you in, and the album opens by itself",
   "door-keep": "Sent, then Keep this event",
   "mail-search": "A mailbox searched for Partyreel, the email found in spam",
   "report-open": "The Report this event form, freshly opened",

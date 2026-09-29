@@ -7,10 +7,11 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - supabase/migrations/20260929120000_event_doors.sql
   - src/components/app/event-settings/
   - src/components/app/event-settings-form.tsx
+  - src/components/app/event-settings-form.test.tsx
   - src/components/app/visibility-selector.tsx
   - src/components/app/pricing/lock-chip.tsx
   - src/lib/events/visibility-labels.ts
-  - src/lib/events/guest-experience-summary.ts
+  - src/lib/events/guest-experience-summary
   - src/lib/event/door
   - src/lib/db/queries/event-doors
   - src/lib/db/mutations/event-doors
@@ -30,7 +31,6 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - docs/systems/guest-flow.md
   - src/app/(dev)/design/sandbox/event-settings/
   # added at boot (2026-09-29): the paths the doors reach beyond the starting list
-  - supabase/migrations/20260929115000_event_doors_enum.sql
   - src/lib/db/migration-guards.test.ts
   - src/lib/db/row-cap-sql.test.ts
   - src/lib/db/queries/guest-events
@@ -70,6 +70,7 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/notifications/build
   - src/components/app/share/event-sheets.tsx
   - src/components/ui/popup.tsx
+  - src/components/ui/popup.test.tsx
   - src/components/app/event-blocks/
   - src/lib/errors/codes
   - src/lib/guest/join
@@ -84,8 +85,8 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/marketing/mock-parity.test.ts
   - src/components/app/share/event-share-provider
   # added in phases 3 and 4 (the settings, the door's page)
-  - src/components/ui/dormant.tsx
-  - src/components/ui/consequence-line.tsx
+  - src/components/ui/dormant
+  - src/components/ui/consequence-line
   - src/components/app/event-slug-control
   - src/lib/use-unsaved-changes-guard.ts
   - src/components/app/event-feed/event-hub.test.tsx
@@ -99,6 +100,26 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   # added in phase 5 (the Guests room, the pulse, the bell)
   - src/app/(app)/dashboard/page.tsx
   - src/components/app/dashboard/next-step-band.tsx
+  # added in phase 6 (the words, and the gated album's Guest card the sweep found)
+  - src/lib/events/event-blocks.ts
+  - src/lib/events/event-blocks.test.ts
+  - src/lib/db/queries/social
+  - src/components/shared/unverified-mark
+  - src/components/marketing/sections/features/privacy/access-switch.tsx
+  - src/components/marketing/sections/features/privacy/never-rides-along.tsx
+  - src/components/marketing/sections/features/privacy/privacy-faq.ts
+  - src/components/marketing/sections/home/privacy.tsx
+  - src/components/marketing/sections/home/trust-strip.tsx
+  - src/components/marketing/jsonld.tsx
+  - src/components/marketing/faq-data.ts
+  - src/components/marketing/sections/features/album/album-copy.ts
+  - src/components/marketing/sections/features/album/album-faq.ts
+  - src/components/marketing/sections/features/guests/credited-album.tsx
+  - src/app/(marketing)/(cinema)/features/guests/page.tsx
+  - src/components/marketing/sections/pricing/comparison-table.tsx
+  - src/components/marketing/sections/pricing/plan-cards.tsx
+  - src/components/marketing/help/step-screens/registry.ts
+  - src/components/marketing/help/step-screens/door-screens.tsx
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/reviews/event-settings.json
   - docs/reviews/locked-door.json

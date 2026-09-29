@@ -1,4 +1,3 @@
-import type { Database } from "@/lib/db/types";
 import {
   gateOf,
   stepOf,
@@ -7,32 +6,15 @@ import {
   type PrivateGate,
 } from "@/lib/event/door/door";
 
-export type Visibility = Database["public"]["Enums"]["event_visibility"];
-
 /**
- * The word for each visibility state, single-sourced ("Public sounds much clearer
- * than open"). "Open" is the ACCEPTING-UPLOADS state and
- * never a visibility word: the two were written separately once, so the settings
- * selector said Public while the event header chip said Open, for the same
- * `visibility = 'open'` row. Read this record; do not re-type a label next to the enum.
+ * THE DOOR'S WORDS, SINGLE-SOURCED: the settings, the hub, the Library and marketing's plates all read
+ * this one module, and nothing re-types a door word next to the data. Server-safe on purpose (no "use
+ * client"), so an RSC dots into it as readily as the door page.
  *
- * Server-safe on purpose (no "use client"): the dashboard's RSC chip, the client
- * selector, the settings form and marketing's access switch all read this one module.
- * It used to live in the client selector, which an RSC cannot dot into, so the chip
- * re-typed "Public" with a comment (the library phase, 2026-09-11, moved it here).
+ * ★ "Open" is never a door word: it is the ACCEPTING-UPLOADS state (the event card's Open/Closed). The two
+ * were written separately once, and the settings said Public while the event header said Open for the
+ * same row ("Public sounds much clearer than open"). The data's `open` reads Public.
  */
-export const VISIBILITY_LABELS: Record<Visibility, string> = {
-  open: "Public",
-  password: "Password",
-  private: "Private",
-};
-
-/** One-line hint for the active choice: the form and every surface describe the states identically. */
-export const VISIBILITY_HINTS: Record<Visibility, string> = {
-  open: "Anyone with the link can view the album.",
-  password: "Anyone with the link and the password can view the album.",
-  private: "Only you can view it. Guests see a friendly locked screen.",
-};
 
 /* ── the door, in steps (event-settings r1, Will 2026-09-29, `join=steps`) ─────────────────────── */
 

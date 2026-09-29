@@ -57,6 +57,12 @@ let admin = createFakePostgrest({});
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => asSupabase(admin),
 }));
+/** The gated albums, by id (`readEventGates`): a gated album is stored private, with its gate. */
+let gates = new Map<string, string>();
+vi.mock("@/lib/db/queries/event-doors", () => ({
+  readEventGates: async (ids: readonly string[]) =>
+    new Map([...gates].filter(([id]) => ids.includes(id))),
+}));
 const blocked = vi.fn(async (_viewer: string, _profile: string) => false);
 vi.mock("@/lib/db/queries/social", () => ({
   isBlockedEitherWay: (viewer: string, profile: string) =>
@@ -435,10 +441,27 @@ describe("the claimed event's follow-up", () => {
     ).resolves.toBeNull();
   });
 
-  it("a private album opens for nobody: no album, no host", async () => {
+  it("an Only me album opens for nobody: no album, no host", async () => {
+    gates = new Map();
     await expect(
       getClaimedEventNext(world({ visibility: "private" }), EVENT),
     ).resolves.toEqual({ href: null, host: null });
+  });
+
+  // ★ The doors (event-settings r1) store a gated album private, with its gate; the claim made her
+  // row, which is in, hers, and a gate never stops the guests inside.
+  it("a gated album opens for her once she has claimed", async () => {
+    gates = new Map([[EVENT, "closed"]]);
+    try {
+      await expect(
+        getClaimedEventNext(world({ visibility: "private" }), EVENT),
+      ).resolves.toEqual({
+        href: "/e/qr-e1",
+        host: { id: "host-1", slug: "tom", name: "Tom", following: false },
+      });
+    } finally {
+      gates = new Map();
+    }
   });
 
   it("offers no Follow for a host with no page, for herself, or across a block", async () => {

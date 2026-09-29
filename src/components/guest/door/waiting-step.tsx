@@ -57,7 +57,6 @@ export function WaitingStep({
   /** Something else changed about the door: a plain refresh. */
   onMoved: () => void;
 }) {
-  const copy = waitingCopy(hostName);
   const [switching, setSwitching] = useState(false);
 
   // The latest callbacks and ticket, read by the loop without restarting it.
@@ -117,6 +116,33 @@ export function WaitingStep({
   }, [qrToken]);
 
   return (
+    <WaitingDoor
+      hostName={hostName}
+      switching={switching}
+      onSwitchEmail={() => {
+        setSwitching(true);
+        void switchEmail();
+      }}
+    />
+  );
+}
+
+/**
+ * THE HELD DOOR'S FACE, without its check-in loop: `WaitingStep` wraps it, and the help center's
+ * picture of the step (`step-screens/door-screens.tsx`) draws this very face, inert, so the picture
+ * changes when the door does and never checks in from an article.
+ */
+export function WaitingDoor({
+  hostName,
+  switching = false,
+  onSwitchEmail,
+}: {
+  hostName?: string | null;
+  switching?: boolean;
+  onSwitchEmail?: () => void;
+}) {
+  const copy = waitingCopy(hostName);
+  return (
     <div data-door-waiting className="flex flex-col gap-6">
       <DoorHeading
         eyebrow={
@@ -153,10 +179,7 @@ export function WaitingStep({
         variant="ghost"
         className="w-full text-muted-foreground"
         disabled={switching}
-        onClick={() => {
-          setSwitching(true);
-          void switchEmail();
-        }}
+        onClick={onSwitchEmail}
       >
         Use a different email
       </Button>

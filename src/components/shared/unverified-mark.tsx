@@ -122,7 +122,10 @@ export function UnverifiedMark({
             "inline-flex size-4 shrink-0 items-center justify-center rounded-full align-middle",
             "transition-transform duration-150 ease-emphasis outline-none active:scale-90 motion-reduce:active:scale-100",
             tone === "lit"
-              ? cn(GLASS_MARK, "focus-visible:ring-2 focus-visible:ring-white/70")
+              ? cn(
+                  GLASS_MARK,
+                  "focus-visible:ring-2 focus-visible:ring-white/70",
+                )
               : "border border-border bg-muted focus-visible:ring-2 focus-visible:ring-ring/50",
             className,
           )}
@@ -150,8 +153,8 @@ export function UnverifiedMark({
           </p>
           {viewerIsHost && !own && (
             <p className="text-reading text-pretty text-muted-foreground">
-              Turn on Require verified emails in this event&rsquo;s settings to
-              ask every guest to confirm before they add anything.
+              Turn on An email first in this event&rsquo;s settings to ask every
+              guest to confirm before they add anything.
             </p>
           )}
           {own && (

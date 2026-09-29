@@ -21,6 +21,7 @@ import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
 
 import { isTicketBlocked } from "@/lib/db/queries/event-blocks";
 import { mustQuery } from "@/lib/db/must-query";
+import { inChunks } from "@/lib/db/read-all";
 import { readStanding, type DoorStanding } from "@/lib/event/door/decide";
 import { doorOf } from "@/lib/event/door/door";
 import { captureError } from "@/lib/observability/sentry";
@@ -49,7 +50,10 @@ export function isDoorSchemaMissing(error: unknown): boolean {
 type RpcAnswer = { data: unknown; error: PostgrestError | null };
 
 /** A client that can name the migration's objects before `types.ts` knows them. */
-async function rpc(fn: string, args: Record<string, unknown>): Promise<RpcAnswer> {
+async function rpc(
+  fn: string,
+  args: Record<string, unknown>,
+): Promise<RpcAnswer> {
   const client = createAdminClient() as unknown as SupabaseClient;
   return (await client.rpc(fn, args)) as RpcAnswer;
 }
@@ -142,14 +146,22 @@ export type DoorCounts = {
   joined: number;
 };
 
-const NO_COUNTS: DoorCounts = { in: 0, inByName: 0, waiting: 0, invited: 0, joined: 0 };
+const NO_COUNTS: DoorCounts = {
+  in: 0,
+  inByName: 0,
+  waiting: 0,
+  invited: 0,
+  joined: 0,
+};
 
 const count = (value: unknown) =>
   typeof value === "number" && Number.isFinite(value) ? value : 0;
 
 /** ★ THE CALLER HAS PROVED THE HOST (`getEvent`). */
 export async function getDoorCounts(eventId: string): Promise<DoorCounts> {
-  const { data, error } = await rpc("event_door_counts", { p_event_id: eventId });
+  const { data, error } = await rpc("event_door_counts", {
+    p_event_id: eventId,
+  });
   if (error) {
     if (isDoorSchemaMissing(error)) return NO_COUNTS;
     throw error;
@@ -183,7 +195,9 @@ export type DoorRequest = {
 export async function getDoorQueue(
   eventId: string,
 ): Promise<{ total: number; people: DoorRequest[] }> {
-  const { data, error } = await rpc("event_door_queue", { p_event_id: eventId });
+  const { data, error } = await rpc("event_door_queue", {
+    p_event_id: eventId,
+  });
   if (error) {
     if (isDoorSchemaMissing(error)) return { total: 0, people: [] };
     throw error;
@@ -220,15 +234,20 @@ export type InvitedAddress = {
 };
 
 /** ★ THE CALLER HAS PROVED THE HOST. Newest first; the list is capped at 500. */
-export async function getInviteList(eventId: string): Promise<InvitedAddress[]> {
-  const { data, error } = await rpc("event_invite_list", { p_event_id: eventId });
+export async function getInviteList(
+  eventId: string,
+): Promise<InvitedAddress[]> {
+  const { data, error } = await rpc("event_invite_list", {
+    p_event_id: eventId,
+  });
   if (error) {
     if (isDoorSchemaMissing(error)) return [];
     throw error;
   }
   return (Array.isArray(data) ? data : []).flatMap((raw): InvitedAddress[] => {
     const i = (raw ?? {}) as Record<string, unknown>;
-    if (typeof i.email !== "string" || typeof i.added_at !== "string") return [];
+    if (typeof i.email !== "string" || typeof i.added_at !== "string")
+      return [];
     return [{ email: i.email, addedAt: i.added_at, joined: i.joined === true }];
   });
 }
@@ -248,7 +267,9 @@ export async function getHostDoorWaiting(
   }
   const out = new Map<string, number>();
   if (data && typeof data === "object" && !Array.isArray(data)) {
-    for (const [eventId, n] of Object.entries(data as Record<string, unknown>)) {
+    for (const [eventId, n] of Object.entries(
+      data as Record<string, unknown>,
+    )) {
       if (count(n) > 0) out.set(eventId, count(n));
     }
   }
@@ -287,7 +308,11 @@ export async function readDoorEventDetails(
   let hostDisplayName: string | null = null;
   if (event.host_id) {
     const host = await mustQuery(
-      admin.from("profiles").select("display_name").eq("id", event.host_id).maybeSingle(),
+      admin
+        .from("profiles")
+        .select("display_name")
+        .eq("id", event.host_id)
+        .maybeSingle(),
       "door: the host's name",
     );
     hostDisplayName = host?.display_name ?? null;
@@ -299,4 +324,42 @@ export async function readDoorEventDetails(
     customSlug: event.custom_slug ?? null,
     hostDisplayName,
   };
+}
+
+/**
+ * ★ WHICH PRIVATE ALBUMS KEEP A GATE, for a reader that holds only the stored `visibility` (the
+ * dashboard's Guest cards, the profile picker's tiles, a claim's next step). A gated album is stored
+ * private (`doorOf`), and to someone already in it is the album, never the locked card Only me draws:
+ * a gate stops newcomers, never the guests inside. The ids are the caller's own scoped read's; the
+ * answer names each gated one's gate, and an id it leaves out is Only me. ★ The runtime seam: before
+ * the migration there is no gate, so every private album reads as Only me, as it always did.
+ */
+export async function readEventGates(
+  eventIds: readonly string[],
+): Promise<ReadonlyMap<string, string>> {
+  if (eventIds.length === 0) return new Map();
+  const admin = createAdminClient() as unknown as SupabaseClient;
+  try {
+    const rows = await inChunks(
+      "door: the albums' gates",
+      eventIds,
+      async (chunk) => {
+        const { data, error } = await admin
+          .from("events")
+          .select("id, gate")
+          .in("id", chunk)
+          .not("gate", "is", null);
+        if (error) throw error;
+        return (data ?? []) as { id: string; gate: unknown }[];
+      },
+    );
+    const gates = new Map<string, string>();
+    for (const row of rows) {
+      if (typeof row.gate === "string") gates.set(row.id, row.gate);
+    }
+    return gates;
+  } catch (error) {
+    if (isDoorSchemaMissing(error)) return new Map();
+    throw error;
+  }
 }
