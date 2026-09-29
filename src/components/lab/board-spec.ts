@@ -37,8 +37,16 @@ export type AskOption =
       id: string;
       /** The name a reviewer reads: "The footer seam only". */
       label: string;
-      /** One sentence: what picking this does, and what it costs. */
+      /** One sentence: what the option is, or what picking it does. */
       means?: string;
+      /**
+       * ★ ITS TRADE, A LINE EACH (the context layer, Will, 2026-09-29: "more
+       * pros and cons of the different options"): what picking it wins and
+       * what it gives up, printed with its preview, so the difference between
+       * two tiles is said before it has to be spotted.
+       */
+      gains?: string;
+      costs?: string;
       /**
        * The declared controls that show THIS option on the ask's specimen
        * (the stepped review, 2026-09-16), merged over `ask.state` and the
@@ -54,6 +62,10 @@ export const optionLabel = (o: AskOption): string =>
   typeof o === "string" ? o : o.label;
 export const optionMeans = (o: AskOption): string | undefined =>
   typeof o === "string" ? undefined : o.means;
+export const optionGains = (o: AskOption): string | undefined =>
+  typeof o === "string" ? undefined : o.gains;
+export const optionCosts = (o: AskOption): string | undefined =>
+  typeof o === "string" ? undefined : o.costs;
 
 /**
  * WHAT AN ASK WAITS ON (the stepped review, 2026-09-16). A question that only
@@ -81,7 +93,20 @@ export type Ask<SectionId extends string = string> = {
   id: string;
   /** A real question in plain words, ending in a question mark. */
   question: string;
-  /** What the thing is and where it lives on the site, for someone who has not read the board. */
+  /**
+   * ★ THE CONTEXT LAYER (Will, 2026-09-29: "I usually have to read the question
+   * a few times to understand where we are conceptually in the app screens,
+   * what combination of conditions lead to this scenario"). The step prints
+   * these before any option, so a question never lands in the middle of
+   * nowhere: `where`, a breadcrumb of two to four crumbs, the surface first,
+   * then the screen and the moment; `when`, the state that brings someone
+   * there; `matters`, why the answer matters, beside `lands` (what it
+   * decides). `registry.test.ts` refuses an OPEN ask without them.
+   */
+  where?: readonly string[];
+  when?: string;
+  matters?: string;
+  /** What the previews draw: the frames, the moment and who is in them. */
   context?: string;
   /** Where to look and what to compare: the section, the switch, the labelled specimens. */
   look?: string;
@@ -89,7 +114,7 @@ export type Ask<SectionId extends string = string> = {
   options: readonly [AskOption, AskOption, ...AskOption[]];
   /** The id of one of `options`. */
   recommended: string;
-  /** Why the board recommends it, in one or two plain sentences. */
+  /** The recommendation's reason, in a line: the step prints it beside the recommendation. */
   because?: string;
   /** The one thing that would change the board's mind. */
   overrule?: string;
@@ -291,6 +316,30 @@ export type Note<SectionId extends string = string> = {
 export type Round = { n: number; date: string; changed: string };
 export type WalkPage = { label: string; path: string; note?: string };
 
+/**
+ * ★ WHERE A SITTING ENTERS A BOARD (the context layer, 2026-09-29). He decides
+ * across every open board in one sitting, so the first step of a board says
+ * what the board is about, what is already settled (never asked again), and
+ * what he picked and wrote before that shaped this round. A line each: the
+ * board's argument is its drawings, and this is only the ground they stand on.
+ */
+export type Opening = {
+  /** What the board is about, in a line. */
+  about: string;
+  /** What is already settled and not asked, a line each. */
+  settled?: readonly string[];
+  /** His earlier picks and notes this round answers, a line each, in plain words. */
+  earlier?: readonly string[];
+};
+
+/**
+ * A WORD THE BOARD COINS, and its plain meaning ("lit column", "roll"): the
+ * bare phrase where it can be, so "the roll" and "her roll" both find it. The step
+ * glosses every term its own words use, and the opening the ones it uses, so a
+ * nickname is never the first thing he has to decode.
+ */
+export type Term = { term: string; means: string };
+
 export type BoardLinks = {
   /** Defaults to docs/tracks/<id>.md. */
   track?: string;
@@ -310,6 +359,10 @@ export type BoardSpec<S extends readonly Section[] = readonly Section[]> = {
   history?: readonly Round[];
   /** How the board got here (collapsed). */
   context?: string;
+  /** What a sitting reads as it enters the board (`Opening`). */
+  opening?: Opening;
+  /** The words this board coins, each with its plain meaning. */
+  terms?: readonly Term[];
   verdict: Verdict;
   asks: readonly Ask<S[number]["id"]>[];
   candidates: readonly Candidate<S[number]["id"]>[];
@@ -369,6 +422,24 @@ export const LIMITS = {
   carriedQuestion: 160,
   carriedTaken: 160,
   carriedOverrule: 160,
+  /**
+   * ★ THE CONTEXT LAYER STAYS A LAYER OF LINES (2026-09-29: "Crisp lines,
+   * never essays"). Held on every OPEN ask (registry.test.ts): a crumb of the
+   * breadcrumb, the state that brings someone there, why it matters, an
+   * option's gain and its cost, and the recommendation's reason, which on an
+   * open ask is one line rather than `askBecause`'s two sentences. The
+   * opening's lines and a term's meaning are held the same way.
+   */
+  askWhere: 32,
+  askWhen: 140,
+  askMatters: 140,
+  optionGains: 100,
+  optionCosts: 100,
+  askReason: 160,
+  openingAbout: 160,
+  openingLine: 160,
+  term: 40,
+  termMeans: 120,
   /** The words a board may show outside its collapsed folds before it is a paper (the smoke measures it). */
   readingWords: 1200,
 } as const;

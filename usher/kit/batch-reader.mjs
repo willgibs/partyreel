@@ -53,25 +53,32 @@ function prop(obj, name) {
   }
   return null;
 }
+/** An array literal of strings (a breadcrumb, the opening's lines), or [] when it is anything else. */
+function strs(node) {
+  return node && ts.isArrayLiteralExpression(node) ? node.elements.map(str).filter((s) => s !== null) : [];
+}
 function readSpec(board) {
   const file = join(SANDBOX, board, "spec.ts");
   if (!existsSync(file)) return null;
   const src = readFileSync(file, "utf8");
   const sf = ts.createSourceFile(file, src, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
-  const spec = { board, file, round: null, decisions: new Map(), items: new Map() };
+  const spec = { board, file, round: null, opening: null, terms: [], decisions: new Map(), items: new Map() };
   const walk = (node) => {
     if (ts.isObjectLiteralExpression(node)) {
       const q = prop(node, "question"), opts = prop(node, "options"), id = prop(node, "id");
       if (q && opts && id && ts.isArrayLiteralExpression(opts)) {
+        // The context layer (2026-09-29) rides beside the question: where it happens, the state that brings
+        // someone there, why it matters; and each option's gain and cost.
         const d = {
-          id: str(id), question: str(q), context: str(prop(node, "context")),
+          id: str(id), question: str(q), where: strs(prop(node, "where")), when: str(prop(node, "when")),
+          context: str(prop(node, "context")), matters: str(prop(node, "matters")),
           recommended: str(prop(node, "recommended")), today: str(prop(node, "today")),
           because: str(prop(node, "because")), overrule: str(prop(node, "overrule")), lands: str(prop(node, "lands")),
           options: [],
         };
         for (const o of opts.elements) {
           if (!ts.isObjectLiteralExpression(o)) continue;
-          d.options.push({ id: str(prop(o, "id")), label: str(prop(o, "label")), means: str(prop(o, "means")) });
+          d.options.push({ id: str(prop(o, "id")), label: str(prop(o, "label")), means: str(prop(o, "means")), gains: str(prop(o, "gains")), costs: str(prop(o, "costs")) });
         }
         // A Control also has id+options but no question; only decisions reach here.
         spec.decisions.set(d.id, d);
@@ -80,6 +87,15 @@ function readSpec(board) {
       if (r && ts.isObjectLiteralExpression(r)) {
         const n = prop(r, "n");
         if (n && ts.isNumericLiteral(n)) spec.round = Number(n.text);
+      }
+      // The board's opening and the words it coins, read off the exploration's own object.
+      const o = prop(node, "opening");
+      if (o && ts.isObjectLiteralExpression(o)) {
+        spec.opening = { about: str(prop(o, "about")), settled: strs(prop(o, "settled")), earlier: strs(prop(o, "earlier")) };
+      }
+      const t = prop(node, "terms");
+      if (t && ts.isArrayLiteralExpression(t)) {
+        spec.terms = t.elements.filter(ts.isObjectLiteralExpression).map((e) => ({ term: str(prop(e, "term")), means: str(prop(e, "means")) }));
       }
       // defineBoard items: { id, title/label, ... } under `items:`; keep a light index by id.
       const items = prop(node, "items");
@@ -155,16 +171,37 @@ function wrap(s, width = 100, indent = "      ") {
   const words = s.split(/\s+/); const lines = []; let cur = "";
   for (const w of words) { if ((cur + " " + w).trim().length > width) { lines.push(cur.trim()); cur = w; } else cur += " " + w; }
   if (cur.trim()) lines.push(cur.trim());
-  return lines.map((l) => indent + l).join("\n");
+  // A label on the first line only ("    when: "): the lines under it keep its width in spaces, so a wrapped line
+  // never reads as a second entry.
+  const rest = indent.replace(/\S/g, " ");
+  return lines.map((l, i) => (i === 0 ? indent : rest) + l).join("\n");
+}
+
+/** The board's opening and its coined words, as the step shows them (the context layer, 2026-09-29). */
+function printOpening(spec, indent = "  ") {
+  const o = spec.opening;
+  if (o?.about) console.log(`${indent}about: ${o.about}`);
+  for (const l of o?.settled ?? []) console.log(`${indent}settled: ${l}`);
+  for (const l of o?.earlier ?? []) console.log(`${indent}earlier: ${l}`);
+  for (const t of spec.terms ?? []) console.log(`${indent}term: ${t.term}: ${t.means}`);
 }
 
 function printBoard(spec) {
   console.log(`\n${spec.board} r${spec.round ?? "?"}: ${spec.decisions.size} asks`);
+  printOpening(spec);
   for (const d of spec.decisions.values()) {
     console.log(`\n  ${d.id}  (recommended: ${d.recommended}${d.today ? `, today: ${d.today}` : ""})`);
+    if (d.where?.length) console.log(`    where: ${d.where.join(" › ")}`);
+    if (d.when) console.log(wrap(d.when, 100, "    when: "));
     console.log(wrap(d.question, 100, "    "));
-    for (const o of d.options) console.log(`    - ${o.id}: ${o.label}${o.means ? `\n${wrap(o.means, 100, "        ")}` : ""}`);
+    for (const o of d.options) {
+      console.log(`    - ${o.id}: ${o.label}${o.means ? `\n${wrap(o.means, 100, "        ")}` : ""}`);
+      if (o.gains) console.log(wrap(o.gains, 100, "        gains: "));
+      if (o.costs) console.log(wrap(o.costs, 100, "        costs: "));
+    }
+    if (d.because) console.log(wrap(d.because, 100, "    because: "));
     if (d.lands) console.log(`    lands: ${d.lands}`);
+    if (d.matters) console.log(`    matters: ${d.matters}`);
   }
 }
 
@@ -190,7 +227,7 @@ for (const rev of reviews) {
   for (const v of rev.verdicts) {
     const r = reading(spec, v);
     if (r.kind === "confirms") confirms++; else if (r.kind === "overrules") overrules++; else if (r.kind === "unclear") unclear++; else if (r.kind.startsWith("unknown")) problems++;
-    board.verdicts.push({ ...v, reading: r.kind, question: r.d?.question ?? null, chosen: r.o ? { id: r.o.id, label: r.o.label, means: r.o.means } : null, recommended: r.rec ? { id: r.rec.id, label: r.rec.label } : null, lands: r.d?.lands ?? null, overrule: r.d?.overrule ?? null, text: r.text });
+    board.verdicts.push({ ...v, reading: r.kind, question: r.d?.question ?? null, where: r.d?.where ?? [], when: r.d?.when ?? null, chosen: r.o ? { id: r.o.id, label: r.o.label, means: r.o.means, gains: r.o.gains, costs: r.o.costs } : null, recommended: r.rec ? { id: r.rec.id, label: r.rec.label } : null, lands: r.d?.lands ?? null, matters: r.d?.matters ?? null, overrule: r.d?.overrule ?? null, text: r.text });
   }
   out.boards.push(board);
 }
@@ -206,13 +243,19 @@ for (const b of out.boards) {
   for (const v of b.verdicts) {
     const tag = { confirms: "=", overrules: "!", unclear: "?", none: "0", "unknown-ask": "X", "unknown-option": "X" }[v.reading] ?? " ";
     console.log(`\n  [${tag}] ${v.ask}=${v.choice}  ${v.text}`);
+    // Where the answer lives and what brought someone there, before the question, as the step printed them.
+    if (v.where?.length) console.log(`      where: ${v.where.join(" › ")}`);
+    if (v.when) console.log(wrap(v.when, 100, "      when: "));
     if (v.question) console.log(wrap(v.question, 100, "      Q: "));
     // the picture beside the sentence (2026-09-20): the lab's own deep link to the step he answered, so a wiring lane
     // opens the drawing and reads his note together instead of starting from the ledger's option id.
     console.log(`      see: /design/lab/${b.board}?session=${b.board}.${v.ask}`);
     if (v.chosen) console.log(`      → ${v.chosen.label}${v.chosen.means ? `\n${wrap(v.chosen.means, 100, "        ")}` : ""}`);
+    if (v.chosen?.gains) console.log(wrap(v.chosen.gains, 100, "        gains: "));
+    if (v.chosen?.costs) console.log(wrap(v.chosen.costs, 100, "        costs: "));
     if (v.reading === "overrules" && v.recommended) console.log(`      (was recommended: ${v.recommended.id}, ${v.recommended.label})`);
     if (v.lands) console.log(`      lands: ${v.lands}`);
+    if (v.matters) console.log(`      matters: ${v.matters}`);
     if (v.note) console.log(`      HIS NOTE: ${v.note}`);
   }
   for (const c of b.calls) console.log(`\n  [call] ${c.ask}=${c.choice}${c.note ? `  HIS NOTE: ${c.note}` : ""}`);
