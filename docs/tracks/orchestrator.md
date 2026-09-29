@@ -41,15 +41,17 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `crumbs-10` | build 19's red-team findings (Dismiss's way back, the help-feedback table at 375, the home's wasted preloads, /account/renew for a never-held pass, the phone menu's description) and five ROADMAP carry-overs | running, agent `a45041ebf338a446a` | Opus, :3131 | |
-| `crumbs-11` | the `partyreel` slug family refused in both halves (a migration); a mail button's return path through sign-in, never an open redirect | running, agent `a5c6c37e3e052b639` | Opus, :3132 | |
 
 Batch 7 (cut `35601390`, 2026-09-28) answers Will's sitting on build 15 (transcribed at `69afdbc5`: 21 answers on
 hero-card, voice-guest, host-storage, event-safety, export-flow). Wave A, four lanes: three new boards and the block.
 Wave B follows as seats free. Batch 6 (sixteen lanes) is merged whole; its records carry the rest.
 
-Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, event-settings, voice-wiring, pricing-wiring, triage-r2, safety-wiring, hero-wiring, triage-wiring, export-wiring, help-wiring, emails-wiring, demo-framing, crumbs-8, crumbs-9.
+Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, event-settings, voice-wiring, pricing-wiring, triage-r2, safety-wiring, hero-wiring, triage-wiring, export-wiring, help-wiring, emails-wiring, demo-framing, crumbs-8, crumbs-9, crumbs-11.
 
 ## Next, in order
+
+**Hold (Will, 2026-09-29): he is mid-review on build 19.** No alias deploy and no red-team in his Chrome until he says
+his batch is in; merges and migrations go on (neither touches the served build or his session).
 
 1. **Integrate each running lane as it hands off** (rows above), each migration by protocol, one at a time: drift
    check, apply verbatim, the rolled-back refusals, advisors, types.
