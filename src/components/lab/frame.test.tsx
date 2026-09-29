@@ -3,9 +3,9 @@
  *
  * An iframe with a `srcdoc` is born holding an `about:blank` document, and the srcdoc one commits over
  * it a task or more later. A scene portalled into the first document is mounted twice, and every image
- * it asked for is cancelled with that document: on a board of fifteen frames that is 320 requests where
- * 150 are needed, and Next's dev image optimizer, which shares one pending result among the requests
- * for an image, never answers the frames' own second ask. The server's six connections fill and the
+ * it asked for is cancelled with that document: on a board of fifteen frames that is 320 image requests
+ * where 150 are needed, and Next's dev image optimizer, which shares one pending result among the
+ * requests for an image, never answers the frames' own second ask. The server's six connections fill and the
  * next navigation cannot start: gate 71's `lab:demo` hung on `demo-framing.names` exactly so
  * (`frame.tsx`, the copy effect, has the whole account).
  *

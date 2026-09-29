@@ -414,19 +414,19 @@ export function Frame({
       // one) copied the parent's sheets into the doomed document and portalled
       // the whole scene into it, and the load that followed did it all again:
       // every frame mounted twice, and every image asked for in the first
-      // document was CANCELLED when it went (320 requests where 150 are
-      // needed, on a board of fifteen frames). Next's dev image optimizer
+      // document was CANCELLED when it went (320 image requests where 150
+      // are needed, on a board of fifteen frames). Next's dev image optimizer
       // shares one pending result among the requests for an image, and a
       // cancelled first request leaves that result pending for ever: the
       // frames' own later requests for the same image never answer, the six
       // connections to the server fill with them, and the next navigation
-      // cannot start (reproduced with curl: a burst aborted after 10ms, then
-      // the same image asked for again, hangs; a fresh server is the only
-      // cure). The load event brings `loads` round and this runs again, on the
-      // document that stays. A frame whose srcdoc had already committed before
-      // hydration reads as `about:srcdoc` here and goes straight on; jsdom
-      // keeps `about:blank` throughout, so "a document the iframe has loaded"
-      // (`loadedDoc`) is the test that holds in both.
+      // cannot start (reproduced with curl: sixty requests for one uncached
+      // image aborted after 10ms, then the same image asked for again, hangs;
+      // a fresh server is the only cure). The load event brings `loads` round
+      // and this runs again, on the document that stays. A frame whose srcdoc
+      // had already committed before hydration reads as `about:srcdoc` here and
+      // goes straight on; jsdom keeps `about:blank` throughout, so "a document
+      // the iframe has loaded" (`loadedDoc`) is the test that holds in both.
       if (!src && fdoc.URL === "about:blank" && loadedDoc.current !== fdoc)
         return;
       document
