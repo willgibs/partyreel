@@ -75,6 +75,8 @@ bodies live in `lib/lifecycle/sweeps/` and `account-deletion.ts`, each tested on
   deletes the R2 objects first in its wrapper, then the rows.
 - ★ **A restore returns an item to the status it HELD,** not to `approved`: `media_derive_removal_provenance` stamps
   `status_before_removed` on every removal path, so a hidden item comes back hidden and a pending one pending.
+  `restore_media` answers that `status`, and the bin's toast says it (`restoredWords`), never "back in the album"
+  for an item that came back hidden.
 - ★ **An operator's removal leaves the host's view entirely** (Will, admin-triage r1: "fully purged from the event, not
   moved to deleted"). Both admin paths set `removed_by_admin` (a report's Remove also marks an item someone else had
   already removed, keeping its `removed_at`), and `media_host_all` hides the row from every host read (her album, her

@@ -149,9 +149,12 @@ no reporter. Review is human (`/admin/reports`; no scanner or NSFW filter), and 
 - **Actioning an item makes it an operator's removal whatever its state** (an item the host or a guest had already
   removed is marked the operator's, keeping its `removed_at`), and one instant stamps the removal and the verdict. A
   reported person is actioned out of band, so Mark actioned only closes the report.
-- **A closed report is one line, and its Undo lives exactly as long as the removal ITS verdict made** (the removal's
-  `removed_at` equal to the verdict's `resolved_at`, still an operator's, not held; `wayBackOf`): it reopens the
-  report first, then restores the item where it was. A held item reads Held and has no Undo.
+- **A closed report is one line with its way back** (`wayBackOf`, measured at the page's one clock read). A removal's
+  Undo lives exactly as long as the removal ITS verdict made (the removal's `removed_at` equal to the verdict's
+  `resolved_at`, still an operator's, not held): it reopens the report first, then restores the item where it was; a
+  held item reads Held and has no Undo. ★ A dismissal reopens, from its toast's Undo or its line, inside 30 days of
+  the verdict (`reopenReportAction`, whose write itself requires `dismissed` and the window's floor), a hold being no
+  bar since reopening restores nothing; Mark actioned and an album's Action have no way back.
 - **Hold for forensics on an item report** reads what it reaches first (the item and the same uploader's other items
   in the event: its guest row, or every row the same account holds there; no guest row means the host's own
   uploads), then preserves each through `preserveMedia`, the reported item alone first, the rest four at a time
