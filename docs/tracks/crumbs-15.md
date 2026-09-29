@@ -10,6 +10,27 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/db/queries/event-doors.ts
   - src/lib/db/queries/event-blocks.ts
   - src/lib/db/queries/social.ts
+  # added at boot (2026-09-29): every other path a seam reaches, found by the grep, the two Handoffs and the compiler
+  - src/lib/db/triage-seam.ts
+  - src/lib/db/queries/reports.ts
+  - src/app/admin/reports/actions.ts
+  - src/lib/lifecycle/reclaim.ts
+  - src/lib/lifecycle/sweeps/removed-media.ts
+  - src/lib/db/mutations/media.ts
+  - src/lib/db/mutations/media.test.ts
+  - src/lib/db/mutations/event-doors.ts
+  - src/lib/db/mutations/guest.ts
+  - src/lib/db/mutations/events.ts
+  - src/lib/db/queries/events.ts
+  - src/lib/db/queries/guest-events.ts
+  - src/lib/events/closed-door.server.ts
+  - src/lib/events/closed-door.server.test.ts
+  - src/lib/events/album-viewer.server.test.ts
+  - src/app/api/guests/door/
+  - src/lib/db/mutations/event-blocks.ts
+  - src/lib/db/mutations/event-blocks.test.ts
+  - src/lib/db/queries/event-blocks.test.ts
+  - src/app/(app)/account/social-actions.ts
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/database-security.md
   - docs/systems/guest-flow.md
@@ -33,11 +54,28 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each recommended answer is BUILT and his to overrule; none is a one-way door (a later change restores a seam).
+
+- **The two older seams the grep names go with the doors' and the triage's.** `blocks_schema_missing` (event-safety
+  r1, applied 2026-09-28) and `social_schema_missing` (profiles-social, applied 2026-07-08) match the brief's grep and
+  their files are in `owns`: the same dead code from migrations applied long ago, and the social seam's own comment
+  says to delete its catches "if you want post-apply failures to surface louder". Built: both go. The overrule: keep
+  them, and only the doors and the triage go.
+- **A missing schema is now an error like any other read's, never a degraded answer.** The seams answered "today's
+  three doors", "no held door", "nobody is blocked" (the fail-open one), "filed the old way" and "the held rows only",
+  each captured. After the apply an absent object can only be a regression, so it throws (a route's 500, the page's
+  error boundary, Sentry) exactly as a broken read does everywhere else. Nothing changes on build 23, where every
+  object exists. The overrule: leave a degraded answer for the reads whose absence is safe.
+- **`readDoorStanding` loses its `visibility` argument**, whose only reader was the seam (today's three doors); its
+  caller and the tests that pinned it follow.
+- **Not in this lane, left standing** (Deferred below): the same shape from other applied migrations
+  (`isDeletionSchemaMissing`, the claims' defensive reads, `NotificationPrefsRow`), which neither the grep nor the two
+  Handoffs name.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `guest-flow.md`, the held door's check-in line (a one-line exception, it is in `reads`): "a missing schema or event
+  answers `moved`" becomes "a missing event answers `moved`", because a missing schema now throws.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
