@@ -103,3 +103,32 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am (checkpoint, 2026-09-29, for an agent resuming this worktree)
+
+**Done, pushed on `lp/triage-r2-wiring`:** `a154be1b` owns widened · `e3d8a53b` the wiring (grid, kinds, the
+reporter's confirm, the instant hide, the hold rebuilt, Ask for proof behind its switch, migration
+`20260929140000_triage_r2.sql`) · `120e701f` admin-triage retired (folder, registry.ts, boards.ts, touchpoints.ts) ·
+`0f7cfeea` the rules pinned (verdicts, routes, mutation seam, reporter, form, viewer Report, sweeps, migration
+contract, mails) and the rolled-back check at the migration's foot · `3d84447a` the host's block takes a quietly held
+upload like any other (block_from_event, get_my_uploads, remove_my_upload; step 10) · `9ea9919b` admin-observability.md
+Reports and trust-safety-forensics.md refined · `d4357d5a` the local walk's fixes. The rolled-back check ran on the
+live schema with the file whole: setup and steps 1 to 10 ok, nothing left behind. Walked locally on :3134: the
+Library's grid at 1440 and 375 (covered front, sweep ticks, peek verbs, Hold's confirm with Take it down too on and
+its quiet words, a phone's one-press acts with Undo, no overflow), the guest form (six kinds, Submit waits for one,
+the instant-hide lines, Confirm your email's code door and back), a video's own Report over the viewer and back, the
+answer page's spent state.
+
+**Half-done:** nothing mid-edit.
+
+**Next, in order:** (1) the gate on this tree, dev server killed first: `pnpm typecheck`, `pnpm lint`, `pnpm test`,
+`zsh scripts/build-lock.sh pnpm build`, then `pnpm dev -p 3134` and `pnpm lab:smoke --base http://localhost:3134`,
+then kill the server and close Browser tab `tab-4`. (2) Fill this manifest: `owns` prefixes for the new tests
+(`src/lib/validation/report`, `src/components/guest/report-dialog`, `src/components/guest/report-answer-form`,
+`src/lib/email/templates`); Questions with recommended answers; System-doc edits; Deferred; the Handoff with the lane
+check's exceptions (the Library's compositions demo and gallery entry, registry/boards/touchpoints as the brief
+names, the help step-screens' report picture and its test, storage-summary.test, db/migration-guards.test and
+db/queries/media.ts (schema-pass's), forensics/migration-guards.test and legal-hold.ts), the relays (the help
+article's words for settings-wiring's `content/help/`; host-app.md's block line; the billing-caps.md,
+lifecycle-recovery.md and database-security.md lines), the apply, the types regen and dropping `triage-seam.ts`'s
+seams, and the live red-team walks. (3) `status: handed-off`, commit the manifest alone, push, hand off.
