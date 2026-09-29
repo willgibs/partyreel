@@ -7,7 +7,10 @@ import {
   Maximize2,
   MonitorPlay,
   QrCode,
+  Settings,
+  Users,
   X,
+  type LucideIcon,
 } from "lucide-react";
 import Image from "next/image";
 import type { ReactNode } from "react";
@@ -32,7 +35,7 @@ import {
 } from "@/components/marketing/sections/how-it-works/picture-parts";
 import { floatingPanel, floatingRow } from "@/components/ui/floating-layer";
 import { marketingImage } from "@/lib/constants/marketing-media";
-import { EVENT_ROOMS } from "@/lib/event/sections";
+import { EVENT_ROOMS, type EventRoomId } from "@/lib/event/sections";
 import { GLASS, GLASS_MARK_LIT } from "@/lib/glass";
 import { cn } from "@/lib/utils";
 
@@ -265,56 +268,77 @@ function ReelLaptopPicture() {
   );
 }
 
-/** The event page's cards row (`event-cards-row.tsx`), the Highlight reel card living. */
+/** What a quiet door wears in this picture: the row's own icon, and a line like the hub's. */
+const QUIET_DOORS: Record<
+  Exclude<EventRoomId, "reel">,
+  { icon: LucideIcon; value: string }
+> = {
+  review: { icon: ListChecks, value: reviewCardFace(true, 0).value },
+  guests: { icon: Users, value: "24 guests" },
+  settings: { icon: Settings, value: "Public" },
+};
+
+/**
+ * The event page's cards row (`event-cards-row.tsx`), the Highlight reel card living.
+ *
+ * ★ ITS DOORS ARE `EVENT_ROOMS`' OWN, IN THE ROW'S ORDER: the first two drawn and the third running
+ * off the picture's edge, so the marked card sits wherever the row puts it. Will's order
+ * (2026-09-29: "the highlight reel card should be the first ... Then Guests") opens the row on it.
+ */
 function ReelCardPicture() {
-  const review = EVENT_ROOMS.find((room) => room.id === "review");
-  const reel = EVENT_ROOMS.find((room) => room.id === "reel");
-  const face = reviewCardFace(true, 0);
   return (
     <div className="overflow-hidden rounded-2xl border bg-background p-4">
       <div className="flex gap-2">
-        <span
-          className={cn(
-            ROOM_CARD_BASE,
-            ROOM_CARD_QUIET,
-            "h-24 w-36 justify-between gap-1 p-3",
-          )}
-        >
-          <ListChecks className="size-4 text-muted-foreground" aria-hidden />
-          <span className="font-heading text-card-title font-medium">
-            {review?.label}
-          </span>
-          <span className="truncate text-xs text-muted-foreground">
-            {face.value}
-          </span>
-        </span>
-        <Mark className="rounded-xl">
-          <span
-            className={cn(
-              ROOM_CARD_BASE,
-              "relative h-24 w-36 justify-between gap-1 overflow-hidden border-transparent p-3 text-white",
-            )}
-          >
-            <Image
-              src={marketingImage(REEL_STILL).src}
-              alt=""
-              fill
-              sizes="144px"
-              className="object-cover"
-            />
-            <span className="absolute inset-0 bg-linear-to-t from-black/80 via-black/50 to-black/30" />
-            <Clapperboard
-              className="relative size-4 text-white/85"
-              aria-hidden
-            />
-            <span className="relative font-heading text-card-title font-medium">
-              {reel?.label}
+        {EVENT_ROOMS.slice(0, 2).map((room) => {
+          if (room.id === "reel") {
+            return (
+              <Mark key={room.id} className="rounded-xl">
+                <span
+                  className={cn(
+                    ROOM_CARD_BASE,
+                    "relative h-24 w-36 justify-between gap-1 overflow-hidden border-transparent p-3 text-white",
+                  )}
+                >
+                  <Image
+                    src={marketingImage(REEL_STILL).src}
+                    alt=""
+                    fill
+                    sizes="144px"
+                    className="object-cover"
+                  />
+                  <span className="absolute inset-0 bg-linear-to-t from-black/80 via-black/50 to-black/30" />
+                  <Clapperboard
+                    className="relative size-4 text-white/85"
+                    aria-hidden
+                  />
+                  <span className="relative font-heading text-card-title">
+                    {room.label}
+                  </span>
+                  <span className="relative truncate text-xs text-white/85">
+                    Live for guests
+                  </span>
+                </span>
+              </Mark>
+            );
+          }
+          const { icon: Icon, value } = QUIET_DOORS[room.id];
+          return (
+            <span
+              key={room.id}
+              className={cn(
+                ROOM_CARD_BASE,
+                ROOM_CARD_QUIET,
+                "h-24 w-36 justify-between gap-1 p-3",
+              )}
+            >
+              <Icon className="size-4 text-muted-foreground" aria-hidden />
+              <span className="font-heading text-card-title">{room.label}</span>
+              <span className="truncate text-xs text-muted-foreground">
+                {value}
+              </span>
             </span>
-            <span className="relative truncate text-xs text-white/85">
-              Live for guests
-            </span>
-          </span>
-        </Mark>
+          );
+        })}
         <span
           className={cn(
             ROOM_CARD_BASE,

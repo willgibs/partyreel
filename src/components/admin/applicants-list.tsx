@@ -63,9 +63,7 @@ export function ApplicantsList({
         <div className="flex h-full flex-col">
           <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0">
-              <p className="font-heading text-card-title font-medium">
-                {open.roleTitle}
-              </p>
+              <p className="font-heading text-card-title">{open.roleTitle}</p>
               <p className="text-caption text-muted-foreground">
                 {open.name}, {open.email},{" "}
                 {formatAdminTimestamp(open.created_at)}

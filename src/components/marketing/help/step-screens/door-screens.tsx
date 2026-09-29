@@ -472,7 +472,7 @@ function ReportScreen({ step }: { step: ReportStep }) {
       <div aria-hidden className="absolute inset-0 bg-black/10" />
       <div className="absolute inset-x-4 top-1/2 flex max-h-[calc(100%-2rem)] -translate-y-1/2 flex-col overflow-hidden rounded-float bg-popover text-popover-foreground shadow-layer ring-1 ring-foreground/10">
         <div className="flex shrink-0 flex-col gap-1 p-4 pr-12">
-          <p className="font-heading text-card-title font-medium text-pretty text-foreground">
+          <p className="font-heading text-card-title text-pretty text-foreground">
             Report this event
           </p>
           <p className="text-sm text-pretty text-muted-foreground">

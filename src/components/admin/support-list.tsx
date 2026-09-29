@@ -82,7 +82,7 @@ export function SupportList({
         <div className="flex h-full flex-col">
           <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0">
-              <p className="font-heading text-card-title font-medium">
+              <p className="font-heading text-card-title">
                 {open.subject ?? "No subject"}
               </p>
               <p className="text-caption text-muted-foreground">

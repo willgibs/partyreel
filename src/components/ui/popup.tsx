@@ -370,7 +370,7 @@ function PopupHeader({
           </PopupPrimitive.Close>
           <PopupPrimitive.Title
             className={cn(
-              "max-w-[55vw] truncate text-center font-heading text-base font-medium text-foreground",
+              "max-w-[55vw] truncate text-center font-heading text-base text-foreground",
               titleClassName
             )}
           >
@@ -394,8 +394,9 @@ function PopupHeader({
     >
       <PopupPrimitive.Title
         className={cn(
-          // The ladder's `card-title` step, the Dialog's and the Sheet's own.
-          "font-heading text-card-title font-medium text-pretty text-foreground",
+          // The ladder's `card-title` step, the Dialog's and the Sheet's own,
+          // at the heading face's own weight (card.tsx says why none is set).
+          "font-heading text-card-title text-pretty text-foreground",
           titleClassName
         )}
       >

@@ -41,8 +41,9 @@ export function HomeFaqAccordion({
             {/* A question is the title of its row in one bordered card, so
                 the h3 wears the card step (it inherited 16px Inter before, the
                 one heading on the page off the ladder). The button inherits
-                the face, the size, the leading and the tracking from it (the
-                preflight sets font: inherit) and keeps a card title's 600. */}
+                the face, the size, the leading, the tracking and the weight
+                from it (the preflight sets font: inherit): the `font-semibold`
+                it carried held every question at 600 under a 700 heading. */}
             <h3 className="font-heading text-card-title">
               <button
                 id={buttonId}
@@ -50,7 +51,7 @@ export function HomeFaqAccordion({
                 aria-expanded={isOpen}
                 aria-controls={panelId}
                 onClick={() => setOpen(isOpen ? null : i)}
-                className="flex w-full cursor-pointer items-center justify-between gap-4 py-4 text-left font-semibold"
+                className="flex w-full cursor-pointer items-center justify-between gap-4 py-4 text-left"
               >
                 {item.q}
                 <span
