@@ -63,6 +63,17 @@ family), `disposable-mode` r2, `crumbs-12`. Batch 7 is merged whole; its records
      (his note is the board's `hold` option), each one press, the hold's reason the report's reference; the per-photo
      report gap; a reporter's confirmed address kept only until the report closes; Ask for proof is a new mail, built
      behind a switch left off for his yes (his emails rule); no guest-path function replaced; retires admin-triage.
+     And the hold, rebuilt on his word (2026-09-29: a hold is for what police should see, so nothing held stays
+     visible): Hold for forensics is Take it down plus preserve, one press; the reported item and the same uploader's
+     other items at the event leave the album and the host's Deleted at once and are preserved past every purge,
+     each restorable by an operator after review; an operator's removal (takedown or hold) stops counting against the
+     host's storage at once, so no number tells the two apart; an open report protects its item from every permanent
+     delete (the host's, the uploader's, an event's or an account's) until it closes, the item leaving view as the
+     deleter expects while its bytes wait, done at the media table's guard (the guest-path functions are
+     `settings-wiring`'s this batch); the one discreet hold left is `/admin/forensics`' by-id preservation for a
+     police preservation request, where the host's delete looks like any delete (restore refused, purge skipped).
+     Recommended and built unless he says no: a report of the worst kind hides the item from every viewer at once
+     pending review, repeat false reporters ignored.
    - The lab revamp (step 8), once `locked-door` r2 and `disposable-mode` r2 merge; a board cut meanwhile is converted at
      its sync, since lab work never delays a board.
    - `event-ready` r1 (Opus), once `settings-wiring` merges: his event checklist and the settings' mini wizard (and
@@ -101,7 +112,7 @@ family), `disposable-mode` r2, `crumbs-12`. Batch 7 is merged whole; its records
    prints and the seed sets, `OBJECT_EVENT` and `OBJECT_PRINTS` to match, a demo host account if `host` stands
    (`partyreel-demo` stays refused to anyone else by the brand family, `crumbs-11`), and ASSETS rows 5, 33 and 34
    unparked with the party's subjects.
-7. **Milestone 30** on his yes, asked 2026-09-29 for once build 20's red-team is clean (legal no longer gates a
+7. **Milestone 30, approved** (Will, 2026-09-29): it ships once build 20's red-team is clean (legal no longer gates a
    milestone: Will, 2026-09-29, the Terms and Privacy are rewritten once right before launch, ROADMAP's launch
    checkpoint); the moment partyreel.com is READY on it, drop `events.show_guest_list` and the three `notification_prefs`
    columns for mail nothing sends (his yes, 2026-09-29; the milestone-29 build reads them until then); after it, `kit/`'s screens re-captured from partyreel.com
@@ -117,13 +128,9 @@ family), `disposable-mode` r2, `crumbs-12`. Batch 7 is merged whole; its records
 
 - **His desk: zero** after build 19's sitting. Two asks wait on the rounds that replace their boards: demo-framing's
   `names` (behind `story=?`) and press-page's `a-human` (the About round).
-- **Milestone 30's yes** (asked 2026-09-29): it ships launch-prep as of build 20 once that build's red-team is
-  clean; the lanes in flight ride milestone 31.
-- **The hold doctrine**, explained in chat (2026-09-29), a yes or no on each of `triage-wiring`'s three (all
-  recommended): a host's delete of a held item looks like any delete (her Deleted takes it; restore still refused,
-  every purge still skips it), so a held photo no longer stays up beside the rest leaving; the host's read of
-  `profiles.storage_used_bytes` taken away (no host screen reads it; it shows a hold's bytes staying); `purge_media_now`
-  skipping an item an open report names, as it skips a hold. Each yes is a small lane with a migration.
+- **The worst-kind hide** (asked 2026-09-29): should a report marked child abuse hide the photo from every viewer
+  at once, before an operator looks? Recommended yes for that one kind (a false one hides a photo until an
+  operator restores it; repeat false reporters ignored); `triage-r2-wiring` builds it unless he says no.
 - **The morning of 2026-09-30, on his phone** (his word): Q1 (on a phone the code card fills the screen, but Back
   leaves the album; should Back close it like the other full-screen popups?); the 2-minute real-upload check on the
   alias (a first photo, landscape, as a signed-out guest at a held-uploads event: the keep, her uploads' "Waiting for
