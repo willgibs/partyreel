@@ -1,6 +1,6 @@
 ---
 track: demo-framing-r2
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "09c1b56f"            # the launch-prep SHA the branch was cut from
 board: demo-framing
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -62,21 +62,62 @@ working.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none (an exploration ships no production byte; `marketing-content.md` changes with the wiring of his picks)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- none
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed:** the work `5f5a1d52` (the board, round two); the sync `e2c8bf79` (merged `origin/launch-prep` at
+  `85a2935f`: `marketing-content.md`, a read, moved with album-motion-wiring's line, and unfence reshaped the registry
+  test and the kit that gate the board; a clean merge). The head is the manifest commit in the chat line.
+- **Gates on `e2c8bf79`**, each its own exit code: `pnpm typecheck` 0, `pnpm lint` 0, `pnpm test` 0 (616 files, 7233
+  tests), `zsh scripts/build-lock.sh pnpm build` 0, `pnpm lab:smoke --base http://localhost:3133` 0 (19 checks; the
+  board reads 1048 words of 1200), `pnpm lab:demo --board demo-framing --base http://localhost:3133` 0 (3 of 3 steps:
+  `slug` 3.5 screens, `stage` 4.3, `touch` 3.6). Before the sync, one full `pnpm test` failed once in
+  `src/components/guest/password-gate.test.tsx` (the stalled hold's Retry), outside the lane: it passed alone 3 of 3
+  and on the full re-run.
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = the 12 files under
+  `src/app/(dev)/design/sandbox/demo-framing/` + this file; no exceptions.
+- **The items** (`sandbox/demo-framing/spec.ts`, round 2; `names` retired into `slug`, `story` and `demo` answered):
+  - `slug`: four addresses in a host's words (`our-party` recommended, `my-party`, `our-big-night`, `our-wedding`), each
+    drawn still at 1440 and 375, at the album's head and in its welcome ("You're a guest at Our party"); every caption
+    measures the address in its column (at 375 the longest, `our-big-night`, sets 89 px of 99).
+  - `stage`: still as today; `turns` (recommended: the stream eases to 10% of its pace while the address types, full
+    for 46% of a 33.5 s loop); `together` (the stream at 62%, the card's prints and the photographs born after a
+    landing turn to the party typed); `centre` (the address large on the card's paper, the party's prints dealt round
+    it, and the card and its stream on `/features/qr`'s hero under "One scan and they're in."). A loop score under
+    each is drawn from `typing.ts`, the one table the frames run (`typing.test.ts`, 9 tests).
+  - `touch`: the lift under a pointer; an arrow after the address (recommended); the live dot before the address; the
+    lamp swelling every 6.5 s. Each is drawn close at a desk's size, at rest and lifted (6 px, the fan opening), then
+    the home at 375 (no pointer) and at 1440 (hover the card to lift it); drawn on the address plate once `centre` is
+    picked.
+  - Verified in headless Chrome against :3133 (`_scratch/demo-framing-r2/shoot.mjs`): reduced motion holds every frame
+    on the demo's own address, no caret, the band at its rest state, over 9 s; hidden options hold still; motion
+    allowed types our-party, our-wedding, my-30th on the shown option; pressing every option of every step logs no
+    console error or warning.
+- **Assets requested from Will:** none now. After his picks:
+  - the card's four at rest, four kinds of party (a wedding's exit, a 30th's balloons, a lake-house fire, a team's
+    toast filmed) · ASSETS row 33's spec (4:5 masters at 960x1200, one grade) · replaces `DEMO_PRINTS`' stand-ins,
+    and row 5's folder becomes the every-kind-of-party album titled in the picked address's words;
+  - if `together` or `centre`: four prints and four guest portraits per typed address (twenty of each) · rows 33 and
+    34's specs · replaces `HOSTS[].prints`' stand-ins (`fixtures.ts`);
+  - if `together`: five stream squares per typed address (twenty-five) · row 2's spec · replaces `HOSTS[].pours`.
+- **Board ideas:**
+  - `/features/qr`'s hero could take the card and its stream whatever the home picks: "One scan and they're in." over
+    the album pouring out of the code is drawn on `stage=centre`'s second screen and stands on its own.
+  - A loop's score (a timeline read off the engine the frames run) as a kit piece for motion boards: `score.tsx` here
+    is one; a motion option is otherwise judged only by watching it.
+  - At `pnpm lab:demo --width 375` every open step with the context layer starts its stage past the reach limit (this
+    board 0.98 to 1.20 of a screen, `locked-door` 0.98 to 1.33): the step could fold its context at a phone's width.
+  - `password-gate.test.tsx`'s stalled-hold test flaked once under the full suite's load: a timing budget to widen.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none (after his picks, the wiring reserves the
+  printed addresses in `reserved-slugs.ts` and re-seeds the demo; no new env).
+- **Calls his to overrule** (each carried on the board): three asks, still-or-typewriter and its variants one
+  decision; `names` retired, the album titled in the address's words; the typed list (round one's five parties); the
+  card's four at rest four kinds of party; the host a persona, Sam Okafor; the block re-solved without the eyebrow's
+  line; the QR code page taking the home's composition whole if the stream moves.
+- **Look at first:** the `stage` step with motion allowed, `turns` then `centre` (its second screen is the QR code
+  page); then `touch`'s close-up of the arrow.
