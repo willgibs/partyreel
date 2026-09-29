@@ -14,7 +14,7 @@ import { SAMPLE_BOARD } from "../_desk/sample-spec";
  * to open a real board, which is somebody else's file and somebody else's
  * round. So `/design/lab/sample` renders the same fixture through `BoardPage`,
  * and a change to the template is judged on a board nobody is being asked to
- * rule on.
+ * answer.
  *
  * It draws three things a template change keeps breaking, in one screen:
  *
@@ -32,7 +32,7 @@ import { SAMPLE_BOARD } from "../_desk/sample-spec";
  *
  * It is not in the registry, nothing links to it, and the crawl never reaches
  * it: it is a tool, not a board, and `sandbox/registry.ts` stays the one list
- * of what Will is asked to rule on.
+ * of what Will is asked to answer.
  */
 export function SampleBoardPage() {
   return (
@@ -123,7 +123,7 @@ function LedgerNote() {
     <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
       The fixture&apos;s own ledger section. What a sitting composes is on the
       desk, not here: this page exists so a change to the board TEMPLATE can be
-      looked at without opening a board somebody is being asked to rule on.
+      looked at without opening a board somebody is being asked to answer.
     </p>
   );
 }

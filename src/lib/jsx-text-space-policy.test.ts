@@ -127,8 +127,12 @@ function spaceLosers(file: string): string[] {
   return found;
 }
 
-/** The lab's boards and tools are drawn explorations and instruments, scanned by nobody here. */
-const SKIP = /\.test\.tsx$|^app\/\(dev\)\/design\//;
+/**
+ * The lab and the Library are scanned too (the lab revamp, 2026-09-29, taking in crumbs-12's
+ * finding): a board's words ship on the same build, and the old toolbox read "sandbox/<name>/renders
+ * bare", this very bug.
+ */
+const SKIP = /\.test\.tsx$/;
 
 function tsx(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {

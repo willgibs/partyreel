@@ -51,6 +51,21 @@ import { REVIEW, SCREEN, STOCK } from "./knobs";
 export const DISPOSABLE_MODE = defineExploration({
   id: "disposable-mode",
   title: "A disposable camera",
+  surface: "shared",
+  desk: 80,
+  lives: [
+    "docs/systems/guest-flow.md",
+    "docs/systems/uploads-and-r2.md",
+    "docs/systems/billing-caps.md",
+    "docs/systems/reel.md",
+    "src/components/guest/event-experience.tsx",
+    "src/components/guest/upload/intent-sheet.tsx",
+    "src/components/guest/reel/live-reel-view.tsx",
+    "src/components/app/create-event-wizard.tsx",
+    "src/components/app/event-feed/host-album.tsx",
+    "src/components/shared/media-lightbox-parts/actions.tsx",
+    "src/lib/constants/tiers.ts",
+  ],
   round: {
     n: 2,
     date: "2026-09-29",

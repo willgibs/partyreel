@@ -54,6 +54,14 @@ import { defineExploration } from "@/components/lab/exploration";
 export const PRESS_PAGE = defineExploration({
   id: "press-page",
   title: "What Partyreel hands the world",
+  surface: "marketing",
+  desk: 100,
+  lives: [
+    "src/app/(marketing)/(cinema)/press/page.tsx",
+    "src/components/marketing/press/press-section.tsx",
+    "src/components/marketing/press/press-sheet.tsx",
+    "src/lib/constants/press.ts",
+  ],
   round: {
     n: 1,
     date: "2026-09-28",

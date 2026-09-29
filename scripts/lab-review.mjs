@@ -20,7 +20,7 @@
  * `choice: null`, and the desk shows the ask as waiting on a clearer question
  * rather than as answered.
  *
- * `item:<id>=<verdict>` is a ruling on ONE catalog card (the revamp,
+ * `item:<id>=<verdict>` is a verdict on ONE catalog card (the revamp,
  * 2026-09-16), which is how an exploration comes back as "keep these three,
  * refine that one, kill the rest" rather than as one answer about twelve
  * things. The `item:` prefix keeps the two namespaces apart: an ask id and a
@@ -74,7 +74,7 @@ const FAMILIES = [
 /** The two ladders, mirrored from board-spec.ts's ITEM_VERDICTS / LIBRARY_VERDICTS. */
 const ITEM_VERDICTS = ["keep", "refine", "kill"];
 const LIBRARY_VERDICTS = ["keep", "redesign", "retire"];
-/** The Library's line carries no round; the ledger stores one ruling per entry. */
+/** The Library's line carries no round; the ledger stores one verdict per entry. */
 export const LIBRARY_LEDGER = "_library";
 
 /** A refusal the reader can act on: what was wrong, and where in the paste. */
@@ -516,7 +516,7 @@ function readSeparator(line, at, lineNo) {
  * point at it. A blank line and a `#` comment line parse to null.
  *
  * Two heads: `review <board> r<n>:` for a board, `review library:` for the
- * Library's own rulings, which carry no round because the Library is not
+ * Library's own verdicts, which carry no round because the Library is not
  * explored in rounds.
  */
 export function parseLine(raw, lineNo = 1) {
@@ -546,7 +546,7 @@ export function parseLine(raw, lineNo = 1) {
       if (!sep.more) break;
     }
     if (entries.length === 0) {
-      throw new ReviewError("the line carries no ruling", {
+      throw new ReviewError("the line carries no verdict", {
         line: lineNo,
         column: line.length + 1,
       });
@@ -668,10 +668,13 @@ export function parseLine(raw, lineNo = 1) {
     calls.length === 0 &&
     notes.length === 0
   ) {
-    throw new ReviewError("the line carries no answer, no ruling and no note", {
-      line: lineNo,
-      column: line.length + 1,
-    });
+    throw new ReviewError(
+      "the line carries no answer, no verdict and no note",
+      {
+        line: lineNo,
+        column: line.length + 1,
+      },
+    );
   }
   return {
     kind: "board",
@@ -982,7 +985,7 @@ export function validate(
  *
  * ★ A BOARD WITH NO CATALOG HAS NO ITEMS, and saying so is the point: every
  * board carries candidates, and accepting a verdict on one that the board never
- * offered for ruling would record a decision on something nobody displayed.
+ * offered for a verdict would record a decision on something nobody displayed.
  */
 function validateItems(e, spec, at, echoItem = () => false) {
   const fresh = e.items.filter((i) => !echoItem(i));
@@ -991,7 +994,7 @@ function validateItems(e, spec, at, echoItem = () => false) {
     at(
       e.line,
       fresh[0].itemAt,
-      `${e.board} declares no catalog, so it has no items to rule on`,
+      `${e.board} declares no catalog, so it has no items to give a verdict on`,
     );
     return;
   }
@@ -1023,7 +1026,7 @@ function validateItems(e, spec, at, echoItem = () => false) {
   refuseDuplicates(
     e.items,
     { id: "item", at: "itemAt" },
-    "ruled",
+    "given a verdict",
     (column, message) => at(e.line, column, message),
   );
 }
@@ -1086,7 +1089,7 @@ function validateLibrary(e, library, at) {
   refuseDuplicates(
     e.entries,
     { id: "entry", at: "entryAt" },
-    "ruled",
+    "given a verdict",
     (column, message) => at(e.line, column, message),
   );
 }
@@ -1240,7 +1243,7 @@ export function applyEntries(root, entries, { by, at }) {
         was < 0 ? "new" : "replaced",
       ]);
     }
-    // One verdict per item per round: ruling again in the same round
+    // One verdict per item per round: a second in the same round
     // overwrites, exactly as answering an ask again does.
     for (const i of e.items) {
       if (echo.item(i)) {

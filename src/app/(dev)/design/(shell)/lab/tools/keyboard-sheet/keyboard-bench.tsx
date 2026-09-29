@@ -290,9 +290,7 @@ function CodeReplica() {
 function ReportReplica() {
   return (
     <form className="flex flex-col gap-3" onSubmit={(e) => e.preventDefault()}>
-      <p className="font-heading text-card-title font-medium">
-        Report this event
-      </p>
+      <p className="font-heading text-card-title">Report this event</p>
       <p className="text-sm text-muted-foreground">
         Tell us what&rsquo;s wrong and our team will review it. Reports are
         anonymous.

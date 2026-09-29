@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
+import { NAV } from "@/lib/admin/nav";
+
 import {
+  ADMIN_RETURN_COOKIE,
+  adminReturnCookie,
+  adminReturnFromCookies,
   loginPath,
   matchesPathShape,
   NEXT_PARAM,
@@ -18,6 +23,10 @@ import {
  * redirects, is the one a hostile link would dress up. This pins the ALLOW-LIST's behaviour, not
  * its regexes: every legal page is accepted as itself, and every refusal below, however it is
  * dressed, comes back as nothing at all (the caller's default), never a cleaned-up copy.
+ *
+ * ★ EACH HOST RETURNS TO ITS OWN PAGES (crumbs-14): the portal's on the admin host alone, the
+ * app's everywhere else, so a signed-out `/admin/reports` lands on the reports after the sign-in
+ * and no host is ever sent to a page the other deployment serves.
  */
 
 const EVENT = "9f1c2b3a-4d5e-6f70-8192-a3b4c5d6e7f8";
@@ -39,8 +48,6 @@ describe("the pages a sign-in may return to", () => {
     "/account",
     "/account/profile",
     "/welcome",
-    // The portal's own gate sends `?next=/admin`.
-    "/admin",
     // A guest's door comes back to the album (a token or a custom link) or a profile page.
     "/e/0123456789abcdef0123456789abcdef",
     "/e/sarahs-wedding",
@@ -52,12 +59,121 @@ describe("the pages a sign-in may return to", () => {
     expect(signInReturn(page)).toBe(page);
   });
 
+  // ★ NEVER THE APEX FROM THE ADMIN HOST: the admin deployment serves none of these, so a sign-in
+  // there that followed one would land on its 404. The portal is that host's landing.
+  it.each(pages)(
+    "refuses %s on the admin host, which lands in the portal",
+    (page) => {
+      expect(signInReturn(page, true)).toBeNull();
+      expect(signInLanding(page, true)).toBe("/admin");
+      expect(loginPath(page, true)).toBe("/login");
+    },
+  );
+
   it("survives the round trip through a query string", () => {
     for (const page of pages) {
       const login = new URL(loginPath(page), "https://partyreel.com");
       expect(login.pathname).toBe("/login");
       expect(login.searchParams.get(NEXT_PARAM)).toBe(page);
     }
+  });
+});
+
+describe("the portal's pages, on the admin host alone (crumbs-14)", () => {
+  // Every section the nav reaches (`nav.test.ts` holds every portal page to the nav), and the two
+  // sections with a page per row.
+  const portal = [
+    ...NAV.map((item) => item.href),
+    `/admin/accounts/${EVENT}`,
+    `/admin/albums/${EVENT}`,
+    `/admin/albums/${EVENT.toUpperCase()}`,
+  ];
+
+  it("names the portal's home and every section the nav draws", () => {
+    expect(portal).toContain("/admin");
+    expect(portal).toContain("/admin/reports");
+  });
+
+  it.each(portal)("accepts %s as itself on the admin host", (page) => {
+    expect(signInReturn(page, true)).toBe(page);
+    expect(signInLanding(page, true)).toBe(page);
+    const login = new URL(loginPath(page, true), "https://admin.partyreel.com");
+    expect(login.pathname).toBe("/login");
+    expect(login.searchParams.get(NEXT_PARAM)).toBe(page);
+  });
+
+  // The apex's deployment 404s `/admin`: a sign-in there lands on the dashboard instead.
+  it.each(portal)("refuses %s off the admin host", (page) => {
+    expect(signInReturn(page)).toBeNull();
+    expect(signInLanding(page, false)).toBe("/dashboard");
+    expect(loginPath(page)).toBe("/login");
+  });
+
+  // Shaped like the portal, and not one of its pages.
+  const lookalikes: [string, string][] = [
+    ["a trailing slash", "/admin/"],
+    ["a section's trailing slash", "/admin/reports/"],
+    ["two slashes", "/admin//reports"],
+    ["another case", "/admin/Reports"],
+    ["a page under a section", "/admin/reports/x"],
+    ["a row page that is not a uuid", "/admin/accounts/maya"],
+    ["a short row id", "/admin/accounts/9f1c2b3a"],
+    ["a row page under a section that has none", `/admin/reports/${EVENT}`],
+    ["a download, never a page", "/admin/forensics/export"],
+    ["a section the portal does not have", "/admin/billing"],
+    ["a longer word", "/administrators"],
+    ["a traversal out of the portal", "/admin/../dashboard"],
+    ["an encoded traversal", "/admin/%2e%2e/dashboard"],
+    ["an encoded slash", "/admin%2Freports"],
+    ["a query", "/admin/reports?status=open"],
+    ["a nested next", "/admin/reports?next=https://evil.example"],
+    ["a fragment", "/admin/reports#report-1"],
+    ["the admin host, absolute", "https://admin.partyreel.com/admin/reports"],
+    ["the admin host, protocol-relative", "//admin.partyreel.com/admin"],
+    ["a backslash", "/admin\\reports"],
+    ["a newline splice", "/admin/reports\r\nLocation: https://evil.example"],
+  ];
+
+  it.each(lookalikes)(
+    "refuses %s, and the gate's login is bare",
+    (_, value) => {
+      expect(signInReturn(value, true)).toBeNull();
+      expect(signInLanding(value, true)).toBe("/admin");
+      expect(loginPath(value, true)).toBe("/login");
+    },
+  );
+});
+
+describe("the admin host's page, through its bare callback (crumbs-14)", () => {
+  it("leaves a portal page for the callback alone, for ten minutes, a page and nothing else", () => {
+    expect(adminReturnCookie("/admin/reports", true)).toBe(
+      `${ADMIN_RETURN_COOKIE}=/admin/reports; Max-Age=600; Path=/auth/callback; SameSite=Lax; Secure`,
+    );
+    expect(adminReturnCookie(`/admin/accounts/${EVENT}`, false)).toBe(
+      `${ADMIN_RETURN_COOKIE}=/admin/accounts/${EVENT}; Max-Age=600; Path=/auth/callback; SameSite=Lax`,
+    );
+  });
+
+  it.each([
+    ["no page", null],
+    ["an app page", "/account/renew"],
+    ["a hostile value", "//evil.example"],
+    ["a value dressed as a cookie", "/admin/reports; Domain=partyreel.com"],
+    ["a download, never a page", "/admin/forensics/export"],
+  ])("clears it for %s", (_, value) => {
+    expect(adminReturnCookie(value, true)).toBe(
+      `${ADMIN_RETURN_COOKIE}=; Max-Age=0; Path=/auth/callback; SameSite=Lax; Secure`,
+    );
+  });
+
+  it("reads it back from a Cookie header, and nothing from one without it", () => {
+    expect(
+      adminReturnFromCookies(
+        `sb-x-auth-token=abc; ${ADMIN_RETURN_COOKIE}=/admin/reports; pr_tile_size=medium`,
+      ),
+    ).toBe("/admin/reports");
+    expect(adminReturnFromCookies("pr_tile_size=medium")).toBeNull();
+    expect(adminReturnFromCookies(null)).toBeNull();
   });
 });
 
@@ -118,7 +234,6 @@ describe("everything else is refused, and comes back as nothing", () => {
     ["the login page", "/login"],
     ["the callback", "/auth/callback"],
     ["an API route", "/api/stripe/checkout"],
-    ["a portal page", "/admin/accounts"],
     ["account deletion", "/account/delete"],
     ["the marketing home", "/"],
     ["nothing", ""],
@@ -126,7 +241,9 @@ describe("everything else is refused, and comes back as nothing", () => {
 
   it.each(hostile)("refuses %s", (_, value) => {
     expect(signInReturn(value)).toBeNull();
+    expect(signInReturn(value, true)).toBeNull();
     expect(loginPath(value)).toBe("/login");
+    expect(loginPath(value, true)).toBe("/login");
     expect(signInLanding(value, false)).toBe("/dashboard");
     expect(signInLanding(value, true)).toBe("/admin");
   });
@@ -142,6 +259,7 @@ describe("everything else is refused, and comes back as nothing", () => {
       new URL("https://partyreel.com/account/renew"),
     ]) {
       expect(signInReturn(value)).toBeNull();
+      expect(signInReturn(value, true)).toBeNull();
       expect(loginPath(value)).toBe("/login");
     }
   });
@@ -154,9 +272,13 @@ describe("everything else is refused, and comes back as nothing", () => {
 });
 
 describe("the landing and the links that carry it", () => {
-  it("lands on the return when there is one, else the host's home", () => {
+  // Reshaped on purpose (crumbs-14): an app page on the admin host used to be followed there, to the
+  // admin deployment's 404; each host now returns to its own pages.
+  it("lands on the return when there is one for this host, else the host's home", () => {
     expect(signInLanding("/account/renew", false)).toBe("/account/renew");
-    expect(signInLanding("/account/renew", true)).toBe("/account/renew");
+    expect(signInLanding("/account/renew", true)).toBe("/admin");
+    expect(signInLanding("/admin/reports", true)).toBe("/admin/reports");
+    expect(signInLanding("/admin/reports", false)).toBe("/dashboard");
     expect(signInLanding(null, false)).toBe("/dashboard");
     expect(signInLanding(null, true)).toBe("/admin");
   });

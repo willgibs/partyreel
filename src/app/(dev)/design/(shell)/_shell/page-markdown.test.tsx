@@ -66,8 +66,8 @@ describe("the page as markdown", () => {
 
   it("writes a definition list even when each pair is wrapped", () => {
     // The page header's own shape: a flex <dl> whose pairs sit in divs.
-    expect(md("<dl><div><dt>Ruled by</dt><dd>Will</dd></div></dl>")).toBe(
-      "- **Ruled by**: Will",
+    expect(md("<dl><div><dt>Answered by</dt><dd>Will</dd></div></dl>")).toBe(
+      "- **Answered by**: Will",
     );
   });
 

@@ -1,4 +1,4 @@
-import type { Control } from "@/components/lab/board-spec";
+import type { Control } from "@/components/lab/exploration";
 
 /**
  * THE BOARD'S KNOBS, AS PURE DATA: split from the client files so `spec.ts`

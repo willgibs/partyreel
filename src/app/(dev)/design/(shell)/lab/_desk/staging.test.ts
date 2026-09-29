@@ -16,7 +16,7 @@ import { holdId, itemHoldId } from "./step-id";
  * had not agreed to: the aurora's landing before the aurora was kept, the
  * accent's reach before an accent was chosen. `after` says so in the spec, and
  * the two halves of resolving it are pinned here: the LEDGER's, which only the
- * server can read and which rides the step as `afterRuled`, and the SESSION's,
+ * server can read and which rides the step as `afterAnswered`, and the SESSION's,
  * which is what the reviewer answered a minute ago in this browser.
  *
  * ★ AND THE TWO HAVE TO AGREE. They are one rule read from two places, so a
@@ -42,7 +42,7 @@ const openAsks = (): AskState[] =>
   }));
 
 /** The steps, with whatever the ledger is said to hold for this board. */
-const steps = (ruled: {
+const steps = (ledger: {
   answers?: Record<string, string | null>;
   items?: Record<string, string>;
 }) =>
@@ -51,7 +51,7 @@ const steps = (ruled: {
       {
         asks: openAsks(),
         items: [],
-        ruled: { answers: ruled.answers ?? {}, items: ruled.items ?? {} },
+        ledger: { answers: ledger.answers ?? {}, items: ledger.items ?? {} },
       },
     ],
     SPEC_OF,
@@ -90,19 +90,19 @@ describe("a staged ask", () => {
 
   /**
    * ★ THE LEDGER SIDE IS RESOLVED ON THE SERVER. The open work is by definition
-   * what the ledger does NOT hold, so a prerequisite ruled last week is in
-   * neither `asks` nor `items`: without `afterRuled` the follow-up would stay
+   * what the ledger does NOT hold, so a prerequisite answered last week is in
+   * neither `asks` nor `items`: without `afterAnswered` the follow-up would stay
    * staged for ever and the round could never complete.
    */
-  it("opens on a ruling from an earlier sitting, with nothing held here", () => {
+  it("opens on an answer from an earlier sitting, with nothing held here", () => {
     const step = steps({ answers: { [WINNER]: "as-data" } }).find(
       (s) => s.kind === "ask" && s.askId === NOTES,
     )!;
-    expect(step.afterRuled).toBe("as-data");
+    expect(step.afterAnswered).toBe("as-data");
     expect(stepBlocked(step, EMPTY_REVIEW)).toBeNull();
   });
 
-  it("is moot on a ruling from an earlier sitting that went the other way", () => {
+  it("is moot on an answer from an earlier sitting that went the other way", () => {
     const step = steps({ answers: { [WINNER]: "as-a-form" } }).find(
       (s) => s.kind === "ask" && s.askId === NOTES,
     )!;
@@ -130,10 +130,10 @@ describe("a step waiting on a catalog card", () => {
   const card = () => ({
     ...steps({}).find((s) => s.kind === "ask" && s.askId === NOTES)!,
     after,
-    afterRuled: null,
+    afterAnswered: null,
   });
 
-  it("is staged until the card is ruled, and moot on the other verdict", () => {
+  it("is staged until the card has its verdict, and moot on the other one", () => {
     expect(stepBlocked(card(), EMPTY_REVIEW)).toBe("staged");
     const keep: ReviewStore = {
       ...EMPTY_REVIEW,

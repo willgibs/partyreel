@@ -16,7 +16,7 @@ import { useTheme } from "next-themes";
 import Link from "next/link";
 import { useSyncExternalStore } from "react";
 
-import { signOutAction } from "@/app/(auth)/actions";
+import { signOutHere } from "@/components/auth/sign-out";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -267,7 +267,7 @@ export function UserMenu({
             without typing a password again, so it gets a ground of its own
             rather than a hairline. Sign-out is a server action; a form submit
             clears cookies on the response, then signOutAction redirects to
-            /login.
+            /login, or comes back refused and `signOutHere` says so.
 
             ★ AND IT PUTS DOWN EVERY GUEST TICKET ON THE DEVICE (the
             upload-owner lane, 2026-09-23): a confirmed guest's ticket outlived
@@ -277,7 +277,7 @@ export function UserMenu({
             action, so the localStorage half is gone before the request
             leaves, and the action expires the cookie half on its response. */}
         <DropdownMenuFooter>
-          <form action={signOutAction} onSubmit={() => forgetGuestTickets()}>
+          <form action={signOutHere} onSubmit={() => forgetGuestTickets()}>
             <DropdownMenuItem asChild>
               <button type="submit" className="w-full">
                 <LogOut /> Sign out

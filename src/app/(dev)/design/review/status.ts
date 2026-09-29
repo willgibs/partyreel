@@ -9,7 +9,7 @@ import {
   itemsIn,
   latestRound,
   type Answer,
-  type ItemRuling,
+  type ItemAnswer,
   type Note,
   readLedger,
   type Round,
@@ -31,11 +31,11 @@ import {
  * candidates outright. Declaring `catalog` is the opt-in: every board carries
  * candidates (they are its meta list, the things it considered), and queuing
  * fourteen boards' worth of those for a verdict would bury the real work. A
- * board that declares its candidates ARE the catalog is asking to be ruled on
+ * board that declares its candidates ARE the catalog is asking for a verdict
  * card by card, and only then do its items reach the desk.
  *
  * The desk reads this to build "Waiting on Will"; the board page reads it to
- * show a ruling draft once nothing is open. Neither writes: the lab never
+ * show what its answers decide once nothing is open. Neither writes: the lab never
  * touches `docs/reviews/`.
  */
 
@@ -60,12 +60,12 @@ export type OpenAsk = Extract<AskStatus, { state: "open" }>;
 export type StagedAsk = Extract<AskStatus, { state: "staged" }>;
 export type MootAsk = Extract<AskStatus, { state: "moot" }>;
 
-/** One catalog card against this round's ledger: ruled, or still open. */
+/** One catalog card against this round's ledger: given its verdict, or still open. */
 export type ItemStatus =
-  | { item: Candidate; state: "ruled"; ruling: ItemRuling }
+  | { item: Candidate; state: "answered"; answer: ItemAnswer }
   | { item: Candidate; state: "open" };
 
-export type RuledItem = Extract<ItemStatus, { state: "ruled" }>;
+export type AnsweredItem = Extract<ItemStatus, { state: "answered" }>;
 export type OpenItem = Extract<ItemStatus, { state: "open" }>;
 
 export type BoardStatus = {
@@ -88,22 +88,22 @@ export type BoardStatus = {
   orphaned: Answer[];
   /** The catalog's cards, or none when the board declares no catalog. */
   items: ItemStatus[];
-  /** Ruled this round. */
-  ruled: RuledItem[];
+  /** Given a verdict this round. */
+  answeredItems: AnsweredItem[];
   /** Still waiting on a verdict. */
   openItems: OpenItem[];
-  /** A ruling whose candidate the spec no longer declares: a stale ledger row. */
-  orphanedItems: ItemRuling[];
+  /** A verdict whose candidate the spec no longer declares: a stale ledger row. */
+  orphanedItems: ItemAnswer[];
   /** This round's notes on this board, and the window's own. */
   notes: Note[];
-  /** Every ask answered AND every catalog item ruled, and there was something to answer. */
+  /** Every ask answered AND every catalog card given its verdict, and there was something to answer. */
   complete: boolean;
 };
 
 /**
  * ★ WHETHER AN UNANSWERED ASK IS EVEN ASKABLE (the stepped review, 2026-09-16).
  * `after` says a question only exists once another went a certain way, and this
- * is the LEDGER's half of that: an ask whose prerequisite nobody has ruled is
+ * is the LEDGER's half of that: an ask whose prerequisite nobody has answered is
  * staged, one whose prerequisite went the other way is moot. The session's half
  * (what the reviewer answered a minute ago, which is not in the ledger yet)
  * lives in `stepBlocked`; the two agree because they read the same `after`.
@@ -114,7 +114,7 @@ export type BoardStatus = {
 function staging(
   ask: Ask,
   byAsk: Map<string, Answer>,
-  byItem: Map<string, ItemRuling>,
+  byItem: Map<string, ItemAnswer>,
 ): "open" | "staged" | "moot" {
   const after = ask.after;
   if (!after) return "open";
@@ -154,8 +154,10 @@ export function boardStatus(board: string): BoardStatus {
 
   const candidates = spec?.catalog ? spec.candidates : [];
   const items: ItemStatus[] = candidates.map((item) => {
-    const ruling = byItem.get(item.id);
-    return ruling ? { item, state: "ruled", ruling } : { item, state: "open" };
+    const answer = byItem.get(item.id);
+    return answer
+      ? { item, state: "answered", answer }
+      : { item, state: "open" };
   });
   const declaredItems = new Set(candidates.map((c) => c.id));
   const orphanedItems = (current?.items ?? []).filter(
@@ -167,7 +169,9 @@ export function boardStatus(board: string): BoardStatus {
   const unclear = asks.filter((a): a is UnclearAsk => a.state === "unclear");
   const staged = asks.filter((a): a is StagedAsk => a.state === "staged");
   const moot = asks.filter((a): a is MootAsk => a.state === "moot");
-  const ruled = items.filter((i): i is RuledItem => i.state === "ruled");
+  const answeredItems = items.filter(
+    (i): i is AnsweredItem => i.state === "answered",
+  );
   // ★ A PICK-ONE CATALOG QUEUES NO CARDS (the stepped review, 2026-09-16). Its
   // decision is the winner ask, and a card verdict on it is optional feedback:
   // queueing twelve cards as twelve waits beside the one question that decides
@@ -190,7 +194,7 @@ export function boardStatus(board: string): BoardStatus {
     moot,
     orphaned,
     items,
-    ruled,
+    answeredItems,
     openItems,
     orphanedItems,
     notes: [...(round?.notes ?? []), ...windowNotesFor(board)],

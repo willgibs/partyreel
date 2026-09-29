@@ -85,13 +85,13 @@ describe("the type steps and radius tokens", () => {
 const SRC = join(process.cwd(), "src");
 
 /**
- * Not scanned: tests, vendored source, and the lab's boards and tools, which
- * are drawn explorations and instruments that retire with their rounds (a
- * board quotes production's classes at the moment it was drawn). The Library
- * IS scanned: the brand kit draws the product's type, one weight included.
+ * Not scanned: tests and vendored source. The lab IS scanned (the lab revamp,
+ * 2026-09-29, taking in crumbs-12's finding): a board draws production's type
+ * for Will to judge, so a lighter weight beside the heading face on a board is
+ * the same lie it is on a page, and three boards and the keyboard bench were
+ * telling it.
  */
-const SKIP =
-  /\.test\.tsx?$|^components\/vendor\/|^app\/\(dev\)\/design\/sandbox\/|^app\/\(dev\)\/design\/\(shell\)\/lab\//;
+const SKIP = /\.test\.tsx?$|^components\/vendor\//;
 
 function sources(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {

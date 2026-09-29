@@ -3,7 +3,7 @@
 /**
  * THE LIVE REEL HARNESS (the reel round, 2026-09-22).
  *
- * A prototype, not a board: it asks for no ruling, it proves something. What it proves is the
+ * A prototype, not a board: it asks for no answer, it proves something. What it proves is the
  * engineering the rest of the round rests on — that a reel can play an album of any size for hours,
  * take an upload mid-loop without restarting, lose a photograph the instant a host hides it, change
  * its look without blinking, and hold its memory flat the whole time.

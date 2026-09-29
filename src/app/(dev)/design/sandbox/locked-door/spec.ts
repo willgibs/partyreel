@@ -1,5 +1,4 @@
-import type { Control } from "@/components/lab/board-spec";
-import { defineExploration } from "@/components/lab/exploration";
+import { type Control, defineExploration } from "@/components/lab/exploration";
 
 /**
  * THE DOOR FAMILY, ROUND TWO (his locked-door r1 answers, 2026-09-29).
@@ -105,6 +104,19 @@ const WAS: Control = {
 export const LOCKED_DOOR = defineExploration({
   id: "locked-door",
   title: "The door family",
+  surface: "guest",
+  desk: 30,
+  lives: [
+    "docs/systems/guest-flow.md",
+    "src/app/(guest)/e/[token]/page.tsx",
+    "src/app/(guest)/e/[token]/not-found.tsx",
+    "src/components/shared/not-found-screen.tsx",
+    "src/components/guest/entry-shell.tsx",
+    "src/components/guest/entry-modal.tsx",
+    "src/components/guest/door/lit.tsx",
+    "src/components/guest/door/lit.css",
+    "src/components/guest/door/heading.tsx",
+  ],
   round: {
     n: 2,
     date: "2026-09-29",

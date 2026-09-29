@@ -10,7 +10,7 @@ import { Ref } from "@/app/(dev)/design/(shell)/_shell/ref";
 import { Tag } from "@/app/(dev)/design/(shell)/_shell/tag";
 import { readDoc } from "@/app/(dev)/design/_data/docs";
 import { readTrackStates, trackAlias } from "@/app/(dev)/design/_data/tracks";
-import { SANDBOX } from "@/app/(dev)/design/touchpoints";
+import { BOARDS } from "@/app/(dev)/design/sandbox/registry";
 
 /**
  * ONE TRACK (the Library x Lab round, 2026-09-15). A manifest is written for
@@ -34,9 +34,7 @@ export default async function TrackPage({
   if (!state) notFound();
   const file = `docs/tracks/${track}.md`;
   const { body } = readDoc(file);
-  const board = SANDBOX.find(
-    (r) => r.id === track || r.board?.tracks?.includes(track),
-  );
+  const board = BOARDS.find((b) => b.id === track || b.tracks?.includes(track));
   const live = state.status !== "integrated";
   const lane: [string, string[]][] = [
     ["Owns", state.owns],

@@ -4,9 +4,12 @@ import "./disposable-mode.css";
 
 import type { ReactNode } from "react";
 
-import { ExplorationBoard } from "@/components/lab";
-import type { BoardState } from "@/components/lab/board-spec";
-import { optionId, optionLabel } from "@/components/lab/board-spec";
+import {
+  type BoardState,
+  ExplorationBoard,
+  optionId,
+  optionLabel,
+} from "@/components/lab";
 import type { PreviewsFor } from "@/components/lab/exploration";
 
 import type { CameraId, VideoCount, VideoWay } from "./cam-shared";

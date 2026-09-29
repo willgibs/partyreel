@@ -1,7 +1,6 @@
 "use client";
 
-import { CANVAS, ExplorationBoard, Frame } from "@/components/lab";
-import type { Mode } from "@/components/lab";
+import { CANVAS, ExplorationBoard, Frame, type Mode } from "@/components/lab";
 import type { PreviewsFor } from "@/components/lab/exploration";
 
 import {

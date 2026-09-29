@@ -13,7 +13,7 @@ import { marketingImage } from "@/lib/constants/marketing-media";
  * a confirmed email.
  *
  * ★ A SEPARATE FILE, NOT AN IMPORT, ON PURPOSE (every guest board's rule). A
- * board's directory is deleted the moment its ruling lands, so importing
+ * board's folder is deleted the moment the board retires, so importing
  * another board's fixtures would tie this board's life to a folder it does
  * not own.
  *
