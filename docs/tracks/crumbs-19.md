@@ -17,8 +17,17 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/ui/popup-back.test.tsx
   - src/lib/guest/reel-url.ts
   - src/lib/guest/reel-url.test.ts
+  - src/components/shared/route-skeleton.tsx                             # the hold: a route's skeleton keeps the last trail on the bar until the page lands
+  - src/components/shared/route-skeleton.test.tsx
+  - src/lib/history-entry.ts                                             # new: the one helper (marker, restamp, address witness, one Back) the hub's sheet, a phone's place and the reel stand on
+  - src/lib/history-entry.test.tsx
+  - src/lib/guest/reel-url-history.test.tsx                              # new: the reel's hook against Next's patched history (reel-url.test.ts is the node project's, no DOM)
+  - src/lib/history-state-policy.test.ts                                 # one line: its "sees the calls it exists for" pin names the provider's four writes, which move into the helper
+  - src/components/marketing/help/step-screens/step-screens.test.ts      # its quote lists pin the album form's title the three screens no longer draw
+  - docs/systems/host-app.md                                             # the two places' bullet and the crumb trail's
+  - docs/systems/design-system.md                                        # the phone place's entry (popup-back) now stands on the helper
+  - docs/systems/reel.md                                                 # the `?reel` address bullet
 reads:                  # single-sources you depend on: never duplicate, never edit
-  - docs/systems/host-app.md
   - docs/systems/marketing-content.md
 ---
 
