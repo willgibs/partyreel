@@ -104,10 +104,9 @@ export default async function KitPage({
           </div>
         </div>
         <p className="mt-3 text-sm text-muted-foreground">
-          The registry finds the folder&rsquo;s spec and the route finds its
-          board, so two boards cut at once never touch one file. A retired
-          board&rsquo;s ledger in <code>docs/reviews/</code> is the
-          Orchestrator&rsquo;s to delete.
+          The registry finds the folder’s spec and the route finds its board, so
+          two boards cut at once never touch one file. A retired board’s ledger
+          in <code>docs/reviews/</code> is the Orchestrator’s to delete.
         </p>
         <ul className="mt-3 space-y-1 text-sm text-muted-foreground">
           <li>
@@ -182,9 +181,9 @@ export default async function KitPage({
           <div>
             <p className="text-sm font-medium">The dock</p>
             <p className="mt-1 mb-3 max-w-3xl text-sm text-muted-foreground">
-              Each decision&rsquo;s own control and every <code>configs</code>{" "}
-              knob become the dock&rsquo;s switches, mirrored to the URL, so a
-              link reopens the exact state a note was written about.
+              Each decision’s own control and every <code>configs</code> knob
+              become the dock’s switches, mirrored to the URL, so a link reopens
+              the exact state a note was written about.
             </p>
             <DockDemo />
           </div>

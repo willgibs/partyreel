@@ -9,6 +9,8 @@ import { beforeAll, describe, expect, it } from "vitest";
 
 import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 
+import { PREDATES } from "@/app/(dev)/design/sandbox/registry";
+
 /**
  * THE SPACE BEFORE A WORD SURVIVES THE BUILD (build 20's red-team, 2026-09-29: "30days" in the
  * host's Remove confirm and on the reports page).
@@ -127,15 +129,25 @@ function spaceLosers(file: string): string[] {
   return found;
 }
 
-/** The lab's boards and tools are drawn explorations and instruments, scanned by nobody here. */
-const SKIP = /\.test\.tsx$|^app\/\(dev\)\/design\//;
+/**
+ * The lab and the Library are scanned too (the lab revamp, 2026-09-29, taking in crumbs-12's
+ * finding): a board's words ship on the same build, and the old toolbox read "sandbox/<name>/renders
+ * bare", this very bug. The boards that predate the folder shape (`PREDATES`) belong to running
+ * wiring lanes and leave with them.
+ */
+const SKIP = /\.test\.tsx$/;
+const PREDATED = Object.keys(PREDATES).map(
+  (id) => `app/(dev)/design/sandbox/${id}/`,
+);
 
 function tsx(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const full = join(dir, entry.name);
     if (entry.isDirectory()) return tsx(full);
+    const rel = relative(join(ROOT, "src"), full);
     return entry.name.endsWith(".tsx") &&
-      !SKIP.test(relative(join(ROOT, "src"), full))
+      !SKIP.test(rel) &&
+      !PREDATED.some((p) => rel.startsWith(p))
       ? [full]
       : [];
   });
