@@ -28,6 +28,17 @@ import { useEffect, useRef } from "react"
  * cleanup schedules its `back()`, and a body that runs again first cancels it
  * and keeps the entry it already has.
  *
+ * ★ THE MARKER IS NOT THE ONLY WITNESS (crumbs-18). `router.refresh()` is a soft
+ * navigation whose commit writes the entry again with Next's own state alone
+ * (measured under `next dev`, at 375: opened at entry 4, refreshed, closed by its
+ * arrow, still standing on entry 5), and the claims review and the storage list
+ * refresh while they are open. So the popup keeps its own word too (`entryRef`:
+ * the entry it pushed, and the address it stands at): where the marker is gone,
+ * an entry at that same address is still ours. Never where the marker names
+ * another entry, and never at another address: a popup that goes because the page
+ * navigated on (a link inside it) has no entry to undo, and taking one back would
+ * undo the navigation. The provider's `pushedRef` is the same idea for `?room=`.
+ *
  * ★ A POPUP THAT HAS A URL OF ITS OWN NEVER USES THIS: Settings and the share
  * kit ride `?room=` (the provider pushes and pops those), so `PopupContent`
  * takes `routed` and stays out of history.
@@ -40,12 +51,25 @@ function markerOf(state: unknown): unknown {
   return (state as Record<string, unknown> | null)?.[POPUP_HISTORY_MARKER]
 }
 
+/** The entry a popup pushed: its marker, and the address it stands at (a popup has no address of its own). */
+type PushedEntry = { id: string; at: string }
+
+/**
+ * Whether the entry the window is on is still the one a popup pushed. The marker says so; where it is gone
+ * (a refresh) the popup's own word does, as long as the address is the one the entry was pushed at.
+ */
+function stillOurs(entry: PushedEntry): boolean {
+  const marker = markerOf(window.history.state)
+  if (marker !== undefined) return marker === entry.id
+  return window.location.href === entry.at
+}
+
 export function useBackCloses(active: boolean, close: () => void) {
   const closeRef = useRef(close)
   useEffect(() => {
     closeRef.current = close
   })
-  const entryRef = useRef<string | null>(null)
+  const entryRef = useRef<PushedEntry | null>(null)
   const pendingRef = useRef<number | null>(null)
 
   useEffect(() => {
@@ -57,14 +81,14 @@ export function useBackCloses(active: boolean, close: () => void) {
     let entry = entryRef.current
     if (!entry) {
       entries += 1
-      entry = `popup-${entries}`
+      entry = { id: `popup-${entries}`, at: window.location.href }
       entryRef.current = entry
-      window.history.pushState({ [POPUP_HISTORY_MARKER]: entry }, "")
+      window.history.pushState({ [POPUP_HISTORY_MARKER]: entry.id }, "")
     }
     const mine = entry
     let popped = false
     const onPop = () => {
-      if (markerOf(window.history.state) === mine) return
+      if (markerOf(window.history.state) === mine.id) return
       popped = true
       entryRef.current = null
       closeRef.current()
@@ -76,7 +100,7 @@ export function useBackCloses(active: boolean, close: () => void) {
       pendingRef.current = window.setTimeout(() => {
         pendingRef.current = null
         entryRef.current = null
-        if (markerOf(window.history.state) === mine) window.history.back()
+        if (stillOurs(mine)) window.history.back()
       }, 0)
     }
   }, [active])
