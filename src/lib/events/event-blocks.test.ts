@@ -107,6 +107,8 @@ describe("the confirm's words", () => {
       "They see this album as private, and nothing tells them they were blocked",
     ]);
     expect(BLOCK_LEDE).toContain("let them back in from Guests");
+    // ★ Never a promise past the keys: an open album still opens to anyone signed out with its link.
+    expect(BLOCK_LEDE).toContain("from the account or phone they used");
   });
 
   it("the names-only offer says why a block can be walked around, fitted to who is blocked", () => {

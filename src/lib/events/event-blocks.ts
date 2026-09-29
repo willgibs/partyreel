@@ -76,9 +76,14 @@ export function blockTitle(name: string | null | undefined): string {
     : "Block this guest from this event?";
 }
 
-/** The confirm's one line under the title. */
+/**
+ * The confirm's one line under the title. ★ IT PROMISES ONLY WHAT THE KEYS HOLD: the account and the
+ * phone they used (a typed name's ticket, a confirmed guest's account and address), never a person,
+ * because an open album still opens to anyone signed out with its link, and a host who blocked someone
+ * must not believe otherwise (the names-only offer is the rest of the answer).
+ */
 export const BLOCK_LEDE =
-  "They won't be able to open this album or add to it again. You can let them back in from Guests.";
+  "They won't be able to open or add to this album from the account or phone they used. You can let them back in from Guests.";
 
 /**
  * "What this touches", one line each (the destructive confirm's own grammar,
