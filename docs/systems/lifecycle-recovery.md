@@ -86,6 +86,8 @@ bodies live in `lib/lifecycle/sweeps/` and `account-deletion.ts`, each tested on
   ([billing-caps.md](billing-caps.md)); a Free host is blocked before it can get there. Over, it sets `storage_grace_until`
   (`OVER_CAP_GRACE_DAYS`, 45) and emails; near the deadline, a reminder; past it, the host's active set is reduced
   largest-first (marked `removed_by_system`, recoverable for the window) with an email; back under, the grace clears.
+  ★ Its candidates are every profile past the SMALLEST cap any plan grants, read from `tiers.ts` (Free's 100 MB),
+  never a typed floor: a literal left at an old Free cap skips every lapsed host storing between the two, for good.
 - **Renewal:** an Event Pass holder is nudged 14 days before expiry (`RENEWAL_NUDGE_DAYS`, shared with the bell);
   `expired_passes` recomputes every holder from the ledger ([billing-caps.md](billing-caps.md)).
 - **Free-tier inactivity** (Pro and Event Pass are exempt): an event idle for six months is warned about two weeks out,

@@ -5,7 +5,7 @@
  *
  * The decision tree mirrors the real product walls, nothing else:
  *   • video is the Free wall (free events are photos-only);
- *   • 2 GB is the Free cap;
+ *   • Free's cap (100 MB since the free/pro shift: a small event's photos);
  *   • "hosting again" is the Pass → Pro fork (a pass covers ONE event; passes
  *     stack, but a recurring host is what Pro is FOR);
  *   • 75 GB is a single pass's room; above it, one event needs Pro storage;
@@ -45,11 +45,17 @@ export function smallestProFor(bytes: number): Plan {
   return pro.find((p) => bytes <= p.storageBytes) ?? pro[pro.length - 1];
 }
 
-/** "about 12,800 photos or 7 hours of video" — the receipt line for a byte cap. */
+/** "about 14,629 photos or 13 hours of video at an iPhone's default camera settings". */
 // Delegates to the shared formatter (tiers.ts) so the blog and /pricing can never describe one
 // cap in two ways; the en-US pin there also removes a host-locale hydration hazard this used to have.
-export function capacityPhrase(bytes: number, withVideo: boolean): string {
-  return `about ${formatCapacity(bytes, { video: withVideo })}`;
+// `basis: false` only where the same block says the basis once already (the configurator's live
+// line does; its reasons, beside it, do not repeat it).
+export function capacityPhrase(
+  bytes: number,
+  withVideo: boolean,
+  { basis = true }: { basis?: boolean } = {},
+): string {
+  return `about ${formatCapacity(bytes, { video: withVideo, basis })}`;
 }
 
 export function recommendPlan(input: CalculatorInput): Recommendation {
@@ -62,7 +68,7 @@ export function recommendPlan(input: CalculatorInput): Recommendation {
     return {
       planId: plan.id,
       plan,
-      reason: `Pro keeps every event you host in one place. ${plan.name} holds ${capacityPhrase(plan.storageBytes, true)}.`,
+      reason: `Pro keeps every event you host in one place. ${plan.name} holds ${capacityPhrase(plan.storageBytes, true, { basis: false })}.`,
       alternative:
         !video && bytes <= pass.storageBytes
           ? "Two one-off events a year? Two Event Passes work too."
@@ -75,7 +81,7 @@ export function recommendPlan(input: CalculatorInput): Recommendation {
     return {
       planId: "free",
       plan: free,
-      reason: `Free covers your whole event: ${capacityPhrase(free.storageBytes, false)}, every guest, the album and the reel.`,
+      reason: `Free covers a small event: ${capacityPhrase(free.storageBytes, false, { basis: false })}, every guest, the album and the reel.`,
       alternative: `Want video or more room later? An Event Pass adds both for ${pass.priceLabel.replace(" one-time", "")}, once.`,
     };
   }
@@ -85,7 +91,7 @@ export function recommendPlan(input: CalculatorInput): Recommendation {
     return {
       planId: "event_pass",
       plan: pass,
-      reason: `One event, paid once. A pass holds ${capacityPhrase(pass.storageBytes, true)}, video included.`,
+      reason: `One event, paid once. A pass holds ${capacityPhrase(pass.storageBytes, true, { basis: false })}, video included.`,
       alternative: null,
     };
   }
@@ -95,7 +101,7 @@ export function recommendPlan(input: CalculatorInput): Recommendation {
   return {
     planId: plan.id,
     plan,
-    reason: `A single pass tops out at ${Math.round(pass.storageBytes / GIGABYTE)} GB. ${plan.name} gives this event ${capacityPhrase(plan.storageBytes, true)}.`,
+    reason: `A single pass tops out at ${Math.round(pass.storageBytes / GIGABYTE)} GB. ${plan.name} gives this event ${capacityPhrase(plan.storageBytes, true, { basis: false })}.`,
     alternative: null,
   };
 }

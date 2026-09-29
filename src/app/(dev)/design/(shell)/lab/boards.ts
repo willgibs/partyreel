@@ -7,7 +7,6 @@ import { EmailsBoard } from "@/app/(dev)/design/sandbox/emails/board";
 import { LockedDoorBoard } from "@/app/(dev)/design/sandbox/locked-door/board";
 import { HelpCenterBoard } from "@/app/(dev)/design/sandbox/help-center/board";
 import { EventSettingsBoard } from "@/app/(dev)/design/sandbox/event-settings/board";
-import { HostStorageBoard } from "@/app/(dev)/design/sandbox/host-storage/board";
 
 import { PressPageBoard } from "@/app/(dev)/design/sandbox/press-page/board";
 import { ContactPageBoard } from "@/app/(dev)/design/sandbox/contact-page/board";
@@ -41,7 +40,6 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   "locked-door": { Component: LockedDoorBoard },
   "help-center": { Component: HelpCenterBoard },
   "event-settings": { Component: EventSettingsBoard },
-  "host-storage": { Component: HostStorageBoard },
 
   "press-page": { Component: PressPageBoard },
   "contact-page": { Component: ContactPageBoard },

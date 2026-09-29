@@ -581,7 +581,8 @@ describe("loadGalleryReel: the live reel's facts for one viewer", () => {
       liveReelEnabled: true,
       styleId: "warm",
       holdSec: 5,
-      clip: { videoAllowed: false, watermark: true, maxSeconds: 30 },
+      // 60 since the free/pro shift (it was 30): a free clip keeps the mark, not a shorter length.
+      clip: { videoAllowed: false, watermark: true, maxSeconds: 60 },
     });
     expect(getLiveReelServerFacts).toHaveBeenCalledWith("event-1");
   });

@@ -69,8 +69,9 @@ const eventFields = {
   // once one upload of theirs has completed, approved or held for review; the gate FAILS OPEN
   // while uploads are closed or the album is full, so nobody is ever held at a step they cannot
   // pass. Off (the default), the album opens after the name or the confirmed email. Free on every
-  // tier: a genuinely new flag with no legacy twin and no tier gate (GATED_EVENT_SETTINGS stays
-  // password + custom_slug only). Mirrors the events.require_upload_to_view column default (false).
+  // tier: a genuinely new flag with no legacy twin and no tier gate (GATED_EVENT_SETTINGS gates no
+  // setting at all since the free/pro shift). Mirrors the events.require_upload_to_view column
+  // default (false).
   require_upload_to_view: z.boolean(),
   // Host-configurable per-upload size cap for GUEST uploads (bytes). null = no host cap
   // (the universal MAX_UPLOAD_BYTES applies). Bounds MIRROR the events_max_upload_bytes_range
@@ -156,8 +157,8 @@ export type CreateEventValues = z.output<typeof createEventSchema>;
 export type UpdateEventInput = z.input<typeof updateEventSchema>;
 export type UpdateEventValues = z.output<typeof updateEventSchema>;
 
-// Album password (set / change). The DB RPC (set_event_password) re-checks tier +
-// length (defense-in-depth); this is the shared client + action shape.
+// Album password (set / change), on every plan. The DB RPC (set_event_password) re-checks
+// the length (defense-in-depth); this is the shared client + action shape.
 /** Exported so the help center's spec inline renders the real floor. */
 export const EVENT_PASSWORD_MIN_LENGTH = 4;
 export const eventPasswordSchema = z.object({
@@ -171,11 +172,11 @@ export const eventPasswordSchema = z.object({
 });
 export type EventPasswordValues = z.output<typeof eventPasswordSchema>;
 
-// Custom event slug (Pro / Event-Pass) — an optional human-friendly ALIAS for the
-// /e/[token] link. Normalized to lowercase, then validated. The DB RPC (set_event_slug)
-// re-checks tier + format + uniqueness (defense-in-depth); this is the shared client +
-// action shape, and also owns the reserved-word policy (a brand/clarity list, not a
-// routing or security boundary — see lib/constants/reserved-slugs.ts).
+// Custom event slug (every plan) — an optional human-friendly ALIAS for the /e/[token]
+// link. Normalized to lowercase, then validated. The DB RPC (set_event_slug) re-checks
+// format, the reserved words and uniqueness, and is the boundary (a host can call it past
+// the action); this is the shared client + action shape, and the friendly refusal for a
+// reserved word (lib/constants/reserved-slugs.ts, which the SQL array mirrors).
 export const eventSlugSchema = z.object({
   slug: z
     .string()

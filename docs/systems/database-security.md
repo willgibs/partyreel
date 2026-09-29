@@ -131,8 +131,8 @@ under Gotchas).
   `restore_event`); the undelete re-fires the event limit. Prefer this shape to a revoke whenever a column's
   legitimate writers are RPCs. A held row is skipped, never refused ([trust-safety-forensics.md](trust-safety-forensics.md)).
 - **Value gates are CHECKs and triggers:** `events_password_requires_hash` (no `password` visibility without a hash)
-  and `enforce_event_limit` (the tier's `MAX_EVENTS`, or `event_slots` when set; raises 23514). The paid gates on the
-  event password and custom slug live inside their setter RPCs.
+  and `enforce_event_limit` (the tier's `MAX_EVENTS`, or `event_slots` when set; raises 23514). A paid gate on an
+  event setting lives inside its setter RPC, mirroring `GATED_EVENT_SETTINGS` (none today: [billing-caps.md](billing-caps.md)).
 - ★ **Every capacity decision locks the host's `profiles` row `for update` first.** The cap, ingress and event-slot
   checks are check-then-act over aggregates no row lock can hold, so two concurrent uploads, restores or creates
   would each read N-1 and both admit. `create_media`, `create_media_as_host`, `restore_media`, `restore_event` and

@@ -28,7 +28,9 @@ export function PricingTeaser() {
     {
       name: free.name,
       price: free.priceLabel,
-      note: `${formatBytes(free.storageBytes)} · your whole first event`,
+      // A small first event since the free/pro shift (100 MB, photos only): "your whole first
+      // event" promised a wedding what a birthday tea outgrows.
+      note: `${formatBytes(free.storageBytes)} · a small first event`,
       popular: false,
     },
     {
@@ -53,7 +55,7 @@ export function PricingTeaser() {
     <SectionShell
       eyebrow="Pricing"
       heading={SECTION_HEADERS.pricing.line}
-      subhead="Free covers your whole first event, with no per-guest fees."
+      subhead="Start free on a small event, with no per-guest fees."
       /* TEMPO (R4/A32): the FAQ used to open ~190px below this CTA row. Part
          of the bottom padding goes back so the question block sits closer to
          the plans it answers questions about. */

@@ -176,8 +176,9 @@ here too; `../help/AUTHORING.md` lists them.
 | `<EventLimit tier="free" />` | events a tier may hold (`pro` renders the unlimited word) |
 | `<ReelSeconds tier="free" />` | a clip's length ceiling in seconds for `free`, `pro`, `event_pass` (the live reel has none) |
 | `<ReelStyleCount />` | how many looks a clip can wear (the reel plays the moods among them) |
-| `<CapacityEstimate plan="event_pass" />` | "19,200 photos or 9 hours of video" (photos only where the tier has no video, so `plan="free"` renders the photo count alone) |
-| `<PhotoAverageSize />`, `<VideoMinuteSize />` | the rule-of-thumb sizes behind the estimates |
+| `<CapacityEstimate plan="event_pass" />` | "21,943 photos or 20 hours of video at an iPhone's default camera settings" (photos only where the tier has no video, so `plan="free"` renders the photo count alone). The basis rides along; `basis="off"` drops it only where the sentence or the table caption already says it with `<EstimateBasis />` |
+| `<EstimateBasis />` | "at an iPhone's default camera settings": the camera every estimate assumes, said once before several figures |
+| `<PhotoAverageSize />`, `<VideoMinuteSize />` | the rule-of-thumb sizes behind the estimates: an iPhone's 24 MP default photo and a minute of its default 1080p video |
 | `<RecoveryWindowDays />` | the recovery window a deleted item waits in |
 | `<InactiveDays />`, `<InactiveWarningDays />` | the free-tier inactivity clock and its warning |
 | `<OverCapGraceDays />` | the over-capacity grace for a lapsed paid account |

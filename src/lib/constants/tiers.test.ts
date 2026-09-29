@@ -1,17 +1,22 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  AVG_PHOTO_BYTES,
   BILLING_TIERS,
   DEFAULT_STORAGE_CAP_BYTES,
+  ESTIMATE_BASIS,
+  ESTIMATE_BASIS_NOTE,
   GATED_EVENT_SETTINGS,
   GIGABYTE,
   INGRESS_CAP_MULTIPLIER,
   MAX_EVENTS,
   MAX_REEL_SECONDS,
+  MEGABYTE,
   MONTHLY_INGRESS_BYTES,
   PLAN_IDS,
   PLANS,
   TERABYTE,
+  VIDEO_BYTES_PER_MIN,
   clampReelSeconds,
   effectiveStorageCap,
   formatCapacity,
@@ -112,10 +117,13 @@ describe("tier limit literals (marketed-number pins)", () => {
       expect(MAX_REEL_SECONDS[t]).toBeGreaterThan(0);
     }
   });
-  it("free: 1 event, 20 GB static ingress, 2 GB cap", () => {
+  // The free/pro shift (Will, 2026-09-28) moved this pin from 2 GB and a flat 20 GB meter: Free
+  // is 100 MB now, and its meter follows the paid rule (derived, 3x the cap).
+  it("free: 1 event, derived ingress, 100 MB cap", () => {
     expect(MAX_EVENTS.free).toBe(1);
-    expect(MONTHLY_INGRESS_BYTES.free).toBe(20 * GIGABYTE);
-    expect(DEFAULT_STORAGE_CAP_BYTES.free).toBe(2 * GIGABYTE);
+    expect(MONTHLY_INGRESS_BYTES.free).toBeNull(); // null = derived, like every paid tier
+    expect(DEFAULT_STORAGE_CAP_BYTES.free).toBe(100 * MEGABYTE);
+    expect(planById("free").storageBytes).toBe(100 * MEGABYTE);
   });
   it("pro: unlimited events + derived ingress + profile-governed cap", () => {
     expect(MAX_EVENTS.pro).toBeNull();
@@ -127,20 +135,22 @@ describe("tier limit literals (marketed-number pins)", () => {
     expect(MONTHLY_INGRESS_BYTES.event_pass).toBeNull(); // null = derived (billing-caps.md)
     expect(DEFAULT_STORAGE_CAP_BYTES.event_pass).toBe(75 * GIGABYTE);
   });
-  it("reel length caps: Free 30s, Pro + Event Pass 60s (billing-caps.md)", () => {
-    expect(MAX_REEL_SECONDS.free).toBe(30);
+  // Free was 30 until the free/pro shift: a clip's length stopped being a paid line.
+  it("clip length caps: 60s on every tier (billing-caps.md)", () => {
+    expect(MAX_REEL_SECONDS.free).toBe(60);
     expect(MAX_REEL_SECONDS.pro).toBe(60);
     expect(MAX_REEL_SECONDS.event_pass).toBe(60);
   });
-  it("paid ingress multiplier is 3x the effective storage cap (billing-caps.md)", () => {
+  it("the ingress multiplier is 3x the effective storage cap, every tier (billing-caps.md)", () => {
     expect(INGRESS_CAP_MULTIPLIER).toBe(3);
   });
 });
 
 describe("monthlyIngressCap (billing-caps.md ingress derivation)", () => {
-  it("free: the static 20 GB, regardless of any cap on the profile", () => {
-    expect(monthlyIngressCap("free", null)).toBe(20 * GIGABYTE);
-    expect(monthlyIngressCap("free", 100 * GIGABYTE)).toBe(20 * GIGABYTE);
+  // Reshaped with the free/pro shift: Free's bound was a flat 20 GB whatever its cap; it follows
+  // the paid rule now, so the 2 GB -> 100 MB cut tightened the churn bound with it.
+  it("free: 3x its 100 MB default = 300 MB, the paid rule", () => {
+    expect(monthlyIngressCap("free", null)).toBe(300 * MEGABYTE);
   });
   it("pro: 3x the purchased cap (each Pro size scales its own bound)", () => {
     expect(monthlyIngressCap("pro", 100 * GIGABYTE)).toBe(300 * GIGABYTE);
@@ -157,9 +167,9 @@ describe("monthlyIngressCap (billing-caps.md ingress derivation)", () => {
 
 describe("clampReelSeconds (billing-caps.md length clamp)", () => {
   it("Auto (null/0/negative) fills up to the tier cap", () => {
-    expect(clampReelSeconds("free", null)).toBe(30);
-    expect(clampReelSeconds("free", 0)).toBe(30);
-    expect(clampReelSeconds("free", -5)).toBe(30);
+    expect(clampReelSeconds("free", null)).toBe(60);
+    expect(clampReelSeconds("free", 0)).toBe(60);
+    expect(clampReelSeconds("free", -5)).toBe(60);
     expect(clampReelSeconds("pro", null)).toBe(60);
     expect(clampReelSeconds("event_pass", undefined)).toBe(60);
   });
@@ -168,15 +178,15 @@ describe("clampReelSeconds (billing-caps.md length clamp)", () => {
     expect(clampReelSeconds("free", 30)).toBe(30);
     expect(clampReelSeconds("pro", 60)).toBe(60);
   });
-  it("an explicit length over the cap clamps down (downgraded host's stored 60)", () => {
-    expect(clampReelSeconds("free", 60)).toBe(30);
+  it("an explicit length over the cap clamps down (a crafted or stale stored length)", () => {
+    expect(clampReelSeconds("free", 90)).toBe(60);
     expect(clampReelSeconds("pro", 600)).toBe(60);
   });
 });
 
 describe("effectiveStorageCap", () => {
   it("falls back to the tier default when no explicit cap", () => {
-    expect(effectiveStorageCap("free", null)).toBe(2 * GIGABYTE);
+    expect(effectiveStorageCap("free", null)).toBe(100 * MEGABYTE);
     expect(effectiveStorageCap("event_pass", null)).toBe(75 * GIGABYTE);
   });
   it("an explicit cap wins (the Pro storage selector)", () => {
@@ -205,18 +215,16 @@ describe("isSettingLocked (tier-gated event settings)", () => {
     expect([...GATED_EVENT_SETTINGS]).not.toContain("require_verified_email");
     expect([...GATED_EVENT_SETTINGS]).not.toContain("require_upload_to_view");
   });
-  it("locks password on Free, unlocks on paid tiers", () => {
-    expect(isSettingLocked("password", "free")).toBe(true);
-    expect(isSettingLocked("password", "pro")).toBe(false);
-    expect(isSettingLocked("password", "event_pass")).toBe(false);
+  // The free/pro shift (Will, 2026-09-28) emptied the list: the password and the custom link
+  // are on every plan. These pinned the two locks on Free until then; they pin their absence now.
+  it("locks nothing on any tier: the password and the custom link are on every plan", () => {
+    for (const tier of BILLING_TIERS) {
+      expect(isSettingLocked("password", tier)).toBe(false);
+      expect(isSettingLocked("custom_slug", tier)).toBe(false);
+    }
   });
-  it("locks custom_slug on Free, unlocks on paid tiers", () => {
-    expect(isSettingLocked("custom_slug", "free")).toBe(true);
-    expect(isSettingLocked("custom_slug", "pro")).toBe(false);
-    expect(isSettingLocked("custom_slug", "event_pass")).toBe(false);
-  });
-  it("GATED_EVENT_SETTINGS lists the tier-gated keys", () => {
-    expect([...GATED_EVENT_SETTINGS]).toEqual(["password", "custom_slug"]);
+  it("GATED_EVENT_SETTINGS is empty (video is the one lock, and it is not a setting)", () => {
+    expect([...GATED_EVENT_SETTINGS]).toEqual([]);
   });
 });
 
@@ -225,6 +233,24 @@ describe("videosAllowedForTier (Phase 2 video Pro-gate)", () => {
     expect(videosAllowedForTier("free")).toBe(false);
     expect(videosAllowedForTier("pro")).toBe(true);
     expect(videosAllowedForTier("event_pass")).toBe(true);
+  });
+});
+
+describe("the estimates (an iPhone at its defaults, host-storage r2)", () => {
+  it("weigh a photo and a minute of video at Apple's own figures", () => {
+    // A 24 MP HEIF between Apple's 12 MP and 48 MP brackets, and Record Video's 1080p at 30 fps
+    // line. Binary megabytes, so each prints as Apple's number (tiers.ts carries the sources).
+    expect(AVG_PHOTO_BYTES).toBe(3.5 * MEGABYTE);
+    expect(VIDEO_BYTES_PER_MIN).toBe(65 * MEGABYTE);
+  });
+  it("puts Free at about thirty photos, the manifest's own sizing", () => {
+    expect(friendlyCapacity(planById("free").storageBytes).photos).toBe(29);
+  });
+  it("says its basis, and its working where there is room", () => {
+    expect(ESTIMATE_BASIS).toBe("at an iPhone's default camera settings");
+    expect(ESTIMATE_BASIS_NOTE).toBe(
+      "Estimates are at an iPhone's default camera settings: about 3.5 MB a photo (24 MP) and 65 MB a minute of video (1080p at 30 fps).",
+    );
   });
 });
 
@@ -243,13 +269,27 @@ describe("friendlyCapacity", () => {
 describe("formatCapacity", () => {
   it("renders photos only when video is off (the Free tier's photos-only truth)", () => {
     expect(
-      formatCapacity(planById("free").storageBytes, { video: false }),
-    ).toBe("512 photos");
+      formatCapacity(planById("free").storageBytes, {
+        video: false,
+        basis: false,
+      }),
+    ).toBe("29 photos");
   });
-  it("switches from minutes to hours at 90 minutes, with en-US thousands separators", () => {
-    expect(formatCapacity(planById("event_pass").storageBytes)).toBe(
-      "19,200 photos or 9 hours of video",
+  it("switches from minutes to hours at 120 minutes, with en-US thousands separators", () => {
+    expect(
+      formatCapacity(planById("event_pass").storageBytes, { basis: false }),
+    ).toBe("21,943 photos or 20 hours of video");
+    expect(formatCapacity(GIGABYTE, { basis: false })).toBe(
+      "293 photos or 16 minutes of video",
     );
-    expect(formatCapacity(GIGABYTE)).toBe("256 photos or 7 minutes of video");
+  });
+  it("carries its basis unless the surface says it already", () => {
+    // The round's point: an estimate with no camera behind it is a random claim.
+    expect(
+      formatCapacity(planById("free").storageBytes, { video: false }),
+    ).toBe("29 photos at an iPhone's default camera settings");
+    expect(formatCapacity(planById("pro_100").storageBytes)).toBe(
+      "29,257 photos or 26 hours of video at an iPhone's default camera settings",
+    );
   });
 });

@@ -12,10 +12,10 @@ import {
 import { formatBytesUp } from "@/lib/billing/storage-guard";
 import {
   DEFAULT_TIER,
-  friendlyCapacity,
+  formatCapacity,
   toBillingTier,
+  videosAllowedForTier,
 } from "@/lib/constants/tiers";
-import { formatCount } from "@/lib/format/count";
 import { cn, formatBytes } from "@/lib/utils";
 
 /**
@@ -65,8 +65,12 @@ export function StorageMeter({
   // is a plan's size, exact either way.
   const usedLabel = formatBytesUp(storageUsed);
   const capLabel = storageCap ? formatBytes(storageCap) : null;
-  const capacity = storageCap ? friendlyCapacity(storageCap) : null;
   const billingTier = toBillingTier(tier ?? DEFAULT_TIER);
+  // The shared estimate, with its camera (host-storage r2), and with video only where the plan
+  // takes it: "or 2 min of video" on a photos-only Free plan was a promise it cannot keep.
+  const capacity = storageCap
+    ? formatCapacity(storageCap, { video: videosAllowedForTier(billingTier) })
+    : null;
 
   return (
     <Popover>
@@ -123,8 +127,7 @@ export function StorageMeter({
         </div>
         {capacity && (
           <p className="text-xs text-muted-foreground">
-            Your {planName} plan holds about {formatCount(capacity.photos)}{" "}
-            photos or {formatCount(capacity.videoMinutes)} min of video.{" "}
+            Your {planName} plan holds about {capacity}.{" "}
             {/* "Need more?" used to LEAVE the app for a static, tier-blind
                 page. It opens the sheet on `room` now (`first=trigger`), which
                 is the one door here that already knows how full the host is.

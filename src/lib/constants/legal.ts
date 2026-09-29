@@ -113,8 +113,12 @@ export const LEGAL_DOCUMENTS: Record<LegalDocId, LegalDocMeta> = {
     // with album access may make and share a clip for personal, non-commercial
     // use under the guest-content license; the host's license names clips
     // where it named highlight reels; only a free event's clips carry a mark.
-    version: "1.7",
-    lastUpdated: "2026-09-25",
+    // 1.8 (2026-09-28): the free/pro shift. A password and a custom link are on
+    // every plan, and a clip runs the same length on every plan, so Storage and
+    // limits names only video and an unmarked clip as paid, and drops the
+    // lapsed-plan clause about settings a free plan can no longer lock.
+    version: "1.8",
+    lastUpdated: "2026-09-28",
     status: "pending-review",
     effectiveDate: null,
   },

@@ -8,7 +8,6 @@ import { EMAILS } from "./emails/spec";
 import { LOCKED_DOOR } from "./locked-door/spec";
 import { HELP_CENTER } from "./help-center/spec";
 import { EVENT_SETTINGS } from "./event-settings/spec";
-import { HOST_STORAGE } from "./host-storage/spec";
 
 import { PRESS_PAGE } from "./press-page/spec";
 import { CONTACT_PAGE } from "./contact-page/spec";
@@ -47,7 +46,6 @@ import { PRIVACY_HERO } from "./privacy-hero/spec";
 const REGISTERED: readonly BoardSpec[] = [
   HERO_CARD,
 
-  HOST_STORAGE,
   EXPORT_FLOW,
   ADMIN_TRIAGE,
   HELP_CENTER,

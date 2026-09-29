@@ -1,9 +1,9 @@
-import { CalendarPlus, Clapperboard, Lock, Video } from "lucide-react";
+import { CalendarPlus, Clapperboard, HardDrive, Video } from "lucide-react";
 import type { CSSProperties } from "react";
 
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
-import { MAX_EVENTS, MAX_REEL_SECONDS, planById } from "@/lib/constants/tiers";
+import { MAX_EVENTS, planById, plansForTier } from "@/lib/constants/tiers";
 import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
 import { formatBytes } from "@/lib/utils";
 
@@ -13,10 +13,19 @@ import { formatBytes } from "@/lib/utils";
  * named quietly underneath (the third text tone, Will's note 2). Positive
  * framing, honest floor: no capability is invented and no Free restriction is
  * hidden. Numbers derive from tiers.ts / limits.ts.
+ *
+ * ★ THE FOUR ARE HIS FOUR (the free/pro shift, Will 2026-09-28: "videos, more
+ * storage, unlimited events, no reel watermarks"). The password and the custom
+ * link left the wall when they came to Free, and a clip's length with them (60
+ * seconds on every plan), so the clip's tile is its mark. Unlimited events sits
+ * last because it is Pro's alone: a pass is one event (passes stack), which is
+ * what the subhead says rather than claiming all four for both.
  */
 
 export function UnlockGrid() {
+  const free = planById("free");
   const pass = planById("event_pass");
+  const pro = plansForTier("pro");
   const tiles = [
     {
       icon: Video,
@@ -25,19 +34,19 @@ export function UnlockGrid() {
       freeLine: "Free is photos only.",
     },
     {
-      // The CLIP, never the live reel: the reel plays uncapped and unmarked on
-      // every plan, so the paid wall is the clip's length and mark, plus Add to
-      // event (a clip is a video, and video is paid).
-      icon: Clapperboard,
-      title: `The ${MAX_REEL_SECONDS.pro}-second clip`,
-      body: "Twice as long, with no mark, and a finished clip can join the album.",
-      freeLine: `Free clips run ${MAX_REEL_SECONDS.free} seconds with a small mark.`,
+      icon: HardDrive,
+      title: "More room",
+      body: `${formatBytes(pass.storageBytes)} for one event with a pass, or ${formatBytes(pro[0].storageBytes)} to ${formatBytes(pro[pro.length - 1].storageBytes)} across every event on Pro.`,
+      freeLine: `Free holds ${formatBytes(free.storageBytes)}.`,
     },
     {
-      icon: Lock,
-      title: "Locks and custom links",
-      body: "Password-protect the album and name your link.",
-      freeLine: "Free shares the standard link, no password.",
+      // The CLIP, never the live reel: the reel plays unmarked on every plan, so
+      // the paid wall is the clip's mark, plus Add to event (a clip is a video,
+      // and video is paid).
+      icon: Clapperboard,
+      title: "Clips with no mark",
+      body: "The small mark comes off every clip, and a finished clip can join the album.",
+      freeLine: "Free clips carry a small mark.",
     },
     {
       icon: CalendarPlus,
@@ -51,7 +60,7 @@ export function UnlockGrid() {
     <SectionShell
       eyebrow="Upgrade"
       heading="Where Free ends and paid begins."
-      subhead={`Everything below comes with Pro and the ${pass.name} alike.`}
+      subhead={`Pro brings all four. An ${pass.name} brings the first three to one event.`}
     >
       <Reveal className="mx-auto mt-12 grid max-w-5xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {tiles.map((tile, i) => (

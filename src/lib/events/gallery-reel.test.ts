@@ -64,7 +64,8 @@ describe("reelFactsFor", () => {
       liveReelEnabled: true,
       styleId: "warm",
       holdSec: 5,
-      clip: { videoAllowed: false, watermark: true, maxSeconds: 30 },
+      // 60 since the free/pro shift (it was 30): a free clip keeps the mark, not a shorter length.
+      clip: { videoAllowed: false, watermark: true, maxSeconds: 60 },
     });
   });
 
@@ -122,7 +123,9 @@ describe("liveReelAvailable: the minimum is TWO", () => {
   it("is absent with the host's switch off, the lever off, or no facts at all", () => {
     const two = [item(1), item(2)];
     expect(liveReelAvailable({ ...ON, showReel: false }, two)).toBe(false);
-    expect(liveReelAvailable({ ...ON, liveReelEnabled: false }, two)).toBe(false);
+    expect(liveReelAvailable({ ...ON, liveReelEnabled: false }, two)).toBe(
+      false,
+    );
     expect(liveReelAvailable(null, two)).toBe(false);
   });
 });

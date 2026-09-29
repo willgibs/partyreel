@@ -32,8 +32,8 @@ import {
  * hopefully upgrade to host one day." The person this control is for is the
  * guest who was just told, on an album, that their name could be a page; a
  * /pricing wall at the end of that sentence is the whole loop broken. Custom
- * EVENT slugs stay Pro (GATED_EVENT_SETTINGS), which is where the paid idea
- * actually belongs: a host feature on a host's event.
+ * EVENT slugs followed on 2026-09-28 (the free/pro shift): GATED_EVENT_SETTINGS
+ * gates nothing, and Pro is video, storage, events and unmarked clips.
  */
 export function ProfileSlugControl({
   siteUrl,

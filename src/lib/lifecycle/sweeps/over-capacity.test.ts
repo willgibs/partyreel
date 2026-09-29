@@ -45,6 +45,7 @@ const { sweepOverCapacity } =
   await import("@/lib/lifecycle/sweeps/over-capacity");
 
 const NOW = new Date("2026-09-23T04:00:00.000Z");
+const MB = 1024 ** 2;
 const GB = 1024 ** 3;
 const CAP = 10_000; // an explicit cap, so a few thousand bytes is "over"
 
@@ -68,13 +69,13 @@ function account(id: string, over: Partial<FakeRow> = {}): FakeRow {
 /**
  * 1,295 candidates with nothing live, plus four that each take one branch: over with no grace, under
  * with a grace to clear, past their grace with 2,500 active items, and inside the reminder window.
- * Twenty accounts under the 2 GB floor are no candidates at all.
+ * Twenty accounts under the floor (the smallest plan's cap, Free's 100 MB) are no candidates at all.
  */
 function fixture() {
   const profiles: FakeRow[] = [];
   for (let i = 0; i < 1_295; i++) profiles.push(account(uuidOf("a", i)));
   for (let i = 0; i < 20; i++) {
-    profiles.push(account(uuidOf("s", i), { storage_used_bytes: GB }));
+    profiles.push(account(uuidOf("s", i), { storage_used_bytes: 50 * MB }));
   }
   const opens = account(uuidOf("b", 1));
   const clears = account(uuidOf("b", 2), {
@@ -199,5 +200,28 @@ describe("sweepOverCapacity", () => {
     expect(second.stopped_early).toBeUndefined();
     // Every candidate asked once more (pro accounts with an explicit cap are all capped).
     expect(summaries() - before).toBe(1_299);
+  });
+
+  // The free/pro shift (2026-09-28): the floor was a typed 2 GB, Free's old cap. At Free's 100 MB a
+  // host who cancels Pro storing 1 GB sat under that literal: never a candidate, so no grace, no
+  // email and no reduce, and a free account kept ten times its room for good.
+  it("opens a grace window for a lapsed host between Free's cap and the old 2 GB floor", async () => {
+    const lapsed = account(uuidOf("f", 1), {
+      tier: "free",
+      storage_cap_bytes: null, // the webhook's downgrade: Free's tiers.ts default applies
+      storage_used_bytes: GB,
+    });
+    const event = eventRow(uuidOf("e", 9), String(lapsed.id));
+    const world = createCronWorld({
+      profiles: [lapsed],
+      events: [event],
+      media: [mediaRow(uuidOf("mf", 1), event, { file_size_bytes: GB })],
+    });
+    state.world = world;
+
+    const tally = await sweepOverCapacity(world.client, NOW);
+    expect(tally).toMatchObject({ candidates: 1, grace_opened: 1 });
+    expect(world.fake.tables.profiles[0].storage_grace_until).toBeTruthy();
+    expect(state.sent.map((s) => s.kind)).toEqual(["over_cap_grace_start"]);
   });
 });
