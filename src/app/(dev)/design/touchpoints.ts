@@ -25,7 +25,6 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 
 /** The boards standing in sandbox/, one row each below. */
 export type SandboxId =
-  | "admin-triage"
   | "locked-door"
   | "event-settings"
   | "press-page"
@@ -52,36 +51,6 @@ export type Ruling = {
 };
 
 export const RULINGS: Ruling[] = [
-  {
-    id: "admin-triage",
-    title: "Acting on a report",
-    surface: "admin",
-    asks: "the reports queue as a batch-first sweep with every fact on every report, what puts clear harm in front, how a reporter is asked for proof, and what a phone may do",
-    why: "Round two, from his notes: a fast, batch-first queue where each report says all it takes to decide, and a way to ask for proof before anything comes down.",
-    lives: [
-      "docs/systems/admin-observability.md",
-      "docs/systems/trust-safety-forensics.md",
-      "src/app/admin/reports/page.tsx",
-      "src/app/admin/reports/person-report-list.tsx",
-      "src/components/app/report-review.tsx",
-      "src/components/admin/destructive-sheet.tsx",
-      "src/components/guest/report-dialog.tsx",
-      "src/app/api/reports/route.ts",
-      "src/lib/validation/report.ts",
-      "src/lib/db/queries/reports.ts",
-      "src/lib/email/templates.ts",
-      "content/help/report-a-problem-as-a-guest.mdx",
-    ],
-    board: {
-      note: "Four decisions on a Saturday night of 15 open reports in the portal as it ships, wearing his round one picks: the queue four ways at 1440 (a sheet, a list beside the report, the review grid with words, grouped by album), each with every fact and a front no sweep can take; then, on his queue, what puts clear harm in front (the guest's Report at 375 beside it), how a reporter is asked for proof (her form, her inbox, the report), and what a phone may do at 375",
-      variants: [
-        "The queue",
-        "Clear harm, in front",
-        "Asking for proof",
-        "What a phone may do",
-      ],
-    },
-  },
   {
     id: "locked-door",
     title: "The locked door",
@@ -304,7 +273,6 @@ export const RULINGS: Ruling[] = [
  * registry.test.ts holds this list and `BOARDS` to the same members.
  */
 export const DESK_ORDER: readonly SandboxId[] = [
-  "admin-triage",
   "event-settings",
   "locked-door",
   "privacy-hero",
