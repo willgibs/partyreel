@@ -243,18 +243,6 @@ function readSpecFacts(root, folder) {
     ts.forEachChild(node, walk);
   };
   walk(sf);
-  // The two boards that predate their facts carry them in the registry.
-  if (facts.lives.length === 0) {
-    const reg = join(root, SANDBOX, "registry.ts");
-    if (existsSync(reg)) {
-      const src = readFileSync(reg, "utf8");
-      const block = src.match(
-        new RegExp(`"${folder}": \\{[\\s\\S]*?lives: \\[([\\s\\S]*?)\\]`),
-      );
-      if (block)
-        facts.lives = [...block[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]);
-    }
-  }
   return facts;
 }
 

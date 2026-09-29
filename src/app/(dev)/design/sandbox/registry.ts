@@ -1,8 +1,4 @@
-import type {
-  BoardSpec,
-  DeskFacts,
-  Surface,
-} from "@/components/lab/board-spec";
+import type { BoardSpec, Surface } from "@/components/lab/board-spec";
 
 /**
  * THE BOARD REGISTRY: every standing board, found by its folder.
@@ -64,27 +60,20 @@ const isSpec = (v: unknown): v is BoardSpec =>
   typeof (v as BoardSpec).id === "string" &&
   Array.isArray((v as BoardSpec).asks);
 
-/** A board as the desk reads it: its spec with every desk fact present. */
-export type StandingBoard = BoardSpec & {
-  surface: Surface;
-  desk: number;
-  lives: readonly string[];
-  tracks?: readonly string[];
-};
+/** A board as the desk reads it: its spec with its surface and place present. */
+export type StandingBoard = BoardSpec & { surface: Surface; desk: number };
 
 /**
- * A spec with its facts. `defineExploration` requires them, so a spec without
- * one is a type error; one that reaches here anyway still stands (at the foot,
- * on the Shared shelf, redrawing nothing), because one board's missing line
- * must not take the desk down, and registry.test.ts is what refuses it.
+ * A spec with its place. `defineExploration` requires the desk facts, so a
+ * spec without one is a type error; one that reaches here anyway still stands
+ * (at the foot, on the Shared shelf), because one board's missing line must
+ * not take the desk down, and registry.test.ts is what refuses it.
  */
 function standing(spec: BoardSpec): StandingBoard {
   return {
     ...spec,
     surface: spec.surface ?? "shared",
     desk: spec.desk ?? Number.MAX_SAFE_INTEGER,
-    lives: spec.lives ?? [],
-    tracks: spec.tracks,
   };
 }
 

@@ -240,7 +240,7 @@ describe("githubFor, editorFor and fileFor", () => {
 describe("the registries resolve through the grammar", () => {
   it("parses every board's lives entry to a lab ref with a real file", () => {
     for (const board of BOARDS) {
-      for (const text of board.lives) {
+      for (const text of board.lives ?? []) {
         const ref = parseRef(text);
         expect(ref.kind, `${board.id}: ${text}`).not.toBe("external");
         const file = fileFor(ref);
