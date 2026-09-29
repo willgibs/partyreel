@@ -35,7 +35,30 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **The round's shape.** Recommended, and built: three asks. `slug` (which address in a host's own words, drawn
+  still, as reduced motion and the demo's real address both are), `stage` (how the address and the stream share the
+  first screen: still as today, taking turns, the stream pouring the party typed, or the address taking the stage with
+  the stream moved to `/features/qr`), and `touch` (the clickable touch). Still-or-typewriter and the typewriter's
+  variants are one decision, because he compares the still hero with each variant side by side and a variant cannot
+  be drawn without its stage. Overrule: a still-or-typewriter ask with the variants staged behind it.
+- **`names` retires into `slug`.** Recommended, and built: the album is titled in the address's own words (`our-party`
+  is "Our party"), so the card, the album's head and the welcome say one name, and every `slug` option is drawn at the
+  album's head and in the welcome. A carried call on the board. Overrule: a name of its own at the album's head.
+- **The typed addresses.** Recommended, and built: round one's five parties in a host's words, `our-wedding`,
+  `my-30th`, `lake-weekend`, `our-reunion`, `team-party`, then back to the demo's own; each reserved to the demo (the
+  settled line). A carried call. Overrule: fewer, or others (one list).
+- **The card's four prints at rest.** Recommended, and built: four kinds of party from the one album (a wedding's exit,
+  a 30th's balloons, a lake-house fire, a team's toast filmed), so the card says "any party" before a word is read. A
+  carried call. Overrule: four from one party.
+- **The demo's host.** Round one's call carried: a persona on a demo account of its own (Sam Okafor), never Will's.
+- **The block without its eyebrow.** Recommended, and built: re-solved as production solves it, `GEO.blockH` less the
+  eyebrow's measured line (28 px from the tablet up, 36 at a phone), so the headline takes the block's first line and
+  the card and the axis stay (the axis moves 4 px at 1440 by 900). A carried call. Overrule: re-balance the air.
+- **The QR code page, if the stream moves there.** Recommended, and built: the home's composition moved whole (the
+  card and its stream centred, the page's own words at the measured clear line, the card's lamp standing for the
+  plate's). A carried call. Overrule: the page's own lit plate as the object the stream pours from.
+- **Stand-ins.** The band's twelve stills stand in for every photograph (his note: the kit is replaced before launch).
+- **Desk place** stays 90; the title stays "The demo's story".
 
 ## System-doc edits (in place, owned facts only)
 
