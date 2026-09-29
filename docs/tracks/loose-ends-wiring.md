@@ -16,8 +16,11 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/marketing/sections/features/album/use-album-fill.test.ts
   - src/components/marketing/sections/features/album/everywhere-peek.tsx
   - src/components/marketing/sections/features/album/everywhere-peek.test.tsx
-  # the one system-doc fact this lane falsifies (the FAQ is no longer native <details>), refined in place
-  - docs/systems/marketing-content.md
+  # the board these picks came from retires in this lane (a board is one folder since lab-revamp's stage two;
+  # its picks are what this lane built), a folder deletion in a commit of its own
+  - src/app/(dev)/design/sandbox/loose-ends/
+  # docs/systems/marketing-content.md is contact-wiring's claim: the one FAQ fact this lane falsifies (the FAQ is
+  # no longer native <details>) is a one-line exception there, edited in place and listed in the Handoff
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/reviews/loose-ends.json
   - docs/systems/design-system.md
