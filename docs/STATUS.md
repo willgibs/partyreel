@@ -15,8 +15,8 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 
 ## The current round: batch 8, from the desk at zero
 
-- **Milestone 29 is live** (`ab30a7f8`, 2026-09-26). Batches 4 to 8 ride `launch-prep` toward milestone 30, on his
-  yes once build 20's red-team is clean. The legal text is rewritten once, right before launch (his word).
+- **Milestone 30 is live** (`7846a4c9`, 2026-09-29): batch 7 whole. Batch 8 rides `launch-prep` toward milestone 31.
+  The legal text is rewritten once, right before launch (his word).
 - **Batch 7 landed whole** (builds 16 to 19, red-teamed live): the block, the free/pro shift, the guest voice, the
   hero's card, the export flow, triage's round one, the help and the emails' wrapper, and their follow-ups.
 - **Will's sitting on build 19** is transcribed (2026-09-29: 41 answers on ten boards, the desk whole). Wave A wires
@@ -32,18 +32,16 @@ press-page's `a-human`). The next desk is build 21's: `locked-door` r2 and `disp
 
 ## Live state
 
-- **Prod:** partyreel.com is `main` at tag `milestone-29` (`ab30a7f8`, 2026-09-26), both projects READY and passed:
-  the scale probe's guest poll answers the paged manifest whole (1,145) then a 304, the dashboard and the probe's hub
-  (1,145 items, 20 to review) as willg97, his own password album with `?reel` and `?reel=screen` and its Download all
-  (1 photo) while a signed-out viewer meets the password door, eleven public pages and both sign-in pages with no
-  console error, the lab and `/admin/reels` 404, the admin door redirects, no runtime error.
-  `admin.partyreel.com` is served by `partyreel-admin` (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel`
-  (`=app`).
+- **Prod:** partyreel.com is `main` at tag `milestone-30` (`7846a4c9`, 2026-09-29), both projects READY: sixteen
+  public pages and both sign-in pages with no exception, `/pricing` at 100 MB, the lab and `/admin/reels` 404, the admin
+  door redirects; the signed-in pass runs. `admin.partyreel.com` is served by `partyreel-admin`
+  (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel` (`=app`).
 - **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 20 (the batch-8 record): build
-  19's red-team fixes (`crumbs-10`) and the slug family with the sign-in return path (`crumbs-11`); its red-team runs.
-- **The shared database** runs six migrations applied 2026-09-29 (the block, the free shift, the operator removal purge,
-  the help's feedback, the pass reminders switch, likes on private albums), under partyreel.com too, whose
-  milestone-29 pages still say 2 GB until milestone 30; no Free account holds more.
+  19's red-team fixes (`crumbs-10`) and the slug family with the sign-in return path (`crumbs-11`); red-teamed live,
+  every journey PASS, two minors (`crumbs-12`, `crumbs-13`).
+- **The shared database** runs seven migrations applied 2026-09-29 (the block, the free shift, the operator removal purge,
+  the help's feedback, the pass reminders switch, likes on private albums, the slug family), which partyreel.com's milestone-30 build now
+  matches; no Free account holds more than 100 MB.
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md).
@@ -70,5 +68,5 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-- **Milestone 30's yes**, then the hold doctrine's three; Q1, the real-upload check and the iPhone check are his in the
+- The hold's redesign and the child-abuse report's instant hide are decided (`triage-r2-wiring`); Q1, the real-upload check and the iPhone check are his in the
   morning on his phone (`tracks/orchestrator.md`). The claims walk is the Orchestrator's to stage (his word).

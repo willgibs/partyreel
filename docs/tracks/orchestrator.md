@@ -64,16 +64,20 @@ family), `disposable-mode` r2, `crumbs-12`. Batch 7 is merged whole; its records
      report gap; a reporter's confirmed address kept only until the report closes; Ask for proof is a new mail, built
      behind a switch left off for his yes (his emails rule); no guest-path function replaced; retires admin-triage.
      And the hold, rebuilt on his word (2026-09-29: a hold is for what police should see, so nothing held stays
-     visible): Hold for forensics is Take it down plus preserve, one press; the reported item and the same uploader's
-     other items at the event leave the album and the host's Deleted at once and are preserved past every purge,
-     each restorable by an operator after review; an operator's removal (takedown or hold) stops counting against the
-     host's storage at once, so no number tells the two apart; an open report protects its item from every permanent
+     visible by default): Take it down and Hold for forensics stay two acts; Hold's confirm has "Take it down too"
+     on by default (the reported item and the same uploader's other items the hold covers leave the album and the
+     host's Deleted at once, each restorable by an operator after review), and unticking it is the quiet hold for a
+     police preservation request (nothing removed; the host's delete looks like any delete, restore refused, purge
+     skipped), so there is no third act. An operator's removal (takedown or hold) stops counting against the host's
+     storage at once, so no number tells the two apart; an open report protects its item from every permanent
      delete (the host's, the uploader's, an event's or an account's) until it closes, the item leaving view as the
      deleter expects while its bytes wait, done at the media table's guard (the guest-path functions are
-     `settings-wiring`'s this batch); the one discreet hold left is `/admin/forensics`' by-id preservation for a
-     police preservation request, where the host's delete looks like any delete (restore refused, purge skipped).
-     Recommended and built unless he says no: a report of the worst kind hides the item from every viewer at once
-     pending review, repeat false reporters ignored.
+     `settings-wiring`'s this batch). The child-abuse kind (his yes, 2026-09-29, with the anti-abuse below): the
+     report itself is never gated (anyone, signed in or not, and it heads the queue); a report from an address
+     confirmed in the form hides the item from every viewer at once pending review, an unconfirmed one heads the
+     queue without hiding and the form says so; limits per address and per event; an address whose child-abuse
+     report is dismissed as false loses the instant hide; and the operator is alerted at once (the portal's signal
+     and a mail to the operator's own inbox, internal, not a product mail) so a false hide lasts minutes.
    - The lab revamp (step 8), once `locked-door` r2 and `disposable-mode` r2 merge; a board cut meanwhile is converted at
      its sync, since lab work never delays a board.
    - `event-ready` r1 (Opus), once `settings-wiring` merges: his event checklist and the settings' mini wizard (and
@@ -96,14 +100,24 @@ family), `disposable-mode` r2, `crumbs-12`. Batch 7 is merged whole; its records
    - `schema-pass` (Opus), once `settings-wiring` merges (it owns the guest path this batch): the whole data
      architecture audited (tables, columns, functions, grants, indexes, RLS), the dead dropped (the reel's dormant
      `media.highlight_score` and `clip_*`, the latent TRUNCATE, REFERENCES and TRIGGER grants, `get_event_by_qr_token`'s
-     PUBLIC EXECUTE) and what can be better simplified, reported as a list. His standing permission (2026-09-29): the
+     PUBLIC EXECUTE, and his four yes'd drops: `events.show_guest_list` and the three `notification_prefs` columns
+     for mail nothing sends, safe since milestone 30 stopped partyreel.com reading them) and what can be better
+     simplified, reported as a list. His standing permission (2026-09-29): the
      data architecture is the Orchestrator's, anything useless dropped, timed so partyreel.com's live build never
      reads a dropped thing.
+   - `crumbs-13` (Opus): Sign out signs out this device only (`signOut({ scope: 'local' })`), and "Sign out
+     everywhere" sits deeper in the account's settings (Will, 2026-09-29: a host uses a desk and a phone for
+     different jobs; build 20's red-team found the global sign-out ending the admin portal's session too); the
+     home's golden photograph preloaded twice at 1440 on a pixel-ratio-1 screen (two `sizes`, so the 384 copy goes
+     unused; build 20's red-team, `../partyreel-wt/_scratch/redteam-20/ledger.txt`).
    - After their rounds: the disposable wiring (after `disposable-mode` r2's picks and `settings-wiring`'s merge, since
      it rewrites the guest path) and the door family's wiring.
-4. **The claims walk**, once build 20's red-team reports (his full permission, 2026-09-29): the Orchestrator stages
-   claimable rows for partyr33l itself (the query in Waiting on Will's old line, in git at `bbd3df6c`), spawns a
-   claims-walk red-team, and restores every staged row after.
+4. **The claims walk** (his full permission, 2026-09-29), once the milestone's Chrome pass reports: three rows
+   staged 10:01Z with `pending_email = 'partyr33l@gmail.com'` (`ea7863de` Theo R. at Reel lane probe, to Claim;
+   `ab7cc94d` Rt Legacy Named at Gallery width, Not mine's dialog then Cancel; `d61ebe2e` Will Test at the password
+   Alias red-team, left waiting); each was a name-only row (`pending_email`, `pending_email_at`, `email`, `user_id`,
+   `verified_at` all null; the names as given), and the Orchestrator restores all three after the walk (a claim
+   writes `email`, `user_id`, `verified_at` and nulls the name). Its brief: `../partyreel-wt/_scratch/claims-walk/brief.md`.
 5. **Build 21** once `locked-door` r2 and `disposable-mode` r2 land, with the wiring merged by then; `settings-wiring`'s
    build gets a red-team of its own (every door, both ways through each swap, the Guests room, the pages).
 6. **The demo event**, after `demo-framing` r2 (his full permission, 2026-09-29; the r1 board merged at `51db72fc`):
@@ -112,11 +126,12 @@ family), `disposable-mode` r2, `crumbs-12`. Batch 7 is merged whole; its records
    prints and the seed sets, `OBJECT_EVENT` and `OBJECT_PRINTS` to match, a demo host account if `host` stands
    (`partyreel-demo` stays refused to anyone else by the brand family, `crumbs-11`), and ASSETS rows 5, 33 and 34
    unparked with the party's subjects.
-7. **Milestone 30, approved** (Will, 2026-09-29): it ships once build 20's red-team is clean (legal no longer gates a
-   milestone: Will, 2026-09-29, the Terms and Privacy are rewritten once right before launch, ROADMAP's launch
-   checkpoint); the moment partyreel.com is READY on it, drop `events.show_guest_list` and the three `notification_prefs`
-   columns for mail nothing sends (his yes, 2026-09-29; the milestone-29 build reads them until then); after it, `kit/`'s screens re-captured from partyreel.com
-   (the home's hero, close, teaser and eyebrow, the demo's doors, the pricing page).
+7. **Milestone 30 is live** (`7846a4c9`, tag `milestone-30`, 2026-09-29; gate `GATEm30` green on `77a4bd44`; both
+   projects READY; launch-prep fast-forwarded to it): the headless pass is clean (sixteen public pages and both sign-in
+   pages with no exception, `/pricing` at 100 MB and no "2 GB", the lab and `/admin/reels` 404, the admin door
+   redirects). The Chrome pass (agent `aacad476e5cdfa021`, `../partyreel-wt/_scratch/prod-m30/brief.md`) runs, then
+   the claims walk (step 4). After it, `kit/`'s screens re-captured from partyreel.com (the home's hero, close,
+   teaser and eyebrow, the demo's doors, the pricing page).
 8. **The lab revamp**: a board as one self-registering folder, its metadata in its spec, lab checks scoped to the
    lane's own boards, the authoring API trimmed, a fresh agent proving it (the first board cut after it); with
    library-lean's board ideas (a `Surfaces` family of live frames per route with guest entries, the Library's sidebar
@@ -128,9 +143,6 @@ family), `disposable-mode` r2, `crumbs-12`. Batch 7 is merged whole; its records
 
 - **His desk: zero** after build 19's sitting. Two asks wait on the rounds that replace their boards: demo-framing's
   `names` (behind `story=?`) and press-page's `a-human` (the About round).
-- **The worst-kind hide** (asked 2026-09-29): should a report marked child abuse hide the photo from every viewer
-  at once, before an operator looks? Recommended yes for that one kind (a false one hides a photo until an
-  operator restores it; repeat false reporters ignored); `triage-r2-wiring` builds it unless he says no.
 - **The morning of 2026-09-30, on his phone** (his word): Q1 (on a phone the code card fills the screen, but Back
   leaves the album; should Back close it like the other full-screen popups?); the 2-minute real-upload check on the
   alias (a first photo, landscape, as a signed-out guest at a held-uploads event: the keep, her uploads' "Waiting for
