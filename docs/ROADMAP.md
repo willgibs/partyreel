@@ -17,6 +17,8 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Library: `DestructiveSheet`'s `note` (optional and required) and the report cards have no specimen on the compositions page, the one automated eye on the portal (from `triage-wiring`).
+- Host: `get_event_like_counts` answers a like count for every media id in her event, a takedown's and a withdrawal's included, so a host calling it directly meets an id no surface shows her (from `triage-wiring`).
 - Marketing: the home hero's base geometry sets its headline in three lines from about 470 to 767 wide (405 px against the 361 `GEO.base.blockH` is solved with, measured), so a short window at those widths runs the actions past the fold; a base `blockH` taken at 767, or a step in `h1Max`, ends it (from `hero-wiring`).
 - Marketing: `chrome/mega-panel.tsx`'s note still calls `DemoFrame` "the object every demo door now shares"; it is the Features pane's alone since the link card took the hero, a line for the chrome's next owner (from `hero-wiring`).
 - Database: drop `events.show_guest_list` and its host UPDATE grant (a destructive contract migration, on Will's yes); nothing reads or writes it since `safety-wiring` (`social.guest-identity.test.ts` "the retired key...", and the guard "no winning function body reads show_guest_list").
@@ -60,8 +62,6 @@ below hold the rest by surface.
 - The lab and the kit: `PopupQuote` (a popup kind drawn still in a frame, its shape read off `popup-kinds.ts` on production's own shape classes) was local to `event-safety/kinds.tsx` (in git at `99510977^`) and copied `popup.tsx`'s private content and overlay strings; a kit candidate beside `Several` and `ScrollHere`, or `popup.tsx` exports the two (from `safety-refresh`).
 - The lab and the kit: `ui/responsive-menu.tsx` cannot be drawn in a lab frame (it portals to the lab page and reads the lab page's media query), so export-flow quotes its private `DESK_ROW` and `HAND_ROW`; exported row classes or a shape-and-container seam would let a board draw the real menu (from `flow-refresh`).
 - The lab and the kit: `MasonryColumns` and `GuestMasonry` inside a lab frame lose every lazy image to `abortUnfinishedImages`, and under `pnpm dev` Strict Mode's rehearsal unmount runs the same cleanup on a tile still loading, which the remount keeps stripped: a board drawing an album grid is judged blind in dev and draws blank tiles in a frame (from `flow-refresh`, `marketing-refresh`).
-- Admin: the People arm prints "No reason given." at full weight (`person-report-list.tsx`) where the album arm prints a muted "No reason provided." (`report-review.tsx`); one line for both rides `reason`'s wiring (from `triage-refresh`).
-- Host: an operator's removal waits in the host's Deleted with a countdown and a Restore that can only fail (`recently-deleted-grid.tsx`; `restore_media`'s `admin_removed`), and it drives the bell's "about to be cleared" nudge (`queries/notifications.ts`); `notice`'s answer shapes the fix (from `triage-refresh`).
 - Shared: a link inside a hand's place popup (the claims review's Open album, the look's Open full profile) navigates away and leaves the place's same-URL history entry behind, one dead Back; the place could take its entry back as a link inside it navigates (`ui/popup-back.ts`) (from `claims-wiring`).
 - Guest door: the moment card's Follow starts on Follow even when she already follows the host (`claim-handle-prompt.tsx` hands `FollowMomentCard` no follow state); reading it beside `getHostCard` ends it (from `claims-wiring`).
 - Code hygiene: the retired claim ticket's Finish is still named in `account/profile/invite.ts` (`shouldInviteToPage`'s note), and as "claim ticket" in comments in `migration-guards.test.ts` and `validation/upload.test.ts` (from `claims-wiring`).
@@ -128,7 +128,6 @@ below hold the rest by surface.
 - Tests: `src/app/(guest)/u/[slug]/owner-mode.test.ts`'s allowed-reader list could name `listEvents` (the owner-RLS read `owner-sections.tsx` now makes; its regexes catch only `get*` names).
 - Guest: the next person on a shared phone skips the welcome, and with it the legal consent line (`pr_welcome_<qr>` survives every sign-out and the ticket drop); decide whether it goes with the tickets.
 - Legal: the Terms say a profile block "removes each of you from the other's social surfaces" (`legal-terms.tsx:427`) while a block covers following only; the event-safety wiring rewrites the section.
-- Help: `reporting-and-safety.mdx` names "suspended accounts" (line 36), and no suspension exists.
 - Billing follow-ons: `host-storage`'s wiring needs a per-account, per-item size query (today's `getHostStorageSummary` is an aggregate and `listEventMedia` is per event) and the plan sheet's refusal face on the trigger the board picks.
 - The voice: after the guest journey's board (`voice-guest`), the host app's lines, then marketing's main lines, each won one line at a time in its real place, across all main and micro copy.
 - Help: `your-dashboard-explained.mdx` carries the stale `<Path>Account menu › Dashboard</Path>` breadcrumb (the account menu has no Dashboard item; the logo is the door), beside its own billing help-sync line.
@@ -276,7 +275,6 @@ The app:
 - Admin: `/admin/forensics` renders no per-upload identity (neither the typed name nor the unproved address reaches a table); an uploader column on the held-media table needs `listHeldMedia` (`queries/forensics.ts`) to read it.
 - Admin: `/admin/reports` cannot reach a reported person's account (suspend, clear a bio, remove a handle), so the operator acts out of band and only closes the report.
 - Admin: `report_status`'s `reviewed` is written by no code path while the marketing and legal copy promise every report is reviewed; a verdict writes it, or the promise changes.
-- Admin: `reports.resolution_note` has never been read or written (the `admin-triage` board's `verdict` ask fills it).
 - Admin: `ModerationGrid` imports live server actions at module scope; take the action as a prop, as `TriageStatusControl` does.
 - Admin: `DistributionChart` hard-codes `YAxis width={28}` (`metrics-charts.tsx`), so a four-digit tick renders as its last three digits the day a count reaches 1,000.
 - Admin: the MFA enrolment secret (`admin/mfa-enroll.tsx`) is a bare `<code>`, so preflight sets it in the mono stack; `font-sans`, or the muted plate.

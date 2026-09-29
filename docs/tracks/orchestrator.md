@@ -43,20 +43,20 @@ a lane").
 | `emails-wiring` | emails r1 on the ten mails that already send: one shell, the wordmark, light only, tagged operator subjects, the foot with no address and the renewal nudge's unsubscribe (a migration), a plain-text twin; the three dead switches leave; nothing new sends; emails retires | running, agent `adc42bfa207564886` | Opus, :3133 | |
 | `demo-framing` | a new board, round one: the story the demo tells (`story`, `names`, `demo`) on the home hero's link card and the album it opens; registered after `disposable-mode` | running, agent `ad22c252b4ce52c45` | Opus, :3132 | |
 | `export-wiring` | export-flow's six: the Yours row filtered on the server, the toast that stays with a subtle cancel, the one-line empty refusal, parts in plain words, a phone's Download all to Files; the Worker backward compatible (I deploy it after the merge); export-flow retires | running, agent `aa10025fff8b6ba0e` | Opus, :3131 | |
-| `triage-wiring` | admin-triage r1's six: the marked reason, the verdict's note, the window, the escalation door, the shape idiom, a reported removal purged from the host's view (a migration; legal hold and preservation kept); the reports clause drafted | running, agent `a347eb3bf09ed556f` | Opus, :3132 | |
 | `help-wiring` | help-center's seven: host first, the strip with quick questions in the focused search, illustrated steps, contextual links and a Help row in the menus, the feedback beacon (a migration) with its admin view, the rung, Search in the header and footer; help-center retires | running, agent `a6ca95d7a7aab7b4b` | Opus, :3134 | |
 
 Batch 7 (cut `35601390`, 2026-09-28) answers Will's sitting on build 15 (transcribed at `69afdbc5`: 21 answers on
 hero-card, voice-guest, host-storage, event-safety, export-flow). Wave A, four lanes: three new boards and the block.
 Wave B follows as seats free. Batch 6 (sixteen lanes) is merged whole; its records carry the rest.
 
-Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, event-settings, voice-wiring, pricing-wiring, triage-r2, safety-wiring, hero-wiring.
+Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, event-settings, voice-wiring, pricing-wiring, triage-r2, safety-wiring, hero-wiring, triage-wiring.
 
 ## Next, in order
 
 1. **Integrate each running lane as it hands off** (rows above), each migration by protocol, one at a time: drift
    check, apply verbatim, the rolled-back refusals, advisors, types.
-   - Applied 2026-09-29: `event_blocks` (recorded `20260929002900`, the file's md5 `f0c3ff6d`; 23 bodies as the header
+   - Applied 2026-09-29: `operator_removal_purge` (`20260929015847`, md5 `8ece437e`; five bodies, ACLs unchanged,
+     the policy's removal conjunct, the rolled-back check held, advisors unchanged, types unchanged); `event_blocks` (recorded `20260929002900`, the file's md5 `f0c3ff6d`; 23 bodies as the header
      says, the rolled-back proof 10/10 after the apply, advisors 0029 at 29, 0028 at 4, no-policy at 16) and
      `free_shift` (`20260929004003`, md5 `58e7f00a`; four bodies, grants unchanged, Free at 100 MB, no Free account
      over it). Large files go through a helper that transcribes, `cmp`s, applies and proves; the recorded md5 is the
@@ -100,7 +100,15 @@ Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, 
     the real call is that a block keeps a confirmed address after its account is deleted, so a sign-up with it stays out;
   - the Terms' plan paragraph (1.8) and clips paragraph, which `pricing-wiring` edited to match his shift (the one
     legal edit a lane has made), his to reword;
-  - the private count's clause (below); `triage-wiring` will add the reports clause.
+  - the reports clause: `triage-wiring`'s drafts (the Terms' summary and moderation lines, the Privacy Policy's
+    summary and reports lines: "a report removes nothing by itself, and we act only where a breach is clear") are its
+    manifest's Questions at `c6bd5f5f`;
+  - the private count's clause (below).
+- **The hold doctrine** (`triage-wiring`'s three, recommended and NOT built, since holds are his): a host's soft
+  remove passing through a hold (her Deleted takes it; restore still refused, every purge still skips it), so a held
+  item no longer stays up beside the rest leaving, a tell; the host's read of `profiles.storage_used_bytes` taken
+  away (it shows a hold's bytes staying); `purge_media_now` skipping an item an open report names, as it skips a hold.
+  Each yes is a small lane with a migration.
 - **A yes on dropping `events.show_guest_list`** and, after `emails-wiring`, the three `notification_prefs` columns for
   mail nothing sends (destructive), once no build reads them.
 - **The claims review's live walk**: it needs claimable rows staged for a test account (`update public.guests set
