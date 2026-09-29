@@ -96,6 +96,9 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/app/(dev)/design/(shell)/library/compositions/gallery-demos.tsx
   - src/app/(dev)/design/(shell)/library/compositions/composition-demos.tsx
   - src/app/(dev)/design/gallery/specimens.generated.json
+  # added in phase 5 (the Guests room, the pulse, the bell)
+  - src/app/(app)/dashboard/page.tsx
+  - src/components/app/dashboard/next-step-band.tsx
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/reviews/event-settings.json
   - docs/reviews/locked-door.json

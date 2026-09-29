@@ -28,6 +28,7 @@ import { RENEWAL_NUDGE_DAYS } from "@/lib/lifecycle/renewal";
 const DAY_MS = 86_400_000;
 
 export type NotificationKind =
+  | "door"
   | "review"
   | "over_capacity"
   | "pass_expiring"
@@ -54,6 +55,16 @@ export type PendingEvent = {
   pending: number;
 };
 
+/**
+ * One event's door, as the bell names it (the doors, event-settings r1): newcomers waiting for the
+ * host to let them in, counted like a waiting queue, each opening that event's At the door.
+ */
+export type DoorWaitingEvent = {
+  eventId: string;
+  eventName: string;
+  waiting: number;
+};
+
 export type AnnouncementInput = {
   id: string;
   title: string;
@@ -71,6 +82,8 @@ export type NotificationSignals = {
    * `pendingCount` that lands on the dashboard.
    */
   pendingByEvent?: PendingEvent[];
+  /** People waiting at each event's door. Absent reads as nobody, as before the doors. */
+  doorByEvent?: DoorWaitingEvent[];
   storageGraceUntil: string | null;
   /** DB `profiles.tier` value. */
   tier: string;
@@ -95,6 +108,9 @@ export type NotificationSummary = {
 
 const uploadsToReview = (n: number) =>
   `${n} ${n === 1 ? "upload" : "uploads"} to review`;
+
+const peopleAtTheDoor = (n: number) =>
+  `${n} ${n === 1 ? "person" : "people"} at the door`;
 
 export function buildNotifications(
   signals: NotificationSignals,
@@ -151,6 +167,23 @@ export function buildNotifications(
     }
   }
 
+  // ★ PEOPLE AT THE DOOR, FIRST OF THE QUEUES (the doors, event-settings r1: a waiting newcomer
+  // counts wherever the host is told about held uploads): one row per event, opening its Guests
+  // room at At the door, the badge counting every person as the Guests card does.
+  let waitingPeople = 0;
+  for (const door of signals.doorByEvent ?? []) {
+    if (door.waiting <= 0) continue;
+    items.push({
+      key: `door:${door.eventId}`,
+      kind: "door",
+      title: peopleAtTheDoor(door.waiting),
+      body: door.eventName,
+      href: `/dashboard/${door.eventId}/guests#at-the-door`,
+      unread: true,
+    });
+    waitingPeople += door.waiting;
+  }
+
   // A waiting queue: one row per event when the caller knows them, each opening that event's
   // Review room, the badge counting every upload so it reads the card's and the room's number.
   let waitingUploads = 0;
@@ -200,6 +233,7 @@ export function buildNotifications(
 
   return {
     items,
-    badgeCount: alertCount + waitingUploads + unreadAnnouncements,
+    badgeCount:
+      alertCount + waitingPeople + waitingUploads + unreadAnnouncements,
   };
 }
