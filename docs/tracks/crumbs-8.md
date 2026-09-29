@@ -17,6 +17,10 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/marketing/sections/features/guests/
   - content/blog/corporate-event-photo-sharing-pricing.mdx
   - content/blog/AUTHORING.md
+  - src/lib/guest/event-card
+  - src/lib/db/queries/event-card
+  - src/lib/supabase/anon
+  - src/lib/db/migration-guards.test.ts
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/guest-flow.md
   - docs/systems/database-security.md
