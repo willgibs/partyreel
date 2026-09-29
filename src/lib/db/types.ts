@@ -810,6 +810,7 @@ export type Database = {
           notify_album_shared: boolean
           notify_new_follower: boolean
           notify_new_uploads_digest: boolean
+          notify_pass_renewal: boolean
           updated_at: string
           user_id: string
         }
@@ -819,6 +820,7 @@ export type Database = {
           notify_album_shared?: boolean
           notify_new_follower?: boolean
           notify_new_uploads_digest?: boolean
+          notify_pass_renewal?: boolean
           updated_at?: string
           user_id: string
         }
@@ -828,6 +830,7 @@ export type Database = {
           notify_album_shared?: boolean
           notify_new_follower?: boolean
           notify_new_uploads_digest?: boolean
+          notify_pass_renewal?: boolean
           updated_at?: string
           user_id?: string
         }

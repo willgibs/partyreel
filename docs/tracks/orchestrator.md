@@ -40,7 +40,6 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `emails-wiring` | emails r1 on the ten mails that already send: one shell, the wordmark, light only, tagged operator subjects, the foot with no address and the renewal nudge's unsubscribe (a migration), a plain-text twin; the three dead switches leave; nothing new sends; emails retires | running, agent `adc42bfa207564886` | Opus, :3133 | |
 | `demo-framing` | a new board, round one: the story the demo tells (`story`, `names`, `demo`) on the home hero's link card and the album it opens; registered after `disposable-mode` | running, agent `ad22c252b4ce52c45` | Opus, :3132 | |
 | `crumbs-8` | build 17's red-team findings: the card route's per-viewer answer behind a public cache, Event Settings' crushed cards, `like_media`'s tell (a migration), the dark slider, the 1% floor, the restore toast, two stale lines, /pricing's wrapping toggle; /features/guests and the blog's FAQ | running, agent `aed5ac7c3fa44326b` | Opus, :3131 | |
 | `crumbs-9` | eight small ROADMAP items: the untyped `article_feedback` seams, the help's ⌘K chip on a phone and `report-a-problem-as-a-guest`'s screens, the hero's headline fold at 470 to 767, two stale notes, the portal's Library specimens, a restore losing its custom link in silence | running, agent `ae2f802a7cf6d56e9` | Sonnet, :3134 | |
@@ -49,12 +48,14 @@ Batch 7 (cut `35601390`, 2026-09-28) answers Will's sitting on build 15 (transcr
 hero-card, voice-guest, host-storage, event-safety, export-flow). Wave A, four lanes: three new boards and the block.
 Wave B follows as seats free. Batch 6 (sixteen lanes) is merged whole; its records carry the rest.
 
-Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, event-settings, voice-wiring, pricing-wiring, triage-r2, safety-wiring, hero-wiring, triage-wiring, export-wiring, help-wiring.
+Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, event-settings, voice-wiring, pricing-wiring, triage-r2, safety-wiring, hero-wiring, triage-wiring, export-wiring, help-wiring, emails-wiring.
 
 ## Next, in order
 
 1. **Integrate each running lane as it hands off** (rows above), each migration by protocol, one at a time: drift
    check, apply verbatim, the rolled-back refusals, advisors, types.
+   - Applied 2026-09-29: `pass_renewal_pref` (`20260929025049`, md5 `a2b8a3c8`; the column on by default, authenticated's
+     insert and update on it alone, anon nothing; types regenerated).
    - Applied 2026-09-29: `article_feedback` (`20260929021217`, md5 `e4ef348c`; RLS on with no policy, no client
      privilege on the table or its summary, the summary INVOKER; types regenerated).
    - The export Worker deployed 2026-09-29 (`partyreel-export` version `a76241a2`, after `export-wiring`: `/check`
@@ -108,8 +109,8 @@ Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, 
   item no longer stays up beside the rest leaving, a tell; the host's read of `profiles.storage_used_bytes` taken
   away (it shows a hold's bytes staying); `purge_media_now` skipping an item an open report names, as it skips a hold.
   Each yes is a small lane with a migration.
-- **A yes on dropping `events.show_guest_list`** and, after `emails-wiring`, the three `notification_prefs` columns for
-  mail nothing sends (destructive), once no build reads them.
+- **A yes on dropping `events.show_guest_list`** and the three `notification_prefs` columns for mail nothing sends
+  (destructive): launch-prep reads none of them now; partyreel.com's build still selects them until milestone 30 ships.
 - **The claims review's live walk**: it needs claimable rows staged for a test account (`update public.guests set
   pending_email = '<address>', pending_email_at = now() where id in (...)` on name-only rows with live uploads), a write
   the permission classifier refused the red-team; Will stages them (or walks it himself as partyr33l), and the restore
