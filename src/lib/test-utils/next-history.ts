@@ -5,7 +5,7 @@
  * The App Router patches `window.history.pushState` and `replaceState` so a native call reaches
  * `useSearchParams` and `usePathname` (`node_modules/next/dist/client/components/app-router.js`, the
  * effect in `Router` that assigns them). The patch has TWO faces, and a stand-in that fires its
- * listeners on every call, as this repo's first one did, shows only the kind one:
+ * listeners on every call, as this repo's first one did, shows only the first:
  *
  *   - handed an object WITHOUT `__NA` or `_N` (a fresh state, `null`): Next copies its own `__NA` and its
  *     internals tree onto it, tells the router the new URL, then makes the native call;
@@ -56,7 +56,7 @@ export type NextHistory = {
   readonly href: string;
   /** A fresh entry at `url`, as Next leaves one on hydration (`__NA` and the tree), the router knowing it. */
   land(url: string): void;
-  /** `router.refresh()`, or a server action that revalidates: Next commits with no address change, writes its own copy to the bar and DROPS the entry's custom state. */
+  /** `router.refresh()`: Next commits with no address change, writes its own copy to the bar and DROPS the entry's custom state. */
   refresh(): void;
   /** Take the patch off (the history's own functions back, the popstate handler gone). Idempotent. */
   uninstall(): void;

@@ -63,9 +63,9 @@ export function takeHelpSearchArrival(): boolean {
     url.searchParams.delete(PARAM);
     // ★ NULL, NEVER `window.history.state`: that state carries Next's `__NA`, which makes Next take
     // the call for its own and apply no URL. Nothing here reads the query (this page stays static),
-    // but Next's copy of the address would keep `?search`, and the next router commit (a
-    // `router.refresh()`, a server action) writes that copy back over the bar, so a reload would
-    // open the palette uninvited again. Handed nothing, Next follows the address. It needs no
+    // but Next's copy of the address would keep `?search`, and the next router commit (measured
+    // with a `router.refresh()`) writes that copy back over the bar, so a reload would open the
+    // palette uninvited again. Handed nothing, Next follows the address. It needs no
     // microtask (`lab/board-state.tsx` says why a mount effect does): the palette calls this from a
     // `requestAnimationFrame`, after the first commit's effects, so Next's patch is installed.
     window.history.replaceState(null, "", url.pathname + url.search + url.hash);

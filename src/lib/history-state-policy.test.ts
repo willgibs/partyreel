@@ -16,7 +16,7 @@ import { describe, expect, it } from "vitest";
  * internals trigger pushState/replaceState") and applies nothing: the bar changes and the router does
  * not. Everything downstream of the router then reads the address the call left behind: a hook that
  * never re-renders, a link built from a stale `useSearchParams`, and the next router commit
- * (`router.refresh()`, a server action) writing Next's copy back over the bar, which brings back a
+ * (measured with `router.refresh()`) writing Next's copy back over the bar, which brings back a
  * parameter the page had removed. Seven calls in six files handed the state through, each on a
  * plausible instinct ("keep what Next and I put on the entry"), and none had a test that could see it:
  * a stand-in that fires its listeners on every call passes them all. `@/lib/test-utils/next-history`
