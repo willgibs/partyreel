@@ -27,6 +27,7 @@ import {
 } from "@/components/app/event-settings/setting-word";
 import { formatCount } from "@/lib/format/count";
 import { DOORS, stepOf, type Door } from "@/lib/event/door/door";
+import { cameInLine } from "@/lib/event/door/words";
 import {
   secondsLabel,
   sentenceText,
@@ -98,7 +99,8 @@ export function doorConsequence(
     return `Lets in the ${people(facts.waiting, "person", "people")} waiting at the door.`;
   }
   if (next === "closed" && facts.waiting > 0) {
-    return `The ${people(facts.waiting, "person", "people")} waiting at the door stay out.`;
+    // The verb agrees with its count ("The 1 person ... stays out", build 23's NIT-5).
+    return `The ${people(facts.waiting, "person waiting at the door stays", "people waiting at the door stay")} out.`;
   }
   if (next === "password" && !facts.hasPassword) {
     return "Set a password first, on the next screen.";
@@ -120,9 +122,7 @@ function doorLine(door: Door): string {
 }
 
 /** Each live word's quick choice: its question, its answers, and what choosing one writes. */
-function useWordChoices(
-  openPage: (page: SettingsPage) => void,
-): Record<
+function useWordChoices(openPage: (page: SettingsPage) => void): Record<
   SentenceWord,
   {
     title: string;
@@ -162,9 +162,7 @@ function useWordChoices(
         }
         void s.saveDoor(door).then((answer) => {
           if (answer && answer.admitted > 0) {
-            toast.success(
-              `${people(answer.admitted, "person", "people")} waiting at the door came in.`,
-            );
+            toast.success(cameInLine(answer.admitted));
           }
         });
       },

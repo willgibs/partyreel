@@ -133,9 +133,43 @@ describe("what comes back", () => {
       },
       error: null,
     });
+    // ★ RESHAPED ON PURPOSE (crumbs-17, build 23's BUG-2; scar kept: every count whole and
+    // non-negative, read defensively): the listing's answer grew `admitted`, the waiting people the list
+    // now lets in. A database from before 20260929220000 answers no such key, which reads 0, so the
+    // lane's build and the deployed one each run against either side of the apply.
     await expect(addEventInvites(EVENT, ["a@example.com"])).resolves.toEqual({
       ok: true,
-      data: { added: 5, already: 1, invalid: 2, overCap: 3, total: 9 },
+      data: {
+        added: 5,
+        already: 1,
+        invalid: 2,
+        overCap: 3,
+        total: 9,
+        admitted: 0,
+      },
+    });
+    rpc.mockResolvedValue({
+      data: {
+        ok: true,
+        added: 1,
+        already: 0,
+        invalid: 0,
+        over_cap: 0,
+        total: 3,
+        admitted: 1,
+      },
+      error: null,
+    });
+    await expect(addEventInvites(EVENT, ["a@example.com"])).resolves.toEqual({
+      ok: true,
+      data: {
+        added: 1,
+        already: 0,
+        invalid: 0,
+        overCap: 0,
+        total: 3,
+        admitted: 1,
+      },
     });
     rpc.mockResolvedValue({ data: { ok: true, removed: "one" }, error: null });
     await expect(removeEventInvite(EVENT, "a@example.com")).resolves.toEqual({

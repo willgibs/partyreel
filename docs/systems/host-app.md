@@ -287,13 +287,18 @@ visitor-facing "Private" never collides.
 - **The Guests room's At the door** heads it (`queue=room`): Let in (`let_in_at_door`) opens her door on every device,
   and her held door opens by itself at its next check-in; ★ Decline is a block (the account where there is one, else
   the row), with Undo on its toast and Let back in under Blocked, so a declined newcomer meets the one shut screen and
-  cannot keep re-asking. A waiting newcomer counts on the hub's Guests card, the pulse (its first step, opening
-  `#at-the-door`) and the bell (a row per event), and sends no mail.
+  cannot keep re-asking. Either way back returns her to the door, where she still needs Let in unless the invite list,
+  being the door, names her, and Let back in's words say which (`BlockedPerson.atDoor`). A waiting newcomer counts on
+  the hub's Guests card, the pulse (its first step, opening `#at-the-door`) and the bell (a row per event), and sends
+  no mail.
 - **Invited** (`editor=both`): one field takes a typed address or a pasted list (`readAddresses`: the readable saved at
   once and counted by the database, the unreadable kept as flagged chips), capped at `INVITE_LIST_CAP`; each address
   reads Joined or Not yet, since it matches only once its guest confirms it, so removing one never puts out someone it
-  let in. The list stays editable while it is not the door. **Invite** is the room's main action while it is empty and
-  a quiet one after: the event's code card, sending nothing.
+  let in. The list stays editable while it is not the door. ★ While it is the door, a waiting person it names is in
+  (`event_door_admit_listed`, build 23's BUG-2): the listing, the door becoming the list and Let back in each let her
+  in, on every device she asked from, counted once, so she leaves At the door and the ticket she asked with adds.
+  **Invite** is the room's main action while it is empty and a quiet one after: the event's code card, sending
+  nothing.
 
 ## Moderation and curation (host side)
 

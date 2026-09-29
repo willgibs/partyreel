@@ -67,6 +67,7 @@ import {
   PROOF_QUESTION_MAX,
   REOPENED_MESSAGE,
   REPORT_NOTE_MAX,
+  reporterWho,
   reporterWords,
   TAKE_DOWN_TOO,
 } from "@/lib/admin/reports";
@@ -442,7 +443,12 @@ function albumLine(entry: ReviewEntry): string {
   const e = entry.event;
   if (!e) return "Unknown album";
   const parts = [e.name];
-  if (e.uploads !== null) parts.push(`${formatCount(e.uploads)} uploads`);
+  if (e.uploads !== null) {
+    // One upload is one (build 23's NIT-10: "1 uploads").
+    parts.push(
+      `${formatCount(e.uploads)} ${e.uploads === 1 ? "upload" : "uploads"}`,
+    );
+  }
   if (e.host) parts.push(e.host);
   return parts.join(" · ");
 }
@@ -653,9 +659,9 @@ function Tile({
             title={reporterWords(newest)}
           >
             {newest.signedIn ? (
-              <BadgeCheck className="size-3" aria-label="Signed-in guest" />
+              <BadgeCheck className="size-3" aria-label={reporterWho(newest)} />
             ) : (
-              <UserRound className="size-3" aria-label="Signed-out guest" />
+              <UserRound className="size-3" aria-label={reporterWho(newest)} />
             )}
           </span>
           <span className="min-w-0 truncate">

@@ -39,15 +39,17 @@ import {
   wayBackOf,
 } from "@/lib/admin/reports";
 import { mustCount, mustQuery } from "@/lib/db/must-query";
-import { inChunks } from "@/lib/db/read-all";
+import { inChunks, readAllPages } from "@/lib/db/read-all";
 import type { Tables } from "@/lib/db/types";
 import {
   resolveUploaderIdentity,
   type UploaderRow,
 } from "@/lib/media/uploader-identity";
 import { presignDownload } from "@/lib/r2/presign";
+import { reporterAddressHash } from "@/lib/reports/reporter.server";
 import {
   INSTANT_HIDE_KIND,
+  isCoveredKind,
   parseReportKind,
   type ReportKind,
   worstKind,
@@ -71,9 +73,15 @@ export type ReviewReport = {
   media: {
     id: string;
     type: "photo" | "video";
-    /** Short-lived presigned URL for operator review; never a raw key. */
-    url: string;
-    /** The small preview, for a closed report's thumbnail; null when the upload made none. */
+    /**
+     * ★ THE WORST KINDS STAY COVERED WHEREVER THEY APPEAR (build 23's NIT-7): an item any report names as one
+     * of the covered kinds (`isCoveredKind`, open or closed) carries no picture here at all, so the closed
+     * log draws its cover and never loads a frame. Only the open queue's View once shows one.
+     */
+    covered: boolean;
+    /** Short-lived presigned URL for operator review; never a raw key. Null while covered. */
+    url: string | null;
+    /** The small preview, for a closed report's thumbnail; null when the upload made none, or while covered. */
     previewUrl: string | null;
     standing: ItemStanding;
     /** Under a legal hold: the door reads Held, and a closed line offers no Undo. */
@@ -147,7 +155,7 @@ export async function listReports(
   const eventIds = reports.flatMap((r) => (r.event_id ? [r.event_id] : []));
   const mediaIds = reports.flatMap((r) => (r.media_id ? [r.media_id] : []));
 
-  const [events, media] = await Promise.all([
+  const [events, media, coveredRows] = await Promise.all([
     inChunks(
       "admin reports: events",
       eventIds,
@@ -171,23 +179,52 @@ export async function listReports(
           "admin reports: media",
         )) ?? [],
     ),
+    // Every report on these items, open or closed, for whether any names a covered kind: an item can
+    // be reported many times, so each chunk's reports are read whole.
+    inChunks("admin reports: covered items", mediaIds, async (chunk) => {
+      const { rows: named } = await readAllPages(
+        "admin reports: covered items",
+        (after: string | null, limit) => {
+          let q = admin
+            .from("reports")
+            .select("id, media_id, kind")
+            .in("media_id", chunk)
+            .order("id", { ascending: true })
+            .limit(limit);
+          if (after) q = q.gt("id", after);
+          return q;
+        },
+        (report) => report.id,
+      );
+      return named;
+    }),
   ]);
   const eventById = new Map(events.map((e) => [e.id, e]));
   const rowById = new Map((media as MediaRow[]).map((m) => [m.id, m]));
+  const covered = new Set(
+    coveredRows.flatMap((r) =>
+      r.media_id && isCoveredKind(parseReportKind(r.kind)) ? [r.media_id] : [],
+    ),
+  );
 
   // Every presign at once: each is a local signature, and signing them one after another made a
-  // long queue wait on the slowest sum of them for nothing.
+  // long queue wait on the slowest sum of them for nothing. A covered item is never signed.
   const signed = await Promise.all(
-    (media as MediaRow[]).map(async (m) => ({
-      id: m.id,
-      type: m.type,
-      url: await presignDownload({ key: m.original_key }),
-      previewUrl: m.preview_key
-        ? await presignDownload({ key: m.preview_key })
-        : null,
-      standing: standingOf(m),
-      held: m.legal_hold_at !== null && m.legal_hold_at !== undefined,
-    })),
+    (media as MediaRow[]).map(async (m) => {
+      const cover = covered.has(m.id);
+      return {
+        id: m.id,
+        type: m.type,
+        covered: cover,
+        url: cover ? null : await presignDownload({ key: m.original_key }),
+        previewUrl:
+          cover || !m.preview_key
+            ? null
+            : await presignDownload({ key: m.preview_key }),
+        standing: standingOf(m),
+        held: m.legal_hold_at !== null && m.legal_hold_at !== undefined,
+      };
+    }),
   );
   const mediaById = new Map(signed.map((m) => [m.id, m]));
 
@@ -454,6 +491,16 @@ export type EntryReport = {
   signedIn: boolean;
   /** A confirmed address is kept on the report (it is never printed: Ask for proof mails it). */
   canAsk: boolean;
+  /**
+   * A confirmed address sent it: one still kept, or, on the worst kind, the hash that outlives it, so a report
+   * reopened by Undo (its address forgotten at the close) still says so (build 23's NIT-8).
+   */
+  confirmed: boolean;
+  /**
+   * The album's own host sent it (build 23's LOW-2): her confirmed address, or on the worst kind its hash, is the
+   * one the report keeps. Known while the report keeps either, which is while the open queue shows it.
+   */
+  byHost: boolean;
   /** This report's instant hide took the item down at this instant. */
   hidAt: string | null;
   /** What was asked, and what came back (`proof=confirm`). */
@@ -521,6 +568,7 @@ type OpenRow = Pick<
   | "kind"
   | "reporter_signed_in"
   | "reporter_email"
+  | "reporter_hash"
   | "hid_at"
   | "proof_asked_at"
   | "proof_question"
@@ -540,7 +588,29 @@ type QueueFacts = {
 };
 
 const OPEN_COLUMNS =
-  "id, reason, created_at, event_id, media_id, kind, reporter_signed_in, reporter_email, hid_at, proof_asked_at, proof_question, proof_answered_at, proof_answer";
+  "id, reason, created_at, event_id, media_id, kind, reporter_signed_in, reporter_email, reporter_hash, hid_at, proof_asked_at, proof_question, proof_answered_at, proof_answer";
+
+/**
+ * ★ WHETHER THE ALBUM'S OWN HOST SENT A REPORT, from what the report itself keeps (build 23's LOW-2): its
+ * confirmed address, compared with the host's own, or on the worst kind the address's hash (which outlives the
+ * close), compared with the hash of hers. The report stores no account, by design ("never who sent it"); this
+ * asks only "the host's address again?", the one question the hash answers. A hash that cannot be taken (no
+ * secret) answers no, as an unknown reporter.
+ */
+function sentByHost(
+  report: { reporter_email: string | null; reporter_hash: string | null },
+  hostEmail: string | null | undefined,
+): boolean {
+  const host = hostEmail?.trim().toLowerCase();
+  if (!host) return false;
+  if (report.reporter_email) return report.reporter_email === host;
+  if (!report.reporter_hash) return false;
+  try {
+    return reporterAddressHash(host) === report.reporter_hash;
+  } catch {
+    return false;
+  }
+}
 
 /**
  * THE OPEN QUEUE, AS ENTRIES: the newest `show` open album and item reports (the People arm is
@@ -664,6 +734,9 @@ export async function listOpenEntries(
   const entries: ReviewEntry[] = [...groups.entries()].map(([key, list]) => {
     const newest = list[0];
     const subject = subjectOf(newest);
+    // One thing reported is in one album, so every report here shares its event and its host.
+    const event = newest.event_id ? eventById.get(newest.event_id) : undefined;
+    const host = event ? hostById.get(event.host_id) : undefined;
     const reports: EntryReport[] = list.map((r) => ({
       id: r.id,
       reason: r.reason,
@@ -671,6 +744,8 @@ export async function listOpenEntries(
       kind: parseReportKind(r.kind),
       signedIn: Boolean(r.reporter_signed_in),
       canAsk: Boolean(r.reporter_email),
+      confirmed: Boolean(r.reporter_email) || Boolean(r.reporter_hash),
+      byHost: sentByHost(r, host?.email),
       hidAt: r.hid_at ?? null,
       proof:
         r.proof_asked_at && r.proof_question
@@ -683,8 +758,6 @@ export async function listOpenEntries(
           : null,
     }));
     const kind = worstKind(reports.map((r) => r.kind));
-    const event = newest.event_id ? eventById.get(newest.event_id) : undefined;
-    const host = event ? hostById.get(event.host_id) : undefined;
     const eventFacts = event ? facts?.events?.[event.id] : undefined;
     const row = newest.media_id ? mediaById.get(newest.media_id) : undefined;
     const links = row ? signed.get(row.id) : undefined;

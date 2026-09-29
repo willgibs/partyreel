@@ -20,7 +20,7 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { maskEmail } from "@/lib/auth/remembered-email";
-import { requestPhotoReport } from "@/lib/guest/report-door";
+import { requestPhotoReport, useReportDoorOpen } from "@/lib/guest/report-door";
 import { KIND_WORDS } from "@/lib/reports/kinds";
 
 const state = vi.hoisted(() => ({
@@ -63,7 +63,8 @@ vi.mock("@/components/auth/account-door", () => ({
   },
 }));
 
-const { ReportDialog, instantHideLine } = await import("./report-dialog");
+const { ReportDialog, ReportFoot, instantHideLine } =
+  await import("./report-dialog");
 
 function respond(status: number, body: unknown) {
   vi.mocked(global.fetch).mockResolvedValue({
@@ -115,8 +116,25 @@ describe("the kinds (`harm=kinds`)", () => {
     expect(instantHideLine("album", true)).toMatch(/its own Report/);
     expect(instantHideLine("item", false)).toMatch(/^Confirm your email/);
     expect(instantHideLine("item", true)).toMatch(
-      /hidden from everyone the moment/,
+      /can hide it from everyone the moment/,
     );
+  });
+
+  // ★ RESHAPED ON PURPOSE (crumbs-17, build 23's NIT-6; scar kept: the worst kind says what sending does,
+  // true for who is reporting). The confirmed line promised "It's hidden from everyone the moment you
+  // send this" before a fourth report the daily limit stopped from hiding: the server decides the hide
+  // past limits this form cannot see, so the line says what a confirmed email can do, and the toast
+  // after the send says what it did.
+  it("★ promises no hide the server may refuse: each line says what can happen, never that it will", () => {
+    for (const line of [
+      instantHideLine("album", false),
+      instantHideLine("album", true),
+      instantHideLine("item", false),
+      instantHideLine("item", true),
+    ]) {
+      expect(line).toMatch(/\bcan\b/);
+      expect(line).not.toMatch(/it's hidden|hides it right away/i);
+    }
   });
 });
 
@@ -208,5 +226,44 @@ describe("what sending says", () => {
         description: "Too many reports from this network right now.",
       }),
     );
+  });
+});
+
+describe("the host's own album (build 23's BUG-3)", () => {
+  /** A photo's capsule, as the lightbox asks it: is a report form listening on this page? */
+  const probe = { open: null as boolean | null };
+  function Capsule() {
+    probe.open = useReportDoorOpen();
+    return null;
+  }
+
+  it("★ offers its host no Report through its link: neither the foot nor any photo's", () => {
+    render(
+      <>
+        <ReportFoot qrToken="tok-1" isOwner isDemo={false} />
+        <Capsule />
+      </>,
+    );
+    expect(screen.queryByRole("button", { name: /report/i })).toBeNull();
+    expect(probe.open).toBe(false);
+  });
+
+  it("a guest's album keeps both, and the demo neither", () => {
+    const view = render(
+      <>
+        <ReportFoot qrToken="tok-1" isOwner={false} isDemo={false} />
+        <Capsule />
+      </>,
+    );
+    expect(screen.getByRole("button", { name: /report/i })).toBeInTheDocument();
+    expect(probe.open).toBe(true);
+    view.rerender(
+      <>
+        <ReportFoot qrToken="tok-1" isOwner={false} isDemo />
+        <Capsule />
+      </>,
+    );
+    expect(screen.queryByRole("button", { name: /report/i })).toBeNull();
+    expect(probe.open).toBe(false);
   });
 });

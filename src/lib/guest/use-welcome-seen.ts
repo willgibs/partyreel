@@ -17,6 +17,22 @@ function emit() {
 }
 
 /**
+ * The welcome, marked seen on this device from outside the door: the invite list's shut door, where a
+ * newcomer the list does not name meets the event and asks (build 23's NIT-1). Her ask refreshes the page
+ * onto the held door, and the invitation's welcome in front of it would be one more step for a door she
+ * has already stood at and knocked on. Every same-tab reader hears it at once, as `markSeen` does.
+ */
+export function markWelcomeSeen(qrToken: string): void {
+  try {
+    localStorage.setItem(welcomeKey(qrToken), "1");
+  } catch {
+    // Storage refused (a private window): the welcome shows once more, which is all it costs.
+    return;
+  }
+  emit();
+}
+
+/**
  * `[seen, markSeen]` for the welcome step. The server snapshot is `true` (assume seen) so the welcome
  * never flashes before hydration; it resolves to the real localStorage value on the client. `markSeen`
  * persists the flag (once per device per event) and notifies same-tab subscribers.
@@ -63,9 +79,8 @@ export function useWelcomeSeen(
       setDemoSeen(true);
       return;
     }
-    localStorage.setItem(key, "1");
-    emit();
-  }, [key, isDemo]);
+    markWelcomeSeen(qrToken);
+  }, [qrToken, isDemo]);
 
   return [seen, markSeen];
 }

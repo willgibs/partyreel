@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import { ShieldAlert, Undo2 } from "lucide-react";
+import { EyeOff, ShieldAlert, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -312,9 +312,28 @@ function ClosedReportLine({ report }: { report: ReviewReport }) {
   return (
     <ClosedLine
       lead={
-        item ? (
+        item?.covered || (item && !item.url) ? (
+          // ★ THE WORST KINDS STAY COVERED HERE TOO (build 23's NIT-7): the server signs no picture for an
+          // item a covered kind names, so the line draws the open queue's cover, small, and loads nothing.
+          <span
+            data-report-covered
+            role="img"
+            aria-label="Covered"
+            title="Covered: the open queue's View once is the only look"
+            className="flex size-8 shrink-0 items-center justify-center rounded bg-foreground/85 text-background"
+          >
+            <EyeOff className="size-3.5" aria-hidden />
+          </span>
+        ) : item?.url ? (
           <div className="size-8 shrink-0 overflow-hidden rounded bg-muted">
-            <MediaTile item={item} playBadge="none" />
+            <MediaTile
+              item={{
+                type: item.type,
+                url: item.url,
+                previewUrl: item.previewUrl,
+              }}
+              playBadge="none"
+            />
           </div>
         ) : (
           <span

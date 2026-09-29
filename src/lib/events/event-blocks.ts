@@ -167,6 +167,11 @@ export type BlockedPerson = {
   restorable: number;
   /** When the first of those leaves Deleted for good, formatted by the server ("October 28"); null with none. */
   restorableUntil: string | null;
+  /**
+   * A newcomer declined at the door, whom Let back in returns there to be let in (build 23's NIT-3),
+   * rather than into the album: she was never in, and the invite list does not let her straight in.
+   */
+  atDoor: boolean;
 };
 
 /**
@@ -195,8 +200,14 @@ export function letBackInTitle(name: string | null | undefined): string {
   return who ? `Let ${who} back in?` : "Let this guest back in?";
 }
 
-export function letBackInLede(eventName: string): string {
-  return `They'll be able to open ${eventName} and add photos again.`;
+/**
+ * ★ IT PROMISES WHERE THEY LAND (build 23's NIT-3): someone who was in comes back in, and a newcomer
+ * declined at the door goes back to it, where the host still lets her in, as the decline's Undo does.
+ */
+export function letBackInLede(eventName: string, atDoor = false): string {
+  return atDoor
+    ? "They'll be back at the door, and you can let them in from there."
+    : `They'll be able to open ${eventName} and add photos again.`;
 }
 
 /**
@@ -233,8 +244,15 @@ export function letBackInToast(
   name: string | null | undefined,
   restored: number,
   noRoom: number,
+  atDoor = false,
 ): { title: string; description?: string } {
   const who = name?.trim();
+  if (atDoor) {
+    // A declined newcomer had nothing in the album, so there is nothing to say came back.
+    return {
+      title: who ? `${who} is back at the door.` : "They're back at the door.",
+    };
+  }
   const lines: string[] = [];
   if (restored > 0) {
     lines.push(

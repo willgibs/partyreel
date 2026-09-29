@@ -52,6 +52,7 @@ function report(over: Partial<ReviewReport> = {}): ReviewReport {
     media: {
       id: "m1",
       type: "photo",
+      covered: false,
       url: "https://r2.test/m1.jpg",
       previewUrl: "https://r2.test/m1.webp",
       standing: "live",
@@ -150,5 +151,43 @@ describe("a closed report is one line (`closed=window`)", () => {
     expect(
       screen.getByText(/a dismissal reopens its report/),
     ).toBeInTheDocument();
+  });
+});
+
+describe("the worst kinds stay covered in the closed log (build 23's NIT-7)", () => {
+  it("★ a dismissed child-abuse report's item draws the cover and loads no picture", () => {
+    render(
+      <ReportReviewList
+        reports={[
+          report({
+            id: "77777777-7777-4777-8777-777777777777",
+            status: "dismissed",
+            resolved_at: "2026-09-28T23:00:00.000Z",
+            media: {
+              id: "m2",
+              type: "photo",
+              covered: true,
+              url: null,
+              previewUrl: null,
+              standing: "live",
+              held: false,
+            },
+          }),
+          report({
+            id: "88888888-8888-4888-8888-888888888888",
+            status: "dismissed",
+            resolved_at: "2026-09-28T23:00:00.000Z",
+          }),
+        ]}
+      />,
+    );
+    const [covered, plain] = [
+      ...document.querySelectorAll("[data-closed-report]"),
+    ] as HTMLElement[];
+    expect(
+      within(covered).getByRole("img", { name: "Covered" }),
+    ).toBeInTheDocument();
+    expect(covered.querySelector("img, video")).toBeNull();
+    expect(within(plain).queryByRole("img", { name: "Covered" })).toBeNull();
   });
 });

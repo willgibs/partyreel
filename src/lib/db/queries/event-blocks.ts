@@ -88,12 +88,18 @@ function sameInstant(a: string | null, b: string | null): boolean {
  *
  * ★ THE CALLER HAS PROVED THE HOST (`getEvent`), AND RLS PROVES IT AGAIN: the block rows are read on
  * the host's own client, where `event_blocks_select_host` answers only their own events' rows. Only
- * the restorable count and the faces read on the admin client, over the ids those rows returned.
+ * the restorable count, the faces and where each one stands at the door read on the admin client,
+ * over the ids those rows returned.
  *
  * ★ WHAT CAN COME BACK IS COUNTED THE WAY let_back_in COUNTS IT: a photograph still in Deleted from
  * this very removal (`removed_at` is the block's own instant), not withdrawn by its guest, not an
  * operator's takedown, not held. A held item is left out rather than counted, so the number the host
  * reads is the number the restore moves, and no number can tell a hold exists.
+ *
+ * ★ WHERE LET BACK IN LEAVES EACH ONE (build 23's NIT-3): a newcomer declined at the door (her rows here
+ * wait, none of them in) goes back to the door and still needs Let in, unless the invite list, being
+ * the door, names her address, which lets her straight in as let_back_in's own admission does
+ * (`event_door_admit_listed`, 20260929220000). The words before and after the press say which.
  */
 export async function getEventBlocks(
   eventId: string,
@@ -129,8 +135,9 @@ export async function getEventBlocks(
   const admin = createAdminClient();
   const removedIds = rows.flatMap((r) => r.removed_media_ids ?? []);
   const userIds = rows.flatMap((r) => (r.user_id ? [r.user_id] : []));
+  const guestIds = rows.flatMap((r) => (r.guest_id ? [r.guest_id] : []));
 
-  const [media, profiles] = await Promise.all([
+  const [media, profiles, byAccount, byRow] = await Promise.all([
     inChunks(
       "event blocks: what can come back",
       removedIds,
@@ -158,9 +165,93 @@ export async function getEventBlocks(
           "event blocks: faces",
         )) ?? [],
     ),
+    // Their rows here, by the account a block names and by the row it names, for whether each waits.
+    // An account holds a ticket per browser it joined from, so its rows are read whole.
+    inChunks("event blocks: at the door", userIds, async (chunk) => {
+      const { rows: theirs } = await readAllPages(
+        "event blocks: at the door",
+        (after: string | null, limit) => {
+          let q = admin
+            .from("guests")
+            .select("id, user_id, admission")
+            .eq("event_id", eventId)
+            .in("user_id", chunk)
+            .order("id", { ascending: true })
+            .limit(limit);
+          if (after) q = q.gt("id", after);
+          return q;
+        },
+        (guest) => guest.id,
+      );
+      return theirs;
+    }),
+    inChunks(
+      "event blocks: at the door",
+      guestIds,
+      async (chunk) =>
+        (await mustQuery(
+          admin
+            .from("guests")
+            .select("id, user_id, admission")
+            .eq("event_id", eventId)
+            .in("id", chunk),
+          "event blocks: at the door",
+        )) ?? [],
+    ),
   ]);
   const mediaById = new Map(media.map((m) => [m.id, m] as const));
   const profileById = new Map(profiles.map((p) => [p.id, p] as const));
+
+  // A declined newcomer: rows of hers here that wait, and none that is in (someone who was in, then
+  // blocked, keeps her 'in' rows and comes back in).
+  const declinedAtTheDoor = (row: (typeof rows)[number]): boolean => {
+    const theirs = [
+      ...byAccount.filter(
+        (g) => row.user_id !== null && g.user_id === row.user_id,
+      ),
+      ...byRow.filter((g) => g.id === row.guest_id),
+    ];
+    return (
+      theirs.some((g) => g.admission === "waiting") &&
+      !theirs.some((g) => g.admission === "in")
+    );
+  };
+  // Whom the invite list, while it is the door, would let straight in: asked only when a declined
+  // newcomer with an address stands in the list, on the host's own client (RLS: her own event).
+  const waitingAddresses = rows.flatMap((r) =>
+    r.email && declinedAtTheDoor(r) ? [r.email] : [],
+  );
+  let listed: ReadonlySet<string> = new Set();
+  if (waitingAddresses.length > 0) {
+    const door = await mustQuery(
+      supabase
+        .from("events")
+        .select("visibility, gate")
+        .eq("id", eventId)
+        .maybeSingle(),
+      "event blocks: the door",
+    );
+    if (door?.visibility === "private" && door.gate === "invite") {
+      const onList = await inChunks(
+        "event blocks: the list",
+        waitingAddresses,
+        async (chunk) => {
+          // row-cap: (event_id, email) is unique (event_invites_event_email_key), so a chunk of addresses reads at most one row an address
+          return (
+            (await mustQuery(
+              supabase
+                .from("event_invites")
+                .select("email")
+                .eq("event_id", eventId)
+                .in("email", chunk),
+              "event blocks: the list",
+            )) ?? []
+          );
+        },
+      );
+      listed = new Set(onList.map((i) => i.email));
+    }
+  }
 
   type Removed = (typeof media)[number];
   return Promise.all(
@@ -202,6 +293,9 @@ export async function getEventBlocks(
         since: format.since(row.created_at),
         restorable: standing.length,
         restorableUntil: firstPurge ? format.until(firstPurge) : null,
+        atDoor:
+          declinedAtTheDoor(row) &&
+          !(row.email !== null && listed.has(row.email)),
       };
     }),
   );
