@@ -63,6 +63,7 @@ export type JoinRefusal = {
     | "verification_required"
     | "invalid_session"
     | "unauthorized"
+    | "unlisted"
     | typeof SESSION_OTHER_ACCOUNT
     | "other";
   message: string;
@@ -80,6 +81,11 @@ export type JoinedGuest = {
    * only the boolean beside its name (`use-stored-name.ts`).
    */
   emailAttached: boolean;
+  /**
+   * Whether the door let this ticket through (the doors, event-settings r1): `waiting` is a newcomer
+   * the host has not answered yet, held at the door. An older route's answer without it reads `in`.
+   */
+  admission: "in" | "waiting";
 };
 
 export type JoinResult =
@@ -94,6 +100,7 @@ const REFUSALS = new Set<string>([
   "verification_required",
   "invalid_session",
   "unauthorized",
+  "unlisted",
   SESSION_OTHER_ACCOUNT,
 ]);
 
@@ -222,21 +229,79 @@ export async function joinEvent(input: {
       refusal: refusalOf(body, "We couldn't start your uploads. Try again."),
     };
   }
+  return { ok: true, guest: joinedOf(body) };
+}
+
+/** A join's answer (the join's and the ask's are one shape). */
+function joinedOf(body: unknown): JoinedGuest {
   const ok = body as {
     session_token: string;
     display_name?: string | null;
     verified?: boolean;
     email_attached?: boolean;
+    admission?: unknown;
   };
   return {
-    ok: true,
-    guest: {
-      sessionToken: ok.session_token,
-      displayName: ok.display_name ?? null,
-      verified: Boolean(ok.verified),
-      emailAttached: Boolean(ok.email_attached),
-    },
+    sessionToken: ok.session_token,
+    displayName: ok.display_name ?? null,
+    verified: Boolean(ok.verified),
+    emailAttached: Boolean(ok.email_attached),
+    admission: ok.admission === "waiting" ? "waiting" : "in",
   };
+}
+
+/**
+ * ASK THE HOST TO LET ME IN (the doors, event-settings r1): a confirmed newcomer at a door the host
+ * answers, or at an invite list that does not name her address (`unlisted=ask`). The route mints her a
+ * waiting ticket (or lets her straight in, where the list names her after all), with the cookie beside
+ * it, exactly as a join does.
+ */
+export async function askToJoinEvent(input: {
+  qrToken: string;
+}): Promise<JoinResult> {
+  const res = await post("/api/guests/ask", { qr_token: input.qrToken });
+  if (!res) return { ok: false, refusal: OFFLINE };
+  let body: unknown = null;
+  try {
+    body = await res.json();
+  } catch {
+    // as above
+  }
+  if (!res.ok || !(body as { ok?: unknown } | null)?.ok) {
+    return {
+      ok: false,
+      refusal: refusalOf(body, "We couldn't ask the host. Try again."),
+    };
+  }
+  return { ok: true, guest: joinedOf(body) };
+}
+
+/**
+ * THE WAITING DOOR'S CHECK-IN (about every 30 s while it is open): `waiting` while the host has not
+ * answered, `in` once she is let in (the door plays "You're in" and opens onto the album), `moved`
+ * when anything else changed about this door (it closed, she was turned away), which the page answers
+ * with a plain refresh onto whatever the server now says. A failed check-in reads as still waiting:
+ * the next one asks again.
+ */
+export type DoorCheckIn = "waiting" | "in" | "moved";
+
+export async function checkInAtDoor(input: {
+  qrToken: string;
+  sessionToken: string | null;
+}): Promise<DoorCheckIn> {
+  const res = await post("/api/guests/door", {
+    qr_token: input.qrToken,
+    ...(input.sessionToken ? { session_token: input.sessionToken } : {}),
+  });
+  if (!res || !res.ok) return "waiting";
+  try {
+    const body = (await res.json()) as { standing?: unknown };
+    return body.standing === "in" || body.standing === "moved"
+      ? body.standing
+      : "waiting";
+  } catch {
+    return "waiting";
+  }
 }
 
 /**

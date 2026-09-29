@@ -49,18 +49,17 @@ vi.mock("@/lib/guest/session-owner.server", () => ({
   checkSessionOwner: (...args: unknown[]) => checkSessionOwner(...args),
 }));
 
-// ★ THE CLOSED DOOR (the per-event block, 20260928120000): a private album, or a ticket a block holds.
-// Its own rule is closed-door.server.test.ts's; here a held ticket stands in for one, so the route's
-// answer to it can be read against its answer to a private album, word for word.
+// ★ THE DOOR (the doors, 20260929120000): a private album, or a ticket a block holds, shuts it. Its own
+// rule is decide.test.ts's and closed-door.server.test.ts's; here a held ticket stands in for a shut
+// door, so the route's answer to it can be read against its answer to a private album, word for word.
 const ticketBlocked = vi.fn();
-vi.mock("@/lib/events/closed-door.server", () => ({
-  isClosedDoor: async (
-    event: { visibility?: string },
-    tickets: unknown[] = [],
-  ) =>
-    event.visibility === "private" ||
-    (await ticketBlocked(event, tickets)) === true,
-}));
+const callerOptions = vi.fn();
+vi.mock("@/lib/events/closed-door.server", async () =>
+  (await import("@/lib/events/testing/door-double")).doorDouble({
+    blocked: (event, tickets) => ticketBlocked(event, tickets),
+    callerOptions: (options) => callerOptions(options),
+  }),
+);
 
 const { POST } = await import("@/app/api/guests/name/route");
 

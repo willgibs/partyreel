@@ -47,6 +47,19 @@ export const joinSchema = z.object({
   email: z.string().optional(),
 });
 
+// ─── POST /api/guests/ask, POST /api/guests/door (the doors) ─────────────────
+// The doors (event-settings r1): the ask carries the album's capability alone, since the asker is her
+// confirmed account, read from the session and never from the body; the held door's check-in carries it
+// and, when this device holds one, the waiting ticket (in the BODY, never a URL, like every capability).
+export const askToJoinSchema = z.object({
+  qr_token: z.string().trim().min(1),
+});
+
+export const doorCheckInSchema = z.object({
+  qr_token: z.string().trim().min(1),
+  session_token: z.string().trim().min(1).optional(),
+});
+
 // ─── POST /api/guests/name (name / rename) ───────────────────────────────────
 // The second half of the name-only door: naming a row that arrived without one, or changing the name.
 // The `session_token` is the capability (set_guest_display_name validates it inside and can only ever

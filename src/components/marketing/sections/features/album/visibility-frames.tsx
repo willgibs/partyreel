@@ -158,7 +158,7 @@ export function VisibilityFrames() {
             <span className="flex size-7 items-center justify-center rounded-full border text-muted-foreground">
               <Lock className="size-3.5" />
             </span>
-            <p className="font-heading text-xs">This event is private</p>
+            <p className="font-heading text-xs">This album is closed</p>
           </div>
         </Over>
       </Cell>

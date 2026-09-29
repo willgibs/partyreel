@@ -65,6 +65,17 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/ui/popup.tsx
   - src/components/app/event-blocks/
   - src/lib/errors/codes
+  - src/lib/guest/join
+  - src/components/guest/identify-step
+  # added in phase 2 (the guest path) and on the Orchestrator's milestone-30 relay
+  - src/lib/guest/use-stored-session
+  - src/lib/guest/session-cookie.test.ts
+  - src/components/guest/guest-upload.tsx
+  - src/components/guest/upload-step.tsx
+  - src/lib/events/testing/
+  - src/components/marketing/sections/features/album/visibility-frames.tsx
+  - src/components/marketing/mock-parity.test.ts
+  - src/components/app/share/event-share-provider
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/reviews/event-settings.json
   - docs/reviews/locked-door.json

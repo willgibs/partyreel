@@ -88,10 +88,10 @@ describe("the doors a newcomer stands at", () => {
     expect(decideDoor(stranger("password"))).toEqual({ kind: "through", admitted: false });
   });
 
-  it("letting each person in: the door's steps, then waiting, then in", () => {
+  it("letting each person in: the door's steps (or one tap to ask, once confirmed), then waiting, then in", () => {
     expect(decideDoor(stranger("approve"))).toEqual({ kind: "newcomer", gate: "approve" });
     expect(decideDoor(stranger("approve", { confirmed: true }))).toEqual({
-      kind: "newcomer",
+      kind: "ask",
       gate: "approve",
     });
     expect(decideDoor(stranger("approve", { confirmed: true, waiting: true }))).toEqual({
@@ -101,7 +101,10 @@ describe("the doors a newcomer stands at", () => {
 
   it("the invite list: the email first, then the list comes straight in and anyone else may ask", () => {
     expect(decideDoor(stranger("invite"))).toEqual({ kind: "newcomer", gate: "invite" });
-    expect(decideDoor(stranger("invite", { confirmed: true }))).toEqual({ kind: "ask" });
+    expect(decideDoor(stranger("invite", { confirmed: true }))).toEqual({
+      kind: "ask",
+      gate: "invite",
+    });
     expect(decideDoor(stranger("invite", { confirmed: true, waiting: true }))).toEqual({
       kind: "waiting",
     });
@@ -121,14 +124,14 @@ describe("what a decision shows", () => {
     expect(readsAlbum({ kind: "through", admitted: false })).toBe(true);
     for (const decision of [
       { kind: "waiting" },
-      { kind: "ask" },
+      { kind: "ask", gate: "invite" },
       { kind: "newcomer", gate: "approve" },
       { kind: "shut", previous: true },
     ] as const) {
       expect(readsAlbum(decision)).toBe(false);
     }
     expect(showsTheEvent({ kind: "waiting" })).toBe(true);
-    expect(showsTheEvent({ kind: "ask" })).toBe(true);
+    expect(showsTheEvent({ kind: "ask", gate: "approve" })).toBe(true);
     expect(showsTheEvent({ kind: "newcomer", gate: "invite" })).toBe(true);
     expect(showsTheEvent({ kind: "shut", previous: false })).toBe(false);
   });

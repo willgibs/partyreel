@@ -74,6 +74,11 @@
  *      host's policy hides it while the flag stays ungranted; her Delete permanently cannot end its
  *      window; her Deleted and her restored event count only what her Deleted shows; and an event
  *      holding one inside its window is kept by every event-level purge.
+ *  18. The doors (event-settings r1, migration 20260929120000): a gated album stored private with its
+ *      gate, the gate ungranted and the Videos switch granted; admission on the ticket; the invite
+ *      list's keys, RLS and cap; the standing and every read the service role's alone; the host's four
+ *      acts re-checking the host; and every guest path (the join, the upload, the rename, likes, both
+ *      claims, the ask) meeting the door in the private album's words.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";

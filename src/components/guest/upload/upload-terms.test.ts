@@ -26,6 +26,13 @@ describe("the terms line states the product's limits, from the one source", () =
     expect(line).toContain("videos");
   });
 
+  it("names photos alone where the album takes no video, so it never invites one it refuses", () => {
+    const line = uploadTermsLine(null, false);
+    expect(line.toLowerCase()).toContain("photos");
+    expect(line.toLowerCase()).not.toContain("video");
+    expect(line).toContain(formatBytes(MAX_UPLOAD_BYTES));
+  });
+
   it("reads the ceiling off limits.ts, formatted for a person", () => {
     const line = uploadTermsLine();
     expect(line).toContain(formatBytes(MAX_UPLOAD_BYTES));

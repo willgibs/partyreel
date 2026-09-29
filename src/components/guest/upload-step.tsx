@@ -103,6 +103,7 @@ export function UploadStep({
   requireUpload,
   albumEmpty,
   capBytes,
+  acceptsVideo = true,
   queue,
   onSend,
   onRetry,
@@ -117,6 +118,8 @@ export function UploadStep({
   /** Nothing in the album yet: the line offers the first photograph instead of a queue. */
   albumEmpty: boolean;
   capBytes?: number | null;
+  /** Whether this album takes a video from a guest (the picker's own note). */
+  acceptsVideo?: boolean;
   /** The lifted queue's snapshot (this step never owns one). */
   queue: readonly QueueItem[];
   onSend: (files: File[]) => void;
@@ -286,6 +289,7 @@ export function UploadStep({
         picks={picks}
         onPicks={setPicks}
         capBytes={capBytes}
+        acceptsVideo={acceptsVideo}
         onSend={(files) => {
           setPicks([]);
           onSend(files);

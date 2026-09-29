@@ -46,11 +46,15 @@ export type DoorDecision =
   | { kind: "shut"; previous: boolean }
   /** The held door: the host will let her in, and it opens by itself when she does. */
   | { kind: "waiting" }
-  /** Not on the invite list: ask the host, or use a different email. */
-  | { kind: "ask" }
   /**
-   * A newcomer at a gate the host answers or a list keeps: the door's own steps (the welcome, the email),
-   * with nothing real behind it, then the join decides (waiting, or in for someone the list names).
+   * A confirmed newcomer who can ask to be let in: at letting each person in, one tap asks; at an
+   * invite list that does not name her address, she asks, or uses a different email (`unlisted=ask`).
+   */
+  | { kind: "ask"; gate: "approve" | "invite" }
+  /**
+   * A newcomer with no confirmed email yet, at a gate the host answers or a list keeps: the door's own
+   * steps (the welcome, the email), with nothing real behind it; confirming asks at letting each person
+   * in, and at an invite list lets in an address it names.
    */
   | { kind: "newcomer"; gate: "approve" | "invite" }
   /**
@@ -77,12 +81,13 @@ export function decideDoor(standing: DoorStanding): DoorDecision {
     case "approve":
       if (standing.in) return { kind: "through", admitted: true };
       if (standing.waiting) return { kind: "waiting" };
+      if (standing.confirmed) return { kind: "ask", gate: "approve" };
       return { kind: "newcomer", gate: "approve" };
     case "invite":
       // The list is the host's own yes: an address it names comes straight in, whatever it asked before.
       if (standing.in || standing.listed) return { kind: "through", admitted: true };
       if (standing.waiting) return { kind: "waiting" };
-      if (standing.confirmed) return { kind: "ask" };
+      if (standing.confirmed) return { kind: "ask", gate: "invite" };
       return { kind: "newcomer", gate: "invite" };
   }
 }

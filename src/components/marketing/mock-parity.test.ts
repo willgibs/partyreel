@@ -139,11 +139,13 @@ const ENTRIES: ParityEntry[] = [
     literal: "Turn off to freeze the album. Guests can still view it.",
   },
   {
+    // The doors (event-settings r1): the private album's page is the shut door, one screen for every
+    // newcomer turned away, and its title lives with it.
     label: "album visibility private page title",
     marketingFile:
       "src/components/marketing/sections/features/album/visibility-frames.tsx",
-    appFile: "src/app/(guest)/e/[token]/page.tsx",
-    literal: "This event is private",
+    appFile: "src/components/guest/door/shut-door.tsx",
+    literal: "This album is closed",
   },
   {
     label: "album visibility password gate eyebrow",

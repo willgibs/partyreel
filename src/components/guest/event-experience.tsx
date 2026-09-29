@@ -71,6 +71,7 @@ import {
 } from "@/lib/guest/confirm-beat-name";
 import { closesOnLastRemoval as lastRemovalCloses } from "@/lib/guest/delete-consequence";
 import { contributionAnswered } from "@/lib/guest/entry-steps";
+import { joinEvent } from "@/lib/guest/join";
 import { useKeepAskPutDown } from "@/lib/guest/keep-ask";
 import { onNameDoorRequest } from "@/lib/guest/name-door";
 import { settleConfirmedName } from "@/lib/guest/settle-name";
@@ -139,6 +140,7 @@ export function EventExperience({
   isDemo,
   access,
   gate,
+  doorGate = null,
   needsName,
   hostAvatarUrl,
   hostSeed,
@@ -176,6 +178,12 @@ export function EventExperience({
    * to infer it from the level.
    */
   gate: GalleryGate | null;
+  /**
+   * The gate a newcomer stands at when the door is what she meets (the doors, event-settings r1:
+   * letting each person in, or an invite list), for the email step's and the ask's words. Null
+   * everywhere else.
+   */
+  doorGate?: "approve" | "invite" | null;
   /** Signed-in uploader without a public display name: the door asks for it as its NAME step, in
    *  `profile` mode (it writes the account's own name). */
   needsName: boolean;
@@ -588,6 +596,31 @@ export function EventExperience({
   // opening under a welcome that is about to arrive for a guest.
   const [welcomePending, setWelcomePending] = useState(true);
 
+  /* ★ PAST THE DOOR IS A TICKET (the doors, event-settings r1). "Already in" means everyone past the
+     door, a confirmed guest who only looks included (Will's `inside` note: "X guests are already
+     in"), so a confirmed visitor with no ticket for this album joins silently, once, the moment the
+     door is behind her. Without it, a host who later closed the door would shut her out as a newcomer
+     she never was. A typed name's own step already mints her ticket, and an unconfirmed visitor has not
+     passed the door. The upload queue's own join then finds the ticket and mints nothing more. */
+  const joinedAtDoorRef = useRef(false);
+  useEffect(() => {
+    if (isDemo || isOwner || !isVerified || welcomePending) return;
+    if (access === "none" || sessionToken || joinedAtDoorRef.current) return;
+    joinedAtDoorRef.current = true;
+    void joinEvent({ qrToken }).then((joined) => {
+      if (joined.ok) setSessionToken(joined.guest.sessionToken);
+    });
+  }, [
+    access,
+    isDemo,
+    isOwner,
+    isVerified,
+    qrToken,
+    sessionToken,
+    setSessionToken,
+    welcomePending,
+  ]);
+
   /* ────────────────────────────────────────────────────────────────────────
      THE KEEP: THE DOOR'S LAST SCREEN (`guest-capture` r1, `moment=first` and `shape=sheet-step`).
 
@@ -885,6 +918,8 @@ export function EventExperience({
             eventName={event.name}
             access={access}
             gate={gate}
+            doorGate={doorGate}
+            acceptsVideo={event.accepts_video}
             hasContributed={serverContributed}
             contributed={clientContributed}
             returning={returning}

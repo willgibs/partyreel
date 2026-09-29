@@ -33,8 +33,15 @@ import {
   listOwnUploadStatuses,
   listSessionMediaIds,
 } from "@/lib/db/mutations/guest-media";
-import { getEventByQrToken } from "@/lib/db/queries/guest-events";
-import { isClosedDoor } from "@/lib/events/closed-door.server";
+import {
+  getEventByQrToken,
+  type GuestEvent,
+} from "@/lib/db/queries/guest-events";
+import {
+  doorCallerFor,
+  isThrough,
+  resolveGuestDoor,
+} from "@/lib/events/closed-door.server";
 import { TRACKER_TELLS_REFUSAL } from "@/lib/guest/upload-tracker";
 import { captureWarning } from "@/lib/observability/sentry";
 import {
@@ -101,6 +108,18 @@ async function breadthRefusal(
   return null;
 }
 
+/** Whether the door lets this ticket (and the account beside it) through to the album. */
+async function letsThrough(
+  event: GuestEvent,
+  sessionToken: string | undefined,
+): Promise<boolean> {
+  const door = await resolveGuestDoor(
+    event,
+    await doorCallerFor(event.id, { bodyTokens: [sessionToken], cookie: false }),
+  );
+  return isThrough(door);
+}
+
 async function answerStatuses(
   request: Request,
   input: { qr_token: string; session_token?: string },
@@ -108,10 +127,11 @@ async function answerStatuses(
   const refused = await breadthRefusal(request, input.qr_token);
   if (refused) return refused;
 
-  // A private album, or a ticket a block holds: the same empty answer (the closed door,
-  // `closed-door.server.ts`, asked with the body's ticket alone: this route never reads the cookie).
+  // A door that does not let this ticket through (a block, a door that shut, a ticket still waiting on
+  // the host): the same empty answer (`closed-door.server.ts`, asked with the body's ticket beside the
+  // account: this route never reads the cookie).
   const event = await getEventByQrToken(input.qr_token);
-  if (!event.ok || (await isClosedDoor(event.data, [input.session_token]))) {
+  if (!event.ok || !(await letsThrough(event.data, input.session_token))) {
     return NextResponse.json({ ok: true, items: [] }, { headers: PRIVATE });
   }
   const supabase = await createClient();
@@ -157,7 +177,7 @@ export async function POST(request: Request) {
   if (refused) return refused;
 
   const event = await getEventByQrToken(qr_token);
-  if (!event.ok || (await isClosedDoor(event.data, [session_token]))) {
+  if (!event.ok || !(await letsThrough(event.data, session_token))) {
     return NextResponse.json(NONE);
   }
 

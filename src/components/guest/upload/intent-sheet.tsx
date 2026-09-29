@@ -100,6 +100,7 @@ export function UploadIntentBody({
   onPicks,
   onSend,
   capBytes,
+  acceptsVideo = true,
   /** The door's step replaces the two rows' footer with its own (a skip, or the held line). */
   footer,
   className,
@@ -108,6 +109,12 @@ export function UploadIntentBody({
   onPicks: (picks: Pick[]) => void;
   onSend: (files: File[]) => void;
   capBytes?: number | null;
+  /**
+   * Whether this album takes a video from a guest (`accepts_video`: the host's Videos switch on a
+   * plan that takes video). Off, the album's picker offers photographs alone and the line names only
+   * them, so a guest is never handed a video the album would refuse after it flew.
+   */
+  acceptsVideo?: boolean;
   footer?: React.ReactNode;
   className?: string;
 }) {
@@ -140,7 +147,7 @@ export function UploadIntentBody({
       <input
         ref={albumRef}
         type="file"
-        accept="image/*,video/*"
+        accept={acceptsVideo ? "image/*,video/*" : "image/*"}
         multiple
         hidden
         onChange={(e) => take(e.currentTarget)}
@@ -150,6 +157,7 @@ export function UploadIntentBody({
         <ReviewStep
           picks={picks}
           capBytes={capBytes}
+          acceptsVideo={acceptsVideo}
           onRemove={(id) => onPicks(picks.filter((p) => p.id !== id))}
           onSend={() => onSend(picks.map((p) => p.file))}
         />
@@ -177,7 +185,7 @@ export function UploadIntentBody({
             data-upload-terms
             className="pt-1 text-center text-reading text-muted-foreground"
           >
-            {uploadTermsLine(capBytes)}
+            {uploadTermsLine(capBytes, acceptsVideo)}
           </p>
           {footer}
         </div>
@@ -201,6 +209,7 @@ export function UploadIntentSheet({
   hostName,
   onSend,
   capBytes,
+  acceptsVideo = true,
 }: {
   /** The two rows: the choice itself. */
   open: boolean;
@@ -211,6 +220,8 @@ export function UploadIntentSheet({
   onSend: (files: File[]) => void;
   /** The host's own per-event cap once the RPC returns it (upload-terms.ts). */
   capBytes?: number | null;
+  /** Whether this album takes a video from a guest (the body's own note). */
+  acceptsVideo?: boolean;
 }) {
   const cameraRef = useRef<HTMLInputElement>(null);
   const albumRef = useRef<HTMLInputElement>(null);
@@ -241,7 +252,7 @@ export function UploadIntentSheet({
       <input
         ref={albumRef}
         type="file"
-        accept="image/*,video/*"
+        accept={acceptsVideo ? "image/*,video/*" : "image/*"}
         multiple
         hidden
         onChange={(e) => took(e.currentTarget)}
@@ -268,7 +279,7 @@ export function UploadIntentSheet({
         </ResponsiveMenuItem>
         {/* The facts of the act, quietly, under the two doors into it. */}
         <ResponsiveMenuNote data-upload-terms>
-          {uploadTermsLine(capBytes)}
+          {uploadTermsLine(capBytes, acceptsVideo)}
         </ResponsiveMenuNote>
       </ResponsiveMenu>
 
@@ -301,6 +312,7 @@ export function UploadIntentSheet({
             <ReviewStep
               picks={picks}
               capBytes={capBytes}
+              acceptsVideo={acceptsVideo}
               onRemove={(id) => {
                 const kept = picks.filter((p) => p.id !== id);
                 // ★ REMOVING THE LAST ONE GOES BACK, IT DOES NOT SEND NOTHING:

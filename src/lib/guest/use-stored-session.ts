@@ -142,10 +142,14 @@ export function forgetGuestTickets(): void {
  * which stays on the album rather than following `signOutAction` to /login): the device half now,
  * and every guest cookie through `POST /api/guests/leave` `{ all: true }`, since script cannot read
  * an HttpOnly cookie to name them. The server rule is the guarantee; this is the courtesy.
+ *
+ * It resolves once the server has answered (never rejecting), for the caller that must not run ahead
+ * of the cookie's expiry: the door's "Use a different email" reloads onto the door, and a door read
+ * still carrying the old ticket would find the old waiting row.
  */
-export function leaveAllGuestSessions(): void {
+export function leaveAllGuestSessions(): Promise<void> {
   forgetGuestTickets();
-  void postLeave({ all: true });
+  return postLeave({ all: true });
 }
 
 // localStorage-backed session via useSyncExternalStore: the server snapshot is
