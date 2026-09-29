@@ -1,6 +1,6 @@
 ---
 track: unfence
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "09c1b56f"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -58,25 +58,122 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **Item 16, the dropdown's third-level throw, is NOT removed: Will's to decide.** The edit that removes it
+  (`DropdownMenuDepthContext`, the throw in `DropdownMenuSub`, the throw's test, a comment that two levels read simpler
+  and a third branch flattens into a named group) was refused in this session by the permission classifier, so I
+  stopped: `src/components/ui/dropdown-menu.tsx` and `dropdown-menu.test.tsx` are exactly as on launch-prep and the
+  second ("production fence") commit does not exist. Recommended: remove it as the disposition says (production nests
+  one level, `user-menu.tsx`; the refusal blocks nothing real), where Will allows it. Until then `design-system.md`'s
+  submenu bullet ("a third throws"), the Library's menu specimen comment and the test all stay true.
+- **Bible #10, "never promise 'no account'" (item 11).** Recommended: keep it as written. It is a truth, not a hardened
+  note (a host may require an account and Require verified emails defaults on), #10's why already says so, and
+  `content-policy.test.ts` guards the truth whatever the wording (its header now leads with it).
+- **Bible #10's "The voice is won one line at a time in its real place" (item 12).** It came from brand-voice's R6
+  notes (judge copy where it is used), given on that board and filed board-less, so it is encoded twice. Recommended:
+  drop the sentence; the openness it carries is #1's and #10's own "treat every line as open to a better one". The
+  proposed why is under item 13.
+- **The three clauses he ratified on 2026-09-12 (item 13): #8's one type ladder, #9's never stock, #10's not defining
+  us against someone else.** Recommended: keep all three, since his ratification made them program-wide by his own
+  word. #8 and #9 carry their reasons; #10's clause has none in its why, so give it his from the /about round ("who we
+  are, not who we are not"). Proposed #10 `why`, word for word, its `statement` unchanged:
+
+  ```text
+  It is about who we are, not who we are not, and a use we fence off is one a host might have found. Many events ask for an account, so "no account" would be untrue, and an em-dash reads as an AI tell; `marketing-voice.ts` is the one home for the lines that ship.
+  ```
+- **Item 9, "None of these" on every pick-one catalog.** Built: `registry.test.ts` no longer requires a winner ask to
+  offer `none` (it caught no bug: `GalleryStep` draws the cards alone and draws `none` only when offered), and the
+  reason stays as guidance in the test and `board-spec.ts`. Recommended as built; no standing board declares a catalog.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/design-system.md` (`1ee57367`): gallery arrivals leave "Light never goes" for a line of their own with
+  album-motion-wiring's reason (the Orchestrator's relay); the halo's "never a button" became its reason; the Aurora on
+  a light ground is "not yet, and why", pointing at ROADMAP's light-mode line (the `globals.css` fence and its drift
+  note unchanged); the heading-weight line leads with the trap, 700 the current preference with its escape; "Glass is
+  media chrome" is "not yet a popover's", and the floating layer "carries no backdrop filter until the Glass
+  exploration" where the doc said it "refuses" one (the code never did), in the glass section and the floating-layer
+  contract.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- none
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits.** The work commit `1ee57367` (the docs and lab), pushed. The production-fence commit does not exist
+  (item 16 refused; Questions). No sync commit: the lane fast-forwarded to `816d3e11` before its first commit
+  (album-motion-wiring had just merged into the Library's components demos and the specimens artifact item 16 was to
+  touch); launch-prep moved since (`cba704dd` crumbs-17, then records to `50dd94fc`), touching none of this lane's
+  paths or `reads`, so no second sync.
+- **Gates on `1ee57367`**, each on its own exit code (logs in `../partyreel-wt/_scratch/unfence/`): typecheck 0
+  (`gate-typecheck.log`); lint 0 (`gate-lint.log`); test 0, 614 files, 7189 tests (`gate-test.log`); build 0
+  (`gate-build.log`); `pnpm lab:smoke --base http://localhost:3132` 0, "172 checks, 0 failing", scope all because
+  `lab-smoke.mjs` changed (`lab-smoke.log`); `pnpm lab:smoke --all` 0, "172 checks, 0 failing" (`lab-smoke-all.log`).
+  No board, so no `lab:demo`.
+- **Lane check.** `git diff --name-only origin/launch-prep...HEAD` = the 13 owned paths below + this manifest; no
+  exceptions: `docs/systems/design-system.md`, `scripts/lab-smoke.mjs`, `library/foundations/gallery-demos.tsx`,
+  `library/foundations/type-ladder.tsx`, `library/marketing/gallery-demos.tsx`, `sandbox/registry.test.ts`,
+  `lab/before-after.tsx`, `lab/board-spec.ts`, `lab/catalog.tsx`, `ui/floating-layer.ts`,
+  `constants/marketing-voice.ts`, `lib/content-policy.test.ts`, `lib/type-ladder-policy.test.ts`.
+- **Seen on the dev server (3132).** `/design/library/glow`: the lede's "for now it lives on dark grounds", the shape
+  note's halo reason, the halo hint "objects, not buttons"; `/design/library/section-light`: its lede;
+  `/design/library/marketing`: the row "on dark grounds for now". The user menu's sub-menu was not re-walked, since
+  `dropdown-menu.tsx` did not change. Live: no product behaviour changed (the Library's text under `/design`,
+  comments, docs and test headers), so the alias has nothing new to exercise until item 16 lands.
+- **The items.**
+  1. PROGRAM.md's "never force them apart": guidance with its reason (the line below).
+  2. The review before round 2 (`registry.test.ts`): the test stays; its header states the loop and its scar
+     (brand-voice at round seven, unreviewed), not the quote; the empty grandfather list goes with its paid debt.
+  3. PROGRAM.md's relative note: guidance with its reason (below).
+  4. PROGRAM.md's placeholder copy: its condition back (below).
+  5. PROGRAM.md's fix at its source: guidance with its reason (below).
+  6. An agent's find, not his note: untouched.
+  7. `LIMITS.readingWords`: the kit's default with its escape; his "PhD" note named the failure (`board-spec.ts`,
+     `lab-smoke.mjs`).
+  8. `lab-demo.mjs`: untouched (a bug-catcher).
+  9. "None of these" optional, its reason kept (`registry.test.ts`, `board-spec.ts`); `catalog.tsx`'s verbatim brief
+     and page-wide switch are their reasons; `before-after.tsx`'s "the only thing worth showing" is its reason.
+  10. The kit's traps: untouched.
+  11-13. Proposed under Questions; `bible.ts` untouched; `content-policy.test.ts`'s no-account header leads with the
+      truth.
+  14. `marketing-voice.ts`, comments only: the subhead's shape is the reference a new subhead is graded against, his
+      sentence kept; the empty state's reference keeps its reason; the Pro line's order is his ranking of the pair,
+      enforced by nothing; and two stale claims that the copy is byte-pinned (the pins went in `91606e9d`).
+  15. The Aurora on a light ground is "not yet, and why" in `design-system.md` and both Library entries (the
+      `globals.css` fence stays); the halo carries a reason, not his quote; the arrivals clause is guidance with
+      album-motion-wiring's reason (the relay); the Aurora entry's stale "still open on the light board" (that board
+      retired) now names the banked shimmer.
+  16. The floating layer's "refuses a backdrop filter" is "carries none until the Glass exploration"
+      (`design-system.md` twice, `floating-layer.ts`'s comment). The dropdown's throw: NOT removed (Questions).
+  17. One heading weight: guard 3 stays and leads with the trap; 700 is the current preference with its escape
+      (`type-ladder-policy.test.ts`, `design-system.md`, `type-ladder.tsx`).
+  18. `type-ladder.tsx`'s clip-not-scale: his quote kept as that file's reason, the "NEVER" gone.
+- **PROGRAM.md, word for word**, for the Orchestrator's record: lines 91-99 ("Options are real contenders" through
+  "Placeholder copy is judged") become the block below, items 1, 5, 3 and 4 in their places and "Measure every tile
+  before it ships" (item 6) unchanged:
+
+  ```md
+  - Options are real contenders for one decision, as far apart as the real answers are: pushed apart for the
+    exploration's sake, each turns into a caricature nobody would ship, and two that land on the same answer are a
+    finding. Ask nothing an open ask on another standing board already asks (your brief names the nearest).
+  - **Offer the fix at its source**: when a question is a symptom of the system (a token is wrong), an option that fixes
+    the system is worth drawing beside the page's own, since a fix to one page leaves the next page asking the same
+    question.
+  - **Measure every tile before it ships**: a preview shows what its option's words claim, read on screen, never
+    computed.
+  - **Answer a relative note against a reference**: a note like "a bit more calm" is best answered by options graded
+    against something he already likes, since a cap that made every option calm by construction would leave him nothing
+    to choose between.
+  - A board that is not about the words judges its placeholder copy for size and wrapping; the words are the voice's
+    (`marketing-voice.ts`).
+  ```
+- **Relay, `docs/reviews/README.md`** (about line 70), with item 9: "whose options are its card ids plus `none`, so"
+  becomes "whose options are its card ids, usually with `none` beside them, so".
+- Assets requested from Will: none.
+- Board ideas: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- **Calls his to overrule.** "None of these" optional on a pick-one catalog (item 9). The halo's reason in the
+  system's own words, "decoration on a control rather than light from a thing", where his note gave none (item 15).
+  The three bible proposals (Questions).
+- **Look at first:** the first Question (item 16, his to decide); then the four PROGRAM.md lines; then
+  `/design/library/glow`.
