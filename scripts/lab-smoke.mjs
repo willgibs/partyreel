@@ -9,13 +9,15 @@
  *   pnpm lab:smoke --base http://localhost:3131   # dev is open; a key proves it travels
  *   pnpm build && pnpm start && pnpm lab:smoke --base http://localhost:3131 --production
  *
- * IT ALSO MEASURES THE READING (the revamp, 2026-09-16). Will's note on the
- * palette board's fifth round was that it read like "a PhD on color theory",
- * and no test could say so: a board's length is a property of the rendered
- * page, not of any file. So every board page is weighed here, in the words a
- * reviewer actually MEETS (what is inside a closed fold, or hidden, does not
- * count, which is the whole point of folding it), against LIMITS.readingWords
- * in board-spec.ts. A board that truly needs more says why in its spec
+ * IT ALSO MEASURES THE READING (the revamp, 2026-09-16). A board that reads
+ * like a paper fails its reviewer (Will's note on the palette board's fifth
+ * round was that it read like "a PhD on color theory"), and no test can say
+ * so: a board's length is a property of the rendered page, not of any file.
+ * So every board page is weighed here, in the words a reviewer actually MEETS
+ * (what is inside a closed fold, or hidden, does not count, which is the whole
+ * point of folding it), against LIMITS.readingWords in board-spec.ts. That
+ * number is the kit's default, not his: his note named the failure, and the
+ * kit picked the budget. A board that needs more says why in its spec
  * (`reading: { words, why }`) and the smoke prints the reason.
  *
  * ★ IT CRAWLS WHAT THE CHANGE TOUCHED (the lab revamp, 2026-09-29). Every

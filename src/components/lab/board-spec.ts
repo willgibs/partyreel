@@ -253,9 +253,11 @@ export type CatalogSpec<SectionId extends string = string> = {
   /**
    * HOW THE CATALOG IS DECIDED (the stepped review, 2026-09-16). `pick-one`:
    * the cards are variants of one thing and ONE wins, asked by the `winner` ask
-   * (its options are the card ids plus `none`, its `control` the pick control,
-   * so "None of these" clears the board and lands in the ledger as an ordinary
-   * answer carrying its note); the card verdicts are optional feedback.
+   * (its options are the card ids, usually with `none` beside them, and its
+   * `control` the pick control, so "None of these" clears the board and lands
+   * in the ledger as an ordinary answer carrying its note; offering it lets a
+   * reviewer who wants none of the cards say so rather than crown the least
+   * wrong one); the card verdicts are optional feedback.
    * `keep-any` (the default): every card is its own proposal and each takes a
    * verdict.
    */
@@ -422,10 +424,10 @@ export type BoardSpec<S extends readonly Section[] = readonly Section[]> = {
   carried?: readonly CarriedCall[];
   catalog?: CatalogSpec<S[number]["id"]>;
   /**
-   * A board that truly needs more words than `LIMITS.readingWords` says WHY
-   * here, and `pnpm lab:smoke` prints the reason instead of failing it. A
-   * budget with no escape hatch gets gamed by moving prose into an image; one
-   * that asks for a sentence gets thought about.
+   * A board that needs more words than `LIMITS.readingWords` says WHY here, and
+   * `pnpm lab:smoke` prints the reason instead of failing it. The number is a
+   * default with an escape: a budget with no escape hatch gets gamed by moving
+   * prose into an image, and one that asks for a sentence gets thought about.
    */
   reading?: { words: number; why: string };
   controls?: readonly Control[];
@@ -485,7 +487,13 @@ export const LIMITS = {
   openingLine: 160,
   term: 40,
   termMeans: 120,
-  /** The words a board may show outside its collapsed folds before it is a paper (the smoke measures it). */
+  /**
+   * The words a board shows outside its collapsed folds before it reads as a
+   * paper, weighed by `pnpm lab:smoke`. The number is the kit's own default,
+   * picked with the catalog kit (2026-09-16): Will's note that a palette round
+   * read like "a PhD on color theory" named the failure and came with no
+   * number. A board that needs more declares `reading` with its reason.
+   */
   readingWords: 1200,
 } as const;
 
