@@ -1,6 +1,6 @@
 ---
 track: event-ready
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "f9db585d"            # the launch-prep SHA the branch was cut from
 board: event-ready
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -40,25 +40,38 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **Is "ready" something an event is, or only something its host is told?** A stored ready, a mark a guest sees, or anything that waits on it would change what an event is (today it is live the moment Create makes it). **Recommended: only something she is told.** Ready is computed from state the app already holds (`sandbox/event-ready/readiness.ts`), for the host's eyes, never stored, never shown to a guest, gating nothing. The board is drawn on this answer (its first two settled lines).
+- **Does ready wait on the date, the note and the first photos?** Holding it until they are done turns three optional things into obligations for every host. **Recommended: no.** Ready waits on what a guest needs to get in and add (a door that lets her in, uploads open, the code opened once, room once the shelf is full); the date, the note and the first photos sit under "Worth doing" and never hold it back. Carried on the board as `ready`; `readiness.test.ts` holds it.
+- **Does the code's first open count the host's own test scan?** `recordLinkHit` counts every non-bot visit to `/e/<token>` and does not know whose it was, so counting only guests would take a new stored fact (a migration). **Recommended: yes, her own scan counts:** it is the help's own advice, it proves the code opens, and it needs nothing new. Carried as `opened`.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none: an exploration ships no production byte; the round's facts live in `sandbox/event-ready/` until a wiring lands its picks in `docs/systems/host-app.md`.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Host: the dashboard card says Closed for paused uploads (`statusLabel`, `app/(app)/dashboard/page.tsx`) while the hub's Settings card words the gate Only people already in as "Private · Closed" (`doorLabel`): one word, two states; the card could say Paused, the code's own word (from `event-ready`).
+- Host: at 375 the album's name before the first photo, "Before the first photo", wraps to two lines under Add photos and View (`event-feed/event-gallery.tsx`); it retires with the launch list if `event-ready`'s `list` leaves the album's place (from `event-ready`).
+- The lab and the kit: a portalled frame is not its own world: a production `<Link>` pressed in it navigates the lab (boards carry `stopLinks` or `Inert`), radix layers (the settings `Popup`, a word's menu) portal to the lab's document, and a `loading="lazy"` image never loads (`EventCard`'s cover drew only through its `living` stills); `Frame` swallowing links and handing radix a frame-scoped portal container would let a board draw production whole (from `event-ready`).
+- The lab and the kit: `Strip` (phones side by side in one `Fit`, laptops stacked, rows of N) and the 375/1440 Screen knob are copied in `locked-door` and `event-ready`; the front door could carry both (from `event-ready`).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed on `lp/event-ready`:** `65c9edaf` (the board), `d72df1de` (the after-party window, the reunion, captions, dead exports), and this manifest's commit (the head in the chat line). No sync: launch-prep moved to `18cb085f`, but `git diff --name-only 61a4ee00 origin/launch-prep` touches none of my `reads` and nothing the board imports (records, the door family board, schema-pass's SQL and social queries; `grep 'from "' sandbox/event-ready/*` names none of them).
+- **Gates on `d72df1de`'s tree, each on its own exit code** (logs in `../partyreel-wt/_scratch/event-ready/gate-*.log`): `pnpm typecheck` 0; `pnpm lint` 0 (no warnings); `pnpm test` 0 (609 files, 7,074 tests); `zsh scripts/build-lock.sh pnpm build` 0; `pnpm lab:smoke --base http://localhost:3135 --all` 0 (174 checks, 0 failing; the board reads 879 words of 1,200); `pnpm lab:demo --board event-ready --base http://localhost:3135` 0 (5 steps, 0 failing, every option draws). Also `--state screen=1440`: 5 of 5 ok. `--width 375`: all five steps OUT OF REACH (the stage 0.85 to 1.12 screens under the question), the lab's own known line (ROADMAP "fold the opening's two lists and the context lines below `sm`", locked-door measures 1.0 to 1.3); every stage draws there.
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = the 13 files of `src/app/(dev)/design/sandbox/event-ready/` + this manifest. No exceptions.
+- **The board,** `/design/lab/event-ready`, desk 35, surface host, five asks, 375 first with 1440 on the Screen knob, every option drawn on production's own components (`AppShell` and its bell and menu, the rooms' shell and Review's face, `ReelCard`, `LaunchList`, `FeedSectionHeader`, `SettingsProvider` with inert writes and its rows and four pages, `NextStepBand`, `StorageMeter`, `EventCard` with `EventCardQr`, `EventCodeDoor`, `StyledQr`); what cannot mount (the hub's page, Create's beat, the settings panel's layer) is quoted class for class and says so in its file:
+  - `list`, where the checklist lives, across three moments of Maya's 30th (an hour after Create; three photos in, the code never opened; the night before): today's launch list in the album's place (it leaves at the first photo), **the head of the hub until it's done (recommended)**, or inside Settings counted on its card.
+  - `guide`, a walk through Settings, drawn in the home `list` holds: four rows as today, **the rows as numbered steps with a tick each and the code a fifth, every page ending in Next (recommended)**, or a pass of its own ("Set it up", one question a screen).
+  - `create`, Create's hand-off, drawn in the walk `guide` holds: the beat as today, **the beat handing over (the code first, then what is left, and Get it ready into the walk's first step) (recommended)**, or Create walking the door and the welcome before the beat (the one option that reopens `asks=one`, and says so).
+  - `needs`, What needs you when nothing waits, the band and the cards on a quiet Friday and on the 30th's night: nothing as today, **each event's next job from one function (recommended)**, or how ready it is; the card carries the same line in the top-right slot its amber review chip holds.
+  - `door`, the hub's code as the door, in five doors (Public; Private, you let each in, 2 waiting; a password; Only me; paused): dimmed when paused as today (an Only me code looks ready to scan), a mark on the mat's corner, or **a line of words on the mat (recommended)**.
+  - One function under every drawing, `readiness.ts` (13 tests in `readiness.test.ts`): what a guest needs first (the door, uploads, the code opened once, room when full), then worth doing (the first photos, the welcome); `nextJob` keeps production's `nextStepForEvent` first, then the checklist, then Invite guests, and after a party Share the album for 30 days (`AFTER_PARTY_DAYS`), then quiet.
+- **The help's twin** (`content/help/day-of-checklist-for-hosts.mdx`, not mine): its two ROADMAP Help-sync lines are already fixed on launch-prep (Approve all now points at Review, from `settings-wiring` `b25d4595`; the private-window test no longer mentions an email step), so both lines can go. What it should become once a pick is wired: open by saying the event page keeps this list and ticks it itself; lead with the app's items in the app's order (Decide who can get in; keep uploads open; print the code big and scan it once from your phone, which ticks it, the article's Print and Test merged; add the first photos, two start the reel; write the welcome, the date and a note), then the day-of items the app cannot see, unchanged (review or not, where people look, the reel on a screen, tell everyone once, glance at Review and the door, close uploads when it's over); its own device-local ticks stay for those.
+- **What the kit made hard, for the next author:** a Next `<Link>` inside a portalled frame navigates the lab (this board's `Inert` in `scene.tsx`, as `demo-framing`'s `stopLinks`); radix layers portal out of the frame, so the settings panel is quoted from `popup.tsx`, as the Library draws it inline; JS breakpoint hooks read the lab's window, not the frame's (another reason the panel is quoted); `loading="lazy"` images never load in a frame; `Strip` and the Screen knob had to be copied from `locked-door` (about 150 lines); a term said only in a carried call fails the term check (carried calls are not scanned). Easy: `PreviewsFor` caught a missing preview as a type error, the context layer's caps gave exact messages, and `lab:smoke` and `lab:demo` scoped to the board ran in minutes. I wrote `spec.ts` and `board.tsx` in the scaffold's shape rather than running `pnpm new-board`; probed afterwards (`er-kit-probe`, removed), it writes both and the registry lists its 23 TODOs as the checklist, as designed. The two actionable ones are under Deferred.
+- **Assets requested from Will:** none (the bootstrap stills throughout).
+- **Board ideas:** a host's own look from a guest's side ("See it as a guest", which the help tells her to fake with a private window); the dashboard card's code chip wearing the same door as the hub's code once `door` is picked; What needs you after the month's Share the album, a board for "what an album becomes weeks after the party" (ROADMAP already names it).
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none this round. The wiring of `needs=job` (or `count`) reads each event's first open on the dashboard, today one `event_link_totals(p_event_id)` call an event: a batched read over the id list is that wiring's one migration.
+- **Records for the Orchestrator at this board's merge:** ROADMAP's two "Lab explorations no board asks yet" lines (a never-empty What needs you; the hub's code as the live door) are asked here, and the two stale Help-sync lines above can go.
+- **Calls his to overrule** (carried on the board, above its sections): `items` (what the checklist holds), `ready` (ready waits only on what a guest needs), `window` (a party keeps a job for a month after its date), `opened` (the host's own scan counts). Also taken in the drawings: essentials first in the list with a "Worth doing" group; the head's list folds to one line once the album has photos; the Settings card counts what a guest still needs, then returns to the door; `steps` adds the code as a fifth step opening Share; `sign` says "Only you" for Only me and a gate's short word under a lock.
+- **Look at first:** `/design/lab/event-ready?key=fiesta&session=event-ready.list` at 375, then `needs` on the quiet Friday (today's grey line beside its next job), then `door` (today's Only me code at full strength).
