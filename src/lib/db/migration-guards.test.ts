@@ -87,6 +87,14 @@
  *      is the door, a waiting person it names is in, by the door's own predicates, no client role
  *      runs the rule, and each act that can bring it about (the listing, the door becoming the list,
  *      Let back in) settles it and says how many.
+ *  21. A password ends every ask (crumbs-21, migration 20260929230000): a trigger on every path to a
+ *      password takes each waiting ticket, never a row an upload names, no client role runs it, and a
+ *      guest row is only ever deleted as an ask ending.
+ *  22. A report keeps what it named (crumbs-21, migration 20260929231000): `media_id` is no foreign key
+ *      by the last word on the constraint, the kind is the item's (written by a trigger that refuses
+ *      an id naming nothing), backfilled with no stamp moved, and paired with the item by a CHECK.
+ *  23. The host's like counts (crumbs-21, migration 20260929232000): a count only for a row she can
+ *      meet, held to media_host_all's latest USING conjunct by conjunct.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";

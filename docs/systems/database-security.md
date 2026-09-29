@@ -71,7 +71,10 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
     so `like_media` stays the only insert; `get_my_likes` re-applies that predicate, so a like on media that has since
     closed never presigns.
     The counts are host-only through two paths, `get_event_like_counts` and `media_like_counts`, so no count reaches
-    a guest.
+    a guest. ★ And a count only for a row she can meet: `get_event_like_counts` (hers to call straight through
+    PostgREST) leaves out an operator's removal, an asked row and a withdrawal, restating `media_host_all`'s own
+    conjuncts (a DEFINER count cannot inherit the policy, so a guard holds it to the policy's latest USING);
+    `media_like_counts` is asked only for ids her RLS read returned.
 - **SECURITY INVOKER is the default for a new read** (in neither list): a grant that reached the wrong role reads
   only that role's own rows, where a DEFINER body would read everyone's. The dashboard cards' `event_stills` (up to
   12 previewed, approved photos an event, one jsonb) is this shape, authenticated-only: another host's event is

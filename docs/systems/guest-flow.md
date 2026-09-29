@@ -291,6 +291,12 @@ its metadata and every guest route act on through
   the host will let her in, with nothing of the album behind it; it checks in every 30 s and on the tab's return
   (`POST /api/guests/door`: `waiting` | `in` | `moved`, `private, no-store`; a missing event answers
   `moved`), which stamps her rows for the banked let-in mail, and opens onto the album by itself on `in`.
+  ★ **Only a door the host answers holds an ask**: the moment an album takes a password, every ask at its door ends
+  (`events_door_to_password`, every path to a password; never a row an upload names), because a password lets in
+  whoever proves it and nobody waits on the host there, and a waiting ticket would only stand between her and it. Her
+  held door reads `moved`, she meets the password like anyone new, and her phone, finding its ticket gone
+  (`invalid_session`), puts it down and joins afresh at its next upload (`use-upload-queue.ts`, as it does a foreign
+  ticket). Closed and Only me keep their asks: the host may still answer them.
 - **`newcomer {gate}`**, no confirmed email yet at approve or invite: the door's own steps (the welcome, the email)
   with no teaser; the welcome counts what is inside, as a password album's does. Confirming asks at approve and lets
   in an address the list names.

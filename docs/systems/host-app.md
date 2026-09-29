@@ -289,9 +289,11 @@ its purpose (`GATE_HELP`); (3) An email first; (4) A photo first. Every word liv
 visitor-facing "Private" never collides.
 
 - ★ **`set_event_door` is the one writer of the pair** (`setEventDoorAction` re-verifies with `getUser()`). Under a
-  gate the page says how many are already in ("31 guests are already in"); choosing Only me with guests in, or Public
-  or Only people already in with newcomers waiting, says what happens first and waits for the confirm. Opening an album
-  to Public lets everyone waiting in (`events_door_opened`).
+  gate the page says how many are already in ("31 guests are already in"); choosing Only me with guests in, or Public,
+  Only people already in or a password with newcomers waiting, says what happens first and waits for the confirm (a
+  first password says it beside its field, since setting it opens that door). Opening an album to Public lets everyone
+  waiting in (`events_door_opened`); a password ends every ask (`events_door_to_password`: nobody waits on the host
+  there), so they leave At the door, the pulse and the bell, and meet the password like anyone new.
 - **The Guests room's At the door** heads it (`queue=room`): Let in (`let_in_at_door`) opens her door on every device,
   and her held door opens by itself at its next check-in; ★ Decline is a block (the account where there is one, else
   the row), with Undo on its toast and Let back in under Blocked, so a declined newcomer meets the one shut screen and

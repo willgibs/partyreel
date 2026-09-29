@@ -161,16 +161,23 @@ test (admin-triage r2):
   tells the operator after the response (`alertUrgentReport`: a Sentry warning every time, an ops-inbox mail once
   per album per ten minutes) and on the rail and the bell (the urgent count).
 - **The open queue is the review grid** (`components/admin/report-queue.tsx`): the five harm kinds in front, worst
-  first, the two sexual kinds covered until View (★ and covered on every closed line whose item any report names as
-  one, with no picture signed: build 23's NIT-7); People between; Something else in the sweep, ticked and dismissed
-  in one press. Space opens a report whole. At phone width each report carries Take it down and Hold for forensics,
-  one press each; sweeps, notes and proof wait for a desk. The Library's compositions page renders it over writes
-  that change nothing.
+  first, the two sexual kinds covered until View (★ and covered wherever an operator meets an item any report names
+  as one, open or closed: every closed line and both Albums views, the feed and the drill-in, by one rule,
+  `readCoveredItems`, and a covered item is never signed there: build 23's NIT-7); People between; Something else in
+  the sweep, ticked and dismissed in one press. Space opens a report whole. At phone width each report carries Take it
+  down and Hold for forensics, one press each; sweeps, notes and proof wait for a desk. The Library's compositions page
+  renders it over writes that change nothing.
 - ★ **A verdict reads its own report and answers its whole entry.** The browser names one report; the action reads
   its item, album or person and every report still open on it, and closes them together. The item a Remove takes
   down is the report's `media_id`, never an id the browser sends, and a verdict lands only on an OPEN report, so a
   second tab is told "already decided". Dismiss and Mark actioned are one press; Remove opens the confirm; each may
   carry `resolution_note`.
+- ★ **What a report named outlives its item** (20260929231000): `reports.media_id` is no foreign key and
+  `media_type` keeps the kind, written from the item as the report is filed (a trigger, which also refuses an id
+  naming no item), so once the purge takes an item whose report closed, the report still names it and never reads as
+  its album's: the closed line says a photo or a video was deleted, and a dismissal reopened by its Undo comes back as
+  that item's entry, whose verdict only closes. Read as an album report, it would keep every item of its album from
+  every permanent delete.
 - **A dismissal puts back what a false report's hide took** (`hideUndoOf`: into the album at the hide's own instant,
   or back to the host's Deleted), never a held item; its Undo reopens exactly the reports it closed and hides the
   item again, `hid_at` moving to the new removal.
