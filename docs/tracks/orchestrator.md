@@ -1,7 +1,7 @@
 ---
 track: orchestrator
 status: open
-cut: "35601390"          # the launch-prep SHA this state was written at
+cut: "18491027"          # the launch-prep SHA this state was written at
 owns:                    # the standing claims no lane touches
   - src/app/(dev)/design/rules/bible.ts
   - src/app/(dev)/design/rules/bible.test.ts
@@ -38,6 +38,10 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
+| `settings-wiring` | every event-settings pick: settings as four sentences, the doors end to end, the Guests room, the hub | running (agent `aefdc4b3cecd92f74`) | Opus, 3131 | |
+| `locked-door` | r2, the door family (open, waiting, shut, the previous guest's line) | running (agent `a5d27bd296c7b917e`) | Opus, 3132 | |
+| `disposable-mode` | r2: the camera, the waiting room, the room's screen, Create's step, video | running (agent `a1dbe1bf5ccc5042e`) | Opus, 3133 | |
+| `crumbs-12` | the hub row's order and fades, the thin headings | running (agent `af78ae264f313bb7e`) | Opus, 3134 | |
 
 Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcribed at `31de6aa0`: 41 answers on ten
 boards). Wave A: `settings-wiring` (all nine event-settings picks, the doors end to end), `locked-door` r2 (the door
