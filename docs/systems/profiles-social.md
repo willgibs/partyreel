@@ -116,8 +116,11 @@ A one-way door; `/privacy` and the Terms word it, so a change here changes them 
 - **Email preferences follow the consent tiers:** transactional mail always sends and has no column by design;
   relationship and service mail default on with a per-category opt-out, for account holders only (a guest without an
   account receives none of it); marketing stays explicit opt-in. Every send resolves them through
-  `resolveNotificationPrefs`. Rows are lazy (absent means `NOTIFICATION_PREF_DEFAULTS`; a parity test pins TypeScript
-  to SQL), and `user_id` is insertable, never updatable, so `setNotificationPrefs` updates then inserts (a PostgREST
-  upsert would `SET user_id`). No send path reads them.
+  `resolveNotificationPrefs`, and one send has a switch today: the renewal nudge, Event Pass reminders
+  (`notify_pass_renewal`). The card draws only switches with a mail behind them; the three columns for mail nothing
+  sends (`notify_album_shared`, `notify_new_uploads_digest`, `notify_new_follower`) are read and written by nothing
+  and wait on Will's yes to drop. Rows are lazy (absent means `NOTIFICATION_PREF_DEFAULTS`; a parity test pins
+  TypeScript to SQL), and `user_id` is insertable, never updatable, so `setNotificationPrefs` updates then inserts (a
+  PostgREST upsert would `SET user_id`).
 - **The event settings' `ProfileSocialCard` sits outside the settings form:** its one switch (Show on my profile) is
   its own consented act, saved the moment it flips.

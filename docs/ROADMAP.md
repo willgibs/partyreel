@@ -17,6 +17,15 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Emails: the reduced mail says "You're over your limit, so upgrade or free up space first, then restore them" just after saying the removal brought the account back under its plan; it means a restore would put it over again, and its words could say so (emails-wiring kept every body word) (from `emails-wiring`).
+- Emails: a signed-out host pressing a mail's button (Renew Event Pass, Manage storage) lands on the dashboard after sign-in, not the button's page: `/login` takes no return path and the `(app)` gate redirects bare; the checkout's allow-list (`return-path.ts`) is the shape a safe return would reuse (from `emails-wiring`).
+- Code hygiene: the three casts marked "the generated types learn notify_pass_renewal" (`lifecycle/sweeps/passes.ts`, `db/queries/social.ts`, `db/mutations/social.ts`) can go now that `types.ts` carries the column (from `emails-wiring`).
+- Help: `report-a-problem-as-a-guest`'s three steps can take screens now that triage-wiring's article has merged (the report sheet opening, its reason box, its sent line), and its name leaves `STEPS_WITHOUT_SCREENS` (from `help-wiring`).
+- Help: the four email-code screens quote `AccountDoor`'s post-send code view as markup, since no prop reaches it; an exported code view would make them the real piece (from `help-wiring`).
+- Admin: `/admin/help-feedback` could take a last-30-days window beside all time once the counts grow (from `help-wiring`).
+- Help: the hero field's `⌘K` chip shows on a phone, which has no ⌘K; hide it on a coarse pointer (from `help-wiring`).
+- Marketing: /contact's chips under its search could take /help's drop-from-the-field treatment; the palette already drops there (from `help-wiring`).
+- Code hygiene: `types.ts` carries `article_feedback` and its summary now, so the three untyped seams go (`db/mutations/article-feedback.ts`, `db/queries/article-feedback.ts`, the one count in `db/queries/jobs.ts`) (from `help-wiring`).
 - Exports: a part's "saved" needs the Worker to report a finished stream (a signed call into `export_log`, or a status the walk polls); the walk says "downloading" meanwhile (from `export-wiring`).
 - Admin: `/admin/exports` counts mints only; a check that found objects gone and a stream's skips live in the Worker's logs (`export-check`, `export-stream`), and a report back into `export_log` would put them on the page (from `export-wiring`).
 - Exports: a walk lives in the page, so a reload mid-walk forgets it; its cursor in sessionStorage could offer the next part again (from `export-wiring`).
@@ -339,7 +348,7 @@ The app:
   - The sign-in code mail, a Supabase template (`code=promise`): the code first, easy to copy, and a primary button beneath as the one-tap way in ("Tap to confirm"); iOS fills a code from Mail when the digits sit beside the word "code".
   - Newsletters and updates from "Will @ Partyreel" (his `sender` note). Some filters read an "@" in a display name as a spoofed address; "Will at Partyreel" says the same.
     - Marketing is the one kind of mail that needs a postal address (a PO box or a virtual mailbox), a working unsubscribe and consent.
-    - The first send carries the unsubscribe, since a signed-out subscriber has no removal path (an account holder has `/account`'s switch).
+    - The first send carries the unsubscribe, since a signed-out subscriber has no removal path (an account holder has `/account`'s switch), and a one-click `List-Unsubscribe` header (RFC 8058); the renewal nudge's unsubscribe opens the signed-in switch until then.
   - A direct test for `sendOnce`'s claim-then-send dedupe (a mocked Resend, or a rolled-back Supabase-MCP check).
 - **The support-automation arc:** AI-default first responses keyed on `contact_submissions.topic`, and auto-routing rules in `/admin/support`; published language keeps committing to outcomes only (the promise-neutralization doctrine, [`systems/marketing-content.md`](systems/marketing-content.md)).
 - **The AI-SEO content arc:**

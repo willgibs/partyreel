@@ -19,6 +19,7 @@ import {
   PopupContent,
   PopupHeader,
 } from "@/components/ui/popup";
+import { NOT_APPROVED_HELP_HREF } from "@/lib/content/help-links";
 import { formatCount } from "@/lib/format/count";
 import {
   buildTrackerRows,
@@ -338,6 +339,23 @@ function TrackerRowView({
           {TRACKER_WORDS[row.status]}
         </span>
       </p>
+      {/* THE LINK AT THE MOMENT OF TROUBLE (help-center r1 `from-product=contextual`): the host
+          gives no reason, so the article's own section says what "Not approved" means and what
+          she can do about it, in a new tab so her list and the album stay where they are. */}
+      {row.status === "refused" && (
+        <a
+          href={NOT_APPROVED_HELP_HREF}
+          target="_blank"
+          rel="noopener noreferrer"
+          data-upload-tracker-why=""
+          // The visible word leads the name (a voice user says "Why"), and the rest says where
+          // it goes for a reader who meets it in a list of links, out of its row.
+          aria-label="Why? What Not approved means"
+          className="shrink-0 text-sm font-medium text-foreground underline decoration-border underline-offset-4 transition-colors duration-150 hover:decoration-foreground"
+        >
+          Why?
+        </a>
+      )}
     </li>
   );
 }

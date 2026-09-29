@@ -31,6 +31,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { HELP_CENTER_HREF } from "@/lib/content/help-links";
 import { forgetGuestTickets } from "@/lib/guest/use-stored-session";
 
 type UserMenuProps = {
@@ -250,8 +251,14 @@ export function UserMenu({
               <ArrowLeft /> Back to site
             </Link>
           </DropdownMenuItem>
+          {/* The host's standing door into help: the one row help-center r1 asked every
+              account menu to carry, kept here (not a second one) in the menu's own grammar. */}
           <DropdownMenuItem asChild>
-            <Link href="/help" target="_blank" rel="noopener noreferrer">
+            <Link
+              href={HELP_CENTER_HREF}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <LifeBuoy /> Help center
             </Link>
           </DropdownMenuItem>

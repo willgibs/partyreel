@@ -250,10 +250,64 @@ describe("retired slugs", () => {
   it("every redirect lands on a live article, and no retired slug is still live", () => {
     const live = new Set(getAllSlugs());
     for (const { from, to } of HELP_REDIRECTS) {
-      expect(live.has(to), `${from} -> ${to} (target is not a live article)`).toBe(
+      expect(
+        live.has(to),
+        `${from} -> ${to} (target is not a live article)`,
+      ).toBe(true);
+      expect(live.has(from), `${from} is still a live article`).toBe(false);
+    }
+  });
+});
+
+describe("troubleshooting's own rung (help-center r1 `dead-end=rung`)", () => {
+  // A fix article ends on the calm, working version of the same act, where every other category
+  // ends on its marketing rung: so every fix carries one, nothing else does, and each lands on a
+  // published article (and heading) that is not itself a fix.
+  const bySlug = new Map(articles.map((article) => [article.slug, article]));
+
+  it("every troubleshooting article carries one, and no other article does", () => {
+    for (const article of articles) {
+      const fix = article.frontmatter.category === "troubleshooting";
+      expect(
+        Boolean(article.frontmatter.rung),
+        `${article.slug}: ${fix ? "a fix with no rung" : "a rung outside troubleshooting"}`,
+      ).toBe(fix);
+    }
+  });
+
+  it("lands on a published article outside troubleshooting, at a heading that exists", () => {
+    for (const article of articles) {
+      const rung = article.frontmatter.rung;
+      if (!rung) continue;
+      const [path, anchor] = rung.href.split("#");
+      expect(path.startsWith("/help/"), `${article.slug}: ${rung.href}`).toBe(
         true,
       );
-      expect(live.has(from), `${from} is still a live article`).toBe(false);
+      const target = bySlug.get(path.slice("/help/".length));
+      expect(
+        target,
+        `${article.slug}: ${rung.href} is not an article`,
+      ).toBeDefined();
+      expect(target!.slug).not.toBe(article.slug);
+      expect(
+        target!.frontmatter.category,
+        `${article.slug}: the calm version is never another fix`,
+      ).not.toBe("troubleshooting");
+      if (anchor) {
+        expect(
+          extractHeadings(target!.body).map((h) => h.id),
+          `${article.slug}: ${rung.href} names no heading`,
+        ).toContain(anchor);
+      }
+    }
+  });
+
+  it("speaks in the pointer's voice: an invitation, never a count", () => {
+    for (const article of articles) {
+      const rung = article.frontmatter.rung;
+      if (!rung) continue;
+      expect(rung.label, article.slug).toMatch(/^See /);
+      expect(rung.label, article.slug).not.toMatch(/\d/);
     }
   });
 });

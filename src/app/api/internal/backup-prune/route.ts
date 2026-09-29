@@ -128,7 +128,7 @@ export async function POST(request: Request): Promise<Response> {
     // SEND the alert must never become a delete, so swallow it — the Sentry capture above is the primary
     // signal, and we still return trip:true so the Worker deletes nothing.
     try {
-      const { subject, html } = pruneBreakerEmail({
+      const { subject, html, text } = pruneBreakerEmail({
         reason: reason ?? "unknown",
         candidates: goneIds.length,
         mediaCount: mediaCount ?? 0,
@@ -141,6 +141,7 @@ export async function POST(request: Request): Promise<Response> {
         to: serverEnv.CONTACT_NOTIFY_EMAIL ?? SUPPORT_EMAIL,
         subject,
         html,
+        text,
       });
     } catch (e) {
       captureError("cron", e, { job: "backup_prune", phase: "breaker_alert" });

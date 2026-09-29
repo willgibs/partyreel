@@ -26,9 +26,7 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 /** The boards standing in sandbox/, one row each below. */
 export type SandboxId =
   | "admin-triage"
-  | "emails"
   | "locked-door"
-  | "help-center"
   | "event-settings"
   | "press-page"
   | "contact-page"
@@ -84,38 +82,6 @@ export const RULINGS: Ruling[] = [
     },
   },
   {
-    id: "emails",
-    title: "Every email Partyreel sends",
-    surface: "shared",
-    asks: "one shell or two, the brand, the sender, the foot, the sign-in code, which moments send, a guest's album link, a newcomer let in, a reporter's closing note, and the dark inbox",
-    why: "Every mail is drawn from the real templates.ts in an inbox mock at a phone's width and a laptop's, so each decision is judged where mail is read.",
-    lives: [
-      "docs/systems/lifecycle-recovery.md",
-      "docs/systems/notifications-analytics-growth.md",
-      "docs/systems/guest-flow.md",
-      "src/lib/email/templates.ts",
-      "src/lib/email/send.ts",
-      "src/components/app/notification-prefs-form.tsx",
-      "src/components/guest/save-account-prompt.tsx",
-      "src/app/api/reports/route.ts",
-    ],
-    board: {
-      note: "Ten decisions on the real templates.ts functions, drawn inside an inbox mock at a phone's width and a laptop's: one wrapper or two, what it wears, who it's from, whether it carries an unsubscribe, what the sign-in mail could show, which moments deserve a send, a guest's album link after Maybe later, a newcomer let in, a reporter's closing note, and how it reads in a dark inbox",
-      variants: [
-        "One shell",
-        "The brand",
-        "The sender",
-        "The foot",
-        "The code",
-        "The moments",
-        "The guest's link",
-        "A newcomer let in",
-        "The reporter",
-        "The dark inbox",
-      ],
-    },
-  },
-  {
     id: "locked-door",
     title: "The locked door",
     surface: "guest",
@@ -132,37 +98,6 @@ export const RULINGS: Ruling[] = [
     board: {
       note: "Two decisions at Maya and Jay's wedding, 375 first with 1440 on the knob: the locked screen drawn five ways, from today's to one over the album's cover, each in words true of a private album, a closed one and a block; then whether a guest who was in reads a line of her own, measured on a newcomer, Priya and Dom side by side",
       variants: ["The locked screen", "A previous guest's line"],
-    },
-  },
-  {
-    id: "help-center",
-    title: "Where a problem lands",
-    surface: "marketing",
-    asks: "who the hub greets first, the hub's doors and its index, a how-to's shape, a guest's way in from the product, feedback, troubleshooting's dead end, and search's reach",
-    why: "Help is where a host or a guest with a problem lands, so each piece is asked on the real help components over fixture articles.",
-    lives: [
-      "docs/systems/marketing-content.md",
-      "docs/systems/guest-flow.md",
-      "src/app/(marketing)/(cinema)/help/page.tsx",
-      "src/app/(marketing)/(cinema)/help/[slug]/page.tsx",
-      "src/components/marketing/mdx/spec-shared.tsx",
-      "src/components/marketing/help/help-palette.tsx",
-      "src/components/marketing/help/article-feedback.tsx",
-      "src/components/guest/guest-name-menu.tsx",
-      "src/components/guest/upload/failure-sheet.tsx",
-      "src/components/guest/upload-tracker.tsx",
-    ],
-    board: {
-      note: "Seven decisions on the real help pieces (PageHero, the emblem strip, the index, the article stage, ChipToc and ArticleToc, Checklist, ArticleFeedback, the search palette), the guest door's own steps, her menu and the failure sheet, over the catalog copied as fixtures, at 1440 and 375: who the hub greets first, whether its ten doors grow and the index survives under them, whether a how-to leans on prose, a checklist or the real screen, how a guest reaches help from inside the album, whether feedback goes anywhere, what a troubleshooting article does with no bigger picture, and how far search reaches",
-      variants: [
-        "Who first",
-        "The hub",
-        "The article",
-        "From the product",
-        "Feedback",
-        "The dead end",
-        "Search",
-      ],
     },
   },
   {
@@ -347,9 +282,7 @@ export const RULINGS: Ruling[] = [
  */
 export const DESK_ORDER: readonly SandboxId[] = [
   "admin-triage",
-  "help-center",
   "event-settings",
-  "emails",
   "locked-door",
   "privacy-hero",
   "album-motion",

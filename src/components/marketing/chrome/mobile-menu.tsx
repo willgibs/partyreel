@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { ChevronDown, Menu, X } from "lucide-react";
+import { useRef, useState } from "react";
+import { ChevronDown, Menu, Search, X } from "lucide-react";
 
+import { HelpSearchLink } from "@/components/marketing/help/help-search-link";
 import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
 import {
@@ -64,6 +65,11 @@ export function MarketingNavMobile({
   // most one group is expanded. Reset on close so the menu always OPENS tidy,
   // which is the whole point of the rebuild.
   const [openGroup, setOpenGroup] = useState<string | null>(null);
+  // Set while the Search row hands the reader to the help palette on this
+  // page: the sheet folds away WITHOUT putting focus back on its menu button,
+  // which would pull it out of the palette's field (and drop a phone's
+  // keyboard) the moment the sheet finished leaving.
+  const toPalette = useRef(false);
 
   return (
     <Sheet
@@ -94,6 +100,11 @@ export function MarketingNavMobile({
           "bottom-0 gap-0 p-0 data-[side=top]:border-b-0",
           portal.className,
         )}
+        onCloseAutoFocus={(event) => {
+          if (!toPalette.current) return;
+          toPalette.current = false;
+          event.preventDefault();
+        }}
       >
         <div className="flex h-[var(--mkt-header-h,4rem)] shrink-0 items-center justify-between px-4">
           <SheetClose asChild>
@@ -120,6 +131,9 @@ export function MarketingNavMobile({
                   onToggle={() =>
                     setOpenGroup((g) => (g === item.label ? null : item.label))
                   }
+                  onSearch={() => {
+                    toPalette.current = true;
+                  }}
                 />
               ) : (
                 <MobileLink
@@ -189,11 +203,14 @@ function MobileGroup({
   open,
   current,
   onToggle,
+  onSearch,
 }: {
   group: NavGroup;
   open: boolean;
   current: boolean;
   onToggle: () => void;
+  /** The Search row is leaving the sheet for the help palette. */
+  onSearch: () => void;
 }) {
   const panelId = `mobile-nav-${group.label.toLowerCase()}`;
   return (
@@ -241,6 +258,28 @@ function MobileGroup({
                 </MobileLink>
               </li>
             ))}
+            {/* THE PLAIN SEARCH ROW (help-center r1 `search=visible`), the
+                header panel's own row on a phone: the sheet folds away and the
+                help palette opens, here when this page mounts it, at /help
+                otherwise (help-search-signal.ts). */}
+            {group.label === "Resources" && (
+              <li>
+                <SheetClose asChild>
+                  <HelpSearchLink
+                    data-help-search-row="menu"
+                    onClick={onSearch}
+                    className={cn(
+                      MOBILE_ROW,
+                      MOBILE_CHILD,
+                      "gap-2 text-muted-foreground",
+                    )}
+                  >
+                    <Search aria-hidden className="size-4" />
+                    Search
+                  </HelpSearchLink>
+                </SheetClose>
+              </li>
+            )}
           </ul>
         </div>
       </div>
@@ -250,6 +289,10 @@ function MobileGroup({
 
 // SheetClose closes the menu on tap; active:scale gives the emil press feedback.
 // min-h-11 keeps every row at the 44px touch target even at the muted size.
+const MOBILE_ROW =
+  "flex min-h-11 items-center rounded-lg transition-[color,background-color,transform] duration-[var(--mkt-dropdown-hover-ms,90ms)] ease-emphasis hover:bg-accent active:scale-[0.99]";
+const MOBILE_CHILD = "px-2 py-2.5 pl-5 text-base";
+
 function MobileLink({
   href,
   children,
@@ -269,10 +312,8 @@ function MobileLink({
         href={href}
         aria-current={current ? "page" : undefined}
         className={cn(
-          "flex min-h-11 items-center rounded-lg transition-[color,background-color,transform] duration-[var(--mkt-dropdown-hover-ms,90ms)] ease-emphasis hover:bg-accent active:scale-[0.99]",
-          size === "lead"
-            ? "px-2 py-4 text-lg font-medium"
-            : "px-2 py-2.5 pl-5 text-base",
+          MOBILE_ROW,
+          size === "lead" ? "px-2 py-4 text-lg font-medium" : MOBILE_CHILD,
           muted ? "text-muted-foreground" : "text-foreground",
           current && "text-foreground",
         )}
