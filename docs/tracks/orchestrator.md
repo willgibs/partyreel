@@ -40,9 +40,8 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `crumbs-16` | build 23's HIGH bug at its root (a history call hands Next its own `__NA` state, so Settings rows never open their page and a page's back arrow never returns), the same shape swept and held by a policy test; triage-r2-wiring's relayed help article | running (agent `a5ddc145d2b108533`; worktree `../partyreel-wt/crumbs-16`) | Sonnet, 3133 | |
-| `loose-ends-wiring` | loose-ends r1: the FAQ heading, the rings, the corner mark and its easter-egg lightbox; retires `sandbox/loose-ends/` in-lane | running, resumed (agent `af24dc9293d6e7211`; worktree `../partyreel-wt/loose-ends-wiring`) | Sonnet, 3134 | |
 | `contact-wiring` | contact-page r1: the routed form in the desk's chapter, a note and link per topic, a delightful receipt, the directory with icons; retires `sandbox/contact-page/` in-lane | running, restarted (agent `a4ce33378df03e2b8`; worktree `../partyreel-wt/contact-wiring`) | Sonnet, 3135 | |
-| `schema-pass` | the data architecture audited, its migration refused by the classifier; Will's yes (2026-09-29): asked "May the lane write its two migration files and run those proofs?", he answered "Yes, write and prove" | waits for the first free seat (Next, item 4) | Opus, 3132 | `66794756` |
+| `schema-pass` | the data architecture audited, its migration refused by the classifier; resumed on Will's yes (2026-09-29): asked "May the lane write its two migration files and run those proofs?", he answered "Yes, write and prove"; told to close `public.reports`' default grants too (the red-team's note) | running (agent `ad2f22b2fb01a8a6e`; worktree `../partyreel-wt/schema-pass`) | Opus, 3132 | |
 | `desk-tune` | the door family board made true before his sitting: its "as today" drawn from the doors settings-wiring shipped, its asks re-read against them, every option its own picture at 375 | running (agent `a6f3e22f6d222b7e8`; worktree `../partyreel-wt/desk-tune`) | Opus, 3131 | |
 
 **Handoff across accounts.** The Orchestrator session is `157caa18-ec54-4aa9-a12a-04c86d5a667b` (the second account,
@@ -53,8 +52,6 @@ note naming its pushed commits, what remains, its predecessor's transcript at
 `~/.claude/projects/-Users-gibby-local-ai-partyreel/157caa18-ec54-4aa9-a12a-04c86d5a667b/subagents/agent-<id>.jsonl`
 (grep it, never read it whole), that a stale `.next/dev/lock` may be deleted and that MCP tool ids change with the
 account, and the relays below, which live only in the agents:
-- `loose-ends-wiring`: sync, then retire `sandbox/loose-ends/` in-lane (added to owns; the ledger stays mine); drop
-  `docs/systems/marketing-content.md` from owns (`contact-wiring` claims it) and make its FAQ fact a one-line exception.
 - `contact-wiring`: `git merge origin/launch-prep` first; retire `sandbox/contact-page/` in-lane; `marketing-content.md`
   stays its own.
 - Build 23's red-team (agent `a26fc2a59dd39c154`): respawn from `../partyreel-wt/_scratch/redteam-23/brief.md` after
@@ -62,8 +59,8 @@ account, and the relays below, which live only in the agents:
   portal's "Verify it's you" and report the steps waiting on Will's code; close every report it opens before 04:48
   UTC; delete events A `9490405b` and B `18fc375e` through the product at the end; the alias stays on build 23 until it
   finishes; the Vercel MCP does not reach the P3 team.
-- `schema-pass` is not running: respawn it into `../partyreel-wt/schema-pass` (3132) with Will's yes quoted (Next,
-  item 4).
+- `schema-pass`: Will's yes quoted (its row), and `public.reports`' default anon and authenticated grants closed in
+  part 1.
 
 If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` holds a merge made after this note (push
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
@@ -76,7 +73,7 @@ Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcr
 boards). Batch 7 is merged whole; its records carry the rest.
 
 Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, disposable-mode r2, crumbs-13, lab-revamp
-stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, crumbs-15.
+stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, crumbs-15, loose-ends-wiring.
 
 ## Next, in order
 
@@ -98,9 +95,9 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
    triage-r2-wiring 11: `git show 7c0fbcb1^2:docs/tracks/settings-wiring.md`, `git show 1b29be3a^2:docs/tracks/triage-r2-wiring.md`),
    lab-revamp's six calls (its merge message), and the proof mail's yes, due now (the recommendation keeps it off until
    the emails round, per his email-policy note).
-2. **Integrate each lane as it hands off** (loose-ends-wiring, contact-wiring, crumbs-16, desk-tune), each migration by
+2. **Integrate each lane as it hands off** (contact-wiring, crumbs-16, desk-tune, schema-pass, whose part 1 I then apply), each migration by
    protocol, one at a time: drift check, apply verbatim, the rolled-back refusals, advisors, types. The two wiring
-   lanes' ledgers (`docs/reviews/loose-ends.json`, `contact-page.json`) go at their records;
+   lanes' ledgers go at their records (`contact-page.json` is left);
    `../partyreel-wt/_scratch/triage-r2-wiring/` goes after crumbs-16's merge (it holds the relayed help article).
 3. **The PREMISE re-read before his sitting** (lab-revamp's look-at-first): settings-wiring changed the guest page,
    `entry-modal.tsx` and `guest-flow.md`, which locked-door r2's four open asks and disposable-mode r2's eight describe.
@@ -111,7 +108,7 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
    shipped `WaitingStep`/`ShutDoor`, so `desk-tune` (running) redraws it; `disposable-mode`'s eight hold (Create is
    untouched, and the Videos and door facts they lean on match what shipped), so he may sit on it now.
 4. **Seats as they free** (at most four lanes; `memory_pressure` before each; app work first, Will's note):
-   - `schema-pass` first (Opus, 3132): respawned from its manifest with his yes quoted; it re-verifies every item
+   - `schema-pass` (running): it re-verifies every item
      against the schema as it stands (event_doors and triage_r2 applied since its audit), then writes and proves part
      1; part 2 waits for milestone 31; Q2 to Q5 as recommended (the data architecture is mine). Applying part 1: grep
      `main` for every dropped name, the protocol, then a live smoke of the anonymous surfaces on partyreel.com and the
