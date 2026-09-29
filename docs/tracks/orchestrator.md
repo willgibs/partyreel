@@ -1,7 +1,7 @@
 ---
 track: orchestrator
 status: open
-cut: "38373a35"          # the launch-prep SHA this state was written at
+cut: "794750cf"          # the launch-prep SHA this state was written at
 owns:                    # the standing claims no lane touches
   - src/app/(dev)/design/rules/bible.ts
   - src/app/(dev)/design/rules/bible.test.ts
@@ -46,12 +46,8 @@ a lane").
 | `menu-depth` | on Will's word ("Remove it"), the dropdown's render-time throw on a third submenu level removed, its guidance kept as a comment and the sub-menu's portal test kept | running (agent `a5c372b3de31ef79b`; worktree `../partyreel-wt/menu-depth`) | Sonnet, 3132 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
-Q3, the audit of board notes hardened into laws: one lane (`unfence`) on its dispositions (two A grades were
-wrong, two fences stay for engineering reasons, the Glass refusal was a doc claim only). Q1, the `demo-framing.names`
-hang: it changed the call (attribution unproven, since my A/B ran on two server
-instances and the lane saw it hang with its lab files reverted; bisect first, the probe's stack decides; relayed to
-`crumbs-16` whole). Q2, schema-pass part 1 before its apply, is open. From another session, respawn it from
-`usher/kit/advisor-prompt.txt`.
+no question open (Q1, the `names` hang; Q2, schema-pass part 1; Q3, the notes-into-laws audit; Q4, the door migration:
+each answered and acted on). From another session, respawn it from `usher/kit/advisor-prompt.txt`.
 
 **Handoff across accounts.** The Orchestrator session is `157caa18-ec54-4aa9-a12a-04c86d5a667b` (the second account,
 seated 2026-09-29 12:23 EDT); the first account's `b01c012e` is retired and must not resume. Its agent ids live only
@@ -70,7 +66,7 @@ If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` ho
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
 staged, uncommitted merge is finished by `usher/kit/merge-lane.sh`'s own steps or reset with `git merge --abort`.
 This session's scratchpad (`/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/157caa18-ec54-4aa9-a12a-04c86d5a667b/scratchpad`,
-until a reboot) holds the specs and gate logs (the next gate is 68); nothing there is needed that these lines and the
+until a reboot) holds the specs and gate logs (the next gate is 80); nothing there is needed that these lines and the
 manifests do not carry.
 
 Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcribed at `31de6aa0`: 41 answers on ten
