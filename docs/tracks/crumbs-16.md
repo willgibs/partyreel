@@ -183,13 +183,17 @@ otherwise.
   whatever the tree, which is what made the first handoff wrongly say the base hangs too (its runs were on a server
   earlier runs had wedged; base and fix both pass on fresh ones). The coordinator's 311 words is not this change's: the
   base's lab files give the same text and the same 309 words on my server (diffed).
-- **Gates, each on its own exit code, on `856e0edc`** (the tree merged with launch-prep `18cb085f`, the fix in;
-  logs in `../partyreel-wt/_scratch/crumbs-16/gate5-*.log`; the two commits after it change docs only): typecheck 0;
-  lint 0 (no warnings); prettier check of the changed files 0; test 0 (612 files, 7,123 tests); `build-lock.sh pnpm
-  build` 0; `lab:smoke --base http://localhost:3133 --timeout 90000` 0 (scope all; 168 checks, 0 failing); `lab:demo
-  --base http://localhost:3133` 0 (scope all, the shell's `review-session.tsx`: 14 steps, 0 failing, locked-door 4,
-  disposable-mode 8, demo-framing 1, press-page 1); the kit's `usher/kit/demo-rerun.sh demo-framing` 0 on my port,
-  warm, on `3cc4ff2b` (the coordinator's own path).
+- **Gates, each on its own exit code, on `92739973`** (the tree merged with launch-prep `c3b7d76d`, the fix in; logs
+  in `../partyreel-wt/_scratch/crumbs-16/gate7-*.log`): typecheck 0; lint 0 (no warnings); prettier check of the
+  changed files 0; test 0 (613 files, 7,144 tests); `build-lock.sh pnpm build` 0; `lab:smoke --base
+  http://localhost:3133 --timeout 90000` 0 (scope all; 174 checks, 0 failing); `lab:demo --base
+  http://localhost:3133` 0 (scope all, the shell's `review-session.tsx`: 19 steps, 0 failing: locked-door 4,
+  event-ready 5, disposable-mode 8, demo-framing 1, press-page 1); the kit's `usher/kit/demo-rerun.sh demo-framing` 0
+  on my port, warm (the coordinator's own path). The same steps passed on the tree before event-ready r1 merged
+  (`856e0edc`, gate5: 612 files, 7,123 tests, `lab:smoke` 168, `lab:demo` 14 steps). The demo's PREMISE line for
+  event-ready fires on my `host-app.md` edit (its `lives` lists that doc): the edit is the history-call rule, and it
+  makes Settings pages open in the panel as designed (BUG-1), which its "walk through Settings" ask may have drawn as
+  broken: its lane or the Orchestrator re-reads before his next sitting.
 - **Coverage gap, named and not closed:** of the four lab writers this lane changed, `lab:demo` drives only
   `board-state`'s `setState` (a step landing, then each option's press); `step.tsx`'s `goTo` and the catalog's card
   write and `review-session.tsx`'s desk walk are held by `step.test.tsx` and this lane's hand checks under `next dev`
@@ -204,7 +208,9 @@ otherwise.
   (Frame, its test, the testing doc) with the demo hang's question and Deferred lines · `87fbbf82` the Frame fix, its
   test and the testing doc's line · `856e0edc` sync (desk-tune's door family, schema-pass's code and guards, the
   Advisor's kit; nothing in my owns) · `3cc4ff2b` the wedge's reproduction in the testing doc · `13b7dc54` two
-  comments say what was measured (comment-only; typecheck, lint and the lab tests re-ran) · and this manifest.
+  comments say what was measured (comment-only; typecheck, lint and the lab tests re-ran) · `2dfc1107` the first
+  version of this section · `92739973` sync (event-ready r1's board, crumbs-17's manifest; nothing in my owns) · and
+  this manifest.
 - **The first pass's gates**, on `cd3b596f` (logs `gate3-*.log`): typecheck 0; lint 0; format 0; test 0 (603 files,
   7,007 tests); build 0; `lab:smoke` 0 (171 checks); `lab:demo` on disposable-mode (8), locked-door (4) and
   press-page (1): 13 of 13 ok. `66abfefc` (comment-only edits) followed it with format, typecheck, lint and the 28 test
