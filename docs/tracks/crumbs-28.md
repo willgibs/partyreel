@@ -1,7 +1,7 @@
 ---
 track: crumbs-28
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "5f1e3f5a"            # the launch-prep SHA the branch was cut from
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
+cut: "187a763f"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   - src/app/(app)/dashboard/[eventId]/page.tsx
@@ -158,13 +158,90 @@ working.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Work `b6dc4674`, pushed.** No sync: launch-prep moved by records and desk-tune-2's merge (`138beee8`, lab files
+  only, none of this lane's reads), and `git merge-tree origin/launch-prep HEAD` is clean.
+- **Gates on `b6dc4674`**, each on its own exit code: typecheck 0, lint 0, test 0 (665 files, 7,914 tests) and again 0
+  on a second full run (the flaky test's own ask), build 0, `pnpm lab:smoke --base http://localhost:3131` 0 (157
+  checks, 0 failing). No board, so no `lab:demo`.
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file + the four system docs
+  above (Record subtractively). Owned and untouched: `claim-handle-prompt.tsx` (the follow state rides the host card it
+  already hands on), `moderation-grid.tsx` and `use-review-triage.ts` (already true, below).
+- **The items** (each test red on `origin/launch-prep`, proved by swapping the old file back in and running it):
+  - Cold 404, host (ROADMAP "a `notFound()` thrown in the host app or the portal", with build 30's relay): the hub,
+    Review, Guests and the reel's old room draw `AppNotFoundScreen` themselves and title it from
+    `(app)/not-found.metadata.ts` ("Event not found · Partyreel", noindex); Settings redirects to the hub. Test:
+    `src/app/(app)/dashboard/[eventId]/event-not-found.test.tsx` (8 red on launch-prep, the hub's title on its
+    `page.tsx:96`). A next-dev probe (removed) showed a drawn screen under `loading.tsx` streams into the HTML, swapped
+    in by React's inline script with no bundle, where a thrown one left only the skeleton. The found hub's entry
+    chunks read 292,794 → 292,664 B gzipped (Review +3, Guests +23), so the import costs a found page nothing.
+  - Cold 404, portal: the account and album pages draw `AdminNotFoundPageScreen`, titled from
+    `admin/not-found.metadata.ts`, the title's record read behind `requireAdmin()` and shared through `cache()`. Test:
+    `src/app/admin/record-not-found.test.tsx` (8 red). `src/app/not-found.test.ts`'s `drawnBy` takes a list: the six
+    pages, one line each.
+  - A seed that fails (ROADMAP "a seed that genuinely fails"): `src/components/guest/album-boundary.tsx` around the
+    album's Suspense in `event-experience.tsx`. Tests: `album-boundary.test.tsx` (7) and
+    `event-experience.album.test.tsx` (red: "read failed" took the page). Local: the demo album with a one-shot forced
+    read error (a local-only throw in `loadGallerySeed`, removed before commit): name, counts, Add photos and Invite
+    stood, the card said the album didn't load, Try again read "Trying again…" disabled and drew 9 tiles in 0.9 s.
+    Its cost on the album's chunk: +530 B gzipped (Next's `unstable_catchError`, built first, +2,134).
+  - The peek's focus (ROADMAP "the review peek is `aria-modal` with no focus trap"): a trapped, looping FocusScope in
+    `selectable-media-grid.tsx`. Tests: `selectable-media-grid.test.tsx` "the Review peek's focus" (2 red). Local, the
+    Library's `review-section` in Chromium: Tab Reject → Approve → Close → Reject, Shift+Tab → Close; Escape back to the
+    tile; Space peeks, Backspace rejects and the peek moves on with focus kept.
+  - The moment card's Follow (ROADMAP "starts on Follow even when she already follows the host"): the guest page reads
+    `isFollowing` beside `getHostCard` (signed in, not the host); `FollowMomentHost.following` starts the button. Tests:
+    `page.host-card.test.tsx` (4 red), `follow-moment-card.test.tsx` (1 red) and `claim-handle-prompt.test.tsx` (2 red).
+  - Admin Albums' Remove confirm (ROADMAP "her uploads list already says Not in the album"): already true since
+    triage-wiring (`a3f88c61`, `operatorRemovalTouches`), pinned by `moderation-grid.test.tsx` "the operator's Remove"
+    and `operator-actions.test.ts`; nothing to build.
+  - The bulk toasts (ROADMAP "the bulk toasts ... read 'photo'"): Review's verdicts already counted by kind
+    (curation-wiring `e921f238`); the album's Like names what it added through `formatKindCount` (`format/count.ts`,
+    now the one home Review's and the storage list's copies call) and `likeMany` resolving to the ids it added. Tests:
+    `host-media-grid.bulk-like.test.tsx` (2 red: "Liked 1 photo" for a video, "Liked 3 photos" for a mix),
+    `count.test.ts`; `likes-provider.test.tsx`'s two pins reshaped with their scar. Local, `/design/album-scale
+    ?surface=host`: "Liked 1 video", "Liked 1 photo" (the liked video left out), "Liked 2 items".
+  - formatBytes (ROADMAP "prints '41.0 GB'"): rounds first, carries 1,024 of a unit into the next, `formatBytesUp` on the
+    same ladder. Test: `src/lib/utils.test.ts` (4 red); `storage-guard.test.ts` unchanged and green.
+  - The flaky test (ROADMAP "stalled-hold Retry failed once"): every wait in `password-gate.test.tsx` on the unlock's
+    answer gets a 10 s budget, each test 20 s; the full suite ran twice green.
+  - One owner answer (ROADMAP "still ask the owner inline"): `mayUploadPastLock` asks `isRequestOwner`;
+    `resolveAlbumViewer` asks `requestOwnerAnswer` (the same answer with its user, one `getUser()` as before). Tests:
+    `upload-lock.test.ts` (2 red), `album-viewer.server.test.ts` (2 red: "the owner"'s refusal, and the owner pin
+    reshaped with its scar),
+    `gallery-access-owner.server.test.ts` (+3). The claim ticket's names (ROADMAP "the retired claim ticket's Finish"):
+    `invite.ts`, `migration-guards.test.ts`, `validation/upload.test.ts`.
+  - (relay, not a ROADMAP line) The Videos switch: "Guests add videos as well as photos.", and the help article's
+    paraphrase (`event-settings-explained.mdx`). Test: `videos-switch.test.tsx` (red). Local: the Library's
+    `event-settings`, What guests can add.
+- **ROADMAP lines these retire:** the host app's and portal's `notFound()` white shell; the seed that genuinely fails;
+  the review peek's focus trap; the moment card's Follow; Albums' Remove confirm; the bulk toasts' "photo";
+  `formatBytes`' "41.0 GB"; the password gate's flaky stalled-hold test; the inline owner asks; the claim ticket's names.
+- **For the next build's red-team** (what localhost cannot sign in to):
+  - willg97: `/dashboard/00000000-0000-4000-8000-000000000000`, then `/review`, `/guests`, `/reel`, `/settings` under
+    it, and one of hi@willgibs's event ids: "We couldn't find that event" inside AppShell, in the page source (curl with
+    the session, or view-source), the tab and the server's `<title>` reading "Event not found · Partyreel", robots
+    noindex, status 200; a real event's hub and rooms unchanged.
+  - partyr33l (MFA): `/admin/albums/<random uuid>` and `/admin/accounts/<random uuid>`: "We couldn't find that page"
+    in AdminShell with no white first paint, titled "Page not found · Partyreel Ops"; a real album and account as before.
+  - A guest confirming the keep in place, with an account that already follows the host: the moment card reads
+    Following; the same through a Google return.
+  - The host's own password album, no unlock cookie: the album loads and an upload from its guest page passes the lock.
+  - Review with pending uploads: peek, Tab round the verdicts and Close; the hub: select a video and Like, "Liked 1
+    video"; Settings › What guests can add: "Guests add videos as well as photos."
+  - A guest's real read error cannot be forced on the alias without a code change; the local forced error above is its
+    proof, and a healthy album must show no failure card.
+- **PREMISE (lab:smoke):** every ask still holds. about-press and demo-framing name `marketing-content.md`, where only
+  The 404 pages' line moved. disposable-mode names `event-experience.tsx` and two docs: the album gains a failure state
+  for a seed that fails, nothing on a healthy album moves, and its `video` ask already says "video, never clip".
+  event-ready names the hub and `host-app.md`: only a gone event's branch moved, and its Settings drawing now reads
+  "videos" in the Videos line, which no ask describes. locked-door names the guest page and `guest-flow.md`: the host
+  card's follow read sits past the door, and its `lost` ask's screen is untouched.
+- **Assets requested from Will:** none.
+- **Board ideas:** a section-level failure grammar: the album's card is the product's first "this part could not
+  load" while the page stands; the reel tile, the Guests list and the hub's rooms could share one drawn primitive
+  rather than each growing its own.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none.
+- **Calls his to overrule:** the dead dashboard link's soft 404 (keep 200, or a proxy read); the portal's record 404
+  moving to 200; the album's failure words; "items" for a mixed bulk Like.
+- **Look at first:** the first two Questions (the status each 404 answers), then the album's card at a phone's width
+  on the alias.
