@@ -41,6 +41,7 @@ a lane").
 | --- | --- | --- | --- | --- |
 | `schema-pass` | the data architecture trimmed | merged at `57b17ace`; part 1 applied on Will's go-ahead (2026-09-29, his answer "Yes, apply part 1"; recorded `20260929210010`, the payload the file's md5; advisors 18/4/33; anon REST 42501; types regenerated at `c7a50adc`); a signed-in host walk on partyreel.com rides build 25's red-team as a follow-up; part 2 (`20260929170000`) after milestone 31 ships | Opus, 3132 | `54f414f9` |
 | `crumbs-28` | nine ROADMAP items: a host's and the portal's cold 404, a guest album whose seed fails kept to the album, the review peek's focus, the moment card's Follow, the portal's Remove confirm, the bulk toasts' counts, formatBytes' rounding, a flaky test, one owner answer | handed off (work `b6dc4674`, gate green: test 7,914 twice, build, lab:smoke 157; no SQL); merges after milestone 31 ships, no build while Will sits at the desk; its four Questions (the dead links' soft 404s, the album's failure words, a mixed Like's \"items\") his to overrule | Opus, 3131 | `8bed1885` |
+| `hide-strikes` | Will's call B (2026-09-30): the instant hide's bar as three dismissed child-abuse reports in a rolling 180 days | running, cut at `963a2fb8`; one migration (create_report), applied by protocol after milestone 31 ships | Opus, 3134 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
 no question open (Q1, the `names` hang; Q2, schema-pass part 1; Q3, the notes-into-laws audit; Q4, the door migration:
@@ -133,10 +134,11 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
   touch; `names` retired into `slug`) and `about-press` r1 (two: the press kit on /about, its four facts; press-page's
   `a-human` retired as the carried call `named`) reach him with build 26; `privacy-hero` r4 (one: which veil, the lens
   recommended) with build 27.
-- **His answer on the calls file** (48 calls to overrule, numbered, one a lane through desk-tune-2; compiled from each
-  merge's "Calls his to overrule", `git show <merge>^2:docs/tracks/<track>.md`, with a copy in this session's
-  scratchpad, `relay-calls.md`): A, the proof mail (recommended off until the emails round) and B, the instant-hide
-  bar's permanence (recommended permanent until launch).
+- **The calls file** (49 calls to overrule, numbered, one a lane through gone-link-soft; compiled from each merge's
+  "Calls his to overrule", `git show <merge>^2:docs/tracks/<track>.md`, with a copy in this session's scratchpad,
+  `relay-calls.md`). His two decisions are answered (2026-09-30): A, the proof mail stays off until the emails round
+  (ROADMAP's Emails bucket); B, the instant hide's bar becomes three strikes lapsing after 180 days ("I don't want to
+  prevent a well-meaning reporter from a second report if I simply disagree with the first"), `hide-strikes`'s.
 - **The morning of 2026-09-30, on his phone** (his word): `disposable-mode` r2's Measure a phone on the alias (the
   board's dock: Open the camera, Take a frame, the camera app's photo, on his iPhone and an Android if he has one; paste
   the line back: the full-size promise rides on it); Q1 (on a phone the code card fills the screen, but Back

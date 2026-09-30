@@ -360,6 +360,7 @@ The app:
   - The identity mail (`moments=identity`): one mail after a guest confirms at the keep while other events wait under her address, in the dashboard banner's own words.
   - The guest's one-shot "here is your album" mail (`guest=link`): only to an unconfirmed address on a row with a completed upload, capped per event, one time, through `sendOnce` with kind `guest_event_link` and dedupe `guest_id`, carrying a "this wasn't me" link that detaches the address.
   - The let-in mail (`letin=left`), with the join doors: sent only when she has left, meaning her waiting door has stopped checking in (about 30 s quiet) at the moment the host lets her in; a door still checking in simply opens.
+  - The reports queue's Ask for proof mail: `ops_flags.report_proof_mail_enabled` stays off until this round and is switched on in it, never before (Will, 2026-09-30).
   - The reporter's closing note (`reporter=note`): one mail as a report closes, the same words whatever was decided ("We've handled your report about …. Thank you for telling us."), with who sent it kept only until then.
   - The sign-in code mail, a Supabase template (`code=promise`): the code first, easy to copy, and a primary button beneath as the one-tap way in ("Tap to confirm"); iOS fills a code from Mail when the digits sit beside the word "code".
   - Newsletters and updates from "Will @ Partyreel" (his `sender` note). Some filters read an "@" in a display name as a spoofed address; "Will at Partyreel" says the same.

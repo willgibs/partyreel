@@ -200,8 +200,9 @@ test (admin-triage r2):
   open.
 - **Ask for proof** mails the operator's own question to the reporter's confirmed address with a one-use link
   (`/report/<token>`; only its SHA-256 is stored, forgotten at the close) where her answer lands on the report
-  itself. Never for a child-abuse report. ★ Behind `ops_flags.report_proof_mail_enabled`, seeded OFF: while it is
-  off the ask is refused in words and nothing is written, and a mail that never went takes the ask back.
+  itself. Never for a child-abuse report. ★ Behind `ops_flags.report_proof_mail_enabled`, OFF until the emails round
+  (ROADMAP's Emails bucket, Will's word): while it is off the ask is refused in words and nothing is written, and a
+  mail that never went takes the ask back.
 
 ## Help feedback
 
