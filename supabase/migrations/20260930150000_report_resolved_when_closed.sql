@@ -1,0 +1,115 @@
+-- =============================================================================================
+-- A REPORT IS OPEN EXACTLY WHEN IT HAS NO RESOLVED_AT (lane `crumbs-29`; ROADMAP, from `hide-strikes`).
+--
+-- Why now: the instant hide's strikes (20260930120000) lapse from a dismissal's own time, `reports.resolved_at`,
+-- so a close written without it would count as no strike at all (`r.resolved_at > now() - c_strike_lapse` is null,
+-- never true), and a reopen that kept it would still count one. The portal's one close writes the status with its
+-- time (closeReports, app/admin/reports/actions.ts) and its two reopens clear both (reopenReports and the Undo of
+-- an action), and create_report inserts an open report with neither; but only a convention held the two together,
+-- and a raw SQL close could part them.
+--
+-- ★ THE RULE, AS A CHECK: `(status = 'open') = (resolved_at is null)`. Open has no time; every other status has
+-- one (`reviewed` included, which is in the enum and nothing writes). Live on 2026-09-30: 22 reports, 20
+-- dismissed and 2 actioned, every one with its time, so the CHECK validates as it is added.
+--
+-- WHAT THIS FILE DOES: one ALTER TABLE, validated on add (22 rows: the brief ACCESS EXCLUSIVE lock it takes is
+-- nothing a portal notices). No function, grant or column moves.
+--
+-- ★ AN EXPAND IN BOTH DIRECTIONS: every write the deployed build makes already satisfies it (the close and both
+-- reopens move the two together; the insert writes neither), so nothing deploys with it.
+--
+-- APPLY PROTOCOL (database-security.md -> Workflow):
+--   (1) Drift, read-only: the constraint does not exist, and every row already holds the rule:
+--         select conname from pg_constraint where conrelid = 'public.reports'::regclass order by 1;
+--         select status, resolved_at is null as unresolved, count(*) from public.reports group by 1, 2;
+--   (2) The rolled-back check at the foot, on the live schema BEFORE the apply, then apply verbatim.
+--   (3) get_advisors (security). EXPECTED DELTA: none.
+--   (4) Nothing to regenerate: no column or signature moves.
+-- =============================================================================================
+
+alter table public.reports
+  add constraint reports_resolved_when_closed check ((status = 'open') = (resolved_at is null));
+
+comment on constraint reports_resolved_when_closed on public.reports is
+  'A report is open exactly when it has no resolved_at: a close writes its time with its status, a reopen clears both. The instant hide''s strikes lapse from resolved_at (create_report), so a close without one would be no strike.';
+
+-- =============================================================================================
+-- THE ROLLED-BACK CHECK. Proved on the live schema BEFORE applying: ONE execute_sql call of `begin;`, this file's
+-- statements verbatim, the block below and `rollback;`. It rides an EXISTING live event (a report names one) and
+-- writes only inside the transaction: the portal's own writes pass (create_report's insert, the close, the
+-- reopen, the Undo of an action), and each way of parting the two is refused as a CHECK violation (23514).
+--
+-- Held on 2026-09-30 against the live schema (event 14bb4318-80cd-4eed-b219-92c097ee16c7), red first: the block
+-- alone, on today's table, failed its second step with "FAIL: a close without its time was written; an open report
+-- took a time; a closed report was inserted without its time; a reviewed report was inserted without its time; a
+-- reopen kept its time;" (the first, the portal's own writes, passes on either side). With this file's statements
+-- (afterwards the constraint did not exist and the reports read 22 as before: nothing persisted):
+--   1 the portal's own writes | t | insert, close, reopen, action and its Undo all written
+--   2 the two never part      | t | refused (23514): a close without its time, a time on an open report, a closed or reviewed insert without one, a reopen that kept it
+--   3 the constraint          | t | CHECK (((status = 'open'::report_status) = (resolved_at IS NULL)))
+-- =============================================================================================
+-- create temp table report_proof (n serial, step text, ok boolean, detail text);
+-- do $$
+-- declare
+--   v_event uuid := '14bb4318-80cd-4eed-b219-92c097ee16c7';
+--   v_qr text; v jsonb; r uuid; v_step text := '1 the portal''s own writes'; v_bad text := '';
+-- begin
+--   select qr_token into v_qr from public.events where id = v_event and deleted_at is null;
+--   if v_qr is null then raise exception 'SETUP: no event'; end if;
+--   -- ── 1. The portal's own writes pass: the insert, the close, the reopen, the Undo of an action. ──
+--   v := public.create_report(v_qr, null, 'resolved-proof', 'other');
+--   r := (v ->> 'report_id')::uuid;
+--   update public.reports set status = 'dismissed', resolved_at = now(), resolution_note = 'proof'
+--    where id = r and status = 'open';                                      -- closeReports
+--   update public.reports set status = 'open', resolved_by = null, resolved_at = null, resolution_note = null
+--    where id = r and status = 'dismissed';                                 -- reopenReports
+--   update public.reports set status = 'actioned', resolved_at = now() where id = r;
+--   update public.reports set status = 'open', resolved_by = null, resolved_at = null, resolution_note = null
+--    where id = r and status = 'actioned';                                  -- the Undo of an action
+--   if (select status::text from public.reports where id = r) <> 'open' then raise exception 'FAIL: the reopen'; end if;
+--   insert into report_proof (step, ok, detail) values (v_step, true, 'insert, close, reopen, action and its Undo all written');
+--
+--   -- ── 2. Every way of parting the two is refused. ──
+--   v_step := '2 the two never part';
+--   begin
+--     update public.reports set status = 'dismissed' where id = r;
+--     v_bad := v_bad || ' a close without its time was written;';
+--   exception when check_violation then null;
+--   end;
+--   begin
+--     update public.reports set resolved_at = now() where id = r;
+--     v_bad := v_bad || ' an open report took a time;';
+--   exception when check_violation then null;
+--   end;
+--   begin
+--     insert into public.reports (event_id, reason, status) values (v_event, 'resolved-proof', 'actioned');
+--     v_bad := v_bad || ' a closed report was inserted without its time;';
+--   exception when check_violation then null;
+--   end;
+--   begin
+--     insert into public.reports (event_id, reason, status, resolved_at) values (v_event, 'resolved-proof', 'reviewed', null);
+--     v_bad := v_bad || ' a reviewed report was inserted without its time;';
+--   exception when check_violation then null;
+--   end;
+--   update public.reports set status = 'dismissed', resolved_at = now() where id = r;
+--   begin
+--     update public.reports set status = 'open' where id = r;
+--     v_bad := v_bad || ' a reopen kept its time;';
+--   exception when check_violation then null;
+--   end;
+--   if v_bad <> '' then raise exception 'FAIL:%', v_bad; end if;
+--   insert into report_proof (step, ok, detail) values (v_step, true,
+--     'refused (23514): a close without its time, a time on an open report, a closed or reviewed insert without one, a reopen that kept it');
+--
+--   -- ── 3. The constraint as written: validated, on the table, the rule verbatim. ──
+--   v_step := '3 the constraint';
+--   insert into report_proof (step, ok, detail)
+--     select v_step, c.convalidated, pg_get_constraintdef(c.oid)
+--       from pg_constraint c
+--      where c.conrelid = 'public.reports'::regclass and c.conname = 'reports_resolved_when_closed';
+--   if not found then raise exception 'FAIL: no constraint'; end if;
+-- exception when others then
+--   insert into report_proof (step, ok, detail) values (v_step, false, sqlerrm);
+-- end;
+-- $$;
+-- select step, ok, detail from report_proof order by n;

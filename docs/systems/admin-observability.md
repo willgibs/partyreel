@@ -159,7 +159,8 @@ test (admin-triage r2):
   address holding three strikes, at most 3 an address and 5 an event in 24 hours (advisory-locked); otherwise the
   report is filed the same and heads the queue. A strike is a child-abuse report from the address that the operator
   dismissed, and it lapses 180 days after its `resolved_at`; the count reads the reports as they stand, so a
-  dismissal's Undo takes its strike back. Three that lapse rather than one for good, so a reporter he once disagreed
+  dismissal's Undo takes its strike back, and a CHECK holds a report open exactly when it has no `resolved_at`
+  (`reports_resolved_when_closed`), so no close can skip the time a strike counts from. Three that lapse rather than one for good, so a reporter he once disagreed
   with keeps the hide (Will, 2026-09-30; both numbers live once, in the function). Every other kind inserts only. A
   child-abuse report tells the operator after the response (`alertUrgentReport`: a Sentry warning every time, an
   ops-inbox mail once per album per ten minutes) and on the rail and the bell (the urgent count).

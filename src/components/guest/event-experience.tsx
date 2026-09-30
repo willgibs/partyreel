@@ -72,6 +72,7 @@ import {
   ToldNameForm,
 } from "@/lib/guest/confirm-beat-name";
 import { closesOnLastRemoval as lastRemovalCloses } from "@/lib/guest/delete-consequence";
+import { createDoorHold, heldDoorName } from "@/lib/guest/door-hold";
 import { contributionAnswered } from "@/lib/guest/entry-steps";
 import { joinEvent, passedTicket } from "@/lib/guest/join";
 import { useKeepAskPutDown } from "@/lib/guest/keep-ask";
@@ -253,6 +254,23 @@ export function EventExperience({
   // The name this device typed at this event. Beside the session, never
   // instead of it: the token is the capability, this is the label.
   const [storedName] = useStoredName(qrToken);
+  /* ★ THE DOOR WAITS FOR THE SERVER TO SAY WHO IS HERE (crumbs-29, `lib/guest/door-hold.ts`). When the page must
+     re-read who is holding the phone (`settleViewer`, below), the door is handed the name it had until the
+     server's next render lands: a ticket the queue put down took its name with it, and the door drew the name
+     step for the seconds a blocked phone's shut screen took to arrive. The hold is keyed to this render's
+     seed, which every server render makes anew, so the answer ends it. */
+  const [doorHold] = useState(createDoorHold);
+  const hold = useSyncExternalStore(
+    doorHold.subscribe,
+    doorHold.get,
+    doorHold.get,
+  );
+  const doorName = heldDoorName(hold, galleryPromise, storedName);
+  // What a hold is taken under: this render's seed and the name the door has now (a hold kept while held).
+  const heldUnderRef = useRef({ render: galleryPromise as unknown, doorName });
+  useEffect(() => {
+    heldUnderRef.current = { render: galleryPromise, doorName };
+  });
   /* ★ THE ADDRESS TYPED AT THE DOOR, FOR THIS VISIT AND NO LONGER. It lives in
      React state on purpose: its ONE job is to prefill the keep's account door
      (the door's last screen), so a guest who has just typed it under their name
@@ -327,6 +345,18 @@ export function EventExperience({
      by the effect beside `handleUploaded`. One indirection, rather than reordering the whole
      shell around a hook that has to exist before the album does. */
   const handleUploadedRef = useRef<(u: UploadedItem) => void>(() => {});
+  /* ★ RE-READ WHO IS HERE, THE DOOR HELD MEANWHILE (crumbs-29). The page refreshes, so the server says who is
+     holding the phone (a sign-out or a sign-in in another tab, a block), and until its render lands the door keeps
+     the name it had (the hold above). A ticket still going down is waited for first (`ticketDown`), so the
+     refresh never carries the cookie the ticket is leaving. */
+  const settleViewer = useCallback(
+    (ticketDown?: Promise<void>) => {
+      const { render, doorName: name } = heldUnderRef.current;
+      doorHold.set({ under: render, name });
+      void (ticketDown ?? Promise.resolve()).then(() => router.refresh());
+    },
+    [doorHold, router],
+  );
   const {
     items: queue,
     progress: uploadProgress,
@@ -351,13 +381,13 @@ export function EventExperience({
       }
       router.refresh();
     },
-    /* ★ A TICKET THAT WAS NOT THIS VIEWER'S WENT DOWN, AND ONLY THE DOOR CAN MINT THEIR OWN. The
-       queue has already put the ticket down (token, name, address flag, cookie) and kept the files
-       waiting; the refresh re-resolves who is here from the server's side, so a sign-out in
-       another tab is seen as one, and the door opens on the step that names them (the name, or
-       the email step on a verified event). Nothing is failed, so there is no failure sheet to wait
-       for, unlike the flip above. */
-    onDoorNeeded: () => router.refresh(),
+    /* ★ A TICKET THAT WAS NOT THIS VIEWER'S GOES DOWN, AND ONLY THE DOOR CAN MINT THEIR OWN. The
+       queue tells the page before it puts the ticket down (token, name, address flag, cookie) and
+       keeps the files waiting; the refresh re-resolves who is here from the server's side, so a
+       sign-out in another tab is seen as one, and the door opens on the step that names them (the
+       name, or the email step on a verified event), or the page is the shut door. Nothing is failed,
+       so there is no failure sheet to wait for, unlike the flip above. */
+    onDoorNeeded: settleViewer,
   });
   /* ★ A PROGRESS TICK RE-RENDERS NOTHING HERE. The queue's `items` change only on a status change;
      each file's progress lives in its own store (`uploadProgress`), which the album's stack tile
@@ -606,7 +636,9 @@ export function EventExperience({
      in"), so a confirmed visitor with no ticket for this album joins silently, once, the moment the
      door is behind her. Without it, a host who later closed the door would shut her out as a newcomer
      she never was. A typed name's own step already mints her ticket, and an unconfirmed visitor has not
-     passed the door. The upload queue's own join then finds the ticket and mints nothing more. */
+     passed the door. The upload queue's own join then finds the ticket and mints nothing more; one racing
+     it shares this one's answer (a nameless join is asked once at a time, `joinEvent`), and the server
+     answers her one ticket either way (crumbs-29). */
   const joinedAtDoorRef = useRef(false);
   useEffect(() => {
     if (isDemo || isOwner || !isVerified || welcomePending) return;
@@ -616,7 +648,19 @@ export function EventExperience({
       // ★ A JOIN THAT LANDED WAITING IS THE ASK, NOT A TICKET (crumbs-27): adopted, the queue would send a
       // file on it and it would be refused "This event is private."; the door reads the cookie the join set.
       const ticket = passedTicket(joined);
-      if (ticket) setSessionToken(ticket);
+      if (ticket) {
+        setSessionToken(ticket);
+        return;
+      }
+      // ★ THE SERVER SEES NO CONFIRMED ACCOUNT HERE (crumbs-29): the page rendered across a sign-out still in
+      // flight, and its door skipped the steps that name her. It re-reads who is here, and the door asks them.
+      if (
+        !joined.ok &&
+        (joined.refusal.kind === "name_required" ||
+          joined.refusal.kind === "verification_required")
+      ) {
+        settleViewer();
+      }
     });
   }, [
     access,
@@ -626,6 +670,7 @@ export function EventExperience({
     qrToken,
     sessionToken,
     setSessionToken,
+    settleViewer,
     welcomePending,
   ]);
 
@@ -977,7 +1022,8 @@ export function EventExperience({
             onHoldingChange={setHoldCurtain}
             onPendingChange={setWelcomePending}
             sessionToken={sessionToken}
-            storedName={storedName}
+            // Held while the page re-reads who is here (`doorName`, the hold above).
+            storedName={doorName}
             onNamed={({
               sessionToken: token,
               displayName,

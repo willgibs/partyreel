@@ -195,9 +195,15 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
     when it is that same name, then the cookie, AWAITED so it cannot land after the re-join's fresh one) and
     re-queues it. A CONFIRMED viewer joins silently (once per chain) and the same file goes up on their own row;
     anyone else is handed to the door (`onDoorNeeded`: the page refreshes, so a sign-out in another tab is seen,
-    and the name or email step opens) while the files wait `queued`, resuming the moment its join hands a ticket
-    down through `sessionToken`. A join nobody at the door could fix fails the waiting files in place, and a
-    Retry with no ticket joins first. ★ **A join that lands WAITING is the ask, never a ticket** (`admission:
+    and the name or email step opens, or the page is the shut door) while the files wait `queued`, resuming the
+    moment its join hands a ticket down through `sessionToken`. ★ **The door waits for the server to say who is
+    here**: the page is told BEFORE the ticket goes down (`onDoorNeeded(ticketDown)`), since the ticket takes its
+    name with it, and holds its door on the name it had until its refresh lands (`door-hold.ts`, the hold keyed to
+    the render it was taken under), the refresh waiting for the ticket's cookie to go; so a phone the host blocked
+    meets the shut door with no name step first. The same 422 on a first Add's own join (`name_required`: the page
+    rendered across a sign-out still in flight and skipped the name) keeps her picks for the door the same way, and
+    the page's own silent join refused so re-reads who is here. A join nobody at the door could fix fails the waiting
+    files in place, and a Retry with no ticket joins first. ★ **A join that lands WAITING is the ask, never a ticket** (`admission:
     "waiting"`, where the host lets each guest in): a file sent on it is refused "This event is private.", so the
     queue adopts nothing (nor does the page's own silent join once the door is behind her: `passedTicket`,
     `join.ts`), sends nothing and fails nothing: the files wait `queued` (a first Add's picks and a clip
@@ -764,10 +770,14 @@ had" holds only when this device holds a guest ticket a claim would move.
   `verification_required` (with a `captureWarning`, so a flip mid-party is visible) rather than letting a
   session minted before the switch moved upload forever; `create_media` stays authoritative and its refusal
   maps to the same code.
-- **The localStorage `session_token` is the dedupe, and `guests` deliberately has NO unique
-  `(event_id, user_id)`.** One person may join the same event more than once (a second device, a cleared
-  browser), and an account is optional, so a uniqueness constraint there would break multi-join rather
-  than tidy anything.
+- ★ **ONE ACCOUNT, ONE TICKET AT AN ALBUM; a typed name, one ticket a join.** A confirmed account's join
+  (`create_guest`, and `ask_to_join` at a list) answers the ticket it already holds there at the admission the door
+  gives it (its newest proved row no block holds, `event_account_ticket`), read under a lock on the album and the
+  account, so two joins of hers that race (a shared phone's queue and the page's own) answer one row, and her second
+  device holds the same ticket as her first; the client also asks a nameless join once at a time (`joinEvent`). For
+  a typed name the localStorage `session_token` is the dedupe, and `guests` still has NO unique
+  `(event_id, user_id)`: an account is optional, two people may type one name, and a claim can take a typed name's
+  rows onto an account beside its own.
 - **Supabase anonymous sign-ins stay OFF.** Capability tokens already give a guest immediate, scoped use,
   so a per-scan `auth.users` row would be pure DB bloat, and an anonymous session carries no email to
   satisfy the gate. The account layer AUGMENTS the guest flow and never replaces it: the contribution
