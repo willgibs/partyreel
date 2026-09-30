@@ -217,6 +217,11 @@ describe("getEventBlocks: the host's Blocked list", () => {
     tables.profiles = [
       { id: "u-sam", display_name: "Sam", avatar_updated_at: "v1" },
     ];
+    // Both were in before the block (each has a row past the door).
+    tables.guests = [
+      { id: "g-sam", event_id: EVENT, user_id: "u-sam", admission: "in" },
+      { id: "g-theo", event_id: EVENT, user_id: null, admission: "in" },
+    ];
   });
 
   it("signed out: nothing, and nothing is read", async () => {
@@ -263,7 +268,7 @@ describe("getEventBlocks: the host's Blocked list", () => {
       since: "since 2026-09-27T10:00:00+00:00",
       restorable: 0,
       restorableUntil: null,
-      atDoor: false,
+      lands: "in",
     });
   });
 
@@ -324,24 +329,24 @@ describe("getEventBlocks: where Let back in leaves each one (build 23's NIT-3)",
 
   const standing = async () =>
     Object.fromEntries(
-      (await getEventBlocks(EVENT, format)).map((p) => [p.id, p.atDoor]),
+      (await getEventBlocks(EVENT, format)).map((p) => [p.id, p.lands]),
     );
 
   it("★ a declined newcomer goes back to the door; someone who was in comes back in", async () => {
     tables.events = [{ id: EVENT, visibility: "private", gate: "approve" }];
     await expect(standing()).resolves.toEqual({
-      "b-wren": true,
-      "b-sam": false,
-      "b-lou": true,
+      "b-wren": "door",
+      "b-sam": "in",
+      "b-lou": "door",
     });
   });
 
   it("★ the invite list, while it is the door, lets a listed one straight in, as let_back_in does", async () => {
     tables.events = [{ id: EVENT, visibility: "private", gate: "invite" }];
     await expect(standing()).resolves.toEqual({
-      "b-wren": true,
-      "b-sam": false,
-      "b-lou": false,
+      "b-wren": "door",
+      "b-sam": "in",
+      "b-lou": "in",
     });
     // The door and the list are the host's own reads, never the admin client's.
     expect(
@@ -349,5 +354,40 @@ describe("getEventBlocks: where Let back in leaves each one (build 23's NIT-3)",
         .filter((r) => r.table === "events" || r.table === "event_invites")
         .map((r) => r.client),
     ).toEqual(["host", "host"]);
+  });
+
+  it("★ a newcomer whose ask a password ended meets it like anyone new, never the album she was never in (crumbs-24)", async () => {
+    // The password deleted her waiting row (20260929230000), so nothing of hers is left to read: she is
+    // a newcomer by having no row past the door, not by a waiting row.
+    tables.events = [{ id: EVENT, visibility: "password", gate: null }];
+    tables.guests = tables.guests.filter((g) => g.admission === "in");
+    await expect(standing()).resolves.toEqual({
+      "b-wren": "password",
+      "b-sam": "in",
+      "b-lou": "password",
+    });
+  });
+
+  it("after the password, the door as it stands decides: asks again, Public, or nobody new", async () => {
+    tables.guests = tables.guests.filter((g) => g.admission === "in");
+    tables.events = [{ id: EVENT, visibility: "private", gate: "approve" }];
+    expect((await standing())["b-wren"]).toBe("door");
+    tables.events = [{ id: EVENT, visibility: "open", gate: null }];
+    expect((await standing())["b-wren"]).toBe("in");
+    tables.events = [{ id: EVENT, visibility: "private", gate: "closed" }];
+    expect((await standing())["b-wren"]).toBe("out");
+    tables.events = [{ id: EVENT, visibility: "private", gate: null }];
+    expect((await standing())["b-wren"]).toBe("out");
+  });
+
+  it("everyone was in: the door is never read", async () => {
+    tables.events = [{ id: EVENT, visibility: "password", gate: null }];
+    tables.guests = tables.guests.map((g) => ({ ...g, admission: "in" }));
+    await expect(standing()).resolves.toEqual({
+      "b-wren": "in",
+      "b-sam": "in",
+      "b-lou": "in",
+    });
+    expect(reads.some((r) => r.table === "events")).toBe(false);
   });
 });

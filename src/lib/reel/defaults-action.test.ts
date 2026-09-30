@@ -14,6 +14,10 @@ import { DEFAULT_HOLD_SEC } from "@/lib/reel/defaults";
 import { DEFAULT_STYLE_ID } from "@/lib/reel/engine/style-registry";
 
 vi.mock("server-only", () => ({}));
+const revalidatePath = vi.fn();
+vi.mock("next/cache", () => ({
+  revalidatePath: (...a: unknown[]) => revalidatePath(...a),
+}));
 
 const EVENT_ID = "5d0f0f6e-2b1a-4c1e-9a55-1f2d3c4b5a69";
 
@@ -89,6 +93,7 @@ function savedRow(overrides: Partial<Row> = {}): Row {
 }
 
 beforeEach(() => {
+  revalidatePath.mockReset();
   state.user = { id: "host-1" };
   state.answer = { data: savedRow(), error: null };
   state.clients = 0;
@@ -225,5 +230,34 @@ describe("setReelDefaults: the host's saves", () => {
       reel_style_id: "noir",
     } as never);
     expect(state.patches).toEqual([{ reel_hold_sec: 7 }]);
+  });
+});
+
+describe("setReelDefaults: the hub follows the switch in the save's own answer (crumbs-24)", () => {
+  it("★ the switch revalidates the hub, so its Reel card catches up with no router refresh after it", async () => {
+    // A refresh after the switch made a tap on the page's back arrow or a row inside its round trip
+    // reload the page (lib/history-entry.ts's matrix); a revalidating action is replayed, never reloaded.
+    state.answer = { data: savedRow({ show_reel: false }), error: null };
+    await setReelDefaults({ eventId: EVENT_ID, showReel: false });
+    expect(revalidatePath).toHaveBeenCalledTimes(1);
+    expect(revalidatePath).toHaveBeenCalledWith(`/dashboard/${EVENT_ID}`);
+  });
+
+  it("a look or a hold revalidates nothing: from the view it would re-render the album under a playing reel", async () => {
+    await setReelDefaults({ eventId: EVENT_ID, styleId: "mono" });
+    await setReelDefaults({ eventId: EVENT_ID, holdSec: 5 });
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it("a refused switch revalidates nothing", async () => {
+    state.user = null;
+    await setReelDefaults({ eventId: EVENT_ID, showReel: true });
+    state.user = { id: "host-1" };
+    state.answer = {
+      data: null,
+      error: { code: "PGRST116", message: "no rows" },
+    };
+    await setReelDefaults({ eventId: EVENT_ID, showReel: true });
+    expect(revalidatePath).not.toHaveBeenCalled();
   });
 });

@@ -18,6 +18,7 @@ import {
   PopupHeader,
 } from "@/components/ui/popup";
 import { showErrorToast } from "@/lib/errors/toast";
+import { lastClaimPlayedMoment } from "@/lib/guest/confirm-beat";
 import {
   claimAskWords,
   currentClaimAsks,
@@ -51,8 +52,10 @@ const OWN_LAYER = "[data-claim-ask]";
  *     and waits, the safe answer first).
  *   - "Not mine" is remembered for that account on those albums and moves nothing: the photos stay
  *     the phone's, for whoever typed them. "They're mine" claims exactly those tickets (never one
- *     that names another address: the server refuses it whatever the answer), says it once in the
- *     claim's own words, and refreshes the page behind, whose credits and cards follow.
+ *     that names another address: the server refuses it whatever the answer), says it once, and
+ *     refreshes the page behind, whose credits and cards follow. ★ On the album whose own photos it
+ *     carried, the follow moment says it (crumbs-24: her yes is a confirmation of those very photos,
+ *     `use-confirm-return.ts`); anywhere else, the claim's own words.
  *   - Closed without an answer, it is put away for this visit and asked again on a later one: an
  *     unanswered question is never read as either answer.
  */
@@ -110,7 +113,12 @@ export function ClaimAsk() {
         );
         return;
       }
-      if (moved > 0) toast.success(CLAIMED_TOAST);
+      // Heard inside the claim by the album's own listener: the moment's card says it, other events too.
+      const momentSaysIt =
+        moved.album !== null && lastClaimPlayedMoment(moved.album);
+      if (!momentSaysIt && moved.here + moved.elsewhere > 0) {
+        toast.success(CLAIMED_TOAST);
+      }
       router.refresh();
     });
   }

@@ -6,8 +6,9 @@
  * Pinned by behaviour, through the one write (`setReelDefaults`, stubbed): each control sends
  * exactly its own field; the choice shows at once and is put back, with a sentence, when the save
  * is refused; a slow answer to an older pick never undoes a newer one; the switch, which is felt
- * on the album rather than here, refreshes the hub; and a stored value is shown as a guest would
- * start on it (null reads as the default mood and the default hold, never a zero).
+ * on the album rather than here, says so and never refreshes the router (its save re-renders the
+ * hub itself); and a stored value is shown as a guest would start on it (null reads as the default
+ * mood and the default hold, never a zero).
  */
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -181,7 +182,11 @@ describe("saving", () => {
     expect(pressed(screen.getByRole("radio", { name: /float/i }))).toBe(true);
   });
 
-  it("says what the switch did, which is felt on the album, and refreshes the hub", async () => {
+  it("★ says what the switch did, which is felt on the album, and never refreshes the router", async () => {
+    // ★ RESHAPED ON PURPOSE (crumbs-24; scar kept: the switch says what it did and the hub's card
+    // follows): it pinned the refresh that followed the save, whose round trip turned a tap on the
+    // page's back arrow or a row into a reload. The save re-renders the hub itself now
+    // (defaults-action.ts), so nothing is left in flight for a tap to meet.
     setReelDefaults.mockResolvedValue(
       answer({ showReel: false, styleId: null, holdSec: null }),
     );
@@ -195,7 +200,7 @@ describe("saving", () => {
     });
     expect(screen.getByRole("switch")).not.toBeChecked();
     expect(toast.success).toHaveBeenCalledTimes(1);
-    expect(refresh).toHaveBeenCalledTimes(1);
+    expect(refresh).not.toHaveBeenCalled();
   });
 
   it("ignores a second press on the look already chosen", async () => {

@@ -62,7 +62,8 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
   - The three claims by ticket stay browser-callable because nothing in them is spoofable: the held `session_token`s
     authorize them, `user_id is null` guards against theft, and ★ one rule, `whose_ticket`, decides whose each ticket
     is, so on a shared phone a stranger's typed address never moves and a stranger's typed name moves only on the
-    account's own answer ([guest-flow.md](guest-flow.md)).
+    account's own answer ([guest-flow.md](guest-flow.md)). `claim_ticket_asks` also answers which held tickets were
+    typed under an address that is not the caller's, WHETHER and never WHAT (no address, album or id leaves).
   - ★ **The claim by address never takes an address.** The three `*_guest_rows_by_email` functions key on the
     caller's own CONFIRMED address, read from `auth.users` under definer privilege, so nothing can answer "is this
     address a Partyreel guest?", and an unconfirmed caller gets an empty set even for their own address. Its answer is
@@ -170,6 +171,12 @@ a table created since starts with no client grant, so its migration grants exact
   would each read N-1 and both admit. `create_media`, `create_media_as_host`, `restore_media`, `restore_event` and
   `enforce_event_limit` each take exactly ONE profiles lock, the host's, as their first lock, so no deadlock is
   constructible; never lock a second host's row in these bodies.
+- ★ **A mint of an ask reads the door under the event row's share lock** (`create_guest`, `ask_to_join`,
+  `20260930100000`). Every move of the door writes that row (`set_event_door` locks it `for no key update`,
+  `set_event_password`'s update takes the same lock), and the triggers that end or admit the asks read only what has
+  committed, so an unlocked join minted in the move's instant was never seen by them. The share lock is each body's
+  first, taken holding nothing, and joins never wait on each other; a new body that mints a waiting ticket takes it
+  too (`migration-guards.test.ts` refuses one that does not).
 - ★ **An album's version row is every transaction's LAST lock** (`20260926100000_album_version`). A per-event
   counter taken mid-transaction would sit between locks the writers already order differently (`purge_media_rows`
   locks media before profiles, `create_media` profiles first, a multi-event disown, claim or sweep touches events in

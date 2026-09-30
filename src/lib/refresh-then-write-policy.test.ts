@@ -34,10 +34,12 @@ import { describe, expect, it } from "vitest";
  *   - a function of the same file whose body holds one of the above (masonry's `writeAddress` and what calls it).
  *
  * WHAT IT CANNOT SEE, and this file says so rather than passing quietly: a callback handed in as a prop (`onDone`),
- * a write in another file's function, and TWO GESTURES inside one round trip (the hub's Settings: a reel switch
- * refreshes, then a tap on the page's back arrow lands before the refresh does). Those are what the header of
- * `lib/history-entry.ts` and the manifest's Deferred line are for. A handler that meets the edge writes first and
- * refreshes after, or waits for the refresh's transition, or does neither.
+ * a write in another file's function, and TWO GESTURES inside one round trip (a guest's viewer step landing inside
+ * a poll's refresh; the header of `lib/history-entry.ts` holds what is known of each). A handler that meets the
+ * edge writes first and refreshes after, or waits for the refresh's transition, or does neither. ★ The hub's
+ * sheets do neither (crumbs-24): their saves re-render the hub in the action's own answer, which Next replays when a
+ * navigation interrupts it, so nothing a tap in a sheet can meet is ever a refresh in flight; the pin below keeps
+ * the router's refresh out of them.
  *
  * AN EXCEPTION SAYS SO, in `ALLOWED`: the file, and why a `.refresh()` there is not the router's, or why the
  * write that follows cannot meet a refresh in flight. An entry whose file no longer offends FAILS, so the list
@@ -399,6 +401,24 @@ describe("no function refreshes the router and then moves the address", () => {
         );
       }
     }
+  });
+
+  it("★ the hub's sheets never refresh the router: every Settings save re-renders the hub in its own answer (crumbs-24)", () => {
+    // The reel switch refreshed after its save, and a tap on the page's back arrow or a row inside that round trip
+    // reloaded the page or dropped the refresh (measured: the matrix in lib/history-entry.ts). Two gestures in one
+    // round trip are what no scan of one function can see, so the sheets hold no refresh at all.
+    const sheets = SOURCES.filter(
+      (rel) =>
+        rel.startsWith("src/components/app/event-settings/") ||
+        rel.startsWith("src/components/app/share/"),
+    );
+    expect(sheets.length, "the hub's sheets were not found").toBeGreaterThan(
+      10,
+    );
+    const refreshing = sheets.filter(
+      (rel) => census(read(rel), rel).refreshes > 0,
+    );
+    expect(refreshing).toEqual([]);
   });
 
   it("finds no function that refreshes and then applies a URL", () => {

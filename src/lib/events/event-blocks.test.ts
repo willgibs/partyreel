@@ -14,6 +14,7 @@ import {
   blockTargetSchema,
   blockTitle,
   blockTouches,
+  blockedLanding,
   blockedLineParts,
   blockedSince,
   blockedToast,
@@ -154,7 +155,7 @@ const person = (over: Partial<BlockedPerson> = {}): BlockedPerson => ({
   since: "Blocked Sep 28",
   restorable: 0,
   restorableUntil: null,
-  atDoor: false,
+  lands: "in",
   ...over,
 });
 
@@ -219,22 +220,102 @@ describe("the Blocked list and the way back", () => {
   });
 
   it("★ a newcomer declined at the door is told she goes back there, not into the album (build 23's NIT-3)", () => {
-    expect(letBackInLede("Maya's 30th", true)).toBe(
+    // ★ RESHAPED ON PURPOSE (crumbs-24; scar kept: back at the door, never the album): the flag became
+    // the landing, since a newcomer can land somewhere other than the door.
+    expect(letBackInLede("Maya's 30th", "door")).toBe(
       "They'll be back at the door, and you can let them in from there.",
     );
-    expect(letBackInToast("Wren", 0, 0, true)).toEqual({
+    expect(letBackInToast("Wren", 0, 0, "door")).toEqual({
       title: "Wren is back at the door.",
     });
-    expect(letBackInToast(null, 0, 0, true)).toEqual({
+    expect(letBackInToast(null, 0, 0, "door")).toEqual({
       title: "They're back at the door.",
     });
     // Neither promises the album she still has to be let into.
     for (const said of [
-      letBackInLede("Maya's 30th", true),
-      letBackInToast("Wren", 0, 0, true).title,
+      letBackInLede("Maya's 30th", "door"),
+      letBackInToast("Wren", 0, 0, "door").title,
     ]) {
       expect(said).not.toMatch(/open|add photos|join again/);
     }
+  });
+
+  it("★ a newcomer whose ask a password ended meets it like anyone new: the words never promise the album (crumbs-24)", () => {
+    expect(letBackInLede("Maya's 30th", "password")).toBe(
+      "They'll need the password to get in, like anyone new.",
+    );
+    expect(letBackInToast("Wren", 0, 0, "password")).toEqual({
+      title: "Wren can come in with the password.",
+    });
+    expect(letBackInToast(null, 0, 0, "password")).toEqual({
+      title: "They can come in with the password.",
+    });
+    for (const said of [
+      letBackInLede("Maya's 30th", "password"),
+      letBackInToast("Wren", 0, 0, "password").title,
+    ]) {
+      expect(said).not.toMatch(/add photos|join again|back at the door/);
+    }
+  });
+
+  it("where nobody new gets in, a newcomer is told she stays out, and nothing more", () => {
+    expect(letBackInLede("Maya's 30th", "out")).toBe(
+      "Maya's 30th takes nobody new right now, so they'll stay out until you change who can get in.",
+    );
+    expect(letBackInToast("Wren", 0, 0, "out")).toEqual({
+      title: "Wren is no longer blocked.",
+    });
+    expect(letBackInToast(null, 0, 0, "out")).toEqual({
+      title: "They're no longer blocked.",
+    });
+  });
+});
+
+describe("blockedLanding: where Let back in leaves them, from the door as it stands (crumbs-24)", () => {
+  const at = (
+    door: Parameters<typeof blockedLanding>[0]["door"],
+    over: Partial<Parameters<typeof blockedLanding>[0]> = {},
+  ) =>
+    blockedLanding({
+      wasIn: false,
+      waiting: false,
+      listed: false,
+      door,
+      ...over,
+    });
+
+  it("someone who was in comes back in at every door (a gate never stops someone already in)", () => {
+    for (const door of [
+      "open",
+      "password",
+      "approve",
+      "invite",
+      "closed",
+      "private",
+    ] as const) {
+      expect(at(door, { wasIn: true }), door).toBe("in");
+    }
+  });
+
+  it("★ a declined newcomer at a password meets it like anyone new: her ask ended with it, and a stranded one never promises the album", () => {
+    expect(at("password")).toBe("password");
+    expect(at("password", { waiting: true })).toBe("password");
+  });
+
+  it("an ask that stands keeps her at a door the host answers; the list lets in whom it names; Public lets anyone in", () => {
+    for (const door of ["approve", "invite", "closed", "private"] as const) {
+      expect(at(door, { waiting: true }), door).toBe("door");
+    }
+    expect(at("invite", { waiting: true, listed: true })).toBe("in");
+    expect(at("invite", { listed: true })).toBe("in");
+    expect(at("open")).toBe("in");
+  });
+
+  it("with no ask left: a door that takes asks lets her ask again; one that takes nobody new keeps her out", () => {
+    expect(at("approve")).toBe("door");
+    expect(at("invite")).toBe("door");
+    expect(at("closed")).toBe("out");
+    expect(at("private")).toBe("out");
   });
 });
 
@@ -277,6 +358,8 @@ describe("the bible's copy rules hold in every sentence here", () => {
       blockedLineParts(person({ restorable: 2 })).when,
       letBackInTitle("Sam"),
       letBackInLede("Party"),
+      letBackInLede("Party", "password"),
+      letBackInLede("Party", "out"),
       restoreOffer({ restorable: 2, restorableUntil: "October 28" })
         ?.description ?? "",
       letBackInToast("Sam", 2, 2).description ?? "",

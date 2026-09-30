@@ -50,8 +50,8 @@ import {
  * bookmark has nothing of ours behind them, so the parameter is dropped in place
  * and Back never throws them out of the app), `replace` for a settings page
  * moving inside the one entry, and `keep` after each render, which is how the
- * marker outlives a router refresh (Settings refreshes: the reel switch does) and
- * a reload. What was found HERE: a FRESH state and never `window.history.state`
+ * marker outlives a router commit (every Settings save re-renders the page in its
+ * action's answer) and a reload. What was found HERE: a FRESH state and never `window.history.state`
  * (build 23's red-team, HIGH). The settings page's replace used to hand
  * `replaceState` the whole current state, "so the marker rides along untouched":
  * the bar gained `&setting=<page>` and the router never heard of it, so a
@@ -140,11 +140,11 @@ export function EventShareProvider({
   /**
    * ★ `?room=` IS THE STATE. There is no local copy of it and there must not
    * be one: the parameter changes for three different reasons — our own
-   * pushState, the browser's Back, and a `router.refresh()` after a settings
-   * action — and a mirrored `useState` would owe an effect per reason to stay
+   * pushState, the browser's Back, and the page a settings action re-renders —
+   * and a mirrored `useState` would owe an effect per reason to stay
    * in step. Next's patched pushState calls the router's own url-applier, so
    * `useSearchParams` re-renders on all three for free, and the sheet surviving
-   * a refresh costs nothing rather than costing a synchronisation effect.
+   * a re-render costs nothing rather than costing a synchronisation effect.
    *
    * `initialSheet` is the server's reading of the same parameter, kept as the
    * value for the first paint so a deep link opens WITH the page.
@@ -175,7 +175,7 @@ export function EventShareProvider({
    * THE ENTRY A PANEL STANDS ON, and whose it is (`lib/history-entry.ts`; the header says what it asks
    * of it). After every render `keep` runs with the sheet's word: open, it adopts a marker it finds (a
    * reload, or a Forward onto the panel, finds an entry this page never pushed) and gives an entry this
-   * page pushed that a router refresh rewrote its marker back (crumbs-18; no address, so the router hears
+   * page pushed that a router commit rewrote its marker back (crumbs-18; no address, so the router hears
    * of nothing and nothing re-renders); closed, it forgets the entry and any Back still on its way, however
    * the panel closed (the X, Escape, Back).
    */

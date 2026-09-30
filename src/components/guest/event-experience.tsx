@@ -59,6 +59,7 @@ import type { GalleryAccess, GalleryGate } from "@/lib/events/gallery-access";
 import { formatCount, formatMediaCount } from "@/lib/format/count";
 import { useInViewSentinel } from "@/lib/shared/use-in-view-sentinel";
 import { DEFAULT_ROW_STEP, type RowStep } from "@/lib/shared/album-rows";
+import { claimLeftForAnotherAddress } from "@/lib/guest/claim-uploads";
 import {
   confirmBeatToast,
   mergeConfirmBeats,
@@ -656,6 +657,10 @@ export function EventExperience({
      other events), and the page says it ONCE, as one toast, and only once the door has closed, so
      it never lands on a sheet she is still answering. The name's Change is the toast's action: a
      small name form (`confirm-beat-name.tsx`, `popups` r1's `forms=dialog`), mounted below.
+     ★ Photos typed here under another address than the one confirmed stay with that address (the
+     claim never takes them), so before it speaks the page asks what the claim left here
+     (`claimLeftForAnotherAddress`): then the toast says where they are, and no name is settled or
+     told for photos that did not move (crumbs-24).
      ──────────────────────────────────────────────────────────────────────── */
   const pendingBeatRef = useRef<ConfirmBeat | null>(null);
   const welcomePendingRef = useRef(welcomePending);
@@ -664,12 +669,20 @@ export function EventExperience({
     pendingBeatRef.current = null;
     if (!beat) return;
     void (async () => {
+      const left = await claimLeftForAnotherAddress(beat.album);
       // A door on another island could not settle the name (`confirm-beat.ts` says why): the
       // page does, here, before it speaks, so the name told is the one her photos now carry.
-      const name = beat.settle
-        ? (beat.name ?? (await settleConfirmedName(beat.album)))
-        : beat.name;
-      const words = confirmBeatToast({ name, elsewhere: beat.elsewhere });
+      const name =
+        left > 0
+          ? null
+          : beat.settle
+            ? (beat.name ?? (await settleConfirmedName(beat.album)))
+            : beat.name;
+      const words = confirmBeatToast({
+        name,
+        elsewhere: beat.elsewhere,
+        left,
+      });
       if (!words) return;
       toast.success(words.title, {
         description: words.description,

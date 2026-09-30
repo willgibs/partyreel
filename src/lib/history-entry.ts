@@ -44,33 +44,36 @@ import { useState } from "react";
  * `popstate` never comes lets go after a floor, so a place cannot be stranded open.
  *
  * ★ ONE EDGE THIS DOES NOT CLOSE, AND EVERYTHING KNOWN OF IT (measured under `next dev`, Next 16.2.6, chrome 152;
- * crumbs-19 found it, crumbs-22 measured the rest and audited every caller). A write that applies a URL
- * (`push(href)`, `replace`, an in-place `close`; natively, a `pushState` or `replaceState` given an address and
- * a state without `__NA`) made while a `router.refresh()` is IN FLIGHT is a `restore` action, which Next's
- * action queue lets jump the queue and discard what is pending (`dispatchAction`: "navigations (including
- * back/forward) take priority over any pending actions"), so the refresh's data is dropped, silently. And the
- * page RELOADS onto the same URL when the router's last RENDERED address differs from the one the write
- * applies, which any earlier native write that moved the query leaves true: `push(href)` always does, and so
- * does a deep-linked entry after its first `replace`. The window is the refresh's whole round trip, from the
- * call to the commit that rewrites the entry (~190 ms under `next dev`, a phone's network however long), not
- * a fixed 20 ms.
- *   - RELOADS: (a page pushed to `?room=a`, then) a refresh followed by a write to `?room=b`, in the same tick
- *     or 20, 60 and 100 ms later; on a deep-linked entry after one earlier native write to `?photo=1`, a refresh
- *     then a write to `?photo=2`.
- *   - NEVER: the write BEFORE the refresh (the same tick or not); a write back to the address the page was
- *     rendered at (a viewer's close on a fresh deep link); a second refresh once the first has committed;
- *     `history.back()`; a `pushState` with no address (a phone popup's entry); `router.push` and `router.replace`
- *     (Next's own navigations, which also discard the pending refresh but load what they name); an entry Next
- *     pushed itself, before any native write; any write after the refresh's commit (400 ms later under
- *     `next dev`).
- * `refresh-then-write-policy.test.ts` pins that no product function refreshes and then applies a URL, and none
- * does (the audit read all 46 `router.refresh()` calls in 26 files: none is followed, in its own function, by a
- * call that applies a URL; the two files that hold both, `account-security-form.tsx` and `login-form.tsx`, use
- * Next's own `router.replace` and `router.push`). What no scan can see is TWO GESTURES inside one round trip:
- * the hub's Settings reel switch refreshes (`settings-state.tsx`), and a tap on the page's back arrow
- * (`replace`) before the refresh lands would reload the page; so would a guest's viewer step (`?photo=`, written
- * 300 ms after the arrow) landing inside the round trip of a poll's refresh. A handler that ever meets it
- * writes first and refreshes after, waits for the refresh's transition, or does neither.
+ * crumbs-19 found it, crumbs-22 measured the rest and audited every caller, crumbs-24 measured it again in isolation).
+ * A write that applies a URL (`push(href)`, `replace`, an in-place `close`; natively, a `pushState` or
+ * `replaceState` given an address and a state without `__NA`) made while a `router.refresh()` is IN FLIGHT is a
+ * `restore` action, which Next's action queue lets jump the queue and discard what is pending (`dispatchAction`:
+ * "navigations (including back/forward) take priority over any pending actions"), and a refresh has already
+ * invalidated the caches a restore would read (`refreshReducer`). So the page RELOADS onto the same URL, or the
+ * refresh's data is dropped, silently, depending on how far the refresh has got, whenever the router's last
+ * RENDERED address differs from the one the write applies, which any earlier native write that moved the query
+ * leaves true: `push(href)` always does, and so does a deep-linked entry after its first `replace`.
+ *   - RELOADS: (a page pushed to `?room=a`, then) a refresh followed by a write to `?room=b` in the refresh's first
+ *     tens of milliseconds, until its reducer has resolved (0 to 40 ms on crumbs-24's bare page, 0 to 100 ms on
+ *     `/pricing` for crumbs-22: it grows with the page); on a deep-linked entry after one earlier native write to
+ *     `?photo=1`, a refresh then a write to `?photo=2`.
+ *   - DROPS THE REFRESH (no reload, its data never lands): a write after that, up to about 120 ms on the bare page.
+ *   - NEVER: the write BEFORE the refresh (the same tick or not); a write once the refresh's reducer has resolved
+ *     (its data then lands after the write); a write back to the address the page was rendered at (a viewer's close
+ *     on a fresh deep link); a second refresh once the first has committed; `history.back()`; a `pushState` with no
+ *     address (a phone popup's entry); `router.push` and `router.replace` (Next's own navigations, which also discard
+ *     the pending refresh but load what they name); an entry Next pushed itself, before any native write.
+ *   - ★ A SERVER ACTION THAT REVALIDATES IS NOT A REFRESH: a write anywhere in its round trip discards it and Next
+ *     re-fetches once it answers (`needsRefresh`), so its data still lands and nothing reloads (8 delays of 8, 0 to
+ *     500 ms). That re-fetch is a refresh, though: a SECOND write inside it (within about 40 ms of the action's
+ *     answer) reloads the page, and one up to about 120 ms drops the data. It takes two writes around one save.
+ * `refresh-then-write-policy.test.ts` pins that no product function refreshes and then applies a URL, and that the
+ * hub's sheets hold no refresh at all: their saves re-render the hub in the action's own answer (the reel switch
+ * refreshed after its save until crumbs-24, and a tap on the page's back arrow or a row inside the round trip
+ * reloaded the page). What no scan can see is TWO GESTURES inside one round trip: a guest's viewer step (`?photo=`,
+ * written 300 ms after the arrow) landing inside the round trip of a poll's refresh, and a Settings save's second
+ * write above. A handler that ever meets one writes first and refreshes after, waits for the refresh's transition,
+ * or does neither.
  */
 
 /** How long a Back is taken to be in flight when no `popstate` arrives to say it landed. */

@@ -170,7 +170,9 @@ A host has no reel to create, only a state to read and a few defaults to set.
   ★ `resolveHoldSec(row.reel_hold_sec)` always: the generated type reads the column as `number`, and `Number(null)`
   would answer the 1 s step.
 - **`setReelDefaults`** ([`reel/defaults-action.ts`](../../src/lib/reel/defaults-action.ts)) is the one write, shared by
-  the view's Set for everyone and Settings: it re-verifies the owner and revalidates nothing, so the reel keeps playing.
+  the view's Set for everyone and Settings: it re-verifies the owner and revalidates nothing for a look or a hold, so
+  the reel keeps playing; the switch (Settings' alone) revalidates the hub, whose Reel card its answer carries, so
+  nothing refreshes the router after it ([host-app.md](host-app.md)).
   A pick that is the platform's own default (`DEFAULT_HOLD_SEC`, `DEFAULT_STYLE_ID`) is stored as NULL, each column on
   its own, so the event keeps following the default if it ever moves.
 - ★ **The platform lever, `ops_flags.live_reel_enabled`**: off means no tile, no view, no screen and no Make your own

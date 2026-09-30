@@ -99,6 +99,12 @@
  *      whose_ticket, which no client role runs; the silent claim takes only what it calls hers; the ask
  *      is one jsonb for a confirmed account, of tickets typed under another name with a live upload;
  *      her answer never takes another address and never names her profile.
+ *  25. The join waits for the door (crumbs-24, migration 20260930100000): both mints of an ask read the
+ *      door under its row's share lock first, the one lock every move of the door waits on, and no
+ *      other body mints a waiting ticket.
+ *  26. The claim says what it left for another address (crumbs-24, migration 20260930110000): the ask
+ *      read answers each held ticket typed under an address that is not hers, one entry a ticket with no
+ *      name (so a build before it reads past), and never the address.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -3611,8 +3617,10 @@ describe("shared phones: a claim by ticket takes only what can be hers (shared-c
   describe("claim_ticket_asks: the ask", () => {
     it("is one jsonb (never a set), authenticated-only, bounded like the claim", () => {
       const ask = code("claim_ticket_asks");
-      expect(ask).toContain(
-        "create function public.claim_ticket_asks(p_session_tokens text[]) returns jsonb language plpgsql stable security definer set search_path = ''",
+      // ★ RESHAPED ON PURPOSE (crumbs-24; scar kept: one jsonb, never a set, a DEFINER read with its path
+      // pinned): 20260930110000 replaces the body, so its opener says `or replace` where the first said none.
+      expect(ask).toMatch(
+        /^create (?:or replace )?function public\.claim_ticket_asks\(p_session_tokens text\[\]\) returns jsonb language plpgsql stable security definer set search_path = ''/,
       );
       expect(ask).toContain(
         "if cardinality(p_session_tokens) > 1000 then raise exception 'Too many tokens.' using errcode = 'program_limit_exceeded'; end if;",
@@ -3681,5 +3689,128 @@ describe("shared phones: a claim by ticket takes only what can be hers (shared-c
       // The name on an asked ticket is not hers: that is why she was asked.
       expect(body).not.toContain("public.profiles");
     });
+  });
+});
+
+describe("the join waits for the door (crumbs-24, 20260930100000)", () => {
+  // crumbs-21's find: create_guest read the door with no lock the host's move waits on, so an ask minted in
+  // the instant a door became a password stood at the password until the door moved again (and one minted
+  // as the door turned Public, or as the list became the door, was never let in). The file's foot holds the
+  // two-session proof, red on the bodies before it. Each pin reads CODE (comments stripped).
+  const FILE = "20260930100000_the_join_waits_for_the_door.sql";
+  const sql = collapse(
+    readFileSync(join(MIGRATIONS_DIR, FILE), "utf8").replace(/--[^\n]*/g, ""),
+  );
+  const code = (name: string) =>
+    collapse(latestDefinition(name).body.replace(/--[^\n]*/g, ""));
+  const READ =
+    "select * into v_event from public.events where qr_token = p_qr_token and deleted_at is null for share;";
+
+  /** Every function's winning body, comments stripped, read in one pass over the set. */
+  function latestBodies(): Map<string, string> {
+    const bodies = new Map<string, string>();
+    for (const file of readdirSync(MIGRATIONS_DIR)
+      .filter((f) => f.endsWith(".sql"))
+      .sort()) {
+      const text = readFileSync(join(MIGRATIONS_DIR, file), "utf8").replace(
+        /--[^\n]*/g,
+        "",
+      );
+      for (const m of text.matchAll(
+        /create (?:or replace )?function public\.([a-z_]+)\(/g,
+      )) {
+        const opener = text.slice(m.index).match(/as \$([a-z_]*)\$/);
+        if (!opener) continue;
+        const tag = `$${opener[1]}$`;
+        const start = m.index + opener.index! + opener[0].length;
+        bodies.set(m[1], text.slice(m.index, text.indexOf(`${tag};`, start)));
+      }
+    }
+    return bodies;
+  }
+
+  it("★ both mints of an ask read the door under its row's share lock, before anything else", () => {
+    for (const name of ["create_guest", "ask_to_join"]) {
+      const body = code(name);
+      expect(body, name).toContain(READ);
+      // Its first lock, taken holding nothing: nothing reads a table before it, so it adds no deadlock.
+      expect(body.indexOf(READ), name).toBeLessThan(
+        body.indexOf("public.event_block_holds_account"),
+      );
+      expect(body.indexOf(READ), name).toBeLessThan(
+        body.indexOf("from auth.users"),
+      );
+    }
+  });
+
+  it("★ no other body mints a waiting ticket: a new mint of an ask takes the lock too, or strands its ask", () => {
+    const minting = [...latestBodies()]
+      .filter(
+        ([, body]) =>
+          /insert into public\.guests\b/.test(body) && /'waiting'/.test(body),
+      )
+      .map(([name]) => name)
+      .sort();
+    expect(minting).toEqual(["ask_to_join", "create_guest"]);
+  });
+
+  it("the share lock conflicts with what every move of the door takes (and a share lock with no join)", () => {
+    // set_event_door locks the row before it writes; set_event_password's update of it takes the same lock.
+    expect(code("set_event_door")).toContain(
+      "where e.id = p_event_id and e.host_id = v_uid and e.deleted_at is null for no key update;",
+    );
+    expect(code("set_event_password")).toContain(
+      "update public.events set event_password_hash = extensions.crypt(p_password, extensions.gen_salt('bf')), visibility = 'password', gate = null",
+    );
+  });
+
+  it("keeps both the service role's alone, restated in the file", () => {
+    expect(sql).toContain(
+      "revoke execute on function public.create_guest(text, uuid, boolean, text, text) from public, anon, authenticated; grant execute on function public.create_guest(text, uuid, boolean, text, text) to service_role;",
+    );
+    expect(sql).toContain(
+      "revoke all on function public.ask_to_join(text, uuid) from public, anon, authenticated; grant execute on function public.ask_to_join(text, uuid) to service_role;",
+    );
+  });
+});
+
+describe("the claim says what it left for another address (crumbs-24, 20260930110000)", () => {
+  // shared-claims' second Question: a keep confirmed with another address than the one typed at the door
+  // leaves her photos waiting under the typed one, rightly unasked, and the phone never learned where they
+  // wait. The ask read now answers those tickets too, WHETHER and never WHAT.
+  const code = (name: string) =>
+    collapse(latestDefinition(name).body.replace(/--[^\n]*/g, ""));
+  const grants = (name: string) =>
+    collapse(latestDefinition(name).file.replace(/--[^\n]*/g, ""));
+
+  it("★ answers each held ticket typed under an address that is not hers, with a live upload, past the door and no block", () => {
+    const ask = code("claim_ticket_asks");
+    expect(ask).toContain(
+      "where g.session_token = any (p_session_tokens) and g.user_id is null and g.verified_at is null and g.pending_email is not null and g.admission = 'in' and not public.event_block_holds_row(g) and not public.event_block_holds_account(g.event_id, v_uid) and public.whose_ticket(g, v_uid) = 'theirs' and m.n > 0",
+    );
+    expect(ask).toContain("return v_asks || v_left;");
+  });
+
+  it("★ one entry a ticket, `kind` address, with no name (a build before it reads past), the caller's own token and nothing else", () => {
+    const ask = code("claim_ticket_asks");
+    expect(ask).toContain(
+      "jsonb_build_object('kind', 'address', 'uploads', t.uploads, 'tokens', array[t.token])",
+    );
+    const left = ask.slice(ask.indexOf("jsonb_build_object('kind', 'address'"));
+    expect(left.slice(0, left.indexOf("into v_left"))).not.toContain("'name'");
+    for (const secret of ["pending_email", "email", "event_id", "id"]) {
+      expect(left.slice(0, left.indexOf("into v_left"))).not.toContain(
+        `'${secret}'`,
+      );
+    }
+  });
+
+  it("still answers only a confirmed account, and stays authenticated-only", () => {
+    expect(code("claim_ticket_asks")).toContain(
+      "if v_confirmed is null then return '[]'::jsonb; end if;",
+    );
+    expect(grants("claim_ticket_asks")).toContain(
+      "revoke all on function public.claim_ticket_asks(text[]) from public, anon; grant execute on function public.claim_ticket_asks(text[]) to authenticated;",
+    );
   });
 });

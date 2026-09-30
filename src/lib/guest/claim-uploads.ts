@@ -33,6 +33,12 @@ import { createClient } from "@/lib/supabase/client";
 // yes claims exactly those tickets (`claimAskedUploads`). The count, the split and the toast below are
 // the silent claim's alone.
 //
+// ★ AND IT SAYS WHERE A TICKET TYPED UNDER ANOTHER ADDRESS WAITS (crumbs-24, migration 20260930110000).
+// Nothing on the phone ever takes or asks about such a ticket, so a guest who typed dana@work under her
+// name and confirmed as dana@gmail kept photos that stayed Unverified, and the confirmation told her a
+// name they did not carry. The same read now answers those tickets too (their live uploads, never the
+// address), and the album on screen asks `claimLeftForAnotherAddress` before it speaks its one beat.
+//
 // ★ THE CLAIM SAYS WHERE IT CARRIED UPLOADS. A person is a guest of an event only through an upload of
 // theirs, and the claim is what brings their events into the account (each becomes a Guest card on the
 // dashboard). The RPC's count is the claimed rows that carry a LIVE upload (migration 20260923120000),
@@ -52,6 +58,11 @@ export type ClaimResult = {
   here: number;
   /** Claimed rows carrying a live upload anywhere else. */
   elsewhere: number;
+  /**
+   * Her yes to the shared-phone ask (`claimAskedUploads`): she vouched for exactly these photos, so an
+   * album whose own uploads it moved plays its follow moment for it, as it does after a door opened there.
+   */
+  asked?: true;
 };
 
 // Whoever cares what a claim carried, whichever caller started it (a door's own onVerified, the album
@@ -73,23 +84,6 @@ export function onClaimed(listener: (result: ClaimResult) => void): () => void {
 // a different account on a shared device (still theft-proof via the IS NULL guard).
 let inFlight: Promise<ClaimResult | null> | null = null;
 let done = false;
-
-/**
- * ★ THE TWO CALLS SHARED-CLAIMS ADDED ARE REACHED BY NAME until `types.ts` regenerates after its
- * migration applies (20260929234000); the Orchestrator's regeneration lets them move onto the typed
- * client. Both take the claim's own argument, and PostgREST resolves a call by its argument NAMES, so
- * the names are pinned where they are made (claim-uploads.test.tsx). A function not yet applied
- * answers PGRST202, which reads here as nothing to ask and nothing claimed.
- */
-type ByName = {
-  rpc: (
-    fn: "claim_ticket_asks" | "claim_asked_uploads",
-    args: { p_session_tokens: string[] },
-  ) => PromiseLike<{ data: unknown; error: unknown }>;
-};
-function byName(client: ReturnType<typeof createClient>): ByName {
-  return client as unknown as ByName;
-}
 
 // Best-effort: never throws, never blocks the caller beyond its own await. Resolves to what the claim
 // carried, or null when nothing ran (signed out, nothing held, a transient failure). `opts.silent`
@@ -158,8 +152,9 @@ async function runClaim(silent: boolean): Promise<ClaimResult | null> {
     const result: ClaimResult = { album, here, elsewhere };
     if (!silent && here + elsewhere > 0) toast.success(CLAIMED_TOAST);
     for (const listener of listeners) listener(result);
-    // Then the ask, never awaited: a door awaiting the claim must not wait on a question as well.
-    void findAsks(supabase, session.user.id);
+    // Then the ask, never awaited: a door awaiting the claim must not wait on a question as well. The
+    // album's beat awaits it on its own (`claimLeftForAnotherAddress`), once its door has closed.
+    askRead = findAsks(supabase, session.user.id);
     return result;
   } catch {
     // best-effort — a claim must never surface an error to the visitor
@@ -168,75 +163,142 @@ async function runClaim(silent: boolean): Promise<ClaimResult | null> {
 }
 
 /**
- * WHAT THIS PHONE HOLDS THAT WAS TYPED UNDER ANOTHER NAME, queued for her answer. Every held ticket
- * but the albums this account already answered "Not mine" to goes to `claim_ticket_asks`, which
- * answers per typed name (the name, the live uploads, the tickets) and only what the silent claim
- * left for her word. Best-effort like the claim: a failure (or a function not yet applied) asks
- * nothing this load, and the next load asks again.
+ * What the last ask read found left for ANOTHER ADDRESS: the live uploads at each album whose ticket was
+ * typed under an address that is not the account's (one entry a ticket, `kind` address). Replaced by
+ * every read, emptied while one is on its way, and never the address itself.
+ */
+let leftForAddress: ReadonlyMap<string, number> = new Map();
+/** The read the last claim started; settled (never rejected) when it lands. */
+let askRead: Promise<void> = Promise.resolve();
+
+/**
+ * THE PHOTOS AT THIS ALBUM THAT WAIT FOR ANOTHER ADDRESS, as the ask read after the last claim found
+ * them (0 when none, or when the read failed: a line that cannot be said is simply not said). The album
+ * page's beat asks it before it speaks, so a confirmation whose claim left this album's photos for the
+ * address typed with them says where they wait, and never "You're on as ..." over photos that did not
+ * move (`confirm-beat.ts`).
+ */
+export async function claimLeftForAnotherAddress(
+  album: string,
+): Promise<number> {
+  await askRead;
+  return leftForAddress.get(album) ?? 0;
+}
+
+/**
+ * WHAT THIS PHONE HOLDS THAT THE CLAIM LEFT: the tickets typed under another name, queued for her answer,
+ * and the ones typed under another address, which only say where they wait. Every held ticket but the
+ * albums this account already answered "Not mine" to goes to `claim_ticket_asks`, which answers per typed
+ * name (the name, the live uploads, the tickets) and per ticket left for another address. Best-effort
+ * like the claim: a failure asks nothing and says nothing this load, and the next load reads again.
  */
 async function findAsks(
   supabase: ReturnType<typeof createClient>,
   account: string,
 ): Promise<void> {
+  leftForAddress = new Map();
   try {
     const held = collectStoredTickets().filter(
       (ticket) => !saidNotMine(account, ticket.album),
     );
     if (held.length === 0) return;
-    const { data, error } = await byName(supabase).rpc("claim_ticket_asks", {
+    const { data, error } = await supabase.rpc("claim_ticket_asks", {
       p_session_tokens: [...new Set(held.map((ticket) => ticket.token))],
     });
     if (error) return;
-    publishClaimAsks(readAsks(data, held, account));
+    const found = readAnswer(data, held, account);
+    leftForAddress = found.left;
+    publishClaimAsks(found.asks);
   } catch {
-    // best-effort: nothing is asked, and nothing moved
+    // best-effort: nothing is asked or said, and nothing moved
   }
 }
 
 /**
- * The server's answer, read defensively: an entry with no name, no upload or no ticket this phone
- * holds is nobody's question.
+ * The server's answer, read defensively: an entry with no upload or no ticket this phone holds is
+ * nobody's; one of a kind this build does not know is skipped; an ask needs its name.
  */
-function readAsks(
+function readAnswer(
   data: unknown,
   held: StoredTicket[],
   account: string,
-): ClaimAsk[] {
-  if (!Array.isArray(data)) return [];
+): { asks: ClaimAsk[]; left: Map<string, number> } {
   const asks: ClaimAsk[] = [];
+  const left = new Map<string, number>();
+  if (!Array.isArray(data)) return { asks, left };
   for (const entry of data) {
     if (!entry || typeof entry !== "object") continue;
-    const { name, uploads, tokens } = entry as Record<string, unknown>;
-    if (typeof name !== "string" || !name.trim()) continue;
+    const { kind, name, uploads, tokens } = entry as Record<string, unknown>;
     if (typeof uploads !== "number" || uploads < 1) continue;
     if (!Array.isArray(tokens)) continue;
     const tickets = tokens.flatMap((token) =>
       held.filter((ticket) => ticket.token === token),
     );
     if (tickets.length === 0) continue;
+    if (kind === "address") {
+      // One entry a ticket, so its uploads are its album's.
+      for (const ticket of tickets) {
+        left.set(ticket.album, (left.get(ticket.album) ?? 0) + uploads);
+      }
+      continue;
+    }
+    if (kind !== undefined) continue;
+    if (typeof name !== "string" || !name.trim()) continue;
     asks.push({ account, name: name.trim(), uploads, tickets });
   }
-  return asks;
+  return { asks, left };
 }
 
 /**
- * HER YES: claim exactly the tickets she was asked about, for the account that was asked. Resolves to
- * the claimed rows that carry a live upload (the claim's own count), or null when nothing ran: another
- * account is signed in on this phone now (it was never asked), or the call failed. The server still
- * never takes a ticket that names another address, whatever the answer.
+ * HER YES: claim exactly the tickets she was asked about, for the account that was asked, and say where
+ * it carried them, as the silent claim does: on an album, its own tickets first and the rest after, so a
+ * yes that moved this album's own uploads plays its follow moment (the result reaches every listener,
+ * `asked` set). Resolves to what moved, or null when nothing ran: another account is signed in on this
+ * phone now (it was never asked), or the first call failed. The server still never takes a ticket that
+ * names another address, whatever the answer.
  */
-export async function claimAskedUploads(ask: ClaimAsk): Promise<number | null> {
+export async function claimAskedUploads(
+  ask: ClaimAsk,
+): Promise<ClaimResult | null> {
   try {
     const supabase = createClient();
     const {
       data: { session },
     } = await supabase.auth.getSession();
     if (!session || session.user.id !== ask.account) return null;
-    const { data, error } = await byName(supabase).rpc("claim_asked_uploads", {
-      p_session_tokens: [...new Set(ask.tickets.map((ticket) => ticket.token))],
-    });
-    if (error) return null;
-    return typeof data === "number" ? data : 0;
+    const album = currentAlbum();
+    const tokensOf = (tickets: StoredTicket[]) => [
+      ...new Set(tickets.map((ticket) => ticket.token)),
+    ];
+    const hereTokens = tokensOf(
+      ask.tickets.filter((ticket) => album !== null && ticket.album === album),
+    );
+    const otherTokens = tokensOf(
+      ask.tickets.filter((ticket) => album === null || ticket.album !== album),
+    ).filter((token) => !hereTokens.includes(token));
+
+    let here = 0;
+    let elsewhere = 0;
+    let ran = false;
+    if (hereTokens.length > 0) {
+      const { data, error } = await supabase.rpc("claim_asked_uploads", {
+        p_session_tokens: hereTokens,
+      });
+      if (error) return null;
+      here = typeof data === "number" ? data : 0;
+      ran = true;
+    }
+    if (otherTokens.length > 0) {
+      const { data, error } = await supabase.rpc("claim_asked_uploads", {
+        p_session_tokens: otherTokens,
+      });
+      // This album's own landed; the rest is asked again on a later visit.
+      if (error && !ran) return null;
+      if (!error) elsewhere = typeof data === "number" ? data : 0;
+    }
+    const result: ClaimResult = { album, here, elsewhere, asked: true };
+    for (const listener of listeners) listener(result);
+    return result;
   } catch {
     return null;
   }

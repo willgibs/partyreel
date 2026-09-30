@@ -15,6 +15,8 @@
  */
 import { z } from "zod";
 
+import type { Door } from "@/lib/event/door/door";
+
 /** Who a host is blocking, as the surface that pressed Block knows them. */
 export type BlockTarget =
   /** A confirmed guest in the Guests room: their account, at this event. */
@@ -167,12 +169,47 @@ export type BlockedPerson = {
   restorable: number;
   /** When the first of those leaves Deleted for good, formatted by the server ("October 28"); null with none. */
   restorableUntil: string | null;
-  /**
-   * A newcomer declined at the door, whom Let back in returns there to be let in (build 23's NIT-3),
-   * rather than into the album: she was never in, and the invite list does not let her straight in.
-   */
-  atDoor: boolean;
+  /** Where Let back in leaves them (`blockedLanding`), which is what its words promise. */
+  lands: BlockedLanding;
 };
+
+/**
+ * WHERE LET BACK IN LEAVES SOMEONE (build 23's NIT-3; crumbs-24 made it read the door as it stands):
+ *   - `in`: they can open the album and add again: they were in (a gate never stops someone already
+ *     in), the album is Public, or the invite list, being the door, names them (let_back_in lets a
+ *     waiting one in, and a new join is minted in);
+ *   - `door`: back at a door the host answers: their ask still stands (the host lets them in from At
+ *     the door, as the decline's Undo does), or the door takes asks and they can ask again;
+ *   - `password`: they never got in, and the album takes a password now: they meet it like anyone new
+ *     (the password ended their ask, 20260929230000, and nobody waits there);
+ *   - `out`: they never got in, and the album takes nobody new (closed, or Only me).
+ */
+export type BlockedLanding = "in" | "door" | "password" | "out";
+
+/**
+ * The landing for one blocked person, from where they stood here before the block and the door as it
+ * stands. ★ A NEWCOMER IS SOMEONE WITH NO ROW PAST THE DOOR, never someone with a waiting row: a password
+ * deletes every waiting row (her ask ends with it), so reading the waiting row alone promised a
+ * declined newcomer the album she would meet the password at.
+ */
+export function blockedLanding(standing: {
+  /** A row of theirs here is past the door. */
+  wasIn: boolean;
+  /** A row of theirs here still waits on the host. */
+  waiting: boolean;
+  /** The invite list names the confirmed address the block keys on. */
+  listed: boolean;
+  /** The door as it stands. */
+  door: Door;
+}): BlockedLanding {
+  if (standing.wasIn) return "in";
+  if (standing.door === "open") return "in";
+  if (standing.door === "invite" && standing.listed) return "in";
+  if (standing.door === "password") return "password";
+  if (standing.waiting) return "door";
+  if (standing.door === "approve" || standing.door === "invite") return "door";
+  return "out";
+}
 
 /**
  * The line under a blocked person's name, in its two halves: who they were (the address the block keys
@@ -201,13 +238,24 @@ export function letBackInTitle(name: string | null | undefined): string {
 }
 
 /**
- * ★ IT PROMISES WHERE THEY LAND (build 23's NIT-3): someone who was in comes back in, and a newcomer
- * declined at the door goes back to it, where the host still lets her in, as the decline's Undo does.
+ * ★ IT PROMISES WHERE THEY LAND (build 23's NIT-3, crumbs-24): someone who was in comes back in; a
+ * newcomer declined at the door goes back to it, where the host still lets her in, as the decline's
+ * Undo does; at a password she meets it like anyone new; and where nobody new gets in, she stays out.
  */
-export function letBackInLede(eventName: string, atDoor = false): string {
-  return atDoor
-    ? "They'll be back at the door, and you can let them in from there."
-    : `They'll be able to open ${eventName} and add photos again.`;
+export function letBackInLede(
+  eventName: string,
+  lands: BlockedLanding = "in",
+): string {
+  switch (lands) {
+    case "in":
+      return `They'll be able to open ${eventName} and add photos again.`;
+    case "door":
+      return "They'll be back at the door, and you can let them in from there.";
+    case "password":
+      return "They'll need the password to get in, like anyone new.";
+    case "out":
+      return `${eventName} takes nobody new right now, so they'll stay out until you change who can get in.`;
+  }
 }
 
 /**
@@ -244,13 +292,27 @@ export function letBackInToast(
   name: string | null | undefined,
   restored: number,
   noRoom: number,
-  atDoor = false,
+  lands: BlockedLanding = "in",
 ): { title: string; description?: string } {
   const who = name?.trim();
-  if (atDoor) {
-    // A declined newcomer had nothing in the album, so there is nothing to say came back.
+  // A newcomer had nothing in the album, so there is nothing to say came back: only where she is.
+  if (lands === "door") {
     return {
       title: who ? `${who} is back at the door.` : "They're back at the door.",
+    };
+  }
+  if (lands === "password") {
+    return {
+      title: who
+        ? `${who} can come in with the password.`
+        : "They can come in with the password.",
+    };
+  }
+  if (lands === "out") {
+    return {
+      title: who
+        ? `${who} is no longer blocked.`
+        : "They're no longer blocked.",
     };
   }
   const lines: string[] = [];

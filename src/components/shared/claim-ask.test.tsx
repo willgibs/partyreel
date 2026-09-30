@@ -3,7 +3,8 @@
  * a name at odds with the account are claimed only on her word: one question a name, asked once no
  * other door or sheet is up, answered by "Not mine" (remembered, nothing moves) or "They're mine"
  * (exactly those tickets, said once, the page refreshed). A question closed unanswered is asked again
- * on a later visit, never guessed.
+ * on a later visit, never guessed. On the album whose own photos the yes carried, the follow moment
+ * says it instead of a toast (crumbs-24).
  */
 import {
   act,
@@ -20,6 +21,7 @@ import {
   saidNotMine,
   type ClaimAsk as Ask,
 } from "@/lib/guest/claim-ask";
+import { recordMomentPlayed } from "@/lib/guest/confirm-beat";
 
 const refresh = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh }) }));
@@ -107,7 +109,12 @@ describe("ClaimAsk", () => {
   });
 
   it("★ They're mine claims exactly those tickets, says it once and refreshes the page", async () => {
-    claimAskedUploads.mockResolvedValue(3);
+    claimAskedUploads.mockResolvedValue({
+      album: null,
+      here: 0,
+      elsewhere: 3,
+      asked: true,
+    });
     render(<ClaimAsk />);
     const asked = ask();
     act(() => publishClaimAsks([asked]));
@@ -120,6 +127,36 @@ describe("ClaimAsk", () => {
     );
     expect(saidNotMine("acct-sam", "album-1")).toBe(false);
     await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
+  });
+
+  it("★ on the album its own photos went to, the follow moment says it: no toast, the page still refreshed", async () => {
+    // crumbs-24: the album's listener hears the yes inside the claim and plays the moment
+    // (use-confirm-return.ts), whose card says what moved, other events included.
+    claimAskedUploads.mockImplementation(async () => {
+      recordMomentPlayed("album-1", true);
+      return { album: "album-1", here: 2, elsewhere: 1, asked: true };
+    });
+    render(<ClaimAsk />);
+    act(() => publishClaimAsks([ask()]));
+    await question();
+    fireEvent.click(screen.getByRole("button", { name: "They're mine" }));
+    await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
+    expect(toast.success).not.toHaveBeenCalled();
+  });
+
+  it("on an album whose own photos did not move, the other events keep the claim's own words", async () => {
+    claimAskedUploads.mockImplementation(async () => {
+      recordMomentPlayed("album-1", false);
+      return { album: "album-1", here: 0, elsewhere: 2, asked: true };
+    });
+    render(<ClaimAsk />);
+    act(() => publishClaimAsks([ask()]));
+    await question();
+    fireEvent.click(screen.getByRole("button", { name: "They're mine" }));
+    await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
+    expect(toast.success).toHaveBeenCalledWith(
+      "We added your uploads to your account.",
+    );
   });
 
   it("a yes that fails says so and remembers nothing, so a later visit asks again", async () => {
