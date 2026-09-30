@@ -369,10 +369,17 @@ Six `not-found.tsx` files share one presentational core, `shared/not-found-scree
   draws is refused. ★ One boundary, never one per group: measured, each boundary's chunk carried its own copy of
   `next/dynamic`'s runtime (1.3 KB gzipped on every page of its group, more than a small screen had cost). Read in
   brotli, which a host serves, the guest album's HTML falls by about 1 KB (its raw 17.8 KB is the flight payload a
-  phone decodes), so the win is parse and decode work more than wire. ★ A `notFound()` thrown inside a group's page is
+  phone decodes), so the win is parse and decode work more than wire. ★ A `notFound()` thrown while a page renders is
   served as Next's error shell (`<html id="__next_error__">`, an empty body) and drawn by the client once its script
-  has run, whatever the screen is; only an unmatched URL's 404 is server-rendered, its screen in the HTML. A group's
-  screen therefore costs one request after the boundary's own on a 404 (measured on Slow 4G at 4x CPU: no slower).
+  has run, whatever the screen is (about six seconds of white on Slow 4G at 4x CPU, never drawn without script), and
+  Next 16.2.6 gives a page no way to set its own status: a page arrives server-drawn with a 404 only when the status
+  is set before it renders, by routing or the proxy. So the three links a stranger holds never throw it
+  (stale-link): the proxy sends a guest link or a handle that names nothing on with a 404 (`lib/gone-link`: the
+  page's own RPC asked by nobody, one read on each document request, and any doubt leaves the status alone) and the
+  page draws its segment's not-found itself, which Next heads with the not-found's metadata; and every marketing
+  `[slug]` page declares `dynamicParams = false`, so an unknown slug is routing's 404 with the root's screen
+  (`marketing-dynamic-params-policy.test.ts`). What still throws (the host app's, the portal's, a cinema page's own)
+  paints its screen one request after the boundary's chunk.
   `global-not-found` is no substitute in Next 16.2.6: experimental, it serves only unmatched URLs (a thrown
   `notFound()` with no nearer boundary, the lab's or the print sheet's, would draw Next's bare default), needs its own
   copy of the document shell, and sits on every route's root layer, so its client JS still loads everywhere.
@@ -381,9 +388,10 @@ Six `not-found.tsx` files share one presentational core, `shared/not-found-scree
   renders the ROOT not-found inside a group layout that already drew a header and footer, and the chrome double-stacks.
   A `(marketing)`-level boundary would render skinless. ★ Never delete the `(cinema)` 404 for catching no `[slug]`: a
   static page can call `notFound()` too.
-- **By audience**: root (its own chrome), marketing (a bad slug, no chrome), guest (an event link that resolves to
-  nothing: reassurance, "What is Partyreel?" and the demo under the logo-only bar; an unknown `/u/` handle has its own
-  boundary that never says why), host (inside `AppShell`), admin (inside the MFA-gated `AdminShell`).
+- **By audience**: root (its own chrome, and a bad marketing slug's), marketing (a cinema page's own `notFound()`, no
+  chrome), guest (an event link that resolves to nothing: reassurance, "What is Partyreel?" and the demo under the
+  logo-only bar; an unknown `/u/` handle has its own screen that never says why), host (inside `AppShell`), admin
+  (inside the MFA-gated `AdminShell`).
 - **The root 404 stands on the image trail** (`shared/trail`), which walks its own figure until a cursor takes over.
   Nothing is laid over a photograph: the words punch a feathered window in the trail, so the muted description keeps its
   contrast; the trail needs layout, so without scripting a reader gets the words and links on clean paper. Its code

@@ -7,8 +7,11 @@ import { Button } from "@/components/ui/button";
 import { DEMO_EVENT_URL } from "@/lib/demo";
 
 /**
- * THE GUEST LINK'S 404 SCREEN, reached only through `app/not-found.lazy.tsx` (crumbs-25; `not-found.tsx` says why:
- * the group's 404 rides every album load unless its screen loads behind one client boundary).
+ * THE GUEST LINK'S 404 SCREEN, reached through `app/not-found.lazy.tsx` (crumbs-25; `not-found.tsx` says why: the
+ * group's 404 rides every album load unless its screen loads behind one client boundary), and drawn directly by the
+ * album page for a link that names nothing, on that one line (stale-link: the page draws its own 404 rather than
+ * throw for Next's white error shell). The album already reaches every client part of it through the shut door, so
+ * that import costs a found album nothing.
  *
  * Real guests hit this from a mistyped or stale QR, so the copy reassures (double-check the link, ask the host)
  * and softly introduces Partyreel (the growth loop).
@@ -18,9 +21,10 @@ import { DEMO_EVENT_URL } from "@/lib/demo";
  * Renders in (guest)/layout.tsx (narrow mobile column); GuestHeader needs a real qrToken/eventId, which a 404
  * has none of, so the session-less GuestBar stands in: its own module, so the guest CRASH wears the same row.
  *
- * No "use client" of its own: it is client code because the boundary's `import()` reaches it, and `GuestBar`
- * and the screen's parts stay Server Components on every page that mounts them directly. Imported from a Server
- * Component it would render into every album's payload again, which `not-found.test.ts` refuses.
+ * No "use client" of its own: it is client code where the boundary's `import()` reaches it, and a Server Component
+ * where the page draws it, as `GuestBar` and the screen's parts are on every page that mounts them directly.
+ * Imported from any other Server Component (a not-found, a layout) it would render into every album's payload
+ * again, which `not-found.test.ts` refuses.
  */
 export function GuestNotFoundScreen() {
   return (

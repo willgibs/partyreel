@@ -3,16 +3,30 @@
  * and (print) gates learn the page a signed-out visitor asked for from REQUEST_PATH_HEADER. It is
  * written on every request, so a client's own copy never survives to a gate, and left off rather
  * than copied when the path is longer than any page a sign-in may return to.
+ *
+ * AND IT SENDS A LINK THAT NAMES NOTHING ON AS A 404 (stale-link): the status `lib/gone-link` decides
+ * reaches the session refresh, which builds the response, and nothing else sets one.
  */
 import { NextRequest } from "next/server";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { REQUEST_PATH_HEADER, RETURN_PATH_MAX } from "@/lib/auth/return-path";
 
+const mocks = vi.hoisted(() => ({
+  status: undefined as 404 | undefined,
+  init: [] as ({ status?: number } | undefined)[],
+}));
+
 // The session refresh hands back the request it was given, so the test reads the headers the
-// gates would read.
+// gates would read, and records the status it was asked to send the request on with.
 vi.mock("@/lib/supabase/middleware", () => ({
-  updateSession: async (request: NextRequest) => request,
+  updateSession: async (request: NextRequest, init?: { status?: number }) => {
+    mocks.init.push(init);
+    return request;
+  },
+}));
+vi.mock("@/lib/gone-link", () => ({
+  goneLinkStatus: async () => mocks.status,
 }));
 vi.mock("@/lib/design-gate/server", () => ({ designGateOpen: () => true }));
 vi.mock("@/lib/auth/admin-host", () => ({ isAdminHost: () => false }));
@@ -28,6 +42,11 @@ async function forwarded(url: string, headers: Record<string, string> = {}) {
   const out = (await proxy(new NextRequest(url, { headers }))) as unknown;
   return (out as NextRequest).headers.get(REQUEST_PATH_HEADER);
 }
+
+beforeEach(() => {
+  mocks.status = undefined;
+  mocks.init.length = 0;
+});
 
 describe("the path the gates read", () => {
   it("is the request's own path, never its query", async () => {
@@ -56,5 +75,19 @@ describe("the path the gates read", () => {
         },
       ),
     ).toBeNull();
+  });
+});
+
+describe("a link that names nothing", () => {
+  it("is sent on with the 404 the gone-link check decides, through the session refresh", async () => {
+    mocks.status = 404;
+    await proxy(new NextRequest("https://partyreel.com/e/stale-token"));
+    expect(mocks.init).toEqual([{ status: 404 }]);
+  });
+
+  it("leaves every other request's status alone", async () => {
+    await proxy(new NextRequest("https://partyreel.com/e/live-token"));
+    await proxy(new NextRequest("https://partyreel.com/pricing"));
+    expect(mocks.init).toEqual([{ status: undefined }, { status: undefined }]);
   });
 });

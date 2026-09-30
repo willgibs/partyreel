@@ -19,6 +19,13 @@ import { Button } from "@/components/ui/button";
 import { EVENT_TYPE_SLUGS, getEventType } from "@/lib/constants/events";
 import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
 
+// ★ A SLUG THIS LIST DOES NOT NAME IS ROUTING'S 404, NEVER A RENDER (stale-link). Left dynamic, an unknown
+// slug rendered this page on demand and threw `notFound()`, which Next serves as its error shell: a white page
+// until the script has run, and for a reader with no script for good. With `dynamicParams` off Next answers it
+// before any render, as it answers a mistyped URL: the site's 404 drawn in the HTML (the root `not-found.tsx`).
+// Every real slug is in the list, since the content ships with the build.
+export const dynamicParams = false;
+
 export function generateStaticParams() {
   return EVENT_TYPE_SLUGS.map((slug) => ({ slug }));
 }

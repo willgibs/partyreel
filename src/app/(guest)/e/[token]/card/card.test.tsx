@@ -159,7 +159,11 @@ function guestEvent(over: Partial<GuestEvent> = {}): GuestEvent {
 
 /** A door the link opens: through, as a stranger. */
 function openDoor(event: GuestEvent): PageDoor {
-  return { decision: { kind: "through", admitted: false }, standing: {}, event };
+  return {
+    decision: { kind: "through", admitted: false },
+    standing: {},
+    event,
+  };
 }
 
 /** The shut door, over whatever the album's own read returned. */
@@ -281,9 +285,7 @@ describe("the page's metadata: which card each viewer's page names", () => {
     );
     const previousGuest = await metadataFor(QR);
     // A private album, to anyone.
-    pageDoor.mockResolvedValue(
-      shutDoor(guestEvent({ visibility: "private" })),
-    );
+    pageDoor.mockResolvedValue(shutDoor(guestEvent({ visibility: "private" })));
     const privateAlbum = await metadataFor(QR);
     expect(blockedTicket).toEqual(privateAlbum);
     expect(blockedAccount).toEqual(privateAlbum);
@@ -309,7 +311,9 @@ describe("the page's metadata: which card each viewer's page names", () => {
 
   it("a closed door keeps the address the visitor arrived on (a slug is never swapped for the token)", async () => {
     pageDoor.mockResolvedValue(
-      shutDoor(guestEvent({ visibility: "private", custom_slug: "mayas-30th" })),
+      shutDoor(
+        guestEvent({ visibility: "private", custom_slug: "mayas-30th" }),
+      ),
     );
     const meta = await metadataFor("mayas-30th");
     expect(imageUrls(meta)).toEqual([
@@ -319,13 +323,14 @@ describe("the page's metadata: which card each viewer's page names", () => {
     expect(JSON.stringify(meta)).not.toContain(QR);
   });
 
-  it("an unknown link names the private album's card", async () => {
+  it("an unknown link names no card of its own, titled as the 404 it is", async () => {
+    // Reshaped by stale-link. It read "Join event" over the private album's card, which only a hydrated page ever
+    // showed: the 404's own head, all an unfurler reads, already said "Event not found" over the site's card. The
+    // page now draws its not-found itself and heads it with the not-found's metadata, before and after hydration.
+    // What this keeps: an unknown link never names an event's card, since it has no event to name.
     pageDoor.mockResolvedValue(null);
     const meta = await metadataFor("nothing-here");
-    expect(meta.title).toBe("Join event");
-    expect(imageUrls(meta)).toEqual([
-      "/e/nothing-here/card?private",
-      "/e/nothing-here/card?private",
-    ]);
+    expect(meta.title).toBe("Event not found");
+    expect(imageUrls(meta)).toEqual([]);
   });
 });
