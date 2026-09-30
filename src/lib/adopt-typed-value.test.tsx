@@ -125,15 +125,21 @@ describe("a controlled field typed into before it hydrated", () => {
     );
   });
 
-  it("keeps a keystroke that follows: the next character lands on what was adopted", async () => {
+  it("★ keeps a keystroke that follows: the next character lands on what was adopted, and no later offer puts the old text back over it", async () => {
     const element = <Controlled />;
     const container = serve(element);
     typeIntoDom(container.querySelector("input")!, "Maya");
     await hydrate(container, element);
     const field = container.querySelector("input")!;
+    // A person types again straight away, before the offers a frame on have run.
     await act(async () => {
       typeIntoDom(field, "Maya!");
       field.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    expect(field.value).toBe("Maya!");
+    // Every later offer (the frame's) stands down: the field is the person's now.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 60));
     });
     expect(field.value).toBe("Maya!");
   });

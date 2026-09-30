@@ -96,35 +96,59 @@ export function adoptTypedValue(
  * announced this early reaches nobody and its next render writes `""` back. So it is offered again the
  * moment every effect of the commit has run (a microtask after the flush), and once more a frame on, each
  * time only if the state still does not hold it.
+ *
+ * ★ A PERSON'S OWN TYPING ENDS THE OFFERS. The offers replay what the field held at its mount, so one that
+ * landed after the person had typed a character on top of it would put the old text back over the new: any
+ * `input` event that is not this hook's own marks the field touched, and a touched field is never offered
+ * to again.
  */
 export function useAdoptTypedValue<T extends Field>(value: unknown) {
   const nodeRef = useRef<T | null>(null);
   const latestRef = useRef(value);
   const typedRef = useRef<string | null>(null);
+  const touchedRef = useRef(false);
+  const ownRef = useRef(false);
   useLayoutEffect(() => {
     latestRef.current = value;
   });
+  /** Offer the text to the state, marking the event this dispatches as the hook's own. */
+  const offerTo = useCallback((el: Field, text: string) => {
+    ownRef.current = true;
+    try {
+      return adoptTypedValue(el, latestRef.current, text);
+    } finally {
+      ownRef.current = false;
+    }
+  }, []);
   useLayoutEffect(() => {
     const el = nodeRef.current;
-    if (!el || !adoptable(el, latestRef.current)) return;
-    const known = String(latestRef.current);
-    if (el.value === "" || el.value === known) return;
-    typedRef.current = el.value;
-    adoptTypedValue(el, latestRef.current, el.value);
+    if (!el) return;
+    const onInput = () => {
+      if (!ownRef.current) touchedRef.current = true;
+    };
+    el.addEventListener("input", onInput);
+    if (adoptable(el, latestRef.current)) {
+      const known = String(latestRef.current);
+      if (el.value !== "" && el.value !== known) {
+        typedRef.current = el.value;
+        offerTo(el, el.value);
+      }
+    }
     // At mount only: a change after it is a render's own, and the DOM and the state already agree.
-  }, []);
+    return () => el.removeEventListener("input", onInput);
+  }, [offerTo]);
   useEffect(() => {
     const text = typedRef.current;
     if (text === null) return;
     const offer = () => {
       const el = nodeRef.current;
-      if (el && String(latestRef.current) !== text)
-        adoptTypedValue(el, latestRef.current, text);
+      if (el && !touchedRef.current && String(latestRef.current) !== text)
+        offerTo(el, text);
     };
     queueMicrotask(offer);
     const frame = requestAnimationFrame(offer);
     return () => cancelAnimationFrame(frame);
-  }, []);
+  }, [offerTo]);
   return useCallback((el: T | null) => {
     nodeRef.current = el;
   }, []);
