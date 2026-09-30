@@ -1,25 +1,21 @@
 import type { Metadata, Viewport } from "next";
 
-import { AdminNotFoundScreen } from "@/components/admin/admin-not-found-screen";
-import { MarketingFooter } from "@/components/marketing/chrome/marketing-footer";
-import { MarketingHeader } from "@/components/marketing/chrome/marketing-header";
-import { MarketingNotFound } from "@/components/marketing/marketing-not-found";
-import { TrailLazy } from "@/components/shared/trail/trail.lazy";
 import { surface } from "@/lib/surface";
 
-// Root catch-all 404 for UNMATCHED URLs (and any notFound() with no nearer boundary).
-// Unmatched URLs resolve in app/layout.tsx with NO route-group chrome, so this file brings
-// its own MarketingHeader + MarketingFooter to stay navigable. A notFound() thrown INSIDE a
-// route group is instead caught by that group's own not-found.tsx — (marketing) / (guest) /
-// (app) — so the group layout's header/footer is never doubled here (the (marketing) one
-// exists precisely to stop the root chrome from stacking on top of the marketing layout's,
-// which was live-caught). Next returns a 404 status and injects noindex.
-// NOTE (Track B): this renders OUTSIDE (marketing), so marketing.css never loads here —
-// the chrome's --mkt-header-h fallback covers it; the marketing-side 404s live in
-// (marketing)/(cinema|paper)/not-found.tsx. FORCED LIGHT via `surface-paper` (globals.css,
-// so it works without marketing.css): marketing surfaces have
-// authored themes, and this boundary is paper. No data-mkt: the [data-mkt] token rules
-// live in marketing.css, absent here — the attribute would be inert.
+import { AdminNotFoundScreenLazy, SiteNotFoundLazy } from "./not-found.lazy";
+
+// Root catch-all 404 for UNMATCHED URLs (and any notFound() with no nearer boundary: the lab's pages and the
+// print sheet have none). A notFound() thrown INSIDE a route group is caught by that group's own not-found.tsx
+// — (marketing)/(cinema), (guest)/e and /u, (app), admin — so this file's chrome never doubles a group
+// layout's. Next returns a 404 status and injects noindex.
+//
+// ★ THIS FILE DRAWS NOTHING ITSELF, AND MUST STAY THAT WAY (perf-404). Next renders a root not-found into
+// EVERY route's payload, whether or not the route 404s, so anything drawn here is paid for by every page:
+// the marketing chrome drawn inline cost `/login`, `/pricing`, `/about`, `/help`, the home and the guest
+// album about 110 KB of HTML and 43 to 56 KB of gzipped JS each. It keeps what only a Server Component can
+// hold (the metadata, the viewport, the surface) and renders one reference into `not-found.lazy.tsx`, the
+// one client boundary each surface's screen loads through (`not-found.test.ts` walks this file's eager
+// imports and refuses a component, a client island or a stylesheet among them).
 export const metadata: Metadata = {
   title: "Page not found",
   robots: { index: false, follow: false },
@@ -39,43 +35,11 @@ export const viewport: Viewport =
 // three footnote links all 404 again on that host. The fix is answering the
 // surface the proxy actually rewrote to, NOT a new route: `surface()` reads
 // NEXT_PUBLIC_SURFACE, which Next inlines at build, so each of the two Vercel
-// projects ships exactly one of these branches and the other is dead code in
-// its bundle. A new route would have to be added to the allow-list, which is
-// the one thing SURFACE_404_PATH exists to avoid (surface.test.ts pins that the
-// sentinel matches no route and that this file reads @/lib/surface).
+// projects renders exactly one of these branches and the other screen's chunk
+// is never fetched. A new route would have to be added to the allow-list, which
+// is the one thing SURFACE_404_PATH exists to avoid (surface.test.ts pins that
+// the sentinel matches no route and that this file reads @/lib/surface).
 export default function NotFound() {
-  if (surface() === "admin") return <AdminNotFoundScreen />;
-
-  return (
-    <div className="surface-paper flex min-h-0 flex-1 flex-col bg-background text-foreground">
-      <MarketingHeader />
-      {/* ★ THE TRAIL'S HOME (`home=notfound`). A page nobody
-          plans to see is the classic place for a rare delight, and
-          this is the marketing surface that stands on paper, so the photographs
-          run over light ground with dark hairlines. The Trail IS the main's
-          area: the words stand inside it and the photographs run behind them,
-          which is also what makes the whole screen the surface a reader draws
-          on. It yields inside the words' own box rather than wearing a scrim,
-          it walks its own figure until a hand arrives, and below
-          640 px it walks and never waits for a finger (`phone=walks`). The two
-          GROUP 404s stay as they ship: they are a notFound() inside a marketing
-          route, boxed at 60vh under their own chapter's skin, and the choice
-          was for the 404 a lost visitor actually lands on.
-          ★ IT LOADS LAZILY (`trail.lazy.tsx`), because a root 404's whole tree
-          rides every route's payload: nothing this file imports eagerly may
-          import a stylesheet or the trail's code, or every page preloads it
-          (`trail-lazy.test.ts`). */}
-      <main className="flex flex-1 flex-col">
-        <TrailLazy className="flex flex-1 flex-col items-center justify-center px-6 py-24 sm:py-32">
-          <MarketingNotFound strip={false} />
-        </TrailLazy>
-      </main>
-      {/* Renders outside (marketing), so marketing.css and [data-mkt] are both
-          absent: the demo pile stands at rest with no hover fan (its box and
-          rest pose ride the component), and the seam glow, which is
-          globals.css's, lights as it does on every page. The footer needs no
-          prop for either, because nothing in it is collapsed by default. */}
-      <MarketingFooter />
-    </div>
-  );
+  if (surface() === "admin") return <AdminNotFoundScreenLazy />;
+  return <SiteNotFoundLazy />;
 }

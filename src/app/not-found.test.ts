@@ -5,16 +5,18 @@ import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
 /**
- * THE ROOT 404 DRAGS NOTHING OF THE TRAIL'S ONTO EVERY PAGE (crumbs-22, from crumbs-10's red-team of the home).
+ * THE ROOT 404 COSTS NOTHING ON A PAGE THAT IS NOT ONE (perf-404; the walk is crumbs-22's, which kept the
+ * trail's sheet and code off every page, widened here to everything the 404 draws).
  *
- * Next puts a root `not-found.tsx`'s whole tree in every route's payload: its stylesheets are preloaded on
- * EVERY route (measured: `/`, `/pricing`, `/help`, `/login` and `/about` each carried
- * `<link rel="preload" as="style" href=".../trail.css">` in the head, and Chrome warned "preloaded using
- * link preload but not used" once per load, site-wide) and its client references' chunks are preloaded too.
- * The 404 is the one route that draws the image trail, and the trail imported its own sheet. So the 404 reaches
- * the trail only through `trail.lazy.tsx`, a client module whose `import()` is a real split (Next does not
- * split a dynamic import made from a Server Component), and nothing EAGER under `not-found.tsx` may import a
- * stylesheet or the trail's code.
+ * Next renders the root `not-found.tsx` into EVERY route's payload: it is the root layout's not-found
+ * fallback, built eagerly whether or not the route 404s. A Server Component under it serialises its whole
+ * output into every page's HTML, and a client module under it is a reference whose chunks every page fetches
+ * as the payload decodes (its stylesheets are preloaded too: crumbs-10 read "preloaded but not used" for
+ * `trail.css` site-wide). Measured on `next start` against a 404 that drew nothing, the marketing chrome drawn
+ * inline cost `/login`, `/pricing`, `/about`, `/help`, the home and the guest album about 110 KB of HTML and
+ * 43 to 56 KB of gzipped JS each. So `not-found.tsx` draws nothing itself: it renders one reference into
+ * `not-found.lazy.tsx`, a client module whose `import()`s are real splits (Next does not split a dynamic
+ * import made from a Server Component), and each surface's screen loads behind it, on a 404 and nowhere else.
  *
  * The walk follows every import the 404 can execute at once: static, side-effect (`import "./x.css"`) and
  * re-export imports, and an `import()` made from a SERVER module (not split, so as good as static). It stops at
@@ -23,7 +25,10 @@ import { describe, expect, it } from "vitest";
 
 const ROOT = process.cwd();
 const ENTRY = "src/app/not-found.tsx";
-const LAZY = "src/components/shared/trail/trail.lazy.tsx";
+const BOUNDARY = "src/app/not-found.lazy.tsx";
+const SITE = "src/app/not-found.site.tsx";
+const ADMIN = "src/components/admin/admin-not-found-screen.tsx";
+const LAYOUT = "src/app/layout.tsx";
 const TRAIL_FILES = [
   "src/components/shared/trail/trail.tsx",
   "src/components/shared/trail/trail-engine.ts",
@@ -169,21 +174,43 @@ function walk(entry: string, files: Files = DISK) {
 describe("the root 404's eager import graph", () => {
   const { visited, sheets, lazy } = walk(ENTRY);
 
-  it("reaches the chrome it draws and the wrapper it loads the trail through", () => {
-    // A walk that reaches nothing passes silently: pin that it found the 404's chrome and the wrapper.
-    expect(visited.size, "the walk found almost nothing").toBeGreaterThan(20);
-    expect(visited).toContain(
-      "src/components/marketing/chrome/marketing-header.tsx",
+  it("reaches the boundary, and the boundary is a client module so its import() is a real split", () => {
+    // A walk that found nothing would pass everything below: pin that it reached the boundary it must.
+    expect(visited).toContain(BOUNDARY);
+    expect(
+      isClientModule(DISK.read(BOUNDARY)),
+      "not-found.lazy.tsx must be a client module",
+    ).toBe(true);
+  });
+
+  it("draws nothing itself: no component module but the boundary is imported eagerly", () => {
+    // A .tsx under the 404 is a component: a Server Component renders its whole output into EVERY page's
+    // payload, and a client one rides it as a reference whose chunk every page fetches. Plain modules (the
+    // surface rule, the env) run on the server and cost a page nothing.
+    const components = [...visited].filter(
+      (f) => f.endsWith(".tsx") && f !== ENTRY && f !== BOUNDARY,
     );
-    expect(visited).toContain(LAZY);
+    expect(
+      components,
+      `The root not-found.tsx imports a component EAGERLY, so every route carries it (the 404's chrome ` +
+        `once cost every page about 110 KB of HTML and 43 to 56 KB of gzipped JS). Draw it inside the screen ` +
+        `not-found.lazy.tsx loads instead:\n${components.join("\n")}`,
+    ).toEqual([]);
+  });
+
+  it("carries no client island but the boundary, whose chunk would be fetched on every page", () => {
+    const clients = [...visited].filter(
+      (f) => f !== BOUNDARY && isClientModule(DISK.read(f)),
+    );
+    expect(clients).toEqual([]);
   });
 
   it("imports no stylesheet, which Next would preload on every route", () => {
     expect(
       sheets,
       `A stylesheet is imported EAGERLY under the root not-found.tsx, so Next preloads it on EVERY route ` +
-        `("preloaded but not used", site-wide). Load what needs it lazily (see trail.lazy.tsx), or put its rules ` +
-        `in src/app/globals.css:\n${sheets.join("\n")}`,
+        `("preloaded but not used", site-wide). Import it from the screen not-found.lazy.tsx loads, or put its ` +
+        `rules in src/app/globals.css:\n${sheets.join("\n")}`,
     ).toEqual([]);
   });
 
@@ -191,30 +218,55 @@ describe("the root 404's eager import graph", () => {
     for (const file of TRAIL_FILES) {
       expect(
         visited.has(file),
-        `${file} is imported eagerly under the root not-found.tsx: reach it through trail.lazy.tsx`,
+        `${file} is imported eagerly under the root not-found.tsx: reach it through not-found.lazy.tsx`,
       ).toBe(false);
     }
   });
 
-  it("reaches the trail through one lazy edge, made from a client module so the split is real", () => {
-    expect(
-      isClientModule(DISK.read(LAZY)),
-      "trail.lazy.tsx must be a client module",
-    ).toBe(true);
-    expect(lazy).toContainEqual({ from: LAZY, to: TRAIL, spec: "./trail" });
+  it("reaches each surface's screen through exactly one lazy edge of the boundary", () => {
+    expect(lazy).toEqual([
+      { from: BOUNDARY, to: SITE, spec: "./not-found.site" },
+      {
+        from: BOUNDARY,
+        to: ADMIN,
+        spec: "@/components/admin/admin-not-found-screen",
+      },
+    ]);
   });
 });
 
-describe("the trail is still styled where it is drawn", () => {
-  it("carries its own sheet, which the lazy chunk brings with it", () => {
-    const own = walk(TRAIL);
+describe("the screens behind the boundary still draw the whole 404", () => {
+  it("the site's reaches its chrome, its words and the trail, whose sheet the chunk brings with it", () => {
+    const site = walk(SITE);
+    for (const file of [
+      "src/components/marketing/chrome/marketing-header.tsx",
+      "src/components/marketing/chrome/marketing-footer.tsx",
+      "src/components/marketing/marketing-not-found.tsx",
+      TRAIL,
+    ]) {
+      expect(
+        site.visited,
+        `the site's 404 no longer reaches ${file}`,
+      ).toContain(file);
+    }
     expect(
-      own.sheets.some((s) => s.endsWith("./trail.css")),
+      site.sheets.some((s) => s.endsWith("./trail.css")),
       "trail.tsx no longer imports trail.css, and nothing else does: the 404's trail would be unstyled",
     ).toBe(true);
     expect(
       existsSync(join(ROOT, "src/components/shared/trail/trail.css")),
     ).toBe(true);
+  });
+
+  it("the root layout reaches neither screen, which would put the 404 back on every page", () => {
+    const { visited } = walk(LAYOUT);
+    expect(
+      visited.size,
+      "the layout's walk found almost nothing",
+    ).toBeGreaterThan(3);
+    for (const file of [SITE, ADMIN, BOUNDARY, TRAIL]) {
+      expect(visited.has(file), `app/layout.tsx reaches ${file}`).toBe(false);
+    }
   });
 });
 
