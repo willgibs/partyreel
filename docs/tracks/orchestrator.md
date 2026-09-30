@@ -41,7 +41,7 @@ a lane").
 | --- | --- | --- | --- | --- |
 | `schema-pass` | the data architecture trimmed | merged at `57b17ace`; part 1 applied on Will's go-ahead (2026-09-29, his answer "Yes, apply part 1"; recorded `20260929210010`, the payload the file's md5; advisors 18/4/33; anon REST 42501; types regenerated at `c7a50adc`); a signed-in host walk on partyreel.com rides build 25's red-team as a follow-up; part 2 (`20260929170000`) after milestone 31 ships | Opus, 3132 | `54f414f9` |
 | `crumbs-28` | nine ROADMAP items: a host's and the portal's cold 404, a guest album whose seed fails kept to the album, the review peek's focus, the moment card's Follow, the portal's Remove confirm, the bulk toasts' counts, formatBytes' rounding, a flaky test, one owner answer | running (agent `a756b782addee42d3`), cut at `5f1e3f5a`; merges after milestone 31 ships, no build while Will sits at the desk | Opus, 3131 | |
-| `desk-tune-2` | the desk made true before Will's sitting: the PREMISE audits' stale lines on disposable-mode, locked-door, event-ready and demo-framing | running, cut at `903476f4`; lab-only, merges and deploys before his sitting (after build 30's red-team) | Sonnet, 3132 | |
+| `desk-tune-2` | the desk made true before Will's sitting: the PREMISE audits' stale lines on disposable-mode, locked-door, event-ready and demo-framing | running (agent `aae55f1e1b64b4090`), cut at `903476f4`; lab-only, merges and deploys before his sitting (after build 30's red-team) | Sonnet, 3132 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
 no question open (Q1, the `names` hang; Q2, schema-pass part 1; Q3, the notes-into-laws audit; Q4, the door migration:
@@ -88,9 +88,11 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
    from `../partyreel-wt/_scratch/redteam-28/brief.md` after its `ledger.txt`'s last line. The milestone's full gate runs
    ahead of his yes (gate 100, `FULL=1`, on `79beeb39`). When the red-team passes, milestone 31 is proposed to Will (his
    yes); schema-pass's part 2 applies after it ships.
-   **The desk's PREMISE re-read** runs beside it (two read-only Opus agents, one on `disposable-mode`, one on
-   `locked-door`, `event-ready`, `demo-framing` and `about-press`: every production claim in their asks against build
-   30's code); a stale line is fixed before Will's sitting, which follows this round's report.
+   **The desk's PREMISE re-read is done** (two read-only audits of every production claim on the six boards against build
+   30's code): `privacy-hero` and `about-press` hold; the stale lines on `disposable-mode`, `locked-door`, `event-ready`
+   and `demo-framing` are `desk-tune-2`'s (its row), which merges and deploys as build 31 before Will's sitting, once
+   build 30's red-team is done. Gate 100 is green but for `lab:demo`'s `about-press.facts`, whose navigation stalled
+   twice on the dev server (ROADMAP's "Page.navigate did not answer" line); the keyed desk run against the alias decides it.
 3. **Seats as they free** (at most four lanes; `memory_pressure` before each; app work first, Will's note; `lab-focus`
    took the lab's phone fold with it). After his desk picks: the demo event (below); about-press's wiring (its three wiring calls,
    `git show 3ded6ba9^2:docs/tracks/about-press.md`: /press a temporary redirect, the llms summary kept, the kit's files
