@@ -400,6 +400,25 @@ describe("sortTickets: which of the tickets a request carries may speak for the 
     expect(captureError).toHaveBeenCalledTimes(1);
   });
 
+  it("★ a string that is not a token names no row and is never sent to a query (the body's ticket is client input)", async () => {
+    // `create_guest` mints 64 hex characters; a route passing the body's own string must not put anything
+    // else into a filter list, where a comma or a quote is syntax.
+    const JUNK = 'x","y';
+    rowsRead.mockResolvedValueOnce(owned({ [T2]: [OTHER, CONFIRMED_AT] }));
+    await expect(sortTickets(OWNER, [JUNK, T2])).resolves.toEqual({
+      hers: [JUNK],
+      others: [T2],
+    });
+    expect(inSpy).toHaveBeenCalledWith("session_token", [T2]);
+    // Nothing but junk: nothing to read at all.
+    inSpy.mockClear();
+    await expect(sortTickets(OWNER, [JUNK])).resolves.toEqual({
+      hers: [JUNK],
+      others: [],
+    });
+    expect(inSpy).not.toHaveBeenCalled();
+  });
+
   it("never hands back whose row a ticket was", async () => {
     rowsRead.mockResolvedValueOnce(owned({ [T2]: [OTHER, CONFIRMED_AT] }));
     expect(JSON.stringify(await sortTickets(OWNER, [T2]))).not.toContain(OTHER);

@@ -67,10 +67,10 @@ describe("only the newest of your own sweeps", () => {
 
 /**
  * THE GRAMMAR'S FIRST SENTENCE, WRITTEN ONCE (crumbs-27): what arrived is "an id in this render that was not in
- * the last". It was written twice, `newItemIds` in the host's grid and `newArrivalIds` in the guest's reconciler,
- * and the two drifted (the guest's answered nothing for an empty first snapshot; the host's did not). Both read
- * this now, and each keeps its own seed rule where it belongs: the host's is the state its first render seeds, the
- * guest's is said in `newArrivalIds` (its snapshot is empty by design at a teaser and a locked page).
+ * the last". Both albums read `newIds` (the host's grid over its own state, the guest's `newArrivalIds` over its
+ * snapshots), each keeping its own seed rule where it belongs: the host's is the state its first render seeds, the
+ * guest's is said in `newArrivalIds` (its snapshot is empty by design at a teaser and a locked page). Their own
+ * pins are `host-media-grid.test.tsx` and `reconcile-album-items.test.ts`; this is the diff alone.
  */
 describe("newIds: an id in this render that was not in the last", () => {
   it("is what is new, and nothing else", () => {

@@ -413,8 +413,13 @@ describe("a silent join that lands waiting is handed to the door", () => {
     expect(mockUploadFile).not.toHaveBeenCalled();
   });
 
-  it("★ the verified re-join after a mid-run flip that lands waiting holds the file too", async () => {
-    answer({ "/api/guests": [{ ok: true, body: WAITING }] });
+  it("★ the verified re-join after a mid-run flip that lands waiting holds the file too, and lets go of the spent ticket", async () => {
+    answer({
+      "/api/guests": [
+        { ok: true, body: WAITING },
+        { ok: true, body: LET_IN },
+      ],
+    });
     mockUploadFile.mockResolvedValue(landed("med-1"));
     mockUploadFile.mockResolvedValueOnce({
       ok: false,
@@ -429,6 +434,13 @@ describe("a silent join that lands waiting is handed to the door", () => {
     expect(mockUploadFile).toHaveBeenCalledTimes(1);
     expect(q.items()).toEqual([expect.objectContaining({ status: "queued" })]);
     expect(q.onVerificationRequired).not.toHaveBeenCalled();
+    // The ticket the flip spent is let go, or the file would go up on it once she is let in.
+    expect(q.onSession.mock.calls).toEqual([[null]]);
+
+    q.rerender({ sessionToken: null, isVerified: true, doorOpen: false });
+    q.rerender({ sessionToken: null, isVerified: true, doorOpen: true });
+    await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(1));
+    expect(sentOn(1)).toBe("in-token");
   });
 
   it("a join that lets her straight in is adopted as ever", async () => {

@@ -373,6 +373,12 @@ export function useUploadQueue({
   const takeJoin = useCallback(
     (guest: JoinedGuest): string | null => {
       if (guest.admission === "waiting") {
+        // Whatever ticket the queue still held is spent (a join is only asked for when it is), so it is
+        // let go of: the files must not go up on it when she is let in.
+        if (sessionRef.current !== null) {
+          sessionRef.current = null;
+          onSession(null);
+        }
         onDoorNeeded?.();
         return null;
       }
@@ -620,7 +626,8 @@ export function useUploadQueue({
      wait for (the queue adopted none), so the moment the page's door opens again is the one that resumes
      them, on a fresh chain of joins: she was let in, so this join asks nobody and mints her ticket. Only
      the flip counts (the door was shut, now it is not); a page that mounts with its door open, or
-     stays so, starts nothing. */
+     stays so, starts nothing. (The one case with no flip: the host answers before the refresh lands, so
+     the page never shows the held door. The files then wait for her next Add, which runs them first.) */
   const doorWasOpenRef = useRef(doorOpen);
   useEffect(() => {
     const wasOpen = doorWasOpenRef.current;

@@ -656,11 +656,11 @@ through flags in the sheet. No step counter to desync.
   photos went up under the typed name of whoever held it before her (crumbs-26). The client's side is "The upload act".
   ★ **THE READS FOLLOW THE WRITES** (`sortTickets`, the same file; crumbs-27): every read that carries a ticket beside
   a signed-in account keeps only the tickets that may speak for her (her own rows, or one the claim takes; signed out,
-  every ticket is the device's and nothing is read), or another guest's name-only ticket on a shared phone was read
-  as hers: the door's standing counted her let in, waiting or held through it, A photo first counted its contribution,
-  and her Yours (the export's own ids, her tracker's statuses, `/api/guests/mine`) listed its photographs. The album's
-  own filter never read it (`LiveGallery` asks `/api/guests/mine` only while signed out). A failed sort sets every
-  ticket aside and is captured, never thrown; a block on a ticket set aside still holds the phone.
+  every ticket is the device's and nothing is read), because another guest's name-only ticket on a shared phone would
+  otherwise stand for her: the door's standing would count her let in, waiting or held through it, A photo first its
+  contribution, and her Yours (the export's own ids, her tracker's statuses, `/api/guests/mine`) its photographs. The
+  album's own filter reads no ticket for her (`LiveGallery` asks `/api/guests/mine` only while signed out). A failed
+  sort sets every ticket aside and is captured, never thrown; a block on a ticket set aside still holds the phone.
 
 ## Joining + identity
 

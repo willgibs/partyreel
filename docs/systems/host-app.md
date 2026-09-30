@@ -315,10 +315,10 @@ visitor-facing "Private" never collides.
   cannot keep re-asking. Either way back returns her to the door, where she still needs Let in unless the invite list,
   being the door, names her, and Let back in's words say which (`BlockedPerson.lands`, from the door as it stands:
   someone with no row past the door is a newcomer whatever rows remain, so one whose ask a password ended hears she
-  meets it like anyone new, and where nobody new gets in, that she stays out; and someone who was in, while the album
-  is Only me, which shuts even the people already in, hears the block is lifted and the album stays closed to her
-  until the host opens it, not "open X and add photos again", which is true only then). The door is read once for
-  everyone in the Blocked list. A waiting newcomer counts on
+  meets it like anyone new, and where nobody new gets in, that she stays out; someone who was in, while the album is
+  Only me (which shuts even the people already in), hears the block is lifted and the album stays closed to her until
+  the host opens it). The door is read once for everyone in the Blocked list, since it decides every landing. A
+  waiting newcomer counts on
   the hub's Guests card, the pulse (its first step, opening `#at-the-door`) and the bell (a row per event), and sends
   no mail.
 - **Invited** (`editor=both`): one field takes a typed address or a pasted list (`readAddresses`: the readable saved at

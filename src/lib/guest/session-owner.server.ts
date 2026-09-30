@@ -48,9 +48,13 @@ import {
 } from "@/lib/guest/session-owner";
 import { mustQuery } from "@/lib/db/must-query";
 import { inChunks } from "@/lib/db/read-all";
+import { isSessionTokenShape } from "@/lib/guest/session-cookie";
 import { captureError } from "@/lib/observability/sentry";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+
+/** A row as the owner rule reads it: who holds it, and whether an address was proved on it. */
+type OwnerRow = { userId: string | null; verified: boolean };
 
 export type SessionOwnerCheck =
   | { ok: true }
@@ -108,7 +112,8 @@ export async function checkSessionOwner(
  * may not: a name-only row the claim leaves (another guest's, or one that waits for the address it was
  * typed with), another account's row, and a confirmed row whose account is gone. A ticket that names no
  * row says nothing either way and stays in `hers`, as `checkSessionOwner` passes it: the capability RPCs
- * own the dead-session answer.
+ * own the dead-session answer. That includes a string that is not a token at all (`create_guest` mints 64
+ * hex characters; a body's ticket is client input), which is never put into a query's filter list.
  *
  * The callers keep what `hers` says and drop the rest from what they read; the door alone keeps asking
  * whether a block holds an `others` ticket, since a typed name's block holds the phone that used it.
@@ -126,7 +131,7 @@ export async function sortTickets(
     return { hers: unique, others: [] };
   }
   try {
-    const owners = await readOwners(unique);
+    const owners = await readOwners(unique.filter(isSessionTokenShape));
     const mine = new Set<string>();
     const claimable: string[] = [];
     for (const ticket of unique) {
@@ -165,7 +170,10 @@ async function claimAsViewer(
 }
 
 /** The rows a set of tickets name, as the rule reads them (service-role; never returned), by ticket. */
-async function readOwners(sessionTokens: readonly string[]) {
+async function readOwners(
+  sessionTokens: readonly string[],
+): Promise<Map<string, OwnerRow>> {
+  if (sessionTokens.length === 0) return new Map();
   // row-cap: guests.session_token is unique, so a chunk of tickets reads at most one row a ticket
   const rows = await inChunks(
     "session owners",
@@ -180,7 +188,7 @@ async function readOwners(sessionTokens: readonly string[]) {
       )) ?? [],
   );
   return new Map(
-    rows.map((row) => [
+    rows.map((row): [string, OwnerRow] => [
       row.session_token,
       { userId: row.user_id, verified: Boolean(row.verified_at) },
     ]),
@@ -188,7 +196,7 @@ async function readOwners(sessionTokens: readonly string[]) {
 }
 
 /** The row a ticket names, as the rule reads it (service-role; never returned), or null for no row. */
-async function readOwner(sessionToken: string) {
+async function readOwner(sessionToken: string): Promise<OwnerRow | null> {
   const { data: row, error } = await createAdminClient()
     .from("guests")
     .select("user_id, verified_at")
