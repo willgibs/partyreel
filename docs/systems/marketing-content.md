@@ -356,15 +356,26 @@ Six `not-found.tsx` files share one presentational core, `shared/not-found-scree
 - **The root 404 renders its own header and footer** (`app/not-found.site.tsx`), because an unmatched URL falls
   through to `app/layout.tsx` with no group chrome; on the admin build `not-found.tsx` branches on
   `surface() === "admin"` to the portal's own screen.
-- ★ **The root `not-found.tsx` draws nothing itself**: Next renders a root not-found into EVERY route's payload, so
-  whatever it drew rode every page (the chrome inline cost `/login`, `/pricing`, `/about`, `/help`, the home and a
-  guest album 107 to 112 KB of HTML and 43 to 56 KB of gzipped JS each, on `next start`). It keeps the metadata, the
-  viewport and the surface branch; each surface's screen loads behind one client boundary (`not-found.lazy.tsx`,
-  `next/dynamic` in a client module, a real split), so any other page carries one reference and a 1.5 KB gzipped
-  chunk, and the 404's HTML still holds the whole screen and its sheet (`not-found.test.ts`). `global-not-found` is no
-  substitute in Next 16.2.6: experimental, it serves only unmatched URLs (a thrown `notFound()` with no nearer
-  boundary, the lab's or the print sheet's, would draw Next's bare default), needs its own copy of the document shell,
-  and sits on every route's root layer, so its client JS still loads everywhere.
+- ★ **No `not-found.tsx` draws anything itself**: Next renders a not-found into EVERY page under it (the root's into
+  every route's, a group's into each page of the group), so whatever it drew rode every page (the root's chrome inline
+  cost `/login`, `/pricing`, `/about`, `/help`, the home and a guest album 107 to 112 KB of HTML and 43 to 56 KB of
+  gzipped JS each, on `next start`; a group's screen cost the guest link's 404 every album load 17.8 KB of HTML, the
+  cinema group's every marketing page 4 KB, the guest profile's about 14.7 KB, the host app's about 3.5 KB and the
+  portal's about 2.2 KB). Each keeps its metadata (and the root its viewport and surface branch) and renders one
+  reference into the ONE client boundary (`app/not-found.lazy.tsx`, `next/dynamic` in a client module, a real split),
+  whose loaders name each screen (`app/not-found.site.tsx`, the admin host's, and a group's `not-found.screen.tsx`
+  beside its `not-found.tsx`), so any other page carries one reference and the boundary's chunk (1.7 KB gzipped, 0.25 KB of it the five
+  groups' loaders) that every page carried already; `not-found.test.ts` walks every not-found's eager imports and names each entry, so a new one that
+  draws is refused. ★ One boundary, never one per group: measured, each boundary's chunk carried its own copy of
+  `next/dynamic`'s runtime (1.3 KB gzipped on every page of its group, more than a small screen had cost). Read in
+  brotli, which a host serves, the guest album's HTML falls by about 1 KB (its raw 17.8 KB is the flight payload a
+  phone decodes), so the win is parse and decode work more than wire. ★ A `notFound()` thrown inside a group's page is
+  served as Next's error shell (`<html id="__next_error__">`, an empty body) and drawn by the client once its script
+  has run, whatever the screen is; only an unmatched URL's 404 is server-rendered, its screen in the HTML. A group's
+  screen therefore costs one request after the boundary's own on a 404 (measured on Slow 4G at 4x CPU: no slower).
+  `global-not-found` is no substitute in Next 16.2.6: experimental, it serves only unmatched URLs (a thrown
+  `notFound()` with no nearer boundary, the lab's or the print sheet's, would draw Next's bare default), needs its own
+  copy of the document shell, and sits on every route's root layer, so its client JS still loads everywhere.
 - ★ **The marketing group carries its own boundary**, rendering only the centred content (copy in
   `marketing-not-found.tsx`): the chrome lives in the `(cinema)` layout, so a `notFound()` with no nearer boundary
   renders the ROOT not-found inside a group layout that already drew a header and footer, and the chrome double-stacks.

@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join, posix } from "node:path";
 
 import ts from "typescript";
@@ -21,6 +21,16 @@ import { describe, expect, it } from "vitest";
  * The walk follows every import the 404 can execute at once: static, side-effect (`import "./x.css"`) and
  * re-export imports, and an `import()` made from a SERVER module (not split, so as good as static). It stops at
  * an `import()` made from a client module, which is the lazy edge. A type-only import is erased.
+ *
+ * ★ EVERY GROUP'S 404 IS THE SAME RULE (crumbs-25). A route group's or segment's own `not-found.tsx` is
+ * rendered into every page UNDER it by the same mechanism, so the screen it drew rode each of them: the guest
+ * link's about 17.5 KB of HTML on every album load (6 KB gzipped, most of it `GuestBar`'s wordmark path), the
+ * cinema group's about 5 KB on every marketing page, the guest profile's about 14.7 KB, the host app's about
+ * 3.5 KB on every dashboard page and the portal's about 2.2 KB. Each now keeps its metadata and renders one
+ * reference into the ONE boundary (`not-found.lazy.tsx`, the root's: a boundary per group was built first, and
+ * each carried its own copy of `next/dynamic`'s runtime, 1.3 KB gzipped on every page of the group, more than a
+ * small screen had cost), whose `import()` loads the `not-found.screen.tsx` beside the group's file. `GROUPS`
+ * names them, and a `not-found.tsx` that is not named there fails the sweep.
  */
 
 const ROOT = process.cwd();
@@ -223,15 +233,24 @@ describe("the root 404's eager import graph", () => {
     }
   });
 
-  it("reaches each surface's screen through exactly one lazy edge of the boundary", () => {
-    expect(lazy).toEqual([
-      { from: BOUNDARY, to: SITE, spec: "./not-found.site" },
-      {
-        from: BOUNDARY,
-        to: ADMIN,
-        spec: "@/components/admin/admin-not-found-screen",
-      },
-    ]);
+  it("reaches each surface's and each group's screen through exactly one lazy edge of the boundary", () => {
+    const edges = (list: typeof lazy) =>
+      list.map((e) => `${e.from} -> ${e.to} (${e.spec})`).sort();
+    expect(edges(lazy)).toEqual(
+      edges([
+        { from: BOUNDARY, to: SITE, spec: "./not-found.site" },
+        {
+          from: BOUNDARY,
+          to: ADMIN,
+          spec: "@/components/admin/admin-not-found-screen",
+        },
+        ...GROUPS.map((g) => ({
+          from: BOUNDARY,
+          to: g.screen,
+          spec: `./${g.screen.slice("src/app/".length).replace(/\.tsx$/, "")}`,
+        })),
+      ]),
+    );
   });
 });
 
@@ -267,6 +286,180 @@ describe("the screens behind the boundary still draw the whole 404", () => {
     for (const file of [SITE, ADMIN, BOUNDARY, TRAIL]) {
       expect(visited.has(file), `app/layout.tsx reaches ${file}`).toBe(false);
     }
+  });
+});
+
+/**
+ * Every route group's or segment's own 404: where it lives, and the parts of the 404 its screen must still
+ * reach (what it drew before it moved behind the boundary: the test that the move lost nothing).
+ */
+const GROUPS = [
+  {
+    name: "guest link",
+    dir: "src/app/(guest)/e/[token]",
+    draws: [
+      "src/components/guest/guest-bar.tsx",
+      "src/components/shared/not-found-screen.tsx",
+      "src/components/ui/button.tsx",
+    ],
+  },
+  {
+    name: "guest profile",
+    dir: "src/app/(guest)/u/[slug]",
+    draws: [
+      "src/components/guest/guest-bar.tsx",
+      "src/components/shared/not-found-screen.tsx",
+      "src/components/ui/button.tsx",
+    ],
+  },
+  {
+    name: "cinema group",
+    dir: "src/app/(marketing)/(cinema)",
+    draws: [
+      "src/components/marketing/marketing-not-found.tsx",
+      "src/components/shared/not-found-screen.tsx",
+    ],
+  },
+  {
+    name: "host app",
+    dir: "src/app/(app)",
+    draws: [
+      "src/components/shared/not-found-screen.tsx",
+      "src/components/ui/button.tsx",
+    ],
+  },
+  {
+    name: "operations portal",
+    dir: "src/app/admin",
+    draws: [
+      "src/components/shared/not-found-screen.tsx",
+      "src/components/ui/button.tsx",
+    ],
+  },
+].map((g) => ({
+  ...g,
+  entry: `${g.dir}/not-found.tsx`,
+  screen: `${g.dir}/not-found.screen.tsx`,
+}));
+
+/** Every source file that imports one of the not-found modules, by the module it imports. */
+function importersOfNotFoundModules(): Map<string, string[]> {
+  const found = new Map<string, string[]>();
+  const files = (
+    readdirSync(join(ROOT, "src"), { recursive: true }) as string[]
+  )
+    .map((f) => `src/${String(f).replace(/\\/g, "/")}`)
+    .filter((f) => /\.tsx?$/.test(f) && !/\.test\.tsx?$/.test(f));
+  for (const file of files) {
+    const text = DISK.read(file);
+    if (!/not-found\.(lazy|screen|site)/.test(text)) continue;
+    for (const { spec } of importsIn(text, file)) {
+      const target = resolve(file, spec, DISK);
+      if (!target || !/not-found\.(lazy|screen|site)\.tsx$/.test(target))
+        continue;
+      found.set(target, [...(found.get(target) ?? []), file].sort());
+    }
+  }
+  return found;
+}
+
+describe.each(GROUPS)("the $name 404's eager import graph", (group) => {
+  const { visited, sheets, lazy } = walk(group.entry);
+
+  it("reaches the one boundary, which is a client module so its import() is a real split", () => {
+    // A walk that found nothing would pass everything below: pin that it reached the boundary it must.
+    expect(visited).toContain(BOUNDARY);
+  });
+
+  it("draws nothing itself: no component module but the boundary is imported eagerly", () => {
+    // A Server Component under a not-found renders its whole output into EVERY page under it (an album, a
+    // dashboard page, a marketing page), and a client one rides it as a reference whose chunk each fetches.
+    const components = [...visited].filter(
+      (f) => f.endsWith(".tsx") && f !== group.entry && f !== BOUNDARY,
+    );
+    expect(
+      components,
+      `${group.entry} imports a component EAGERLY, so every page under it carries it. Draw it inside the ` +
+        `screen ${BOUNDARY} loads instead:\n${components.join("\n")}`,
+    ).toEqual([]);
+  });
+
+  it("carries no client island but the boundary, whose chunk every page fetches already", () => {
+    const clients = [...visited].filter(
+      (f) => f !== BOUNDARY && isClientModule(DISK.read(f)),
+    );
+    expect(clients).toEqual([]);
+  });
+
+  it("imports no stylesheet, which Next would preload on every page under it", () => {
+    expect(
+      sheets,
+      `a stylesheet is imported eagerly under ${group.entry}`,
+    ).toEqual([]);
+  });
+
+  it("has its screen behind exactly one lazy edge of the boundary", () => {
+    const own = lazy.filter((edge) => edge.to === group.screen);
+    expect(own).toEqual([
+      {
+        from: BOUNDARY,
+        to: group.screen,
+        spec: `./${group.screen.slice("src/app/".length).replace(/\.tsx$/, "")}`,
+      },
+    ]);
+  });
+
+  it("the screen still draws what the 404 drew", () => {
+    const screen = walk(group.screen);
+    for (const file of group.draws) {
+      expect(
+        screen.visited,
+        `${group.screen} no longer reaches ${file}`,
+      ).toContain(file);
+    }
+  });
+
+  it("nothing but the boundary loads the screen, which would put the 404 back on every page", () => {
+    // The design lab draws a screen as it ships (a board's "today"): its pages are routes of their own, so a
+    // screen imported there rides no production page.
+    const importers = (
+      importersOfNotFoundModules().get(group.screen) ?? []
+    ).filter((file) => !file.startsWith("src/app/(dev)/"));
+    expect(importers).toEqual([BOUNDARY]);
+  });
+});
+
+describe("the one boundary is loaded by the 404s and nothing else", () => {
+  it("is imported by the root's not-found.tsx and each group's, and by no page or layout", () => {
+    expect(importersOfNotFoundModules().get(BOUNDARY)).toEqual(
+      [ENTRY, ...GROUPS.map((g) => g.entry)].sort(),
+    );
+  });
+});
+
+describe("every not-found.tsx under app/ draws nothing itself", () => {
+  const entries = (
+    readdirSync(join(ROOT, "src/app"), { recursive: true }) as string[]
+  )
+    .map((f) => `src/app/${String(f).replace(/\\/g, "/")}`)
+    .filter(
+      (f) => f === "src/app/not-found.tsx" || f.endsWith("/not-found.tsx"),
+    )
+    .sort();
+
+  it("finds the root's and each group's", () => {
+    expect(entries).toContain(ENTRY);
+    for (const group of GROUPS) expect(entries).toContain(group.entry);
+  });
+
+  it("names every one in this file, so a new 404 gets the boundary before it costs a page anything", () => {
+    const known = new Set([ENTRY, ...GROUPS.map((g) => g.entry)]);
+    const unnamed = entries.filter((f) => !known.has(f));
+    expect(
+      unnamed,
+      `a not-found.tsx this test does not name: it is rendered into EVERY page under it. Give it the root's ` +
+        `shape (a not-found.screen.tsx beside it, loaded from app/not-found.lazy.tsx) and add it to GROUPS:\n${unnamed.join("\n")}`,
+    ).toEqual([]);
   });
 });
 

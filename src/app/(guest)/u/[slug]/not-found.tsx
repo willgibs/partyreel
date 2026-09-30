@@ -1,50 +1,21 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { UserRoundSearch } from "lucide-react";
 
-import { GuestBar } from "@/components/guest/guest-bar";
-import { HelpLine, NotFoundScreen } from "@/components/shared/not-found-screen";
-import { Button } from "@/components/ui/button";
+import { ProfileNotFoundLazy } from "@/app/not-found.lazy";
 
-/**
- * Tailored 404 for a handle that resolves to nothing (notFound() in
- * u/[slug]/page). Without it the profile 404 would fall through to the ROOT
- * not-found, which wears marketing chrome: a guest who tapped a name on an
- * album would land in a different half of the site. Every failure screen
- * renders inside its real surface's shell, guest included.
- *
- * ★ IT SAYS NOTHING ABOUT WHY, and that is the privacy rule rather than vague
- * copy: the page never distinguishes "no such person" from "they released their
- * handle" from "no handle claimed", because the RPC does not either. A 404 that
- * explained itself would be a handle-existence oracle.
- *
- * GuestBar rather than GuestHeader: the bar is session-less, and a dead handle
- * is exactly the render where asking the network for an account menu is the
- * wrong move (the same reason the bad-link 404 wears it).
- */
+// Tailored 404 for a handle that resolves to nothing (notFound() in u/[slug]/page). ★ It says nothing about
+// why, the handle-existence rule its screen keeps (`not-found.screen.tsx`).
+//
+// ★ THIS FILE DRAWS NOTHING ITSELF, AND MUST STAY THAT WAY (crumbs-25, after `perf-404` did it for the root).
+// Next renders a segment's not-found into EVERY page under it, whether or not the page 404s, so a screen
+// drawn here is paid for by every profile (about 14.7 KB of HTML, the guest link's own cost: `GuestBar`'s
+// wordmark path). The screen is reached through `app/not-found.lazy.tsx`, the one client boundary every 404 shares;
+// `not-found.test.ts` walks this file's eager imports and refuses a component, a client island or a
+// stylesheet among them. What only a Server Component can hold stays here: the metadata.
 export const metadata: Metadata = {
   title: "Profile not found",
   robots: { index: false, follow: false },
 };
 
 export default function ProfileNotFound() {
-  return (
-    <>
-      <GuestBar />
-      <main className="flex flex-1 flex-col items-center justify-center px-5 py-20">
-        <NotFoundScreen
-          icon={UserRoundSearch}
-          eyebrow="Profile"
-          title="There's nobody at this address"
-          description="This handle isn't in use. Check the spelling, or ask for the link again: a profile only exists while somebody holds its handle."
-          actions={
-            <Button asChild size="cta">
-              <Link href="/">What is Partyreel?</Link>
-            </Button>
-          }
-          help={<HelpLine href="/help">Visit the help center</HelpLine>}
-        />
-      </main>
-    </>
-  );
+  return <ProfileNotFoundLazy />;
 }

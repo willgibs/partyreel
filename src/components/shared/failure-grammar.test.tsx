@@ -64,7 +64,9 @@ const CRASH_FILES = [
 
 /**
  * Every file that draws a failure screen, and the way out to a person it must
- * pass. ★ The marketing 404 is the one exception, and it is named rather than
+ * pass. A group's 404 is drawn in its `not-found.screen.tsx` since crumbs-25
+ * (its `not-found.tsx` renders one client boundary and draws nothing, so the
+ * screen does not ride every page of its group). ★ The marketing 404 is the one exception, and it is named rather than
  * omitted: `Visit the help center` is a full ACTION on that screen and
  * `contact us` sits in its footnote, so a `help` line would name /help twice,
  * three lines apart, on the one screen `ways-out=guided` was generalizing FROM.
@@ -72,9 +74,10 @@ const CRASH_FILES = [
  * this row moves up into the list above it.
  */
 const FAILURE_FILES = [
-  "src/app/(app)/not-found.tsx",
-  "src/app/admin/not-found.tsx",
-  "src/app/(guest)/e/[token]/not-found.tsx",
+  "src/app/(app)/not-found.screen.tsx",
+  "src/app/admin/not-found.screen.tsx",
+  "src/app/(guest)/e/[token]/not-found.screen.tsx",
+  "src/app/(guest)/u/[slug]/not-found.screen.tsx",
   "src/components/shared/route-error.tsx",
   "src/components/marketing/marketing-route-error.tsx",
 ];
@@ -218,7 +221,7 @@ describe("every failure page offers a way to a person", () => {
 
   it("finds the failure files at all", () => {
     // The round-0 rule: a scan that reads nothing is a broken scan.
-    expect(FAILURE_FILES.length + Object.keys(NO_HELP_LINE).length).toBe(8);
+    expect(FAILURE_FILES.length + Object.keys(NO_HELP_LINE).length).toBe(9);
   });
 });
 
@@ -240,7 +243,8 @@ describe("the two session-less chromes stay session-less", () => {
     // network for the data whose absence may be what crashed the page.
     for (const rel of [
       "src/app/(guest)/error.tsx",
-      "src/app/(guest)/e/[token]/not-found.tsx",
+      "src/app/(guest)/e/[token]/not-found.screen.tsx",
+      "src/app/(guest)/u/[slug]/not-found.screen.tsx",
     ]) {
       const src = code(rel);
       expect(src, rel).toContain("GuestBar");

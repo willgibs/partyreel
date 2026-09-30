@@ -7,7 +7,7 @@ import {
   ARRIVAL_DECODE_WAIT_MS,
   ARRIVAL_HOLD_MAX,
   useArrivalGate,
-} from "@/components/guest/use-arrival-gate";
+} from "@/components/shared/use-arrival-gate";
 import { ARRIVAL_GLOW_MS } from "@/lib/shared/arrival";
 import { setReducedMotion } from "../../../vitest.setup";
 

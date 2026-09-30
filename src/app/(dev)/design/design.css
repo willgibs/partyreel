@@ -601,25 +601,6 @@ html[data-lab-fit="true"] [data-lab-wide] [data-lab-bleed] [data-lab-bleed] {
   font-size: min(calc(12px / var(--lab-k, 1)), 40px);
   line-height: 1.35;
 }
-/* ★ UNDER REDUCED MOTION EVERY STYLE WRITE IS A TRANSITION, so the stage
-   takes its own writes out of it. globals.css's guard gives every element
-   `transition-duration: 0.01ms !important` (0 would starve radix's
-   transitionend), and `transition-property` is `all` by default, so a width
-   or a zoom written by script animates for a frame and a measurement read in
-   the same task gets the OLD value (bisected on the lab's pages in headless
-   Chrome 154, which `lab:demo` emulates reduced motion in: the stage measured
-   every trial width as the same height and fitted four phones stacked at
-   11%). Only what whole.ts writes and reads is exempt (the drawing's box and
-   the frames' names), inside the same layer as the guard so it can outrank
-   it; every other transition in a board's drawing keeps the guard. */
-@layer base {
-  @media (prefers-reduced-motion: reduce) {
-    :is([data-lab-stage], [data-lab-whole])
-      :is([data-lab-fit], [data-lab-frame-title]) {
-      transition: none !important;
-    }
-  }
-}
 /* Whole, a bleed inside the stage keeps its box: the stage scales what is
    inside it, and a row pulled a gutter past its edge would be cut there. */
 html

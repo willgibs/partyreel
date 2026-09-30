@@ -269,7 +269,11 @@ beneath, newest first.
   redundant with the socket: the doorbell fires only on the approved-visible set, and the host's version, which every
   status change moves, is how a held upload reaches the one person who can approve it (the Review card counts it).
   `HostMediaGrid` marks arrivals by diffing ids, never links (they roll every half hour), and a host album never
-  staggers.
+  staggers. ★ An arrival lands complete, or not until it can: it is decided in the render the id first shows in, and
+  the guest album's gate (`shared/use-arrival-gate.ts`, [guest-flow.md](guest-flow.md)) holds it out of the rows,
+  asks for its link itself (`HubRows.onNeedLinks`, since a delta brings none and only a window asks) and lets it in
+  once its photograph is decoded, with the glow lit then; the id list only grows, so a photograph put back from the
+  bin is not an arrival twice in one visit.
 - **The album** (`event-feed/event-gallery.tsx`) carries Add photos, Download all, Select and one View menu, which
   always renders so an empty album still reaches the bin. ★ The bin is the paged album's shape (`lib/event/bin.ts`):
   choosing Deleted reads its list (`/api/events/<id>/bin`: ids, shapes and countdowns, no links), again on every

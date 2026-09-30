@@ -46,6 +46,15 @@ const TEXT_LIKE = new Set([
 ]);
 
 /**
+ * Whether an `<input type>` is one a person types text into (no `type` is `text`). The one home of the list:
+ * the hook reads it, and so does `adopt-typed-value-policy.test.ts`, which refuses a bare controlled field
+ * of one of these kinds.
+ */
+export function isTextLikeInputType(type: string | undefined): boolean {
+  return TEXT_LIKE.has(type ?? "text");
+}
+
+/**
  * Whether a field is one whose typed text state may have missed: a controlled one (`controlled` is its
  * `value` prop; an uncontrolled field keeps its own text, which React never overwrites), that a person
  * can type into.
@@ -53,7 +62,7 @@ const TEXT_LIKE = new Set([
 function adoptable(node: Field, controlled: unknown): boolean {
   if (controlled === undefined || controlled === null) return false;
   if (node.disabled || node.readOnly) return false;
-  return !(node instanceof HTMLInputElement) || TEXT_LIKE.has(node.type);
+  return !(node instanceof HTMLInputElement) || isTextLikeInputType(node.type);
 }
 
 /**

@@ -1068,7 +1068,25 @@
    those events never fire (stuck-open overlays). iteration-count 1 stops
    infinite loops (shimmer, spinners) - a static loader icon still reads as
    loading. Component-level motion-reduce:/no-preference gates stay as the
-   first line; this is the safety net under everything else. */
+   first line; this is the safety net under everything else.
+
+   ★ IT CLAMPS WHAT DECLARES A TRANSITION AND CREATES NONE. `transition-property`
+   is `all` by default, so a bare `transition-duration: 0.01ms` on every element
+   made EVERY style write a transition, and a size read in the same task as its
+   write returned the old one (a transition's current value is its start until
+   the next frame): reading `offsetWidth` after `el.style.width = "300px"` gave
+   the old width under reduced motion and the new one otherwise. The lab's stage
+   fitted four phones stacked at 11% on it (measured in headless Chrome, which
+   `lab:demo` runs in reduced motion), and any production measurer that writes
+   then reads (the masonry's gap, a lightbox settle) was open to the same. So
+   the DEFAULT property is `none`, deliberately NOT !important and in the base
+   layer: a transition a component declares (any utility, any sheet, an inline
+   style) outranks it and keeps its property, clamped to 0.01ms by the duration
+   above, so its transitionend still fires; an element that declares none gets
+   none, as it does with motion allowed. A layout property that IS declared
+   (a `transition-all`, a height) is stale in the same task at 0.01ms as it is
+   at 150ms: a measurer of one reads through `getAnimations()` or waits, with
+   or without this guard (the guard's test holds the shape). */
 @layer base {
   @media (prefers-reduced-motion: reduce) {
     *,
@@ -1077,6 +1095,7 @@
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
+      transition-property: none;
       scroll-behavior: auto !important;
     }
   }

@@ -12,6 +12,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { setLabPref, useLabPrefs } from "@/components/lab/lab-prefs";
+import { useAdoptTypedValue } from "@/lib/adopt-typed-value";
 import { cn } from "@/lib/utils";
 
 import {
@@ -95,6 +96,8 @@ function Tree({
   const nav = useNav();
   const pathname = usePathname();
   const [query, setQuery] = useState("");
+  // Text typed before the page hydrated is kept (`adopt-typed-value.ts`).
+  const adoptRef = useAdoptTypedValue<HTMLInputElement>(query);
   const [manual, setManual] = useState<Record<string, boolean>>({});
 
   const areaId = areaOf(pathname);
@@ -126,6 +129,7 @@ function Tree({
         <div className="relative">
           <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
           <input
+            ref={adoptRef}
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
