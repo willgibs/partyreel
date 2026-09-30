@@ -1523,6 +1523,10 @@ export type Database = {
         Args: { p_event_id: string; p_tickets?: string[]; p_user_id?: string }
         Returns: Json
       }
+      event_door_waiting_listed: {
+        Args: { p_event_id: string }
+        Returns: number
+      }
       event_invite_list: { Args: { p_event_id: string }; Returns: Json }
       event_link_totals: { Args: { p_event_id: string }; Returns: Json }
       event_stills: {
