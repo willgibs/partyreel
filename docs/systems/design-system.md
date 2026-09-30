@@ -392,7 +392,8 @@ server answering the poll, the writes and the bin's routes as the real ones do.
   grid's one observer) and after a beat, so a cached photograph never flickers; the shimmer is linear, because a strong
   curve stutters at the loop point. ★ A photograph already complete when its image mounts shows at once, never fades
   (`data-instant`, read in the mount's own layout phase and switching the transition off in that commit), or a pushed
-  arrival's wipe would run over a fade. The first row loads eager and first, every photograph decodes async, and a
+  arrival's wipe would run over a fade, which is why the guest album decodes an arrival before it lets it in
+  ([guest-flow.md](guest-flow.md)). The first row loads eager and first, every photograph decodes async, and a
   mounted tile keeps its URL across a presign rollover (the same object path), taking the fresh one only on an error.
 - ★ **The album grid is one placeholder in a session replay** (`data-sentry-block`): the replay buffers every session,
   serialized every node the album mounted and measured every photograph (one forced layout each), the largest cost of
@@ -484,6 +485,13 @@ Transition is its one sanctioned hole ([host-app.md](host-app.md)).
   was stacked over one (a confirm over the viewer or Settings), else on the page; only a menu or a listbox, which close
   as the next popup opens, is never a return target. ★ Size a dialog with `size`, never a width
   class: the shape's scoped rule outranks a plain utility.
+  ★ **A layer a tap opened takes no tap until it has settled**: it fades in under the finger and is hit-testable from
+  its first frame, so a double tap's second tap landed on the row beneath (Settings' "This event", the Share door's
+  "Save link") and, at a desk, on the scrim, closing the panel it had just opened. `PopupContent` swallows a click inside
+  it, and refuses the scrim's outside press, while a CSS animation of its own is running (`arriving`, read off
+  `getAnimations`: its entrance, and its exit; a transition such as the keyboard's lift, a loop that never ends and an
+  engine with no `getAnimations` never count, and a reduced-motion clamp settles it in a frame). A harness that clicks a
+  sheet within 300ms of opening it is swallowed too: wait for it to settle.
 - ★ **Its phone half is keyboard-safe** (`src/lib/use-keyboard-inset.ts`): `visualViewport` sets `--kb-inset` and
   `--vv-h`, the sheet stands on the keyboard with its ceiling at the visible height, `data-keyboard` reads `open` (or
   `tight` under 200px, a landscape phone's thin band), and `floatingKeyboardFoot` with `data-sheet-primary` keeps the

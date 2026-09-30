@@ -21,7 +21,7 @@
  * <img> exists. The rest of the album, the scroll anchoring and the glide are the rows' own, untouched:
  * to them this is an ordinary local arrival that came a beat later.
  *
- * ★ IT NEVER WAITS FOR LONG, AND NEVER FOR ANYTHING THAT CANNOT COME. A photograph that fails to decode
+ * ★ IT NEVER WAITS FOR LONG, AND NEVER FOR MANY (`ARRIVAL_HOLD_MAX`), NOR FOR ANYTHING THAT CANNOT COME. A photograph that fails to decode
  * (a dead link, a file no engine draws) is let in at once, and one that takes longer than
  * `ARRIVAL_DECODE_WAIT_MS` (a slow link, a photograph with no preview, a hidden tab that decodes
  * nothing) is let in when the wait runs out: either mounts as any tile does, its shimmer then its fade,
@@ -53,6 +53,14 @@ import { ARRIVAL_GLOW_MS, useArrivalMarks } from "@/lib/shared/arrival";
  * did, fading in.
  */
 export const ARRIVAL_DECODE_WAIT_MS = 2000;
+
+/**
+ * The most arrivals held at once. A burst (a hidden tab waking to a hundred photographs, a host approving a
+ * batch) would otherwise send for every link and every photograph together, six connections deep, ahead of
+ * what the guest is looking at; past this many the rest are let straight in, as they were before the gate,
+ * and the rows push them together.
+ */
+export const ARRIVAL_HOLD_MAX = 12;
 
 /** How long a decoded photograph stays referenced after its arrival is let in, for its tile to find. */
 const KEEP_DECODED_MS = 5000;
@@ -116,7 +124,7 @@ export function advanceGate(
   for (const id of fresh) {
     known.add(id);
     if (!here.has(id)) continue;
-    if (calm) released.push(id);
+    if (calm || waiting.size >= ARRIVAL_HOLD_MAX) released.push(id);
     else waiting.add(id);
   }
   return { known, waiting, released };

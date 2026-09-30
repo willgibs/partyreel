@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { GridMedia } from "@/components/app/media-grid";
 import {
   ARRIVAL_DECODE_WAIT_MS,
+  ARRIVAL_HOLD_MAX,
   useArrivalGate,
 } from "@/components/guest/use-arrival-gate";
 import { ARRIVAL_GLOW_MS } from "@/lib/shared/arrival";
@@ -221,6 +222,30 @@ describe("an arrival is held out of the rows until its photograph is decoded", (
       <Harness items={[video("v", true, true), ...SEED]} arrivals={["v"]} />,
     );
     expect(decodes[0].src).toBe("https://r2.test/t/v");
+  });
+});
+
+describe("a burst is not held whole", () => {
+  it("★ holds at most ARRIVAL_HOLD_MAX at once and lets the rest straight in, glowing", async () => {
+    const view = render(<Harness items={SEED} arrivals={[]} />);
+    const burst = Array.from(
+      { length: ARRIVAL_HOLD_MAX + 3 },
+      (_, i) => `n${i}`,
+    );
+    view.rerender(
+      <Harness
+        items={[...burst.map((id) => photo(id)), ...SEED]}
+        arrivals={burst}
+      />,
+    );
+    // The first twelve wait for their photographs (twelve requests, not fifteen); the last three are in.
+    expect(decodes).toHaveLength(ARRIVAL_HOLD_MAX);
+    expect(shown()).toEqual([...burst.slice(ARRIVAL_HOLD_MAX), "a", "b"]);
+    await wait(0);
+    expect(glowing()).toEqual(burst.slice(ARRIVAL_HOLD_MAX));
+    // As they decode, the held ones follow.
+    await act(async () => decodes.forEach((d) => d.resolve()));
+    expect(shown()).toEqual([...burst, "a", "b"]);
   });
 });
 

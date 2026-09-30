@@ -311,6 +311,10 @@ visitor-facing "Private" never collides.
   let in. The list stays editable while it is not the door. ★ While it is the door, a waiting person it names is in
   (`event_door_admit_listed`, build 23's BUG-2): the listing, the door becoming the list and Let back in each let her
   in, on every device she asked from, counted once, so she leaves At the door and the ticket she asked with adds.
+  ★ The menu and the steps page say it BEFORE the list is chosen ("Lets in the 1 person waiting at the door who is on
+  your list.", `listedWouldComeInLine`), only where it would let someone in: the count is `DoorCounts.waitingListed`,
+  `event_door_counts`' `waiting_listed` from `event_door_waiting_listed`, the admit's read-only twin (0 until its migration
+  is applied). The six-door menu is `settings-rows.tsx`'s `doorConsequence`; `door-page.tsx` is the steps page.
   **Invite** is the room's main action while it is empty and a quiet one after: the event's code card, sending
   nothing.
 
