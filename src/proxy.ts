@@ -7,8 +7,7 @@
  * Two gates and a session refresh, in that order: which SURFACE this deployment
  * serves (the admin split), the design lab's key, then the Supabase session
  * cookie on every matched request, with the request's path handed to the
- * layouts' sign-in gates on the way, and a 404 status for a guest link or a
- * handle that names nothing (the page draws its own not-found).
+ * layouts' sign-in gates on the way.
  *
  * It is NOT an auth gate: route protection lives in the (app) layout via
  * getUser(), and each Server Function must re-verify authz itself. Treating the
@@ -21,7 +20,6 @@ import { type NextRequest, NextResponse } from "next/server";
 import { isAdminHost } from "@/lib/auth/admin-host";
 import { REQUEST_PATH_HEADER, RETURN_PATH_MAX } from "@/lib/auth/return-path";
 import { designGateOpen } from "@/lib/design-gate/server";
-import { goneLinkStatus } from "@/lib/gone-link";
 import { updateSession } from "@/lib/supabase/middleware";
 import { decideBySurface, SURFACE_404_PATH, surface } from "@/lib/surface";
 
@@ -108,13 +106,16 @@ export async function proxy(request: NextRequest) {
   } else {
     request.headers.delete(REQUEST_PATH_HEADER);
   }
-  // THE LINK THAT NAMES NOTHING (stale-link): a stale QR code, a mistyped
-  // album link or a handle nobody holds answers 404, with its screen drawn by
-  // the server. Next sets a page's status only before it renders, so it is set
-  // here, from the page's own read asked by nobody, and the page draws its
-  // segment's not-found itself (`lib/gone-link` owns why, and what it costs).
-  // Doubt is "not gone": the page then answers alone, still server-drawn.
-  return updateSession(request, { status: await goneLinkStatus(request) });
+  // ★ A PAGE GOES ON WITH NO STATUS OF THE PROXY'S (gone-link-soft). On
+  // Vercel a request sent on with one (`NextResponse.next({ status: 404 })`)
+  // is answered with the platform's own /404, the root's page from its cache,
+  // and the page never renders: a stale guest link showed the site's generic
+  // 404 in place of its own screen (build 30's red-team; `next start` honours
+  // the status on the page's render, which is how it passed locally). A link
+  // that names nothing is the page's to draw, at 200 and noindex
+  // (marketing-content.md, "The 404 pages"). The two rewrites above keep their
+  // 404: the page they render is the root's, the same page Vercel serves.
+  return updateSession(request);
 }
 
 export const config = {

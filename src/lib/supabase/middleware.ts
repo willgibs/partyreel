@@ -20,18 +20,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/lib/db/types";
 import { env } from "@/lib/env";
 
-/**
- * `status` sends the request on with that status (the proxy's 404 for a link that names nothing,
- * `lib/gone-link`): the page still renders, and only its status is set before it does. Every
- * response built here carries it, so rule 3 holds whichever one is returned.
- */
-export async function updateSession(
-  request: NextRequest,
-  { status }: { status?: number } = {},
-) {
-  const next = () =>
-    NextResponse.next(status ? { request, status } : { request });
-  let supabaseResponse = next();
+export async function updateSession(request: NextRequest) {
+  let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient<Database>(
     env.NEXT_PUBLIC_SUPABASE_URL,
@@ -45,7 +35,7 @@ export async function updateSession(
           for (const { name, value } of cookiesToSet) {
             request.cookies.set(name, value);
           }
-          supabaseResponse = next();
+          supabaseResponse = NextResponse.next({ request });
           for (const { name, value, options } of cookiesToSet) {
             supabaseResponse.cookies.set(name, value, options);
           }

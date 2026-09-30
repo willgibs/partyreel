@@ -70,7 +70,7 @@ describe("the route's 404 still decides before anything streams", () => {
     // 404 — a public page that soft-404s teaches search engines that every dead
     // handle is real. Reshaped by stale-link, which dropped the thrown
     // `notFound()` (served as a white error shell): the 404 status is the
-    // proxy's now (`lib/gone-link`), so the scar this keeps is the order, the
+    // proxy's no longer (a soft 404 since gone-link-soft), so the scar this keeps is the order, the
     // not-found drawn at the top where the RPC is, before the owner mode and the
     // card grid stream behind their OWN in-page boundaries.
     expect(existsSync(join(DIR, "loading.tsx"))).toBe(false);

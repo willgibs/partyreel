@@ -2,12 +2,13 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 /**
- * A HANDLE NOBODY HOLDS DRAWS ITS OWN 404 (stale-link). A `notFound()` thrown while this page rendered was served as
- * Next's error shell, an empty body until the script had run (almost six seconds of white on Slow 4G at 4x CPU,
- * measured on `next start`). So the page returns its segment's not-found itself, in the HTML, and the proxy sets the
- * 404 before it renders (`lib/gone-link`). Pinned: the page never throws for a missing handle and draws the profile's
- * own screen, which says nothing about why, and its metadata is the not-found's, so the tab reads "Profile not
- * found" after hydration too (it read "Profile").
+ * A HANDLE NOBODY HOLDS DRAWS ITS OWN NOT-FOUND (stale-link). A `notFound()` thrown while this page rendered was
+ * served as Next's error shell, an empty body until the script had run (almost six seconds of white on Slow 4G at 4x
+ * CPU, measured on `next start`). So the page returns its segment's not-found itself, in the HTML, at 200
+ * (gone-link-soft: the 404 the proxy set before the render was answered on Vercel with the site's /404, never this
+ * screen). Pinned: the page never throws for a missing handle and draws the profile's own screen, which says nothing
+ * about why, and its metadata is the not-found's: the tab reads "Profile not found" (it read "Profile"), and noindex,
+ * which at 200 is all that keeps a dead handle out of an index.
  *
  * Everything a real profile reads is stubbed: the missing handle returns before any of it is asked.
  */
@@ -59,7 +60,7 @@ describe("a handle nobody holds", () => {
     ).toBeInTheDocument();
   });
 
-  it("is titled as the 404 it is, with the not-found's own metadata", async () => {
+  it("is titled as the not-found it is, noindex, with the not-found's own metadata", async () => {
     const metadata = await generateMetadata({ params });
     expect(metadata).toBe(notFoundMetadata);
     expect(boundaryMetadata).toBe(notFoundMetadata);

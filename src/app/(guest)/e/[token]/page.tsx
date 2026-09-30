@@ -89,9 +89,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { token } = await params;
   const door = await pageDoor(token);
-  // ★ A LINK THAT NAMES NOTHING IS TITLED AS THE 404 IT IS, "Event not found", in the head and after hydration
-  // alike (build 28's red-team: this branch said "Join event", and the streamed title replaced the 404's once
-  // the page hydrated). The not-found's own metadata (`not-found.metadata.ts`), so the two never disagree.
+  // ★ A LINK THAT NAMES NOTHING IS TITLED AS THE NOT-FOUND IT IS, "Event not found" and noindex (build 28's
+  // red-team: this branch said "Join event"). The not-found's own metadata (`not-found.metadata.ts`), so the two
+  // never disagree. The page answers it at 200 (a soft 404, below), so this noindex is all that keeps a dead link
+  // out of an index.
   if (!door) return notFoundMetadata;
   if (door.decision.kind === "shut") {
     return {
@@ -271,14 +272,15 @@ export default async function GuestEventPage({
 
   // ★ THE DOOR DECIDES FIRST (the doors, event-settings r1; `closed-door.server.ts`): who this
   // request is at this album's door, from the account and this browser's ticket, and the event as
-  // the door lets them meet it. Missing or deleted is the not-found, a 404 (don't leak existence).
+  // the door lets them meet it. Missing or deleted is the not-found (don't leak existence).
   //
   // ★ AND THIS PAGE DRAWS IT ITSELF, NEVER THROUGH `notFound()` (stale-link). A `notFound()` thrown
   // while a page renders is served as Next's error shell: an empty body until the script has run,
   // so a stale QR code on a cold phone was a white page for six seconds (Slow 4G, 4x CPU), and for a
   // reader with no script for good. Drawn here it is in the HTML, the segment's own screen in the
-  // same layout; the 404 status is the proxy's, set before this renders (`lib/gone-link`: Next gives
-  // a page no way to set its own), and with it set Next heads the page with the not-found's metadata.
+  // same layout, at 200 and noindex: a soft 404 (gone-link-soft). Next gives a page no status of its
+  // own, and the 404 the proxy once set before this rendered was answered on Vercel with the site's
+  // /404, never this screen (marketing-content.md, "The 404 pages").
   // The screen itself, never the not-found's lazy boundary: this page reaches every client part of it
   // already (through the shut door), so a found album's HTML stays byte for byte, where importing the
   // boundary widened two references on every album load.

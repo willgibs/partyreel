@@ -2,13 +2,14 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 /**
- * A LINK THAT NAMES NOTHING DRAWS ITS OWN 404 (stale-link). A `notFound()` thrown while this page rendered was
+ * A LINK THAT NAMES NOTHING DRAWS ITS OWN NOT-FOUND (stale-link). A `notFound()` thrown while this page rendered was
  * served as Next's error shell, an empty body until the script had run: a stale QR code on a cold phone was a white
  * page for six seconds on Slow 4G at 4x CPU (measured on `next start`), and for a reader with no script for good. So
- * the page returns its segment's not-found itself, in the HTML, and the proxy sets the 404 before it renders
- * (`lib/gone-link`). Pinned: the page never throws for a missing link and draws the guest link's own screen, and its
- * metadata is the not-found's, so the tab reads "Event not found" in the head and after hydration alike (build 28's
- * red-team: it read "Join event" once the page hydrated).
+ * the page returns its segment's not-found itself, in the HTML, at 200 (gone-link-soft: the 404 the proxy set before
+ * the render was answered on Vercel with the site's /404, never this screen). Pinned: the page never throws for a
+ * missing link and draws the guest link's own screen, and its metadata is the not-found's: the tab reads "Event not
+ * found" (build 28's red-team: it read "Join event"), and noindex, which at 200 is all that keeps a dead link out of
+ * an index.
  *
  * Everything the album itself reads is stubbed: the missing link returns before any of it is asked.
  */
@@ -107,7 +108,7 @@ describe("a guest link that names nothing", () => {
     ).toHaveAttribute("href", "/");
   });
 
-  it("is titled as the 404 it is, with the not-found's own metadata", async () => {
+  it("is titled as the not-found it is, noindex, with the not-found's own metadata", async () => {
     const metadata = await generateMetadata({
       params,
       searchParams: Promise.resolve({}),
