@@ -75,11 +75,14 @@ from the same mismatch by re-rendering: a regression can pass every local check 
 - ★ **Text typed before hydration is adopted, never overwritten** (`lib/adopt-typed-value.ts`, in `Input`, `Textarea` and
   a bare controlled `<input>` through `useAdoptTypedValue`). A controlled field is drawn with its state's value and
   typeable from the first paint, and React is told nothing of what is typed until it owns the page: the first render
-  after hydration writes `""` back over it (a form library makes one at once), the same node still focused. At the
+  after hydration writes `""` back over it (a form library makes one at once), the same node still focused; a field
+  nothing re-renders keeps its words on screen while its state says `""` (a search over an unfiltered list). At the
   field's mount the DOM's text is handed to its own `onChange` (the value tracker learns the state's value, the text goes
   in through the prototype's setter, a bubbling `input` follows), at once for a `useState` and again after the commit's
   effects for react-hook-form, which subscribes a field to its values in an effect that runs after the field's own.
   Autofill and a browser's form restore arrive the same way. Walk it as above, typing before releasing the scripts.
+  `adopt-typed-value-policy.test.ts` refuses a raw controlled text `<input>` or `<textarea>` anywhere in `src/` whose
+  `ref` does not come from the hook (a honeypot, or a field only a press mounts, is counted in its `ALLOWED` with why).
 - ★ **A tap before hydration is lost unless its control asks to have it kept** (`lib/early-press.ts`,
   `auth/early-press-button.tsx`): React replays no press made before its own script runs (measured in a Suspense
   boundary and out of one), and a bare button has no native answer, so Continue with Google's first tap reached

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  useCallback,
   useEffect,
   useId,
   useLayoutEffect,
@@ -12,6 +13,7 @@ import {
 } from "react";
 import { ArrowLeft, ArrowRight, Check, Info } from "lucide-react";
 
+import { useAdoptTypedValue } from "@/lib/adopt-typed-value";
 import { withDesignKey } from "@/lib/design-gate/links";
 import { cn } from "@/lib/utils";
 
@@ -2204,6 +2206,16 @@ function Dock({
 }) {
   const live = pictured.find((o) => o.id === shown);
   const picked = live !== undefined && choice === live.id;
+  // ★ A NOTE TYPED BEFORE THE PAGE HYDRATED IS THE REVIEWER'S TO KEEP (`adopt-typed-value.ts`): the field
+  // is drawn from the first paint, and the desk's own ref (which focuses it) is set beside the hook's.
+  const adoptRef = useAdoptTypedValue<HTMLInputElement>(note);
+  const setNoteEl = useCallback(
+    (el: HTMLInputElement | null) => {
+      adoptRef(el);
+      noteRef.current = el;
+    },
+    [adoptRef, noteRef],
+  );
   return (
     <div data-lab-dock="" className="lab-dock">
       {step.kind === "ask" && (
@@ -2213,7 +2225,7 @@ function Dock({
            words beside it wrap under it where there is no room. */
         <div className="lab-dock-note">
           <input
-            ref={noteRef}
+            ref={setNoteEl}
             type="text"
             data-lab-note=""
             value={note}

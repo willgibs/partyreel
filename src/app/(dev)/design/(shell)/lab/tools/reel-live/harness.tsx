@@ -14,6 +14,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { useAdoptTypedValue } from "@/lib/adopt-typed-value";
 import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
 import { sharedBitmapCache } from "@/lib/reel/engine/asset-cache";
 import type { Orientation } from "@/lib/reel/engine/constants";
@@ -127,6 +128,8 @@ export function LiveReelHarness() {
   const [paused, setPaused] = useState(false);
   const [thumb, setThumb] = useState(false);
   const [eventId, setEventId] = useState("mia-and-theo");
+  // Text typed before the page hydrated is kept (`adopt-typed-value.ts`).
+  const seedRef = useAdoptTypedValue<HTMLInputElement>(eventId);
   const [reports, setReports] = useState<string[]>([]);
 
   const size = ALBUMS.find((a) => a.id === albumId)?.size ?? 18;
@@ -346,6 +349,7 @@ export function LiveReelHarness() {
 
         <Field label="Seed">
           <input
+            ref={seedRef}
             type="text"
             value={eventId}
             onChange={(e) => setEventId(e.target.value)}

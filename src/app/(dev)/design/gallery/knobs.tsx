@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { RotateCcw } from "lucide-react";
 
+import { useAdoptTypedValue } from "@/lib/adopt-typed-value";
 import { cn } from "@/lib/utils";
 
 import type { SpecimenSkin } from "./entry";
@@ -239,17 +240,7 @@ function KnobRow({
   }
 
   if (knob.kind === "text") {
-    return (
-      <label className="flex flex-col gap-1.5">
-        <Caption>{label}</Caption>
-        <input
-          type="text"
-          value={String(value)}
-          onChange={(e) => onChange(e.target.value)}
-          className="h-8 rounded-md border border-border bg-background px-2 text-[12px] outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
-        />
-      </label>
-    );
+    return <TextKnob label={label} value={String(value)} onChange={onChange} />;
   }
 
   return (
@@ -269,6 +260,31 @@ function KnobRow({
         value={Number(value)}
         onChange={(e) => onChange(Number(e.target.value))}
         className="w-full accent-current"
+      />
+    </label>
+  );
+}
+
+/** The text knob is a component of its own so its field can adopt what was typed before hydration. */
+function TextKnob({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const adoptRef = useAdoptTypedValue<HTMLInputElement>(value);
+  return (
+    <label className="flex flex-col gap-1.5">
+      <Caption>{label}</Caption>
+      <input
+        ref={adoptRef}
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="h-8 rounded-md border border-border bg-background px-2 text-[12px] outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
       />
     </label>
   );
