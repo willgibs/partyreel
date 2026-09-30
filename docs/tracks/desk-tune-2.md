@@ -1,6 +1,6 @@
 ---
 track: desk-tune-2
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "903476f4"            # the launch-prep SHA the branch was cut from
 board: locked-door
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -75,25 +75,44 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- none: every line had its answer in the production file its brief item names; the wording calls are under the Handoff's Calls.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- none
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
+- Work `0a59f7e7` on `lp/desk-tune-2`, pushed. launch-prep moved twice since the base (`d75a44b1`, `71788abf`), both record commits that touch only `docs/tracks/orchestrator.md`, so no sync commit (Agent boot); the head is this manifest's commit, in the chat line.
+- Gates, each on its own exit code, on the tree of `0a59f7e7` (no source edit between the runs and the commit); logs in `/Users/gibby/local/ai/partyreel-wt/_scratch/desk-tune-2/`: `pnpm typecheck` 0 (`gate-typecheck.log`); `pnpm lint` 0, no warnings (`gate-lint.log`); `pnpm test` 0, 656 files and 7,855 tests (`gate-test.log`); `zsh scripts/build-lock.sh pnpm build` 0 (`gate-build.log`); `pnpm lab:smoke --base http://localhost:3132` 25 checks, 0 failing, scope the four boards (`smoke.log`); `pnpm lab:demo --board locked-door,event-ready,disposable-mode,demo-framing --base http://localhost:3132` 20 steps, 0 failing, at the default width (`demo-1440.log`) and at `--width 375` (`demo-375.log`), each step measured at both screens (the stage starts 0.26 to 0.30 down at 1440 and 0.32 to 0.43 at 375, under the 0.5 reach). The `about-press.facts` stall did not meet this lane.
+- Lane check, `git diff --name-only origin/launch-prep...HEAD`: the ten files in the items below, all under the four owned prefixes, and this manifest; no exception. Read against production before writing, in every item: the file its brief item names.
+- Items, paths under `src/app/(dev)/design/sandbox/`, the audits' own numbering:
+  - disposable-mode 1, 2, 3: `disposable-mode/spec.ts` `:189` (the carried `sound`), `:489` (`video.when`) and `:491` (`video.context`) say Videos on, Free or Videos off meaning photos only (`videos-switch.tsx`, `billing-caps.md`'s Videos switch line).
+  - disposable-mode 4: `disposable-mode/host.tsx:553`, the album card's fact, "Photos from their phones, and videos on a paid plan" (`tiers.ts`: Free is photos only, about thirty).
+  - disposable-mode 5: `disposable-mode/host.tsx:532`, Reject, wearing production's `CircleX` in `text-warning` (`review-actions.tsx`, `selectable-media-grid.tsx`'s verdict); "Take out" kept.
+  - disposable-mode 6: `disposable-mode/viewer.tsx:118-120`, Report (a `Flag`) after Copy link, Share now production's `Share2`, and the comment at `:14-18` (`actions.tsx`'s Report gate).
+  - disposable-mode 7: `disposable-mode/viewer.tsx:183-198`, `:229` and `:274`, "Download album" with Yours, Everything, Photos, Videos (the desk's menu says its title too, as `showTitle` does); `disposable-mode/fixtures.ts:70` gives it Videos 9 (`export-dialog.tsx`).
+  - disposable-mode 8: `disposable-mode/spec.ts:16-17` and `:49-50` say the consequence line (`ui/consequence-line.tsx`) and Settings' four rows (`settings-pages.ts`) are built.
+  - locked-door 1: `locked-door/spec.ts:152`, the host made it private (`shut-door.tsx`'s `shutDoorCopy`, which names no one).
+  - locked-door 2: `locked-door/spec.ts:183`, the not-found family is a glyph, a headline and a way out, and a guest's broken link wears a QR code (the root's Compass, `CalendarX2`, `FileQuestion`, `UserRoundSearch`, `QrCode`, read off `marketing-not-found.tsx` and each `not-found.screen.tsx`).
+  - locked-door 3: `locked-door/spec.ts:402` (`lands`) and `:388-390` (the `pick` option's `means` and `gains`: the upload queue already holds and sends her picks, only the chooser is new; its `costs` counts nothing as new work and stays) (`use-upload-queue.ts`'s `takeJoin` and `doorOpen` effect).
+  - locked-door 4 and 5: `locked-door/spec.ts:416` (the not-found family's page) and `:422`, `:424` (the `own` option's `means` and `gains`).
+  - locked-door 6: `locked-door/words.ts:211` and `:241` and `locked-door/today.tsx:43` point at `not-found.screen.tsx`; `locked-door/words.ts:91` reads `welcomeAddLine(true)` from `entry-modal.tsx` (import `:3`, comments `:14` and `:81`), and the welcome's first line reads the same in the frames.
+  - event-ready: `event-ready/readiness.ts:133` lets an invite door through with an empty list (anyone else asks the host), the door item done in `GATE_LINES.invite`'s words; `event-ready/readiness.test.ts:75`, `:92`, `:109` and `:223` fail on the old `readiness.ts` (restored from HEAD: 4 failed, 11 passed), `:109` held to `decideDoor` itself (`lib/event/door/decide.ts`; the brief's `lib/events/decide.ts` is there).
+  - demo-framing 1 and 2: `demo-framing/spec.ts:78` (the eyebrow goes, the card becomes the one door) and `:118` (the home's says Try our demo event, beside a live dot).
+- Assets requested from Will: none
+- Board ideas: a lab quote-parity test in the shape of `src/components/marketing/mock-parity.test.ts` for the boards' hand-quoted production pieces (the lightbox capsule's actions, the Download album menu's rows, the review verbs): this round's Report, Download album and Reject lines had drifted until an audit read them.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- Calls his to overrule, the wording the audits did not give:
+  - `disposable-mode/spec.ts:491`: "Video is paid and the host can switch it off, so Free or Videos off means photos only", the audit's longer line cut to the 240 characters a context may run as a section's lede (`LIMITS.lede`).
+  - `locked-door/spec.ts:183`: "The screens all broken links share: …", the audit's "every broken link on the site shares" cut to the 120 characters a term's meaning may run; `locked-door/spec.ts:422` still says "on the site".
+  - `locked-door/spec.ts:388-390`: "Today's wait with a chooser on it: she picks what she will add. The upload queue already holds it on her phone until Maya lets her in, then sends it." and "She spends the wait choosing photos, and the queue sends them the moment she is let in."
+  - `demo-framing/spec.ts:327`: the touch ask's `matters` says "becomes" for "is now", the same untruth as line 78 (the eyebrow still ships, `cinema-hero.tsx`, and the card is not pressable); a line the audits did not list.
+  - `disposable-mode/spec.ts:16-17`, `:49-50`: the stale header lines say the piece is built rather than being dropped.
+  - `disposable-mode/fixtures.ts:70`: Photos 205 and Videos 9 of the morning's 214, new numbers, in the board's count-only hints (production shows "count · size" and an icon a row).
+  - `event-ready/readiness.ts`: `ReadyFacts.invited` stays, since the Settings frames' door counts read it, though no readiness rule does now.
+- Look at first: the `disposable-mode` save step at 375 (the capsule's Report flag and the four-row Download album sheet), then its create step (the album card's first fact) and its peek step with Review on (Reject); then the `locked-door` lost step's `own` option.
