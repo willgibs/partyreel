@@ -40,7 +40,6 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `crumbs-29` | build 30's red-team finds (a shared phone's double row, a declined newcomer admitted by a door's opening, the door after a sign-out, a blocked phone's flash) and two ROADMAP lines (the door's predicate once, a report's closed status paired with its time) | merged at `47b5cce8` (gate 106 green; work `75600355`); its three migrations (20260930130000 the door admits no block, 140000 one account one ticket, 150000 a report resolved when closed) apply by protocol once build 33's red-team is done, each an expand both ways |  Opus, 3131 | |
-| `crumbs-30` | six ROADMAP items: the portal's gate read cached, Try again that re-fetches, the print sheet's dead link, a failed album keeping her tracker, an empty album's first glow for a guest, Let back in's words at Only me | running (agent `a55ce945921f4c4a4`), cut at `8c0678cc`; no SQL | Opus, 3132 | |
 | `crumbs-31` | build 33's red-team finds (the follow moment after a keep through Google, MEDIUM; the peek's Shift+Tab; a malformed id; the door's global sign-out; a Like on liked items) and the host's own Add at her gated door | running (agent `a03da0172e1cb0225`), cut at `a39b0129`; a migration, if any, by protocol | Opus, 3133 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
@@ -66,7 +65,8 @@ manifests do not carry.
 
 Batch 8 shipped whole as milestone 31 (`7bd3b947`, 2026-09-30; 40 lanes, crumbs-12 to gone-link-soft; their merges and
 records carry the rest). Merged in batch 9: crumbs-28 (`8ea749bf`), hide-strikes (`669e1717`, its migration applied by
-protocol, 20260930205935). Schema-pass part 2 is applied (20260930204037).
+protocol, 20260930205935), crumbs-29 (`47b5cce8`, its three migrations applied), crumbs-30 (`d0eaf507`; gate 107 green
+but lab:demo's `about-press.facts` dev stall, ROADMAP's line). Schema-pass part 2 is applied (20260930204037).
 
 ## Next, in order
 
