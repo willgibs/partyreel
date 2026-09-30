@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { layerIsUp } from "@/components/ui/layer-is-up";
 import {
   Popup,
   PopupContent,
@@ -30,11 +31,10 @@ import { CLAIMED_TOAST, claimAskedUploads } from "@/lib/guest/claim-uploads";
 const NONE: readonly Ask[] = [];
 
 /**
- * Another layer is up: the door and its held sheets, a confirm, a panel, a menu. A confirm speaks as
- * an `alertdialog`, which is not a `dialog` to a selector (ui/popup.tsx); this screen's own is marked.
+ * This screen's own question, which is never "another layer" (`layerIsUp`, `ui/layer-is-up.ts`: the door and
+ * its held sheets, a confirm, a panel, a menu, a listbox): `PopupContent` below wears the mark.
  */
-const ANOTHER_LAYER =
-  '[role="dialog"]:not([data-claim-ask]), [role="alertdialog"]:not([data-claim-ask]), [role="menu"]';
+const OWN_LAYER = "[data-claim-ask]";
 
 /**
  * "3 PHOTOS WERE ADDED ON THIS PHONE AS DANA. ARE THEY YOURS?" (shared-claims).
@@ -72,7 +72,7 @@ export function ClaimAsk() {
   useEffect(() => {
     if (!next) return;
     const ask = () => {
-      if (!document.querySelector(ANOTHER_LAYER)) setShown(next);
+      if (!layerIsUp({ except: OWN_LAYER })) setShown(next);
     };
     // A beat first, so a door opening in the same breath as the claim is seen before this asks.
     const first = window.setTimeout(ask, 0);
