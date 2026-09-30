@@ -4,7 +4,7 @@ import { AdminNotFoundScreen } from "@/components/admin/admin-not-found-screen";
 import { MarketingFooter } from "@/components/marketing/chrome/marketing-footer";
 import { MarketingHeader } from "@/components/marketing/chrome/marketing-header";
 import { MarketingNotFound } from "@/components/marketing/marketing-not-found";
-import { Trail } from "@/components/shared/trail/trail";
+import { TrailLazy } from "@/components/shared/trail/trail.lazy";
 import { surface } from "@/lib/surface";
 
 // Root catch-all 404 for UNMATCHED URLs (and any notFound() with no nearer boundary).
@@ -60,11 +60,15 @@ export default function NotFound() {
           640 px it walks and never waits for a finger (`phone=walks`). The two
           GROUP 404s stay as they ship: they are a notFound() inside a marketing
           route, boxed at 60vh under their own chapter's skin, and the choice
-          was for the 404 a lost visitor actually lands on. */}
+          was for the 404 a lost visitor actually lands on.
+          ★ IT LOADS LAZILY (`trail.lazy.tsx`), because a root 404's whole tree
+          rides every route's payload: nothing this file imports eagerly may
+          import a stylesheet or the trail's code, or every page preloads it
+          (`trail-lazy.test.ts`). */}
       <main className="flex flex-1 flex-col">
-        <Trail className="flex flex-1 flex-col items-center justify-center px-6 py-24 sm:py-32">
+        <TrailLazy className="flex flex-1 flex-col items-center justify-center px-6 py-24 sm:py-32">
           <MarketingNotFound strip={false} />
-        </Trail>
+        </TrailLazy>
       </main>
       {/* Renders outside (marketing), so marketing.css and [data-mkt] are both
           absent: the demo pile stands at rest with no hover fan (its box and

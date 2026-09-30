@@ -1,8 +1,10 @@
 "use client";
 
-// The trail's own sheet, `trail.css`, is imported by src/app/globals.css and NOT here: a root
-// not-found.tsx's stylesheets are preloaded on every route (trail-sheet.test.ts). It declares NO
-// keyframe: the trail is one rAF loop writing inline transforms (src/app/keyframe-uniqueness.test.ts).
+// The trail's own sheet. It declares NO keyframe: the trail is one rAF loop
+// writing inline transforms (src/app/keyframe-uniqueness.test.ts). ★ The 404 reaches this module only
+// through `trail.lazy.tsx`, so the sheet loads with the lazy chunk and never on another route.
+import "./trail.css";
+
 import Image from "next/image";
 import {
   createContext,

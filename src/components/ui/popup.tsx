@@ -9,7 +9,6 @@ import { useKeyboardInset } from "@/lib/use-keyboard-inset"
 import { useMediaQuery } from "@/lib/use-media-query"
 import { Button } from "@/components/ui/button"
 import { floatingPopupShapes } from "@/components/ui/floating-layer"
-import { EPHEMERAL_LAYER } from "@/components/ui/layer-is-up"
 import { useBackCloses } from "@/components/ui/popup-back"
 import {
   DESK_QUERY,
@@ -50,6 +49,16 @@ import {
  */
 
 /**
+ * A layer that closes as a SIDE EFFECT of the very interaction that opens the
+ * next popup, so its own control is gone by the time focus must return: a
+ * menu row (selecting it closes the menu) and a listbox option (Radix
+ * Select). A dialog or a sheet is not one of these — nothing about opening a
+ * popup over it closes it — so a control inside one is still there to give
+ * focus back to.
+ */
+const EPHEMERAL_LAYER = "[role='menu'], [role='listbox']"
+
+/**
  * THE LAST CONTROL STILL THERE TO GIVE FOCUS BACK TO: on the page itself, or
  * inside a dialog or sheet left open behind the popup that is about to close
  * (a STACKED popup — the one table's rows read on top of whatever opened
@@ -70,10 +79,6 @@ function watchTheOpener(event: Event) {
   const control = target.closest<HTMLElement>(
     "button, a[href], input, select, textarea, [tabindex]"
   )
-  // A menu row or a listbox option (`layer-is-up.ts`) closes as a SIDE EFFECT of the very interaction
-  // that opens the next popup, so its control is gone by the time focus must return. A dialog or a sheet
-  // is not one of these (nothing about opening a popup over it closes it), so a control inside one is
-  // still there to give focus back to.
   if (
     control &&
     control !== document.body &&

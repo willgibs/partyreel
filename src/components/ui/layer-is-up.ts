@@ -19,8 +19,7 @@ export const MODAL_ROLES = ["dialog", "alertdialog"] as const;
 
 /**
  * A layer that closes as a side effect of the act that would leave it: a menu row (selecting it closes
- * the menu) and a listbox option (Radix Select). `popup.tsx` reads it to keep a closed menu's row from
- * being the control focus returns to.
+ * the menu) and a listbox option (Radix Select).
  */
 export const EPHEMERAL_ROLES = ["menu", "listbox"] as const;
 
@@ -28,9 +27,6 @@ const selectorOf = (roles: readonly string[], except?: string) =>
   roles
     .map((role) => `[role="${role}"]${except ? `:not(${except})` : ""}`)
     .join(", ");
-
-/** The ephemeral layers as one selector, for a caller that asks whether a control sits inside one. */
-export const EPHEMERAL_LAYER = selectorOf(EPHEMERAL_ROLES);
 
 export type LayerOptions = {
   /**

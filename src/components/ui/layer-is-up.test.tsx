@@ -6,7 +6,7 @@ import ts from "typescript";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
-  EPHEMERAL_LAYER,
+  EPHEMERAL_ROLES,
   layerIsUp,
   MODAL_ROLES,
 } from "@/components/ui/layer-is-up";
@@ -107,10 +107,9 @@ describe("layerIsUp", () => {
     });
   });
 
-  it("names the modal roles once, both of them", () => {
+  it("names the roles once: a dialog and a confirm, a menu and a listbox", () => {
     expect([...MODAL_ROLES]).toEqual(["dialog", "alertdialog"]);
-    // The ephemeral pair is the one `popup.tsx` reads for the control focus returns to.
-    expect(EPHEMERAL_LAYER).toBe('[role="menu"], [role="listbox"]');
+    expect([...EPHEMERAL_ROLES]).toEqual(["menu", "listbox"]);
   });
 });
 
