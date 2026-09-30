@@ -42,14 +42,15 @@ a lane").
 | `schema-pass` | the data architecture trimmed | merged at `57b17ace`; part 1 applied on Will's go-ahead (2026-09-29, his answer "Yes, apply part 1"; recorded `20260929210010`, the payload the file's md5; advisors 18/4/33; anon REST 42501; types regenerated at `c7a50adc`); a signed-in host walk on partyreel.com rides build 25's red-team as a follow-up; part 2 (`20260929170000`) after milestone 31 ships | Opus, 3132 | `54f414f9` |
 | `lab-focus` | on Will's note (2026-09-29, "a Jackson Pollock painting of text" above the options): the lab's question view rebuilt pictures first, the stage whole on the first screen at a desk and a phone, everything else one click away; a `lab:demo` reach gate | running (agent `af671c95a53a0ef5d`; worktree `../partyreel-wt/lab-focus`) | Opus, 3131 | |
 | `crumbs-23` | build 26's red-team finds: a live pushed arrival without its fade, a double tap at a phone never landing in the sheet it opened, the invite list's door line, the first keystroke after a load, the Library's album-stream width | running (agent `aa20ad19ebbb0788d`; worktree `../partyreel-wt/crumbs-23`) | Sonnet, 3132 | |
-| `perf-404` | the root 404's tree off every route's payload (about 110 KB of HTML and 43 to 56 KB of gzipped JS a page, `crumbs-22`'s measure), the 404 drawn as today | paused at its boot for the plan's 5-hour window (85% at 01:16Z, resetting 02:20Z); resume by SendMessage to agent `ae61f39b8da49d3a1` after the reset | Opus, 3134 | |
+| `perf-404` | the root 404's tree off every route's payload (about 110 KB of HTML and 43 to 56 KB of gzipped JS a page, `crumbs-22`'s measure), the 404 drawn as today | running (agent `ae61f39b8da49d3a1`; worktree `../partyreel-wt/perf-404`) | Opus, 3134 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
 no question open (Q1, the `names` hang; Q2, schema-pass part 1; Q3, the notes-into-laws audit; Q4, the door migration:
 each answered and acted on). From another session, respawn it from `usher/kit/advisor-prompt.txt`.
 
-**Handoff across accounts.** The Orchestrator session is `157caa18-ec54-4aa9-a12a-04c86d5a667b` (the second account,
-seated 2026-09-29 12:23 EDT); the first account's `b01c012e` is retired and must not resume. Its agent ids live only
+**Handoff across accounts.** The Orchestrator session is `157caa18-ec54-4aa9-a12a-04c86d5a667b` (willg97's account,
+seated 2026-09-29 12:23 EDT; its weekly resets Sunday 9am ET, hi@willgibs.com's Tuesday 5pm ET; Will hands off only
+when one maxes its weekly limit); the first account's `b01c012e` is retired and must not resume. Its agent ids live only
 there; from another session, respawn each running lane per the runbook's "Resume a lane": kill by port any dev server
 left on 3131 to 3135 (and any orphaned headless Chrome), then `spawn-prompt.txt` filled (same track, same port) plus a
 note naming its pushed commits, what remains, its predecessor's transcript at
