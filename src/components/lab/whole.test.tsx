@@ -150,6 +150,18 @@ describe("fitting a stage whole", () => {
     expect(column.hasAttribute("data-lab-reflow")).toBe(false);
   });
 
+  it("stands a column as the board drew it again once it holds one frame", () => {
+    const { stage, column, lede } = stageOf();
+    fitStage(stage, { side: false });
+    expect(column.hasAttribute("data-lab-reflow")).toBe(true);
+    // A knob redraws the column with a single frame: no stack to wrap.
+    for (const figure of [...column.querySelectorAll("figure")].slice(1))
+      figure.remove();
+    fitStage(stage, { side: false });
+    expect(column.hasAttribute("data-lab-reflow")).toBe(false);
+    expect(lede.hasAttribute("data-lab-line")).toBe(false);
+  });
+
   it("takes no room when nothing is drawn", () => {
     const stage = document.createElement("div");
     const view = document.createElement("div");

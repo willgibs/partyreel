@@ -158,7 +158,7 @@ function framesOnly(el: Element): boolean {
  * Anything else is the board's own arrangement and is left as it drew it.
  */
 function reflow(wrap: HTMLElement): void {
-  const boxes = new Set<HTMLElement>();
+  const boxes = new Set<Element>();
   for (const figure of wrap.querySelectorAll("figure"))
     for (
       let el = figure.parentElement;
@@ -166,6 +166,10 @@ function reflow(wrap: HTMLElement): void {
       el = el.parentElement
     )
       boxes.add(el);
+  // A box the board has since redrawn without its frames stands as it drew
+  // it again: a mark left behind would wrap a row that is no stack of frames.
+  for (const el of wrap.querySelectorAll("[data-lab-reflow]"))
+    if (!boxes.has(el)) unmark(el);
   for (const box of boxes) {
     let as = box.getAttribute("data-lab-reflow");
     if (as === null) {
@@ -175,7 +179,10 @@ function reflow(wrap: HTMLElement): void {
     }
     const kids = [...box.children];
     const frames = kids.filter(framesOnly).length;
-    if (frames < 2 || (as === "row" && frames < kids.length)) continue;
+    if (frames < 2 || (as === "row" && frames < kids.length)) {
+      unmark(box);
+      continue;
+    }
     box.setAttribute("data-lab-reflow", as);
     for (const kid of kids)
       if (framesOnly(kid)) kid.removeAttribute("data-lab-line");
@@ -183,12 +190,16 @@ function reflow(wrap: HTMLElement): void {
   }
 }
 
+/** One box back as the board drew it. */
+function unmark(box: Element): void {
+  if (!box.hasAttribute("data-lab-reflow")) return;
+  box.removeAttribute("data-lab-reflow");
+  for (const kid of box.children) kid.removeAttribute("data-lab-line");
+}
+
 /** Undoes `reflow`, for the 1:1 page, where the board's column stands. */
 function unreflow(box: HTMLElement): void {
-  for (const el of box.querySelectorAll("[data-lab-reflow]"))
-    el.removeAttribute("data-lab-reflow");
-  for (const el of box.querySelectorAll("[data-lab-line]"))
-    el.removeAttribute("data-lab-line");
+  for (const el of box.querySelectorAll("[data-lab-reflow]")) unmark(el);
 }
 
 /**
