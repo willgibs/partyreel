@@ -63,7 +63,7 @@ If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` ho
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
 staged, uncommitted merge is finished by `usher/kit/merge-lane.sh`'s own steps or reset with `git merge --abort`.
 This session's scratchpad (`/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/157caa18-ec54-4aa9-a12a-04c86d5a667b/scratchpad`,
-until a reboot) holds the specs and gate logs (the next gate is 80); nothing there is needed that these lines and the
+until a reboot) holds the specs and gate logs (the next gate is 101); nothing there is needed that these lines and the
 manifests do not carry.
 
 Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcribed at `31de6aa0`: 41 answers on ten
@@ -74,15 +74,19 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
 
 ## Next, in order
 
-1. **Integrate each lane as it hands off** (none running but build 27's red-team), each migration by protocol, one at a time: drift check, apply verbatim, the rolled-back refusals,
+1. **Integrate each lane as it hands off** (no lane running; build 30's red-team and the PREMISE audits are agents, not lanes), each migration by protocol, one at a time: drift check, apply verbatim, the rolled-back refusals,
    advisors, types.
 2. **Build 30 is on the alias** (`1d88b8b1`, 2026-09-30, the milestone 31 candidate): build 28 (lab-focus, perf-404,
-   crumbs-24, crumbs-26's fix for build 27's MEDIUM) plus crumbs-25, stale-link and crumbs-27. Its red-team is build 28's agent `a323059321486cd11`, PAUSED:
-   Claude in Chrome never connected, so every signed-in walk, crumbs-26's shared-phone steps first, waits on Will
-   reopening the side panel; its signed-out walks passed on build 28 (lab-focus 23 of 23, /login 123 KB lighter, the
-   title after Back). Resume it by SendMessage, saying the alias now serves build 30 and its brief
-   (`../partyreel-wt/_scratch/redteam-28/brief.md`) gained crumbs-25's, stale-link's and crumbs-27's walks. When it passes,
-   milestone 31 is proposed to Will (his yes); schema-pass's part 2 applies after it ships.
+   crumbs-24, crumbs-26's fix for build 27's MEDIUM) plus crumbs-25, stale-link and crumbs-27. Its red-team is build 28's
+   agent `a323059321486cd11`, RESUMED 17:40Z on build 30 once Will reconnected Chrome: its ledger's PLAN (S0 to S9,
+   crumbs-26's shared-phone steps first), then crumbs-27's six walks, crumbs-25's and stale-link's; its signed-out walks
+   passed on build 28 (lab-focus 23 of 23, /login 123 KB lighter, the title after Back). From another session, respawn it
+   from `../partyreel-wt/_scratch/redteam-28/brief.md` after its `ledger.txt`'s last line. The milestone's full gate runs
+   ahead of his yes (gate 100, `FULL=1`, on `79beeb39`). When the red-team passes, milestone 31 is proposed to Will (his
+   yes); schema-pass's part 2 applies after it ships.
+   **The desk's PREMISE re-read** runs beside it (two read-only Opus agents, one on `disposable-mode`, one on
+   `locked-door`, `event-ready`, `demo-framing` and `about-press`: every production claim in their asks against build
+   30's code); a stale line is fixed before Will's sitting, which follows this round's report.
 3. **Seats as they free** (at most four lanes; `memory_pressure` before each; app work first, Will's note; `lab-focus`
    took the lab's phone fold with it). After his desk picks: the demo event (below); about-press's wiring (its three wiring calls,
    `git show 3ded6ba9^2:docs/tracks/about-press.md`: /press a temporary redirect, the llms summary kept, the kit's files
