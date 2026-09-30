@@ -108,6 +108,13 @@
  *  27. The instant hide's bar, three strikes that lapse (hide-strikes, migration 20260930120000): the winning
  *      create_report counts the address's child-abuse reports dismissed inside the window, by the
  *      dismissal's own time, against the two numbers named once, and keeps its signature and its one grant.
+ *  28. No door's opening admits a blocked ask (crumbs-29, migration 20260930130000): the door's asks are read once,
+ *      by an owner-only helper both of the list's twins read and neither spells, and no body lets a waiting row in
+ *      but through it or the host's own answer.
+ *  29. One account, one ticket at an album (crumbs-29, migration 20260930140000): both mints answer the ticket a
+ *      confirmed account holds, read under a lock on the album and the account, before they insert.
+ *  30. A report is open exactly when it has no resolved_at (crumbs-29, migration 20260930150000): the CHECK stands,
+ *      and every write of a report's status in the app writes its time beside it.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -2975,12 +2982,15 @@ describe("the doors: Public, Private with its gate, Only me (20260929120000)", (
       );
     });
 
-    it("set_event_password clears the gate beside its flip, and turning Public lets everyone waiting in", () => {
+    // ★ RESHAPED ON PURPOSE (crumbs-29, 20260930130000; scar kept: every path to Public lets the door's asks in,
+    // by a trigger). The expired reason: "everyone waiting". A declined newcomer's ask waits on her block, and a
+    // Public trip that let it in walked her into an album its host never let her into (build 30's red-team).
+    it("set_event_password clears the gate beside its flip, and turning Public lets in every ask no block holds", () => {
       expect(code("set_event_password")).toContain(
         "visibility = 'password', gate = null",
       );
       expect(code("events_door_opened")).toContain(
-        "if new.visibility = 'open' and old.visibility is distinct from 'open' then update public.guests set admission = 'in' where event_id = new.id and admission = 'waiting';",
+        "if new.visibility = 'open' and old.visibility is distinct from 'open' then update public.guests g set admission = 'in' from public.event_door_asks(new.id) a where g.id = a.guest_id; end if;",
       );
       expect(sql).toContain(
         "create trigger events_door_opened after update of visibility on public.events for each row execute function public.events_door_opened();",
@@ -3288,6 +3298,10 @@ describe("the list lets in who waits (20260929220000)", () => {
     collapse(latestDefinition(name).body.replace(/--[^\n]*/g, ""));
   const ADMIT = "public.event_door_admit_listed(";
 
+  // ★ RESHAPED ON PURPOSE (crumbs-29, 20260930130000; scar kept: only while the list is the door, by the door's
+  // own match, every row of a person at once, no block through). The expired reason: the update spelled the
+  // door's predicates itself; they live once in event_door_asks, which its twin reads too (pinned below, in
+  // "no door's opening admits a blocked ask").
   it("admits only while the list is the door, by the door's own match, every row of a person at once, no block through", () => {
     const admit = code("event_door_admit_listed");
     expect(admit).not.toContain("security definer");
@@ -3296,7 +3310,7 @@ describe("the list lets in who waits (20260929220000)", () => {
       "perform 1 from public.events e where e.id = p_event_id and e.deleted_at is null and e.visibility = 'private' and e.gate = 'invite'; if not found then return 0; end if;",
     );
     expect(admit).toContain(
-      "update public.guests g set admission = 'in' where g.event_id = p_event_id and g.admission = 'waiting' and g.user_id is not null and public.event_door_lists_account(p_event_id, g.user_id) and not public.event_block_holds_account(p_event_id, g.user_id) and not public.event_block_holds_row(g) returning g.user_id",
+      "update public.guests g set admission = 'in' from public.event_door_asks(p_event_id) a where g.id = a.guest_id and a.listed returning g.user_id",
     );
     // Counted as people, as every door count is: an account once, however many devices asked.
     expect(admit).toContain("count(distinct a.user_id)");
@@ -3861,5 +3875,304 @@ describe("the instant hide's bar: three strikes that lapse (hide-strikes, 202609
     expect(grants()).toContain(
       "revoke all on function public.create_report(text, uuid, text, public.report_kind, uuid, text, text) from public, anon, authenticated; grant execute on function public.create_report(text, uuid, text, public.report_kind, uuid, text, text) to service_role;",
     );
+  });
+});
+
+describe("no door's opening admits a blocked ask, and the door's asks are read once (crumbs-29, 20260930130000)", () => {
+  // Build 30's red-team: a declined newcomer (a decline is a block that keeps her ask waiting, for Undo) was let in
+  // by a Public trip, events_door_opened admitting every waiting row, and Let back in then walked her into an album
+  // whose host never let her in. And (ROADMAP, from crumbs-23) the list's twins spelled one predicate twice. Each pin
+  // reads CODE (comments stripped), latest wins; each grant the file's executable SQL.
+  const FILE = "20260930130000_the_door_admits_no_block.sql";
+  const sql = collapse(
+    readFileSync(join(MIGRATIONS_DIR, FILE), "utf8").replace(/--[^\n]*/g, ""),
+  );
+  const code = (name: string) =>
+    collapse(latestDefinition(name).body.replace(/--[^\n]*/g, ""));
+  const ASKS = "public.event_door_asks(";
+
+  /** Every function's winning body, comments stripped and collapsed, in one pass over the set. */
+  function winningBodies(): Map<string, string> {
+    const bodies = new Map<string, string>();
+    for (const file of readdirSync(MIGRATIONS_DIR)
+      .filter((f) => f.endsWith(".sql"))
+      .sort()) {
+      const text = readFileSync(join(MIGRATIONS_DIR, file), "utf8").replace(
+        /--[^\n]*/g,
+        "",
+      );
+      for (const m of text.matchAll(
+        /create (?:or replace )?function public\.([a-z_]+)\(/g,
+      )) {
+        const opener = text.slice(m.index).match(/as \$([a-z_]*)\$/);
+        if (!opener) continue;
+        const tag = `$${opener[1]}$`;
+        const start = m.index + opener.index! + opener[0].length;
+        bodies.set(
+          m[1],
+          collapse(text.slice(m.index, text.indexOf(`${tag};`, start))),
+        );
+      }
+    }
+    return bodies;
+  }
+
+  it("★ the asks a door may let in, read once: every waiting row of a live event no block holds, and whether the list names it", () => {
+    const asks = code("event_door_asks");
+    expect(asks).toContain(
+      "create function public.event_door_asks(p_event_id uuid) returns table (guest_id uuid, user_id uuid, listed boolean) language sql stable set search_path = ''",
+    );
+    expect(asks).not.toContain("security definer");
+    expect(asks).toContain(
+      "(g.user_id is not null and public.event_door_lists_account(p_event_id, g.user_id))",
+    );
+    expect(asks).toContain(
+      "where g.event_id = p_event_id and e.deleted_at is null and g.admission = 'waiting' and not public.event_block_holds_account(p_event_id, g.user_id) and not public.event_block_holds_row(g);",
+    );
+  });
+
+  it("★ its EXECUTE is the owner's alone: no role PostgREST serves can call it, so it pages nothing", () => {
+    expect(sql).toContain(
+      "revoke all on function public.event_door_asks(uuid) from public, anon, authenticated, service_role;",
+    );
+    for (const { file, sql: text } of executableMigrations()) {
+      expect(text, file).not.toMatch(
+        /grant [^;]* on function public\.event_door_asks\(/,
+      );
+    }
+  });
+
+  it("★ the list's twins both read it and neither spells it (the parity guard)", () => {
+    const admit = code("event_door_admit_listed");
+    const count = code("event_door_waiting_listed");
+    expect(admit).toContain(
+      `from ${ASKS}p_event_id) a where g.id = a.guest_id and a.listed returning g.user_id`,
+    );
+    expect(count).toContain(
+      `select count(distinct a.user_id)::integer from ${ASKS}p_event_id) a join public.events e on e.id = p_event_id where a.listed and a.user_id is distinct from e.host_id;`,
+    );
+    for (const [name, body] of [
+      ["event_door_admit_listed", admit],
+      ["event_door_waiting_listed", count],
+    ]) {
+      for (const predicate of [
+        "public.event_door_lists_account(",
+        "public.event_block_holds_account(",
+        "public.event_block_holds_row(",
+        "admission = 'waiting'",
+      ]) {
+        expect(body, `${name} spells ${predicate} itself`).not.toContain(
+          predicate,
+        );
+      }
+    }
+    // Still the DEFINER it was: event_door_counts (INVOKER, the service role's) asks it, and the list's match
+    // reads auth.users.
+    expect(count).toContain("security definer");
+  });
+
+  it("★ no body lets a waiting row in but through the door's asks, or the host's own answer, which refuses a held row", () => {
+    const admitting = [...winningBodies()]
+      .filter(([, body]) => body.includes("set admission = 'in'"))
+      .map(([name]) => name)
+      .sort();
+    expect(admitting).toEqual([
+      "event_door_admit_listed",
+      "events_door_opened",
+      "let_back_in",
+      "let_in_at_door",
+    ]);
+    for (const [name, body] of winningBodies()) {
+      if (!admitting.includes(name)) continue;
+      for (const statement of body.split(";")) {
+        if (!statement.includes("set admission = 'in'")) continue;
+        if (name === "let_in_at_door") {
+          expect(
+            body.indexOf(
+              "if public.event_block_holds_row(v_guest) then return jsonb_build_object('ok', false, 'reason', 'blocked');",
+            ),
+            name,
+          ).toBeGreaterThan(-1);
+          continue;
+        }
+        expect(statement, name).toContain(`from ${ASKS}`);
+      }
+    }
+  });
+
+  it("the Public door lets every ask in and counts exactly those; Let back in lets in at Public the ask its block held, and says so", () => {
+    expect(code("events_door_opened")).not.toContain("a.listed");
+    expect(code("set_event_door")).toContain(
+      `select count(distinct coalesce(a.user_id::text, a.guest_id::text))::integer into v_waiting from ${ASKS}v_event.id) a;`,
+    );
+    const lift = code("let_back_in");
+    const opened = lift.indexOf(
+      "if exists (select 1 from public.events e where e.id = v_block.event_id and e.visibility = 'open') then with opened as ( update public.guests g set admission = 'in' from public.event_door_asks(v_block.event_id) a where g.id = a.guest_id",
+    );
+    expect(opened).toBeGreaterThan(
+      lift.indexOf("delete from public.event_blocks where id = v_block.id;"),
+    );
+    expect(lift).toContain("'admitted', v_admitted + v_opened");
+  });
+
+  it("restates the five's grants exactly as they stood", () => {
+    for (const signature of [
+      "public.event_door_admit_listed(uuid)",
+      "public.event_door_waiting_listed(uuid)",
+    ]) {
+      expect(sql).toContain(
+        `revoke all on function ${signature} from public, anon, authenticated; grant execute on function ${signature} to service_role;`,
+      );
+    }
+    expect(sql).toContain(
+      "revoke all on function public.events_door_opened() from public, anon, authenticated;",
+    );
+    for (const signature of [
+      "public.set_event_door(uuid, text)",
+      "public.let_back_in(uuid, boolean)",
+    ]) {
+      expect(sql).toContain(
+        `revoke all on function ${signature} from public, anon, authenticated; grant execute on function ${signature} to authenticated;`,
+      );
+    }
+  });
+});
+
+describe("one account, one ticket at an album (crumbs-29, 20260930140000)", () => {
+  // Build 30's red-team: on a shared phone the queue's silent join and the page's own raced, create_guest always
+  // inserted, and each album minted two rows of hers in one second; the phone kept the empty one. Both mints now
+  // answer the ticket a confirmed account holds there. Each pin reads CODE (comments stripped), latest wins.
+  const FILE = "20260930140000_one_account_one_ticket.sql";
+  const sql = collapse(
+    readFileSync(join(MIGRATIONS_DIR, FILE), "utf8").replace(/--[^\n]*/g, ""),
+  );
+  const code = (name: string) =>
+    collapse(latestDefinition(name).body.replace(/--[^\n]*/g, ""));
+
+  it("★ her ticket is read under a lock on the album and the account, taken before the read", () => {
+    const ticket = code("event_account_ticket");
+    const lock = ticket.indexOf(
+      "perform pg_catalog.pg_advisory_xact_lock( pg_catalog.hashtextextended('guest_ticket:' || p_event_id::text || ':' || p_user_id::text, 0));",
+    );
+    expect(lock).toBeGreaterThan(-1);
+    expect(lock).toBeLessThan(ticket.indexOf("select g.* into v_ticket"));
+    expect(ticket).toContain(
+      "where g.event_id = p_event_id and g.user_id = p_user_id and g.verified_at is not null and g.admission = p_admission and not public.event_block_holds_row(g) order by g.created_at desc, g.id desc limit 1;",
+    );
+    expect(ticket).not.toContain("security definer");
+    expect(ticket).toContain("set search_path = ''");
+  });
+
+  it("★ it answers a whole row, its ticket in it, so its EXECUTE is the owner's alone", () => {
+    expect(sql).toContain(
+      "revoke all on function public.event_account_ticket(uuid, uuid, public.guest_admission) from public, anon, authenticated, service_role;",
+    );
+    for (const { file, sql: text } of executableMigrations()) {
+      expect(text, file).not.toMatch(
+        /grant [^;]* on function public\.event_account_ticket\(/,
+      );
+    }
+  });
+
+  it("★ both mints answer it once the door has decided, before they insert: a confirmed join, and every ask", () => {
+    const join = code("create_guest");
+    const answer = join.indexOf(
+      "if v_confirmed is not null then v_held := public.event_account_ticket(v_event.id, v_uid, v_admission); if v_held.id is not null then return jsonb_build_object(",
+    );
+    expect(answer).toBeGreaterThan(
+      join.indexOf("if v_event.gate is not null and not v_in then"),
+    );
+    expect(answer).toBeLessThan(join.indexOf("insert into public.guests"));
+    const ask = code("ask_to_join");
+    const asked = ask.indexOf(
+      "v_held := public.event_account_ticket(v_event.id, p_user_id, v_admission); if v_held.id is not null then return jsonb_build_object(",
+    );
+    expect(asked).toBeGreaterThan(ask.indexOf("v_admission := case"));
+    expect(asked).toBeLessThan(ask.indexOf("insert into public.guests"));
+  });
+
+  it("the answer is a mint's own shape, and never an address", () => {
+    const join = code("create_guest");
+    const answer = join.slice(
+      join.indexOf("v_held := public.event_account_ticket("),
+      join.indexOf("v_session_token := replace("),
+    );
+    for (const key of [
+      "'session_token', v_held.session_token",
+      "'guest_id', v_held.id",
+      "'event_id', v_event.id",
+      "'display_name', v_held.display_name",
+      "'verified', true",
+      "'email_attached', (v_held.pending_email is not null)",
+      "'admission', v_held.admission",
+    ]) {
+      expect(answer).toContain(key);
+    }
+    expect(answer).not.toMatch(/'(email|pending_email)',/);
+  });
+
+  it("the door's share lock stays each mint's first; the account's comes after it", () => {
+    for (const name of ["create_guest", "ask_to_join"]) {
+      const body = code(name);
+      expect(body.indexOf("for share;"), name).toBeGreaterThan(-1);
+      expect(body.indexOf("for share;"), name).toBeLessThan(
+        body.indexOf("public.event_account_ticket("),
+      );
+    }
+  });
+
+  it("keeps both mints the service role's, restated in the file", () => {
+    expect(sql).toContain(
+      "revoke execute on function public.create_guest(text, uuid, boolean, text, text) from public, anon, authenticated; grant execute on function public.create_guest(text, uuid, boolean, text, text) to service_role;",
+    );
+    expect(sql).toContain(
+      "revoke all on function public.ask_to_join(text, uuid) from public, anon, authenticated; grant execute on function public.ask_to_join(text, uuid) to service_role;",
+    );
+  });
+});
+
+describe("a report is open exactly when it has no resolved_at (crumbs-29, 20260930150000)", () => {
+  // ROADMAP, from hide-strikes: the instant hide's strikes lapse from a dismissal's own time, so a close written
+  // without it would count as no strike. The CHECK refuses one at run time; the source pin below at test time.
+
+  it("★ the CHECK stands, the rule verbatim, and no later file drops it", () => {
+    let standing: string | null = null;
+    for (const { sql } of executableMigrations()) {
+      for (const [statement, verb] of sql.matchAll(
+        /alter table (?:only )?public\.reports (add|drop) constraint (?:if exists )?reports_resolved_when_closed\b[^;]*;/g,
+      )) {
+        standing = verb === "add" ? statement : null;
+      }
+    }
+    expect(standing).toBe(
+      "alter table public.reports add constraint reports_resolved_when_closed check ((status = 'open') = (resolved_at is null));",
+    );
+  });
+
+  it("★ every write of a report's status in the app writes its resolved_at beside it", () => {
+    const writes: string[] = [];
+    const walk = (dir: string) => {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const path = join(dir, entry.name);
+        if (entry.isDirectory()) walk(path);
+        else if (
+          /\.tsx?$/.test(entry.name) &&
+          !/\.test\.tsx?$/.test(entry.name)
+        ) {
+          const source = collapse(readFileSync(path, "utf8"));
+          for (const [, fields] of source.matchAll(
+            /\.from\("reports"\) \.update\(\{([^}]*)\}\)/g,
+          )) {
+            if (/\bstatus:/.test(fields)) writes.push(`${path}: ${fields}`);
+          }
+        }
+      }
+    };
+    walk(join(ROOT, "src"));
+    // The portal's close, its reopen and the Undo of an action: the scan is not vacuous.
+    expect(writes.length).toBeGreaterThanOrEqual(3);
+    for (const write of writes) {
+      expect(write).toMatch(/\bresolved_at:/);
+    }
   });
 });

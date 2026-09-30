@@ -314,13 +314,17 @@ visitor-facing "Private" never collides.
   gate the page says how many are already in ("31 guests are already in"); choosing Only me with guests in, or Public,
   Only people already in or a password with newcomers waiting, says what happens first and waits for the confirm (a
   first password says it beside its field, since setting it opens that door). Opening an album to Public lets everyone
-  waiting in (`events_door_opened`); a password ends every ask (`events_door_to_password`: nobody waits on the host
-  there), so they leave At the door, the pulse and the bell, and meet the password like anyone new.
+  waiting in but an ask a block holds (`events_door_opened`; every door act that lets asks in or counts them reads one
+  set, `event_door_asks`), so a declined newcomer's ask waits through a Public trip for Let back in rather than walking
+  her into an album its host never let her into; a password ends every ask
+  (`events_door_to_password`: nobody waits on the host there), so they leave At the door, the pulse and the bell, and
+  meet the password like anyone new.
 - **The Guests room's At the door** heads it (`queue=room`): Let in (`let_in_at_door`) opens her door on every device,
   and her held door opens by itself at its next check-in; ★ Decline is a block (the account where there is one, else
   the row), with Undo on its toast and Let back in under Blocked, so a declined newcomer meets the one shut screen and
-  cannot keep re-asking. Either way back returns her to the door, where she still needs Let in unless the invite list,
-  being the door, names her, and Let back in's words say which (`BlockedPerson.lands`, from the door as it stands:
+  cannot keep re-asking. Either way back returns her to the door, where she still needs Let in unless the door as it
+  stands lets her in (the invite list, being the door, naming her; or a Public album, which `let_back_in` then lets her
+  into, its opening having waited only on the block), and Let back in's words say which (`BlockedPerson.lands`, from the door as it stands:
   someone with no row past the door is a newcomer whatever rows remain, so one whose ask a password ended hears she
   meets it like anyone new, and where nobody new gets in, that she stays out; someone who was in, while the album is
   Only me (which shuts even the people already in), hears the block is lifted and the album stays closed to her until
@@ -336,8 +340,9 @@ visitor-facing "Private" never collides.
   in, on every device she asked from, counted once, so she leaves At the door and the ticket she asked with adds.
   ★ The menu and the steps page say it BEFORE the list is chosen ("Lets in the 1 person waiting at the door who is on
   your list.", `listedWouldComeInLine`), only where it would let someone in: the count is `DoorCounts.waitingListed`,
-  `event_door_counts`' `waiting_listed` from `event_door_waiting_listed`, the admit's read-only twin (0 until its migration
-  is applied). The six-door menu is `settings-rows.tsx`'s `doorConsequence`; `door-page.tsx` is the steps page.
+  `event_door_counts`' `waiting_listed` from `event_door_waiting_listed`, the admit's read-only twin, both reading the
+  same asks (`event_door_asks`' listed ones). The six-door menu is `settings-rows.tsx`'s `doorConsequence`;
+  `door-page.tsx` is the steps page.
   **Invite** is the room's main action while it is empty and a quiet one after: the event's code card, sending
   nothing.
 

@@ -653,3 +653,130 @@ describe("useLiveQueue", () => {
     expect(result.current[0].progress).toBe(90);
   });
 });
+
+/**
+ * THE DOOR SETTLES ON WHO IS HERE BEFORE IT ASKS (crumbs-29, build 30's red-team).
+ *
+ * Two ways a page's idea of its viewer outlived the truth, both handed to the door now rather than stranded:
+ *   - a page rendered while a sign-out was still in flight took its viewer for a confirmed account, skipped the
+ *     name step, and her Send toasted "Couldn't start uploading / Enter a name." over an upload step with no field
+ *     to type one (a dead end until a reload);
+ *   - a phone holding another guest's ticket, its viewer signed in elsewhere and blocked here: the ticket went down
+ *     with its name, and the page drew the name step for the seconds its refresh took to find the block.
+ */
+describe("the door settles on who is here before it asks", () => {
+  it("★ a first Add whose join the server refuses for want of a name keeps her picks for the door, never a toast", async () => {
+    localStorage.clear();
+    const { toast } = await import("sonner");
+    answer({
+      "/api/guests": [
+        {
+          ok: false,
+          body: { ok: false, code: "name_required", message: "Enter a name." },
+        },
+      ],
+    });
+    mockUploadFile.mockResolvedValue(landed("med-1"));
+    // The page rendered as a confirmed account (the sign-out was still in flight), with no ticket here yet.
+    const q = mountQueue({ sessionToken: null, isVerified: true });
+    const clip = new File([new Uint8Array([1])], "clip.webm", {
+      type: "video/webm",
+    });
+
+    act(() => q.result.current.addFiles([makeFile("a.jpg")]));
+
+    await waitFor(() => expect(q.onDoorNeeded).toHaveBeenCalledTimes(1));
+    expect(toast.error).not.toHaveBeenCalled();
+    expect(mockUploadFile).not.toHaveBeenCalled();
+    expect(q.items().map((it) => it.status)).toEqual(["queued"]);
+
+    // The refresh finds her signed out; the door's name step joins and hands its ticket down.
+    q.rerender({ sessionToken: "door-token", isVerified: false });
+    await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(1));
+    expect(sentOn(0)).toBe("door-token");
+    // A clip added after the door has its ticket goes as any file.
+    act(() => q.result.current.addClip(clip, new Blob([new Uint8Array([1])])));
+    await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(2));
+  });
+
+  it("any other refusal of the first join still toasts, and nothing waits", async () => {
+    localStorage.clear();
+    const { toast } = await import("sonner");
+    answer({
+      "/api/guests": [
+        {
+          ok: false,
+          body: {
+            ok: false,
+            code: "rate_limited",
+            message: "Too many joins from this network right now.",
+          },
+        },
+      ],
+    });
+    const q = mountQueue({ sessionToken: null, isVerified: true });
+    act(() => q.result.current.addFiles([makeFile("a.jpg")]));
+    await waitFor(() => expect(toast.error).toHaveBeenCalledTimes(1));
+    expect(q.onDoorNeeded).not.toHaveBeenCalled();
+    expect(q.items()).toEqual([]);
+  });
+
+  it("★ a ticket only the door can replace: the door hears it before the ticket and its name go down, and is told when they have", async () => {
+    let releaseLeave = () => {};
+    global.fetch = vi.fn(
+      (input: RequestInfo | URL) =>
+        new Promise<Response>((resolve) => {
+          if (String(input) !== "/api/guests/leave") {
+            throw new Error(`unexpected fetch ${String(input)}`);
+          }
+          releaseLeave = () =>
+            resolve({ ok: true, json: async () => ({ ok: true }) } as Response);
+        }),
+    );
+    mockUploadFile.mockResolvedValueOnce(OTHER_ACCOUNT);
+    const q = mountQueue({ sessionToken: STALE, isVerified: false });
+    let nameWhenTold: string | null | undefined;
+    let ticketDown: Promise<void> | undefined;
+    q.onDoorNeeded.mockImplementation((down?: Promise<void>) => {
+      nameWhenTold = localStorage.getItem(`pr_guest_name_${QR}`);
+      ticketDown = down;
+    });
+
+    act(() => q.result.current.addFiles([makeFile()]));
+
+    await waitFor(() => expect(q.onDoorNeeded).toHaveBeenCalledTimes(1));
+    // Told while the ticket's name still stood: the door holds before anything it reads goes down.
+    expect(nameWhenTold).toBe("Hi Will");
+    expect(ticketDown).toBeInstanceOf(Promise);
+    // Then the ticket goes down, the local half at once.
+    expect(localStorage.getItem(`pr_guest_name_${QR}`)).toBeNull();
+    expect(localStorage.getItem(`pr_session_${QR}`)).toBeNull();
+    // And the page's refresh waits on the cookie's half, so it never reads the ticket that is leaving.
+    let settled = false;
+    void ticketDown!.then(() => {
+      settled = true;
+    });
+    await Promise.resolve();
+    expect(settled).toBe(false);
+    releaseLeave();
+    await waitFor(() => expect(settled).toBe(true));
+    expect(q.items()).toEqual([expect.objectContaining({ status: "queued" })]);
+    expect(q.onDoorNeeded).toHaveBeenCalledTimes(1);
+  });
+
+  it("a confirmed viewer's ticket going down never troubles the door: she joins silently, as ever", async () => {
+    answer({
+      "/api/guests/leave": [{ ok: true, body: { ok: true } }],
+      "/api/guests": [
+        { ok: true, body: { ok: true, session_token: "fresh-token" } },
+      ],
+    });
+    mockUploadFile
+      .mockResolvedValueOnce(OTHER_ACCOUNT)
+      .mockResolvedValueOnce(landed("med-1"));
+    const q = mountQueue({ sessionToken: STALE, isVerified: true });
+    act(() => q.result.current.addFiles([makeFile()]));
+    await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(1));
+    expect(q.onDoorNeeded).not.toHaveBeenCalled();
+  });
+});
