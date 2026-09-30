@@ -104,11 +104,16 @@ const seedReads = new WeakMap<Promise<GallerySeed>, Promise<SeedRead>>();
  * and this source mounts with nothing embedded. Next's own throws (a `notFound()`, a redirect) are never
  * the album's to keep: `unstable_rethrow` hands them on to their boundaries, as the album's boundary does.
  * Cached by the page's promise, never made in a render, so a render that suspends meets its read again.
+ *
+ * ★ `Promise.resolve` FIRST, NEVER `page.then(...)` ALONE: the page's promise is React Flight's decoded
+ * thenable, whose `then` registers its listeners and returns nothing, so a chain straight off it is
+ * `undefined` and `use()` refuses it (found on this lane's own local walk, every album load failing; a
+ * test's native promise chains fine and hid it). Adopting it into a real promise chains on the platform's.
  */
 function readSeed(page: Promise<GallerySeed>): Promise<SeedRead> {
   let read = seedReads.get(page);
   if (!read) {
-    read = page.then(
+    read = Promise.resolve(page).then(
       (seed): SeedRead => ({ seed, error: null }),
       (error: unknown): SeedRead => {
         unstable_rethrow(error);

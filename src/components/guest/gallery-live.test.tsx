@@ -155,6 +155,20 @@ class Catch extends Component<{ children: ReactNode }, { failed: boolean }> {
   }
 }
 
+/**
+ * ★ THE SEED AS THE PAGE REALLY HANDS IT (crumbs-30's own local walk): React Flight decodes the page's promise into a
+ * thenable whose `then` registers its listeners and returns NOTHING, so nothing chains off it. A test on a native
+ * promise chains fine and proves nothing about the page; this is the shape the page's `galleryPromise` has.
+ */
+function flight<T>(from: Promise<T>): PromiseLike<T> {
+  return {
+    then(resolve, reject) {
+      void from.then(resolve, reject);
+      return undefined as never;
+    },
+  };
+}
+
 async function mount(
   isDemo = false,
   {
@@ -162,12 +176,16 @@ async function mount(
     access = "full",
     onCountChange,
   }: {
-    first?: GallerySeed | Promise<GallerySeed>;
+    first?: GallerySeed | PromiseLike<GallerySeed>;
     access?: "full" | "teaser";
     onCountChange?: (count: number) => void;
   } = {},
 ) {
-  const promise = first instanceof Promise ? first : Promise.resolve(first);
+  const promise = (
+    typeof (first as PromiseLike<GallerySeed>).then === "function"
+      ? first
+      : Promise.resolve(first)
+  ) as Promise<GallerySeed>;
   await act(async () => {
     render(
       <Catch>
@@ -184,7 +202,7 @@ async function mount(
         </Suspense>
       </Catch>,
     );
-    await promise.catch(() => {});
+    await Promise.resolve(promise).catch(() => {});
     await new Promise((resolve) => setTimeout(resolve, 0));
     await new Promise((resolve) => setTimeout(resolve, 0));
   });
@@ -446,6 +464,28 @@ describe("the arrival: what was not on screen a moment ago (crumbs-30)", () => {
     // It opened, and nothing of it arrived: a teaser's answer carries no entries by design.
     expect(seen.live?.items.map((m) => m.id)).toEqual([uuid(1), uuid(2)]);
     expect(seen.live?.arrivals).toEqual([]);
+  });
+});
+
+describe("the seed as React Flight hands it (crumbs-30)", () => {
+  it("★ is read from a thenable that chains nothing: the album draws from it, with no request", async () => {
+    await mount(false, { first: flight(Promise.resolve(seed())) });
+    expect(thrown.error).toBeNull();
+    expect(seen.live?.albumRead).toBe("ready");
+    expect(seen.live?.items.map((m) => m.id)).toEqual([
+      uuid(1),
+      uuid(2),
+      uuid(3),
+    ]);
+    expect(calls).toHaveLength(0);
+  });
+
+  it("★ and a failed one is read too: the source stands and reads the album itself", async () => {
+    answer(manifest([entry(8)]));
+    await mount(false, { first: flight(failedSeed()) });
+    expect(thrown.error).toBeNull();
+    expect(seen.live?.albumRead).toBe("ready");
+    expect(seen.live?.items.map((m) => m.id)).toEqual([uuid(8)]);
   });
 });
 
