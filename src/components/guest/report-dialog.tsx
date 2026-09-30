@@ -81,8 +81,9 @@ const TITLE: Record<"event" | "photo" | "video", string> = {
 /**
  * The one line under the kinds when the worst is picked, true of what sending CAN do. ★ IT NEVER
  * PROMISES THE HIDE (build 23's NIT-6): the server decides it when the report lands, past limits this
- * form cannot see (a few an address and an event a day, and never for an address a false report
- * barred), so the line says what a confirmed email can do and the toast after says what it did.
+ * form cannot see (a few an address and an event a day, and never for an address three false reports
+ * barred inside 180 days), so the line says what a confirmed email can do and the toast after says what
+ * it did.
  */
 export function instantHideLine(
   subject: Subject["kind"],

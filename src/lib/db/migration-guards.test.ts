@@ -105,6 +105,9 @@
  *  26. The claim says what it left for another address (crumbs-24, migration 20260930110000): the ask
  *      read answers each held ticket typed under an address that is not hers, one entry a ticket with no
  *      name (so a build before it reads past), and never the address.
+ *  27. The instant hide's bar, three strikes that lapse (hide-strikes, migration 20260930120000): the winning
+ *      create_report counts the address's child-abuse reports dismissed inside the window, by the
+ *      dismissal's own time, against the two numbers named once, and keeps its signature and its one grant.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -3812,6 +3815,51 @@ describe("the claim says what it left for another address (crumbs-24, 2026093011
     );
     expect(grants("claim_ticket_asks")).toContain(
       "revoke all on function public.claim_ticket_asks(text[]) from public, anon; grant execute on function public.claim_ticket_asks(text[]) to authenticated;",
+    );
+  });
+});
+
+describe("the instant hide's bar: three strikes that lapse (hide-strikes, 20260930120000)", () => {
+  // Will, 2026-09-30, overruling call B: "I don't want to prevent a well-meaning reporter from a second report
+  // if I simply disagree with the first." One dismissed child-abuse report used to bar its address from the
+  // instant hide for good (20260929140000). Now a strike is a child-abuse report from the address that the
+  // operator dismissed, it lapses 180 days after its dismissal, and three live ones bar the hide. The count
+  // reads the reports as they stand, so a dismissal's Undo (which clears `resolved_at` with the status) takes
+  // its strike back. Each pin reads CODE (comments stripped), latest wins.
+  const code = () =>
+    collapse(latestDefinition("create_report").body.replace(/--[^\n]*/g, ""));
+  const grants = () =>
+    collapse(latestDefinition("create_report").file.replace(/--[^\n]*/g, ""));
+
+  it("★ counts the address's live strikes: its child-abuse reports dismissed inside the window, by the dismissal's own time", () => {
+    expect(code()).toContain(
+      "and (select count(*) from public.reports r where r.reporter_hash = p_reporter_hash and r.kind = 'child' and r.status = 'dismissed' and r.resolved_at > now() - c_strike_lapse) < c_strikes",
+    );
+  });
+
+  it("★ names the two numbers once, where the rule lives: three strikes, each lapsing 180 days after its dismissal", () => {
+    const fn = code();
+    expect(fn).toContain("c_strikes constant integer := 3;");
+    expect(fn).toContain(
+      "c_strike_lapse constant interval := interval '180 days';",
+    );
+    expect(fn.match(/180/g)).toHaveLength(1);
+  });
+
+  it("★ no longer bars an address for good on one dismissal, and reads a dismissal nowhere else", () => {
+    const fn = code();
+    expect(fn).not.toMatch(
+      /not exists \( select 1 from public\.reports r where r\.reporter_hash = p_reporter_hash/,
+    );
+    expect(fn.match(/r\.status = 'dismissed'/g)).toHaveLength(1);
+  });
+
+  it("keeps the signature the deployed route calls by name, DEFINER with an empty search_path, the service role's alone", () => {
+    expect(code()).toContain(
+      "function public.create_report( p_qr_token text, p_media_id uuid default null, p_reason text default null, p_kind public.report_kind default 'other', p_reporter_user_id uuid default null, p_reporter_email text default null, p_reporter_hash text default null ) returns jsonb language plpgsql security definer set search_path = '' as $$",
+    );
+    expect(grants()).toContain(
+      "revoke all on function public.create_report(text, uuid, text, public.report_kind, uuid, text, text) from public, anon, authenticated; grant execute on function public.create_report(text, uuid, text, public.report_kind, uuid, text, text) to service_role;",
     );
   });
 });

@@ -50,8 +50,11 @@ like the tool rather than the product, are [CLAUDE.md](../../CLAUDE.md)'s.
 Live testing uses disposable test data only.
 - **Accounts:** `willg97@gmail.com` the host on Pro, `hi@willgibs.com` a host on Free, `partyr33l@gmail.com` the
   operator (TOTP MFA). Google through the account chooser is authorized; typing a password or a code never is.
-  ★ willg97's and partyr33l's addresses each carry a dismissed child-abuse report (build 23's red-team), and that bar on
-  instant hides never lapses: a walk of the instant hide needs a fresh confirmed address.
+  ★ Red-team dismissals are strikes against the instant hide (three bar an address, each lapsing 180 days after its
+  dismissal: [admin-observability.md](admin-observability.md)). willg97's address holds two and partyr33l's five, all
+  dismissed 2026-09-29, so willg97's still hides and partyr33l's is barred until 2027-03-28; hi@willgibs.com's holds
+  none. Walk the hide from hi@willgibs.com on one of willg97's albums (it never hides on the reporter's own), or
+  from willg97 on hi@willgibs.com's; each walk that ends in Dismiss spends one of that address's three.
 - **Seed through real uploads, never raw rows:** a `media` row with no R2 object renders broken and poisons later
   checks. The media fixtures are at `/Users/gibby/local/ai/partyreel-test-media`, and
   `node scripts/seed-demo-event.mjs <folder> [--host <email>] [--name <event>] [--guests "Maya J.,Tom R."] [--dry-run]`

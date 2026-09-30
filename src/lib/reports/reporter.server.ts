@@ -8,10 +8,10 @@
  * so a signed-out guest who confirms on the form arrives here signed in and confirmed.
  *
  * ★ THE ADDRESS'S HASH OUTLIVES THE ADDRESS. The report keeps a confirmed address only until it closes (a
- * trigger forgets it), but the instant hide's limits and its bar ("an address whose child-abuse report is
- * dismissed as false loses the instant hide") must still know the address afterwards. So a child-abuse report
- * also keeps an HMAC of it, keyed with the rate-limit secret in its own `r-addr:` domain (never equal to an IP's
- * or an account's hash), which answers "the same address again?" and nothing else.
+ * trigger forgets it), but the instant hide's limits and its bar (an address with three child-abuse reports
+ * dismissed as false in the last 180 days loses the hide) must still know the address afterwards. So a
+ * child-abuse report also keeps an HMAC of it, keyed with the rate-limit secret in its own `r-addr:` domain
+ * (never equal to an IP's or an account's hash), which answers "the same address again?" and nothing else.
  */
 import "server-only";
 
