@@ -40,7 +40,6 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `schema-pass` | the data architecture trimmed | merged at `57b17ace`; part 1 applied on Will's go-ahead (2026-09-29, his answer "Yes, apply part 1"; recorded `20260929210010`, the payload the file's md5; advisors 18/4/33; anon REST 42501; types regenerated at `c7a50adc`); a signed-in host walk on partyreel.com rides build 25's red-team as a follow-up; part 2 (`20260929170000`) after milestone 31 ships | Opus, 3132 | `54f414f9` |
-| `crumbs-28` | nine ROADMAP items: a host's and the portal's cold 404, a guest album whose seed fails kept to the album, the review peek's focus, the moment card's Follow, the portal's Remove confirm, the bulk toasts' counts, formatBytes' rounding, a flaky test, one owner answer | handed off (work `b6dc4674`, gate green: test 7,914 twice, build, lab:smoke 157; no SQL); merges after milestone 31 ships, no build while Will sits at the desk; its four Questions (the dead links' soft 404s, the album's failure words, a mixed Like's \"items\") his to overrule | Opus, 3131 | `8bed1885` |
 | `hide-strikes` | Will's call B (2026-09-30): the instant hide's bar as three dismissed child-abuse reports in a rolling 180 days | running (agent `addbd1e479336fd11`), cut at `963a2fb8`; one migration (create_report), applied by protocol after milestone 31 ships | Opus, 3134 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
@@ -60,11 +59,6 @@ account, and the relays below, which live only in the agents:
   `ledger.txt`'s last line (the brief carries every rule and restore).
 - `schema-pass`: Will's yes quoted (its row), and `public.reports`' default anon and authenticated grants closed in
   part 1.
-- `crumbs-28`: a tenth item, relayed 2026-09-30: the Videos switch's line "Guests add clips as well as photos."
-  (`videos-switch.tsx:95`) says videos, since a guest's upload is never a clip in product copy (`reel.md`).
-  And build 30's red-team's LOW find, folded into its item 1: `/dashboard/<unknown id>` draws the right screen but
-  titles it "Event · Partyreel" with a 200 (the hub's `generateMetadata`, `page.tsx:96`, wins over `(app)/not-found.tsx`'s
-  "Event not found"), on the hub and each room.
 
 If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` holds a merge made after this note (push
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
@@ -77,7 +71,7 @@ Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcr
 boards). Batch 7 is merged whole; its records carry the rest.
 
 Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, disposable-mode r2, crumbs-13, lab-revamp
-stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, crumbs-15, loose-ends-wiring, contact-wiring, desk-tune, event-ready r1, window-notes, crumbs-16, album-motion-wiring, crumbs-17 (its migration applied by protocol, 20260929204753), unfence, crumbs-18, demo-framing-r2, about-press, menu-depth, crumbs-19, crumbs-20, crumbs-21 (its three migrations applied by protocol), privacy-hero-r4, shared-claims (its migration applied by protocol, 20260930010219), crumbs-22, crumbs-23 (its migration applied, 20260930013213), perf-404, lab-focus (gate 94's lab:demo outran the gate's 420 s alarm; re-run 23 of 23 in 490 s; the alarm is 900 s), crumbs-24 (its two migrations applied, 20260930071830 and 20260930072120), crumbs-26, crumbs-25 and stale-link (both on build 29), crumbs-27 (rides build 30), desk-tune-2 (the PREMISE re-read's fixes, rides build 31), gone-link-soft (build 30's MEDIUM, a soft 404 for a stale guest link, rides build 32).
+stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, crumbs-15, loose-ends-wiring, contact-wiring, desk-tune, event-ready r1, window-notes, crumbs-16, album-motion-wiring, crumbs-17 (its migration applied by protocol, 20260929204753), unfence, crumbs-18, demo-framing-r2, about-press, menu-depth, crumbs-19, crumbs-20, crumbs-21 (its three migrations applied by protocol), privacy-hero-r4, shared-claims (its migration applied by protocol, 20260930010219), crumbs-22, crumbs-23 (its migration applied, 20260930013213), perf-404, lab-focus (gate 94's lab:demo outran the gate's 420 s alarm; re-run 23 of 23 in 490 s; the alarm is 900 s), crumbs-24 (its two migrations applied, 20260930071830 and 20260930072120), crumbs-26, crumbs-25 and stale-link (both on build 29), crumbs-27 (rides build 30), desk-tune-2 (the PREMISE re-read's fixes, rides build 31), gone-link-soft (build 30's MEDIUM, a soft 404 for a stale guest link, rides build 32); then milestone 31 shipped (`7bd3b947`, 2026-09-30) and schema-pass part 2 applied (20260930204037); after it, crumbs-28 (nine ROADMAP items and two relays, merged at `8ea749bf`, rides build 33).
 
 ## Next, in order
 
