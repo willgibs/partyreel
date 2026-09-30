@@ -1,7 +1,7 @@
 ---
 track: crumbs-26
 status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "a79c7af7"            # the launch-prep SHA the branch was cut from
+cut: "47b15b80"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   - src/lib/guest/session-tokens.ts
@@ -10,6 +10,16 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/history-entry.ts
   - src/components/admin/report-queue.tsx
   - src/components/app/event-settings/door-page.tsx
+  # added by the lane, each with its reason:
+  - src/lib/guest/session-owner.ts                  # the owner rule: a name-only row is the device's ticket only while nobody is signed in
+  - src/lib/guest/session-owner.server.ts           # the check that applies it, and asks the claim before refusing a ticket that may be hers
+  - src/lib/guest/session-owner.test.ts             # the rule's own pins, the name-only case reshaped
+  - src/app/api/r2/presign-upload/route.test.ts     # its name-only case pinned the bug ("for anyone, signed out or signed in")
+  - src/app/api/r2/complete-upload/route.test.ts    # the same case at completion
+  - src/components/ui/popup.test.tsx                # item 2's test
+  - src/lib/history-entry.test.tsx                  # item 3's test
+  - src/components/admin/report-queue.test.tsx      # item 4's test
+  - src/components/app/event-settings/door-page.test.tsx  # item 5's test
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/guest-flow.md
   - docs/systems/auth-accounts.md

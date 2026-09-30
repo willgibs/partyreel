@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import { useContext, useState } from "react";
 
 /**
  * AN ENTRY A PLACE PUSHED, AND HOW ITS PAGE KNOWS IT LATER (crumbs-19). Three places kept this each their own
@@ -37,6 +38,20 @@ import { useState } from "react";
  * and an entry whose marker a refresh took is ours only at the address it was pushed at (`many`): a popup that
  * goes because the page navigated on (a link inside it) has no entry to undo, and taking one back would undo
  * the navigation.
+ *
+ * ★ A BACK CAN LAND ON A PAGE WITH NO HEAD, AND THEN THE ROUTER IS ASKED FOR IT AGAIN (crumbs-26, build 27's
+ * red-team; measured under `next dev`, Next 16.2.6, on the demo album). An entry pushed AT AN ADDRESS leaves the
+ * router's tree where it was (Next's patch restores the tree it has at the new URL), so a `router.refresh()` while
+ * the place is open is built on the page's old tree and answered for the place's address: the page's own segment
+ * never matches, and Next leaves that page's cached head empty (`abortRemainingPendingTasks` resolves it to null) for
+ * the Back to find. The Back then (the place's close or the phone's own) empties the whole head, the title, the
+ * description, the viewport and the icons, until a reload; the page's body is untouched. A refresh on the page the
+ * Back landed on renders it again, head and all. So once a place pushed at an address has gone, the entry watches
+ * the head for a short while (`HEAD_WATCH_MS`), and if the page it landed on has lost its `<title>` it asks the
+ * router's refresh, once. Only then: a Back whose head survived (no refresh while open; a revalidating action, whose
+ * answer seeds the place's own tree, so its Back fetches the page afresh) asks nothing, and a URL-less entry (a
+ * phone's popup) never lagged the router at all. The refresh is a round trip with the hazard below, taken only on a
+ * page that has already lost its head; `useOwnedEntry` hands the entry the router's own.
  *
  * ★ ONE BACK IN FLIGHT AT A TIME. A close asked twice before the first Back's `popstate` lands (two taps on
  * the X, Escape and a tap) used to call `history.back()` twice and leave the page altogether (crumbs-18 measured
@@ -79,8 +94,44 @@ import { useState } from "react";
 /** How long a Back is taken to be in flight when no `popstate` arrives to say it landed. */
 const BACK_FLOOR_MS = 1000;
 
+/**
+ * How long after a place pushed at an address has gone the page's head is watched (the header's head loss). A
+ * traversal from the cache commits within a frame or two; this is generous for a slow phone and short enough
+ * that a head changing much later is never read as the Back's.
+ */
+const HEAD_WATCH_MS = 2000;
+
 /** Ids are per page life; after a reload a place adopts the id it finds on its entry. */
 let pushes = 0;
+
+/** The page's own title, the one element of its head Next always renders (an SVG's `<title>` is never here). */
+const hasHead = () => document.head.querySelector("title") !== null;
+
+/**
+ * Watch the head after a Back off an entry pushed at an address, and ask `refresh` once if the page it landed on
+ * lost it (the header says why it can). A head already gone is asked for at once: the traversal can commit before
+ * the place's page hears the address moved. Next swaps a head in one commit, so a batch of mutations that leaves
+ * no title is a loss, never a swap in progress.
+ */
+function watchHead(refresh: () => void): void {
+  if (typeof MutationObserver === "undefined") return;
+  if (!hasHead()) {
+    refresh();
+    return;
+  }
+  let timer = 0;
+  const observer = new MutationObserver(() => {
+    if (hasHead()) return;
+    stop();
+    refresh();
+  });
+  function stop() {
+    observer.disconnect();
+    window.clearTimeout(timer);
+  }
+  observer.observe(document.head, { childList: true });
+  timer = window.setTimeout(stop, HEAD_WATCH_MS);
+}
 
 export type OwnedEntryOptions = {
   /**
@@ -90,6 +141,12 @@ export type OwnedEntryOptions = {
    * (whoever pushed it), and so is the entry this page pushed.
    */
   many?: boolean;
+  /**
+   * The router's refresh, asked when a Back off an entry this page pushed at an address lands on a page whose
+   * head Next lost (the header says when). `useOwnedEntry` hands the entry the router's own; left off (a page
+   * with no router: a test, the Library), nothing is asked.
+   */
+  refresh?: () => void;
 };
 
 export type OwnedEntry = {
@@ -128,8 +185,12 @@ export function createOwnedEntry(
   options: OwnedEntryOptions = {},
 ): OwnedEntry {
   const many = options.many === true;
+  const refresh = options.refresh;
   let mine: { id: string; at: string } | null = null;
   let leaving: { done: () => void } | null = null;
+  /* Whether the entry this page last pushed moved the address, and so left the router's tree behind it, and
+     whether the page had a head then: what the place's going watches for (the header's head loss). */
+  let pushedAt: { hadHead: boolean } | null = null;
 
   const marker = (): unknown =>
     (window.history.state as Record<string, unknown> | null)?.[key];
@@ -148,6 +209,7 @@ export function createOwnedEntry(
       if (href === undefined) window.history.pushState({ [key]: id }, "");
       else window.history.pushState({ [key]: id }, "", href);
       mine = { id, at: here() };
+      pushedAt = href === undefined ? null : { hadHead: hasHead() };
       letGo();
     },
 
@@ -219,6 +281,11 @@ export function createOwnedEntry(
     forget() {
       mine = null;
       letGo();
+      // A place pushed at an address has gone (its Back, the phone's own): the page it left for may have
+      // lost its head. Once per push, whatever the page's later renders say.
+      const pushed = pushedAt;
+      pushedAt = null;
+      if (pushed?.hadHead && refresh) watchHead(refresh);
     },
   };
   return entry;
@@ -226,12 +293,21 @@ export function createOwnedEntry(
 
 /**
  * One entry-of-ours per call site, stable for the component's life. `key` and `options` are read once: a call
- * site's are constants.
+ * site's are constants. It hands the entry the router's own refresh (the header's head loss) from the router the
+ * page stands in, read off Next's context rather than `useRouter()`, which throws where there is none (a popup in
+ * a test, the Library): there the entry simply asks nothing. The router is one instance for the app's life.
  */
 export function useOwnedEntry(
   key: string,
   options?: OwnedEntryOptions,
 ): OwnedEntry {
-  const [entry] = useState(() => createOwnedEntry(key, options));
+  const router = useContext(AppRouterContext);
+  const [entry] = useState(() =>
+    createOwnedEntry(key, {
+      ...options,
+      refresh:
+        options?.refresh ?? (router ? () => router.refresh() : undefined),
+    }),
+  );
   return entry;
 }

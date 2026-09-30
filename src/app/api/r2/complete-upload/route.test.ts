@@ -50,8 +50,13 @@ vi.mock("@/lib/supabase/admin", () => ({
     }),
   }),
 }));
+// The caller's own client: who is signed in, and the claim, which runs as them.
+const claimRpc = vi.fn();
 vi.mock("@/lib/supabase/server", () => ({
-  createClient: async () => ({ auth: { getUser: () => getUser() } }),
+  createClient: async () => ({
+    auth: { getUser: () => getUser() },
+    rpc: (fn: string, args: unknown) => claimRpc(fn, args),
+  }),
 }));
 vi.mock("@/lib/security/abuse-rate-limit-store", () => ({
   abuseHashes: (ip: string, kind: string, scope: string) => ({
@@ -141,6 +146,7 @@ beforeEach(() => {
   ticketBelongsTo(null);
   callerIs(null);
   checkAbuseRate.mockResolvedValue({ allowed: true });
+  claimRpc.mockResolvedValue({ data: 0, error: null });
 });
 
 describe("an account's ticket completes only for that account", () => {
@@ -172,14 +178,27 @@ describe("an account's ticket completes only for that account", () => {
     expect(createMedia).toHaveBeenCalledTimes(1);
   });
 
-  it("accepts a NAME-ONLY row's ticket for anyone, signed out or signed in", async () => {
+  it("accepts a NAME-ONLY row's ticket for someone signed out", async () => {
     ticketBelongsTo(null);
-    for (const caller of [null, OTHER]) {
-      callerIs(caller);
-      const { status } = await complete();
-      expect(status).toBe(200);
-    }
-    expect(createMedia).toHaveBeenCalledTimes(2);
+    callerIs(null);
+    const { status } = await complete();
+    expect(status).toBe(200);
+    expect(createMedia).toHaveBeenCalledTimes(1);
+  });
+
+  it("★ refuses a name-only row's ticket to a SIGNED-IN account the claim leaves it to: no row, no cookie (build 27's red-team)", async () => {
+    // Reshaped on purpose (crumbs-26): this accepted it "for anyone, signed out or signed in". A presign
+    // made before a sign-in in another tab reaches here too; the file goes up again on her own ticket.
+    ticketBelongsTo(null);
+    callerIs(OTHER);
+    const { status, body, setCookie } = await complete();
+    expect(status).toBe(403);
+    expect(body.code).toBe("session_other_account");
+    expect(claimRpc).toHaveBeenCalledWith("claim_anonymous_uploads", {
+      p_session_tokens: [TOKEN],
+    });
+    expect(createMedia).not.toHaveBeenCalled();
+    expect(setCookie).toBeNull();
   });
 
   it("outranks the identity gate here too: a confirmed row does not carry a signed-out caller", async () => {

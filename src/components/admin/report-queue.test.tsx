@@ -660,6 +660,54 @@ describe("a reopened report whose item is gone is that item's (crumbs-21, migrat
     expect(touches).toEqual(["-This report moves to Actioned"]);
   });
 
+  it("★ its tile in the sweep names the item, never the whole album (build 27's red-team)", () => {
+    // Reopened after the purge took its photo, the tile's line read "The whole album · <album>" beside its
+    // own "The photo was deleted.": the line fell back to the album whenever the uploader was unknown,
+    // which a gone item's report always is. The peek says "A photo"; so does the tile.
+    render(
+      <ReportQueue
+        proofOn={false}
+        entries={[
+          entry(
+            1,
+            {
+              media: null,
+              uploader: null,
+              deleted: { id: "m1", type: "photo" },
+            },
+            [report(1, { kind: "other" })],
+          ),
+        ]}
+      />,
+    );
+    const tile = document.querySelector(
+      '[data-report-lane="sweep"] [data-report-tile]',
+    ) as HTMLElement;
+    expect(
+      tile.querySelector('[data-report-fact="uploader"]')?.textContent,
+    ).toBe("A photo");
+    expect(tile.textContent).not.toMatch(/whole album/i);
+  });
+
+  it("an album's own report still says the whole album on its tile", () => {
+    render(
+      <ReportQueue
+        proofOn={false}
+        entries={[
+          entry(1, { subject: "album", media: null, uploader: null }, [
+            report(1, { kind: "other" }),
+          ]),
+        ]}
+      />,
+    );
+    const tile = document.querySelector(
+      '[data-report-lane="sweep"] [data-report-tile]',
+    ) as HTMLElement;
+    expect(
+      tile.querySelector('[data-report-fact="uploader"]')?.textContent,
+    ).toBe("The whole album");
+  });
+
   it("a phone says a desk closes it, in the item's own words", () => {
     render(<ReportQueue proofOn={false} entries={[gone(null)]} />);
     const card = document.querySelector(

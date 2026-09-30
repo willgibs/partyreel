@@ -495,6 +495,68 @@ describe("a layer a tap opened takes no tap until it has settled (crumbs-23)", (
     expect(taps).toBe(1)
   })
 
+  it("★ swallows the PRESS as well while it arrives: no row hears it, and its default (the focus that raises a phone's keyboard) never runs (crumbs-26, build 27's red-team)", () => {
+    // The second tap of a double tap on the code card's "Everything" landed in the Share sheet it had just
+    // opened: its click was swallowed, but its mousedown focused the "Custom link" field beside Save link
+    // (2 runs of 3), and on a phone a focused field raises the keyboard over the sheet.
+    setViewportWidth(375)
+    const heard: string[] = []
+    render(
+      <Popup defaultOpen>
+        <PopupContent kind="settings" routed aria-describedby={undefined}>
+          <PopupHeader title="Share" back="Album" />
+          <PopupBody>
+            <input
+              aria-label="Custom link"
+              onPointerDown={() => heard.push("pointerdown")}
+              onMouseDown={() => heard.push("mousedown")}
+            />
+          </PopupBody>
+        </PopupContent>
+      </Popup>,
+    )
+    const field = screen.getByRole("textbox", { name: "Custom link" })
+
+    running = [entrance]
+    // `fireEvent` answers false when a listener prevented the event's default.
+    expect(fireEvent.pointerDown(field, { pointerType: "touch", button: 0 })).toBe(false)
+    expect(fireEvent.mouseDown(field, { button: 0 })).toBe(false)
+    expect(heard).toEqual([])
+
+    // Settled: the same press is a press, and the field takes it.
+    running = []
+    expect(fireEvent.pointerDown(field, { pointerType: "touch", button: 0 })).toBe(true)
+    expect(fireEvent.mouseDown(field, { button: 0 })).toBe(true)
+    expect(heard).toEqual(["pointerdown", "mousedown"])
+  })
+
+  it("a press that began while it arrived takes its click with it, however late the finger lifts", () => {
+    // The entrance can run out between the finger going down and coming up: the press was still nobody's.
+    let taps = 0
+    const { row } = mountRow(() => taps++)
+    running = [entrance]
+    fireEvent.pointerDown(row(), { pointerType: "touch", button: 0 })
+    running = []
+    fireEvent.click(row(), { detail: 1 })
+    expect(taps).toBe(0)
+
+    // The next press starts on a settled layer and is a tap.
+    fireEvent.pointerDown(row(), { pointerType: "touch", button: 0 })
+    fireEvent.click(row(), { detail: 1 })
+    expect(taps).toBe(1)
+  })
+
+  it("a key's click after a swallowed press is still the key's: Enter on a row is never eaten for a finger that never lifted", () => {
+    let taps = 0
+    const { row } = mountRow(() => taps++)
+    running = [entrance]
+    fireEvent.pointerDown(row(), { pointerType: "touch", button: 0 })
+    running = []
+    // A keyboard's click carries no count (`detail` 0).
+    fireEvent.click(row(), { detail: 0 })
+    expect(taps).toBe(1)
+  })
+
   it("★ never lets the scrim's outside press dismiss a layer that is still arriving", async () => {
     const { open } = mountRow(() => {})
     const scrim = document.querySelector<HTMLElement>('[data-slot="popup-overlay"]')!

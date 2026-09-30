@@ -11,9 +11,18 @@
  * meaning the person, and a host blocking a guest would block the wrong one.
  *
  * ★ THE RULE, IN ONE LINE: a row that carries a `user_id` writes only for that signed-in account.
- * A name-only row (no `user_id`, no `verified_at`) stays the device's ticket: a typed name is not
- * an identity anybody proved, so whoever holds the device holds it, which is the whole shared-phone
- * bargain the names mode already makes.
+ * A name-only row (no `user_id`, no `verified_at`) is the device's ticket while nobody is signed in:
+ * a typed name is not an identity anybody proved, so whoever holds the device holds it, which is the
+ * whole shared-phone bargain the names mode already makes.
+ *
+ * ★ AND A SIGNED-IN ACCOUNT WRITES ONLY THROUGH A ROW OF ITS OWN (crumbs-26, build 27's red-team). Since
+ * `shared-claims` a sign-in rightly leaves other people's tickets on the phone (the claim asks about one
+ * typed under another name, and one typed under another address waits for its owner), and the upload
+ * then went up on whichever the phone held for that album: a signed-in account's photo was filed under
+ * the visitor's typed name, with no Delete of hers, and the phone asked her whether her own photo was
+ * hers. So a name-only row is never a signed-in account's to write through until the claim makes it
+ * hers (`whose_ticket`: her own name or address, the rule the sign-in's claim reads); the server check
+ * asks the claim at that moment, and a ticket it leaves is somebody else's, put down like an account's.
  *
  * ★ AND A CONFIRMED ROW WHOSE ACCOUNT IS GONE WRITES FOR NOBODY. Deleting an account nulls
  * `guests.user_id` (the FK is `on delete set null`, so the photographs stay in other hosts' albums)
@@ -54,14 +63,15 @@ export type SessionRowOwner = {
 
 /**
  * May a request by `viewerId` (the `getUser()` id, or null when signed out) write through this guest
- * row? A name-only row is anyone's who holds its token; an account's row is that account's alone; a
- * confirmed row with no account left is nobody's. Pure, so the one rule is unit-tested once and read
- * the same way by every route that asks it.
+ * row? A name-only row is the token holder's while nobody is signed in, and never a signed-in
+ * account's (only the claim makes it hers, which turns it into her row); an account's row is that
+ * account's alone; a confirmed row with no account left is nobody's. Pure, so the one rule is
+ * unit-tested once and read the same way by every route that asks it.
  */
 export function sessionBelongsTo(
   row: SessionRowOwner,
   viewerId: string | null,
 ): boolean {
   if (row.userId !== null) return row.userId === viewerId;
-  return !row.verified;
+  return !row.verified && viewerId === null;
 }

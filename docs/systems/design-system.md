@@ -488,8 +488,11 @@ Transition is its one sanctioned hole ([host-app.md](host-app.md)).
   class: the shape's scoped rule outranks a plain utility.
   ★ **A layer a tap opened takes no tap until it has settled**: it fades in under the finger and is hit-testable from
   its first frame, so a double tap's second tap landed on the row beneath (Settings' "This event", the Share door's
-  "Save link") and, at a desk, on the scrim, closing the panel it had just opened. `PopupContent` swallows a click inside
-  it, and refuses the scrim's outside press, while a CSS animation of its own is running (`arriving`, read off
+  "Save link") and, at a desk, on the scrim, closing the panel it had just opened. `PopupContent` swallows a press
+  inside it (pointerdown and mousedown, and with them the focus: a swallowed click's mousedown still focused the Share
+  sheet's Custom link field, which on a phone raises the keyboard, crumbs-26) and the click that press ends in, however
+  late the finger lifts (a key's click, `detail` 0, is never a finger's), and refuses the scrim's outside press, while
+  a CSS animation of its own is running (`arriving`, read off
   `getAnimations`: its entrance, and its exit; a transition such as the keyboard's lift, a loop that never ends and an
   engine with no `getAnimations` never count, and a reduced-motion clamp settles it in a frame). A harness that clicks a
   sheet within 300ms of opening it is swallowed too: wait for it to settle.
