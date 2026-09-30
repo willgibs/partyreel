@@ -40,9 +40,9 @@ which veil).
   door redirects; the signed-in pass PASS (the renew return, the hub past 1,000, the list always on, the look's
   Block, Settings whole, the reel, the owner's password album, the slug refusal). `admin.partyreel.com` is served by `partyreel-admin`
   (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel` (`=app`).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 28 (`f5005b56`): build 27
-  plus the pictures-first desk, the root 404 off every page, crumbs-24's six follow-ups and the fix for build 27's
-  MEDIUM; its red-team runs, then milestone 31 is his to say.
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 29 (`8c064f14`): the
+  pictures-first desk, lighter pages, every 404 server-drawn with its status, the fix for build 27's MEDIUM and six
+  lanes of small fixes; its red-team waits on Claude in Chrome reconnecting, then milestone 31 is his to say.
 - **The shared database** runs eighteen migrations applied 2026-09-29 and 30 (the block, the free shift, the operator removal
   purge, the help's feedback, the pass reminders switch, likes on private albums, the slug family, the doors, the triage
   rebuild, the invite list's admit, schema-pass part 1, a password ending every ask, a report keeping what it named,
