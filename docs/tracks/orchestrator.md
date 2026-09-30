@@ -39,7 +39,6 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `schema-pass` | the data architecture trimmed | merged at `57b17ace`; part 1 applied on Will's go-ahead (2026-09-29, his answer "Yes, apply part 1"; recorded `20260929210010`, the payload the file's md5; advisors 18/4/33; anon REST 42501; types regenerated at `c7a50adc`); a signed-in host walk on partyreel.com rides build 25's red-team as a follow-up; part 2 (`20260929170000`) after milestone 31 ships | Opus, 3132 | `54f414f9` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
 no question open (Q1, the `names` hang; Q2, schema-pass part 1; Q3, the notes-into-laws audit; Q4, the door migration:
@@ -53,55 +52,37 @@ left on 3131 to 3135 (and any orphaned headless Chrome), then `spawn-prompt.txt`
 note naming its pushed commits, what remains, its predecessor's transcript at
 `~/.claude/projects/-Users-gibby-local-ai-partyreel/157caa18-ec54-4aa9-a12a-04c86d5a667b/subagents/agent-<id>.jsonl`
 (grep it, never read it whole), that a stale `.next/dev/lock` may be deleted and that MCP tool ids change with the
-account, and the relays below, which live only in the agents:
-- Build 25's red-team (agent `a777878702cf5d407`): respawn from `../partyreel-wt/_scratch/redteam-25/brief.md` after its
-  `ledger.txt`'s last line (the brief carries every rule and restore).
-- `schema-pass`: Will's yes quoted (its row), and `public.reports`' default anon and authenticated grants closed in
-  part 1.
+account, and the relays below, which live only in the agents: none live (2026-09-30, after milestone 31).
 
 If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` holds a merge made after this note (push
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
 staged, uncommitted merge is finished by `usher/kit/merge-lane.sh`'s own steps or reset with `git merge --abort`.
 This session's scratchpad (`/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/157caa18-ec54-4aa9-a12a-04c86d5a667b/scratchpad`,
-until a reboot) holds the specs and gate logs (the next gate is 101); nothing there is needed that these lines and the
+until a reboot) holds the specs and gate logs (the next gate is 106); nothing there is needed that these lines and the
 manifests do not carry.
 
-Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcribed at `31de6aa0`: 41 answers on ten
-boards). Batch 7 is merged whole; its records carry the rest.
-
-Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, disposable-mode r2, crumbs-13, lab-revamp
-stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, crumbs-15, loose-ends-wiring, contact-wiring, desk-tune, event-ready r1, window-notes, crumbs-16, album-motion-wiring, crumbs-17 (its migration applied by protocol, 20260929204753), unfence, crumbs-18, demo-framing-r2, about-press, menu-depth, crumbs-19, crumbs-20, crumbs-21 (its three migrations applied by protocol), privacy-hero-r4, shared-claims (its migration applied by protocol, 20260930010219), crumbs-22, crumbs-23 (its migration applied, 20260930013213), perf-404, lab-focus (gate 94's lab:demo outran the gate's 420 s alarm; re-run 23 of 23 in 490 s; the alarm is 900 s), crumbs-24 (its two migrations applied, 20260930071830 and 20260930072120), crumbs-26, crumbs-25 and stale-link (both on build 29), crumbs-27 (rides build 30), desk-tune-2 (the PREMISE re-read's fixes, rides build 31), gone-link-soft (build 30's MEDIUM, a soft 404 for a stale guest link, rides build 32); then milestone 31 shipped (`7bd3b947`, 2026-09-30) and schema-pass part 2 applied (20260930204037); after it, crumbs-28 (nine ROADMAP items and two relays, merged at `8ea749bf`, rides build 33) and hide-strikes (Will's call B, merged at `669e1717`, its migration applied by protocol, 20260930205935).
+Batch 8 shipped whole as milestone 31 (`7bd3b947`, 2026-09-30; 40 lanes, crumbs-12 to gone-link-soft; their merges and
+records carry the rest). Merged in batch 9: crumbs-28 (`8ea749bf`), hide-strikes (`669e1717`, its migration applied by
+protocol, 20260930205935). Schema-pass part 2 is applied (20260930204037).
 
 ## Next, in order
 
 1. **Integrate each lane as it hands off** (no lane running; build 30's red-team and the PREMISE audits are agents, not lanes), each migration by protocol, one at a time: drift check, apply verbatim, the rolled-back refusals,
    advisors, types.
-2. **Milestone 31's candidate is build 31 plus `gone-link-soft`.** Build 30's red-team (agent `a323059321486cd11`, done
-   19:31Z; `../partyreel-wt/_scratch/redteam-28/ledger.txt`) found build 27's MEDIUM fixed and every drivable walk of
-   crumbs-24 to 27, lab-focus and perf-404 passing, and found:
-   - MEDIUM: stale-link's 404 on Vercel. A stale `/e/` or `/u/` link draws the root's 404, since Vercel serves its
-     `/404` for the proxy's 404 status. It is `gone-link-soft`'s (its row).
-   - LOW: two rows of hers in one second on a shared phone (the queue's silent join races the page's, and
-     `create_guest` always inserts).
-   - LOW: a declined newcomer admitted by `events_door_opened` on a Public trip (the trigger admits every waiting row,
-     blocked ones included).
-   - LOW: the dead hub link's title (crumbs-28's).
-   - NIT: the door after a sign-out still in flight (Send says "Enter a name" with no field).
+2. **Build 33** (milestone 31 plus crumbs-28 and hide-strikes) deploys when Will's desk sitting ends, since a deploy
+   mid-sitting swaps the build under him. Then its red-team:
+   - crumbs-28's steps (`git show 8ea749bf^2:docs/tracks/crumbs-28.md`, "For the next build's red-team");
+   - the instant hide walked from hi@willgibs.com's address (willg97's address holds two strikes, partyr33l's five
+     until 2027-03-28);
+   - crumbs-29's, if it has merged by then.
 
-   Build 31 (`96d154d6`: build 30 plus desk-tune-2, lab files only) is on the alias for Will's sitting. When
-   gone-link-soft merges:
-   1. build 32, and my curl proof on the alias (a stale `/e/` and `/u/` draw their own screens, 200, noindex);
-   2. milestone 31: **Will said yes** (2026-09-30, answered "Ship after the fix (Recommended)": build 32 on the alias,
-      the dead links proven, then merge, tag, deploy and the read-only prod walk with no further ask), the walk from
-      `../partyreel-wt/_scratch/prod-m31/brief.md`;
-   3. then crumbs-28 merges, schema-pass part 2 applies, and crumbs-29 takes the three LOWs and the NIT (two of them
-      migrations).
-
-   **The desk's PREMISE re-read is done**: two read-only audits checked every production claim on the six boards
-   against build 30's code. `privacy-hero` and `about-press` hold; `desk-tune-2` made the stale lines true (merged at
-   `138beee8`, on build 31). Gate 100 is green (lint, test 7,849, build, `lab:smoke` 173). Its one red step,
-   `lab:demo`'s `about-press.facts`, was a navigation that stalled twice on the dev server; the keyed desk run against
-   the alias pressed all 23 steps, 0 failing.
+   **crumbs-29** takes build 30's red-team's finds:
+   - LOW, two rows of hers in one second on a shared phone (the queue's silent join races the page's; `create_guest`
+     always inserts);
+   - LOW, a declined newcomer admitted by `events_door_opened` on a Public trip (the trigger admits every waiting row,
+     blocked ones included);
+   - NIT, the door after a sign-out still in flight.
+   With them go the door's predicate spelled twice and the reports' closed-status CHECK (ROADMAP's lines).
 3. **Seats as they free** (at most four lanes; `memory_pressure` before each; app work first, Will's note; `lab-focus`
    took the lab's phone fold with it). After his desk picks: the demo event (below); about-press's wiring (its three wiring calls,
    `git show 3ded6ba9^2:docs/tracks/about-press.md`: /press a temporary redirect, the llms summary kept, the kit's files
