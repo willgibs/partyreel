@@ -1,13 +1,12 @@
 ---
 track: crumbs-22
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "39426a2f"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   # the brief's own (item 1: the 404's sheet)
   - src/app/not-found.tsx
   - src/components/shared/trail/
-  - src/app/globals.css                                  # the sheet's one @import (the fold)
   # items 2 and 3: the FAQ (find-in-page; the thin wrapper gone)
   - src/components/marketing/faq-accordion.tsx
   - src/components/marketing/faq-accordion.test.tsx
@@ -39,7 +38,6 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/app/event-feed/review-keys.ts
   - src/components/admin/report-queue.tsx
   - src/components/shared/masonry.tsx
-  - src/components/ui/popup.tsx                          # its EPHEMERAL_LAYER pair is the home's now
   - src/components/ui/popup-kinds.ts                     # the alertdialog note points at layerIsUp
   # item 7: the refresh-then-write audit
   - src/lib/history-entry.ts                             # the header's edge note, refined with what was measured
@@ -78,25 +76,38 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **The hub's Settings reel switch and its own back arrow race, and the page reloads.** The audit found it and I built no fix. No handler refreshes and then writes the address (`refresh-then-write-policy.test.ts` pins that over all 46 `router.refresh()` calls); the exposure is two gestures inside one round trip: `settings-state.tsx` refreshes after the reel switch, and a tap on the page's back arrow (`entry.replace`, a native `replaceState` with a URL) before the refresh lands discards it and reloads onto the same URL, nothing lost. Recommended: leave it (the flash is rare and mild; the Deferred line carries the fix). The two ways to end it are design choices inside the hub: hold the address write until the refresh's transition settles, or refresh when the sheet closes (which would lose the Reel card updating beside the panel at a desk). His call if the flash is worth either.
+- **The 404's trail loads lazily; it was not folded into `globals.css`.** The brief allowed either; both end the preload (measured on `next start`). Lazy adds nothing to any page's stylesheet and takes the trail's code (about 3 KB gzipped) off every route; the fold would have kept the 404 byte for byte and added about 1 KB of CSS to every page. Built: lazy (`trail.lazy.tsx`). His to overrule: the fold is the `@import` and dropping the wrapper.
+- **The reduced mail's sentence.** "You're over your limit, so upgrade or free up space first" became "Putting them all back would take you over your plan again, so upgrade or free up space first" (`templates.ts`). The voice's and his to reword.
+- **A closed FAQ answer is found by find-in-page where the browser has `hidden="until-found"` (Chromium, Firefox); Safari has not shipped it and keeps `inert`, so its find still skips them.** Recommended: accept it (a native `<details>` would have been found in Safari, and the pick left `<details>` for the heading-in-summary trap).
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/design-system.md`: the confirm's role bullet: anything asking whether a layer is up asks `layerIsUp()` (`ui/layer-is-up.ts`, the one home of the roles), not a selector.
+- `docs/systems/marketing-content.md`: the FAQ bullet (a closed answer is `hidden="until-found"` where `onbeforematch` exists, its `beforematch` opens the question, React writes any `hidden` string as a plain `hidden`, the collapse's `content-visibility` clock, `inert` elsewhere) and the root 404 bullet (the trail loads lazily, and why: a root `not-found.tsx`'s tree rides every route's payload).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Marketing (performance): the root 404's whole tree rides every route's payload (Next serialises each layout's `not-found` into it): against a root 404 that renders nothing, `/login`, `/pricing`, `/about` and `/help` each carry about 110 KB more HTML (16 to 23 KB gzipped) and 43 to 56 KB more gzipped JS (10% of `/login`'s), on `next start` with the trail already lazy (its own code had added 3 KB more), so the fix is structural (a self-contained `global-not-found`, or the 404's chrome behind one client boundary), and the guest album, not measured, carries it by the same mechanism (from `crumbs-22`).
+- Marketing: the 404 itself warns "preloaded but not used" four times a load (`marketing.css` and the home hero's, river's and backdrop's sheets): its header and footer links prefetch `/`, `/pricing`, `/login`, `/contact`, `/features` and `/help` and the client preloads their sheets unused; unrelated to the trail, present before and after (from `crumbs-22`).
+- Host: the hub's Settings reel switch refreshes the router, and a tap on the page's back arrow or a row inside the refresh's round trip reloads the page (a native `replace` on an entry the hub pushed discards the pending refresh; measured with the same calls on `/pricing` under `next dev`, the matrix in `lib/history-entry.ts`'s header); write first and refresh after, or hold the address write until the refresh's transition settles (from `crumbs-22`).
+- Housekeeping: `ui/popup.tsx`'s `EPHEMERAL_LAYER` spells the menu and listbox pair `ui/layer-is-up.ts` holds (`EPHEMERAL_ROLES`); `popup.tsx` is `crumbs-23`'s, so it was left (from `crumbs-22`).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed:** `e9fcb167` (the work), `ede92506` (the 404's trail lazy instead of folded; `popup.tsx` and `globals.css` back to launch-prep's bytes), `36cf6901` (the refresh-then-write policy's `ALLOWED` list), `009f2682` (a doc fact's wording), then this manifest alone. launch-prep moved (privacy-hero-r4's merge, records, `crumbs-23` and `shared-claims` cut) and touched no path this lane owns or reads, so no sync commit; the head merged onto `aa3b37c2` in a scratch worktree with no conflict and `src/lib/track-manifests.test.ts` green there, and `crumbs-23` owning `ui/popup.tsx` is why `ede92506` gave it back (the lane guard refuses two live owners).
+- **Gates on `36cf6901`, each on its own exit code:** `pnpm typecheck` 0; `pnpm lint` 0 (no warnings); `pnpm test` 0 (634 files, 7,517 tests); `zsh scripts/build-lock.sh pnpm build` 0; `pnpm lab:smoke --base http://localhost:3135` 0 (175 checks, 0 failing, on `pnpm dev`) and 0 under `next start --production` (181, 0 failing). No board, so no `lab:demo`. Its PREMISE lines name three boards whose asks describe `marketing-content.md` (about-press, demo-framing) and `event-experience.tsx` (disposable-mode): what changed there is a doc fact on the FAQ and the 404 and one comment.
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): 39 files plus this one, every one under an `owns` prefix except the two system docs listed above; `src/components/guest/event-experience.tsx` (a comment), `src/lib/use-media-query.ts` (a comment) and `src/components/ui/popup-kinds.ts` (a comment) are in `owns` for that.
+- **The items, one line each** (each test red on the old code where a test can hold it, and named):
+  1. **The 404's sheet no longer preloaded on every page:** `not-found.tsx` draws the trail through `trail.lazy.tsx`, a client module's `next/dynamic` import (a real split), so the trail's code and `trail.css` load with the 404 and on no other route; `trail-lazy.test.ts` walks the 404's eager import graph (red against `origin/launch-prep`'s `not-found.tsx`: four failing, the sheet, the trail's code, the wrapper, the lazy edge) and `trail.lazy.test.tsx` holds the wrapper. Read in a browser on `next start`: `preload as=style` 0 in the HTML of `/`, `/pricing`, `/help`, `/login`, `/about`, `/events`, `/features/album`, and no warning on a fresh tab at `/pricing`; the 404 draws with the computed styles it had (20 cards, `.trl-*` values equal to the baseline read on dev), at 1440 and 375 by screenshot, its server HTML holding the stage, the words and the lazy sheet.
+  2. **A closed FAQ answer is found by find-in-page again:** `faq-accordion.tsx` sets `hidden="until-found"` by hand on each closed panel (React 19.2 writes any `hidden` string as a plain `hidden`, measured with `renderToStaticMarkup`) where `onbeforematch` exists, listens for `beforematch` on the list and opens that question (one open at a time, the headings and buttons untouched), and falls back to `inert` elsewhere; `marketing.css` lists `content-visibility` beside the height clock with `allow-discrete` so a closing answer stays drawn until it has collapsed. `faq-accordion.test.tsx` (two failing on the old component: hidden until found, opened by `beforematch`; the inert fallback, the server's markup, the CSS clock and the headings pinned). Driven on `next start` at `/events`: 5 of 5 closed panels `hidden="until-found"`, none inert; a fragment link into a closed answer (the browser's own reveal path; this pane has no Ctrl+F) fired `beforematch`, opened that question and closed the open one; a collapse held `content-visibility: visible` while the height ran 56, 41, 1, 0 and hid it at the end, an open drew at once.
+  3. **`HomeFaqAccordion` deleted** (`sections/home/faq-accordion.tsx`); `faq.tsx` and `pricing/page.tsx` render `FaqAccordion` (the home keeps `mt-10`, pricing's `Reveal` still carries the one gap: `mt-0`, read in a browser: 40 and 0 px); `pricing-page.test.ts` pins `<FaqAccordion items={PRICING_FAQ_ITEMS} className="mt-0" />` and `faq-accordion.test.tsx` refuses a second accordion file.
+  4. **The reduced mail:** `overCapReducedEmail` says putting them all back would take the account over its plan again; `templates.test.ts` (red on the old words: "You're over your limit" straight after "back under your plan").
+  5. **One `useHydrated`:** `lib/shared/use-hydrated.ts` and all eight hand-written copies gone (the four named, plus `entry-modal.tsx`, `user-menu.tsx`, `motion-tuner.tsx` and the FAQ's own); `use-hydrated-one-home.test.ts` (red on the old tree: eight copies listed), `use-hydrated.test.tsx` (false to the server and the hydrating render, true after, no mismatch); `bulk-bar.test.tsx`'s source pin named the retired inline store, so it now renders the bar on the server (`title` attributes, no tooltip) and on the client, and keeps its real scar (SSR'd Radix tooltips broke hydration once).
+  6. **One `layerIsUp()`:** `ui/layer-is-up.ts` (dialog, confirm, menu, listbox; `except` leaves the caller's own layer out, `dialogsOnly` is the album address's wait), asked by `review-keys.ts`, `report-queue.tsx` (gains `listbox`) and `masonry.tsx` (unchanged in what it counts); `layer-is-up.test.tsx` (red on the old tree at `report-queue.tsx:292`, `review-keys.ts:64` and `masonry.tsx:189`; a real confirm is an `alertdialog` and counts).
+  7. **The refresh-then-write reload, audited:** measured on `/pricing` under `next dev` in Chrome 152 (fourteen scenarios; the matrix, the mechanism and the corrected window are in `lib/history-entry.ts`'s header): the window is the refresh's whole round trip (about 190 ms here), not 20 ms; a native URL write in it is a `restore` that discards the pending refresh (`dispatchAction`) and reloads onto the same URL when the router's last rendered address differs from the one applied, which any earlier native query-moving write leaves true (a helper-pushed entry, or a deep-linked one after its first replace); the write before the refresh, Back, `router.push`/`replace`, a URL-less `pushState` and a write back to the rendered URL are safe. All 46 `router.refresh()` calls in 26 files read: none is followed, in its own function, by a call that applies a URL, `event-experience.tsx`'s ten included; `refresh-then-write-policy.test.ts` pins that (its scan follows `useOwnedEntry`, `useEventShare`, `useReelParam` and same-file writers; 27 tests, the shapes it refuses and passes named). The two-gesture exposure is the Question and the Deferred line above.
+- **Assets requested from Will:** none.
+- **Board ideas:** the root 404's payload tax (Deferred, first line) is a structural fix worth a look at the wiring round, not a board; a board would only be the 404's own look, which did not change.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none.
+- **Calls his to overrule:** the reduced mail's words; lazy over fold for the 404's trail; Safari keeps `inert` (find skips its closed answers); the eight `useHydrated` copies migrated including three outside the four named (`entry-modal.tsx`, `user-menu.tsx`, `motion-tuner.tsx`), so a policy test could refuse a ninth without an allow-list; `report-queue.tsx` now also yields its keys to an open listbox, as the review room's do; the hub Settings race left unfixed (Questions).
+- **Look at first:** `/events` in Chrome, a phrase from a closed answer (the panel opens, the open one closes); the 404 at 1440 and 375 (unchanged); the header of `src/lib/history-entry.ts` (what was measured); the first Deferred line (110 KB of HTML and 43 to 56 KB of gzipped JS on every page from the root 404).
