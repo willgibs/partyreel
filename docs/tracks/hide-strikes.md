@@ -6,6 +6,11 @@ board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   - src/lib/db/migration-guards.test.ts
   - docs/systems/testing-verification.md
+  # added at the lane's plan (each file before its first edit): the brief's migration, and the two comments
+  # that state the bar in words (the brief's "every line that states the bar"); no other lane claims them
+  - supabase/migrations/20260930120000_hide_strikes.sql
+  - src/lib/reports/reporter.server.ts
+  - src/components/guest/report-dialog.tsx
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/admin-observability.md
   - docs/systems/database-security.md
@@ -60,7 +65,19 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **Which dismissals are strikes?** Built: every child-abuse report from the address that the operator dismissed
+  (the brief's definition, and the old bar's own reach), so a dismissed album report, or an item report whose hide
+  a 24-hour limit refused, is a strike too, though neither took anything down. The alternative counts only a
+  dismissed report whose hide took its item down: one conjunct, `r.hid_at is not null` (a dismissal keeps
+  `hid_at`). Recommended: as built. A false report of the worst kind is what he disagreed with, hidden or not, and
+  "three dismissed" is the rule an operator can hold in her head.
+- **The test addresses hold two and five strikes, not one each.** Live on 2026-09-30, by their keyed hashes:
+  willg97's address holds two dismissed child-abuse reports and partyr33l's five, all dismissed 2026-09-29;
+  hi@willgibs.com's holds none. So after the apply willg97's hides again with room for one more dismissal, and
+  partyr33l's stays barred until 2027-03-28, when its third strike lapses. Recommended: keep them. They are
+  disposable data the launch round's test-data reset clears, and a red-team walks the hide from hi@willgibs.com's
+  address on willg97's albums. The alternative is deleting the operator's five now. testing-verification.md says
+  it as it stands.
 
 ## System-doc edits (in place, owned facts only)
 
