@@ -41,9 +41,9 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const profile = await getPublicProfile(slug);
-  // A handle nobody holds is titled as the 404 it is, in the head and after hydration alike: the
-  // not-found's own metadata, `not-found.metadata.ts` (it said "Profile", which replaced the 404's
-  // title once the page hydrated).
+  // A handle nobody holds is titled as the not-found it is, "Profile not found" and noindex: the
+  // not-found's own metadata, `not-found.metadata.ts` (it said "Profile"). The page answers it at
+  // 200 (a soft 404), so this noindex is all that keeps a dead handle out of an index.
   if (!profile) return notFoundMetadata;
   const name = profile.display_name ?? `@${profile.slug}`;
   // Their own line when they wrote one: it is the truest description of the
@@ -68,14 +68,10 @@ export async function generateMetadata({
  *  ★ AND THAT BOUNDARY IS IN THE PAGE RATHER THAN IN A loading.tsx, WHICH IS A
  *  LANDMINE WORTH THE PARAGRAPH. A loading file wraps the WHOLE route, so Next
  *  flushes its skeleton before the page runs: a dead handle would paint a
- *  skeleton before its not-found, and when the page still threw `notFound()`
- *  it answered 200 (measured on this route, in dev and against `next start`),
- *  and a public, indexable page that soft-404s is a growth surface teaching
- *  search engines that a dead handle is a real page. The 404 status is now the
- *  proxy's, set before anything renders (`lib/gone-link`), and the page draws
- *  its not-found at the top, where the RPC is; only the slow half (a presign
- *  per cover, both arms) streams in behind the skeleton, which is what the
- *  wait was ever about. */
+ *  skeleton before its not-found. So the page draws its not-found at the top,
+ *  where the RPC is, and a dead handle's first paint is its own screen; only
+ *  the slow half (a presign per cover, both arms) streams in behind the
+ *  skeleton, which is what the wait was ever about. */
 async function PartyGrid({ profile }: { profile: PublicProfile }) {
   const [hostedCovers, attendedCovers] = await Promise.all([
     getPublicProfileCoverUrls(profile.hosted_events),
@@ -202,11 +198,11 @@ function GridSkeleton({ count }: { count: number }) {
 export default async function PublicProfilePage({ params }: PageProps) {
   const { slug } = await params;
   const profile = await getPublicProfile(slug.toLowerCase());
-  // Missing handle -> 404; we never distinguish "no user" from "no slug". ★ The segment's own
-  // screen, drawn here and never through `notFound()`, whose throw is served as Next's error shell
-  // (a white page until the script has run); the 404 status is the proxy's (`lib/gone-link`), set
-  // before this renders. The screen itself rather than the not-found's lazy boundary, which would
-  // widen two references on every profile load.
+  // Missing handle -> the not-found; we never distinguish "no user" from "no slug". ★ The segment's
+  // own screen, drawn here and never through `notFound()`, whose throw is served as Next's error
+  // shell (a white page until the script has run), at 200 and noindex: a soft 404, as the album
+  // page's (`e/[token]/page.tsx` says why). The screen itself rather than the not-found's lazy
+  // boundary, which would widen two references on every profile load.
   if (!profile) return <ProfileNotFoundScreen />;
 
   // The viewer (for the follow affordance). getUser() — never getSession().
@@ -378,11 +374,11 @@ export default async function PublicProfilePage({ params }: PageProps) {
 
         {/* ★ THE OWNER MODE, AND ★ NOT IN A loading.tsx. The paragraph at
             PartyGrid above applies here: a loading FILE would wrap this
-            whole route in Suspense, flush the shell before the page runs, and
-            make a dead handle answer 200 instead of 404 on a public, indexable
-            page. So the owner's three feeds stream behind their OWN in-page
-            boundary, exactly as the card grid does, and the 404 decision stays
-            at the top of the page where the RPC is.
+            whole route in Suspense and flush its skeleton before the page
+            runs, so a dead handle would paint it before its not-found. So the
+            owner's three feeds stream behind their OWN in-page boundary,
+            exactly as the card grid does, and the not-found decision stays at
+            the top of the page where the RPC is.
 
             A visitor's render carries none of it: `isSelf` is false, nothing
             below is constructed, and not one of the three personal queries

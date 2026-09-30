@@ -7,7 +7,7 @@ import { notFoundMetadata } from "./not-found.metadata";
 // Tailored 404 for a link that resolves to nothing. ★ The album page never throws for one any more: it draws the
 // screen itself, headed by the same metadata (stale-link; a thrown `notFound()` is served as Next's error shell, a
 // white page until the script has run, and `page.tsx` says why). This stays the segment's boundary for a
-// `notFound()` thrown under it, and the not-found whose head Next renders under the proxy's 404.
+// `notFound()` thrown under it.
 //
 // ★ THIS FILE DRAWS NOTHING ITSELF, AND MUST STAY THAT WAY (crumbs-25, after `perf-404` did it for the root).
 // Next renders a segment's not-found into EVERY page under it, whether or not the page 404s, so a screen

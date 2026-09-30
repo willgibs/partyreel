@@ -372,11 +372,13 @@ Six `not-found.tsx` files share one presentational core, `shared/not-found-scree
   phone decodes), so the win is parse and decode work more than wire. ★ A `notFound()` thrown while a page renders is
   served as Next's error shell (`<html id="__next_error__">`, an empty body) and drawn by the client once its script
   has run, whatever the screen is (about six seconds of white on Slow 4G at 4x CPU, never drawn without script), and
-  Next 16.2.6 gives a page no way to set its own status: a page arrives server-drawn with a 404 only when the status
-  is set before it renders, by routing or the proxy. So the three links a stranger holds never throw it
-  (stale-link): the proxy sends a guest link or a handle that names nothing on with a 404 (`lib/gone-link`: the
-  page's own RPC asked by nobody, one read on each document request, and any doubt leaves the status alone) and the
-  page draws its segment's not-found itself, which Next heads with the not-found's metadata; and every marketing
+  Next 16.2.6 gives a page no way to set its own status. So the three links a stranger holds never throw it
+  (stale-link): the guest link and the profile draw their segment's not-found themselves, in the HTML, titled by its
+  metadata and noindex, and answer 200, a soft 404 (gone-link-soft). ★ A status the proxy sets on a request it sends
+  on (`NextResponse.next({ status: 404 })`) is answered on Vercel with the platform's own `/404`, the root's page from
+  cache, and the page never renders (build 30's red-team: a stale guest link showed the site's generic 404; the
+  status passes on `next start`, which honours it). The proxy's only 404s are its two rewrites to the root's own page
+  (the surface rule's, the lab gate's), the page Vercel's `/404` serves anyway. And every marketing
   `[slug]` page declares `dynamicParams = false`, so an unknown slug is routing's 404 with the root's screen
   (`marketing-dynamic-params-policy.test.ts`). What still throws (the host app's, the portal's, a cinema page's own)
   paints its screen one request after the boundary's chunk.
