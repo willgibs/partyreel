@@ -72,7 +72,6 @@ below hold the rest by surface.
 - Exports: a part's "saved" needs the Worker to report a finished stream (a signed call into `export_log`, or a status the walk polls); the walk says "downloading" meanwhile (from `export-wiring`).
 - Admin: `/admin/exports` counts mints only; a check that found objects gone and a stream's skips live in the Worker's logs (`export-check`, `export-stream`), and a report back into `export_log` would put them on the page (from `export-wiring`).
 - Exports: a walk lives in the page, so a reload mid-walk forgets it; its cursor in sessionStorage could offer the next part again (from `export-wiring`).
-- Database: drop `events.show_guest_list` and its host UPDATE grant (a destructive contract migration, on Will's yes); nothing reads or writes it since `safety-wiring` (`social.guest-identity.test.ts` "the retired key...", and the guard "no winning function body reads show_guest_list").
 - Host: the Guests room, always on now and home to the Blocked foot, is still the flat chip list drawn when it was opt-in; how it reads at 200 guests with blocks at its foot is a board (from `safety-wiring`).
 - Guests: a way to ask the host to take a photo down, short of a report: the help article and admin-triage's `steer` both say "ask the host first", and nothing in the product lets a guest ask; a board (from `triage-r2`).
 - Admin: an operator release for a squatted custom link, from a report on `/e/<slug>`, now that a free account can hold one (from `pricing-wiring`).
