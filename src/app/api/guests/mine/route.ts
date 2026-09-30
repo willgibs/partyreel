@@ -37,6 +37,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import {
+  countKeptTicketUploads,
   listOwnUploadStatuses,
   listSessionMediaIds,
 } from "@/lib/db/mutations/guest-media";
@@ -80,6 +81,20 @@ const statusesSchema = z.object({
   qr_token: z.string().trim().min(1),
   session_token: z.string().trim().min(1).optional(),
   statuses: z.literal(true),
+});
+
+/**
+ * ★ WHETHER THIS PHONE'S PHOTOS HERE ARE HERS NOW (`kept: true`, build 33's red-team): `{ ok, kept }`, the live
+ * uploads on the body's ticket, counted only when its row is the signed-in account's (`getUser()`, never
+ * `getSession()`) and the door lets it through. The album asks it once, when a confirm door opened there and her
+ * own claim moved nothing, because the page's door read runs the claim first (`sortTickets`) and her claim alone
+ * cannot tell a ticket already hers from one it left (`claim-uploads.ts`). A number, never an id; 0 for every "no":
+ * signed out, another guest's ticket on a shared phone, a door that holds it.
+ */
+const keptSchema = z.object({
+  qr_token: z.string().trim().min(1),
+  session_token: z.string().trim().min(1),
+  kept: z.literal(true),
 });
 
 /** The empty answer, used for every "no" this route is allowed to give. */
@@ -170,6 +185,31 @@ async function answerStatuses(
   return NextResponse.json({ ok: true, items: told }, { headers: PRIVATE });
 }
 
+async function answerKept(
+  request: Request,
+  input: { qr_token: string; session_token: string },
+): Promise<Response> {
+  const refused = await breadthRefusal(request, input.qr_token);
+  if (refused) return refused;
+  const kept = async (): Promise<number> => {
+    const userId = await viewerId();
+    if (!userId) return 0;
+    const event = await getEventByQrToken(input.qr_token);
+    if (!event.ok || !(await letsThrough(event.data, input.session_token))) {
+      return 0;
+    }
+    return countKeptTicketUploads({
+      eventId: event.data.id,
+      sessionToken: input.session_token,
+      userId,
+    });
+  };
+  return NextResponse.json(
+    { ok: true, kept: await kept() },
+    { headers: PRIVATE },
+  );
+}
+
 export async function POST(request: Request) {
   let body: unknown;
   try {
@@ -180,6 +220,9 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
+
+  const keep = keptSchema.safeParse(body);
+  if (keep.success) return answerKept(request, keep.data);
 
   const asked = statusesSchema.safeParse(body);
   if (asked.success) return answerStatuses(request, asked.data);

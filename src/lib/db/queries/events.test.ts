@@ -48,6 +48,7 @@ const {
   CARD_STILLS,
   getEventCardStats,
   getEventCardStills,
+  getEvent,
   getEventCoverUrls,
   getReelProgress,
   listEvents,
@@ -133,6 +134,39 @@ describe("listEvents: every live event, newest first", () => {
   it("throws on a failed page rather than showing a shorter list", async () => {
     fake = createFakePostgrest({ tables: {} });
     await expect(listEvents()).rejects.toThrow(/dashboard: events/);
+  });
+});
+
+/**
+ * ★ AN ID THAT IS NOT A UUID NAMES NO EVENT, AND IS NEVER READ (build 33's red-team). `/dashboard/not-a-uuid` reached
+ * `.eq("id", …)`, Postgres refused the cast (22P02), the read threw, and the hub and every room drew "Something went
+ * wrong" with no title and filed an error each hit, where a well-formed id that names nothing draws the not-found
+ * (crumbs-28). `getEvent` is the read every one of those pages decides on, so the shape is asked there, first.
+ */
+describe("getEvent: the host's one event, or none", () => {
+  it("★ answers a malformed id as no event, without a request", async () => {
+    fake = createFakePostgrest({ tables: { events: [event(0)] } });
+    for (const id of [
+      "not-a-uuid",
+      "12345",
+      // A uuid with a letter no hex digit is, and one cut short: a mangled or truncated link.
+      "g0000000-0000-4000-8000-000000000000",
+      "00000000-0000-4000-8000-00000000000",
+      "'",
+      "",
+    ]) {
+      await expect(getEvent(id), id).resolves.toBeNull();
+    }
+    expect(fake.requests).toEqual([]);
+  });
+
+  it("reads a well-formed id once, found or not", async () => {
+    fake = createFakePostgrest({ tables: { events: [event(0)] } });
+    await expect(getEvent(uuid("e", 0))).resolves.toMatchObject({
+      id: uuid("e", 0),
+    });
+    await expect(getEvent(uuid("e", 1))).resolves.toBeNull();
+    expect(fake.requests).toHaveLength(2);
   });
 });
 

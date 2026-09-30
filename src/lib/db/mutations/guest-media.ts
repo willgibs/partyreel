@@ -35,7 +35,7 @@ import "server-only";
 
 import type { PostgrestError } from "@supabase/supabase-js";
 
-import { mustQuery } from "@/lib/db/must-query";
+import { mustCount, mustQuery } from "@/lib/db/must-query";
 import { inChunks, readAllPages } from "@/lib/db/read-all";
 import { captureError } from "@/lib/observability/sentry";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -129,6 +129,54 @@ export async function listAccountMediaIds(input: {
       .eq("event_id", input.eventId)
       .eq("user_id", input.userId),
   );
+}
+
+/**
+ * THE LIVE UPLOADS ON THIS DEVICE'S TICKET HERE, ONCE THE TICKET IS THE ACCOUNT'S (build 33's red-team): whether a
+ * confirmation carried this phone's photos into her account, which the album asks when her own claim moved nothing
+ * because a read on the page claimed the ticket first (`claim-uploads.ts`).
+ *
+ * The TICKET, never the account: her rows from another device say nothing about what this phone kept, and a ticket
+ * the claim left (another guest's name on a shared phone, an address that is not hers) is not her row, so it counts
+ * 0 however many photos her account holds here. "Live" as the claim counts it: not removed. A head count, so no row
+ * cap. Like every read here, FAIL CLOSED, LOUDLY: 0 and a captured error, never a thrown request.
+ */
+export async function countKeptTicketUploads(input: {
+  eventId: string;
+  sessionToken: string;
+  userId: string;
+}): Promise<number> {
+  const token = input.sessionToken.trim();
+  if (token.length < MIN_SESSION_TOKEN) return 0;
+  const admin = createAdminClient();
+  try {
+    // One row at most: a session token names one guest row (guests.session_token is unique).
+    const row = await mustQuery(
+      admin
+        .from("guests")
+        .select("id")
+        .eq("event_id", input.eventId)
+        .eq("session_token", token)
+        .eq("user_id", input.userId)
+        .maybeSingle(),
+      "kept ticket: row",
+    );
+    if (!row) return 0;
+    return await mustCount(
+      admin
+        .from("media")
+        .select("id", { count: "exact", head: true })
+        .eq("guest_id", row.id)
+        .neq("status", "removed"),
+      "kept ticket: uploads",
+    );
+  } catch (error) {
+    captureError("media", error, {
+      seam: "kept_ticket_fail_closed",
+      eventId: input.eventId,
+    });
+    return 0;
+  }
 }
 
 /**

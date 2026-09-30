@@ -19,6 +19,7 @@ import { readCoveredItems } from "@/lib/db/queries/reports";
 import { formatAdminTimestamp } from "@/lib/format/admin-time";
 import { formatCount } from "@/lib/format/count";
 import { toModerationFeedItems } from "@/lib/r2/grid-items";
+import { isUuidShape } from "@/lib/validation/uuid-shape";
 import { PageHeading } from "@/components/shared/page-heading";
 
 export const dynamic = "force-dynamic";
@@ -36,8 +37,9 @@ export async function generateMetadata({
   const ctx = await requireAdmin();
   if (ctx.aal !== "aal2") return { title: "Album" };
   const { eventId } = await params;
-  // ★ A record that is gone is titled as the 404 it is (crumbs-28): the page draws its not-found itself.
-  return (await readAlbum(eventId))
+  // ★ A record that is gone is titled as the 404 it is (crumbs-28): the page draws its not-found itself. So is an id
+  // that is not one, which is never read (the page says why).
+  return isUuidShape(eventId) && (await readAlbum(eventId))
     ? { title: "Album" }
     : adminNotFoundMetadata;
 }
@@ -73,10 +75,12 @@ export default async function AdminAlbumDetailPage({
   const { eventId } = await params;
   // ★ The worst kinds arrive covered here as in Reports (build 23's NIT-7): every item of the album any
   // report names as one, read by the rule's one home, and a covered item is never signed.
-  const [album, covered] = await Promise.all([
-    readAlbum(eventId),
-    readCoveredItems({ eventId }),
-  ]);
+  // ★ AN ID THAT IS NOT ONE NAMES NO ALBUM, AND IS NEVER READ (build 33's red-team): both reads handed it to a
+  // uuid column, Postgres refused the cast (22P02), and the page answered 500 with "Something went wrong" and filed
+  // an error each hit. Asked after the gate and before any read, a mangled link is an album that is not there.
+  const [album, covered] = isUuidShape(eventId)
+    ? await Promise.all([readAlbum(eventId), readCoveredItems({ eventId })])
+    : [null, undefined];
   // ★ DRAWN HERE, NEVER THROUGH `notFound()` (crumbs-28, the guest link's answer from `stale-link`): a thrown one is
   // served as Next's error shell, an empty body until the script has run. Drawn, it is in the HTML, titled by
   // generateMetadata's not-found answer. A 200 (a soft 404, the manifest's Question): the portal is behind the admin

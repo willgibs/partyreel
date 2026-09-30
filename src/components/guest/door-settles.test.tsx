@@ -96,11 +96,13 @@ vi.mock("@/lib/guest/use-confirm-return", () => ({
 const queueOptions = vi.hoisted(() => ({
   current: null as null | {
     onDoorNeeded?: (ticketDown?: Promise<void>) => void;
+    ownerEventId?: string | null;
   },
 }));
 vi.mock("@/lib/guest/use-upload-queue", () => ({
   useUploadQueue: (options: {
     onDoorNeeded?: (ticketDown?: Promise<void>) => void;
+    ownerEventId?: string | null;
   }) => {
     queueOptions.current = options;
     return {
@@ -186,7 +188,15 @@ const EVENT = {
 } as unknown as GuestEvent;
 
 /** One server render of the page: its props are new objects every time, the seed included. */
-function Page({ seed, verified }: { seed: Promise<never>; verified: boolean }) {
+function Page({
+  seed,
+  verified,
+  owner = false,
+}: {
+  seed: Promise<never>;
+  verified: boolean;
+  owner?: boolean;
+}) {
   return (
     <Suspense fallback={null}>
       <EventExperience
@@ -200,7 +210,7 @@ function Page({ seed, verified }: { seed: Promise<never>; verified: boolean }) {
         gate={null}
         needsName={false}
         hostAvatarUrl={null}
-        isOwner={false}
+        isOwner={owner}
         canDeleteIds={[]}
         isAuthed={verified}
         isVerified={verified}
@@ -287,5 +297,25 @@ describe("the door settles on who is here before it asks", () => {
     await waitFor(() => expect(joinEvent).toHaveBeenCalledTimes(1));
     await act(async () => {});
     expect(refresh).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * ★ THE OWNER'S ADD IS THE HOST'S (crumbs-29's Deferred): the page hands its one queue the event's id when the album is
+ * the viewer's own, so her files ride the host's pair and never a guest ticket at her own door (the queue's pins say
+ * what it does with it). Everyone else's files ride their ticket, as ever.
+ */
+describe("the page's one queue, for the album's owner", () => {
+  it("★ is told the album is hers, by its event's id", async () => {
+    render(<Page seed={seed()} verified owner />);
+    await waitFor(() =>
+      expect(queueOptions.current?.ownerEventId).toBe(EVENT.id),
+    );
+  });
+
+  it("is told nothing of the kind for a guest", async () => {
+    render(<Page seed={seed()} verified />);
+    await waitFor(() => expect(queueOptions.current).not.toBeNull());
+    expect(queueOptions.current?.ownerEventId).toBeNull();
   });
 });

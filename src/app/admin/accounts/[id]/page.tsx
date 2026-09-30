@@ -19,6 +19,7 @@ import { getAccountDeletionState } from "@/lib/lifecycle/account-deletion";
 import { formatAdminDate, formatAdminTimestamp } from "@/lib/format/admin-time";
 import { formatCount } from "@/lib/format/count";
 import { formatBytes } from "@/lib/utils";
+import { isUuidShape } from "@/lib/validation/uuid-shape";
 import { PageHeading } from "@/components/shared/page-heading";
 import { DeleteAccountControl } from "./delete-account-control";
 
@@ -36,8 +37,11 @@ export async function generateMetadata({
   const ctx = await requireAdmin();
   if (ctx.aal !== "aal2") return { title: "Account" };
   const { id } = await params;
-  // ★ A record that is gone is titled as the 404 it is (crumbs-28): the page draws its not-found itself.
-  return (await readAccount(id)) ? { title: "Account" } : adminNotFoundMetadata;
+  // ★ A record that is gone is titled as the 404 it is (crumbs-28): the page draws its not-found itself. So is an id
+  // that is not one, which is never read (the album page says why).
+  return isUuidShape(id) && (await readAccount(id))
+    ? { title: "Account" }
+    : adminNotFoundMetadata;
 }
 
 function Row({
@@ -64,8 +68,9 @@ export default async function AdminAccountDetailPage({
   if (ctx.aal !== "aal2") return null;
 
   const { id } = await params;
-  const account = await readAccount(id);
-  // Drawn here, never thrown: the album page says why (crumbs-28).
+  // An id that is not one names no account and is never read (build 33's red-team); drawn here, never thrown. The
+  // album page says why of both (crumbs-28).
+  const account = isUuidShape(id) ? await readAccount(id) : null;
   if (!account) return <AdminNotFoundPageScreen />;
   const deletion = await getAccountDeletionState(id);
 

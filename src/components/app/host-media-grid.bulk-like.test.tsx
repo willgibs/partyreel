@@ -9,15 +9,37 @@ import type { GridMedia } from "@/components/app/media-grid";
  * ("1 video", "2 items" for a mix, the album's own word for one, as the storage list's), through the one count of
  * known kinds (`formatKindCount`), and counts only what the like added: an item already liked is not liked again.
  *
- * The grid's selection, likes and toast are real (the in-memory likes store the lab's scale page uses); the rows it
- * lays, the hub's writes and the export are not what is pinned here.
+ * ★ AND A PRESS THAT ADDED NOTHING STILL SAYS WHAT HAPPENED (build 33's red-team, a NIT). A selection she had liked
+ * already closed with no word at all, so the press looked lost: it says "Already liked" in the success's own words
+ * now, and a like the server refused says so as the heart's own refusal does.
+ *
+ * The grid's selection, likes and toast are real (the in-memory likes store the lab's scale page uses; a refusal
+ * needs a store the server can refuse, so one test hands in its own); the rows it lays, the hub's writes and the
+ * export are not what is pinned here.
  */
-const toast = vi.hoisted(() => ({
-  success: vi.fn(),
-  error: vi.fn(),
-  warning: vi.fn(),
-}));
+const toast = vi.hoisted(() =>
+  Object.assign(vi.fn(), {
+    success: vi.fn(),
+    error: vi.fn(),
+    warning: vi.fn(),
+  }),
+);
 vi.mock("sonner", () => ({ toast }));
+/** A likes store the test hands in instead of the provider's (null: the real in-memory one). */
+const likesOverride = vi.hoisted(() => ({
+  value: null as null | {
+    isLiked: (id: string) => boolean;
+    likeMany: (ids: string[]) => Promise<string[]>;
+  },
+}));
+vi.mock("@/components/likes/likes-provider", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@/components/likes/likes-provider")>();
+  return {
+    ...actual,
+    useLikes: () => likesOverride.value ?? actual.useLikes(),
+  };
+});
 vi.mock("@/components/shared/masonry", () => ({
   MasonryColumns: () => <div data-testid="grid" />,
 }));
@@ -89,7 +111,10 @@ async function likeSelection(ids: string[], alreadyLiked: string[] = []) {
   });
 }
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => {
+  vi.clearAllMocks();
+  likesOverride.value = null;
+});
 
 describe("the album's bulk Like", () => {
   it("★ calls a video a video", async () => {
@@ -105,10 +130,44 @@ describe("the album's bulk Like", () => {
   it("names what the like added, leaving out what was liked already", async () => {
     await likeSelection(["p1", "v1"], ["v1"]);
     expect(toast.success).toHaveBeenCalledWith("Liked 1 photo");
+    expect(toast).not.toHaveBeenCalled();
   });
 
-  it("says nothing when nothing was added", async () => {
+  // Reshaped on purpose (build 33's red-team): this pinned the silence, "says nothing when nothing was added",
+  // which is the NIT itself. The scar it kept stays: a like already there is never counted as liked again.
+  it("★ says a selection it had liked already is liked already, never that it liked it", async () => {
     await likeSelection(["p1"], ["p1"]);
+    expect(toast).toHaveBeenCalledWith("Already liked 1 photo");
+    expect(toast.success).not.toHaveBeenCalled();
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it("names what was liked already by kind, as the success does", async () => {
+    await likeSelection(["p1", "v1"], ["p1", "v1"]);
+    expect(toast).toHaveBeenCalledWith("Already liked 2 items");
+  });
+});
+
+describe("the album's bulk Like, refused", () => {
+  function refusing(likedAlready: string[]) {
+    likesOverride.value = {
+      isLiked: (id) => likedAlready.includes(id),
+      // The server refused every id it was asked to like (a network drop, a removed item).
+      likeMany: async () => [],
+    };
+  }
+
+  it("★ says a like the server refused, in the heart's own words, never 'Already liked'", async () => {
+    refusing([]);
+    await likeSelection(["p1"]);
+    expect(toast.error).toHaveBeenCalledWith("Couldn't save that like.");
+    expect(toast).not.toHaveBeenCalled();
+  });
+
+  it("counts only what it asked for: a selection partly liked already, the rest refused", async () => {
+    refusing(["p1"]);
+    await likeSelection(["p1", "v1", "p2"]);
+    expect(toast.error).toHaveBeenCalledWith("Couldn't save those likes.");
     expect(toast.success).not.toHaveBeenCalled();
   });
 });

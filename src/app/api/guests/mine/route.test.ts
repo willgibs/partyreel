@@ -12,6 +12,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const listSessionMediaIds = vi.fn();
 const listOwnUploadStatuses = vi.fn();
+const countKeptTicketUploads = vi.fn();
 const getUser = vi.fn();
 const getEventByQrToken = vi.fn();
 const recordAbuseEvent = vi.fn().mockResolvedValue(undefined);
@@ -22,6 +23,8 @@ const checkAbuseRate = vi
 vi.mock("@/lib/db/mutations/guest-media", () => ({
   listSessionMediaIds: (...args: unknown[]) => listSessionMediaIds(...args),
   listOwnUploadStatuses: (...args: unknown[]) => listOwnUploadStatuses(...args),
+  countKeptTicketUploads: (...args: unknown[]) =>
+    countKeptTicketUploads(...args),
 }));
 // Her tracker's ask reads the account from the server's own `getUser()`.
 vi.mock("@/lib/supabase/server", () => ({
@@ -86,6 +89,7 @@ beforeEach(() => {
   });
   listSessionMediaIds.mockResolvedValue([]);
   listOwnUploadStatuses.mockResolvedValue([]);
+  countKeptTicketUploads.mockResolvedValue(0);
   getUser.mockResolvedValue({ data: { user: null } });
   sortTickets
     .mockReset()
@@ -361,5 +365,71 @@ describe("the closed door: a ticket a block holds meets the private album's answ
     expect(held).toEqual(shut);
     expect(listSessionMediaIds).not.toHaveBeenCalled();
     expect(listOwnUploadStatuses).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * ★ WHETHER THIS PHONE'S PHOTOS HERE ARE HERS NOW (`kept: true`, build 33's red-team). The album asks it when a confirm
+ * door opened there and her own claim moved nothing, since the page's door read claims the ticket first. The same
+ * capability rules as the other two answers (the token in the body, never cached, the limiter checked and not
+ * recorded, the door asked with the body's ticket), and the account is the server's `getUser()`: signed out, or at a
+ * door that holds the ticket, the answer is 0 and nothing is counted.
+ */
+describe("kept: whether this phone's photos here are hers now", () => {
+  async function kept(body: unknown): Promise<unknown> {
+    const res = await post(body);
+    expect(res.headers.get("Cache-Control")).toContain("no-store");
+    return ((await res.json()) as { kept?: unknown }).kept;
+  }
+
+  it("★ counts the body's ticket for the signed-in account, at THIS event", async () => {
+    getUser.mockResolvedValue({ data: { user: { id: "u-1" } } });
+    countKeptTicketUploads.mockResolvedValue(3);
+    expect(
+      await kept({ qr_token: TOKEN, session_token: MINE, kept: true }),
+    ).toBe(3);
+    expect(countKeptTicketUploads).toHaveBeenCalledWith({
+      eventId: "event-1",
+      sessionToken: MINE,
+      userId: "u-1",
+    });
+    expect(callerOptions).toHaveBeenCalledWith(
+      expect.objectContaining({ bodyTokens: [MINE], cookie: false }),
+    );
+  });
+
+  it("signed out, nothing is hers to keep: 0, and nothing is read", async () => {
+    expect(
+      await kept({ qr_token: TOKEN, session_token: MINE, kept: true }),
+    ).toBe(0);
+    expect(countKeptTicketUploads).not.toHaveBeenCalled();
+    expect(getEventByQrToken).not.toHaveBeenCalled();
+  });
+
+  it("a door that holds the ticket, or an album that is not there, answers 0", async () => {
+    getUser.mockResolvedValue({ data: { user: { id: "u-1" } } });
+    ticketBlocked.mockResolvedValue(true);
+    expect(
+      await kept({ qr_token: TOKEN, session_token: MINE, kept: true }),
+    ).toBe(0);
+    ticketBlocked.mockReset();
+    getEventByQrToken.mockResolvedValue({ ok: false });
+    expect(
+      await kept({ qr_token: TOKEN, session_token: MINE, kept: true }),
+    ).toBe(0);
+    expect(countKeptTicketUploads).not.toHaveBeenCalled();
+  });
+
+  it("needs its ticket, and meets the limiter before any read", async () => {
+    expect((await post({ qr_token: TOKEN, kept: true })).status).toBe(400);
+    checkAbuseRate.mockResolvedValue({ allowed: false, retryAfterSec: 30 });
+    const res = await post({
+      qr_token: TOKEN,
+      session_token: MINE,
+      kept: true,
+    });
+    expect(res.status).toBe(429);
+    expect(countKeptTicketUploads).not.toHaveBeenCalled();
+    expect(recordAbuseEvent).not.toHaveBeenCalled();
   });
 });

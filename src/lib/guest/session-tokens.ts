@@ -31,6 +31,25 @@ export function collectStoredTickets(
   return tickets;
 }
 
+/**
+ * The ticket this browser holds for ONE album (its canonical qr_token), or null. The album's own claim starts from
+ * it, and so does the read that asks whether that ticket is hers now (`claim-uploads.ts`). A blocked store (whose
+ * very getter can throw) reads as no ticket.
+ */
+export function storedTicketFor(
+  album: string,
+  storage?: Pick<Storage, "getItem">,
+): string | null {
+  try {
+    return (
+      (storage ?? window.localStorage).getItem(`${SESSION_PREFIX}${album}`) ||
+      null
+    );
+  } catch {
+    return null;
+  }
+}
+
 /** Every distinct session_token the browser holds: the claim's own list, from the one scan above. */
 export function collectStoredSessionTokens(
   storage: StorageLike = window.localStorage,

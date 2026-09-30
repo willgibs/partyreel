@@ -374,6 +374,9 @@ export function EventExperience({
     /* ★ FILES HELD FOR THE DOOR GO WHEN IT OPENS (crumbs-27): a silent join that landed waiting hands her to
        the held door with her files `queued`, and this is what tells the queue she is through. */
     doorOpen: access !== "none",
+    /* ★ THE OWNER'S ADD IS THE HOST'S (crumbs-29's Deferred): her files ride the host's own pair, never a
+       guest ticket at her own door, which every door but the open one held (the queue's head note). */
+    ownerEventId: isOwner && !isDemo ? event.id : null,
     onVerificationRequired: (message, hadQueuedFiles) => {
       if (hadQueuedFiles && !uploadStepActiveRef.current) {
         pendingVerificationRef.current = message;

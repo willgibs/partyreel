@@ -31,8 +31,12 @@ vi.mock("@/lib/observability/sentry", () => ({
   captureWarning: () => {},
 }));
 
-const { listAccountMediaIds, listOwnUploadStatuses, listSessionMediaIds } =
-  await import("./guest-media");
+const {
+  countKeptTicketUploads,
+  listAccountMediaIds,
+  listOwnUploadStatuses,
+  listSessionMediaIds,
+} = await import("./guest-media");
 
 const TOKEN = "session-token-0123456789";
 const uuid = (i: number) =>
@@ -270,6 +274,87 @@ describe("her own uploads, with where each stands", () => {
     ).toEqual([]);
     expect(captured.at(-1)?.[2]).toMatchObject({
       seam: "own_upload_statuses_fail_closed",
+      eventId: "ev-1",
+    });
+  });
+});
+
+/**
+ * ★ WHETHER A CONFIRMATION CARRIED THIS PHONE'S PHOTOS (build 33's red-team). The album's door read claims her ticket
+ * before the page's own claim runs, so the page asks whether that ticket is hers now with its uploads. The TICKET is
+ * the question, never the account: another device's rows of hers say nothing about what this phone kept, and a ticket
+ * the claim left (another guest's, an address not hers) is not hers however much her account holds here.
+ */
+describe("the live uploads on this device's ticket, once it is hers", () => {
+  const A = "a".repeat(20);
+  const B = "b".repeat(20);
+  const C = "c".repeat(20);
+
+  it("★ counts her ticket's live uploads here, a removed one left out", async () => {
+    // g-account-a: 1,300 uploads, every tenth removed.
+    await expect(
+      countKeptTicketUploads({
+        eventId: "ev-1",
+        sessionToken: A,
+        userId: "u-1",
+      }),
+    ).resolves.toBe(1170);
+    // A head count: nothing capped at 1,000, nothing paged.
+    expect(fake.requests.every((r) => !r.failed)).toBe(true);
+  });
+
+  it("★ never counts a ticket that is not hers, whatever her account holds here", async () => {
+    // A name-only ticket (the claim left it: another guest's, or one waiting on its own address).
+    await expect(
+      countKeptTicketUploads({
+        eventId: "ev-1",
+        sessionToken: TOKEN,
+        userId: "u-1",
+      }),
+    ).resolves.toBe(0);
+    // Another account's ticket.
+    await expect(
+      countKeptTicketUploads({
+        eventId: "ev-1",
+        sessionToken: C,
+        userId: "u-1",
+      }),
+    ).resolves.toBe(0);
+    // Her ticket, asked about at another album.
+    await expect(
+      countKeptTicketUploads({
+        eventId: "ev-2",
+        sessionToken: B,
+        userId: "u-1",
+      }),
+    ).resolves.toBe(0);
+    expect(captured).toHaveLength(0);
+  });
+
+  it("reads nothing for a token too short to be one", async () => {
+    await expect(
+      countKeptTicketUploads({
+        eventId: "ev-1",
+        sessionToken: "short",
+        userId: "u-1",
+      }),
+    ).resolves.toBe(0);
+    expect(fake.requests).toHaveLength(0);
+  });
+
+  it("fails CLOSED and LOUDLY: 0, and the failure captured", async () => {
+    delete fake.tables.media;
+    await expect(
+      countKeptTicketUploads({
+        eventId: "ev-1",
+        sessionToken: A,
+        userId: "u-1",
+      }),
+    ).resolves.toBe(0);
+    expect(captured).toHaveLength(1);
+    expect(captured[0][0]).toBe("media");
+    expect(captured[0][2]).toMatchObject({
+      seam: "kept_ticket_fail_closed",
       eventId: "ev-1",
     });
   });
