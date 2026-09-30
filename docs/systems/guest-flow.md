@@ -848,7 +848,8 @@ had" holds only when this device holds a guest ticket a claim would move.
   never blocks the shell's paint), and the store adopts it as its own first `sync()`, answered locally.
   `key={access}` remounts it on an access flip (teaser → full) — a clean re-seed, no resync effects.
   ★ A seed whose read fails (a refusal answers locked, never a throw) is the album's failure alone, and the live
-  source stands through it: `readSeed` reads it rather than throwing it (Next's own throws still pass on), reports it
+  source stands through it: `readSeed` reads it rather than throwing it (Next's own throws still pass on; ★ adopted
+  with `Promise.resolve` first, since the page's promise is React Flight's thenable, whose `then` chains nothing), reports it
   (`render:guest`, seam `album`), and the store's own first `sync()` asks the server for the whole album. The album
   draws its skeleton while that read is in flight, then the card "The album didn't load" if it failed too
   (`albumRead`), and heals in place with no refresh on the next answer: the poll, a doorbell, her own upload or Try
