@@ -41,7 +41,6 @@ a lane").
 | --- | --- | --- | --- | --- |
 | `schema-pass` | the data architecture trimmed | merged at `57b17ace`; part 1 applied on Will's go-ahead (2026-09-29, his answer "Yes, apply part 1"; recorded `20260929210010`, the payload the file's md5; advisors 18/4/33; anon REST 42501; types regenerated at `c7a50adc`); a signed-in host walk on partyreel.com rides build 25's red-team as a follow-up; part 2 (`20260929170000`) after milestone 31 ships | Opus, 3132 | `54f414f9` |
 | `lab-focus` | on Will's note (2026-09-29, "a Jackson Pollock painting of text" above the options): the lab's question view rebuilt pictures first, the stage whole on the first screen at a desk and a phone, everything else one click away; a `lab:demo` reach gate | running (agent `af671c95a53a0ef5d`; worktree `../partyreel-wt/lab-focus`) | Opus, 3131 | |
-| `crumbs-23` | build 26's red-team finds: a live pushed arrival without its fade, a double tap at a phone never landing in the sheet it opened, the invite list's door line, the first keystroke after a load, the Library's album-stream width | running (agent `aa20ad19ebbb0788d`; worktree `../partyreel-wt/crumbs-23`) | Sonnet, 3132 | |
 | `perf-404` | the root 404's tree off every route's payload (about 110 KB of HTML and 43 to 56 KB of gzipped JS a page, `crumbs-22`'s measure), the 404 drawn as today | running (agent `ae61f39b8da49d3a1`; worktree `../partyreel-wt/perf-404`) | Opus, 3134 | |
 | `crumbs-24` | six follow-ups the last three lanes deferred: the claim's calls typed, the keep's other address, the ask's follow moment, Let back in's promise at a password, the ask minted in a password's instant (SQL), the hub's reel-switch reload | running (agent `ac6e568cd7e9e8d0d`; worktree `../partyreel-wt/crumbs-24`) | Opus, 3135 | |
 
@@ -74,11 +73,11 @@ Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcr
 boards). Batch 7 is merged whole; its records carry the rest.
 
 Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, disposable-mode r2, crumbs-13, lab-revamp
-stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, crumbs-15, loose-ends-wiring, contact-wiring, desk-tune, event-ready r1, window-notes, crumbs-16, album-motion-wiring, crumbs-17 (its migration applied by protocol, 20260929204753), unfence, crumbs-18, demo-framing-r2, about-press, menu-depth, crumbs-19, crumbs-20, crumbs-21 (its three migrations applied by protocol), privacy-hero-r4, shared-claims (its migration applied by protocol, 20260930010219), crumbs-22.
+stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, crumbs-15, loose-ends-wiring, contact-wiring, desk-tune, event-ready r1, window-notes, crumbs-16, album-motion-wiring, crumbs-17 (its migration applied by protocol, 20260929204753), unfence, crumbs-18, demo-framing-r2, about-press, menu-depth, crumbs-19, crumbs-20, crumbs-21 (its three migrations applied by protocol), privacy-hero-r4, shared-claims (its migration applied by protocol, 20260930010219), crumbs-22, crumbs-23 (its migration applied, 20260930013213).
 
 ## Next, in order
 
-1. **Integrate each lane as it hands off** (lab-focus, crumbs-23, perf-404), each migration by protocol, one at a time: drift check, apply verbatim, the rolled-back refusals,
+1. **Integrate each lane as it hands off** (lab-focus, perf-404, crumbs-24), each migration by protocol, one at a time: drift check, apply verbatim, the rolled-back refusals,
    advisors, types.
 2. **Build 26 was red-teamed live** (`d67e94ba`, 2026-09-29, `../partyreel-wt/_scratch/redteam-26/ledger.txt`): every walk
    PASS but crumbs-18's live arrival (its fade holds on an arrival nothing decoded first); its finds are `crumbs-23`'s
