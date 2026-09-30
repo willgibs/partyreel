@@ -62,6 +62,9 @@ account, and the relays below, which live only in the agents:
   part 1.
 - `crumbs-28`: a tenth item, relayed 2026-09-30: the Videos switch's line "Guests add clips as well as photos."
   (`videos-switch.tsx:95`) says videos, since a guest's upload is never a clip in product copy (`reel.md`).
+  And build 30's red-team's LOW find, folded into its item 1: `/dashboard/<unknown id>` draws the right screen but
+  titles it "Event · Partyreel" with a 200 (the hub's `generateMetadata`, `page.tsx:96`, wins over `(app)/not-found.tsx`'s
+  "Event not found"), on the hub and each room.
 
 If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` holds a merge made after this note (push
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
