@@ -17,6 +17,8 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Database: a CHECK pairing a report's closed status with its `resolved_at` (open exactly when it is null): the instant hide's strikes lapse from it, and a close written without it (only raw SQL can today; live has none of 20) would count as no strike (from `hide-strikes`).
+- Admin: a child-abuse report's line in the queue could say how many live strikes its address holds (the hash is kept), so the operator knows when a Dismiss is the third and takes the hide away for 180 days; today nothing in the portal shows a strike (a board idea from `hide-strikes`).
 - Host (performance): the print sheet (`(print)/dashboard/[eventId]/print`) still throws `notFound()` for an event that is gone, with no nearer boundary: the root's error shell, white until its script runs; the page drawing the root's screen itself would answer it as the hub now is (from `crumbs-28`).
 - Admin (performance): `requireAdmin()`'s gate read (a `getUser()` round trip and the profile's `is_admin`) is not request-cached, so every portal page pays it in the layout and again in the page, and a record page a third time for its title (crumbs-28); `cache()` it as `getRequestAuth` is (from `crumbs-28`).
 - Guest: an album that could not load takes her tracker's list with it (the list rides the album's live source), so while it says it could not load her Add still sends but her uploads list will not open; a store that took its own first sync when the seed failed would keep the list and heal with no refresh (from `crumbs-28`).
