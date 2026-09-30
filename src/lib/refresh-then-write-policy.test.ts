@@ -38,7 +38,15 @@ import { describe, expect, it } from "vitest";
  * refreshes, then a tap on the page's back arrow lands before the refresh does). Those are what the header of
  * `lib/history-entry.ts` and the manifest's Deferred line are for. A handler that meets the edge writes first and
  * refreshes after, or waits for the refresh's transition, or does neither.
+ *
+ * AN EXCEPTION SAYS SO, in `ALLOWED`: the file, and why a `.refresh()` there is not the router's, or why the
+ * write that follows cannot meet a refresh in flight. An entry whose file no longer offends FAILS, so the list
+ * cannot outlive its reasons. EMPTY: every `.refresh()` in the tree is the router's, and none is followed by a
+ * write.
  */
+
+/** File (repo-relative, forward slashes: `src/...`) -> why a refresh followed by a URL write is safe there. */
+const ALLOWED: Readonly<Record<string, string>> = {};
 
 const ROOT = process.cwd();
 const SKIP = /\.test\.tsx?$|\.d\.ts$|^src\/lib\/db\/types\.ts$/;
@@ -377,6 +385,7 @@ describe("no function refreshes the router and then moves the address", () => {
   it("finds no function that refreshes and then applies a URL", () => {
     const offenders: string[] = [];
     for (const rel of SOURCES) {
+      if (rel in ALLOWED) continue;
       for (const hit of refreshThenWrite(read(rel), rel)) {
         offenders.push(
           `${rel}:${hit.line}  router.refresh()@${hit.refresh}, then ${hit.write}`,
@@ -395,6 +404,16 @@ describe("no function refreshes the router and then moves the address", () => {
 
 describe("the scan itself", () => {
   const hits = (code: string) => refreshThenWrite(code).length;
+
+  it("holds no exception that no longer offends", () => {
+    for (const [file, why] of Object.entries(ALLOWED)) {
+      expect(why.trim().length, `${file} needs its reason`).toBeGreaterThan(20);
+      expect(
+        refreshThenWrite(read(file), file).length,
+        `${file} is allowed but no longer refreshes and then writes: drop the entry`,
+      ).toBeGreaterThan(0);
+    }
+  });
 
   it.each([
     [
