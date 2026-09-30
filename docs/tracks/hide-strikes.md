@@ -1,6 +1,6 @@
 ---
 track: hide-strikes
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "963a2fb8"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -81,21 +81,81 @@ working.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/admin-observability.md` (a `reads` doc; the brief names the edit): the instant hide's bar refined in
+  place: three strikes, each a dismissed child-abuse report lapsing 180 days after its `resolved_at`, an Undo taking
+  its strike back, with his reason.
+- `docs/systems/testing-verification.md`: the test addresses' strikes as they stand live (willg97's two, partyr33l's
+  five until 2027-03-28, hi@willgibs.com's none) and what a red-team may walk.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now, Database: a CHECK pairing a report's closed status with its `resolved_at` (open exactly when it is null): the
+  instant hide's strikes lapse from it, and a close written without it (only raw SQL can today; live has none of 20)
+  would count as no strike (from `hide-strikes`).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed:** plan `710b0239` (this manifest: owns gained the migration and the two comments, the
+  Questions), work `ca59cf1e`. No sync: launch-prep moved only by `b799daef`, a record commit (ROADMAP,
+  orchestrator.md, kit/README.md), which touches nothing of this lane's.
+- **Gates on `ca59cf1e`, each on its own exit code** (logs in `partyreel-wt/_scratch/hide-strikes/`):
+  `pnpm typecheck` 0; `pnpm lint` 0, no warning anywhere; `pnpm test` 0 (655 files, 7,846 tests); `pnpm build` 0;
+  `pnpm lab:smoke --base http://localhost:3134` 0 (129 checks, 0 failing; scope the Library and the shell, no board).
+  The dev server is killed by its port.
+- **The guard red on today's set:** migration-guards #27 run before the migration existed: 3 of its 4 pins fail (the
+  strike count, the numbers, the old bar gone); the fourth, the signature and the grant, passes by design, since
+  neither moves (`_scratch/hide-strikes/guard-red-on-todays-set.log`). Green with the migration.
+- **The rolled-back proof on the live schema** (`execute_sql`, `begin;` + the file verbatim + its foot's block + the
+  select + `rollback;`, one call), every step ok:
+  `setup` ok (event 55bcdbe0…, items A-E) · `1 two live strikes hide` ok (hid true) · `2 a third strike bars` ok (hid
+  false; the report filed open, the address kept, the item up) · `3 a strike 181 days old lapses` ok (barred at 179
+  days, hid at 181) · `4 an undone dismissal lapses` ok (barred, then hid after the reopen's own write) · `5 only a
+  dismissed child report strikes` ok (hid beside an actioned, an open and a dismissed `sexual` one) · `6 the other
+  limits hold` ok (unconfirmed, the host, an album report, another kind, a fourth from one address and a sixth in one
+  event all hid nothing; the clear control hid) · `7 shape and grants` ok (md5 `ee5079e8ebf56b253c878a0ce34435e9`,
+  `{postgres=X/postgres,service_role=X/postgres}`). The file's body hashes to that md5 locally, so the proof applied
+  the file. After: live `create_report` md5 back to `a34941458f04cf6678bddeb3d2dac842`, ACL the same, no proof row
+  left, the event's six items up. **The same block alone on today's live body is red at 1, 3, 4, 5 and 7**, where
+  the rule moved, and ok at setup, 2 and 6. Both tables: `_scratch/hide-strikes/proof-results.txt`.
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): `docs/systems/admin-observability.md`,
+  `docs/systems/testing-verification.md`, `docs/tracks/hide-strikes.md`, `src/components/guest/report-dialog.tsx`,
+  `src/lib/db/migration-guards.test.ts`, `src/lib/reports/reporter.server.ts`,
+  `supabase/migrations/20260930120000_hide_strikes.sql`. All owned (three added to owns at the plan, before their first
+  edit: the cut named no migration, and the two comments state the bar), this file, and admin-observability.md under
+  System-doc edits. `crumbs-28` also edits migration-guards.test.ts (one comment near line 797); this lane only
+  appends #27 and its header line, so the two merge cleanly.
+- **The migration** (`20260930120000_hide_strikes.sql`): `create or replace` of `create_report` with the same seven
+  named arguments, DEFINER, empty `search_path`, the service role's one grant restated; the body is live's
+  (md5-checked) with only the bar replaced: `(select count(*) … r.status = 'dismissed' and r.resolved_at > now() -
+  c_strike_lapse) < c_strikes`, the two numbers declared once (`c_strikes constant integer := 3`,
+  `c_strike_lapse constant interval := interval '180 days'`) under his words; the comment says the new bar.
+- **The dismissal's time is `reports.resolved_at`**, found, no column added: `closeReports` writes it with the
+  status at every close and `reopenReports` clears both (`src/app/admin/reports/actions.ts`); live, 20 dismissed
+  reports, none without it, and no open one with one.
+- **The guard** (`src/lib/db/migration-guards.test.ts` #27, latest wins, comments stripped): the strike conjunct, the
+  two numbers (`180` once in the body), the old `not exists` bar gone and `r.status = 'dismissed'` read once, the
+  signature the deployed route calls by name, and the revoke-then-grant in the winning file.
+  `src/lib/reports/migration.test.ts` still pins the dismissed clause, which the strike count carries; untouched.
+- **The words:** admin-observability.md's instant hide and testing-verification.md's test addresses rewritten; two
+  comments that quoted the bar (`reporter.server.ts`'s hash note, `report-dialog.tsx`'s `instantHideLine` note)
+  rewritten. The help articles (`reporting-and-safety.mdx`, `report-a-problem-as-a-guest.mdx`), the form's line and
+  the queue's `reporterWords` say only that a confirmed email *can* hide, never the bar, so they stand.
+- **Assets requested from Will:** none.
+- **Board ideas:** Admin: a child-abuse report's line in the queue could say how many live strikes its address holds
+  (the hash is kept), so the operator knows when a Dismiss is the third and takes the hide away for 180 days; today
+  nothing in the portal shows a strike.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** `20260930120000_hide_strikes.sql`, applied by the
+  Orchestrator by its own APPLY PROTOCOL once merged (after milestone 31 ships): expect the new md5
+  `ee5079e8ebf56b253c878a0ce34435e9`, the same ACL, `get_advisors` delta none; then its foot's block alone, all ok.
+  No types regeneration and no deploy (the deployed route calls the same seven names on either side). Nothing else.
+- **Calls his to overrule:** the two Questions' answers (every dismissed child-abuse report is a strike, hidden or
+  not; the test strikes kept). And two small ones: a strike exactly 180 days old has lapsed (`>`), and a dismissed
+  report with no `resolved_at` counts as no strike (only raw SQL could write one; the Deferred CHECK closes it).
+- **Live walk after the apply** (the milestone's red-team; nothing live to walk before it): from willg97's address on
+  hi@willgibs.com's album, a child-abuse report of a photo hides it (two strikes); Dismiss it (the third); a second
+  report of another photo is filed and heads the queue unhidden; the dismissal's Undo takes the strike back (and
+  hides its photo again); a third report hides. Close the walk's reports with Mark actioned: one more Dismiss bars
+  willg97's address until 2027-03-28.
+- **Look at first:** the strike conjunct and the declare in the migration, then its foot's steps 3 and 4 (each
+  strike is dismissed at a time of its own while its row is created now, so a count on `created_at` or `updated_at`
+  would fail them).
