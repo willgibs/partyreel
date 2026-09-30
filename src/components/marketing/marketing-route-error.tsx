@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { MissingFrameStrip } from "@/components/marketing/marketing-not-found";
 import { Logo } from "@/components/shared/logo";
 import { HelpLine, NotFoundScreen } from "@/components/shared/not-found-screen";
+import { TryAgain } from "@/components/shared/route-error";
 import { Button } from "@/components/ui/button";
 import { captureError } from "@/lib/observability/sentry";
 
@@ -34,10 +35,11 @@ import { captureError } from "@/lib/observability/sentry";
  */
 export function MarketingRouteError({
   error,
-  reset,
+  retry,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  /** The boundary's `unstable_retry`: the page asked for again, never the bare reset (`TryAgain`). */
+  retry: () => void;
 }) {
   useEffect(() => {
     captureError("render:marketing", error, { digest: error.digest });
@@ -60,9 +62,7 @@ export function MarketingRouteError({
           description="Something went wrong loading this page, and it's on us, not you. Try again; if it keeps happening, we want to know."
           actions={
             <>
-              <Button size="cta" onClick={reset}>
-                Try again
-              </Button>
+              <TryAgain retry={retry} />
               <Button asChild size="cta" variant="outline">
                 <Link href="/">Back home</Link>
               </Button>

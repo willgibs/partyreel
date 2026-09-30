@@ -288,6 +288,32 @@ describe("the Blocked list and the way back", () => {
     );
   });
 
+  it("★ a declined newcomer whose ask stands at Only me is told she is back at the door, and that letting her in there leaves her at a closed album (crumbs-30)", () => {
+    // The host can still let her in from At the door (Only me keeps its asks), but Only me shuts everyone until the
+    // host opens it, the people already in included, so the door's own promise alone would leave her at a closed
+    // album with nothing said. The door's sentence stands, then the Only me landing's own clause.
+    expect(letBackInLede("Maya's 30th", "door_only_me")).toBe(
+      "They'll be back at the door. You can let them in from there, but Maya's 30th is Only me right now, so they'll meet a closed album until you open it.",
+    );
+    expect(letBackInLede("Maya's 30th", "door_only_me")).not.toBe(
+      letBackInLede("Maya's 30th", "door"),
+    );
+    // The toast says only where she is, as the door's does: she is back at it.
+    expect(letBackInToast("Wren", 0, 0, "door_only_me")).toEqual({
+      title: "Wren is back at the door.",
+    });
+    expect(letBackInToast(null, 0, 0, "door_only_me")).toEqual({
+      title: "They're back at the door.",
+    });
+    // Nothing promises the album she still has to be let into, and that stays shut when she is.
+    for (const said of [
+      letBackInLede("Maya's 30th", "door_only_me"),
+      letBackInToast("Wren", 0, 0, "door_only_me").title,
+    ]) {
+      expect(said).not.toMatch(/add photos|join again/);
+    }
+  });
+
   it("where nobody new gets in, a newcomer is told she stays out, and nothing more", () => {
     expect(letBackInLede("Maya's 30th", "out")).toBe(
       "Maya's 30th takes nobody new right now, so they'll stay out until you change who can get in.",
@@ -331,7 +357,7 @@ describe("blockedLanding: where Let back in leaves them, from the door as it sta
 
   it("★ at Only me they are back on a closed album: nobody gets in until the host opens it, the people already in included (crumbs-27)", () => {
     expect(at("private", { wasIn: true })).toBe("only_me");
-    // Not a newcomer's landing: someone who never got in stays out, or waits at the door, as before.
+    // Not a newcomer's landing: someone who never got in stays out (an ask of hers that stands is below).
     expect(at("private")).toBe("out");
   });
 
@@ -340,13 +366,21 @@ describe("blockedLanding: where Let back in leaves them, from the door as it sta
     expect(at("password", { waiting: true })).toBe("password");
   });
 
+  // ★ RESHAPED ON PURPOSE (crumbs-30; scar kept: an ask that stands keeps her at a door the host answers): Only me left
+  // this list for its own landing below, since the host's Let in there leaves her at a closed album.
   it("an ask that stands keeps her at a door the host answers; the list lets in whom it names; Public lets anyone in", () => {
-    for (const door of ["approve", "invite", "closed", "private"] as const) {
+    for (const door of ["approve", "invite", "closed"] as const) {
       expect(at(door, { waiting: true }), door).toBe("door");
     }
     expect(at("invite", { waiting: true, listed: true })).toBe("in");
     expect(at("invite", { listed: true })).toBe("in");
     expect(at("open")).toBe("in");
+  });
+
+  it("★ an ask that stands at Only me keeps her at the door, where the host's Let in meets a closed album (crumbs-30)", () => {
+    expect(at("private", { waiting: true })).toBe("door_only_me");
+    // Someone who was in is the album's own Only me landing, whatever rows of hers wait.
+    expect(at("private", { wasIn: true, waiting: true })).toBe("only_me");
   });
 
   it("with no ask left: a door that takes asks lets her ask again; one that takes nobody new keeps her out", () => {
@@ -399,6 +433,7 @@ describe("the bible's copy rules hold in every sentence here", () => {
       letBackInLede("Party", "password"),
       letBackInLede("Party", "out"),
       letBackInLede("Party", "only_me"),
+      letBackInLede("Party", "door_only_me"),
       restoreOffer({ restorable: 2, restorableUntil: "October 28" })
         ?.description ?? "",
       letBackInToast("Sam", 2, 2).description ?? "",

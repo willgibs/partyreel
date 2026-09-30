@@ -14,8 +14,10 @@ Elsewhere: host-side moderation ([host-app.md](host-app.md)), the forensic surfa
 
 `requireAdmin()` (pages and layouts: anon to `/login?next=<the portal page asked for>`, a non-admin to `notFound()`,
 so the portal's existence never leaks; it exposes `ctx.aal`, and a sensitive page returns null below AAL2 before it
-fetches) and `requireAdminAction()` (actions and routes; requires AAL2) are the only entry points. Nothing reads
-`profiles.is_admin` directly: the seam is the one place a future staff-and-roles model swaps in.
+fetches; its gate read is React's `cache()`, one `getUser()` and one `is_admin` a request for the layout, the page and
+a title together) and `requireAdminAction()` (actions and routes, outside any render, so read afresh at every call;
+requires AAL2) are the only entry points. Nothing reads `profiles.is_admin` directly: the seam is the one place a
+future staff-and-roles model swaps in.
 - **MFA (free TOTP) is a hard gate that stays reachable at AAL1,** so a first enrollment can never lock itself out:
   an AAL2 page gate ships with its AAL1 fallback. Break-glass is deleting the factor in `auth.mfa_factors` from the
   Supabase dashboard.

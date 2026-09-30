@@ -557,6 +557,8 @@ bob on the house bounce written inline, since `--mkt-ease-pop` lives on `[data-m
   language with no internals.
 - **Every route group's `error.tsx` draws the shared `RouteError`**, tagged `render:<area>` in Sentry, showing a help
   line and the `digest` as the support handle. ★ **It never renders `error.message`**: that is the security invariant.
+  ★ **Try again is Next's `unstable_retry`** (the router's refresh with the reset, `TryAgain`), on every crash screen,
+  `global-error`'s included, reading "Trying again…" while it asks: a bare `reset` re-renders the payload that crashed.
 - **The root `error.tsx`** catches a crash in a group's own layout, which no group boundary can; `global-error.tsx`,
   dependency-free (its own html, inline styles), covers the root layout's death.
 - **`captureError` lives in the crash wrappers only**, never in `NotFoundScreen`, where it would file every real 404.

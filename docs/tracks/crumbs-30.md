@@ -14,12 +14,14 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   # The root boundary shares RouteError's screen, and global-error has the same Try again.
   - src/app/error.tsx
   - src/app/global-error.tsx
+  - src/app/global-error.test.tsx
   - src/components/shared/route-error.tsx
   - src/components/shared/route-error.test.tsx
   - src/components/marketing/marketing-route-error.tsx
   - src/app/(print)/dashboard/[eventId]/print/
-  # The print page joins the host app's `drawnBy` (the screen's one importer list).
+  # The print page joins the host app's `drawnBy` (the screen's one importer list), and its source pin read notFound().
   - src/app/not-found.test.ts
+  - src/app/(app)/dashboard/new/create-flow.test.tsx
   - src/lib/guest/reconcile-album-items.ts
   - src/lib/guest/reconcile-album-items.test.ts
   - src/components/guest/gallery-live.tsx
@@ -34,6 +36,8 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/guest/reel/live-reel-view.test.tsx
   - src/lib/events/event-blocks.ts
   - src/lib/events/event-blocks.test.ts
+  # Its Only me pin read a newcomer's standing ask as "door", the case this lane fixes.
+  - src/lib/db/queries/event-blocks.test.ts
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/host-app.md
   - docs/systems/guest-flow.md
@@ -97,7 +101,15 @@ working.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/admin-observability.md` "The seam": the gate read is `cache()`d once a request; an action reads it
+  afresh.
+- `docs/systems/host-app.md` "An event that is gone": the print sheet draws the host app's not-found too.
+- `docs/systems/design-system.md` "Errors": Try again is `unstable_retry` on every crash screen, with its pending words.
+- `docs/systems/guest-flow.md` "Live gallery": a failed seed leaves the source standing and healing itself (the album
+  boundary keeps a crash); the arrival's seed rule reads an answer that was no album, so a real empty album's first
+  photograph arrives.
+- `docs/systems/host-app.md` "The door, the host's side": Let back in's landing for a newcomer whose ask stands at
+  Only me (`door_only_me`).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 

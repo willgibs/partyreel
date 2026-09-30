@@ -12,8 +12,11 @@
  * - A delta that leaves the album a different size than the server counted is reported, then healed
  *   with a fresh manifest before anything is drawn.
  * - The reel's items are the manifest's, with no urls, each saying whether it has a still.
+ * - A real empty album's first photograph arrives; the album that opens under a mounted provider does not.
+ * - A seed that FAILED leaves the source standing: reported, then read by the store's own first sync, and healed by
+ *   the next answer with no refresh, while the album says it could not load.
  */
-import { Suspense, useEffect } from "react";
+import { Component, Suspense, useEffect, type ReactNode } from "react";
 import { act, render } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -23,6 +26,7 @@ import type { GallerySeed } from "@/lib/events/gallery-seed";
 
 const hooks = vi.hoisted(() => ({ refresh: null as (() => void) | null }));
 const captureWarning = vi.hoisted(() => vi.fn());
+const captureError = vi.hoisted(() => vi.fn());
 
 vi.mock("@/app/(guest)/e/[token]/actions", () => ({
   removeMyUploadGuestAction: vi.fn(),
@@ -36,7 +40,7 @@ vi.mock("@/lib/guest/use-gallery-doorbell", () => ({
 }));
 vi.mock("@/lib/observability/sentry", () => ({
   captureWarning: (...args: unknown[]) => captureWarning(...args),
-  captureError: vi.fn(),
+  captureError: (...args: unknown[]) => captureError(...args),
 }));
 
 const { GalleryLiveProvider, useGalleryLive } = await import("./gallery-live");
@@ -88,6 +92,44 @@ function seed(): GallerySeed {
   };
 }
 
+/** A full album's seed with these entries and nothing linked (an empty album's, or any other). */
+function seedOf(entries: ManifestEntry[]): GallerySeed {
+  const full = seed() as Extract<GallerySeed, { kind: "full" }>;
+  return {
+    ...full,
+    sync: { ...full.sync, entries, total: entries.length },
+    links: { ...full.links, links: [] },
+  };
+}
+
+/** A viewer still at the door: the teaser's answer, which carries no entries by design. */
+function teaserSeed(): GallerySeed {
+  return {
+    kind: "teaser",
+    sync: {
+      ok: true,
+      kind: "teaser",
+      access: "teaser",
+      gate: "account",
+      items: [],
+      teaserTotal: 0,
+      approvedTotal: 2,
+    },
+    etag: '"t1-seed"',
+  };
+}
+
+/** A seed whose read failed (not a refusal, which answers locked), as the page streams it: already handled. */
+function failedSeed(digest = "1234567"): Promise<GallerySeed> {
+  const seed = Promise.reject(
+    Object.assign(new Error("read failed: relation media timed out"), {
+      digest,
+    }),
+  );
+  seed.catch(() => {});
+  return seed;
+}
+
 /** What the provider hands its children, captured after each commit. */
 const seen: { live: Live | null } = { live: null };
 function Probe() {
@@ -98,27 +140,71 @@ function Probe() {
   return null;
 }
 
-async function mount(isDemo = false) {
-  const promise = Promise.resolve(seed());
+/** Whatever the provider throws, kept here rather than taking the test down (a failed seed used to throw). */
+const thrown: { error: unknown } = { error: null };
+class Catch extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  componentDidCatch(error: unknown) {
+    thrown.error = error;
+  }
+  render() {
+    return this.state.failed ? null : this.props.children;
+  }
+}
+
+async function mount(
+  isDemo = false,
+  {
+    first = seed(),
+    access = "full",
+    onCountChange,
+  }: {
+    first?: GallerySeed | Promise<GallerySeed>;
+    access?: "full" | "teaser";
+    onCountChange?: (count: number) => void;
+  } = {},
+) {
+  const promise = first instanceof Promise ? first : Promise.resolve(first);
   await act(async () => {
     render(
-      <Suspense fallback={null}>
-        <GalleryLiveProvider
-          galleryPromise={promise}
-          qrToken="qr-token"
-          access="full"
-          isDemo={isDemo}
-        >
-          <Probe />
-        </GalleryLiveProvider>
-      </Suspense>,
+      <Catch>
+        <Suspense fallback={null}>
+          <GalleryLiveProvider
+            galleryPromise={promise}
+            qrToken="qr-token"
+            access={access}
+            isDemo={isDemo}
+            onCountChange={onCountChange}
+          >
+            <Probe />
+          </GalleryLiveProvider>
+        </Suspense>
+      </Catch>,
     );
-    await promise;
+    await promise.catch(() => {});
+    await new Promise((resolve) => setTimeout(resolve, 0));
     await new Promise((resolve) => setTimeout(resolve, 0));
   });
 }
 
-type Answer = Record<string, unknown> | 304;
+/** The whole album as the sync route answers a first ask, or a resync. */
+const manifest = (entries: ManifestEntry[], v = 12) => ({
+  ok: true,
+  kind: "manifest",
+  access: "full",
+  gate: null,
+  v,
+  attr: 1,
+  entries,
+  next: null,
+  total: entries.length,
+  reel: REEL,
+});
+
+type Answer = Record<string, unknown> | 304 | 500;
 type Reply = {
   status: number;
   ok: boolean;
@@ -169,6 +255,8 @@ async function handle(
     };
   }
   const a = typeof current === "function" ? current() : current;
+  if (a === 500)
+    return { status: 500, ok: false, headers: { get: () => null } };
   return a === 304
     ? { status: 304, ok: false, headers: { get: () => null } }
     : {
@@ -203,7 +291,9 @@ const delta = (extra: Record<string, unknown> = {}) => ({
 
 beforeEach(() => {
   seen.live = null;
+  thrown.error = null;
   captureWarning.mockClear();
+  captureError.mockClear();
   global.fetch = vi.fn(handle) as unknown as typeof fetch;
   answer(304);
 });
@@ -335,5 +425,113 @@ describe("integrity", () => {
       { holds: 4, counted: 5, version: 11 },
     );
     expect(seen.live?.items).toHaveLength(5);
+  });
+});
+
+describe("the arrival: what was not on screen a moment ago (crumbs-30)", () => {
+  it("★ a real empty album's first photograph arrives for a guest, as on the host's grid", async () => {
+    await mount(false, { first: seedOf([]) });
+    expect(seen.live?.items).toEqual([]);
+    expect(seen.live?.arrivals).toEqual([]);
+    answer(delta({ upsert: [entry(7)], total: 1 }));
+    await ring();
+    expect(seen.live?.items.map((m) => m.id)).toEqual([uuid(7)]);
+    expect(seen.live?.arrivals).toEqual([uuid(7)]);
+  });
+
+  it("the album that opens under a mounted provider is not an arrival (a teaser's answer, then the whole album)", async () => {
+    await mount(false, { first: teaserSeed(), access: "teaser" });
+    answer(manifest([entry(1), entry(2)]));
+    await ring();
+    // It opened, and nothing of it arrived: a teaser's answer carries no entries by design.
+    expect(seen.live?.items.map((m) => m.id)).toEqual([uuid(1), uuid(2)]);
+    expect(seen.live?.arrivals).toEqual([]);
+  });
+});
+
+describe("a seed that failed (crumbs-30, from crumbs-28)", () => {
+  it("★ the live source stands, reports the failure, and reads the album with its own first sync, healed with no refresh", async () => {
+    answer(manifest([entry(1), entry(2)]));
+    await mount(false, { first: failedSeed() });
+    // Standing: her uploads list, the reel and the door's light all read it.
+    expect(thrown.error).toBeNull();
+    expect(seen.live).not.toBeNull();
+    expect(captureError).toHaveBeenCalledWith(
+      "render:guest",
+      expect.any(Error),
+      expect.objectContaining({ digest: "1234567", seam: "album" }),
+    );
+    // Nothing was embedded to answer it locally: the first sync asked the server for the whole album.
+    const first = calls.find((c) => c.url === "/api/album/guest/sync");
+    expect(first?.body).not.toHaveProperty("since");
+    expect(first?.headers["If-None-Match"]).toBeUndefined();
+    expect(seen.live?.albumRead).toBe("ready");
+    expect(seen.live?.items.map((m) => m.id)).toEqual([uuid(1), uuid(2)]);
+    // The album appearing is not an arrival.
+    expect(seen.live?.arrivals).toEqual([]);
+  });
+
+  it("★ while its own read fails too, the album says so, and the next poll heals it with no refresh", async () => {
+    answer(500);
+    await mount(false, { first: failedSeed() });
+    expect(seen.live?.albumRead).toBe("failed");
+    expect(seen.live?.items).toEqual([]);
+    answer(manifest([entry(3)]));
+    await ring();
+    expect(seen.live?.albumRead).toBe("ready");
+    expect(seen.live?.items.map((m) => m.id)).toEqual([uuid(3)]);
+    expect(seen.live?.arrivals).toEqual([]);
+    // Reported once, for the seed: a sync that fails is the poll's to retry, never a second report.
+    expect(captureError).toHaveBeenCalledTimes(1);
+  });
+
+  it("is still reading while its own first sync is in flight: not failed until that read has failed too", async () => {
+    let land: (body: Record<string, unknown>) => void = () => {};
+    // The server's answer, held until the test lets it land.
+    answer(
+      () =>
+        new Promise<Record<string, unknown>>((resolve) => {
+          land = resolve;
+        }) as unknown as Answer,
+    );
+    await mount(false, { first: failedSeed() });
+    expect(seen.live?.albumRead).toBe("trying");
+    await act(async () => {
+      land(manifest([entry(5)]));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(seen.live?.albumRead).toBe("ready");
+    expect(seen.live?.items.map((m) => m.id)).toEqual([uuid(5)]);
+  });
+
+  it("Try again is the store's own sync: the album is read again, with no page refresh", async () => {
+    answer(500);
+    await mount(false, { first: failedSeed() });
+    expect(seen.live?.albumRead).toBe("failed");
+    answer(manifest([entry(4)]));
+    await act(async () => {
+      await seen.live!.retryAlbum();
+    });
+    expect(seen.live?.albumRead).toBe("ready");
+    expect(seen.live?.items.map((m) => m.id)).toEqual([uuid(4)]);
+  });
+
+  it("the header keeps the page's count until an answer lands", async () => {
+    const onCountChange = vi.fn();
+    answer(500);
+    await mount(false, { first: failedSeed(), onCountChange });
+    // Not zero: the album is unread, not empty.
+    expect(onCountChange).not.toHaveBeenCalled();
+    answer(manifest([entry(3), entry(4)]));
+    await ring();
+    expect(onCountChange).toHaveBeenLastCalledWith(2);
+  });
+
+  it("never takes Next's own navigation throw for a failed read: a notFound() passes to its boundary, unreported", async () => {
+    await mount(false, { first: failedSeed("NEXT_HTTP_ERROR_FALLBACK;404") });
+    expect((thrown.error as { digest?: string } | null)?.digest).toBe(
+      "NEXT_HTTP_ERROR_FALLBACK;404",
+    );
+    expect(captureError).not.toHaveBeenCalled();
   });
 });

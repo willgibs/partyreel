@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 
 import { captureError } from "@/lib/observability/sentry";
 
@@ -24,17 +24,24 @@ import { captureError } from "@/lib/observability/sentry";
 // Component, and if hydration itself is what failed, the code still prints as
 // text and is still selectable.
 //
+// ★ AND TRY AGAIN ASKS FOR THE PAGE AGAIN (crumbs-30): `unstable_retry`, the
+// router's refresh with the reset, never the bare `reset`, which re-rendered the
+// root layout from the payload that had just crashed it. It says so while it
+// asks, as every crash screen's button does (`TryAgain`, route-error.tsx,
+// rebuilt here in the inline styles this screen is limited to).
+//
 // The h1's inline size is the type ladder's one `unstyled` exception
 // (type-ladder-policy.test.ts, count 1): there is no stylesheet to size it
 // from. Do not add a second heading here without moving that count.
 export default function GlobalError({
   error,
-  reset,
+  unstable_retry,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  unstable_retry: () => void;
 }) {
   const [copied, setCopied] = useState(false);
+  const [retrying, startRetry] = useTransition();
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -93,7 +100,8 @@ export default function GlobalError({
             }}
           >
             <button
-              onClick={reset}
+              onClick={() => startRetry(unstable_retry)}
+              disabled={retrying}
               style={{
                 font: "inherit",
                 fontWeight: 500,
@@ -102,10 +110,10 @@ export default function GlobalError({
                 border: 0,
                 borderRadius: "16px",
                 padding: "10px 24px",
-                cursor: "pointer",
+                cursor: retrying ? "default" : "pointer",
               }}
             >
-              Try again
+              {retrying ? "Trying again…" : "Try again"}
             </button>
             {/* A PLAIN ANCHOR, DELIBERATELY, and the one place in the tree
                 where next/link is the wrong answer: this screen renders

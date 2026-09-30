@@ -399,13 +399,16 @@ describe("getEventBlocks: where Let back in leaves each one (build 23's NIT-3)",
     ).toEqual(["host"]);
   });
 
+  // ★ RESHAPED ON PURPOSE (crumbs-30; scar kept: a newcomer keeps her own landing, never the one of someone who was
+  // in): a newcomer's standing ask at Only me was "door", and the words promised a Let in that leaves her at a
+  // closed album; it is her own Only me landing at the door now.
   it("★ at Only me, someone who was in is told the album is closed until the host opens it; a newcomer keeps her own landing (crumbs-27)", async () => {
     tables.events = [{ id: EVENT, visibility: "private", gate: null }];
     await expect(standing()).resolves.toEqual({
-      // Their ask still stands, and the door the host answers is where they land (unchanged).
-      "b-wren": "door",
+      // Their ask still stands at a door the host answers, whose Let in meets the album Only me keeps shut.
+      "b-wren": "door_only_me",
       "b-sam": "only_me",
-      "b-lou": "door",
+      "b-lou": "door_only_me",
     });
     // Everyone in: every one of them lands on the closed album.
     tables.guests = tables.guests.map((g) => ({ ...g, admission: "in" }));
