@@ -77,8 +77,10 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
 
 1. **Integrate each lane as it hands off** (none running but build 27's red-team), each migration by protocol, one at a time: drift check, apply verbatim, the rolled-back refusals,
    advisors, types.
-2. **Build 28 is on the alias** (`f5005b56`, 2026-09-30; its red-team running, agent `a323059321486cd11`, brief and
-   ledger in `../partyreel-wt/_scratch/redteam-28/`; from another session, respawn from the brief after the ledger's last
+2. **Build 28 is on the alias** (`f5005b56`, 2026-09-30; its red-team PAUSED, agent `a323059321486cd11`: Claude in
+   Chrome never connected, so every signed-in walk, crumbs-26's fix first, waits on Will reopening the side panel; the
+   signed-out walks passed (lab-focus 23 of 23, perf-404's /login 123 KB lighter, the title after Back); resume it by
+   SendMessage from its ledger's PLAN block; brief and ledger in `../partyreel-wt/_scratch/redteam-28/`; from another session, respawn from the brief after the ledger's last
    line): build 27 (red-teamed; its MEDIUM, a shared phone's uploads under another guest's ticket, fixed by `crumbs-26`)
    plus lab-focus, perf-404, crumbs-24 and crumbs-26. When it passes, milestone 31 is proposed to Will (his yes);
    schema-pass's part 2 applies after it ships. crumbs-25 rides build 29. Waiting on Will from build 27's walk: one
