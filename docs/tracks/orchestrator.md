@@ -39,7 +39,7 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `crumbs-29` | build 30's red-team finds (a shared phone's double row, a declined newcomer admitted by a door's opening, the door after a sign-out, a blocked phone's flash) and two ROADMAP lines (the door's predicate once, a report's closed status paired with its time) | running (agent `a4bf615c4dca3cf34`), cut at `429f0181`; migrations applied by protocol after its merge | Opus, 3131 | |
+| `crumbs-29` | build 30's red-team finds (a shared phone's double row, a declined newcomer admitted by a door's opening, the door after a sign-out, a blocked phone's flash) and two ROADMAP lines (the door's predicate once, a report's closed status paired with its time) | merged at `47b5cce8` (gate 106 green; work `75600355`); its three migrations (20260930130000 the door admits no block, 140000 one account one ticket, 150000 a report resolved when closed) apply by protocol once build 33's red-team is done, each an expand both ways |  Opus, 3131 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
 no question open (Q1, the `names` hang; Q2, schema-pass part 1; Q3, the notes-into-laws audit; Q4, the door migration:
@@ -78,7 +78,8 @@ protocol, 20260930205935). Schema-pass part 2 is applied (20260930204037).
      until 2027-03-28);
    - crumbs-29's, if it has merged by then.
 
-   **crumbs-29** takes build 30's red-team's finds:
+   **crumbs-29** (merged; its migrations wait on this red-team, since they change the joins and doors it walks) takes
+   build 30's red-team's finds:
    - LOW, two rows of hers in one second on a shared phone (the queue's silent join races the page's; `create_guest`
      always inserts);
    - LOW, a declined newcomer admitted by `events_door_opened` on a Public trip (the trigger admits every waiting row,
