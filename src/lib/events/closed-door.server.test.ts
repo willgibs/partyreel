@@ -14,9 +14,18 @@ vi.mock("server-only", () => ({}));
 
 const readDoorStanding = vi.fn();
 const readDoorEventDetails = vi.fn();
+const readTicketsBlocked = vi.fn();
 vi.mock("@/lib/db/queries/event-doors", () => ({
   readDoorStanding: (...args: unknown[]) => readDoorStanding(...args),
   readDoorEventDetails: (...args: unknown[]) => readDoorEventDetails(...args),
+  readTicketsBlocked: (...args: unknown[]) => readTicketsBlocked(...args),
+}));
+
+// Whose the tickets a signed-in request carries are to her is `session-owner.server.ts`'s (its own pins);
+// here the answer is handed in: by default every ticket is hers, and a test sets some aside.
+const sortTickets = vi.fn();
+vi.mock("@/lib/guest/session-owner.server", () => ({
+  sortTickets: (...args: unknown[]) => sortTickets(...args),
 }));
 
 const getEventByQrToken = vi.fn();
@@ -113,6 +122,13 @@ beforeEach(() => {
   userId = null;
   readDoorStanding.mockResolvedValue(standing());
   readDoorEventDetails.mockResolvedValue(DETAILS);
+  readTicketsBlocked.mockResolvedValue(false);
+  sortTickets.mockImplementation(
+    async (_viewer: string | null, tickets: readonly string[]) => ({
+      hers: [...tickets],
+      others: [],
+    }),
+  );
 });
 
 describe("who is asking: the account and the tickets, shape-checked", () => {
@@ -151,13 +167,83 @@ describe("who is asking: the account and the tickets, shape-checked", () => {
   });
 });
 
+/**
+ * A SIGNED-IN ACCOUNT'S DOOR READS HER OWN TICKETS (crumbs-27, the read side of crumbs-26's owner rule). The
+ * standing counts the account and the tickets together, so on a shared phone the account was let in, held or
+ * (for a name-only album's gate) waiting through whichever ticket the phone kept for the album, another guest's
+ * included. The write routes already refused that ticket as somebody else's; the door now reads only tickets
+ * that may speak for her (`sortTickets`: her own rows, or one the claim takes).
+ */
+describe("★ a signed-in account's door carries only the tickets that are hers", () => {
+  it("sets aside a ticket the phone kept that is not hers: the standing never sees it, and it can neither let her in nor hold her", async () => {
+    userId = "user-1";
+    cookie = TICKET;
+    sortTickets.mockResolvedValue({ hers: [], others: [TICKET] });
+    const caller = await doorCallerFor(EVENT_ID);
+    expect(caller).toEqual({ userId: "user-1", tickets: [] });
+    expect(sortTickets).toHaveBeenCalledWith("user-1", [TICKET]);
+  });
+
+  it("keeps the ones that are hers and sets aside the rest, in order", async () => {
+    userId = "user-1";
+    cookie = TICKET;
+    sortTickets.mockResolvedValue({ hers: [OTHER], others: [TICKET] });
+    const caller = await doorCallerFor(EVENT_ID, { bodyTokens: [OTHER] });
+    expect(caller).toEqual({ userId: "user-1", tickets: [OTHER] });
+  });
+
+  it("★ a block on a ticket she may not speak through still holds the phone: a typed name's block holds on the browser that used it", async () => {
+    userId = "user-1";
+    cookie = TICKET;
+    sortTickets.mockResolvedValue({ hers: [], others: [TICKET] });
+    readTicketsBlocked.mockResolvedValue(true);
+    const caller = await doorCallerFor(EVENT_ID);
+    // The ticket stays in the caller, so the standing reads its block (and only its block, since a blocked
+    // ticket shuts the door whatever else it says).
+    expect(caller).toEqual({ userId: "user-1", tickets: [TICKET] });
+    expect(readTicketsBlocked).toHaveBeenCalledWith(EVENT_ID, [TICKET]);
+  });
+
+  it("asks whether a block holds a ticket only when one was set aside", async () => {
+    userId = "user-1";
+    cookie = TICKET;
+    await doorCallerFor(EVENT_ID);
+    expect(readTicketsBlocked).not.toHaveBeenCalled();
+  });
+
+  it("signed out, every ticket is the device's: nothing is sorted and nothing more is read", async () => {
+    cookie = TICKET;
+    const caller = await doorCallerFor(EVENT_ID, { bodyTokens: [OTHER] });
+    expect(caller).toEqual({ userId: null, tickets: [OTHER, TICKET] });
+    expect(sortTickets).not.toHaveBeenCalled();
+    expect(readTicketsBlocked).not.toHaveBeenCalled();
+  });
+
+  it("with no ticket there is nothing to sort, signed in or not", async () => {
+    userId = "user-1";
+    await expect(doorCallerFor(EVENT_ID)).resolves.toEqual({
+      userId: "user-1",
+      tickets: [],
+    });
+    expect(sortTickets).not.toHaveBeenCalled();
+  });
+
+  it("a failed block read fails loudly rather than reading the phone as clean", async () => {
+    userId = "user-1";
+    cookie = TICKET;
+    sortTickets.mockResolvedValue({ hers: [], others: [TICKET] });
+    readTicketsBlocked.mockRejectedValue(new Error("db down"));
+    await expect(doorCallerFor(EVENT_ID)).rejects.toThrow("db down");
+  });
+});
+
 describe("when the door asks: the same read for every door that could shut or hold", () => {
   it("a signed-out stranger with no ticket at an open or password album costs nothing", async () => {
     const open = await resolveGuestDoor(event(), { userId: null, tickets: [] });
-    const password = await resolveGuestDoor(
-      event({ visibility: "password" }),
-      { userId: null, tickets: [] },
-    );
+    const password = await resolveGuestDoor(event({ visibility: "password" }), {
+      userId: null,
+      tickets: [],
+    });
     expect(open.decision).toEqual({ kind: "through", admitted: false });
     expect(password.decision).toEqual({ kind: "through", admitted: false });
     expect(readDoorStanding).not.toHaveBeenCalled();

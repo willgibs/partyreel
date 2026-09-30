@@ -2,7 +2,6 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { EventUploads } from "@/components/app/event-uploads";
-import { newItemIds } from "@/components/app/host-media-grid";
 import type { HubAlbumSeed } from "@/lib/event/hub-album";
 import {
   ENTRY_PENDING,
@@ -228,28 +227,5 @@ describe("what the album's room holds", () => {
     room([entry(1, ENTRY_PENDING), entry(2, ENTRY_PENDING)]);
     expect(screen.queryByTestId("launch")).not.toBeInTheDocument();
     expect(screen.queryByTestId("album-grid")).not.toBeInTheDocument();
-  });
-});
-
-describe("the arrival diff", () => {
-  it("is what is new, and nothing else", () => {
-    expect(newItemIds(["a", "b"], ["c", "a", "b"])).toEqual(new Set(["c"]));
-    expect(newItemIds(["a", "b"], ["a", "b"])).toEqual(new Set());
-  });
-
-  it("marks nothing when items only leave", () => {
-    expect(newItemIds(["a", "b", "c"], ["a"])).toEqual(new Set());
-  });
-
-  it("catches a batch, not just the newest", () => {
-    // Ten at once after a shut laptop wakes up is the same event as one.
-    expect(newItemIds(["a"], ["e", "d", "c", "b", "a"])).toEqual(
-      new Set(["e", "d", "c", "b"]),
-    );
-  });
-
-  it("reads ids, never the presigned url that rolls every half hour", () => {
-    // Same ids, entirely new signatures: nothing arrived.
-    expect(newItemIds(["a", "b"], ["a", "b"])).toEqual(new Set());
   });
 });

@@ -18,7 +18,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 
-import { joinEvent } from "@/lib/guest/join";
+import { joinEvent, type JoinedGuest } from "@/lib/guest/join";
 import { SESSION_OTHER_ACCOUNT } from "@/lib/guest/session-owner";
 import { dropGuestTicket } from "@/lib/guest/use-stored-session";
 import { uploadFile, type UploadOutcome } from "@/lib/upload/uploader";
@@ -42,6 +42,15 @@ import { uploadFile, type UploadOutcome } from "@/lib/upload/uploader";
  *   door, migration 20260929230000), so the phone that asked holds a token the
  *   server no longer knows. It goes down the same way and the viewer joins afresh
  *   past the door as it stands now (after the unlock, `create_guest` mints her in).
+ *
+ * A JOIN THAT LANDS WAITING (`admission: "waiting"`, crumbs-27) is the ASK, not a
+ * ticket: where the host lets each guest in, a confirmed newcomer's join mints a
+ * row the door holds until the host answers, and a file sent on it is refused
+ * "This event is private." (a waiting ticket reads as a private album's). So the
+ * queue never sends on it and never fails a file for it: the files wait `queued`,
+ * the door has her (`onDoorNeeded`: the page refreshes onto the held door, which
+ * reads the cookie the join set), and the run resumes when `doorOpen` says she is
+ * through.
  */
 const VERIFICATION_REQUIRED = "verification_required";
 const DEAD_TICKET = "invalid_session";
@@ -215,6 +224,21 @@ async function simulateUpload(
   };
 }
 
+/** One picked file as the queue holds it: waiting its turn. */
+function queueItem(
+  file: File,
+  extra: Pick<QueueItem, "reelEligible" | "poster"> = {},
+): QueueItem {
+  return {
+    id: crypto.randomUUID(),
+    file,
+    kind: file.type.startsWith("video/") ? "video" : "photo",
+    status: "queued",
+    progress: 0,
+    ...extra,
+  };
+}
+
 export function useUploadQueue({
   qrToken,
   sessionToken,
@@ -222,6 +246,7 @@ export function useUploadQueue({
   onUploaded,
   isDemo,
   isVerified = false,
+  doorOpen = true,
   onVerificationRequired,
   onDoorNeeded,
 }: {
@@ -239,6 +264,13 @@ export function useUploadQueue({
    * a `session_other_account` the files wait for the door (`onDoorNeeded`).
    */
   isVerified?: boolean;
+  /**
+   * The page's door lets this viewer through to the album (its access is not `none`), which is
+   * true whenever she can see the album and false while a door holds her (the held door, the
+   * ask). Files held for the door (`onDoorNeeded`, a join that landed waiting) resume the moment
+   * it turns true again, on a fresh chain of joins: she was let in, so the join asks nobody.
+   */
+  doorOpen?: boolean;
   /**
    * The host turned Require verified emails ON mid-visit; the session is spent.
    * `hadQueuedFiles` tells the caller whether the failure sheet is about to
@@ -331,6 +363,26 @@ export function useUploadQueue({
     [sync],
   );
 
+  /**
+   * A JOIN'S TICKET, IF THE DOOR PASSED IT: the ticket to send on, or null when the door holds her.
+   * ★ A JOIN THAT LANDED WAITING IS THE ASK, NOT A TICKET (crumbs-27): the host has not let her in, so
+   * anything sent on it is refused "This event is private." and would fail a file that is fine. It is
+   * adopted by nobody here: the door reads the cookie the join set, and the ticket the files go up on
+   * is the one her join is handed once she is let in (`doorOpen`). The files stay as they are.
+   */
+  const takeJoin = useCallback(
+    (guest: JoinedGuest): string | null => {
+      if (guest.admission === "waiting") {
+        onDoorNeeded?.();
+        return null;
+      }
+      sessionRef.current = guest.sessionToken;
+      onSession(guest.sessionToken);
+      return guest.sessionToken;
+    },
+    [onSession, onDoorNeeded],
+  );
+
   /* ──────────────────────────────────────────────────────────────────────────
      A RUN WITH FILES WAITING AND NO TICKET.
 
@@ -349,6 +401,10 @@ export function useUploadQueue({
      silent join means the page thought this viewer was confirmed and the server
      does not (a sign-out in another tab): the door is the answer there too.
 
+     ★ AND SO IS A JOIN THAT LANDS WAITING (`takeJoin`): the page thought she was
+     through and the door says the host has not let her in, so the files wait for
+     the door instead of going up on a ticket it will refuse.
+
      Returns the new ticket, or null when this run stops here.
      ────────────────────────────────────────────────────────────────────────── */
   const acquireTicket = useCallback(async (): Promise<string | null> => {
@@ -361,11 +417,7 @@ export function useUploadQueue({
     if (isVerifiedRef.current && !silentJoinSpentRef.current) {
       silentJoinSpentRef.current = true;
       const joined = await joinEvent({ qrToken });
-      if (joined.ok) {
-        sessionRef.current = joined.guest.sessionToken;
-        onSession(joined.guest.sessionToken);
-        return joined.guest.sessionToken;
-      }
+      if (joined.ok) return takeJoin(joined.guest);
       if (
         joined.refusal.kind !== "name_required" &&
         joined.refusal.kind !== "verification_required"
@@ -376,7 +428,7 @@ export function useUploadQueue({
     }
     onDoorNeeded?.();
     return null;
-  }, [isDemo, qrToken, onSession, onDoorNeeded, failWaiting]);
+  }, [isDemo, qrToken, onSession, onDoorNeeded, failWaiting, takeJoin]);
 
   // One file at a time — robust on flaky mobile connections.
   const runQueue = useCallback(async () => {
@@ -502,10 +554,11 @@ export function useUploadQueue({
             rejoinedRef.current = true;
             const rejoined = await joinEvent({ qrToken });
             if (rejoined.ok) {
-              sessionRef.current = rejoined.guest.sessionToken;
-              onSession(rejoined.guest.sessionToken);
-              // Re-queue the file this refusal cost and go round again.
+              const ticket = takeJoin(rejoined.guest);
+              // Re-queue the file this refusal cost; go round again on the new ticket, or, with the
+              // door holding her (the join landed waiting), wait for it.
               patch(next.id, { status: "queued", progress: 0 });
+              if (ticket === null) break;
               continue;
             }
           }
@@ -542,6 +595,7 @@ export function useUploadQueue({
     onSession,
     onVerificationRequired,
     acquireTicket,
+    takeJoin,
     isDemo,
     qrToken,
   ]);
@@ -562,17 +616,27 @@ export function useUploadQueue({
     void runQueueRef.current();
   }, [sessionToken]);
 
+  /* ★ AND WHEN THE DOOR LETS HER THROUGH. Files held for a join that landed waiting have no ticket to
+     wait for (the queue adopted none), so the moment the page's door opens again is the one that resumes
+     them, on a fresh chain of joins: she was let in, so this join asks nobody and mints her ticket. Only
+     the flip counts (the door was shut, now it is not); a page that mounts with its door open, or
+     stays so, starts nothing. */
+  const doorWasOpenRef = useRef(doorOpen);
+  useEffect(() => {
+    const wasOpen = doorWasOpenRef.current;
+    doorWasOpenRef.current = doorOpen;
+    if (!doorOpen || wasOpen) return;
+    if (!itemsRef.current.some((it) => it.status === "queued")) return;
+    silentJoinSpentRef.current = false;
+    void runQueueRef.current();
+  }, [doorOpen]);
+
   const enqueue = useCallback(
     (files: File[], extra: Pick<QueueItem, "reelEligible" | "poster"> = {}) => {
-      const additions: QueueItem[] = files.map((file) => ({
-        id: crypto.randomUUID(),
-        file,
-        kind: file.type.startsWith("video/") ? "video" : "photo",
-        status: "queued",
-        progress: 0,
-        ...extra,
-      }));
-      sync([...itemsRef.current, ...additions]);
+      sync([
+        ...itemsRef.current,
+        ...files.map((file) => queueItem(file, extra)),
+      ]);
       void runQueue();
     },
     [runQueue, sync],
@@ -630,8 +694,32 @@ export function useUploadQueue({
       });
       return;
     }
+    if (joined.guest.admission === "waiting") {
+      // ★ THE JOIN WAS THE ASK (see `takeJoin`): her picks join the queue as they are, `queued`, and the
+      // door has her; nothing runs on a ticket the door will refuse, and they go up when she is let in.
+      const files = pendingFilesRef.current;
+      const clips = pendingClipsRef.current;
+      pendingFilesRef.current = [];
+      pendingClipsRef.current = [];
+      sync([
+        ...itemsRef.current,
+        ...files.map((file) => queueItem(file)),
+        ...clips.map((clip) =>
+          queueItem(clip.file, { reelEligible: false, poster: clip.poster }),
+        ),
+      ]);
+      onDoorNeeded?.();
+      return;
+    }
     handleJoined(joined.guest.sessionToken);
-  }, [isDemo, qrToken, handleJoined, onVerificationRequired]);
+  }, [
+    isDemo,
+    qrToken,
+    handleJoined,
+    onVerificationRequired,
+    onDoorNeeded,
+    sync,
+  ]);
 
   const addFiles = useCallback(
     (files: File[]) => {

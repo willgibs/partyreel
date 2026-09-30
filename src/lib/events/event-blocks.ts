@@ -178,13 +178,15 @@ export type BlockedPerson = {
  *   - `in`: they can open the album and add again: they were in (a gate never stops someone already
  *     in), the album is Public, or the invite list, being the door, names them (let_back_in lets a
  *     waiting one in, and a new join is minted in);
+ *   - `only_me`: they were in, and the album is Only me, which shuts even the people already in: the
+ *     block is lifted, and they meet a closed album until the host opens it (crumbs-27);
  *   - `door`: back at a door the host answers: their ask still stands (the host lets them in from At
  *     the door, as the decline's Undo does), or the door takes asks and they can ask again;
  *   - `password`: they never got in, and the album takes a password now: they meet it like anyone new
  *     (the password ended their ask, 20260929230000, and nobody waits there);
  *   - `out`: they never got in, and the album takes nobody new (closed, or Only me).
  */
-export type BlockedLanding = "in" | "door" | "password" | "out";
+export type BlockedLanding = "in" | "only_me" | "door" | "password" | "out";
 
 /**
  * The landing for one blocked person, from where they stood here before the block and the door as it
@@ -202,7 +204,9 @@ export function blockedLanding(standing: {
   /** The door as it stands. */
   door: Door;
 }): BlockedLanding {
-  if (standing.wasIn) return "in";
+  // ★ SOMEONE WHO WAS IN IS BACK IN AT EVERY DOOR BUT ONE: a gate stops newcomers, and only Only me and a block
+  // shut out someone already in (`decideDoor`), so with the block lifted Only me is what still does.
+  if (standing.wasIn) return standing.door === "private" ? "only_me" : "in";
   if (standing.door === "open") return "in";
   if (standing.door === "invite" && standing.listed) return "in";
   if (standing.door === "password") return "password";
@@ -238,9 +242,10 @@ export function letBackInTitle(name: string | null | undefined): string {
 }
 
 /**
- * ★ IT PROMISES WHERE THEY LAND (build 23's NIT-3, crumbs-24): someone who was in comes back in; a
- * newcomer declined at the door goes back to it, where the host still lets her in, as the decline's
- * Undo does; at a password she meets it like anyone new; and where nobody new gets in, she stays out.
+ * ★ IT PROMISES WHERE THEY LAND (build 23's NIT-3, crumbs-24): someone who was in comes back in, unless
+ * the album is Only me, where they meet a closed album until the host opens it (crumbs-27); a newcomer
+ * declined at the door goes back to it, where the host still lets her in, as the decline's Undo does; at
+ * a password she meets it like anyone new; and where nobody new gets in, she stays out.
  */
 export function letBackInLede(
   eventName: string,
@@ -249,6 +254,8 @@ export function letBackInLede(
   switch (lands) {
     case "in":
       return `They'll be able to open ${eventName} and add photos again.`;
+    case "only_me":
+      return `${eventName} is Only me right now, so they'll meet a closed album until you open it. Then they can add photos again.`;
     case "door":
       return "They'll be back at the door, and you can let them in from there.";
     case "password":
@@ -295,6 +302,10 @@ export function letBackInToast(
   lands: BlockedLanding = "in",
 ): { title: string; description?: string } {
   const who = name?.trim();
+  // The block is lifted and nothing more is promised: where nobody new gets in, and at Only me.
+  const lifted = who
+    ? `${who} is no longer blocked.`
+    : "They're no longer blocked.";
   // A newcomer had nothing in the album, so there is nothing to say came back: only where she is.
   if (lands === "door") {
     return {
@@ -308,13 +319,7 @@ export function letBackInToast(
         : "They can come in with the password.",
     };
   }
-  if (lands === "out") {
-    return {
-      title: who
-        ? `${who} is no longer blocked.`
-        : "They're no longer blocked.",
-    };
-  }
+  if (lands === "out") return { title: lifted };
   const lines: string[] = [];
   if (restored > 0) {
     lines.push(
@@ -330,8 +335,16 @@ export function letBackInToast(
         : `${noRoom.toLocaleString("en-US")} stayed in Deleted: the album is full.`,
     );
   }
+  // ★ AT ONLY ME THE BLOCK IS LIFTED AND THE ALBUM STAYS SHUT, so the title says only the first (the
+  // lede told the host when they can add again); what came back is true whatever the door.
+  const title =
+    lands === "only_me"
+      ? lifted
+      : who
+        ? `${who} can join again.`
+        : "They can join again.";
   return {
-    title: who ? `${who} can join again.` : "They can join again.",
+    title,
     ...(lines.length > 0 ? { description: lines.join(" ") } : {}),
   };
 }

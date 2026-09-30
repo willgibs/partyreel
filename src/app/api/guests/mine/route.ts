@@ -25,6 +25,13 @@
  *
  * An unknown token, a wrong event, a private event and an empty album all
  * answer the same empty list: from a browser they must be indistinguishable.
+ *
+ * ★ A SIGNED-IN ACCOUNT READS ONLY TICKETS THAT ARE HERS (crumbs-27, the read side of crumbs-26's owner
+ * rule). On a shared phone the ticket in the body is whatever the phone still holds for the album, another
+ * guest's name-only ticket included, and a list of "mine" made from it would offer her another guest's
+ * photographs with a Remove control, and fill her tracker with their statuses. So the ticket is read only
+ * as far as it may speak for her (her own row, or one the claim takes: `sortTickets`); signed out, it is the
+ * device's, as it has always been.
  */
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -42,6 +49,7 @@ import {
   isThrough,
   resolveGuestDoor,
 } from "@/lib/events/closed-door.server";
+import { sortTickets } from "@/lib/guest/session-owner.server";
 import { TRACKER_TELLS_REFUSAL } from "@/lib/guest/upload-tracker";
 import { captureWarning } from "@/lib/observability/sentry";
 import {
@@ -115,9 +123,21 @@ async function letsThrough(
 ): Promise<boolean> {
   const door = await resolveGuestDoor(
     event,
-    await doorCallerFor(event.id, { bodyTokens: [sessionToken], cookie: false }),
+    await doorCallerFor(event.id, {
+      bodyTokens: [sessionToken],
+      cookie: false,
+    }),
   );
   return isThrough(door);
+}
+
+/** The `getUser()` account asking, or null: never `getSession()`, a cookie is no boundary. */
+async function viewerId(): Promise<string | null> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  return user?.id ?? null;
 }
 
 async function answerStatuses(
@@ -134,14 +154,14 @@ async function answerStatuses(
   if (!event.ok || !(await letsThrough(event.data, input.session_token))) {
     return NextResponse.json({ ok: true, items: [] }, { headers: PRIVATE });
   }
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const userId = await viewerId();
+  const ticket = input.session_token
+    ? ((await sortTickets(userId, [input.session_token])).hers[0] ?? null)
+    : null;
   const items = await listOwnUploadStatuses({
     eventId: event.data.id,
-    sessionToken: input.session_token ?? null,
-    userId: user?.id ?? null,
+    sessionToken: ticket,
+    userId,
   });
   // `host-curation`'s `told` is the flag's to answer: at `never` a refusal is not hers to learn.
   const told = TRACKER_TELLS_REFUSAL
@@ -181,9 +201,13 @@ export async function POST(request: Request) {
     return NextResponse.json(NONE);
   }
 
+  // The ticket answers only as far as it is hers to the viewer (the header): a signed-in account on a shared
+  // phone is not handed another guest's photographs.
+  const ticket = (await sortTickets(await viewerId(), [session_token])).hers[0];
+  if (!ticket) return NextResponse.json(NONE, { headers: PRIVATE });
   const ids = await listSessionMediaIds({
     eventId: event.data.id,
-    sessionToken: session_token,
+    sessionToken: ticket,
   });
   // Never cacheable: the answer is per session token.
   return NextResponse.json({ ok: true, ids }, { headers: PRIVATE });

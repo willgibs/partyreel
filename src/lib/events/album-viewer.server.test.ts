@@ -41,9 +41,18 @@ vi.mock("@/lib/supabase/server", () => ({
 // stood in for. By default it is a stranger at the album's own door.
 type Caller = { userId: string | null; tickets: string[] };
 const readDoorStanding = vi.fn();
+const readTicketsBlocked = vi.fn();
 vi.mock("@/lib/db/queries/event-doors", () => ({
   readDoorStanding: (...a: unknown[]) => readDoorStanding(...a),
   readDoorEventDetails: async () => null,
+  readTicketsBlocked: (...a: unknown[]) => readTicketsBlocked(...a),
+}));
+
+// Whose the tickets a signed-in request carries are to her is `session-owner.server.ts`'s (its own pins);
+// here the answer is handed in: by default every ticket is hers, and a test sets some aside.
+const sortTickets = vi.fn();
+vi.mock("@/lib/guest/session-owner.server", () => ({
+  sortTickets: (...a: unknown[]) => sortTickets(...a),
 }));
 
 /**
@@ -88,6 +97,13 @@ beforeEach(() => {
   isUnlocked.mockResolvedValue(false);
   readDoorStanding.mockImplementation(async () =>
     standing({ door: await servedDoor() }),
+  );
+  readTicketsBlocked.mockResolvedValue(false);
+  sortTickets.mockImplementation(
+    async (_viewer: string | null, tickets: readonly string[]) => ({
+      hers: [...tickets],
+      others: [],
+    }),
   );
 });
 
@@ -179,6 +195,44 @@ describe("the viewer", () => {
       expect.anything(),
       expect.objectContaining({ sessionToken: TOKEN }),
     );
+  });
+});
+
+describe("★ a signed-in account's door reads only her own tickets (crumbs-27)", () => {
+  const COOKIE = "c".repeat(64);
+
+  it("the body's and the cookie's tickets that are not hers never reach the standing, so they can neither let her in nor hold her", async () => {
+    user = { id: "u-1", email_confirmed_at: "2026-09-01T00:00:00Z" };
+    cookieJar.set("pr_guest_evt-1", COOKIE);
+    sortTickets.mockResolvedValue({ hers: [], others: [TOKEN, COOKIE] });
+    await resolveAlbumViewer("qr-1", TOKEN);
+    expect(readDoorStanding).toHaveBeenCalledWith("evt-1", {
+      userId: "u-1",
+      tickets: [],
+    });
+  });
+
+  it("a block on a ticket she may not speak through still holds the phone: the album is gone, as a private one is", async () => {
+    user = { id: "u-1", email_confirmed_at: "2026-09-01T00:00:00Z" };
+    sortTickets.mockResolvedValue({ hers: [], others: [TOKEN] });
+    readTicketsBlocked.mockResolvedValue(true);
+    readDoorStanding.mockImplementation(async (_id: string, caller: Caller) =>
+      standing({
+        door: await servedDoor(),
+        blocked: caller.tickets.includes(TOKEN),
+      }),
+    );
+    expect(await resolveAlbumViewer("qr-1", TOKEN)).toEqual({ kind: "gone" });
+    expect(readTicketsBlocked).toHaveBeenCalledWith("evt-1", [TOKEN]);
+  });
+
+  it("signed out, the ticket goes to the standing as it is, and nothing is sorted", async () => {
+    await resolveAlbumViewer("qr-1", TOKEN);
+    expect(readDoorStanding).toHaveBeenCalledWith("evt-1", {
+      userId: null,
+      tickets: [TOKEN],
+    });
+    expect(sortTickets).not.toHaveBeenCalled();
   });
 });
 

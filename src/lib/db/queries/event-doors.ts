@@ -40,6 +40,28 @@ export async function readDoorStanding(
 }
 
 /**
+ * DOES A BLOCK HOLD ANY OF THESE TICKETS' ROWS (`event_ticket_blocked`, the one-browser hold, 20260928120000)?
+ * A typed name has no account to block, only the ticket its browser keeps, so a block holds the phone that
+ * used it. The door asks this only about tickets a signed-in account may NOT speak through (another guest's
+ * name-only ticket, another account's row): what such a ticket admits is not hers (`sortTickets`), but the
+ * block on it still holds the phone.
+ */
+export async function readTicketsBlocked(
+  eventId: string,
+  tickets: readonly string[],
+): Promise<boolean> {
+  const { data, error } = await createAdminClient().rpc(
+    "event_ticket_blocked",
+    {
+      p_event_id: eventId,
+      p_session_tokens: [...new Set(tickets)],
+    },
+  );
+  if (error) throw error;
+  return data === true;
+}
+
+/**
  * THE WAITING DOOR'S CHECK-IN (about every 30 s while it is open): the standing again, and a stamp on
  * her waiting rows, so a later let-in mail can tell whether she is still at the door.
  */

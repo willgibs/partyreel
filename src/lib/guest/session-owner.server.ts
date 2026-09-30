@@ -31,6 +31,13 @@
  * and nothing else reads, and `forensics/capture.ts` resolves the same token on the same client for the
  * same reason (the RPCs that own the row return no `user_id`, by design); the claim is the browser's own
  * RPC (`claim-uploads.ts` calls it the same way), asked here as the same caller. No SQL changed for it.
+ *
+ * ★ THE READS ASK IT TOO (`sortTickets`, crumbs-27). The rule was the writes' alone, and on a shared phone
+ * a signed-in account's READS still took whatever ticket the phone held for the album beside her account:
+ * the door's standing counted her let in (or waiting, or blocked) through another guest's ticket, A photo
+ * first counted another guest's contribution as hers, her Yours (the export's own ids, her tracker) listed
+ * another guest's photographs. So every read that carries a ticket beside an account sorts them first:
+ * the ones that may speak for her (her own rows, or one the claim just took) and the rest.
  */
 import "server-only";
 
@@ -39,6 +46,9 @@ import {
   SESSION_OTHER_ACCOUNT_MESSAGE,
   sessionBelongsTo,
 } from "@/lib/guest/session-owner";
+import { mustQuery } from "@/lib/db/must-query";
+import { inChunks } from "@/lib/db/read-all";
+import { captureError } from "@/lib/observability/sentry";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -83,12 +93,98 @@ export async function checkSessionOwner(
   if (row.userId !== null || viewerId === null) return refused;
 
   // A name-only row and a signed-in account: the claim, as her, about this ticket alone (the header).
-  const { error } = await supabase.rpc("claim_anonymous_uploads", {
-    p_session_tokens: [sessionToken],
-  });
-  if (error) throw new Error(`session owner claim: ${error.message}`);
+  await claimAsViewer(supabase, [sessionToken]);
   const now = await readOwner(sessionToken);
   return now && sessionBelongsTo(now, viewerId) ? { ok: true } : refused;
+}
+
+/**
+ * THE TICKETS A REQUEST CARRIES, SORTED BY WHOSE THEY ARE TO THE VIEWER (crumbs-27; the read side of
+ * `checkSessionOwner`, the same rule and the same claim).
+ *
+ * `hers` may speak for her: while nobody is signed in, every ticket is the device's (as every read has
+ * always taken it: nothing is read, and not even Auth is asked); signed in, a row of her own account, or a
+ * name-only row the claim takes for her then and there (a ticket she typed before she signed in). `others`
+ * may not: a name-only row the claim leaves (another guest's, or one that waits for the address it was
+ * typed with), another account's row, and a confirmed row whose account is gone. A ticket that names no
+ * row says nothing either way and stays in `hers`, as `checkSessionOwner` passes it: the capability RPCs
+ * own the dead-session answer.
+ *
+ * The callers keep what `hers` says and drop the rest from what they read; the door alone keeps asking
+ * whether a block holds an `others` ticket, since a typed name's block holds the phone that used it.
+ *
+ * ★ FAIL CLOSED, LOUDLY, AND NEVER THROWN: a read that fails here would otherwise be a page that fails, or
+ * a ticket read as hers on faith. Her account speaks alone (every ticket goes to `others`) and the failure
+ * is captured; the worst case is a ticket of hers not counted for one request.
+ */
+export async function sortTickets(
+  viewerId: string | null,
+  tickets: readonly string[],
+): Promise<{ hers: string[]; others: string[] }> {
+  const unique = [...new Set(tickets)];
+  if (viewerId === null || unique.length === 0) {
+    return { hers: unique, others: [] };
+  }
+  try {
+    const owners = await readOwners(unique);
+    const mine = new Set<string>();
+    const claimable: string[] = [];
+    for (const ticket of unique) {
+      const row = owners.get(ticket);
+      if (!row || sessionBelongsTo(row, viewerId)) mine.add(ticket);
+      else if (row.userId === null && !row.verified) claimable.push(ticket);
+    }
+    if (claimable.length > 0) {
+      // The claim, as her, about every name-only ticket at once; what it took is read off the rows again.
+      await claimAsViewer(await createClient(), claimable);
+      const now = await readOwners(claimable);
+      for (const ticket of claimable) {
+        const row = now.get(ticket);
+        if (row && sessionBelongsTo(row, viewerId)) mine.add(ticket);
+      }
+    }
+    return {
+      hers: unique.filter((ticket) => mine.has(ticket)),
+      others: unique.filter((ticket) => !mine.has(ticket)),
+    };
+  } catch (error) {
+    captureError("security", error, { seam: "ticket_owner_fail_closed" });
+    return { hers: [], others: unique };
+  }
+}
+
+/** The claim, asked as the viewer (their own client: `auth.uid()`), about exactly these tickets. */
+async function claimAsViewer(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  sessionTokens: readonly string[],
+) {
+  const { error } = await supabase.rpc("claim_anonymous_uploads", {
+    p_session_tokens: [...sessionTokens],
+  });
+  if (error) throw new Error(`session owner claim: ${error.message}`);
+}
+
+/** The rows a set of tickets name, as the rule reads them (service-role; never returned), by ticket. */
+async function readOwners(sessionTokens: readonly string[]) {
+  // row-cap: guests.session_token is unique, so a chunk of tickets reads at most one row a ticket
+  const rows = await inChunks(
+    "session owners",
+    sessionTokens,
+    async (chunk) =>
+      (await mustQuery(
+        createAdminClient()
+          .from("guests")
+          .select("session_token, user_id, verified_at")
+          .in("session_token", chunk),
+        "session owners",
+      )) ?? [],
+  );
+  return new Map(
+    rows.map((row) => [
+      row.session_token,
+      { userId: row.user_id, verified: Boolean(row.verified_at) },
+    ]),
+  );
 }
 
 /** The row a ticket names, as the rule reads it (service-role; never returned), or null for no row. */

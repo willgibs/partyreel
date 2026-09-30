@@ -196,7 +196,13 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
     anyone else is handed to the door (`onDoorNeeded`: the page refreshes, so a sign-out in another tab is seen,
     and the name or email step opens) while the files wait `queued`, resuming the moment its join hands a ticket
     down through `sessionToken`. A join nobody at the door could fix fails the waiting files in place, and a
-    Retry with no ticket joins first. The name step and the add-email dialog read the code the same way: the
+    Retry with no ticket joins first. ★ **A join that lands WAITING is the ask, never a ticket** (`admission:
+    "waiting"`, where the host lets each guest in): a file sent on it is refused "This event is private.", so the
+    queue adopts nothing (nor does the page's own silent join once the door is behind her: `passedTicket`,
+    `join.ts`), sends nothing and fails nothing: the files wait `queued` (a first Add's picks and a clip
+    included), `onDoorNeeded` refreshes onto the held door, which reads the cookie the join set, and the run
+    resumes when the page's door opens (`doorOpen`, `access` not `none`) on a fresh chain of joins, which now mints
+    her ticket `in`. The name step and the add-email dialog read the code the same way: the
     ticket goes down, then a fresh join (the dialog closes and the door asks).
   ★ **The blob re-key**: an in-flight tile's object URL is keyed by queue id and re-keyed to the media id at
   approved completion (`UploadedItem.queueId`): the SAME URL object, so the `<img src>` never changes and
@@ -268,7 +274,10 @@ as Only me, the safe side; `doorOf` is the one reading of the pair and fails clo
 or an IP) and `decideDoor` ([`decide.ts`](../../src/lib/event/door/decide.ts)) answers one decision, which the page,
 its metadata and every guest route act on through
 [`closed-door.server.ts`](../../src/lib/events/closed-door.server.ts) (`pageDoor`, `resolveGuestDoor`,
-`doorCallerFor`; the write routes pass `cookie: false` and ask with their body ticket alone):
+`doorCallerFor`; the write routes pass `cookie: false` and ask with their body ticket alone). ★ A signed-in account's
+caller carries only the tickets that are hers (her own rows, or one the claim takes: the Invariants' owner rule, read
+side), so another guest's ticket on a shared phone can neither let her in, hold her at the door nor stand for her
+there; a block on it still holds the phone (`event_ticket_blocked`), which is what the upload's own context says of it:
 
 - ★ **One rule for everyone already in: a gate stops newcomers; only Only me and a block shut out someone already
   in.** `through {admitted}` passes the password without it and reads a gated album, through the door's PASS
@@ -645,6 +654,13 @@ through flags in the sheet. No step counter to desync.
   then and there (`claim_anonymous_uploads` on that one ticket, as her: `whose_ticket` takes it when it is hers) and
   refused when the claim leaves it, since a sign-in rightly leaves other people's tickets on a shared phone and her
   photos went up under the typed name of whoever held it before her (crumbs-26). The client's side is "The upload act".
+  ★ **THE READS FOLLOW THE WRITES** (`sortTickets`, the same file; crumbs-27): every read that carries a ticket beside
+  a signed-in account keeps only the tickets that may speak for her (her own rows, or one the claim takes; signed out,
+  every ticket is the device's and nothing is read), or another guest's name-only ticket on a shared phone was read
+  as hers: the door's standing counted her let in, waiting or held through it, A photo first counted its contribution,
+  and her Yours (the export's own ids, her tracker's statuses, `/api/guests/mine`) listed its photographs. The album's
+  own filter never read it (`LiveGallery` asks `/api/guests/mine` only while signed out). A failed sort sets every
+  ticket aside and is captured, never thrown; a block on a ticket set aside still holds the phone.
 
 ## Joining + identity
 
@@ -898,7 +914,9 @@ had" holds only when this device holds a guest ticket a claim would move.
   written onto the album box as `--arrival-glow-ms` / `--arrival-sweep-ms` so attribute and keyframe never
   disagree. `newArrivalIds(prev, next)` ([`reconcile-album-items.ts`](../../src/lib/guest/reconcile-album-items.ts))
   reports the ids NOT on screen a moment ago (the only definition that catches every route in: a doorbell
-  arrival, a held item approved an hour later, a burst after a hidden tab wakes), and `arrivalMarks()`
+  arrival, a held item approved an hour later, a burst after a hidden tab wakes), by the grammar's one diff
+  (`newIds`, `lib/shared/arrival.ts`, which the host's grid reads too) plus the guest's own seed rule (an empty last
+  snapshot names no arrival: a teaser's and a locked page's answers carry no entries by design), and `arrivalMarks()`
   (pure, contract-tested) takes one's OWN landings out of the glow and gives the NEWEST the sweep. ★ The
   glow holds PER ID (two guests a beat apart each get a full life); the sweep is EXCLUSIVE, so a fast batch
   never stacks light up the gallery. ★ Three things never glow: the SEED render (`prev` empty; the entrance
@@ -927,7 +945,7 @@ had" holds only when this device holds a guest ticket a claim would move.
   service-role-only `remove_my_upload_by_session` (the Invariants above). ★ **"Mine" is ALWAYS a server read,
   never a client claim**: the signed-in list is one indexed read in the page RSC (`listAccountMediaIds`),
   the anonymous list is `POST /api/guests/mine` (`listSessionMediaIds`, the token in the BODY, fetched once
-  per mount); both live in [`mutations/guest-media.ts`](../../src/lib/db/mutations/guest-media.ts). It is
+  per mount, and read only as far as the ticket is hers to the viewer); both live in [`mutations/guest-media.ts`](../../src/lib/db/mutations/guest-media.ts). It is
   deliberately NOT in the gallery payload or its ETag: that fingerprint is per ACCESS and shared between
   viewers, this list is per person. Between those reads `GalleryLiveProvider` adds what this visit completed and drops
   what this visit removed, on EITHER identity (the completion and the removal are themselves server answers), so
@@ -950,7 +968,8 @@ had" holds only when this device holds a guest ticket a claim would move.
   guest's next act (the stricter-drift rule is for a host's switch, not the guest's own choice).
 - **And WHICH tiles are a guest's own:** the same server-read set feeds the **Yours filter** alone
   ([`yours-filter.ts`](../../src/lib/guest/yours-filter.ts), pure), while the Download menu's Yours row is read by
-  `/api/export/guest` itself, from the account and this browser's ticket cookie ([uploads-and-r2.md](uploads-and-r2.md));
+  `/api/export/guest` itself, from the account and this browser's ticket cookie, as far as the ticket is hers
+  ([uploads-and-r2.md](uploads-and-r2.md));
   a guest's own tiles wear no mark, so the ONE View
   menu ([`view-menu.tsx`](../../src/components/shared/view-menu.tsx), the host gallery's own object) beside "Download
   all" in [`live-gallery.tsx`](../../src/components/guest/live-gallery.tsx) is the filter's one door: a Showing group

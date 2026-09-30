@@ -37,6 +37,7 @@ import {
 import {
   readDoorEventDetails,
   readDoorStanding,
+  readTicketsBlocked,
   type DoorCaller,
 } from "@/lib/db/queries/event-doors";
 import {
@@ -49,6 +50,7 @@ import {
   isSessionTokenShape,
   readGuestSessionCookie,
 } from "@/lib/guest/session-cookie";
+import { sortTickets } from "@/lib/guest/session-owner.server";
 import { getRequestAuth } from "@/lib/supabase/request-auth";
 
 export type { DoorCaller };
@@ -80,6 +82,15 @@ export function isThrough(door: GuestDoor): boolean {
  * tickets it carries, shape-checked. `cookie` reads this browser's `pr_guest_<eventId>` ticket, a READ
  * capability: ★ A WRITE ROUTE NEVER ASKS FOR IT (the name, email, mine and remove routes pass their
  * body's ticket alone, `lib/guest/session-cookie.ts`), so the CSRF surface does not move.
+ *
+ * ★ A SIGNED-IN ACCOUNT CARRIES ONLY THE TICKETS THAT ARE HERS (crumbs-27, the read side of crumbs-26's
+ * owner rule). The standing counts the account and the tickets together, so on a shared phone she was
+ * let in, held or waiting through whichever ticket the phone kept for the album, another guest's
+ * included; the write routes already refused that ticket as somebody else's. `sortTickets` keeps her own
+ * rows and the one the claim takes, and the door reads those. ★ ONE THING A TICKET SET ASIDE STILL DOES:
+ * a block on it holds the phone (a typed name's block is keyed on its ticket, "held on the phone that
+ * used it"), which is what the upload's own context still says of it, so a blocked one stays in the caller
+ * for the standing to read, and the door shuts as it always did.
  */
 export async function doorCallerFor(
   eventId: string,
@@ -94,11 +105,15 @@ export async function doorCallerFor(
     cookie ? readGuestSessionCookie(eventId) : Promise.resolve(null),
     account ? getRequestAuth() : Promise.resolve(null),
   ]);
-  const tickets = [...bodyTokens, cookieToken].filter(isSessionTokenShape);
-  return {
-    userId: auth?.user?.id ?? null,
-    tickets: [...new Set(tickets)],
-  };
+  const tickets = [
+    ...new Set([...bodyTokens, cookieToken].filter(isSessionTokenShape)),
+  ];
+  const userId = auth?.user?.id ?? null;
+  // Signed out, every ticket is the device's; and with none there is nothing to sort.
+  if (userId === null || tickets.length === 0) return { userId, tickets };
+  const { hers, others } = await sortTickets(userId, tickets);
+  const held = others.length > 0 && (await readTicketsBlocked(eventId, others));
+  return { userId, tickets: held ? tickets : hers };
 }
 
 /** A stranger at a door the link opens, which needs no read: nobody is let in, blocked or waiting. */

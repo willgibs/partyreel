@@ -45,6 +45,7 @@ import {
 } from "@/lib/events/gallery-reel";
 import type { GallerySeed } from "@/lib/events/gallery-seed";
 import { createReelItems } from "@/lib/guest/reconcile-album-items";
+import { sortTickets } from "@/lib/guest/session-owner.server";
 import { tileStills } from "@/lib/guest/reel-tile";
 import type { UploaderIdentity } from "@/lib/media/uploader-identity";
 import { captureWarning } from "@/lib/observability/sentry";
@@ -115,9 +116,17 @@ export async function resolveViewerDecision(
     return { ...optimistic, albumFull: false };
   }
 
+  // ★ THE TICKET IS READ ONLY AS FAR AS IT IS HERS (crumbs-27; `sortTickets`, the read side of the owner
+  // rule). The gate ORs the account and the ticket, so on a shared phone another guest's contribution,
+  // kept on the ticket the phone still held for the album, counted as a contribution of a signed-in
+  // account's own. Signed out, the ticket is the device's and nobody is asked; signed in, her own row
+  // (or one the claim takes) speaks beside her account, and any other ticket says nothing here.
+  const ticket = ctx.sessionToken
+    ? ((await sortTickets(ctx.userId, [ctx.sessionToken])).hers[0] ?? null)
+    : null;
   const gate = await getUploadGate({
     eventId: event.id,
-    sessionToken: ctx.sessionToken,
+    sessionToken: ticket,
     userId: ctx.userId,
   });
 

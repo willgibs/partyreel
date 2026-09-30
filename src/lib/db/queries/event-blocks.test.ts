@@ -222,6 +222,9 @@ describe("getEventBlocks: the host's Blocked list", () => {
       { id: "g-sam", event_id: EVENT, user_id: "u-sam", admission: "in" },
       { id: "g-theo", event_id: EVENT, user_id: null, admission: "in" },
     ];
+    // A Public album: the door is read for everyone in the list now (crumbs-27), and Only me is what changes
+    // where someone who was in lands, which this describe leaves to the landing tests below.
+    tables.events = [{ id: EVENT, visibility: "open", gate: null }];
   });
 
   it("signed out: nothing, and nothing is read", async () => {
@@ -380,7 +383,10 @@ describe("getEventBlocks: where Let back in leaves each one (build 23's NIT-3)",
     expect((await standing())["b-wren"]).toBe("out");
   });
 
-  it("everyone was in: the door is never read", async () => {
+  // ★ RESHAPED ON PURPOSE (crumbs-27; scar kept: the door is read once and only as the host's own read): "everyone was
+  // in: the door is never read" held while nothing about the door could change what Let back in promises someone who
+  // was in. Only me does (it shuts even the people already in), so the door is read for everyone in the list.
+  it("everyone was in, at a door a gate keeps: they come back in, and the door is read once, as the host", async () => {
     tables.events = [{ id: EVENT, visibility: "password", gate: null }];
     tables.guests = tables.guests.map((g) => ({ ...g, admission: "in" }));
     await expect(standing()).resolves.toEqual({
@@ -388,6 +394,31 @@ describe("getEventBlocks: where Let back in leaves each one (build 23's NIT-3)",
       "b-sam": "in",
       "b-lou": "in",
     });
-    expect(reads.some((r) => r.table === "events")).toBe(false);
+    expect(
+      reads.filter((r) => r.table === "events").map((r) => r.client),
+    ).toEqual(["host"]);
+  });
+
+  it("★ at Only me, someone who was in is told the album is closed until the host opens it; a newcomer keeps her own landing (crumbs-27)", async () => {
+    tables.events = [{ id: EVENT, visibility: "private", gate: null }];
+    await expect(standing()).resolves.toEqual({
+      // Their ask still stands, and the door the host answers is where they land (unchanged).
+      "b-wren": "door",
+      "b-sam": "only_me",
+      "b-lou": "door",
+    });
+    // Everyone in: every one of them lands on the closed album.
+    tables.guests = tables.guests.map((g) => ({ ...g, admission: "in" }));
+    await expect(standing()).resolves.toEqual({
+      "b-wren": "only_me",
+      "b-sam": "only_me",
+      "b-lou": "only_me",
+    });
+  });
+
+  it("the door is one read however many are in the list", async () => {
+    tables.events = [{ id: EVENT, visibility: "private", gate: null }];
+    await getEventBlocks(EVENT, format);
+    expect(reads.filter((r) => r.table === "events")).toHaveLength(1);
   });
 });

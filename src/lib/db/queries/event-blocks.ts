@@ -98,13 +98,15 @@ function sameInstant(a: string | null, b: string | null): boolean {
  * reads is the number the restore moves, and no number can tell a hold exists.
  *
  * ★ WHERE LET BACK IN LEAVES EACH ONE (build 23's NIT-3; crumbs-24): someone with a row past the door
- * comes back in. Anyone else is a newcomer, whatever rows of hers remain, and meets the door as it
- * stands (`blockedLanding`): her ask, if it still stands, keeps her at a door the host answers; the
- * invite list, being the door, lets in an address it names, as let_back_in's own admission does
- * (`event_door_admit_listed`, 20260929220000); a password is met like anyone new (it ended her ask,
- * 20260929230000, so no waiting row of hers is left to read). The words before and after the press say
- * which. The door is the host's own read, made only when a newcomer stands in the Blocked list; the
- * invite list too, only while it is the door and a newcomer there has an address.
+ * comes back in, unless the album is Only me, which shuts even the people already in (crumbs-27: they
+ * are told it stays closed until the host opens it). Anyone else is a newcomer, whatever rows of hers
+ * remain, and meets the door as it stands (`blockedLanding`): her ask, if it still stands, keeps her at
+ * a door the host answers; the invite list, being the door, lets in an address it names, as
+ * let_back_in's own admission does (`event_door_admit_listed`, 20260929220000); a password is met like
+ * anyone new (it ended her ask, 20260929230000, so no waiting row of hers is left to read). The words
+ * before and after the press say which. The door is the host's own read, once, for anyone in the Blocked
+ * list (the door decides every landing); the invite list too, only while it is the door and a newcomer
+ * there has an address.
  */
 export async function getEventBlocks(
   eventId: string,
@@ -223,12 +225,13 @@ export async function getEventBlocks(
       waiting: theirs.some((g) => g.admission === "waiting"),
     };
   };
-  // The door as it stands, and whom its list names: asked only when a newcomer stands in the list, on
-  // the host's own client (RLS: her own event). A door that cannot be read fails closed (Only me).
+  // The door as it stands, and whom its list names: the door for anyone in the list (a newcomer's landing
+  // is the door's, and someone who was in is told when it is Only me), the list only for a newcomer at it,
+  // both on the host's own client (RLS: her own event). A door that cannot be read fails closed (Only me).
   const newcomers = rows.filter((r) => !standingOf(r).wasIn);
   let door: Door = "private";
   let listed: ReadonlySet<string> = new Set();
-  if (newcomers.length > 0) {
+  if (rows.length > 0) {
     const event = await mustQuery(
       supabase
         .from("events")
