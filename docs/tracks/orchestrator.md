@@ -59,6 +59,8 @@ account, and the relays below, which live only in the agents:
   `ledger.txt`'s last line (the brief carries every rule and restore).
 - `schema-pass`: Will's yes quoted (its row), and `public.reports`' default anon and authenticated grants closed in
   part 1.
+- `crumbs-28`: a tenth item, relayed 2026-09-30: the Videos switch's line "Guests add clips as well as photos."
+  (`videos-switch.tsx:95`) says videos, since a guest's upload is never a clip in product copy (`reel.md`).
 
 If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` holds a merge made after this note (push
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
