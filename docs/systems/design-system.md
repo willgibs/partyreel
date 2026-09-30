@@ -416,7 +416,12 @@ primitives name their transition properties, never `transition-all`.
   `[data-mkt-entering]`) fire on `@starting-style`, and the observer grammar (`[data-mkt-reveal]` with `Reveal`) is only
   for beats about scroll position. The failure mode is then "no animation", never "no content".
 - **Reduced motion**: a global guard clamps durations to `0.01ms`, never `0` (radix's exit-unmount and the viewer's
-  settle wait on `transitionend`), and stops infinite loops; component gates stay the first line.
+  settle wait on `transitionend`), and stops infinite loops; component gates stay the first line. ★ It clamps what
+  declares a transition and creates none: `transition-property` is `all` by default, so a bare clamp made every script
+  write a transition and a size read in the same task the old one (`el.style.width` then `offsetWidth`; the lab's stage
+  fitted four phones at 11%), so the guard's default property is `none`, unimportant and in the base layer, and a
+  declared transition outranks it and still ends (`reduced-motion-guard.test.ts` reads the sheet). A layout property
+  that IS declared stays stale in the same task at any duration: read it through `getAnimations()`.
 - ★ **A filling animation outranks every author declaration**: an `animation-fill-mode: both` entrance
   (`[data-mkt-cut]`) holds its last keyframe forever over any later rule on that property, which DevTools still shows as
   matching. Put the entrance on an inner element and the interactive state on the outer one.
