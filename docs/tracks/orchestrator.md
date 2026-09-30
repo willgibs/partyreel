@@ -94,8 +94,9 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
    **The desk's PREMISE re-read is done** (two read-only audits of every production claim on the six boards against build
    30's code): `privacy-hero` and `about-press` hold; the stale lines on `disposable-mode`, `locked-door`, `event-ready`
    and `demo-framing` are `desk-tune-2`'s (its row), which merges and deploys as build 31 before Will's sitting, once
-   build 30's red-team is done. Gate 100 is green but for `lab:demo`'s `about-press.facts`, whose navigation stalled
-   twice on the dev server (ROADMAP's "Page.navigate did not answer" line); the keyed desk run against the alias decides it.
+   build 30's red-team is done. Gate 100 is green (lint, test 7,849, build, `lab:smoke` 173) but for `lab:demo`'s
+   `about-press.facts`, whose navigation stalled twice on the dev server (ROADMAP's "Page.navigate did not answer" line);
+   the keyed desk run against the alias (build 30's production build) pressed all 23 steps, 0 failing, that one included.
 3. **Seats as they free** (at most four lanes; `memory_pressure` before each; app work first, Will's note; `lab-focus`
    took the lab's phone fold with it). After his desk picks: the demo event (below); about-press's wiring (its three wiring calls,
    `git show 3ded6ba9^2:docs/tracks/about-press.md`: /press a temporary redirect, the llms summary kept, the kit's files
