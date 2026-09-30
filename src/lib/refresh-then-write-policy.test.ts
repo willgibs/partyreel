@@ -74,6 +74,15 @@ const ADDRESS_HOOKS: Readonly<
   },
 };
 
+/**
+ * A file that never says `refresh` holds no refresh call, so it cannot hold a refresh followed by a write. The scan
+ * reads each file once and parses only the ones that do (about fifty of the tree's thousand), which is what keeps
+ * it well inside vitest's five seconds on a machine running three lanes' gates at once (parsing all of them took
+ * 5.6 s at load 12). Word-bounded, so every spelling of the call the scan counts (`router.refresh()`,
+ * `router?.refresh()`, a destructured `refresh()`) passes it, and a comment that says the word only costs a parse.
+ */
+const SAYS_REFRESH = /\brefresh\b/;
+
 /** Callees whose function argument runs at once, so its body belongs to the caller's sequence. */
 const INLINE =
   /^(startTransition|flushSync|queueMicrotask|requestAnimationFrame|start[A-Z]\w*)$/;
@@ -256,6 +265,7 @@ export function refreshThenWrite(
   text: string,
   fileName = "file.tsx",
 ): Finding[] {
+  if (!SAYS_REFRESH.test(text)) return [];
   const source = ts.createSourceFile(
     fileName,
     text,
@@ -319,13 +329,22 @@ function census(text: string, fileName: string) {
 const SOURCES = filesUnder("src");
 const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
 
+let saying: { rel: string; text: string }[] | undefined;
+/** The files that say `refresh`, read once and shared by the tests that scan the tree. */
+function filesSayingRefresh() {
+  return (saying ??= SOURCES.flatMap((rel) => {
+    const text = read(rel);
+    return SAYS_REFRESH.test(text) ? [{ rel, text }] : [];
+  }));
+}
+
 describe("no function refreshes the router and then moves the address", () => {
   it("scans the tree, and sees the refreshes and the writers it exists for", () => {
     expect(SOURCES.length, "the scan found no files").toBeGreaterThan(500);
     let refreshes = 0;
     let filesWithRefresh = 0;
-    for (const rel of SOURCES) {
-      const seen = census(read(rel), rel).refreshes;
+    for (const { rel, text } of filesSayingRefresh()) {
+      const seen = census(text, rel).refreshes;
       refreshes += seen;
       if (seen > 0) filesWithRefresh += 1;
     }
@@ -384,9 +403,9 @@ describe("no function refreshes the router and then moves the address", () => {
 
   it("finds no function that refreshes and then applies a URL", () => {
     const offenders: string[] = [];
-    for (const rel of SOURCES) {
+    for (const { rel, text } of filesSayingRefresh()) {
       if (rel in ALLOWED) continue;
-      for (const hit of refreshThenWrite(read(rel), rel)) {
+      for (const hit of refreshThenWrite(text, rel)) {
         offenders.push(
           `${rel}:${hit.line}  router.refresh()@${hit.refresh}, then ${hit.write}`,
         );
@@ -461,6 +480,14 @@ describe("the scan itself", () => {
       `function go() { startTransition(() => router.refresh()); window.history.replaceState(null, "", u); }`,
     ],
     [
+      "an optional refresh call",
+      `function go() { router.refresh?.(); window.history.replaceState(null, "", u); }`,
+    ],
+    [
+      "a destructured refresh",
+      `function go() { const { refresh } = useRouter(); refresh(); window.history.replaceState(null, "", u); }`,
+    ],
+    [
       "a write inside a microtask after a refresh",
       `function go() { router.refresh(); queueMicrotask(() => history.replaceState(null, "", u)); }`,
     ],
@@ -508,6 +535,10 @@ describe("the scan itself", () => {
     [
       "a refresh in a handler and a hub write in another",
       `function Card() { const { openSheet } = useEventShare(); const a = () => router.refresh(); const b = () => openSheet("share"); }`,
+    ],
+    [
+      "a longer name that only starts like refresh",
+      `function go() { refreshed(); history.replaceState(null, "", u); }`,
     ],
     [
       "another object's members named like an entry's",
