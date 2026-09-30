@@ -7,7 +7,6 @@ import {
   useEffect,
   useRef,
   useState,
-  useSyncExternalStore,
   type CSSProperties,
   type ReactNode,
 } from "react";
@@ -42,6 +41,7 @@ import {
 } from "@/lib/constants/contact";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { showActionError } from "@/lib/errors";
+import { useHydrated } from "@/lib/shared/use-hydrated";
 import { cn } from "@/lib/utils";
 import { contactSchema, type ContactInput } from "@/lib/validation/contact";
 
@@ -128,22 +128,6 @@ function TopicHint({ hint }: { hint: ContactHint }) {
 /** The form's exit before the receipt: exits are faster than entrances. */
 const FORM_EXIT_MS = 150;
 
-/**
- * Whether this render is past hydration: the server and the hydrating client both
- * answer false, so the first paint matches. The submit button waits for it (the
- * house's `useHydrated`, kept per file) so a note that took a minute to write never
- * meets a press that silently does nothing. What keeps the name, the address and the
- * message out of the URL is the form itself, a `ClientForm` (ui/client-form.tsx): its
- * native submit does nothing until React has attached the handler.
- */
-function useHydrated(): boolean {
-  return useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false,
-  );
-}
-
 export function ContactForm({
   helpSubjects,
 }: {
@@ -175,6 +159,9 @@ export function ContactForm({
     },
   });
   const { isSubmitting } = form.formState;
+  // The submit button waits for hydration so a note that took a minute to write never meets a press that
+  // silently does nothing. What keeps the name, the address and the message out of the URL is the form itself,
+  // a `ClientForm` (ui/client-form.tsx): its native submit does nothing until React has attached the handler.
   const hydrated = useHydrated();
 
   // The fastest-path hint for the picked topic: deflection INSIDE the form

@@ -43,12 +43,34 @@ import { useState } from "react";
  * it on the hub, crumbs-19 on the reel). The second is ignored until the first has landed, and a Back whose
  * `popstate` never comes lets go after a floor, so a place cannot be stranded open.
  *
- * ★ ONE EDGE THIS DOES NOT CLOSE (measured under `next dev`, on an entry this helper pushed): a
- * `router.refresh()` followed by a write that applies a URL (`replace`, and `push` always did the same) in the
- * same tick, or 20ms later, makes Next reload the page onto the same URL; 60ms later it does not (nor the
- * other order, nor a deep-linked entry). The window is the refresh's first commit, not its round trip, and no
- * product code refreshes and moves a place in one handler: one that ever does should put a beat between them,
- * refresh first, or do neither.
+ * ★ ONE EDGE THIS DOES NOT CLOSE, AND EVERYTHING KNOWN OF IT (measured under `next dev`, Next 16.2.6, chrome 152;
+ * crumbs-19 found it, crumbs-22 measured the rest and audited every caller). A write that applies a URL
+ * (`push(href)`, `replace`, an in-place `close`; natively, a `pushState` or `replaceState` given an address and
+ * a state without `__NA`) made while a `router.refresh()` is IN FLIGHT is a `restore` action, which Next's
+ * action queue lets jump the queue and discard what is pending (`dispatchAction`: "navigations (including
+ * back/forward) take priority over any pending actions"), so the refresh's data is dropped, silently. And the
+ * page RELOADS onto the same URL when the router's last RENDERED address differs from the one the write
+ * applies, which any earlier native write that moved the query leaves true: `push(href)` always does, and so
+ * does a deep-linked entry after its first `replace`. The window is the refresh's whole round trip, from the
+ * call to the commit that rewrites the entry (~190 ms under `next dev`, a phone's network however long), not
+ * a fixed 20 ms.
+ *   - RELOADS: (a page pushed to `?room=a`, then) a refresh followed by a write to `?room=b`, in the same tick
+ *     or 20, 60 and 100 ms later; on a deep-linked entry after one earlier native write to `?photo=1`, a refresh
+ *     then a write to `?photo=2`.
+ *   - NEVER: the write BEFORE the refresh (the same tick or not); a write back to the address the page was
+ *     rendered at (a viewer's close on a fresh deep link); a second refresh once the first has committed;
+ *     `history.back()`; a `pushState` with no address (a phone popup's entry); `router.push` and `router.replace`
+ *     (Next's own navigations, which also discard the pending refresh but load what they name); an entry Next
+ *     pushed itself, before any native write; any write after the refresh's commit (400 ms later under
+ *     `next dev`).
+ * `refresh-then-write-policy.test.ts` pins that no product function refreshes and then applies a URL, and none
+ * does (the audit read all 46 `router.refresh()` calls in 26 files: none is followed, in its own function, by a
+ * call that applies a URL; the two files that hold both, `account-security-form.tsx` and `login-form.tsx`, use
+ * Next's own `router.replace` and `router.push`). What no scan can see is TWO GESTURES inside one round trip:
+ * the hub's Settings reel switch refreshes (`settings-state.tsx`), and a tap on the page's back arrow
+ * (`replace`) before the refresh lands would reload the page; so would a guest's viewer step (`?photo=`, written
+ * 300 ms after the arrow) landing inside the round trip of a poll's refresh. A handler that ever meets it
+ * writes first and refreshes after, waits for the refresh's transition, or does neither.
  */
 
 /** How long a Back is taken to be in flight when no `popstate` arrives to say it landed. */

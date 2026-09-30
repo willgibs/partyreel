@@ -41,7 +41,7 @@ describe("the pricing FAQ", () => {
     expect(reads).toBe(3);
     expect(RENDERED).toContain("<FaqPageJsonLd items={PRICING_FAQ_ITEMS} />");
     expect(RENDERED).toContain(
-      "<HomeFaqAccordion items={PRICING_FAQ_ITEMS} />",
+      '<FaqAccordion items={PRICING_FAQ_ITEMS} className="mt-0" />',
     );
   });
 });

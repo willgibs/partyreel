@@ -1,22 +1,10 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
 import { Monitor, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 
+import { useHydrated } from "@/lib/shared/use-hydrated";
 import { cn } from "@/lib/utils";
-
-// Hydration flag without setState-in-effect: the server snapshot is false (so SSR
-// + first paint render no active option, matching next-themes' unresolved theme),
-// then the client snapshot flips it true. Avoids the aria-pressed mismatch.
-const noop = () => () => {};
-function useHydrated() {
-  return useSyncExternalStore(
-    noop,
-    () => true,
-    () => false,
-  );
-}
 
 /**
  * The Workbench's ONE theme control. It drives the REAL app theme (next-themes,
@@ -36,6 +24,8 @@ const OPTIONS = [
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
+  // SSR and the first paint render no active option, matching next-themes' unresolved theme, which
+  // is what avoids an aria-pressed mismatch.
   const mounted = useHydrated();
 
   return (

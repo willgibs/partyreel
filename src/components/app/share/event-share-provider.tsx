@@ -8,7 +8,6 @@ import {
   useEffect,
   useMemo,
   useState,
-  useSyncExternalStore,
 } from "react";
 import { flushSync } from "react-dom";
 
@@ -18,6 +17,7 @@ import {
   type SettingsPage,
 } from "@/components/app/event-settings/settings-pages";
 import { useOwnedEntry } from "@/lib/history-entry";
+import { useHydrated } from "@/lib/shared/use-hydrated";
 import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
 import {
   EVENT_SHEET_PARAM,
@@ -120,21 +120,6 @@ export function useEventShare(): ShareValue {
     throw new Error("useEventShare must be used inside <EventShareProvider>");
   }
   return ctx;
-}
-
-/** Nothing to subscribe to: the snapshot only ever moves from the server's answer to the client's. */
-const noSubscription = () => () => {};
-
-/**
- * Whether this render is past hydration. The server and the hydrating client both answer false, so the
- * first paint matches; every render after it answers true.
- */
-function useHydrated(): boolean {
-  return useSyncExternalStore(
-    noSubscription,
-    () => true,
-    () => false,
-  );
 }
 
 export function EventShareProvider({

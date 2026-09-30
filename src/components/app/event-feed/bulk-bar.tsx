@@ -1,6 +1,5 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
 import { X, type LucideIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -18,6 +17,7 @@ import {
   TooltipSlideGroup,
 } from "@/components/shared/tooltip-slide";
 import { formatCount } from "@/lib/format/count";
+import { useHydrated } from "@/lib/shared/use-hydrated";
 import { cn } from "@/lib/utils";
 
 /**
@@ -79,26 +79,6 @@ export type BulkBarAction = {
     cancelLabel?: React.ReactNode;
   };
 };
-
-// True once mounted on the client, false on the server and on the client's
-// FIRST (hydrating) render — the same useSyncExternalStore shape
-// use-prefers-reduced-motion.ts uses for the identical reason: a setState
-// call inside a useEffect is a cascading extra render
-// (react-hooks/set-state-in-effect) and, worse, happens too late anyway —
-// what matters here is that the HYDRATING render matches the server's, which
-// a subscription-based read guarantees and an effect-driven one does not
-// (an effect fires AFTER the hydrating render commits, but so does this;
-// the difference is this never schedules a synchronous setState, so React
-// never treats it as a render this component CAUSED). The subscribe
-// function is a no-op: hydrated only ever goes false -> true, once, so
-// there is nothing to notify a second time.
-function useHydrated(): boolean {
-  return useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false,
-  );
-}
 
 // The house press feedback for an icon-only control over a photograph's own
 // chrome (host-media-grid.tsx's tile overlay, like-button.tsx, the lightbox's
