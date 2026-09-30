@@ -41,6 +41,7 @@ a lane").
 | --- | --- | --- | --- | --- |
 | `schema-pass` | the data architecture trimmed | merged at `57b17ace`; part 1 applied on Will's go-ahead (2026-09-29, his answer "Yes, apply part 1"; recorded `20260929210010`, the payload the file's md5; advisors 18/4/33; anon REST 42501; types regenerated at `c7a50adc`); a signed-in host walk on partyreel.com rides build 25's red-team as a follow-up; part 2 (`20260929170000`) after milestone 31 ships | Opus, 3132 | `54f414f9` |
 | `crumbs-25` | four follow-ups: the group 404s off their pages, early typing kept in every field a person lands on, the host album's live arrival decoded, the reduced-motion guard never staling a measured size | running (agent `a950b0dbe85a3fd92`; worktree `../partyreel-wt/crumbs-25`) | Sonnet, 3131 | |
+| `crumbs-26` | build 27's red-team finds: a signed-in account's uploads filed under another guest's ticket on a shared phone (MEDIUM, blocks milestone 31), the double tap's mousedown, the title after a Back that follows a refresh, a reopened report called the whole album, the door page's saved door | running (worktree `../partyreel-wt/crumbs-26`) | Opus, 3132 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
 no question open (Q1, the `names` hang; Q2, schema-pass part 1; Q3, the notes-into-laws audit; Q4, the door migration:
@@ -77,12 +78,12 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
 
 1. **Integrate each lane as it hands off** (none running but build 27's red-team), each migration by protocol, one at a time: drift check, apply verbatim, the rolled-back refusals,
    advisors, types.
-2. **Build 27 is on the alias** (`d7832a6a`, 2026-09-30; its red-team running, agent `ad4d9fdd4cdb994cd`, the brief and
-   ledger in `../partyreel-wt/_scratch/redteam-27/`; from another session, respawn from the brief after the ledger's last
-   line): build 26 (red-teamed, every walk PASS but crumbs-18's live arrival, since fixed by `crumbs-23`) plus
-   crumbs-19 to crumbs-23, shared-claims and privacy-hero r4, and five migrations. When it passes, milestone 31 is
-   proposed to Will (his yes); schema-pass's part 2 applies after it ships. Build 28 follows build 27's red-team:
-   lab-focus's pictures-first desk, perf-404 and crumbs-24.
+2. **Build 27 was red-teamed live** (`d7832a6a`, `../partyreel-wt/_scratch/redteam-27/ledger.txt`): every lane's walks
+   PASS where drivable, and one MEDIUM regression from shared-claims (a signed-in account's uploads filed under another
+   guest's ticket on a shared phone) plus four smaller finds, all `crumbs-26`'s (running). Milestone 31 waits for its
+   fix: build 28 (lab-focus, perf-404, crumbs-24, crumbs-25 and crumbs-26), its red-team, then the proposal to Will;
+   schema-pass's part 2 applies after it ships. Waiting on Will from this walk: one event password typed on a
+   disposable approve-door event while someone waits (crumbs-21's password step), and a 10-second Cmd+F on /events.
 3. **Seats as they free** (at most four lanes; `memory_pressure` before each; app work first, Will's note; `lab-focus`
    took the lab's phone fold with it). After his desk picks: the demo event (below); about-press's wiring (its three wiring calls,
    `git show 3ded6ba9^2:docs/tracks/about-press.md`: /press a temporary redirect, the llms summary kept, the kit's files
