@@ -1,11 +1,10 @@
 import type { CSSProperties } from "react";
 
+import { FaqAccordion } from "@/components/marketing/faq-accordion";
 import { FAQ_ITEMS } from "@/components/marketing/faq-data";
 import { FaqJsonLd } from "@/components/marketing/faq-jsonld";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
-
-import { HomeFaqAccordion } from "./faq-accordion";
 
 /**
  * QUIET (the loud/quiet map): the 8 items from the faq-data single-source on
@@ -26,7 +25,7 @@ export function Faq() {
           staggered rows would blow past the stagger budget, and a question
           list is a calm surface, not a cascade. */}
       <Reveal data-mkt-reveal style={{ "--i": 2 } as CSSProperties}>
-        <HomeFaqAccordion items={FAQ_ITEMS} className="mt-10" />
+        <FaqAccordion items={FAQ_ITEMS} />
       </Reveal>
       <FaqJsonLd />
     </SectionShell>

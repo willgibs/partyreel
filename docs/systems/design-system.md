@@ -469,9 +469,10 @@ Transition is its one sanctioned hole ([host-app.md](host-app.md)).
   row is the act), the code card (`app/share/code-card.tsx`) and the look (`social/guest-peek.tsx`). A bare
   `SheetContent` or `DialogContent` is a surface the board left alone, named with why in `popup-kinds.test.ts`. A confirm
   speaks as an `alertdialog` (`role` is a column of its kind's row, spread by `PopupContent` only where a row names one,
-  never as `role={undefined}`, which would erase Radix's own), so anything asking whether a layer is up selects
-  `[role="dialog"], [role="alertdialog"]`, and a test proving a confirm gone asks for `alertdialog`, or it passes for
-  nothing.
+  never as `role={undefined}`, which would erase Radix's own), so anything asking whether a layer is up asks
+  `layerIsUp()` (`ui/layer-is-up.ts`, the one home of the layer roles: a dialog, a confirm, a menu, a listbox; `except`
+  leaves the caller's own layer out, `dialogsOnly` waits behind modals alone; `layer-is-up.test.tsx` refuses a hand-written
+  dialog selector), and a test proving a confirm gone asks for `alertdialog`, or it passes for nothing.
   ★ `PopupBody` is the one part that scrolls and keeps its children whole (`*:shrink-0`): a caller's flex column
   would otherwise shrink a clipping Card to its padding instead of scrolling, as build 17's Event Settings did.
   ★ Every shape stands on the keyboard (the Dialog learned the Sheet's rule; a centred shape's `top` is

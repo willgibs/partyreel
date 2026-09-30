@@ -374,6 +374,19 @@ describe("system-removal email copy (recovery Phase 5)", () => {
     expect(html).not.toContain("a short time");
   });
 
+  it("overCapReducedEmail: the removal brought the account under its plan, and only the restore would put it over again", () => {
+    // It once said "You're over your limit, so upgrade or free up space first" straight after saying
+    // the removal had brought the account back under its plan: both cannot be true. What it means is that
+    // restoring everything would go over again, and the words have to say that.
+    const text = visibleText(HOST.reduced.html);
+    expect(text).toMatch(/back under your plan/);
+    expect(text).not.toMatch(/you're over your (limit|plan)/i);
+    expect(text).toMatch(/would take you over your plan again/);
+    expect(text).toMatch(/upgrade or free up space first, then restore them/);
+    // The plain-text twin is the same words.
+    expect(HOST.reduced.text).toMatch(/would take you over your plan again/);
+  });
+
   it("overCapGraceStartEmail: concrete 30-day window, not 'a short window'", () => {
     const { html } = T.overCapGraceStartEmail({
       capLabel: "2 GB",

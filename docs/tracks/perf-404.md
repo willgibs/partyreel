@@ -1,7 +1,7 @@
 ---
 track: perf-404
 status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "e958a1bf"            # the launch-prep SHA the branch was cut from
+cut: "9c4897ad"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   - src/app/not-found.tsx

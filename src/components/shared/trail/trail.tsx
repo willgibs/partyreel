@@ -1,7 +1,8 @@
 "use client";
 
 // The trail's own sheet. It declares NO keyframe: the trail is one rAF loop
-// writing inline transforms (src/app/keyframe-uniqueness.test.ts).
+// writing inline transforms (src/app/keyframe-uniqueness.test.ts). ★ The 404 reaches this module only
+// through `trail.lazy.tsx`, so the sheet loads with the lazy chunk and never on another route.
 import "./trail.css";
 
 import Image from "next/image";

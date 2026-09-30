@@ -20,6 +20,7 @@ import {
   subscribeTuner,
   type TunerValue,
 } from "@/components/dev/tuner-store";
+import { useHydrated } from "@/lib/shared/use-hydrated";
 
 /**
  * A dev-only, design-key-gated tuning panel (S4·0; rebuilt for the rounding
@@ -59,8 +60,7 @@ import {
  *
  * Portaled to <body> so it floats above the route-fade transform (a transformed
  * ancestor breaks position:fixed) and above the focused-review Dialog (z-50);
- * useSyncExternalStore gives an SSR-safe mounted guard (mirrors the lab's
- * ThemeToggle) without a set-state-in-effect.
+ * `useHydrated` is its SSR-safe mounted guard.
  */
 
 function controlCssValue(control: TunerControl, raw: TunerValue): string {
@@ -89,19 +89,9 @@ function erase(control: TunerControl) {
   tunerScope(control.cssVar).style.removeProperty(control.cssVar);
 }
 
-// SSR-safe "are we on the client yet" without set-state-in-effect (the lab's
-// ThemeToggle uses the same shape). Server snapshot = false -> renders nothing
-// during SSR; client first render = true.
-function useMounted(): boolean {
-  return useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false,
-  );
-}
-
 export function MotionTuner({ controls }: { controls: TunerControl[] }) {
-  const mounted = useMounted();
+  // Renders nothing during SSR and the hydrating render.
+  const mounted = useHydrated();
   const [open, setOpen] = useState(true);
   const [side, setSide] = useState<"right" | "left">("right");
   const [copied, setCopied] = useState(false);
