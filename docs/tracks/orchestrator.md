@@ -43,7 +43,6 @@ a lane").
 | `lab-focus` | on Will's note (2026-09-29, "a Jackson Pollock painting of text" above the options): the lab's question view rebuilt pictures first, the stage whole on the first screen at a desk and a phone, everything else one click away; a `lab:demo` reach gate | running (agent `af671c95a53a0ef5d`; worktree `../partyreel-wt/lab-focus`) | Opus, 3131 | |
 | `crumbs-22` | seven small ROADMAP items: the 404's sheet off every page, find-in-page opening a closed FAQ answer, the FAQ's thin wrapper gone, the reduced mail's contradiction, one useHydrated and one layerIsUp, the refresh-then-write reload audited | running (agent `abc1070450bc5ba83`; worktree `../partyreel-wt/crumbs-22`) | Sonnet, 3135 | |
 | `crumbs-23` | build 26's red-team finds: a live pushed arrival without its fade, a double tap at a phone never landing in the sheet it opened, the invite list's door line, the first keystroke after a load, the Library's album-stream width | running (agent `aa20ad19ebbb0788d`; worktree `../partyreel-wt/crumbs-23`) | Sonnet, 3132 | |
-| `perf-404` | the root 404's tree off every route's payload (about 110 KB of HTML and 43 to 56 KB of gzipped JS a page, `crumbs-22`'s measure), the 404 drawn as today | running (worktree `../partyreel-wt/perf-404`) | Opus, 3134 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
 no question open (Q1, the `names` hang; Q2, schema-pass part 1; Q3, the notes-into-laws audit; Q4, the door migration:
