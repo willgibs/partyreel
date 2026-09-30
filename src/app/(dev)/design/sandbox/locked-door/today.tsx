@@ -2,7 +2,7 @@
 
 import { Clock } from "lucide-react";
 
-import GuestNotFound from "@/app/(guest)/e/[token]/not-found";
+import { GuestNotFoundScreen } from "@/app/(guest)/e/[token]/not-found.screen";
 import { DoorHeading } from "@/components/guest/door/heading";
 import { DoorGlyph } from "@/components/guest/door/lit";
 import { ShutDoor, shutDoorCopy } from "@/components/guest/door/shut-door";
@@ -223,7 +223,7 @@ function TodayWait({ wait }: { wait: WaitId }) {
 }
 
 /**
- * THE 404 AS IT SHIPS: `e/[token]/not-found.tsx`'s page itself (its
+ * THE 404 AS IT SHIPS: `e/[token]/not-found.screen.tsx`'s screen itself (its
  * session-less bar, its words, its help line and its demo link), the `lost=own`
  * answer in every direction, and today's `follows` too, since today's shut door
  * is already its sibling.
@@ -231,7 +231,7 @@ function TodayWait({ wait }: { wait: WaitId }) {
 export function TodayLost() {
   return (
     <div className="flex min-h-svh flex-col bg-background text-foreground">
-      <GuestNotFound />
+      <GuestNotFoundScreen />
     </div>
   );
 }

@@ -117,6 +117,7 @@ export const LOCKED_DOOR = defineExploration({
     "docs/systems/guest-flow.md",
     "src/app/(guest)/e/[token]/page.tsx",
     "src/app/(guest)/e/[token]/not-found.tsx",
+    "src/app/(guest)/e/[token]/not-found.screen.tsx",
     "src/components/shared/not-found-screen.tsx",
     "src/components/guest/entry-shell.tsx",
     "src/components/guest/entry-modal.tsx",
