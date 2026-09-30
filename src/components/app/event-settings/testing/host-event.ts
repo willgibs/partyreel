@@ -42,6 +42,7 @@ export const NO_COUNTS: DoorCounts = {
   in: 0,
   inByName: 0,
   waiting: 0,
+  waitingListed: 0,
   invited: 0,
   joined: 0,
 };

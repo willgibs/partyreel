@@ -197,6 +197,11 @@ a table created since starts with no client grant, so its migration grants exact
   `revoke execute on functions from public` in schema public; it changes nothing, proved rolled back), so every grant
   block revokes from `public`, then grants exactly, and a drop-and-recreate re-inherits PUBLIC's, so it restates its
   grants in full. A table a client must reach takes its grant in the same migration, or its read is a 42501.
+- ★ **A read that asks the invite list's match is a SECURITY DEFINER body.** `event_door_lists_account` reads
+  `auth.users`, which the service role cannot, so an INVOKER function the server calls that asks it fails with a
+  permission error at run time, invisible to typecheck: `event_door_counts` (INVOKER) reads the list's count through
+  `event_door_waiting_listed` (DEFINER, service role only, empty `search_path`), the read-only twin of
+  `event_door_admit_listed`, and a change to who the list names moves both bodies.
 - ★ **A new junction table silently breaks PostgREST embeds (PGRST201).** Two FKs to already-related tables make
   PostgREST infer a second path, and an existing bare `events!inner(...)` embed between them throws at runtime,
   invisible to typecheck, lint and build. Pin every cross-table embed to its FK

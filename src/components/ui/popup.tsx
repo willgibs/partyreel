@@ -9,6 +9,7 @@ import { useKeyboardInset } from "@/lib/use-keyboard-inset"
 import { useMediaQuery } from "@/lib/use-media-query"
 import { Button } from "@/components/ui/button"
 import { floatingPopupShapes } from "@/components/ui/floating-layer"
+import { EPHEMERAL_ROLES } from "@/components/ui/layer-is-up"
 import { useBackCloses } from "@/components/ui/popup-back"
 import {
   DESK_QUERY,
@@ -56,7 +57,9 @@ import {
  * popup over it closes it — so a control inside one is still there to give
  * focus back to.
  */
-const EPHEMERAL_LAYER = "[role='menu'], [role='listbox']"
+const EPHEMERAL_LAYER = EPHEMERAL_ROLES.map((role) => `[role='${role}']`).join(
+  ", "
+)
 
 /**
  * THE LAST CONTROL STILL THERE TO GIVE FOCUS BACK TO: on the page itself, or
@@ -91,6 +94,34 @@ function watchTheOpener(event: Event) {
 if (typeof document !== "undefined") {
   document.addEventListener("focusin", watchTheOpener, true)
   document.addEventListener("pointerdown", watchTheOpener, true)
+}
+
+/**
+ * ★ A LAYER A TAP OPENED TAKES NO TAP UNTIL IT HAS SETTLED (crumbs-23, build 26's red-team). A layer fades
+ * in where the finger just was, and it is hit-testable from its first frame, so the SECOND tap of a double
+ * tap lands inside the sheet the first one opened: on the hub's Settings card it opened "This event", and
+ * on the Share door it would have met "Save link". Whatever stands under a finger while the layer arrives
+ * is nobody's choice, so until the layer's own entrance has run out it swallows the tap: the click never
+ * reaches a row, and the scrim's outside press never dismisses it.
+ *
+ * "Settled" is read off the element, never a number kept beside the CSS: a CSS ANIMATION of the layer's own
+ * still running (its entrance; its exit too, since a layer on its way out takes none either). A CSS
+ * TRANSITION does not count (the keyboard's lift glides the sheet on `bottom` and `max-height`, and a tap
+ * mid-glide is a real tap), so the animations are told from the transitions by the `animationName` only
+ * they carry. A reduced-motion clamp (`0.01ms`) settles it in a frame, and an engine with no
+ * `getAnimations` (jsdom) never swallows: nothing there arrives.
+ */
+function arriving(node: HTMLElement | null): boolean {
+  if (!node || typeof node.getAnimations !== "function") return false
+  return node
+    .getAnimations()
+    .some(
+      (a) =>
+        "animationName" in a &&
+        a.playState === "running" &&
+        // A loop that never ends (a pulse a caller put on the layer) is not an arrival.
+        a.effect?.getComputedTiming().iterations !== Infinity
+    )
 }
 
 type PopupState = {
@@ -206,6 +237,8 @@ function PopupContent({
   children,
   onOpenAutoFocus,
   onCloseAutoFocus,
+  onClickCapture,
+  onPointerDownOutside,
   ref,
   ...props
 }: React.ComponentProps<typeof PopupPrimitive.Content> & {
@@ -301,6 +334,23 @@ function PopupContent({
             }
           }}
           className={cn(CONTENT, floatingPopupShapes, className)}
+          // ★ A LAYER STILL ARRIVING TAKES NO TAP (`arriving`): a click inside it is swallowed before any
+          // row sees it, and a press on the scrim behind it does not dismiss it.
+          onClickCapture={(event) => {
+            if (arriving(event.currentTarget)) {
+              event.preventDefault()
+              event.stopPropagation()
+              return
+            }
+            onClickCapture?.(event)
+          }}
+          onPointerDownOutside={(event) => {
+            if (arriving(node)) {
+              event.preventDefault()
+              return
+            }
+            onPointerDownOutside?.(event)
+          }}
           // ★ A kind that asks (a confirm) is announced as the alert dialog it is, so a screen reader
           // reads its question with its name. Spread only when the row names one: Radix writes
           // `role="dialog"` BEFORE the props it is handed, so an explicit `undefined` here would

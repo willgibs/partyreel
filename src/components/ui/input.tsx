@@ -1,10 +1,32 @@
+"use client"
+
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
+import { useAdoptTypedValue } from "@/lib/adopt-typed-value"
 
-function Input({ className, type, ...props }: React.ComponentProps<"input">) {
+function Input({
+  className,
+  type,
+  ref,
+  ...props
+}: React.ComponentProps<"input">) {
+  // ★ TEXT TYPED BEFORE THE PAGE HYDRATED IS THE FIELD'S OWN TO KEEP (`adopt-typed-value.ts`): a
+  // controlled field is typeable from the first paint and React's state is not told, so the first
+  // render after hydration wrote `""` over the person's words. At its mount the field hands the DOM's
+  // value to its own `onChange`, and every field in the app, a form library's or a `useState`, keeps it.
+  const adoptRef = useAdoptTypedValue<HTMLInputElement>(props.value)
+  const composedRef = React.useCallback(
+    (el: HTMLInputElement | null) => {
+      adoptRef(el)
+      if (typeof ref === "function") ref(el)
+      else if (ref) ref.current = el
+    },
+    [adoptRef, ref]
+  )
   return (
     <input
+      ref={composedRef}
       type={type}
       data-slot="input"
       className={cn(

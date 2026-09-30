@@ -102,6 +102,48 @@ function tileSrc(
 }
 
 /**
+ * THE PHOTOGRAPH A TILE OF THIS ITEM WILL DRAW AS AN <img>, EXACTLY THE ADDRESS IT WILL ASK FOR, or null
+ * where it draws none: an item whose link has not landed (`url: ""`, the tile holds its shimmer), and a
+ * video with no preview still (its own <video> poster frame, which has no fade to run). The address is
+ * the tile's own (`tileSrc`), never a second reading of it: the browser hands a new <img> a photograph it
+ * already holds only when the address is the very one it fetched.
+ */
+export function tileImageSrc(
+  item: Pick<GridMedia, "type" | "url" | "previewUrl">,
+): string | null {
+  if (item.type === "video" && !item.previewUrl) return null;
+  return tileSrc(item, false) || null;
+}
+
+/**
+ * FETCH AND DECODE A TILE'S PHOTOGRAPH INTO THIS DOCUMENT AHEAD OF ITS TILE (crumbs-23), so the <img>
+ * a tile mounts on it is COMPLETE the moment it exists and `MediaTile` shows it at once (`data-instant`,
+ * above) instead of fading it in. `ready` settles true when the photograph is decoded and false when it
+ * could not be (a dead link, a file no engine can draw): it never rejects, and the caller decides how
+ * long it will wait for it. The returned element is the caller's to HOLD until its tile has mounted: the
+ * browser keeps a photograph only while something in the document still refers to it.
+ */
+export function decodeTileImage(src: string): {
+  image: HTMLImageElement;
+  ready: Promise<boolean>;
+} {
+  const image = new Image();
+  image.decoding = "async";
+  image.src = src;
+  const ready =
+    typeof image.decode === "function"
+      ? image.decode().then(
+          () => true,
+          () => false,
+        )
+      : new Promise<boolean>((resolve) => {
+          image.onload = () => resolve(true);
+          image.onerror = () => resolve(false);
+        });
+  return { image, ready };
+}
+
+/**
  * Whether two presigned URLs name the same stored object: the same path, and
  * any query at all. A presign rolls about every 30 minutes by rewriting only
  * the query (its signature and expiry), so the path is the photograph.
