@@ -70,8 +70,9 @@ protocol, 20260930205935). Schema-pass part 2 is applied (20260930204037).
 
 1. **Integrate each lane as it hands off** (no lane running; build 30's red-team and the PREMISE audits are agents, not lanes), each migration by protocol, one at a time: drift check, apply verbatim, the rolled-back refusals,
    advisors, types.
-2. **Build 33** (milestone 31 plus crumbs-28 and hide-strikes) deploys when Will's desk sitting ends, since a deploy
-   mid-sitting swaps the build under him. Then its red-team:
+2. **Build 33** (`cc79d54e`, milestone 31 plus crumbs-28 and hide-strikes) is on the alias (Will had not begun his
+   sitting and said go). Its red-team is agent `a742992d213f18cc2`; from another session, respawn it from
+   `../partyreel-wt/_scratch/redteam-33/brief.md` after its `ledger.txt`'s last line. It walks:
    - crumbs-28's steps (`git show 8ea749bf^2:docs/tracks/crumbs-28.md`, "For the next build's red-team");
    - the instant hide walked from hi@willgibs.com's address (willg97's address holds two strikes, partyr33l's five
      until 2027-03-28);
