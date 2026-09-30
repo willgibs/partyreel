@@ -14,6 +14,7 @@
  * ("Remove and switch") while anything is only selected, and switches once nothing is.
  */
 import type { StorageItem } from "@/lib/db/queries/storage-list";
+import { formatKindCount } from "@/lib/format/count";
 
 /** The list's name, on its head and its rows' group, in the shell and the body alike. */
 export const LIST_TITLE = "What’s using space";
@@ -121,10 +122,7 @@ export function goalStep(count: GoalCount): GoalStep {
  * "Items", not the Review room's "uploads", because the list is also the host's own files.
  */
 export function itemsWords(items: readonly Pick<Picked, "type">[]): string {
-  const n = items.length;
-  const videos = items.filter((i) => i.type === "video").length;
-  const noun = videos === 0 ? "photo" : videos === n ? "video" : "item";
-  return `${n.toLocaleString("en-US")} ${noun}${n === 1 ? "" : "s"}`;
+  return formatKindCount(items, "item");
 }
 
 /** A video's length, the way a player reads it: 0:42, 12:07, 1:02:07. */

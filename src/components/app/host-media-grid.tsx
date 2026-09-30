@@ -29,6 +29,7 @@ import {
 } from "@/components/shared/masonry";
 import { useArrivalGate } from "@/components/shared/use-arrival-gate";
 import { inBulkBatches } from "@/lib/event/bulk-selection";
+import { formatKindCount } from "@/lib/format/count";
 import {
   DEFAULT_ROW_STEP,
   type RowAnchor,
@@ -378,11 +379,15 @@ export function HostMediaGrid({
     hide: (ids: string[]) => setStatusBulk(ids, "hidden"),
     show: (ids: string[]) => setStatusBulk(ids, "approved"),
     delete: (ids: string[]) => removeBulk(ids),
+    // ★ The toast names what the like ADDED, by kind (crumbs-28): a selection can hold a video, and
+    // "Liked 1 photo" once said so of one. A mix is "items", the album's word for one, as its own
+    // error toasts and the storage list say it.
     like: async (ids: string[]) => {
       if (!likes) return;
-      const added = await likes.likeMany(ids);
-      if (added > 0) {
-        toast.success(`Liked ${added} ${added === 1 ? "photo" : "photos"}`);
+      const added = new Set(await likes.likeMany(ids));
+      if (added.size > 0) {
+        const liked = optimisticItems.filter((m) => added.has(m.id));
+        toast.success(`Liked ${formatKindCount(liked, "item")}`);
       }
     },
     // Download the selected items directly (no config modal — the selection IS the config). The mint

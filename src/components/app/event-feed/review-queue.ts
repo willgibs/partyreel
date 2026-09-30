@@ -6,7 +6,7 @@
  * half is `use-review-triage.ts`; every rule here is a unit test.
  */
 import type { GridMedia } from "@/components/app/media-grid";
-import { formatCount } from "@/lib/format/count";
+import { formatKindCount } from "@/lib/format/count";
 
 /** The two verdicts (host-curation `verb=reject`: Reject at the door, Hide kept for the album). */
 export type ReviewKind = "approve" | "reject";
@@ -49,10 +49,7 @@ export function putBack(
 export function uploadsWords(
   items: readonly Pick<GridMedia, "type">[],
 ): string {
-  const n = items.length;
-  const videos = items.filter((i) => i.type === "video").length;
-  const noun = videos === 0 ? "photo" : videos === n ? "video" : "upload";
-  return `${formatCount(n)} ${noun}${n === 1 ? "" : "s"}`;
+  return formatKindCount(items, "upload");
 }
 
 /** A verdict's toast: "Approved 5 photos", "Rejected 1 video". */

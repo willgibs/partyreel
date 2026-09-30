@@ -94,8 +94,9 @@ whenever uploads moved.
 offers the HOST alone, with the quieter Follow (`FollowButton`'s `quiet`, a small ghost button: his "Follow doesn't
 have to be pushed as hard"): the other guests already carry their own Follow on each handled chip
 ([`guest-list.tsx`](../../src/components/social/guest-list.tsx)), and a second copy would be one list twice
-on one screen. Its card is `getHostCard(eventId)` from the page RSC; no card means no host row, never a
-stub.
+on one screen. Its card is `getHostCard(eventId)` from the page RSC, with whether she already follows the host read
+beside it (`isFollowing`, one head count for a signed-in guest; the keep's code typed in place refreshes the page), so
+its Follow starts on Following for her; no card means no host row, never a stub.
 
 ★ **THE GUEST'S POPUPS OPEN THROUGH THEIR KINDS** ([design-system.md](design-system.md), the floating layer): the
 DOOR and its held sheets (the confirm door `ConfirmEmailDialog`, the header menu's Add your email,
@@ -622,8 +623,8 @@ through flags in the sheet. No step counter to desync.
   the viewer holds a confirmed session. With NO session it's a cheap LOCAL null (no network), so an
   anonymous crowd behind one venue-NAT IP doesn't each pay an auth round-trip; the owner check
   (`isRequestOwner`, then `isEventOwner`'s explicit `host_id = uid` match, `gallery-access-owner.server.ts`) runs
-  ONLY when signed in, and the album's own reads ask the same one-per-render answer, so the page and its seed never
-  disagree about the host. The header island resolves its own auth with a LOCAL `getSession()`.
+  ONLY when signed in, and the album's own reads, its routes (`requestOwnerAnswer`: the same answer with its user, one
+  `getUser()` for both) and the upload seams ask the same answer, so no gate on the page can disagree about the host. The header island resolves its own auth with a LOCAL `getSession()`.
 - **The upload slot is `full`-only** (a `teaser`/`none` viewer is still at the door, which owns every step
   in front of them). At `full`, the upload panel while `accepting_uploads`, else the view-only line. A
   confirmed account with no profile name is asked at the door (`needsName` → the name step's `profile`
@@ -836,6 +837,12 @@ had" holds only when this device holds a guest ticket a claim would move.
   [`gallery-skeleton.tsx`](../../src/components/guest/gallery-skeleton.tsx) so the presign-heavy payload
   never blocks the shell's paint), and the store adopts it as its own first `sync()`, answered locally.
   `key={access}` remounts it on an access flip (teaser → full) — a clean re-seed, no resync effects.
+  ★ A seed whose read fails (a refusal answers locked, never a throw) is the album's failure alone
+  ([`album-boundary.tsx`](../../src/components/guest/album-boundary.tsx), around the Suspense and the live source): the
+  header, the door and Add photos stand, a photograph added meanwhile waits for the gallery to attach, and Try again is
+  the router's refresh and the boundary's reset in one transition, so the page's render hands the album a fresh seed
+  (a bare reset would `use()` the same rejected promise again). A boundary of its own: Next 16.2's
+  `unstable_catchError` does the same and cost the album's chunk 2.1 KB gzipped on `next build`, this one 0.5 KB.
 - ★ **A link is read by id at the moment it is needed and re-minted before it ages** (`ensureLinks` for a
   window, `onNeedLinks` for the viewer, `clips` for the reel), never held past its life; the provider's
   watchdog (`reportPossibleExpiry`) treats any image or reader failure as a possible expired presign (a tab

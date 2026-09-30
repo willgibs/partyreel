@@ -2,7 +2,8 @@
  * THE OWNER, ONE IDEA FOR EVERY GATE ON THE GUEST PAGE: is this viewer the event's host?
  *
  * The page, the album's routes (`album-viewer.server.ts`), the upload seams (`upload-lock.ts`), the
- * guest export and the album's own reads (`album-guest.ts`) all ask this, and all the same way: the
+ * guest export and the album's own reads (`album-guest.ts`) all ask this one answer
+ * (`isRequestOwner`, or `requestOwnerAnswer` where the user rides along), and so all the same way: the
  * user from `getUser()` (never `getSession()`, which only decodes a cookie a client can forge), then
  * `isEventOwner`'s explicit `host_id` match. The host never meets the password door, so never holds
  * the unlock cookie: a gate that let a password album through on the cookie alone refused the one
@@ -14,6 +15,7 @@
 import "server-only";
 
 import { cache } from "react";
+import type { User } from "@supabase/supabase-js";
 
 import { getRequestAuth } from "@/lib/supabase/request-auth";
 
@@ -51,6 +53,22 @@ export async function isEventOwner(
 }
 
 /**
+ * `isRequestOwner`'s answer with the user it was asked of, for a gate that needs the user too: the
+ * album routes' viewer (`album-viewer.server.ts`), whose decision rides a confirmed email and the
+ * user id beside the owner flag. The same one answer (crumbs-28: that gate and the upload seams'
+ * `upload-lock.ts` asked it inline, each with a `getUser()` of its own), and one `getUser()` for both
+ * halves in a route handler, where `cache()` is no help: a gate that asked `getRequestAuth()` for the
+ * user and `isRequestOwner` for the owner would validate the JWT twice.
+ */
+export const requestOwnerAnswer = cache(async function requestOwnerAnswer(
+  eventId: string,
+): Promise<{ user: User | null; isOwner: boolean }> {
+  const { supabase, user } = await getRequestAuth();
+  if (!user) return { user: null, isOwner: false };
+  return { user, isOwner: await isEventOwner(eventId, user.id, supabase) };
+});
+
+/**
  * Is THIS REQUEST the event's host? `isEventOwner` for a gate with no user in hand: false with no
  * session (a local null, no network), and false on a failed auth or host read (fail closed:
  * `getUser()` answers a null user, `isEventOwner` swallows).
@@ -65,7 +83,5 @@ export async function isEventOwner(
 export const isRequestOwner = cache(async function isRequestOwner(
   eventId: string,
 ): Promise<boolean> {
-  const { supabase, user } = await getRequestAuth();
-  if (!user) return false;
-  return isEventOwner(eventId, user.id, supabase);
+  return (await requestOwnerAnswer(eventId)).isOwner;
 });

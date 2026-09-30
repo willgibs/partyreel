@@ -380,8 +380,10 @@ Six `not-found.tsx` files share one presentational core, `shared/not-found-scree
   status passes on `next start`, which honours it). The proxy's only 404s are its two rewrites to the root's own page
   (the surface rule's, the lab gate's), the page Vercel's `/404` serves anyway. And every marketing
   `[slug]` page declares `dynamicParams = false`, so an unknown slug is routing's 404 with the root's screen
-  (`marketing-dynamic-params-policy.test.ts`). What still throws (the host app's, the portal's, a cinema page's own)
-  paints its screen one request after the boundary's chunk.
+  (`marketing-dynamic-params-policy.test.ts`). The host app's event pages and the portal's record pages draw theirs
+  the same way with no read for the status: behind sign-in nothing reads it, so they answer 200 (a soft 404, noindex),
+  titled from their group's `not-found.metadata.ts` (crumbs-28). What still throws (a cinema page's own, the print
+  sheet's) paints its screen one request after the boundary's chunk.
   `global-not-found` is no substitute in Next 16.2.6: experimental, it serves only unmatched URLs (a thrown
   `notFound()` with no nearer boundary, the lab's or the print sheet's, would draw Next's bare default), needs its own
   copy of the document shell, and sits on every route's root layer, so its client JS still loads everywhere.

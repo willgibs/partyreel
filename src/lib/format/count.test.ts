@@ -4,6 +4,7 @@ import {
   compactAxisWidth,
   formatCompactNumber,
   formatCount,
+  formatKindCount,
   formatMediaCount,
   formatSignedCount,
 } from "./count";
@@ -37,6 +38,37 @@ describe("formatMediaCount", () => {
     expect(formatMediaCount(0)).toBe("0 photos & videos");
     expect(formatMediaCount(2)).toBe("2 photos & videos");
     expect(formatMediaCount(1249)).toBe("1,249 photos & videos");
+  });
+});
+
+/**
+ * A COUNT OF MEDIA WHOSE KINDS ARE KNOWN (crumbs-28): the host's toasts count a selection or a verdict that can
+ * hold a video, so they name it by what it holds. The album's bulk Like said "Liked 1 photo" for a video; Review's
+ * verdicts and the storage list each had a copy of this rule, and one home now answers all three.
+ */
+describe("formatKindCount", () => {
+  const photo = { type: "photo" as const };
+  const video = { type: "video" as const };
+
+  it("names a selection of one kind by that kind", () => {
+    expect(formatKindCount([photo], "item")).toBe("1 photo");
+    expect(formatKindCount([photo, photo], "item")).toBe("2 photos");
+    expect(formatKindCount([video], "item")).toBe("1 video");
+    expect(formatKindCount([video, video, video], "upload")).toBe("3 videos");
+  });
+
+  it("names a mix with the surface's own word", () => {
+    expect(formatKindCount([photo, video], "item")).toBe("2 items");
+    expect(formatKindCount([photo, video, photo], "upload")).toBe("3 uploads");
+  });
+
+  it("groups a big count through formatCount", () => {
+    expect(
+      formatKindCount(
+        Array.from({ length: 1500 }, () => photo),
+        "item",
+      ),
+    ).toBe("1,500 photos");
   });
 });
 

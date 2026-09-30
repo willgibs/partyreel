@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
-import { notFound } from "next/navigation";
 
+import { appNotFoundMetadata } from "@/app/(app)/not-found.metadata";
+import { AppNotFoundScreen } from "@/app/(app)/not-found.screen";
 import { AtTheDoor, type DoorPerson } from "@/app/(app)/dashboard/[eventId]/guests/at-the-door";
 import { GuestsInvite } from "@/app/(app)/dashboard/[eventId]/guests/guests-invite";
 import { InvitedSection } from "@/app/(app)/dashboard/[eventId]/guests/invited-section";
@@ -36,7 +37,8 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
   const { eventId } = await params;
   const event = await getEvent(eventId);
-  return { title: event ? `Guests · ${event.name}` : "Guests" };
+  // An event that is gone or never this host's is titled as the 404 it is (the hub's page says why).
+  return event ? { title: `Guests · ${event.name}` } : appNotFoundMetadata;
 }
 
 /**
@@ -69,7 +71,8 @@ export async function generateMetadata({
 export default async function EventGuestsPage({ params }: PageProps) {
   const { eventId } = await params;
   const event = await getEvent(eventId);
-  if (!event) notFound();
+  // Drawn here, never thrown: the hub's page says why (crumbs-28).
+  if (!event) return <AppNotFoundScreen />;
 
   // The blocked list's dates in the host's own zone (the dashboard's day rule, viewer-day.ts).
   const zone = resolveViewerZone(

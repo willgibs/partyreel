@@ -64,24 +64,51 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+const BYTE_UNITS = ["B", "KB", "MB", "GB", "TB", "PB"] as const;
+
 /**
  * Human-readable byte size for storage/usage UI (e.g. "500 GB", "2 TB", "4.3 MB").
  * Uses binary units (1024) to match the byte accounting in `storage_cap_bytes` /
  * `storage_used_bytes` so displayed numbers reconcile with enforcement.
+ *
+ * ★ EVERYTHING IT PRINTS IS READ OFF THE ROUNDED NUMBER (crumbs-28). The ".0" was
+ * once decided on the value before rounding, so a size just under 41 GB printed
+ * "41.0 GB" (the size list's chips and rows showed it) and one just under a unit's
+ * edge "1024.0 MB". A value that rounds to a whole number prints whole, and one that
+ * rounds up to 1,024 of a unit is one of the next ("1 GB").
+ *
+ * `round: "up"` is the storage guard's (`formatBytesUp`, whose WHY is there): the
+ * same ladder, rounded up at the digits it prints, so the two can never disagree
+ * about anything but the direction.
  */
-export function formatBytes(bytes: number, fractionDigits = 1): string {
-  if (bytes <= 0) return "0 B";
-  const units = ["B", "KB", "MB", "GB", "TB", "PB"];
-  const i = Math.min(
-    Math.floor(Math.log(bytes) / Math.log(1024)),
-    units.length - 1,
-  );
-  const value = bytes / 1024 ** i;
+export function formatBytes(
+  bytes: number,
+  fractionDigits = 1,
+  round: "nearest" | "up" = "nearest",
+): string {
+  if (!(bytes > 0)) return "0 B";
+  const last = BYTE_UNITS.length - 1;
+  let i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), last);
+  let value = roundBytes(bytes / 1024 ** i, fractionDigits, round);
+  if (value >= 1024 && i < last) {
+    i += 1;
+    value = roundBytes(bytes / 1024 ** i, fractionDigits, round);
+  }
   // Whole numbers read cleaner without a trailing ".0".
-  const rounded = Number.isInteger(value)
-    ? value
-    : value.toFixed(fractionDigits);
-  return `${rounded} ${units[i]}`;
+  const shown = Number.isInteger(value) ? value : value.toFixed(fractionDigits);
+  return `${shown} ${BYTE_UNITS[i]}`;
+}
+
+/** A size in its unit, rounded at the digits it prints: to nearest, or up. */
+function roundBytes(
+  value: number,
+  digits: number,
+  round: "nearest" | "up",
+): number {
+  if (round === "nearest") return Number(value.toFixed(digits));
+  const scale = 10 ** digits;
+  // The epsilon stops float noise on an exact value (140 GB) from ticking it up a step.
+  return Math.ceil(value * scale - 1e-9) / scale;
 }
 
 /**

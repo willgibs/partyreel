@@ -222,7 +222,7 @@ describe("attachEmailSchema", () => {
 
   it("★ an explicit null parses (the detach) but a MISSING key does not", () => {
     // "Clear it" has to be said out loud: a client that simply forgot the field would otherwise
-    // silently throw away a guest's claim ticket.
+    // silently throw away the address a guest typed to claim her uploads by.
     expect(
       attachEmailSchema.safeParse({ qr_token: "q", session_token: "s" })
         .success,

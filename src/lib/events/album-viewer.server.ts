@@ -10,7 +10,9 @@
  *    door, the ask, a gate's newcomer) answers access `none` with nothing real behind it; a door that
  *    lets her through hands on the event as she meets it, with the pass its reads ask for.
  *  - The viewer through `getUser()`, never `getSession()`: a CONFIRMED email is `isAuthed`, and the
- *    owner is matched on `host_id` explicitly (`isEventOwner`).
+ *    owner is the page's own owner answer (`requestOwnerAnswer`, `gallery-access-owner.server.ts`:
+ *    `host_id` matched explicitly), so the album's routes and the page can never disagree about the
+ *    host (crumbs-28: this gate asked it inline, with a `getUser()` of its own).
  *  - The unlock cookie for a password album, and the guest's identity from the body's session token
  *    or the `pr_guest_<eventId>` cookie (the body wins as the identity to resolve with).
  *  - Then `resolveViewerDecision`, the one server entry for "what does this viewer get".
@@ -35,10 +37,8 @@ import {
   doorGalleryDecision,
   type GalleryDecision,
 } from "@/lib/events/gallery-access";
-import {
-  isEventOwner,
-  resolveViewerDecision,
-} from "@/lib/events/gallery-access.server";
+import { requestOwnerAnswer } from "@/lib/events/gallery-access-owner.server";
+import { resolveViewerDecision } from "@/lib/events/gallery-access.server";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
 import {
   guestSessionCookieWrite,
@@ -46,7 +46,6 @@ import {
   readGuestSessionCookie,
   type GuestCookieWrite,
 } from "@/lib/guest/session-cookie";
-import { createClient } from "@/lib/supabase/server";
 
 export type AlbumViewer =
   | { kind: "gone" }
@@ -97,14 +96,8 @@ export async function resolveAlbumViewer(
   const held = doorGalleryDecision(door.decision);
   if (held) return { kind: "viewer", event: met, decision: held, isDemo, heal };
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, isOwner } = await requestOwnerAnswer(event.data.id);
   const isAuthed = Boolean(user?.email_confirmed_at);
-  const isOwner = user
-    ? await isEventOwner(event.data.id, user.id, supabase)
-    : false;
   // Someone already in passes the password without it (the one rule for everyone already in).
   const admitted = door.decision.kind === "through" && door.decision.admitted;
   const unlocked =

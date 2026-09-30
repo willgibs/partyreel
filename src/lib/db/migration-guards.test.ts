@@ -795,7 +795,8 @@ describe("the guest identity round, wave 0 — the unproved address", () => {
 
   it("nothing expires it: no expiry job, no expiry function", () => {
     // Will, 2026-09-22: "I'd prefer not to expire/detach any uploads from an unconfirmed email's
-    // upload history." A sweep added later would quietly delete a guest's claim ticket.
+    // upload history." A sweep added later would quietly delete the address a guest typed to claim her
+    // uploads by.
     expect(collapse(allMigrations())).not.toMatch(
       /create (or replace )?function public\.expire_/,
     );
