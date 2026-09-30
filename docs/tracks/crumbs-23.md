@@ -30,6 +30,17 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/auth/account-door.tsx             # Continue with Google is that button
   - src/components/auth/account-door.test.tsx        # pins it
   - src/app/layout.tsx                               # the ~200-byte recorder, an inline <script> as the HTML parses
+  # the door menu's invite line (the migration, its count, its words, the menu and the steps page):
+  - supabase/migrations/20260929233000_door_counts_listed.sql  # (new) event_door_waiting_listed + event_door_counts' `waiting_listed` key
+  - src/lib/db/queries/event-doors.ts                # DoorCounts.waitingListed, read defensively
+  - src/lib/db/queries/event-doors.test.ts
+  - src/lib/event/door/words.ts                      # listedWouldComeInLine: the menu's own words, one home
+  - src/lib/event/door/words.test.ts
+  - src/components/app/event-settings/settings-rows.tsx       # the menu's line (the door menu lives here, not in door-page.tsx)
+  - src/components/app/event-settings/settings-rows.test.tsx  # (new)
+  - src/components/app/event-settings/door-page.test.tsx
+  - src/components/app/event-settings/testing/host-event.ts   # NO_COUNTS gains the key
+  - src/app/(dev)/design/sandbox/event-ready/fixtures.ts      # ONE-LINE EXCEPTION: a board's DoorCounts literal gains `waitingListed: 0` (no lane owns event-ready)
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/host-app.md
   - docs/systems/guest-flow.md

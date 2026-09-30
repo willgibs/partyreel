@@ -10,7 +10,13 @@
  * door with nothing behind it; the invite list's step points to Guests; what does nothing right now is
  * dormant, never gone.
  */
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { DoorCounts } from "@/lib/db/queries/event-doors";
@@ -250,5 +256,36 @@ describe("the email and the photo", () => {
     expect(
       document.querySelector("[data-door-step='3']")?.closest("[inert]"),
     ).not.toBeNull();
+  });
+});
+
+describe("the invite list's row says who it would let in, before it is chosen (crumbs-23, NIT-C)", () => {
+  const inviteRow = () =>
+    document.querySelector<HTMLElement>('[data-door-gate="invite"]')!;
+
+  it("★ with people waiting whom it names, in the words the door menu says it in", () => {
+    page(
+      { visibility: "private", door: "approve" },
+      { waiting: 3, waitingListed: 2 },
+    );
+    expect(inviteRow().querySelector("[data-door-listed]")?.textContent).toBe(
+      "Lets in the 2 people waiting at the door who are on your list.",
+    );
+    // Only its row: no other gate says it, and it lets in no more than the list names.
+    expect(document.querySelectorAll("[data-door-listed]")).toHaveLength(1);
+  });
+
+  it("says nothing where it would let in nobody, and nothing once it is the door", () => {
+    page(
+      { visibility: "private", door: "approve" },
+      { waiting: 3, waitingListed: 0 },
+    );
+    expect(inviteRow().querySelector("[data-door-listed]")).toBeNull();
+    cleanup();
+    page(
+      { visibility: "private", door: "invite" },
+      { waiting: 0, waitingListed: 2 },
+    );
+    expect(inviteRow().querySelector("[data-door-listed]")).toBeNull();
   });
 });

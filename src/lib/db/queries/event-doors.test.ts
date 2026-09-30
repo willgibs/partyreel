@@ -157,6 +157,7 @@ describe("getDoorCounts: the host's numbers", () => {
       in: 31,
       in_by_name: 4,
       waiting: 2,
+      waiting_listed: 1,
       invited: 24,
       joined: "many",
     });
@@ -164,10 +165,32 @@ describe("getDoorCounts: the host's numbers", () => {
       in: 31,
       inByName: 4,
       waiting: 2,
+      waitingListed: 1,
       invited: 24,
       joined: 0,
     });
     expect(calls).toEqual([{ p_event_id: EVENT }]);
+  });
+
+  it("★ reads the invite list's count of who is waiting, and an answer from before its migration (no such key) as zero", async () => {
+    // The key is `event_door_waiting_listed`'s (20260929233000): what choosing the list as the door would
+    // let in. Until that migration is applied the answer has no such key, and the door menu says nothing
+    // extra rather than a number it does not have.
+    answering("event_door_counts", {
+      in: 1,
+      waiting: 2,
+      invited: 3,
+      joined: 0,
+    });
+    await expect(getDoorCounts(EVENT)).resolves.toMatchObject({
+      waiting: 2,
+      waitingListed: 0,
+    });
+    answering("event_door_counts", { waiting: 2, waiting_listed: 2 });
+    await expect(getDoorCounts(EVENT)).resolves.toMatchObject({
+      waiting: 2,
+      waitingListed: 2,
+    });
   });
 
   it("reads an answer with nothing in it as zeros", async () => {
@@ -176,6 +199,7 @@ describe("getDoorCounts: the host's numbers", () => {
       in: 0,
       inByName: 0,
       waiting: 0,
+      waitingListed: 0,
       invited: 0,
       joined: 0,
     });

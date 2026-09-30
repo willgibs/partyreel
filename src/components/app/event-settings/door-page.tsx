@@ -28,7 +28,7 @@ import {
   type DoorStep,
   type PrivateGate,
 } from "@/lib/event/door/door";
-import { cameInLine } from "@/lib/event/door/words";
+import { cameInLine, listedWouldComeInLine } from "@/lib/event/door/words";
 import {
   DOOR_STEP_LABELS,
   DOOR_STEP_LINES,
@@ -209,6 +209,9 @@ export function DoorPage({ guestsHref }: { guestsHref: string }) {
   }
 
   const consequence = pending ? consequenceOf(pending, counts) : null;
+  // ★ WHAT THE LIST WOULD DO, said on its row before it is chosen (crumbs-23, build 26's NIT-C): the
+  // people waiting whom it names come straight in, in the words the door menu says it in.
+  const listedLine = listedWouldComeInLine(counts.waitingListed);
   const heldEmail =
     v.door === "approve"
       ? "On while you let each person in: it matches a confirmed address."
@@ -338,6 +341,14 @@ export function DoorPage({ guestsHref }: { guestsHref: string }) {
                               <span className="block text-caption text-pretty text-muted-foreground">
                                 {GATE_LINES[g]}
                               </span>
+                              {g === "invite" && !on && listedLine ? (
+                                <span
+                                  data-door-listed=""
+                                  className="mt-0.5 block text-caption text-pretty text-muted-foreground"
+                                >
+                                  {listedLine}
+                                </span>
+                              ) : null}
                             </span>
                             <GateHelp gate={g} />
                           </div>
