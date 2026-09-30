@@ -281,8 +281,8 @@ export function HostMediaGrid({
   // the rows lay the album less the arrivals still waiting for their link and their photograph, and each glows
   // from the moment it lands. What arrived is read off the album's items, never the optimistic overlay: an
   // optimistic hide removes nothing and adds nothing, and a host's own action is not an arrival to be
-  // announced back to her. The gate reads the overlay's items, so a held arrival that is hidden or removed
-  // meanwhile is not held for any more.
+  // announced back to her. The gate reads the overlay's items, so a held arrival that is removed meanwhile
+  // (deleted in another tab, or here) is not held for any more.
   const arrivals = useAlbumArrivals(items);
   const gate = useArrivalGate(optimisticItems, arrivals, rows?.onNeedLinks);
   const [, startBulk] = useTransition();

@@ -199,7 +199,7 @@ describe("HostMediaGrid: an arrival is laid when it can land complete", () => {
     expect(glowing()).toEqual([]);
   });
 
-  it("stops holding an arrival that is hidden or removed while it waits", async () => {
+  it("stops holding an arrival that is removed while it waits", async () => {
     const rows = hub(vi.fn());
     const view = render(<Grid items={SEED} rows={rows} />);
     view.rerender(<Grid items={[photo("c", false), ...SEED]} rows={rows} />);

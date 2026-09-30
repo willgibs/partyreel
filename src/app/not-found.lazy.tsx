@@ -14,9 +14,9 @@
  *
  * ★ ONE FILE FOR ALL OF THEM, AND THAT IS MEASURED. A boundary per group was built first, and every one
  * carried its own copy of `next/dynamic`'s runtime (Turbopack puts it in each boundary's chunk instead of
- * sharing one): 1.3 KB gzipped of JS on every page of the group, which is more than the 4 KB of HTML a small
- * screen (the cinema group's, the host app's, the portal's) had cost, so for those the boundary was a net loss
- * on the wire. This chunk is loaded by every page already (the root's 404 is in every payload), so a loader
+ * sharing one): 1.3 KB gzipped of JS on every page of the group, which is more than the 1 KB gzipped of HTML a
+ * small screen (the cinema group's, the host app's, the portal's) had cost, so for those the boundary was a
+ * net loss on the wire. This chunk is loaded by every page already (the root's 404 is in every payload), so a loader
  * added here costs a few dozen bytes and no request, and the screens it names stay lazy. `not-found.test.ts`
  * holds the split and names every entry.
  *

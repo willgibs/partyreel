@@ -364,8 +364,8 @@ Six `not-found.tsx` files share one presentational core, `shared/not-found-scree
   portal's about 2.2 KB). Each keeps its metadata (and the root its viewport and surface branch) and renders one
   reference into the ONE client boundary (`app/not-found.lazy.tsx`, `next/dynamic` in a client module, a real split),
   whose loaders name each screen (`app/not-found.site.tsx`, the admin host's, and a group's `not-found.screen.tsx`
-  beside its `not-found.tsx`), so any other page carries one reference and the boundary's 1.5 KB gzipped chunk it
-  carried already; `not-found.test.ts` walks every not-found's eager imports and names each entry, so a new one that
+  beside its `not-found.tsx`), so any other page carries one reference and the boundary's chunk (1.7 KB gzipped, 0.25 KB of it the five
+  groups' loaders) that every page carried already; `not-found.test.ts` walks every not-found's eager imports and names each entry, so a new one that
   draws is refused. ★ One boundary, never one per group: measured, each boundary's chunk carried its own copy of
   `next/dynamic`'s runtime (1.3 KB gzipped on every page of its group, more than a small screen had cost). Read in
   brotli, which a host serves, the guest album's HTML falls by about 1 KB (its raw 17.8 KB is the flight payload a
