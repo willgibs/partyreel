@@ -276,6 +276,8 @@ type RowsProps = {
   canDelete?: (item: GridMedia) => boolean;
   onDeleteItem?: (id: string) => void;
   onWindowChange?: (ids: readonly string[]) => void;
+  arrivals?: readonly string[];
+  onNeedLinks?: (ids: readonly string[]) => void;
 };
 const lastRows = () => rowsSpy.mock.calls.at(-1)![0] as RowsProps;
 const shownIds = () => lastRows().items.map((i) => i.id);
@@ -870,16 +872,59 @@ describe("LiveGallery: the header's count, exact and live", () => {
 });
 
 describe("LiveGallery: the arrival", () => {
-  it("what a delta brings that was not on screen glows, in its place; the seed never does", async () => {
+  it("what a delta brings that was not on screen is handed to the rows as an arrival, in its place; the seed never is", async () => {
     await mount();
-    const arrived = () =>
-      (rowsSpy.mock.calls.at(-1)![0] as { arrivedIds?: ReadonlySet<string> })
-        .arrivedIds;
-    expect(arrived()?.size ?? 0).toBe(0);
+    expect(lastRows().arrivals ?? []).toEqual([]);
     answerSync(delta(["m3"], [], 3));
     await poll();
-    // In the album's own order (m3 is the oldest of the three), and glowing.
+    // In the album's own order (m3 is the oldest of the three), and an arrival: the rows hold it out
+    // until its photograph is decoded and light it when it lands (`use-arrival-gate.ts`).
     expect(shownIds()).toEqual(["m1", "m2", "m3"]);
-    expect(arrived()?.has("m3")).toBe(true);
+    expect(lastRows().arrivals).toEqual(["m3"]);
+  });
+
+  it("gives the rows the way to ask for an arrival's link, since no window stands on it to ask (crumbs-23)", async () => {
+    // A delta brings the manifest's tuple alone; the link is asked for only by a window over the item.
+    // The rows hold an arrival out of every window until its photograph is ready, so they must ask.
+    await mount();
+    const links = () =>
+      (global.fetch as ReturnType<typeof vi.fn>).mock.calls.filter(
+        ([url]) => url === "/api/album/guest/media",
+      );
+    answerSync(delta(["m3"], [], 3));
+    await poll();
+    expect(links()).toHaveLength(0);
+    await act(async () => {
+      lastRows().onNeedLinks?.(["m3"]);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(links()).toHaveLength(1);
+    expect(JSON.parse(links()[0][1].body).ids).toEqual(["m3"]);
+    // And the link that lands is the item's own, for the rows' tile to draw.
+    expect(lastRows().items.find((i) => i.id === "m3")?.url).toBe(
+      "https://r2.test/t/m3",
+    );
+  });
+
+  it("never hands this device's own upload over as an arrival: it sweeps, it does not wait", async () => {
+    const ref = createRef<LiveGalleryHandle>();
+    await mount({ ref, isAuthed: true, canDeleteIds: [] });
+    // The manifest brings the photograph this device just sent (m9), as it brings anyone's.
+    answerSync(delta(["m9"], [], 3));
+    await act(async () => {
+      ref.current!.notifyUploaded({
+        mediaId: "m9",
+        queueId: "q1",
+        file: new File(["x"], "x.jpg", { type: "image/jpeg" }),
+        kind: "photo",
+        status: "approved",
+      });
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    await poll();
+    // In the album and not an arrival: the rows hold an arrival out until its photograph is decoded,
+    // and this device's own landing must appear the moment it is sent.
+    expect(shownIds()).toContain("m9");
+    expect(lastRows().arrivals ?? []).toEqual([]);
   });
 });

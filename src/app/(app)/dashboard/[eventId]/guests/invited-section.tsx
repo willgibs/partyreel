@@ -12,6 +12,7 @@ import {
 import { FeedSectionHeader } from "@/components/app/event-feed/feed-section-header";
 import { settingsPageHref } from "@/components/app/event-settings/settings-pages";
 import { Button } from "@/components/ui/button";
+import { useAdoptTypedValue } from "@/lib/adopt-typed-value";
 import { INVITE_LIST_CAP, readAddresses } from "@/lib/event/door/invite-list";
 import { cameInLine } from "@/lib/event/door/words";
 import { formatCount } from "@/lib/format/count";
@@ -75,6 +76,9 @@ export function InvitedSection({
   const fieldId = useId();
   const statusId = useId();
   const [typed, setTyped] = useState("");
+  // ★ AN ADDRESS TYPED BEFORE THE PAGE HYDRATED IS NOT LOST (`adopt-typed-value.ts`): this is a bare
+  // <input> over its own state, so it adopts through the hook the shared `Input` uses.
+  const adoptRef = useAdoptTypedValue<HTMLInputElement>(typed);
   const [flagged, setFlagged] = useState<string[]>([]);
   const [tally, setTally] = useState<Tally>(null);
   // ★ A REMOVAL HIDES ITS ADDRESS ONLY UNTIL THE PAGE READS THE LIST AGAIN (build 23's NIT-4 shape, swept
@@ -215,6 +219,7 @@ export function InvitedSection({
           Add or paste addresses
         </label>
         <input
+          ref={adoptRef}
           id={fieldId}
           type="email"
           inputMode="email"

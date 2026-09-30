@@ -153,6 +153,7 @@ export function countsAt(m: Moment, waiting = 0): DoorCounts {
     in: m.facts.guestsIn,
     inByName: 0,
     waiting,
+    waitingListed: 0,
     invited: m.facts.invited,
     joined: 0,
   };

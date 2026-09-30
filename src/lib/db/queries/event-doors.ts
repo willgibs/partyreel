@@ -64,6 +64,11 @@ export type DoorCounts = {
   inByName: number;
   /** People waiting on the host, an account once. */
   waiting: number;
+  /**
+   * Of those waiting, the ones the invite list names: what choosing the list as the door would let in
+   * (the read-only twin of `event_door_admit_listed`, 20260929233000; 0 until that migration is applied).
+   */
+  waitingListed: number;
   /** Addresses on the invite list. */
   invited: number;
   /** Listed addresses that are past the door. */
@@ -84,6 +89,7 @@ export async function getDoorCounts(eventId: string): Promise<DoorCounts> {
     in: count(v.in),
     inByName: count(v.in_by_name),
     waiting: count(v.waiting),
+    waitingListed: count(v.waiting_listed),
     invited: count(v.invited),
     joined: count(v.joined),
   };

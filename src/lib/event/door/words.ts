@@ -39,3 +39,15 @@ export function peopleWaiting(n: number): string {
 export function cameInLine(n: number): string {
   return `${peopleWaiting(n)} waiting at the door came in.`;
 }
+
+/**
+ * What choosing the invite list as the door would do to the people waiting at it: the ones it names come
+ * in ("Lets in the 1 person waiting at the door who is on your list."), said in the door menu's own
+ * words for what a door does to people (`doorConsequence`: Public's "Lets in the 1 person waiting at the
+ * door."), and null where it would let in nobody, since a line for an effect that does not happen is
+ * a promise not kept. `n` is `DoorCounts.waitingListed`, the read-only twin of what the list then admits.
+ */
+export function listedWouldComeInLine(n: number): string | null {
+  if (!(n > 0)) return null;
+  return `Lets in the ${peopleWaiting(n)} waiting at the door ${n === 1 ? "who is" : "who are"} on your list.`;
+}
