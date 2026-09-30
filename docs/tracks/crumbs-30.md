@@ -1,6 +1,6 @@
 ---
 track: crumbs-30
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "8c0678cc"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -29,7 +29,6 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/guest/live-gallery.tsx
   - src/components/guest/live-gallery.test.tsx
   - src/components/guest/album-boundary.tsx
-  - src/components/guest/album-boundary.test.tsx
   - src/components/guest/event-experience.tsx
   - src/components/guest/event-experience.album.test.tsx
   # Its GalleryLive fixture takes the two new fields.
@@ -106,24 +105,86 @@ working.
 - `docs/systems/host-app.md` "An event that is gone": the print sheet draws the host app's not-found too.
 - `docs/systems/design-system.md` "Errors": Try again is `unstable_retry` on every crash screen, with its pending words.
 - `docs/systems/guest-flow.md` "Live gallery": a failed seed leaves the source standing and healing itself (the album
-  boundary keeps a crash); the arrival's seed rule reads an answer that was no album, so a real empty album's first
-  photograph arrives.
+  boundary keeps a crash), read through `Promise.resolve` since the page's promise is React Flight's thenable; the
+  arrival's seed rule reads an answer that was no album, so a real empty album's first photograph arrives.
 - `docs/systems/host-app.md` "The door, the host's side": Let back in's landing for a newcomer whose ask stands at
   Only me (`door_only_me`).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- none
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+Logs and walk records are in `/Users/gibby/local/ai/partyreel-wt/_scratch/crumbs-30/` (named below by file).
+
+- **Commits, pushed:** `5cf77c73` (this manifest's owns and Questions), `e652b339` (the work), `e05cdafe` (the seed read
+  through `Promise.resolve`, found on the local walk, below), `c6303602` (its guest-flow line); the head is in the chat
+  line. **No sync:** launch-prep moved by `a39b0129` (crumbs-29's migrations, `src/lib/db/types.ts` regenerated) and
+  records (`c2e42a6f` cutting crumbs-31, `2cc62130`); none touches a file of this lane or one of its reads, nothing
+  conflicts, and crumbs-31's owns do not overlap these.
+- **Gates on `e05cdafe`** (`c6303602` and this commit are doc lines), each on its own exit code: `pnpm typecheck` 0
+  (`typecheck-2.log`), `pnpm lint` 0 with no warning (`lint-2.log`), `pnpm test` 0, 669 files and 7,973 tests
+  (`test-3.log`), `zsh scripts/build-lock.sh pnpm build` 0 (`build-2.log`), `pnpm lab:smoke --base
+  http://localhost:3132` 0, 174 checks and 0 failing (`lab-smoke-1.log`).
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` is 35 paths, every one under `owns`, this file or a
+  doc under System-doc edits (a script checked each against the lists). The claims beyond the brief's are listed in
+  `owns` with their reason; `album-boundary.test.tsx` was released, unused.
+- **The portal's gate read:** `readGate` is `cache()`d and rides `getRequestAuth`'s one `getUser()`
+  (`admin-context.ts`): the layout, the page and a title share one `getUser()` and one `is_admin` a request, another
+  request and every Server Function read afresh, and nothing reads `getSession()` (`admin-context.test.ts`; red on the
+  old code, 3 reads: `red-1-admin-context.log`).
+- **Try again:** `TryAgain` (`route-error.tsx`) calls Next 16.2's `unstable_retry` on the five groups', the root's and
+  (inline) `global-error`'s screens, reading "Trying again…" while it asks (`route-error.test.tsx`, driving Next's own
+  `ErrorBoundary`: a crash in one payload drawn from the next; `global-error.test.tsx`; red: `red-2-route-error.log`,
+  `red-2-global-error.log`). On `next start`, the boom probe's Try again read "Trying again… [disabled]", sent the
+  router's `_rsc` refresh and left the screen standing as the probe crashed again (`local-2-boom-retry.json`).
+- **The print sheet's 404:** drawn, never thrown: `if (!event) return <PrintNotFound />;`, the host app's screen in the
+  shell's gutter, and `generateMetadata` answers `appNotFoundMetadata` ("Event not found", noindex) (`page.test.tsx`
+  beside it; red: `red-3-print.log`; `not-found.test.ts` names it in the host app's `drawnBy`).
+- **The album that could not load:** `readSeed` reads a failed seed and never throws it (Next's own throws pass on);
+  the source reports it (`render:guest`, seam `album`), stands, and reads the album with its own first sync; the view
+  draws the skeleton while that read is in flight, then `AlbumFailedCard` with Try again (the store's sync), and any
+  later answer heals it; the header keeps the page's count (`gallery-live.tsx`, `live-gallery.tsx`;
+  `gallery-live.test.tsx`, `live-gallery.test.tsx`; red: `red-45-view-and-provider.log`). ★ **The local walk found
+  every album load failing on `e652b339`**: the page's promise is React Flight's thenable, whose `then` chains nothing,
+  so `use()` got `undefined`; `e05cdafe` adopts it with `Promise.resolve` and mounts the provider on a Flight-shaped
+  thenable in the tests (red before it: `red-4-flight-thenable.log`). With faults injected in a flag-file patch (never
+  committed): a failed seed healed at once by the source's own `/sync`, and with the sync failing too the album's own
+  card stood in the album's column with the page's count, Add photos and Invite, and its Try again read "Trying
+  again…" and healed it with `/sync` and `/media` alone, no page refresh (`local-4-unread-album.json`). On `next start`
+  the seeded album still draws from the page with no album request (`prod-album.html`, one tile in the HTML).
+- **An empty album's first photograph:** `albumOnScreen` names an answer that was no album (teaser, locked, unread),
+  and `newArrivalIds` diffs a real empty album like any other (`reconcile-album-items.ts`; its test and
+  `gallery-live.test.tsx`; red: `red-5-reconcile.log`, `red-45-gallery-live.log`). Live on localhost: the only
+  photograph of "Reel lane probe one (disposable)" set pending (the album empty), then approved: its tile came in
+  through the real doorbell carrying `data-arrived` 1.7 s later (`local-5-empty-album-arrival.json`); the row ends
+  approved, as it began.
+- **Let back in at Only me:** a newcomer whose ask stands there lands at `door_only_me`, whose line is the fourth
+  Question's and whose toast is the door's (`event-blocks.ts`; `event-blocks.test.ts`, and `db/queries/event-blocks.test.ts`
+  reshaped with its scar; red: `red-6-event-blocks.log`).
+- **For the next build's red-team** (none runs on localhost): (1) the portal as partyr33l through the chooser: an
+  account and an album record render and title as before, and Supabase's auth log shows one `GET /auth/v1/user` a
+  portal page load (a record page made three); signed out, `/admin/reports` still lands on `/login?next=%2Fadmin%2Freports`,
+  and willg97 still meets the 404. (2) As willg97, `/dashboard/<a deleted or foreign event>/print` serves "We couldn't
+  find that event" in its HTML, tab "Event not found · Partyreel", noindex, a 200; a live event's sheet is unchanged.
+  (3) `/design/lab/tools/boom?key=` on the alias: Try again reads "Trying again…", an `_rsc` request goes out, the
+  screen stands. (4) Decline a waiting newcomer at an approve album, switch it to Only me, then Blocked, Let back in:
+  the confirm reads the new line, the toast "<name> is back at the door." (5) A guest on a real empty album while
+  another phone adds its first photograph: it arrives glowing; at a moderated album a guest's uploads list opens as
+  before.
+- **Will's desk (PREMISE, `lab-smoke-1.log` lines 6 to 8):** disposable-mode, event-ready and locked-door were named
+  because `guest-flow.md`, `host-app.md` and a comment in `event-experience.tsx` changed. Their asks hold: the edits are
+  the album's failure state and an empty album's first arrival (guest-flow), the print sheet's 404 and Let back in's
+  Only me words (host-app); none is a thing an ask describes (the camera, the undeveloped album, the wall, the peek,
+  create, video, cost, save; the checklist, the settings guide, Create's hand-off, the dashboard's needs, the hub
+  code's look per door; the guest's door screens and the 404's look), and no word or behaviour of theirs moved.
+- **Assets requested from Will:** none. **Proposed migrations / Worker / Vercel / Stripe / env changes:** none.
+- **Board ideas:** disposable-mode's develop moment under the arrival grammar: a roll appearing whole at 9 am in an
+  album that was empty would now light every photograph at once, so the reveal's motion is a question of its own.
+- **Calls his to overrule:** the print sheet's 404 is the host app's, not the root's site 404; "Trying again…" on
+  every crash screen while it asks; an unread album's skeleton then card, its Try again the album's own read; the Only
+  me newcomer's words; a failed seed is still reported as `render:guest`, seam `album`, though nothing crashes now,
+  so the issue stream keeps one home for it.
+- **Look at first:** `readSeed` and `albumRead` in `gallery-live.tsx` (the Flight thenable, `Promise.resolve` first),
+  then `local-4-unread-album.json`.
