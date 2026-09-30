@@ -7,7 +7,6 @@ import {
   useEffect,
   useRef,
   useState,
-  useSyncExternalStore,
   type CSSProperties,
   type ReactNode,
 } from "react";
@@ -16,6 +15,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
 import { Caption } from "@/components/marketing/system/caption";
 import { Button } from "@/components/ui/button";
+import { ClientForm } from "@/components/ui/client-form";
 import {
   Form,
   FormControl,
@@ -41,6 +41,7 @@ import {
 } from "@/lib/constants/contact";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { showActionError } from "@/lib/errors";
+import { useHydrated } from "@/lib/shared/use-hydrated";
 import { cn } from "@/lib/utils";
 import { contactSchema, type ContactInput } from "@/lib/validation/contact";
 
@@ -127,21 +128,6 @@ function TopicHint({ hint }: { hint: ContactHint }) {
 /** The form's exit before the receipt: exits are faster than entrances. */
 const FORM_EXIT_MS = 150;
 
-/**
- * Whether this render is past hydration: the server and the hydrating client both
- * answer false, so the first paint matches. The submit button waits for it (the
- * house's `useHydrated`, kept per file): until React has attached the form's
- * handler a press or an Enter is the browser's own GET, which would carry the name,
- * the address and the message into the URL, the history and a server log.
- */
-function useHydrated(): boolean {
-  return useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false,
-  );
-}
-
 export function ContactForm({
   helpSubjects,
 }: {
@@ -173,6 +159,9 @@ export function ContactForm({
     },
   });
   const { isSubmitting } = form.formState;
+  // The submit button waits for hydration so a note that took a minute to write never meets a press that
+  // silently does nothing. What keeps the name, the address and the message out of the URL is the form itself,
+  // a `ClientForm` (ui/client-form.tsx): its native submit does nothing until React has attached the handler.
   const hydrated = useHydrated();
 
   // The fastest-path hint for the picked topic: deflection INSIDE the form
@@ -268,7 +257,7 @@ export function ContactForm({
           <ContactReceipt receipt={receipt} onAnother={sendAnother} />
         ) : (
           <Form {...form}>
-            <form
+            <ClientForm
               onSubmit={(event) => {
                 // The frame is measured as the send starts, while the form still
                 // stands; the receipt keeps it (a ref read belongs in a handler).
@@ -475,7 +464,7 @@ export function ContactForm({
                 {/* The V1 steal: the reply line seated at the commit point. */}
                 <p className="text-xs text-muted-foreground">{REPLY_LINE}</p>
               </div>
-            </form>
+            </ClientForm>
           </Form>
         )}
       </div>

@@ -40,18 +40,17 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `schema-pass` | the data architecture trimmed | merged at `57b17ace`; part 1 applied on Will's go-ahead (2026-09-29, his answer "Yes, apply part 1"; recorded `20260929210010`, the payload the file's md5; advisors 18/4/33; anon REST 42501; types regenerated at `c7a50adc`); a signed-in host walk on partyreel.com rides build 25's red-team as a follow-up; part 2 (`20260929170000`) after milestone 31 ships | Opus, 3132 | `54f414f9` |
-| `crumbs-19` | build 25's red-team finds (the app bar's trail on a route that sets none, the guest report article's screens drawing the photo's own Report) and crumbs-18's three follow-ups (the hub's sheet closed once on a double close, the reel's entry through a refresh, the text-distance test retired) | handed off; integrating (agent `a74fa1c6a2ff11799`) | Sonnet, 3131 | `98526129` |
-| `privacy-hero-r4` | privacy-hero r4, a board: the veil as drawn and three variations of it, the sealed cards out, the sweep and the aperture banked | running (agent `ac010b14ad42386af`; worktree `../partyreel-wt/privacy-hero-r4`) | Opus, 3133 | |
-| `crumbs-20` | five hardening items: no form sends its fields into the address before hydration, the brand family reaching display names, every 401 fallback and the renewal nudge's anchor surviving a sign-in, a confirm announced as one | running (agent `afcdac799225fed65`; worktree `../partyreel-wt/crumbs-20`) | Sonnet, 3135 | |
-| `crumbs-21` | four data-integrity items: a waiting newcomer's ticket settled when her door moves, the admin album covering the worst kind, what a report named outliving its photo's row, the host's like counts limited to what she sees (migrations, to apply by protocol) | running (agent `a34b45f3aca9068fc`; worktree `../partyreel-wt/crumbs-21`) | Opus, 3134 | |
-| `lab-focus` | on Will's note (2026-09-29, "a Jackson Pollock painting of text" above the options): the lab's question view rebuilt pictures first, the stage whole on the first screen at a desk and a phone, everything else one click away; a `lab:demo` reach gate | running (worktree `../partyreel-wt/lab-focus`) | Opus, 3131 | |
+| `lab-focus` | on Will's note (2026-09-29, "a Jackson Pollock painting of text" above the options): the lab's question view rebuilt pictures first, the stage whole on the first screen at a desk and a phone, everything else one click away; a `lab:demo` reach gate | running (agent `af671c95a53a0ef5d`; worktree `../partyreel-wt/lab-focus`) | Opus, 3131 | |
+| `perf-404` | the root 404's tree off every route's payload (about 110 KB of HTML and 43 to 56 KB of gzipped JS a page, `crumbs-22`'s measure), the 404 drawn as today | running (agent `ae61f39b8da49d3a1`; worktree `../partyreel-wt/perf-404`) | Opus, 3134 | |
+| `crumbs-24` | six follow-ups the last three lanes deferred: the claim's calls typed, the keep's other address, the ask's follow moment, Let back in's promise at a password, the ask minted in a password's instant (SQL), the hub's reel-switch reload | running (agent `ac6e568cd7e9e8d0d`; worktree `../partyreel-wt/crumbs-24`) | Opus, 3135 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
 no question open (Q1, the `names` hang; Q2, schema-pass part 1; Q3, the notes-into-laws audit; Q4, the door migration:
 each answered and acted on). From another session, respawn it from `usher/kit/advisor-prompt.txt`.
 
-**Handoff across accounts.** The Orchestrator session is `157caa18-ec54-4aa9-a12a-04c86d5a667b` (the second account,
-seated 2026-09-29 12:23 EDT); the first account's `b01c012e` is retired and must not resume. Its agent ids live only
+**Handoff across accounts.** The Orchestrator session is `157caa18-ec54-4aa9-a12a-04c86d5a667b` (willg97's account,
+seated 2026-09-29 12:23 EDT; its weekly resets Sunday 9am ET, hi@willgibs.com's Tuesday 5pm ET; Will hands off only
+when one maxes its weekly limit); the first account's `b01c012e` is retired and must not resume. Its agent ids live only
 there; from another session, respawn each running lane per the runbook's "Resume a lane": kill by port any dev server
 left on 3131 to 3135 (and any orphaned headless Chrome), then `spawn-prompt.txt` filled (same track, same port) plus a
 note naming its pushed commits, what remains, its predecessor's transcript at
@@ -74,19 +73,17 @@ Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcr
 boards). Batch 7 is merged whole; its records carry the rest.
 
 Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, disposable-mode r2, crumbs-13, lab-revamp
-stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, crumbs-15, loose-ends-wiring, contact-wiring, desk-tune, event-ready r1, window-notes, crumbs-16, album-motion-wiring, crumbs-17 (its migration applied by protocol, 20260929204753), unfence, crumbs-18, demo-framing-r2, about-press, menu-depth.
+stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, crumbs-15, loose-ends-wiring, contact-wiring, desk-tune, event-ready r1, window-notes, crumbs-16, album-motion-wiring, crumbs-17 (its migration applied by protocol, 20260929204753), unfence, crumbs-18, demo-framing-r2, about-press, menu-depth, crumbs-19, crumbs-20, crumbs-21 (its three migrations applied by protocol), privacy-hero-r4, shared-claims (its migration applied by protocol, 20260930010219), crumbs-22, crumbs-23 (its migration applied, 20260930013213).
 
 ## Next, in order
 
-1. **Integrate each lane as it hands off** (crumbs-19, privacy-hero-r4, crumbs-20, crumbs-21), each migration by protocol, one at a time: drift check, apply verbatim, the rolled-back refusals,
+1. **Integrate each lane as it hands off** (lab-focus, perf-404, crumbs-24), each migration by protocol, one at a time: drift check, apply verbatim, the rolled-back refusals,
    advisors, types.
-2. **Build 26 is on the alias** (`d67e94ba`, 2026-09-29; its red-team running, agent `a60d7ff323978f40e`): crumbs-17, unfence, album-motion, the
-   types after both migrations, crumbs-18, demo-framing r2, about-press r1 and menu-depth. Then its red-team (Opus, the
-   build 25 brief's shape): crumbs-17's listed walks, crumbs-18's seven (`git show cdc979a6^2:docs/tracks/crumbs-18.md`),
-   the account menu's Theme at 375 and at a desk (menu-depth, merged at `2becfa60`), and the desk with its two new boards
-   (the brief and its ledger: `../partyreel-wt/_scratch/redteam-26/`; from another session, respawn from the brief after
-   the ledger's last line). Then milestone 31
-   is proposed to Will (his yes); schema-pass's part 2 applies after it ships.
+2. **Build 27 is on the alias** (`d7832a6a`, 2026-09-30; its red-team running, agent `ad4d9fdd4cdb994cd`, the brief and
+   ledger in `../partyreel-wt/_scratch/redteam-27/`; from another session, respawn from the brief after the ledger's last
+   line): build 26 (red-teamed, every walk PASS but crumbs-18's live arrival, since fixed by `crumbs-23`) plus
+   crumbs-19 to crumbs-23, shared-claims and privacy-hero r4, and five migrations. When it passes, milestone 31 is
+   proposed to Will (his yes); schema-pass's part 2 applies after it ships. lab-focus rides build 28 (the desk).
 3. **Seats as they free** (at most four lanes; `memory_pressure` before each; app work first, Will's note; `lab-focus`
    took the lab's phone fold with it). After his desk picks: the demo event (below); about-press's wiring (its three wiring calls,
    `git show 3ded6ba9^2:docs/tracks/about-press.md`: /press a temporary redirect, the llms summary kept, the kit's files
@@ -110,7 +107,8 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
   (five; its three settled calls, ready never stored nor shown to a guest among them, his to overrule) on build 25;
   `demo-framing` r2 (three: the demo's address in a host's words, how it shares the stage with the stream, the hero's
   touch; `names` retired into `slug`) and `about-press` r1 (two: the press kit on /about, its four facts; press-page's
-  `a-human` retired as the carried call `named`) reach him with build 26.
+  `a-human` retired as the carried call `named`) reach him with build 26; `privacy-hero` r4 (one: which veil, the lens
+  recommended) with build 27.
 - **His answer on the calls file** (34 calls to overrule, numbered; 33 and 34, crumbs-18's and menu-depth's, added
   2026-09-29): A, the proof mail (recommended off until the emails round) and B, the instant-hide bar's permanence
   (recommended permanent until launch).

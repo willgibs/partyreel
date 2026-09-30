@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { askedAgo, cameInLine, peopleWaiting } from "@/lib/event/door/words";
+import {
+  askedAgo,
+  cameInLine,
+  listedWouldComeInLine,
+  peopleWaiting,
+} from "@/lib/event/door/words";
 
 /**
  * THE DOOR'S SMALL WORDS: how long someone waited, and how many wait. Pinned for their arithmetic and
@@ -37,5 +42,22 @@ describe("cameInLine", () => {
   it("says who came in without a press, in number", () => {
     expect(cameInLine(1)).toBe("1 person waiting at the door came in.");
     expect(cameInLine(3)).toBe("3 people waiting at the door came in.");
+  });
+});
+
+describe("listedWouldComeInLine", () => {
+  it("★ says who choosing the invite list would let in, in the door menu's own words, in number", () => {
+    expect(listedWouldComeInLine(1)).toBe(
+      "Lets in the 1 person waiting at the door who is on your list.",
+    );
+    expect(listedWouldComeInLine(3)).toBe(
+      "Lets in the 3 people waiting at the door who are on your list.",
+    );
+  });
+
+  it("says nothing where it would let in nobody: a line for an effect that does not happen is a promise not kept", () => {
+    expect(listedWouldComeInLine(0)).toBeNull();
+    expect(listedWouldComeInLine(-1)).toBeNull();
+    expect(listedWouldComeInLine(Number.NaN)).toBeNull();
   });
 });

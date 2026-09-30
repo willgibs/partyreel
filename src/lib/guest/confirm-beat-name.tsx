@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import { updateDisplayNameAction } from "@/app/(app)/account/actions";
 import { Button } from "@/components/ui/button";
+import { ClientForm } from "@/components/ui/client-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -97,7 +98,7 @@ export function ToldNameForm({
     <Popup open={open} onOpenChange={setOpen}>
       <PopupContent kind="form">
         {/* `contents`: the form is the popup's three parts, laid out by it. */}
-        <form onSubmit={submit} className="contents">
+        <ClientForm onSubmit={submit} className="contents">
           <PopupHeader
             title="Change your name"
             description="Your new name shows on everything you have already added."
@@ -141,7 +142,7 @@ export function ToldNameForm({
               {saving ? "Saving…" : "Save name"}
             </Button>
           </PopupFooter>
-        </form>
+        </ClientForm>
       </PopupContent>
     </Popup>
   );

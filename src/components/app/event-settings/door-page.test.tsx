@@ -4,12 +4,19 @@
  *
  * What is held is the rule for everyone already in, said before it acts: Only me with guests inside
  * says it closes them out and writes nothing until the host says so; Public with people at the door
- * says it lets them in; a gate that reaches nobody applies at once. And the rest: an address gate
+ * says it lets them in; a password with people at the door says it asks them for it too (their asks end
+ * there); a gate that reaches nobody applies at once. And the rest: an address gate
  * holds the email step on and says why; a password with none set asks for one rather than opening a
  * door with nothing behind it; the invite list's step points to Guests; what does nothing right now is
  * dormant, never gone.
  */
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { DoorCounts } from "@/lib/db/queries/event-doors";
@@ -148,6 +155,40 @@ describe("the gates, under Private", () => {
     fireEvent.click(screen.getByRole("radio", { name: "A password" }));
     expect(screen.getByLabelText("Album password")).toBeTruthy();
     expect(setEventDoorAction).not.toHaveBeenCalled();
+    // Nobody waits, so nothing more is said beside the field.
+    expect(document.querySelector("[data-door-password-waiting]")).toBeNull();
+  });
+
+  it("★ a password with people at the door says it asks them for it too, and writes nothing until confirmed", async () => {
+    // crumbs-21: a password ends every ask at the door (migration 20260929230000), so the move reaches
+    // the people waiting, and says so before it acts, as Public and closing the door do.
+    page(
+      { visibility: "private", door: "approve", has_password: true },
+      { waiting: 2 },
+    );
+    fireEvent.click(screen.getByRole("radio", { name: "A password" }));
+    expect(
+      screen.getByText(
+        "2 people are waiting at the door. A password asks them for it too.",
+      ),
+    ).toBeTruthy();
+    expect(setEventDoorAction).not.toHaveBeenCalled();
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("button", { name: "Ask for the password" }),
+      );
+    });
+    expect(setEventDoorAction).toHaveBeenCalledWith(EVENT_ID, "password");
+  });
+
+  it("the first password, set as it opens the door, says the same beside its field", () => {
+    page({ visibility: "private", door: "approve" }, { waiting: 1 });
+    fireEvent.click(screen.getByRole("radio", { name: "A password" }));
+    expect(
+      document.querySelector("[data-door-password-waiting]")?.textContent,
+    ).toBe("1 person is waiting at the door. A password asks them for it too.");
+    expect(screen.getByLabelText("Album password")).toBeTruthy();
+    expect(setEventDoorAction).not.toHaveBeenCalled();
   });
 
   it("under a gate, says how many are already in", () => {
@@ -215,5 +256,36 @@ describe("the email and the photo", () => {
     expect(
       document.querySelector("[data-door-step='3']")?.closest("[inert]"),
     ).not.toBeNull();
+  });
+});
+
+describe("the invite list's row says who it would let in, before it is chosen (crumbs-23, NIT-C)", () => {
+  const inviteRow = () =>
+    document.querySelector<HTMLElement>('[data-door-gate="invite"]')!;
+
+  it("★ with people waiting whom it names, in the words the door menu says it in", () => {
+    page(
+      { visibility: "private", door: "approve" },
+      { waiting: 3, waitingListed: 2 },
+    );
+    expect(inviteRow().querySelector("[data-door-listed]")?.textContent).toBe(
+      "Lets in the 2 people waiting at the door who are on your list.",
+    );
+    // Only its row: no other gate says it, and it lets in no more than the list names.
+    expect(document.querySelectorAll("[data-door-listed]")).toHaveLength(1);
+  });
+
+  it("says nothing where it would let in nobody, and nothing once it is the door", () => {
+    page(
+      { visibility: "private", door: "approve" },
+      { waiting: 3, waitingListed: 0 },
+    );
+    expect(inviteRow().querySelector("[data-door-listed]")).toBeNull();
+    cleanup();
+    page(
+      { visibility: "private", door: "invite" },
+      { waiting: 0, waitingListed: 2 },
+    );
+    expect(inviteRow().querySelector("[data-door-listed]")).toBeNull();
   });
 });

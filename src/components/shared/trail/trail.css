@@ -2,7 +2,13 @@
 
    Classes under `trl-` only, and NO keyframe: the trail is one
    requestAnimationFrame loop writing inline transforms, so nothing in here can
-   shadow a keyframe anywhere else (src/app/keyframe-uniqueness.test.ts). */
+   shadow a keyframe anywhere else (src/app/keyframe-uniqueness.test.ts).
+
+   ★ IMPORTED BY THE COMPONENT, WHICH THE 404 LOADS LAZILY (`trail.lazy.tsx`). A
+   stylesheet imported anywhere EAGERLY under a root `not-found.tsx` is preloaded on
+   every route, so this sheet loads with the lazy chunk and only where the trail is
+   drawn (`trail-lazy.test.ts`). Unlayered rules on purpose: this file beats a
+   utility on the same element without a specificity war. */
 
 /* The area a trail is drawn in. It is a REAL box rather than an overlay: the
    words stand inside it, the photographs run behind them, and the whole thing

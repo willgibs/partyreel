@@ -130,7 +130,11 @@ routes.
   river is the section's one motion, and two moving cards cancel each other out. ★ **The prints are literal `bg-white`, never `bg-card`**: they stand on the
   cinema ground, where the card token is near-black and a paper border would render as a gap. The FAQ is the one shared
   accordion (`faq-accordion.tsx`: an `<h3>` around a `<button>`, since a heading inside a native `<summary>` drops out of
-  some screen readers) with the page's own `FaqPageJsonLd`.
+  some screen readers) with the page's own `FaqPageJsonLd`. ★ A closed answer is `hidden="until-found"` where the browser
+  can find into hidden content (`onbeforematch`), so find-in-page reads it and its `beforematch` opens that question, as a
+  native `<details>` did; React writes any `hidden` string as a plain `hidden`, so the accordion sets the value by hand
+  after hydration, and marketing.css lists `content-visibility` with `allow-discrete` beside the height clock so a
+  closing answer stays drawn until it has collapsed. Elsewhere the closed answer is `inert`.
 - **The frame library** (`marketing/frames/`): a `BrowserFrame` base and a vocabulary (album, gallery, reel, phone, QR),
   never one visual reused; `QrFrame`'s `liveQrUrl` renders a real scannable code when the demo is set.
 - **`/how-it-works`**: `constants/how-it-works.ts` is the one source of both step sets, read by the page, the home's
@@ -362,7 +366,13 @@ Six `not-found.tsx` files share one presentational core, `shared/not-found-scree
   boundary that never says why), host (inside `AppShell`), admin (inside the MFA-gated `AdminShell`).
 - **The root 404 stands on the image trail** (`shared/trail`), which walks its own figure until a cursor takes over.
   Nothing is laid over a photograph: the words punch a feathered window in the trail, so the muted description keeps its
-  contrast; the trail needs layout, so without scripting a reader gets the words and links on clean paper.
+  contrast; the trail needs layout, so without scripting a reader gets the words and links on clean paper. ★ It loads
+  lazily (`trail.lazy.tsx`, a client module's `import()`, which Next does split): a root `not-found.tsx`'s whole tree
+  rides EVERY route's payload, its stylesheets preloaded and its client chunks fetched on every page, so nothing
+  imported eagerly under the 404 may import CSS or the trail's code (`trail-lazy.test.ts`). The rest of the 404's tree
+  (the marketing chrome) still rides every page: about 110 KB of HTML and 43 to 56 KB of gzipped JS on a page load
+  (crumbs-22, against a root 404 that rendered nothing, with the trail already lazy; the trail's own code had added
+  about 3 KB more).
 
 ## The demo (marketing side)
 

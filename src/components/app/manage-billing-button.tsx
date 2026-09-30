@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { loginPath } from "@/lib/auth/return-path";
 
 // Opens the Stripe Billing Portal for the signed-in host: the card on file, the
 // invoices and cancelling. Only rendered when the host already has a Stripe customer
@@ -29,7 +30,7 @@ export function ManageBillingButton({
       try {
         const res = await fetch("/api/stripe/portal", { method: "POST" });
         if (res.status === 401) {
-          router.push("/login");
+          router.push(loginPath(window.location.pathname));
           return;
         }
         const data = await res.json();

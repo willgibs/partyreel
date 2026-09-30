@@ -38,7 +38,7 @@ import {
   type WayBack,
   wayBackOf,
 } from "@/lib/admin/reports";
-import { mustCount, mustQuery } from "@/lib/db/must-query";
+import { mustCount, mustQuery, QueryFailedError } from "@/lib/db/must-query";
 import { inChunks, readAllPages } from "@/lib/db/read-all";
 import type { Tables } from "@/lib/db/types";
 import {
@@ -51,6 +51,7 @@ import {
   INSTANT_HIDE_KIND,
   isCoveredKind,
   parseReportKind,
+  REPORT_KINDS,
   type ReportKind,
   worstKind,
 } from "@/lib/reports/kinds";
@@ -60,6 +61,15 @@ export type { ReportFilter, ReportStatus } from "@/lib/admin/reports";
 
 /** Where a reported item stands now: still up (any live status), removed by someone else, or an operator's removal. */
 export type ItemStanding = "live" | "removed" | "operator";
+
+/**
+ * ★ WHAT A REPORT NAMED, ONCE ITS ITEM IS GONE (crumbs-21, migration 20260929231000). A report keeps the id
+ * of the item it named, and whether it was a photo or a video, after the item's row is purged (a removal's
+ * window ending, a withdrawal, a Delete permanently, each once the report closed), so it reads as that
+ * item's report, never as its album's. `type` is null only while the kind cannot be read yet (the
+ * migration unapplied: `readNamedKinds`).
+ */
+export type DeletedItem = { id: string; type: "photo" | "video" | null };
 
 export type ReviewReport = {
   id: string;
@@ -87,6 +97,8 @@ export type ReviewReport = {
     /** Under a legal hold: the door reads Held, and a closed line offers no Undo. */
     held: boolean;
   } | null;
+  /** The item it named, when that item's row is gone (`media` is then null); absent on an album report. */
+  deleted?: DeletedItem | null;
   /** A closed report's way back (`closed=window`), decided here from the item's own row. */
   wayBack: WayBack;
 };
@@ -155,7 +167,7 @@ export async function listReports(
   const eventIds = reports.flatMap((r) => (r.event_id ? [r.event_id] : []));
   const mediaIds = reports.flatMap((r) => (r.media_id ? [r.media_id] : []));
 
-  const [events, media, coveredRows] = await Promise.all([
+  const [events, media, covered] = await Promise.all([
     inChunks(
       "admin reports: events",
       eventIds,
@@ -179,33 +191,13 @@ export async function listReports(
           "admin reports: media",
         )) ?? [],
     ),
-    // Every report on these items, open or closed, for whether any names a covered kind: an item can
-    // be reported many times, so each chunk's reports are read whole.
-    inChunks("admin reports: covered items", mediaIds, async (chunk) => {
-      const { rows: named } = await readAllPages(
-        "admin reports: covered items",
-        (after: string | null, limit) => {
-          let q = admin
-            .from("reports")
-            .select("id, media_id, kind")
-            .in("media_id", chunk)
-            .order("id", { ascending: true })
-            .limit(limit);
-          if (after) q = q.gt("id", after);
-          return q;
-        },
-        (report) => report.id,
-      );
-      return named;
-    }),
+    readCoveredItems({ mediaIds }),
   ]);
   const eventById = new Map(events.map((e) => [e.id, e]));
   const rowById = new Map((media as MediaRow[]).map((m) => [m.id, m]));
-  const covered = new Set(
-    coveredRows.flatMap((r) =>
-      r.media_id && isCoveredKind(parseReportKind(r.kind)) ? [r.media_id] : [],
-    ),
-  );
+  // An item report whose item's row is gone still names it (20260929231000): its kind, read apart.
+  const gone = reports.filter((r) => r.media_id && !rowById.has(r.media_id));
+  const kinds = await readNamedKinds(gone.map((r) => r.id));
 
   // Every presign at once: each is a local signature, and signing them one after another made a
   // long queue wait on the slowest sum of them for nothing. A covered item is never signed.
@@ -240,6 +232,10 @@ export async function listReports(
         resolution_note: r.resolution_note ?? null,
         event: r.event_id ? (eventById.get(r.event_id) ?? null) : null,
         media: r.media_id ? (mediaById.get(r.media_id) ?? null) : null,
+        deleted:
+          r.media_id && !row
+            ? { id: r.media_id, type: kinds.get(r.id) ?? null }
+            : null,
         wayBack: wayBackOf(
           {
             status: r.status,
@@ -268,6 +264,110 @@ function standingOf(
 ): ItemStanding {
   if (m.status !== "removed") return "live";
   return m.removed_by_admin ? "operator" : "removed";
+}
+
+/** The kinds that arrive covered, from their one pure home (`isCoveredKind`), for the read's own filter. */
+const COVERED_KINDS: ReportKind[] = REPORT_KINDS.filter(isCoveredKind);
+
+/**
+ * ★ THE WORST KINDS STAY COVERED WHEREVER AN OPERATOR MEETS THEM (build 23's NIT-7, the albums grid since
+ * crumbs-21), ONE HOME: which of these items any report, open or closed, names as a covered kind. The
+ * inbox's closed log and the albums grid both read it, and neither signs a picture of what it answers
+ * (only the open queue's View once shows one). Asked by the items a list holds (the inbox, the albums
+ * feed) or by one album (its drill-in, every item at once). An item can be reported many times, so every
+ * report is read whole.
+ */
+export async function readCoveredItems(
+  scope: { mediaIds: readonly string[] } | { eventId: string },
+): Promise<Set<string>> {
+  const admin = createAdminClient();
+  const named = (rows: { media_id: string | null }[]) =>
+    new Set(rows.flatMap((r) => (r.media_id ? [r.media_id] : [])));
+  if ("eventId" in scope) {
+    const { rows } = await readAllPages(
+      "admin: an album's covered items",
+      (after: string | null, limit) => {
+        // row-cap: COVERED_KINDS is a constant subset of the six report kinds (isCoveredKind), never a runtime id list
+        let q = admin
+          .from("reports")
+          .select("id, media_id")
+          .eq("event_id", scope.eventId)
+          .not("media_id", "is", null)
+          .in("kind", COVERED_KINDS)
+          .order("id", { ascending: true })
+          .limit(limit);
+        if (after) q = q.gt("id", after);
+        return q;
+      },
+      (report) => report.id,
+    );
+    return named(rows);
+  }
+  const rows = await inChunks(
+    "admin: covered items",
+    scope.mediaIds,
+    async (chunk) =>
+      (
+        await readAllPages(
+          "admin: covered items",
+          (after: string | null, limit) => {
+            // row-cap: COVERED_KINDS is a constant subset of the six report kinds (isCoveredKind), never a runtime id list
+            let q = admin
+              .from("reports")
+              .select("id, media_id")
+              .in("media_id", chunk)
+              .in("kind", COVERED_KINDS)
+              .order("id", { ascending: true })
+              .limit(limit);
+            if (after) q = q.gt("id", after);
+            return q;
+          },
+          (report) => report.id,
+        )
+      ).rows,
+  );
+  return named(rows);
+}
+
+/** A column this code reads before its migration stands answers one of these (the seam below). */
+const NOT_PROVISIONED = new Set(["42703", "PGRST204"]);
+
+/**
+ * THE KIND OF THE GONE ITEM EACH OF THESE REPORTS NAMED (`reports.media_type`, 20260929231000), by report id.
+ * ★ A SEAM ACROSS THE APPLY: the column is the migration's, so until it stands PostgREST answers an
+ * undefined column, and this reads as kinds unknown (an empty map: the line says "an item") rather than
+ * failing the whole inbox; any other failure throws. Asked only for reports whose item is gone, which is
+ * rare. The cast holds until src/lib/db/types.ts is regenerated with the column.
+ */
+export async function readNamedKinds(
+  reportIds: readonly string[],
+): Promise<Map<string, "photo" | "video">> {
+  const kinds = new Map<string, "photo" | "video">();
+  if (reportIds.length === 0) return kinds;
+  const admin = createAdminClient();
+  let rows: { id: string; media_type: unknown }[];
+  try {
+    rows = await inChunks(
+      "admin reports: what a report named",
+      reportIds,
+      async (chunk) =>
+        ((await mustQuery(
+          admin.from("reports").select("id, media_type").in("id", chunk),
+          "admin reports: what a report named",
+        )) ?? []) as unknown as { id: string; media_type: unknown }[],
+    );
+  } catch (e) {
+    if (e instanceof QueryFailedError && NOT_PROVISIONED.has(e.code ?? "")) {
+      return kinds;
+    }
+    throw e;
+  }
+  for (const r of rows) {
+    if (r.media_type === "photo" || r.media_type === "video") {
+      kinds.set(r.id, r.media_type);
+    }
+  }
+  return kinds;
 }
 
 /**
@@ -546,6 +646,11 @@ export type ReviewEntry = {
     /** Down because one of its reports hid it at once (the hide's instant is its removal's). */
     hidden: boolean;
   } | null;
+  /**
+   * The item an item report named, when its row is gone (`media` is then null): a dismissal reopened after
+   * its item was purged. Absent while the item stands and on an album report.
+   */
+  deleted?: DeletedItem | null;
   uploader: {
     name: string | null;
     verified: boolean;
@@ -730,6 +835,11 @@ export async function listOpenEntries(
     if (list) list.push(row);
     else groups.set(key, [row]);
   }
+  // An item whose row is gone is still the one its reports named (20260929231000): its kind, read apart.
+  const goneNewest = [...groups.values()].flatMap(([newest]) =>
+    newest.media_id && !mediaById.has(newest.media_id) ? [newest.id] : [],
+  );
+  const kinds = await readNamedKinds(goneNewest);
 
   const entries: ReviewEntry[] = [...groups.entries()].map(([key, list]) => {
     const newest = list[0];
@@ -800,6 +910,10 @@ export async function listOpenEntries(
                 Boolean(row.removed_by_admin) &&
                 reports.some((r) => sameInstant(r.hidAt, row.removed_at)),
             }
+          : null,
+      deleted:
+        newest.media_id && !row
+          ? { id: newest.media_id, type: kinds.get(newest.id) ?? null }
           : null,
       uploader: identity
         ? {

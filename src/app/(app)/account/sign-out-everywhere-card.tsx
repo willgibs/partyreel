@@ -75,7 +75,10 @@ export function SignOutEverywhereCard() {
               <LogOut /> Sign out everywhere
             </Button>
           </PopupTrigger>
-          <PopupContent kind="confirm">
+          {/* ★ The corner × goes while the press is out: the popup holds until the page leaves for
+              /login (`onOpenChange` above ignores every close), so an × that stays would be a
+              control that does nothing, beside the two buttons that already wait (`disabled`). */}
+          <PopupContent kind="confirm" showCloseButton={!pending}>
             <PopupHeader
               title="Sign out everywhere?"
               description="You'll be signed out on every device, this one included. You can sign back in on any of them."

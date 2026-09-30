@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { setProfileBioAction } from "@/app/(app)/account/social-actions";
 import { Button } from "@/components/ui/button";
+import { ClientForm } from "@/components/ui/client-form";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { BIO_MAX_LENGTH } from "@/lib/validation/profile";
@@ -51,7 +52,7 @@ export function ProfileBioForm({ bio }: { bio: string | null }) {
   }
 
   return (
-    <form
+    <ClientForm
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit();
@@ -86,6 +87,6 @@ export function ProfileBioForm({ bio }: { bio: string | null }) {
       <Button type="submit" size="sm" disabled={saving || !dirty || over}>
         {saving ? "Saving…" : "Save bio"}
       </Button>
-    </form>
+    </ClientForm>
   );
 }

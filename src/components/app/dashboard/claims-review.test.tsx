@@ -251,7 +251,7 @@ describe("★ Not mine asks at its own card", () => {
     const { disown } = mount();
     openReview();
     fireEvent.click(within(panel()).getByRole("button", { name: "Not mine" }));
-    const dialog = screen.getByRole("dialog", {
+    const dialog = screen.getByRole("alertdialog", {
       name: "Permanently delete the 4 photos and videos added under your email at this event?",
     });
     expect(within(dialog).getByText("Tom's Leaving Do")).toBeInTheDocument();
@@ -260,7 +260,7 @@ describe("★ Not mine asks at its own card", () => {
     expect(disown).toHaveBeenCalledWith("toms");
     await waitFor(() => expect(topCard()).toBe("bonfire"));
     expect(
-      screen.queryByRole("dialog", { name: /Permanently delete/ }),
+      screen.queryByRole("alertdialog", { name: /Permanently delete/ }),
     ).not.toBeInTheDocument();
     expect(
       document.querySelector("[data-claims-decided='disown']")?.textContent,
@@ -274,7 +274,7 @@ describe("★ Not mine asks at its own card", () => {
     fireEvent.click(screen.getByRole("button", { name: "Go back" }));
     expect(disown).not.toHaveBeenCalled();
     expect(
-      screen.queryByRole("dialog", { name: /Permanently delete/ }),
+      screen.queryByRole("alertdialog", { name: /Permanently delete/ }),
     ).not.toBeInTheDocument();
     expect(topCard()).toBe("toms");
   });

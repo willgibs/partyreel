@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { CircleCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { ClientForm } from "@/components/ui/client-form";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -60,7 +61,7 @@ export function ReportAnswerForm({ token }: { token: string }) {
   }
 
   return (
-    <form
+    <ClientForm
       className="flex flex-col gap-3"
       onSubmit={(event) => {
         event.preventDefault();
@@ -89,6 +90,6 @@ export function ReportAnswerForm({ token }: { token: string }) {
           {pending ? "Sending…" : "Add to my report"}
         </Button>
       </div>
-    </form>
+    </ClientForm>
   );
 }

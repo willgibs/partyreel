@@ -8,6 +8,7 @@ import { updateDisplayNameAction } from "@/app/(app)/account/actions";
 import { DoorHeading } from "@/components/guest/door/heading";
 import { DoorGlyph } from "@/components/guest/door/lit";
 import { Button } from "@/components/ui/button";
+import { ClientForm } from "@/components/ui/client-form";
 import { floatingKeyboardFoot } from "@/components/ui/floating-layer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -329,7 +330,7 @@ export function GuestNameStep({
   }
 
   return (
-    <form
+    <ClientForm
       ref={formRef}
       data-guest-name-step={mode}
       /* ★ THE BROWSER NEVER GETS TO REFUSE THIS FORM. A native `type="email"`
@@ -483,7 +484,7 @@ export function GuestNameStep({
           {saving ? "Just a second…" : editing ? "Save name" : "Continue"}
         </Button>
       </div>
-    </form>
+    </ClientForm>
   );
 }
 

@@ -1007,6 +1007,7 @@ export type Database = {
           id: string
           kind: Database["public"]["Enums"]["report_kind"]
           media_id: string | null
+          media_type: Database["public"]["Enums"]["media_type"] | null
           profile_id: string | null
           proof_answer: string | null
           proof_answered_at: string | null
@@ -1030,6 +1031,7 @@ export type Database = {
           id?: string
           kind?: Database["public"]["Enums"]["report_kind"]
           media_id?: string | null
+          media_type?: Database["public"]["Enums"]["media_type"] | null
           profile_id?: string | null
           proof_answer?: string | null
           proof_answered_at?: string | null
@@ -1053,6 +1055,7 @@ export type Database = {
           id?: string
           kind?: Database["public"]["Enums"]["report_kind"]
           media_id?: string | null
+          media_type?: Database["public"]["Enums"]["media_type"] | null
           profile_id?: string | null
           proof_answer?: string | null
           proof_answered_at?: string | null
@@ -1075,13 +1078,6 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reports_media_id_fkey"
-            columns: ["media_id"]
-            isOneToOne: false
-            referencedRelation: "media"
             referencedColumns: ["id"]
           },
           {
@@ -1412,10 +1408,15 @@ export type Database = {
         Args: { p_session_tokens: string[] }
         Returns: number
       }
+      claim_asked_uploads: {
+        Args: { p_session_tokens: string[] }
+        Returns: number
+      }
       claim_guest_rows_by_email: {
         Args: { p_event_ids?: string[] }
         Returns: number
       }
+      claim_ticket_asks: { Args: { p_session_tokens: string[] }; Returns: Json }
       clear_event_password: { Args: { p_event_id: string }; Returns: undefined }
       clear_event_slug: { Args: { p_event_id: string }; Returns: undefined }
       create_guest: {
@@ -1521,6 +1522,10 @@ export type Database = {
       event_door_standing: {
         Args: { p_event_id: string; p_tickets?: string[]; p_user_id?: string }
         Returns: Json
+      }
+      event_door_waiting_listed: {
+        Args: { p_event_id: string }
+        Returns: number
       }
       event_invite_list: { Args: { p_event_id: string }; Returns: Json }
       event_link_totals: { Args: { p_event_id: string }; Returns: Json }
@@ -1763,6 +1768,13 @@ export type Database = {
       }
       verify_event_password: {
         Args: { p_password?: string; p_qr_token: string }
+        Returns: string
+      }
+      whose_ticket: {
+        Args: {
+          p_guest: Database["public"]["Tables"]["guests"]["Row"]
+          p_uid: string
+        }
         Returns: string
       }
     }

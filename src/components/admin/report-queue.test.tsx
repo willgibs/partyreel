@@ -277,6 +277,35 @@ describe("the sweep (`look=grid`: tick many, one Dismiss)", () => {
   });
 });
 
+describe("a confirm standing over the queue (crumbs-20)", () => {
+  // Every confirm popup is an `alertdialog` now (ui/popup.tsx), so "another layer is up: its keys are its
+  // own" has to see it as one; a queue that only looked for `dialog` swept and dismissed under a confirm.
+  it("★ leaves every key to it, and takes them back once it is gone", async () => {
+    render(<ReportQueue proofOn={false} entries={[entry(1), entry(2)]} />);
+    const confirm = document.createElement("div");
+    confirm.setAttribute("role", "alertdialog");
+    document.body.appendChild(confirm);
+    fireEvent.keyDown(document.body, { key: "ArrowRight" });
+    fireEvent.keyDown(document.body, { key: "x" });
+    fireEvent.keyDown(document.body, { key: "Enter" });
+    expect(actions.dismissReportAction).not.toHaveBeenCalled();
+    expect(actions.dismissReportsAction).not.toHaveBeenCalled();
+    expect(
+      document.querySelectorAll(
+        "[data-report-lane='sweep'] [aria-pressed='true']",
+      ),
+    ).toHaveLength(0);
+
+    confirm.remove();
+    fireEvent.keyDown(document.body, { key: "ArrowRight" });
+    fireEvent.keyDown(document.body, { key: "x" });
+    fireEvent.keyDown(document.body, { key: "Enter" });
+    await vi.waitFor(() =>
+      expect(actions.dismissReportAction).toHaveBeenCalledTimes(1),
+    );
+  });
+});
+
 describe("the report whole", () => {
   async function openPeek(e: ReviewEntry, proofOn = false) {
     const user = userEvent.setup();
@@ -387,7 +416,7 @@ describe("the report whole", () => {
     const { user, verbs } = await openPeek(entry(1));
     await user.click(within(verbs).getByRole("button", { name: "Remove…" }));
     const confirm = screen
-      .getAllByRole("dialog")
+      .getAllByRole("alertdialog")
       .find((d) => within(d).queryByText("Remove this photo?"))!;
     const touches = within(confirm)
       .getAllByRole("listitem")
@@ -416,7 +445,7 @@ describe("the report whole", () => {
     const confirm = await vi.waitFor(
       () =>
         screen
-          .getAllByRole("dialog")
+          .getAllByRole("alertdialog")
           .find((d) => within(d).queryByText("Hold and preserve this photo?"))!,
     );
     const toggle = within(confirm).getByRole("switch", {
@@ -484,7 +513,7 @@ describe("the report whole", () => {
       within(verbs).getByRole("button", { name: "Ask for proof" }),
     );
     const confirm = screen
-      .getAllByRole("dialog")
+      .getAllByRole("alertdialog")
       .find((d) => within(d).queryByText("Ask the reporter for proof?"))!;
     await user.type(
       within(confirm).getByRole("textbox", { name: /your question/i }),
@@ -564,6 +593,82 @@ describe("a phone's two acts (`phone=stop`, and his note)", () => {
     ) as HTMLElement;
     expect(
       within(card).getByText("An album is acted on from a desk."),
+    ).toBeInTheDocument();
+    expect(within(card).queryByRole("button")).toBeNull();
+  });
+});
+
+describe("a reopened report whose item is gone is that item's (crumbs-21, migration 20260929231000)", () => {
+  // A dismissal reopened after the purge took its item: the report still names the item and its kind, so
+  // the queue never draws it as its album's, and its verdict only closes (nothing is left to take down).
+  const gone = (type: "photo" | "video" | null) =>
+    entry(1, { media: null, uploader: null, deleted: { id: "m1", type } }, [
+      report(1, { kind: "violence" }),
+    ]);
+
+  it("★ says the video was deleted where the picture would be, and wears Deleted", () => {
+    render(<ReportQueue proofOn={false} entries={[gone("video")]} />);
+    const still = document.querySelector(
+      "[data-report-deleted]",
+    ) as HTMLElement;
+    expect(still.dataset.reportDeleted).toBe("video");
+    expect(
+      within(still).getByText("The video was deleted."),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("Hannah and Theo", {
+        selector: "[data-report-deleted] *",
+      }),
+    ).toBeNull();
+    expect(screen.getAllByText("Deleted").length).toBeGreaterThan(0);
+    expect(document.querySelector("img, video")).toBeNull();
+  });
+
+  it("★ its verdict closes the report and says nothing of the album", async () => {
+    const user = userEvent.setup();
+    render(<ReportQueue proofOn={false} entries={[gone("photo")]} />);
+    const open = screen.queryAllByRole("button", {
+      name: "Open this report whole",
+    });
+    await user.click(
+      open[0] ??
+        screen.getAllByRole("button", { name: /^Open the report on/ })[0],
+    );
+    const peek = await screen.findByRole("dialog");
+    expect(within(peek).getByText(/^A photo, /)).toBeInTheDocument();
+    const verbs = peek.querySelector("[data-report-verbs]") as HTMLElement;
+    // Nothing to hold or take down: its item is gone.
+    expect(
+      within(verbs).queryByRole("button", { name: "Hold for forensics…" }),
+    ).toBeNull();
+    await user.click(within(verbs).getByRole("button", { name: "Action…" }));
+    // The confirm is found by its words whatever its role (a dialog today; crumbs-20 announces every
+    // confirm as an alertdialog): what this pins is what it says.
+    const confirm = [
+      ...screen.queryAllByRole("dialog"),
+      ...screen.queryAllByRole("alertdialog"),
+    ].find((d) => within(d).queryByText("Close this report as Actioned?"))!;
+    expect(confirm).toBeDefined();
+    expect(
+      within(confirm).getByText(
+        "The photo is already deleted; the report closes as Actioned.",
+      ),
+    ).toBeInTheDocument();
+    const touches = within(confirm)
+      .getAllByRole("listitem")
+      .map((li) => li.textContent);
+    expect(touches).toEqual(["-This report moves to Actioned"]);
+  });
+
+  it("a phone says a desk closes it, in the item's own words", () => {
+    render(<ReportQueue proofOn={false} entries={[gone(null)]} />);
+    const card = document.querySelector(
+      "[data-report-phone-front]",
+    ) as HTMLElement;
+    expect(
+      within(card).getByText(
+        "The item is already deleted, so this one waits for a desk to close it.",
+      ),
     ).toBeInTheDocument();
     expect(within(card).queryByRole("button")).toBeNull();
   });

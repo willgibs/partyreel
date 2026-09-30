@@ -66,6 +66,29 @@ from the same mismatch by re-rendering: a regression can pass every local check 
 - **Tooltips live in the viewer only.** Radix `Tooltip`s on the SSR'd gallery tile actions left the host gallery
   unhydrated in production. The viewer is client-only (`ssr: false`), so rich client UI (tooltips, nested `asChild`)
   is safe there; SSR'd tiles keep the native `title`.
+- ★ **A press before hydration is the browser's own submit.** A client `<form onSubmit>` with no method or action
+  submits as a GET to the current address until React attaches, carrying every named field into the URL, the history
+  and a server log. Every such form is a `ClientForm` (`ui/client-form.tsx`, `method="dialog"`: outside a `<dialog>`
+  the native submit is a no-op, Enter included), and `client-form-policy.test.ts` refuses a `<form>` that names no
+  native answer (an `action`, `method="get"`). Walk it by holding the page's script requests at the network (CDP
+  `Fetch` on `Script`), pressing, and reading the address before releasing them.
+- ★ **Text typed before hydration is adopted, never overwritten** (`lib/adopt-typed-value.ts`, in `Input`, `Textarea` and
+  a bare controlled `<input>` through `useAdoptTypedValue`). A controlled field is drawn with its state's value and
+  typeable from the first paint, and React is told nothing of what is typed until it owns the page: the first render
+  after hydration writes `""` back over it (a form library makes one at once), the same node still focused. At the
+  field's mount the DOM's text is handed to its own `onChange` (the value tracker learns the state's value, the text goes
+  in through the prototype's setter, a bubbling `input` follows), at once for a `useState` and again after the commit's
+  effects for react-hook-form, which subscribes a field to its values in an effect that runs after the field's own.
+  Autofill and a browser's form restore arrive the same way. Walk it as above, typing before releasing the scripts.
+- ★ **A tap before hydration is lost unless its control asks to have it kept** (`lib/early-press.ts`,
+  `auth/early-press-button.tsx`): React replays no press made before its own script runs (measured in a Suspense
+  boundary and out of one), and a bare button has no native answer, so Continue with Google's first tap reached
+  nothing. One ~200-byte plain inline `<script>` in the sign-in group's layout (`(auth)/layout.tsx`, the page whose
+  button is drawn open on the server; `next/script`'s `beforeInteractive` inline scripts are pushed onto a queue Next's own
+  bundle runs, after this window) records the time of a click on `[data-early-press]`; the control answers it once at
+  its own hydration if it is under 5s old, through its own handler. Opt a JS-only control in with `EarlyPressButton`, and
+  put the same script in the layout of any other group that draws one open on the server; a form already answers
+  through `ClientForm`.
 - **A soft refresh (`router.refresh()`) re-renders without remounting,** so a mount-only effect on a ref never attaches
   to a node that first appears through a refresh (a password unlock turning access on, say): a sentinel whose node can
   appear after mount takes a callback ref.

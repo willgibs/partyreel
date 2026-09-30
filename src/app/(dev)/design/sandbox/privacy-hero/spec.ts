@@ -1,48 +1,34 @@
 import { defineExploration } from "@/components/lab/exploration";
 
+import { PHOTO } from "./knobs";
+
 /**
- * THE PRIVACY PAGE'S HERO, ROUND THREE: A NEW CONCEPT (2026-09-19); A FOURTH
- * ADDED BY THE OVERTAKEN AUDIT'S RESHAPE (2026-09-21); TWO OF THOSE FOUR
- * MERGED AND A REAL FOURTH DRAWN IN THEIR PLACE BY THE REFRESH (2026-09-24).
+ * THE PRIVACY PAGE'S HERO, ROUND FOUR: THE VEIL, AS DRAWN AND THREE WAYS
+ * FURTHER (2026-09-29).
  *
- * Round one (a turning nozzle of photographs) answered none. Round two (two
- * spiralling arms with a decaying trail) got a `?` on its own arrival: "I
- * don't really like this arrival animation as part of the spiral/orbit."
- * Asked what next, Will: "Let's go with a totally different concept... I
- * think we can say the image trail was a takeaway win from this. The actual
- * privacy hero can take a different path, maybe more fitting for its theme"
- * (2026-09-19).
+ * Round three answered `concept=veil` (docs/reviews/privacy-hero.json): "This
+ * feels super bespoke to 'privacy', where it's only revealing what it wants
+ * to. Really cool concept. Would love to keep this original plus 3
+ * variations to nail it." The sealed cards are out ("Don't like the sealed
+ * cards at all"); the sweep and the aperture are banked for other surfaces
+ * (ROADMAP's line on the runners-up names the commit their code stands in).
  *
- * ★ "MORE FITTING FOR ITS THEME" IS THE BRIEF, SO THE MECHANISM CHANGES, NOT
- * JUST THE FIGURE. Both earlier rounds flew photographs through a shape;
- * both are the "images fly around" language the home hero, the album hero
- * and the river already speak. This round's concepts share nothing with
- * either: no card is ever born, travels or dies. Each sits still, or nearly
- * still, and the thing that moves is its own VISIBILITY, because privacy is
- * who can see a thing right now, not how fast a picture moves. `paths.ts`
- * (the spiral figure) and `paths.test.ts` left with round two; `field.ts`,
- * `field-layer.tsx` and `field.css` stay only because `album-page` still
- * imports them for its own margins and motion.
+ * ★ ONE ASK, BECAUSE HE ASKED FOR ONE PICK: the original and three variations
+ * of it, each a whole veil (what the clearing is, how it moves, what sits
+ * under it, what it is made of: `veils.ts` has the table). An option that
+ * moved one of those four would be a tuning of the original, not a
+ * contender; the three here each move three or four at once.
  *
- * ★ ONE ASK, BECAUSE THIS IS A CONCEPT PICK, NOT A REFINEMENT. Round two's
- * five decisions tuned one mechanism's dimensions; this round has no
- * mechanism yet, so the question is which concept, not how fast or how
- * close. `concepts.ts` holds every number this ask states, and
- * `concepts.test.ts` holds this file's prose to it.
+ * ★ THE ORIGINAL IS DRAWN AS IT STANDS, and its costs are measured as they
+ * are: its window draws square (`veils.ts`, DRIFT) and drifts behind the
+ * words, where the frames measure the subhead under 2:1 at its worst. The
+ * variations keep every place they settle clear of the words by construction
+ * (`veils.test.ts`) and pass behind them only under the scrim; every line of
+ * the lockup holds 7:1 or better over each variation's whole loop, and the
+ * header's nav 5.5:1, at both widths and on both photographs (the manifest's
+ * Handoff has the numbers).
  *
- * ★ SWEEP ANSWERED "MORE FITTING FOR ITS THEME" WITH THE PRODUCT'S OWN
- * MECHANISM OVER AN INVENTED ONE. By the time the overtaken audit reopened
- * this board, the product had its own arrival grammar, one pass of light
- * across a tile (`landing=sweep`, guest-upload r1); `sweep` built the access
- * grid's clearing from that instead of a bespoke crossfade.
- *
- * ★ THE REFRESH'S OWN PASS (2026-09-24): ACCESS AND SWEEP WERE ONE CONCEPT,
- * NOT TWO. Both drew the exact same eight-and-six-tile grid at the same
- * cycle, differing only in how a tile cleared; that is a finding, not a pair
- * of real contenders. `access` retires (its geometry lives on as `sweep`'s
- * own), and `veil` draws a genuinely different fourth mechanism in the slot
- * that opens up: a single photograph, never wholly visible at once, with a
- * small clearing drifting across it rather than many tiles taking turns.
+ * `veils.test.ts` holds every number these options state to `veils.ts`.
  */
 export const PRIVACY_HERO = defineExploration({
   id: "privacy-hero",
@@ -53,55 +39,144 @@ export const PRIVACY_HERO = defineExploration({
     "src/app/(marketing)/(cinema)/features/privacy/page.tsx",
     "src/components/marketing/system/page-hero.tsx",
   ],
-  tracks: ["heroes"],
   round: {
-    n: 3,
-    date: "2026-09-24",
+    n: 4,
+    date: "2026-09-29",
     changed:
-      "access and sweep drew the same grid twice, differing only in how a tile cleared; access retires and veil takes its place: one photograph, never wholly visible, with a clearing drifting across it. sweep still leads on product consistency; veil is the fresh, purely thematic case.",
+      "From your pick of the veil: the original as drawn and three veils further (a lens that rests on things, a beam across a succession of photographs, glimpses that open in place), all on one photograph. The sealed cards are gone; the sweep and the aperture are banked.",
   },
+  history: [
+    {
+      n: 1,
+      date: "2026-09-18",
+      changed:
+        "A turning nozzle of photographs: none felt right, it wanted more density and speed, and the decaying trail meant the trailing images.",
+    },
+    {
+      n: 2,
+      date: "2026-09-19",
+      changed:
+        "Two spiralling arms with a trail: the arrival as part of the spiral wasn't liked, and the next round went to a different concept.",
+    },
+    {
+      n: 3,
+      date: "2026-09-24",
+      changed:
+        "Four still concepts whose visibility moved: the veil won; the sweep and the aperture were banked for other surfaces, the sealed cards dropped.",
+    },
+  ],
   context:
-    "Round one (a turning nozzle) answered none; round two (two spiralling arms with a trail) answered a question mark on its arrival. The page ships PageHero with no backdrop on purpose, the site's quietest: a concept has to earn its place against that, so every one here sits still, or nearly still, and the thing that moves is each one's own visibility rather than its position.",
+    "Round one's nozzle answered none and round two's spiral a question mark on its arrival; round three drew four still concepts whose visibility moved, and the veil won. Each option here answers the veil's four questions together: what the clearing is, how it moves, what sits under it, what the veil is made of. The original is drawn as it stands; the variations settle only clear of the words and pass behind them only under a shade of the page's dark.",
+  opening: {
+    about:
+      "The privacy page's first screen: what sits behind its words. Round three picked the veil, a photograph that only shows what it wants to.",
+    settled: [
+      "The veil is the concept, your round three pick; this round asks which veil: the original as drawn, or one of three further.",
+      "The header, the words and the buttons are the page's own, unchanged; only what sits behind them differs.",
+      "The sealed cards are out; the sweep and the aperture are banked for other surfaces.",
+      "Each variation keeps the words at 7:1 or better and the nav at 5.5:1 over its whole loop, measured on the frames.",
+    ],
+    earlier: [
+      "'This feels super bespoke to privacy, where it's only revealing what it wants to.'",
+      "'Would love to keep this original plus 3 variations to nail it.'",
+      "Round two: the arrival as part of the spiral wasn't liked. Round one: none felt right.",
+    ],
+  },
+  terms: [
+    {
+      term: "veil",
+      means:
+        "What covers the photograph so only part of it shows at once: a blur, a darker glass, or the dark.",
+    },
+    {
+      term: "lightbox",
+      means:
+        "The app's full-screen view of one photograph, which dims and blurs the album behind it.",
+    },
+    {
+      term: "grain",
+      means: "A fine film-like speckle laid over the dark, as a print has.",
+    },
+  ],
+  carried: [
+    {
+      id: "as-drawn",
+      question: "Does the original stay exactly as round three drew it?",
+      taken:
+        "Yes: its window, which draws square on screen, and its path behind the words, with what that costs measured as it is.",
+      overrule:
+        "Round its window and keep it off the words, and the original becomes a fifth veil rather than the one you picked.",
+    },
+    {
+      id: "photograph",
+      question: "Which photograph sits under the four veils?",
+      taken:
+        "One for all four, a toast under string lights: round three's crowd is soft smoke wherever a clearing lands.",
+      overrule:
+        "Set the knob to round three's crowd, and the original shows exactly as you picked it.",
+    },
+  ],
   asks: [
     {
-      id: "concept",
-      label: "The concept",
-      question: "Which concept should carry the privacy page's hero?",
+      id: "veil",
+      label: "The veil",
+      question: "Which veil should sit behind the privacy page's words?",
+      where: ["Marketing", "The privacy page", "Its first screen"],
+      when: "A host deciding who will see a wedding's photographs opens the privacy page, before reading a word of it.",
+      matters:
+        "It is the trust page's first answer: a photograph that shows only what it chooses, with the words still easy to read.",
       context:
-        "Three mechanisms show a photograph or tiles becoming visible; veil, added in the refresh, is the one where a single photograph is never wholly visible at once. The product's own arrival is one pass of light on a tile (guest-upload r1).",
+        "Each option is the page's first screen at 1440 and 375, the real header and words over the veil, looping as it would ship; reduced motion gets one still. Every caption is read off its frame. The knob swaps the photograph under all four.",
       options: [
         {
-          id: "aperture",
-          label: "The aperture",
+          id: "drift",
+          label: "The drift, as drawn",
           means:
-            "A blurred photograph breathes behind the words with a hairline ring: 360 to 430px, 12 to 20% opacity, one breath every 10 seconds. The calmest of the four.",
+            "Round three's veil, unchanged: one photograph in an 860px disc, blurred 44px at 55%, and a 230px window of clarity drifting over it every 9 seconds.",
+          gains:
+            "The one you picked, exactly: one photograph, never wholly shown, always moving.",
+          costs:
+            "Its window drifts behind the words: at its worst the subhead reads under 2:1.",
         },
         {
-          id: "sweep",
-          label: "The sweep",
+          id: "lens",
+          label: "The lens",
           means:
-            "8 small tiles flank the words, frosted at rest. One clears in a single 0.9s pass of light, in turn, a circuit every 6.4s. The product's own arrival, not a fade.",
+            "One clear 240px pane glides round the words and rests 2.4 seconds on one thing at a time, in the veil the lightbox lays behind an open photograph.",
+          gains:
+            "It chooses what it shows: the lights, the flowers, the table; never a face, never the words.",
+          costs:
+            "It needs a photograph with something worth a rest at each of its four places.",
         },
         {
-          id: "seal",
-          label: "The sealed cards",
+          id: "beam",
+          label: "The beam",
           means:
-            "3 photographs rest under a drawn cover at the page's foot. One lifts from 55% to 8% covered for 0.36s, in turn, every 2.4 seconds. The most tactile.",
+            "A tall soft beam of clarity crosses a darkened photograph under grain in 9 seconds, then the next of 3 photographs takes its turn.",
+          gains:
+            "The most cinematic: a slow light across the room, a different moment of the night each pass.",
+          costs:
+            "It shows whatever it crosses, faces included, and dims as it passes behind the words.",
         },
         {
-          id: "veil",
-          label: "The veil",
+          id: "glimpse",
+          label: "The glimpses",
           means:
-            "One photograph, blurred 44px at 55% opacity always. A 230px clearing drifts, never settling: one full drift every 9 seconds. Never the whole photo at once.",
+            "Nothing travels: soft spots 220 to 260px across open in place one after another, every 2.4 seconds, clear of the words, and close again.",
+          gains:
+            "The calmest, on the original's own blurred veil spread across the whole screen.",
+          costs:
+            "The softest reveal: each glimpse is feathered and brief, so nothing is ever quite sharp.",
         },
       ],
-      recommended: "sweep",
+      recommended: "lens",
       because:
-        "Sweep is built entirely from what the product now ships, Crystal's own frost and its real arrival pass, rather than an invented tween; that consistency is why it still leads. Veil is the fresh case: the only mechanism where privacy is one photograph's own surface, not a grid of many.",
+        "The lens keeps what you liked, a photograph showing only what it chooses, and it chooses: things, never faces or the words, in the app's own veil.",
       overrule:
-        "If one photograph's own privacy reads truer than a grid's, veil is the more thematic pick; aperture or seal are the calmer, more tactile holds.",
+        "If the veil should never stop moving, the beam; if nothing should travel at all, the glimpses.",
       lands:
-        "The privacy page's first screen: what sits behind the words, on a laptop and a phone.",
+        "What sits behind the privacy page's words on a laptop and a phone, and how it moves.",
+      configs: [PHOTO],
     },
   ],
 });

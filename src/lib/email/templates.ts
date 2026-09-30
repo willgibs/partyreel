@@ -331,7 +331,7 @@ export function overCapReducedEmail(opts: {
       p(
         "Because your account stayed over its limit, we removed your largest files to bring it back under your plan. They stay in Deleted until ",
         strong(opts.recoverableUntil),
-        ". You're over your limit, so upgrade or free up space first, then restore them from each event's Deleted section.",
+        ". Putting them all back would take you over your plan again, so upgrade or free up space first, then restore them from each event's Deleted section.",
       ),
     ],
     cta: { href: opts.dashboardUrl, label: "Manage storage" },

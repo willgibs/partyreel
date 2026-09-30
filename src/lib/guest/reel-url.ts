@@ -20,7 +20,9 @@
  * snapshot is null, so the first client render matches the HTML), with `popstate` and this module's
  * own writes as the change signal.
  */
-import { useCallback, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useSyncExternalStore } from "react";
+
+import { useOwnedEntry } from "@/lib/history-entry";
 
 export type ReelMode = "hand" | "screen";
 
@@ -59,18 +61,17 @@ export function withReelParam(href: string, mode: ReelMode | null): string {
 
 const CHANGE = "pr:reel-param";
 /**
- * ★ THE ENTRY REMEMBERS WHO PUSHED IT, not a module flag. An entry this page pushed carries the key
- * in its own history state, so "may closing go back to the album?" survives a reload of that entry
- * (the album entry is still beneath it) and a back-then-forward, and a deep link, whose entry never
- * carries it, is replaced instead. Next's router copies its own internals into the state we pass,
- * so passing only our key keeps its URL sync intact.
+ * ★ THE ENTRY REMEMBERS WHO PUSHED IT, not a module flag, and whose it is lives in `lib/history-entry.ts`
+ * (its header says what Next does to an entry). An entry this page pushed carries this key in its own history
+ * state, so "may closing go back to the album?" survives a reload of that entry (the album entry is still
+ * beneath it) and a back-then-forward, and a deep link, whose entry never carries it, is replaced instead.
+ * ★ AND A ROUTER REFRESH TAKES THE KEY OFF (crumbs-19; measured on the demo album: opened at entry 6, refreshed,
+ * the state read `[__NA, tree]`, and Close replaced in place, leaving two entries at the album's address, a
+ * dead Back). The page keeps its own word too, and gives the entry its key back after each render with the
+ * reel open, so a reload after a refresh finds it. A close asked twice goes Back once (two taps on the X
+ * used to call `history.back()` twice and leave the album).
  */
 const PUSHED_KEY = "prReelPushed";
-
-function pushedByUs(): boolean {
-  const state = window.history.state as Record<string, unknown> | null;
-  return Boolean(state && state[PUSHED_KEY]);
-}
 
 function subscribe(onChange: () => void): () => void {
   window.addEventListener("popstate", onChange);
@@ -91,36 +92,41 @@ export function useReelParam(): {
   close: (opts?: { returnBack?: boolean }) => void;
 } {
   const mode = useSyncExternalStore(subscribe, snapshot, serverSnapshot);
+  const entry = useOwnedEntry(PUSHED_KEY);
+  // After each render: an entry that carries the key is ours (a reload, a Forward), and one this page pushed
+  // that a router refresh rewrote is given it back; with the reel closed it lets go (crumbs-19).
+  useEffect(() => {
+    entry.keep(mode !== null);
+  });
 
-  const open = useCallback((next: ReelMode) => {
-    const href = withReelParam(window.location.href, next);
-    if (readReelParam(window.location.search) === null) {
-      window.history.pushState({ [PUSHED_KEY]: true }, "", href);
-    } else {
-      window.history.replaceState(
-        { [PUSHED_KEY]: pushedByUs() },
-        "",
-        href,
-      );
-    }
-    window.dispatchEvent(new Event(CHANGE));
-  }, []);
+  const open = useCallback(
+    (next: ReelMode) => {
+      const href = withReelParam(window.location.href, next);
+      if (readReelParam(window.location.search) === null) {
+        entry.push(href);
+      } else {
+        // A move between postures: the same entry, still ours exactly when it was.
+        entry.replace(href);
+      }
+      window.dispatchEvent(new Event(CHANGE));
+    },
+    [entry],
+  );
 
-  const close = useCallback((opts?: { returnBack?: boolean }) => {
-    if (readReelParam(window.location.search) === null) return;
-    // The owner's Close goes back to where they came from (the event's hub links here) whenever
-    // there is somewhere to go back to; a guest's deep link never leaves the page.
-    if (pushedByUs() || (opts?.returnBack && window.history.length > 1)) {
-      window.history.back();
-      return;
-    }
-    window.history.replaceState(
-      null,
-      "",
-      withReelParam(window.location.href, null),
-    );
-    window.dispatchEvent(new Event(CHANGE));
-  }, []);
+  const close = useCallback(
+    (opts?: { returnBack?: boolean }) => {
+      if (readReelParam(window.location.search) === null) return;
+      // The owner's Close goes back to where they came from (the event's hub links here) whenever
+      // there is somewhere to go back to; a guest's deep link never leaves the page.
+      const back = Boolean(opts?.returnBack) && window.history.length > 1;
+      const went = entry.close(withReelParam(window.location.href, null), {
+        back,
+      });
+      // Going back tells the address's readers itself (popstate); replacing in place does not.
+      if (!went) window.dispatchEvent(new Event(CHANGE));
+    },
+    [entry],
+  );
 
   return { mode, open, close };
 }

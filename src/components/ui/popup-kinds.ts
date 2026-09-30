@@ -78,6 +78,14 @@ export type PopupRow = {
    * still arriving.
    */
   deskFocus: "first" | "panel"
+  /**
+   * How a screen reader announces it, when it is not the Dialog's own. A confirmation is an ALERT
+   * dialog: it stops the person to ask one thing and waits for the answer, so a screen reader
+   * announces it as an alert and reads its question with its name (a plain `dialog` leaves the
+   * question to whichever readers announce descriptions). Only a kind that asks says so; every
+   * other kind is Radix's `dialog`.
+   */
+  role?: "alertdialog"
 }
 
 /**
@@ -87,8 +95,17 @@ export type PopupRow = {
 export const POPUP_KINDS = {
   /** `lists=panel`: a place she moves through, beside the screen at a desk. */
   list: { desk: "panel", hand: "screen", deskFocus: "panel" },
-  /** `confirm=dialog`: "a focused confirmation over an undo is far more helpful". */
-  confirm: { desk: "dialog", hand: "dialog", deskFocus: "first" },
+  /**
+   * `confirm=dialog`: "a focused confirmation over an undo is far more helpful". ★ It speaks as an
+   * `alertdialog`, so anything that asks whether a layer is up asks `layerIsUp()` (`layer-is-up.ts`),
+   * which knows both roles.
+   */
+  confirm: {
+    desk: "dialog",
+    hand: "dialog",
+    deskFocus: "first",
+    role: "alertdialog",
+  },
   /** `forms=dialog`: one question with a field in it, above the keyboard. */
   form: { desk: "dialog", hand: "dialog", deskFocus: "first" },
   /** `choices=menu`: under the button that asked; at the thumb in a hand. */

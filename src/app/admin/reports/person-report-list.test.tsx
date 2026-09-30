@@ -73,7 +73,9 @@ describe("a reported person", () => {
       ID,
       "Handle released; bio cleared.",
     );
+    // One press means no popup of any kind: a confirm is an `alertdialog`, which `dialog` never finds.
     expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.queryByRole("alertdialog")).toBeNull();
   });
 
   it("Dismiss is one press, with or without a note, and its toast's Undo reopens it", async () => {

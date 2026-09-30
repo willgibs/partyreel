@@ -27,7 +27,7 @@ import {
 } from "@/components/app/event-settings/setting-word";
 import { formatCount } from "@/lib/format/count";
 import { DOORS, stepOf, type Door } from "@/lib/event/door/door";
-import { cameInLine } from "@/lib/event/door/words";
+import { cameInLine, listedWouldComeInLine } from "@/lib/event/door/words";
 import {
   secondsLabel,
   sentenceText,
@@ -88,6 +88,8 @@ export function doorConsequence(
   facts: {
     in: number;
     waiting: number;
+    /** Of those waiting, the ones the invite list names (`DoorCounts.waitingListed`). */
+    waitingListed?: number;
     hasPassword: boolean;
     requireVerifiedEmail: boolean;
   },
@@ -105,13 +107,20 @@ export function doorConsequence(
   if (next === "password" && !facts.hasPassword) {
     return "Set a password first, on the next screen.";
   }
-  if (
-    (next === "approve" || next === "invite") &&
-    !facts.requireVerifiedEmail
-  ) {
-    return "Turns An email first on: this gate matches a confirmed address.";
+  const email =
+    (next === "approve" || next === "invite") && !facts.requireVerifiedEmail
+      ? "Turns An email first on: this gate matches a confirmed address."
+      : null;
+  if (next === "invite") {
+    // ★ THE LIST'S EFFECT IS SAID WHEN IT WOULD HAPPEN (crumbs-23, build 26's NIT-C): choosing it lets in
+    // each person waiting whom it names (crumbs-17's admit), as Public lets in everyone waiting.
+    return (
+      [listedWouldComeInLine(facts.waitingListed ?? 0), email]
+        .filter(Boolean)
+        .join(" ") || null
+    );
   }
-  return null;
+  return email;
 }
 
 /** The guest's own line for a door, when nothing more pressing is said. */
@@ -136,6 +145,7 @@ function useWordChoices(openPage: (page: SettingsPage) => void): Record<
   const facts = {
     in: s.counts.in,
     waiting: s.counts.waiting,
+    waitingListed: s.counts.waitingListed,
     hasPassword: v.hasPassword,
     requireVerifiedEmail: v.requireVerifiedEmail,
   };

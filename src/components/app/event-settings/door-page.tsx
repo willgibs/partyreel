@@ -28,7 +28,7 @@ import {
   type DoorStep,
   type PrivateGate,
 } from "@/lib/event/door/door";
-import { cameInLine } from "@/lib/event/door/words";
+import { cameInLine, listedWouldComeInLine } from "@/lib/event/door/words";
 import {
   DOOR_STEP_LABELS,
   DOOR_STEP_LINES,
@@ -52,7 +52,8 @@ import { cn } from "@/lib/utils";
  * ★ ONE RULE FOR EVERYONE ALREADY IN: a gate stops newcomers, and only Only me and a block shut out
  * someone already in. So under a gate the page says how many are in ("31 guests are already in"), and a
  * change that reaches people says what it does before it happens, in its own place (the consequence
- * line): Only me closes them out; Public lets everyone waiting straight in.
+ * line): Only me closes them out; Public lets everyone waiting straight in; a password ends every ask at
+ * the door (migration 20260929230000: nobody waits on the host there), so the people waiting need it too.
  *
  * ★ WHAT DOES NOTHING RIGHT NOW STAYS IN VIEW, DORMANT: under Only me the steps after the first (nobody
  * reaches them), under Public the gates (a hint at what Private keeps), and A photo first while uploads
@@ -69,6 +70,10 @@ const STEPS: readonly DoorStep[] = ["public", "private", "only_me"];
 
 const people = (n: number, one: string, many: string) =>
   `${formatCount(n)} ${n === 1 ? one : many}`;
+
+/** What a password does to the people waiting at the door: their asks end, and it asks them for it. */
+const passwordLine = (waiting: number) =>
+  `${people(waiting, "person is", "people are")} waiting at the door. A password asks them for it too.`;
 
 /** A consequential door: what the line says, and what its button does. */
 function consequenceOf(
@@ -91,6 +96,12 @@ function consequenceOf(
     return {
       line: `${people(counts.waiting, "person is", "people are")} waiting at the door. Closing it to newcomers keeps them out.`,
       confirm: "Close it to newcomers",
+    };
+  }
+  if (next === "password" && counts.waiting > 0) {
+    return {
+      line: passwordLine(counts.waiting),
+      confirm: "Ask for the password",
     };
   }
   return null;
@@ -198,6 +209,9 @@ export function DoorPage({ guestsHref }: { guestsHref: string }) {
   }
 
   const consequence = pending ? consequenceOf(pending, counts) : null;
+  // ★ WHAT THE LIST WOULD DO, said on its row before it is chosen (crumbs-23, build 26's NIT-C): the
+  // people waiting whom it names come straight in, in the words the door menu says it in.
+  const listedLine = listedWouldComeInLine(counts.waitingListed);
   const heldEmail =
     v.door === "approve"
       ? "On while you let each person in: it matches a confirmed address."
@@ -327,6 +341,14 @@ export function DoorPage({ guestsHref }: { guestsHref: string }) {
                               <span className="block text-caption text-pretty text-muted-foreground">
                                 {GATE_LINES[g]}
                               </span>
+                              {g === "invite" && !on && listedLine ? (
+                                <span
+                                  data-door-listed=""
+                                  className="mt-0.5 block text-caption text-pretty text-muted-foreground"
+                                >
+                                  {listedLine}
+                                </span>
+                              ) : null}
                             </span>
                             <GateHelp gate={g} />
                           </div>
@@ -349,17 +371,29 @@ export function DoorPage({ guestsHref }: { guestsHref: string }) {
                                   returnTo={`/dashboard/${s.eventId}?room=settings&setting=door`}
                                 />
                               ) : (
-                                <EventPasswordControl
-                                  eventId={s.eventId}
-                                  hasPassword={v.hasPassword}
-                                  locked={passwordLocked}
-                                  onPasswordSet={() =>
-                                    setSettingPassword(false)
-                                  }
-                                  onPasswordCleared={() =>
-                                    setSettingPassword(false)
-                                  }
-                                />
+                                <>
+                                  {/* The first password opens the door as it is set, so its
+                                      consequence stands beside the field it is set in. */}
+                                  {settingPassword && counts.waiting > 0 ? (
+                                    <p
+                                      data-door-password-waiting=""
+                                      className="mb-2.5 text-caption text-pretty text-muted-foreground"
+                                    >
+                                      {passwordLine(counts.waiting)}
+                                    </p>
+                                  ) : null}
+                                  <EventPasswordControl
+                                    eventId={s.eventId}
+                                    hasPassword={v.hasPassword}
+                                    locked={passwordLocked}
+                                    onPasswordSet={() =>
+                                      setSettingPassword(false)
+                                    }
+                                    onPasswordCleared={() =>
+                                      setSettingPassword(false)
+                                    }
+                                  />
+                                </>
                               )}
                             </div>
                           ) : null}

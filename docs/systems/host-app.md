@@ -207,20 +207,24 @@ beneath, newest first.
   (`event-feed/room-card.ts`), so all four doors show at 375.
 - **Review and Guests are rooms (routes with a crumb); Settings and the share kit are places in the settings kind (a panel at a desk, the whole screen in a hand); the Highlight reel is a door.**
   ★ The crumb trail lands at hydration (a page cannot hand a prop up, and CSS cannot carry an event's name); the bar's
-  fixed height keeps it from shifting anything.
+  fixed height keeps it from shifting anything. ★ It is drawn only while its route's `SetCrumbs` is mounted, so a route
+  that sets none, an error and a not-found page draw none; `RouteSkeleton` holds the last trail through a
+  `loading.tsx`'s wait (`CrumbsHold`), because the new address commits with the skeleton on screen and the page lands
+  later, so a bar that followed the address or let go with the old page blinked for the whole wait
+  (`shared/crumbs.tsx`).
 - ★ **The two places ride `?room=`, and it IS the state** (`share/event-share-provider.tsx`, read from
   `useSearchParams` with no mirrored `useState`, so a `router.refresh()` after a settings action cannot close the
   panel). ★ Every native history call hands Next a FRESH object (the marker as a field) or `null`, never
-  `window.history.state`: Next's patched `pushState` and `replaceState` copy their own `__NA` and tree onto a fresh
-  object and apply the URL, but take one that already carries `__NA` for their own bookkeeping and apply nothing, so
-  `useSearchParams` never moves and the next router commit writes the stale address back over the bar
+  `window.history.state`: Next's patched `pushState` and `replaceState` apply the URL only to a state without `__NA`
   (`history-state-policy.test.ts` refuses the shape; a write from a mount effect waits a microtask, because it would
-  meet the browser's own function before Next patches it: `lab/board-state.tsx` says why). Opening pushes an entry
-  carrying the marker (a sheet already open is left alone, so a double tap pushes one entry, never two); closing calls
-  `history.back()` only when the entry is ours: the marker says so, or this page pushed it. `router.refresh()`
-  rewrites an entry without the marker, and a reload keeps the marker but forgets what the page pushed, so after each
-  render with a sheet open an effect remembers an entry that carries the marker and gives it back to one this page
-  pushed that lost it; a place opened from a link or a bookmark never had one and closes in place. ★ The server's
+  meet the browser's own function before Next patches it: `lab/board-state.tsx` says why). ★ Whose entry a place
+  stands on is `lib/history-entry.ts`'s, which the hub's sheets, a phone's screen-shaped popup and the reel all use
+  (its header holds what Next does to an entry). Opening pushes an entry carrying the marker (a sheet already open is
+  left alone, so a double tap pushes one entry, never two); closing goes Back only when the entry is ours (the marker
+  says so, or this page pushed it) and only once until that Back lands (two taps on the X used to leave the hub);
+  `router.refresh()` rewrites an entry without the marker and a reload forgets what the page pushed, so `keep` runs
+  after each render with a sheet open (it adopts a marker it finds and gives an entry this page pushed that lost it its
+  marker back); a place opened from a link or a bookmark never had one and closes in place. ★ The server's
   `initialSheet` paints the first frame alone (a hydration gate): once hydrated the URL is the only answer, so a place
   opened from a link (`/settings`, a sign-in's return, Checkout's `?room=`) closes like one opened from its card. A
   settings page is `&setting=<page>` on the same entry, moved with `replaceState`, so its back arrow and Back never
@@ -289,9 +293,11 @@ its purpose (`GATE_HELP`); (3) An email first; (4) A photo first. Every word liv
 visitor-facing "Private" never collides.
 
 - ★ **`set_event_door` is the one writer of the pair** (`setEventDoorAction` re-verifies with `getUser()`). Under a
-  gate the page says how many are already in ("31 guests are already in"); choosing Only me with guests in, or Public
-  or Only people already in with newcomers waiting, says what happens first and waits for the confirm. Opening an album
-  to Public lets everyone waiting in (`events_door_opened`).
+  gate the page says how many are already in ("31 guests are already in"); choosing Only me with guests in, or Public,
+  Only people already in or a password with newcomers waiting, says what happens first and waits for the confirm (a
+  first password says it beside its field, since setting it opens that door). Opening an album to Public lets everyone
+  waiting in (`events_door_opened`); a password ends every ask (`events_door_to_password`: nobody waits on the host
+  there), so they leave At the door, the pulse and the bell, and meet the password like anyone new.
 - **The Guests room's At the door** heads it (`queue=room`): Let in (`let_in_at_door`) opens her door on every device,
   and her held door opens by itself at its next check-in; ★ Decline is a block (the account where there is one, else
   the row), with Undo on its toast and Let back in under Blocked, so a declined newcomer meets the one shut screen and
@@ -305,6 +311,10 @@ visitor-facing "Private" never collides.
   let in. The list stays editable while it is not the door. ★ While it is the door, a waiting person it names is in
   (`event_door_admit_listed`, build 23's BUG-2): the listing, the door becoming the list and Let back in each let her
   in, on every device she asked from, counted once, so she leaves At the door and the ticket she asked with adds.
+  ★ The menu and the steps page say it BEFORE the list is chosen ("Lets in the 1 person waiting at the door who is on
+  your list.", `listedWouldComeInLine`), only where it would let someone in: the count is `DoorCounts.waitingListed`,
+  `event_door_counts`' `waiting_listed` from `event_door_waiting_listed`, the admit's read-only twin (0 until its migration
+  is applied). The six-door menu is `settings-rows.tsx`'s `doorConsequence`; `door-page.tsx` is the steps page.
   **Invite** is the room's main action while it is empty and a quiet one after: the event's code card, sending
   nothing.
 

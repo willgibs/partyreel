@@ -291,6 +291,12 @@ its metadata and every guest route act on through
   the host will let her in, with nothing of the album behind it; it checks in every 30 s and on the tab's return
   (`POST /api/guests/door`: `waiting` | `in` | `moved`, `private, no-store`; a missing event answers
   `moved`), which stamps her rows for the banked let-in mail, and opens onto the album by itself on `in`.
+  ★ **Only a door the host answers holds an ask**: the moment an album takes a password, every ask at its door ends
+  (`events_door_to_password`, every path to a password; never a row an upload names), because a password lets in
+  whoever proves it and nobody waits on the host there, and a waiting ticket would only stand between her and it. Her
+  held door reads `moved`, she meets the password like anyone new, and her phone, finding its ticket gone
+  (`invalid_session`), puts it down and joins afresh at its next upload (`use-upload-queue.ts`, as it does a foreign
+  ticket). Closed and Only me keep their asks: the host may still answer them.
 - **`newcomer {gate}`**, no confirmed email yet at approve or invite: the door's own steps (the welcome, the email)
   with no teaser; the welcome counts what is inside, as a password album's does. Confirming asks at approve and lets
   in an address the list names.
@@ -757,10 +763,21 @@ had" holds only when this device holds a guest ticket a claim would move.
   [`claim-uploads.ts`](../../src/lib/guest/claim-uploads.ts) enumerates those tokens (the shared
   `SESSION_PREFIX`, [`session-tokens.ts`](../../src/lib/guest/session-tokens.ts)) and calls the
   authenticated `claim_anonymous_uploads(text[])`, which touches only still-unclaimed matches
-  (`user_id IS NULL` ⇒ never steals an owned row; ≤1000 bound). An UNCONFIRMED caller stamps `user_id`
-  alone; a CONFIRMED caller's claim is proved (the device plus the address), so it also stamps
-  `verified_at`, copies the account's email into `guests.email`, clears `pending_email` and the typed name,
-  and names a nameless profile from the newest claimed row. ★ The number it returns is the claimed rows that
+  (`user_id IS NULL` ⇒ never steals an owned row; ≤1000 bound) that are HERS. ★ **A PARTY'S PHONE IS PASSED
+  AROUND, so whose a ticket is has one rule, `whose_ticket`** (`20260929234000`): a typed address settles it (hers
+  only when it is her own confirmed one; any other waits for that address's owner, whose claims review lists it, and
+  no answer on the phone can take it); with none, a ticket under no name or under hers is hers, and one under a
+  name at odds with hers (a different first word, case and marks aside; hers is her profile's, else the name her
+  sign-up carried, the door's `door_name` or Google's) is ASKED about, never taken. After every claim
+  `claim_ticket_asks` answers those per name and [`claim-ask.tsx`](../../src/components/shared/claim-ask.tsx)
+  (the `(app)` layout's and the album page's) asks once no door or sheet is up, "3 photos were added on this phone
+  as Dana. Are they yours?": They're mine claims exactly those (`claim_asked_uploads`, never an address, naming no
+  profile); Not mine is remembered for that account on those albums (`pr_not_mine_<qr>`, put down with its
+  ticket); a question put away unanswered comes back on a later visit. A proved row whose account was deleted
+  goes to nobody. An UNCONFIRMED caller matches no address and stamps `user_id` alone; a CONFIRMED caller's claim is
+  proved (the device plus the address), so it also stamps `verified_at`, copies the account's email into
+  `guests.email`, clears `pending_email` and the typed name, and names a nameless profile from the newest row it
+  took. ★ The number it returns is the claimed rows that
   carry a LIVE upload (an empty row is stamped but not counted: claiming it carries nothing). It fires from the
   `(app)` layout's mount (a loud "We added your uploads to your account." whenever uploads moved), the album's
   `useConfirmReturn` (split this album / the rest, which decides the follow moment and the toast; see "THE
@@ -874,6 +891,19 @@ had" holds only when this device holds a guest ticket a claim would move.
   in from its left edge and glide what it moved; a head arrival while the reader is deep scrolls by exactly
   how far the photograph at the view's top moved, so nothing they are looking at jumps. Reduced motion: a
   plain appearance, no mark.
+  ★ **An arrival lands COMPLETE, or not until it can** (`guest/use-arrival-gate.ts`, in `GalleryRows`, which takes
+  `arrivals` rather than the glow's set and writes the glow itself). A delta brings the manifest's tuple with no
+  link (`url: ""`; only a window asks for links), so an arrival pushed at once drew a shimmer and then faded its
+  photograph in after the wipe was over. The gate holds each arrival the grammar names out of the rows, asks for its
+  link (`onNeedLinks`, `ensureLinks`), fetches and decodes its photograph into the document at the tile's own address
+  (`decodeTileImage`, `tileImageSrc`), and lets it in when that is done, so `MediaTile` finds it complete
+  (`data-instant`) and the push reveals a photograph. It waits at most `ARRIVAL_DECODE_WAIT_MS` (2s; a failed decode
+  is let in at once, and either mounts and fades as before), holds at most `ARRIVAL_HOLD_MAX` (12) at once, waits
+  for a video with no preview's link alone, and never holds the seed, a filter's or step's toggle, an arrival the
+  Yours filter hides, this device's own landing (a manifest that beats its `notifyUploaded` releases it the moment it
+  is known) or anything under reduced motion. The glow is lit when it is let in: the provider's hold began at the
+  delta and a second's wait would have cut its light mid-fade. Only the guest album gates: the host's album, the
+  marketing stage (which pre-decodes its own) and the lab's harness push what they are handed.
 - **A guest's own photographs, removable ever** (final for the host too): two identities, one control.
   SIGNED IN → `removeMyUploadGuestAction` ([`actions.ts`](<../../src/app/(guest)/e/[token]/actions.ts>)) on
   `remove_my_upload` (`auth.uid()`, any device, for ever); ANONYMOUS → `POST /api/guests/remove` → the

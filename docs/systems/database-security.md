@@ -13,7 +13,7 @@ DEFINER RPCs validate inside; `anon` never touches a table. A feature's own RPC 
 
 ## The RPC inventory and the advisor set
 
-`get_advisors` (security) after every schema change reads 18 `rls_enabled_no_policy`, 4 in lint `0028` and 33 in
+`get_advisors` (security) after every schema change reads 18 `rls_enabled_no_policy`, 4 in lint `0028` and 35 in
 `0029`.
 Leaked Password Protection is on, so its WARN never shows. A function in the wrong list means a grant slipped.
 
@@ -53,13 +53,16 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
   `revoke … from public, anon` and `grant … to authenticated`, authorizing inside on `auth.uid()` and ownership:
   `get_host_upload_context`, `set_event_password` / `clear_event_password`, `set_event_slug` / `clear_event_slug`,
   `check_slug_available`, `has_password` / `verify_current_password` / `mark_password_set`, `get_my_uploads` /
-  `remove_my_upload`, `claim_anonymous_uploads`, `list_guest_rows_by_email` / `claim_guest_rows_by_email` /
+  `remove_my_upload`, `claim_anonymous_uploads` / `claim_ticket_asks` / `claim_asked_uploads`,
+  `list_guest_rows_by_email` / `claim_guest_rows_by_email` /
   `disown_guest_rows_by_email`, `restore_media` / `restore_event` / `purge_media_now`, `like_media` /
   `get_my_likes` / `get_event_like_counts`, `follow_user` / `block_user`, the per-event block's two host acts,
   `block_from_event` / `let_back_in`, and the door's four, `set_event_door` / `let_in_at_door` / `add_event_invites` /
   `remove_event_invite` ([guest-flow.md](guest-flow.md)).
-  - `claim_anonymous_uploads` stays browser-callable because nothing in it is spoofable: the held `session_token`s
-    authorize it and `user_id is null` guards against theft.
+  - The three claims by ticket stay browser-callable because nothing in them is spoofable: the held `session_token`s
+    authorize them, `user_id is null` guards against theft, and ★ one rule, `whose_ticket`, decides whose each ticket
+    is, so on a shared phone a stranger's typed address never moves and a stranger's typed name moves only on the
+    account's own answer ([guest-flow.md](guest-flow.md)).
   - ★ **The claim by address never takes an address.** The three `*_guest_rows_by_email` functions key on the
     caller's own CONFIRMED address, read from `auth.users` under definer privilege, so nothing can answer "is this
     address a Partyreel guest?", and an unconfirmed caller gets an empty set even for their own address. Its answer is
@@ -71,7 +74,10 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
     so `like_media` stays the only insert; `get_my_likes` re-applies that predicate, so a like on media that has since
     closed never presigns.
     The counts are host-only through two paths, `get_event_like_counts` and `media_like_counts`, so no count reaches
-    a guest.
+    a guest. ★ And a count only for a row she can meet: `get_event_like_counts` (hers to call straight through
+    PostgREST) leaves out an operator's removal, an asked row and a withdrawal, restating `media_host_all`'s own
+    conjuncts (a DEFINER count cannot inherit the policy, so a guard holds it to the policy's latest USING);
+    `media_like_counts` is asked only for ids her RLS read returned.
 - **SECURITY INVOKER is the default for a new read** (in neither list): a grant that reached the wrong role reads
   only that role's own rows, where a DEFINER body would read everyone's. The dashboard cards' `event_stills` (up to
   12 previewed, approved photos an event, one jsonb) is this shape, authenticated-only: another host's event is
@@ -84,7 +90,7 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
   (an INVOKER read the host's links route and the hub page call after their `getEvent` check), the per-event block's
   reads (`event_ticket_blocked` and `event_blocked_guest_ids`, INVOKER; `blocked_events_for`, DEFINER because it
   reads `auth.users`, which the service role cannot) and its four predicates (INVOKER, run inside the guest paths'
-  DEFINER bodies), and the trigger
+  DEFINER bodies), the claims' `whose_ticket` (the same shape), and the trigger
   functions, whose EXECUTE is revoked from the client roles and which still fire (EXECUTE is checked when a trigger
   is created, never when it fires).
 - ★ **Every SECURITY DEFINER function pins `set search_path = ''` and fully qualifies every name** (`public.events`,
@@ -191,6 +197,11 @@ a table created since starts with no client grant, so its migration grants exact
   `revoke execute on functions from public` in schema public; it changes nothing, proved rolled back), so every grant
   block revokes from `public`, then grants exactly, and a drop-and-recreate re-inherits PUBLIC's, so it restates its
   grants in full. A table a client must reach takes its grant in the same migration, or its read is a 42501.
+- ★ **A read that asks the invite list's match is a SECURITY DEFINER body.** `event_door_lists_account` reads
+  `auth.users`, which the service role cannot, so an INVOKER function the server calls that asks it fails with a
+  permission error at run time, invisible to typecheck: `event_door_counts` (INVOKER) reads the list's count through
+  `event_door_waiting_listed` (DEFINER, service role only, empty `search_path`), the read-only twin of
+  `event_door_admit_listed`, and a change to who the list names moves both bodies.
 - ★ **A new junction table silently breaks PostgREST embeds (PGRST201).** Two FKs to already-related tables make
   PostgREST infer a second path, and an existing bare `events!inner(...)` embed between them throws at runtime,
   invisible to typecheck, lint and build. Pin every cross-table embed to its FK

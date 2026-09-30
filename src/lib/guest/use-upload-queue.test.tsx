@@ -1,12 +1,12 @@
 /**
- * THE QUEUE'S RECOVERY FROM SOMEBODY ELSE'S TICKET.
+ * THE QUEUE'S RECOVERY FROM SOMEBODY ELSE'S TICKET, AND FROM A DEAD ONE.
  *
  * The routes refuse a ticket whose row belongs to an account the viewer is not
- * (`session_other_account`). These pin what the queue does about it, which is the half of that rule
- * a guest actually lives through: the ticket goes down (token, name, cookie), the viewer joins again
- * as whoever the server says they are, and the SAME file goes up on the new ticket, so no photograph
- * is lost and none is credited to the ticket's owner. A confirmed account never notices; anyone else
- * is handed to the door while the files wait, never failed.
+ * (`session_other_account`), and one whose row is gone (`invalid_session`). These pin what the queue
+ * does about it, which is the half of that rule a guest actually lives through: the ticket goes down
+ * (token, name, cookie), the viewer joins again as whoever the server says they are, and the SAME file
+ * goes up on the new ticket, so no photograph is lost and none is credited to the ticket's owner. A
+ * confirmed account never notices; anyone else is handed to the door while the files wait, never failed.
  *
  * The engine's other pins live in guest-upload.test.tsx (its test file); these run the hook on
  * its own, because what they pin is the queue's side of a server rule rather than a sheet.
@@ -233,6 +233,76 @@ describe("anyone else holding somebody else's ticket", () => {
     const q = mountQueue({ sessionToken: STALE, isVerified: true });
     act(() => q.result.current.addFiles([makeFile()]));
     await waitFor(() => expect(q.onDoorNeeded).toHaveBeenCalledTimes(1));
+    expect(q.items()).toEqual([expect.objectContaining({ status: "queued" })]);
+  });
+});
+
+/**
+ * A DEAD TICKET (crumbs-21): a newcomer waiting at letting each person in, or at the invite list, whose
+ * door then became a password lost her waiting ticket with her ask (migration 20260929230000), and the
+ * phone that asked still holds its token. After she unlocks, her Add meets `invalid_session`, which
+ * used to fail the file with "Refresh and rejoin" (a refresh keeps the stored token, so it never could).
+ */
+const DEAD: UploadOutcome = {
+  ok: false,
+  code: "invalid_session",
+  message: "Your upload session has expired. Refresh and rejoin.",
+};
+
+describe("a dead ticket: the row it named is gone", () => {
+  it("★ puts it down, joins afresh as the confirmed account, and the SAME file goes up on the new ticket", async () => {
+    answer({
+      "/api/guests/leave": [{ ok: true, body: { ok: true } }],
+      "/api/guests": [
+        { ok: true, body: { ok: true, session_token: "past-the-password" } },
+      ],
+    });
+    mockUploadFile
+      .mockResolvedValueOnce(DEAD)
+      .mockResolvedValueOnce(landed("med-1"));
+    const file = makeFile();
+    const q = mountQueue({ sessionToken: STALE, isVerified: true });
+
+    act(() => q.result.current.addFiles([file]));
+
+    await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(1));
+    expect(sentOn(0)).toBe(STALE);
+    expect(sentOn(1)).toBe("past-the-password");
+    expect(mockUploadFile.mock.calls[1][0].file).toBe(file);
+    expect(q.items()).toEqual([expect.objectContaining({ status: "done" })]);
+    // Down before the join, both halves, so the join's fresh cookie outlives the leave.
+    expect(fetchUrls()).toEqual(["/api/guests/leave", "/api/guests"]);
+    expect(localStorage.getItem(`pr_session_${QR}`)).toBeNull();
+    expect(q.onSession.mock.calls).toEqual([[null], ["past-the-password"]]);
+    expect(q.onDoorNeeded).not.toHaveBeenCalled();
+  });
+
+  it("joins silently once per chain: a second dead ticket goes to the door, never a loop", async () => {
+    answer({
+      "/api/guests/leave": [
+        { ok: true, body: { ok: true } },
+        { ok: true, body: { ok: true } },
+      ],
+      "/api/guests": [
+        { ok: true, body: { ok: true, session_token: "also-dead" } },
+      ],
+    });
+    mockUploadFile.mockResolvedValue(DEAD);
+    const q = mountQueue({ sessionToken: STALE, isVerified: true });
+    act(() => q.result.current.addFiles([makeFile()]));
+    await waitFor(() => expect(q.onDoorNeeded).toHaveBeenCalledTimes(1));
+    expect(fetchUrls().filter((u) => u === "/api/guests")).toHaveLength(1);
+    expect(mockUploadFile).toHaveBeenCalledTimes(2);
+    expect(q.items()).toEqual([expect.objectContaining({ status: "queued" })]);
+  });
+
+  it("anyone the queue cannot name meets the door: the file waits, never failed", async () => {
+    answer({ "/api/guests/leave": [{ ok: true, body: { ok: true } }] });
+    mockUploadFile.mockResolvedValueOnce(DEAD);
+    const q = mountQueue({ sessionToken: STALE, isVerified: false });
+    act(() => q.result.current.addFiles([makeFile()]));
+    await waitFor(() => expect(q.onDoorNeeded).toHaveBeenCalledTimes(1));
+    expect(fetchUrls()).toEqual(["/api/guests/leave"]);
     expect(q.items()).toEqual([expect.objectContaining({ status: "queued" })]);
   });
 });

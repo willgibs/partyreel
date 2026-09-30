@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import type { CSSProperties } from "react";
 
+import { FaqAccordion } from "@/components/marketing/faq-accordion";
 import { FaqPageJsonLd, PricingJsonLd } from "@/components/marketing/jsonld";
-import { HomeFaqAccordion } from "@/components/marketing/sections/home/faq-accordion";
 import { ComparisonTable } from "@/components/marketing/sections/pricing/comparison-table";
 import { Configurator } from "@/components/marketing/sections/pricing/configurator";
 import { PassCard } from "@/components/marketing/sections/pricing/pass-card";
@@ -129,10 +129,11 @@ export default function PricingPage() {
         eyebrow="Questions"
         heading="The fine print, in plain words."
       >
-        {/* One block at slot 3: a calm list never spends six stagger slots. */}
+        {/* One block at slot 3: a calm list never spends six stagger slots. The Reveal
+            carries the gap, so the list gives up its own (`mt-0`), or the two would stack. */}
         <Reveal className="mt-10">
           <div data-mkt-reveal style={{ "--i": 3 } as CSSProperties}>
-            <HomeFaqAccordion items={PRICING_FAQ_ITEMS} />
+            <FaqAccordion items={PRICING_FAQ_ITEMS} className="mt-0" />
           </div>
         </Reveal>
       </SectionShell>

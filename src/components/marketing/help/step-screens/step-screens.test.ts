@@ -155,21 +155,33 @@ const QUOTES: { file: string; words: string[] }[] = [
     words: ["Skip for now"],
   },
   {
-    // The report dialog, quoted rather than mounted (phone `report-open`, `report-reason`,
-    // `report-sent`): its own open state and its toast are not reachable through a prop.
+    // The report dialog, quoted rather than mounted (phone `report-reason`, and the toast of `report-sent`): its
+    // own open state and its toast are not reachable through a prop. The pictures draw a PHOTO'S form (crumbs-19:
+    // the article leads with a photo's own Report, and its three screens used to draw the album's form, "Report
+    // this event"), so its title and the row that names the one photograph are quoted, and the album's are not.
     file: "src/components/guest/report-dialog.tsx",
     words: [
-      "Report this event",
+      "Report this photo",
+      ", and only this one",
       "Tell us what&rsquo;s wrong and our team will review it. The",
       "host is never told who reported.",
       "What is it?",
       "Reason",
       "(optional)",
       "What's the problem here?",
+      "Your email",
+      "Confirm your email",
+      "Only so we can ask for more if we need it.",
+      "the report closes.",
       "Cancel",
       "Submit report",
       "Thanks. Your report has been sent for review.",
     ],
+  },
+  {
+    // The viewer's capsule, whose Report the first picture marks (phone `report-open`, `report-sent`).
+    file: "src/components/shared/media-lightbox-parts/actions.tsx",
+    words: ['label="Report"', "Report this ${item.type}"],
   },
 ];
 
@@ -213,11 +225,16 @@ describe("a picture's quoted words are the product's", () => {
       "You&rsquo;re invited to",
       "Add your photos and videos in seconds. No app required.",
       "Skip for now",
-      "Report this event",
+      "Report this photo",
+      ", and only this one",
       "Tell us what&rsquo;s wrong and our team will review it. The host is",
       "never told who reported.",
       "What is it?",
       "What's the problem here?",
+      "Your email",
+      "Confirm your email",
+      "Only so we can ask for more if we need it.",
+      "the report closes.",
       "Submit report",
       "Thanks. Your report has been sent for review.",
     ]) {

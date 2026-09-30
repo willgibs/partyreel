@@ -28,6 +28,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ClientForm } from "@/components/ui/client-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -252,7 +253,7 @@ export function ProfileSetupWizard({
       </CardHeader>
 
       {step === 1 && (
-        <form
+        <ClientForm
           onSubmit={(e) => {
             e.preventDefault();
             if (handleReady) setStep(2);
@@ -287,11 +288,11 @@ export function ProfileSetupWizard({
               Continue <ArrowRight />
             </Button>
           </CardFooter>
-        </form>
+        </ClientForm>
       )}
 
       {step === 2 && (
-        <form
+        <ClientForm
           onSubmit={(e) => {
             e.preventDefault();
             continueFromName();
@@ -328,7 +329,7 @@ export function ProfileSetupWizard({
               {!savingName && <ArrowRight />}
             </Button>
           </CardFooter>
-        </form>
+        </ClientForm>
       )}
 
       {step === 3 && (

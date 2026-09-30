@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { updateDisplayNameAction } from "@/app/(app)/account/actions";
 import { Button } from "@/components/ui/button";
+import { ClientForm } from "@/components/ui/client-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -41,7 +42,7 @@ export function DisplayNameForm({
   }
 
   return (
-    <form
+    <ClientForm
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit();
@@ -63,6 +64,6 @@ export function DisplayNameForm({
         </Button>
       </div>
       <p className="text-xs text-muted-foreground">{DISPLAY_NAME_GUIDANCE}</p>
-    </form>
+    </ClientForm>
   );
 }

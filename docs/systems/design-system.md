@@ -392,7 +392,8 @@ server answering the poll, the writes and the bin's routes as the real ones do.
   grid's one observer) and after a beat, so a cached photograph never flickers; the shimmer is linear, because a strong
   curve stutters at the loop point. ★ A photograph already complete when its image mounts shows at once, never fades
   (`data-instant`, read in the mount's own layout phase and switching the transition off in that commit), or a pushed
-  arrival's wipe would run over a fade. The first row loads eager and first, every photograph decodes async, and a
+  arrival's wipe would run over a fade, which is why the guest album decodes an arrival before it lets it in
+  ([guest-flow.md](guest-flow.md)). The first row loads eager and first, every photograph decodes async, and a
   mounted tile keeps its URL across a presign rollover (the same object path), taking the fresh one only on an error.
 - ★ **The album grid is one placeholder in a session replay** (`data-sentry-block`): the replay buffers every session,
   serialized every node the album mounted and measured every photograph (one forced layout each), the largest cost of
@@ -466,12 +467,18 @@ Transition is its one sanctioned hole ([host-app.md](host-app.md)).
   panel; a hand's dialog, screen, cover and sheet), each scoped to the `data-shape` the element sets for the width it
   opens at; the own shapes are `ui/responsive-menu.tsx` (a menu at the button, rows at the thumb with Cancel beneath, a
   row is the act), the code card (`app/share/code-card.tsx`) and the look (`social/guest-peek.tsx`). A bare
-  `SheetContent` or `DialogContent` is a surface the board left alone, named with why in `popup-kinds.test.ts`.
+  `SheetContent` or `DialogContent` is a surface the board left alone, named with why in `popup-kinds.test.ts`. A confirm
+  speaks as an `alertdialog` (`role` is a column of its kind's row, spread by `PopupContent` only where a row names one,
+  never as `role={undefined}`, which would erase Radix's own), so anything asking whether a layer is up asks
+  `layerIsUp()` (`ui/layer-is-up.ts`, the one home of the layer roles: a dialog, a confirm, a menu, a listbox; `except`
+  leaves the caller's own layer out, `dialogsOnly` waits behind modals alone; `layer-is-up.test.tsx` refuses a hand-written
+  dialog selector), and a test proving a confirm gone asks for `alertdialog`, or it passes for nothing.
   ★ `PopupBody` is the one part that scrolls and keeps its children whole (`*:shrink-0`): a caller's flex column
   would otherwise shrink a clipping Card to its padding instead of scrolling, as build 17's Event Settings did.
   ★ Every shape stands on the keyboard (the Dialog learned the Sheet's rule; a centred shape's `top` is
   `var(--vv-top) + var(--vv-h) / 2`, exactly `top-1/2` with nothing written). ★ A screen or a cover in a hand is a place
-  the phone's Back closes (`ui/popup-back.ts`: one same-URL history entry, its marker a field on the state Next merges,
+  the phone's Back closes (`ui/popup-back.ts`, on `lib/history-entry.ts` with the hub's sheets and the reel: one same-URL
+  history entry, its marker a field on the state Next merges,
   taken back one tick late so StrictMode's double effect cannot close it; where a router refresh took the marker, its
   own word that it pushed the entry at this address still takes it back, and never at another address, where a link
   inside it navigated on), unless its page already routes it (`routed`, `?room=`). ★ In a hand focus lands on the popup itself; at a desk the row's `deskFocus` says; a popup with
@@ -479,6 +486,13 @@ Transition is its one sanctioned hole ([host-app.md](host-app.md)).
   was stacked over one (a confirm over the viewer or Settings), else on the page; only a menu or a listbox, which close
   as the next popup opens, is never a return target. ★ Size a dialog with `size`, never a width
   class: the shape's scoped rule outranks a plain utility.
+  ★ **A layer a tap opened takes no tap until it has settled**: it fades in under the finger and is hit-testable from
+  its first frame, so a double tap's second tap landed on the row beneath (Settings' "This event", the Share door's
+  "Save link") and, at a desk, on the scrim, closing the panel it had just opened. `PopupContent` swallows a click inside
+  it, and refuses the scrim's outside press, while a CSS animation of its own is running (`arriving`, read off
+  `getAnimations`: its entrance, and its exit; a transition such as the keyboard's lift, a loop that never ends and an
+  engine with no `getAnimations` never count, and a reduced-motion clamp settles it in a frame). A harness that clicks a
+  sheet within 300ms of opening it is swallowed too: wait for it to settle.
 - ★ **Its phone half is keyboard-safe** (`src/lib/use-keyboard-inset.ts`): `visualViewport` sets `--kb-inset` and
   `--vv-h`, the sheet stands on the keyboard with its ceiling at the visible height, `data-keyboard` reads `open` (or
   `tight` under 200px, a landscape phone's thin band), and `floatingKeyboardFoot` with `data-sheet-primary` keeps the

@@ -1,4 +1,5 @@
 import { EVENT_CARD_GRID } from "@/components/app/dashboard/event-card-grid";
+import { CrumbsHold } from "@/components/shared/crumbs";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export type RouteSkeletonVariant = "pulse" | "hub";
@@ -15,10 +16,20 @@ export type RouteSkeletonVariant = "pulse" | "hub";
  * (their content moved here byte for byte, so nothing about either shape
  * changed). The reel Studio's shape left with the Studio: the live reel makes
  * itself, and a clip's room opens over the reel, never as a route.
+ *
+ * ★ IT HOLDS THE APP BAR'S TRAIL (crumbs-19). A route with a loading.tsx
+ * commits its new address with this skeleton on screen and its page lands a
+ * wait later, so `CrumbsHold` keeps the last route's trail through the wait
+ * (crumbs.tsx says why the bar cannot simply follow the address). It draws
+ * nothing, so the skeleton's root is still the bare shape below.
  */
 export function RouteSkeleton({ variant }: { variant: RouteSkeletonVariant }) {
-  if (variant === "pulse") return <PulseSkeleton />;
-  return <HubSkeleton />;
+  return (
+    <>
+      <CrumbsHold />
+      {variant === "pulse" ? <PulseSkeleton /> : <HubSkeleton />}
+    </>
+  );
 }
 
 // The dashboard's pulse: header + the next-step band + the arrivals strip +

@@ -1,0 +1,344 @@
+/* THE FOUR VEILS' SHEET (privacy-hero round four, 2026-09-29). Classes under
+   `vl-` (the drift: round three's veil, its rules unchanged), `lns-` (the
+   lens), `bm-` (the beam), `glm-` (the glimpses) and `pvh-` (what they
+   share). The only keyframe declared here is round three's `vl-drift`; the
+   other three veils' keyframes are written from `veils.ts`'s numbers into a
+   <style> of their own (`veil-layers.tsx`), each named `pvh-*`, so a path or
+   a count lives in one place (src/app/keyframe-uniqueness.test.ts reads this
+   sheet).
+
+   ★ THE REST STATE IS THE DEFAULT (bible 5). Every base rule below is the
+   picture a reader with reduced motion, a crawler or scripting off sees: the
+   drift's window at its first waypoint, the lens settled on its first rest,
+   the beam parked a fifth of the way across the first photograph, the first
+   glimpse open. Every `animation` lives ONLY inside
+   `@media (prefers-reduced-motion: no-preference)`, so reduced motion is not
+   a case to remember: it is what happens when those blocks do not apply. */
+
+.pvh-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: clip;
+}
+
+/* ── The drift: round three's veil, exactly as it stands ──────────────────
+   Carried from round three's sheet with its rules untouched (only the
+   layer's class is renamed): a disc of the photograph, blurred and at 55
+   percent, and the same photograph at full clarity masked to a window that
+   drifts. ★ The mask is an unsized `circle`, which reaches the corners of
+   its 230px box, so the window reads as a square with softened corners on
+   screen; `veils.ts`'s DRIFT says why it stays that way. */
+
+.vl-wash {
+  position: absolute;
+  top: var(--vl-cy);
+  left: var(--vl-cx);
+  width: var(--vl-size);
+  height: var(--vl-size);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.vl-blur,
+.vl-clear {
+  position: absolute;
+  inset: 0;
+}
+
+.vl-blur {
+  opacity: var(--vl-base-o);
+}
+
+.vl-clear {
+  mask-image: radial-gradient(circle, black 0%, black 55%, transparent 100%);
+  mask-repeat: no-repeat;
+  mask-size: var(--vl-porthole) var(--vl-porthole);
+  mask-position: 20% 30%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .vl-clear {
+    animation: vl-drift var(--vl-cycle) ease-in-out infinite;
+  }
+}
+
+/* Four waypoints and back to the first: an organic drift rather than a
+ * corner-to-corner sweep, still nothing but ordinary `mask-position`
+ * percentages. */
+@keyframes vl-drift {
+  0%,
+  100% {
+    mask-position: 20% 30%;
+  }
+  25% {
+    mask-position: 78% 18%;
+  }
+  50% {
+    mask-position: 62% 78%;
+  }
+  75% {
+    mask-position: 15% 68%;
+  }
+}
+
+.vl-scrim {
+  position: absolute;
+  top: var(--vl-cy);
+  left: var(--vl-cx);
+  width: calc(var(--vl-size) * 1.15);
+  height: calc(var(--vl-size) * 0.78);
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in oklab, var(--background) 78%, transparent) 0%,
+    transparent 72%
+  );
+}
+
+/* ── What the three variations share ──────────────────────────────────────
+   A full-bleed photograph (`.pvh-photo`, the canvas's own size, so a clear
+   view cut from the same box lines up with it pixel for pixel), and the
+   scrim over everything: a pool of the ground behind the words, sized to the
+   lockup and centred on it, plus a fall at the top (the header's nav reads
+   over it) and at the foot (where the page's first paper chapter begins).
+   ★ THE SCRIM IS WHAT KEEPS THE WORDS READABLE WHERE A CLEARING ONLY PASSES:
+   its plateau covers the eyebrow and the subhead, the two lines in the muted
+   grey, which need the ground under them near black (4.5:1 against
+   `--muted-foreground` is a luminance of about 0.04). The model is careers'
+   `.mkt-careers-scrim`, production's one hero with words over photographs. */
+
+.pvh-photo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--pvh-w);
+  height: var(--pvh-h);
+}
+
+.pvh-scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      150px 44px at 50% var(--pvh-eyebrow-y),
+      color-mix(in oklab, var(--background) 88%, transparent) 30%,
+      transparent 100%
+    ),
+    radial-gradient(
+      var(--pvh-scrim-rx) var(--pvh-scrim-ry) at 50% var(--pvh-scrim-cy),
+      color-mix(in oklab, var(--background) 93%, transparent) 0%,
+      color-mix(in oklab, var(--background) 90%, transparent) 58%,
+      color-mix(in oklab, var(--background) 52%, transparent) 80%,
+      transparent 100%
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--background) 72%, transparent) 0%,
+      transparent var(--pvh-top-fall),
+      transparent 82%,
+      color-mix(in oklab, var(--background) 80%, transparent) 100%
+    );
+}
+
+/* ── The lens: a clear round pane in the lightbox's ground ─────────────────
+   The photograph, sharp, full-bleed; over it the ground the lightbox lays
+   over the album behind an open photograph (`glass-behind`, the utility
+   itself: the album blurred at half brightness, one material); over that the
+   lens, which carries the same sharp photograph counter-moved so it always
+   shows exactly what is behind it. Both moves are transforms on one clock
+   (`lensKeyframes`), so the compositor runs them and they cannot slip. */
+
+.lns-ground {
+  position: absolute;
+  inset: 0;
+}
+
+.lns-lens {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--lns-d);
+  height: var(--lns-d);
+  border-radius: 50%;
+  overflow: hidden;
+  transform: translate(var(--lns-x0), var(--lns-y0));
+}
+
+.lns-view {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--pvh-w);
+  height: var(--pvh-h);
+  transform: translate(calc(-1 * var(--lns-x0)), calc(-1 * var(--lns-y0)));
+}
+
+/* Crystal's double edge, on the pane's rim: the lip a pixel down (light on
+   the upper edge) and the hairline all the way round, the tokens' own. */
+.lns-rim {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / var(--glass-lip)),
+    inset 0 0 0 1px rgb(255 255 255 / var(--glass-hairline));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .lns-lens {
+    animation: var(--lns-name) var(--lns-cycle) linear infinite;
+  }
+  .lns-view {
+    animation: var(--lns-name-view) var(--lns-cycle) linear infinite;
+  }
+}
+
+/* ── The beam: the dark, and a tall soft band of clarity crossing it ──────
+   Each photograph twice: once in the veil (dimmed, softened, under grain),
+   once in the beam (clear). Both stacks take their turns on one clock, and
+   the beam's view counter-moves inside it the way the lens's does. */
+
+.bm-veil {
+  position: absolute;
+  inset: 0;
+}
+
+/* On each photograph, not on the stack: a filter on the stack would be
+   re-run on every frame of a dissolve, where one on a still photograph is
+   drawn once. */
+.bm-dim {
+  filter: brightness(var(--bm-bright)) saturate(var(--bm-sat))
+    blur(var(--bm-blur));
+}
+
+.bm-shot {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+
+.bm-shot[data-first] {
+  opacity: 1;
+}
+
+/* Grain over the dark only (the beam sits above it, clear): fractal noise at
+   a pixel's grain, overlaid, the recipe disposable-mode's film carries, until
+   ASSETS row 15's grain tile lands for the whole site. */
+.bm-grain {
+  position: absolute;
+  inset: 0;
+  opacity: var(--bm-grain-o);
+  mix-blend-mode: overlay;
+  background-size: var(--bm-grain-tile) var(--bm-grain-tile);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 1.6 -0.3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.bm-band {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--bm-w);
+  height: 100%;
+  overflow: hidden;
+  transform: translateX(var(--bm-x0));
+  /* Soft at both sides, and faded in under the header and out at the foot:
+     two masks, kept where both are opaque. */
+  mask-image:
+    linear-gradient(
+      to right,
+      transparent 0%,
+      black var(--bm-edge),
+      black calc(100% - var(--bm-edge)),
+      transparent 100%
+    ),
+    linear-gradient(
+      to bottom,
+      transparent 0%,
+      black var(--bm-fade-top),
+      black var(--bm-fade-foot),
+      transparent 100%
+    );
+  mask-composite: intersect;
+}
+
+.bm-view {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--pvh-w);
+  height: 100%;
+  transform: translateX(calc(-1 * var(--bm-x0)));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .bm-band {
+    animation: var(--bm-name) var(--bm-slot) linear infinite;
+  }
+  .bm-view {
+    animation: var(--bm-name-view) var(--bm-slot) linear infinite;
+  }
+  .bm-shot {
+    animation: var(--bm-name-shot) var(--bm-cycle) linear infinite;
+    animation-delay: var(--bm-delay);
+  }
+}
+
+/* ── The glimpse: soft spots opening in place ─────────────────────────────
+   The drift's own veil, laid full-bleed (the photograph blurred and at 55
+   percent over the ground); over it, one soft round spot per place, each the
+   sharp photograph cut to a feathered circle. A spot blooms (it grows the
+   last twelfth of its size as it opens, its photograph counter-scaled so the
+   picture itself never swells), holds, and fades; every spot runs one set of
+   keyframes offset by its turn. */
+
+/* The same box as every spot's view, so the two line up; the blur's own
+   falloff at the canvas's edge is a soft vignette under the scrim's falls. */
+.glm-veil {
+  position: absolute;
+  inset: 0;
+  opacity: var(--glm-base-o);
+  filter: blur(var(--glm-blur));
+}
+
+.glm-spot {
+  position: absolute;
+  top: calc(var(--glm-y) - var(--glm-d) / 2);
+  left: calc(var(--glm-x) - var(--glm-d) / 2);
+  width: var(--glm-d);
+  height: var(--glm-d);
+  overflow: hidden;
+  opacity: 0;
+  mask-image: radial-gradient(
+    closest-side,
+    black 0%,
+    black var(--glm-core),
+    transparent 100%
+  );
+}
+
+.glm-spot[data-first] {
+  opacity: 1;
+}
+
+.glm-view {
+  position: absolute;
+  top: calc(var(--glm-d) / 2 - var(--glm-y));
+  left: calc(var(--glm-d) / 2 - var(--glm-x));
+  width: var(--pvh-w);
+  height: var(--pvh-h);
+  transform-origin: var(--glm-x) var(--glm-y);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .glm-spot {
+    animation: var(--glm-name) var(--glm-cycle) linear infinite;
+    animation-delay: var(--glm-delay);
+  }
+  .glm-view {
+    animation: var(--glm-name-view) var(--glm-cycle) linear infinite;
+    animation-delay: var(--glm-delay);
+  }
+}

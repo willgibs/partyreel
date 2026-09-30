@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { FailurePaths } from "@/components/auth/failure-paths";
 import { Button } from "@/components/ui/button";
+import { ClientForm } from "@/components/ui/client-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { doorFailure } from "@/lib/auth/door-failure";
@@ -103,7 +104,7 @@ export function SignIn({
           }}
         />
       )}
-      <form
+      <ClientForm
         onSubmit={(e) => {
           e.preventDefault();
           submit();
@@ -164,7 +165,7 @@ export function SignIn({
         >
           {pending ? "Signing in…" : "Sign in"}
         </Button>
-      </form>
+      </ClientForm>
       {/* Promoting a link means the link goes (the board's own capture): while
           the refusal is up, its "Send a new code" button IS this link, and
           drawing both showed the same way out twice inside one card. */}
@@ -225,7 +226,7 @@ export function SetInitialPassword({
   }
 
   return (
-    <form
+    <ClientForm
       onSubmit={(e) => {
         e.preventDefault();
         submit();
@@ -277,6 +278,6 @@ export function SetInitialPassword({
       >
         {pending ? "Saving…" : submitLabel}
       </Button>
-    </form>
+    </ClientForm>
   );
 }

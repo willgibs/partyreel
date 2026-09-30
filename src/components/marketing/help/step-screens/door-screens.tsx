@@ -4,9 +4,14 @@ import {
   Camera,
   ChevronLeft,
   CircleCheckIcon,
+  Download,
   Flag,
+  Heart,
   Images,
+  Link2,
   Search,
+  Share2,
+  X,
 } from "lucide-react";
 import Image from "next/image";
 import type { ReactNode } from "react";
@@ -399,130 +404,157 @@ function MailSearchScreen() {
   );
 }
 
-/* ── The report path: the discreet control at the album's foot (`event-experience.tsx`,
-   `report-dialog.tsx`), quoted rather than mounted — its own open state and its toast are not
-   reachable through a prop, so the shell and the words are drawn from the real classes and the
-   real strings instead. Past the door the album is real, never blurred: only what is not yet
-   earned stays behind a blur. ─────────────────────────────────────────────────────────────── */
+/* ── The report path: a photo's own Report in the viewer, and the form it opens
+   (`media-lightbox-parts/actions.tsx`, `guest/report-dialog.tsx`), quoted rather than mounted: the
+   viewer is a portalled dialog with the album's gestures under it, and the form's open state, its
+   session read and its toast are not reachable through a prop, so the shells and the words are
+   drawn from the real classes and the real strings instead. ────────────────────────────────── */
 
-const REPORT_ALBUM = [
-  "wedding-golden",
-  "reception-table",
-  "party-balloons",
-  "wedding-toast",
-  "concert-confetti",
-  "wedding-rings",
-] as const;
+/** The photograph the article's example reports (a child at a party). */
+const REPORTED = "party-balloons";
 
-/** The event page's own foot: the album, then the hairline and the discreet Report row. */
-function ReportPageBehind() {
+/** The report dialog's own title for a photo (`TITLE.photo`, quoted). */
+const REPORT_PHOTO_TITLE = "Report this photo";
+
+type ReportStep = "open" | "reason" | "sent";
+
+/**
+ * The photo viewer as it stands over the album (`media-lightbox.tsx`): the ground is the album blurred
+ * and dimmed (the door's own ground, `AlbumBehind`), the photograph fit to the width, the sender's
+ * credit top left and Close top right, and the action capsule at the foot in the order the guest's
+ * viewer draws it: like and its count, Save, Share, Copy link, and Report, the flag. `marked` picks
+ * that flag out the way a finger would point at it.
+ */
+function ViewerBehind({ marked = false }: { marked?: boolean }) {
   return (
-    <div aria-hidden className="absolute inset-0 flex flex-col bg-background">
-      <div className="grid grid-cols-3 gap-0.5">
-        {REPORT_ALBUM.map((id) => (
-          <span
-            key={id}
-            className="relative block aspect-square overflow-hidden"
-          >
-            <Image
-              src={marketingImage(id).src}
-              alt=""
-              fill
-              sizes="125px"
-              className="object-cover"
-            />
-          </span>
-        ))}
-      </div>
-      <footer className="mx-3 mt-8 flex justify-center border-t border-border/60 pt-5">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-muted-foreground"
-          tabIndex={-1}
+    <div aria-hidden className="absolute inset-0">
+      <AlbumBehind />
+      <span className="absolute inset-x-0 top-[40%] block aspect-[3/2] -translate-y-1/2">
+        <Image
+          src={marketingImage(REPORTED).src}
+          alt=""
+          fill
+          sizes="375px"
+          className="object-contain"
+        />
+      </span>
+      <span className="absolute top-2.5 left-2.5 flex items-center gap-2 rounded-full bg-black/45 py-1 pr-3 pl-1 text-sm text-white">
+        <span className="flex size-7 items-center justify-center rounded-full bg-white/15 text-caption font-medium">
+          P
+        </span>
+        Priya
+      </span>
+      <span className="absolute top-2.5 right-2.5 flex size-8 items-center justify-center rounded-full bg-black/45 text-white">
+        <X className="size-4" />
+      </span>
+      <span className="absolute inset-x-0 bottom-7 flex justify-center">
+        <span
+          data-lightbox-capsule
+          className="flex items-center gap-3 rounded-full bg-black/55 px-4 py-2.5 text-white/80"
         >
-          <Flag /> Report
-        </Button>
-      </footer>
+          <Heart className="size-5" />
+          <span className="-ml-1.5 text-caption tabular-nums">12</span>
+          <Download className="size-5" />
+          <Share2 className="size-5" />
+          <Link2 className="size-5" />
+          <span
+            className={cn(
+              "-m-1 flex rounded-full p-1",
+              marked && "bg-warning/25 text-white ring-2 ring-warning/80",
+            )}
+          >
+            <Flag className="size-5" />
+          </span>
+        </span>
+      </span>
     </div>
   );
 }
 
-type ReportStep = "open" | "reason" | "sent";
-
-/** The report dialog's dialog shape (`popup.tsx`'s `data-shape="dialog"`, quoted: a `Popup` portals
- *  to the top document, which escapes the phone's own iframe, so its shell is redrawn here rather
- *  than mounted). */
-function ReportScreen({ step }: { step: ReportStep }) {
-  if (step === "sent") {
-    return (
-      <div className="relative h-full">
-        <ReportPageBehind />
-        <div className="absolute inset-x-4 top-20 flex items-center gap-2 rounded-float bg-popover px-4 py-3 text-sm text-popover-foreground shadow-layer ring-1 ring-foreground/10">
-          <CircleCheckIcon className="size-4 shrink-0 text-success" />
-          Thanks. Your report has been sent for review.
-        </div>
-      </div>
-    );
-  }
-  // The form as it opens (admin-triage r2, `harm=kinds`): what it is first, then the words; the reason step
-  // picks the kind a parent picks and says which photo, in the article's own example.
-  const picked = step === "reason" ? "consent" : null;
-  const reason =
-    step === "reason"
-      ? "The third photo from the top is of my child, and nobody asked us before posting it."
-      : "";
+/**
+ * The report form for a photograph, in the dialog shape a phone opens it in (`popup.tsx`'s
+ * `data-shape="dialog"`, quoted: a `Popup` portals to the top document, which escapes the phone's own
+ * iframe, so its shell is redrawn here rather than mounted). It stands over the viewer it was opened
+ * from, whose capsule shows the flag it came from (`ViewerBehind`), and it carries what only a photograph's
+ * form does: its title, and the row that names the one photograph. A kind is picked the way a parent
+ * picks it, with the article's own note in the Reason box.
+ *
+ * ★ IT IS DRAWN AT THE HEIGHT A PHONE GIVES IT, NOT THE FRAME'S. The form is about 770 tall (measured;
+ * the six kinds are 38 each) and a real 812 phone gives its dialog 780 to stand in; this frame is 640,
+ * so the dialog's contents are `zoom`ed to 75%, as the desk screens are, which leaves the box about
+ * 580 with room to spare for a font that sets a line taller. The box itself keeps the 343 a phone gives
+ * it (a percentage width is not scaled by zoom, so the text wraps as it would at 457), and nothing
+ * is cropped: at 100% the Reason box, the step's own subject, fell below the fold.
+ */
+function ReportForm() {
+  const picked = "consent";
   return (
-    <div className="relative h-full">
-      <ReportPageBehind />
-      <div aria-hidden className="absolute inset-0 bg-black/10" />
-      <div className="absolute inset-x-4 top-1/2 flex max-h-[calc(100%-2rem)] -translate-y-1/2 flex-col overflow-hidden rounded-float bg-popover text-popover-foreground shadow-layer ring-1 ring-foreground/10">
+    <div className="absolute inset-x-4 top-1/2 -translate-y-1/2">
+      <div
+        style={{ zoom: 0.75 }}
+        className="flex w-full flex-col overflow-hidden rounded-float bg-popover text-sm text-popover-foreground shadow-layer ring-1 ring-foreground/10"
+      >
         <div className="flex shrink-0 flex-col gap-1 p-4 pr-12">
           <p className="font-heading text-card-title text-pretty text-foreground">
-            Report this event
+            {REPORT_PHOTO_TITLE}
           </p>
           <p className="text-sm text-pretty text-muted-foreground">
             Tell us what&rsquo;s wrong and our team will review it. The host is
             never told who reported.
           </p>
         </div>
-        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 pb-4">
-          <div
-            className={cn(
-              "flex flex-col gap-2 rounded-md",
-              step === "reason" &&
-                "bg-warning/15 ring-2 ring-warning/70 ring-offset-2 ring-offset-popover",
-            )}
-          >
-            <p className="text-sm leading-none font-medium">What is it?</p>
-            <ul className="space-y-1">
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="absolute top-2 right-2"
+          tabIndex={-1}
+        >
+          <X />
+        </Button>
+        <div className="min-h-0 flex-1 space-y-4 px-4 pb-4">
+          <div className="flex items-center gap-3 rounded-lg border bg-muted/40 p-2">
+            <span className="relative block size-12 shrink-0 overflow-hidden rounded-md">
+              <Image
+                src={marketingImage(REPORTED).src}
+                alt=""
+                fill
+                sizes="48px"
+                className="object-cover"
+              />
+            </span>
+            <p className="text-working">This photo, and only this one</p>
+          </div>
+
+          <fieldset className="space-y-1.5">
+            <legend className="mb-1.5 text-sm leading-none font-medium">
+              What is it?
+            </legend>
+            <ul className="space-y-1.5">
               {REPORT_KINDS.map((k) => (
-                <li
-                  key={k}
-                  className={cn(
-                    "flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-caption",
-                    picked === k
-                      ? "border-foreground bg-muted/60"
-                      : "border-border",
-                  )}
-                >
-                  <span
-                    aria-hidden
+                <li key={k}>
+                  <label
                     className={cn(
-                      "flex size-3.5 shrink-0 items-center justify-center rounded-full border",
+                      "flex items-center gap-2.5 rounded-md border px-3 py-2 text-working",
                       picked === k
-                        ? "border-foreground"
-                        : "border-muted-foreground/50",
+                        ? "border-foreground bg-muted/60"
+                        : "border-border",
                     )}
                   >
-                    {picked === k ? (
-                      <span className="size-1.5 rounded-full bg-foreground" />
-                    ) : null}
-                  </span>
-                  {KIND_WORDS[k]}
+                    <input
+                      type="radio"
+                      readOnly
+                      tabIndex={-1}
+                      checked={picked === k}
+                      className="size-4 shrink-0 accent-foreground"
+                    />
+                    {KIND_WORDS[k]}
+                  </label>
                 </li>
               ))}
             </ul>
+          </fieldset>
+
+          <div className="space-y-2">
             <Label>
               Reason{" "}
               <span className="font-normal text-muted-foreground">
@@ -532,18 +564,61 @@ function ReportScreen({ step }: { step: ReportStep }) {
             <Textarea
               rows={3}
               readOnly
-              value={reason}
+              value="The third photo from the top is of my child, and nobody asked us before posting it."
               placeholder="What's the problem here?"
             />
           </div>
+
+          <div className="space-y-1.5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-sm font-medium">
+                Your email{" "}
+                <span className="font-normal text-muted-foreground">
+                  (optional)
+                </span>
+              </p>
+              <Button type="button" variant="outline" size="sm" tabIndex={-1}>
+                Confirm your email
+              </Button>
+            </div>
+            <p className="text-caption text-pretty text-muted-foreground">
+              Only so we can ask for more if we need it. It&rsquo;s deleted when
+              the report closes.
+            </p>
+          </div>
         </div>
-        <div className="flex shrink-0 flex-col-reverse gap-2 border-t bg-muted/50 p-4 sm:flex-row sm:justify-end">
+        <div className="flex shrink-0 flex-col-reverse gap-2 border-t bg-muted/50 p-4">
           <Button variant="outline" tabIndex={-1}>
             Cancel
           </Button>
           <Button tabIndex={-1}>Submit report</Button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function ReportScreen({ step }: { step: ReportStep }) {
+  if (step === "reason") {
+    return (
+      <div className="relative h-full">
+        <ViewerBehind />
+        <div aria-hidden className="absolute inset-0 bg-black/10" />
+        <ReportForm />
+      </div>
+    );
+  }
+  // Back in the viewer after Submit report (the form closes and lands there), with the toast the
+  // page raises: `Toaster`'s top band, clear of the header.
+  return (
+    <div className="relative h-full">
+      <ViewerBehind marked={step === "open"} />
+      {step === "sent" && (
+        <div className="absolute inset-x-4 top-20 flex items-center gap-2 rounded-float bg-popover px-4 py-3 text-sm text-popover-foreground shadow-layer ring-1 ring-foreground/10">
+          <CircleCheckIcon className="size-4 shrink-0 text-success" />
+          Thanks. Your report has been sent for review.
+        </div>
+      )}
     </div>
   );
 }

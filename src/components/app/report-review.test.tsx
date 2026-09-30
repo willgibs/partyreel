@@ -191,3 +191,46 @@ describe("the worst kinds stay covered in the closed log (build 23's NIT-7)", ()
     expect(within(plain).queryByRole("img", { name: "Covered" })).toBeNull();
   });
 });
+
+describe("a report whose item is gone reads as that item's (crumbs-21, migration 20260929231000)", () => {
+  it("★ says a photo or a video was deleted, where an album report draws its plain square", () => {
+    const closed = (id: string, over: Partial<ReviewReport>) =>
+      report({
+        id,
+        status: "dismissed",
+        resolved_at: "2026-09-28T23:00:00.000Z",
+        media: null,
+        ...over,
+      });
+    render(
+      <ReportReviewList
+        reports={[
+          closed("11111111-1111-4111-8111-111111111111", {
+            deleted: { id: "m9", type: "video" },
+          }),
+          closed("22222222-2222-4222-8222-222222222222", {
+            deleted: { id: "m8", type: null },
+          }),
+          closed("33333333-3333-4333-8333-333333333333", { deleted: null }),
+        ]}
+      />,
+    );
+    const [video, unknown, album] = [
+      ...document.querySelectorAll("[data-closed-report]"),
+    ] as HTMLElement[];
+    expect(
+      within(video).getByRole("img", { name: "Video, deleted" }),
+    ).toHaveAttribute(
+      "title",
+      "The video was deleted. The report still names it.",
+    );
+    // Before the migration stands the kind is unknown, and the line still says an item, never an album.
+    expect(
+      within(unknown).getByRole("img", { name: "Item, deleted" }),
+    ).toBeInTheDocument();
+    expect(album.querySelector("[data-report-deleted]")).toBeNull();
+    for (const line of [video, unknown, album]) {
+      expect(line.querySelector("img, video")).toBeNull();
+    }
+  });
+});

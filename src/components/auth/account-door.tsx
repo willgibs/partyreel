@@ -11,6 +11,7 @@ import {
   type DoorVerified,
 } from "@/components/auth/email-sign-in";
 import { FailurePaths } from "@/components/auth/failure-paths";
+import { EarlyPressButton } from "@/components/auth/early-press-button";
 import { GoogleIcon } from "@/components/auth/google-icon";
 import { SetInitialPassword, SignIn } from "@/components/auth/password-sign-in";
 import { DoorHeading, type DoorHead } from "@/components/guest/door/heading";
@@ -392,7 +393,9 @@ export function AccountDoor({
     loginHint?: string,
     variant: "default" | "outline" = "outline",
   ) => (
-    <Button
+    // ★ A TAP BEFORE THE PAGE COULD HEAR IT IS ANSWERED, NOT LOST (`early-press.ts`): this button's
+    // whole answer is its handler, so the first tap on a cold phone reached nothing.
+    <EarlyPressButton
       type="button"
       variant={variant}
       className={cn(
@@ -403,7 +406,7 @@ export function AccountDoor({
       disabled={busy}
     >
       <GoogleIcon /> {label}
-    </Button>
+    </EarlyPressButton>
   );
 
   const body = () => {

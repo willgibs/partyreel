@@ -18,6 +18,7 @@ import {
   ResponsiveMenu,
   ResponsiveMenuItem,
 } from "@/components/ui/responsive-menu";
+import { loginPath } from "@/lib/auth/return-path";
 import { showActionError } from "@/lib/errors/toast";
 import { formatCount } from "@/lib/format/count";
 import {
@@ -264,7 +265,7 @@ export function StorageListBody({
         window.location.assign(outcome.url);
         return;
       case "signin":
-        router.push("/login");
+        router.push(loginPath(window.location.pathname));
         return;
       case "refused":
         // Stored grew since the list opened (a guest kept uploading): the count re-bases on the

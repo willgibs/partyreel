@@ -51,6 +51,35 @@ describe("displayNameSchema", () => {
     expect(displayNameSchema.parse("Adminah")).toBe("Adminah");
     expect(displayNameSchema.parse("Hosta")).toBe("Hosta");
   });
+
+  // ★ The brand reaches names (crumbs-20): alone in any disguise, or beside a staff word. The rule is
+  // `isReservedName`'s (reserved-names.test.ts pins its reading both ways, and each door's own gate);
+  // this is the schema asking it, which is what every door reads.
+  it("rejects the brand beside a staff word, and the brand alone in a disguise", () => {
+    for (const name of [
+      "Partyreel Support",
+      "The Party-Reel Team",
+      "Official Partyreel",
+      "PartyreelSupport",
+      "P4rtyr33l",
+      "Party  Reel",
+    ]) {
+      const result = displayNameSchema.safeParse(name);
+      expect(result.success, name).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0]?.message).toBe(
+          "That name isn't available.",
+        );
+      }
+    }
+  });
+
+  it("allows the brand beside a name: a fan is not the staff", () => {
+    expect(displayNameSchema.parse("Sam Partyreel")).toBe("Sam Partyreel");
+    expect(displayNameSchema.parse("Partyrel Support")).toBe(
+      "Partyrel Support",
+    );
+  });
 });
 
 describe("profileSlugSchema", () => {

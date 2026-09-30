@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { RESERVED_NAMES } from "@/lib/constants/reserved-names";
+import { isReservedName, RESERVED_NAMES } from "@/lib/constants/reserved-names";
 import {
   BRAND_NAME_MESSAGE,
   isBrandSlug,
@@ -17,8 +17,10 @@ export const DISPLAY_NAME_GUIDANCE =
 
 // Public display name (uploader attribution + the "Hosted by" byline). REQUIRED now: every account
 // always has one (Phase 1 identity foundation), so there is no blank-clears-it path anymore. Min 1
-// allows short real names ("AJ", "MJ"). Reserved-name check blocks impersonation ("admin",
-// "partyreel"); PROFANITY is enforced separately, server-side, in updateDisplayNameAction (the
+// allows short real names ("AJ", "MJ"). Reserved-name check blocks impersonation: a reserved word
+// whole ("admin") and the brand alone or beside a staff word ("Partyreel Support"), in ONE home
+// (`isReservedName`, reserved-names.ts) that every door a name comes through reads, through this
+// schema; PROFANITY is enforced separately, server-side, in updateDisplayNameAction (the
 // obscenity matcher must not ship to the client). Re-parsed server-side on every write.
 export const displayNameSchema = z
   .string()
@@ -28,7 +30,7 @@ export const displayNameSchema = z
     DISPLAY_NAME_MAX_LENGTH,
     `Keep your name under ${DISPLAY_NAME_MAX_LENGTH} characters.`,
   )
-  .refine((name) => !RESERVED_NAMES.has(name.toLowerCase()), {
+  .refine((name) => !isReservedName(name), {
     message: "That name isn't available.",
   });
 
