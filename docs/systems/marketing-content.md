@@ -369,9 +369,10 @@ Six `not-found.tsx` files share one presentational core, `shared/not-found-scree
   contrast; the trail needs layout, so without scripting a reader gets the words and links on clean paper. ★ It loads
   lazily (`trail.lazy.tsx`, a client module's `import()`, which Next does split): a root `not-found.tsx`'s whole tree
   rides EVERY route's payload, its stylesheets preloaded and its client chunks fetched on every page, so nothing
-  imported eagerly under the 404 may import CSS or the trail's code (`trail-lazy.test.ts`). The whole 404 tree measured
-  about 110 KB of HTML and 43 to 56 KB of gzipped JS on every page load (crumbs-22, against a root 404 that rendered
-  nothing), of which the trail's own code was about 3 KB.
+  imported eagerly under the 404 may import CSS or the trail's code (`trail-lazy.test.ts`). The rest of the 404's tree
+  (the marketing chrome) still rides every page: about 110 KB of HTML and 43 to 56 KB of gzipped JS on a page load
+  (crumbs-22, against a root 404 that rendered nothing, with the trail already lazy; the trail's own code had added
+  about 3 KB more).
 
 ## The demo (marketing side)
 
