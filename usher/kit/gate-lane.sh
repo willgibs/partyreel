@@ -88,7 +88,7 @@ else
       # warm re-run): one retry on the warm server; both logs kept; the exit is the last attempt's.
       t=$SECONDS; DEMO=1
       for a in 1 2; do
-        perl -e 'alarm 420; exec @ARGV' pnpm -s lab:demo "${DEMOARGS[@]}" --base http://localhost:$PORT > "$S/gate$N-demo-$a.log" 2>&1; DEMO=$?
+        perl -e 'alarm 900; exec @ARGV' pnpm -s lab:demo "${DEMOARGS[@]}" --base http://localhost:$PORT > "$S/gate$N-demo-$a.log" 2>&1; DEMO=$?
         tail -14 "$S/gate$N-demo-$a.log"; [ "$DEMO" = 0 ] && break; echo "lab:demo attempt $a red; retrying warm"
       done
       cp "$S/gate$N-demo-$a.log" "$S/gate$N-demo.log"

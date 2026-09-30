@@ -75,17 +75,23 @@ words asking for one winner, every option previewed whole on the real surface wi
 pick and an optional note. A few designed variations beat any amount of argument: no verdict essays, no keep / refine
 / kill over N cards.
 
-**Context comes before the options.** He decides across every open board at once, so a question never drops him in
-the middle of a screen: it opens with where it happens (the surface and the moment), the combination of state that
-brings someone there, and what is being decided and why it matters; each option says in a line what it gains and what
-it costs; the recommendation gives its reason in a line; a board opens with what it is about and what is already
-settled, his earlier picks and notes included. A term a board coins gets its plain meaning where it first appears. He
-should never have to click through the options to learn what he is being asked.
+**The pictures come first, and he can always place them.** He decides across every open board at once, and the drawn
+options are what he opens a question for, so a step reads, on the first screen at a desk and at a phone: where it
+happens in one line (the surface and the moment, and the state that brings someone there), the question sized to read,
+the options as tabs, the shown option's sentence with its gain and its cost in a line, its knobs in one quiet row, and
+every frame of it whole above the dock. Everything else a board knows (what it is about and what is settled, his
+earlier picks and notes, what the question decides and why it matters, the recommendation's reason, the words it coins)
+is one press away in the step's About, which stays open once he opens it, and a coined word is marked where it appears.
+So an author still writes all of it, a line each: it is what lets him place any question the moment he wants to. He
+should never have to click through the options to learn what he is being asked, nor read a screen of words to reach
+them.
 
 - Author with `defineExploration` (`@/components/lab/exploration`, a spec's one import) and draw with the kit's front
-  door (`@/components/lab`); the newest board built on it is the worked example. Its context layer is an ask's `where`
-  (a breadcrumb), `when` and `matters` beside `lands`, each option's `gains` and `costs`, `because` in a line, and the
-  board's `opening` (`about`, `settled`, `earlier`) and `terms`; `registry.test.ts` refuses an open ask without them.
+  door (`@/components/lab`); the newest board built on it is the worked example. Its context layer is an ask's `where` (a breadcrumb), `when` and `matters` beside `lands`, each option's `gains` and
+  `costs`, `because` in a line, and the board's `opening` (`about`, `settled`, `earlier`) and `terms`: the step prints
+  the first two in its one line of where, the option's in its line over the stage, and the rest in About;
+  `registry.test.ts` refuses an open ask without them, and `lab:demo` fails a step whose stage starts past half the
+  first screen or whose frames end under the dock.
 - Shape a big goal progressively (`after` stages a question behind another answer); more rounds of narrower questions
   beat one wide one.
 - Options are real contenders for one decision, as far apart as the real answers are: pushed apart for the
