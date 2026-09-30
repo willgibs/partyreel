@@ -122,7 +122,7 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
   touch; `names` retired into `slug`) and `about-press` r1 (two: the press kit on /about, its four facts; press-page's
   `a-human` retired as the carried call `named`) reach him with build 26; `privacy-hero` r4 (one: which veil, the lens
   recommended) with build 27.
-- **His answer on the calls file** (47 calls to overrule, numbered, one a lane through crumbs-27; compiled from each
+- **His answer on the calls file** (48 calls to overrule, numbered, one a lane through desk-tune-2; compiled from each
   merge's "Calls his to overrule", `git show <merge>^2:docs/tracks/<track>.md`, with a copy in this session's
   scratchpad, `relay-calls.md`): A, the proof mail (recommended off until the emails round) and B, the instant-hide
   bar's permanence (recommended permanent until launch).
