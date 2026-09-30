@@ -32,58 +32,8 @@ import {
 import type { Pick } from "@/components/guest/upload/review-step";
 import { DoorHeading } from "@/components/guest/door/heading";
 import { Button } from "@/components/ui/button";
-import { SESSION_OTHER_ACCOUNT } from "@/lib/guest/session-owner";
+import { classifyRefusal, type RefusalClass } from "@/lib/guest/upload-refusal";
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
-
-/**
- * THE REFUSAL LADDER, read once (`src/lib/errors/codes.ts` + the presign ladder). What a guest can
- * DO about a failure is a property of the code, not of the file, and the door's step has no exit,
- * so "Retry" is only ever offered where a retry could work.
- *
- *   refresh   the event's state changed under the guest and the server must be re-asked. This is
- *             the fail-open path: uploads closed, the album full, the event gone, a lock raised.
- *   session   the capability is dead. Never a Retry inside a sheet with no way out: the step goes
- *             back to the name, which mints a fresh row.
- *   verify    the host turned Require verified emails on mid-run; the email step is the way in.
- *   retry     transport, R2, a bad key, a failed completion: the same file may well go next time.
- *   choose    the file itself is the problem, so only a different file can help.
- */
-export type RefusalClass =
-  | "refresh"
-  | "session"
-  | "verify"
-  | "retry"
-  | "choose";
-
-export function classifyRefusal(code: string | undefined): RefusalClass {
-  switch (code) {
-    case "uploads_closed":
-    case "cap_reached":
-    case "event_gone":
-    case "event_deleted":
-    case "unlock_required":
-      return "refresh";
-    case "invalid_session":
-    // A ticket that was not this viewer's. The queue never leaves it on a file (the ticket goes
-    // down and the file waits for a new one), so this is the ladder staying complete: the
-    // capability is the problem, never the photograph.
-    case SESSION_OTHER_ACCOUNT:
-      return "session";
-    case "verification_required":
-      return "verify";
-    case "video_not_allowed":
-    case "unsupported_type":
-    case "invalid_file":
-    case "invalid_image":
-    case "invalid_media":
-    case "too_large":
-    case "too_long":
-      return "choose";
-    default:
-      // `bad_key`, `complete_failed`, a code-less transport or R2 failure: worth another go.
-      return "retry";
-  }
-}
 
 /** The whole run's verdict: what the step should show once nothing is queued or uploading. */
 export function classifyRun(failures: readonly QueueItem[]): RefusalClass {
@@ -103,6 +53,7 @@ export function UploadStep({
   requireUpload,
   albumEmpty,
   capBytes,
+  acceptsVideo = true,
   queue,
   onSend,
   onRetry,
@@ -117,6 +68,8 @@ export function UploadStep({
   /** Nothing in the album yet: the line offers the first photograph instead of a queue. */
   albumEmpty: boolean;
   capBytes?: number | null;
+  /** Whether this album takes a video from a guest (the picker's own note). */
+  acceptsVideo?: boolean;
   /** The lifted queue's snapshot (this step never owns one). */
   queue: readonly QueueItem[];
   onSend: (files: File[]) => void;
@@ -175,6 +128,7 @@ export function UploadStep({
     id: it.id,
     file: it.file,
     error: it.error,
+    code: it.errorCode,
   }));
 
   if (sending) {
@@ -286,6 +240,7 @@ export function UploadStep({
         picks={picks}
         onPicks={setPicks}
         capBytes={capBytes}
+        acceptsVideo={acceptsVideo}
         onSend={(files) => {
           setPicks([]);
           onSend(files);

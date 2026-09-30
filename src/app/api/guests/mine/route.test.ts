@@ -36,19 +36,24 @@ vi.mock("@/lib/security/abuse-rate-limit-store", () => ({
   recordAbuseEvent: (...args: unknown[]) => recordAbuseEvent(...args),
 }));
 vi.mock("@/lib/observability/sentry", () => ({ captureWarning: vi.fn() }));
-
-// ★ THE CLOSED DOOR (the per-event block, 20260928120000): a private album, or a ticket a block holds.
-// Its own rule is closed-door.server.test.ts's; here a held ticket stands in for one, so the route's
-// answer to it can be read against its answer to a private album, word for word.
-const ticketBlocked = vi.fn();
-vi.mock("@/lib/events/closed-door.server", () => ({
-  isClosedDoor: async (
-    event: { visibility?: string },
-    tickets: unknown[] = [],
-  ) =>
-    event.visibility === "private" ||
-    (await ticketBlocked(event, tickets)) === true,
+// Whose the body's ticket is to a signed-in viewer is `session-owner.server.ts`'s (its own pins); here the
+// answer is handed in: by default the ticket is hers, and a test sets it aside.
+const sortTickets = vi.fn();
+vi.mock("@/lib/guest/session-owner.server", () => ({
+  sortTickets: (...args: unknown[]) => sortTickets(...args),
 }));
+
+// ★ THE DOOR (the doors, 20260929120000): a private album, or a ticket a block holds, shuts it. Its own
+// rule is decide.test.ts's and closed-door.server.test.ts's; here a held ticket stands in for a shut
+// door, so the route's answer to it can be read against its answer to a private album, word for word.
+const ticketBlocked = vi.fn();
+const callerOptions = vi.fn();
+vi.mock("@/lib/events/closed-door.server", async () =>
+  (await import("@/lib/events/testing/door-double")).doorDouble({
+    blocked: (event, tickets) => ticketBlocked(event, tickets),
+    callerOptions: (options) => callerOptions(options),
+  }),
+);
 
 const { POST } = await import("@/app/api/guests/mine/route");
 
@@ -82,6 +87,14 @@ beforeEach(() => {
   listSessionMediaIds.mockResolvedValue([]);
   listOwnUploadStatuses.mockResolvedValue([]);
   getUser.mockResolvedValue({ data: { user: null } });
+  sortTickets
+    .mockReset()
+    .mockImplementation(
+      async (_viewer: string | null, tickets: readonly string[]) => ({
+        hers: [...tickets],
+        others: [],
+      }),
+    );
 });
 
 describe("the list is the server's, for the token that was posted", () => {
@@ -252,6 +265,68 @@ describe("statuses: her own uploads, with where each stands", () => {
         .status,
     ).toBe(200);
     expect(listOwnUploadStatuses).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * A SIGNED-IN ACCOUNT'S OWN READS ON A SHARED PHONE (crumbs-27, the read side of crumbs-26's owner rule). The
+ * route answers "which are mine" for the account beside the ticket the phone still holds for the album; the
+ * ticket speaks for her only as far as it is hers (her own row, or one the claim takes), or another guest's
+ * photographs were listed as hers, with a Remove control, and their statuses filled her tracker.
+ */
+describe("★ a signed-in account reads only tickets that are hers", () => {
+  const signedIn = () =>
+    getUser.mockResolvedValue({ data: { user: { id: "user-1" } } });
+
+  it("a ticket that is not hers lists nothing, and another guest's rows are never read", async () => {
+    signedIn();
+    sortTickets.mockResolvedValue({ hers: [], others: [MINE] });
+    expect(await ids({ qr_token: TOKEN, session_token: MINE })).toEqual([]);
+    expect(sortTickets).toHaveBeenCalledWith("user-1", [MINE]);
+    expect(listSessionMediaIds).not.toHaveBeenCalled();
+  });
+
+  it("a ticket that is hers lists its rows, as ever", async () => {
+    signedIn();
+    listSessionMediaIds.mockResolvedValue(["m1"]);
+    expect(await ids({ qr_token: TOKEN, session_token: MINE })).toEqual(["m1"]);
+    expect(listSessionMediaIds).toHaveBeenCalledWith({
+      eventId: "event-1",
+      sessionToken: MINE,
+    });
+  });
+
+  it("signed out the ticket is the device's, and nobody is asked whose it is", async () => {
+    listSessionMediaIds.mockResolvedValue(["m1"]);
+    expect(await ids({ qr_token: TOKEN, session_token: MINE })).toEqual(["m1"]);
+    expect(sortTickets).toHaveBeenCalledWith(null, [MINE]);
+  });
+
+  it("her tracker reads her account's rows and a ticket only as far as it is hers", async () => {
+    signedIn();
+    sortTickets.mockResolvedValue({ hers: [], others: [MINE] });
+    listOwnUploadStatuses.mockResolvedValue([{ id: "a1", status: "approved" }]);
+    const res = await post({
+      qr_token: TOKEN,
+      session_token: MINE,
+      statuses: true,
+    });
+    await expect(res.json()).resolves.toEqual({
+      ok: true,
+      items: [{ id: "a1", status: "approved" }],
+    });
+    // Her account alone: the phone's ticket is another guest's, so its rows are not asked for.
+    expect(listOwnUploadStatuses).toHaveBeenCalledWith({
+      eventId: "event-1",
+      sessionToken: null,
+      userId: "user-1",
+    });
+  });
+
+  it("a tracker ask with no ticket sorts nothing", async () => {
+    signedIn();
+    await post({ qr_token: TOKEN, statuses: true });
+    expect(sortTickets).not.toHaveBeenCalled();
   });
 });
 

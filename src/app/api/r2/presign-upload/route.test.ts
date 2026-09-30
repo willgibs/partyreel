@@ -50,8 +50,14 @@ vi.mock("@/lib/supabase/admin", () => ({
     }),
   }),
 }));
+// The caller's own client: who is signed in, and the claim, which runs as them (it answers here as a
+// ticket that is not the caller's: nothing taken, the row unchanged).
+const claimRpc = vi.fn();
 vi.mock("@/lib/supabase/server", () => ({
-  createClient: async () => ({ auth: { getUser: () => getUser() } }),
+  createClient: async () => ({
+    auth: { getUser: () => getUser() },
+    rpc: (fn: string, args: unknown) => claimRpc(fn, args),
+  }),
 }));
 
 const { POST } = await import("@/app/api/r2/presign-upload/route");
@@ -128,6 +134,7 @@ beforeEach(() => {
   });
   ticketBelongsTo(null);
   callerIs(null);
+  claimRpc.mockResolvedValue({ data: 0, error: null });
 });
 
 describe("an account's ticket presigns only for that account", () => {
@@ -158,15 +165,43 @@ describe("an account's ticket presigns only for that account", () => {
     expect(presignUpload).toHaveBeenCalled();
   });
 
-  it("accepts a NAME-ONLY row's ticket for anyone, signed out or signed in", async () => {
+  it("accepts a NAME-ONLY row's ticket for someone signed out", async () => {
     ticketBelongsTo(null);
-    for (const caller of [null, OTHER]) {
-      callerIs(caller);
-      const { status } = await presign();
-      expect(status).toBe(200);
-    }
-    // And the anonymous crowd never pays the Auth round trip for it.
-    expect(getUser).not.toHaveBeenCalled();
+    callerIs(null);
+    const { status } = await presign();
+    expect(status).toBe(200);
+    expect(claimRpc).not.toHaveBeenCalled();
+  });
+
+  it("★ refuses a name-only row's ticket to a SIGNED-IN account it is not, and presigns nothing (build 27's red-team)", async () => {
+    // Reshaped on purpose (crumbs-26): this accepted it "for anyone, signed out or signed in", and on a
+    // shared phone a signed-in account's photo went up under the typed name of the visitor before her.
+    // The claim is asked first (a ticket she typed herself is hers to add on); this one it leaves.
+    ticketBelongsTo(null);
+    callerIs(OTHER);
+    const { status, body } = await presign();
+    expect(status).toBe(403);
+    expect(body.code).toBe("session_other_account");
+    expect(claimRpc).toHaveBeenCalledWith("claim_anonymous_uploads", {
+      p_session_tokens: [TOKEN],
+    });
+    expect(presignUpload).not.toHaveBeenCalled();
+  });
+
+  it("presigns on a name-only ticket the claim has just made the caller's", async () => {
+    rowRead
+      .mockResolvedValueOnce({
+        data: { user_id: null, verified_at: null },
+        error: null,
+      })
+      .mockResolvedValueOnce({
+        data: { user_id: OTHER, verified_at: "2026-09-30T08:00:00Z" },
+        error: null,
+      });
+    callerIs(OTHER);
+    const { status } = await presign();
+    expect(status).toBe(200);
+    expect(presignUpload).toHaveBeenCalled();
   });
 
   it("★ outranks the identity gate: a confirmed person's ticket never carries a signed-out visitor past Require verified emails", async () => {

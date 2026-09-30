@@ -35,11 +35,13 @@ beforeEach(() => {
       };
     }),
   );
-  // Leaving for Stripe is a navigation; record where it would go instead.
+  // Leaving for Stripe is a navigation; record where it would go instead. The page is the renewal's
+  // own, so a sign-in it sends the visitor to comes back to it (crumbs-20).
   Object.defineProperty(window, "location", {
     configurable: true,
     value: {
       ...window.location,
+      pathname: "/account/renew",
       replace: (url: string) => {
         replaced.push(url);
       },
@@ -198,9 +200,13 @@ describe("the page", () => {
     expect(calls).toHaveLength(2);
   });
 
-  it("sends a signed-out visitor to sign in", async () => {
+  // Reshaped on purpose (crumbs-20): a signed-out visitor was sent to a bare /login and landed on the
+  // dashboard after signing in, so the mail's button never finished its job. The page now rides.
+  it("sends a signed-out visitor to sign in, and back here after", async () => {
     replies = [{ status: 401, body: { ok: false, code: "unauthorized" } }];
     render(<RenewCheckout />);
-    await waitFor(() => expect(replaced).toEqual(["/login"]));
+    await waitFor(() =>
+      expect(replaced).toEqual(["/login?next=%2Faccount%2Frenew"]),
+    );
   });
 });

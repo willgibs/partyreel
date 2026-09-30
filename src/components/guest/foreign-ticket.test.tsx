@@ -175,7 +175,7 @@ describe("the add-email dialog, holding somebody else's ticket", () => {
 });
 
 describe("the sign-outs put down every ticket on the device", () => {
-  it("★ the guest page's account menu: every token, name and flag, every ticket cookie, then the sign-out", async () => {
+  it("★ the guest page's account menu: every token, name and flag, every ticket cookie, then this device's sign-out", async () => {
     seedDevice();
     answer({
       "/api/me/menu?event=evt-1": [
@@ -199,6 +199,9 @@ describe("the sign-outs put down every ticket on the device", () => {
     fireEvent.click(await screen.findByRole("menuitem", { name: /sign out/i }));
 
     await waitFor(() => expect(signOut).toHaveBeenCalled());
+    // This device alone: a shared phone passing to the next guest never signs the account out of
+    // its own phone and laptop (auth-js's bare signOut() is global).
+    expect(signOut).toHaveBeenCalledWith({ scope: "local" });
     for (const key of [
       `pr_session_${QR}`,
       `pr_guest_name_${QR}`,

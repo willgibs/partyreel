@@ -14,6 +14,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { AlmostIn, DoorHeading } from "@/components/guest/door/heading";
 import { DoorCheckStroke, useDoorLitVars } from "@/components/guest/door/lit";
 import { Button } from "@/components/ui/button";
+import { ClientForm } from "@/components/ui/client-form";
 import { floatingKeyboardFoot } from "@/components/ui/floating-layer";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -112,7 +113,7 @@ export function PasswordGate({
         // and you're in") — why, then the cost, then "and you're in".
         reason="This album is just for the guests. One password and you're in."
       />
-      <form onSubmit={onSubmit} className="w-full space-y-3">
+      <ClientForm onSubmit={onSubmit} className="w-full space-y-3">
         <div className="relative">
           <Input
             ref={inputRef}
@@ -243,7 +244,7 @@ export function PasswordGate({
               : "Opening the album"}
           </p>
         )}
-      </form>
+      </ClientForm>
     </div>
   );
 }

@@ -1,6 +1,6 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   EMPTY_REVIEW,
@@ -18,7 +18,14 @@ import {
   itemHoldId,
 } from "@/app/(dev)/design/(shell)/lab/_desk/step-id";
 
+import {
+  installNextHistory,
+  NextRouterStandIn,
+  type NextHistory,
+} from "@/lib/test-utils/next-history";
+
 import type { BoardState } from "./board-spec";
+import { setLabPref } from "./lab-prefs";
 import { Step, type StepBoard } from "./step";
 
 /**
@@ -217,7 +224,7 @@ const GAP: AskStep = {
   section: "gap",
   control: "gap",
   after: { ask: "pace" },
-  afterRuled: "slow",
+  afterAnswered: "slow",
   boardHref: "/design/lab/hero",
 };
 
@@ -271,7 +278,16 @@ beforeEach(() => {
   push.mockClear();
   setReviewStore(EMPTY_REVIEW);
   window.scrollTo = vi.fn();
+  // About stays open for a reader once opened (lab-prefs.ts), so every case
+  // starts where a new reader does: closed, whole, one line each.
+  setLabPref("about", "closed");
+  setLabPref("stage", "whole");
+  setLabPref("lines", "one");
 });
+
+/** Opens the step's About panel the way a reader does. */
+const openAbout = () =>
+  userEvent.click(screen.getByRole("button", { name: "About" }));
 
 /**
  * ★ THE PREVIEW IS THE PAGE AND THE ANSWER IS A DOCK (2026-09-18).
@@ -324,6 +340,8 @@ describe("a step puts the preview on the page and the answer in a dock", () => {
     // `look` was carried on the step type and dropped by the renderer: on an
     // ask whose options cannot be drawn it is the ONLY instruction there is,
     // and river-visual's four steps shipped without it (found 2026-09-17).
+    // Such a step has no picture, so the line stays in its view (a drawn
+    // step keeps it in About, lab-focus).
     step("light.depth", fakeBoard());
     expect(
       screen.getByText(/The Separate section on the App dark ground\./),
@@ -486,15 +504,19 @@ describe("a step, by its keys", () => {
 });
 
 describe("a step, as a form", () => {
-  it("asks the question in the words a stranger can answer it in", () => {
+  it("asks the question in the words a stranger can answer it in", async () => {
     step("light.depth", fakeBoard());
     expect(screen.getByRole("heading")).toHaveTextContent(DEPTH.question);
-    expect(screen.getByText(DEPTH.context!)).toBeInTheDocument();
-    expect(screen.getByText(DEPTH.lands!)).toBeInTheDocument();
     for (const option of DEPTH.options) {
       expect(screen.getAllByText(option.label).length).toBeGreaterThan(0);
       expect(screen.getByText(option.means!)).toBeInTheDocument();
     }
+    // What the previews draw and what the answer decides are one press away
+    // (lab-focus: the pictures first, everything else in About).
+    expect(screen.queryByText(DEPTH.lands!)).not.toBeInTheDocument();
+    await openAbout();
+    expect(screen.getByText(DEPTH.context!)).toBeInTheDocument();
+    expect(screen.getByText(DEPTH.lands!)).toBeInTheDocument();
   });
 
   it("marks the option the board recommends, and only that one", () => {
@@ -604,7 +626,7 @@ describe("a step, staged behind another", () => {
 
   it("wears the ledger's answer from an earlier sitting when this one holds none", () => {
     const board = fakeBoard();
-    step("hero.gap", board, "hero", [{ ...GAP, ruled: { pace: "slow" } }]);
+    step("hero.gap", board, "hero", [{ ...GAP, answered: { pace: "slow" } }]);
     const gaps = board.drawn.filter(([id]) => id === "gap");
     expect(gaps.every(([, at]) => at.pace === "slow")).toBe(true);
   });
@@ -733,5 +755,275 @@ describe("a step on a catalog", () => {
     expect(screen.getByRole("button", { name: /^Next$/ })).toHaveClass(
       "bg-foreground",
     );
+  });
+});
+
+/**
+ * ★ A WALK WITHIN A BOARD WRITES THE STEP TO THE ADDRESS, AND NEXT HEARS IT (crumbs-16).
+ *
+ * The step moves with `history.replaceState` (a step costs no server round trip). It used to hand
+ * that call the entry's own state, which carries Next's `__NA`: Next takes such a call for its own
+ * and applies no URL, so the shell's `useSearchParams` (`CopyLink`, the sticky links) kept the step
+ * the reader had left, and a `router.refresh()` wrote it back over the bar (measured on the real
+ * desk: walk two steps, refresh, and the bar returned to the first). The stand-in is Next's patch
+ * (`@/lib/test-utils/next-history`), which the router inside the test tree installs AFTER what it
+ * holds has run its mount effects, as Next's does.
+ */
+describe("a walk within a board tells Next where it is", () => {
+  let next: NextHistory;
+  beforeEach(() => {
+    next = installNextHistory();
+  });
+  afterEach(() => {
+    next.uninstall();
+    window.history.replaceState(null, "", "/");
+  });
+
+  const session = () =>
+    new URLSearchParams(window.location.search).get("session");
+
+  it("★ Next moves to the step with the bar, so a refresh keeps it, and the gate key rides along", async () => {
+    next.land("/design/lab/light?key=k&session=light.depth");
+    render(
+      <NextRouterStandIn>
+        <Step
+          boardId="light"
+          steps={QUEUE}
+          param="light.depth"
+          board={fakeBoard()}
+        />
+      </NextRouterStandIn>,
+    );
+    await userEvent.click(screen.getByRole("button", { name: /^Next$/ }));
+    expect(session()).toBe("light.register");
+    expect(next.href).toBe("/design/lab/light?key=k&session=light.register");
+    act(() => next.refresh());
+    expect(session()).toBe("light.register");
+    expect(push).not.toHaveBeenCalled();
+  });
+
+  it("★ a card walked to is on the bar and in Next's copy, even the first (a first-commit write meets the patch)", async () => {
+    next.land("/design/lab/light?key=k&session=light.items");
+    render(
+      <NextRouterStandIn>
+        <Step
+          boardId="light"
+          steps={[CARDS]}
+          param="light.items"
+          board={fakeBoard()}
+        />
+      </NextRouterStandIn>,
+    );
+    await act(async () => {});
+    const card = (search: string) => new URLSearchParams(search).get("card");
+    expect(card(window.location.search)).toBe("ember");
+    expect(card(new URL(next.href, "http://x").search)).toBe("ember");
+    // The first commit's write must not have emptied the entry Next needs to go Back through.
+    expect(window.history.state).toMatchObject({ __NA: true });
+    await userEvent.click(screen.getByRole("button", { name: /Next card/ }));
+    await act(async () => {});
+    expect(card(window.location.search)).toBe("ladder");
+    expect(card(new URL(next.href, "http://x").search)).toBe("ladder");
+    act(() => next.refresh());
+    expect(card(window.location.search)).toBe("ladder");
+  });
+});
+
+/**
+ * ★ CONTEXT COMES BEFORE THE OPTIONS (Will, 2026-09-29: "for some questions
+ * I'm just getting dropped off in the middle of nowhere with no resources to
+ * help"). What is pinned is the ORDER and the presence: where it happens, the
+ * state that brings someone there, what it decides and why, and the
+ * recommendation's reason all precede the first option; the shown option's
+ * gain and cost travel with it; the board opens where the sitting enters it;
+ * a coined word is glossed on the step that says it. Never a look.
+ */
+const OPENING = {
+  about: "The door a guest meets before an album opens.",
+  settled: ["The welcome keeps today's words."],
+  earlier: ["You asked for the host's door, pushed further."],
+};
+
+const TERMS = [
+  {
+    term: "the lit column",
+    means: "One emblem in a pool of light, as today's not-found page.",
+  },
+  { term: "the welcome", means: "The first screen off the printed code." },
+  { term: "a gate", means: "A step a newcomer passes before the album." },
+];
+
+const FAMILY: AskStep = {
+  kind: "ask",
+  board: "door",
+  boardTitle: "The door family",
+  round: 2,
+  askId: "family",
+  question: "Which direction should the lit column take?",
+  where: ["Guest", "The album's door", "Before it opens"],
+  when: "A newcomer scans the code at a Private album.",
+  context: "Four frames each.",
+  lands: "The look of every door screen.",
+  matters: "It is the first thing of an album anyone sees.",
+  because: "Every state reads at a glance.",
+  options: [
+    {
+      id: "today",
+      label: "Today's door",
+      means: "As it ships.",
+      gains: "Nothing to build.",
+      costs: "Its words fit one reason of five.",
+      state: { family: "today" },
+    },
+    {
+      id: "doorway",
+      label: "The doorway",
+      means: "A door on the page.",
+      gains: "Every state at a glance.",
+      costs: "The album no longer sits behind the welcome.",
+      state: { family: "doorway" },
+    },
+  ],
+  recommended: "doorway",
+  evidence: null,
+  section: "family",
+  control: "family",
+  opening: OPENING,
+  terms: TERMS,
+  boardHref: "/design/lab/door",
+};
+
+const WAIT: AskStep = {
+  ...FAMILY,
+  askId: "wait",
+  question: "What should she hold while she waits at a gate?",
+  where: ["Guest", "The album's door", "Waiting"],
+  section: "wait",
+  control: "wait",
+  options: [
+    { ...FAMILY.options[0], state: { wait: "today" } },
+    { ...FAMILY.options[1], state: { wait: "doorway" } },
+  ],
+};
+
+const DOOR: SessionStep[] = [FAMILY, WAIT];
+
+describe("a step says where it is before it asks", () => {
+  it("prints where it happens and the state that brings someone there before any option", () => {
+    const { container } = step("door.family", fakeBoard(), "door", DOOR);
+    const where = container.querySelector("[data-lab-where]")!;
+    expect(where).toHaveTextContent("Guest");
+    expect(where).toHaveTextContent("Before it opens");
+    expect(container.querySelector("[data-lab-when]")).toHaveTextContent(
+      FAMILY.when!,
+    );
+    // Both precede the stage: FOLLOWING (4) means the stage comes after.
+    const stage = container.querySelector("[data-lab-stage]")!;
+    expect(
+      where.compareDocumentPosition(stage) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  /**
+   * ★ EVERYTHING ELSE A BOARD KNOWS IS ONE PRESS AWAY, IN ONE PLACE
+   * (lab-focus, 2026-09-29). Printed before the options, what it decides,
+   * why it matters and the board's reason grew, with the opening and the
+   * terms, into "a Jackson Pollock painting of text" between Will and the
+   * pictures. They moved to About, whole and in the same words; what is
+   * pinned is that they are there, before the stage when open, and that the
+   * choice to open it holds for the next step.
+   */
+  it("keeps what it decides, why it matters and the board's reason in About", async () => {
+    const { container } = step("door.family", fakeBoard(), "door", DOOR);
+    expect(container.querySelector("[data-lab-matters]")).toBeNull();
+    await openAbout();
+    expect(container.querySelector("[data-lab-matters]")).toHaveTextContent(
+      FAMILY.matters!,
+    );
+    const reason = container.querySelector("[data-lab-reason]")!;
+    expect(reason).toHaveTextContent("The doorway");
+    expect(reason).toHaveTextContent(FAMILY.because!);
+    expect(screen.getByText(FAMILY.lands!)).toBeInTheDocument();
+    const stage = container.querySelector("[data-lab-stage]")!;
+    expect(
+      reason.compareDocumentPosition(stage) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("keeps About open for the reader once opened, and closes it with i", async () => {
+    const first = step("door.family", fakeBoard(), "door", DOOR);
+    await openAbout();
+    expect(
+      first.container.querySelector("[data-lab-about]"),
+    ).toBeInTheDocument();
+    first.unmount();
+    const later = step("door.wait", fakeBoard(), "door", DOOR);
+    expect(
+      later.container.querySelector("[data-lab-about]"),
+    ).toBeInTheDocument();
+    await userEvent.keyboard("i");
+    expect(later.container.querySelector("[data-lab-about]")).toBeNull();
+  });
+
+  it("carries the shown option's gain and cost with its preview", async () => {
+    const { container } = step("door.family", fakeBoard(), "door", DOOR);
+    // It lands on the recommendation, so its trade is the one over the stage.
+    const trade = () => container.querySelector("[data-lab-trade]")!;
+    expect(trade()).toHaveAttribute("data-lab-trade", "doorway");
+    expect(trade()).toHaveTextContent("Every state at a glance.");
+    expect(trade()).toHaveTextContent(
+      "The album no longer sits behind the welcome.",
+    );
+    await userEvent.click(chip("Today's door"));
+    expect(trade()).toHaveAttribute("data-lab-trade", "today");
+    expect(trade()).toHaveTextContent("Its words fit one reason of five.");
+  });
+
+  it("marks the board's first step so its opening is found, and keeps it in About on every step", async () => {
+    const first = step("door.family", fakeBoard(), "door", DOOR);
+    const about = () => screen.getByRole("button", { name: "About" });
+    // Where the sitting enters the board, About carries a mark until opened.
+    expect(about()).toHaveAttribute("data-fresh");
+    expect(first.container.querySelector("[data-lab-opening]")).toBeNull();
+    await openAbout();
+    const open = first.container.querySelector("[data-lab-opening]")!;
+    expect(open).toHaveTextContent(OPENING.about);
+    expect(open).toHaveTextContent(OPENING.settled[0]);
+    expect(open).toHaveTextContent(OPENING.earlier[0]);
+    expect(about()).not.toHaveAttribute("data-fresh");
+    first.unmount();
+    setLabPref("about", "closed");
+    step("door.wait", fakeBoard(), "door", DOOR);
+    expect(about()).not.toHaveAttribute("data-fresh");
+  });
+
+  it("marks a coined term where the step says it, and lists its meaning once in About", async () => {
+    const { container } = step("door.family", fakeBoard(), "door", DOOR);
+    // "the lit column" is in the question: marked where it stands.
+    const marked = container.querySelector(
+      '.lab-step-head [data-lab-term="the lit column"]',
+    );
+    expect(marked).toHaveTextContent("lit column");
+    expect(screen.getByRole("heading")).toHaveTextContent(FAMILY.question);
+    await openAbout();
+    const listed = container.querySelector(
+      "[data-lab-about] [data-lab-terms]",
+    )!;
+    expect(listed).toHaveTextContent("the lit column");
+    expect(listed).toHaveTextContent(TERMS[0].means);
+    // "the welcome" is in an option's cost and the opening: listed once.
+    expect(listed.textContent!.match(/the welcome:/g)).toHaveLength(1);
+    // "a gate" is said only by the other step.
+    expect(listed).not.toHaveTextContent("a gate");
+  });
+
+  it("lists the words the board's opening uses too, since About prints it", async () => {
+    const { container } = step("door.wait", fakeBoard(), "door", DOOR);
+    await openAbout();
+    const listed = container.querySelector(
+      "[data-lab-about] [data-lab-terms]",
+    )!;
+    expect(listed).toHaveTextContent("the welcome");
+    expect(listed).toHaveTextContent("a gate");
   });
 });

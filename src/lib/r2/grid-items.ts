@@ -16,8 +16,8 @@ import { buildDownloadFilename } from "@/lib/media/download-filename";
 import type { MediaKind } from "@/lib/media/limits";
 import type { UploaderIdentity } from "@/lib/media/uploader-identity";
 import type {
-  ModerationGridItem,
   ModerationMediaItem,
+  ModerationTile,
 } from "@/lib/moderation/operator-actions";
 import { presignDownload } from "@/lib/r2/presign";
 
@@ -100,11 +100,27 @@ export async function toGridItems(
 // save-filename against its OWN event name, and the status + album context ride along (the
 // moderation grid needs status to pick Remove vs Restore, and the caption to link to the album).
 // Same presign primitives as toGridItems — just per-item event name.
+//
+// ★ A COVERED ITEM IS NEVER SIGNED (build 23's NIT-7, the albums grid since crumbs-21): `covered` is
+// `readCoveredItems`' answer, the rule's one home, and an item in it leaves here with no url of any
+// kind, so nothing of its picture can reach the browser, whatever the grid draws.
 export async function toModerationFeedItems(
   items: ModerationMediaItem[],
-): Promise<ModerationGridItem[]> {
+  covered: ReadonlySet<string> = new Set(),
+): Promise<ModerationTile[]> {
   return Promise.all(
-    items.map(async (m) => {
+    items.map(async (m): Promise<ModerationTile> => {
+      if (covered.has(m.id)) {
+        return {
+          id: m.id,
+          type: m.type,
+          covered: true,
+          status: m.status,
+          eventId: m.eventId,
+          eventName: m.eventName,
+          hostLabel: m.hostLabel,
+        };
+      }
       const [url, downloadUrl] = await Promise.all([
         presignDownload({ key: m.originalKey, stable: true }),
         presignDownload({

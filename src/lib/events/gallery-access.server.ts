@@ -45,6 +45,7 @@ import {
 } from "@/lib/events/gallery-reel";
 import type { GallerySeed } from "@/lib/events/gallery-seed";
 import { createReelItems } from "@/lib/guest/reconcile-album-items";
+import { sortTickets } from "@/lib/guest/session-owner.server";
 import { tileStills } from "@/lib/guest/reel-tile";
 import type { UploaderIdentity } from "@/lib/media/uploader-identity";
 import { captureWarning } from "@/lib/observability/sentry";
@@ -115,9 +116,17 @@ export async function resolveViewerDecision(
     return { ...optimistic, albumFull: false };
   }
 
+  // ★ THE TICKET IS READ ONLY AS FAR AS IT IS HERS (crumbs-27; `sortTickets`, the read side of the owner
+  // rule). The gate ORs the account and the ticket, so on a shared phone another guest's contribution,
+  // kept on the ticket the phone still held for the album, counted as a contribution of a signed-in
+  // account's own. Signed out, the ticket is the device's and nobody is asked; signed in, her own row
+  // (or one the claim takes) speaks beside her account, and any other ticket says nothing here.
+  const ticket = ctx.sessionToken
+    ? ((await sortTickets(ctx.userId, [ctx.sessionToken])).hers[0] ?? null)
+    : null;
   const gate = await getUploadGate({
     eventId: event.id,
-    sessionToken: ctx.sessionToken,
+    sessionToken: ticket,
     userId: ctx.userId,
   });
 
@@ -194,9 +203,12 @@ export async function loadGalleryRowsForAccess(
   // full: the whole album, each arm read in keyset pages on the album's own display order.
   const [identities, rows, approvedTotal] = await Promise.all([
     identitiesPromise,
-    event.visibility === "password"
-      ? getApprovedMediaForUnlock(event.id) // self-guarded: the unlock cookie, or the host
-      : getEventMediaByQrToken(event.qr_token), // anon RPC, gates on visibility='open'
+    // ★ Behind a door (a password, or a gate the album is stored private for), the self-guarded
+    // admin read, which asks the unlock cookie, the door's pass or the host; an open album, the anon
+    // RPC, which gates on visibility='open'.
+    event.visibility === "open"
+      ? getEventMediaByQrToken(event.qr_token)
+      : getApprovedMediaForUnlock(event),
     approvedTotalPromise,
   ]);
   return { rows, identities, teaserTotal: null, approvedTotal };

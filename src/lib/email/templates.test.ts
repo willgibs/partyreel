@@ -83,7 +83,36 @@ const OPERATOR = {
   }),
 };
 
-const ALL: Record<string, Mail> = { ...HOST, ...OPERATOR };
+// admin-triage r2: the operator told at once of a child-abuse report, both ways it can arrive.
+const URGENT = {
+  urgentHidden: T.urgentReportEmail({
+    eventName: "Priya & Sam's baby shower",
+    hidden: true,
+    reportsUrl: "https://admin.partyreel.com/admin/reports",
+  }),
+  urgentWaiting: T.urgentReportEmail({
+    eventName: "Priya & Sam's baby shower",
+    hidden: false,
+    reportsUrl: "https://admin.partyreel.com/admin/reports",
+  }),
+};
+
+// ...and the one mail an operator sends a reporter, behind its switch (Ask for proof).
+const REPORTER = {
+  proofAsk: T.reportProofAskEmail({
+    eventName: "Priya & Sam's baby shower",
+    question:
+      "Which photo is it, and is there anything that shows she's yours?",
+    answerUrl: `${SITE}/report/${"a".repeat(64)}`,
+  }),
+};
+
+const ALL: Record<string, Mail> = {
+  ...HOST,
+  ...OPERATOR,
+  ...URGENT,
+  ...REPORTER,
+};
 const EVERY = Object.entries(ALL);
 
 /** What a reader sees in the HTML: the card's words, tags gone, entities decoded, spaces collapsed. */
@@ -345,6 +374,19 @@ describe("system-removal email copy (recovery Phase 5)", () => {
     expect(html).not.toContain("a short time");
   });
 
+  it("overCapReducedEmail: the removal brought the account under its plan, and only the restore would put it over again", () => {
+    // It once said "You're over your limit, so upgrade or free up space first" straight after saying
+    // the removal had brought the account back under its plan: both cannot be true. What it means is that
+    // restoring everything would go over again, and the words have to say that.
+    const text = visibleText(HOST.reduced.html);
+    expect(text).toMatch(/back under your plan/);
+    expect(text).not.toMatch(/you're over your (limit|plan)/i);
+    expect(text).toMatch(/would take you over your plan again/);
+    expect(text).toMatch(/upgrade or free up space first, then restore them/);
+    // The plain-text twin is the same words.
+    expect(HOST.reduced.text).toMatch(/would take you over your plan again/);
+  });
+
   it("overCapGraceStartEmail: concrete 30-day window, not 'a short window'", () => {
     const { html } = T.overCapGraceStartEmail({
       capLabel: "2 GB",
@@ -364,5 +406,41 @@ describe("system-removal email copy (recovery Phase 5)", () => {
     expect(html).toContain("July 2, 2026");
     expect(html).toContain("Deleted");
     expect(html).not.toMatch(/reply to this email/i);
+  });
+});
+
+describe("the report mails (admin-triage r2)", () => {
+  it("★ the urgent alert is tagged, has no button, names the album and the portal, and never the reporter", () => {
+    for (const mail of Object.values(URGENT)) {
+      expect(mail.subject.startsWith(`${T.OPERATOR_TAG} `)).toBe(true);
+      expect(mail.html).not.toContain("display:inline-block;padding:10px 20px");
+      expect(mail.text).toContain("Priya & Sam's baby shower");
+      expect(mail.text).toContain("https://admin.partyreel.com/admin/reports");
+      expect(mail.text).not.toMatch(/@example\.com/);
+      expect(mail.text).toContain(
+        "Sent at most once per album per ten minutes.",
+      );
+    }
+    expect(URGENT.urgentHidden.text).toMatch(
+      /hidden from every viewer at once/,
+    );
+    expect(URGENT.urgentWaiting.text).toMatch(/nothing was hidden/);
+  });
+
+  it("★ the ask carries one button to its answer page, the operator's question whole, and the host is never told who reported", () => {
+    const { html, text, subject } = REPORTER.proofAsk;
+    expect(subject.startsWith("[")).toBe(false);
+    expect(
+      html.match(
+        /<a href="[^"]+" target="_blank" style="display:inline-block;/g,
+      ),
+    ).toHaveLength(1);
+    expect(html).toContain(`href="${SITE}/report/${"a".repeat(64)}"`);
+    expect(text).toContain(
+      "Which photo is it, and is there anything that shows she's yours?",
+    );
+    expect(text.split("\n---\n\n")[1].split("\n")[0]).toBe(
+      "You're receiving this because you confirmed this address with a report. It's deleted when the report closes, and the host is never told who reported.",
+    );
   });
 });

@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from "react"
 
+import { useOwnedEntry } from "@/lib/history-entry"
+
 /**
  * THE PHONE'S OWN BACK CLOSES A POPUP THAT IS A PLACE (`lists=panel`: "in a
  * hand its own screen under a back arrow, the phone's Back closing it"; the
@@ -15,11 +17,18 @@ import { useEffect, useRef } from "react"
  * other way (its arrow, Escape) it takes its entry back with it, so nothing
  * dead is left behind to press through.
  *
- * ★ THE MARKER IS A FIELD ON THE STATE NEXT MERGES, NEVER THE STATE ITSELF
- * (`event-share-provider.tsx` found it first): Next copies `__NA` and its tree
- * onto whatever object `pushState` is handed, and its popstate handler reloads
- * the page for an entry without `__NA`. And no URL is passed, so Next's patched
- * `pushState` has no route to apply and the router never re-renders.
+ * ★ WHOSE THE ENTRY IS LIVES IN `lib/history-entry.ts`, which every place that
+ * pushes an entry stands on (its header says what Next does to one: the marker
+ * is a field on the state Next merges, never the state itself, and a router
+ * refresh takes it). A popup is the helper's `many` kind: every popup shares one
+ * key, so a marker is its own only by its id, and an entry a refresh stripped
+ * is its own only at the address it was pushed at (crumbs-18: opened at entry 4,
+ * refreshed, closed by its arrow, still standing on entry 5; the claims review
+ * and the storage list refresh while they are open). No URL is passed, so
+ * Next's patched `pushState` has no route to apply and the router never
+ * re-renders. Never taken back at another address, and never over another
+ * entry's marker: a popup that goes because the page navigated on (a link inside
+ * it) has no entry to undo, and taking one back would undo the navigation.
  *
  * ★ THE ENTRY IS TAKEN BACK ONE TICK LATE, ON PURPOSE. React's development
  * StrictMode runs every effect's cleanup and body twice on mount; a `back()`
@@ -34,18 +43,12 @@ import { useEffect, useRef } from "react"
  */
 export const POPUP_HISTORY_MARKER = "prPopup"
 
-let entries = 0
-
-function markerOf(state: unknown): unknown {
-  return (state as Record<string, unknown> | null)?.[POPUP_HISTORY_MARKER]
-}
-
 export function useBackCloses(active: boolean, close: () => void) {
   const closeRef = useRef(close)
   useEffect(() => {
     closeRef.current = close
   })
-  const entryRef = useRef<string | null>(null)
+  const entry = useOwnedEntry(POPUP_HISTORY_MARKER, { many: true })
   const pendingRef = useRef<number | null>(null)
 
   useEffect(() => {
@@ -54,19 +57,13 @@ export function useBackCloses(active: boolean, close: () => void) {
       window.clearTimeout(pendingRef.current)
       pendingRef.current = null
     }
-    let entry = entryRef.current
-    if (!entry) {
-      entries += 1
-      entry = `popup-${entries}`
-      entryRef.current = entry
-      window.history.pushState({ [POPUP_HISTORY_MARKER]: entry }, "")
-    }
-    const mine = entry
+    // The entry it already holds, if any: StrictMode's second run keeps the one the first pushed.
+    if (!entry.held()) entry.push()
     let popped = false
     const onPop = () => {
-      if (markerOf(window.history.state) === mine) return
+      if (entry.stands()) return
       popped = true
-      entryRef.current = null
+      entry.forget()
       closeRef.current()
     }
     window.addEventListener("popstate", onPop)
@@ -75,9 +72,9 @@ export function useBackCloses(active: boolean, close: () => void) {
       if (popped) return
       pendingRef.current = window.setTimeout(() => {
         pendingRef.current = null
-        entryRef.current = null
-        if (markerOf(window.history.state) === mine) window.history.back()
+        if (entry.isOurs()) entry.back()
+        else entry.forget()
       }, 0)
     }
-  }, [active])
+  }, [active, entry])
 }

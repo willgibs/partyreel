@@ -124,6 +124,19 @@ describe("the CSRF surface does not move", () => {
     expect(source).not.toContain("readGuestSessionCookie");
   });
 
+  it.each(WRITE_ROUTES)(
+    "%s asks the door without the cookie, whenever it asks the door",
+    (path) => {
+      // ★ THE DOOR READS THIS BROWSER'S COOKIE UNLESS TOLD NOT TO (`doorCallerFor`, the doors,
+      // 20260929120000), so the pin above cannot see it: a write route's door is its body ticket and
+      // the account, and every ask says `cookie: false` out loud.
+      const source = readFileSync(join(ROOT, path), "utf8");
+      const asks = source.split("doorCallerFor(").length - 1;
+      const withoutCookie = source.split("cookie: false").length - 1;
+      expect(withoutCookie).toBeGreaterThanOrEqual(asks);
+    },
+  );
+
   it("the routes that WRITE one only ever write it (the heal), never read it as identity", () => {
     // The name route and the completion both call `guestSessionCookieIfChanged`, whose only read
     // is "is this already the cookie" — never "who is the caller".

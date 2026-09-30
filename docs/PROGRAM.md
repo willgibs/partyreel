@@ -75,21 +75,41 @@ words asking for one winner, every option previewed whole on the real surface wi
 pick and an optional note. A few designed variations beat any amount of argument: no verdict essays, no keep / refine
 / kill over N cards.
 
-- Author with `defineExploration` (`src/components/lab/exploration.ts`) and nothing else; the newest board built on
-  it is the worked example.
+**The pictures come first, and he can always place them.** He decides across every open board at once, and the drawn
+options are what he opens a question for, so a step reads, on the first screen at a desk and at a phone: where it
+happens in one line (the surface and the moment, and the state that brings someone there), the question sized to read,
+the options as tabs, the shown option's sentence with its gain and its cost in a line, its knobs in one quiet row, and
+every frame of it whole above the dock. Everything else a board knows (what it is about and what is settled, his
+earlier picks and notes, what the question decides and why it matters, the recommendation's reason, the words it coins)
+is one press away in the step's About, which stays open once he opens it, and a coined word is marked where it appears.
+So an author still writes all of it, a line each: it is what lets him place any question the moment he wants to. He
+should never have to click through the options to learn what he is being asked, nor read a screen of words to reach
+them.
+
+- Author with `defineExploration` (`@/components/lab/exploration`, a spec's one import) and draw with the kit's front
+  door (`@/components/lab`); the newest board built on it is the worked example. Its context layer is an ask's `where` (a breadcrumb), `when` and `matters` beside `lands`, each option's `gains` and
+  `costs`, `because` in a line, and the board's `opening` (`about`, `settled`, `earlier`) and `terms`: the step prints
+  the first two in its one line of where, the option's in its line over the stage, and the rest in About;
+  `registry.test.ts` refuses an open ask without them, and `lab:demo` fails a step whose stage starts past half the
+  first screen or whose frames end under the dock.
 - Shape a big goal progressively (`after` stages a question behind another answer); more rounds of narrower questions
   beat one wide one.
-- Options are real contenders for one decision: never force them apart, and two that land on the same answer are a
+- Options are real contenders for one decision, as far apart as the real answers are: pushed apart for the
+  exploration's sake, each turns into a caricature nobody would ship, and two that land on the same answer are a
   finding. Ask nothing an open ask on another standing board already asks (your brief names the nearest).
-- **Offer the fix at its source**: when a question is a symptom of the system (a token is wrong), an option fixes the
-  system, not only the page.
+- **Offer the fix at its source**: when a question is a symptom of the system (a token is wrong), an option that fixes
+  the system is worth drawing beside the page's own, since a fix to one page leaves the next page asking the same
+  question.
 - **Measure every tile before it ships**: a preview shows what its option's words claim, read on screen, never
   computed.
-- **Answer a relative note against a reference**: a note like "a bit more calm" gets options graded against something
-  he already likes, never a cap that makes every option calm by construction.
-- Placeholder copy is judged for its size and wrapping, not its words.
-- A new board registers its own lines in `registry.ts`, `boards.ts` and `touchpoints.ts` directly after the neighbour
-  its brief names, never at the head of a list (two boards on one spot mangle the merge).
+- **Answer a relative note against a reference**: a note like "a bit more calm" is best answered by options graded
+  against something he already likes, since a cap that made every option calm by construction would leave him nothing
+  to choose between.
+- A board that is not about the words judges its placeholder copy for size and wrapping; the words are the voice's
+  (`marketing-voice.ts`).
+- A board is one folder, `sandbox/<id>/`, and nothing else names it:
+  `pnpm new-board <id> "<title>" --surface <s> --desk <n>` writes it (every owed line a `TODO` that `registry.test.ts`
+  refuses), the toolbox page (`/design/lab/kit`) teaches the rest, and retiring a board is deleting its folder.
 
 ### Fast, focused rounds
 

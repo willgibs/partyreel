@@ -2,6 +2,7 @@
 
 import { useCallback, useSyncExternalStore } from "react";
 
+import { NOT_MINE_PREFIX } from "@/lib/guest/claim-ask";
 import { storedKeysWithPrefixes } from "@/lib/guest/session-tokens";
 
 /**
@@ -130,7 +131,8 @@ export function setStoredEmailAttached(qrToken: string, value: boolean) {
 /**
  * FORGET WHO THIS DEVICE WAS AT ONE EVENT: the name and the address flag that belonged to a ticket
  * the device is putting down because it was not the viewer's (`dropGuestTicket` in
- * use-stored-session.ts, which clears the ticket itself beside it).
+ * use-stored-session.ts, which clears the ticket itself beside it), and any account's "Not mine" to
+ * that ticket (`claim-ask.ts`), which was an answer about a ticket that is gone.
  *
  * ★ AND THE PREFILL, WHEN IT IS THAT SAME NAME. `pr_guest_name_last` is a kindness for the next
  * party one person scans; here the device has just been shown to be in different hands, so a
@@ -143,6 +145,7 @@ export function forgetStoredGuest(qrToken: string) {
     const name = localStorage.getItem(nameKey(qrToken));
     localStorage.removeItem(nameKey(qrToken));
     localStorage.removeItem(emailAttachedKey(qrToken));
+    localStorage.removeItem(`${NOT_MINE_PREFIX}${qrToken}`);
     if (name && localStorage.getItem(GUEST_NAME_LAST_KEY) === name) {
       localStorage.removeItem(GUEST_NAME_LAST_KEY);
     }
@@ -155,13 +158,15 @@ export function forgetStoredGuest(qrToken: string) {
 /**
  * FORGET EVERY NAME AND ADDRESS FLAG ON THE DEVICE, the prefill included (the account sign-out's
  * half of a shared phone starting clean for the next person). The prefill goes too: it is the last
- * name typed on this phone, and after a sign-out the next hand on it is anybody's.
+ * name typed on this phone, and after a sign-out the next hand on it is anybody's. So do the
+ * answers to "are these yours?" (`claim-ask.ts`): the tickets they answered are going.
  */
 export function forgetAllStoredGuests() {
   try {
     for (const key of storedKeysWithPrefixes([
       GUEST_NAME_PREFIX,
       GUEST_EMAIL_ATTACHED_PREFIX,
+      NOT_MINE_PREFIX,
     ])) {
       localStorage.removeItem(key);
     }

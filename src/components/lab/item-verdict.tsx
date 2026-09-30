@@ -1,5 +1,6 @@
 "use client";
 
+import { useAdoptTypedValue } from "@/lib/adopt-typed-value";
 import { cn } from "@/lib/utils";
 
 import {
@@ -45,7 +46,7 @@ export function ItemVerdictRow({
   round: number;
   /** The candidate id or the Library entry id: what the ledger stores. */
   id: string;
-  /** What is being ruled on, for the labels a screen reader reads. */
+  /** What the verdict is on, for the labels a screen reader reads. */
   name: string;
   vocabulary?: readonly string[];
   className?: string;
@@ -53,6 +54,8 @@ export function ItemVerdictRow({
   const store = useReviewStore();
   const held = store.items[itemHoldId(scope, round, id)];
   const verdict = held?.verdict ?? "";
+  // A note typed before the page hydrated is the reviewer's to keep (`adopt-typed-value.ts`).
+  const noteRef = useAdoptTypedValue<HTMLInputElement>(held?.note ?? "");
 
   return (
     <div className={cn("flex flex-wrap items-center gap-1.5", className)}>
@@ -78,6 +81,7 @@ export function ItemVerdictRow({
         );
       })}
       <input
+        ref={noteRef}
         type="text"
         value={held?.note ?? ""}
         onChange={(e) => setItemNote(scope, round, id, e.target.value)}

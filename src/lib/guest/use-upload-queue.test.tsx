@@ -1,12 +1,12 @@
 /**
- * THE QUEUE'S RECOVERY FROM SOMEBODY ELSE'S TICKET.
+ * THE QUEUE'S RECOVERY FROM SOMEBODY ELSE'S TICKET, AND FROM A DEAD ONE.
  *
  * The routes refuse a ticket whose row belongs to an account the viewer is not
- * (`session_other_account`). These pin what the queue does about it, which is the half of that rule
- * a guest actually lives through: the ticket goes down (token, name, cookie), the viewer joins again
- * as whoever the server says they are, and the SAME file goes up on the new ticket, so no photograph
- * is lost and none is credited to the ticket's owner. A confirmed account never notices; anyone else
- * is handed to the door while the files wait, never failed.
+ * (`session_other_account`), and one whose row is gone (`invalid_session`). These pin what the queue
+ * does about it, which is the half of that rule a guest actually lives through: the ticket goes down
+ * (token, name, cookie), the viewer joins again as whoever the server says they are, and the SAME file
+ * goes up on the new ticket, so no photograph is lost and none is credited to the ticket's owner. A
+ * confirmed account never notices; anyone else is handed to the door while the files wait, never failed.
  *
  * The engine's other pins live in guest-upload.test.tsx (its test file); these run the hook on
  * its own, because what they pin is the queue's side of a server rule rather than a sheet.
@@ -65,6 +65,8 @@ function fetchUrls() {
 type Props = {
   sessionToken: string | null;
   isVerified: boolean;
+  /** The page's door lets the viewer through to the album (its access is not `none`); true unless a test says. */
+  doorOpen?: boolean;
 };
 
 function mountQueue(initial: Props) {
@@ -81,6 +83,7 @@ function mountQueue(initial: Props) {
         onUploaded,
         isDemo: false,
         isVerified: props.isVerified,
+        doorOpen: props.doorOpen,
         onVerificationRequired,
         onDoorNeeded,
       }),
@@ -234,6 +237,225 @@ describe("anyone else holding somebody else's ticket", () => {
     act(() => q.result.current.addFiles([makeFile()]));
     await waitFor(() => expect(q.onDoorNeeded).toHaveBeenCalledTimes(1));
     expect(q.items()).toEqual([expect.objectContaining({ status: "queued" })]);
+  });
+});
+
+/**
+ * A DEAD TICKET (crumbs-21): a newcomer waiting at letting each person in, or at the invite list, whose
+ * door then became a password lost her waiting ticket with her ask (migration 20260929230000), and the
+ * phone that asked still holds its token. After she unlocks, her Add meets `invalid_session`, which
+ * used to fail the file with "Refresh and rejoin" (a refresh keeps the stored token, so it never could).
+ */
+const DEAD: UploadOutcome = {
+  ok: false,
+  code: "invalid_session",
+  message: "Your upload session has expired. Refresh and rejoin.",
+};
+
+describe("a dead ticket: the row it named is gone", () => {
+  it("★ puts it down, joins afresh as the confirmed account, and the SAME file goes up on the new ticket", async () => {
+    answer({
+      "/api/guests/leave": [{ ok: true, body: { ok: true } }],
+      "/api/guests": [
+        { ok: true, body: { ok: true, session_token: "past-the-password" } },
+      ],
+    });
+    mockUploadFile
+      .mockResolvedValueOnce(DEAD)
+      .mockResolvedValueOnce(landed("med-1"));
+    const file = makeFile();
+    const q = mountQueue({ sessionToken: STALE, isVerified: true });
+
+    act(() => q.result.current.addFiles([file]));
+
+    await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(1));
+    expect(sentOn(0)).toBe(STALE);
+    expect(sentOn(1)).toBe("past-the-password");
+    expect(mockUploadFile.mock.calls[1][0].file).toBe(file);
+    expect(q.items()).toEqual([expect.objectContaining({ status: "done" })]);
+    // Down before the join, both halves, so the join's fresh cookie outlives the leave.
+    expect(fetchUrls()).toEqual(["/api/guests/leave", "/api/guests"]);
+    expect(localStorage.getItem(`pr_session_${QR}`)).toBeNull();
+    expect(q.onSession.mock.calls).toEqual([[null], ["past-the-password"]]);
+    expect(q.onDoorNeeded).not.toHaveBeenCalled();
+  });
+
+  it("joins silently once per chain: a second dead ticket goes to the door, never a loop", async () => {
+    answer({
+      "/api/guests/leave": [
+        { ok: true, body: { ok: true } },
+        { ok: true, body: { ok: true } },
+      ],
+      "/api/guests": [
+        { ok: true, body: { ok: true, session_token: "also-dead" } },
+      ],
+    });
+    mockUploadFile.mockResolvedValue(DEAD);
+    const q = mountQueue({ sessionToken: STALE, isVerified: true });
+    act(() => q.result.current.addFiles([makeFile()]));
+    await waitFor(() => expect(q.onDoorNeeded).toHaveBeenCalledTimes(1));
+    expect(fetchUrls().filter((u) => u === "/api/guests")).toHaveLength(1);
+    expect(mockUploadFile).toHaveBeenCalledTimes(2);
+    expect(q.items()).toEqual([expect.objectContaining({ status: "queued" })]);
+  });
+
+  it("anyone the queue cannot name meets the door: the file waits, never failed", async () => {
+    answer({ "/api/guests/leave": [{ ok: true, body: { ok: true } }] });
+    mockUploadFile.mockResolvedValueOnce(DEAD);
+    const q = mountQueue({ sessionToken: STALE, isVerified: false });
+    act(() => q.result.current.addFiles([makeFile()]));
+    await waitFor(() => expect(q.onDoorNeeded).toHaveBeenCalledTimes(1));
+    expect(fetchUrls()).toEqual(["/api/guests/leave"]);
+    expect(q.items()).toEqual([expect.objectContaining({ status: "queued" })]);
+  });
+});
+
+/**
+ * A JOIN THAT LANDS WAITING IS THE ASK, NEVER A TICKET TO SEND ON (crumbs-27). Where the host lets each guest in,
+ * a confirmed newcomer's join mints her a WAITING row (`admission: "waiting"`); a file sent on it is refused "This
+ * event is private." (the door reads a waiting ticket as a private album's), so the queue used to take the ticket,
+ * send the file and fail it, when the truth was that the host had not let her in yet. It hands her to the door
+ * instead: the page refreshes onto the held door (the join's own cookie is the ticket the door reads there), the
+ * files wait `queued`, and they go the moment the door lets her through.
+ */
+const WAITING = {
+  ok: true,
+  session_token: "waiting-token",
+  admission: "waiting",
+};
+const LET_IN = { ok: true, session_token: "in-token", admission: "in" };
+
+describe("a silent join that lands waiting is handed to the door", () => {
+  it("★ after somebody else's ticket went down: the file is not sent on the waiting ticket and not failed, and the door has her", async () => {
+    answer({
+      "/api/guests/leave": [{ ok: true, body: { ok: true } }],
+      "/api/guests": [{ ok: true, body: WAITING }],
+    });
+    mockUploadFile.mockResolvedValue(landed("med-1"));
+    mockUploadFile.mockResolvedValueOnce(OTHER_ACCOUNT);
+    const q = mountQueue({ sessionToken: STALE, isVerified: true });
+
+    act(() => q.result.current.addFiles([makeFile()]));
+
+    await waitFor(() => expect(q.onDoorNeeded).toHaveBeenCalledTimes(1));
+    // Only the refused attempt on the ticket that was not hers: nothing goes up on the waiting one.
+    expect(mockUploadFile).toHaveBeenCalledTimes(1);
+    expect(sentOn(0)).toBe(STALE);
+    expect(q.items()).toEqual([expect.objectContaining({ status: "queued" })]);
+    // The ticket went down, and nothing adopts the waiting one here: the door reads its cookie, and the
+    // ticket the files go up on is the one she is handed once she is let in.
+    expect(q.onSession.mock.calls).toEqual([[null]]);
+    expect(q.onUploaded).not.toHaveBeenCalled();
+    expect(fetchUrls()).toEqual(["/api/guests/leave", "/api/guests"]);
+  });
+
+  it("★ and the files go up, on a ticket of hers, the moment the door lets her through", async () => {
+    answer({
+      "/api/guests/leave": [{ ok: true, body: { ok: true } }],
+      "/api/guests": [
+        { ok: true, body: WAITING },
+        { ok: true, body: LET_IN },
+      ],
+    });
+    mockUploadFile.mockResolvedValue(landed("med-1"));
+    mockUploadFile.mockResolvedValueOnce(OTHER_ACCOUNT);
+    const file = makeFile();
+    const q = mountQueue({ sessionToken: STALE, isVerified: true });
+    act(() => q.result.current.addFiles([file]));
+    await waitFor(() => expect(q.onDoorNeeded).toHaveBeenCalledTimes(1));
+
+    // The refresh lands on the held door (access none): nothing runs behind it.
+    q.rerender({ sessionToken: null, isVerified: true, doorOpen: false });
+    expect(mockUploadFile).toHaveBeenCalledTimes(1);
+
+    // The host lets her in; the page refreshes onto the album.
+    q.rerender({ sessionToken: null, isVerified: true, doorOpen: true });
+    await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(1));
+    expect(sentOn(1)).toBe("in-token");
+    expect(mockUploadFile.mock.calls[1][0].file).toBe(file);
+    expect(q.items()).toEqual([expect.objectContaining({ status: "done" })]);
+    // She was let in, so this join asks nobody and mints her ticket (the chain starts over).
+    expect(fetchUrls().filter((u) => u === "/api/guests")).toHaveLength(2);
+    expect(q.onSession.mock.calls).toEqual([[null], ["in-token"]]);
+    expect(q.onDoorNeeded).toHaveBeenCalledTimes(1);
+  });
+
+  it("the door opening with nothing waiting starts nothing", () => {
+    answer({});
+    const q = mountQueue({ sessionToken: STALE, isVerified: true });
+    q.rerender({ sessionToken: STALE, isVerified: true, doorOpen: false });
+    q.rerender({ sessionToken: STALE, isVerified: true, doorOpen: true });
+    expect(mockUploadFile).not.toHaveBeenCalled();
+    expect(fetchUrls()).toEqual([]);
+  });
+
+  it("a first Add with no ticket that lands waiting keeps her picks queued for the door, never sent, never failed", async () => {
+    localStorage.clear();
+    answer({ "/api/guests": [{ ok: true, body: WAITING }] });
+    mockUploadFile.mockResolvedValue(landed("med-1"));
+    const q = mountQueue({ sessionToken: null, isVerified: true });
+    const clip = new File([new Uint8Array([1])], "clip.webm", {
+      type: "video/webm",
+    });
+
+    act(() =>
+      q.result.current.addFiles([makeFile("a.jpg"), makeFile("b.jpg")]),
+    );
+
+    await waitFor(() => expect(q.onDoorNeeded).toHaveBeenCalledTimes(1));
+    expect(mockUploadFile).not.toHaveBeenCalled();
+    expect(q.items().map((it) => it.status)).toEqual(["queued", "queued"]);
+    expect(q.onSession).not.toHaveBeenCalled();
+    // One join for the whole pick: the runner does not join again behind the stash.
+    expect(fetchUrls()).toEqual(["/api/guests"]);
+    // The clip's seam rides the same hold.
+    act(() => q.result.current.addClip(clip, new Blob([new Uint8Array([1])])));
+    expect(mockUploadFile).not.toHaveBeenCalled();
+  });
+
+  it("★ the verified re-join after a mid-run flip that lands waiting holds the file too, and lets go of the spent ticket", async () => {
+    answer({
+      "/api/guests": [
+        { ok: true, body: WAITING },
+        { ok: true, body: LET_IN },
+      ],
+    });
+    mockUploadFile.mockResolvedValue(landed("med-1"));
+    mockUploadFile.mockResolvedValueOnce({
+      ok: false,
+      code: "verification_required",
+      message: "Confirm your email to add photos to this event.",
+    });
+    const q = mountQueue({ sessionToken: STALE, isVerified: true });
+
+    act(() => q.result.current.addFiles([makeFile()]));
+
+    await waitFor(() => expect(q.onDoorNeeded).toHaveBeenCalledTimes(1));
+    expect(mockUploadFile).toHaveBeenCalledTimes(1);
+    expect(q.items()).toEqual([expect.objectContaining({ status: "queued" })]);
+    expect(q.onVerificationRequired).not.toHaveBeenCalled();
+    // The ticket the flip spent is let go, or the file would go up on it once she is let in.
+    expect(q.onSession.mock.calls).toEqual([[null]]);
+
+    q.rerender({ sessionToken: null, isVerified: true, doorOpen: false });
+    q.rerender({ sessionToken: null, isVerified: true, doorOpen: true });
+    await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(1));
+    expect(sentOn(1)).toBe("in-token");
+  });
+
+  it("a join that lets her straight in is adopted as ever", async () => {
+    answer({
+      "/api/guests/leave": [{ ok: true, body: { ok: true } }],
+      "/api/guests": [{ ok: true, body: LET_IN }],
+    });
+    mockUploadFile
+      .mockResolvedValueOnce(OTHER_ACCOUNT)
+      .mockResolvedValueOnce(landed("med-1"));
+    const q = mountQueue({ sessionToken: STALE, isVerified: true });
+    act(() => q.result.current.addFiles([makeFile()]));
+    await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(1));
+    expect(sentOn(1)).toBe("in-token");
+    expect(q.onDoorNeeded).not.toHaveBeenCalled();
   });
 });
 

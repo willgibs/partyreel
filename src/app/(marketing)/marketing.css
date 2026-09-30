@@ -532,11 +532,20 @@
 /* ── 21-accordion: grid-rows 0fr↔1fr height (no JS measuring) + the scaleY
    chevron flip (CSS `d:` morph is Chromium-only; the flip works everywhere).
    Padding lives on -inner, NEVER on -panel (a padded 0fr track never fully
-   closes). The FAQ rebuild wires data-open. ── */
+   closes). The FAQ rebuild wires data-open.
+
+   ★ A CLOSED PANEL IS `hidden="until-found"` (faq-accordion.tsx says why), whose
+   user-agent rule is `content-visibility: hidden`, and that would drop the
+   contents the frame the attribute lands, cutting the collapse short. Listing
+   `content-visibility` beside the height with `allow-discrete` holds it `visible`
+   for the whole collapse and flips it at the end; opening removes the attribute
+   and the open rule below lists no such clock, so a panel is drawn at once. ── */
 [data-mkt] .mkt-acc-panel {
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows var(--mkt-acc-collapse) var(--ease-emphasis);
+  transition:
+    grid-template-rows var(--mkt-acc-collapse) var(--ease-emphasis),
+    content-visibility var(--mkt-acc-collapse) allow-discrete;
 }
 [data-mkt] .mkt-acc[data-open="true"] .mkt-acc-panel {
   grid-template-rows: 1fr;

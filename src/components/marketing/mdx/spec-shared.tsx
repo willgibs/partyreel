@@ -196,21 +196,45 @@ export const ProPlans = () => {
   );
 };
 export const RecoveryDays = () => <>{RECENTLY_DELETED_WINDOW_DAYS} days</>;
+/**
+ * A PHRASE FOR THE MIDDLE OF A SENTENCE, OR ITS OPENING. The phrase inlines
+ * below render lowercase ("one event", "about a year"), and only the article
+ * knows where one stands, so it says `capitalized` where the phrase opens a
+ * sentence, a bullet or a table cell (help's cells are sentence case). The free
+ * plan's first bullet read "one event at a time." until it did (crumbs-14);
+ * `spec-shared.test.ts` holds every article to it.
+ */
+type PhraseCase = { capitalized?: boolean };
+const phrase = (text: string, capitalized = false) => (
+  <>{capitalized ? text.charAt(0).toUpperCase() + text.slice(1) : text}</>
+);
+
 /** "one event" / "unlimited events" for a tier. */
-export const MaxEvents = ({ tier = "free" }: { tier?: Tier }) => {
+export const MaxEvents = ({
+  tier = "free",
+  capitalized,
+}: { tier?: Tier } & PhraseCase) => {
   const max = MAX_EVENTS[tier];
-  if (max === null) return <>unlimited events</>;
-  return <>{max === 1 ? "one event" : `${max} events`}</>;
+  return phrase(
+    max === null
+      ? "unlimited events"
+      : max === 1
+        ? "one event"
+        : `${max} events`,
+    capitalized,
+  );
 };
 export const UploadCapFloor = () => <>{formatBytes(MIN_UPLOAD_CAP_BYTES)}</>;
 /** "about 6 months": the free-tier inactivity window, from the day count. */
-export const InactivityMonths = () => (
-  <>about {Math.round(INACTIVE_DAYS / 30)} months</>
-);
+export const InactivityMonths = ({ capitalized }: PhraseCase) =>
+  phrase(`about ${Math.round(INACTIVE_DAYS / 30)} months`, capitalized);
 /** "about a year": the Event Pass term. */
-export const EventPassTerm = () => {
+export const EventPassTerm = ({ capitalized }: PhraseCase) => {
   const days = planById("event_pass").termDays ?? 365;
-  return <>{days >= 360 && days <= 370 ? "about a year" : `${days} days`}</>;
+  return phrase(
+    days >= 360 && days <= 370 ? "about a year" : `${days} days`,
+    capitalized,
+  );
 };
 /** The EVENT (album) password floor. */
 export const PasswordMinLength = () => <>{EVENT_PASSWORD_MIN_LENGTH}</>;

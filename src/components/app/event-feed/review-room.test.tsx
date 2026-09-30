@@ -124,6 +124,23 @@ describe("the grid's keys", () => {
     expect(document.activeElement).toBe(approveAll);
   });
 
+  // Every confirm popup is an `alertdialog` now (ui/popup.tsx), so "another layer is up: its keys are its
+  // own" has to see it as one (crumbs-20); a room that only looked for `dialog` judged under a confirm.
+  it("★ leaves every key to a confirm standing over it, and takes them back once it is gone", () => {
+    room();
+    const confirm = document.createElement("div");
+    confirm.setAttribute("role", "alertdialog");
+    document.body.appendChild(confirm);
+    tile("m1").focus();
+    fireEvent.keyDown(tile("m1"), { key: "Enter" });
+    fireEvent.keyDown(tile("m1"), { key: "Backspace" });
+    expect(writes.approve).not.toHaveBeenCalled();
+    expect(writes.reject).not.toHaveBeenCalled();
+    confirm.remove();
+    fireEvent.keyDown(tile("m1"), { key: "Enter" });
+    expect(writes.approve).toHaveBeenCalledWith("ev-1", ["m1"]);
+  });
+
   it("gives no verdict while selecting, and Escape leaves select mode", () => {
     room();
     fireEvent.click(screen.getByRole("button", { name: /select/i }));

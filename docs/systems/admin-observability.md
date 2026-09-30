@@ -12,9 +12,9 @@ Elsewhere: host-side moderation ([host-app.md](host-app.md)), the forensic surfa
 
 ## The seam
 
-`requireAdmin()` (pages and layouts: anon to `/login?next=/admin`, a non-admin to `notFound()`, so the portal's
-existence never leaks; it exposes `ctx.aal`, and a sensitive page returns null below AAL2 before it fetches) and
-`requireAdminAction()` (actions and routes; requires AAL2) are the only entry points. Nothing reads
+`requireAdmin()` (pages and layouts: anon to `/login?next=<the portal page asked for>`, a non-admin to `notFound()`,
+so the portal's existence never leaks; it exposes `ctx.aal`, and a sensitive page returns null below AAL2 before it
+fetches) and `requireAdminAction()` (actions and routes; requires AAL2) are the only entry points. Nothing reads
 `profiles.is_admin` directly: the seam is the one place a future staff-and-roles model swaps in.
 - **MFA (free TOTP) is a hard gate that stays reachable at AAL1,** so a first enrollment can never lock itself out:
   an AAL2 page gate ships with its AAL1 fallback. Break-glass is deleting the factor in `auth.mfa_factors` from the
@@ -25,7 +25,7 @@ existence never leaks; it exposes `ctx.aal`, and a sensitive page returns null b
   admin host (not the apex `NEXT_PUBLIC_SITE_URL`), so the cookie lands on the subdomain; the callback picks the
   landing per host. A `?next=` on it breaks sign-in silently: a non-wildcard allow-list entry does not match a
   query-bearing URL, so Supabase falls back to the Site URL and the login lands on `partyreel.com/?code=…`, never
-  exchanged.
+  exchanged. The page the gate was asked for rides a cookie instead (auth-accounts.md, "A sign-in lands").
 - ★ **No operator audit table exists:** nothing records an operator's own actions beyond their effect (the forensic
   trail covers holds and evidence only; an `admin_actions` table is a ROADMAP proposal).
 
@@ -48,6 +48,8 @@ also the rollback. Both projects build every route; the security boundary is RLS
   never signs anyone into the portal.
 - **Verifying:** auth and MFA complete only on a real host, and `lab:smoke` can never reach `/admin`; the Library's
   compositions page renders the real rail, band, queue, table, palette and sheet, the one automated eye on the portal.
+  The admin host's sign-in plumbing short of Google (the gate's page, the login form's cookie, the callback) walks
+  locally under `NEXT_PUBLIC_ADMIN_HOST=admin.localhost pnpm dev` at `http://admin.localhost:<port>`.
 
 ## Building a surface
 
@@ -137,28 +139,70 @@ three definitions of healthy:
 
 ## Reports
 
-`/api/reports` takes two arms, both insert-only and rate-limited: a report never hides content or blocks anyone. An
-album or item report is anonymous, its `qr_token` the capability `create_report` validates inside the RPC; a person
-report (`reports.profile_id`) needs a signed-in reporter, re-checked with `getUser()`. `reports` is deny-all and stores
-no reporter. Review is human (`/admin/reports`; no scanner or NSFW filter), and its rules are one pure module,
-`lib/admin/reports.ts` (admin-triage r1):
-- ★ **A verdict reads its own report.** The item a Remove takes down is the report's `media_id`, read by the action,
-  never an id the browser sends; a verdict lands only on an OPEN report, so a second tab is told "already decided",
-  and it writes `resolution_note` (optional, capped as a reason is). Dismiss and Mark actioned are one press;
-  Remove and an album's Action open the confirm.
-- **Actioning an item makes it an operator's removal whatever its state** (an item the host or a guest had already
-  removed is marked the operator's, keeping its `removed_at`), and one instant stamps the removal and the verdict. A
-  reported person is actioned out of band, so Mark actioned only closes the report.
+`/api/reports` takes two arms, both rate-limited. An album or item report carries its `qr_token`, the capability
+`create_report` validates inside the RPC, which is service-role only, so nothing but the route can hand it a reporter;
+a person report (`reports.profile_id`) needs a signed-in reporter, re-checked with `getUser()`. `reports` is deny-all.
+Review is human (`/admin/reports`; no scanner or NSFW filter). The rules are one pure module, `lib/admin/reports.ts`;
+the kinds, their words and their order are `lib/reports/kinds.ts`, mirrored by the `report_kind` enum under a parity
+test (admin-triage r2):
+- ★ **The reporter is the session's, never the body's.** The route reads `getUser()`: whether anyone is signed in,
+  and an address only beside `email_confirmed_at` (`lib/reports/reporter.server.ts`). The form's Confirm your email is
+  the account door's own code, so confirming makes a free account. A report keeps a confirmed address only while it
+  is open (a BEFORE trigger forgets it and the answer link's hash at the close; a CHECK refuses a closed row holding
+  either). A child-abuse report also keeps `reporter_hash`, the address's HMAC under `UNLOCK_COOKIE_SECRET` in its own
+  `r-addr:` domain, which its limits and its bar read after the address is gone. Nothing tells the host or the person
+  reported who filed a report. The queue says only what the session proved (`reporterWords`): the album's own host
+  (the kept address, or the kept hash, is hers), else a guest signed in or not; and whether she can be asked, which a
+  report reopened after its close no longer can, though its hash still says a confirmed address sent it.
+- ★ **The instant hide** (`create_report`): a `child` report of an item from a confirmed address makes the item an
+  operator's removal at once (`hid_at` equal to its `removed_at`). Never for the event's own host, never for an
+  address a dismissed child-abuse report bars, at most 3 an address and 5 an event in 24 hours (advisory-locked);
+  otherwise the report is filed the same and heads the queue. Every other kind inserts only. A child-abuse report
+  tells the operator after the response (`alertUrgentReport`: a Sentry warning every time, an ops-inbox mail once
+  per album per ten minutes) and on the rail and the bell (the urgent count).
+- **The open queue is the review grid** (`components/admin/report-queue.tsx`): the five harm kinds in front, worst
+  first, the two sexual kinds covered until View (★ and covered wherever an operator meets an item any report names
+  as one, open or closed: every closed line and both Albums views, the feed and the drill-in, by one rule,
+  `readCoveredItems`, and a covered item is never signed there: build 23's NIT-7); People between; Something else in
+  the sweep, ticked and dismissed in one press. Space opens a report whole. At phone width each report carries Take it
+  down and Hold for forensics, one press each; sweeps, notes and proof wait for a desk. The Library's compositions page
+  renders it over writes that change nothing.
+- ★ **A verdict reads its own report and answers its whole entry.** The browser names one report; the action reads
+  its item, album or person and every report still open on it, and closes them together. The item a Remove takes
+  down is the report's `media_id`, never an id the browser sends, and a verdict lands only on an OPEN report, so a
+  second tab is told "already decided". Dismiss and Mark actioned are one press; Remove opens the confirm; each may
+  carry `resolution_note`.
+- ★ **What a report named outlives its item** (20260929231000): `reports.media_id` is no foreign key and
+  `media_type` keeps the kind, written from the item as the report is filed (a trigger, which also refuses an id
+  naming no item), so once the purge takes an item whose report closed, the report still names it and never reads as
+  its album's: the closed line says a photo or a video was deleted, and a dismissal reopened by its Undo comes back as
+  that item's entry, whose verdict only closes. Read as an album report, it would keep every item of its album from
+  every permanent delete.
+- **A dismissal puts back what a false report's hide took** (`hideUndoOf`: into the album at the hide's own instant,
+  or back to the host's Deleted), never a held item; its Undo reopens exactly the reports it closed and hides the
+  item again, `hid_at` moving to the new removal.
+- **Actioning an item makes it an operator's removal whatever its state** (one the host or a guest had removed
+  becomes the operator's, keeping its `removed_at`), one instant stamping the removal and the verdict. A reported
+  person is actioned out of band, so Mark actioned only closes the report. A phone's Take it down makes the same
+  removal and leaves the reports open; its toast's Undo restores only that press's removal.
 - **A closed report is one line with its way back** (`wayBackOf`, measured at the page's one clock read). A removal's
   Undo lives exactly as long as the removal ITS verdict made (the removal's `removed_at` equal to the verdict's
   `resolved_at`, still an operator's, not held): it reopens the report first, then restores the item where it was; a
   held item reads Held and has no Undo. ★ A dismissal reopens, from its toast's Undo or its line, inside 30 days of
-  the verdict (`reopenReportAction`, whose write itself requires `dismissed` and the window's floor), a hold being no
-  bar since reopening restores nothing; Mark actioned and an album's Action have no way back.
-- **Hold for forensics on an item report** reads what it reaches first (the item and the same uploader's other items
-  in the event: its guest row, or every row the same account holds there; no guest row means the host's own
-  uploads), then preserves each through `preserveMedia`, the reported item alone first, the rest four at a time
-  inside the page's `maxDuration` (a partial run says how far it got; pressing again is safe). The report stays open.
+  the verdict (the write itself requires `dismissed` and the window's floor); Mark actioned and an album's Action have
+  no way back.
+- ★ **Hold for forensics carries Take it down too, ON by default** (Will, 2026-09-29: "a hold is for what police
+  should see"). It reads what it reaches first (the reported item and the same uploader's other items in the event:
+  its guest row, or every row the same account holds there; no guest row means the host's own uploads), makes each
+  an operator's removal BEFORE any copy starts, then preserves each through `preserveMedia`, the reported item alone
+  first, the rest four at a time inside the page's `maxDuration` (a partial run says how far it got; pressing again
+  is safe). Unticked it is the quiet hold, and nothing leaves the album (trust-safety-forensics.md). The report stays
+  open.
+- **Ask for proof** mails the operator's own question to the reporter's confirmed address with a one-use link
+  (`/report/<token>`; only its SHA-256 is stored, forgotten at the close) where her answer lands on the report
+  itself. Never for a child-abuse report. ★ Behind `ops_flags.report_proof_mail_enabled`, OFF until the emails round
+  (ROADMAP's Emails bucket, Will's word): while it is off the ask is refused in words and nothing is written, and a
+  mail that never went takes the ask back.
 
 ## Help feedback
 

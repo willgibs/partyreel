@@ -17,11 +17,15 @@
  * ★ IT CAN WRITE NOTHING BUT THESE THREE. `reelDefaultsInputSchema` strips every other key, and the
  * patch below names the three columns, so a hostile call cannot ride this into the general save.
  *
- * ★ IT REVALIDATES NOTHING. Every page that reads these columns renders per request (the guest page
- * is `force-dynamic`; the host's pages read on the user's client), so there is no cache to clear,
- * and a `revalidatePath` would make the action re-render the page that called it, which from the
- * view is the whole presign-heavy album under a playing reel. Each caller keeps what it just set
- * from the answer below, which is what the row now holds.
+ * ★ IT REVALIDATES ONLY THE HUB, AND ONLY FOR THE SWITCH. A look or a hold is seen as it is picked, and
+ * each caller keeps what it set from the answer below, which is what the row now holds; a
+ * `revalidatePath` there would make the action re-render the page that called it, which from the
+ * view is the whole presign-heavy album under a playing reel. The switch is set from Settings alone
+ * and is felt on the hub's Reel card, so its save re-renders the hub in the action's own answer, as
+ * every other Settings save does (crumbs-24). It used to be followed by a `router.refresh()`, and a
+ * tap on the page's back arrow or a row inside that refresh's round trip reloaded the page or dropped
+ * the refresh (the matrix in `lib/history-entry.ts`): Next replays a revalidating action that a
+ * navigation interrupts, and never reloads for it.
  *
  * ★ A PICK THAT LANDS ON THE PLATFORM'S OWN DEFAULT IS STORED AS NULL, NOT THE MATCHING VALUE
  * (build 9 and 10's red-teams: choosing the default hold or look wrote `3` / `'classic'`, so the
@@ -31,6 +35,8 @@
  * and it normalizes each column on its own: `resolveHoldSec` already treats NULL as "the default",
  * so a value that already equals it is redundant to store literally.
  */
+import { revalidatePath } from "next/cache";
+
 import { updateEvent } from "@/lib/db/mutations/events";
 import { DEFAULT_HOLD_SEC } from "@/lib/reel/defaults";
 import { DEFAULT_STYLE_ID } from "@/lib/reel/engine/style-registry";
@@ -98,6 +104,9 @@ export async function setReelDefaults(
       message: result.message,
     };
   }
+
+  // The hub's Reel card says whether the reel is on: the switch's own answer carries the hub again.
+  if (showReel !== undefined) revalidatePath(`/dashboard/${eventId}`);
 
   const row = result.data;
   return {

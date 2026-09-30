@@ -12,7 +12,7 @@
     ],
     "album-stream": [
       "<CinemaGround>{<LiveAlbumStage />}</CinemaGround>",
-      "<div className=\"max-w-full overflow-x-auto\">\n  <CinemaGround>\n    <div\n      className=\"relative isolate overflow-x-clip\"\n      style={{ width: 1280 }}\n    >\n      <AlbumStream />\n      <div style={{ height: 520 }} />\n      <LiveAlbumStage />\n      <div style={{ height: 150 }} />\n    </div>\n  </CinemaGround>\n</div>"
+      "<div className=\"max-w-full overflow-x-auto\">\n  <CinemaGround>\n    <LiveAlbum>\n      <div\n        className=\"relative isolate overflow-x-clip\"\n        style={{ width: 1280 }}\n      >\n        <AlbumStream />\n        <div style={{ height: 520 }} />\n        <LiveAlbumStage />\n        <div style={{ height: 150 }} />\n      </div>\n    </LiveAlbum>\n  </CinemaGround>\n</div>"
     ],
     "trail": [
       "<div className=\"surface-paper overflow-hidden rounded-lg border bg-background text-foreground\">\n  <Trail\n    source=\"pointer\"\n    className=\"flex min-h-[26rem] flex-col items-center justify-center px-6 py-12\"\n  >\n    <TrailWords />\n  </Trail>\n</div>",
@@ -46,6 +46,9 @@
     ],
     "confirm-switch": [
       "<ConfirmSwitchDemo />"
+    ],
+    "dormant": [
+      "<DormantDemo />"
     ],
     "select": [
       "<div className=\"max-w-xs\">\n  <Select defaultValue=\"public\">\n    <SelectTrigger className=\"w-full\">\n      <SelectValue placeholder=\"Visibility\" />\n    </SelectTrigger>\n    <SelectContent>\n      <SelectItem value=\"public\">Public</SelectItem>\n      <SelectItem value=\"password\">Password</SelectItem>\n      <SelectItem value=\"private\">Private</SelectItem>\n    </SelectContent>\n  </Select>\n</div>"
@@ -86,6 +89,9 @@
     "progress": [
       "<div className=\"space-y-3\">\n  <Progress value={32} />\n  <Progress value={72} />\n</div>"
     ],
+    "consequence-line": [
+      "<ConsequenceLineDemo />"
+    ],
     "password-strength-meter": [
       "<PasswordStrengthDemo />"
     ],
@@ -102,7 +108,7 @@
       "<Popover>\n  <PopoverTrigger asChild>\n    <Button variant=\"outline\" size=\"sm\">\n      Open popover\n    </Button>\n  </PopoverTrigger>\n  <PopoverContent>\n    <p className=\"text-sm font-medium\">Storage</p>\n    <p className=\"mt-1 text-sm text-muted-foreground\">\n      1.2 GB of 5 GB used.\n    </p>\n  </PopoverContent>\n</Popover>"
     ],
     "dropdown-menu": [
-      "<DropdownMenu>\n  <DropdownMenuTrigger asChild>\n    <Button variant=\"outline\" size=\"sm\">\n      <Settings /> Manage\n    </Button>\n  </DropdownMenuTrigger>\n  <DropdownMenuContent className=\"w-64\">\n    <DropdownMenuHeader meta=\"Pro\">Ana and Theo</DropdownMenuHeader>\n    <DropdownMenuGroup>\n      <DropdownMenuLabel>Share</DropdownMenuLabel>\n      <DropdownMenuItem>\n        <Share2 /> Copy the guest link\n      </DropdownMenuItem>\n    </DropdownMenuGroup>\n    <DropdownMenuGroup>\n      <DropdownMenuLabel>The album</DropdownMenuLabel>\n      <DropdownMenuItem>\n        <Heart /> Saved\n        <DropdownMenuMeta>412</DropdownMenuMeta>\n      </DropdownMenuItem>\n      {/* The one branch the family allows, and the last one: a Sub\n          inside a Sub throws at render (Will: a third level \"gets too\n          complicated\"). */}\n      <DropdownMenuSub>\n        <DropdownMenuSubTrigger>\n          <Settings /> Who can upload\n        </DropdownMenuSubTrigger>\n        <DropdownMenuSubContent>\n          <DropdownMenuLabel>Who can upload</DropdownMenuLabel>\n          <DropdownMenuItem>Anyone with the link</DropdownMenuItem>\n          <DropdownMenuItem>\n            Guests who verify an email\n          </DropdownMenuItem>\n          <DropdownMenuItem>\n            Nobody, uploads are closed\n          </DropdownMenuItem>\n        </DropdownMenuSubContent>\n      </DropdownMenuSub>\n    </DropdownMenuGroup>\n    <DropdownMenuFooter>\n      <DropdownMenuItem variant=\"destructive\">\n        <Trash2 /> Delete the event\n      </DropdownMenuItem>\n    </DropdownMenuFooter>\n  </DropdownMenuContent>\n</DropdownMenu>",
+      "<DropdownMenu>\n  <DropdownMenuTrigger asChild>\n    <Button variant=\"outline\" size=\"sm\">\n      <Settings /> Manage\n    </Button>\n  </DropdownMenuTrigger>\n  <DropdownMenuContent className=\"w-64\">\n    <DropdownMenuHeader meta=\"Pro\">Ana and Theo</DropdownMenuHeader>\n    <DropdownMenuGroup>\n      <DropdownMenuLabel>Share</DropdownMenuLabel>\n      <DropdownMenuItem>\n        <Share2 /> Copy the guest link\n      </DropdownMenuItem>\n    </DropdownMenuGroup>\n    <DropdownMenuGroup>\n      <DropdownMenuLabel>The album</DropdownMenuLabel>\n      <DropdownMenuItem>\n        <Heart /> Saved\n        <DropdownMenuMeta>412</DropdownMenuMeta>\n      </DropdownMenuItem>\n      {/* One branch, and it stops there: two levels read simpler,\n          and a branch that wants a third is a group of its own\n          under its name. */}\n      <DropdownMenuSub>\n        <DropdownMenuSubTrigger>\n          <Settings /> Who can upload\n        </DropdownMenuSubTrigger>\n        <DropdownMenuSubContent>\n          <DropdownMenuLabel>Who can upload</DropdownMenuLabel>\n          <DropdownMenuItem>Anyone with the link</DropdownMenuItem>\n          <DropdownMenuItem>\n            Guests who verify an email\n          </DropdownMenuItem>\n          <DropdownMenuItem>\n            Nobody, uploads are closed\n          </DropdownMenuItem>\n        </DropdownMenuSubContent>\n      </DropdownMenuSub>\n    </DropdownMenuGroup>\n    <DropdownMenuFooter>\n      <DropdownMenuItem variant=\"destructive\">\n        <Trash2 /> Delete the event\n      </DropdownMenuItem>\n    </DropdownMenuFooter>\n  </DropdownMenuContent>\n</DropdownMenu>",
       "<DropdownMenu>\n  <DropdownMenuTrigger asChild>\n    <Button variant=\"outline\" size=\"sm\">\n      Download\n    </Button>\n  </DropdownMenuTrigger>\n  <DropdownMenuContent>\n    <DropdownMenuItem>SVG (best for print)</DropdownMenuItem>\n    <DropdownMenuItem>PNG (best for screens)</DropdownMenuItem>\n  </DropdownMenuContent>\n</DropdownMenu>"
     ],
     "tooltip": [
@@ -205,6 +211,15 @@
     ],
     "review-section": [
       "<ReviewSectionDemo />"
+    ],
+    "event-settings": [
+      "<SettingsDemo />",
+      "<SettingsDemo tier=\"free\" />",
+      "<DoorPageDemo />"
+    ],
+    "guests-door": [
+      "<AtTheDoorDemo />",
+      "<InvitedDemo />"
     ],
     "glow": [
       "<div className=\"dark\">\n  <div className=\"h-16 bg-muted\" />\n  <div className=\"surface-ink relative isolate bg-background\">\n    <Glow\n      shape=\"seam\"\n      vars={{\n        \"--glw-h\": \"210px\",\n        \"--glw-dur\": \"var(--spill-cadence)\",\n      }}\n    />\n    <div data-glw-seamline aria-hidden />\n    <div className=\"relative px-8 py-16 text-sm text-muted-foreground\">\n      The ink slab, lit from the cut above it.\n    </div>\n  </div>\n</div>",

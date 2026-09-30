@@ -7,6 +7,7 @@ import { DoorHeading } from "@/components/guest/door/heading";
 import { DOOR_SCRIM, DoorLamp } from "@/components/guest/door/lit";
 import { DOOR_SHEET } from "@/components/guest/entry-shell";
 import { Button } from "@/components/ui/button";
+import { ClientForm } from "@/components/ui/client-form";
 import { floatingKeyboardFoot } from "@/components/ui/floating-layer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -212,7 +213,7 @@ export function AddEmailDialog({
         <SheetTitle className="sr-only">{title}</SheetTitle>
         <SheetDescription className="sr-only">{reason}</SheetDescription>
         <DoorHeading title={title} reason={reason} hidden className="mb-4" />
-        <form
+        <ClientForm
           className="flex flex-col gap-4"
           /* The same reason the door's own form carries it: a native
              `type="email"` field would let the BROWSER refuse this form with
@@ -269,7 +270,7 @@ export function AddEmailDialog({
               {saving ? "Just a second…" : "Save"}
             </Button>
           </div>
-        </form>
+        </ClientForm>
         <div className="flex flex-col items-center gap-1.5 pt-4 text-center">
           {changing ? (
             PENDING_EMAIL_REMOVABLE && (

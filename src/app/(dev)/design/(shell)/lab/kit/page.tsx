@@ -9,213 +9,212 @@ import { Tag } from "@/app/(dev)/design/(shell)/_shell/tag";
 import { BOARDS } from "@/app/(dev)/design/sandbox/registry";
 import { TRAPS } from "@/components/lab/traps";
 
-import {
-  CatalogDemo,
-  CompareDemo,
-  CopyDemo,
-  CostDemo,
-  DockDemo,
-  ItemVerdictDemo,
-  LoupeDemo,
-  NotesDemo,
-  PasteDemo,
-  BeforeAfterDemo,
-  StepDemo,
-  SelectTableDemo,
-  SpecimenDemo,
-  SpotCompareDemo,
-  StageDemo,
-  ToggleDemo,
-  WalkDemo,
-} from "./kit-demos";
+import { DockDemo, StepDemo } from "./kit-demos";
 import { KIT_PIECES } from "./notes";
 
 /**
- * THE TOOLBOX (the Library x Lab round, 2026-09-15; reorganised as an agent's
- * toolbox at the revamp, 2026-09-16).
+ * THE TOOLBOX (the Library x Lab round, 2026-09-15; an agent's toolbox at the
+ * revamp, 2026-09-16; one folder and a front door at the lab revamp,
+ * 2026-09-29).
  *
- * ★ IT IS WRITTEN FOR THE AGENT WHO ARRIVES WITH A BOARD TO BUILD, which is a
- * different reader from the one the first version served. A catalogue of nouns
- * tells you what exists; it does not tell you which tool your evidence wants,
- * and the alternative to answering that is the thing the kit exists to end (a
- * board building its own Part, its own Knob, its own paste, for the third
- * time). So every row says what the tool is FOR, WHEN to reach for it against
- * the tool beside it, and shows it working.
+ * ★ IT IS WRITTEN FOR THE AGENT WHO ARRIVES WITH A BOARD TO BUILD, and it is
+ * the page that agent's brief points at: what a board is (one folder, a spec
+ * of decisions and a preview per option), the pieces a preview draws with and
+ * when to reach for each, what the spec turns into on Will's screen, and the
+ * traps the boards before it paid for. A piece is listed here because a board
+ * imports it, and nothing is listed that none does.
  *
- * ★ AND EVERY DEMO IS REAL, NEVER A PICTURE OF ONE. A kit page that drew a
- * screenshot of a dock would be exactly the failure the kit exists to prevent.
- * Two pieces cannot be shown inertly and say so: the Frame, which would load
- * real pages into this page, and the template, which IS the boards.
+ * ★ EVERY SPECIMEN IS REAL, NEVER A PICTURE OF ONE. The front door's pieces
+ * draw into a real viewport and cannot be mounted inertly, so each row says
+ * where it is working; the step and the dock, which the spec turns into, are
+ * mounted live at the foot.
  */
-const DEMOS: Record<string, React.ComponentType> = {
-  catalog: CatalogDemo,
-  compareTwo: SpotCompareDemo,
-  compare: CompareDemo,
-  itemVerdict: ItemVerdictDemo,
-  stage: StageDemo,
-  specimen: SpecimenDemo,
-  selectTable: SelectTableDemo,
-  loupe: LoupeDemo,
-  dock: DockDemo,
-  walk: WalkDemo,
-  cost: CostDemo,
-  paste: PasteDemo,
-  copy: CopyDemo,
-  notes: NotesDemo,
-  step: StepDemo,
-  beforeAfter: BeforeAfterDemo,
-  toggle: ToggleDemo,
-};
-
 export default async function KitPage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   await requireDesignKey(searchParams);
-  const shown = KIT_PIECES.filter((p) => p.demo).length;
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 pb-20 sm:px-6">
+    // Two faces: a bare <code> falls to the preflight's mono stack, so the
+    // page's file names and fields read in the sans (design-system.md).
+    <div className="mx-auto w-full max-w-4xl px-4 pb-20 sm:px-6 [&_code]:font-sans">
       <PageHeader
         title="The toolbox"
-        description="Every tool a board is built from, what each one is for, and when to reach for it. A board is its evidence and nothing else: build the tool your evidence needs HERE, with the discipline below, and never a local copy inside a board."
+        description="How a board is built: one folder, holding its decisions as data and a preview per option, drawn with the few pieces the kit's front door gives it. Everything else in the kit is the machinery the board rides on."
         badges={
           <>
-            <Tag>{KIT_PIECES.length} tools</Tag>
-            <Tag>{shown} live</Tag>
+            <Tag>{KIT_PIECES.length} pieces</Tag>
             <Tag>{TRAPS.length} traps</Tag>
           </>
         }
         meta={[
           [
-            "Home",
+            "Front door",
             <Ref
               key="src"
-              to={{ kind: "source", file: "src/components/lab" }}
+              to={{ kind: "source", file: "src/components/lab/index.ts" }}
               quiet
             >
-              src/components/lab
+              src/components/lab/index.ts
             </Ref>,
           ],
-          ["On the template", BOARDS.map((b) => b.title).join(", ") || "none"],
+          ["On the desk", BOARDS.map((b) => b.title).join(", ") || "none"],
         ]}
       />
 
-      <Callout kind="note" className="mt-6" title="Adding a tool">
-        A new piece arrives with a row in <code>kit/notes.ts</code>, a live
-        demo in <code>kit/kit-demos.tsx</code>, a test for what it does (its
-        function, never its look), and its name on{" "}
-        <code>kit-discipline.test.ts</code>&rsquo;s owned list, which is what
-        stops a board re-declaring it.
+      <Callout kind="note" className="mt-6" title="Adding a piece">
+        A piece a new board needs joins the front door (
+        <code>src/components/lab/index.ts</code>) in the change whose board
+        first uses it, with its row in <code>kit/notes.ts</code> and a test for
+        what it does (its function, never its look). From then on{" "}
+        <code>kit-discipline.test.ts</code> refuses a board that declares its
+        own copy, and one that imports the kit from anywhere else.
       </Callout>
 
       <Section
-        id="a-board-is-two-files"
-        title="A board is two files"
-        blurb="Everything else is the kit's."
+        id="a-board-is-one-folder"
+        title="A board is one folder"
+        blurb="Nothing else names it: adding a board is adding the folder, and retiring one is deleting it."
       >
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="rounded-xl border border-border bg-card p-4">
             <p className="text-sm font-medium">sandbox/&lt;id&gt;/spec.ts</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Pure data: the question, the round, the verdict, the asks, the
-              candidates (written out, never mapped), the catalog, the
-              departures, the assets, the sections, the controls, the walk and
-              the notes. No React, no CSS, no import of its own board, so a
-              server page and a node test can both read it.
+              <code>defineExploration</code>, pure data: the id (the folder),
+              the title, where it stands (<code>surface</code>,{" "}
+              <code>desk</code> by leverage, <code>lives</code>), the round, the{" "}
+              <code>opening</code> and <code>terms</code>, and the decisions,
+              each with its context (<code>where</code>, <code>when</code>,{" "}
+              <code>matters</code>), its options (<code>gains</code>,{" "}
+              <code>costs</code>), its recommendation and <code>because</code>.
+              It imports the kit from <code>@/components/lab/exploration</code>{" "}
+              alone, so a server page and a node test can read it.
             </p>
           </div>
           <div className="rounded-xl border border-border bg-card p-4">
             <p className="text-sm font-medium">sandbox/&lt;id&gt;/board.tsx</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              The evidence for each declared section, as a function of the
-              declared state. It renders <code>BoardPage</code>, which puts the
-              answer first and the argument under it, in one order for every
-              board.
+              One export: <code>ExplorationBoard</code> with the spec and a
+              preview per option, typed{" "}
+              <code>PreviewsFor&lt;typeof SPEC&gt;</code>, so a missing preview
+              is a type error rather than a blank tile. Its drawings (scenes,
+              fixtures, a stylesheet) sit beside it and import the kit from{" "}
+              <code>@/components/lab</code>.
             </p>
           </div>
         </div>
         <p className="mt-3 text-sm text-muted-foreground">
-          A quick exploration needs none of this: a <code>page.tsx</code> in{" "}
-          <code>sandbox/&lt;name&gt;/</code> renders bare behind the lab&rsquo;s
-          key, and the kit&rsquo;s <code>Frame</code> and <code>FrameRow</code>{" "}
-          draw an idea at true widths beside what ships. A standing board, the
-          kind reviewed on the desk, is the two files above plus its lines in{" "}
-          <code>registry.ts</code>, <code>boards.ts</code> and{" "}
-          <code>touchpoints.ts</code>.
+          The registry finds the folder’s spec and the route finds its board, so
+          two boards cut at once never touch one file. A retired board’s ledger
+          in <code>docs/reviews/</code> is the Orchestrator’s to delete.
         </p>
         <ul className="mt-3 space-y-1 text-sm text-muted-foreground">
           <li>
             <code>
-              node scripts/new-board.mjs &lt;id&gt; &quot;&lt;title&gt;&quot;
+              pnpm new-board &lt;id&gt; &quot;&lt;title&gt;&quot; --surface
+              &lt;surface&gt; --desk &lt;n&gt;
             </code>{" "}
-            scaffolds a CATALOG: cards ruled keep, refine or kill, a Pick that
-            drives the page, and A and B for any two.
+            writes the folder: one decision with two options, every line to
+            write a <code>TODO</code> that <code>registry.test.ts</code> refuses
+            until it is written.
           </li>
           <li>
-            <code>--spots</code> scaffolds the other shape, where one idea is
-            applied in many real places and the evidence is those places under
-            two cards.
+            <code>pnpm lab:smoke --board &lt;id&gt; --base &lt;server&gt;</code>{" "}
+            crawls the board, its steps and the desk;{" "}
+            <code>pnpm lab:demo --board &lt;id&gt;</code> presses every option,
+            fails a stage that draws the same picture whichever is pressed (and
+            names any two that match), and fails a step whose stage starts past
+            half the first screen or whose frames end under the dock, at 1440 by
+            900 and at 375 by 812.
           </li>
           <li>
-            <code>--plain</code> keeps asks and sections only, for a board with
-            genuinely nothing to choose between.
-          </li>
-          <li>
-            <code>pnpm lab:smoke</code> weighs every board page: the words
-            outside every closed fold, against the reading budget. A specimen
-            does not count, because a specimen is looked at rather than read.
+            <code>registry.test.ts</code> holds the spec: pure data, one export,
+            its place on the desk, and the context on every open ask.
           </li>
         </ul>
       </Section>
 
       <Section
-        id="tools"
-        title="The tools"
-        blurb="What each one is for, when to reach for it, and it working. Nothing here is a screenshot."
+        id="front-door"
+        title="The front door"
+        blurb="What a board's drawings import from @/components/lab, what each piece is for, and when to reach for it."
       >
         <ul className="flex flex-col gap-5">
-          {KIT_PIECES.map((piece) => {
-            const Demo = piece.demo ? DEMOS[piece.demo] : undefined;
-            return (
-              <li
-                key={piece.name}
-                className="rounded-xl border border-border bg-card px-4 py-4"
-              >
-                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                  <p className="text-sm font-semibold tracking-tight">
-                    {piece.name}
-                  </p>
-                  {!Demo && <Tag tone="outline">no specimen</Tag>}
-                </div>
-                <p className="mt-1 max-w-3xl text-sm leading-relaxed text-muted-foreground">
-                  {piece.note}
-                </p>
-                <p className="mt-1 max-w-3xl text-sm leading-relaxed">
-                  <span className="text-muted-foreground">
-                    When to reach for it:{" "}
-                  </span>
-                  {piece.reach}
-                </p>
-                <p className="mt-1 text-[11px]">
-                  <Ref to={{ kind: "source", file: piece.file }} quiet />
-                </p>
-                {Demo ? (
-                  <div className="mt-3 border-t border-border pt-3">
-                    <Demo />
-                  </div>
-                ) : (
-                  piece.inert && (
-                    <p className="mt-2 text-[11px] text-muted-foreground">
-                      Not mounted here: {piece.inert}.
-                    </p>
-                  )
-                )}
-              </li>
-            );
-          })}
+          {KIT_PIECES.map((piece) => (
+            <li
+              key={piece.names.join()}
+              className="rounded-xl border border-border bg-card px-4 py-4"
+            >
+              <p className="text-sm font-semibold tracking-tight">
+                {piece.names.join(", ")}
+              </p>
+              <p className="mt-1 max-w-3xl text-sm leading-relaxed text-muted-foreground">
+                {piece.note}
+              </p>
+              <p className="mt-1 max-w-3xl text-sm leading-relaxed">
+                <span className="text-muted-foreground">
+                  When to reach for it:{" "}
+                </span>
+                {piece.reach}
+              </p>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                <Ref to={{ kind: "source", file: piece.file }} quiet /> ·
+                working on {piece.seen}
+              </p>
+            </li>
+          ))}
         </ul>
+      </Section>
+
+      <Section
+        id="what-it-becomes"
+        title="What the spec becomes"
+        blurb="The machinery a board rides on and never imports, mounted live on a fixture."
+      >
+        <div className="flex flex-col gap-6">
+          <div>
+            <p className="text-sm font-medium">The step</p>
+            <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
+              Each decision becomes one step, read pictures first: where it
+              happens in one line (<code>where</code> and <code>when</code>),
+              the question, the options as tabs, the shown option&rsquo;s{" "}
+              <code>means</code>, <code>gains</code> and <code>costs</code> in a
+              line, its <code>configs</code> as one quiet row of knobs, and the
+              stage, with the note, Pick, Back and Next in the dock. This is
+              where Will meets the board.
+            </p>
+            <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+              The stage draws the shown option whole: it scales the drawing to
+              the room above the dock, every option at one scale, and a column
+              that holds only frames (with whole lines between them, a lede or a
+              note) may stand there as a row that wraps, so the frames are as
+              large as the room allows. 1:1 is one press away (<code>f</code>)
+              and draws the preview exactly as written. A frame&rsquo;s{" "}
+              <code>Measured</code> caption stays in the page for the lane and
+              out of his view.
+            </p>
+            <p className="mt-2 mb-3 max-w-3xl text-sm text-muted-foreground">
+              Everything else the spec says (the <code>opening</code>, the{" "}
+              <code>terms</code>, <code>lands</code>, <code>matters</code>,{" "}
+              <code>because</code>, <code>context</code> and <code>look</code>)
+              is the About panel, one press away (<code>i</code>) and open for
+              him once he opens it; a term is also marked where the step says
+              it, with its meaning on a hover.
+            </p>
+            <StepDemo />
+          </div>
+          <div>
+            <p className="text-sm font-medium">The dock</p>
+            <p className="mt-1 mb-3 max-w-3xl text-sm text-muted-foreground">
+              Each decision’s own control and every <code>configs</code> knob
+              become the dock’s switches, mirrored to the URL, so a link reopens
+              the exact state a note was written about.
+            </p>
+            <DockDemo />
+          </div>
+        </div>
       </Section>
 
       <Section
@@ -249,10 +248,10 @@ export default async function KitPage({
 
       <Callout kind="note" className="mt-8">
         Nothing outside <code>/design</code> may import the kit, and a test says
-        so: it reads the live cascade, writes into iframe documents and hands
-        the whole site a candidate stylesheet, so a product page importing any
-        of it would ship a dev tool to a guest. The dependency runs the other
-        way, and the kit imports production components freely.
+        so: it reads the live cascade, writes into iframe documents and hands a
+        frame a candidate stylesheet, so a product page importing any of it
+        would ship a dev tool to a guest. The dependency runs the other way, and
+        the kit imports production components freely.
       </Callout>
 
       <Pager />

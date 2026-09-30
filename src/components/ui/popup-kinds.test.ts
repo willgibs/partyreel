@@ -69,6 +69,13 @@ describe("the one table", () => {
     }
   })
 
+  it("★ only a confirm speaks as an alertdialog: it asks one thing and waits for the answer (crumbs-20)", () => {
+    const alerts = Object.entries(POPUP_KINDS)
+      .filter(([, row]) => "role" in row)
+      .map(([kind, row]) => [kind, (row as { role: string }).role])
+    expect(alerts).toEqual([["confirm", "alertdialog"]])
+  })
+
   it("is read at every product popup: a bare Sheet or Dialog is one the board left alone", () => {
     const bare = [
       ...sources(join(ROOT, "src/components")),

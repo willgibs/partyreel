@@ -12,10 +12,16 @@ import type { ReviewProfileReport } from "@/lib/db/queries/reports";
  */
 
 const actions = vi.hoisted(() => ({
-  dismissReportAction: vi.fn(async () => ({ ok: true as const })),
+  // A dismissal answers the reports it closed (admin-triage r2: a verdict answers its whole entry).
+  dismissReportAction: vi.fn(async () => ({
+    ok: true as const,
+    reportIds: ["3e81c5a9-47d2-4f60-b1e8-9a2c6d0f7b35"],
+    restored: false,
+  })),
   actionReportAction: vi.fn(async () => ({ ok: true as const })),
   undoReportAction: vi.fn(async () => ({ ok: true as const })),
   reopenReportAction: vi.fn(async () => ({ ok: true as const })),
+  reopenReportsAction: vi.fn(async () => ({ ok: true as const })),
   holdScopeAction: vi.fn(),
   holdFromReportAction: vi.fn(),
 }));
@@ -67,7 +73,9 @@ describe("a reported person", () => {
       ID,
       "Handle released; bio cleared.",
     );
+    // One press means no popup of any kind: a confirm is an `alertdialog`, which `dialog` never finds.
     expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.queryByRole("alertdialog")).toBeNull();
   });
 
   it("Dismiss is one press, with or without a note, and its toast's Undo reopens it", async () => {
@@ -90,7 +98,8 @@ describe("a reported person", () => {
       options as { action?: { label: string; onClick: () => void } }
     ).action;
     undo!.onClick();
-    expect(actions.reopenReportAction).toHaveBeenCalledWith(ID);
+    // Every report the dismissal closed, reopened together.
+    expect(actions.reopenReportsAction).toHaveBeenCalledWith([ID]);
   });
 
   it("★ a dismissal inside its window reopens from its line; Mark actioned's line offers nothing", async () => {

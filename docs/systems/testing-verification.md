@@ -50,6 +50,8 @@ like the tool rather than the product, are [CLAUDE.md](../../CLAUDE.md)'s.
 Live testing uses disposable test data only.
 - **Accounts:** `willg97@gmail.com` the host on Pro, `hi@willgibs.com` a host on Free, `partyr33l@gmail.com` the
   operator (TOTP MFA). Google through the account chooser is authorized; typing a password or a code never is.
+  ★ willg97's and partyr33l's addresses each carry a dismissed child-abuse report (build 23's red-team), and that bar on
+  instant hides never lapses: a walk of the instant hide needs a fresh confirmed address.
 - **Seed through real uploads, never raw rows:** a `media` row with no R2 object renders broken and poisons later
   checks. The media fixtures are at `/Users/gibby/local/ai/partyreel-test-media`, and
   `node scripts/seed-demo-event.mjs <folder> [--host <email>] [--name <event>] [--guests "Maya J.,Tom R."] [--dry-run]`
@@ -127,10 +129,20 @@ function of elapsed time can be frozen at a chosen moment and shot.
   `javascript_tool`.
 - **Lab boards:** `lab:smoke` weighs whole board pages, so a stage that ignores its tiles still passes; `lab:demo`
   (real Chrome over its DevTools protocol) presses every open step's options and fails a stage that does not move,
-  measuring the frame rather than its label. ★ A headless `--screenshot` cannot scroll (a fragment URL paints black; a
-  tall window stretches a 100vh hero), so `lab:demo`'s own scrolled capture is how subtle light is judged, and a
-  capture with no variance at all is reported UNPAINTED, to be judged by eye (headless Chrome does not always
-  rasterize a composited `backdrop-filter`).
+  measuring every frame of an option rather than its label (`--state <control>=<option>` presses it wearing a knob,
+  `--width 375` at a phone's width). ★ A headless `--screenshot` cannot scroll (a fragment URL paints black; a tall
+  window stretches a 100vh hero), so `lab:demo`'s own scrolled capture is how subtle light is judged, and a capture
+  with no variance at all is reported UNPAINTED, to be judged by eye (headless Chrome does not always rasterize a
+  composited `backdrop-filter`).
+- ★ **`lab:demo` dying on `Page.navigate did not answer in 60000ms`,** while the dev server answers the page in about
+  200 ms and the renderer still runs timers, is a wedged dev image optimizer and not a hung page: `next dev` hands
+  every request for one image the same pending result, and a first request that is cancelled (an iframe's first
+  document going, with its images in flight) leaves it pending for ever, so the later requests never answer, the six
+  connections to the server fill and the next navigation cannot start (`curl`: sixty requests for one uncached image,
+  aborted after 10 ms, then an ordinary request for that image hangs while every other image answers; five aborted do
+  not). The server stays wedged (0% CPU, GBs resident) and fails every later run whatever the tree: restart it
+  (`rm -rf .next/dev`) before any A/B, then find what cancels the images (`Frame` once mounted every portalled scene
+  twice).
 
 ## The presign-roll soak
 

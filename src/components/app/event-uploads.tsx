@@ -161,12 +161,22 @@ function HubGrid({
     },
     [album, seedLikes],
   );
+  // ★ A HELD ARRIVAL'S LINK (crumbs-25): a delta brings the manifest's tuple with no link, and only a
+  // window asks for links, so the grid's gate (`use-arrival-gate.ts`) asks for the ones it is holding at the
+  // door itself. (Its heart is seeded when its tile is laid: a window then stands over it.)
+  const onNeedLinks = useCallback(
+    (ids: readonly string[]) => {
+      void album.store.links.ensure(ids);
+    },
+    [album],
+  );
   const rows: HubRows = {
     step: view?.step ?? 1,
     onStepChange: view?.setStep ?? noop,
     anchor: view?.sort === "oldest" ? "start" : "end",
     rhythmSeed,
     onWindowChange,
+    onNeedLinks,
     albumRef,
     afterWrite: album.sync,
   };

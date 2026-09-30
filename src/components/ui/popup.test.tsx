@@ -98,6 +98,58 @@ describe("a kind reaches the shape its row names", () => {
   })
 })
 
+describe("a kind is announced as what it is (crumbs-20)", () => {
+  // ★ A confirm stops the person to ask one thing and waits: that is an ALERT dialog, which a screen
+  // reader announces as an alert and reads with its question. It was `role="dialog"` for every kind. The role is one more column of the kind's row, so a later answer on
+  // a kind is still one line.
+  it("a confirm is an alertdialog, at a desk and in a hand", () => {
+    for (const width of [1024, 375]) {
+      setViewportWidth(width)
+      const { unmount } = mount("confirm")
+      const confirm = screen.getByRole("alertdialog", { name: "Report this event" })
+      expect(confirm.getAttribute("data-kind"), `at ${width}`).toBe("confirm")
+      expect(screen.queryByRole("dialog"), `at ${width}`).toBeNull()
+      unmount()
+    }
+  })
+
+  it("every other kind stays the Dialog's own `dialog`, and never loses its role", () => {
+    setViewportWidth(1024)
+    for (const kind of Object.keys(POPUP_KINDS) as PopupKind[]) {
+      if (kind === "confirm") continue
+      const { unmount } = mount(kind)
+      const panel = document.querySelector<HTMLElement>('[data-slot="popup-content"]')
+      expect(panel?.getAttribute("role"), kind).toBe("dialog")
+      unmount()
+    }
+  })
+
+  it("keeps its question announced with its name: the header's description is the alert's text", () => {
+    render(
+      <Popup defaultOpen>
+        <PopupContent kind="confirm">
+          <PopupHeader title="Block Maya?" description="She won't be notified." />
+        </PopupContent>
+      </Popup>,
+    )
+    expect(screen.getByRole("alertdialog", { name: "Block Maya?" })).toHaveAccessibleDescription(
+      "She won't be notified.",
+    )
+  })
+
+  it("lets a call site's own role win", () => {
+    render(
+      <Popup defaultOpen>
+        <PopupContent kind="confirm" role="dialog" aria-describedby={undefined}>
+          <PopupHeader title="Report this event" />
+        </PopupContent>
+      </Popup>,
+    )
+    expect(screen.getByRole("dialog", { name: "Report this event" })).toBeInTheDocument()
+    expect(screen.queryByRole("alertdialog")).toBeNull()
+  })
+})
+
 describe("a screen in a hand is a place", () => {
   it("heads itself with a back arrow that says where Back returns, and no corner close", () => {
     setViewportWidth(375)
@@ -198,9 +250,9 @@ describe("where focus goes back to when it closes", () => {
     const opener = screen.getByRole("button", { name: "More options" })
     act(() => opener.focus())
     fireEvent.click(opener)
-    const dialog = screen.getByRole("dialog", { name: "Block Maya?" })
+    const dialog = screen.getByRole("alertdialog", { name: "Block Maya?" })
     fireEvent.keyDown(dialog, { key: "Escape" })
-    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
+    await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull())
     expect(opener).toHaveFocus()
   })
 
@@ -243,10 +295,10 @@ describe("where focus goes back to when it closes", () => {
     const field = screen.getByLabelText("Event name")
     act(() => field.focus())
     fireEvent.keyDown(field, { key: "Escape" })
-    const confirm = await screen.findByRole("dialog", { name: "Discard changes?" })
+    const confirm = await screen.findByRole("alertdialog", { name: "Discard changes?" })
     fireEvent.click(within(confirm).getByRole("button", { name: "Keep editing" }))
     await waitFor(() =>
-      expect(screen.queryByRole("dialog", { name: "Discard changes?" })).toBeNull()
+      expect(screen.queryByRole("alertdialog", { name: "Discard changes?" })).toBeNull()
     )
     expect(field).toHaveFocus()
     expect(screen.getByRole("dialog", { name: "Settings" })).toBeInTheDocument()
@@ -279,10 +331,10 @@ describe("where focus goes back to when it closes", () => {
     const trigger = within(viewer).getByRole("button", { name: "Delete permanently" })
     act(() => trigger.focus())
     fireEvent.click(trigger)
-    const confirm = await screen.findByRole("dialog", { name: "Delete permanently?" })
+    const confirm = await screen.findByRole("alertdialog", { name: "Delete permanently?" })
     fireEvent.keyDown(confirm, { key: "Escape" })
     await waitFor(() =>
-      expect(screen.queryByRole("dialog", { name: "Delete permanently?" })).toBeNull()
+      expect(screen.queryByRole("alertdialog", { name: "Delete permanently?" })).toBeNull()
     )
     expect(trigger).toHaveFocus()
     expect(viewer).toBeInTheDocument()
@@ -335,5 +387,240 @@ describe("the body", () => {
     const body = document.querySelector<HTMLElement>('[data-slot="popup-body"]')!
     const classes = body.className.split(/\s+/)
     expect(classes).toEqual(expect.arrayContaining(["flex", "flex-col", "*:shrink-0"]))
+  })
+})
+
+describe("a level in: a page's head goes up, never out (event-settings r1, `opens=page`)", () => {
+  function mountUp(onUp: () => void) {
+    return render(
+      <Popup defaultOpen>
+        <PopupContent kind="settings" routed aria-describedby={undefined}>
+          <PopupHeader title="Who can get in" up={{ label: "Settings", onUp }} />
+          <PopupBody>
+            <p>The door</p>
+          </PopupBody>
+        </PopupContent>
+      </Popup>,
+    )
+  }
+
+  it("in a hand, the bar's own arrow names where it goes and goes up, the popup staying open", () => {
+    setViewportWidth(375)
+    let ups = 0
+    mountUp(() => ups++)
+    fireEvent.click(screen.getByRole("button", { name: "Settings" }))
+    expect(ups).toBe(1)
+    expect(document.querySelector('[data-slot="popup-content"]')).not.toBeNull()
+  })
+
+  it("at a desk, a small back row above the title does the same, the close staying in its corner", () => {
+    setViewportWidth(1024)
+    let ups = 0
+    mountUp(() => ups++)
+    const up = screen.getByRole("button", { name: "Settings" })
+    expect(up.hasAttribute("data-popup-up")).toBe(true)
+    fireEvent.click(up)
+    expect(ups).toBe(1)
+    expect(screen.getByRole("button", { name: "Close" })).toBeInTheDocument()
+    expect(document.querySelector('[data-slot="popup-content"]')).not.toBeNull()
+  })
+})
+
+/**
+ * A LAYER A TAP OPENED TAKES NO TAP UNTIL IT HAS SETTLED (crumbs-23, build 26's red-team). A layer fades
+ * in under the finger and is hit-testable from its first frame, so the second tap of a double tap on the
+ * hub's Settings card landed on the sheet's "This event" row. Read off the layer itself: a CSS
+ * ANIMATION of its own still running (its entrance, its exit) swallows a click inside it and an outside
+ * press on the scrim; a CSS transition (the keyboard's lift), a loop that never ends and an engine with
+ * no `getAnimations` at all (jsdom) never do. jsdom runs no animation, so the element's own
+ * `getAnimations` is stood in for, as the album's tiles stand in for `complete`.
+ */
+describe("a layer a tap opened takes no tap until it has settled (crumbs-23)", () => {
+  type FakeAnimation = {
+    playState: string
+    animationName?: string
+    transitionProperty?: string
+    effect?: { getComputedTiming: () => { iterations: number } }
+  }
+  let running: FakeAnimation[] = []
+  const realGetAnimations = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "getAnimations")
+
+  beforeEach(() => {
+    running = []
+    Object.defineProperty(HTMLElement.prototype, "getAnimations", {
+      configurable: true,
+      value: () => running,
+    })
+  })
+  afterEach(() => {
+    if (realGetAnimations) Object.defineProperty(HTMLElement.prototype, "getAnimations", realGetAnimations)
+    else delete (HTMLElement.prototype as unknown as Record<string, unknown>).getAnimations
+  })
+
+  const entrance: FakeAnimation = { animationName: "enter", playState: "running" }
+
+  /** A popup with a row that counts its taps, and the header's own way out. */
+  function mountRow(onRow: () => void) {
+    setViewportWidth(375)
+    const view = render(
+      <Popup defaultOpen>
+        <PopupContent kind="settings" routed aria-describedby={undefined}>
+          <PopupHeader title="Settings" back="Album" />
+          <PopupBody>
+            <button type="button" onClick={onRow}>
+              This event
+            </button>
+          </PopupBody>
+        </PopupContent>
+      </Popup>,
+    )
+    return {
+      ...view,
+      row: () => screen.getByRole("button", { name: "This event" }),
+      open: () => document.querySelector('[data-slot="popup-content"]') !== null,
+    }
+  }
+
+  it("★ swallows a click on a row while its entrance is still running, and takes it once it has run out", () => {
+    let taps = 0
+    const { row } = mountRow(() => taps++)
+
+    running = [entrance]
+    fireEvent.click(row())
+    expect(taps).toBe(0)
+
+    // The entrance is over (a finished animation leaves the element's list): the same tap is a tap.
+    running = []
+    fireEvent.click(row())
+    expect(taps).toBe(1)
+  })
+
+  it("★ swallows the PRESS as well while it arrives: no row hears it, and its default (the focus that raises a phone's keyboard) never runs (crumbs-26, build 27's red-team)", () => {
+    // The second tap of a double tap on the code card's "Everything" landed in the Share sheet it had just
+    // opened: its click was swallowed, but its mousedown focused the "Custom link" field beside Save link
+    // (2 runs of 3), and on a phone a focused field raises the keyboard over the sheet.
+    setViewportWidth(375)
+    const heard: string[] = []
+    render(
+      <Popup defaultOpen>
+        <PopupContent kind="settings" routed aria-describedby={undefined}>
+          <PopupHeader title="Share" back="Album" />
+          <PopupBody>
+            <input
+              aria-label="Custom link"
+              onPointerDown={() => heard.push("pointerdown")}
+              onMouseDown={() => heard.push("mousedown")}
+            />
+          </PopupBody>
+        </PopupContent>
+      </Popup>,
+    )
+    const field = screen.getByRole("textbox", { name: "Custom link" })
+
+    running = [entrance]
+    // `fireEvent` answers false when a listener prevented the event's default.
+    expect(fireEvent.pointerDown(field, { pointerType: "touch", button: 0 })).toBe(false)
+    expect(fireEvent.mouseDown(field, { button: 0 })).toBe(false)
+    expect(heard).toEqual([])
+
+    // Settled: the same press is a press, and the field takes it.
+    running = []
+    expect(fireEvent.pointerDown(field, { pointerType: "touch", button: 0 })).toBe(true)
+    expect(fireEvent.mouseDown(field, { button: 0 })).toBe(true)
+    expect(heard).toEqual(["pointerdown", "mousedown"])
+  })
+
+  it("a press that began while it arrived takes its click with it, however late the finger lifts", () => {
+    // The entrance can run out between the finger going down and coming up: the press was still nobody's.
+    let taps = 0
+    const { row } = mountRow(() => taps++)
+    running = [entrance]
+    fireEvent.pointerDown(row(), { pointerType: "touch", button: 0 })
+    running = []
+    fireEvent.click(row(), { detail: 1 })
+    expect(taps).toBe(0)
+
+    // The next press starts on a settled layer and is a tap.
+    fireEvent.pointerDown(row(), { pointerType: "touch", button: 0 })
+    fireEvent.click(row(), { detail: 1 })
+    expect(taps).toBe(1)
+  })
+
+  it("a key's click after a swallowed press is still the key's: Enter on a row is never eaten for a finger that never lifted", () => {
+    let taps = 0
+    const { row } = mountRow(() => taps++)
+    running = [entrance]
+    fireEvent.pointerDown(row(), { pointerType: "touch", button: 0 })
+    running = []
+    // A keyboard's click carries no count (`detail` 0).
+    fireEvent.click(row(), { detail: 0 })
+    expect(taps).toBe(1)
+  })
+
+  it("★ never lets the scrim's outside press dismiss a layer that is still arriving", async () => {
+    const { open } = mountRow(() => {})
+    const scrim = document.querySelector<HTMLElement>('[data-slot="popup-overlay"]')!
+    // Radix listens for an outside press only from the next task after it mounts (so the press that
+    // opened it is never one): let that task run before pressing.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 5))
+    })
+
+    running = [entrance]
+    fireEvent.pointerDown(scrim, { pointerType: "mouse", button: 0 })
+    await act(async () => {})
+    expect(open()).toBe(true)
+
+    running = []
+    fireEvent.pointerDown(scrim, { pointerType: "mouse", button: 0 })
+    await waitFor(() => expect(open()).toBe(false))
+  })
+
+  it("swallows a layer's exit too: one on its way out takes no tap", () => {
+    let taps = 0
+    const { row } = mountRow(() => taps++)
+    running = [{ animationName: "exit", playState: "running" }]
+    fireEvent.click(row())
+    expect(taps).toBe(0)
+  })
+
+  it("an entrance that has run out (finished, or never started) is not an arrival", () => {
+    let taps = 0
+    const { row } = mountRow(() => taps++)
+    for (const playState of ["finished", "idle", "paused"]) {
+      running = [{ animationName: "enter", playState }]
+      fireEvent.click(row())
+    }
+    expect(taps).toBe(3)
+  })
+
+  it("a CSS TRANSITION is not an arrival: the keyboard's lift glides the sheet and a tap mid-glide is a real tap", () => {
+    let taps = 0
+    const { row } = mountRow(() => taps++)
+    running = [{ transitionProperty: "bottom", playState: "running" }]
+    fireEvent.click(row())
+    expect(taps).toBe(1)
+  })
+
+  it("a loop that never ends is not an arrival: a pulse a caller put on the layer cannot make it deaf for ever", () => {
+    let taps = 0
+    const { row } = mountRow(() => taps++)
+    running = [
+      {
+        animationName: "pulse",
+        playState: "running",
+        effect: { getComputedTiming: () => ({ iterations: Infinity }) },
+      },
+    ]
+    fireEvent.click(row())
+    expect(taps).toBe(1)
+  })
+
+  it("an engine with no getAnimations never swallows anything (jsdom, every test in this file)", () => {
+    delete (HTMLElement.prototype as unknown as Record<string, unknown>).getAnimations
+    let taps = 0
+    const { row } = mountRow(() => taps++)
+    fireEvent.click(row())
+    expect(taps).toBe(1)
   })
 })

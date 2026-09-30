@@ -170,9 +170,7 @@ export function GuestPeek({
             <div className="flex items-center gap-3">
               <Face item={item} />
               <div className="min-w-0 space-y-0.5">
-                <p className="truncate font-heading text-card-title font-medium">
-                  {name}
-                </p>
+                <p className="truncate font-heading text-card-title">{name}</p>
                 <p className="text-sm text-muted-foreground">
                   {lookLine(item)}
                 </p>

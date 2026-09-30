@@ -23,6 +23,11 @@
  * are capped at 500 MB", "This album is full right now") and this prints it: a
  * guest whose clip is one megabyte over needs the number, and a generic line
  * sends them to find the host to ask what happened.
+ *
+ * ★ RETRY ONLY WHERE A RETRY COULD PASS (build 23's NIT-2): a refusal of the file
+ * itself ("This event accepts photos only", a file too large) stands with its
+ * sentence and no Retry, since sending the same file again is refused again
+ * (`retryCanPass`, the refusal ladder the door's step reads too).
  */
 import { useState } from "react";
 import { RefreshCw } from "lucide-react";
@@ -40,9 +45,16 @@ import {
 } from "@/components/ui/sheet";
 import { UPLOAD_FAILED_HELP_HREF } from "@/lib/content/help-links";
 import { formatCount } from "@/lib/format/count";
+import { retryCanPass } from "@/lib/guest/upload-refusal";
 
-/** One file that did not go: the queue's id, its file, and the server's words. */
-export type UploadFailure = { id: string; file: File; error?: string };
+/** One file that did not go: the queue's id, its file, the server's words and their code. */
+export type UploadFailure = {
+  id: string;
+  file: File;
+  error?: string;
+  /** The refusal's code, which says whether the same file could go on a retry. */
+  code?: string;
+};
 
 /**
  * The sheet's own heading, in one place: the door's in-step view says the same words.
@@ -81,22 +93,26 @@ export function UploadFailureList({
   // The list's own blob ledger; the album's in-flight one has already let these go (a refused file
   // is drawn nowhere in the album).
   const urls = usePickUrls(failures);
-  const one = failures.length === 1;
+  const retryable = failures.filter((f) => retryCanPass(f.code));
+  const one = retryable.length === 1;
   return (
     <div className="flex flex-col gap-4">
       {/* The one tap that fixes all of it, above the reading, because the
-          commonest answer to "what happened" is "the venue Wi-Fi". */}
-      <Button
-        type="button"
-        size="cta"
-        className="w-full active:scale-[0.99] motion-reduce:active:scale-100"
-        onClick={() => {
-          for (const f of failures) onRetry(f.id);
-          onRetryAll?.();
-        }}
-      >
-        <RefreshCw /> {uploadFailureRetryLabel(failures.length)}
-      </Button>
+          commonest answer to "what happened" is "the venue Wi-Fi". It retries
+          only what could go, and is gone when nothing could. */}
+      {retryable.length > 0 && (
+        <Button
+          type="button"
+          size="cta"
+          className="w-full active:scale-[0.99] motion-reduce:active:scale-100"
+          onClick={() => {
+            for (const f of retryable) onRetry(f.id);
+            onRetryAll?.();
+          }}
+        >
+          <RefreshCw /> {uploadFailureRetryLabel(retryable.length)}
+        </Button>
+      )}
       <ul data-upload-failures className="flex flex-col gap-3">
         {failures.map((f) => (
           <li key={f.id} className="flex items-center gap-3">
@@ -113,9 +129,10 @@ export function UploadFailureList({
                 {f.error ?? "That upload did not finish."}
               </span>
             </span>
-            {/* With ONE failure the primary above is already this file's
-                retry; a second button for the same act is furniture. */}
-            {!one && (
+            {/* With ONE file to retry the primary above is already its retry;
+                a second button for the same act is furniture. A file the
+                server refused for itself gets none. */}
+            {!one && retryCanPass(f.code) && (
               <Button
                 type="button"
                 variant="outline"
@@ -218,7 +235,10 @@ export function UploadFailureSheet({
             className="w-full"
             onClick={() => onOpenChange(false)}
           >
-            Not now
+            {/* "Not now" promises a later go; with nothing a retry could pass, there is none. */}
+            {shown.failures.some((f) => retryCanPass(f.code))
+              ? "Not now"
+              : "Done"}
           </Button>
         </SheetFooter>
       </SheetContent>

@@ -14,6 +14,7 @@ import {
   blockTargetSchema,
   blockTitle,
   blockTouches,
+  blockedLanding,
   blockedLineParts,
   blockedSince,
   blockedToast,
@@ -112,8 +113,9 @@ describe("the confirm's words", () => {
   });
 
   it("the names-only offer says why a block can be walked around, fitted to who is blocked", () => {
-    expect(namesOnlyOffer(false).label).toBe("Also require verified emails");
-    expect(namesOnlyOffer(true).label).toBe("Also require verified emails");
+    // The switch's own name since the doors (event-settings r1: step 3, "An email first").
+    expect(namesOnlyOffer(false).label).toBe("Also ask for an email first");
+    expect(namesOnlyOffer(true).label).toBe("Also ask for an email first");
     // A typed name is held on its phone; a confirmed guest on their account, yet a typed name is open.
     expect(namesOnlyOffer(true).description).toContain(
       "could come back under one",
@@ -153,6 +155,7 @@ const person = (over: Partial<BlockedPerson> = {}): BlockedPerson => ({
   since: "Blocked Sep 28",
   restorable: 0,
   restorableUntil: null,
+  lands: "in",
   ...over,
 });
 
@@ -215,6 +218,143 @@ describe("the Blocked list and the way back", () => {
       );
     }
   });
+
+  it("★ a newcomer declined at the door is told she goes back there, not into the album (build 23's NIT-3)", () => {
+    // ★ RESHAPED ON PURPOSE (crumbs-24; scar kept: back at the door, never the album): the flag became
+    // the landing, since a newcomer can land somewhere other than the door.
+    expect(letBackInLede("Maya's 30th", "door")).toBe(
+      "They'll be back at the door, and you can let them in from there.",
+    );
+    expect(letBackInToast("Wren", 0, 0, "door")).toEqual({
+      title: "Wren is back at the door.",
+    });
+    expect(letBackInToast(null, 0, 0, "door")).toEqual({
+      title: "They're back at the door.",
+    });
+    // Neither promises the album she still has to be let into.
+    for (const said of [
+      letBackInLede("Maya's 30th", "door"),
+      letBackInToast("Wren", 0, 0, "door").title,
+    ]) {
+      expect(said).not.toMatch(/open|add photos|join again/);
+    }
+  });
+
+  it("★ a newcomer whose ask a password ended meets it like anyone new: the words never promise the album (crumbs-24)", () => {
+    expect(letBackInLede("Maya's 30th", "password")).toBe(
+      "They'll need the password to get in, like anyone new.",
+    );
+    expect(letBackInToast("Wren", 0, 0, "password")).toEqual({
+      title: "Wren can come in with the password.",
+    });
+    expect(letBackInToast(null, 0, 0, "password")).toEqual({
+      title: "They can come in with the password.",
+    });
+    for (const said of [
+      letBackInLede("Maya's 30th", "password"),
+      letBackInToast("Wren", 0, 0, "password").title,
+    ]) {
+      expect(said).not.toMatch(/add photos|join again|back at the door/);
+    }
+  });
+
+  it("★ someone who was in, at Only me, is told the album stays closed to them until the host opens it, before and after (crumbs-27)", () => {
+    // Where Let back in only lifts the block: the album itself is shut to everyone, so the words promise
+    // the album once it opens and not before ("open X and add photos again" was true only then).
+    expect(letBackInLede("Maya's 30th", "only_me")).toBe(
+      "Maya's 30th is Only me right now, so they'll meet a closed album until you open it. Then they can add photos again.",
+    );
+    expect(letBackInToast("Sam", 0, 0, "only_me")).toEqual({
+      title: "Sam is no longer blocked.",
+    });
+    expect(letBackInToast(null, 0, 0, "only_me")).toEqual({
+      title: "They're no longer blocked.",
+    });
+    // What came back is true whatever the door: the uploads returned to the album the host alone opens.
+    expect(letBackInToast("Sam", 2, 1, "only_me")).toEqual({
+      title: "Sam is no longer blocked.",
+      description:
+        "2 uploads are back where they were. 1 stayed in Deleted: the album is full.",
+    });
+    // Neither says they can join again, which they cannot until it opens.
+    for (const said of [
+      letBackInToast("Sam", 1, 0, "only_me").title,
+      letBackInToast(null, 0, 0, "only_me").title,
+    ]) {
+      expect(said).not.toMatch(/join again|add photos/);
+    }
+    expect(letBackInLede("Maya's 30th", "only_me")).not.toBe(
+      letBackInLede("Maya's 30th", "in"),
+    );
+  });
+
+  it("where nobody new gets in, a newcomer is told she stays out, and nothing more", () => {
+    expect(letBackInLede("Maya's 30th", "out")).toBe(
+      "Maya's 30th takes nobody new right now, so they'll stay out until you change who can get in.",
+    );
+    expect(letBackInToast("Wren", 0, 0, "out")).toEqual({
+      title: "Wren is no longer blocked.",
+    });
+    expect(letBackInToast(null, 0, 0, "out")).toEqual({
+      title: "They're no longer blocked.",
+    });
+  });
+});
+
+describe("blockedLanding: where Let back in leaves them, from the door as it stands (crumbs-24)", () => {
+  const at = (
+    door: Parameters<typeof blockedLanding>[0]["door"],
+    over: Partial<Parameters<typeof blockedLanding>[0]> = {},
+  ) =>
+    blockedLanding({
+      wasIn: false,
+      waiting: false,
+      listed: false,
+      door,
+      ...over,
+    });
+
+  // ★ RESHAPED ON PURPOSE (crumbs-27; scar kept: a gate never stops someone already in): "at every door" read Only
+  // me too, and Let back in then promised someone who was in "They'll be able to open X and add photos again",
+  // true only once the host opens the album, since Only me shuts even the people already in.
+  it("someone who was in comes back in at every door a gate keeps (a gate never stops someone already in)", () => {
+    for (const door of [
+      "open",
+      "password",
+      "approve",
+      "invite",
+      "closed",
+    ] as const) {
+      expect(at(door, { wasIn: true }), door).toBe("in");
+    }
+  });
+
+  it("★ at Only me they are back on a closed album: nobody gets in until the host opens it, the people already in included (crumbs-27)", () => {
+    expect(at("private", { wasIn: true })).toBe("only_me");
+    // Not a newcomer's landing: someone who never got in stays out, or waits at the door, as before.
+    expect(at("private")).toBe("out");
+  });
+
+  it("★ a declined newcomer at a password meets it like anyone new: her ask ended with it, and a stranded one never promises the album", () => {
+    expect(at("password")).toBe("password");
+    expect(at("password", { waiting: true })).toBe("password");
+  });
+
+  it("an ask that stands keeps her at a door the host answers; the list lets in whom it names; Public lets anyone in", () => {
+    for (const door of ["approve", "invite", "closed", "private"] as const) {
+      expect(at(door, { waiting: true }), door).toBe("door");
+    }
+    expect(at("invite", { waiting: true, listed: true })).toBe("in");
+    expect(at("invite", { listed: true })).toBe("in");
+    expect(at("open")).toBe("in");
+  });
+
+  it("with no ask left: a door that takes asks lets her ask again; one that takes nobody new keeps her out", () => {
+    expect(at("approve")).toBe("door");
+    expect(at("invite")).toBe("door");
+    expect(at("closed")).toBe("out");
+    expect(at("private")).toBe("out");
+  });
 });
 
 describe("dates, in the viewer's own zone", () => {
@@ -256,6 +396,9 @@ describe("the bible's copy rules hold in every sentence here", () => {
       blockedLineParts(person({ restorable: 2 })).when,
       letBackInTitle("Sam"),
       letBackInLede("Party"),
+      letBackInLede("Party", "password"),
+      letBackInLede("Party", "out"),
+      letBackInLede("Party", "only_me"),
       restoreOffer({ restorable: 2, restorableUntil: "October 28" })
         ?.description ?? "",
       letBackInToast("Sam", 2, 2).description ?? "",

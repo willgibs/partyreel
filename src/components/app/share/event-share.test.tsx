@@ -24,7 +24,8 @@ import { CODE_MORPH_NAME } from "@/components/app/share/event-share-provider";
  *     permanent one. A slug can be released; a code already printed on a table
  *     card cannot be reprinted, so this one is a data-loss bug wearing a
  *     cosmetic disguise.
- *  3. The sheets losing the URL, or the mini-modal gaining one.
+ *  3. The sheets losing the URL, or the mini-modal gaining one (`event-share-provider.test.tsx` holds it as behavior:
+ *     opening a sheet writes one entry, and the mini-modal writes none).
  *  4. Two elements carrying the morph's name at once, which the browser
  *     resolves by silently skipping the transition.
  *
@@ -177,38 +178,6 @@ describe("what the sharing surfaces encode", () => {
 });
 
 describe("what rides the URL, and what does not", () => {
-  it("puts the two sheets in history and keeps the mini-modal out of it", () => {
-    const provider = read("event-share-provider.tsx");
-    expect(
-      /openSheet[\s\S]{0,400}history\.pushState/.test(provider),
-      "opening a sheet no longer writes a history entry",
-    ).toBe(true);
-    // The code's open/close path must never touch history: a peek at a QR is
-    // not a destination, and Back should leave the album, not close a modal.
-    const openCode = provider.slice(provider.indexOf("const openCode"));
-    const codeBlock = openCode.slice(0, openCode.indexOf("const morphOwner"));
-    expect(
-      /history\./.test(codeBlock),
-      "the mini-modal started writing history entries",
-    ).toBe(false);
-  });
-
-  it("keeps our marker a FIELD on the state Next merges, never the state itself", () => {
-    // Next patches pushState to copy __NA + its internals tree onto whatever
-    // object it is handed, and its popstate handler RELOADS THE PAGE when __NA
-    // is missing. Replacing the state wholesale would turn the sheet's Back
-    // into a full page reload.
-    const provider = read("event-share-provider.tsx");
-    expect(
-      /pushState\(\s*\{ \[HISTORY_MARKER\]: true \}/.test(provider),
-      "the history marker is no longer passed as a field on a state object",
-    ).toBe(true);
-    expect(
-      /window\.history\.state[\s\S]{0,120}HISTORY_MARKER/.test(provider),
-      "closing no longer checks whether the entry behind it is ours",
-    ).toBe(true);
-  });
-
   it("mounts the sheets outside the album, so the album survives them", () => {
     // Radix portals them; what matters here is that they are not rendered
     // INSIDE a section that a filter or a room could unmount.

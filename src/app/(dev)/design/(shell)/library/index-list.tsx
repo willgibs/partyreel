@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 
+import { useAdoptTypedValue } from "@/lib/adopt-typed-value";
 import { cn } from "@/lib/utils";
 
 import { Tag } from "@/app/(dev)/design/(shell)/_shell/tag";
@@ -43,6 +44,8 @@ export function groupRows(rows: LibraryRow[]): [string, LibraryRow[]][] {
  */
 export function LibraryIndex({ rows }: { rows: LibraryRow[] }) {
   const [query, setQuery] = useState("");
+  // A reader who lands here and types at once keeps what was typed (`adopt-typed-value.ts`).
+  const adoptRef = useAdoptTypedValue<HTMLInputElement>(query);
 
   const groups = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -62,6 +65,7 @@ export function LibraryIndex({ rows }: { rows: LibraryRow[] }) {
         <div className="relative">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <input
+            ref={adoptRef}
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}

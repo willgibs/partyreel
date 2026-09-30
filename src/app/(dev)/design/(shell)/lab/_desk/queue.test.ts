@@ -37,7 +37,7 @@ const BOARD = {
   id: SAMPLE_BOARD.id,
   title: SAMPLE_BOARD.title,
   surfaceLabel: "Shared",
-  note: "the touchpoints note",
+  note: "the board's one line",
   tracks: ["lab-kit"],
 };
 
@@ -51,7 +51,7 @@ function status(
   spec: BoardSpec = SAMPLE_BOARD,
 ): BoardStatus {
   const held = new Map(answers);
-  const ruled = new Map(items);
+  const verdicts = new Map(items);
   const asks = (spec.asks ?? []).map((ask) => {
     const choice = held.get(ask.id);
     return choice
@@ -63,12 +63,12 @@ function status(
       : ({ ask, state: "open" } as const);
   });
   const cards = (spec.catalog ? spec.candidates : []).map((item) => {
-    const verdict = ruled.get(item.id);
+    const verdict = verdicts.get(item.id);
     return verdict
       ? ({
           item,
-          state: "ruled",
-          ruling: { item: item.id, verdict, by: "Will", at: AT },
+          state: "answered",
+          answer: { item: item.id, verdict, by: "Will", at: AT },
         } as const)
       : ({ item, state: "open" } as const);
   });
@@ -103,13 +103,13 @@ function status(
     moot: [],
     orphaned: [],
     items: [...cards],
-    ruled: cards.filter((c) => c.state === "ruled"),
+    answeredItems: cards.filter((c) => c.state === "answered"),
     openItems: cards.filter((c) => c.state === "open"),
     orphanedItems: [],
     notes: [],
     complete:
       asks.every((a) => a.state === "answered") &&
-      cards.every((c) => c.state === "ruled"),
+      cards.every((c) => c.state === "answered"),
   };
 }
 
@@ -125,7 +125,7 @@ const noSpec: BoardStatus = {
   moot: [],
   orphaned: [],
   items: [],
-  ruled: [],
+  answeredItems: [],
   openItems: [],
   orphanedItems: [],
   notes: [],
@@ -234,18 +234,18 @@ describe("the catalog's cards", () => {
     expect(states.map((s) => s.item.id)).toEqual(
       SAMPLE_BOARD.candidates.map((c) => c.id),
     );
-    expect(states.every((s) => s.ruling === null)).toBe(true);
+    expect(states.every((s) => s.answer === null)).toBe(true);
   });
 
-  it("closes a card ruled in the board's current round", () => {
+  it("closes a card given its verdict in the board's current round", () => {
     const states = itemStates(
       BOARD,
       status(SAMPLE_BOARD.round.n, [], [["as-prose", "kill"]]),
     );
-    expect(states.find((s) => s.item.id === "as-prose")?.ruling?.verdict).toBe(
+    expect(states.find((s) => s.item.id === "as-prose")?.answer?.verdict).toBe(
       "kill",
     );
-    expect(states.filter((s) => s.ruling === null)).toHaveLength(
+    expect(states.filter((s) => s.answer === null)).toHaveLength(
       SAMPLE_BOARD.candidates.length - 1,
     );
   });
@@ -255,7 +255,7 @@ describe("the catalog's cards", () => {
       BOARD,
       status(SAMPLE_BOARD.round.n - 1, [], [["as-prose", "kill"]]),
     );
-    expect(states.every((s) => s.ruling === null)).toBe(true);
+    expect(states.every((s) => s.answer === null)).toBe(true);
   });
 
   it("queues nothing for a board whose candidates are not a catalog", () => {
@@ -324,5 +324,46 @@ describe("what the ledger already holds", () => {
       () => [],
     );
     expect(transcribedFrom(rows).notes).toEqual({});
+  });
+});
+
+/**
+ * A BOARD'S NOTES ARE ITS OWN (Will, 2026-09-29). Three notes he gave on the
+ * brand-voice board were filed on no board and rode every other board for
+ * twelve days. A row carries what its own ledger holds (where a null `on` means
+ * the board itself) and what was filed on it, and never a note that names
+ * another board or none, whatever the reader handed it: what he said on no
+ * board is the desk's to show once, not a board's to answer.
+ */
+describe("a board's notes are its own", () => {
+  const filed = (on: string | null, text: string) => ({
+    on,
+    text,
+    by: "Will",
+    at: AT,
+  });
+
+  it("carries its ledger's notes and the ones filed on it, and nothing said on no board", () => {
+    const base = status(SAMPLE_BOARD.round.n, []);
+    const reading: BoardStatus = {
+      ...base,
+      round: base.round && {
+        ...base.round,
+        notes: [filed(null, "its own, in its own ledger")],
+      },
+    };
+    const [row] = deskRows(
+      [BOARD],
+      () => reading,
+      () => [
+        filed(null, "said on no board"),
+        filed("another-board", "filed on another board"),
+        filed(BOARD.id, "filed on this board"),
+      ],
+    );
+    expect(row.notes.map((n) => n.text)).toEqual([
+      "its own, in its own ledger",
+      "filed on this board",
+    ]);
   });
 });

@@ -1,8 +1,10 @@
+import { execFileSync } from "node:child_process";
 import {
   copyFileSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
   rmSync,
   writeFileSync,
@@ -50,14 +52,14 @@ type Spec = {
   calls: string[];
 };
 type Entry = {
-  kind: "board" | "library";
+  kind: "board" | "library" | "unfiled";
   board: string;
   round: number;
   answers: { ask: string; choice: string | null; note?: string }[];
   items: { item: string; verdict: string; note?: string }[];
   calls: { call: string; answer: string; note?: string }[];
   entries: { entry: string; verdict: string; note?: string }[];
-  notes: { text: string }[];
+  notes: { text: string; column?: number }[];
   line: number;
 };
 type Failure = {
@@ -85,8 +87,10 @@ type LabReview = {
     errors: Failure[];
     summary: string[][];
     boards?: string[];
+    unfiled?: number;
     drift?: string | null;
   };
+  unfiledAdvice(count: number): string;
   mask(src: string): string;
   buildOf(text: string): string | null;
   buildDrift(text: string, root: string): string | null;
@@ -218,7 +222,7 @@ describe("the spec scanner", () => {
         `${board.id}: recommended`,
       ).toEqual(board.asks.map((a) => a.recommended));
       expect(spec.catalog, `${board.id}: catalog`).toBe(Boolean(board.catalog));
-      // A catalog board must be readable off the page, or no ruling on its
+      // A catalog board must be readable off the page, or no verdict on its
       // cards can ever be validated.
       if (board.catalog) {
         expect(spec.items, `${board.id}: items`).toEqual(
@@ -475,7 +479,7 @@ describe("the grammar", () => {
     expect(word.column).toBe(`${head}item:as-data=`.length + 1);
 
     const twice = at(`${head}item:as-data=keep; item:as-data=kill`);
-    expect(twice.message).toContain("ruled twice");
+    expect(twice.message).toContain("given a verdict twice");
 
     const entry = at("review library: not-a-component=keep");
     expect(entry.message).toContain("is not a library entry");
@@ -526,9 +530,9 @@ describe("the grammar", () => {
       lab.parseLine(`review ${BOARD} r1: a=b "unclosed`),
     ).toThrowError(/closing quote/);
     expect(() => lab.parseLine(`review ${BOARD} r1:`)).toThrowError(
-      /no answer, no ruling and no note/,
+      /no answer, no verdict and no note/,
     );
-    expect(() => lab.parseLine("review library:")).toThrowError(/no ruling/);
+    expect(() => lab.parseLine("review library:")).toThrowError(/no verdict/);
     expect(() => lab.parseLine(`review ${BOARD} r1: item:a`)).toThrowError(
       /"="/,
     );
@@ -618,7 +622,7 @@ describe("the ledgers", () => {
     expect(again[0].note).toBeUndefined();
   });
 
-  it("writes the Library's rulings to their own file, one per entry", () => {
+  it("writes the Library's verdicts to their own file, one per entry", () => {
     const result = lab.run(
       'review library: masonry=redesign "the columns fight the phone"',
       { root, at: "2026-09-16T09:00:00Z" },
@@ -990,5 +994,130 @@ describe("a stale re-send", () => {
     expect(
       readLedger(BOARD).rounds.find((r) => Number(r.n) === ROUND)!.notes.length,
     ).toBe(before);
+  });
+});
+
+/**
+ * A NOTE THAT NAMES NO BOARD IS NEVER RECORDED (Will, 2026-09-29).
+ *
+ * Three notes he gave on the brand-voice board were filed on no board, were
+ * merged into every board, and bound every lane for twelve days: a note binds
+ * only what it was given on, and nothing he says is a standing rule. A bare
+ * `note: "..."` line used to be a parse error that threw away the whole paste;
+ * it now parses, is recorded NOWHERE (not `_window.json`, not a board's
+ * ledger), and the run prints where it goes instead: folded by the
+ * Orchestrator into the doc it refines, or filed on its board.
+ */
+describe("a note that names no board", () => {
+  it("parses a line of only notes, and reads a semicolon inside a quote as text", () => {
+    const entry = lab.parseLine(
+      'note: "for the whole program; not for one board"; note: "and a second"',
+    ) as Entry;
+    expect(entry.kind).toBe("unfiled");
+    expect(entry.notes.map((n) => n.text)).toEqual([
+      "for the whole program; not for one board",
+      "and a second",
+    ]);
+  });
+
+  it("refuses anything but notes on it, an unquoted note and an empty one, at their column", () => {
+    const refuse = (line: string) => {
+      try {
+        lab.parseLine(line);
+      } catch (err) {
+        return err as { message: string; column: number };
+      }
+      throw new Error(`"${line}" parsed`);
+    };
+    const aside = refuse('note: "x"; grain=five');
+    expect(aside.message).toContain("carries only notes");
+    expect(aside.column).toBe('note: "x"; '.length + 1);
+    expect(refuse("note: unquoted").message).toContain("must be quoted");
+    expect(refuse('note: ""').message).toContain("no words");
+    expect(refuse('note: "unclosed').message).toContain("closing quote");
+  });
+
+  it("refuses an empty note on a board's line too, which the ledger's schema would refuse to read", () => {
+    // Found beside this change: `note: ""` on a board line was written as a
+    // note with no text, a row the desk's reader then throws on.
+    expect(() =>
+      lab.parseLine(`review ${BOARD} r${ROUND}: note: ""`),
+    ).toThrowError(/no words/);
+    expect(() =>
+      lab.parseLine(`review ${BOARD} r${ROUND}: grain=five; note: "   "`),
+    ).toThrowError(/no words/);
+  });
+
+  it("has nothing to check against, so it validates with no spec and no ledger", () => {
+    const entries = lab.parseMessage('note: "whatever"');
+    expect(lab.validate(entries, new Map())).toEqual([]);
+  });
+
+  it("records nowhere: no ledger appears and the summary says so", () => {
+    const reviews = join(root, "docs", "reviews");
+    const before = readdirSync(reviews).sort();
+    const result = lab.run('note: "a thought for the whole program"', {
+      root,
+      at: "2026-09-29T12:00:00Z",
+    });
+    expect(result.ok).toBe(true);
+    expect(result.summary).toEqual([
+      ["no board", "note", "a thought for the whole program", "not recorded"],
+    ]);
+    expect(result.boards).toEqual([]);
+    expect(result.unfiled).toBe(1);
+    // Not the window, and not a ledger of a made-up name either.
+    expect(readdirSync(reviews).sort()).toEqual(before);
+    expect(existsSync(join(reviews, "_window.json"))).toBe(false);
+  });
+
+  it("leaves the lines beside it to record as ever, and to refuse as ever", () => {
+    const line = `review ${BOARD} r${ROUND}: default=always "beside a note"`;
+    const ok = lab.run(['note: "unfiled"', line].join("\n"), {
+      root,
+      at: "2026-09-29T12:05:00Z",
+    });
+    expect(ok.ok).toBe(true);
+    expect(ok.unfiled).toBe(1);
+    expect(ok.summary.find((r) => r[1] === "default")?.[3]).not.toBe(
+      "not recorded",
+    );
+    // All-or-nothing still holds: a bad line writes nothing, whatever notes ride with it.
+    const before = readFileSync(ledgerFile(BOARD), "utf8");
+    const bad = lab.run(
+      ['note: "unfiled"', `review ${BOARD} r${ROUND}: nope=x`].join("\n"),
+      { root, at: "2026-09-29T12:10:00Z" },
+    );
+    expect(bad.ok).toBe(false);
+    expect(readFileSync(ledgerFile(BOARD), "utf8")).toBe(before);
+  });
+
+  it("says where it goes: fold it into the doc it refines, or file it on its board", () => {
+    const advice = lab.unfiledAdvice(1);
+    expect(advice).toContain("named no board");
+    expect(advice).toContain("fold it into the doc");
+    expect(advice).toContain("file it there with review <board> r<n>: note:");
+    // Never an instruction to record it as a rule, or a place to put one.
+    expect(advice).not.toContain("_window");
+    expect(lab.unfiledAdvice(2)).toContain("2 notes named no board");
+  });
+
+  it("prints that line from the command, and exits clean", () => {
+    const out = execFileSync(
+      process.execPath,
+      [
+        join(process.cwd(), "scripts", "lab-review.mjs"),
+        "--root",
+        root,
+        "--dry",
+        'note: "a thought for the whole program"',
+      ],
+      { encoding: "utf8" },
+    );
+    expect(out).toContain("no board");
+    expect(out).toContain("not recorded");
+    expect(out).toContain("0 recorded");
+    expect(out).toContain("1 named no board (not recorded)");
+    expect(out).toContain(lab.unfiledAdvice(1));
   });
 });

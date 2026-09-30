@@ -46,12 +46,13 @@ import {
   toManifestEntry,
   type AlbumCursor,
 } from "@/lib/events/album-wire";
+import { holdsDoorPass } from "@/lib/event/door/pass.server";
 import { isRequestOwner } from "@/lib/events/gallery-access-owner.server";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
 import type { UploaderIdentity } from "@/lib/media/uploader-identity";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-type AlbumEvent = Pick<GuestEvent, "id" | "visibility">;
+type AlbumEvent = Pick<GuestEvent, "id" | "visibility" | "doorPass">;
 
 /** An item behind a window's links: its keys (which never leave the server) and its type. */
 export type AlbumKeyRow = {
@@ -75,6 +76,11 @@ export const ALBUM_REFUSED = { access: "none", gate: "password" } as const;
  */
 async function albumReadable(event: AlbumEvent): Promise<boolean> {
   if (event.visibility === "open") return true;
+  // ★ THE DOOR'S PASS (the doors, event-settings r1): a gated album (stored private, with its gate)
+  // reads for a request its door let through, and a password album for a guest already in who holds
+  // no unlock cookie. The pass is the door's own object, issued per request after
+  // `event_door_standing` said so (`lib/event/door/pass.server.ts`), never a shape a caller can build.
+  if (holdsDoorPass(event)) return true;
   if (event.visibility !== "password") return false;
   return (await isUnlocked(event.id)) || isRequestOwner(event.id);
 }

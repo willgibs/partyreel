@@ -39,7 +39,16 @@ export function PricePop({ label }: { label: string }) {
   const { prefix, money, suffix } = splitPrice(label);
   let digit = 0;
   return (
-    <span ref={ref} data-mkt-digits data-on={inView ? "true" : "false"}>
+    // ★ A PRICE IS ONE TOKEN, SO IT NEVER BREAKS (crumbs-14). Each digit is an
+    // inline-block for its pop, and every edge of an inline-block is a place a
+    // line may wrap: the home's teaser broke "from $9" over "/mo" at 1440. The
+    // box it sits in is sized to hold it (pricing-teaser.tsx), never the price.
+    <span
+      ref={ref}
+      data-mkt-digits
+      data-on={inView ? "true" : "false"}
+      className="whitespace-nowrap"
+    >
       {prefix && <Qualifier>{prefix}</Qualifier>}
       {money.split("").map((ch, i) =>
         /\d/.test(ch) ? (

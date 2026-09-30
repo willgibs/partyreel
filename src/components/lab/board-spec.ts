@@ -37,8 +37,16 @@ export type AskOption =
       id: string;
       /** The name a reviewer reads: "The footer seam only". */
       label: string;
-      /** One sentence: what picking this does, and what it costs. */
+      /** One sentence: what the option is, or what picking it does. */
       means?: string;
+      /**
+       * ★ ITS TRADE, A LINE EACH (the context layer, Will, 2026-09-29: "more
+       * pros and cons of the different options"): what picking it wins and
+       * what it gives up, printed with its preview, so the difference between
+       * two tiles is said before it has to be spotted.
+       */
+      gains?: string;
+      costs?: string;
       /**
        * The declared controls that show THIS option on the ask's specimen
        * (the stepped review, 2026-09-16), merged over `ask.state` and the
@@ -54,12 +62,16 @@ export const optionLabel = (o: AskOption): string =>
   typeof o === "string" ? o : o.label;
 export const optionMeans = (o: AskOption): string | undefined =>
   typeof o === "string" ? undefined : o.means;
+export const optionGains = (o: AskOption): string | undefined =>
+  typeof o === "string" ? undefined : o.gains;
+export const optionCosts = (o: AskOption): string | undefined =>
+  typeof o === "string" ? undefined : o.costs;
 
 /**
  * WHAT AN ASK WAITS ON (the stepped review, 2026-09-16). A question that only
  * exists once another is answered a certain way (the aurora's landing once the
  * aurora is kept; the accent's reach once `accent=own`) is STAGED: kept off the
- * desk and out of the walk until its prerequisite is held or ruled, and moot
+ * desk and out of the walk until its prerequisite is held or answered, and moot
  * when the prerequisite goes the other way. `option` or `verdict` left out
  * means "answered at all".
  */
@@ -81,7 +93,20 @@ export type Ask<SectionId extends string = string> = {
   id: string;
   /** A real question in plain words, ending in a question mark. */
   question: string;
-  /** What the thing is and where it lives on the site, for someone who has not read the board. */
+  /**
+   * ★ THE CONTEXT LAYER (Will, 2026-09-29: "I usually have to read the question
+   * a few times to understand where we are conceptually in the app screens,
+   * what combination of conditions lead to this scenario"). The step prints
+   * these before any option, so a question never lands in the middle of
+   * nowhere: `where`, a breadcrumb of two to four crumbs, the surface first,
+   * then the screen and the moment; `when`, the state that brings someone
+   * there; `matters`, why the answer matters, beside `lands` (what it
+   * decides). `registry.test.ts` refuses an OPEN ask without them.
+   */
+  where?: readonly string[];
+  when?: string;
+  matters?: string;
+  /** What the previews draw: the frames, the moment and who is in them. */
   context?: string;
   /** Where to look and what to compare: the section, the switch, the labelled specimens. */
   look?: string;
@@ -89,7 +114,7 @@ export type Ask<SectionId extends string = string> = {
   options: readonly [AskOption, AskOption, ...AskOption[]];
   /** The id of one of `options`. */
   recommended: string;
-  /** Why the board recommends it, in one or two plain sentences. */
+  /** The recommendation's reason, in a line: the step prints it beside the recommendation. */
   because?: string;
   /** The one thing that would change the board's mind. */
   overrule?: string;
@@ -125,8 +150,8 @@ export type Verdict = {
 
 export type Departure<SectionId extends string = string> = {
   id: string;
-  /** A bible principle by number (1..10), or a shipped decision the idea departs from ("ruling" or "precedent"). */
-  from: number | "ruling" | "precedent";
+  /** A bible principle by number (1..10), or a shipped decision the idea departs from ("pick" or "precedent"). */
+  from: number | "pick" | "precedent";
   /** The departure and its cost, not the argument. */
   text: string;
   evidence?: SectionId;
@@ -213,8 +238,8 @@ export type Control = {
 };
 
 /**
- * A board whose candidates are a CATALOG: a grid of ideas Will rules on one by
- * one (keep, refine, kill, a note), the pick worn by the real pages below.
+ * A board whose candidates are a CATALOG: a grid of ideas Will gives a verdict
+ * one by one (keep, refine, kill, a note), the pick worn by the real pages below.
  * Declaring this is the opt-in; a board without it keeps its candidates as
  * the meta list.
  */
@@ -228,9 +253,11 @@ export type CatalogSpec<SectionId extends string = string> = {
   /**
    * HOW THE CATALOG IS DECIDED (the stepped review, 2026-09-16). `pick-one`:
    * the cards are variants of one thing and ONE wins, asked by the `winner` ask
-   * (its options are the card ids plus `none`, its `control` the pick control,
-   * so "None of these" clears the board and lands in the ledger as an ordinary
-   * answer carrying its note); the card verdicts are optional feedback.
+   * (its options are the card ids, usually with `none` beside them, and its
+   * `control` the pick control, so "None of these" clears the board and lands
+   * in the ledger as an ordinary answer carrying its note; offering it lets a
+   * reviewer who wants none of the cards say so rather than crown the least
+   * wrong one); the card verdicts are optional feedback.
    * `keep-any` (the default): every card is its own proposal and each takes a
    * verdict.
    */
@@ -291,6 +318,70 @@ export type Note<SectionId extends string = string> = {
 export type Round = { n: number; date: string; changed: string };
 export type WalkPage = { label: string; path: string; note?: string };
 
+/**
+ * ★ WHERE A SITTING ENTERS A BOARD (the context layer, 2026-09-29). He decides
+ * across every open board in one sitting, so the first step of a board says
+ * what the board is about, what is already settled (never asked again), and
+ * what he picked and wrote before that shaped this round. A line each: the
+ * board's argument is its drawings, and this is only the ground they stand on.
+ */
+export type Opening = {
+  /** What the board is about, in a line. */
+  about: string;
+  /** What is already settled and not asked, a line each. */
+  settled?: readonly string[];
+  /** His earlier picks and notes this round answers, a line each, in plain words. */
+  earlier?: readonly string[];
+};
+
+/**
+ * A WORD THE BOARD COINS, and its plain meaning ("lit column", "roll"): the
+ * bare phrase where it can be, so "the roll" and "her roll" both find it. The step
+ * glosses every term its own words use, and the opening the ones it uses, so a
+ * nickname is never the first thing he has to decode.
+ */
+export type Term = { term: string; means: string };
+
+/** The surface a board redraws; the sidebar groups the desk by it. */
+export type Surface = "guest" | "host" | "marketing" | "shared" | "admin";
+
+/** Surface display labels, in one home: the sidebar and the board header read
+ *  these, so a label changes everywhere at once. */
+export const SURFACE_LABEL: Record<Surface, string> = {
+  guest: "Guest",
+  host: "Host",
+  marketing: "Marketing",
+  shared: "Shared",
+  // The ops portal is its own deployment, so it is a surface of its own rather
+  // than shared machinery.
+  admin: "Admin",
+};
+
+/**
+ * ★ WHAT A BOARD IS ON THE DESK, IN ITS OWN FOLDER (the lab revamp, 2026-09-29).
+ *
+ * These lived in three shared lists (touchpoints.ts's rows and `DESK_ORDER`,
+ * registry.ts's imports, boards.ts's map), so two boards cut in parallel
+ * collided on every merge and retiring one touched three files. Now a board is
+ * `sandbox/<id>/`: its spec carries these, the registry finds the folder, and
+ * retiring the board is deleting it.
+ *
+ * `desk` is its place on the desk, lower first, BY LEVERAGE (Will, 2026-09-19:
+ * the earlier influence first): a board whose answers change another board's
+ * questions takes the smaller number, and boards that touch nothing else sit at
+ * the foot in any order. Tens leave room; a tie reads in id order. A new board's
+ * lane writes the number its brief names, and the Orchestrator moves it at the
+ * record by editing that one line.
+ */
+export type DeskFacts = {
+  surface: Surface;
+  desk: number;
+  /** The system docs and production paths the board redraws: a wiring lane's owns start here, and a merge that touches one flags the board's open asks. */
+  lives: readonly [string, ...string[]];
+  /** The lp/<track> branches building it, when they are not the board's own id. */
+  tracks?: readonly string[];
+};
+
 export type BoardLinks = {
   /** Defaults to docs/tracks/<id>.md. */
   track?: string;
@@ -301,15 +392,24 @@ export type BoardLinks = {
 };
 
 export type BoardSpec<S extends readonly Section[] = readonly Section[]> = {
-  /** The sandbox directory and the SandboxId in touchpoints.ts. */
+  /** The board's folder under sandbox/, and the id every ledger line names. */
   id: string;
   title: string;
+  /** Its surface, desk place and `lives` (`DeskFacts`); the registry holds every standing board to them. */
+  surface?: Surface;
+  desk?: number;
+  lives?: DeskFacts["lives"];
+  tracks?: DeskFacts["tracks"];
   question: string;
   /** This round, and one line of what changed (above the fold). */
   round: Round;
   history?: readonly Round[];
   /** How the board got here (collapsed). */
   context?: string;
+  /** What a sitting reads as it enters the board (`Opening`). */
+  opening?: Opening;
+  /** The words this board coins, each with its plain meaning. */
+  terms?: readonly Term[];
   verdict: Verdict;
   asks: readonly Ask<S[number]["id"]>[];
   candidates: readonly Candidate<S[number]["id"]>[];
@@ -324,10 +424,10 @@ export type BoardSpec<S extends readonly Section[] = readonly Section[]> = {
   carried?: readonly CarriedCall[];
   catalog?: CatalogSpec<S[number]["id"]>;
   /**
-   * A board that truly needs more words than `LIMITS.readingWords` says WHY
-   * here, and `pnpm lab:smoke` prints the reason instead of failing it. A
-   * budget with no escape hatch gets gamed by moving prose into an image; one
-   * that asks for a sentence gets thought about.
+   * A board that needs more words than `LIMITS.readingWords` says WHY here, and
+   * `pnpm lab:smoke` prints the reason instead of failing it. The number is a
+   * default with an escape: a budget with no escape hatch gets gamed by moving
+   * prose into an image, and one that asks for a sentence gets thought about.
    */
   reading?: { words: number; why: string };
   controls?: readonly Control[];
@@ -369,7 +469,31 @@ export const LIMITS = {
   carriedQuestion: 160,
   carriedTaken: 160,
   carriedOverrule: 160,
-  /** The words a board may show outside its collapsed folds before it is a paper (the smoke measures it). */
+  /**
+   * ★ THE CONTEXT LAYER STAYS A LAYER OF LINES (2026-09-29: "Crisp lines,
+   * never essays"). Held on every OPEN ask (registry.test.ts): a crumb of the
+   * breadcrumb, the state that brings someone there, why it matters, an
+   * option's gain and its cost, and the recommendation's reason, which on an
+   * open ask is one line rather than `askBecause`'s two sentences. The
+   * opening's lines and a term's meaning are held the same way.
+   */
+  askWhere: 32,
+  askWhen: 140,
+  askMatters: 140,
+  optionGains: 100,
+  optionCosts: 100,
+  askReason: 160,
+  openingAbout: 160,
+  openingLine: 160,
+  term: 40,
+  termMeans: 120,
+  /**
+   * The words a board shows outside its collapsed folds before it reads as a
+   * paper, weighed by `pnpm lab:smoke`. The number is the kit's own default,
+   * picked with the catalog kit (2026-09-16): Will's note that a palette round
+   * read like "a PhD on color theory" named the failure and came with no
+   * number. A board that needs more declares `reading` with its reason.
+   */
   readingWords: 1200,
 } as const;
 

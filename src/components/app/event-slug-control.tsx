@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useId, useRef, useState, useTransition } from "react";
 import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -93,6 +93,9 @@ export function EventSlugControl({
 
   // Pure, synchronous classification (no network). Only "check" needs the live RPC.
   const evaluated = evaluateSlugInput(value, slug);
+  // The field's two lines, by id: the hint while nothing is typed, the live status after.
+  const hintId = useId();
+  const statusId = useId();
   const checkTarget = evaluated.kind === "check" ? evaluated.normalized : null;
 
   // Debounced availability for the current check target. setState happens ONLY inside the
@@ -229,6 +232,12 @@ export function EventSlugControl({
                 aria-invalid={
                   status.kind === "taken" || status.kind === "invalid"
                 }
+                // ★ THE FIELD NAMES ITS OWN LINE (milestone 30's production pass: the error line was
+                // not announced and nothing tied it to the field). A reader landing on the field hears
+                // the hint, or whatever the status says now.
+                aria-describedby={
+                  status.kind === "idle" ? (slug ? undefined : hintId) : statusId
+                }
                 autoCapitalize="none"
                 autoCorrect="off"
                 spellCheck={false}
@@ -267,35 +276,39 @@ export function EventSlugControl({
             )}
           </div>
 
-          {status.kind === "idle" ? (
-            !slug ? (
-              <p className="text-xs text-muted-foreground">
-                A friendly link to share instead of the permanent one above.
-                Lowercase letters, numbers, and hyphens. You can change it
-                anytime.
-              </p>
-            ) : null
-          ) : (
-            <p
-              key={status.kind}
-              data-slug-status
-              className={cn(
-                "text-xs",
-                status.kind === "available"
-                  ? "text-emerald-600 dark:text-emerald-400"
-                  : status.kind === "taken" || status.kind === "invalid"
-                    ? "text-destructive"
-                    : "text-muted-foreground",
-              )}
-            >
-              {status.kind === "checking" && "Checking availability…"}
-              {status.kind === "available" &&
-                `${host}/e/${status.slug} is available.`}
-              {status.kind === "taken" && "That link is taken. Try another."}
-              {status.kind === "invalid" && status.message}
-              {status.kind === "current" && "This is your current link."}
+          {status.kind === "idle" && !slug ? (
+            <p id={hintId} className="text-xs text-muted-foreground">
+              A friendly link to share instead of the permanent one above.
+              Lowercase letters, numbers, and hyphens. You can change it
+              anytime.
             </p>
-          )}
+          ) : null}
+          {/* ★ ONE LIVE REGION, ALWAYS MOUNTED: a region that mounts with its words is not reliably
+              read, so this one stands empty while nothing is typed and each status arrives inside it
+              (the inner line keyed by its kind, so the reveal still plays for each). */}
+          <div id={statusId} role="status" aria-live="polite">
+            {status.kind === "idle" ? null : (
+              <p
+                key={status.kind}
+                data-slug-status
+                className={cn(
+                  "text-xs",
+                  status.kind === "available"
+                    ? "text-emerald-600 dark:text-emerald-400"
+                    : status.kind === "taken" || status.kind === "invalid"
+                      ? "text-destructive"
+                      : "text-muted-foreground",
+                )}
+              >
+                {status.kind === "checking" && "Checking availability…"}
+                {status.kind === "available" &&
+                  `${host}/e/${status.slug} is available.`}
+                {status.kind === "taken" && "That link is taken. Try another."}
+                {status.kind === "invalid" && status.message}
+                {status.kind === "current" && "This is your current link."}
+              </p>
+            )}
+          </div>
 
           {!slug && suggestion && value.trim() === "" && (
             <Button

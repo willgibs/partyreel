@@ -6,6 +6,7 @@ import { Check } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { ClientForm } from "@/components/ui/client-form";
 import { Input } from "@/components/ui/input";
 import {
   InputOTP,
@@ -75,16 +76,31 @@ export function EmailSection({
   });
 
   // The hint has done its one job once the section has read it: a reload should not re-announce
-  // a change that already happened. Replaced in place, so nothing navigates or re-renders.
+  // a change that already happened. Replaced in place: no entry is added and the server is not asked.
+  //
+  // ★ NULL, NEVER `window.history.state`. That state carries Next's `__NA`, which makes Next take the
+  // call for its own and apply no URL, so its copy of the address kept `?email_change=`; the
+  // `router.refresh()` a finished change makes then fetched that stale address and wrote the
+  // parameter back over the bar (measured under `next dev`). Handed nothing, Next copies its own
+  // state onto the entry and follows the address. Nothing of ours lives on this entry to keep, and
+  // `history-state-policy.test.ts` refuses the shape everywhere.
+  //
+  // ★ AND ONE MICROTASK LATE: this effect runs on the page's first commit, and a child's effect runs
+  // before its parent's, so it would reach the browser's own `replaceState` before Next has patched
+  // it, where `null` empties the entry's `__NA` and tree and Next never hears the address. A
+  // microtask runs after the whole flush of the commit's effects, the Router's included
+  // (`lab/board-state.tsx` has the measurements).
   useEffect(() => {
     if (!hint) return;
-    try {
-      const url = new URL(window.location.href);
-      url.searchParams.delete("email_change");
-      window.history.replaceState(window.history.state, "", url);
-    } catch {
-      // A URL the browser will not rewrite is only a stale hint on the next reload.
-    }
+    queueMicrotask(() => {
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("email_change");
+        window.history.replaceState(null, "", url);
+      } catch {
+        // A URL the browser will not rewrite is only a stale hint on the next reload.
+      }
+    });
   }, [hint]);
 
   // The resend waits out the SMTP's per-user interval rather than failing inside it.
@@ -132,7 +148,7 @@ export function EmailSection({
 
   if (state.step === "editing") {
     return (
-      <form
+      <ClientForm
         noValidate
         onSubmit={(e) => {
           e.preventDefault();
@@ -184,7 +200,7 @@ export function EmailSection({
         >
           Cancel
         </button>
-      </form>
+      </ClientForm>
     );
   }
 

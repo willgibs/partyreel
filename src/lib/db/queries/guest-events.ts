@@ -9,6 +9,8 @@ import { cache } from "react";
 
 import { readAllPages } from "@/lib/db/read-all";
 import type { Database } from "@/lib/db/types";
+import type { Door } from "@/lib/event/door/door";
+import type { DoorPass } from "@/lib/event/door/pass.server";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -54,6 +56,23 @@ export type GuestEvent = {
   /** The host's default hold in seconds; null is the product's default (`resolveHoldSec` reads it).
    *  A viewer's own hold overrides it on their device. */
   reel_hold_sec: number | null;
+  /**
+   * Whether this album takes a video from a guest (a paid tier and the host's Videos switch on), so
+   * the picker offers photos alone where the upload would be refused. It says nothing a presign would
+   * not: a Free album and a switched-off one read the same.
+   */
+  accepts_video: boolean;
+  /**
+   * THE DOOR AS THIS VIEWER MEETS IT, set only by the door's resolution (`closed-door.server.ts`,
+   * from `event_door_standing`): the anon read answers a gated album as a private one, so until the
+   * door is resolved this is absent and the album reads as its stored visibility (the safe side).
+   */
+  door?: Door;
+  /**
+   * The door's pass, when it let this request through: the proof the album's own server reads ask
+   * for before they read a gated album (`lib/event/door/pass.server.ts`). Never sent to a browser.
+   */
+  doorPass?: DoorPass | null;
 };
 
 export type GuestEventResult =
@@ -156,13 +175,15 @@ export const getEventByQrToken = cache(async function getEventByQrToken(
     qr_style: row.qr_style,
     host_display_name: row.host_display_name ?? null,
     custom_slug: row.custom_slug ?? null,
-    // The live reel's two event facts. `?? true` / `?? null`: an RPC from before the expand never
-    // returned them, and a missing switch must read as the default (on), never as off.
-    show_reel: row.show_reel ?? true,
+    // The live reel's event facts. The switch is NOT NULL; the mood is NULL until a host picks one,
+    // which the generated types understate, like `description` above.
+    show_reel: row.show_reel,
     reel_style_id: row.reel_style_id ?? null,
     // ★ Typed `number` by the generated RETURNS TABLE, yet NULL until a host sets it: kept as NULL
-    // (the default), never coerced to 0 s. An RPC from before the column never returned it.
-    reel_hold_sec: (row.reel_hold_sec as number | null | undefined) ?? null,
+    // (the default), never coerced to 0 s.
+    reel_hold_sec: row.reel_hold_sec ?? null,
+    // The guest picker's flag (the doors' migration, 20260929120000).
+    accepts_video: row.accepts_video,
   };
 
   return { ok: true, data: await rehydrateUnlockedDetails(event) };
@@ -264,8 +285,7 @@ export async function getEventMediaByQrToken(
     width: m.width ?? null,
     height: m.height ?? null,
     duration_seconds: m.duration_seconds ?? null,
-    // Absent (an RPC from before the expand) reads as eligible: a stale shape must not empty the reel.
-    reel_eligible: m.reel_eligible ?? true,
+    reel_eligible: m.reel_eligible,
     created_at: m.created_at,
   }));
 }

@@ -1,9 +1,15 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { describe, expect, it } from "vitest";
 
+import {
+  CrumbsBar,
+  CrumbsProvider,
+  SetCrumbs,
+} from "@/components/shared/crumbs";
 import { RouteSkeleton } from "@/components/shared/route-skeleton";
 
 /**
@@ -78,5 +84,71 @@ describe("RouteSkeleton", () => {
         new RegExp(`variant="${variant}"`),
       );
     }
+  });
+});
+
+/**
+ * A ROUTE WITH A WAIT HOLDS THE APP BAR'S TRAIL (crumbs-19). The new address commits with the skeleton on
+ * screen and the page lands later (measured under the real router), so a bar that let go with the old page
+ * blinked for the whole wait on every step between two routes with a trail; and a bar that never let go put
+ * the last route's trail on a route that sets none. The skeleton holds the trail through the wait and the
+ * page that lands decides (`crumbs.test.tsx` pins the rule; this pins that the skeleton is what holds).
+ */
+describe("RouteSkeleton holds the trail", () => {
+  const trail = [
+    { label: "Partyreel", href: "/dashboard" },
+    { label: "Sarah and Tom" },
+  ];
+  const shell = (route: ReactNode) => (
+    <CrumbsProvider>
+      <CrumbsBar />
+      {route}
+    </CrumbsProvider>
+  );
+  const bar = () =>
+    screen.queryByRole("navigation", { name: /breadcrumb/i })?.textContent ??
+    null;
+
+  it.each(["pulse", "hub"] as const)(
+    "keeps the last trail through the %s wait, and lets go when the page lands with none",
+    (variant) => {
+      const view = render(
+        shell(
+          <div key="hub">
+            <SetCrumbs trail={trail} />
+          </div>,
+        ),
+      );
+      expect(bar()).toContain("Sarah and Tom");
+      view.rerender(shell(<RouteSkeleton key="loading" variant={variant} />));
+      expect(bar(), `the bar blinked through the ${variant} wait`).toContain(
+        "Sarah and Tom",
+      );
+      view.rerender(shell(<p key="dashboard">a page that sets none</p>));
+      expect(bar(), "the trail outlived the wait").toBeNull();
+    },
+  );
+
+  it("is what EVERY loading.tsx of the host app delegates to, so no wait can forget the hold", () => {
+    // A loading.tsx that draws its own fallback would blink the bar for the whole of its wait (the failure is
+    // safe, and ugly): this is what keeps a third one from being written that way.
+    const files = readdirSync(join(ROOT, "src/app/(app)"), { recursive: true })
+      .map((f) => `src/app/(app)/${String(f).replace(/\\/g, "/")}`)
+      .filter((rel) => rel.endsWith("/loading.tsx"));
+    expect(
+      files.length,
+      "found the host app's loading files",
+    ).toBeGreaterThanOrEqual(2);
+    for (const rel of files) {
+      expect(
+        read(rel),
+        `${rel} draws its own fallback and holds nothing`,
+      ).toMatch(/\bRouteSkeleton\b/);
+    }
+  });
+
+  it("draws nothing of its own: the skeleton's root is still the first element", () => {
+    const { container } = render(<RouteSkeleton variant="hub" />);
+    expect(container.firstElementChild?.hasAttribute("aria-busy")).toBe(true);
   });
 });

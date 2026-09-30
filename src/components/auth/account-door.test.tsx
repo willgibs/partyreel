@@ -35,6 +35,7 @@ import { rememberDoor, rememberPasskey } from "@/lib/auth/remembered-email";
 
 const flags = vi.hoisted(() => ({ passkeys: false }));
 const signInWithPasskey = vi.hoisted(() => vi.fn());
+const signOut = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/supabase/client", () => ({
   get PASSKEYS_ENABLED() {
@@ -42,7 +43,7 @@ vi.mock("@/lib/supabase/client", () => ({
   },
   createClient: () => ({
     auth: {
-      signOut: vi.fn().mockResolvedValue({ error: null }),
+      signOut,
       signInWithOAuth: vi.fn().mockResolvedValue({ error: null }),
       signInWithPasskey,
       registerPasskey: vi.fn().mockResolvedValue({ error: null }),
@@ -109,6 +110,8 @@ beforeEach(() => {
   flags.passkeys = false;
   localStorage.clear();
   signInWithPasskey.mockReset();
+  signOut.mockReset();
+  signOut.mockResolvedValue({ error: null });
 });
 
 afterEach(() => {
@@ -193,6 +196,23 @@ describe("the wears", () => {
       />,
     );
     expect(screen.queryByText(CONSENT, { exact: false })).toBeNull();
+  });
+
+  it("★ Continue with Google keeps a tap made before the page could hear it (crumbs-23)", () => {
+    // Its whole answer is its handler, so on a cold phone the first tap, a second before hydration,
+    // reached nothing and the second one went. It asks the auth layout's recorder to remember its press
+    // (`early-press.ts`) and answers it once its handler exists (`EarlyPressButton`).
+    render(
+      <AccountDoor
+        wear="login"
+        methods={{ code: true, google: true }}
+        emailRedirectTo="/auth/callback"
+        onVerified={vi.fn()}
+      />,
+    );
+    expect(
+      screen.getByRole("button", { name: /Continue with Google/ }),
+    ).toHaveAttribute("data-early-press");
   });
 
   it("offers a password only where the surface says there is one", () => {
@@ -318,6 +338,23 @@ describe("the account the address already had", () => {
       screen.getByTestId("stub-verify-existing").click();
     });
     expect(screen.getByText(/Not you\?/i)).toBeTruthy();
+  });
+
+  it("★ the way out signs out this device only, and the door stands again", async () => {
+    // The session the code just made, never the account's others: choosing
+    // another address here must not sign its owner out of their phone.
+    const onVerified = renderDoor("create");
+    act(() => {
+      screen.getByTestId("stub-verify-existing").click();
+    });
+    await act(async () => {
+      screen.getByText(/Not you\?/i).click();
+    });
+    expect(signOut).toHaveBeenCalledTimes(1);
+    expect(signOut).toHaveBeenCalledWith({ scope: "local" });
+    expect(screen.queryByText(/already had/i)).toBeNull();
+    expect(screen.getByTestId("email-sign-in")).toBeTruthy();
+    expect(onVerified).not.toHaveBeenCalled();
   });
 
   it("stays silent for a brand-new account", () => {

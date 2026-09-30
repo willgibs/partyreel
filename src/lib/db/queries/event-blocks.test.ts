@@ -1,16 +1,12 @@
 /**
- * THE PER-EVENT BLOCK'S READS: the three questions the server asks for everyone else (is this ticket
- * blocked, which rows leave the guest list, which events hold this account), read defensively over
- * the typed seam, and the host's Blocked list, whose restorable count must be the number let_back_in
- * would move and nothing a hold could be read from.
+ * THE PER-EVENT BLOCK'S READS: the two questions the server asks for everyone else (which rows leave the
+ * guest list, which events hold this account), read defensively off their jsonb, and the host's Blocked
+ * list, whose restorable count must be the number let_back_in would move and nothing a hold could be read
+ * from. (Whether one browser's ticket is blocked is `event_door_standing`'s now.)
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
-const captureError = vi.fn();
-vi.mock("@/lib/observability/sentry", () => ({
-  captureError: (...args: unknown[]) => captureError(...args),
-}));
 vi.mock("@/lib/supabase/avatar-storage", () => ({
   getAvatarUrl: (id: string, marker: string | null) =>
     Promise.resolve(marker ? `https://cdn/avatars/${id}?v=${marker}` : null),
@@ -38,6 +34,19 @@ function builder(client: "admin" | "host", table: string) {
     in(column: string, values: unknown[]) {
       only = { column, values: new Set(values) };
       return b;
+    },
+    /** One row or none, as PostgREST's `maybeSingle` answers. */
+    maybeSingle() {
+      return {
+        then: (resolve: (value: unknown) => unknown) =>
+          b.then((answer) => {
+            const { data, error } = answer as {
+              data: Row[] | null;
+              error: unknown;
+            };
+            return resolve({ data: data?.[0] ?? null, error });
+          }),
+      };
     },
     then(resolve: (value: unknown) => unknown) {
       const answer = tables[`${table}:error`];
@@ -77,13 +86,8 @@ vi.mock("@/lib/supabase/request-auth", () => ({
   }),
 }));
 
-const {
-  getBlockedEventsFor,
-  getBlockedGuestIds,
-  getEventBlocks,
-  isBlockSchemaMissing,
-  isTicketBlocked,
-} = await import("@/lib/db/queries/event-blocks");
+const { getBlockedEventsFor, getBlockedGuestIds, getEventBlocks } =
+  await import("@/lib/db/queries/event-blocks");
 
 const EVENT = "event-1";
 const AT = "2026-09-28T15:00:00.123456+00:00";
@@ -97,79 +101,28 @@ beforeEach(() => {
   for (const k of Object.keys(rpcAnswers)) delete rpcAnswers[k];
   rpcCalls.length = 0;
   reads.length = 0;
-  captureError.mockReset();
   signedIn = true;
 });
 
-describe("the runtime seam: the migration not yet applied reads as nothing blocked, loudly", () => {
-  it("names exactly the missing-table and missing-function codes, and captures each", () => {
-    for (const code of ["42P01", "42883", "PGRST202", "PGRST205"]) {
-      expect(isBlockSchemaMissing({ code })).toBe(true);
-    }
-    expect(captureError).toHaveBeenCalledTimes(4);
-    for (const error of [
-      { code: "42501" },
-      { code: "P0001" },
-      null,
-      new Error("x"),
-    ]) {
-      expect(isBlockSchemaMissing(error)).toBe(false);
-    }
-    expect(captureError).toHaveBeenCalledTimes(4);
-  });
-
-  it("every question answers nothing blocked before the apply, and says so", async () => {
-    await expect(isTicketBlocked(EVENT, ["t"])).resolves.toBe(false);
-    await expect(getBlockedGuestIds(EVENT)).resolves.toEqual(new Set());
-    await expect(getBlockedEventsFor("u1")).resolves.toEqual(new Map());
-    tables["event_blocks:error"] = [{ code: "PGRST205", message: "no table" }];
-    await expect(getEventBlocks(EVENT, format)).resolves.toEqual([]);
-    expect(captureError).toHaveBeenCalledTimes(4);
-  });
-
-  it("★ any other failure throws: a broken read never impersonates 'nobody is blocked'", async () => {
-    const denied = { data: null, error: { code: "42501", message: "denied" } };
-    rpcAnswers.event_ticket_blocked = denied;
-    rpcAnswers.event_blocked_guest_ids = denied;
-    rpcAnswers.blocked_events_for = denied;
-    await expect(isTicketBlocked(EVENT, ["t"])).rejects.toMatchObject({
-      code: "42501",
+// ★ RESHAPED ON PURPOSE (crumbs-15, 2026-09-29; scar kept: a broken read never impersonates "nobody is blocked").
+// Three tests read "the runtime seam: the migration not yet applied reads as nothing blocked, loudly": the codes
+// a missing table or function carried, and every question answering nothing blocked (the fail-OPEN answer) before
+// the apply. The migration is applied and the seam went, so a missing object is a failure like any other, and
+// what the third of them pinned, that anything but the missing-schema codes threw, now holds for all of them.
+describe("★ any failure throws: a broken read never impersonates 'nobody is blocked'", () => {
+  for (const code of ["42501", "42P01", "42883", "PGRST202", "PGRST205"]) {
+    it(`code ${code}`, async () => {
+      const failed = { data: null, error: { code, message: "failed" } };
+      rpcAnswers.event_blocked_guest_ids = failed;
+      rpcAnswers.blocked_events_for = failed;
+      await expect(getBlockedGuestIds(EVENT)).rejects.toMatchObject({ code });
+      await expect(getBlockedEventsFor("u1")).rejects.toMatchObject({ code });
+      tables["event_blocks:error"] = [{ code, message: "failed" }];
+      await expect(getEventBlocks(EVENT, format)).rejects.toMatchObject({
+        code,
+      });
     });
-    await expect(getBlockedGuestIds(EVENT)).rejects.toMatchObject({
-      code: "42501",
-    });
-    await expect(getBlockedEventsFor("u1")).rejects.toMatchObject({
-      code: "42501",
-    });
-    tables["event_blocks:error"] = [{ code: "42501", message: "denied" }];
-    await expect(getEventBlocks(EVENT, format)).rejects.toMatchObject({
-      code: "42501",
-    });
-  });
-});
-
-describe("isTicketBlocked", () => {
-  it("asks nothing for no ticket, and each ticket once", async () => {
-    await expect(isTicketBlocked(EVENT, [])).resolves.toBe(false);
-    expect(rpcCalls).toEqual([]);
-    rpcAnswers.event_ticket_blocked = { data: true, error: null };
-    await expect(isTicketBlocked(EVENT, ["t1", "t1", "t2"])).resolves.toBe(
-      true,
-    );
-    expect(rpcCalls).toEqual([
-      [
-        "event_ticket_blocked",
-        { p_event_id: EVENT, p_session_tokens: ["t1", "t2"] },
-      ],
-    ]);
-  });
-
-  it("only a literal true is a block", async () => {
-    for (const data of [false, null, "true", 1, {}]) {
-      rpcAnswers.event_ticket_blocked = { data, error: null };
-      await expect(isTicketBlocked(EVENT, ["t"])).resolves.toBe(false);
-    }
-  });
+  }
 });
 
 describe("getBlockedGuestIds and getBlockedEventsFor read defensively", () => {
@@ -264,6 +217,14 @@ describe("getEventBlocks: the host's Blocked list", () => {
     tables.profiles = [
       { id: "u-sam", display_name: "Sam", avatar_updated_at: "v1" },
     ];
+    // Both were in before the block (each has a row past the door).
+    tables.guests = [
+      { id: "g-sam", event_id: EVENT, user_id: "u-sam", admission: "in" },
+      { id: "g-theo", event_id: EVENT, user_id: null, admission: "in" },
+    ];
+    // A Public album: the door is read for everyone in the list now (crumbs-27), and Only me is what changes
+    // where someone who was in lands, which this describe leaves to the landing tests below.
+    tables.events = [{ id: EVENT, visibility: "open", gate: null }];
   });
 
   it("signed out: nothing, and nothing is read", async () => {
@@ -272,7 +233,10 @@ describe("getEventBlocks: the host's Blocked list", () => {
     expect(reads).toEqual([]);
   });
 
-  it("★ the rows are the host's own read (RLS proves the event is theirs); only counts and faces are admin", async () => {
+  // ★ RESHAPED ON PURPOSE (crumbs-17, build 23's NIT-3; scar kept: the block rows are the host's own
+  // read, and the admin client reads only over the ids those rows returned): where each one stands at
+  // the door joins the counts and the faces, since the words of Let back in depend on it.
+  it("★ the rows are the host's own read (RLS proves the event is theirs); only counts, faces and standing are admin", async () => {
     await getEventBlocks(EVENT, format);
     expect(reads.filter((r) => r.table === "event_blocks")).toEqual([
       { client: "host", table: "event_blocks" },
@@ -282,7 +246,7 @@ describe("getEventBlocks: the host's Blocked list", () => {
         .filter((r) => r.client === "admin")
         .map((r) => r.table)
         .sort(),
-    ).toEqual(["media", "profiles"]);
+    ).toEqual(["guests", "guests", "media", "profiles"]);
   });
 
   it("newest first; a confirmed guest by their profile and address, a typed name by its own words", async () => {
@@ -307,6 +271,7 @@ describe("getEventBlocks: the host's Blocked list", () => {
       since: "since 2026-09-27T10:00:00+00:00",
       restorable: 0,
       restorableUntil: null,
+      lands: "in",
     });
   });
 
@@ -326,5 +291,134 @@ describe("getEventBlocks: the host's Blocked list", () => {
     );
     const withWithdrawal = (await getEventBlocks(EVENT, format))[0].restorable;
     expect(withHold).toBe(withWithdrawal);
+  });
+});
+
+describe("getEventBlocks: where Let back in leaves each one (build 23's NIT-3)", () => {
+  const block = (over: Row): Row => ({
+    event_id: EVENT,
+    user_id: null,
+    email: null,
+    guest_id: null,
+    display_name: null,
+    removed_media_ids: [],
+    created_at: AT,
+    ...over,
+  });
+
+  beforeEach(() => {
+    tables.media = [];
+    tables.profiles = [];
+    tables.event_blocks = [
+      // Declined at the door: her only row waits.
+      block({ id: "b-wren", user_id: "u-wren", email: "wren@example.com" }),
+      // Was in, then blocked: her row is in.
+      block({ id: "b-sam", user_id: "u-sam", email: "sam@example.com" }),
+      // Declined at the door, but her address is on the invite list.
+      block({ id: "b-lou", user_id: "u-lou", email: "lou@example.com" }),
+    ];
+    tables.guests = [
+      {
+        id: "g-wren",
+        event_id: EVENT,
+        user_id: "u-wren",
+        admission: "waiting",
+      },
+      { id: "g-sam", event_id: EVENT, user_id: "u-sam", admission: "in" },
+      { id: "g-lou", event_id: EVENT, user_id: "u-lou", admission: "waiting" },
+    ];
+    tables.event_invites = [{ event_id: EVENT, email: "lou@example.com" }];
+  });
+
+  const standing = async () =>
+    Object.fromEntries(
+      (await getEventBlocks(EVENT, format)).map((p) => [p.id, p.lands]),
+    );
+
+  it("★ a declined newcomer goes back to the door; someone who was in comes back in", async () => {
+    tables.events = [{ id: EVENT, visibility: "private", gate: "approve" }];
+    await expect(standing()).resolves.toEqual({
+      "b-wren": "door",
+      "b-sam": "in",
+      "b-lou": "door",
+    });
+  });
+
+  it("★ the invite list, while it is the door, lets a listed one straight in, as let_back_in does", async () => {
+    tables.events = [{ id: EVENT, visibility: "private", gate: "invite" }];
+    await expect(standing()).resolves.toEqual({
+      "b-wren": "door",
+      "b-sam": "in",
+      "b-lou": "in",
+    });
+    // The door and the list are the host's own reads, never the admin client's.
+    expect(
+      reads
+        .filter((r) => r.table === "events" || r.table === "event_invites")
+        .map((r) => r.client),
+    ).toEqual(["host", "host"]);
+  });
+
+  it("★ a newcomer whose ask a password ended meets it like anyone new, never the album she was never in (crumbs-24)", async () => {
+    // The password deleted her waiting row (20260929230000), so nothing of hers is left to read: she is
+    // a newcomer by having no row past the door, not by a waiting row.
+    tables.events = [{ id: EVENT, visibility: "password", gate: null }];
+    tables.guests = tables.guests.filter((g) => g.admission === "in");
+    await expect(standing()).resolves.toEqual({
+      "b-wren": "password",
+      "b-sam": "in",
+      "b-lou": "password",
+    });
+  });
+
+  it("after the password, the door as it stands decides: asks again, Public, or nobody new", async () => {
+    tables.guests = tables.guests.filter((g) => g.admission === "in");
+    tables.events = [{ id: EVENT, visibility: "private", gate: "approve" }];
+    expect((await standing())["b-wren"]).toBe("door");
+    tables.events = [{ id: EVENT, visibility: "open", gate: null }];
+    expect((await standing())["b-wren"]).toBe("in");
+    tables.events = [{ id: EVENT, visibility: "private", gate: "closed" }];
+    expect((await standing())["b-wren"]).toBe("out");
+    tables.events = [{ id: EVENT, visibility: "private", gate: null }];
+    expect((await standing())["b-wren"]).toBe("out");
+  });
+
+  // ★ RESHAPED ON PURPOSE (crumbs-27; scar kept: the door is read once and only as the host's own read): "everyone was
+  // in: the door is never read" held while nothing about the door could change what Let back in promises someone who
+  // was in. Only me does (it shuts even the people already in), so the door is read for everyone in the list.
+  it("everyone was in, at a door a gate keeps: they come back in, and the door is read once, as the host", async () => {
+    tables.events = [{ id: EVENT, visibility: "password", gate: null }];
+    tables.guests = tables.guests.map((g) => ({ ...g, admission: "in" }));
+    await expect(standing()).resolves.toEqual({
+      "b-wren": "in",
+      "b-sam": "in",
+      "b-lou": "in",
+    });
+    expect(
+      reads.filter((r) => r.table === "events").map((r) => r.client),
+    ).toEqual(["host"]);
+  });
+
+  it("★ at Only me, someone who was in is told the album is closed until the host opens it; a newcomer keeps her own landing (crumbs-27)", async () => {
+    tables.events = [{ id: EVENT, visibility: "private", gate: null }];
+    await expect(standing()).resolves.toEqual({
+      // Their ask still stands, and the door the host answers is where they land (unchanged).
+      "b-wren": "door",
+      "b-sam": "only_me",
+      "b-lou": "door",
+    });
+    // Everyone in: every one of them lands on the closed album.
+    tables.guests = tables.guests.map((g) => ({ ...g, admission: "in" }));
+    await expect(standing()).resolves.toEqual({
+      "b-wren": "only_me",
+      "b-sam": "only_me",
+      "b-lou": "only_me",
+    });
+  });
+
+  it("the door is one read however many are in the list", async () => {
+    tables.events = [{ id: EVENT, visibility: "private", gate: null }];
+    await getEventBlocks(EVENT, format);
+    expect(reads.filter((r) => r.table === "events")).toHaveLength(1);
   });
 });

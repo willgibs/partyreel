@@ -2,6 +2,7 @@
 
 Open this before you:
 - change sign-in: the one account door, codes and links, passwords, Google, passkeys;
+- add or change a sign-out, or anything else that ends a session;
 - change a Supabase Auth dashboard setting (they move in lockstep with code);
 - change how an account's email changes, or what follows it;
 - touch a display name, an avatar or the `/welcome` gate;
@@ -21,8 +22,8 @@ Google, and a password as a quiet second door; passkeys wait behind a flag. `get
   door and a named guest's sign-in; each wear passes only its reason (`wear`), its methods and where it returns, and
   the words live in one table, `DOOR_WEAR`. Every wear but the gate carries the Terms line (the gate's welcome step
   says it), which is why Stripe Checkout needs no consent box of its own ([billing-caps.md](billing-caps.md)).
-- **The door asks for a confirmed email, not an account.** Confirming claims this device's uploads and nothing else
-  (there is no save: [guest-flow.md](guest-flow.md)); the free account is what confirming makes, and each wear's words say so.
+- **The door asks for a confirmed email, not an account.** Confirming claims the uploads on this device that can be hers
+  and nothing else (there is no save: [guest-flow.md](guest-flow.md)); the free account is what confirming makes, and each wear's words say so.
 - ★ **An address typed at the guest door is inert, and nothing is an oracle.** It lands in `guests.pending_email`,
   proves nothing, signs nobody in, is never shown to anyone nor mailed on its own, and never reaches `auth.users`. It
   is accepted whether or not a member owns it, because refusing it or diverting to a sign-in would tell a stranger
@@ -37,19 +38,29 @@ Google, and a password as a quiet second door; passkeys wait behind a flag. `get
   guest just confirmed an email to fix, still marked; the claim never throws, so the wait costs one round trip.
 - ★ **The claim names only a nameless profile:** under a confirmed session `claim_anonymous_uploads` copies the
   newest claimed row's typed name onto a profile with none (and marks the rows verified); unconfirmed, it stamps
-  `user_id` and nothing else. Nothing overwrites a name.
+  `user_id` and nothing else. Nothing overwrites a name, and ★ a stranger's never names hers: on a shared phone the
+  claim takes only a ticket that can be hers, and one she was asked about names nothing ([guest-flow.md](guest-flow.md)).
 - **The code leads and the link is the fallback,** because an iPhone PWA opens a tapped link in Safari, outside the
   session the flow just made, and `verifyOtp({ type: 'email' })` needs no redirect. `email-sign-in.tsx` owns no
   navigation; each wear's `onVerified` decides what follows. A tapped link lands on `/auth/callback` and loses any
   in-page step, which is accepted.
-- **A sign-in lands on the page that asked for it.** The `(app)` and `(print)` gates send a signed-out request to
-  `/login?next=<its path>` (a layout cannot read its URL, so the proxy hands it over in `x-pr-path`), and `/login`, its
-  in-page code or password, Google and the email's link through `/auth/callback` all land there, a failed link
-  carrying it back to `/login`; so a mail's button (Renew Event Pass, Manage storage) lands where it points. ★ `next`
-  is followed only when it is one of `lib/auth/return-path.ts`'s exact shapes (the host app's pages, `/admin`, an
-  album or a profile page), never a query or a fragment: anything else, however it is encoded, reads as no `next` at
-  all (`return-path.test.ts` pins each refusal). `signInLanding` is the one landing rule the page, the form and the
-  callback share.
+- **A sign-in lands on the page that asked for it.** The `(app)` and `(print)` gates and the portal's `requireAdmin`
+  send a signed-out request to `/login?next=<its path>` (a layout cannot read its URL, so the proxy hands it over in
+  `x-pr-path`), and `/login`, its in-page code or password, Google and the email's link through `/auth/callback` all
+  land there, a failed link carrying it back to `/login`; so a mail's button (Renew Event Pass, Manage storage) or an
+  operator's deep link (`/admin/reports`) lands where it points. ★ `next` is followed only when it is one of
+  `lib/auth/return-path.ts`'s exact shapes for the host it lands on: the host app's pages, an album or a profile page
+  off the admin host, the portal's home, sections and row pages on it alone (each host 404s the other's), never a
+  query, and a fragment only as one of the mail's named anchors (`ANCHORED_RETURNS`, today the renewal nudge's
+  `/account#event-pass-reminders`, named once beside the mail in `lib/email/links.ts`): anything else, however it is
+  encoded, reads as no `next` at all (`return-path.test.ts` pins each refusal). `signInLanding` is the one landing
+  rule the page, the form and the callback share.
+- ★ **A fragment rides `location.hash`, never a server.** The gate's 307 drops it from `next` and the browser keeps
+  it, so `/login`'s form reads it (`useSyncExternalStore`, `""` on the server so hydration matches) and asks
+  `returnWithAnchor`, which adds it to the in-page landing and the callback's `next` only when the pair is on the
+  list; any other fragment drops and the page stands. ★ **A client-side 401 fallback** (the checkout, the billing
+  portal, a plan switch, the storage list, the renewal page) sends `loginPath(window.location.pathname)`, never a
+  bare `/login` (`bare-login-policy.test.ts` refuses the literal), so a session that lapsed under a page comes back to it.
 - **The password refusal is generic by design:** wrong password, no password and unknown address read the same (the
   `password_mismatch` line, with a code, a new password and Google as the ways out); `door-failure.test.ts` refuses
   a specific one. Every failure maps through `door-failure.ts`'s one table, and a surface's own recoveries are not
@@ -65,6 +76,25 @@ Google, and a password as a quiet second door; passkeys wait behind a flag. `get
   device hint (`pr_passkey_hint`), never a load-time browser prompt, which would throw a system sheet at a
   stranger; Google's hinted "Continue as" sends `login_hint` with `prompt=select_account`, so a shared laptop
   always sees the chooser.
+
+## Signing out
+
+- ★ **Every sign-out names its scope,** because auth-js's bare `signOut()` is global: it revokes every session the
+  account holds, an operator's admin portal session included (Google and her second factor again). Sign out is
+  `local`, this session and its refresh token alone, since one account is kept open on a desk and a phone for
+  different jobs: the menu's (`signOutAction`, which the admin bar posts too), the guest header's and the door's
+  "Not you?". `/account`'s Sign out everywhere (`signOutEverywhereAction`) is `global`, this device included, behind a
+  confirm that says so, and never a menu row. Both answer a refusal instead of landing on `/login` as if they had
+  worked (auth-js keeps the session when GoTrue refuses, and `/login` sends a signed-in host back to the dashboard):
+  the menu's and the admin bar's toast it through `signOutHere`. Deleting an account is `global` too, as the ban's
+  belt: after the ban GoTrue answers it 403 `user_banned` (auth-js still clears the cookies), and when the best-effort
+  ban failed it is what ends the other devices. Each scope is pinned beside its call site.
+- ★ **No scope reaches an access token already issued:** it stays valid by its signature until its own expiry.
+  `getUser()` refuses a revoked session at once (a signature check such as `getClaims()` would not), so only a
+  caller using the raw token against the database directly keeps what is left of it.
+- The two menus' Sign out and Sign out everywhere also put down every guest ticket on the device
+  ([guest-flow.md](guest-flow.md)); the door's "Not you?" keeps them, since the same person carries on with another
+  address.
 
 ## Passwords
 
@@ -128,7 +158,8 @@ Dashboard state, held nowhere in the repo, that the code assumes:
 - The redirect allow-list holds `https://partyreel.com/auth/callback**` (a guest's link carries `?next=/e/[token]`
   back, a host's the page a gate sent them from) and the admin callbacks ([admin-observability.md](admin-observability.md)).
   ★ The admin callback's entry is EXACT: GoTrue answers `…/auth/callback?next=` there with the Site URL, so the admin
-  host's door always sends the bare callback (`login-form.tsx`), the portal being its landing anyway.
+  host's door always sends the bare callback (`login-form.tsx`), and the portal page the gate was asked for rides
+  `pr_admin_return` instead (ten minutes, `Path=/auth/callback`, re-checked and cleared by the callback).
 - Passkeys enabled with the RP id on the apex before `NEXT_PUBLIC_PASSKEYS=1` ships anywhere.
 - Rate limits (Authentication, Rate Limits): emails 100 an hour project-wide on the custom SMTP; code and link
   verifications, sign-ups and sign-ins, and token refreshes 150 per 5 minutes per IP; anonymous sign-ins 30 an hour
@@ -142,6 +173,12 @@ Dashboard state, held nowhere in the repo, that the code assumes:
   from the Google name or the newest claimable guest row's typed name). The one typed-name write is
   `updateDisplayNameAction` (`displayNameSchema`, then `containsProfanity`, tuned so real names pass, then the admin
   client); the claim copies an already-filtered name onto a nameless profile only.
+- ★ **The name rule has one home, `isReservedName` (`reserved-names.ts`), which `displayNameSchema` asks,** so every door
+  reads it: the account action, the door's adopted name, the guest join and rename routes (`parseGuestDisplayName`) and
+  the browser's own `checkDisplayName`. A reserved word whole, or the brand alone or beside a staff word ("Partyreel
+  Support"), read by words through separators, accents, full-width letters and look-alike digits; a name that merely
+  contains a word ("Adminah", "Sam Partyreel") stays legal. SQL cannot check a name, so `reserved-names.test.ts` names
+  every writer of `display_name` with the gate it asks first.
 - **A guest's typed name survives the magic link.** The door passes it as `signInWithOtp` data under `DOOR_NAME_KEY`
   (`door-name-key.ts`; GoTrue writes it only when that call creates the account), and `/auth/callback` runs
   `adoptDoorName()` after the exchange when `next` is an album: a nameless profile only, `displayNameSchema` then

@@ -13,7 +13,8 @@
  *    ticket (`yours.server.ts`), never from an id list; the summary carries Yours' own counts.
  *  - `ids`, a zip's missed ones asked again ("Try again for the 6"), intersected with what she sees.
  *  - `part` and `after` (`cap=split`), a walk through an album past one zip's ceilings.
- * ★ THE CLOSED DOOR IS ASKED FIRST ON EVERY ONE OF THEM, before anything is read (route.test.ts).
+ * ★ THE DOOR IS ASKED FIRST ON EVERY ONE OF THEM, before anything is read (route.test.ts): a door that
+ * shuts this viewer out or holds her at it exports nothing.
  */
 import { NextResponse } from "next/server";
 
@@ -21,7 +22,12 @@ import { z } from "zod";
 
 import { mustQuery } from "@/lib/db/must-query";
 import { getEventByQrToken } from "@/lib/db/queries/guest-events";
-import { isClosedToThisBrowser } from "@/lib/events/closed-door.server";
+import {
+  doorCallerFor,
+  isShut,
+  resolveGuestDoor,
+} from "@/lib/events/closed-door.server";
+import { doorGalleryDecision } from "@/lib/events/gallery-access";
 import { inChunks } from "@/lib/db/read-all";
 import { isDemoToken } from "@/lib/demo";
 import {
@@ -79,12 +85,19 @@ export async function POST(request: Request) {
   // A position with no part to put it in is no request a client makes.
   if (after && (!part || part < 2)) return bad();
 
-  // A private album, or one closed to this browser by a block (the closed door: the same answer and
-  // the same work, `closed-door.server.ts`), exports nothing.
-  const event = await getEventByQrToken(qr_token);
-  if (!event.ok || (await isClosedToThisBrowser(event.data))) {
+  // A door that shuts this viewer out (a block, a decline, a closed door and Only me: the same answer
+  // and the same work, `closed-door.server.ts`), or holds her at it (the held door, the ask, a gate's
+  // newcomer), exports nothing.
+  const found = await getEventByQrToken(qr_token);
+  const door = found.ok
+    ? await resolveGuestDoor(found.data, await doorCallerFor(found.data.id))
+    : null;
+  if (!door || isShut(door) || doorGalleryDecision(door.decision)) {
     return NextResponse.json({ ok: false, code: "forbidden" }, { status: 403 });
   }
+  // The event as the door lets her meet it, with the pass its reads ask for.
+  const event = door.event;
+  const admitted = door.decision.kind === "through" && door.decision.admitted;
 
   // Same access computation as the gallery RSC + poll. Authorize with getUser(), never getSession().
   const isDemo = isDemoToken(qr_token);
@@ -99,24 +112,25 @@ export async function POST(request: Request) {
     if (user) {
       userId = user.id;
       isAuthed = Boolean(user.email_confirmed_at);
-      isOwner = await isEventOwner(event.data.id, user.id, supabase);
+      isOwner = await isEventOwner(event.id, user.id, supabase);
     }
   }
+  // Someone already in passes the password without it (the one rule for everyone already in).
   const unlocked =
-    event.data.visibility === "password"
-      ? await isUnlocked(event.data.id)
+    event.visibility === "password"
+      ? admitted || (await isUnlocked(event.id))
       : true;
   // This browser's ticket for the album: the upload gate's identity below, and Yours'.
   const sessionToken = isDemo
     ? null
-    : await readGuestSessionCookie(event.data.id);
+    : await readGuestSessionCookie(event.id);
   /* ★ THE UPLOAD GATE REACHES THE ZIP (the door as three steps, 2026-09-21). This route hands a
      viewer the real originals, so it must resolve the SAME decision the album does: a guest held at
      the upload step is `teaser`, and below gets the teaser's rows alone rather than every original
      in the album. Its identity comes from the `pr_guest_<eventId>` cookie, like the page's. */
   const decision = isDemo
     ? { access: "full" as const, gate: null }
-    : await resolveViewerDecision(event.data, {
+    : await resolveViewerDecision(event, {
         isOwner,
         isAuthed,
         isUnlocked: unlocked,
@@ -128,14 +142,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, code: "forbidden" }, { status: 403 });
   }
 
-  const gallery = await loadGalleryRowsForAccess(event.data, access);
+  const gallery = await loadGalleryRowsForAccess(event, access);
 
   // HER OWN, when anything asks for it: the summary's Yours row, or a Yours zip. Never the demo's
   // (nobody is anybody there), and never from the request.
   const wantsOwn = step === "summary" || set === "yours";
   const own =
     wantsOwn && !isDemo
-      ? await ownMediaIds({ eventId: event.data.id, userId, sessionToken })
+      ? await ownMediaIds({ eventId: event.id, userId, sessionToken })
       : new Set<string>();
 
   // WHAT THIS REQUEST IS ABOUT, narrowed from what she can see and never past it. The summary
@@ -202,8 +216,8 @@ export async function POST(request: Request) {
 
   const result = await mintExport({
     scope: "guest",
-    eventId: event.data.id,
-    eventName: event.data.name,
+    eventId: event.id,
+    eventName: event.name,
     rows,
     types,
     includeHidden: false,

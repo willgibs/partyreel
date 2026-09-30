@@ -1,7 +1,7 @@
 # The review ledgers
 
 > **ROLE:** Will's answers and notes on the boards, one JSON file per board plus `_window.json` for
-> a round's notes that apply to every board and `_library.json` for his verdicts on Library entries.
+> what he said at a sitting outside any board's own review and `_library.json` for his verdicts on Library entries.
 > **BELONGS HERE:** ask ids, choices (an option id, or `null` for "not clear to me"), catalog item
 > verdicts (`keep | refine | kill`), Library entry verdicts (`keep | redesign | retire`), notes, who and when.
 > **NOT HERE:** the questions themselves (a board's `spec.ts` is the one home; a ledger stores ask
@@ -32,14 +32,23 @@
 }
 ```
 
+In a board's own ledger a note's `on` is `null`: the ledger is the board, so the note is the board's.
+
 One answer per ask per round; answering again in the same round overwrites (git keeps the first).
 A `choice` of `null` is Will's "this question is not clear to me" (`<ask>=? "why"` in the grammar;
 the note is required): the ask stays open on the desk, flagged as waiting on a clearer question,
 and the board rewrites it before he is asked again.
-A new round is opened by the Orchestrator when it spawns it. `_window.json` holds notes whose `on`
-is a board id or `null` for the whole window. The desk derives "Waiting on Will" as every ask on a
-standing board with no answer in its latest round; a board whose asks are all answered shows its
-ruling draft. When a board leaves the lab (its picks built) its ledger is deleted with it.
+A new round is opened by the Orchestrator when it spawns it. `_window.json` logs what he said at a
+sitting outside any board's own review, a round per sitting (`opened` is its date); a note's `on` is
+the board it was given on, or `null` when it was given on none. Nothing in it binds anything, because
+a note binds only what it was given on: a board's row carries the notes filed on it, and the desk
+shows the latest sitting's notes on no board, as what he said at that sitting, until a board opens a
+round on a later day (his next sitting), after which nothing reads that round at all. A note meant
+for the whole program is the Orchestrator's to fold into the doc it refines, synthesized and never
+quoted, and folding it is deleting it here: there is no mark to set. The desk derives "Waiting on
+Will" as every ask on a standing board with no answer in its latest round; a board whose asks are
+all answered shows what its answers decide. When a board leaves the lab (its picks built) its ledger
+is deleted with it, and so are the notes filed on it in `_window.json`.
 
 ## The message grammar
 
@@ -59,13 +68,19 @@ board still asks it, nothing rides for an ask or a card the open round no longer
 withdrawn inside a round), and a note the ledger already holds is never sent twice (Will,
 2026-09-17). A quoted note belongs to the clause in front of it; `note:` clauses are the board's own
 and always print last, so a trailing one is never a note on the last answer. A pick-one catalog is
-decided by one ask whose options are its card ids plus `none`, so "None of these: new directions"
+decided by one ask whose options are its card ids, usually with `none` beside them, so "None of these: new directions"
 lands as `<board> r<n>: <ask>=none "what to try instead"` and the grammar never grew a fourth word.
 
 `review <board> r<n>: <ask>=? "what was unclear"` records "not clear to me" (the note is required).
 An option is its id (one token); the board's spec carries the label and the meaning a reviewer reads.
 
-`item:<id>=keep|refine|kill` rules on ONE card of a board's catalog, where
+A line that is only `note: "..."` names no board, so `pnpm lab:review` records nothing for it and
+prints where it goes: if it is meant for the whole program, fold it into the doc it refines
+(synthesized, never quoted); if it was given on a board, file it there with
+`review <board> r<n>: note: "..."`. The rest of the paste records as ever. A note with no words is
+refused on any line.
+
+`item:<id>=keep|refine|kill` gives ONE card of a board's catalog its verdict, where
 `<id>` is a candidate id from the board's spec. The `item:` prefix keeps the two namespaces apart: an
 ask id and a candidate id are both one token and a board may use the same word for both. A board that
 declares no `catalog` has no items, and a verdict on one is refused. One verdict per item per round;

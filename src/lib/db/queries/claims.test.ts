@@ -31,9 +31,9 @@ type RpcRow = {
   upload_count: number;
   last_upload_at: string | null;
   pending_email_at: string;
-  // `20260927200000_claim_previews`: absent on a database without it.
-  event_visibility?: "open" | "password" | "private";
-  preview_keys?: string[] | null;
+  // `20260927200000_claim_previews`, applied and typed: every row answers both.
+  event_visibility: "open" | "password" | "private";
+  preview_keys: string[] | null;
 };
 
 let rows: RpcRow[] = [];
@@ -57,6 +57,12 @@ let admin = createFakePostgrest({});
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => asSupabase(admin),
 }));
+/** The gated albums, by id (`readEventGates`): a gated album is stored private, with its gate. */
+let gates = new Map<string, string>();
+vi.mock("@/lib/db/queries/event-doors", () => ({
+  readEventGates: async (ids: readonly string[]) =>
+    new Map([...gates].filter(([id]) => ids.includes(id))),
+}));
 const blocked = vi.fn(async (_viewer: string, _profile: string) => false);
 vi.mock("@/lib/db/queries/social", () => ({
   isBlockedEitherWay: (viewer: string, profile: string) =>
@@ -75,6 +81,8 @@ const row = (over: Partial<RpcRow>): RpcRow => ({
   upload_count: 2,
   last_upload_at: "2026-10-02T10:00:00Z",
   pending_email_at: "2026-09-20T10:00:00Z",
+  event_visibility: "open",
+  preview_keys: [],
   ...over,
 });
 
@@ -359,10 +367,18 @@ describe("the review's previews", () => {
     expect(presign).not.toHaveBeenCalled();
   });
 
-  it("reads a list without the two columns as an open album with nothing to show", async () => {
-    rows = [row({})];
-    const [result] = await getMyClaimableGuestRows({ previews: true });
-    expect(result).toMatchObject({ gate: null, previews: [] });
+  // ★ RESHAPED ON PURPOSE (crumbs-17, crumbs-15's dead seam; scar kept: a row with nothing to show shows
+  // nothing). This read "a list without the two columns as an open album with nothing to show", the
+  // database before `20260927200000_claim_previews`; it is applied and typed, so every row answers both,
+  // and an open album whose previews came back empty or null is the case left.
+  it("reads an open album whose previews are empty or null as nothing to show", async () => {
+    rows = [row({ guest_id: "g1", preview_keys: [] })];
+    const [empty] = await getMyClaimableGuestRows({ previews: true });
+    expect(empty).toMatchObject({ gate: null, previews: [] });
+    rows = [row({ guest_id: "g1", preview_keys: null })];
+    const [none] = await getMyClaimableGuestRows({ previews: true });
+    expect(none).toMatchObject({ gate: null, previews: [] });
+    expect(presign).not.toHaveBeenCalled();
   });
 });
 
@@ -435,10 +451,27 @@ describe("the claimed event's follow-up", () => {
     ).resolves.toBeNull();
   });
 
-  it("a private album opens for nobody: no album, no host", async () => {
+  it("an Only me album opens for nobody: no album, no host", async () => {
+    gates = new Map();
     await expect(
       getClaimedEventNext(world({ visibility: "private" }), EVENT),
     ).resolves.toEqual({ href: null, host: null });
+  });
+
+  // ★ The doors (event-settings r1) store a gated album private, with its gate; the claim made her
+  // row, which is in, hers, and a gate never stops the guests inside.
+  it("a gated album opens for her once she has claimed", async () => {
+    gates = new Map([[EVENT, "closed"]]);
+    try {
+      await expect(
+        getClaimedEventNext(world({ visibility: "private" }), EVENT),
+      ).resolves.toEqual({
+        href: "/e/qr-e1",
+        host: { id: "host-1", slug: "tom", name: "Tom", following: false },
+      });
+    } finally {
+      gates = new Map();
+    }
   });
 
   it("offers no Follow for a host with no page, for herself, or across a block", async () => {

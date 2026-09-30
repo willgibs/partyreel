@@ -99,8 +99,10 @@ The reel stores nothing, so the server says only WHETHER a viewer's album has on
   bars and Editorial's inset card are set aside and a mismatched photograph stays whole on its own darkened blur.
   ★ **`?reel` is its address** ([`reel-url.ts`](../../src/lib/guest/reel-url.ts)): opening PUSHES an entry marked in its
   own history state (`prReelPushed`), so a phone's back gesture closes it; closing a pushed entry goes back and closing a
-  deep link REPLACES the address, so closing never leaves the page. Only the `reel` segment is touched, never a
-  re-serialised query.
+  deep link REPLACES the address, so closing never leaves the page. Whose entry it is stands on `lib/history-entry.ts`
+  (shared with the hub's sheets and a phone's popups): a `router.refresh()` takes the marker off, so the page keeps its
+  own word and gives the entry its marker back, and a close after a refresh or a reload still goes Back, once, however
+  many times the X is tapped. Only the `reel` segment is touched, never a re-serialised query.
   - **The chrome**: a slim glass bar at rest (play and progress) that pointer movement, or a tap on touch, grows into
     the dock (a `clip-path` morph, [`live-reel.css`](../../src/components/guest/reel/live-reel.css), instant under
     reduced motion); a resting pointer settles it back (2.4 s; 4.2 s after a touch). Every control has a tooltip.
@@ -168,7 +170,9 @@ A host has no reel to create, only a state to read and a few defaults to set.
   ★ `resolveHoldSec(row.reel_hold_sec)` always: the generated type reads the column as `number`, and `Number(null)`
   would answer the 1 s step.
 - **`setReelDefaults`** ([`reel/defaults-action.ts`](../../src/lib/reel/defaults-action.ts)) is the one write, shared by
-  the view's Set for everyone and Settings: it re-verifies the owner and revalidates nothing, so the reel keeps playing.
+  the view's Set for everyone and Settings: it re-verifies the owner and revalidates nothing for a look or a hold, so
+  the reel keeps playing; the switch (Settings' alone) revalidates the hub, whose Reel card its answer carries, so
+  nothing refreshes the router after it ([host-app.md](host-app.md)).
   A pick that is the platform's own default (`DEFAULT_HOLD_SEC`, `DEFAULT_STYLE_ID`) is stored as NULL, each column on
   its own, so the event keeps following the default if it ever moves.
 - ★ **The platform lever, `ops_flags.live_reel_enabled`**: off means no tile, no view, no screen and no Make your own

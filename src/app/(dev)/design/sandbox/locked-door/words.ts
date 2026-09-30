@@ -1,178 +1,256 @@
-import { EVENT, HOST } from "./fixtures";
+import { shutDoorCopy } from "@/components/guest/door/shut-door";
+import { waitingCopy } from "@/components/guest/door/waiting-step";
+import { welcomeAddLine } from "@/components/guest/entry-modal";
+
+import { EVENT, HOST, PICKS } from "./fixtures";
 
 /**
- * EVERY WORD A LOCKED DOOR SAYS, IN ONE TABLE.
+ * EVERY WORD THE DIRECTIONS SAY, IN ONE TABLE: three directions by four states,
+ * the wait's three shapes, the shut door's foot, the 404.
  *
- * ★ TRUE OF ALL THREE CAUSES, OR NOT SAID. One screen answers a private album,
- * an album closed to newcomers and a block, so the words may only say what the
- * three share: the reader can't open it, and only the host can change that.
- * "Closed" is the umbrella a private album, a closed one and a block all fit
- * under; "private" fits one of them. Today's line (`today`) is the measure of
- * why: "ask them to make it public" is no help to a closed-out newcomer, whose
- * album is already public, or to a blocked guest, whom public would not let in.
+ * ★ TODAY SAYS NOTHING HERE. Every state of today's door is production's own
+ * piece (`today.tsx`), which speaks its own words. Where a direction says what
+ * today says, it reads production's copy function (`waitingCopy`,
+ * `shutDoorCopy`, and the welcome's first line, `welcomeAddLine`) rather than a
+ * copy of it, so the next change to the door's words reaches every direction;
+ * where production says a word inline, with no function to read (the rest of
+ * the welcome, the 404, the held door's eyebrow and mark, the shut door's way
+ * out and its way back in), it is quoted here beside its file.
  *
- * ★ NO PRONOUN FOR THE HOST. A host's display name can be anyone's ("Maya", "The
- * Chens", "Maya & Jay"), so a line that names her says her name again rather
- * than guess a "she" (`guest-flow.md`: the door's lede names nobody for the
- * same reason, a long name breaks it).
+ * ★ THE SHUT DOOR'S WORDS ARE TRUE OF ALL FIVE, OR NOT SAID (event-safety's
+ * `newcomer=same`). One screen answers an Only me album, an album closed to
+ * newcomers, a decline, an address not on the invite list and a block, so the
+ * words may only say what the five share: she can't open it, and only the host
+ * can change that. Production says it as "This album is closed", round one's
+ * lit column's words, which is why the lit column's shut door reads today's.
  *
- * ★ A PREVIOUS GUEST'S LINE SPEAKS OF THE ALBUM, NEVER OF HER (the `previous`
- * ask). She meets the lock only when the album is private or she is blocked, so
- * whatever she reads a blocked guest reads too: a line about her own photos
- * would tell the two apart (a block removed his), so none is drawn.
+ * ★ THE LINE SOMEONE WHO WAS IN READS IS SETTLED (`previous=private`, his r1
+ * answer): she is told the host made it private, as her dashboard card says,
+ * and a blocked former guest reads the same, so the block keeps its cover. Only
+ * an Only me album and a block shut out someone already in, so the line is
+ * true of the first and a cover story for the second, and it is drawn in every
+ * direction rather than asked again. It speaks of the album, never of her: a
+ * line about her own photos would tell the two apart (a block may remove his).
+ *
+ * ★ NO PRONOUN FOR THE HOST, AND NO VERB AFTER HER NAME. A display name can be
+ * anyone's ("Maya", "The Chens", "Maya & Jay"), so a line that names her again
+ * never guesses a "she", and no line puts a verb straight after her name that a
+ * plural host would break ("Maya invites" and "The Chens invites"): "Hosted by
+ * Maya" and "Only Maya can" hold for every name. (Production's own "Maya will
+ * let you in" holds too: "will" takes no agreement.)
+ *
+ * ★ THE GUEST'S WORD IS ALBUM (`guest-flow.md`), so every new line says album.
+ * The 404's words are quoted as they ship, "event" included, because they are
+ * the reference and not a draft.
  */
 
-export type LockId = "today" | "lit" | "door" | "host" | "cover";
-export type LineId = "one" | "private" | "changed";
+export type DirectionId = "today" | "host" | "lit" | "doorway";
+/** A direction this table words: today's door speaks production's own. */
+export type DrawnId = Exclude<DirectionId, "today">;
+export type StateId = "welcome" | "wait" | "shut" | "was-in";
+export type WaitId = "still" | "live" | "pick";
 
-/**
- * A line and the glyph its row leads with where the screen draws rows (the
- * welcome's promise rows, `host` and `cover`): the glyph follows what the line
- * says, never its place, so a line keeps its mark in whichever row it lands.
- */
-export type Line = { text: string; mark: "key" | "link" | "lock" | "eye" };
+/** What a line's glyph shows: it follows what the line says, never its place. */
+export type Mark =
+  | "camera"
+  | "images"
+  | "key"
+  | "link"
+  | "lock"
+  | "door"
+  | "bell"
+  | "clock";
+
+export type Line = { text: string; mark: Mark };
 
 /** One screen's message: what the reader is told, header and ways out apart. */
 export type Words = {
   /** The small line over the headline (the door's eyebrow). */
   eyebrow?: string;
   title: string;
-  /** The lines under it: one for the page, one or two for the door's rows. */
   lines: readonly Line[];
 };
 
-const says = (text: string, mark: Line["mark"] = "key"): Line => ({
-  text,
-  mark,
-});
+const says = (text: string, mark: Mark = "key"): Line => ({ text, mark });
 
-const HOST_WAY = says(`Only ${HOST.name} can let you in.`, "key");
-const KEEP_LINK = says(
+/* ── the welcome: one set of words, every direction ─────────────────────── */
+
+/**
+ * THE INVITATION, today's words, kept by every direction: the welcome's words
+ * are not what this round asks (voice-guest settled them), its look is. Its
+ * first line is `entry-modal.tsx`'s own `welcomeAddLine` (this album takes
+ * videos, so it says photos and videos); the rest is quoted from
+ * `WelcomeStep`, which exports nothing else. The count is the album's live
+ * number, said as the welcome's own promise row says it (`LiveCount` ticks it
+ * in production).
+ */
+export const WELCOME: Words & { hostedBy: string; cta: string } = {
+  eyebrow: "You're invited to",
+  title: EVENT.name,
+  lines: [
+    says(welcomeAddLine(true), "camera"),
+    says(
+      `Everyone's shots land in one album. ${EVENT.count} are already inside.`,
+      "images",
+    ),
+  ],
+  /** Said before the host's name, which is set apart in the foreground ink. */
+  hostedBy: "Hosted by",
+  cta: "Continue",
+};
+
+/* ── the wait: today's words, then what each shape of wait adds ────────── */
+
+/** The held door's own words for Maya (`waiting-step.tsx`). */
+const WAITING = waitingCopy(HOST.name);
+
+/**
+ * WHAT THE HELD DOOR SAYS INLINE (`WaitingDoor`, which has no function for
+ * them): its eyebrow beside a clock, the live mark under its words, and its one
+ * way out.
+ */
+export const HELD = {
+  eyebrow: "Asked",
+  mark: "Waiting at the door",
+  other: "Use a different email",
+} as const;
+
+const REASON = says(WAITING.reason, "door");
+/** The live wait's one true line about the other side. */
+export const TOLD = says(`${HOST.name} has been told you're here.`, "bell");
+/** The host's door says today's title as its first line, under the plate. */
+const LETS_IN = says(`${WAITING.title}.`, "key");
+
+/**
+ * The waiting door's head: today's eyebrow over today's title, but the host's
+ * door keeps the album's name as its title on every state (the plate on the
+ * door), so today's title is its first line instead.
+ */
+const WAIT_HEAD: Record<DrawnId, Omit<Words, "lines">> = {
+  host: { eyebrow: HELD.eyebrow, title: EVENT.name },
+  lit: { eyebrow: HELD.eyebrow, title: WAITING.title },
+  doorway: { eyebrow: HELD.eyebrow, title: WAITING.title },
+};
+
+/**
+ * THE WAIT'S THREE SHAPES (the `wait` ask). `still` is today's wait as it
+ * ships (event-settings' `waiting=held`): its words, and under them the dot
+ * that breathes while she waits (`WaitHold`). `live` adds the one true thing a
+ * wait can say about the other side, that the host has been told (the hub's
+ * Guests card, the pulse and the bell do tell her, and nothing is mailed), and
+ * a clock that ticks. `pick` keeps today's words and hands her something to do
+ * (`PICK`).
+ */
+const WAIT_LINES: Record<WaitId, readonly Line[]> = {
+  still: [REASON],
+  live: [TOLD, REASON],
+  pick: [REASON],
+};
+
+export function waitWords(direction: DrawnId, wait: WaitId): Words {
+  const lines = WAIT_LINES[wait];
+  return {
+    ...WAIT_HEAD[direction],
+    lines: direction === "host" ? [LETS_IN, ...lines] : lines,
+  };
+}
+
+/** How long she has waited, ticking under the live wait. */
+export const ASKED = "Asked 2 min ago";
+
+/** The `pick` wait's own block: her choices, held on her phone. */
+export const PICK = {
+  title: "While you wait",
+  line: `Choose what you'll add. Nothing leaves your phone until ${HOST.name} lets you in.`,
+  button: "Choose photos",
+  ready: `${PICKS.length} photos ready`,
+  change: "Change",
+} as const;
+
+/* ── the shut door and the line someone who was in reads ────────────────── */
+
+const ONLY = says(`Only ${HOST.name} can let you in.`, "key");
+const KEEP = says(
   "Keep this link. It opens the album the moment you're let in.",
   "link",
 );
+const MADE_PRIVATE = says(`${HOST.name} made this album private.`, "lock");
+const BACK = says(`Only ${HOST.name} can let you back in.`, "key");
 
-/** What a newcomer reads, and everyone under `previous=one`. */
-const EVERYONE: Record<LockId, Words> = {
-  // Production's private branch, word for word (`e/[token]/page.tsx`).
-  today: {
-    title: "This event is private",
-    lines: [
-      says(
-        "The host has this event set to private. Check back later, or ask them to make it public.",
-      ),
-    ],
+/**
+ * What a newcomer reads at the shut door, whichever of the five keeps her out,
+ * and (`wasIn`) what someone who was in reads instead: Priya, and Dom too. The
+ * host's door and the doorway name the album on its plate; the lit column
+ * names nothing, in today's words.
+ */
+const SHUT: Record<Exclude<DrawnId, "lit">, Record<"out" | "was", Words>> = {
+  host: {
+    out: { eyebrow: "Closed", title: EVENT.name, lines: [ONLY, KEEP] },
+    was: { eyebrow: "Private", title: EVENT.name, lines: [MADE_PRIVATE, BACK] },
   },
-  lit: {
-    title: "This album is closed",
-    lines: [
-      says(
-        "Only the host can let you in. This link works again the moment they do.",
-      ),
-    ],
-  },
-  door: {
-    eyebrow: "Closed",
-    title: "Only the host can let you in",
-    lines: [says("This link works again the moment they do.")],
-  },
-  host: { eyebrow: "Closed", title: EVENT.name, lines: [HOST_WAY, KEEP_LINK] },
-  cover: { eyebrow: "Closed", title: EVENT.name, lines: [HOST_WAY, KEEP_LINK] },
-};
-
-/** What someone who was in reads instead, under the two lines of their own. */
-const PREVIOUS: Record<Exclude<LineId, "one">, Record<LockId, Words>> = {
-  // His "private version": the state named, which a blocked guest reads too.
-  private: {
-    // Today already says private to everyone, so it has nothing to add.
-    today: EVERYONE.today,
-    lit: {
-      title: "This album is private",
-      lines: [
-        says(
-          "The host made it private. This link works again the moment they let you in.",
-        ),
-      ],
-    },
-    door: {
-      eyebrow: "Private",
-      title: "Only the host can let you in",
-      lines: [
-        says(
-          "The host made this album private. This link works again once they let you in.",
-        ),
-      ],
-    },
-    host: {
-      eyebrow: "Private",
-      title: EVENT.name,
-      lines: [says(`${HOST.name} made this album private.`, "lock"), HOST_WAY],
-    },
-    cover: {
-      eyebrow: "Private",
-      title: EVENT.name,
-      lines: [says(`${HOST.name} made this album private.`, "lock"), HOST_WAY],
-    },
-  },
-  // What a private album and a block share, said to someone who was in.
-  changed: {
-    today: {
-      title: EVERYONE.today.title,
-      lines: [
-        says("The host changed who can see this event since you were in."),
-      ],
-    },
-    lit: {
-      title: "This album is closed",
-      lines: [
-        says(
-          "The host changed who can see it since you were in. This link works again once they let you in.",
-        ),
-      ],
-    },
-    door: {
-      eyebrow: "Closed",
-      title: "Only the host can let you in",
-      lines: [
-        says("The host changed who can see this album since you were in."),
-      ],
-    },
-    host: {
-      eyebrow: "Closed",
-      title: EVENT.name,
-      lines: [
-        says(
-          `${HOST.name} changed who can see this album since you were in.`,
-          "eye",
-        ),
-        HOST_WAY,
-      ],
-    },
-    cover: {
-      eyebrow: "Closed",
-      title: EVENT.name,
-      lines: [
-        says(
-          `${HOST.name} changed who can see this album since you were in.`,
-          "eye",
-        ),
-        HOST_WAY,
-      ],
-    },
+  doorway: {
+    out: { eyebrow: "Closed", title: EVENT.name, lines: [ONLY, KEEP] },
+    was: { eyebrow: "Private", title: EVENT.name, lines: [MADE_PRIVATE, BACK] },
   },
 };
 
-/** The words one reader meets on one screen, under the board's previous-guest line. */
-export function wordsFor(lock: LockId, line: LineId, wasIn: boolean): Words {
-  if (!wasIn || line === "one") return EVERYONE[lock];
-  return PREVIOUS[line][lock];
+/** The words one reader meets at the shut door, in one direction. */
+export function shutWords(direction: DrawnId, wasIn: boolean): Words {
+  if (direction === "lit") {
+    const copy = shutDoorCopy(wasIn);
+    return {
+      title: copy.title,
+      lines: [says(copy.description, wasIn ? "lock" : "key")],
+    };
+  }
+  return SHUT[direction][wasIn ? "was" : "out"];
 }
 
-/** The quiet way back for someone already in on a new phone (event-safety's `back-in`). */
+/* ── the shut door's foot, which follows who is reading ─────────────────── */
+
+/** The one way out every dead end in the not-found family carries (`shut-door.tsx`, `not-found.screen.tsx`). */
+export const WAY_OUT = "What is Partyreel?";
+
+/**
+ * THE QUIET WAY BACK IN, as the shut door ships it (`shut-door.tsx`,
+ * event-safety's `back-in`): for a visitor signed out, since someone already in
+ * signs in on the new phone and the door knows her by her account.
+ */
 export const BACK_IN = {
   lead: "Already a guest?",
-  link: "Confirm your email",
+  link: "Log in",
 } as const;
 
-/** The one way out every dead end in the not-found family carries. */
-export const WAY_OUT = "What is Partyreel?";
+/* ── the beat, the moment the door opens itself ─────────────────────────── */
+
+/** "You're in", as `entry-modal.tsx`'s `SuccessStep` says it (it exports none). */
+export const BEAT = {
+  title: "You're in",
+  line: "Welcome to the party",
+  /**
+   * The host's door says who opened it: the past tense takes no agreement, so
+   * it holds for "The Chens" as it does for "Maya".
+   */
+  byHost: `${HOST.name} let you in`,
+  sending: `Sending your ${PICKS.length} photos`,
+} as const;
+
+/* ── the 404, today's words in both of its looks ────────────────────────── */
+
+/**
+ * A LINK THAT OPENS NOTHING (`e/[token]/not-found.screen.tsx`), word for word, for
+ * the directions that redraw it (today's is the page itself): the `lost` ask
+ * is about its look, so its words stay today's in both options.
+ * ★ It never says an event "ended": there is no end date in this product.
+ */
+export const LOST = {
+  eyebrow: "Event link",
+  title: "This event link didn't work",
+  line: "The link may be mistyped, or the host may have deleted the event. Double-check the QR code or link, or ask the host to resend it.",
+  help: { lead: "Still stuck?", link: "Visit the help center" },
+  demo: "See how it works with a live demo",
+} as const;
+
+/** A message's lines, read as one paragraph where a direction draws prose. */
+export const prose = (lines: readonly Line[]) =>
+  lines.map((l) => l.text).join(" ");

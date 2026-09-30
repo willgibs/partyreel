@@ -9,6 +9,12 @@
  * object whose row is gone is caught by the orphan sweep. A partial R2 failure still purges the rows
  * (the orphan sweep is the backstop for a stranded object) and is counted in `r2_errored`.
  *
+ * ★ AND NEVER A KEPT ROW (admin-triage r2, 20260929140000): before a single object is deleted, the batch asks
+ * `kept_media_ids` which of its rows the purge must keep (a hold, an open report: its item, or any item of an
+ * album an open album report names) and leaves those out whole, object and row. The SQL guard inside
+ * `purge_media_rows` asks the same function, but it saves only the ROW, and the objects go first: this is
+ * where an open report's bytes wait for the review. A kept row stays where it is for the next run.
+ *
  * ★ AT MOST `MAX_ROWS` IDS A `purge_media_rows` CALL. The function answers one row per HOST among its
  * input (the freed bytes), so its answer can never outgrow its input, and an input of at most 1,000
  * ids is an answer PostgREST cannot clip: the freed-bytes report stays whole (`row-cap-policy.test.ts`
@@ -87,25 +93,57 @@ export async function purgeMediaRows(
 }
 
 /**
+ * WHICH OF THESE ROWS THE PURGE MUST KEEP, as `kept_media_ids(uuid[])` answers it: one uuid[] per call, the ids
+ * in the POST body, `MAX_ROWS` a call, so neither the batch nor the answer can be cut. A failed read throws: a
+ * batch that cannot ask deletes nothing.
+ */
+export async function readKeptMediaIds(
+  admin: AdminClient,
+  ids: readonly string[],
+): Promise<string[]> {
+  return inChunks(
+    "cron/purge: kept_media_ids",
+    ids,
+    async (chunk) =>
+      (await mustQuery(
+        admin.rpc("kept_media_ids", { p_media_ids: chunk }),
+        "cron/purge: kept_media_ids",
+      )) ?? [],
+    { size: MAX_ROWS },
+  );
+}
+
+/**
  * R2 first, then the rows: the whole reclaim for a batch of rows the caller has already cleared of
- * holds. `extraKeys` are derived objects with no media row (an event's rendered reel), deleted in the
- * same R2 pass.
+ * holds, less any row the purge must keep (asked first, above). `extraKeys` are derived objects with no
+ * media row (an event's rendered reel), deleted in the same R2 pass. The tally counts what was reclaimed;
+ * a kept row is simply not in it.
  */
 export async function reclaimMedia(
   admin: AdminClient,
   rows: readonly MediaKeyRow[],
   extraKeys: readonly string[] = [],
 ): Promise<Reclaimed> {
-  const r2 = await deleteR2Objects([...mediaKeysOf(rows), ...extraKeys]);
-  const freed =
+  const kept =
     rows.length > 0
+      ? new Set(
+          await readKeptMediaIds(
+            admin,
+            rows.map((row) => row.id),
+          ),
+        )
+      : new Set<string>();
+  const doomed = kept.size > 0 ? rows.filter((row) => !kept.has(row.id)) : rows;
+  const r2 = await deleteR2Objects([...mediaKeysOf(doomed), ...extraKeys]);
+  const freed =
+    doomed.length > 0
       ? await purgeMediaRows(
           admin,
-          rows.map((row) => row.id),
+          doomed.map((row) => row.id),
         )
       : 0;
   return {
-    media_rows: rows.length,
+    media_rows: doomed.length,
     r2_deleted: r2.deleted,
     r2_errored: r2.errored.length,
     freed_bytes: freed,

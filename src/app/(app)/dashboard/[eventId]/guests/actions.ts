@@ -20,6 +20,14 @@ import {
   type BlockFailure,
 } from "@/lib/db/mutations/event-blocks";
 import {
+  addEventInvites,
+  letInAtDoor,
+  removeEventInvite,
+  type DoorFailure,
+  type InviteAddResult,
+} from "@/lib/db/mutations/event-doors";
+import { INVITE_BATCH_MAX } from "@/lib/event/door/invite-list";
+import {
   blockTargetSchema,
   type BlockPreview,
 } from "@/lib/events/event-blocks";
@@ -103,4 +111,91 @@ export async function letBackInAction(
     restored: result.data.restored,
     noRoom: result.data.noRoom,
   };
+}
+
+/* ── the door (event-settings r1): who waits, and the invite list ────────────────────────────── */
+
+function doorFailed(result: DoorFailure, action: string): BlockActionFailure {
+  if (result.code === "unknown" && result.cause) {
+    captureError("security", result.cause, { action });
+  }
+  return { ok: false, message: result.message };
+}
+
+const atTheDoor = z.object({ eventId: z.uuid(), guestId: z.uuid() });
+
+/** Let one newcomer in: every waiting row of her account at the event opens at once. */
+export async function letInAtDoorAction(
+  input: unknown,
+): Promise<{ ok: true; admitted: number } | BlockActionFailure> {
+  const parsed = atTheDoor.safeParse(input);
+  if (!parsed.success) return BAD_REQUEST;
+  const result = await letInAtDoor(parsed.data.eventId, parsed.data.guestId);
+  if (!result.ok) return doorFailed(result, "let_in_at_door");
+  revalidateEvent(parsed.data.eventId);
+  return { ok: true, admitted: result.data.admitted };
+}
+
+const decline = z.object({
+  eventId: z.uuid(),
+  guestId: z.uuid(),
+  userId: z.uuid().nullable(),
+});
+
+/**
+ * ★ A DECLINE IS A BLOCK (event-safety r1, `newcomer=same`): the newcomer meets the one shut screen,
+ * the block's own, and cannot keep re-asking; the host lets her back in from Blocked, or at once with
+ * the toast's Undo. Her account is the target where she has one (every device at once), else the row.
+ */
+export async function declineAtDoorAction(
+  input: unknown,
+): Promise<{ ok: true; blockId: string } | BlockActionFailure> {
+  const parsed = decline.safeParse(input);
+  if (!parsed.success) return BAD_REQUEST;
+  const { eventId, guestId, userId } = parsed.data;
+  const result = await blockFromEvent(
+    userId
+      ? { kind: "account", eventId, userId }
+      : { kind: "row", guestId },
+    // The address gates already hold the email step on; a decline changes no switch.
+    { requireVerifiedEmail: false },
+  );
+  if (!result.ok) return failed(result, "decline_at_door");
+  revalidateEvent(eventId);
+  return { ok: true, blockId: result.data.blockId };
+}
+
+const invitesAdd = z.object({
+  eventId: z.uuid(),
+  // What the field read out of a paste (`readAddresses`); the database normalises, dedupes and caps.
+  emails: z.array(z.string().min(1).max(254)).min(1).max(INVITE_BATCH_MAX),
+});
+
+/** Addresses onto the invite list, counted by the database. */
+export async function addInvitesAction(
+  input: unknown,
+): Promise<{ ok: true; result: InviteAddResult } | BlockActionFailure> {
+  const parsed = invitesAdd.safeParse(input);
+  if (!parsed.success) return BAD_REQUEST;
+  const result = await addEventInvites(parsed.data.eventId, parsed.data.emails);
+  if (!result.ok) return doorFailed(result, "add_event_invites");
+  revalidateEvent(parsed.data.eventId);
+  return { ok: true, result: result.data };
+}
+
+const inviteRemove = z.object({
+  eventId: z.uuid(),
+  email: z.string().min(1).max(254),
+});
+
+/** One address off the list; anyone it already let in stays in. */
+export async function removeInviteAction(
+  input: unknown,
+): Promise<{ ok: true } | BlockActionFailure> {
+  const parsed = inviteRemove.safeParse(input);
+  if (!parsed.success) return BAD_REQUEST;
+  const result = await removeEventInvite(parsed.data.eventId, parsed.data.email);
+  if (!result.ok) return doorFailed(result, "remove_event_invite");
+  revalidateEvent(parsed.data.eventId);
+  return { ok: true };
 }

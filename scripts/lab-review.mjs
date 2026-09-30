@@ -13,6 +13,7 @@
  *   review <board> r<n>: <ask>=<option> "a note"; item:<id>=keep|refine|kill "a note"; call:<id>=yes|no "a note"; note: "a board note"
  *   review <board> r<n>: <ask>=? "what was unclear"     (not answered: the question needs rewording)
  *   review library: <entry-id>=keep|redesign|retire "a note"
+ *   note: "a note that names no board"                   (never recorded: printed, with where it goes)
  *
  * `?` is the reviewer's own answer, "this question is not clear to me" (Will's
  * first review, 2026-09-15, skipped two asks for exactly that reason and the
@@ -20,7 +21,7 @@
  * `choice: null`, and the desk shows the ask as waiting on a clearer question
  * rather than as answered.
  *
- * `item:<id>=<verdict>` is a ruling on ONE catalog card (the revamp,
+ * `item:<id>=<verdict>` is a verdict on ONE catalog card (the revamp,
  * 2026-09-16), which is how an exploration comes back as "keep these three,
  * refine that one, kill the rest" rather than as one answer about twelve
  * things. The `item:` prefix keeps the two namespaces apart: an ask id and a
@@ -28,6 +29,16 @@
  * both. `review library:` is the same gesture on a Library entry
  * (keep | redesign | retire), landing in docs/reviews/_library.json, which is
  * the redesign queue the desk shows and the Orchestrator cuts tracks from.
+ *
+ * ★ A NOTE THAT NAMES NO BOARD IS NEVER RECORDED (Will, 2026-09-29). It used to
+ * be a parse error that threw away the whole paste, and the alternative that
+ * came to mind, filing it window-wide, is the bug: three notes he gave on the
+ * brand-voice board went in with no board, bound every board for twelve days,
+ * and pushed every lane toward a form he never asked of it. A note binds only
+ * what it was given on, and nothing he says is a standing rule. So a line that
+ * is only `note: "..."` writes nothing and the run prints where it goes: the
+ * Orchestrator folds it into the program's doc it refines (synthesized, never
+ * quoted), or files it on its board with `review <board> r<n>: note: "..."`.
  *
  * Every board, round, ask, option, item and verdict is validated against the
  * board's own spec (src/app/(dev)/design/sandbox/<board>/spec.ts), and every
@@ -74,8 +85,11 @@ const FAMILIES = [
 /** The two ladders, mirrored from board-spec.ts's ITEM_VERDICTS / LIBRARY_VERDICTS. */
 const ITEM_VERDICTS = ["keep", "refine", "kill"];
 const LIBRARY_VERDICTS = ["keep", "redesign", "retire"];
-/** The Library's line carries no round; the ledger stores one ruling per entry. */
+/** The Library's line carries no round; the ledger stores one verdict per entry. */
 export const LIBRARY_LEDGER = "_library";
+/** The summary's words for a note that names no board and is recorded nowhere. */
+const NO_BOARD = "no board";
+const NOT_RECORDED = "not recorded";
 
 /** A refusal the reader can act on: what was wrong, and where in the paste. */
 export class ReviewError extends Error {
@@ -455,6 +469,22 @@ function readQuoted(line, at, lineNo) {
   });
 }
 
+/**
+ * A note's quoted words, refused when there are none: the ledger's schema
+ * requires text on a note, so an empty one written here would be a row the
+ * desk then refuses to read.
+ */
+function readNoteText(line, at, lineNo) {
+  const q = readQuoted(line, at, lineNo);
+  if (!q.value.trim()) {
+    throw new ReviewError("a note with no words has nothing to say", {
+      line: lineNo,
+      column: at + 1,
+    });
+  }
+  return q;
+}
+
 function readToken(line, at, lineNo, what) {
   TOKEN.lastIndex = at;
   const m = TOKEN.exec(line);
@@ -515,9 +545,9 @@ function readSeparator(line, at, lineNo) {
  * One line of the grammar, with every token's column kept so a refusal can
  * point at it. A blank line and a `#` comment line parse to null.
  *
- * Two heads: `review <board> r<n>:` for a board, `review library:` for the
- * Library's own rulings, which carry no round because the Library is not
- * explored in rounds.
+ * Three heads: `review <board> r<n>:` for a board, `review library:` for the
+ * Library's own verdicts, which carry no round because the Library is not
+ * explored in rounds, and a bare `note:` for a note that names no board.
  */
 export function parseLine(raw, lineNo = 1) {
   const line = raw.replace(/\s+$/, "");
@@ -546,12 +576,42 @@ export function parseLine(raw, lineNo = 1) {
       if (!sep.more) break;
     }
     if (entries.length === 0) {
-      throw new ReviewError("the line carries no ruling", {
+      throw new ReviewError("the line carries no verdict", {
         line: lineNo,
         column: line.length + 1,
       });
     }
     return { kind: "library", entries, line: lineNo };
+  }
+  if (/^\s*note\s*:/.test(line)) {
+    // ★ ONLY NOTES, AND NO BOARD (see the header): parsed so the paste around
+    // it is not thrown away, and recorded nowhere.
+    const notes = [];
+    let i = 0;
+    while (true) {
+      i = skipSpace(line, i);
+      if (i >= line.length) break;
+      const head = /^note\s*:/.exec(line.slice(i));
+      if (!head) {
+        throw new ReviewError(
+          'a line that names no board carries only notes: note: "..."',
+          { line: lineNo, column: i + 1 },
+        );
+      }
+      i = skipSpace(line, i + head[0].length);
+      if (line[i] !== '"') {
+        throw new ReviewError("a note must be quoted", {
+          line: lineNo,
+          column: i + 1,
+        });
+      }
+      const q = readNoteText(line, i, lineNo);
+      notes.push({ text: q.value, column: i + 1 });
+      const sep = readSeparator(line, q.end, lineNo);
+      i = sep.end;
+      if (!sep.more) break;
+    }
+    return { kind: "unfiled", notes, line: lineNo };
   }
   const head = /^\s*review\s+/.exec(line);
   if (!head) {
@@ -599,7 +659,7 @@ export function parseLine(raw, lineNo = 1) {
           column: i + 1,
         });
       }
-      const q = readQuoted(line, i, lineNo);
+      const q = readNoteText(line, i, lineNo);
       notes.push({ text: q.value, column: i + 1 });
       i = q.end;
     } else if (itemHead) {
@@ -668,10 +728,13 @@ export function parseLine(raw, lineNo = 1) {
     calls.length === 0 &&
     notes.length === 0
   ) {
-    throw new ReviewError("the line carries no answer, no ruling and no note", {
-      line: lineNo,
-      column: line.length + 1,
-    });
+    throw new ReviewError(
+      "the line carries no answer, no verdict and no note",
+      {
+        line: lineNo,
+        column: line.length + 1,
+      },
+    );
   }
   return {
     kind: "board",
@@ -877,6 +940,9 @@ export function validate(
       validateLibrary(e, library, at);
       continue;
     }
+    // A note that names no board has nothing to be checked against: it is
+    // never recorded, and `applyEntries` says so.
+    if (e.kind === "unfiled") continue;
     const spec = specs.get(e.board);
     const ledger = ledgerOf(e.board);
     // Which clauses are pure echoes of the ledger. They are exempt from every
@@ -982,7 +1048,7 @@ export function validate(
  *
  * ★ A BOARD WITH NO CATALOG HAS NO ITEMS, and saying so is the point: every
  * board carries candidates, and accepting a verdict on one that the board never
- * offered for ruling would record a decision on something nobody displayed.
+ * offered for a verdict would record a decision on something nobody displayed.
  */
 function validateItems(e, spec, at, echoItem = () => false) {
   const fresh = e.items.filter((i) => !echoItem(i));
@@ -991,7 +1057,7 @@ function validateItems(e, spec, at, echoItem = () => false) {
     at(
       e.line,
       fresh[0].itemAt,
-      `${e.board} declares no catalog, so it has no items to rule on`,
+      `${e.board} declares no catalog, so it has no items to give a verdict on`,
     );
     return;
   }
@@ -1023,7 +1089,7 @@ function validateItems(e, spec, at, echoItem = () => false) {
   refuseDuplicates(
     e.items,
     { id: "item", at: "itemAt" },
-    "ruled",
+    "given a verdict",
     (column, message) => at(e.line, column, message),
   );
 }
@@ -1086,7 +1152,7 @@ function validateLibrary(e, library, at) {
   refuseDuplicates(
     e.entries,
     { id: "entry", at: "entryAt" },
-    "ruled",
+    "given a verdict",
     (column, message) => at(e.line, column, message),
   );
 }
@@ -1145,6 +1211,13 @@ export function applyEntries(root, entries, { by, at }) {
   const changed = new Map();
   const summary = [];
   for (const e of entries) {
+    if (e.kind === "unfiled") {
+      // ★ NOTHING IS WRITTEN (see the header): not `_window.json`, not a
+      // board's ledger. The row says so, and `main` prints where the note goes.
+      for (const n of e.notes)
+        summary.push([NO_BOARD, "note", n.text, NOT_RECORDED]);
+      continue;
+    }
     if (e.kind === "library") {
       const ledger = seen.get(LIBRARY_LEDGER) ?? readLibraryLedger(root);
       seen.set(LIBRARY_LEDGER, ledger);
@@ -1240,7 +1313,7 @@ export function applyEntries(root, entries, { by, at }) {
         was < 0 ? "new" : "replaced",
       ]);
     }
-    // One verdict per item per round: ruling again in the same round
+    // One verdict per item per round: a second in the same round
     // overwrites, exactly as answering an ask again does.
     for (const i of e.items) {
       if (echo.item(i)) {
@@ -1318,6 +1391,18 @@ export function writeLedgers(root, ledgers) {
 }
 
 /**
+ * The line printed under a run that met notes naming no board: where each one
+ * goes, since recording it is the one thing that must not happen by default.
+ */
+export function unfiledAdvice(count) {
+  return (
+    `${count} note${count === 1 ? "" : "s"} named no board, so nothing was recorded: ` +
+    `if a note is meant for the whole program, fold it into the doc it refines (synthesized, never quoted); ` +
+    `if it was given on a board, file it there with review <board> r<n>: note: "...".`
+  );
+}
+
+/**
  * The whole run: parse, validate against the specs, apply, write. Nothing is
  * written unless every line is good.
  */
@@ -1340,6 +1425,7 @@ export function run(
     errors: [],
     summary,
     boards: [...ledgers.keys()],
+    unfiled: summary.filter((r) => r[3] === NOT_RECORDED).length,
     drift: buildDrift(text, root),
   };
 }
@@ -1353,6 +1439,7 @@ const HELP = `pnpm lab:review "<the pasted line>"
   review <board> r<n>: item:<id>=keep|refine|kill "a note"   (one catalog card)
   review <board> r<n>: call:<id>=yes|no "a note"   (a call the lane carried)
   review library: <entry-id>=keep|redesign|retire "a note"   (a Library entry)
+  note: "a note"     (names no board: never recorded, the run says where it goes)
 
   A line that merely repeats what the ledger already holds is a no-op
   (printed as unchanged), whatever round the board has since moved to, so a
@@ -1410,6 +1497,7 @@ function main(argv) {
         {
           ok: result.ok,
           summary: result.summary,
+          unfiled: result.unfiled,
           drift: result.drift ?? null,
           errors: result.errors.map((e) => ({
             line: e.line,
@@ -1437,14 +1525,15 @@ function main(argv) {
     );
   }
   const same = result.summary.filter((r) => r[3] === "unchanged").length;
-  const wrote = result.summary.length - same;
+  const wrote = result.summary.length - same - result.unfiled;
   console.log(
     `\n${wrote} recorded${
       result.boards.length
         ? ` in ${result.boards.map((b) => `docs/reviews/${b}.json`).join(", ")}`
         : ""
-    }${same ? `, ${same} already recorded (unchanged)` : ""}${argv.includes("--dry") ? " (dry run: nothing written)" : ""}`,
+    }${same ? `, ${same} already recorded (unchanged)` : ""}${result.unfiled ? `, ${result.unfiled} named no board (not recorded)` : ""}${argv.includes("--dry") ? " (dry run: nothing written)" : ""}`,
   );
+  if (result.unfiled) console.log(unfiledAdvice(result.unfiled));
   // The build he composed on, beside the tree being written into. Printed last
   // because it is context for everything above, and only when the desk stamped
   // the paste: an unstamped message says nothing rather than guessing.

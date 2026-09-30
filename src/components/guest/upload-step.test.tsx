@@ -9,11 +9,12 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   UploadStep,
-  classifyRefusal,
   classifyRun,
   uploadStepChooseAgain,
   uploadStepReason,
 } from "@/components/guest/upload-step";
+// The ladder's one home since build 23's NIT-2, which the album's failure sheet reads too.
+import { classifyRefusal } from "@/lib/guest/upload-refusal";
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
 
 function item(over: Partial<QueueItem> = {}): QueueItem {
@@ -151,7 +152,9 @@ describe("the surface", () => {
     const album = container.querySelector(
       'input[type="file"][multiple]',
     ) as HTMLInputElement;
-    const file = new File([new Uint8Array([1])], "p.jpg", { type: "image/jpeg" });
+    const file = new File([new Uint8Array([1])], "p.jpg", {
+      type: "image/jpeg",
+    });
     fireEvent.change(album, { target: { files: [file] } });
     fireEvent.click(screen.getByRole("button", { name: "Send 1" }));
     expect(onSend).toHaveBeenCalledWith([file]);
@@ -165,7 +168,9 @@ describe("the surface", () => {
       ],
     });
     expect(screen.getByText("Sending your photos")).toBeInTheDocument();
-    expect(container.querySelectorAll("[data-upload-progress]")).toHaveLength(2);
+    expect(container.querySelectorAll("[data-upload-progress]")).toHaveLength(
+      2,
+    );
     expect(
       screen.queryByRole("button", { name: "Take a photo" }),
     ).not.toBeInTheDocument();
@@ -177,9 +182,9 @@ describe("the surface", () => {
       screen.getByRole("button", { name: "Skip for now" }),
     ).toBeInTheDocument();
     mount({ requireUpload: true });
-    expect(screen.queryAllByRole("button", { name: "Skip for now" })).toHaveLength(
-      1,
-    ); // the first mount's, still on screen
+    expect(
+      screen.queryAllByRole("button", { name: "Skip for now" }),
+    ).toHaveLength(1); // the first mount's, still on screen
   });
 
   it("the demo's skip says Look around", () => {
@@ -193,10 +198,15 @@ describe("the surface", () => {
     const { onContinueWithout } = mount({
       requireUpload: true,
       queue: [
-        item({ errorCode: "cap_reached", error: "This album is full right now." }),
+        item({
+          errorCode: "cap_reached",
+          error: "This album is full right now.",
+        }),
       ],
     });
-    expect(screen.getByText("This album is full right now.")).toBeInTheDocument();
+    expect(
+      screen.getByText("This album is full right now."),
+    ).toBeInTheDocument();
     fireEvent.click(
       screen.getByRole("button", { name: "Continue without adding" }),
     );
@@ -223,7 +233,10 @@ describe("the surface", () => {
   it("a file the guest can do nothing about offers another file, never a Retry", () => {
     mount({
       queue: [
-        item({ errorCode: "video_not_allowed", error: "Videos aren't available." }),
+        item({
+          errorCode: "video_not_allowed",
+          error: "Videos aren't available.",
+        }),
       ],
     });
     expect(
@@ -238,7 +251,9 @@ describe("the surface", () => {
     const { onDismiss } = mount({
       queue: [item({ id: "q9", errorCode: "too_large", error: "Too large." })],
     });
-    fireEvent.click(screen.getByRole("button", { name: "Choose other photos" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Choose other photos" }),
+    );
     expect(onDismiss).toHaveBeenCalledWith(["q9"]);
   });
 });

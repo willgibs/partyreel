@@ -97,6 +97,32 @@ export function arrivalMarks({
 }
 
 /**
+ * THE GRAMMAR'S FIRST SENTENCE, IN ONE PLACE: what arrived is an id in this render that was not in the last.
+ *
+ * Both albums read it (`HostMediaGrid`'s `useAlbumArrivals` over its own state, the guest's `newArrivalIds` over
+ * its snapshots), so what "new" means cannot drift between them; it had (the guest's answered nothing for an
+ * empty first snapshot, the host's did not) while it was written twice. It is the diff and nothing else:
+ *
+ * ★ THE SEED IS THE CALLER'S. "The first render marks nothing" is a fact about what a surface hands in as its
+ * last render, never about this function: the host seeds `prev` from its first render (an empty album's first
+ * photograph then does arrive), and the guest's snapshot is empty BY DESIGN at a teaser and a locked page, so
+ * its reader says so where it calls this (`newArrivalIds`). Handed an empty `prev`, everything is new.
+ *
+ * ★ IDS, NEVER ITEMS. A link re-minted at the hour or a reorder changes an item and not its id, so neither can
+ * look like an arrival; callers hand ids, and a caller holding the set it already built passes it as it is.
+ */
+export function newIds(
+  prev: Iterable<string>,
+  next: Iterable<string>,
+): Set<string> {
+  const before: ReadonlySet<string> =
+    prev instanceof Set ? prev : new Set(prev);
+  const fresh = new Set<string>();
+  for (const id of next) if (!before.has(id)) fresh.add(id);
+  return fresh;
+}
+
+/**
  * THE HOLD: an id stays marked for `ms` and then stops, per id rather than one
  * timer for the batch — arrivals overlap, and two guests uploading a beat apart
  * must not have the second's light cut short by the first's clock.

@@ -165,7 +165,7 @@ export default async function FoundationsPage({
                   Maya &amp; Jay&rsquo;s Wedding
                 </p>
                 <p className="font-heading text-subsection">Create an event</p>
-                <p className="font-heading text-card-title font-semibold">
+                <p className="font-heading text-card-title">
                   Your photos land here
                 </p>
               </div>

@@ -14,9 +14,8 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
-import { useSyncExternalStore } from "react";
 
-import { signOutAction } from "@/app/(auth)/actions";
+import { signOutHere } from "@/components/auth/sign-out";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -33,6 +32,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { HELP_CENTER_HREF } from "@/lib/content/help-links";
 import { forgetGuestTickets } from "@/lib/guest/use-stored-session";
+import { useHydrated } from "@/lib/shared/use-hydrated";
 
 type UserMenuProps = {
   email: string | null;
@@ -87,14 +87,8 @@ export function initial(email: string | null, displayName: string | null) {
 // wiring verbatim (the one piece both menus must never duplicate).
 export function ThemeSubmenu() {
   const { theme, setTheme } = useTheme();
-  // Client-only gate (no set-state-in-effect) so the live theme renders only
-  // after hydration; mirrors the useSyncExternalStore feature-detect in
-  // guest-share.tsx. false on the server + first paint, true once hydrated.
-  const mounted = useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false,
-  );
+  // The live theme renders only after hydration: false on the server and the first paint.
+  const mounted = useHydrated();
 
   const TriggerIcon =
     mounted && theme === "light"
@@ -267,7 +261,7 @@ export function UserMenu({
             without typing a password again, so it gets a ground of its own
             rather than a hairline. Sign-out is a server action; a form submit
             clears cookies on the response, then signOutAction redirects to
-            /login.
+            /login, or comes back refused and `signOutHere` says so.
 
             ★ AND IT PUTS DOWN EVERY GUEST TICKET ON THE DEVICE (the
             upload-owner lane, 2026-09-23): a confirmed guest's ticket outlived
@@ -277,7 +271,7 @@ export function UserMenu({
             action, so the localStorage half is gone before the request
             leaves, and the action expires the cookie half on its response. */}
         <DropdownMenuFooter>
-          <form action={signOutAction} onSubmit={() => forgetGuestTickets()}>
+          <form action={signOutHere} onSubmit={() => forgetGuestTickets()}>
             <DropdownMenuItem asChild>
               <button type="submit" className="w-full">
                 <LogOut /> Sign out

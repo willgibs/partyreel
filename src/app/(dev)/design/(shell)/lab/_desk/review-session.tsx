@@ -48,7 +48,7 @@ import { holdId, itemHoldId } from "./step-id";
  * step change costs no server round trip and a reload still resumes where the
  * reader stopped. The answers live in localStorage, per viewer, so closing the
  * tab mid-review loses nothing either. No board is called `end`, and none will
- * be: the ids are descriptive (touchpoints.ts).
+ * be: a board's id is its folder's descriptive name.
  *
  * Keys: 1..9 picks an option, Enter goes on, the arrows step; Escape lets a
  * note field go so the digits work again.
@@ -57,7 +57,7 @@ import { holdId, itemHoldId } from "./step-id";
  *
  * A STEP IS AN ASK OR A CATALOG (the revamp, 2026-09-16). A board that
  * declares its candidates ARE a catalog contributes ONE step carrying every
- * card, ruled `keep | refine | kill` on a row of its own; away from the board
+ * card, each given `keep | refine | kill` on a row of its own; away from the board
  * the rows are all there is to show, so the step lists them, and on the board
  * the same rows are under the cards themselves.
  *
@@ -134,7 +134,6 @@ export function ReviewSession({
   const [chosen, setChosen] = useState<number | null>(null);
   const at = chosen ?? startAt(steps, param, store, END);
 
-  const step = steps[at];
   const atEnd = at >= steps.length;
 
   // No useCallback anywhere below: the React compiler memoises these, and a
@@ -145,7 +144,10 @@ export function ReviewSession({
   const syncUrl = (value: string) => {
     const url = new URL(window.location.href);
     url.searchParams.set("session", value);
-    window.history.replaceState(window.history.state, "", url.toString());
+    // ★ NULL, NEVER `window.history.state` (crumbs-16; `board-state.tsx` has the measurements): the
+    // entry's own state carries Next's `__NA`, which makes Next apply no URL, so the shell's
+    // `useSearchParams` (`CopyLink`, the sticky links) kept the step the reader left.
+    window.history.replaceState(null, "", url.toString());
   };
 
   const goTo = (next: number) => {
@@ -213,7 +215,8 @@ export function ReviewSession({
         </LabLink>
         {atEnd && (
           <p className="text-xs text-muted-foreground tabular-nums">
-            {answered} answered{sample && <span className="ml-2">· dry run</span>}
+            {answered} answered
+            {sample && <span className="ml-2">· dry run</span>}
           </p>
         )}
       </div>
@@ -323,7 +326,7 @@ export function ReviewSession({
                                       held < of && "text-muted-foreground/70",
                                     )}
                                   >
-                                    {`${held} of ${of} ruled`}
+                                    {`${held} of ${of} answered`}
                                   </span>
                                 </button>
                               </li>

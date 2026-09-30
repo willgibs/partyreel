@@ -10,6 +10,7 @@ import { PROFILE_SETUP_PATH } from "@/app/(app)/account/profile/invite";
 import { FollowButton } from "@/components/social/follow-button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { ClientForm } from "@/components/ui/client-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatCount } from "@/lib/format/count";
@@ -283,7 +284,7 @@ function ToldName({
   }
 
   return (
-    <form
+    <ClientForm
       data-told-name-edit
       noValidate
       onSubmit={(e) => {
@@ -331,6 +332,6 @@ function ToldName({
           {refusal}
         </p>
       )}
-    </form>
+    </ClientForm>
   );
 }

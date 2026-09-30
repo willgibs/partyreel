@@ -33,7 +33,7 @@ import { holdId, itemHoldId } from "./step-id";
  *
  * ★ AND SO IS A STEP WITHDRAWN INSIDE A ROUND, AND A NOTE ALREADY SENT (Will,
  * 2026-09-17, worried his notes were landing on the wrong questions). The light
- * board's `paper` step was withdrawn after he ruled on it; his browser kept its
+ * board's `paper` step was withdrawn after he answered it; his browser kept its
  * text, and every later line ended in `note: "on paper: ..."`, which reads as a
  * note on the last thing answered. Nothing rides for an ask or a card the open
  * round no longer declares, and the ledger's own notes are compared like

@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 
 import { createGuest } from "@/lib/db/mutations/guest";
 import { getEventByQrToken } from "@/lib/db/queries/guest-events";
-import { isClosedToThisBrowser } from "@/lib/events/closed-door.server";
+import {
+  doorCallerFor,
+  isShut,
+  resolveGuestDoor,
+} from "@/lib/events/closed-door.server";
 import { mayUploadPastLock } from "@/lib/events/upload-lock";
 import { captureWarning } from "@/lib/observability/sentry";
 import {
@@ -94,10 +98,12 @@ export async function POST(request: Request) {
   // included; a 403 leaks nothing the page didn't already show any link-holder). `password`
   // requires the unlock cookie or ownership (mayUploadPastLock — the owner reads the album
   // without unlocking, so they upload without it too). The RPC re-refuses both as the belt.
-  // ★ A BLOCK MINTS NOTHING EITHER, in the private album's words: an account or address the event
-  // blocked reads it as private already (and create_guest refuses it), and a browser that still
-  // holds a ticket a block holds (this event's cookie) is refused here, before any new row, which is
-  // how a block on a typed name holds on the phone that used it (`closed-door.server.ts`).
+  // ★ A DOOR THAT SHUTS HER OUT MINTS NOTHING EITHER, in the private album's words: a block, a
+  // decline, a closed door and Only me alike (`closed-door.server.ts`, the account and this browser's
+  // cookie), refused here before any new row, which is how a block on a typed name holds on the phone
+  // that used it; create_guest refuses the same as the belt. A door that holds her mints what the
+  // door says: a waiting ticket where the host lets each guest in, and at an invite list, a ticket
+  // for an address it names and `unlisted` for everyone else (her ask is `/api/guests/ask`).
   const eventResult = await getEventByQrToken(qr_token);
   if (!eventResult.ok) {
     return NextResponse.json(
@@ -110,7 +116,8 @@ export async function POST(request: Request) {
     );
   }
   const event = eventResult.data;
-  if (await isClosedToThisBrowser(event)) {
+  const door = await resolveGuestDoor(event, await doorCallerFor(event.id));
+  if (isShut(door)) {
     return NextResponse.json(
       { ok: false, code: "unauthorized", message: "This event is private." },
       { status: 403 },
@@ -118,7 +125,10 @@ export async function POST(request: Request) {
   }
   let unlockProven = false;
   if (event.visibility === "password") {
-    unlockProven = await mayUploadPastLock(event.id);
+    // Someone already in passes the password without it (the one rule for everyone already in).
+    unlockProven =
+      (door.decision.kind === "through" && door.decision.admitted) ||
+      (await mayUploadPastLock(event.id));
     if (!unlockProven) {
       return NextResponse.json(
         {
@@ -220,7 +230,9 @@ export async function POST(request: Request) {
             result.code === "name_invalid" ||
             result.code === "email_invalid"
           ? 422
-          : result.code === "unlock_required" || result.code === "unauthorized"
+          : result.code === "unlock_required" ||
+              result.code === "unauthorized" ||
+              result.code === "unlisted"
             ? 403
             : 500;
     return NextResponse.json(
@@ -249,6 +261,8 @@ export async function POST(request: Request) {
     verified: result.data.verified,
     // ★ WHETHER, NEVER WHAT. The address never appears in a response body.
     email_attached: result.data.emailAttached,
+    // Whether the door let this ticket through, or holds it for the host (`waiting`).
+    admission: result.data.admission,
   });
   /* ★ THE SESSION ALSO GOES ON A COOKIE. Require an upload to view is resolved SERVER-SIDE, in the
      RSC and the poll, and neither can read the localStorage copy the browser is about to make.

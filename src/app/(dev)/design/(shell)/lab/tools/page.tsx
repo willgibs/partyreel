@@ -7,7 +7,7 @@ import { ToolsIndex } from "./tools-index";
 
 /**
  * THE TOOLS (the Library x Lab round, 2026-09-15). The lab's instruments, as
- * opposed to its boards: a board argues a decision and asks for a ruling, a
+ * opposed to its boards: a board argues a decision and asks for an answer, a
  * tool measures something or proves something and asks for nothing. They had
  * no index before this round, only sidebar entries, so the one thing that
  * distinguishes them was never said anywhere.
@@ -22,7 +22,7 @@ export default async function ToolsPage({
     <div className="mx-auto w-full max-w-4xl px-4 pb-20 sm:px-6">
       <PageHeader
         title="Tools"
-        description="The lab's instruments. A board argues a decision and waits on a ruling; a tool measures, tunes or proves something and waits on nobody. Listed from the lab's own navigation, so this page and the sidebar can never disagree."
+        description="The lab's instruments. A board argues a decision and waits on an answer; a tool measures, tunes or proves something and waits on nobody. Listed from the lab's own navigation, so this page and the sidebar can never disagree."
       />
       <Section
         id="tools"

@@ -67,7 +67,7 @@ function PersonReportCard({ report }: { report: ReviewProfileReport }) {
     startTransition(async () => {
       if (next === "dismissed") {
         const result = await dismissReportAction(report.id, note.text);
-        toastDismissed(result, report.id);
+        toastDismissed(result);
       } else if (next === "actioned") {
         // No item: actioning a PERSON marks the report handled. The account
         // itself is dealt with out of band, exactly as an album-level report is.

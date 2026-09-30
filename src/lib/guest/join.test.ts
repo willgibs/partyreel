@@ -1,10 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  askToJoinEvent,
   attachGuestEmail,
   checkDisplayName,
   checkGuestEmail,
+  checkInAtDoor,
   joinEvent,
+  passedTicket,
   renameGuest,
 } from "./join";
 
@@ -109,6 +112,9 @@ describe("joinEvent", () => {
         displayName: "Sam",
         verified: false,
         emailAttached: false,
+        // The doors (20260929120000): an answer with no `admission` is a ticket past the door, which
+        // is what every mint before them was.
+        admission: "in",
       },
     });
   });
@@ -140,7 +146,8 @@ describe("joinEvent", () => {
     expect(vi.mocked(global.fetch).mock.calls).toHaveLength(1);
     expect(
       JSON.parse(
-        (vi.mocked(global.fetch).mock.calls[0][1] as RequestInit).body as string,
+        (vi.mocked(global.fetch).mock.calls[0][1] as RequestInit)
+          .body as string,
       ),
     ).toEqual({
       qr_token: "qr1",
@@ -315,7 +322,8 @@ describe("attachGuestEmail", () => {
     });
     expect(
       JSON.parse(
-        (vi.mocked(global.fetch).mock.calls[0][1] as RequestInit).body as string,
+        (vi.mocked(global.fetch).mock.calls[0][1] as RequestInit)
+          .body as string,
       ).email,
     ).toBeNull();
     expect(result).toEqual({ ok: true, emailAttached: false });
@@ -350,5 +358,109 @@ describe("attachGuestEmail", () => {
     });
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.refusal.kind).toBe("other");
+  });
+});
+
+describe("the doors' two calls (event-settings r1)", () => {
+  it("the join says when the door held the ticket", async () => {
+    respond(200, { ok: true, session_token: "tok", admission: "waiting" });
+    const result = await joinEvent({ qrToken: "qr1" });
+    expect(result.ok && result.guest.admission).toBe("waiting");
+  });
+
+  it("an invite list that does not name her address refuses as `unlisted`, its own kind", async () => {
+    respond(403, {
+      ok: false,
+      code: "unlisted",
+      message: "Ask the host to let you in.",
+    });
+    const result = await joinEvent({ qrToken: "qr1" });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.refusal.kind).toBe("unlisted");
+  });
+
+  it("the ask carries the album's capability alone, in the body", async () => {
+    respond(200, { ok: true, session_token: "tok", admission: "waiting" });
+    const result = await askToJoinEvent({ qrToken: "qr1" });
+    const [url, init] = vi.mocked(global.fetch).mock.calls[0];
+    expect(url).toBe("/api/guests/ask");
+    expect(JSON.parse((init as RequestInit).body as string)).toEqual({
+      qr_token: "qr1",
+    });
+    expect(result).toEqual({
+      ok: true,
+      guest: {
+        sessionToken: "tok",
+        displayName: null,
+        verified: false,
+        emailAttached: false,
+        admission: "waiting",
+      },
+    });
+  });
+
+  it("★ the check-in answers one of three words, and anything it cannot read is still waiting", async () => {
+    respond(200, { ok: true, standing: "in" });
+    expect(await checkInAtDoor({ qrToken: "qr1", sessionToken: "tok" })).toBe(
+      "in",
+    );
+    const init = vi.mocked(global.fetch).mock.calls[0][1] as RequestInit;
+    expect(JSON.parse(init.body as string)).toEqual({
+      qr_token: "qr1",
+      session_token: "tok",
+    });
+    respond(200, { ok: true, standing: "moved" });
+    expect(await checkInAtDoor({ qrToken: "qr1", sessionToken: null })).toBe(
+      "moved",
+    );
+    respond(200, { ok: true, standing: "something-new" });
+    expect(await checkInAtDoor({ qrToken: "qr1", sessionToken: null })).toBe(
+      "waiting",
+    );
+    respond(500, { ok: false });
+    expect(await checkInAtDoor({ qrToken: "qr1", sessionToken: null })).toBe(
+      "waiting",
+    );
+    vi.mocked(global.fetch).mockRejectedValue(new Error("offline"));
+    expect(await checkInAtDoor({ qrToken: "qr1", sessionToken: null })).toBe(
+      "waiting",
+    );
+  });
+});
+
+/**
+ * A JOIN'S TICKET, ONLY WHEN THE DOOR PASSED IT (crumbs-27). Where the host lets each guest in, a confirmed
+ * newcomer's join mints a WAITING row: it is the ask, and a ticket the door refuses (a file sent on it is refused
+ * "This event is private."). Whoever adopts what a join hands down (the queue's joins, the page's silent join once
+ * the door is behind her) reads it through this, so none adopts the ask as a ticket.
+ */
+describe("passedTicket", () => {
+  const joined = (admission: "in" | "waiting") =>
+    ({
+      ok: true,
+      guest: {
+        sessionToken: "tok",
+        displayName: null,
+        verified: true,
+        emailAttached: false,
+        admission,
+      },
+    }) as const;
+
+  it("is the token of a join the door let through", () => {
+    expect(passedTicket(joined("in"))).toBe("tok");
+  });
+
+  it("★ is nothing for a join that landed waiting: the ask is not a ticket", () => {
+    expect(passedTicket(joined("waiting"))).toBeNull();
+  });
+
+  it("is nothing for a join that was refused", () => {
+    expect(
+      passedTicket({
+        ok: false,
+        refusal: { kind: "other", message: "Try again." },
+      }),
+    ).toBeNull();
   });
 });

@@ -63,14 +63,19 @@ describe("the owner mode cannot be pointed at somebody else", () => {
 });
 
 describe("the route's 404 still decides before anything streams", () => {
-  it("has no loading.tsx, ever", () => {
+  it("has no loading.tsx, ever, and draws a dead handle's not-found before any boundary", () => {
     // ★ MEASURED, NOT ASSUMED (profiles-social.md). A loading file wraps the
-    // whole route in Suspense, so Next flushes the shell before the page runs
-    // and a dead handle answers 200 instead of 404 — a public page that
-    // soft-404s teaches search engines that every dead handle is real. The
-    // owner mode streams behind its OWN in-page boundary for exactly this.
+    // whole route in Suspense, so Next flushes a skeleton before the page runs:
+    // when the page threw `notFound()` a dead handle answered 200 instead of
+    // 404 — a public page that soft-404s teaches search engines that every dead
+    // handle is real. Reshaped by stale-link, which dropped the thrown
+    // `notFound()` (served as a white error shell): the 404 status is the
+    // proxy's no longer (a soft 404 since gone-link-soft), so the scar this keeps is the order, the
+    // not-found drawn at the top where the RPC is, before the owner mode and the
+    // card grid stream behind their OWN in-page boundaries.
     expect(existsSync(join(DIR, "loading.tsx"))).toBe(false);
-    expect(page).toContain("notFound()");
-    expect(page).toContain("<Suspense");
+    const notFound = page.indexOf("return <ProfileNotFoundScreen />");
+    expect(notFound).toBeGreaterThan(-1);
+    expect(notFound).toBeLessThan(page.indexOf("<Suspense"));
   });
 });

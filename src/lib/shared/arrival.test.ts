@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { arrivalMarks } from "@/lib/shared/arrival";
+import { arrivalMarks, newIds } from "@/lib/shared/arrival";
 
 /**
  * WHICH IDS GLOW AND WHICH ONE SWEEPS (Will, `landing=sweep`, 2026-09-21: "This
@@ -62,5 +62,45 @@ describe("only the newest of your own sweeps", () => {
     });
     expect(marks.landed).toBe("mine");
     expect(marks.arrived).not.toContain("mine");
+  });
+});
+
+/**
+ * THE GRAMMAR'S FIRST SENTENCE, WRITTEN ONCE (crumbs-27): what arrived is "an id in this render that was not in
+ * the last". Both albums read `newIds` (the host's grid over its own state, the guest's `newArrivalIds` over its
+ * snapshots), each keeping its own seed rule where it belongs: the host's is the state its first render seeds, the
+ * guest's is said in `newArrivalIds` (its snapshot is empty by design at a teaser and a locked page). Their own
+ * pins are `host-media-grid.test.tsx` and `reconcile-album-items.test.ts`; this is the diff alone.
+ */
+describe("newIds: an id in this render that was not in the last", () => {
+  it("is what is new, and nothing else", () => {
+    expect(newIds(["a", "b"], ["c", "a", "b"])).toEqual(new Set(["c"]));
+    expect(newIds(["a", "b"], ["a", "b"])).toEqual(new Set());
+  });
+
+  it("marks nothing when items only leave", () => {
+    expect(newIds(["a", "b", "c"], ["a"])).toEqual(new Set());
+  });
+
+  it("catches a batch, not just the newest (ten at once after a shut laptop wakes up)", () => {
+    expect(newIds(["a"], ["e", "d", "c", "b", "a"])).toEqual(
+      new Set(["e", "d", "c", "b"]),
+    );
+  });
+
+  it("is the pure sentence: with nothing in the last, everything in this one is new", () => {
+    // The seed rule (the first render marks nothing) is each caller's own; this is only the diff.
+    expect(newIds([], ["a", "b"])).toEqual(new Set(["a", "b"]));
+    expect(newIds([], [])).toEqual(new Set());
+  });
+
+  it("keeps this render's order, and says each id once", () => {
+    expect([...newIds(["a"], ["c", "b", "c", "a"])]).toEqual(["c", "b"]);
+  });
+
+  it("takes the last render as a set the caller already holds, without disturbing it", () => {
+    const last = new Set(["a", "b"]);
+    expect(newIds(last, ["b", "z"])).toEqual(new Set(["z"]));
+    expect(last).toEqual(new Set(["a", "b"]));
   });
 });

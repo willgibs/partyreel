@@ -125,9 +125,7 @@ export function KeepOffer({
       <div data-keep-sent className="flex items-center gap-3">
         <DoorCheck size="sent" />
         <div className="flex min-w-0 flex-col gap-0.5">
-          <p className="font-heading text-card-title font-medium text-foreground">
-            Sent
-          </p>
+          <p className="font-heading text-card-title text-foreground">Sent</p>
           <p className="text-working text-muted-foreground">
             {keepSentLine({ count, held, hostName })}
           </p>

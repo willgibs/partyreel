@@ -105,8 +105,9 @@ is near it; **beam** marks the object that is the live subject. Ink tends to tak
   Pro card, lit at rest, is the one exception.
 - **Scarcity is a distance**: roughly a viewport of unlit page between lamps.
 - **Light never goes** on nav panels (the most-used controls get no theater), near a cap or an upload error (it would
-  read as a warning; failure is `--destructive`), on skeletons, on every `CtaBand`, in the admin, or on gallery
-  arrivals (a batch would bury an album's top; arrivals wear `shared/arrival.css`).
+  read as a warning; failure is `--destructive`), on skeletons, on every `CtaBand`, or in the admin.
+- **Gallery arrivals wear their own glow** (`shared/arrival.css`) rather than a lamp: a second light at the album's head
+  on every beat reads as a pulse, not light, and a batch of them would bury the album's top.
 - **A new lamp answers four questions first**: what emits (or what place is lit), from where, sampled from what, and
   what above admits it.
 - **The lamp set is light, never UI**: five hues (coral 25, amber 85, green 155, blue 255, violet 305) in three
@@ -165,8 +166,8 @@ is near it; **beam** marks the object that is the live subject. Ink tends to tak
 
 The Aurora is the coloured light as one family (code keeps the older names: `Glow`, SPILL, `--glw-*`, `--lamp-*`): the
 **seam** where two grounds meet, the **throw** cast from a point on an object, the **field** lighting a chapter at its
-edges, and two marks, the **bloom** (a one-time glow that rests lit) and the **halo** (an object lit from behind, never a
-button).
+edges, and two marks, the **bloom** (a one-time glow that rests lit) and the **halo** (an object lit from behind: around a
+button it reads as decoration on a control rather than light from a thing).
 
 - **The field is `SectionLight`** (`marketing/system/section-light.tsx`): two seams at the section's own boundaries,
   the bottom one the top one flipped (the engine grows no bottom shape; a vector is the caller's to turn), `placement`
@@ -177,13 +178,14 @@ button).
   site's with a comment saying why, so `SectionLight` has no default placement and a page never repeats a composition.
 - ★ **A section with no boundary line of its own cannot take a band or a floor cast**: the box clips the falloff into a
   hard line. A side cast, vertically centred, with a reach under about 64 percent finishes inside the box.
-- ★ **An Aurora on a light ground reads as an artifact, so a CSS fence switches it off**:
-  `[data-section-light]:not(.dark *), .surface-paper [data-section-light] { display: none }`, both halves needed (a paper
-  chapter sits inside a forced-dark wrapper; a cinema page in a light session has no `.dark` on `<html>`).
+- ★ **The Aurora is not on a light ground yet, and a CSS fence switches it off there**: on paper it read as a stray
+  shadow rather than a glow, and nothing re-tunes the lamp set for paper, so a media-less lamp there would paint the dark
+  register on white. The app's light mode owes lit surfaces their own answer first (ROADMAP's light-mode line). The
+  fence, both halves needed (a paper chapter sits inside a forced-dark wrapper; a cinema page in a light session has no
+  `.dark` on `<html>`): `[data-section-light]:not(.dark *), .surface-paper [data-section-light] { display: none }`.
 - ★ **A second copy of that fence is the one that drifts.** It is ONE rule listing lamp boxes (the share card's
   `[data-rxp-cardlight]` is on it; the Studio's twin, in a near-black room, is not), hooked on the light's own box, never
-  the object, and never widened to `[data-glw]`, which would switch off the shipped seams. Nothing re-tunes the lamp set
-  for paper, so a media-less lamp on paper would paint the dark register on white.
+  the object, and never widened to `[data-glw]`, which would switch off the shipped seams.
 
 ## Type: the heading face + the ladder
 
@@ -210,9 +212,12 @@ button).
   emblem's glyph), which a viewport clamp would size by the wrong box; an Inter label inside a heading tag, kept for the
   outline (the feed's section header, the dashboard's section labels, the admin bands), never "fixed" onto a step; and
   `app/global-error.tsx`, which replaces the whole document, stylesheet included, so its h1 is sized inline.
-- **Weight rides on the step**: `PageHeading` is the one source of every app and admin `<h1>` at 700 (a
-  `font-semibold` would drop it to 600, and a stock size passed in takes it off the ladder); `CardTitle` is 600, labels
-  and eyebrows Inter 500.
+- ★ **A weight class beside `font-heading` beats it, silently**: Tailwind emits the custom utility ahead of the stock
+  weights, so `font-heading font-medium` paints 500 while the class names the heading face (type-ladder-policy refuses
+  it; shadcn's generator writes a weight onto every title it adds). So the heading weight lives in the utility alone:
+  700 is the current preference (the heavier weight read better than the thin app headings it replaced), and a heading
+  that should weigh otherwise changes the utility. `PageHeading` is the one source of every app and admin `<h1>` (a
+  stock size passed in takes it off the ladder); labels and eyebrows are Inter 500.
 - **Marketing heroes compose `PageHero`** (eyebrow, h1, subhead, actions; `scale` picks the step, `children` is the
   stage, `backdrop` sits behind; the heading always an `<h1>`, as `SectionShell`'s `as` is for sections). Its entrances
   are named registers (`rise`, `cut`, `blur`), and the h1 never moves in any: an h1 resting at `opacity: 0` is an LCP
@@ -301,8 +306,10 @@ named in `lib/glass.ts`. `PosterCardChip` (the stored reel's poster) is the one 
   brightest photograph, and white fails the same way on a pale sky. A tint strong enough would sink every dark
   photograph, so the glyph wears a halo. Judge over the raw photograph, never an already-dimmed album.
 - **Dark in both themes**: chrome over a photograph is the same on any page, so `.dark` redeclares no `--glass-*`.
-- ★ **Glass is media chrome, never a popover**: a floating panel is opaque with a step and a ring, and
-  `floating-layer.ts` refuses a backdrop filter on one. A scrim's blur is not a panel's material.
+- **Glass is media chrome, and not yet a popover's**: a floating panel is opaque with a step and a ring, and
+  `floating-layer.ts` carries no backdrop filter until the banked Glass exploration (ROADMAP's glass line) designs
+  the material across marketing and app; one added there first would be a one-off on every panel at once. A scrim's
+  blur is not a panel's material.
 - **The section plate's two numbers are local and measured** (`backdrop/photo-section.css`: reading copy over a
   full-bleed photograph needs a darker brightness and tint to clear 4.5:1); retune them by measuring.
 - **A phone pays nothing measurable for the ground**: the viewer's swipe holds 16.7ms frames blurred or flat, even at
@@ -383,8 +390,11 @@ server answering the poll, the writes and the bin's routes as the real ones do.
   open photograph rides `?photo=<id>` (`lib/media/share-save.ts`), claimed by one grid per page.
 - **A tile shimmers until its photograph decodes, then fades it in**, only while on screen (`data-inview` from the
   grid's one observer) and after a beat, so a cached photograph never flickers; the shimmer is linear, because a strong
-  curve stutters at the loop point. The first row loads eager and first, every photograph decodes async, and a mounted
-  tile keeps its URL across a presign rollover (the same object path), taking the fresh one only on an error.
+  curve stutters at the loop point. ★ A photograph already complete when its image mounts shows at once, never fades
+  (`data-instant`, read in the mount's own layout phase and switching the transition off in that commit), or a pushed
+  arrival's wipe would run over a fade, which is why the guest album decodes an arrival before it lets it in
+  ([guest-flow.md](guest-flow.md)). The first row loads eager and first, every photograph decodes async, and a
+  mounted tile keeps its URL across a presign rollover (the same object path), taking the fresh one only on an error.
 - ★ **The album grid is one placeholder in a session replay** (`data-sentry-block`): the replay buffers every session,
   serialized every node the album mounted and measured every photograph (one forced layout each), the largest cost of
   a throttled phone's fling; the photographs are blocked from replays anyway.
@@ -406,7 +416,12 @@ primitives name their transition properties, never `transition-all`.
   `[data-mkt-entering]`) fire on `@starting-style`, and the observer grammar (`[data-mkt-reveal]` with `Reveal`) is only
   for beats about scroll position. The failure mode is then "no animation", never "no content".
 - **Reduced motion**: a global guard clamps durations to `0.01ms`, never `0` (radix's exit-unmount and the viewer's
-  settle wait on `transitionend`), and stops infinite loops; component gates stay the first line.
+  settle wait on `transitionend`), and stops infinite loops; component gates stay the first line. ★ It clamps what
+  declares a transition and creates none: `transition-property` is `all` by default, so a bare clamp made every script
+  write a transition and a size read in the same task the old one (`el.style.width` then `offsetWidth`; the lab's stage
+  fitted four phones at 11%), so the guard's default property is `none`, unimportant and in the base layer, and a
+  declared transition outranks it and still ends (`reduced-motion-guard.test.ts` reads the sheet). A layout property
+  that IS declared stays stale in the same task at any duration: read it through `getAnimations()`.
 - ★ **A filling animation outranks every author declaration**: an `animation-fill-mode: both` entrance
   (`[data-mkt-cut]`) holds its last keyframe forever over any later rule on that property, which DevTools still shows as
   matching. Put the entrance on an inner element and the interactive state on the outer one.
@@ -442,7 +457,8 @@ primitives name their transition properties, never `transition-all`.
 `floatingCorner` (`rounded-float`) around rows derived from the panel's own padding; `floatingEntrance` (anchored: a
 fade, a hair of scale, 8px from the anchor) and `floatingEdgeEntrance` (the sheet's slide); and `floatingClock`, whose
 three rungs follow frequency: instant for what opens dozens of times an hour (a tooltip, a dropdown, a select),
-standard for a popover or dialog, edge for the sheet. The light is `shadow-layer`, and no panel is translucent.
+standard for a popover or dialog, edge for the sheet. The light is `shadow-layer`, and every panel is opaque until the
+Glass exploration answers its material.
 `drawer.tsx` (vaul's, drawn only by the Library's gallery now) and `sonner.tsx` sit outside the family by name; the QR mini-modal's View
 Transition is its one sanctioned hole ([host-app.md](host-app.md)).
 
@@ -456,18 +472,35 @@ Transition is its one sanctioned hole ([host-app.md](host-app.md)).
   panel; a hand's dialog, screen, cover and sheet), each scoped to the `data-shape` the element sets for the width it
   opens at; the own shapes are `ui/responsive-menu.tsx` (a menu at the button, rows at the thumb with Cancel beneath, a
   row is the act), the code card (`app/share/code-card.tsx`) and the look (`social/guest-peek.tsx`). A bare
-  `SheetContent` or `DialogContent` is a surface the board left alone, named with why in `popup-kinds.test.ts`.
+  `SheetContent` or `DialogContent` is a surface the board left alone, named with why in `popup-kinds.test.ts`. A confirm
+  speaks as an `alertdialog` (`role` is a column of its kind's row, spread by `PopupContent` only where a row names one,
+  never as `role={undefined}`, which would erase Radix's own), so anything asking whether a layer is up asks
+  `layerIsUp()` (`ui/layer-is-up.ts`, the one home of the layer roles: a dialog, a confirm, a menu, a listbox; `except`
+  leaves the caller's own layer out, `dialogsOnly` waits behind modals alone; `layer-is-up.test.tsx` refuses a hand-written
+  dialog selector), and a test proving a confirm gone asks for `alertdialog`, or it passes for nothing.
   ★ `PopupBody` is the one part that scrolls and keeps its children whole (`*:shrink-0`): a caller's flex column
   would otherwise shrink a clipping Card to its padding instead of scrolling, as build 17's Event Settings did.
   ★ Every shape stands on the keyboard (the Dialog learned the Sheet's rule; a centred shape's `top` is
   `var(--vv-top) + var(--vv-h) / 2`, exactly `top-1/2` with nothing written). ★ A screen or a cover in a hand is a place
-  the phone's Back closes (`ui/popup-back.ts`: one same-URL history entry, its marker a field on the state Next merges,
-  taken back one tick late so StrictMode's double effect cannot close it), unless its page already routes it
-  (`routed`, `?room=`). ★ In a hand focus lands on the popup itself; at a desk the row's `deskFocus` says; a popup with
+  the phone's Back closes (`ui/popup-back.ts`, on `lib/history-entry.ts` with the hub's sheets and the reel: one same-URL
+  history entry, its marker a field on the state Next merges,
+  taken back one tick late so StrictMode's double effect cannot close it; where a router refresh took the marker, its
+  own word that it pushed the entry at this address still takes it back, and never at another address, where a link
+  inside it navigated on), unless its page already routes it (`routed`, `?room=`). ★ In a hand focus lands on the popup itself; at a desk the row's `deskFocus` says; a popup with
   no trigger of its own gives focus back to the control that opened it: inside the layer still open behind it when it
   was stacked over one (a confirm over the viewer or Settings), else on the page; only a menu or a listbox, which close
   as the next popup opens, is never a return target. ★ Size a dialog with `size`, never a width
   class: the shape's scoped rule outranks a plain utility.
+  ★ **A layer a tap opened takes no tap until it has settled**: it fades in under the finger and is hit-testable from
+  its first frame, so a double tap's second tap landed on the row beneath (Settings' "This event", the Share door's
+  "Save link") and, at a desk, on the scrim, closing the panel it had just opened. `PopupContent` swallows a press
+  inside it (pointerdown and mousedown, and with them the focus: a swallowed click's mousedown still focused the Share
+  sheet's Custom link field, which on a phone raises the keyboard, crumbs-26) and the click that press ends in, however
+  late the finger lifts (a key's click, `detail` 0, is never a finger's), and refuses the scrim's outside press, while
+  a CSS animation of its own is running (`arriving`, read off
+  `getAnimations`: its entrance, and its exit; a transition such as the keyboard's lift, a loop that never ends and an
+  engine with no `getAnimations` never count, and a reduced-motion clamp settles it in a frame). A harness that clicks a
+  sheet within 300ms of opening it is swallowed too: wait for it to settle.
 - ★ **Its phone half is keyboard-safe** (`src/lib/use-keyboard-inset.ts`): `visualViewport` sets `--kb-inset` and
   `--vv-h`, the sheet stands on the keyboard with its ceiling at the visible height, `data-keyboard` reads `open` (or
   `tight` under 200px, a landscape phone's thin band), and `floatingKeyboardFoot` with `data-sheet-primary` keeps the
@@ -478,8 +511,9 @@ Transition is its one sanctioned hole ([host-app.md](host-app.md)).
   carries a door's own scrim.
 - ★ **An unportalled submenu can open with a real box and paint nothing.** `SubContent` sits in a `Portal`: inside the
   scrolling, transform-animated `Content`, the transformed ancestor becomes the containing block for fixed
-  descendants, so a submenu opened by a click mid-close paints nothing, while hover on a settled parent works. A menu
-  stops at two levels: each `Sub` publishes its depth, and a third throws.
+  descendants, so a submenu opened by a click mid-close paints nothing, while hover on a settled parent works. Two
+  levels read simpler, so a branch that wants a third is a group of its own under its name (guidance, not a fence:
+  `Sub` nests as deep as Radix allows).
 
 ## Toasts
 
@@ -544,8 +578,8 @@ what the effect needs. Which one is usually roadmap knowledge: ask.
 
 ## The /design lab
 
-The lab (`src/app/(dev)/design/`) renders on the real tokens; a board lives in `sandbox/` with its own sheet and
-scenes, which leave with it.
+The lab (`src/app/(dev)/design/`) renders on the real tokens; a board is one folder in `sandbox/` (its spec, its
+board, its own sheet and scenes), found by the registry and the board route and retired by deleting it.
 
 - ★ **A page-level gate cannot close the lab, because the shell layout has already rendered the nav** (every component,
   board and track by name), and a layout cannot read `searchParams`: a keyless request would answer 200 with the nav in

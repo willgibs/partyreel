@@ -9,6 +9,7 @@ import { useKeyboardInset } from "@/lib/use-keyboard-inset"
 import { useMediaQuery } from "@/lib/use-media-query"
 import { Button } from "@/components/ui/button"
 import { floatingPopupShapes } from "@/components/ui/floating-layer"
+import { EPHEMERAL_ROLES } from "@/components/ui/layer-is-up"
 import { useBackCloses } from "@/components/ui/popup-back"
 import {
   DESK_QUERY,
@@ -56,7 +57,9 @@ import {
  * popup over it closes it — so a control inside one is still there to give
  * focus back to.
  */
-const EPHEMERAL_LAYER = "[role='menu'], [role='listbox']"
+const EPHEMERAL_LAYER = EPHEMERAL_ROLES.map((role) => `[role='${role}']`).join(
+  ", "
+)
 
 /**
  * THE LAST CONTROL STILL THERE TO GIVE FOCUS BACK TO: on the page itself, or
@@ -91,6 +94,41 @@ function watchTheOpener(event: Event) {
 if (typeof document !== "undefined") {
   document.addEventListener("focusin", watchTheOpener, true)
   document.addEventListener("pointerdown", watchTheOpener, true)
+}
+
+/**
+ * ★ A LAYER A TAP OPENED TAKES NO TAP UNTIL IT HAS SETTLED (crumbs-23, build 26's red-team). A layer fades
+ * in where the finger just was, and it is hit-testable from its first frame, so the SECOND tap of a double
+ * tap lands inside the sheet the first one opened: on the hub's Settings card it opened "This event", and
+ * on the Share door it would have met "Save link". Whatever stands under a finger while the layer arrives
+ * is nobody's choice, so until the layer's own entrance has run out it swallows the tap: the click never
+ * reaches a row, and the scrim's outside press never dismisses it.
+ *
+ * ★ THE PRESS, NOT ONLY THE CLICK (crumbs-26, build 27's red-team). Focus moves on the press: a double tap
+ * on the code card's "Everything" had its second click swallowed, but its mousedown still focused the Share
+ * sheet's "Custom link" field, and on a phone a focused field raises the keyboard over the sheet. So a
+ * pointerdown or mousedown inside a layer still arriving is swallowed too (its default, the focus, never
+ * runs, and no row hears it), and the click that press ends in is its own: swallowed even when the
+ * entrance ran out before the finger lifted. A key's click (`detail` 0) is never a finger's.
+ *
+ * "Settled" is read off the element, never a number kept beside the CSS: a CSS ANIMATION of the layer's own
+ * still running (its entrance; its exit too, since a layer on its way out takes none either). A CSS
+ * TRANSITION does not count (the keyboard's lift glides the sheet on `bottom` and `max-height`, and a tap
+ * mid-glide is a real tap), so the animations are told from the transitions by the `animationName` only
+ * they carry. A reduced-motion clamp (`0.01ms`) settles it in a frame, and an engine with no
+ * `getAnimations` (jsdom) never swallows: nothing there arrives.
+ */
+function arriving(node: HTMLElement | null): boolean {
+  if (!node || typeof node.getAnimations !== "function") return false
+  return node
+    .getAnimations()
+    .some(
+      (a) =>
+        "animationName" in a &&
+        a.playState === "running" &&
+        // A loop that never ends (a pulse a caller put on the layer) is not an arrival.
+        a.effect?.getComputedTiming().iterations !== Infinity
+    )
 }
 
 type PopupState = {
@@ -206,6 +244,10 @@ function PopupContent({
   children,
   onOpenAutoFocus,
   onCloseAutoFocus,
+  onClickCapture,
+  onPointerDownCapture,
+  onMouseDownCapture,
+  onPointerDownOutside,
   ref,
   ...props
 }: React.ComponentProps<typeof PopupPrimitive.Content> & {
@@ -262,6 +304,15 @@ function PopupContent({
   // a stacked popup is the control inside the layer still open behind it.
   const returnTo = React.useRef<HTMLElement | null>(null)
 
+  // Whether the press under way began while the layer arrived (`arriving`): set by its pointerdown, so
+  // its mousedown (a touch's comes after the finger lifts) and its click are swallowed with it, however
+  // late they land. Every press starts it afresh.
+  const pressSwallowed = React.useRef(false)
+  const swallow = (event: React.SyntheticEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    event.stopPropagation()
+  }
+
   return (
     <PopupShapeContext.Provider value={shape}>
       <PopupPrimitive.Portal>
@@ -301,6 +352,47 @@ function PopupContent({
             }
           }}
           className={cn(CONTENT, floatingPopupShapes, className)}
+          // ★ A LAYER STILL ARRIVING TAKES NO TAP (`arriving`): a press inside it is swallowed before any
+          // row sees it (its default, the focus, with it), so is the click it ends in, and a press on the
+          // scrim behind it does not dismiss it.
+          onPointerDownCapture={(event) => {
+            pressSwallowed.current = arriving(event.currentTarget)
+            if (pressSwallowed.current) {
+              swallow(event)
+              return
+            }
+            onPointerDownCapture?.(event)
+          }}
+          onMouseDownCapture={(event) => {
+            if (pressSwallowed.current || arriving(event.currentTarget)) {
+              pressSwallowed.current = true
+              swallow(event)
+              return
+            }
+            onMouseDownCapture?.(event)
+          }}
+          onClickCapture={(event) => {
+            // A key's click carries no count (`detail` 0) and is never the swallowed finger's.
+            const ofSwallowedPress = pressSwallowed.current && event.detail > 0
+            pressSwallowed.current = false
+            if (ofSwallowedPress || arriving(event.currentTarget)) {
+              swallow(event)
+              return
+            }
+            onClickCapture?.(event)
+          }}
+          onPointerDownOutside={(event) => {
+            if (arriving(node)) {
+              event.preventDefault()
+              return
+            }
+            onPointerDownOutside?.(event)
+          }}
+          // ★ A kind that asks (a confirm) is announced as the alert dialog it is, so a screen reader
+          // reads its question with its name. Spread only when the row names one: Radix writes
+          // `role="dialog"` BEFORE the props it is handed, so an explicit `undefined` here would
+          // erase it, and a caller's own `role` (in `props`, below) still wins.
+          {...(row.role ? { role: row.role } : {})}
           {...props}
         >
           {children}
@@ -337,6 +429,7 @@ function PopupHeader({
   title,
   description,
   back,
+  up,
   className,
   titleClassName,
   children,
@@ -345,32 +438,54 @@ function PopupHeader({
   description?: React.ReactNode
   /** Where the back arrow returns to, in words: a hand's `screen` only. */
   back?: string
+  /**
+   * A LEVEL IN (event-settings r1, `opens=page`): the head of a page one level down a place, whose
+   * back arrow goes UP a level rather than closing the popup. In a hand it is the bar's own back
+   * arrow, naming where it returns; at a desk a small back row above the title, the close staying in
+   * its corner, as the board drew it.
+   */
+  up?: { label: string; onUp: () => void }
   className?: string
   titleClassName?: string
   children?: React.ReactNode
 }) {
   const shape = usePopupShape()
   if (shape === "screen") {
+    const arrow = (
+      <Button
+        variant="ghost"
+        size="sm"
+        data-popup-up={up ? "" : undefined}
+        className="max-w-[40vw] justify-self-start gap-0.5 px-1.5 text-muted-foreground"
+        onClick={up?.onUp}
+      >
+        <ChevronLeftIcon className="size-5" />
+        <span className="truncate">{up?.label ?? back ?? "Back"}</span>
+      </Button>
+    )
     return (
       <div
         data-slot="popup-header"
         data-bar=""
         className={cn("shrink-0 border-b", className)}
       >
-        <div className="grid h-13 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 px-2">
-          <PopupPrimitive.Close asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="max-w-full justify-self-start gap-0.5 px-1.5 text-muted-foreground"
-            >
-              <ChevronLeftIcon className="size-5" />
-              <span className="truncate">{back ?? "Back"}</span>
-            </Button>
-          </PopupPrimitive.Close>
+        {/* ★ THE BACK LABEL IS RESERVED BEFORE THE TITLE GROWS (crumbs-14).
+            With both sides at `minmax(0,1fr)` the centred title took its
+            whole width first and the two sides split what was left, so
+            "Dashboard" beside "Photos waiting for you" showed as "Dashbo…"
+            at 375. The back's side now starts at the label's own width, up
+            to 40vw so a long event name still leaves the title its room,
+            and the title stays centred wherever both fit, moving over by
+            the difference where they do not. */}
+        <div className="grid h-13 grid-cols-[minmax(auto,1fr)_auto_minmax(0,1fr)] items-center gap-2 px-2">
+          {up ? (
+            arrow
+          ) : (
+            <PopupPrimitive.Close asChild>{arrow}</PopupPrimitive.Close>
+          )}
           <PopupPrimitive.Title
             className={cn(
-              "max-w-[55vw] truncate text-center font-heading text-base font-medium text-foreground",
+              "max-w-[55vw] truncate text-center font-heading text-base text-foreground",
               titleClassName
             )}
           >
@@ -392,10 +507,23 @@ function PopupHeader({
       data-slot="popup-header"
       className={cn("flex shrink-0 flex-col gap-1 p-4 pr-12", className)}
     >
+      {up ? (
+        <Button
+          variant="ghost"
+          size="sm"
+          data-popup-up=""
+          className="-mt-1 mb-1 -ml-2 gap-0.5 self-start px-1.5 text-muted-foreground"
+          onClick={up.onUp}
+        >
+          <ChevronLeftIcon className="size-4" />
+          {up.label}
+        </Button>
+      ) : null}
       <PopupPrimitive.Title
         className={cn(
-          // The ladder's `card-title` step, the Dialog's and the Sheet's own.
-          "font-heading text-card-title font-medium text-pretty text-foreground",
+          // The ladder's `card-title` step, the Dialog's and the Sheet's own,
+          // at the heading face's own weight (card.tsx says why none is set).
+          "font-heading text-card-title text-pretty text-foreground",
           titleClassName
         )}
       >

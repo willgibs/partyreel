@@ -56,8 +56,8 @@
 
   WHAT IS NOT HERE (the library round, 2026-09-02): a board's own CSS lives
   beside the board under sandbox/ (album-hero/hero.css, river-visual/river.css),
-  imported by the board so it leaves with it, and the sheets of ruled rounds went
-  with their boards, rulings and all, since git keeps them. This sheet declares
+  imported by the board so it leaves with it, and the sheets of answered rounds
+  went with their boards, picks and all, since git keeps them. This sheet declares
   NO @keyframes: keyframe names are
   document-global and the lab once shadowed nine production names for the rest
   of a session on every /design visit; src/app/keyframe-uniqueness.test.ts
@@ -84,7 +84,7 @@
   --lab-toc-w: 200px;
   /* The stylesheet's generation, read by LabChrome to catch a browser holding
      an old copy of this file (lab-css-generation.ts holds the same number). */
-  --lab-css-generation: 6;
+  --lab-css-generation: 7;
 }
 .lab-shell-body {
   display: grid;
@@ -214,48 +214,346 @@ html[data-lab-fit="true"] [data-lab-wide] [data-lab-bleed] [data-lab-bleed] {
     minmax(min(var(--lab-catalog-min, 280px), 100%), 1fr)
   );
 }
-/* THE STEP (the dock round, 2026-09-18): the preview is the page and the
-   answer is a dock (step.tsx). Will could not see what he was answering when
-   the evidence was pinned in a 40vh window above the options: "The top preview
-   UI of our lab is covered by the answer UI, and I cannot scroll it". So the
-   stage is drawn at its true size and never capped, the head that names what it
-   shows sticks under the top bar, and the dock that answers sticks to the foot
-   of the window. Unlayered, for the reason the catalog grid is: every switch
-   here is lab-only, and a lab-only utility loses to production's in its
-   sub-layer (the landmine at the head of this file). */
-.lab-step-head {
-  display: grid;
-  gap: 0.75rem 2rem;
+/* THE STEP (the dock round, 2026-09-18; pictures first, lab-focus,
+   2026-09-29): one question, its options drawn whole on the first screen, and
+   the answer in a dock (step.tsx). Will opened a question to see the drawn
+   options and met "a Jackson Pollock painting of text" first, the frames below
+   the fold and the dock cutting them. So the step reads, top to bottom: the
+   spine, where it happens in one line, the question, the options as tabs, the
+   shown option's line, the knobs in one quiet row, the stage filling the room
+   that is left, and the dock. Everything else a board knows is the About
+   panel, beside the step at a desk and under the question at a phone.
+   Unlayered, for the reason the catalog grid is: every switch here is
+   lab-only, and a lab-only utility loses to production's in its sub-layer
+   (the landmine at the head of this file). */
+.lab-step {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  min-width: 0;
 }
-@media (min-width: 1024px) {
-  .lab-step-head[data-aside] {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 22rem);
-    align-items: start;
+/* THE STEP IS THE PAGE on a board's review: it fills the window under the top
+   bar, so a whole stage takes exactly the room between the question and the
+   dock and nothing scrolls. When the head needs more than the window (About
+   open at a phone), the step grows and the page scrolls; the stage keeps its
+   floor. */
+.lab-step[data-page] {
+  min-height: calc(100dvh - var(--lab-topbar-h, 48px));
+  padding-top: 0.625rem;
+}
+.lab-step-body {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-areas: "head" "about" "main";
+  gap: 0.625rem 1.5rem;
+  min-width: 0;
+}
+.lab-step-head {
+  grid-area: head;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+/* The question, sized to read, not to shout: the reading face at a reading
+   size, since the pictures under it are what he came for. */
+.lab-question {
+  font-size: 1.0625rem;
+  line-height: 1.4;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+@media (min-width: 640px) {
+  .lab-question {
+    font-size: 1.125rem;
   }
 }
+.lab-about {
+  grid-area: about;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  min-width: 0;
+  padding: 0.625rem 0.875rem 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--card);
+}
+/* Under the question (below a desk), About is a drawer that scrolls on its
+   own, so opening it never puts the stage more than half a screen away. */
+@media (max-width: 1023px) {
+  .lab-about {
+    max-height: 45dvh;
+    overflow-y: auto;
+  }
+}
+.lab-step-main {
+  grid-area: main;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+  min-height: 0;
+}
+/* A desk keeps About beside the step, spanning the question to the stage and
+   scrolling on its own, so opening it narrows the stage rather than pushing
+   the pictures down (a stage is bound by its height at a desk). */
+@media (min-width: 1024px) {
+  .lab-step-body[data-about="open"] {
+    grid-template-columns: minmax(0, 1fr) 21rem;
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas: "head about" "main about";
+  }
+  .lab-step-body[data-about="open"] > .lab-about {
+    min-height: 0;
+    overflow-y: auto;
+  }
+  /* Whole, the step is the window: About scrolls inside its column rather
+     than growing the step (and the stage with it) past the dock. */
+  .lab-step[data-stage="whole"] .lab-step-body[data-about="open"] {
+    flex: 1 1 0;
+    min-height: 0;
+  }
+  .lab-step[data-stage="true"] .lab-step-body[data-about="open"] > .lab-about {
+    position: sticky;
+    top: calc(var(--lab-topbar-h, 48px) + 0.5rem);
+    align-self: start;
+    max-height: calc(100dvh - var(--lab-topbar-h, 48px) - 6rem);
+  }
+}
+/* THE OPTIONS AS TABS: one row, scrolling sideways at a phone rather than
+   wrapping into a second. The shown one is underlined; the picked one's
+   number turns to a tick (step.tsx). */
+.lab-tabs {
+  display: flex;
+  align-items: stretch;
+  gap: 0.125rem;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  border-bottom: 1px solid var(--border);
+}
+.lab-tab {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.4375rem;
+  max-width: 20rem;
+  min-width: 0;
+  height: 2.25rem;
+  padding-inline: 0.5rem 0.625rem;
+  font-size: 12.5px;
+  transition: color 150ms;
+}
+.lab-tab[data-shown]::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0.375rem;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--foreground);
+}
+@media (prefers-reduced-motion: reduce) {
+  .lab-tab {
+    transition: none;
+  }
+}
+/* THE STAGE HEAD: the shown option's line over the one quiet row of knobs.
+   1:1, it sticks under the top bar while a tall stage scrolls, so the line
+   saying which option is on it never leaves. */
 .lab-stage-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  min-width: 0;
+}
+.lab-step[data-stage="true"] .lab-stage-head {
   position: sticky;
   top: var(--lab-topbar-h, 48px);
   z-index: 20;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.375rem 1rem;
-  min-height: 2.75rem;
   padding-block: 0.375rem;
   border-bottom: 1px solid var(--border);
   background: color-mix(in oklab, var(--background) 92%, transparent);
   backdrop-filter: blur(8px);
 }
-/* FLIPPED: every option in the same cell, one visible. The stage is as tall
-   as its tallest option, so a blink between two never jumps the page. */
-.lab-stage {
+/* THE SHOWN OPTION'S LINE: the sentence, the gain and the cost share one
+   line (2:1:1), each cut where it runs out, so every part shows however long
+   the others run; below a tablet's width the line is the sentence alone.
+   "more" stacks all of it whole (step.tsx, `TradeLine`). */
+.lab-trade {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem 1.25rem;
+  min-width: 0;
+}
+.lab-trade > p {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.lab-trade > p:first-child {
+  flex-grow: 2;
+}
+.lab-trade > p[data-trade] {
+  display: none;
+}
+@media (min-width: 768px) {
+  .lab-trade > p[data-trade] {
+    display: block;
+  }
+}
+.lab-trade[data-full] {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.125rem;
+}
+.lab-trade[data-full] > p,
+.lab-trade[data-full] > p[data-trade] {
+  display: block;
+  flex: none;
+  overflow: visible;
+  white-space: normal;
+}
+.lab-trade[data-full] > button {
+  align-self: flex-start;
+}
+/* ONE QUIET ROW: the knobs never wrap into a second row over the pictures;
+   where they run out of room they scroll sideways, and the cluster that sets
+   the stage (the tools, the arrangement, the scale) stays put at its end. */
+.lab-knobs {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+.lab-knobs-scroll {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 0.5rem 1rem;
   min-width: 0;
   overflow-x: auto;
+  scrollbar-width: none;
 }
+.lab-knobs-scroll::-webkit-scrollbar,
+.lab-knobs::-webkit-scrollbar {
+  display: none;
+}
+.lab-knobs-set {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.375rem;
+}
+/* A phone has no room for a cluster that never scrolls: the whole row
+   scrolls, and the scale leads it, so whole or 1:1 is always in reach. */
+@media (max-width: 639px) {
+  .lab-knobs {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .lab-knobs-scroll {
+    flex: none;
+    overflow: visible;
+  }
+  .lab-knobs-set {
+    order: -1;
+    flex-direction: row-reverse;
+  }
+}
+/* A row that scrolls sideways fades the edge that has more (step.tsx,
+   `useScrollEdges`). */
+[data-edge-end]:not([data-edge-start]) {
+  mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
+}
+[data-edge-start]:not([data-edge-end]) {
+  mask-image: linear-gradient(to left, #000 calc(100% - 2rem), transparent);
+}
+[data-edge-start][data-edge-end] {
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 2rem,
+    #000 calc(100% - 2rem),
+    transparent
+  );
+}
+/* THE STAGE. Whole, it takes the room left above the dock and whole.ts
+   scales every option to fit it (overflow is clipped, never scrolled: a
+   stage that scrolled would be the window he could not see). 1:1, it is the
+   options at their true size and the page scrolls. */
+.lab-stage {
+  min-width: 0;
+}
+.lab-stage[data-fit="true"] {
+  overflow-x: auto;
+}
+.lab-stage[data-fit="whole"] {
+  flex: 1 1 0;
+  min-height: 14rem;
+  padding-bottom: 0.5rem;
+  overflow: hidden;
+}
+/* A step that is not the page (the desk's dry run, the kit's demo) has no
+   window to fill, so a whole stage takes a room of its own; one with nothing
+   drawn in it takes none. */
+.lab-step:not([data-page]) .lab-stage[data-fit="whole"] {
+  flex: none;
+  height: min(60dvh, 34rem);
+  min-height: 0;
+}
+.lab-stage[data-fit="whole"][data-empty] {
+  flex: none;
+  height: auto;
+  min-height: 0;
+  padding: 0;
+}
+/* `clip`, where it is understood, so the stage is not a scroll container a
+   focused frame could scroll by a pixel. Inside @supports because the
+   build's CSS pipeline drops a bare `clip` (the bleed's note above). */
+@supports (overflow: clip) {
+  .lab-stage[data-fit="whole"] {
+    overflow: clip;
+  }
+}
+/* A whole stage stays blank until it is fitted, so a page load never paints
+   the drawing at its natural size before it is scaled. */
+.lab-stage[data-fit="whole"]:not([data-fitted]) > [data-lab-view] {
+  visibility: hidden;
+}
+.lab-stage[data-fit="whole"] [data-lab-fit] {
+  margin-inline: auto;
+}
+/* A STACK OF FRAMES STANDS IN A ROW THAT WRAPS, AND A ROW OF THEM WRAPS,
+   whole (whole.ts, `reflow`), so the width search can put as many side by
+   side as the room draws largest; a lede or a note beside them keeps a line
+   of its own, the row's whole width. (Not its own width with the line's rest held empty by a
+   margin: a flex item shrinks into what the margin leaves, and the lede went
+   to one word a line.) */
+.lab-stage[data-fit="whole"] [data-lab-reflow] {
+  flex-wrap: wrap !important;
+}
+.lab-stage[data-fit="whole"] [data-lab-reflow="column"] {
+  flex-direction: row !important;
+  align-items: flex-start !important;
+}
+.lab-stage[data-fit="whole"] [data-lab-reflow] > [data-lab-line] {
+  flex: 0 0 100%;
+  max-width: none;
+}
+/* FLIPPED: every option in the same cell, one visible. The stage is as tall
+   as its tallest option, so a blink between two never jumps the page. */
 .lab-stage[data-arrange="flip"] {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
+  align-items: start;
 }
 .lab-stage[data-arrange="flip"] > [data-lab-view] {
   grid-area: 1 / 1;
@@ -265,7 +563,8 @@ html[data-lab-fit="true"] [data-lab-wide] [data-lab-bleed] [data-lab-bleed] {
   opacity: 0;
   pointer-events: none;
 }
-/* SIDE BY SIDE: only when every option fits at its true size (step.tsx). */
+/* SIDE BY SIDE: phone columns with room (step.tsx); whole, each option takes
+   an equal column and is scaled into it. */
 .lab-stage[data-arrange="side"] {
   display: flex;
   align-items: flex-start;
@@ -274,25 +573,56 @@ html[data-lab-fit="true"] [data-lab-wide] [data-lab-bleed] [data-lab-bleed] {
 .lab-stage[data-arrange="side"] > [data-lab-view] {
   flex: 0 0 auto;
 }
+.lab-stage[data-fit="whole"][data-arrange="side"] > [data-lab-view] {
+  flex: 1 1 0;
+}
 /* An option off the stage is paused as well as hidden: a JS loop reads
    [data-paused] (stage.tsx), and this stops a CSS one. */
 [data-lab-view][data-paused] * {
   animation-play-state: paused !important;
+}
+/* WHAT A LANE MEASURES TO PROVE A FRAME STAYS OUT OF HIS VIEW on a step: a
+   frame's measured caption is still in the page (the lanes and lab:demo read
+   it there, and the whole board prints it), and the frame's own name is one
+   line. Whole, the name is set at a reading size divided by the stage's scale
+   (`--lab-k`, whole.ts), so a phone scaled to a quarter still says which
+   state it is. */
+:is([data-lab-stage], [data-lab-whole]) [data-lab-caption] {
+  display: none;
+}
+:is([data-lab-stage], [data-lab-whole]) [data-lab-frame-title] {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+:is([data-lab-stage], [data-lab-whole])[data-fit="whole"]
+  [data-lab-frame-title] {
+  font-size: min(calc(12px / var(--lab-k, 1)), 40px);
+  line-height: 1.35;
+}
+/* Whole, a bleed inside the stage keeps its box: the stage scales what is
+   inside it, and a row pulled a gutter past its edge would be cut there. */
+html
+  [data-lab-wide]
+  :is([data-lab-stage], [data-lab-whole])[data-fit="whole"]
+  [data-lab-bleed] {
+  margin-left: 0;
+  margin-right: 0;
 }
 .lab-word-options {
   display: grid;
   gap: 0.5rem;
   grid-template-columns: repeat(auto-fill, minmax(min(16rem, 100%), 1fr));
 }
+/* THE DOCK: the answer alone (the options are the tabs), sticky at the foot
+   of the window, one row at a desk and at a phone. */
 .lab-dock {
   position: sticky;
   bottom: 0;
   z-index: 30;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas:
-    "options way"
-    "note note";
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem 0.75rem;
   padding-block: 0.625rem calc(0.625rem + env(safe-area-inset-bottom));
@@ -305,44 +635,29 @@ html[data-lab-fit="true"] [data-lab-wide] [data-lab-bleed] [data-lab-bleed] {
 html:has(nextjs-portal) .lab-dock {
   padding-right: 3.25rem;
 }
-.lab-dock-options {
-  grid-area: options;
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  min-width: 0;
-  overflow-x: auto;
-}
 .lab-dock-note {
-  grid-area: note;
   display: flex;
+  flex: 1 1 18rem;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.375rem 0.5rem;
   min-width: 0;
 }
 .lab-dock-way {
-  grid-area: way;
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.5rem;
+  gap: 0.375rem;
+  margin-left: auto;
 }
-/* A phone gives the options a row of their own: sharing one with Back, Pick
-   and Next left room for a single chip. */
 @media (max-width: 639px) {
   .lab-dock {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      "options"
-      "note"
-      "way";
+    flex-wrap: nowrap;
+    gap: 0.375rem;
   }
-}
-/* One row where there is room: the options, the note, the way on. */
-@media (min-width: 1280px) {
-  .lab-dock {
-    grid-template-columns: minmax(0, auto) minmax(14rem, 1fr) auto;
-    grid-template-areas: "options note way";
+  .lab-dock-note {
+    flex: 1 1 0;
   }
 }
 

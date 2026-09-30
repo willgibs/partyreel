@@ -12,6 +12,7 @@ import {
   Download,
   Eye,
   EyeOff,
+  Flag,
   Link2,
   Loader2,
   Share2,
@@ -37,6 +38,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { GLASS, GLASS_MARK_LIT } from "@/lib/glass";
+import { requestPhotoReport, useReportDoorOpen } from "@/lib/guest/report-door";
 import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 import {
   copyText,
@@ -96,13 +98,20 @@ function Rule() {
  * waits (Deleted, the app's one word for it) and the window, read off the
  * constant. Two confirms say it because two doors do it: the curate group's
  * Remove, and a host deleting their OWN upload from the personal Uploads.
+ *
+ * ★ THE WINDOW AND ITS WORD ARE ONE STRING, ON PURPOSE. Next's SWC drops the
+ * leading space of a JSX text that runs over several lines and holds an entity
+ * (the `&rsquo;`), so `{N} days. Guests won&rsquo;t` read "30days" on every
+ * build (build 20's red-team), and a `{" "}` would not hold: prettier folds it
+ * back into the text. The test runner's own JSX transform keeps the space,
+ * which is why jsx-text-space-policy compiles with SWC itself.
  */
 function HostRemovalWords() {
   return (
     <>
       It disappears from the album right away and moves to Deleted, where you
-      can restore it for {RECENTLY_DELETED_WINDOW_DAYS} days. Guests won&rsquo;t
-      see it.
+      can restore it for {`${RECENTLY_DELETED_WINDOW_DAYS} days`}. Guests
+      won&rsquo;t see it.
     </>
   );
 }
@@ -176,6 +185,8 @@ export const ActionCapsule = memo(function ActionCapsule({
 }) {
   const [prep, setPrep] = useState<Prep | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  // A report form listens only on the guest's album (report-door.ts): anywhere else, no Report is drawn.
+  const reportDoor = useReportDoorOpen();
 
   // The capsule is keyed by item, so leaving a photograph (or closing the
   // viewer) aborts a fetch nobody is waiting for any more.
@@ -412,6 +423,32 @@ export const ActionCapsule = memo(function ActionCapsule({
         </ActionTooltip>
       )}
 
+      {/* A PHOTO'S OWN REPORT (admin-triage r2: "A photo can be reported"): the album's one report form,
+          opened with this photograph named. Only where that form listens (the guest's album), never on
+          the host's own album (her curate group removes it in one tap), never on the viewer's own upload
+          (her Delete is right beside it) and never in the bin. */}
+      {reportDoor &&
+        !binned &&
+        !viewerIsHost &&
+        !(onDelete && canDeleteThis) && (
+          <ActionTooltip label="Report">
+            <button
+              type="button"
+              aria-label={`Report this ${item.type}`}
+              onClick={() =>
+                requestPhotoReport({
+                  mediaId: item.id,
+                  type: item.type,
+                  previewUrl: item.previewUrl ?? (linked ? item.url : null),
+                })
+              }
+              className={cn(LIGHTBOX_ACTION, "hover:text-destructive")}
+            >
+              <Flag className="size-5" />
+            </button>
+          </ActionTooltip>
+        )}
+
       {/* The uploader's OWN delete (the guest album and the personal Uploads).
           ★ A GUEST'S OWN DELETE IS FINAL, AND SAYS SO (Will, 2026-09-23: "I want
           it gone everywhere, not still visible to the host as well"): no window
@@ -431,7 +468,7 @@ export const ActionCapsule = memo(function ActionCapsule({
               </button>
             </DialogTrigger>
           </ActionTooltip>
-          <DialogContent>
+          <DialogContent role="alertdialog">
             <DialogHeader>
               <DialogTitle>Delete this upload?</DialogTitle>
               <DialogDescription>
@@ -509,7 +546,7 @@ export const ActionCapsule = memo(function ActionCapsule({
                   </button>
                 </DialogTrigger>
               </ActionTooltip>
-              <DialogContent>
+              <DialogContent role="alertdialog">
                 <DialogHeader>
                   <DialogTitle>Remove this item?</DialogTitle>
                   <DialogDescription>

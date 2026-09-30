@@ -1,191 +1,89 @@
 /**
- * THE TOOLBOX, AS DATA.
+ * THE FRONT DOOR, AS DATA: one row per piece a board imports.
  *
- * One row per tool: what it is for, WHEN to reach for it, and the demo the page
- * mounts beside it. The "when" is the half a catalogue of nouns lacks: an
- * agent arriving with a board to build needs to know which tool its evidence
- * wants, and the alternative to answering that here is a board building its
- * own. The kit is a review instrument, not a catalog component, so its index
- * lives here rather than in the Library.
+ * Every row is a name `src/components/lab/index.ts` exports (the page's test
+ * holds the two lists to each other), with what it is for and WHEN to reach
+ * for it. The "when" is the half a list of nouns lacks: an agent arriving with
+ * a board to build needs to know which piece its preview wants, and the
+ * alternative to answering that here is a board building its own. The kit is
+ * a review instrument, not a catalog component, so its index lives here rather
+ * than in the Library.
  */
 export type KitPiece = {
-  name: string;
+  /** The names, as the front door exports them. */
+  names: readonly string[];
   file: string;
   /** What it is for, in this lab. */
   note: string;
-  /** When to reach for it, against the tool next to it. */
+  /** When to reach for it, against the piece next to it. */
   reach: string;
-  /** The demo component's key in `kit-demos.tsx`, when it can be mounted. */
-  demo?: string;
-  /** Why there is no demo, when there cannot be one. */
-  inert?: string;
+  /** Where it can be seen working (a lab path), since none of these mounts inertly here. */
+  seen: string;
 };
 
 export const KIT_PIECES: readonly KitPiece[] = [
   {
-    name: "BoardPage, defineBoard",
-    file: "src/components/lab/board-page.tsx",
-    note: "the template every board renders through: the dock, the answer, the index, the sections, the meta, the history, in that fixed order",
+    names: ["ExplorationBoard"],
+    file: "src/components/lab/exploration-board.tsx",
+    note: "the whole of board.tsx: it takes the spec and a preview per option, and the template, the dock, the step and the walk do the rest",
     reach:
-      "always. A board is a spec and an evidence function; everything above is this.",
-    inert: "its specimen is a whole board (/design/lab/palette)",
+      "always, once, as the board's one export. Its `dock` prop takes the board's own cluster (a Reload, a Measure) and carries it onto the step too.",
+    seen: "every board on the desk",
   },
   {
-    name: "Catalog, VerdictPill",
-    file: "src/components/lab/catalog.tsx",
-    note: "an exploration as a grid of finished ideas, each with its own line, its preview, its facts and the reviewer's verdict row",
+    names: ["PreviewsFor"],
+    file: "src/components/lab/exploration.ts",
+    note: "the preview map's type, keyed `<decision>.<option>` from the spec itself, so a missing or orphaned preview is a type error rather than a blank tile",
     reach:
-      "whenever the board is choosing between things. This is the default shape of an exploration, and pnpm new-board scaffolds it.",
-    demo: "catalog",
+      "always: `const PREVIEWS: PreviewsFor<typeof SPEC> = {...}`. A preview that depends on another answer is a function of the state (`(s) => ...`), which is how a decision staged behind another is drawn wearing the answer it waits on.",
+    seen: "every board on the desk",
   },
   {
-    name: "ItemVerdictRow",
-    file: "src/components/lab/item-verdict.tsx",
-    note: "keep, refine or kill one item with a note, on the store every review surface shares",
-    reach:
-      "never directly: the Catalog mounts it on every card. Reach for it only to rule on something that is not a catalog card.",
-    demo: "itemVerdict",
-  },
-  {
-    name: "CompareTwo, SpotCompare",
-    file: "src/components/lab/compare-two.tsx",
-    note: "any two cards side by side from the board's declared A and B, and the same real places drawn under both",
-    reach:
-      "CompareTwo under every catalog. SpotCompare when one idea is applied in many real places (a voice, a rule) rather than being one object.",
-    demo: "compareTwo",
-  },
-  {
-    name: "Compare",
-    file: "src/components/lab/compare.tsx",
-    note: "two states of one thing, side by side, wiped or stacked; the line saying what differs is required",
-    reach:
-      "for two states that are not two cards. A difference at the edge of perception wants the wipe; one of position or size wants the stack.",
-    demo: "compare",
-  },
-  {
-    name: "Stage, FitStage, GroundBox",
-    file: "src/components/lab/stage.tsx",
-    note: "a real viewport's pixels on a real ground, 1:1 by default; FitStage takes its height from what it is handed, GroundBox drops the canvas and keeps the ground",
-    reach:
-      "Stage for anything viewport-shaped, FitStage for a block of arbitrary height, GroundBox inside a catalog cell, where a 1440 canvas would be a picture of one.",
-    demo: "stage",
-  },
-  {
-    name: "Frame, FrameRow",
+    names: ["Frame"],
     file: "src/components/lab/frame.tsx",
-    note: "the only 1:1 surface the lab has: a same-origin iframe wearing the candidate as an adopted stylesheet, in scroll-locked rows",
+    note: "the lab's only real viewport: a same-origin iframe the preview portals into, so `vw`, breakpoints and the type ladder read the frame's width, not the lab's",
     reach:
-      "for the real production route, which is the only thing that proves a ruling survives the rest of the page.",
-    inert:
-      "it loads real pages; mounting one here would load the site into this page",
+      "for anything judged at a width (a page, a breakpoint, a phone column). Its neighbours in frame.tsx (FrameRow, for frames that scroll together) join the front door in the change whose board first needs them.",
+    seen: "/design/lab/sample",
   },
   {
-    name: "Specimen, Cell, Labeled, CellLabel",
-    file: "src/components/lab/specimen.tsx",
-    note: "the judged thing and the line that names it; a label is never inside the judged area and a stage never goes in a Cell",
+    names: ["Fit"],
+    file: "src/components/lab/scene.tsx",
+    note: "zooms a frame to the lab's Fit preference; zoom scales the picture and leaves the frame's own viewport, and every breakpoint in it, alone. On a step's whole stage it steps aside: the stage scales the whole option, and a row of frames in a Fit may wrap there",
     reach:
-      "for a row of small things being compared. A Cell holds the thing; a Labeled wraps a stage with its name and note.",
-    demo: "specimen",
+      "around a Frame wider than the room it sits in (a 1440 frame in a tile). A bare Frame has no opinion of its own.",
+    seen: "locked-door, disposable-mode",
   },
   {
-    name: "SelectTable",
-    file: "src/components/lab/select-table.tsx",
-    note: "the table that is also the chooser: the numbers and the control that picks between them are one object",
+    names: ["Measured"],
+    file: "src/components/lab/scene.tsx",
+    note: "a number read off the frame's own document, never computed or typed: its observer, its timers and the webfont settle it, and the caption prints what it read. A step keeps the caption out of Will's view and in the page; the whole board prints it, and `lab:demo --verbose` lists it",
     reach:
-      "when the difference between candidates is numbers rather than pictures.",
-    demo: "selectTable",
+      "whenever a caption states a number (a size, a line count, a gap). If the words above a frame and the caption under it disagree, the caption is the truth.",
+    seen: "locked-door, disposable-mode",
   },
   {
-    name: "Loupe",
-    file: "src/components/lab/loupe.tsx",
-    note: "a magnifier over a copy of the specimen, pixel-snapped, for a difference smaller than the eye at arm's length",
-    reach: "for a corner, a hairline, a half-pixel seam.",
-    demo: "loupe",
+    names: ["CANVAS", "Mode"],
+    file: "src/components/lab/stage.tsx",
+    note: "the two canvases the boards judge on, 1440 by 930 and 375 by 760, and the name of each",
+    reach:
+      'to size a frame at a real viewport rather than a number of your own; a decision whose options are a phone column also says `tile: "phone"`.',
+    seen: "privacy-hero",
   },
   {
-    name: "BoardDock, Knob, Toggle, DockRow",
+    names: ["DOCK_PILL"],
     file: "src/components/lab/dock.tsx",
-    note: "a board's page-wide controls, always on screen, with the shell's reading controls at its right end",
+    note: "the dock's own pill, as a class string",
     reach:
-      "the template mounts the dock from the declared controls. Reach for Knob and Toggle for a switch that changes ONE section, which stays beside that section.",
-    demo: "dock",
+      "for a control in the board's own dock cluster, so it reads as the dock's and not as the board's drawing.",
+    seen: "disposable-mode",
   },
   {
-    name: "useBoardState, ControlKnobs",
-    file: "src/components/lab/board-state.tsx",
-    note: "the declared controls, read from the URL rather than mirrored to it, so a link reopens the exact canvas and candidate a note was written about",
+    names: ["BoardState", "optionId", "optionLabel", "optionMeans"],
+    file: "src/components/lab/board-spec.ts",
+    note: "the board's state (every control's current option) and the readers for an option, whatever its shape",
     reach:
-      "never directly: BoardPage calls it and hands the state to your evidence. Declare the control in the spec instead.",
-    inert: "a hook; the dock on any board is the specimen",
-  },
-  {
-    name: "Walk, WalkPages",
-    file: "src/components/lab/walk.tsx",
-    note: "the board's lookFirst made executable (each step scrolls AND sets the state), and the walk an applied block reaches",
-    reach:
-      "declare lookFirst in the spec and the dock carries the walk. WalkPages goes under an Apply, for the real routes.",
-    demo: "walk",
-  },
-  {
-    name: "ApplyToSite, CostMeter",
-    file: "src/components/lab/apply.tsx",
-    note: "hands the whole site the exact block a ruling would land, and measures what a candidate costs with everything else on the board hidden",
-    reach:
-      "Apply when the ruling is a stylesheet. CostMeter when a candidate animates and the question is whether it can ship.",
-    demo: "cost",
-  },
-  {
-    name: "Paste, CopyButton",
-    file: "src/components/lab/paste.tsx",
-    note: "the ruling as a paste, collapsed to its first lines, with one settled copy state everywhere on a board",
-    reach: "for the block a ruling lands, and for any line to carry into chat.",
-    demo: "paste",
-  },
-  {
-    name: "Notes",
-    file: "src/components/lab/notes.tsx",
-    note: "the builder's note on a section, carrying the state it was written in, with one press to go there",
-    reach:
-      "for a note that is only true in one state. Declare it in the spec; the template mounts it under the section.",
-    demo: "notes",
-  },
-  {
-    name: "Step",
-    file: "src/components/lab/step.tsx",
-    note: "one context and its question alone on the screen: the options as preview tiles on one specimen, the real thing on a stage below, Back and Next",
-    reach:
-      "never directly: the template renders it instead of the board when the route carries a session on this board.",
-    demo: "step",
-  },
-  {
-    name: "BeforeAfter",
-    file: "src/components/lab/before-after.tsx",
-    note: "the same specimen twice, touching: as today, then with the idea, captioned under the judged area",
-    reach:
-      "for a card walked alone, where there is nothing on the screen to compare it to. Pass it to Catalog as `before`.",
-    demo: "beforeAfter",
-  },
-  {
-    name: "useComputedTokens, useLineCount",
-    file: "src/components/lab/measure.ts",
-    note: "every number a board prints, read off the page rather than typed",
-    reach:
-      "whenever a board states a number. A typed one drifts from the colour beside it within a round.",
-    inert: "a hook; every number on the palette board is its specimen",
-  },
-  {
-    name: "useMountOnApproach, useReplay, useMotionState",
-    file: "src/components/lab/motion.ts",
-    note: "mounts a costly row when the reader is nearly there, and re-runs a one-shot by remount rather than by an animationend listener",
-    reach:
-      "approach for a heavy section below the fold; replay for anything that plays once.",
-    inert: "hooks; the glow boards are the specimen",
-  },
-  {
-    name: "TRAPS",
-    file: "src/components/lab/traps.ts",
-    note: "every landmine the boards paid for, written down once; the list at the foot of this page is this file",
-    reach: "read it before building anything here.",
-    inert: "it is the list below",
+      "inside a function preview or a scene that reads another answer or a knob. A knob's own shape, `Control`, is data: a spec imports it from `@/components/lab/exploration`.",
+    seen: "locked-door, disposable-mode",
   },
 ];

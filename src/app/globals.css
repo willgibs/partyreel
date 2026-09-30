@@ -54,11 +54,11 @@
       mode. One geometry (blur = 2× offset, single top light source), two
       sizes, one alpha ramp per ground.
     • TYPE: Urbanist is the heading face via the `font-heading` utility below
-      (bold 700 at -3% tracking). TIERED app heading scale: PAGE titles 700
-      (PageHeading), CARD/section titles 600 (CardTitle), per-setting LABELS stay
-      Inter 500 (FormLabel). Swap the brand face forever = repoint --font-display
-      + retune the weight/tracking in the font-heading utility (ONE place,
-      everywhere, no scattered orphans).
+      (bold 700 at -3% tracking), ONE weight for every heading, page titles
+      and card titles alike; per-setting LABELS stay Inter 500 (FormLabel).
+      Swap the brand face forever = repoint --font-display + retune the
+      weight/tracking in the font-heading utility (ONE place, everywhere, no
+      scattered orphans).
     • MOTION: strong custom curves only (--ease-emphasis out, --ease-in-out-
       strong move, --ease-drawer sheets), UI under 300ms, exits faster than
       enters, entrances from scale(0.98)+opacity via @starting-style,
@@ -1000,14 +1000,22 @@
 
 /* THE HEADING TYPE UTILITY (the swappable global heading face).
    `font-heading` = Urbanist for ALL app + marketing headings: PAGE titles (via
-   PageHeading), CARD/section titles (CardTitle), event names, marquees. The
-   tiered scale overrides weight per tier — PAGE 700 (the default here), CARD 600
-   (CardTitle adds font-semibold); per-setting LABELS stay Inter 500 (FormLabel).
-   Urbanist is a proper variable sans, so the Instrument-era knobs (font-size-
-   adjust, the synthetic text-stroke weight, font-synthesis) are gone — a real
-   bold weight does the work. Two knobs remain: WEIGHT (700 default) and TRACKING.
-   Swap the brand face forever by repointing --font-display (root layout) +
-   retuning these two lines.
+   PageHeading), CARD/section titles (CardTitle), event names, marquees, at ONE
+   weight; per-setting LABELS stay Inter 500 (FormLabel). Urbanist is a proper
+   variable sans, so the Instrument-era knobs (font-size-adjust, the synthetic
+   text-stroke weight, font-synthesis) are gone — a real bold weight does the
+   work. Two knobs remain: WEIGHT and TRACKING. Swap the brand face forever by
+   repointing --font-display (root layout) + retuning these two lines.
+
+   ★ THE WEIGHT HAS ONE HOME, THIS LINE, AND NO CLASS BESIDE IT. The "tiered"
+   scale that put card titles at 600 and sheet, dialog and popup titles at 500
+   did it with a stock `font-semibold` or `font-medium` beside `font-heading`,
+   and a stock weight WINS here: Tailwind emits this custom utility ahead of the
+   `font-*` weights (same (0,1,0), the later rule paints). Two dozen headings
+   read thin that way until Will's "it looks very bad compared to our standard
+   heavier weight" (2026-09-29) took them back to 700, and type-ladder-policy
+   now refuses a weight class beside the face. A heading that should weigh
+   something else is a change to this line, which moves every heading at once.
 
    ★ THE -0.03em IS A FALLBACK NOW, NOT THE RULE (the type wiring).
    Every SIZE now gets its own letter-spacing, tighter as it climbs
@@ -1060,7 +1068,25 @@
    those events never fire (stuck-open overlays). iteration-count 1 stops
    infinite loops (shimmer, spinners) - a static loader icon still reads as
    loading. Component-level motion-reduce:/no-preference gates stay as the
-   first line; this is the safety net under everything else. */
+   first line; this is the safety net under everything else.
+
+   ★ IT CLAMPS WHAT DECLARES A TRANSITION AND CREATES NONE. `transition-property`
+   is `all` by default, so a bare `transition-duration: 0.01ms` on every element
+   made EVERY style write a transition, and a size read in the same task as its
+   write returned the old one (a transition's current value is its start until
+   the next frame): reading `offsetWidth` after `el.style.width = "300px"` gave
+   the old width under reduced motion and the new one otherwise. The lab's stage
+   fitted four phones stacked at 11% on it (measured in headless Chrome, which
+   `lab:demo` runs in reduced motion), and any production measurer that writes
+   then reads (the masonry's gap, a lightbox settle) was open to the same. So
+   the DEFAULT property is `none`, deliberately NOT !important and in the base
+   layer: a transition a component declares (any utility, any sheet, an inline
+   style) outranks it and keeps its property, clamped to 0.01ms by the duration
+   above, so its transitionend still fires; an element that declares none gets
+   none, as it does with motion allowed. A layout property that IS declared
+   (a `transition-all`, a height) is stale in the same task at 0.01ms as it is
+   at 150ms: a measurer of one reads through `getAnimations()` or waits, with
+   or without this guard (the guard's test holds the shape). */
 @layer base {
   @media (prefers-reduced-motion: reduce) {
     *,
@@ -1069,6 +1095,7 @@
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
+      transition-property: none;
       scroll-behavior: auto !important;
     }
   }

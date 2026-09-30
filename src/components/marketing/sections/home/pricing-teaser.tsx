@@ -62,8 +62,14 @@ export function PricingTeaser() {
       className="pb-10 sm:pb-12"
     >
       {/* ONE CHOREOGRAPHY (R4): cards continue the header's cascade (slots 0-2)
-          and the CTA row closes it, under ONE observer. */}
-      <Reveal className="mx-auto mt-12 max-w-3xl">
+          and the CTA row closes it, under ONE observer.
+
+          ★ THE ROW IS AS WIDE AS ITS WIDEST PRICE NEEDS (crumbs-14). A price
+          never breaks (price-pop.tsx) and never leaves its step, so the cards
+          make the room: at 3xl a card held 195px and "from $9/mo" at the
+          section step's 52px needs 215. 4xl is the home's other object width
+          (the curation, the live demo, full quality). */}
+      <Reveal className="mx-auto mt-12 max-w-4xl">
         <div className="grid gap-4 sm:grid-cols-3">
           {cards.map((card, i) => {
             const body = (
@@ -97,7 +103,7 @@ export function PricingTeaser() {
                     ladder's `section` step ("a stat numeral"), the one
                     /pricing's cards wear too. No tracking-tight beside it: it
                     resolves to 0em here and would cancel the step's own. */}
-                <div className="mt-3 font-heading text-section font-medium tabular-nums">
+                <div className="mt-3 font-heading text-section tabular-nums">
                   <PricePop label={card.price} />
                 </div>
                 <p className="mt-auto pt-3 text-xs leading-relaxed text-muted-foreground">

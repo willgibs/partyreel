@@ -11,7 +11,7 @@ import { describe, expect, it, vi } from "vitest";
 // no react-server condition, so the marker module is stubbed out here.
 vi.mock("server-only", () => ({}));
 
-import { SANDBOX } from "../touchpoints";
+import { BOARDS } from "../sandbox/registry";
 import {
   createHeadingIds,
   headingsOf,
@@ -157,7 +157,7 @@ describe("listings", () => {
     // A board's argument lives in its own spec.ts; a docs/specs document is
     // written only when a board needs one, and it leaves with its board, so
     // what is decided lives in production rather than in a spec.
-    const standing = new Set<string>(SANDBOX.map((r) => r.id));
+    const standing = new Set<string>(BOARDS.map((b) => b.id));
     for (const spec of listSpecs()) {
       expect(spec.title.length, spec.slug).toBeGreaterThan(0);
       expect(spec.title.startsWith("#")).toBe(false);

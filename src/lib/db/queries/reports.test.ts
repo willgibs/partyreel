@@ -36,12 +36,20 @@ let fake: FakePostgrest;
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => asSupabase(fake),
 }));
+// The address's keyed hash, as a readable stand-in (the real one needs the rate-limit secret).
+vi.mock("@/lib/reports/reporter.server", () => ({
+  reporterAddressHash: (email: string) => `hash:${email.trim().toLowerCase()}`,
+}));
 
 const {
   countOpenReports,
+  countUrgentReports,
+  listOpenEntries,
   listProfileReports,
   listReports,
   oldestOpenReportAt,
+  readCoveredItems,
+  readProofAsk,
 } = await import("@/lib/db/queries/reports");
 
 /** The page's one clock read (`serverNow()`), the instant every closed line's window is measured from. */
@@ -205,6 +213,91 @@ describe("the queue's figures", () => {
   it("no open report reads null", async () => {
     fake = world([]);
     await expect(oldestOpenReportAt()).resolves.toBeNull();
+  });
+});
+
+/**
+ * THE TWO READS THE TRIAGE MIGRATION ADDED (20260929140000), now over the generated types: the portal's urgent
+ * count (open child-abuse reports, a head count) and what an answer link opens. A failed read throws, where a
+ * missing column used to read as "no urgent reports" or "a spent link" (crumbs-15: the seam went with the apply).
+ */
+describe("the urgent count and the answer link's ask", () => {
+  const report = (id: string, over: FakeRow = {}): FakeRow => ({
+    id,
+    status: "open",
+    kind: "other",
+    event_id: uuid("e", 1),
+    proof_token_hash: null,
+    proof_question: null,
+    proof_answered_at: null,
+    ...over,
+  });
+
+  it("counts only the open child-abuse reports", async () => {
+    fake = createFakePostgrest({
+      tables: {
+        reports: [
+          report("r1", { kind: "child" }),
+          report("r2", { kind: "child" }),
+          report("r3", { kind: "child", status: "dismissed" }),
+          report("r4", { kind: "sexual" }),
+        ],
+      },
+    });
+    await expect(countUrgentReports()).resolves.toBe(2);
+  });
+
+  it("opens the operator's question on an open, unanswered report, with the album's name", async () => {
+    fake = createFakePostgrest({
+      tables: {
+        events: [{ id: uuid("e", 1), name: "Priya & Sam's baby shower" }],
+        reports: [
+          report("r1", {
+            proof_token_hash: "hash-1",
+            proof_question: "Which photo of the toast?",
+          }),
+        ],
+      },
+    });
+    await expect(readProofAsk("hash-1")).resolves.toEqual({
+      question: "Which photo of the toast?",
+      eventName: "Priya & Sam's baby shower",
+    });
+  });
+
+  it("reads a used, a closed, a question-less and an unknown link all the same: nothing", async () => {
+    fake = createFakePostgrest({
+      tables: {
+        reports: [
+          report("r1", {
+            proof_token_hash: "answered",
+            proof_question: "Which?",
+            proof_answered_at: "2026-09-29T10:00:00.000Z",
+          }),
+          report("r2", {
+            proof_token_hash: "closed",
+            proof_question: "Which?",
+            status: "dismissed",
+          }),
+          report("r3", { proof_token_hash: "no-question" }),
+        ],
+      },
+    });
+    for (const hash of ["answered", "closed", "no-question", "unknown"]) {
+      await expect(readProofAsk(hash)).resolves.toBeNull();
+    }
+  });
+
+  it("★ a failed read throws, and never reads as a spent link or as no urgent report", async () => {
+    fake = createFakePostgrest({ tables: {} });
+    const from = fake.from.bind(fake);
+    fake.from = (table: string) => from(table === "reports" ? "gone" : table);
+    await expect(readProofAsk("hash-1")).rejects.toThrow(
+      "report answer: the ask",
+    );
+    await expect(countUrgentReports()).rejects.toThrow(
+      "admin reports: urgent count",
+    );
   });
 });
 
@@ -424,5 +517,321 @@ describe("the verdict's record and the item's standing", () => {
       [uuid("q", 3), "reopen"],
       [uuid("q", 4), null],
     ]);
+  });
+});
+
+describe("the closed log keeps the worst kinds covered (build 23's NIT-7)", () => {
+  const T_JS = "2026-09-28T20:00:00.123Z";
+  const report = (i: number, media: number, over: FakeRow) => ({
+    id: uuid("r", i),
+    reason: null,
+    created_at: at(i),
+    status: "dismissed",
+    resolved_at: T_JS,
+    resolution_note: null,
+    event_id: uuid("e", 1),
+    media_id: uuid("m", media),
+    profile_id: null,
+    ...over,
+  });
+  const media = (i: number) => ({
+    id: uuid("m", i),
+    type: "photo",
+    original_key: `key-${i}`,
+    preview_key: `preview-${i}`,
+    status: "approved",
+    removed_by_admin: false,
+    removed_at: null,
+    legal_hold_at: null,
+  });
+
+  it("★ signs no picture for an item any report names as a covered kind, open or closed", async () => {
+    fake = createFakePostgrest({
+      tables: {
+        events: [{ id: uuid("e", 1), name: "RT23 doors A" }],
+        media: [media(1), media(2), media(3)],
+        reports: [
+          // A child-abuse report, dismissed (the red-team's line).
+          report(1, 1, { kind: "child" }),
+          // Dismissed as violence, while another report calls the same photo sexual content.
+          report(2, 2, { kind: "violence" }),
+          report(3, 2, { kind: "sexual", status: "open", resolved_at: null }),
+          // Violence alone: its frame is the operator's to see.
+          report(4, 3, { kind: "violence" }),
+        ],
+      },
+    });
+    const { reports } = await listReports("dismissed", 50, NOW);
+    const itemOf = (i: number) =>
+      reports.find((r) => r.id === uuid("r", i))?.media;
+    for (const i of [1, 2]) {
+      expect(itemOf(i)).toMatchObject({
+        covered: true,
+        url: null,
+        previewUrl: null,
+      });
+    }
+    expect(itemOf(4)).toMatchObject({
+      covered: false,
+      url: "signed:key-3",
+      previewUrl: "signed:preview-3",
+    });
+    // Nothing of a covered item was signed at all.
+    const urls = reports.flatMap((r) => [r.media?.url, r.media?.previewUrl]);
+    expect(urls.filter((u) => /key-[12]|preview-[12]/.test(String(u)))).toEqual(
+      [],
+    );
+  });
+});
+
+describe("the open queue says who sent each report (build 23's LOW-2 and NIT-8)", () => {
+  const HOST = uuid("p", 1);
+  const report = (i: number, over: FakeRow) => ({
+    id: uuid("r", i),
+    reason: null,
+    created_at: at(i),
+    status: "open",
+    event_id: uuid("e", 1),
+    media_id: uuid("m", i),
+    kind: "violence",
+    reporter_signed_in: true,
+    reporter_email: null,
+    reporter_hash: null,
+    hid_at: null,
+    ...over,
+  });
+  const media = (i: number) => ({
+    id: uuid("m", i),
+    type: "photo",
+    original_key: `key-${i}`,
+    preview_key: null,
+    status: "approved",
+    removed_by_admin: false,
+    removed_at: null,
+    legal_hold_at: null,
+    event_id: uuid("e", 1),
+    guest_id: null,
+    guests: null,
+  });
+
+  it("★ tells the album's own host from a guest, and a reopened report's confirmed address from none", async () => {
+    fake = createFakePostgrest({
+      tables: {
+        events: [{ id: uuid("e", 1), name: "RT23 doors A", host_id: HOST }],
+        profiles: [
+          { id: HOST, display_name: "Will Gibson", email: "Host@Example.com" },
+        ],
+        media: [1, 2, 3, 4].map(media),
+        reports: [
+          // The host's own report, its address still kept.
+          report(1, { reporter_email: "host@example.com" }),
+          // A guest's.
+          report(2, { reporter_email: "guest@example.com" }),
+          // The host's worst-kind report, dismissed and reopened: the address forgotten, its hash kept.
+          report(3, { kind: "child", reporter_hash: "hash:host@example.com" }),
+          // A guest's worst-kind report, reopened the same way.
+          report(4, { kind: "child", reporter_hash: "hash:guest@example.com" }),
+        ],
+      },
+      rpc: { report_queue_facts: () => ({}) },
+    });
+    const { entries } = await listOpenEntries(50);
+    const said = Object.fromEntries(
+      entries.map((e) => [
+        e.reportId,
+        {
+          byHost: e.reports[0].byHost,
+          confirmed: e.reports[0].confirmed,
+          canAsk: e.reports[0].canAsk,
+        },
+      ]),
+    );
+    expect(said).toEqual({
+      [uuid("r", 1)]: { byHost: true, confirmed: true, canAsk: true },
+      [uuid("r", 2)]: { byHost: false, confirmed: true, canAsk: true },
+      [uuid("r", 3)]: { byHost: true, confirmed: true, canAsk: false },
+      [uuid("r", 4)]: { byHost: false, confirmed: true, canAsk: false },
+    });
+  });
+});
+
+describe("what a report named outlives its item's row (crumbs-21, migration 20260929231000)", () => {
+  // A purged item's report used to lose its media_id to ON DELETE SET NULL and read as its album's.
+  // The report keeps the id and the kind now, so it reads as that item's, gone, and never as an album's.
+  const T_JS = "2026-09-28T20:00:00.123Z";
+  const closed = (i: number, over: FakeRow) => ({
+    id: uuid("r", i),
+    reason: null,
+    created_at: at(i),
+    status: "dismissed",
+    resolved_at: T_JS,
+    resolution_note: null,
+    event_id: uuid("e", 1),
+    media_id: null,
+    media_type: null,
+    profile_id: null,
+    kind: "violence",
+    ...over,
+  });
+  const standing = {
+    id: uuid("m", 2),
+    type: "photo",
+    original_key: "key-2",
+    preview_key: null,
+    status: "approved",
+    removed_by_admin: false,
+    removed_at: null,
+    legal_hold_at: null,
+  };
+
+  function world() {
+    return createFakePostgrest({
+      tables: {
+        events: [{ id: uuid("e", 1), name: "RT23 doors A" }],
+        media: [standing],
+        reports: [
+          // A video, reported, dismissed, then purged: its report still names it.
+          closed(1, { media_id: uuid("m", 1), media_type: "video" }),
+          // A photo still standing.
+          closed(2, { media_id: uuid("m", 2), media_type: "photo" }),
+          // The album itself.
+          closed(3, {}),
+        ],
+      },
+    });
+  }
+
+  it("★ reads a report whose item is gone as that item's, with its kind, never its album's", async () => {
+    fake = world();
+    const { reports } = await listReports("all", 50, NOW);
+    const byId = new Map(reports.map((r) => [r.id, r]));
+    expect(byId.get(uuid("r", 1))).toMatchObject({
+      media: null,
+      deleted: { id: uuid("m", 1), type: "video" },
+    });
+    expect(byId.get(uuid("r", 2))?.media).toMatchObject({ id: uuid("m", 2) });
+    expect(byId.get(uuid("r", 2))?.deleted).toBeNull();
+    // The album's own report names no item, gone or standing.
+    expect(byId.get(uuid("r", 3))).toMatchObject({
+      media: null,
+      deleted: null,
+    });
+  });
+
+  it("reads the kind as unknown until the column stands, never a failed inbox", async () => {
+    // Before the migration is applied PostgREST answers the undefined column (42703): the gone item is
+    // still named, its kind unknown, and every other report reads as before.
+    const real = world();
+    fake = {
+      ...real,
+      from: (table: string) => {
+        const target = real.from(table);
+        if (table !== "reports") return target;
+        return new Proxy(target, {
+          get(t, prop, receiver) {
+            if (prop !== "select") return Reflect.get(t, prop, receiver);
+            return (columns: string, ...rest: unknown[]) =>
+              columns.includes("media_type")
+                ? {
+                    in: async () => ({
+                      data: null,
+                      error: {
+                        code: "42703",
+                        message: "column reports.media_type does not exist",
+                        details: "",
+                        hint: "",
+                      },
+                      count: null,
+                      status: 400,
+                      statusText: "Bad Request",
+                    }),
+                  }
+                : (t.select as (...a: unknown[]) => unknown)(columns, ...rest);
+          },
+        });
+      },
+    } as FakePostgrest;
+    const { reports } = await listReports("all", 50, NOW);
+    expect(reports.find((r) => r.id === uuid("r", 1))?.deleted).toEqual({
+      id: uuid("m", 1),
+      type: null,
+    });
+    expect(reports).toHaveLength(3);
+  });
+
+  it("★ a dismissal reopened after its item was purged comes back as that item's entry, not its album's", async () => {
+    fake = createFakePostgrest({
+      tables: {
+        events: [
+          { id: uuid("e", 1), name: "RT23 doors A", host_id: uuid("p", 1) },
+        ],
+        profiles: [{ id: uuid("p", 1), display_name: "Will", email: null }],
+        media: [],
+        reports: [
+          {
+            id: uuid("r", 1),
+            reason: null,
+            created_at: at(1),
+            status: "open",
+            event_id: uuid("e", 1),
+            media_id: uuid("m", 1),
+            media_type: "photo",
+            kind: "sexual",
+            reporter_signed_in: false,
+            reporter_email: null,
+            reporter_hash: null,
+            hid_at: null,
+          },
+        ],
+      },
+      rpc: { report_queue_facts: () => ({}) },
+    });
+    const { entries } = await listOpenEntries(50);
+    expect(entries).toHaveLength(1);
+    expect(entries[0]).toMatchObject({
+      key: `item:${uuid("m", 1)}`,
+      subject: "item",
+      media: null,
+      deleted: { id: uuid("m", 1), type: "photo" },
+    });
+  });
+});
+
+describe("the covered rule's one home, as the albums grid asks it (crumbs-21)", () => {
+  const report = (i: number, over: FakeRow) => ({
+    id: uuid("r", i),
+    event_id: uuid("e", 1),
+    media_id: uuid("m", i),
+    kind: "violence",
+    status: "dismissed",
+    ...over,
+  });
+
+  it("★ answers every item of one album any report names as a covered kind, open or closed, and no other album's", async () => {
+    fake = createFakePostgrest({
+      tables: {
+        reports: [
+          report(1, { kind: "child" }),
+          report(2, { kind: "sexual", status: "open" }),
+          report(3, { kind: "violence" }),
+          // Named twice: once covered is covered.
+          report(4, { kind: "other" }),
+          report(5, { kind: "sexual", media_id: uuid("m", 4) }),
+          // The album's own report names no item.
+          report(6, { kind: "child", media_id: null }),
+          // Another album's worst kind.
+          report(7, { kind: "child", event_id: uuid("e", 2) }),
+        ],
+      },
+    });
+    const covered = await readCoveredItems({ eventId: uuid("e", 1) });
+    expect([...covered].sort()).toEqual(
+      [uuid("m", 1), uuid("m", 2), uuid("m", 4)].sort(),
+    );
+    // Asked by the items a list holds, it answers the same rule.
+    const byItems = await readCoveredItems({
+      mediaIds: [uuid("m", 1), uuid("m", 3), uuid("m", 7)],
+    });
+    expect([...byItems].sort()).toEqual([uuid("m", 1), uuid("m", 7)].sort());
   });
 });

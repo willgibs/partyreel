@@ -1,8 +1,11 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
-import type { ModerationGridItem } from "@/lib/moderation/operator-actions";
+import type {
+  ModerationGridItem,
+  ModerationTile,
+} from "@/lib/moderation/operator-actions";
 
 import { ModerationGrid } from "./moderation-grid";
 
@@ -147,7 +150,7 @@ describe("the operator's Remove", () => {
   it("lists what the removal reaches, never what is already so", async () => {
     mount();
     fireEvent.click(screen.getAllByRole("button", { name: "Remove" })[0]);
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole("alertdialog");
     const lines = [
       ...dialog.querySelectorAll("[data-slot='destructive-touches'] li"),
     ].map((li) => li.textContent);
@@ -157,5 +160,57 @@ describe("the operator's Remove", () => {
       "-At an event that reviews uploads, the guest who sent it sees “Not approved” in her uploads list",
       "-Restorable here for 30 days, then the purge deletes it unless it is held",
     ]);
+  });
+});
+
+/**
+ * THE WORST KINDS ARRIVE COVERED IN THE ALBUMS GRID (build 23's NIT-7, carried here by crumbs-21): the
+ * reports inbox covers an item a report of the worst kinds names, and the albums grid covers the same set
+ * from the same rule (`readCoveredItems`). A covered item comes with no url at all, so its tile draws the
+ * cover, opens nothing, and the viewer steps only through what is seen; Remove and Restore stay on it.
+ */
+describe("a covered item in the albums grid", () => {
+  const COVERED: ModerationTile = {
+    id: "m3",
+    type: "photo",
+    covered: true,
+    status: "approved",
+    eventId: "e1",
+    eventName: "Maya & Jay",
+    hostLabel: "Maya",
+  };
+
+  function mountWithCovered() {
+    return render(
+      <TooltipProvider>
+        <ModerationGrid items={[ITEMS[0], COVERED, ITEMS[1]]} mode="album" />
+      </TooltipProvider>,
+    );
+  }
+
+  it("★ draws the cover, loads no picture of it, and opens nothing", () => {
+    mountWithCovered();
+    const tile = document.querySelector('[data-media-id="m3"]') as HTMLElement;
+    expect(
+      within(tile).getByRole("img", { name: "Covered photo" }),
+    ).toBeInTheDocument();
+    expect(tile.querySelector("img, video")).toBeNull();
+    expect(within(tile).queryByLabelText("View photo")).toBeNull();
+    // The operator's acts stay: a removal needs no look.
+    expect(within(tile).getByRole("button", { name: "Remove" })).toBeTruthy();
+    // The seen tiles still open, two of them.
+    expect(screen.getAllByLabelText("View photo")).toHaveLength(2);
+  });
+
+  it("the viewer steps through the seen items alone", async () => {
+    mountWithCovered();
+    fireEvent.click(screen.getAllByLabelText("View photo")[1]);
+    await act(async () => {});
+    expect(screen.getByRole("dialog", { name: "Photo 2 of 2" })).toBeTruthy();
+    expect(
+      document
+        .querySelector("[data-lightbox-media] img")
+        ?.getAttribute("src") ?? "",
+    ).not.toContain("m3");
   });
 });

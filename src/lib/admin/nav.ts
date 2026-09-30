@@ -152,7 +152,18 @@ export type PendingCounts = {
   reports: number;
   /** Jobs an operator has to act on; 1 stands for an unreadable console. */
   jobs: number;
+  /**
+   * THE PORTAL'S OWN SIGNAL FOR A REPORT THAT CANNOT WAIT (admin-triage r2): the open child-abuse reports among
+   * `reports`, hidden at once or still up. The rail wears it in the destructive tone and the bell names it.
+   * Optional so a surface that has no read of it (a Library specimen) still compiles; absent reads as zero.
+   */
+  urgentReports?: number;
 };
+
+/** A nav row's urgent share of its count (only Reports has one). */
+export function urgentForHref(counts: PendingCounts, href: string): number {
+  return href === "/admin/reports" ? (counts.urgentReports ?? 0) : 0;
+}
 
 /** The count a nav row shows, by href. Zero means the row shows nothing at all. */
 export function pendingForHref(counts: PendingCounts, href: string): number {

@@ -94,9 +94,20 @@ export function PhoneDocument({
     const frame = frameRef.current;
     if (!frame) return;
     let watcher: MutationObserver | null = null;
+    /** The document this frame last fired `load` for: one that stays (see `mount`). */
+    let loaded: Document | null = null;
     const mount = () => {
       const doc = frame.contentDocument;
       if (!doc?.head || !doc.body) return;
+      // ★ NEVER INTO THE FIRST DOCUMENT (crumbs-18; the lab's `Frame` had it first, crumbs-16). An iframe
+      // with a `srcdoc` is born holding an `about:blank` document that the srcdoc one REPLACES a task or
+      // more later. An effect that beat it (which one wins depends on the machine) cloned the page's sheets
+      // into the document that was going and built the whole screen there, then did it all again on the
+      // load. So wait for the frame's own `load`, which brings `mount` round on the document that stays;
+      // a srcdoc that had already committed reads as `about:srcdoc` and goes straight on (no load is
+      // coming that this could hear). jsdom keeps `about:blank`, so "a document the frame has loaded" is
+      // the test that holds in both.
+      if (doc.URL === "about:blank" && loaded !== doc) return;
       if (!doc.head.querySelector("[data-shot-copied]")) {
         document
           .querySelectorAll(SHEETS)
@@ -109,9 +120,8 @@ export function PhoneDocument({
           "class",
           document.documentElement.className.replace(/\bdark\b/g, " ").trim(),
         );
-        // A sheet that arrives later (a lazily loaded piece's own CSS) is copied as it lands. The
-        // `srcdoc` swaps the frame's first blank document for its own on load, so a watcher over the
-        // one it replaced is let go first: one watcher, one live document.
+        // A sheet that arrives later (a lazily loaded piece's own CSS) is copied as it lands. One
+        // watcher, one live document: a frame that loads again is watched afresh.
         watcher?.disconnect();
         watcher = new MutationObserver((records) => {
           for (const record of records) {
@@ -126,10 +136,14 @@ export function PhoneDocument({
       }
       setBody(doc.body);
     };
+    const onLoad = () => {
+      loaded = frame.contentDocument;
+      mount();
+    };
     mount();
-    frame.addEventListener("load", mount);
+    frame.addEventListener("load", onLoad);
     return () => {
-      frame.removeEventListener("load", mount);
+      frame.removeEventListener("load", onLoad);
       watcher?.disconnect();
     };
   }, [near]);

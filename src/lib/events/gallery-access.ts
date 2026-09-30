@@ -11,6 +11,7 @@
  * the admin client live in `gallery-access.server.ts`.
  */
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
+import type { DoorDecision } from "@/lib/event/door/decide";
 
 export type GalleryAccess = "none" | "teaser" | "full";
 
@@ -21,14 +22,41 @@ export type GalleryAccess = "none" | "teaser" | "full";
  * step machine (`lib/guest/entry-steps.ts`) reads it to pick the step. They are separate answers
  * because `teaser` has two causes -- an unconfirmed email and an unmade contribution -- and a
  * level alone could not tell them apart.
+ *
+ * ★ THE DOORS ADD TWO, BOTH AT `none` (event-settings r1): `waiting` (the held door: the host will
+ * let her in) and `ask` (a confirmed newcomer who can ask to be let in). And `account` can stand at
+ * `none` too: a newcomer at a gate the host answers confirms an email with NOTHING real behind her
+ * (the ghost river a password page draws), where an open album shows its teaser.
  */
-export type GalleryGate = "password" | "account" | "upload";
+export type GalleryGate = "password" | "account" | "upload" | "waiting" | "ask";
 
 /** The whole server-side answer for one viewer: how much, and what stands in the way. */
 export type GalleryDecision = {
   access: GalleryAccess;
   gate: GalleryGate | null;
 };
+
+/**
+ * THE DOOR'S OWN ANSWER, for a request it does not let through (`lib/event/door/decide.ts`): nothing
+ * real leaves the server, and the gate names the step. Null when the door lets the request through
+ * (the album's own gates then decide, `resolveGalleryDecision`) or shuts it (the page's shut screen,
+ * every route's private answer).
+ */
+export function doorGalleryDecision(
+  decision: DoorDecision,
+): GalleryDecision | null {
+  switch (decision.kind) {
+    case "waiting":
+      return { access: "none", gate: "waiting" };
+    case "ask":
+      return { access: "none", gate: "ask" };
+    case "newcomer":
+      return { access: "none", gate: "account" };
+    case "shut":
+    case "through":
+      return null;
+  }
+}
 
 // How many newest approved PHOTOS an un-gated viewer sees as the teaser (the rest are withheld
 // server-side, surfaced only as a "+N more" count). Photos only: a teaser is a quick visual taste and

@@ -40,10 +40,13 @@ const REFUSAL = {
 };
 
 let assigned: string | null = null;
+// The page the button is pressed on: a sign-in fallback carries it back (crumbs-20).
+let pathname = "/";
 beforeEach(() => {
   replies = {};
   calls.length = 0;
   assigned = null;
+  pathname = "/";
   vi.mocked(toast).mockClear();
   vi.mocked(toast.error).mockClear();
   push.mockClear();
@@ -67,6 +70,9 @@ beforeEach(() => {
     configurable: true,
     value: {
       ...window.location,
+      get pathname() {
+        return pathname;
+      },
       set href(url: string) {
         assigned = url;
       },
@@ -191,6 +197,44 @@ describe("the ordinary paths", () => {
   });
 
   it("sends a signed-out visitor to sign in", async () => {
+    replies["/api/stripe/checkout"] = { status: 401, body: {} };
+    await press();
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/login"));
+  });
+});
+
+/**
+ * ★ A SIGNED-OUT PRESS CARRIES ITS OWN PAGE THROUGH THE SIGN-IN (crumbs-20: the ROADMAP's six
+ * bare `/login` fallbacks, from `crumbs-11`). A session that lapsed while a host sat on a page comes
+ * back to that page after the sign-in, not to the dashboard. The page rides only where it is one a
+ * sign-in may return to (`loginPath`, lib/auth/return-path.ts): the public pricing page is not, so
+ * its visitor still gets the bare login it always had.
+ */
+describe("a signed-out press carries the page it was pressed on", () => {
+  it("returns to the host's page after signing in", async () => {
+    pathname = "/account";
+    replies["/api/stripe/checkout"] = { status: 401, body: {} };
+    await press();
+    await waitFor(() =>
+      expect(push).toHaveBeenCalledWith("/login?next=%2Faccount"),
+    );
+  });
+
+  it("does the same when the change-plan hop finds the session gone", async () => {
+    pathname = "/dashboard";
+    replies["/api/stripe/checkout"] = {
+      status: 409,
+      body: { ok: false, code: "already_subscribed", message: "On Pro." },
+    };
+    replies["/api/stripe/change-plan"] = { status: 401, body: {} };
+    await press();
+    await waitFor(() =>
+      expect(push).toHaveBeenCalledWith("/login?next=%2Fdashboard"),
+    );
+  });
+
+  it("leaves the public pricing page's visitor on the bare login", async () => {
+    pathname = "/pricing";
     replies["/api/stripe/checkout"] = { status: 401, body: {} };
     await press();
     await waitFor(() => expect(push).toHaveBeenCalledWith("/login"));

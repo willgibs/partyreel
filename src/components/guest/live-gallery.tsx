@@ -262,8 +262,9 @@ function LiveGalleryView({
     () => (marks.landed ? [marks.landed] : []),
     [marks.landed],
   );
-  // The glow holds PER ID (overlapping arrivals each get a full life); the sweep is EXCLUSIVE.
-  const arrivedIds = useArrivalMarks(marks.arrived, ARRIVAL_GLOW_MS);
+  // The sweep is EXCLUSIVE (only the newest own landing). The glow is the rows' own (`GalleryRows`, given
+  // the arrivals): each arrival is held out of the rows until its photograph is decoded, so its light is
+  // lit when it lands, per id (overlapping arrivals each get a full life), never at the delta.
   const landedIds = useArrivalMarks(landedList, ARRIVAL_SWEEP_MS, true);
 
   /* ────────────────────────────────────────────────────────────────────────
@@ -421,8 +422,11 @@ function LiveGalleryView({
               onWindowChange={onWindowChange}
               onViewerNeedLinks={onViewerNeedLinks}
               shareUrl={joinUrl}
-              // The two arrival marks on the tile box — the light is shared/arrival.css.
-              arrivedIds={arrivedIds}
+              // The two arrival marks on the tile box — the light is shared/arrival.css: the glow of what
+              // arrived by itself (held at the door until it can land complete, `use-arrival-gate.ts`, and
+              // its links asked for there) and the sweep of this device's own landing.
+              arrivals={marks.arrived}
+              onNeedLinks={ensureLinks}
               landedIds={landedIds}
               // A guest removes THEIR OWN photograph and no other: omitted where the feature does not
               // apply (the demo, a locked gallery) rather than passed with an empty set.

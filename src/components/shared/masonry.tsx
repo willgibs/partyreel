@@ -83,6 +83,7 @@ import {
   MediaLightboxLazy,
   preloadMediaLightbox,
 } from "@/components/shared/media-lightbox.lazy";
+import { layerIsUp } from "@/components/ui/layer-is-up";
 import { readPhotoParam, withPhotoParam } from "@/lib/media/share-save";
 import { tileAspect } from "@/lib/media/tile-aspect";
 import type { RowAnchor, RowStep } from "@/lib/shared/album-rows";
@@ -185,9 +186,7 @@ function writeAddress(id: string | null) {
 
 /** A dialog someone else opened (the album's door), which the address waits behind. */
 function foreignDialogOpen() {
-  return !!document.querySelector(
-    "[role='dialog']:not([data-lightbox-content]), [role='alertdialog']",
-  );
+  return layerIsUp({ except: "[data-lightbox-content]", dialogsOnly: true });
 }
 
 /** A tile's box by the id of the photograph in it. */

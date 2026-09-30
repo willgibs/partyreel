@@ -1,9 +1,33 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { describe, expect, it } from "vitest";
+import { act, fireEvent, render } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { EVENT_ROOMS } from "@/lib/event/sections";
+
+import { EdgeFadeScroller } from "./edge-fade-scroller";
+import { EventCardsRow } from "./event-cards-row";
+
+// The row's own neighbours, stood in for so it mounts without the hub's server graph: the page's
+// share island (the Invite pill shows, as it does once the header's code has scrolled away), the
+// album's store (none: the served cards stand), and the reel card's one server read.
+vi.mock("@/components/app/share/event-share-provider", () => ({
+  useEventShare: () => ({
+    openSheet: vi.fn(),
+    openCode: vi.fn(),
+    headerCodeHidden: true,
+    morphNameFor: () => undefined,
+  }),
+}));
+vi.mock("@/components/app/event-feed/host-album", () => ({
+  useHostAlbum: () => null,
+  useHubCounts: () => null,
+  useHubEntries: () => null,
+}));
+vi.mock("@/app/(app)/dashboard/[eventId]/actions", () => ({
+  refreshHubReelAction: vi.fn(),
+}));
 
 /**
  * THE HUB'S ROW OF DOORS AND THE ALBUM UNDER IT (Will's `event=hub`,
@@ -34,15 +58,24 @@ const code = (rel: string) =>
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/^\s*\/\/.*$/gm, "");
 const CARDS = "src/components/app/event-feed/event-cards-row.tsx";
+const SCROLLER = "src/components/app/event-feed/edge-fade-scroller.tsx";
 const GALLERY = "src/components/app/event-feed/event-gallery.tsx";
 const HUB = "src/app/(app)/dashboard/[eventId]/page.tsx";
 
 describe("the cards row", () => {
-  it("ends on Settings, which is the card the album replaced", () => {
-    // His words: "we could switch the current 'Album' card to be 'Settings' and
-    // move it to last in the row". The album stopped being a door at all.
-    expect(EVENT_ROOMS.at(-1)!.id).toBe("settings");
-    expect(EVENT_ROOMS.map((r) => r.id)).not.toContain("album");
+  it("runs in his order: the Highlight reel, Guests, Review, and Settings last", () => {
+    // His words (`event-settings` `queue`, 2026-09-29): "the highlight reel card
+    // should be the first in the host events features row/grid. Then Guests,
+    // then Review, then Settings." Settings was already last ("we could switch
+    // the current 'Album' card to be 'Settings' and move it to last in the
+    // row"), and the album stopped being a door at all. The row, the phone's
+    // 2x2 grid (it fills by rows) and the help's picture all map this list.
+    expect(EVENT_ROOMS.map((r) => r.id)).toEqual([
+      "reel",
+      "guests",
+      "review",
+      "settings",
+    ]);
   });
 
   it("is a group of links and never a tablist", () => {
@@ -72,12 +105,21 @@ describe("the cards row", () => {
     ).toBe(true);
   });
 
-  it("scrolls sideways and fades only the edge that has something past it", () => {
-    const src = read(CARDS);
+  it("scrolls sideways inside the scroller whose fades are keyed on the overflow", () => {
+    // ★ THE RESHAPE (crumbs-12): this pin also asked the source for the names
+    // `overflowLeft` and `overflowRight`, and it stayed green for the whole life
+    // of the bug it was written to stop. `el.dataset.x = undefined` stores the
+    // string "undefined", so both flags stood at every width and both fades
+    // showed on a row of four that fits at 1440. The names prove nothing; what
+    // the fades DO is proven by driving the scroller (below). This keeps the
+    // two things only the source can say: the row rides that scroller, and each
+    // mask hangs off its own edge's flag.
+    expect(
+      /<EdgeFadeScroller>/.test(code(CARDS)),
+      "the row stopped riding the scroller",
+    ).toBe(true);
+    const src = read(SCROLLER);
     expect(/overflow-x-auto/.test(src), "the row stopped scrolling").toBe(true);
-    // Both edges are independent and both are measured, so a row of four that
-    // fits at 1440 shows no fade at all (his "conditional gradient").
-    expect(/overflowLeft/.test(src) && /overflowRight/.test(src)).toBe(true);
     expect(
       /data-\[overflow-left\]:\[mask-image/.test(src) &&
         /data-\[overflow-right\]:\[mask-image/.test(src),
@@ -105,6 +147,388 @@ describe("the cards row", () => {
       /\{headerCodeHidden && \(/.test(src),
       "the sticky QR pill stopped being gated on the header's code",
     ).toBe(true);
+  });
+});
+
+/**
+ * jsdom lays nothing out, so a test hands the scroller its geometry: how wide
+ * the row runs, how much of it shows, and how far it is scrolled.
+ */
+function layOut(
+  el: HTMLElement,
+  box: { scrollWidth: number; clientWidth: number; scrollLeft: number },
+) {
+  for (const [key, value] of Object.entries(box)) {
+    Object.defineProperty(el, key, { configurable: true, get: () => value });
+  }
+}
+
+const fades = (el: HTMLElement) => ({
+  left: el.hasAttribute("data-overflow-left"),
+  right: el.hasAttribute("data-overflow-right"),
+});
+
+describe("the row's edge fades (his `queue` note: conditional per scrollable side)", () => {
+  const mount = () => {
+    const view = render(
+      <EdgeFadeScroller>
+        <div>four doors</div>
+      </EdgeFadeScroller>,
+    );
+    return { view, el: view.container.firstElementChild as HTMLElement };
+  };
+
+  it("shows no fade on a row that fits, from its first paint", () => {
+    // "not exist in the default desktop view when wide enough that scrolling
+    // isn't needed". The first paint is jsdom's all-zero box: a row that fits.
+    const { el } = mount();
+    expect(fades(el)).toEqual({ left: false, right: false });
+    layOut(el, { scrollWidth: 600, clientWidth: 600, scrollLeft: 0 });
+    fireEvent.scroll(el);
+    expect(fades(el)).toEqual({ left: false, right: false });
+    // Nor within the pixel a fractional zoom leaves on a row that fits.
+    layOut(el, { scrollWidth: 601, clientWidth: 600, scrollLeft: 0 });
+    fireEvent.scroll(el);
+    expect(fades(el)).toEqual({ left: false, right: false });
+  });
+
+  it("fades only the side with more of the row past it, and neither end once reached", () => {
+    const { el } = mount();
+    // "if you're at the first/last that shadow disappears, showing you're at
+    // the end with nothing more hidden".
+    layOut(el, { scrollWidth: 900, clientWidth: 600, scrollLeft: 0 });
+    fireEvent.scroll(el);
+    expect(fades(el), "at the start").toEqual({ left: false, right: true });
+    layOut(el, { scrollWidth: 900, clientWidth: 600, scrollLeft: 150 });
+    fireEvent.scroll(el);
+    expect(fades(el), "in the middle").toEqual({ left: true, right: true });
+    layOut(el, { scrollWidth: 900, clientWidth: 600, scrollLeft: 300 });
+    fireEvent.scroll(el);
+    expect(fades(el), "at the end").toEqual({ left: true, right: false });
+    layOut(el, { scrollWidth: 900, clientWidth: 600, scrollLeft: 0 });
+    fireEvent.scroll(el);
+    expect(fades(el), "back at the start").toEqual({
+      left: false,
+      right: true,
+    });
+    // A flag and never a value: the variants match the attribute's presence.
+    expect(el.getAttribute("data-overflow-right")).toBe("");
+  });
+
+  it("measures again when a render changes the row without a scroll or a resize", () => {
+    // The Invite pill joins a row of tiles at a tablet's width and nothing
+    // resizes: the row simply runs further than the screen.
+    const { el, view } = mount();
+    layOut(el, { scrollWidth: 760, clientWidth: 600, scrollLeft: 0 });
+    view.rerender(
+      <EdgeFadeScroller>
+        <div>four doors and the Invite pill</div>
+      </EdgeFadeScroller>,
+    );
+    expect(fades(el)).toEqual({ left: false, right: true });
+  });
+});
+
+/**
+ * A PAGE TO JUMP IN: the part of a browser the row's stick depends on, at 375. jsdom lays nothing
+ * out and anchors nothing, so this plays the browser: where the row rests, the band's two heights,
+ * the sticky footprint's box, the IntersectionObserver the row asks (fired on its threshold's
+ * crossings, its root cut by the rootMargin the row passes), the ResizeObservers (fired when the
+ * band's box changes), and SCROLL ANCHORING, the other half of the loop, which keeps the album below
+ * the row still by moving the page by whatever the footprint gained or lost.
+ */
+function stickPage({ footprintFollowsBand = false, viewport = 812 } = {}) {
+  const REST_TOP = 241; // where the row rests in the page (the hub, measured at 375)
+  const VIEWPORT = viewport;
+  const BAND = { rest: 157, stuck: 57 }; // the 2x2 grid, and the pills stuck to the bar
+  const ROW = { rest: 359, stuck: 496, shows: 359 }; // how far the row runs, and how much shows
+  let scrollY = 0;
+
+  const group = () =>
+    document.querySelector<HTMLElement>(
+      '[role="group"][aria-label="This event"]',
+    );
+  const scroller = () => group()!.parentElement!;
+  const band = () => scroller().parentElement!;
+  const stuck = () => band().hasAttribute("data-stuck");
+  const bandHeight = () => (stuck() ? BAND.stuck : BAND.rest);
+
+  // The box the row's own floor reads: the band's, from its state.
+  const realRect = Element.prototype.getBoundingClientRect;
+  vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(
+    function (this: Element) {
+      if (!group() || this !== band()) return realRect.call(this);
+      const height = bandHeight();
+      return {
+        x: 0,
+        y: 0,
+        width: 375,
+        height,
+        top: 0,
+        left: 0,
+        bottom: height,
+        right: 375,
+        toJSON: () => ({}),
+      };
+    },
+  );
+
+  type Watch = { cb: ResizeObserverCallback; els: Set<Element> };
+  const resizes: Watch[] = [];
+  vi.stubGlobal(
+    "ResizeObserver",
+    class {
+      watch: Watch;
+      constructor(cb: ResizeObserverCallback) {
+        this.watch = { cb, els: new Set() };
+        resizes.push(this.watch);
+      }
+      observe(el: Element) {
+        this.watch.els.add(el);
+      }
+      unobserve(el: Element) {
+        this.watch.els.delete(el);
+      }
+      disconnect() {
+        this.watch.els.clear();
+      }
+    },
+  );
+
+  type Sight = {
+    cb: IntersectionObserverCallback;
+    rootTop: number;
+    rootBottom: number;
+    target: HTMLElement | null;
+  };
+  const sights: Sight[] = [];
+  vi.stubGlobal(
+    "IntersectionObserver",
+    class {
+      sight: Sight;
+      constructor(
+        cb: IntersectionObserverCallback,
+        options: IntersectionObserverInit = {},
+      ) {
+        // The root is the viewport cut and grown by the rootMargin the row passes: its top is the
+        // bar the row sticks under, its bottom the fold or, grown, further down the page.
+        const [top = "0px", , bottom = top] = (
+          options.rootMargin ?? "0px"
+        ).split(/\s+/);
+        const edge = (margin: string) =>
+          margin.endsWith("%")
+            ? (parseFloat(margin) / 100) * VIEWPORT
+            : parseFloat(margin);
+        this.sight = {
+          cb,
+          rootTop: -edge(top),
+          rootBottom: VIEWPORT + edge(bottom),
+          target: null,
+        };
+        sights.push(this.sight);
+      }
+      observe(el: HTMLElement) {
+        this.sight.target = el;
+      }
+      unobserve() {}
+      disconnect() {}
+      takeRecords() {
+        return [];
+      }
+    },
+  );
+
+  // The row's own observer: the one watching what holds the row (a link's prefetch may watch too).
+  const rowSight = () => sights.find((s) => s.target?.contains(group()))!;
+  const footprint = () => rowSight().target!;
+  // What the row takes up in the page: the band, or the floor its footprint holds, whichever is
+  // taller (unless the model plays the old row, whose footprint WAS the band).
+  const footprintHeight = () =>
+    footprintFollowsBand
+      ? bandHeight()
+      : Math.max(bandHeight(), parseFloat(footprint().style.minHeight) || 0);
+  // Sticky under the bar: the footprint rests in the page until the page scrolls it up to the bar.
+  const ratio = () => {
+    const { rootTop, rootBottom } = rowSight();
+    const top = Math.max(rootTop - 1, REST_TOP - scrollY);
+    const height = footprintHeight();
+    const seen = Math.min(top + height, rootBottom) - Math.max(top, rootTop);
+    return Math.max(0, seen) / height;
+  };
+
+  let full: boolean | null = null;
+  let lastFootprint = 0;
+  let lastBand = 0;
+
+  /** Frames until nothing moves (or 40): how many times the row flipped between its two states. */
+  async function settle() {
+    let flips = 0;
+    let wasStuck = stuck();
+    let quiet = 0;
+    for (let frame = 0; frame < 40 && quiet < 3; frame++) {
+      let moved = false;
+      // Layout, then scroll anchoring: the album below the row is kept where it was.
+      const height = footprintHeight();
+      if (lastFootprint && height !== lastFootprint) {
+        scrollY = Math.max(0, scrollY + height - lastFootprint);
+        moved = true;
+      }
+      lastFootprint = height;
+      // The size observers watching the band, when its box changed.
+      if (bandHeight() !== lastBand) {
+        lastBand = bandHeight();
+        moved = true;
+        for (const { cb, els } of resizes) {
+          if (els.has(band()))
+            await act(async () => cb([], {} as ResizeObserver));
+        }
+      }
+      // The row's observer, on its threshold's crossing (and its first report).
+      const nowFull = ratio() >= 1;
+      if (nowFull !== full) {
+        full = nowFull;
+        moved = true;
+        const entry = {
+          intersectionRatio: ratio(),
+          isIntersecting: ratio() > 0,
+          target: footprint(),
+        } as unknown as IntersectionObserverEntry;
+        await act(async () =>
+          rowSight().cb([entry], {} as IntersectionObserver),
+        );
+      }
+      if (stuck() !== wasStuck) {
+        wasStuck = stuck();
+        flips++;
+        moved = true;
+      }
+      quiet = moved ? 0 : quiet + 1;
+    }
+    return flips;
+  }
+
+  function mount() {
+    render(
+      <EventCardsRow
+        eventId="00000000-0000-4000-8000-000000000000"
+        cards={[
+          { id: "guests", value: "6 guests" },
+          { id: "review", value: "Off" },
+          { id: "settings", value: "Public" },
+        ]}
+        reel={{
+          state: "off",
+          have: 0,
+          of: 2,
+          stills: [],
+          viewHref: "/e/probe?reel",
+          moderated: false,
+          pending: 0,
+        }}
+      />,
+    );
+    // The pills run past the screen; the resting grid fits it.
+    const el = scroller();
+    Object.defineProperty(el, "clientWidth", { get: () => ROW.shows });
+    Object.defineProperty(el, "scrollLeft", { get: () => 0 });
+    Object.defineProperty(el, "scrollWidth", {
+      get: () => (stuck() ? ROW.stuck : ROW.rest),
+    });
+  }
+
+  return {
+    mount,
+    settle,
+    /** The page's own jump: `scrollTo`, a find, a focus, or the viewer's `scrollIntoView`. */
+    jump: (to: number) => {
+      scrollY = to;
+    },
+    at: () => scrollY,
+    stuck,
+    footprintHeight,
+    fades: () => fades(scroller()),
+    /** Where the row first meets the bar, and how much it loses there. */
+    band: { from: REST_TOP - 56, loses: BAND.rest - BAND.stuck },
+  };
+}
+
+describe("the row's stick, jumped into (crumbs-14)", () => {
+  // ★ THE LOOP THIS GUARDS (the claims walk on build 21, and a phone's everyday path: closing the
+  // viewer scrolls its photo back to the centre, `masonry.tsx`'s `returnTo()`). A jump into the
+  // band where the row meets the bar condensed it, scroll anchoring moved the page by what it lost
+  // to keep the album still, which took the row off the bar, which expanded it, which anchoring
+  // moved back: 250 to 151 and back for ever at 375, the fades stale both ways, and a jump past the
+  // band landing short by what the row lost.
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it("★ settles a jump into the band at once, where it was sent, and back out the same way", async () => {
+    const page = stickPage();
+    page.mount();
+    expect(await page.settle(), "at rest, above the bar").toBe(0);
+    const footprint = page.footprintHeight();
+
+    for (const into of [0, page.band.loses / 2, page.band.loses - 1]) {
+      const to = page.band.from + into;
+      page.jump(to);
+      expect(await page.settle(), `a jump to ${to}: one settle`).toBe(1);
+      expect(page.stuck()).toBe(true);
+      expect(page.at(), "the page stayed where it was sent").toBe(to);
+      expect(page.footprintHeight(), "nothing below the row moved").toBe(
+        footprint,
+      );
+      // The fades read the row as it ends up: pills running past the screen, at their start.
+      expect(page.fades()).toEqual({ left: false, right: true });
+
+      const back = page.band.from - 40;
+      page.jump(back);
+      expect(await page.settle(), "and back above the bar: one settle").toBe(1);
+      expect(page.stuck()).toBe(false);
+      expect(page.at()).toBe(back);
+      expect(page.footprintHeight()).toBe(footprint);
+      expect(page.fades(), "a resting grid that fits").toEqual({
+        left: false,
+        right: false,
+      });
+    }
+  });
+
+  it("lands a jump past the band exactly where it was sent, not short by what the row lost", async () => {
+    const page = stickPage();
+    page.mount();
+    await page.settle();
+    const to = page.band.from + page.band.loses + 200;
+    page.jump(to);
+    expect(await page.settle()).toBe(1);
+    expect(page.at()).toBe(to);
+  });
+
+  it("reads the bar, never the fold: a phone on its side rests unstuck at the top", async () => {
+    // At 330 tall the resting row's foot is below the fold. Measured to the fold, a ratio under 1
+    // read that as stuck, and stuck and resting never crossed a threshold between them.
+    const page = stickPage({ viewport: 330 });
+    page.mount();
+    expect(await page.settle()).toBe(0);
+    expect(page.stuck(), "at the top of the page").toBe(false);
+    page.jump(page.band.from + 20);
+    expect(await page.settle()).toBe(1);
+    expect(page.stuck()).toBe(true);
+    page.jump(0);
+    expect(await page.settle()).toBe(1);
+    expect(page.stuck(), "back at the top").toBe(false);
+  });
+
+  it("is a page that does loop when the footprint follows the band, as the old row's did", async () => {
+    // The control: without it the tests above could pass on a page too tame to loop at all.
+    const page = stickPage({ footprintFollowsBand: true });
+    page.mount();
+    await page.settle();
+    const to = page.band.from + page.band.loses / 2;
+    page.jump(to);
+    expect(await page.settle()).toBeGreaterThan(10);
+    expect(page.at()).not.toBe(to);
   });
 });
 
@@ -198,16 +622,13 @@ describe("the album, and the bin as its filter", () => {
 });
 
 describe("the settings sheet", () => {
-  it("opens over the album from a deep link, and keeps the form single-sourced", () => {
-    const sheet = read(
-      "src/components/app/event-settings/event-settings-sheet.tsx",
-    );
-    // The page of cards is not rebuilt: the shipped orchestrator is imported
-    // whole, so the sheet and the retired route cannot disagree about what a
-    // setting does.
-    expect(/import \{ EventSettingsForm \}/.test(sheet)).toBe(true);
-    // The retired route survives as a door to the sheet, so a bookmark to the
-    // URL we published for months still lands somewhere.
+  it("opens over the album from a deep link, a page riding beside it", () => {
+    // Scar: this pinned the retired form imported whole ("the sheet and the retired route cannot
+    // disagree"). The form retired with event-settings r1 (every control saves itself), so what is
+    // single-sourced now is the URL: the sheet's page is read off it by the provider, and the
+    // retired route still lands on the sheet.
+    const sheets = read("src/components/app/share/event-sheets.tsx");
+    expect(/page=\{settingsPage\}/.test(sheets)).toBe(true);
     const redirect = read(
       "src/app/(app)/dashboard/[eventId]/settings/page.tsx",
     );
@@ -216,15 +637,15 @@ describe("the settings sheet", () => {
     ).toBe(true);
   });
 
-  it("confirms before discarding unsaved edits, whichever way it is closed", () => {
-    // The route guarded a hard nav and its back-LINK. A sheet has no back-link
-    // and three ways out (the scrim, Escape, the close button), so all of them
-    // land on one guarded close.
-    const sheet = read(
+  it("closes from any page, with nothing to discard", () => {
+    // Scar: this pinned a guarded close ("confirms before discarding unsaved edits"). The reason
+    // expired with the form's Save (event-settings r1): nothing waits on a save, so no close is
+    // guarded, and every way out (Back, the X, Escape, the scrim) closes at once.
+    const sheet = code(
       "src/components/app/event-settings/event-settings-sheet.tsx",
     );
-    expect(/onOpenChange=\{requestClose\}/.test(sheet)).toBe(true);
-    expect(/if \(dirty\) \{\s*setConfirmOpen\(true\);/.test(sheet)).toBe(true);
-    expect(/useUnsavedChangesGuard\(dirty\)/.test(sheet)).toBe(true);
+    expect(/useUnsavedChangesGuard/.test(sheet)).toBe(false);
+    expect(/Discard changes/.test(sheet)).toBe(false);
+    expect(/onOpenChange=\{onOpenChange\}/.test(sheet)).toBe(true);
   });
 });

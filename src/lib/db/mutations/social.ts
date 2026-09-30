@@ -183,8 +183,7 @@ export async function setNotificationPrefs(
   if (!user) return UNAUTHORIZED;
 
   // Built on the row's own shape (notification-prefs.ts), which the table's generated type now
-  // carries too, so it is handed over as it is. Only the live switches map; the three columns
-  // nothing reads are never written either.
+  // carries too, so it is handed over as it is. Only the live switches map.
   const patch: Partial<NotificationPrefsRow> = {};
   if (prefs.notifyPassRenewal !== undefined)
     patch.notify_pass_renewal = prefs.notifyPassRenewal;
@@ -363,8 +362,7 @@ export async function applyShownEvents(choice: {
  * foreign/deleted event updates 0 rows and must not report success).
  *
  * ★ THE GUEST LIST HAS NO KEY: it is always on (Will, event-safety `room=always`,
- * 2026-09-28), so nothing writes `show_guest_list` any more (its column and grant
- * wait for a contract migration to drop them).
+ * 2026-09-28), and 20260929160000 drops the retired switch's column and grant.
  */
 export async function setEventSocialSettings(
   eventId: string,

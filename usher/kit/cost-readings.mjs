@@ -21,7 +21,7 @@ console.log(`cost: deployment cap | reading ${at} UTC | created in the trailing 
 
 // Second reading: deployment storage. The Hobby cap is 10 GB of deployment storage (the cost round, 2026-09-11: 381
 // retained deployments, 45 GB by 2026-09-18) and the API lists no byte sizes for Hobby, so the reading is the proxy the
-// prune's refusal acts on: how many deployments each project retains, per live branch, against the ruling of three per
+// prune's refusal acts on: how many deployments each project retains, per live branch, against his pick of three per
 // branch (Will, 2026-09-18) plus the aliased and production ones the prune's guards keep. A count drifting past the
 // policy is the fossil sign; the bytes stay unread until the API offers them.
 const KEEP = 3;

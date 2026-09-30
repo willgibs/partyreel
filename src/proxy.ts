@@ -106,6 +106,15 @@ export async function proxy(request: NextRequest) {
   } else {
     request.headers.delete(REQUEST_PATH_HEADER);
   }
+  // ★ A PAGE GOES ON WITH NO STATUS OF THE PROXY'S (gone-link-soft). On
+  // Vercel a request sent on with one (`NextResponse.next({ status: 404 })`)
+  // is answered with the platform's own /404, the root's page from its cache,
+  // and the page never renders: a stale guest link showed the site's generic
+  // 404 in place of its own screen (build 30's red-team; `next start` honours
+  // the status on the page's render, which is how it passed locally). A link
+  // that names nothing is the page's to draw, at 200 and noindex
+  // (marketing-content.md, "The 404 pages"). The two rewrites above keep their
+  // 404: the page they render is the root's, the same page Vercel serves.
   return updateSession(request);
 }
 

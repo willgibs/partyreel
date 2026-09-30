@@ -276,6 +276,8 @@ type RowsProps = {
   canDelete?: (item: GridMedia) => boolean;
   onDeleteItem?: (id: string) => void;
   onWindowChange?: (ids: readonly string[]) => void;
+  arrivals?: readonly string[];
+  onNeedLinks?: (ids: readonly string[]) => void;
 };
 const lastRows = () => rowsSpy.mock.calls.at(-1)![0] as RowsProps;
 const shownIds = () => lastRows().items.map((i) => i.id);
@@ -595,6 +597,47 @@ const { removeMyUploadGuestAction } =
   await import("@/app/(guest)/e/[token]/actions");
 const aFile = () => new File(["x"], "x.jpg", { type: "image/jpeg" });
 
+/**
+ * THE ALBUM'S YOURS, ON A SHARED PHONE (crumbs-27). A signed-in account's list is her account's, read in the page
+ * (`canDeleteIds`), and the album never asks the ticket the phone still holds for it which photographs are hers:
+ * that ask (`/api/guests/mine`) is the signed-out guest's alone, since another guest's name-only ticket is not hers
+ * (crumbs-26's owner rule) and its photographs must never join her Yours or wear her Remove. Green before this
+ * lane too (the album already read it so); pinned here because the export's own ids and her tracker did not, and
+ * the four readers must agree.
+ */
+describe("LiveGallery: whose the photographs are on a shared phone", () => {
+  const minesAsked = () =>
+    (global.fetch as ReturnType<typeof vi.fn>).mock.calls.filter(
+      ([url]) => url === "/api/guests/mine",
+    );
+
+  it("★ a signed-in guest's Yours is her account's alone: the phone's ticket is never asked which are hers", async () => {
+    answerSync(304);
+    await mount({
+      isAuthed: true,
+      canDeleteIds: ["m1"],
+      sessionToken: "t".repeat(64),
+    });
+    expect(minesAsked()).toEqual([]);
+    expect(lastRows().canDelete?.({ id: "m1" } as GridMedia)).toBe(true);
+    expect(lastRows().canDelete?.({ id: "m2" } as GridMedia)).toBe(false);
+  });
+
+  it("a signed-out guest's Yours is the device ticket's, asked once, the token in the body", async () => {
+    answerSync(304);
+    await mount({
+      isAuthed: false,
+      canDeleteIds: [],
+      sessionToken: "t".repeat(64),
+    });
+    expect(minesAsked()).toHaveLength(1);
+    expect(JSON.parse(String(minesAsked()[0][1].body))).toEqual({
+      qr_token: "qr-token-1",
+      session_token: "t".repeat(64),
+    });
+  });
+});
+
 describe("LiveGallery: a visit's own adds and removals, on either identity", () => {
   it("a signed-in guest's new photograph is theirs the moment it lands (Trash and the Yours filter)", async () => {
     const ref = createRef<LiveGalleryHandle>();
@@ -870,16 +913,59 @@ describe("LiveGallery: the header's count, exact and live", () => {
 });
 
 describe("LiveGallery: the arrival", () => {
-  it("what a delta brings that was not on screen glows, in its place; the seed never does", async () => {
+  it("what a delta brings that was not on screen is handed to the rows as an arrival, in its place; the seed never is", async () => {
     await mount();
-    const arrived = () =>
-      (rowsSpy.mock.calls.at(-1)![0] as { arrivedIds?: ReadonlySet<string> })
-        .arrivedIds;
-    expect(arrived()?.size ?? 0).toBe(0);
+    expect(lastRows().arrivals ?? []).toEqual([]);
     answerSync(delta(["m3"], [], 3));
     await poll();
-    // In the album's own order (m3 is the oldest of the three), and glowing.
+    // In the album's own order (m3 is the oldest of the three), and an arrival: the rows hold it out
+    // until its photograph is decoded and light it when it lands (`use-arrival-gate.ts`).
     expect(shownIds()).toEqual(["m1", "m2", "m3"]);
-    expect(arrived()?.has("m3")).toBe(true);
+    expect(lastRows().arrivals).toEqual(["m3"]);
+  });
+
+  it("gives the rows the way to ask for an arrival's link, since no window stands on it to ask (crumbs-23)", async () => {
+    // A delta brings the manifest's tuple alone; the link is asked for only by a window over the item.
+    // The rows hold an arrival out of every window until its photograph is ready, so they must ask.
+    await mount();
+    const links = () =>
+      (global.fetch as ReturnType<typeof vi.fn>).mock.calls.filter(
+        ([url]) => url === "/api/album/guest/media",
+      );
+    answerSync(delta(["m3"], [], 3));
+    await poll();
+    expect(links()).toHaveLength(0);
+    await act(async () => {
+      lastRows().onNeedLinks?.(["m3"]);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(links()).toHaveLength(1);
+    expect(JSON.parse(links()[0][1].body).ids).toEqual(["m3"]);
+    // And the link that lands is the item's own, for the rows' tile to draw.
+    expect(lastRows().items.find((i) => i.id === "m3")?.url).toBe(
+      "https://r2.test/t/m3",
+    );
+  });
+
+  it("never hands this device's own upload over as an arrival: it sweeps, it does not wait", async () => {
+    const ref = createRef<LiveGalleryHandle>();
+    await mount({ ref, isAuthed: true, canDeleteIds: [] });
+    // The manifest brings the photograph this device just sent (m9), as it brings anyone's.
+    answerSync(delta(["m9"], [], 3));
+    await act(async () => {
+      ref.current!.notifyUploaded({
+        mediaId: "m9",
+        queueId: "q1",
+        file: new File(["x"], "x.jpg", { type: "image/jpeg" }),
+        kind: "photo",
+        status: "approved",
+      });
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    await poll();
+    // In the album and not an arrival: the rows hold an arrival out until its photograph is decoded,
+    // and this device's own landing must appear the moment it is sent.
+    expect(shownIds()).toContain("m9");
+    expect(lastRows().arrivals ?? []).toEqual([]);
   });
 });

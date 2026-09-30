@@ -156,7 +156,12 @@ function LetBackInBody({
         toast.error(result.message);
         return;
       }
-      const told = letBackInToast(person.name, result.restored, result.noRoom);
+      const told = letBackInToast(
+        person.name,
+        result.restored,
+        result.noRoom,
+        person.lands,
+      );
       toast.success(told.title, { description: told.description });
       onDone();
       router.refresh();
@@ -167,7 +172,7 @@ function LetBackInBody({
     <>
       <PopupHeader
         title={letBackInTitle(person.name)}
-        description={letBackInLede(eventName)}
+        description={letBackInLede(eventName, person.lands)}
       />
       {offer ? (
         <PopupBody>

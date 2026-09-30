@@ -5,11 +5,19 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from "react";
 import { flushSync } from "react-dom";
 
+import {
+  resolveSettingsPage,
+  SETTINGS_PAGE_PARAM,
+  type SettingsPage,
+} from "@/components/app/event-settings/settings-pages";
+import { useOwnedEntry } from "@/lib/history-entry";
+import { useHydrated } from "@/lib/shared/use-hydrated";
 import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
 import {
   EVENT_SHEET_PARAM,
@@ -36,21 +44,47 @@ import {
  * App Router's sanctioned shallow mechanism (Next 16 docs, "single-page
  * applications") and `useSearchParams` follows it without a server round-trip.
  *
- * ★ THE MARKER RIDES INSIDE THE STATE NEXT MERGES, AND THAT DETAIL IS LOAD-
- * BEARING. Next patches `history.pushState` to copy `__NA` and its internals
- * tree onto whatever object you pass (`copyNextJsInternalHistoryState`), and
- * its `popstate` handler does `if (!state.__NA) window.location.reload()`. So
- * the marker must be a FIELD on the object we hand over — replacing the state
- * wholesale would turn the sheet's Back into a full page reload.
+ * ★ THE ENTRY'S HISTORY IS `lib/history-entry.ts`'s, whose header holds what Next does
+ * to an entry (measured). The sheets ask it four things: `push` when a card opens
+ * one, `close` (Back when the entry is ours; a host who landed on a link or a
+ * bookmark has nothing of ours behind them, so the parameter is dropped in place
+ * and Back never throws them out of the app), `replace` for a settings page
+ * moving inside the one entry, and `keep` after each render, which is how the
+ * marker outlives a router commit (every Settings save re-renders the page in its
+ * action's answer) and a reload. What was found HERE: a FRESH state and never `window.history.state`
+ * (build 23's red-team, HIGH). The settings page's replace used to hand
+ * `replaceState` the whole current state, "so the marker rides along untouched":
+ * the bar gained `&setting=<page>` and the router never heard of it, so a
+ * Settings row never opened its page and a page's back arrow never returned, and
+ * the next router commit wrote the old address back over the bar.
+ * `history-state-policy.test.ts` refuses the shape everywhere.
  *
- * ★ AND THE MARKER IS WHY CLOSING CAN USE `history.back()`. Going back is the
- * right close (it leaves no dead entry behind), but only when WE pushed the
- * entry. A host who landed directly on `?room=settings` from a bookmark has no
- * entry of ours behind them, and `back()` would throw them out of the app; that
- * case replaces the URL in place instead.
+ * ★ ALREADY OPEN IS OPEN (crumbs-18). A double tap on a card reaches `openSheet` twice before the page
+ * has re-rendered, so what it asks is the address in the bar, never a render: the first tap's address is
+ * the answer. A second entry made the first close go Back to the panel still open. The panel is left as
+ * it is, on the page it is on.
+ *
+ * ★ A CLOSE ASKED TWICE CLOSES ONCE (crumbs-19). Two taps on the X before the first
+ * Back's `popstate` lands (a person's needs a slow one; crumbs-18 measured two
+ * same-tick clicks) called `history.back()` twice and left the hub for the page
+ * before it. The helper ignores the second until the first has landed, and lets go
+ * after a floor, so a Back that never comes cannot strand the panel open.
  */
 
 const HISTORY_MARKER = "prEventSheet";
+
+/** The sheet the address in the bar names: read off the bar, never a render (already open is open, below). */
+function sheetInBar(): string | null {
+  return new URL(window.location.href).searchParams.get(EVENT_SHEET_PARAM);
+}
+
+/** The address that opens `sheet` on its first level: a page an earlier visit left in the URL is not this one's. */
+function addressOf(sheet: EventSheet): string {
+  const url = new URL(window.location.href);
+  url.searchParams.set(EVENT_SHEET_PARAM, sheet);
+  url.searchParams.delete(SETTINGS_PAGE_PARAM);
+  return `${url.pathname}${url.search}`;
+}
 
 /** Which element currently carries the code's `view-transition-name`. Exactly
  *  one at a time — a duplicate name is an error the browser resolves by
@@ -63,6 +97,10 @@ type ShareValue = {
   sheet: EventSheet | null;
   openSheet: (sheet: EventSheet) => void;
   closeSheet: () => void;
+  /** The settings page open inside the Settings sheet, or null for its four rows. */
+  settingsPage: SettingsPage | null;
+  openSettingsPage: (page: SettingsPage) => void;
+  closeSettingsPage: () => void;
   codeOpen: boolean;
   openCode: () => void;
   closeCode: () => void;
@@ -94,6 +132,7 @@ export function EventShareProvider({
 }) {
   const searchParams = useSearchParams();
   const reduced = usePrefersReducedMotion();
+  const hydrated = useHydrated();
 
   const [codeOpen, setCodeOpen] = useState(false);
   const [headerCodeHidden, setHeaderCodeHidden] = useState(false);
@@ -101,52 +140,93 @@ export function EventShareProvider({
   /**
    * ★ `?room=` IS THE STATE. There is no local copy of it and there must not
    * be one: the parameter changes for three different reasons — our own
-   * pushState, the browser's Back, and a `router.refresh()` after a settings
-   * action — and a mirrored `useState` would owe an effect per reason to stay
+   * pushState, the browser's Back, and the page a settings action re-renders —
+   * and a mirrored `useState` would owe an effect per reason to stay
    * in step. Next's patched pushState calls the router's own url-applier, so
    * `useSearchParams` re-renders on all three for free, and the sheet surviving
-   * a refresh costs nothing rather than costing a synchronisation effect.
+   * a re-render costs nothing rather than costing a synchronisation effect.
    *
    * `initialSheet` is the server's reading of the same parameter, kept as the
    * value for the first paint so a deep link opens WITH the page.
+   *
+   * ★ AND FOR THE FIRST PAINT ALONE (milestone 30's production pass: a sheet
+   * opened from a link could not be closed). Once the page is live the URL is
+   * the whole answer: closing a deep-linked sheet drops the parameter in place,
+   * and a fallback that outlived hydration read the missing parameter as "the
+   * sheet this page was first loaded with" and opened it again, so Escape and
+   * the X did nothing until Back or a reload. The ways in were the `/settings`
+   * route, a sign-in returning to it, Checkout's return and every bookmark.
    */
-  const sheet =
-    resolveEventSheet(searchParams.get(EVENT_SHEET_PARAM) ?? undefined) ??
-    (searchParams.has(EVENT_SHEET_PARAM) ? null : initialSheet);
+  const fromUrl = resolveEventSheet(
+    searchParams.get(EVENT_SHEET_PARAM) ?? undefined,
+  );
+  const sheet = hydrated ? fromUrl : (fromUrl ?? initialSheet);
 
-  const openSheet = useCallback((next: EventSheet) => {
-    const url = new URL(window.location.href);
-    url.searchParams.set(EVENT_SHEET_PARAM, next);
-    // The marker is a FIELD, never the whole state: see the header comment.
-    window.history.pushState(
-      { [HISTORY_MARKER]: true },
-      "",
-      `${url.pathname}${url.search}`,
-    );
-  }, []);
+  /**
+   * THE SETTINGS PAGE, read off the URL beside the sheet (`settings-pages.ts`): only while Settings is
+   * the sheet, so a stray parameter never opens a page of a closed sheet.
+   */
+  const settingsPage =
+    sheet === "settings"
+      ? resolveSettingsPage(searchParams.get(SETTINGS_PAGE_PARAM))
+      : null;
+
+  /**
+   * THE ENTRY A PANEL STANDS ON, and whose it is (`lib/history-entry.ts`; the header says what it asks
+   * of it). After every render `keep` runs with the sheet's word: open, it adopts a marker it finds (a
+   * reload, or a Forward onto the panel, finds an entry this page never pushed) and gives an entry this
+   * page pushed that a router commit rewrote its marker back (crumbs-18; no address, so the router hears
+   * of nothing and nothing re-renders); closed, it forgets the entry and any Back still on its way, however
+   * the panel closed (the X, Escape, Back).
+   */
+  const entry = useOwnedEntry(HISTORY_MARKER);
+  useEffect(() => {
+    entry.keep(sheet !== null);
+  });
+
+  const openSheet = useCallback(
+    (next: EventSheet) => {
+      if (sheetInBar() === next) return;
+      entry.push(addressOf(next));
+    },
+    [entry],
+  );
 
   const closeSheet = useCallback(() => {
-    // Ours to pop, or not: the marker rides on the entry we pushed, so reading
-    // it back is the whole test. A host who landed here from a bookmark has
-    // nothing of ours behind them.
-    const ours = Boolean(
-      (window.history.state as Record<string, unknown> | null)?.[
-        HISTORY_MARKER
-      ],
-    );
-    if (ours) {
-      // Back, so the entry we added leaves with the panel rather than piling
-      // up behind it. The popstate that follows restores the previous URL, and
-      // `sheet` is read straight off that URL, so the panel closes by itself.
-      window.history.back();
-      return;
-    }
-    // Landed here directly (a bookmark, a shared link): there is nothing of
-    // ours behind, so drop the parameter in place rather than leaving the app.
+    // Back when the entry is ours, so the entry we added leaves with the panel rather than piling up
+    // behind it: the popstate that follows restores the previous URL, and `sheet` is read straight off that
+    // URL, so the panel closes by itself. Landed here directly (a bookmark, a shared link) there is nothing
+    // of ours behind, so the parameter is dropped in place rather than leaving the app, and the page a deep
+    // link opened inside Settings with it.
     const url = new URL(window.location.href);
     url.searchParams.delete(EVENT_SHEET_PARAM);
-    window.history.replaceState({}, "", `${url.pathname}${url.search}`);
-  }, []);
+    url.searchParams.delete(SETTINGS_PAGE_PARAM);
+    entry.close(`${url.pathname}${url.search}`);
+  }, [entry]);
+
+  /**
+   * A SETTINGS PAGE REPLACES THE ENTRY IN PLACE (`settings-pages.ts` says why), and Next is handed a
+   * FRESH state, never the entry's own (the header says what that cost). The marker goes back on exactly
+   * when the entry is ours, so `closeSheet`'s Back still knows it, and a deep-linked entry never gains one
+   * it did not have.
+   */
+  const replaceSettingsPage = useCallback(
+    (page: SettingsPage | null) => {
+      const url = new URL(window.location.href);
+      if (page) url.searchParams.set(SETTINGS_PAGE_PARAM, page);
+      else url.searchParams.delete(SETTINGS_PAGE_PARAM);
+      entry.replace(`${url.pathname}${url.search}`);
+    },
+    [entry],
+  );
+  const openSettingsPage = useCallback(
+    (page: SettingsPage) => replaceSettingsPage(page),
+    [replaceSettingsPage],
+  );
+  const closeSettingsPage = useCallback(
+    () => replaceSettingsPage(null),
+    [replaceSettingsPage],
+  );
 
   /**
    * The code's morph. `startViewTransition` snapshots the page, runs the
@@ -207,6 +287,9 @@ export function EventShareProvider({
       sheet,
       openSheet,
       closeSheet,
+      settingsPage,
+      openSettingsPage,
+      closeSettingsPage,
       codeOpen,
       openCode,
       closeCode,
@@ -219,6 +302,9 @@ export function EventShareProvider({
       sheet,
       openSheet,
       closeSheet,
+      settingsPage,
+      openSettingsPage,
+      closeSettingsPage,
       codeOpen,
       openCode,
       closeCode,

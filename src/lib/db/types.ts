@@ -244,6 +244,35 @@ export type Database = {
           },
         ]
       }
+      event_invites: {
+        Row: {
+          created_at: string
+          email: string
+          event_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          event_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          event_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_invites_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_passes: {
         Row: {
           consumed_at: string | null
@@ -294,6 +323,7 @@ export type Database = {
       events: {
         Row: {
           accepting_uploads: boolean
+          allow_videos: boolean
           created_at: string
           custom_slug: string | null
           deleted_at: string | null
@@ -301,6 +331,7 @@ export type Database = {
           display_in_profile: boolean
           event_date: string | null
           event_password_hash: string | null
+          gate: Database["public"]["Enums"]["event_gate"] | null
           host_id: string
           id: string
           max_upload_bytes: number | null
@@ -313,13 +344,13 @@ export type Database = {
           reel_style_id: string | null
           require_upload_to_view: boolean
           require_verified_email: boolean
-          show_guest_list: boolean
           show_reel: boolean
           updated_at: string
           visibility: Database["public"]["Enums"]["event_visibility"]
         }
         Insert: {
           accepting_uploads?: boolean
+          allow_videos?: boolean
           created_at?: string
           custom_slug?: string | null
           deleted_at?: string | null
@@ -327,6 +358,7 @@ export type Database = {
           display_in_profile?: boolean
           event_date?: string | null
           event_password_hash?: string | null
+          gate?: Database["public"]["Enums"]["event_gate"] | null
           host_id: string
           id?: string
           max_upload_bytes?: number | null
@@ -339,13 +371,13 @@ export type Database = {
           reel_style_id?: string | null
           require_upload_to_view?: boolean
           require_verified_email?: boolean
-          show_guest_list?: boolean
           show_reel?: boolean
           updated_at?: string
           visibility?: Database["public"]["Enums"]["event_visibility"]
         }
         Update: {
           accepting_uploads?: boolean
+          allow_videos?: boolean
           created_at?: string
           custom_slug?: string | null
           deleted_at?: string | null
@@ -353,6 +385,7 @@ export type Database = {
           display_in_profile?: boolean
           event_date?: string | null
           event_password_hash?: string | null
+          gate?: Database["public"]["Enums"]["event_gate"] | null
           host_id?: string
           id?: string
           max_upload_bytes?: number | null
@@ -365,7 +398,6 @@ export type Database = {
           reel_style_id?: string | null
           require_upload_to_view?: boolean
           require_verified_email?: boolean
-          show_guest_list?: boolean
           show_reel?: boolean
           updated_at?: string
           visibility?: Database["public"]["Enums"]["event_visibility"]
@@ -457,6 +489,7 @@ export type Database = {
       }
       guests: {
         Row: {
+          admission: Database["public"]["Enums"]["guest_admission"]
           created_at: string
           display_name: string | null
           email: string | null
@@ -467,8 +500,10 @@ export type Database = {
           session_token: string
           user_id: string | null
           verified_at: string | null
+          waiting_seen_at: string | null
         }
         Insert: {
+          admission?: Database["public"]["Enums"]["guest_admission"]
           created_at?: string
           display_name?: string | null
           email?: string | null
@@ -479,8 +514,10 @@ export type Database = {
           session_token: string
           user_id?: string | null
           verified_at?: string | null
+          waiting_seen_at?: string | null
         }
         Update: {
+          admission?: Database["public"]["Enums"]["guest_admission"]
           created_at?: string
           display_name?: string | null
           email?: string | null
@@ -491,6 +528,7 @@ export type Database = {
           session_token?: string
           user_id?: string | null
           verified_at?: string | null
+          waiting_seen_at?: string | null
         }
         Relationships: [
           {
@@ -519,7 +557,6 @@ export type Database = {
           links: string | null
           message: string
           name: string
-          resume_url: string | null
           role_slug: string
           source: string | null
           status: string
@@ -534,7 +571,6 @@ export type Database = {
           links?: string | null
           message: string
           name: string
-          resume_url?: string | null
           role_slug: string
           source?: string | null
           status?: string
@@ -549,7 +585,6 @@ export type Database = {
           links?: string | null
           message?: string
           name?: string
-          resume_url?: string | null
           role_slug?: string
           source?: string | null
           status?: string
@@ -646,6 +681,7 @@ export type Database = {
           legal_hold_reason: string | null
           original_key: string
           preview_key: string | null
+          purge_asked_at: string | null
           purge_at: string | null
           reel_eligible: boolean
           removed_at: string | null
@@ -675,6 +711,7 @@ export type Database = {
           legal_hold_reason?: string | null
           original_key: string
           preview_key?: string | null
+          purge_asked_at?: string | null
           purge_at?: string | null
           reel_eligible?: boolean
           removed_at?: string | null
@@ -704,6 +741,7 @@ export type Database = {
           legal_hold_reason?: string | null
           original_key?: string
           preview_key?: string | null
+          purge_asked_at?: string | null
           purge_at?: string | null
           reel_eligible?: boolean
           removed_at?: string | null
@@ -774,7 +812,6 @@ export type Database = {
           email: string
           event_id: string | null
           id: string
-          opted_in_at: string
           source: string | null
         }
         Insert: {
@@ -782,7 +819,6 @@ export type Database = {
           email: string
           event_id?: string | null
           id?: string
-          opted_in_at?: string
           source?: string | null
         }
         Update: {
@@ -790,7 +826,6 @@ export type Database = {
           email?: string
           event_id?: string | null
           id?: string
-          opted_in_at?: string
           source?: string | null
         }
         Relationships: [
@@ -807,9 +842,6 @@ export type Database = {
         Row: {
           created_at: string
           marketing_opt_in: boolean
-          notify_album_shared: boolean
-          notify_new_follower: boolean
-          notify_new_uploads_digest: boolean
           notify_pass_renewal: boolean
           updated_at: string
           user_id: string
@@ -817,9 +849,6 @@ export type Database = {
         Insert: {
           created_at?: string
           marketing_opt_in?: boolean
-          notify_album_shared?: boolean
-          notify_new_follower?: boolean
-          notify_new_uploads_digest?: boolean
           notify_pass_renewal?: boolean
           updated_at?: string
           user_id: string
@@ -827,9 +856,6 @@ export type Database = {
         Update: {
           created_at?: string
           marketing_opt_in?: boolean
-          notify_album_shared?: boolean
-          notify_new_follower?: boolean
-          notify_new_uploads_digest?: boolean
           notify_pass_renewal?: boolean
           updated_at?: string
           user_id?: string
@@ -977,10 +1003,21 @@ export type Database = {
         Row: {
           created_at: string
           event_id: string | null
+          hid_at: string | null
           id: string
+          kind: Database["public"]["Enums"]["report_kind"]
           media_id: string | null
+          media_type: Database["public"]["Enums"]["media_type"] | null
           profile_id: string | null
+          proof_answer: string | null
+          proof_answered_at: string | null
+          proof_asked_at: string | null
+          proof_question: string | null
+          proof_token_hash: string | null
           reason: string | null
+          reporter_email: string | null
+          reporter_hash: string | null
+          reporter_signed_in: boolean
           resolution_note: string | null
           resolved_at: string | null
           resolved_by: string | null
@@ -990,10 +1027,21 @@ export type Database = {
         Insert: {
           created_at?: string
           event_id?: string | null
+          hid_at?: string | null
           id?: string
+          kind?: Database["public"]["Enums"]["report_kind"]
           media_id?: string | null
+          media_type?: Database["public"]["Enums"]["media_type"] | null
           profile_id?: string | null
+          proof_answer?: string | null
+          proof_answered_at?: string | null
+          proof_asked_at?: string | null
+          proof_question?: string | null
+          proof_token_hash?: string | null
           reason?: string | null
+          reporter_email?: string | null
+          reporter_hash?: string | null
+          reporter_signed_in?: boolean
           resolution_note?: string | null
           resolved_at?: string | null
           resolved_by?: string | null
@@ -1003,10 +1051,21 @@ export type Database = {
         Update: {
           created_at?: string
           event_id?: string | null
+          hid_at?: string | null
           id?: string
+          kind?: Database["public"]["Enums"]["report_kind"]
           media_id?: string | null
+          media_type?: Database["public"]["Enums"]["media_type"] | null
           profile_id?: string | null
+          proof_answer?: string | null
+          proof_answered_at?: string | null
+          proof_asked_at?: string | null
+          proof_question?: string | null
+          proof_token_hash?: string | null
           reason?: string | null
+          reporter_email?: string | null
+          reporter_hash?: string | null
+          reporter_signed_in?: boolean
           resolution_note?: string | null
           resolved_at?: string | null
           resolved_by?: string | null
@@ -1019,13 +1078,6 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reports_media_id_fkey"
-            columns: ["media_id"]
-            isOneToOne: false
-            referencedRelation: "media"
             referencedColumns: ["id"]
           },
           {
@@ -1293,6 +1345,10 @@ export type Database = {
         }
         Returns: Json
       }
+      add_event_invites: {
+        Args: { p_emails: string[]; p_event_id: string }
+        Returns: Json
+      }
       admin_metrics_snapshot: {
         Args: { p_fortnight_days?: number; p_window_days?: number }
         Returns: Json
@@ -1319,6 +1375,10 @@ export type Database = {
         Returns: number
       }
       article_feedback_summary: { Args: never; Returns: Json }
+      ask_to_join: {
+        Args: { p_qr_token: string; p_user_id: string }
+        Returns: Json
+      }
       block_from_event: {
         Args: {
           p_event_id?: string
@@ -1348,10 +1408,15 @@ export type Database = {
         Args: { p_session_tokens: string[] }
         Returns: number
       }
+      claim_asked_uploads: {
+        Args: { p_session_tokens: string[] }
+        Returns: number
+      }
       claim_guest_rows_by_email: {
         Args: { p_event_ids?: string[] }
         Returns: number
       }
+      claim_ticket_asks: { Args: { p_session_tokens: string[] }; Returns: Json }
       clear_event_password: { Args: { p_event_id: string }; Returns: undefined }
       clear_event_slug: { Args: { p_event_id: string }; Returns: undefined }
       create_guest: {
@@ -1396,9 +1461,18 @@ export type Database = {
         Returns: Json
       }
       create_report: {
-        Args: { p_media_id?: string; p_qr_token: string; p_reason?: string }
+        Args: {
+          p_kind?: Database["public"]["Enums"]["report_kind"]
+          p_media_id?: string
+          p_qr_token: string
+          p_reason?: string
+          p_reporter_email?: string
+          p_reporter_hash?: string
+          p_reporter_user_id?: string
+        }
         Returns: Json
       }
+      defer_kept_due_media: { Args: never; Returns: number }
       disown_guest_rows_by_email: {
         Args: { p_event_ids: string[] }
         Returns: number
@@ -1430,6 +1504,30 @@ export type Database = {
       }
       event_card_stats: { Args: { p_event_ids: string[] }; Returns: Json }
       event_covers: { Args: { p_event_ids: string[] }; Returns: Json }
+      event_door_account_in: {
+        Args: { p_event_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      event_door_admit_listed: { Args: { p_event_id: string }; Returns: number }
+      event_door_check_in: {
+        Args: { p_event_id: string; p_tickets?: string[]; p_user_id?: string }
+        Returns: Json
+      }
+      event_door_counts: { Args: { p_event_id: string }; Returns: Json }
+      event_door_lists_account: {
+        Args: { p_event_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      event_door_queue: { Args: { p_event_id: string }; Returns: Json }
+      event_door_standing: {
+        Args: { p_event_id: string; p_tickets?: string[]; p_user_id?: string }
+        Returns: Json
+      }
+      event_door_waiting_listed: {
+        Args: { p_event_id: string }
+        Returns: number
+      }
+      event_invite_list: { Args: { p_event_id: string }; Returns: Json }
       event_link_totals: { Args: { p_event_id: string }; Returns: Json }
       event_stills: {
         Args: { p_event_ids: string[]; p_per_event: number }
@@ -1444,6 +1542,7 @@ export type Database = {
         Args: { p_qr_token: string }
         Returns: {
           accepting_uploads: boolean
+          accepts_video: boolean
           custom_slug: string
           description: string
           event_date: string
@@ -1549,6 +1648,7 @@ export type Database = {
       has_password: { Args: never; Returns: boolean }
       held_event_ids: { Args: { p_event_ids: string[] }; Returns: string[] }
       host_active_bytes: { Args: { p_host_id: string }; Returns: number }
+      host_door_waiting: { Args: { p_host_id: string }; Returns: Json }
       host_storage_summary: {
         Args: { p_host_id: string }
         Returns: {
@@ -1556,8 +1656,13 @@ export type Database = {
           standby_bytes: number
         }[]
       }
+      kept_media_ids: { Args: { p_media_ids: string[] }; Returns: string[] }
       let_back_in: {
         Args: { p_block_id: string; p_restore?: boolean }
+        Returns: Json
+      }
+      let_in_at_door: {
+        Args: { p_event_id: string; p_guest_id: string }
         Returns: Json
       }
       like_many: { Args: { p_media_ids: string[] }; Returns: Json }
@@ -1605,13 +1710,25 @@ export type Database = {
         }
         Returns: undefined
       }
+      remove_event_invite: {
+        Args: { p_email: string; p_event_id: string }
+        Returns: Json
+      }
       remove_my_upload: { Args: { p_media_id: string }; Returns: Json }
       remove_my_upload_by_session: {
         Args: { p_media_id: string; p_session_token: string }
         Returns: Json
       }
+      report_queue_facts: {
+        Args: { p_event_ids: string[]; p_media_ids: string[] }
+        Returns: Json
+      }
       restore_event: { Args: { p_event_id: string }; Returns: Json }
       restore_media: { Args: { p_media_id: string }; Returns: Json }
+      set_event_door: {
+        Args: { p_door: string; p_event_id: string }
+        Returns: Json
+      }
       set_event_password: {
         Args: { p_event_id: string; p_password: string }
         Returns: undefined
@@ -1653,13 +1770,29 @@ export type Database = {
         Args: { p_password?: string; p_qr_token: string }
         Returns: string
       }
+      whose_ticket: {
+        Args: {
+          p_guest: Database["public"]["Tables"]["guests"]["Row"]
+          p_uid: string
+        }
+        Returns: string
+      }
     }
     Enums: {
+      event_gate: "approve" | "invite" | "closed"
       event_visibility: "open" | "password" | "private"
+      guest_admission: "in" | "waiting"
       link_hit_kind: "qr_scan" | "album_view"
       media_status: "pending" | "approved" | "hidden" | "removed"
       media_type: "photo" | "video"
       moderation_mode: "live" | "hold_for_approval"
+      report_kind:
+        | "child"
+        | "sexual"
+        | "violence"
+        | "private"
+        | "consent"
+        | "other"
       report_status: "open" | "reviewed" | "dismissed" | "actioned"
       tier_type: "free" | "event_pass" | "pro" | "max"
     }
@@ -1789,11 +1922,21 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      event_gate: ["approve", "invite", "closed"],
       event_visibility: ["open", "password", "private"],
+      guest_admission: ["in", "waiting"],
       link_hit_kind: ["qr_scan", "album_view"],
       media_status: ["pending", "approved", "hidden", "removed"],
       media_type: ["photo", "video"],
       moderation_mode: ["live", "hold_for_approval"],
+      report_kind: [
+        "child",
+        "sexual",
+        "violence",
+        "private",
+        "consent",
+        "other",
+      ],
       report_status: ["open", "reviewed", "dismissed", "actioned"],
       tier_type: ["free", "event_pass", "pro", "max"],
     },

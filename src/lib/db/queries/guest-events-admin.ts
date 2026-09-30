@@ -32,6 +32,7 @@ import {
 import { getEventGuests } from "@/lib/db/queries/social";
 import { readAllPages } from "@/lib/db/read-all";
 import { guestCount } from "@/lib/events/event-guests";
+import { holdsDoorPass } from "@/lib/event/door/pass.server";
 import { isRequestOwner } from "@/lib/events/gallery-access-owner.server";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
 import { captureWarning } from "@/lib/observability/sentry";
@@ -51,9 +52,16 @@ import {
  * album differently.
  */
 export async function getApprovedMediaForUnlock(
-  eventId: string,
+  event: Pick<GuestEvent, "id" | "doorPass">,
 ): Promise<GuestMediaRow[]> {
-  if (!(await isUnlocked(eventId)) && !(await isRequestOwner(eventId)))
+  const eventId = event.id;
+  // ★ THE DOOR'S PASS (the doors, event-settings r1): a gated album's guest, and a password album's
+  // guest already in with no unlock cookie, read what the door let them through to.
+  if (
+    !holdsDoorPass(event) &&
+    !(await isUnlocked(eventId)) &&
+    !(await isRequestOwner(eventId))
+  )
     return [];
 
   const admin = createAdminClient();
@@ -98,10 +106,14 @@ export async function getApprovedMediaForUnlock(
  * the viewer could otherwise see, so it leaks strictly less.
  */
 export async function getApprovedPhotoTeaser(
-  event: Pick<GuestEvent, "id" | "visibility">,
+  event: Pick<GuestEvent, "id" | "visibility" | "doorPass">,
   limit: number,
 ): Promise<{ rows: GuestMediaRow[]; total: number }> {
-  if (event.visibility === "password") {
+  // ★ THE DOOR'S PASS first (the doors): a guest past a gate who still owes the email step sees the
+  // teaser a password album's unlocked guest sees; without one a gated album reads as private.
+  if (holdsDoorPass(event)) {
+    // Past the door: the teaser is the album's own, whatever its visibility.
+  } else if (event.visibility === "password") {
     if (!(await isUnlocked(event.id))) return { rows: [], total: 0 };
   } else if (event.visibility !== "open") {
     return { rows: [], total: 0 };
@@ -148,7 +160,7 @@ export async function getApprovedPhotoTeaser(
  * page's count tease), never a private one.
  */
 export async function countApprovedMedia(
-  event: Pick<GuestEvent, "id" | "visibility">,
+  event: Pick<GuestEvent, "id" | "visibility" | "door" | "doorPass">,
 ): Promise<number> {
   if (!countsVisible(event)) return 0;
   return approvedCount(event.id);
@@ -188,7 +200,7 @@ const approvedCount = cache(async function approvedCount(
  * defensively.
  */
 export async function getGalleryStats(
-  event: Pick<GuestEvent, "id" | "visibility">,
+  event: Pick<GuestEvent, "id" | "visibility" | "door" | "doorPass">,
 ): Promise<{ approvedTotal: number; guestCount: number }> {
   if (!countsVisible(event)) return { approvedTotal: 0, guestCount: 0 };
   const [approvedTotal, guests] = await Promise.all([
@@ -206,15 +218,28 @@ export async function getGalleryStats(
  * ONE COUNT as the header's stats above.
  */
 export async function getGuestCount(
-  event: Pick<GuestEvent, "id" | "visibility">,
+  event: Pick<GuestEvent, "id" | "visibility" | "door" | "doorPass">,
 ): Promise<number> {
   if (!countsVisible(event)) return 0;
   return guestCount(await getEventGuests(event.id));
 }
 
-/** Counts are for an open or a password event (the entry tease); never a private one. */
-function countsVisible(event: Pick<GuestEvent, "visibility">): boolean {
-  return event.visibility === "open" || event.visibility === "password";
+/**
+ * Counts are for an open or a password event (the entry tease), never a private one; and, since the
+ * doors (event-settings r1), for anyone the door let through (its pass), and for a newcomer standing
+ * at a door she can ask at (letting each person in, an invite list), whose welcome says how much is
+ * inside the way a password album's does. A closed door and Only me count nothing for a newcomer:
+ * she meets the shut screen, which says nothing about the album.
+ */
+function countsVisible(
+  event: Pick<GuestEvent, "id" | "visibility" | "door" | "doorPass">,
+): boolean {
+  if (event.visibility === "open" || event.visibility === "password") {
+    return true;
+  }
+  return (
+    holdsDoorPass(event) || event.door === "approve" || event.door === "invite"
+  );
 }
 
 /**

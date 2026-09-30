@@ -20,8 +20,8 @@ ledger and enforces the caps. Guests (the session-token capability) and hosts (a
 `FileDropzone` and refreshes the route once after the batch.
 - **The guest/host asymmetries are deliberate,** so the consolidation stops where it did. The host's `getUser()`
   gates in the route before the engine (401 before the body is parsed); a guest's token is validated inside the RPCs,
-  and a token whose row carries an account uploads only for that signed-in account (`checkSessionOwner`, at presign
-  AND complete: [guest-flow.md](guest-flow.md)). The per-event `max_upload_bytes` binds guests only. Refusals are framed per
+  and a token whose row carries an account uploads only for that signed-in account, and a signed-in account only
+  through a row of its own (`checkSessionOwner`, at presign AND complete: [guest-flow.md](guest-flow.md)). The per-event `max_upload_bytes` binds guests only. Refusals are framed per
   identity: a guest's video refusal names the EVENT so a guest never learns the host's plan, a host's names the tier,
   and a host's `not_owner` is a 404, so existence never leaks; the guest failure sheet prints each refusal verbatim,
   which makes its wording user-facing copy. No request rate limiter sits on the four routes but one: the capability, the caps,
@@ -159,8 +159,10 @@ it rather than fork it.
   alone; a token lives two minutes). A request without `part` keeps the old 413, so a stale tab never takes part 1 for
   the album.
 - ★ **Yours is the server's** (`lib/export/yours.server.ts`): a guest's own uploads by her account and this
-  browser's ticket cookie (the route's read identity), never an id list from the request, intersected with what she
-  can see; the summary carries its counts, and the closed door is asked first on every path (Yours, a retry, a part).
+  browser's ticket cookie (the route's read identity) as far as the ticket is hers to a signed-in viewer (her own row,
+  or one the claim takes: `sortTickets`, [guest-flow.md](guest-flow.md)'s owner rule), never an id list from the
+  request, intersected with what she can see; the summary carries its counts, and the closed door is asked first on
+  every path (Yours, a retry, a part).
 - ★ **One Worker deployment serves partyreel.com's app too**: every path but `/check` answers as milestone 29's did
   (`workers/export/src/compat.test.ts` replays that app's requests against the vendored Worker), the token stays v1,
   and the entry module exports its handler alone (workerd refuses to start on any other named export).

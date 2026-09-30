@@ -52,6 +52,8 @@ export type ErrorCode =
   | "incorrect_password"
   | "wrong_password"
   | "unlock_required"
+  // the doors (2026-09-29): an invite list that does not name this confirmed address
+  | "unlisted"
   | "not_configured"
   | "rate_limited"
   // billing
@@ -107,6 +109,7 @@ export const FALLBACK_MESSAGES: Record<ErrorCode, string> = {
   wrong_password: "That password is incorrect.",
   unlock_required:
     "This event is locked. Enter the event password to continue.",
+  unlisted: "Ask the host to let you in.",
   not_configured: "That isn't set up for this event.",
   rate_limited: "Too many attempts. Wait a moment and try again.",
   no_customer: "We couldn't find billing details for your account.",

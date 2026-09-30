@@ -19,19 +19,22 @@ import { Fit, Frame, Measured } from "@/components/lab";
  * judged, so the demo's welcome sheet is QUOTED, never opened.
  *
  * ★ A SCREEN IS THE DEVICE'S OWN SCREEN (1440 by 900, 375 by 812): the hero
- * is exactly one screen tall, so its air and the card's place are only true
- * at a real height, and the album's first row is only where it is under a
- * real phone's fold.
+ * is exactly one screen tall, so its air and the object's place are only true
+ * at a real height. A `card` screen is the one exception, and says so: a
+ * close-up of the card at a desk's size, at rest and under a pointer, which
+ * no single real screen can show at once.
  *
- * ★ EVERY CAPTION IS READ OFF THE FRAME, NEVER ASSERTED: the link the card
- * prints and whether it fits its column, the count on its chip, the album's
- * title and stats, the welcome's sentence. If a caption and the words above a
- * frame disagree, the caption is the truth.
+ * ★ EVERY CAPTION IS READ OFF THE FRAME, NEVER ASSERTED: the address the card
+ * prints and whether each address the loop types sets whole in its column,
+ * the album's title, the welcome's sentence, how far the card rises. If a
+ * caption and the words above a frame disagree, the caption is the truth.
  */
 
 export const SCREENS = {
   "1440": { w: 1440, h: 900 },
   "375": { w: 375, h: 812 },
+  card: { w: 1100, h: 460 },
+  plate: { w: 1100, h: 640 },
 } as const;
 
 export type ScreenId = keyof typeof SCREENS;
@@ -67,7 +70,7 @@ export function Scene({
           probe={measure}
           deps={[id, screen]}
           onMeasure={setCaption}
-          timers={[200, 900, 1800, 3200]}
+          timers={[200, 900, 1800, 3000]}
           className="size-full"
         >
           {children}
@@ -79,23 +82,34 @@ export function Scene({
 
 /**
  * THE FRAMES OF ONE OPTION: the laptop first and alone (two 1440 frames side
- * by side would each be a thumbnail), the phones after it in one row, read
- * left to right as a visitor moves through them.
+ * by side would each be a thumbnail), the loop's score right under it where
+ * the motion is judged, the phones after it in one row, read left to right,
+ * then any second screen, and a line under them.
  */
 export function Story({
   desk,
+  score,
   phones,
+  after,
   note,
 }: {
   desk?: ReactNode;
-  phones: ReactNode;
-  /** One line under the frames: what the stand-ins stand in for. */
+  /** The loop's score, under the laptop it describes. */
+  score?: ReactNode;
+  phones?: ReactNode;
+  /** A second screen of the same option (the QR code page's), after the first. */
+  after?: ReactNode;
+  /** Under the frames: what the stand-ins stand in for. */
   note?: ReactNode;
 }) {
   return (
     <div className="flex flex-col gap-6">
       {desk}
-      <div className="flex flex-wrap items-start gap-6">{phones}</div>
+      {score}
+      {phones ? (
+        <div className="flex flex-wrap items-start gap-6">{phones}</div>
+      ) : null}
+      {after ? <div className="flex flex-col gap-6">{after}</div> : null}
       {note}
     </div>
   );
@@ -120,9 +134,8 @@ export function CinemaRoom({ children }: { children: ReactNode }) {
 
 /**
  * ★ A REAL <Link> IN A BOARD IS A TRAP THE BOARD DISARMS ITSELF: a frame is a
- * document of its own, so a press on the card, the eyebrow or a header link
- * would navigate the frame away from the page being judged. Every drawing
- * roots in this.
+ * document of its own, so a press on the card or a header link would navigate
+ * the frame away from the page being judged. Every drawing roots in this.
  */
 export function stopLinks(e: MouseEvent) {
   if ((e.target as HTMLElement).closest?.("a[href]")) e.preventDefault();
@@ -161,28 +174,63 @@ export const textOf = (el: Element | null | undefined) =>
 const px = (n: number) => `${Math.round(n)} px`;
 
 /**
- * THE CARD, AS A VISITOR READS IT: the link it prints, what its chip counts,
- * and whether the slug sets whole in its column. The slug is `truncate`d in
- * production, so a long one is cut with an ellipsis rather than wrapped: the
- * type's own width is read off a Range over its text (the ellipsis is paint,
- * so the laid-out line keeps its whole length), against the column's box.
+ * EVERY ADDRESS THE OBJECT PRINTS, SET IN ITS OWN COLUMN, measured: a probe in
+ * the slug's own line, in its font, holds each address in turn, and its width
+ * is read against the room the line leaves it (the column less the caret and
+ * the touch's mark). The slug is `truncate`d, so an address that does not fit
+ * is cut with an ellipsis rather than wrapped; this is where that shows.
  */
-export const cardSays: Reader = (root) => {
-  const slug = root.querySelector<HTMLElement>("[data-df-slug]");
-  const rest = textOf(root.querySelector("[data-df-rest]"));
-  if (!slug || slug.clientWidth < 1) return null;
-  const range = slug.ownerDocument.createRange();
-  range.selectNodeContents(slug);
-  const type = range.getBoundingClientRect().width;
-  const column = slug.getBoundingClientRect().width;
-  if (type < 1) return null;
-  const link = `${textOf(root.querySelector("[data-df-domain]"))}${slug.textContent ?? ""}`;
-  const fit =
-    type > column + 0.5
-      ? `the slug is cut: ${px(type)} of type in a ${px(column)} column`
-      : `the slug sets whole, ${px(type)} of its ${px(column)}`;
-  return `The card: ${link}, chip "${rest}"; ${fit}`;
-};
+function fitOf(root: HTMLElement, addresses: readonly string[]) {
+  const line = root.querySelector<HTMLElement>("[data-df-slug]");
+  const typed = line?.querySelector<HTMLElement>("[data-df-typed]");
+  if (!line || !typed || line.clientWidth < 1) return null;
+  const doc = line.ownerDocument;
+  const room =
+    line.getBoundingClientRect().width -
+    [...line.children]
+      .filter((c) => c !== typed)
+      .reduce(
+        (w, c) => w + (c as HTMLElement).getBoundingClientRect().width,
+        0,
+      );
+  const probe = doc.createElement("span");
+  probe.style.cssText =
+    "position:absolute;visibility:hidden;white-space:nowrap";
+  line.appendChild(probe);
+  let widest = { slug: "", w: 0 };
+  const cut: string[] = [];
+  for (const a of addresses) {
+    probe.textContent = a;
+    const w = probe.getBoundingClientRect().width;
+    if (w > widest.w) widest = { slug: a, w };
+    if (w > room + 0.5) cut.push(a);
+  }
+  probe.remove();
+  return { widest, room, cut };
+}
+
+/** The object's link, as a visitor reads it, and how every address it prints fits. */
+export function addressSays(
+  what: string,
+  addresses: readonly string[],
+): Reader {
+  return (root) => {
+    const domain = textOf(root.querySelector("[data-df-domain]"));
+    const own =
+      root.querySelector<HTMLElement>("[data-df-typed]")?.dataset.dfOwn ?? "";
+    const rest = textOf(root.querySelector("[data-df-rest]"));
+    const fit = fitOf(root, addresses);
+    if (!fit || !own || !domain) return null;
+    const chip = rest ? `, chip "${rest}"` : "";
+    const types =
+      addresses.length > 1 ? `; types ${addresses.slice(1).join(", ")}` : "";
+    const sets =
+      fit.cut.length > 0
+        ? `CUT: ${fit.cut.join(", ")} past its ${px(fit.room)}`
+        : `${addresses.length > 1 ? "the longest, " : ""}${fit.widest.slug}, sets whole, ${px(fit.widest.w)} of its ${px(fit.room)}`;
+    return `${what}: ${domain}${own}${chip}${types}; ${sets}`;
+  };
+}
 
 /** The album's head, as the page says it: the title, then the stats line. */
 export const albumSays: Reader = (root) => {
@@ -190,10 +238,7 @@ export const albumSays: Reader = (root) => {
   const stats = textOf(root.querySelector("[data-df-stats]"));
   const host = textOf(root.querySelector("[data-df-host]"));
   if (!title || !stats) return null;
-  const row = root.querySelectorAll(
-    "[data-df-first-row] [data-df-tile]",
-  ).length;
-  return `The album: "${title}", hosted by ${host}; ${stats}; ${row} photographs in its first row`;
+  return `The album: "${title}", hosted by ${host}; ${stats}`;
 };
 
 /** The welcome's two sentences with a name in them, as the sheet sets them. */
@@ -202,4 +247,46 @@ export const welcomeSays: Reader = (root) => {
   const as = textOf(root.querySelector("[data-df-welcome-as]"));
   if (!at || !as) return null;
   return `The welcome: "${at}"; "${as}"`;
+};
+
+/** The QR code page's hero, as its first screen says it. */
+export function qrSays(addresses: readonly string[]): Reader {
+  const card = addressSays("its card", addresses);
+  return (root, win) => {
+    const h1 = textOf(root.querySelector("h1"));
+    const frames = root.querySelectorAll(".hhs-card").length;
+    const said = card(root, win);
+    if (!h1 || !said) return null;
+    return `The QR code page: "${h1}", the stream's ${frames} frames pouring from ${said}`;
+  };
+}
+
+/**
+ * WHAT THE TOUCH SHOWS, read off the specimen: the mark at rest (if any, and
+ * its size) and how far the lifted card stands above the one at rest.
+ */
+export const touchSays: Reader = (root) => {
+  const cards = root.querySelectorAll<HTMLElement>("[data-hero-object]");
+  if (cards.length < 2) return null;
+  // Each object against its own cell: the cells stand side by side, or one
+  // over the other for the address plate.
+  const inCell = (el: HTMLElement) =>
+    el.getBoundingClientRect().top -
+    (el.closest("[data-df-cell]")?.getBoundingClientRect().top ?? 0);
+  const rest = inCell(cards[0]);
+  const up = inCell(cards[1]);
+  const mark = root.querySelector<HTMLElement>("[data-df-touch]");
+  const kind = mark?.dataset.dfTouch;
+  // The mark's own ink (the arrow's svg, the dot), never the room round it.
+  const ink = mark?.querySelector("svg") ?? mark?.firstElementChild ?? mark;
+  const size = ink ? px(ink.getBoundingClientRect().width) : "";
+  const shown =
+    kind === "arrow"
+      ? `an arrow after the address, ${size}`
+      : kind === "live"
+        ? `the live dot before the domain, ${size}`
+        : root.querySelector("[data-df-swell]")
+          ? "no mark; the lamp swells every few seconds"
+          : "nothing";
+  return `At rest: ${shown}. Under the pointer: it rises ${px(rest - up)} and its fan opens`;
 };

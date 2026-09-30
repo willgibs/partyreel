@@ -2,6 +2,8 @@
 
 import { useEffect, useLayoutEffect, useRef, type RefObject } from "react";
 
+import { layerIsUp } from "@/components/ui/layer-is-up";
+
 import { isGridKey, nextAfter, stepIndex } from "./review-queue";
 import type { ReviewTriage } from "./use-review-triage";
 
@@ -56,15 +58,9 @@ export function useReviewKeys({
         target === document.documentElement;
       const peek = root.querySelector("[data-review-peek]");
       const inPeek = !!(peek && target && peek.contains(target));
-      // Another layer is up (a dialog, a menu): its keys are its own.
-      if (
-        !inPeek &&
-        document.querySelector(
-          '[role="dialog"]:not([data-review-peek]), [role="menu"], [role="listbox"]',
-        )
-      ) {
-        return;
-      }
+      // Another layer is up (a dialog, a confirm, a menu): its keys are its own. The peek is this
+      // room's own layer, never "another".
+      if (!inPeek && layerIsUp({ except: "[data-review-peek]" })) return;
 
       if (t.peekId) {
         if (!inPeek && !(claimPage && onBody)) return;

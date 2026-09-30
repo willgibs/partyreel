@@ -36,7 +36,7 @@ import {
   type LiveGalleryHandle,
 } from "@/components/guest/live-gallery";
 import { LiveReel, LiveReelTile } from "@/components/guest/reel/live-reel";
-import { ReportDialog } from "@/components/guest/report-dialog";
+import { ReportFoot } from "@/components/guest/report-dialog";
 import {
   createUploadTrackerStore,
   UploadTracker,
@@ -59,6 +59,7 @@ import type { GalleryAccess, GalleryGate } from "@/lib/events/gallery-access";
 import { formatCount, formatMediaCount } from "@/lib/format/count";
 import { useInViewSentinel } from "@/lib/shared/use-in-view-sentinel";
 import { DEFAULT_ROW_STEP, type RowStep } from "@/lib/shared/album-rows";
+import { claimLeftForAnotherAddress } from "@/lib/guest/claim-uploads";
 import {
   confirmBeatToast,
   mergeConfirmBeats,
@@ -71,6 +72,7 @@ import {
 } from "@/lib/guest/confirm-beat-name";
 import { closesOnLastRemoval as lastRemovalCloses } from "@/lib/guest/delete-consequence";
 import { contributionAnswered } from "@/lib/guest/entry-steps";
+import { joinEvent, passedTicket } from "@/lib/guest/join";
 import { useKeepAskPutDown } from "@/lib/guest/keep-ask";
 import { onNameDoorRequest } from "@/lib/guest/name-door";
 import { settleConfirmedName } from "@/lib/guest/settle-name";
@@ -139,6 +141,7 @@ export function EventExperience({
   isDemo,
   access,
   gate,
+  doorGate = null,
   needsName,
   hostAvatarUrl,
   hostSeed,
@@ -176,6 +179,12 @@ export function EventExperience({
    * to infer it from the level.
    */
   gate: GalleryGate | null;
+  /**
+   * The gate a newcomer stands at when the door is what she meets (the doors, event-settings r1:
+   * letting each person in, or an invite list), for the email step's and the ask's words. Null
+   * everywhere else.
+   */
+  doorGate?: "approve" | "invite" | null;
   /** Signed-in uploader without a public display name: the door asks for it as its NAME step, in
    *  `profile` mode (it writes the account's own name). */
   needsName: boolean;
@@ -331,6 +340,9 @@ export function EventExperience({
     onUploaded: (u) => handleUploadedRef.current(u),
     isDemo,
     isVerified,
+    /* ★ FILES HELD FOR THE DOOR GO WHEN IT OPENS (crumbs-27): a silent join that landed waiting hands her to
+       the held door with her files `queued`, and this is what tells the queue she is through. */
+    doorOpen: access !== "none",
     onVerificationRequired: (message, hadQueuedFiles) => {
       if (hadQueuedFiles && !uploadStepActiveRef.current) {
         pendingVerificationRef.current = message;
@@ -588,6 +600,34 @@ export function EventExperience({
   // opening under a welcome that is about to arrive for a guest.
   const [welcomePending, setWelcomePending] = useState(true);
 
+  /* ★ PAST THE DOOR IS A TICKET (the doors, event-settings r1). "Already in" means everyone past the
+     door, a confirmed guest who only looks included (Will's `inside` note: "X guests are already
+     in"), so a confirmed visitor with no ticket for this album joins silently, once, the moment the
+     door is behind her. Without it, a host who later closed the door would shut her out as a newcomer
+     she never was. A typed name's own step already mints her ticket, and an unconfirmed visitor has not
+     passed the door. The upload queue's own join then finds the ticket and mints nothing more. */
+  const joinedAtDoorRef = useRef(false);
+  useEffect(() => {
+    if (isDemo || isOwner || !isVerified || welcomePending) return;
+    if (access === "none" || sessionToken || joinedAtDoorRef.current) return;
+    joinedAtDoorRef.current = true;
+    void joinEvent({ qrToken }).then((joined) => {
+      // ★ A JOIN THAT LANDED WAITING IS THE ASK, NOT A TICKET (crumbs-27): adopted, the queue would send a
+      // file on it and it would be refused "This event is private."; the door reads the cookie the join set.
+      const ticket = passedTicket(joined);
+      if (ticket) setSessionToken(ticket);
+    });
+  }, [
+    access,
+    isDemo,
+    isOwner,
+    isVerified,
+    qrToken,
+    sessionToken,
+    setSessionToken,
+    welcomePending,
+  ]);
+
   /* ────────────────────────────────────────────────────────────────────────
      THE KEEP: THE DOOR'S LAST SCREEN (`guest-capture` r1, `moment=first` and `shape=sheet-step`).
 
@@ -623,6 +663,10 @@ export function EventExperience({
      other events), and the page says it ONCE, as one toast, and only once the door has closed, so
      it never lands on a sheet she is still answering. The name's Change is the toast's action: a
      small name form (`confirm-beat-name.tsx`, `popups` r1's `forms=dialog`), mounted below.
+     ★ Photos typed here under another address than the one confirmed stay with that address (the
+     claim never takes them), so before it speaks the page asks what the claim left here
+     (`claimLeftForAnotherAddress`): then the toast says where they are, and no name is settled or
+     told for photos that did not move (crumbs-24).
      ──────────────────────────────────────────────────────────────────────── */
   const pendingBeatRef = useRef<ConfirmBeat | null>(null);
   const welcomePendingRef = useRef(welcomePending);
@@ -631,12 +675,20 @@ export function EventExperience({
     pendingBeatRef.current = null;
     if (!beat) return;
     void (async () => {
+      const left = await claimLeftForAnotherAddress(beat.album);
       // A door on another island could not settle the name (`confirm-beat.ts` says why): the
       // page does, here, before it speaks, so the name told is the one her photos now carry.
-      const name = beat.settle
-        ? (beat.name ?? (await settleConfirmedName(beat.album)))
-        : beat.name;
-      const words = confirmBeatToast({ name, elsewhere: beat.elsewhere });
+      const name =
+        left > 0
+          ? null
+          : beat.settle
+            ? (beat.name ?? (await settleConfirmedName(beat.album)))
+            : beat.name;
+      const words = confirmBeatToast({
+        name,
+        elsewhere: beat.elsewhere,
+        left,
+      });
       if (!words) return;
       toast.success(words.title, {
         description: words.description,
@@ -719,8 +771,8 @@ export function EventExperience({
   // THE PHONE's id, read off `?pair=<id>` — `window` genuinely does not exist
   // during SSR (unlike crypto above), so this DOES need the hydration-safe
   // read: useSyncExternalStore's server snapshot (null) matches the first
-  // client render exactly, same idiom as entry-modal.tsx's `hydrated` flag
-  // and user-menu.tsx's `mounted` one. Not next/navigation's useSearchParams,
+  // client render exactly (the store read `useHydrated` is made of, with a
+  // value in place of its `true`). Not next/navigation's useSearchParams,
   // which would ask this whole shell to grow a Suspense boundary for one
   // demo delight nothing else here needs.
   const phonePairId = useSyncExternalStore(
@@ -885,6 +937,8 @@ export function EventExperience({
             eventName={event.name}
             access={access}
             gate={gate}
+            doorGate={doorGate}
+            acceptsVideo={event.accepts_video}
             hasContributed={serverContributed}
             contributed={clientContributed}
             returning={returning}
@@ -1287,7 +1341,11 @@ export function EventExperience({
                 isDemo={isDemo}
                 moderated={event.moderation_mode !== "live"}
                 onAddYours={canUpload ? openAdd : undefined}
-                addClipToAlbum={canUpload ? addClipToAlbum : null}
+                // A clip is a video: with the host's Videos off (`accepts_video`), a guest's clip
+                // stays hers to save or share, rather than an Add the upload would refuse.
+                addClipToAlbum={
+                  canUpload && event.accepts_video ? addClipToAlbum : null
+                }
                 queue={queue}
                 welcomePending={welcomePending}
                 isOwner={isOwner}
@@ -1354,17 +1412,10 @@ export function EventExperience({
             }
           />
 
-          {/* Discreet anonymous report path (the report capability is the qr_token).
-              The rule under the album runs the album's width, so it reads as the
-              page's last line rather than a stray hairline under the words —
-              the BLEED's gutter as a margin rather than its padding, because the
-              hairline IS the alignment, and a padded box would run its border
-              under the gutter to the window's edge. */}
-          {!isDemo && (
-            <footer className="mx-3 mt-8 flex justify-center border-t border-border/60 pt-5 sm:mx-5">
-              <ReportDialog qrToken={qrToken} />
-            </footer>
-          )}
+          {/* Discreet anonymous report path (the report capability is the qr_token), never
+              for the album's own host: without it no photo offers Report to her either
+              (build 23's BUG-3, `ReportFoot`). */}
+          <ReportFoot qrToken={qrToken} isOwner={isOwner} isDemo={isDemo} />
           <ToldNameForm
             onRenamed={(renamed) => {
               galleryRef.current?.renameMine(renamed);

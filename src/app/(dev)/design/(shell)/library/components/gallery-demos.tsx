@@ -13,7 +13,10 @@ import {
   GalleryEmptyState,
   GUEST_GHOST_FRAMES,
 } from "@/components/guest/gallery-empty-state";
-import { LiveAlbumStage } from "@/components/marketing/sections/features/album/live-album-stage";
+import {
+  LiveAlbum,
+  LiveAlbumStage,
+} from "@/components/marketing/sections/features/album/live-album-stage";
 import { AlbumStream } from "@/components/shared/album-stream/album-stream";
 import { PhotoSection } from "@/components/shared/backdrop/photo-section";
 import {
@@ -116,6 +119,8 @@ import { Row } from "@/app/(dev)/design/reference/reference-ui";
 import {
   CommandPaletteDemo,
   ConfirmSwitchDemo,
+  ConsequenceLineDemo,
+  DormantDemo,
   DestructiveSheetDemo,
   EmptyAlbumDemo,
   FormDemo,
@@ -380,12 +385,12 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
   {
     id: "album-stream",
     file: "src/components/shared/album-stream/album-stream.tsx",
-    for: "photographs falling out of the room around a hero's words and into the album beneath it; decorative, and its resting frame is server HTML so a reader with no script still meets the composition",
+    for: "photographs falling out of the room around a hero's words and into the album beneath it, each one taken in as an upload; decorative, and its resting frame is server HTML so a reader with no script still meets the composition",
     test: "src/components/shared/album-stream/album-stream.test.tsx",
     badge: "new",
     family: "components",
     section: "Surfaces",
-    lede: "Photographs falling out of the room around a hero's words and into the album beneath it, and the album they fall into: the live guest masonry under the host's own header, its foot dissolving, lit from behind by the Glow halo.",
+    lede: "Photographs falling out of the room around a hero's words, drawn in and dissolving at the album beneath it as the album takes each one in the way it takes an upload, its row opening from the left; and the album they fall into: the guest album's own rows under the host's own header, its foot dissolving, lit from behind by the Glow halo.",
     specimens: [
       {
         label: "The album, at the scale's 896 step",
@@ -399,19 +404,21 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
         // is pinned to 1280, the narrowest window the side-band composition
         // serves, and the page itself is where it is judged.
         label: "and the fall into it",
-        hint: "1280, the narrowest window this composition serves. Decorative and inert: nothing in it is focusable, every frame carries its resting position as server HTML, and reduced motion leaves that resting frame standing with no loop at all",
+        hint: "1280, the narrowest window this composition serves, over the album that takes each photograph in (one LiveAlbum holds it for both). Decorative and inert: nothing in it is focusable, every frame carries its resting position as server HTML, and reduced motion leaves that resting frame standing with no loop at all",
         node: (
           <div className="max-w-full overflow-x-auto">
             <CinemaGround>
-              <div
-                className="relative isolate overflow-x-clip"
-                style={{ width: 1280 }}
-              >
-                <AlbumStream />
-                <div style={{ height: 520 }} />
-                <LiveAlbumStage />
-                <div style={{ height: 150 }} />
-              </div>
+              <LiveAlbum>
+                <div
+                  className="relative isolate overflow-x-clip"
+                  style={{ width: 1280 }}
+                >
+                  <AlbumStream />
+                  <div style={{ height: 520 }} />
+                  <LiveAlbumStage />
+                  <div style={{ height: 150 }} />
+                </div>
+              </LiveAlbum>
             </CinemaGround>
           </div>
         ),
@@ -732,6 +739,23 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
         label: "Turn it off to see the ask",
         hint: "confirmWhen={(next) => !next}: the ON direction is instant, same as any plain Switch",
         node: <ConfirmSwitchDemo />,
+      },
+    ],
+  },
+  {
+    id: "dormant",
+    file: "src/components/ui/dormant.tsx",
+    for: "a setting with no effect right now, tucked under the switch that controls it as one quiet line, unfolding into its controls when that switch wakes it",
+    test: "src/components/ui/dormant.test.tsx",
+    badge: "new",
+    family: "components",
+    section: "Inputs",
+    lede: "A setting that does nothing yet stays in view as one quiet line naming what waits, nested on the rule its controls stand on, and unfolds when its switch turns on; asleep, its controls are out of reach, and under reduced motion nothing moves. The reel's look and hold, A photo first while uploads are paused, the size cap under Videos and the door's steps under Only me all ride it.",
+    specimens: [
+      {
+        label: "Turn the reel on",
+        hint: "awake={on}: the line folds away as the controls unfold",
+        node: <DormantDemo />,
       },
     ],
   },
@@ -1107,6 +1131,23 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
     ],
   },
   {
+    id: "consequence-line",
+    file: "src/components/ui/consequence-line.tsx",
+    for: "a change that reaches people already in, said before it happens, in the control's own place rather than a dialog over it",
+    test: "src/components/ui/consequence-line.test.tsx",
+    badge: "new",
+    family: "components",
+    section: "Feedback",
+    lede: "The one sentence of what a change does to people, under the control that asked, with the change as its primary act and the way back beside it; nothing is written until the first is pressed, and the sentence is announced. The door's swaps ride it; the disposable camera's mode switch will.",
+    specimens: [
+      {
+        label: "Only me, with 31 guests inside",
+        hint: "announced, never focused: the control that asked keeps focus",
+        node: <ConsequenceLineDemo />,
+      },
+    ],
+  },
+  {
     id: "password-strength-meter",
     file: "src/components/shared/password-strength-meter.tsx",
     for: "soft guidance while a new password is typed; never a gate, the validators enforce",
@@ -1265,9 +1306,9 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
                   <Heart /> Saved
                   <DropdownMenuMeta>412</DropdownMenuMeta>
                 </DropdownMenuItem>
-                {/* The one branch the family allows, and the last one: a Sub
-                    inside a Sub throws at render (Will: a third level "gets too
-                    complicated"). */}
+                {/* One branch, and it stops there: two levels read simpler,
+                    and a branch that wants a third is a group of its own
+                    under its name. */}
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger>
                     <Settings /> Who can upload

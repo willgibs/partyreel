@@ -3,19 +3,24 @@
  * plus the SQL functions the sweeps call, written over the fake's own tables so a test's fixture is
  * the only source of truth. Test support only: nothing under `src/app` or `src/components` imports it.
  *
- *  - `purge_media_rows(p_media_ids)`: deletes the unheld rows among its input and answers one row per
- *    host with the bytes freed (20260729150000's shape); every call's input size is recorded, so a test
- *    pins "never more than MAX_ROWS ids a call".
- *  - `held_event_ids(p_event_ids)`: the input events holding ANY media the purge must keep, as ONE
- *    uuid[]: a held item, or an operator's removal whose `purge_at` is still ahead of the world's
- *    clock (20260928140000). The fake reads every array answer as a set of rows, so this one is
+ *  - `purge_media_rows(p_media_ids)`: deletes the rows among its input nothing keeps (`kept_media_ids`
+ *    below) and answers one row per host with the meter bytes freed, zero for a row already released (an
+ *    operator's removal or an asked row: 20260929140000's shape); every call's input size is recorded, so a
+ *    test pins "never more than MAX_ROWS ids a call".
+ *  - `kept_media_ids(p_media_ids)`: the input ids held, or named by an open report (its item, or any item of
+ *    an album an open album report names), as ONE uuid[] (20260929140000), recorded in `keptCalls`.
+ *  - `defer_kept_due_media()`: marks asked every removal past its `purge_at` that something keeps (never an
+ *    operator's removal), answering how many (a scalar).
+ *  - `held_event_ids(p_event_ids)`: the input events the purge must keep whole, as ONE uuid[]: a held
+ *    item, an operator's removal whose `purge_at` is still ahead of the world's clock (20260928140000),
+ *    or any open report on the event, an item's or the album's (20260929140000). The fake reads every array answer as a set of rows, so this one is
  *    answered by `withArrayRpc` instead, a thin wrapper that returns the array as `data` (as
  *    PostgREST returns a `uuid[]`).
  *  - `standby_hosts(p_after, p_limit)`: (host, bytes) over the standby predicate of
- *    20260928140000 (never a withdrawal, a system removal or an operator's removal), keyset on host
+ *    20260929140000 (never a withdrawal, a system removal, an operator's removal or an asked row), keyset on host
  *    id, `least(p_limit, 1000)`; the fake clamps the answer at 1,000.
  *  - `host_storage_summary(p_host_id)`: one row, the active bytes and exactly what the host's two
- *    Deleted lists show, inside the 30-day window by the world's clock (20260928140000).
+ *    Deleted lists show, inside the 30-day window by the world's clock, never an asked row (20260929140000).
  *
  * The world's clock (`now`, the real one by default) is the SQL's `now()`: a test that moves an
  * operator's removal past its window passes the instant it runs the sweeps at.
@@ -48,6 +53,8 @@ export type CronWorld = {
   purgeCallSizes: number[];
   /** Every `held_event_ids` call's input. */
   heldCalls: string[][];
+  /** Every `kept_media_ids` call's input. */
+  keptCalls: string[][];
   recordR2(keys: readonly string[]): void;
 };
 
@@ -64,12 +71,27 @@ export function createCronWorld(
 ): CronWorld {
   tables.media ??= [];
   tables.events ??= [];
+  tables.reports ??= [];
   const nowMs = () => (opts.now ?? new Date()).getTime();
   const at = (value: unknown) =>
     value == null ? Number.NaN : Date.parse(String(value));
   const log: CronLogEntry[] = [];
   const purgeCallSizes: number[] = [];
   const heldCalls: string[][] = [];
+  const keptCalls: string[][] = [];
+
+  /** The rule kept_media_ids holds: a hold, or an open report naming the item or its whole album. */
+  const isKept = (m: FakeRow) =>
+    m.legal_hold_at != null ||
+    tables.reports.some(
+      (r) =>
+        r.status === "open" &&
+        (r.media_id === m.id ||
+          (r.media_id == null && r.event_id === m.event_id)),
+    );
+  /** Released: its bytes already left the host's meter (media_release_meter). */
+  const isReleased = (m: FakeRow) =>
+    Boolean(m.removed_by_admin) || m.purge_asked_at != null;
 
   const fake = createFakePostgrest({
     tables,
@@ -82,9 +104,10 @@ export function createCronWorld(
         const freed = new Map<string, number>();
         const kept: FakeRow[] = [];
         for (const m of tables.media) {
-          if (ids.has(String(m.id)) && m.legal_hold_at == null) {
+          if (ids.has(String(m.id)) && !isKept(m)) {
             const host = String(events.get(String(m.event_id))?.host_id);
-            freed.set(host, (freed.get(host) ?? 0) + Number(m.file_size_bytes));
+            const bytes = isReleased(m) ? 0 : Number(m.file_size_bytes);
+            freed.set(host, (freed.get(host) ?? 0) + bytes);
           } else {
             kept.push(m);
           }
@@ -105,7 +128,8 @@ export function createCronWorld(
             m.status === "removed" &&
             !m.removed_by_system &&
             !m.removed_by_uploader &&
-            !m.removed_by_admin;
+            !m.removed_by_admin &&
+            m.purge_asked_at == null;
           const deletedEventArm =
             m.status !== "removed" && e.deleted_at != null;
           if (!removedArm && !deletedEventArm) continue;
@@ -140,6 +164,7 @@ export function createCronWorld(
             m.status === "removed"
               ? !m.removed_by_uploader &&
                 !m.removed_by_admin &&
+                m.purge_asked_at == null &&
                 at(m.removed_at) >= windowStart
               : at(e.deleted_at) >= windowStart
           ) {
@@ -147,6 +172,23 @@ export function createCronWorld(
           }
         }
         return [{ active_bytes: active, standby_bytes: standby }];
+      },
+      defer_kept_due_media: () => {
+        let marked = 0;
+        for (const m of tables.media) {
+          if (
+            m.status === "removed" &&
+            m.purge_asked_at == null &&
+            !m.removed_by_admin &&
+            m.purge_at != null &&
+            at(m.purge_at) <= nowMs() &&
+            isKept(m)
+          ) {
+            m.purge_asked_at = new Date(nowMs()).toISOString();
+            marked += 1;
+          }
+        }
+        return marked;
       },
     },
   });
@@ -168,7 +210,21 @@ export function createCronWorld(
             held.add(String(m.event_id));
           }
         }
+        for (const r of tables.reports) {
+          if (r.status === "open" && wanted.has(String(r.event_id))) {
+            held.add(String(r.event_id));
+          }
+        }
         return [...held].sort();
+      },
+      kept_media_ids: (args) => {
+        const ids = [...new Set((args.p_media_ids as string[]) ?? [])];
+        keptCalls.push(ids);
+        const wanted = new Set(ids);
+        return tables.media
+          .filter((m) => wanted.has(String(m.id)) && isKept(m))
+          .map((m) => String(m.id))
+          .sort();
       },
     }),
   );
@@ -179,6 +235,7 @@ export function createCronWorld(
     log,
     purgeCallSizes,
     heldCalls,
+    keptCalls,
     recordR2: (keys) => log.push({ kind: "r2", keys: [...keys] }),
   };
 }
@@ -289,6 +346,7 @@ export function mediaRow(
     removed_by_system: false,
     removed_by_uploader: false,
     removed_by_admin: false,
+    purge_asked_at: null,
     legal_hold_at: null,
     created_at: stamp(0),
     ...over,

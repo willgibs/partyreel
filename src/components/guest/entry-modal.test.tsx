@@ -186,6 +186,23 @@ describe("no exit: the affordance table is one row", () => {
     expect(closeButton()).not.toBeInTheDocument();
   });
 
+  it("★ a photos-only album's invitation promises photos, never videos (build 23's NIT-9)", () => {
+    renderModal({ acceptsVideo: false });
+    expect(
+      screen.getByText("Add your photos in seconds. No app required."),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/photos and videos/)).not.toBeInTheDocument();
+  });
+
+  it("an album that takes videos says so", () => {
+    renderModal({ acceptsVideo: true });
+    expect(
+      screen.getByText(
+        "Add your photos and videos in seconds. No app required.",
+      ),
+    ).toBeInTheDocument();
+  });
+
   it("never offers 'Just browsing' or 'View the album': Continue is the only way on", () => {
     renderModal();
     expect(

@@ -39,6 +39,7 @@ const person = (over: Partial<BlockedPerson> = {}): BlockedPerson => ({
   since: "Blocked Sep 28",
   restorable: 0,
   restorableUntil: null,
+  lands: "in",
   ...over,
 });
 
@@ -82,7 +83,7 @@ describe("BlockedSection", () => {
   it("with nothing to bring back, Let back in confirms with no switch and restores nothing", async () => {
     render(<BlockedSection eventName="Party" people={[person()]} />);
     fireEvent.click(screen.getByRole("button", { name: "Let back in" }));
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole("alertdialog");
     expect(within(dialog).getByText("Let Sam back in?")).toBeInTheDocument();
     expect(within(dialog).queryByRole("switch")).toBeNull();
     fireEvent.click(
@@ -100,6 +101,89 @@ describe("BlockedSection", () => {
     expect(refresh).toHaveBeenCalled();
   });
 
+  it("★ a newcomer declined at the door hears she goes back there, before and after (build 23's NIT-3)", async () => {
+    render(
+      <BlockedSection
+        eventName="Party"
+        people={[person({ id: "b-wren", name: "Wren", lands: "door" })]}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Let back in" }));
+    const dialog = await screen.findByRole("alertdialog");
+    expect(
+      within(dialog).getByText(
+        "They'll be back at the door, and you can let them in from there.",
+      ),
+    ).toBeInTheDocument();
+    expect(within(dialog).queryByText(/add photos again/)).toBeNull();
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Let back in" }),
+    );
+    await waitFor(() =>
+      expect(toast.success).toHaveBeenCalledWith("Wren is back at the door.", {
+        description: undefined,
+      }),
+    );
+    expect(refresh).toHaveBeenCalled();
+  });
+
+  it("★ a newcomer whose ask the password ended hears she meets it like anyone new, before and after (crumbs-24)", async () => {
+    render(
+      <BlockedSection
+        eventName="Party"
+        people={[person({ id: "b-wren", name: "Wren", lands: "password" })]}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Let back in" }));
+    const dialog = await screen.findByRole("alertdialog");
+    expect(
+      within(dialog).getByText(
+        "They'll need the password to get in, like anyone new.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).queryByText(/add photos again|back at the door/),
+    ).toBeNull();
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Let back in" }),
+    );
+    await waitFor(() =>
+      expect(toast.success).toHaveBeenCalledWith(
+        "Wren can come in with the password.",
+        { description: undefined },
+      ),
+    );
+  });
+
+  it("★ someone who was in, while the album is Only me, is told it stays closed until the host opens it, before and after (crumbs-27)", async () => {
+    letBackInAction.mockResolvedValue({ ok: true, restored: 1, noRoom: 0 });
+    render(
+      <BlockedSection
+        eventName="Party"
+        people={[person({ name: "Sam", lands: "only_me", restorable: 1 })]}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Let back in" }));
+    const dialog = await screen.findByRole("alertdialog");
+    expect(
+      within(dialog).getByText(
+        "Party is Only me right now, so they'll meet a closed album until you open it. Then they can add photos again.",
+      ),
+    ).toBeInTheDocument();
+    // The old line, true only once the album opens, is not said now.
+    expect(
+      within(dialog).queryByText(/be able to open Party and add photos again/),
+    ).toBeNull();
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Let back in" }),
+    );
+    await waitFor(() =>
+      expect(toast.success).toHaveBeenCalledWith("Sam is no longer blocked.", {
+        description: "1 upload is back where it was.",
+      }),
+    );
+  });
+
   it("★ the restore is offered while something waits in Deleted, OFF by default", async () => {
     render(
       <BlockedSection
@@ -108,7 +192,7 @@ describe("BlockedSection", () => {
       />,
     );
     fireEvent.click(screen.getByRole("button", { name: "Let back in" }));
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole("alertdialog");
     const offer = within(dialog).getByRole("switch", {
       name: /Also restore their uploads/,
     });
@@ -133,7 +217,7 @@ describe("BlockedSection", () => {
       <BlockedSection eventName="Party" people={[person({ restorable: 2 })]} />,
     );
     fireEvent.click(screen.getByRole("button", { name: "Let back in" }));
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole("alertdialog");
     fireEvent.click(within(dialog).getByRole("switch"));
     fireEvent.click(
       within(dialog).getByRole("button", { name: "Let back in" }),
@@ -157,7 +241,7 @@ describe("BlockedSection", () => {
     });
     render(<BlockedSection eventName="Party" people={[person()]} />);
     fireEvent.click(screen.getByRole("button", { name: "Let back in" }));
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole("alertdialog");
     fireEvent.click(
       within(dialog).getByRole("button", { name: "Let back in" }),
     );
@@ -166,7 +250,7 @@ describe("BlockedSection", () => {
         "That person or event is no longer available.",
       ),
     );
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByRole("alertdialog")).toBeInTheDocument();
     expect(refresh).not.toHaveBeenCalled();
   });
 });

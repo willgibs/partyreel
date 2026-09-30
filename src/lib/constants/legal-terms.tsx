@@ -494,7 +494,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
           or if a paid plan lapses and the account remains over its cap beyond
           the periods described under Storage and retention. We may also
           discontinue the Service as a whole, in which case we will give at
-          least 60 days&rsquo; notice by email and a way to download your albums
+          least 60 days’ notice by email and a way to download your albums
           before they are deleted.
         </>,
       ),

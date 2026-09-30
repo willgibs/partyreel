@@ -11,7 +11,7 @@ import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
  * ★ NOT A BOARD. This is a plain file directly under `sandbox/`, never a
  * directory with a `spec.ts` (`registry.test.ts`'s own scan only requires
  * registration for a directory that has one), so no board owns its
- * lifecycle: it outlives any one board's ruling. Extracted from
+ * lifecycle: it outlives any one board. Extracted from
  * `app-vocabulary/fixtures.ts` when that board retired at its wiring
  * (`controls-home-wiring`, `app-vocabulary` r2, 2026-09-20) — `host-curation`
  * was already reusing these six pools verbatim, so the board's own
@@ -64,7 +64,6 @@ export const HOST_EVENT = {
   deleted_at: null,
   purge_at: null,
   qr_token: "33333333333333333333333333333333",
-  show_guest_list: true,
   display_in_profile: true,
   created_at: "2026-08-01T12:00:00.000Z",
   updated_at: "2026-09-18T12:00:00.000Z",
@@ -97,10 +96,7 @@ const UPLOADERS = [
   { key: "g3", name: "Theo Calder", isHost: false, isVerified: true },
 ] as const;
 
-function media(
-  i: number,
-  overrides: Partial<GridMedia> = {},
-): GridMedia {
+function media(i: number, overrides: Partial<GridMedia> = {}): GridMedia {
   const img = MARKETING_IMAGES[i % MARKETING_IMAGES.length];
   const [w, h] = RATIOS[i % RATIOS.length];
   const uploader = UPLOADERS[i % UPLOADERS.length];
@@ -164,6 +160,7 @@ export const UPLOADS_ITEMS: GridMedia[] = Array.from({ length: 10 }, (_, i) =>
     id: `uploads-${i}`,
     eventName: i % 2 === 0 ? EVENT.name : "Ruby's 30th",
     eventDateLabel: i % 2 === 0 ? "15 Aug 2026" : "2 Jul 2026",
-    eventQrToken: i % 2 === 0 ? HOST_EVENT.qr_token : "44444444444444444444444444444444",
+    eventQrToken:
+      i % 2 === 0 ? HOST_EVENT.qr_token : "44444444444444444444444444444444",
   }),
 );

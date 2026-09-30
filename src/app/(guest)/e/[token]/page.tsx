@@ -3,23 +3,20 @@ import { randomInt } from "node:crypto";
 import type { Metadata } from "next";
 import { cookies, headers } from "next/headers";
 import { z } from "zod";
-import Link from "next/link";
-import { notFound } from "next/navigation";
 import { after } from "next/server";
-import { Lock } from "lucide-react";
 
+import { ShutDoor } from "@/components/guest/door/shut-door";
 import { EventExperience } from "@/components/guest/event-experience";
 import {
   ALBUM_WIDTH_COOKIE,
   parseAlbumWidth,
 } from "@/components/shared/album-window-plan";
 import { GuestHeader } from "@/components/guest/guest-header";
-import { NotFoundScreen } from "@/components/shared/not-found-screen";
+import { ClaimAsk } from "@/components/shared/claim-ask";
 import {
   GuestList,
   GUEST_LIST_FACES_THRESHOLD,
 } from "@/components/social/guest-list";
-import { Button } from "@/components/ui/button";
 import { isLikelyBot } from "@/lib/analytics/bots";
 import { recordLinkHit } from "@/lib/db/mutations/analytics";
 import { listAccountMediaIds } from "@/lib/db/mutations/guest-media";
@@ -28,10 +25,7 @@ import {
   getHostAvatarSeed,
   getOpenAlbumItemForCard,
 } from "@/lib/db/queries/guest-events-admin";
-import {
-  getEventByQrToken,
-  type GuestEvent,
-} from "@/lib/db/queries/guest-events";
+import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import { getProfileMenu } from "@/lib/db/queries/profile";
 import {
   getEventGuestList,
@@ -40,8 +34,11 @@ import {
 } from "@/lib/db/queries/social";
 import { splitGuestList, withAvatarUrls } from "@/lib/social/cards";
 import { isDemoToken } from "@/lib/demo";
-import { resolveGalleryDecision } from "@/lib/events/gallery-access";
-import { pageIsClosed } from "@/lib/events/closed-door.server";
+import {
+  doorGalleryDecision,
+  resolveGalleryDecision,
+} from "@/lib/events/gallery-access";
+import { pageDoor } from "@/lib/events/closed-door.server";
 import { isRequestOwner } from "@/lib/events/gallery-access-owner.server";
 import {
   resolveViewerDecision,
@@ -65,6 +62,9 @@ import { getSiteUrl } from "@/lib/site-url";
 import { getRequestAuth } from "@/lib/supabase/request-auth";
 import { needsDisplayName } from "@/lib/welcome";
 
+import { notFoundMetadata } from "./not-found.metadata";
+import { GuestNotFoundScreen } from "./not-found.screen";
+
 // Event state + gallery are read per request via the qr_token RPCs.
 export const dynamic = "force-dynamic";
 
@@ -74,12 +74,12 @@ export const dynamic = "force-dynamic";
 // isn't the secret) but no description; OPEN gets the full unfurl, one invitation for
 // every open event whatever its identity switch (below). The IMAGE is the event's own
 // card (`/e/<token>/card`), or, for a link to one photograph on an album anyone may open,
-// that photograph (`photoCard` below). ★ A VIEWER THIS EVENT BLOCKED gets the private
-// event's metadata too (the closed door, `closed-door.server.ts`): the tab's title is as
-// much the door as the page is. ★ AND THE PRIVATE ALBUM'S CARD, never the event's own:
-// every closed door names `privateEventCardPath` (generic by its address), because the
-// event's card answers the event's own visibility to everyone (the edge shares it), so an
-// open event's is named, and naming it here would tell her what the door hides.
+// that photograph (`photoCard` below). ★ EVERY SHUT DOOR gets the private event's metadata
+// (a block, a decline, a closed door and Only me alike, `closed-door.server.ts`): the tab's
+// title is as much the door as the page is. ★ AND THE PRIVATE ALBUM'S CARD, never the
+// event's own: every closed door names `privateEventCardPath` (generic by its address),
+// because the event's card answers the event's own visibility to everyone (the edge shares
+// it), so an open event's is named, and naming it here would tell her what the door hides.
 export async function generateMetadata({
   params,
   searchParams,
@@ -88,13 +88,15 @@ export async function generateMetadata({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<Metadata> {
   const { token } = await params;
-  const result = await getEventByQrToken(token);
-  if (
-    !result.ok ||
-    (await pageIsClosed(result.data.id, result.data.visibility))
-  ) {
+  const door = await pageDoor(token);
+  // ★ A LINK THAT NAMES NOTHING IS TITLED AS THE NOT-FOUND IT IS, "Event not found" and noindex (build 28's
+  // red-team: this branch said "Join event"). The not-found's own metadata (`not-found.metadata.ts`), so the two
+  // never disagree. The page answers it at 200 (a soft 404, below), so this noindex is all that keeps a dead link
+  // out of an index.
+  if (!door) return notFoundMetadata;
+  if (door.decision.kind === "shut") {
     return {
-      title: result.ok ? "Private event" : "Join event",
+      title: "Private event",
       robots: { index: false },
       openGraph: { images: [privateCardImage(token)] },
       twitter: {
@@ -104,9 +106,13 @@ export async function generateMetadata({
     };
   }
 
-  const event = result.data;
-  const card = eventCardImage(event.qr_token);
-  if (event.visibility === "password") {
+  const event = door.event;
+  // ★ A GATED ALBUM UNFURLS AS A PASSWORD ALBUM DOES: its name, and no invitation to add photos (the
+  // door stands first). Its image is the private album's card, since the card route answers the
+  // event's own door to everyone and a gated album reads there as private (the safe side).
+  const gated = event.visibility === "private";
+  const card = gated ? privateCardImage(token) : eventCardImage(event.qr_token);
+  if (event.visibility === "password" || gated) {
     const title = event.name;
     return {
       title,
@@ -246,8 +252,12 @@ async function photoCard(
 }
 
 // The unified guest EVENT page — a scanned QR lands here. The opaque qr_token IS the
-// capability (database-security.md). State is a function of the host's `visibility`:
-//   private              → locked screen (master lock; no name/gallery/upload), an early return here
+// capability (database-security.md). State is a function of the door, then the album's own gates:
+//   shut                 → the shut screen (no name/gallery/upload), an early return here; someone
+//                          the invite list does not name reads it too, with her own ask
+//   waiting / ask / a gate's newcomer
+//                        → EventExperience renders the door's step via the entry modal, over nothing
+//                          real (access `none`)
 //   password / account   → EventExperience renders the gate via the entry modal; an unsatisfied gate
 //                          resolves to access `none` (locked backdrop) or `teaser` (capped preview)
 //   open + anon / full   → header + action row (save / invite) + upload + live gallery
@@ -260,11 +270,24 @@ export default async function GuestEventPage({
 }) {
   const { token } = await params;
 
-  const result = await getEventByQrToken(token);
-  // Missing / deleted resolves to not_found — a 404 (don't leak existence).
-  if (!result.ok) notFound();
-  const event = result.data;
-  // Read above the private-event return: a pure check of the qr_token alone,
+  // ★ THE DOOR DECIDES FIRST (the doors, event-settings r1; `closed-door.server.ts`): who this
+  // request is at this album's door, from the account and this browser's ticket, and the event as
+  // the door lets them meet it. Missing or deleted is the not-found (don't leak existence).
+  //
+  // ★ AND THIS PAGE DRAWS IT ITSELF, NEVER THROUGH `notFound()` (stale-link). A `notFound()` thrown
+  // while a page renders is served as Next's error shell: an empty body until the script has run,
+  // so a stale QR code on a cold phone was a white page for six seconds (Slow 4G, 4x CPU), and for a
+  // reader with no script for good. Drawn here it is in the HTML, the segment's own screen in the
+  // same layout, at 200 and noindex: a soft 404 (gone-link-soft). Next gives a page no status of its
+  // own, and the 404 the proxy once set before this rendered was answered on Vercel with the site's
+  // /404, never this screen (marketing-content.md, "The 404 pages").
+  // The screen itself, never the not-found's lazy boundary: this page reaches every client part of it
+  // already (through the shut door), so a found album's HTML stays byte for byte, where importing the
+  // boundary widened two references on every album load.
+  const door = await pageDoor(token);
+  if (!door) return <GuestNotFoundScreen />;
+  const event = door.event;
+  // Read above the shut door's return: a pure check of the qr_token alone,
   // and GuestHeader wants it on EVERY branch (the Demo mark).
   const isDemo = isDemoToken(event.qr_token);
 
@@ -276,29 +299,22 @@ export default async function GuestEventPage({
     after(() => recordLinkHit(event.id, "qr_scan"));
   }
 
-  // Private: master lock — reveal nothing (no name, gallery, or upload).
+  // ★ THE SHUT DOOR: one screen for every newcomer turned away (an Only me album, a closed door, a
+  // decline, a block: event-safety `newcomer=same`), with one line more for someone who was in
+  // (locked-door `previous=private`: the host made it private). An account or confirmed address the
+  // event blocked, and a ticket a block holds, meet it word for word (Will's "Sneaky block"), with
+  // the same work (`closed-door.server.ts`).
   //
-  // ★ AND A VIEWER THIS EVENT BLOCKED MEETS IT WORD FOR WORD (Will, event-safety
-  // `door=private`: "reusing an existing lock screen to lock out blocked users,
-  // without the 'blocked' experience feeling distinct ... Sneaky block"). An
-  // account or confirmed address the event blocked already reads the event as
-  // private (`get_event_by_qr_token`); a ticket this browser holds is asked here,
-  // whether or not the album is private, so a block and a private album take the
-  // same work and render the same bytes (`closed-door.server.ts`).
+  // ★ IT IS THE NOT-FOUND FAMILY, WEARING A LOCK (`door/shut-door.tsx`). It keeps the REAL
+  // GuestHeader (not the failure bar): this render holds a live qr_token and event id, so the header
+  // can resolve a session and a returning host meets their own menu.
   //
-  // ★ IT IS THE NOT-FOUND FAMILY, WEARING A LOCK: NotFoundScreen itself, never
-  // a hand-rolled stack mirroring it by eye (the same icon circle, title step
-  // and centered column, free to drift). Its one action is a link to the
-  // Partyreel homepage, which captures a visitor from an otherwise dead-end
-  // page, worded the way the bad-link 404 next door words it, and outline
-  // rather than solid because this screen is telling a guest to come back
-  // later, not to leave.
-  //
-  // It keeps the REAL GuestHeader (not the failure bar): this render holds a
-  // live qr_token and event id, so the header can resolve a session and a
-  // returning host meets their own menu. The two surfaces that wear GuestBar
-  // are the ones that have neither.
-  if (await pageIsClosed(event.id, event.visibility)) {
+  // ★ SOMEONE THE INVITE LIST DOES NOT NAME meets it too, with her own foot (`locked-door` r2 places
+  // `unlisted=ask` there): "Ask Maya to let me in", or "Use a different email".
+  const unlistedAsk =
+    door.decision.kind === "ask" && door.decision.gate === "invite";
+  if (door.decision.kind === "shut" || unlistedAsk) {
+    const { user } = await getRequestAuth();
     return (
       <div className="flex min-h-full flex-1 flex-col">
         <GuestHeader
@@ -307,14 +323,17 @@ export default async function GuestEventPage({
           isDemo={isDemo}
         />
         <main className="flex flex-1 flex-col items-center justify-center px-5 py-20">
-          <NotFoundScreen
-            icon={Lock}
-            title="This event is private"
-            description="The host has this event set to private. Check back later, or ask them to make it public."
-            actions={
-              <Button asChild size="cta" variant="outline">
-                <Link href="/">What is Partyreel?</Link>
-              </Button>
+          <ShutDoor
+            previous={door.decision.kind === "shut" && door.decision.previous}
+            signedIn={Boolean(user)}
+            returnTo={`/e/${event.qr_token}`}
+            ask={
+              unlistedAsk
+                ? {
+                    qrToken: event.qr_token,
+                    hostName: event.host_display_name,
+                  }
+                : null
             }
           />
         </main>
@@ -322,12 +341,23 @@ export default async function GuestEventPage({
     );
   }
 
+  // ★ THE DOOR'S OWN ANSWER, where it holds the request (the held door, the ask, a newcomer's email
+  // step), with nothing real behind it; otherwise the album's own gates decide below. `admitted` is
+  // the door's word that this request is already past it, which passes the password without it.
+  const doorDecision = doorGalleryDecision(door.decision);
+  const admitted = door.decision.kind === "through" && door.decision.admitted;
+  const doorGate =
+    door.decision.kind === "newcomer" ? door.decision.gate : null;
+
   // Password unlock state, feeding the access resolution + the entry modal's password step. The
   // password gate is not a full-page early-return: the entry modal (in EventExperience)
   // owns it, so a not-yet-unlocked password event resolves to access `none` (a locked backdrop with
-  // the modal over it).
+  // the modal over it). Someone already in passes it without the password (the one rule for everyone
+  // already in).
   const unlocked =
-    event.visibility === "password" ? await isUnlocked(event.id) : true;
+    event.visibility === "password"
+      ? admitted || (await isUnlocked(event.id))
+      : true;
 
   // Open, or password + unlocked. Resolve this viewer's gallery ACCESS (none/teaser/full) and load
   // exactly that much media server-side, so the withheld set never reaches the browser (the gated-
@@ -374,17 +404,19 @@ export default async function GuestEventPage({
   // lightbox's last-removal line), so it alone pays the gate's second read.
   const decision = isDemo
     ? { access: "full" as const, gate: null, albumFull: false }
-    : await resolveViewerDecision(
-        event,
-        {
-          isOwner,
-          isAuthed,
-          isUnlocked: unlocked,
-          userId,
-          sessionToken: cookieSessionToken,
-        },
-        { withAlbumFull: true },
-      );
+    : doorDecision
+      ? { ...doorDecision, albumFull: false }
+      : await resolveViewerDecision(
+          event,
+          {
+            isOwner,
+            isAuthed,
+            isUnlocked: unlocked,
+            userId,
+            sessionToken: cookieSessionToken,
+          },
+          { withAlbumFull: true },
+        );
   const access = decision.access;
   /* ────────────────────────────────────────────────────────────────────────
      THE ALBUM'S FIRST PAINT, DECIDED BEFORE ANY BYTE: the density step the
@@ -444,18 +476,24 @@ export default async function GuestEventPage({
   // flight payload whether or not the UI renders them - so blank the host name
   // + description + DATE (and skip the avatar read) BEFORE they reach the
   // client. The date is in the redaction because the entry welcome's byline
-  // would otherwise show it on a locked page.
-  const shellEvent =
+  // would otherwise show it on a locked page. ★ A DOOR NAMES ITS HOST: the held
+  // door, the ask and a gate's email step say who lets her in ("Maya will let
+  // you in"), where a password step names nobody.
+  //
+  // ★ AND THE DOOR'S PASS NEVER LEAVES THE SERVER: it is the proof the album's own
+  // reads ask for, issued to this request alone (`lib/event/door/pass.server.ts`).
+  const shellEvent: GuestEvent =
     access === "none"
       ? {
           ...event,
-          host_display_name: null,
+          host_display_name: doorDecision ? event.host_display_name : null,
           description: null,
           event_date: null,
           // The slug is only ever said by the reel's code plate, which a locked page never draws.
           custom_slug: null,
+          doorPass: null,
         }
-      : event;
+      : { ...event, doorPass: null };
 
   // Host avatar + seed for the "Hosted by" byline: a server-side admin read so host_id stays off the
   // client (only the presigned URL and the one-way hash are passed down — `seedFor`).
@@ -562,6 +600,7 @@ export default async function GuestEventPage({
         hostAvatarUrl={hostAvatarUrl}
         hostSeed={hostSeed}
         isOwner={isOwner}
+        doorGate={doorGate}
         guestListSlot={guestListSlot}
         canDeleteIds={canDeleteIds}
         isAuthed={Boolean(userId)}
@@ -574,6 +613,11 @@ export default async function GuestEventPage({
         rhythmSeed={rhythmSeed}
         albumFull={decision.albumFull}
       />
+      {/* ★ WHAT THIS PHONE'S CLAIM WOULD NOT TAKE IN SILENCE (shared-claims): a ticket typed under a
+          name at odds with the account, asked about once the door and its sheets are down
+          (`claim-ask.tsx`). Beside the album's own claim (EventExperience's `useConfirmReturn`), so
+          never in the demo, and never for the album's host, who is no guest here. */}
+      {!isDemo && !isOwner && <ClaimAsk />}
     </div>
   );
 }

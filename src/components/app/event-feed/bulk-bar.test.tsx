@@ -3,9 +3,13 @@ import { join } from "node:path";
 
 import { Heart, Trash2 } from "lucide-react";
 import { fireEvent, render, screen } from "@testing-library/react";
+import { renderToString } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
-import { BulkBar, type BulkBarAction } from "@/components/app/event-feed/bulk-bar";
+import {
+  BulkBar,
+  type BulkBarAction,
+} from "@/components/app/event-feed/bulk-bar";
 
 /**
  * `app-vocabulary` r1, `bulk-toolbar=icon`: the one bulk bar behind
@@ -60,7 +64,9 @@ describe("BulkBar", () => {
     expect(screen.getByText("2")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Like" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Delete" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Cancel selection" })).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "Cancel selection" }),
+    ).toBeTruthy();
   });
 
   it("reads Clear once every item is selected", () => {
@@ -105,7 +111,7 @@ describe("BulkBar", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "Delete" }));
     expect(onRun).not.toHaveBeenCalled();
-    expect(screen.getByRole("dialog")).toBeTruthy();
+    expect(screen.getByRole("alertdialog")).toBeTruthy();
     expect(screen.getByText("Remove 2 items?")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Remove" }));
     expect(onRun).toHaveBeenCalledWith("delete");
@@ -142,7 +148,9 @@ describe("BulkBar", () => {
     );
     expect(screen.getByText("All").closest("button")).toBeDisabled();
     expect(screen.getByRole("button", { name: "Like" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Cancel selection" })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Cancel selection" }),
+    ).toBeDisabled();
   });
 
   it("drops the press scale under reduced motion", () => {
@@ -189,22 +197,37 @@ describe("BulkBar", () => {
     expect(openTip()?.textContent).toContain("Cancel selection");
   });
 
-  it("gates the rich sliding tooltip behind a hydrated flag that starts false", () => {
-    // architecture.md: SSR'd radix Tooltips on gallery actions silently broke
-    // prod hydration once already. The fix here is structural — no Tooltip
-    // primitive mounts until one tick after mount — so this is a source
-    // assertion rather than a simulated timing race (testing-verification.md:
-    // hydration timing is not reliably observable through jsdom/RTL's
-    // act-flushed effects). useSyncExternalStore, not a useEffect + setState:
-    // the latter is a cascading render the react-hooks/set-state-in-effect
-    // rule refuses, and a subscription read is the correct tool anyway —
-    // use-prefers-reduced-motion.ts's own shape for the same problem.
-    const src = read("src/components/app/event-feed/bulk-bar.tsx");
-    expect(src).toMatch(/useSyncExternalStore\(/);
-    expect(src).not.toMatch(/useEffect\(/);
-    expect(src, "the plain pre-hydration path never imports TooltipSlide").toMatch(
-      /interactive \? \(/,
+  it("gates the rich sliding tooltip behind the hydrated flag, so the server draws the plain bar", () => {
+    // architecture.md: SSR'd radix Tooltips on gallery actions silently broke prod hydration once already.
+    // The fix is structural: no Tooltip primitive mounts until the render after hydration. The flag is
+    // `useHydrated` (false to the server and to the hydrating render, `use-hydrated.test.tsx`), so what
+    // the server sends is each icon with the browser's own `title` and no tooltip, and a client render
+    // swaps the title for the sliding tooltip.
+    const bar = (
+      <BulkBar
+        count={2}
+        allSelected={false}
+        onSelectAll={() => {}}
+        onCancel={() => {}}
+        actions={actions(() => {})}
+      />
     );
-    expect(src).toMatch(/title=\{interactive \? undefined : label\}/);
+    const server = renderToString(bar);
+    expect(server).toContain('title="Like"');
+    expect(server).toContain('title="Cancel selection"');
+
+    const { container } = render(bar);
+    expect(container.querySelector('button[aria-label="Like"]')).not.toBeNull();
+    expect(container.querySelector("button[title]")).toBeNull();
+
+    // And the flag stays the shared read, never an effect plus a setState (a cascading render the
+    // react-hooks/set-state-in-effect rule refuses).
+    const src = read("src/components/app/event-feed/bulk-bar.tsx");
+    expect(src).toMatch(/useHydrated\(\)/);
+    expect(src).not.toMatch(/useEffect\(/);
+    expect(
+      src,
+      "the plain pre-hydration path never imports TooltipSlide",
+    ).toMatch(/interactive \? \(/);
   });
 });

@@ -35,6 +35,7 @@ import {
 } from "@/lib/events/album-wire";
 import type { GalleryItem } from "@/lib/events/gallery-reel";
 import type { LiveMediaItem } from "@/lib/reel/live/items";
+import { newIds } from "@/lib/shared/arrival";
 
 type Link = AlbumLink<GuestWhoTuple>;
 
@@ -207,11 +208,16 @@ export function createReelItems() {
  * photograph can reach the album: another guest's upload arriving through the doorbell's delta, a host
  * approving a held item hours after it was sent, a hidden tab catching up on ten at once. A
  * `created_at` window would glow the first of those and miss the second, and a tab that slept through
- * the evening would come back to a screen full of light.
+ * the evening would come back to a screen full of light. That sentence is the grammar's, written once
+ * (`newIds`, `lib/shared/arrival.ts`, which the host's grid reads too); this reads the guest's two
+ * shapes into ids and keeps the guest's own seed rule, below.
  *
- * ★ THE FIRST SNAPSHOT NEVER GLOWS. `prev` empty is the SEED (or an access flip's remount), where every
- * id is new and none of it arrived: the album's own entrance stagger is that moment's motion. Callers
- * get an empty set, so there is no "everything lights up on load" state to suppress downstream.
+ * ★ THE FIRST SNAPSHOT NEVER GLOWS. `prev` empty is the SEED (or an album that has not loaded yet: a
+ * teaser's and a locked page's answers carry no entries by design, so the album that opens under a
+ * mounted provider is not an arrival), where every id is new and none of it arrived: the album's own
+ * entrance stagger is that moment's motion. Callers get an empty set, so there is no "everything lights
+ * up on load" state to suppress downstream. This line is the guest's alone: the host's grid seeds its
+ * own state from its first render, where an empty album is a real one.
  *
  * ★ IT IS NOT THE OPTIMISTIC TILE'S JOB EITHER. A guest's own upload has its landing beat (the sweep),
  * and `arrivalMarks` keeps the two marks apart: this one is for a photograph somebody ELSE put in.
@@ -221,14 +227,10 @@ export function newArrivalIds(
   next: readonly { id: string }[] | readonly ManifestEntry[],
 ): Set<string> {
   if (prev.length === 0) return new Set();
-  const idOf = (m: { id: string } | ManifestEntry) =>
-    Array.isArray(m) ? (m as ManifestEntry)[0] : (m as { id: string }).id;
-  const known = new Set<string>();
-  for (const m of prev) known.add(idOf(m));
-  const arrived = new Set<string>();
-  for (const m of next) {
-    const id = idOf(m);
-    if (!known.has(id)) arrived.add(id);
-  }
-  return arrived;
+  return newIds(prev.map(idOf), next.map(idOf));
+}
+
+/** An album snapshot's id, whichever shape it is kept in: an item's `id`, or a manifest entry's first slot. */
+function idOf(m: { id: string } | ManifestEntry): string {
+  return Array.isArray(m) ? (m as ManifestEntry)[0] : (m as { id: string }).id;
 }

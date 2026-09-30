@@ -1,9 +1,15 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  askableProof,
+  entryKeyOf,
+  frontOrder,
   heldMessage,
+  hideUndoOf,
   holdReasonFor,
   holdTouches,
+  laneOf,
+  newestFirst,
   NO_REASON,
   normalizeNote,
   parseReportFilter,
@@ -15,6 +21,8 @@ import {
   REPORT_NOTE_MAX,
   REPORT_STATUS_META,
   REPORT_WORDS,
+  reporterWho,
+  reporterWords,
   sameInstant,
   WAY_BACK_LINE,
   wayBackOf,
@@ -237,6 +245,9 @@ describe("the hold from a report (`escalate=door`)", () => {
     );
   });
 
+  // ★ RESHAPED ON PURPOSE (triage-r2-wiring, Will 2026-09-29: "a hold is for what police should see"; scar
+  // kept: every line true of what the act does). The hold takes it down too, by default, so its second line
+  // says where each item goes; the quiet hold says nothing leaves.
   it("says what it reaches: the item, the same uploader's others, the copies, and that nobody is told", () => {
     expect(
       holdTouches({
@@ -247,9 +258,35 @@ describe("the hold from a report (`escalate=door`)", () => {
       }),
     ).toEqual([
       "This photo in Hannah and Theo, and the 3 other uploads this guest sent there",
+      "Each leaves the album and the host's Deleted at once and stops counting against her storage; restore any from Albums after review",
       "Each original and its forensic record, copied to the preservation store",
       "The host and the guest are sent nothing",
     ]);
+    expect(
+      holdTouches(
+        {
+          kind: "photo",
+          eventName: "Okafor Reunion",
+          others: 0,
+          uploader: "guest",
+        },
+        { takeDown: true },
+      )[1],
+    ).toMatch(/^It leaves the album and the host's Deleted at once/);
+    // The quiet hold: nothing leaves, and what the host does to it looks like any act of hers.
+    expect(
+      holdTouches(
+        {
+          kind: "photo",
+          eventName: "Okafor Reunion",
+          others: 2,
+          uploader: "guest",
+        },
+        { takeDown: false },
+      )[1],
+    ).toBe(
+      "Nothing leaves the album: the host's own removal of one looks like any other",
+    );
     expect(
       holdTouches({
         kind: "video",
@@ -280,8 +317,170 @@ describe("the hold from a report (`escalate=door`)", () => {
     );
   });
 
-  it("toasts the count the confirm showed", () => {
+  it("toasts the count the confirm showed, and what it did", () => {
     expect(heldMessage(1)).toBe("Held and preserved.");
     expect(heldMessage(4)).toBe("Held and preserved 4 items.");
+    expect(heldMessage(1, { takeDown: true })).toBe(
+      "Held, taken down and preserved.",
+    );
+    expect(heldMessage(4, { takeDown: true })).toBe(
+      "Held, taken down and preserved 4 items.",
+    );
+  });
+});
+
+/**
+ * ROUND TWO'S RULES (admin-triage r2, Will 2026-09-29): one entry a thing reported, harm in front worst first, the
+ * reporter in words true of what she can do, proof never asked of the worst kind, and a false report's hide put
+ * back exactly where it found the item.
+ */
+describe("the review grid's entries and lanes (`look=grid`, `harm=kinds`)", () => {
+  it("keys one entry a thing reported: an item, an album's own reports, a person", () => {
+    expect(
+      entryKeyOf({ media_id: "m1", event_id: "e1", profile_id: null }),
+    ).toBe("item:m1");
+    expect(
+      entryKeyOf({ media_id: null, event_id: "e1", profile_id: null }),
+    ).toBe("album:e1");
+    expect(
+      entryKeyOf({ media_id: null, event_id: null, profile_id: "p1" }),
+    ).toBe("person:p1");
+  });
+
+  it("puts harm in front, a person under People, and Something else in the sweep", () => {
+    expect(laneOf("item", "child")).toBe("front");
+    expect(laneOf("album", "consent")).toBe("front");
+    expect(laneOf("item", "other")).toBe("sweep");
+    expect(laneOf("person", "child")).toBe("people");
+  });
+
+  it("orders the front worst kind first, then newest; the sweep newest first", () => {
+    const entries = [
+      { kind: "consent" as const, newestAt: "2026-09-27T23:00:00Z" },
+      { kind: "child" as const, newestAt: "2026-09-27T20:00:00Z" },
+      { kind: "consent" as const, newestAt: "2026-09-27T23:30:00Z" },
+      { kind: "sexual" as const, newestAt: "2026-09-27T21:00:00Z" },
+    ];
+    expect(
+      [...entries].sort(frontOrder).map((e) => `${e.kind} ${e.newestAt}`),
+    ).toEqual([
+      "child 2026-09-27T20:00:00Z",
+      "sexual 2026-09-27T21:00:00Z",
+      "consent 2026-09-27T23:30:00Z",
+      "consent 2026-09-27T23:00:00Z",
+    ]);
+    expect([...entries].sort(newestFirst).map((e) => e.newestAt)[0]).toBe(
+      "2026-09-27T23:30:00Z",
+    );
+  });
+});
+
+describe("the reporter, and asking her (`proof=confirm`)", () => {
+  it("says whether she can be asked, and on the worst kind whether her address was confirmed", () => {
+    expect(
+      reporterWords({ signedIn: true, canAsk: true, kind: "consent" }),
+    ).toBe("Signed-in guest, can be asked");
+    expect(reporterWords({ signedIn: false, canAsk: false })).toBe(
+      "Signed-out guest, can't be asked",
+    );
+    // Proof is never asked of a child-abuse report, so "can be asked" would promise a verb that is not there.
+    expect(reporterWords({ signedIn: true, canAsk: true, kind: "child" })).toBe(
+      "Signed-in guest, email confirmed",
+    );
+    expect(
+      reporterWords({ signedIn: false, canAsk: false, kind: "child" }),
+    ).toBe("Signed-out guest, no confirmed email");
+  });
+
+  it("★ tells the album's own host from a guest (build 23's LOW-2)", () => {
+    expect(
+      reporterWords({
+        signedIn: true,
+        canAsk: true,
+        byHost: true,
+        kind: "violence",
+      }),
+    ).toBe("The host, can be asked");
+    // Her report never hides, so on the worst kind nothing implies it did.
+    expect(
+      reporterWords({
+        signedIn: true,
+        canAsk: true,
+        confirmed: true,
+        byHost: true,
+        kind: "child",
+      }),
+    ).toBe("The host");
+    expect(reporterWho({ signedIn: true, byHost: true })).toBe("The host");
+    expect(reporterWho({ signedIn: true })).toBe("Signed-in guest");
+    expect(reporterWho({ signedIn: false })).toBe("Signed-out guest");
+  });
+
+  it("★ says what is true after a reopen: sent from a confirmed address, no longer askable (build 23's NIT-8)", () => {
+    // Dismissed, then Undo: the close forgot the address, the worst kind's hash remembers it was confirmed.
+    expect(
+      reporterWords({
+        signedIn: true,
+        canAsk: false,
+        confirmed: true,
+        kind: "child",
+      }),
+    ).toBe("Signed-in guest, email confirmed");
+    expect(
+      reporterWords({
+        signedIn: true,
+        canAsk: false,
+        confirmed: false,
+        kind: "consent",
+      }),
+    ).toBe("Signed-in guest, can't be asked");
+  });
+
+  it("★ offers Ask for proof only to a confirmed reporter, and never on the worst kind", () => {
+    expect(askableProof({ kind: "consent", canAsk: true })).toBe(true);
+    expect(askableProof({ kind: "consent", canAsk: false })).toBe(false);
+    expect(askableProof({ kind: "child", canAsk: true })).toBe(false);
+  });
+});
+
+describe("a false report's hide, put back (`hideUndoOf`)", () => {
+  const HID = "2026-09-27T22:12:00.000Z";
+  const item = (
+    over: Partial<Parameters<typeof hideUndoOf>[0] & object> = {},
+  ) => ({
+    status: "removed" as const,
+    removedByAdmin: true,
+    removedAt: HID,
+    held: false,
+    ...over,
+  });
+
+  it("★ restores an item the hide took out of the album, at the hide's own instant", () => {
+    expect(hideUndoOf(item(), HID)).toBe("restore");
+    // The same instant in another spelling is still the hide's.
+    expect(
+      hideUndoOf(item({ removedAt: "2026-09-27T22:12:00.000000+00:00" }), HID),
+    ).toBe("restore");
+  });
+
+  it("returns an item the hide found in the host's Deleted to her Deleted", () => {
+    expect(
+      hideUndoOf(item({ removedAt: "2026-09-26T10:00:00.000Z" }), HID),
+    ).toBe("return");
+  });
+
+  it("★ never puts back a held item, one an operator removed since, or one that is up", () => {
+    expect(hideUndoOf(item({ held: true }), HID)).toBeNull();
+    expect(
+      hideUndoOf(item({ removedAt: "2026-09-28T08:00:00.000Z" }), HID),
+    ).toBeNull();
+    expect(
+      hideUndoOf(
+        item({ status: "approved", removedByAdmin: false, removedAt: null }),
+        HID,
+      ),
+    ).toBeNull();
+    expect(hideUndoOf(item(), null)).toBeNull();
+    expect(hideUndoOf(null, HID)).toBeNull();
   });
 });

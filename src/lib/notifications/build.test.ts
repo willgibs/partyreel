@@ -194,3 +194,41 @@ describe("buildNotifications", () => {
     expect(none.items.some((i) => i.kind === "recovery_clearing")).toBe(false);
   });
 });
+
+describe("people at the door (the doors, event-settings r1)", () => {
+  it("★ one row per event, opening its At the door, the badge counting each person", () => {
+    const r = buildNotifications(
+      signals({
+        doorByEvent: [
+          { eventId: "e1", eventName: "Maya's 30th", waiting: 2 },
+          { eventId: "e2", eventName: "The Chens' Brunch", waiting: 0 },
+        ],
+      }),
+    );
+    const doors = r.items.filter((i) => i.kind === "door");
+    expect(doors).toHaveLength(1);
+    expect(doors[0]).toMatchObject({
+      title: "2 people at the door",
+      body: "Maya's 30th",
+      href: "/dashboard/e1/guests#at-the-door",
+      unread: true,
+    });
+    expect(r.badgeCount).toBe(2);
+  });
+
+  it("stand before the review rows, and add to the same badge", () => {
+    const r = buildNotifications(
+      signals({
+        pendingCount: 3,
+        pendingByEvent: [{ eventId: "e1", eventName: "Maya's 30th", pending: 3 }],
+        doorByEvent: [{ eventId: "e1", eventName: "Maya's 30th", waiting: 1 }],
+      }),
+    );
+    const kinds = r.items.map((i) => i.kind);
+    expect(kinds.indexOf("door")).toBeLessThan(kinds.indexOf("review"));
+    expect(r.items.find((i) => i.kind === "door")?.title).toBe(
+      "1 person at the door",
+    );
+    expect(r.badgeCount).toBe(4);
+  });
+});

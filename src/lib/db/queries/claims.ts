@@ -9,6 +9,7 @@
 import "server-only";
 
 import { mustCount, mustQuery } from "@/lib/db/must-query";
+import { readEventGates } from "@/lib/db/queries/event-doors";
 import { isBlockedEitherWay } from "@/lib/db/queries/social";
 import { readAllPages } from "@/lib/db/read-all";
 import { presignDownload } from "@/lib/r2/presign";
@@ -174,20 +175,19 @@ export async function getMyClaimableGuestRows({
 }
 
 /**
- * The two columns `20260927200000_claim_previews.sql` adds to the list's answer, read defensively:
- * the file is applied before this ships, and until the types are regenerated (or against a
- * database without it) a row simply has no previews and no door, and the review shows its card
- * without either.
+ * A row's own approved previews (`20260927200000_claim_previews.sql`: up to four from an open album,
+ * none from a gated one), empty keys dropped. The column is typed since the types were regenerated;
+ * an array the answer left null still reads as no previews.
  */
-function previewKeysOf(row: object): string[] {
-  const keys = (row as { preview_keys?: unknown }).preview_keys;
-  return Array.isArray(keys)
-    ? keys.filter((k): k is string => typeof k === "string" && k.length > 0)
-    : [];
+function previewKeysOf(row: { preview_keys: string[] | null }): string[] {
+  return (row.preview_keys ?? []).filter((k) => k.length > 0);
 }
 
-function gateOf(row: object): ClaimableEvent["gate"] {
-  const door = (row as { event_visibility?: unknown }).event_visibility;
+/** The album's door as the list answers it: a password or a private album is a gate, else none. */
+function gateOf(row: {
+  event_visibility: string | null;
+}): ClaimableEvent["gate"] {
+  const door = row.event_visibility;
   return door === "password" || door === "private" ? door : null;
 }
 
@@ -289,8 +289,14 @@ export async function getClaimedEventNext(
   ]);
   if ((held ?? []).length === 0 || !event) return null;
 
-  // The album's own masking (lib/dashboard/guest-events.ts): a private album is blank and locked.
-  if (event.visibility === "private") return { href: null, host: null };
+  // The album's own masking (lib/dashboard/guest-events.ts): Only me is blank and locked. A gated
+  // album is stored private too, and opens for her: the claim made her row, which is in, hers.
+  if (
+    event.visibility === "private" &&
+    !(await readEventGates([eventId])).has(eventId)
+  ) {
+    return { href: null, host: null };
+  }
   const href = `/e/${event.qr_token}`;
   if (!event.host_id || event.host_id === user.id) return { href, host: null };
 

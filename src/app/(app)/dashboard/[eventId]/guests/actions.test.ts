@@ -23,8 +23,24 @@ vi.mock("@/lib/db/mutations/event-blocks", () => ({
   letBackIn: (...a: unknown[]) => letBackIn(...a),
 }));
 
-const { blockFromEventAction, letBackInAction, previewBlockAction } =
-  await import("@/app/(app)/dashboard/[eventId]/guests/actions");
+const letInAtDoor = vi.fn();
+const addEventInvites = vi.fn();
+const removeEventInvite = vi.fn();
+vi.mock("@/lib/db/mutations/event-doors", () => ({
+  letInAtDoor: (...a: unknown[]) => letInAtDoor(...a),
+  addEventInvites: (...a: unknown[]) => addEventInvites(...a),
+  removeEventInvite: (...a: unknown[]) => removeEventInvite(...a),
+}));
+
+const {
+  addInvitesAction,
+  blockFromEventAction,
+  declineAtDoorAction,
+  letBackInAction,
+  letInAtDoorAction,
+  previewBlockAction,
+  removeInviteAction,
+} = await import("@/app/(app)/dashboard/[eventId]/guests/actions");
 
 const EVENT = "11111111-2222-4333-8444-555555555555";
 const GUEST = "33333333-4444-4555-8666-777777777777";
@@ -138,5 +154,77 @@ describe("what the host is told", () => {
       action: "let_back_in",
     });
     expect(revalidatePath).not.toHaveBeenCalled();
+  });
+});
+
+describe("the door's Server Functions (event-settings r1)", () => {
+  const USER = "55555555-6666-4777-8888-999999999999";
+
+  it("refuse a malformed event, row, account or list before any write", async () => {
+    await expect(letInAtDoorAction({ eventId: EVENT, guestId: "x" })).resolves.toEqual(BAD);
+    await expect(
+      declineAtDoorAction({ eventId: EVENT, guestId: GUEST, userId: "someone" }),
+    ).resolves.toEqual(BAD);
+    await expect(addInvitesAction({ eventId: EVENT, emails: [] })).resolves.toEqual(BAD);
+    await expect(
+      addInvitesAction({ eventId: EVENT, emails: Array(2001).fill("a@b.co") }),
+    ).resolves.toEqual(BAD);
+    await expect(removeInviteAction({ eventId: "nope", email: "a@b.co" })).resolves.toEqual(BAD);
+    expect(letInAtDoor).not.toHaveBeenCalled();
+    expect(blockFromEvent).not.toHaveBeenCalled();
+    expect(addEventInvites).not.toHaveBeenCalled();
+    expect(removeEventInvite).not.toHaveBeenCalled();
+  });
+
+  it("let in writes through let_in_at_door and refreshes every room it changes", async () => {
+    letInAtDoor.mockResolvedValue({ ok: true, data: { admitted: 2, already: false } });
+    await expect(letInAtDoorAction({ eventId: EVENT, guestId: GUEST })).resolves.toEqual({
+      ok: true,
+      admitted: 2,
+    });
+    expect(letInAtDoor).toHaveBeenCalledWith(EVENT, GUEST);
+    expect(revalidatePath).toHaveBeenCalledWith(`/dashboard/${EVENT}/guests`);
+    expect(revalidatePath).toHaveBeenCalledWith(`/dashboard/${EVENT}`);
+  });
+
+  it("★ a decline is a block: her account on every device where she has one, else the row", async () => {
+    blockFromEvent.mockResolvedValue({
+      ok: true,
+      data: { eventId: EVENT, blockId: BLOCK, removed: 0, already: false },
+    });
+    await expect(
+      declineAtDoorAction({ eventId: EVENT, guestId: GUEST, userId: USER }),
+    ).resolves.toEqual({ ok: true, blockId: BLOCK });
+    expect(blockFromEvent).toHaveBeenLastCalledWith(
+      { kind: "account", eventId: EVENT, userId: USER },
+      { requireVerifiedEmail: false },
+    );
+    await declineAtDoorAction({ eventId: EVENT, guestId: GUEST, userId: null });
+    expect(blockFromEvent).toHaveBeenLastCalledWith(
+      { kind: "row", guestId: GUEST },
+      { requireVerifiedEmail: false },
+    );
+  });
+
+  it("the list's writes pass the database's count and words on", async () => {
+    addEventInvites.mockResolvedValue({
+      ok: true,
+      data: { added: 2, already: 1, invalid: 0, overCap: 0, total: 24 },
+    });
+    await expect(
+      addInvitesAction({ eventId: EVENT, emails: ["maya@example.com", "jay@example.com", "sam@example.com"] }),
+    ).resolves.toEqual({
+      ok: true,
+      result: { added: 2, already: 1, invalid: 0, overCap: 0, total: 24 },
+    });
+    removeEventInvite.mockResolvedValue({
+      ok: false,
+      code: "not_found",
+      message: "That event is no longer available.",
+    });
+    await expect(
+      removeInviteAction({ eventId: EVENT, email: "maya@example.com" }),
+    ).resolves.toEqual({ ok: false, message: "That event is no longer available." });
+    expect(captureError).not.toHaveBeenCalled();
   });
 });

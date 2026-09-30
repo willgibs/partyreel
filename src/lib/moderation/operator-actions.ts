@@ -147,11 +147,30 @@ export type ModerationMediaItem = {
   hostLabel: string | null;
 };
 
-// What the operator moderation grid renders: a presigned GridMedia (so it reuses MediaTile +
-// MediaLightbox) plus the status (drives Remove vs Restore) and album context (the feed caption).
-export type ModerationGridItem = GridMedia & {
+/** What every tile of the operator's grid carries, seen or covered: the item, its status and its album. */
+type ModerationTileBase = {
+  id: string;
+  type: MediaKind;
   status: NonNullable<GridMedia["status"]>;
   eventId: string;
   eventName: string;
   hostLabel: string | null;
 };
+
+// What the operator moderation grid renders: a presigned GridMedia (so it reuses MediaTile +
+// MediaLightbox) plus the status (drives Remove vs Restore) and album context (the feed caption).
+export type ModerationGridItem = GridMedia &
+  ModerationTileBase & {
+    covered?: false;
+  };
+
+/**
+ * ★ A COVERED TILE (build 23's NIT-7, carried to the albums grid by crumbs-21): a report of the worst kinds
+ * names this item (`readCoveredItems`, the rule's one home), so nothing of its picture is signed, not a url
+ * of any kind, and the grid draws the cover the reports inbox draws; the viewer never opens it. Remove and
+ * Restore stay on it, since neither needs a look.
+ */
+export type CoveredModerationItem = ModerationTileBase & { covered: true };
+
+/** One tile of the operator's grid: seen, or covered. */
+export type ModerationTile = ModerationGridItem | CoveredModerationItem;

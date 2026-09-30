@@ -10,9 +10,11 @@
  */
 import "server-only";
 
+import { getHostDoorWaiting } from "@/lib/db/queries/event-doors";
 import { getEventCardStats, listEvents } from "@/lib/db/queries/events";
 import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 import type {
+  DoorWaitingEvent,
   NotificationSignals,
   PendingEvent,
 } from "@/lib/notifications/build";
@@ -40,6 +42,24 @@ async function readPendingByEvent(): Promise<PendingEvent[]> {
       pending: stats.get(e.id)?.pending ?? 0,
     }))
     .filter((queue) => queue.pending > 0);
+}
+
+/**
+ * WHO WAITS AT EACH DOOR (the doors, event-settings r1), for the bell's door rows: one read keyed on
+ * the caller's own `getUser()` id, and only when it finds someone are the events named (through the
+ * request-cached `listEvents`, the same one the review rows read).
+ */
+async function readDoorByEvent(hostId: string): Promise<DoorWaitingEvent[]> {
+  const waiting = await getHostDoorWaiting(hostId);
+  if (waiting.size === 0) return [];
+  const events = await listEvents();
+  return events
+    .map((e) => ({
+      eventId: e.id,
+      eventName: e.name,
+      waiting: waiting.get(e.id) ?? 0,
+    }))
+    .filter((door) => door.waiting > 0);
 }
 
 export async function getNotificationData(): Promise<NotificationData> {
@@ -122,10 +142,16 @@ export async function getNotificationData(): Promise<NotificationData> {
     pendingCount > 0 && user
       ? await readPendingByEvent().catch(() => undefined)
       : [];
+  // The same rule for the door: the bell never takes a page down, so a failed read shows no door row
+  // (the Guests card and the pulse, which read it on their own pages, say it loudly).
+  const doorByEvent = user
+    ? await readDoorByEvent(user.id).catch(() => [])
+    : [];
 
   return {
     pendingCount,
     pendingByEvent,
+    doorByEvent,
     storageGraceUntil: profile?.storage_grace_until ?? null,
     tier: profile?.tier ?? "free",
     tierExpiresAt: profile?.tier_expires_at ?? null,

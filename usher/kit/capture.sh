@@ -3,7 +3,8 @@
 # (`--save-shots`, added 2026-09-20) on a dev server this script starts and stops; the pictures feed review-sheet.mjs.
 # It kills whatever holds its port first, so the default, 3140, sits outside the gate's 3130 and the lanes' 3131 to 3139.
 source ~/.nvm/nvm.sh >/dev/null 2>&1; nvm use >/dev/null 2>&1
-cd /Users/gibby/local/ai/partyreel
+# The tree the kit sits in: the primary checkout for the Orchestrator, a worktree for a lane testing the kit.
+cd "$(cd "$(dirname "$0")" && pwd)/../.."
 BOARD="$1"; DIR="$2"; PORT="${3:-3140}"
 export DESIGN_PREVIEW_KEY="$(grep '^DESIGN_PREVIEW_KEY=' .env.local | cut -d= -f2- | tr -d '"')"
 lsof -ti tcp:$PORT | xargs -r kill 2>/dev/null; sleep 1

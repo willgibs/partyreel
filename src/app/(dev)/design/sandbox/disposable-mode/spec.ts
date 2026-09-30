@@ -1,346 +1,649 @@
 import { defineExploration } from "@/components/lab/exploration";
 
-import { SCREEN, SHOTS } from "./knobs";
+import { REVIEW, SCREEN, STOCK } from "./knobs";
 
 /**
- * A DISPOSABLE CAMERA INSIDE PARTYREEL, ROUND ONE (2026-09-28).
+ * A DISPOSABLE CAMERA INSIDE PARTYREEL, ROUND TWO (2026-09-29).
  *
- * Will, on export-flow's `means`: "if we simply restricted both a guest's
- * ability to add with only taking live photos in-app (no library uploads)
- * plus an upload count limit, that's effectively a disposables mode we could
- * market as well, but simply within our product rather than being built
- * around it. Swallow all of https://pov.camera/ future potential users." And:
- * "hosts shouldn't have to feel they're having to study docs or fight UI to
- * set up an event how they'd like."
+ * Round one's answers (docs/reviews/disposable-mode.json) and the replies he
+ * approved are settled and drawn as given, never asked again: the reveal is a
+ * host setting (straight away, or a develop time guests can see, 9 am the
+ * next day by default, with Develop now); the reel becomes the reveal,
+ * premiering the whole roll at develop time; 24 shots each, the server's
+ * count; camera-only is the page's rule (a capture time can flag a library
+ * shot, honestly said); Warm, Cool and B&W, the host's pick, never baked;
+ * full size, storage deciding; with review on a shot develops once approved;
+ * and switching goes both ways any time (the consequence line that says what
+ * a switch does to guests already in is built: `ui/consequence-line.tsx`).
  *
- * ★ WHAT POV IS (pov.camera, its App Store page and three reviews, read
- * 2026-09-28): a host sets shots per guest, a reveal time and a style; guests
- * join by QR (an App Clip on iOS, the web on Android) and shoot in its own
- * camera with a disposable's filter; the gallery reveals during the event or
- * on a set date, the host able to remove photos first; free under 10 guests,
- * then $4.99 (25) to $89.99 (250) by guest count; photobooks. Its reviews'
- * complaints: glitches loading photos, caps that feel tight over a long day,
- * and galleries that expire. Partyreel's answers are already built: the live
- * album and the reel on the room's screen, curation, an album that persists
- * until its host deletes it.
+ * ★ HIS NOTES ARE THIS ROUND'S DIRECTION. `camera=viewfinder` with "I like
+ * both options 2 and 3 ... continue finding more disposable camera designs
+ * that can define Partyreel. Really marketable feature, needs to be cool."
+ * `waiting=count` as the seed of "an atmospheric waiting room ... an
+ * intriguing mystery stack of media in the center ... their uploaded media
+ * becomes the media stack ... with a way to manage (like delete an upload).
+ * ... don't get locked to mine." `reveal=morning` with his worry that a
+ * disposable could kill the reel side, and "maybe host has slideshow access
+ * either way to play live at event". `pick=step` with "plenty of context for
+ * each experience-type". `price=full` with "videos should also work in pro
+ * disposable events".
  *
- * ★ SIX DECISIONS, IN THE ORDER A NIGHT RUNS: the guest's camera and its look
- * (the look waits on the camera, since it is drawn in it), when the roll
- * develops and what the album shows until then (the second waits on the
- * first), how a host turns it on, and its price. The limits are drawn, not
- * hidden: camera-only is a rule of the page, the count is the server's, and
- * nothing proves a shot was taken live (the carried call `proof`).
+ * ★ EIGHT DECISIONS, IN THE ORDER A NIGHT RUNS: the camera, the waiting room,
+ * the room's screen, the host's peek, Create's step, how a video is taken
+ * and what it costs (the second waits on the first, both drawn in the camera
+ * picked), and whether a saved photo wears the look. Video is one question
+ * the manifest named and two answers here, since how a video is taken and
+ * what it spends are separate winners.
  *
- * Nothing here asks what another standing board asks: whether the reveal
- * sends an email is `emails`' `moments`, and how Settings is structured is
- * `event-settings`' (the camera's rows are drawn in the sheet as it ships, and
- * move with whatever structure wins there).
+ * ★ THE MEASURE. Round two's brief asked for the viewfinder's real capture
+ * size on an iPhone and an Android; the dock's Measure a phone reads it on
+ * the phone it is pressed on. What the platforms document, until a phone is
+ * measured: an iPhone hands a page frames of its live video, at most 4032 by
+ * 3024 (WebKit's capture source offers the camera's own video formats, and
+ * Safari 27 ships no ImageCapture), where the camera app takes 24 MP on an
+ * iPhone 15 or later and fuses frames at night; Android's Chrome takes a real
+ * photo through ImageCapture.
+ *
+ * Nothing here asks what another standing board asks: the door before
+ * joining is `locked-door`'s (this waiting room is inside the album, after
+ * it), and how Settings is laid out is built (four rows, each opening a page
+ * of its own: `settings-pages.ts`).
  */
 export const DISPOSABLE_MODE = defineExploration({
   id: "disposable-mode",
   title: "A disposable camera",
+  surface: "shared",
+  desk: 80,
+  lives: [
+    "docs/systems/guest-flow.md",
+    "docs/systems/uploads-and-r2.md",
+    "docs/systems/billing-caps.md",
+    "docs/systems/reel.md",
+    "src/components/guest/event-experience.tsx",
+    "src/components/guest/upload/intent-sheet.tsx",
+    "src/components/guest/reel/live-reel-view.tsx",
+    "src/components/app/create-event-wizard.tsx",
+    "src/components/app/event-feed/host-album.tsx",
+    "src/components/shared/media-lightbox-parts/actions.tsx",
+    "src/lib/constants/tiers.ts",
+  ],
   round: {
-    n: 1,
-    date: "2026-09-28",
+    n: 2,
+    date: "2026-09-29",
     changed:
-      "A disposable camera inside Partyreel, drawn over Maya and Jay's wedding at 375: the guest's camera and its look, when the roll develops and what the album shows until then, how a host turns it on, and where it sits between Free, Event Pass and Pro.",
+      "From your notes: the camera (your two pushed, two new), the waiting room, the room's screen until 9 am, whether the host peeks, Create's step, how a video is taken and what it costs, and whether a saved photo wears the look.",
   },
-  context:
-    "Your export-flow note: guests shoot live in the album, no library and a shot limit, a disposable inside Partyreel rather than a product built around one, set up without studying anything. POV, the one built around it, sets shots per guest, a reveal time and a style, and is free under 10 guests. Every frame is Maya and Jay's wedding: the party at 10:40 pm, 142 shots in, and the morning after.",
-  carried: [
+  history: [
     {
-      id: "shots",
-      question: "How many shots does each guest get?",
-      taken:
-        "24, a roll's worth, set the moment the camera is turned on; the host makes it 10, 36 or any number in Settings.",
-      overrule: "27, a real disposable's count, or 10 for a dinner.",
+      n: 1,
+      date: "2026-09-28",
+      changed:
+        "Six decisions over Maya and Jay's wedding. You kept the album's camera and the drawn one, took three looks you can switch, a develop time as a host setting, the count as a waiting room's seed, a step of its own and full size.",
+    },
+  ],
+  context:
+    "Round two over Maya and Jay's wedding: 10:40 pm, 142 shots from 12 guests with Priya six into her 24, then the morning. Every frame wears what you settled: the roll develops at 9 am (the host's setting, with Develop now) and the reel premieres it, 24 shots counted by the server, Warm, Cool or B&W on the device, full size. Camera-only is the page's rule, not proof: a changed page can send any file, so a shot with an older capture time is flagged for the host. The dock's Measure a phone reads a real phone's capture size.",
+  opening: {
+    about:
+      "A disposable-camera mode for an event: each guest shoots a limited roll, nobody sees it until it develops, and the reel premieres it.",
+    settled: [
+      "The reveal is the host's setting: straight away, or a develop time guests can see (9 am next day by default), with Develop now.",
+      "The reel becomes the reveal: at develop time it premieres the whole roll on every phone.",
+      "24 shots each, counted by the server; shots come from the page's camera, and an older photo sent anyway is flagged.",
+      "Warm, Cool or B&W, the host's pick, drawn over the original on the device and never saved into it.",
+      "Full size, storage deciding; with review on, a shot develops once approved; the mode switches both ways any time.",
+    ],
+    earlier: [
+      "The camera: you liked both the album's own camera and the drawn disposable: 'Really marketable feature, needs to be cool.'",
+      "The waiting room: your count, grown into 'an atmospheric waiting room' with a mystery stack and her own uploads to manage.",
+      "The reveal: a develop time, with your worry that disposables kill the reel, and 'maybe host has slideshow access'.",
+      "Create: 'its own focused step' with context for each, easy to switch later; and 'videos should also work' on paid events.",
+    ],
+  },
+  terms: [
+    {
+      term: "roll",
+      means:
+        "The shots taken in disposable mode, 24 a guest, hidden from everyone until they develop.",
     },
     {
-      id: "count",
-      question: "Whose count is it, when she switches phones?",
+      term: "develop time",
+      means:
+        "When the roll is revealed to everyone: 9 am the next day by default, set by the host.",
+    },
+    {
+      term: "Develop now",
+      means: "The host's button that reveals the roll early.",
+    },
+    {
+      term: "the look",
+      means:
+        "The roll's colour treatment (Warm, Cool or B&W), drawn over each photo on screen.",
+    },
+    {
+      term: "waiting room",
+      means: "What a guest sees in the album before the roll develops.",
+    },
+    {
+      term: "room's screen",
+      means:
+        "A TV or projector at the party playing the reel, with the host signed in.",
+    },
+    {
+      term: "safelight",
+      means:
+        "The dim red light of a photo darkroom, drawn as the waiting room's only colour.",
+    },
+    {
+      term: "darkroom",
+      means:
+        "Where film is developed; here, a dim red-lit screen that waits for develop time.",
+    },
+    {
+      term: "drawn disposable",
+      means:
+        "Round one's camera drawn as the back of a real disposable: a small window, a wheel, a counter.",
+    },
+    {
+      term: "album's own camera",
+      means:
+        "The plain live camera inside the album: the whole picture and one shutter.",
+    },
+  ],
+  carried: [
+    {
+      id: "size",
+      question: "What size is a shot from the album's camera?",
       taken:
-        "A confirmed email's, across her phones (verified emails is the default); a typed name's is her phone's, so clearing it starts a new roll.",
+        "The largest a phone gives a page: an iPhone's live-video frame, at most 12 MP by WebKit's own source and without night mode; Android's full photo.",
       overrule:
-        "Turning the camera on turns Require verified emails on, and keeps it on.",
+        "The phone's own camera app on an iPhone, for 24 MP and night mode, Retake and all. The dock's Measure a phone reads yours.",
+    },
+    {
+      id: "refused",
+      question: "What can a guest do once she has refused the camera?",
+      taken:
+        "Turn it back on in Safari's Website Settings and try again, or shoot in the phone's own camera one at a time, counted the same.",
+      overrule:
+        "The album's camera or nothing, since the phone's own keeps its Retake.",
     },
     {
       id: "spent",
-      question: "Does a deleted shot give its frame back?",
+      question: "Does deleting a shot from her stack give the frame back?",
       taken:
-        "No: a shot counts the moment it is taken, as a disposable's frame does, so deleting it later, hers or the host's, never refunds it.",
-      overrule: "Her own delete gives it back, so a pocket shot costs nothing.",
-    },
-    {
-      id: "host-first",
-      question: "Does the host see the roll before it develops?",
-      taken:
-        "Yes, as it lands, so she can take out what should not be in the reveal; guests see nothing of it until it develops.",
-      overrule: "She waits with everyone, and tidies up after.",
-    },
-    {
-      id: "after",
-      question: "What does the camera do once the roll has developed?",
-      taken:
-        "It stays open, still camera-only and counted, and a late shot joins the album at once; closing uploads stays her one switch.",
-      overrule: "It closes with the reveal, like a finished roll.",
-    },
-    {
-      id: "door",
-      question: "What does the door ask at a disposable-camera event?",
-      taken:
-        "Its upload step opens the camera for a first shot, with no library row, and the welcome says the roll: 24 shots each, developed at 9 am.",
+        "No: the frame was spent when she shot it, as on a real disposable, and Delete takes the shot out for everyone, Maya included.",
       overrule:
-        "The door asks nothing of the camera, and the first shot waits for the album.",
+        "Her own delete refunds the frame, so a pocket shot costs nothing, and a retake comes back with it.",
     },
     {
-      id: "proof",
-      question: "What keeps a library photo out of the roll?",
+      id: "ten",
+      question: "How long can a video run?",
       taken:
-        "The page offers only its camera and the server counts every shot; nothing proves a shot was live, since a changed page can send any file.",
+        "10 seconds: a moment, not a speech, about three photos' room at 1080p, the ring filling as it goes.",
+      overrule: "15 seconds, a story's length, or 30 for the toasts.",
+    },
+    {
+      id: "sound",
+      question: "Does a video carry its sound?",
+      taken:
+        "Yes: wherever videos are on (Event Pass or Pro, with the host's Videos switch on), the first press asks for the camera and the microphone in one prompt.",
       overrule:
-        "Flag any shot whose capture time is older than the party, for the host to look at.",
+        "Silent videos, so the phone asks for the camera alone; the reel plays silent anyway.",
     },
   ],
   asks: [
-    /* ── 1. The guest's camera ───────────────────────────────────────────── */
+    /* ── 1. The camera ───────────────────────────────────────────────────── */
     {
       id: "camera",
-      label: "The guest's camera",
-      question: "At a disposable-camera event, what should a guest shoot with?",
+      label: "The camera",
+      question:
+        "Which camera should a guest shoot with at a disposable-camera event?",
+      where: ["Guest", "The disposable camera", "Mid-party, 10:40 pm"],
+      when: "The event is in disposable mode: Priya has shot 6 of her 24, and nobody sees a shot until it develops at 9 am.",
       context:
-        "Add offers Take a photo (the phone's camera) and Choose from your album; a disposable keeps the camera alone, photos only, and counts it. The album's own camera asks the phone once for its camera. Drawn at 10:40 pm, Priya six shots in.",
+        "Your two from round one, pushed, and two new ones, each drawn framing a shot, just after it, and as the phone asks for the camera: her first press, a refusal, an iPhone asking again, as Safari does each visit.",
       options: [
         {
-          id: "phone",
-          label: "The phone's own camera",
-          means:
-            "Take a photo opens the phone's camera app, with its flash, its lenses and its own Retake; the album counts what she sends, not what she shot.",
-        },
-        {
           id: "viewfinder",
-          label: "The album's own camera",
+          label: "The album's own camera, pushed",
           means:
-            "A live viewfinder fills the screen: one big shutter with the shots left beside it, no retake and no library; each shot is sent the moment it is taken.",
+            "The live picture at the phone's whole frame and 24 ticks round the shutter, one going dark with each shot: the fastest to frame, the plainest.",
+          gains:
+            "The fastest: the whole live picture, and the 24 shots counted round the shutter.",
+          costs:
+            "The plainest: it looks like any phone camera, so the mode feels less special.",
         },
         {
           id: "body",
-          label: "A disposable, drawn",
+          label: "The drawn disposable, pushed",
           means:
-            "The same live camera in a disposable's body: a small window to frame in, the count in its dial, and a wind of the wheel before the next shot.",
+            "The back of a real disposable: frame through its little window, wind the thumb wheel after every shot, read the counter dial and the ready light.",
+          gains:
+            "Feels like holding a real disposable: the wheel to wind, the counter to read.",
+          costs:
+            "Frames through a small window, and she must wind the wheel after every shot.",
+        },
+        {
+          id: "reel",
+          label: "A camera that shoots on a reel",
+          means:
+            "The live picture over a strip of film: each shot exposes a frame and winds the strip on, so her roll is always in sight and runs out before her eyes.",
+          gains:
+            "The fast full-frame picture, plus a strip that shows her roll running out.",
+          costs:
+            "Busier than a plain camera: a film strip of 24 frames runs across the screen.",
+        },
+        {
+          id: "wrapper",
+          label: "The event's own disposable",
+          means:
+            "A paper camera printed with the host's names, like a real disposable's wrapper: the party in its window, the counter through its cut. Each event gets its own.",
+          gains:
+            "Every event gets its own printed camera, the hosts' names on it: made to be posted.",
+          costs:
+            "A smaller live picture in a paper window, and a tab to pull before the first shot.",
         },
       ],
-      recommended: "viewfinder",
+      recommended: "reel",
       because:
-        "Only the page's own camera can hold the rules it is named for (no retake, the count on the shutter, the look in the frame) and stay a photograph first. The phone's camera keeps its Retake, so its count counts what she kept, not what she shot.",
+        "It keeps the fast full-frame camera and adds a roll she watches run out, a strip that can carry on into the waiting room and the reel.",
       overrule:
-        "If night shots need the phone's own flash and lenses more than the rules need holding, the phone's own camera.",
+        "If holding a real object is the fun, the drawn disposable's wind and window.",
       lands:
-        "Whether the guest page gains a live camera of its own, or keeps the file input's capture with the library row gone.",
-    },
-
-    /* ── 2. The look (after the camera) ──────────────────────────────────── */
-    {
-      id: "look",
-      label: "The camera's look",
-      question: "Should the camera's shots wear a film look?",
-      context:
-        "What a shot looks like as she frames it and once it develops. POV sells a style; a real disposable prints warm, grainy and dated. Drawn in the camera you picked, on the toast under the string lights, then the album the morning after.",
-      options: [
-        {
-          id: "clean",
-          label: "The photograph as taken",
-          means:
-            "No look: the count and the wait are what make it a disposable, and every shot keeps the phone's own colour.",
-        },
-        {
-          id: "film",
-          label: "One film look, on by default",
-          means:
-            "A warm cast, soft grain and the date in the corner, baked into every shot; the host can turn it off, with nothing to choose between.",
-        },
-        {
-          id: "stocks",
-          label: "Three looks, the host's pick",
-          means:
-            "Warm, cool or black and white, picked once in Settings; the viewfinder wears it, so every guest sees the roll's look as she frames.",
-        },
-      ],
-      recommended: "film",
-      because:
-        "It is the disposable's own signature (the grain, the warmth, the date in the corner) at no setup, with one switch to turn it off. A choice of three is a row a host has to think about for a difference most guests never notice.",
-      overrule:
-        "If hosts ask for a black and white roll, the three looks earn their row in Settings.",
-      lands:
-        "Whether the camera bakes a look into the shot it saves, and whether Settings gains a look row or one switch.",
-      after: { ask: "camera" },
-    },
-
-    /* ── 3. When it develops ─────────────────────────────────────────────── */
-    {
-      id: "reveal",
-      label: "When it develops",
-      question: "When should a disposable's shots develop for everyone to see?",
-      context:
-        "A disposable's pictures are seen together, later; POV reveals on a set date. The live album and the reel on the room's screen are where Partyreel is strongest. Drawn at 375: the party at 10:40 pm, then the moment the roll is seen.",
-      options: [
-        {
-          id: "morning",
-          label: "At a set time, 9 am the next day",
-          means:
-            "The host can move the time, or develop it early from her album; the album opens with the reel playing the whole roll.",
-        },
-        {
-          id: "host",
-          label: "When the host develops it",
-          means:
-            "No clock: the roll waits for her Develop, at the party on the room's screen or the next day, with a reminder the next morning.",
-        },
-        {
-          id: "hour",
-          label: "An hour after each shot",
-          means:
-            "A one-hour lab: every shot develops on its own an hour after it is taken, so the album and the reel run an hour behind the party.",
-        },
-        {
-          id: "live",
-          label: "Straight away, like any album",
-          means:
-            "Nothing waits: the camera and the count make it a disposable, and every shot joins the album and the reel as it is taken.",
-        },
-      ],
-      recommended: "morning",
-      because:
-        "It is the disposable's own moment, everyone seeing the roll at once the next morning, and a time set by default means a roll never waits on a host who forgot; her Develop now still makes it a reveal at the party.",
-      overrule:
-        "If the reel on the room's screen is what a party should remember, the one-hour lab keeps it moving.",
-      lands:
-        "Whether a shot gains a developing state the album withholds until a time or her Develop, and what the reel plays until then.",
-    },
-
-    /* ── 4. While it develops (after the reveal) ─────────────────────────── */
-    {
-      id: "waiting",
-      label: "While it develops",
-      question: "What should the album show while the roll develops?",
-      context:
-        "Every guest opens the album to shoot, so this is what she meets each time. Drawn at 10:40 pm, 142 shots from 12 guests with Priya's six among them, in the wait you picked (at a set time if nothing waits).",
-      options: [
-        {
-          id: "count",
-          label: "The count, and nothing more",
-          means:
-            "A darkroom under the camera: 142 shots developing and when; nobody sees a photograph, her own included.",
-        },
-        {
-          id: "frames",
-          label: "A frame for every shot",
-          means:
-            "The rows fill with undeveloped frames as the party shoots, each with its time and shape; nothing in one can be seen until it develops.",
-        },
-        {
-          id: "hers",
-          label: "Her own, for her alone",
-          means:
-            "Her six develop for her at once, so she knows they came out; everyone else's wait behind a count.",
-        },
-      ],
-      recommended: "frames",
-      because:
-        "The album still moves with the party (a frame lands each time anyone shoots), which is Partyreel's live album without spoiling one picture, and her own frames tell her each shot went.",
-      overrule:
-        "If a guest needs to see that hers came out, her own six, with the rest a count.",
-      lands:
-        "Whether the album's reads send a developing shot's shape and time without its picture, or only a count.",
-      after: { ask: "reveal" },
-      // One phone an option, so the three stand side by side at a desk.
+        "The guest page's own live camera, its permission states, and whether the roll's strip carries into the waiting room.",
+      matters:
+        "It is the feature's face: what guests hold all night, and what makes the mode worth showing off.",
+      configs: [STOCK],
       tile: "phone",
     },
 
-    /* ── 5. How a host turns it on ───────────────────────────────────────── */
+    /* ── 2. The waiting room ─────────────────────────────────────────────── */
     {
-      id: "pick",
-      label: "Turning it on",
-      question: "How should a host turn an event into a disposable camera?",
+      id: "waiting",
+      label: "The waiting room",
+      question:
+        "What should a guest meet in the album while the roll develops?",
+      where: ["Guest", "The album", "Before it develops"],
+      when: "Any visit to the album before develop time: she is past the door, and the roll is still hidden.",
       context:
-        "Create asks one thing today, the name (Name it and it exists), then the code's style. Drawn on the real Create card and in Settings after, 1440 on the knob; a link from the site can open Create with the camera on.",
+        "Full screen, on every visit before 9 am. The party's count updates live; her own shots are hers alone to see and delete. Drawn at 10:40 pm: the room, her shots, a delete; 1440 on the knob.",
       options: [
         {
-          id: "line",
-          label: "One line under the name",
+          id: "stack",
+          label: "Your darkroom, whole",
           means:
-            "A quiet switch under the name turns it on and says its defaults in one line; Settings changes each of them.",
+            "The safelight, the party's count, and her own shots as a face-down stack in the middle; a tap turns them face up, each hers to delete.",
+          gains:
+            "Your idea whole: the red glow, the party's count, her shots to turn over.",
+          costs:
+            "Only her own shots are in the room; the party's is just a number.",
         },
         {
-          id: "cards",
-          label: "Two cards under the name",
+          id: "tray",
+          label: "Her shots, coming up in the tray",
           means:
-            "An album or a disposable camera, side by side under the name, each a small picture of what a guest gets.",
+            "Her shots float in the developer as faint images that deepen toward 9 am: she can tell which is which, never how one came out.",
+          gains:
+            "The most darkroom-like: her shots slowly come up toward 9 am.",
+          costs:
+            "Faint versions of her own shots show early, a small spoiler of the reveal.",
         },
         {
-          id: "step",
-          label: "A step of its own",
+          id: "pile",
+          label: "The party's pile, landing live",
           means:
-            "Name, then how guests add photos, then the code: a whole step of two big cards, before the style.",
+            "Every shot anyone takes lands face down on one pile, the newest on top as it arrives; hers carry a folded corner and pull out to her.",
+          gains:
+            "Alive all night: every shot anyone takes lands on the pile as it happens.",
+          costs:
+            "Busy on a big night; her own shots are folded corners she must find.",
         },
         {
-          id: "settings",
-          label: "In Settings, never in Create",
+          id: "strip",
+          label: "Her roll, out of its canister",
           means:
-            "Create stays the name and the code; Guest uploads gains the camera, and the new event offers it once on its first screen.",
+            "Her roll as a strip of film, the reel camera's own: her exposed frames dark with their minutes, the rest waiting; a tap opens hers to delete.",
+          gains:
+            "One object from the camera to the reveal, if the reel camera wins.",
+          costs:
+            "Only fits the reel camera; with any other camera it is a new look to learn.",
         },
       ],
-      recommended: "line",
+      recommended: "pile",
       because:
-        "It keeps Create one field for a host making an album, shows every host the camera exists (the reason the style step stayed: hosts may not know), and costs the camera's host one tap.",
+        "It is your count and your stack at once: the pile grows as the party shoots, alive without showing a photo, and hers pull out.",
       overrule:
-        "If a disposable should feel like a product of its own, the two cards give it the album's billing.",
+        "If the reel camera wins and the night should be one object, her roll on its strip.",
       lands:
-        "Whether Create gains a row, a choice or a step, and where Guest uploads says how guests add photos.",
-      configs: [SCREEN],
+        "Whether the album before develop time is a room of its own, and whether each new shot's arrival moves it.",
+      matters:
+        "Guests come back here all night; it decides whether the wait feels exciting or like an empty album.",
+      configs: [STOCK, SCREEN],
+      tile: "phone",
     },
 
-    /* ── 6. Its price ────────────────────────────────────────────────────── */
+    /* ── 3. The room's screen ────────────────────────────────────────────── */
     {
-      id: "price",
-      label: "Its price",
-      question:
-        "Where should a disposable camera sit between Free, Event Pass and Pro?",
+      id: "wall",
+      label: "The room's screen",
+      question: "What should the room's screen show until the roll develops?",
+      where: ["Host", "The reel on the room's TV", "Until 9 am"],
+      when: "Maya has the reel playing on a TV at the party, signed in, while every phone waits for 9 am.",
       context:
-        "Your new Free is 100 MB, about 30 photos at a phone's full size; a 10-guest roll of 24 is about 700 MB. POV is free under 10 guests, then $4.99 to $89.99 by guest count. Drawn where a Free host turns it on, then where it ends.",
+        "Phones wait in the waiting room either way, and at 9 am the reel premieres the roll on every phone and on this screen. Drawn at 10:40 pm, then as Priya's shot lands.",
       options: [
         {
-          id: "full",
-          label: "Storage decides, at full size",
+          id: "darkroom",
+          label: "The darkroom, building to 9 am",
           means:
-            "Every plan; each shot is the phone's full photo, about 3 MB, so Free develops about 30 and a real party needs the $24 Event Pass.",
+            "The count climbing under the safelight, a dark frame landing each time anyone shoots, and the code to scan: no photograph until 9 am.",
+          gains:
+            "The surprise stays whole: the room sees a climbing count, no photos.",
+          costs:
+            "The reel has nothing to play at the party, your worry about disposables.",
         },
         {
-          id: "lab",
-          label: "Storage decides, at a lab scan's size",
+          id: "slideshow",
+          label: "Your live slideshow",
           means:
-            "Every plan saves a shot at 1600 px, about 0.4 MB with the look, so Free develops about 250: ten guests' rolls of 24, with no new rule.",
+            "The reel plays the roll as it is shot, on this screen only: the room sees the party live and keeps shooting, while phones wait for 9 am.",
+          gains:
+            "The reel plays the party live on the TV, which keeps people shooting.",
+          costs:
+            "The room sees every shot before 9 am, so only phones get the surprise.",
         },
         {
-          id: "guests",
-          label: "A guest count, as POV prices it",
+          id: "glimpse",
+          label: "A glimpse of each new shot",
           means:
-            "Free's camera takes ten guests' rolls, at the lab's size so they fit, and the eleventh is told it's full; an Event Pass opens it to all.",
-        },
-        {
-          id: "paid",
-          label: "A paid camera, like video",
-          means:
-            "Event Pass and Pro only: a Free host meets the camera behind a lock with the pass's price, the upgrade's newest reason.",
+            "Each new shot surfaces for a few seconds, soft and grainy as if still developing, then sinks back into the dark: a tease, nothing kept.",
+          gains:
+            "A tease: each new shot surfaces soft and grainy for a few seconds, then sinks.",
+          costs:
+            "Half of each: the surprise leaks a little, and nothing stays on screen to enjoy.",
         },
       ],
-      recommended: "lab",
+      recommended: "slideshow",
       because:
-        "It reaches POV's free line through the one model Partyreel already has, storage, so Free stays the whole experience your free/pro shift asks for; the size is the camera's look on every plan, never a Free lever.",
+        "It keeps the reel at the party, your worry about disposables, and a shot on the TV sends people back to shoot; phones wait for 9 am.",
       overrule:
-        "If disposable shots should print large, full size keeps the phone's photo and leaves every real party to the Event Pass.",
+        "If the surprise is the point, the darkroom keeps every photograph for 9 am, the wall's included.",
       lands:
-        "Whether the camera saves at one size on every plan, and whether a guest count joins storage as a limit.",
-      configs: [SHOTS],
+        "What the reel plays on the room's screen before develop time, and whether it may show the roll while phones cannot.",
+      matters:
+        "The screen is the party's centrepiece: it can keep people shooting, or keep the surprise whole.",
+      configs: [STOCK],
+    },
+
+    /* ── 4. The host's peek ──────────────────────────────────────────────── */
+    {
+      id: "peek",
+      label: "The host's peek",
+      question: "Should the host see the roll before it develops?",
+      where: ["Host", "Her event page", "Before it develops"],
+      when: "Maya opens her event page at 10:40 pm, while the roll is still hidden from every guest.",
+      context:
+        "Two pulls: with review on she must see a shot to approve it, and the surprise wants the roll hidden from her too. Drawn at 10:40 pm, then her next act; 1440 and review on the knobs.",
+      options: [
+        {
+          id: "lands",
+          label: "Yes, as it lands",
+          means:
+            "Her album fills as the party shoots, marked Developing; she takes anything out before 9 am, and review works as it does today.",
+          gains:
+            "She can tidy anything before 9 am, and review works as it does today.",
+          costs:
+            "She sees every shot as it lands, so the reveal is no surprise for her.",
+        },
+        {
+          id: "covered",
+          label: "Covered, one tap to look",
+          means:
+            "Her album waits under a cover with the count; Look anyway opens it for this visit, so the surprise is hers to keep or spend.",
+          gains: "The surprise is hers to keep or spend, one tap a visit.",
+          costs:
+            "One more tap each visit, and tidying means spending the surprise.",
+        },
+        {
+          id: "waits",
+          label: "She waits with everyone",
+          means:
+            "Her album is the darkroom too, until 9 am or her Develop now; with review on she sees each shot in the queue, one at a time, and nowhere else.",
+          gains:
+            "She is surprised with everyone at 9 am, or at her Develop now.",
+          costs:
+            "No tidying before the reveal; with review on she sees shots only in the queue.",
+        },
+      ],
+      recommended: "covered",
+      because:
+        "Most hosts want both, to tidy the roll and to be surprised by it; the cover makes looking her choice, one tap a visit.",
+      overrule:
+        "If tidying up comes first at every party, her album fills as it lands.",
+      lands:
+        "Whether the host's album before develop time shows the roll, a cover, or the darkroom, and what Review holds.",
+      matters:
+        "She is the one person who may need to act before 9 am, and the one who most wants the surprise.",
+      configs: [SCREEN, REVIEW, STOCK],
+    },
+
+    /* ── 5. Create's step ────────────────────────────────────────────────── */
+    {
+      id: "create",
+      label: "Create's step",
+      question:
+        "How should Create's new step offer an album or a disposable camera?",
+      where: ["Host", "Create an event", "Right after the name"],
+      when: "Maya is creating the wedding's event; just after naming it, she picks an album or a disposable camera.",
+      context:
+        "Your round one pick: a step of its own after the name, with context for each and easy to switch later in Settings. Create becomes Name, Guests add, Style, Ready; drawn: the step, then the camera picked.",
+      options: [
+        {
+          id: "cards",
+          label: "Two big cards, a picture each",
+          means:
+            "An album or a disposable camera, each a picture of what a guest gets over three plain facts; picking the camera shows its three defaults.",
+          gains:
+            "Each choice is a picture over three plain facts, read at a glance.",
+          costs:
+            "A still picture: she imagines the guest's night rather than seeing it.",
+        },
+        {
+          id: "phone",
+          label: "One phone that shows the choice",
+          means:
+            "A switch over a phone showing what a guest will meet, the facts beside it: flip it and watch the guest's screen change.",
+          gains:
+            "She sees the exact screen a guest will meet, changing as she flips.",
+          costs:
+            "One choice at a time, so comparing means flipping back and forth.",
+        },
+        {
+          id: "compare",
+          label: "The two, row by row",
+          means:
+            "Two columns of one table (how guests add, when they see it, the reel, what Free holds), so the difference reads at a glance.",
+          gains:
+            "The differences line up row by row: adding, seeing, the reel, Free.",
+          costs:
+            "Reads like a pricing table: clear, but it sells neither experience.",
+        },
+      ],
+      recommended: "cards",
+      because:
+        "Each gets a picture and its facts at a glance, as the style step shows every code, and the camera's defaults show only once picked.",
+      overrule: "If hosts need to see a guest's screen to choose, the phone.",
+      lands:
+        "Create's second step and the event's first mode, and where the camera's three defaults are first set.",
+      matters:
+        "It is one of the biggest choices for an event, and most hosts will make it from this one screen.",
+      configs: [SCREEN, STOCK],
+    },
+
+    /* ── 6. Taking a video ───────────────────────────────────────────────── */
+    {
+      id: "video",
+      label: "Taking a video",
+      question: "On Event Pass and Pro, how should the camera take a video?",
+      where: ["Guest", "The disposable camera", "On a paid event"],
+      when: "The event is on Event Pass or Pro with Videos on, so the camera can film; Priya wants a few seconds of the toast.",
+      context:
+        "Video is paid and the host can switch it off, so Free or Videos off means photos only; the word is video, never clip (the reel's). In the camera you pick above: framing, four seconds in, and the first press asking for the microphone too.",
+      options: [
+        {
+          id: "hold",
+          label: "Hold the shutter to film",
+          means:
+            "A press takes a photo; holding films, the ring filling up to 10 seconds, and letting go stops it. One button and no mode.",
+          gains:
+            "One button and no modes, the hold-to-film habit social apps taught.",
+          costs: "A press held too long by accident films instead of shooting.",
+        },
+        {
+          id: "switch",
+          label: "A Photo and Video switch",
+          means:
+            "A small switch over the shutter, as the phone's own camera has; in Video the shutter turns red and a press starts and stops it.",
+          gains: "Never ambiguous: in Video the shutter turns red.",
+          costs:
+            "One more control in the dark, and a photo lost to a forgotten switch.",
+        },
+        {
+          id: "button",
+          label: "A video button of its own",
+          means:
+            "A second, smaller button beside the shutter films up to 10 seconds; the shutter itself only ever takes a photo.",
+          gains:
+            "The shutter only ever takes a photo; filming has its own button.",
+          costs:
+            "Two buttons on a camera meant to have one, the second small to find.",
+        },
+      ],
+      recommended: "hold",
+      because:
+        "It keeps the disposable's one button and the hold-to-film habit every social camera taught; a switch is one more thing to miss.",
+      overrule: "If a held press should never surprise anyone, the switch.",
+      lands:
+        "How the page's camera records (its microphone ask with it) and what its shutter does on a paid event.",
+      matters:
+        "Filming has to be easy to find in the dark without making a photo any harder to take.",
+      after: { ask: "camera" },
+      configs: [STOCK],
+      tile: "phone",
+    },
+
+    /* ── 7. What a video costs ───────────────────────────────────────────── */
+    {
+      id: "cost",
+      label: "What a video costs",
+      question: "How should a video count against a guest's 24 shots?",
+      where: ["Guest", "The disposable camera", "Just after a video"],
+      when: "On a paid event Priya has just filmed a six-second video, and her camera's count shows what it spent.",
+      context:
+        "A 10 second video takes about three photos' storage at 1080p (the pricing page's figures), and a paid event's storage starts at 75 GB. Drawn in your camera and way to film: just after a six second video, then her shots.",
+      options: [
+        {
+          id: "one",
+          label: "A video is one shot",
+          means:
+            "24 shots is 24 photos or videos in any mix, and the count goes down by one either way.",
+          gains: "The simplest count: 24 shots, photos or videos in any mix.",
+          costs:
+            "A roll of videos takes about three times a roll of photos' storage.",
+        },
+        {
+          id: "three",
+          label: "A video is three shots",
+          means:
+            "What it weighs: a video spends three of her 24, and the camera says so before she films.",
+          gains:
+            "Honest to storage: a video costs what it weighs, and says so first.",
+          costs:
+            "Arithmetic on a party camera, and a few videos use up most of her roll.",
+        },
+        {
+          id: "own",
+          label: "Videos count on their own",
+          means:
+            "24 photos and 3 videos each, two counts on the camera; neither spends the other.",
+          gains: "Photos and videos never compete: 24 photos plus 3 videos.",
+          costs:
+            "Two counts on the camera, and only three videos for the night.",
+        },
+      ],
+      recommended: "one",
+      because:
+        "A paid plan's storage starts at 75 GB, so pricing a video in photos adds arithmetic and nothing else: a shot is a shot.",
+      overrule:
+        "If a roll of videos should cost what it weighs, three shots a video.",
+      lands:
+        "What the server's count counts on a paid event, and what the camera's count says after a video.",
+      matters:
+        "It decides whether a video feels like any other shot or a treat that eats the roll.",
+      after: { ask: "video" },
+      tile: "phone",
+    },
+
+    /* ── 8. Saving the look ──────────────────────────────────────────────── */
+    {
+      id: "save",
+      label: "Saving the look",
+      question:
+        "When a guest saves a developed photo, should it wear the roll's look?",
+      where: ["Guest", "A developed photo", "Saving it, 9:02 am"],
+      when: "The roll developed at 9 am, and Priya saves a photo from the album to her phone.",
+      context:
+        "The look is drawn on screen over the original, which is never changed, so Save has a choice to make. Drawn at 9:02 am: Save in the viewer, what lands in her Photos, and Download all; 1440 on the knob.",
+      options: [
+        {
+          id: "original",
+          label: "The original, always",
+          means:
+            "Save and Download all hand over the photograph as taken; the look is how the album shows it, and a saved photo is plain.",
+          gains: "Always the untouched photo, exactly as taken.",
+          costs:
+            "What she saves and posts looks different from what she saw in the album.",
+        },
+        {
+          id: "save",
+          label: "Save wears it, Download all is original",
+          means:
+            "What she saves is what she saw: Save draws the look into her copy on her phone, while Download all hands over the originals and says so.",
+          gains:
+            "What she saves is what she saw; Download all still gives originals.",
+          costs:
+            "Two rules to learn: Save keeps the look, Download all does not.",
+        },
+        {
+          id: "ask",
+          label: "Hers to choose at Save",
+          means:
+            "Save asks, With the look or The original, as she saves; Download all stays the originals, with a line saying so.",
+          gains: "She decides each time, with the look or the original.",
+          costs:
+            "A question at every save, on the one tap that should be instant.",
+        },
+        {
+          id: "always",
+          label: "The look, always",
+          means:
+            "Save and Download all both wear it, drawn on her phone before the zip, so a big album downloads more slowly.",
+          gains: "Everything matches the album, the zip included.",
+          costs:
+            "She never gets an original, and a big album downloads more slowly.",
+        },
+      ],
+      recommended: "save",
+      because:
+        "She saves a photo to post it, so it should look as it did in the album; Download all keeps the untouched originals.",
+      overrule:
+        "If a guest should always get the untouched original, Save hands it over plain.",
+      lands:
+        "Whether the viewer's Save and Share draw the look into a copy on the device, and what Download all says.",
+      matters:
+        "Guests save photos to post them, so what they save is what the world sees of the party.",
+      configs: [STOCK, SCREEN],
+      tile: "phone",
     },
   ],
 });

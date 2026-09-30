@@ -272,14 +272,27 @@ export const DOCK_PILL =
  */
 export function Knob({
   label,
+  quiet = false,
   children,
 }: {
   label: string;
+  /** On the step's quiet row: one line, never wrapped (`ControlKnobs`). */
+  quiet?: boolean;
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-      <span className="text-[11px] font-medium text-muted-foreground">
+    <div
+      className={cn(
+        "flex items-center gap-x-2",
+        quiet ? "shrink-0" : "min-w-0 flex-wrap gap-y-1",
+      )}
+    >
+      <span
+        className={cn(
+          "text-[11px] font-medium text-muted-foreground",
+          quiet && "whitespace-nowrap",
+        )}
+      >
         {label}
       </span>
       {children}

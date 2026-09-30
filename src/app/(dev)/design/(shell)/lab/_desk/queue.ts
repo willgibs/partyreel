@@ -1,6 +1,13 @@
 import "server-only";
 
-import type { Ask, BoardSpec, Candidate } from "@/components/lab/board-spec";
+import {
+  type Ask,
+  type BoardSpec,
+  type Candidate,
+  SURFACE_LABEL,
+} from "@/components/lab/board-spec";
+
+import { BOARDS, boardNote } from "@/app/(dev)/design/sandbox/registry";
 
 import { type Note, windowNotesFor } from "@/app/(dev)/design/review/ledger";
 import {
@@ -14,15 +21,14 @@ import { holdId, itemHoldId } from "./step-id";
 /**
  * THE DESK'S ROWS (the Library x Lab round, 2026-09-15): one standing board,
  * with the asks that still wait on Will beside the registry's own facts (its
- * title, its surface, the tracks building it). The derivation itself is the
- * rules track's (`design/review/status.ts`: a board's asks minus its ledger,
- * joined on the ask id); this only joins it to `touchpoints.ts` and flattens
- * the result into the queue the session walks. This track carried a local
- * ledger reader until that module landed, and it is gone.
+ * title, its surface, the tracks building it). The derivation itself is
+ * `design/review/status.ts`'s (a board's asks minus its ledger, joined on the
+ * ask id); this only joins it to the registry and flattens the result into the
+ * queue the session walks.
  *
  * ★ AND THE CATALOG'S CARDS RIDE THE SAME ROW (the revamp, 2026-09-16). A
- * board that declares `catalog` is asking to be ruled on card by card, so its
- * unruled candidates queue exactly as its unanswered asks do; a board without
+ * board that declares `catalog` is asking for a verdict card by card, so its
+ * cards without one queue exactly as its unanswered asks do; a board without
  * one carries none, because every board has candidates and only some of them
  * are a catalog.
  *
@@ -48,15 +54,15 @@ export type AskState = {
   moot: boolean;
 };
 
-/** One catalog card of one board, with the ruling standing against it (or none). */
+/** One catalog card of one board, with the verdict standing against it (or none). */
 export type ItemState = {
   board: string;
   boardTitle: string;
   /** The SPEC's round, which is the round a ledger line must quote. */
   round: number;
   item: Candidate;
-  /** Null when nobody has ruled on this card in this round. */
-  ruling: { verdict: string; note?: string } | null;
+  /** Null when the card has no verdict in this round. */
+  answer: { verdict: string; note?: string } | null;
 };
 
 /** A standing board on the desk: its spec when it has one, its asks, its verdict. */
@@ -64,7 +70,7 @@ export type BoardRow = {
   id: string;
   title: string;
   surfaceLabel: string;
-  /** The touchpoints note, shown when no spec argues the board yet. */
+  /** The board's one line (`boardNote`), shown when no spec argues the board yet. */
   note: string;
   spec: BoardSpec | null;
   /** True while the board predates the kit's template (no spec, no asks). */
@@ -75,9 +81,9 @@ export type BoardRow = {
   open: AskState[];
   /** The catalog's cards, or none when the board declares no catalog. */
   items: ItemState[];
-  /** The cards with no ruling this round: what the items step asks for. */
+  /** The cards with no verdict this round: what the items step asks for. */
   openItems: ItemState[];
-  /** The notes aimed at THIS board: its ledger's own, and the window's on it. */
+  /** The notes aimed at THIS board: its ledger's own, and the current sitting's filed on it. */
   notes: Note[];
   /** The ledger's own note texts in the board's OPEN round, under the round
    *  guard: what "Copy so far" must not send a second time. */
@@ -92,6 +98,20 @@ export type DeskBoard = {
   note: string;
   tracks: string[];
 };
+
+/**
+ * Every standing board as the desk reads it, in desk order: one derivation for
+ * the desk and the board route, which both walk the same queue.
+ */
+export function deskBoards(): DeskBoard[] {
+  return BOARDS.map((b) => ({
+    id: b.id,
+    title: b.title,
+    surfaceLabel: SURFACE_LABEL[b.surface],
+    note: boardNote(b),
+    tracks: [...(b.tracks ?? [b.id])],
+  }));
+}
 
 /**
  * The asks of one board against one status reading.
@@ -136,17 +156,16 @@ export function itemStates(board: DeskBoard, status: BoardStatus): ItemState[] {
     boardTitle: board.title,
     round: spec.round.n,
     item: i.item,
-    ruling:
-      current && i.state === "ruled"
-        ? { verdict: i.ruling.verdict, note: i.ruling.note }
+    answer:
+      current && i.state === "answered"
+        ? { verdict: i.answer.verdict, note: i.answer.note }
         : null,
   }));
 }
 
 /**
- * The desk's rows, in registry order. `boards` is the standing-board registry
- * (touchpoints.ts, mapped to plain data by the caller); a board with no spec is
- * `legacy` and carries no asks. `statusOf` is injected so the test can walk a
+ * The desk's rows, in desk order. `boards` is the standing boards as plain
+ * data (`deskBoards()`); a board with no spec is `legacy` and carries no asks. `statusOf` is injected so the test can walk a
  * fixture board, which is the only way to prove this before the standing
  * boards carry their specs.
  */
@@ -168,7 +187,7 @@ export function deskRows(
       // A pick-one catalog's cards are not a wait (status.ts): its decision is
       // the winner ask, so `status.openItems` is already empty for it.
       openItems: items.filter(
-        (i) => i.ruling === null && status.openItems.some((o) => o.item.id === i.item.id),
+        (i) => i.answer === null && status.openItems.some((o) => o.item.id === i.item.id),
       ),
       // ★ A TRANSCRIBED "NOT CLEAR TO ME" LEAVES THE WALK (Will's ninth
       // batch, 2026-09-18). It used to stay, so the next sitting asked the
@@ -182,10 +201,11 @@ export function deskRows(
       // land in this very sitting, which only the browser knows; a MOOT one is
       // gone for the round.
       open: asks.filter((a) => a.answer === null && !a.moot),
-      // `status.notes` mixes the window's GLOBAL notes into every board, which
-      // would print the same four lines fourteen times; the desk prints those
-      // once, in their own section. What belongs on a row is the board's own:
-      // its ledger's notes for this round, and the window notes aimed at it.
+      // ★ A BOARD'S NOTES ARE ITS OWN (Will, 2026-09-29). Its ledger's notes
+      // for this round, and the current sitting's notes filed on THIS board:
+      // what he said on no board is not a board's to answer, so it never rides
+      // a row (the desk prints it once, in its own section, while its sitting
+      // is the latest). The filter keeps that true whatever `notesOf` returns.
       notes: [
         ...(status.round?.notes ?? []),
         ...notesOf(b.id).filter((n) => n.on === b.id),
@@ -215,8 +235,8 @@ export function boardWork(rows: BoardRow[]) {
     asks: r.open,
     items: r.openItems,
     // The open work is what the ledger does NOT hold, so a staged step's
-    // prerequisite is never in it: the standing rulings ride along separately.
-    ruled: ledgerSideOf(r),
+    // prerequisite is never in it: the standing answers ride along separately.
+    ledger: ledgerSideOf(r),
   }));
 }
 
@@ -228,7 +248,7 @@ function ledgerSideOf(row: BoardRow) {
   }
   const items: Record<string, string> = {};
   for (const i of row.items) {
-    if (i.ruling) items[i.item.id] = i.ruling.verdict;
+    if (i.answer) items[i.item.id] = i.answer.verdict;
   }
   return { answers, items };
 }
@@ -257,10 +277,10 @@ export function transcribedFrom(rows: BoardRow[]): Transcribed {
         };
     }
     for (const i of r.items) {
-      if (i.ruling)
+      if (i.answer)
         items[itemHoldId(i.board, i.round, i.item.id)] = {
-          verdict: i.ruling.verdict,
-          note: i.ruling.note,
+          verdict: i.answer.verdict,
+          note: i.answer.note,
         };
     }
   }

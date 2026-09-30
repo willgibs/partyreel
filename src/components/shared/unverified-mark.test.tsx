@@ -91,7 +91,9 @@ describe("what the popover says", () => {
     render(<UnverifiedMark />);
     await open();
     expect(
-      screen.getByText(/^Anyone can type a name\. This guest has not confirmed/),
+      screen.getByText(
+        /^Anyone can type a name\. This guest has not confirmed/,
+      ),
     ).toBeInTheDocument();
   });
 
@@ -119,12 +121,13 @@ describe("what the popover says", () => {
   it("tells the HOST about their own switch, and only the host", async () => {
     const { unmount } = render(<UnverifiedMark name="Sam" viewerIsHost />);
     await open();
-    expect(screen.getByText(/Require verified emails/)).toBeInTheDocument();
+    // The switch's own name (the doors, event-settings r1: step 3, "An email first").
+    expect(screen.getByText(/Turn on An email first/)).toBeInTheDocument();
     unmount();
 
     render(<UnverifiedMark name="Sam" />);
     await open();
-    expect(screen.queryByText(/Require verified emails/)).toBeNull();
+    expect(screen.queryByText(/Turn on An email first/)).toBeNull();
   });
 });
 
@@ -165,7 +168,9 @@ describe("confirming from your own credit", () => {
     fireEvent.click(await openDoor());
     await waitFor(() => expect(claimAnonymousUploads).toHaveBeenCalled());
     expect(
-      Object.keys(localStorage).filter((k) => k.startsWith("pr_pending_offer_")),
+      Object.keys(localStorage).filter((k) =>
+        k.startsWith("pr_pending_offer_"),
+      ),
     ).toEqual([]);
   });
 });

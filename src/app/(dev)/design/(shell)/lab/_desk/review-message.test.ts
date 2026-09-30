@@ -87,7 +87,7 @@ describe("the review message", () => {
   });
 });
 
-describe("a catalog's rulings", () => {
+describe("a catalog's verdicts", () => {
   it("writes the asks, then the items, then the board note", () => {
     expect(
       composeBoardLine(
@@ -125,7 +125,7 @@ describe("a catalog's rulings", () => {
     ).toBe("review palette r6: palette=ember; item:palette=keep");
   });
 
-  it("carries a board that was only ruled on, never answered", () => {
+  it("carries a board with verdicts on its cards and no answers", () => {
     expect(
       composeMessage(
         [],
@@ -146,7 +146,7 @@ describe("the Library's line", () => {
     ).toBe('review library: masonry=redesign "the columns fight"; button=keep');
   });
 
-  it("is empty when nothing was ruled, and drops an entry with no verdict", () => {
+  it("is empty when no entry has a verdict, and drops an entry without one", () => {
     expect(composeLibraryLine([])).toBe("");
     expect(composeLibraryLine([{ entry: "button", verdict: "" }])).toBe("");
   });

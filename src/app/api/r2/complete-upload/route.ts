@@ -39,12 +39,13 @@ const guestCompleteStrategy: CompleteStrategy<typeof guestCompleteSchema> = {
   schema: guestCompleteSchema,
   captureLabel: "create_media",
   async createRecord(parsed, kind, realSize) {
-    // The write path inherits the read gate (database-security.md), so the event's lock is
-    // re-checked at COMPLETION too — a presigned URL outlives a host's lock by up to 2h, and this
-    // is the write that counts (the media row + ledger; the bytes an already-issued URL can land
-    // become a swept orphan, never album content). Same policy as presign: `private` refuses
-    // everyone, `password` needs the cookie or ownership. An invalid session or a deleted event
-    // falls through to createMedia, which owns the canonical refusals for those states.
+    // The write path inherits the read gate (database-security.md), so the door is re-checked at
+    // COMPLETION too: a presigned URL outlives a host's change by up to 2h, and this is the write
+    // that counts (the media row + ledger; the bytes an already-issued URL can land become a swept
+    // orphan, never album content). Same policy as presign: the context answers the door as this
+    // ticket sees it, so `private` refuses every shut ticket, and `password` (a database before the
+    // doors' migration) needs the cookie or ownership. An invalid session or a deleted event falls
+    // through to createMedia, which owns the canonical refusals for those states.
     const ctx = await getUploadContext(parsed.session_token, kind);
     if (ctx.ok && !ctx.data.event_deleted) {
       if (ctx.data.visibility === "private") {

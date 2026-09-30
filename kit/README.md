@@ -36,8 +36,7 @@ Two families, both free on Google Fonts, and no third face anywhere.
 
 | Family | Weight | For |
 | --- | --- | --- |
-| [Urbanist](https://fonts.google.com/specimen/Urbanist) | 700 | Headlines and page titles |
-| Urbanist | 600 | Card and subsection titles |
+| [Urbanist](https://fonts.google.com/specimen/Urbanist) | 700 | Every heading: headlines, page titles, card and subsection titles |
 | [Inter](https://fonts.google.com/specimen/Inter) | 500 | Buttons and labels |
 | Inter | 400 | Body |
 
