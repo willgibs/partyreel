@@ -697,12 +697,14 @@ function Tile({
             )}
           </span>
           <span className="min-w-0 truncate">
+            {/* With no uploader to name, what the report is on, in the peek's own words: an item's
+                report whose item is gone has no uploader either, and is never its album's (build 27). */}
             <span data-report-fact="uploader">
               {entry.uploader
                 ? entry.uploader.isHost
                   ? "The host"
                   : `${entry.uploader.name ?? "Nobody named"}${entry.uploader.more !== null ? ` · ${formatCount(entry.uploader.more)} more` : ""}`
-                : "The whole album"}
+                : peekSubject(entry)}
             </span>
             {" · "}
             <span data-report-fact="album">

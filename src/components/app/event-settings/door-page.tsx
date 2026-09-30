@@ -190,8 +190,11 @@ export function DoorPage({ guestsHref }: { guestsHref: string }) {
   }
 
   function choose(next: Door) {
+    // The saved door, picked back: whatever was picked meanwhile and never saved lets go, a password
+    // being set included, so the page shows the door the album has (build 27's NIT).
     if (next === v.door) {
       setPending(null);
+      setSettingPassword(false);
       return;
     }
     // A password needs one set first: the control asks for it, and setting it opens that door.

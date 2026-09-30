@@ -181,6 +181,24 @@ describe("the gates, under Private", () => {
     expect(setEventDoorAction).toHaveBeenCalledWith(EVENT_ID, "password");
   });
 
+  it("★ the saved door picks back after a password was picked and never set (build 27's NIT)", () => {
+    // The page showed "A password" chosen over a door that was never saved until a reload: picking
+    // the saved gate again cleared its consequence line and left the password's field standing.
+    page({ visibility: "private", door: "approve" });
+    fireEvent.click(choice("A password"));
+    expect(screen.getByLabelText("Album password")).toBeTruthy();
+    expect(choice("A password").getAttribute("aria-checked")).toBe("true");
+
+    fireEvent.click(choice("You let each person in"));
+    expect(choice("You let each person in").getAttribute("aria-checked")).toBe(
+      "true",
+    );
+    expect(choice("A password").getAttribute("aria-checked")).toBe("false");
+    expect(screen.queryByLabelText("Album password")).toBeNull();
+    // The door it shows is the door it has: nothing was written.
+    expect(setEventDoorAction).not.toHaveBeenCalled();
+  });
+
   it("the first password, set as it opens the door, says the same beside its field", () => {
     page({ visibility: "private", door: "approve" }, { waiting: 1 });
     fireEvent.click(screen.getByRole("radio", { name: "A password" }));

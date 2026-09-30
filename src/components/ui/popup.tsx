@@ -104,6 +104,13 @@ if (typeof document !== "undefined") {
  * is nobody's choice, so until the layer's own entrance has run out it swallows the tap: the click never
  * reaches a row, and the scrim's outside press never dismisses it.
  *
+ * ★ THE PRESS, NOT ONLY THE CLICK (crumbs-26, build 27's red-team). Focus moves on the press: a double tap
+ * on the code card's "Everything" had its second click swallowed, but its mousedown still focused the Share
+ * sheet's "Custom link" field, and on a phone a focused field raises the keyboard over the sheet. So a
+ * pointerdown or mousedown inside a layer still arriving is swallowed too (its default, the focus, never
+ * runs, and no row hears it), and the click that press ends in is its own: swallowed even when the
+ * entrance ran out before the finger lifted. A key's click (`detail` 0) is never a finger's.
+ *
  * "Settled" is read off the element, never a number kept beside the CSS: a CSS ANIMATION of the layer's own
  * still running (its entrance; its exit too, since a layer on its way out takes none either). A CSS
  * TRANSITION does not count (the keyboard's lift glides the sheet on `bottom` and `max-height`, and a tap
@@ -238,6 +245,8 @@ function PopupContent({
   onOpenAutoFocus,
   onCloseAutoFocus,
   onClickCapture,
+  onPointerDownCapture,
+  onMouseDownCapture,
   onPointerDownOutside,
   ref,
   ...props
@@ -295,6 +304,15 @@ function PopupContent({
   // a stacked popup is the control inside the layer still open behind it.
   const returnTo = React.useRef<HTMLElement | null>(null)
 
+  // Whether the press under way began while the layer arrived (`arriving`): set by its pointerdown, so
+  // its mousedown (a touch's comes after the finger lifts) and its click are swallowed with it, however
+  // late they land. Every press starts it afresh.
+  const pressSwallowed = React.useRef(false)
+  const swallow = (event: React.SyntheticEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    event.stopPropagation()
+  }
+
   return (
     <PopupShapeContext.Provider value={shape}>
       <PopupPrimitive.Portal>
@@ -334,12 +352,31 @@ function PopupContent({
             }
           }}
           className={cn(CONTENT, floatingPopupShapes, className)}
-          // ★ A LAYER STILL ARRIVING TAKES NO TAP (`arriving`): a click inside it is swallowed before any
-          // row sees it, and a press on the scrim behind it does not dismiss it.
+          // ★ A LAYER STILL ARRIVING TAKES NO TAP (`arriving`): a press inside it is swallowed before any
+          // row sees it (its default, the focus, with it), so is the click it ends in, and a press on the
+          // scrim behind it does not dismiss it.
+          onPointerDownCapture={(event) => {
+            pressSwallowed.current = arriving(event.currentTarget)
+            if (pressSwallowed.current) {
+              swallow(event)
+              return
+            }
+            onPointerDownCapture?.(event)
+          }}
+          onMouseDownCapture={(event) => {
+            if (pressSwallowed.current || arriving(event.currentTarget)) {
+              pressSwallowed.current = true
+              swallow(event)
+              return
+            }
+            onMouseDownCapture?.(event)
+          }}
           onClickCapture={(event) => {
-            if (arriving(event.currentTarget)) {
-              event.preventDefault()
-              event.stopPropagation()
+            // A key's click carries no count (`detail` 0) and is never the swallowed finger's.
+            const ofSwallowedPress = pressSwallowed.current && event.detail > 0
+            pressSwallowed.current = false
+            if (ofSwallowedPress || arriving(event.currentTarget)) {
+              swallow(event)
               return
             }
             onClickCapture?.(event)
