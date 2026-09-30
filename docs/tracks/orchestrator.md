@@ -98,7 +98,9 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
    Build 31 (`96d154d6`: build 30 plus desk-tune-2, lab files only) is on the alias for Will's sitting. When
    gone-link-soft merges:
    1. build 32, and my curl proof on the alias (a stale `/e/` and `/u/` draw their own screens, 200, noindex);
-   2. milestone 31 on Will's yes, then the prod walk from `../partyreel-wt/_scratch/prod-m31/brief.md`;
+   2. milestone 31: **Will said yes** (2026-09-30, answered "Ship after the fix (Recommended)": build 32 on the alias,
+      the dead links proven, then merge, tag, deploy and the read-only prod walk with no further ask), the walk from
+      `../partyreel-wt/_scratch/prod-m31/brief.md`;
    3. then crumbs-28 merges, schema-pass part 2 applies, and crumbs-29 takes the three LOWs and the NIT (two of them
       migrations).
 
