@@ -77,12 +77,12 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
 
 1. **Integrate each lane as it hands off** (none running but build 27's red-team), each migration by protocol, one at a time: drift check, apply verbatim, the rolled-back refusals,
    advisors, types.
-2. **Build 27 was red-teamed live** (`d7832a6a`, `../partyreel-wt/_scratch/redteam-27/ledger.txt`): every lane's walks
-   PASS where drivable, and one MEDIUM regression from shared-claims (a signed-in account's uploads filed under another
-   guest's ticket on a shared phone) plus four smaller finds, all `crumbs-26`'s (running). Milestone 31 waits for its
-   fix: build 28 (lab-focus, perf-404, crumbs-24 and crumbs-26, merged at `f0a2ceba`), its red-team, then the proposal to Will;
-   schema-pass's part 2 applies after it ships. Waiting on Will from this walk: one event password typed on a
-   disposable approve-door event while someone waits (crumbs-21's password step), and a 10-second Cmd+F on /events.
+2. **Build 28 is on the alias** (`f5005b56`, 2026-09-30; its red-team running, agent `a323059321486cd11`, brief and
+   ledger in `../partyreel-wt/_scratch/redteam-28/`; from another session, respawn from the brief after the ledger's last
+   line): build 27 (red-teamed; its MEDIUM, a shared phone's uploads under another guest's ticket, fixed by `crumbs-26`)
+   plus lab-focus, perf-404, crumbs-24 and crumbs-26. When it passes, milestone 31 is proposed to Will (his yes);
+   schema-pass's part 2 applies after it ships. crumbs-25 rides build 29. Waiting on Will from build 27's walk: one
+   event password typed while someone waits (optional), and a 10-second Cmd+F on /events.
 3. **Seats as they free** (at most four lanes; `memory_pressure` before each; app work first, Will's note; `lab-focus`
    took the lab's phone fold with it). After his desk picks: the demo event (below); about-press's wiring (its three wiring calls,
    `git show 3ded6ba9^2:docs/tracks/about-press.md`: /press a temporary redirect, the llms summary kept, the kit's files
