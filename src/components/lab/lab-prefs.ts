@@ -22,29 +22,49 @@
  *    source reference can open in the editor from a Vercel alias as well as
  *    from localhost (empty: no editor link, GitHub only).
  *
+ * ★ AND THREE FOR THE STEP, WHICH IS READ PICTURES FIRST (lab-focus,
+ * 2026-09-29: the question view, Will, "an absolutely overwhelming smorgasbord
+ * of UI"). What he opens stays open for him, as a per-viewer convenience:
+ *  - stage: "whole" draws every frame of the shown option on the first screen,
+ *    scaled to fit above the dock (`whole.ts`); "true" is the 1:1 page that
+ *    scrolls, one press away for a detail;
+ *  - about: the one place everything else a board knows lives (the opening,
+ *    the terms, what the question decides and why), open or closed;
+ *  - lines: the where line and the shown option's line, cut to one line each
+ *    or read whole.
+ *
  * All persist in localStorage under one key and apply through data attributes
  * on <html> (LabChrome), so a preference set on one board holds on the next.
  * Reading is a store outside any component (the tuner-store idiom) so the
  * dock, the stages and the chrome all follow one value.
  */
 
-import { useSyncExternalStore } from "react";
+import { createContext, useContext, useSyncExternalStore } from "react";
 
 export type LabFit = "zoom" | "true";
 export type LabSidebar = "open" | "collapsed";
+/** How a step draws its stage: whole on the first screen, or 1:1. */
+export type LabStage = "whole" | "true";
 export type LabPrefs = Readonly<{
   fit: LabFit;
   sidebar: LabSidebar;
   editorRoot: string;
+  stage: LabStage;
+  about: "open" | "closed";
+  lines: "one" | "full";
 }>;
 
 const KEY = "partyreel.lab.prefs.v1";
 // 1:1 with the sidebar tucked away on a board is the default: a board is read
 // at the pixels it argues, and the top bar keeps the way back.
+// A step opens whole, with everything but the question one press away.
 const DEFAULT: LabPrefs = Object.freeze({
   fit: "true",
   sidebar: "collapsed",
   editorRoot: "",
+  stage: "whole",
+  about: "closed",
+  lines: "one",
 });
 
 let prefs: LabPrefs = DEFAULT;
@@ -71,6 +91,9 @@ function load() {
               : "collapsed",
         editorRoot:
           typeof parsed.editorRoot === "string" ? parsed.editorRoot : "",
+        stage: parsed.stage === "true" ? "true" : "whole",
+        about: parsed.about === "open" ? "open" : "closed",
+        lines: parsed.lines === "full" ? "full" : "one",
       };
     }
   } catch {
@@ -108,4 +131,30 @@ export function setLabPref<K extends keyof LabPrefs>(
 /** The live preferences; the server render sees the defaults. */
 export function useLabPrefs(): LabPrefs {
   return useSyncExternalStore(subscribe, getLabPrefs, () => DEFAULT);
+}
+
+/**
+ * ★ A STAGE CAN PIN THE FIT FOR EVERYTHING DRAWN INSIDE IT (lab-focus,
+ * 2026-09-29). The step's whole stage measures an option at its natural size
+ * and scales the whole of it at once, so a `Fit` or a `Stage` inside it must
+ * draw at 1:1: one that fitted itself to the stage's width would make the
+ * option's size depend on the very width being chosen for it. "whole" is 1:1
+ * with one more thing: a `Fit` lets its canvas take the width the stage lays
+ * the option out at, so a row of frames in it can wrap (`whole.ts`). The
+ * whole-board page provides nothing, and every piece follows the reader's
+ * preference.
+ */
+export const FitPin = createContext<LabFit | "whole" | null>(null);
+
+/** The fit a `Fit` or a `Stage` draws at: the stage's pin, else the preference. */
+export function useFitPref(): LabFit {
+  const pinned = useContext(FitPin);
+  const { fit } = useLabPrefs();
+  if (pinned === "whole") return "true";
+  return pinned ?? fit;
+}
+
+/** Whether a piece is drawn on a step's whole stage (`FitPin`). */
+export function useWholeStage(): boolean {
+  return useContext(FitPin) === "whole";
 }

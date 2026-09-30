@@ -467,10 +467,22 @@ export function Frame({
       className={cn("m-0 flex min-w-0 flex-col gap-2", className)}
     >
       <figcaption className="flex flex-col gap-0.5" style={{ width: w }}>
-        <span className="text-sm font-medium">{title}</span>
+        <span
+          data-lab-frame-title=""
+          title={title}
+          className="text-sm font-medium"
+        >
+          {title}
+        </span>
         {/* A fixed floor so frames in a row line up at the top whatever their
-            captions run to. */}
-        <span className="min-h-[2.75rem] text-[11px] leading-snug text-muted-foreground">
+            captions run to. ★ A STEP'S STAGE HIDES IT (lab-focus,
+            2026-09-29): what a lane measures to prove a frame stays in the
+            page for the lane and `lab:demo`, and on the whole board, and out
+            of the reviewer's view while he answers (design.css). */}
+        <span
+          data-lab-caption=""
+          className="min-h-[2.75rem] text-[11px] leading-snug text-muted-foreground"
+        >
           {caption}
         </span>
       </figcaption>

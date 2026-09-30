@@ -98,6 +98,9 @@ export function BoardPage({
           param={session.param}
           transcribed={session.transcribed}
           build={session.build}
+          // The step is the page: it fills the window, so a whole stage
+          // takes exactly the room above the dock.
+          page
           board={{
             controls,
             state,

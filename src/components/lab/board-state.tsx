@@ -140,21 +140,31 @@ export function ControlKnobs({
   controls,
   state,
   setState,
+  quiet = false,
 }: {
   controls: readonly Control[];
   state: BoardState;
   setState: (patch: Record<string, string>) => void;
+  /**
+   * The step's one quiet row on the stage (lab-focus, 2026-09-29): every knob
+   * on one line, never wrapping, since the row scrolls sideways where it runs
+   * out of room rather than growing a second row over the pictures.
+   */
+  quiet?: boolean;
 }) {
   return (
     <>
       {controls.map((c) => (
-        <Knob key={c.id} label={c.label}>
+        <Knob key={c.id} label={c.label} quiet={quiet}>
           <Toggle
             ariaLabel={c.label}
             options={c.options.map((o) => ({ id: o.id, label: o.label }))}
             value={state[c.id] ?? c.default}
             onChange={(v) => setState({ [c.id]: v })}
-            wrap={c.options.length > 3} // four or more options overflow a 343px dock at 375 (rounding, 2026-09-16)
+            quiet={quiet}
+            // Four or more options overflow a 343px dock at 375 (rounding,
+            // 2026-09-16); the quiet row scrolls instead.
+            wrap={!quiet && c.options.length > 3}
           />
         </Knob>
       ))}
