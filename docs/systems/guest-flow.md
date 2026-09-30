@@ -77,9 +77,11 @@ running; the mark names no album of its own, so it writes the marker for the alb
 `useConfirmReturn`, which claims this browser's uploads at mount and hears EVERY claim made on the page, whoever
 started it: on an album the claim is two calls, this album's own token first
 ([`claim-uploads.ts`](../../src/lib/guest/claim-uploads.ts)), and the RPC counts only claimed rows that carry a
-live upload, so the result says HERE and ELSEWHERE apart. The follow moment plays when the marker was there AND the
-claim moved this album's own uploads, with no upload needed this visit (a full-reload return included); the first
-claim that actually runs spends the marker either way. ★ **A CONFIRMATION IS ONE BEAT, NEVER STACKED
+live upload, so the result says HERE and ELSEWHERE apart. The follow moment plays when the marker was there (or the
+claim is her yes to the shared-phone ask) AND the claim moved this album's own uploads, with no upload needed this
+visit (a full-reload return included); the first claim that actually runs spends the marker either way, and a
+full-reload return whose claim moved nothing here still reports its beat, so the page can say where photos typed
+under another address are. ★ **A CONFIRMATION IS ONE BEAT, NEVER STACKED
 TOASTS** ([`confirm-beat.ts`](../../src/lib/guest/confirm-beat.ts)): when the moment plays, its card says the other
 events once and tells the name (the events waiting under her email are the moment's alone, counted on the server
 from the dashboard banner's own list and never this album, [`confirm-beat-action.ts`](../../src/lib/guest/confirm-beat-action.ts),
@@ -296,7 +298,10 @@ its metadata and every guest route act on through
   whoever proves it and nobody waits on the host there, and a waiting ticket would only stand between her and it. Her
   held door reads `moved`, she meets the password like anyone new, and her phone, finding its ticket gone
   (`invalid_session`), puts it down and joins afresh at its next upload (`use-upload-queue.ts`, as it does a foreign
-  ticket). Closed and Only me keep their asks: the host may still answer them.
+  ticket). Closed and Only me keep their asks: the host may still answer them. ★ Both mints of an ask (`create_guest`,
+  `ask_to_join`) read the door under the event row's share lock, which every move of the door waits on
+  (`20260930100000`): an ask minted in the instant the door takes a password, turns Public or becomes the list is
+  ordered against the move, so the move's trigger meets it, or it meets the door the move left.
 - **`newcomer {gate}`**, no confirmed email yet at approve or invite: the door's own steps (the welcome, the email)
   with no teaser; the welcome counts what is inside, as a password album's does. Confirming asks at approve and lets
   in an address the list names.
@@ -773,9 +778,15 @@ had" holds only when this device holds a guest ticket a claim would move.
   (the `(app)` layout's and the album page's) asks once no door or sheet is up, "3 photos were added on this phone
   as Dana. Are they yours?": They're mine claims exactly those (`claim_asked_uploads`, never an address, naming no
   profile); Not mine is remembered for that account on those albums (`pr_not_mine_<qr>`, put down with its
-  ticket); a question put away unanswered comes back on a later visit. A proved row whose account was deleted
-  goes to nobody. An UNCONFIRMED caller matches no address and stamps `user_id` alone; a CONFIRMED caller's claim is
-  proved (the device plus the address), so it also stamps `verified_at`, copies the account's email into
+  ticket); a question put away unanswered comes back on a later visit. ★ On the album whose own uploads a yes carried,
+  it plays the follow moment (her answer is a confirmation of those very photos), never the toast. ★ The same read
+  answers each held ticket typed under an address that is not hers (`kind` address, its live uploads, never the
+  address: `20260930110000`), which nothing takes or asks about, so a confirmation that left this album's photos for
+  the address typed with them says where they are instead of telling a name they do not carry: "Your 3 photos here
+  were added with another email." / "They stay with the email you added with your name. Sign in with that email to
+  keep them." (`claimLeftForAnotherAddress`, asked by the page before it speaks). A proved row whose account was
+  deleted goes to nobody. An UNCONFIRMED caller matches no address and stamps `user_id` alone; a CONFIRMED caller's
+  claim is proved (the device plus the address), so it also stamps `verified_at`, copies the account's email into
   `guests.email`, clears `pending_email` and the typed name, and names a nameless profile from the newest row it
   took. ★ The number it returns is the claimed rows that
   carry a LIVE upload (an empty row is stamped but not counted: claiming it carries nothing). It fires from the

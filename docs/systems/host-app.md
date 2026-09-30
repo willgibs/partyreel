@@ -212,23 +212,27 @@ beneath, newest first.
   `loading.tsx`'s wait (`CrumbsHold`), because the new address commits with the skeleton on screen and the page lands
   later, so a bar that followed the address or let go with the old page blinked for the whole wait
   (`shared/crumbs.tsx`).
-- ★ **The two places ride `?room=`, and it IS the state** (`share/event-share-provider.tsx`, read from
-  `useSearchParams` with no mirrored `useState`, so a `router.refresh()` after a settings action cannot close the
-  panel). ★ Every native history call hands Next a FRESH object (the marker as a field) or `null`, never
+- ★ **The two places ride `?room=`, and it IS the state** (`share/event-share-provider.tsx`, read from `useSearchParams`
+  with no mirrored `useState`, so the page a settings action re-renders cannot close the panel). ★ Nothing in a sheet
+  refreshes the router: every Settings save re-renders the hub in its action's own answer, the reel switch's included
+  (`setReelDefaults` revalidates the hub for the switch), which Next replays when a tap moves the address mid-save; a
+  refresh in flight turned a tap on the page's back arrow or a row into a reload, or dropped the refresh
+  (`refresh-then-write-policy.test.ts` keeps it out of the sheets; `lib/history-entry.ts` holds the matrix and the one
+  two-tap residual). ★ Every native history call hands Next a FRESH object (the marker as a field) or `null`, never
   `window.history.state`: Next's patched `pushState` and `replaceState` apply the URL only to a state without `__NA`
   (`history-state-policy.test.ts` refuses the shape; a write from a mount effect waits a microtask, because it would
-  meet the browser's own function before Next patches it: `lab/board-state.tsx` says why). ★ Whose entry a place
-  stands on is `lib/history-entry.ts`'s, which the hub's sheets, a phone's screen-shaped popup and the reel all use
-  (its header holds what Next does to an entry). Opening pushes an entry carrying the marker (a sheet already open is
-  left alone, so a double tap pushes one entry, never two); closing goes Back only when the entry is ours (the marker
-  says so, or this page pushed it) and only once until that Back lands (two taps on the X used to leave the hub);
-  `router.refresh()` rewrites an entry without the marker and a reload forgets what the page pushed, so `keep` runs
-  after each render with a sheet open (it adopts a marker it finds and gives an entry this page pushed that lost it its
-  marker back); a place opened from a link or a bookmark never had one and closes in place. ★ The server's
-  `initialSheet` paints the first frame alone (a hydration gate): once hydrated the URL is the only answer, so a place
-  opened from a link (`/settings`, a sign-in's return, Checkout's `?room=`) closes like one opened from its card. A
-  settings page is `&setting=<page>` on the same entry, moved with `replaceState`, so its back arrow and Back never
-  stack entries.
+  meet the browser's own function before Next patches it: `lab/board-state.tsx` says why). ★ Whose entry a place stands
+  on is `lib/history-entry.ts`'s, which the hub's sheets, a phone's screen-shaped popup and the reel all use (its header
+  holds what Next does to an entry). Opening pushes an entry carrying the marker (a sheet already open is left alone, so
+  a double tap pushes one entry, never two); closing goes Back only when the entry is ours (the marker says so, or this
+  page pushed it) and only once until that Back lands (two taps on the X used to leave the hub); a router commit that is
+  not a traversal (a save's re-render) rewrites an entry without the marker and a reload forgets what the page pushed,
+  so `keep` runs after each render with a sheet open (it adopts a marker it finds and gives an entry this page pushed
+  that lost it its marker back); a place opened from a link or a bookmark never had one and closes in place. ★ The
+  server's `initialSheet` paints the first frame alone (a hydration gate): once hydrated the URL is the only answer, so
+  a place opened from a link (`/settings`, a sign-in's return, Checkout's `?room=`) closes like one opened from its
+  card. A settings page is `&setting=<page>` on the same entry, moved with `replaceState`, so its back arrow and Back
+  never stack entries.
 - **The code card is every share's first surface** (`share/code-card.tsx`: the code on white filling a phone, a 384
   card at a desk, Copy link, the device's own Share where it has one, and Everything into the kit,
   `share/event-share-sheet.tsx`, which holds the downloads, the designer and the custom link). Every door to it reads
@@ -302,7 +306,9 @@ visitor-facing "Private" never collides.
   and her held door opens by itself at its next check-in; ★ Decline is a block (the account where there is one, else
   the row), with Undo on its toast and Let back in under Blocked, so a declined newcomer meets the one shut screen and
   cannot keep re-asking. Either way back returns her to the door, where she still needs Let in unless the invite list,
-  being the door, names her, and Let back in's words say which (`BlockedPerson.atDoor`). A waiting newcomer counts on
+  being the door, names her, and Let back in's words say which (`BlockedPerson.lands`, from the door as it stands:
+  someone with no row past the door is a newcomer whatever rows remain, so one whose ask a password ended hears she
+  meets it like anyone new, and where nobody new gets in, that she stays out). A waiting newcomer counts on
   the hub's Guests card, the pulse (its first step, opening `#at-the-door`) and the bell (a row per event), and sends
   no mail.
 - **Invited** (`editor=both`): one field takes a typed address or a pasted list (`readAddresses`: the readable saved at
