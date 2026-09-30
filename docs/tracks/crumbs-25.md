@@ -9,6 +9,22 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/app/host-media-grid.tsx
   - src/lib/adopt-typed-value.ts
   - src/app/globals.css
+  # added by the lane, each with its reason:
+  - src/app/(guest)/e/[token]/not-found.lazy.tsx     # (new) the guest link's 404: its one client boundary, as app/not-found.lazy.tsx is the root's
+  - src/app/(guest)/e/[token]/not-found.screen.tsx   # (new) the screen that was the file's body, loaded only through the boundary
+  - src/app/(marketing)/(cinema)/not-found.lazy.tsx    # (new) the cinema group's boundary
+  - src/app/(marketing)/(cinema)/not-found.screen.tsx  # (new) the cinema group's screen
+  - src/app/not-found.test.ts                        # perf-404's eager-import walk, widened to every group 404 (its walker lives here)
+  - src/app/group-not-found.lazy.test.tsx            # (new) each group's 404 draws through its boundary, whole
+  - src/lib/adopt-typed-value-policy.test.ts         # (new) the policy: a text field adopts early typing or says why it need not
+  - src/app/reduced-motion-guard.test.ts             # (new) the guard's shape: it clamps what declares a transition and creates none
+  - src/components/app/host-media-grid.test.tsx      # (new) the host album holds a live arrival at the door
+  - src/components/app/event-uploads.tsx             # the hub hands the grid the way to ask for a held arrival's link (`onNeedLinks`)
+  - src/components/shared/use-arrival-gate.ts        # (moved from components/guest/: two surfaces, one gate)
+  - src/components/shared/use-arrival-gate.test.tsx  # (moved with it)
+  - src/components/guest/use-arrival-gate.ts         # the move's other half (deleted)
+  - src/components/guest/use-arrival-gate.test.tsx   # the move's other half (deleted)
+  - src/components/guest/gallery-rows.tsx            # its one import path
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/marketing-content.md
   - docs/systems/host-app.md
@@ -44,7 +60,12 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each is built as recommended and is Will's to overrule.
+
+1. **How does a group's 404 come off its group's pages?** **Recommended, built: the root's shape, per group.** The group's `not-found.tsx` keeps its metadata and renders one reference into a client module beside it (`not-found.lazy.tsx`, `next/dynamic`, a real split, SSR on), the screen moves to `not-found.screen.tsx`, and `not-found.test.ts` refuses a component, a client island or a stylesheet among a group 404's eager imports, as it does the root's. The alternative, one boundary file shared by every group, would put each group's screen in every page's shared chunk.
+2. **Does the typing rule cover the design lab, and every text field?** **Recommended, built: yes, all of `src/`.** A policy test (`adopt-typed-value-policy.test.ts`) reads the JSX: a text-like `<input>` or a `<textarea>` adopts through the hook or is listed with why it need not (a honeypot nobody types in, a palette that mounts on a press, so its DOM is written from its state); the fields that are drawn open on the server and were bare (the Library's search and its sidebar filter, the specimen knobs, the reel harness's seed, the desk's notes) move onto the hook.
+3. **Does the host's album hold an arrival at the door as the guest's does?** **Recommended, built: yes, the same gate, the same numbers** (2 s at most, 12 at once, never the seed, never under reduced motion), and the gate moves to `components/shared/` since two surfaces now read it. The host's own upload is an arrival to her album as it was (it glowed before): no sweep is added.
+4. **How does the reduced-motion guard stop making measured sizes stale?** **Recommended, built: the guard stops creating transitions nobody declared**, rather than naming a property list (which would override a declared `height` or `width` transition and starve its `transitionend`) or exempting each measurer (which leaves the next one to be found by a bug). The unimportant `transition-property: none` default under reduced motion, in the base layer, leaves every declared transition clamped to `0.01ms` as before (its `transitionend` still fires) and turns the undeclared `all` into none; the lab's own exemption in `design.css`, a patch for the same cause, goes when it is proven redundant.
 
 ## System-doc edits (in place, owned facts only)
 
