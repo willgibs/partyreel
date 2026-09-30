@@ -39,7 +39,7 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `crumbs-29` | build 30's red-team finds (a shared phone's double row, a declined newcomer admitted by a door's opening, the door after a sign-out, a blocked phone's flash) and two ROADMAP lines (the door's predicate once, a report's closed status paired with its time) | running, cut at `429f0181`; migrations applied by protocol after its merge | Opus, 3131 | |
+| `crumbs-29` | build 30's red-team finds (a shared phone's double row, a declined newcomer admitted by a door's opening, the door after a sign-out, a blocked phone's flash) and two ROADMAP lines (the door's predicate once, a report's closed status paired with its time) | running (agent `a4bf615c4dca3cf34`), cut at `429f0181`; migrations applied by protocol after its merge | Opus, 3131 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
 no question open (Q1, the `names` hang; Q2, schema-pass part 1; Q3, the notes-into-laws audit; Q4, the door migration:
