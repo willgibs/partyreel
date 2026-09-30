@@ -334,6 +334,9 @@ describe("LikesProvider: the window's seed", () => {
  * THE BULK LIKE, ONE CALL A BATCH (album-host-wiring, `like_many`): every not-yet-liked id hearted at
  * once, one `like_many` request, and only the ids it refused reverted. It used to be one
  * `like_media` per id, all at once.
+ *
+ * Reshaped on purpose (crumbs-28): it resolves to the ids it added, where it resolved to their count,
+ * so the album's toast can name them by kind; the count said "Liked 1 photo" of a video.
  */
 describe("LikesProvider: likeMany through like_many", () => {
   function Bulk({
@@ -341,7 +344,7 @@ describe("LikesProvider: likeMany through like_many", () => {
     onDone,
   }: {
     ids: string[];
-    onDone: (n: number) => void;
+    onDone: (liked: string[]) => void;
   }) {
     const likes = useLikes();
     return (
@@ -372,7 +375,7 @@ describe("LikesProvider: likeMany through like_many", () => {
     await waitFor(() => expect(supa.getSession).toHaveBeenCalled());
     await waitFor(() => expect(seedCalls(supa)).toHaveLength(1));
     fireEvent.click(screen.getByText("like-all"));
-    await waitFor(() => expect(done).toHaveBeenCalledWith(2));
+    await waitFor(() => expect(done).toHaveBeenCalledWith(["m1", "m2"]));
     expect(supa.rpc.mock.calls.filter(([fn]) => fn === "like_many")).toEqual([
       ["like_many", { p_media_ids: IDS }],
     ]);
@@ -643,7 +646,7 @@ describe("LikesProvider: one id's like notifies that id's readers alone", () => 
 
 describe("LocalLikesProvider: the store with no session and no network", () => {
   it("flips a heart in memory, and likes many at once", async () => {
-    const grab: { likeMany?: (ids: string[]) => Promise<number> } = {};
+    const grab: { likeMany?: (ids: string[]) => Promise<string[]> } = {};
     function Grab() {
       const likes = useLikes();
       useEffect(() => {
@@ -664,12 +667,12 @@ describe("LocalLikesProvider: the store with no session and no network", () => {
     expect(screen.getByTestId("liked-m1")).toHaveTextContent(/^liked$/);
     fireEvent.click(screen.getByText("toggle-m1"));
     expect(screen.getByTestId("liked-m1")).toHaveTextContent("not liked");
-    let added = 0;
+    let added: string[] = [];
     await act(async () => {
       added = await grab.likeMany!(["m1", "m2", "m3"]);
     });
-    // m3 was liked already, so two were added.
-    expect(added).toBe(2);
+    // m3 was liked already, so two were added: the ids, which the album's toast names by kind (crumbs-28).
+    expect(added).toEqual(["m1", "m2"]);
     expect(screen.getByTestId("liked-m2")).toHaveTextContent(/^liked$/);
   });
 });

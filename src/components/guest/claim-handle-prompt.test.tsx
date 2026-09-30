@@ -168,6 +168,36 @@ describe("ClaimHandlePrompt: the moment after confirming", () => {
     expect(await screen.findByText(/your photos are safe/i)).toBeVisible();
   });
 
+  // crumbs-28, from `claims-wiring`: the moment's Follow started on Follow even for a guest who already follows the
+  // host, because nothing handed it a follow state. The page reads it beside `getHostCard`, on the host card.
+  it("★ hands the moment the host's follow state: a guest who already follows meets Following", async () => {
+    stub({ signedIn: true, slug: null });
+    mount(3, { host: { ...HOST, following: true }, moment: true });
+    expect(await screen.findByText(/your photos are safe/i)).toBeVisible();
+    expect(screen.getByRole("button", { name: "Following" })).toBeVisible();
+  });
+
+  it("confirmed in place: the page's refresh reads it under her session, and the Follow follows", async () => {
+    // The keep's code typed in place refreshes the page (`handleKeepVerified`), whose render now knows who she is.
+    stub({ signedIn: true, slug: null });
+    const view = mount(3, {
+      host: { ...HOST, following: false },
+      moment: true,
+    });
+    expect(await screen.findByRole("button", { name: "Follow" })).toBeVisible();
+    view.rerender(
+      <ClaimHandlePrompt
+        doneCount={3}
+        qrToken="tok-1"
+        host={{ ...HOST, following: true }}
+        moment
+      />,
+    );
+    expect(
+      await screen.findByRole("button", { name: "Following" }),
+    ).toBeVisible();
+  });
+
   it("is never hidden behind the handle card's dismissal", async () => {
     stub({ signedIn: true, slug: null });
     localStorage.setItem("pr_claim_prompt_tok-1", "1");

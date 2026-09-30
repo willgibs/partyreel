@@ -50,8 +50,9 @@ ledger and enforces the caps. Guests (the session-token capability) and hosts (a
   cap evasion. Its bytes go uncounted, an accepted under-count.
 - ★ **A locked event gates UPLOADS, not just viewing.** The three guest seams (the `/api/guests` mint, presign and
   complete) each re-check `mayUploadPastLock(eventId)`: `private` refuses every guest write (the owner uploads through
-  the host routes), and `password` needs the signed unlock cookie OR verified ownership (the owner never meets the
-  password modal, so a bare unlock check would block the host on their own event). Gating only the mint is not enough:
+  the host routes), and `password` needs the signed unlock cookie OR the host, by the page's own owner answer
+  (`isRequestOwner`: the owner never meets the password modal, so a bare unlock check would block the host on their
+  own event). Gating only the mint is not enough:
   a token minted while the event was open would upload forever, and locking is what a host does when a link leaks. The
   lock is checked before `accepting_uploads`, so someone who cannot see the album learns nothing else about it, and
   `create_guest` re-refuses from its own `p_unlock_proven`.

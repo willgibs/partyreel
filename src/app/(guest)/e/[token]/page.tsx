@@ -31,6 +31,7 @@ import {
   getEventGuestList,
   getHostCard,
   getMyFollowing,
+  isFollowing,
 } from "@/lib/db/queries/social";
 import { splitGuestList, withAvatarUrls } from "@/lib/social/cards";
 import { isDemoToken } from "@/lib/demo";
@@ -557,8 +558,15 @@ export default async function GuestEventPage({
 
   // The host as a public card, for the capture flow's follow moment. Only where
   // it can be acted on: a full-access, non-demo album with a host to follow.
+  // ★ AND WHETHER SHE FOLLOWS THEM, read beside it (crumbs-28): the moment's
+  // Follow started on Follow for a guest who already follows the host. One
+  // head count, for a signed-in guest alone (nobody signed out follows anyone,
+  // and the host is never her own guest); the keep's code typed in place
+  // refreshes the page, so this render knows who confirmed.
   const hostCard =
     access === "full" && !isDemo ? await getHostCard(event.id) : null;
+  const followsHost =
+    hostCard && userId && !isOwner ? await isFollowing(hostCard.id) : false;
 
   // Display-name nudge: a SIGNED-IN viewer without a public display name is asked for one at the
   // DOOR, as its name step in `profile` mode, rather than in an inline card halfway down the album.
@@ -605,7 +613,11 @@ export default async function GuestEventPage({
         // Identity keys on a CONFIRMED account, never a uid alone: an
         // unconfirmed session still carries a typed name.
         isVerified={isAuthed}
-        hostCard={hostCard ? { ...hostCard, seed: hostSeed } : null}
+        hostCard={
+          hostCard
+            ? { ...hostCard, seed: hostSeed, following: followsHost }
+            : null
+        }
         initialRowStep={rowStep}
         firstPaintWidth={albumWidth}
         rhythmSeed={rhythmSeed}

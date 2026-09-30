@@ -182,16 +182,13 @@ export function proFitLine(
  * instruction and prints to the nearest tenth (`formatBytes`), as a file browser
  * prints it: rounded up, a file 0.01 GB past 9.4 GB would read 9.5 GB. A plan's
  * size is exact either way.
+ *
+ * One ladder with `formatBytes` (crumbs-28: it had its own copy, and the copies
+ * rounded in different orders), so a figure rounding up to 1,024 of a unit reads
+ * as one of the next here too.
  */
 export function formatBytesUp(bytes: number): string {
-  if (bytes <= 0) return "0 B";
-  const units = ["B", "KB", "MB", "GB", "TB", "PB"];
-  const i = Math.min(
-    Math.floor(Math.log(bytes) / Math.log(1024)),
-    units.length - 1,
-  );
-  const value = Math.ceil((bytes / 1024 ** i) * 10 - 1e-9) / 10;
-  return `${Number.isInteger(value) ? value : value.toFixed(1)} ${units[i]}`;
+  return formatBytes(bytes, 1, "up");
 }
 
 /**

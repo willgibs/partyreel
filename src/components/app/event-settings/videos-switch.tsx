@@ -92,7 +92,7 @@ export function VideosSwitch() {
   return (
     <SwitchSetting
       label="Videos"
-      line="Guests add clips as well as photos."
+      line="Guests add videos as well as photos."
       checked={on}
       onCheckedChange={(next) => void s.saveEvent({ allowVideos: next })}
       after={

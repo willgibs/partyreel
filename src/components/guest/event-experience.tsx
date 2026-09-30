@@ -15,6 +15,7 @@ import { ImageUp, Laptop, Lock, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 
 import { initial } from "@/components/app/user-menu";
+import { AlbumBoundary } from "@/components/guest/album-boundary";
 import { ClaimHandlePrompt } from "@/components/guest/claim-handle-prompt";
 import { AlbumLightSampler } from "@/components/guest/door/album-light";
 import type { EntryModalHandle } from "@/components/guest/entry-modal";
@@ -1289,100 +1290,109 @@ export function EventExperience({
               the skeleton the same column rule AT THE SAME TILE SIZE, so the swap is layout-stable
               at every window: a two-column placeholder under a six-column album, or an
               eight-column one under seven, would flash the wrong layout on every load. */}
-          <Suspense
-            fallback={
-              <div className={BLEED}>
-                <GallerySkeleton step={rowStep} />
-              </div>
-            }
-          >
-            <GalleryLiveProvider
-              key={access}
-              ref={attachGallery}
-              galleryPromise={galleryPromise}
-              qrToken={qrToken}
-              access={access}
-              isDemo={isDemo}
-              onAccessDrift={handleAccessDrift}
-              onCountChange={setMediaCount}
-              pendingUploads={inFlightUploads}
-              uploadProgress={uploadProgress}
-              canDeleteIds={canDeleteIds}
-              isAuthed={isAuthed}
-              sessionToken={sessionToken}
-              approvedTotal={stats.approvedTotal}
-              onOwnRemoved={handleOwnRemoved}
-              onGuestCountChange={setGuestCount}
+          {/* ★ AND ITS FAILURE IS THE ALBUM'S ALONE (crumbs-28, `album-boundary.tsx`): a seed whose
+              read fails throws where the album renders, and this boundary keeps it there, so the
+              header, the door and Add photos stand while the album says it could not load, with a
+              Try again that asks the page for a fresh seed. Keyed as the provider is, so an access
+              flip starts it clean too. */}
+          <AlbumBoundary key={access} className={COLUMN}>
+            <Suspense
+              fallback={
+                <div className={BLEED}>
+                  <GallerySkeleton step={rowStep} />
+                </div>
+              }
             >
-              {/* The door's light takes its colour from here, the album's three newest (it draws
-                  nothing; `door/album-light.tsx`). */}
-              <AlbumLightSampler />
-              {/* Her tracker's list, inside the one live source it reads (its button sits in the
-                  row and the dock, above this provider, reading `trackerStore`). */}
-              <UploadTracker
-                store={trackerStore}
-                queue={queue}
+              <GalleryLiveProvider
+                key={access}
+                ref={attachGallery}
+                galleryPromise={galleryPromise}
                 qrToken={qrToken}
-                sessionToken={sessionToken}
+                access={access}
+                isDemo={isDemo}
+                onAccessDrift={handleAccessDrift}
+                onCountChange={setMediaCount}
+                pendingUploads={inFlightUploads}
+                uploadProgress={uploadProgress}
+                canDeleteIds={canDeleteIds}
                 isAuthed={isAuthed}
-                moderated={event.moderation_mode === "hold_for_approval"}
-                isDemo={isDemo}
-                isOwner={isOwner}
-                removedIds={removedIds}
-                open={trackerOpen}
-                onOpenChange={setTrackerOpen}
-              />
-              <LiveReel
-                eventId={event.id}
-                eventName={event.name}
-                joinUrl={joinUrl}
-                displayAddress={displayAddress}
-                qrStyle={event.qr_style}
-                isDemo={isDemo}
-                moderated={event.moderation_mode !== "live"}
-                onAddYours={canUpload ? openAdd : undefined}
-                // A clip is a video: with the host's Videos off (`accepts_video`), a guest's clip
-                // stays hers to save or share, rather than an Add the upload would refuse.
-                addClipToAlbum={
-                  canUpload && event.accepts_video ? addClipToAlbum : null
-                }
-                queue={queue}
-                welcomePending={welcomePending}
-                isOwner={isOwner}
+                sessionToken={sessionToken}
+                approvedTotal={stats.approvedTotal}
+                onOwnRemoved={handleOwnRemoved}
+                onGuestCountChange={setGuestCount}
               >
-                {/* THE HIGHLIGHT REEL TILE: its own slot directly above the demo's one slot and the
+                {/* The door's light takes its colour from here, the album's three newest (it draws
+                  nothing; `door/album-light.tsx`). */}
+                <AlbumLightSampler />
+                {/* Her tracker's list, inside the one live source it reads (its button sits in the
+                  row and the dock, above this provider, reading `trackerStore`). */}
+                <UploadTracker
+                  store={trackerStore}
+                  queue={queue}
+                  qrToken={qrToken}
+                  sessionToken={sessionToken}
+                  isAuthed={isAuthed}
+                  moderated={event.moderation_mode === "hold_for_approval"}
+                  isDemo={isDemo}
+                  isOwner={isOwner}
+                  removedIds={removedIds}
+                  open={trackerOpen}
+                  onOpenChange={setTrackerOpen}
+                />
+                <LiveReel
+                  eventId={event.id}
+                  eventName={event.name}
+                  joinUrl={joinUrl}
+                  displayAddress={displayAddress}
+                  qrStyle={event.qr_style}
+                  isDemo={isDemo}
+                  moderated={event.moderation_mode !== "live"}
+                  onAddYours={canUpload ? openAdd : undefined}
+                  // A clip is a video: with the host's Videos off (`accepts_video`), a guest's clip
+                  // stays hers to save or share, rather than an Add the upload would refuse.
+                  addClipToAlbum={
+                    canUpload && event.accepts_video ? addClipToAlbum : null
+                  }
+                  queue={queue}
+                  welcomePending={welcomePending}
+                  isOwner={isOwner}
+                >
+                  {/* THE HIGHLIGHT REEL TILE: its own slot directly above the demo's one slot and the
                     album (never a fourth arm of `pickAboveAlbumState`), on the words' column so it
                     reads as the page's showpiece rather than a banner the width of the window.
                     Absent below the minimum. */}
-                <LiveReelTile className={cn(COLUMN, "mt-7 mb-4")} />
-                {/* The demo's turn card or the phone pair: one card directly
+                  <LiveReelTile className={cn(COLUMN, "mt-7 mb-4")} />
+                  {/* The demo's turn card or the phone pair: one card directly
                     above the album's first tile — the photograph a visitor just
                     added IS that tile (the album is newest first), so whatever is
                     said here is said right beside it. It keeps the ALBUM's own box
                     (BLEED), not the words' column, so it lines up with the
                     photographs under it; the album itself is one CSS multi-column
                     box and nothing can be put in the middle of one. */}
-                {aboveAlbum && (
-                  <div className={cn(BLEED, "mb-4")}>{aboveAlbum}</div>
-                )}
-                <div className={BLEED}>
-                  <LiveGallery
-                    galleryPromise={galleryPromise}
-                    qrToken={qrToken}
-                    access={access}
-                    isDemo={isDemo}
-                    onOpenGate={() => entryRef.current?.openToGate()}
-                    onAddFirst={canUpload && galleryEmpty ? openAdd : undefined}
-                    joinUrl={joinUrl}
-                    initialRowStep={rowStep}
-                    firstPaintWidth={firstPaintWidth}
-                    rhythmSeed={visitSeed}
-                    closesOnLastRemoval={closesOnLastRemoval}
-                  />
-                </div>
-              </LiveReel>
-            </GalleryLiveProvider>
-          </Suspense>
+                  {aboveAlbum && (
+                    <div className={cn(BLEED, "mb-4")}>{aboveAlbum}</div>
+                  )}
+                  <div className={BLEED}>
+                    <LiveGallery
+                      galleryPromise={galleryPromise}
+                      qrToken={qrToken}
+                      access={access}
+                      isDemo={isDemo}
+                      onOpenGate={() => entryRef.current?.openToGate()}
+                      onAddFirst={
+                        canUpload && galleryEmpty ? openAdd : undefined
+                      }
+                      joinUrl={joinUrl}
+                      initialRowStep={rowStep}
+                      firstPaintWidth={firstPaintWidth}
+                      rhythmSeed={visitSeed}
+                      closesOnLastRemoval={closesOnLastRemoval}
+                    />
+                  </div>
+                </LiveReel>
+              </GalleryLiveProvider>
+            </Suspense>
+          </AlbumBoundary>
 
           {/* The named Guests section (profiles-social.md, host-keyed) — after the album,
               before the report footer: context about who filled it, never

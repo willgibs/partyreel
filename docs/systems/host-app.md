@@ -187,6 +187,13 @@ drift is linear and motion-gated, a breath rather than feedback, so the 300ms ce
 `/dashboard/[eventId]` is a hub: a live code beside the title, a row of cards into the event's rooms, and the album
 beneath, newest first.
 
+- ★ **An event that is gone or never this host's draws the group's not-found itself**, on the hub and each room
+  (Review, Guests, the reel's old room; Settings redirects to the hub), never through `notFound()`: thrown under the
+  hub's `loading.tsx` it landed after the skeleton had streamed, a 200 whose screen the client drew once it had run,
+  under the page's own title ("Event", build 30's red-team). Drawn, it streams into the skeleton's place, titled from
+  `(app)/not-found.metadata.ts` ("Event not found", noindex), and stays a 200: behind sign-in nothing reads the status
+  (crumbs-28's Question: a read before every hub load would buy nothing).
+
 - ★ **The hub and the dashboard home are the wide pages**: each marks its root `data-app-wide` and `AppShell` answers in
   `:has()` (a page cannot hand a prop up to its layout), dropping the 1280 cap and taking the album's gutter (12px, 20px
   from `sm`), so the logo, the code, the cards and the album share one left line. Their skeletons mark it too, or the
@@ -352,7 +359,9 @@ visitor-facing "Private" never collides.
   Space peeks; no hint row, only the verdict buttons' tooltips (and a screen reader's line) say so. They act only on a
   tile, in the peek, or (the room's page alone) with nothing focused, never on another control, and never give a verdict
   on a selection. In the peek a focused button keeps only its own Enter and Space, and a verdict pressed there hands
-  focus back to the look (`review-section.tsx`), since a browser focuses the button a pointer presses.
+  focus back to the look (`review-section.tsx`), since a browser focuses the button a pointer presses. ★ The peek is
+  `aria-modal`, so it holds Tab while it is up (Radix's FocusScope, trapped and looping; a layer opened over it, the
+  credit's look, pauses it), its own mount and unmount focus left to the grid.
 - **The bulk controls live once, in the room's header, in both modes** (`review-actions.tsx`), which never goes empty,
   or a host mid-selection loses Reject, Approve and Cancel. Approve all needs no confirm: it sends the queue's own ids
   through `approveBulkAction` in consecutive batches of 2,000, so a host approves exactly what they saw, at any size. A
@@ -394,7 +403,9 @@ visitor-facing "Private" never collides.
   in different subtrees.
 - ★ **The selection prunes to the surviving ids when the album changes, never resets** (`useSelection`), so a poll never
   wipes a selection in progress.
-- **Bulk Like is one `like_many` call a batch under ONE summary toast** (the refused ids reverted); Hide, Show and
+- **Bulk Like is one `like_many` call a batch under ONE summary toast** (the refused ids reverted), naming what it
+  added by kind (`formatKindCount`: "Liked 1 video", "Liked 3 items" for a mix, the album's word as the storage list's;
+  Review's verdicts say "uploads"); Hide, Show and
   Delete are the general `setMediaStatusBulk` and `removeMediaBulk` (plain RLS, no pending predicate), each sent in
   batches of `MAX_BULK_ITEMS`.
 - ★ **Every bulk write, and Delete forever's reads, send the selection through `inChunks`** (an unchunked

@@ -5,14 +5,16 @@ import { HelpLine, NotFoundScreen } from "@/components/shared/not-found-screen";
 import { Button } from "@/components/ui/button";
 
 /**
- * THE OPERATIONS PORTAL'S 404 SCREEN, reached only through `app/not-found.lazy.tsx` (crumbs-25; `not-found.tsx`
- * says why: the group's 404 rides every admin page unless its screen loads behind one client boundary).
+ * THE OPERATIONS PORTAL'S 404 SCREEN, reached through `app/not-found.lazy.tsx` (crumbs-25; `not-found.tsx` says
+ * why: the group's 404 rides every admin page unless its screen loads behind one client boundary), and drawn directly
+ * by the two record pages (admin/accounts/[id], admin/albums/[eventId]) for a record that is gone, on that one line
+ * each (crumbs-28: a thrown `notFound()` was Next's error shell until the script ran). Those pages already reach every
+ * client part of it (the segment's `error.tsx` draws the same shared screen).
  *
- * Primarily a missing account/album record (notFound() in admin/accounts/[id] + admin/albums/[eventId]). It
- * renders INSIDE AdminShell: the (admin) layout's requireAdmin() + MFA (AAL2) gate has already passed by the
- * time a page calls notFound(), and AdminShell wraps children in <main><Container>, so this is just a
- * centered block (no extra Container). A non-admin / wrong-host notFound() is thrown in the LAYOUT itself, so
- * it hits the ROOT not-found instead (no admin shell, leak-proof), which is right.
+ * It renders INSIDE AdminShell: the (admin) layout's requireAdmin() + MFA (AAL2) gate has already passed by the
+ * time a page draws it, and AdminShell wraps children in <main><Container>, so this is just a centered block (no
+ * extra Container). A non-admin / wrong-host notFound() is thrown in the LAYOUT itself, so it hits the ROOT
+ * not-found instead (no admin shell, leak-proof), which is right.
  */
 export function AdminNotFoundPageScreen() {
   return (

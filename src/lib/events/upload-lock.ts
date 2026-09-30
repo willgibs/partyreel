@@ -12,9 +12,8 @@
  */
 import "server-only";
 
-import { isEventOwner } from "@/lib/events/gallery-access.server";
+import { isRequestOwner } from "@/lib/events/gallery-access-owner.server";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
-import { createClient } from "@/lib/supabase/server";
 
 /**
  * True when the current request proved it may pass `eventId`'s password lock: the signed
@@ -25,11 +24,7 @@ import { createClient } from "@/lib/supabase/server";
 export async function mayUploadPastLock(eventId: string): Promise<boolean> {
   if (await isUnlocked(eventId)) return true;
   // Owner bypass, cookie-less: cheap and rare (only a locked password event reaches here, and the
-  // anonymous majority short-circuits on the null user before any DB read).
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return false;
-  return isEventOwner(eventId, user.id, supabase);
+  // anonymous majority short-circuits on the null user before any DB read). ★ The page's own owner
+  // answer (crumbs-28), never one asked inline: the write gate mirrors the read gate exactly.
+  return isRequestOwner(eventId);
 }

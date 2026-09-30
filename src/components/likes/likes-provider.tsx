@@ -96,8 +96,9 @@ type LikesContextValue = {
   isLiked: (id: string) => boolean;
   toggle: (id: string) => void;
   /** Album bulk-select (host only): like a SET of ids at once (idempotent; skips already-liked).
-   *  Resolves to the count newly liked so the caller fires ONE summary toast. */
-  likeMany: (ids: string[]) => Promise<number>;
+   *  Resolves to the ids newly liked, so the caller fires ONE summary toast naming what it added by
+   *  kind (crumbs-28: a count alone left it to say "photo" of a video). */
+  likeMany: (ids: string[]) => Promise<string[]>;
   /** The ids a window mounts: the hearts of any not yet answered are asked for (see the head note). */
   seed: (ids: readonly string[]) => void;
 };
@@ -147,7 +148,7 @@ export function LocalLikesProvider({
       likeMany: async (ids) => {
         const fresh = ids.filter((id) => !store.has(id));
         for (const id of fresh) store.set(id, true);
-        return fresh.length;
+        return fresh;
       },
       seed: () => {},
     }),
@@ -385,16 +386,16 @@ export function LikesProvider({
   // Album bulk "Like" (host only — the host is always signed in, so the create-account path never
   // fires here). Optimistically heart every not-already-liked id, then ONE `like_many` call per
   // MAX_BULK_ITEMS (idempotent, each id through like_media's access check), and revert exactly the ids
-  // it refused. Returns the count newly liked; the caller owns the toast.
+  // it refused. Returns the ids newly liked; the caller owns the toast.
   const likeMany = useCallback(
-    async (ids: string[]): Promise<number> => {
-      if (!signedInRef.current) return 0;
+    async (ids: string[]): Promise<string[]> => {
+      if (!signedInRef.current) return [];
       const toLike = ids.filter((id) => !store.has(id));
-      if (toLike.length === 0) return 0;
+      if (toLike.length === 0) return [];
       for (const id of toLike) store.set(id, true);
       const failed = await likeManyInBatches(createClient(), toLike);
       for (const id of failed) store.set(id, false);
-      return toLike.length - failed.size;
+      return toLike.filter((id) => !failed.has(id));
     },
     [store],
   );

@@ -21,10 +21,19 @@ vi.mock("@/lib/db/queries/guest-events", () => ({
 let demo = false;
 vi.mock("@/lib/demo", () => ({ isDemoToken: () => demo }));
 const resolveViewerDecision = vi.fn();
+// ★ The inline owner ask this gate once made (its own `getUser()`, then `isEventOwner`), stood up answering "the
+// host" for anyone: the owner is the page's own answer now (crumbs-28), so nothing here may reach it.
 const isEventOwner = vi.fn();
 vi.mock("@/lib/events/gallery-access.server", () => ({
   resolveViewerDecision: (...a: unknown[]) => resolveViewerDecision(...a),
   isEventOwner: (...a: unknown[]) => isEventOwner(...a),
+}));
+// The one owner answer (`gallery-access-owner.server.ts`, its own pins): the user this request carries, and whether
+// they host, from the hosts a test names.
+const hosts = new Set<string>();
+const requestOwnerAnswer = vi.fn();
+vi.mock("@/lib/events/gallery-access-owner.server", () => ({
+  requestOwnerAnswer: (...a: unknown[]) => requestOwnerAnswer(...a),
 }));
 const isUnlocked = vi.fn();
 vi.mock("@/lib/events/unlock-cookie", () => ({
@@ -93,7 +102,12 @@ beforeEach(() => {
   user = null;
   getEventByQrToken.mockResolvedValue({ ok: true, data: EVENT });
   resolveViewerDecision.mockResolvedValue({ access: "full", gate: null });
-  isEventOwner.mockResolvedValue(false);
+  isEventOwner.mockResolvedValue(true);
+  hosts.clear();
+  requestOwnerAnswer.mockImplementation(async () => ({
+    user,
+    isOwner: Boolean(user && hosts.has(user.id)),
+  }));
   isUnlocked.mockResolvedValue(false);
   readDoorStanding.mockImplementation(async () =>
     standing({ door: await servedDoor() }),
@@ -136,6 +150,45 @@ describe("the event", () => {
   });
 });
 
+/**
+ * ONE OWNER ANSWER FOR EVERY GATE ON THE GUEST PAGE (crumbs-28, from `owner-album`): the album's routes asked the owner
+ * inline, a `getUser()` and `isEventOwner` of their own, while the page and its seed asked `isRequestOwner`. So the
+ * page and a route could answer the host two ways. Pinned: the routes' owner is the page's answer, and only it.
+ */
+describe("the owner", () => {
+  it("★ is whom the one owner answer names, with the decision carrying it", async () => {
+    user = { id: "host-1", email_confirmed_at: "2026-09-01T00:00:00Z" };
+    hosts.add("host-1");
+    await resolveAlbumViewer("qr-1", undefined);
+    expect(resolveViewerDecision).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ isOwner: true, userId: "host-1" }),
+    );
+  });
+
+  it("★ is nobody that answer refuses, whatever an inline ask would say", async () => {
+    user = { id: "guest-1", email_confirmed_at: "2026-09-01T00:00:00Z" };
+    await resolveAlbumViewer("qr-1", undefined);
+    expect(resolveViewerDecision).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ isOwner: false, isAuthed: true }),
+    );
+    expect(isEventOwner).not.toHaveBeenCalled();
+  });
+
+  it("with nobody signed in, nobody owns it", async () => {
+    await resolveAlbumViewer("qr-1", undefined);
+    expect(resolveViewerDecision).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        isOwner: false,
+        isAuthed: false,
+        userId: null,
+      }),
+    );
+  });
+});
+
 describe("the viewer", () => {
   it("a password album asks the unlock cookie; an open one does not", async () => {
     getEventByQrToken.mockResolvedValue({
@@ -155,18 +208,16 @@ describe("the viewer", () => {
     expect(isUnlocked).not.toHaveBeenCalled();
   });
 
-  it("only a CONFIRMED email is authed, and the owner is asked by host id", async () => {
+  // Reshaped on purpose (crumbs-28): the owner was asked here by `isEventOwner` on a client of this gate's own; it is
+  // the page's own owner answer now, asked for this event, which matches the host id itself (its own pins).
+  it("only a CONFIRMED email is authed, and the owner is the one owner answer, asked for this event", async () => {
     user = { id: "u-1", email_confirmed_at: null };
     await resolveAlbumViewer("qr-1", undefined);
     expect(resolveViewerDecision).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({ isAuthed: false, userId: "u-1" }),
     );
-    expect(isEventOwner).toHaveBeenCalledWith(
-      "evt-1",
-      "u-1",
-      expect.anything(),
-    );
+    expect(requestOwnerAnswer).toHaveBeenCalledWith("evt-1");
     user = { id: "u-1", email_confirmed_at: "2026-09-01T00:00:00Z" };
     await resolveAlbumViewer("qr-1", undefined);
     expect(resolveViewerDecision).toHaveBeenLastCalledWith(

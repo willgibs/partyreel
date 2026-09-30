@@ -7,9 +7,11 @@
  * toggles and never peeks.
  */
 import { fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { type GridMedia } from "@/components/app/media-grid";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 import { SelectableMediaGrid } from "./selectable-media-grid";
 
@@ -62,5 +64,81 @@ describe("the Review peek", () => {
     fireEvent.click(screen.getAllByRole("button", { name: "Select" })[0]);
     expect(onToggle).toHaveBeenCalledWith("m1");
     expect(screen.queryByRole("dialog")).toBeNull();
+  });
+});
+
+/**
+ * THE PEEK HOLDS FOCUS WHILE IT IS UP (crumbs-28, from `curation-wiring`). It says `aria-modal`, and a screen reader
+ * takes that at its word, but nothing held Tab: from its last control the next Tab walked out behind the look, onto the
+ * tiles it covers. It traps now (Radix's FocusScope, the one every Dialog here wears), coming round from its last control
+ * to its first and back, while its own focus rules stand: onto the look where it carries the verdict, and back to the
+ * tile once it closes.
+ */
+describe("the Review peek's focus", () => {
+  function peekWithVerdict() {
+    render(
+      <TooltipProvider>
+        <SelectableMediaGrid
+          items={items}
+          selectMode={false}
+          selected={new Set()}
+          exiting={new Set()}
+          onToggle={vi.fn()}
+          enablePreview
+          layout="uniform"
+          verdict={{ onApprove: vi.fn(), onReject: vi.fn() }}
+        />
+      </TooltipProvider>,
+    );
+  }
+  const inPeek = () =>
+    screen.getByRole("dialog").contains(document.activeElement);
+
+  it("★ never lets Tab walk out behind it: round from its last control to its first, and back", async () => {
+    const user = userEvent.setup();
+    grid(false);
+    await user.click(screen.getAllByRole("button", { name: "Preview" })[0]);
+    const close = screen.getByRole("button", { name: /close preview/i });
+    expect(document.activeElement).toBe(close);
+
+    await user.tab();
+    expect(inPeek()).toBe(true);
+    await user.tab({ shift: true });
+    expect(inPeek()).toBe(true);
+  });
+
+  it("★ with the verdict, Tab walks Reject, Approve and Close, then comes round to Reject", async () => {
+    const user = userEvent.setup();
+    peekWithVerdict();
+    await user.click(screen.getAllByRole("button", { name: "Preview" })[0]);
+    // Focus lands on the look itself, so Enter and Backspace are the verdict's.
+    expect(document.activeElement).toBe(screen.getByRole("dialog"));
+
+    const reject = screen.getByRole("button", { name: "Reject" });
+    const approve = screen.getByRole("button", { name: "Approve" });
+    const close = screen.getByRole("button", { name: /close preview/i });
+    await user.tab();
+    expect(document.activeElement).toBe(reject);
+    await user.tab();
+    expect(document.activeElement).toBe(approve);
+    await user.tab();
+    expect(document.activeElement).toBe(close);
+    await user.tab();
+    expect(document.activeElement).toBe(reject);
+    await user.tab({ shift: true });
+    expect(document.activeElement).toBe(close);
+  });
+
+  it("lets go when it closes: focus goes back to the tile it opened from", async () => {
+    const user = userEvent.setup();
+    grid(false);
+    const tile = screen.getAllByRole("button", { name: "Preview" })[1];
+    await user.click(tile);
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(document.activeElement).toBe(tile);
+    // And the page's own order is the page's again.
+    await user.tab();
+    expect(document.activeElement).not.toBe(tile);
   });
 });

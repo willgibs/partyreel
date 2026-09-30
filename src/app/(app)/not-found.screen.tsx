@@ -5,14 +5,17 @@ import { HelpLine, NotFoundScreen } from "@/components/shared/not-found-screen";
 import { Button } from "@/components/ui/button";
 
 /**
- * THE HOST APP'S 404 SCREEN, reached only through `app/not-found.lazy.tsx` (crumbs-25; `not-found.tsx` says why:
- * the group's 404 rides every dashboard page unless its screen loads behind one client boundary).
+ * THE HOST APP'S 404 SCREEN, reached through `app/not-found.lazy.tsx` (crumbs-25; `not-found.tsx` says why: the
+ * group's 404 rides every dashboard page unless its screen loads behind one client boundary), and drawn directly by
+ * an event's own pages (the hub, Review, Guests, the reel's old room) for an event that is gone or never this host's,
+ * on that one line each (crumbs-28: a thrown `notFound()` reached the client before anyone saw the screen). Those
+ * pages already reach every client part of it (the group's `error.tsx` draws the same shared screen), so the import
+ * costs a found event's page nothing.
  *
- * Host-facing 404 for the (app) group, primarily the missing/not-yours dashboard event (notFound() in
- * dashboard/[eventId]/page). It renders INSIDE AppShell: the (app) layout's getUser() auth gate has already
- * passed by the time the page calls notFound(), so the authed shell (logo, notification bell, user menu)
- * composes correctly. AppShell already wraps children in <main><Container>, so this does NOT add its own
- * Container: just a comfortable centered block.
+ * It renders INSIDE AppShell: the (app) layout's getUser() auth gate has already passed by the time a page draws it,
+ * so the authed shell (logo, notification bell, user menu) composes correctly. AppShell already wraps children in
+ * <main><Container>, so this does NOT add its own Container: just a comfortable centered block. No "use client" of its
+ * own: client code where the boundary's `import()` reaches it, a Server Component where a page draws it.
  */
 export function AppNotFoundScreen() {
   return (

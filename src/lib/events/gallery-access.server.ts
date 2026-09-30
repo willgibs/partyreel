@@ -394,8 +394,9 @@ export async function loadGallerySeed(
  * page still awaits (the stats, the guest list, the host card). A seed that failed before then had no
  * handler at all: Node reports an unhandled rejection, and on Vercel the function exits (status 128),
  * which is how the host's own password album died in build 10's red-team. The handler only marks the
- * rejection handled: the failure still reaches `use()` and the guest error screen, and React still
- * reports it.
+ * rejection handled: the failure still reaches `use()`, where the album's own boundary keeps it to the
+ * album (`album-boundary.tsx`, crumbs-28: it took the whole page to the guest error screen), and it
+ * is still reported.
  */
 export function streamGallerySeed(
   ...args: Parameters<typeof loadGallerySeed>

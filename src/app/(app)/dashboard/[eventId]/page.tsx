@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { Eye, Images, Users } from "lucide-react";
+
+import { appNotFoundMetadata } from "@/app/(app)/not-found.metadata";
+import { AppNotFoundScreen } from "@/app/(app)/not-found.screen";
 
 import { HostCreditLookProvider } from "@/components/app/event-blocks/credit-look";
 import { EventCardsRow } from "@/components/app/event-feed/event-cards-row";
@@ -93,7 +96,10 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
   const { eventId } = await params;
   const event = await getEvent(eventId);
-  return { title: event ? event.name : "Event" };
+  // ★ AN EVENT THAT IS GONE OR NEVER THIS HOST'S IS TITLED AS THE 404 IT IS (crumbs-28, build 30's red-team: this
+  // said "Event", and its title won over the boundary's, so the tab read "Event · Partyreel" in the head and after
+  // hydration). The not-found's own metadata, one home for the page and the boundary.
+  return event ? { title: event.name } : appNotFoundMetadata;
 }
 
 /**
@@ -131,7 +137,16 @@ export default async function EventDetailPage({
   const [event, profile] = await Promise.all([getEvent(eventId), getProfile()]);
   // getEvent is RLS-scoped and filters deleted_at — a missing/foreign/deleted
   // event resolves to null, which we treat as a 404 (no leaking existence).
-  if (!event) notFound();
+  //
+  // ★ AND THIS PAGE DRAWS IT ITSELF, NEVER THROUGH `notFound()` (crumbs-28, the
+  // guest link's answer from `stale-link`). Thrown here, under this segment's
+  // loading.tsx, it landed after the skeleton had streamed: a 200 whose HTML
+  // held the skeleton alone, the screen drawn only once the client had run,
+  // under this page's own title. Drawn here it streams into the skeleton's place
+  // in the HTML, headed by generateMetadata's not-found answer. The status stays
+  // 200, a soft 404: behind sign-in no crawler or link checker reads it, so a
+  // read before every hub load would buy nothing (the manifest's Question).
+  if (!event) return <AppNotFoundScreen />;
 
   const tier = toBillingTier(profile?.tier ?? DEFAULT_TIER);
 

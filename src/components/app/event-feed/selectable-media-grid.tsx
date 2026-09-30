@@ -10,6 +10,7 @@ import {
   useState,
 } from "react";
 import { Check, CircleX, Play, X } from "lucide-react";
+import { FocusScope } from "radix-ui/internal";
 
 import { MediaTile, type GridMedia } from "@/components/app/media-grid";
 import { Kbd } from "@/components/shared/kbd";
@@ -268,93 +269,107 @@ export function SelectableMediaGrid({
       </div>
 
       {/* Peek overlay: a fixed full-bleed view of the tapped media; backdrop / ✕ / Escape closes.
-          Rendered at the feed root (fixed), so it sits above the sticky pills + the floating bar. */}
+          Rendered at the feed root (fixed), so it sits above the sticky pills + the floating bar.
+          ★ AND IT HOLDS FOCUS WHILE IT IS UP (crumbs-28): it says `aria-modal`, so Tab must never walk
+          out behind it onto the tiles it covers. Radix's FocusScope, the trap every Dialog here wears:
+          trapped and looping, from its last control round to its first. Its own mount and unmount
+          focus are turned down, since the effect above decides both (the look or its close button on
+          the way in, the tile on the way out); and a layer opened over it (the credit's look) pauses
+          it, as one Radix layer pauses another. */}
       {enablePreview && preview && (
-        <div
-          ref={dialogRef}
-          role="dialog"
-          aria-modal="true"
-          aria-label={
-            preview.type === "video" ? "Video preview" : "Photo preview"
-          }
-          data-review-peek
-          tabIndex={-1}
-          className={cn(
-            "fixed inset-0 z-50 flex flex-col items-center justify-center gap-3 p-4 outline-none",
-            // The peek stands on the same ground the lightbox does (`behind=album`):
-            // the queue behind it, blurred at half brightness. Its children paint
-            // above the filter, so the media it exists to show is never in it.
-            GLASS_BEHIND,
-          )}
-          onClick={() => setPeek(null)}
+        <FocusScope.Root
+          asChild
+          trapped
+          loop
+          onMountAutoFocus={(e) => e.preventDefault()}
+          onUnmountAutoFocus={(e) => e.preventDefault()}
         >
-          {preview.type === "video" ? (
-            <video
-              key={preview.id}
-              src={preview.url}
-              controls
-              autoPlay
-              playsInline
-              onClick={(e) => e.stopPropagation()}
-              className={cn(
-                "min-h-0 max-w-[94vw] rounded-md",
-                // Under the verdict the media keeps clear of it: the pill never covers the
-                // photograph it is judging, nor a video's own controls.
-                verdict ? "max-h-[calc(100svh-7.5rem)]" : "max-h-[88vh]",
-              )}
-            />
-          ) : (
-            // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL; next/image 400s on it
-            <img
-              key={preview.id}
-              src={preview.url}
-              alt=""
-              onClick={(e) => e.stopPropagation()}
-              className={cn(
-                "min-h-0 max-w-[94vw] rounded-md object-contain",
-                verdict ? "max-h-[calc(100svh-7.5rem)]" : "max-h-[88vh]",
-              )}
-            />
-          )}
-          {verdict && (
-            <PeekVerdict
-              onReject={() => verdict.onReject(preview.id)}
-              onApprove={() => verdict.onApprove(preview.id)}
-            />
-          )}
-          {/* ★ WHO SENT IT, AS THE VIEWER SAYS IT (event-safety `entry=all`: "every road opens the
+          <div
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label={
+              preview.type === "video" ? "Video preview" : "Photo preview"
+            }
+            data-review-peek
+            tabIndex={-1}
+            className={cn(
+              "fixed inset-0 z-50 flex flex-col items-center justify-center gap-3 p-4 outline-none",
+              // The peek stands on the same ground the lightbox does (`behind=album`):
+              // the queue behind it, blurred at half brightness. Its children paint
+              // above the filter, so the media it exists to show is never in it.
+              GLASS_BEHIND,
+            )}
+            onClick={() => setPeek(null)}
+          >
+            {preview.type === "video" ? (
+              <video
+                key={preview.id}
+                src={preview.url}
+                controls
+                autoPlay
+                playsInline
+                onClick={(e) => e.stopPropagation()}
+                className={cn(
+                  "min-h-0 max-w-[94vw] rounded-md",
+                  // Under the verdict the media keeps clear of it: the pill never covers the
+                  // photograph it is judging, nor a video's own controls.
+                  verdict ? "max-h-[calc(100svh-7.5rem)]" : "max-h-[88vh]",
+                )}
+              />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL; next/image 400s on it
+              <img
+                key={preview.id}
+                src={preview.url}
+                alt=""
+                onClick={(e) => e.stopPropagation()}
+                className={cn(
+                  "min-h-0 max-w-[94vw] rounded-md object-contain",
+                  verdict ? "max-h-[calc(100svh-7.5rem)]" : "max-h-[88vh]",
+                )}
+              />
+            )}
+            {verdict && (
+              <PeekVerdict
+                onReject={() => verdict.onReject(preview.id)}
+                onApprove={() => verdict.onApprove(preview.id)}
+              />
+            )}
+            {/* ★ WHO SENT IT, AS THE VIEWER SAYS IT (event-safety `entry=all`: "every road opens the
               person's look", the uploader in Review among them): the viewer's own face-led credit,
               top left, whose name opens the person's look with its quiet Block. This peek is the
               Review room's alone, so its credit is the host's. A press inside it (or inside the look
               it opens, whose clicks bubble here through React) never reaches the backdrop's close. */}
-          <div
-            className="absolute top-4 left-4 flex max-w-[calc(100%-5rem)]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <FaceCredit
-              key={preview.id}
-              item={preview}
-              viewerIsHost
-              isOwn={false}
-            />
+            <div
+              className="absolute top-4 left-4 flex max-w-[calc(100%-5rem)]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <FaceCredit
+                key={preview.id}
+                item={preview}
+                viewerIsHost
+                isOwn={false}
+              />
+            </div>
+            <button
+              ref={closeRef}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setPeek(null);
+              }}
+              aria-label="Close preview"
+              className={cn(
+                "absolute top-4 right-4 flex size-9 items-center justify-center rounded-full text-white outline-none",
+                "transition-transform duration-150 ease-emphasis focus-visible:ring-2 focus-visible:ring-white/70 active:scale-90 motion-reduce:active:scale-100",
+                GLASS,
+              )}
+            >
+              <X className="size-5" />
+            </button>
           </div>
-          <button
-            ref={closeRef}
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setPeek(null);
-            }}
-            aria-label="Close preview"
-            className={cn(
-              "absolute top-4 right-4 flex size-9 items-center justify-center rounded-full text-white outline-none",
-              "transition-transform duration-150 ease-emphasis focus-visible:ring-2 focus-visible:ring-white/70 active:scale-90 motion-reduce:active:scale-100",
-              GLASS,
-            )}
-          >
-            <X className="size-5" />
-          </button>
-        </div>
+        </FocusScope.Root>
       )}
     </>
   );
