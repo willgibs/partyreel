@@ -1,15 +1,27 @@
 ---
 track: crumbs-31
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "a39b0129"            # the launch-prep SHA the branch was cut from
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
+cut: "2cc62130"            # the launch-prep SHA the branch was cut from (a39b0129 plus two record commits)
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
-  - src/components/guest/claim-handle-prompt.tsx
-  - src/lib/guest/album-return.ts
-  - src/lib/guest/session-tokens.ts
-  - src/components/app/event-feed/selectable-media-grid.tsx
+  - src/lib/guest/album-return
+  - src/lib/guest/session-tokens
+  - src/lib/guest/claim-uploads
+  - src/app/api/guests/mine/
+  - src/lib/db/mutations/guest-media
+  - src/components/app/event-feed/selectable-media-grid
   - src/components/guest/door/switch-email.ts
-  - src/components/app/host-media-grid.tsx
+  - src/app/(auth)/sign-out-scope.test.ts
+  - src/components/app/host-media-grid
+  - src/lib/validation/uuid-shape
+  - src/lib/db/queries/events.ts
+  - src/lib/db/queries/events.test.ts
+  - src/app/admin/albums/[eventId]/page.tsx
+  - src/app/admin/accounts/[id]/page.tsx
+  - src/app/admin/record-not-found.test.tsx
+  - src/lib/guest/use-upload-queue
+  - src/components/guest/event-experience
+  - src/components/guest/door-settles.test.tsx
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/guest-flow.md
   - docs/systems/host-app.md
@@ -62,25 +74,128 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **The host's own Add on her album's guest page rides the host's routes (built), rather than `create_guest` counting
+  her in.** The page's one queue sends her files through `/api/host/r2/*` (`create_media_as_host`, as the hub's Add and
+  the reel's Add to event already do) with no ticket, no join and no door. **Recommended**, because every note already
+  promised it (`create_guest`'s own "owner uploads ride the host routes", the presign route, `upload-lock.ts`, the
+  abuse limiter, `clip-add.ts`), it needs no migration, and it answers every door at once, Only me included (there
+  every ticket reads private, so counting her in would need `get_upload_context` and `create_media` changed too). What
+  it changes for her, **his to overrule**: that Add is her host upload wherever she makes it, so it goes up approved at
+  once even where the album holds guests' uploads for review (it waited in her own Review before), is credited as the
+  host, mints no guest row of hers at her own album, and its Delete there works (it was refused before:
+  `remove_my_upload`'s guest arm leaves the host out). Overrule → count the host in `create_guest`'s `v_in` (a
+  migration on the live body `498aba39…`) and leave the queue alone; Only me then still refuses her.
+- **The follow moment after a keep whose ticket the page's read claimed first (built).** While a confirm door opened
+  here waits (its marker) and the album's own claim moved nothing, the claim asks `/api/guests/mine` (`kept`: the live
+  uploads on this phone's ticket here, counted only when its row is the signed-in account's) and counts the ticket as
+  moved if so. **Recommended** over handing the page render's claim down as a prop: it also covers a poll that claims
+  between an in-page code and the claim, and costs one request only after a keep. With it, **his to overrule**: a claim
+  that runs for another album's ticket (a sign-in on the dashboard, another album's page, her yes to the ask) now
+  spends that album's marker, so a door opened and abandoned there never plays its moment weeks later off a sign-in
+  made elsewhere (the marker was spent silently on her next visit before; now the question above would find the photos
+  hers). Overrule → that late moment plays on her next visit there.
+- **A bulk Like that added nothing says so (built):** "Already liked 2 photos" (by kind, as the success; a plain toast,
+  since nothing changed) when every selected item was liked already, and the heart's own words when the server refused
+  them, "Couldn't save that like." / "Couldn't save those likes." (that press said nothing either). **Recommended.**
+  Overrule → other words.
+- **Shift+Tab from the peek's look itself comes round to its last control, Close preview (built)**, the loop's own
+  direction, where the trap alone would leave focus resting on the look. **Recommended.** Overrule → drop the key
+  handler; the root fix alone keeps focus inside.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/guest-flow.md`: THE RETURN (a read on the page may move her photos first; the `kept` read; a claim
+  spends the marker of the albums it ran for, wherever it runs); the upload act (the owner is never her own guest:
+  the host's pair); `ask {invite}` ("Use a different email" signs out this device, `local`).
+- `docs/systems/host-app.md`: the hub's not-found (a malformed id, `getEvent` before any read); Review's peek (the trap
+  takes the opening focus; Shift+Tab from the look); Bulk Like (a press that added nothing says so).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Guests (words): the owner's Delete on a photo she just added on her album's guest page says the guest's "can't be
+  recovered" until the album's next sync hands the tile its `isHost`, though `remove_my_upload`'s host arm puts it in
+  her Deleted; and after a reload that page offers her no Delete on her own uploads at all (`canDeleteIds` reads guest
+  rows only), where the hub is (from `crumbs-31`).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Work `b3e6f3a4`, sync `f463db31`** (merge of `origin/launch-prep` at `2e3beb3d`: crumbs-30 had landed in
+  `event-experience.tsx`, the not-found policy test, `requireAdmin` and both my docs; one conflict, `host-app.md`'s
+  not-found line, resolved keeping both facts: the print sheet's and the malformed id's). Both pushed to
+  `origin/lp/crumbs-31`.
+- **Gates on the synced tree `f463db31`**, each on its own exit code (logs `../partyreel-wt/_scratch/crumbs-31/`):
+  typecheck 0 (`typecheck-sync.log`), lint 0 (`lint-sync.log`), test 0 (`test-sync.log`: 671 files, 8,031 tests), build
+  0 (`build-sync.log`), `pnpm lab:smoke --base http://localhost:3133` 0 (`smoke-sync.log`: 140 checks, 0 failing; its
+  `/design/lab/tools/boom` 500 is that tool's own intentional crash). No board, so no `lab:demo`.
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = owned paths + `docs/systems/guest-flow.md` and
+  `docs/systems/host-app.md` (Record subtractively) + this file. `door-settles.test.tsx` joined `owns` for the page's
+  owner pin; `claim-handle-prompt.tsx` left them untouched (the moment card needed no change).
+- **PREMISE** (smoke): `disposable-mode` (guest-flow.md, event-experience.tsx), `event-ready` (host-app.md) and
+  `locked-door` (guest-flow.md). Their asks still hold: no word, step or design they draw moved. The page's change is
+  whose route the owner's own files ride; guest-flow.md's are the follow moment's evidence, that route and the
+  switch's sign-out scope; host-app.md's are the not-found, the peek's focus and the Like's toast. The camera, the
+  waiting room, the wall, disposable's "host's peek" (the roll before it develops, not Review's peek), the checklist
+  and the locked door's family, shape, wait and lost read none of it.
+- **The items**, each test red on `origin/launch-prep` (run before the fix, or with the old files swapped back):
+  - The follow moment after a keep through Google (or a magic link) → `claim-uploads.ts` asks `/api/guests/mine`
+    `kept` (`route.ts`; `countKeptTicketUploads`, `guest-media.ts`) while a door's marker waits and its claim moved
+    nothing here, and spends other albums' markers (`album-return.ts`'s `hasPendingOffer`, `session-tokens.ts`'s
+    `storedTicketFor`). Red: `claim-uploads.test.tsx` "★ a Google return whose ticket the page's read had claimed: the
+    moment plays, once, and nothing toasts" (the old three files swapped back: no moment, 6 red); "★ build 30's ask
+    path still plays" green on both; `route.test.ts` "kept: …" (3 red on the old route), `guest-media.test.ts` "the
+    live uploads on this device's ticket, once it is hers" (a new read).
+  - Shift+Tab escaping the peek → the trap takes the opening focus (`focusOnOpen`), Shift+Tab from the look comes round
+    to Close preview (`selectable-media-grid.tsx`). Red: "★ Shift+Tab as the first key…" and "★ hands focus back to the
+    look…". Local, a real browser on the Library's Review room (`_scratch/crumbs-31/local-peek-walk.txt`): the first
+    Shift+Tab lands on Close preview, the loop holds both ways, a script's focus behind it is refused, Escape returns to
+    the tile, no console error.
+  - A malformed id → `isUuidShape` (`lib/validation/uuid-shape.ts`, zod's `guid`); `getEvent` answers it null before any
+    read (the hub, every room and the print sheet draw their not-found); the portal's album and account pages ask it
+    after the gate, before any read. Red: `events.test.ts` "★ answers a malformed id as no event, without a request" (6
+    requests), `record-not-found.test.tsx` "the portal, for … whose id is not an id" (16).
+  - "Use a different email" signing out everywhere → `signOut({ scope: "local" })` (`switch-email.ts`), and
+    `src/app/(auth)/sign-out-scope.test.ts` refuses any bare `signOut(` in `src` by the AST. Red:
+    `src/components/guest/door/switch-email.ts:16`.
+  - Like on liked items → "Already liked N kind" (plain) or "Couldn't save that like." / "…those likes."
+    (`host-media-grid.tsx`). Red: `host-media-grid.bulk-like.test.tsx`, 4 (the old "says nothing" test reshaped, its
+    scar kept and said).
+  - The host's own Add at her gated door → `useUploadQueue`'s `ownerEventId` sends her files through the host's pair
+    (`HOST_CLIP_ENDPOINTS`) with no join; the page passes `event.id` for the owner (`event-experience.tsx`). Red:
+    `use-upload-queue.test.tsx` "the album's owner, adding to her own album" (4) and `door-settles.test.tsx` "the page's
+    one queue, for the album's owner" (2, with the old page swapped back).
+  - Local probes on `localhost:3133`: `POST /api/guests/mine` `{kept:true}` signed out → 200 `{"ok":true,"kept":0}`,
+    `private, no-store`; without a ticket → 400; the plain `mine` answer unchanged.
+- **For the next build's red-team** (what localhost cannot sign in to; one device, serial sign-outs and sign-ins):
+  - The red-team's own C28-3: signed out at a names-only album K, "Partyreel Fan", 1 photo, Keep this event → Confirm
+    your email → Continue with Google → partyr33l: back on K the moment plays ("Your photos are safe", "You're on as
+    Partyreel. Change", Will Gibson, Follow/Following), no toast; Network: one `POST /api/guests/mine` `{kept:true}` →
+    `kept` ≥ 1; `pr_pending_offer_<K>` gone; a reload plays nothing and asks nothing. Build 30's ask path ("Dee" at
+    odds) still asks, and It's mine still plays the moment.
+  - Abandoned: signed out at K2, 1 photo, Keep → Confirm your email → close the sheet; `/login` → Google → partyr33l →
+    `/dashboard` (its toast); open K2: no moment, no `kept` request, no `pr_pending_offer_<K2>` left.
+  - A magic-link return (Will's 10 seconds: the confirm door's email link, tapped in the same browser): as the first.
+  - The owner's Add: willg97 on his album G at each private door ("You let each person in", "Only people you invite",
+    "Only people already in", Only me) and at an open album with review on: `/e/<G>` → Add photos → Send 1 → the tile
+    lands at once, credited as the host; Network `/api/host/r2/presign-upload` and `/complete-upload` 200, no
+    `/api/guests`; SQL the media `guest_id` null and `approved`, no new guests row of his at G. Its Delete there moves
+    it to Deleted.
+  - Malformed ids: `/dashboard/not-a-uuid` (+ `/review`, `/guests`, `/reel`, `/settings`, `/print`) → "Event not
+    found · Partyreel", noindex, the not-found drawn; `/admin/albums/not-a-uuid`, `/admin/accounts/12345` → 200 "Page
+    not found · Partyreel Ops"; no new 22P02 events in Sentry for those hits.
+  - "Use a different email": partyr33l's AAL2 portal tab open; at an invite-only album that does not list her, the shut
+    door's Use a different email → this tab signed out; the portal tab still in, no MFA asked (SQL `auth.sessions`:
+    her admin session unchanged).
+  - Bulk Like: select a photo already liked → Like → "Already liked 1 photo", the selection closes. The Review peek:
+    open it, Shift+Tab first → Close preview, never the tile behind.
+- **Assets requested from Will:** none.
+- **Board ideas:** the follow moment after a Google or magic-link return speaks of her photos without a number (nothing
+  was uploaded this visit); the `kept` read now counts this phone's photos there, so it could say "Your 3 photos are
+  safe".
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none (`create_guest` untouched: the owner's Add left
+  the guest routes instead).
+- **Calls his to overrule:** the owner's Add rides the host's routes (approved at once where review is on, credited as
+  the host, no guest row of hers); a claim that ran for another album's ticket spends that album's marker (no late
+  moment); "Already liked N kind" and the refusal's words; Shift+Tab from the look comes round to Close preview (the
+  four Questions above).
+- **Look at first:** `claim-uploads.ts`'s `runClaim` (the `kept` fold and `spendOffersOf`) with `route.ts`'s
+  `answerKept`; `use-upload-queue.ts`'s `ownerEventId` route; `selectable-media-grid.tsx`'s `focusOnOpen`.
