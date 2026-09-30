@@ -76,12 +76,12 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
 
 1. **Integrate each lane as it hands off** (none running but build 27's red-team), each migration by protocol, one at a time: drift check, apply verbatim, the rolled-back refusals,
    advisors, types.
-2. **Build 29 is on the alias** (`8c064f14`, 2026-09-30): build 28 (lab-focus, perf-404, crumbs-24, crumbs-26's fix
-   for build 27's MEDIUM) plus crumbs-25 and stale-link. Its red-team is build 28's agent `a323059321486cd11`, PAUSED:
+2. **Build 30 is on the alias** (`1d88b8b1`, 2026-09-30, the milestone 31 candidate): build 28 (lab-focus, perf-404,
+   crumbs-24, crumbs-26's fix for build 27's MEDIUM) plus crumbs-25, stale-link and crumbs-27. Its red-team is build 28's agent `a323059321486cd11`, PAUSED:
    Claude in Chrome never connected, so every signed-in walk, crumbs-26's shared-phone steps first, waits on Will
    reopening the side panel; its signed-out walks passed on build 28 (lab-focus 23 of 23, /login 123 KB lighter, the
-   title after Back). Resume it by SendMessage, saying the alias now serves build 29 and its brief
-   (`../partyreel-wt/_scratch/redteam-28/brief.md`) gained crumbs-25's and stale-link's walks. When it passes,
+   title after Back). Resume it by SendMessage, saying the alias now serves build 30 and its brief
+   (`../partyreel-wt/_scratch/redteam-28/brief.md`) gained crumbs-25's, stale-link's and crumbs-27's walks. When it passes,
    milestone 31 is proposed to Will (his yes); schema-pass's part 2 applies after it ships.
 3. **Seats as they free** (at most four lanes; `memory_pressure` before each; app work first, Will's note; `lab-focus`
    took the lab's phone fold with it). After his desk picks: the demo event (below); about-press's wiring (its three wiring calls,
