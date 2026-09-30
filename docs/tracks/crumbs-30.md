@@ -5,14 +5,35 @@ cut: "8c0678cc"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   - src/lib/auth/admin-context.ts
+  - src/lib/auth/admin-context.test.ts
   - src/app/(app)/error.tsx
   - src/app/(auth)/error.tsx
   - src/app/(guest)/error.tsx
   - src/app/(marketing)/error.tsx
   - src/app/admin/error.tsx
-  - src/app/(print)/dashboard/[eventId]/print/page.tsx
+  # The root boundary shares RouteError's screen, and global-error has the same Try again.
+  - src/app/error.tsx
+  - src/app/global-error.tsx
+  - src/components/shared/route-error.tsx
+  - src/components/shared/route-error.test.tsx
+  - src/components/marketing/marketing-route-error.tsx
+  - src/app/(print)/dashboard/[eventId]/print/
+  # The print page joins the host app's `drawnBy` (the screen's one importer list).
+  - src/app/not-found.test.ts
   - src/lib/guest/reconcile-album-items.ts
+  - src/lib/guest/reconcile-album-items.test.ts
+  - src/components/guest/gallery-live.tsx
+  - src/components/guest/gallery-live.test.tsx
+  - src/components/guest/live-gallery.tsx
+  - src/components/guest/live-gallery.test.tsx
+  - src/components/guest/album-boundary.tsx
+  - src/components/guest/album-boundary.test.tsx
+  - src/components/guest/event-experience.tsx
+  - src/components/guest/event-experience.album.test.tsx
+  # Its GalleryLive fixture takes the two new fields.
+  - src/components/guest/reel/live-reel-view.test.tsx
   - src/lib/events/event-blocks.ts
+  - src/lib/events/event-blocks.test.ts
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/host-app.md
   - docs/systems/guest-flow.md
@@ -52,7 +73,27 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **Which 404 does the print sheet draw for an event that is gone?** Recommended, and built: the host app's own
+  ("We couldn't find that event", Back to dashboard, Create an event, the help line), titled "Event not found",
+  noindex, a soft 404 at 200, the same answer the hub, Review, Guests and the reel's old room give for the same event:
+  the sheet is one of the event's pages (its URL sits under the event's, and its one door is the hub's). It stands on
+  the print group's paper, in the app's gutter, with no header (the group draws no shell). The other answer is the
+  root's site 404 (the marketing header, the trail, the footer) the ROADMAP line named: what a thrown `notFound()`
+  shows there today once the script has run, but it is the lost visitor's page, not a host's.
+- **Try again, everywhere: the framework's retry, and a word while it tries?** Recommended, and built: every crash
+  screen's Try again is Next 16.2's `unstable_retry` (the router's refresh and the reset in one transition, the doc's
+  own recommendation over `reset`), the five groups' plus the root boundary's (it shares the screen) and
+  `global-error`'s (its own button, the same bug). While the refresh is in flight the button reads "Trying again…" and
+  waits, the album card's own words and behaviour, so a retry that fails again is seen to have been tried.
+- **The album that could not load: what stands, and what heals it?** Recommended, and built: a failed seed no longer
+  throws. The live source reports it (as the album's boundary did), stands with nothing embedded, and takes its own
+  first sync: the album draws its skeleton while that read is in flight, then the album, or "The album didn't load"
+  with Try again if it failed too, and the next poll, a doorbell, her own upload or Try again (the store's own sync,
+  no page refresh) heals it. Her uploads list, the reel and the door's light keep their source throughout, and the
+  header keeps the page's count until an answer lands. The album's boundary stays, for a crash while drawing it.
+- **Let back in, a declined newcomer, Only me: the words?** Recommended, and built: "They'll be back at the door.
+  You can let them in from there, but Maya's 30th is Only me right now, so they'll meet a closed album until you open
+  it." (the door's sentence, then the Only me landing's own clause); the toast stays "Wren is back at the door."
 
 ## System-doc edits (in place, owned facts only)
 
