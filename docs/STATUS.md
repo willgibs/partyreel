@@ -43,10 +43,10 @@ which veil).
 - **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 27 (`d7832a6a`): build 26
   (red-teamed) plus five small-fix lanes, a shared phone's claims and the privacy hero's round four on the desk; its
   red-team runs, then milestone 31 is his to say.
-- **The shared database** runs sixteen migrations applied 2026-09-29 (the block, the free shift, the operator removal
+- **The shared database** runs eighteen migrations applied 2026-09-29 and 30 (the block, the free shift, the operator removal
   purge, the help's feedback, the pass reminders switch, likes on private albums, the slug family, the doors, the triage
   rebuild, the invite list's admit, schema-pass part 1, a password ending every ask, a report keeping what it named,
-  the host's like counts limited to what she sees, a shared phone's claims, and the door's listed count). partyreel.com's milestone-30 build was walked signed in after
+  the host's like counts limited to what she sees, a shared phone's claims, the door's listed count, what a claim left for another address, and the join ordered against the door). partyreel.com's milestone-30 build was walked signed in after
   schema-pass part 1, 5 of 5, and reads the later three as it read the rows before; part 2 (the contract) applies after
   milestone 31 ships.
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
