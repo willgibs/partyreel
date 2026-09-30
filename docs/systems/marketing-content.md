@@ -28,8 +28,8 @@ routes.
   pair of panels loses its sweep.
 - **The nav's clocks are `--mkt-dropdown-*` and `--mkt-nav-*` on `[data-mkt]`**, and `--mkt-dropdown-open-ms` drives
   the enter, the box morph and the cross-slide together so they cannot drift; JS reads the hover intent through
-  `readCssMs`. Every chrome clock carries a `var(…, fallback)`, because the root `not-found.tsx` renders this header
-  without marketing.css. The panel's `transform-origin` comes from the open trigger's rect (`--mkt-nav-origin-dx`).
+  `readCssMs`. Every chrome clock carries a `var(…, fallback)`, because the root 404 renders this header without
+  marketing.css. The panel's `transform-origin` comes from the open trigger's rect (`--mkt-nav-origin-dx`).
 - ★ **The bar hides by transform alone, never by height**: about fourteen consumers derive from `--mkt-header-h`, so it
   stays `4rem` and the sticky box never moves. It leaves once the reader commits past a one-header reveal zone, returns
   on any upward movement, at the top and on `:focus-within`, and never leaves with a panel or the phone sheet open; the
@@ -353,9 +353,18 @@ The contact and application forms write the deny-all `contact_submissions` and `
 Six `not-found.tsx` files share one presentational core, `shared/not-found-screen.tsx` (exactly one of `visual` or
 `icon`, a `help` line, and a `digest` on the crash screens only), each with one chrome, a 404 status and `noindex`.
 
-- **The root `not-found.tsx` renders its own header and footer**, because an unmatched URL falls through to
-  `app/layout.tsx` with no group chrome; on the admin build it branches on `surface() === "admin"` to the portal's own
-  screen.
+- **The root 404 renders its own header and footer** (`app/not-found.site.tsx`), because an unmatched URL falls
+  through to `app/layout.tsx` with no group chrome; on the admin build `not-found.tsx` branches on
+  `surface() === "admin"` to the portal's own screen.
+- ★ **The root `not-found.tsx` draws nothing itself**: Next renders a root not-found into EVERY route's payload, so
+  whatever it drew rode every page (the chrome inline cost `/login`, `/pricing`, `/about`, `/help`, the home and a
+  guest album 107 to 112 KB of HTML and 43 to 56 KB of gzipped JS each, on `next start`). It keeps the metadata, the
+  viewport and the surface branch; each surface's screen loads behind one client boundary (`not-found.lazy.tsx`,
+  `next/dynamic` in a client module, a real split), so any other page carries one reference and a 1.5 KB gzipped
+  chunk, and the 404's HTML still holds the whole screen and its sheet (`not-found.test.ts`). `global-not-found` is no
+  substitute in Next 16.2.6: experimental, it serves only unmatched URLs (a thrown `notFound()` with no nearer
+  boundary, the lab's or the print sheet's, would draw Next's bare default), needs its own copy of the document shell,
+  and sits on every route's root layer, so its client JS still loads everywhere.
 - ★ **The marketing group carries its own boundary**, rendering only the centred content (copy in
   `marketing-not-found.tsx`): the chrome lives in the `(cinema)` layout, so a `notFound()` with no nearer boundary
   renders the ROOT not-found inside a group layout that already drew a header and footer, and the chrome double-stacks.
@@ -366,13 +375,8 @@ Six `not-found.tsx` files share one presentational core, `shared/not-found-scree
   boundary that never says why), host (inside `AppShell`), admin (inside the MFA-gated `AdminShell`).
 - **The root 404 stands on the image trail** (`shared/trail`), which walks its own figure until a cursor takes over.
   Nothing is laid over a photograph: the words punch a feathered window in the trail, so the muted description keeps its
-  contrast; the trail needs layout, so without scripting a reader gets the words and links on clean paper. ★ It loads
-  lazily (`trail.lazy.tsx`, a client module's `import()`, which Next does split): a root `not-found.tsx`'s whole tree
-  rides EVERY route's payload, its stylesheets preloaded and its client chunks fetched on every page, so nothing
-  imported eagerly under the 404 may import CSS or the trail's code (`trail-lazy.test.ts`). The rest of the 404's tree
-  (the marketing chrome) still rides every page: about 110 KB of HTML and 43 to 56 KB of gzipped JS on a page load
-  (crumbs-22, against a root 404 that rendered nothing, with the trail already lazy; the trail's own code had added
-  about 3 KB more).
+  contrast; the trail needs layout, so without scripting a reader gets the words and links on clean paper. Its code
+  and `trail.css` arrive in the site screen's own chunk, so no other page preloads the sheet.
 
 ## The demo (marketing side)
 
