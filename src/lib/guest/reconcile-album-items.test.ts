@@ -4,11 +4,12 @@
  * a guest's attribution names and flags, never an address; the reel's items carry no url and say
  * whether they have a still; and the arrival is "not on screen a moment ago".
  */
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import type { AlbumLink } from "@/lib/album/links";
 import type { GuestWhoTuple, ManifestEntry } from "@/lib/events/album-wire";
 import type { GalleryItem } from "@/lib/events/gallery-reel";
+import { newIds } from "@/lib/shared/arrival";
 
 import {
   createAlbumItems,
@@ -16,6 +17,12 @@ import {
   entryToItem,
   newArrivalIds,
 } from "./reconcile-album-items";
+
+// The arrival grammar's one sentence, spied and left real: `newArrivalIds` must read it (crumbs-27).
+vi.mock("@/lib/shared/arrival", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/shared/arrival")>();
+  return { ...actual, newIds: vi.fn(actual.newIds) };
+});
 
 const T0 = 1_790_000_000_000_000;
 const entry = (
@@ -233,5 +240,35 @@ describe("newArrivalIds", () => {
     expect(newArrivalIds([entry(1)], [entry(2), entry(1)])).toEqual(
       new Set(["m2"]),
     );
+  });
+});
+
+describe("newArrivalIds reads the grammar's first sentence, once (crumbs-27)", () => {
+  const ids = (...xs: number[]) => xs.map((i) => ({ id: `m${i}` }));
+
+  it("★ asks the shared diff for what is new, for items and manifest entries alike", () => {
+    vi.mocked(newIds).mockClear();
+    expect(newArrivalIds(ids(1, 2), ids(3, 1, 2))).toEqual(new Set(["m3"]));
+    expect(newArrivalIds([entry(1)], [entry(2), entry(1)])).toEqual(
+      new Set(["m2"]),
+    );
+    expect(newIds).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(newIds).mock.calls[0].map((ids) => [...ids])).toEqual([
+      ["m1", "m2"],
+      ["m3", "m1", "m2"],
+    ]);
+    expect(vi.mocked(newIds).mock.calls[1].map((ids) => [...ids])).toEqual([
+      ["m1"],
+      ["m2", "m1"],
+    ]);
+  });
+
+  it("★ the guest's seed rule stays its own line: an empty last snapshot names no arrival, and the diff is never asked", () => {
+    // A teaser's answer and a locked page's carry no entries by design, so the album that opens under a
+    // mounted provider is not an arrival; the host's grid seeds its own state instead, where an empty first
+    // render is a real empty album whose first photograph does arrive.
+    vi.mocked(newIds).mockClear();
+    expect(newArrivalIds([], ids(1, 2, 3)).size).toBe(0);
+    expect(newIds).not.toHaveBeenCalled();
   });
 });

@@ -107,7 +107,8 @@ const REFUSALS = new Set<string>([
 function refusalOf(body: unknown, fallback: string): JoinRefusal {
   const code = (body as { code?: unknown } | null)?.code;
   const message = (body as { message?: unknown } | null)?.message;
-  const said = typeof message === "string" && message.trim() ? message : fallback;
+  const said =
+    typeof message === "string" && message.trim() ? message : fallback;
   if (typeof code === "string" && REFUSALS.has(code)) {
     return { kind: code as JoinRefusal["kind"], message: said };
   }
@@ -140,7 +141,8 @@ export function checkDisplayName(
       ok: false,
       refusal: {
         kind: "name_invalid",
-        message: parsed.error.issues[0]?.message ?? "That name isn't available.",
+        message:
+          parsed.error.issues[0]?.message ?? "That name isn't available.",
       },
     };
   }
@@ -232,6 +234,18 @@ export async function joinEvent(input: {
   return { ok: true, guest: joinedOf(body) };
 }
 
+/**
+ * A JOIN'S TICKET, ONLY WHEN THE DOOR PASSED IT (crumbs-27): the token of a join that landed `in`, else null.
+ * A join that landed `waiting` is the ASK (where the host lets each guest in, a confirmed newcomer's join mints
+ * a row the door holds), and its token is no ticket to send a file on or to adopt as the device's: the door
+ * reads the cookie the join set. Whoever adopts what a join hands down reads it through this.
+ */
+export function passedTicket(joined: JoinResult): string | null {
+  return joined.ok && joined.guest.admission !== "waiting"
+    ? joined.guest.sessionToken
+    : null;
+}
+
 /** A join's answer (the join's and the ask's are one shape). */
 function joinedOf(body: unknown): JoinedGuest {
   const ok = body as {
@@ -313,7 +327,9 @@ export async function renameGuest(input: {
   qrToken: string;
   sessionToken: string;
   displayName: string;
-}): Promise<{ ok: true; displayName: string } | { ok: false; refusal: JoinRefusal }> {
+}): Promise<
+  { ok: true; displayName: string } | { ok: false; refusal: JoinRefusal }
+> {
   const res = await post("/api/guests/name", {
     qr_token: input.qrToken,
     session_token: input.sessionToken,

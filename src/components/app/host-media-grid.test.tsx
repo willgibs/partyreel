@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { GridMedia } from "@/components/app/media-grid";
 import { HostMediaGrid, type HubRows } from "@/components/app/host-media-grid";
-import { ARRIVAL_GLOW_MS } from "@/lib/shared/arrival";
+import { ARRIVAL_GLOW_MS, newIds } from "@/lib/shared/arrival";
 import { ARRIVAL_HOLD_MAX } from "@/components/shared/use-arrival-gate";
 import { setReducedMotion } from "../../../vitest.setup";
 
@@ -19,6 +19,11 @@ import { setReducedMotion } from "../../../vitest.setup";
  * as a photograph the browser already holds, and lit for one glow from that moment.
  */
 const { gridSpy } = vi.hoisted(() => ({ gridSpy: vi.fn() }));
+// The arrival grammar's one sentence, spied and left real: the grid must read it, not write its own (crumbs-27).
+vi.mock("@/lib/shared/arrival", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/shared/arrival")>();
+  return { ...actual, newIds: vi.fn(actual.newIds) };
+});
 vi.mock("@/components/shared/masonry", () => ({
   MasonryColumns: (props: unknown) => {
     gridSpy(props);
@@ -249,5 +254,24 @@ describe("HostMediaGrid: an arrival is laid when it can land complete", () => {
     expect(decodes.map((d) => d.src)).toEqual(["https://r2.test/t/c"]);
     await act(async () => decodes[0].resolve());
     expect(laid()).toEqual(["c", "a", "b"]);
+  });
+});
+
+describe("HostMediaGrid reads what arrived through the grammar's one diff (crumbs-27)", () => {
+  it("★ asks the shared diff, over the ids of the last render and of this one", () => {
+    vi.mocked(newIds).mockClear();
+    const { rerender } = render(<Grid items={SEED} rows={hub()} />);
+    rerender(<Grid items={[photo("c"), ...SEED]} rows={hub()} />);
+    expect(newIds).toHaveBeenCalledWith(new Set(["a", "b"]), ["c", "a", "b"]);
+  });
+
+  it("an album that starts empty still lights its first photograph: the seed is the first render, not the emptiness", () => {
+    // The guest's reconciler answers nothing for an empty last snapshot (its own seed rule, for a teaser's
+    // empty answer); the host's first render is real, so what turns up after an empty one arrives.
+    const { rerender } = render(<Grid items={[]} rows={hub()} />);
+    rerender(<Grid items={[photo("a")]} rows={hub()} />);
+    expect(vi.mocked(newIds).mock.results.at(-1)?.value).toEqual(
+      new Set(["a"]),
+    );
   });
 });

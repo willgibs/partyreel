@@ -34,6 +34,7 @@ import {
   type RowAnchor,
   type RowStep,
 } from "@/lib/shared/album-rows";
+import { newIds } from "@/lib/shared/arrival";
 import { readCssMs } from "@/lib/shared/read-css-ms";
 
 // Host moderation grid — the host's THREE verbs on the one album tile. The grid is the
@@ -167,22 +168,14 @@ function prefersReducedMotion(): boolean {
   );
 }
 
-/** The ids in `next` that were not in `prev`. Pure, so the diff has a test. */
-export function newItemIds(
-  prev: Iterable<string>,
-  next: readonly string[],
-): Set<string> {
-  const before = new Set(prev);
-  return new Set(next.filter((id) => !before.has(id)));
-}
-
 const NONE: readonly string[] = [];
 
 /**
  * WHAT JUST ARRIVED, READ OFF THE ALBUM AND NOTHING ELSE (Will, `first=live`, 2026-09-21).
  *
- * "New" is simply: an id in this render's album that was not in the last one. On the hub the
- * album is the page's store, moved by the host's delta poll, so that one definition catches
+ * "New" is simply: an id in this render's album that was not in the last one (`newIds`,
+ * `lib/shared/arrival.ts`: the grammar's first sentence, which the guest's album reads too). On the
+ * hub the album is the page's store, moved by the host's delta poll, so that one definition catches
  * every route a photograph takes into a host's album — a guest uploading, a held item the host
  * approved in another tab, a restore from the bin, ten at once after a shut laptop wakes up —
  * without this component knowing a thing about any of them.
@@ -213,7 +206,7 @@ function useAlbumArrivals(items: readonly GridMedia[]): readonly string[] {
   if (seen.items !== items) {
     const ids = items.map((i) => i.id);
     const known = new Set(seen.arrived);
-    const fresh = [...newItemIds(seen.ids, ids)].filter((id) => !known.has(id));
+    const fresh = [...newIds(seen.ids, ids)].filter((id) => !known.has(id));
     setSeen({
       items,
       ids: new Set(ids),

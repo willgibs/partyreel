@@ -7,6 +7,7 @@ import {
   checkGuestEmail,
   checkInAtDoor,
   joinEvent,
+  passedTicket,
   renameGuest,
 } from "./join";
 
@@ -145,7 +146,8 @@ describe("joinEvent", () => {
     expect(vi.mocked(global.fetch).mock.calls).toHaveLength(1);
     expect(
       JSON.parse(
-        (vi.mocked(global.fetch).mock.calls[0][1] as RequestInit).body as string,
+        (vi.mocked(global.fetch).mock.calls[0][1] as RequestInit)
+          .body as string,
       ),
     ).toEqual({
       qr_token: "qr1",
@@ -320,7 +322,8 @@ describe("attachGuestEmail", () => {
     });
     expect(
       JSON.parse(
-        (vi.mocked(global.fetch).mock.calls[0][1] as RequestInit).body as string,
+        (vi.mocked(global.fetch).mock.calls[0][1] as RequestInit)
+          .body as string,
       ).email,
     ).toBeNull();
     expect(result).toEqual({ ok: true, emailAttached: false });
@@ -422,5 +425,42 @@ describe("the doors' two calls (event-settings r1)", () => {
     expect(await checkInAtDoor({ qrToken: "qr1", sessionToken: null })).toBe(
       "waiting",
     );
+  });
+});
+
+/**
+ * A JOIN'S TICKET, ONLY WHEN THE DOOR PASSED IT (crumbs-27). Where the host lets each guest in, a confirmed
+ * newcomer's join mints a WAITING row: it is the ask, and a ticket the door refuses (a file sent on it is refused
+ * "This event is private."). Whoever adopts what a join hands down (the queue's joins, the page's silent join once
+ * the door is behind her) reads it through this, so none adopts the ask as a ticket.
+ */
+describe("passedTicket", () => {
+  const joined = (admission: "in" | "waiting") =>
+    ({
+      ok: true,
+      guest: {
+        sessionToken: "tok",
+        displayName: null,
+        verified: true,
+        emailAttached: false,
+        admission,
+      },
+    }) as const;
+
+  it("is the token of a join the door let through", () => {
+    expect(passedTicket(joined("in"))).toBe("tok");
+  });
+
+  it("★ is nothing for a join that landed waiting: the ask is not a ticket", () => {
+    expect(passedTicket(joined("waiting"))).toBeNull();
+  });
+
+  it("is nothing for a join that was refused", () => {
+    expect(
+      passedTicket({
+        ok: false,
+        refusal: { kind: "other", message: "Try again." },
+      }),
+    ).toBeNull();
   });
 });

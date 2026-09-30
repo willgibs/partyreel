@@ -159,8 +159,10 @@ it rather than fork it.
   alone; a token lives two minutes). A request without `part` keeps the old 413, so a stale tab never takes part 1 for
   the album.
 - ★ **Yours is the server's** (`lib/export/yours.server.ts`): a guest's own uploads by her account and this
-  browser's ticket cookie (the route's read identity), never an id list from the request, intersected with what she
-  can see; the summary carries its counts, and the closed door is asked first on every path (Yours, a retry, a part).
+  browser's ticket cookie (the route's read identity) as far as the ticket is hers to a signed-in viewer (her own row,
+  or one the claim takes: `sortTickets`, [guest-flow.md](guest-flow.md)'s owner rule), never an id list from the
+  request, intersected with what she can see; the summary carries its counts, and the closed door is asked first on
+  every path (Yours, a retry, a part).
 - ★ **One Worker deployment serves partyreel.com's app too**: every path but `/check` answers as milestone 29's did
   (`workers/export/src/compat.test.ts` replays that app's requests against the vendored Worker), the token stays v1,
   and the entry module exports its handler alone (workerd refuses to start on any other named export).

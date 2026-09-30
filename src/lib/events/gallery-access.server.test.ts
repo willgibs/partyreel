@@ -92,6 +92,12 @@ const getUploadGate = vi.fn();
 vi.mock("@/lib/db/queries/guest-gate", () => ({
   getUploadGate: (...args: unknown[]) => getUploadGate(...args),
 }));
+// Whose a ticket is to a signed-in viewer is `session-owner.server.ts`'s (its own pins); here the answer is
+// handed in: by default the ticket is hers, and a test sets it aside.
+const sortTickets = vi.fn();
+vi.mock("@/lib/guest/session-owner.server", () => ({
+  sortTickets: (...args: unknown[]) => sortTickets(...args),
+}));
 
 const {
   loadGalleryReel,
@@ -136,6 +142,14 @@ const GUEST = {
 
 beforeEach(() => {
   getUploadGate.mockReset();
+  sortTickets
+    .mockReset()
+    .mockImplementation(
+      async (_viewer: string | null, tickets: readonly string[]) => ({
+        hers: [...tickets],
+        others: [],
+      }),
+    );
 });
 
 describe("resolveViewerDecision: albumFull", () => {
@@ -211,6 +225,89 @@ describe("resolveViewerDecision: albumFull", () => {
       gate: "upload",
       albumFull: false,
     });
+  });
+});
+
+/**
+ * A PHOTO FIRST READS THE VIEWER'S OWN TICKET (crumbs-27, the read side of crumbs-26's owner rule). The gate ORs
+ * the account and the ticket (`get_upload_gate`), so on a shared phone another guest's contribution, kept on the
+ * ticket the phone still held for the album, counted as a contribution of the signed-in account's: she was let
+ * past the upload step having added nothing. The ticket is read only as far as it is hers (her own row, or one
+ * the claim takes), and the account speaks for herself.
+ */
+describe("resolveViewerDecision: a signed-in account is held to the upload step by her own contribution alone", () => {
+  const SIGNED_IN = { ...GUEST, userId: "user-1" };
+
+  it("★ a ticket that is not hers contributes nothing: the gate is asked with her account alone", async () => {
+    sortTickets.mockResolvedValue({ hers: [], others: [GUEST.sessionToken] });
+    getUploadGate.mockResolvedValue({
+      contributed: false,
+      albumFull: false,
+      eventGone: false,
+    });
+    const decision = await resolveViewerDecision(EVENT, SIGNED_IN);
+    expect(sortTickets).toHaveBeenCalledWith("user-1", [GUEST.sessionToken]);
+    expect(getUploadGate).toHaveBeenCalledWith({
+      eventId: "event-1",
+      sessionToken: null,
+      userId: "user-1",
+    });
+    // Nothing of hers is in the album, so she meets the upload step, whatever the other guest added.
+    expect(decision).toEqual({
+      access: "teaser",
+      gate: "upload",
+      albumFull: false,
+    });
+  });
+
+  it("a ticket that is hers is read beside her account, as ever", async () => {
+    getUploadGate.mockResolvedValue({
+      contributed: true,
+      albumFull: false,
+      eventGone: false,
+    });
+    await resolveViewerDecision(EVENT, SIGNED_IN);
+    expect(getUploadGate).toHaveBeenCalledWith({
+      eventId: "event-1",
+      sessionToken: GUEST.sessionToken,
+      userId: "user-1",
+    });
+  });
+
+  it("signed out the ticket is the device's, and nobody is asked whose it is", async () => {
+    getUploadGate.mockResolvedValue({
+      contributed: true,
+      albumFull: false,
+      eventGone: false,
+    });
+    await resolveViewerDecision(EVENT, GUEST);
+    expect(sortTickets).toHaveBeenCalledWith(null, [GUEST.sessionToken]);
+    expect(getUploadGate).toHaveBeenCalledWith({
+      eventId: "event-1",
+      sessionToken: GUEST.sessionToken,
+      userId: null,
+    });
+  });
+
+  it("no ticket is no question, and a locked album never reaches the gate", async () => {
+    getUploadGate.mockResolvedValue({
+      contributed: false,
+      albumFull: false,
+      eventGone: false,
+    });
+    await resolveViewerDecision(EVENT, { ...SIGNED_IN, sessionToken: null });
+    expect(sortTickets).not.toHaveBeenCalled();
+    expect(getUploadGate).toHaveBeenCalledWith({
+      eventId: "event-1",
+      sessionToken: null,
+      userId: "user-1",
+    });
+    // A locked password album never reaches the gate, so it sorts nothing either.
+    await resolveViewerDecision(
+      { ...EVENT, visibility: "password", has_password: true } as Event,
+      { ...SIGNED_IN, isUnlocked: false },
+    );
+    expect(sortTickets).not.toHaveBeenCalled();
   });
 });
 

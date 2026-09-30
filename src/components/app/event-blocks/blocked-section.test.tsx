@@ -155,6 +155,35 @@ describe("BlockedSection", () => {
     );
   });
 
+  it("★ someone who was in, while the album is Only me, is told it stays closed until the host opens it, before and after (crumbs-27)", async () => {
+    letBackInAction.mockResolvedValue({ ok: true, restored: 1, noRoom: 0 });
+    render(
+      <BlockedSection
+        eventName="Party"
+        people={[person({ name: "Sam", lands: "only_me", restorable: 1 })]}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Let back in" }));
+    const dialog = await screen.findByRole("alertdialog");
+    expect(
+      within(dialog).getByText(
+        "Party is Only me right now, so they'll meet a closed album until you open it. Then they can add photos again.",
+      ),
+    ).toBeInTheDocument();
+    // The old line, true only once the album opens, is not said now.
+    expect(
+      within(dialog).queryByText(/be able to open Party and add photos again/),
+    ).toBeNull();
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Let back in" }),
+    );
+    await waitFor(() =>
+      expect(toast.success).toHaveBeenCalledWith("Sam is no longer blocked.", {
+        description: "1 upload is back where it was.",
+      }),
+    );
+  });
+
   it("★ the restore is offered while something waits in Deleted, OFF by default", async () => {
     render(
       <BlockedSection

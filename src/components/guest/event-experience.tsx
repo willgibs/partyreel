@@ -72,7 +72,7 @@ import {
 } from "@/lib/guest/confirm-beat-name";
 import { closesOnLastRemoval as lastRemovalCloses } from "@/lib/guest/delete-consequence";
 import { contributionAnswered } from "@/lib/guest/entry-steps";
-import { joinEvent } from "@/lib/guest/join";
+import { joinEvent, passedTicket } from "@/lib/guest/join";
 import { useKeepAskPutDown } from "@/lib/guest/keep-ask";
 import { onNameDoorRequest } from "@/lib/guest/name-door";
 import { settleConfirmedName } from "@/lib/guest/settle-name";
@@ -340,6 +340,9 @@ export function EventExperience({
     onUploaded: (u) => handleUploadedRef.current(u),
     isDemo,
     isVerified,
+    /* ★ FILES HELD FOR THE DOOR GO WHEN IT OPENS (crumbs-27): a silent join that landed waiting hands her to
+       the held door with her files `queued`, and this is what tells the queue she is through. */
+    doorOpen: access !== "none",
     onVerificationRequired: (message, hadQueuedFiles) => {
       if (hadQueuedFiles && !uploadStepActiveRef.current) {
         pendingVerificationRef.current = message;
@@ -609,7 +612,10 @@ export function EventExperience({
     if (access === "none" || sessionToken || joinedAtDoorRef.current) return;
     joinedAtDoorRef.current = true;
     void joinEvent({ qrToken }).then((joined) => {
-      if (joined.ok) setSessionToken(joined.guest.sessionToken);
+      // ★ A JOIN THAT LANDED WAITING IS THE ASK, NOT A TICKET (crumbs-27): adopted, the queue would send a
+      // file on it and it would be refused "This event is private."; the door reads the cookie the join set.
+      const ticket = passedTicket(joined);
+      if (ticket) setSessionToken(ticket);
     });
   }, [
     access,

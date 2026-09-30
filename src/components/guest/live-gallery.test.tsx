@@ -597,6 +597,47 @@ const { removeMyUploadGuestAction } =
   await import("@/app/(guest)/e/[token]/actions");
 const aFile = () => new File(["x"], "x.jpg", { type: "image/jpeg" });
 
+/**
+ * THE ALBUM'S YOURS, ON A SHARED PHONE (crumbs-27). A signed-in account's list is her account's, read in the page
+ * (`canDeleteIds`), and the album never asks the ticket the phone still holds for it which photographs are hers:
+ * that ask (`/api/guests/mine`) is the signed-out guest's alone, since another guest's name-only ticket is not hers
+ * (crumbs-26's owner rule) and its photographs must never join her Yours or wear her Remove. Green before this
+ * lane too (the album already read it so); pinned here because the export's own ids and her tracker did not, and
+ * the four readers must agree.
+ */
+describe("LiveGallery: whose the photographs are on a shared phone", () => {
+  const minesAsked = () =>
+    (global.fetch as ReturnType<typeof vi.fn>).mock.calls.filter(
+      ([url]) => url === "/api/guests/mine",
+    );
+
+  it("★ a signed-in guest's Yours is her account's alone: the phone's ticket is never asked which are hers", async () => {
+    answerSync(304);
+    await mount({
+      isAuthed: true,
+      canDeleteIds: ["m1"],
+      sessionToken: "t".repeat(64),
+    });
+    expect(minesAsked()).toEqual([]);
+    expect(lastRows().canDelete?.({ id: "m1" } as GridMedia)).toBe(true);
+    expect(lastRows().canDelete?.({ id: "m2" } as GridMedia)).toBe(false);
+  });
+
+  it("a signed-out guest's Yours is the device ticket's, asked once, the token in the body", async () => {
+    answerSync(304);
+    await mount({
+      isAuthed: false,
+      canDeleteIds: [],
+      sessionToken: "t".repeat(64),
+    });
+    expect(minesAsked()).toHaveLength(1);
+    expect(JSON.parse(String(minesAsked()[0][1].body))).toEqual({
+      qr_token: "qr-token-1",
+      session_token: "t".repeat(64),
+    });
+  });
+});
+
 describe("LiveGallery: a visit's own adds and removals, on either identity", () => {
   it("a signed-in guest's new photograph is theirs the moment it lands (Trash and the Yours filter)", async () => {
     const ref = createRef<LiveGalleryHandle>();
