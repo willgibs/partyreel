@@ -17,6 +17,7 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- The lab and the kit: a quote-parity test in the shape of `src/components/marketing/mock-parity.test.ts` for the boards' hand-quoted production pieces (the lightbox capsule's actions, the Download album menu's rows, the review verbs): Report, Download album and Reject had drifted until an audit read them (a board idea from `desk-tune-2`).
 - Host (performance): a `notFound()` thrown in the host app or the portal (a dashboard link to a deleted or not-yours event, a missing admin record) is still Next's white error shell on a cold load; the guest link's answer (the page draws its own not-found, a status set before the render) would reach it (from `stale-link`).
 - Guest (performance): if the proxy's read stays, an existence-only RPC for a handle would halve its cost (the proxy runs `get_public_profile` whole, events arms included); a migration, so only if a handle's 15 to 45 ms matters (from `stale-link`).
 - Marketing: one 404 grammar across the site: with unknown slugs on the root's screen, the cinema box draws only for a cinema page's own `notFound()`, and none throws one today; retire it, or give the root's screen the cinema skin (a board idea from `stale-link`).

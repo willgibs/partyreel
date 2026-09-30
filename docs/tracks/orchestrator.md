@@ -41,7 +41,6 @@ a lane").
 | --- | --- | --- | --- | --- |
 | `schema-pass` | the data architecture trimmed | merged at `57b17ace`; part 1 applied on Will's go-ahead (2026-09-29, his answer "Yes, apply part 1"; recorded `20260929210010`, the payload the file's md5; advisors 18/4/33; anon REST 42501; types regenerated at `c7a50adc`); a signed-in host walk on partyreel.com rides build 25's red-team as a follow-up; part 2 (`20260929170000`) after milestone 31 ships | Opus, 3132 | `54f414f9` |
 | `crumbs-28` | nine ROADMAP items: a host's and the portal's cold 404, a guest album whose seed fails kept to the album, the review peek's focus, the moment card's Follow, the portal's Remove confirm, the bulk toasts' counts, formatBytes' rounding, a flaky test, one owner answer | running (agent `a756b782addee42d3`), cut at `5f1e3f5a`; merges after milestone 31 ships, no build while Will sits at the desk | Opus, 3131 | |
-| `desk-tune-2` | the desk made true before Will's sitting: the PREMISE audits' stale lines on disposable-mode, locked-door, event-ready and demo-framing | running (agent `aae55f1e1b64b4090`), cut at `903476f4`; lab-only, merges and deploys before his sitting (after build 30's red-team) | Sonnet, 3132 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
 no question open (Q1, the `names` hang; Q2, schema-pass part 1; Q3, the notes-into-laws audit; Q4, the door migration:
@@ -77,7 +76,7 @@ Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcr
 boards). Batch 7 is merged whole; its records carry the rest.
 
 Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, disposable-mode r2, crumbs-13, lab-revamp
-stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, crumbs-15, loose-ends-wiring, contact-wiring, desk-tune, event-ready r1, window-notes, crumbs-16, album-motion-wiring, crumbs-17 (its migration applied by protocol, 20260929204753), unfence, crumbs-18, demo-framing-r2, about-press, menu-depth, crumbs-19, crumbs-20, crumbs-21 (its three migrations applied by protocol), privacy-hero-r4, shared-claims (its migration applied by protocol, 20260930010219), crumbs-22, crumbs-23 (its migration applied, 20260930013213), perf-404, lab-focus (gate 94's lab:demo outran the gate's 420 s alarm; re-run 23 of 23 in 490 s; the alarm is 900 s), crumbs-24 (its two migrations applied, 20260930071830 and 20260930072120), crumbs-26, crumbs-25 and stale-link (both on build 29), crumbs-27 (rides build 30; its PREMISE lines name disposable-mode, event-ready and locked-door, whose asks describe guest-flow.md and host-app.md: re-read them before his next sitting).
+stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, crumbs-15, loose-ends-wiring, contact-wiring, desk-tune, event-ready r1, window-notes, crumbs-16, album-motion-wiring, crumbs-17 (its migration applied by protocol, 20260929204753), unfence, crumbs-18, demo-framing-r2, about-press, menu-depth, crumbs-19, crumbs-20, crumbs-21 (its three migrations applied by protocol), privacy-hero-r4, shared-claims (its migration applied by protocol, 20260930010219), crumbs-22, crumbs-23 (its migration applied, 20260930013213), perf-404, lab-focus (gate 94's lab:demo outran the gate's 420 s alarm; re-run 23 of 23 in 490 s; the alarm is 900 s), crumbs-24 (its two migrations applied, 20260930071830 and 20260930072120), crumbs-26, crumbs-25 and stale-link (both on build 29), crumbs-27 (rides build 30), desk-tune-2 (the PREMISE re-read's fixes, rides build 31).
 
 ## Next, in order
 
@@ -92,9 +91,10 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
    ahead of his yes (gate 100, `FULL=1`, on `79beeb39`). When the red-team passes, milestone 31 is proposed to Will (his
    yes); schema-pass's part 2 applies after it ships.
    **The desk's PREMISE re-read is done** (two read-only audits of every production claim on the six boards against build
-   30's code): `privacy-hero` and `about-press` hold; the stale lines on `disposable-mode`, `locked-door`, `event-ready`
-   and `demo-framing` are `desk-tune-2`'s (its row), which merges and deploys as build 31 before Will's sitting, once
-   build 30's red-team is done. Gate 100 is green (lint, test 7,849, build, `lab:smoke` 173) but for `lab:demo`'s
+   30's code): `privacy-hero` and `about-press` hold; `desk-tune-2` made the stale lines on `disposable-mode`,
+   `locked-door`, `event-ready` and `demo-framing` true (merged at `138beee8`, gate 101 green, lab files only). It
+   deploys as build 31 before Will's sitting, once build 30's red-team is done (a deploy mid-walk would swap the build
+   under it). Gate 100 is green (lint, test 7,849, build, `lab:smoke` 173) but for `lab:demo`'s
    `about-press.facts`, whose navigation stalled twice on the dev server (ROADMAP's "Page.navigate did not answer" line);
    the keyed desk run against the alias (build 30's production build) pressed all 23 steps, 0 failing, that one included.
 3. **Seats as they free** (at most four lanes; `memory_pressure` before each; app work first, Will's note; `lab-focus`
