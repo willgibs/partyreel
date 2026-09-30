@@ -1408,10 +1408,15 @@ export type Database = {
         Args: { p_session_tokens: string[] }
         Returns: number
       }
+      claim_asked_uploads: {
+        Args: { p_session_tokens: string[] }
+        Returns: number
+      }
       claim_guest_rows_by_email: {
         Args: { p_event_ids?: string[] }
         Returns: number
       }
+      claim_ticket_asks: { Args: { p_session_tokens: string[] }; Returns: Json }
       clear_event_password: { Args: { p_event_id: string }; Returns: undefined }
       clear_event_slug: { Args: { p_event_id: string }; Returns: undefined }
       create_guest: {
@@ -1759,6 +1764,13 @@ export type Database = {
       }
       verify_event_password: {
         Args: { p_password?: string; p_qr_token: string }
+        Returns: string
+      }
+      whose_ticket: {
+        Args: {
+          p_guest: Database["public"]["Tables"]["guests"]["Row"]
+          p_uid: string
+        }
         Returns: string
       }
     }
