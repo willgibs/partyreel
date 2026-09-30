@@ -79,18 +79,11 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
 
 1. **Integrate each lane as it hands off** (lab-focus, perf-404, crumbs-24), each migration by protocol, one at a time: drift check, apply verbatim, the rolled-back refusals,
    advisors, types.
-2. **Build 26 was red-teamed live** (`d67e94ba`, 2026-09-29, `../partyreel-wt/_scratch/redteam-26/ledger.txt`): every walk
-   PASS but crumbs-18's live arrival (its fade holds on an arrival nothing decoded first); its finds are `crumbs-23`'s
-   and `shared-claims`' (running). It carried crumbs-17, unfence, album-motion, the
-   types after both migrations, crumbs-18, demo-framing r2, about-press r1 and menu-depth. Then its red-team (Opus, the
-   build 25 brief's shape): crumbs-17's listed walks, crumbs-18's seven (`git show cdc979a6^2:docs/tracks/crumbs-18.md`),
-   the account menu's Theme at 375 and at a desk (menu-depth, merged at `2becfa60`), and the desk with its two new boards
-   (the brief and its ledger: `../partyreel-wt/_scratch/redteam-26/`; from another session, respawn from the brief after
-   the ledger's last line). Then milestone 31
-   is proposed to Will (his yes); schema-pass's part 2 applies after it ships. Build 27's red-team walks crumbs-19's
-   steps (`git show 647858ef^2:docs/tracks/crumbs-19.md`, "Look at first"), crumbs-20's five signed-in steps
-   (`git show e0a22b4d^2:docs/tracks/crumbs-20.md`), crumbs-21's four after its migrations
-   (`git show 39426a2f^2:docs/tracks/crumbs-21.md`) and each later lane's.
+2. **Build 27 is on the alias** (`d7832a6a`, 2026-09-30; its red-team running, agent `ad4d9fdd4cdb994cd`, the brief and
+   ledger in `../partyreel-wt/_scratch/redteam-27/`; from another session, respawn from the brief after the ledger's last
+   line): build 26 (red-teamed, every walk PASS but crumbs-18's live arrival, since fixed by `crumbs-23`) plus
+   crumbs-19 to crumbs-23, shared-claims and privacy-hero r4, and five migrations. When it passes, milestone 31 is
+   proposed to Will (his yes); schema-pass's part 2 applies after it ships. lab-focus rides build 28 (the desk).
 3. **Seats as they free** (at most four lanes; `memory_pressure` before each; app work first, Will's note; `lab-focus`
    took the lab's phone fold with it). After his desk picks: the demo event (below); about-press's wiring (its three wiring calls,
    `git show 3ded6ba9^2:docs/tracks/about-press.md`: /press a temporary redirect, the llms summary kept, the kit's files
