@@ -4,8 +4,16 @@ status: open            # open -> handed-off; deleted in the merge commit that i
 cut: "2049e1ea"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
-  - src/lib/guest/claim-uploads.ts
+  - src/lib/guest/claim-uploads
+  - src/lib/guest/claim-ask
+  - src/lib/guest/session-tokens
+  - src/lib/guest/use-stored-name.ts
+  - src/lib/guest/device-tickets.test.tsx
+  - src/components/shared/claim-ask
+  - src/components/shared/claim-uploads-on-auth.tsx
+  - src/app/(guest)/e/[token]/page.tsx
   - src/lib/db/migration-guards.test.ts
+  - supabase/migrations/20260929234000_shared_phone_claims.sql
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/database-security.md
   - docs/systems/guest-flow.md

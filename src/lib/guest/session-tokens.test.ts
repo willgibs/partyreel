@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { collectStoredSessionTokens } from "@/lib/guest/session-tokens";
+import {
+  collectStoredSessionTokens,
+  collectStoredTickets,
+} from "@/lib/guest/session-tokens";
 
 // A minimal in-memory Storage-like for the pure collector (Node env; no jsdom needed — the function takes
 // an injectable StorageLike). Mirrors how localStorage exposes length / key(i) / getItem(k).
@@ -40,6 +43,9 @@ describe("collectStoredSessionTokens", () => {
         // expected, so the whole `pr_guest_email_` family is pinned out of the
         // scan here exactly as the name keys are.
         pr_guest_email_attached_abc: "1",
+        // ★ AND NEITHER IS A SHARED PHONE'S ANSWER (claim-ask.ts): `pr_not_mine_<qr>` holds the
+        // account ids that said a ticket was not theirs, never a token.
+        pr_not_mine_abc: '["acct-1"]',
         theme: "dark",
         "sb-xyz-auth-token": "jwt",
       }),
@@ -59,5 +65,35 @@ describe("collectStoredSessionTokens", () => {
       fakeStorage({ pr_session_a: "", pr_session_b: "real" }),
     );
     expect(tokens).toEqual(["real"]);
+  });
+});
+
+describe("collectStoredTickets", () => {
+  it("names the album each ticket is for, from its key, and nothing that is not a ticket", () => {
+    expect(
+      collectStoredTickets(
+        fakeStorage({
+          pr_session_abc: "tok-a",
+          pr_session_def: "",
+          pr_not_mine_abc: '["acct-1"]',
+          pr_guest_name_abc: "Sam",
+          pr_session_ghi: "tok-g",
+        }),
+      ),
+    ).toEqual([
+      { album: "abc", token: "tok-a" },
+      { album: "ghi", token: "tok-g" },
+    ]);
+  });
+
+  it("keeps a token held under two albums on both (the claim's list de-dupes, the answer names both)", () => {
+    expect(
+      collectStoredTickets(
+        fakeStorage({ pr_session_a: "same", pr_session_b: "same" }),
+      ),
+    ).toEqual([
+      { album: "a", token: "same" },
+      { album: "b", token: "same" },
+    ]);
   });
 });

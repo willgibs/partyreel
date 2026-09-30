@@ -95,12 +95,17 @@
  *      an id naming nothing), backfilled with no stamp moved, and paired with the item by a CHECK.
  *  23. The host's like counts (crumbs-21, migration 20260929232000): a count only for a row she can
  *      meet, held to media_host_all's latest USING conjunct by conjunct.
+ *  24. Shared phones (shared-claims, migration 20260929234000): whose a ticket is has one rule,
+ *      whose_ticket, which no client role runs; the silent claim takes only what it calls hers; the ask
+ *      is one jsonb for a confirmed account, of tickets typed under another name with a live upload;
+ *      her answer never takes another address and never names her profile.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { DOOR_NAME_KEY } from "@/app/(auth)/door-name-key";
 import { QR_STYLE_KEYS } from "@/lib/constants/qr-presets";
 import { createEventSchema, updateEventSchema } from "@/lib/validation/event";
 import { DISPLAY_NAME_MAX_LENGTH } from "@/lib/validation/profile";
@@ -3515,5 +3520,166 @@ describe("a report keeps what it named (20260929231000)", () => {
     expect(code("kept_media_ids")).toContain(
       "(r.media_id = m.id or (r.media_id is null and r.event_id = m.event_id))",
     );
+  });
+});
+
+describe("shared phones: a claim by ticket takes only what can be hers (shared-claims, 20260929234000)", () => {
+  // Build 26's red-team: on one browser an anonymous visitor typed a name and an unproved address and
+  // added a photo, and the next person to sign in there took the visitor's ticket, typed name and
+  // address erased, the address's owner locked out for good. Whose a ticket is has ONE rule, which no
+  // client role runs; the silent claim takes only what it calls hers; a name at odds with hers is asked
+  // about (one jsonb, a confirmed account only); her answer never takes another address and never
+  // names her profile. Each pin reads CODE (comments stripped), so a quoted clause stands in for none.
+  const code = (name: string) =>
+    collapse(latestDefinition(name).body.replace(/--[^\n]*/g, ""));
+  const grants = (name: string) =>
+    collapse(latestDefinition(name).file.replace(/--[^\n]*/g, ""));
+
+  describe("whose_ticket: the rule, once", () => {
+    it("is an INVOKER predicate no client role can run, like the block's four", () => {
+      const rule = code("whose_ticket");
+      expect(rule).toContain(
+        "create function public.whose_ticket(p_guest public.guests, p_uid uuid) returns text language plpgsql stable set search_path = ''",
+      );
+      expect(rule).not.toContain("security definer");
+      expect(grants("whose_ticket")).toContain(
+        "revoke all on function public.whose_ticket(public.guests, uuid) from public, anon, authenticated; grant execute on function public.whose_ticket(public.guests, uuid) to service_role;",
+      );
+    });
+
+    it("a row an account holds, or proved before it was deleted, is that account's", () => {
+      expect(code("whose_ticket")).toContain(
+        "if p_guest.user_id is not null then return case when p_guest.user_id = p_uid then 'mine' else 'theirs' end; end if; if p_guest.verified_at is not null then return 'theirs'; end if;",
+      );
+    });
+
+    it("an address settles it: hers only when it is her own CONFIRMED address, in the claims review's lookup form", () => {
+      expect(code("whose_ticket")).toContain(
+        "if p_guest.pending_email is not null then if v_confirmed is not null and p_guest.pending_email = lower(nullif(btrim(coalesce(v_email, '')), '')) then return 'mine'; end if; return 'theirs'; end if;",
+      );
+      // The claims review keys the same column the same way, so a ticket left for its owner is one her
+      // review lists.
+      expect(code("list_guest_rows_by_email")).toContain(
+        "where g.pending_email = lower(v_email)",
+      );
+    });
+
+    it("no address: a name at odds with hers is asked, and hers is her profile's, else the one her sign-up carried", () => {
+      const rule = code("whose_ticket");
+      expect(rule).toContain(
+        "select nullif(btrim(p.display_name), '') into v_name from public.profiles p where p.id = p_uid;",
+      );
+      // The door's key is the one the guest door writes (a renamed key would leave every new account
+      // nameless to the rule, and a shared phone's tickets hers).
+      expect(rule).toContain(
+        `v_name := coalesce(v_name, nullif(btrim(v_meta ->> '${DOOR_NAME_KEY}'), ''), nullif(btrim(v_meta ->> 'full_name'), ''), nullif(btrim(v_meta ->> 'name'), ''));`,
+      );
+      // First words, case and marks aside, on both sides alike.
+      for (const side of ["v_typed := ", "v_own := "]) {
+        expect(rule).toContain(
+          side + "regexp_replace((regexp_match(lower(coalesce(",
+        );
+      }
+      expect(
+        rule.split("'\\S*[[:alnum:]]\\S*'))[1], '[^[:alnum:]]', '', 'g');"),
+      ).toHaveLength(3);
+      expect(rule).toContain(
+        "if v_typed is null or v_own is null or v_typed = v_own then return 'mine'; end if; return 'ask';",
+      );
+    });
+  });
+
+  describe("claim_anonymous_uploads: the silent claim takes only what is hers", () => {
+    it("asks the rule in the naming read and in both arms, so a stranger's ticket and name never move", () => {
+      const body = code("claim_anonymous_uploads");
+      expect(
+        body.split("and public.whose_ticket(g, v_uid) = 'mine'"),
+      ).toHaveLength(4);
+      // The naming read comes first, so the rule the update asks reads a profile it just named.
+      expect(body.indexOf("update public.profiles")).toBeLessThan(
+        body.indexOf("update public.guests"),
+      );
+    });
+
+    it("keeps its signature, its answer and its authenticated-only grant", () => {
+      expect(code("claim_anonymous_uploads")).toContain(
+        "create or replace function public.claim_anonymous_uploads(p_session_tokens text[]) returns integer language plpgsql security definer set search_path = ''",
+      );
+    });
+  });
+
+  describe("claim_ticket_asks: the ask", () => {
+    it("is one jsonb (never a set), authenticated-only, bounded like the claim", () => {
+      const ask = code("claim_ticket_asks");
+      expect(ask).toContain(
+        "create function public.claim_ticket_asks(p_session_tokens text[]) returns jsonb language plpgsql stable security definer set search_path = ''",
+      );
+      expect(ask).toContain(
+        "if cardinality(p_session_tokens) > 1000 then raise exception 'Too many tokens.' using errcode = 'program_limit_exceeded'; end if;",
+      );
+      expect(grants("claim_ticket_asks")).toContain(
+        "revoke all on function public.claim_ticket_asks(text[]) from public, anon; grant execute on function public.claim_ticket_asks(text[]) to authenticated;",
+      );
+    });
+
+    it("asks only a confirmed account, only of a ticket typed under another name with a live upload, past the door and no block", () => {
+      const ask = code("claim_ticket_asks");
+      expect(ask).toContain(
+        "if v_confirmed is null then return '[]'::jsonb; end if;",
+      );
+      expect(ask).toContain(
+        "where g.session_token = any (p_session_tokens) and g.user_id is null and g.admission = 'in' and not public.event_block_holds_row(g) and not public.event_block_holds_account(g.event_id, v_uid) and public.whose_ticket(g, v_uid) = 'ask' and m.n > 0 group by lower(btrim(g.display_name))",
+      );
+      expect(ask).toContain(
+        "select count(*)::integer as n from public.media x where x.guest_id = g.id and x.status <> 'removed'",
+      );
+    });
+
+    it("answers the name, the live uploads and the caller's own tokens, and nothing else about the rows", () => {
+      const ask = code("claim_ticket_asks");
+      expect(ask).toContain(
+        "jsonb_build_object('name', a.name, 'uploads', a.uploads, 'tokens', a.tokens)",
+      );
+      for (const secret of ["pending_email", "g.email", "event_id,", "g.id,"]) {
+        expect(ask).not.toContain(`'${secret}'`);
+      }
+    });
+  });
+
+  describe("claim_asked_uploads: her answer", () => {
+    const yes = () => code("claim_asked_uploads");
+
+    it("is authenticated-only and bounded like the claim", () => {
+      expect(yes()).toContain(
+        "create function public.claim_asked_uploads(p_session_tokens text[]) returns integer language plpgsql security definer set search_path = ''",
+      );
+      expect(yes()).toContain(
+        "if cardinality(p_session_tokens) > 1000 then raise exception 'Too many tokens.' using errcode = 'program_limit_exceeded'; end if;",
+      );
+      expect(grants("claim_asked_uploads")).toContain(
+        "revoke all on function public.claim_asked_uploads(text[]) from public, anon; grant execute on function public.claim_asked_uploads(text[]) to authenticated;",
+      );
+    });
+
+    it("★ never takes another address, whatever the answer, and never through a door or a block", () => {
+      expect(yes()).toContain(
+        "where g.session_token = any (p_session_tokens) and g.user_id is null and g.admission = 'in' and not public.event_block_holds_row(g) and not public.event_block_holds_account(g.event_id, v_uid) and public.whose_ticket(g, v_uid) <> 'theirs'",
+      );
+    });
+
+    it("answers for a confirmed account only, stamps as the confirmed arm stamps, counts as the claim counts, and names no profile", () => {
+      const body = yes();
+      expect(body).toContain(
+        "if v_confirmed is null or v_email is null then return 0; end if;",
+      );
+      expect(body).toContain(
+        "set user_id = v_uid, verified_at = now(), email = v_email, pending_email = null, pending_email_at = null, display_name = null",
+      );
+      expect(body).toContain(
+        "returning id ) select count(*)::integer into v_count from claimed c where exists ( select 1 from public.media m where m.guest_id = c.id and m.status <> 'removed' );",
+      );
+      // The name on an asked ticket is not hers: that is why she was asked.
+      expect(body).not.toContain("public.profiles");
+    });
   });
 });
