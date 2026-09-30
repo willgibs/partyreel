@@ -856,11 +856,17 @@ had" holds only when this device holds a guest ticket a claim would move.
   [`gallery-skeleton.tsx`](../../src/components/guest/gallery-skeleton.tsx) so the presign-heavy payload
   never blocks the shell's paint), and the store adopts it as its own first `sync()`, answered locally.
   `key={access}` remounts it on an access flip (teaser → full) — a clean re-seed, no resync effects.
-  ★ A seed whose read fails (a refusal answers locked, never a throw) is the album's failure alone
-  ([`album-boundary.tsx`](../../src/components/guest/album-boundary.tsx), around the Suspense and the live source): the
-  header, the door and Add photos stand, a photograph added meanwhile waits for the gallery to attach, and Try again is
-  the router's refresh and the boundary's reset in one transition, so the page's render hands the album a fresh seed
-  (a bare reset would `use()` the same rejected promise again). A boundary of its own: Next 16.2's
+  ★ A seed whose read fails (a refusal answers locked, never a throw) is the album's failure alone, and the live
+  source stands through it: `readSeed` reads it rather than throwing it (Next's own throws still pass on; ★ adopted
+  with `Promise.resolve` first, since the page's promise is React Flight's thenable, whose `then` chains nothing), reports it
+  (`render:guest`, seam `album`), and the store's own first `sync()` asks the server for the whole album. The album
+  draws its skeleton while that read is in flight, then the card "The album didn't load" if it failed too
+  (`albumRead`), and heals in place with no refresh on the next answer: the poll, a doorbell, her own upload or Try
+  again (the store's sync). Her uploads list, the reel and the door's light keep their source throughout, and the
+  header keeps the page's count (an unread album is not an empty one).
+  [`album-boundary.tsx`](../../src/components/guest/album-boundary.tsx), around the Suspense and the live source, keeps
+  a crash where the album renders to the album: the header, the door and Add photos stand, and its Try again is the
+  router's refresh and the boundary's reset in one transition. A boundary of its own: Next 16.2's
   `unstable_catchError` does the same and cost the album's chunk 2.1 KB gzipped on `next build`, this one 0.5 KB.
 - ★ **A link is read by id at the moment it is needed and re-minted before it ages** (`ensureLinks` for a
   window, `onNeedLinks` for the viewer, `clips` for the reel), never held past its life; the provider's
@@ -941,12 +947,13 @@ had" holds only when this device holds a guest ticket a claim would move.
   disagree. `newArrivalIds(prev, next)` ([`reconcile-album-items.ts`](../../src/lib/guest/reconcile-album-items.ts))
   reports the ids NOT on screen a moment ago (the only definition that catches every route in: a doorbell
   arrival, a held item approved an hour later, a burst after a hidden tab wakes), by the grammar's one diff
-  (`newIds`, `lib/shared/arrival.ts`, which the host's grid reads too) plus the guest's own seed rule (an empty last
-  snapshot names no arrival: a teaser's and a locked page's answers carry no entries by design), and `arrivalMarks()`
+  (`newIds`, `lib/shared/arrival.ts`, which the host's grid reads too) plus the guest's own seed rule (a last answer
+  that was no album names no arrival, `albumOnScreen`: a teaser's, a locked page's and an unread album's carry no
+  entries by design; a real empty album's first photograph does arrive, as the host's does), and `arrivalMarks()`
   (pure, contract-tested) takes one's OWN landings out of the glow and gives the NEWEST the sweep. ★ The
   glow holds PER ID (two guests a beat apart each get a full life); the sweep is EXCLUSIVE, so a fast batch
-  never stacks light up the gallery. ★ Three things never glow: the SEED render (`prev` empty; the entrance
-  stagger is that moment's motion), a rolled presign, and this guest's OWN upload (it sweeps). The GROWTH is
+  never stacks light up the gallery. ★ Three things never glow: the SEED render and an album opening under a mounted
+  provider (the entrance stagger is that moment's motion), a rolled presign, and this guest's OWN upload (it sweeps). The GROWTH is
   the `[data-media-tile]` entrance in `globals.css`, deliberately not re-declared. The rows push an arrival
   in from its left edge and glide what it moved; a head arrival while the reader is deep scrolls by exactly
   how far the photograph at the view's top moved, so nothing they are looking at jumps. Reduced motion: a

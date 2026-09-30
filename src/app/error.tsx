@@ -1,6 +1,9 @@
 "use client";
 
-import { RouteError } from "@/components/shared/route-error";
+import {
+  RouteError,
+  type CrashBoundaryProps,
+} from "@/components/shared/route-error";
 
 // THE ROOT RENDER-CRASH BOUNDARY, and the gap the errors wiring found (Will,
 // `surround=shell` + `grammar=shared`, 2026-09-19).
@@ -26,9 +29,11 @@ import { RouteError } from "@/components/shared/route-error";
 // notFound() is NOT caught here: Next routes its HTTP-fallback throw to
 // not-found.tsx past every error boundary, which surface.test.ts's sentinel and
 // the local /nope pass both depend on.
-export default function RootError(props: {
-  error: Error & { digest?: string };
-  reset: () => void;
-}) {
-  return <RouteError area="render:global" {...props} />;
+export default function RootError({
+  error,
+  unstable_retry,
+}: CrashBoundaryProps) {
+  return (
+    <RouteError area="render:global" error={error} retry={unstable_retry} />
+  );
 }

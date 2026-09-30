@@ -1,6 +1,7 @@
 "use client";
 
 import { MarketingRouteError } from "@/components/marketing/marketing-route-error";
+import type { CrashBoundaryProps } from "@/components/shared/route-error";
 
 // Render-crash boundary for the marketing group — the NEAREST boundary for
 // every marketing route, so any page/layout crash below (marketing) replaces
@@ -9,9 +10,9 @@ import { MarketingRouteError } from "@/components/marketing/marketing-route-erro
 // Since R5 this mounts the BRANDED marketing screen (the 404's
 // sibling: forced paper skin, logo row, tilted 500-strip, Try again); app
 // areas keep the shared RouteError. No error details leaked.
-export default function MarketingError(props: {
-  error: Error & { digest?: string };
-  reset: () => void;
-}) {
-  return <MarketingRouteError {...props} />;
+export default function MarketingError({
+  error,
+  unstable_retry,
+}: CrashBoundaryProps) {
+  return <MarketingRouteError error={error} retry={unstable_retry} />;
 }

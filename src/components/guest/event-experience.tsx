@@ -1339,11 +1339,12 @@ export function EventExperience({
               the skeleton the same column rule AT THE SAME TILE SIZE, so the swap is layout-stable
               at every window: a two-column placeholder under a six-column album, or an
               eight-column one under seven, would flash the wrong layout on every load. */}
-          {/* ★ AND ITS FAILURE IS THE ALBUM'S ALONE (crumbs-28, `album-boundary.tsx`): a seed whose
-              read fails throws where the album renders, and this boundary keeps it there, so the
-              header, the door and Add photos stand while the album says it could not load, with a
-              Try again that asks the page for a fresh seed. Keyed as the provider is, so an access
-              flip starts it clean too. */}
+          {/* ★ AND ITS FAILURE IS THE ALBUM'S ALONE (crumbs-28, `album-boundary.tsx`): a crash where
+              the album renders stays here, so the header, the door and Add photos stand while the
+              album says it could not load, with a Try again that asks the page again. A seed whose
+              read failed never throws (crumbs-30): the live source stands, her uploads list with it,
+              and heals the album with its own sync. Keyed as the provider is, so an access flip
+              starts it clean too. */}
           <AlbumBoundary key={access} className={COLUMN}>
             <Suspense
               fallback={

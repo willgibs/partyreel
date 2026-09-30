@@ -1,17 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
+import { appNotFoundMetadata } from "@/app/(app)/not-found.metadata";
+import { AppNotFoundScreen } from "@/app/(app)/not-found.screen";
 import { PrintButton } from "@/components/app/print/print-button";
 import { PrintStock } from "@/components/app/print/print-stock";
+import { Container } from "@/components/shared/container";
 import { getEvent } from "@/lib/db/queries/events";
 import { preferredEventUrl } from "@/lib/events/share-urls";
 import { PRINT_STOCK, STOCK_IDS, resolveStock } from "@/lib/qr/stock";
 import { getSiteUrl } from "@/lib/site-url";
 import { cn } from "@/lib/utils";
-
-export const metadata: Metadata = { title: "Print" };
 
 // The sheet carries presign-free, server-rendered codes, but the EVENT is read
 // per request through RLS, so this must never be statically cached.
@@ -21,6 +21,31 @@ type PageProps = {
   params: Promise<{ eventId: string }>;
   searchParams: Promise<{ stock?: string }>;
 };
+
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const { eventId } = await params;
+  // ★ A SHEET FOR AN EVENT THAT IS GONE IS TITLED AS THE 404 IT IS (crumbs-30), the host app's not-found words in
+  // the head and after hydration alike, one home for every page of the event (`not-found.metadata.ts`). The read is
+  // the page's own: `getEvent` is request-cached, so the title costs nothing more.
+  return (await getEvent(eventId)) ? { title: "Print" } : appNotFoundMetadata;
+}
+
+/**
+ * THE HOST APP'S 404 ON THE SHEET'S OWN GROUND. The print group draws no AppShell (its layout says why), so the
+ * screen takes here what the shell would have given it, its `<main>` and its gutter, and stands on the group's
+ * paper with no header: its own two buttons are the way on.
+ */
+function PrintNotFound() {
+  return (
+    <main className="flex-1 py-8">
+      <Container>
+        <AppNotFoundScreen />
+      </Container>
+    </main>
+  );
+}
 
 /**
  * THE PAPER (Will, `venue=sheet`, 2026-09-21: "This is a great spark to a bigger
@@ -53,7 +78,13 @@ export default async function PrintStockPage({
   const event = await getEvent(eventId);
   // getEvent is RLS-scoped and filters deleted_at, so a missing, foreign or
   // deleted event resolves to null — a 404, never a hint that it exists.
-  if (!event) notFound();
+  //
+  // ★ DRAWN HERE, NEVER THROWN (crumbs-30, the hub's answer from crumbs-28): the
+  // print group has no nearer boundary, so a thrown `notFound()` was the root's,
+  // served as Next's error shell, an empty page until its script ran, under the
+  // sheet's own title. Drawn, it is in the HTML, headed by generateMetadata's
+  // not-found answer; the status stays 200 behind sign-in, a soft 404, noindex.
+  if (!event) return <PrintNotFound />;
 
   const siteUrl = await getSiteUrl();
   const joinUrl = `${siteUrl}/e/${event.qr_token}`;
@@ -96,7 +127,9 @@ export default async function PrintStockPage({
                     : "border-border hover:border-foreground/30",
                 )}
               >
-                <span className="block text-sm font-medium">{option.label}</span>
+                <span className="block text-sm font-medium">
+                  {option.label}
+                </span>
                 <span className="block text-caption text-muted-foreground">
                   {option.spec} · the code at {option.codeMm} mm
                 </span>

@@ -188,7 +188,8 @@ drift is linear and motion-gated, a breath rather than feedback, so the 300ms ce
 beneath, newest first.
 
 - ★ **An event that is gone, never this host's, or no id at all draws the group's not-found itself**, on the hub and
-  each room (Review, Guests, the reel's old room; Settings redirects to the hub). `getEvent` answers a malformed id null
+  each room (Review, Guests, the reel's old room; Settings redirects to the hub) and on the print sheet (in the shell's
+  gutter, as `(print)` draws no shell; thrown, it was the root's error shell). `getEvent` answers a malformed id null
   before any read (`isUuidShape`: Postgres refusing the cast threw the page into its error screen, untitled, and filed
   an error each hit), as the portal's record pages do theirs. Never through `notFound()`: thrown under the
   hub's `loading.tsx` it landed after the skeleton had streamed, a 200 whose screen the client drew once it had run,
@@ -330,7 +331,8 @@ visitor-facing "Private" never collides.
   someone with no row past the door is a newcomer whatever rows remain, so one whose ask a password ended hears she
   meets it like anyone new, and where nobody new gets in, that she stays out; someone who was in, while the album is
   Only me (which shuts even the people already in), hears the block is lifted and the album stays closed to her until
-  the host opens it). The door is read once for everyone in the Blocked list, since it decides every landing. A
+  the host opens it; and a newcomer whose ask stands at Only me, which keeps its asks, hears she is back at the door
+  and that letting her in there meets that closed album, `door_only_me`). The door is read once for everyone in the Blocked list, since it decides every landing. A
   waiting newcomer counts on
   the hub's Guests card, the pulse (its first step, opening `#at-the-door`) and the bell (a row per event), and sends
   no mail.
