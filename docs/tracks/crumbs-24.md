@@ -5,12 +5,33 @@ cut: "54664129"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   - src/lib/guest/claim-uploads.ts
+  - src/lib/guest/claim-uploads.test.tsx
   - src/lib/guest/claim-ask.ts
+  - src/lib/guest/claim-ask.test.tsx
   - src/components/shared/claim-ask.tsx
+  - src/components/shared/claim-ask.test.tsx
+  - src/lib/guest/confirm-beat.ts
+  - src/lib/guest/confirm-beat.test.tsx
+  - src/lib/guest/use-confirm-return.ts
+  - src/lib/guest/use-confirm-return.test.tsx
+  - src/components/guest/event-experience.tsx
   - src/lib/events/event-blocks.ts
+  - src/lib/events/event-blocks.test.ts
+  - src/lib/db/queries/event-blocks.ts
+  - src/lib/db/queries/event-blocks.test.ts
   - src/components/app/event-blocks/block-confirm.tsx
+  - src/components/app/event-blocks/blocked-section.tsx
+  - src/components/app/event-blocks/blocked-section.test.tsx
   - src/components/app/event-settings/settings-state.tsx
+  - src/components/app/event-settings/reel-page.test.tsx
+  - src/components/app/share/event-share-provider.tsx
+  - src/lib/reel/defaults-action.ts
+  - src/lib/reel/defaults-action.test.ts
+  - src/lib/history-entry.ts
+  - src/lib/refresh-then-write-policy.test.ts
   - src/lib/db/migration-guards.test.ts
+  - supabase/migrations/20260930100000_the_join_waits_for_the_door.sql
+  - supabase/migrations/20260930110000_claims_say_another_address.sql
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/guest-flow.md
   - docs/systems/host-app.md
