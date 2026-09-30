@@ -17,6 +17,7 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Guest (performance): the group 404s ride their groups' pages as the root's did: the guest link's own 404 costs every album load about 17.5 KB of HTML (6 KB gzipped, most of it `GuestBar`'s wordmark path) and the `(cinema)` one about 5 KB (1 KB gzipped) on every cinema page, measured on `next start` against both drawing nothing; one client boundary per group, as the root's (`app/not-found.site.tsx`), would take them off (from `perf-404`).
 - Host: the host's album lands a live arrival the way the guest's did before `use-arrival-gate.ts` (no link at push, so a shimmer and a fade); the same gate over `HostMediaGrid`, beside folding `useArrivedIds` onto `useArrivalMarks` (from `crumbs-23`).
 - Guests: a guest's own upload draws its object URL until the link lands, then the presigned preview (`MediaTile`'s `sameObject` is false across the two), which resets its landing to the shimmer and fades it in a second time; unmeasured, read it on the alias with a real upload (from `crumbs-23`).
 - Auth: about 32 files draw a bare `<input>`; any that is controlled and drawn open on the server loses text typed before hydration as `Input` no longer does: route them through `useAdoptTypedValue`, beginning with the pages a person lands on and types into at once (from `crumbs-23`).
