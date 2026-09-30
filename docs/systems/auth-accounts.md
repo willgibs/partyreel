@@ -22,8 +22,8 @@ Google, and a password as a quiet second door; passkeys wait behind a flag. `get
   door and a named guest's sign-in; each wear passes only its reason (`wear`), its methods and where it returns, and
   the words live in one table, `DOOR_WEAR`. Every wear but the gate carries the Terms line (the gate's welcome step
   says it), which is why Stripe Checkout needs no consent box of its own ([billing-caps.md](billing-caps.md)).
-- **The door asks for a confirmed email, not an account.** Confirming claims this device's uploads and nothing else
-  (there is no save: [guest-flow.md](guest-flow.md)); the free account is what confirming makes, and each wear's words say so.
+- **The door asks for a confirmed email, not an account.** Confirming claims the uploads on this device that can be hers
+  and nothing else (there is no save: [guest-flow.md](guest-flow.md)); the free account is what confirming makes, and each wear's words say so.
 - ★ **An address typed at the guest door is inert, and nothing is an oracle.** It lands in `guests.pending_email`,
   proves nothing, signs nobody in, is never shown to anyone nor mailed on its own, and never reaches `auth.users`. It
   is accepted whether or not a member owns it, because refusing it or diverting to a sign-in would tell a stranger
@@ -38,7 +38,8 @@ Google, and a password as a quiet second door; passkeys wait behind a flag. `get
   guest just confirmed an email to fix, still marked; the claim never throws, so the wait costs one round trip.
 - ★ **The claim names only a nameless profile:** under a confirmed session `claim_anonymous_uploads` copies the
   newest claimed row's typed name onto a profile with none (and marks the rows verified); unconfirmed, it stamps
-  `user_id` and nothing else. Nothing overwrites a name.
+  `user_id` and nothing else. Nothing overwrites a name, and ★ a stranger's never names hers: on a shared phone the
+  claim takes only a ticket that can be hers, and one she was asked about names nothing ([guest-flow.md](guest-flow.md)).
 - **The code leads and the link is the fallback,** because an iPhone PWA opens a tapped link in Safari, outside the
   session the flow just made, and `verifyOtp({ type: 'email' })` needs no redirect. `email-sign-in.tsx` owns no
   navigation; each wear's `onVerified` decides what follows. A tapped link lands on `/auth/callback` and loses any
