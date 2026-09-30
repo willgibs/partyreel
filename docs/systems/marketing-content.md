@@ -358,7 +358,7 @@ Six `not-found.tsx` files share one presentational core, `shared/not-found-scree
   `surface() === "admin"` to the portal's own screen.
 - ★ **The root `not-found.tsx` draws nothing itself**: Next renders a root not-found into EVERY route's payload, so
   whatever it drew rode every page (the chrome inline cost `/login`, `/pricing`, `/about`, `/help`, the home and a
-  guest album 107 to 112 KB of HTML and 41 to 56 KB of gzipped JS each, on `next start`). It keeps the metadata, the
+  guest album 107 to 112 KB of HTML and 43 to 56 KB of gzipped JS each, on `next start`). It keeps the metadata, the
   viewport and the surface branch; each surface's screen loads behind one client boundary (`not-found.lazy.tsx`,
   `next/dynamic` in a client module, a real split), so any other page carries one reference and a 1.5 KB gzipped
   chunk, and the 404's HTML still holds the whole screen and its sheet (`not-found.test.ts`). `global-not-found` is no
