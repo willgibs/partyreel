@@ -763,10 +763,21 @@ had" holds only when this device holds a guest ticket a claim would move.
   [`claim-uploads.ts`](../../src/lib/guest/claim-uploads.ts) enumerates those tokens (the shared
   `SESSION_PREFIX`, [`session-tokens.ts`](../../src/lib/guest/session-tokens.ts)) and calls the
   authenticated `claim_anonymous_uploads(text[])`, which touches only still-unclaimed matches
-  (`user_id IS NULL` ⇒ never steals an owned row; ≤1000 bound). An UNCONFIRMED caller stamps `user_id`
-  alone; a CONFIRMED caller's claim is proved (the device plus the address), so it also stamps
-  `verified_at`, copies the account's email into `guests.email`, clears `pending_email` and the typed name,
-  and names a nameless profile from the newest claimed row. ★ The number it returns is the claimed rows that
+  (`user_id IS NULL` ⇒ never steals an owned row; ≤1000 bound) that are HERS. ★ **A PARTY'S PHONE IS PASSED
+  AROUND, so whose a ticket is has one rule, `whose_ticket`** (`20260929234000`): a typed address settles it (hers
+  only when it is her own confirmed one; any other waits for that address's owner, whose claims review lists it, and
+  no answer on the phone can take it); with none, a ticket under no name or under hers is hers, and one under a
+  name at odds with hers (a different first word, case and marks aside; hers is her profile's, else the name her
+  sign-up carried, the door's `door_name` or Google's) is ASKED about, never taken. After every claim
+  `claim_ticket_asks` answers those per name and [`claim-ask.tsx`](../../src/components/shared/claim-ask.tsx)
+  (the `(app)` layout's and the album page's) asks once no door or sheet is up, "3 photos were added on this phone
+  as Dana. Are they yours?": They're mine claims exactly those (`claim_asked_uploads`, never an address, naming no
+  profile); Not mine is remembered for that account on those albums (`pr_not_mine_<qr>`, put down with its
+  ticket); a question put away unanswered comes back on a later visit. A proved row whose account was deleted
+  goes to nobody. An UNCONFIRMED caller matches no address and stamps `user_id` alone; a CONFIRMED caller's claim is
+  proved (the device plus the address), so it also stamps `verified_at`, copies the account's email into
+  `guests.email`, clears `pending_email` and the typed name, and names a nameless profile from the newest row it
+  took. ★ The number it returns is the claimed rows that
   carry a LIVE upload (an empty row is stamped but not counted: claiming it carries nothing). It fires from the
   `(app)` layout's mount (a loud "We added your uploads to your account." whenever uploads moved), the album's
   `useConfirmReturn` (split this album / the rest, which decides the follow moment and the toast; see "THE

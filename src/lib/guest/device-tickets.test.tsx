@@ -6,6 +6,10 @@
  * clean. A REFUSED TICKET (`session_other_account`) puts down that event's alone, and the prefill
  * only when it is that same ticket's name, so the person at the door is never offered the last
  * owner's name. Neither touches anything that is not a ticket.
+ *
+ * ★ THE SHARED PHONE'S ANSWERS GO WITH THEIR TICKETS (shared-claims): a "Not mine" is remembered on
+ * the album whose ticket it answered, so the ticket put down takes its answer with it, and the next
+ * person on the phone starts with neither.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -30,6 +34,9 @@ function seedTwoTickets() {
   localStorage.setItem(`pr_guest_name_${QR_B}`, "Sam");
   localStorage.setItem(GUEST_NAME_LAST_KEY, "Hi Will");
   localStorage.setItem(`pr_guest_email_attached_${QR_B}`, "1");
+  // An account's "Not mine" to each ticket (claim-ask.ts): answers beside tickets, not tickets.
+  localStorage.setItem(`pr_not_mine_${QR_A}`, JSON.stringify(["acct-1"]));
+  localStorage.setItem(`pr_not_mine_${QR_B}`, JSON.stringify(["acct-1"]));
   // Not tickets: these must survive every act below.
   localStorage.setItem(`pr_welcome_${QR_A}`, "1");
   localStorage.setItem("pr_device_id", "device-1");
@@ -68,6 +75,8 @@ describe("the sign-out: every ticket on the device", () => {
       `pr_guest_name_${QR_B}`,
       GUEST_NAME_LAST_KEY,
       `pr_guest_email_attached_${QR_B}`,
+      `pr_not_mine_${QR_A}`,
+      `pr_not_mine_${QR_B}`,
     ]) {
       expect(localStorage.getItem(key), key).toBeNull();
     }
@@ -107,10 +116,12 @@ describe("a refused ticket: that event's alone", () => {
     expect(localStorage.getItem(`pr_session_${QR_A}`)).toBeNull();
     expect(localStorage.getItem(`pr_guest_name_${QR_A}`)).toBeNull();
     expect(localStorage.getItem(`pr_guest_email_attached_${QR_A}`)).toBeNull();
+    expect(localStorage.getItem(`pr_not_mine_${QR_A}`)).toBeNull();
     expect(leaveCalls()).toEqual([{ qr_token: QR_A }]);
     // The other event's ticket is somebody's too, and it is not this refusal's to touch.
     expect(localStorage.getItem(`pr_session_${QR_B}`)).toBe("b".repeat(64));
     expect(localStorage.getItem(`pr_guest_name_${QR_B}`)).toBe("Sam");
+    expect(localStorage.getItem(`pr_not_mine_${QR_B}`)).toBe('["acct-1"]');
   });
 
   it("★ the prefill goes with it when it IS that ticket's name, so the door never offers the last owner's", () => {

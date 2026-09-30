@@ -13,6 +13,7 @@ import {
   parseAlbumWidth,
 } from "@/components/shared/album-window-plan";
 import { GuestHeader } from "@/components/guest/guest-header";
+import { ClaimAsk } from "@/components/shared/claim-ask";
 import {
   GuestList,
   GUEST_LIST_FACES_THRESHOLD,
@@ -103,9 +104,7 @@ export async function generateMetadata({
   // door stands first). Its image is the private album's card, since the card route answers the
   // event's own door to everyone and a gated album reads there as private (the safe side).
   const gated = event.visibility === "private";
-  const card = gated
-    ? privateCardImage(token)
-    : eventCardImage(event.qr_token);
+  const card = gated ? privateCardImage(token) : eventCardImage(event.qr_token);
   if (event.visibility === "password" || gated) {
     const title = event.name;
     return {
@@ -329,8 +328,7 @@ export default async function GuestEventPage({
   // step), with nothing real behind it; otherwise the album's own gates decide below. `admitted` is
   // the door's word that this request is already past it, which passes the password without it.
   const doorDecision = doorGalleryDecision(door.decision);
-  const admitted =
-    door.decision.kind === "through" && door.decision.admitted;
+  const admitted = door.decision.kind === "through" && door.decision.admitted;
   const doorGate =
     door.decision.kind === "newcomer" ? door.decision.gate : null;
 
@@ -392,16 +390,16 @@ export default async function GuestEventPage({
     : doorDecision
       ? { ...doorDecision, albumFull: false }
       : await resolveViewerDecision(
-        event,
-        {
-          isOwner,
-          isAuthed,
-          isUnlocked: unlocked,
-          userId,
-          sessionToken: cookieSessionToken,
-        },
-        { withAlbumFull: true },
-      );
+          event,
+          {
+            isOwner,
+            isAuthed,
+            isUnlocked: unlocked,
+            userId,
+            sessionToken: cookieSessionToken,
+          },
+          { withAlbumFull: true },
+        );
   const access = decision.access;
   /* ────────────────────────────────────────────────────────────────────────
      THE ALBUM'S FIRST PAINT, DECIDED BEFORE ANY BYTE: the density step the
@@ -598,6 +596,11 @@ export default async function GuestEventPage({
         rhythmSeed={rhythmSeed}
         albumFull={decision.albumFull}
       />
+      {/* ★ WHAT THIS PHONE'S CLAIM WOULD NOT TAKE IN SILENCE (shared-claims): a ticket typed under a
+          name at odds with the account, asked about once the door and its sheets are down
+          (`claim-ask.tsx`). Beside the album's own claim (EventExperience's `useConfirmReturn`), so
+          never in the demo, and never for the album's host, who is no guest here. */}
+      {!isDemo && !isOwner && <ClaimAsk />}
     </div>
   );
 }
