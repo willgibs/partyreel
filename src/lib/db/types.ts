@@ -1468,6 +1468,33 @@ export type Database = {
         Args: { p_event_ids: string[] }
         Returns: number
       }
+      event_account_ticket: {
+        Args: {
+          p_admission: Database["public"]["Enums"]["guest_admission"]
+          p_event_id: string
+          p_user_id: string
+        }
+        Returns: {
+          admission: Database["public"]["Enums"]["guest_admission"]
+          created_at: string
+          display_name: string | null
+          email: string | null
+          event_id: string
+          id: string
+          pending_email: string | null
+          pending_email_at: string | null
+          session_token: string
+          user_id: string | null
+          verified_at: string | null
+          waiting_seen_at: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "guests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       event_block_holds_account: {
         Args: { p_event_id: string; p_user_id: string }
         Returns: boolean
@@ -1500,6 +1527,14 @@ export type Database = {
         Returns: boolean
       }
       event_door_admit_listed: { Args: { p_event_id: string }; Returns: number }
+      event_door_asks: {
+        Args: { p_event_id: string }
+        Returns: {
+          guest_id: string
+          listed: boolean
+          user_id: string
+        }[]
+      }
       event_door_check_in: {
         Args: { p_event_id: string; p_tickets?: string[]; p_user_id?: string }
         Returns: Json
