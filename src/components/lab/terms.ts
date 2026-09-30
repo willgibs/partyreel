@@ -32,6 +32,44 @@ export function termsIn(
   );
 }
 
+/** A stretch of a line: plain words, or a coined term as the line spells it. */
+export type Piece = { text: string; term?: Term };
+
+/**
+ * A LINE CUT AT THE TERMS IT USES, so the step can mark each one where it
+ * appears (lab-focus, 2026-09-29: the terms are one press away in the About
+ * panel, and a light hint on the words themselves). The same match as
+ * `termsIn`, blind to case and to the apostrophe's shape and never inside
+ * another word, and the line's own spelling is kept. Each term is marked the
+ * first time the line says it; where two overlap, the longer wins.
+ */
+export function splitTerms(
+  text: string,
+  terms: readonly Term[] | undefined,
+): Piece[] {
+  if (!text || !terms?.length) return [{ text }];
+  const found: { at: number; end: number; term: Term }[] = [];
+  for (const term of terms) {
+    const pattern = escape(term.term).replace(/['‘’]/g, "['‘’]");
+    const m = new RegExp(
+      `(?<![\\p{L}\\p{N}])${pattern}(?![\\p{L}\\p{N}])`,
+      "iu",
+    ).exec(text);
+    if (m) found.push({ at: m.index, end: m.index + m[0].length, term });
+  }
+  found.sort((a, b) => a.at - b.at || b.end - a.end);
+  const out: Piece[] = [];
+  let from = 0;
+  for (const f of found) {
+    if (f.at < from) continue;
+    if (f.at > from) out.push({ text: text.slice(from, f.at) });
+    out.push({ text: text.slice(f.at, f.end), term: f.term });
+    from = f.end;
+  }
+  if (from < text.length) out.push({ text: text.slice(from) });
+  return out;
+}
+
 /** What an ask shows in words, whichever side reads it (the spec's ask, or the step built from it). */
 export type AskWords = {
   where?: readonly string[];

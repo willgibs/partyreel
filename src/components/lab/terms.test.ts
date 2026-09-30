@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { termsIn } from "./terms";
+import { splitTerms, termsIn } from "./terms";
 
 /**
  * A COINED TERM IS GLOSSED WHERE IT IS SAID (the context layer, 2026-09-29).
@@ -33,5 +33,39 @@ describe("which of a board's terms a line uses", () => {
       HOSTS,
     ]);
     expect(termsIn(["the roll"], undefined)).toEqual([]);
+  });
+});
+
+/**
+ * AND IT IS MARKED WHERE IT STANDS (lab-focus, 2026-09-29): a term's meaning
+ * is one hover away on the words themselves, so the line is cut at its terms
+ * with the line's own spelling kept and every word still there.
+ */
+describe("a line cut at the terms it uses", () => {
+  const whole = (pieces: { text: string }[]) =>
+    pieces.map((p) => p.text).join("");
+
+  it("keeps every word and the line's own spelling", () => {
+    const line = "Push The host’s door further, then the roll.";
+    const pieces = splitTerms(line, [ROLL, HOSTS]);
+    expect(whole(pieces)).toBe(line);
+    expect(pieces.filter((p) => p.term).map((p) => p.text)).toEqual([
+      "The host’s door",
+      "the roll",
+    ]);
+  });
+
+  it("marks a term the first time the line says it, never inside a word", () => {
+    const pieces = splitTerms("the roll, the rolls, the roll", [ROLL]);
+    expect(pieces.filter((p) => p.term)).toHaveLength(1);
+    expect(splitTerms("She enrolled.", [ROLL])).toEqual([
+      { text: "She enrolled." },
+    ]);
+  });
+
+  it("gives an overlap to the longer term", () => {
+    const DOOR = { term: "door", means: "A door." };
+    const pieces = splitTerms("the host's door", [DOOR, HOSTS]);
+    expect(pieces.filter((p) => p.term).map((p) => p.term)).toEqual([HOSTS]);
   });
 });

@@ -105,6 +105,29 @@ export default async function BoardPage({
       }
     : undefined;
 
+  // ★ IN SESSION MODE THE STEP IS THE WHOLE PAGE (lab-focus, 2026-09-29): it
+  // fills the window under the top bar to the pixel, so a whole stage takes
+  // exactly the room above the dock. The wide page's foot padding and the
+  // board's top margin would each push the dock a scroll below the stage, and
+  // its max width would hold the stage to 1024 when the reader's fit is Fit.
+  if (review)
+    return (
+      <BoardFrame
+        id={spec.id}
+        title={spec.title}
+        sections={spec.sections.map((s) => ({ id: s.id, label: s.title }))}
+        prev={prev && { href: `/design/lab/${prev.id}`, label: prev.title }}
+        next={next && { href: `/design/lab/${next.id}`, label: next.title }}
+        review={review}
+      >
+        <div data-lab-wide className="board-page w-full px-4">
+          <div {...skin}>
+            <Component />
+          </div>
+        </div>
+      </BoardFrame>
+    );
+
   return (
     <BoardFrame
       id={spec.id}
@@ -112,44 +135,42 @@ export default async function BoardPage({
       sections={spec.sections.map((s) => ({ id: s.id, label: s.title }))}
       prev={prev && { href: `/design/lab/${prev.id}`, label: prev.title }}
       next={next && { href: `/design/lab/${next.id}`, label: next.title }}
-      review={review}
     >
       <WidePage>
         {/* ★ IN SESSION MODE THE STEP IS THE PAGE (the stepped review,
             2026-09-16). "One context and its questions alone on the screen"
             cannot survive a record card, a badge row and a meta table above it:
-            the spine says which board this is and links the whole thing. */}
-        {review ? null : (
-          <PageHeader
-            title={spec.title}
-            // The kit's Answer states the question in the board's own first
-            // block, so the header does not: two statements of the same
-            // question, one above the other, is the density the template ends.
-            badges={
-              <>
-                <Tag>{SURFACE_LABEL[spec.surface]}</Tag>
-                <Tag badge="exploring" />
-              </>
-            }
-            meta={[
-              ["Asks", spec.sections.map((s) => s.title).join(" · ")],
-              [
-                "Track",
-                <span key="tracks" className="inline-flex flex-wrap gap-x-2">
-                  {(spec.tracks ?? [spec.id]).map((t) =>
-                    tracks.has(t) ? (
-                      <Ref key={t} to={{ kind: "track", name: t }} quiet>
-                        {t}
-                      </Ref>
-                    ) : (
-                      <span key={t}>no manifest (a standing board)</span>
-                    ),
-                  )}
-                </span>,
-              ],
-            ]}
-          />
-        )}
+            the spine says which board this is and links the whole thing. The
+            session returned above, so this is the whole board. */}
+        <PageHeader
+          title={spec.title}
+          // The kit's Answer states the question in the board's own first
+          // block, so the header does not: two statements of the same
+          // question, one above the other, is the density the template ends.
+          badges={
+            <>
+              <Tag>{SURFACE_LABEL[spec.surface]}</Tag>
+              <Tag badge="exploring" />
+            </>
+          }
+          meta={[
+            ["Asks", spec.sections.map((s) => s.title).join(" · ")],
+            [
+              "Track",
+              <span key="tracks" className="inline-flex flex-wrap gap-x-2">
+                {(spec.tracks ?? [spec.id]).map((t) =>
+                  tracks.has(t) ? (
+                    <Ref key={t} to={{ kind: "track", name: t }} quiet>
+                      {t}
+                    </Ref>
+                  ) : (
+                    <span key={t}>no manifest (a standing board)</span>
+                  ),
+                )}
+              </span>,
+            ],
+          ]}
+        />
         <div className="mt-4" {...skin}>
           <Component />
         </div>

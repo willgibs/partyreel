@@ -14,31 +14,30 @@ import { openingTexts, termsIn } from "./terms";
  * without really introducing more of the context around what's happening". So
  * a board opens with what it is about, what is settled and what he said
  * before; an ask with where it happens; and a coined word with its meaning.
- * These are the three shapes that say so, shared by the step and the board.
+ * These are the shapes that say so, shared by the step, its About panel and
+ * the whole board.
+ *
+ * ★ ON A STEP THEY ARE ONE PRESS AWAY, NOT A WALL (lab-focus, the same day).
+ * Stacked above the question, block by block, they grew into what he called
+ * "a Jackson Pollock painting of text" between him and the pictures. A step
+ * keeps where it happens in its one line and puts the rest in its About panel
+ * (`about.tsx`); the whole board still opens with its opening.
  */
 
-/** Where an ask happens: the surface, then the screen and the moment. */
-export function Crumbs({
-  where,
-  className,
-}: {
-  where?: readonly string[];
-  className?: string;
-}) {
+/**
+ * Where an ask happens: the surface, then the screen and the moment, inline,
+ * so the step's one line can hold it beside the state that brings someone
+ * there and cut them together.
+ */
+export function Crumbs({ where }: { where?: readonly string[] }) {
   if (!where?.length) return null;
   return (
-    <p
-      data-lab-where=""
-      className={cn(
-        "flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-xs leading-snug text-muted-foreground",
-        className,
-      )}
-    >
+    <>
       <span className="sr-only">Where it happens: </span>
       {where.map((crumb, i) => (
         <Fragment key={`${i}-${crumb}`}>
           {i > 0 && (
-            <span aria-hidden className="text-faint">
+            <span aria-hidden className="px-1 text-faint">
               ›
             </span>
           )}
@@ -48,7 +47,7 @@ export function Crumbs({
           </span>
         </Fragment>
       ))}
-    </p>
+    </>
   );
 }
 
@@ -81,7 +80,14 @@ export function TermList({
   );
 }
 
-function Lines({ label, lines }: { label: string; lines?: readonly string[] }) {
+/** A label and its lines, a dot each: what is settled, what he said before. */
+export function Lines({
+  label,
+  lines,
+}: {
+  label: string;
+  lines?: readonly string[];
+}) {
   if (!lines?.length) return null;
   return (
     <div>
@@ -101,53 +107,21 @@ function Lines({ label, lines }: { label: string; lines?: readonly string[] }) {
 }
 
 /**
- * THE BOARD'S OPENING: what it is about, what is settled, what he picked and
- * wrote before, and the board's words it uses. Drawn open where his sitting
- * enters the board and at the head of the whole board; `folded` draws it as
- * one line that opens, for a step that is not the board's first.
+ * THE BOARD'S OPENING, at the head of the whole board: what it is about, what
+ * is settled, what he picked and wrote before, and the board's words it uses.
+ * A step carries the same lines in its About panel.
  */
 export function BoardOpening({
   opening,
   terms,
-  folded = false,
   className,
 }: {
   opening?: Opening;
   terms?: readonly Term[];
-  folded?: boolean;
   className?: string;
 }) {
   if (!opening) return null;
   const used = termsIn(openingTexts(opening), terms);
-  // Settled beside what came before where there is room: the two lists are
-  // read together, and stacked they pushed the question a screen down.
-  const body = (
-    <div className="flex flex-col gap-2.5">
-      <p className="text-sm leading-relaxed">{opening.about}</p>
-      <div className="grid gap-x-8 gap-y-2.5 lg:grid-cols-2">
-        <Lines label="Already settled" lines={opening.settled} />
-        <Lines
-          label="What you picked and said before"
-          lines={opening.earlier}
-        />
-      </div>
-      <TermList terms={used} wide />
-    </div>
-  );
-  if (folded)
-    return (
-      <details
-        data-lab-opening="folded"
-        className={cn("max-w-6xl text-xs", className)}
-      >
-        <summary className="cursor-pointer text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground">
-          About this board
-        </summary>
-        <div className="mt-2 rounded-xl border border-border bg-card px-4 py-3">
-          {body}
-        </div>
-      </details>
-    );
   return (
     <section
       data-lab-opening=""
@@ -160,7 +134,19 @@ export function BoardOpening({
       <p className="mb-1 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
         About this board
       </p>
-      {body}
+      <div className="flex flex-col gap-2.5">
+        <p className="text-sm leading-relaxed">{opening.about}</p>
+        {/* Settled beside what came before where there is room: the two
+            lists are read together, and stacked they cost a screen. */}
+        <div className="grid gap-x-8 gap-y-2.5 lg:grid-cols-2">
+          <Lines label="Already settled" lines={opening.settled} />
+          <Lines
+            label="What you picked and said before"
+            lines={opening.earlier}
+          />
+        </div>
+        <TermList terms={used} wide />
+      </div>
     </section>
   );
 }

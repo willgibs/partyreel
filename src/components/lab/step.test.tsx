@@ -25,6 +25,7 @@ import {
 } from "@/lib/test-utils/next-history";
 
 import type { BoardState } from "./board-spec";
+import { setLabPref } from "./lab-prefs";
 import { Step, type StepBoard } from "./step";
 
 /**
@@ -277,7 +278,16 @@ beforeEach(() => {
   push.mockClear();
   setReviewStore(EMPTY_REVIEW);
   window.scrollTo = vi.fn();
+  // About stays open for a reader once opened (lab-prefs.ts), so every case
+  // starts where a new reader does: closed, whole, one line each.
+  setLabPref("about", "closed");
+  setLabPref("stage", "whole");
+  setLabPref("lines", "one");
 });
+
+/** Opens the step's About panel the way a reader does. */
+const openAbout = () =>
+  userEvent.click(screen.getByRole("button", { name: "About" }));
 
 /**
  * ★ THE PREVIEW IS THE PAGE AND THE ANSWER IS A DOCK (2026-09-18).
@@ -330,6 +340,8 @@ describe("a step puts the preview on the page and the answer in a dock", () => {
     // `look` was carried on the step type and dropped by the renderer: on an
     // ask whose options cannot be drawn it is the ONLY instruction there is,
     // and river-visual's four steps shipped without it (found 2026-09-17).
+    // Such a step has no picture, so the line stays in its view (a drawn
+    // step keeps it in About, lab-focus).
     step("light.depth", fakeBoard());
     expect(
       screen.getByText(/The Separate section on the App dark ground\./),
@@ -492,15 +504,19 @@ describe("a step, by its keys", () => {
 });
 
 describe("a step, as a form", () => {
-  it("asks the question in the words a stranger can answer it in", () => {
+  it("asks the question in the words a stranger can answer it in", async () => {
     step("light.depth", fakeBoard());
     expect(screen.getByRole("heading")).toHaveTextContent(DEPTH.question);
-    expect(screen.getByText(DEPTH.context!)).toBeInTheDocument();
-    expect(screen.getByText(DEPTH.lands!)).toBeInTheDocument();
     for (const option of DEPTH.options) {
       expect(screen.getAllByText(option.label).length).toBeGreaterThan(0);
       expect(screen.getByText(option.means!)).toBeInTheDocument();
     }
+    // What the previews draw and what the answer decides are one press away
+    // (lab-focus: the pictures first, everything else in About).
+    expect(screen.queryByText(DEPTH.lands!)).not.toBeInTheDocument();
+    await openAbout();
+    expect(screen.getByText(DEPTH.context!)).toBeInTheDocument();
+    expect(screen.getByText(DEPTH.lands!)).toBeInTheDocument();
   });
 
   it("marks the option the board recommends, and only that one", () => {
@@ -893,7 +909,7 @@ const WAIT: AskStep = {
 const DOOR: SessionStep[] = [FAMILY, WAIT];
 
 describe("a step says where it is before it asks", () => {
-  it("prints where, when, what it decides and why, and the board's reason, before any option", () => {
+  it("prints where it happens and the state that brings someone there before any option", () => {
     const { container } = step("door.family", fakeBoard(), "door", DOOR);
     const where = container.querySelector("[data-lab-where]")!;
     expect(where).toHaveTextContent("Guest");
@@ -901,18 +917,52 @@ describe("a step says where it is before it asks", () => {
     expect(container.querySelector("[data-lab-when]")).toHaveTextContent(
       FAMILY.when!,
     );
+    // Both precede the stage: FOLLOWING (4) means the stage comes after.
+    const stage = container.querySelector("[data-lab-stage]")!;
+    expect(
+      where.compareDocumentPosition(stage) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  /**
+   * ★ EVERYTHING ELSE A BOARD KNOWS IS ONE PRESS AWAY, IN ONE PLACE
+   * (lab-focus, 2026-09-29). Printed before the options, what it decides,
+   * why it matters and the board's reason grew, with the opening and the
+   * terms, into "a Jackson Pollock painting of text" between Will and the
+   * pictures. They moved to About, whole and in the same words; what is
+   * pinned is that they are there, before the stage when open, and that the
+   * choice to open it holds for the next step.
+   */
+  it("keeps what it decides, why it matters and the board's reason in About", async () => {
+    const { container } = step("door.family", fakeBoard(), "door", DOOR);
+    expect(container.querySelector("[data-lab-matters]")).toBeNull();
+    await openAbout();
     expect(container.querySelector("[data-lab-matters]")).toHaveTextContent(
       FAMILY.matters!,
     );
     const reason = container.querySelector("[data-lab-reason]")!;
     expect(reason).toHaveTextContent("The doorway");
     expect(reason).toHaveTextContent(FAMILY.because!);
-    // All of it precedes the stage: FOLLOWING (4) means the stage comes after.
+    expect(screen.getByText(FAMILY.lands!)).toBeInTheDocument();
     const stage = container.querySelector("[data-lab-stage]")!;
-    for (const el of [where, reason])
-      expect(
-        el.compareDocumentPosition(stage) & Node.DOCUMENT_POSITION_FOLLOWING,
-      ).toBeTruthy();
+    expect(
+      reason.compareDocumentPosition(stage) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("keeps About open for the reader once opened, and closes it with i", async () => {
+    const first = step("door.family", fakeBoard(), "door", DOOR);
+    await openAbout();
+    expect(
+      first.container.querySelector("[data-lab-about]"),
+    ).toBeInTheDocument();
+    first.unmount();
+    const later = step("door.wait", fakeBoard(), "door", DOOR);
+    expect(
+      later.container.querySelector("[data-lab-about]"),
+    ).toBeInTheDocument();
+    await userEvent.keyboard("i");
+    expect(later.container.querySelector("[data-lab-about]")).toBeNull();
   });
 
   it("carries the shown option's gain and cost with its preview", async () => {
@@ -929,45 +979,51 @@ describe("a step says where it is before it asks", () => {
     expect(trade()).toHaveTextContent("Its words fit one reason of five.");
   });
 
-  it("opens the board where the sitting enters it, and keeps it a line away after", () => {
+  it("marks the board's first step so its opening is found, and keeps it in About on every step", async () => {
     const first = step("door.family", fakeBoard(), "door", DOOR);
+    const about = () => screen.getByRole("button", { name: "About" });
+    // Where the sitting enters the board, About carries a mark until opened.
+    expect(about()).toHaveAttribute("data-fresh");
+    expect(first.container.querySelector("[data-lab-opening]")).toBeNull();
+    await openAbout();
     const open = first.container.querySelector("[data-lab-opening]")!;
-    expect(open).not.toHaveAttribute("data-lab-opening", "folded");
     expect(open).toHaveTextContent(OPENING.about);
     expect(open).toHaveTextContent(OPENING.settled[0]);
     expect(open).toHaveTextContent(OPENING.earlier[0]);
+    expect(about()).not.toHaveAttribute("data-fresh");
     first.unmount();
-    const later = step("door.wait", fakeBoard(), "door", DOOR);
-    expect(later.container.querySelector("[data-lab-opening]")).toHaveAttribute(
-      "data-lab-opening",
-      "folded",
-    );
+    setLabPref("about", "closed");
+    step("door.wait", fakeBoard(), "door", DOOR);
+    expect(about()).not.toHaveAttribute("data-fresh");
   });
 
-  it("glosses a coined term on the step that says it, and only once", () => {
+  it("marks a coined term where the step says it, and lists its meaning once in About", async () => {
     const { container } = step("door.family", fakeBoard(), "door", DOOR);
-    const head = container.querySelector(".lab-step-head")!;
-    const glossed = head.querySelector("[data-lab-terms]")!;
-    // "the lit column" is in the question.
-    expect(glossed).toHaveTextContent("the lit column");
-    expect(glossed).toHaveTextContent(TERMS[0].means);
-    // "the welcome" is in an option's cost AND the open opening, which glosses
-    // it first, so the head does not say it twice.
-    const opening = container.querySelector("[data-lab-opening]")!;
-    expect(opening.querySelector("[data-lab-terms]")).toHaveTextContent(
-      "the welcome",
+    // "the lit column" is in the question: marked where it stands.
+    const marked = container.querySelector(
+      '.lab-step-head [data-lab-term="the lit column"]',
     );
-    expect(glossed).not.toHaveTextContent("the welcome");
+    expect(marked).toHaveTextContent("lit column");
+    expect(screen.getByRole("heading")).toHaveTextContent(FAMILY.question);
+    await openAbout();
+    const listed = container.querySelector(
+      "[data-lab-about] [data-lab-terms]",
+    )!;
+    expect(listed).toHaveTextContent("the lit column");
+    expect(listed).toHaveTextContent(TERMS[0].means);
+    // "the welcome" is in an option's cost and the opening: listed once.
+    expect(listed.textContent!.match(/the welcome:/g)).toHaveLength(1);
     // "a gate" is said only by the other step.
-    expect(container).not.toHaveTextContent("a gate");
+    expect(listed).not.toHaveTextContent("a gate");
   });
 
-  it("glosses the opening's words under the question once the opening is folded", () => {
+  it("lists the words the board's opening uses too, since About prints it", async () => {
     const { container } = step("door.wait", fakeBoard(), "door", DOOR);
-    const head = container.querySelector(".lab-step-head")!;
-    expect(head.querySelector("[data-lab-terms]")).toHaveTextContent(
-      "the welcome",
-    );
-    expect(head.querySelector("[data-lab-terms]")).toHaveTextContent("a gate");
+    await openAbout();
+    const listed = container.querySelector(
+      "[data-lab-about] [data-lab-terms]",
+    )!;
+    expect(listed).toHaveTextContent("the welcome");
+    expect(listed).toHaveTextContent("a gate");
   });
 });

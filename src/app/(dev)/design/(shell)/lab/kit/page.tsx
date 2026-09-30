@@ -123,8 +123,11 @@ export default async function KitPage({
           <li>
             <code>pnpm lab:smoke --board &lt;id&gt; --base &lt;server&gt;</code>{" "}
             crawls the board, its steps and the desk;{" "}
-            <code>pnpm lab:demo --board &lt;id&gt;</code> presses every option
-            and refuses two options that draw the same picture.
+            <code>pnpm lab:demo --board &lt;id&gt;</code> presses every option,
+            fails a stage that draws the same picture whichever is pressed (and
+            names any two that match), and fails a step whose stage starts past
+            half the first screen or whose frames end under the dock, at 1440 by
+            900 and at 375 by 812.
           </li>
           <li>
             <code>registry.test.ts</code> holds the spec: pure data, one export,
@@ -173,10 +176,32 @@ export default async function KitPage({
         <div className="flex flex-col gap-6">
           <div>
             <p className="text-sm font-medium">The step</p>
-            <p className="mt-1 mb-3 max-w-3xl text-sm text-muted-foreground">
-              Each decision becomes one step: its context above, the options as
-              tiles drawn from their previews, the recommendation and its
-              reason, Back and Next. This is where Will meets the board.
+            <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
+              Each decision becomes one step, read pictures first: where it
+              happens in one line (<code>where</code> and <code>when</code>),
+              the question, the options as tabs, the shown option&rsquo;s{" "}
+              <code>means</code>, <code>gains</code> and <code>costs</code> in a
+              line, its <code>configs</code> as one quiet row of knobs, and the
+              stage, with the note, Pick, Back and Next in the dock. This is
+              where Will meets the board.
+            </p>
+            <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+              The stage draws the shown option whole: it scales the drawing to
+              the room above the dock, every option at one scale, and a column
+              that holds only frames (with whole lines between them, a lede or a
+              note) may stand there as a row that wraps, so the frames are as
+              large as the room allows. 1:1 is one press away (<code>f</code>)
+              and draws the preview exactly as written. A frame&rsquo;s{" "}
+              <code>Measured</code> caption stays in the page for the lane and
+              out of his view.
+            </p>
+            <p className="mt-2 mb-3 max-w-3xl text-sm text-muted-foreground">
+              Everything else the spec says (the <code>opening</code>, the{" "}
+              <code>terms</code>, <code>lands</code>, <code>matters</code>,{" "}
+              <code>because</code>, <code>context</code> and <code>look</code>)
+              is the About panel, one press away (<code>i</code>) and open for
+              him once he opens it; a term is also marked where the step says
+              it, with its meaning on a hover.
             </p>
             <StepDemo />
           </div>

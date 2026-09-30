@@ -159,4 +159,24 @@ export const TRAPS: readonly Trap[] = [
       "Override production through the board's own sheet or `cn()`, never a bare Tailwind utility competing with a production class on the same element.",
     file: "src/app/(dev)/design/design.css",
   },
+  {
+    id: "reduced-motion-measure",
+    tried:
+      "Write a box's width (or zoom) from a script and read its size back in the same task, to measure a layout: the whole stage tries a dozen widths that way.",
+    breaks:
+      "Under reduced motion globals.css gives every element `transition-duration: 0.01ms !important` (never 0, or radix's exits would wait for ever), and `transition-property` is `all` by default, so every style write is a transition and the read gets the value from before the write. The stage measured every width as the same height and fitted four phones stacked at 11%; `lab:demo` runs under reduced motion, so the gate saw it and Will, without it, would not have.",
+    instead:
+      "design.css takes only what the stage writes and reads (its drawing's box and the frames' names) out of the guard, inside the guard's own layer, so every other transition in a drawing keeps it.",
+    file: "src/components/lab/whole.ts",
+  },
+  {
+    id: "zoom-lands-late-on-a-frame",
+    tried:
+      "Switch a zoom off to measure a box at its natural size and back on again, since zoom is how the lab scales a frame.",
+    breaks:
+      "A zoom on a box that holds an iframe lands a frame or two after it is set (13 to 36 ms, measured in Chrome 154), because the frame's own scale follows it; a plain box takes it at once. A read in between measures the old picture, and the drawing is fitted to a size it no longer has.",
+    instead:
+      "`offsetWidth` and `offsetHeight` answer in the box's own unscaled pixels whatever its zoom, and a width set under a zoom lays out at once, so the whole stage measures under the zoom it already wears and never undoes one.",
+    file: "src/components/lab/whole.ts",
+  },
 ];

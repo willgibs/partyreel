@@ -2,8 +2,15 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import {
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type RefObject,
+} from "react";
+import { ArrowLeft, ArrowRight, Check, Info } from "lucide-react";
 
 import { withDesignKey } from "@/lib/design-gate/links";
 import { cn } from "@/lib/utils";
@@ -32,22 +39,26 @@ import {
 } from "@/app/(dev)/design/(shell)/lab/_desk/session-step";
 import { holdId } from "@/app/(dev)/design/(shell)/lab/_desk/step-id";
 
+import { AboutPanel, hasAbout, panelTerms } from "./about";
 import type { BoardState, Control, Term } from "./board-spec";
 import { ControlKnobs } from "./board-state";
 import { CatalogTiles } from "./catalog";
+import { Glossed } from "./gloss";
 import {
-  type LabFit,
+  FitPin,
   type LabSidebar,
+  type LabStage,
   setLabPref,
   useLabPrefs,
 } from "./lab-prefs";
-import { BoardOpening, Crumbs, TermList } from "./opening";
-import { askTexts, openingTexts, termsIn } from "./terms";
+import { Crumbs } from "./opening";
 import { useDesignKey } from "./walk";
+import { type Fitted, fitStage, unfitStage } from "./whole";
 
 /**
- * THE STEP (the stepped review, 2026-09-16; the dock, 2026-09-18): one context
- * and its question, the options drawn full size, and the answer in a dock.
+ * THE STEP (the stepped review, 2026-09-16; the dock, 2026-09-18; pictures
+ * first, lab-focus, 2026-09-29): one question, its options drawn whole on the
+ * first screen, and the answer in a dock.
  *
  * ★ WILL'S WORDS ARE THE SPEC. "The review process favors you and makes me
  * spend tons of time per track figuring what I'm even being asked"; what he
@@ -56,35 +67,40 @@ import { useDesignKey } from "./walk";
  * the next context". So: one question, its options drawn on the board's own
  * specimen, Back and Next, and nothing else on the page.
  *
- * ★ THE PREVIEW IS THE PAGE AND THE ANSWER IS A DOCK (Will, 2026-09-18). The
- * step before this pinned the evidence above the options in a 40vh window, and
- * he could not see what he was answering: "The top preview UI of our lab is
- * covered by the answer UI, and I cannot scroll it to see the full heights or
- * labels on which height is which. This has been a recurring problem where I
- * have to visit the board to be able to see a full preview, then go back to the
- * question to answer. We should ensure both the question/context/preview UI and
- * response/answer UI work well together." So the page is, top to bottom:
- *  - the board's OPENING, open on the first step his sitting reaches on a
- *    board and one line away on the rest (the context layer, 2026-09-29);
- *  - the HEAD: where it happens, the state that brings someone there, the
- *    question, what the previews draw and the words the board coins; beside
- *    them, what it decides, why it matters and the recommendation's reason;
- *  - the STAGE HEAD, sticky: which option is on the stage (its number, its
- *    label, the board's recommendation or your pick), the knobs, the scale the
- *    stage is drawn at; under it, the shown option's means, gain and cost;
- *  - the STAGE: every option mounted ONCE at its true size, never capped and
- *    never pinned, and it takes the pointer, so the wheel scrolls the page;
- *  - the DOCK, sticky at the bottom: the options by number, Pick, the note,
- *    "not clear to me", Back and Next.
- * The answer is always on screen and the preview is never clipped, at every
- * width, which is the one layout the two halves of his note ask for.
+ * ★ THE PICTURES ARE WHAT HE SEES (lab-focus, 2026-09-29). Opening a question
+ * he is excited to see the drawn options, and he met "an absolutely
+ * overwhelming smorgasbord of UI" first: the board's opening, a breadcrumb, a
+ * context sentence, the question and its description, the words here twice, a
+ * column of what it decides, the knobs, the option's trade, and per frame a
+ * title and a measured line, with the frames below the fold and the dock
+ * cutting them. So the first screen, at a desk and at a phone, is:
+ *  - the SPINE: the board, the count, the way out;
+ *  - WHERE IT HAPPENS, in one line: the breadcrumb and the state that brings
+ *    someone there, with About at its end;
+ *  - the QUESTION, sized to read, not to shout;
+ *  - the OPTIONS as the tabs he picks between;
+ *  - the shown option's SENTENCE, gain and cost in a line, over its picture;
+ *  - the KNOBS as one quiet row on the stage;
+ *  - the STAGE WHOLE: every frame of the shown option, scaled to fit the room
+ *    left above the dock (`whole.ts`), with 1:1 one press away (`f`);
+ *  - the DOCK: the note, "not clear to me", Back, Pick and Next.
+ * Everything else a board knows (its opening, its words, what the question
+ * decides and why, the board's reason) is one press on About (`i`), in one
+ * place (`about.tsx`), and stays open for him once he opens it. What a lane
+ * measures to prove a frame stays in the page for the lanes and `lab:demo`
+ * and out of his view (design.css hides a frame's caption on a stage).
+ *
+ * ★ THE PREVIEW IS NEVER COVERED AND THE ANSWER IS ALWAYS ON SCREEN (the dock
+ * round, 2026-09-18: "The top preview UI of our lab is covered by the answer
+ * UI, and I cannot scroll it to see the full heights or labels on which height
+ * is which"). Whole, the stage ends where the dock begins; 1:1, the page
+ * scrolls under a sticky stage head and the dock sticks to the window's foot.
  *
  * ★ EVERY OPTION IS MOUNTED ONCE, FLIPPED OR SIDE BY SIDE. Flipped, the options
  * share one place on the stage and one is visible (the rest inert, hidden and
- * paused), so pressing between two is a blink with no reload and no scroll jump:
- * the stage is as tall as its tallest option. Side by side when they all fit at
- * true size (phone-sized previews in a wide column), and `g` swaps the two. A
- * phone always flips.
+ * paused), so pressing between two is a blink with no reload and no scroll jump,
+ * and whole, every option is drawn at one scale. Side by side when they are
+ * phone columns and there is room (`g` swaps the two). A phone always flips.
  *
  * ★ SHOWING IS NOT CHOOSING, AND THAT IS THE WHOLE MECHANISM. A press on an
  * option SHOWS it; a press on the one being shown, or Pick, RECORDS it; a
@@ -110,11 +126,12 @@ import { useDesignKey } from "./walk";
  * the ground a later board moved lives in the question's own context.
  *
  * Keys: 1..9 shows an option and a second press picks it; x blinks back to the
- * one shown before (A and B); g flips or lays side by side; n goes to the note;
- * ? marks the question unclear; Enter and the arrows step, Enter from the note
- * too; Escape lets the note go. Enter on a
- * focused control belongs to that control: an Enter that pressed a button AND
- * advanced the review answered a question the reader never looked at.
+ * one shown before (A and B); g flips or lays side by side; f swaps whole and
+ * 1:1; i opens or closes About; n goes to the note; ? marks the question
+ * unclear; Enter and the arrows step, Enter from the note too; Escape lets the
+ * note go. Enter on a focused control belongs to that control: an Enter that
+ * pressed a button AND advanced the review answered a question the reader
+ * never looked at.
  */
 
 /** The board's own surface, when the step is mounted on one. */
@@ -123,12 +140,11 @@ export type StepBoard = {
   controls?: readonly Control[];
   /**
    * THE BOARD'S OWN DOCK CLUSTER, REACHABLE FROM A STEP (lab-tides,
-   * 2026-09-19). A step's dock is the ANSWER's: the options, Pick, the note,
-   * Back and Next, and nothing a board could add. That left a board's own
-   * tools (a Reload frames, a Replay, an Apply) reachable only by leaving the
-   * question and opening the whole board, which is the trip the stepped review
-   * exists to end. They ride the stage head instead, beside the scale, where
-   * they stay on screen while a tall stage scrolls.
+   * 2026-09-19). A step's dock is the ANSWER's: Pick, the note, Back and
+   * Next, and nothing a board could add. That left a board's own tools (a
+   * Reload frames, a Replay, an Apply) reachable only by leaving the question
+   * and opening the whole board, which is the trip the stepped review exists
+   * to end. They ride the stage's knob row instead, beside the scale.
    */
   tools?: React.ReactNode;
   /** The live board state (`useBoardState`), which the stage reads. */
@@ -153,6 +169,7 @@ export function Step({
   transcribed,
   build,
   onEnd,
+  page = false,
   className,
 }: {
   /** The board this is mounted on; a step for any other board renders nothing.
@@ -169,11 +186,20 @@ export function Step({
   build?: string | null;
   /** The desk's summary; without it the last Next links there. */
   onEnd?: () => void;
+  /**
+   * THE STEP IS THE PAGE: it fills the window under the top bar, so a whole
+   * stage takes exactly the room between the question and the dock. A board's
+   * review mounts it so; the desk's dry run and the kit's demo sit in a page
+   * of their own and leave it off.
+   */
+  page?: boolean;
   className?: string;
 }) {
   const store = useReviewStore();
   const router = useRouter();
   const key = useDesignKey();
+  const prefs = useLabPrefs();
+  const aboutId = useId();
   // Null until the reader moves: the opening step is the one the URL names, so
   // the first paint is right and no effect has to correct it.
   const [chosen, setChosen] = useState<number | null>(null);
@@ -212,6 +238,7 @@ export function Step({
   // `<ask>=? "why"`, and `pnpm lab:review` refuses the line without the note:
   // an unclear question that never says what was unclear cannot be rewritten.
   const needsWhy = unclear && !(held?.note ?? "").trim();
+  const aboutOpen = prefs.about === "open";
 
   /* ── what Next and Back reach, skipping what is staged ────────────────── */
 
@@ -359,6 +386,11 @@ export function Step({
     setAnswerNote(step.board, step.round, step.askId, note);
   };
 
+  const toggleAbout = () =>
+    setLabPref("about", prefs.about === "open" ? "closed" : "open");
+  const toggleStage = () =>
+    setLabPref("stage", prefs.stage === "whole" ? "true" : "whole");
+
   /* ── landing: the answer held, else the board's recommendation ────────── */
 
   // Landing happens once per step and reads the render it lands in (the held
@@ -394,6 +426,7 @@ export function Step({
   const onKey = (pressed: string): boolean => {
     if (!step || !mine) return false;
     const n = Number(pressed);
+    const key = pressed.toLowerCase();
     // A digit on a catalog step does nothing: the verdicts are on the cards,
     // and nine of twelve would be an arbitrary half of a catalog.
     if (step.kind === "ask") {
@@ -401,7 +434,6 @@ export function Step({
         press(step.options[n - 1]);
         return true;
       }
-      const key = pressed.toLowerCase();
       if (key === "x") {
         const back = step.options.find((o) => o.id === previous);
         if (back) show(back);
@@ -419,6 +451,14 @@ export function Step({
         markUnclear();
         return true;
       }
+    }
+    if (key === "i" && hasAbout(step)) {
+      toggleAbout();
+      return true;
+    }
+    if (key === "f") {
+      toggleStage();
+      return true;
     }
     if (pressed === "Enter" || pressed === "ArrowRight") {
       if (!needsWhy) goTo(at + 1);
@@ -483,34 +523,33 @@ export function Step({
   // spine says what it is instead, and the step stays readable, because a
   // reader who followed a link to a question is owed the question.
   const blocked = stepBlocked(step, store);
-  // The options the dock carries: the ones drawn on the stage. A catalog's
+  // The options the tabs carry: the ones drawn on the stage. A catalog's
   // winner is pressed on its cards, and an option in words on its own card.
   const pictured =
     step.kind === "ask" && !step.winner
       ? step.options.filter((o) => drawable(step, o, board))
       : [];
   // ★ WHERE HIS SITTING ENTERS THE BOARD (the context layer, 2026-09-29): the
-  // first of the board's steps the walk reaches draws its opening open, and
-  // every later one keeps it one line away. The terms the open opening already
-  // glossed are not glossed again under the question.
-  const opening = step.kind === "ask" ? step.opening : undefined;
+  // first of the board's steps the walk reaches is where the board's opening
+  // is new to him, so its About says so with a mark until he opens it; every
+  // later step keeps the same panel one press away.
   const enters =
-    opening !== undefined && walk.find((s) => s.board === step.board) === step;
-  const glossed =
-    enters && step.kind === "ask"
-      ? termsIn(openingTexts(opening), step.terms)
-      : [];
-  const terms =
-    step.kind === "ask"
-      ? termsIn(askTexts(step), step.terms).filter((t) => !glossed.includes(t))
-      : [];
+    step.kind === "ask" &&
+    step.opening !== undefined &&
+    walk.find((s) => s.board === step.board) === step;
+  const about = hasAbout(step);
+  // Every coined word the view says is marked where it appears, with its
+  // meaning a hover away, and listed in About.
+  const terms = panelTerms(step);
 
   return (
     <div
       data-review-step
       role="region"
       aria-label={`${step.boardTitle}: the step being reviewed`}
-      className={cn("flex min-w-0 flex-col gap-5", className)}
+      data-stage={prefs.stage}
+      data-page={page ? "" : undefined}
+      className={cn("lab-step", className)}
     >
       <Spine
         step={step}
@@ -521,27 +560,51 @@ export function Step({
         build={build}
       />
 
-      {step.kind === "ask" && (
-        <BoardOpening opening={opening} terms={step.terms} folded={!enters} />
-      )}
-
-      <Head step={step} terms={terms} />
-
-      {step.kind === "ask" ? (
-        <AskBody
+      <div
+        className="lab-step-body"
+        data-about={about && aboutOpen ? "open" : undefined}
+      >
+        <Head
           step={step}
-          board={board}
-          pictured={pictured}
-          choice={choice}
-          shown={shown}
-          arrangeRef={arrangeRef}
-          onPress={press}
-          onChoose={choose}
-          stateFor={stateFor}
+          terms={terms}
+          lines={prefs.lines}
+          about={
+            about
+              ? {
+                  id: aboutId,
+                  open: aboutOpen,
+                  fresh: enters && !aboutOpen,
+                  onToggle: toggleAbout,
+                }
+              : undefined
+          }
         />
-      ) : (
-        <ItemsBody step={step} board={board} />
-      )}
+
+        {about && aboutOpen && (
+          <AboutPanel step={step} id={aboutId} onClose={toggleAbout} />
+        )}
+
+        <div className="lab-step-main">
+          {step.kind === "ask" ? (
+            <AskBody
+              step={step}
+              board={board}
+              pictured={pictured}
+              choice={choice}
+              shown={shown}
+              terms={terms}
+              lines={prefs.lines}
+              stage={prefs.stage}
+              arrangeRef={arrangeRef}
+              onPress={press}
+              onChoose={choose}
+              stateFor={stateFor}
+            />
+          ) : (
+            <ItemsBody step={step} board={board} stage={prefs.stage} />
+          )}
+        </div>
+      </div>
 
       <Dock
         step={step}
@@ -553,7 +616,6 @@ export function Step({
         unclear={unclear}
         needsWhy={needsWhy}
         noteRef={noteRef}
-        onPress={press}
         onChoose={choose}
         onNote={writeNote}
         onUnclear={markUnclear}
@@ -624,8 +686,8 @@ function Spine({
 }) {
   const key = useDesignKey();
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+    <div className="lab-spine flex flex-col gap-1.5">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
         <span className="text-[11px] font-medium">{step.boardTitle}</span>
         {blocked ? (
           <span
@@ -688,95 +750,186 @@ function Spine({
 /* ── the head ─────────────────────────────────────────────────────────────── */
 
 /**
- * THE QUESTION AND ITS CONTEXT, with what it decides beside them where there
- * is room (design.css, `.lab-step-head`), under them where there is not.
+ * WHERE IT HAPPENS, IN ONE LINE, AND THE QUESTION (lab-focus, 2026-09-29).
  *
- * ★ CONTEXT COMES BEFORE THE OPTIONS (Will, 2026-09-29: "for some questions
- * I'm just getting dropped off in the middle of nowhere with no resources to
- * help"). The head reads, in order: where it happens (the breadcrumb), the
- * state that brings someone there, the question, what the previews draw and
- * the board's words it uses; beside them, what it decides, why that matters
- * and the recommendation with its reason, so he knows which option the board
- * favours, and why, before he presses any. `look` is the author's own sentence
- * naming what separates the options.
+ * ★ HE CAN ALWAYS PLACE A QUESTION (the context layer, 2026-09-29: "for some
+ * questions I'm just getting dropped off in the middle of nowhere"), and the
+ * one line is how: the breadcrumb (the surface, then the screen and the
+ * moment) and the state that brings someone there, together, cut to one line
+ * with the rest a press on "more" away. About sits at its end, marked where
+ * the board is new to this sitting.
+ *
+ * ★ THE QUESTION IS SIZED TO READ, NOT TO SHOUT: the reading face at a
+ * reading size, since the pictures under it are what he came for.
  */
 function Head({
   step,
-  terms = [],
+  terms,
+  lines,
+  about,
 }: {
   step: SessionStep;
-  terms?: readonly Term[];
+  terms: readonly Term[];
+  lines: "one" | "full";
+  about?: {
+    id: string;
+    open: boolean;
+    /** The board is new to this sitting and its About not yet opened. */
+    fresh: boolean;
+    onToggle: () => void;
+  };
 }) {
   const ask = step.kind === "ask" ? step : null;
-  const recommended = ask?.options.find((o) => o.id === ask.recommended);
-  const aside = Boolean(
-    ask &&
-    (ask.lands || ask.matters || ask.look || (recommended && ask.because)),
+  const where = ask?.where?.length ? ask.where : undefined;
+  const placed = Boolean(where || ask?.when);
+  const toggle = about && (
+    <button
+      type="button"
+      data-dir-press
+      data-lab-about-toggle=""
+      data-fresh={about.fresh ? "" : undefined}
+      aria-expanded={about.open}
+      aria-controls={about.open ? about.id : undefined}
+      onClick={about.onToggle}
+      title={
+        about.fresh
+          ? "What this board is about, what is settled and what you said before (i)"
+          : "What it decides, why it matters, the board's words (i)"
+      }
+      className={cn(
+        "relative inline-flex h-5 shrink-0 items-center gap-1 rounded-md px-1.5 text-[11px] font-medium transition-colors duration-150 motion-reduce:transition-none",
+        about.open
+          ? "bg-muted text-foreground"
+          : "text-muted-foreground hover:text-foreground",
+      )}
+    >
+      <Info className="size-3.5" aria-hidden />
+      About
+      {about.fresh && (
+        <span
+          aria-hidden
+          className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-foreground"
+        />
+      )}
+    </button>
+  );
+  const question = (
+    <h1 className="lab-question">
+      {step.kind === "items" ? (
+        headingFor(step)
+      ) : (
+        <Glossed text={step.question} terms={terms} />
+      )}
+    </h1>
   );
   return (
-    <header className="lab-step-head" data-aside={aside ? "" : undefined}>
-      <div className="max-w-3xl min-w-0">
-        {ask && <Crumbs where={ask.where} className="mb-2" />}
-        {ask?.when && (
-          <p
-            data-lab-when=""
-            className="mb-2 text-sm leading-relaxed text-foreground"
+    <header className="lab-step-head">
+      {placed && (
+        <div className="flex min-w-0 items-start gap-3">
+          <OneLine
+            data="where"
+            lines={lines}
+            className="text-xs leading-5 text-muted-foreground"
+            whole={[...(where ?? []), ask?.when].filter(Boolean).join(" · ")}
           >
-            {ask.when}
-          </p>
-        )}
-        <h1 className="font-heading text-2xl leading-tight tracking-tight text-balance sm:text-3xl">
-          {step.kind === "items" ? headingFor(step) : step.question}
-        </h1>
-        {step.kind === "ask" ? (
-          step.context && (
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              {step.context}
-            </p>
-          )
-        ) : (
-          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            {step.walk === "one-at-a-time"
-              ? "One card at a time, as it would land. Keep it, refine it, or kill it, with a note where the word is not enough."
-              : "Keep, refine or kill each card. A second press on the same word clears it; the note stays."}
-          </p>
-        )}
-      </div>
-      {aside && ask && (
-        <div className="flex min-w-0 flex-col gap-2 text-xs leading-relaxed text-muted-foreground">
-          {ask.lands && (
-            <p>
-              <span className="text-foreground">It decides: </span>
-              {ask.lands}
-            </p>
-          )}
-          {ask.matters && (
-            <p data-lab-matters="">
-              <span className="text-foreground">Why it matters: </span>
-              {ask.matters}
-            </p>
-          )}
-          {recommended && ask.because && (
-            <p data-lab-reason="">
-              <span className="text-foreground">The board says: </span>
-              <span className="font-medium text-foreground">
-                {recommended.label}
-              </span>
-              {`. ${ask.because}`}
-            </p>
-          )}
-          {ask.look && (
-            <p>
-              <span className="text-foreground">What to look at: </span>
-              {ask.look}
-            </p>
-          )}
+            <Crumbs where={where} />
+            {ask?.when && (
+              <>
+                {where && (
+                  <span aria-hidden className="px-1.5 text-faint">
+                    ·
+                  </span>
+                )}
+                <span data-lab-when="" className="text-foreground/85">
+                  <Glossed text={ask.when} terms={terms} />
+                </span>
+              </>
+            )}
+          </OneLine>
+          {toggle}
         </div>
       )}
-      {/* The step's own words, glossed across the head's whole width, so a
-          list of four costs two lines rather than four under the question. */}
-      <TermList terms={terms} wide className="lg:col-span-2" />
+      {/* A question with no line of where (an ask older than the context
+          layer) keeps About at its own end rather than a row to itself. */}
+      {placed ? (
+        question
+      ) : (
+        <div className="flex min-w-0 items-baseline justify-between gap-3">
+          {question}
+          {toggle}
+        </div>
+      )}
+      {step.kind === "items" && (
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          {step.walk === "one-at-a-time"
+            ? "One card at a time, as it would land. Keep it, refine it, or kill it, with a note where the word is not enough."
+            : "Keep, refine or kill each card. A second press on the same word clears it; the note stays."}
+        </p>
+      )}
     </header>
+  );
+}
+
+/**
+ * A LINE CUT TO ONE LINE, with "more" where it is cut (lab-focus). The where
+ * line and the shown option's line are read in one line each so the stage
+ * keeps its room; a press on "more" reads both whole, and that choice holds
+ * for the reader (`lines`, a per-viewer convenience). The whole text rides
+ * the line's title for a hover.
+ */
+function OneLine({
+  data,
+  lines,
+  whole,
+  className,
+  children,
+}: {
+  /** `data-lab-<data>` on the line, the hook a test or a tool reads it by. */
+  data: "where" | "trade";
+  lines: "one" | "full";
+  /** The line's words, for its title. */
+  whole: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const ref = useRef<HTMLParagraphElement | null>(null);
+  const [cut, setCut] = useState(false);
+  const full = lines === "full";
+
+  // Whether the line is cut, read off its own box, so "more" is offered only
+  // where there is more.
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el || full) return;
+    const read = () => setCut(el.scrollWidth > el.clientWidth + 1);
+    read();
+    const ro =
+      typeof ResizeObserver === "undefined" ? null : new ResizeObserver(read);
+    ro?.observe(el);
+    return () => ro?.disconnect();
+  }, [full, whole]);
+
+  return (
+    <div className="flex min-w-0 flex-1 items-baseline gap-1.5">
+      <p
+        ref={ref}
+        {...{ [`data-lab-${data}`]: "" }}
+        title={full ? undefined : whole}
+        className={cn("min-w-0 flex-1", !full && "truncate", className)}
+      >
+        {children}
+      </p>
+      {(full || cut) && (
+        <button
+          type="button"
+          data-dir-press
+          onClick={() => setLabPref("lines", full ? "one" : "full")}
+          className="shrink-0 text-[11px] text-muted-foreground underline decoration-dotted underline-offset-2 transition-colors duration-150 hover:text-foreground motion-reduce:transition-none"
+        >
+          {full ? "less" : "more"}
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -788,6 +941,9 @@ function AskBody({
   pictured,
   choice,
   shown,
+  terms,
+  lines,
+  stage,
   arrangeRef,
   onPress,
   onChoose,
@@ -798,7 +954,10 @@ function AskBody({
   pictured: readonly SessionOption[];
   choice: string;
   shown: string | null;
-  arrangeRef: React.RefObject<(() => void) | null>;
+  terms: readonly Term[];
+  lines: "one" | "full";
+  stage: LabStage;
+  arrangeRef: RefObject<(() => void) | null>;
   onPress: (o: SessionOption) => void;
   onChoose: (id: string) => void;
   stateFor: (s: AskStep, o?: SessionOption) => Record<string, string>;
@@ -810,6 +969,7 @@ function AskBody({
         board={board}
         choice={choice}
         shown={shown}
+        stage={stage}
         onPress={onPress}
         onChoose={onChoose}
       />
@@ -819,17 +979,29 @@ function AskBody({
   const section = step.stageSection ?? step.section;
   if (board && section && pictured.length > 0) {
     return (
-      <StageViews
-        step={step}
-        board={board}
-        section={section}
-        options={pictured}
-        choice={choice}
-        shown={shown}
-        arrangeRef={arrangeRef}
-        onPress={onPress}
-        stateFor={stateFor}
-      />
+      <>
+        <OptionTabs
+          step={step}
+          options={pictured}
+          choice={choice}
+          shown={shown}
+          onPress={onPress}
+        />
+        <StageViews
+          step={step}
+          board={board}
+          section={section}
+          options={pictured}
+          choice={choice}
+          shown={shown}
+          terms={terms}
+          lines={lines}
+          stage={stage}
+          arrangeRef={arrangeRef}
+          onPress={onPress}
+          stateFor={stateFor}
+        />
+      </>
     );
   }
 
@@ -839,15 +1011,10 @@ function AskBody({
   const tools = board?.tools;
   return (
     <>
-      {board && section && (
-        <div data-lab-specimen="" className="min-w-0">
-          {board.evidence(section, { ...board.state, ...stateFor(step) })}
-        </div>
-      )}
       {(strip || tools) && (
-        // No stage head on a words step, so the strip and the board's own
-        // tools share a row of their own rather than being unreachable.
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        // No tabs on a words step, so the strip and the board's own tools
+        // share a row of their own rather than being unreachable.
+        <div className="lab-knobs">
           {strip && <ConfigStrip step={step} board={board} />}
           {tools && (
             <span
@@ -858,6 +1025,22 @@ function AskBody({
             </span>
           )}
         </div>
+      )}
+      {board && section && (
+        <FitStage stage={stage} deps={[board.state, section]}>
+          <div data-lab-specimen="" className="min-w-0">
+            {board.evidence(section, { ...board.state, ...stateFor(step) })}
+          </div>
+        </FitStage>
+      )}
+      {/* With nothing drawn to look at, the author's line saying what to
+          look at is the view's own (it is in About too): it was once the
+          only instruction such a step had, and it shipped dropped. */}
+      {step.look && (
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          <span className="text-foreground">What to look at: </span>
+          {step.look}
+        </p>
       )}
       <ul className="lab-word-options">
         {step.options.map((option, i) => (
@@ -880,66 +1063,288 @@ function AskBody({
 }
 
 /**
- * ★ AN OPTION'S TRADE, WITH ITS PREVIEW (the context layer, 2026-09-29). What
- * the option is, what picking it gains and what it costs, a line each, so the
- * difference between two tiles is read rather than spotted: "click through
- * the options to see what's changing" was the trip this ends. Outside the
- * view on purpose: `lab:demo` compares the views' pictures, and words that
- * change with every press would hide a stage that does not.
+ * THE OPTIONS, AS THE TABS HE PICKS BETWEEN (lab-focus, 2026-09-29). They sat
+ * in the dock under the picture; now they head the stage they drive, each
+ * with its number (the key that shows it), its name, the board's mark on the
+ * one it recommends (its reason on a hover, and in About) and a tick on his
+ * pick. A press shows; a press on the one shown picks.
  */
-function OptionTrade({
-  option,
-  withMeans = true,
-  narrow = false,
-  className,
+function OptionTabs({
+  step,
+  options,
+  choice,
+  shown,
+  onPress,
 }: {
-  option: SessionOption;
-  withMeans?: boolean;
-  /** In a phone-wide column: the gain over the cost, never side by side. */
-  narrow?: boolean;
-  className?: string;
+  step: AskStep;
+  options: readonly SessionOption[];
+  choice: string;
+  shown: string | null;
+  onPress: (o: SessionOption) => void;
 }) {
-  const means = withMeans ? option.means : undefined;
-  if (!means && !option.gains && !option.costs) return null;
+  const ref = useRef<HTMLDivElement | null>(null);
+  useScrollEdges(ref);
+  // A tab shown by a key on a phone may be off the row's edge: bring it in.
+  // ★ THE ROW, NEVER THE PAGE: `scrollIntoView` scrolls every ancestor that
+  // can, and with About open above the tabs at a phone it carried the page
+  // down past the question on landing. So the row's own scroll is moved.
+  useEffect(() => {
+    const row = ref.current;
+    const tab = row?.querySelector<HTMLElement>("[data-shown]");
+    if (!row || !tab) return;
+    const at = row.getBoundingClientRect();
+    const box = tab.getBoundingClientRect();
+    const start = box.left - at.left + row.scrollLeft;
+    const end = start + box.width;
+    if (start < row.scrollLeft) row.scrollLeft = start;
+    else if (end > row.scrollLeft + row.clientWidth)
+      row.scrollLeft = end - row.clientWidth;
+  }, [shown]);
   return (
     <div
-      data-lab-trade={option.id}
-      className={cn(
-        "flex max-w-4xl flex-col gap-1 text-xs leading-relaxed",
-        className,
-      )}
+      ref={ref}
+      data-lab-tabs=""
+      className="lab-tabs"
+      role="group"
+      aria-label="The options"
     >
-      {means && <p className="text-muted-foreground">{means}</p>}
-      {(option.gains || option.costs) && (
-        <div
-          className={cn("grid gap-x-6 gap-y-1", !narrow && "sm:grid-cols-2")}
-        >
-          {option.gains && (
-            <p>
-              <span className="font-medium text-foreground">Gains: </span>
-              <span className="text-muted-foreground">{option.gains}</span>
-            </p>
-          )}
-          {option.costs && (
-            <p>
-              <span className="font-medium text-foreground">Costs: </span>
-              <span className="text-muted-foreground">{option.costs}</span>
-            </p>
-          )}
-        </div>
-      )}
+      {options.map((option) => {
+        const i = step.options.indexOf(option);
+        const on = shown === option.id;
+        const mine = choice === option.id;
+        const recommended = option.id === step.recommended;
+        return (
+          <button
+            key={option.id}
+            type="button"
+            data-dir-press
+            data-lab-option={option.id}
+            data-label={option.label}
+            data-shown={on ? "" : undefined}
+            aria-pressed={mine}
+            aria-current={on ? "true" : undefined}
+            // The recommendation's reason rides its tab, so the one place
+            // the stage says "the board says" also says why.
+            title={
+              recommended && step.because
+                ? [option.means, `The board says: ${step.because}`]
+                    .filter(Boolean)
+                    .join(" ")
+                : option.means
+            }
+            onClick={() => onPress(option)}
+            className={cn(
+              "lab-tab group/tab",
+              on
+                ? "text-foreground"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <span
+              aria-hidden
+              className={cn(
+                "inline-flex size-4.5 shrink-0 items-center justify-center rounded-md border text-[10px] tabular-nums transition-colors duration-150 motion-reduce:transition-none",
+                mine
+                  ? "border-transparent bg-foreground text-background"
+                  : on
+                    ? "border-foreground/40"
+                    : "border-border",
+              )}
+            >
+              {mine ? <Check className="size-2.5" /> : i + 1}
+            </span>
+            <span className="min-w-0 truncate font-medium">{option.label}</span>
+            {recommended && (
+              <span className="shrink-0 text-[10px] font-normal text-muted-foreground">
+                the board says
+              </span>
+            )}
+          </button>
+        );
+      })}
     </div>
   );
 }
 
 /**
- * THE STAGE: every drawn option mounted once, flipped or side by side.
+ * ★ AN OPTION'S TRADE, IN A LINE, OVER ITS PICTURE (the context layer,
+ * 2026-09-29; a line, lab-focus). Its name, what it is, what picking it gains
+ * and what it costs, so the difference between two tiles is read rather than
+ * spotted: "click through the options to see what's changing" was the trip
+ * this ends. Outside the view on purpose: `lab:demo` compares the views'
+ * pictures, and words that change with every press would hide a stage that
+ * does not. `narrow` is the stacked form a side-by-side column wears.
+ */
+function OptionTrade({
+  option,
+  terms,
+  lines = "one",
+  withMeans = true,
+  narrow = false,
+  n,
+  className,
+}: {
+  option: SessionOption;
+  terms?: readonly Term[];
+  lines?: "one" | "full";
+  withMeans?: boolean;
+  narrow?: boolean;
+  /** The option's number, when the line names it. */
+  n?: number;
+  className?: string;
+}) {
+  const means = withMeans ? option.means : undefined;
+  if (narrow) {
+    if (!means && !option.gains && !option.costs) return null;
+    return (
+      <div
+        data-lab-trade={option.id}
+        className={cn("flex flex-col gap-1 text-xs leading-relaxed", className)}
+      >
+        {means && <p className="text-muted-foreground">{means}</p>}
+        {option.gains && (
+          <p>
+            <span className="font-medium text-foreground">Gains: </span>
+            <span className="text-muted-foreground">{option.gains}</span>
+          </p>
+        )}
+        {option.costs && (
+          <p>
+            <span className="font-medium text-foreground">Costs: </span>
+            <span className="text-muted-foreground">{option.costs}</span>
+          </p>
+        )}
+      </div>
+    );
+  }
+  return (
+    <TradeLine
+      option={option}
+      means={means}
+      terms={terms}
+      lines={lines}
+      n={n}
+      className={className}
+    />
+  );
+}
+
+/**
+ * THE SHOWN OPTION'S LINE: its number and name with what it is, what it
+ * gains, what it costs, sharing one line (two parts to the sentence, one each
+ * to the trade) so every part shows however long the others run, each cut
+ * where it runs out and whole on a hover. Below a tablet's width the line is
+ * the sentence alone. "more" reads all of it, stacked (`lines`).
+ */
+function TradeLine({
+  option,
+  means,
+  terms,
+  lines,
+  n,
+  className,
+}: {
+  option: SessionOption;
+  means?: string;
+  terms?: readonly Term[];
+  lines: "one" | "full";
+  n?: number;
+  className?: string;
+}) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [cut, setCut] = useState(false);
+  const full = lines === "full";
+  const what = [option.label, means].filter(Boolean).join(": ");
+
+  // Whether any part is cut (or hidden below a tablet's width), read off the
+  // parts' own boxes, so "more" is offered only where there is more.
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el || full) return;
+    const read = () =>
+      setCut(
+        [...el.querySelectorAll<HTMLElement>("[data-part]")].some(
+          (p) => p.offsetParent === null || p.scrollWidth > p.clientWidth + 1,
+        ),
+      );
+    read();
+    const ro =
+      typeof ResizeObserver === "undefined" ? null : new ResizeObserver(read);
+    ro?.observe(el);
+    return () => ro?.disconnect();
+  }, [full, option.id]);
+
+  return (
+    <div
+      ref={ref}
+      data-lab-trade={option.id}
+      data-full={full ? "" : undefined}
+      className={cn(
+        "lab-trade text-xs leading-5 text-muted-foreground",
+        className,
+      )}
+    >
+      <p data-part="" title={full ? undefined : what}>
+        {n !== undefined && <span className="mr-1.5 tabular-nums">{n}</span>}
+        <span data-lab-stage-label="" className="font-medium text-foreground">
+          <Glossed text={option.label} terms={terms} />
+        </span>
+        {means && (
+          <>
+            <Dot />
+            <Glossed text={means} terms={terms} />
+          </>
+        )}
+      </p>
+      {option.gains && (
+        <p
+          data-part=""
+          data-trade="gains"
+          title={full ? undefined : option.gains}
+        >
+          <span className="font-medium text-foreground">Gains </span>
+          <Glossed text={option.gains} terms={terms} />
+        </p>
+      )}
+      {option.costs && (
+        <p
+          data-part=""
+          data-trade="costs"
+          title={full ? undefined : option.costs}
+        >
+          <span className="font-medium text-foreground">Costs </span>
+          <Glossed text={option.costs} terms={terms} />
+        </p>
+      )}
+      {(full || cut) && (
+        <button
+          type="button"
+          data-dir-press
+          onClick={() => setLabPref("lines", full ? "one" : "full")}
+          className="shrink-0 self-baseline text-[11px] text-muted-foreground underline decoration-dotted underline-offset-2 transition-colors duration-150 hover:text-foreground motion-reduce:transition-none"
+        >
+          {full ? "less" : "more"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+const Dot = () => (
+  <span aria-hidden className="px-1.5 text-faint">
+    ·
+  </span>
+);
+
+/**
+ * THE STAGE: every drawn option mounted once, flipped or side by side, whole
+ * on the first screen or 1:1.
  *
- * ★ IT TAKES THE POINTER. The stage it replaces refused it, because a wheel
- * over a pinned iframe scrolled the frame and not the page; nothing is pinned
- * now, so the wheel goes where the reader expects and a preview can be hovered.
- * A link inside a preview does not navigate (a press on the picture of a page
- * is looking, not leaving), and a form inside one does not submit.
+ * ★ IT TAKES THE POINTER. A stage that refused it once made the wheel scroll a
+ * pinned iframe and not the page; nothing is pinned now, so the wheel goes
+ * where the reader expects and a preview can be hovered. A link inside a
+ * preview does not navigate (a press on the picture of a page is looking, not
+ * leaving), and a form inside one does not submit.
  */
 function StageViews({
   step,
@@ -948,6 +1353,9 @@ function StageViews({
   options,
   choice,
   shown,
+  terms,
+  lines,
+  stage,
   arrangeRef,
   onPress,
   stateFor,
@@ -958,17 +1366,21 @@ function StageViews({
   options: readonly SessionOption[];
   choice: string;
   shown: string | null;
-  arrangeRef: React.RefObject<(() => void) | null>;
+  terms: readonly Term[];
+  lines: "one" | "full";
+  stage: LabStage;
+  arrangeRef: RefObject<(() => void) | null>;
   onPress: (o: SessionOption) => void;
   stateFor: (s: AskStep, o?: SessionOption) => Record<string, string>;
 }) {
   const ref = useRef<HTMLDivElement | null>(null);
-  const { fit, sidebar } = useLabPrefs();
+  const { sidebar } = useLabPrefs();
   const [room, setRoom] = useState<{ width: number; phone: boolean } | null>(
     null,
   );
   const [arrange, setArrange] = useState<Arrange | null>(null);
-  const [scale, setScale] = useState<Scale>({ zoom: 1, wide: false });
+  const [wide, setWide] = useState(false);
+  const whole = stage === "whole";
 
   // The column's width, read before paint so the arrangement never flashes.
   useLayoutEffect(() => {
@@ -990,8 +1402,8 @@ function StageViews({
     };
   }, []);
 
-  // Side by side only when every option fits at its TRUE size: a phone-sized
-  // preview (`tile: "phone"`) in a column wide enough for all of them.
+  // Side by side only when every option is a phone column (`tile: "phone"`)
+  // in a column wide enough for all of them at their true size.
   const fits =
     step.tile === "phone" &&
     room !== null &&
@@ -1001,7 +1413,7 @@ function StageViews({
     ? "flip"
     : (arrange ?? (fits ? "side" : "flip"));
   // `g` swaps at any width but a phone's; the button is offered only where
-  // side by side draws every option at its true size, or to leave it.
+  // side by side draws every option as its column, or to leave it.
   const canSide = !room?.phone;
   const offerSide = canSide && (fits || mode === "side");
 
@@ -1020,40 +1432,36 @@ function StageViews({
     options.find((o) => o.id === step.recommended) ??
     options[0];
 
-  // THE SCALE, READ OFF WHAT IS SHOWN: a zoom-fitted `Stage` reports its zoom,
-  // and anything wider than the column is scrolled sideways, which is the
-  // other way a preview can stop being 1:1.
+  // Every option shares the stage's scale, so showing another needs no
+  // re-fit; a knob (the board's state) or a new set of options does.
+  const k = useWholeFit(ref, whole, mode === "side", [
+    board.state,
+    options.length,
+  ]);
+
+  // 1:1, anything wider than the column is scrolled sideways: say so on the
+  // scale, and offer the sidebar's room where it is the difference.
   useLayoutEffect(() => {
     const el = ref.current;
-    if (!el) return;
+    if (!el || whole) return;
     const view =
       el.querySelector<HTMLElement>("[data-lab-view][data-shown]") ??
       el.querySelector<HTMLElement>("[data-lab-view]");
     if (!view) return;
     const read = () => {
-      let zoom = 1;
-      for (const box of view.querySelectorAll<HTMLElement>(
-        '[data-stage-fit="zoom"]',
-      )) {
-        const canvas = box.firstElementChild as HTMLElement | null;
-        const z = canvas ? parseFloat(getComputedStyle(canvas).zoom) : NaN;
-        if (z > 0 && z < zoom) zoom = z;
-      }
-      let wide = view.scrollWidth > view.clientWidth + 1;
+      let w = view.scrollWidth > view.clientWidth + 1;
       for (const box of view.querySelectorAll<HTMLElement>(
         '[data-stage-fit="true"]',
       ))
-        if (box.scrollWidth > box.clientWidth + 1) wide = true;
-      setScale((s) =>
-        s.zoom === zoom && s.wide === wide ? s : { zoom, wide },
-      );
+        if (box.scrollWidth > box.clientWidth + 1) w = true;
+      setWide(w);
     };
     read();
     const ro =
       typeof ResizeObserver === "undefined" ? null : new ResizeObserver(read);
     ro?.observe(view);
     return () => ro?.disconnect();
-  }, [live.id, mode, fit]);
+  }, [live.id, mode, whole]);
 
   return (
     <>
@@ -1063,23 +1471,24 @@ function StageViews({
         live={live}
         n={step.options.indexOf(live) + 1}
         picked={choice === live.id}
+        terms={terms}
+        lines={lines}
         mode={mode}
         canSide={offerSide}
         onArrange={() => setArrange(mode === "side" ? "flip" : "side")}
-        scale={scale}
-        fit={fit}
+        stage={stage}
+        k={k}
+        wide={wide}
         sidebar={sidebar}
       />
-      {/* Flipped, the shown option's trade sits over the stage; side by side,
-          each option carries its own under its name. */}
-      {mode === "flip" && <OptionTrade option={live} />}
       <div
         ref={ref}
         data-lab-stage=""
         data-arrange={mode}
-        // The stage takes the page's gutter back at 1:1 on a wide page, and a
+        data-fit={whole ? "whole" : "true"}
+        // 1:1, the stage takes the page's gutter back on a wide page, and a
         // Stage inside it keeps its own box (a bleed inside a bleed).
-        data-lab-bleed=""
+        data-lab-bleed={whole ? undefined : ""}
         className="lab-stage"
         onClickCapture={(event) => {
           if ((event.target as Element).closest?.("a[href]"))
@@ -1087,83 +1496,210 @@ function StageViews({
         }}
         onSubmitCapture={(event) => event.preventDefault()}
       >
-        {options.map((option) => {
-          const on = option.id === live.id;
-          const visible = mode === "side" || on;
-          const i = step.options.indexOf(option);
-          return (
-            <div
-              key={option.id}
-              data-lab-view=""
-              data-option={option.id}
-              data-shown={on ? "" : undefined}
-              data-paused={visible ? undefined : "true"}
-              inert={!visible}
-              aria-hidden={visible ? undefined : true}
-              className="min-w-0"
-            >
-              {mode === "side" && (
-                <button
-                  type="button"
-                  data-dir-press
-                  data-lab-view-head=""
-                  aria-pressed={choice === option.id}
-                  onClick={() => onPress(option)}
-                  className={cn(
-                    "mb-2 flex w-full min-w-0 items-baseline gap-2 rounded-lg border px-2.5 py-1.5 text-left text-[12px] transition-colors duration-150 motion-reduce:transition-none",
-                    on
-                      ? "border-foreground/40 bg-card"
-                      : "border-border hover:bg-muted/40",
-                  )}
-                >
-                  <span className="text-muted-foreground tabular-nums">
-                    {choice === option.id ? (
-                      <Check className="inline size-3" aria-hidden />
-                    ) : (
-                      i + 1
+        {/* Every piece inside draws 1:1: whole, the stage scales the option
+            at once (and a Fit's canvas takes its width); 1:1 is 1:1. */}
+        <FitPin.Provider value={whole ? "whole" : "true"}>
+          {options.map((option) => {
+            const on = option.id === live.id;
+            const visible = mode === "side" || on;
+            const i = step.options.indexOf(option);
+            return (
+              <div
+                key={option.id}
+                data-lab-view=""
+                data-option={option.id}
+                data-shown={on ? "" : undefined}
+                data-paused={visible ? undefined : "true"}
+                inert={!visible}
+                aria-hidden={visible ? undefined : true}
+                className="min-w-0"
+              >
+                {mode === "side" && (
+                  <button
+                    type="button"
+                    data-dir-press
+                    data-lab-view-head=""
+                    aria-pressed={choice === option.id}
+                    onClick={() => onPress(option)}
+                    className={cn(
+                      "mb-2 flex w-full min-w-0 items-baseline gap-2 rounded-lg border px-2.5 py-1.5 text-left text-[12px] transition-colors duration-150 motion-reduce:transition-none",
+                      on
+                        ? "border-foreground/40 bg-card"
+                        : "border-border hover:bg-muted/40",
                     )}
-                  </span>
-                  <span className="min-w-0 truncate font-medium">
-                    {option.label}
-                  </span>
-                  {option.id === step.recommended && (
-                    <span className="shrink-0 text-[10px] text-muted-foreground">
-                      the board says
+                  >
+                    <span className="text-muted-foreground tabular-nums">
+                      {choice === option.id ? (
+                        <Check className="inline size-3" aria-hidden />
+                      ) : (
+                        i + 1
+                      )}
                     </span>
-                  )}
-                </button>
-              )}
-              {mode === "side" && (
-                <OptionTrade
-                  option={option}
-                  withMeans={false}
-                  narrow
-                  className="mb-2 px-0.5"
-                />
-              )}
-              <div data-lab-specimen="" className="min-w-0">
-                {board.evidence(section, {
-                  ...board.state,
-                  ...stateFor(step, option),
-                })}
+                    <span className="min-w-0 truncate font-medium">
+                      {option.label}
+                    </span>
+                    {option.id === step.recommended && (
+                      <span className="shrink-0 text-[10px] text-muted-foreground">
+                        the board says
+                      </span>
+                    )}
+                  </button>
+                )}
+                {mode === "side" && (
+                  <OptionTrade
+                    option={option}
+                    withMeans={false}
+                    narrow
+                    className="mb-2 px-0.5"
+                  />
+                )}
+                <div data-lab-fit="">
+                  <div data-lab-specimen="" className="min-w-0">
+                    {board.evidence(section, {
+                      ...board.state,
+                      ...stateFor(step, option),
+                    })}
+                  </div>
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </FitPin.Provider>
       </div>
     </>
   );
 }
 
-/** How the shown option is drawn: its zoom, and whether it runs off the column. */
-type Scale = { zoom: number; wide: boolean };
+/**
+ * FITS A STAGE WHOLE, and keeps it fitted as the room or the drawing changes
+ * (`whole.ts` does the measuring). Returns the scale worn, for the scale's
+ * label, or null at 1:1 and before the first fit.
+ *
+ * ★ A RESIZE OBSERVER ON THE BOX AND ON EACH DRAWING: the box moves when the
+ * window does or About opens beside it, and a drawing moves when a knob swaps
+ * its frames or a webfont lands. A re-fit that finds the same answer writes
+ * nothing (`last`), so the observer's own echo ends there.
+ */
+function useWholeFit(
+  ref: RefObject<HTMLDivElement | null>,
+  whole: boolean,
+  side: boolean,
+  deps: readonly unknown[],
+): number | null {
+  const [k, setK] = useState<number | null>(null);
+  const last = useRef<Fitted | null>(null);
+
+  useLayoutEffect(() => {
+    const box = ref.current;
+    if (!box) return;
+    if (!whole) {
+      unfitStage(box);
+      last.current = null;
+      box.removeAttribute("data-fitted");
+      return;
+    }
+    let raf = 0;
+    const run = () => {
+      raf = 0;
+      const fitted = fitStage(box, { side, last: last.current });
+      if (!fitted) return;
+      last.current = fitted;
+      box.setAttribute("data-fitted", "");
+      setK((was) =>
+        was !== null && Math.abs(was - fitted.k) < 0.002 ? was : fitted.k,
+      );
+    };
+    run();
+    const again = () => {
+      if (!raf) raf = requestAnimationFrame(run);
+    };
+    const ro =
+      typeof ResizeObserver === "undefined" ? null : new ResizeObserver(again);
+    ro?.observe(box);
+    for (const wrap of box.querySelectorAll<HTMLElement>("[data-lab-fit]"))
+      ro?.observe(wrap);
+    window.addEventListener("resize", again);
+    document.fonts?.ready.then(again).catch(() => {});
+    return () => {
+      cancelAnimationFrame(raf);
+      ro?.disconnect();
+      window.removeEventListener("resize", again);
+    };
+    // The deps are the caller's: what it draws, and in what state.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ref, whole, side, ...deps]);
+
+  // 1:1 has no scale to say; the last whole one waits for the next fit.
+  return whole ? k : null;
+}
 
 /**
- * THE STAGE HEAD, sticky under the top bar: WHICH option the stage is showing,
- * whether it is the board's recommendation or the reader's pick, what it means,
- * the knobs that drive the stage, and the scale it is drawn at. Before this a
- * stage said nothing about itself and the reader had to remember which tile
- * they had pressed.
+ * A ROW THAT SCROLLS SIDEWAYS SAYS SO AT ITS EDGES (the tabs, the knobs): it
+ * marks the side that has more (`data-edge-start`, `data-edge-end`) and
+ * design.css fades that edge, so a tab cut at a phone's edge reads as more to
+ * come rather than as a broken label.
+ */
+function useScrollEdges(ref: RefObject<HTMLElement | null>, on = true) {
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !on) return;
+    const read = () => {
+      const more = el.scrollWidth - el.clientWidth;
+      el.toggleAttribute("data-edge-start", more > 1 && el.scrollLeft > 1);
+      el.toggleAttribute("data-edge-end", more > 1 && el.scrollLeft < more - 1);
+    };
+    read();
+    el.addEventListener("scroll", read, { passive: true });
+    const ro =
+      typeof ResizeObserver === "undefined" ? null : new ResizeObserver(read);
+    ro?.observe(el);
+    for (const kid of el.children) ro?.observe(kid);
+    return () => {
+      el.removeEventListener("scroll", read);
+      ro?.disconnect();
+    };
+  }, [ref, on]);
+}
+
+/**
+ * ONE DRAWING, WHOLE OR 1:1, where a step has one thing to show rather than an
+ * option per view: a words step's evidence, a catalog's cards. The same fit
+ * as the stage's, over a single view.
+ */
+function FitStage({
+  stage,
+  deps,
+  children,
+}: {
+  stage: LabStage;
+  deps: readonly unknown[];
+  children: React.ReactNode;
+}) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const whole = stage === "whole";
+  useWholeFit(ref, whole, false, deps);
+  return (
+    <div
+      ref={ref}
+      data-lab-whole=""
+      data-fit={whole ? "whole" : "true"}
+      className="lab-stage"
+    >
+      <FitPin.Provider value={whole ? "whole" : "true"}>
+        <div data-lab-view="" data-shown="" className="min-w-0">
+          <div data-lab-fit="">{children}</div>
+        </div>
+      </FitPin.Provider>
+    </div>
+  );
+}
+
+/**
+ * THE STAGE HEAD: which option the stage is showing, in its line (its number,
+ * its name, what it is, what it gains and costs), and under it the one quiet
+ * row the stage is driven from: the ask's knobs, the board's own tools, the
+ * arrangement and the scale. 1:1, it sticks under the top bar while a tall
+ * stage scrolls, so the line saying which option is on it never leaves.
  */
 function StageHead({
   step,
@@ -1171,11 +1707,14 @@ function StageHead({
   live,
   n,
   picked,
+  terms,
+  lines,
   mode,
   canSide,
   onArrange,
-  scale,
-  fit,
+  stage,
+  k,
+  wide,
   sidebar,
 }: {
   step: AskStep;
@@ -1183,97 +1722,147 @@ function StageHead({
   live: SessionOption;
   n: number;
   picked: boolean;
+  terms: readonly Term[];
+  lines: "one" | "full";
   mode: Arrange;
   canSide: boolean;
   onArrange: () => void;
-  scale: Scale;
-  fit: LabFit;
+  stage: LabStage;
+  /** The whole stage's scale, once fitted. */
+  k: number | null;
+  /** 1:1, whether the shown option runs off the column. */
+  wide: boolean;
   sidebar: LabSidebar;
 }) {
-  const strip = step.strip && step.strip.length > 0;
-  const zoomed = scale.zoom < 0.995;
-  const small = zoomed || scale.wide;
+  const strip = Boolean(step.strip && step.strip.length > 0);
+  const side = canSide && step.options.length > 1;
+  const sidebarCosts = stage === "true" && wide && sidebar === "open";
+  // The quiet row holds what sets the stage; with only the scale to set, the
+  // scale rides the option's line instead.
+  const row = strip || Boolean(board.tools) || side || sidebarCosts;
+  const rowRef = useRef<HTMLDivElement | null>(null);
+  const knobs = useRef<HTMLDivElement | null>(null);
+  useScrollEdges(rowRef, row);
+  useScrollEdges(knobs, row);
   return (
     <div data-lab-stage-head="" className="lab-stage-head">
-      {/* ★ THE NAME OF WHAT IS SHOWN KEEPS ITS ROOM (the 375 crush): a knob
-          strip beside it squeezed the label to nothing at a phone, so the one
-          line saying which option is on the stage said only its number. With
-          a floor, the strip wraps under the name instead. */}
-      <div className="min-w-48 flex-1">
-        <p className="flex min-w-0 items-baseline gap-2 text-[13px] leading-snug font-medium">
-          <span className="text-muted-foreground tabular-nums">{n}</span>
-          <span data-lab-stage-label="" className="min-w-0 truncate">
-            {live.label}
+      <div className="flex min-w-0 items-baseline gap-2">
+        <OptionTrade
+          option={live}
+          terms={terms}
+          lines={lines}
+          n={n}
+          className="min-w-0 flex-1"
+        />
+        {picked && (
+          <span className="inline-flex shrink-0 items-center gap-1 text-[11px] text-foreground">
+            <Check className="size-3" aria-hidden />
+            your pick
           </span>
-          {live.id === step.recommended && (
-            <span className="shrink-0 text-[11px] font-normal text-muted-foreground">
-              the board says
-            </span>
-          )}
-          {picked && (
-            <span className="inline-flex shrink-0 items-center gap-1 text-[11px] font-normal text-foreground">
-              <Check className="size-3" aria-hidden />
-              your pick
-            </span>
-          )}
-        </p>
-        {/* Flipped, the means is printed whole just under this bar with the
-            option's gain and cost (`OptionTrade`); side by side, the bar is
-            the one place it is said. */}
-        {mode === "side" && live.means && (
-          <p className="truncate text-[11px] leading-snug text-muted-foreground">
-            {live.means}
-          </p>
         )}
+        {/* A stage with nothing to set but its scale spends no row on it. */}
+        {!row && <ScaleSwitch stage={stage} k={k} wide={wide} />}
       </div>
-      {strip && <ConfigStrip step={step} board={board} />}
-      <span className="flex shrink-0 flex-wrap items-center gap-1.5">
-        {/* The board's own cluster, on the one bar that stays on screen while
-            the stage scrolls. A board that declares none adds nothing. */}
-        {board.tools && (
-          <span
-            data-lab-board-tools=""
-            className="flex flex-wrap items-center gap-1.5"
-          >
-            {board.tools}
+      {row && (
+        <div ref={rowRef} className="lab-knobs">
+          {/* The knobs scroll sideways where they run out of room; the
+              cluster that sets the stage (the board's tools, the
+              arrangement, the scale) never scrolls away at a desk, and leads
+              the row at a phone (design.css). */}
+          <div ref={knobs} className="lab-knobs-scroll">
+            {strip && <ConfigStrip step={step} board={board} />}
+          </div>
+          <span className="lab-knobs-set">
+            {/* The board's own cluster, on the row that stays with the
+                stage. A board that declares none adds nothing. */}
+            {board.tools && (
+              <span
+                data-lab-board-tools=""
+                className="flex items-center gap-1.5"
+              >
+                {board.tools}
+              </span>
+            )}
+            {side && (
+              <button
+                type="button"
+                data-dir-press
+                onClick={onArrange}
+                title="Press g to swap"
+                className="h-6 rounded-md border border-border px-2 text-[11px] text-muted-foreground transition-colors duration-150 hover:text-foreground motion-reduce:transition-none"
+              >
+                {mode === "side" ? "One at a time" : "Side by side"}
+              </button>
+            )}
+            {/* The one thing standing between a 1:1 preview and its room is
+                sometimes the lab's own sidebar: say so, and take it away in
+                one press. */}
+            {sidebarCosts && (
+              <button
+                type="button"
+                data-dir-press
+                onClick={() => setLabPref("sidebar", "collapsed")}
+                className="h-6 rounded-md border border-dashed border-border px-2 text-[11px] text-muted-foreground transition-colors duration-150 hover:text-foreground motion-reduce:transition-none"
+              >
+                Hide the sidebar
+              </button>
+            )}
+            <ScaleSwitch stage={stage} k={k} wide={wide} />
           </span>
-        )}
-        {canSide && step.options.length > 1 && (
-          <button
-            type="button"
-            data-dir-press
-            onClick={onArrange}
-            title="Press g to swap"
-            className="rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors duration-150 hover:text-foreground motion-reduce:transition-none"
-          >
-            {mode === "side" ? "One at a time" : "Side by side"}
-          </button>
-        )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * WHOLE OR 1:1, AND THE SCALE THE STAGE IS DRAWN AT (lab-focus). Whole draws
+ * every frame of the shown option in the room above the dock and says the
+ * scale it took; 1:1 draws them at their true pixels and lets the page
+ * scroll, which is a detail's press away. `f` swaps them.
+ */
+function ScaleSwitch({
+  stage,
+  k,
+  wide,
+}: {
+  stage: LabStage;
+  k: number | null;
+  wide: boolean;
+}) {
+  const scaled = stage === "whole" && k !== null && k < 0.995;
+  return (
+    <span
+      role="group"
+      aria-label="The stage's scale"
+      data-lab-scale=""
+      title="Whole fits every frame on the screen; 1:1 draws them at their true size. Press f to swap."
+      className="inline-flex h-6 items-center rounded-md border border-border p-px text-[11px] tabular-nums"
+    >
+      {(["whole", "true"] as const).map((s) => (
         <button
+          key={s}
           type="button"
           data-dir-press
-          data-lab-scale=""
-          onClick={() => setLabPref("fit", fit === "true" ? "zoom" : "true")}
-          title="The lab draws previews 1:1, or fitted to the column. Press to switch."
-          className="rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground tabular-nums transition-colors duration-150 hover:text-foreground motion-reduce:transition-none"
+          aria-pressed={stage === s}
+          onClick={() => setLabPref("stage", s)}
+          className={cn(
+            "h-full rounded-[5px] px-1.5 transition-colors duration-150 motion-reduce:transition-none",
+            stage === s
+              ? "bg-muted text-foreground"
+              : "text-muted-foreground hover:text-foreground",
+          )}
         >
-          {zoomed ? `Fit ${Math.round(scale.zoom * 100)}%` : "1:1"}
-          {scale.wide && " · scroll sideways"}
+          {s === "whole"
+            ? scaled
+              ? `Whole ${Math.round((k ?? 1) * 100)}%`
+              : "Whole"
+            : wide && stage === "true"
+              ? "1:1 · scroll sideways"
+              : "1:1"}
         </button>
-        {/* The one thing standing between this preview and 1:1 is sometimes
-            the lab's own sidebar: say so, and take it away in one press. */}
-        {small && sidebar === "open" && (
-          <button
-            type="button"
-            data-dir-press
-            onClick={() => setLabPref("sidebar", "collapsed")}
-            className="rounded-md border border-dashed border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors duration-150 hover:text-foreground motion-reduce:transition-none"
-          >
-            Hide the sidebar for 1:1
-          </button>
-        )}
-      </span>
-    </div>
+      ))}
+    </span>
   );
 }
 
@@ -1367,7 +1956,8 @@ function OptionCard({
  * ★ THE CARDS ARE THE OPTIONS, so the step renders the board's own catalog
  * section rather than a second rendering of the same twelve ideas as pills.
  * That is `CatalogTiles`: the grid loses its page-wide pill rows (the press on
- * the card is the pick now) and wears the ring on the card that won.
+ * the card is the pick now) and wears the ring on the card that won. The
+ * cards are the stage, so they are drawn whole with the rest.
  *
  * ★ AND THERE ARE THREE EXITS, which is how Will described the hero: choose the
  * winner; mark one or more cards refine with a note (the verdict row, kept as
@@ -1381,6 +1971,7 @@ function GalleryStep({
   board,
   choice,
   shown,
+  stage,
   onPress,
   onChoose,
 }: {
@@ -1388,6 +1979,7 @@ function GalleryStep({
   board: StepBoard;
   choice: string;
   shown: string | null;
+  stage: LabStage;
   onPress: (o: SessionOption) => void;
   onChoose: (id: string) => void;
 }) {
@@ -1396,37 +1988,41 @@ function GalleryStep({
   const grid = step.catalogSection;
   if (!grid) return null;
   return (
-    <div className="flex min-w-0 flex-col gap-3">
-      <CatalogTiles
-        value={{
-          chosen: choice,
-          shown: shown ?? undefined,
-          quietVerdicts: true,
-          onPress: (id) => {
-            const option = cards.find((o) => o.id === id);
-            if (option) onPress(option);
-          },
-        }}
-      >
-        <div data-lab-specimen="" className="min-w-0">
-          {board.evidence(grid, board.state)}
-        </div>
-      </CatalogTiles>
+    <>
+      <FitStage stage={stage} deps={[board.state, choice, shown]}>
+        <CatalogTiles
+          value={{
+            chosen: choice,
+            shown: shown ?? undefined,
+            quietVerdicts: true,
+            onPress: (id) => {
+              const option = cards.find((o) => o.id === id);
+              if (option) onPress(option);
+            },
+          }}
+        >
+          <div data-lab-specimen="" className="min-w-0">
+            {board.evidence(grid, board.state)}
+          </div>
+        </CatalogTiles>
+      </FitStage>
       {none && (
-        <div className="max-w-md">
-          <OptionCard
-            label={none.label}
-            means={none.means}
-            chosen={choice === NONE}
-            dashed
-            onPress={() => onChoose(NONE)}
-          />
-          <p className="mt-1.5 text-[10px] leading-relaxed text-muted-foreground">
+        <div className="flex max-w-xl flex-wrap items-center gap-x-3 gap-y-1">
+          <div className="min-w-0 flex-1">
+            <OptionCard
+              label={none.label}
+              means={none.means}
+              chosen={choice === NONE}
+              dashed
+              onPress={() => onChoose(NONE)}
+            />
+          </div>
+          <p className="text-[10px] leading-relaxed text-muted-foreground">
             Or mark a card refine with a note, and the next round works from it.
           </p>
         </div>
       )}
-    </div>
+    </>
   );
 }
 
@@ -1439,7 +2035,15 @@ const NONE = "none";
  * ledger and "Copy so far" see the catalog they always saw and only the reading
  * changed.
  */
-function ItemsBody({ step, board }: { step: ItemsStep; board?: StepBoard }) {
+function ItemsBody({
+  step,
+  board,
+  stage,
+}: {
+  step: ItemsStep;
+  board?: StepBoard;
+  stage: LabStage;
+}) {
   const one = step.walk === "one-at-a-time";
   const [k, setK] = useState(0);
   const card = step.items[Math.min(k, step.items.length - 1)];
@@ -1467,14 +2071,16 @@ function ItemsBody({ step, board }: { step: ItemsStep; board?: StepBoard }) {
 
   if (!one) {
     return (
-      <div data-lab-specimen="" className="min-w-0">
-        {board.evidence(step.section, board.state)}
-      </div>
+      <FitStage stage={stage} deps={[board.state]}>
+        <div data-lab-specimen="" className="min-w-0">
+          {board.evidence(step.section, board.state)}
+        </div>
+      </FitStage>
     );
   }
 
   return (
-    <div className="flex min-w-0 flex-col gap-3">
+    <>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
         <span className="text-[11px] text-muted-foreground tabular-nums">
           card {Math.min(k, step.items.length - 1) + 1} of {step.items.length}
@@ -1490,12 +2096,14 @@ function ItemsBody({ step, board }: { step: ItemsStep; board?: StepBoard }) {
           />
         </span>
       </div>
-      <CatalogTiles value={{ only: card?.id }}>
-        <div data-lab-specimen="" className="min-w-0">
-          {board.evidence(step.section, board.state)}
-        </div>
-      </CatalogTiles>
-    </div>
+      <FitStage stage={stage} deps={[board.state, card?.id]}>
+        <CatalogTiles value={{ only: card?.id }}>
+          <div data-lab-specimen="" className="min-w-0">
+            {board.evidence(step.section, board.state)}
+          </div>
+        </CatalogTiles>
+      </FitStage>
+    </>
   );
 }
 
@@ -1530,21 +2138,22 @@ function CardStepButton({
 /* ── the knobs ────────────────────────────────────────────────────────────── */
 
 /**
- * THE CONFIG STRIP: the handful of controls this question needs, beside the
- * stage, rather than the board's whole dock. An ask declares them (`strip`),
- * which is what keeps a step from growing back into the twenty-switch dock
- * the stepped round deleted.
+ * THE CONFIG STRIP: the handful of controls this question needs, on the
+ * stage's quiet row, rather than the board's whole dock. An ask declares them
+ * (`strip`), which is what keeps a step from growing back into the
+ * twenty-switch dock the stepped round deleted.
  */
 function ConfigStrip({ step, board }: { step: AskStep; board: StepBoard }) {
   const wanted = new Set(step.strip ?? []);
   const controls = (board.controls ?? []).filter((c) => wanted.has(c.id));
   if (controls.length === 0) return null;
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <div data-lab-strip="" className="flex items-center gap-3">
       <ControlKnobs
         controls={controls}
         state={board.state}
         setState={board.setState}
+        quiet
       />
     </div>
   );
@@ -1553,12 +2162,11 @@ function ConfigStrip({ step, board }: { step: AskStep; board: StepBoard }) {
 /* ── the dock ─────────────────────────────────────────────────────────────── */
 
 /**
- * THE ANSWER, ALWAYS ON SCREEN (the dock round, 2026-09-18): sticky at the foot
- * of the window while the page scrolls, and at rest at the foot of the step when
- * it ends, so a reader can look anywhere on a tall preview and answer without
- * travelling. The options by number (the shown one ringed, the pick ticked),
- * Pick, the note, "not clear to me", Back and Next. At 375 the options scroll
- * sideways on their own row and the rest wraps under them.
+ * THE ANSWER, ALWAYS ON SCREEN (the dock round, 2026-09-18): at the foot of
+ * the window whether the stage is whole or scrolls. The options left it for
+ * the tabs over the stage (lab-focus, 2026-09-29), so it is the answer alone:
+ * the note, "not clear to me", Back, Pick and Next, one row at a desk and at
+ * a phone.
  */
 function Dock({
   step,
@@ -1570,7 +2178,6 @@ function Dock({
   unclear,
   needsWhy,
   noteRef,
-  onPress,
   onChoose,
   onNote,
   onUnclear,
@@ -1587,8 +2194,7 @@ function Dock({
   note: string;
   unclear: boolean;
   needsWhy: boolean;
-  noteRef: React.RefObject<HTMLInputElement | null>;
-  onPress: (o: SessionOption) => void;
+  noteRef: RefObject<HTMLInputElement | null>;
   onChoose: (id: string) => void;
   onNote: (v: string) => void;
   onUnclear: () => void;
@@ -1600,71 +2206,12 @@ function Dock({
   const picked = live !== undefined && choice === live.id;
   return (
     <div data-lab-dock="" className="lab-dock">
-      {step.kind === "ask" && pictured.length > 0 && (
-        <div className="lab-dock-options" role="group" aria-label="The options">
-          {pictured.map((option) => {
-            const i = step.options.indexOf(option);
-            const on = shown === option.id;
-            const mine = choice === option.id;
-            return (
-              <button
-                key={option.id}
-                type="button"
-                data-dir-press
-                data-lab-option={option.id}
-                data-label={option.label}
-                data-shown={on ? "" : undefined}
-                aria-pressed={mine}
-                // The recommendation's reason rides its chip too, so the one
-                // place the dock says "the board says" also says why.
-                title={
-                  option.id === step.recommended && step.because
-                    ? [option.means, `The board says: ${step.because}`]
-                        .filter(Boolean)
-                        .join(" ")
-                    : option.means
-                }
-                onClick={() => onPress(option)}
-                className={cn(
-                  "inline-flex max-w-[16rem] min-w-0 shrink-0 items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-left text-[12px] transition-colors duration-150 motion-reduce:transition-none",
-                  mine
-                    ? "border-transparent bg-foreground text-background"
-                    : on
-                      ? "border-foreground/40 bg-card ring-1 ring-foreground/30"
-                      : "border-border text-muted-foreground hover:text-foreground",
-                )}
-              >
-                <span className="tabular-nums">
-                  {mine ? <Check className="size-3" aria-hidden /> : i + 1}
-                </span>
-                <span className="min-w-0 truncate font-medium">
-                  {option.label}
-                </span>
-                {option.id === step.recommended && (
-                  <span
-                    className={cn(
-                      "shrink-0 text-[10px]",
-                      mine ? "text-background/70" : "text-muted-foreground",
-                    )}
-                  >
-                    the board says
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      )}
-
       {step.kind === "ask" && (
-        /* ★ THE NOTE ROW WRAPS. At 1280 and up the dock is one row and the
-           note's column falls to its 14rem floor whenever the options row is
-           long; a field, a dashed answer and the words beside them cannot share
-           224 px (measured on a long board, the field came out at 26 px). So
-           the field keeps a usable minimum and the answer drops to a line of
-           its own where there is no room, and snaps back to one row the moment
-           there is (collapsing the lab's sidebar is enough). */
-        <div className="lab-dock-note flex-wrap">
+        /* ★ THE NOTE KEEPS A USABLE WIDTH. A field, a dashed answer and the
+           words beside them cannot share 224 px (measured on a long board,
+           the field came out at 26 px), so the field has a floor and the
+           words beside it wrap under it where there is no room. */
+        <div className="lab-dock-note">
           <input
             ref={noteRef}
             type="text"
@@ -1679,7 +2226,7 @@ function Dock({
                 : "A note on this one (optional)"
             }
             className={cn(
-              "h-9 min-w-[9rem] flex-1 rounded-lg border bg-card px-3 text-[12px] transition-colors duration-150 outline-none placeholder:text-faint focus:border-foreground/40 motion-reduce:transition-none",
+              "h-9 min-w-[5rem] flex-1 rounded-lg border bg-card px-3 text-[12px] transition-colors duration-150 outline-none placeholder:text-faint focus:border-foreground/40 motion-reduce:transition-none",
               needsWhy ? "border-foreground/40" : "border-border",
             )}
           />
@@ -1689,15 +2236,22 @@ function Dock({
             type="button"
             data-dir-press
             aria-pressed={unclear}
+            aria-label={unclear ? "Marked: not clear to me" : "Not clear to me"}
+            title="Not clear to me (?)"
             onClick={onUnclear}
             className={cn(
-              "shrink-0 rounded-lg border border-dashed px-3 py-2 text-[11px] font-medium transition-colors duration-150 motion-reduce:transition-none",
+              "h-9 shrink-0 rounded-lg border border-dashed px-3 text-[11px] font-medium transition-colors duration-150 motion-reduce:transition-none",
               unclear
                 ? "border-foreground/40 bg-card text-foreground"
                 : "border-border text-muted-foreground hover:text-foreground",
             )}
           >
-            {unclear ? "Marked: not clear to me" : "Not clear to me"}
+            <span className="hidden sm:inline">
+              {unclear ? "Marked: not clear to me" : "Not clear to me"}
+            </span>
+            <span aria-hidden className="sm:hidden">
+              ?
+            </span>
           </button>
           {needsWhy && (
             <span className="shrink-0 text-[11px] text-muted-foreground">
@@ -1716,8 +2270,7 @@ function Dock({
       )}
 
       {/* Back, Pick, Next: agreeing with what is on the stage and moving on
-          are one gesture apart. Pick sits outside the options' own row, which
-          scrolls, so a long row can never push it off the dock. */}
+          are one gesture apart. */}
       <div className="lab-dock-way">
         <Way dir="back" onGo={back} />
         {live && (
@@ -1728,7 +2281,7 @@ function Dock({
             aria-pressed={picked}
             onClick={() => onChoose(live.id)}
             className={cn(
-              "inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium transition-colors duration-150 motion-reduce:transition-none",
+              "inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg px-3 text-[12px] font-medium transition-colors duration-150 motion-reduce:transition-none",
               picked
                 ? "border border-border text-muted-foreground hover:text-foreground"
                 : "border border-transparent bg-foreground text-background hover:opacity-90",
@@ -1761,7 +2314,7 @@ function Way({
 }) {
   const label = dir === "back" ? "Back" : "Next";
   const shape = cn(
-    "inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-medium transition-colors duration-150 motion-reduce:transition-none",
+    "inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-medium transition-colors duration-150 motion-reduce:transition-none",
     filled
       ? "border border-transparent bg-foreground text-background hover:opacity-90"
       : "border border-border text-muted-foreground hover:text-foreground",
@@ -1772,10 +2325,13 @@ function Way({
       data-dir-press
       onClick={onGo}
       disabled={!onGo}
+      aria-label={label}
       className={cn(shape, "disabled:opacity-40")}
     >
       {dir === "back" && <ArrowLeft className="size-3.5" aria-hidden />}
-      {label}
+      {/* Back and Next are their arrows at a phone, where the dock is one
+          row; Pick keeps its words, since it is the answer. */}
+      <span className="hidden sm:inline">{label}</span>
       {dir === "next" && <ArrowRight className="size-3.5" aria-hidden />}
     </button>
   );

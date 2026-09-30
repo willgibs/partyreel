@@ -18,6 +18,7 @@ export function Toggle<T extends string>({
   onChange,
   ariaLabel,
   wrap = true,
+  quiet = false,
 }: {
   options: { id: T; label: string }[];
   value: T;
@@ -25,13 +26,20 @@ export function Toggle<T extends string>({
   ariaLabel: string;
   /** Pin the options to one row. Off by default: see the landmine below. */
   wrap?: boolean;
+  /**
+   * The stage's quiet row (lab-focus, 2026-09-29): smaller, and the chosen
+   * option a step of grey rather than the ink, so a row of knobs reads as the
+   * stage's setting and never louder than the pictures it sets.
+   */
+  quiet?: boolean;
 }) {
   return (
     <div
       role="tablist"
       aria-label={ariaLabel}
       className={cn(
-        "inline-flex items-center gap-0.5 rounded-lg border border-border bg-muted/40 p-0.5",
+        "inline-flex items-center gap-0.5 border border-border",
+        quiet ? "rounded-md p-px" : "rounded-lg bg-muted/40 p-0.5",
         wrap && "flex-wrap",
       )}
     >
@@ -45,9 +53,14 @@ export function Toggle<T extends string>({
             aria-selected={active}
             onClick={() => onChange(o.id)}
             className={cn(
-              "rounded-md px-3 py-1 text-[12px] font-medium transition-colors",
+              "font-medium whitespace-nowrap transition-colors",
+              quiet
+                ? "h-[22px] rounded-[5px] px-2 text-[11px]"
+                : "rounded-md px-3 py-1 text-[12px]",
               active
-                ? "bg-foreground text-background"
+                ? quiet
+                  ? "bg-muted text-foreground"
+                  : "bg-foreground text-background"
                 : "text-muted-foreground hover:text-foreground",
             )}
           >

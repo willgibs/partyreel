@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
 
-import { type LabFit, useLabPrefs } from "./lab-prefs";
+import { type LabFit, useFitPref } from "./lab-prefs";
 
 /**
  * THE BOARD SHELL'S STAGE (extracted from the home-hero board at the review
@@ -115,7 +115,7 @@ export function Stage({
   const [scale, setScale] = useState(1);
   const { w, h } = CANVAS[mode];
   const g = GROUND[ground];
-  const pref = useLabPrefs().fit;
+  const pref = useFitPref();
   const trueScale = (fit ?? pref) === "true";
 
   useLayoutEffect(() => {

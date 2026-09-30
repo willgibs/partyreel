@@ -10,7 +10,7 @@
  *   pnpm lab:demo --base ... --since HEAD^1      # the boards a merge reached
  *   pnpm lab:demo --base ... --only floating-surfaces.radius
  *   pnpm lab:demo --base https://<alias>         # the key rides DESIGN_PREVIEW_KEY
- *   pnpm lab:demo --base ... --reach-limit 0.5   # a stricter travel budget
+ *   pnpm lab:demo --base ... --reach-limit 0.4   # a stricter reach (the stage's top, of a screen)
  *   pnpm lab:demo --base ... --state screen=phone # every step pressed wearing a knob (repeatable)
  *   pnpm lab:demo --base ... --width 375         # the sitting at a phone's width
  *
@@ -48,25 +48,30 @@
  * with text-only options, is skipped and says so.
  *
  * ★ AND WHETHER THE CHANGE CAN BE SEEN, WHOLE, WITH THE ANSWER IN REACH
- * (2026-09-17, rebuilt 2026-09-18). A stage that changes is worth nothing if the
- * reviewer cannot see it. The first fix pinned the stage above the options in a
- * 40vh window, and Will could not see what he was answering ("The top preview
- * UI of our lab is covered by the answer UI, and I cannot scroll it to see the
- * full heights or labels on which height is which"). The step is now the page
- * with a dock, and a 1440x900 pass holds it there. A step FAILS when:
- *  - OUT OF REACH: the stage starts more than `--reach-limit` (0.6) of a
- *    900px screen under the top of the question's head, so the preview is not
- *    the first thing under the question. ★ MEASURED FROM THE QUESTION, NOT THE
- *    PAGE (the context layer, 2026-09-29): the board's opening stands above
- *    the question on the step his sitting enters a board on, and is read once
- *    per board; what sits between the question and the preview (where it
- *    happens, why it matters, the reason, the shown option's gain and cost) is
- *    capped a line each, and this is the check that it stays that short;
+ * (2026-09-17, rebuilt 2026-09-18; a gate at a desk and a phone, lab-focus,
+ * 2026-09-29). A stage that changes is worth nothing if the reviewer cannot
+ * see it. The first fix pinned the stage above the options in a 40vh window,
+ * and Will could not see what he was answering ("The top preview UI of our lab
+ * is covered by the answer UI, and I cannot scroll it"); the context layer
+ * then grew a wall above the pictures, until at a desk the frames started
+ * under the fold and the dock cut them ("a Jackson Pollock painting of text").
+ * So every step is measured on the two screens he reads on, 1440 by 900 and
+ * 375 by 812, whatever `--width` the pictures are taken at, with every option
+ * shown in turn, and a step FAILS when:
+ *  - FOLD: the stage starts further down the first screen than
+ *    `--reach-limit` (0.5) of it, measured from the page's top, so something
+ *    above the question grew the wall back (the reach lines three lanes filed,
+ *    and ROADMAP's phone-fold line, as a check);
+ *  - CUT: a frame of the shown option (its box, where the option draws none)
+ *    ends under the dock or off the screen's side, so the option is not seen
+ *    whole on the first screen;
  *  - CLIPPED: anything around an option's preview cuts it short, which is the
  *    window he could not scroll;
  *  - UNLABELLED: the stage head does not name the option it is showing, which
  *    is "labels on which height is which";
  *  - NO DOCK: the dock is off screen at the top of the page or at its foot.
+ * Every row says where each screen's stage starts and how far above the dock
+ * its frames end.
  * And a step whose every capture is ONE FLAT COLOUR is UNPAINTED rather than
  * frozen: headless Chrome does not always rasterise a composited layer (a
  * scene built out of backdrop-filter over photographs), and accusing a board
@@ -99,7 +104,13 @@
  * rides every step's URL, which is how the board reads its state, and the whole
  * pass runs wearing it. `--width 375` runs the sitting at a phone's width.
  *
- * It presses the dock's options only, and never the one already shown (a
+ * ★ IT READS THE CAPTIONS A LANE PROVES A FRAME BY. A frame's measured
+ * caption ("Measured: 26 words, the headline on 1 line...") is out of Will's
+ * view on a step (design.css) and still in the page; `--verbose` prints every
+ * frame's name and caption beside its option, so a lane reads them here or on
+ * the whole board.
+ *
+ * It presses the options' tabs only, and never the one already shown (a
  * second press PICKS), never a Copy button (that writes the OS clipboard), and
  * it runs in its own throwaway Chrome profile, so it touches no reviewer's held
  * answers. Exit 1 on any failing step.
@@ -233,11 +244,18 @@ if (STATES.length || PHONE)
     `WEARING ${[...STATES, `width=${W}`].join(" ")}: every step is pressed in this state`,
   );
 /**
- * How far down a 900px screen the stage may start, as a share of it. Below this
- * the preview is not the first thing under the question, and a reviewer reads
- * a screen of words before seeing what they are asked about.
+ * How far down the first screen the stage may start, as a share of it,
+ * measured from the page's top. The step is pictures first (lab-focus,
+ * 2026-09-29): the spine, one line of where, the question, the tabs and the
+ * option's line stand above the stage and start it about a third of the way
+ * down at a desk and at a phone; past half, something grew the wall back.
  */
-const REACH_LIMIT = Number(opt("--reach-limit", 0.6));
+const REACH_LIMIT = Number(opt("--reach-limit", 0.5));
+/** The two screens every step is measured on, whatever `--width` the pictures are taken at. */
+const REACH_SCREENS = [
+  { w: 1440, h: 900, mobile: false },
+  { w: 375, h: 812, mobile: true },
+];
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const withKey = (path) => {
   const url = new URL(path, base);
@@ -442,7 +460,7 @@ async function go(ws, url) {
 const PAGE_LIB = `
   window.__labDemo = {
     options() {
-      return [...document.querySelectorAll('main [data-lab-dock] [data-lab-option]')];
+      return [...document.querySelectorAll('main [data-lab-tabs] [data-lab-option]')];
     },
     view(id) {
       return document.querySelector('main [data-lab-stage] [data-lab-view][data-option="' + CSS.escape(id) + '"]');
@@ -487,6 +505,35 @@ const PAGE_LIB = `
     /** What the stage head says it is showing. */
     label() {
       return (document.querySelector('main [data-lab-stage-head] [data-lab-stage-label]')?.textContent || '').trim();
+    },
+    /**
+     * WHERE THE SHOWN OPTION STANDS ON THE FIRST SCREEN, read at the page's
+     * top: the stage's top, the dock's, and every frame of the view (its own
+     * box where it draws none), in the window's pixels.
+     */
+    reach(id) {
+      const stage = this.stage();
+      const dock = document.querySelector('main [data-lab-dock]');
+      const v = this.view(id);
+      if (!stage || !v) return null;
+      const boxes = this.frames(id).map((f) => ({ title: (f.getAttribute('title') || '').split(', ')[0], r: f.getBoundingClientRect() }));
+      if (!boxes.length) boxes.push({ title: 'the stage', r: v.getBoundingClientRect() });
+      return {
+        top: Math.round(stage.getBoundingClientRect().top),
+        dock: dock ? Math.round(dock.getBoundingClientRect().top) : innerHeight,
+        width: innerWidth,
+        height: innerHeight,
+        frames: boxes.map(({ title, r }) => ({ title, top: Math.round(r.top), bottom: Math.round(r.bottom), left: Math.round(r.left), right: Math.round(r.right) })),
+      };
+    },
+    /** Every frame's name and measured caption, for a lane (\`--verbose\`). */
+    captions(id) {
+      const v = this.view(id);
+      if (!v) return [];
+      return [...v.querySelectorAll('figure')].map((f) => ({
+        title: (f.querySelector('[data-lab-frame-title]')?.textContent || '').trim(),
+        caption: (f.querySelector('[data-lab-caption]')?.textContent || '').trim(),
+      }));
     },
     /** Whether the dock is on screen right now. */
     dock() {
@@ -675,12 +722,15 @@ async function frameShot(ws, id, k) {
       const { r, title } = pick();
       const top = Math.max(0, r.top);
       const room = innerHeight - top;
-      // Inside the window: viewport coordinates, composited, which is what a
-      // reader sees. Taller than the window (a document too short to scroll
-      // the box up): page coordinates and the old flag, because half a
-      // picture would compare two options on a strip they share.
+      // Inside the window: composited, which is what a reader sees, and in
+      // PAGE coordinates, which is what the clip is read in (desk-tune: a
+      // viewport box drew every frame of a step taller than the window flat
+      // or shifted, once the window had scrolled to it). Taller than the
+      // window (a document too short to scroll the box up): page coordinates
+      // and the old flag, because half a picture would compare two options
+      // on a strip they share.
       return r.height <= room
-        ? { x: Math.max(0, r.left), y: top, width: r.width, height: r.height, beyond: false, title }
+        ? { x: Math.max(0, r.left) + scrollX, y: top + scrollY, width: r.width, height: r.height, beyond: false, title }
         : {
             x: Math.max(0, r.left + scrollX),
             y: r.top + scrollY,
@@ -801,18 +851,97 @@ try {
         `/design/lab/${boardId}?session=${encodeURIComponent(step)}${STATES.map((s) => `&${s}`).join("")}`,
       );
 
-      // ── THE LAYOUT, at a reviewer's screen: 1440x900 ─────────────────────
-      await send(ws, "Emulation.setDeviceMetricsOverride", {
-        width: W,
-        height: SCREEN,
-        deviceScaleFactor: 1,
-        mobile: PHONE,
-      });
-      await go(ws, url);
-      await evaluate(ws, PAGE_LIB);
-      const geo = await evaluate(ws, "window.__labDemo.geo()");
-      const count = await evaluate(ws, "window.__labDemo.options().length");
-      if (count < 2 || geo.top === null) {
+      // ── THE LAYOUT, on the two screens he reads on: 1440x900 and 375x812 ─
+      const layout = [];
+      /** Per screen: where its stage starts, and the least room any option's frames leave above the dock. */
+      const reached = [];
+      let geo = null;
+      let count = 0;
+      let skipped = false;
+      for (const screen of REACH_SCREENS) {
+        const at = `${screen.w}`;
+        await send(ws, "Emulation.setDeviceMetricsOverride", {
+          width: screen.w,
+          height: screen.h,
+          deviceScaleFactor: 1,
+          mobile: screen.mobile,
+        });
+        await go(ws, url);
+        await evaluate(ws, PAGE_LIB);
+        const g = await evaluate(ws, "window.__labDemo.geo()");
+        const n = await evaluate(ws, "window.__labDemo.options().length");
+        if (!geo) {
+          geo = g;
+          count = n;
+        }
+        if (n < 2 || g.top === null) {
+          skipped = true;
+          break;
+        }
+        await evaluate(ws, "window.scrollTo(0, 0)");
+        await sleep(150);
+        const dockTop = await evaluate(ws, "window.__labDemo.dock()");
+        await evaluate(
+          ws,
+          "window.scrollTo(0, document.documentElement.scrollHeight)",
+        );
+        await sleep(250);
+        const dockFoot = await evaluate(ws, "window.__labDemo.dock()");
+        if (!dockTop || !dockFoot)
+          layout.push(
+            `NO DOCK at ${at}: off screen at the ${!dockTop ? "top" : "foot"} of the page`,
+          );
+        await evaluate(ws, "window.scrollTo(0, 0)");
+        let top = null;
+        let least = null;
+        for (let i = 0; i < n; i++) {
+          const id = await evaluate(ws, `window.__labDemo.show(${i})`);
+          // A shown option is already fitted (every option shares the
+          // stage's scale), and a zoom lands a frame or two after it is set.
+          await sleep(300);
+          const want = await evaluate(
+            ws,
+            `window.__labDemo.options()[${i}].getAttribute('data-label') || ''`,
+          );
+          const said = await evaluate(ws, "window.__labDemo.label()");
+          if (!said || !said.includes(want))
+            layout.push(
+              `UNLABELLED at ${at}: showing "${want}", the head says "${said}"`,
+            );
+          const cut = await evaluate(
+            ws,
+            `window.__labDemo.clipped(${JSON.stringify(id)})`,
+          );
+          if (cut) layout.push(`CLIPPED at ${at}: "${want}": ${cut}`);
+          await evaluate(ws, "window.scrollTo(0, 0)");
+          const r = await evaluate(
+            ws,
+            `window.__labDemo.reach(${JSON.stringify(id)})`,
+          );
+          if (!r) continue;
+          if (top === null) {
+            top = r.top;
+            if (r.top > r.height * REACH_LIMIT)
+              layout.push(
+                `FOLD at ${at}: the stage starts ${(r.top / r.height).toFixed(2)} of the way down the first screen, past ${REACH_LIMIT}`,
+              );
+          }
+          for (const f of r.frames) {
+            const room = r.dock - f.bottom;
+            if (least === null || room < least) least = room;
+            if (f.bottom > r.dock + 1)
+              layout.push(
+                `CUT at ${at}: "${want}": ${f.title || "a frame"} ends ${f.bottom - r.dock}px under the dock`,
+              );
+            if (f.right > r.width + 1 || f.left < -1)
+              layout.push(
+                `CUT at ${at}: "${want}": ${f.title || "a frame"} runs off the screen's side`,
+              );
+          }
+        }
+        reached.push({ at, top, height: screen.h, least });
+      }
+      if (skipped) {
         rows.push({
           step,
           geo,
@@ -825,53 +954,15 @@ try {
                 : "a catalog's winner, pressed on its own cards"
               : "fewer than two pictured options",
         });
-        await send(ws, "Emulation.setDeviceMetricsOverride", {
-          width: W,
-          height: H,
-          deviceScaleFactor: 1,
-          mobile: PHONE,
-        });
         continue;
       }
-      const layout = [];
-      // From the question's head, not the page's top: the board's opening sits
-      // above the question where a sitting enters the board (see the header).
-      const reach = geo.top - geo.head;
-      const outOfReach = reach > SCREEN * REACH_LIMIT;
-      if (outOfReach)
-        layout.push(
-          `OUT OF REACH: the stage starts ${(reach / SCREEN).toFixed(2)} of a screen under the question`,
-        );
-      await evaluate(ws, "window.scrollTo(0, 0)");
-      await sleep(150);
-      const dockTop = await evaluate(ws, "window.__labDemo.dock()");
-      await evaluate(
-        ws,
-        "window.scrollTo(0, document.documentElement.scrollHeight)",
-      );
-      await sleep(250);
-      const dockFoot = await evaluate(ws, "window.__labDemo.dock()");
-      if (!dockTop || !dockFoot)
-        layout.push(
-          `NO DOCK: off screen at the ${!dockTop ? "top" : "foot"} of the page`,
-        );
-      await evaluate(ws, "window.scrollTo(0, 0)");
-      for (let i = 0; i < count; i++) {
-        const id = await evaluate(ws, `window.__labDemo.show(${i})`);
-        await sleep(250);
-        const want = await evaluate(
-          ws,
-          `window.__labDemo.options()[${i}].getAttribute('data-label') || ''`,
-        );
-        const said = await evaluate(ws, "window.__labDemo.label()");
-        if (!said || !said.includes(want))
-          layout.push(`UNLABELLED: showing "${want}", the head says "${said}"`);
-        const cut = await evaluate(
-          ws,
-          `window.__labDemo.clipped(${JSON.stringify(id)})`,
-        );
-        if (cut) layout.push(`CLIPPED: "${want}": ${cut}`);
-      }
+      /** The reach, said on the row: where each screen's stage starts, and the room left above its dock. */
+      const reachNote = reached
+        .map(
+          (r) =>
+            `${r.at}: starts ${r.top === null ? "?" : (r.top / r.height).toFixed(2)} down, ${r.least === null ? "?" : r.least}px to the dock`,
+        )
+        .join(" · ");
 
       // ── THE PICTURES, in a window tall enough to hold a whole option ─────
       await send(ws, "Emulation.setDeviceMetricsOverride", {
@@ -894,6 +985,16 @@ try {
         );
         const frames = await stageShots(ws, id);
         if (frames.length === 0) break;
+        // What the lane measured to prove each frame, which a step keeps out
+        // of Will's view and in the page.
+        if (verbose)
+          for (const c of await evaluate(
+            ws,
+            `window.__labDemo.captions(${JSON.stringify(id)})`,
+          ))
+            console.log(
+              `  ${step}.${id}: ${c.title}: ${c.caption || "no caption"}`,
+            );
         shots.push({
           id,
           label,
@@ -981,7 +1082,7 @@ try {
       // blind to it. It is printed loudly all the same, because a step nobody
       // can capture is a step nobody should trust this tool about.
       if ((!ok && !unpainted) || broken) failed++;
-      const first = layout[0]?.split(":")[0];
+      const first = layout[0]?.split(":")[0].replace(/ at \d+$/, "");
       rows.push({
         step,
         geo,
@@ -994,13 +1095,15 @@ try {
             : ok
               ? "ok"
               : "FROZEN",
-        note: unpainted
-          ? `${shots.length} options, every capture one flat colour: this browser did not paint the stage (a composited layer), so judge it by eye`
-          : `${shots.length} options (${shots[0].frames.length} frame${shots[0].frames.length === 1 ? "" : "s"} each), ${how}${
-              ok && same.length && max >= threshold
-                ? `; same picture: ${same.join(", ")}`
-                : ""
-            }`,
+        note: `${
+          unpainted
+            ? `${shots.length} options, every capture one flat colour: this browser did not paint the stage (a composited layer), so judge it by eye`
+            : `${shots.length} options (${shots[0].frames.length} frame${shots[0].frames.length === 1 ? "" : "s"} each), ${how}${
+                ok && same.length && max >= threshold
+                  ? `; same picture: ${same.join(", ")}`
+                  : ""
+              }`
+        }; ${reachNote}`,
       });
     } catch (error) {
       // A stalled call or a dead page: record it, drop the rest of this

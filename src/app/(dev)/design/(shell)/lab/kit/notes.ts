@@ -49,7 +49,7 @@ export const KIT_PIECES: readonly KitPiece[] = [
   {
     names: ["Fit"],
     file: "src/components/lab/scene.tsx",
-    note: "zooms a frame to the lab's Fit preference; zoom scales the picture and leaves the frame's own viewport, and every breakpoint in it, alone",
+    note: "zooms a frame to the lab's Fit preference; zoom scales the picture and leaves the frame's own viewport, and every breakpoint in it, alone. On a step's whole stage it steps aside: the stage scales the whole option, and a row of frames in a Fit may wrap there",
     reach:
       "around a Frame wider than the room it sits in (a 1440 frame in a tile). A bare Frame has no opinion of its own.",
     seen: "locked-door, disposable-mode",
@@ -57,7 +57,7 @@ export const KIT_PIECES: readonly KitPiece[] = [
   {
     names: ["Measured"],
     file: "src/components/lab/scene.tsx",
-    note: "a number read off the frame's own document, never computed or typed: its observer, its timers and the webfont settle it, and the caption prints what it read",
+    note: "a number read off the frame's own document, never computed or typed: its observer, its timers and the webfont settle it, and the caption prints what it read. A step keeps the caption out of Will's view and in the page; the whole board prints it, and `lab:demo --verbose` lists it",
     reach:
       "whenever a caption states a number (a size, a line count, a gap). If the words above a frame and the caption under it disagree, the caption is the truth.",
     seen: "locked-door, disposable-mode",
