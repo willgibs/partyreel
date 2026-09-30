@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { DOORS } from "@/lib/event/door/door";
+import { decideDoor, type DoorStanding } from "@/lib/event/door/decide";
+import { type Door, DOORS } from "@/lib/event/door/door";
+import { GATE_LINES } from "@/lib/events/visibility-labels";
 
 import {
   doorLetsGuestsIn,
@@ -76,7 +78,8 @@ describe("ready", () => {
     expect(lets({ door: "open" })).toBe(true);
     expect(lets({ door: "approve" })).toBe(true);
     expect(lets({ door: "private" })).toBe(false);
-    expect(lets({ door: "invite", invited: 0 })).toBe(false);
+    // An invite list needs no names: anyone else can ask the host.
+    expect(lets({ door: "invite", invited: 0 })).toBe(true);
     expect(lets({ door: "invite", invited: 12 })).toBe(true);
     expect(lets({ door: "closed", guestsIn: 0 })).toBe(false);
     expect(lets({ door: "closed", guestsIn: 31 })).toBe(true);
@@ -84,6 +87,43 @@ describe("ready", () => {
     // Every door has an answer, so a new door is a compile error, not a blank.
     for (const door of DOORS)
       expect(typeof lets({ door, invited: 1, guestsIn: 1 })).toBe("boolean");
+  });
+
+  it("stands an invite door done with an empty list, in production's own words", () => {
+    const empty: ReadyFacts = {
+      ...FRESH,
+      door: "invite",
+      invited: 0,
+      opened: 1,
+    };
+    const door = readiness(empty).items.find((i) => i.id === "door")!;
+    expect(door.done).toBe(true);
+    expect(door.line).toBe(GATE_LINES.invite);
+    expect(door.actions).toEqual([]);
+    expect(readiness(empty).ready).toBe(true);
+  });
+
+  // ★ THE SCAR: the door item read an empty invite list as "nobody can get in
+  // yet" while production lets anyone else ask to be let in. The decision a
+  // guest actually meets is `decideDoor`'s, so the proposal is held to it.
+  it("never shuts a door that production keeps open to a stranger, nor the reverse", () => {
+    const stranger = (door: Door): DoorStanding => ({
+      found: true,
+      door,
+      host: false,
+      blocked: false,
+      wasIn: false,
+      in: false,
+      waiting: false,
+      listed: false,
+      confirmed: true,
+    });
+    for (const door of ["open", "approve", "invite", "private"] as const) {
+      const shut = decideDoor(stranger(door)).kind === "shut";
+      expect(doorLetsGuestsIn({ ...FRESH, door, invited: 0 }), door).toBe(
+        !shut,
+      );
+    }
   });
 
   it("holds Only me and paused uploads back from ready", () => {
@@ -184,6 +224,10 @@ describe("what needs you, never empty", () => {
     expect(nextJob(event(), TODAY)?.kind).toBe("code");
     expect(nextJob(event({ door: "private" }), TODAY)?.kind).toBe("door-shut");
     expect(nextJob(event({ opened: 2 }), TODAY)?.kind).toBe("photos");
+    // An empty invite list is no job: anyone else can ask the host.
+    expect(nextJob(event({ door: "invite", opened: 2 }), TODAY)?.kind).toBe(
+      "photos",
+    );
   });
 
   it("and, with nothing left, guests before the date", () => {

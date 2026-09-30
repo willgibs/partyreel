@@ -13,8 +13,8 @@ import { REVIEW, SCREEN, STOCK } from "./knobs";
  * count; camera-only is the page's rule (a capture time can flag a library
  * shot, honestly said); Warm, Cool and B&W, the host's pick, never baked;
  * full size, storage deciding; with review on a shot develops once approved;
- * and switching goes both ways any time (`settings-wiring` builds the
- * consequence line).
+ * and switching goes both ways any time (the consequence line that says what
+ * a switch does to guests already in is built: `ui/consequence-line.tsx`).
  *
  * ★ HIS NOTES ARE THIS ROUND'S DIRECTION. `camera=viewfinder` with "I like
  * both options 2 and 3 ... continue finding more disposable camera designs
@@ -46,7 +46,8 @@ import { REVIEW, SCREEN, STOCK } from "./knobs";
  *
  * Nothing here asks what another standing board asks: the door before
  * joining is `locked-door`'s (this waiting room is inside the album, after
- * it), and how Settings is laid out is `settings-wiring`'s to build.
+ * it), and how Settings is laid out is built (four rows, each opening a page
+ * of its own: `settings-pages.ts`).
  */
 export const DISPOSABLE_MODE = defineExploration({
   id: "disposable-mode",
@@ -185,7 +186,7 @@ export const DISPOSABLE_MODE = defineExploration({
       id: "sound",
       question: "Does a video carry its sound?",
       taken:
-        "Yes: on Event Pass and Pro the first press asks for the camera and the microphone in one prompt.",
+        "Yes: wherever videos are on (Event Pass or Pro, with the host's Videos switch on), the first press asks for the camera and the microphone in one prompt.",
       overrule:
         "Silent videos, so the phone asks for the camera alone; the reel plays silent anyway.",
     },
@@ -485,9 +486,9 @@ export const DISPOSABLE_MODE = defineExploration({
       label: "Taking a video",
       question: "On Event Pass and Pro, how should the camera take a video?",
       where: ["Guest", "The disposable camera", "On a paid event"],
-      when: "The event is on Event Pass or Pro, so the camera can film; Priya wants a few seconds of the toast.",
+      when: "The event is on Event Pass or Pro with Videos on, so the camera can film; Priya wants a few seconds of the toast.",
       context:
-        "Video is paid, so a Free event's camera takes photos only; the word is video, never clip (the reel's). In the camera you pick above: framing, four seconds in, and the first press asking for the microphone too.",
+        "Video is paid and the host can switch it off, so Free or Videos off means photos only; the word is video, never clip (the reel's). In the camera you pick above: framing, four seconds in, and the first press asking for the microphone too.",
       options: [
         {
           id: "hold",

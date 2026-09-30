@@ -9,6 +9,7 @@ import {
   Check,
   ChevronDown,
   ChevronLeft,
+  CircleX,
   Clapperboard,
   Eye,
   EyeOff,
@@ -528,7 +529,7 @@ export function ReviewQueue({
         </div>
         <div className="grid grid-cols-2 gap-2">
           <Button type="button" variant="outline" tabIndex={-1}>
-            <X /> Decline
+            <CircleX className="text-warning" /> Reject
           </Button>
           <Button type="button" tabIndex={-1}>
             <Check /> Approve
@@ -549,7 +550,7 @@ const FACTS: Record<Kind, { title: string; line: string; facts: string[] }> = {
     title: "An album",
     line: "Everyone adds from their phones, and sees it all as it lands.",
     facts: [
-      "Photos and videos from their phones, as many as they like",
+      "Photos from their phones, and videos on a paid plan",
       "In the album the moment they land",
       "The reel plays as the album grows",
     ],

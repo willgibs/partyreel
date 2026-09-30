@@ -40,7 +40,7 @@ import { BEAT, HELD, TOLD, type WaitId, WELCOME } from "./words";
  *    (`shutDoorCopy`), the line someone who was in reads (its `previous`), the
  *    unlisted reader's own foot (`UnlistedAsk`), and the way back in for a
  *    visitor signed out;
- *  - the 404 is `e/[token]/not-found.tsx`'s page itself.
+ *  - the 404 is `e/[token]/not-found.screen.tsx`'s screen itself.
  *
  * What production draws inline, with no export, is quoted class for class: the
  * welcome (`entry-modal.tsx`'s `WelcomeStep`: its hero, its byline, its two

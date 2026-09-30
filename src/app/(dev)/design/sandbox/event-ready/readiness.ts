@@ -116,16 +116,24 @@ export type Readiness = {
   left: readonly ReadyItem[];
 };
 
-/** Whether the door lets a guest through, as it stands. */
+/**
+ * Whether the door lets a guest through, as it stands.
+ *
+ * ★ AN INVITE LIST NEEDS NO NAMES TO LET PEOPLE IN. The addresses it holds
+ * come straight in and anyone else can ask the host (`GATE_LINES.invite`, and
+ * `decideDoor`'s `ask` in `lib/event/door/decide.ts`), so a list still empty is
+ * a door a guest can get through, as letting each person in is. What holds
+ * "ready" back is a door nobody can pass: Only me, a password not yet set, a
+ * closed door with nobody in.
+ */
 export function doorLetsGuestsIn(f: ReadyFacts): boolean {
   switch (f.door) {
     case "open":
     case "approve":
+    case "invite":
       return true;
     case "password":
       return f.hasPassword;
-    case "invite":
-      return f.invited > 0;
     case "closed":
       return f.guestsIn > 0;
     case "private":
@@ -148,11 +156,9 @@ function doorItem(f: ReadyFacts): ReadyItem {
     ? doorGuestLine(f.door)
     : f.door === "private"
       ? DOOR_STEP_LINES.only_me
-      : f.door === "invite"
-        ? "Your invite list is empty, so nobody can get in yet."
-        : f.door === "closed"
-          ? "Nobody is in yet, and nobody new can join."
-          : "Set the password guests will type.";
+      : f.door === "closed"
+        ? "Nobody is in yet, and nobody new can join."
+        : "Set the password guests will type.";
   return {
     id: "door",
     essential: true,
