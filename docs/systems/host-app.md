@@ -228,7 +228,10 @@ beneath, newest first.
   page pushed it) and only once until that Back lands (two taps on the X used to leave the hub); a router commit that is
   not a traversal (a save's re-render) rewrites an entry without the marker and a reload forgets what the page pushed,
   so `keep` runs after each render with a sheet open (it adopts a marker it finds and gives an entry this page pushed
-  that lost it its marker back); a place opened from a link or a bookmark never had one and closes in place. ★ The
+  that lost it its marker back); a place opened from a link or a bookmark never had one and closes in place. ★ A Back
+  off an entry pushed at an address, after a router refresh while it stood, lands on a page whose head Next left empty
+  (title, viewport, icons, until a reload; crumbs-26): the entry watches the head as the place goes and asks the
+  router's refresh when the title is gone, and only then (the header says why). ★ The
   server's `initialSheet` paints the first frame alone (a hydration gate): once hydrated the URL is the only answer, so
   a place opened from a link (`/settings`, a sign-in's return, Checkout's `?room=`) closes like one opened from its
   card. A settings page is `&setting=<page>` on the same entry, moved with `replaceState`, so its back arrow and Back

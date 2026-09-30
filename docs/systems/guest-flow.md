@@ -188,8 +188,9 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
     `router.refresh()` flips `access` to `teaser` and remounts the gallery-and-upload slot (`key={access}`)
     out from under it; `hadQueuedFiles=false` (`joinSilently`'s own refusal) and a run from the door's step
     (outside `key={access}`) refresh at once.
-  - ★ **SOMEBODY ELSE'S TICKET** (`session_other_account`, the Invariants' owner rule). The file is NOT failed:
-    the queue puts the ticket down (`dropGuestTicket`: the token, its name and address flag, the name prefill
+  - ★ **SOMEBODY ELSE'S TICKET** (`session_other_account`, the Invariants' owner rule: an account's row the viewer
+    is not, or a name-only row while she is signed in that the claim left as another guest's, a shared phone's). The
+    file is NOT failed: the queue puts the ticket down (`dropGuestTicket`: the token, its name and address flag, the name prefill
     when it is that same name, then the cookie, AWAITED so it cannot land after the re-join's fresh one) and
     re-queues it. A CONFIRMED viewer joins silently (once per chain) and the same file goes up on their own row;
     anyone else is handed to the door (`onDoorNeeded`: the page refreshes, so a sign-out in another tab is seen,
@@ -633,13 +634,17 @@ through flags in the sheet. No step counter to desync.
   can't be recovered."), because a number of days reads as a hold the host can still reach.
   [`media.test.ts`](../../src/lib/db/queries/media.test.ts) pins the host reads against a withdrawn row.
 - ★ **UPLOADS ARE HELD TO THE SAME OWNER: a guest row with `user_id` set writes only for that signed-in
-  account.** Presign AND complete (a presign outlives a sign-out), rename and attach-address ask
-  `checkSessionOwner` ([`session-owner.server.ts`](../../src/lib/guest/session-owner.server.ts): the row's
-  `user_id`, service-role and never returned, against `getUser()`, which only a claimed row pays) and refuse
-  anyone else with 403 `session_other_account`, under the lock and closed uploads and ABOVE the identity gate (a
-  confirmed row's own `verified_at` is what let a stale ticket upload past An email first). A confirmed
-  row whose account was deleted (`user_id` nulled by the FK, `verified_at` kept) writes for nobody. A name-only
-  row stays the device's ticket. The client's side is "The upload act".
+  account, and a signed-in account writes only through a row of its own.** Presign AND complete (a presign
+  outlives a sign-out or a sign-in), rename and attach-address ask `checkSessionOwner`
+  ([`session-owner.server.ts`](../../src/lib/guest/session-owner.server.ts): the row's `user_id`, service-role and
+  never returned, against `getUser()`, which answers locally with no session, so the signed-out crowd pays no round
+  trip) and refuse anyone else with 403 `session_other_account`, under the lock and closed uploads and ABOVE the
+  identity gate (a confirmed row's own `verified_at` is what let a stale ticket upload past An email first). A
+  confirmed row whose account was deleted (`user_id` nulled by the FK, `verified_at` kept) writes for nobody. A
+  name-only row is the device's ticket while nobody is signed in; ★ for a signed-in account it is asked of the claim
+  then and there (`claim_anonymous_uploads` on that one ticket, as her: `whose_ticket` takes it when it is hers) and
+  refused when the claim leaves it, since a sign-in rightly leaves other people's tickets on a shared phone and her
+  photos went up under the typed name of whoever held it before her (crumbs-26). The client's side is "The upload act".
 
 ## Joining + identity
 

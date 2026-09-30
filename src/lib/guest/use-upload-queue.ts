@@ -31,10 +31,11 @@ import { uploadFile, type UploadOutcome } from "@/lib/upload/uploader";
  *   name-only ticket, which invalidates every file still waiting behind it.
  *
  *   `session_other_account` (`SESSION_OTHER_ACCOUNT`): the ticket this device
- *   kept belongs to an account the viewer is not. The ticket goes down and the
- *   viewer joins as themselves, and the file is NOT failed: it waits and goes up
- *   on the new ticket, so no photograph is lost and none is credited to the
- *   ticket's owner.
+ *   kept is not the viewer's: an account's row the viewer is not, or (crumbs-26)
+ *   a name-only row while the viewer is signed in that the claim left as another
+ *   guest's, on a shared phone. The ticket goes down and the viewer joins as
+ *   themselves, and the file is NOT failed: it waits and goes up on the new
+ *   ticket, so no photograph is lost and none is credited to the ticket's owner.
  *
  *   `invalid_session` (`DEAD_TICKET`): the ticket this device kept names no row
  *   any more. A waiting ticket's door became a password (its ask ended with the
@@ -445,11 +446,14 @@ export function useUploadQueue({
 
            This device kept a ticket whose row belongs to an account, and the
            viewer is not that account (signed out, or signed in as someone
-           else): the routes refuse it (lib/guest/session-owner.ts), at presign
-           or, when a sign-out overtook a presign, at completion. The ticket is
-           put down (the token, the name and address flag beside it, the
-           cookie) and this file goes back in the queue rather than into the
-           failure sheet; the next pass finds no ticket and `acquireTicket`
+           else), or a name-only ticket while the viewer is signed in that the
+           claim left as another guest's (crumbs-26: on a shared phone her
+           photos went up under the typed name of whoever held it before her):
+           the routes refuse it (lib/guest/session-owner.ts), at presign or,
+           when a sign-in or a sign-out overtook a presign, at completion. The
+           ticket is put down (the token, the name and address flag beside it,
+           the cookie) and this file goes back in the queue rather than into
+           the failure sheet; the next pass finds no ticket and `acquireTicket`
            joins as the viewer the server says this is. So nothing is lost and
            nothing is credited to the ticket's owner, and a guest who is signed
            in never learns it happened.

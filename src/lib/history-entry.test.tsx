@@ -13,7 +13,14 @@
  *
  * The router is `@/lib/test-utils/next-history`, the stand-in that is Next's patch.
  */
+import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+
 import { act, render } from "@testing-library/react";
+import {
+  AppRouterContext,
+  type AppRouterInstance,
+} from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createOwnedEntry, useOwnedEntry } from "@/lib/history-entry";
@@ -407,7 +414,204 @@ describe("a kind that stands many at a time (a phone's popups)", () => {
   });
 });
 
+/**
+ * ★ A BACK THAT LANDS ON A PAGE WITH NO HEAD ASKS THE ROUTER FOR THE PAGE AGAIN (crumbs-26, build 27's red-team).
+ * Measured under `next dev` (Next 16.2.6) on the demo album: the reel pushed `?reel`, a `router.refresh()` ran while it
+ * was open, and the Back to the album (its Close, or the phone's own) emptied the page's whole head, the title, the
+ * description, the viewport and the icons, until a reload; the hub's sheets met the same since crumbs-18. No stand-in
+ * models Next's cache, so the loss is played here as Next plays it: the head's title goes at the traversal's commit.
+ */
+describe("a Back onto a page whose head Next lost", () => {
+  const refresh = vi.fn();
+  const TITLE = "Add photos to Partyreel Demo · Partyreel";
+
+  function title(text = TITLE) {
+    const el = document.createElement("title");
+    el.textContent = text;
+    document.head.append(el);
+    return el;
+  }
+  /** What the traversal's commit does to the page it lands on when the refresh left its head empty. */
+  const loseHead = () =>
+    document.head.querySelectorAll("title").forEach((el) => el.remove());
+  /** A MutationObserver answers in a microtask. */
+  const flush = () =>
+    act(async () => {
+      await Promise.resolve();
+    });
+
+  beforeEach(() => {
+    refresh.mockClear();
+    loseHead();
+  });
+  afterEach(() => loseHead());
+
+  /** The place opened at an address, a refresh while it stood, and its page's word once it has gone. */
+  async function openRefreshAndLeave(
+    leave: (entry: ReturnType<typeof createOwnedEntry>) => void,
+  ) {
+    title();
+    landOnPage();
+    const entry = createOwnedEntry(KEY, { refresh });
+    entry.push("/page?open");
+    act(() => next.refresh());
+    entry.keep(true);
+    leave(entry);
+    await settle();
+    return entry;
+  }
+
+  it("★ asks the router to render it again, once, when the place's own close went Back", async () => {
+    const entry = await openRefreshAndLeave((e) => e.close("/page"));
+    // The page is told the address moved and the place is closed.
+    entry.keep(false);
+    loseHead();
+    await flush();
+    expect(refresh).toHaveBeenCalledTimes(1);
+    // Its later renders say the same and ask nothing more.
+    entry.keep(false);
+    title();
+    loseHead();
+    await flush();
+    expect(refresh).toHaveBeenCalledTimes(1);
+  });
+
+  it("★ and when the phone's own Back went, with nothing of the place's run first", async () => {
+    const entry = await openRefreshAndLeave(() => window.history.back());
+    entry.keep(false);
+    loseHead();
+    await flush();
+    expect(refresh).toHaveBeenCalledTimes(1);
+  });
+
+  it("the traversal can commit before the page hears of it: a head already gone is asked for at once", async () => {
+    const entry = await openRefreshAndLeave(() => window.history.back());
+    loseHead();
+    entry.keep(false);
+    await flush();
+    expect(refresh).toHaveBeenCalledTimes(1);
+  });
+
+  it("a Back whose page keeps its head asks nothing: Next swaps a head in one commit", async () => {
+    const entry = await openRefreshAndLeave((e) => e.close("/page"));
+    entry.keep(false);
+    // The old title goes and the landed page's comes, in one batch.
+    loseHead();
+    title();
+    await flush();
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
+  it("a place pushed with no address (a phone's popup) never asks: the router never lagged its address", async () => {
+    title();
+    landOnPage();
+    const entry = createOwnedEntry(KEY, { many: true, refresh });
+    entry.push();
+    act(() => next.refresh());
+    entry.keep(true);
+    entry.close("/page");
+    await settle();
+    entry.keep(false);
+    loseHead();
+    await flush();
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
+  it("a page that had no head to lose asks nothing", async () => {
+    landOnPage();
+    const entry = createOwnedEntry(KEY, { refresh });
+    entry.push("/page?open");
+    entry.close("/page");
+    await settle();
+    entry.keep(false);
+    await flush();
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
+  it("listens for a while and no longer: a head that goes much later is not the Back's", async () => {
+    const entry = await openRefreshAndLeave((e) => e.close("/page"));
+    vi.useFakeTimers();
+    entry.keep(false);
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+    vi.useRealTimers();
+    loseHead();
+    await flush();
+    expect(refresh).not.toHaveBeenCalled();
+  });
+});
+
 describe("useOwnedEntry", () => {
+  it("reads the context Next's own `useRouter` reads, so the refresh it hands on is the router's (a Next upgrade that moves it fails here)", () => {
+    const navigation = readFileSync(
+      createRequire(import.meta.url).resolve(
+        "next/dist/client/components/navigation.js",
+      ),
+      "utf8",
+    );
+    expect(navigation).toContain(
+      'require("../../shared/lib/app-router-context.shared-runtime")',
+    );
+    const useRouter = navigation.slice(
+      navigation.indexOf("function useRouter() {"),
+    );
+    expect(useRouter.slice(0, 200)).toContain(
+      "useContext)(_approutercontextsharedruntime.AppRouterContext)",
+    );
+  });
+
+  it("★ hands the entry the router's own refresh, from the router the page stands in", async () => {
+    const router = { refresh: vi.fn() } as unknown as AppRouterInstance;
+    let entry: ReturnType<typeof createOwnedEntry> | null = null;
+    function Probe() {
+      entry = useOwnedEntry(KEY);
+      return null;
+    }
+    render(
+      <AppRouterContext.Provider value={router}>
+        <NextRouterStandIn>
+          <Probe />
+        </NextRouterStandIn>
+      </AppRouterContext.Provider>,
+    );
+    const el = document.createElement("title");
+    el.textContent = "A page";
+    document.head.append(el);
+    landOnPage();
+    entry!.push("/page?open");
+    entry!.close("/page");
+    await settle();
+    entry!.keep(false);
+    el.remove();
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(router.refresh).toHaveBeenCalledTimes(1);
+  });
+
+  it("outside a router (a test, the Library) there is nothing to ask, and nothing breaks", async () => {
+    let entry: ReturnType<typeof createOwnedEntry> | null = null;
+    function Probe() {
+      entry = useOwnedEntry(KEY);
+      return null;
+    }
+    render(<Probe />);
+    const el = document.createElement("title");
+    document.head.append(el);
+    landOnPage();
+    entry!.push("/page?open");
+    entry!.close("/page");
+    await settle();
+    expect(() => {
+      entry!.keep(false);
+      el.remove();
+    }).not.toThrow();
+    await act(async () => {
+      await Promise.resolve();
+    });
+  });
+
   it("is one entry for the component's life, whatever it re-renders", () => {
     const seen: unknown[] = [];
     function Probe() {
