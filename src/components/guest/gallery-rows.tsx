@@ -20,6 +20,10 @@
  *
  * ★ A FILE THAT DID NOT GO IS DRAWN NOWHERE (the failure sheet reads it at the run's end), and no Add
  * lives here: the album's Add is the page's (the action row, then the dock).
+ *
+ * ★ AN ARRIVAL LANDS COMPLETE, OR NOT UNTIL IT CAN (crumbs-23, `use-arrival-gate.ts`): a live arrival is
+ * held out of the rows until its link has landed and its photograph is decoded, then pushed in as a
+ * photograph the browser already holds; the glow is written here, when it lands.
  */
 import type { Ref } from "react";
 import { Download } from "lucide-react";
