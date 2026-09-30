@@ -4,7 +4,7 @@
 > [`systems/`](systems); what might be next is [`ROADMAP.md`](ROADMAP.md); what runs this minute is
 > [`tracks/orchestrator.md`](tracks/orchestrator.md); what shipped is `git log`.
 
-**Updated:** 2026-09-29
+**Updated:** 2026-09-30
 
 ## The era
 
@@ -40,9 +40,9 @@ which veil).
   door redirects; the signed-in pass PASS (the renew return, the hub past 1,000, the list always on, the look's
   Block, Settings whole, the reel, the owner's password album, the slug refusal). `admin.partyreel.com` is served by `partyreel-admin`
   (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel` (`=app`).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 30 (`1d88b8b1`): the
-  pictures-first desk, lighter pages, every 404 server-drawn with its status, the fix for build 27's MEDIUM and six
-  lanes of small fixes; its red-team waits on Claude in Chrome reconnecting, then milestone 31 is his to say.
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 31 (`96d154d6`): build 30
+  (red-teamed live: build 27's MEDIUM fixed, one MEDIUM found, a stale guest link drawing the site's 404, which
+  `gone-link-soft` fixes before milestone 31) plus the desk made true of production for his sitting.
 - **The shared database** runs eighteen migrations applied 2026-09-29 and 30 (the block, the free shift, the operator removal
   purge, the help's feedback, the pass reminders switch, likes on private albums, the slug family, the doors, the triage
   rebuild, the invite list's admit, schema-pass part 1, a password ending every ask, a report keeping what it named,

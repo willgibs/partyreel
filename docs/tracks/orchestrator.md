@@ -83,21 +83,30 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
 
 1. **Integrate each lane as it hands off** (no lane running; build 30's red-team and the PREMISE audits are agents, not lanes), each migration by protocol, one at a time: drift check, apply verbatim, the rolled-back refusals,
    advisors, types.
-2. **Build 30 is on the alias** (`1d88b8b1`, 2026-09-30, the milestone 31 candidate): build 28 (lab-focus, perf-404,
-   crumbs-24, crumbs-26's fix for build 27's MEDIUM) plus crumbs-25, stale-link and crumbs-27. Its red-team is build 28's
-   agent `a323059321486cd11`, RESUMED 17:40Z on build 30 once Will reconnected Chrome: its ledger's PLAN (S0 to S9,
-   crumbs-26's shared-phone steps first), then crumbs-27's six walks, crumbs-25's and stale-link's; its signed-out walks
-   passed on build 28 (lab-focus 23 of 23, /login 123 KB lighter, the title after Back). From another session, respawn it
-   from `../partyreel-wt/_scratch/redteam-28/brief.md` after its `ledger.txt`'s last line. The milestone's full gate runs
-   ahead of his yes (gate 100, `FULL=1`, on `79beeb39`). When the red-team passes, milestone 31 is proposed to Will (his
-   yes); schema-pass's part 2 applies after it ships.
-   **The desk's PREMISE re-read is done** (two read-only audits of every production claim on the six boards against build
-   30's code): `privacy-hero` and `about-press` hold; `desk-tune-2` made the stale lines on `disposable-mode`,
-   `locked-door`, `event-ready` and `demo-framing` true (merged at `138beee8`, gate 101 green, lab files only). It
-   deploys as build 31 before Will's sitting, once build 30's red-team is done (a deploy mid-walk would swap the build
-   under it). Gate 100 is green (lint, test 7,849, build, `lab:smoke` 173) but for `lab:demo`'s
-   `about-press.facts`, whose navigation stalled twice on the dev server (ROADMAP's "Page.navigate did not answer" line);
-   the keyed desk run against the alias (build 30's production build) pressed all 23 steps, 0 failing, that one included.
+2. **Milestone 31's candidate is build 31 plus `gone-link-soft`.** Build 30's red-team (agent `a323059321486cd11`, done
+   19:31Z; `../partyreel-wt/_scratch/redteam-28/ledger.txt`) found build 27's MEDIUM fixed and every drivable walk of
+   crumbs-24 to 27, lab-focus and perf-404 passing, and found:
+   - MEDIUM: stale-link's 404 on Vercel. A stale `/e/` or `/u/` link draws the root's 404, since Vercel serves its
+     `/404` for the proxy's 404 status. It is `gone-link-soft`'s (its row).
+   - LOW: two rows of hers in one second on a shared phone (the queue's silent join races the page's, and
+     `create_guest` always inserts).
+   - LOW: a declined newcomer admitted by `events_door_opened` on a Public trip (the trigger admits every waiting row,
+     blocked ones included).
+   - LOW: the dead hub link's title (crumbs-28's).
+   - NIT: the door after a sign-out still in flight (Send says "Enter a name" with no field).
+
+   Build 31 (`96d154d6`: build 30 plus desk-tune-2, lab files only) is on the alias for Will's sitting. When
+   gone-link-soft merges:
+   1. build 32, and my curl proof on the alias (a stale `/e/` and `/u/` draw their own screens, 200, noindex);
+   2. milestone 31 on Will's yes, then the prod walk from `../partyreel-wt/_scratch/prod-m31/brief.md`;
+   3. then crumbs-28 merges, schema-pass part 2 applies, and crumbs-29 takes the three LOWs and the NIT (two of them
+      migrations).
+
+   **The desk's PREMISE re-read is done**: two read-only audits checked every production claim on the six boards
+   against build 30's code. `privacy-hero` and `about-press` hold; `desk-tune-2` made the stale lines true (merged at
+   `138beee8`, on build 31). Gate 100 is green (lint, test 7,849, build, `lab:smoke` 173). Its one red step,
+   `lab:demo`'s `about-press.facts`, was a navigation that stalled twice on the dev server; the keyed desk run against
+   the alias pressed all 23 steps, 0 failing.
 3. **Seats as they free** (at most four lanes; `memory_pressure` before each; app work first, Will's note; `lab-focus`
    took the lab's phone fold with it). After his desk picks: the demo event (below); about-press's wiring (its three wiring calls,
    `git show 3ded6ba9^2:docs/tracks/about-press.md`: /press a temporary redirect, the llms summary kept, the kit's files
@@ -136,6 +145,11 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
   name's Change; its `media.file_size_bytes` checks the 3.5 MB estimate); the 10-second iPhone check on partyreel.com
   (one tap on Save opens the system sheet and a shared photo arrives as a photograph; Settings > Camera > Record
   Video's size for 1080p at 30 fps, against the 65 MB a minute estimate).
+- **The walks only he can drive** (build 30's red-team, optional):
+  - an event password typed once (Let back in's password landing);
+  - the hub under macOS reduced motion;
+  - a tab hidden, then shown (the hub's album);
+  - crumbs-27's two walks that need a second signed-in device (the host's phone while partyr33l holds the shared one).
 - **Whenever convenient:** the Vercel MCP on this account points at his personal team; re-pointed at P3 it reads
   runtime logs (deploys ride `$VERCEL_TOKEN` and need nothing).
 - **Asks that come due later**: Libraries.dev access for a lane (when the help chat is cut), and any F1 frames he loves
