@@ -28,7 +28,7 @@ export function useReplayEarlyPress(ref: RefObject<HTMLElement | null>) {
  * A BUTTON WHOSE WHOLE ANSWER IS ITS HANDLER, that keeps the tap made before the page could hear it
  * (`early-press.ts`): Continue with Google starts its sign-in from the browser, so on a cold phone the
  * first tap, made a second before hydration, reached nothing and the second one went. The tap is
- * remembered by the root layout's recorder and answered here, once, the moment the handler exists.
+ * remembered by the auth layout's recorder and answered here, once, the moment the handler exists.
  */
 export function EarlyPressButton(props: ComponentProps<typeof Button>) {
   const ref = useRef<HTMLButtonElement>(null);

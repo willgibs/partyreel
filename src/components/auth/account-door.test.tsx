@@ -200,7 +200,7 @@ describe("the wears", () => {
 
   it("★ Continue with Google keeps a tap made before the page could hear it (crumbs-23)", () => {
     // Its whole answer is its handler, so on a cold phone the first tap, a second before hydration,
-    // reached nothing and the second one went. It asks the root layout's recorder to remember its press
+    // reached nothing and the second one went. It asks the auth layout's recorder to remember its press
     // (`early-press.ts`) and answers it once its handler exists (`EarlyPressButton`).
     render(
       <AccountDoor

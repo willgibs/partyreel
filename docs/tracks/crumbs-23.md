@@ -29,7 +29,8 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/auth/early-press-button.test.tsx  # (new) server HTML, a click, then hydration
   - src/components/auth/account-door.tsx             # Continue with Google is that button
   - src/components/auth/account-door.test.tsx        # pins it
-  - src/app/layout.tsx                               # the ~200-byte recorder, an inline <script> as the HTML parses
+  - src/app/(auth)/layout.tsx                        # (new) the ~200-byte recorder, an inline <script> as the sign-in HTML parses (not the root layout: perf-404 owns it)
+  - src/app/(auth)/layout.test.tsx                   # (new)
   # the door menu's invite line (the migration, its count, its words, the menu and the steps page):
   - supabase/migrations/20260929233000_door_counts_listed.sql  # (new) event_door_waiting_listed + event_door_counts' `waiting_listed` key
   - src/lib/db/queries/event-doors.ts                # DoorCounts.waitingListed, read defensively

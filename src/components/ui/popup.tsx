@@ -9,6 +9,7 @@ import { useKeyboardInset } from "@/lib/use-keyboard-inset"
 import { useMediaQuery } from "@/lib/use-media-query"
 import { Button } from "@/components/ui/button"
 import { floatingPopupShapes } from "@/components/ui/floating-layer"
+import { EPHEMERAL_ROLES } from "@/components/ui/layer-is-up"
 import { useBackCloses } from "@/components/ui/popup-back"
 import {
   DESK_QUERY,
@@ -56,7 +57,9 @@ import {
  * popup over it closes it — so a control inside one is still there to give
  * focus back to.
  */
-const EPHEMERAL_LAYER = "[role='menu'], [role='listbox']"
+const EPHEMERAL_LAYER = EPHEMERAL_ROLES.map((role) => `[role='${role}']`).join(
+  ", "
+)
 
 /**
  * THE LAST CONTROL STILL THERE TO GIVE FOCUS BACK TO: on the page itself, or

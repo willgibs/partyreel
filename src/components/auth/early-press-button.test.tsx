@@ -16,7 +16,7 @@ import {
  * build 26's red-team: "Continue with Google": the first click before hydration did nothing, the second
  * went).
  *
- * The order the browser meets is rebuilt whole: `renderToString` is the server's HTML, the root layout's
+ * The order the browser meets is rebuilt whole: `renderToString` is the server's HTML, the auth layout's
  * inline recorder is run against the document as the HTML is parsed, the person clicks the button (no
  * handler exists: nothing answers), and only then does `hydrateRoot` bring the page. What is pinned is what
  * the control does about the tap it missed: answers it once, through its own handler, while it is fresh,
@@ -26,7 +26,7 @@ let root: ReturnType<typeof hydrateRoot> | null = null;
 
 beforeEach(() => {
   delete (window as unknown as { __earlyPress?: unknown }).__earlyPress;
-  // The root layout's inline script, run once as the document is parsed.
+  // The auth layout's inline script, run once as the document is parsed.
   new Function(EARLY_PRESS_RECORDER)();
 });
 afterEach(() => {

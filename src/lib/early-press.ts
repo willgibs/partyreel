@@ -11,13 +11,13 @@
  * on (`ClientForm`); a bare button has none.
  *
  * ★ THE ROOT IS THAT NOTHING WAS LISTENING. So one inline script, run before anything else
- * (`beforeInteractive` in the root layout, ~200 bytes), remembers the time of each click on a control that
+ * (a plain inline <script> in the sign-in group's layout, ~200 bytes), remembers the time of each click on a control that
  * asks for it (`data-early-press`), and the control itself, at its own hydration (the moment its handler
  * exists), runs the press it missed (`EarlyPressButton`, `components/auth/early-press-button.tsx`): the
  * tap the person made is the one that happens, once, and it is the control's own handler that answers
  * it, so nothing is done that a tap would not have done.
  *
- * This file is plain (no `"use client"`): the root layout, a server component, reads the recorder's
+ * This file is plain (no `"use client"`): `(auth)/layout.tsx`, a server component, reads the recorder's
  * source from it.
  *
  * ★ A STALE PRESS IS NOT REPLAYED. A tap that waited longer than `EARLY_PRESS_FRESH_MS` for its page is a
@@ -38,7 +38,7 @@ export const EARLY_PRESS_FRESH_MS = 5000;
 const LEDGER = "__earlyPress";
 
 /**
- * The recorder, as the inline script the root layout runs first. A capture-phase click listener on the
+ * The recorder, as the inline script the sign-in pages' layout runs first. A capture-phase click listener on the
  * document, which is there from parse time, before any framework code; it writes the time of a click on
  * an opted-in control and nothing else.
  */

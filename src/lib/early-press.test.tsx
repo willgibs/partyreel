@@ -10,7 +10,7 @@ import {
 /**
  * A TAP BEFORE THE PAGE'S SCRIPTS HAVE RUN IS REMEMBERED, FOR THE CONTROLS THAT ASK (crumbs-23).
  *
- * The recorder is the inline script the root layout runs as the HTML is parsed; it is run here the way the
+ * The recorder is the inline script the sign-in pages' layout runs as the HTML is parsed; it is run here the way the
  * browser runs it (evaluated against the document), then clicked, and `takeEarlyPress` is what a control
  * reads when its handler has arrived. What is pinned is what is remembered and what is not: only a click
  * on a control that carries the attribute, only for a few seconds, only once.
@@ -20,7 +20,7 @@ const ledger = () =>
   (window as unknown as { __earlyPress?: Ledger }).__earlyPress;
 
 function install() {
-  // The root layout's own inline script, run once against this document.
+  // The auth layout's own inline script, run once against this document.
   new Function(EARLY_PRESS_RECORDER)();
 }
 

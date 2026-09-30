@@ -83,10 +83,12 @@ from the same mismatch by re-rendering: a regression can pass every local check 
 - ★ **A tap before hydration is lost unless its control asks to have it kept** (`lib/early-press.ts`,
   `auth/early-press-button.tsx`): React replays no press made before its own script runs (measured in a Suspense
   boundary and out of one), and a bare button has no native answer, so Continue with Google's first tap reached
-  nothing. One ~200-byte plain inline `<script>` in the root layout (`next/script`'s `beforeInteractive` inline scripts are
-  pushed onto a queue Next's own bundle runs, after this window) records the time of a click on `[data-early-press]`;
-  the control answers it once at its own hydration if it is under 5s old, through its own handler. Opt a JS-only
-  control in with `EarlyPressButton`; a form already answers through `ClientForm`.
+  nothing. One ~200-byte plain inline `<script>` in the sign-in group's layout (`(auth)/layout.tsx`, the page whose
+  button is drawn open on the server; `next/script`'s `beforeInteractive` inline scripts are pushed onto a queue Next's own
+  bundle runs, after this window) records the time of a click on `[data-early-press]`; the control answers it once at
+  its own hydration if it is under 5s old, through its own handler. Opt a JS-only control in with `EarlyPressButton`, and
+  put the same script in the layout of any other group that draws one open on the server; a form already answers
+  through `ClientForm`.
 - **A soft refresh (`router.refresh()`) re-renders without remounting,** so a mount-only effect on a ref never attaches
   to a node that first appears through a refresh (a password unlock turning access on, say): a sentinel whose node can
   appear after mount takes a callback ref.
