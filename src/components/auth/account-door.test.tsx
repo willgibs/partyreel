@@ -198,6 +198,23 @@ describe("the wears", () => {
     expect(screen.queryByText(CONSENT, { exact: false })).toBeNull();
   });
 
+  it("★ Continue with Google keeps a tap made before the page could hear it (crumbs-23)", () => {
+    // Its whole answer is its handler, so on a cold phone the first tap, a second before hydration,
+    // reached nothing and the second one went. It asks the root layout's recorder to remember its press
+    // (`early-press.ts`) and answers it once its handler exists (`EarlyPressButton`).
+    render(
+      <AccountDoor
+        wear="login"
+        methods={{ code: true, google: true }}
+        emailRedirectTo="/auth/callback"
+        onVerified={vi.fn()}
+      />,
+    );
+    expect(
+      screen.getByRole("button", { name: /Continue with Google/ }),
+    ).toHaveAttribute("data-early-press");
+  });
+
   it("offers a password only where the surface says there is one", () => {
     const { unmount } = render(
       <AccountDoor

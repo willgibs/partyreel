@@ -6,6 +6,7 @@ import { Providers } from "@/components/providers";
 import { GlowFilter } from "@/components/shared/glow-filter";
 import { Toaster } from "@/components/ui/sonner";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/constants/site";
+import { EARLY_PRESS_RECORDER } from "@/lib/early-press";
 
 // Font CSS variables must match the names referenced in globals.css
 // (--font-sans in @theme; --font-display consumed by the font-heading utility's
@@ -85,6 +86,12 @@ export default function RootLayout({
           React hydrates, and the dev overlay counted it as our issue. Scoped
           to this one element, so a real mismatch below it still reports. */}
       <body suppressHydrationWarning className="flex min-h-full flex-col">
+        {/* ★ A TAP BEFORE THE PAGE'S SCRIPTS RAN IS REMEMBERED (`early-press.ts`), for the controls that
+            opt in with `data-early-press` (Continue with Google): the recorder is ~200 bytes, runs as the
+            HTML is parsed, and does nothing for any other click. A plain inline <script>, never
+            `next/script`: its `beforeInteractive` inline scripts are pushed onto a queue Next's own
+            bundle runs (`self.__next_s`), which is after the very window this closes. */}
+        <script dangerouslySetInnerHTML={{ __html: EARLY_PRESS_RECORDER }} />
         <Providers>{children}</Providers>
         <Toaster />
         {/* The spill engine's one turbulence field (round 1). Mounted at the
