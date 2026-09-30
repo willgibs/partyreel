@@ -20,9 +20,10 @@ Nothing is protected: every page, the host app and the guest pages are open to b
   door (Public, Private with its gates, Only me, an invite list, the Videos switch), a shared phone that keeps each
   guest's photos her own, the reports queue rebuilt, the hub's rooms and live album, lighter pages, the lab rebuilt.
   The legal text is rewritten once, right before launch (his word).
-- **Batch 9 rides `launch-prep`**: crumbs-28 (nine small fixes) and hide-strikes (his call B: the instant hide's bar is
-  three strikes that lapse after 180 days) are merged; the next build and its red-team wait for his desk sitting.
-  App work leads (his note); the wiring of each board follows his picks.
+- **Batch 9 rides `launch-prep`**: crumbs-28 and hide-strikes (his call B: three strikes that lapse after 180 days)
+  on build 33, red-teamed; crumbs-29 (a shared phone's one row, no door admitting a blocked ask; its three migrations
+  applied), crumbs-30 and crumbs-31 (small fixes, the follow moment after a keep through Google) wait for build 34,
+  which waits for his word on the desk. App work leads (his note); the wiring of each board follows his picks.
 
 ## The desk
 
