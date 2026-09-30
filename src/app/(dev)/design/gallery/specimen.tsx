@@ -84,9 +84,17 @@ export function Specimen({
         {label}
         {!label && hint && <span className="sr-only">Specimen</span>}
       </p>
-      <span className="flex shrink-0 items-center gap-2">
+      {/* ★ THE CAPTION SHRINKS TO THE HEAD, NEVER PAST IT. A hint can run to a paragraph (the album
+          stream's are 1,089 and 1,607px on one line), and this span used to be `shrink-0`, so it
+          stood at its whole width and pushed the split button (and its screen-reader label) out past
+          the specimen's clip: the page scrolled sideways at 1440. `min-w-0` lets it shrink and the
+          caption's `truncate` finish it with an ellipsis, its whole text on the title. */}
+      <span className="flex max-w-full min-w-0 items-center gap-2">
         {hint && showing === "preview" && (
-          <span className="max-w-[24ch] truncate text-[11px] text-muted-foreground sm:max-w-none">
+          <span
+            title={hint}
+            className="max-w-[24ch] min-w-0 truncate text-[11px] text-muted-foreground sm:max-w-none"
+          >
             {hint}
           </span>
         )}
@@ -125,7 +133,10 @@ export function Specimen({
   );
 
   return (
-    <div className="group/specimen overflow-hidden rounded-xl border border-border bg-card">
+    // `relative`: the specimen is the containing block of its own `sr-only` labels (absolutely
+    // positioned), so its `overflow-hidden` clips them; without it they sit wherever the header's
+    // line ended and widen the whole document.
+    <div className="group/specimen relative overflow-hidden rounded-xl border border-border bg-card">
       {code ? (
         <Tabs
           value={showing}

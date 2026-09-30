@@ -10,6 +10,26 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/ui/popup.tsx
   - src/components/app/event-settings/door-page.tsx
   - src/app/(dev)/design/gallery/specimen.tsx
+  # added by the lane, each with its reason:
+  - src/app/(dev)/design/gallery/specimen.test.tsx   # the Library head's class contract (new)
+  - src/components/ui/popup.test.tsx                 # the layer that takes no tap while it arrives
+  - src/components/guest/gallery-rows.test.tsx       # (new) what the wiring hands the rows
+  - src/components/guest/use-arrival-gate.ts         # (new) the gate: link, decode, let in, glow
+  - src/components/guest/use-arrival-gate.test.tsx   # (new)
+  - src/components/guest/live-gallery.tsx            # hands the rows the arrivals and the way to ask for their links (two props)
+  - src/components/guest/live-gallery.test.tsx       # its seam test reads the arrivals now
+  - src/lib/adopt-typed-value.ts                    # (new) text typed before hydration is handed to the field's own onChange
+  - src/lib/adopt-typed-value.test.tsx               # (new) a server-rendered form, typed into, then hydrated
+  - src/components/ui/input.tsx                      # the primitive adopts through the hook
+  - src/components/ui/textarea.tsx                   # the same
+  - src/app/(app)/dashboard/[eventId]/guests/invited-section.tsx  # a bare <input> over its own state: the hook
+  - src/lib/early-press.ts                           # (new) the inline recorder's source, the freshness rule
+  - src/lib/early-press.test.tsx                     # (new)
+  - src/components/auth/early-press-button.tsx       # (new) the button that answers the tap it missed
+  - src/components/auth/early-press-button.test.tsx  # (new) server HTML, a click, then hydration
+  - src/components/auth/account-door.tsx             # Continue with Google is that button
+  - src/components/auth/account-door.test.tsx        # pins it
+  - src/app/layout.tsx                               # the ~200-byte recorder, an inline <script> as the HTML parses
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/host-app.md
   - docs/systems/guest-flow.md
