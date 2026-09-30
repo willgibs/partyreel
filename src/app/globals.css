@@ -86,6 +86,12 @@
 /* The `dark` variant and the `@theme inline` mapping live in theme.css (shared with the design
    lab's own Tailwind entry; see its header). Token VALUES stay below, in the @layer base blocks. */
 @import "./theme.css";
+/* THE IMAGE TRAIL'S SHEET RIDES THIS ONE (crumbs-22). `trail.tsx` used to import it, and the trail is drawn on
+   one route only, the root 404. Next lists a root `not-found.tsx`'s stylesheets with the root layout's assets
+   and preloads them on EVERY route, so every page load carried a "preloaded but not used" warning for a sheet
+   nothing on it drew. A stylesheet the 404's import graph does not own has nothing to preload, and the ~1 KB
+   (minified) every page pays for it is the price of that. `shared/trail/trail-sheet.test.ts` holds both halves. */
+@import "../components/shared/trail/trail.css";
 
 /* `.surface-paper` aliases the WHOLE light block: a subtree-scoped "force the
    paper theme" hook (marketing paper pages + paper chapters inside the cinema

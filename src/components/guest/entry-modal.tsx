@@ -7,7 +7,6 @@ import {
   useImperativeHandle,
   useRef,
   useState,
-  useSyncExternalStore,
   type CSSProperties,
   type ReactNode,
 } from "react";
@@ -76,11 +75,9 @@ import { setLastName, setStoredName } from "@/lib/guest/use-stored-name";
 import { useSuccessHold } from "@/lib/guest/use-success-hold";
 import { useWelcomeSeen } from "@/lib/guest/use-welcome-seen";
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
+import { useHydrated } from "@/lib/shared/use-hydrated";
 import { createClient } from "@/lib/supabase/client";
 import { formatEventDate } from "@/lib/utils";
-
-// Stable no-op subscribe for the hydration flag (useSyncExternalStore wants a stable subscribe).
-const subscribeNoop = () => () => {};
 
 export type EntryModalHandle = {
   /** The teaser's "See all N" re-asserts the sheet at whatever step it is on. */
@@ -305,13 +302,8 @@ export const EntryModal = forwardRef<
   const [skipped, setSkipped] = useState(false);
   const sheetRef = useRef<HTMLDivElement>(null);
   // Open only AFTER hydration: useWelcomeSeen's server snapshot is `seen=true`, so deciding `open`
-  // during SSR/hydration would flash the wrong step before the real value resolves. useSyncExternalStore
-  // (server=false, client=true) gives a hydrated flag without a setState-in-effect mount flag.
-  const hydrated = useSyncExternalStore(
-    subscribeNoop,
-    () => true,
-    () => false,
-  );
+  // during SSR/hydration would flash the wrong step before the real value resolves.
+  const hydrated = useHydrated();
 
   /* THE NAME THIS BROWSER HAS, from whichever of the two places holds it: the per-event key a
      join wrote, or a confirmed account's own profile name (which is a fact about the person, not

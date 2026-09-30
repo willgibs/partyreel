@@ -2,7 +2,13 @@
 
    Classes under `trl-` only, and NO keyframe: the trail is one
    requestAnimationFrame loop writing inline transforms, so nothing in here can
-   shadow a keyframe anywhere else (src/app/keyframe-uniqueness.test.ts). */
+   shadow a keyframe anywhere else (src/app/keyframe-uniqueness.test.ts).
+
+   ★ LOADED BY src/app/globals.css (`@import`), NOT BY THE COMPONENT. The trail is
+   drawn on the root 404, and a stylesheet imported anywhere under a root
+   `not-found.tsx` is preloaded on every route (the header there says why), so
+   `trail.tsx` imports no CSS at all. Unlayered rules on purpose, as they were:
+   this file beats a utility on the same element without a specificity war. */
 
 /* The area a trail is drawn in. It is a REAL box rather than an overlay: the
    words stand inside it, the photographs run behind them, and the whole thing

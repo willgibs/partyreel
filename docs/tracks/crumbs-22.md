@@ -4,22 +4,47 @@ status: open            # open -> handed-off; deleted in the merge commit that i
 cut: "39426a2f"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
+  # the brief's own (item 1: the 404's sheet)
   - src/app/not-found.tsx
   - src/components/shared/trail/
+  - src/app/globals.css                                  # the sheet's one @import (the fold)
+  # items 2 and 3: the FAQ (find-in-page; the thin wrapper gone)
   - src/components/marketing/faq-accordion.tsx
-  - src/components/marketing/sections/home/faq-accordion.tsx
+  - src/components/marketing/faq-accordion.test.tsx
+  - src/components/marketing/sections/home/faq-accordion.tsx   # deleted
+  - src/components/marketing/sections/home/faq.tsx             # a caller of the wrapper
+  - src/app/(marketing)/(cinema)/pricing/page.tsx              # the other caller
   - src/components/marketing/sections/pricing/pricing-page.test.ts
+  - src/app/(marketing)/marketing.css                    # content-visibility joins the panel's collapse clock
+  # item 4: the reduced mail
   - src/lib/email/templates.ts
+  - src/lib/email/templates.test.ts
+  # item 5: one useHydrated (its home, and all eight copies)
+  - src/lib/shared/use-hydrated.ts
+  - src/lib/shared/use-hydrated.test.tsx
+  - src/lib/shared/use-hydrated-one-home.test.ts
   - src/app/(marketing)/(cinema)/contact/contact-form.tsx
   - src/components/app/event-feed/bulk-bar.tsx
+  - src/components/app/event-feed/bulk-bar.test.tsx      # its source pin named the retired inline store
   - src/components/app/share/event-share-provider.tsx
   - src/app/(dev)/design/theme-toggle.tsx
+  - src/components/guest/entry-modal.tsx                 # copy 5 of 8
+  - src/components/app/user-menu.tsx                     # copy 6 of 8
+  - src/components/dev/motion-tuner.tsx                  # copy 7 of 8
+  - src/lib/use-media-query.ts                           # one comment named entry-modal's flag
+  - src/components/guest/event-experience.tsx            # one comment named the two inline flags
+  # item 6: one layerIsUp (its home, and the three copies)
+  - src/components/ui/layer-is-up.ts
+  - src/components/ui/layer-is-up.test.tsx
   - src/components/app/event-feed/review-keys.ts
   - src/components/admin/report-queue.tsx
   - src/components/shared/masonry.tsx
-  - src/components/guest/event-experience.tsx
+  - src/components/ui/popup.tsx                          # its EPHEMERAL_LAYER pair is the home's now
+  - src/components/ui/popup-kinds.ts                     # the alertdialog note points at layerIsUp
+  # item 7: the refresh-then-write audit
+  - src/lib/history-entry.ts                             # the header's edge note, refined with what was measured
+  - src/lib/refresh-then-write-policy.test.ts
 reads:                  # single-sources you depend on: never duplicate, never edit
-  - docs/systems/marketing-content.md
   - docs/systems/host-app.md
 ---
 

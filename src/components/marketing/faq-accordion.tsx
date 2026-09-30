@@ -1,9 +1,10 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
-import { useId, useState, useSyncExternalStore } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 import type { FaqItem } from "@/components/marketing/faq-data";
+import { useHydrated } from "@/lib/shared/use-hydrated";
 import { cn } from "@/lib/utils";
 
 /**
@@ -38,17 +39,28 @@ import { cn } from "@/lib/utils";
  * MOTION: the ratified chapter-2 clocks (.mkt-acc: the grid-rows 0fr/1fr height
  * animation and the scaleY chevron flip; padding lives INSIDE .mkt-acc-panel-inner
  * per the recipe's never-fully-closes warning). One question is open at a time,
- * so the list stays a quiet block. A closed panel is `inert`, because 0fr only
- * collapses it visually: without it a screen reader reads every answer while
- * its button says collapsed, and a Tab could land inside one.
+ * so the list stays a quiet block.
+ *
+ * ★ A CLOSED ANSWER IS OUT OF REACH, AND STILL FOUND. 0fr only collapses a panel
+ * visually: without more, a screen reader reads every answer while its button says
+ * collapsed, and a Tab could land inside one. Where the browser can find into
+ * hidden content (`onbeforematch`: Chromium and Firefox; Safari has not shipped it)
+ * the closed panel is `hidden="until-found"`, which keeps it out of the accessibility
+ * tree and the tab order and lets find-in-page read it, as a native <details> always
+ * did; the browser then fires `beforematch` at the panel, and that opens its question
+ * and closes the one that was open. Elsewhere it is `inert`, which finds nothing (and
+ * where a plain `hidden` would also have cost the collapse its animation).
+ * React writes a `hidden` string as a plain `hidden` (`display: none`, so nothing is
+ * found and nothing animates), so the `until-found` value is set by hand after
+ * hydration. marketing.css lists `content-visibility` beside the height clock with
+ * `allow-discrete`, so a panel that has just closed stays drawn until its collapse
+ * has finished instead of vanishing when the attribute lands.
  */
 
 /** Scripting off has nothing to open a panel, so every answer shows: the same
  *  <noscript> companion the hero uses for its rest state. */
 const NOSCRIPT_RULE =
   "<style>[data-faq] .mkt-acc-panel{grid-template-rows:1fr}[data-faq] .mkt-acc-panel-inner{opacity:1;filter:none}</style>";
-
-const noopSubscribe = () => () => {};
 
 export function FaqAccordion({
   items,
@@ -59,18 +71,46 @@ export function FaqAccordion({
 }) {
   const [open, setOpen] = useState<number | null>(null);
   const baseId = useId();
-  // The server and a scripting-off reader never get an inert panel (inert text
-  // cannot be selected or found, and the <noscript> rule shows every answer);
-  // the client applies it from its first render.
-  const hydrated = useSyncExternalStore(
-    noopSubscribe,
-    () => true,
-    () => false,
-  );
+  // The server and a scripting-off reader never get a closed panel held out of reach (the
+  // <noscript> rule shows every answer); the client applies it once it is hydrated.
+  const hydrated = useHydrated();
+  // Read only past hydration, so `document` is there and the server's answer is false.
+  const findable = hydrated && "onbeforematch" in document.body;
+
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const panelRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // `hidden="until-found"` on every closed panel, off the open one. Written by hand: see the head.
+  useEffect(() => {
+    if (!findable) return;
+    panelRefs.current.forEach((panel, i) => {
+      if (!panel) return;
+      if (i === open) panel.removeAttribute("hidden");
+      else panel.setAttribute("hidden", "until-found");
+    });
+  }, [findable, open]);
+
+  // Find-in-page (or a link to a fragment) reached a closed answer: the browser is about to reveal
+  // it, so open its question to match. `beforematch` bubbles, and React has no prop for it.
+  useEffect(() => {
+    const list = listRef.current;
+    if (!findable || !list) return;
+    const onFound = (event: Event) => {
+      const panel =
+        event.target instanceof Element
+          ? event.target.closest<HTMLElement>("[data-faq-panel]")
+          : null;
+      const at = Number(panel?.dataset.faqPanel);
+      if (Number.isInteger(at)) setOpen(at);
+    };
+    list.addEventListener("beforematch", onFound);
+    return () => list.removeEventListener("beforematch", onFound);
+  }, [findable]);
 
   return (
     <>
       <div
+        ref={listRef}
         data-faq=""
         className={cn(
           "mx-auto mt-10 max-w-2xl divide-y rounded-xl border bg-card/40",
@@ -109,10 +149,14 @@ export function FaqAccordion({
                 </button>
               </h3>
               <div
+                ref={(el) => {
+                  panelRefs.current[i] = el;
+                }}
                 id={panelId}
+                data-faq-panel={i}
                 role="region"
                 aria-labelledby={buttonId}
-                inert={hydrated && !isOpen}
+                inert={hydrated && !findable && !isOpen}
                 className="mkt-acc-panel"
               >
                 <div className="mkt-acc-panel-inner">

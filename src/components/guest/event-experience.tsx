@@ -752,8 +752,8 @@ export function EventExperience({
   // THE PHONE's id, read off `?pair=<id>` — `window` genuinely does not exist
   // during SSR (unlike crypto above), so this DOES need the hydration-safe
   // read: useSyncExternalStore's server snapshot (null) matches the first
-  // client render exactly, same idiom as entry-modal.tsx's `hydrated` flag
-  // and user-menu.tsx's `mounted` one. Not next/navigation's useSearchParams,
+  // client render exactly (the store read `useHydrated` is made of, with a
+  // value in place of its `true`). Not next/navigation's useSearchParams,
   // which would ask this whole shell to grow a Suspense boundary for one
   // demo delight nothing else here needs.
   const phonePairId = useSyncExternalStore(

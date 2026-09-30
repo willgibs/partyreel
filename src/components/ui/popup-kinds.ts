@@ -97,7 +97,8 @@ export const POPUP_KINDS = {
   list: { desk: "panel", hand: "screen", deskFocus: "panel" },
   /**
    * `confirm=dialog`: "a focused confirmation over an undo is far more helpful". ★ It speaks as an
-   * `alertdialog`, so anything that asks whether "a dialog is up" must look for both roles.
+   * `alertdialog`, so anything that asks whether a layer is up asks `layerIsUp()` (`layer-is-up.ts`),
+   * which knows both roles.
    */
   confirm: {
     desk: "dialog",
