@@ -23,6 +23,10 @@ import { GUEST_NAME_PREFIX } from "@/lib/guest/use-stored-name";
  *     her email: it is said wherever no moment plays, which is every confirmation before her first
  *     upload here (`identity-claims` r3: "Don't want too many complications around this,
  *     especially prior to upload"), and her dashboard's banner holds them.
+ *   - ★ and when the claim left THIS album's photos for the address typed with them (typed under her
+ *     name here, then another address confirmed: `claimLeftForAnotherAddress`), the toast says where
+ *     they are and how to keep them, and tells no name: the told name waits for a claim that moves
+ *     her photos here (crumbs-24, shared-claims' second Question).
  *
  * The page (`event-experience.tsx`) is the one place the toast is said: every door reports its
  * beat here and the page decides when (the door's own `pending`) and whether (the moment already
@@ -132,14 +136,50 @@ export function otherEventsLine({
 }
 
 /**
- * The one toast a confirmation without a moment says, or null when it has nothing to say. The name
- * leads (it is about this album); the other events follow as its description; alone, the other
- * events keep the claim's own sentence (`CLAIMED_TOAST`), so a claim that moved uploads is worded
- * the same wherever it is said.
+ * ★ PHOTOS HERE LEFT FOR ANOTHER ADDRESS: where they are (with the address typed under her name, which
+ * the phone never holds, so the words never name it) and the one way to keep them. Counted, one said in
+ * the singular. "Photos" as the claims review counts them, videos included.
+ */
+export function leftForAddressWords(uploads: number): {
+  title: string;
+  description: string;
+} {
+  const one = uploads === 1;
+  return {
+    title: one
+      ? "Your photo here was added with another email."
+      : `Your ${formatCount(uploads)} photos here were added with another email.`,
+    description: one
+      ? "It stays with the email you added with your name. Sign in with that email to keep it."
+      : "They stay with the email you added with your name. Sign in with that email to keep them.",
+  };
+}
+
+/** Her uploads at other events beside photos here that did not move: "too" would claim these did. */
+const ELSEWHERE_ALONE = "Your uploads from other events are in your account.";
+
+/**
+ * The one toast a confirmation without a moment says, or null when it has nothing to say. Photos here
+ * left for another address lead, and then the name is not told; else the name leads (it is about this
+ * album); the other events follow as its description; alone, the other events keep the claim's own
+ * sentence (`CLAIMED_TOAST`), so a claim that moved uploads is worded the same wherever it is said.
  */
 export function confirmBeatToast(
-  beat: Pick<ConfirmBeat, "name" | "elsewhere">,
+  beat: Pick<ConfirmBeat, "name" | "elsewhere"> & {
+    /** This album's live uploads the claim left for the address typed with them. */
+    left?: number;
+  },
 ): { title: string; description?: string } | null {
+  if (beat.left && beat.left > 0) {
+    const words = leftForAddressWords(beat.left);
+    return {
+      title: words.title,
+      description:
+        beat.elsewhere > 0
+          ? `${words.description} ${ELSEWHERE_ALONE}`
+          : words.description,
+    };
+  }
   if (beat.name) {
     return beat.elsewhere > 0
       ? { title: toldNameLine(beat.name), description: ELSEWHERE_LINE }

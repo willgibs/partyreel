@@ -6,10 +6,8 @@ import {
   useContext,
   useRef,
   useState,
-  useTransition,
   type ReactNode,
 } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import {
@@ -206,8 +204,6 @@ export function SettingsProvider({
   writes?: SettingsWrites;
   children: ReactNode;
 }) {
-  const router = useRouter();
-  const [, startTransition] = useTransition();
   const base = valuesOf(event, social);
 
   // What a host has changed that the row does not say yet, laid over it.
@@ -353,9 +349,12 @@ export function SettingsProvider({
           });
           if (!result.ok)
             return { ok: false as const, message: result.message };
-          // The switch is felt on the album, not here: say so, and let the hub's Reel card catch up
-          // (the action revalidates nothing, and says why). A look or a hold is seen as it is picked,
-          // and the overlay holds what the save answered, so neither needs the page again.
+          // The switch is felt on the album, not here: say so. ★ THE HUB'S REEL CARD CATCHES UP IN THE
+          // SAVE'S OWN ANSWER (the action revalidates the hub for the switch, as every other Settings
+          // save does), NEVER A ROUTER REFRESH AFTER IT: a tap on the page's back arrow or a row inside
+          // that refresh's round trip reloaded the page or dropped the refresh (crumbs-24; the matrix is
+          // `lib/history-entry.ts`'s header). A look or a hold is seen as it is picked, and the overlay
+          // holds what the save answered, so neither needs the page again.
           if (patch.showReel !== undefined) {
             toast.success(
               result.defaults.showReel
@@ -367,7 +366,6 @@ export function SettingsProvider({
                   : "Guests no longer see it anywhere.",
               },
             );
-            startTransition(() => router.refresh());
           }
           return {
             ok: true as const,
@@ -380,7 +378,7 @@ export function SettingsProvider({
         },
         "Couldn't save that setting.",
       ),
-    [event.id, router, run, writes],
+    [event.id, run, writes],
   );
 
   const saveProfile = useCallback(

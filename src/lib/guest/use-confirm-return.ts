@@ -23,11 +23,16 @@ import {
  *     opened from this album (its marker) AND the claim moved this album's own uploads. No upload is
  *     needed this visit: the moment is the capture's payoff (following the host, the host's
  *     benefit), so a full-reload return meets it at once rather than at the guest's next upload.
+ *   - ★ her yes to the shared-phone ask (`claimAskedUploads`, `asked`) is as much a confirmation of
+ *     these photos as a door opened here, so a yes that moved this album's own uploads plays the
+ *     moment too, where it used to toast (crumbs-24).
  *
  * ★ ONE BEAT PER CONFIRMATION (`confirm-beat.ts`): when the moment plays, its card says the other
  * events too (`elsewhere`, returned here), so nothing toasts; when it does not, the door that
  * confirmed reports its beat and the page says it once. The mount's own claim (a full-reload return)
- * has no door behind it, so this hook reports that one itself.
+ * has no door behind it, so this hook reports that one itself: whenever it carried uploads from other
+ * events, and whenever a door opened here led to it and nothing here moved, so the page can say where
+ * photos typed under another address are (the page reads that when it speaks).
  *
  * The marker is spent by the first claim that actually ran for this album, whatever it carried: a
  * door opened and abandoned is used up by the next real sign-in, never replayed weeks later.
@@ -44,11 +49,13 @@ export function useConfirmReturn(
   useEffect(() => {
     if (!enabled) return;
     let active = true;
+    // Whether the last claim this album heard spent a door's marker: a door opened here led to it.
+    let opened = false;
     const release = holdAlbum(qrToken);
     const stop = onClaimed((result) => {
       if (result.album !== qrToken) return;
-      const opened = takePendingOffer(qrToken);
-      const played = opened && result.here > 0;
+      opened = takePendingOffer(qrToken);
+      const played = (opened || result.asked === true) && result.here > 0;
       // Recorded INSIDE the claim, so a door awaiting it reads the answer the moment it resolves.
       recordMomentPlayed(qrToken, played);
       if (played) setBeat({ moment: true, elsewhere: result.elsewhere });
@@ -58,7 +65,7 @@ export function useConfirmReturn(
       // reports it, so the beat is said once.
       if (!active || !result || result.album !== qrToken) return;
       if (lastClaimPlayedMoment(qrToken)) return;
-      if (result.elsewhere > 0) {
+      if (result.elsewhere > 0 || opened) {
         reportConfirmBeat({
           album: qrToken,
           name: null,

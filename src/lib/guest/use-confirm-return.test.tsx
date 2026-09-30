@@ -124,6 +124,51 @@ describe("useConfirmReturn", () => {
     expect(beats).toEqual([]);
   });
 
+  it("★ her yes to the shared-phone ask that moved this album's own uploads plays the moment, with no door opened here", () => {
+    // crumbs-24: the yes toasted "We added your uploads to your account." on the album whose own photos
+    // it had just carried, where a door's claim plays the moment. Her answer is as true a confirmation.
+    const { result } = renderHook(() => useConfirmReturn("album-1", true));
+    hear({ album: "album-1", here: 2, elsewhere: 1, asked: true });
+    expect(result.current).toEqual({ moment: true, elsewhere: 1 });
+    expect(lastClaimPlayedMoment("album-1")).toBe(true);
+    expect(beats).toEqual([]);
+  });
+
+  it("a yes that moved nothing here plays nothing (its other events are the toast's)", () => {
+    const { result } = renderHook(() => useConfirmReturn("album-1", true));
+    hear({ album: "album-1", here: 0, elsewhere: 2, asked: true });
+    expect(result.current.moment).toBe(false);
+    expect(lastClaimPlayedMoment("album-1")).toBe(false);
+  });
+
+  it("★ the mount's own claim after a door opened here, which moved nothing here, reports its beat so the page can say where the photos are", async () => {
+    // crumbs-24: a Google return from the keep, confirmed with another address than the one typed here,
+    // came back to silence. The page reads what the claim left for another address when it speaks.
+    markPendingOffer("album-1");
+    claim.mockImplementation(async () => {
+      const result = { album: "album-1", here: 0, elsewhere: 0 };
+      for (const listener of listeners) listener(result);
+      return result;
+    });
+    renderHook(() => useConfirmReturn("album-1", true));
+    await waitFor(() =>
+      expect(beats).toEqual([{ album: "album-1", name: null, elsewhere: 0 }]),
+    );
+  });
+
+  it("the mount's own claim with no door behind it and nothing elsewhere reports nothing (a signed-in visit)", async () => {
+    claim.mockImplementation(async () => {
+      const result = { album: "album-1", here: 0, elsewhere: 0 };
+      for (const listener of listeners) listener(result);
+      return result;
+    });
+    renderHook(() => useConfirmReturn("album-1", true));
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(beats).toEqual([]);
+  });
+
   it("ignores a claim made for another album", () => {
     markPendingOffer("album-1");
     const { result } = renderHook(() => useConfirmReturn("album-1", true));

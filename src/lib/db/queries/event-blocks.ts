@@ -11,7 +11,8 @@ import "server-only";
 import { seedFor } from "@/lib/avatar/seed";
 import { mustQuery } from "@/lib/db/must-query";
 import { inChunks, readAllPages } from "@/lib/db/read-all";
-import type { BlockedPerson } from "@/lib/events/event-blocks";
+import { doorOf, type Door } from "@/lib/event/door/door";
+import { blockedLanding, type BlockedPerson } from "@/lib/events/event-blocks";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getAvatarUrl } from "@/lib/supabase/avatar-storage";
 import { getRequestAuth } from "@/lib/supabase/request-auth";
@@ -96,10 +97,14 @@ function sameInstant(a: string | null, b: string | null): boolean {
  * operator's takedown, not held. A held item is left out rather than counted, so the number the host
  * reads is the number the restore moves, and no number can tell a hold exists.
  *
- * ★ WHERE LET BACK IN LEAVES EACH ONE (build 23's NIT-3): a newcomer declined at the door (her rows here
- * wait, none of them in) goes back to the door and still needs Let in, unless the invite list, being
- * the door, names her address, which lets her straight in as let_back_in's own admission does
- * (`event_door_admit_listed`, 20260929220000). The words before and after the press say which.
+ * ★ WHERE LET BACK IN LEAVES EACH ONE (build 23's NIT-3; crumbs-24): someone with a row past the door
+ * comes back in. Anyone else is a newcomer, whatever rows of hers remain, and meets the door as it
+ * stands (`blockedLanding`): her ask, if it still stands, keeps her at a door the host answers; the
+ * invite list, being the door, lets in an address it names, as let_back_in's own admission does
+ * (`event_door_admit_listed`, 20260929220000); a password is met like anyone new (it ended her ask,
+ * 20260929230000, so no waiting row of hers is left to read). The words before and after the press say
+ * which. The door is the host's own read, made only when a newcomer stands in the Blocked list; the
+ * invite list too, only while it is the door and a newcomer there has an address.
  */
 export async function getEventBlocks(
   eventId: string,
@@ -202,28 +207,29 @@ export async function getEventBlocks(
   const mediaById = new Map(media.map((m) => [m.id, m] as const));
   const profileById = new Map(profiles.map((p) => [p.id, p] as const));
 
-  // A declined newcomer: rows of hers here that wait, and none that is in (someone who was in, then
-  // blocked, keeps her 'in' rows and comes back in).
-  const declinedAtTheDoor = (row: (typeof rows)[number]): boolean => {
+  // Where each one stood here: a row past the door (someone who was in, then blocked, keeps her 'in'
+  // rows), and a row that still waits on the host.
+  const standingOf = (
+    row: (typeof rows)[number],
+  ): { wasIn: boolean; waiting: boolean } => {
     const theirs = [
       ...byAccount.filter(
         (g) => row.user_id !== null && g.user_id === row.user_id,
       ),
       ...byRow.filter((g) => g.id === row.guest_id),
     ];
-    return (
-      theirs.some((g) => g.admission === "waiting") &&
-      !theirs.some((g) => g.admission === "in")
-    );
+    return {
+      wasIn: theirs.some((g) => g.admission === "in"),
+      waiting: theirs.some((g) => g.admission === "waiting"),
+    };
   };
-  // Whom the invite list, while it is the door, would let straight in: asked only when a declined
-  // newcomer with an address stands in the list, on the host's own client (RLS: her own event).
-  const waitingAddresses = rows.flatMap((r) =>
-    r.email && declinedAtTheDoor(r) ? [r.email] : [],
-  );
+  // The door as it stands, and whom its list names: asked only when a newcomer stands in the list, on
+  // the host's own client (RLS: her own event). A door that cannot be read fails closed (Only me).
+  const newcomers = rows.filter((r) => !standingOf(r).wasIn);
+  let door: Door = "private";
   let listed: ReadonlySet<string> = new Set();
-  if (waitingAddresses.length > 0) {
-    const door = await mustQuery(
+  if (newcomers.length > 0) {
+    const event = await mustQuery(
       supabase
         .from("events")
         .select("visibility, gate")
@@ -231,10 +237,12 @@ export async function getEventBlocks(
         .maybeSingle(),
       "event blocks: the door",
     );
-    if (door?.visibility === "private" && door.gate === "invite") {
+    door = event ? doorOf(event.visibility, event.gate) : "private";
+    const addresses = newcomers.flatMap((r) => (r.email ? [r.email] : []));
+    if (door === "invite" && addresses.length > 0) {
       const onList = await inChunks(
         "event blocks: the list",
-        waitingAddresses,
+        addresses,
         async (chunk) => {
           // row-cap: (event_id, email) is unique (event_invites_event_email_key), so a chunk of addresses reads at most one row an address
           return (
@@ -293,9 +301,11 @@ export async function getEventBlocks(
         since: format.since(row.created_at),
         restorable: standing.length,
         restorableUntil: firstPurge ? format.until(firstPurge) : null,
-        atDoor:
-          declinedAtTheDoor(row) &&
-          !(row.email !== null && listed.has(row.email)),
+        lands: blockedLanding({
+          ...standingOf(row),
+          listed: row.email !== null && listed.has(row.email),
+          door,
+        }),
       };
     }),
   );

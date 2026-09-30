@@ -39,7 +39,7 @@ const person = (over: Partial<BlockedPerson> = {}): BlockedPerson => ({
   since: "Blocked Sep 28",
   restorable: 0,
   restorableUntil: null,
-  atDoor: false,
+  lands: "in",
   ...over,
 });
 
@@ -105,7 +105,7 @@ describe("BlockedSection", () => {
     render(
       <BlockedSection
         eventName="Party"
-        people={[person({ id: "b-wren", name: "Wren", atDoor: true })]}
+        people={[person({ id: "b-wren", name: "Wren", lands: "door" })]}
       />,
     );
     fireEvent.click(screen.getByRole("button", { name: "Let back in" }));
@@ -125,6 +125,34 @@ describe("BlockedSection", () => {
       }),
     );
     expect(refresh).toHaveBeenCalled();
+  });
+
+  it("★ a newcomer whose ask the password ended hears she meets it like anyone new, before and after (crumbs-24)", async () => {
+    render(
+      <BlockedSection
+        eventName="Party"
+        people={[person({ id: "b-wren", name: "Wren", lands: "password" })]}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Let back in" }));
+    const dialog = await screen.findByRole("alertdialog");
+    expect(
+      within(dialog).getByText(
+        "They'll need the password to get in, like anyone new.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).queryByText(/add photos again|back at the door/),
+    ).toBeNull();
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Let back in" }),
+    );
+    await waitFor(() =>
+      expect(toast.success).toHaveBeenCalledWith(
+        "Wren can come in with the password.",
+        { description: undefined },
+      ),
+    );
   });
 
   it("★ the restore is offered while something waits in Deleted, OFF by default", async () => {

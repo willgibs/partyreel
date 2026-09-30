@@ -160,7 +160,7 @@ function LetBackInBody({
         person.name,
         result.restored,
         result.noRoom,
-        person.atDoor,
+        person.lands,
       );
       toast.success(told.title, { description: told.description });
       onDone();
@@ -172,7 +172,7 @@ function LetBackInBody({
     <>
       <PopupHeader
         title={letBackInTitle(person.name)}
-        description={letBackInLede(eventName, person.atDoor)}
+        description={letBackInLede(eventName, person.lands)}
       />
       {offer ? (
         <PopupBody>

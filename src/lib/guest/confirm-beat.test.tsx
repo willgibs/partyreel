@@ -4,6 +4,7 @@ import {
   confirmBeatToast,
   ELSEWHERE_LINE,
   lastClaimPlayedMoment,
+  leftForAddressWords,
   mergeConfirmBeats,
   onConfirmBeat,
   otherEventsLine,
@@ -49,6 +50,35 @@ describe("confirmBeatToast", () => {
 
   it("has nothing to say about nothing", () => {
     expect(confirmBeatToast({ name: null, elsewhere: 0 })).toBeNull();
+    expect(confirmBeatToast({ name: null, elsewhere: 0, left: 0 })).toBeNull();
+  });
+
+  it("★ photos here left for the address typed with them: says where they are and how to keep them, and tells no name", () => {
+    // crumbs-24, shared-claims' second Question: dana@work typed under "Dana" here, the keep confirmed
+    // as dana@gmail. The claim rightly moves nothing; the beat must not say "You're on as Dana." over
+    // photos that stay Unverified, and must never name the address, which the phone does not hold.
+    const words = confirmBeatToast({ name: "Dana", elsewhere: 0, left: 3 });
+    expect(words).toEqual({
+      title: "Your 3 photos here were added with another email.",
+      description:
+        "They stay with the email you added with your name. Sign in with that email to keep them.",
+    });
+    expect(`${words?.title} ${words?.description}`).not.toMatch(
+      /You're on as|@/,
+    );
+    expect(leftForAddressWords(1)).toEqual({
+      title: "Your photo here was added with another email.",
+      description:
+        "It stays with the email you added with your name. Sign in with that email to keep it.",
+    });
+  });
+
+  it('left photos and other events: the other events are said once, never "too" beside photos that did not move', () => {
+    expect(confirmBeatToast({ name: null, elsewhere: 2, left: 1 })).toEqual({
+      title: "Your photo here was added with another email.",
+      description:
+        "It stays with the email you added with your name. Sign in with that email to keep it. Your uploads from other events are in your account.",
+    });
   });
 
   it("★ before her first upload: the toast (a confirmation that plays no moment) never speaks of the events waiting under her email", () => {
