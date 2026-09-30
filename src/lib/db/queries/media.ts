@@ -36,9 +36,9 @@ type Client = SupabaseClient<Database>;
  * host-side media reads; a Vitest parity test pins this list to the grant as the migrations leave it
  * (replayed, drops included). Adding a media column? Grant it in a migration AND add it here.
  *
- * The reel's three dormant columns (highlight_score, clip_start_seconds, clip_end_seconds) left this
- * list before their drop (20260929170000, applied only after milestone 31 ships): a select naming a
- * dropped column answers 42703, so the list lets go first and the column goes after.
+ * A column leaves this list before a migration drops it, never with it: a select naming a dropped
+ * column answers 42703 on every host read (the reel's three dormant columns went this way, the list
+ * first, the drop, 20260929170000, once the milestone that stopped naming them was live).
  */
 export const MEDIA_HOST_COLUMNS =
   "id, event_id, guest_id, type, original_key, preview_key, file_size_bytes, duration_seconds, width, height, status, created_at, updated_at, removed_at, purge_at, removed_by_uploader, reel_eligible";
@@ -54,9 +54,6 @@ export const MEDIA_HOST_COLUMNS =
 // will list all three after the post-apply regen — that is exactly when this Omit earns its keep.
 // `purge_asked_at` (admin-triage r2, 20260929140000) too: a permanent delete a hold or an open report defers,
 // and a host who could read it would learn that something keeps her row.
-// The reel's three dormant columns stand here only while the generated type still lists them: the list above
-// no longer selects them, and the regeneration after 20260929170000 takes them off (the forensics guard names
-// each one then).
 export type MediaRow = Omit<
   Tables<"media">,
   | "legal_hold_at"
@@ -65,9 +62,6 @@ export type MediaRow = Omit<
   | "removed_by_admin"
   | "status_before_removed"
   | "purge_asked_at"
-  | "highlight_score"
-  | "clip_start_seconds"
-  | "clip_end_seconds"
 >;
 
 /** A keyset cursor: the last row's raw timestamp string and its id (the tiebreak). */

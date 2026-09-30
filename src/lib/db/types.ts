@@ -667,15 +667,12 @@ export type Database = {
       }
       media: {
         Row: {
-          clip_end_seconds: number | null
-          clip_start_seconds: number | null
           created_at: string
           duration_seconds: number | null
           event_id: string
           file_size_bytes: number
           guest_id: string | null
           height: number | null
-          highlight_score: number | null
           id: string
           legal_hold_at: string | null
           legal_hold_reason: string | null
@@ -697,15 +694,12 @@ export type Database = {
           width: number | null
         }
         Insert: {
-          clip_end_seconds?: number | null
-          clip_start_seconds?: number | null
           created_at?: string
           duration_seconds?: number | null
           event_id: string
           file_size_bytes: number
           guest_id?: string | null
           height?: number | null
-          highlight_score?: number | null
           id?: string
           legal_hold_at?: string | null
           legal_hold_reason?: string | null
@@ -727,15 +721,12 @@ export type Database = {
           width?: number | null
         }
         Update: {
-          clip_end_seconds?: number | null
-          clip_start_seconds?: number | null
           created_at?: string
           duration_seconds?: number | null
           event_id?: string
           file_size_bytes?: number
           guest_id?: string | null
           height?: number | null
-          highlight_score?: number | null
           id?: string
           legal_hold_at?: string | null
           legal_hold_reason?: string | null
