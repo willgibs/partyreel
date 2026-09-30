@@ -782,74 +782,83 @@ function Head({
   const ask = step.kind === "ask" ? step : null;
   const where = ask?.where?.length ? ask.where : undefined;
   const placed = Boolean(where || ask?.when);
+  const toggle = about && (
+    <button
+      type="button"
+      data-dir-press
+      data-lab-about-toggle=""
+      data-fresh={about.fresh ? "" : undefined}
+      aria-expanded={about.open}
+      aria-controls={about.open ? about.id : undefined}
+      onClick={about.onToggle}
+      title={
+        about.fresh
+          ? "What this board is about, what is settled and what you said before (i)"
+          : "What it decides, why it matters, the board's words (i)"
+      }
+      className={cn(
+        "relative inline-flex h-5 shrink-0 items-center gap-1 rounded-md px-1.5 text-[11px] font-medium transition-colors duration-150 motion-reduce:transition-none",
+        about.open
+          ? "bg-muted text-foreground"
+          : "text-muted-foreground hover:text-foreground",
+      )}
+    >
+      <Info className="size-3.5" aria-hidden />
+      About
+      {about.fresh && (
+        <span
+          aria-hidden
+          className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-foreground"
+        />
+      )}
+    </button>
+  );
+  const question = (
+    <h1 className="lab-question">
+      {step.kind === "items" ? (
+        headingFor(step)
+      ) : (
+        <Glossed text={step.question} terms={terms} />
+      )}
+    </h1>
+  );
   return (
     <header className="lab-step-head">
-      {(placed || about) && (
+      {placed && (
         <div className="flex min-w-0 items-start gap-3">
-          {placed ? (
-            <OneLine
-              data="where"
-              lines={lines}
-              className="text-xs leading-5 text-muted-foreground"
-              whole={[...(where ?? []), ask?.when].filter(Boolean).join(" · ")}
-            >
-              <Crumbs where={where} />
-              {ask?.when && (
-                <>
-                  {where && (
-                    <span aria-hidden className="px-1.5 text-faint">
-                      ·
-                    </span>
-                  )}
-                  <span data-lab-when="" className="text-foreground/85">
-                    <Glossed text={ask.when} terms={terms} />
+          <OneLine
+            data="where"
+            lines={lines}
+            className="text-xs leading-5 text-muted-foreground"
+            whole={[...(where ?? []), ask?.when].filter(Boolean).join(" · ")}
+          >
+            <Crumbs where={where} />
+            {ask?.when && (
+              <>
+                {where && (
+                  <span aria-hidden className="px-1.5 text-faint">
+                    ·
                   </span>
-                </>
-              )}
-            </OneLine>
-          ) : (
-            <span className="flex-1" />
-          )}
-          {about && (
-            <button
-              type="button"
-              data-dir-press
-              data-lab-about-toggle=""
-              data-fresh={about.fresh ? "" : undefined}
-              aria-expanded={about.open}
-              aria-controls={about.open ? about.id : undefined}
-              onClick={about.onToggle}
-              title={
-                about.fresh
-                  ? "What this board is about, what is settled and what you said before (i)"
-                  : "What it decides, why it matters, the board's words (i)"
-              }
-              className={cn(
-                "relative inline-flex h-5 shrink-0 items-center gap-1 rounded-md px-1.5 text-[11px] font-medium transition-colors duration-150 motion-reduce:transition-none",
-                about.open
-                  ? "bg-muted text-foreground"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <Info className="size-3.5" aria-hidden />
-              About
-              {about.fresh && (
-                <span
-                  aria-hidden
-                  className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-foreground"
-                />
-              )}
-            </button>
-          )}
+                )}
+                <span data-lab-when="" className="text-foreground/85">
+                  <Glossed text={ask.when} terms={terms} />
+                </span>
+              </>
+            )}
+          </OneLine>
+          {toggle}
         </div>
       )}
-      <h1 className="lab-question">
-        {step.kind === "items" ? (
-          headingFor(step)
-        ) : (
-          <Glossed text={step.question} terms={terms} />
-        )}
-      </h1>
+      {/* A question with no line of where (an ask older than the context
+          layer) keeps About at its own end rather than a row to itself. */}
+      {placed ? (
+        question
+      ) : (
+        <div className="flex min-w-0 items-baseline justify-between gap-3">
+          {question}
+          {toggle}
+        </div>
+      )}
       {step.kind === "items" && (
         <p className="text-xs leading-relaxed text-muted-foreground">
           {step.walk === "one-at-a-time"
@@ -1423,8 +1432,9 @@ function StageViews({
     options.find((o) => o.id === step.recommended) ??
     options[0];
 
+  // Every option shares the stage's scale, so showing another needs no
+  // re-fit; a knob (the board's state) or a new set of options does.
   const k = useWholeFit(ref, whole, mode === "side", [
-    live.id,
     board.state,
     options.length,
   ]);
@@ -1629,10 +1639,10 @@ function useWholeFit(
  * design.css fades that edge, so a tab cut at a phone's edge reads as more to
  * come rather than as a broken label.
  */
-function useScrollEdges(ref: RefObject<HTMLElement | null>) {
+function useScrollEdges(ref: RefObject<HTMLElement | null>, on = true) {
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
+    if (!el || !on) return;
     const read = () => {
       const more = el.scrollWidth - el.clientWidth;
       el.toggleAttribute("data-edge-start", more > 1 && el.scrollLeft > 1);
@@ -1648,7 +1658,7 @@ function useScrollEdges(ref: RefObject<HTMLElement | null>) {
       el.removeEventListener("scroll", read);
       ro?.disconnect();
     };
-  }, [ref]);
+  }, [ref, on]);
 }
 
 /**
@@ -1724,11 +1734,16 @@ function StageHead({
   wide: boolean;
   sidebar: LabSidebar;
 }) {
-  const strip = step.strip && step.strip.length > 0;
-  const row = useRef<HTMLDivElement | null>(null);
+  const strip = Boolean(step.strip && step.strip.length > 0);
+  const side = canSide && step.options.length > 1;
+  const sidebarCosts = stage === "true" && wide && sidebar === "open";
+  // The quiet row holds what sets the stage; with only the scale to set, the
+  // scale rides the option's line instead.
+  const row = strip || Boolean(board.tools) || side || sidebarCosts;
+  const rowRef = useRef<HTMLDivElement | null>(null);
   const knobs = useRef<HTMLDivElement | null>(null);
-  useScrollEdges(row);
-  useScrollEdges(knobs);
+  useScrollEdges(rowRef, row);
+  useScrollEdges(knobs, row);
   return (
     <div data-lab-stage-head="" className="lab-stage-head">
       <div className="flex min-w-0 items-baseline gap-2">
@@ -1745,50 +1760,57 @@ function StageHead({
             your pick
           </span>
         )}
+        {/* A stage with nothing to set but its scale spends no row on it. */}
+        {!row && <ScaleSwitch stage={stage} k={k} wide={wide} />}
       </div>
-      <div ref={row} className="lab-knobs">
-        {/* The knobs scroll sideways where they run out of room; the cluster
-            that sets the stage (the board's tools, the arrangement, the
-            scale) never scrolls away at a desk, and leads the row at a
-            phone (design.css). */}
-        <div ref={knobs} className="lab-knobs-scroll">
-          {strip && <ConfigStrip step={step} board={board} />}
+      {row && (
+        <div ref={rowRef} className="lab-knobs">
+          {/* The knobs scroll sideways where they run out of room; the
+              cluster that sets the stage (the board's tools, the
+              arrangement, the scale) never scrolls away at a desk, and leads
+              the row at a phone (design.css). */}
+          <div ref={knobs} className="lab-knobs-scroll">
+            {strip && <ConfigStrip step={step} board={board} />}
+          </div>
+          <span className="lab-knobs-set">
+            {/* The board's own cluster, on the row that stays with the
+                stage. A board that declares none adds nothing. */}
+            {board.tools && (
+              <span
+                data-lab-board-tools=""
+                className="flex items-center gap-1.5"
+              >
+                {board.tools}
+              </span>
+            )}
+            {side && (
+              <button
+                type="button"
+                data-dir-press
+                onClick={onArrange}
+                title="Press g to swap"
+                className="h-6 rounded-md border border-border px-2 text-[11px] text-muted-foreground transition-colors duration-150 hover:text-foreground motion-reduce:transition-none"
+              >
+                {mode === "side" ? "One at a time" : "Side by side"}
+              </button>
+            )}
+            {/* The one thing standing between a 1:1 preview and its room is
+                sometimes the lab's own sidebar: say so, and take it away in
+                one press. */}
+            {sidebarCosts && (
+              <button
+                type="button"
+                data-dir-press
+                onClick={() => setLabPref("sidebar", "collapsed")}
+                className="h-6 rounded-md border border-dashed border-border px-2 text-[11px] text-muted-foreground transition-colors duration-150 hover:text-foreground motion-reduce:transition-none"
+              >
+                Hide the sidebar
+              </button>
+            )}
+            <ScaleSwitch stage={stage} k={k} wide={wide} />
+          </span>
         </div>
-        <span className="lab-knobs-set">
-          {/* The board's own cluster, on the row that stays with the stage.
-              A board that declares none adds nothing. */}
-          {board.tools && (
-            <span data-lab-board-tools="" className="flex items-center gap-1.5">
-              {board.tools}
-            </span>
-          )}
-          {canSide && step.options.length > 1 && (
-            <button
-              type="button"
-              data-dir-press
-              onClick={onArrange}
-              title="Press g to swap"
-              className="h-6 rounded-md border border-border px-2 text-[11px] text-muted-foreground transition-colors duration-150 hover:text-foreground motion-reduce:transition-none"
-            >
-              {mode === "side" ? "One at a time" : "Side by side"}
-            </button>
-          )}
-          {/* The one thing standing between a 1:1 preview and its room is
-              sometimes the lab's own sidebar: say so, and take it away in one
-              press. */}
-          {stage === "true" && wide && sidebar === "open" && (
-            <button
-              type="button"
-              data-dir-press
-              onClick={() => setLabPref("sidebar", "collapsed")}
-              className="h-6 rounded-md border border-dashed border-border px-2 text-[11px] text-muted-foreground transition-colors duration-150 hover:text-foreground motion-reduce:transition-none"
-            >
-              Hide the sidebar
-            </button>
-          )}
-          <ScaleSwitch stage={stage} k={k} wide={wide} />
-        </span>
-      </div>
+      )}
     </div>
   );
 }
