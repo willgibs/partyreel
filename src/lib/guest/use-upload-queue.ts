@@ -7,6 +7,18 @@
  * pending-files stash, demo simulation, and retry. `event-experience.tsx`
  * owns it, so the door's upload step and the album's `GuestUpload` both read
  * one snapshot.
+ *
+ * ★ THE ALBUM'S OWNER IS NEVER HER OWN GUEST (`ownerEventId`, crumbs-29's
+ * Deferred). Her Add on her own album's guest page went through the guest
+ * pair, minting her a guest row at her own door, and `create_guest` never
+ * counts the host as in: at a door that holds newcomers her upload never went
+ * (approve minted her a waiting ticket her picks waited on for good, invite
+ * refused "Ask the host to let you in.", closed and Only me "This event is
+ * private."). Her files go through the host's own pair instead, as the hub's
+ * Add and the reel's Add to event do (`clip-add.ts`): `create_media_as_host`,
+ * approved (she is the moderator), metered on her storage, credited as the
+ * host, with no ticket, no join and no door. The same queue, so the album's
+ * tile, progress and failure sheet are the ones a guest's files wear.
  */
 import {
   useCallback,
@@ -21,6 +33,7 @@ import { toast } from "sonner";
 import { joinEvent, type JoinedGuest } from "@/lib/guest/join";
 import { SESSION_OTHER_ACCOUNT } from "@/lib/guest/session-owner";
 import { dropGuestTicket } from "@/lib/guest/use-stored-session";
+import { HOST_CLIP_ENDPOINTS } from "@/lib/reel/clip-add";
 import { uploadFile, type UploadOutcome } from "@/lib/upload/uploader";
 
 /**
@@ -54,6 +67,18 @@ import { uploadFile, type UploadOutcome } from "@/lib/upload/uploader";
  */
 const VERIFICATION_REQUIRED = "verification_required";
 const DEAD_TICKET = "invalid_session";
+
+/** A guest's upload pair: the ticket in the body (`session_token`), every guest gate re-checked per file. */
+const GUEST_ENDPOINTS = {
+  presign: "/api/r2/presign-upload",
+  complete: "/api/r2/complete-upload",
+} as const;
+
+/** Where a file goes and as whom: a guest's pair on her ticket, or the host's on her event (the head note). */
+type UploadRoute = Pick<
+  Parameters<typeof uploadFile>[0],
+  "endpoints" | "identity"
+>;
 
 export type QueueItemStatus = "queued" | "uploading" | "done" | "error";
 
@@ -247,6 +272,7 @@ export function useUploadQueue({
   isDemo,
   isVerified = false,
   doorOpen = true,
+  ownerEventId = null,
   onVerificationRequired,
   onDoorNeeded,
 }: {
@@ -271,6 +297,12 @@ export function useUploadQueue({
    * it turns true again, on a fresh chain of joins: she was let in, so the join asks nobody.
    */
   doorOpen?: boolean;
+  /**
+   * The album is the viewer's own (the page's server-side owner answer, `isRequestOwner`): its
+   * event id, and every file goes through the host's own pair with no ticket (the head note).
+   * Null for everyone else. The routes decide again: the host's pair re-verifies the owner.
+   */
+  ownerEventId?: string | null;
   /**
    * The host turned Require verified emails ON mid-visit; the session is spent.
    * `hadQueuedFiles` tells the caller whether the failure sheet is about to
@@ -469,8 +501,19 @@ export function useUploadQueue({
            one. (Read once at the top, the verified re-join after a mid-run flip
            would re-send the refused file on the SPENT ticket and fail the run it
            exists to save.) */
-        const token = sessionRef.current ?? (await acquireTicket());
-        if (!token) break;
+        // The owner sends as the host, on no ticket at all (the head note); anyone else on the ticket.
+        const token = ownerEventId
+          ? null
+          : (sessionRef.current ?? (await acquireTicket()));
+        const route: UploadRoute | null = ownerEventId
+          ? {
+              endpoints: HOST_CLIP_ENDPOINTS,
+              identity: { event_id: ownerEventId },
+            }
+          : token
+            ? { endpoints: GUEST_ENDPOINTS, identity: { session_token: token } }
+            : null;
+        if (!route) break;
         patch(next.id, { status: "uploading", progress: 0, error: undefined });
         const onProgress = (f: number) =>
           patch(next.id, { progress: Math.round(f * 100) });
@@ -485,11 +528,7 @@ export function useUploadQueue({
             ? await simulateUpload(next.file, onProgress)
             : await uploadFile({
                 file: next.file,
-                endpoints: {
-                  presign: "/api/r2/presign-upload",
-                  complete: "/api/r2/complete-upload",
-                },
-                identity: { session_token: token },
+                ...route,
                 onProgress,
                 reelEligible: next.reelEligible,
                 poster: next.poster,
@@ -646,6 +685,7 @@ export function useUploadQueue({
     joinsSilently,
     takeJoin,
     isDemo,
+    ownerEventId,
     qrToken,
   ]);
 
@@ -787,7 +827,8 @@ export function useUploadQueue({
 
   const addFiles = useCallback(
     (files: File[]) => {
-      if (sessionRef.current) {
+      // The owner needs no ticket to go (the head note); anyone else with one goes on it.
+      if (ownerEventId || sessionRef.current) {
         enqueue(files);
         return;
       }
@@ -795,7 +836,7 @@ export function useUploadQueue({
       pendingFilesRef.current = files;
       void joinSilently();
     },
-    [enqueue, joinSilently],
+    [enqueue, joinSilently, ownerEventId],
   );
 
   /**
@@ -808,14 +849,14 @@ export function useUploadQueue({
    */
   const addClip = useCallback(
     (file: File, poster: Blob) => {
-      if (sessionRef.current) {
+      if (ownerEventId || sessionRef.current) {
         enqueue([file], { reelEligible: false, poster });
         return;
       }
       pendingClipsRef.current = [...pendingClipsRef.current, { file, poster }];
       void joinSilently();
     },
-    [enqueue, joinSilently],
+    [enqueue, joinSilently, ownerEventId],
   );
 
   /**

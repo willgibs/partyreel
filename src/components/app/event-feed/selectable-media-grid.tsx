@@ -119,17 +119,19 @@ export function SelectableMediaGrid({
 
   // ★ THE PEEK IS A MODAL, SO IT BEHAVES AS ONE: Escape closes it, focus moves inside it when it
   // opens (onto the look itself where it carries the verdict, so Enter and Backspace are the
-  // verdict's; onto its close button where it is only a look), and when it closes, focus lands on
-  // the tile of the photograph it showed last (the keys may have walked it on), or the tile that
-  // opened it, or the queue's first tile, so the next key press starts where the host was.
+  // verdict's; onto its close button where it is only a look: `focusOnOpen`, the trap's own mount
+  // below), and when it closes, focus lands on the tile of the photograph it showed last (the keys
+  // may have walked it on), or the tile that opened it, or the queue's first tile, so the next key
+  // press starts where the host was.
   const open = preview !== null;
   useEffect(() => {
     if (!open) return;
+    // Read before the trap moves anything: this commit's effects run before the trap has its
+    // container, so focus is still on whatever opened the peek.
     const opener =
       document.activeElement instanceof HTMLElement
         ? document.activeElement
         : null;
-    (withVerdict.current ? dialogRef.current : closeRef.current)?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setPeekRef.current(null);
     };
@@ -152,6 +154,18 @@ export function SelectableMediaGrid({
       back?.focus();
     };
   }, [open]);
+
+  /**
+   * ★ THE TRAP TAKES THE OPENING FOCUS ITSELF (build 33's red-team). The effect above used to focus the look,
+   * and it runs a commit before the trap has its container, so the trap never saw that focus arrive and had
+   * nothing to hand focus back to: Shift+Tab as the first key walked out onto the tile behind the look, the
+   * peek still up. Moved here, into the trap's own mount (its listeners are up by then), the focus is the
+   * one the trap returns to whenever anything sends focus out behind it.
+   */
+  const focusOnOpen = (e: Event) => {
+    e.preventDefault();
+    (withVerdict.current ? dialogRef.current : closeRef.current)?.focus();
+  };
 
   return (
     <>
@@ -272,16 +286,16 @@ export function SelectableMediaGrid({
           Rendered at the feed root (fixed), so it sits above the sticky pills + the floating bar.
           ★ AND IT HOLDS FOCUS WHILE IT IS UP (crumbs-28): it says `aria-modal`, so Tab must never walk
           out behind it onto the tiles it covers. Radix's FocusScope, the trap every Dialog here wears:
-          trapped and looping, from its last control round to its first. Its own mount and unmount
-          focus are turned down, since the effect above decides both (the look or its close button on
-          the way in, the tile on the way out); and a layer opened over it (the credit's look) pauses
-          it, as one Radix layer pauses another. */}
+          trapped and looping, from its last control round to its first. Its own mount focus is ours
+          (`focusOnOpen`: the look or its close button), its unmount focus is turned down (the effect
+          above puts focus back on the tile); and a layer opened over it (the credit's look) pauses it,
+          as one Radix layer pauses another. */}
       {enablePreview && preview && (
         <FocusScope.Root
           asChild
           trapped
           loop
-          onMountAutoFocus={(e) => e.preventDefault()}
+          onMountAutoFocus={focusOnOpen}
           onUnmountAutoFocus={(e) => e.preventDefault()}
         >
           <div
@@ -301,6 +315,24 @@ export function SelectableMediaGrid({
               GLASS_BEHIND,
             )}
             onClick={() => setPeek(null)}
+            // ★ SHIFT+TAB FROM THE LOOK ITSELF COMES ROUND TO ITS LAST CONTROL (build 33's red-team). The
+            // trap's loop only turns at its first and last controls, and the look is neither, so from it
+            // Shift+Tab would bounce back onto the look and seem to do nothing; it goes the loop's own
+            // way instead, as Tab from the look already reaches its first. (This runs before the trap's
+            // own keys, which then see focus on the close button and leave it there.)
+            onKeyDown={(e) => {
+              if (
+                e.key === "Tab" &&
+                e.shiftKey &&
+                !e.altKey &&
+                !e.ctrlKey &&
+                !e.metaKey &&
+                e.target === e.currentTarget
+              ) {
+                e.preventDefault();
+                closeRef.current?.focus();
+              }
+            }}
           >
             {preview.type === "video" ? (
               <video

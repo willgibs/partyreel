@@ -6,7 +6,7 @@
  * button, Escape closes it, and focus goes back to the tile that opened it. In select mode a tap
  * toggles and never peeks.
  */
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -127,6 +127,35 @@ describe("the Review peek's focus", () => {
     expect(document.activeElement).toBe(reject);
     await user.tab({ shift: true });
     expect(document.activeElement).toBe(close);
+  });
+
+  /**
+   * ★ SHIFT+TAB AS THE FIRST KEY (build 33's red-team, from crumbs-28's trap). The peek opened with focus on the look
+   * itself, and the first Shift+Tab walked out onto the tile behind it with the peek still up: the grid focused the
+   * look before the trap had its container, so the trap never learned what to hand focus back to. The trap takes the
+   * look's focus itself now, and Shift+Tab from the look comes round to its last control, the loop's own direction.
+   */
+  it("★ Shift+Tab as the first key comes round to its last control, never out behind it", async () => {
+    const user = userEvent.setup();
+    peekWithVerdict();
+    await user.click(screen.getAllByRole("button", { name: "Preview" })[0]);
+    expect(document.activeElement).toBe(screen.getByRole("dialog"));
+
+    await user.tab({ shift: true });
+    expect(inPeek()).toBe(true);
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: /close preview/i }),
+    );
+  });
+
+  it("★ hands focus back to the look when anything sends it out behind before a key is pressed", async () => {
+    const user = userEvent.setup();
+    peekWithVerdict();
+    await user.click(screen.getAllByRole("button", { name: "Preview" })[0]);
+    // The browser's own move out (the Shift+Tab the trap once missed), as a script would make it.
+    act(() => screen.getAllByRole("button", { name: "Preview" })[1].focus());
+    expect(inPeek()).toBe(true);
+    expect(document.activeElement).toBe(screen.getByRole("dialog"));
   });
 
   it("lets go when it closes: focus goes back to the tile it opened from", async () => {

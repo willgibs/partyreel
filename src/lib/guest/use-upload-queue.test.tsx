@@ -67,6 +67,8 @@ type Props = {
   isVerified: boolean;
   /** The page's door lets the viewer through to the album (its access is not `none`); true unless a test says. */
   doorOpen?: boolean;
+  /** The album is the viewer's own: her event's id, and her Add is the host's (null for everyone else). */
+  ownerEventId?: string | null;
 };
 
 function mountQueue(initial: Props) {
@@ -84,6 +86,7 @@ function mountQueue(initial: Props) {
         isDemo: false,
         isVerified: props.isVerified,
         doorOpen: props.doorOpen,
+        ownerEventId: props.ownerEventId,
         onVerificationRequired,
         onDoorNeeded,
       }),
@@ -778,5 +781,112 @@ describe("the door settles on who is here before it asks", () => {
     act(() => q.result.current.addFiles([makeFile()]));
     await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(1));
     expect(q.onDoorNeeded).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * ★ THE OWNER'S ADD RIDES THE HOST'S OWN ROUTES (crumbs-29's Deferred, a bug). The host adding to her own album from
+ * its guest page went through the guest queue, and `create_guest` never counts the host as in, so at a gated door her
+ * upload never went (proved rolled back on 55bcdbe0): approve minted her a waiting ticket her picks waited on for good,
+ * invite refused "Ask the host to let you in.", closed "This event is private.", and Only me refuses every mint. She is
+ * never her own guest (the notes in `create_guest`, the presign route and `upload-lock.ts` said so all along): her Add
+ * goes through the host's pair, as the hub's does and the reel's Add to event does (`clip-add.ts`), approved and
+ * metered on her storage, with no ticket, no join and no door.
+ */
+describe("the album's owner, adding to her own album", () => {
+  const HOST_PAIR = {
+    presign: "/api/host/r2/presign-upload",
+    complete: "/api/host/r2/complete-upload",
+  };
+
+  it("★ sends her picks through the host's pair, as the host of this event: no join, no ticket, no door", async () => {
+    localStorage.clear();
+    // Any fetch here would be a join: none is expected.
+    answer({});
+    mockUploadFile
+      .mockResolvedValueOnce(landed("med-1"))
+      .mockResolvedValueOnce(landed("med-2"));
+    const q = mountQueue({
+      sessionToken: null,
+      isVerified: true,
+      ownerEventId: "event-1",
+    });
+
+    act(() =>
+      q.result.current.addFiles([makeFile("a.jpg"), makeFile("b.jpg")]),
+    );
+
+    await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(2));
+    for (const [sent] of mockUploadFile.mock.calls) {
+      expect(sent.endpoints).toEqual(HOST_PAIR);
+      expect(sent.identity).toEqual({ event_id: "event-1" });
+    }
+    expect(fetchUrls()).toEqual([]);
+    expect(q.onSession).not.toHaveBeenCalled();
+    expect(q.onDoorNeeded).not.toHaveBeenCalled();
+    expect(q.items().map((it) => it.status)).toEqual(["done", "done"]);
+  });
+
+  it("never sends on a guest ticket the device still holds from an earlier visit", async () => {
+    mockUploadFile.mockResolvedValueOnce(landed("med-1"));
+    const q = mountQueue({
+      sessionToken: STALE,
+      isVerified: true,
+      ownerEventId: "event-1",
+    });
+    act(() => q.result.current.addFiles([makeFile()]));
+    await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(1));
+    expect(mockUploadFile.mock.calls[0][0].identity).toEqual({
+      event_id: "event-1",
+    });
+  });
+
+  it("a refusal from the host's route is the file's own, in its words, and nobody joins", async () => {
+    answer({});
+    mockUploadFile.mockResolvedValueOnce({
+      ok: false,
+      code: "cap_reached",
+      message: "Storage is full for your plan. Free up space or upgrade.",
+    });
+    const q = mountQueue({
+      sessionToken: null,
+      isVerified: true,
+      ownerEventId: "event-1",
+    });
+    act(() => q.result.current.addFiles([makeFile()]));
+    await waitFor(() => expect(q.items()[0]?.status).toBe("error"));
+    expect(q.items()[0]).toMatchObject({
+      error: "Storage is full for your plan. Free up space or upgrade.",
+      errorCode: "cap_reached",
+    });
+    expect(fetchUrls()).toEqual([]);
+    expect(q.onDoorNeeded).not.toHaveBeenCalled();
+  });
+
+  it("her clip goes the same way, still never a reel's", async () => {
+    answer({});
+    mockUploadFile.mockResolvedValueOnce({
+      ok: true,
+      status: "approved",
+      mediaId: "clip-1",
+      kind: "video",
+    });
+    const clip = new File([new Uint8Array([1, 2, 3])], "clip.mp4", {
+      type: "video/mp4",
+    });
+    const poster = new Blob([new Uint8Array([9])], { type: "image/png" });
+    const q = mountQueue({
+      sessionToken: null,
+      isVerified: true,
+      ownerEventId: "event-1",
+    });
+    act(() => q.result.current.addClip(clip, poster));
+    await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(1));
+    const sent = mockUploadFile.mock.calls[0][0];
+    expect(sent.endpoints).toEqual(HOST_PAIR);
+    expect(sent.identity).toEqual({ event_id: "event-1" });
+    expect(sent.reelEligible).toBe(false);
+    expect(sent.poster).toBe(poster);
+    expect(fetchUrls()).toEqual([]);
   });
 });

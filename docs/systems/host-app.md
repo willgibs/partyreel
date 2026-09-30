@@ -187,8 +187,10 @@ drift is linear and motion-gated, a breath rather than feedback, so the 300ms ce
 `/dashboard/[eventId]` is a hub: a live code beside the title, a row of cards into the event's rooms, and the album
 beneath, newest first.
 
-- ★ **An event that is gone or never this host's draws the group's not-found itself**, on the hub and each room
-  (Review, Guests, the reel's old room; Settings redirects to the hub), never through `notFound()`: thrown under the
+- ★ **An event that is gone, never this host's, or no id at all draws the group's not-found itself**, on the hub and
+  each room (Review, Guests, the reel's old room; Settings redirects to the hub). `getEvent` answers a malformed id null
+  before any read (`isUuidShape`: Postgres refusing the cast threw the page into its error screen, untitled, and filed
+  an error each hit), as the portal's record pages do theirs. Never through `notFound()`: thrown under the
   hub's `loading.tsx` it landed after the skeleton had streamed, a 200 whose screen the client drew once it had run,
   under the page's own title ("Event", build 30's red-team). Drawn, it streams into the skeleton's place, titled from
   `(app)/not-found.metadata.ts` ("Event not found", noindex), and stays a 200: behind sign-in nothing reads the status
@@ -366,7 +368,10 @@ visitor-facing "Private" never collides.
   on a selection. In the peek a focused button keeps only its own Enter and Space, and a verdict pressed there hands
   focus back to the look (`review-section.tsx`), since a browser focuses the button a pointer presses. ★ The peek is
   `aria-modal`, so it holds Tab while it is up (Radix's FocusScope, trapped and looping; a layer opened over it, the
-  credit's look, pauses it), its own mount and unmount focus left to the grid.
+  credit's look, pauses it). The trap takes the opening focus itself (the look, or a verdictless look's close button),
+  so it always has that focus to hand back (the grid's own focus, a commit before the trap had its container, let a
+  first Shift+Tab walk out behind: build 33), and Shift+Tab from the look comes round to its last control; the grid
+  puts focus back on the tile when it closes.
 - **The bulk controls live once, in the room's header, in both modes** (`review-actions.tsx`), which never goes empty,
   or a host mid-selection loses Reject, Approve and Cancel. Approve all needs no confirm: it sends the queue's own ids
   through `approveBulkAction` in consecutive batches of 2,000, so a host approves exactly what they saw, at any size. A
@@ -410,7 +415,9 @@ visitor-facing "Private" never collides.
   wipes a selection in progress.
 - **Bulk Like is one `like_many` call a batch under ONE summary toast** (the refused ids reverted), naming what it
   added by kind (`formatKindCount`: "Liked 1 video", "Liked 3 items" for a mix, the album's word as the storage list's;
-  Review's verdicts say "uploads"); Hide, Show and
+  Review's verdicts say "uploads"); a press that added nothing still says so, "Already liked 2 photos" (a plain toast)
+  when the selection was liked already, the heart's own "Couldn't save that like." when the server refused it; Hide,
+  Show and
   Delete are the general `setMediaStatusBulk` and `removeMediaBulk` (plain RLS, no pending predicate), each sent in
   batches of `MAX_BULK_ITEMS`.
 - ★ **Every bulk write, and Delete forever's reads, send the selection through `inChunks`** (an unchunked

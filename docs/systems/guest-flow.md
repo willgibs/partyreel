@@ -79,10 +79,15 @@ started it: on an album the claim is two calls, this album's own token first
 ([`claim-uploads.ts`](../../src/lib/guest/claim-uploads.ts)), and the RPC counts only claimed rows that carry a
 live upload, so the result says HERE and ELSEWHERE apart. The follow moment plays when the marker was there (or the
 claim is her yes to the shared-phone ask) AND the claim moved this album's own uploads, with no upload needed this
-visit (a full-reload return included); the first claim that actually runs spends the marker either way, and a
-full-reload return whose claim moved nothing here still reports its beat, so the page can say where photos typed
-under another address are. ★ **A CONFIRMATION IS ONE BEAT, NEVER STACKED
-TOASTS** ([`confirm-beat.ts`](../../src/lib/guest/confirm-beat.ts)): when the moment plays, its card says the other
+visit (a full-reload return included). ★ **A read on the page may have moved them first**: the album's door runs the
+claim as it reads (`sortTickets`), so a Google or magic-link return's render claims her ticket before the album's
+own claim runs; while the marker waits and that claim moved nothing here, it asks `/api/guests/mine` (`kept`, the
+live uploads on that ticket's row, counted only when the row is the signed-in account's) and counts the ticket as
+moved if it is hers (build 33's red-team). The first claim that actually runs for an album's ticket spends that
+album's marker either way, wherever it runs (the one on screen is its listener's to take), so a door abandoned there
+never plays weeks later off a sign-in made elsewhere; and a full-reload return whose claim moved nothing here still
+reports its beat, so the page can say where photos typed under another address are.
+★ **A CONFIRMATION IS ONE BEAT, NEVER STACKED TOASTS** ([`confirm-beat.ts`](../../src/lib/guest/confirm-beat.ts)): when the moment plays, its card says the other
 events once and tells the name (the events waiting under her email are the moment's alone, counted on the server
 from the dashboard banner's own list and never this album, [`confirm-beat-action.ts`](../../src/lib/guest/confirm-beat-action.ts),
 so a confirmation before her first upload here, and every toast, says nothing of them); when it does not, the doors report and the page says it once, after the door's hold:
@@ -147,8 +152,11 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
   time, JIT silent join, demo sim, retry) is created ONCE in `event-experience.tsx` and shared by the
   album's Add and the door's upload step, so a run started at the door outlives it. `GuestUpload`
   ([`guest-upload.tsx`](../../src/components/guest/guest-upload.tsx)) reads its snapshot and owns the album's
-  two sheets and the post-upload slot behind a `{openAdd, retry}` handle; it draws no tile. Three surfaces
-  and one session rule:
+  two sheets and the post-upload slot behind a `{openAdd, retry}` handle; it draws no tile. ★ **The album's owner is
+  never her own guest** (`ownerEventId`): her files ride the host's pair (`/api/host/r2/*`, `create_media_as_host`,
+  as the hub's Add and the reel's Add to event do: approved, metered on her storage, credited as the host) with no
+  ticket, no join and no door, since a guest ticket at her own door is held by every door that holds a newcomer
+  (`create_guest` never counts the host in). Three surfaces and one session rule:
   - ★ **THE ADD CHOICE**: every Add opens
     [`upload/intent-sheet.tsx`](../../src/components/guest/upload/intent-sheet.tsx) on the responsive menu,
     *Take a photo* over *Choose from your album*, then the terms line
@@ -302,7 +310,8 @@ there; a block on it still holds the phone (`event_ticket_blocked`), which is wh
   ([host-app.md](host-app.md)), so nothing she can reach says blocked.
 - **`ask {invite}`**, an address the invite list does not name: the shut door with her own foot (`unlisted=ask`,
   placed there by locked-door r2): "Ask Maya to let me in" (`UnlistedAsk`, `POST /api/guests/ask`, then the held
-  door) or "Use a different email" (`switch-email.ts`: every ticket on the device put down, then signed out). A
+  door) or "Use a different email" (`switch-email.ts`: every ticket on the device put down, then this device signed out,
+  `local`: every sign-out names its scope, `sign-out-scope.test.ts`). A
   declined ask meets the shut door with no ask. **`ask {approve}`**, a confirmed newcomer: "Maya lets each guest in",
   Ask to join (`ask-step.tsx`, the same route). The ask route re-reads `getUser()` (a confirmed address or 422), rides
   the join limiter, and answers a shut door 403 in the private album's words.
