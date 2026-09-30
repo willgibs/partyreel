@@ -40,7 +40,7 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `schema-pass` | the data architecture trimmed | merged at `57b17ace`; part 1 applied on Will's go-ahead (2026-09-29, his answer "Yes, apply part 1"; recorded `20260929210010`, the payload the file's md5; advisors 18/4/33; anon REST 42501; types regenerated at `c7a50adc`); a signed-in host walk on partyreel.com rides build 25's red-team as a follow-up; part 2 (`20260929170000`) after milestone 31 ships | Opus, 3132 | `54f414f9` |
-| `crumbs-25` | four follow-ups: the group 404s off their pages, early typing kept in every field a person lands on, the host album's live arrival decoded, the reduced-motion guard never staling a measured size | running (worktree `../partyreel-wt/crumbs-25`) | Sonnet, 3131 | |
+| `crumbs-25` | four follow-ups: the group 404s off their pages, early typing kept in every field a person lands on, the host album's live arrival decoded, the reduced-motion guard never staling a measured size | running (agent `a950b0dbe85a3fd92`; worktree `../partyreel-wt/crumbs-25`) | Sonnet, 3131 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
 no question open (Q1, the `names` hang; Q2, schema-pass part 1; Q3, the notes-into-laws audit; Q4, the door migration:
