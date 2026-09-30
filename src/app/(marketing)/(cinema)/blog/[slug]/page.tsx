@@ -39,6 +39,13 @@ import { type BlogTagId, getBlogTag } from "@/lib/content/blog-tags";
 import { extractHeadings } from "@/lib/content/collection";
 import { cn, formatEventDate } from "@/lib/utils";
 
+// ★ A SLUG THIS LIST DOES NOT NAME IS ROUTING'S 404, NEVER A RENDER (stale-link). Left dynamic, an unknown
+// slug rendered this page on demand and threw `notFound()`, which Next serves as its error shell: a white page
+// until the script has run, and for a reader with no script for good. With `dynamicParams` off Next answers it
+// before any render, as it answers a mistyped URL: the site's 404 drawn in the HTML (the root `not-found.tsx`).
+// Every real slug is in the list, since the content ships with the build.
+export const dynamicParams = false;
+
 export function generateStaticParams() {
   return getAllBlogSlugs().map((slug) => ({ slug }));
 }

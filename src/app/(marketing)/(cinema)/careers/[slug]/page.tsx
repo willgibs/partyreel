@@ -14,6 +14,13 @@ import { getJob, JOB_SLUGS, type JobOpening } from "@/lib/constants/careers";
 
 import { ApplicationForm } from "./application-form";
 
+// ★ A SLUG THIS LIST DOES NOT NAME IS ROUTING'S 404, NEVER A RENDER (stale-link). Left dynamic, an unknown
+// slug rendered this page on demand and threw `notFound()`, which Next serves as its error shell: a white page
+// until the script has run, and for a reader with no script for good. With `dynamicParams` off Next answers it
+// before any render, as it answers a mistyped URL: the site's 404 drawn in the HTML (the root `not-found.tsx`).
+// Every real slug is in the list, since the content ships with the build.
+export const dynamicParams = false;
+
 export function generateStaticParams() {
   return JOB_SLUGS.map((slug) => ({ slug }));
 }

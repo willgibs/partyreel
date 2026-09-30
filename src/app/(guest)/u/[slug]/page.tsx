@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense, type CSSProperties } from "react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 
 import { EventCard, RoleMarker } from "@/components/app/event-card";
 import { PAGE_CHOICES_PATH } from "@/app/(app)/account/profile/invite";
@@ -28,6 +27,9 @@ import { getAvatarUrl } from "@/lib/supabase/avatar-storage";
 import { createClient } from "@/lib/supabase/server";
 import { formatEventDate } from "@/lib/utils";
 
+import { notFoundMetadata } from "./not-found.metadata";
+import { ProfileNotFoundScreen } from "./not-found.screen";
+
 // Covers are presigned per request; the follow state is viewer-specific.
 export const dynamic = "force-dynamic";
 
@@ -39,7 +41,10 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const profile = await getPublicProfile(slug);
-  if (!profile) return { title: "Profile" };
+  // A handle nobody holds is titled as the 404 it is, in the head and after hydration alike: the
+  // not-found's own metadata, `not-found.metadata.ts` (it said "Profile", which replaced the 404's
+  // title once the page hydrated).
+  if (!profile) return notFoundMetadata;
   const name = profile.display_name ?? `@${profile.slug}`;
   // Their own line when they wrote one: it is the truest description of the
   // page, and the one a share card should carry.
@@ -62,15 +67,15 @@ export async function generateMetadata({
  *
  *  ★ AND THAT BOUNDARY IS IN THE PAGE RATHER THAN IN A loading.tsx, WHICH IS A
  *  LANDMINE WORTH THE PARAGRAPH. A loading file wraps the WHOLE route, so Next
- *  flushes the shell the moment the fallback renders and the response's status
- *  is already out of the door when the page calls notFound(): measured on this
- *  route, a dead handle answered 200 (in dev and against `next start` alike)
- *  while /e/<bad token> next door answered 404, and a public, indexable page
- *  that soft-404s is a growth surface teaching search engines that a dead
- *  handle is a real page. Throwing from generateMetadata does not help; it
- *  resolves after the flush too. So the route decides 404 at the top, where the
- *  RPC is, and only the slow half (a presign per cover, both arms) streams in
- *  behind the skeleton, which is what the wait was ever about. */
+ *  flushes its skeleton before the page runs: a dead handle would paint a
+ *  skeleton before its not-found, and when the page still threw `notFound()`
+ *  it answered 200 (measured on this route, in dev and against `next start`),
+ *  and a public, indexable page that soft-404s is a growth surface teaching
+ *  search engines that a dead handle is a real page. The 404 status is now the
+ *  proxy's, set before anything renders (`lib/gone-link`), and the page draws
+ *  its not-found at the top, where the RPC is; only the slow half (a presign
+ *  per cover, both arms) streams in behind the skeleton, which is what the
+ *  wait was ever about. */
 async function PartyGrid({ profile }: { profile: PublicProfile }) {
   const [hostedCovers, attendedCovers] = await Promise.all([
     getPublicProfileCoverUrls(profile.hosted_events),
@@ -197,8 +202,12 @@ function GridSkeleton({ count }: { count: number }) {
 export default async function PublicProfilePage({ params }: PageProps) {
   const { slug } = await params;
   const profile = await getPublicProfile(slug.toLowerCase());
-  // Missing handle -> 404; we never distinguish "no user" from "no slug".
-  if (!profile) notFound();
+  // Missing handle -> 404; we never distinguish "no user" from "no slug". ★ The segment's own
+  // screen, drawn here and never through `notFound()`, whose throw is served as Next's error shell
+  // (a white page until the script has run); the 404 status is the proxy's (`lib/gone-link`), set
+  // before this renders. The screen itself rather than the not-found's lazy boundary, which would
+  // widen two references on every profile load.
+  if (!profile) return <ProfileNotFoundScreen />;
 
   // The viewer (for the follow affordance). getUser() — never getSession().
   const supabase = await createClient();

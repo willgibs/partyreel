@@ -88,9 +88,11 @@ A one-way door; `/privacy` and the Terms word it, so a change here changes them 
   she could confirm (a Require-an-upload-to-view album she has not passed stays out). The RPC returns it only while the
   page shows nothing, null otherwise, since the page reads it only then; `profile.private-count.test.ts` holds the two
   predicates equal.
-- ★ **`/u/[slug]` never gets a `loading.tsx`.** A loading file wraps the route in Suspense, so Next flushes the shell
-  before the page runs and a dead handle answers 200 instead of 404 (throwing from `generateMetadata` does not help).
-  The page decides the 404 at the top and streams only the card grid.
+- ★ **`/u/[slug]` never gets a `loading.tsx`.** A loading file wraps the route in Suspense, so Next flushes its
+  skeleton before the page runs: a dead handle would paint it before its not-found (and while the page threw
+  `notFound()` it answered 200 instead of 404; throwing from `generateMetadata` does not help). The proxy sets the 404
+  before the render (`lib/gone-link`), the page draws its not-found at the top, and only the card grid and the owner
+  mode stream.
 
 ## Handles, bios, reports, blocks, preferences
 

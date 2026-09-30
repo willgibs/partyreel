@@ -292,8 +292,21 @@ describe("the screens behind the boundary still draw the whole 404", () => {
 /**
  * Every route group's or segment's own 404: where it lives, and the parts of the 404 its screen must still
  * reach (what it drew before it moved behind the boundary: the test that the move lost nothing).
+ *
+ * `drawnBy` is the page that draws the screen ITSELF, for a link that names nothing (stale-link: a thrown
+ * `notFound()` is served as Next's white error shell, so the guest link and the profile never throw one), and the one
+ * line where it does. Rendered only there, the screen rides no found page's payload, which is what the boundary
+ * exists to keep; and those two pages already reach every client part the screen has, so importing it costs a
+ * found album or profile nothing (measured on `next start`: their HTML byte for byte as before).
  */
-const GROUPS = [
+type Group = {
+  name: string;
+  dir: string;
+  draws: string[];
+  drawnBy?: { page: string; line: string };
+};
+
+const GROUP_LIST: Group[] = [
   {
     name: "guest link",
     dir: "src/app/(guest)/e/[token]",
@@ -302,6 +315,10 @@ const GROUPS = [
       "src/components/shared/not-found-screen.tsx",
       "src/components/ui/button.tsx",
     ],
+    drawnBy: {
+      page: "src/app/(guest)/e/[token]/page.tsx",
+      line: "if (!door) return <GuestNotFoundScreen />;",
+    },
   },
   {
     name: "guest profile",
@@ -311,6 +328,10 @@ const GROUPS = [
       "src/components/shared/not-found-screen.tsx",
       "src/components/ui/button.tsx",
     ],
+    drawnBy: {
+      page: "src/app/(guest)/u/[slug]/page.tsx",
+      line: "if (!profile) return <ProfileNotFoundScreen />;",
+    },
   },
   {
     name: "cinema group",
@@ -336,7 +357,9 @@ const GROUPS = [
       "src/components/ui/button.tsx",
     ],
   },
-].map((g) => ({
+];
+
+const GROUPS = GROUP_LIST.map((g) => ({
   ...g,
   entry: `${g.dir}/not-found.tsx`,
   screen: `${g.dir}/not-found.screen.tsx`,
@@ -421,11 +444,20 @@ describe.each(GROUPS)("the $name 404's eager import graph", (group) => {
 
   it("nothing but the boundary loads the screen, which would put the 404 back on every page", () => {
     // The design lab draws a screen as it ships (a board's "today"): its pages are routes of their own, so a
-    // screen imported there rides no production page.
+    // screen imported there rides no production page. Nor does the page that draws its own 404 (`drawnBy`),
+    // which renders it on one line, for a link that names nothing, and nowhere else.
     const importers = (
       importersOfNotFoundModules().get(group.screen) ?? []
     ).filter((file) => !file.startsWith("src/app/(dev)/"));
-    expect(importers).toEqual([BOUNDARY]);
+    expect(importers).toEqual(
+      [BOUNDARY, ...(group.drawnBy ? [group.drawnBy.page] : [])].sort(),
+    );
+    if (group.drawnBy) {
+      const page = DISK.read(group.drawnBy.page);
+      const component = /return <(\w+) \/>;$/.exec(group.drawnBy.line)?.[1];
+      expect(page).toContain(group.drawnBy.line);
+      expect(page.split(`<${component}`).length - 1).toBe(1);
+    }
   });
 });
 
