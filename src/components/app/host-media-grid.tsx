@@ -27,8 +27,8 @@ import {
   type AlbumHandle,
   type TileAction,
 } from "@/components/shared/masonry";
+import { useArrivalGate } from "@/components/shared/use-arrival-gate";
 import { inBulkBatches } from "@/lib/event/bulk-selection";
-import { ARRIVAL_GLOW_MS } from "@/lib/shared/arrival";
 import {
   DEFAULT_ROW_STEP,
   type RowAnchor,
@@ -176,6 +176,8 @@ export function newItemIds(
   return new Set(next.filter((id) => !before.has(id)));
 }
 
+const NONE: readonly string[] = [];
+
 /**
  * WHAT JUST ARRIVED, READ OFF THE ALBUM AND NOTHING ELSE (Will, `first=live`, 2026-09-21).
  *
@@ -189,57 +191,36 @@ export function newItemIds(
  * album of four hundred photographs does not light four hundred of them. Only what turns up
  * afterwards is new.
  *
- * ★ ONE TIMER PER ID, NEVER ONE FOR THE BATCH. Arrivals overlap: two guests a beat apart must
- * not have the second's glow cut short by the first's clock.
- *
  * ★ A LINK LANDING IS NOT AN ARRIVAL. A window's links rebuild the tiles they belong to, and
  * the diff is on the id, so a tile gaining its url, or a link re-minted at the hour, lights
  * nothing; and a new order (Sort) holds the same ids.
+ *
+ * ★ IT IS DECIDED IN THE RENDER THE ARRIVAL FIRST APPEARS IN (state adjusted while rendering, as the gate
+ * does), never in an effect: `useArrivalGate` holds an arrival out of the rows from the render it first
+ * shows in, and a list that arrived a commit later would let the rows lay the tile first (its shimmer)
+ * and take it away again. The list only grows: the gate reads it as "what is an arrival", and a held one
+ * that fell out of it would be let in.
+ *
+ * What an arrival then does (is held for its link and its photograph, is pushed in, glows for one length,
+ * `ARRIVAL_GLOW_MS`) is `useArrivalGate`'s and `useArrivalMarks`'s, the same as the guest album's.
  */
-function useArrivedIds(items: readonly GridMedia[]): ReadonlySet<string> {
-  const seen = useRef<Set<string> | null>(null);
-  const [arrived, setArrived] = useState<Set<string>>(() => new Set());
-  const timers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
-
-  useEffect(() => {
+function useAlbumArrivals(items: readonly GridMedia[]): readonly string[] {
+  const [seen, setSeen] = useState(() => ({
+    items,
+    ids: new Set(items.map((i) => i.id)) as ReadonlySet<string>,
+    arrived: NONE,
+  }));
+  if (seen.items !== items) {
     const ids = items.map((i) => i.id);
-    if (seen.current === null) {
-      seen.current = new Set(ids);
-      return;
-    }
-    const fresh = newItemIds(seen.current, ids);
-    seen.current = new Set(ids);
-    if (fresh.size === 0) return;
-    setArrived((prev) => new Set([...prev, ...fresh]));
-    for (const id of fresh) {
-      const running = timers.current.get(id);
-      if (running) clearTimeout(running);
-      timers.current.set(
-        id,
-        setTimeout(() => {
-          timers.current.delete(id);
-          setArrived((prev) => {
-            const next = new Set(prev);
-            next.delete(id);
-            return next;
-          });
-        }, ARRIVAL_GLOW_MS),
-      );
-    }
-  }, [items]);
-
-  // Held too long, a tile keeps a `data-arrived` attribute with nothing painting
-  // under it, and the next thing that re-renders it replays the light on a
-  // photograph that landed minutes ago. So every timer dies with the album.
-  useEffect(() => {
-    const running = timers.current;
-    return () => {
-      for (const t of running.values()) clearTimeout(t);
-      running.clear();
-    };
-  }, []);
-
-  return arrived;
+    const known = new Set(seen.arrived);
+    const fresh = [...newItemIds(seen.ids, ids)].filter((id) => !known.has(id));
+    setSeen({
+      items,
+      ids: new Set(ids),
+      arrived: fresh.length > 0 ? [...seen.arrived, ...fresh] : seen.arrived,
+    });
+  }
+  return seen.arrived;
 }
 
 /** The hub's windowed album: what the page's store hands the grid (`EventUploads`). */
@@ -252,6 +233,11 @@ export type HubRows = {
   rhythmSeed: number;
   /** The photographs the window mounts: their links and hearts load. */
   onWindowChange: (ids: readonly string[]) => void;
+  /**
+   * Asks for these ids' links: the arrivals now held at the door (`useArrivalGate`), whose tiles no window has
+   * mounted yet to ask. Omitted, a held arrival waits out its wait for a link that never comes.
+   */
+  onNeedLinks?: (ids: readonly string[]) => void;
   albumRef?: Ref<AlbumHandle>;
   /** A write landed: resolves once the album store has caught up with it. */
   afterWrite: () => Promise<void>;
@@ -291,10 +277,14 @@ export function HostMediaGrid({
     afterWrite,
     writes,
   );
-  // The arrival mark reads the album's items, never the optimistic overlay: an
-  // optimistic hide removes nothing and adds nothing, and a host's own action is
-  // not an arrival to be announced back to her.
-  const arrivedIds = useArrivedIds(items);
+  // ★ AN ARRIVAL LANDS COMPLETE OR NOT UNTIL IT CAN (crumbs-25; the guest album's gate, `use-arrival-gate.ts`):
+  // the rows lay the album less the arrivals still waiting for their link and their photograph, and each glows
+  // from the moment it lands. What arrived is read off the album's items, never the optimistic overlay: an
+  // optimistic hide removes nothing and adds nothing, and a host's own action is not an arrival to be
+  // announced back to her. The gate reads the overlay's items, so a held arrival that is hidden or removed
+  // meanwhile is not held for any more.
+  const arrivals = useAlbumArrivals(items);
+  const gate = useArrivalGate(optimisticItems, arrivals, rows?.onNeedLinks);
   const [, startBulk] = useTransition();
   const [exiting, setExiting] = useState<Set<string>>(new Set());
 
@@ -478,7 +468,7 @@ export function HostMediaGrid({
   // clampAspect: moderation ergonomics. dimItem: hidden media -> 30% (active-vs-hidden).
   return (
     <MasonryColumns
-      items={optimisticItems}
+      items={gate.items}
       layout="rows"
       rowStep={rows?.step ?? DEFAULT_ROW_STEP}
       onRowStepChange={rows?.onStepChange}
@@ -502,7 +492,8 @@ export function HostMediaGrid({
       // `first=live` asks for either. The arrival is an animation on the tile's
       // own `::after` and runs whether or not the stagger does, so a host gets
       // the light without the album dealing itself out like a hand of cards.
-      arrivedIds={arrivedIds}
+      // The gate lights it when the arrival is let in (its own clock, one glow long).
+      arrivedIds={gate.glow}
     />
   );
 }

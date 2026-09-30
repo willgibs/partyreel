@@ -1,8 +1,10 @@
 "use client";
 
 /**
- * A GUEST'S LIVE ARRIVAL LANDS COMPLETE, OR NOT UNTIL IT CAN (crumbs-23, build 26's red-team: "A live pushed
- * arrival still fades").
+ * AN ALBUM'S LIVE ARRIVAL LANDS COMPLETE, OR NOT UNTIL IT CAN (crumbs-23, build 26's red-team: "A live pushed
+ * arrival still fades", for the guest's album; crumbs-25 put the same gate over the host's, `HostMediaGrid`,
+ * whose arrival was the same shimmer and fade). One grammar for both albums (Will's `landing=sweep`), so the
+ * gate lives with the shared components and both albums hand it their own arrivals.
  *
  * Will's `arrival=push`: "The row opens: the photo is revealed from its left edge while its neighbours
  * glide aside on the same beat. Nothing fades; it reads as inserted." The rows push whatever the album

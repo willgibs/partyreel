@@ -902,8 +902,9 @@ had" holds only when this device holds a guest ticket a claim would move.
   in from its left edge and glide what it moved; a head arrival while the reader is deep scrolls by exactly
   how far the photograph at the view's top moved, so nothing they are looking at jumps. Reduced motion: a
   plain appearance, no mark.
-  ★ **An arrival lands COMPLETE, or not until it can** (`guest/use-arrival-gate.ts`, in `GalleryRows`, which takes
-  `arrivals` rather than the glow's set and writes the glow itself). A delta brings the manifest's tuple with no
+  ★ **An arrival lands COMPLETE, or not until it can** (`shared/use-arrival-gate.ts`, in `GalleryRows`, which takes
+  `arrivals` rather than the glow's set and writes the glow itself; the host's album runs the same gate,
+  [host-app.md](host-app.md)). A delta brings the manifest's tuple with no
   link (`url: ""`; only a window asks for links), so an arrival pushed at once drew a shimmer and then faded its
   photograph in after the wipe was over. The gate holds each arrival the grammar names out of the rows, asks for its
   link (`onNeedLinks`, `ensureLinks`), fetches and decodes its photograph into the document at the tile's own address
@@ -913,8 +914,8 @@ had" holds only when this device holds a guest ticket a claim would move.
   for a video with no preview's link alone, and never holds the seed, a filter's or step's toggle, an arrival the
   Yours filter hides, this device's own landing (a manifest that beats its `notifyUploaded` releases it the moment it
   is known) or anything under reduced motion. The glow is lit when it is let in: the provider's hold began at the
-  delta and a second's wait would have cut its light mid-fade. Only the guest album gates: the host's album, the
-  marketing stage (which pre-decodes its own) and the lab's harness push what they are handed.
+  delta and a second's wait would have cut its light mid-fade. The marketing stage (which pre-decodes its own) and
+  the lab's harness push what they are handed.
 - **A guest's own photographs, removable ever** (final for the host too): two identities, one control.
   SIGNED IN → `removeMyUploadGuestAction` ([`actions.ts`](<../../src/app/(guest)/e/[token]/actions.ts>)) on
   `remove_my_upload` (`auth.uid()`, any device, for ever); ANONYMOUS → `POST /api/guests/remove` → the

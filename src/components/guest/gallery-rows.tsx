@@ -29,7 +29,6 @@ import type { Ref } from "react";
 import { Download } from "lucide-react";
 
 import type { GridMedia } from "@/components/app/media-grid";
-import { useArrivalGate } from "@/components/guest/use-arrival-gate";
 import { UploadStackTile } from "@/components/guest/upload/stack-tile";
 import { useLikeAction } from "@/components/likes/like-button";
 import {
@@ -37,6 +36,7 @@ import {
   type AlbumHandle,
   type TileAction,
 } from "@/components/shared/masonry";
+import { useArrivalGate } from "@/components/shared/use-arrival-gate";
 import {
   useQueueProgress,
   type QueueProgress,
