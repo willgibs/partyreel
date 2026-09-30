@@ -25,6 +25,7 @@ import type { Ref } from "react";
 import { Download } from "lucide-react";
 
 import type { GridMedia } from "@/components/app/media-grid";
+import { useArrivalGate } from "@/components/guest/use-arrival-gate";
 import { UploadStackTile } from "@/components/guest/upload/stack-tile";
 import { useLikeAction } from "@/components/likes/like-button";
 import {
@@ -89,7 +90,8 @@ export function GalleryRows({
   shareUrl,
   onDeleteItem,
   canDelete,
-  arrivedIds,
+  arrivals,
+  onNeedLinks,
   landedIds,
 }: {
   items: GridMedia[];
@@ -115,11 +117,22 @@ export function GalleryRows({
   /** A guest's own-photograph Remove, gated per item (the viewer's Trash). */
   onDeleteItem?: (id: string) => void;
   canDelete?: (item: GridMedia) => boolean;
-  /** The two arrival marks: another's photograph glows, this device's own sweeps. */
-  arrivedIds?: ReadonlySet<string>;
+  /**
+   * What appeared in the album by itself (`arrivalMarks().arrived`: never the seed, never this device's own
+   * upload). Each is held out of the rows until its link has landed and its photograph is decoded, so the
+   * push reveals a photograph and nothing fades (`use-arrival-gate.ts`), and each glows from the moment it
+   * lands. Omitted, the album pushes whatever it is handed as it is handed.
+   */
+  arrivals?: readonly string[];
+  /** Asks for these ids' links: the arrivals held at the door, which no window has mounted to ask. */
+  onNeedLinks?: (ids: readonly string[]) => void;
+  /** The one arrival mark this device's own landing takes: a single pass of light. */
   landedIds?: ReadonlySet<string>;
 }) {
   const likeAction = useLikeAction();
+  // ★ AN ARRIVAL LANDS COMPLETE OR NOT UNTIL IT CAN (crumbs-23): the rows lay what is in the album, less
+  // the arrivals still waiting for their photograph, and the glow is lit as each one lands.
+  const gate = useArrivalGate(items, arrivals, onNeedLinks);
 
   // A guest's desk row: like, and save the original once its link has landed. No moderation, ever:
   // this is somebody else's party. A phone sees neither (the grid never renders the pane below
@@ -147,7 +160,7 @@ export function GalleryRows({
   return (
     <MasonryColumns
       layout="rows"
-      items={items}
+      items={gate.items}
       stagger
       rowStep={step}
       onRowStepChange={onStepChange}
@@ -161,7 +174,7 @@ export function GalleryRows({
       shareUrl={shareUrl}
       onDeleteItem={onDeleteItem}
       canDelete={canDelete}
-      arrivedIds={arrivedIds}
+      arrivedIds={gate.glow}
       landedIds={landedIds}
       tileActions={tileActions}
       prefix={
