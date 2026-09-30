@@ -66,6 +66,8 @@ export const MORNING = {
   guests: 14,
   /** Priya's own, by the end of the night. */
   hers: 21,
+  /** Of the 214, the videos: a paid event's, with the host's Videos switch on. */
+  videos: 9,
 } as const;
 
 /* ── what a shot weighs, off tiers.ts (its one home) ─────────────────────── */

@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Download, Heart, Link2, Share, X } from "lucide-react";
+import { Check, Download, Flag, Heart, Link2, Share2, X } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -12,9 +12,10 @@ import { FilmStill, LOOK_NAME, type LookId } from "./film";
 
 /**
  * SAVING A DEVELOPED PHOTO, QUOTED: the shared viewer (the credit top left,
- * the close, the floating capsule at the foot: Like, Save, Share, Copy link)
- * and the album's Download menu (Everything, Yours), at 9:02 am the morning
- * the roll developed.
+ * the close, the floating capsule at the foot: Like, Save, Share, Copy link
+ * and, on someone else's photo, Report) and the album's Download album menu
+ * (Yours, Everything, Photos, Videos), at 9:02 am the morning the roll
+ * developed.
  *
  * ★ THE LOOK IS NEVER BAKED, SO SAVE HANDS OVER A FILE THAT IS EITHER THE
  * ORIGINAL OR A COPY MADE ON THE PHONE. The original is what R2 holds, served
@@ -114,8 +115,9 @@ export function GuestViewer({
           >
             <Download className="size-5" aria-hidden /> Save
           </span>
-          <Share className="size-5" aria-hidden />
+          <Share2 className="size-5" aria-hidden />
           <Link2 className="size-5" aria-hidden />
+          <Flag className="size-5" aria-hidden />
         </span>
       </div>
     </div>
@@ -160,8 +162,10 @@ export function SavedPhoto({ save, look }: { save: SaveId; look: LookId }) {
 }
 
 /**
- * The album's Download menu, as the morning's album offers it: in a hand the
- * choice rising to her thumb, at a desk the menu under Download all.
+ * The album's Download album menu, as the morning's album offers it (Yours
+ * first, for a guest who has added something; then Everything, Photos and
+ * Videos): in a hand the choice rising to her thumb, at a desk the menu under
+ * Download all.
  */
 export function DownloadMenu({
   save,
@@ -178,18 +182,22 @@ export function DownloadMenu({
     : "The originals, as they were taken, without the look.";
   const rows = (
     <>
-      <span className="flex items-center justify-between rounded-xl px-3 py-3 text-sm">
-        Everything
-        <span className="text-muted-foreground tabular-nums">
-          {MORNING.shots}
+      {(
+        [
+          ["Yours", MORNING.hers],
+          ["Everything", MORNING.shots],
+          ["Photos", MORNING.shots - MORNING.videos],
+          ["Videos", MORNING.videos],
+        ] as const
+      ).map(([label, count]) => (
+        <span
+          key={label}
+          className="flex items-center justify-between rounded-xl px-3 py-3 text-sm"
+        >
+          {label}
+          <span className="text-muted-foreground tabular-nums">{count}</span>
         </span>
-      </span>
-      <span className="flex items-center justify-between rounded-xl px-3 py-3 text-sm">
-        Yours
-        <span className="text-muted-foreground tabular-nums">
-          {MORNING.hers}
-        </span>
-      </span>
+      ))}
       <p
         className="px-3 pt-2 text-sm text-pretty text-muted-foreground"
         data-dm-say
@@ -217,6 +225,9 @@ export function DownloadMenu({
                 <Download className="size-4" aria-hidden /> Download all
               </span>
               <div className="absolute top-full right-0 z-10 mt-2 w-80 rounded-xl border border-border bg-popover p-1.5 text-popover-foreground shadow-layer">
+                <p className="px-3 pt-1.5 pb-1 text-xs text-muted-foreground">
+                  Download album
+                </p>
                 {rows}
                 <span className="block h-2" />
               </div>
@@ -260,7 +271,7 @@ export function DownloadMenu({
       </div>
       <div className="fixed inset-0 bg-black/50" aria-hidden />
       <div className="rounded-t-3xl fixed inset-x-0 bottom-0 border-t border-border bg-popover px-2 pt-3 pb-8 text-popover-foreground">
-        <p className="px-3 pb-2 text-sm font-medium">Download</p>
+        <p className="px-3 pb-2 text-sm font-medium">Download album</p>
         {rows}
         <div className="px-3 pt-4">
           <Button

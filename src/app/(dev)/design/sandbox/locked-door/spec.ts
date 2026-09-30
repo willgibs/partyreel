@@ -149,7 +149,7 @@ export const LOCKED_DOOR = defineExploration({
     about:
       "The door a guest meets before an album opens: its welcome, the wait while the host decides, the one shut door, and a dead link's page.",
     settled: [
-      "Someone who was in reads that Maya made it private (your round one pick, now built); a guest Maya blocked reads the same line.",
+      "Someone who was in reads that the host made it private (your round one pick, now built); a guest Maya blocked reads the same line.",
       "One shut door for all five ways a newcomer is kept out, now built: Only me, a closed door, a decline, the invite list, a block.",
       "An address not on the invite list is offered Ask Maya to let me in, then Use a different email, as now built.",
       "The welcome and the wait keep today's words; this round asks how the door looks and behaves.",
@@ -180,7 +180,7 @@ export const LOCKED_DOOR = defineExploration({
     {
       term: "not-found family",
       means:
-        "The screens every broken link on the site shares: the QR glyph, a headline and a way out.",
+        "The screens all broken links share: a glyph, a headline and a way out; a guest's broken link wears a QR code.",
     },
     {
       term: "lamp",
@@ -385,9 +385,9 @@ export const LOCKED_DOOR = defineExploration({
           id: "pick",
           label: "A wait to spend",
           means:
-            "Today's wait, and she chooses what she will add meanwhile. Nothing leaves her phone until Maya lets her in, then it goes straight in.",
+            "Today's wait with a chooser on it: she picks what she will add. The upload queue already holds it on her phone until Maya lets her in, then sends it.",
           gains:
-            "She spends the wait choosing photos, which go in the moment she is let in.",
+            "She spends the wait choosing photos, and the queue sends them the moment she is let in.",
           costs:
             "Asks a stranger to pick photos before she knows she's in; a no wastes it.",
         },
@@ -399,7 +399,7 @@ export const LOCKED_DOOR = defineExploration({
       overrule:
         "If picking before she is in asks too much of a stranger, the wait to watch keeps her company with nothing to do.",
       lands:
-        "What the waiting door holds, and whether the upload queue takes her picks before she is let in.",
+        "What the waiting door holds, and whether she can choose photos while she waits.",
       matters:
         "A wait can run minutes; what she holds decides whether she stays or leaves the page.",
       after: { ask: "shape" },
@@ -413,15 +413,15 @@ export const LOCKED_DOOR = defineExploration({
       where: ["Guest", "The 404 page", "A link that opens nothing"],
       when: "Someone opens a mistyped link, or the link to an album the host deleted, off the same printed code.",
       context:
-        "Today a broken link and the shut door share one look, the site's not-found page, the shut door with a lock on it. Drawn beside your shut door; the words stay today's in both.",
+        "Today a broken link and the shut door share one look, the not-found family's page, the shut door with a lock on it. Drawn beside your shut door; the words stay today's in both.",
       options: [
         {
           id: "own",
           label: "Keep the not-found family's",
           means:
-            "The QR glyph and the dead-end grammar every 404 on the site wears; the shut door leaves that family.",
+            "The QR glyph in the dead-end grammar every 404 on the site wears; the shut door leaves that family.",
           gains:
-            "Every dead end on the site keeps one look: the QR glyph and a way out.",
+            "Every dead end on the site keeps one grammar: a glyph, a headline and a way out.",
           costs: "The shut door and a broken link stop looking related.",
         },
         {

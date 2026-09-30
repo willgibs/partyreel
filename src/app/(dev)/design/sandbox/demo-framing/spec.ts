@@ -75,7 +75,7 @@ export const DEMO_FRAMING = defineExploration({
       "The card opens one demo, renamed to its address (your round one pick): every door to the demo opens the album the card shows.",
       "The demo's album holds every kind of party, so any host sees their event in it; its photographs are the new media kit's.",
       "Every address the demo prints is reserved to it, as partyreel-demo is, so a printed address always opens the demo.",
-      "The eyebrow over the headline, Try our demo event, is gone (your note): the card is the first screen's one door to the demo.",
+      "The eyebrow over the headline, Try our demo event, goes (your note): the card becomes the first screen's one door to the demo.",
       "Round one's calls stand: the chip counts the guests past the four prints, faces on the prints, no date, and the host's own line.",
     ],
     earlier: [
@@ -115,7 +115,7 @@ export const DEMO_FRAMING = defineExploration({
     {
       term: "eyebrow",
       means:
-        "The small line over a headline; the home's said Try our demo event, beside a live dot.",
+        "The small line over a headline; the home's says Try our demo event, beside a live dot.",
     },
     {
       term: "live dot",
@@ -324,7 +324,7 @@ export const DEMO_FRAMING = defineExploration({
       where: ["Marketing", "The home's first screen", "The card"],
       when: "A visitor sees the card: pressing it opens the demo, in a modal at a desk and in a new tab on a phone.",
       matters:
-        "The card is now the first screen's one door to the demo; if it does not look pressable, the demo goes unopened.",
+        "The card becomes the first screen's one door to the demo; if it does not look pressable, the demo goes unopened.",
       context:
         "Each close at a desk's size, at rest and under the pointer; then the home at 375, where there is no pointer and the resting cue is the whole cue, and at 1440, where hovering the card lifts it.",
       options: [

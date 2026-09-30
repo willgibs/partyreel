@@ -1,5 +1,6 @@
 import { shutDoorCopy } from "@/components/guest/door/shut-door";
 import { waitingCopy } from "@/components/guest/door/waiting-step";
+import { welcomeAddLine } from "@/components/guest/entry-modal";
 
 import { EVENT, HOST, PICKS } from "./fixtures";
 
@@ -10,10 +11,11 @@ import { EVENT, HOST, PICKS } from "./fixtures";
  * ★ TODAY SAYS NOTHING HERE. Every state of today's door is production's own
  * piece (`today.tsx`), which speaks its own words. Where a direction says what
  * today says, it reads production's copy function (`waitingCopy`,
- * `shutDoorCopy`) rather than a copy of it, so the next change to the door's
- * words reaches every direction; where production says a word inline, with no
- * function to read (the welcome, the 404, the held door's eyebrow and mark, the
- * shut door's way out and its way back in), it is quoted here beside its file.
+ * `shutDoorCopy`, and the welcome's first line, `welcomeAddLine`) rather than a
+ * copy of it, so the next change to the door's words reaches every direction;
+ * where production says a word inline, with no function to read (the rest of
+ * the welcome, the 404, the held door's eyebrow and mark, the shut door's way
+ * out and its way back in), it is quoted here beside its file.
  *
  * ★ THE SHUT DOOR'S WORDS ARE TRUE OF ALL FIVE, OR NOT SAID (event-safety's
  * `newcomer=same`). One screen answers an Only me album, an album closed to
@@ -75,16 +77,18 @@ const says = (text: string, mark: Mark = "key"): Line => ({ text, mark });
 
 /**
  * THE INVITATION, today's words, kept by every direction: the welcome's words
- * are not what this round asks (voice-guest settled them), its look is. Quoted
- * from `entry-modal.tsx`'s `WelcomeStep`, which exports none. The count is the
- * album's live number, said as the welcome's own promise row says it
- * (`LiveCount` ticks it in production).
+ * are not what this round asks (voice-guest settled them), its look is. Its
+ * first line is `entry-modal.tsx`'s own `welcomeAddLine` (this album takes
+ * videos, so it says photos and videos); the rest is quoted from
+ * `WelcomeStep`, which exports nothing else. The count is the album's live
+ * number, said as the welcome's own promise row says it (`LiveCount` ticks it
+ * in production).
  */
 export const WELCOME: Words & { hostedBy: string; cta: string } = {
   eyebrow: "You're invited to",
   title: EVENT.name,
   lines: [
-    says("Add your photos and videos in seconds. No app required.", "camera"),
+    says(welcomeAddLine(true), "camera"),
     says(
       `Everyone's shots land in one album. ${EVENT.count} are already inside.`,
       "images",
@@ -204,7 +208,7 @@ export function shutWords(direction: DrawnId, wasIn: boolean): Words {
 
 /* ── the shut door's foot, which follows who is reading ─────────────────── */
 
-/** The one way out every dead end in the not-found family carries (`shut-door.tsx`, `not-found.tsx`). */
+/** The one way out every dead end in the not-found family carries (`shut-door.tsx`, `not-found.screen.tsx`). */
 export const WAY_OUT = "What is Partyreel?";
 
 /**
@@ -234,7 +238,7 @@ export const BEAT = {
 /* ── the 404, today's words in both of its looks ────────────────────────── */
 
 /**
- * A LINK THAT OPENS NOTHING (`e/[token]/not-found.tsx`), word for word, for
+ * A LINK THAT OPENS NOTHING (`e/[token]/not-found.screen.tsx`), word for word, for
  * the directions that redraw it (today's is the page itself): the `lost` ask
  * is about its look, so its words stay today's in both options.
  * ★ It never says an event "ended": there is no end date in this product.
