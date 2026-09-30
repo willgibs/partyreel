@@ -9,15 +9,16 @@ import { captureError } from "@/lib/observability/sentry";
 import { cn } from "@/lib/utils";
 
 /**
- * THE ALBUM'S OWN BOUNDARY (crumbs-28, from `owner-album`): a seed that genuinely fails (a read error, as opposed to a
- * refusal, which answers locked) is the album's failure, never the page's.
+ * THE ALBUM'S OWN BOUNDARY (crumbs-28, from `owner-album`): a crash where the album renders is the album's failure,
+ * never the page's.
  *
- * The page streams the album's seed in un-awaited (`streamGallerySeed`) and the live gallery `use()`s it behind its
- * Suspense, so a rejected seed throws where the album renders, and with nothing nearer it reached the guest route's
- * `error.tsx`: the whole page went to "Something went wrong", the header, the door and the upload with it, for an
- * album the guest had not even looked at yet. Wrapped around the album and nothing else, this keeps the header, the
- * door and Add photos standing (a photograph added meanwhile waits for the gallery to attach, and shows once the album
- * does), while the album alone says it could not load, with a way back.
+ * With nothing nearer, a throw there reached the guest route's `error.tsx`: the whole page went to "Something went
+ * wrong", the header, the door and the upload with it, for an album the guest had not even looked at yet. Wrapped
+ * around the album and nothing else, this keeps the header, the door and Add photos standing, while the album alone
+ * says it could not load, with a way back. It was built for a seed whose read failed, which threw where the live
+ * source `use()`d it; since crumbs-30 that seed is read and never thrown (`gallery-live.tsx`: the source stands, so her
+ * uploads list stays, and its own first sync heals the album with no refresh, the view drawing this boundary's card,
+ * `AlbumFailedCard`, while it cannot), so what reaches here is a crash while drawing the album itself.
  *
  * ★ "TRY AGAIN" RE-FETCHES, IT DOES NOT MERELY RE-RENDER: the router's refresh and the boundary's reset ride ONE
  * transition, so React commits them together and the album renders with the FRESH seed the page's render hands it; a
@@ -102,9 +103,7 @@ class Catch extends Component<CatchProps, { error: Error | null }> {
 
 function AlbumFailed({
   error,
-  className,
-  retrying,
-  onRetry,
+  ...card
 }: {
   error: Error & { digest?: string };
   className?: string;
@@ -118,6 +117,23 @@ function AlbumFailed({
     });
   }, [error]);
 
+  return <AlbumFailedCard {...card} />;
+}
+
+/**
+ * THE ALBUM THAT COULD NOT LOAD, SAID ONE WAY WHEREVER IT IS SAID: this boundary's card for a crash, and the album
+ * view's for an album its live source could not read (`live-gallery.tsx`, crumbs-30). The card only draws: whoever
+ * mounts it has reported what failed (here, the effect above; there, the source, once per failed seed).
+ */
+export function AlbumFailedCard({
+  className,
+  retrying,
+  onRetry,
+}: {
+  className?: string;
+  retrying: boolean;
+  onRetry: () => void;
+}) {
   return (
     // The caller's box (the page's words column: its measure and its gutter), and the card inside it.
     <div className={cn("mt-7", className)}>

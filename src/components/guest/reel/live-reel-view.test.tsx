@@ -163,6 +163,8 @@ function live(over: Partial<GalleryLive> = {}): GalleryLive {
     pendingUrls: new Map(),
     uploadProgress: null,
     reportPossibleExpiry: vi.fn(),
+    albumRead: "ready",
+    retryAlbum: async () => {},
     ...over,
   };
 }

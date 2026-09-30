@@ -359,10 +359,18 @@ const GROUP_LIST: Group[] = [
       "src/app/(app)/dashboard/[eventId]/review/page.tsx",
       "src/app/(app)/dashboard/[eventId]/guests/page.tsx",
       "src/app/(app)/dashboard/[eventId]/reel/page.tsx",
-    ].map((page) => ({
-      page,
-      line: "if (!event) return <AppNotFoundScreen />;",
-    })),
+    ]
+      .map((page) => ({
+        page,
+        line: "if (!event) return <AppNotFoundScreen />;",
+      }))
+      .concat({
+        // The print sheet, one of the event's pages outside the group (crumbs-30): the print group draws no shell, so
+        // the screen rides in the shell's gutter (`PrintNotFound`), and the root's `error.tsx` already brings the
+        // sheet every client part the screen has.
+        page: "src/app/(print)/dashboard/[eventId]/print/page.tsx",
+        line: "if (!event) return <PrintNotFound />;",
+      }),
   },
   {
     name: "operations portal",

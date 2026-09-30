@@ -5,14 +5,16 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 
 /**
- * A GUEST ALBUM WHOSE SEED FAILS KEEPS THE PAGE (crumbs-28, from `owner-album`). The page streams the album's seed in
- * un-awaited and the live source `use()`s it; a read that failed (not a refusal, which answers locked) threw there,
- * and with nothing nearer it took the guest route's error screen: the event's name, its counts, Add photos and Invite
- * all gone for a failure that was the album's alone. Pinned on the page itself: with a seed that rejects, everything
- * above the album stands and the album says it could not load, with its Try again.
+ * A CRASH WHERE THE GUEST ALBUM RENDERS KEEPS THE PAGE (crumbs-28, from `owner-album`). A throw there took the guest
+ * route's error screen, with nothing nearer: the event's name, its counts, Add photos and Invite all gone for a
+ * failure that was the album's alone. Pinned on the page itself: with the album crashing, everything above it stands
+ * and the album says it could not load, with its Try again.
  *
  * What is real here is the shell and the boundary; every child the album brings is a stand-in, and the live source is
- * one that `use()`s the seed exactly as `GalleryLiveProvider` does.
+ * one that throws where the album renders. ★ RESHAPED ON PURPOSE (crumbs-30; scar kept: the album's failure is the
+ * album's alone): the throw was a seed whose read failed, `use()`d as `GalleryLiveProvider` did, and since crumbs-30
+ * that seed is read and never thrown (the source stands, so her uploads list does: `gallery-live.test.tsx`, and the
+ * album's own words for it: `live-gallery.test.tsx`), so the stand-in's rejected seed now stands for any crash.
  */
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
@@ -26,7 +28,7 @@ const wrap = vi.hoisted(
       children ?? null,
 );
 vi.mock("@/components/guest/gallery-live", () => ({
-  // The live source as it is: it suspends on the seed, and a rejected seed throws where the album renders.
+  // A live source that crashes where the album renders: it suspends on its promise, and a rejected one throws.
   GalleryLiveProvider: ({
     galleryPromise,
     children,
@@ -180,7 +182,7 @@ beforeEach(() => {
   vi.spyOn(console, "error").mockImplementation(() => {});
 });
 
-describe("a guest album whose seed genuinely fails", () => {
+describe("a guest album that crashes where it renders", () => {
   it("★ keeps the page: the name, the counts, Add photos and Invite stand, and the album alone says it could not load", async () => {
     const seed = Promise.reject(new Error("read failed")) as Promise<never>;
     seed.catch(() => {});

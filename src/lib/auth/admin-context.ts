@@ -16,6 +16,7 @@
  */
 import "server-only";
 
+import { cache } from "react";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 
@@ -23,7 +24,7 @@ import type { ActionResult } from "@/app/(app)/dashboard/actions";
 import { isAdminHost } from "@/lib/auth/admin-host";
 import { loginPath, REQUEST_PATH_HEADER } from "@/lib/auth/return-path";
 import { env } from "@/lib/env";
-import { createClient } from "@/lib/supabase/server";
+import { getRequestAuth } from "@/lib/supabase/request-auth";
 import { servesAdmin } from "@/lib/surface";
 
 export type AdminAal = "aal1" | "aal2";
@@ -67,11 +68,17 @@ async function assertAdminSurface(): Promise<void> {
   if (!isAdminHost(host)) notFound();
 }
 
-async function readGate(): Promise<AdminGate> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+/**
+ * ★ THE GATE IS READ ONCE A REQUEST (crumbs-30, from crumbs-28): the portal's layout asks it, the page inside it asks
+ * it again, and a record page's title a third time, each a `getUser()` round trip and the profile's `is_admin`. React's
+ * `cache()` gives the three one read for the request being rendered, as `getRequestAuth` (whose one `getUser()` this
+ * rides) and `readPendingWork` do: its memo is the render's own and never another request's, so an operator's answer
+ * can never be handed to anyone else. A Server Function and a route handler run outside any render, where a cached
+ * function is a plain call, so `requireAdminAction` still reads the gate afresh at every call. Still `getUser()` (the
+ * JWT re-validated), never `getSession()`.
+ */
+const readGate = cache(async (): Promise<AdminGate> => {
+  const { supabase, user } = await getRequestAuth();
   if (!user) return { status: "anonymous" };
 
   // DELIBERATE SWALLOW (fail CLOSED, x2): this is the admin gate. An unreadable
@@ -103,7 +110,7 @@ async function readGate(): Promise<AdminGate> {
       mfaEnrolled,
     },
   };
-}
+});
 
 /**
  * Pages / layouts. Surface- and host-guards, then: anonymous → redirect to login (the subdomain
