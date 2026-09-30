@@ -5,7 +5,10 @@ cut: "9c4897ad"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   - src/app/not-found.tsx
-  - src/app/layout.tsx
+  - src/app/not-found.lazy.tsx         # the one client boundary the 404 loads through
+  - src/app/not-found.site.tsx         # the site's 404 (chrome, trail, words), reached only through the boundary
+  - src/app/not-found.test.ts          # the 404's eager import graph (trail-lazy.test.ts's walk, moved and widened)
+  - src/app/not-found.lazy.test.tsx    # the boundary draws each surface's 404
   - src/components/shared/trail/
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/marketing-content.md
