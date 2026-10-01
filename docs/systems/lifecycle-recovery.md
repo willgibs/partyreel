@@ -81,7 +81,8 @@ bodies live in `lib/lifecycle/sweeps/` and `account-deletion.ts`, each tested on
 - **A restore is capacity-gated against the BASE cap,** never the 10% headroom (`insufficient_space` with
   `needed_bytes`), so the size list's Undo (one `restore_media` per item) can put back only part of a removal on a
   full plan; the rest stays in Deleted and the toast says so. `restore_event` re-checks the event slot and restores all or nothing; media removed on their own
-  stay in the bin, and the RPC reports how many her Deleted still shows (`media_still_removed`). `purge_media_now`
+  stay in the bin, and the RPC reports how many her Deleted still shows (`media_still_removed`), which the restore's
+  toast says ("are still in its album's Deleted"), so what did not come back never reads as lost. `purge_media_now`
   deletes the R2 objects first in its wrapper, then the rows.
 - ★ **A restore returns an item to the status it HELD,** not to `approved`: `media_derive_removal_provenance` stamps
   `status_before_removed` on every removal path, so a hidden item comes back hidden and a pending one pending.
