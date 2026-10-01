@@ -27,7 +27,7 @@ Nothing is protected: every page, the host app and the guest pages are open to b
   `crumbs-34` (every published claim made true; Sentry quiet off Vercel) and `crumbs-33` (a report's live strikes on
   the queue, the newsletter row with an email change, four correctness fixes; its two migrations applied) are
   merged, with `crumbs-35`, `crumbs-36`, `crumbs-39`, `crumbs-37` and `crumbs-38` (their four migrations owed);
-  `crumbs-40` (build 35's finds) is cut for the next Orchestrator. App work leads (his note); the wiring of each board follows
+  `crumbs-40` (build 35's finds) runs. App work leads (his note); the wiring of each board follows
   his picks.
 
 ## The desk

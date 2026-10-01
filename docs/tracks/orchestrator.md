@@ -42,24 +42,24 @@ a lane").
 | --- | --- | --- | --- | --- |
 | `crumbs-37` | scale and upkeep: `album_changes`' tombstones pruned under per-album watermarks, `media_removed_idx`, the admin drill-in paged, the over-capacity reduce paged | MERGED at `cc49cf17` (gate 116 green); its two migrations UNAPPLIED: `20261001150000_album_log_prune` (replaces `album_changes_since`, adds the watermarks and `album_prune_tombstones`) and `20261001151000_removed_media_index` (drops `media_purge_at_idx` for `media_removed_idx`): the Advisor first, then the protocol, both BEFORE build 36 deploys; then regenerate the types (album_state's two columns, `album_prune_tombstones`) and drop the cast in `album-log.ts` | Opus, 3131 | |
 | `crumbs-38` | a person's own record: the return's toast told once, My uploads and My likes past 200, the viewer's credit with a face and a door | MERGED at `c95e6429` (gate 117 green on its re-run: one timing flake, `history-entry.test.tsx`, its ROADMAP line); its two migrations UNAPPLIED and additive, either order: `20261001203800_my_feeds_cursor` (md5 9866ebad) and `20261001203810_let_in_told` (md5 5f3b0099), each by its header's protocol BEFORE build 36 deploys; then regenerate the types and drop the two typed seams (`feedRpc`'s cast in `queries/my-uploads.ts`, `untypedAdmin` in `mutations/guest-media.ts`) | Opus, 3133 | |
-| `crumbs-40` | build 35's red-team finds: the dashboard's claims after the layout's silent claim (MEDIUM, crumbs-35's fix does not hold), the likes provider following the session (Sentry -6J), the viewer's likes asks coalesced, five nits | CUT, NOT SPAWNED (`e370430b`; the account at 98%): the next Orchestrator spawns it, Opus for the claims race, on a free port | (Opus), 3132 | |
+| `crumbs-40` | build 35's red-team finds: the dashboard's claims after the layout's silent claim (MEDIUM, crumbs-35's fix does not hold), the likes provider following the session (Sentry -6J), the viewer's likes asks coalesced, five nits | running (agent `a43dc975313373050`, spawned 08:02Z at 99% weekly, told to push WIP early and keep `## Where I am` current), cut at `e370430b` | Opus, 3132 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
 no question open (Q1, the `names` hang; Q2, schema-pass part 1; Q3, the notes-into-laws audit; Q4, the door migration;
 Q5, crumbs-33's two function-replacing migrations, "apply as written": each answered and acted on). From another session, respawn it from `usher/kit/advisor-prompt.txt`.
 
-**Handoff across accounts (live: willg97 at 98% weekly on 2026-10-01 07:34Z, no lane running, crumbs-37's and crumbs-38's
-migrations owed and crumbs-40 cut for the next Orchestrator to spawn; its auto-kill at 100% is expected within the hour, and Will opens a fresh Orchestrator chat on hi@willgibs.com, unused since its reset, the next on Tuesday
+**Handoff across accounts (live: willg97 at 99% weekly on 2026-10-01 08:02Z, crumbs-40 running (spawned at 99%), crumbs-37's
+and crumbs-38's migrations owed; its auto-kill at 100% is expected within the hour, and Will opens a fresh Orchestrator chat on hi@willgibs.com, unused since its reset, the next on Tuesday
 2026-10-06 21:00Z).** The dying session is `157caa18-ec54-4aa9-a12a-04c86d5a667b`: leave it idle or archived, since it
 would resume mid-task at willg97's reset (Sunday 2026-10-04 13:00Z); `b01c012e` stays retired. Connectors follow the
 account: Claude in Chrome answers only once Will moves it over (every red-team needs it), the Supabase MCP must reach
 project `ddafaemglzmuekbtjwzn`, and the Vercel MCP may sit on his personal team (deploys ride `$VERCEL_TOKEN`; only
 runtime logs need it). MCP tool ids change with the account. The new Orchestrator:
 1. **Seats in** (the runbook's "Seat in"): kill by port any dev server on 3131 to 3135 and any orphaned headless Chrome.
-2. **The lanes** (the In-flight rows: crumbs-37 and crumbs-38 merged with their migrations owed, crumbs-40 cut and
-   unspawned; each worktree `../partyreel-wt/<track>`, each transcript
+2. **The lanes** (the In-flight rows: crumbs-37 and crumbs-38 merged with their migrations owed, crumbs-40 running; each worktree `../partyreel-wt/<track>`, each transcript
    `~/.claude/projects/-Users-gibby-local-ai-partyreel/157caa18-ec54-4aa9-a12a-04c86d5a667b/subagents/agent-<id>.jsonl`,
-   grepped, never read whole): none running.
+   grepped, never read whole): `crumbs-40` (Opus, 3132, `a43dc975313373050`), spawned at 99%: integrate it if handed
+   off, else respawn it from its branch and `## Where I am`.
    For each: if `origin/lp/<track>`'s manifest says handed off, integrate it (gates from 118, one lane on the tree at a
    time, crumbs-37's and crumbs-38's migrations by protocol); otherwise respawn it per "Resume a lane"
    (`spawn-prompt.txt`, same track and port) from its pushed commits and its manifest's `## Where I am`, the note
@@ -69,16 +69,15 @@ runtime logs need it). MCP tool ids change with the account. The new Orchestrato
    red-teamed by 07:35Z (`../partyreel-wt/_scratch/redteam-35/ledger.txt`): every walk PASS but one FAIL, MEDIUM,
    crumbs-35's dashboard claims (the claims review subscribes after the layout's silent claim lands), with two LOWs (the
    likes provider after a sign-out elsewhere, Sentry `JAVASCRIPT-NEXTJS-6J`; the viewer's likes asks a step each) and
-   five nits, all in **`crumbs-40`, cut and pushed but not spawned**: spawn it first (`spawn-prompt.txt`, port 3132, Opus
-   for the race). Strikes: willg97's address 2 (with 2 hides in the 24 hours to about 22:15Z on 2026-10-01, so one
+   five nits, all in **`crumbs-40`** (spawned 08:02Z, its row). Strikes: willg97's address 2 (with 2 hides in the 24 hours to about 22:15Z on 2026-10-01, so one
    more can hide), partyr33l's 7. A classifier refusal was relayed to Will: the red-team's one combined read of
    `report_strikes`, a day's hides and `auth.sessions` with IPs and user agents; it read the strikes another allowed
    way. crumbs-36 to crumbs-40 ride build 36 (deploy it per the runbook, unless Will is mid-sitting: ask).
 4. **Will's morning (2026-10-01):** the calls file first (63 calls, `../partyreel-wt/_scratch/calls/relay-calls.md`,
-   last sent to him at 60: re-send it with each lane's calls; #60 holds one decision of his, the reopen window), then the desk. Seat a respawned Advisor
+   last sent to him at 63: re-send it with each lane's calls; #60 holds one decision of his, the reopen window), then the desk. Seat a respawned Advisor
    (`usher/kit/advisor-prompt.txt`) when a consult comes due; no question is open.
 
-Relays that live only in an agent: none (no lane runs).
+Relays that live only in an agent: the WIP-and-`## Where I am` ask in crumbs-40's spawn; nothing else.
 
 If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` holds a merge made after this note (push
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
@@ -96,7 +95,7 @@ but lab:demo's `about-press.facts` dev stall, ROADMAP's line), crumbs-31 (`5898b
 ## Next, in order
 
 1. **Apply the owed migrations** (crumbs-37's two, the Advisor first; crumbs-38's two, additive: their rows), then
-   integrate each lane as it hands off (none runs),
+   integrate each lane as it hands off (crumbs-40 runs),
    each migration by protocol, one at a time: drift check, apply verbatim, the rolled-back refusals, advisors, types.
 2. **Build 34** (`65dbedb2`: build 33 plus crumbs-29 to crumbs-32 and demo-stall) is on the alias since 2026-10-01
    03:45Z (Will had not begun his sitting and said go). Its first try failed at install on both projects: with no pin,
