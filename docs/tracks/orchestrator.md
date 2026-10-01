@@ -48,8 +48,8 @@ a lane").
 no question open (Q1, the `names` hang; Q2, schema-pass part 1; Q3, the notes-into-laws audit; Q4, the door migration;
 Q5, crumbs-33's two function-replacing migrations, "apply as written": each answered and acted on). From another session, respawn it from `usher/kit/advisor-prompt.txt`.
 
-**Handoff across accounts (live: willg97 at 92% weekly on 2026-10-01 05:30Z; its auto-kill at 100% is expected within
-hours, and Will opens a fresh Orchestrator chat on hi@willgibs.com, unused since its reset, the next on Tuesday
+**Handoff across accounts (live: willg97 at 96% weekly on 2026-10-01 07:08Z, three lanes and build 35's red-team
+running; its auto-kill at 100% is expected within the hour, and Will opens a fresh Orchestrator chat on hi@willgibs.com, unused since its reset, the next on Tuesday
 2026-10-06 21:00Z).** The dying session is `157caa18-ec54-4aa9-a12a-04c86d5a667b`: leave it idle or archived, since it
 would resume mid-task at willg97's reset (Sunday 2026-10-04 13:00Z); `b01c012e` stays retired. Connectors follow the
 account: Claude in Chrome answers only once Will moves it over (every red-team needs it), the Supabase MCP must reach
@@ -71,7 +71,7 @@ runtime logs need it). MCP tool ids change with the account. The new Orchestrato
    folder"; its report's finds go to the next crumbs lane. crumbs-36 to crumbs-39 ride build 36 (deploy it per the runbook, unless
    Will is mid-sitting: ask).
 4. **Will's morning (2026-10-01):** the calls file first (60 calls, `../partyreel-wt/_scratch/calls/relay-calls.md`,
-   last sent to him at 58: re-send it with each lane's calls), then the desk. Seat a respawned Advisor
+   last sent to him at 60: re-send it with each lane's calls; #60 holds one decision of his, the reopen window), then the desk. Seat a respawned Advisor
    (`usher/kit/advisor-prompt.txt`) when a consult comes due; no question is open.
 
 Relays that live only in an agent: the WIP-and-`## Where I am` ask in the three lanes' spawns; nothing else.
