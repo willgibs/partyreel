@@ -17,13 +17,10 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/db/queries/guest-events.test.ts
   - src/lib/db/guest-cap-and-faces-guards.test.ts
   - src/lib/upload/device-id.ts
-  - src/app/(guest)/e/[token]/page.tsx
+  - src/app/(guest)/e/[token]/page
+  - src/app/(guest)/e/[token]/card/card.test.tsx
   - supabase/migrations/20261001233000_guest_event_cap.sql
   - supabase/migrations/20261001233100_faces_move_attribution.sql
-  # exceptions, one line each in shared tests this lane's change reshapes (why in the Handoff):
-  - src/lib/db/migration-guards.test.ts
-  - src/lib/refresh-then-write-policy.test.ts
-  - src/components/app/recently-deleted-grid.test.tsx
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/guest-flow.md
   - docs/systems/profiles-social.md
@@ -73,15 +70,62 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each is built as recommended; each is Will's to overrule.
+
+- **The welcome on a shared phone: does it go with the tickets?** Recommend YES, built: a ticket the device puts down
+  (somebody else's, or one whose row is gone) takes its album's `pr_welcome_<qr>`, and every sign-out (the header's,
+  the app menu's, Sign out everywhere, the door's "Use a different email") takes every album's. Gain: everyone who
+  joins on a shared phone meets the welcome and its consent line once (the door's identify and sign-in steps carry
+  none: they lean on the welcome). Cost: one more Continue for a guest who signs out and back in on her own phone, or
+  whose waiting ticket an album's move to a password ended; and a signed-in guest whose upload replaces another
+  person's ticket mid-run meets the welcome over the album at that moment (she is joining then).
+- **One row for a re-join: device-keyed re-join, or a list de-dupe by name and device?** Recommend NEITHER: both read
+  `pr_device_id`, which trust-safety-forensics.md holds capture-only ("never product logic, never a gate, never shown
+  to a host or a guest") and the Privacy policy discloses as an upload record. The duplicate's root is the queue
+  putting a working name-only ticket down when a host turns An email first on mid-run. Built: the flip keeps her
+  ticket (the files still fail in place with the server's sentence and the page still re-gates; the switch is asked
+  at every upload). Gain: the switch turned off again sends her next Add on the same row, and a confirmation in
+  between claims that row (it used to leave her photographs under the typed name beside her account's: one person
+  twice again). Two people on one phone who type one name: no new merging anywhere (a ticket still goes down only
+  when it is not the viewer's, the next person mints their own row, `whose_ticket` and crumbs-29's one ticket per
+  account untouched). Cost: a guest whose browser loses its storage (Safari's seven-day cap on script-written
+  storage) still re-joins as a second row (Deferred below).
+- **Back closes the photograph on every album, not only the guest's?** Recommend YES, built: the grid is the one every
+  album wears (the guest album, the host's hub album, the bin, the profile's feeds), so the rule is one. The phone's
+  Back drops the photograph into its tile as the X does, and closes it at once where the browser drew its own swipe
+  (`hasUAVisualTransition`, Baseline 2026); Forward opens it again; a shared `?photo=` link closes in place onto the
+  album. The code card's own Back is untouched (still open with Will).
+- **Her waiting uploads on an empty held album: which layout does not jump?** Recommend the server knowing at the first
+  paint, built: on an empty album that holds uploads (and only there) the page asks whether any of hers wait, so the
+  row's Add and her tracker stand from the first frame. Alternatives drawn in thought, not built: every held album's
+  empty state without its own Add (changes the first-timer's empty state), or a reserved row. Cost: one read on that
+  page; a pre-cookie ticket (localStorage alone) still learns late.
+- **The viewer's own loading state: what does it look like?** Recommend a small glass ring on the photograph's corner
+  while its original is still coming (after 600 ms, gone on load or failure; iOS Photos' precedent for an original
+  still downloading, in the viewer's own busy grammar: Save and Share spin the same ring), and the same ring in a
+  clip's play button while it waits for its bytes (after 500 ms). The tile's preview already stood in (media-viewer
+  wiring); the ring is what was missing. Alternative: the tile skeleton's shimmer swept over the stand-in. A UI call.
+- **The host's cap on the anon read: unredacted?** Recommend YES, built: like the other switches, a number the
+  presign's refusal already says.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `guest-flow.md`: the viewer's address is a place the phone's Back closes (one pushed entry, Forward, a shared link
+  closes in place); the viewer's loading state; the welcome once per person; every sign-out puts the welcomes down;
+  the flip keeps a name-only ticket; the terms line states the host's own cap; an earlier visit's waiting uploads
+  count from the first paint.
+- `uploads-and-r2.md`: a face and a handle move the attribution version.
+- `host-app.md`: the photo viewer stands on `lib/history-entry.ts` with the hub's sheets, the popups and the reel.
+- `database-security.md`: `get_event_by_qr_token`'s unredacted settings name `accepts_video` and `max_upload_bytes`.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Guests: a name-only guest whose browser cleared its storage (Safari's seven-day cap on script-written storage)
+  re-joins as a second row under the same name; the join could adopt the `pr_guest_<eventId>` cookie's name-only row
+  when the typed name matches it (from crumbs-43).
+- Social: a confirmed guest whose profile has no name reads "Guest" on the album's guest list and its look
+  (`guest-list.tsx`, `guest-peek.tsx`), the invented stand-in "A guest" was for a typed name; the host's at-the-door
+  list says "A guest" for a person with neither name nor address (`at-the-door.tsx`) (from crumbs-43).
 
 ## Handoff (replaces the chat report)
 
