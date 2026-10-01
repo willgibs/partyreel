@@ -40,6 +40,7 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
+| `crumbs-35` | build 34's red-team finds: the hub's album still through Select and Cancel at 375 (LOW, and the ROADMAP's line), the guest header after a session ends elsewhere, the dashboard's claims after the silent claim, a guest's own upload with no second fade (unconfirmed), the portal's sidebar prefetches' auth reads, Escape on the keep sheet | running, cut at `35f68175`; no SQL | Sonnet, 3131 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
 no question open (Q1, the `names` hang; Q2, schema-pass part 1; Q3, the notes-into-laws audit; Q4, the door migration;
@@ -69,16 +70,20 @@ but lab:demo's `about-press.facts` dev stall, ROADMAP's line), crumbs-31 (`5898b
 
 ## Next, in order
 
-1. **Integrate each lane as it hands off** (no lane runs; build 34's red-team is an agent, not a lane),
+1. **Integrate each lane as it hands off** (crumbs-35 runs),
    each migration by protocol, one at a time: drift check, apply verbatim, the rolled-back refusals, advisors, types.
 2. **Build 34** (`65dbedb2`: build 33 plus crumbs-29 to crumbs-32 and demo-stall) is on the alias since 2026-10-01
    03:45Z (Will had not begun his sitting and said go). Its first try failed at install on both projects: with no pin,
    Vercel reads a version 9.0 lockfile as pnpm 10's, which refused the patch hash pnpm 9 wrote for demo-stall's patch;
-   `packageManager` now names pnpm 9.14.4 (`package-manager-pin.test.ts`). Its red-team is agent `a5c18f05199c4d2db`;
-   from another session, respawn it from `../partyreel-wt/_scratch/redteam-34/brief.md` after its `ledger.txt`'s last
-   line. Its finds go to the next crumbs lane. Lanes run again (Will, 2026-10-01: "keep the calls file running"): pace
-   near 95% weekly (83% at 03:08Z on 2026-10-01; willg97 resets Sunday 13:00Z, hi@willgibs.com, fresh, Tuesday 21:00Z),
-   with this block kept current.
+   `packageManager` now names pnpm 9.14.4 (`package-manager-pin.test.ts`). Its red-team is done (05:15Z,
+   `../partyreel-wt/_scratch/redteam-34/ledger.txt`): every drivable walk of crumbs-29 to crumbs-32 PASS, no
+   regression, its 13 RT34 events deleted, strikes unchanged (partyr33l's address 6, willg97's 2); one LOW (the hub's
+   Select at 375), two NITs, one unconfirmed look and two observations went to `crumbs-35`. Not driven: the portal's
+   404 for willg97 (his authenticator code), the magic-link return (his email), the 13-guest list, the over-cap banner
+   and the export walk (no such data). Build 35 waits on crumbs-33, crumbs-34 and crumbs-35, and on Will's word if he
+   is at the desk. Lanes run again (Will, 2026-10-01: "keep the calls file running"): pace near 95% weekly (90% at
+   04:57Z on 2026-10-01; willg97 resets Sunday 13:00Z, hi@willgibs.com, fresh, Tuesday 21:00Z), with this block kept
+   current; crumbs-35 is the night's last cut.
 3. **Seats as they free** (at most four lanes; `memory_pressure` before each; app work first, Will's note; `lab-focus`
    took the lab's phone fold with it). After his desk picks: the demo event (below); about-press's wiring (its three wiring calls,
    `git show 3ded6ba9^2:docs/tracks/about-press.md`: /press a temporary redirect, the llms summary kept, the kit's files
@@ -123,6 +128,7 @@ but lab:demo's `about-press.facts` dev stall, ROADMAP's line), crumbs-31 (`5898b
   - the hub under macOS reduced motion;
   - a tab hidden, then shown (the hub's album);
   - crumbs-27's two walks that need a second signed-in device (the host's phone while partyr33l holds the shared one).
+  - crumbs-31's magic-link return: the confirm door's email link tapped in the same browser plays the follow moment.
 - **Whenever convenient:** the Vercel MCP on this account points at his personal team; re-pointed at P3 it reads
   runtime logs (deploys ride `$VERCEL_TOKEN` and need nothing).
 - **Asks that come due later**: Libraries.dev access for a lane (when the help chat is cut), and any F1 frames he loves

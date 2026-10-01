@@ -23,7 +23,7 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 - **Batch 9 rides `launch-prep`**: crumbs-28 and hide-strikes (his call B: three strikes that lapse after 180 days)
   red-teamed on build 33; crumbs-29 (a shared phone's one row, no door admitting a blocked ask; its three migrations
   applied), crumbs-30, crumbs-31 (the follow moment after a keep through Google), crumbs-32 and demo-stall (the lab
-  check's stall, a Next dev bug, upstream's fix carried as a pnpm patch) on build 34, its red-team walking.
+  check's stall, a Next dev bug, upstream's fix carried as a pnpm patch) on build 34, red-teamed PASS.
   `crumbs-34` (every published claim made true; Sentry quiet off Vercel) and `crumbs-33` (a report's live strikes on
   the queue, the newsletter row with an email change, four correctness fixes; its two migrations applied) are
   merged. App work leads (his note); the wiring of each board follows
@@ -42,7 +42,7 @@ and `about-press` r1 (two), in that order.
   apex, the admin door redirects; the signed-in walk PASS (the dashboard, a hub's rooms and trail, Settings' rows and
   back arrow and the browser's Back, the door page, the Guests room, the demo's viewer; no console error).
 - **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 34 (`65dbedb2`): milestone 31
-  plus batch 9's seven lanes, its red-team walking; the desk is the same six boards (no board moved since build 31).
+  plus batch 9's seven lanes, red-teamed PASS (its small finds in `crumbs-35`); the desk is the same six boards (no board moved since build 31).
   Vercel installs with pnpm 9.14.4, `package.json`'s `packageManager`.
 - **The shared database** runs every migration applied through 2026-10-01: schema-pass part 2 (the reel's three
   dormant media columns dropped once milestone 31 shipped), the instant hide's three strikes, and crumbs-33's two last
