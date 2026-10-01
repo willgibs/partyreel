@@ -112,16 +112,45 @@ function roundBytes(
 }
 
 /**
- * Formats an `events.event_date` ("YYYY-MM-DD", a date-only column) for display.
- * WHY split-and-construct instead of `new Date(str)`: `new Date("2026-06-01")`
- * parses as UTC midnight, which renders as the *previous* day for anyone west of
- * UTC. Building the Date from local Y/M/D parts pins it to the host's own day.
+ * ★ ONE PINNED DATE FORMAT (crumbs-33, from `hardening`): the product's calendar dates print in `en-US`, read in
+ * UTC, whoever renders them. A bare `toLocaleDateString(undefined, …)` printed the RUNTIME's locale: the server's
+ * during SSR and the browser's on hydration, so a browser that reads German drew "1. Juni 2026" over the server's
+ * "June 1, 2026" (a hydration mismatch, React's #418), and a server page printed whatever its runtime happened to
+ * be. `formatCount` closed the same drift for counts. The admin's timestamps are `format/admin-time.ts`'s and a day
+ * in the viewer's own zone is `format/date-in-zone.ts`'s; `utils.test.ts` refuses a date printed in the runtime's
+ * locale anywhere in the product.
+ *
+ * ★ `formatEventDate`'s en-US output is byte for byte what it printed before the pin ("June 1, 2026"): the desk's
+ * boards draw it (`event-ready`, `locked-door`), as do the album, the hub, the claims card and the help.
+ */
+const DATE_LOCALE = "en-US";
+const DATE_ZONE = "UTC";
+
+const DAY = new Intl.DateTimeFormat(DATE_LOCALE, {
+  timeZone: DATE_ZONE,
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+});
+
+const MONTH = new Intl.DateTimeFormat(DATE_LOCALE, {
+  timeZone: DATE_ZONE,
+  year: "numeric",
+  month: "long",
+});
+
+/**
+ * Formats an `events.event_date` ("YYYY-MM-DD", a date-only column) for display: "June 1, 2026".
+ * WHY split-and-construct instead of `new Date(str)`: the column is a calendar day, not an instant, so it is built
+ * at UTC midnight from its own parts and read back in UTC, which is that same day whatever zone the page renders
+ * in (a midnight read in another zone would be the day before, or after).
  */
 export function formatEventDate(date: string): string {
   const [year, month, day] = date.split("-").map(Number);
-  return new Date(year, month - 1, day).toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  return DAY.format(new Date(Date.UTC(year, month - 1, day)));
+}
+
+/** An instant's month and year, "September 2026" (a profile's Joined), read in UTC like every pinned date. */
+export function formatMonthYear(value: string | number | Date): string {
+  return MONTH.format(value instanceof Date ? value : new Date(value));
 }

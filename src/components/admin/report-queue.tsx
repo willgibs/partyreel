@@ -15,6 +15,7 @@ import {
   BadgeCheck,
   Check,
   EyeOff,
+  Gavel,
   ImageOff,
   Images,
   MailQuestion,
@@ -57,6 +58,7 @@ import {
   askableProof,
   deletedItemLine,
   deletedItemNoun,
+  dismissEndsTheHide,
   heldMessage,
   HIDE_RESTORED_MESSAGE,
   holdReasonFor,
@@ -75,6 +77,7 @@ import {
   REPORT_NOTE_MAX,
   reporterWho,
   reporterWords,
+  strikeWords,
   TAKE_DOWN_TOO,
 } from "@/lib/admin/reports";
 import type { EntryReport, ReviewEntry } from "@/lib/db/queries/reports";
@@ -488,6 +491,34 @@ function Fact({
   );
 }
 
+/**
+ * ★ A CHILD-ABUSE REPORT'S ADDRESS AGAINST THE INSTANT HIDE (crumbs-33, from `hide-strikes`): how many live strikes
+ * it holds and what a Dismiss would make of them, read from the rule's one home (`report_strikes`), so the
+ * operator knows before the press when a Dismiss is the one that takes its hide away (marked, `data-strikes-end`).
+ * Its own line, never truncated: the date is the point. Nothing at all where there is no reading.
+ */
+function StrikeLine({ report }: { report: EntryReport | undefined }) {
+  const strikes = report?.strikes;
+  if (!strikes) return null;
+  const ends = dismissEndsTheHide(strikes);
+  return (
+    <p
+      data-report-fact="strikes"
+      data-strikes-end={ends ? "" : undefined}
+      className={cn(
+        "flex min-w-0 items-start gap-1.5 text-caption text-pretty text-muted-foreground",
+        ends && "font-medium text-foreground",
+      )}
+    >
+      <Gavel
+        className="mt-0.5 size-3.5 shrink-0 text-muted-foreground/80"
+        aria-hidden
+      />
+      <span className="min-w-0">{strikeWords(strikes)}</span>
+    </p>
+  );
+}
+
 /** A tile's facts. The peek lists every report with who sent it, so it asks for the rest without `who`. */
 function FactLines({
   entry,
@@ -504,6 +535,10 @@ function FactLines({
         <Fact id="who" icon={newest.signedIn ? <BadgeCheck /> : <UserRound />}>
           {reporterWords(newest)}, {formatAdminTimestamp(newest.createdAt)}
         </Fact>
+      ) : null}
+      {/* The newest report whose address carries strikes (the peek says every report's own). */}
+      {who ? (
+        <StrikeLine report={entry.reports.find((r) => r.strikes)} />
       ) : null}
       {sent ? (
         <Fact id="uploader" icon={<Upload />}>
@@ -1289,6 +1324,7 @@ function Peek({
                         {reporterWords(report)},{" "}
                         {formatAdminTimestamp(report.createdAt)}
                       </p>
+                      <StrikeLine report={report} />
                       <ProofThread report={report} />
                     </li>
                   ))}

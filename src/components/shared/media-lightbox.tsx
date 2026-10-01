@@ -1685,20 +1685,6 @@ export function MediaLightbox({
                 data-lightbox-chrome
                 data-hidden={phase !== "open" ? "" : undefined}
                 className="pointer-events-none absolute inset-0 z-20"
-                // ★ A TAP MUST NOT FOCUS A CONTROL. Focus opens the control's
-                // tooltip on the way to the click (radix opens a tooltip on
-                // focus, and a touch's compatibility mousedown focuses the
-                // button), the tooltip's arrow lands under the finger, and the
-                // click goes to the arrow: measured on the capsule, where every
-                // tap on Share was lost. Cancelling a touch pointerdown drops
-                // the compatibility mouse events and keeps the click. A menu
-                // trigger opens on the pointerdown itself, so it keeps it.
-                onPointerDownCapture={(e) => {
-                  if (e.pointerType !== "touch") return;
-                  const el = e.target as Element | null;
-                  if (el?.closest?.("[aria-haspopup='menu']")) return;
-                  e.preventDefault();
-                }}
               >
                 <div
                   className="absolute left-2.5 flex max-w-[calc(100%-4rem)]"

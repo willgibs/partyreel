@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  addressStrikes,
   askableProof,
+  dismissEndsTheHide,
   entryKeyOf,
   frontOrder,
   heldMessage,
@@ -24,6 +26,7 @@ import {
   reporterWho,
   reporterWords,
   sameInstant,
+  strikeWords,
   WAY_BACK_LINE,
   wayBackOf,
   withinReopenWindow,
@@ -482,5 +485,109 @@ describe("a false report's hide, put back (`hideUndoOf`)", () => {
     ).toBeNull();
     expect(hideUndoOf(item(), null)).toBeNull();
     expect(hideUndoOf(null, HID)).toBeNull();
+  });
+});
+
+/**
+ * ★ AN ADDRESS AGAINST THE INSTANT HIDE, AND WHAT A DISMISS WOULD MAKE OF IT (crumbs-33, from `hide-strikes`). The
+ * numbers are the reading's own (`report_strikes`, the rule's one home); this only says them, and projects one
+ * press: strikes lapse oldest first, so the bar lifts when the bar-th newest lapses, and a Dismiss's strikes are
+ * the newest of all.
+ */
+describe("an address's strikes on the queue (`addressStrikes`, `strikeWords`)", () => {
+  const RULE = { strikes: 3, freshLapsesAt: "2027-03-30T09:00:00.000Z" };
+  const reading = (live: number, lapses: string[]) => ({
+    live,
+    barred: live >= 3,
+    lapses,
+  });
+
+  it("★ says when a Dismiss is the third, and until when its reports stop hiding", () => {
+    const s = addressStrikes(
+      reading(2, ["2027-02-20T21:05:00.000Z", "2026-12-02T19:30:00.000Z"]),
+      RULE,
+      1,
+    );
+    expect(s).toEqual({
+      live: 2,
+      bar: 3,
+      barredUntil: null,
+      dismiss: { live: 3, barredUntil: "2026-12-02T19:30:00.000Z" },
+    });
+    expect(dismissEndsTheHide(s)).toBe(true);
+    expect(strikeWords(s)).toBe(
+      "This address has 2 strikes of 3. A Dismiss makes 3, and its reports stop hiding right away until Dec 2, 2026 UTC.",
+    );
+  });
+
+  it("counts toward the bar while it is far", () => {
+    expect(strikeWords(addressStrikes(reading(0, []), RULE, 1))).toBe(
+      "This address has no strikes. A Dismiss makes 1 of 3.",
+    );
+    const one = addressStrikes(
+      reading(1, ["2027-01-15T12:00:00.000Z"]),
+      RULE,
+      1,
+    );
+    expect(dismissEndsTheHide(one)).toBe(false);
+    expect(strikeWords(one)).toBe(
+      "This address has 1 strike of 3. A Dismiss makes 2 of 3.",
+    );
+  });
+
+  it("★ an address already barred says until when, and how far a Dismiss would push it", () => {
+    const barred = addressStrikes(
+      reading(3, [
+        "2027-03-01T10:00:00.000Z",
+        "2027-02-01T10:00:00.000Z",
+        "2027-01-10T10:00:00.000Z",
+      ]),
+      RULE,
+      1,
+    );
+    expect(barred.barredUntil).toBe("2027-01-10T10:00:00.000Z");
+    expect(barred.dismiss).toEqual({
+      live: 4,
+      barredUntil: "2027-02-01T10:00:00.000Z",
+    });
+    expect(dismissEndsTheHide(barred)).toBe(false);
+    expect(strikeWords(barred)).toBe(
+      "This address has 3 strikes, so its reports don't hide right away until Jan 10, 2027 UTC. A Dismiss makes 4, until Feb 1, 2027 UTC.",
+    );
+    // A Dismiss that moves nothing says so by saying no date.
+    const same = addressStrikes(
+      reading(4, [
+        "2027-03-01T10:00:00.000Z",
+        "2027-03-01T10:00:00.000Z",
+        "2027-03-01T10:00:00.000Z",
+      ]),
+      RULE,
+      1,
+    );
+    expect(strikeWords(same)).toBe(
+      "This address has 4 strikes, so its reports don't hide right away until Mar 1, 2027 UTC. A Dismiss makes 5.",
+    );
+  });
+
+  it("★ a Dismiss of an entry holding several of one address's reports makes a strike of each", () => {
+    const s = addressStrikes(reading(1, ["2027-01-15T12:00:00.000Z"]), RULE, 2);
+    expect(s.dismiss).toEqual({
+      live: 3,
+      barredUntil: "2027-01-15T12:00:00.000Z",
+    });
+    // Three of one address's reports on one entry: the bar lasts the full lapse from the Dismiss itself.
+    expect(addressStrikes(reading(0, []), RULE, 3).dismiss.barredUntil).toBe(
+      RULE.freshLapsesAt,
+    );
+  });
+
+  it("reads the bar from the rule it is handed, never a number of its own", () => {
+    const strict = { strikes: 1, freshLapsesAt: "2027-03-30T09:00:00.000Z" };
+    expect(addressStrikes(reading(0, []), strict, 1).dismiss.barredUntil).toBe(
+      strict.freshLapsesAt,
+    );
+    expect(strikeWords(addressStrikes(reading(0, []), strict, 1))).toBe(
+      "This address has no strikes. A Dismiss makes 1, and its reports stop hiding right away until Mar 30, 2027 UTC.",
+    );
   });
 });

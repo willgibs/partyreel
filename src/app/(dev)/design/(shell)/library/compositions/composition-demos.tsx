@@ -51,7 +51,11 @@ import {
 } from "@/components/app/storage/storage-source";
 import { Button } from "@/components/ui/button";
 import type { PlanFacts } from "@/lib/billing/plan-facts";
-import { type HoldScope, WAY_BACK_LINE } from "@/lib/admin/reports";
+import {
+  addressStrikes,
+  type HoldScope,
+  WAY_BACK_LINE,
+} from "@/lib/admin/reports";
 import type { QrStyleKey } from "@/lib/constants/qr-presets";
 import { GIGABYTE, planById } from "@/lib/constants/tiers";
 import { marketingImage } from "@/lib/constants/marketing-media";
@@ -501,6 +505,7 @@ const queueReport = (
   canAsk: false,
   byHost: false,
   hidAt: null,
+  strikes: null,
   proof: null,
   ...over,
   // A report that can be asked was sent from a confirmed address.
@@ -518,6 +523,16 @@ const QUEUE_ENTRIES: ReviewEntry[] = [
         canAsk: true,
         hidAt: "2026-09-27T22:12:00.000Z",
         reason: "A child in this one should not be here like this.",
+        // Its address already holds two strikes, so this Dismiss would be the third (crumbs-33).
+        strikes: addressStrikes(
+          {
+            live: 2,
+            barred: false,
+            lapses: ["2027-02-20T21:05:00.000Z", "2026-12-02T19:30:00.000Z"],
+          },
+          { strikes: 3, freshLapsesAt: "2027-03-26T22:12:00.000Z" },
+          1,
+        ),
       }),
     ],
     {

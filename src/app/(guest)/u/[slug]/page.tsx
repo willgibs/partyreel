@@ -25,7 +25,7 @@ import {
 } from "@/lib/db/queries/social";
 import { getAvatarUrl } from "@/lib/supabase/avatar-storage";
 import { createClient } from "@/lib/supabase/server";
-import { formatEventDate } from "@/lib/utils";
+import { formatEventDate, formatMonthYear } from "@/lib/utils";
 
 import { notFoundMetadata } from "./not-found.metadata";
 import { ProfileNotFoundScreen } from "./not-found.screen";
@@ -238,10 +238,8 @@ export default async function PublicProfilePage({ params }: PageProps) {
   const avatarUrl = await getAvatarUrl(profile.id, profile.avatar_updated_at);
 
   const name = profile.display_name ?? `@${profile.slug}`;
-  const joined = new Date(profile.created_at).toLocaleDateString(undefined, {
-    month: "long",
-    year: "numeric",
-  });
+  // The one pinned date format (en-US, read in UTC), never the runtime's locale.
+  const joined = formatMonthYear(profile.created_at);
   // Known from the RPC's payload, so the empty page never waits on a presign
   // round it has nothing to presign for.
   const partyCount =

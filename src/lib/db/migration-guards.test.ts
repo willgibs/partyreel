@@ -105,9 +105,10 @@
  *  26. The claim says what it left for another address (crumbs-24, migration 20260930110000): the ask
  *      read answers each held ticket typed under an address that is not hers, one entry a ticket with no
  *      name (so a build before it reads past), and never the address.
- *  27. The instant hide's bar, three strikes that lapse (hide-strikes, migration 20260930120000): the winning
- *      create_report counts the address's child-abuse reports dismissed inside the window, by the
- *      dismissal's own time, against the two numbers named once, and keeps its signature and its one grant.
+ *  27. The instant hide's bar, three strikes that lapse (hide-strikes, migration 20260930120000; one home since
+ *      crumbs-33, 20261001100000): the winning report_strikes counts the address's child-abuse reports dismissed
+ *      inside the window, by the dismissal's own time, against the two numbers named once there, and the winning
+ *      create_report asks it, holding neither, with its signature and its one grant.
  *  28. No door's opening admits a blocked ask (crumbs-29, migration 20260930130000): the door's asks are read once,
  *      by an owner-only helper both of the list's twins read and neither spells, and no body lets a waiting row in
  *      but through it or the host's own answer.
@@ -115,6 +116,10 @@
  *      confirmed account holds, read under a lock on the album and the account, before they insert.
  *  30. A report is open exactly when it has no resolved_at (crumbs-29, migration 20260930150000): the CHECK stands,
  *      and every write of a report's status in the app writes its time beside it.
+ *  31. The newsletter row follows the address (crumbs-33, migration 20261001110000): the winning
+ *      handle_user_email_change moves the account's list row from its old address to its new one, in the list's
+ *      own form, keeps a row the new address already had without ever raising, still returns first for an account
+ *      being deleted, and stays trivial and uncallable by a client role.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -3833,47 +3838,72 @@ describe("the claim says what it left for another address (crumbs-24, 2026093011
   });
 });
 
-describe("the instant hide's bar: three strikes that lapse (hide-strikes, 20260930120000)", () => {
+describe("the instant hide's bar: three strikes that lapse, in one home both readers ask (hide-strikes 20260930120000, crumbs-33 20261001100000)", () => {
   // Will, 2026-09-30, overruling call B: "I don't want to prevent a well-meaning reporter from a second report
   // if I simply disagree with the first." One dismissed child-abuse report used to bar its address from the
   // instant hide for good (20260929140000). Now a strike is a child-abuse report from the address that the
   // operator dismissed, it lapses 180 days after its dismissal, and three live ones bar the hide. The count
   // reads the reports as they stand, so a dismissal's Undo (which clears `resolved_at` with the status) takes
-  // its strike back. Each pin reads CODE (comments stripped), latest wins.
-  const code = () =>
-    collapse(latestDefinition("create_report").body.replace(/--[^\n]*/g, ""));
-  const grants = () =>
-    collapse(latestDefinition("create_report").file.replace(/--[^\n]*/g, ""));
+  // its strike back. ★ Since crumbs-33 the rule lives in `report_strikes`, which create_report asks and the
+  // portal's queue reads, so the line that tells the operator an address's strikes can never count by another
+  // rule (these pins read create_report's inline count until it moved). Each pin reads CODE (comments
+  // stripped), latest wins.
+  const code = (name: string) =>
+    collapse(latestDefinition(name).body.replace(/--[^\n]*/g, ""));
+  const grants = (name: string) =>
+    collapse(latestDefinition(name).file.replace(/--[^\n]*/g, ""));
 
   it("★ counts the address's live strikes: its child-abuse reports dismissed inside the window, by the dismissal's own time", () => {
-    expect(code()).toContain(
-      "and (select count(*) from public.reports r where r.reporter_hash = p_reporter_hash and r.kind = 'child' and r.status = 'dismissed' and r.resolved_at > now() - c_strike_lapse) < c_strikes",
+    const fn = code("report_strikes");
+    expect(fn).toContain(
+      "where r.kind = 'child' and r.status = 'dismissed' and r.resolved_at > now() - c_strike_lapse",
+    );
+    expect(fn).toContain("'barred', t.live >= c_strikes");
+    // The newest c_strikes lapses, newest first: when the c_strikes-th newest lapses, the bar lifts.
+    expect(fn).toContain(
+      "row_number() over (partition by r.reporter_hash order by r.resolved_at desc, r.id desc) as nth",
+    );
+    expect(fn).toContain(
+      "jsonb_agg(s.lapses_at order by s.nth) filter (where s.nth <= c_strikes)",
     );
   });
 
   it("★ names the two numbers once, where the rule lives: three strikes, each lapsing 180 days after its dismissal", () => {
-    const fn = code();
+    const fn = code("report_strikes");
     expect(fn).toContain("c_strikes constant integer := 3;");
     expect(fn).toContain(
       "c_strike_lapse constant interval := interval '180 days';",
     );
     expect(fn.match(/180/g)).toHaveLength(1);
-  });
-
-  it("★ no longer bars an address for good on one dismissal, and reads a dismissal nowhere else", () => {
-    const fn = code();
-    expect(fn).not.toMatch(
-      /not exists \( select 1 from public\.reports r where r\.reporter_hash = p_reporter_hash/,
-    );
     expect(fn.match(/r\.status = 'dismissed'/g)).toHaveLength(1);
   });
 
+  it("★ create_report asks the one home, holds no number or dismissal of its own, and never bars an address for good", () => {
+    const fn = code("create_report");
+    expect(fn).toContain(
+      "and not coalesce( (public.report_strikes(array[p_reporter_hash]) #>> array['addresses', p_reporter_hash, 'barred'])::boolean, false)",
+    );
+    expect(fn).not.toMatch(/180|c_strike|'dismissed'/);
+    expect(fn).not.toMatch(
+      /not exists \( select 1 from public\.reports r where r\.reporter_hash = p_reporter_hash/,
+    );
+  });
+
   it("keeps the signature the deployed route calls by name, DEFINER with an empty search_path, the service role's alone", () => {
-    expect(code()).toContain(
+    expect(code("create_report")).toContain(
       "function public.create_report( p_qr_token text, p_media_id uuid default null, p_reason text default null, p_kind public.report_kind default 'other', p_reporter_user_id uuid default null, p_reporter_email text default null, p_reporter_hash text default null ) returns jsonb language plpgsql security definer set search_path = '' as $$",
     );
-    expect(grants()).toContain(
+    expect(grants("create_report")).toContain(
       "revoke all on function public.create_report(text, uuid, text, public.report_kind, uuid, text, text) from public, anon, authenticated; grant execute on function public.create_report(text, uuid, text, public.report_kind, uuid, text, text) to service_role;",
+    );
+  });
+
+  it("★ report_strikes is an INVOKER read the service role alone may call, one jsonb (no row cap)", () => {
+    expect(code("report_strikes")).toContain(
+      "function public.report_strikes(p_reporter_hashes text[]) returns jsonb language plpgsql stable security invoker set search_path = '' as $$",
+    );
+    expect(grants("report_strikes")).toContain(
+      "revoke all on function public.report_strikes(text[]) from public, anon, authenticated; grant execute on function public.report_strikes(text[]) to service_role;",
     );
   });
 });
@@ -4174,5 +4204,64 @@ describe("a report is open exactly when it has no resolved_at (crumbs-29, 202609
     for (const write of writes) {
       expect(write).toMatch(/\bresolved_at:/);
     }
+  });
+});
+
+describe("the newsletter row follows the address (crumbs-33, 20261001110000)", () => {
+  // ROADMAP, from identity-email: an email change left `newsletter_signups` on the old address, so the /account
+  // marketing switch, which reads and removes by the address the account holds, could neither see the old row
+  // nor take it off, and a first sender would mail an address its owner had left. The row moves with the change,
+  // inside GoTrue's commit (the only place that sees every change: both codes, a link tapped in another browser,
+  // an operator's update). Each pin reads CODE (comments stripped), latest wins.
+  const code = () =>
+    collapse(
+      latestDefinition("handle_user_email_change").body.replace(
+        /--[^\n]*/g,
+        "",
+      ),
+    );
+
+  it("★ moves the account's row to the new address, in the list's own form, and drops the old", () => {
+    const fn = code();
+    expect(fn).toContain(
+      "v_old text := lower(btrim(coalesce(old.email, ''))); v_new text := lower(btrim(coalesce(new.email, '')));",
+    );
+    expect(fn).toContain(
+      "if v_old <> '' and v_new <> '' and v_old <> v_new then begin update public.newsletter_signups n set email = v_new where n.email = v_old and not exists (select 1 from public.newsletter_signups m where m.email = v_new); exception when unique_violation then null; end; delete from public.newsletter_signups n where n.email = v_old; end if;",
+    );
+  });
+
+  it("★ still returns first for an account being deleted, before any copy or move", () => {
+    const fn = code();
+    const guard = fn.indexOf(
+      "if exists ( select 1 from public.profiles p where p.id = new.id and p.deletion_requested_at is not null ) then return null; end if;",
+    );
+    expect(guard).toBeGreaterThan(-1);
+    expect(guard).toBeLessThan(fn.indexOf("update public.profiles p"));
+    expect(guard).toBeLessThan(fn.indexOf("public.newsletter_signups"));
+  });
+
+  it("keeps the copies it already made and stays trivial: no raise, no dynamic SQL, no client role", () => {
+    const fn = code();
+    expect(fn).toContain(
+      "update public.profiles p set email = new.email where p.id = new.id and p.email is distinct from new.email;",
+    );
+    expect(fn).toContain(
+      "update public.guests g set email = nullif(btrim(coalesce(new.email, '')), '') where g.user_id = new.id and g.verified_at is not null",
+    );
+    expect(fn).not.toMatch(/\braise\b|\bexecute\b/);
+    expect(fn).toContain(
+      "returns trigger language plpgsql security definer set search_path = ''",
+    );
+    expect(
+      collapse(
+        latestDefinition("handle_user_email_change").file.replace(
+          /--[^\n]*/g,
+          "",
+        ),
+      ),
+    ).toContain(
+      "revoke execute on function public.handle_user_email_change() from public, anon, authenticated;",
+    );
   });
 });

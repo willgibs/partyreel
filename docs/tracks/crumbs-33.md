@@ -6,6 +6,8 @@ board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   - src/app/admin/reports/
   - src/lib/db/queries/reports.ts
+  - src/lib/db/queries/reports.test.ts
+  - src/lib/reports/migration.test.ts
   - src/lib/db/mutations/account.ts
   - src/lib/db/mutations/account.test.ts
   - src/lib/utils.ts
