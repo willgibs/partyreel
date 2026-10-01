@@ -22,8 +22,6 @@
  */
 import "server-only";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-
 import { mustCount, QueryFailedError } from "@/lib/db/must-query";
 import type { AdminClient } from "@/lib/lifecycle/reclaim";
 import {
@@ -96,12 +94,12 @@ async function pruneAfter(
   after: string | null,
   window: number,
 ): Promise<PruneAnswer> {
-  // ★ A CAST ACROSS THE APPLY: the generated types learn `album_prune_tombstones` when the Orchestrator
-  // regenerates them after 20261001150000 lands. Until it stands, PostgREST answers that it does not exist,
-  // and the run fails red on its card, which is the truth (nothing is being pruned).
-  const { data, error } = await (admin as unknown as SupabaseClient).rpc(
+  // A pass's first call omits `p_after`, which the function reads as null: the log from its start.
+  const { data, error } = await admin.rpc(
     "album_prune_tombstones",
-    { p_after: after, p_limit: window },
+    after === null
+      ? { p_limit: window }
+      : { p_after: after, p_limit: window },
   );
   if (error) {
     throw new QueryFailedError("cron/purge: album_prune_tombstones", error);

@@ -14,8 +14,7 @@ import "server-only";
 import { cache } from "react";
 
 import {
-  feedArgs,
-  feedRpc,
+  MY_FEED_ASK,
   splitPage,
   type FeedCursor,
   type FeedPage,
@@ -36,14 +35,12 @@ export async function readMyLikesPage(
   const { supabase, user } = auth;
   if (!user) return { items: [], next: null };
 
-  const page = splitPage(
-    await feedRpc(
-      supabase,
-      "get_my_likes",
-      feedArgs(before, { at: "p_before_liked_at", id: "p_before_id" }),
-    ),
-    (r) => ({ at: r.liked_at, id: r.id }),
-  );
+  const { data, error } = await supabase.rpc("get_my_likes", {
+    p_limit: MY_FEED_ASK,
+    ...(before ? { p_before_liked_at: before.at, p_before_id: before.id } : {}),
+  });
+  if (error) throw error;
+  const page = splitPage(data ?? [], (r) => ({ at: r.liked_at, id: r.id }));
   const items = await toMyUploadsItems(
     page.rows.map((r) => ({
       id: r.id,

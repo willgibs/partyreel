@@ -53,7 +53,8 @@ export const MEDIA_HOST_COLUMNS =
 // the reported party), and the prior-status stamp is machinery, not host-facing state. Types.ts
 // will list all three after the post-apply regen — that is exactly when this Omit earns its keep.
 // `purge_asked_at` (admin-triage r2, 20260929140000) too: a permanent delete a hold or an open report defers,
-// and a host who could read it would learn that something keeps her row.
+// and a host who could read it would learn that something keeps her row. `let_in_at` (crumbs-38,
+// 20261001203810) too: the guest's "told on her return" record, the service role's alone, which no client grant reads.
 export type MediaRow = Omit<
   Tables<"media">,
   | "legal_hold_at"
@@ -62,6 +63,7 @@ export type MediaRow = Omit<
   | "removed_by_admin"
   | "status_before_removed"
   | "purge_asked_at"
+  | "let_in_at"
 >;
 
 /** A keyset cursor: the last row's raw timestamp string and its id (the tiebreak). */
