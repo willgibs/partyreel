@@ -125,7 +125,9 @@ export const ABOUT_CONVICTIONS: readonly {
   },
   {
     title: "Review comes before removal.",
-    body: "Every report gets reviewed before anything comes down, and a host can remove anything from their album instantly.",
+    // ★ Not "before anything comes down" (crumbs-41): a child-abuse report from a confirmed email hides its item at
+    // once, pending review (the instant hide), so the one exception is said, as the help article says it.
+    body: "Every report is reviewed, and only a child-abuse report can hide anything first. A host can remove anything instantly.",
     linkLabel: "Reporting and safety",
     href: "/help/reporting-and-safety",
   },

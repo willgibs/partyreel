@@ -14,6 +14,10 @@ import { SectionShell } from "@/components/marketing/system/section-shell";
  * WHO or WHAT does the reviewing, so support/moderation tooling can evolve
  * without breaking published language. Ends with the chapter's GoDeeper row
  * into the two help articles that carry the exact details.
+ *
+ * ★ REVIEW BEFORE REMOVAL, BUT FOR ONE (crumbs-41): a child-abuse report from a
+ * confirmed email hides its item at once, pending review (the instant hide), so
+ * the card names that exception rather than promise "before anything comes down".
  */
 
 const ITEMS: { icon: LucideIcon; title: string; body: string }[] = [
@@ -25,7 +29,7 @@ const ITEMS: { icon: LucideIcon; title: string; body: string }[] = [
   {
     icon: SearchCheck,
     title: "Every report gets reviewed",
-    body: "A report never lands in a void. Each one is reviewed before anything comes down, and serious problems can end in removals or suspended accounts.",
+    body: "A report never lands in a void. Each one is reviewed, and only a report of child abuse can hide anything before its review. Serious problems can end in removals or suspended accounts.",
   },
   {
     icon: Trash2,
