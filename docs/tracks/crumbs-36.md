@@ -23,6 +23,24 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - content/blog/group-trip-photo-sharing.mdx
   - src/components/admin/report-queue.tsx
   - src/lib/admin/reports.ts
+  # Added by the lane (the brief: "your owns are a start"): each item's tests, and the closed line's own files
+  # (the closed log is `report-review.tsx`, read by `queries/reports.ts`, specimen in the Library's compositions).
+  - src/lib/test-utils/german-runtime.ts
+  - src/lib/format/count.test.ts
+  - src/lib/constants/tiers.test.ts
+  - src/components/marketing/sections/pricing/plan-cards-contract.test.tsx
+  - src/components/marketing/sections/pricing/pricing-counts.test.tsx
+  - src/lib/lifecycle/inactivity.test.ts
+  - src/components/marketing/faq-data.test.ts
+  - src/lib/constants/events.test.ts
+  - src/components/app/host-add-provider.test.tsx
+  - src/lib/content/blog-keep-lines.test.ts
+  - src/lib/admin/reports.test.ts
+  - src/lib/db/queries/reports.ts
+  - src/lib/db/queries/reports.test.ts
+  - src/components/app/report-review.tsx
+  - src/components/app/report-review.test.tsx
+  - src/app/(dev)/design/(shell)/library/compositions/composition-demos.tsx
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/marketing-content.md
   - docs/systems/lifecycle-recovery.md
@@ -63,7 +81,25 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each is built as recommended and is Will's to overrule.
+
+- **Where a closed report says its strike, and in what words.** The closed row stays one line; a dismissed child-abuse
+  report carries one quiet line under it: "A strike on its address until <date> UTC; the address holds N of 3." (with
+  "Undo takes it back." only while the dismissal is inside its reopen window), "Its strike lapsed <date> UTC.", or
+  "Not a strike: it kept no address to count against." Recommended: as written, so every dismissed child-abuse
+  report answers "is this still a strike?" in the queue's own register (UTC dates, counts, never the address).
+- **The reopen window (30 days) is shorter than a strike's life (180).** A slip found on day 31 stays a strike for
+  149 more days and nothing can take it back; the closed line now says so plainly. Recommended: leave both rules as
+  they are (his call B and `closed=window`) and let the words be honest; whether a child-abuse dismissal's reopen
+  should last as long as its strike is his, as a board idea below.
+- **The host's Add scrolls to the panel with the least movement**, never to the top of the page: the upload panel is
+  brought into view (`nearest`, clear of the app bar and the stuck cards band), smoothly unless the reader asked for
+  reduced motion; a panel already open and in view does not move. Recommended: as built.
+- **Where the two blog posts say the Free plan's idle removal.** Reunion: its closing keep sentence says the exception in
+  the event pages' words, and the absolute "no expiry clock and no countdown to a deletion" goes. Trip: the closing
+  "The album stays" bullet carries it (and "Nothing expires underneath it" goes), and the mid-post "an event has no
+  end date" becomes a scope sentence, so no line of either post promises how long an album lasts without the
+  exception beside it. Recommended: as built; `blog-keep-lines.test.ts` holds it for these two posts.
 
 ## System-doc edits (in place, owned facts only)
 
