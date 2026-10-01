@@ -27,9 +27,10 @@
  * it here also means uploads made BEFORE this shipped are covered, which a
  * client-side ledger could never be.
  *
- * ★ A ROW WITH NO GUEST IS NEVER REACHABLE HERE. Both reads start from a guest
- * row, so a host's own upload (guest_id null) never lands in a "mine" list on
- * this page; the host removes their own through the event's moderation surface.
+ * ★ AND THE ALBUM'S OWNER IS NEVER HER OWN GUEST. Her Add on her guest page
+ * rides the host's pair, so her uploads here have no guest row, and the guest
+ * reads above never list them; `listOwnerMediaIds` does, for the same page, and
+ * `remove_my_upload`'s host arm takes each to her Deleted, restorable.
  */
 import "server-only";
 
@@ -39,6 +40,7 @@ import { mustCount, mustQuery } from "@/lib/db/must-query";
 import { inChunks, readAllPages } from "@/lib/db/read-all";
 import { captureError } from "@/lib/observability/sentry";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getRequestAuth } from "@/lib/supabase/request-auth";
 
 /** Below this, a token is not a token — refuse before touching the database. */
 const MIN_SESSION_TOKEN = 16;
@@ -129,6 +131,48 @@ export async function listAccountMediaIds(input: {
       .eq("event_id", input.eventId)
       .eq("user_id", input.userId),
   );
+}
+
+/**
+ * The ids THE ALBUM'S OWNER may remove on her own guest page (crumbs-32): her own
+ * uploads here, the rows with no guest (her guest page's Add, the hub's and the
+ * reel's all ride the host's pair), which `remove_my_upload`'s host arm takes to
+ * her Deleted. Never a guest row's: she is never her own guest, and that RPC's
+ * guest arm refuses the event's own host, so offering one would offer a refusal.
+ *
+ * ★ READ THROUGH HER OWN CLIENT, SO RLS IS THE BOUNDARY: `media_host_all` scopes
+ * the rows to her own events, and a viewer who is not this album's host reads
+ * nothing, whatever the page decided. Read whole (a host past 1,000 of her own)
+ * and, like every read here, FAIL CLOSED, LOUDLY.
+ */
+export async function listOwnerMediaIds(eventId: string): Promise<string[]> {
+  try {
+    const { supabase, user } = await getRequestAuth();
+    if (!user) return [];
+    const { rows } = await readAllPages(
+      "owner media: ids",
+      (after: string | null, limit) => {
+        let q = supabase
+          .from("media")
+          .select("id")
+          .eq("event_id", eventId)
+          .is("guest_id", null)
+          .neq("status", "removed")
+          .order("id", { ascending: true })
+          .limit(limit);
+        if (after) q = q.gt("id", after);
+        return q;
+      },
+      (m) => m.id,
+    );
+    return rows.map((m) => m.id);
+  } catch (error) {
+    captureError("media", error, {
+      seam: "owner_media_ids_fail_closed",
+      eventId,
+    });
+    return [];
+  }
 }
 
 /**

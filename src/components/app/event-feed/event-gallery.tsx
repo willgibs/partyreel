@@ -183,6 +183,8 @@ export function EventGallery({
               ? bin.entries.length
               : undefined
         }
+        // Selecting, in a hand, the bar's five 44px targets take the row (the header's own note).
+        actionFills={Boolean(selection?.selectMode)}
         action={
           selection?.selectMode ? (
             // GalleryBulkBar takes over the whole action slot in select mode

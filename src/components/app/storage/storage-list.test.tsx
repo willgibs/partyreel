@@ -385,3 +385,53 @@ describe("the goal strip", () => {
     expect(within(strip).queryByRole("button")).toBeNull();
   });
 });
+
+/**
+ * ★ HER OWN PLAN AS THE GOAL (crumbs-32, from `storage-wiring`): the over-cap grace banner said "largest files first"
+ * with no door. Its door (and the meter's, while she is over) opens the list counting down to her own cap: the gap
+ * is what she stores past it, the count runs on what she selects and removes, and nothing is switched (there is no
+ * plan to switch to), so the strip carries no button and the bar's Remove to Deleted is the act.
+ */
+describe("her own plan's goal", () => {
+  // She stores 110.83 GB on a 100 GB plan: 10.83 GB past it.
+  const fit: StorageGoal = { kind: "fit", capBytes: 100 * GIGABYTE };
+
+  it("★ counts down to her own cap and says where she stands, with nothing to switch", async () => {
+    const source = fakeSource();
+    const dialog = open(source, fit);
+    await waitFor(() =>
+      expect(dialog.querySelector("[data-storage-goal]")).toBeTruthy(),
+    );
+    const strip = dialog.querySelector("[data-storage-goal]") as HTMLElement;
+    expect(strip.getAttribute("data-state")).toBe("counting");
+    expect(strip.textContent).toContain("10.9 GB");
+    expect(strip.textContent).toContain("to fit your plan");
+    expect(within(strip).queryByRole("button")).toBeNull();
+
+    // 9.4 GB selected leaves 1.43 GB; 4.1 GB more closes it, only selected.
+    await userEvent.click(checkboxFor(dialog, BIG));
+    expect(strip.getAttribute("data-state")).toBe("counting");
+    expect(strip.textContent).toContain("1.5 GB");
+    await userEvent.click(checkboxFor(dialog, MID));
+    expect(strip.getAttribute("data-state")).toBe("remove");
+    expect(within(strip).queryByRole("button")).toBeNull();
+
+    // The bar's Remove is the act: removed, the gap is freed.
+    await userEvent.click(
+      within(dialog).getByRole("button", { name: "Remove to Deleted" }),
+    );
+    await waitFor(() => expect(strip.getAttribute("data-state")).toBe("fits"));
+    expect(source.remove).toHaveBeenCalledTimes(1);
+    expect(source.switchPlan).not.toHaveBeenCalled();
+  });
+
+  it("keeps Deleted's own note: nothing about her plan changes", async () => {
+    const dialog = open(fakeSource(), fit);
+    await waitFor(() => expect(rowIds(dialog)).toHaveLength(3));
+    expect(
+      dialog
+        .querySelector("[data-storage-note]")
+        ?.getAttribute("data-storage-note"),
+    ).toBe("deleted");
+  });
+});

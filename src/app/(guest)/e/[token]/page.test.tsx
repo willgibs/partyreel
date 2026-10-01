@@ -37,6 +37,7 @@ vi.mock("@/lib/analytics/bots", () => ({ isLikelyBot: stub }));
 vi.mock("@/lib/db/mutations/analytics", () => ({ recordLinkHit: stub }));
 vi.mock("@/lib/db/mutations/guest-media", () => ({
   listAccountMediaIds: stub,
+  listOwnerMediaIds: stub,
 }));
 vi.mock("@/lib/db/queries/guest-events-admin", () => ({
   getGalleryStats: stub,

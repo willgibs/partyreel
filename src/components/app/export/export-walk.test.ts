@@ -12,7 +12,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   createExportWalker,
+  readSavedWalks,
+  type SavedWalk,
   type ToastView,
+  type WalkStore,
 } from "@/components/app/export/export-walk";
 import type { DownloadPlace } from "@/lib/export/walk";
 
@@ -28,7 +31,7 @@ type Scripted =
 
 type Call = { url: string; init: RequestInit };
 
-function harness(place: DownloadPlace = "desk") {
+function harness(place: DownloadPlace = "desk", store?: WalkStore) {
   const mints: Scripted[] = [];
   const checks: Scripted[] = [];
   const calls: Call[] = [];
@@ -69,6 +72,7 @@ function harness(place: DownloadPlace = "desk") {
     place: () => place,
     sleep: () => Promise.resolve(),
     newId: () => `walk-${++ids}`,
+    store,
   });
 
   /** The toast as it stands now, for one walk. */
@@ -587,6 +591,156 @@ describe("a big album, in parts (cap=split)", () => {
       title: "2,010 of 2,013 are in your download.",
       action: { label: "Try again for the 3" },
     });
+  });
+});
+
+/**
+ * ★ A RELOAD BETWEEN PARTS OFFERS THE NEXT ONE AGAIN (crumbs-32, from `export-wiring`: "a walk lives in the page, so a
+ * reload mid-walk forgets it"). The tab's store stands in for sessionStorage; a second walker on it is the page after
+ * the reload. It must offer the same tap, take the next part from the cursor it kept (never part 1 again, never a
+ * part twice), count the walk whole at its end, and let go of a walk the moment it ends, whichever way.
+ */
+describe("a reload between parts", () => {
+  /** sessionStorage, as the tab keeps it across the reload: what was last saved. */
+  function tab(initial: unknown = null) {
+    let held: unknown = initial;
+    const store: WalkStore = {
+      load: () => held,
+      save: (walks) => {
+        held = walks.length === 0 ? null : structuredClone(walks);
+      },
+    };
+    return { store, held: () => held as SavedWalk[] | null };
+  }
+
+  /** The server's cursors, in the shape it hands them (`<ms>_<id>`). */
+  const C1 = "1790000000000_00000000-0000-4000-8000-000000000001";
+  const C2 = "1790000000500_00000000-0000-4000-8000-000000000002";
+
+  /** The first page: a three-part walk, its first part handed over. */
+  async function firstPart(store: WalkStore) {
+    const h = harness("desk", store);
+    h.mints.push(minted({ parts: 3, next: C1, items: 2000, token: "t1" }));
+    h.checks.push(counted(2000, ["gone-1"]));
+    await h.walker.start("guest", { qr_token: "qr", types: "all" });
+    return h;
+  }
+
+  it("★ keeps the cursor, and the page after the reload offers the same next part, taken from it", async () => {
+    const t = tab();
+    await firstPart(t.store);
+    expect(t.held()).toEqual([
+      {
+        scope: "guest",
+        body: { qr_token: "qr", types: "all" },
+        retryOf: null,
+        part: 1,
+        parts: 3,
+        next: C1,
+        items: 2000,
+        found: 1999,
+        missing: ["gone-1"],
+        handed: 1,
+      },
+    ]);
+
+    // The reload: a new page, a new walker, the same tab.
+    const after = harness("desk", t.store);
+    after.walker.resume();
+    const offered = after.now();
+    expect(offered).toMatchObject({
+      tone: "between",
+      title: "Part 1 of 3 is downloading.",
+      action: { label: "Get part 2" },
+    });
+    // An offer, never a download: nothing is minted or posted until it is tapped.
+    expect(after.calls).toHaveLength(0);
+    expect(after.posted).toHaveLength(0);
+
+    after.mints.push(
+      minted({ part: 2, parts: 3, next: C2, items: 2000, token: "t2" }),
+    );
+    after.checks.push(counted(2000));
+    if (offered?.tone !== "between") throw new Error("not between");
+    offered.action.run();
+    await settle();
+    expect(after.mintBodies().at(-1)).toMatchObject({
+      step: "mint",
+      qr_token: "qr",
+      types: "all",
+      part: 2,
+      after: C1,
+    });
+    expect(t.held()?.[0]).toMatchObject({ part: 2, next: C2, handed: 2 });
+
+    const second = after.now();
+    after.mints.push(
+      minted({ part: 3, parts: 3, next: null, items: 440, token: "t3" }),
+    );
+    after.checks.push(counted(440));
+    if (second?.tone !== "between") throw new Error("not between");
+    second.action.run();
+    await settle();
+    expect(after.posted.map(([, tok]) => tok)).toEqual(["t2", "t3"]);
+    // Counted whole, across the reload: the missed one from the first page is still the walk's.
+    expect(after.now()).toMatchObject({
+      tone: "short",
+      title: "4,439 of 4,440 are in your download.",
+    });
+    expect(t.held()).toBeNull();
+  });
+
+  it("a walk stopped by its x between parts is never offered again", async () => {
+    const t = tab();
+    const h = await firstPart(t.store);
+    const between = h.now();
+    if (between?.tone !== "between") throw new Error("not between");
+    between.close.run();
+    expect(t.held()).toBeNull();
+
+    const after = harness("desk", t.store);
+    after.walker.resume();
+    expect(after.shown).toHaveLength(0);
+  });
+
+  it("offers once per page, however many surfaces ask", async () => {
+    const t = tab();
+    await firstPart(t.store);
+    const after = harness("desk", t.store);
+    after.walker.resume();
+    after.walker.resume();
+    expect(after.shown).toHaveLength(1);
+  });
+
+  it("a store holding nothing it can read offers nothing, and is emptied", () => {
+    const t = tab([
+      { scope: "host", body: {}, part: 1, parts: 2, next: "../../etc" },
+      "not a walk",
+    ]);
+    const h = harness("desk", t.store);
+    h.walker.resume();
+    expect(h.shown).toHaveLength(0);
+    expect(t.held()).toBeNull();
+  });
+
+  it("reads only a walk a server could go on with", () => {
+    const walk: SavedWalk = {
+      scope: "host",
+      body: { event_id: "e", types: "all", include_hidden: false },
+      retryOf: null,
+      part: 2,
+      parts: 4,
+      next: C1,
+      items: 4000,
+      found: 4000,
+      missing: [],
+      handed: 2,
+    };
+    expect(readSavedWalks([walk])).toEqual([walk]);
+    expect(readSavedWalks([{ ...walk, parts: 2 }])).toEqual([]);
+    expect(readSavedWalks([{ ...walk, scope: "admin" }])).toEqual([]);
+    expect(readSavedWalks([{ ...walk, next: "a cursor" }])).toEqual([]);
+    expect(readSavedWalks({ walks: [walk] })).toEqual([]);
   });
 });
 
