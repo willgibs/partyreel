@@ -23,9 +23,6 @@ type HostAddValue = {
   toggleAdd: () => void;
   /** The reel card's Add photos: open the panel if it is shut, and bring it into view either way. */
   openAdd: () => void;
-  /** Live in-flight upload count (HostUpload reports it). No surface reads it since the floating Add pill retired. */
-  uploadingCount: number;
-  setUploadingCount: (n: number) => void;
   /** `HostUpload` hands its own box here (a ref callback): the panel `openAdd` brings into view. */
   registerPanel: (el: HTMLElement | null) => void;
 };
@@ -56,7 +53,6 @@ function bringIntoView(panel: HTMLElement) {
 
 export function HostAddProvider({ children }: { children: React.ReactNode }) {
   const [adding, setAdding] = useState(false);
-  const [uploadingCount, setUploadingCount] = useState(0);
   // The panel's box while it is mounted (HostUpload's ref callback fills it in the commit that mounts it).
   const panel = useRef<HTMLElement | null>(null);
   // One count per openAdd, so the scroll is an effect of THAT press: it runs after the commit that mounted the
@@ -79,14 +75,7 @@ export function HostAddProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <HostAddContext.Provider
-      value={{
-        adding,
-        toggleAdd,
-        openAdd,
-        uploadingCount,
-        setUploadingCount,
-        registerPanel,
-      }}
+      value={{ adding, toggleAdd, openAdd, registerPanel }}
     >
       {children}
     </HostAddContext.Provider>
