@@ -12,6 +12,16 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/marketing/sections/pricing/shared-band.tsx
   - src/lib/glass.ts
   - src/lib/observability/sentry.ts
+  # added at boot, each with its why: the footer renders the FAQ link, the tests hold the lines above
+  - src/components/marketing/chrome/marketing-footer.tsx
+  - src/components/marketing/chrome/footer-faq-link.tsx
+  - src/components/marketing/chrome/footer-faq-link.test.tsx
+  - src/components/marketing/faq-data.test.ts
+  - src/lib/constants/events.test.ts
+  - src/lib/constants/marketing-nav.test.ts
+  - src/lib/content-policy.test.ts
+  - src/lib/content/help-reading-order.test.ts
+  - src/lib/observability/sentry.test.ts
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/marketing-content.md
   - docs/systems/billing-caps.md
