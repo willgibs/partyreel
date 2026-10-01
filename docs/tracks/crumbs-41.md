@@ -14,10 +14,12 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/moderation/album-pages.ts
   - src/lib/moderation/album-pages.test.ts
   - src/components/admin/metrics-charts.tsx
+  - src/components/admin/metrics-charts.test.ts
   - src/lib/format/count.ts
   - src/lib/format/count.test.ts
   - src/app/(dev)/design/(shell)/library/compositions/composition-demos.tsx
   - src/app/(dev)/design/(shell)/library/compositions/gallery-demos.tsx
+  - src/app/(dev)/design/gallery/specimens.generated.json
   - src/lib/db/queries/reports.ts
   - src/lib/db/queries/reports.test.ts
   - src/app/api/stripe/webhook/
