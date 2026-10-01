@@ -59,6 +59,7 @@ working.
 ## Where I am
 
 - The downloads of `export-wiring-probe-disposable.zip` in Will's Downloads were mine: 10 (nine of the album's 7 items, one retry of 1), 2026-10-01 21:01:57 to 21:08:02 UTC, one per minted `export_log` row of event 340fcc7b, each posted by this lane's local walk in the Browser pane to the deployed Worker. Changed: the pane's form submit is neutralized for every later step (nothing can be posted), and a download is proved only by reading the Worker's answer in a script of my own or in a headless Chrome saving to `_scratch/export-ends/`; nothing in his folders was touched.
+- On Will's word (relayed): of the ten, three were still in `~/Downloads`, as the pane's hidden download files, each a 2,274,947-byte zip of the album's 7 files: `.Q6L2SF6YDW.com.anthropic.claudefordesktop.Teql51` (17:06:26 EDT), `.Q6L2SF6YDW.com.anthropic.claudefordesktop.mFiBU2` (17:06:51) and `.Q6L2SF6YDW.com.anthropic.claudefordesktop.WusTa5` (17:07:34), checked by `unzip -l`; exactly those three went to the Trash through Finder (Put Back restores them), nothing else moved. The other seven were no longer there. Real downloads from here on land only in `_scratch/export-ends/`, from a headless Chrome of this lane's own.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
