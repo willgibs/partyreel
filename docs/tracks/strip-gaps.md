@@ -13,6 +13,14 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/constants/feature-pages.ts
   - src/components/marketing/sections/home/privacy.tsx
   - src/components/marketing/jsonld.tsx
+  # the other places that state the claim (the brief's "articles that state it", and beyond):
+  - content/help/what-you-can-upload.mdx
+  - content/help/download-photos-videos-and-albums.mdx
+  - content/help/how-guests-join-and-upload.mdx
+  - content/help/who-can-see-your-event.mdx
+  - content/blog/scanned-a-qr-code-where-your-photos-go.mdx
+  - content/blog/AUTHORING.md
+  - src/lib/content/llms.ts
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/uploads-and-r2.md
   - docs/systems/marketing-content.md
