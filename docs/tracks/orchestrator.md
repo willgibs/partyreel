@@ -1,7 +1,7 @@
 ---
 track: orchestrator
 status: open
-cut: "37d20db7"          # the launch-prep SHA this state was written at
+cut: "f6d72a9d"          # the launch-prep SHA this state was written at
 owns:                    # the standing claims no lane touches
   - src/app/(dev)/design/rules/bible.ts
   - src/app/(dev)/design/rules/bible.test.ts
@@ -40,16 +40,16 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `crumbs-37` | scale and upkeep: `album_changes`' tombstones pruned under per-album watermarks, `media_removed_idx`, the admin drill-in paged, the over-capacity reduce paged | MERGED at `cc49cf17` (gate 116 green); its two migrations UNAPPLIED: `20261001150000_album_log_prune` (replaces `album_changes_since`, adds the watermarks and `album_prune_tombstones`) and `20261001151000_removed_media_index` (drops `media_purge_at_idx` for `media_removed_idx`): the Advisor first, then the protocol, both BEFORE build 36 deploys; then regenerate the types (album_state's two columns, `album_prune_tombstones`) and drop the cast in `album-log.ts` | Opus, 3131 | |
-| `crumbs-38` | a person's own record: the return's toast told once, My uploads and My likes past 200, the viewer's credit with a face and a door | MERGED at `c95e6429` (gate 117 green on its re-run: one timing flake, `history-entry.test.tsx`, its ROADMAP line); `20261001203810_let_in_told` APPLIED by protocol 2026-10-01 (recorded 20261001183243, the payload's md5 the file's 5f3b0099; the proof 6/6 rolled back first; nine triggers on media; advisors 18/4/35, unchanged); `20261001203800_my_feeds_cursor` (md5 9866ebad, drops and re-creates the two feed functions) UNAPPLIED, on the Advisor's Q6, BEFORE build 36 deploys; then regenerate the types and drop the two typed seams (`feedRpc`'s cast in `queries/my-uploads.ts`, `untypedAdmin` in `mutations/guest-media.ts`) | Opus, 3133 | |
 | `crumbs-41` | admin, data and billing: Will's call #60 (a child-abuse dismissal reopenable while its strike counts), two live subscriptions, the strike's lapse as a duration, the drill-in's status filter, the person report's handle, `reviewed`, four-digit ticks, the soft-deleted events' index | running (agent `ae5f01ac4f8d75ceb`), cut at `07277c23`; its merge waits for milestone 32 | Opus, 3131 | |
 | `crumbs-42` | the host app: a malformed dashboard id, Review's credits, a save and a second tap, Paused, Review's one heading, the dead upload count, what a restore leaves in Deleted, the settings head's double name, the wizard's sample codes | running (agent `a1416ca66bd8a253a`), cut at `07277c23`; its merge waits for milestone 32 | Opus, 3132 | |
 | `crumbs-43` | guests: Back closes the photograph, the welcome on a shared phone, one row for a re-join, the host's own upload cap, a face that moves at once, Show-more hearts, waiting uploads on an empty album, "A guest" retired, the viewer's loading state | running (agent `a314d5cae046d0f4c`), cut at `07277c23`; its merge waits for milestone 32 | Opus, 3133 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, respawned
-2026-10-01 18:15Z in this session; **Q6 open**: crumbs-37's two migrations and crumbs-38's `my_feeds_cursor` (each drops
-or replaces a function or an index) against the deployed readers, prod `7bd3b947` and build 35 `be502b45`, leaning
-apply as written. Q1 to Q5 are answered and acted on. From another session, respawn it from
+2026-10-01 18:15Z in this session; no question open. Q6 (crumbs-37's two migrations and crumbs-38's cursor file against
+the deployed readers) answered "apply as written", acted on: the four applied by protocol (`f6d72a9d`); the prune runs
+before milestone 32 only when build 36's `/api/cron/purge` is hand-run on the alias, and a milestone-31 tab parked on a
+pruned album may then keep a stale tile until it reloads (expected; the red-team brief says so). Q1 to Q5 are answered
+and acted on. From another session, respawn it from
 `usher/kit/advisor-prompt.txt`.
 
 **Handoff across accounts.** The Orchestrator session is `2ba90542-62d6-487c-8c79-3657619f9133` (hi@willgibs.com,
@@ -81,13 +81,8 @@ but lab:demo's `about-press.facts` dev stall, ROADMAP's line), crumbs-31 (`5898b
 
 ## Next, in order
 
-1. **The owed migrations**, each by its header's protocol, one at a time: `let_in_told` now (additive, replaces
-   nothing); `my_feeds_cursor`, `album_log_prune` and `removed_media_index` on the Advisor's Q6; then the types
-   regenerated once, the three typed seams dropped (`feedRpc`'s cast in `queries/my-uploads.ts`, `untypedAdmin` in
-   `mutations/guest-media.ts`, the cast at `lifecycle/sweeps/album-log.ts:102`), gate 119 (typecheck, lint, test,
-   build) and the two In-flight rows cleared.
-2. **Build 36** (build 35 plus crumbs-36 to crumbs-40, the four migrations standing): the `[preview]` record,
-   `alias-ensure`, the prune. The desk is the same six boards (only `words.test.ts` moved in the lab since build 35)
+1. **Build 36** (build 35 plus crumbs-36 to crumbs-40, the four migrations applied and the types regenerated at
+   `f6d72a9d`, gate 119 green): the `[preview]` record, `alias-ensure`, the prune. The desk is the same six boards (only `words.test.ts` moved in the lab since build 35)
    and his answers live in his browser's localStorage, so the deploy waits for no sitting. Then its red-team, an agent
    on Claude in Chrome, from `../partyreel-wt/_scratch/redteam-36/brief.md`, written fresh from crumbs-36 to
    crumbs-40's Handoff steps on `redteam-35/brief.md`'s template; strikes going in: willg97's address 2, partyr33l's 7.
@@ -95,7 +90,7 @@ but lab:demo's `about-press.facts` dev stall, ROADMAP's line), crumbs-31 (`5898b
    or its fix build, passes, any MEDIUM or worse fixed and proven on the alias first; then the full gate, merge, tag,
    deploy and the read-only prod walk with no further ask. Until it ships only the red-team's fixes merge; any other
    lane that hands off waits, as crumbs-28 waited for milestone 31.
-3. **Seats as they free** (at most four lanes; `memory_pressure` before each), claimed in this order: the red-team's
+2. **Seats as they free** (at most four lanes; `memory_pressure` before each), claimed in this order: the red-team's
    fixes (milestone-blocking), the wiring of his desk picks, the ROADMAP's app work (his note: app work first), the
    lab. Three app lanes from the Now bucket run now (admin, data and billing, led by #60's reopen window; the host
    app; guests), the fourth seat held for the red-team's fixes. After his desk picks: the demo event (below); about-press's wiring (its three wiring calls,
@@ -104,14 +99,14 @@ but lab:demo's `about-press.facts` dev stall, ROADMAP's line), crumbs-31 (`5898b
    idea of the premiere on the wall, the reel's screen counting down to the develop time and playing the roll as an
    event of its own); the door family's wiring (if the doorway wins, its reveal: walking through the opened door into
    the album, drawn first as motion options; ASSETS row 36 if the host's door wins).
-4. **The demo event**, after his `demo-framing` r2 picks (his full permission, 2026-09-29): the demo renamed (or made)
+3. **The demo event**, after his `demo-framing` r2 picks (his full permission, 2026-09-29): the demo renamed (or made)
    to its pick, its address claimed so the card's printed address opens it (today `mia-and-theo`, held by no event,
    left as is on his word), one home for the slug in `lib/demo.ts` that the card prints, the seed sets and every demo
    door opens (today all five doors and `/demo` open the token's address, since demo mode matches on the raw token),
    `OBJECT_EVENT` and `OBJECT_PRINTS` to match, the typed addresses reserved to the demo, a demo host account for the
    persona (`partyreel-demo` stays refused to anyone else by the brand family, `crumbs-11`), and ASSETS rows 5, 33 and
    34 unparked with the party's subjects (the board's Handoff names the counts).
-5. **Google's chooser** names `ddafaemglzmuekbtjwzn.supabase.co` (ROADMAP's launch checkpoint, his call).
+4. **Google's chooser** names `ddafaemglzmuekbtjwzn.supabase.co` (ROADMAP's launch checkpoint, his call).
 
 ## Waiting on Will
 
