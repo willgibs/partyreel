@@ -92,11 +92,18 @@ Each is built as recommended and is Will's to overrule; none is a one-way door.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/host-app.md` (the claims review): the layout's claim is refreshed by its own caller, never a
+  listener in the page segment, and why.
+- `docs/systems/guest-flow.md` (likes): the hearts follow the device's session; two asks out, a burst as one.
+- `docs/systems/admin-observability.md`: the ops mail's window from the album's last mail; every server capture
+  (the helpers and `onRequestError`) held by its request until its flush is out, and why Sentry's own is not.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now · Observability: `captureRequestError` (`lib/observability/sentry.ts`) holds a crash's flush itself because
+  `@sentry/core`'s `vercelWaitUntil` does nothing off the Edge runtime (getsentry/sentry-javascript#23087, open at
+  10.55); once a release holds Node.js functions, the hold is a harmless second `waitUntil` and the wrapper can go
+  back to Sentry's own (from `crumbs-40`).
 
 ## Handoff (replaces the chat report)
 
@@ -115,15 +122,7 @@ Each is built as recommended and is Will's to overrule; none is a one-way door.
 
 - Booted at 8aba036e (launch-prep after crumbs-37's and crumbs-38's merges, so no sync owed); worktree
   `../partyreel-wt/crumbs-40`, dev server port 3132, scratch `../partyreel-wt/_scratch/crumbs-40/`.
-- DONE: MEDIUM claims refresh, ad842289 (`ClaimUploadsOnAuth` refreshes on its own claim; `ClaimsReview` no longer
-  listens; `claim-uploads-on-auth.test.tsx` red on the old code). Likes, b1dca5a5 (`seed-queue.ts`: the account read
-  at every call and followed, a burst as one ask; 7 provider pins red on the old provider). Full `pnpm test` green
-  at b1dca5a5's tree (693 files, 8,317 tests, 39 s); typecheck and lint green.
-- Measured: `@sentry/core` 10.55's `vercelWaitUntil` returns unless `EdgeRuntime` is defined (so
-  `captureRequestError`'s flush never holds a Node.js function; getsentry/sentry-javascript#23087, open), and
-  `scheduleServerFlush`'s `after(() => { void Sentry.flush() })` never held the flush either. The ops mail keys
-  `${eventId}:${floor(now/10min)}`. The admin layout's `title.default` is templated by the root's "%s · Partyreel".
-- NEXT: the NITs (strike line `lib/admin/reports.ts` strikeWords: compare the dates as printed; ops mail:
-  `sendOncePerWindow` in `lib/email/send.ts`, keyed on the album's last mail; Sentry: `captureRequestError` wrapper
-  in `lib/observability/sentry.ts` + `after(flushed)`; title: the admin layout's own title absolute; the help
-  article's Review card "Off" + a pin in `help-product-doors.test.ts`), then the system docs, then the gate.
+- DONE, each with its test red on the old code: claims refresh ad842289; likes b1dca5a5; strike line 19efaa7e; ops
+  mail window 2bead1ff; Sentry hold b1031eb0; portal title 723669aa; help article da36f424; system docs 83104557.
+- NEXT: the gate on the tree (typecheck, lint, test, build under build-lock, lab:smoke on :3132), local checks (the
+  help article on :3132, the Library's report queue composition), then the Handoff (manifest alone).
