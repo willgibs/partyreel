@@ -165,3 +165,44 @@ describe("the album change log, pruned under a watermark (20261001150000)", () =
     );
   });
 });
+
+describe("the removed-media index the host discovery and the sweep share (20261001151000)", () => {
+  const FILE = "20261001151000_removed_media_index.sql";
+
+  it("indexes the removed rows in the sweep's order, replacing the purge_at index that held the same rows", () => {
+    const sql = fileSql(FILE);
+    expect(sql).toContain(
+      "create index media_removed_idx on public.media (purge_at, id) where status = 'removed';",
+    );
+    expect(sql).toContain("drop index public.media_purge_at_idx;");
+    // No later file brings the old one back beside it.
+    expect(
+      everything().lastIndexOf("drop index public.media_purge_at_idx;"),
+    ).toBeGreaterThan(
+      everything().lastIndexOf("create index if not exists media_purge_at_idx"),
+    );
+  });
+
+  it("★ standby_hosts reads the bin's two halves, each by an index, under the budget's own predicate", () => {
+    const body = latest("standby_hosts");
+    // The removed half: the partial index's own predicate.
+    expect(body).toContain(
+      "from public.media r where r.status = 'removed' union all",
+    );
+    // The deleted events' live half: each event's media by event_id, fenced so no hash join can fold it back.
+    expect(body).toContain(
+      "from public.events d cross join lateral ( select x.event_id, x.status, x.file_size_bytes, x.legal_hold_at, x.removed_by_system, x.removed_by_uploader, x.removed_by_admin, x.purge_asked_at from public.media x where x.event_id = d.id and x.status <> 'removed' offset 0 ) l where d.deleted_at is not null",
+    );
+    // The predicate stands byte for byte (migration-guards.test.ts pins it too): the candidates only narrow
+    // what it reads, never what it accepts.
+    expect(body).toContain(
+      "where m.legal_hold_at is null and ( (m.status = 'removed' and not m.removed_by_system and not m.removed_by_uploader and not m.removed_by_admin and m.purge_asked_at is null) or (m.status <> 'removed' and e.deleted_at is not null) )",
+    );
+  });
+
+  it("standby_hosts stays the service role's alone", () => {
+    expect(fileSql(FILE)).toContain(
+      "revoke all on function public.standby_hosts(uuid, integer) from public, anon, authenticated; grant execute on function public.standby_hosts(uuid, integer) to service_role;",
+    );
+  });
+});

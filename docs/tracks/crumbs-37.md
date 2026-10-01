@@ -26,6 +26,7 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/media/auto-reduce.ts
   - src/lib/media/auto-reduce.test.ts
   - src/lib/lifecycle/recently-deleted.ts
+  - src/lib/lifecycle/sweeps/removed-media.ts
   - src/app/admin/albums/[eventId]/page.tsx
   - src/app/admin/albums/[eventId]/page.test.tsx
   - src/lib/moderation/album-pages.ts
@@ -120,8 +121,12 @@ working.
 - Done: item 3 (next commit): the drill-in reads and signs one page of 500 (newest first, keyset on the raw
   `created_at` and id), says which items these are, and links Newest and Older (never prefetched); a mangled cursor
   reads the newest page. Red on today's code (7 tests).
-- In progress: item 2 (the removed-media index for `standby_hosts` and the `removed_media` sweep).
-- Left: item 2; system docs; the gate; the handoff.
+- Done: item 2 (next commit): `20261001151000_removed_media_index.sql` (`media_removed_idx (purge_at, id) where
+  status = 'removed'` replacing `media_purge_at_idx`, the same rows; `standby_hosts` reads the bin's two halves by
+  index under its unchanged predicate). Red then green on the live schema rolled back, and at 1.2M rows locally
+  (`_scratch/crumbs-37/proofB-live.log`): the Seq Scan becomes index reads of the bin alone, the answers equal.
+- In progress: the system docs, then the gate.
+- Left: system docs; the gate (and lab:smoke on 3131); the cron route's dry modes on localhost; the handoff.
 - Measured (live, 2026-10-01): media 1,480 (67 removed, every one with `purge_at`; `purge_at` is set exactly when
   removed, by `set_media_purge_at`), events 63 (46 soft-deleted), album_state 58, album_changes 1,344 of which 5 are
   tombstones in 4 albums; `standby_hosts`' plan today is a Seq Scan on media with the OR as a join filter.
