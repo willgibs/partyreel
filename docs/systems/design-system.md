@@ -292,7 +292,7 @@ QR card, through `[data-lit]` in globals.css.
 ## The glass material: Crystal
 
 Every surface over a photograph wears one material, Crystal: its numbers are the `--glass-*` block in globals.css,
-named in `lib/glass.ts`. `PosterCardChip` (the stored reel's poster) is the one pane still carrying its own.
+and `lib/glass.ts` names the classes the product wears. `PosterCardChip` (the stored reel's poster) is the one pane still carrying its own.
 
 - ★ **Brightness makes glass legible, not blur**: a blur leaves the mean luminance under a pill unchanged, so a clear
   pane over a bright photograph loses white text at any radius. Crystal dims the backdrop under a four percent tint.

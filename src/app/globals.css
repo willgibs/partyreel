@@ -877,8 +877,8 @@
 
 /* ═══════════ THE GLASS MATERIAL: CRYSTAL ═══════════════════════════════════
    (the `glass` board, round one 2026-09-18 + round two 2026-09-20; the board
-   retired at this wiring. `src/lib/glass.ts` names these tokens for the
-   contract test and `docs/systems/design-system.md` carries the facts.)
+   retired at this wiring. `src/lib/glass.ts` names the classes and
+   `docs/systems/design-system.md` carries the facts.)
 
    ★ ONE MATERIAL, EVERYWHERE, AND THAT IS THE POINT. On the reel's white
    pane: "I don't want to have separate glass treatments and would prefer to find
@@ -911,7 +911,6 @@
    ★ GLASS IS MEDIA CHROME, NEVER A POPOVER. `ui/floating-layer.ts` refuses a
    backdrop filter on a floating PANEL and that refusal STANDS: a menu, a
    tooltip, a dialog and a sheet are opaque surfaces with a step and a ring.
-   `src/lib/glass.test.ts` holds the line by name.
 
    ★ AND THE MARKS WEAR A LIGHTER BLUR. A 42px backdrop filter on every tile of
    a hundred-photograph album is a phone's scroll budget spent on chrome nobody
