@@ -5,9 +5,28 @@ cut: "8aba036e"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   - src/components/app/dashboard/claims-review.tsx
+  - src/components/app/dashboard/claims-review.test.tsx
+  - src/components/shared/claim-uploads-on-auth.tsx
+  - src/components/shared/claim-uploads-on-auth.test.tsx
   - src/components/likes/likes-provider.tsx
+  - src/components/likes/likes-provider.test.tsx
+  - src/components/likes/seed-queue.ts
+  - src/components/likes/seed-queue.test.ts
+  - src/lib/test-utils/mock-supabase.ts
+  - src/lib/admin/reports.ts
+  - src/lib/admin/reports.test.ts
+  - src/lib/reports/reporter.server.ts
+  - src/lib/reports/reporter.server.test.ts
+  - src/lib/email/send.ts
+  - src/lib/email/send.test.ts
+  - src/lib/observability/sentry.ts
+  - src/lib/observability/sentry.test.ts
+  - src/instrumentation.ts
   - src/app/admin/page.tsx
+  - src/app/admin/layout.tsx
+  - src/app/admin/portal-title.test.ts
   - content/help/your-event-page-explained.mdx
+  - src/lib/content/help-product-doors.test.ts
   - src/components/app/event-feed/feed-section-header.tsx
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/host-app.md
@@ -54,7 +73,22 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each is built as recommended and is Will's to overrule; none is a one-way door.
+
+- **The claim's refresh lives with the claim, not the page.** The (app) layout's own claim (`ClaimUploadsOnAuth`)
+  refreshes the route once a claim it ran moved uploads, on whichever (app) page is open, and the claims review no
+  longer listens (two listeners would refresh twice). Recommended: yes, since every (app) page reads what the claim
+  changed, and only the layout is always mounted before its claim lands.
+- **A session that ends takes its hearts with it.** The likes provider follows the device's session: when it goes,
+  the hearts drawn for that account clear (as the header's avatar does) and a tap opens the like door; when an
+  account arrives, the album's hearts are asked again for it. Recommended: yes.
+- **A strike line whose later lift prints as the same day drops the clause** ("A Dismiss makes 7." rather than
+  repeating "until Mar 28, 2027 UTC"); the dates are compared as printed. Recommended: drop it, since an hour on the
+  same day tells an operator nothing she acts on.
+- **The ops mail's window runs from the album's last mail**, keyed on that mail, so two reports that race past the
+  same last mail claim one key and one mail goes. Recommended: yes.
+- **The portal's title is fixed in its layout** (its own title absolute, "Operations · Partyreel Ops"), so any
+  untitled portal page reads the portal's suffix, not only /admin. Recommended: yes.
 
 ## System-doc edits (in place, owned facts only)
 
@@ -81,4 +115,16 @@ working.
 
 - Booted at 8aba036e (launch-prep after crumbs-37's and crumbs-38's merges, so no sync owed); worktree
   `../partyreel-wt/crumbs-40`, dev server port 3132, scratch `../partyreel-wt/_scratch/crumbs-40/`.
-- Next: read the red-team ledger (`../partyreel-wt/_scratch/redteam-35/ledger.txt`) and the code each item names.
+- Read: the ledger (`../partyreel-wt/_scratch/redteam-35/ledger.txt`), the code of every item. Findings a successor
+  would otherwise redo:
+  - MEDIUM: `ClaimUploadsOnAuth` ((app) layout) runs the claim on mount; `ClaimsReview` (page segment, streamed behind
+    `dashboard/loading.tsx`) subscribed to `onClaimed` after it landed. Fix: the layout's component refreshes the
+    route itself on a claim that moved uploads; ClaimsReview drops its listener. Next's action queue runs a refresh
+    dispatched mid-navigation after it (`app-router-instance.js` dispatchAction), so the soft order holds too.
+  - Sentry: `@sentry/core` 10.55 `vercelWaitUntil` returns unless `EdgeRuntime` is defined, so
+    `captureRequestError`'s flush is a no-op on Vercel's Node.js runtime (getsentry/sentry-javascript#23087, open).
+    And `scheduleServerFlush`'s `after(() => { void Sentry.flush() })` never held the flush (the callback returns at
+    once). Fix: hold the flush's own promise (`after(flushed)`), and wrap onRequestError.
+  - Ops mail: `alertUrgentReport` keys `${eventId}:${floor(now/10min)}`.
+  - Title: the admin layout's `title.default` is templated by the ROOT's "%s · Partyreel".
+- Next: the MEDIUM item, then likes, then the NITs, each committed as its test goes green.
