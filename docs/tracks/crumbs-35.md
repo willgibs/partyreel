@@ -86,3 +86,24 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am
+
+(Rewritten at each push; deleted at the handoff. Scratch: `../partyreel-wt/_scratch/crumbs-35/`, read it before re-measuring anything.)
+
+**Done, each green on its own gate (typecheck, lint, `pnpm test`), pushed**
+- Portal prefetch, `fecfda1b`: `prefetch={false}` on the rail, the below-lg dropdown, the bar's wordmark / health chips / Security row; `admin-chrome-prefetch.test.tsx` (red on the old code, 4 failing). Prefetch runs only in a production build, so no local number: name the auth-log count for the next red-team.
+- Dashboard claims, `19efab5e`: `ClaimsReview` subscribes to `onClaimed` and `router.refresh()`es when a claim carried uploads; 4 new tests red before.
+- Guest header, `075662f3` (+ manifest `d484ba33` for `foreign-ticket.test.tsx`): the header looks again on the SDK's sign-in and sign-out, the Cookie Store API's `change`, focus / visibility / pageshow, and the door writing a name or ticket (this last asks the server: only a 401 drops an account). 9 new tests red before. Real Chrome + real SDK + a fake session cookie: `header-follow-cookiestore.log`, `header-follow-nocookiestore.log` (PASS), `header-follow-OLD-code.log` (FAIL on the old header). The page MUST load signed out there: a bogus JWT in the cookie 500s the server's own PostgREST reads.
+- Hub select height, `8db2e7e9`: `FeedSectionHeader` (now `"use client"`) measures its row while the tools are there and holds that as `minHeight` while `actionFills`. Real Chrome on `/design/album-scale?surface=host&key=fiesta` through the real Select and Cancel: `select-jump-BEFORE.log` (375: first tile 88, 54, 88; 320: 68px) and `select-jump-AFTER.log` (still at 320 to 1440). Doc line in `host-app.md` refined.
+
+**Not started / left**
+1. Item 4, a guest's own upload landing: MEASURE FIRST in a visible headless Chrome (the Browser pane is hidden and cannot tell): does a fresh `<img src="blob:…">` (the re-keyed `MediaTile`, `loading=lazy`, `decoding=async`) answer `complete` at mount after the stack tile showed the same blob? Harness idea: a temporary uncommitted page (never staged) mounting the real `MediaTile`, swapped from a plain `<img>` of one blob; read `data-instant` and per-frame opacity. If it fades: fix the root in `media-grid.tsx` (a blob src is the device's own picture, drawn straight) with a test; if not: retire it in the Handoff with the measurement. Then refine `guest-flow.md` "The blob re-key".
+2. Item 6, Escape on the keep sheet: HELD ON PURPOSE, no code. The keep sheet is the door's own last step (`KeepOffer` / `KeepConfirm` inside `EntryShell`, `held`: `onEscapeKeyDown` prevented), pinned by `entry-modal.test.tsx` ("is HELD like every step: no X, Escape inert…"); the WHY already stands in `entry-shell.tsx` and `entry-modal.tsx` ("★ NO EXIT"), and in `guest-flow.md` ("THE AFFORDANCE TABLE IS ONE ROW"). The door is untouched by order. Say so in the Handoff.
+3. `docs/systems/host-app.md`'s claims-review line (the silent claim's refresh) and `admin-observability.md`'s one line on the chrome's links never prefetching.
+4. The whole gate on the final tree: `pnpm typecheck`, `pnpm lint`, `pnpm test`, `zsh scripts/build-lock.sh pnpm build`, then `pnpm lab:smoke --base http://localhost:3131` (the lab crawl's PREMISE line: if it names `locked-door`, `event-ready` or `disposable-mode`, say in the Handoff why its asks still hold: `event-ready/hub.tsx` and `disposable-mode/host.tsx` draw `FeedSectionHeader`, which now only holds a height while `actionFills`, which their drawings never set).
+5. The Handoff: fill it, set `status: handed-off`, delete this section, lane check (`git diff --name-only origin/launch-prep...HEAD`), push, one line in chat.
+
+**Running state**: my dev server is on port 3131 (started from this worktree; kill by port, never by name, before a build and at the end). No headless Chrome left open between runs (each script closes its own).
+
+**Calls that are his to overrule (carry to the Handoff)**: the header now also picks up an in-page sign-in (the confirm door's code) without a reload, the symmetric half of the same fix; the select bar sits centred in the held band (62px at 375) rather than at its top; the portal's chrome links never prefetch (one click now waits for its own route).
