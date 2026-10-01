@@ -72,8 +72,7 @@ export const metadata: Metadata = {
  * there's not a harsh back-to-back chapter transition"). The dark room is now
  * the tiles, the matrix and the questions with nothing between them turning
  * the page back to paper, and it is one section shorter than it was because
- * Find your size moved up into the paper. `shared-band.tsx` stays on disk,
- * unimported, as the retired file the r1 board used to draw.
+ * Find your size moved up into the paper.
  *
  * Every number on this page renders from tiers.ts / limits.ts (the DRY single
  * sources that server-side enforcement also reads). Copy rules: no em-dashes,

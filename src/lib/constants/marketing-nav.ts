@@ -175,6 +175,23 @@ export type FooterColumn = {
   tail?: NavLink[];
 };
 
+/** The home's FAQ, where the footer's FAQ link goes from a page with no FAQ of its own. */
+export const FAQ_HREF = "/#faq";
+
+/**
+ * The routes whose own FAQ section is `id="faq"`. A reader there who presses the footer's FAQ
+ * link meets THIS page's questions (pricing's are about plans), so the link stays on the page
+ * instead of leaving for the home's. A test holds each route against its page's source.
+ */
+export const OWN_FAQ_ROUTES: readonly string[] = ["/pricing"];
+
+/** Where the footer's FAQ link goes from `pathname`: this page's own FAQ when it has one, else the home's. */
+export function faqHrefFrom(pathname: string | null): string {
+  return pathname !== null && OWN_FAQ_ROUTES.includes(pathname)
+    ? "#faq"
+    : FAQ_HREF;
+}
+
 // THE FOOTER IA (the ink-slab rebuild, revised after Will's review).
 //
 // FEATURES AND EVENTS ARE FULL COLUMNS, NOT DISCLOSURES. The first pass folded
@@ -226,7 +243,7 @@ export const FOOTER_NAV: FooterColumn[] = [
       { label: "How it works", href: "/how-it-works" },
       { label: "Pricing", href: "/pricing" },
       { label: "Highlight reel", href: "/reel" },
-      { label: "FAQ", href: "/#faq" },
+      { label: "FAQ", href: FAQ_HREF },
     ],
   },
   {

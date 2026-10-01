@@ -196,10 +196,13 @@ export default async function EventTypePage({
         <FaqAccordion items={eventType.faq} />
       </SectionShell>
 
+      {/* The close says "no app", never "nothing but their phones": a new event requires verified
+          emails by default, so a guest also confirms an email, and the ruled claim is the one the
+          door keeps (marketing-voice.ts, the account rule). */}
       <CtaBand
         className="border-t max-sm:pt-10"
         heading={`${eventType.ctaTitle}.`}
-        subhead="Free to start. Your guests need nothing but their phones."
+        subhead="Free to start. No app required for your guests."
         demoLink
       />
     </>

@@ -3,8 +3,10 @@
  *
  * - `commonInit` is spread by sentry.server.config / sentry.edge.config /
  *   instrumentation-client so all three runtimes share one config (DSN, sampling, PII scrub).
- * - It is **DSN-gated**: with `NEXT_PUBLIC_SENTRY_DSN` unset (local dev / unconfigured), `enabled:
- *   false` makes init a no-op — nothing is sent and the build/gate stay green (mirrors assert*Env).
+ * - It is **DSN-gated and Vercel-only**: with `NEXT_PUBLIC_SENTRY_DSN` unset (unconfigured), or on
+ *   anything but a Vercel production or preview deployment (`next dev`, a local `next start`, a
+ *   test), `enabled: false` makes init a no-op — nothing is sent and the build/gate stay green
+ *   (mirrors assert*Env). See `isVercelDeployment` for why a DSN alone is not enough.
  * - `captureError` / `captureWarning` are the ONLY way the app records a SWALLOWED error (unhandled
  *   throws are auto-captured by `onRequestError` in instrumentation.ts). They tag a coarse `area`
  *   so issues filter cleanly. Keep Sentry OUT of src/lib/db/* — capture at route/action entry points.
@@ -39,6 +41,27 @@ export type SentryArea =
 
 const dsn = env.NEXT_PUBLIC_SENTRY_DSN;
 
+/**
+ * ★ ONLY A VERCEL DEPLOYMENT REPORTS, AND A DSN ALONE IS NOT ONE. `.env.local` holds the production
+ * project's DSN (the source-map upload's creds sit beside it), so `Boolean(dsn)` sent every
+ * localhost run, `next dev` and a local `next start` alike, into that project as
+ * `environment=development` or `production`, which buried the real deployments' errors under a
+ * developer's own, in the project the red-teams read.
+ *
+ * The marker is the one Vercel stamps on the build, read the way the SDK reads it to name its own
+ * `environment` (`VERCEL_ENV` on the server and the edge, `NEXT_PUBLIC_VERCEL_ENV` in the browser,
+ * where Vercel exposes it to client bundles). `production` and `preview` both report, so the
+ * launch-prep alias and its red-teams keep their errors. `development` is `vercel dev`, or an
+ * `.env.local` pulled from Vercel, so it stays quiet like unset, which is every local run.
+ *
+ * ★ A Vercel project must expose its system environment variables, or its BROWSER goes quiet
+ * (the server and the edge read the runtime variable). Check a project's setting by its first
+ * browser error: it must read `vercel-production` or `vercel-preview`, never `production`.
+ */
+export function isVercelDeployment(vercelEnv: string | undefined): boolean {
+  return Boolean(vercelEnv) && vercelEnv !== "development";
+}
+
 const EMAIL_RE = /[\w.+-]+@[\w-]+\.[\w.-]+/g;
 
 function redactEmails(s: string): string {
@@ -71,7 +94,11 @@ function scrubEvent(event: Sentry.ErrorEvent): Sentry.ErrorEvent {
  */
 export const commonInit = {
   dsn,
-  enabled: Boolean(dsn),
+  enabled:
+    Boolean(dsn) &&
+    isVercelDeployment(
+      process.env.NEXT_PUBLIC_VERCEL_ENV ?? process.env.VERCEL_ENV,
+    ),
   tracesSampleRate: 0.1,
   sendDefaultPii: false,
   beforeSend: scrubEvent,

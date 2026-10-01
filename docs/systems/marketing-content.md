@@ -53,7 +53,10 @@ routes.
   the pages with no `CtaBand` would otherwise end with nothing to do whenever the demo is unset.
 - **The footer's index shows everything**: four columns (Features, Events, Product, Resources, with About and Careers as
   Resources' tail), the hubs linked from the Features and Events titles, Privacy and Terms in the legal bar with
-  `/llms.txt`. Nothing is collapsed: the sitemap is small enough to show whole, and a test refuses an accordion.
+  `/llms.txt`. Nothing is collapsed: the sitemap is small enough to show whole, and a test refuses an accordion. The
+  FAQ link is the one link that follows the page (`footer-faq-link.tsx`, a client island because a server footer cannot
+  read the pathname): on a route whose own FAQ section is `id="faq"` (`OWN_FAQ_ROUTES`, `/pricing`) it stays there,
+  and from every other page it goes to the home's.
 - **The root 404 renders the same footer outside `(marketing)`**, where marketing.css never loads, so the footer carries
   everything it needs itself: the slab's tokens, the seam glow, and the pile's box, size and rest pose. ★ The rest pose
   is a layered utility on purpose: the `.mkt-stack` recipe is unlayered, so on a marketing page its rest pose and hover
@@ -66,7 +69,13 @@ routes.
   guest door and the articles, and the lines themselves live in `marketing-voice.ts` (its head comment carries the
   fence). A line may describe the per-event switch truthfully or report a different act (reporting is anonymous, the
   demo needs no sign-up). ★ The expensive case is a suggested host announcement: a help or blog line handing a host "no
-  sign-up" becomes a support question a hundred times over once their event asks for an email.
+  sign-up" becomes a support question a hundred times over once their event asks for an email. "Nothing but their
+  phones" is the same promise in other words, and `content-policy.test.ts` fences both.
+- ★ **A line that says an event "stays up" carries the Free plan's one exception**: an event nobody touches for about six
+  months is warned about by email, then moved to Deleted, where it can be restored for 30 days (the help guide's rule 7,
+  derived from `lifecycle/inactivity.ts` and `recently-deleted.ts`). The home FAQ's keep answer and the event pages'
+  lines hold it (`faq-data.test.ts`, `events.test.ts`); the pricing FAQ, the llms files and `/features/privacy` carry it
+  too.
 - **A subhead runs opportunity, then what we do, then the benefit**: `SITE_SUBHEAD` is the model (their guests already
   shot the best photographs; what we do in one clause with no mechanism; the failure it spares them).
 - **An empty state names what is about to exist**, with the album as the noun and "starts" as the verb ("Your first
@@ -152,7 +161,8 @@ routes.
   stops are `plansForTier("pro")`, never a typed range; the Pass ticket imports the pair's `StatRow`, never a copy; the
   configurator's two planes cannot be two card fills, because on paper `--card` and `--background` are the same white
   and `bg-muted` is the only real step; `recommend.ts` alone picks the plan; the FAQ is one list,
-  `pricing-faq-data.ts`, read by the accordion and the JSON-LD; at 375 the plans stack. `shared-band.tsx` is dead.
+  `pricing-faq-data.ts`, read by the accordion and the JSON-LD (its section is `id="faq"`, the target of the footer's
+  FAQ link while a reader is on this page); at 375 the plans stack.
 - **`/privacy` and `/terms`**: `constants/legal.ts` (version, date, `status`, the bracketed `LEGAL_PARTY`
   placeholders, the block model, `LEGAL_RELATED`) and the content modules `legal-privacy.tsx` and `legal-terms.tsx`,
   which are env-free (never importing `site.ts`). Every section carries an "In short" line beside the formal text. The
