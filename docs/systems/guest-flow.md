@@ -893,6 +893,9 @@ had" holds only when this device holds a guest ticket a claim would move.
   `If-None-Match`; a quiet album answers a **bare 304** having read one row, its version; a change answers the
   DELTA since the version this device holds, merged by id and checked against the server's count read in the
   same snapshot (a mismatch heals at once with a fresh manifest, never drawn); see the ETag invariant below.
+  ★ A version below the album's WATERMARK answers a fresh manifest too: the purge cron prunes a purged item's change
+  row and raises the watermark to its version in one transaction ([lifecycle-recovery.md](lifecycle-recovery.md)),
+  so a device parked below it may have missed the row, and is sent the album whole, never a delta with a gap.
 - ★ **The gallery ETag must never validate across access levels, nor across the gate behind one** — the
   validator (`guestAlbumEtag`, [`album-validator.ts`](../../src/lib/events/album-validator.ts)) hashes
   `access` + `gate` + the album's and the attribution's VERSIONS (never the item list itself, so a quiet

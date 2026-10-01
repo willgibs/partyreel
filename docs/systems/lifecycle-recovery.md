@@ -25,13 +25,20 @@ bodies live in `lib/lifecycle/sweeps/` and `account-deletion.ts`, each tested on
   before its event rows go (a batch the deadline interrupts keeps its event rows); `removed_media` goes oldest
   `purge_at` first; `deleted_accounts` leaves an account caught mid-purge with its events and auth user; and
   `standby_budget`.
-- **A sweep that examines accounts rotates:** `expired_passes`, `over_capacity`, `renewal_nudges` and
-  `inactive_free_events` store `resume_after` on their run row when the deadline stops them, and the next run starts
-  after it, so a list longer than a night still has every candidate examined in turn (an unreadable cursor starts
-  over, with a warning). `orphans` does neither: at most 20 R2 pages from the top each night, saying so when it stops.
+- **A sweep that examines rotates:** `expired_passes`, `over_capacity`, `renewal_nudges` and
+  `inactive_free_events` (accounts) and `album_log` (albums) store `resume_after` on their run row when the deadline
+  stops them, and the next run starts after it, so a list longer than a night still has every candidate examined in
+  turn (an unreadable cursor starts over, with a warning). `orphans` does neither: at most 20 R2 pages from the top
+  each night, saying so when it stops.
 - **A sweep that loops over accounts and emails someone or deletes bytes is a job of its own** (its own run row,
   switch and card, through `createSweepRunner`), and its per-account body runs under `forEachIsolated`, so one bad
-  row never costs the rest ([admin-observability.md](admin-observability.md)).
+  row never costs the rest ([admin-observability.md](admin-observability.md)). So is `album_log`, though it deletes
+  rows only: it writes in the album's live core.
+- ★ **`album_log` prunes the paged album's change log under a watermark** (`album_prune_tombstones`, 20261001150000):
+  a purged item's change row (its tombstone) goes, and the album's watermark rises to its versions in the same
+  transaction, so a client below the watermark is sent its album whole ([guest-flow.md](guest-flow.md)). It walks
+  the log album by album (each call the albums the next 5,000 rows touch, whole), last of the budgeted sweeps, after
+  every sweep that purges.
 - **Reclaiming is R2 first, then rows.** Every caller deletes the objects through `reclaimMedia`, which hands
   `purge_media_rows` (service role only; it never deletes a held row and decrements `storage_used_bytes` atomically) at
   most `MAX_ROWS` ids a call, one call at a time: its one row per host can never outgrow its input, so the freed
@@ -48,7 +55,10 @@ bodies live in `lib/lifecycle/sweeps/` and `account-deletion.ts`, each tested on
   evicted oldest-first, so size is the anti-abuse bound, not the clock. A move to a smaller cap shrinks Deleted too
   and purges its oldest items early; the plan sheet says so before such a switch. The sweep finds its hosts through
   `standby_hosts()`, whose bytes are exactly the bin: the host's removals less the system's, a guest's own
-  withdrawal and an operator's removal, plus a soft-deleted event's live media, never a held row. Only a host over
+  withdrawal and an operator's removal, plus a soft-deleted event's live media, never a held row. It reads the bin's
+  two halves by index, never media whole: the removed rows through `media_removed_idx` (`where status =
+  'removed'`, keyed in the `removed_media` sweep's own `(purge_at, id)` order, which that sweep reads too), and each
+  deleted event's live media by event id (20261001151000). Only a host over
   budget has its bin read, and read whole, so eviction is oldest-first across all of it. The meter's Deleted figure
   (`host_storage_summary`) is exactly what her two Deleted lists show, inside the window: system removals and a held
   row count while they are listed and never after, since a figure outliving its list would tell her a hold exists.
@@ -94,6 +104,9 @@ bodies live in `lib/lifecycle/sweeps/` and `account-deletion.ts`, each tested on
   ([billing-caps.md](billing-caps.md)); a Free host is blocked before it can get there. Over, it sets `storage_grace_until`
   (`OVER_CAP_GRACE_DAYS`, 45) and emails; near the deadline, a reminder; past it, the host's active set is reduced
   largest-first (marked `removed_by_system`, recoverable for the window) with an email; back under, the grace clears.
+  The reduce reads the set largest first a page at a time under the sweep's deadline (`reduceToCap`), stopping once
+  what is left fits; one the deadline stops part way keeps its grace and sends no mail, counts as left, and is the
+  next run's first account.
   ★ Its candidates are every profile past the SMALLEST cap any plan grants, read from `tiers.ts` (Free's 100 MB),
   never a typed floor: a literal left at an old Free cap skips every lapsed host storing between the two, for good.
 - **Renewal:** an Event Pass holder is nudged 14 days before expiry (`RENEWAL_NUDGE_DAYS`, shared with the bell),
