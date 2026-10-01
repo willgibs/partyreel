@@ -5,8 +5,15 @@ cut: "c326bde9"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   - src/components/app/my-uploads-gallery.tsx
+  - src/components/app/my-uploads-gallery.test.tsx
   - src/components/app/my-feed-more.tsx
+  - src/components/app/my-feed-more.test.tsx
+  - src/components/app/my-likes-gallery.tsx
+  - src/components/app/my-likes-gallery.test.tsx
   - src/lib/media/uploader-faces.ts
+  - src/lib/media/uploader-faces.test.ts
+  - src/lib/db/queries/my-uploads.ts
+  - src/lib/db/queries/my-uploads.test.ts
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/profiles-social.md
   - docs/systems/host-app.md
@@ -45,7 +52,17 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **His own upload's credit in Your uploads: "You" or his name?** Recommended and built: "You", beside his face and
+  the Host badge, the viewer's word for your own upload (his own guest page already credits his upload "You"); the
+  hub says his name, since nothing there is a delete-your-own surface. His to overrule: his name, as the byline reads.
+- **His uploads to other people's events: a face too?** Recommended and built: no, they keep the event alone, as the
+  credit was drawn for the personal feed ("shows only the event they came from"); only his own events' uploads carry
+  the Host badge, and so a face beside it. A face on every item would be a new look for the feed, not a fix.
+- **A door on his own face?** Recommended and built: none; he is on his page, and a door to it would only reload it
+  under the open viewer.
+- **A credit with no name: the "?" disc anywhere?** Recommended and built: no disc at all; a host with no name (whose
+  byline already hides) is credited by the Host badge alone, since "?" is the invented stand-in the identity rule
+  refuses.
 
 ## System-doc edits (in place, owned facts only)
 
