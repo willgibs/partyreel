@@ -160,5 +160,11 @@ Each is built as recommended and is Will's to overrule; none is a one-way door (
     result and the new bodies' md5s: get_my_uploads 21068680e6eb9a8d1d2f16fe17aac9c2, get_my_likes
     648daea282e9ef5c82dac6ef405e9198); the queries, feed-actions.ts, my-feed-more.tsx, the galleries, the owner
     sections; tests green, each new one red on today's code (checked by swapping in launch-prep's file).
-- In progress: item 4 (the credit's face and door).
+  - Item 4 at 827b6733: no migration; uploader-faces.ts, the identity's faceOwner, the wire's optional face tuple,
+    the client mappers, Review through toHostGalleryItems. Measured on localhost (album "guest-view-menu QA",
+    d147f214…): the guest links route answers the host's face + /u/willg, Partyreel's + /u/partyr33l, a confirmed
+    name with no handle its colour alone; the viewer's credit draws the seeded disc and the door. Full `pnpm test`
+    green at that commit (686 files).
+- In progress: items 1 and 2 (told on her return): the migration, then readOwnUploads with `tell`, the route, the
+  tracker, the toast.
 - The proof builder for a migration's commented foot is in the scratch dir (`build-proof.py <file> red|green`).
