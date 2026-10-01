@@ -2342,7 +2342,11 @@ describe("the paged album's version and change log (20260926100000)", () => {
       );
     });
 
-    it("nothing but the flush and the media stamp ever writes an album table (the backfill aside)", () => {
+    // ★ RESHAPED ON PURPOSE (crumbs-37, 2026-10-01; scar kept: no writer outside this list, and no writer that
+    // takes an album row out of order). The expired reason: "only the flush and the stamp" held while the log
+    // was never pruned. The album-log sweep's prune (20261001150000) joins them; it takes the album's version
+    // row first, as the flush does, which `upkeep-migrations.test.ts` pins.
+    it("nothing but the flush, the media stamp and the log's prune ever writes an album table (the backfill aside)", () => {
       const writers = new Set<string>();
       const fn = /create (?:or replace )?function public\.([a-z_0-9]+)\(/g;
       for (const { sql } of executableMigrations()) {
@@ -2358,7 +2362,11 @@ describe("the paged album's version and change log (20260926100000)", () => {
           }
         });
       }
-      expect([...writers].sort()).toEqual(["album_flush", "album_stamp_media"]);
+      expect([...writers].sort()).toEqual([
+        "album_flush",
+        "album_prune_tombstones",
+        "album_stamp_media",
+      ]);
     });
   });
 

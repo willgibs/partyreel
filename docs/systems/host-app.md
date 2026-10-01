@@ -280,7 +280,8 @@ beneath, newest first.
   store (`event-feed/host-album.tsx`, its pure half `lib/event/hub-album.ts`), seeded with the host's first sync and
   its validator, and moved by `sync()` on the guest's Realtime doorbell, a fallback poll (12s with the socket down, 60s
   up, paused while hidden, asked again on return) and each write's catch-up. The host's version answers every question
-  (`/api/album/host/<id>/sync`: a 304 that read one row, a delta by id, a manifest past 500 changes). ★ The poll is not
+  (`/api/album/host/<id>/sync`: a 304 that read one row, a delta by id, a manifest past 500 changes or below the
+  log's watermark). ★ The poll is not
   redundant with the socket: the doorbell fires only on the approved-visible set, and the host's version, which every
   status change moves, is how a held upload reaches the one person who can approve it (the Review card counts it).
   `HostMediaGrid` marks arrivals by diffing ids, never links (they roll every half hour), and a host album never

@@ -62,6 +62,7 @@ const READ = {
   version: 1,
   albumMax: 1,
   attrVersion: 0,
+  watermark: 0,
   approved: 0,
   hidden: null,
   pending: null,

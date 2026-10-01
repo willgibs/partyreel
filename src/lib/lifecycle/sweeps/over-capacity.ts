@@ -18,8 +18,16 @@
  *    `readHostStorageSummary`, the same number the dashboard meter and the storage guard read. They
  *    used to be summed in TypeScript from a media list cut at 1,000 rows, so a large account read as
  *    under its cap.
- *  - The auto-reduce candidates are the host's active media read whole by keyset, and the soft-remove
- *    is chunked (`inChunks`): the whole id list rode one URL.
+ *  - The soft-remove is chunked (`inChunks`): the whole id list rode one URL.
+ *
+ * ★ THE REDUCE IS PAGED AND BUDGETED (crumbs-37). It read a lapsed host's WHOLE active set before it
+ * removed anything, under no deadline, so past roughly 100,000 items one account could spend the sweep's
+ * share (and run the invocation into Vercel's kill). It now reads that set largest first a page at a time
+ * (`reduceToCap`), soft-removes each page's picks before reading the next, stops reading the moment what
+ * is left fits, and asks the deadline before every page. Walking the pages in order removes exactly the
+ * items one sort of the whole set would (`takeLargestFirst`). A reduce the deadline stops part way keeps
+ * its grace open and sends no mail; the account counts as left, and the next run starts AT it, so a
+ * half-reduced account never waits a whole rotation for its turn.
  */
 import "server-only";
 
@@ -33,7 +41,7 @@ import {
 } from "@/lib/constants/tiers";
 import { QueryFailedError } from "@/lib/db/must-query";
 import { readHostStorageSummary } from "@/lib/db/queries/storage";
-import { inChunks, readAllPages } from "@/lib/db/read-all";
+import { inChunks, MAX_ROWS, readAllPages } from "@/lib/db/read-all";
 import {
   overCapGraceStartEmail,
   overCapReducedEmail,
@@ -58,7 +66,7 @@ import {
   forEachInRotation,
   resumeFields,
 } from "@/lib/lifecycle/sweeps/rotation";
-import { selectForAutoReduce } from "@/lib/media/auto-reduce";
+import { largestFirst, takeLargestFirst } from "@/lib/media/auto-reduce";
 import { captureError } from "@/lib/observability/sentry";
 import { getSiteUrl } from "@/lib/site-url";
 import { formatBytes } from "@/lib/utils";
@@ -83,7 +91,10 @@ export type OverCapacityTally = {
   candidates: number;
   grace_opened: number;
   reminded: number;
+  /** Accounts whose reduce finished this run (its grace cleared, its mail sent). */
   reduced: number;
+  /** Items soft-removed this run, a reduce stopped part way's included. */
+  items_reduced: number;
   cleared: number;
   rows_failed: number;
   rows_not_attempted: number;
@@ -120,33 +131,105 @@ export async function readOverCapCandidates(
   return rows;
 }
 
-/** A host's ACTIVE media (non-removed, in live events), whole: what auto-reduce chooses from. */
-export async function readActiveMedia(
+/** Where a page of the reduce ends: its smallest item's size and id (the keyset is size desc, id asc). */
+export type ReduceCursor = { size: number; id: string };
+
+/**
+ * One page of a host's ACTIVE media (non-removed, in live events), LARGEST FIRST: size descending, then id
+ * ascending, after `after`. The reduce's one order (`largestFirst`), so the pages walked in turn are the
+ * whole set sorted.
+ */
+export async function readActivePage(
   admin: AdminClient,
   hostId: string,
+  after: ReduceCursor | null,
+  limit: number,
 ): Promise<{ id: string; file_size_bytes: number }[]> {
-  const { rows } = await readAllPages(
-    "cron/purge: auto-reduce candidates",
-    (after: string | null, limit) => {
-      let query = admin
-        .from("media")
-        .select(
-          "id, file_size_bytes, events!media_event_id_fkey!inner(host_id, deleted_at)",
-        )
-        .eq("events.host_id", hostId)
-        .is("events.deleted_at", null)
-        .neq("status", "removed")
-        .order("id", { ascending: true })
-        .limit(limit);
-      if (after) query = query.gt("id", after);
-      return query;
-    },
-    (row) => row.id,
-  );
-  return rows.map((row) => ({
+  let query = admin
+    .from("media")
+    .select(
+      "id, file_size_bytes, events!media_event_id_fkey!inner(host_id, deleted_at)",
+    )
+    .eq("events.host_id", hostId)
+    .is("events.deleted_at", null)
+    .neq("status", "removed")
+    .order("file_size_bytes", { ascending: false })
+    .order("id", { ascending: true })
+    .limit(limit);
+  if (after) {
+    query = query.or(
+      `file_size_bytes.lt.${after.size},and(file_size_bytes.eq.${after.size},id.gt.${after.id})`,
+    );
+  }
+  const { data, error } = await query;
+  if (error) {
+    throw new QueryFailedError("cron/purge: auto-reduce candidates", error);
+  }
+  return (data ?? []).map((row) => ({
     id: row.id,
     file_size_bytes: Number(row.file_size_bytes),
   }));
+}
+
+export type ReduceOutcome = {
+  /** True once what is left fits under the cap (or nothing active is left to take). */
+  done: boolean;
+  /** Items soft-removed by this call. */
+  removed: number;
+};
+
+/**
+ * THE REDUCE, A PAGE AT A TIME: the host's active set read largest first, each page's picks
+ * (`takeLargestFirst`) soft-removed as SYSTEM removals before the next page is read, until what is left fits
+ * under `cap` or the deadline (asked before every page) stops it. `activeBytes` is the account's one
+ * aggregate (`host_storage_summary`), the total the picks are taken against, so the first pages decide and
+ * nothing after the last pick is read. Stopped part way it answers `done: false`: the items it removed stay
+ * removed, and the next run's reduce, reading what is still active, carries on from the largest left.
+ */
+export async function reduceToCap(
+  admin: AdminClient,
+  hostId: string,
+  opts: {
+    activeBytes: number;
+    cap: number;
+    now: Date;
+    deadline: Deadline;
+    pageSize?: number;
+  },
+): Promise<ReduceOutcome> {
+  const pageSize = opts.pageSize ?? MAX_ROWS;
+  let active = opts.activeBytes;
+  let after: ReduceCursor | null = null;
+  let removed = 0;
+  while (active > opts.cap) {
+    if (opts.deadline.passed()) return { done: false, removed };
+    const page = await readActivePage(admin, hostId, after, pageSize);
+    const step = takeLargestFirst(page, active, opts.cap);
+    await inChunks("cron/purge: auto-reduce", step.ids, async (chunk) => {
+      const { error } = await admin
+        .from("media")
+        .update({
+          status: "removed",
+          removed_at: opts.now.toISOString(),
+          // QA #2: SYSTEM-binned, so sweepStandbyBudget (same invocation, seconds later) leaves
+          // them out. Without it the standby sweep hard-deletes the media this sweep just
+          // promised the host was recoverable for 30 days.
+          removed_by_system: true,
+        })
+        .in("id", chunk);
+      if (error) {
+        throw new QueryFailedError("cron/purge: auto-reduce", error);
+      }
+      return [];
+    });
+    removed += step.ids.length;
+    active = step.activeBytes;
+    // A short page is the end of the active set: nothing more to take, whatever is left.
+    if (page.length < pageSize) break;
+    const last = [...page].sort(largestFirst).at(-1)!;
+    after = { size: last.file_size_bytes, id: last.id };
+  }
+  return { done: true, removed };
 }
 
 export async function sweepOverCapacity(
@@ -156,10 +239,14 @@ export async function sweepOverCapacity(
 ): Promise<OverCapacityTally> {
   const candidates = await readOverCapCandidates(admin);
   const dashboardUrl = `${await getSiteUrl()}/dashboard`;
+  const deadline = opts.deadline ?? NO_DEADLINE;
   let graceOpened = 0;
   let reminded = 0;
   let reduced = 0;
+  let itemsReduced = 0;
   let cleared = 0;
+  /** An account whose reduce the deadline stopped part way: the next run starts AT it. */
+  let unfinished: string | null = null;
 
   const clearGrace = async (profileId: string) => {
     const { error } = await admin
@@ -173,11 +260,11 @@ export async function sweepOverCapacity(
   // and one bounced address or one bad profile used to abort it, skipping every account behind it
   // for the night. Each account is isolated, and the tally travels with the result so the sweep
   // still closes RED.
-  const { tally, resumeAfter } = await forEachInRotation(
+  const rotation = await forEachInRotation(
     candidates,
     (p) => p.id,
     opts.resumeAfter ?? null,
-    opts.deadline ?? NO_DEADLINE,
+    deadline,
     async (p) => {
       const cap = effectiveStorageCap(
         toBillingTier(p.tier),
@@ -240,27 +327,20 @@ export async function sweepOverCapacity(
 
       const graceUntil = new Date(p.storage_grace_until);
       if (now >= graceUntil) {
-        const ids = selectForAutoReduce(
-          await readActiveMedia(admin, p.id),
+        const outcome = await reduceToCap(admin, p.id, {
+          activeBytes,
           cap,
-        );
-        await inChunks("cron/purge: auto-reduce", ids, async (chunk) => {
-          const { error } = await admin
-            .from("media")
-            .update({
-              status: "removed",
-              removed_at: now.toISOString(),
-              // QA #2: SYSTEM-binned, so sweepStandbyBudget (same invocation, seconds later) leaves
-              // them out. Without it the standby sweep hard-deletes the media this sweep just
-              // promised the host was recoverable for 30 days.
-              removed_by_system: true,
-            })
-            .in("id", chunk);
-          if (error) {
-            throw new QueryFailedError("cron/purge: auto-reduce", error);
-          }
-          return [];
+          now,
+          deadline,
         });
+        itemsReduced += outcome.removed;
+        if (!outcome.done) {
+          // Out of time part way: the grace stays open and no mail goes until the reduce finishes, and the
+          // next run starts here. The items already removed stay removed (each is a SYSTEM removal,
+          // recoverable for the window like the rest will be).
+          unfinished = p.id;
+          return;
+        }
         await clearGrace(p.id);
         reduced += 1;
         if (p.email) {
@@ -308,19 +388,31 @@ export async function sweepOverCapacity(
     (p, e) =>
       captureError("cron", e, { sweep: "over_capacity", profile_id: p.id }),
   );
+  const { tally } = rotation;
+  // An account the deadline stopped part way is left too, and the next run starts AT it: the cursor is the
+  // candidate before it (none, the lowest id, starts the list from the top, which is it).
+  const left = tally.unreached + (unfinished ? 1 : 0);
+  const resumeAfter = unfinished
+    ? (candidates
+        .map((c) => c.id)
+        .filter((id) => id < unfinished!)
+        .sort()
+        .at(-1) ?? null)
+    : rotation.resumeAfter;
 
   return {
     candidates: candidates.length,
     grace_opened: graceOpened,
     reminded,
     reduced,
+    items_reduced: itemsReduced,
     cleared,
     // The isolation tally travels WITH the result: `rows_failed` is what makes this sub-sweep's run
     // close as an error, so keeping the accounts behind a bad row alive never buys a green night.
     rows_failed: tally.failed,
     rows_not_attempted: tally.skipped,
     rows_note: tallyNote("accounts", tally) ?? undefined,
-    ...(tally.unreached > 0 ? stoppedEarly(tally.unreached) : {}),
+    ...(left > 0 ? stoppedEarly(left) : {}),
     ...resumeFields(resumeAfter),
   };
 }

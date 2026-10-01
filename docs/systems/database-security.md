@@ -87,7 +87,8 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
   (an INVOKER read, one jsonb, behind the admin seam), `purge_media_rows`,
   `record_link_hit`, `host_active_bytes`, `host_storage_summary`, `tier_limits` and `monthly_ingress_cap` (INVOKER;
   every other caller is a DEFINER body), the paged album's reader
-  `album_changes_since` (an INVOKER read the Next routes call after their own capability check), `media_like_counts`
+  `album_changes_since` (an INVOKER read the Next routes call after their own capability check) and its log's prune
+  `album_prune_tombstones` (DEFINER: the tables grant the service role SELECT only), `media_like_counts`
   (an INVOKER read the host's links route and the hub page call after their `getEvent` check), the per-event block's
   reads (`event_ticket_blocked` and `event_blocked_guest_ids`, INVOKER; `blocked_events_for`, DEFINER because it
   reads `auth.users`, which the service role cannot) and its four predicates (INVOKER, run inside the guest paths'
@@ -105,7 +106,8 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
   `contact_submissions`, `job_applications`, `event_passes`, `job_runs`, `export_log` (an HMAC of the IP, never the
   IP), `ops_flags` (the kill switches), `upload_forensics` and `forensic_audit_log` (raw IP by design; the deny-all is
   the containment: [trust-safety-forensics.md](trust-safety-forensics.md)), `album_state` and `album_changes` (the
-  paged album's versions and change log: service_role SELECT only, written by the deferred triggers alone),
+  paged album's versions and change log: service_role SELECT only, written by the deferred triggers and the log's
+  prune alone),
   `article_feedback` (the help center's feedback beacon: a slug, Yes or No and a time, no identity of any kind), and
   `storage_ledger` (the monthly ingress meter: its readers are the upload gates, DEFINER, and the service role).
 
@@ -190,7 +192,9 @@ a table created since starts with no client grant, so its migration grants exact
   touched in ONE pass in event-id order: a transaction holding an album row waits on nothing but album rows, and
   every commit phase takes them in one order. Each table's note trigger sorts before its stamp by name
   (`*_album_note` < `*_album_stamp`), which a `set constraints all immediate` path depends on. A new writer of
-  `album_state` or `album_changes` goes through that flush or not at all (a guard refuses any other writer).
+  `album_state` or `album_changes` goes through that flush or not at all (a guard refuses any other writer), but for
+  the log's prune (`album_prune_tombstones`, 20261001150000), a transaction of its own that holds nothing else and
+  takes each album's version row before its change rows, album by album in event-id order.
 - **The guest write path inherits the read gate:** `create_guest` refuses a `private` event and requires
   `p_unlock_proven` for `password` (the server derives it: the database cannot read the unlock cookie), and
   `get_upload_context` returns `visibility` so presign and complete re-check it per request ([uploads-and-r2.md](uploads-and-r2.md)).

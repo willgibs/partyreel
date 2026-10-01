@@ -15,6 +15,13 @@
  *  - MORE THAN `resyncAfter` CHANGES, or a version ABOVE the server's (a client from a reset event,
  *    or a forged one): a fresh manifest instead, from the snapshot the delta was read in (its
  *    version is still read before the page, which is all the first rule needs).
+ *  - A version BELOW THE SCOPE'S WATERMARK: a fresh manifest too. The change log keeps one row per
+ *    item, and a purged item's row (its tombstone) is pruned by the purge cron's album-log sweep
+ *    (`album_prune_tombstones`), which raises the scope's watermark to every pruned row's version in
+ *    the same transaction. A client at or above the watermark can miss no pruned row (each was at or
+ *    below what it holds); a client below it might, so it is sent the album whole, never a delta with
+ *    a silent gap. The watermark is read in the delta's own snapshot, so a prune that commits between
+ *    two reads is either wholly seen or wholly not.
  * Each change carries the item's CURRENT state, so a delta is a set of upserts and removals by id,
  * and applying one twice changes nothing.
  */
@@ -54,6 +61,12 @@ export type AlbumRead = {
   version: number;
   albumMax: number;
   attrVersion: number;
+  /**
+   * The asked scope's watermark: every change row at or below it may have been pruned, so a delta
+   * from below it cannot be answered (the planner sends a manifest). Zero before any prune, and from a
+   * reader that predates the watermark (20261001150000), which is the same truth: nothing pruned.
+   */
+  watermark: number;
   approved: number;
   /** Host scope only. */
   hidden: number | null;
@@ -112,6 +125,7 @@ export function parseAlbumRead(json: unknown): AlbumRead {
     version: num(o.version),
     albumMax: num(o.album_max),
     attrVersion: num(o.attr_version),
+    watermark: num(o.watermark),
     approved: num(o.approved),
     hidden: numOrNull(o.hidden),
     pending: numOrNull(o.pending),
@@ -189,7 +203,7 @@ export type Plan = {
   read: AlbumRead;
 };
 
-/** What a client holding `since` is sent. See the header for the three rules. */
+/** What a client holding `since` is sent. See the header for the rules. */
 export async function planAlbumSync(input: PlanInput): Promise<Plan> {
   const resyncAfter = input.resyncAfter ?? ALBUM_RESYNC_AFTER;
   const pageSize = input.pageSize ?? ALBUM_MANIFEST_PAGE;
@@ -197,7 +211,11 @@ export async function planAlbumSync(input: PlanInput): Promise<Plan> {
   if (input.since !== null) {
     const read = await input.read(input.since, resyncAfter + 1);
     const v = scopeVersion(read, input.scope);
-    if (input.since <= v && read.changes.length <= resyncAfter) {
+    if (
+      input.since <= v &&
+      input.since >= read.watermark &&
+      read.changes.length <= resyncAfter
+    ) {
       const upsert: ManifestEntry[] = [];
       const remove: string[] = [];
       for (const change of read.changes) {
@@ -210,7 +228,8 @@ export async function planAlbumSync(input: PlanInput): Promise<Plan> {
         read,
       };
     }
-    // Too far behind, or ahead of the server: a fresh manifest, versioned by this snapshot.
+    // Too far behind, below the watermark, or ahead of the server: a fresh manifest, versioned by
+    // this snapshot.
     return { part: await manifestFrom(read), read };
   }
 

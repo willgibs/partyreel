@@ -119,8 +119,9 @@ three definitions of healthy:
   the Worker hands it over, and a signal failure raises where it happens (`jobs/failure-log.ts`). `jobHealth` without
   its inputs returns `never`, not `missed`, so the scan never pages on a number it did not take.
 - **A sub-sweep is a job:** the purge sweeps that loop over accounts (orphans, account deletion, inactivity,
-  over-capacity) open and close their own row inside the parent run through `createSweepRunner`, with their own
-  switch; the rest ride the parent's row.
+  over-capacity) and the album change log's prune (`purge_album_log`, which writes in the album's live core) open and
+  close their own row inside the parent run through `createSweepRunner`, with their own switch; the rest ride the
+  parent's row.
 - ★ **Per-row isolation never buys silence.** `forEachIsolated` lets the accounts behind a bad row still run, and the
   tally travels with the result: any `rows_failed` closes that sweep's run as an ERROR (the parent's too, for a sweep
   that rides it: `purgeRunVerdict`), and five consecutive failures abort the loop, because that is a dead dependency,

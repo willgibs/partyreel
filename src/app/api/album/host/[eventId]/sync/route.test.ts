@@ -61,6 +61,7 @@ beforeEach(() => {
       version: 12,
       albumMax: 4,
       attrVersion: 1,
+      watermark: 0,
       approved: 3,
       hidden: 1,
       pending: 2,

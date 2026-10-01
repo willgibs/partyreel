@@ -41,13 +41,7 @@ const GLOSSARY = "src/app/(dev)/design/_data/glossary.ts";
  * below, so the list empties as they land. A retired line takes its entry
  * with it.
  */
-const NOT_YET: readonly { file: string; says: string; why: string }[] = [
-  {
-    file: "docs/ROADMAP.md",
-    says: "numbered rulings",
-    why: "the line quotes production comments; it retires with the housekeeping it describes",
-  },
-];
+const NOT_YET: readonly { file: string; says: string; why: string }[] = [];
 
 function filesIn(path: string, out: string[] = []): string[] {
   const rel = relative(ROOT, path);
