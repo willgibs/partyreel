@@ -1,7 +1,7 @@
 ---
 track: crumbs-40
 status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "e370430b"            # the launch-prep SHA the branch was cut from
+cut: "8aba036e"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   - src/components/app/dashboard/claims-review.tsx
@@ -76,3 +76,9 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am
+
+- Booted at 8aba036e (launch-prep after crumbs-37's and crumbs-38's merges, so no sync owed); worktree
+  `../partyreel-wt/crumbs-40`, dev server port 3132, scratch `../partyreel-wt/_scratch/crumbs-40/`.
+- Next: read the red-team ledger (`../partyreel-wt/_scratch/redteam-35/ledger.txt`) and the code each item names.
