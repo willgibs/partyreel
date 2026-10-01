@@ -13,7 +13,7 @@ import { setReducedMotion } from "../../../vitest.setup";
  * THE HOST'S ADD BRINGS THE PANEL IT OPENS INTO VIEW, never the top of the page (crumbs-36, from crumbs-34).
  * `openAdd` (the reel card's Add photos) used to scroll the window to 0, "the panel lives at the top, below the
  * command strip", though the command strip retired and the panel opens under the album's own header, wherever
- * that stands: a host deep in a long album was thrown to the top, and a phone's panel can sit below the fold of
+ * that stands: a host scrolled down the page was thrown to the top, and a phone's panel can sit below the fold of
  * the top anyway. Now `HostUpload` hands the provider its own panel and `openAdd` scrolls to that, with the least
  * movement. The album header's own Add photos button is `toggleAdd`, which has never moved the page.
  */

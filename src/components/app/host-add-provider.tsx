@@ -40,9 +40,10 @@ export function useHostAdd(): HostAddValue | null {
 /**
  * The panel on screen with the least movement: none when it is already in view, else just enough, smoothly
  * unless the reader asked for less motion. ★ NEVER THE TOP OF THE PAGE: the panel opens under the album's own
- * header, wherever that stands, so a host deep in a long album was thrown to the top, and on a phone the panel
- * can sit below the fold even there. The panel's own `scroll-margin-top` (`host-upload.tsx`) keeps it clear of
- * the app bar and the cards band stuck under it.
+ * header, wherever that stands, so a host scrolled down the page (the reel card rides the sticky band, pressed
+ * from anywhere on it) was thrown to the top, and on a phone the panel can sit below the fold even there. The
+ * panel's own `scroll-margin-top` (`host-upload.tsx`) keeps it clear of the app bar and the cards band stuck
+ * under it.
  */
 function bringIntoView(panel: HTMLElement) {
   const reduce =
