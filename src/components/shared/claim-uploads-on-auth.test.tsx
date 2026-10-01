@@ -38,9 +38,8 @@ vi.mock("@/app/(guest)/u/[slug]/actions", () => ({
 async function load() {
   vi.resetModules();
   const { ClaimUploadsOnAuth } = await import("./claim-uploads-on-auth");
-  const { ClaimsReview } = await import(
-    "@/components/app/dashboard/claims-review"
-  );
+  const { ClaimsReview } =
+    await import("@/components/app/dashboard/claims-review");
   const { CLAIMED_TOAST } = await import("@/lib/guest/claim-uploads");
   return { ClaimUploadsOnAuth, ClaimsReview, CLAIMED_TOAST };
 }

@@ -3,6 +3,7 @@
  * pins). Covers exactly the surface the pinned components touch:
  *
  *   auth.getSession / auth.signInWithOAuth
+ *   auth.onAuthStateChange              -> `emitAuth(event, session)` plays the SDK's word
  *   from("table").select(...).in(...)   -> resolves rows
  *   from("table").delete().eq(...)      -> resolves { error }
  *   rpc(name, params)                   -> resolves { data, error }
@@ -18,11 +19,14 @@
  */
 import { vi, type Mock } from "vitest";
 
+type AuthListener = (event: string, session: unknown) => void;
+
 export type MockSupabase = {
   client: {
     auth: {
       getSession: Mock;
       signInWithOAuth: Mock;
+      onAuthStateChange: Mock;
     };
     from: Mock;
     rpc: Mock;
@@ -34,6 +38,9 @@ export type MockSupabase = {
   rpc: Mock;
   getSession: Mock;
   signInWithOAuth: Mock;
+  onAuthStateChange: Mock;
+  /** The SDK announcing a sign-in or sign-out to every subscriber, as another tab's or this one's would. */
+  emitAuth: (event: string, session: unknown) => void;
 };
 
 export function makeMockSupabase(opts?: {
@@ -52,6 +59,15 @@ export function makeMockSupabase(opts?: {
     data: { session: opts?.session ?? null },
   });
   const signInWithOAuth = vi.fn().mockResolvedValue({ error: null });
+  const authListeners = new Set<AuthListener>();
+  const onAuthStateChange = vi.fn((listener: AuthListener) => {
+    authListeners.add(listener);
+    return {
+      data: {
+        subscription: { unsubscribe: () => authListeners.delete(listener) },
+      },
+    };
+  });
 
   const from = vi.fn(() => ({
     select: vi.fn(() => ({ in: selectIn })),
@@ -59,11 +75,19 @@ export function makeMockSupabase(opts?: {
   }));
 
   return {
-    client: { auth: { getSession, signInWithOAuth }, from, rpc },
+    client: {
+      auth: { getSession, signInWithOAuth, onAuthStateChange },
+      from,
+      rpc,
+    },
     selectIn,
     deleteEq,
     rpc,
     getSession,
     signInWithOAuth,
+    onAuthStateChange,
+    emitAuth: (event, session) => {
+      for (const listener of [...authListeners]) listener(event, session);
+    },
   };
 }
