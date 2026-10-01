@@ -66,8 +66,8 @@ runtime logs need it). MCP tool ids change with the account. The new Orchestrato
    kill lands before its report, respawn it from that brief with "continue after the last line of `ledger.txt` in that
    folder"; its report's finds go to the next crumbs lane. crumbs-36 rides build 36 (deploy it per the runbook, unless
    Will is mid-sitting: ask).
-4. **Will's morning (2026-10-01):** the calls file first (58 calls, `../partyreel-wt/_scratch/calls/relay-calls.md`,
-   sent to him at 56 and to be re-sent as it grows), then the desk. Seat a respawned Advisor
+4. **Will's morning (2026-10-01):** the calls file first (59 calls, `../partyreel-wt/_scratch/calls/relay-calls.md`,
+   last sent to him at 58: re-send it with each lane's calls), then the desk. Seat a respawned Advisor
    (`usher/kit/advisor-prompt.txt`) when a consult comes due; no question is open.
 
 Relays that live only in an agent: the WIP-and-`## Where I am` ask in crumbs-36's spawn; nothing else.
@@ -124,7 +124,7 @@ but lab:demo's `about-press.facts` dev stall, ROADMAP's line), crumbs-31 (`5898b
   touch; `names` retired into `slug`) and `about-press` r1 (two: the press kit on /about, its four facts; press-page's
   `a-human` retired as the carried call `named`) reach him with build 26; `privacy-hero` r4 (one: which veil, the lens
   recommended) with build 27.
-- **The calls file** (56 calls to overrule, numbered, one a lane through crumbs-32; compiled from each merge's "Calls
+- **The calls file** (59 calls to overrule, numbered, one a lane through crumbs-35; compiled from each merge's "Calls
   his to overrule", `git show <merge>^2:docs/tracks/<track>.md`, kept at `../partyreel-wt/_scratch/calls/relay-calls.md`
   and sent to him as it grows). He reviews it on 2026-10-01 against the product vision ("keep the calls file running":
   each merge's calls join it). His two decisions are answered (2026-09-30): A, the proof mail stays off until the emails
