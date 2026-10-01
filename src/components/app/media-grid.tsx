@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { PlayBadge } from "@/components/shared/play-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { videoPosterSrc } from "@/lib/media/poster";
+import type { UploaderFace } from "@/lib/media/uploader-identity";
 import { cn } from "@/lib/utils";
 
 export type GridMedia = {
@@ -39,6 +40,13 @@ export type GridMedia = {
   isHost?: boolean;
   isVerified?: boolean;
   uploaderEmail?: string | null;
+  /**
+   * The credit's face and door (crumbs-38): the uploader's photograph and colour and a door to their page,
+   * resolved server-side (`lib/media/uploader-faces.ts`) where the surface shows faces: the album's own
+   * Guests-list face for a confirmed sender (never a blocked person's, on a guest's view), the byline's for
+   * the host, and a door only to a published page. Absent everywhere else, where the credit draws the plain disc.
+   */
+  uploaderFace?: UploaderFace | null;
   /**
    * Cross-event "Uploads" context (Phase 4), rendered as a subtle link in the lightbox (never on tiles).
    * Set ONLY by the personal Uploads gallery (a flat feed spanning events); the album/host grids omit

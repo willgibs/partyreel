@@ -9,17 +9,19 @@
  *     reads `view ?? tile`;
  *   - `download`: the original as an attachment, under the event's friendly filename.
  *
- * ★ A NAME AND TWO FLAGS, NEVER AN ADDRESS. Attribution is copied field by field (the name, whether
- * the host uploaded it, whether an email was proved), never spread, so the day `UploaderIdentity`
- * grows a field this tuple does not grow with it. The guest path never even reads `guests.email`
- * (`readAlbumAttribution` with `withEmail: false`); `grid-items.email-safety.test.ts` reads this file
- * and refuses every spelling of an address in it.
+ * ★ A NAME, TWO FLAGS AND A FACE, NEVER AN ADDRESS. Attribution is copied field by field (the name,
+ * whether the host uploaded it, whether an email was proved, and the face where a guest may see one:
+ * `uploader-faces.ts`), never spread, so the day `UploaderIdentity` grows a field this tuple does not
+ * grow with it (it carries whose face it is, an account id, and that never leaves the server). The
+ * guest path never even reads `guests.email` (`readAlbumAttribution` with `withEmail: false`);
+ * `grid-items.email-safety.test.ts` reads this file and refuses every spelling of an address in it.
  *
  * Pure: the presigner is handed in (the route passes `presignDownload`), so this runs in the node
  * test project.
  */
 import type { AlbumKeyRow } from "@/lib/db/queries/album-guest";
 import {
+  toFaceTuple,
   WHO_HOST,
   WHO_VERIFIED,
   type AlbumLinkTuple,
@@ -34,11 +36,13 @@ export type AlbumPresigner = (
   downloadFilename?: string,
 ) => Promise<string>;
 
-/** The guest's attribution tuple: the name and two flags, copied by name. */
+/** The guest's attribution tuple: the name and two flags, and the face where one may show, copied by name. */
 export function guestWho(who: UploaderIdentity): GuestWhoTuple {
   const flags =
     (who.isHost ? WHO_HOST : 0) | (who.isVerified ? WHO_VERIFIED : 0);
-  return [who.displayName, flags];
+  return who.face
+    ? [who.displayName, flags, toFaceTuple(who.face)]
+    : [who.displayName, flags];
 }
 
 export async function toGuestAlbumLinks(

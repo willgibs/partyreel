@@ -31,6 +31,7 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/events/album-host-links.ts
   - src/lib/events/album-links.test.ts
   - src/lib/db/queries/album-guest.ts
+  - src/lib/db/queries/album-guest.test.ts
   - src/lib/db/queries/album-host.ts
   - src/lib/guest/reconcile-album-items.ts
   - src/lib/guest/reconcile-album-items.test.ts

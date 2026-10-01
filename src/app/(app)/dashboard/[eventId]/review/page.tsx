@@ -67,6 +67,7 @@ export default async function EventReviewPage({ params }: PageProps) {
       readHostLinksBody(supabase, event, []),
     ]);
   const pendingItems = await toHostGalleryItems({
+    eventId: event.id,
     media: pending,
     eventName: event.name,
     uploaderIdentities,

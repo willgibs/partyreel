@@ -36,6 +36,7 @@
  */
 import type { GalleryAccess, GalleryGate } from "@/lib/events/gallery-access";
 import type { GalleryItem, GalleryReel } from "@/lib/events/gallery-reel";
+import type { UploaderFace } from "@/lib/media/uploader-identity";
 
 /** The contract's version. A shape change bumps it, and the validators carry it. */
 export const ALBUM_WIRE_VERSION = "a1";
@@ -216,14 +217,58 @@ export const ALBUM_LINK_REMINT_MS = 60 * 60_000;
 export const WHO_HOST = 1;
 export const WHO_VERIFIED = 2;
 
-/** A guest's view of who uploaded an item: a name (or none) and two flags. Never an address. */
-export type GuestWhoTuple = readonly [name: string | null, flags: number];
-/** The host's: the same, plus the uploader's proved email (resolveUploaderIdentity's rule). */
+/**
+ * A FACE ON THE WIRE (crumbs-38, the viewer's credit): `[avatarUrl, seed, href]`, the photograph's URL (or none),
+ * the colour's seed and the door to a published page (or none), resolved server-side by `uploader-faces.ts` (never
+ * a storage path, an account id or an address). ★ OPTIONAL AT THE END of each who tuple, and sent only where an
+ * uploader has a face: a client from before it reads the tuple's first fields and ignores the rest, and a link
+ * with no face is the plain disc it always was. Links are minted per request and never validated by an ETag, so the
+ * contract's version does not move for it (the validators carry the manifest's shape, which this leaves alone).
+ */
+export type FaceTuple = readonly [
+  avatarUrl: string | null,
+  seed: string,
+  href: string | null,
+];
+
+/** A guest's view of who uploaded an item: a name (or none), two flags, and a face where one may show. Never an address. */
+export type GuestWhoTuple = readonly [
+  name: string | null,
+  flags: number,
+  face?: FaceTuple,
+];
+/** The host's: the same, plus the uploader's proved email (resolveUploaderIdentity's rule), then the face. */
 export type HostWhoTuple = readonly [
   name: string | null,
   flags: number,
   email: string | null,
+  face?: FaceTuple,
 ];
+
+/** A resolved face as the wire carries it, field by field. */
+export function toFaceTuple(face: UploaderFace): FaceTuple {
+  return [face.avatarUrl, face.seed, face.href];
+}
+
+/**
+ * The face a tuple carries, or null: what the client's mappers put on an item's `uploaderFace`. Read defensively
+ * (a wire value is data): anything but the three expected fields reads as no face, and a door is taken only when it
+ * is a page's own address.
+ */
+export function faceFromTuple(value: unknown): UploaderFace | null {
+  if (!Array.isArray(value) || value.length !== 3) return null;
+  const [avatarUrl, seed, href] = value as unknown[];
+  if (typeof seed !== "string" || seed === "") return null;
+  return {
+    avatarUrl:
+      typeof avatarUrl === "string" && /^https?:\/\//.test(avatarUrl)
+        ? avatarUrl
+        : null,
+    seed,
+    href:
+      typeof href === "string" && /^\/u\/[a-z0-9-]+$/.test(href) ? href : null,
+  };
+}
 
 /**
  * One item's links: the `tile` (the preview, or the original when there is none), the inline

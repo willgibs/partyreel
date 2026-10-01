@@ -30,6 +30,7 @@ import {
   toManifestEntry,
   type AlbumCursor,
 } from "@/lib/events/album-wire";
+import { withUploaderFaces } from "@/lib/media/uploader-faces";
 import type { UploaderIdentity } from "@/lib/media/uploader-identity";
 
 type Client = SupabaseClient<Database>;
@@ -89,7 +90,8 @@ export async function readHostManifestPage(
 
 /**
  * The rows behind a host window's links: each asked id in this event that is not in the bin, with
- * its keys, and who uploaded it WITH the proved address. Absent ids are the route's `missing`.
+ * its keys, and who uploaded it WITH the proved address and the face (every confirmed sender's: the
+ * host's look reads it, `credit-look.tsx`). Absent ids are the route's `missing`.
  */
 export async function readHostAlbumMedia(
   supabase: Client,
@@ -114,7 +116,9 @@ export async function readHostAlbumMedia(
           "album: host links",
         )) ?? [],
     ),
-    readAlbumAttribution(eventId, ids, { withEmail: true }),
+    readAlbumAttribution(eventId, ids, { withEmail: true }).then((named) =>
+      withUploaderFaces(eventId, named, "host"),
+    ),
   ]);
   return { rows, identities };
 }

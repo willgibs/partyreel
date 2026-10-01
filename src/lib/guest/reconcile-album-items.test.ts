@@ -95,6 +95,50 @@ describe("entryToItem", () => {
     expect(Object.keys(host)).not.toContain("uploaderEmail");
   });
 
+  it("★ carries the credit's face and door where the link does, and the plain disc where it does not (crumbs-38)", () => {
+    const seed = "f".repeat(64);
+    const faced = entryToItem(
+      entry(1),
+      link(1, {
+        who: [
+          "Maya",
+          2,
+          ["https://cdn.test/avatars/a/avatar.webp?v=1", seed, "/u/maya"],
+        ],
+      }),
+    );
+    expect(faced.uploaderFace).toEqual({
+      avatarUrl: "https://cdn.test/avatars/a/avatar.webp?v=1",
+      seed,
+      href: "/u/maya",
+    });
+    // A link with no face (and a link from before faces) draws the plain disc, never an invented one.
+    expect(entryToItem(entry(2), link(2)).uploaderFace).toBeNull();
+    expect(entryToItem(entry(3), undefined).uploaderFace).toBeNull();
+  });
+
+  it("reads a face off the wire defensively: a door only to a page, a picture only from a web address", () => {
+    const seed = "a".repeat(64);
+    const odd = entryToItem(
+      entry(1),
+      link(1, {
+        who: [
+          "Maya",
+          2,
+          ["javascript:alert(1)", seed, "https://elsewhere.test/u/maya"],
+        ],
+      }),
+    );
+    expect(odd.uploaderFace).toEqual({ avatarUrl: null, seed, href: null });
+    const noSeed = entryToItem(
+      entry(2),
+      link(2, {
+        who: ["Maya", 2, [null, "", "/u/maya"]],
+      }),
+    );
+    expect(noSeed.uploaderFace).toBeNull();
+  });
+
   it("a video carries its length, and a clip is never reel-eligible", () => {
     const clip = entryToItem(entry(1, 1, 720, 1280, 12.5), link(1));
     expect(clip).toMatchObject({

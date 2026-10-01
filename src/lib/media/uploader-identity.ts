@@ -35,13 +35,48 @@
  * isVerified onto the client-facing GridMedia and never the email (email-safety by construction,
  * not a runtime flag — and grid-items.email-safety.test.ts stands guard). Names are public, the
  * same trust model as the "Hosted by" byline.
+ *
+ * ★ AND WHOSE FACE A CREDIT WEARS, BY THE SAME CASES (crumbs-38, the viewer's credit: "takes a face and a
+ * door"). A face belongs to exactly the people the album already shows one for: the host (case 1, the
+ * "Hosted by" byline's face) and a PROVED name whose account still stands (case 2, the guest list's
+ * face); a typed name (case 3) has no face to show, and nobody (case 4) is nobody. So the rule that names
+ * a person also says whose face it would be (`faceOwner`), and decides it nowhere else: a second rule for
+ * faces could promote an unproved name to a face the way a `user_id` test would promote it to "verified".
+ * The owner is server-side only (it holds an account id): `uploader-faces.ts` turns it into the `face`
+ * a credit draws, and every mapper copies that, field by field, never the owner.
  */
+
+/**
+ * A FACE AS THE CREDIT DRAWS IT (`media-lightbox-parts/credit.tsx`): the person's photograph where they
+ * have one, their colour, and a door to their page where one exists. Resolved server-side alone
+ * (`uploader-faces.ts`): `avatarUrl` is a URL, never a storage path; `seed` is `seedFor`'s one-way hash,
+ * never an account id; `href` is `/u/<slug>`, only where a handle published a page.
+ */
+export type UploaderFace = {
+  avatarUrl: string | null;
+  seed: string;
+  href: string | null;
+};
+
+/**
+ * WHOSE FACE IT WOULD BE (server-side only, never on a wire): the event's host, or the account behind a
+ * proved name with the guest row that carries it (a per-event block holds rows, so the guest's view can
+ * leave a blocked person's face off by the row).
+ */
+export type FaceOwner =
+  | { kind: "host" }
+  | { kind: "account"; accountId: string; guestId: string };
+
 export type UploaderIdentity = {
   displayName: string | null;
   email: string | null;
   isHost: boolean;
   /** An email was proved (guests.verified_at). False renders the unverified mark beside a name. */
   isVerified: boolean;
+  /** Whose face it would be, by this rule (see the head). Optional only so a hand-built identity reads as faceless. */
+  faceOwner?: FaceOwner | null;
+  /** The face itself, once a surface that shows faces resolved it (`uploader-faces.ts`). */
+  face?: UploaderFace | null;
 };
 
 /** The media row shape the resolver consumes (from the media -> guests -> profiles embed). */
@@ -58,9 +93,15 @@ export type UploaderRow = {
   } | null;
 };
 
-/** Case 4 (and the missing-row fallback): no name, no address, no claim of any kind. */
+/** Case 4 (and the missing-row fallback): no name, no address, no face, no claim of any kind. */
 function nameless(): UploaderIdentity {
-  return { displayName: null, email: null, isHost: false, isVerified: false };
+  return {
+    displayName: null,
+    email: null,
+    isHost: false,
+    isVerified: false,
+    faceOwner: null,
+  };
 }
 
 export function resolveUploaderIdentity(
@@ -70,12 +111,15 @@ export function resolveUploaderIdentity(
   // 1. Host upload: no guest row at all (create_media_as_host inserts guest_id NULL). The host is
   // an account with a confirmed email by definition of having one, and `isHost` suppresses the
   // mark anyway — but saying `isVerified: true` here keeps "unverified" meaning one thing.
+  // ★ The host's face is the byline's, and the byline shows only beside a host's name: a nameless host
+  // wears no face here either.
   if (row.guest_id === null) {
     return {
       displayName: hostName,
       email: null,
       isHost: true,
       isVerified: true,
+      faceOwner: hostName !== null ? { kind: "host" } : null,
     };
   }
   const guest = row.guests;
@@ -90,12 +134,19 @@ export function resolveUploaderIdentity(
   // address it carried belongs to nobody the host can reach: the host's viewer printed it beside a
   // nameless photograph. Deletion scrubs the column going forward; this is the net under the rows
   // the scrub never saw.
+  // ★ AND THE FACE THE SAME WAY: the account's, only while it stands and only beside a name (a deleted
+  // account's surviving upload names nobody, so it wears nobody's face).
   if (guest.verified_at !== null) {
+    const displayName = guest.profiles?.display_name ?? null;
     return {
-      displayName: guest.profiles?.display_name ?? null,
+      displayName,
       email: guest.user_id !== null ? (guest.email ?? null) : null,
       isHost: false,
       isVerified: true,
+      faceOwner:
+        guest.user_id !== null && displayName !== null
+          ? { kind: "account", accountId: guest.user_id, guestId: row.guest_id }
+          : null,
     };
   }
   // 3. A typed name, unproven — and NO ADDRESS, ever. The row may carry `guests.email` from an
@@ -103,12 +154,15 @@ export function resolveUploaderIdentity(
   // of anything, and the host's half of this identity is a name plus the mark. Returning one would
   // put an unproved address under a name the host has no way to check, which is the impersonation
   // the whole round exists to prevent.
+  // ★ And NO FACE: a typed name keeps the plain disc everywhere (the guest list's rule), since a face
+  // beside an unproved name would lend it the claim the mark withholds.
   if (guest.display_name !== null && guest.display_name.trim() !== "") {
     return {
       displayName: guest.display_name,
       email: null,
       isHost: false,
       isVerified: false,
+      faceOwner: null,
     };
   }
   // 4. Nameless: minted before names were asked. Nobody is named, so nothing is claimed.

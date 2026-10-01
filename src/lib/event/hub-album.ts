@@ -40,6 +40,7 @@ import {
   WHO_HOST,
   WHO_VERIFIED,
   entryId,
+  faceFromTuple,
   type AlbumLinksBody,
   type AlbumManifestPart,
   type HostAlbumLinksBody,
@@ -323,6 +324,8 @@ export function hubItem(
     isHost: who ? (who[1] & WHO_HOST) !== 0 : false,
     isVerified: who ? (who[1] & WHO_VERIFIED) !== 0 : false,
     uploaderEmail: who ? who[2] : null,
+    // The credit's face and door (crumbs-38): every confirmed sender's, for the host's look.
+    uploaderFace: faceFromTuple(who?.[3]),
     likeCount,
     width: e[1] > 0 ? e[1] : null,
     height: e[2] > 0 ? e[2] : null,
