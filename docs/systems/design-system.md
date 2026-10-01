@@ -134,9 +134,9 @@ is near it; **beam** marks the object that is the live subject. Ink tends to tak
 - ★ **A band resting mid-travel shows a reduced-motion visitor the comet forever**: the animation lives under
   `no-preference`, so the declared position is what they see. It rests where its animation starts (`150% 0` on the
   mask drive, `glw-drift-x`'s from-keyframe on the transform drive), never `50% 0`.
-- **`GlowFilter` mounts once, in the root layout** (the root `not-found.tsx` renders the footer outside `(marketing)`);
-  SVG ids are document-global, so never a second. ★ **A missing filter host drops the whole filter chain**, `blur()`
-  included, and the five ellipses render as hard blobs, silently; `Glow` has a dev-only console guard.
+- **`GlowFilter` mounts once, in the root layout** (the root 404, `not-found.site.tsx`, renders the footer outside
+  `(marketing)`); SVG ids are document-global, so never a second. ★ **A missing filter host drops the whole filter
+  chain**, `blur()` included, and the five ellipses render as hard blobs, silently; `Glow` has a dev-only console guard.
 - **One clock**: lamps read `--spill-cadence`, never a literal; the Aurora's field reads `--aurora-cadence`, a slower
   sibling (a chapter-sized field on a lamp's clock reads as a screensaver). ★ The sibling stays declared in
   globals.css: an inline `vars` value outranks `--glw-dur`, so an undeclared cadence voids the `animation` shorthand and
@@ -271,8 +271,10 @@ the card is the page's own white, so the ring carries the edge; a surface lying 
   `--tw-shadow`, so wear the utility or re-state the ring first (the toast re-states sonner's focus ring).
 - ★ **An unlayered rule outranks every utility**: a bare `box-shadow` in marketing.css beats `shadow-lift` whatever the
   specificity. A shadow that must beat that sheet is carried inline as the token.
-- ★ **`cn()` files `shadow-lift` and `shadow-layer` under shadow colour**: `cn("shadow-layer", "shadow-none")` keeps both
-  and the stylesheet decides; the fix, if ever needed, is one `theme.shadow` line in `src/lib/utils.ts`.
+- ★ **A shadow token `cn()` has not been taught is filed under shadow colour**, which sits beside a size instead of
+  replacing it: `cn("shadow-layer", "shadow-none")` kept both and the stylesheet's alphabet decided, as it did for a
+  stock `shadow-md` a generator wrote onto a component. The names live in `SHADOW_TOKENS` (`src/lib/utils.ts`), pinned
+  against theme.css by `type-ladder-policy.test.ts`: a new elevation utility joins it in the same change.
 - ★ **No surface token is translucent**: an alpha reads solid over a page and turns to glass over a photograph. Glass is
   its own material, worn only as media chrome.
 
@@ -318,7 +320,7 @@ and `lib/glass.ts` names the classes the product wears. `PosterCardChip` (the st
 ## The album tile
 
 One tile, `shared/album-tile.tsx` (`AlbumTile`), draws every album grid, laid out by `shared/masonry.tsx`
-(`MasonryColumns`): the guest album (`GuestMasonry` wraps it), the host's album, the bin and the personal feeds. The
+(`MasonryColumns`): the guest album (`GalleryRows` wraps it), the host's album, the bin and the personal feeds. The
 admin's `ModerationTile` stays its own: a report is not an album. It lays out as masonry (the default), uniform (a
 fixed aspect: the Reel and Review) or `rows`, the justified album, windowed (`shared/album-window.tsx`, opt-in until
 each surface switches). `/design/album-scale` is the grid over 1,145 photographs and `scripts/album-perf.mjs` its
@@ -462,8 +464,8 @@ fade, a hair of scale, 8px from the anchor) and `floatingEdgeEntrance` (the shee
 three rungs follow frequency: instant for what opens dozens of times an hour (a tooltip, a dropdown, a select),
 standard for a popover or dialog, edge for the sheet. The light is `shadow-layer`, and every panel is opaque until the
 Glass exploration answers its material.
-`drawer.tsx` (vaul's, drawn only by the Library's gallery now) and `sonner.tsx` sit outside the family by name; the QR mini-modal's View
-Transition is its one sanctioned hole ([host-app.md](host-app.md)).
+`sonner.tsx` sits outside the family by name; the QR mini-modal's View Transition is its one sanctioned hole
+([host-app.md](host-app.md)).
 
 - **The product has ONE responsive `Sheet`** (`ui/sheet.tsx`, opted into with `responsive`): a side panel at a desk, a
   bottom sheet in a hand. It emits `data-side="responsive"`, so none of the fixed-side rules can race it, and its

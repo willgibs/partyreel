@@ -1,12 +1,12 @@
 /**
- * Regression pin for the floating-Add-pill bug: useInViewSentinel must attach
- * its IntersectionObserver even when the sentinel node mounts AFTER first
- * paint. A password event renders <GhostGrid> (no sentinel) at access "none",
- * then unlocks via router.refresh() which flips access none->full WITHOUT
- * remounting EventExperience - so the sentinel node appears late. The original
- * mount-only `[]`-effect read a null ref and never re-ran, leaving the pill
- * permanently dead on unlocked password events. The callback-ref form fixes it;
- * these pins lock that in.
+ * Regression pin for the dead-dock bug: useInViewSentinel must attach its
+ * IntersectionObserver even when the sentinel node mounts AFTER first paint. A
+ * password event renders the ghost river (no sentinel) at access "none", then
+ * unlocks via router.refresh() which flips access none->full WITHOUT remounting
+ * EventExperience - so the sentinel node appears late. The original mount-only
+ * `[]`-effect read a null ref and never re-ran, leaving the dock permanently
+ * dead on unlocked password events. The callback-ref form fixes it; these pins
+ * lock that in.
  */
 import { act, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -59,7 +59,7 @@ function Harness({ unlocked }: { unlocked: boolean }) {
       {unlocked ? (
         <div data-testid="sentinel" ref={sentinelRef} />
       ) : (
-        <div data-testid="ghost-grid" />
+        <div data-testid="ghost-river" />
       )}
     </div>
   );

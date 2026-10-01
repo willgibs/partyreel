@@ -181,9 +181,9 @@ const ALBUM_IDS = [
 
 /**
  * The album mid-evening, in a browser: the event's one permanent link in the
- * address bar, and two tiles wearing the just-landed check the real gallery
- * draws for about two and a half seconds after an upload arrives
- * (guest-masonry.tsx). The count line is the app's own shape, from
+ * address bar, and two tiles wearing a just-landed check, which pictures an
+ * upload arriving (the product marks one with a pass of light and a rim,
+ * shared/arrival.css). The count line is the app's own shape, from
  * event-experience.tsx.
  *
  * ★ NO "LIVE" CHIP. The shipped album has no Live badge anywhere: liveness is

@@ -72,7 +72,7 @@ export const GOLDEN_LINES = {
   curation: "Every moment, and you decide what stays",
 } as const;
 
-/** RULED. The kinetic hero renders it as "The whole {word}, in one album." */
+/** RULED. The home hero's H1, rendered whole; the footer, the social card and the meta description carry it too. */
 export const SITE_THESIS = "The whole event, in one album.";
 export const SITE_THESIS_STATUS: "provisional" | "ruled" = "ruled";
 

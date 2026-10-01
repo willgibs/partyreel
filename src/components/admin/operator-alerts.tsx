@@ -106,8 +106,8 @@ export function OperatorAlerts({
           <span
             className={
               urgent
-                ? "absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold text-white"
-                : "absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[10px] font-semibold text-brand-foreground"
+                ? "absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-micro font-semibold text-white"
+                : "absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-micro font-semibold text-brand-foreground"
             }
           >
             {total > 9 ? "9+" : total}
@@ -128,7 +128,11 @@ export function OperatorAlerts({
               // First, and in words: a child-abuse report the operator is told of at once (the mail says the
               // same), so a false instant hide lasts minutes and a real one is acted on.
               <DropdownMenuItem asChild>
-                <Link href="/admin/reports" className="text-destructive">
+                <Link
+                  href="/admin/reports"
+                  prefetch={false}
+                  className="text-destructive"
+                >
                   <ShieldAlert />
                   <span>Urgent reports</span>
                   <DropdownMenuMeta>{urgentReports} urgent</DropdownMenuMeta>
@@ -139,7 +143,7 @@ export function OperatorAlerts({
               <DropdownMenuItem key={key} asChild>
                 {/* The icon colour is the primitive's rail now, not a class
                     typed here (dropdown-menu.tsx). */}
-                <Link href={href}>
+                <Link href={href} prefetch={false}>
                   <Icon />
                   <span>{label}</span>
                   <DropdownMenuMeta>

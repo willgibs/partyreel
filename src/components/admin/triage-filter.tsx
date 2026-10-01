@@ -60,6 +60,7 @@ export function TriageFilter<S extends string = TriageStatus>({
         <Link
           key={tab.key}
           href={hrefOf(tab.key)}
+          prefetch={false}
           aria-current={shown === tab.key ? "page" : undefined}
           className={cn(
             "rounded-md px-3 py-1.5 text-sm transition-colors",

@@ -55,10 +55,9 @@ import type { PulseTile } from "@/lib/db/queries/pulse";
  * a chip row of their own — the five-chip inbox is what the pulse replaced, and
  * re-growing it here under another name would undo the decision.
  *
- * ★ WHY THIS IS A CLIENT COMPONENT WHEN THE OLD SECTION WAS NOT. The sort and
- * the lens must be INSTANT: this is a management tool, and a filter that costs
- * a server round-trip is a filter the host stops using (the same argument the
- * old FilterChips made, and it kept its state client-side for exactly this).
+ * ★ WHY THIS IS A CLIENT COMPONENT. The sort and the lens must be INSTANT: this
+ * is a management tool, and a filter that costs a server round-trip is a filter
+ * the host stops using, so their state stays client-side.
  * Everything it needs is already resolved server-side and plain — covers and
  * tiles arrive as short-lived presigned URLs, never as R2 keys, which is the
  * invariant that actually matters and is the same one MyUploadsGallery has

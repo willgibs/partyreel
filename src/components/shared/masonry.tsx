@@ -5,8 +5,8 @@
  * 2026-09-20; `app-vocabulary`'s `tile-grammar` call taken with it).
  *
  * Every album grid in the product is this component: the guest album
- * (`GuestMasonry` is a thin wrapper over it), the host's moderation gallery, the
- * recovery bin and the two personal feeds. The admin's `ModerationTile` stays
+ * (`GalleryRows` wraps it), the host's moderation gallery, the recovery bin and
+ * the two personal feeds. The admin's `ModerationTile` stays
  * its own thing on purpose — a report is not an album. What a tile carries
  * (marks, and on the desk one declared set of verbs) is `album-tile.tsx`'s.
  *
@@ -36,9 +36,10 @@
  * and so did every filter. Now the measure is a restyle.
  *
  * ★ AND `layout="rows"` IS THE JUSTIFIED ALBUM (`album-columns`: Will's
- * `layout=justified`), opt-in beside masonry, which stays the default until the
- * surfaces switch. Its engine is `lib/shared/album-rows.ts`; its box, windowed,
- * is `album-window.tsx`.
+ * `layout=justified`), the layout every album surface wears (the review queue is
+ * `uniform`). Masonry stays the default for a caller that names no layout, which
+ * only the lab's scale harness (`/design/album-scale`) still does. Its engine is
+ * `lib/shared/album-rows.ts`; its box, windowed, is `album-window.tsx`.
  */
 // THE ARRIVAL GRAMMAR'S SHEET, on the ONE grid every album is made of: the glow
 // an arriving tile takes (`data-arrived`, anyone's), the sweep a guest's own
@@ -121,14 +122,13 @@ export { type AlbumHandle } from "@/components/shared/album-window";
  * 220 at 375 would collapse the album to one). At 640 the count rule and the
  * width rule agree, so nothing jumps at the breakpoint.
  *
- * `--album-column` is the knob, not the number: Will's note on the same ruling
- * asked for an adjustable tile size "within/around our filter/sort/controls",
- * which is its own board (`gallery-controls`). When it lands, that control sets
- * this one property on an ancestor and every grid under it follows.
+ * `--album-column` is the knob, not the number: a caller that wants another tile
+ * width sets this one property on an ancestor and every masonry or uniform grid
+ * under it follows. Nothing sets it today; the albums' own density is the rows'
+ * step (`lib/shared/tile-size-cookie.ts`).
  *
- * ★ IT IS STILL A CLASS STRING because the lab, the marketing album stage and
- * the guest skeleton lay their OWN boxes out with it, and because it is this
- * grid's own pre-measure paint. `columnsFor` below reads the same knob and the
+ * ★ IT IS STILL A CLASS STRING because the host's selectable grid lays its OWN
+ * box out with it, and because it is this grid's own pre-measure paint. `columnsFor` below reads the same knob and the
  * gap this rule resolves to, so there is still exactly one rule.
  */
 export const GALLERY_COLUMNS =
@@ -437,7 +437,7 @@ export function MasonryColumns<T extends GridMedia>(props: {
   clampAspect?: boolean;
   /** "masonry" = explicit, height-balanced columns (the Gallery "wow"). "uniform" = a fixed-aspect
    *  CSS grid (the Reel + Review, where uniformity makes drag-order / selection legible). "rows" =
-   *  the justified album, windowed (`AlbumRows`, opt-in until each surface switches). Only the box
+   *  the justified album, windowed (`AlbumRows`), the layout every album surface wears. Only the box
    *  and the per-tile box change; the marks / lightbox / dimItem paths are identical. */
   layout?: "masonry" | "uniform" | "rows";
   /** Rows only: the density step, photographs per row (`lib/shared/album-rows.ts`). */

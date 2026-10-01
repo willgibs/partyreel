@@ -241,7 +241,7 @@ here too; `../help/AUTHORING.md` lists them.
   carry a small mark and the shorter cap. No music, no beat-sync, no end card, never a timeline.
 
 Truth sources when in doubt: `src/lib/constants/tiers.ts`, `src/lib/media/limits.ts`,
-`src/lib/constants/features.ts`, `src/lib/constants/events.ts`, `src/lib/content/llms.ts`,
+`src/lib/constants/events.ts`, `src/lib/content/llms.ts`,
 and `docs/systems/{guest-flow,host-app,reel,uploads-and-r2,lifecycle-recovery}.md`. Where a doc and
 the code disagree, the code wins.
 

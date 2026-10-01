@@ -37,7 +37,7 @@ import {
  *
  * Every screen quotes its real surface: entry-modal.tsx and email-sign-in.tsx
  * for the door, event-experience.tsx for the add action and the count line,
- * guest-masonry.tsx for the landed check and the save affordance,
+ * shared/album-tile.tsx for the tile's marks and the save affordance,
  * media-lightbox.tsx for the pill, live-reel-view.tsx for the reel's view and
  * the clip creator for the clip it makes. All six are decorative; the spine
  * marks them aria-hidden.
@@ -236,8 +236,8 @@ const ROLL_IDS = [
  * The camera roll with three picked, and the action bar's own pill underneath
  * (event-experience.tsx's ImageUp + "Add photos"; the uploading chip is the
  * floating button's). The companion is what happens next: the three on their
- * way, one still climbing, one landed with the success check guest-masonry.tsx
- * paints for about two and a half seconds.
+ * way, one still climbing, one landed and wearing a success check (a picture of
+ * the landing: the product marks it with a pass of light, shared/arrival.css).
  */
 export function AddPicture() {
   return (

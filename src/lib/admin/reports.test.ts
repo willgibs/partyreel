@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   addressStrikes,
   askableProof,
+  closedStrike,
+  closedStrikeWords,
   dismissEndsTheHide,
   entryKeyOf,
   frontOrder,
@@ -26,6 +28,7 @@ import {
   reporterWho,
   reporterWords,
   sameInstant,
+  strikeLapseMs,
   strikeWords,
   WAY_BACK_LINE,
   wayBackOf,
@@ -589,5 +592,173 @@ describe("an address's strikes on the queue (`addressStrikes`, `strikeWords`)", 
     expect(strikeWords(addressStrikes(reading(0, []), strict, 1))).toBe(
       "This address has no strikes. A Dismiss makes 1, and its reports stop hiding right away until Mar 30, 2027 UTC.",
     );
+  });
+});
+
+/**
+ * ★ A DISMISSED CHILD-ABUSE REPORT'S CLOSED LINE SAYS WHETHER IT IS STILL A STRIKE, AND UNTIL WHEN (crumbs-36, a board
+ * idea from crumbs-33). The open queue says what a Dismiss WOULD make of an address; an operator reading past
+ * dismissals saw nothing of what each one cost. The numbers are `report_strikes`'s, the rule's one home: a strike
+ * counts for a lapse after its dismissal, and the lapse is read off the answer (`strikeLapseMs`), never copied here.
+ * Only counts and instants say it: the address itself never shows.
+ */
+describe("a closed report's strike (`closedStrike`, `closedStrikeWords`)", () => {
+  const DAY = 86_400_000;
+  /** The page's one clock read, and the answer's "a strike made now lapses at", a lapse and a hair of latency on. */
+  const NOW = Date.parse("2026-09-29T12:00:00.000Z");
+  const RULE = { strikes: 3, freshLapsesAt: "2027-03-28T12:00:00.123Z" };
+  const dismissed = {
+    kind: "child" as const,
+    status: "dismissed" as const,
+    resolvedAt: "2026-09-15T08:30:00.000Z",
+    keptAddress: true,
+  };
+  /** The address's reading, its newest strikes' lapse instants newest first (the answer's own shape). */
+  const reading = (live: number, lapses: string[]) => ({
+    live,
+    barred: live >= 3,
+    lapses,
+  });
+
+  it("★ reads the lapse off the rule's own answer, to the minute, and never holds a number of its own", () => {
+    expect(strikeLapseMs(RULE, NOW)).toBe(180 * DAY);
+    // The same function on a rule that lapses in 90 days: nothing here says 180.
+    const short = { strikes: 3, freshLapsesAt: "2026-12-28T12:00:00.987Z" };
+    expect(strikeLapseMs(short, NOW)).toBe(90 * DAY);
+  });
+
+  it("★ says a live strike, until when, and what the address holds", () => {
+    const s = closedStrike(
+      dismissed,
+      reading(2, ["2027-03-14T08:30:00.000Z", "2027-01-10T10:00:00.000Z"]),
+      RULE,
+      NOW,
+    );
+    expect(s).toEqual({
+      state: "live",
+      at: "2027-03-14T08:30:00.000Z",
+      live: 2,
+      bar: 3,
+      barredUntil: null,
+    });
+    expect(closedStrikeWords(s!, { canUndo: false })).toBe(
+      "A strike on its address until Mar 14, 2027 UTC; the address holds 2 of 3.",
+    );
+  });
+
+  it("★ the lapse it says is the instant the rule's reading lists for that strike", () => {
+    // The answer lists each of the newest strikes' lapse as `resolved_at + the lapse`; the line must not differ.
+    const s = closedStrike(
+      dismissed,
+      reading(1, ["2027-03-14T08:30:00.000Z"]),
+      RULE,
+      NOW,
+    );
+    expect(s).toMatchObject({ state: "live", at: "2027-03-14T08:30:00.000Z" });
+  });
+
+  it("says that its Undo takes it back, only where the dismissal can still be reopened", () => {
+    const s = closedStrike(
+      dismissed,
+      reading(1, ["2027-03-14T08:30:00.000Z"]),
+      RULE,
+      NOW,
+    )!;
+    expect(closedStrikeWords(s, { canUndo: true })).toBe(
+      "A strike on its address until Mar 14, 2027 UTC; the address holds 1 of 3. Undo takes it back.",
+    );
+    expect(closedStrikeWords(s, { canUndo: false })).not.toMatch(/Undo/);
+  });
+
+  it("★ says when the address is barred, and until when its reports stop hiding right away", () => {
+    const s = closedStrike(
+      dismissed,
+      reading(3, [
+        "2027-03-14T08:30:00.000Z",
+        "2027-02-20T21:05:00.000Z",
+        "2027-01-10T10:00:00.000Z",
+      ]),
+      RULE,
+      NOW,
+    );
+    expect(s).toMatchObject({
+      live: 3,
+      bar: 3,
+      barredUntil: "2027-01-10T10:00:00.000Z",
+    });
+    expect(closedStrikeWords(s!, { canUndo: true })).toBe(
+      "A strike on its address until Mar 14, 2027 UTC; the address holds 3 strikes, so its reports don't hide right away until Jan 10, 2027 UTC. Undo takes it back.",
+    );
+  });
+
+  it("★ says a strike that has lapsed, and when", () => {
+    const s = closedStrike(
+      { ...dismissed, resolvedAt: "2026-03-01T10:00:00.000Z" },
+      reading(0, []),
+      RULE,
+      NOW,
+    );
+    expect(s).toEqual({ state: "lapsed", at: "2026-08-28T10:00:00.000Z" });
+    expect(closedStrikeWords(s!, { canUndo: false })).toBe(
+      "Its strike lapsed Aug 28, 2026 UTC.",
+    );
+  });
+
+  it("holds a strike to the reading's own count: an address with none live has no live strike", () => {
+    // The clock says this dismissal still counts (a few seconds before its lapse), the answer says nothing does: the
+    // answer is the rule's, and the line never says live where the rule counts none.
+    const edge = {
+      ...dismissed,
+      resolvedAt: new Date(NOW - 180 * DAY + 5_000).toISOString(),
+    };
+    const s = closedStrike(edge, reading(0, []), RULE, NOW);
+    expect(s?.state).toBe("lapsed");
+  });
+
+  it("★ a dismissal that kept no address was never a strike, and says so", () => {
+    const s = closedStrike(
+      { ...dismissed, keptAddress: false },
+      undefined,
+      RULE,
+      NOW,
+    );
+    expect(s).toEqual({ state: "none" });
+    expect(closedStrikeWords(s!, { canUndo: false })).toBe(
+      "Not a strike: it kept no address to count against.",
+    );
+  });
+
+  it("says nothing of a report the rule does not count: another kind, or a verdict that was not a dismissal", () => {
+    const r = reading(2, ["2027-03-14T08:30:00.000Z"]);
+    expect(
+      closedStrike({ ...dismissed, kind: "violence" }, r, RULE, NOW),
+    ).toBeNull();
+    expect(
+      closedStrike({ ...dismissed, status: "actioned" }, r, RULE, NOW),
+    ).toBeNull();
+    expect(
+      closedStrike({ ...dismissed, status: "open" }, r, RULE, NOW),
+    ).toBeNull();
+  });
+
+  it("says nothing while the rule cannot be read, except that an addressless dismissal was never a strike", () => {
+    const r = reading(2, ["2027-03-14T08:30:00.000Z"]);
+    expect(closedStrike(dismissed, r, null, NOW)).toBeNull();
+    expect(
+      closedStrike({ ...dismissed, keptAddress: false }, undefined, null, NOW),
+    ).toEqual({
+      state: "none",
+    });
+  });
+
+  it("never guesses a lapse for a verdict with no time", () => {
+    expect(
+      closedStrike(
+        { ...dismissed, resolvedAt: null },
+        reading(1, []),
+        RULE,
+        NOW,
+      ),
+    ).toBeNull();
   });
 });

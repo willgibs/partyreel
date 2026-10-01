@@ -25,7 +25,7 @@ import { SECTION_HEADERS } from "@/lib/constants/marketing-voice";
  * is now a left masthead with the print set below-RIGHT, so this section's
  * visual sits on the LEFT with the controls stacked on the right, and the
  * visual is a palm-sized select-mode card (four tiles, two chosen, the
- * floating bar) rather than another framed grid. The paper chapter's shapes
+ * select bar) rather than another framed grid. The paper chapter's shapes
  * are then masthead + print, a mirrored split, and a numbered ledger. The
  * header stays centred: it sits between two left-aligned ones.
  */
@@ -101,8 +101,7 @@ export function Curation() {
               />
             ))}
           </div>
-          {/* The bar the selection summons, riding the card's bottom edge the
-              way the app's floating bar rides the bottom of the screen. */}
+          {/* The bar the selection summons, riding the card's bottom edge. */}
           <span className="absolute inset-x-0 -bottom-5 flex justify-center">
             <BulkBarMock count={selectedCount} />
           </span>

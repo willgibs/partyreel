@@ -26,7 +26,8 @@ Nothing is protected: every page, the host app and the guest pages are open to b
   check's stall, a Next dev bug, upstream's fix carried as a pnpm patch) on build 34, red-teamed PASS.
   `crumbs-34` (every published claim made true; Sentry quiet off Vercel) and `crumbs-33` (a report's live strikes on
   the queue, the newsletter row with an email change, four correctness fixes; its two migrations applied) are
-  merged, with `crumbs-35` (build 34's red-team finds); `crumbs-36` (five deferred lines) runs. App work leads (his note); the wiring of each board follows
+  merged, with `crumbs-35` (build 34's red-team finds), `crumbs-36` (five deferred lines) and `crumbs-39` (hygiene);
+  `crumbs-37` (scale and upkeep) and `crumbs-38` (a person's own record) run. App work leads (his note); the wiring of each board follows
   his picks.
 
 ## The desk
@@ -42,7 +43,7 @@ and `about-press` r1 (two), in that order.
   apex, the admin door redirects; the signed-in walk PASS (the dashboard, a hub's rooms and trail, Settings' rows and
   back arrow and the browser's Back, the door page, the Guests room, the demo's viewer; no console error).
 - **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 35 (`be502b45`): build 34
-  (red-teamed PASS) plus crumbs-33, crumbs-34 and crumbs-35, its red-team walking; the desk is the same six boards (no
+  (red-teamed PASS) plus crumbs-33, crumbs-34 and crumbs-35, red-teamed (one MEDIUM, in `crumbs-40`); the desk is the same six boards (no
   board moved since build 31). Vercel installs with pnpm 9.14.4, `package.json`'s `packageManager`.
 - **The shared database** runs every migration applied through 2026-10-01: schema-pass part 2 (the reel's three
   dormant media columns dropped once milestone 31 shipped), the instant hide's three strikes, and crumbs-33's two last
@@ -74,5 +75,5 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-- His desk (above); the calls file's 59 calls to overrule, his review on 2026-10-01 (his two decisions answered
+- His desk (above); the calls file's 61 calls to overrule, his review on 2026-10-01 (his two decisions answered
   2026-09-30); the phone checks and the four walks only he can drive (`tracks/orchestrator.md`).

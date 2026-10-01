@@ -5,7 +5,7 @@ import {
   SITE_URL,
   SUPPORT_EMAIL,
 } from "@/lib/constants/site";
-import { INACTIVE_DAYS } from "@/lib/lifecycle/inactivity";
+import { INACTIVE_MONTHS } from "@/lib/lifecycle/inactivity";
 import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 
 import type { FaqItem } from "./faq-data";
@@ -84,7 +84,7 @@ export function SoftwareApplicationJsonLd() {
           "Clips anyone with album access can make from the reel, rendered on their own device and never stored",
           "Host moderation: approve, hide, and remove anything",
           "No per-guest fees and no guest limit; plans are sized by storage",
-          `An inactive free album is eventually removed after about ${Math.round(INACTIVE_DAYS / 30)} months; every other album never expires, and deletions wait ${RECENTLY_DELETED_WINDOW_DAYS} days in Deleted`,
+          `An inactive free album is eventually removed after about ${INACTIVE_MONTHS} months; every other album never expires, and deletions wait ${RECENTLY_DELETED_WINDOW_DAYS} days in Deleted`,
           // ★ The ruled short form (Will, 2026-09-02): the clause "for the
           // common formats" rides every shortened version of this claim (HEIC,
           // HEIF, AVIF and WebM are stored exactly as sent). Structured data is

@@ -18,7 +18,7 @@
  * cross-site POST does not. Path `/` because the poll (`/api/guests/gallery`) is not under `/e/`.
  *
  * ★ THE WRITE ROUTES NEVER READ IT. The name, mine, remove, presign and complete routes keep taking
- * the session token from the BODY only (pinned by `body-token-source.test.ts`), so this cookie adds
+ * the session token from the BODY only (pinned by `session-cookie.test.ts`), so this cookie adds
  * a READ capability to the request and moves the CSRF surface not one inch.
  *
  * ★ AND A SHARED PHONE CAN PUT IT DOWN: `POST /api/guests/leave` expires it (one event's, or with
