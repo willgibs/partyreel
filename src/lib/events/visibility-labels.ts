@@ -11,9 +11,9 @@ import {
  * this one module, and nothing re-types a door word next to the data. Server-safe on purpose (no "use
  * client"), so an RSC dots into it as readily as the door page.
  *
- * ★ "Open" is never a door word: it is the ACCEPTING-UPLOADS state (the event card's Open/Closed). The two
- * were written separately once, and the settings said Public while the event header said Open for the
- * same row ("Public sounds much clearer than open"). The data's `open` reads Public.
+ * ★ "Open" is never a door word: it is the ACCEPTING-UPLOADS state (`uploadsLabel`, the event card's Open and
+ * Paused). The two were written separately once, and the settings said Public while the event header said
+ * Open for the same row ("Public sounds much clearer than open"). The data's `open` reads Public.
  */
 
 /* ── the door, in steps (event-settings r1, Will 2026-09-29, `join=steps`) ─────────────────────── */
@@ -90,4 +90,17 @@ export function doorLabel(door: Door): string {
   const gate = gateOf(door);
   if (step !== "private" || !gate) return DOOR_STEP_LABELS[step];
   return `${DOOR_STEP_LABELS.private} · ${DOOR_GATE_SHORT[gate]}`;
+}
+
+/* ── whether guests can add, beside the door ────────────────────────────────────────────────────── */
+
+/**
+ * WHETHER GUESTS CAN ADD, IN ONE WORD: the dashboard card's and the hub's code's (crumbs-42, from
+ * `event-ready`). Open while they can; Paused while the host has paused uploads, the word Settings'
+ * own sentence says ("Paused. Guests can still look."). ★ Never "Closed": that is the door's word for
+ * Only people already in ("Private · Closed", above), and the card that said it for paused uploads
+ * told a host her door had shut.
+ */
+export function uploadsLabel(acceptingUploads: boolean): "Open" | "Paused" {
+  return acceptingUploads ? "Open" : "Paused";
 }

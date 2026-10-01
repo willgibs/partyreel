@@ -6,6 +6,7 @@ import { StyledQr } from "@/components/app/styled-qr";
 import { useInViewSentinel } from "@/lib/shared/use-in-view-sentinel";
 import { resolveQrPreset } from "@/lib/constants/qr-presets";
 import { trackAttrs } from "@/lib/analytics/events";
+import { uploadsLabel } from "@/lib/events/visibility-labels";
 import { cn } from "@/lib/utils";
 
 import { useEventShare } from "./event-share-provider";
@@ -67,7 +68,7 @@ export function EventCodeDoor({
         aria-label={`Show the code for ${eventName}`}
         style={{ viewTransitionName: morphNameFor("header") }}
         className={cn(
-          "group relative shrink-0 rounded-lg bg-white p-2 outline-none transition-transform duration-150 ease-emphasis",
+          "group relative shrink-0 rounded-lg bg-white p-2 transition-transform duration-150 ease-emphasis outline-none",
           "hover:scale-[1.02] focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.98]",
           "motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
         )}
@@ -90,13 +91,14 @@ export function EventCodeDoor({
           // state. Both are deliberate: "Paused" is what reads at 112px over a
           // dimmed code, and "Uploads paused" is the phrase the product has
           // always used for it — the words the retired header chip carried and
-          // the words the help centre quotes.
+          // the words the help centre quotes. The word is the dashboard card's
+          // too (`uploadsLabel`), so the two never name the state apart.
           <span
             className="absolute inset-0 flex items-center justify-center"
             title="Uploads paused"
           >
             <span className="rounded-full bg-neutral-900/85 px-2 py-0.5 text-xs font-medium text-white">
-              Paused
+              {uploadsLabel(false)}
             </span>
           </span>
         )}
