@@ -70,7 +70,8 @@ export function forgetAllWelcomes(): void {
 /**
  * `[seen, markSeen]` for the welcome step. The server snapshot is `true` (assume seen) so the welcome
  * never flashes before hydration; it resolves to the real localStorage value on the client. `markSeen`
- * persists the flag (once per device per event) and notifies same-tab subscribers.
+ * persists the flag (once per person per event: it goes with the ticket, `forgetWelcome`) and notifies same-tab
+ * subscribers.
  *
  * ★ THE DEMO NEVER PERSISTS "SEEN" ACROSS VISITS, BUT STILL ADVANCES WITHIN ONE: a demo treats every
  * visit as a fresh one, even a returning one, so every demo runs end to end. `isDemo` is a plain

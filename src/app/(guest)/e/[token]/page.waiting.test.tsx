@@ -2,33 +2,34 @@ import { render } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
- * THE HOST CARD SAYS WHETHER SHE FOLLOWS THE HOST (crumbs-28, from `claims-wiring`). The follow moment's Follow started
- * on Follow for a guest who already follows the host, because the card the page hands the album held no follow state.
- * The page reads it beside `getHostCard`: one head count (`isFollowing`) for a signed-in guest, and none for anyone
- * signed out or for the host herself, who is never her own guest.
+ * HER WAITING UPLOADS ON AN EMPTY HELD ALBUM, KNOWN BEFORE THE FIRST PAINT (crumbs-43; ROADMAP, from `voice-wiring`:
+ * "a returning guest whose only uploads wait on an empty held album meets the empty state's 'Add the first photo'
+ * with her badge beside Invite"). The page asks `hasWaitingUploads` where it decides anything (an empty album that
+ * holds uploads for the host, open to hers, never the host's own) and hands `EventExperience` the answer as
+ * `waitingOnArrival`, so the album's one Add is the row's from the first frame. What is pinned is when it asks, with
+ * what, and what it hands on.
  *
- * Everything else the album page reads is stood in for: a found, open album this viewer is through the door of, at
- * full access. What is pinned is the card `EventExperience` is handed.
+ * Everything else the album page reads is stood in for, as `page.own-delete.test.tsx` does: a found, open album this
+ * viewer is through the door of, at full access.
  */
 vi.mock("server-only", () => ({}));
-// Her waiting uploads on an empty held album: the page's one read for it (crumbs-43), stood in for here.
-vi.mock("@/lib/guest/waiting-on-arrival.server", () => ({
-  hasWaitingUploads: async () => false,
-}));
+const hasWaitingUploads = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/guest/waiting-on-arrival.server", () => ({ hasWaitingUploads }));
 vi.mock("next/headers", () => ({
   headers: async () => new Headers({ "user-agent": "test" }),
   cookies: async () => ({ get: () => undefined }),
 }));
 vi.mock("next/server", () => ({ after: vi.fn() }));
 
-const EVENT = {
+const EVENT = vi.hoisted(() => ({
   id: "11111111-2222-4333-8444-555555555555",
   qr_token: "0123456789abcdef0123456789abcdef",
   name: "Maya's 30th",
   visibility: "open",
   accepting_uploads: true,
   host_display_name: "Maya",
-};
+  moderation_mode: "hold_for_approval",
+}));
 vi.mock("@/lib/events/closed-door.server", () => ({
   pageDoor: async () => ({
     event: EVENT,
@@ -60,30 +61,26 @@ vi.mock("@/components/shared/album-window-plan", () => ({
 }));
 vi.mock("@/lib/analytics/bots", () => ({ isLikelyBot: () => true }));
 vi.mock("@/lib/db/mutations/analytics", () => ({ recordLinkHit: vi.fn() }));
+const listAccountMediaIds = vi.fn();
+const listOwnerMediaIds = vi.fn();
 vi.mock("@/lib/db/mutations/guest-media", () => ({
-  listAccountMediaIds: async () => [],
-  listOwnerMediaIds: async () => [],
+  listAccountMediaIds: (...a: unknown[]) => listAccountMediaIds(...a),
+  listOwnerMediaIds: (...a: unknown[]) => listOwnerMediaIds(...a),
 }));
+const stats = vi.hoisted(() => ({ approvedTotal: 0, guestCount: 0 }));
 vi.mock("@/lib/db/queries/guest-events-admin", () => ({
-  getGalleryStats: async () => ({ approvedTotal: 3, guestCount: 2 }),
+  getGalleryStats: async () => stats,
   getHostAvatarSeed: async () => null,
   getOpenAlbumItemForCard: stub,
 }));
 vi.mock("@/lib/db/queries/profile", () => ({
-  getProfileMenu: async () => ({ displayName: "Priya" }),
+  getProfileMenu: async () => ({ displayName: "Maya" }),
 }));
-const HOST_CARD = {
-  id: "host-1",
-  slug: "maya",
-  displayName: "Maya",
-  avatarUrl: null,
-};
-const isFollowing = vi.fn();
 vi.mock("@/lib/db/queries/social", () => ({
   getEventGuestList: async () => [],
-  getHostCard: async () => HOST_CARD,
+  getHostCard: async () => null,
   getMyFollowing: async () => [],
-  isFollowing: (...a: unknown[]) => isFollowing(...a),
+  isFollowing: async () => false,
 }));
 vi.mock("@/lib/social/cards", () => ({
   splitGuestList: stub,
@@ -112,8 +109,9 @@ vi.mock("@/lib/guest/event-card", () => ({
   eventCardPath: stub,
   privateEventCardPath: stub,
 }));
+const TICKET = "t".repeat(64);
 vi.mock("@/lib/guest/session-cookie", () => ({
-  readGuestSessionCookie: async () => null,
+  readGuestSessionCookie: async () => TICKET,
 }));
 vi.mock("@/lib/media/share-save", () => ({
   PHOTO_PARAM: "photo",
@@ -135,45 +133,62 @@ vi.mock("@/lib/welcome", () => ({ needsDisplayName: () => false }));
 
 const { default: GuestEventPage } = await import("./page");
 
-async function hostCardHanded() {
+/** What the page hands the album for her waiting uploads. */
+async function handed() {
   seen.props = null;
   const page = await GuestEventPage({
     params: Promise.resolve({ token: EVENT.qr_token }),
   });
   render(<>{page}</>);
-  // Set by the render above, which the compiler cannot see through the reset.
   const props = seen.props as Record<string, unknown> | null;
-  return props?.hostCard as (typeof HOST_CARD & { following?: boolean }) | null;
+  return props?.waitingOnArrival;
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
-  user = { id: "guest-1", email_confirmed_at: "2026-09-01T00:00:00Z" };
+  user = null;
   isRequestOwner.mockResolvedValue(false);
-  isFollowing.mockResolvedValue(false);
+  listAccountMediaIds.mockResolvedValue([]);
+  listOwnerMediaIds.mockResolvedValue([]);
+  hasWaitingUploads.mockResolvedValue(true);
+  EVENT.moderation_mode = "hold_for_approval";
+  EVENT.accepting_uploads = true;
+  stats.approvedTotal = 0;
 });
 
-describe("the host card the album is handed", () => {
-  it("★ says a signed-in guest who follows the host already does, read beside the card", async () => {
-    isFollowing.mockResolvedValue(true);
-    const card = await hostCardHanded();
-    expect(card).toMatchObject({ id: "host-1", following: true });
-    expect(isFollowing).toHaveBeenCalledWith("host-1");
+describe("her waiting uploads on an empty held album", () => {
+  it("★ are asked of the server on an empty album that holds uploads, with the request's ticket, and handed on", async () => {
+    expect(await handed()).toBe(true);
+    expect(hasWaitingUploads).toHaveBeenCalledWith({
+      eventId: EVENT.id,
+      userId: null,
+      ticket: TICKET,
+    });
   });
 
-  it("says one who does not, does not", async () => {
-    expect(await hostCardHanded()).toMatchObject({ following: false });
+  it("a signed-in guest's account rides beside the ticket", async () => {
+    user = { id: "guest-1", email_confirmed_at: "2026-09-01T00:00:00Z" };
+    expect(await handed()).toBe(true);
+    expect(hasWaitingUploads).toHaveBeenCalledWith({
+      eventId: EVENT.id,
+      userId: "guest-1",
+      ticket: TICKET,
+    });
   });
 
-  it("asks nothing for a guest signed out, who follows nobody", async () => {
-    user = null;
-    expect(await hostCardHanded()).toMatchObject({ following: false });
-    expect(isFollowing).not.toHaveBeenCalled();
-  });
-
-  it("asks nothing for the host herself, never her own guest", async () => {
+  it("asks nothing where it decides nothing: an album with photographs, one that holds nothing, closed uploads, the host", async () => {
+    stats.approvedTotal = 3;
+    expect(await handed()).toBe(false);
+    stats.approvedTotal = 0;
+    EVENT.moderation_mode = "live";
+    expect(await handed()).toBe(false);
+    EVENT.moderation_mode = "hold_for_approval";
+    EVENT.accepting_uploads = false;
+    expect(await handed()).toBe(false);
+    EVENT.accepting_uploads = true;
+    user = { id: "host-1", email_confirmed_at: "2026-09-01T00:00:00Z" };
     isRequestOwner.mockResolvedValue(true);
-    expect(await hostCardHanded()).toMatchObject({ following: false });
-    expect(isFollowing).not.toHaveBeenCalled();
+    expect(await handed()).toBe(false);
+    expect(hasWaitingUploads).not.toHaveBeenCalled();
   });
 });
