@@ -1,23 +1,25 @@
-import { act, render } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { GridMedia } from "@/components/app/media-grid";
-import { GalleryRows } from "@/components/guest/gallery-rows";
+import { GalleryRows, type PendingTile } from "@/components/guest/gallery-rows";
 
 /**
  * THE GUEST ALBUM'S ROWS HOLD A LIVE ARRIVAL AT THE DOOR UNTIL IT CAN LAND COMPLETE (crumbs-23, build 26's
  * red-team: "A live pushed arrival still fades").
  *
  * The one grid (`MasonryColumns`) is a spy here: what is pinned is what the guest's wiring HANDS it, the
- * list it lays and the marks it writes. Until this lane the wiring passed the album through untouched, so
+ * list it lays, the marks it writes and the slot it opens the album with (the stack for a pick in
+ * flight, which the spy draws). Until this lane the wiring passed the album through untouched, so
  * an arrival was laid the moment the manifest brought it, before its link had been asked for, and its
  * photograph faded in a beat after the row had opened. The gate's own rules are `use-arrival-gate.test`'s.
  */
 const { gridSpy } = vi.hoisted(() => ({ gridSpy: vi.fn() }));
 vi.mock("@/components/shared/masonry", () => ({
-  MasonryColumns: (props: unknown) => {
+  MasonryColumns: (props: { prefix?: ReactNode }) => {
     gridSpy(props);
-    return <div data-testid="grid" />;
+    return <div data-testid="grid">{props.prefix}</div>;
   },
 }));
 
@@ -143,5 +145,77 @@ describe("GalleryRows: an arrival is laid when it can land complete", () => {
     );
     expect(laid()).toEqual(["c", "a", "b"]);
     expect(decodes).toHaveLength(0);
+  });
+});
+
+/**
+ * THE ALBUM'S HEAD: what a guest's own device puts there, and what it refuses to.
+ *
+ * FUNCTION ONLY. The stack's own drawing is `stack-tile.test.tsx`'s, and the grid under it is
+ * `masonry.test.tsx`'s. What is held here is the SEAM: the files in flight go in, and exactly one stack
+ * comes out.
+ *
+ * ★ EACH RULE BELOW STANDS AGAINST A FAILURE, WHICH IS WHY EACH IS WORTH A PIN: twelve files drawing twelve
+ * tiles, and a stack whose bar sits at zero while another file's bytes are going. A held upload hands the
+ * head nothing at all (a held photograph shows only in her uploads, the badge beside Add counting it): that
+ * rule is `live-gallery.test.tsx`'s.
+ */
+const pending = (
+  queueId: string,
+  status: PendingTile["status"],
+  progress = 0,
+): PendingTile => ({
+  queueId,
+  url: `blob:${queueId}`,
+  file: new File([new Uint8Array([1])], `${queueId}.jpg`, {
+    type: "image/jpeg",
+  }),
+  kind: "photo",
+  status,
+  progress,
+});
+
+const stacks = () => document.querySelectorAll("[data-upload-stack]");
+
+describe("GalleryRows: a pick in flight is ONE object at the album's head", () => {
+  it("collapses a batch into a single stack that counts what is left", () => {
+    render(
+      <GalleryRows
+        {...REST}
+        items={SEED}
+        pending={[
+          pending("1", "uploading", 30),
+          pending("2", "queued"),
+          pending("3", "queued"),
+        ]}
+      />,
+    );
+    expect(stacks()).toHaveLength(1);
+    expect(screen.getByText("3 to go")).toBeInTheDocument();
+  });
+
+  it("leads with the file actually in the air, not the first of the batch", () => {
+    // The queue runs one at a time, so the stack's photograph and its progress must be the one that is
+    // moving: otherwise the bar sits at zero while bytes are visibly going somewhere.
+    const { container } = render(
+      <GalleryRows
+        {...REST}
+        items={SEED}
+        pending={[
+          pending("1", "queued"),
+          pending("2", "uploading", 77),
+          pending("3", "queued"),
+        ]}
+      />,
+    );
+    const bar = container.querySelector(
+      "[data-pending-progress]",
+    ) as HTMLElement;
+    expect(bar.style.width).toBe("77%");
+  });
+
+  it("draws no stack when nothing is flying", () => {
+    render(<GalleryRows {...REST} items={SEED} pending={[]} />);
+    expect(stacks()).toHaveLength(0);
   });
 });

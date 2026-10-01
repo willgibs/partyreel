@@ -23,7 +23,6 @@ import type { ReviewEntry } from "@/lib/db/queries/reports";
 import { HealthBand } from "@/components/admin/health-band";
 import { QueueList } from "@/components/admin/queue-list";
 import { ClosedLine, ClosedLog } from "@/components/app/report-review";
-import { FilterChips } from "@/components/app/dashboard/filter-chips";
 import { StorageMeter } from "@/components/app/dashboard/storage-meter";
 import { MediaTile } from "@/components/app/media-grid";
 import { ReviewRoom } from "@/components/app/event-feed/review-room";
@@ -63,7 +62,6 @@ import { GIGABYTE, planById } from "@/lib/constants/tiers";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import type { StorageItem } from "@/lib/db/queries/storage-list";
 import { buildOperatorQueue } from "@/lib/admin/queue";
-import type { FilterValue } from "@/lib/dashboard/filters";
 import type { JobHealthReport } from "@/lib/jobs/health-summary";
 
 import { SAMPLE, SAMPLE_MEDIA } from "@/app/(dev)/design/reference/sample-data";
@@ -85,11 +83,6 @@ const SAMPLE_PENDING = [...SAMPLE_MEDIA, ...SAMPLE_MEDIA].map((m, i) => ({
  * supplies the frame, the label and the light-and-dark split, and the specimen
  * that mounts the demo carries its label and hint.
  */
-
-export function FilterChipsDemo() {
-  const [active, setActive] = useState<FilterValue>("all");
-  return <FilterChips active={active} onChange={setActive} trashCount={3} />;
-}
 
 export function QrPresetPickerDemo() {
   const [value, setValue] = useState<QrStyleKey>("classic");

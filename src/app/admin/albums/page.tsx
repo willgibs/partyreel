@@ -56,6 +56,7 @@ export default async function AdminAlbumsPage({
           <Link
             key={f}
             href={f === "all" ? "/admin/albums" : `/admin/albums?status=${f}`}
+            prefetch={false}
             className={cn(
               "rounded-md px-3 py-1.5 text-sm transition-colors",
               filter === f

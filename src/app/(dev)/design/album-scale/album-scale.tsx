@@ -77,7 +77,7 @@ const PENDING_FILE =
       });
 
 /**
- * THE GUEST'S DESK ROW, as `GuestMasonry` declares it: like, and save the
+ * THE GUEST'S DESK ROW, as `GalleryRows` declares it: like, and save the
  * original. Rendered under the likes context, as the album is.
  */
 function useGuestRow() {

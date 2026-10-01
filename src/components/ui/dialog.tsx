@@ -70,8 +70,9 @@ function DialogContent({
   // fullScreen = an edge-to-edge takeover (e.g. the host review surface): a flex
   // column that fills the viewport, entering on a fade + slight RISE (never the
   // centered zoom - a whole-screen zoom reads wrong). Still gets radix's focus
-  // trap, scroll-lock, and Escape for free. Pair with showCloseButton={false} +
-  // your own header close.
+  // trap, scroll lock and Escape: the lock is the Overlay's, so a takeover wears
+  // one that draws nothing (below). Pair with showCloseButton={false} + your own
+  // header close.
   fullScreen?: boolean
   /**
    * How wide it is, by what it says (the `dialog` shape's `data-size`). A
@@ -102,12 +103,24 @@ function DialogContent({
 
   return (
     <DialogPortal>
-      {/* fullScreen content is opaque + edge-to-edge, so an overlay behind it is
-          never seen - it would only burn a full-viewport backdrop-blur every frame
-          (costly on phones, the host's device) and peek at the edges during the
-          slide-out. Omit it there; radix's focus-trap / scroll-lock / dismiss live
-          on Content, not the Overlay. */}
-      {!fullScreen && <DialogOverlay />}
+      {/* ★ THE OVERLAY IS THE PAGE'S SCROLL LOCK, so a takeover keeps one. Radix
+          locks the page from the Overlay (its RemoveScroll, which also takes the
+          desk's scrollbar away), never from Content: a takeover with no Overlay
+          scrolled the page under it and kept a scrollbar strip beside its edge.
+          fullScreen content is opaque + edge-to-edge, so its overlay draws
+          nothing: no scrim, and no backdrop-blur, which would burn a
+          full-viewport blur every frame (costly on phones, the host's device)
+          and peek at the edges during the slide-out. It keeps the dialog's
+          animation classes, invisible on a transparent ground, so the lock holds
+          through the takeover's own exit instead of letting the page's
+          scrollbar back in a beat before the screen has left. */}
+      <DialogOverlay
+        className={
+          fullScreen
+            ? "bg-transparent supports-backdrop-filter:backdrop-blur-none"
+            : undefined
+        }
+      />
       <DialogPrimitive.Content
         ref={composedRef}
         data-slot="dialog-content"

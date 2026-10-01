@@ -3,14 +3,14 @@ import "server-only";
 import { createHash } from "node:crypto";
 
 /**
- * `profiles.id` -> the seed every avatar surface paints (the sixth batch,
- * `seed=account`). SHA-256, hex, SERVER-ONLY.
+ * `profiles.id` -> the seed every avatar surface paints. SHA-256, hex,
+ * SERVER-ONLY.
  *
  * ★ WHY A HASH, AND WHY EVERY SURFACE GOES THROUGH IT. A raw account id must
  * never reach a browser that does not already hold it — the guest "Hosted by"
  * byline paints the HOST's colour on a GUEST's screen, and `events.host_id` is
  * deliberately kept off that client today (docs/systems/auth-accounts.md,
- * `getHostAvatarUrl`; `/api/me/menu`'s own comment: "host_id never leaks to
+ * `getHostAvatarSeed`; `/api/me/menu`'s own comment: "host_id never leaks to
  * the client"). A one-way hash lets that surface paint the exact right colour
  * without handing over anything the raw id could be used for.
  *

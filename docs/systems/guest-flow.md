@@ -34,8 +34,6 @@ BOTH actions over a gradient scrim inside the safe area. It is `inert`, not unmo
 screen (so it travels in and out), and the page root reserves its height while it is MOUNTED, never only
 while visible, or the page would grow under a thumb. It carries exactly what the row carries and never
 replaces the row as a guest's first sight of Add: a dock alone sits where the eye reaches last.
-[`floating-add-button.tsx`](../../src/components/shared/floating-add-button.tsx) is residue only the
-Library's demo mounts.
 
 ★ **THERE IS NO SAVE, ANYWHERE.** Uploading to an event is what keeps it (the definition under "Invariants"), so
 nothing in this row, or on any other guest surface, saves an event. Keeping what a guest added is asked AFTER her
@@ -248,8 +246,7 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
   extra sentence for the host, and on YOUR OWN credit a "Confirm your email" opening the one confirm door). A row with
   no name renders no credit at all, never an invented stand-in: a row minted before names were asked (`create_guest`
   refuses a new one) and a verified row whose account has no profile name (a deleted account's surviving upload).
-  [`anonymous-info.tsx`](../../src/components/shared/anonymous-info.tsx) is residue only the Library gallery mounts. ★
-  The mark carries its OWN door rather than a prop, because the credit sits three modules deep under
+  ★ The mark carries its OWN door rather than a prop, because the credit sits three modules deep under
   `shared/masonry.tsx`; "is this mine" is the existing `canDelete` seam, never a second one. The neighbours PEEK at
   the edges and a tap on one steps to it; a tap on BLANK space closes (no side zones); a pull DOWN at fit closes;
   pinch, pan and double-tap zoom a photograph; a clip plays muted and looping and pauses when the viewer moves on; a

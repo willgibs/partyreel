@@ -13,10 +13,11 @@ import type { AlbumFillView, AlbumTile } from "./use-album-fill";
 
 /**
  * THE FILLING ALBUM'S GRID: explicit columns, newest at the top, older tiles
- * sliding DOWN as a new one lands. This is the real guest album's arrival
- * grammar (src/components/guest/guest-masonry.tsx), quoted: the green check on
- * the tile that just landed, the thin progress strip on an in-flight upload,
- * the small corner play badge on a video, the live count line above.
+ * sliding DOWN as a new one lands. This quotes the guest album's arrival
+ * grammar as a picture (the real marks are src/components/shared/album-tile.tsx
+ * and arrival.css): the green check on the tile that just landed, the thin
+ * progress strip on an in-flight upload, the small corner play badge on a
+ * video, the live count line above.
  *
  * ★ TWO ELEMENTS PER TILE, AND THE SPLIT IS LOAD-BEARING. The OUTER wrapper is
  * what useFlip registers and moves: it carries NO transform, transition or

@@ -62,10 +62,12 @@ The bible's "media is the colour" and "one token set" reach it only as far as th
 never a design variable.
 - **A surface needs its `NAV` entry** (`lib/admin/nav.ts`), or the rail, the breadcrumb and the palette cannot reach
   it; `nav.test.ts` fails on a page the nav cannot reach.
-- **The chrome's links never prefetch** (`prefetch={false}` on the rail, the dropdown, the bar's wordmark and chips;
-  `admin-chrome-prefetch.test.tsx`): `next/link` prefetches whatever paints, and each prefetch of a portal route is two
-  reads of Supabase's auth server (the proxy, then the layout's own `getUser()`), so thirteen rail links were about 30
-  `GET /auth/v1/user` a page view. A page's own `getUser()` is the boundary and is untouched.
+- **No link in the portal prefetches** (`prefetch={false}` on the rail, the dropdown, the bar's wordmark and chips,
+  rendered by `admin-chrome-prefetch.test.tsx`, and on every link a content component or a page draws, read from the
+  source of `components/admin` and `app/admin` by `admin-prefetch-policy.test.ts`): `next/link` prefetches whatever
+  paints, and each prefetch of a portal route is two reads of Supabase's auth server (the proxy, then the layout's own
+  `getUser()`), so thirteen rail links were about 30 `GET /auth/v1/user` a page view, and every row of a long inbox is
+  one more. A page's own `getUser()` is the boundary and is untouched.
 - **State colour comes from one map,** `lib/admin/tone.ts`, so a chip and the row under it cannot disagree.
 - **Every destructive act opens `destructive-sheet.tsx`,** which lists what the act touches; only a permanent act
   with something to identify asks you to type, and the server re-checks what was typed against the row. A confirm

@@ -169,6 +169,7 @@ function ModerationTile({
       {mode === "feed" && (
         <Link
           href={`/admin/albums/${item.eventId}`}
+          prefetch={false}
           className="absolute inset-x-0 bottom-0 z-10 truncate bg-gradient-to-t from-black/70 to-transparent px-2 pt-4 pb-1.5 text-left text-xs text-white/90 hover:text-white"
           title={`${item.eventName}${item.hostLabel ? ` · ${item.hostLabel}` : ""}`}
         >

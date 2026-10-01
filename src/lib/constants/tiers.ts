@@ -395,7 +395,7 @@ export function withinStorage(
  * accept an upload while `host_active_bytes + size <= v_cap + (v_cap / 10)`; this mirrors that SQL
  * so the nightly over-cap sweep engages at the SAME line it enforces at write time.
  *
- * ★ Keep the two in lockstep (QA #26): with the sweep at a bare `cap`, a host sitting legitimately
+ * ★ Keep the two in lockstep: with the sweep at a bare `cap`, a host sitting legitimately
  * inside the headroom (bytes the product just accepted) received "you're over your limit" emails
  * and, at grace expiry, auto-removals. Integer division mirrors plpgsql's `/` on bigint.
  */

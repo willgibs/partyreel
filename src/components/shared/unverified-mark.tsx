@@ -34,9 +34,9 @@ import { cn } from "@/lib/utils";
  * `lit` over a photograph (the glass disc, with the glyph's own halo, since no
  * pane can keep a white dot legible over a bright sky) and `paper` on a chip.
  *
- * ★ TAP TO OPEN, NOT HOVER. His word says tooltip; a Tooltip is hover/focus-only
- * and guests are on phones, so this is the `AnonymousInfo` precedent it replaces:
- * a Popover, which answers a pointer and a thumb with the same surface.
+ * ★ TAP TO OPEN, NOT HOVER. A Tooltip is hover/focus-only and guests are on
+ * phones, so this is a Popover, which answers a pointer and a thumb with the same
+ * surface.
  *
  * ★ IT CARRIES ITS OWN DOOR, which is what lets the mark appear anywhere without
  * the surface under it having to grow a prop. The album's deepest surface (the

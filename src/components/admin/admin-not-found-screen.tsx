@@ -23,8 +23,8 @@ import { Button } from "@/components/ui/button";
  * ANYONE who types a URL at admin.partyreel.com, signed out included, so this
  * screen asks the database nothing and renders no session state. It also mounts
  * no sign-out form, because there may be no session to sign out of. What is
- * left is the shape AdminShell's header keeps: the wordmark, the Ops badge, one
- * Container, minus the nav and the operator's row.
+ * left is the header's own identity, the wordmark and an Ops badge in one
+ * Container, with the nav, the crumb and the operator's row left out.
  *
  * ★ NOT admin/not-found.tsx. That one is a missing RECORD inside the portal,
  * already past requireAdmin() and MFA, and it renders inside the real shell.
@@ -41,11 +41,12 @@ export function AdminNotFoundScreen() {
         <Container className="flex h-14 items-center">
           <Link
             href="/admin"
+            prefetch={false}
             aria-label="Partyreel operations"
             className="flex items-center gap-2"
           >
             <Logo />
-            <span className="rounded-md bg-foreground px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-background uppercase">
+            <span className="rounded-md bg-foreground px-1.5 py-0.5 text-micro font-semibold tracking-wide text-background uppercase">
               Ops
             </span>
           </Link>
@@ -58,7 +59,9 @@ export function AdminNotFoundScreen() {
           description="This host only serves the operations portal. If you followed a link here, it was meant for the marketing site or the app instead."
           actions={
             <Button asChild size="cta">
-              <Link href="/admin">Back to overview</Link>
+              <Link href="/admin" prefetch={false}>
+                Back to overview
+              </Link>
             </Button>
           }
         />

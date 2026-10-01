@@ -56,8 +56,28 @@ export const TYPE_STEPS = [
  */
 export const RADIUS_TOKENS = ["action", "action-sm", "tile", "float"] as const;
 
+/**
+ * ★ THE SHADOW TOKENS, THE SAME TRAP A THIRD TIME. tailwind-merge's shadow group
+ * knows only Tailwind's own size names, so an unknown `shadow-*` is filed under
+ * shadow COLOUR, which sits beside a size instead of replacing it:
+ * `cn("shadow-layer", "shadow-none")` kept both and the stylesheet's alphabet
+ * picked the winner, and a stock `shadow-md` a generator writes onto a component
+ * beat the elevation token the same way. Declared, the last class wins, and a
+ * real shadow colour still sits beside either (`shadow-layer shadow-red-500`).
+ * The names are exactly the self-mapped `--shadow-*` tokens theme.css declares
+ * (the elevation contract's two utilities); the parity is pinned by
+ * src/lib/type-ladder-policy.test.ts beside the other two.
+ */
+export const SHADOW_TOKENS = ["lift", "layer"] as const;
+
 const twMerge = extendTailwindMerge({
-  extend: { theme: { text: [...TYPE_STEPS], radius: [...RADIUS_TOKENS] } },
+  extend: {
+    theme: {
+      text: [...TYPE_STEPS],
+      radius: [...RADIUS_TOKENS],
+      shadow: [...SHADOW_TOKENS],
+    },
+  },
 });
 
 export function cn(...inputs: ClassValue[]) {
