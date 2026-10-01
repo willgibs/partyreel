@@ -130,7 +130,7 @@ it rather than fork it.
   shows); the host's album and Review take every confirmed sender's face for the host's look. Faces are read by
   account after the attribution read, fail open to the plain disc, ride the link's who tuple, and move with the
   link's re-mint, which an open album asks at once whenever the attribution version moves: on a name, a face
-  (`avatar_updated_at`) or a handle (`slug`; `profiles_album_note`, 20261001233100); the teaser and the personal
+  (`avatar_updated_at`) or a handle (`slug`; `profiles_album_note`, 20261001233110); the teaser and the personal
   feeds carry none.
 - **Tile previews are made in the browser at upload** (a ~640px WebP: a resize for photos, a frame-grab for videos)
   and PUT as the reserved `preview` variant: $0 and predictable, with no transform fee to meter against a

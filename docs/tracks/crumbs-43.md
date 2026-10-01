@@ -20,7 +20,7 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/app/(guest)/e/[token]/page
   - src/app/(guest)/e/[token]/card/card.test.tsx
   - supabase/migrations/20261001233000_guest_event_cap.sql
-  - supabase/migrations/20261001233100_faces_move_attribution.sql
+  - supabase/migrations/20261001233110_faces_move_attribution.sql
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/guest-flow.md
   - docs/systems/profiles-social.md
@@ -159,14 +159,14 @@ Each is built as recommended; each is Will's to overrule.
   - One row for a re-join: the flip keeps a name-only ticket (`use-upload-queue.ts`); no device id read anywhere.
   - The host's cap: `get_event_by_qr_token` returns `max_upload_bytes` last (migration 233000), read by `hostCapOf`, handed
     to the Add sheet and the door's upload step, never the owner's.
-  - A face moves at once: `profiles_album_note` and its stamp watch `avatar_updated_at` and `slug` (migration 233100).
+  - A face moves at once: `profiles_album_note` and its stamp watch `avatar_updated_at` and `slug` (migration 233110).
   - Show-more hearts: an id joining `initialLikedIds` is liked before paint (`likes-provider.tsx`).
   - Her waiting uploads: `hasWaitingUploads` (server, the page, empty held albums only) → `waitingOnArrival` → `galleryEmpty`.
   - "A guest" retired: the typed-name entry's `displayName` is `string` (the server's shape), no stand-in in chip or look.
   - The viewer's loading state: a ring on the photograph's corner while the original comes (after 600 ms; load or error
     ends it; quiet while flying, pulled or zoomed); a clip's ring in its play button while it buffers (after 500 ms).
 - **The rolled-back proofs, on the live schema, red first** (results at each file's foot, nothing persisted, checked
-  after): 233000 red 0/1/4 fail, green 5/5 (the body hashes `024a2e476715c354436de3fa5708f30f`); 233100 red 0/1/2/5 fail,
+  after): 233000 red 0/1/4 fail, green 5/5 (the body hashes `024a2e476715c354436de3fa5708f30f`); 233110 red 0/1/2/5 fail,
   green 6/6 (a new face moves `attr_version` 2 -> 3).
 - **Local, on `:3133` in headless Chrome** (scripts and captures in `_scratch/crumbs-43/`, never the repo): the demo
   album and a signed-out guest album (`Reel lane probe (disposable)`, joined each run: six name-only rows, "C43 Probe
@@ -188,7 +188,7 @@ Each is built as recommended; each is Will's to overrule.
      her once, confirmed.
   4. After 233000: a test event with a 100 MB cap: a guest's Add sheet and the door's upload step say "up to 100 MB
      each"; the host on her own guest page still reads 10 GB.
-  5. After 233100: a confirmed guest with an upload changes her photograph or handle; an open album elsewhere shows the
+  5. After 233110: a confirmed guest with an upload changes her photograph or handle; an open album elsewhere shows the
      new face and door on the photograph's credit at its next poll, no reload.
   6. willg97 with more than 200 likes (bulk-like the scale probe from the hub's select mode): Likes, Show more, open a
      photograph from the new page: its heart is filled at once.
@@ -209,7 +209,7 @@ Each is built as recommended; each is Will's to overrule.
 - **Proposed migrations / Worker / Vercel / Stripe / env changes:** two migrations, independent, either order, each
   safe before or after the build that reads it: `20261001233000_guest_event_cap.sql` (drift check: live
   `get_event_by_qr_token` md5 `7ddab5f2a4e84c7cf788a35e2c5a7f43`; advisors: no delta; then regenerate `types.ts` and
-  drop `hostCapOf` for `row.max_upload_bytes ?? null`) and `20261001233100_faces_move_attribution.sql` (before: the two
+  drop `hostCapOf` for `row.max_upload_bytes ?? null`) and `20261001233110_faces_move_attribution.sql` (before: the two
   profiles triggers on `display_name` alone; advisors: no delta; no types). Nothing else.
 - **Calls his to overrule:** the welcome goes with the tickets (the name step's own put-down keeps it) · the flip keeps
   the name-only ticket, neither device-id option · Back on every album the grid lays, with the drop on the phone's Back ·

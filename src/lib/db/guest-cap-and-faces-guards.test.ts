@@ -8,7 +8,7 @@
  *      with `max_upload_bytes bigint` after every column the deployed build reads, its select carries the event's
  *      own column there, and the drop and create restates the whole ACL (PUBLIC revoked by name; anon,
  *      authenticated and service_role granted: one of the accepted 0028 anon reads, database-security.md).
- *   2. A face moves at once (20261001233100): the winning `profiles_album_note` and `profiles_album_stamp` watch
+ *   2. A face moves at once (20261001233110): the winning `profiles_album_note` and `profiles_album_stamp` watch
  *      `display_name`, `avatar_updated_at` and `slug`, fire on any of the three that is DISTINCT, and nothing else;
  *      the note stays a plain trigger and the stamp a DEFERRABLE INITIALLY DEFERRED constraint trigger (the album
  *      row is every transaction's last lock), each dropped before it is created again.
@@ -99,7 +99,7 @@ describe("the host's own cap on the album's read (20261001233000)", () => {
   });
 });
 
-describe("a face moves at once (20261001233100)", () => {
+describe("a face moves at once (20261001233110)", () => {
   const WATCHED =
     "after update of display_name, avatar_updated_at, slug on public.profiles";
   const WHEN =
@@ -109,7 +109,7 @@ describe("a face moves at once (20261001233100)", () => {
     const { file, text } = latest(
       /create (?:constraint )?trigger profiles_album_note [^;]*;/g,
     );
-    expect(file).toBe("20261001233100_faces_move_attribution.sql");
+    expect(file).toBe("20261001233110_faces_move_attribution.sql");
     expect(text).toBe(
       `create trigger profiles_album_note ${WATCHED} for each row ${WHEN} execute function public.album_note_profile();`,
     );
@@ -119,7 +119,7 @@ describe("a face moves at once (20261001233100)", () => {
     const { file, text } = latest(
       /create (?:constraint )?trigger profiles_album_stamp [^;]*;/g,
     );
-    expect(file).toBe("20261001233100_faces_move_attribution.sql");
+    expect(file).toBe("20261001233110_faces_move_attribution.sql");
     expect(text).toBe(
       `create constraint trigger profiles_album_stamp ${WATCHED} deferrable initially deferred for each row ${WHEN} execute function public.album_flush_trigger();`,
     );
@@ -127,7 +127,7 @@ describe("a face moves at once (20261001233100)", () => {
 
   it("each is dropped before it is created again, and the functions are not touched", () => {
     const sql = SQL.find(
-      (m) => m.file === "20261001233100_faces_move_attribution.sql",
+      (m) => m.file === "20261001233110_faces_move_attribution.sql",
     )!.sql;
     for (const name of ["profiles_album_note", "profiles_album_stamp"]) {
       const dropped = sql.indexOf(`drop trigger ${name} on public.profiles;`);
