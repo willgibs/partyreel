@@ -14,7 +14,6 @@ reads:                  # single-sources you depend on: never duplicate, never e
   - docs/systems/uploads-and-r2.md
   - docs/systems/admin-observability.md
   - docs/systems/database-security.md
-  - workers/export/README.md
 ---
 
 # lp/export-ends
