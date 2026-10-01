@@ -4,16 +4,22 @@ status: open            # open -> handed-off; deleted in the merge commit that i
 cut: "07277c23"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
-  - src/components/shared/media-lightbox.tsx
-  - src/components/shared/media-lightbox-parts/
-  - src/lib/history-entry.ts
+  - src/components/shared/media-lightbox
+  - src/components/shared/masonry
+  - src/lib/history-entry
   - src/components/ui/popup-back.ts
   - src/lib/guest/
   - src/components/guest/
   - src/components/likes/
-  - src/components/social/guest-list.tsx
+  - src/components/social/guest-list
+  - src/components/social/guest-peek
   - src/lib/db/queries/guest-events.ts
+  - src/lib/db/queries/guest-events.test.ts
+  - src/lib/db/guest-cap-and-faces-guards.test.ts
   - src/lib/upload/device-id.ts
+  - src/app/(guest)/e/[token]/page.tsx
+  - supabase/migrations/20261001233000_guest_event_cap.sql
+  - supabase/migrations/20261001233100_faces_move_attribution.sql
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/guest-flow.md
   - docs/systems/profiles-social.md
