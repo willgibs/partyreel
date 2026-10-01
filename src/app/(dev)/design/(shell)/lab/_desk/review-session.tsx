@@ -420,6 +420,10 @@ export function ReviewSession({
               placeholder="Optional. Anything about the lab, the rounds or every board, rather than one."
               className="mt-1 w-full resize-y rounded-lg border border-border bg-background px-3 py-2 text-sm transition-colors duration-150 outline-none placeholder:text-muted-foreground/70 focus:border-foreground/40"
             />
+            <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">
+              It rides the message as its own line, recorded on no board: the
+              Orchestrator folds it into the doc it refines.
+            </span>
           </label>
 
           <div className="mt-6 flex flex-wrap items-center gap-2 border-t border-border pt-4">

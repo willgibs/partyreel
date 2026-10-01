@@ -797,7 +797,7 @@ function Spine({
 function Unknown({ boardId, name }: { boardId: string; name: string }) {
   const key = useDesignKey();
   return (
-    <div data-review-step className="lab-step pt-6">
+    <div data-lab-unknown-step="" className="lab-step pt-6">
       <p className="text-sm">
         This board asks no question called &ldquo;{name}&rdquo; this round.
       </p>

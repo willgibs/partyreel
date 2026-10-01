@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   useSyncExternalStore,
@@ -465,8 +466,9 @@ export function Frame({
   // `claims-r3`'s line): it was copied once per load, so the lab's theme
   // toggle left every open frame in the old theme until a reload. It is
   // written whenever the parent's class changes, on the frame's <html> and on
-  // the scene's own ground below.
-  useEffect(() => {
+  // the scene's own ground below, before the frame paints (a layer portalled
+  // to the frame's body reads the faces and the theme from its <html>).
+  useLayoutEffect(() => {
     if (!doc) return;
     try {
       doc.documentElement.setAttribute("class", themeClass);
