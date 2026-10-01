@@ -526,6 +526,50 @@ describe("the ticket is read per file, never once per run", () => {
   });
 });
 
+/*
+ * ★ ONE ROW FOR A RE-JOIN (crumbs-43; ROADMAP: "a name-only guest whose session drops re-joins on the same device as a
+ * second guest row with the same name, so the guest list shows one person twice"). The drop was the flip's: a host
+ * turning An email first on mid-run put a name-only guest's ticket down, so her next Add after the host turned it off
+ * again joined afresh under the same name (a second row), and a confirmation in between had no ticket left to claim.
+ * The ticket stays now; the switch is asked again at every upload.
+ */
+describe("a name-only guest through the flip", () => {
+  it("★ keeps her ticket: the files fail in place, and once the switch is off her next Add rides the SAME row", async () => {
+    answer({});
+    mockUploadFile
+      .mockResolvedValueOnce({
+        ok: false,
+        code: "verification_required",
+        message: "Confirm your email to add photos to this event.",
+      })
+      .mockResolvedValueOnce(landed("med-1"));
+    const q = mountQueue({ sessionToken: STALE, isVerified: false });
+
+    act(() => q.result.current.addFiles([makeFile("a.jpg")]));
+    await waitFor(() =>
+      expect(q.items()).toEqual([
+        expect.objectContaining({
+          status: "error",
+          errorCode: "verification_required",
+        }),
+      ]),
+    );
+    expect(q.onSession).not.toHaveBeenCalled();
+    expect(q.onVerificationRequired).toHaveBeenCalledWith(
+      "Confirm your email to add photos to this event.",
+      true,
+    );
+
+    // The host turns it off again; she adds another.
+    act(() => q.result.current.addFiles([makeFile("b.jpg")]));
+    await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(1));
+    expect(sentOn(1)).toBe(STALE);
+    // No join, so no second row under her name: the queue called nothing but the upload.
+    expect(fetchUrls()).toEqual([]);
+    expect(q.onSession).not.toHaveBeenCalled();
+  });
+});
+
 describe("the clip's seam (addClipToAlbum)", () => {
   it("sends a clip through the ordinary queue, not reel-eligible, with its poster as the preview", async () => {
     mockUploadFile.mockResolvedValue({
