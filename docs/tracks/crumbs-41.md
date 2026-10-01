@@ -1,6 +1,6 @@
 ---
 track: crumbs-41
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "07277c23"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -140,13 +140,97 @@ Each is built as recommended and listed under Calls as his to overrule.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+Scratch artifacts are in `../partyreel-wt/_scratch/crumbs-41/` (the gate's logs, the proofs, the stand-in's plans).
+
+- **Commits**, 14 on `lp/crumbs-41`, pushed; the work's head is `0229bb9c`, this record on top. launch-prep moved
+  after the cut (`a21f6d0b`, `452059ad`, `eb38b6be`, `f6d72a9d`, `11653a5e`: records, build 36, the types
+  regenerated and three typed seams dropped in `queries/my-*.ts`, `mutations/guest-media.ts`, `sweeps/album-log.ts`),
+  touching none of this lane's reads or paths and conflicting with none: no sync (PROGRAM.md, Sync).
+- **Gates at `0229bb9c`**, each on its own exit code: `pnpm typecheck` 0; `pnpm lint` 0; `pnpm test` 0 (699 files,
+  8,387 tests); `zsh scripts/build-lock.sh pnpm build` 0; `pnpm lab:smoke --base http://localhost:3131` 0 (154
+  checks, 0 failing; `/design/lab/tools/boom` answers its deliberate 500). Logs `gate-*.log`, `lab-smoke.log`. No
+  board, so no `lab:demo`.
+- **Red on today's code:** this lane's tests over origin/launch-prep's source fail 48, every item at least once
+  (`red-on-base.log`); each migration guard fails with its file removed (`strike-lapse-guards.test.ts`,
+  `deleted-events-index-guards.test.ts`).
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` is 45 paths, every one under `owns`, this file, or a
+  System-doc edit listed above (checked by script against the frontmatter); no exceptions.
+- **PREMISE lines** (lab:smoke): about-press (its asks describe `constants/about.ts`) still holds: its asks are where
+  the press kit lives and which facts join it, and its drawings render production's About, so they draw the one
+  changed conviction body as shipped. disposable-mode (its asks describe `billing-caps.md`) still holds: they read the
+  cap model and the meters, and this lane only added the webhook's successor fact.
+
+The items:
+- **#60** (`22770b36`): a child-abuse dismissal that is a strike reopens for as long as the strike counts, every other
+  dismissal (one that kept no address included) for the 30 days, never less (`dismissalReopens`); the reopen's write
+  carries the same rule as an `or()` (`reopenGuard`) and asks the rule's own lapse (`readStrikeLapse`) only for a strike
+  past 30 days; a lapsed strike's reopen is refused in words. The closed line keeps "Undo takes it back." for a live
+  strike's whole life, the lede says the window, and the Library's 60-day strike line now shows its Undo (localhost,
+  1440 and 375).
+- **Two live subscriptions** (`53e8ccc7`, `726c2f0a`): a downgrade that would apply reads the customer's subscriptions
+  once and grants from the live one that stores the most (`successorSubscription`); a re-pointing grant and a successor
+  beside others still live each warn; a failed read is a 500. A deletion cancels every not-ended subscription of the
+  customer (`cancelSubscriptionsForDeletion`), any failure blocking it. Proved on the webhook's fixtures and
+  `account-cancel.test.ts`; this lane made no Stripe call (no Stripe MCP used).
+- **The strike's lapse as a duration** (`22770b36`): `report_strikes` answers `lapse_seconds` (20261001233100); the
+  closed line reads it (`StrikeRule.lapseMs`) and `strikeLapseMs` is gone. Live proof red ("FAIL 1: the answer carries
+  no lapse_seconds"), then green ("ROLLED BACK: every strike-lapse check held {addresses 2, lapse_seconds 15552000,
+  lapses_measured 5}").
+- **The drill-in's status filter** (`d0c63247`): `?status=` in the feed's words, each paging 500 on the same keyset
+  with the filter kept; All is every status; no link prefetches.
+- **The person report's handle** (`354eddff`): the site's absolute `/u/<slug>`, in a new tab.
+- **`reviewed`** (`60114ffb`): the verdict is the review (nothing writes `reviewed`, pinned); the privacy FAQ, the privacy
+  page's report card and /about's conviction drop "before anything comes down" for the instant hide's exception.
+- **Four-digit ticks** (`0b4ee4cf`, `2ab27d11`): the line was half stale (`a99390dd` had sized the axis from the data);
+  measured on localhost before, `1.5K` at -1.4 px and `2.3K` at -3.8 px past the chart's edge (`100K` 0.3 px inside);
+  after `width="auto"` with 4 px of margin, every tick at least 4.2 px inside at 1440 and 375 (`ticks-before.txt`). A
+  Library specimen draws both charts past 1,000 (`admin-metrics-charts`).
+- **Soft-deleted events by index** (`a337518a`): `events_deleted_idx (id) include (purge_at, deleted_at)`
+  (20261001233200); on a 1,000,000-event stand-in every expired-events read went from a full scan (21-22 ms) to
+  index-only (0.2-0.7 ms) and standby_hosts' deleted half to index-only (`plans-*.txt`). Live proof red (FAIL 1), then
+  green ("ROLLED BACK: every deleted-events-index check held {deleted_events 49, expired 0}"); `pg_indexes` read after
+  shows no `events_deleted_idx`, so nothing persisted.
+
+- **Assets requested from Will:** none.
+- **Board ideas:** none.
+- **Proposed migrations** (the Orchestrator applies; each header carries its protocol and its rolled-back check):
+  - `20261001233100_strike_lapse_duration.sql`: either order is safe, but apply it before or with the deploy: until it
+    stands, a closed line says nothing of a strike and every dismissal reopens for 30 days. Drift: report_strikes'
+    collapsed md5 `2dd870660580e662101298b550f0502f` (read 2026-10-01). This session's permission classifier refused
+    my read of that hash after the green proof, so the apply's step (1) is the first read to confirm nothing persisted
+    (the same rolled-back call left no index behind for the other file, read after).
+  - `20261001233200_deleted_events_index.sql`: either order; `create index` takes SHARE on events for an instant
+    (49 deleted rows live).
+  - No Worker, Vercel, Stripe or env changes.
+- **Calls his to overrule:**
+  - #60: a child-abuse dismissal that kept no address (never a strike) keeps the 30 days; a strike's window never
+    shortens them.
+  - Two live subscriptions: the profile follows the live plan that stores the most, the newest on a tie; a failed Stripe
+    read is a retry, never Free.
+  - A deletion cancels every not-ended subscription, an incomplete one included.
+  - `reviewed` stays an unused enum value: the verdict is the review.
+  - The words: the privacy FAQ "...and every report is reviewed. Review comes before removal, with one exception: a
+    report of child abuse from a confirmed email hides the photo or video at once, until it's reviewed..."; the privacy
+    card "Each one is reviewed, and only a report of child abuse can hide anything before its review."; /about "Every
+    report is reviewed, and only a child-abuse report can hide anything first. A host can remove anything instantly."
+  - The drill-in's All is every status, removed included, and its filter takes the feed's Approved too.
+  - The axes size themselves (`width="auto"`) with 4 px of slack, and the Library gained the charts' specimen.
+  - The index carries `purge_at` and `deleted_at`, beyond the ROADMAP's bare `(id)`.
+  - The handle opens in a new tab.
+- **The next build's red-team** (the portal cannot sign in on localhost), on disposable data:
+  - After 20261001233100: stage a dismissed child-abuse report with a kept `reporter_hash` and `resolved_at` 40 days
+    back; on `/admin/reports?status=dismissed` its line reads "A strike on its address until <resolved_at + 180 days>
+    UTC; ... Undo takes it back." with an Undo; press it: the report reopens (its item hides again if the dismissal had
+    put it back). The same at 181 days: no Undo, "Its strike lapsed ..."; a no-address one at 31 days: no Undo.
+  - `/admin/albums/<an album with removed items>`: the Album status row (All, Pending, Approved, Hidden, Removed); Removed
+    draws only removed items; Older keeps `?status=`; the network panel shows no prefetch.
+  - The People arm: a reported person's @handle opens `<app host>/u/<slug>` in a new tab, never the admin 404.
+  - `/admin/metrics`: every tick whole (the Library's `admin-metrics-charts` covers past 1,000).
+  - Will's card, once: a disposable host pays Pro in two Checkout tabs (4242), and Sentry shows
+    `stripe_grant_repointed_subscription`; cancel the followed subscription immediately in Stripe TEST and
+    `profiles.tier` stays `pro` on the other (`stripe_subscription_id`); delete that account and Stripe lists none of
+    its subscriptions still billing.
+  - After 20261001233200: the next purge run's `expired_events` and `standby_budget` cards stay green on
+    `/admin/jobs`.
+- **Look at first:** the three marketing lines (his voice, the instant hide's exception said aloud), then #60's
+  no-address call.
