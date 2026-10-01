@@ -5,12 +5,33 @@ cut: "07277c23"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   - src/lib/admin/reports.ts
+  - src/lib/admin/reports.test.ts
   - src/app/admin/reports/
+  - src/components/app/report-review.tsx
   - src/app/admin/albums/[eventId]/
+  - src/lib/db/queries/moderation.ts
+  - src/lib/db/queries/moderation.test.ts
+  - src/lib/moderation/album-pages.ts
+  - src/lib/moderation/album-pages.test.ts
   - src/components/admin/metrics-charts.tsx
+  - src/lib/format/count.ts
+  - src/lib/format/count.test.ts
+  - src/app/(dev)/design/(shell)/library/compositions/composition-demos.tsx
+  - src/app/(dev)/design/(shell)/library/compositions/gallery-demos.tsx
   - src/lib/db/queries/reports.ts
+  - src/lib/db/queries/reports.test.ts
   - src/app/api/stripe/webhook/
   - src/lib/stripe/
+  - src/lib/db/mutations/account.ts
+  - src/lib/db/mutations/account.test.ts
+  - src/lib/lifecycle/account-deletion.test.ts
+  - src/components/marketing/sections/features/privacy/privacy-faq.ts
+  - src/components/marketing/sections/features/privacy/report-review.tsx
+  - src/lib/constants/about.ts
+  - supabase/migrations/20261001233100_strike_lapse_duration.sql
+  - supabase/migrations/20261001233200_deleted_events_index.sql
+  - src/lib/reports/strike-lapse-guards.test.ts
+  - src/lib/lifecycle/deleted-events-index-guards.test.ts
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/trust-safety-forensics.md
   - docs/systems/admin-observability.md
@@ -59,7 +80,37 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each is built as recommended and listed under Calls as his to overrule.
+
+- **#60: does a child-abuse dismissal that kept no address (never a strike) reopen for 180 days too?** Recommended: no,
+  30 like every other dismissal. His words tie the window to the strike ("for as long as its strike counts"), and the
+  slip #60 closes is a strike on a well-meaning reporter's address that nothing could take back after day 30; a
+  dismissal with no strike has nothing to take back, and its item, if still up, is taken down and held from Albums and
+  Forensics (the runbook's path for an item no report names). The strike's window never shortens a reopen below 30
+  days, whatever the lapse becomes.
+- **Two live subscriptions: when the followed one ends and several others are live, which does the profile follow?**
+  Recommended: the one whose plan stores the most (never less room than a plan she still pays for), the newest on a
+  tie, with the operator warned that the rest still bill. When the one Stripe read fails, the delivery fails (500) and
+  Stripe retries, never a Free guess (billing-caps.md: a paid but unprovisioned host is a 5xx, never a silent 200).
+- **Account deletion: which subscriptions does it cancel?** Recommended: every one of its customer's that has not
+  ended, immediately: active, trialing, past_due, unpaid, paused and incomplete (an incomplete one can still be paid for
+  23 hours). Any failure still blocks the deletion.
+- **`reviewed`: does a verdict write it, or does the promise change?** Recommended: neither as worded; the verdict IS
+  the review. Dismissed and Actioned each record who decided and when, an open report keeps its item and its album
+  until one lands, so "every report is reviewed" (actor-free, as the neutralization doctrine wants) is true of every
+  report. `reviewed` stays an unused enum value, documented as such (dropping one rebuilds the type: billing's
+  `tier_type` `max` precedent), never a fourth inbox word. What does change is the clause that overclaims: "reviewed
+  before anything comes down" has been false since the instant hide (a child-abuse report from a confirmed email hides
+  its item at once, pending review), so the three marketing lines saying it take the help center's own exception;
+  the legal lines saying the same are named in the Handoff for the pre-launch rewrite.
+- **The drill-in's filter words.** The drill-in's All is every status (removed included, as today), where the feed's
+  first tab is Active (everything not removed). Recommended: All, then the feed's own four (Pending, Approved, Hidden,
+  Removed) in its words; the ROADMAP line named three, and Approved costs nothing and matches the feed.
+- **Four-digit ticks: the line is half stale.** `a99390dd` already replaced the fixed 28px with an estimate from the
+  data's compact labels, but the axis draws its own rounded ticks (`[3000, 12, 1]` ticks 0, 750, 1.5K, 2.3K, 3K in an
+  axis sized for "3K"). Recommended: recharts 3 sizes each YAxis from the labels it actually drew (`width="auto"`),
+  the estimate (`compactAxisWidth`) retires, and a Library specimen draws both charts past 1,000, the only place they
+  can be seen without the portal's sign-in.
 
 ## System-doc edits (in place, owned facts only)
 
