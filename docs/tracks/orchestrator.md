@@ -89,34 +89,24 @@ but lab:demo's `about-press.facts` dev stall, ROADMAP's line), crumbs-31 (`5898b
 
 ## Next, in order
 
-1. **Build 36** (build 35 plus crumbs-36 to crumbs-40, the four migrations applied and the types regenerated at
-   `f6d72a9d`, gate 119 green): the `[preview]` record, `alias-ensure`, the prune: ON THE ALIAS since 2026-10-01 19:00Z (`eb38b6be`), both READY. The desk is the same six boards (only `words.test.ts` moved in the lab since build 35)
-   and his answers live in his browser's localStorage, so the deploy waits for no sitting. Then its red-team, an agent
-   on Claude in Chrome, from `../partyreel-wt/_scratch/redteam-36/brief.md`, written fresh from crumbs-36 to
-   crumbs-40's Handoff steps on `redteam-35/brief.md`'s template; strikes going in: willg97's address 2, partyr33l's 7.
-   Next: crumbs-45 hands off, merges (the only merge before the milestone), build 37, its three fixes proven on the alias.
-   **Milestone 32: Will said yes** (2026-10-01, "Ship after the red-team (Recommended)"): batch 9 ships once build 36,
-   or its fix build, passes, any MEDIUM or worse fixed and proven on the alias first; then the full gate, merge, tag,
-   deploy and the read-only prod walk with no further ask. Until it ships only the red-team's fixes merge; any other
-   lane that hands off waits, as crumbs-28 waited for milestone 31.
-2. **Seats as they free** (at most four lanes; `memory_pressure` before each), claimed in this order: the red-team's
-   fixes (milestone-blocking), the wiring of his desk picks, the ROADMAP's app work (his note: app work first), the
-   lab. Three app lanes from the Now bucket run now (admin, data and billing, led by #60's reopen window; the host
-   app; guests), the fourth seat held for the red-team's fixes. After his desk picks: the demo event (below); about-press's wiring (its three wiring calls,
-   `git show 3ded6ba9^2:docs/tracks/about-press.md`: /press a temporary redirect, the llms summary kept, the kit's files
-   if none wins); the disposable wiring (after `disposable-mode` r2's picks and his Measure a phone; with the lane's
-   idea of the premiere on the wall, the reel's screen counting down to the develop time and playing the roll as an
-   event of its own); the door family's wiring (if the doorway wins, its reveal: walking through the opened door into
-   the album, drawn first as motion options; ASSETS row 36 if the host's door wins).
-2b. **`/me`** (Will's answer A to crumbs-44's question, 2026-10-01; its ROADMAP Profile line): cut after crumbs-44 merges, with the post-milestone follow-ups.
-3. **The demo event**, after his `demo-framing` r2 picks (his full permission, 2026-09-29): the demo renamed (or made)
-   to its pick, its address claimed so the card's printed address opens it (today `mia-and-theo`, held by no event,
-   left as is on his word), one home for the slug in `lib/demo.ts` that the card prints, the seed sets and every demo
-   door opens (today all five doors and `/demo` open the token's address, since demo mode matches on the raw token),
-   `OBJECT_EVENT` and `OBJECT_PRINTS` to match, the typed addresses reserved to the demo, a demo host account for the
-   persona (`partyreel-demo` stays refused to anyone else by the brand family, `crumbs-11`), and ASSETS rows 5, 33 and
-   34 unparked with the party's subjects (the board's Handoff names the counts).
-4. **Google's chooser** names `ddafaemglzmuekbtjwzn.supabase.co` (ROADMAP's launch checkpoint, his call).
+Will (2026-10-01): finish the round, then tell him when the alias is ready for his sitting; he answers the desk once, on
+settled production, so the round stops re-adapting standing asks, and new boards open from his picks. Build 37 may go to
+the alias mid-sitting (his yes). No new lane until his paste lands.
+
+1. **Milestone 32.** crumbs-45 hands off and merges (the only merge before it); build 37 on the alias and its three
+   fixes proven there (the first-page Delete holds, the reel card's Add lands, the owner's own credit); then, on Will's
+   yes (2026-10-01, "Ship after the red-team"), the full gate, the merge to `main`, the tag, production READY and a
+   read-only prod walk from a brief like `prod-m31`'s, then `launch-prep` fast-forwarded.
+2. **The waiting lanes merge**, one at a time, each by the runbook, each migration by protocol: crumbs-41 (two
+   migrations), crumbs-42, crumbs-43 (two; its head `b9181f7c`), crumbs-44, strip-gaps, export-ends (one migration,
+   then the Worker's deploy, `wrangler whoami` first), then lab-sitting and mkt-polish as they hand off; the types
+   regenerated after each migration's lane, its typed seams dropped; each merge's calls into the calls file, re-sent.
+3. **Build 38** on the alias, its red-team from a fresh brief (the batched visible-tab steps; the prune's frozen tab),
+   and one read-only pass of the six boards' asks against build 38's code, a desk-tune only if a claim drifted.
+4. **Tell Will the alias is ready** for his sitting (locked-door first).
+5. **After his paste:** transcribe it, then the wiring lanes from his picks (the demo event, about-press, the
+   disposable mode, the door family, event-ready, the privacy hero), `/me` (his A), the strike line's repeated date,
+   and new boards as they're seen.
 
 ## Waiting on Will
 
