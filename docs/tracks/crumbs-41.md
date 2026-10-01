@@ -117,11 +117,26 @@ Each is built as recommended and listed under Calls as his to overrule.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/admin-observability.md`: Reports, the closed strike line's lapse (`lapse_seconds`) and its Undo for
+  a strike's whole life; the dismissal's reopen window (#60, `dismissalReopens`, `reopenGuard`); the verdict as the
+  review (`reviewed` unwritten). Verifying, the Library's metrics charts specimen.
+- `docs/systems/billing-caps.md`: The webhook, the successor subscription and the two warnings.
+- `docs/systems/auth-accounts.md`: Deleting an account, every live subscription of the customer cancelled.
+- `docs/systems/lifecycle-recovery.md`: the expired sweep and the standby budget's deleted half read
+  `events_deleted_idx`.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Performance: `standby_hosts`' outer join to events (`join public.events e on e.id = m.event_id`, each row's host)
+  still hashes every event (on crumbs-41's 1,000,000-event stand-in a Seq Scan of every row, most of the function's
+  ~250 ms warm, which `events_deleted_idx` cannot serve); each half could carry its event's host (the deleted half from
+  its own `d`, the removed half joining its rows by primary key), making the read index-bound end to end; a create or
+  replace of `standby_hosts` (from `crumbs-41`).
+- Launch checkpoint (the legal rewrite): the Privacy Policy's Reports and safety ("Every report is reviewed before
+  anything comes down", "filing one never removes content by itself", "Reports are stored without the reporter's
+  identity") and the Terms' moderation paragraph ("reports are anonymous and are reviewed before anything is
+  removed") predate the instant hide and the confirmed address a report keeps while open (and its keyed hash after,
+  on the worst kind); the rewrite takes them, with `legal-privacy.tsx`'s "never auto-hide" comment (from `crumbs-41`).
 
 ## Handoff (replaces the chat report)
 
