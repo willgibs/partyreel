@@ -42,13 +42,14 @@ a lane").
 | --- | --- | --- | --- | --- |
 | `crumbs-37` | scale and upkeep: `album_changes`' tombstones pruned under a per-event watermark (a job with its `/admin` health), the `standby_hosts` partial index, the admin album drill-in paged, the over-capacity reduce paged | running (agent `a2b066535e25eb3c9`, told to push WIP), cut at `3925f9f0`; may write migrations (applied by protocol) | Opus, 3131 | |
 | `crumbs-38` | a person's own record: the approval and host-added toasts across visits, My uploads and My likes past 200 (a cursor), the viewer's credit with a face and a door | running (agent `acabf3ab2ac7c7fc4`, told to push WIP), cut at `3925f9f0`; may write migrations (applied by protocol) | Opus, 3133 | |
+| `crumbs-40` | build 35's red-team finds: the dashboard's claims after the layout's silent claim (MEDIUM, crumbs-35's fix does not hold), the likes provider following the session (Sentry -6J), the viewer's likes asks coalesced, five nits | CUT, NOT SPAWNED (`e370430b`; the account at 98%): the next Orchestrator spawns it, Opus for the claims race, on a free port | (Opus), 3132 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
 no question open (Q1, the `names` hang; Q2, schema-pass part 1; Q3, the notes-into-laws audit; Q4, the door migration;
 Q5, crumbs-33's two function-replacing migrations, "apply as written": each answered and acted on). From another session, respawn it from `usher/kit/advisor-prompt.txt`.
 
-**Handoff across accounts (live: willg97 at 96% weekly on 2026-10-01 07:08Z, two lanes and build 35's red-team
-running; its auto-kill at 100% is expected within the hour, and Will opens a fresh Orchestrator chat on hi@willgibs.com, unused since its reset, the next on Tuesday
+**Handoff across accounts (live: willg97 at 98% weekly on 2026-10-01 07:34Z, two lanes running and crumbs-40 cut for the
+next Orchestrator to spawn; its auto-kill at 100% is expected within the hour, and Will opens a fresh Orchestrator chat on hi@willgibs.com, unused since its reset, the next on Tuesday
 2026-10-06 21:00Z).** The dying session is `157caa18-ec54-4aa9-a12a-04c86d5a667b`: leave it idle or archived, since it
 would resume mid-task at willg97's reset (Sunday 2026-10-04 13:00Z); `b01c012e` stays retired. Connectors follow the
 account: Claude in Chrome answers only once Will moves it over (every red-team needs it), the Supabase MCP must reach
@@ -64,11 +65,15 @@ runtime logs need it). MCP tool ids change with the account. The new Orchestrato
    (`spawn-prompt.txt`, same track and port) from its pushed commits and its manifest's `## Where I am`, the note
    repeating the ask to push WIP and keep `## Where I am` current, a stale `.next/dev/lock` free to delete. Each record
    adds its calls to Will's file, numbered on from 62, and the two ride build 36 with crumbs-36 and crumbs-39 (merged).
-3. **Build 35** (`be502b45`: crumbs-33, crumbs-34 and crumbs-35 on build 34) is on the alias since 2026-10-01 06:35Z.
-   Its red-team (Opus, agent `af0b7f251876c81c3`) walks from `../partyreel-wt/_scratch/redteam-35/brief.md`. If the
-   kill lands before its report, respawn it from that brief with "continue after the last line of `ledger.txt` in that
-   folder"; its report's finds go to the next crumbs lane. crumbs-36 to crumbs-39 ride build 36 (deploy it per the runbook, unless
-   Will is mid-sitting: ask).
+3. **Build 35** (`be502b45`: crumbs-33, crumbs-34 and crumbs-35 on build 34) is on the alias since 2026-10-01 06:35Z,
+   red-teamed by 07:35Z (`../partyreel-wt/_scratch/redteam-35/ledger.txt`): every walk PASS but one FAIL, MEDIUM,
+   crumbs-35's dashboard claims (the claims review subscribes after the layout's silent claim lands), with two LOWs (the
+   likes provider after a sign-out elsewhere, Sentry `JAVASCRIPT-NEXTJS-6J`; the viewer's likes asks a step each) and
+   five nits, all in **`crumbs-40`, cut and pushed but not spawned**: spawn it first (`spawn-prompt.txt`, port 3132, Opus
+   for the race). Strikes: willg97's address 2 (with 2 hides in the 24 hours to about 22:15Z on 2026-10-01, so one
+   more can hide), partyr33l's 7. A classifier refusal was relayed to Will: the red-team's one combined read of
+   `report_strikes`, a day's hides and `auth.sessions` with IPs and user agents; it read the strikes another allowed
+   way. crumbs-36 to crumbs-40 ride build 36 (deploy it per the runbook, unless Will is mid-sitting: ask).
 4. **Will's morning (2026-10-01):** the calls file first (61 calls, `../partyreel-wt/_scratch/calls/relay-calls.md`,
    last sent to him at 60: re-send it with each lane's calls; #60 holds one decision of his, the reopen window), then the desk. Seat a respawned Advisor
    (`usher/kit/advisor-prompt.txt`) when a consult comes due; no question is open.
