@@ -2,11 +2,14 @@
 
 import { useCallback, useState, useSyncExternalStore } from "react";
 
-// First-visit-per-event flag for the entry modal's welcome step. Distinct prefix so
-// collectStoredSessionTokens (pr_session_) never picks it up; no collision with pr_save_prompt_ /
-// pr_pending_like_ either.
+import { storedKeysWithPrefixes } from "@/lib/guest/session-tokens";
+
+// The entry modal's welcome, once per person at an event. Distinct prefix so collectStoredSessionTokens
+// (pr_session_) never picks it up; no collision with pr_save_prompt_ / pr_pending_like_ either.
+const WELCOME_PREFIX = "pr_welcome_";
+
 function welcomeKey(qrToken: string) {
-  return `pr_welcome_${qrToken}`;
+  return `${WELCOME_PREFIX}${qrToken}`;
 }
 
 // Same-tab subscribers — the native `storage` event only fires in OTHER tabs. Mirrors
@@ -28,6 +31,38 @@ export function markWelcomeSeen(qrToken: string): void {
   } catch {
     // Storage refused (a private window): the welcome shows once more, which is all it costs.
     return;
+  }
+  emit();
+}
+
+/**
+ * ★ THE WELCOME GOES WITH ITS TICKET (crumbs-43; ROADMAP: "the next person on a shared phone skips the welcome,
+ * and with it the legal consent line (`pr_welcome_<qr>` survives every sign-out and the ticket drop)"). The welcome
+ * carries the consent line every guest passes once (the door's identify and sign-in steps carry none, leaning on
+ * it), so "seen" is a fact about the PERSON the device holds a ticket for, never about the phone. When the device
+ * puts that ticket down (`dropGuestTicket`: a ticket that was another person's, or one whose row is gone), the
+ * album's welcome goes with it; when it puts every ticket down (`forgetGuestTickets`: every sign-out, the door's
+ * "Use a different email"), every album's does. So the next person to join on a shared phone meets the welcome,
+ * and its consent line, once. Every same-tab reader hears it at once, as `markSeen` does; a door already showing
+ * its steps only gains the welcome in front of them.
+ */
+export function forgetWelcome(qrToken: string): void {
+  try {
+    localStorage.removeItem(welcomeKey(qrToken));
+  } catch {
+    // Storage refused: there was no flag to forget.
+  }
+  emit();
+}
+
+/** Every album's welcome on the device (`forgetWelcome`'s note): the sign-out's half. */
+export function forgetAllWelcomes(): void {
+  try {
+    for (const key of storedKeysWithPrefixes([WELCOME_PREFIX])) {
+      localStorage.removeItem(key);
+    }
+  } catch {
+    // Storage refused: there were no flags to forget.
   }
   emit();
 }
