@@ -22,8 +22,9 @@ Nothing is protected: every page, the host app and the guest pages are open to b
   The legal text is rewritten once, right before launch (his word).
 - **Batch 9 rides `launch-prep`**: crumbs-28 and hide-strikes (his call B: three strikes that lapse after 180 days)
   on build 33, red-teamed; crumbs-29 (a shared phone's one row, no door admitting a blocked ask; its three migrations
-  applied), crumbs-30 and crumbs-31 (small fixes, the follow moment after a keep through Google) wait for build 34,
-  which waits for his word on the desk. App work leads (his note); the wiring of each board follows his picks.
+  applied), crumbs-30, crumbs-31 (the follow moment after a keep through Google), crumbs-32 and demo-stall (the lab
+  check's stall, a Next dev bug, upstream's fix carried as a pnpm patch) wait for build 34, which waits for his word on
+  the desk. App work leads (his note); the wiring of each board follows his picks.
 
 ## The desk
 

@@ -72,7 +72,11 @@ but lab:demo's `about-press.facts` dev stall, ROADMAP's line), crumbs-31 (`5898b
 
 1. **Integrate each lane as it hands off** (no lane running; build 30's red-team and the PREMISE audits are agents, not lanes), each migration by protocol, one at a time: drift check, apply verbatim, the rolled-back refusals,
    advisors, types.
-2. **Build 33** (`cc79d54e`, milestone 31 plus crumbs-28 and hide-strikes) is on the alias (Will had not begun his
+2. **Build 34 waits for Will's word** (he may be at the desk; a deploy mid-sitting swaps the build under him): crumbs-29,
+   crumbs-30, crumbs-31, demo-stall and crumbs-32 on launch-prep, each gated green, then its red-team from a brief in
+   `../partyreel-wt/_scratch/redteam-34/` (each lane's "For the next build's red-team" steps). New lanes pause (weekly
+   83% on 2026-10-01 02:45Z, context 78%): the next big work is his desk's wiring.
+   **Build 33** (`cc79d54e`, milestone 31 plus crumbs-28 and hide-strikes) is on the alias (Will had not begun his
    sitting and said go). Its red-team is agent `a742992d213f18cc2`; from another session, respawn it from
    `../partyreel-wt/_scratch/redteam-33/brief.md` after its `ledger.txt`'s last line. It walks:
    - crumbs-28's steps (`git show 8ea749bf^2:docs/tracks/crumbs-28.md`, "For the next build's red-team");
