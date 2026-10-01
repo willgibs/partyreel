@@ -6,9 +6,33 @@ board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   - src/app/(guest)/u/[slug]/
   - src/lib/db/queries/social.ts
+  - src/lib/db/queries/social.test.ts
   - src/components/social/follow-button.tsx
+  - src/components/social/follow-button.test.tsx
+  - src/components/social/relation-toggle.tsx
+  - src/components/social/relation-toggle.test.tsx
+  - src/components/social/profile-actions-menu.tsx
+  - src/components/social/profile-actions-menu.test.tsx
+  - src/components/social/connection-buttons.tsx
+  - src/components/social/attended-events-visibility.tsx
+  - src/components/social/attended-events-visibility.test.tsx
   - src/components/app/event-card.tsx
+  - src/components/app/event-card.test.tsx
+  - src/components/app/user-menu.tsx
+  - src/components/app/user-menu.test.tsx
+  - src/components/app/event-settings/event-page.tsx
+  - src/components/app/dashboard/page-invite-card.tsx
+  - src/components/app/dashboard/page-invite-card.test.tsx
+  - src/components/shared/route-skeleton.tsx
+  - src/components/shared/route-skeleton.test.tsx
+  - src/app/(app)/account/page.tsx
+  - src/app/(app)/account/loading.tsx
+  - src/app/(app)/account/social-actions.ts
   - src/app/(app)/account/profile/
+  - src/app/(app)/welcome/loading.tsx
+  - src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx
+  - src/app/(dev)/design/(shell)/library/components/interactive-demos.tsx
+  - src/app/(dev)/design/gallery/specimens.generated.json
   - src/lib/validation/report.test.ts
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/profiles-social.md
