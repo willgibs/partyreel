@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   collectStoredSessionTokens,
   collectStoredTickets,
+  storedTicketFor,
 } from "@/lib/guest/session-tokens";
 
 // A minimal in-memory Storage-like for the pure collector (Node env; no jsdom needed — the function takes
@@ -95,5 +96,31 @@ describe("collectStoredTickets", () => {
       { album: "a", token: "same" },
       { album: "b", token: "same" },
     ]);
+  });
+});
+
+describe("storedTicketFor", () => {
+  it("reads the one album's ticket, and nothing kept beside it under another key", () => {
+    const storage = fakeStorage({
+      pr_session_abc: "tok-a",
+      pr_session_def: "tok-b",
+      pr_pending_offer_abc: "1",
+      pr_guest_name_abc: "Sam",
+    });
+    expect(storedTicketFor("abc", storage)).toBe("tok-a");
+    expect(storedTicketFor("def", storage)).toBe("tok-b");
+    expect(storedTicketFor("xyz", storage)).toBeNull();
+  });
+
+  it("reads an empty value, and a store that refuses to be read, as no ticket", () => {
+    expect(storedTicketFor("abc", fakeStorage({ pr_session_abc: "" }))).toBe(
+      null,
+    );
+    const blocked = {
+      getItem: () => {
+        throw new Error("SecurityError");
+      },
+    };
+    expect(storedTicketFor("abc", blocked)).toBeNull();
   });
 });

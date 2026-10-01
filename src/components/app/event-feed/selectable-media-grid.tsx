@@ -10,6 +10,7 @@ import {
   useState,
 } from "react";
 import { Check, CircleX, Play, X } from "lucide-react";
+import { FocusScope } from "radix-ui/internal";
 
 import { MediaTile, type GridMedia } from "@/components/app/media-grid";
 import { Kbd } from "@/components/shared/kbd";
@@ -118,17 +119,19 @@ export function SelectableMediaGrid({
 
   // ★ THE PEEK IS A MODAL, SO IT BEHAVES AS ONE: Escape closes it, focus moves inside it when it
   // opens (onto the look itself where it carries the verdict, so Enter and Backspace are the
-  // verdict's; onto its close button where it is only a look), and when it closes, focus lands on
-  // the tile of the photograph it showed last (the keys may have walked it on), or the tile that
-  // opened it, or the queue's first tile, so the next key press starts where the host was.
+  // verdict's; onto its close button where it is only a look: `focusOnOpen`, the trap's own mount
+  // below), and when it closes, focus lands on the tile of the photograph it showed last (the keys
+  // may have walked it on), or the tile that opened it, or the queue's first tile, so the next key
+  // press starts where the host was.
   const open = preview !== null;
   useEffect(() => {
     if (!open) return;
+    // Read before the trap moves anything: this commit's effects run before the trap has its
+    // container, so focus is still on whatever opened the peek.
     const opener =
       document.activeElement instanceof HTMLElement
         ? document.activeElement
         : null;
-    (withVerdict.current ? dialogRef.current : closeRef.current)?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setPeekRef.current(null);
     };
@@ -151,6 +154,18 @@ export function SelectableMediaGrid({
       back?.focus();
     };
   }, [open]);
+
+  /**
+   * ★ THE TRAP TAKES THE OPENING FOCUS ITSELF (build 33's red-team). The effect above used to focus the look,
+   * and it runs a commit before the trap has its container, so the trap never saw that focus arrive and had
+   * nothing to hand focus back to: Shift+Tab as the first key walked out onto the tile behind the look, the
+   * peek still up. Moved here, into the trap's own mount (its listeners are up by then), the focus is the
+   * one the trap returns to whenever anything sends focus out behind it.
+   */
+  const focusOnOpen = (e: Event) => {
+    e.preventDefault();
+    (withVerdict.current ? dialogRef.current : closeRef.current)?.focus();
+  };
 
   return (
     <>
@@ -268,93 +283,125 @@ export function SelectableMediaGrid({
       </div>
 
       {/* Peek overlay: a fixed full-bleed view of the tapped media; backdrop / ✕ / Escape closes.
-          Rendered at the feed root (fixed), so it sits above the sticky pills + the floating bar. */}
+          Rendered at the feed root (fixed), so it sits above whatever sticks to the page.
+          ★ AND IT HOLDS FOCUS WHILE IT IS UP (crumbs-28): it says `aria-modal`, so Tab must never walk
+          out behind it onto the tiles it covers. Radix's FocusScope, the trap every Dialog here wears:
+          trapped and looping, from its last control round to its first. Its own mount focus is ours
+          (`focusOnOpen`: the look or its close button), its unmount focus is turned down (the effect
+          above puts focus back on the tile); and a layer opened over it (the credit's look) pauses it,
+          as one Radix layer pauses another. */}
       {enablePreview && preview && (
-        <div
-          ref={dialogRef}
-          role="dialog"
-          aria-modal="true"
-          aria-label={
-            preview.type === "video" ? "Video preview" : "Photo preview"
-          }
-          data-review-peek
-          tabIndex={-1}
-          className={cn(
-            "fixed inset-0 z-50 flex flex-col items-center justify-center gap-3 p-4 outline-none",
-            // The peek stands on the same ground the lightbox does (`behind=album`):
-            // the queue behind it, blurred at half brightness. Its children paint
-            // above the filter, so the media it exists to show is never in it.
-            GLASS_BEHIND,
-          )}
-          onClick={() => setPeek(null)}
+        <FocusScope.Root
+          asChild
+          trapped
+          loop
+          onMountAutoFocus={focusOnOpen}
+          onUnmountAutoFocus={(e) => e.preventDefault()}
         >
-          {preview.type === "video" ? (
-            <video
-              key={preview.id}
-              src={preview.url}
-              controls
-              autoPlay
-              playsInline
-              onClick={(e) => e.stopPropagation()}
-              className={cn(
-                "min-h-0 max-w-[94vw] rounded-md",
-                // Under the verdict the media keeps clear of it: the pill never covers the
-                // photograph it is judging, nor a video's own controls.
-                verdict ? "max-h-[calc(100svh-7.5rem)]" : "max-h-[88vh]",
-              )}
-            />
-          ) : (
-            // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL; next/image 400s on it
-            <img
-              key={preview.id}
-              src={preview.url}
-              alt=""
-              onClick={(e) => e.stopPropagation()}
-              className={cn(
-                "min-h-0 max-w-[94vw] rounded-md object-contain",
-                verdict ? "max-h-[calc(100svh-7.5rem)]" : "max-h-[88vh]",
-              )}
-            />
-          )}
-          {verdict && (
-            <PeekVerdict
-              onReject={() => verdict.onReject(preview.id)}
-              onApprove={() => verdict.onApprove(preview.id)}
-            />
-          )}
-          {/* ★ WHO SENT IT, AS THE VIEWER SAYS IT (event-safety `entry=all`: "every road opens the
+          <div
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label={
+              preview.type === "video" ? "Video preview" : "Photo preview"
+            }
+            data-review-peek
+            tabIndex={-1}
+            className={cn(
+              "fixed inset-0 z-50 flex flex-col items-center justify-center gap-3 p-4 outline-none",
+              // The peek stands on the same ground the lightbox does (`behind=album`):
+              // the queue behind it, blurred at half brightness. Its children paint
+              // above the filter, so the media it exists to show is never in it.
+              GLASS_BEHIND,
+            )}
+            onClick={() => setPeek(null)}
+            // ★ SHIFT+TAB FROM THE LOOK ITSELF COMES ROUND TO ITS LAST CONTROL (build 33's red-team). The
+            // trap's loop only turns at its first and last controls, and the look is neither, so from it
+            // Shift+Tab would bounce back onto the look and seem to do nothing; it goes the loop's own
+            // way instead, as Tab from the look already reaches its first. (This runs before the trap's
+            // own keys, which then see focus on the close button and leave it there.)
+            onKeyDown={(e) => {
+              if (
+                e.key === "Tab" &&
+                e.shiftKey &&
+                !e.altKey &&
+                !e.ctrlKey &&
+                !e.metaKey &&
+                e.target === e.currentTarget
+              ) {
+                e.preventDefault();
+                closeRef.current?.focus();
+              }
+            }}
+          >
+            {preview.type === "video" ? (
+              <video
+                key={preview.id}
+                src={preview.url}
+                controls
+                autoPlay
+                playsInline
+                onClick={(e) => e.stopPropagation()}
+                className={cn(
+                  "min-h-0 max-w-[94vw] rounded-md",
+                  // Under the verdict the media keeps clear of it: the pill never covers the
+                  // photograph it is judging, nor a video's own controls.
+                  verdict ? "max-h-[calc(100svh-7.5rem)]" : "max-h-[88vh]",
+                )}
+              />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL; next/image 400s on it
+              <img
+                key={preview.id}
+                src={preview.url}
+                alt=""
+                onClick={(e) => e.stopPropagation()}
+                className={cn(
+                  "min-h-0 max-w-[94vw] rounded-md object-contain",
+                  verdict ? "max-h-[calc(100svh-7.5rem)]" : "max-h-[88vh]",
+                )}
+              />
+            )}
+            {verdict && (
+              <PeekVerdict
+                onReject={() => verdict.onReject(preview.id)}
+                onApprove={() => verdict.onApprove(preview.id)}
+              />
+            )}
+            {/* ★ WHO SENT IT, AS THE VIEWER SAYS IT (event-safety `entry=all`: "every road opens the
               person's look", the uploader in Review among them): the viewer's own face-led credit,
               top left, whose name opens the person's look with its quiet Block. This peek is the
               Review room's alone, so its credit is the host's. A press inside it (or inside the look
               it opens, whose clicks bubble here through React) never reaches the backdrop's close. */}
-          <div
-            className="absolute top-4 left-4 flex max-w-[calc(100%-5rem)]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <FaceCredit
-              key={preview.id}
-              item={preview}
-              viewerIsHost
-              isOwn={false}
-            />
+            <div
+              className="absolute top-4 left-4 flex max-w-[calc(100%-5rem)]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <FaceCredit
+                key={preview.id}
+                item={preview}
+                viewerIsHost
+                isOwn={false}
+              />
+            </div>
+            <button
+              ref={closeRef}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setPeek(null);
+              }}
+              aria-label="Close preview"
+              className={cn(
+                "absolute top-4 right-4 flex size-9 items-center justify-center rounded-full text-white outline-none",
+                "transition-transform duration-150 ease-emphasis focus-visible:ring-2 focus-visible:ring-white/70 active:scale-90 motion-reduce:active:scale-100",
+                GLASS,
+              )}
+            >
+              <X className="size-5" />
+            </button>
           </div>
-          <button
-            ref={closeRef}
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setPeek(null);
-            }}
-            aria-label="Close preview"
-            className={cn(
-              "absolute top-4 right-4 flex size-9 items-center justify-center rounded-full text-white outline-none",
-              "transition-transform duration-150 ease-emphasis focus-visible:ring-2 focus-visible:ring-white/70 active:scale-90 motion-reduce:active:scale-100",
-              GLASS,
-            )}
-          >
-            <X className="size-5" />
-          </button>
-        </div>
+        </FocusScope.Root>
       )}
     </>
   );

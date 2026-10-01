@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useTransition, type ReactNode } from "react";
 import Link from "next/link";
 import { CircleAlert } from "lucide-react";
 
@@ -11,12 +11,41 @@ import { captureError, type SentryArea } from "@/lib/observability/sentry";
 /** The boundaries this component draws: every `render:*` area there is. */
 type RouteErrorArea = Extract<SentryArea, `render:${string}`>;
 
+/**
+ * What Next hands every `error.js` that a screen reads: the crash, and `unstable_retry` (16.2), the router's refresh
+ * with the reset. The bare `reset` it also hands is never read (`TryAgain` says why).
+ */
+export type CrashBoundaryProps = {
+  error: Error & { digest?: string };
+  unstable_retry: () => void;
+};
+
 type RouteErrorProps = {
   /** The render:* Sentry area for this boundary's route group. */
   area: RouteErrorArea;
   error: Error & { digest?: string };
-  reset: () => void;
+  /** The boundary's `unstable_retry` (`TryAgain` says why it is never the bare `reset`). */
+  retry: () => void;
 };
+
+/**
+ * ★ TRY AGAIN ASKS FOR THE PAGE AGAIN (crumbs-30, from crumbs-28). It called the boundary's `reset`, which re-renders
+ * what the router already holds without asking the server, so a crash a Server Component threw came straight back
+ * and the button looked dead. `retry` is the `unstable_retry` Next 16.2 hands every `error.js` (the router's refresh
+ * and the reset in one transition, the docs' own choice over `reset`), so the page is drawn again from what the server
+ * answers now. And while it is asked for, the button says so and waits, the album card's words and behaviour
+ * (`album-boundary.tsx`): a retry that crashes again is seen to have been tried. Every crash screen's one button: the
+ * five groups' and the root's through `RouteError`, the marketing site's through its own screen; `global-error`,
+ * which may import nothing of the kit, draws the same two words itself.
+ */
+export function TryAgain({ retry }: { retry: () => void }) {
+  const [retrying, startRetry] = useTransition();
+  return (
+    <Button size="cta" disabled={retrying} onClick={() => startRetry(retry)}>
+      {retrying ? "Trying again…" : "Try again"}
+    </Button>
+  );
+}
 
 /**
  * THE QUIET LINE, worded for the surface that crashed (Will, `ways-out=guided`,
@@ -58,7 +87,7 @@ const HELP_BY_AREA: Record<RouteErrorArea, ReactNode> = {
 // SECURITY: never renders error.message (server errors can carry internals);
 // the screen is generic by design and the digest is the support correlation
 // handle, which ErrorDigest now makes copyable rather than retypable.
-export function RouteError({ area, error, reset }: RouteErrorProps) {
+export function RouteError({ area, error, retry }: RouteErrorProps) {
   useEffect(() => {
     captureError(area, error, { digest: error.digest });
   }, [area, error]);
@@ -74,9 +103,7 @@ export function RouteError({ area, error, reset }: RouteErrorProps) {
         description="That's on us, not you. Try again, and if it keeps happening, let us know."
         actions={
           <>
-            <Button size="cta" onClick={reset}>
-              Try again
-            </Button>
+            <TryAgain retry={retry} />
             <Button asChild size="cta" variant="outline">
               <Link href="/">Back home</Link>
             </Button>

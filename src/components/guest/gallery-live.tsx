@@ -20,6 +20,16 @@
  * answered locally, and until it has (a microtask after mount) every render reads the same snapshot
  * the server drew from. The seed's validator is the sync route's own, so the first real poll can 304.
  *
+ * ★ A SEED THAT FAILED IS THE ALBUM'S TO HEAL, AND THIS SOURCE STANDS THROUGH IT (crumbs-30, from
+ * crumbs-28). A seed whose read failed (a refusal answers locked, never a throw) used to throw where
+ * this provider `use()`d it, so the album's boundary took the source down with the album: her uploads
+ * list, the reel and the door's light went with it, while her Add still sent. It is read, never thrown,
+ * now (`readSeed`): reported as the boundary reported it, and with nothing embedded the store's own first
+ * sync asks the server for the whole album. Until an answer lands the album is unread (`albumRead`: the
+ * view draws its skeleton while that first read is in flight, then says it could not load), and any
+ * later sync heals it in place, the poll's, a doorbell's, her own upload's or Try again's, with no
+ * refresh. The header keeps the page's count meanwhile: an unread album is not an empty one.
+ *
  * ★ A LINK IS READ BY ID AT THE MOMENT IT IS NEEDED, NEVER HELD PAST ITS LIFE. The grid asks for its
  * window's links (`ensureLinks`), the viewer for its neighbours', the reel for the clips it is about
  * to play (`clips`, the store's `{ get, ensure }` resolver). THE WATCHDOG (`reportPossibleExpiry`)
@@ -47,6 +57,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import type { ReactNode, Ref } from "react";
+import { unstable_rethrow } from "next/navigation";
 import { toast } from "sonner";
 
 import { removeMyUploadGuestAction } from "@/app/(guest)/e/[token]/actions";
@@ -62,8 +73,10 @@ import {
   seedLinks,
   seedSnapshot,
   type GallerySeed,
+  type PrimedTransport,
 } from "@/lib/events/gallery-seed";
 import {
+  albumOnScreen,
   createAlbumItems,
   createReelItems,
   newArrivalIds,
@@ -71,12 +84,52 @@ import {
 import { useGalleryDoorbell } from "@/lib/guest/use-gallery-doorbell";
 import { readStoredSession } from "@/lib/guest/use-stored-session";
 import type { QueueItem, QueueProgress } from "@/lib/guest/use-upload-queue";
-import { captureWarning } from "@/lib/observability/sentry";
+import { captureError, captureWarning } from "@/lib/observability/sentry";
 import type { LiveMediaItem } from "@/lib/reel/live/items";
 import { useLivePoll } from "@/lib/shared/use-live-poll";
 
 /** The seed the page streams in (`loadGallerySeed`), resolved behind the page's <Suspense>. */
 export type GalleryPayload = GallerySeed;
+
+/** The page's seed as this source reads it: its answer, or the failure that stood in the answer's place. */
+type SeedRead =
+  | { seed: GallerySeed; error: null }
+  | { seed: null; error: Error & { digest?: string } };
+
+/** One read per seed the page hands down, so `use()` meets the same promise on every render of it. */
+const seedReads = new WeakMap<Promise<GallerySeed>, Promise<SeedRead>>();
+
+/**
+ * THE SEED, READ AND NEVER THROWN (the head's note): a failure settles into the read, so `use()` resolves
+ * and this source mounts with nothing embedded. Next's own throws (a `notFound()`, a redirect) are never
+ * the album's to keep: `unstable_rethrow` hands them on to their boundaries, as the album's boundary does.
+ * Cached by the page's promise, never made in a render, so a render that suspends meets its read again.
+ *
+ * ★ `Promise.resolve` FIRST, NEVER `page.then(...)` ALONE: the page's promise is React Flight's decoded
+ * thenable, whose `then` registers its listeners and returns nothing, so a chain straight off it is
+ * `undefined` and `use()` refuses it (found on this lane's own local walk, every album load failing; a
+ * test's native promise chains fine and hid it). Adopting it into a real promise chains on the platform's.
+ */
+function readSeed(page: Promise<GallerySeed>): Promise<SeedRead> {
+  let read = seedReads.get(page);
+  if (!read) {
+    read = Promise.resolve(page).then(
+      (seed): SeedRead => ({ seed, error: null }),
+      (error: unknown): SeedRead => {
+        unstable_rethrow(error);
+        return { seed: null, error: error as Error & { digest?: string } };
+      },
+    );
+    seedReads.set(page, read);
+  }
+  return read;
+}
+
+/**
+ * Whether the album has been read (see the head's note on a seed that failed): `ready` once an answer
+ * stands, `trying` while the store's own first read is in flight, `failed` once it has failed too.
+ */
+export type AlbumRead = "ready" | "trying" | "failed";
 
 /**
  * THE HEADER'S "N PHOTOS & VIDEOS", AS ARITHMETIC (the exact, live count). Pure and exported so
@@ -233,6 +286,10 @@ export type GalleryLive = {
   uploadProgress: QueueProgress | null;
   /** The watchdog: these ids' pictures failed the way an expired presign does; re-mint their links. */
   reportPossibleExpiry: (ids: readonly string[]) => void;
+  /** Whether the album has been read at all (`ready` unless its seed failed and no answer has landed). */
+  albumRead: AlbumRead;
+  /** Read the album again now: the store's own sync (Try again on an album that could not load). */
+  retryAlbum: () => Promise<void>;
 };
 
 const GalleryLiveContext = createContext<GalleryLive | null>(null);
@@ -271,6 +328,12 @@ export type GalleryLiveProviderProps = {
   uploadProgress?: QueueProgress | null;
   /** The ids a SIGNED-IN viewer uploaded, resolved in the page RSC. */
   canDeleteIds?: string[];
+  /**
+   * The viewer is the album's host (crumbs-32). She is never her own guest: every upload of hers here
+   * is the host's (her Add rides the host's pair), so her own items are the host's from their first
+   * frame, and her Delete says the host's words (Deleted, and the window) before any link has landed.
+   */
+  isOwner?: boolean;
   /** Which remove path this viewer is on: the account's Server Function, or the token's route. */
   isAuthed?: boolean;
   /** The anonymous guest's device-bound capability, from the browser's storage (null before a join). */
@@ -302,6 +365,7 @@ export function GalleryLiveProvider({
   pendingUploads = [],
   uploadProgress = null,
   canDeleteIds = [],
+  isOwner = false,
   isAuthed = false,
   sessionToken = null,
   approvedTotal,
@@ -309,47 +373,77 @@ export function GalleryLiveProvider({
   onGuestCountChange,
   children,
 }: GalleryLiveProviderProps) {
-  const seed = use(galleryPromise);
-  const seedSnap = useMemo(() => seedSnapshot(seed), [seed]);
+  const read = use(readSeed(galleryPromise));
+  const seed = read.seed;
   const liveEnabled = !isDemo && access !== "none";
 
   /* ── the store: the manifest, its version and the links, one sync for the doorbell and the poll ── */
-  const [{ store, transport }] = useState(() => {
-    const primed = primeTransport(
-      guestAlbumTransport({
-        qrToken,
-        // Read from the device's own storage at each ask, never baked in: a join mints a ticket
-        // mid-visit, and the sync route heals the cookie from the body's token (the heal).
-        sessionToken: () => readStoredSession(qrToken),
-      }),
-      seed,
-    );
+  const [{ store, transport, unread, seeded }] = useState(() => {
+    const inner = guestAlbumTransport({
+      qrToken,
+      // Read from the device's own storage at each ask, never baked in: a join mints a ticket
+      // mid-visit, and the sync route heals the cookie from the body's token (the heal).
+      sessionToken: () => readStoredSession(qrToken),
+    });
+    // A seed that failed embedded nothing: the first sync, and every link, is the network's.
+    const primed: PrimedTransport = seed
+      ? primeTransport(inner, seed)
+      : { ...inner, forget: () => {} };
+    const store = createAlbumStore({
+      transport: primed,
+      // A delta that left the album a different size than the server counted can only be a lost
+      // or doubled change: never silent, and the store heals it with a fresh manifest first.
+      onIntegrityMiss: (detail) =>
+        captureWarning(
+          "media",
+          "album: a delta left the album a different size than counted",
+          detail,
+        ),
+    });
     return {
       transport: primed,
-      store: createAlbumStore({
-        transport: primed,
-        // A delta that left the album a different size than the server counted can only be a lost
-        // or doubled change: never silent, and the store heals it with a fresh manifest first.
-        onIntegrityMiss: (detail) =>
-          captureWarning(
-            "media",
-            "album: a delta left the album a different size than counted",
-            detail,
-          ),
-      }),
+      store,
+      // The store's own answer before it has one: what an unread album draws from.
+      unread: store.getSnapshot(),
+      seeded: seed !== null,
     };
   });
+  const seedSnap = useMemo(
+    () => (seed ? seedSnapshot(seed) : unread),
+    [seed, unread],
+  );
   // The seed's links, dated once on this device's clock, for the renders before the link store has
   // them (its first link ask is answered from the same embedded links, `primeTransport`).
   const [buildItems] = useState(() =>
-    createAlbumItems(seedLinks(seed, Date.now())),
+    createAlbumItems(seed ? seedLinks(seed, Date.now()) : undefined),
   );
   const [buildReelItems] = useState(createReelItems);
 
   // Adopt the seed: the primed transport answers this first sync locally, so no request goes out.
+  // With no seed it is the network's first read of the album, and the album is unread until it lands.
+  const [firstReadOver, setFirstReadOver] = useState(false);
   useEffect(() => {
-    void store.sync();
-  }, [store]);
+    let mounted = true;
+    const first = store.sync();
+    if (!seeded)
+      void first.then(() => {
+        if (mounted) setFirstReadOver(true);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [store, seeded]);
+
+  // ZERO SILENT FAILURES: the seed's failure is reported as the album's boundary reported it (the area and
+  // the seam), once for each failure the page hands down, whatever the store's own read then makes of it.
+  const seedError = read.error;
+  useEffect(() => {
+    if (seedError)
+      captureError("render:guest", seedError, {
+        digest: seedError.digest,
+        seam: "album",
+      });
+  }, [seedError]);
 
   const snap = useSyncExternalStore(
     store.subscribe,
@@ -407,13 +501,15 @@ export function GalleryLiveProvider({
   /* ── the arrivals: what an answer brought that was not on screen a moment ago ── */
   const [arrivals, setArrivals] = useState<string[]>([]);
   const [ownLandings, setOwnLandings] = useState<string[]>([]);
-  const [lastEntries, setLastEntries] = useState(shown.entries);
-  if (shown.entries !== lastEntries) {
+  const [lastShown, setLastShown] = useState(shown);
+  if (shown.entries !== lastShown.entries) {
     // ★ READ OFF THE ALBUM'S OWN ANSWER AND NOTHING ELSE (newArrivalIds): the seed never glows (the
-    // entrance stagger is that moment's motion), and one's own landing arrives here too, where
-    // `arrivalMarks` takes it out of the glow and gives it the sweep.
-    const fresh = [...newArrivalIds(lastEntries, shown.entries)];
-    setLastEntries(shown.entries);
+    // entrance stagger is that moment's motion), nor does an album opening after an answer that was
+    // none (`albumOnScreen`: a teaser's, a locked page's, an unread one's), while a real empty album's
+    // first photograph does; and one's own landing arrives here too, where `arrivalMarks` takes it out
+    // of the glow and gives it the sweep.
+    const fresh = [...newArrivalIds(albumOnScreen(lastShown), shown.entries)];
+    setLastShown(shown);
     if (fresh.length > 0) setArrivals((prev) => [...prev, ...fresh]);
   }
 
@@ -492,6 +588,8 @@ export function GalleryLiveProvider({
     for (const id of removedMine) ids.delete(id);
     return ids;
   }, [canDeleteIds, sessionMine, addedMine, removedMine]);
+  // The owner's own are the host's, all of them (the prop's note); nobody else's are known before a link.
+  const hostOwn = isOwner ? ownIds : null;
 
   /**
    * How many LIVE uploads of this guest's the device knows of, leaving one out (the one being
@@ -587,6 +685,8 @@ export function GalleryLiveProvider({
             width: dims?.width ?? null,
             height: dims?.height ?? null,
             reelEligible: true,
+            // The owner's own is the host's from this first frame (the prop's note).
+            ...(isOwner ? { isHost: true } : {}),
           },
           ...prev.filter((m) => m.id !== u.mediaId),
         ]);
@@ -650,10 +750,19 @@ export function GalleryLiveProvider({
         optimistic: [],
         removed: removedLocal,
         renamed,
+        hostOwn,
       }),
     // `linkRev` stands for the link store's contents, read through `store.links.get`.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [teaserItems, shown.entries, linkRev, blobs, removedLocal, renamed],
+    [
+      teaserItems,
+      shown.entries,
+      linkRev,
+      blobs,
+      removedLocal,
+      renamed,
+      hostOwn,
+    ],
   );
   const serverIds = useMemo(
     () =>
@@ -750,9 +859,23 @@ export function GalleryLiveProvider({
     fallbackTotal: approvedTotal,
     teaserTotal: shown.teaser?.teaserTotal ?? null,
   });
+  // An unread album (its seed failed, and no answer yet) has no count to tell: the header keeps the page's
+  // own number rather than a zero that would call it empty.
+  const answered = shown.status !== "loading";
   useEffect(() => {
-    onCountChange?.(count);
-  }, [count, onCountChange]);
+    if (answered) onCountChange?.(count);
+  }, [answered, count, onCountChange]);
+
+  // ★ WHETHER THE ALBUM HAS BEEN READ (the head's note on a seed that failed): unread until an answer is
+  // on screen, and while so, trying until the store's own first read is over, then failed until a later
+  // sync heals it. A seed that landed is read by definition.
+  const albumRead: AlbumRead =
+    seedError === null || answered
+      ? "ready"
+      : firstReadOver
+        ? "failed"
+        : "trying";
+  const retryAlbum = useCallback(() => store.sync(), [store]);
 
   const value = useMemo<GalleryLive>(
     () => ({
@@ -779,6 +902,8 @@ export function GalleryLiveProvider({
       pendingUrls,
       uploadProgress,
       reportPossibleExpiry,
+      albumRead,
+      retryAlbum,
     }),
     [
       qrToken,
@@ -804,6 +929,8 @@ export function GalleryLiveProvider({
       pendingUrls,
       uploadProgress,
       reportPossibleExpiry,
+      albumRead,
+      retryAlbum,
     ],
   );
 

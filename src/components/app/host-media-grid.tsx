@@ -29,6 +29,7 @@ import {
 } from "@/components/shared/masonry";
 import { useArrivalGate } from "@/components/shared/use-arrival-gate";
 import { inBulkBatches } from "@/lib/event/bulk-selection";
+import { formatKindCount } from "@/lib/format/count";
 import {
   DEFAULT_ROW_STEP,
   type RowAnchor,
@@ -378,11 +379,33 @@ export function HostMediaGrid({
     hide: (ids: string[]) => setStatusBulk(ids, "hidden"),
     show: (ids: string[]) => setStatusBulk(ids, "approved"),
     delete: (ids: string[]) => removeBulk(ids),
+    // ★ The toast names what the like ADDED, by kind (crumbs-28): a selection can hold a video, and
+    // "Liked 1 photo" once said so of one. A mix is "items", the album's word for one, as its own
+    // error toasts and the storage list say it.
+    // ★ AND A PRESS THAT ADDED NOTHING STILL SAYS WHAT HAPPENED (build 33's red-team): a selection she
+    // had liked already closed with no word at all, so the press looked lost. Liked already is said in
+    // the success's own words (a plain toast: nothing changed), and a like the server refused as the
+    // heart's own refusal is ("Couldn't save that like.", `likes-provider.tsx`), never as liked already.
     like: async (ids: string[]) => {
-      if (!likes) return;
-      const added = await likes.likeMany(ids);
-      if (added > 0) {
-        toast.success(`Liked ${added} ${added === 1 ? "photo" : "photos"}`);
+      if (!likes || ids.length === 0) return;
+      // Read BEFORE the like: `likeMany` fills the hearts it is about to ask for at once.
+      const already = new Set(ids.filter((id) => likes.isLiked(id)));
+      const added = new Set(await likes.likeMany(ids));
+      const named = (set: ReadonlySet<string>) =>
+        formatKindCount(
+          optimisticItems.filter((m) => set.has(m.id)),
+          "item",
+        );
+      if (added.size > 0) {
+        toast.success(`Liked ${named(added)}`);
+      } else if (already.size === ids.length) {
+        toast(`Already liked ${named(already)}`);
+      } else {
+        toast.error(
+          ids.length - already.size === 1
+            ? "Couldn't save that like."
+            : "Couldn't save those likes.",
+        );
       }
     },
     // Download the selected items directly (no config modal — the selection IS the config). The mint

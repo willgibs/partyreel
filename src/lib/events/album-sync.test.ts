@@ -39,6 +39,7 @@ function read(over: Partial<AlbumRead> = {}): AlbumRead {
     version: 9,
     albumMax: 7,
     attrVersion: 1,
+    watermark: 0,
     approved: 3,
     hidden: null,
     pending: null,
@@ -88,6 +89,12 @@ describe("parseAlbumRead: album_changes_since's jsonb, defensively", () => {
         reelEligible: false,
       }),
     );
+  });
+
+  it("reads the asked scope's watermark, and none (zero) from a reader that predates it", () => {
+    expect(parseAlbumRead({ watermark: 6, changes: [] }).watermark).toBe(6);
+    expect(parseAlbumRead({ changes: [] }).watermark).toBe(0);
+    expect(parseAlbumRead({ watermark: "6", changes: [] }).watermark).toBe(0);
   });
 
   it("a purged item reads as gone (every field null)", () => {
@@ -206,5 +213,50 @@ describe("planAlbumSync: what a client holding `since` is sent", () => {
       page,
     });
     expect(plan.part).toMatchObject({ kind: "manifest", v: 9 });
+  });
+
+  // ★ THE PRUNED LOG (crumbs-37): a purged item's row may be gone below the watermark, so a delta from
+  // below it could leave that item on the client. It is answered with the album whole instead.
+  it("★ a version below the scope's watermark: a fresh manifest, however few changes came back", async () => {
+    const r = vi.fn(async () => read({ watermark: 6, changes: [change()] }));
+    const p = vi.fn(async () => ({ entries: [], next: null }));
+    const plan = await planAlbumSync({
+      scope: "album",
+      since: 5,
+      read: r,
+      page: p,
+    });
+    expect(plan.part).toMatchObject({ kind: "manifest", v: 7, attr: 1 });
+    // One snapshot decided it: the delta's own read, then the manifest's first page.
+    expect(r).toHaveBeenCalledTimes(1);
+    expect(p).toHaveBeenCalledWith(null, expect.any(Number));
+  });
+
+  it("a version AT the watermark: still a delta (every pruned row was at or below what it holds)", async () => {
+    const plan = await planAlbumSync({
+      scope: "host",
+      since: 6,
+      read: async () => read({ watermark: 6, changes: [change()] }),
+      page,
+    });
+    expect(plan.part).toMatchObject({ kind: "delta", v: 9 });
+  });
+
+  it("★ the first paint's plan does not move: no version is a manifest whatever the watermark", async () => {
+    const order: string[] = [];
+    const plan = await planAlbumSync({
+      scope: "album",
+      since: null,
+      read: async (after, limit) => {
+        order.push(`read ${after} ${limit}`);
+        return read({ watermark: 1_000 });
+      },
+      page: async () => {
+        order.push("page");
+        return { entries: [], next: null };
+      },
+    });
+    expect(order).toEqual(["read 0 0", "page"]);
+    expect(plan.part).toMatchObject({ kind: "manifest", v: 7, attr: 1 });
   });
 });

@@ -37,8 +37,9 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import {
-  listOwnUploadStatuses,
+  countKeptTicketUploads,
   listSessionMediaIds,
+  readOwnUploads,
 } from "@/lib/db/mutations/guest-media";
 import {
   getEventByQrToken,
@@ -75,11 +76,31 @@ const mineSchema = z.object({
  * viewer is `getUser()`'s (never `getSession()`, a cookie is no boundary), and the answer is the
  * token's unclaimed row plus the account's rows at this event. Statuses only, of her own uploads:
  * never an identity, never a link.
+ *
+ * ★ AND, ASKED WITH `tell` (crumbs-38, the approval toast's server half): `news`, the ids of hers a decision let
+ * into the album since she was last told, marked told as they are answered (`readOwnUploads`), so the album says
+ * "One of yours is in the album" once across a reload, a return or her account's other device. Ids of her own
+ * uploads, already in her `items`; never anybody else's, and nothing when the door holds her.
  */
 const statusesSchema = z.object({
   qr_token: z.string().trim().min(1),
   session_token: z.string().trim().min(1).optional(),
   statuses: z.literal(true),
+  tell: z.literal(true).optional(),
+});
+
+/**
+ * ★ WHETHER THIS PHONE'S PHOTOS HERE ARE HERS NOW (`kept: true`, build 33's red-team): `{ ok, kept }`, the live
+ * uploads on the body's ticket, counted only when its row is the signed-in account's (`getUser()`, never
+ * `getSession()`) and the door lets it through. The album asks it once, when a confirm door opened there and her
+ * own claim moved nothing, because the page's door read runs the claim first (`sortTickets`) and her claim alone
+ * cannot tell a ticket already hers from one it left (`claim-uploads.ts`). A number, never an id; 0 for every "no":
+ * signed out, another guest's ticket on a shared phone, a door that holds it.
+ */
+const keptSchema = z.object({
+  qr_token: z.string().trim().min(1),
+  session_token: z.string().trim().min(1),
+  kept: z.literal(true),
 });
 
 /** The empty answer, used for every "no" this route is allowed to give. */
@@ -142,7 +163,7 @@ async function viewerId(): Promise<string | null> {
 
 async function answerStatuses(
   request: Request,
-  input: { qr_token: string; session_token?: string },
+  input: { qr_token: string; session_token?: string; tell?: true },
 ): Promise<Response> {
   const refused = await breadthRefusal(request, input.qr_token);
   if (refused) return refused;
@@ -158,16 +179,45 @@ async function answerStatuses(
   const ticket = input.session_token
     ? ((await sortTickets(userId, [input.session_token])).hers[0] ?? null)
     : null;
-  const items = await listOwnUploadStatuses({
+  const { items, news } = await readOwnUploads({
     eventId: event.data.id,
     sessionToken: ticket,
     userId,
+    tell: input.tell === true,
   });
   // `host-curation`'s `told` is the flag's to answer: at `never` a refusal is not hers to learn.
   const told = TRACKER_TELLS_REFUSAL
     ? items
     : items.filter((item) => item.status !== "refused");
-  return NextResponse.json({ ok: true, items: told }, { headers: PRIVATE });
+  return NextResponse.json(
+    input.tell ? { ok: true, items: told, news } : { ok: true, items: told },
+    { headers: PRIVATE },
+  );
+}
+
+async function answerKept(
+  request: Request,
+  input: { qr_token: string; session_token: string },
+): Promise<Response> {
+  const refused = await breadthRefusal(request, input.qr_token);
+  if (refused) return refused;
+  const kept = async (): Promise<number> => {
+    const userId = await viewerId();
+    if (!userId) return 0;
+    const event = await getEventByQrToken(input.qr_token);
+    if (!event.ok || !(await letsThrough(event.data, input.session_token))) {
+      return 0;
+    }
+    return countKeptTicketUploads({
+      eventId: event.data.id,
+      sessionToken: input.session_token,
+      userId,
+    });
+  };
+  return NextResponse.json(
+    { ok: true, kept: await kept() },
+    { headers: PRIVATE },
+  );
 }
 
 export async function POST(request: Request) {
@@ -180,6 +230,9 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
+
+  const keep = keptSchema.safeParse(body);
+  if (keep.success) return answerKept(request, keep.data);
 
   const asked = statusesSchema.safeParse(body);
   if (asked.success) return answerStatuses(request, asked.data);

@@ -141,6 +141,35 @@ describe("FollowMomentCard", () => {
     );
   });
 
+  // crumbs-28, from `claims-wiring`: the card handed its Follow no follow state, so a guest who already follows the host
+  // met "Follow" and could only press it to find out. The host card carries it now, read beside `getHostCard`.
+  it("★ starts on Following for a guest who already follows the host", () => {
+    render(
+      <FollowMomentCard
+        host={{ ...HOST, following: true }}
+        needsHandle={false}
+        count={2}
+      />,
+    );
+    const button = screen.getByRole("button", { name: "Following" });
+    expect(button).toHaveAttribute("aria-pressed", "true");
+    expect(screen.queryByRole("button", { name: "Follow" })).toBeNull();
+  });
+
+  it("starts on Follow for one who does not", () => {
+    render(
+      <FollowMomentCard
+        host={{ ...HOST, following: false }}
+        needsHandle={false}
+        count={2}
+      />,
+    );
+    expect(screen.getByRole("button", { name: "Follow" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+  });
+
   it("the handle row points at the page's own setup", () => {
     render(<FollowMomentCard host={null} needsHandle count={1} />);
     expect(screen.getByRole("link", { name: "Claim" })).toHaveAttribute(

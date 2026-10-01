@@ -4,12 +4,12 @@ import { join, relative } from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
-import { cn, RADIUS_TOKENS, TYPE_STEPS } from "@/lib/utils";
+import { cn, RADIUS_TOKENS, SHADOW_TOKENS, TYPE_STEPS } from "@/lib/utils";
 
 /**
- * THE TYPE STEPS AND RADIUS TOKENS STAY REACHABLE, AND NO CLASS BESIDE THE
- * HEADING FACE SILENTLY REPLACES ITS WEIGHT. Three silent failures, and none is
- * about how a step looks (the Library shows that):
+ * THE TYPE STEPS, RADIUS TOKENS AND SHADOW TOKENS STAY REACHABLE, AND NO CLASS
+ * BESIDE THE HEADING FACE SILENTLY REPLACES ITS WEIGHT. Three silent failures,
+ * and none is about how a step looks (the Library shows that):
  *
  * 1. A STEP `cn()` HAS NEVER HEARD OF. tailwind-merge does not read our
  *    stylesheet, so an unknown `text-*` falls into its `text-color` group and
@@ -17,7 +17,9 @@ import { cn, RADIUS_TOKENS, TYPE_STEPS } from "@/lib/utils";
  *    text-chapter text-white")` returned `font-heading text-white` until
  *    utils.ts declared the ladder. The custom radius tokens are the same trap:
  *    unknown to tailwind-merge, a token corner and a stock one both survive
- *    `cn()` and the stylesheet's alphabet picks.
+ *    `cn()` and the stylesheet's alphabet picks. So are the two elevation
+ *    shadows, filed under shadow colour: `cn("shadow-layer", "shadow-none")`
+ *    kept both.
  *
  * 2. A NAME THE COLOR NAMESPACE ALREADY OWNS. Tailwind v4 resolves a `text-*`
  *    class as a COLOR before a font size, so a step named like a colour token
@@ -47,7 +49,7 @@ const declared = [...theme.matchAll(/^\s*--text-([a-z0-9-]+):\s/gm)]
   .map((m) => m[1])
   .filter((name) => !name.includes("--"));
 
-describe("the type steps and radius tokens", () => {
+describe("the type steps, radius tokens and shadow tokens", () => {
   it("are the same list theme.css and cn() are working from", () => {
     expect(
       declared.length,
@@ -69,6 +71,34 @@ describe("the type steps and radius tokens", () => {
       expect(cn("rounded-md", `rounded-${name}`)).toBe(`rounded-${name}`);
       expect(cn(`rounded-${name}`, "rounded-full")).toBe("rounded-full");
     }
+  });
+
+  it("★ teach cn() every shadow token theme.css maps, so a stock shadow and a token shadow resolve to the last written", () => {
+    // The self-mapped `--shadow-*` lines of the theme block (`--shadow-layer: var(--shadow-layer)`): the
+    // elevation contract's utilities, which tailwind-merge would otherwise file under shadow COLOUR.
+    const custom = [
+      ...theme.matchAll(/^\s*--shadow-([a-z0-9-]+):\s*var\(--shadow-\1\);/gm),
+    ].map((m) => m[1]);
+    expect(
+      custom.length,
+      "no --shadow-* token found in theme.css",
+    ).toBeGreaterThan(0);
+    expect([...SHADOW_TOKENS].sort()).toEqual([...custom].sort());
+    // Every stock size a generator might write beside one, in both orders.
+    for (const name of custom) {
+      const token = `shadow-${name}`;
+      expect(cn(token, "shadow-none")).toBe("shadow-none");
+      expect(cn(token, "shadow-md")).toBe("shadow-md");
+      expect(cn("shadow-md", token)).toBe(token);
+      expect(cn("shadow-none", token)).toBe(token);
+    }
+    expect(cn("shadow-lift", "shadow-layer")).toBe("shadow-layer");
+    // A shadow COLOUR is another property: it stays beside either.
+    expect(cn("shadow-layer", "shadow-red-500")).toBe(
+      "shadow-layer shadow-red-500",
+    );
+    // And the ring the shadow composes with is not the shadow's to remove.
+    expect(cn("ring-1", "shadow-layer")).toBe("ring-1 shadow-layer");
   });
 
   it("give no step a name the color namespace already owns", () => {

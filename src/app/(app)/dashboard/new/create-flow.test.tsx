@@ -61,7 +61,9 @@ const EVENT = {
   qr_style: "classic",
 };
 
-function renderWizard(props: Partial<Parameters<typeof CreateEventWizard>[0]> = {}) {
+function renderWizard(
+  props: Partial<Parameters<typeof CreateEventWizard>[0]> = {},
+) {
   return render(
     <CreateEventWizard
       siteUrl="https://partyreel.com"
@@ -122,8 +124,9 @@ describe("the style step", () => {
       .getAllByRole("button")
       .filter((b) => b.getAttribute("aria-pressed") !== null);
     expect(swatches).toHaveLength(QR_STYLE_KEYS.length);
-    expect(swatches.filter((b) => b.getAttribute("aria-pressed") === "true"))
-      .toHaveLength(1);
+    expect(
+      swatches.filter((b) => b.getAttribute("aria-pressed") === "true"),
+    ).toHaveLength(1);
 
     const last = swatches[swatches.length - 1];
     await userEvent.click(last);
@@ -168,10 +171,13 @@ describe("where Create lands", () => {
       "data-value",
       `https://partyreel.com/e/${EVENT.qr_token}`,
     );
+    expect(screen.getByRole("link", { name: /print/i })).toHaveAttribute(
+      "href",
+      `/dashboard/${EVENT.id}/print`,
+    );
     expect(
-      screen.getByRole("link", { name: /print/i }),
-    ).toHaveAttribute("href", `/dashboard/${EVENT.id}/print`);
-    expect(screen.getByRole("button", { name: /share the link/i })).toBeInTheDocument();
+      screen.getByRole("button", { name: /share the link/i }),
+    ).toBeInTheDocument();
     // The event is created ONCE, at commit. A second insert here would mean an
     // abandoned row for every host who pressed twice.
     expect(createEventInWizard).toHaveBeenCalledTimes(1);
@@ -203,9 +209,10 @@ describe("the door at the cap", () => {
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
     expect(screen.getAllByText(/Theo's 30th/).length).toBeGreaterThan(0);
     // Both ways forward, and the delete door lands where delete actually lives.
-    expect(
-      screen.getByRole("link", { name: /delete it/i }),
-    ).toHaveAttribute("href", "/dashboard/evt_0?room=settings");
+    expect(screen.getByRole("link", { name: /delete it/i })).toHaveAttribute(
+      "href",
+      "/dashboard/evt_0?room=settings",
+    );
     expect(screen.getByRole("button", { name: /pro/i })).toBeInTheDocument();
   });
 
@@ -282,10 +289,13 @@ describe("the print route", () => {
     const layout = code(LAYOUT);
     expect(/getRequestAuth\(\)|auth\.getUser\(\)/.test(layout)).toBe(true);
     expect(/getSession\(/.test(layout)).toBe(false);
-    // And the event itself comes back through the RLS-scoped read, 404 on null.
+    // And the event itself comes back through the RLS-scoped read, 404 on null. ★ RESHAPED ON PURPOSE
+    // (crumbs-30; scar kept: 404 on null): the 404 is drawn, never thrown, as the hub's is (a thrown one was
+    // the root's error shell here), so the pin reads the drawing (`page.test.tsx` pins what it draws).
     const page = code(PAGE);
     expect(/getEvent\(/.test(page)).toBe(true);
-    expect(/notFound\(\)/.test(page)).toBe(true);
+    expect(/if \(!event\) return <PrintNotFound \/>;/.test(page)).toBe(true);
+    expect(/notFound\(\)/.test(page)).toBe(false);
   });
 
   it("renders the code with the ZERO-JS server renderer, never the client one", () => {
@@ -295,18 +305,18 @@ describe("the print route", () => {
     const stock = code("src/components/app/print/print-stock.tsx");
     expect(/FooterQr/.test(stock)).toBe(true);
     expect(/StyledQr/.test(stock)).toBe(false);
-    expect(/"use client"/.test(read("src/components/app/print/print-stock.tsx"))).toBe(
-      false,
-    );
+    expect(
+      /"use client"/.test(read("src/components/app/print/print-stock.tsx")),
+    ).toBe(false);
   });
 
   it("encodes the PERMANENT link, never the slug", () => {
     // A slug can be released; a card already on a table cannot be reprinted.
     const page = code(PAGE);
     expect(/joinUrl=\{joinUrl\}/.test(page)).toBe(true);
-    expect(/const joinUrl = `\$\{siteUrl\}\/e\/\$\{event\.qr_token\}`/.test(page)).toBe(
-      true,
-    );
+    expect(
+      /const joinUrl = `\$\{siteUrl\}\/e\/\$\{event\.qr_token\}`/.test(page),
+    ).toBe(true);
   });
 
   it("sets no @page rule (the house doctrine: it cannot be scoped)", () => {
@@ -323,7 +333,9 @@ describe("the print route", () => {
       .split("\n")
       .filter((l) => l.trim().endsWith("{") && !l.includes("@media"))
       .map((l) => l.trim());
-    expect(selectors.filter((s) => !s.includes("data-print-stock"))).toEqual([]);
+    expect(selectors.filter((s) => !s.includes("data-print-stock"))).toEqual(
+      [],
+    );
   });
 });
 

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 
+import { appNotFoundMetadata } from "@/app/(app)/not-found.metadata";
+import { AppNotFoundScreen } from "@/app/(app)/not-found.screen";
 import { getEvent, getReelProgress } from "@/lib/db/queries/events";
 import { getLiveReelServerFacts } from "@/lib/db/queries/guest-events-admin";
 import { reelState } from "@/lib/event/reel-progress";
@@ -11,7 +13,15 @@ export const dynamic = "force-dynamic";
 // Next 16: params is a Promise — await it.
 type PageProps = { params: Promise<{ eventId: string }> };
 
-export const metadata: Metadata = { title: "Highlight reel" };
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const { eventId } = await params;
+  // `getEvent` is request-cached, so this and the page below read the event once. An event that is gone or never
+  // this host's is titled as the 404 it is (the hub's page says why).
+  const event = await getEvent(eventId);
+  return event ? { title: "Highlight reel" } : appNotFoundMetadata;
+}
 
 /**
  * THE OLD REEL ROOM, NOW A REDIRECT (`reel-host`, Will 2026-09-25: `home=view`).
@@ -32,8 +42,9 @@ export default async function ReelRedirectPage({ params }: PageProps) {
   const { eventId } = await params;
   const event = await getEvent(eventId);
   // RLS-scoped and deleted-filtered: a missing, foreign or deleted event is a 404, never a
-  // redirect that would confirm it exists.
-  if (!event) notFound();
+  // redirect that would confirm it exists. Drawn here, never thrown: the hub's page says why
+  // (crumbs-28).
+  if (!event) return <AppNotFoundScreen />;
 
   const [progress, liveReelFacts] = await Promise.all([
     getReelProgress([event.id]),

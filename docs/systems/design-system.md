@@ -134,9 +134,9 @@ is near it; **beam** marks the object that is the live subject. Ink tends to tak
 - ★ **A band resting mid-travel shows a reduced-motion visitor the comet forever**: the animation lives under
   `no-preference`, so the declared position is what they see. It rests where its animation starts (`150% 0` on the
   mask drive, `glw-drift-x`'s from-keyframe on the transform drive), never `50% 0`.
-- **`GlowFilter` mounts once, in the root layout** (the root `not-found.tsx` renders the footer outside `(marketing)`);
-  SVG ids are document-global, so never a second. ★ **A missing filter host drops the whole filter chain**, `blur()`
-  included, and the five ellipses render as hard blobs, silently; `Glow` has a dev-only console guard.
+- **`GlowFilter` mounts once, in the root layout** (the root 404, `not-found.site.tsx`, renders the footer outside
+  `(marketing)`); SVG ids are document-global, so never a second. ★ **A missing filter host drops the whole filter
+  chain**, `blur()` included, and the five ellipses render as hard blobs, silently; `Glow` has a dev-only console guard.
 - **One clock**: lamps read `--spill-cadence`, never a literal; the Aurora's field reads `--aurora-cadence`, a slower
   sibling (a chapter-sized field on a lamp's clock reads as a screensaver). ★ The sibling stays declared in
   globals.css: an inline `vars` value outranks `--glw-dur`, so an undeclared cadence voids the `animation` shorthand and
@@ -271,8 +271,10 @@ the card is the page's own white, so the ring carries the edge; a surface lying 
   `--tw-shadow`, so wear the utility or re-state the ring first (the toast re-states sonner's focus ring).
 - ★ **An unlayered rule outranks every utility**: a bare `box-shadow` in marketing.css beats `shadow-lift` whatever the
   specificity. A shadow that must beat that sheet is carried inline as the token.
-- ★ **`cn()` files `shadow-lift` and `shadow-layer` under shadow colour**: `cn("shadow-layer", "shadow-none")` keeps both
-  and the stylesheet decides; the fix, if ever needed, is one `theme.shadow` line in `src/lib/utils.ts`.
+- ★ **A shadow token `cn()` has not been taught is filed under shadow colour**, which sits beside a size instead of
+  replacing it: `cn("shadow-layer", "shadow-none")` kept both and the stylesheet's alphabet decided, as it did for a
+  stock `shadow-md` a generator wrote onto a component. The names live in `SHADOW_TOKENS` (`src/lib/utils.ts`), pinned
+  against theme.css by `type-ladder-policy.test.ts`: a new elevation utility joins it in the same change.
 - ★ **No surface token is translucent**: an alpha reads solid over a page and turns to glass over a photograph. Glass is
   its own material, worn only as media chrome.
 
@@ -292,7 +294,7 @@ QR card, through `[data-lit]` in globals.css.
 ## The glass material: Crystal
 
 Every surface over a photograph wears one material, Crystal: its numbers are the `--glass-*` block in globals.css,
-named in `lib/glass.ts`. `PosterCardChip` (the stored reel's poster) is the one pane still carrying its own.
+and `lib/glass.ts` names the classes the product wears. `PosterCardChip` (the stored reel's poster) is the one pane still carrying its own.
 
 - ★ **Brightness makes glass legible, not blur**: a blur leaves the mean luminance under a pill unchanged, so a clear
   pane over a bright photograph loses white text at any radius. Crystal dims the backdrop under a four percent tint.
@@ -318,7 +320,7 @@ named in `lib/glass.ts`. `PosterCardChip` (the stored reel's poster) is the one 
 ## The album tile
 
 One tile, `shared/album-tile.tsx` (`AlbumTile`), draws every album grid, laid out by `shared/masonry.tsx`
-(`MasonryColumns`): the guest album (`GuestMasonry` wraps it), the host's album, the bin and the personal feeds. The
+(`MasonryColumns`): the guest album (`GalleryRows` wraps it), the host's album, the bin and the personal feeds. The
 admin's `ModerationTile` stays its own: a report is not an album. It lays out as masonry (the default), uniform (a
 fixed aspect: the Reel and Review) or `rows`, the justified album, windowed (`shared/album-window.tsx`, opt-in until
 each surface switches). `/design/album-scale` is the grid over 1,145 photographs and `scripts/album-perf.mjs` its
@@ -352,7 +354,10 @@ server answering the poll, the writes and the bin's routes as the real ones do.
   small to fill a row at the cap sits centred at it. Three steps, photos per row by the box's width (`ROW_CLASSES`:
   1/2/3 under 480, 2/3/4, 3/4/6 from 900, 3/5/8 from 1280), never pixels; one index in the shared `pr_tile_size`
   cookie (`resolveRowStep`, the legacy widths mapped across). The feature row never runs at one a row. Extreme ratios
-  clamp to 1:2..2.4:1 (`rowRatio`).
+  clamp to 1:2..2.4:1 (`rowRatio`). ★ A partition beats the best only past a tie (`TIE`, a billionth of the cost),
+  the one met first standing: `Math.log` and `Math.pow` are implementation-approximated, so Node and a browser answer
+  a last bit apart, and many partitions tie exactly, which the search once settled on that bit (a simulated second
+  engine broke 221 of 1,260 layouts of 1,145 photographs; none since, `album-rows.test.ts`).
 - ★ **A full re-solve moves the whole album**, since paths from a new head need not merge with the old ones, so it runs
   only on load, a resize, a step change and a filter; an arrival re-solves the new photos plus the three rows beside
   them and a hide its row and neighbours, each window pinned at its edges and stretched by one row at most: never
@@ -459,8 +464,8 @@ fade, a hair of scale, 8px from the anchor) and `floatingEdgeEntrance` (the shee
 three rungs follow frequency: instant for what opens dozens of times an hour (a tooltip, a dropdown, a select),
 standard for a popover or dialog, edge for the sheet. The light is `shadow-layer`, and every panel is opaque until the
 Glass exploration answers its material.
-`drawer.tsx` (vaul's, drawn only by the Library's gallery now) and `sonner.tsx` sit outside the family by name; the QR mini-modal's View
-Transition is its one sanctioned hole ([host-app.md](host-app.md)).
+`sonner.tsx` sits outside the family by name; the QR mini-modal's View Transition is its one sanctioned hole
+([host-app.md](host-app.md)).
 
 - **The product has ONE responsive `Sheet`** (`ui/sheet.tsx`, opted into with `responsive`): a side panel at a desk, a
   bottom sheet in a hand. It emits `data-side="responsive"`, so none of the fixed-side rules can race it, and its
@@ -486,7 +491,11 @@ Transition is its one sanctioned hole ([host-app.md](host-app.md)).
   history entry, its marker a field on the state Next merges,
   taken back one tick late so StrictMode's double effect cannot close it; where a router refresh took the marker, its
   own word that it pushed the entry at this address still takes it back, and never at another address, where a link
-  inside it navigated on), unless its page already routes it (`routed`, `?room=`). ★ In a hand focus lands on the popup itself; at a desk the row's `deskFocus` says; a popup with
+  inside it navigated on), unless its page already routes it (`routed`, `?room=`). ★ A link inside a place takes the
+  place's entry with it: a plain click a `Link` would navigate in this tab, to another page of the site, is taken before
+  the link's own handler and navigates by replacing that entry, so Back from the next page lands on the page beneath,
+  never on the place's same-URL entry with nothing open (the claims review's Open album, a look's Open full profile;
+  measured under `next dev`, crumbs-32). ★ In a hand focus lands on the popup itself; at a desk the row's `deskFocus` says; a popup with
   no trigger of its own gives focus back to the control that opened it: inside the layer still open behind it when it
   was stacked over one (a confirm over the viewer or Settings), else on the page; only a menu or a listbox, which close
   as the next popup opens, is never a return target. ★ Size a dialog with `size`, never a width
@@ -557,6 +566,8 @@ bob on the house bounce written inline, since `--mkt-ease-pop` lives on `[data-m
   language with no internals.
 - **Every route group's `error.tsx` draws the shared `RouteError`**, tagged `render:<area>` in Sentry, showing a help
   line and the `digest` as the support handle. ★ **It never renders `error.message`**: that is the security invariant.
+  ★ **Try again is Next's `unstable_retry`** (the router's refresh with the reset, `TryAgain`), on every crash screen,
+  `global-error`'s included, reading "Trying again…" while it asks: a bare `reset` re-renders the payload that crashed.
 - **The root `error.tsx`** catches a crash in a group's own layout, which no group boundary can; `global-error.tsx`,
   dependency-free (its own html, inline styles), covers the root layout's death.
 - **`captureError` lives in the crash wrappers only**, never in `NotFoundScreen`, where it would file every real 404.
@@ -607,9 +618,13 @@ board, its own sheet and scenes), found by the registry and the board route and 
   against transparent black, so the pair resolves to the union. Split the masks across two nested elements.
 - ★ **Radix's `Portal` renders its children one commit after it mounts**, so an effect keyed on a dialog opening finds
   no element: the viewer binds its stage and media through callback refs held in state, and keys its effects on those.
-- ★ **A tap on a tooltip-wrapped control can lose its click**: the touch's compatibility mousedown focuses the button,
-  radix opens the tooltip on focus with no delay, and its arrow lands under the finger. The viewer's chrome cancels a
-  touch pointerdown in capture (`media-lightbox.tsx`), except on a menu trigger, which radix opens on pointerdown.
+- ★ **A tap never opens a tooltip, and its arrow takes no pointer** (`ui/tooltip`). A touch's compatibility mousedown
+  comes AFTER its pointerup, so radix's press guard has already let go when it focuses the button, and radix opened
+  the tooltip on that focus with no delay; its entrance slid the arrow's box (radix's own span) over the trigger's
+  edge, and Chrome sent the click to wherever the mouseup landed, never the control (the viewer's Close lost 3 taps
+  of 3 on its edge). `TooltipTrigger` refuses a focus a finger or a pen began, until the tap's click, a blur or a
+  cancelled touch, and the arrow and its span take no pointer; a keyboard's focus and a cursor's hover open it as
+  before. The viewer's own capture guard went with it.
 - ★ **A full-width `inset-x-0` overlay above a gesture track eats the gesture** across its flanks, killing swipe
   navigation on every viewer at once: the box takes `pointer-events-none`, its controls `pointer-events-auto`.
 - **`src/components/ui/*` keeps the shadcn generator's style** (no semicolons, `.prettierignore`d) while app code uses

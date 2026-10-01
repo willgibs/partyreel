@@ -61,8 +61,7 @@ export function BulkTools() {
               />
             ))}
           </div>
-          {/* The bar the selection summons, straddling the album's edge the
-              way the app's floating bar rides the bottom of the screen. */}
+          {/* The bar the selection summons, straddling the album's edge. */}
           <span className="absolute inset-x-0 -bottom-5 flex justify-center">
             <BulkBarMock count={selectedCount} />
           </span>

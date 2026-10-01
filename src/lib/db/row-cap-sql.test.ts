@@ -9,7 +9,9 @@
  *   * pages: takes a keyset cursor (a parameter named p_after* or p_before*) and `p_limit`, and
  *     clamps it in SQL with `least(p_limit, <max_rows>)`, or
  *   * returns at most one row by construction, and sits on SINGLE_ROW with the reason, or
- *   * is bounded by its callers on purpose, and sits on CALLER_BOUNDED with the reason.
+ *   * is bounded by its callers on purpose, and sits on CALLER_BOUNDED with the reason, or
+ *   * is read only inside SQL bodies and callable by no role PostgREST serves (its EXECUTE the owner's alone), and
+ *     sits on INTERNAL with the reason: no request can reach it, so none can be cut.
  * A function that returns one value (a scalar, a jsonb, a uuid[]) is not set-returning at all, which is
  * how this round answers counts, covers, holds and metrics.
  *
@@ -53,12 +55,20 @@ const SINGLE_ROW: Record<string, string> = {
 
 /**
  * Take p_limit but deliberately never page. Each entry is WHY; a stale entry fails too.
+ *
+ * Empty since crumbs-38 (20261001203800): the owner's Uploads and Likes feeds were its two entries ("no cursor by
+ * design", the page saying it stopped at 200), and they page now, so the rules below hold them like any other.
  */
-const CALLER_BOUNDED: Record<string, string> = {
-  get_my_uploads:
-    "the owner's Uploads feed reads the newest p_limit (the app asks 200) and flags `truncated`, so the page says so; no cursor by design",
-  get_my_likes:
-    "the owner's Likes feed reads the newest p_limit (the app asks 200) and flags `truncated`, so the page says so; no cursor by design",
+const CALLER_BOUNDED: Record<string, string> = {};
+
+/**
+ * Read only inside SQL bodies (a FROM in a definer body's own statement), never through PostgREST: each one's EXECUTE
+ * is revoked from every role PostgREST serves (anon, authenticated and the service role) and granted by no file, which
+ * the test below checks, so no request can reach it to be cut. Each entry is WHY; a stale entry fails too.
+ */
+const INTERNAL: Record<string, string> = {
+  event_door_asks:
+    "the asks a door may let in (crumbs-29), read inside the statements of the door's trigger and the host's door acts, all SECURITY DEFINER; the owner's EXECUTE alone",
 };
 
 type Definition = {
@@ -141,6 +151,25 @@ function liveFunctions(): Map<string, Definition> {
 }
 
 const LIVE = liveFunctions();
+
+/**
+ * Whether no role PostgREST serves can call this function, replayed across the set: some file revokes its EXECUTE
+ * from public, anon, authenticated AND the service role, and no file grants it to anyone.
+ */
+function ownerOnly(name: string): boolean {
+  const sqls = readdirSync(MIGRATIONS_DIR)
+    .filter((f) => f.endsWith(".sql"))
+    .sort()
+    .map((f) => executable(readFileSync(join(MIGRATIONS_DIR, f), "utf8")));
+  const revoked = new RegExp(
+    `revoke (?:all|execute) on function public\\.${name}\\([^)]*\\) from public, anon, authenticated, service_role;`,
+  );
+  const granted = new RegExp(`grant [^;]* on function public\\.${name}\\(`);
+  return (
+    sqls.some((sql) => revoked.test(sql)) &&
+    !sqls.some((sql) => granted.test(sql))
+  );
+}
 const setReturning = [...LIVE].filter(([, d]) =>
   /^(table|setof)\b/.test(d.returns),
 );
@@ -184,6 +213,13 @@ describe("every set-returning function pages, or returns one row", () => {
 
   for (const [name, def] of setReturning) {
     it(`${name} (${def.file})`, () => {
+      if (name in INTERNAL) {
+        expect(
+          ownerOnly(name),
+          `${name} is on INTERNAL but a role PostgREST serves can call it: revoke it from every one, or page it`,
+        ).toBe(true);
+        return;
+      }
       if (name in SINGLE_ROW) {
         expect(
           takesLimit(def),
@@ -218,6 +254,7 @@ describe("the allow-lists only name live functions they still describe", () => {
   for (const [name, why] of Object.entries({
     ...SINGLE_ROW,
     ...CALLER_BOUNDED,
+    ...INTERNAL,
   })) {
     it(`${name}: ${why}`, () => {
       const def = LIVE.get(name);

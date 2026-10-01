@@ -55,7 +55,8 @@ vi.mock("@/lib/db/mutations/events", () => ({
   }),
 }));
 
-const { requestAccountDeletion } = await import("@/lib/db/mutations/account");
+const { isOnNewsletterList, removeMyNewsletterSignup, requestAccountDeletion } =
+  await import("@/lib/db/mutations/account");
 
 const USER = "0a1b2c3d-4e5f-4061-8273-8495a6b7c8d9";
 const STRANGER = "9f8e7d6c-5b4a-4938-8271-605f4e3d2c1b";
@@ -231,5 +232,46 @@ describe("requestAccountDeletion takes the address with it (lp/identity-email)",
       (call) => (call[2] as { step?: string } | undefined)?.step,
     );
     expect(steps).toContain("account_deletion_scrub");
+  });
+});
+
+/**
+ * ★ THE MARKETING SWITCH REMOVES WHAT IT READS (crumbs-33, from identity-email). The list stores an address lower
+ * case and trimmed (capture_guest_email), and an email change now moves the account's row to its new address
+ * (20261001110000). The switch reads and removes by the address the account holds, asked in the list's own form, so
+ * the row it shows ON is the row its OFF takes away, whatever case the profile's copy is in.
+ */
+describe("the /account marketing switch and the list's form", () => {
+  function switchWorld(profileEmail: string) {
+    state.fake = createFakePostgrest({
+      tables: {
+        profiles: [{ id: USER, email: profileEmail }],
+        newsletter_signups: [
+          { id: "n-mine", email: "host@example.com" },
+          { id: "n-other", email: "someone@example.com" },
+        ],
+      },
+    });
+    (state.fake as unknown as { auth: unknown }).auth = {
+      getUser: async () => ({ data: { user: { id: USER } }, error: null }),
+    };
+    return state.fake;
+  }
+
+  it("★ reads the row ON, and takes exactly it off, when the profile's address is in another case", async () => {
+    const fake = switchWorld(" Host@Example.COM ");
+    expect(await isOnNewsletterList()).toBe(true);
+    expect(await removeMyNewsletterSignup()).toEqual({ ok: true, removed: 1 });
+    expect(fake.tables.newsletter_signups.map((r) => r.id)).toEqual([
+      "n-other",
+    ]);
+    expect(await isOnNewsletterList()).toBe(false);
+  });
+
+  it("reads nothing for an account with no address, and removes nothing", async () => {
+    const fake = switchWorld("");
+    expect(await isOnNewsletterList()).toBe(false);
+    expect(await removeMyNewsletterSignup()).toEqual({ ok: true, removed: 0 });
+    expect(fake.tables.newsletter_signups).toHaveLength(2);
   });
 });

@@ -33,6 +33,23 @@ export function formatMediaCount(n: number): string {
   return n === 1 ? "1 photo or video" : `${formatCount(n)} photos & videos`;
 }
 
+/**
+ * "3 photos" | "1 video" | "4 items": a count of media whose kinds ARE known, named by them (crumbs-28), where
+ * `formatMediaCount` says both kinds of a count it cannot see into. A mix takes the surface's own word: Review's
+ * verdicts say "uploads" (`review-queue.ts`), and the host's album and the storage list "items", since both hold
+ * the host's own files too. One home, because the album's bulk Like hand-wrote "photo" and said "Liked 1 photo"
+ * for a video (`reel-and-copy`), while Review and the storage list each kept a copy of this rule.
+ */
+export function formatKindCount(
+  items: readonly { type: "photo" | "video" }[],
+  mix: "upload" | "item",
+): string {
+  const n = items.length;
+  const videos = items.filter((i) => i.type === "video").length;
+  const noun = videos === 0 ? "photo" : videos === n ? "video" : mix;
+  return `${formatCount(n)} ${noun}${n === 1 ? "" : "s"}`;
+}
+
 /** "1247" -> "+1,247", "-3" -> "-3", "0" -> "0". A delta against a prior period. */
 export function formatSignedCount(n: number): string {
   if (n === 0) return "0";

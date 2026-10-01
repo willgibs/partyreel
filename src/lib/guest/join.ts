@@ -189,13 +189,7 @@ async function post(url: string, payload: unknown): Promise<Response | null> {
   }
 }
 
-/**
- * Mint (or re-mint) this browser's guest session. `displayName` is omitted by the
- * queue's silent join and by every signed-in path: on a verified session the RPC
- * nulls a typed name anyway, because a confirmed account's identity is its profile
- * name and one row never carries two identities that can disagree.
- */
-export async function joinEvent(input: {
+type JoinInput = {
   qrToken: string;
   displayName?: string;
   /**
@@ -204,7 +198,44 @@ export async function joinEvent(input: {
    * account), and a verified-required event nulls it before the insert.
    */
   email?: string;
-}): Promise<JoinResult> {
+};
+
+/**
+ * ★ ONE JOIN AT A TIME FOR WHOEVER IS HOLDING THE PHONE (crumbs-29). A join with no
+ * name and no address means "join as whoever this browser is", and on a shared
+ * phone two of them raced: the queue's, after it put another guest's ticket down,
+ * and the page's own, the moment the ticket it watched fell to null. Each minted a
+ * row of hers in the same second, and the phone kept the empty one. So a nameless
+ * join already on its way for this album IS the answer to the next one asked
+ * meanwhile: one post, one ticket, whichever caller adopts it. (The server answers
+ * her one ticket as well, `event_account_ticket`; this spares the second round
+ * trip and the second cookie.) A join that carries a name or an address is the
+ * door's own, typed by a person, and is never shared.
+ */
+const viewerJoins = new Map<string, Promise<JoinResult>>();
+
+/**
+ * Mint (or re-mint) this browser's guest session. `displayName` is omitted by the
+ * queue's silent join and by every signed-in path: on a verified session the RPC
+ * nulls a typed name anyway, because a confirmed account's identity is its profile
+ * name and one row never carries two identities that can disagree.
+ */
+export function joinEvent(input: JoinInput): Promise<JoinResult> {
+  if (input.displayName !== undefined || input.email !== undefined) {
+    return postJoin(input);
+  }
+  const inFlight = viewerJoins.get(input.qrToken);
+  if (inFlight) return inFlight;
+  const join = postJoin(input).finally(() => {
+    if (viewerJoins.get(input.qrToken) === join) {
+      viewerJoins.delete(input.qrToken);
+    }
+  });
+  viewerJoins.set(input.qrToken, join);
+  return join;
+}
+
+async function postJoin(input: JoinInput): Promise<JoinResult> {
   const res = await post("/api/guests", {
     qr_token: input.qrToken,
     // Absent rather than null when there is no name: the route's schema treats the

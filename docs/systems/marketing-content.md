@@ -53,7 +53,10 @@ routes.
   the pages with no `CtaBand` would otherwise end with nothing to do whenever the demo is unset.
 - **The footer's index shows everything**: four columns (Features, Events, Product, Resources, with About and Careers as
   Resources' tail), the hubs linked from the Features and Events titles, Privacy and Terms in the legal bar with
-  `/llms.txt`. Nothing is collapsed: the sitemap is small enough to show whole, and a test refuses an accordion.
+  `/llms.txt`. Nothing is collapsed: the sitemap is small enough to show whole, and a test refuses an accordion. The
+  FAQ link is the one link that follows the page (`footer-faq-link.tsx`, a client island because a server footer cannot
+  read the pathname): on a route whose own FAQ section is `id="faq"` (`OWN_FAQ_ROUTES`, `/pricing`) it stays there,
+  and from every other page it goes to the home's.
 - **The root 404 renders the same footer outside `(marketing)`**, where marketing.css never loads, so the footer carries
   everything it needs itself: the slab's tokens, the seam glow, and the pile's box, size and rest pose. ★ The rest pose
   is a layered utility on purpose: the `.mkt-stack` recipe is unlayered, so on a marketing page its rest pose and hover
@@ -66,7 +69,14 @@ routes.
   guest door and the articles, and the lines themselves live in `marketing-voice.ts` (its head comment carries the
   fence). A line may describe the per-event switch truthfully or report a different act (reporting is anonymous, the
   demo needs no sign-up). ★ The expensive case is a suggested host announcement: a help or blog line handing a host "no
-  sign-up" becomes a support question a hundred times over once their event asks for an email.
+  sign-up" becomes a support question a hundred times over once their event asks for an email. "Nothing but their
+  phones" is the same promise in other words, and `content-policy.test.ts` fences both.
+- ★ **A line that says an event "stays up" carries the Free plan's one exception**: an event nobody touches for about six
+  months is warned about by email, then moved to Deleted, where it can be restored for 30 days (the help guide's rule 7,
+  derived from `lifecycle/inactivity.ts` (`INACTIVE_MONTHS`) and `recently-deleted.ts`). The
+  home FAQ's keep answer, the event pages' lines and the two blog posts that say how long an album lasts (reunion and
+  trip) hold it (`faq-data.test.ts`, `events.test.ts`, `blog-keep-lines.test.ts`); the pricing FAQ, the llms files and
+  `/features/privacy` carry it too.
 - **A subhead runs opportunity, then what we do, then the benefit**: `SITE_SUBHEAD` is the model (their guests already
   shot the best photographs; what we do in one clause with no mechanism; the failure it spares them).
 - **An empty state names what is about to exist**, with the album as the noun and "starts" as the verb ("Your first
@@ -98,7 +108,6 @@ routes.
   (`sections/shared/reel-player.tsx`), which keeps the reader on the page with the film framed and Start free beside it.
 - **The home**: `sections/home/section-ids.ts` is the one source of the sections' order and surface, consecutive paper
   ids rendering inside one `PaperChapter`; the headers read `SECTION_HEADERS` in `marketing-voice.ts`.
-  `constants/features.ts` and `features-layout.ts` are dead scaffold that only their own test reads.
 - **The feature family**: identity in `constants/feature-pages.ts`. The hub is a directory of photographic doors
   (`features/shared/feature-door.tsx`), and the same doors close every feature page (`related-features.tsx`), so the site
   holds one picture of each feature. Every hero but /qr's composes `PageHero` (/qr's plate sits beside its lockup), and
@@ -152,7 +161,8 @@ routes.
   stops are `plansForTier("pro")`, never a typed range; the Pass ticket imports the pair's `StatRow`, never a copy; the
   configurator's two planes cannot be two card fills, because on paper `--card` and `--background` are the same white
   and `bg-muted` is the only real step; `recommend.ts` alone picks the plan; the FAQ is one list,
-  `pricing-faq-data.ts`, read by the accordion and the JSON-LD; at 375 the plans stack. `shared-band.tsx` is dead.
+  `pricing-faq-data.ts`, read by the accordion and the JSON-LD (its section is `id="faq"`, the target of the footer's
+  FAQ link while a reader is on this page); at 375 the plans stack.
 - **`/privacy` and `/terms`**: `constants/legal.ts` (version, date, `status`, the bracketed `LEGAL_PARTY`
   placeholders, the block model, `LEGAL_RELATED`) and the content modules `legal-privacy.tsx` and `legal-terms.tsx`,
   which are env-free (never importing `site.ts`). Every section carries an "In short" line beside the formal text. The
@@ -380,8 +390,10 @@ Six `not-found.tsx` files share one presentational core, `shared/not-found-scree
   status passes on `next start`, which honours it). The proxy's only 404s are its two rewrites to the root's own page
   (the surface rule's, the lab gate's), the page Vercel's `/404` serves anyway. And every marketing
   `[slug]` page declares `dynamicParams = false`, so an unknown slug is routing's 404 with the root's screen
-  (`marketing-dynamic-params-policy.test.ts`). What still throws (the host app's, the portal's, a cinema page's own)
-  paints its screen one request after the boundary's chunk.
+  (`marketing-dynamic-params-policy.test.ts`). The host app's event pages and the portal's record pages draw theirs
+  the same way with no read for the status: behind sign-in nothing reads it, so they answer 200 (a soft 404, noindex),
+  titled from their group's `not-found.metadata.ts` (crumbs-28). What still throws (a cinema page's own, the print
+  sheet's) paints its screen one request after the boundary's chunk.
   `global-not-found` is no substitute in Next 16.2.6: experimental, it serves only unmatched URLs (a thrown
   `notFound()` with no nearer boundary, the lab's or the print sheet's, would draw Next's bare default), needs its own
   copy of the document shell, and sits on every route's root layer, so its client JS still loads everywhere.

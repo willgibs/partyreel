@@ -14,8 +14,10 @@ Elsewhere: host-side moderation ([host-app.md](host-app.md)), the forensic surfa
 
 `requireAdmin()` (pages and layouts: anon to `/login?next=<the portal page asked for>`, a non-admin to `notFound()`,
 so the portal's existence never leaks; it exposes `ctx.aal`, and a sensitive page returns null below AAL2 before it
-fetches) and `requireAdminAction()` (actions and routes; requires AAL2) are the only entry points. Nothing reads
-`profiles.is_admin` directly: the seam is the one place a future staff-and-roles model swaps in.
+fetches; its gate read is React's `cache()`, one `getUser()` and one `is_admin` a request for the layout, the page and
+a title together) and `requireAdminAction()` (actions and routes, outside any render, so read afresh at every call;
+requires AAL2) are the only entry points. Nothing reads `profiles.is_admin` directly: the seam is the one place a
+future staff-and-roles model swaps in.
 - **MFA (free TOTP) is a hard gate that stays reachable at AAL1,** so a first enrollment can never lock itself out:
   an AAL2 page gate ships with its AAL1 fallback. Break-glass is deleting the factor in `auth.mfa_factors` from the
   Supabase dashboard.
@@ -60,6 +62,12 @@ The bible's "media is the colour" and "one token set" reach it only as far as th
 never a design variable.
 - **A surface needs its `NAV` entry** (`lib/admin/nav.ts`), or the rail, the breadcrumb and the palette cannot reach
   it; `nav.test.ts` fails on a page the nav cannot reach.
+- **No link in the portal prefetches** (`prefetch={false}` on the rail, the dropdown, the bar's wordmark and chips,
+  rendered by `admin-chrome-prefetch.test.tsx`, and on every link a content component or a page draws, read from the
+  source of `components/admin` and `app/admin` by `admin-prefetch-policy.test.ts`): `next/link` prefetches whatever
+  paints, and each prefetch of a portal route is two reads of Supabase's auth server (the proxy, then the layout's own
+  `getUser()`), so thirteen rail links were about 30 `GET /auth/v1/user` a page view, and every row of a long inbox is
+  one more. A page's own `getUser()` is the boundary and is untouched.
 - **State colour comes from one map,** `lib/admin/tone.ts`, so a chip and the row under it cannot disagree.
 - **Every destructive act opens `destructive-sheet.tsx`,** which lists what the act touches; only a permanent act
   with something to identify asks you to type, and the server re-checks what was typed against the row. A confirm
@@ -111,8 +119,9 @@ three definitions of healthy:
   the Worker hands it over, and a signal failure raises where it happens (`jobs/failure-log.ts`). `jobHealth` without
   its inputs returns `never`, not `missed`, so the scan never pages on a number it did not take.
 - **A sub-sweep is a job:** the purge sweeps that loop over accounts (orphans, account deletion, inactivity,
-  over-capacity) open and close their own row inside the parent run through `createSweepRunner`, with their own
-  switch; the rest ride the parent's row.
+  over-capacity) and the album change log's prune (`purge_album_log`, which writes in the album's live core) open and
+  close their own row inside the parent run through `createSweepRunner`, with their own switch; the rest ride the
+  parent's row.
 - ★ **Per-row isolation never buys silence.** `forEachIsolated` lets the accounts behind a bad row still run, and the
   tally travels with the result: any `rows_failed` closes that sweep's run as an ERROR (the parent's too, for a sweep
   that rides it: `purgeRunVerdict`), and five consecutive failures abort the loop, because that is a dead dependency,
@@ -156,10 +165,24 @@ test (admin-triage r2):
   report reopened after its close no longer can, though its hash still says a confirmed address sent it.
 - ★ **The instant hide** (`create_report`): a `child` report of an item from a confirmed address makes the item an
   operator's removal at once (`hid_at` equal to its `removed_at`). Never for the event's own host, never for an
-  address a dismissed child-abuse report bars, at most 3 an address and 5 an event in 24 hours (advisory-locked);
-  otherwise the report is filed the same and heads the queue. Every other kind inserts only. A child-abuse report
-  tells the operator after the response (`alertUrgentReport`: a Sentry warning every time, an ops-inbox mail once
-  per album per ten minutes) and on the rail and the bell (the urgent count).
+  address holding three strikes, at most 3 an address and 5 an event in 24 hours (advisory-locked); otherwise the
+  report is filed the same and heads the queue. A strike is a child-abuse report from the address that the operator
+  dismissed, and it lapses 180 days after its `resolved_at`; the count reads the reports as they stand, so a
+  dismissal's Undo takes its strike back, and a CHECK holds a report open exactly when it has no `resolved_at`
+  (`reports_resolved_when_closed`), so no close can skip the time a strike counts from. Three that lapse rather than one for good, so a reporter he once disagreed
+  with keeps the hide (Will, 2026-09-30). ★ The rule and both its numbers live once, in `report_strikes`
+  (20261001100000), which `create_report` asks for its bar and the queue reads, so the line that tells the operator
+  can never count by another rule: a child-abuse report's line, on its card and in the report whole, says its
+  address's live strikes and what a Dismiss would make of them (a Dismiss closes the whole entry, so each of the
+  address's open child-abuse reports on it becomes a strike), marked when a Dismiss is the one that ends the hide. A
+  dismissed one's closed line says whether its strike still counts and until when (`closedStrike`: the lapse read off
+  the answer's own `fresh_lapses_at`, never a copy of 180), what its address holds, and "Undo takes it back" only
+  while the dismissal can be reopened (30 days, where a strike lasts 180); one that kept no address says it was never
+  a strike. The address never shows: the read keys on the kept hash. Every other kind inserts only. A
+  child-abuse report tells the operator after the response (`alertUrgentReport`: a Sentry warning every time, an
+  ops-inbox mail at most once per album in any ten minutes, the window running from the album's last mail and the
+  dedupe key naming that mail, `sendOncePerWindow`; a clock bucket mailed twice across a :x0 boundary) and on the
+  rail and the bell (the urgent count).
 - **The open queue is the review grid** (`components/admin/report-queue.tsx`): the five harm kinds in front, worst
   first, the two sexual kinds covered until View (★ and covered wherever an operator meets an item any report names
   as one, open or closed: every closed line and both Albums views, the feed and the drill-in, by one rule,
@@ -215,18 +238,27 @@ says so in words, never "No feedback yet".
 
 ## Sentry
 
-`@sentry/nextjs` on the free tier, DSN-gated: with `NEXT_PUBLIC_SENTRY_DSN` unset it is a no-op, so dev and an
-unconfigured build stay green without a hard assert. Session Replay records only on error, with all media blocked and
-all text masked; `sendDefaultPii` is off, and `scrubEvent` strips presigned-URL query strings and emails.
+`@sentry/nextjs` on the free tier, gated twice: with `NEXT_PUBLIC_SENTRY_DSN` unset it is a no-op, so an unconfigured
+build stays green without a hard assert; and it reports only from a Vercel production or preview deployment
+(`isVercelDeployment`: `VERCEL_ENV` on the server and edge, `NEXT_PUBLIC_VERCEL_ENV` in the browser), so a localhost
+run, `next start` included, sends nothing though `.env.local` holds the production DSN. Session Replay records only on
+error, with all media blocked and all text masked; `sendDefaultPii` is off, and `scrubEvent` strips presigned-URL query
+strings and emails.
+- ★ **A Vercel project must expose its system environment variables, or its browser goes quiet** (the server and edge
+  read the runtime variable). A project's first browser error must read `vercel-production` or `vercel-preview` in
+  Sentry, never `production`; the admin project shares the DSN and the check.
 - **Capture with `captureError` / `captureWarning(area, …)` only where an error is swallowed** (the upload finalizer,
   the webhook, the cron's `runSweep`, admin actions); everything else rides `onRequestError`, and routine user
   rejections (caps, limits, a closed album) are not errors. Sentry never enters `src/lib/db/*` (capture at the route
   or action) and never touches the Stripe webhook's raw body.
-- ★ **Both helpers schedule a flush on the server, never the client.** Vercel freezes a function the instant its
-  response leaves, so a bare SDK call can lose the envelope: crashes arrive (`onRequestError` already flushes) while
-  swallowed-error warnings silently never do. The helpers call `after(() => Sentry.flush(2000))` behind a
-  `typeof window` check and a dynamic import (four client boundaries import the file), and flush directly when
-  `after()` throws outside a request scope.
+- ★ **Every server capture is held by its request until its flush is out, never on the client.** Vercel freezes a
+  function the instant its response leaves, so a bare SDK call can lose the envelope. The helpers start
+  `Sentry.flush(2000)` at the capture and hand its own promise to `after()` (straight to the request's `waitUntil`;
+  Vercel's own request context when `after()` has no request scope), behind a `typeof window` check and a dynamic
+  import (four client boundaries import the file). A callback that only started a flush let the request go at once.
+  ★ `onRequestError` is ours too (`captureRequestError`): Sentry's own hands its flush to `@sentry/core`'s
+  `vercelWaitUntil`, which does nothing off the Edge runtime (getsentry/sentry-javascript#23087), so a cold Node.js
+  function froze with a crash's envelope in flight (build 35 lost one in three).
 - ★ **Guest capability tokens are scrubbed from every channel** (`telemetry-redaction.ts`): `/e/<qr_token>` puts the
   authorization in the URL path, and `beforeSend` sees only errors, so breadcrumbs, pageload transactions, `extra`
   and the replay's URL list would carry the token out. `addEventProcessor`, `beforeBreadcrumb` and the replay's

@@ -1,7 +1,10 @@
 "use client";
 
 import { GuestBar } from "@/components/guest/guest-bar";
-import { RouteError } from "@/components/shared/route-error";
+import {
+  RouteError,
+  type CrashBoundaryProps,
+} from "@/components/shared/route-error";
 
 // Render-crash boundary for guest token routes. Generic by design: a guest
 // page is the host's event, so the screen stays quiet and unbranded beyond
@@ -14,14 +17,14 @@ import { RouteError } from "@/components/shared/route-error";
 // RouteError's <main> is `flex-1` and needs a flex parent that fills the
 // viewport; the layout's `min-h-full` only resolves against an ancestor that
 // already has one.
-export default function GuestError(props: {
-  error: Error & { digest?: string };
-  reset: () => void;
-}) {
+export default function GuestError({
+  error,
+  unstable_retry,
+}: CrashBoundaryProps) {
   return (
     <div className="flex min-h-dvh flex-col">
       <GuestBar />
-      <RouteError area="render:guest" {...props} />
+      <RouteError area="render:guest" error={error} retry={unstable_retry} />
     </div>
   );
 }

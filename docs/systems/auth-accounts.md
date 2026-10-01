@@ -127,10 +127,13 @@ Functions are `email-actions.ts`.
   tells, so the account's `email_change` limit (six calls an hour, requests and code attempts on one budget, fail
   closed) bounds that probe.
 - ★ **The copies follow inside GoTrue's commit.** `handle_user_email_change` (AFTER UPDATE OF email ON `auth.users`,
-  when the address changed) writes it to `profiles.email` and to `guests.email` on the account's verified rows, except
-  for an account whose deletion is requested; past hosts see the new address, and `upload_forensics` keeps what each
-  upload captured. It runs in the Auth server's own transaction, so it stays trivial: a failure there blocks every
-  email change. The Stripe customer's copy follows after the response, best-effort (`syncBillingEmail`).
+  when the address changed) writes it to `profiles.email` and to `guests.email` on the account's verified rows, and
+  moves the account's newsletter row to it (an address already on the list keeps its own row; 20261001110000),
+  except for an account whose deletion is requested; past hosts see the new address, and `upload_forensics` keeps
+  what each upload captured. It runs in the Auth server's own transaction, so it stays trivial: a failure there
+  blocks every email change, which is why the move can never raise a unique violation. It is the one place every
+  change passes (both codes, a link tapped in another browser, an operator's update). The Stripe customer's copy
+  follows after the response, best-effort (`syncBillingEmail`).
 - **A tapped link lands on `/account`, never on an expired link.** `emailRedirectTo` is
   `/auth/callback?next=/account&flow=email_change` on the request's own host (the PKCE verifier cookie is
   host-scoped). The first link carries no code (GoTrue's message rides the fragment), so it lands

@@ -22,7 +22,7 @@ vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => asSupabase(db.fake as FakePostgrest),
 }));
 
-const { isEventOwner, isRequestOwner } =
+const { isEventOwner, isRequestOwner, requestOwnerAnswer } =
   await import("@/lib/events/gallery-access-owner.server");
 
 const EVENT = "11111111-1111-4111-8111-111111111111";
@@ -88,6 +88,37 @@ describe("isRequestOwner", () => {
     seed({ id: HOST }, 10);
     await expect(isRequestOwner(EVENT)).resolves.toBe(false);
     expect(eventReads()[0].failed).toBe(true);
+  });
+});
+
+/**
+ * THE SAME ANSWER WITH ITS USER (crumbs-28): the album's routes need the user beside the owner flag (a confirmed email
+ * and the id ride their decision), and asked both inline; this hands them the one answer and the user it was asked of,
+ * from one `getUser()`.
+ */
+describe("requestOwnerAnswer", () => {
+  it("no session: no user, not the owner, and no host read", async () => {
+    expect(await requestOwnerAnswer(EVENT)).toEqual({
+      user: null,
+      isOwner: false,
+    });
+    expect(eventReads()).toEqual([]);
+  });
+
+  it("★ the host comes back with the owner flag, matched on host_id as isRequestOwner matches it", async () => {
+    seed({ id: HOST });
+    const answer = await requestOwnerAnswer(EVENT);
+    expect(answer.isOwner).toBe(true);
+    expect(answer.user).toMatchObject({ id: HOST });
+    expect(await isRequestOwner(EVENT)).toBe(answer.isOwner);
+  });
+
+  it("a signed-in stranger comes back as themself, not the owner", async () => {
+    seed({ id: STRANGER });
+    expect(await requestOwnerAnswer(EVENT)).toMatchObject({
+      user: { id: STRANGER },
+      isOwner: false,
+    });
   });
 });
 

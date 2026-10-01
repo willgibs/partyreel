@@ -27,18 +27,21 @@
  * it here also means uploads made BEFORE this shipped are covered, which a
  * client-side ledger could never be.
  *
- * ★ A ROW WITH NO GUEST IS NEVER REACHABLE HERE. Both reads start from a guest
- * row, so a host's own upload (guest_id null) never lands in a "mine" list on
- * this page; the host removes their own through the event's moderation surface.
+ * ★ AND THE ALBUM'S OWNER IS NEVER HER OWN GUEST. Her Add on her guest page
+ * rides the host's pair, so her uploads here have no guest row, and the guest
+ * reads above never list them; `listOwnerMediaIds` does, for the same page, and
+ * `remove_my_upload`'s host arm takes each to her Deleted, restorable.
  */
 import "server-only";
 
 import type { PostgrestError } from "@supabase/supabase-js";
 
-import { mustQuery } from "@/lib/db/must-query";
+import { mustCount, mustQuery } from "@/lib/db/must-query";
 import { inChunks, readAllPages } from "@/lib/db/read-all";
+import { letInNews } from "@/lib/guest/let-in-news";
 import { captureError } from "@/lib/observability/sentry";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getRequestAuth } from "@/lib/supabase/request-auth";
 
 /** Below this, a token is not a token — refuse before touching the database. */
 const MIN_SESSION_TOKEN = 16;
@@ -132,6 +135,96 @@ export async function listAccountMediaIds(input: {
 }
 
 /**
+ * The ids THE ALBUM'S OWNER may remove on her own guest page (crumbs-32): her own
+ * uploads here, the rows with no guest (her guest page's Add, the hub's and the
+ * reel's all ride the host's pair), which `remove_my_upload`'s host arm takes to
+ * her Deleted. Never a guest row's: she is never her own guest, and that RPC's
+ * guest arm refuses the event's own host, so offering one would offer a refusal.
+ *
+ * ★ READ THROUGH HER OWN CLIENT, SO RLS IS THE BOUNDARY: `media_host_all` scopes
+ * the rows to her own events, and a viewer who is not this album's host reads
+ * nothing, whatever the page decided. Read whole (a host past 1,000 of her own)
+ * and, like every read here, FAIL CLOSED, LOUDLY.
+ */
+export async function listOwnerMediaIds(eventId: string): Promise<string[]> {
+  try {
+    const { supabase, user } = await getRequestAuth();
+    if (!user) return [];
+    const { rows } = await readAllPages(
+      "owner media: ids",
+      (after: string | null, limit) => {
+        let q = supabase
+          .from("media")
+          .select("id")
+          .eq("event_id", eventId)
+          .is("guest_id", null)
+          .neq("status", "removed")
+          .order("id", { ascending: true })
+          .limit(limit);
+        if (after) q = q.gt("id", after);
+        return q;
+      },
+      (m) => m.id,
+    );
+    return rows.map((m) => m.id);
+  } catch (error) {
+    captureError("media", error, {
+      seam: "owner_media_ids_fail_closed",
+      eventId,
+    });
+    return [];
+  }
+}
+
+/**
+ * THE LIVE UPLOADS ON THIS DEVICE'S TICKET HERE, ONCE THE TICKET IS THE ACCOUNT'S (build 33's red-team): whether a
+ * confirmation carried this phone's photos into her account, which the album asks when her own claim moved nothing
+ * because a read on the page claimed the ticket first (`claim-uploads.ts`).
+ *
+ * The TICKET, never the account: her rows from another device say nothing about what this phone kept, and a ticket
+ * the claim left (another guest's name on a shared phone, an address that is not hers) is not her row, so it counts
+ * 0 however many photos her account holds here. "Live" as the claim counts it: not removed. A head count, so no row
+ * cap. Like every read here, FAIL CLOSED, LOUDLY: 0 and a captured error, never a thrown request.
+ */
+export async function countKeptTicketUploads(input: {
+  eventId: string;
+  sessionToken: string;
+  userId: string;
+}): Promise<number> {
+  const token = input.sessionToken.trim();
+  if (token.length < MIN_SESSION_TOKEN) return 0;
+  const admin = createAdminClient();
+  try {
+    // One row at most: a session token names one guest row (guests.session_token is unique).
+    const row = await mustQuery(
+      admin
+        .from("guests")
+        .select("id")
+        .eq("event_id", input.eventId)
+        .eq("session_token", token)
+        .eq("user_id", input.userId)
+        .maybeSingle(),
+      "kept ticket: row",
+    );
+    if (!row) return 0;
+    return await mustCount(
+      admin
+        .from("media")
+        .select("id", { count: "exact", head: true })
+        .eq("guest_id", row.id)
+        .neq("status", "removed"),
+      "kept ticket: uploads",
+    );
+  } catch (error) {
+    captureError("media", error, {
+      seam: "kept_ticket_fail_closed",
+      eventId: input.eventId,
+    });
+    return 0;
+  }
+}
+
+/**
  * Where one of her uploads stands, as her own tracker says it: waiting for the
  * host, in the album, or refused (hidden or removed by the host, an operator or
  * the system). Never an identity and never a link: the tracker's thumbnails come
@@ -164,61 +257,119 @@ export async function listOwnUploadStatuses(input: {
   sessionToken?: string | null;
   userId?: string | null;
 }): Promise<OwnUpload[]> {
+  return (await readOwnUploads({ ...input, tell: false })).items;
+}
+
+/** Her uploads with where each stands, and (asked with `tell`) her news. */
+export type OwnUploadsRead = { items: OwnUpload[]; news: string[] };
+
+/** A column the database does not have yet: the migration not applied (`42703` in SQL, `PGRST204` in a write). */
+const MISSING_COLUMN = new Set(["42703", "PGRST204"]);
+
+function missingColumn(error: unknown): boolean {
+  const code = (error as { code?: string } | null)?.code;
+  return typeof code === "string" && MISSING_COLUMN.has(code);
+}
+
+type OwnRow = {
+  id: string;
+  status: string;
+  created_at: string;
+  guest_id?: string | null;
+  let_in_at?: string | null;
+};
+
+/**
+ * HER UPLOADS, AND WHAT SHE IS TOLD ON HER RETURN (crumbs-38: the approval toast's server half). With `tell`, the same
+ * read also answers her NEWS, the uploads of hers a decision let into the album since she was last told
+ * (`let-in-news.ts` holds the rule), and marks each of her rows told up to the newest it answered, so the moment the
+ * album says "One of yours is in the album" is had once: on a reload, a return, or her account's other device.
+ *
+ * ★ TOLD BY THE READ THAT ANSWERS IT. The mark is written as the news is read (her tracker asks at mount, at each
+ * opening and at each arrival, so an approval she watched arrive is told by that visit's own read), and the page
+ * spends the moment by the toast's own rules (a reel showing, the view not already open; spent either way). A mark
+ * that fails to write is captured and the news still answered: told twice beats never told.
+ *
+ * ★ A DATABASE WITHOUT THE MIGRATION reads as no news (captured, `let_in_schema_missing`) and the statuses as ever:
+ * this build may run before the columns stand, and her tracker must never lose its rows to them.
+ */
+export async function readOwnUploads(input: {
+  eventId: string;
+  sessionToken?: string | null;
+  userId?: string | null;
+  /** Answer her news, and mark it told. */
+  tell?: boolean;
+}): Promise<OwnUploadsRead> {
+  const tell = input.tell === true;
   const token = input.sessionToken?.trim() ?? "";
   const admin = createAdminClient();
+  const guestColumns = tell ? "id, let_in_told_at" : "id";
+  const mediaColumns = tell
+    ? "id, status, created_at, guest_id, let_in_at"
+    : "id, status, created_at";
   try {
-    const guestIds = new Set<string>();
+    const told = new Map<string, string | null>();
+    const take = (rows: unknown) => {
+      for (const row of (rows ?? []) as {
+        id: string;
+        let_in_told_at?: string | null;
+      }[]) {
+        told.set(row.id, row.let_in_told_at ?? null);
+      }
+    };
     if (token.length >= MIN_SESSION_TOKEN) {
       // row-cap: a session token names one guest row (guests.session_token is unique)
-      const rows = await mustQuery(
-        admin
-          .from("guests")
-          .select("id")
-          .eq("event_id", input.eventId)
-          .eq("session_token", token)
-          .is("user_id", null),
-        "own uploads: session row",
+      take(
+        await mustQuery(
+          admin
+            .from("guests")
+            .select(guestColumns)
+            .eq("event_id", input.eventId)
+            .eq("session_token", token)
+            .is("user_id", null),
+          "own uploads: session row",
+        ),
       );
-      for (const row of rows ?? []) guestIds.add(row.id);
     }
     if (input.userId) {
       // row-cap: one account's guest rows in one event: one per session it claimed, a handful
-      const rows = await mustQuery(
-        admin
-          .from("guests")
-          .select("id")
-          .eq("event_id", input.eventId)
-          .eq("user_id", input.userId),
-        "own uploads: account rows",
+      take(
+        await mustQuery(
+          admin
+            .from("guests")
+            .select(guestColumns)
+            .eq("event_id", input.eventId)
+            .eq("user_id", input.userId),
+          "own uploads: account rows",
+        ),
       );
-      for (const row of rows ?? []) guestIds.add(row.id);
     }
-    if (guestIds.size === 0) return [];
+    if (told.size === 0) return { items: [], news: [] };
 
     const media = await inChunks(
       "own uploads: media",
-      [...guestIds],
+      [...told.keys()],
       async (chunk) => {
         const { rows } = await readAllPages(
           "own uploads: media",
           (after: string | null, limit) => {
             let q = admin
               .from("media")
-              .select("id, status, created_at")
+              .select(mediaColumns)
               .eq("event_id", input.eventId)
               .in("guest_id", chunk)
               .eq("removed_by_uploader", false)
               .order("id", { ascending: true })
               .limit(limit);
             if (after) q = q.gt("id", after);
-            return q;
+            return q.overrideTypes<OwnRow[], { merge: false }>();
           },
           (m) => m.id,
         );
         return rows;
       },
     );
-    return media
+    const items: OwnUpload[] = [...media]
       .sort((a, b) => b.created_at.localeCompare(a.created_at))
       .map((m) => ({
         id: m.id,
@@ -229,12 +380,72 @@ export async function listOwnUploadStatuses(input: {
               ? "pending"
               : "refused",
       }));
+    if (!tell) return { items, news: [] };
+
+    const news = letInNews(
+      media.flatMap((m) =>
+        m.guest_id
+          ? [
+              {
+                id: m.id,
+                guestId: m.guest_id,
+                status: m.status,
+                letInAt: m.let_in_at ?? null,
+              },
+            ]
+          : [],
+      ),
+      told,
+    );
+    await markTold(input.eventId, news.marks);
+    return { items, news: news.ids };
   } catch (error) {
+    if (tell && missingColumn(error)) {
+      captureError("media", error, {
+        seam: "let_in_schema_missing",
+        eventId: input.eventId,
+      });
+      return readOwnUploads({ ...input, tell: false });
+    }
     captureError("media", error, {
       seam: "own_upload_statuses_fail_closed",
       eventId: input.eventId,
     });
-    return [];
+    return { items: [], news: [] };
+  }
+}
+
+/**
+ * Each row's mark, moved forward to the newest it told and never back: a read in flight beside this one may have told
+ * newer news already, so the write takes only a row whose mark is older (or none). A failure is captured, never thrown:
+ * the news is answered either way.
+ */
+async function markTold(
+  eventId: string,
+  marks: ReadonlyMap<string, string>,
+): Promise<void> {
+  if (marks.size === 0) return;
+  const admin = createAdminClient();
+  const results = await Promise.allSettled(
+    [...marks].map(([guestId, mark]) =>
+      mustQuery(
+        admin
+          .from("guests")
+          .update({ let_in_told_at: mark })
+          .eq("id", guestId)
+          .eq("event_id", eventId)
+          .or(`let_in_told_at.is.null,let_in_told_at.lt.${mark}`),
+        "own uploads: told mark",
+      ),
+    ),
+  );
+  for (const result of results) {
+    if (result.status === "rejected") {
+      captureError("media", result.reason, {
+        seam: "let_in_told_mark_failed",
+        eventId,
+      });
+    }
   }
 }
 

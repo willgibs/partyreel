@@ -10,6 +10,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
+import type { PostgrestError } from "@supabase/supabase-js";
 import { toast } from "sonner";
 
 import { AccountDoor, DOOR_WEAR } from "@/components/auth/account-door";
@@ -27,10 +28,13 @@ import { claimAnonymousUploads } from "@/lib/guest/claim-uploads";
 import { captureError } from "@/lib/observability/sentry";
 import { createClient } from "@/lib/supabase/client";
 
+import { createSeedQueue } from "./seed-queue";
+
 // The like controller for a gallery. Rendered ONCE per surface that opts into likes (the guest event
 // page, the host's album, the Uploads tab, the Likes tab); a surface that doesn't wrap its grid gets
 // no like UI because useLikes() returns null. It is one state machine for a whole grid:
-//   * signedIn resolved on mount (getSession, local);
+//   * the account the hearts are for, read from the session the device holds (getSession, local) at
+//     every signed-in call and followed as it changes (`seed-queue.ts`);
 //   * a store of liked ids seeded from `my_liked_media_ids` (the viewer's OWN likes among the grid's ids,
 //     the ids in the POST body; anon => nothing asked), so hearts paint correctly without threading
 //     state through SSR / the gallery poll / the feed RPCs;
@@ -44,7 +48,15 @@ import { createClient } from "@/lib/supabase/client";
 // ★ THE SEED FOLLOWS THE WINDOW (album-host-wiring). The paged album mounts only the rows around the
 // viewport, so a surface hands the ids it mounts to `seed(ids)` as its window moves; only the ids not
 // yet answered are asked, a tick's asks share one request, and an id in flight is never asked twice. A
-// surface that holds its whole set still passes `mediaIds`, which seeds through the same path.
+// surface that holds its whole set still passes `mediaIds`, which seeds through the same path. ★ And a
+// burst goes as one ask, two out at once (crumbs-40: a held arrow key in the viewer asked once a step).
+//
+// ★ AND THE ACCOUNT FOLLOWS THE DEVICE (crumbs-40, build 35's red-team). It decided once, at mount, that
+// she was signed in, so after a sign-out in another tab a new photograph was asked about as nobody: a
+// 42501 in Sentry. Every signed-in call (the seed, a like, a bulk like, a replay) reads the session as
+// it goes and calls nothing without one; the SDK's sign-in and sign-out, the session cookie changing
+// and the tab looked at again move the hearts at once, as the guest header's look does: a session
+// that ends takes its hearts with it, and an account that arrives has the album's hearts asked again.
 //
 // ★ A HEART RE-RENDERS ONE MARK, NEVER THE ALBUM (the album-window lane). The liked set used to be
 // React state on this provider, so every like handed every consumer a new context value: the grid,
@@ -61,6 +73,8 @@ export type LikesStore = {
 
 type WritableLikesStore = LikesStore & {
   set: (id: string, liked: boolean) => void;
+  /** Every heart off: the account they were for has gone. */
+  clear: () => void;
 };
 
 function createLikesStore(initial: Iterable<string>): WritableLikesStore {
@@ -83,6 +97,11 @@ function createLikesStore(initial: Iterable<string>): WritableLikesStore {
       else liked.delete(id);
       listeners.get(id)?.forEach((l) => l());
     },
+    clear() {
+      const was = [...liked];
+      liked.clear();
+      for (const id of was) listeners.get(id)?.forEach((l) => l());
+    },
   };
 }
 
@@ -96,8 +115,9 @@ type LikesContextValue = {
   isLiked: (id: string) => boolean;
   toggle: (id: string) => void;
   /** Album bulk-select (host only): like a SET of ids at once (idempotent; skips already-liked).
-   *  Resolves to the count newly liked so the caller fires ONE summary toast. */
-  likeMany: (ids: string[]) => Promise<number>;
+   *  Resolves to the ids newly liked, so the caller fires ONE summary toast naming what it added by
+   *  kind (crumbs-28: a count alone left it to say "photo" of a video). */
+  likeMany: (ids: string[]) => Promise<string[]>;
   /** The ids a window mounts: the hearts of any not yet answered are asked for (see the head note). */
   seed: (ids: readonly string[]) => void;
 };
@@ -147,7 +167,7 @@ export function LocalLikesProvider({
       likeMany: async (ids) => {
         const fresh = ids.filter((id) => !store.has(id));
         for (const id of fresh) store.set(id, true);
-        return fresh.length;
+        return fresh;
       },
       seed: () => {},
     }),
@@ -194,9 +214,42 @@ export function LikesProvider({
   children: React.ReactNode;
 }) {
   const [store] = useState(() => createLikesStore(initialLikedIds ?? []));
+  // ★ THE HEARTS' ACCOUNT AND THE SEED'S ASKS (`seed-queue.ts`, see the head note): who the device
+  // holds, read at every signed-in call and followed as it changes, and the ids each window mounts,
+  // asked once for that account, a burst's in one ask. Made once, so `seed` and every handler below
+  // are stable, and the context value is too.
+  const [hearts] = useState(() =>
+    createSeedQueue<PostgrestError>({
+      store,
+      readAccount: async () => {
+        const {
+          data: { session },
+        } = await createClient().auth.getSession();
+        return session?.user.id ?? null;
+      },
+      // Which of these ids has THIS user liked, through `my_liked_media_ids` (SECURITY INVOKER over
+      // media_likes' owner-only RLS, so it can answer only for auth.uid()).
+      // ★ THE IDS RIDE THE POST BODY (the 1,000-row round). The old `.in("media_id", ids)` put every
+      // visible id in the URL, about 37 bytes an id, so once the album was read whole a large one's
+      // request failed outright, and the failure was swallowed: the hearts simply started empty. The
+      // answer is ONE uuid[], which neither a URL nor the row cap can clip (measured: a body of 100,000
+      // ids answers 200). The answers only ever ADD hearts (a heart this tab flips is the toggle's own
+      // state), so an answered id stays answered, and a poll's one new photograph is the one id asked.
+      askLiked: (ids) =>
+        createClient().rpc("my_liked_media_ids", { p_media_ids: ids }),
+      // The seed is cosmetic, so no toast: the hearts start unfilled, the ids stay unasked (the next
+      // seed asks again), and the idempotent like RPC still lands a tap. But it is never silent either:
+      // a failed read is reported, unless the session ended under it (that is a sign-out).
+      onFailed: (error, ids) =>
+        captureError(
+          "media",
+          new QueryFailedError("likes: my_liked_media_ids", error),
+          { ids },
+        ),
+    }),
+  );
   // Read by the handlers at tap time, never rendered: a ref keeps `toggle` and `likeMany` stable, so
   // the context value is too (see the head note).
-  const signedInRef = useRef(false);
   const modeRef = useRef(mode);
   const onRemovedRef = useRef(onRemoved);
   useEffect(() => {
@@ -206,80 +259,8 @@ export function LikesProvider({
   const [dialogOpen, setDialogOpen] = useState(false);
   const pendingIdRef = useRef<string | null>(null);
   const busyRef = useRef<Set<string>>(new Set()); // collapse double-taps per id
-  // The ids already asked about and answered. The seed only ever ADDS hearts (a heart this tab
-  // flips is the toggle's own state), so an answered id stays answered, and a poll that brings one
-  // new photograph into a thousand-item album asks about that one id, not the whole album again.
-  const askedRef = useRef<Set<string>>(new Set());
-  // Asked and not answered yet: never asked twice while one request is out.
-  const askingRef = useRef<Set<string>>(new Set());
-  // The ids asked for in this tick, flushed as ONE request.
-  const queueRef = useRef<Set<string>>(new Set());
-  const scheduledRef = useRef(false);
 
-  // Whether there is a session, resolved once for the provider's life (getSession is local).
-  const sessionRef = useRef<Promise<boolean> | null>(null);
-  const session = useCallback((): Promise<boolean> => {
-    sessionRef.current ??= (async () => {
-      const {
-        data: { session: current },
-      } = await createClient().auth.getSession();
-      signedInRef.current = Boolean(current);
-      return Boolean(current);
-    })();
-    return sessionRef.current;
-  }, []);
-
-  // Seed: which of these ids has THIS user liked, through `my_liked_media_ids` (SECURITY INVOKER over
-  // media_likes' owner-only RLS, so it can answer only for auth.uid()).
-  // ★ THE IDS RIDE THE POST BODY (the 1,000-row round). The old `.in("media_id", ids)` put every
-  // visible id in the URL, about 37 bytes an id, so once the album was read whole a large one's
-  // request failed outright, and the failure was swallowed: the hearts simply started empty. The
-  // answer is ONE uuid[], which neither a URL nor the row cap can clip (measured: a body of 100,000
-  // ids answers 200).
-  // Add-only merge => never clobbers an in-flight optimistic toggle, and genuinely-new poll items
-  // (which the user hasn't liked) correctly stay unfilled.
-  const flushSeed = useCallback(async () => {
-    scheduledRef.current = false;
-    const fresh = [...queueRef.current];
-    queueRef.current.clear();
-    if (fresh.length === 0) return;
-    for (const id of fresh) askingRef.current.add(id);
-    try {
-      if (!(await session())) return;
-      const { data, error } = await createClient().rpc("my_liked_media_ids", {
-        p_media_ids: fresh,
-      });
-      if (error) {
-        // The seed is cosmetic, so no toast: the hearts start unfilled, the ids stay unasked (the
-        // next seed asks again), and the idempotent like RPC still lands a tap. But it is never
-        // silent either: a failed read is reported.
-        captureError(
-          "media",
-          new QueryFailedError("likes: my_liked_media_ids", error),
-          { ids: fresh.length },
-        );
-        return;
-      }
-      for (const id of fresh) askedRef.current.add(id);
-      // One uuid[] value (never rows); anything else reads as no hearts rather than a crash.
-      const likedIds: string[] = Array.isArray(data) ? data : [];
-      for (const id of likedIds) store.set(id, true);
-    } finally {
-      for (const id of fresh) askingRef.current.delete(id);
-    }
-  }, [session, store]);
-
-  const seed = useCallback(
-    (ids: readonly string[]) => {
-      for (const id of ids)
-        if (!askedRef.current.has(id) && !askingRef.current.has(id))
-          queueRef.current.add(id);
-      if (scheduledRef.current || queueRef.current.size === 0) return;
-      scheduledRef.current = true;
-      queueMicrotask(() => void flushSeed());
-    },
-    [flushSeed],
-  );
+  const seed = hearts.seed;
 
   // A stable dependency for "the visible set changed" (not "a new array identity each poll").
   const idsKey = mediaIds?.join(",") ?? "";
@@ -289,11 +270,12 @@ export function LikesProvider({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idsKey, seed]);
 
-  // Resolve sign-in on mount, and replay a like queued before a redirect sign-in.
+  // The first look at who is here, and a like queued before a redirect sign-in, replayed.
   useEffect(() => {
     let active = true;
     void (async () => {
-      if (!(await session()) || !active) return;
+      const account = await hearts.look();
+      if (account === null || !active) return;
       const supabase = createClient();
 
       // Replay a like queued before a redirect sign-in. Keys are cleared after, so this fires once.
@@ -306,12 +288,14 @@ export function LikesProvider({
         }
         let any = false;
         for (const id of pending) {
+          // The account it was queued for has gone meanwhile: the rest wait for the next one.
+          if (hearts.account() !== account) break;
           // DELIBERATE swallow: likeOk(undefined) is false, so a failed replay just
           // doesn't fill that heart (and fires no toast). Fails closed, and one
           // stuck replay must not block the rest of the queued likes.
           // eslint-disable-next-line partyreel/no-swallowed-db-error
           const { data } = await supabase.rpc("like_media", { p_media_id: id });
-          if (active && likeOk(data)) {
+          if (active && likeOk(data) && hearts.account() === account) {
             store.set(id, true);
             any = true;
           }
@@ -323,18 +307,59 @@ export function LikesProvider({
     return () => {
       active = false;
     };
-  }, [session, store]);
+  }, [hearts, store]);
+
+  // ★ WHOEVER THE DEVICE HOLDS NEXT (crumbs-40): the SDK's sign-in and sign-out (another tab's through
+  // the client, this tab's door), a change to the session cookie (the Cookie Store API reaches a tab
+  // nobody is looking at, where a sign-out made by a response is otherwise unheard), and the tab looked
+  // at again. The hearts follow at once; every signed-in call still reads the session as it goes, so
+  // none of these is what keeps a call from going out as nobody. The SDK's callback runs inside the
+  // client's own lock, so it follows the session it is handed rather than reading one.
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = createClient().auth.onAuthStateChange((event, session) => {
+      if (
+        event === "SIGNED_IN" ||
+        event === "SIGNED_OUT" ||
+        event === "USER_UPDATED"
+      ) {
+        hearts.follow(session?.user.id ?? null);
+      }
+    });
+    const lookedAt = () => {
+      if (document.visibilityState === "visible") void hearts.look();
+    };
+    const cookieChanged = () => void hearts.look();
+    document.addEventListener("visibilitychange", lookedAt);
+    window.addEventListener("focus", lookedAt);
+    window.addEventListener("pageshow", lookedAt);
+    const cookies = (window as Window & { cookieStore?: EventTarget })
+      .cookieStore;
+    cookies?.addEventListener("change", cookieChanged);
+    return () => {
+      subscription.unsubscribe();
+      document.removeEventListener("visibilitychange", lookedAt);
+      window.removeEventListener("focus", lookedAt);
+      window.removeEventListener("pageshow", lookedAt);
+      cookies?.removeEventListener("change", cookieChanged);
+    };
+  }, [hearts]);
+
+  // Signed out: remember the intent + open the create-account dialog.
+  const askToSignIn = useCallback((id: string) => {
+    if (typeof window !== "undefined")
+      localStorage.setItem(PENDING_PREFIX + id, "1");
+    pendingIdRef.current = id;
+    setDialogOpen(true);
+  }, []);
 
   const toggle = useCallback(
     (id: string) => {
       if (busyRef.current.has(id)) return;
 
-      // Signed out: remember the intent + open the create-account dialog.
-      if (!signedInRef.current) {
-        if (typeof window !== "undefined")
-          localStorage.setItem(PENDING_PREFIX + id, "1");
-        pendingIdRef.current = id;
-        setDialogOpen(true);
+      if (typeof hearts.account() !== "string") {
+        askToSignIn(id);
         return;
       }
 
@@ -344,6 +369,14 @@ export function LikesProvider({
       store.set(id, !wasLiked);
 
       void (async () => {
+        // The session at the tap, never the one drawn: a session that ended in another tab calls
+        // nothing, its hearts (this one's flip too) went with it, and a like is a signed-out tap's.
+        const account = await hearts.look();
+        if (account === null) {
+          busyRef.current.delete(id);
+          if (!wasLiked) askToSignIn(id);
+          return;
+        }
         const supabase = createClient();
         let ok: boolean;
         if (wasLiked) {
@@ -360,6 +393,8 @@ export function LikesProvider({
           ok = !error && likeOk(data);
         }
         busyRef.current.delete(id);
+        // The hearts are another account's now: what this tap did is the last one's.
+        if (hearts.account() !== account) return;
 
         if (!ok) {
           // Revert the optimistic flip.
@@ -379,24 +414,26 @@ export function LikesProvider({
           onRemovedRef.current?.(id);
       })();
     },
-    [store],
+    [askToSignIn, hearts, store],
   );
 
   // Album bulk "Like" (host only — the host is always signed in, so the create-account path never
   // fires here). Optimistically heart every not-already-liked id, then ONE `like_many` call per
   // MAX_BULK_ITEMS (idempotent, each id through like_media's access check), and revert exactly the ids
-  // it refused. Returns the count newly liked; the caller owns the toast.
+  // it refused. Returns the ids newly liked; the caller owns the toast. A session that ended meanwhile
+  // likes nothing.
   const likeMany = useCallback(
-    async (ids: string[]): Promise<number> => {
-      if (!signedInRef.current) return 0;
+    async (ids: string[]): Promise<string[]> => {
+      if (typeof hearts.account() !== "string") return [];
+      if ((await hearts.look()) === null) return [];
       const toLike = ids.filter((id) => !store.has(id));
-      if (toLike.length === 0) return 0;
+      if (toLike.length === 0) return [];
       for (const id of toLike) store.set(id, true);
       const failed = await likeManyInBatches(createClient(), toLike);
       for (const id of failed) store.set(id, false);
-      return toLike.length - failed.size;
+      return toLike.filter((id) => !failed.has(id));
     },
-    [store],
+    [hearts, store],
   );
 
   const value = useMemo<LikesContextValue>(
@@ -406,14 +443,15 @@ export function LikesProvider({
 
   async function onVerified() {
     // In-page OTP verify (no reload): claim this browser's anonymous uploads (every confirm door
-    // does) + complete the pending like inline.
+    // does) + complete the pending like inline, for the account the code just signed in (read, as
+    // every signed-in call reads it; her hearts on this album are asked for as it arrives).
     void claimAnonymousUploads({ silent: true });
-    signedInRef.current = true;
-    sessionRef.current = Promise.resolve(true);
+    const account = await hearts.look();
     const id = pendingIdRef.current;
     pendingIdRef.current = null;
     setDialogOpen(false);
-    if (!id) return;
+    // No session after all: the pending key stays, for the replay on a later mount.
+    if (!id || account === null) return;
     const supabase = createClient();
     // DELIBERATE swallow: likeOk(undefined) is false, so a failed like leaves the
     // heart unfilled and the pending key in place, which is what makes the replay

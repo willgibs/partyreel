@@ -39,15 +39,15 @@ export const PAGE_INVITE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
  *
  * ★ EVERY CONDITION IS A SERVER FACT, never a moment the client has to catch:
  *   - no handle yet (a page that exists is set up);
- *   - no claim still waiting, so the card never competes with the claim ticket, and it appears the
- *     moment Finish settles (the page revalidates with the ticket gone);
+ *   - no claim still waiting, so the card never competes with the claims review's banner, and it
+ *     appears the moment her last decision there lands (the review refreshes the page behind itself);
  *   - at least one event her page could show: an APPROVED upload on a PROVED row at an event she
  *     does not host (`getMyAttendedEvents`), which also keeps it off an unconfirmed account, since
  *     only a confirmed address proves a row ("never before a verified email");
  *   - not dismissed on this device, by this account.
  * A guest who confirmed at the door and never had anything to claim meets it too (a Require verified
  * emails party, the default, makes no claim), which is Will's to overrule: claimers alone would need a
- * stamp at the claim ticket's Finish.
+ * stamp as the claims review's last decision lands.
  */
 export function shouldInviteToPage(facts: {
   hasHandle: boolean;

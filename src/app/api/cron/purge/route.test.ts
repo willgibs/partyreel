@@ -99,6 +99,9 @@ vi.mock("@/lib/lifecycle/sweeps/inactivity", () => ({
 vi.mock("@/lib/lifecycle/sweeps/standby-budget", () => ({
   sweepStandbyBudget: stub("standby_budget", 3),
 }));
+vi.mock("@/lib/lifecycle/sweeps/album-log", () => ({
+  sweepAlbumLog: stub("album_log", 1),
+}));
 
 const { GET } = await import("@/app/api/cron/purge/route");
 
@@ -112,6 +115,7 @@ const BUDGETED = [
   "renewal_nudges",
   "inactive_free_events",
   "standby_budget",
+  "album_log",
 ];
 
 function cron(): Request {
@@ -146,6 +150,7 @@ describe("GET /api/cron/purge", () => {
     state.cursors = {
       purge_over_capacity: "0a1b2c3d-4e5f-4061-8273-8495a6b7c8d9",
       purge_inactivity: "1b2c3d4e-5f60-4172-8384-95a6b7c8d9ea",
+      purge_album_log: "3d4e5f60-7182-4394-a5b6-c7d8e9fa0b1c",
       "purge_cron:expired_passes": "2c3d4e5f-6071-4283-8495-a6b7c8d9eafb",
       "purge_cron:renewal_nudges": null,
     };
@@ -170,6 +175,10 @@ describe("GET /api/cron/purge", () => {
       "2c3d4e5f-6071-4283-8495-a6b7c8d9eafb",
     );
     expect((state.opts.renewal_nudges as Opts).resumeAfter).toBeNull();
+    // The album log's prune rotates on its own run row's cursor (crumbs-37).
+    expect((state.opts.album_log as Opts).resumeAfter).toBe(
+      "3d4e5f60-7182-4394-a5b6-c7d8e9fa0b1c",
+    );
     expect(parentFinish()).toMatchObject({ status: "ok", note: undefined });
   });
 

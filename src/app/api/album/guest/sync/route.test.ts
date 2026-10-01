@@ -77,6 +77,7 @@ function read(over: Record<string, unknown> = {}) {
     version: 9,
     albumMax: 5,
     attrVersion: 2,
+    watermark: 0,
     approved: 1,
     hidden: null,
     pending: null,

@@ -112,3 +112,69 @@ describe("the host's links", () => {
     expect(links[0][4]).toEqual(["Will", WHO_HOST | WHO_VERIFIED, null]);
   });
 });
+
+/**
+ * ★ THE CREDIT'S FACE RIDES THE WHO TUPLE (crumbs-38): `[name, flags, face]` for a guest and `[name, flags, email,
+ * face]` for the host, the face the three fields the server resolved (`uploader-faces.ts`), and only where there is
+ * one: a faceless credit is the tuple it always was, so a client from before reads it unchanged. The rule's owner
+ * (an account id) never rides, whatever the identity holds.
+ */
+describe("the credit's face on the links", () => {
+  const face = {
+    avatarUrl: "https://cdn.test/avatars/a/avatar.webp?v=1",
+    seed: "f".repeat(64),
+    href: "/u/maya",
+  };
+  const faced = new Map<string, UploaderIdentity>([
+    [
+      id(1),
+      {
+        displayName: "Maya",
+        email: "maya@example.com",
+        isHost: false,
+        isVerified: true,
+        faceOwner: { kind: "account", accountId: "acct-maya", guestId: "g-1" },
+        face,
+      },
+    ],
+    [
+      id(2),
+      { displayName: "Tom", email: null, isHost: false, isVerified: false },
+    ],
+  ]);
+
+  it("the guest's tuple carries the face after the flags, and never the owner or an address", async () => {
+    const links = await toGuestAlbumLinks(rows, {
+      eventName: "E",
+      presign,
+      identities: faced,
+    });
+    expect(links[0][4]).toEqual([
+      "Maya",
+      WHO_VERIFIED,
+      [face.avatarUrl, face.seed, face.href],
+    ]);
+    // No face, no third field: the tuple a client from before this lane reads.
+    expect(links[1][4]).toEqual(["Tom", 0]);
+    const wire = JSON.stringify(links);
+    expect(wire).not.toContain("acct-maya");
+    expect(wire).not.toContain("g-1");
+    expect(wire).not.toContain("maya@example.com");
+  });
+
+  it("the host's tuple carries it after the proved address", async () => {
+    const links = await toHostAlbumLinks(rows, {
+      eventName: "E",
+      presign,
+      identities: faced,
+    });
+    expect(links[0][4]).toEqual([
+      "Maya",
+      WHO_VERIFIED,
+      "maya@example.com",
+      [face.avatarUrl, face.seed, face.href],
+    ]);
+    expect(links[1][4]).toEqual(["Tom", 0, null]);
+    expect(JSON.stringify(links)).not.toContain("acct-maya");
+  });
+});

@@ -1,15 +1,19 @@
 import { toast } from "sonner";
 
-import { currentAlbum } from "@/lib/guest/album-return";
+import {
+  currentAlbum,
+  hasPendingOffer,
+  takePendingOffer,
+} from "@/lib/guest/album-return";
 import {
   publishClaimAsks,
   saidNotMine,
   type ClaimAsk,
 } from "@/lib/guest/claim-ask";
 import {
-  SESSION_PREFIX,
   collectStoredSessionTokens,
   collectStoredTickets,
+  storedTicketFor,
   type StoredTicket,
 } from "@/lib/guest/session-tokens";
 import { createClient } from "@/lib/supabase/client";
@@ -47,6 +51,16 @@ import { createClient } from "@/lib/supabase/client";
 // own uploads moved, and says "We added your uploads to your account." only when the claim reached other
 // events too (lib/guest/use-confirm-return.ts). Off an album (the (app) layout) it is one call, and the
 // toast fires whenever anything moved.
+//
+// ★ A READ ON THE PAGE MAY HAVE CLAIMED THIS ALBUM'S TICKET FIRST (build 33's red-team). The album's door reads
+// her ticket beside her account and runs this same claim as it reads (`sortTickets`, crumbs-27: a read runs the
+// claim), so on a Google or magic-link return the page's render took her photos before this code ran, the album's
+// own claim moved nothing, and the follow moment she had just earned never played. So while a confirm door opened
+// here is waiting (its marker, `album-return.ts`) and the album's own claim moved nothing, the claim asks whether
+// that ticket is hers now with its uploads (`/api/guests/mine`, `kept`), and counts it as moved here if it is: the
+// confirmation carried it, whichever claim got there first. Only then, so a plain visit pays no extra request.
+// ★ AND A CLAIM THAT RAN FOR ANOTHER ALBUM'S TICKET SPENDS THAT ALBUM'S MARKER, since the question above would
+// otherwise find those photos hers on a later visit there and play a moment for a sign-in made elsewhere, weeks on.
 
 /** The one line a claim that moved uploads says, wherever it is said. */
 export const CLAIMED_TOAST = "We added your uploads to your account.";
@@ -54,7 +68,10 @@ export const CLAIMED_TOAST = "We added your uploads to your account.";
 export type ClaimResult = {
   /** The album on screen when the claim ran (its canonical qr_token), or null off an album. */
   album: string | null;
-  /** Claimed rows carrying a live upload AT that album. */
+  /**
+   * Claimed rows carrying a live upload AT that album: this call's, or, while a confirm door opened there waits for
+   * its return, the album's own ticket a read on the page had already claimed for her (the header).
+   */
   here: number;
   /** Claimed rows carrying a live upload anywhere else. */
   elsewhere: number;
@@ -115,23 +132,20 @@ async function runClaim(silent: boolean): Promise<ClaimResult | null> {
     if (!session) return null;
 
     const album = currentAlbum();
-    let hereToken: string | null = null;
-    if (album) {
-      try {
-        hereToken = localStorage.getItem(`${SESSION_PREFIX}${album}`);
-      } catch {
-        hereToken = null;
-      }
-    }
+    const hereToken = album ? storedTicketFor(album) : null;
     const others = tokens.filter((token) => token !== hereToken);
 
     let here = 0;
-    if (hereToken) {
+    if (album && hereToken) {
       const { data, error } = await supabase.rpc("claim_anonymous_uploads", {
         p_session_tokens: [hereToken],
       });
       if (error) return null; // transient — allow a later load to retry
       here = typeof data === "number" ? data : 0;
+      // A read on the page may have claimed it first (the header): asked only for a door's return.
+      if (here === 0 && hasPendingOffer(album)) {
+        here = (await keptBeforeThisClaim(album, hereToken)) ? 1 : 0;
+      }
     }
 
     let elsewhere = 0;
@@ -145,6 +159,7 @@ async function runClaim(silent: boolean): Promise<ClaimResult | null> {
         complete = false;
       } else {
         elsewhere = typeof data === "number" ? data : 0;
+        spendOffersOf(others, album);
       }
     }
 
@@ -159,6 +174,53 @@ async function runClaim(silent: boolean): Promise<ClaimResult | null> {
   } catch {
     // best-effort — a claim must never surface an error to the visitor
     return null;
+  }
+}
+
+/**
+ * WHETHER THIS ALBUM'S TICKET IS HERS NOW, WITH ITS UPLOADS: a read on the page claimed it before this claim ran
+ * (the header). The server counts the live uploads on that ticket's row only when the row is the signed-in
+ * account's and the door lets it through, so a ticket the claim LEFT (typed under another name, which she is asked
+ * about, or another address) answers no. Best-effort like the claim: any failure answers no, and the moment simply
+ * does not play, as before.
+ */
+async function keptBeforeThisClaim(
+  album: string,
+  ticket: string,
+): Promise<boolean> {
+  try {
+    const res = await fetch("/api/guests/mine", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      // The ticket rides the body, never the URL (a capability in a query string ends up in a log).
+      body: JSON.stringify({
+        qr_token: album,
+        session_token: ticket,
+        kept: true,
+      }),
+    });
+    if (!res.ok) return false;
+    const body = (await res.json()) as { ok?: unknown; kept?: unknown };
+    return body.ok === true && typeof body.kept === "number" && body.kept > 0;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * A claim that ran for these tickets spends the confirm-door marker of every album they are held for, except the one
+ * on screen, whose own claim listener takes it to decide the moment (`use-confirm-return.ts`). Best-effort.
+ */
+function spendOffersOf(tokens: readonly string[], onScreen: string | null) {
+  try {
+    const ran = new Set(tokens);
+    for (const ticket of collectStoredTickets()) {
+      if (ticket.album !== onScreen && ran.has(ticket.token)) {
+        takePendingOffer(ticket.album);
+      }
+    }
+  } catch {
+    // A blocked store holds no marker to spend.
   }
 }
 
@@ -294,7 +356,10 @@ export async function claimAskedUploads(
       });
       // This album's own landed; the rest is asked again on a later visit.
       if (error && !ran) return null;
-      if (!error) elsewhere = typeof data === "number" ? data : 0;
+      if (!error) {
+        elsewhere = typeof data === "number" ? data : 0;
+        spendOffersOf(otherTokens, album);
+      }
     }
     const result: ClaimResult = { album, here, elsewhere, asked: true };
     for (const listener of listeners) listener(result);

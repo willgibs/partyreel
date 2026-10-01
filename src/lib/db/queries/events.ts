@@ -45,6 +45,7 @@ import {
 } from "@/lib/lifecycle/recently-deleted";
 import { presignDownload } from "@/lib/r2/presign";
 import { getRequestAuth } from "@/lib/supabase/request-auth";
+import { isUuidShape } from "@/lib/validation/uuid-shape";
 
 export type { EventCardStats };
 
@@ -110,9 +111,18 @@ export const listEvents = cache(async function listEvents(): Promise<
   return rows.map(toHostEvent);
 });
 
+/**
+ * The host's own live event, or null for one that is gone, never hers, or not an id at all. It is the
+ * one read the hub and every room decide their not-found on (`/dashboard/[eventId]`).
+ *
+ * ★ A MALFORMED ID NAMES NO EVENT AND IS NEVER READ (build 33's red-team): the path is anybody's to
+ * type, and Postgres refusing its cast (22P02) threw the page into "Something went wrong" and an error
+ * report each hit, where it is simply an event that is not there (`isUuidShape`).
+ */
 export const getEvent = cache(async function getEvent(
   id: string,
 ): Promise<HostEvent | null> {
+  if (!isUuidShape(id)) return null;
   const { supabase, user } = await getRequestAuth();
   if (!user) return null;
 

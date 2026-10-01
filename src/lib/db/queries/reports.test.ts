@@ -835,3 +835,339 @@ describe("the covered rule's one home, as the albums grid asks it (crumbs-21)", 
     expect([...byItems].sort()).toEqual([uuid("m", 1), uuid("m", 7)].sort());
   });
 });
+
+/**
+ * ★ THE QUEUE'S STRIKES COME FROM THE RULE'S ONE HOME (crumbs-33, migration 20261001100000): the open queue asks
+ * `report_strikes` for the hashes its open child-abuse reports kept, and each such report carries its address's
+ * strikes and what a Dismiss of its entry would make of them. Until the function stands, the queue reads as before
+ * with no strike reading, never as "no strikes".
+ */
+describe("the open queue's strikes (crumbs-33)", () => {
+  const HOST = uuid("p", 1);
+  const report = (i: number, over: FakeRow) => ({
+    id: uuid("r", i),
+    reason: null,
+    created_at: at(i),
+    status: "open",
+    event_id: uuid("e", 1),
+    media_id: uuid("m", i),
+    kind: "child",
+    reporter_signed_in: true,
+    reporter_email: null,
+    reporter_hash: null,
+    hid_at: null,
+    ...over,
+  });
+  const media = (i: number) => ({
+    id: uuid("m", i),
+    type: "photo",
+    original_key: `key-${i}`,
+    preview_key: null,
+    status: "approved",
+    removed_by_admin: false,
+    removed_at: null,
+    legal_hold_at: null,
+    event_id: uuid("e", 1),
+    guest_id: null,
+    guests: null,
+  });
+  const tables = () => ({
+    events: [{ id: uuid("e", 1), name: "RT23 doors A", host_id: HOST }],
+    profiles: [{ id: HOST, display_name: "Will", email: "host@example.com" }],
+    media: [1, 2, 3].map(media),
+    reports: [
+      // Two reports of one item from one address: a Dismiss of the entry makes both strikes.
+      report(1, {
+        media_id: uuid("m", 1),
+        reporter_hash: "hash:a@example.com",
+      }),
+      report(2, {
+        media_id: uuid("m", 1),
+        reporter_hash: "hash:a@example.com",
+      }),
+      // An address the read has never seen.
+      report(3, {
+        media_id: uuid("m", 2),
+        reporter_hash: "hash:new@example.com",
+      }),
+      // Another kind keeps no hash and carries no strikes.
+      report(4, { media_id: uuid("m", 3), kind: "violence" }),
+    ],
+  });
+
+  it("★ asks the one home for the hashes the open child-abuse reports kept, and says what a Dismiss would make of each", async () => {
+    const asked: unknown[] = [];
+    fake = createFakePostgrest({
+      tables: tables(),
+      rpc: {
+        report_queue_facts: () => ({}),
+        report_strikes: (args) => {
+          asked.push(args.p_reporter_hashes);
+          return {
+            strikes: 3,
+            fresh_lapses_at: "2027-03-30T09:00:00.123456+00:00",
+            addresses: {
+              "hash:a@example.com": {
+                live: 1,
+                barred: false,
+                lapses: ["2027-01-15T12:00:00.5+00:00"],
+              },
+            },
+          };
+        },
+      },
+    });
+    const { entries } = await listOpenEntries(50);
+    expect(asked).toHaveLength(1);
+    expect([...(asked[0] as string[])].sort()).toEqual([
+      "hash:a@example.com",
+      "hash:new@example.com",
+    ]);
+    const strikesOf = (i: number) =>
+      entries.flatMap((e) => e.reports).find((r) => r.id === uuid("r", i))
+        ?.strikes;
+    // One live strike and two of this entry's reports from the address: a Dismiss makes three, and the bar holds
+    // until the oldest of the three lapses (the one already live), read in ISO.
+    expect(strikesOf(1)).toEqual({
+      live: 1,
+      bar: 3,
+      barredUntil: null,
+      dismiss: { live: 3, barredUntil: "2027-01-15T12:00:00.500Z" },
+    });
+    expect(strikesOf(2)).toEqual(strikesOf(1));
+    // An address the read did not name holds none.
+    expect(strikesOf(3)).toEqual({
+      live: 0,
+      bar: 3,
+      barredUntil: null,
+      dismiss: { live: 1, barredUntil: null },
+    });
+    expect(strikesOf(4)).toBeNull();
+  });
+
+  it("★ reads as no reading, never as no strikes, until the function stands", async () => {
+    // No `report_strikes` handler: the fake answers PGRST202, as PostgREST does before the migration.
+    fake = createFakePostgrest({
+      tables: tables(),
+      rpc: { report_queue_facts: () => ({}) },
+    });
+    const { entries } = await listOpenEntries(50);
+    expect(entries.flatMap((e) => e.reports)).toHaveLength(4);
+    expect(
+      entries.flatMap((e) => e.reports).every((r) => r.strikes === null),
+    ).toBe(true);
+  });
+
+  it("fails loudly on any other failure, as the queue's facts do", async () => {
+    fake = createFakePostgrest({
+      tables: tables(),
+      rpc: {
+        report_queue_facts: () => ({}),
+        report_strikes: () => {
+          throw new Error("canceling statement due to statement timeout");
+        },
+      },
+    });
+    await expect(listOpenEntries(50)).rejects.toThrow(/strikes/);
+  });
+
+  it("asks nothing when no open report is a child-abuse report from a kept address", async () => {
+    const asked: unknown[] = [];
+    fake = createFakePostgrest({
+      tables: {
+        ...tables(),
+        reports: [report(4, { media_id: uuid("m", 3), kind: "violence" })],
+      },
+      rpc: {
+        report_queue_facts: () => ({}),
+        report_strikes: (args) => {
+          asked.push(args);
+          return {};
+        },
+      },
+    });
+    await listOpenEntries(50);
+    expect(asked).toEqual([]);
+  });
+});
+
+/**
+ * ★ A DISMISSED CHILD-ABUSE REPORT'S CLOSED LINE CARRIES ITS STRIKE (crumbs-36, a board idea from crumbs-33): the
+ * closed log asks `report_strikes`, once, for the hashes its dismissed child-abuse reports kept, and each such
+ * report says whether it is still a strike and until when, from the rule's one home and the page's one clock. The
+ * address never leaves the server (only counts and instants). Until the function stands the log reads as before
+ * with no reading, never as "no strike".
+ */
+describe("the closed log's strikes (crumbs-36)", () => {
+  const DAY = 86_400_000;
+  const iso = (ms: number) => new Date(ms).toISOString();
+  const HOST = uuid("p", 1);
+  /** A closed album report, the shape the closed log reads. */
+  const closed = (i: number, over: FakeRow) => ({
+    id: uuid("r", i),
+    reason: null,
+    created_at: at(i),
+    status: "dismissed",
+    resolved_at: iso(NOW - 14 * DAY),
+    resolution_note: null,
+    event_id: uuid("e", 1),
+    media_id: uuid("m", i),
+    kind: "child",
+    reporter_hash: null,
+    ...over,
+  });
+  const tables = () => ({
+    events: [{ id: uuid("e", 1), name: "RT23 doors A", host_id: HOST }],
+    media: [1, 2, 3, 4, 5, 6].map((i) => ({
+      id: uuid("m", i),
+      type: "photo",
+      original_key: `key-${i}`,
+      preview_key: null,
+      status: "approved",
+      removed_by_admin: false,
+      removed_at: null,
+      legal_hold_at: null,
+    })),
+    reports: [
+      // Dismissed two weeks ago from an address with one live strike: still counting.
+      closed(1, { reporter_hash: "hash:a@example.com" }),
+      // Dismissed past its lapse: counted once, counts no longer.
+      closed(2, {
+        reporter_hash: "hash:a@example.com",
+        resolved_at: iso(NOW - 212 * DAY),
+      }),
+      // From an address that was never confirmed: no hash kept, nothing to count it against.
+      closed(3, { reporter_hash: null }),
+      // Another kind keeps no hash and is no strike.
+      closed(4, { kind: "violence" }),
+      // Actioned, not dismissed: the report was true, so it is no strike (its address is asked about no further).
+      closed(5, { status: "actioned", reporter_hash: "hash:c@example.com" }),
+      // An address holding three live strikes: barred.
+      closed(6, {
+        reporter_hash: "hash:b@example.com",
+        resolved_at: iso(NOW - 2 * DAY),
+      }),
+    ],
+  });
+  /** What `report_strikes` answers for them: the rule's bar, and when a strike made now lapses (a hair of latency on). */
+  const answer = {
+    strikes: 3,
+    fresh_lapses_at: `${iso(NOW + 180 * DAY + 123).slice(0, -1)}456+00:00`,
+    addresses: {
+      "hash:a@example.com": {
+        live: 1,
+        barred: false,
+        lapses: [iso(NOW - 14 * DAY + 180 * DAY)],
+      },
+      "hash:b@example.com": {
+        live: 3,
+        barred: true,
+        lapses: [
+          iso(NOW - 2 * DAY + 180 * DAY),
+          iso(NOW + 100 * DAY),
+          iso(NOW + 40 * DAY),
+        ],
+      },
+    },
+  };
+  const byId = (reports: { id: string }[], i: number) =>
+    reports.find((r) => r.id === uuid("r", i)) as
+      | { strike: unknown }
+      | undefined;
+
+  it("★ asks the one home once, for the hashes the dismissed child-abuse reports kept, and says each line's strike", async () => {
+    const asked: unknown[] = [];
+    fake = createFakePostgrest({
+      tables: tables(),
+      rpc: {
+        report_strikes: (args) => {
+          asked.push(args.p_reporter_hashes);
+          return answer;
+        },
+      },
+    });
+    const { reports } = await listReports("all", 50, NOW);
+    expect(asked).toHaveLength(1);
+    // Not the actioned report's address, nor a report that kept none.
+    expect([...(asked[0] as string[])].sort()).toEqual([
+      "hash:a@example.com",
+      "hash:b@example.com",
+    ]);
+    expect(byId(reports, 1)?.strike).toEqual({
+      state: "live",
+      at: iso(NOW - 14 * DAY + 180 * DAY),
+      live: 1,
+      bar: 3,
+      barredUntil: null,
+    });
+    expect(byId(reports, 2)?.strike).toEqual({
+      state: "lapsed",
+      at: iso(NOW - 212 * DAY + 180 * DAY),
+    });
+    expect(byId(reports, 3)?.strike).toEqual({ state: "none" });
+    expect(byId(reports, 4)?.strike).toBeNull();
+    expect(byId(reports, 5)?.strike).toBeNull();
+    expect(byId(reports, 6)?.strike).toEqual({
+      state: "live",
+      at: iso(NOW - 2 * DAY + 180 * DAY),
+      live: 3,
+      bar: 3,
+      barredUntil: iso(NOW + 40 * DAY),
+    });
+  });
+
+  it("★ never sends an address, or its hash, to the browser", async () => {
+    fake = createFakePostgrest({
+      tables: tables(),
+      rpc: { report_strikes: () => answer },
+    });
+    const { reports } = await listReports("all", 50, NOW);
+    expect(JSON.stringify(reports)).not.toMatch(/hash:|example\.com|reporter/);
+  });
+
+  it("★ reads as no reading, never as no strike, until the function stands", async () => {
+    // No `report_strikes` handler: the fake answers PGRST202, as PostgREST does before the migration.
+    fake = createFakePostgrest({ tables: tables(), rpc: {} });
+    const { reports } = await listReports("all", 50, NOW);
+    expect(reports).toHaveLength(6);
+    // A line that kept an address says nothing of a rule it cannot read; one that kept none needs no rule.
+    expect(byId(reports, 1)?.strike).toBeNull();
+    expect(byId(reports, 2)?.strike).toBeNull();
+    expect(byId(reports, 6)?.strike).toBeNull();
+    expect(byId(reports, 3)?.strike).toEqual({ state: "none" });
+  });
+
+  it("fails loudly on any other failure, as the queue's facts do", async () => {
+    fake = createFakePostgrest({
+      tables: tables(),
+      rpc: {
+        report_strikes: () => {
+          throw new Error("canceling statement due to statement timeout");
+        },
+      },
+    });
+    await expect(listReports("all", 50, NOW)).rejects.toThrow(/strikes/);
+  });
+
+  it("asks nothing when no dismissed child-abuse report kept an address", async () => {
+    const asked: unknown[] = [];
+    fake = createFakePostgrest({
+      tables: {
+        ...tables(),
+        reports: [
+          closed(3, { reporter_hash: null }),
+          closed(4, { kind: "violence" }),
+        ],
+      },
+      rpc: {
+        report_strikes: (args) => {
+          asked.push(args);
+          return {};
+        },
+      },
+    });
+    const { reports } = await listReports("all", 50, NOW);
+    expect(asked).toEqual([]);
+    expect(byId(reports, 3)?.strike).toEqual({ state: "none" });
+  });
+});

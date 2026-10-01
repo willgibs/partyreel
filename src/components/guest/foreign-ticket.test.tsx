@@ -26,7 +26,13 @@ vi.mock("@/lib/supabase/client", () => ({
     auth: {
       // Signed IN: the header wears the account menu, whose Sign out is under test.
       getSession: vi.fn().mockResolvedValue({
-        data: { session: { user: { email: "partyr33l@example.com" } } },
+        data: {
+          session: { user: { id: "u-1", email: "partyr33l@example.com" } },
+        },
+      }),
+      // The header listens for a sign-in or sign-out elsewhere; nothing is announced here.
+      onAuthStateChange: () => ({
+        data: { subscription: { unsubscribe: () => {} } },
       }),
       signOut,
     },

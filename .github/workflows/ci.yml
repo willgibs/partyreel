@@ -95,12 +95,11 @@ jobs:
 
       # pnpm BEFORE node: `cache: true` caches the pnpm store keyed on
       # pnpm-lock.yaml, so a clean tree reinstalls from the store, not the
-      # network. package.json has no `packageManager` field, so the version is
-      # named here, the pin's one home.
+      # network. The version is package.json's `packageManager`, the pin's one
+      # home, which Vercel's install reads too (package-manager-pin.test.ts).
       - name: Install pnpm
         uses: pnpm/action-setup@v6
         with:
-          version: 9.14.4
           cache: true
 
       - name: Install Node

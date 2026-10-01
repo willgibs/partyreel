@@ -7,6 +7,10 @@ trap 'echo "STEP FAILED"; exit 1' ERR
 source ~/.nvm/nvm.sh >/dev/null 2>&1; nvm use >/dev/null 2>&1
 : "${S:?set S to this session's scratchpad}"
 [ -n "$TRACK" ] && [ -n "$HSHA" ] && [ -f "$MSG" ] || { echo "usage: merge-lane.sh <track> <sha> <msgfile>"; exit 1; }
+# ★ A LANE MERGES INTO launch-prep ALONE: `main` moves only at a milestone, and the desktop app can open a fresh session
+# with the root on `main` (2026-10-01), where this merge would land in production's branch. KIT_BRANCH is negative.sh's.
+BR="${KIT_BRANCH:-launch-prep}"
+[ "$(git branch --show-current)" = "$BR" ] || { echo "the root is on $(git branch --show-current), not $BR: git checkout $BR first"; exit 1; }
 [ -z "$(git status --porcelain)" ] || { echo "tree not clean"; git status --short; exit 1; }
 git fetch -q origin
 if git show-ref --verify --quiet "refs/heads/lp/$TRACK"; then

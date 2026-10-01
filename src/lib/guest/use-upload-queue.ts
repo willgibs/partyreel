@@ -7,6 +7,18 @@
  * pending-files stash, demo simulation, and retry. `event-experience.tsx`
  * owns it, so the door's upload step and the album's `GuestUpload` both read
  * one snapshot.
+ *
+ * ★ THE ALBUM'S OWNER IS NEVER HER OWN GUEST (`ownerEventId`, crumbs-29's
+ * Deferred). Her Add on her own album's guest page went through the guest
+ * pair, minting her a guest row at her own door, and `create_guest` never
+ * counts the host as in: at a door that holds newcomers her upload never went
+ * (approve minted her a waiting ticket her picks waited on for good, invite
+ * refused "Ask the host to let you in.", closed and Only me "This event is
+ * private."). Her files go through the host's own pair instead, as the hub's
+ * Add and the reel's Add to event do (`clip-add.ts`): `create_media_as_host`,
+ * approved (she is the moderator), metered on her storage, credited as the
+ * host, with no ticket, no join and no door. The same queue, so the album's
+ * tile, progress and failure sheet are the ones a guest's files wear.
  */
 import {
   useCallback,
@@ -21,6 +33,7 @@ import { toast } from "sonner";
 import { joinEvent, type JoinedGuest } from "@/lib/guest/join";
 import { SESSION_OTHER_ACCOUNT } from "@/lib/guest/session-owner";
 import { dropGuestTicket } from "@/lib/guest/use-stored-session";
+import { HOST_CLIP_ENDPOINTS } from "@/lib/reel/clip-add";
 import { uploadFile, type UploadOutcome } from "@/lib/upload/uploader";
 
 /**
@@ -54,6 +67,18 @@ import { uploadFile, type UploadOutcome } from "@/lib/upload/uploader";
  */
 const VERIFICATION_REQUIRED = "verification_required";
 const DEAD_TICKET = "invalid_session";
+
+/** A guest's upload pair: the ticket in the body (`session_token`), every guest gate re-checked per file. */
+const GUEST_ENDPOINTS = {
+  presign: "/api/r2/presign-upload",
+  complete: "/api/r2/complete-upload",
+} as const;
+
+/** Where a file goes and as whom: a guest's pair on her ticket, or the host's on her event (the head note). */
+type UploadRoute = Pick<
+  Parameters<typeof uploadFile>[0],
+  "endpoints" | "identity"
+>;
 
 export type QueueItemStatus = "queued" | "uploading" | "done" | "error";
 
@@ -247,6 +272,7 @@ export function useUploadQueue({
   isDemo,
   isVerified = false,
   doorOpen = true,
+  ownerEventId = null,
   onVerificationRequired,
   onDoorNeeded,
 }: {
@@ -272,6 +298,12 @@ export function useUploadQueue({
    */
   doorOpen?: boolean;
   /**
+   * The album is the viewer's own (the page's server-side owner answer, `isRequestOwner`): its
+   * event id, and every file goes through the host's own pair with no ticket (the head note).
+   * Null for everyone else. The routes decide again: the host's pair re-verifies the owner.
+   */
+  ownerEventId?: string | null;
+  /**
    * The host turned Require verified emails ON mid-visit; the session is spent.
    * `hadQueuedFiles` tells the caller whether the failure sheet is about to
    * open for THIS refusal (a mid-run flip: `true`) or whether nothing was ever
@@ -290,8 +322,14 @@ export function useUploadQueue({
    * `queued` and go up the moment its join hands a ticket down through
    * `sessionToken`. Nothing is failed and nothing opens a failure sheet: from
    * the guest's side the door simply asks their name.
+   *
+   * ★ `ticketDown`, WHEN A TICKET IS STILL GOING DOWN (crumbs-29): the queue calls this BEFORE it puts
+   * somebody else's ticket down, because the ticket takes its name with it and a door that re-read the
+   * phone without it drew the name step for the seconds the page's refresh took to say who is really
+   * here (a phone the host blocked: the shut screen). The caller holds its door from this call and
+   * refreshes once `ticketDown` settles, so the refresh never reads the cookie the ticket is leaving.
    */
-  onDoorNeeded?: () => void;
+  onDoorNeeded?: (ticketDown?: Promise<void>) => void;
 }) {
   const [items, setItems] = useState<QueueItem[]>([]);
   const [progress] = useState(createQueueProgress);
@@ -413,6 +451,12 @@ export function useUploadQueue({
 
      Returns the new ticket, or null when this run stops here.
      ────────────────────────────────────────────────────────────────────────── */
+  /** Whether a run with no ticket can mint its own (`acquireTicket`), or only the door can. */
+  const joinsSilently = useCallback(
+    () => isDemo || (isVerifiedRef.current && !silentJoinSpentRef.current),
+    [isDemo],
+  );
+
   const acquireTicket = useCallback(async (): Promise<string | null> => {
     if (isDemo) {
       // The demo mints nothing and never loses its ticket; this is a belt.
@@ -420,7 +464,7 @@ export function useUploadQueue({
       onSession("demo");
       return "demo";
     }
-    if (isVerifiedRef.current && !silentJoinSpentRef.current) {
+    if (joinsSilently()) {
       silentJoinSpentRef.current = true;
       const joined = await joinEvent({ qrToken });
       if (joined.ok) return takeJoin(joined.guest);
@@ -434,7 +478,15 @@ export function useUploadQueue({
     }
     onDoorNeeded?.();
     return null;
-  }, [isDemo, qrToken, onSession, onDoorNeeded, failWaiting, takeJoin]);
+  }, [
+    isDemo,
+    qrToken,
+    onSession,
+    onDoorNeeded,
+    failWaiting,
+    takeJoin,
+    joinsSilently,
+  ]);
 
   // One file at a time — robust on flaky mobile connections.
   const runQueue = useCallback(async () => {
@@ -449,8 +501,19 @@ export function useUploadQueue({
            one. (Read once at the top, the verified re-join after a mid-run flip
            would re-send the refused file on the SPENT ticket and fail the run it
            exists to save.) */
-        const token = sessionRef.current ?? (await acquireTicket());
-        if (!token) break;
+        // The owner sends as the host, on no ticket at all (the head note); anyone else on the ticket.
+        const token = ownerEventId
+          ? null
+          : (sessionRef.current ?? (await acquireTicket()));
+        const route: UploadRoute | null = ownerEventId
+          ? {
+              endpoints: HOST_CLIP_ENDPOINTS,
+              identity: { event_id: ownerEventId },
+            }
+          : token
+            ? { endpoints: GUEST_ENDPOINTS, identity: { session_token: token } }
+            : null;
+        if (!route) break;
         patch(next.id, { status: "uploading", progress: 0, error: undefined });
         const onProgress = (f: number) =>
           patch(next.id, { progress: Math.round(f * 100) });
@@ -465,11 +528,7 @@ export function useUploadQueue({
             ? await simulateUpload(next.file, onProgress)
             : await uploadFile({
                 file: next.file,
-                endpoints: {
-                  presign: "/api/r2/presign-upload",
-                  complete: "/api/r2/complete-upload",
-                },
-                identity: { session_token: token },
+                ...route,
                 onProgress,
                 reelEligible: next.reelEligible,
                 poster: next.poster,
@@ -522,14 +581,35 @@ export function useUploadQueue({
            refresh keeps the stored token. The silent join is still once per
            chain, so a join that minted another dead ticket (it cannot) would
            end at the door, never in a loop.
+
+           ★ AND WHEN ONLY THE DOOR CAN NAME WHOEVER IS HERE, THE DOOR IS TOLD
+           FIRST (crumbs-29). The ticket takes its name with it, and a page
+           rendered for the ticket's owner then drew its name step from the
+           phone alone, for the 2 to 4 s its refresh took to find a viewer the
+           host had blocked (build 30: the name step before "This album is
+           private"). So the page hears it before anything goes down, holds
+           its door, and re-reads who is here once the ticket is down
+           (`ticketDown`); the files wait for the door's ticket.
            ────────────────────────────────────────────────────────────────── */
         if (
           outcome.code === SESSION_OTHER_ACCOUNT ||
           outcome.code === DEAD_TICKET
         ) {
           sessionRef.current = null;
-          onSession(null);
           patch(next.id, { status: "queued", progress: 0 });
+          if (!joinsSilently()) {
+            let down = () => {};
+            onDoorNeeded?.(
+              new Promise<void>((resolve) => {
+                down = resolve;
+              }),
+            );
+            onSession(null);
+            await dropGuestTicket(qrToken);
+            down();
+            break;
+          }
+          onSession(null);
           await dropGuestTicket(qrToken);
           continue;
         }
@@ -600,9 +680,12 @@ export function useUploadQueue({
     onUploaded,
     onSession,
     onVerificationRequired,
+    onDoorNeeded,
     acquireTicket,
+    joinsSilently,
     takeJoin,
     isDemo,
+    ownerEventId,
     qrToken,
   ]);
 
@@ -666,6 +749,26 @@ export function useUploadQueue({
   );
 
   /**
+   * A FIRST ADD THAT ONLY THE DOOR CAN ANSWER: her picks (a clip included) join the queue as they are,
+   * `queued`, never sent and never failed, and the door has her (`onDoorNeeded`). They go up on the ticket
+   * the door hands down (`sessionToken`), or when it lets her through (`doorOpen`).
+   */
+  const holdPicksForDoor = useCallback(() => {
+    const files = pendingFilesRef.current;
+    const clips = pendingClipsRef.current;
+    pendingFilesRef.current = [];
+    pendingClipsRef.current = [];
+    sync([
+      ...itemsRef.current,
+      ...files.map((file) => queueItem(file)),
+      ...clips.map((clip) =>
+        queueItem(clip.file, { reelEligible: false, poster: clip.poster }),
+      ),
+    ]);
+    onDoorNeeded?.();
+  }, [onDoorNeeded, sync]);
+
+  /**
    * THE SILENT JOIN, AND IT STAYS NAMELESS.
    *
    * This is the path for the two people who never meet the name door: a
@@ -678,6 +781,14 @@ export function useUploadQueue({
    *
    * The JOIN's own failure toasts, and it is the only upload toast: nothing
    * was ever queued, so there is no failure sheet to carry it.
+   *
+   * ★ UNLESS THE DOOR CAN ANSWER IT (crumbs-29). A join refused `name_required`
+   * means the page took this viewer for a confirmed account and the server does
+   * not: a page rendered while a sign-out was still in flight skipped the name
+   * step, and Send then toasted "Enter a name." over an upload step with no field
+   * to type one in, until a reload. Her picks wait `queued` and the door has her,
+   * as `acquireTicket` hands the same refusal over: the page re-reads who is
+   * here, the door asks her name, and its join hands down the ticket they go on.
    */
   const joinSilently = useCallback(async () => {
     if (isDemo) {
@@ -686,6 +797,10 @@ export function useUploadQueue({
     }
     const joined = await joinEvent({ qrToken });
     if (!joined.ok) {
+      if (joined.refusal.kind === "name_required") {
+        holdPicksForDoor();
+        return;
+      }
       pendingFilesRef.current = [];
       pendingClipsRef.current = [];
       if (joined.refusal.kind === "verification_required") {
@@ -702,35 +817,18 @@ export function useUploadQueue({
       return;
     }
     if (joined.guest.admission === "waiting") {
-      // ★ THE JOIN WAS THE ASK (see `takeJoin`): her picks join the queue as they are, `queued`, and the
-      // door has her; nothing runs on a ticket the door will refuse, and they go up when she is let in.
-      const files = pendingFilesRef.current;
-      const clips = pendingClipsRef.current;
-      pendingFilesRef.current = [];
-      pendingClipsRef.current = [];
-      sync([
-        ...itemsRef.current,
-        ...files.map((file) => queueItem(file)),
-        ...clips.map((clip) =>
-          queueItem(clip.file, { reelEligible: false, poster: clip.poster }),
-        ),
-      ]);
-      onDoorNeeded?.();
+      // ★ THE JOIN WAS THE ASK (see `takeJoin`): nothing runs on a ticket the door will refuse, and her
+      // picks go up when she is let in.
+      holdPicksForDoor();
       return;
     }
     handleJoined(joined.guest.sessionToken);
-  }, [
-    isDemo,
-    qrToken,
-    handleJoined,
-    onVerificationRequired,
-    onDoorNeeded,
-    sync,
-  ]);
+  }, [isDemo, qrToken, handleJoined, holdPicksForDoor, onVerificationRequired]);
 
   const addFiles = useCallback(
     (files: File[]) => {
-      if (sessionRef.current) {
+      // The owner needs no ticket to go (the head note); anyone else with one goes on it.
+      if (ownerEventId || sessionRef.current) {
         enqueue(files);
         return;
       }
@@ -738,7 +836,7 @@ export function useUploadQueue({
       pendingFilesRef.current = files;
       void joinSilently();
     },
-    [enqueue, joinSilently],
+    [enqueue, joinSilently, ownerEventId],
   );
 
   /**
@@ -751,14 +849,14 @@ export function useUploadQueue({
    */
   const addClip = useCallback(
     (file: File, poster: Blob) => {
-      if (sessionRef.current) {
+      if (ownerEventId || sessionRef.current) {
         enqueue([file], { reelEligible: false, poster });
         return;
       }
       pendingClipsRef.current = [...pendingClipsRef.current, { file, poster }];
       void joinSilently();
     },
-    [enqueue, joinSilently],
+    [enqueue, joinSilently, ownerEventId],
   );
 
   /**

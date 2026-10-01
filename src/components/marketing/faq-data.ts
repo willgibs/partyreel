@@ -1,4 +1,6 @@
 import { planById } from "@/lib/constants/tiers";
+import { INACTIVE_MONTHS } from "@/lib/lifecycle/inactivity";
+import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
 import { formatBytes } from "@/lib/utils";
 
@@ -37,10 +39,12 @@ export const FAQ_ITEMS: FaqItem[] = [
   },
   {
     q: "How long do you keep my photos?",
-    // PROVISIONAL (R4 truth ruling A2): "no expiry clock" is true on Free and
-    // Pro, but an Event Pass covers its event for about a year, so the
-    // exception rides in the same breath (help/how-long-media-is-kept.mdx).
-    a: "On Free and Pro your event stays up until you delete it, with no expiry clock counting down on your memories. An Event Pass covers its event for about a year.",
+    // The help center's one reconciled lifecycle sentence (help/AUTHORING.md rule 7,
+    // how-long-media-is-kept.mdx): no end date on any plan, EXCEPT that a Free event nobody
+    // touches is warned about, then moved to Deleted. A line that says an event "stays up"
+    // carries that exception in the same breath (`faq-data.test.ts` holds it), and an
+    // Event Pass covers its event for about a year.
+    a: `Until you delete them: an event has no end date. The one exception is a Free event untouched for about ${INACTIVE_MONTHS} months, which gets a warning email before it moves to Deleted, where you can restore it for ${RECENTLY_DELETED_WINDOW_DAYS} days; any activity resets the clock. An Event Pass covers its event for about a year.`,
   },
   {
     q: "What does it cost?",
@@ -51,6 +55,6 @@ export const FAQ_ITEMS: FaqItem[] = [
   },
   {
     q: "What's an Event Pass?",
-    a: "A one-time payment for a single event with plenty of storage, kept for about a year. No subscription.",
+    a: "A one-time payment for a single event with plenty of storage, covered for about a year. No subscription.",
   },
 ];

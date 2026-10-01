@@ -151,6 +151,49 @@ describe("the banner", () => {
   });
 });
 
+/**
+ * ★ THE DASHBOARD'S OWN CLAIM IS A WRITE THE LIST MUST FOLLOW (crumbs-35, build 34's red-team). The (app) layout's
+ * silent claim takes every row this phone's tickets name under her confirmed address, in a client call that lands
+ * after the page was drawn, so the banner and the review's card still offered a row it had just claimed, and her
+ * Claim answered "All sorted" over nothing. The server's shorter list, once the route refreshes, is what both read.
+ *
+ * Reshaped on purpose (crumbs-40, build 35's red-team): the review LISTENED for the claim and asked for the refresh,
+ * and it streams in after the layout whose claim had usually landed by then, so it never heard it. The refresh is the
+ * claim's own caller's now, pinned in both mount orders beside it (`claim-uploads-on-auth.test.tsx`), and so are
+ * these pins' "here as well as elsewhere", "nothing moved, nothing asked" and the listener's teardown, which had no
+ * listener left to hold here. What stays is the scar on this side: the shorter list drops the claimed rows from the
+ * banner and the open review alike.
+ */
+describe("the dashboard's own claim", () => {
+  it("★ the banner counts only what still waits once the server's list follows the claim", () => {
+    const { rerender } = mount();
+    expect(
+      screen.getByText("11 photos from 4 events are waiting for you"),
+    ).toBeInTheDocument();
+    // The server's answer: the claim took Tom's and the bonfire.
+    rerender([ANAS, QUIZ]);
+    expect(
+      screen.getByText("5 photos from 2 events are waiting for you"),
+    ).toBeInTheDocument();
+  });
+
+  it("★ the review's card drops a row the claim took while the review is open", () => {
+    const { rerender } = mount();
+    openReview();
+    expect(topCard()).toBe("toms");
+    rerender([BONFIRE, ANAS, QUIZ]);
+    expect(topCard()).toBe("bonfire");
+    expect(progress()).toBe("1 of 3");
+    expect(document.querySelector("[data-claims-end]")).toBeNull();
+  });
+
+  it("never asks for a refresh of its own until she decides something", () => {
+    mount();
+    openReview();
+    expect(refresh).not.toHaveBeenCalled();
+  });
+});
+
 describe("one event at a time, each saved as she decides", () => {
   it("★ writes a Claim at once for that one event, and brings the next card up once it lands", async () => {
     const write = deferred<ClaimEventResult>();

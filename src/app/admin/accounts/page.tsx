@@ -96,6 +96,7 @@ export default async function AdminAccountsPage({
                           be a target that works in one engine and not another. */}
                       <Link
                         href={`/admin/accounts/${account.id}`}
+                        prefetch={false}
                         className="block hover:underline hover:underline-offset-4"
                       >
                         <span className="block truncate font-medium">

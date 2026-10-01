@@ -74,6 +74,14 @@ import { ClaimCard, confirmDeleteTitle, Thumb } from "./claims-card";
  * itself, so a claimed event's Guest card joins Your events and the banner's count drops while she
  * carries on. The review keeps its own account of what she decided (`reviewOf`), so the refreshed,
  * shorter list never pulls a card out from under her.
+ *
+ * ★ AND THE LAYOUT'S OWN CLAIM IS A WRITE TOO (crumbs-35, crumbs-40). The silent claim every signed-in
+ * landing runs takes the rows this phone's tickets name under her confirmed address, in a client call that
+ * lands after the server drew `rows`, so the banner and the card went on offering a row already hers (her
+ * Claim then answered "All sorted" over nothing). The claim's own caller refreshes the route once it moved
+ * uploads (`ClaimUploadsOnAuth`, which mounts with the layout: this review streams in later, behind
+ * `dashboard/loading.tsx`, and a listener here missed the claim that had landed first), and the server's
+ * shorter list is what the banner and the card both read, `reviewOf` keeping what she already decided.
  */
 
 /** Past this many events the progress is one bar rather than a segment each. */

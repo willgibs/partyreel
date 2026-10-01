@@ -35,8 +35,8 @@ export const RECOVERY_PURGE_NUDGE_DAYS = 7;
  * HARD-purge — OLDEST `binned_at` first — until the remaining standby bytes fit under budget.
  * Oldest-first is the anti-abuse property: a restore -> re-delete "refresh" can't keep fresh
  * bytes alive at the expense of genuinely-old ones, so the TOTAL is bounded regardless of
- * cycling. Mirror of selectForAutoReduce, but oldest-first instead of largest-first. `binned_at`
- * is an ISO timestamp (sorts lexicographically == chronologically).
+ * cycling. Mirror of the over-cap reduce's `takeLargestFirst`, but oldest-first instead of
+ * largest-first. `binned_at` is an ISO timestamp (sorts lexicographically == chronologically).
  */
 /**
  * Freshly-binned rows are NEVER eligible for standby eviction (QA #2 belt-and-braces). The

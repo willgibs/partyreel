@@ -69,8 +69,12 @@ export function AdminBar({
     <header className="sticky top-0 z-40 h-11 shrink-0 border-b bg-background/85 backdrop-blur">
       <div className="flex h-11 items-center justify-between gap-3 px-3 lg:px-4">
         <div className="flex min-w-0 items-center gap-3">
+          {/* Every link in this bar is `prefetch={false}`: this one paints on every
+              view, and a prefetch of a portal route costs the auth server two reads
+              (`admin-rail.tsx`). */}
           <Link
             href="/admin"
+            prefetch={false}
             aria-label="Partyreel operations"
             className="flex shrink-0 items-center"
           >
@@ -143,11 +147,13 @@ export function AdminBar({
               there at all on a good one, which is the whole of `health=portal`. */}
           {unhealthyJobs === null ? (
             <Badge variant="destructive" asChild>
-              <Link href="/admin/jobs">Health unreadable</Link>
+              <Link href="/admin/jobs" prefetch={false}>
+                Health unreadable
+              </Link>
             </Badge>
           ) : unhealthyJobs > 0 ? (
             <Badge variant="warning" asChild>
-              <Link href="/admin/jobs">
+              <Link href="/admin/jobs" prefetch={false}>
                 {unhealthyJobs} {unhealthyJobs === 1 ? "job" : "jobs"} need
                 {unhealthyJobs === 1 ? "s" : ""} you
               </Link>
@@ -172,7 +178,7 @@ export function AdminBar({
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href="/admin/security">
+                <Link href="/admin/security" prefetch={false}>
                   <ShieldCheck />
                   Two-factor and sessions
                 </Link>

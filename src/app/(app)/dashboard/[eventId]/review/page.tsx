@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 
+import { appNotFoundMetadata } from "@/app/(app)/not-found.metadata";
+import { AppNotFoundScreen } from "@/app/(app)/not-found.screen";
 import { HostCreditLookProvider } from "@/components/app/event-blocks/credit-look";
 import { ReviewRoom } from "@/components/app/event-feed/review-room";
 import { SetCrumbs } from "@/components/shared/crumbs";
@@ -25,7 +26,8 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
   const { eventId } = await params;
   const event = await getEvent(eventId);
-  return { title: event ? `Review · ${event.name}` : "Review" };
+  // An event that is gone or never this host's is titled as the 404 it is (the hub's page says why).
+  return event ? { title: `Review · ${event.name}` } : appNotFoundMetadata;
 }
 
 /**
@@ -48,7 +50,8 @@ export async function generateMetadata({
 export default async function EventReviewPage({ params }: PageProps) {
   const { eventId } = await params;
   const event = await getEvent(eventId);
-  if (!event) notFound();
+  // Drawn here, never thrown: the hub's page says why (crumbs-28).
+  if (!event) return <AppNotFoundScreen />;
 
   // The queue ALONE, read whole: the `pending` slice pages to its last item, so
   // the room presigns what it shows and nothing else, and reaches the queue's
@@ -64,6 +67,7 @@ export default async function EventReviewPage({ params }: PageProps) {
       readHostLinksBody(supabase, event, []),
     ]);
   const pendingItems = await toHostGalleryItems({
+    eventId: event.id,
     media: pending,
     eventName: event.name,
     uploaderIdentities,

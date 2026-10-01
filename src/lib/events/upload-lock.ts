@@ -1,10 +1,10 @@
 /**
- * The GUEST WRITE-PATH lock check (QA #18; uploads-and-r2.md, "A locked event gates UPLOADS, not just viewing") — the single policy source for
+ * The GUEST WRITE-PATH lock check (uploads-and-r2.md, "A locked event gates UPLOADS, not just viewing") — the single policy source for
  * "may this request write past a password event's lock?", shared by all three guest write seams
  * (the /api/guests mint, presign, complete). Keep them on THIS helper: the read gate
- * (resolveGalleryAccess) grants `full` to an unlocked-cookie viewer OR the owner, and the write
- * gate must mirror it exactly or the owner's own /e/ page uploads break (the owner never sees the
- * password modal, so they never hold the cookie).
+ * (`resolveGalleryDecision`, gallery-access.ts) lets an unlocked-cookie viewer OR the owner past the
+ * password lock, and the write gate must mirror it exactly or the owner's own /e/ page uploads break
+ * (the owner never sees the password modal, so they never hold the cookie).
  *
  * `private` is deliberately NOT handled here: private refuses every guest write with no recovery
  * (the /e/ page master-locks everyone including the owner; owner uploads ride the host routes),
@@ -12,9 +12,8 @@
  */
 import "server-only";
 
-import { isEventOwner } from "@/lib/events/gallery-access.server";
+import { isRequestOwner } from "@/lib/events/gallery-access-owner.server";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
-import { createClient } from "@/lib/supabase/server";
 
 /**
  * True when the current request proved it may pass `eventId`'s password lock: the signed
@@ -25,11 +24,7 @@ import { createClient } from "@/lib/supabase/server";
 export async function mayUploadPastLock(eventId: string): Promise<boolean> {
   if (await isUnlocked(eventId)) return true;
   // Owner bypass, cookie-less: cheap and rare (only a locked password event reaches here, and the
-  // anonymous majority short-circuits on the null user before any DB read).
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return false;
-  return isEventOwner(eventId, user.id, supabase);
+  // anonymous majority short-circuits on the null user before any DB read). ★ The page's own owner
+  // answer, never one asked inline: the write gate mirrors the read gate exactly.
+  return isRequestOwner(eventId);
 }

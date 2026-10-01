@@ -1,4 +1,5 @@
 import type { BadgeTone } from "@/lib/admin/tone";
+import { formatAdminDate } from "@/lib/format/admin-time";
 import { formatCount } from "@/lib/format/count";
 import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 import {
@@ -477,3 +478,213 @@ export function hideUndoOf(
 /** What a dismissal that put a hidden item back says (the toast keeps its Undo, which hides it again). */
 export const HIDE_RESTORED_MESSAGE =
   "Report dismissed, and the item it hid is back where it was.";
+
+/* ── The instant hide's strikes, on the queue (crumbs-33, from `hide-strikes`) ────────────────────── */
+
+/**
+ * WHAT `report_strikes` ANSWERS FOR ONE ADDRESS (20261001100000, the rule's one home, which `create_report` asks
+ * too): its live strikes, whether they bar its instant hide, and the lapse instants of its newest strikes up to the
+ * bar, newest first.
+ */
+export type StrikeReading = {
+  live: number;
+  barred: boolean;
+  lapses: readonly string[];
+};
+
+/** The rule's own numbers, as the same answer carries them, never a copy here. */
+export type StrikeRule = {
+  /** How many live strikes bar the instant hide. */
+  strikes: number;
+  /** When a strike made now would lapse. */
+  freshLapsesAt: string;
+};
+
+/**
+ * ONE ADDRESS AGAINST THE INSTANT HIDE, AND WHAT A DISMISS OF THE ENTRY IN FRONT OF THE OPERATOR WOULD MAKE OF IT.
+ * The address itself is never here: the read keys on its hash, and only counts and instants come back.
+ */
+export type AddressStrikes = {
+  live: number;
+  /** The rule's bar: this many live strikes end the instant hide. */
+  bar: number;
+  /** Its reports no longer hide anything at once until this instant; null while they still do. */
+  barredUntil: string | null;
+  /** The same after a Dismiss: every open child-abuse report of this address on the entry is then a strike. */
+  dismiss: { live: number; barredUntil: string | null };
+};
+
+/**
+ * Strikes lapse oldest first, so an address's bar lifts when its bar-th newest live strike lapses, and a Dismiss's
+ * strikes (the newest of all, `adding` of them: a verdict closes every open report on its entry) join the front of
+ * the list that is read from. The numbers are the reading's own (`rule`), so this can never count by another rule.
+ */
+export function addressStrikes(
+  reading: StrikeReading,
+  rule: StrikeRule,
+  adding: number,
+): AddressStrikes {
+  const bar = rule.strikes;
+  const after = [
+    ...Array.from({ length: Math.max(0, adding) }, () => rule.freshLapsesAt),
+    ...reading.lapses,
+  ];
+  const live = reading.live + Math.max(0, adding);
+  return {
+    live: reading.live,
+    bar,
+    barredUntil: reading.barred ? (reading.lapses[bar - 1] ?? null) : null,
+    dismiss: {
+      live,
+      barredUntil: live >= bar ? (after[bar - 1] ?? null) : null,
+    },
+  };
+}
+
+/** Whether a Dismiss would be the one that takes this address's instant hide away. */
+export function dismissEndsTheHide(s: AddressStrikes): boolean {
+  return s.barredUntil === null && s.dismiss.barredUntil !== null;
+}
+
+const strikeCount = (n: number) =>
+  `${formatCount(n)} ${n === 1 ? "strike" : "strikes"}`;
+
+/**
+ * THE LINE A CHILD-ABUSE REPORT WEARS ON THE QUEUE: how many live strikes its address holds and what a Dismiss would
+ * make of it, so the operator knows before the press when it is the third, and the address's reports stop hiding
+ * anything at once until the date it names (the strikes lapse 180 days after their dismissals; a dismissal's Undo
+ * takes its strike back). "Hiding right away" is the chip's own word for the instant hide (`Hidden right away`).
+ */
+export function strikeWords(s: AddressStrikes): string {
+  const { live, bar, barredUntil, dismiss } = s;
+  if (barredUntil) {
+    const lifts = formatAdminDate(barredUntil);
+    // A Dismiss names the later lift only when the line would print a later date: one later by hours on the same
+    // day printed the bar's own date twice (build 35's red-team), so it says no date, as one that moves nothing.
+    const later =
+      dismiss.barredUntil &&
+      Date.parse(dismiss.barredUntil) > Date.parse(barredUntil) &&
+      formatAdminDate(dismiss.barredUntil) !== lifts
+        ? `, until ${formatAdminDate(dismiss.barredUntil)}`
+        : "";
+    return `This address has ${strikeCount(live)}, so its reports don't hide right away until ${lifts}. A Dismiss makes ${formatCount(dismiss.live)}${later}.`;
+  }
+  const held =
+    live === 0
+      ? "This address has no strikes."
+      : `This address has ${strikeCount(live)} of ${formatCount(bar)}.`;
+  if (dismiss.barredUntil) {
+    return `${held} A Dismiss makes ${formatCount(dismiss.live)}, and its reports stop hiding right away until ${formatAdminDate(dismiss.barredUntil)}.`;
+  }
+  return `${held} A Dismiss makes ${formatCount(dismiss.live)} of ${formatCount(bar)}.`;
+}
+
+/* ── A closed report's strike (crumbs-36, a board idea from `crumbs-33`) ─────────────────────────── */
+
+const MINUTE_MS = 60_000;
+
+/**
+ * HOW LONG A STRIKE COUNTS, read off the rule's own answer, never held here. `freshLapsesAt` is the instant a strike
+ * made when the answer was asked would lapse, so its distance from that moment is the rule's lapse (the answer's
+ * `now() + c_strike_lapse`). `answeredMs` is that moment as this server read it (the page's one clock), and the
+ * distance is rounded to the minute: the rule is an interval of whole days, and the milliseconds the round trip took
+ * must not move a printed date, so a strike's lapse here is `resolved_at + the lapse` exactly as the rule's own
+ * reading lists it.
+ */
+export function strikeLapseMs(rule: StrikeRule, answeredMs: number): number {
+  const raw = Date.parse(rule.freshLapsesAt) - answeredMs;
+  return Math.max(0, Math.round(raw / MINUTE_MS) * MINUTE_MS);
+}
+
+/**
+ * WHERE A DISMISSED CHILD-ABUSE REPORT STANDS AS A STRIKE, said on its closed line so an operator reading past
+ * dismissals sees what each one costs its address. `live`: it still counts against the address until `at`, and the
+ * address holds `live` of `bar` strikes (barred, with the instant its reports stop hiding right away lifting, when
+ * the bar is met). `lapsed`: it counted and no longer does, since `at`. `none`: the dismissal kept no address (an
+ * unconfirmed reporter), so there was nothing to count it against. Only counts and instants: the address itself
+ * never shows, and the read keys on the kept hash.
+ */
+export type ClosedStrike =
+  | { state: "none" }
+  | { state: "lapsed"; at: string }
+  | {
+      state: "live";
+      at: string;
+      live: number;
+      bar: number;
+      barredUntil: string | null;
+    };
+
+/**
+ * A closed report's strike, from what the rule's one home answers for its address (`reading`, which an address the
+ * answer does not name has none of), the rule's own numbers and the page's one clock (`nowMs`, the instant every
+ * closed line's window is measured from). Null for any report the rule does not count (another kind, or a verdict
+ * that was not a dismissal), for a verdict with no time (never guessed at), and while the rule cannot be read (`rule`
+ * null: no reading, never "no strike"); a dismissal that kept no address needs no rule to say it is none.
+ *
+ * ★ THE ANSWER'S OWN COUNT HAS THE LAST WORD: a strike the clock says still counts, for an address the rule counts
+ * no live strike for, is lapsed (the seconds either side of a lapse are the only place the two could differ), so a
+ * line never says live where the rule would let the address's reports hide right away.
+ */
+export function closedStrike(
+  report: {
+    kind: ReportKind;
+    status: ReportStatus;
+    resolvedAt: string | null;
+    /** The report kept its address's hash: a confirmed reporter, the only kind a strike can be counted against. */
+    keptAddress: boolean;
+  },
+  reading: StrikeReading | undefined,
+  rule: StrikeRule | null,
+  nowMs: number,
+): ClosedStrike | null {
+  if (report.kind !== INSTANT_HIDE_KIND || report.status !== "dismissed") {
+    return null;
+  }
+  if (!report.keptAddress) return { state: "none" };
+  // No rule to read (the function is not provisioned yet, or the read has nothing to say): no reading, never "no strike".
+  if (!rule) return null;
+  const resolved = report.resolvedAt
+    ? Date.parse(report.resolvedAt)
+    : Number.NaN;
+  if (!Number.isFinite(resolved)) return null;
+  const lapsesAt = resolved + strikeLapseMs(rule, nowMs);
+  const held = reading ?? { live: 0, barred: false, lapses: [] };
+  if (lapsesAt <= nowMs || held.live === 0) {
+    return {
+      state: "lapsed",
+      at: new Date(Math.min(lapsesAt, nowMs)).toISOString(),
+    };
+  }
+  const { live, bar, barredUntil } = addressStrikes(held, rule, 0);
+  return {
+    state: "live",
+    at: new Date(lapsesAt).toISOString(),
+    live,
+    bar,
+    barredUntil,
+  };
+}
+
+/**
+ * THE LINE A DISMISSED CHILD-ABUSE REPORT WEARS ON THE CLOSED LOG: whether it is still a strike and until when, what
+ * its address holds, and (`canUndo`, from the line's own way back) that its Undo takes the strike back. The Undo
+ * clause is only said while the dismissal is inside its reopen window: a strike outlives that window (a reopen
+ * lasts the product's 30 days, a strike its lapse), and a line never offers what it cannot do. Dates are UTC, like
+ * every admin date.
+ */
+export function closedStrikeWords(
+  strike: ClosedStrike,
+  { canUndo }: { canUndo: boolean },
+): string {
+  if (strike.state === "none") {
+    return "Not a strike: it kept no address to count against.";
+  }
+  if (strike.state === "lapsed") {
+    return `Its strike lapsed ${formatAdminDate(strike.at)}.`;
+  }
+  const holds = strike.barredUntil
+    ? `the address holds ${strikeCount(strike.live)}, so its reports don't hide right away until ${formatAdminDate(strike.barredUntil)}`
+    : `the address holds ${formatCount(strike.live)} of ${formatCount(strike.bar)}`;
+  return `A strike on its address until ${formatAdminDate(strike.at)}; ${holds}.${canUndo ? " Undo takes it back." : ""}`;
+}

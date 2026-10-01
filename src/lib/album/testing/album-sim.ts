@@ -16,7 +16,11 @@
  *     the SQL expression);
  *   - `album_changes_since` reads the versions, the counts and the changes in one snapshot, with each
  *     item's CURRENT status (null for a purged one); a manifest page is a keyset read of whatever has
- *     committed when it runs.
+ *     committed when it runs;
+ *   - `album_prune_tombstones` (20261001150000) deletes the rows of purged items and raises each scope's
+ *     watermark to the highest version it deleted, both in one transaction, and the reader answers the
+ *     asked scope's watermark in its snapshot: `prune` below, which may take any subset of the
+ *     tombstones (the SQL takes them in windows of the change log, so a pass can stop part way).
  * Interleavings come from the `between` hook: a test commits transactions at any point a real request
  * would give way (between the version read and the first page, between pages, between polls).
  */
@@ -74,7 +78,15 @@ export function albumScope(
   return 1 + ((was === "approved") !== (is === "approved") ? 2 : 0);
 }
 
-type State = { version: number; albumMax: number; attr: number };
+type State = {
+  version: number;
+  albumMax: number;
+  attr: number;
+  /** Every pruned row's host_version is at or below it. */
+  hostWatermark: number;
+  /** Every pruned row's album_version is at or below it. */
+  albumWatermark: number;
+};
 type Stamp = { host: number; album: number | null };
 
 export class AlbumSim {
@@ -86,7 +98,13 @@ export class AlbumSim {
   private stateOf(event: string): State {
     let s = this.state.get(event);
     if (!s) {
-      s = { version: 0, albumMax: 0, attr: 0 };
+      s = {
+        version: 0,
+        albumMax: 0,
+        attr: 0,
+        hostWatermark: 0,
+        albumWatermark: 0,
+      };
       this.state.set(event, s);
     }
     return s;
@@ -160,6 +178,37 @@ export class AlbumSim {
   renamed(events: readonly string[]): void {
     for (const event of new Set(events)) this.stateOf(event).attr += 1;
     this.commits += 1;
+  }
+
+  /** The change rows of `event` whose item is gone (purged, or its row hard-deleted): its tombstones. */
+  tombstones(event: string): string[] {
+    const log = this.changes.get(event);
+    if (!log) return [];
+    return [...log.keys()].filter((id) => !this.media.has(id)).sort();
+  }
+
+  /**
+   * `album_prune_tombstones`, one transaction: the tombstones `take` keeps (all of them by default) are
+   * deleted, and each scope's watermark rises to the highest version among them, never falling. A live
+   * item's row is never pruned. Answers how many rows it pruned.
+   */
+  prune(event: string, take: (id: string) => boolean = () => true): number {
+    const log = this.changes.get(event);
+    if (!log) return 0;
+    const s = this.stateOf(event);
+    let pruned = 0;
+    for (const id of this.tombstones(event)) {
+      if (!take(id)) continue;
+      const stamp = log.get(id)!;
+      s.hostWatermark = Math.max(s.hostWatermark, stamp.host);
+      if (stamp.album !== null) {
+        s.albumWatermark = Math.max(s.albumWatermark, stamp.album);
+      }
+      log.delete(id);
+      pruned += 1;
+    }
+    if (pruned > 0) this.commits += 1;
+    return pruned;
   }
 
   /** The album a scope sees, in the server's order. */
@@ -236,6 +285,7 @@ export class AlbumSim {
       version: s.version,
       albumMax: s.albumMax,
       attrVersion: s.attr,
+      watermark: scope === "host" ? s.hostWatermark : s.albumWatermark,
       approved: counts.approved,
       hidden: scope === "host" ? counts.hidden : null,
       pending: scope === "host" ? counts.pending : null,

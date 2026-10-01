@@ -87,13 +87,17 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
   (an INVOKER read, one jsonb, behind the admin seam), `purge_media_rows`,
   `record_link_hit`, `host_active_bytes`, `host_storage_summary`, `tier_limits` and `monthly_ingress_cap` (INVOKER;
   every other caller is a DEFINER body), the paged album's reader
-  `album_changes_since` (an INVOKER read the Next routes call after their own capability check), `media_like_counts`
+  `album_changes_since` (an INVOKER read the Next routes call after their own capability check) and its log's prune
+  `album_prune_tombstones` (DEFINER: the tables grant the service role SELECT only), `media_like_counts`
   (an INVOKER read the host's links route and the hub page call after their `getEvent` check), the per-event block's
   reads (`event_ticket_blocked` and `event_blocked_guest_ids`, INVOKER; `blocked_events_for`, DEFINER because it
   reads `auth.users`, which the service role cannot) and its four predicates (INVOKER, run inside the guest paths'
   DEFINER bodies), the claims' `whose_ticket` (the same shape), and the trigger
   functions, whose EXECUTE is revoked from the client roles and which still fire (EXECUTE is checked when a trigger
   is created, never when it fires).
+- **The owner's alone** (revoked from the service role too, so no role PostgREST serves can call them): helpers only
+  a definer body reads, `event_door_asks` (a set no request can page) and `event_account_ticket` (a whole guest row,
+  its ticket in it).
 - ★ **Every SECURITY DEFINER function pins `set search_path = ''` and fully qualifies every name** (`public.events`,
   `auth.users`, `extensions.crypt`): an unpinned path lets a caller shadow a name and run it as the owner. No
   DEFINER body uses dynamic SQL.
@@ -102,7 +106,8 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
   `contact_submissions`, `job_applications`, `event_passes`, `job_runs`, `export_log` (an HMAC of the IP, never the
   IP), `ops_flags` (the kill switches), `upload_forensics` and `forensic_audit_log` (raw IP by design; the deny-all is
   the containment: [trust-safety-forensics.md](trust-safety-forensics.md)), `album_state` and `album_changes` (the
-  paged album's versions and change log: service_role SELECT only, written by the deferred triggers alone),
+  paged album's versions and change log: service_role SELECT only, written by the deferred triggers and the log's
+  prune alone),
   `article_feedback` (the help center's feedback beacon: a slug, Yes or No and a time, no identity of any kind), and
   `storage_ledger` (the monthly ingress meter: its readers are the upload gates, DEFINER, and the service role).
 
@@ -126,16 +131,16 @@ a table created since starts with no client grant, so its migration grants exact
 - **`events`:** hosts write the settings columns and `insert(host_id)`, and `update(deleted_at)` for a soft delete
   only. `event_password_hash`, `custom_slug`, `qr_token` and `purge_at` are RPC, trigger or default only. SELECT is
   table-level (RLS scopes the rows), so a new column reads with no grant.
-- **`media`:** UPDATE `status` and `removed_at` only; `purge_at` comes from a trigger; the removal provenance
-  (`removed_by_uploader`, `removed_by_system`, `removed_by_admin`, `status_before_removed`) is RPC, trigger or
-  service role only; `reel_eligible` is readable and written once, by `create_media*`. **SELECT is column-scoped
-  too:** the hold columns and the provenance are not granted, so a host cannot detect a legal hold, an
-  `authenticated` `select("*")` on media ERRORS, host reads enumerate `MEDIA_HOST_COLUMNS` (a parity test pins it
-  to the grant as the migrations leave it, drops replayed, so a column leaves the list before its drop lands), and a
-  new column stays invisible to hosts until it joins both. ★ `media_host_all`'s USING also
-  leaves out an operator's removal (`status = 'removed' and removed_by_admin`): a policy may test a column its role
-  cannot SELECT, so the host loses the row on every read and write without ever reading the flag
-  ([lifecycle-recovery.md](lifecycle-recovery.md)).
+- **`media`:** UPDATE `status` and `removed_at` only; `purge_at` and `let_in_at` (the approval toast's news) come
+  from triggers; the removal provenance (`removed_by_uploader`, `removed_by_system`, `removed_by_admin`,
+  `status_before_removed`) is RPC, trigger or service role only; `reel_eligible` is readable and written once, by
+  `create_media*`. **SELECT is column-scoped too:** the hold columns, the provenance and `let_in_at` are not
+  granted, so a host cannot detect a legal hold, an `authenticated` `select("*")` on media ERRORS, host reads
+  enumerate `MEDIA_HOST_COLUMNS` (a parity test pins it to the grant as the migrations leave it, drops replayed, so a
+  column leaves the list before its drop lands), and a new column stays invisible to hosts until it joins both.
+  ★ `media_host_all`'s USING also leaves out an operator's removal (`status = 'removed' and removed_by_admin`): a
+  policy may test a column its role cannot SELECT, so the host loses the row on every read and write without ever
+  reading the flag ([lifecycle-recovery.md](lifecycle-recovery.md)).
 - **`guests`:** no client role reads or writes it; every reader is the service role or a definer function, because
   it holds `session_token` (the plaintext upload capability) and both addresses. The token also rides the
   `pr_guest_<eventId>` cookie ([guest-flow.md](guest-flow.md)), ★ as a READ capability only: every write route takes it from the body
@@ -175,8 +180,10 @@ a table created since starts with no client grant, so its migration grants exact
   `20260930100000`). Every move of the door writes that row (`set_event_door` locks it `for no key update`,
   `set_event_password`'s update takes the same lock), and the triggers that end or admit the asks read only what has
   committed, so an unlocked join minted in the move's instant was never seen by them. The share lock is each body's
-  first, taken holding nothing, and joins never wait on each other; a new body that mints a waiting ticket takes it
-  too (`migration-guards.test.ts` refuses one that does not).
+  first, taken holding nothing, and joins never wait on each other but for one account's at one album: a confirmed
+  join takes an advisory lock on the two after it (`event_account_ticket`) and answers the ticket she holds, so two
+  of hers that race answer one row. A new body that mints a waiting ticket takes the share lock too
+  (`migration-guards.test.ts` refuses one that does not).
 - ★ **An album's version row is every transaction's LAST lock** (`20260926100000_album_version`). A per-event
   counter taken mid-transaction would sit between locks the writers already order differently (`purge_media_rows`
   locks media before profiles, `create_media` profiles first, a multi-event disown, claim or sweep touches events in
@@ -185,7 +192,9 @@ a table created since starts with no client grant, so its migration grants exact
   touched in ONE pass in event-id order: a transaction holding an album row waits on nothing but album rows, and
   every commit phase takes them in one order. Each table's note trigger sorts before its stamp by name
   (`*_album_note` < `*_album_stamp`), which a `set constraints all immediate` path depends on. A new writer of
-  `album_state` or `album_changes` goes through that flush or not at all (a guard refuses any other writer).
+  `album_state` or `album_changes` goes through that flush or not at all (a guard refuses any other writer), but for
+  the log's prune (`album_prune_tombstones`, 20261001150000), a transaction of its own that holds nothing else and
+  takes each album's version row before its change rows, album by album in event-id order.
 - **The guest write path inherits the read gate:** `create_guest` refuses a `private` event and requires
   `p_unlock_proven` for `password` (the server derives it: the database cannot read the unlock cookie), and
   `get_upload_context` returns `visibility` so presign and complete re-check it per request ([uploads-and-r2.md](uploads-and-r2.md)).
@@ -208,7 +217,9 @@ a table created since starts with no client grant, so its migration grants exact
   `auth.users`, which the service role cannot, so an INVOKER function the server calls that asks it fails with a
   permission error at run time, invisible to typecheck: `event_door_counts` (INVOKER) reads the list's count through
   `event_door_waiting_listed` (DEFINER, service role only, empty `search_path`), the read-only twin of
-  `event_door_admit_listed`, and a change to who the list names moves both bodies.
+  `event_door_admit_listed`. Both read the door's asks from one set, `event_door_asks` (every door act that lets an
+  ask in reads it, so a blocked ask is never let in by a door's opening), and a change to who the list names moves
+  that one body.
 - ★ **A new junction table silently breaks PostgREST embeds (PGRST201).** Two FKs to already-related tables make
   PostgREST infer a second path, and an existing bare `events!inner(...)` embed between them throws at runtime,
   invisible to typecheck, lint and build. Pin every cross-table embed to its FK
@@ -247,7 +258,8 @@ with no error; writes are not cut. The TypeScript side is `src/lib/db/read-all.t
   clamped in SQL to 1,000, or returns one row (a scalar, a `jsonb`, a `uuid[]`). ★ A null `p_limit` reads everything,
   written `limit case when p_limit is null then null else least(p_limit, 1000) end`: `least` ignores a null, so a bare
   `least(p_limit, 1000)` silently caps the unbounded call. `row-cap-sql.test.ts` holds every winning definition to
-  this, each exception on its `SINGLE_ROW` or `CALLER_BOUNDED` list with its reason.
+  this, each exception on its `SINGLE_ROW` or `CALLER_BOUNDED` list with its reason, or on `INTERNAL` when no role
+  PostgREST serves can call it (checked from the grants).
 - Prefer SECURITY INVOKER; a new DEFINER function is service-role only, so the advisor lists never grow.
 - ★ `readAllPages` takes a short page as the end, so the live `max_rows` must never go below 1,000.
 - The shapes the row-cap fixes read, with their keys and their rolled-back checks, are in `20260924010000_row_cap_album`,

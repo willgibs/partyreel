@@ -67,6 +67,8 @@ type Props = {
   isVerified: boolean;
   /** The page's door lets the viewer through to the album (its access is not `none`); true unless a test says. */
   doorOpen?: boolean;
+  /** The album is the viewer's own: her event's id, and her Add is the host's (null for everyone else). */
+  ownerEventId?: string | null;
 };
 
 function mountQueue(initial: Props) {
@@ -84,6 +86,7 @@ function mountQueue(initial: Props) {
         isDemo: false,
         isVerified: props.isVerified,
         doorOpen: props.doorOpen,
+        ownerEventId: props.ownerEventId,
         onVerificationRequired,
         onDoorNeeded,
       }),
@@ -651,5 +654,239 @@ describe("useLiveQueue", () => {
     expect(result.current.map((it) => it.progress)).toEqual([40, 100]);
     act(() => progress.tick("q1", 90));
     expect(result.current[0].progress).toBe(90);
+  });
+});
+
+/**
+ * THE DOOR SETTLES ON WHO IS HERE BEFORE IT ASKS (crumbs-29, build 30's red-team).
+ *
+ * Two ways a page's idea of its viewer outlived the truth, both handed to the door now rather than stranded:
+ *   - a page rendered while a sign-out was still in flight took its viewer for a confirmed account, skipped the
+ *     name step, and her Send toasted "Couldn't start uploading / Enter a name." over an upload step with no field
+ *     to type one (a dead end until a reload);
+ *   - a phone holding another guest's ticket, its viewer signed in elsewhere and blocked here: the ticket went down
+ *     with its name, and the page drew the name step for the seconds its refresh took to find the block.
+ */
+describe("the door settles on who is here before it asks", () => {
+  it("★ a first Add whose join the server refuses for want of a name keeps her picks for the door, never a toast", async () => {
+    localStorage.clear();
+    const { toast } = await import("sonner");
+    answer({
+      "/api/guests": [
+        {
+          ok: false,
+          body: { ok: false, code: "name_required", message: "Enter a name." },
+        },
+      ],
+    });
+    mockUploadFile.mockResolvedValue(landed("med-1"));
+    // The page rendered as a confirmed account (the sign-out was still in flight), with no ticket here yet.
+    const q = mountQueue({ sessionToken: null, isVerified: true });
+    const clip = new File([new Uint8Array([1])], "clip.webm", {
+      type: "video/webm",
+    });
+
+    act(() => q.result.current.addFiles([makeFile("a.jpg")]));
+
+    await waitFor(() => expect(q.onDoorNeeded).toHaveBeenCalledTimes(1));
+    expect(toast.error).not.toHaveBeenCalled();
+    expect(mockUploadFile).not.toHaveBeenCalled();
+    expect(q.items().map((it) => it.status)).toEqual(["queued"]);
+
+    // The refresh finds her signed out; the door's name step joins and hands its ticket down.
+    q.rerender({ sessionToken: "door-token", isVerified: false });
+    await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(1));
+    expect(sentOn(0)).toBe("door-token");
+    // A clip added after the door has its ticket goes as any file.
+    act(() => q.result.current.addClip(clip, new Blob([new Uint8Array([1])])));
+    await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(2));
+  });
+
+  it("any other refusal of the first join still toasts, and nothing waits", async () => {
+    localStorage.clear();
+    const { toast } = await import("sonner");
+    answer({
+      "/api/guests": [
+        {
+          ok: false,
+          body: {
+            ok: false,
+            code: "rate_limited",
+            message: "Too many joins from this network right now.",
+          },
+        },
+      ],
+    });
+    const q = mountQueue({ sessionToken: null, isVerified: true });
+    act(() => q.result.current.addFiles([makeFile("a.jpg")]));
+    await waitFor(() => expect(toast.error).toHaveBeenCalledTimes(1));
+    expect(q.onDoorNeeded).not.toHaveBeenCalled();
+    expect(q.items()).toEqual([]);
+  });
+
+  it("★ a ticket only the door can replace: the door hears it before the ticket and its name go down, and is told when they have", async () => {
+    let releaseLeave = () => {};
+    global.fetch = vi.fn(
+      (input: RequestInfo | URL) =>
+        new Promise<Response>((resolve) => {
+          if (String(input) !== "/api/guests/leave") {
+            throw new Error(`unexpected fetch ${String(input)}`);
+          }
+          releaseLeave = () =>
+            resolve({ ok: true, json: async () => ({ ok: true }) } as Response);
+        }),
+    );
+    mockUploadFile.mockResolvedValueOnce(OTHER_ACCOUNT);
+    const q = mountQueue({ sessionToken: STALE, isVerified: false });
+    let nameWhenTold: string | null | undefined;
+    let ticketDown: Promise<void> | undefined;
+    q.onDoorNeeded.mockImplementation((down?: Promise<void>) => {
+      nameWhenTold = localStorage.getItem(`pr_guest_name_${QR}`);
+      ticketDown = down;
+    });
+
+    act(() => q.result.current.addFiles([makeFile()]));
+
+    await waitFor(() => expect(q.onDoorNeeded).toHaveBeenCalledTimes(1));
+    // Told while the ticket's name still stood: the door holds before anything it reads goes down.
+    expect(nameWhenTold).toBe("Hi Will");
+    expect(ticketDown).toBeInstanceOf(Promise);
+    // Then the ticket goes down, the local half at once.
+    expect(localStorage.getItem(`pr_guest_name_${QR}`)).toBeNull();
+    expect(localStorage.getItem(`pr_session_${QR}`)).toBeNull();
+    // And the page's refresh waits on the cookie's half, so it never reads the ticket that is leaving.
+    let settled = false;
+    void ticketDown!.then(() => {
+      settled = true;
+    });
+    await Promise.resolve();
+    expect(settled).toBe(false);
+    releaseLeave();
+    await waitFor(() => expect(settled).toBe(true));
+    expect(q.items()).toEqual([expect.objectContaining({ status: "queued" })]);
+    expect(q.onDoorNeeded).toHaveBeenCalledTimes(1);
+  });
+
+  it("a confirmed viewer's ticket going down never troubles the door: she joins silently, as ever", async () => {
+    answer({
+      "/api/guests/leave": [{ ok: true, body: { ok: true } }],
+      "/api/guests": [
+        { ok: true, body: { ok: true, session_token: "fresh-token" } },
+      ],
+    });
+    mockUploadFile
+      .mockResolvedValueOnce(OTHER_ACCOUNT)
+      .mockResolvedValueOnce(landed("med-1"));
+    const q = mountQueue({ sessionToken: STALE, isVerified: true });
+    act(() => q.result.current.addFiles([makeFile()]));
+    await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(1));
+    expect(q.onDoorNeeded).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * ★ THE OWNER'S ADD RIDES THE HOST'S OWN ROUTES (crumbs-29's Deferred, a bug). The host adding to her own album from
+ * its guest page went through the guest queue, and `create_guest` never counts the host as in, so at a gated door her
+ * upload never went (proved rolled back on 55bcdbe0): approve minted her a waiting ticket her picks waited on for good,
+ * invite refused "Ask the host to let you in.", closed "This event is private.", and Only me refuses every mint. She is
+ * never her own guest (the notes in `create_guest`, the presign route and `upload-lock.ts` said so all along): her Add
+ * goes through the host's pair, as the hub's does and the reel's Add to event does (`clip-add.ts`), approved and
+ * metered on her storage, with no ticket, no join and no door.
+ */
+describe("the album's owner, adding to her own album", () => {
+  const HOST_PAIR = {
+    presign: "/api/host/r2/presign-upload",
+    complete: "/api/host/r2/complete-upload",
+  };
+
+  it("★ sends her picks through the host's pair, as the host of this event: no join, no ticket, no door", async () => {
+    localStorage.clear();
+    // Any fetch here would be a join: none is expected.
+    answer({});
+    mockUploadFile
+      .mockResolvedValueOnce(landed("med-1"))
+      .mockResolvedValueOnce(landed("med-2"));
+    const q = mountQueue({
+      sessionToken: null,
+      isVerified: true,
+      ownerEventId: "event-1",
+    });
+
+    act(() =>
+      q.result.current.addFiles([makeFile("a.jpg"), makeFile("b.jpg")]),
+    );
+
+    await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(2));
+    for (const [sent] of mockUploadFile.mock.calls) {
+      expect(sent.endpoints).toEqual(HOST_PAIR);
+      expect(sent.identity).toEqual({ event_id: "event-1" });
+    }
+    expect(fetchUrls()).toEqual([]);
+    expect(q.onSession).not.toHaveBeenCalled();
+    expect(q.onDoorNeeded).not.toHaveBeenCalled();
+    expect(q.items().map((it) => it.status)).toEqual(["done", "done"]);
+  });
+
+  it("never sends on a guest ticket the device still holds from an earlier visit", async () => {
+    mockUploadFile.mockResolvedValueOnce(landed("med-1"));
+    const q = mountQueue({
+      sessionToken: STALE,
+      isVerified: true,
+      ownerEventId: "event-1",
+    });
+    act(() => q.result.current.addFiles([makeFile()]));
+    await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(1));
+    expect(mockUploadFile.mock.calls[0][0].identity).toEqual({
+      event_id: "event-1",
+    });
+  });
+
+  it("a refusal from the host's route is the file's own, in its words, and nobody joins", async () => {
+    answer({});
+    mockUploadFile.mockResolvedValueOnce({
+      ok: false,
+      code: "cap_reached",
+      message: "Storage is full for your plan. Free up space or upgrade.",
+    });
+    const q = mountQueue({
+      sessionToken: null,
+      isVerified: true,
+      ownerEventId: "event-1",
+    });
+    act(() => q.result.current.addFiles([makeFile()]));
+    await waitFor(() => expect(q.items()[0]?.status).toBe("error"));
+    expect(q.items()[0]).toMatchObject({
+      error: "Storage is full for your plan. Free up space or upgrade.",
+      errorCode: "cap_reached",
+    });
+    expect(fetchUrls()).toEqual([]);
+    expect(q.onDoorNeeded).not.toHaveBeenCalled();
+  });
+
+  it("her clip goes the same way, still never a reel's", async () => {
+    answer({});
+    mockUploadFile.mockResolvedValueOnce({
+      ok: true,
+      status: "approved",
+      mediaId: "clip-1",
+      kind: "video",
+    });
+    const clip = new File([new Uint8Array([1, 2, 3])], "clip.mp4", {
+      type: "video/mp4",
+    });
+    const poster = new Blob([new Uint8Array([9])], { type: "image/png" });
+    const q = mountQueue({
+      sessionToken: null,
+      isVerified: true,
+      ownerEventId: "event-1",
+    });
+    act(() => q.result.current.addClip(clip, poster));
+    await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(1));
+    const sent = mockUploadFile.mock.calls[0][0];
+    expect(sent.endpoints).toEqual(HOST_PAIR);
+    expect(sent.identity).toEqual({ event_id: "event-1" });
+    expect(sent.reelEligible).toBe(false);
+    expect(sent.poster).toBe(poster);
+    expect(fetchUrls()).toEqual([]);
   });
 });

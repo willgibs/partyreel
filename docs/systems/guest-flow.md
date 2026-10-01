@@ -34,8 +34,6 @@ BOTH actions over a gradient scrim inside the safe area. It is `inert`, not unmo
 screen (so it travels in and out), and the page root reserves its height while it is MOUNTED, never only
 while visible, or the page would grow under a thumb. It carries exactly what the row carries and never
 replaces the row as a guest's first sight of Add: a dock alone sits where the eye reaches last.
-[`floating-add-button.tsx`](../../src/components/shared/floating-add-button.tsx) is residue only the
-Library's demo mounts.
 
 ★ **THERE IS NO SAVE, ANYWHERE.** Uploading to an event is what keeps it (the definition under "Invariants"), so
 nothing in this row, or on any other guest surface, saves an event. Keeping what a guest added is asked AFTER her
@@ -79,10 +77,15 @@ started it: on an album the claim is two calls, this album's own token first
 ([`claim-uploads.ts`](../../src/lib/guest/claim-uploads.ts)), and the RPC counts only claimed rows that carry a
 live upload, so the result says HERE and ELSEWHERE apart. The follow moment plays when the marker was there (or the
 claim is her yes to the shared-phone ask) AND the claim moved this album's own uploads, with no upload needed this
-visit (a full-reload return included); the first claim that actually runs spends the marker either way, and a
-full-reload return whose claim moved nothing here still reports its beat, so the page can say where photos typed
-under another address are. ★ **A CONFIRMATION IS ONE BEAT, NEVER STACKED
-TOASTS** ([`confirm-beat.ts`](../../src/lib/guest/confirm-beat.ts)): when the moment plays, its card says the other
+visit (a full-reload return included). ★ **A read on the page may have moved them first**: the album's door runs the
+claim as it reads (`sortTickets`), so a Google or magic-link return's render claims her ticket before the album's
+own claim runs; while the marker waits and that claim moved nothing here, it asks `/api/guests/mine` (`kept`, the
+live uploads on that ticket's row, counted only when the row is the signed-in account's) and counts the ticket as
+moved if it is hers (build 33's red-team). The first claim that actually runs for an album's ticket spends that
+album's marker either way, wherever it runs (the one on screen is its listener's to take), so a door abandoned there
+never plays weeks later off a sign-in made elsewhere; and a full-reload return whose claim moved nothing here still
+reports its beat, so the page can say where photos typed under another address are.
+★ **A CONFIRMATION IS ONE BEAT, NEVER STACKED TOASTS** ([`confirm-beat.ts`](../../src/lib/guest/confirm-beat.ts)): when the moment plays, its card says the other
 events once and tells the name (the events waiting under her email are the moment's alone, counted on the server
 from the dashboard banner's own list and never this album, [`confirm-beat-action.ts`](../../src/lib/guest/confirm-beat-action.ts),
 so a confirmation before her first upload here, and every toast, says nothing of them); when it does not, the doors report and the page says it once, after the door's hold:
@@ -94,8 +97,9 @@ whenever uploads moved.
 offers the HOST alone, with the quieter Follow (`FollowButton`'s `quiet`, a small ghost button: his "Follow doesn't
 have to be pushed as hard"): the other guests already carry their own Follow on each handled chip
 ([`guest-list.tsx`](../../src/components/social/guest-list.tsx)), and a second copy would be one list twice
-on one screen. Its card is `getHostCard(eventId)` from the page RSC; no card means no host row, never a
-stub.
+on one screen. Its card is `getHostCard(eventId)` from the page RSC, with whether she already follows the host read
+beside it (`isFollowing`, one head count for a signed-in guest; the keep's code typed in place refreshes the page), so
+its Follow starts on Following for her; no card means no host row, never a stub.
 
 ★ **THE GUEST'S POPUPS OPEN THROUGH THEIR KINDS** ([design-system.md](design-system.md), the floating layer): the
 DOOR and its held sheets (the confirm door `ConfirmEmailDialog`, the header menu's Add your email,
@@ -131,8 +135,9 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
   load when its row mounts, and a tile whose row leaves cancels its unfinished download (R2 answers over HTTP/1.1,
   six connections). ★ The first paint is the server's: rows per width class at the width the album last laid them
   (`pr_album_w`, path-scoped; nominal cold), links for exactly those photographs (`firstPaintIds`), and the
-  hydration draws the plan the server wrote on the grid (`data-rows-plan`), never its own (the engine's logs and
-  powers round differently in Node and a browser). The Yours filter runs over the manifest (the device's own ids met
+  hydration draws the plan the server wrote on the grid (`data-rows-plan`), never its own (it spares the hydration a
+  layout; the engine settles a tie the same in Node and a browser since crumbs-33, design-system.md "`rows`"). The
+  Yours filter runs over the manifest (the device's own ids met
   with it; the count stays the album's). A photograph with no link yet is a loading tile, never a request. The
   skeleton lays rows on `ROW_CLASSES` at the step, as the first paint does.
   ★ **The page root is two boxes, not a column**:
@@ -146,8 +151,11 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
   time, JIT silent join, demo sim, retry) is created ONCE in `event-experience.tsx` and shared by the
   album's Add and the door's upload step, so a run started at the door outlives it. `GuestUpload`
   ([`guest-upload.tsx`](../../src/components/guest/guest-upload.tsx)) reads its snapshot and owns the album's
-  two sheets and the post-upload slot behind a `{openAdd, retry}` handle; it draws no tile. Three surfaces
-  and one session rule:
+  two sheets and the post-upload slot behind a `{openAdd, retry}` handle; it draws no tile. ★ **The album's owner is
+  never her own guest** (`ownerEventId`): her files ride the host's pair (`/api/host/r2/*`, `create_media_as_host`,
+  as the hub's Add and the reel's Add to event do: approved, metered on her storage, credited as the host) with no
+  ticket, no join and no door, since a guest ticket at her own door is held by every door that holds a newcomer
+  (`create_guest` never counts the host in). Three surfaces and one session rule:
   - ★ **THE ADD CHOICE**: every Add opens
     [`upload/intent-sheet.tsx`](../../src/components/guest/upload/intent-sheet.tsx) on the responsive menu,
     *Take a photo* over *Choose from your album*, then the terms line
@@ -194,9 +202,15 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
     when it is that same name, then the cookie, AWAITED so it cannot land after the re-join's fresh one) and
     re-queues it. A CONFIRMED viewer joins silently (once per chain) and the same file goes up on their own row;
     anyone else is handed to the door (`onDoorNeeded`: the page refreshes, so a sign-out in another tab is seen,
-    and the name or email step opens) while the files wait `queued`, resuming the moment its join hands a ticket
-    down through `sessionToken`. A join nobody at the door could fix fails the waiting files in place, and a
-    Retry with no ticket joins first. ★ **A join that lands WAITING is the ask, never a ticket** (`admission:
+    and the name or email step opens, or the page is the shut door) while the files wait `queued`, resuming the
+    moment its join hands a ticket down through `sessionToken`. ★ **The door waits for the server to say who is
+    here**: the page is told BEFORE the ticket goes down (`onDoorNeeded(ticketDown)`), since the ticket takes its
+    name with it, and holds its door on the name it had until its refresh lands (`door-hold.ts`, the hold keyed to
+    the render it was taken under), the refresh waiting for the ticket's cookie to go; so a phone the host blocked
+    meets the shut door with no name step first. The same 422 on a first Add's own join (`name_required`: the page
+    rendered across a sign-out still in flight and skipped the name) keeps her picks for the door the same way, and
+    the page's own silent join refused so re-reads who is here. A join nobody at the door could fix fails the waiting
+    files in place, and a Retry with no ticket joins first. ★ **A join that lands WAITING is the ask, never a ticket** (`admission:
     "waiting"`, where the host lets each guest in): a file sent on it is refused "This event is private.", so the
     queue adopts nothing (nor does the page's own silent join once the door is behind her: `passedTicket`,
     `join.ts`), sends nothing and fails nothing: the files wait `queued` (a first Add's picks and a clip
@@ -205,8 +219,10 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
     her ticket `in`. The name step and the add-email dialog read the code the same way: the
     ticket goes down, then a fresh join (the dialog closes and the door asks).
   ★ **The blob re-key**: an in-flight tile's object URL is keyed by queue id and re-keyed to the media id at
-  approved completion (`UploadedItem.queueId`): the SAME URL object, so the `<img src>` never changes and
-  the tile turns optimistic with zero flicker.
+  approved completion (`UploadedItem.queueId`): the SAME URL object, so the album's tile is a fresh `<img>` on a
+  picture the browser already holds, which answers `complete` at mount, and `MediaTile` shows it at once with no
+  fade (measured in a visible Chrome, 0 to 3 s between the stack tile leaving and the tile mounting, and in a
+  hidden tab; WebKit unmeasured). Her link then lands in place (`media-grid.tsx`).
 - **Empty state** ([`gallery-empty-state.tsx`](../../src/components/guest/gallery-empty-state.tsx)): the
   photographic promise, the RIVER (`shared/river`) in a square box the width of the reading column, the
   `public/guest-ghost` WebPs pouring under a centred `font-heading` title and CTA. The fade (85% grayscale,
@@ -230,8 +246,7 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
   extra sentence for the host, and on YOUR OWN credit a "Confirm your email" opening the one confirm door). A row with
   no name renders no credit at all, never an invented stand-in: a row minted before names were asked (`create_guest`
   refuses a new one) and a verified row whose account has no profile name (a deleted account's surviving upload).
-  [`anonymous-info.tsx`](../../src/components/shared/anonymous-info.tsx) is residue only the Library gallery mounts. ★
-  The mark carries its OWN door rather than a prop, because the credit sits three modules deep under
+  ★ The mark carries its OWN door rather than a prop, because the credit sits three modules deep under
   `shared/masonry.tsx`; "is this mine" is the existing `canDelete` seam, never a second one. The neighbours PEEK at
   the edges and a tap on one steps to it; a tap on BLANK space closes (no side zones); a pull DOWN at fit closes;
   pinch, pan and double-tap zoom a photograph; a clip plays muted and looping and pauses when the viewer moves on; a
@@ -257,7 +272,11 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
   opens the create-account dialog (a `LikesProvider` wraps the gallery, replaying after sign-in). The hearts are
   seeded through `my_liked_media_ids` with the window's ids in the POST BODY (never a URL, which a whole album
   outgrows): the ids the rows mount and the viewer asks for, asking only the ones not yet answered as the window
-  moves; a failed seed is reported (Sentry, `media`) and the hearts simply start unfilled. Like COUNTS are
+  moves, two asks out at once and a burst's in one (`seed-queue.ts`, as the link store's); a failed seed is reported
+  (Sentry, `media`) and the hearts simply start unfilled. ★ The hearts follow the session the device holds: every
+  signed-in call (the seed, a like, a bulk like, a replay) reads it as it goes and calls nothing without one, a
+  session that ends takes its hearts with it, and an account that arrives has them asked again (a provider that read
+  the session once called `my_liked_media_ids` as nobody after a sign-out in another tab). Like COUNTS are
   host-only → [host-app.md](host-app.md),
   [database-security.md](database-security.md).
 - **PWA (manifest only, no SW)**: [`manifest.ts`](../../src/app/manifest.ts) + the ink-aperture icon set
@@ -295,7 +314,8 @@ there; a block on it still holds the phone (`event_ticket_blocked`), which is wh
   ([host-app.md](host-app.md)), so nothing she can reach says blocked.
 - **`ask {invite}`**, an address the invite list does not name: the shut door with her own foot (`unlisted=ask`,
   placed there by locked-door r2): "Ask Maya to let me in" (`UnlistedAsk`, `POST /api/guests/ask`, then the held
-  door) or "Use a different email" (`switch-email.ts`: every ticket on the device put down, then signed out). A
+  door) or "Use a different email" (`switch-email.ts`: every ticket on the device put down, then this device signed out,
+  `local`: every sign-out names its scope, `sign-out-scope.test.ts`). A
   declined ask meets the shut door with no ask. **`ask {approve}`**, a confirmed newcomer: "Maya lets each guest in",
   Ask to join (`ask-step.tsx`, the same route). The ask route re-reads `getUser()` (a confirmed address or 422), rides
   the join limiter, and answers a shut door 403 in the private album's words.
@@ -622,8 +642,8 @@ through flags in the sheet. No step counter to desync.
   the viewer holds a confirmed session. With NO session it's a cheap LOCAL null (no network), so an
   anonymous crowd behind one venue-NAT IP doesn't each pay an auth round-trip; the owner check
   (`isRequestOwner`, then `isEventOwner`'s explicit `host_id = uid` match, `gallery-access-owner.server.ts`) runs
-  ONLY when signed in, and the album's own reads ask the same one-per-render answer, so the page and its seed never
-  disagree about the host. The header island resolves its own auth with a LOCAL `getSession()`.
+  ONLY when signed in, and the album's own reads, its routes (`requestOwnerAnswer`: the same answer with its user, one
+  `getUser()` for both) and the upload seams ask the same answer, so no gate on the page can disagree about the host. The header island resolves its own auth with a LOCAL `getSession()`.
 - **The upload slot is `full`-only** (a `teaser`/`none` viewer is still at the door, which owns every step
   in front of them). At `full`, the upload panel while `accepting_uploads`, else the view-only line. A
   confirmed account with no profile name is asked at the door (`needsName` → the name step's `profile`
@@ -763,10 +783,14 @@ had" holds only when this device holds a guest ticket a claim would move.
   `verification_required` (with a `captureWarning`, so a flip mid-party is visible) rather than letting a
   session minted before the switch moved upload forever; `create_media` stays authoritative and its refusal
   maps to the same code.
-- **The localStorage `session_token` is the dedupe, and `guests` deliberately has NO unique
-  `(event_id, user_id)`.** One person may join the same event more than once (a second device, a cleared
-  browser), and an account is optional, so a uniqueness constraint there would break multi-join rather
-  than tidy anything.
+- ★ **ONE ACCOUNT, ONE TICKET AT AN ALBUM; a typed name, one ticket a join.** A confirmed account's join
+  (`create_guest`, and `ask_to_join` at a list) answers the ticket it already holds there at the admission the door
+  gives it (its newest proved row no block holds, `event_account_ticket`), read under a lock on the album and the
+  account, so two joins of hers that race (a shared phone's queue and the page's own) answer one row, and her second
+  device holds the same ticket as her first; the client also asks a nameless join once at a time (`joinEvent`). For
+  a typed name the localStorage `session_token` is the dedupe, and `guests` still has NO unique
+  `(event_id, user_id)`: an account is optional, two people may type one name, and a claim can take a typed name's
+  rows onto an account beside its own.
 - **Supabase anonymous sign-ins stay OFF.** Capability tokens already give a guest immediate, scoped use,
   so a per-scan `auth.users` row would be pure DB bloat, and an anonymous session carries no email to
   satisfy the gate. The account layer AUGMENTS the guest flow and never replaces it: the contribution
@@ -836,8 +860,24 @@ had" holds only when this device holds a guest ticket a claim would move.
   [`gallery-skeleton.tsx`](../../src/components/guest/gallery-skeleton.tsx) so the presign-heavy payload
   never blocks the shell's paint), and the store adopts it as its own first `sync()`, answered locally.
   `key={access}` remounts it on an access flip (teaser → full) — a clean re-seed, no resync effects.
+  ★ A seed whose read fails (a refusal answers locked, never a throw) is the album's failure alone, and the live
+  source stands through it: `readSeed` reads it rather than throwing it (Next's own throws still pass on; ★ adopted
+  with `Promise.resolve` first, since the page's promise is React Flight's thenable, whose `then` chains nothing), reports it
+  (`render:guest`, seam `album`), and the store's own first `sync()` asks the server for the whole album. The album
+  draws its skeleton while that read is in flight, then the card "The album didn't load" if it failed too
+  (`albumRead`), and heals in place with no refresh on the next answer: the poll, a doorbell, her own upload or Try
+  again (the store's sync). Her uploads list, the reel and the door's light keep their source throughout, and the
+  header keeps the page's count (an unread album is not an empty one).
+  [`album-boundary.tsx`](../../src/components/guest/album-boundary.tsx), around the Suspense and the live source, keeps
+  a crash where the album renders to the album: the header, the door and Add photos stand, and its Try again is the
+  router's refresh and the boundary's reset in one transition. A boundary of its own: Next 16.2's
+  `unstable_catchError` does the same and cost the album's chunk 2.1 KB gzipped on `next build`, this one 0.5 KB.
 - ★ **A link is read by id at the moment it is needed and re-minted before it ages** (`ensureLinks` for a
-  window, `onNeedLinks` for the viewer, `clips` for the reel), never held past its life; the provider's
+  window, `onNeedLinks` for the viewer, `clips` for the reel), never held past its life. ★ At most two link requests
+  are out at once (`lib/album/links.ts`): what a burst asks meanwhile goes as one request when a place frees, its
+  newest ids first, and a request stalled past 8 s gives its place up, so a held arrow key's walk of the 1,145-photo
+  probe asks about 300 times, not 1,091, and the photograph it stops on is linked within a round trip or two; the
+  provider's
   watchdog (`reportPossibleExpiry`) treats any image or reader failure as a possible expired presign (a tab
   asleep past the 90-minute expiry answers a CORS-shaped failure with no status) and re-mints only the ids
   whose picture failed, at most once a minute each, never in the demo.
@@ -854,6 +894,9 @@ had" holds only when this device holds a guest ticket a claim would move.
   `If-None-Match`; a quiet album answers a **bare 304** having read one row, its version; a change answers the
   DELTA since the version this device holds, merged by id and checked against the server's count read in the
   same snapshot (a mismatch heals at once with a fresh manifest, never drawn); see the ETag invariant below.
+  ★ A version below the album's WATERMARK answers a fresh manifest too: the purge cron prunes a purged item's change
+  row and raises the watermark to its version in one transaction ([lifecycle-recovery.md](lifecycle-recovery.md)),
+  so a device parked below it may have missed the row, and is sent the album whole, never a delta with a gap.
 - ★ **The gallery ETag must never validate across access levels, nor across the gate behind one** — the
   validator (`guestAlbumEtag`, [`album-validator.ts`](../../src/lib/events/album-validator.ts)) hashes
   `access` + `gate` + the album's and the attribution's VERSIONS (never the item list itself, so a quiet
@@ -877,7 +920,10 @@ had" holds only when this device holds a guest ticket a claim would move.
   `UploadedItem.queueId` to the media id), read by
   [`reconcile-album-items.ts`](../../src/lib/guest/reconcile-album-items.ts)'s own ledger, by media id;
   `merge-gallery-items.ts` is gone. Completions reach the provider through a `LiveGalleryHandle` callback
-  ref (with a pre-mount buffer, since the gallery streams in async).
+  ref (with a pre-mount buffer, since the gallery streams in async). ★ **It lands once**: when its link lands (half a
+  second later in a local walk), `MediaTile` takes the presigned preview IN PLACE over a tile already showing its
+  object URL, the browser drawing her picture until the preview is ready, where it used to drop to the shimmer for
+  the preview's load (344 ms there) and fade in a second time (crumbs-32's measured walk; `media-grid.test.tsx`).
 - **What THIS DEVICE draws at the album's head**, in
   [`gallery-rows.tsx`](../../src/components/guest/gallery-rows.tsx)'s own head slots, a square each, and
   nowhere else:
@@ -892,9 +938,13 @@ had" holds only when this device holds a guest ticket a claim would move.
     picture of it (nothing not in the album is presigned for a guest).
   - ★ **Her tracker says where each of hers stands**
     ([`upload-tracker.ts`](../../src/lib/guest/upload-tracker.ts), pure): this visit's queue plus her own rows through
-    `/api/guests/mine` `{statuses: true}`, read at mount, at each opening and when one of hers arrives in the album
-    out of waiting (`newlyInAlbum`: a host decides a pick in one go, so the refusal beside it is learned with it),
-    never on a timer; an approval arrives live through the album's sync, a refusal at the next read. Its words
+    `/api/guests/mine` `{statuses: true, tell: true}`, read at mount, at each opening and when one of hers arrives in
+    the album out of waiting (`newlyInAlbum`: a host decides a pick in one go, so the refusal beside it is learned
+    with it), never on a timer; an approval arrives live through the album's sync, a refusal at the next read. ★ Each
+    read also answers her NEWS ([`let-in-news.ts`](../../src/lib/guest/let-in-news.ts)): the uploads of hers a
+    decision let in (`media.let_in_at`, stamped by a trigger) since each row's `guests.let_in_told_at`, the mark
+    moved forward as the read answers, so the approval toast plays on a reload, a return or her account's other
+    device, once ([reel.md](reel.md)); the store hands the ids on (`news`), never through the page's shell. Its words
     (`TRACKER_WORDS`, `status=approval`) are "Waiting for approval", "In the album" and "Not approved"
     (`TRACKER_TELLS_REFUSAL`), the one name each state has wherever it is said (the badge's spoken count, the keep's
     Sent line, the help, the album feature page's mock); only what is in the album draws its album link, a held
@@ -915,12 +965,13 @@ had" holds only when this device holds a guest ticket a claim would move.
   disagree. `newArrivalIds(prev, next)` ([`reconcile-album-items.ts`](../../src/lib/guest/reconcile-album-items.ts))
   reports the ids NOT on screen a moment ago (the only definition that catches every route in: a doorbell
   arrival, a held item approved an hour later, a burst after a hidden tab wakes), by the grammar's one diff
-  (`newIds`, `lib/shared/arrival.ts`, which the host's grid reads too) plus the guest's own seed rule (an empty last
-  snapshot names no arrival: a teaser's and a locked page's answers carry no entries by design), and `arrivalMarks()`
+  (`newIds`, `lib/shared/arrival.ts`, which the host's grid reads too) plus the guest's own seed rule (a last answer
+  that was no album names no arrival, `albumOnScreen`: a teaser's, a locked page's and an unread album's carry no
+  entries by design; a real empty album's first photograph does arrive, as the host's does), and `arrivalMarks()`
   (pure, contract-tested) takes one's OWN landings out of the glow and gives the NEWEST the sweep. ★ The
   glow holds PER ID (two guests a beat apart each get a full life); the sweep is EXCLUSIVE, so a fast batch
-  never stacks light up the gallery. ★ Three things never glow: the SEED render (`prev` empty; the entrance
-  stagger is that moment's motion), a rolled presign, and this guest's OWN upload (it sweeps). The GROWTH is
+  never stacks light up the gallery. ★ Three things never glow: the SEED render and an album opening under a mounted
+  provider (the entrance stagger is that moment's motion), a rolled presign, and this guest's OWN upload (it sweeps). The GROWTH is
   the `[data-media-tile]` entrance in `globals.css`, deliberately not re-declared. The rows push an arrival
   in from its left edge and glide what it moved; a head arrival while the reader is deep scrolls by exactly
   how far the photograph at the view's top moved, so nothing they are looking at jumps. Reduced motion: a
@@ -956,7 +1007,11 @@ had" holds only when this device holds a guest ticket a claim would move.
   Uploads on a profile share that confirm and hold one other kind: an upload to an event the viewer HOSTS is
   `remove_my_upload`'s host arm, restorable from that event's Deleted, so the owner mode marks it `isHost`
   ([`owner-sections.tsx`](<../../src/app/(guest)/u/[slug]/owner-sections.tsx>), an event the viewer hosts) and
-  the lightbox gives it the host's words (Deleted, and the window). The post-upload card counts this visit's
+  the lightbox gives it the host's words (Deleted, and the window). ★ **So is the album's owner on her own guest
+  page** (she is never her own guest): hers are the rows with no guest, read through her own RLS-scoped client
+  (`listOwnerMediaIds`; never a guest row's, which the RPC's guest arm refuses the event's host), so a reload keeps her
+  Delete on every upload of hers, as the hub does; and the provider knows them as the host's from their first frame
+  (`isOwner`, reconcile's `hostOwn`), so her Delete says the host's words before any link's attribution lands. The post-upload card counts this visit's
   uploads still in the album (the page keeps the removed ids) and leaves once none is left. ★ **On a
   Require-an-upload-to-view album with uploads open, removing your LAST live upload closes the album again** (Own
   deletes close it), unless the album is FULL (the gate fails open there, so the page reads `albumFull`, a second
@@ -992,7 +1047,13 @@ had" holds only when this device holds a guest ticket a claim would move.
 CTA (the SSR default → zero flash for the anonymous majority); logged-in → the visitor's account menu
 ([`guest-account-menu.tsx`](../../src/components/guest/guest-account-menu.tsx)), fetched via
 `GET /api/me/menu?event=<id>` ONLY when a session exists (the avatar is the viewer's public Storage URL;
-event-ownership is an RLS-scoped select → the owner-only "Manage event" deep link). The menu's **Sign out**
+event-ownership is an RLS-scoped select → the owner-only "Manage event" deep link). ★ **It follows the device's
+session, never reads it once** (a `router.refresh()` does not re-run a client island): a look at the cookie (local,
+and free for the account already drawn) on the SDK's sign-in and sign-out, the Cookie Store API's `change` (it reaches
+a tab nobody is looking at, where a response that cleared the cookie elsewhere is otherwise unheard), the tab being
+looked at again, and the door settling on a guest (a stored name or ticket written while an account stands, which
+also asks the server, since only its 401 knows a session revoked on another device); a server that stumbles never
+drops an account, only a 401 does. The menu's **Sign out**
 puts EVERY guest ticket on the device down, not only this album's (`leaveAllGuestSessions`: the localStorage
 tokens, names and flags through the module-singleton `emit()`s in
 [`use-stored-session.ts`](../../src/lib/guest/use-stored-session.ts), every `pr_guest_*` cookie through

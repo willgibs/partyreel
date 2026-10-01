@@ -464,3 +464,83 @@ describe("passedTicket", () => {
     ).toBeNull();
   });
 });
+
+/**
+ * ONE JOIN AT A TIME FOR WHOEVER IS HOLDING THE PHONE (crumbs-29, build 30's red-team). On a shared phone the queue's
+ * silent join (after it put another guest's ticket down) and the page's own (the moment the ticket fell to null) each
+ * posted a nameless join in the same second, each minted a row of hers, and the phone kept the empty one. A nameless
+ * join already on its way for an album is the answer to the next one asked meanwhile; a named join is a person's own
+ * and never shared.
+ */
+describe("the nameless join, once at a time", () => {
+  /** fetch that answers only when told, so two joins can be in flight at once. */
+  function heldFetch() {
+    const answers: Array<() => void> = [];
+    let minted = 0;
+    global.fetch = vi.fn(
+      () =>
+        new Promise<Response>((resolve) => {
+          const token = `tok-${++minted}`;
+          answers.push(() =>
+            resolve({
+              ok: true,
+              status: 200,
+              json: () =>
+                Promise.resolve({
+                  ok: true,
+                  session_token: token,
+                  verified: true,
+                  admission: "in",
+                }),
+            } as Response),
+          );
+        }),
+    );
+    return { answerAll: () => answers.splice(0).forEach((a) => a()) };
+  }
+
+  it("★ two nameless joins at once share one post and hand both callers the same ticket", async () => {
+    const held = heldFetch();
+    const queueJoin = joinEvent({ qrToken: "qr1" });
+    const pageJoin = joinEvent({ qrToken: "qr1" });
+    held.answerAll();
+    const [a, b] = await Promise.all([queueJoin, pageJoin]);
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(passedTicket(a)).toBe("tok-1");
+    expect(passedTicket(b)).toBe("tok-1");
+  });
+
+  it("once it has answered, the next nameless join asks afresh", async () => {
+    const held = heldFetch();
+    const first = joinEvent({ qrToken: "qr1" });
+    held.answerAll();
+    await first;
+    const second = joinEvent({ qrToken: "qr1" });
+    held.answerAll();
+    expect(passedTicket(await second)).toBe("tok-2");
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("a join that carries a name or an address is a person's own, never shared", async () => {
+    const held = heldFetch();
+    const silent = joinEvent({ qrToken: "qr1" });
+    const named = joinEvent({ qrToken: "qr1", displayName: "Sam" });
+    const addressed = joinEvent({
+      qrToken: "qr1",
+      displayName: "Dana",
+      email: "dana@example.com",
+    });
+    held.answerAll();
+    await Promise.all([silent, named, addressed]);
+    expect(global.fetch).toHaveBeenCalledTimes(3);
+  });
+
+  it("another album's join is its own", async () => {
+    const held = heldFetch();
+    const here = joinEvent({ qrToken: "qr1" });
+    const there = joinEvent({ qrToken: "qr2" });
+    held.answerAll();
+    await Promise.all([here, there]);
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+  });
+});

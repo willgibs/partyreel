@@ -18,7 +18,7 @@ import {
 import type { Json } from "@/lib/db/types";
 
 /**
- * The route's sweep NAME (its key in the run's `counts`) to its catalog job. Only these four are
+ * The route's sweep NAME (its key in the run's `counts`) to its catalog job. Only these five are
  * promoted; every other sweep runs exactly as before and rides the parent run's row. The names are
  * the purge route's own strings, so this map is the one place the two vocabularies meet.
  */
@@ -27,6 +27,7 @@ export const SUB_SWEEP_JOB_BY_NAME: Record<string, JobId> = {
   deleted_accounts: "purge_deleted_accounts",
   inactive_free_events: "purge_inactivity",
   over_capacity: "purge_over_capacity",
+  album_log: "purge_album_log",
 };
 
 /** The catalog job for a sweep name, or null when the sweep rides the parent run. */

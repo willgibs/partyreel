@@ -15,6 +15,7 @@ import { ImageUp, Laptop, Lock, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 
 import { initial } from "@/components/app/user-menu";
+import { AlbumBoundary } from "@/components/guest/album-boundary";
 import { ClaimHandlePrompt } from "@/components/guest/claim-handle-prompt";
 import { AlbumLightSampler } from "@/components/guest/door/album-light";
 import type { EntryModalHandle } from "@/components/guest/entry-modal";
@@ -71,6 +72,7 @@ import {
   ToldNameForm,
 } from "@/lib/guest/confirm-beat-name";
 import { closesOnLastRemoval as lastRemovalCloses } from "@/lib/guest/delete-consequence";
+import { createDoorHold, heldDoorName } from "@/lib/guest/door-hold";
 import { contributionAnswered } from "@/lib/guest/entry-steps";
 import { joinEvent, passedTicket } from "@/lib/guest/join";
 import { useKeepAskPutDown } from "@/lib/guest/keep-ask";
@@ -252,6 +254,23 @@ export function EventExperience({
   // The name this device typed at this event. Beside the session, never
   // instead of it: the token is the capability, this is the label.
   const [storedName] = useStoredName(qrToken);
+  /* ★ THE DOOR WAITS FOR THE SERVER TO SAY WHO IS HERE (crumbs-29, `lib/guest/door-hold.ts`). When the page must
+     re-read who is holding the phone (`settleViewer`, below), the door is handed the name it had until the
+     server's next render lands: a ticket the queue put down took its name with it, and the door drew the name
+     step for the seconds a blocked phone's shut screen took to arrive. The hold is keyed to this render's
+     seed, which every server render makes anew, so the answer ends it. */
+  const [doorHold] = useState(createDoorHold);
+  const hold = useSyncExternalStore(
+    doorHold.subscribe,
+    doorHold.get,
+    doorHold.get,
+  );
+  const doorName = heldDoorName(hold, galleryPromise, storedName);
+  // What a hold is taken under: this render's seed and the name the door has now (a hold kept while held).
+  const heldUnderRef = useRef({ render: galleryPromise as unknown, doorName });
+  useEffect(() => {
+    heldUnderRef.current = { render: galleryPromise, doorName };
+  });
   /* ★ THE ADDRESS TYPED AT THE DOOR, FOR THIS VISIT AND NO LONGER. It lives in
      React state on purpose: its ONE job is to prefill the keep's account door
      (the door's last screen), so a guest who has just typed it under their name
@@ -326,6 +345,18 @@ export function EventExperience({
      by the effect beside `handleUploaded`. One indirection, rather than reordering the whole
      shell around a hook that has to exist before the album does. */
   const handleUploadedRef = useRef<(u: UploadedItem) => void>(() => {});
+  /* ★ RE-READ WHO IS HERE, THE DOOR HELD MEANWHILE (crumbs-29). The page refreshes, so the server says who is
+     holding the phone (a sign-out or a sign-in in another tab, a block), and until its render lands the door keeps
+     the name it had (the hold above). A ticket still going down is waited for first (`ticketDown`), so the
+     refresh never carries the cookie the ticket is leaving. */
+  const settleViewer = useCallback(
+    (ticketDown?: Promise<void>) => {
+      const { render, doorName: name } = heldUnderRef.current;
+      doorHold.set({ under: render, name });
+      void (ticketDown ?? Promise.resolve()).then(() => router.refresh());
+    },
+    [doorHold, router],
+  );
   const {
     items: queue,
     progress: uploadProgress,
@@ -343,6 +374,9 @@ export function EventExperience({
     /* ★ FILES HELD FOR THE DOOR GO WHEN IT OPENS (crumbs-27): a silent join that landed waiting hands her to
        the held door with her files `queued`, and this is what tells the queue she is through. */
     doorOpen: access !== "none",
+    /* ★ THE OWNER'S ADD IS THE HOST'S (crumbs-29's Deferred): her files ride the host's own pair, never a
+       guest ticket at her own door, which every door but the open one held (the queue's head note). */
+    ownerEventId: isOwner && !isDemo ? event.id : null,
     onVerificationRequired: (message, hadQueuedFiles) => {
       if (hadQueuedFiles && !uploadStepActiveRef.current) {
         pendingVerificationRef.current = message;
@@ -350,13 +384,13 @@ export function EventExperience({
       }
       router.refresh();
     },
-    /* ★ A TICKET THAT WAS NOT THIS VIEWER'S WENT DOWN, AND ONLY THE DOOR CAN MINT THEIR OWN. The
-       queue has already put the ticket down (token, name, address flag, cookie) and kept the files
-       waiting; the refresh re-resolves who is here from the server's side, so a sign-out in
-       another tab is seen as one, and the door opens on the step that names them (the name, or
-       the email step on a verified event). Nothing is failed, so there is no failure sheet to wait
-       for, unlike the flip above. */
-    onDoorNeeded: () => router.refresh(),
+    /* ★ A TICKET THAT WAS NOT THIS VIEWER'S GOES DOWN, AND ONLY THE DOOR CAN MINT THEIR OWN. The
+       queue tells the page before it puts the ticket down (token, name, address flag, cookie) and
+       keeps the files waiting; the refresh re-resolves who is here from the server's side, so a
+       sign-out in another tab is seen as one, and the door opens on the step that names them (the
+       name, or the email step on a verified event), or the page is the shut door. Nothing is failed,
+       so there is no failure sheet to wait for, unlike the flip above. */
+    onDoorNeeded: settleViewer,
   });
   /* ★ A PROGRESS TICK RE-RENDERS NOTHING HERE. The queue's `items` change only on a status change;
      each file's progress lives in its own store (`uploadProgress`), which the album's stack tile
@@ -605,7 +639,9 @@ export function EventExperience({
      in"), so a confirmed visitor with no ticket for this album joins silently, once, the moment the
      door is behind her. Without it, a host who later closed the door would shut her out as a newcomer
      she never was. A typed name's own step already mints her ticket, and an unconfirmed visitor has not
-     passed the door. The upload queue's own join then finds the ticket and mints nothing more. */
+     passed the door. The upload queue's own join then finds the ticket and mints nothing more; one racing
+     it shares this one's answer (a nameless join is asked once at a time, `joinEvent`), and the server
+     answers her one ticket either way (crumbs-29). */
   const joinedAtDoorRef = useRef(false);
   useEffect(() => {
     if (isDemo || isOwner || !isVerified || welcomePending) return;
@@ -615,7 +651,19 @@ export function EventExperience({
       // ★ A JOIN THAT LANDED WAITING IS THE ASK, NOT A TICKET (crumbs-27): adopted, the queue would send a
       // file on it and it would be refused "This event is private."; the door reads the cookie the join set.
       const ticket = passedTicket(joined);
-      if (ticket) setSessionToken(ticket);
+      if (ticket) {
+        setSessionToken(ticket);
+        return;
+      }
+      // ★ THE SERVER SEES NO CONFIRMED ACCOUNT HERE (crumbs-29): the page rendered across a sign-out still in
+      // flight, and its door skipped the steps that name her. It re-reads who is here, and the door asks them.
+      if (
+        !joined.ok &&
+        (joined.refusal.kind === "name_required" ||
+          joined.refusal.kind === "verification_required")
+      ) {
+        settleViewer();
+      }
     });
   }, [
     access,
@@ -625,6 +673,7 @@ export function EventExperience({
     qrToken,
     sessionToken,
     setSessionToken,
+    settleViewer,
     welcomePending,
   ]);
 
@@ -976,7 +1025,8 @@ export function EventExperience({
             onHoldingChange={setHoldCurtain}
             onPendingChange={setWelcomePending}
             sessionToken={sessionToken}
-            storedName={storedName}
+            // Held while the page re-reads who is here (`doorName`, the hold above).
+            storedName={doorName}
             onNamed={({
               sessionToken: token,
               displayName,
@@ -1289,100 +1339,114 @@ export function EventExperience({
               the skeleton the same column rule AT THE SAME TILE SIZE, so the swap is layout-stable
               at every window: a two-column placeholder under a six-column album, or an
               eight-column one under seven, would flash the wrong layout on every load. */}
-          <Suspense
-            fallback={
-              <div className={BLEED}>
-                <GallerySkeleton step={rowStep} />
-              </div>
-            }
-          >
-            <GalleryLiveProvider
-              key={access}
-              ref={attachGallery}
-              galleryPromise={galleryPromise}
-              qrToken={qrToken}
-              access={access}
-              isDemo={isDemo}
-              onAccessDrift={handleAccessDrift}
-              onCountChange={setMediaCount}
-              pendingUploads={inFlightUploads}
-              uploadProgress={uploadProgress}
-              canDeleteIds={canDeleteIds}
-              isAuthed={isAuthed}
-              sessionToken={sessionToken}
-              approvedTotal={stats.approvedTotal}
-              onOwnRemoved={handleOwnRemoved}
-              onGuestCountChange={setGuestCount}
+          {/* ★ AND ITS FAILURE IS THE ALBUM'S ALONE (crumbs-28, `album-boundary.tsx`): a crash where
+              the album renders stays here, so the header, the door and Add photos stand while the
+              album says it could not load, with a Try again that asks the page again. A seed whose
+              read failed never throws (crumbs-30): the live source stands, her uploads list with it,
+              and heals the album with its own sync. Keyed as the provider is, so an access flip
+              starts it clean too. */}
+          <AlbumBoundary key={access} className={COLUMN}>
+            <Suspense
+              fallback={
+                <div className={BLEED}>
+                  <GallerySkeleton step={rowStep} />
+                </div>
+              }
             >
-              {/* The door's light takes its colour from here, the album's three newest (it draws
-                  nothing; `door/album-light.tsx`). */}
-              <AlbumLightSampler />
-              {/* Her tracker's list, inside the one live source it reads (its button sits in the
-                  row and the dock, above this provider, reading `trackerStore`). */}
-              <UploadTracker
-                store={trackerStore}
-                queue={queue}
+              <GalleryLiveProvider
+                key={access}
+                ref={attachGallery}
+                galleryPromise={galleryPromise}
                 qrToken={qrToken}
-                sessionToken={sessionToken}
+                access={access}
+                isDemo={isDemo}
+                onAccessDrift={handleAccessDrift}
+                onCountChange={setMediaCount}
+                pendingUploads={inFlightUploads}
+                uploadProgress={uploadProgress}
+                canDeleteIds={canDeleteIds}
+                isOwner={isOwner && !isDemo}
                 isAuthed={isAuthed}
-                moderated={event.moderation_mode === "hold_for_approval"}
-                isDemo={isDemo}
-                isOwner={isOwner}
-                removedIds={removedIds}
-                open={trackerOpen}
-                onOpenChange={setTrackerOpen}
-              />
-              <LiveReel
-                eventId={event.id}
-                eventName={event.name}
-                joinUrl={joinUrl}
-                displayAddress={displayAddress}
-                qrStyle={event.qr_style}
-                isDemo={isDemo}
-                moderated={event.moderation_mode !== "live"}
-                onAddYours={canUpload ? openAdd : undefined}
-                // A clip is a video: with the host's Videos off (`accepts_video`), a guest's clip
-                // stays hers to save or share, rather than an Add the upload would refuse.
-                addClipToAlbum={
-                  canUpload && event.accepts_video ? addClipToAlbum : null
-                }
-                queue={queue}
-                welcomePending={welcomePending}
-                isOwner={isOwner}
+                sessionToken={sessionToken}
+                approvedTotal={stats.approvedTotal}
+                onOwnRemoved={handleOwnRemoved}
+                onGuestCountChange={setGuestCount}
               >
-                {/* THE HIGHLIGHT REEL TILE: its own slot directly above the demo's one slot and the
+                {/* The door's light takes its colour from here, the album's three newest (it draws
+                  nothing; `door/album-light.tsx`). */}
+                <AlbumLightSampler />
+                {/* Her tracker's list, inside the one live source it reads (its button sits in the
+                  row and the dock, above this provider, reading `trackerStore`). */}
+                <UploadTracker
+                  store={trackerStore}
+                  queue={queue}
+                  qrToken={qrToken}
+                  sessionToken={sessionToken}
+                  isAuthed={isAuthed}
+                  moderated={event.moderation_mode === "hold_for_approval"}
+                  isDemo={isDemo}
+                  isOwner={isOwner}
+                  removedIds={removedIds}
+                  open={trackerOpen}
+                  onOpenChange={setTrackerOpen}
+                />
+                <LiveReel
+                  eventId={event.id}
+                  eventName={event.name}
+                  joinUrl={joinUrl}
+                  displayAddress={displayAddress}
+                  qrStyle={event.qr_style}
+                  isDemo={isDemo}
+                  moderated={event.moderation_mode !== "live"}
+                  onAddYours={canUpload ? openAdd : undefined}
+                  // A clip is a video: with the host's Videos off (`accepts_video`), a guest's clip
+                  // stays hers to save or share, rather than an Add the upload would refuse.
+                  addClipToAlbum={
+                    canUpload && event.accepts_video ? addClipToAlbum : null
+                  }
+                  queue={queue}
+                  // Her tracker's own-rows read carries the server's news (what a decision let in since
+                  // she was last told): the toast says it on her return too (crumbs-38).
+                  approvalNews={trackerStore.news}
+                  welcomePending={welcomePending}
+                  isOwner={isOwner}
+                >
+                  {/* THE HIGHLIGHT REEL TILE: its own slot directly above the demo's one slot and the
                     album (never a fourth arm of `pickAboveAlbumState`), on the words' column so it
                     reads as the page's showpiece rather than a banner the width of the window.
                     Absent below the minimum. */}
-                <LiveReelTile className={cn(COLUMN, "mt-7 mb-4")} />
-                {/* The demo's turn card or the phone pair: one card directly
+                  <LiveReelTile className={cn(COLUMN, "mt-7 mb-4")} />
+                  {/* The demo's turn card or the phone pair: one card directly
                     above the album's first tile — the photograph a visitor just
                     added IS that tile (the album is newest first), so whatever is
                     said here is said right beside it. It keeps the ALBUM's own box
                     (BLEED), not the words' column, so it lines up with the
                     photographs under it; the album itself is one CSS multi-column
                     box and nothing can be put in the middle of one. */}
-                {aboveAlbum && (
-                  <div className={cn(BLEED, "mb-4")}>{aboveAlbum}</div>
-                )}
-                <div className={BLEED}>
-                  <LiveGallery
-                    galleryPromise={galleryPromise}
-                    qrToken={qrToken}
-                    access={access}
-                    isDemo={isDemo}
-                    onOpenGate={() => entryRef.current?.openToGate()}
-                    onAddFirst={canUpload && galleryEmpty ? openAdd : undefined}
-                    joinUrl={joinUrl}
-                    initialRowStep={rowStep}
-                    firstPaintWidth={firstPaintWidth}
-                    rhythmSeed={visitSeed}
-                    closesOnLastRemoval={closesOnLastRemoval}
-                  />
-                </div>
-              </LiveReel>
-            </GalleryLiveProvider>
-          </Suspense>
+                  {aboveAlbum && (
+                    <div className={cn(BLEED, "mb-4")}>{aboveAlbum}</div>
+                  )}
+                  <div className={BLEED}>
+                    <LiveGallery
+                      galleryPromise={galleryPromise}
+                      qrToken={qrToken}
+                      access={access}
+                      isDemo={isDemo}
+                      onOpenGate={() => entryRef.current?.openToGate()}
+                      onAddFirst={
+                        canUpload && galleryEmpty ? openAdd : undefined
+                      }
+                      joinUrl={joinUrl}
+                      initialRowStep={rowStep}
+                      firstPaintWidth={firstPaintWidth}
+                      rhythmSeed={visitSeed}
+                      closesOnLastRemoval={closesOnLastRemoval}
+                    />
+                  </div>
+                </LiveReel>
+              </GalleryLiveProvider>
+            </Suspense>
+          </AlbumBoundary>
 
           {/* The named Guests section (profiles-social.md, host-keyed) — after the album,
               before the report footer: context about who filled it, never

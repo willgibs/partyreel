@@ -12,6 +12,12 @@
  * with no code of ours having run in between. So EVERY confirm door writes the marker the moment it
  * OPENS (before any redirect can happen), and the album page's mount-time claim consumes it: when
  * that claim moved this album's own uploads, the moment plays, with no upload needed this visit.
+ * ★ "Moved" counts a read on the page that got there first (build 33's red-team): the album's door
+ * runs the claim as it reads (`sortTickets`), so on a full-reload return her own claim found the
+ * ticket hers already, spent the marker and played nothing; the claim now asks, while the marker is
+ * there, whether this album's ticket is hers with its uploads (`claim-uploads.ts`).
+ * ★ And a claim that ran for another album's ticket spends THAT album's marker, wherever it ran, so a
+ * door opened and abandoned there never plays its moment weeks later off a sign-in made elsewhere.
  *
  * ★ THE ALBUM ON SCREEN. The Unverified mark sits three modules deep under the album's grid, and a
  * like's door or the header's menu is a sibling island of the page; none of them should have to be
@@ -58,6 +64,15 @@ export function markPendingOffer(qrToken: string | null = albumOnScreen): void {
     localStorage.setItem(pendingOfferKey(qrToken), "1");
   } catch {
     // Blocked storage: see the module note.
+  }
+}
+
+/** Whether a confirm door opened here is waiting for its return, without taking the marker. */
+export function hasPendingOffer(qrToken: string): boolean {
+  try {
+    return localStorage.getItem(pendingOfferKey(qrToken)) === "1";
+  } catch {
+    return false;
   }
 }
 

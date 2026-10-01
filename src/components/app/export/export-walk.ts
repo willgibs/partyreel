@@ -24,11 +24,21 @@
  * download a page starts on its own. The walk's position is the server's cursor, so nothing is
  * taken twice or missed while the album moves.
  *
+ * ★ AND A RELOAD BETWEEN PARTS OFFERS THE NEXT ONE AGAIN (crumbs-32, from `export-wiring`'s
+ * deferred). A walk lives in the page, so a reload (a phone's browser drops a tab it left for the
+ * Files app) forgot it, and with it where the next part starts. Between parts, a walk keeps that
+ * cursor and its counts in the tab's own store (`deps.store`: sessionStorage in the page), and the
+ * page's next walker offers the same "Get part N" toast again (`resume`); every way a walk ends
+ * (its last part, the x) lets it go. Nothing is posted on a resume: the next part is still a tap.
+ *
  * The engine owns no React: it drives a toast through `ToastPort`, fetches through `deps.fetch` and
  * posts through `deps.post`, so its tests stand in for all three (export-walk.test.ts), and a
  * Download menu that closes or a page that navigates cannot orphan a walk mid-way.
  */
-import { MAX_EXPORT_ITEMS } from "@/lib/export/build-manifest";
+import {
+  EXPORT_CURSOR_RE,
+  MAX_EXPORT_ITEMS,
+} from "@/lib/export/build-manifest";
 import {
   type Attempt,
   CHECK_TRIES_MS,
@@ -87,7 +97,66 @@ export type WalkDeps = {
   place: () => DownloadPlace;
   sleep: (ms: number) => Promise<void>;
   newId: () => string;
+  /** Where a walk between parts is kept for the page's next life (the head's reload note). */
+  store?: WalkStore;
 };
+
+/**
+ * A WALK BETWEEN PARTS, AS A RELOAD FINDS IT: what it asked for, the part on its way, where the next
+ * one starts (the server's cursor), and the counts its last word is made of.
+ */
+export type SavedWalk = {
+  scope: ExportScope;
+  body: MintBody;
+  retryOf: number | null;
+  /** The part last handed over; the next tap takes the one after it. */
+  part: number;
+  parts: number;
+  next: string;
+  items: number;
+  found: number;
+  missing: string[];
+  handed: number;
+};
+
+/** The tab's own store of walks between parts: read once by `resume`, written whole on every change. */
+export type WalkStore = {
+  load(): unknown;
+  save(walks: SavedWalk[]): void;
+};
+
+const isCount = (v: unknown): v is number =>
+  typeof v === "number" && Number.isInteger(v) && v >= 0;
+
+/**
+ * What a store holds, read as walks: anything that is not one (another build's shape, a hand edit,
+ * a cursor no server would take) is dropped, never offered.
+ */
+export function readSavedWalks(raw: unknown): SavedWalk[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.flatMap((w: unknown): SavedWalk[] => {
+    if (typeof w !== "object" || w === null) return [];
+    const s = w as Record<string, unknown>;
+    const ok =
+      (s.scope === "host" || s.scope === "guest") &&
+      typeof s.body === "object" &&
+      s.body !== null &&
+      !Array.isArray(s.body) &&
+      (s.retryOf === null || isCount(s.retryOf)) &&
+      isCount(s.part) &&
+      s.part >= 1 &&
+      isCount(s.parts) &&
+      s.parts > s.part &&
+      typeof s.next === "string" &&
+      EXPORT_CURSOR_RE.test(s.next) &&
+      isCount(s.items) &&
+      isCount(s.found) &&
+      Array.isArray(s.missing) &&
+      s.missing.every((m) => typeof m === "string") &&
+      isCount(s.handed);
+    return ok ? [s as SavedWalk] : [];
+  });
+}
 
 type Walk = {
   id: string;
@@ -161,13 +230,63 @@ export function createExportWalker(deps: WalkDeps) {
     if (!w.over) deps.toast.show(w.id, view);
   };
 
+  /* ── the walks between parts, as the tab keeps them for its next page (the head's reload note) ── */
+  const kept = new Map<string, SavedWalk>();
+  const save = () => deps.store?.save([...kept.values()]);
+  /** Between parts: what the next part needs, kept until the walk takes it or ends. */
+  const keep = (w: Walk, next: string, parts: number) => {
+    kept.set(w.id, {
+      scope: w.scope,
+      body: w.body,
+      retryOf: w.retryOf,
+      part: w.part,
+      parts,
+      next,
+      items: w.items,
+      found: w.found,
+      missing: [...w.missing],
+      handed: w.handed,
+    });
+    save();
+  };
+  /** The walk ended, whichever way: nothing of it is offered again. */
+  const letGo = (w: Walk) => {
+    if (kept.delete(w.id)) save();
+  };
+
   /** The x, and every way a walk is put down: nothing in flight survives it. */
   const end = (w: Walk) => {
     if (w.over) return;
     w.over = true;
     w.controller.abort();
+    letGo(w);
     deps.toast.dismiss(w.id);
   };
+
+  /**
+   * A part is on its way and the next is a tap: said, and kept, so a reload offers the same tap again.
+   * The button reads the cursor it was drawn with, never the walk's, so an old toast's tap is its own.
+   */
+  function between(w: Walk, next: string, parts: number) {
+    const nextPart = w.part + 1;
+    w.walked = true;
+    keep(w, next, parts);
+    show(w, {
+      tone: "between",
+      title: WALK_COPY.partStarted(w.part, parts),
+      action: {
+        label: WALK_COPY.nextPart(nextPart),
+        run: () => {
+          // A second tap on the same button, before its toast has turned, takes nothing twice.
+          if (w.over || w.busy || w.part >= nextPart) return;
+          w.part = nextPart;
+          w.after = next;
+          void takePart(w);
+        },
+      },
+      close: closeAs(w, WALK_COPY.stop),
+    });
+  }
 
   const closeAs = (w: Walk, label: string): ToastAction => ({
     label,
@@ -233,6 +352,7 @@ export function createExportWalker(deps: WalkDeps) {
 
   /** Nothing more to take: say how it went, in one toast. */
   function finish(w: Walk) {
+    letGo(w);
     if (w.missing.length === 0) {
       // One file is said where it lands; a walk ends on the whole of it, counted by what was
       // really handed over (a last part the album emptied meanwhile is not one of them).
@@ -420,24 +540,7 @@ export function createExportWalker(deps: WalkDeps) {
     w.handed += 1;
 
     if (answer.next) {
-      const next = answer.next;
-      const nextPart = w.part + 1;
-      w.walked = true;
-      show(w, {
-        tone: "between",
-        title: WALK_COPY.partStarted(w.part, answer.parts),
-        action: {
-          label: WALK_COPY.nextPart(nextPart),
-          run: () => {
-            // A second tap on the same button, before its toast has turned, takes nothing twice.
-            if (w.over || w.busy || w.part >= nextPart) return;
-            w.part = nextPart;
-            w.after = next;
-            void takePart(w);
-          },
-        },
-        close: closeAs(w, WALK_COPY.stop),
-      });
+      between(w, answer.next, answer.parts);
       return true;
     }
     finish(w);
@@ -469,8 +572,47 @@ export function createExportWalker(deps: WalkDeps) {
     return takePart(w);
   }
 
+  let resumed = false;
+  /**
+   * Offer again every walk the tab kept between parts (the page before a reload), once per walker:
+   * the toast it was left on, its "Get part N" taking the next part from the cursor it kept. A store
+   * holding nothing readable is emptied, so it is never read again.
+   */
+  function resume() {
+    if (resumed) return;
+    resumed = true;
+    const saved = readSavedWalks(deps.store?.load());
+    kept.clear();
+    for (const s of saved) {
+      between(
+        {
+          id: deps.newId(),
+          scope: s.scope,
+          body: s.body,
+          retryOf: s.retryOf,
+          part: s.part,
+          parts: s.parts,
+          after: null,
+          items: s.items,
+          found: s.found,
+          missing: [...s.missing],
+          handed: s.handed,
+          walked: true,
+          controller: new AbortController(),
+          busy: false,
+          over: false,
+        },
+        s.next,
+        s.parts,
+      );
+    }
+    if (kept.size === 0) save();
+  }
+
   return {
     /** Start a download: resolves true once its first file is in the browser's hands. */
     start: (scope: ExportScope, body: MintBody) => begin(scope, body),
+    /** The page's first act: offer again what a reload left between parts. */
+    resume,
   };
 }

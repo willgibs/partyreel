@@ -17,6 +17,8 @@
  * drops the entry's custom state as Next's does.
  */
 import { act, fireEvent, render, screen } from "@testing-library/react";
+import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -149,5 +151,135 @@ describe("a place in a hand, after the router refreshed while it was open", () =
     });
     await tick();
     expect(back).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * ★ A LINK INSIDE A PLACE TAKES THE PLACE'S ENTRY WITH IT (crumbs-32, from `claims-wiring`). The claims review's Open
+ * album and a look's Open full profile pushed the next page on top of the place's same-URL entry, so Back from that
+ * page landed on the page the place was opened over with nothing open on it, and a second Back was needed: one dead
+ * Back. The place now navigates such a click by REPLACING its own entry, taking the click before the link's handler
+ * (Next's `Link` does nothing with a click whose default is prevented). The browser keeps every click a `Link` would
+ * leave to it. The router is a stand-in: what is pinned is the replace, and that nothing is pushed.
+ */
+/* eslint-disable @next/next/no-html-link-for-pages -- the anchors are what a `Link` renders, and the place's rule is
+   the click's whoever drew it; a real `Link` here would need Next's running router for the clicks the place leaves to
+   it (the real `Link`'s own skip is checked under `next dev`, the Handoff's walk). */
+describe("a link inside a place in a hand", () => {
+  const router = {
+    back: vi.fn(),
+    forward: vi.fn(),
+    refresh: vi.fn(),
+    push: vi.fn(),
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+  };
+
+  function placeWith(links: ReactNode) {
+    return render(
+      <AppRouterContext.Provider value={router}>
+        <NextRouterStandIn>
+          <Popup defaultOpen>
+            <PopupContent kind="list" aria-describedby={undefined}>
+              <PopupHeader title="Claims" back="Dashboard" />
+              <PopupBody>{links}</PopupBody>
+            </PopupContent>
+          </Popup>
+        </NextRouterStandIn>
+      </AppRouterContext.Provider>,
+    );
+  }
+
+  /** A click as a person makes it, reporting whether anything took it from the browser. */
+  const press = (name: string, init: MouseEventInit = {}) => {
+    const link = screen.getByRole("link", { name });
+    const event = new MouseEvent("click", {
+      bubbles: true,
+      cancelable: true,
+      button: 0,
+      ...init,
+    });
+    act(() => {
+      link.dispatchEvent(event);
+    });
+    return event.defaultPrevented;
+  };
+
+  beforeEach(() => {
+    for (const fn of Object.values(router)) fn.mockClear();
+  });
+
+  it("★ navigates by replacing the place's own entry, so Back returns to the page beneath it", async () => {
+    next.land("/dashboard");
+    placeWith(<a href="/e/0123456789abcdef?photo=m1#top">Open album</a>);
+    await tick();
+    expect(marker()).toBeTruthy();
+    const entries = window.history.length;
+
+    expect(press("Open album")).toBe(true);
+    expect(router.replace).toHaveBeenCalledTimes(1);
+    expect(router.replace).toHaveBeenCalledWith(
+      "/e/0123456789abcdef?photo=m1#top",
+    );
+    expect(router.push).not.toHaveBeenCalled();
+    expect(window.history.length).toBe(entries);
+  });
+
+  it("still takes it after a refresh dropped the entry's marker (the claims review refreshes while open)", async () => {
+    next.land("/dashboard");
+    placeWith(<a href="/u/maya">Open full profile</a>);
+    await tick();
+    act(() => next.refresh());
+    expect(marker()).toBeUndefined();
+    expect(press("Open full profile")).toBe(true);
+    expect(router.replace).toHaveBeenCalledWith("/u/maya");
+  });
+
+  it("leaves every click the browser keeps to the browser", async () => {
+    next.land("/dashboard");
+    placeWith(
+      <>
+        <a href="/u/maya">A page</a>
+        <a href="/help/not-approved" target="_blank" rel="noopener">
+          A new tab
+        </a>
+        <a href="/api/export/zip" download>
+          A download
+        </a>
+        <a href="https://example.com/elsewhere">Another site</a>
+        <a href="#section">A hash here</a>
+      </>,
+    );
+    await tick();
+    expect(press("A page", { metaKey: true })).toBe(false);
+    expect(press("A page", { ctrlKey: true })).toBe(false);
+    expect(press("A page", { shiftKey: true })).toBe(false);
+    expect(press("A page", { button: 1 })).toBe(false);
+    expect(press("A new tab")).toBe(false);
+    expect(press("A download")).toBe(false);
+    expect(press("Another site")).toBe(false);
+    expect(press("A hash here")).toBe(false);
+    expect(router.replace).not.toHaveBeenCalled();
+  });
+
+  it("takes nothing once a place stacked over it owns the entry on top", async () => {
+    next.land("/dashboard");
+    placeWith(<a href="/u/maya">Open full profile</a>);
+    await tick();
+    act(() => {
+      window.history.pushState({ [POPUP_HISTORY_MARKER]: "popup-on-top" }, "");
+    });
+    expect(press("Open full profile")).toBe(false);
+    expect(router.replace).not.toHaveBeenCalled();
+  });
+
+  it("at a desk the panel is no place, holds no entry, and its links are their own", async () => {
+    setViewportWidth(1024);
+    next.land("/dashboard");
+    placeWith(<a href="/u/maya">Open full profile</a>);
+    await tick();
+    expect(marker()).toBeUndefined();
+    expect(press("Open full profile")).toBe(false);
+    expect(router.replace).not.toHaveBeenCalled();
   });
 });

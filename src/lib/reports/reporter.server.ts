@@ -8,10 +8,10 @@
  * so a signed-out guest who confirms on the form arrives here signed in and confirmed.
  *
  * ★ THE ADDRESS'S HASH OUTLIVES THE ADDRESS. The report keeps a confirmed address only until it closes (a
- * trigger forgets it), but the instant hide's limits and its bar ("an address whose child-abuse report is
- * dismissed as false loses the instant hide") must still know the address afterwards. So a child-abuse report
- * also keeps an HMAC of it, keyed with the rate-limit secret in its own `r-addr:` domain (never equal to an IP's
- * or an account's hash), which answers "the same address again?" and nothing else.
+ * trigger forgets it), but the instant hide's limits and its bar (an address with three child-abuse reports
+ * dismissed as false in the last 180 days loses the hide) must still know the address afterwards. So a
+ * child-abuse report also keeps an HMAC of it, keyed with the rate-limit secret in its own `r-addr:` domain
+ * (never equal to an IP's or an account's hash), which answers "the same address again?" and nothing else.
  */
 import "server-only";
 
@@ -20,7 +20,7 @@ import { createHmac } from "node:crypto";
 import type { User } from "@supabase/supabase-js";
 
 import type { ReportReporter } from "@/lib/db/mutations/report";
-import { sendOnce } from "@/lib/email/send";
+import { sendOncePerWindow } from "@/lib/email/send";
 import { urgentReportEmail } from "@/lib/email/templates";
 import { ADMIN_HOST } from "@/lib/auth/admin-host";
 import { SITE_URL, SUPPORT_EMAIL } from "@/lib/constants/site";
@@ -67,14 +67,16 @@ function reportsUrl(): string {
     : `${SITE_URL}/admin/reports`;
 }
 
-/** Ten minutes: one alert mail per album per window, so a burst is one mail and the queue says the rest. */
+/** Ten minutes: at most one alert mail an album in any window, so a burst is one mail and the queue says the rest. */
 const ALERT_WINDOW_MS = 10 * 60 * 1000;
 
 /**
  * THE OPERATOR, TOLD AT ONCE (his word: "so a false hide lasts minutes"): a child-abuse report raises a Sentry
- * warning every time (area `security`, no content, no reporter) and a mail to the ops inbox once per album per ten
- * minutes. The portal's own signal is its urgent count (the rail and the bell), which reads the reports table and
- * needs nothing sent. Never throws: a failed alert must not fail the report it is about.
+ * warning every time (area `security`, no content, no reporter) and a mail to the ops inbox at most once per album in
+ * any ten minutes, the window running from the album's last mail (`sendOncePerWindow`: a clock bucket mailed twice
+ * across a :x0 boundary, four minutes apart, build 35's red-team). The portal's own signal is its urgent count (the
+ * rail and the bell), which reads the reports table and needs nothing sent. Never throws: a failed alert must not
+ * fail the report it is about.
  */
 export async function alertUrgentReport(args: {
   reportId: string;
@@ -89,16 +91,16 @@ export async function alertUrgentReport(args: {
     hidden: args.hidden,
   });
   try {
-    const at = (args.now ?? new Date()).getTime();
-    const bucket = Math.floor(at / ALERT_WINDOW_MS);
     const { subject, html, text } = urgentReportEmail({
       eventName: args.eventName,
       hidden: args.hidden,
       reportsUrl: reportsUrl(),
     });
-    await sendOnce({
+    await sendOncePerWindow({
       kind: "report_urgent",
-      dedupeKey: `${args.eventId}:${bucket}`,
+      scope: args.eventId,
+      windowMs: ALERT_WINDOW_MS,
+      now: args.now,
       to: serverEnv.CONTACT_NOTIFY_EMAIL ?? SUPPORT_EMAIL,
       subject,
       html,

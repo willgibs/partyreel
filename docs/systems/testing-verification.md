@@ -50,8 +50,11 @@ like the tool rather than the product, are [CLAUDE.md](../../CLAUDE.md)'s.
 Live testing uses disposable test data only.
 - **Accounts:** `willg97@gmail.com` the host on Pro, `hi@willgibs.com` a host on Free, `partyr33l@gmail.com` the
   operator (TOTP MFA). Google through the account chooser is authorized; typing a password or a code never is.
-  ★ willg97's and partyr33l's addresses each carry a dismissed child-abuse report (build 23's red-team), and that bar on
-  instant hides never lapses: a walk of the instant hide needs a fresh confirmed address.
+  ★ Red-team dismissals are strikes against the instant hide (three bar an address, each lapsing 180 days after its
+  dismissal: [admin-observability.md](admin-observability.md)). willg97's address holds two and partyr33l's five, all
+  dismissed 2026-09-29, so willg97's still hides and partyr33l's is barred until 2027-03-28; hi@willgibs.com's holds
+  none. Walk the hide from hi@willgibs.com on one of willg97's albums (it never hides on the reporter's own), or
+  from willg97 on hi@willgibs.com's; each walk that ends in Dismiss spends one of that address's three.
 - **Seed through real uploads, never raw rows:** a `media` row with no R2 object renders broken and poisons later
   checks. The media fixtures are at `/Users/gibby/local/ai/partyreel-test-media`, and
   `node scripts/seed-demo-event.mjs <folder> [--host <email>] [--name <event>] [--guests "Maya J.,Tom R."] [--dry-run]`
@@ -134,15 +137,24 @@ function of elapsed time can be frozen at a chosen moment and shot.
   window stretches a 100vh hero), so `lab:demo`'s own scrolled capture is how subtle light is judged, and a capture
   with no variance at all is reported UNPAINTED, to be judged by eye (headless Chrome does not always rasterize a
   composited `backdrop-filter`).
-- ★ **`lab:demo` dying on `Page.navigate did not answer in 60000ms`,** while the dev server answers the page in about
-  200 ms and the renderer still runs timers, is a wedged dev image optimizer and not a hung page: `next dev` hands
-  every request for one image the same pending result, and a first request that is cancelled (an iframe's first
-  document going, with its images in flight) leaves it pending for ever, so the later requests never answer, the six
-  connections to the server fill and the next navigation cannot start (`curl`: sixty requests for one uncached image,
-  aborted after 10 ms, then an ordinary request for that image hangs while every other image answers; five aborted do
-  not). The server stays wedged (0% CPU, GBs resident) and fails every later run whatever the tree: restart it
-  (`rm -rf .next/dev`) before any A/B, then find what cancels the images (`Frame` once mounted every portalled scene
-  twice).
+- **While a page's own navigation is pending, DevTools holds every call to its renderer** until the navigation commits,
+  so an `evaluate` that goes unanswered then says nothing about a busy main thread (one sat unanswered for 3 s on a
+  renderer at 0% CPU): read the renderers' CPU from the browser target (`SystemInfo.getProcessInfo`).
+- ★ **A dev server that never answers an image size** (`lab:demo`'s `Page.navigate did not answer`, or an `UNANSWERED`
+  line under a step) is Next 16.2's image optimizer, not a hung page: it reads the source image through a mocked
+  response bound to the requester's own socket, so a requester that hangs up before that read (a navigation
+  cancelling its page's images) leaves it pending for ever, and the response cache hands that one pending result to
+  every later request for the size (`next dev` and `next start` alike; Vercel optimizes on its own platform). Six of
+  them fill the six connections Chrome opens to one server, and the next navigation queues behind them without
+  leaving the browser (gates 100, 103 and 107 on `about-press.facts`). `patches/next@16.2.6.patch` backports the
+  upstream fix (vercel/next.js#98168, 16.4.0-canary.27; 16.3.8 still has the bug), and
+  `src/lib/next-image-optimizer.test.ts` is red in a checkout that pulled it without `pnpm install` and on an upgrade
+  that still needs it; delete the patch on a Next with the fix of its own. `curl` tells a server's state: sixty
+  requests for one cold size aborted after 10 ms, then an ordinary one, which never answers on a wedging server. A
+  wedged server stays wedged (0% CPU, GBs resident) whatever the tree: restart it (`rm -rf .next/dev`). `lab:demo`
+  sets a new window on about:blank between pages (a resized page re-fits its frames and asks for every photograph
+  again at new sizes) and runs with the back/forward cache off (a page it left kept its held connections a minute),
+  and it names what a stalled call waits on under its row.
 
 ## The presign-roll soak
 

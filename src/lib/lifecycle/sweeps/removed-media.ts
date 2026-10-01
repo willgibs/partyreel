@@ -7,7 +7,8 @@
  * ★ OLDEST FIRST, IN BUDGETED KEYSET BATCHES (the 1,000-row round, 2026-09-23). This read used to be
  * one unordered request, which PostgREST cut at 1,000 rows: at most a thousand items a night, an
  * arbitrary thousand, and a backlog that grew without a word. It now pages on `(purge_at, id)`
- * ascending (the `media_purge_at_idx` partial index serves it) and reclaims each page before reading
+ * ascending (the `media_removed_idx` partial index, keyed in that order, serves it, and `standby_hosts`
+ * reads its removed half from the same index: 20261001151000) and reclaims each page before reading
  * the next, until the deadline. A purged row is gone, so the sweep DRAINS: its next run starts at the
  * oldest row still due, and a stopped run reports how many due rows it left, counted.
  *

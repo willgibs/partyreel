@@ -64,6 +64,11 @@ export type FollowMomentHost = {
   avatarUrl: string | null;
   /** seedFor(host id), so the host wears the colour they wear everywhere else. */
   seed?: string | null;
+  /**
+   * She already follows the host, read beside the card on the server (the page's `isFollowing`, crumbs-28), so the
+   * Follow starts on Following: it started on Follow for everyone, and she could only press it to find out.
+   */
+  following?: boolean;
 };
 
 export function FollowMomentCard({
@@ -184,7 +189,7 @@ export function FollowMomentCard({
           <FollowButton
             profileId={host.id}
             slug={host.slug}
-            initialFollowing={false}
+            initialFollowing={host.following ?? false}
             quiet
           />
         </div>

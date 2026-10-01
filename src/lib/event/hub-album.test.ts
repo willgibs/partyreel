@@ -287,6 +287,41 @@ describe("a hub tile", () => {
     });
   });
 
+  it("★ carries the sender's face and door for the host's look, where the link does (crumbs-38)", () => {
+    const seed = "e".repeat(64);
+    const faced = hubItem(
+      entry(1),
+      {
+        tile: "t",
+        view: "v",
+        download: "d",
+        who: [
+          "Maya",
+          WHO_VERIFIED,
+          "maya@example.com",
+          ["https://cdn.test/avatars/a/avatar.webp?v=1", seed, "/u/maya"],
+        ],
+      },
+      0,
+    );
+    expect(faced.uploaderFace).toEqual({
+      avatarUrl: "https://cdn.test/avatars/a/avatar.webp?v=1",
+      seed,
+      href: "/u/maya",
+    });
+    const plain = hubItem(
+      entry(2),
+      {
+        tile: "t",
+        view: "v",
+        download: "d",
+        who: ["Tom", 0, null],
+      },
+      0,
+    );
+    expect(plain.uploaderFace).toBeNull();
+  });
+
   it("holds no link until its window's lands, and a video keeps its duration", () => {
     const video: ManifestEntry = [id(2), 0, 0, ENTRY_VIDEO, 5, 12.5];
     const item = hubItem(video, undefined, 0);

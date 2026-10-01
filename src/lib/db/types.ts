@@ -67,22 +67,28 @@ export type Database = {
       album_state: {
         Row: {
           album_max: number
+          album_watermark: number
           attr_version: number
           event_id: string
+          host_watermark: number
           updated_at: string
           version: number
         }
         Insert: {
           album_max?: number
+          album_watermark?: number
           attr_version?: number
           event_id: string
+          host_watermark?: number
           updated_at?: string
           version?: number
         }
         Update: {
           album_max?: number
+          album_watermark?: number
           attr_version?: number
           event_id?: string
+          host_watermark?: number
           updated_at?: string
           version?: number
         }
@@ -495,6 +501,7 @@ export type Database = {
           email: string | null
           event_id: string
           id: string
+          let_in_told_at: string | null
           pending_email: string | null
           pending_email_at: string | null
           session_token: string
@@ -509,6 +516,7 @@ export type Database = {
           email?: string | null
           event_id: string
           id?: string
+          let_in_told_at?: string | null
           pending_email?: string | null
           pending_email_at?: string | null
           session_token: string
@@ -523,6 +531,7 @@ export type Database = {
           email?: string | null
           event_id?: string
           id?: string
+          let_in_told_at?: string | null
           pending_email?: string | null
           pending_email_at?: string | null
           session_token?: string
@@ -667,18 +676,16 @@ export type Database = {
       }
       media: {
         Row: {
-          clip_end_seconds: number | null
-          clip_start_seconds: number | null
           created_at: string
           duration_seconds: number | null
           event_id: string
           file_size_bytes: number
           guest_id: string | null
           height: number | null
-          highlight_score: number | null
           id: string
           legal_hold_at: string | null
           legal_hold_reason: string | null
+          let_in_at: string | null
           original_key: string
           preview_key: string | null
           purge_asked_at: string | null
@@ -697,18 +704,16 @@ export type Database = {
           width: number | null
         }
         Insert: {
-          clip_end_seconds?: number | null
-          clip_start_seconds?: number | null
           created_at?: string
           duration_seconds?: number | null
           event_id: string
           file_size_bytes: number
           guest_id?: string | null
           height?: number | null
-          highlight_score?: number | null
           id?: string
           legal_hold_at?: string | null
           legal_hold_reason?: string | null
+          let_in_at?: string | null
           original_key: string
           preview_key?: string | null
           purge_asked_at?: string | null
@@ -727,18 +732,16 @@ export type Database = {
           width?: number | null
         }
         Update: {
-          clip_end_seconds?: number | null
-          clip_start_seconds?: number | null
           created_at?: string
           duration_seconds?: number | null
           event_id?: string
           file_size_bytes?: number
           guest_id?: string | null
           height?: number | null
-          highlight_score?: number | null
           id?: string
           legal_hold_at?: string | null
           legal_hold_reason?: string | null
+          let_in_at?: string | null
           original_key?: string
           preview_key?: string | null
           purge_asked_at?: string | null
@@ -1363,6 +1366,10 @@ export type Database = {
         Returns: Json
       }
       album_flush: { Args: never; Returns: undefined }
+      album_prune_tombstones: {
+        Args: { p_after?: string; p_limit?: number }
+        Returns: Json
+      }
       album_remember: {
         Args: { p_event_id: string; p_scope: string }
         Returns: undefined
@@ -1477,6 +1484,34 @@ export type Database = {
         Args: { p_event_ids: string[] }
         Returns: number
       }
+      event_account_ticket: {
+        Args: {
+          p_admission: Database["public"]["Enums"]["guest_admission"]
+          p_event_id: string
+          p_user_id: string
+        }
+        Returns: {
+          admission: Database["public"]["Enums"]["guest_admission"]
+          created_at: string
+          display_name: string | null
+          email: string | null
+          event_id: string
+          id: string
+          let_in_told_at: string | null
+          pending_email: string | null
+          pending_email_at: string | null
+          session_token: string
+          user_id: string | null
+          verified_at: string | null
+          waiting_seen_at: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "guests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       event_block_holds_account: {
         Args: { p_event_id: string; p_user_id: string }
         Returns: boolean
@@ -1509,6 +1544,14 @@ export type Database = {
         Returns: boolean
       }
       event_door_admit_listed: { Args: { p_event_id: string }; Returns: number }
+      event_door_asks: {
+        Args: { p_event_id: string }
+        Returns: {
+          guest_id: string
+          listed: boolean
+          user_id: string
+        }[]
+      }
       event_door_check_in: {
         Args: { p_event_id: string; p_tickets?: string[]; p_user_id?: string }
         Returns: Json
@@ -1595,7 +1638,11 @@ export type Database = {
         Returns: Json
       }
       get_my_likes: {
-        Args: { p_limit?: number }
+        Args: {
+          p_before_id?: string
+          p_before_liked_at?: string
+          p_limit?: number
+        }
         Returns: {
           duration_seconds: number
           event_date: string
@@ -1612,7 +1659,11 @@ export type Database = {
         }[]
       }
       get_my_uploads: {
-        Args: { p_limit?: number }
+        Args: {
+          p_before_created_at?: string
+          p_before_id?: string
+          p_limit?: number
+        }
         Returns: {
           created_at: string
           duration_seconds: number
@@ -1723,6 +1774,7 @@ export type Database = {
         Args: { p_event_ids: string[]; p_media_ids: string[] }
         Returns: Json
       }
+      report_strikes: { Args: { p_reporter_hashes: string[] }; Returns: Json }
       restore_event: { Args: { p_event_id: string }; Returns: Json }
       restore_media: { Args: { p_media_id: string }; Returns: Json }
       set_event_door: {

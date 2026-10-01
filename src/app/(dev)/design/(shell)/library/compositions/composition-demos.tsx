@@ -23,7 +23,6 @@ import type { ReviewEntry } from "@/lib/db/queries/reports";
 import { HealthBand } from "@/components/admin/health-band";
 import { QueueList } from "@/components/admin/queue-list";
 import { ClosedLine, ClosedLog } from "@/components/app/report-review";
-import { FilterChips } from "@/components/app/dashboard/filter-chips";
 import { StorageMeter } from "@/components/app/dashboard/storage-meter";
 import { MediaTile } from "@/components/app/media-grid";
 import { ReviewRoom } from "@/components/app/event-feed/review-room";
@@ -51,13 +50,18 @@ import {
 } from "@/components/app/storage/storage-source";
 import { Button } from "@/components/ui/button";
 import type { PlanFacts } from "@/lib/billing/plan-facts";
-import { type HoldScope, WAY_BACK_LINE } from "@/lib/admin/reports";
+import {
+  addressStrikes,
+  type ClosedStrike,
+  closedStrikeWords,
+  type HoldScope,
+  WAY_BACK_LINE,
+} from "@/lib/admin/reports";
 import type { QrStyleKey } from "@/lib/constants/qr-presets";
 import { GIGABYTE, planById } from "@/lib/constants/tiers";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import type { StorageItem } from "@/lib/db/queries/storage-list";
 import { buildOperatorQueue } from "@/lib/admin/queue";
-import type { FilterValue } from "@/lib/dashboard/filters";
 import type { JobHealthReport } from "@/lib/jobs/health-summary";
 
 import { SAMPLE, SAMPLE_MEDIA } from "@/app/(dev)/design/reference/sample-data";
@@ -79,11 +83,6 @@ const SAMPLE_PENDING = [...SAMPLE_MEDIA, ...SAMPLE_MEDIA].map((m, i) => ({
  * supplies the frame, the label and the light-and-dark split, and the specimen
  * that mounts the demo carries its label and hint.
  */
-
-export function FilterChipsDemo() {
-  const [active, setActive] = useState<FilterValue>("all");
-  return <FilterChips active={active} onChange={setActive} trashCount={3} />;
-}
 
 export function QrPresetPickerDemo() {
   const [value, setValue] = useState<QrStyleKey>("classic");
@@ -501,6 +500,7 @@ const queueReport = (
   canAsk: false,
   byHost: false,
   hidAt: null,
+  strikes: null,
   proof: null,
   ...over,
   // A report that can be asked was sent from a confirmed address.
@@ -518,6 +518,16 @@ const QUEUE_ENTRIES: ReviewEntry[] = [
         canAsk: true,
         hidAt: "2026-09-27T22:12:00.000Z",
         reason: "A child in this one should not be here like this.",
+        // Its address already holds two strikes, so this Dismiss would be the third (crumbs-33).
+        strikes: addressStrikes(
+          {
+            live: 2,
+            barred: false,
+            lapses: ["2027-02-20T21:05:00.000Z", "2026-12-02T19:30:00.000Z"],
+          },
+          { strikes: 3, freshLapsesAt: "2027-03-26T22:12:00.000Z" },
+          1,
+        ),
       }),
     ],
     {
@@ -572,6 +582,86 @@ const QUEUE_ENTRIES: ReviewEntry[] = [
   }),
 ];
 
+/**
+ * A dismissed child-abuse report's closed line, in each state its strike can be in (crumbs-36): the words are the
+ * production function's own (`closedStrikeWords`), over fixed readings, so the Library draws what the portal draws.
+ * The row's Undo is inert here, like every write on this page.
+ */
+const UNDO_BUTTON = (
+  <Button
+    type="button"
+    variant="outline"
+    size="sm"
+    className="shrink-0"
+    aria-label="Undo: reopen the report"
+  >
+    <Undo2 />
+    <span className="hidden sm:inline">Undo</span>
+  </Button>
+);
+
+function strikeLine(
+  strike: ClosedStrike,
+  canUndo: boolean,
+): { state: ClosedStrike["state"]; words: string } {
+  return { state: strike.state, words: closedStrikeWords(strike, { canUndo }) };
+}
+
+const STRIKE_LINES: {
+  note: string;
+  resolvedAt: string;
+  strike: ReturnType<typeof strikeLine>;
+  undo: boolean;
+}[] = [
+  {
+    // Inside its reopen window: the strike counts, and Undo takes it back.
+    note: "A family photo, not harm",
+    resolvedAt: "2026-09-26T08:30:00.000Z",
+    strike: strikeLine(
+      {
+        state: "live",
+        at: "2027-03-25T08:30:00.000Z",
+        live: 2,
+        bar: 3,
+        barredUntil: null,
+      },
+      true,
+    ),
+    undo: true,
+  },
+  {
+    // Past its reopen window, the address barred: the strike counts for its full life and nothing takes it back.
+    note: "Duplicate of an earlier dismissal",
+    resolvedAt: "2026-08-02T21:10:00.000Z",
+    strike: strikeLine(
+      {
+        state: "live",
+        at: "2027-01-29T21:10:00.000Z",
+        live: 3,
+        bar: 3,
+        barredUntil: "2026-12-02T19:30:00.000Z",
+      },
+      false,
+    ),
+    undo: false,
+  },
+  {
+    note: "No reason given",
+    resolvedAt: "2026-03-01T10:00:00.000Z",
+    strike: strikeLine(
+      { state: "lapsed", at: "2026-08-28T10:00:00.000Z" },
+      false,
+    ),
+    undo: false,
+  },
+  {
+    note: "Reported by an unconfirmed address",
+    resolvedAt: "2026-09-27T19:45:00.000Z",
+    strike: strikeLine({ state: "none" }, false),
+    undo: true,
+  },
+];
+
 export function AdminReportCardDemo() {
   return (
     <div className="w-full space-y-4">
@@ -601,6 +691,23 @@ export function AdminReportCardDemo() {
             </Button>
           }
         />
+        {STRIKE_LINES.map((line) => (
+          <ClosedLine
+            key={line.note}
+            lead={
+              <span
+                aria-hidden
+                className="size-8 shrink-0 rounded border border-dashed"
+              />
+            }
+            status="dismissed"
+            note={line.note}
+            where="Jordan & Lee's wedding"
+            resolvedAt={line.resolvedAt}
+            strike={line.strike}
+            end={line.undo ? UNDO_BUTTON : undefined}
+          />
+        ))}
       </ClosedLog>
     </div>
   );

@@ -17,7 +17,7 @@
  * the album and the reel). Standalone, with no provider above it (its test file), it wraps itself
  * in one built from its own props, so `galleryPromise` and the handle `ref` work the same either way.
  */
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useTransition } from "react";
 import type { CSSProperties, Ref } from "react";
 
 import { Download } from "lucide-react";
@@ -25,7 +25,9 @@ import { Download } from "lucide-react";
 import { setRowStepAction } from "@/app/(guest)/e/[token]/actions";
 import { ExportDialog } from "@/components/app/export/export-dialog";
 import type { GridMedia } from "@/components/app/media-grid";
+import { AlbumFailedCard } from "@/components/guest/album-boundary";
 import { GalleryEmptyState } from "@/components/guest/gallery-empty-state";
+import { GallerySkeleton } from "@/components/guest/gallery-skeleton";
 import {
   GalleryLiveProvider,
   useGalleryLive,
@@ -153,6 +155,8 @@ type LiveGalleryProps = {
   joinUrl?: string;
   /** The ids a SIGNED-IN viewer uploaded, resolved in the page RSC. */
   canDeleteIds?: string[];
+  /** The provider's (see gallery-live.tsx); passed through when standalone. */
+  isOwner?: boolean;
   /** Which remove path this viewer is on. */
   isAuthed?: boolean;
   /** The anonymous guest's device-bound capability (null before a join). */
@@ -193,6 +197,7 @@ export function LiveGallery({ ref, ...props }: LiveGalleryProps) {
       onCountChange={props.onCountChange}
       pendingUploads={props.pendingUploads}
       canDeleteIds={props.canDeleteIds}
+      isOwner={props.isOwner}
       isAuthed={props.isAuthed}
       sessionToken={props.sessionToken}
       approvedTotal={props.approvedTotal}
@@ -348,6 +353,15 @@ function LiveGalleryView({
     ownedCount: yours.count,
   });
 
+  // ★ AN ALBUM ITS SOURCE COULD NOT READ (crumbs-30; the provider's note on a seed that failed): the
+  // skeleton the page's Suspense draws, while the source's own first read is in flight, so a read that
+  // heals at once never flashes a failure; then the album boundary's own card, in the reading column
+  // the empty album keeps, with Try again. Nothing of the album is drawn meanwhile, her own new
+  // photograph included: it shows with the album, as it did while the boundary held the failure.
+  if (live.albumRead === "trying") return <GallerySkeleton step={step} />;
+  if (live.albumRead === "failed")
+    return <AlbumUnread retry={live.retryAlbum} />;
+
   return (
     <section
       className="mt-3"
@@ -458,5 +472,19 @@ function LiveGalleryView({
         </div>
       )}
     </section>
+  );
+}
+
+/**
+ * The album its source could not read: the album boundary's own card (one wording for the album that did not load),
+ * in the reading column the empty album keeps (pulled out by the album's gutter, padded back in by the words'), and
+ * its Try again the source's own read, which says it is trying until that read is over.
+ */
+function AlbumUnread({ retry }: { retry: () => Promise<void> }) {
+  const [retrying, startRetry] = useTransition();
+  return (
+    <div className="-mx-3 max-w-2xl px-5 sm:-mx-5">
+      <AlbumFailedCard retrying={retrying} onRetry={() => startRetry(retry)} />
+    </div>
   );
 }

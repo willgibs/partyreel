@@ -6,6 +6,9 @@
  * one of the portal's pages on the admin host (`return-path.ts`); anything else, or no path at all,
  * is the bare `/login`, whose landing on that host is the portal. A signed-in non-admin still meets
  * a 404, so the gate never confirms the portal exists.
+ *
+ * AND THE GATE IS READ ONCE A REQUEST (crumbs-30): the layout, the page and a record page's title each ask it, and
+ * they share one `getUser()` and one `is_admin` read, while another request, and a Server Function, read it afresh.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -17,6 +20,30 @@ const state = vi.hoisted(() => ({
   path: null as string | null,
   user: null as { id: string; email: string } | null,
   isAdmin: false,
+  /** The gate's reads, counted: the JWT's re-validation and the profile's `is_admin`. */
+  getUser: 0,
+  profileReads: 0,
+  getSession: 0,
+}));
+
+/**
+ * React's `cache()` as a server render gives it: one memo for the request being rendered, and a plain call where no
+ * render is in progress (a Server Function, a route handler), which is how React itself answers a cached function
+ * called outside one (`react.react-server`'s `cache`: no dispatcher, no memo). `request.memo` is the request.
+ */
+const request = vi.hoisted(() => ({
+  memo: null as Map<unknown, unknown> | null,
+}));
+vi.mock("react", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("react")>()),
+  cache:
+    <A extends unknown[], R>(fn: (...args: A) => R) =>
+    (...args: A): R => {
+      const memo = request.memo;
+      if (!memo || args.length > 0) return fn(...args);
+      if (!memo.has(fn)) memo.set(fn, fn(...args));
+      return memo.get(fn) as R;
+    },
 }));
 
 vi.mock("server-only", () => ({}));
@@ -52,7 +79,15 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({
     auth: {
-      getUser: async () => ({ data: { user: state.user } }),
+      getUser: async () => {
+        state.getUser += 1;
+        return { data: { user: state.user } };
+      },
+      // The proxy's refresh is no boundary: a gate that read the session would be counted here.
+      getSession: async () => {
+        state.getSession += 1;
+        return { data: { session: null } };
+      },
       mfa: {
         getAuthenticatorAssuranceLevel: async () => ({
           data: { currentLevel: "aal1", nextLevel: "aal2" },
@@ -62,16 +97,17 @@ vi.mock("@/lib/supabase/server", () => ({
     from: () => ({
       select: () => ({
         eq: () => ({
-          maybeSingle: async () => ({
-            data: state.user ? { is_admin: state.isAdmin } : null,
-          }),
+          maybeSingle: async () => {
+            state.profileReads += 1;
+            return { data: state.user ? { is_admin: state.isAdmin } : null };
+          },
         }),
       }),
     }),
   }),
 }));
 
-const { requireAdmin } = await import("./admin-context");
+const { requireAdmin, requireAdminAction } = await import("./admin-context");
 
 const EVENT = "9f1c2b3a-4d5e-6f70-8192-a3b4c5d6e7f8";
 
@@ -81,6 +117,10 @@ beforeEach(() => {
   state.path = null;
   state.user = null;
   state.isAdmin = false;
+  state.getUser = 0;
+  state.profileReads = 0;
+  state.getSession = 0;
+  request.memo = null;
 });
 
 describe("requireAdmin, signed out", () => {
@@ -141,5 +181,52 @@ describe("requireAdmin, signed in", () => {
       aal: "aal1",
       mfaEnrolled: true,
     });
+  });
+});
+
+describe("the gate read, once a request (crumbs-30)", () => {
+  const OPERATOR = { id: "u1", email: "op@example.com" };
+
+  it("★ the layout, the page and a record page's title share one getUser() and one is_admin read", async () => {
+    state.user = OPERATOR;
+    state.isAdmin = true;
+    request.memo = new Map();
+    // The three asks a record page makes, as the render makes them: side by side.
+    const [layout, page, title] = await Promise.all([
+      requireAdmin(),
+      requireAdmin(),
+      requireAdmin(),
+    ]);
+    expect(state.getUser).toBe(1);
+    expect(state.profileReads).toBe(1);
+    expect(page).toEqual(layout);
+    expect(title).toEqual(layout);
+    // Still the JWT's re-validation, never the cookie's say-so.
+    expect(state.getSession).toBe(0);
+  });
+
+  it("★ each request reads its own gate, so nobody is ever answered with another request's", async () => {
+    state.user = OPERATOR;
+    state.isAdmin = true;
+    request.memo = new Map();
+    await expect(requireAdmin()).resolves.toMatchObject({ userId: "u1" });
+    // The next request, from a signed-in host who is not an operator.
+    request.memo = new Map();
+    state.user = { id: "u2", email: "host@example.com" };
+    state.isAdmin = false;
+    await expect(requireAdmin()).rejects.toThrow("NEXT_NOT_FOUND");
+    expect(state.getUser).toBe(2);
+    expect(state.profileReads).toBe(2);
+  });
+
+  it("a Server Function reads the gate at every call: an action is its own entry point, and no render memoizes it", async () => {
+    state.user = OPERATOR;
+    state.isAdmin = true;
+    request.memo = null;
+    await requireAdminAction();
+    await requireAdminAction();
+    expect(state.getUser).toBe(2);
+    expect(state.profileReads).toBe(2);
+    expect(state.getSession).toBe(0);
   });
 });

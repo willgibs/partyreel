@@ -25,6 +25,10 @@ import "server-only";
 
 import { readNewest } from "@/lib/admin/list-depth";
 import {
+  type AddressStrikes,
+  addressStrikes,
+  type ClosedStrike,
+  closedStrike,
   entryKeyOf,
   type EntrySubject,
   frontOrder,
@@ -34,6 +38,8 @@ import {
   type ReportFilter,
   type ReportStatus,
   sameInstant,
+  type StrikeReading,
+  type StrikeRule,
   subjectOf,
   type WayBack,
   wayBackOf,
@@ -101,6 +107,12 @@ export type ReviewReport = {
   deleted?: DeletedItem | null;
   /** A closed report's way back (`closed=window`), decided here from the item's own row. */
   wayBack: WayBack;
+  /**
+   * ★ A DISMISSED CHILD-ABUSE REPORT'S STRIKE (crumbs-36): whether it still counts against its address and until
+   * when, from the rule's one home (`report_strikes`) and the page's one clock. Counts and instants only: the
+   * address and its hash stay here. Null on every other report, and while the strikes cannot be read.
+   */
+  strike: ClosedStrike | null;
 };
 
 /** A page's cursor on a newest-first queue: the last report's raw timestamp string and its id. */
@@ -146,7 +158,7 @@ export async function listReports(
       let q = admin
         .from("reports")
         .select(
-          "id, reason, created_at, status, resolved_at, resolution_note, event_id, media_id",
+          "id, reason, created_at, status, resolved_at, resolution_note, event_id, media_id, kind, reporter_hash",
         )
         .not("event_id", "is", null)
         .order("created_at", { ascending: false })
@@ -166,8 +178,14 @@ export async function listReports(
 
   const eventIds = reports.flatMap((r) => (r.event_id ? [r.event_id] : []));
   const mediaIds = reports.flatMap((r) => (r.media_id ? [r.media_id] : []));
+  // The addresses whose strikes a closed line says: every dismissed child-abuse report kept its address's hash.
+  const strikeHashes = reports.flatMap((r) =>
+    r.status === "dismissed" && r.kind === INSTANT_HIDE_KIND && r.reporter_hash
+      ? [r.reporter_hash]
+      : [],
+  );
 
-  const [events, media, covered] = await Promise.all([
+  const [events, media, covered, strikes] = await Promise.all([
     inChunks(
       "admin reports: events",
       eventIds,
@@ -192,6 +210,7 @@ export async function listReports(
         )) ?? [],
     ),
     readCoveredItems({ mediaIds }),
+    readStrikes(strikeHashes),
   ]);
   const eventById = new Map(events.map((e) => [e.id, e]));
   const rowById = new Map((media as MediaRow[]).map((m) => [m.id, m]));
@@ -251,6 +270,17 @@ export async function listReports(
                 }
               : null,
           },
+          nowMs,
+        ),
+        strike: closedStrike(
+          {
+            kind: r.kind,
+            status: r.status,
+            resolvedAt: r.resolved_at,
+            keptAddress: Boolean(r.reporter_hash),
+          },
+          r.reporter_hash ? strikes?.addresses.get(r.reporter_hash) : undefined,
+          strikes?.rule ?? null,
           nowMs,
         ),
       };
@@ -368,6 +398,85 @@ export async function readNamedKinds(
     }
   }
   return kinds;
+}
+
+/** What `report_strikes` answers (20261001100000): the rule's numbers, and each asked address's reading. */
+export type StrikesAnswer = {
+  rule: StrikeRule;
+  addresses: ReadonlyMap<string, StrikeReading>;
+};
+
+/** A function this code calls before its migration stands answers one of these (the seam below). */
+const FUNCTION_NOT_PROVISIONED = new Set(["PGRST202", "42883"]);
+
+/**
+ * THE INSTANT HIDE'S STRIKES ON THESE ADDRESSES (`report_strikes`, 20261001100000): the rule's one home, which
+ * `create_report` asks too, so the queue's line never counts by a copy of it. Keyed on the hashes the reports kept;
+ * only counts and instants come back. ★ A SEAM ACROSS THE APPLY: until the function stands PostgREST answers that
+ * it does not exist, and this reads as NO READING (null: the queue says nothing of strikes, never "no strikes")
+ * rather than failing the queue; any other failure throws, as the queue's facts do.
+ */
+export async function readStrikes(
+  hashes: readonly string[],
+): Promise<StrikesAnswer | null> {
+  if (hashes.length === 0) return null;
+  const admin = createAdminClient();
+  const { data, error } = await admin.rpc("report_strikes", {
+    p_reporter_hashes: [...new Set(hashes)],
+  });
+  if (error) {
+    if (FUNCTION_NOT_PROVISIONED.has(error.code ?? "")) return null;
+    throw new QueryFailedError("admin reports: strikes", error);
+  }
+  return parseStrikes(data);
+}
+
+/** The answer read defensively: a shape this code does not know is no reading, never a zero. */
+function parseStrikes(data: unknown): StrikesAnswer | null {
+  if (!data || typeof data !== "object") return null;
+  const answer = data as Record<string, unknown>;
+  const strikes = answer.strikes;
+  const fresh = answer.fresh_lapses_at;
+  const addresses = answer.addresses;
+  if (
+    typeof strikes !== "number" ||
+    !Number.isInteger(strikes) ||
+    strikes < 1 ||
+    typeof fresh !== "string" ||
+    !Number.isFinite(Date.parse(fresh)) ||
+    !addresses ||
+    typeof addresses !== "object"
+  ) {
+    return null;
+  }
+  const read = new Map<string, StrikeReading>();
+  for (const [hash, value] of Object.entries(addresses)) {
+    const v = value as Record<string, unknown>;
+    if (
+      typeof v?.live !== "number" ||
+      typeof v.barred !== "boolean" ||
+      !Array.isArray(v.lapses)
+    ) {
+      continue;
+    }
+    read.set(hash, {
+      live: v.live,
+      barred: v.barred,
+      // ISO on the way out, so every browser reads the instant the server read (Postgres writes microseconds).
+      lapses: v.lapses.flatMap((at) =>
+        typeof at === "string" && Number.isFinite(Date.parse(at))
+          ? [new Date(Date.parse(at)).toISOString()]
+          : [],
+      ),
+    });
+  }
+  return {
+    rule: {
+      strikes,
+      freshLapsesAt: new Date(Date.parse(fresh)).toISOString(),
+    },
+    addresses: read,
+  };
 }
 
 /**
@@ -603,6 +712,12 @@ export type EntryReport = {
   byHost: boolean;
   /** This report's instant hide took the item down at this instant. */
   hidAt: string | null;
+  /**
+   * ★ ITS ADDRESS'S STRIKES (crumbs-33): on a child-abuse report that kept its address's hash, how many live
+   * strikes the address holds and what a Dismiss of this entry would make of them, read from the rule's one home
+   * (`report_strikes`). Null on every other report, and while the strikes cannot be read (`readStrikes`).
+   */
+  strikes: AddressStrikes | null;
   /** What was asked, and what came back (`proof=confirm`). */
   proof: {
     askedAt: string;
@@ -718,6 +833,29 @@ function sentByHost(
 }
 
 /**
+ * A child-abuse report's address against the instant hide (crumbs-33), and what a Dismiss of its entry would make
+ * of it: a verdict closes every open report on the entry, so each of this address's child-abuse reports there
+ * becomes a strike. An address the reading does not name has none. Null on any other report, and with no reading.
+ */
+function strikesOf(
+  report: Pick<OpenRow, "kind" | "reporter_hash">,
+  entry: readonly Pick<OpenRow, "kind" | "reporter_hash">[],
+  answer: StrikesAnswer | null,
+): AddressStrikes | null {
+  const hash = report.reporter_hash;
+  if (!answer || !hash || report.kind !== INSTANT_HIDE_KIND) return null;
+  const adding = entry.filter(
+    (r) => r.kind === INSTANT_HIDE_KIND && r.reporter_hash === hash,
+  ).length;
+  const reading = answer.addresses.get(hash) ?? {
+    live: 0,
+    barred: false,
+    lapses: [],
+  };
+  return addressStrikes(reading, answer.rule, adding);
+}
+
+/**
  * THE OPEN QUEUE, AS ENTRIES: the newest `show` open album and item reports (the People arm is
  * `listProfileReports`), grouped into one entry a thing reported, each carrying every fact the grid prints, and
  * sorted into its lane (the front worst first then newest, the sweep newest first). The lookups ride `inChunks`,
@@ -757,8 +895,18 @@ export async function listOpenEntries(
   const mediaIds = [
     ...new Set(rows.flatMap((r) => (r.media_id ? [r.media_id] : []))),
   ];
+  // The addresses whose strikes the line says: every open child-abuse report kept its address's hash.
+  const strikeHashes = [
+    ...new Set(
+      rows.flatMap((r) =>
+        r.kind === INSTANT_HIDE_KIND && r.reporter_hash
+          ? [r.reporter_hash]
+          : [],
+      ),
+    ),
+  ];
 
-  const [events, media, factsAnswer] = await Promise.all([
+  const [events, media, factsAnswer, strikes] = await Promise.all([
     inChunks(
       "admin reports: queue events",
       eventIds,
@@ -789,6 +937,7 @@ export async function listOpenEntries(
       }),
       "admin reports: queue facts",
     ),
+    readStrikes(strikeHashes),
   ]);
   // The function answers one jsonb, shaped by the migration (`report_queue_facts`).
   const facts = factsAnswer as QueueFacts | null;
@@ -857,6 +1006,7 @@ export async function listOpenEntries(
       confirmed: Boolean(r.reporter_email) || Boolean(r.reporter_hash),
       byHost: sentByHost(r, host?.email),
       hidAt: r.hid_at ?? null,
+      strikes: strikesOf(r, list, strikes),
       proof:
         r.proof_asked_at && r.proof_question
           ? {

@@ -49,6 +49,7 @@ import {
 import { holdsDoorPass } from "@/lib/event/door/pass.server";
 import { isRequestOwner } from "@/lib/events/gallery-access-owner.server";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
+import { withUploaderFaces } from "@/lib/media/uploader-faces";
 import type { UploaderIdentity } from "@/lib/media/uploader-identity";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -184,10 +185,11 @@ async function manifestPage(
 
 /**
  * The rows behind a window's links: each asked id that is APPROVED and in THIS album, with its keys,
- * and who uploaded it (by the one precedence rule, with no address: the guest path never reads one).
- * An id that is unknown, gone, held, hidden or another album's is simply absent, and the route
- * reports it `missing`. `attribute: false` (the demo, which names nobody) skips the attribution read.
- * Null past the gate.
+ * and who uploaded it (by the one precedence rule, with no address: the guest path never reads one),
+ * with the face a guest may see beside the name (`uploader-faces.ts`: the album's own Guests-list face
+ * and a door to a published page, never a blocked person's). An id that is unknown, gone, held, hidden
+ * or another album's is simply absent, and the route reports it `missing`. `attribute: false` (the demo,
+ * which names nobody) skips the attribution read. Null past the gate.
  */
 export async function readGuestAlbumMedia(
   event: AlbumEvent,
@@ -215,7 +217,9 @@ export async function readGuestAlbumMedia(
         )) ?? [],
     ),
     opts.attribute
-      ? readAlbumAttribution(event.id, ids, { withEmail: false })
+      ? readAlbumAttribution(event.id, ids, { withEmail: false }).then(
+          (named) => withUploaderFaces(event.id, named, "guest"),
+        )
       : Promise.resolve(null),
   ]);
   return { rows, identities };
@@ -224,6 +228,7 @@ export async function readGuestAlbumMedia(
 /**
  * Who uploaded each of these items, with no address, for rows a caller already read through a gate
  * of its own (the teaser's nine photographs, `getApprovedPhotoTeaser`). Null past this gate too.
+ * ★ No face: the album shows no Guests list at its teaser, so a face here would be one it does not.
  */
 export async function readGuestAttribution(
   event: AlbumEvent,

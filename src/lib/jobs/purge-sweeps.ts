@@ -8,8 +8,9 @@
  * and could not stop the inactivity sweep for one night without giving up storage reclamation.
  *
  * So the four heaviest sweeps (the ones that loop over ACCOUNTS and either email somebody or delete
- * bytes) open and close a `job_runs` row of their own, with their own `ops_flags` switch and their
- * own card on /admin/jobs. The other eight still ride the parent row.
+ * bytes), and the album change log's prune (it deletes rows in the album's live core), open and close
+ * a `job_runs` row of their own, with their own `ops_flags` switch and their own card on /admin/jobs.
+ * The rest still ride the parent row.
  *
  * WHERE THIS LIVES: the route (`src/app/api/cron/purge/route.ts`) hands every sweep to the runner
  * below through its `runSweep`; the sweep bodies are in `src/lib/lifecycle/sweeps/`. For a sweep with
@@ -17,8 +18,8 @@
  * raises ONE `sweep_stopped_early` warning when the sweep's time budget stopped it with work left
  * (the 1,000-row round), and a promoted sweep's own row says so in its note.
  *
- * POSTURE ON AN UNREADABLE SWITCH: fail CLOSED, matching the parent cron. All four promoted sweeps
- * delete or soft-delete something; one skipped night costs nothing (the next run sees the same rows)
+ * POSTURE ON AN UNREADABLE SWITCH: fail CLOSED, matching the parent cron. Every promoted sweep
+ * deletes or soft-deletes something; one skipped night costs nothing (the next run sees the same rows)
  * while ignoring a pause an operator set could cost data.
  */
 import "server-only";

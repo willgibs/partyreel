@@ -8,6 +8,8 @@ import {
   getEventType,
 } from "@/lib/constants/events";
 import { isMarketingImageId } from "@/lib/constants/marketing-media";
+import { INACTIVE_MONTHS } from "@/lib/lifecycle/inactivity";
+import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 
 describe("event-type constants", () => {
   it("has unique slugs and complete text fields", () => {
@@ -134,5 +136,57 @@ describe("event-type constants", () => {
       expect(item.q.trim()).not.toBe("");
       expect(item.a.trim()).not.toBe("");
     }
+  });
+});
+
+/**
+ * EVERY LINE THAT SAYS AN EVENT STAYS UP CARRIES THE FREE PLAN'S EXCEPTION (crumbs-34; the help guide's
+ * rule 7). Events have no end date, but on Free an event nobody touches for about six months is warned
+ * about by email, then moved to Deleted. The pages said "no expiry clock counting down on your wedding
+ * memories" and "stays up until you delete it" with no word of it, which a Free host meets as a removal
+ * the site never mentioned. The numbers derive from the lifecycle constants, so the line cannot drift.
+ */
+describe("the event pages' keep lines", () => {
+  const lines = [
+    ...EVENT_TYPES.flatMap((type) => [
+      type.intro,
+      type.subhead,
+      type.statement.line,
+      ...type.howItHelps.map((help) => help.body),
+      ...type.faq.map((item) => item.a),
+    ]),
+    EVENTS_HUB.overview,
+    ...EVENTS_HUB.benefits.map((benefit) => benefit.body),
+    ...EVENTS_HUB.faq.map((item) => item.a),
+  ];
+  const keepClaims = lines.filter((line) =>
+    /\bstays? up\b|no end date|no expiry|expiry clock/i.test(line),
+  );
+
+  it("finds the lines it holds (a scan that finds none proves nothing)", () => {
+    expect(keepClaims.length).toBeGreaterThanOrEqual(4);
+  });
+
+  it("each names the Free plan and its idle window", () => {
+    for (const line of keepClaims) {
+      expect(line, line).toContain("Free");
+      expect(line, line).toContain(`about ${INACTIVE_MONTHS} months`);
+    }
+  });
+
+  it("a FAQ answer says where it goes and for how long it can be restored", () => {
+    const answers = [
+      ...EVENT_TYPES.flatMap((type) => type.faq.map((item) => item.a)),
+      ...EVENTS_HUB.faq.map((item) => item.a),
+    ].filter((answer) => keepClaims.includes(answer));
+    expect(answers.length).toBeGreaterThanOrEqual(2);
+    for (const answer of answers) {
+      expect(answer).toContain("Deleted");
+      expect(answer).toContain(`${RECENTLY_DELETED_WINDOW_DAYS} days`);
+    }
+  });
+
+  it("never says there is no expiry clock", () => {
+    expect(lines.join("\n")).not.toMatch(/expiry clock/i);
   });
 });

@@ -704,6 +704,64 @@ describe("LiveGallery: a visit's own adds and removals, on either identity", () 
 });
 
 /**
+ * ★ THE OWNER'S OWN ARE THE HOST'S FROM THEIR FIRST FRAME (crumbs-32, from `crumbs-31`). On her own guest page the
+ * album's owner adds through the host's pair, so `remove_my_upload`'s host arm takes her Delete to her Deleted, and
+ * the viewer's confirm says so off the item's `isHost`. That flag rode the link's attribution alone, so a photograph
+ * she had just added (and one of hers whose link had not landed) said the guest's "can't be recovered" until the
+ * album's next sync. Her own items carry it now from the frame they first draw in; nobody else's ever do.
+ */
+describe("LiveGallery: the owner's own uploads are the host's from the first frame", () => {
+  const hostOf = (id: string) =>
+    lastRows().items.find((i) => i.id === id)?.isHost;
+  const landMine = async (ref: { current: LiveGalleryHandle | null }) => {
+    await act(async () => {
+      ref.current!.notifyUploaded({
+        mediaId: "m9",
+        queueId: "q1",
+        file: aFile(),
+        kind: "photo",
+        status: "approved",
+      });
+    });
+  };
+
+  it("★ a photograph she just added is the host's before the album holds it", async () => {
+    answerSync(304);
+    const ref = createRef<LiveGalleryHandle>();
+    await mount({ ref, isOwner: true, isAuthed: true, canDeleteIds: [] });
+    await landMine(ref);
+    expect(shownIds()[0]).toBe("m9");
+    expect(hostOf("m9")).toBe(true);
+  });
+
+  it("★ one of hers the album holds with no link's word yet is the host's, and a guest's beside it is not", async () => {
+    await mount({ isOwner: true, isAuthed: true, canDeleteIds: ["m1"] });
+    // The fixture's links carry no attribution, so only what the page knows can say whose m1 is.
+    expect(hostOf("m1")).toBe(true);
+    expect(hostOf("m2")).toBe(false);
+  });
+
+  it("stays the host's through the sync that brings it into the album, before its own link lands", async () => {
+    const ref = createRef<LiveGalleryHandle>();
+    await mount({ ref, isOwner: true, isAuthed: true, canDeleteIds: [] });
+    answerSync(delta(["m9"], [], 3));
+    await landMine(ref);
+    await poll();
+    expect(shownIds()).toContain("m9");
+    expect(hostOf("m9")).toBe(true);
+  });
+
+  it("a guest's own are never the host's, whatever she adds", async () => {
+    answerSync(304);
+    const ref = createRef<LiveGalleryHandle>();
+    await mount({ ref, isAuthed: true, canDeleteIds: ["m1"] });
+    await landMine(ref);
+    expect(hostOf("m9")).toBeFalsy();
+    expect(hostOf("m1")).toBe(false);
+  });
+});
+
+/**
  * ★ THE ALBUM'S HEAD DRAWS ONLY WHAT IS IN THE AIR (voice-guest r2, Will's `held=uploads`): a held
  * photograph shows only in her uploads, the badge beside Add counting it, and the album shows only
  * what is in it. A file still sending keeps its stack; one that failed is the failure sheet's.
@@ -967,5 +1025,115 @@ describe("LiveGallery: the arrival", () => {
     // and this device's own landing must appear the moment it is sent.
     expect(shownIds()).toContain("m9");
     expect(lastRows().arrivals ?? []).toEqual([]);
+  });
+});
+
+describe("an album its source could not read (crumbs-30, from crumbs-28)", () => {
+  /** A seed whose read failed (not a refusal, which answers locked), as the page streams it: already handled. */
+  function failedSeed(): Promise<GalleryPayload> {
+    const seed = Promise.reject(
+      Object.assign(new Error("read failed: relation media timed out"), {
+        digest: "1234567",
+      }),
+    );
+    seed.catch(() => {});
+    return seed;
+  }
+
+  const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+  async function mountFailed() {
+    const galleryPromise = failedSeed();
+    await act(async () => {
+      render(
+        <Suspense fallback={<div>loading</div>}>
+          <LiveGallery
+            galleryPromise={galleryPromise}
+            qrToken="qr-token-1"
+            access="full"
+            isDemo={false}
+            onOpenGate={() => {}}
+            isAuthed
+          />
+        </Suspense>,
+      );
+      await galleryPromise.catch(() => {});
+      await tick();
+      await tick();
+    });
+  }
+
+  /** Every sync answers a server error; everything else answers nothing. */
+  function syncFails() {
+    (global.fetch as ReturnType<typeof vi.fn>).mockImplementation(
+      async (url: string) =>
+        url === "/api/album/guest/sync"
+          ? { status: 500, ok: false, headers: { get: () => null } }
+          : respond({ ok: true, ids: [] }),
+    );
+  }
+
+  it("★ draws the album's skeleton while its own first read is in flight, so a read that heals at once never flashes a failure", async () => {
+    let land: (reply: unknown) => void = () => {};
+    (global.fetch as ReturnType<typeof vi.fn>).mockImplementation(
+      async (url: string) =>
+        url === "/api/album/guest/sync"
+          ? new Promise((resolve) => {
+              land = resolve;
+            })
+          : respond({ ok: true, ids: [] }),
+    );
+    await mountFailed();
+    expect(document.querySelector("[data-gallery-skeleton]")).not.toBeNull();
+    expect(screen.queryByRole("alert")).toBeNull();
+    await act(async () => {
+      land(respond(manifestBody(["m1", "m2"])));
+      await tick();
+      await tick();
+    });
+    expect(document.querySelector("[data-gallery-skeleton]")).toBeNull();
+    expect(shownIds()).toEqual(["m1", "m2"]);
+  });
+
+  it("★ says it could not load once that read has failed too, and Try again reads it again: the album draws, no refresh", async () => {
+    syncFails();
+    await mountFailed();
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "The album didn’t load",
+    );
+    // Never the error's own words.
+    expect(document.body.textContent).not.toMatch(/relation|timed out/);
+    answerSync(manifestBody(["m3"]));
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+      await tick();
+      await tick();
+    });
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(shownIds()).toEqual(["m3"]);
+  });
+
+  it("a Try again that fails again says so again, and can be tried again", async () => {
+    syncFails();
+    await mountFailed();
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+      await tick();
+      await tick();
+    });
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "The album didn’t load",
+    );
+    expect(screen.getByRole("button", { name: "Try again" })).toBeEnabled();
+  });
+
+  it("the next poll heals it by itself", async () => {
+    syncFails();
+    await mountFailed();
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+    answerSync(manifestBody(["m1"]));
+    await poll();
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(shownIds()).toEqual(["m1"]);
   });
 });

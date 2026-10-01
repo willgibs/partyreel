@@ -23,6 +23,7 @@
  * Pure: the link reader, the clock and the device's own state are handed in.
  */
 import type { AlbumLink } from "@/lib/album/links";
+import type { AlbumSnapshot } from "@/lib/album/store";
 import {
   ENTRY_PREVIEW,
   ENTRY_REEL,
@@ -30,6 +31,7 @@ import {
   WHO_HOST,
   WHO_VERIFIED,
   entryId,
+  faceFromTuple,
   type GuestWhoTuple,
   type ManifestEntry,
 } from "@/lib/events/album-wire";
@@ -52,6 +54,13 @@ export type AlbumItemsInput = {
   removed: ReadonlySet<string>;
   /** A rename this visit made, on the credits of this device's own ids until the links carry it. */
   renamed: { name: string; ids: ReadonlySet<string> } | null;
+  /**
+   * ★ THE HOST'S OWN, KNOWN BEFORE THEIR LINKS SAY SO (crumbs-32): on her own guest page every upload
+   * of the album's owner is the host's (her Add rides the host's pair), so an item of hers is the host's
+   * from its first frame, its credit and its Delete's words with it, rather than a guest's until its
+   * link's attribution lands. Absent for everyone else, whose attribution is the link's alone.
+   */
+  hostOwn?: ReadonlySet<string> | null;
   /** This device's clock, for the held links' expiry (a test hands a fake; the album reads the real one). */
   now?: number;
 };
@@ -61,15 +70,20 @@ type Built = {
   link: Link | undefined;
   blob: string | undefined;
   name: string | null;
+  host: boolean;
   item: GalleryItem;
 };
 
-/** One manifest entry, with whatever link and blob it has, as the item every surface draws. */
+/**
+ * One manifest entry, with whatever link and blob it has, as the item every surface draws. `hostOwn`
+ * says the upload is the host's own before a link's attribution can (the input's own note).
+ */
 export function entryToItem(
   entry: ManifestEntry,
   link: Link | undefined,
   blob?: string,
   name?: string | null,
+  hostOwn = false,
 ): GalleryItem {
   const [id, w, h, flags] = entry;
   const video = (flags & ENTRY_VIDEO) !== 0;
@@ -86,9 +100,12 @@ export function entryToItem(
     // Every entry of a guest's manifest is approved by construction (the reel filters on it).
     status: "approved",
     uploaderName: name ?? (who ? who[0] : null),
-    isHost: who ? (who[1] & WHO_HOST) !== 0 : false,
+    isHost: who ? (who[1] & WHO_HOST) !== 0 : hostOwn,
     // Unverified is the safe default: with no attribution there is no name to mark at all.
     isVerified: who ? (who[1] & WHO_VERIFIED) !== 0 : false,
+    // The credit's face and door (crumbs-38), where the link carries one: the album's own Guests-list
+    // face, never a blocked person's (`uploader-faces.ts`). It rides the link, so it changes with it.
+    uploaderFace: faceFromTuple(who?.[2]),
     width: w > 0 ? w : null,
     height: h > 0 ? h : null,
     durationSeconds: entry.length > 5 ? entry[5] : null,
@@ -130,20 +147,22 @@ export function createAlbumItems(initialLinks?: ReadonlyMap<string, Link>) {
       }
       const blob = blobs.get(id);
       const name = renamed && renamed.ids.has(id) ? renamed.name : null;
+      const host = input.hostOwn?.has(id) ?? false;
       const prev = built.get(id);
       if (
         prev &&
         prev.entry === entry &&
         prev.link === link &&
         prev.blob === blob &&
-        prev.name === name
+        prev.name === name &&
+        prev.host === host
       ) {
         next.set(id, prev);
         out.push(prev.item);
         continue;
       }
-      const item = entryToItem(entry, link, blob, name);
-      next.set(id, { entry, link, blob, name, item });
+      const item = entryToItem(entry, link, blob, name, host);
+      next.set(id, { entry, link, blob, name, host, item });
       out.push(item);
     }
     built = next;
@@ -212,22 +231,38 @@ export function createReelItems() {
  * (`newIds`, `lib/shared/arrival.ts`, which the host's grid reads too); this reads the guest's two
  * shapes into ids and keeps the guest's own seed rule, below.
  *
- * ★ THE FIRST SNAPSHOT NEVER GLOWS. `prev` empty is the SEED (or an album that has not loaded yet: a
- * teaser's and a locked page's answers carry no entries by design, so the album that opens under a
- * mounted provider is not an arrival), where every id is new and none of it arrived: the album's own
- * entrance stagger is that moment's motion. Callers get an empty set, so there is no "everything lights
- * up on load" state to suppress downstream. This line is the guest's alone: the host's grid seeds its
- * own state from its first render, where an empty album is a real one.
+ * ★ THE ALBUM THAT APPEARS NEVER GLOWS. `prev` null is an answer that was no album (`albumOnScreen`: a
+ * teaser's and a locked page's answers carry no entries by design, and neither does an album before its
+ * first answer), so the album that opens under a mounted provider is not an arrival: every id is new and
+ * none of it arrived, and the album's own entrance stagger is that moment's motion. Callers get an empty
+ * set, so there is no "everything lights up on load" state to suppress downstream. (The seed render
+ * never asks at all: the provider's last snapshot starts as the seed.)
+ *
+ * ★ BUT A REAL ALBUM'S EMPTINESS IS REAL (crumbs-30, from crumbs-27): `prev` empty is an album that held
+ * nothing a moment ago, and its first photograph arrives and glows, as the host's grid (which seeds its
+ * own state from its first render) has always lit it. The rule read an EMPTY last snapshot once, which a
+ * real empty album is too, so a guest watching an empty album never saw its first photograph arrive.
  *
  * ★ IT IS NOT THE OPTIMISTIC TILE'S JOB EITHER. A guest's own upload has its landing beat (the sweep),
  * and `arrivalMarks` keeps the two marks apart: this one is for a photograph somebody ELSE put in.
  */
 export function newArrivalIds(
-  prev: readonly { id: string }[] | readonly ManifestEntry[],
+  prev: readonly { id: string }[] | readonly ManifestEntry[] | null,
   next: readonly { id: string }[] | readonly ManifestEntry[],
 ): Set<string> {
-  if (prev.length === 0) return new Set();
+  if (prev === null) return new Set();
   return newIds(prev.map(idOf), next.map(idOf));
+}
+
+/**
+ * What an answer put on screen AS AN ALBUM, for `newArrivalIds`' `prev`: a full album's entries, empty or
+ * not (`ready`), else null. A teaser's, a locked page's and an unanswered album's entries are empty by
+ * design and say nothing about what was there, so none of them is an album a photograph can arrive in.
+ */
+export function albumOnScreen(
+  answer: Pick<AlbumSnapshot, "status" | "entries">,
+): readonly ManifestEntry[] | null {
+  return answer.status === "ready" ? answer.entries : null;
 }
 
 /** An album snapshot's id, whichever shape it is kept in: an item's `id`, or a manifest entry's first slot. */

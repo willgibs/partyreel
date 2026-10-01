@@ -15,7 +15,6 @@ import {
   SAMPLE_MEDIA,
 } from "@/app/(dev)/design/reference/sample-data";
 import {
-  FilterChipsDemo,
   QrPresetPickerDemo,
   ReviewSectionDemo,
   StorageListDemo,
@@ -242,25 +241,6 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
       },
     ],
   },
-  {
-    id: "filter-chips",
-    family: "compositions",
-    section: "Dashboard chrome",
-    file: "src/components/app/dashboard/filter-chips.tsx",
-    title: "FilterChips",
-    // No variants axis: the chips come from FILTER_CHIPS in
-    // src/lib/dashboard/filters, so their values are not literals in this
-    // component's source and an axis here could not be checked against it.
-    lede: "The single feed's filter bar: a controlled segmented control rather than radix Tabs, because All shows three sections at once.",
-    specimens: [
-      {
-        label: "Filter chips",
-        hint: "dashboard · controlled",
-        node: <FilterChipsDemo />,
-      },
-    ],
-  },
-
   {
     id: "event-card-qr",
     family: "compositions",

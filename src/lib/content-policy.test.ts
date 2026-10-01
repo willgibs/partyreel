@@ -247,7 +247,14 @@ describe("content policy", () => {
     // trust-strip.tsx and ask-ai.ts each quote the retired literal verbatim
     // ("No app, no account.") in a JSDoc block to document the change, which is
     // history, not shipped copy - a narrow scan should not relitigate its own record.
-    const BANNED = /\bno apps?\b,?\s*(?:or|and)?\s*(?:no\s+)?account\b/i;
+    //
+    // The second pattern is the same promise in other words (the event pages' close said "Your
+    // guests need nothing but their phones." until crumbs-34): a guest who must confirm an email
+    // needs an inbox as well as a phone.
+    const BANNED = [
+      /\bno apps?\b,?\s*(?:or|and)?\s*(?:no\s+)?account\b/i,
+      /\bnothing but (?:their |a |your )?phones?\b/i,
+    ];
     const surfaces = [
       ...new Set([
         ...mdxFiles,
@@ -264,7 +271,7 @@ describe("content policy", () => {
         "",
       );
       withoutBlockComments.split("\n").forEach((line, i) => {
-        if (BANNED.test(line)) {
+        if (BANNED.some((re) => re.test(line))) {
           found.push(
             `${relative(ROOT, file)}:${i + 1}: "${line.trim().slice(0, 80)}"`,
           );
@@ -273,8 +280,9 @@ describe("content policy", () => {
     }
     expect(
       found,
-      `A line promises "no app" and "no account" together (never: a host may ` +
-        `require one). Say "No app required." instead:\n${found.join("\n")}`,
+      `A line promises "no app" and "no account" together, or that guests need ` +
+        `nothing but a phone (never: a host may require an email). Say "No app ` +
+        `required." instead:\n${found.join("\n")}`,
     ).toEqual([]);
   });
 });

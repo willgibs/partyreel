@@ -12,6 +12,10 @@
  * capture, and the host gallery would then have printed an unproved address beside an unverified
  * mark. That is the exact impersonation this guards against ("there's no impersonation risk if the host
  * can't see the attributed email of an unconfirmed account"), so case 3 now returns null always.
+ *
+ * ★ AND WHOSE FACE (crumbs-38): every identity names its `faceOwner` by the same cases, so the whole-shape
+ * assertions below carry it (reshaped on purpose: an identity is now a name, two flags, an address and whose
+ * face; the scars they hold are unchanged). The face's own rules are the describe at the foot.
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -49,6 +53,7 @@ describe("resolveUploaderIdentity", () => {
       email: null,
       isHost: true,
       isVerified: true,
+      faceOwner: { kind: "host" },
     });
   });
 
@@ -75,6 +80,7 @@ describe("resolveUploaderIdentity", () => {
       email: "alex@example.com",
       isHost: false,
       isVerified: true,
+      faceOwner: { kind: "account", accountId: "u1", guestId: "g1" },
     });
   });
 
@@ -88,6 +94,7 @@ describe("resolveUploaderIdentity", () => {
       email: null,
       isHost: false,
       isVerified: false,
+      faceOwner: null,
     });
   });
 
@@ -157,6 +164,7 @@ describe("resolveUploaderIdentity", () => {
       email: null,
       isHost: false,
       isVerified: false,
+      faceOwner: null,
     });
   });
 
@@ -197,6 +205,7 @@ describe("resolveUploaderIdentity", () => {
       email: null,
       isHost: false,
       isVerified: false,
+      faceOwner: null,
     });
   });
 
@@ -236,6 +245,7 @@ describe("resolveUploaderIdentity", () => {
       email: null,
       isHost: false,
       isVerified: true,
+      faceOwner: null,
     });
   });
 
@@ -250,5 +260,66 @@ describe("resolveUploaderIdentity", () => {
       HOST,
     );
     expect(out.email).toBe("alex@example.com");
+  });
+});
+
+describe("whose face a credit wears, by the same cases (crumbs-38)", () => {
+  it("the host's own upload wears the host's face, the byline's, only beside the host's name", () => {
+    const row: UploaderRow = { guest_id: null, guests: null };
+    expect(resolveUploaderIdentity(row, HOST).faceOwner).toEqual({
+      kind: "host",
+    });
+    // The byline shows only with a host name, so a nameless host shows no face anywhere.
+    expect(resolveUploaderIdentity(row, null).faceOwner).toBeNull();
+  });
+
+  it("a proved name wears its account's face, with the row it rides on", () => {
+    const out = resolveUploaderIdentity(
+      guest({
+        user_id: "u1",
+        verified_at: CONFIRMED,
+        profiles: { display_name: "Alex" },
+      }),
+      HOST,
+    );
+    expect(out.faceOwner).toEqual({
+      kind: "account",
+      accountId: "u1",
+      guestId: "g1",
+    });
+  });
+
+  it("★ a typed name wears no face, even with a real account behind it (user_id alone proves nothing)", () => {
+    // The face is a claim like the mark's absence: an unconfirmed sign-up's account must never lend its
+    // photograph to the name it typed.
+    const out = resolveUploaderIdentity(
+      guest({
+        user_id: "u1",
+        display_name: "Maya J.",
+        verified_at: null,
+        profiles: { display_name: "Alex" },
+      }),
+      HOST,
+    );
+    expect(out.faceOwner).toBeNull();
+  });
+
+  it("a deleted account's surviving upload, and a proved row with no name, wear nobody's face", () => {
+    expect(
+      resolveUploaderIdentity(
+        guest({ user_id: null, verified_at: CONFIRMED, profiles: null }),
+        HOST,
+      ).faceOwner,
+    ).toBeNull();
+    expect(
+      resolveUploaderIdentity(
+        guest({
+          user_id: "u1",
+          verified_at: CONFIRMED,
+          profiles: { display_name: null },
+        }),
+        HOST,
+      ).faceOwner,
+    ).toBeNull();
   });
 });

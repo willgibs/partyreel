@@ -8,6 +8,14 @@
  * flight is awaited, never asked twice. `get(id)` reads what is held, synchronously, and answers
  * nothing for a link past its expiry, so a caller can never draw a dead url.
  *
+ * ★ A BURST'S ASKS GO TOGETHER (crumbs-33, from `album-guest-wiring`). At most `MAX_IN_FLIGHT` requests
+ * are out at once; what is asked while every place is taken waits, and goes as ONE request when a place
+ * comes free, its NEWEST asks first. A held arrow key walking the 1,145-photo probe asked once a step, a
+ * request a step (1,092 of them), and the browser queued those behind its six connections to the host,
+ * so the photograph on screen waited behind every one walked past (1 to 6 s, 100 steps on). A request
+ * still out after `SLOT_TIMEOUT_MS` gives its place up (it still lands), so a stalled connection never
+ * holds the album's links.
+ *
  * ★ EACH LINK DATES ITSELF ON THIS DEVICE'S CLOCK. The server says which presign bucket it minted in
  * (`b`) and what its own clock read (`now`); the link's re-mint and expiry times are those offsets
  * added to this device's clock at receipt, so a phone whose clock is twenty minutes off re-mints on
@@ -61,7 +69,20 @@ export type LinkStoreOptions<Who> = {
   batchSize?: number;
   /** How many recently asked ids `refreshAged` keeps alive. */
   interestSize?: number;
+  /** Requests out at once (`MAX_IN_FLIGHT`; a test may change it). */
+  maxInFlight?: number;
+  /** How long a request holds its place before it gives it up (`SLOT_TIMEOUT_MS`). */
+  slotTimeoutMs?: number;
 };
+
+/**
+ * Requests out at once. Two, so one slow answer never stops the next ask (the viewer's step beside the window's
+ * scroll), and far under the six connections a browser opens to one host, which the album's own sync shares.
+ */
+export const MAX_IN_FLIGHT = 2;
+
+/** A request out this long is stalled, not slow (the route answers in well under a second): its place goes. */
+export const SLOT_TIMEOUT_MS = 8_000;
 
 export type LinkStore<Who> = {
   get(id: string): AlbumLink<Who> | undefined;
@@ -83,6 +104,15 @@ export type LinkStore<Who> = {
 
 const LINK_TTL_MS = STABLE_DOWNLOAD_TTL_SECONDS * 1000;
 
+/** The wait an `ensure` holds on a queued id, resolved when the request carrying it lands. */
+type Waiter = { promise: Promise<void>; resolve: () => void };
+
+function createWaiter(): Waiter {
+  let resolve: () => void = () => {};
+  const promise = new Promise<void>((r) => (resolve = r));
+  return { promise, resolve };
+}
+
 export function createLinkStore<Who>(
   opts: LinkStoreOptions<Who>,
 ): LinkStore<Who> {
@@ -92,6 +122,8 @@ export function createLinkStore<Who>(
     Math.min(opts.batchSize ?? ALBUM_MEDIA_MAX_IDS, ALBUM_MEDIA_MAX_IDS),
   );
   const interestSize = opts.interestSize ?? 600;
+  const maxInFlight = Math.max(1, opts.maxInFlight ?? MAX_IN_FLIGHT);
+  const slotTimeoutMs = opts.slotTimeoutMs ?? SLOT_TIMEOUT_MS;
 
   const links = new Map<string, AlbumLink<Who>>();
   const missing = new Set<string>();
@@ -102,9 +134,14 @@ export function createLinkStore<Who>(
   let attr = 0;
   let rev = 0;
 
-  /** Ids asked for in this tick, flushed together. */
-  let queued = new Set<string>();
-  let flush: Promise<void> | null = null;
+  /**
+   * Ids asked for and not yet sent, oldest ask first (re-asking moves one to the end), each with the wait its
+   * `ensure` holds until the request carrying it lands.
+   */
+  const queued = new Map<string, Waiter>();
+  /** Requests holding a place (one that stalls gives its place up: `slotTimeoutMs`). */
+  let active = 0;
+  let pumpScheduled = false;
 
   function emit() {
     rev += 1;
@@ -171,28 +208,67 @@ export function createLinkStore<Who>(
     if (gone.length > 0) opts.onMissing?.(gone);
   }
 
-  function schedule(): Promise<void> {
-    if (flush) return flush;
-    flush = Promise.resolve().then(async () => {
-      const ids = [...queued];
-      queued = new Set();
-      flush = null;
-      const at = now();
-      const ask = ids.filter((id) => needs(id, at));
-      const batches: Promise<void>[] = [];
-      for (let i = 0; i < ask.length; i += batchSize) {
-        const batch = ask.slice(i, i + batchSize);
-        const done = request(batch).finally(() => {
-          for (const id of batch) {
-            if (inflight.get(id) === done) inflight.delete(id);
-          }
-        });
-        for (const id of batch) inflight.set(id, done);
-        batches.push(done);
-      }
-      await Promise.all(batches);
+  function schedule() {
+    if (pumpScheduled) return;
+    pumpScheduled = true;
+    // The same tick's asks share one request: the pump runs once the tick's calls are all in.
+    void Promise.resolve().then(() => {
+      pumpScheduled = false;
+      pump();
     });
-    return flush;
+  }
+
+  /** Queue an id for the next request (or move it to the newest end), and answer the wait its `ensure` holds. */
+  function enqueue(id: string): Promise<void> {
+    const held = queued.get(id);
+    if (held) queued.delete(id);
+    const waiter = held ?? createWaiter();
+    queued.set(id, waiter);
+    return waiter.promise;
+  }
+
+  /**
+   * Send what waits, while a place is free: the newest asks first, at most `batchSize` a request. Called once a
+   * tick's asks are in, and again the moment a request gives its place up, so whatever a burst asked meanwhile
+   * goes as one request rather than one a step.
+   */
+  function pump() {
+    const at = now();
+    for (const [id, waiter] of queued) {
+      // Since it was asked: sent with another ask, fetched, or reported missing.
+      const pending = inflight.get(id);
+      if (pending) {
+        queued.delete(id);
+        void pending.then(waiter.resolve);
+      } else if (!needs(id, at)) {
+        queued.delete(id);
+        waiter.resolve();
+      }
+    }
+    while (active < maxInFlight && queued.size > 0) {
+      // The newest ids, kept in the order they were asked.
+      const batch = [...queued.keys()].slice(-batchSize);
+      const waiters = batch.map((id) => queued.get(id)!);
+      for (const id of batch) queued.delete(id);
+      active += 1;
+      let holding = true;
+      const giveUpPlace = () => {
+        if (!holding) return;
+        holding = false;
+        active -= 1;
+        pump();
+      };
+      const stalled = setTimeout(giveUpPlace, slotTimeoutMs);
+      const done: Promise<void> = request(batch).finally(() => {
+        clearTimeout(stalled);
+        for (const id of batch) {
+          if (inflight.get(id) === done) inflight.delete(id);
+        }
+        for (const waiter of waiters) waiter.resolve();
+        giveUpPlace();
+      });
+      for (const id of batch) inflight.set(id, done);
+    }
   }
 
   const store: LinkStore<Who> = {
@@ -205,13 +281,14 @@ export function createLinkStore<Who>(
     async ensure(ids) {
       if (ids.length === 0) return;
       remember(ids);
+      const at = now();
       const waits = new Set<Promise<void>>();
       for (const id of ids) {
         const pending = inflight.get(id);
         if (pending) waits.add(pending);
-        else queued.add(id);
+        else if (needs(id, at)) waits.add(enqueue(id));
       }
-      waits.add(schedule());
+      if (queued.size > 0) schedule();
       await Promise.all(waits);
     },
 

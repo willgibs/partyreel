@@ -105,10 +105,12 @@ describe("the button", () => {
     expect(global.fetch).toHaveBeenCalledTimes(1);
     const [url, init] = vi.mocked(global.fetch).mock.calls[0];
     expect(url).toBe("/api/guests/mine");
+    // `tell` (crumbs-38): every read of hers also asks for her news, and marks it told.
     expect(JSON.parse((init as RequestInit).body as string)).toEqual({
       qr_token: QR,
       session_token: TOKEN,
       statuses: true,
+      tell: true,
     });
   });
 
@@ -337,6 +339,79 @@ describe("the list", () => {
     expect(JSON.parse((init as RequestInit).body as string)).toEqual({
       qr_token: QR,
       statuses: true,
+      tell: true,
     });
+  });
+});
+
+/**
+ * ★ HER NEWS, HANDED TO THE TOAST (crumbs-38, the approval toast's server half). Every read of hers asks `tell`; the
+ * ids the server answers as news land in the store's own news channel, once each, where the album's approval toast
+ * reads them, and the button never re-renders for it. A failed read hands nothing (and is marked nothing).
+ */
+describe("her news", () => {
+  function answer(body: Record<string, unknown>) {
+    vi.mocked(global.fetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ ok: true, ...body }),
+    } as Response);
+  }
+
+  it("★ the server's news lands in the store, once each, across the visit's reads", async () => {
+    answer({ items: [{ id: "m1", status: "approved" }], news: ["m1"] });
+    const { store, rerender } = mount();
+    await waitFor(() => expect(store.news.get()).toEqual(["m1"]));
+    // A later read (its opening) answering the same and one more adds only the new one.
+    answer({
+      items: [
+        { id: "m1", status: "approved" },
+        { id: "m2", status: "approved" },
+      ],
+      news: ["m2", "m1"],
+    });
+    rerender(
+      <>
+        <UploadTrackerButton store={store} onOpen={() => {}} />
+        <UploadTracker
+          store={store}
+          queue={[]}
+          qrToken={QR}
+          sessionToken={TOKEN}
+          isAuthed={false}
+          moderated
+          isDemo={false}
+          isOwner={false}
+          removedIds={new Set()}
+          open
+          onOpenChange={() => {}}
+        />
+      </>,
+    );
+    await waitFor(() => expect(store.news.get()).toEqual(["m1", "m2"]));
+  });
+
+  it("a failed read, or one with no news, hands nothing", async () => {
+    vi.mocked(global.fetch).mockResolvedValue({ ok: false } as Response);
+    const { store } = mount();
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    expect(store.news.get()).toEqual([]);
+    answer({ items: [{ id: "m1", status: "approved" }] });
+    const second = mount();
+    await waitFor(() => expect(tracker()).not.toBeNull());
+    expect(second.store.news.get()).toEqual([]);
+  });
+
+  it("the store tells its listeners only when the news grows", () => {
+    const store = createUploadTrackerStore();
+    const heard = vi.fn();
+    store.news.subscribe(heard);
+    store.news.add([]);
+    store.news.add(["m1"]);
+    store.news.add(["m1"]);
+    expect(heard).toHaveBeenCalledTimes(1);
+    const before = store.news.get();
+    store.news.add(["m1"]);
+    // The same list object while nothing changed: a reader's snapshot holds still.
+    expect(store.news.get()).toBe(before);
   });
 });

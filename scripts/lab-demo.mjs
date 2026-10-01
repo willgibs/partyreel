@@ -110,6 +110,16 @@
  * frame's name and caption beside its option, so a lane reads them here or on
  * the whole board.
  *
+ * ★ A STALL SAYS WHAT IT WAITS ON (demo-stall, 2026-09-30). "Page.navigate did
+ * not answer" failed three gates in five and named nothing, so its cause was
+ * guessed (a busy renderer) for a week. It was the network: six image requests
+ * the dev server never answered held every connection Chrome opens to one
+ * server over HTTP/1.1, and the next navigation queued behind them without
+ * leaving the browser. So a TIMED OUT row now says whether the navigation's
+ * own request went out, which requests the server is holding and for how long,
+ * how many wait behind them, how busy the renderers are, and whether the server
+ * answers a new connection (`waitingOn`).
+ *
  * It presses the options' tabs only, and never the one already shown (a
  * second press PICKS), never a Copy button (that writes the OS clipboard), and
  * it runs in its own throwaway Chrome profile, so it touches no reviewer's held
@@ -369,6 +379,14 @@ const chrome = spawn(
     "--hide-scrollbars",
     "--no-first-run",
     "--no-default-browser-check",
+    // ★ A PAGE LEFT IS A PAGE GONE (demo-stall, 2026-09-30). This run never
+    // goes back, so the back/forward cache could only ever keep a page it left
+    // alive, and it did, with its requests: on a server that never answered six
+    // image sizes, a step's last page kept all six of Chrome's connections to
+    // the server for a minute after it was left, and the next step's navigation
+    // waited behind them (netlog: sent 10.3 s, cancelled 108.2 s, 60 s after the
+    // page was left; with this flag the same run on the same server passes).
+    "--disable-features=BackForwardCache",
     `--window-size=${W},${H}`,
     "about:blank",
   ],
@@ -386,14 +404,14 @@ class Stalled extends Error {}
  * simply never comes, the process sits at zero CPU, and the only cure is a
  * person with a clock (see `--call-timeout`).
  */
-function send(ws, method, params = {}) {
+function send(ws, method, params = {}, ceiling = callTimeout) {
   return new Promise((resolve, reject) => {
     const id = ++seq;
     const timer = setTimeout(() => {
       if (!pending.has(id)) return;
       pending.delete(id);
-      reject(new Stalled(`${method} did not answer in ${callTimeout}ms`));
-    }, callTimeout);
+      reject(new Stalled(`${method} did not answer in ${ceiling}ms`));
+    }, ceiling);
     pending.set(id, {
       resolve: (v) => {
         clearTimeout(timer);
@@ -407,6 +425,77 @@ function send(ws, method, params = {}) {
     ws.send(JSON.stringify({ id, method, params }));
   });
 }
+// ── What the page has open, so a stall can name what it waits on ─────────
+/**
+ * Every request the page and its frames have open, by DevTools id: where it
+ * goes, whether it went out on a connection (`requestWillBeSentExtraInfo`,
+ * which a request queued inside Chrome or served from its cache never gets)
+ * and whether any answer came back. A document's requests leave with it, and
+ * DevTools does not always say so, so a new document drops its predecessor's.
+ */
+const open = new Map();
+/** A request's "sent" can arrive before the request itself; its moment waits here. */
+const sentEarly = new Map();
+/** The page's own frame, whose Document requests are its navigations. */
+let mainFrame = null;
+/** The browser's own session: the renderers' CPU, which no page call can read mid-navigation. */
+let browserWs = null;
+
+function track(method, p) {
+  if (method === "Page.loadEventFired") loaded = true;
+  else if (method === "Network.requestWillBeSent") {
+    // A redirect re-sends the same id: its new hop has not gone out yet.
+    open.set(p.requestId, {
+      url: p.request.url,
+      type: p.type,
+      frame: p.frameId,
+      loader: p.loaderId,
+      since: Date.now(),
+      // When it went out on a connection, if it has (`sent` below).
+      sentAt: sentEarly.get(p.requestId) ?? null,
+      answered: false,
+    });
+    sentEarly.delete(p.requestId);
+  } else if (method === "Network.requestWillBeSentExtraInfo") {
+    const r = open.get(p.requestId);
+    if (r) r.sentAt ??= Date.now();
+    else sentEarly.set(p.requestId, Date.now());
+  } else if (method === "Network.responseReceived") {
+    const r = open.get(p.requestId);
+    if (r) r.answered = true;
+  } else if (
+    method === "Network.loadingFinished" ||
+    method === "Network.loadingFailed"
+  )
+    open.delete(p.requestId);
+  else if (method === "Page.frameNavigated") {
+    if (!p.frame.parentId) {
+      mainFrame = p.frame.id;
+      sentEarly.clear();
+    }
+    for (const [id, r] of open)
+      if (
+        (!p.frame.parentId || r.frame === p.frame.id) &&
+        r.loader !== p.frame.loaderId
+      )
+        open.delete(id);
+  } else if (method === "Page.frameDetached")
+    for (const [id, r] of open) if (r.frame === p.frameId) open.delete(id);
+}
+
+/** Replies to their callers, events to `track`. */
+function listen(ws) {
+  ws.onmessage = (m) => {
+    const msg = JSON.parse(m.data);
+    if (msg.id && pending.has(msg.id)) {
+      const p = pending.get(msg.id);
+      pending.delete(msg.id);
+      if (msg.error) p.reject(new Error(msg.error.message));
+      else p.resolve(msg.result);
+    } else if (msg.method) track(msg.method, msg.params);
+  };
+}
+
 async function connect() {
   for (let i = 0; i < 80; i++) {
     try {
@@ -417,15 +506,13 @@ async function connect() {
       if (page) {
         const ws = new WebSocket(page.webSocketDebuggerUrl);
         await new Promise((r) => (ws.onopen = r));
-        ws.onmessage = (m) => {
-          const msg = JSON.parse(m.data);
-          if (msg.id && pending.has(msg.id)) {
-            const p = pending.get(msg.id);
-            pending.delete(msg.id);
-            if (msg.error) p.reject(new Error(msg.error.message));
-            else p.resolve(msg.result);
-          } else if (msg.method === "Page.loadEventFired") loaded = true;
-        };
+        listen(ws);
+        const { webSocketDebuggerUrl } = await (
+          await fetch(`http://127.0.0.1:${port}/json/version`)
+        ).json();
+        browserWs = new WebSocket(webSocketDebuggerUrl);
+        await new Promise((r) => (browserWs.onopen = r));
+        listen(browserWs);
         return ws;
       }
     } catch {
@@ -434,6 +521,162 @@ async function connect() {
     await sleep(150);
   }
   throw new Error("Chrome never opened its debugging port");
+}
+
+/** A URL as a row prints it: the origin and the key dropped, an image's source decoded. */
+function shortUrl(u) {
+  try {
+    const url = new URL(u);
+    url.searchParams.delete("key");
+    const q = url.searchParams.toString();
+    return decodeURIComponent(`${url.pathname}${q ? `?${q}` : ""}`);
+  } catch {
+    return u;
+  }
+}
+
+/**
+ * The page's open requests to the server under test: its own navigation, the
+ * requests the server has and has not answered (the longest held first), and
+ * the ones queued inside Chrome for a connection.
+ */
+function openToServer() {
+  const host = new URL(base).host;
+  const ours = [...open.values()].filter((r) => {
+    try {
+      return new URL(r.url).host === host;
+    } catch {
+      return false;
+    }
+  });
+  const nav = ours
+    .filter((r) => r.type === "Document" && r.frame === mainFrame)
+    .at(-1);
+  const rest = ours.filter((r) => r !== nav && !r.answered);
+  const held = rest
+    .filter((r) => r.sentAt !== null)
+    .sort((a, b) => a.sentAt - b.sentAt);
+  const queued = rest.filter((r) => r.sentAt === null);
+  return { host, nav, held, queued };
+}
+
+/** How long ago a moment was, as a row says it. */
+const ago = (t) => `${Math.round((Date.now() - t) / 1000)}s`;
+
+/** Requests the server holds, as lines: how many and for how long, then each URL once with its count. */
+function heldLines(held, host) {
+  const groups = new Map();
+  for (const r of held)
+    groups.set(shortUrl(r.url), (groups.get(shortUrl(r.url)) ?? 0) + 1);
+  const images = held.every((r) => new URL(r.url).pathname === "/_next/image");
+  return [
+    `${held.length} request${held.length === 1 ? "" : "s"} to ${host} went out and ${held.length === 1 ? "has" : "have"} no answer, the oldest for ${ago(held[0].sentAt)}` +
+      // ★ SIX IS CHROME'S CEILING PER SERVER over HTTP/1.1 (a dev server and
+      // `next start` speak nothing else), so six held is a dead origin for
+      // this browser: every later request, a navigation included, waits.
+      (held.length >= 6
+        ? ", which is every connection Chrome opens to one server"
+        : "") +
+      (images
+        ? ": every one a /_next/image (an image optimizer that never answers a size: testing-verification.md)"
+        : ""),
+    ...[...groups]
+      .slice(0, 8)
+      .map(([u, n]) => `  ${u}${n > 1 ? ` (x${n})` : ""}`),
+    ...(groups.size > 8 ? [`  and ${groups.size - 8} more`] : []),
+  ];
+}
+
+/**
+ * ★ AND A PICTURE THE SERVER STARVED SAYS SO. With pages left through
+ * about:blank and the back/forward cache off, a server that never answers a
+ * size no longer stalls the walk, so the same fault would pass unseen, its
+ * frames captured without those images (`about-press.kit` read 44.61 percent
+ * apart with its band's share card unanswered, 45.05 whole). A step whose page
+ * still has requests unanswered past the capture's ceiling prints them under
+ * its row: not a failure, since the board may be perfect, but pictures nobody
+ * should trust until the server is restarted.
+ */
+function starved() {
+  const { host, held } = openToServer();
+  const late = held.filter((r) => Date.now() - r.sentAt > settleMax);
+  return late.length ? heldLines(late, host) : [];
+}
+
+/**
+ * ★ WHAT A STALLED CALL WAITS ON, as evidence, never a guess. Nothing here
+ * asks the page: while a page's own navigation is pending DevTools holds every
+ * call that needs its renderer until the navigation commits (measured: an
+ * evaluate unanswered for 3 s on a renderer at 0% CPU), so an unanswered
+ * evaluate says nothing about the main thread. The renderers' CPU comes from
+ * the browser's own session, the requests from what `track` saw, and the
+ * server's health from a fetch of the step's URL on a connection of its own.
+ */
+async function waitingOn(stepUrl, stalled) {
+  const { host, nav, held, queued } = openToServer();
+  const lines = [];
+  if (nav)
+    lines.push(
+      nav.sentAt === null
+        ? `the navigation's request never left Chrome (${ago(nav.since)})`
+        : nav.answered
+          ? "the navigation's request was answered, its document never loaded"
+          : `the server has had the navigation's request ${ago(nav.sentAt)} and not answered it`,
+    );
+  else if (stalled.startsWith("Page.navigate"))
+    // No request at all: the page being left has not let the navigation go.
+    lines.push(
+      "the navigation never asked for its page: the page being left has not let it go (a beforeunload, or a busy main thread)",
+    );
+  if (held.length) lines.push(...heldLines(held, host));
+  if (queued.length)
+    lines.push(
+      `${queued.length} more request${queued.length === 1 ? "" : "s"} to ${host} wait inside Chrome for a connection`,
+    );
+  if (!nav && !held.length && !queued.length)
+    lines.push(`no request to ${host} is open`);
+  // The renderers: CPU seconds read twice, a second apart.
+  try {
+    const cpu = async () =>
+      Object.fromEntries(
+        (
+          await send(browserWs, "SystemInfo.getProcessInfo", {}, 5000)
+        ).processInfo
+          .filter((p) => p.type === "renderer")
+          .map((p) => [p.id, p.cpuTime]),
+      );
+    const a = await cpu();
+    await sleep(1000);
+    const b = await cpu();
+    const busiest = Math.max(
+      0,
+      ...Object.keys(b).map((id) => b[id] - (a[id] ?? b[id])),
+    );
+    lines.push(
+      busiest > 0.5
+        ? `a renderer is busy: ${Math.round(busiest * 100)}% of a core over a second`
+        : `the renderers are idle (the busiest at ${(busiest * 100).toFixed(1)}% of a core over a second)`,
+    );
+  } catch {
+    lines.push("the renderers' CPU could not be read");
+  }
+  // The server, on a connection of its own.
+  const t = Date.now();
+  try {
+    const r = await fetch(stepUrl, {
+      redirect: "manual",
+      signal: AbortSignal.timeout(10_000),
+    });
+    await r.arrayBuffer();
+    lines.push(
+      `the server answers the step's URL on a new connection in ${Date.now() - t}ms (${r.status})`,
+    );
+  } catch {
+    lines.push(
+      "the server does not answer the step's URL on a new connection either (10s)",
+    );
+  }
+  return lines;
 }
 
 async function evaluate(ws, expression) {
@@ -449,11 +692,41 @@ async function evaluate(ws, expression) {
   return r.result.value;
 }
 
-async function go(ws, url) {
+/** The window and the media the page is drawn in now (serialized), so a page asking for the same goes straight there. */
+let drawn = { metrics: "", media: "" };
+
+/**
+ * ★ LEAVE, THEN RESIZE (demo-stall, 2026-09-30). The window used to be resized
+ * on the page it was about to leave: the stage re-fitted every frame to the new
+ * width, every photograph's srcset chose a new size, and some seventy image
+ * requests went out for sizes the dev server had never made, only for the
+ * navigation to cancel them 130 ms later. Work thrown away at best; at worst
+ * (Next 16.2's dev image optimizer, testing-verification.md) a size cancelled
+ * that early was never answered again, six of those held every connection
+ * Chrome opens to the server, and the next step's navigation never left the
+ * browser: `about-press.facts`, three gates in five. So a new window or media
+ * is set on about:blank, between the two pages, where nothing is drawn to
+ * re-fit, and the page it was asked for loads in it from its first frame.
+ */
+async function go(ws, url, { metrics, media } = {}) {
+  const m = metrics ? JSON.stringify(metrics) : drawn.metrics;
+  const e = media ? JSON.stringify(media) : drawn.media;
+  if (m !== drawn.metrics || e !== drawn.media) {
+    await load(ws, "about:blank");
+    if (m !== drawn.metrics)
+      await send(ws, "Emulation.setDeviceMetricsOverride", metrics);
+    if (e !== drawn.media)
+      await send(ws, "Emulation.setEmulatedMedia", { features: media });
+    drawn = { metrics: m, media: e };
+  }
+  await load(ws, url);
+  await sleep(1200);
+}
+
+async function load(ws, url) {
   loaded = false;
   await send(ws, "Page.navigate", { url });
   for (let i = 0; i < 300 && !loaded; i++) await sleep(100);
-  await sleep(1200);
 }
 
 // In the page: the dock's pictured options, each option's view, and the step's frame.
@@ -782,6 +1055,8 @@ const MEDIA_MOVING = [
   { name: "prefers-color-scheme", value: "dark" },
   { name: "prefers-reduced-motion", value: "no-preference" },
 ];
+/** The window the pictures are taken in (see `H`). */
+const PICTURES = { width: W, height: H, deviceScaleFactor: 1, mobile: PHONE };
 
 const rows = [];
 let failed = 0;
@@ -793,16 +1068,19 @@ try {
   const ws = await connect();
   await send(ws, "Page.enable");
   await send(ws, "Runtime.enable");
-  await send(ws, "Emulation.setDeviceMetricsOverride", {
-    width: W,
-    height: H,
-    deviceScaleFactor: 1,
-    mobile: PHONE,
+  mainFrame = (await send(ws, "Page.getFrameTree")).frameTree.frame.id;
+  // Every request's comings and goings, for a stall to name (`waitingOn`);
+  // the bodies are never read, so almost nothing is buffered.
+  await send(ws, "Network.enable", {
+    maxTotalBufferSize: 1_000_000,
+    maxResourceBufferSize: 100_000,
   });
-  await send(ws, "Emulation.setEmulatedMedia", { features: MEDIA_STILL });
 
   // The open steps, from the desk itself.
-  await go(ws, withKey("/design/lab"));
+  await go(ws, withKey("/design/lab"), {
+    metrics: PICTURES,
+    media: MEDIA_STILL,
+  });
   const steps = await evaluate(
     ws,
     `[...new Set([...document.querySelectorAll('a[href*="session="]')]
@@ -846,11 +1124,10 @@ try {
       rows.push({ step, verdict: "TIMED OUT", note: boardBlown });
       continue;
     }
+    const url = withKey(
+      `/design/lab/${boardId}?session=${encodeURIComponent(step)}${STATES.map((s) => `&${s}`).join("")}`,
+    );
     try {
-      const url = withKey(
-        `/design/lab/${boardId}?session=${encodeURIComponent(step)}${STATES.map((s) => `&${s}`).join("")}`,
-      );
-
       // ── THE LAYOUT, on the two screens he reads on: 1440x900 and 375x812 ─
       const layout = [];
       /** Per screen: where its stage starts, and the least room any option's frames leave above the dock. */
@@ -860,13 +1137,15 @@ try {
       let skipped = false;
       for (const screen of REACH_SCREENS) {
         const at = `${screen.w}`;
-        await send(ws, "Emulation.setDeviceMetricsOverride", {
-          width: screen.w,
-          height: screen.h,
-          deviceScaleFactor: 1,
-          mobile: screen.mobile,
+        await go(ws, url, {
+          metrics: {
+            width: screen.w,
+            height: screen.h,
+            deviceScaleFactor: 1,
+            mobile: screen.mobile,
+          },
+          media: MEDIA_STILL,
         });
-        await go(ws, url);
         await evaluate(ws, PAGE_LIB);
         const g = await evaluate(ws, "window.__labDemo.geo()");
         const n = await evaluate(ws, "window.__labDemo.options().length");
@@ -965,13 +1244,7 @@ try {
         .join(" · ");
 
       // ── THE PICTURES, in a window tall enough to hold a whole option ─────
-      await send(ws, "Emulation.setDeviceMetricsOverride", {
-        width: W,
-        height: H,
-        deviceScaleFactor: 1,
-        mobile: PHONE,
-      });
-      await go(ws, url);
+      await go(ws, url, { metrics: PICTURES, media: MEDIA_STILL });
       await evaluate(ws, PAGE_LIB);
       // One capture before anything is measured, so the first is not of a
       // stage that is still mounting its frame or drawing its first reading.
@@ -1014,12 +1287,15 @@ try {
             ),
           );
       }
+      // What the server still owes the page the pictures were taken on.
+      const unanswered = starved();
       if (shots.length < 2) {
         rows.push({
           step,
           geo,
           verdict: "skip",
           note: "the stage could not be captured",
+          unanswered,
         });
         continue;
       }
@@ -1049,11 +1325,9 @@ try {
       let how = `the stage moves by up to ${max.toFixed(2)}%`;
       if (!ok && !unpainted) {
         // Still pictures that match may be a question about motion: read what
-        // each option declares, with motion allowed.
-        await send(ws, "Emulation.setEmulatedMedia", {
-          features: MEDIA_MOVING,
-        });
-        await go(ws, url);
+        // each option declares, with motion allowed (the next step's `go`
+        // puts the stillness back).
+        await go(ws, url, { metrics: PICTURES, media: MEDIA_MOVING });
         await evaluate(ws, PAGE_LIB);
         const motions = [];
         for (let i = 0; i < count; i++) {
@@ -1066,7 +1340,6 @@ try {
             ),
           );
         }
-        await send(ws, "Emulation.setEmulatedMedia", { features: MEDIA_STILL });
         if (new Set(motions).size > 1) {
           ok = true;
           how =
@@ -1088,6 +1361,7 @@ try {
         geo,
         layout,
         unpainted,
+        unanswered,
         verdict: broken
           ? first
           : unpainted
@@ -1106,23 +1380,25 @@ try {
         }; ${reachNote}`,
       });
     } catch (error) {
-      // A stalled call or a dead page: record it, drop the rest of this
-      // board, put the tab somewhere harmless, and walk on.
+      // A stalled call or a dead page: record it with what it waited on, drop
+      // the rest of this board, put the tab somewhere harmless, and walk on.
       failed++;
-      boardBlown =
-        error instanceof Stalled
-          ? `${error.message}; the rest of ${boardId} was not pressed`
-          : `${error.message ?? error}; the rest of ${boardId} was not pressed`;
+      boardBlown = `${error.message ?? error}; the rest of ${boardId} was not pressed`;
+      const why =
+        error instanceof Stalled ? await waitingOn(url, error.message) : [];
       rows.push({
         step,
         verdict: error instanceof Stalled ? "TIMED OUT" : "ERROR",
         note: boardBlown,
+        why,
       });
       try {
         await send(ws, "Page.navigate", { url: "about:blank" });
       } catch {
         // The page is gone; the next board's navigate will say so.
       }
+      // Whatever the stall left, the next page is drawn from a known window.
+      drawn = { metrics: "", media: "" };
     }
   }
   ws.close();
@@ -1148,6 +1424,16 @@ for (const r of rows) {
   );
   for (const finding of r.layout ?? [])
     console.log(`${" ".repeat(pad)}  ${finding}`);
+  // What the server never answered while the pictures were taken (`starved`).
+  for (const [i, line] of (r.unanswered ?? []).entries())
+    console.log(
+      `${" ".repeat(pad)}  ${i === 0 ? "UNANSWERED: " : "  "}${line}`,
+    );
+  // A stall's evidence, under its row: what the call was waiting on.
+  for (const [i, line] of (r.why ?? []).entries())
+    console.log(
+      `${" ".repeat(pad)}  ${i === 0 ? "WAITING ON: " : "  "}${line}`,
+    );
 }
 /**
  * ★ "SKIPPED" IS A COST, NOT AN EXEMPTION. A skipped step is one with nothing

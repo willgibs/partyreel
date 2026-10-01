@@ -14,6 +14,7 @@
  * ("Remove and switch") while anything is only selected, and switches once nothing is.
  */
 import type { StorageItem } from "@/lib/db/queries/storage-list";
+import { formatKindCount } from "@/lib/format/count";
 
 /** The list's name, on its head and its rows' group, in the shell and the body alike. */
 export const LIST_TITLE = "What’s using space";
@@ -117,14 +118,22 @@ export function goalStep(count: GoalCount): GoalStep {
 }
 
 /**
+ * Where her own plan's goal stands (the over-cap banner's door): nothing yet, enough only selected
+ * (the bar's Remove to Deleted finishes it), or enough freed. No step switches anything.
+ */
+export type FitStep = "counting" | "remove" | "fits";
+
+export function fitStep(count: GoalCount): FitStep {
+  if (!count.done) return "counting";
+  return count.pending > 0 ? "remove" : "fits";
+}
+
+/**
  * A selection's name, for the toast and the bar: "3 photos", "1 video", "4 items" for a mix.
  * "Items", not the Review room's "uploads", because the list is also the host's own files.
  */
 export function itemsWords(items: readonly Pick<Picked, "type">[]): string {
-  const n = items.length;
-  const videos = items.filter((i) => i.type === "video").length;
-  const noun = videos === 0 ? "photo" : videos === n ? "video" : "item";
-  return `${n.toLocaleString("en-US")} ${noun}${n === 1 ? "" : "s"}`;
+  return formatKindCount(items, "item");
 }
 
 /** A video's length, the way a player reads it: 0:42, 12:07, 1:02:07. */

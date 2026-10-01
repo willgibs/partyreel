@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { cache } from "react";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 
+import { adminNotFoundMetadata } from "@/app/admin/not-found.metadata";
+import { AdminNotFoundPageScreen } from "@/app/admin/not-found.screen";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -17,12 +19,30 @@ import { getAccountDeletionState } from "@/lib/lifecycle/account-deletion";
 import { formatAdminDate, formatAdminTimestamp } from "@/lib/format/admin-time";
 import { formatCount } from "@/lib/format/count";
 import { formatBytes } from "@/lib/utils";
+import { isUuidShape } from "@/lib/validation/uuid-shape";
 import { PageHeading } from "@/components/shared/page-heading";
 import { DeleteAccountControl } from "./delete-account-control";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = { title: "Account" };
+/** The account, read once a request for the page and its title (React's cache shares it within the render). */
+const readAccount = cache(getAccountDetail);
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  // The title reads the record, so it passes the portal's gate first, as the page does (the album page says why).
+  const ctx = await requireAdmin();
+  if (ctx.aal !== "aal2") return { title: "Account" };
+  const { id } = await params;
+  // ★ A record that is gone is titled as the 404 it is (crumbs-28): the page draws its not-found itself. So is an id
+  // that is not one, which is never read (the album page says why).
+  return isUuidShape(id) && (await readAccount(id))
+    ? { title: "Account" }
+    : adminNotFoundMetadata;
+}
 
 function Row({
   label,
@@ -48,8 +68,10 @@ export default async function AdminAccountDetailPage({
   if (ctx.aal !== "aal2") return null;
 
   const { id } = await params;
-  const account = await getAccountDetail(id);
-  if (!account) notFound();
+  // An id that is not one names no account and is never read (build 33's red-team); drawn here, never thrown. The
+  // album page says why of both (crumbs-28).
+  const account = isUuidShape(id) ? await readAccount(id) : null;
+  if (!account) return <AdminNotFoundPageScreen />;
   const deletion = await getAccountDeletionState(id);
 
   const { profile } = account;
@@ -67,6 +89,7 @@ export default async function AdminAccountDetailPage({
     <div className="max-w-2xl space-y-6">
       <Link
         href="/admin/accounts"
+        prefetch={false}
         className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
       >
         <ArrowLeft className="size-4" />

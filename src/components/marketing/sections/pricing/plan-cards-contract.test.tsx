@@ -7,6 +7,7 @@ import {
   friendlyCapacity,
   plansForTier,
 } from "@/lib/constants/tiers";
+import { formatCount } from "@/lib/format/count";
 import { formatBytes } from "@/lib/utils";
 
 import { PlanPair } from "./plan-cards";
@@ -98,7 +99,7 @@ describe("the Pro card's size control", () => {
       .toBeGreaterThan(0);
     expect(
       within(card).getByText(
-        `≈ ${friendlyCapacity(top.storageBytes).photos.toLocaleString()}`,
+        `≈ ${formatCount(friendlyCapacity(top.storageBytes).photos)}`,
       ),
     ).toBeTruthy();
     expect(

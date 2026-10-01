@@ -62,6 +62,7 @@ export function HealthBand({ health }: { health: JobHealthReport }) {
       )}
       <Link
         href="/admin/jobs"
+        prefetch={false}
         className="ml-auto shrink-0 font-medium underline decoration-border underline-offset-4 transition-colors duration-150 hover:decoration-foreground"
       >
         Open the console

@@ -19,7 +19,10 @@ import {
 } from "@/components/social/guest-list";
 import { isLikelyBot } from "@/lib/analytics/bots";
 import { recordLinkHit } from "@/lib/db/mutations/analytics";
-import { listAccountMediaIds } from "@/lib/db/mutations/guest-media";
+import {
+  listAccountMediaIds,
+  listOwnerMediaIds,
+} from "@/lib/db/mutations/guest-media";
 import {
   getGalleryStats,
   getHostAvatarSeed,
@@ -31,6 +34,7 @@ import {
   getEventGuestList,
   getHostCard,
   getMyFollowing,
+  isFollowing,
 } from "@/lib/db/queries/social";
 import { splitGuestList, withAvatarUrls } from "@/lib/social/cards";
 import { isDemoToken } from "@/lib/demo";
@@ -464,10 +468,15 @@ export default async function GuestEventPage({
   // identity is a session token in the browser's own storage, so LiveGallery
   // asks `/api/guests/mine` for it. Skipped at access `none` (there is nothing
   // rendered to remove) and in the demo (nothing there is real).
+  // ★ THE ALBUM'S OWNER IS NEVER HER OWN GUEST (crumbs-32): her own here are the
+  // host's uploads, no guest row behind them, so hers is the host's read, and
+  // each Delete goes to her Deleted, as the hub's would.
   const [stats, canDeleteIds] = await Promise.all([
     getGalleryStats(event),
     userId && !isDemo && access !== "none"
-      ? listAccountMediaIds({ eventId: event.id, userId })
+      ? isOwner
+        ? listOwnerMediaIds(event.id)
+        : listAccountMediaIds({ eventId: event.id, userId })
       : Promise.resolve<string[]>([]),
   ]);
 
@@ -559,8 +568,15 @@ export default async function GuestEventPage({
 
   // The host as a public card, for the capture flow's follow moment. Only where
   // it can be acted on: a full-access, non-demo album with a host to follow.
+  // ★ AND WHETHER SHE FOLLOWS THEM, read beside it (crumbs-28): the moment's
+  // Follow started on Follow for a guest who already follows the host. One
+  // head count, for a signed-in guest alone (nobody signed out follows anyone,
+  // and the host is never her own guest); the keep's code typed in place
+  // refreshes the page, so this render knows who confirmed.
   const hostCard =
     access === "full" && !isDemo ? await getHostCard(event.id) : null;
+  const followsHost =
+    hostCard && userId && !isOwner ? await isFollowing(hostCard.id) : false;
 
   // Display-name nudge: a SIGNED-IN viewer without a public display name is asked for one at the
   // DOOR, as its name step in `profile` mode, rather than in an inline card halfway down the album.
@@ -607,7 +623,11 @@ export default async function GuestEventPage({
         // Identity keys on a CONFIRMED account, never a uid alone: an
         // unconfirmed session still carries a typed name.
         isVerified={isAuthed}
-        hostCard={hostCard ? { ...hostCard, seed: hostSeed } : null}
+        hostCard={
+          hostCard
+            ? { ...hostCard, seed: hostSeed, following: followsHost }
+            : null
+        }
         initialRowStep={rowStep}
         firstPaintWidth={albumWidth}
         rhythmSeed={rhythmSeed}

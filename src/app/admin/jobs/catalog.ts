@@ -14,8 +14,8 @@
  * and the alerting scan can never hold two definitions of healthy:
  *
  *   scheduled — fires on a clock and writes its own `job_runs` rows. The cadence + the missed-run
- *               rule apply. The purge cron, the two Worker jobs, the DB-backup Action, and the four
- *               purge SUB-SWEEPS, each of which now opens and closes a row of its own.
+ *               rule apply. The purge cron, the two Worker jobs, the DB-backup Action, and the five
+ *               purge SUB-SWEEPS, each of which opens and closes a row of its own.
  *   signal    — no clock. Something else does the work (a transactional email, a rate-limiter read)
  *               and the only question is "did any of it fail in the last 24 hours?". `job_runs`
  *               carries the FAILURES (status `error`); the successes are counted in their own table.
@@ -40,6 +40,9 @@ export type JobId =
   | "purge_deleted_accounts"
   | "purge_inactivity"
   | "purge_over_capacity"
+  // The album change log's prune (crumbs-37): rows only, but in the album's live core, so it keeps
+  // its own switch and card like the four that touch accounts.
+  | "purge_album_log"
   // The Cloudflare queue's backlog + its dead letters, read by the Worker, reported on its runs.
   | "backup_queue"
   | "backup_dead_letters"
@@ -231,6 +234,22 @@ export const JOBS: JobDef[] = [
     cadence: "Daily, inside the purge sweep",
     expectedEveryMs: DAY_MS,
     flagKey: "purge_over_capacity_enabled",
+    canRunNow: false,
+  },
+  // A fifth that deletes neither bytes nor accounts, promoted for where it works: the album's change
+  // log, the live core every open album polls. A prune that misbehaved is stopped here without giving up
+  // the night's storage reclamation, and its pass across the log rotates on its own run row's cursor.
+  {
+    id: "purge_album_log",
+    label: "Album change log",
+    description:
+      "Prunes the album change log of the rows purged items leave behind, raising each album's watermark so a client that missed them is sent its album whole. Stopping silently only grows the log; a prune that went wrong would leave an album stale on a screen.",
+    kind: "scheduled",
+    host: "purge_sweep",
+    cron: "0 4 * * *",
+    cadence: "Daily, inside the purge sweep",
+    expectedEveryMs: DAY_MS,
+    flagKey: "purge_album_log_enabled",
     canRunNow: false,
   },
   // --- the backup Worker ------------------------------------------------------------------------

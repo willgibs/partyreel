@@ -92,13 +92,14 @@ describe("the job catalog", () => {
     }
   });
 
-  it("keeps the four purge sub-sweeps on the parent cron's clock", () => {
+  it("keeps the five purge sub-sweeps on the parent cron's clock", () => {
     const sweeps = subSweepJobs();
     expect(sweeps.map((j) => j.id)).toEqual([
       "purge_orphans",
       "purge_deleted_accounts",
       "purge_inactivity",
       "purge_over_capacity",
+      "purge_album_log",
     ]);
     for (const sweep of sweeps) {
       expect(sweep.cron).toBe(defOf("purge_cron").cron);

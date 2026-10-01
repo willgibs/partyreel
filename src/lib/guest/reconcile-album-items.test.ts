@@ -12,6 +12,7 @@ import type { GalleryItem } from "@/lib/events/gallery-reel";
 import { newIds } from "@/lib/shared/arrival";
 
 import {
+  albumOnScreen,
   createAlbumItems,
   createReelItems,
   entryToItem,
@@ -92,6 +93,50 @@ describe("entryToItem", () => {
       isVerified: false,
     });
     expect(Object.keys(host)).not.toContain("uploaderEmail");
+  });
+
+  it("★ carries the credit's face and door where the link does, and the plain disc where it does not (crumbs-38)", () => {
+    const seed = "f".repeat(64);
+    const faced = entryToItem(
+      entry(1),
+      link(1, {
+        who: [
+          "Maya",
+          2,
+          ["https://cdn.test/avatars/a/avatar.webp?v=1", seed, "/u/maya"],
+        ],
+      }),
+    );
+    expect(faced.uploaderFace).toEqual({
+      avatarUrl: "https://cdn.test/avatars/a/avatar.webp?v=1",
+      seed,
+      href: "/u/maya",
+    });
+    // A link with no face (and a link from before faces) draws the plain disc, never an invented one.
+    expect(entryToItem(entry(2), link(2)).uploaderFace).toBeNull();
+    expect(entryToItem(entry(3), undefined).uploaderFace).toBeNull();
+  });
+
+  it("reads a face off the wire defensively: a door only to a page, a picture only from a web address", () => {
+    const seed = "a".repeat(64);
+    const odd = entryToItem(
+      entry(1),
+      link(1, {
+        who: [
+          "Maya",
+          2,
+          ["javascript:alert(1)", seed, "https://elsewhere.test/u/maya"],
+        ],
+      }),
+    );
+    expect(odd.uploaderFace).toEqual({ avatarUrl: null, seed, href: null });
+    const noSeed = entryToItem(
+      entry(2),
+      link(2, {
+        who: ["Maya", 2, [null, "", "/u/maya"]],
+      }),
+    );
+    expect(noSeed.uploaderFace).toBeNull();
   });
 
   it("a video carries its length, and a clip is never reel-eligible", () => {
@@ -222,8 +267,18 @@ describe("newArrivalIds", () => {
     expect(newArrivalIds(ids(1, 2), ids(3, 1, 2))).toEqual(new Set(["m3"]));
   });
 
-  it("the FIRST snapshot never glows: a seeded album is not an arrival", () => {
-    expect(newArrivalIds([], ids(1, 2, 3)).size).toBe(0);
+  // ★ RESHAPED ON PURPOSE (crumbs-30; scar kept: the album that appears is not an arrival): "empty" stood for "no album
+  // a moment ago", and a real album that was empty then has a first photograph that does arrive (below). The album that
+  // was not there is `null` now, which the provider reads off the answer's status (`albumOnScreen`).
+  it("the FIRST album never glows: an album that was not on screen a moment ago is not an arrival", () => {
+    expect(newArrivalIds(null, ids(1, 2, 3)).size).toBe(0);
+  });
+
+  it("★ a real album that was empty a moment ago: its first photograph arrives, as on the host's grid (crumbs-30)", () => {
+    expect(newArrivalIds([], ids(1))).toEqual(new Set(["m1"]));
+    expect(newArrivalIds([], [entry(4), entry(3)])).toEqual(
+      new Set(["m4", "m3"]),
+    );
   });
 
   it("a REMOVED item is not an arrival, and neither is what is left", () => {
@@ -263,12 +318,36 @@ describe("newArrivalIds reads the grammar's first sentence, once (crumbs-27)", (
     ]);
   });
 
-  it("★ the guest's seed rule stays its own line: an empty last snapshot names no arrival, and the diff is never asked", () => {
-    // A teaser's answer and a locked page's carry no entries by design, so the album that opens under a
-    // mounted provider is not an arrival; the host's grid seeds its own state instead, where an empty first
-    // render is a real empty album whose first photograph does arrive.
+  // ★ RESHAPED ON PURPOSE (crumbs-30; scar kept: the guest's seed rule is its own line, and it never asks the diff):
+  // the rule read an EMPTY last snapshot, which a real empty album is too; it reads an answer that was no album now.
+  it("★ the guest's seed rule stays its own line: a last answer that was no album names no arrival, and the diff is never asked", () => {
+    // A teaser's answer and a locked page's carry no entries by design, and neither does the album before its first
+    // answer, so the album that opens under a mounted provider is not an arrival. A real empty album's emptiness is
+    // real: its first photograph is asked of the diff like any other, as the host's grid does.
     vi.mocked(newIds).mockClear();
-    expect(newArrivalIds([], ids(1, 2, 3)).size).toBe(0);
+    expect(newArrivalIds(null, ids(1, 2, 3)).size).toBe(0);
     expect(newIds).not.toHaveBeenCalled();
+    expect(newArrivalIds([], ids(1))).toEqual(new Set(["m1"]));
+    expect(newIds).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("albumOnScreen: which answers are an album at all (crumbs-30)", () => {
+  const answer = (
+    status: "loading" | "locked" | "teaser" | "ready",
+    entries: readonly ManifestEntry[] = [],
+  ) => ({ status, entries });
+
+  it("★ a full album is one, empty or not: its entries are what was on screen", () => {
+    const none: ManifestEntry[] = [];
+    expect(albumOnScreen(answer("ready", none))).toBe(none);
+    const some = [entry(2), entry(1)];
+    expect(albumOnScreen(answer("ready", some))).toBe(some);
+  });
+
+  it("a teaser's, a locked page's and an unanswered album's entries are empty by design, so none is an album", () => {
+    for (const status of ["teaser", "locked", "loading"] as const) {
+      expect(albumOnScreen(answer(status)), status).toBeNull();
+    }
   });
 });

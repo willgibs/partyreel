@@ -58,10 +58,15 @@ describe("email-safety: the guest-facing GridMedia builder never carries email",
 });
 
 /* ★ AND THE PAGED ALBUM'S GUEST LINKS (album-pages). A window's links carry attribution too, as a
-   tuple rather than named fields (`[name, flags]`), so the allow-list above cannot read it; this one
-   reads the tuple builder instead. The guest path never even fetches the address
-   (`readAlbumAttribution` with `withEmail: false`); this guard is what keeps the builder from ever
-   learning the word. The host's twin (`album-host-links.ts`) carries the proved address by design. */
+   tuple rather than named fields (`[name, flags]`, and since crumbs-38 `[name, flags, face]`), so the
+   allow-list above cannot read it; this one reads the tuple builder instead. The guest path never even
+   fetches the address (`readAlbumAttribution` with `withEmail: false`); this guard is what keeps the
+   builder from ever learning the word. The host's twin (`album-host-links.ts`) carries the proved address
+   by design.
+   Reshaped on purpose by crumbs-38: the identity's `face` (the three fields `uploader-faces.ts` resolved:
+   a picture's URL, a hash, a page's door) joins the allow-list; its `faceOwner` (an account id) never does,
+   and the face reaches the wire only through `toFaceTuple`, which names its three fields. The scar this
+   keeps is the same: no spread, no address, every field named. */
 describe("email-safety: the paged album's guest links never carry an address", () => {
   const src = readFileSync(
     join(process.cwd(), "src/lib/events/album-guest-links.ts"),
@@ -80,12 +85,36 @@ describe("email-safety: the paged album's guest links never carry an address", (
     }
   });
 
-  it("builds the tuple from exactly the name and the two flags, never a spread", () => {
+  it("builds the tuple from exactly the name, the two flags and the face, never a spread", () => {
     expect(src).not.toMatch(/\.\.\.who\b/);
-    expect(src).toContain("return [who.displayName, flags];");
+    expect(src).toContain("[who.displayName, flags, toFaceTuple(who.face)]");
+    expect(src).toContain(": [who.displayName, flags];");
     const read = [...src.matchAll(/who\.(\w+)/g)].map(([, field]) => field);
     expect(new Set(read)).toEqual(
-      new Set(["displayName", "isHost", "isVerified"]),
+      new Set(["displayName", "isHost", "isVerified", "face"]),
     );
+    // ★ The rule's owner is an account id: it never reaches a builder.
+    expect(src).not.toContain("faceOwner");
+  });
+});
+
+/* ★ AND THE FACE'S OWN BUILDER (crumbs-38): the wire's face is the three fields a credit draws, named one by
+   one, so a field added to the face type cannot ride along unseen. */
+describe("email-safety: the face on the wire is three named fields", () => {
+  const wire = readFileSync(
+    join(process.cwd(), "src/lib/events/album-wire.ts"),
+    "utf8",
+  ).replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g, "");
+  // The builder's own body: the wire file names an address elsewhere (the host's tuple), by design.
+  const from = wire.indexOf("export function toFaceTuple(");
+  const builder = wire.slice(from, wire.indexOf("\n}\n", from) + 2);
+
+  it("toFaceTuple names the picture, the hash and the door, and nothing else", () => {
+    expect(from).toBeGreaterThan(-1);
+    expect(builder).toContain("return [face.avatarUrl, face.seed, face.href];");
+    expect(builder).not.toMatch(/\.\.\.face\b/);
+    for (const forbidden of ["email", "faceOwner", "accountId"]) {
+      expect(builder, forbidden).not.toContain(forbidden);
+    }
   });
 });

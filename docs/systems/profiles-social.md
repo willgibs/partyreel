@@ -81,8 +81,13 @@ A one-way door; `/privacy` and the Terms word it, so a change here changes them 
   `owner-sections.tsx` takes no parameters at all, so if the page's `isSelf` check were ever wrong, the worst it could
   render is the VIEWER's own media on somebody else's page; `owner-mode.test.ts` pins the empty signature. The
   sections (your uploads, your likes, the people you follow, never your followers) stream behind their own in-page
-  `<Suspense>`, and a visitor's render runs none of their queries. A like count is the host's alone and appears on no
-  profile.
+  `<Suspense>`, and a visitor's render runs none of their queries. The two feeds page 200 at a time on a keyset
+  (`get_my_uploads` on `(created_at, id)`, `get_my_likes` on `(liked_at, media_id)`), a Show more through a Server
+  Function that takes a cursor and nothing else (`feed-actions.ts`), so it too pages only the caller's own. ★ A delete
+  or an unlike leaves every page she was shown, the first one too, at once and for good on the page's own word
+  (`my-feed-more.tsx`'s `drop`), never on the action's revalidation: the viewer's close writes the address just
+  before its Delete, and Next commits that write over the answer, so the old first page stands until the next router
+  action. A like count is the host's alone and appears on no profile.
 - **An empty page says how many events it keeps private** ("2 private events", `private_event_count`, migration
   20260927100000): the attended arm's predicate with only the owner's choice inverted, so a viewer counts only what
   she could confirm (a Require-an-upload-to-view album she has not passed stays out). The RPC returns it only while the

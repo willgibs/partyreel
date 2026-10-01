@@ -4,7 +4,7 @@
  * THE LIVE REEL ON THE ALBUM PAGE: the controller that decides whether this viewer's album has a
  * reel, opens and closes the full-screen view from the address (`?reel`, `?reel=screen`), and hosts
  * the three things that hang off it: the Highlight reel tile, the view itself (lazy), and the
- * one-time approval toast.
+ * once-a-visit approval toast.
  *
  * The main reel is a faster-paced slideshow the album builds by itself: a clickable showpiece that
  * shuffles every current (not hidden) photo and video in the event into a reel anyone can watch
@@ -37,6 +37,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
 import type { ReactNode } from "react";
 import { Clapperboard } from "lucide-react";
@@ -48,6 +49,7 @@ import {
   useGalleryLive,
   type GalleryLive,
 } from "@/components/guest/gallery-live";
+import type { ApprovalNews } from "@/components/guest/upload-tracker";
 import { PosterCard } from "@/components/reel/poster-card";
 import type { ClipResolver } from "@/lib/album/resolver";
 import { liveReelAvailable } from "@/lib/events/gallery-reel";
@@ -124,6 +126,12 @@ export type LiveReelProps = {
   /** This device's upload queue: the toast reads its held items. */
   queue: readonly QueueItem[];
   /**
+   * The server's news (crumbs-38): her uploads a decision let into the album since she was last told,
+   * answered by her tracker's own-rows read (`upload-tracker.tsx`). The toast watches them as it
+   * watches this visit's held uploads, so a return is told too, once.
+   */
+  approvalNews?: ApprovalNews;
+  /**
    * ★ THE WELCOME COMES FIRST: this visitor still owes the door (the page's EntryModal says so,
    * and a page that has not heard from it yet assumes so). While it is owed an address's reel
    * waits, under nothing and over nothing, and opens the moment they are through.
@@ -145,6 +153,7 @@ export function LiveReel({
   onAddYours,
   addClipToAlbum = null,
   queue,
+  approvalNews,
   welcomePending = false,
   isOwner = false,
   children,
@@ -260,6 +269,8 @@ export function LiveReel({
         <ApprovalToast
           live={live}
           queue={queue}
+          news={approvalNews}
+          welcomePending={welcomePending}
           available={available}
           viewOpen={viewOpen}
           onWatch={() => open("hand")}
@@ -453,29 +464,48 @@ function preloadCreatorDoor() {
  * simply appears once, when at least one of this guest's uploads will be in the reel on a
  * moderated event.
  *
- * ★ ONCE PER VISIT, on a moderated event, the moment the first of this device's HELD uploads shows up
- * approved in the album (its media id reaches the live list) and would play (not a clip). Never
- * while no reel is showing: "Watch reel" must lead somewhere. And not while the view is already
- * open, where the arrival chip says the same thing on the picture itself; the moment is spent either
- * way. The queue lives in memory, so this can only fire within the visit that made the upload (the
- * server's half, telling a guest on their next visit, is a ROADMAP line).
+ * ★ ONCE PER VISIT, on a moderated event, the moment the first of her HELD uploads shows up approved
+ * in the album (its media id reaches the live list) and would play (not a clip). Never while no reel
+ * is showing: "Watch reel" must lead somewhere. And not while the view is already open, where the
+ * arrival chip says the same thing on the picture itself; the moment is spent either way.
+ *
+ * ★ TWO SOURCES, ONE MOMENT (crumbs-38, the server's half): this device's queue, which lives in
+ * memory, sees what this visit sent; the SERVER's news (`news`, her tracker's own-rows read) sees what
+ * a decision let in since she was last told, so an upload approved after the visit that made it is
+ * told on her next visit, on a reload, or on her account's other device, and the read that answers it
+ * marks it told. Whichever arrives first spends the visit's one toast, and never over the door: while
+ * her welcome is still owed the moment waits, unspent, and plays once she is through.
  */
+const NO_NEWS: readonly string[] = [];
+const noNews = () => NO_NEWS;
+const noSubscription = () => () => {};
+
 function ApprovalToast({
   live,
   queue,
+  news,
+  welcomePending,
   available,
   viewOpen,
   onWatch,
 }: {
   live: GalleryLive;
   queue: readonly QueueItem[];
+  news?: ApprovalNews;
+  welcomePending: boolean;
   available: boolean;
   viewOpen: boolean;
   onWatch: () => void;
 }) {
   const spentRef = useRef(false);
-  // Every held completion this visit made (a queue item can leave the queue; its id must not).
+  // Every held completion this visit made (a queue item can leave the queue; its id must not), and
+  // every id the server's news named.
   const watchingRef = useRef(new Set<string>());
+  const told = useSyncExternalStore(
+    news?.subscribe ?? noSubscription,
+    news?.get ?? noNews,
+    noNews,
+  );
 
   useEffect(() => {
     if (spentRef.current) return;
@@ -489,7 +519,10 @@ function ApprovalToast({
         watching.add(item.mediaId);
       }
     }
+    for (const id of told) watching.add(id);
     if (watching.size === 0) return;
+    // Never over the door: the moment waits, unspent, until she is through it.
+    if (welcomePending) return;
     const approved = live.serverItems.find(
       (item) => watching.has(item.id) && item.reelEligible !== false,
     );
@@ -503,7 +536,15 @@ function ApprovalToast({
     toast("One of yours is in the album", {
       action: { label: "Watch reel", onClick: onWatch },
     });
-  }, [queue, live.serverItems, available, viewOpen, onWatch]);
+  }, [
+    queue,
+    told,
+    welcomePending,
+    live.serverItems,
+    available,
+    viewOpen,
+    onWatch,
+  ]);
 
   return null;
 }

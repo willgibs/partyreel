@@ -29,7 +29,10 @@ has no filter chips and no personal feeds (those are the profile's owner mode, [
   (`getReelProgress`, the guest's `isReelEligible` spelled in SQL); at none the event's launch list speaks, and a step
   there would push "Print the code" out the evening before.
 - **The storage line is unconditional** (a host with no events still has a plan); the over-cap grace banner is its own
-  red alert, never inside the meter.
+  red alert, never inside the meter (`grace-banner.tsx`). ★ Both of its ways out are doors: See plans, and see what's
+  using space, the size list counting down to her own plan's cap (the list's `fit` goal: the meter's number, nothing
+  to switch, the bar's Remove the act), so she chooses what goes before the sweep takes the largest first. The meter's
+  own door carries the same goal whenever she stores more than her cap.
 - **Your events** counts through `event_card_stats`, and each hosted card's cover and stills come from
   `getEventCardStills` (`event_covers` and `event_stills` in one pass: the cover first, no photograph twice, four at
   most); "X of N used" is `countActiveEvents()`, a head count. ★ The cards take turns (`dashboard/cover-cycle.tsx`):
@@ -58,7 +61,11 @@ has no filter chips and no personal feeds (those are the profile's owner mode, [
   (`claims-batch.ts`). ★ The album link never rides the list (a Not mine is an event she was never at): a claimed row's
   Open album and quieter Follow come from the claim's own follow-up read (`getClaimedEventNext`), for an event she is
   now a guest of. The writes never revalidate; the review refreshes the page behind itself as each lands and keeps its
-  own account of her decisions. A disowned name leaves the guest list and the Guests room with its uploads, and the
+  own account of her decisions. ★ The layout's own silent claim is a write the page follows too: it lands after the
+  server drew the rows, so the claim's own caller (`ClaimUploadsOnAuth`, on the (app) layout) refreshes the route once
+  a claim it ran moved uploads, and the banner, the card and the Guest card follow. The refresh is the caller's, never
+  a listener's in the page: the page segment streams in behind `dashboard/loading.tsx` after the layout, so the claim
+  usually lands before the review mounts (a soft navigation and a hard load after sign-in alike). A disowned name leaves the guest list and the Guests room with its uploads, and the
   empty guest row survives for the device that minted it. A nameless profile meets the name gate first
   ([auth-accounts.md](auth-accounts.md)), prefilled from the newest claimable row's typed name. One toast as the review
   closes counts what that opening added, its second line pointing at the page unless the page setup's invitation is
@@ -187,6 +194,16 @@ drift is linear and motion-gated, a breath rather than feedback, so the 300ms ce
 `/dashboard/[eventId]` is a hub: a live code beside the title, a row of cards into the event's rooms, and the album
 beneath, newest first.
 
+- ★ **An event that is gone, never this host's, or no id at all draws the group's not-found itself**, on the hub and
+  each room (Review, Guests, the reel's old room; Settings redirects to the hub) and on the print sheet (in the shell's
+  gutter, as `(print)` draws no shell; thrown, it was the root's error shell). `getEvent` answers a malformed id null
+  before any read (`isUuidShape`: Postgres refusing the cast threw the page into its error screen, untitled, and filed
+  an error each hit), as the portal's record pages do theirs. Never through `notFound()`: thrown under the
+  hub's `loading.tsx` it landed after the skeleton had streamed, a 200 whose screen the client drew once it had run,
+  under the page's own title ("Event", build 30's red-team). Drawn, it streams into the skeleton's place, titled from
+  `(app)/not-found.metadata.ts` ("Event not found", noindex), and stays a 200: behind sign-in nothing reads the status
+  (crumbs-28's Question: a read before every hub load would buy nothing).
+
 - ★ **The hub and the dashboard home are the wide pages**: each marks its root `data-app-wide` and `AppShell` answers in
   `:has()` (a page cannot hand a prop up to its layout), dropping the 1280 cap and taking the album's gutter (12px, 20px
   from `sm`), so the logo, the code, the cards and the album share one left line. Their skeletons mark it too, or the
@@ -265,7 +282,8 @@ beneath, newest first.
   store (`event-feed/host-album.tsx`, its pure half `lib/event/hub-album.ts`), seeded with the host's first sync and
   its validator, and moved by `sync()` on the guest's Realtime doorbell, a fallback poll (12s with the socket down, 60s
   up, paused while hidden, asked again on return) and each write's catch-up. The host's version answers every question
-  (`/api/album/host/<id>/sync`: a 304 that read one row, a delta by id, a manifest past 500 changes). ★ The poll is not
+  (`/api/album/host/<id>/sync`: a 304 that read one row, a delta by id, a manifest past 500 changes or below the
+  log's watermark). ★ The poll is not
   redundant with the socket: the doorbell fires only on the approved-visible set, and the host's version, which every
   status change moves, is how a held upload reaches the one person who can approve it (the Review card counts it).
   `HostMediaGrid` marks arrivals by diffing ids, never links (they roll every half hour), and a host album never
@@ -307,17 +325,22 @@ visitor-facing "Private" never collides.
   gate the page says how many are already in ("31 guests are already in"); choosing Only me with guests in, or Public,
   Only people already in or a password with newcomers waiting, says what happens first and waits for the confirm (a
   first password says it beside its field, since setting it opens that door). Opening an album to Public lets everyone
-  waiting in (`events_door_opened`); a password ends every ask (`events_door_to_password`: nobody waits on the host
-  there), so they leave At the door, the pulse and the bell, and meet the password like anyone new.
+  waiting in but an ask a block holds (`events_door_opened`; every door act that lets asks in or counts them reads one
+  set, `event_door_asks`), so a declined newcomer's ask waits through a Public trip for Let back in rather than walking
+  her into an album its host never let her into; a password ends every ask
+  (`events_door_to_password`: nobody waits on the host there), so they leave At the door, the pulse and the bell, and
+  meet the password like anyone new.
 - **The Guests room's At the door** heads it (`queue=room`): Let in (`let_in_at_door`) opens her door on every device,
   and her held door opens by itself at its next check-in; ★ Decline is a block (the account where there is one, else
   the row), with Undo on its toast and Let back in under Blocked, so a declined newcomer meets the one shut screen and
-  cannot keep re-asking. Either way back returns her to the door, where she still needs Let in unless the invite list,
-  being the door, names her, and Let back in's words say which (`BlockedPerson.lands`, from the door as it stands:
+  cannot keep re-asking. Either way back returns her to the door, where she still needs Let in unless the door as it
+  stands lets her in (the invite list, being the door, naming her; or a Public album, which `let_back_in` then lets her
+  into, its opening having waited only on the block), and Let back in's words say which (`BlockedPerson.lands`, from the door as it stands:
   someone with no row past the door is a newcomer whatever rows remain, so one whose ask a password ended hears she
   meets it like anyone new, and where nobody new gets in, that she stays out; someone who was in, while the album is
   Only me (which shuts even the people already in), hears the block is lifted and the album stays closed to her until
-  the host opens it). The door is read once for everyone in the Blocked list, since it decides every landing. A
+  the host opens it; and a newcomer whose ask stands at Only me, which keeps its asks, hears she is back at the door
+  and that letting her in there meets that closed album, `door_only_me`). The door is read once for everyone in the Blocked list, since it decides every landing. A
   waiting newcomer counts on
   the hub's Guests card, the pulse (its first step, opening `#at-the-door`) and the bell (a row per event), and sends
   no mail.
@@ -329,8 +352,9 @@ visitor-facing "Private" never collides.
   in, on every device she asked from, counted once, so she leaves At the door and the ticket she asked with adds.
   ★ The menu and the steps page say it BEFORE the list is chosen ("Lets in the 1 person waiting at the door who is on
   your list.", `listedWouldComeInLine`), only where it would let someone in: the count is `DoorCounts.waitingListed`,
-  `event_door_counts`' `waiting_listed` from `event_door_waiting_listed`, the admit's read-only twin (0 until its migration
-  is applied). The six-door menu is `settings-rows.tsx`'s `doorConsequence`; `door-page.tsx` is the steps page.
+  `event_door_counts`' `waiting_listed` from `event_door_waiting_listed`, the admit's read-only twin, both reading the
+  same asks (`event_door_asks`' listed ones). The six-door menu is `settings-rows.tsx`'s `doorConsequence`;
+  `door-page.tsx` is the steps page.
   **Invite** is the room's main action while it is empty and a quiet one after: the event's code card, sending
   nothing.
 
@@ -352,7 +376,12 @@ visitor-facing "Private" never collides.
   Space peeks; no hint row, only the verdict buttons' tooltips (and a screen reader's line) say so. They act only on a
   tile, in the peek, or (the room's page alone) with nothing focused, never on another control, and never give a verdict
   on a selection. In the peek a focused button keeps only its own Enter and Space, and a verdict pressed there hands
-  focus back to the look (`review-section.tsx`), since a browser focuses the button a pointer presses.
+  focus back to the look (`review-section.tsx`), since a browser focuses the button a pointer presses. ★ The peek is
+  `aria-modal`, so it holds Tab while it is up (Radix's FocusScope, trapped and looping; a layer opened over it, the
+  credit's look, pauses it). The trap takes the opening focus itself (the look, or a verdictless look's close button),
+  so it always has that focus to hand back (the grid's own focus, a commit before the trap had its container, let a
+  first Shift+Tab walk out behind: build 33), and Shift+Tab from the look comes round to its last control; the grid
+  puts focus back on the tile when it closes.
 - **The bulk controls live once, in the room's header, in both modes** (`review-actions.tsx`), which never goes empty,
   or a host mid-selection loses Reject, Approve and Cancel. Approve all needs no confirm: it sends the queue's own ids
   through `approveBulkAction` in consecutive batches of 2,000, so a host approves exactly what they saw, at any size. A
@@ -391,17 +420,31 @@ visitor-facing "Private" never collides.
   `BulkBar`, whose rich tooltips mount only after hydration, and select-all takes every manifest id, mounted or not.
   The selection lives in a thin `HostSelectionProvider`, into which the album grid (owner of the optimistic items)
   registers its handlers, so the bar calls `selection.run(kind)`: the seam whenever a control surface and its grid live
-  in different subtrees.
+  in different subtrees. ★ In a hand every control in a bulk bar is a 44px target, the peek's verdicts' (`HAND_TARGET`:
+  44 wide, its `::before` reaching 8px past a 28px box, so the band never grows), a pointer's 28
+  at a desk, and the destructive verb stands apart behind a hairline (`Apart`); the album's header gives the bar its
+  row while selecting (`actionFills`: five verbs do not fit beside the label at 375), the label kept for a reader.
+  Measured at 375: every control 44 tall or more, Download and Remove 61px apart where they were 32. ★ **The band
+  keeps the height its tools had at rest** (`FeedSectionHeader` measures its row while the tools are there and holds
+  that as its minimum while the bar fills it): in a hand the tools wrap to 62px (96 at 320) and the bar is one 28px
+  line, so the album's top moved 34px on Select and back on Cancel until the band held; measured on
+  `/design/album-scale?surface=host` at 320 to 1440, the first tile stays put through Select and Cancel.
 - ★ **The selection prunes to the surviving ids when the album changes, never resets** (`useSelection`), so a poll never
   wipes a selection in progress.
-- **Bulk Like is one `like_many` call a batch under ONE summary toast** (the refused ids reverted); Hide, Show and
+- **Bulk Like is one `like_many` call a batch under ONE summary toast** (the refused ids reverted), naming what it
+  added by kind (`formatKindCount`: "Liked 1 video", "Liked 3 items" for a mix, the album's word as the storage list's;
+  Review's verdicts say "uploads"); a press that added nothing still says so, "Already liked 2 photos" (a plain toast)
+  when the selection was liked already, the heart's own "Couldn't save that like." when the server refused it; Hide,
+  Show and
   Delete are the general `setMediaStatusBulk` and `removeMediaBulk` (plain RLS, no pending predicate), each sent in
   batches of `MAX_BULK_ITEMS`.
 - ★ **Every bulk write, and Delete forever's reads, send the selection through `inChunks`** (an unchunked
   `.in('id', …)` over a big selection outgrew the URL and failed whole), and every bulk action refuses more than
   `MAX_BULK_ITEMS` (`lib/event/bulk-selection.ts`).
-- **Host upload**: Add photos opens a dropzone (`host-upload.tsx`) straight into the album; its pipeline is
-  [uploads-and-r2.md](uploads-and-r2.md)'s.
+- **Host upload**: the album header's Add photos toggles a dropzone panel (`host-upload.tsx`) under it, straight into
+  the album, and the reel card's opens the same panel and brings it into view with the least movement
+  (`HostAddProvider.openAdd` scrolls to the box `HostUpload` registers, clear of the app bar and the stuck cards band),
+  never the top of the page; its pipeline is [uploads-and-r2.md](uploads-and-r2.md)'s.
 - ★ **Block puts one person out of one event, with their uploads** (`block_from_event` on the host's own client, free
   on every plan). It is the quiet last line of every person's look (a name in the Guests room, the uploader's credit in
   the host's viewer and on Review's peek, `event-blocks/`), opening one confirm whose count is the act's own preview

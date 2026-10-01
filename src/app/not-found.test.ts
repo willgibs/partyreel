@@ -293,17 +293,19 @@ describe("the screens behind the boundary still draw the whole 404", () => {
  * Every route group's or segment's own 404: where it lives, and the parts of the 404 its screen must still
  * reach (what it drew before it moved behind the boundary: the test that the move lost nothing).
  *
- * `drawnBy` is the page that draws the screen ITSELF, for a link that names nothing (stale-link: a thrown
- * `notFound()` is served as Next's white error shell, so the guest link and the profile never throw one), and the one
- * line where it does. Rendered only there, the screen rides no found page's payload, which is what the boundary
- * exists to keep; and those two pages already reach every client part the screen has, so importing it costs a
- * found album or profile nothing (measured on `next start`: their HTML byte for byte as before).
+ * `drawnBy` is each page that draws the screen ITSELF, for a link that names nothing (stale-link: a thrown
+ * `notFound()` is served as Next's white error shell, so the guest link and the profile never throw one; crumbs-28
+ * gave the host app's event pages and the portal's record pages the same answer), and the one line where each does.
+ * Rendered only there, the screen rides no found page's payload, which is what the boundary exists to keep; and
+ * those pages already reach every client part the screen has (the group's own `error.tsx` draws the same shared
+ * screen, its buttons and its links), so importing it costs a found page nothing (measured on `next start` for the
+ * album and the profile: their HTML byte for byte as before).
  */
 type Group = {
   name: string;
   dir: string;
   draws: string[];
-  drawnBy?: { page: string; line: string };
+  drawnBy?: { page: string; line: string }[];
 };
 
 const GROUP_LIST: Group[] = [
@@ -315,10 +317,12 @@ const GROUP_LIST: Group[] = [
       "src/components/shared/not-found-screen.tsx",
       "src/components/ui/button.tsx",
     ],
-    drawnBy: {
-      page: "src/app/(guest)/e/[token]/page.tsx",
-      line: "if (!door) return <GuestNotFoundScreen />;",
-    },
+    drawnBy: [
+      {
+        page: "src/app/(guest)/e/[token]/page.tsx",
+        line: "if (!door) return <GuestNotFoundScreen />;",
+      },
+    ],
   },
   {
     name: "guest profile",
@@ -328,10 +332,12 @@ const GROUP_LIST: Group[] = [
       "src/components/shared/not-found-screen.tsx",
       "src/components/ui/button.tsx",
     ],
-    drawnBy: {
-      page: "src/app/(guest)/u/[slug]/page.tsx",
-      line: "if (!profile) return <ProfileNotFoundScreen />;",
-    },
+    drawnBy: [
+      {
+        page: "src/app/(guest)/u/[slug]/page.tsx",
+        line: "if (!profile) return <ProfileNotFoundScreen />;",
+      },
+    ],
   },
   {
     name: "cinema group",
@@ -348,6 +354,23 @@ const GROUP_LIST: Group[] = [
       "src/components/shared/not-found-screen.tsx",
       "src/components/ui/button.tsx",
     ],
+    drawnBy: [
+      "src/app/(app)/dashboard/[eventId]/page.tsx",
+      "src/app/(app)/dashboard/[eventId]/review/page.tsx",
+      "src/app/(app)/dashboard/[eventId]/guests/page.tsx",
+      "src/app/(app)/dashboard/[eventId]/reel/page.tsx",
+    ]
+      .map((page) => ({
+        page,
+        line: "if (!event) return <AppNotFoundScreen />;",
+      }))
+      .concat({
+        // The print sheet, one of the event's pages outside the group (crumbs-30): the print group draws no shell, so
+        // the screen rides in the shell's gutter (`PrintNotFound`), and the root's `error.tsx` already brings the
+        // sheet every client part the screen has.
+        page: "src/app/(print)/dashboard/[eventId]/print/page.tsx",
+        line: "if (!event) return <PrintNotFound />;",
+      }),
   },
   {
     name: "operations portal",
@@ -355,6 +378,16 @@ const GROUP_LIST: Group[] = [
     draws: [
       "src/components/shared/not-found-screen.tsx",
       "src/components/ui/button.tsx",
+    ],
+    drawnBy: [
+      {
+        page: "src/app/admin/albums/[eventId]/page.tsx",
+        line: "if (!album) return <AdminNotFoundPageScreen />;",
+      },
+      {
+        page: "src/app/admin/accounts/[id]/page.tsx",
+        line: "if (!account) return <AdminNotFoundPageScreen />;",
+      },
     ],
   },
 ];
@@ -449,14 +482,13 @@ describe.each(GROUPS)("the $name 404's eager import graph", (group) => {
     const importers = (
       importersOfNotFoundModules().get(group.screen) ?? []
     ).filter((file) => !file.startsWith("src/app/(dev)/"));
-    expect(importers).toEqual(
-      [BOUNDARY, ...(group.drawnBy ? [group.drawnBy.page] : [])].sort(),
-    );
-    if (group.drawnBy) {
-      const page = DISK.read(group.drawnBy.page);
-      const component = /return <(\w+) \/>;$/.exec(group.drawnBy.line)?.[1];
-      expect(page).toContain(group.drawnBy.line);
-      expect(page.split(`<${component}`).length - 1).toBe(1);
+    const drawnBy = group.drawnBy ?? [];
+    expect(importers).toEqual([BOUNDARY, ...drawnBy.map((d) => d.page)].sort());
+    for (const { page: file, line } of drawnBy) {
+      const page = DISK.read(file);
+      const component = /return <(\w+) \/>;$/.exec(line)?.[1];
+      expect(page, file).toContain(line);
+      expect(page.split(`<${component}`).length - 1, file).toBe(1);
     }
   });
 });

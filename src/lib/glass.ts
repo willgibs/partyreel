@@ -5,14 +5,13 @@
  * ★ THIS FILE OWNS NO PIXELS. The material is CSS — the `--glass-*` tokens and
  * the `.glass` utility in `src/app/globals.css` — because a backdrop filter is a
  * paint instruction and a Tailwind `@utility` compiles only in the entry sheet.
- * What lives here is the material's NAMES and the two rules a reviewer cannot
- * see in a className string, so `glass.test.ts` can hold both against the
- * stylesheet without a browser.
+ * What lives here is the material's NAMES, the classes the product wears, and
+ * `glass.test.ts` holds that each one compiles in the stylesheet.
  *
  * ★ ONE MATERIAL, EVERYWHERE. Will, on the reel's white pane: "I don't want to
  * have separate glass treatments and would prefer to find a global that works
  * everywhere." A second recipe, anywhere, is the drift the whole round was run
- * to prevent, so the numbers have exactly one home and this module names it.
+ * to prevent, so the numbers have exactly one home, the `--glass-*` block.
  *
  * ★ GLASS IS MEDIA CHROME, NEVER A POPOVER. `ui/floating-layer.ts` refuses a
  * backdrop filter on a floating PANEL, and the glass ruling does not lift that
@@ -54,44 +53,3 @@ export const GLASS_BEHIND = "glass-behind";
  * difference over a bright one. Crystal is untouched; one material still.
  */
 export const GLASS_MARK_LIT = "glass-mark-lit";
-
-/**
- * EVERY TOKEN THE MATERIAL IS MADE OF, with the value the stylesheet declares.
- * The test reads `globals.css` and holds it to this table, so a retune is a
- * two-line change (here and there) and a DRIFT is a red test rather than a
- * surface nobody compared.
- */
-export const GLASS_TOKENS = {
-  /** Crystal's body. */
-  "--glass-blur": "42px",
-  "--glass-brightness": "0.68",
-  "--glass-saturate": "2",
-  "--glass-tint": "0.04",
-  /** The double edge: a lip, and a hairline all the way round. */
-  "--glass-lip": "0.28",
-  "--glass-hairline": "0.1",
-  /** The marks' cheaper blur. */
-  "--glass-blur-mark": "12px",
-  /** The lightbox's ground. */
-  "--glass-behind-blur": "28px",
-  "--glass-behind-brightness": "0.5",
-  "--glass-behind-saturate": "1.2",
-  "--glass-behind-tint": "0.35",
-} as const satisfies Record<`--glass-${string}`, string>;
-
-export type GlassToken = keyof typeof GLASS_TOKENS;
-
-/**
- * The floating primitives the material may NOT reach, by file. The floating-layer
- * contract's layer is opaque and stays opaque; `floating-layer.test.ts` already refuses a
- * `backdrop-filter` inside its own family, and this list is the glass side of
- * the same fence so the refusal survives a rename on either side.
- */
-export const NOT_GLASS: readonly string[] = [
-  "src/components/ui/dropdown-menu.tsx",
-  "src/components/ui/popover.tsx",
-  "src/components/ui/select.tsx",
-  "src/components/ui/tooltip.tsx",
-  "src/components/ui/sheet.tsx",
-  "src/components/ui/floating-layer.ts",
-];
