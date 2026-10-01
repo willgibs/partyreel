@@ -26,8 +26,8 @@ Nothing is protected: every page, the host app and the guest pages are open to b
   check's stall, a Next dev bug, upstream's fix carried as a pnpm patch) on build 34, red-teamed PASS.
   `crumbs-34` (every published claim made true; Sentry quiet off Vercel) and `crumbs-33` (a report's live strikes on
   the queue, the newsletter row with an email change, four correctness fixes; its two migrations applied) are
-  merged, with `crumbs-35`, `crumbs-36`, `crumbs-39` and `crumbs-37` (scale and upkeep; its two migrations owed);
-  `crumbs-38` (a person's own record) runs. App work leads (his note); the wiring of each board follows
+  merged, with `crumbs-35`, `crumbs-36`, `crumbs-39`, `crumbs-37` and `crumbs-38` (their four migrations owed);
+  `crumbs-40` (build 35's finds) is cut for the next Orchestrator. App work leads (his note); the wiring of each board follows
   his picks.
 
 ## The desk
@@ -75,5 +75,5 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-- His desk (above); the calls file's 62 calls to overrule, his review on 2026-10-01 (his two decisions answered
+- His desk (above); the calls file's 63 calls to overrule, his review on 2026-10-01 (his two decisions answered
   2026-09-30); the phone checks and the four walks only he can drive (`tracks/orchestrator.md`).
