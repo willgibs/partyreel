@@ -56,6 +56,25 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/marketing/sections/features/album/everywhere-stage.tsx
   - src/components/marketing/sections/how-it-works/guest-pictures.tsx
   - src/components/marketing/sections/how-it-works/host-pictures.tsx
+  - src/app/globals.css
+  - src/app/layout.tsx
+  - src/app/api/guests/route.ts
+  - src/app/(dev)/design/(shell)/library/marketing/gallery-demos.tsx
+  - src/components/app/event-feed/selectable-media-grid.tsx
+  - src/components/marketing/sections/careers/contact-sheet.tsx
+  - src/components/marketing/sections/features/curation/bulk-tools.tsx
+  - src/components/marketing/sections/home/curation.tsx
+  - src/components/social/profile-slug-control.tsx
+  - src/components/ui/sonner.tsx
+  - src/lib/avatar/seed.ts
+  - src/lib/constants/marketing-voice.ts
+  - src/lib/events/upload-lock.ts
+  - src/lib/forensics/preserve.ts
+  - src/lib/guest/session-cookie.ts
+  - src/lib/shared/use-in-view-sentinel.ts
+  - src/lib/shared/use-in-view-sentinel.test.tsx
+  - src/lib/stripe/entitlement.ts
+  - src/lib/stripe/entitlement.test.ts
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/design-system.md
   - docs/systems/admin-observability.md
@@ -108,6 +127,7 @@ working.
 - `docs/systems/marketing-content.md`: the "dead scaffold" sentence on `constants/features.ts` and `features-layout.ts` is deleted with them.
 - `docs/systems/design-system.md` (second line): "`drawer.tsx` (vaul's, drawn only by the Library's gallery now)" is deleted from the floating-layer paragraph: the file and vaul are gone.
 - `docs/systems/design-system.md` (third line): the album tile section's "the guest album (`GuestMasonry` wraps it)" says `GalleryRows`.
+- `docs/systems/design-system.md` (fourth line): the GlowFilter bullet's "the root `not-found.tsx` renders the footer" says the root 404, `not-found.site.tsx`.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
@@ -139,9 +159,11 @@ _Agent crumbs-39 (Sonnet 5.5), booted 2026-10-01 in `/Users/gibby/local/ai/party
 - `guest-masonry.tsx` and its test deleted (read by nothing: its header claimed the marketing stage and the lab's boards draw it, and neither does; the guest album is `gallery-rows.tsx`). Its three head-stack pins were the ONLY pins on the rule "one pick is one object, led by the file in the air", and `GalleryRows` carries the same rule with none: they now live in `gallery-rows.test.tsx` against the product's own wiring (the spy draws the grid's `prefix`), and one was mutation-checked (lead = pending[0] fails it). Comments that named the file (masonry.tsx, album-scale, the album-fill grid, the everywhere stage, the how-it-works pictures, design-system.md) are repointed; masonry.tsx's three stale claims (a wrapper that is gone, "stays the default until the surfaces switch", a tile-size control "when it lands") are corrected.
 - `text-[10px]` left on purpose in `how-it-works/guest-pictures.tsx` and `host-pictures.tsx` (9 each): it is type drawn inside a picture of the product, which design-system.md keeps off the ladder.
 
+- The comment sweep, each item read against the current code (a comment-only edit is proved by the scratch script; the two exceptions are a test id and a Library `for:` line): sonner.tsx (the floating Add pill, the host's fixed bar, the 65 call sites, board and date labels); masonry.tsx (above); globals.css (the ghost grid is the ghost river; the "event-feed section swap" with its pills and floating bar is the hub's view swap); marketing-voice.ts (the kinetic hero is gone); next.config.ts (the lab reads `docs/tracks/*.md` and `docs/reviews/*.json`; the sharp comment is back above `outputFileTracingExcludes`); seed.ts (`getHostAvatarSeed`); session-cookie.ts and api/guests/route.ts (`session-cookie.test.ts` is the pin); upload-lock.ts (`resolveGalleryDecision`, no QA number); entitlement.ts and its test (no QA number); preserve.ts (the zero-silent-failures contract is admin-observability.md's); profile-slug-control.tsx (no Pro-quote; `GATED_EVENT_SETTINGS` is empty, PRICING.md); contact-sheet.tsx (the deleted `event-hero-media.tsx`); layout.tsx and design-system.md (the root 404's footer is `not-found.site.tsx`); the marketing `ghost-grid.tsx` and its Library `for:` (the app's locked page draws `GhostRiver`); `use-in-view-sentinel.ts` and its test (the floating Add pill and `<GhostGrid>` are the dock and the river); selectable-media-grid.tsx, bulk-tools.tsx and curation.tsx (the floating bar is retired: the select bar takes the album header's action row).
+- Read and left as true: `claim-handle-prompt.tsx` (the claim does name a nameless profile from the newest row it takes as hers, `20260929234000_shared_phone_claims.sql`), `gallery-skeleton.tsx` (the rows' first paint does pick its breaks by container query per width class, `album-window.tsx`), `workers/backup/src/index.ts` (`durability-backups.md` has "Cost & scaling" today), `request-facts.ts` (it cites its doc's sections, which exist). `tiers.ts` lost one `(QA #26)` label (a one-line exception: crumbs-36 owns the file).
+
 **In progress / next, in this order**
-1. The comment sweep: ROADMAP lines 155 and 163, each verified against current code (many were already fixed by later lanes); `text-[10px]` to `text-micro` in any file opened (not in pictured type).
-2. The gate (typecheck, lint, test, build through the lock, `lab:smoke --base http://localhost:3134`), the premise note, the Handoff.
+1. The browser pass (Library fullScreen demo, the compositions page, a few product surfaces on 3134), the gate (typecheck, lint, test, build through the lock, `lab:smoke --base http://localhost:3134`), the premise note, the Handoff with its lane-check exceptions (`next.config.ts` is a root file no manifest can claim; `tiers.ts` is crumbs-36's).
 
 **Measured, so a successor does not redo it**
 - Already gone before the cut (the ROADMAP lines are stale on them): the app's `components/guest/ghost-grid.tsx`, `event-filter-pills.tsx`, `lib/shared/use-active-section.ts`, `enter-event-prompt.tsx`; the `getHostAvatarUrl`-era and "Cost & scaling" and `database-security.md0` comment items.

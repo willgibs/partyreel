@@ -83,6 +83,13 @@ const nextConfig: NextConfig = {
     // smaller format pays the budget back directly (Track B, B1).
     formats: ["image/avif", "image/webp"],
   },
+  // The design lab reads repo files at request time (the track manifests under
+  // docs/tracks and the review ledgers under docs/reviews); they are outside the
+  // bundle unless traced in. One key covers every shell route (the list lives
+  // beside the lab's redirects).
+  outputFileTracingIncludes: {
+    "/design/": TRACED_DOC_GLOBS,
+  },
   /**
    * SHARP NEVER REACHES A FUNCTION (the Vercel cost round, 2026-09-11). Measured on the
    * real trace files: sharp and its `@img` platform packages were 16.6 MB of the 51.1 MB
@@ -105,13 +112,6 @@ const nextConfig: NextConfig = {
    * so a plain `node_modules/sharp/**` would match nothing. Both forms are listed anyway, and
    * `@img+*` covers the linux-x64 variants Vercel installs.
    */
-  // The design lab reads repo markdown at request time (the desk's manifests,
-  // the proposals, the rulings, the record, the doctrine); the files are outside
-  // the bundle unless traced in. One key covers every shell route (the Library
-  // x Lab round, 2026-09-15; the list lives beside the lab's redirects).
-  outputFileTracingIncludes: {
-    "/design/": TRACED_DOC_GLOBS,
-  },
   outputFileTracingExcludes: {
     "**": [
       "node_modules/.pnpm/sharp@*/**",

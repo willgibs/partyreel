@@ -134,9 +134,9 @@ is near it; **beam** marks the object that is the live subject. Ink tends to tak
 - ★ **A band resting mid-travel shows a reduced-motion visitor the comet forever**: the animation lives under
   `no-preference`, so the declared position is what they see. It rests where its animation starts (`150% 0` on the
   mask drive, `glw-drift-x`'s from-keyframe on the transform drive), never `50% 0`.
-- **`GlowFilter` mounts once, in the root layout** (the root `not-found.tsx` renders the footer outside `(marketing)`);
-  SVG ids are document-global, so never a second. ★ **A missing filter host drops the whole filter chain**, `blur()`
-  included, and the five ellipses render as hard blobs, silently; `Glow` has a dev-only console guard.
+- **`GlowFilter` mounts once, in the root layout** (the root 404, `not-found.site.tsx`, renders the footer outside
+  `(marketing)`); SVG ids are document-global, so never a second. ★ **A missing filter host drops the whole filter
+  chain**, `blur()` included, and the five ellipses render as hard blobs, silently; `Glow` has a dev-only console guard.
 - **One clock**: lamps read `--spill-cadence`, never a literal; the Aurora's field reads `--aurora-cadence`, a slower
   sibling (a chapter-sized field on a lamp's clock reads as a screensaver). ★ The sibling stays declared in
   globals.css: an inline `vars` value outranks `--glw-dur`, so an undeclared cadence voids the `animation` shorthand and

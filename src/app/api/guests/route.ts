@@ -268,7 +268,7 @@ export async function POST(request: Request) {
      RSC and the poll, and neither can read the localStorage copy the browser is about to make.
      `pr_guest_<eventId>` is that same token, HttpOnly, so the next render knows which guest is
      asking. It is a READ capability only: every write route still takes its token from the BODY
-     (pinned by body-token-source.test.ts), so the CSRF surface does not move. Skipped when the
+     (pinned by session-cookie.test.ts), so the CSRF surface does not move. Skipped when the
      request already carried this exact token. */
   applyGuestCookies(response, [
     await guestSessionCookieIfChanged(

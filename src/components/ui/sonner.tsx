@@ -5,20 +5,17 @@ import { DismissableLayer } from "radix-ui/internal"
 import { Toaster as Sonner, toast, type ToasterProps } from "sonner"
 import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon } from "lucide-react"
 
-// ERRORS PERSIST UNTIL DISMISSED (`toasts` r1, `life=persist`, 2026-09-20:
-// "a failure that disappears before it is read repeats itself"; success and
-// warning keep sonner's fixed clock). Sonner has NO per-type default duration
-// to lean on for this - verified against the installed package
-// (node_modules/sonner/dist/index.mjs): both the Toaster's own `duration`
-// prop and `toastOptions.duration` are ONE flat number applied to every kind,
-// so setting either globally would also freeze success/warning on screen
-// forever. And the 65 existing `toast.error(...)` call sites across the app
-// stay exactly as they are this lane (the "if the control can show it, no
-// toast" sweep is a follow-up, not this one) - so the single choke point
-// every one of them already calls through is sonner's OWN `toast.error`,
-// patched once here at module load, which the root layout imports before any
-// page can render and fire one. A call site's own `duration`/`closeButton`
-// still wins (spread after the forced defaults).
+// ERRORS PERSIST UNTIL DISMISSED: a failure that disappears before it is read
+// repeats itself (success and warning keep sonner's fixed clock). Sonner has NO
+// per-type default duration to lean on for this - verified against the
+// installed package (node_modules/sonner/dist/index.mjs): both the Toaster's own
+// `duration` prop and `toastOptions.duration` are ONE flat number applied to
+// every kind, so setting either globally would also freeze success/warning on
+// screen forever. Every `toast.error(...)` call site in the app already calls
+// through sonner's OWN `toast.error`, the single choke point, so it is patched
+// once here at module load, which the root layout imports before any page can
+// render and fire one. A call site's own `duration`/`closeButton` still wins
+// (spread after the forced defaults).
 //
 // ★ GUARDED AGAINST DOUBLE-PATCHING. `"sonner"` is a singleton module, but
 // this file's own module can be re-evaluated more than once (Turbopack/Fast
@@ -52,31 +49,28 @@ const Toaster = ({ ...props }: ToasterProps) => {
     // viewer, a menu) sets `pointer-events: none` on the body, which this band
     // inherits, and closes on any press outside it: a toast's Undo over the
     // storage list closed the list at a desk and went through to the chip
-    // under it in a hand (build 14's red-team). So the band takes pointer
-    // events back (`style` below; sonner's own rule still turns a hidden
-    // toast's off) and is a DismissableLayer BRANCH, Radix's own "counts as
-    // inside every layer" (its Toast viewport is one): one place, for every
-    // layer and every press on a toast. `asChild` hands the branch's ref to
-    // sonner, which forwards it to its always-mounted `<section>`. ★ A
-    // keyboard still cannot reach a toast while a modal holds focus: Radix's
-    // focus trap pulls sonner's alt+T back.
+    // under it in a hand. So the band takes pointer events back (`style`
+    // below; sonner's own rule still turns a hidden toast's off) and is a
+    // DismissableLayer BRANCH, Radix's own "counts as inside every layer" (its
+    // Toast viewport is one): one place, for every layer and every press on a
+    // toast. `asChild` hands the branch's ref to sonner, which forwards it to
+    // its always-mounted `<section>`. ★ A keyboard still cannot reach a toast
+    // while a modal holds focus: Radix's focus trap pulls sonner's alt+T back.
     <DismissableLayer.Branch asChild>
       <Sonner
         theme={theme as ToasterProps["theme"]}
         className="toaster group"
-        // WHERE (`where=top`): both sizes move to a band under the header,
-        // clear of every fixed-bottom control on the page today (the guest's
-        // floating Add pill and the lightbox credit line on a phone, the
-        // host's own fixed action bar on both sizes) - one shared rule for
-        // the host app, the guest pages and marketing alike, since the one
-        // Toaster in layout.tsx mounts above every surface, not per-route.
+        // Top centre, at both sizes: a band under the header, clear of every
+        // fixed-bottom control on the page (the guest's action dock, and the
+        // lightbox credit line on a phone) - one shared rule for the host app,
+        // the guest pages and marketing alike, since the one Toaster in
+        // layout.tsx mounts above every surface, not per-route.
         position="top-center"
-        // STACK (`stack=expanded`): every toast keeps its full height in its
-        // own row, newest on top - never sonner's collapsed hover pile, which
-        // has no hover on the phone this product is built for.
-        // `visibleToasts` stays sonner's own default (3): the board's own
-        // example is "a run of three bulk outcomes", and nothing here asks
-        // for more (his to overrule).
+        // Always expanded: every toast keeps its full height in its own row,
+        // newest on top - never sonner's collapsed hover pile, which has no
+        // hover on the phone this product is built for. `visibleToasts` stays
+        // sonner's own default (3), which fits a run of three bulk outcomes;
+        // nothing here asks for more.
         expand
         // The top offset clears the TALLEST bar in the product - the
         // marketing header (`--mkt-header-h`, marketing.css, 4rem) - plus a
@@ -88,7 +82,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
         // containment contract), and the Toaster mounts as `[data-mkt]`'s
         // SIBLING in layout.tsx, outside the scope the cascade would need.
         // Same number on mobile: none of the three bars change height by
-        // breakpoint. His to overrule.
+        // breakpoint.
         offset={{ top: "5rem" }}
         mobileOffset={{ top: "5rem" }}
         icons={{

@@ -437,7 +437,7 @@ export function MasonryColumns<T extends GridMedia>(props: {
   clampAspect?: boolean;
   /** "masonry" = explicit, height-balanced columns (the Gallery "wow"). "uniform" = a fixed-aspect
    *  CSS grid (the Reel + Review, where uniformity makes drag-order / selection legible). "rows" =
-   *  the justified album, windowed (`AlbumRows`, opt-in until each surface switches). Only the box
+   *  the justified album, windowed (`AlbumRows`), the layout every album surface wears. Only the box
    *  and the per-tile box change; the marks / lightbox / dimItem paths are identical. */
   layout?: "masonry" | "uniform" | "rows";
   /** Rows only: the density step, photographs per row (`lib/shared/album-rows.ts`). */
