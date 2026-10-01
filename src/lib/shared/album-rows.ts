@@ -168,7 +168,8 @@ export function perRowFor(width: number, step: RowStep): number {
  * row by an eighth: a band that suits the desk would be unreachable on a phone.
  */
 export function bandFor(perRow: number): number {
-  return 1 + 1.15 / Math.max(1, perRow) ** 0.8;
+  // `Math.pow`, the same function `**` is: written out so a test can be another engine (see `cheaper`).
+  return 1 + 1.15 / Math.pow(Math.max(1, perRow), 0.8);
 }
 
 /**
@@ -195,6 +196,24 @@ const ANCHOR_SLACK = 0.25;
 
 /** A feature row's height, as a multiple of the plain target, at most. */
 export const FEATURE_SCALE = 2;
+
+/**
+ * ★ A PARTITION IS ONLY CHEAPER PAST A TIE (crumbs-33, from `album-guest-wiring`). The costs ride `Math.log` and
+ * `Math.pow`, which the spec leaves implementation-approximated, so the server's Node and a browser's engine can
+ * answer one input a last bit apart; and many partitions tie exactly (a uniform album's rows of three-three-two and
+ * two-three-three cost the same), so the search settled those ties on that last bit, and 5 to 10% of albums broke
+ * differently laid in Node and in Chrome. A candidate now replaces the best only when it is cheaper by more than
+ * this share of the cost; within it, the candidate the search met first stands, which every engine agrees on. It
+ * sits far above the rounding the costs carry (a few units in the last place a row, a thousand rows deep) and far
+ * below any difference a reader could see.
+ */
+const TIE = 1e-9;
+
+/** Whether `cost` beats `best` by more than a tie (`TIE`). Nothing beats a cost by tying it. */
+function cheaper(cost: number, best: number): boolean {
+  if (best === Number.POSITIVE_INFINITY) return cost < best;
+  return cost < best - TIE * Math.max(1, best);
+}
 
 /**
  * A featured photograph that cannot stand at least this much taller than a
@@ -368,7 +387,7 @@ function solve(
           h <= (lead * ctx.cap) / ctx.target
         )
           feature = rowCost(h, lead, ctx.band, false);
-        if (base + feature < best[j]) {
+        if (cheaper(base + feature, best[j])) {
           best[j] = base + feature;
           back[j] = i;
           asFeature[j] = 1;
@@ -380,7 +399,7 @@ function solve(
         base +
         rowCost(h, ctx.target, ctx.band, anchorRow) +
         (lead > 0 ? FEATURE_MISS : 0);
-      if (plain < best[j]) {
+      if (cheaper(plain, best[j])) {
         best[j] = plain;
         back[j] = i;
         asFeature[j] = 0;

@@ -865,3 +865,112 @@ describe("1,145 photographs lay out in a few milliseconds", () => {
     expect(time(335, 0)).toBeLessThan(10);
   });
 });
+
+/* ── A second engine ────────────────────────────────────────────────────── */
+
+const F64 = new Float64Array(1);
+const U32 = new Uint32Array(F64.buffer);
+
+/**
+ * `x` moved one unit in its last place: up (1), down (-1) or left alone (0). A double's bits, read as an integer,
+ * count its last places, so one more (or less) away from zero is the next double out (or in): the low word carries
+ * into the high one at its edge (little-endian: `U32[0]` is the low word).
+ */
+function nudge(x: number, dir: number): number {
+  if (dir === 0 || !Number.isFinite(x) || x === 0) return x;
+  F64[0] = x;
+  if (x > 0 === dir > 0) {
+    U32[0] = (U32[0] + 1) >>> 0;
+    if (U32[0] === 0) U32[1] += 1;
+  } else {
+    if (U32[0] === 0) U32[1] -= 1;
+    U32[0] = (U32[0] - 1) >>> 0;
+  }
+  return F64[0];
+}
+
+/** A coin of a number's own bits and the engine's seed: -1, 0 or 1. */
+function coin(x: number, seed: number): number {
+  F64[0] = x;
+  return ((Math.imul(U32[0] ^ U32[1] ^ seed, 2654435761) >>> 0) % 3) - 1;
+}
+
+/**
+ * ANOTHER ENGINE, AS A TEST CAN HAVE ONE. The spec leaves `Math.log` and `Math.pow` implementation-approximated, so
+ * the server's V8 and a browser's engine may answer one input a last bit apart. Inside `run`, every answer either
+ * function gives is moved one unit in the last place up, down or not at all, by a coin of its own input: an engine
+ * that agrees with this one to within the last bit, and on nothing past it.
+ */
+function inAnotherEngine<T>(seed: number, run: () => T): T {
+  const log = Math.log;
+  const pow = Math.pow;
+  Math.log = (x: number) => nudge(log(x), coin(x, seed));
+  Math.pow = (x: number, y: number) =>
+    nudge(pow(x, y), coin(x * 977 + y, seed));
+  try {
+    return run();
+  } finally {
+    Math.log = log;
+    Math.pow = pow;
+  }
+}
+
+/** A layout as the bytes a render reads: every row's photographs, height and widths. */
+const drawn = (layout: RowsLayout) => layout.rows.map(bytes).join(" | ");
+
+describe("a second engine lays the same rows (album-guest-wiring's near-ties)", () => {
+  const withPicks = (items: RowItem[], seed: number, perRow: number) => {
+    const picks = pickFeatures(items, seed, perRow);
+    return items.map((it) =>
+      picks.has(it.id) ? { ...it, feature: true } : it,
+    );
+  };
+  const uniform = (n: number, ratio: number): RowItem[] =>
+    Array.from({ length: n }, (_, i) => ({ id: `u${i}`, ratio }));
+
+  /** Every album the engine meets, at every step and width: a party's mix, featured or not, and the uniform albums whose partitions tie exactly. */
+  const cases = (() => {
+    const out: {
+      name: string;
+      items: RowItem[];
+      params: Parameters<typeof layoutRows>[1];
+    }[] = [];
+    for (const width of [...WIDTHS, 333.5, 1399.25])
+      for (const step of STEPS) {
+        const p = params(width, step);
+        for (let s = 0; s < 6; s++)
+          out.push({
+            name: `party ${s} at ${width}/${step}`,
+            items: album(90, rng(s * 13 + step + width)),
+            params: p,
+          });
+        for (const ratio of [3 / 4, 4 / 3, 1, 9 / 16])
+          out.push({
+            name: `uniform ${ratio.toFixed(2)} at ${width}/${step}`,
+            items: uniform(48, ratio),
+            params: p,
+          });
+        for (const feature of ["double", "solo"] as const)
+          out.push({
+            name: `${feature} at ${width}/${step}`,
+            items: withPicks(album(90, rng(width + step)), 7, p.perRow),
+            params: { ...p, feature },
+          });
+      }
+    return out;
+  })();
+
+  it("★ lays every album byte for byte the same when the last bit of Math.log and Math.pow falls the other way", () => {
+    const here = cases.map((c) => drawn(layoutRows(c.items, c.params)));
+    const differ: string[] = [];
+    for (const seed of [1, 2, 3])
+      inAnotherEngine(seed, () => {
+        cases.forEach((c, i) => {
+          if (drawn(layoutRows(c.items, c.params)) !== here[i])
+            differ.push(`${c.name} (engine ${seed})`);
+        });
+      });
+    expect(cases.length).toBeGreaterThan(300);
+    expect(differ).toEqual([]);
+  });
+});

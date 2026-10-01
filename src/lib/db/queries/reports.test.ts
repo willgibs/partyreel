@@ -835,3 +835,158 @@ describe("the covered rule's one home, as the albums grid asks it (crumbs-21)", 
     expect([...byItems].sort()).toEqual([uuid("m", 1), uuid("m", 7)].sort());
   });
 });
+
+/**
+ * ★ THE QUEUE'S STRIKES COME FROM THE RULE'S ONE HOME (crumbs-33, migration 20261001100000): the open queue asks
+ * `report_strikes` for the hashes its open child-abuse reports kept, and each such report carries its address's
+ * strikes and what a Dismiss of its entry would make of them. Until the function stands, the queue reads as before
+ * with no strike reading, never as "no strikes".
+ */
+describe("the open queue's strikes (crumbs-33)", () => {
+  const HOST = uuid("p", 1);
+  const report = (i: number, over: FakeRow) => ({
+    id: uuid("r", i),
+    reason: null,
+    created_at: at(i),
+    status: "open",
+    event_id: uuid("e", 1),
+    media_id: uuid("m", i),
+    kind: "child",
+    reporter_signed_in: true,
+    reporter_email: null,
+    reporter_hash: null,
+    hid_at: null,
+    ...over,
+  });
+  const media = (i: number) => ({
+    id: uuid("m", i),
+    type: "photo",
+    original_key: `key-${i}`,
+    preview_key: null,
+    status: "approved",
+    removed_by_admin: false,
+    removed_at: null,
+    legal_hold_at: null,
+    event_id: uuid("e", 1),
+    guest_id: null,
+    guests: null,
+  });
+  const tables = () => ({
+    events: [{ id: uuid("e", 1), name: "RT23 doors A", host_id: HOST }],
+    profiles: [{ id: HOST, display_name: "Will", email: "host@example.com" }],
+    media: [1, 2, 3].map(media),
+    reports: [
+      // Two reports of one item from one address: a Dismiss of the entry makes both strikes.
+      report(1, {
+        media_id: uuid("m", 1),
+        reporter_hash: "hash:a@example.com",
+      }),
+      report(2, {
+        media_id: uuid("m", 1),
+        reporter_hash: "hash:a@example.com",
+      }),
+      // An address the read has never seen.
+      report(3, {
+        media_id: uuid("m", 2),
+        reporter_hash: "hash:new@example.com",
+      }),
+      // Another kind keeps no hash and carries no strikes.
+      report(4, { media_id: uuid("m", 3), kind: "violence" }),
+    ],
+  });
+
+  it("★ asks the one home for the hashes the open child-abuse reports kept, and says what a Dismiss would make of each", async () => {
+    const asked: unknown[] = [];
+    fake = createFakePostgrest({
+      tables: tables(),
+      rpc: {
+        report_queue_facts: () => ({}),
+        report_strikes: (args) => {
+          asked.push(args.p_reporter_hashes);
+          return {
+            strikes: 3,
+            fresh_lapses_at: "2027-03-30T09:00:00.123456+00:00",
+            addresses: {
+              "hash:a@example.com": {
+                live: 1,
+                barred: false,
+                lapses: ["2027-01-15T12:00:00.5+00:00"],
+              },
+            },
+          };
+        },
+      },
+    });
+    const { entries } = await listOpenEntries(50);
+    expect(asked).toHaveLength(1);
+    expect([...(asked[0] as string[])].sort()).toEqual([
+      "hash:a@example.com",
+      "hash:new@example.com",
+    ]);
+    const strikesOf = (i: number) =>
+      entries.flatMap((e) => e.reports).find((r) => r.id === uuid("r", i))
+        ?.strikes;
+    // One live strike and two of this entry's reports from the address: a Dismiss makes three, and the bar holds
+    // until the oldest of the three lapses (the one already live), read in ISO.
+    expect(strikesOf(1)).toEqual({
+      live: 1,
+      bar: 3,
+      barredUntil: null,
+      dismiss: { live: 3, barredUntil: "2027-01-15T12:00:00.500Z" },
+    });
+    expect(strikesOf(2)).toEqual(strikesOf(1));
+    // An address the read did not name holds none.
+    expect(strikesOf(3)).toEqual({
+      live: 0,
+      bar: 3,
+      barredUntil: null,
+      dismiss: { live: 1, barredUntil: null },
+    });
+    expect(strikesOf(4)).toBeNull();
+  });
+
+  it("★ reads as no reading, never as no strikes, until the function stands", async () => {
+    // No `report_strikes` handler: the fake answers PGRST202, as PostgREST does before the migration.
+    fake = createFakePostgrest({
+      tables: tables(),
+      rpc: { report_queue_facts: () => ({}) },
+    });
+    const { entries } = await listOpenEntries(50);
+    expect(entries.flatMap((e) => e.reports)).toHaveLength(4);
+    expect(
+      entries.flatMap((e) => e.reports).every((r) => r.strikes === null),
+    ).toBe(true);
+  });
+
+  it("fails loudly on any other failure, as the queue's facts do", async () => {
+    fake = createFakePostgrest({
+      tables: tables(),
+      rpc: {
+        report_queue_facts: () => ({}),
+        report_strikes: () => {
+          throw new Error("canceling statement due to statement timeout");
+        },
+      },
+    });
+    await expect(listOpenEntries(50)).rejects.toThrow(/strikes/);
+  });
+
+  it("asks nothing when no open report is a child-abuse report from a kept address", async () => {
+    const asked: unknown[] = [];
+    fake = createFakePostgrest({
+      tables: {
+        ...tables(),
+        reports: [report(4, { media_id: uuid("m", 3), kind: "violence" })],
+      },
+      rpc: {
+        report_queue_facts: () => ({}),
+        report_strikes: (args) => {
+          asked.push(args);
+          return {};
+        },
+      },
+    });
+    await listOpenEntries(50);
+    expect(asked).toEqual([]);
+  });
+});

@@ -1,4 +1,5 @@
 import type { BadgeTone } from "@/lib/admin/tone";
+import { formatAdminDate } from "@/lib/format/admin-time";
 import { formatCount } from "@/lib/format/count";
 import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 import {
@@ -477,3 +478,99 @@ export function hideUndoOf(
 /** What a dismissal that put a hidden item back says (the toast keeps its Undo, which hides it again). */
 export const HIDE_RESTORED_MESSAGE =
   "Report dismissed, and the item it hid is back where it was.";
+
+/* ── The instant hide's strikes, on the queue (crumbs-33, from `hide-strikes`) ────────────────────── */
+
+/**
+ * WHAT `report_strikes` ANSWERS FOR ONE ADDRESS (20261001100000, the rule's one home, which `create_report` asks
+ * too): its live strikes, whether they bar its instant hide, and the lapse instants of its newest strikes up to the
+ * bar, newest first.
+ */
+export type StrikeReading = {
+  live: number;
+  barred: boolean;
+  lapses: readonly string[];
+};
+
+/** The rule's own numbers, as the same answer carries them, never a copy here. */
+export type StrikeRule = {
+  /** How many live strikes bar the instant hide. */
+  strikes: number;
+  /** When a strike made now would lapse. */
+  freshLapsesAt: string;
+};
+
+/**
+ * ONE ADDRESS AGAINST THE INSTANT HIDE, AND WHAT A DISMISS OF THE ENTRY IN FRONT OF THE OPERATOR WOULD MAKE OF IT.
+ * The address itself is never here: the read keys on its hash, and only counts and instants come back.
+ */
+export type AddressStrikes = {
+  live: number;
+  /** The rule's bar: this many live strikes end the instant hide. */
+  bar: number;
+  /** Its reports no longer hide anything at once until this instant; null while they still do. */
+  barredUntil: string | null;
+  /** The same after a Dismiss: every open child-abuse report of this address on the entry is then a strike. */
+  dismiss: { live: number; barredUntil: string | null };
+};
+
+/**
+ * Strikes lapse oldest first, so an address's bar lifts when its bar-th newest live strike lapses, and a Dismiss's
+ * strikes (the newest of all, `adding` of them: a verdict closes every open report on its entry) join the front of
+ * the list that is read from. The numbers are the reading's own (`rule`), so this can never count by another rule.
+ */
+export function addressStrikes(
+  reading: StrikeReading,
+  rule: StrikeRule,
+  adding: number,
+): AddressStrikes {
+  const bar = rule.strikes;
+  const after = [
+    ...Array.from({ length: Math.max(0, adding) }, () => rule.freshLapsesAt),
+    ...reading.lapses,
+  ];
+  const live = reading.live + Math.max(0, adding);
+  return {
+    live: reading.live,
+    bar,
+    barredUntil: reading.barred ? (reading.lapses[bar - 1] ?? null) : null,
+    dismiss: {
+      live,
+      barredUntil: live >= bar ? (after[bar - 1] ?? null) : null,
+    },
+  };
+}
+
+/** Whether a Dismiss would be the one that takes this address's instant hide away. */
+export function dismissEndsTheHide(s: AddressStrikes): boolean {
+  return s.barredUntil === null && s.dismiss.barredUntil !== null;
+}
+
+const strikeCount = (n: number) =>
+  `${formatCount(n)} ${n === 1 ? "strike" : "strikes"}`;
+
+/**
+ * THE LINE A CHILD-ABUSE REPORT WEARS ON THE QUEUE: how many live strikes its address holds and what a Dismiss would
+ * make of it, so the operator knows before the press when it is the third, and the address's reports stop hiding
+ * anything at once until the date it names (the strikes lapse 180 days after their dismissals; a dismissal's Undo
+ * takes its strike back). "Hiding right away" is the chip's own word for the instant hide (`Hidden right away`).
+ */
+export function strikeWords(s: AddressStrikes): string {
+  const { live, bar, barredUntil, dismiss } = s;
+  if (barredUntil) {
+    const later =
+      dismiss.barredUntil &&
+      Date.parse(dismiss.barredUntil) > Date.parse(barredUntil)
+        ? `, until ${formatAdminDate(dismiss.barredUntil)}`
+        : "";
+    return `This address has ${strikeCount(live)}, so its reports don't hide right away until ${formatAdminDate(barredUntil)}. A Dismiss makes ${formatCount(dismiss.live)}${later}.`;
+  }
+  const held =
+    live === 0
+      ? "This address has no strikes."
+      : `This address has ${strikeCount(live)} of ${formatCount(bar)}.`;
+  if (dismiss.barredUntil) {
+    return `${held} A Dismiss makes ${formatCount(dismiss.live)}, and its reports stop hiding right away until ${formatAdminDate(dismiss.barredUntil)}.`;
+  }
+  return `${held} A Dismiss makes ${formatCount(dismiss.live)} of ${formatCount(bar)}.`;
+}

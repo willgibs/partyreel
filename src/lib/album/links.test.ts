@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { createLinkStore } from "@/lib/album/links";
 import { createClipResolver } from "@/lib/album/resolver";
@@ -111,6 +111,118 @@ describe("ensure: one request a tick, never an id twice", () => {
     fail = false;
     await links.ensure(["a"]);
     expect(links.get("a")).toBeDefined();
+  });
+});
+
+/**
+ * ★ A BURST'S ASKS GO TOGETHER (crumbs-33, from `album-guest-wiring`): "a held arrow key walking the 1,145-photo
+ * probe made 1,092 asks and a photograph 100 steps on waited 1 to 6 s for its link on localhost's six
+ * connections". Each step asked in a tick of its own, so the store sent one request a step, and the browser queued
+ * them behind its six connections to the host: the photograph on screen waited behind every one it walked past.
+ */
+describe("ensure: a burst's asks coalesce while requests are out", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("★ sends what a burst asked while the requests were out together, the newest first", async () => {
+    const asked: string[][] = [];
+    const releases: (() => void)[] = [];
+    const inner = server({ serverNow: () => SERVER_T0 });
+    const fetch = vi.fn(async (ids: string[]) => {
+      asked.push(ids);
+      await new Promise<void>((r) => releases.push(r));
+      return inner.fetch(ids);
+    });
+    const tick = () => new Promise((r) => setTimeout(r, 0));
+    const links = createLinkStore({ fetch, now: () => 0, batchSize: 4 });
+    const waits = [links.ensure(["a"])];
+    // Ten more steps, each in a tick of its own.
+    for (let i = 0; i < 10; i++) {
+      await tick();
+      waits.push(links.ensure([`s${i}`]));
+    }
+    await tick();
+    // Two requests out (the first two asks), the nine after them waiting.
+    expect(asked).toEqual([["a"], ["s0"]]);
+    releases.shift()!();
+    await tick();
+    // A place came free: the NEWEST batch goes first (`batchSize` 4), in the order its ids were asked.
+    expect(asked[2]).toEqual(["s6", "s7", "s8", "s9"]);
+    while (releases.length > 0) {
+      releases.shift()!();
+      await tick();
+    }
+    await Promise.all(waits);
+    expect(asked).toEqual([
+      ["a"],
+      ["s0"],
+      ["s6", "s7", "s8", "s9"],
+      ["s2", "s3", "s4", "s5"],
+      ["s1"],
+    ]);
+    for (const id of ["a", "s0", "s1", "s5", "s9"])
+      expect(links.get(id)).toBeDefined();
+  });
+
+  it("★ on a browser's six connections, a held key's hundredth photograph lands within two round trips", async () => {
+    vi.useFakeTimers();
+    const LATENCY = 300;
+    const STEP = 33; // a held arrow key repeats about thirty times a second
+    const inner = server({ serverNow: () => SERVER_T0 });
+    // The browser's six connections to one host: a request past them waits for one to come free.
+    let open = 0;
+    const queue: (() => void)[] = [];
+    const fetch = async (ids: string[]) => {
+      if (open >= 6) await new Promise<void>((r) => queue.push(r));
+      open++;
+      await new Promise((r) => setTimeout(r, LATENCY));
+      open--;
+      queue.shift()?.();
+      return inner.fetch(ids);
+    };
+    const links = createLinkStore({ fetch, now: () => Date.now() });
+    let askedAt = 0;
+    let landedAt = 0;
+    for (let i = 0; i < 100; i++) {
+      // Each step asks for the photograph it lands on and the next one (the viewer's reach).
+      const asked = links.ensure([`p${i}`, `p${i + 1}`]);
+      if (i === 99) {
+        askedAt = Date.now();
+        void asked.then(() => (landedAt = Date.now()));
+      }
+      await vi.advanceTimersByTimeAsync(STEP);
+    }
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(landedAt).toBeGreaterThan(0);
+    expect(landedAt - askedAt).toBeLessThanOrEqual(2 * LATENCY);
+    expect(links.get("p99")).toBeDefined();
+    // A request every couple of steps at most, never one a step.
+    expect(inner.calls.length).toBeLessThanOrEqual(30);
+  });
+
+  it("a request that stalls gives its place up, and the asks behind it go", async () => {
+    vi.useFakeTimers();
+    const inner = server({ serverNow: () => SERVER_T0 });
+    const fetch = vi.fn(async (ids: string[]) => {
+      // The first two never answer (a connection that hung).
+      if (fetch.mock.calls.length <= 2) await new Promise(() => {});
+      return inner.fetch(ids);
+    });
+    const links = createLinkStore({ fetch, now: () => 0 });
+    void links.ensure(["a"]);
+    await vi.advanceTimersByTimeAsync(1);
+    void links.ensure(["b"]);
+    await vi.advanceTimersByTimeAsync(1);
+    let landed = false;
+    void links.ensure(["c"]).then(() => (landed = true));
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(landed).toBe(false);
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(landed).toBe(true);
+    expect(links.get("c")).toBeDefined();
+    // The stalled ids are still out, never asked twice.
+    expect(fetch.mock.calls.map(([ids]) => ids)).toEqual([["a"], ["b"], ["c"]]);
   });
 });
 

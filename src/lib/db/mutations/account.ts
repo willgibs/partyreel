@@ -277,17 +277,29 @@ async function banAuthUser(userId: string): Promise<void> {
 // `newsletter_signups` is a DENY-ALL table (operator/service-role only), so its
 // read and its write both go through the admin client, after getUser() has
 // established WHOSE address we are allowed to look at.
+//
+// ★ THE SWITCH REMOVES WHAT IT READS (crumbs-33, from identity-email). The row
+// follows the account's address through an email change (the trigger moves it,
+// 20261001110000), and both the read and the removal ask for the address in the
+// list's own stored form, lower case and trimmed (capture_guest_email writes it
+// so), so a profile's address in another case can neither hide its row from the
+// switch nor leave it behind.
+
+/** An address as the list stores it. */
+function listForm(email: string): string {
+  return email.trim().toLowerCase();
+}
 
 /** Delete every signup row for an address. Returns how many rows went. */
 async function deleteNewsletterSignups(
   email: string | null | undefined,
 ): Promise<number> {
-  if (!email) return 0;
+  if (!email?.trim()) return 0;
   const removed = await mustQuery(
     createAdminClient()
       .from("newsletter_signups")
       .delete()
-      .eq("email", email)
+      .eq("email", listForm(email))
       .select("id"),
     "deleteNewsletterSignups",
   );
@@ -310,13 +322,13 @@ export async function isOnNewsletterList(): Promise<boolean> {
     supabase.from("profiles").select("email").eq("id", user.id).maybeSingle(),
     "isOnNewsletterList: email",
   );
-  if (!profile?.email) return false;
+  if (!profile?.email?.trim()) return false;
 
   const rows = await mustQuery(
     createAdminClient()
       .from("newsletter_signups")
       .select("id")
-      .eq("email", profile.email)
+      .eq("email", listForm(profile.email))
       .limit(1),
     "isOnNewsletterList: signups",
   );

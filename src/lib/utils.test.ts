@@ -1,6 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 
-import { formatBytes } from "@/lib/utils";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { formatBytes, formatEventDate, formatMonthYear } from "@/lib/utils";
 
 const MB = 1024 ** 2;
 const GB = 1024 ** 3;
@@ -53,5 +56,109 @@ describe("formatBytes", () => {
     expect(formatBytes(140 * GB, 1, "up")).toBe("140 GB");
     // Up past a unit's edge is one of the next, and still enough.
     expect(formatBytes(1023.95 * MB, 1, "up")).toBe("1 GB");
+  });
+});
+
+/**
+ * ★ ONE PINNED DATE FORMAT (crumbs-33, from `hardening`). A date printed in the RUNTIME's locale reads one way on the
+ * server and another in a browser that is not en-US, which is a hydration mismatch, and a server page prints
+ * whatever its runtime's locale is. Another runtime is simulated here the only way a test can be: every formatting
+ * call that names no locale is answered in German, and the process's zone is moved west of UTC. A pinned formatter
+ * reads the same through both.
+ */
+describe("the pinned dates", () => {
+  const ORIGINAL_TZ = process.env.TZ;
+
+  /** A runtime whose own locale is German: a call that names a locale keeps it. */
+  function runAsGermanRuntime() {
+    const toLocaleDate = Date.prototype.toLocaleDateString;
+    const toLocale = Date.prototype.toLocaleString;
+    vi.spyOn(Date.prototype, "toLocaleDateString").mockImplementation(function (
+      this: Date,
+      locales,
+      options,
+    ) {
+      return toLocaleDate.call(this, locales ?? "de-DE", options);
+    });
+    vi.spyOn(Date.prototype, "toLocaleString").mockImplementation(function (
+      this: Date,
+      locales,
+      options,
+    ) {
+      return toLocale.call(this, locales ?? "de-DE", options);
+    });
+    const RealDateTimeFormat = Intl.DateTimeFormat;
+    vi.spyOn(Intl, "DateTimeFormat").mockImplementation(
+      ((locales?: string | string[], options?: Intl.DateTimeFormatOptions) =>
+        new RealDateTimeFormat(
+          locales ?? "de-DE",
+          options,
+        )) as unknown as typeof Intl.DateTimeFormat,
+    );
+  }
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    if (ORIGINAL_TZ === undefined) delete process.env.TZ;
+    else process.env.TZ = ORIGINAL_TZ;
+  });
+
+  it("★ prints an event's day in en-US, byte for byte what it always printed, whatever the runtime's locale", () => {
+    runAsGermanRuntime();
+    expect(formatEventDate("2026-06-01")).toBe("June 1, 2026");
+    expect(formatEventDate("2026-12-31")).toBe("December 31, 2026");
+  });
+
+  it("★ prints an event's own day in every zone a page renders in", () => {
+    for (const zone of [
+      "Pacific/Honolulu",
+      "America/New_York",
+      "UTC",
+      "Asia/Tokyo",
+      "Pacific/Kiritimati",
+    ]) {
+      process.env.TZ = zone;
+      expect(formatEventDate("2026-06-01"), zone).toBe("June 1, 2026");
+      expect(formatEventDate("2027-01-01"), zone).toBe("January 1, 2027");
+    }
+  });
+
+  it("★ prints a month and year in en-US, read in UTC, whatever the runtime", () => {
+    runAsGermanRuntime();
+    process.env.TZ = "America/Los_Angeles";
+    expect(formatMonthYear("2026-09-14T12:00:00Z")).toBe("September 2026");
+    // Two in the morning in UTC on the first is still the last evening of September in Los Angeles.
+    expect(formatMonthYear("2026-10-01T02:00:00Z")).toBe("October 2026");
+    expect(formatMonthYear(new Date("2026-10-01T02:00:00Z"))).toBe(
+      "October 2026",
+    );
+  });
+
+  it("★ no product page prints a date in the runtime's locale", () => {
+    // The scan reads the product's own source: the dev routes (the lab and the Library) are not the product, and a
+    // test file may name the calls it pins. A date's own calls only: `toLocaleString()` is a number's too, so a
+    // count is `formatCount`'s to answer, and reading the runtime's ZONE (`resolvedOptions()`, the viewer's day)
+    // formats nothing.
+    const ROOT = join(__dirname, "..");
+    const SKIP = /\/\(dev\)\/|\.test\.tsx?$/;
+    const RUNTIME_LOCALE =
+      /\.toLocale(?:Date|Time)String\(\s*(?:undefined\b|\))|Intl\.DateTimeFormat\(\s*(?:undefined\b|\)(?!\.resolvedOptions\(\)))/;
+    const found: string[] = [];
+    const walk = (dir: string) => {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const path = join(dir, entry.name);
+        if (entry.isDirectory()) walk(path);
+        else if (/\.tsx?$/.test(entry.name) && !SKIP.test(path)) {
+          const source = readFileSync(path, "utf8");
+          for (const [i, line] of source.split("\n").entries()) {
+            if (/^\s*(?:\*|\/\/)/.test(line)) continue;
+            if (RUNTIME_LOCALE.test(line))
+              found.push(`${path.slice(ROOT.length)}:${i + 1}: ${line.trim()}`);
+          }
+        }
+      }
+    };
+    walk(ROOT);
+    expect(found).toEqual([]);
   });
 });

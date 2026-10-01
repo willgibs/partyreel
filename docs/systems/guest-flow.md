@@ -137,8 +137,9 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
   load when its row mounts, and a tile whose row leaves cancels its unfinished download (R2 answers over HTTP/1.1,
   six connections). ★ The first paint is the server's: rows per width class at the width the album last laid them
   (`pr_album_w`, path-scoped; nominal cold), links for exactly those photographs (`firstPaintIds`), and the
-  hydration draws the plan the server wrote on the grid (`data-rows-plan`), never its own (the engine's logs and
-  powers round differently in Node and a browser). The Yours filter runs over the manifest (the device's own ids met
+  hydration draws the plan the server wrote on the grid (`data-rows-plan`), never its own (it spares the hydration a
+  layout; the engine settles a tie the same in Node and a browser since crumbs-33, design-system.md "`rows`"). The
+  Yours filter runs over the manifest (the device's own ids met
   with it; the count stays the album's). A photograph with no link yet is a loading tile, never a request. The
   skeleton lays rows on `ROW_CLASSES` at the step, as the first paint does.
   ★ **The page root is two boxes, not a column**:
@@ -869,7 +870,11 @@ had" holds only when this device holds a guest ticket a claim would move.
   router's refresh and the boundary's reset in one transition. A boundary of its own: Next 16.2's
   `unstable_catchError` does the same and cost the album's chunk 2.1 KB gzipped on `next build`, this one 0.5 KB.
 - ★ **A link is read by id at the moment it is needed and re-minted before it ages** (`ensureLinks` for a
-  window, `onNeedLinks` for the viewer, `clips` for the reel), never held past its life; the provider's
+  window, `onNeedLinks` for the viewer, `clips` for the reel), never held past its life. ★ At most two link requests
+  are out at once (`lib/album/links.ts`): what a burst asks meanwhile goes as one request when a place frees, its
+  newest ids first, and a request stalled past 8 s gives its place up, so a held arrow key's walk of the 1,145-photo
+  probe asks about 300 times, not 1,091, and the photograph it stops on is linked within a round trip or two; the
+  provider's
   watchdog (`reportPossibleExpiry`) treats any image or reader failure as a possible expired presign (a tab
   asleep past the 90-minute expiry answers a CORS-shaped failure with no status) and re-mints only the ids
   whose picture failed, at most once a minute each, never in the demo.

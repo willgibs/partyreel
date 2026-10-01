@@ -160,8 +160,13 @@ describe("the instant hide (his yes, with the anti-abuse)", () => {
     expect(report()).toContain(
       "and p_reporter_user_id is distinct from v_event.host_id",
     );
+    // A barred address: since crumbs-33 (20261001100000) the strikes' one home answers it, where this file's
+    // inline count of the address's dismissed child-abuse reports used to (db/migration-guards.test.ts, 27).
     expect(report()).toContain(
-      "where r.reporter_hash = p_reporter_hash and r.kind = 'child' and r.status = 'dismissed'",
+      "and not coalesce( (public.report_strikes(array[p_reporter_hash]) #>> array['addresses', p_reporter_hash, 'barred'])::boolean, false)",
+    );
+    expect(newest("report_strikes")).toContain(
+      "where r.kind = 'child' and r.status = 'dismissed'",
     );
     expect(report()).toContain(
       "where r.reporter_hash = p_reporter_hash and r.hid_at > now() - interval '24 hours') < 3",

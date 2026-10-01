@@ -2,6 +2,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { addressStrikes } from "@/lib/admin/reports";
 import type { EntryReport, ReviewEntry } from "@/lib/db/queries/reports";
 
 /**
@@ -70,6 +71,7 @@ function report(n: number, over: Partial<EntryReport> = {}): EntryReport {
     canAsk: false,
     byHost: false,
     hidAt: null,
+    strikes: null,
     proof: null,
     ...over,
     // A report that can be asked was sent from a confirmed address.
@@ -719,5 +721,99 @@ describe("a reopened report whose item is gone is that item's (crumbs-21, migrat
       ),
     ).toBeInTheDocument();
     expect(within(card).queryByRole("button")).toBeNull();
+  });
+});
+
+/**
+ * ★ A CHILD-ABUSE REPORT SAYS ITS ADDRESS'S STRIKES (crumbs-33, a board idea from `hide-strikes`): "nothing in the
+ * portal shows a strike", so the operator could not know when a Dismiss is an address's third and takes its
+ * instant hide away. The line, on the card and in the report whole, says how many live strikes its address holds
+ * and what a Dismiss would make of it. The address itself never shows: the read keys on its hash.
+ */
+describe("a child-abuse report's strikes", () => {
+  const RULE = { strikes: 3, freshLapsesAt: "2027-03-30T09:00:00.000Z" };
+  const childReport = (
+    n: number,
+    reading: { live: number; barred: boolean; lapses: string[] } | null,
+    over: Partial<EntryReport> = {},
+  ) =>
+    report(n, {
+      kind: "child",
+      signedIn: true,
+      confirmed: true,
+      strikes: reading ? addressStrikes(reading, RULE, 1) : null,
+      ...over,
+    });
+  const TWO = {
+    live: 2,
+    barred: false,
+    lapses: ["2027-02-20T21:05:00.000Z", "2026-12-02T19:30:00.000Z"],
+  };
+
+  it("★ the card says when a Dismiss is the third, and until when its reports stop hiding", () => {
+    render(
+      <ReportQueue
+        proofOn={false}
+        entries={[entry(1, {}, [childReport(1, TWO)])]}
+      />,
+    );
+    const line = document.querySelector(
+      "[data-report-front] [data-report-fact='strikes']",
+    ) as HTMLElement;
+    expect(line).not.toBeNull();
+    expect(line.textContent).toBe(
+      "This address has 2 strikes of 3. A Dismiss makes 3, and its reports stop hiding right away until Dec 2, 2026 UTC.",
+    );
+    // The press that ends the hide is the one the line marks.
+    expect(line.hasAttribute("data-strikes-end")).toBe(true);
+    // The address never shows (the entry carries none): only what the read counted.
+  });
+
+  it("★ the report whole says each report's own address, and an address already barred", async () => {
+    const user = userEvent.setup();
+    render(
+      <ReportQueue
+        proofOn={false}
+        entries={[
+          entry(1, {}, [
+            childReport(1, {
+              live: 3,
+              barred: true,
+              lapses: [
+                "2027-03-01T10:00:00.000Z",
+                "2027-02-01T10:00:00.000Z",
+                "2027-01-10T10:00:00.000Z",
+              ],
+            }),
+            childReport(2, { live: 0, barred: false, lapses: [] }),
+          ]),
+        ]}
+      />,
+    );
+    await user.click(
+      screen.getAllByRole("button", { name: "Open this report whole" })[0],
+    );
+    const peek = await screen.findByRole("dialog");
+    const lines = [
+      ...peek.querySelectorAll("[data-report-fact='strikes']"),
+    ].map((l) => l.textContent);
+    expect(lines).toEqual([
+      "This address has 3 strikes, so its reports don't hide right away until Jan 10, 2027 UTC. A Dismiss makes 4, until Feb 1, 2027 UTC.",
+      "This address has no strikes. A Dismiss makes 1 of 3.",
+    ]);
+  });
+
+  it("says nothing of strikes where there is no reading, and on any other kind", () => {
+    render(
+      <ReportQueue
+        proofOn={false}
+        entries={[
+          entry(1, {}, [childReport(1, null)]),
+          entry(2, {}, [report(2, { kind: "violence", canAsk: true })]),
+        ]}
+      />,
+    );
+    expect(document.querySelector("[data-report-fact='strikes']")).toBeNull();
+    expect(document.body.textContent).not.toMatch(/strike/i);
   });
 });

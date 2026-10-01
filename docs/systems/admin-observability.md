@@ -163,7 +163,12 @@ test (admin-triage r2):
   dismissed, and it lapses 180 days after its `resolved_at`; the count reads the reports as they stand, so a
   dismissal's Undo takes its strike back, and a CHECK holds a report open exactly when it has no `resolved_at`
   (`reports_resolved_when_closed`), so no close can skip the time a strike counts from. Three that lapse rather than one for good, so a reporter he once disagreed
-  with keeps the hide (Will, 2026-09-30; both numbers live once, in the function). Every other kind inserts only. A
+  with keeps the hide (Will, 2026-09-30). ★ The rule and both its numbers live once, in `report_strikes`
+  (20261001100000), which `create_report` asks for its bar and the queue reads, so the line that tells the operator
+  can never count by another rule: a child-abuse report's line, on its card and in the report whole, says its
+  address's live strikes and what a Dismiss would make of them (a Dismiss closes the whole entry, so each of the
+  address's open child-abuse reports on it becomes a strike), marked when a Dismiss is the one that ends the hide.
+  The address never shows: the read keys on the kept hash. Every other kind inserts only. A
   child-abuse report tells the operator after the response (`alertUrgentReport`: a Sentry warning every time, an
   ops-inbox mail once per album per ten minutes) and on the rail and the bell (the urgent count).
 - **The open queue is the review grid** (`components/admin/report-queue.tsx`): the five harm kinds in front, worst

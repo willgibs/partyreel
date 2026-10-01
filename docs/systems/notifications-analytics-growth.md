@@ -78,6 +78,10 @@ The opt-in ("Send me occasional Partyreel updates") is a switch inside the confi
   (deny-all).
 - **`newsletter_signups` stands alone,** not a `guests` column, so the list outlives an event or a guest
   (`event_id` is `on delete set null`); deleting an account removes its address.
+- ★ **The `/account` marketing switch removes what it reads.** The row follows the account's address through an email
+  change ([auth-accounts.md](auth-accounts.md), "the copies follow"), and the switch reads and removes by the address
+  the account holds, in the list's own form (lower case, trimmed: `listForm`, `db/mutations/account.ts`), so the row it
+  shows ON is the row its OFF takes away.
 - A typed, unproved address never reaches `guests.email`: it waits in `guests.pending_email` until a confirmed account
   claims it ([database-security.md](database-security.md), "two email columns"). No "email me the album link" send exists; one would go through
   `sendOnce`.
