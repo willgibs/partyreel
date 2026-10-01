@@ -28,10 +28,7 @@ const DIRS = ["src/components/admin", "src/app/admin"];
  * Each entry is deleted when its page says `prefetch={false}` (the second test fails until then),
  * so the list can only shrink.
  */
-const PENDING: Record<string, string> = {
-  "src/app/admin/albums/[eventId]/page.tsx":
-    "the album drill-in is crumbs-37's this round; its back link and its host link take the prop when it lands",
-};
+const PENDING: Record<string, string> = {};
 
 function sources(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {

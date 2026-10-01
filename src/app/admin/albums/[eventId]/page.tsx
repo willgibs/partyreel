@@ -183,6 +183,7 @@ export default async function AdminAlbumDetailPage({
     <div className="space-y-6">
       <Link
         href="/admin/albums"
+        prefetch={false}
         className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
       >
         <ArrowLeft className="size-4" />
@@ -206,6 +207,7 @@ export default async function AdminAlbumDetailPage({
           <Row label="Host">
             <Link
               href={`/admin/accounts/${event.host_id}`}
+              prefetch={false}
               className="text-foreground underline"
             >
               {hostLabel ?? "View account"}
