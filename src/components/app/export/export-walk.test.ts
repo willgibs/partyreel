@@ -267,6 +267,36 @@ describe("a tap with no answer (stuck=retry)", () => {
     expect(h.posted).toHaveLength(1);
   });
 
+  // `export-ends` retires ROADMAP's "the mint has no timeout and no cancel (a hung request leaves the toast
+  // spinning and Download disabled until a reload)" on this evidence: every try hanging still ends on its own
+  // ceilings, said with Try again, and the tap's promise resolves, which is what lets the bulk bar go.
+  it("every try hanging still ends: about 47 s of ceilings, then Try again, and the tap resolves", async () => {
+    vi.useFakeTimers();
+    const h = harness();
+    h.mints.push("hang", "hang", "hang");
+    let resolved: boolean | null = null;
+    void h.walker.start("host", { event_id: "e" }).then((r) => {
+      resolved = r;
+    });
+    // The ceilings run on the faked clock, the pauses between tries on real turns: step both.
+    let waited = 0;
+    while (resolved === null && waited < 60_000) {
+      await vi.advanceTimersByTimeAsync(1_000);
+      await new Promise((r) => turn(r, 0));
+      waited += 1_000;
+    }
+    expect(resolved).toBe(false);
+    // Three ceilings (10 + 15 + 20 s) and two short pauses: never past about 47 s.
+    expect(waited).toBeLessThanOrEqual(47_000);
+    expect(h.mintBodies()).toHaveLength(3);
+    expect(h.calls.every((c) => c.init.signal?.aborted)).toBe(true);
+    expect(h.now()).toMatchObject({
+      tone: "refused",
+      title: "Couldn't start that download.",
+      action: { label: "Try again" },
+    });
+  });
+
   it("a server error with no settled reason is tried again; a pause is said at once", async () => {
     const h = harness();
     h.mints.push({ status: 500, body: { ok: false, code: "error" } }, minted());
