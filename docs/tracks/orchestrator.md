@@ -64,7 +64,7 @@ runtime logs need it). MCP tool ids change with the account. The new Orchestrato
    time, crumbs-37's and crumbs-38's migrations by protocol); otherwise respawn it per "Resume a lane"
    (`spawn-prompt.txt`, same track and port) from its pushed commits and its manifest's `## Where I am`, the note
    repeating the ask to push WIP and keep `## Where I am` current, a stale `.next/dev/lock` free to delete. Each record
-   adds its calls to Will's file, numbered on from 64, and the two ride build 36 with crumbs-36 and crumbs-39 (merged).
+   adds its calls to Will's file, numbered on from 64.
 3. **Build 35** (`be502b45`: crumbs-33, crumbs-34 and crumbs-35 on build 34) is on the alias since 2026-10-01 06:35Z,
    red-teamed by 07:35Z (`../partyreel-wt/_scratch/redteam-35/ledger.txt`): every walk PASS but one FAIL, MEDIUM,
    crumbs-35's dashboard claims (the claims review subscribes after the layout's silent claim lands), with two LOWs (the
@@ -72,7 +72,11 @@ runtime logs need it). MCP tool ids change with the account. The new Orchestrato
    five nits, all in **`crumbs-40`** (spawned 08:02Z, its row). Strikes: willg97's address 2 (with 2 hides in the 24 hours to about 22:15Z on 2026-10-01, so one
    more can hide), partyr33l's 7. A classifier refusal was relayed to Will: the red-team's one combined read of
    `report_strikes`, a day's hides and `auth.sessions` with IPs and user agents; it read the strikes another allowed
-   way. crumbs-36 to crumbs-40 ride build 36 (deploy it per the runbook, unless Will is mid-sitting: ask).
+   way. **Build 36** (crumbs-36 to crumbs-40) comes once crumbs-40 merges and the four owed migrations stand
+   (crumbs-37's two after the Advisor, since one replaces `album_changes_since` and one drops `media_purge_at_idx`;
+   crumbs-38's two additive), each type regeneration dropping its lane's typed seam (the rows say which). Deploy it per
+   the runbook (unless Will is mid-sitting: ask), then its red-team from a brief written fresh from crumbs-36 to
+   crumbs-40's "For the next build's red-team" steps, `../partyreel-wt/_scratch/redteam-35/brief.md` the template.
 4. **Will's morning (2026-10-01):** the calls file first (63 calls, `../partyreel-wt/_scratch/calls/relay-calls.md`,
    last sent to him at 63: re-send it with each lane's calls; #60 holds one decision of his, the reopen window), then the desk. Seat a respawned Advisor
    (`usher/kit/advisor-prompt.txt`) when a consult comes due; no question is open.
