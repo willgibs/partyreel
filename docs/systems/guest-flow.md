@@ -1037,7 +1037,13 @@ had" holds only when this device holds a guest ticket a claim would move.
 CTA (the SSR default → zero flash for the anonymous majority); logged-in → the visitor's account menu
 ([`guest-account-menu.tsx`](../../src/components/guest/guest-account-menu.tsx)), fetched via
 `GET /api/me/menu?event=<id>` ONLY when a session exists (the avatar is the viewer's public Storage URL;
-event-ownership is an RLS-scoped select → the owner-only "Manage event" deep link). The menu's **Sign out**
+event-ownership is an RLS-scoped select → the owner-only "Manage event" deep link). ★ **It follows the device's
+session, never reads it once** (a `router.refresh()` does not re-run a client island): a look at the cookie (local,
+and free for the account already drawn) on the SDK's sign-in and sign-out, the Cookie Store API's `change` (it reaches
+a tab nobody is looking at, where a response that cleared the cookie elsewhere is otherwise unheard), the tab being
+looked at again, and the door settling on a guest (a stored name or ticket written while an account stands, which
+also asks the server, since only its 401 knows a session revoked on another device); a server that stumbles never
+drops an account, only a 401 does. The menu's **Sign out**
 puts EVERY guest ticket on the device down, not only this album's (`leaveAllGuestSessions`: the localStorage
 tokens, names and flags through the module-singleton `emit()`s in
 [`use-stored-session.ts`](../../src/lib/guest/use-stored-session.ts), every `pr_guest_*` cookie through
