@@ -17,6 +17,7 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Observability: `captureRequestError` (`lib/observability/sentry.ts`) holds a crash's flush itself because `@sentry/core`'s `vercelWaitUntil` does nothing off the Edge runtime (getsentry/sentry-javascript#23087, open at 10.55); once a release holds Node.js functions, the hold is a harmless second `waitUntil` and the wrapper can go back to Sentry's own (from `crumbs-40`).
 - Identity: an open album's credits take a new photograph or handle only at the link's next re-mint (an hour) or a reload, since the attribution version moves on a name (`profiles_album_note` watches `display_name` alone); adding `avatar_updated_at` and `slug` to that trigger's columns would move a face at once (from `crumbs-38`).
 - Profile: a Likes page that Show more adds paints its hearts when `my_liked_media_ids` answers, since the likes store takes `initialLikedIds` once at mount (`likes-provider.tsx`, crumbs-40's); a way to mark ids liked as they join would fill them at once (from `crumbs-38`).
 - Host: Review reads the whole album's attribution (`getUploaderIdentities(event.id)`) to credit its queue alone; `readAlbumAttribution` by the pending ids would read only what it shows (from `crumbs-38`).
