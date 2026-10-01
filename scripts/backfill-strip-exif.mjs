@@ -16,8 +16,9 @@
  * chunked by id, BEFORE any object is written, so a failed lookup aborts with nothing changed.
  *
  * What --live does per changed object:
- *   1. PUT the stripped bytes back under the SAME key + content-type (images shrink;
- *      videos keep their exact length - boxes are blanked in place).
+ *   1. PUT the stripped bytes back under the SAME key + content-type (a JPEG, PNG or WebP
+ *      shrinks; a HEIC/HEIF/AVIF, MP4/MOV or WebM keeps its exact length - its metadata is
+ *      rewritten in place, so steps 2 and 3 have nothing to change for it).
  *   2. media.file_size_bytes := new size. INVARIANT (database-security.md): this column mirrors the
  *      R2 HEAD size, and the storage-cap meter is derived from it - it must track the
  *      replaced object.
@@ -242,6 +243,7 @@ const stats = {
   failedOpen: 0,
   gps: 0,
   bytesSaved: 0,
+  inPlace: 0,
   errors: 0,
 };
 // mediaId -> { newSize, delta } for the DB ledger pass (live only).
@@ -260,18 +262,19 @@ for (const obj of objects) {
 
     if (!res.stripped) {
       stats.failedOpen++;
-      console.log(`  skip (fail-open, format not stripped): ${obj.key}${tag}`);
+      console.log(
+        `  skip (fail-open, could not parse safely): ${obj.key}${tag}`,
+      );
       continue;
     }
     if (!res.changed) {
       stats.clean++;
-      // "clean" = nothing we CAN strip. A [GPS] tag here means the GPS lives in a
-      // trailing appendage the stripper deliberately leaves (an MPF secondary image's
-      // own Exif - see strip-metadata.ts); hasGpsMetadata scans trailers since the
-      // motion-photo fix, so this line is no longer blind to that vector.
+      // "clean" = nothing left to strip. hasGpsMetadata reads every place the strip
+      // scrubs (trailers and embedded images included), so a [GPS] tag here is a file
+      // whose GPS sits where the strip does not reach: worth a look, never expected.
       console.log(
         gps
-          ? `  clean-but-GPS (trailing appendage retains its own Exif; not stripped): ${obj.key}`
+          ? `  clean-but-GPS (GPS where the strip does not reach; look at it): ${obj.key}`
           : `  clean: ${obj.key}`,
       );
       continue;
@@ -280,6 +283,7 @@ for (const obj of objects) {
     stats.changed++;
     const delta = bytes.length - res.data.length;
     stats.bytesSaved += delta;
+    if (delta === 0) stats.inPlace++;
     if (!LIVE) {
       console.log(
         `  WOULD PUT: ${obj.key}${tag}  ${fmt(bytes.length)} -> ${fmt(res.data.length)} bytes`,
@@ -420,9 +424,9 @@ console.log(`
 Summary ${LIVE ? "(LIVE)" : "(dry-run)"}:
   originals scanned:   ${fmt(stats.total)}
   with GPS metadata:   ${fmt(stats.gps)}
-  ${LIVE ? "stripped + replaced" : "would strip"}: ${fmt(stats.changed)}  (${fmt(stats.bytesSaved)} bytes of metadata removed)
-  already clean:       ${fmt(stats.clean)}  (clean-but-GPS lines above = Exif inside a JPEG trailing appendage, a conscious keep)
-  fail-open (kept):    ${fmt(stats.failedOpen)}  (HEIC/HEIF/AVIF/WebM, unfixable MPF index, or unparseable - see strip-metadata.ts)
+  ${LIVE ? "stripped + replaced" : "would strip"}: ${fmt(stats.changed)}  (${fmt(stats.bytesSaved)} bytes of metadata removed; ${fmt(stats.inPlace)} rewritten in place at the same size)
+  already clean:       ${fmt(stats.clean)}  (a clean-but-GPS line above is GPS where the strip does not reach)
+  fail-open (kept):    ${fmt(stats.failedOpen)}  (could not be parsed or rewritten safely - strip-metadata.ts's FAIL-OPEN CONTRACT)
   errors:              ${fmt(stats.errors)}
 `);
 process.exit(stats.errors > 0 ? 1 : 0);

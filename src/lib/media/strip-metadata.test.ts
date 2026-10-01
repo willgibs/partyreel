@@ -1,12 +1,24 @@
 /**
- * Tests for the lossless metadata stripper. Fixtures are synthesized IN CODE (no binary
- * files committed): minimal-but-structurally-valid JPEG/PNG/WebP/MP4 byte builds. We
- * never decode pixels, so entropy/IDAT/mdat payloads can be junk as long as the container
- * structure is real. A final describe block runs the stripper over the REAL out-of-repo
- * test media when present (skipped cleanly on machines without it).
+ * Tests for the lossless metadata stripper: JPEG, PNG, WebP and MP4/MOV, and the dispatch
+ * and File adapter every format shares (HEIC/HEIF/AVIF and WebM have their own files beside
+ * this one). Most fixtures are synthesized IN CODE: minimal-but-structurally-valid byte
+ * builds whose entropy/IDAT/mdat payloads can be junk as long as the container structure is
+ * real. The JPEG trailer's real files sit in strip-metadata-fixtures/ (a few KB each, from a
+ * synthetic test-pattern frame):
+ *  - mpf-large-thumbnail.jpg: a CIPA DC-007 multi-picture file assembled from two JPEGs
+ *    Apple's ImageIO encoded, each with its own Exif GPS, make, model and serial: a
+ *    big-endian MP Index after the primary's Exif, the secondary (a "large thumbnail",
+ *    MP type 0x010001, carrying its own MP Attribute IFD and IPTC) appended after the EOI;
+ *  - imageio-hdr-gainmap.jpg: ImageIO's own HDR JPEG (the iPhone's layout): an MPF index
+ *    and an Apple gain map secondary whose XMP holds its HDRGainMapVersion.
+ * Proved outside the suite too (the lane's Handoff): ImageIO decodes every individual image,
+ * found through its index, to identical pixels before and after, and reads no GPS after.
+ * A final describe block runs the stripper over the REAL out-of-repo test media when present
+ * (skipped cleanly on machines without it).
  */
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
@@ -699,15 +711,203 @@ describe("JPEG motion-photo trailer (embedded ISOBMFF)", () => {
     ).toEqual(junkTrailer);
   });
 
-  it("hasGpsMetadata sees GPS inside a trailing MPF-style embedded JPEG (the residual gap)", async () => {
-    // Clean primary + a trailing full JPEG that carries its own Exif GPS: the strip
-    // deliberately leaves it (excising would shift the trailer) but the report must see it.
+  // Reshaped on purpose (strip-gaps): this test held the residual gap honestly, an embedded
+  // JPEG's own Exif GPS surviving because excising it would shift the trailer. The strip now
+  // overwrites it IN PLACE at the same length, so it pins that instead.
+  it("overwrites an embedded JPEG's Exif in place: GPS gone, orientation kept, nothing moves", async () => {
     const input = bytes(CLEAN_PRIMARY, FULL_JPEG);
     expect(hasGpsMetadata(input, "image/jpeg")).toBe(true);
     const res = await stripMetadataBytes(input, "image/jpeg");
     expect(res.stripped).toBe(true);
-    expect(res.changed).toBe(false); // nothing we CAN strip
-    expect(hasGpsMetadata(res.data, "image/jpeg")).toBe(true); // honest: GPS remains
+    expect(res.changed).toBe(true);
+    const out = res.data;
+    expect(out.length).toBe(input.length);
+    expect(hasGpsMetadata(out, "image/jpeg")).toBe(false);
+    expect(indexOfBytes(out, [0x25, 0x88])).toBe(-1); // the GPS IFD pointer
+    // The embedded image starts where it did; its Exif segment keeps its length and now
+    // holds the minimal orientation-only Exif, zero-padded.
+    const at = CLEAN_PRIMARY.length;
+    expect(Array.from(out.subarray(0, at))).toEqual(Array.from(CLEAN_PRIMARY));
+    expect(readJpegOrientation(out.subarray(at))).toBe(6);
+    // The rest of the embedded image's policy, in place: IPTC and the comment zeroed, its
+    // XMP (no GPS in it) and everything structural byte-identical.
+    expect(indexOfBytes(out, "Photoshop 3.0")).toBe(-1);
+    expect(indexOfBytes(out, "Yolophone")).toBe(-1);
+    expect(indexOfBytes(out, "<x:xmpmeta>secret-location</x:xmpmeta>")).toBe(
+      indexOfBytes(input, "<x:xmpmeta>secret-location</x:xmpmeta>"),
+    );
+    const sosIn = indexOfBytes(input.subarray(at), [0xff, 0xda]) + at;
+    expect(Array.from(out.subarray(sosIn))).toEqual(
+      Array.from(input.subarray(sosIn)),
+    );
+    const again = await stripMetadataBytes(out, "image/jpeg");
+    expect(again.changed).toBe(false);
+  });
+
+  it("blanks an embedded JPEG's XMP only when it carries GPS (a gain map's stays)", async () => {
+    const xmpWithGps = jpegSeg(0xe1, [
+      ...ascii("http://ns.adobe.com/xap/1.0/"),
+      0,
+      ...ascii(
+        '<x:xmpmeta><rdf:Description exif:GPSLatitude="37,49N"/></x:xmpmeta>',
+      ),
+    ]);
+    const embedded = buildJpeg([JFIF_APP0, xmpWithGps, DQT, SOF0, DHT]);
+    const input = bytes(CLEAN_PRIMARY, embedded);
+    expect(hasGpsMetadata(input, "image/jpeg")).toBe(true);
+    const res = await stripMetadataBytes(input, "image/jpeg");
+    expect(res.data.length).toBe(input.length);
+    expect(indexOfBytes(res.data, "GPSLatitude")).toBe(-1);
+    expect(
+      indexOfBytes(res.data, '<x:xmpmeta xmlns:x="adobe:ns:meta/"/>'),
+    ).toBeGreaterThan(-1);
+    expect(hasGpsMetadata(res.data, "image/jpeg")).toBe(false);
+  });
+
+  it("scrubs an embedded JPEG AND a motion-photo MP4 after it, never one byte twice", async () => {
+    const input = bytes(FULL_JPEG, FULL_JPEG, MP4_MOOV_FIRST);
+    const res = await stripMetadataBytes(input, "image/jpeg");
+    expect(res.stripped).toBe(true);
+    expect(hasGpsMetadata(res.data, "image/jpeg")).toBe(false);
+    expect(indexOfBytes(res.data, GPS_STRING)).toBe(-1);
+    expect(indexOfBytes(res.data, [0x25, 0x88])).toBe(-1);
+    // The tail (the embedded image + the MP4) kept its exact length.
+    const sosIn = indexOfBytes(input, [0xff, 0xda]);
+    const sosOut = indexOfBytes(res.data, [0xff, 0xda]);
+    expect(res.data.length - sosOut).toBe(input.length - sosIn);
+  });
+
+  it("leaves trailer bytes that only look like a JPEG start untouched", async () => {
+    // FF D8 FF and an APP1 with "Exif\0\0" but no TIFF header behind it: not an image.
+    const fake = [
+      0xff,
+      0xd8,
+      0xff,
+      0xe1,
+      0x00,
+      0x0a,
+      ...ascii("Exif"),
+      0,
+      0,
+      1,
+      2,
+      0xff,
+      0xda,
+    ];
+    const input = bytes(CLEAN_PRIMARY, fake);
+    const res = await stripMetadataBytes(input, "image/jpeg");
+    expect(res.stripped).toBe(true);
+    expect(res.changed).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Real multi-picture files (strip-metadata-fixtures/)
+// ---------------------------------------------------------------------------
+
+const fixture = (name: string) =>
+  new Uint8Array(
+    readFileSync(
+      fileURLToPath(
+        new URL(`./strip-metadata-fixtures/${name}`, import.meta.url),
+      ),
+    ),
+  );
+
+/** Follow a JPEG's (first) MPF index the way a reader does: each individual image's
+ *  [start, end) in the file, read from the MP Entry table in either byte order. */
+function mpfImages(b: Uint8Array): [number, number][] {
+  const mpf = indexOfBytes(b, [0x4d, 0x50, 0x46, 0x00]);
+  expect(mpf).toBeGreaterThan(-1);
+  const h = mpf + 4;
+  const le = b[h] === 0x49;
+  const r16 = (o: number) =>
+    le ? b[o] | (b[o + 1] << 8) : (b[o] << 8) | b[o + 1];
+  const r32 = (o: number) =>
+    (le
+      ? b[o] | (b[o + 1] << 8) | (b[o + 2] << 16) | (b[o + 3] << 24)
+      : (b[o] << 24) | (b[o + 1] << 16) | (b[o + 2] << 8) | b[o + 3]) >>> 0;
+  const ifd = h + r32(h + 4);
+  for (let i = 0; i < r16(ifd); i++) {
+    const e = ifd + 2 + i * 12;
+    if (r16(e) !== 0xb002) continue;
+    const base = h + r32(e + 8);
+    return Array.from({ length: r32(e + 4) / 16 }, (_, j): [number, number] => {
+      const size = r32(base + j * 16 + 4);
+      const off = r32(base + j * 16 + 8);
+      const start = off === 0 ? 0 : h + off;
+      return [start, start + size];
+    });
+  }
+  throw new Error("no MP Entry");
+}
+
+/** Each image the index names is a whole JPEG: SOI at its start, EOI at its end. */
+function expectWholeImages(b: Uint8Array) {
+  for (const [s, e] of mpfImages(b)) {
+    expect([b[s], b[s + 1], b[e - 2], b[e - 1]]).toEqual([
+      0xff, 0xd8, 0xff, 0xd9,
+    ]);
+  }
+}
+
+describe("JPEG multi-picture files (real encoder output)", () => {
+  it("strips a large thumbnail's own Exif in place and keeps the index true", async () => {
+    const input = fixture("mpf-large-thumbnail.jpg");
+    const [, [secStart, secEnd]] = mpfImages(input);
+    expectWholeImages(input);
+    const secondaryIn = input.subarray(secStart, secEnd);
+    expect(hasGpsMetadata(secondaryIn, "image/jpeg")).toBe(true);
+    expect(hasGpsMetadata(input, "image/jpeg")).toBe(true);
+
+    const res = await stripMetadataBytes(input, "image/jpeg");
+    expect(res.stripped).toBe(true);
+    const out = res.data;
+    expect(hasGpsMetadata(out, "image/jpeg")).toBe(false);
+    for (const n of [
+      "iPhone 15 Pro",
+      "SERIAL-PARTYREEL-TEST",
+      "Photoshop 3.0",
+    ]) {
+      expect(indexOfBytes(out, n), n).toBe(-1);
+    }
+    // The index still names two whole images, the secondary at its new offset with its
+    // original size; both keep their orientation (6).
+    expectWholeImages(out);
+    const [[pStart, pEnd], [sStart, sEnd]] = mpfImages(out);
+    expect(pStart).toBe(0);
+    expect(sStart).toBe(pEnd);
+    expect(sEnd).toBe(out.length);
+    expect(sEnd - sStart).toBe(secEnd - secStart);
+    const secondaryOut = out.subarray(sStart, sEnd);
+    expect(readJpegOrientation(out)).toBe(6);
+    expect(readJpegOrientation(secondaryOut)).toBe(6);
+    expect(hasGpsMetadata(secondaryOut, "image/jpeg")).toBe(false);
+    // Only the secondary's Exif and IPTC payloads changed; its MP Attribute IFD and its
+    // scan (the pixels) are byte-identical.
+    const sos = indexOfBytes(secondaryIn, [0xff, 0xda]);
+    expect(Array.from(secondaryOut.subarray(sos))).toEqual(
+      Array.from(secondaryIn.subarray(sos)),
+    );
+    const attr = indexOfBytes(secondaryIn, [0x4d, 0x50, 0x46, 0x00]);
+    expect(Array.from(secondaryOut.subarray(attr, attr + 40))).toEqual(
+      Array.from(secondaryIn.subarray(attr, attr + 40)),
+    );
+    const again = await stripMetadataBytes(out, "image/jpeg");
+    expect(again.changed).toBe(false);
+  });
+
+  it("keeps Apple's HDR gain map byte-identical while the primary loses its GPS", async () => {
+    const input = fixture("imageio-hdr-gainmap.jpg");
+    const [, [gStart, gEnd]] = mpfImages(input);
+    const gainMap = input.subarray(gStart, gEnd);
+    expect(indexOfBytes(gainMap, "HDRGainMapVersion")).toBeGreaterThan(-1);
+    expect(hasGpsMetadata(input, "image/jpeg")).toBe(true);
+    const res = await stripMetadataBytes(input, "image/jpeg");
+    expect(hasGpsMetadata(res.data, "image/jpeg")).toBe(false);
+    expectWholeImages(res.data);
+    const [, [s, e]] = mpfImages(res.data);
+    expect(Array.from(res.data.subarray(s, e))).toEqual(Array.from(gainMap));
   });
 });
 
@@ -925,12 +1125,27 @@ describe("stripIsobmff (via stripMetadataBytes)", () => {
 // ---------------------------------------------------------------------------
 
 describe("stripMetadataBytes dispatch", () => {
-  it("fails open for consciously unsupported types (HEIC, WebM)", async () => {
+  // Reshaped on purpose (strip-gaps): HEIC, HEIF, AVIF and WebM were consciously
+  // unsupported here and failed open whatever they held; each now has its parser (the
+  // sibling test files), so what fails open is input none of them can walk.
+  it("fails open on garbage under every MIME, and on a MIME it does not know", async () => {
     const b = new Uint8Array([1, 2, 3]);
-    expect((await stripMetadataBytes(b, "image/heic")).stripped).toBe(false);
-    expect((await stripMetadataBytes(b, "video/webm")).stripped).toBe(false);
-    expect((await stripMetadataBytes(b, "image/heif")).stripped).toBe(false);
-    expect((await stripMetadataBytes(b, "image/avif")).stripped).toBe(false);
+    for (const mime of [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/heic",
+      "image/heif",
+      "image/avif",
+      "video/mp4",
+      "video/quicktime",
+      "video/webm",
+      "image/gif",
+    ]) {
+      const res = await stripMetadataBytes(b, mime);
+      expect(res.stripped, mime).toBe(false);
+      expect(res.data, mime).toBe(b);
+    }
   });
 });
 
@@ -971,17 +1186,20 @@ describe("stripFileMetadata (File adapter)", () => {
     expect(Array.from(viaFile)).toEqual(Array.from(viaBytes.data));
   });
 
-  it("fails open (original file back) for unsupported and corrupt input", async () => {
-    const heic = new File([new Uint8Array([1, 2, 3]) as BlobPart], "img.heic", {
-      type: "image/heic",
-    });
-    expect((await stripFileMetadata(heic)).blob).toBe(heic);
-    const corrupt = new File([new Uint8Array([9, 9, 9]) as BlobPart], "x.jpg", {
-      type: "image/jpeg",
-    });
-    const res = await stripFileMetadata(corrupt);
-    expect(res.stripped).toBe(false);
-    expect(res.blob).toBe(corrupt);
+  it("fails open (original file back) for corrupt input and an unknown type", async () => {
+    for (const [name, type] of [
+      ["img.heic", "image/heic"],
+      ["clip.webm", "video/webm"],
+      ["x.jpg", "image/jpeg"],
+      ["anim.gif", "image/gif"],
+    ]) {
+      const file = new File([new Uint8Array([9, 9, 9]) as BlobPart], name, {
+        type,
+      });
+      const res = await stripFileMetadata(file);
+      expect(res.stripped, type).toBe(false);
+      expect(res.blob, type).toBe(file);
+    }
   });
 });
 

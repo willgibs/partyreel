@@ -2,11 +2,13 @@
  * Lossless, dependency-free metadata stripping for uploads (the EXIF/GPS privacy fix).
  *
  * Guests' phone photos/videos carry GPS + device EXIF, and ORIGINALS are stored + served
- * byte-for-byte (lightbox, per-item Save, zip export). This module excises identifying
+ * byte-for-byte (lightbox, per-item Save, zip export). This module removes identifying
  * metadata at the BYTE level, never re-encoding pixels (quality is sacred; the original is
  * the keepsake). It is pure + runtime-agnostic on purpose: the browser runs it at the
  * upload seam (uploader.ts step 0) and Node runs the same code in
- * scripts/backfill-strip-exif.mjs (never fork the logic).
+ * scripts/backfill-strip-exif.mjs (never fork the logic). It stays ONE file on purpose too:
+ * the backfill loads it through Node's own type stripping, which cannot resolve the
+ * extensionless relative import a split module would need.
  *
  * Per-format policy (see each function for the WHY of every keep/drop):
  *   JPEG  - drop APP1 (Exif/XMP), APP13 (IPTC/Photoshop), COM, vendor APPn; keep APP0
@@ -16,10 +18,13 @@
  *           index (iPhone HDR gain maps) has its individual-image offsets/sizes REWRITTEN
  *           to match the shrunk output (they are relative to the MPF header, so dropping
  *           any segment between the MPF and SOS goes stale); an MPF we cannot fix fails
- *           open. Bytes after the EOI are kept verbatim (motion-photo appendages, MPF
- *           secondary images) - an embedded ISOBMFF trailer gets its metadata boxes
- *           blanked in place, but an MPF secondary image's OWN Exif survives (a known,
- *           reported gap - see hasGpsMetadata + the ROADMAP one-liner).
+ *           open. Bytes after the EOI keep their exact length (motion-photo appendages,
+ *           MPF secondary images): an embedded ISOBMFF trailer gets its metadata boxes
+ *           blanked in place, and every JPEG embedded there (an MPF secondary, a gain map,
+ *           an appended original) has each Exif APP1 overwritten IN PLACE with a minimal
+ *           orientation-only Exif padded to the segment's length, so no offset the MPF
+ *           index holds ever moves. Their XMP and APP2 stay: a gain map's parameters live
+ *           there and are rendering data, not identity.
  *   PNG   - drop eXIf + tEXt/zTXt/iTXt (XMP lives in iTXt); keep IHDR/PLTE/IDAT/IEND and
  *           the color chunks (gAMA/iCCP/sRGB).
  *   WebP  - drop EXIF + "XMP " RIFF chunks, clear the matching VP8X flag bits, keep ICCP;
@@ -30,15 +35,28 @@
  *           'free' AND zeroing the payload, so no offset ever moves. Big files are
  *           handled via a random-access reader + lazy Blob composition (the whole video
  *           is never pulled into memory in the browser).
+ *   HEIC/HEIF/AVIF - item-based ISOBMFF: the metadata is an ITEM (iinf names it, iloc
+ *           places its bytes, usually inside mdat), not a box, and blanking `meta` would
+ *           destroy the image. Every Exif item is overwritten in place with a minimal
+ *           orientation-only Exif and every XMP item that describes the picture with an
+ *           empty packet, each padded to the item's exact length: no box, no iloc offset
+ *           and no image byte changes. Orientation is irot/imir there (ipco, untouched).
+ *           An XMP item that describes only an auxiliary image (the HDR gain map's version,
+ *           a depth map's calibration) is rendering data and is kept, unless it carries GPS.
+ *   WebM  - EBML: every Tags element (where a muxer writes LOCATION, the device's make and
+ *           model, the encoder) becomes a Void element of exactly its size, zero-filled,
+ *           so no SeekHead or Cues position moves. Info (title, dates, muxer names) and
+ *           every Cluster stay byte-identical.
  *
  * FAIL-OPEN CONTRACT: unknown/unparseable/truncated input returns the ORIGINAL bytes with
  * stripped:false. A corrupted upload is worse than the leak, so the caller uploads the
  * original untouched rather than blocking the guest. Consequence (conscious trade-off):
- * some metadata survives - notably HEIC/HEIF/AVIF (item-based ISOBMFF where Exif is an
- * iloc-referenced item; blanking meta there would DESTROY the image), WebM (EBML), and
- * the Exif INSIDE a JPEG's post-EOI MPF secondary images (excising it would shift the
- * trailer the MPF index points into). That leak window is documented in
- * docs/systems/uploads-and-r2.md.
+ * a file the parsers cannot walk end to end, or whose metadata they cannot rewrite
+ * without touching a byte something else points at, keeps its metadata: a truncated file
+ * or a box/element whose size lies, an HEIF metadata item placed by item reference (iloc
+ * construction method 2) or in another file or sharing bytes with an image item, a WebM
+ * Tags element of unknown size, a JPEG whose MPF index cannot be kept valid. That window
+ * is documented in docs/systems/uploads-and-r2.md.
  */
 
 export type StripBytesResult = {
@@ -86,8 +104,17 @@ function ascii4(b: Uint8Array, o: number): string {
 }
 
 function hasPrefix(b: Uint8Array, prefix: readonly number[]): boolean {
-  if (b.length < prefix.length) return false;
-  for (let i = 0; i < prefix.length; i++) if (b[i] !== prefix[i]) return false;
+  return hasPrefixAt(b, 0, prefix);
+}
+
+function hasPrefixAt(
+  b: Uint8Array,
+  at: number,
+  prefix: readonly number[],
+): boolean {
+  if (at < 0 || at + prefix.length > b.length) return false;
+  for (let i = 0; i < prefix.length; i++)
+    if (b[at + i] !== prefix[i]) return false;
   return true;
 }
 
@@ -125,7 +152,160 @@ function concatParts(parts: Uint8Array[]): Uint8Array {
 }
 
 // ---------------------------------------------------------------------------
-// TIFF (the structure inside Exif) - read-only parsing for orientation + GPS
+// Random-access walks: one parser, driven over memory or over a File read in slices
+// ---------------------------------------------------------------------------
+
+/**
+ * Random-access byte source so the SAME planner serves an in-memory Uint8Array (tests,
+ * the Node backfill) and a browser File (sliced lazily - a 10 GB video never fully loads).
+ */
+export type ByteReader = {
+  size: number;
+  read(start: number, end: number): Promise<Uint8Array>;
+};
+
+export function memoryReader(bytes: Uint8Array): ByteReader {
+  return {
+    size: bytes.length,
+    read: (start, end) => Promise.resolve(bytes.subarray(start, end)),
+  };
+}
+
+/** Bytes [start, end) of the input, asked for by a walk. */
+type ByteRange = { start: number; end: number };
+
+/**
+ * A walk YIELDS each byte range it needs and is resumed with those bytes (shorter at EOF).
+ * Written this way, one parser serves both drivers: `walkBytes`, synchronous over an
+ * in-memory buffer (hasGpsMetadata, the backfill, the tests), and `walkReader`,
+ * asynchronous over a File read in slices (the browser: a 10 GB video never loads
+ * whole). A format is never parsed twice, once per world.
+ */
+type Walk<T> = Generator<ByteRange, T, Uint8Array>;
+
+/** What a container walk returns: in-place patches (lengths never change) + what it saw. */
+type WalkPlan = { ok: boolean; patches: IsobmffPatch[]; gps: boolean };
+
+function walkBytes<T>(walk: Walk<T>, bytes: Uint8Array): T {
+  let step = walk.next();
+  while (!step.done) {
+    const { start, end } = step.value;
+    step = walk.next(bytes.subarray(start, Math.min(end, bytes.length)));
+  }
+  return step.value;
+}
+
+async function walkReader<T>(walk: Walk<T>, reader: ByteReader): Promise<T> {
+  let step = walk.next();
+  while (!step.done) {
+    const { start, end } = step.value;
+    step = walk.next(await reader.read(start, Math.min(end, reader.size)));
+  }
+  return step.value;
+}
+
+/** Ask for exactly [start, end); null when the input ends first. */
+function* readExactly(start: number, end: number): Walk<Uint8Array | null> {
+  const got: Uint8Array = yield { start, end };
+  return got.length === end - start ? got : null;
+}
+
+// A walk asks for a dozen header bytes at a time, and one Blob slice per ask would crawl
+// across a long video's clusters, so a File is read through one read-ahead window.
+const READ_AHEAD_BYTES = 64 * 1024;
+
+function readAhead(reader: ByteReader): ByteReader {
+  let bufStart = 0;
+  let buf: Uint8Array = new Uint8Array(0);
+  return {
+    size: reader.size,
+    async read(start, end) {
+      if (start >= bufStart && end <= bufStart + buf.length) {
+        return buf.subarray(start - bufStart, end - bufStart);
+      }
+      if (end - start >= READ_AHEAD_BYTES) return reader.read(start, end);
+      bufStart = start;
+      buf = await reader.read(
+        start,
+        Math.min(reader.size, start + READ_AHEAD_BYTES),
+      );
+      return buf.subarray(0, Math.max(0, Math.min(end, reader.size) - start));
+    },
+  };
+}
+
+function fileReader(file: Blob): ByteReader {
+  return {
+    size: file.size,
+    read: async (start, end) =>
+      new Uint8Array(await file.slice(start, end).arrayBuffer()),
+  };
+}
+
+export type IsobmffPatch = { offset: number; bytes: Uint8Array };
+
+/**
+ * The patches in file order, or null when two of them cover one byte or one runs past the
+ * end: the planners never emit such a set, and if one ever did, both paths fail open alike
+ * rather than the bytes path applying it and the File path composing a longer file.
+ */
+function orderedPatches(
+  patches: IsobmffPatch[],
+  size: number,
+): IsobmffPatch[] | null {
+  const ordered = [...patches].sort((a, b) => a.offset - b.offset);
+  let cursor = 0;
+  for (const p of ordered) {
+    if (p.offset < cursor || p.offset + p.bytes.length > size) return null;
+    cursor = p.offset + p.bytes.length;
+  }
+  return ordered;
+}
+
+/**
+ * A walk's result as strip output: the original when it did not parse (fail open) or
+ * found nothing, else a patched copy. Every planner emits a patch only where bytes differ,
+ * so patches => changed.
+ */
+function patchedOrOriginal(
+  bytes: Uint8Array,
+  plan: { ok: boolean; patches: IsobmffPatch[] },
+): StripBytesResult {
+  const ordered = plan.ok ? orderedPatches(plan.patches, bytes.length) : null;
+  if (!ordered) return { data: bytes, stripped: false, changed: false };
+  if (ordered.length === 0) {
+    return { data: bytes, stripped: true, changed: false };
+  }
+  const data = bytes.slice();
+  for (const p of ordered) data.set(p.bytes, p.offset);
+  return { data, stripped: true, changed: true };
+}
+
+/**
+ * Compose a patched File lazily: untouched regions stay File slices (no copy), only the
+ * patched regions are real buffers, so the total length is identical by construction.
+ * Throws on a patch set orderedPatches refuses (the caller fails open).
+ */
+function composePatched(
+  file: File,
+  patches: IsobmffPatch[],
+  mime: string,
+): Blob {
+  const ordered = orderedPatches(patches, file.size);
+  if (!ordered) throw new Error("overlapping or out-of-range patch");
+  const parts: BlobPart[] = [];
+  let cursor = 0;
+  for (const p of ordered) {
+    if (p.offset > cursor) parts.push(file.slice(cursor, p.offset));
+    parts.push(p.bytes as BlobPart);
+    cursor = p.offset + p.bytes.length;
+  }
+  if (cursor < file.size) parts.push(file.slice(cursor));
+  return new Blob(parts, { type: mime });
+}
+
+// ---------------------------------------------------------------------------
+// TIFF (the structure inside Exif) - parsing for orientation + GPS, and the minimal rebuild
 // ---------------------------------------------------------------------------
 
 const EXIF_HEADER = [0x45, 0x78, 0x69, 0x66, 0x00, 0x00]; // "Exif\0\0"
@@ -165,15 +345,93 @@ function findIfd0Tag(
   return null;
 }
 
+/** A TIFF header ("II*\0" or "MM\0*") at `o`. */
+function isTiffHeader(b: Uint8Array, o: number): boolean {
+  if (o < 0 || o + 4 > b.length) return false;
+  return (
+    (b[o] === 0x49 &&
+      b[o + 1] === 0x49 &&
+      b[o + 2] === 0x2a &&
+      b[o + 3] === 0) ||
+    (b[o] === 0x4d && b[o + 1] === 0x4d && b[o + 2] === 0 && b[o + 3] === 0x2a)
+  );
+}
+
+/** The Orientation (1-8) a TIFF blob's IFD0 holds, or null. */
+function tiffOrientation(tiff: Uint8Array): number | null {
+  const v = findIfd0Tag(tiff, TAG_ORIENTATION)?.shortValue ?? null;
+  return v !== null && v >= 1 && v <= 8 ? v : null;
+}
+
+/** Whether a TIFF blob's IFD0 points at a GPS IFD. */
+function tiffHasGps(tiff: Uint8Array): boolean {
+  return findIfd0Tag(tiff, TAG_GPS_IFD) !== null;
+}
+
+/**
+ * The minimal TIFF every rebuilt Exif carries: a little-endian IFD0 with ONLY the
+ * Orientation (26 bytes), or an empty IFD0 (14 bytes) when there is none. No sub-IFDs, no
+ * GPS, no maker notes, no thumbnail.
+ */
+function minimalTiff(orientation: number | null): Uint8Array {
+  if (orientation === null) {
+    // prettier-ignore
+    return new Uint8Array([
+      0x49, 0x49, 0x2a, 0x00, 0x08, 0x00, 0x00, 0x00, // "II", 42, IFD0 at offset 8
+      0x00, 0x00, // 0 entries
+      0x00, 0x00, 0x00, 0x00, // no next IFD
+    ]);
+  }
+  // prettier-ignore
+  return new Uint8Array([
+    0x49, 0x49, 0x2a, 0x00, 0x08, 0x00, 0x00, 0x00, // "II", 42, IFD0 at offset 8
+    0x01, 0x00, // 1 entry
+    0x12, 0x01, 0x03, 0x00, 0x01, 0x00, 0x00, 0x00, // tag 0x0112, SHORT, count 1
+    orientation & 0xff, 0x00, 0x00, 0x00, // value (SHORT + 2 pad bytes)
+    0x00, 0x00, 0x00, 0x00, // no next IFD
+  ]);
+}
+
+/**
+ * Overwrite an Exif block IN PLACE: `prefix` (whatever must lead it, e.g. "Exif\0\0"),
+ * then a minimal TIFF keeping only the original's orientation, then zeros to the original
+ * length - the GPS, device, serial and maker-note bytes are gone, the length (which
+ * something else points past) is not. When the block cannot even hold that, it is zeroed.
+ */
+function blankExifBlock(
+  length: number,
+  prefix: readonly number[],
+  orientation: number | null,
+): Uint8Array {
+  const out = new Uint8Array(length);
+  for (const tiff of [minimalTiff(orientation), minimalTiff(null)]) {
+    if (prefix.length + tiff.length <= length) {
+      out.set(prefix, 0);
+      out.set(tiff, prefix.length);
+      return out;
+    }
+  }
+  return out;
+}
+
+// XMP, wherever it rides: an empty packet to blank one with (the rest of a blanked XMP is
+// XML whitespace, which may follow a document's root element, so it stays one valid, empty
+// XMP document), and the property names that say it holds a position.
+const EMPTY_XMP = asciiBytes('<x:xmpmeta xmlns:x="adobe:ns:meta/"/>');
+const XMP_GPS_NEEDLES: readonly (readonly number[])[] = [
+  asciiBytes("GPSLatitude"),
+  asciiBytes("GPSLongitude"),
+];
+// The signature that opens a standard XMP APP1 payload in a JPEG.
+const XMP_APP1_NS = [...asciiBytes("http://ns.adobe.com/xap/1.0/"), 0x00];
+
 /** The Exif Orientation (1-8) of a JPEG, or null. Exported for tests + diagnostics. */
 export function readJpegOrientation(bytes: Uint8Array): number | null {
   for (const seg of iterateJpegSegments(bytes)) {
     if (seg.marker !== 0xe1) continue;
     const payload = bytes.subarray(seg.start + 4, seg.end);
     if (!hasPrefix(payload, EXIF_HEADER)) continue;
-    const found = findIfd0Tag(payload.subarray(6), TAG_ORIENTATION);
-    const v = found?.shortValue ?? null;
-    return v !== null && v >= 1 && v <= 8 ? v : null;
+    return tiffOrientation(payload.subarray(6));
   }
   return null;
 }
@@ -229,23 +487,20 @@ const MPF_FOURCC = [0x4d, 0x50, 0x46, 0x00];
 
 /**
  * Build the minimal replacement APP1 Exif: one IFD0 with ONLY the Orientation tag.
- * Deterministic little-endian TIFF, no sub-IFDs, no GPS, no maker notes, no thumbnail.
- * 36 bytes total: FFE1 + len(0x0022) + "Exif\0\0" + II TIFF header + 1 entry + terminator.
+ * 36 bytes total: FFE1 + len(0x0022) + "Exif\0\0" + the 26-byte minimal TIFF.
  */
 function minimalOrientationExif(orientation: number): Uint8Array {
-  // prettier-ignore
-  return new Uint8Array([
-    0xff, 0xe1, 0x00, 0x22, // APP1, length 34 (covers the length bytes themselves)
-    0x45, 0x78, 0x69, 0x66, 0x00, 0x00, // "Exif\0\0"
-    0x49, 0x49, 0x2a, 0x00, 0x08, 0x00, 0x00, 0x00, // "II", 42, IFD0 at offset 8
-    0x01, 0x00, // 1 entry
-    0x12, 0x01, 0x03, 0x00, 0x01, 0x00, 0x00, 0x00, // tag 0x0112, SHORT, count 1
-    orientation & 0xff, 0x00, 0x00, 0x00, // value (SHORT + 2 pad bytes)
-    0x00, 0x00, 0x00, 0x00, // no next IFD
+  return Uint8Array.from([
+    0xff,
+    0xe1,
+    0x00,
+    0x22, // APP1, length 34 (covers the length bytes themselves)
+    ...EXIF_HEADER,
+    ...minimalTiff(orientation),
   ]);
 }
 
-async function stripJpeg(bytes: Uint8Array): Promise<StripBytesResult> {
+function stripJpeg(bytes: Uint8Array): StripBytesResult {
   const failOpen: StripBytesResult = {
     data: bytes,
     stripped: false,
@@ -269,10 +524,10 @@ async function stripJpeg(bytes: Uint8Array): Promise<StripBytesResult> {
     const marker = bytes[pos + 1];
     if (marker === 0xda || marker === 0xd9) {
       // SOS (or a stray EOI): everything from here - entropy-coded scan data through EOI,
-      // plus any trailing bytes - is kept VERBATIM. We never touch pixels. Trailing
-      // bytes are motion-photo appendages / MPF secondary images; an embedded ISOBMFF
-      // trailer gets its metadata blanked in place below (same-length, offsets stable),
-      // anything else stays untouched - a consequence we surface via hasGpsMetadata.
+      // plus any trailing bytes - is kept at its exact length. We never touch pixels.
+      // Trailing bytes are motion-photo appendages / MPF secondary images; their metadata
+      // is overwritten in place below (same length, offsets stable), anything else stays
+      // untouched.
       sosPos = pos;
       parts.push(bytes.subarray(pos));
       break;
@@ -302,9 +557,7 @@ async function stripJpeg(bytes: Uint8Array): Promise<StripBytesResult> {
         // Remember where the Exif sat so the rebuilt orientation-only segment lands in
         // the same position (Exif belongs before other APPn per spec convention).
         exifInsertIndex = parts.length;
-        const found = findIfd0Tag(payload.subarray(6), TAG_ORIENTATION);
-        const v = found?.shortValue ?? null;
-        orientation = v !== null && v >= 1 && v <= 8 ? v : null;
+        orientation = tiffOrientation(payload.subarray(6));
       }
     }
 
@@ -321,9 +574,9 @@ async function stripJpeg(bytes: Uint8Array): Promise<StripBytesResult> {
     pos = end;
   }
 
-  // Metadata inside a trailing appendage (motion-photo MP4 after the EOI): planned on
-  // the ORIGINAL coordinates, applied after assembly at the shifted position.
-  const trailerPatches = await planJpegTrailerPatches(bytes, sosPos);
+  // Metadata inside the trailing bytes (a motion-photo MP4, the Exif of an embedded JPEG):
+  // planned on the ORIGINAL coordinates, applied after assembly at the shifted position.
+  const trailerPatches = planJpegTrailerPatches(bytes, sosPos);
 
   // Rebuild orientation ONLY when it does something (a value of 1 = "upright" = the
   // decoder default, so emitting no Exif at all is byte-cheaper and equally correct).
@@ -335,8 +588,9 @@ async function stripJpeg(bytes: Uint8Array): Promise<StripBytesResult> {
     return { data: bytes, stripped: true, changed: false };
   }
   const data = removedAny ? concatParts(parts) : bytes.slice();
-  // Everything from SOS to EOF was kept as ONE verbatim block, so the whole tail shifted
-  // by exactly the size delta - which is what the MPF offsets must be corrected by.
+  // Everything from SOS to EOF was kept as ONE block of the same length, so the whole
+  // tail shifted by exactly the size delta - which is what the MPF offsets must be
+  // corrected by.
   const sosDelta = data.length - bytes.length;
   if (removedAny && mpfOldStarts.length > 0) {
     // An MPF index we cannot keep valid means fail open: a structurally corrupt
@@ -351,36 +605,91 @@ async function stripJpeg(bytes: Uint8Array): Promise<StripBytesResult> {
   return { data, stripped: true, changed: !bytesEqual(bytes, data) };
 }
 
-/** First EOI marker at/after `from`. Inside entropy-coded data 0xFF is always followed
- *  by 0x00 or an RSTn, so the first FF D9 really is the primary image's end. */
-function findEoi(bytes: Uint8Array, from: number): number {
-  for (let i = from; i + 2 <= bytes.length; i++) {
+/** First EOI marker in [from, to). Inside entropy-coded data 0xFF is always followed by
+ *  0x00 or an RSTn, so the first FF D9 really is that image's end. */
+function findEoi(bytes: Uint8Array, from: number, to = bytes.length): number {
+  for (let i = from; i + 2 <= to; i++) {
     if (bytes[i] === 0xff && bytes[i + 1] === 0xd9) return i;
   }
   return -1;
 }
 
 /**
- * Samsung/Pixel "motion photo" JPEGs append a complete MP4 (video+audio of the capture
- * moment) after the EOI, and its moov can carry its OWN udta GPS. We can never REMOVE
- * trailing bytes (MPF offsets point into them and unknown trailers are opaque), but an
- * embedded ISOBMFF can be scrubbed with the exact same rename-to-'free' machinery -
- * in place, so not a single byte moves and the MPF/trailer geometry stays intact.
- * Returns [] when there is no appendage we understand (the trailer stays verbatim,
- * fail-open). NOTE the remaining gap: an MPF secondary image (gain map) is a full JPEG
- * whose own Exif we deliberately do NOT excise (that would shift/resize the trailer);
- * hasGpsMetadata scans for it so the backfill report is not blind to the vector.
+ * The in-place patches for a JPEG's trailing bytes (planned on the original coordinates).
+ * We can never REMOVE trailing bytes (MPF offsets point into them and unknown trailers are
+ * opaque), so each one is scrubbed where it lies:
+ *  - Samsung/Pixel "motion photos" append a complete MP4 whose moov can carry its OWN
+ *    udta GPS: blanked with the video's rename-to-'free' machinery;
+ *  - every JPEG embedded before it (an MPF secondary image, an HDR gain map, an appended
+ *    original) has each Exif APP1 overwritten with a minimal orientation-only Exif of the
+ *    same length (blankExifBlock), so the MPF index's offsets and sizes stay true.
+ * Nothing else in the trailer is touched (fail open on what we do not understand).
  */
-async function planJpegTrailerPatches(
+function planJpegTrailerPatches(
   bytes: Uint8Array,
   sosPos: number,
-): Promise<IsobmffPatch[]> {
+): IsobmffPatch[] {
   if (sosPos < 0) return [];
   const eoi = findEoi(bytes, sosPos);
   if (eoi < 0) return [];
-  // The appendage rarely starts AT eoi+2 (vendors pad / prepend index blobs), so scan
-  // for an 'ftyp' box start. planIsobmffPatches demands a perfect box chain to EOF plus
-  // a moov, so a false positive on random bytes cannot survive; cap the attempts anyway.
+  const patches: IsobmffPatch[] = [];
+  const mp4 = findTrailerIsobmff(bytes, eoi);
+  if (mp4) patches.push(...mp4.patches);
+  // An embedded JPEG is looked for only BEFORE the motion-photo MP4: a 'covr' JPEG inside
+  // its udta is already zeroed by the box blanking, and the two never write one byte twice.
+  for (const seg of embeddedJpegMetadata(
+    bytes,
+    eoi + 2,
+    mp4?.start ?? bytes.length,
+  )) {
+    const payload = bytes.subarray(seg.start, seg.end);
+    const blank = blankEmbeddedSegment(seg.kind, payload);
+    if (blank && !bytesEqual(blank, payload)) {
+      patches.push({ offset: seg.start, bytes: blank });
+    }
+  }
+  return patches;
+}
+
+/**
+ * An embedded JPEG's metadata payload overwritten in place, the primary's policy kept at
+ * the segment's exact length: Exif becomes a minimal orientation-only Exif, IPTC and a
+ * comment become zeros (no reader parses an APP13 without its signature), and XMP stays
+ * (a gain map's parameters live there) unless it carries GPS, when it becomes an empty
+ * packet. Null = keep.
+ */
+function blankEmbeddedSegment(
+  kind: EmbeddedSegment["kind"],
+  payload: Uint8Array,
+): Uint8Array | null {
+  if (kind === "exif") {
+    return blankExifBlock(
+      payload.length,
+      EXIF_HEADER,
+      tiffOrientation(payload.subarray(EXIF_HEADER.length)),
+    );
+  }
+  if (kind === "zero") return new Uint8Array(payload.length);
+  if (!XMP_GPS_NEEDLES.some((n) => findBytes(payload, n))) return null;
+  const blank = new Uint8Array(payload.length).fill(0x20);
+  blank.set(XMP_APP1_NS, 0);
+  if (XMP_APP1_NS.length + EMPTY_XMP.length <= blank.length) {
+    blank.set(EMPTY_XMP, XMP_APP1_NS.length);
+  }
+  return blank;
+}
+
+/**
+ * A complete ISOBMFF appended after the primary's EOI (a motion photo's MP4), with the
+ * patches that blank its metadata. The appendage rarely starts AT eoi+2 (vendors pad /
+ * prepend index blobs), so scan for an 'ftyp' box start; the ISOBMFF walk demands a
+ * perfect box chain to EOF plus a moov, so a false positive on random bytes cannot
+ * survive; cap the attempts anyway.
+ */
+function findTrailerIsobmff(
+  bytes: Uint8Array,
+  eoi: number,
+): { start: number; patches: IsobmffPatch[] } | null {
   let attempts = 0;
   for (let i = eoi + 6; i + 4 <= bytes.length && attempts < 4; i++) {
     if (
@@ -393,15 +702,92 @@ async function planJpegTrailerPatches(
     }
     attempts++;
     const start = i - 4; // the size field precedes the 'ftyp' fourcc
-    const plan = await planIsobmffPatches(memoryReader(bytes.subarray(start)));
+    const sub = bytes.subarray(start);
+    const plan = walkBytes(isobmffWalk(sub.length), sub);
     if (plan.ok) {
-      return plan.patches.map((p) => ({
-        offset: start + p.offset,
-        bytes: p.bytes,
-      }));
+      return {
+        start,
+        patches: plan.patches.map((p) => ({
+          offset: start + p.offset,
+          bytes: p.bytes,
+        })),
+      };
     }
   }
-  return [];
+  return null;
+}
+
+/** A metadata segment payload of an embedded JPEG (after the marker and length bytes). */
+type EmbeddedSegment = ByteRange & { kind: "exif" | "xmp" | "zero" };
+
+/**
+ * The metadata segments of every JPEG embedded in [from, to): MPF secondary images (a
+ * camera's large thumbnail, a stereo pair, an HDR gain map) and any appended full JPEG.
+ * A candidate `FF D8 FF` counts only when its marker chain walks strictly to an SOS inside
+ * the range, and an Exif payload only with a real TIFF header, so random bytes cannot
+ * pass for one; each image found is skipped to its EOI.
+ */
+function embeddedJpegMetadata(
+  b: Uint8Array,
+  from: number,
+  to: number,
+): EmbeddedSegment[] {
+  const out: EmbeddedSegment[] = [];
+  let i = from;
+  while (i + 4 <= to) {
+    if (b[i] !== 0xff || b[i + 1] !== 0xd8 || b[i + 2] !== 0xff) {
+      i++;
+      continue;
+    }
+    const found = walkEmbeddedJpeg(b, i, to);
+    if (!found) {
+      i++;
+      continue;
+    }
+    out.push(...found.segments);
+    i = found.end;
+  }
+  return out;
+}
+
+function walkEmbeddedJpeg(
+  b: Uint8Array,
+  start: number,
+  to: number,
+): { segments: EmbeddedSegment[]; end: number } | null {
+  const segments: EmbeddedSegment[] = [];
+  let pos = start + 2;
+  for (;;) {
+    if (pos + 4 > to || b[pos] !== 0xff) return null;
+    const marker = b[pos + 1];
+    if (marker === 0xda) break;
+    if (
+      marker === 0xd9 ||
+      marker === 0x01 ||
+      marker === 0xff ||
+      (marker >= 0xd0 && marker <= 0xd8)
+    ) {
+      return null;
+    }
+    const end = pos + 2 + u16be(b, pos + 2);
+    if (end < pos + 4 || end > to) return null;
+    const body = pos + 4;
+    if (marker === 0xe1) {
+      if (
+        hasPrefixAt(b, body, EXIF_HEADER) &&
+        isTiffHeader(b, body + EXIF_HEADER.length)
+      ) {
+        segments.push({ start: body, end, kind: "exif" });
+      } else if (hasPrefixAt(b, body, XMP_APP1_NS)) {
+        segments.push({ start: body, end, kind: "xmp" });
+      }
+    } else if ((marker === 0xed || marker === 0xfe) && end > body) {
+      segments.push({ start: body, end, kind: "zero" }); // IPTC/Photoshop, a comment
+    }
+    pos = end;
+  }
+  const eoi = findEoi(b, pos, to);
+  return { segments, end: eoi < 0 ? to : eoi + 2 };
 }
 
 /** The pre-SOS starts of APP2 MPF segments in an assembled (valid) JPEG. */
@@ -422,7 +808,7 @@ function collectMpfStarts(b: Uint8Array): number[] {
  * Rewrite the MP Entry table(s) of kept MPF segments so the index stays valid after
  * segments were dropped/rebuilt (CIPA DC-007: individual-image offsets are relative to
  * the MPF header = the endianness bytes right after "MPF\0"):
- *  - a non-zero offset targets a trailing image in the verbatim tail -> shift it by
+ *  - a non-zero offset targets a trailing image in the tail -> shift it by
  *    (tail delta - MPF header delta);
  *  - the offset-0 entry is the FIRST individual image (this file from its SOI), whose
  *    SIZE spans the region we shrank -> grow/shrink it by the tail delta.
@@ -520,8 +906,8 @@ function rewriteMpfEntries(
         w32(entry + 4, newSize);
       } else {
         const target = oldHdr + off;
-        // Only targets inside the verbatim tail moved uniformly; anything else
-        // (pre-SOS or past EOF) is a geometry we cannot reason about.
+        // Only targets inside the tail moved uniformly; anything else (pre-SOS or past
+        // EOF) is a geometry we cannot reason about.
         if (target < oldSos || target >= oldLen) return false;
         const newOff = off + offsetAdjust;
         if (newOff <= 0) return false;
@@ -651,24 +1037,6 @@ function stripWebp(bytes: Uint8Array): StripBytesResult {
 // MP4 / MOV (ISOBMFF)
 // ---------------------------------------------------------------------------
 
-/**
- * Random-access byte source so the SAME planner serves an in-memory Uint8Array (tests,
- * the Node backfill) and a browser File (sliced lazily - a 10 GB video never fully loads).
- */
-export type ByteReader = {
-  size: number;
-  read(start: number, end: number): Promise<Uint8Array>;
-};
-
-export function memoryReader(bytes: Uint8Array): ByteReader {
-  return {
-    size: bytes.length,
-    read: (start, end) => Promise.resolve(bytes.subarray(start, end)),
-  };
-}
-
-export type IsobmffPatch = { offset: number; bytes: Uint8Array };
-
 // The full 16-byte XMP uuid box usertype (Adobe's XMP-in-MP4 convention).
 // prettier-ignore
 const XMP_UUID = [0xbe, 0x7a, 0xcf, 0xcb, 0x97, 0xa9, 0x42, 0xe8, 0x9c, 0x71, 0x99, 0x94, 0x91, 0xe3, 0xaf, 0xac];
@@ -690,8 +1058,8 @@ const MOOV_READ_CAP = 256 * 1024 * 1024;
 const TOP_METADATA_READ_CAP = 64 * 1024 * 1024;
 
 // HEIC/HEIF/AVIF are ISOBMFF too, but item-based: meta holds iinf/iloc/pitm and blanking
-// it DESTROYS the image. The MIME dispatch already excludes them, but a mislabeled file
-// (image bytes sent as video/mp4) must also fail open - so check the ftyp major brand.
+// it DESTROYS the image. Under a video MIME the MP4 path must not touch one (a mislabeled
+// file fails open, it is never re-routed by guesswork), so check the ftyp major brand.
 const ITEM_BASED_BRANDS = new Set([
   "heic",
   "heix",
@@ -743,6 +1111,31 @@ function parseBoxHeader(
   return { type, boxSize, headerLen };
 }
 
+/** A top-level box header, read through the walk: [pos, pos+16) at most, within `size`. */
+function* readTopBoxHeader(pos: number, size: number): Walk<BoxHeader | null> {
+  const head: Uint8Array = yield { start: pos, end: Math.min(pos + 16, size) };
+  // parseBoxHeader wants absolute coords; parse the local window with a `limit` that lets
+  // the box span the rest of the file, then validate the span against `size`.
+  if (head.length < 8 || !isPlausibleBoxType(head, 4)) return null;
+  const size32 = u32be(head, 0);
+  const type = ascii4(head, 4);
+  let boxSize: number;
+  let headerLen = 8;
+  if (size32 === 0) {
+    boxSize = size - pos;
+  } else if (size32 === 1) {
+    if (head.length < 16) return null;
+    const large = u64be(head, 8);
+    if (large === null) return null;
+    boxSize = large;
+    headerLen = 16;
+  } else {
+    boxSize = size32;
+  }
+  if (boxSize < headerLen || pos + boxSize > size) return null;
+  return { type, boxSize, headerLen };
+}
+
 /** Rename the box at `pos` to 'free' and zero its payload. Renaming alone would leave the
  *  GPS strings recoverable in the "skipped" bytes - zeroing scrubs them; keeping the size
  *  field(s) means not one offset in the file moves (the whole point). */
@@ -790,78 +1183,897 @@ function blankMetadataChildren(
   return changed;
 }
 
+/** A copy of the moov at `pos` with its metadata children blanked; null = no change,
+ *  "malformed" = the walk must fail open. */
+function* blankMoov(
+  pos: number,
+  h: BoxHeader,
+): Walk<IsobmffPatch | null | "malformed"> {
+  if (h.boxSize > MOOV_READ_CAP) return "malformed";
+  const read = yield* readExactly(pos, pos + h.boxSize);
+  if (!read) return "malformed";
+  const moov = read.slice(); // own copy to patch
+  const changed = blankMetadataChildren(moov, h.headerLen, h.boxSize, 0);
+  if (changed === null) return "malformed";
+  return changed ? { offset: pos, bytes: moov } : null;
+}
+
 /**
- * Plan the in-place patches that scrub an MP4/MOV. Works over any ByteReader; the file's
- * length NEVER changes (rename+zero only), so `patches` splice back at their offsets.
- * ok:false = we did not fully understand the file -> the caller MUST fail open.
+ * A top-level box blanked WHOLE when it is metadata: udta and "xml " (and meta, in a
+ * video; an image's top-level meta is its item structure and never qualifies), or a uuid
+ * box carrying XMP. null = not metadata, "malformed" = the walk must fail open.
  */
-export async function planIsobmffPatches(
-  reader: ByteReader,
-): Promise<{ ok: boolean; patches: IsobmffPatch[] }> {
+function* blankTopLevelMetadata(
+  pos: number,
+  h: BoxHeader,
+  metaIsMetadata: boolean,
+): Walk<IsobmffPatch | null | "malformed"> {
+  let isMetadata =
+    h.type === "udta" ||
+    h.type === "xml " ||
+    (metaIsMetadata && h.type === "meta");
+  if (h.type === "uuid" && h.boxSize >= h.headerLen + 16) {
+    const usertype = yield* readExactly(
+      pos + h.headerLen,
+      pos + h.headerLen + 16,
+    );
+    if (!usertype) return "malformed";
+    isMetadata = hasPrefix(usertype, XMP_UUID);
+  }
+  if (!isMetadata) return null;
+  if (h.boxSize > TOP_METADATA_READ_CAP) return "malformed";
+  const read = yield* readExactly(pos, pos + h.boxSize);
+  if (!read) return "malformed";
+  const box = read.slice();
+  blankBoxInPlace(box, 0, h);
+  return { offset: pos, bytes: box };
+}
+
+/**
+ * Plan the in-place patches that scrub an MP4/MOV. The file's length NEVER changes
+ * (rename+zero only), so `patches` splice back at their offsets. ok:false = we did not
+ * fully understand the file -> the caller MUST fail open.
+ */
+function* isobmffWalk(
+  size: number,
+): Walk<{ ok: boolean; patches: IsobmffPatch[] }> {
   const notOk = { ok: false, patches: [] as IsobmffPatch[] };
-  const { size } = reader;
   const patches: IsobmffPatch[] = [];
   let pos = 0;
   let sawMoov = false;
   while (pos < size) {
-    const headerBytes = await reader.read(pos, Math.min(pos + 16, size));
-    // parseBoxHeader wants absolute coords; emulate by parsing the local 16-byte window
-    // with `limit` = whatever the box may span (validated against `size` below).
-    if (headerBytes.length < 8 || !isPlausibleBoxType(headerBytes, 4))
-      return notOk;
-    const size32 = u32be(headerBytes, 0);
-    const type = ascii4(headerBytes, 4);
-    let boxSize: number;
-    let headerLen = 8;
-    if (size32 === 0) {
-      boxSize = size - pos;
-    } else if (size32 === 1) {
-      if (headerBytes.length < 16) return notOk;
-      const large = u64be(headerBytes, 8);
-      if (large === null) return notOk;
-      boxSize = large;
-      headerLen = 16;
-    } else {
-      boxSize = size32;
-    }
-    if (boxSize < headerLen || pos + boxSize > size) return notOk;
-
-    if (type === "ftyp") {
+    const h = yield* readTopBoxHeader(pos, size);
+    if (!h) return notOk;
+    if (h.type === "ftyp") {
       // Item-based brands (HEIC/AVIF) masquerading under a video MIME: fail open, see above.
-      if (boxSize >= headerLen + 4) {
-        const brandBytes = await reader.read(
-          pos + headerLen,
-          pos + headerLen + 4,
+      if (h.boxSize >= h.headerLen + 4) {
+        const brand = yield* readExactly(
+          pos + h.headerLen,
+          pos + h.headerLen + 4,
         );
-        if (ITEM_BASED_BRANDS.has(ascii4(brandBytes, 0))) return notOk;
+        if (!brand) return notOk;
+        if (ITEM_BASED_BRANDS.has(ascii4(brand, 0))) return notOk;
       }
-    } else if (type === "moov") {
-      if (boxSize > MOOV_READ_CAP) return notOk;
+    } else if (h.type === "moov") {
       sawMoov = true;
-      const moov = (await reader.read(pos, pos + boxSize)).slice(); // own copy to patch
-      const changed = blankMetadataChildren(moov, headerLen, boxSize, 0);
-      if (changed === null) return notOk;
-      if (changed) patches.push({ offset: pos, bytes: moov });
-    } else if (ISOBMFF_BLANK_TYPES.has(type)) {
-      // Top-level udta/meta/xml (some muxers hoist metadata out of moov).
-      if (boxSize > TOP_METADATA_READ_CAP) return notOk;
-      const box = (await reader.read(pos, pos + boxSize)).slice();
-      blankBoxInPlace(box, 0, { type, boxSize, headerLen });
-      patches.push({ offset: pos, bytes: box });
-    } else if (type === "uuid" && boxSize >= headerLen + 16) {
-      const usertype = await reader.read(pos + headerLen, pos + headerLen + 16);
-      if (hasPrefix(usertype, XMP_UUID)) {
-        if (boxSize > TOP_METADATA_READ_CAP) return notOk;
-        const box = (await reader.read(pos, pos + boxSize)).slice();
-        blankBoxInPlace(box, 0, { type, boxSize, headerLen });
-        patches.push({ offset: pos, bytes: box });
-      }
+      const patch = yield* blankMoov(pos, h);
+      if (patch === "malformed") return notOk;
+      if (patch) patches.push(patch);
+    } else {
+      // Top-level udta/meta/xml (some muxers hoist metadata out of moov), the XMP uuid.
+      const patch = yield* blankTopLevelMetadata(pos, h, true);
+      if (patch === "malformed") return notOk;
+      if (patch) patches.push(patch);
     }
-    pos += boxSize;
+    pos += h.boxSize;
   }
   // A "video" with no moov is not something we understood - fail open.
   if (!sawMoov) return notOk;
   return { ok: true, patches };
+}
+
+/** The MP4/MOV plan over any ByteReader (exported for tests + the trailer scan's shape). */
+export async function planIsobmffPatches(
+  reader: ByteReader,
+): Promise<{ ok: boolean; patches: IsobmffPatch[] }> {
+  return walkReader(isobmffWalk(reader.size), reader);
+}
+
+// ---------------------------------------------------------------------------
+// HEIC / HEIF / AVIF (item-based ISOBMFF)
+// ---------------------------------------------------------------------------
+
+// The item structure (iinf, iloc, iref, ipco...) is small, a big grid's included; the
+// metadata items themselves are kilobytes. Anything past these is not a file we understand.
+const HEIF_META_READ_CAP = 16 * 1024 * 1024;
+const HEIF_ITEM_READ_CAP = 64 * 1024 * 1024;
+
+// "00 00 00 06" (exif_tiff_header_offset: the TIFF header sits 6 bytes in) + "Exif\0\0":
+// the Exif item layout Apple and libheif write, used for every rebuilt item.
+const EXIF_ITEM_PREFIX = [0x00, 0x00, 0x00, 0x06, ...EXIF_HEADER];
+
+type HeifItemInfo = {
+  /** item_type ('hvc1', 'av01', 'grid', 'Exif', 'mime'...; "" for a version 0/1 entry). */
+  type: string;
+  contentType: string;
+  contentEncoding: string;
+  protectedItem: boolean;
+};
+
+type HeifLocation = {
+  method: number; // iloc construction_method: 0 file offset, 1 idat offset, 2 item offset
+  dataRef: number; // 0 = this file; else a 1-based dref entry
+  extents: { offset: number; length: number }[]; // base_offset already added
+};
+
+type HeifMeta = {
+  handler: string;
+  items: Map<number, HeifItemInfo>;
+  locations: Map<number, HeifLocation>;
+  refs: { type: string; from: number; to: number[] }[];
+  idat: ByteRange | null; // the idat payload, in file coordinates
+  localRefs: Set<number>; // dref entries that point back at this file (self-contained)
+};
+
+/** A NUL-terminated string from [pos, end); the last may run to the box's end. */
+function readCString(
+  b: Uint8Array,
+  pos: number,
+  end: number,
+): { value: string; next: number } {
+  let i = pos;
+  while (i < end && b[i] !== 0) i++;
+  let value = "";
+  for (let j = pos; j < i; j++) value += String.fromCharCode(b[j]);
+  return { value, next: i < end ? i + 1 : end };
+}
+
+function parseInfe(
+  b: Uint8Array,
+  body: number,
+  end: number,
+): { id: number; info: HeifItemInfo } | null {
+  if (body + 4 > end) return null;
+  const version = b[body];
+  let pos = body + 4;
+  let id: number;
+  let protection: number;
+  let type = "";
+  let contentType = "";
+  let contentEncoding = "";
+  if (version <= 1) {
+    // The pre-HEIF entry: no item_type, a content_type for every item.
+    if (pos + 4 > end) return null;
+    id = u16be(b, pos);
+    protection = u16be(b, pos + 2);
+    pos = readCString(b, pos + 4, end).next; // item_name
+    const ct = readCString(b, pos, end);
+    contentType = ct.value;
+    contentEncoding = readCString(b, ct.next, end).value;
+  } else if (version <= 3) {
+    const idLen = version === 2 ? 2 : 4;
+    if (pos + idLen + 6 > end) return null;
+    id = version === 2 ? u16be(b, pos) : u32be(b, pos);
+    pos += idLen;
+    protection = u16be(b, pos);
+    type = ascii4(b, pos + 2);
+    pos = readCString(b, pos + 6, end).next; // item_name
+    if (type === "mime") {
+      const ct = readCString(b, pos, end);
+      contentType = ct.value;
+      contentEncoding = readCString(b, ct.next, end).value;
+    }
+  } else {
+    return null;
+  }
+  return {
+    id,
+    info: {
+      type,
+      contentType,
+      contentEncoding,
+      protectedItem: protection !== 0,
+    },
+  };
+}
+
+function parseIinf(
+  b: Uint8Array,
+  body: number,
+  end: number,
+  items: Map<number, HeifItemInfo>,
+): boolean {
+  if (body + 4 > end) return false;
+  const countLen = b[body] === 0 ? 2 : 4; // entry_count; every infe present is read anyway
+  let pos = body + 4 + countLen;
+  if (pos > end) return false;
+  while (pos < end) {
+    const h = parseBoxHeader(b, pos, end);
+    if (!h) return false;
+    if (h.type === "infe") {
+      const entry = parseInfe(b, pos + h.headerLen, pos + h.boxSize);
+      if (!entry || items.has(entry.id)) return false;
+      items.set(entry.id, entry.info);
+    }
+    pos += h.boxSize;
+  }
+  return true;
+}
+
+function parseIloc(
+  b: Uint8Array,
+  body: number,
+  end: number,
+  out: Map<number, HeifLocation>,
+): boolean {
+  if (body + 6 > end) return false;
+  const version = b[body];
+  if (version > 2) return false;
+  let pos = body + 4;
+  const offsetSize = b[pos] >> 4;
+  const lengthSize = b[pos] & 0x0f;
+  const baseSize = b[pos + 1] >> 4;
+  const indexSize = version === 0 ? 0 : b[pos + 1] & 0x0f;
+  pos += 2;
+  for (const n of [offsetSize, lengthSize, baseSize, indexSize]) {
+    if (n !== 0 && n !== 4 && n !== 8) return false;
+  }
+  // The next n-byte unsigned big-endian field (n of 0, 2, 4 or 8; 0 reads as 0); null
+  // past the box's end or past 2^53.
+  const field = (n: number): number | null => {
+    if (pos + n > end) return null;
+    const v =
+      n === 0
+        ? 0
+        : n === 2
+          ? u16be(b, pos)
+          : n === 4
+            ? u32be(b, pos)
+            : u64be(b, pos);
+    pos += n;
+    return v;
+  };
+  const idSize = version < 2 ? 2 : 4;
+  const count = field(idSize);
+  if (count === null) return false;
+  for (let i = 0; i < count; i++) {
+    // Read in field order: item_ID, [construction_method], data_reference_index,
+    // base_offset, extent_count.
+    const id = field(idSize);
+    const methodField = version === 0 ? 0 : field(2);
+    const dataRef = field(2);
+    const base = field(baseSize);
+    const extentCount = field(2);
+    if (
+      id === null ||
+      methodField === null ||
+      dataRef === null ||
+      base === null ||
+      extentCount === null
+    ) {
+      return false;
+    }
+    const method = methodField & 0x0f;
+    const extents: HeifLocation["extents"] = [];
+    for (let j = 0; j < extentCount; j++) {
+      if (indexSize > 0 && field(indexSize) === null) return false;
+      const offset = field(offsetSize);
+      const length = field(lengthSize);
+      if (offset === null || length === null) return false;
+      if (!Number.isSafeInteger(base + offset)) return false;
+      extents.push({ offset: base + offset, length });
+    }
+    if (out.has(id)) return false; // one location per item
+    out.set(id, { method, dataRef, extents });
+  }
+  return true;
+}
+
+function parseIref(
+  b: Uint8Array,
+  body: number,
+  end: number,
+  out: HeifMeta["refs"],
+): boolean {
+  if (body + 4 > end) return false;
+  const idLen = b[body] === 0 ? 2 : 4;
+  const readId = (o: number) => (idLen === 2 ? u16be(b, o) : u32be(b, o));
+  let pos = body + 4;
+  while (pos < end) {
+    const h = parseBoxHeader(b, pos, end);
+    if (!h) return false;
+    const boxEnd = pos + h.boxSize;
+    let p = pos + h.headerLen;
+    if (p + idLen + 2 > boxEnd) return false;
+    const from = readId(p);
+    const n = u16be(b, p + idLen);
+    p += idLen + 2;
+    if (p + n * idLen > boxEnd) return false;
+    const to: number[] = [];
+    for (let i = 0; i < n; i++) to.push(readId(p + i * idLen));
+    out.push({ type: h.type, from, to });
+    pos = boxEnd;
+  }
+  return true;
+}
+
+/** The dref entries (1-based) flagged self-contained: data in this very file. */
+function parseDinf(
+  b: Uint8Array,
+  body: number,
+  end: number,
+  out: Set<number>,
+): boolean {
+  let pos = body;
+  while (pos < end) {
+    const h = parseBoxHeader(b, pos, end);
+    if (!h) return false;
+    if (h.type === "dref") {
+      const boxEnd = pos + h.boxSize;
+      let p = pos + h.headerLen + 8; // FullBox + entry_count
+      if (p > boxEnd) return false;
+      let index = 0;
+      while (p < boxEnd) {
+        const e = parseBoxHeader(b, p, boxEnd);
+        if (!e) return false;
+        index++;
+        const flags = p + e.headerLen + 3;
+        if (
+          (e.type === "url " || e.type === "urn ") &&
+          e.boxSize >= e.headerLen + 4 &&
+          (b[flags] & 1) === 1
+        ) {
+          out.add(index);
+        }
+        p += e.boxSize;
+      }
+    }
+    pos += h.boxSize;
+  }
+  return true;
+}
+
+/** The item structure of a file-level `meta` (a FullBox) read whole into memory. */
+function parseHeifMeta(
+  meta: Uint8Array,
+  metaPos: number,
+  headerLen: number,
+): HeifMeta | null {
+  const out: HeifMeta = {
+    handler: "",
+    items: new Map(),
+    locations: new Map(),
+    refs: [],
+    idat: null,
+    localRefs: new Set(),
+  };
+  const once = new Set([
+    "hdlr",
+    "pitm",
+    "iinf",
+    "iloc",
+    "iref",
+    "idat",
+    "dinf",
+  ]);
+  const seen = new Set<string>();
+  let pos = headerLen + 4; // version + flags precede the children
+  while (pos < meta.length) {
+    const h = parseBoxHeader(meta, pos, meta.length);
+    if (!h) return null;
+    if (once.has(h.type)) {
+      if (seen.has(h.type)) return null; // two of a box the format allows once
+      seen.add(h.type);
+    }
+    const body = pos + h.headerLen;
+    const end = pos + h.boxSize;
+    let ok = true;
+    if (h.type === "hdlr") {
+      if (body + 12 > end) return null;
+      out.handler = ascii4(meta, body + 8); // after version/flags + pre_defined
+    } else if (h.type === "iinf") ok = parseIinf(meta, body, end, out.items);
+    else if (h.type === "iloc") ok = parseIloc(meta, body, end, out.locations);
+    else if (h.type === "iref") ok = parseIref(meta, body, end, out.refs);
+    else if (h.type === "dinf") ok = parseDinf(meta, body, end, out.localRefs);
+    else if (h.type === "idat") {
+      out.idat = { start: metaPos + body, end: metaPos + end };
+    }
+    if (!ok) return null;
+    pos = end;
+  }
+  if (!seen.has("iinf") || !seen.has("iloc")) return null;
+  return out;
+}
+
+function isXmpItem(info: HeifItemInfo): boolean {
+  return (
+    (info.type === "mime" || info.type === "") &&
+    info.contentType.trim().toLowerCase() === "application/rdf+xml"
+  );
+}
+
+/** The TIFF inside an Exif item: after the 4-byte exif_tiff_header_offset, by that offset
+ *  (writers disagree on it, so the usual "Exif\0\0" layout is also tried). */
+function exifItemTiff(data: Uint8Array): Uint8Array | null {
+  if (data.length < 4) return null;
+  for (const at of [4 + u32be(data, 0), 4 + EXIF_HEADER.length, 4]) {
+    if (isTiffHeader(data, at)) return data.subarray(at);
+  }
+  return null;
+}
+
+function intersects(a: ByteRange, b: ByteRange): boolean {
+  return a.start < b.end && b.start < a.end;
+}
+
+/**
+ * Where an item's bytes lie in the file, or null when they do not lie in it plainly:
+ * placed by item reference (construction method 2, or a reserved method) or in another
+ * file.
+ */
+function itemRanges(
+  loc: HeifLocation,
+  meta: HeifMeta,
+  size: number,
+): ByteRange[] | null {
+  if (loc.method !== 0 && loc.method !== 1) return null;
+  if (loc.dataRef !== 0 && !meta.localRefs.has(loc.dataRef)) return null;
+  const source =
+    loc.method === 0
+      ? { start: 0, end: size }
+      : (meta.idat ?? { start: 0, end: 0 });
+  const out: ByteRange[] = [];
+  for (const e of loc.extents) {
+    const start = source.start + e.offset;
+    // A zero length means "to the end of the source"; as a range that is the honest worst case.
+    const end = e.length === 0 ? source.end : start + e.length;
+    out.push({ start, end });
+  }
+  return out;
+}
+
+/**
+ * Plan the in-place rewrite of every metadata item: each Exif item, and each XMP item
+ * unless it describes only auxiliary images (and carries no GPS). Null = not provably
+ * safe, so the whole file fails open: a metadata item placed by reference, in another
+ * file, protected, of unbounded length, outside the mdat/idat payloads, or sharing a byte
+ * with any item we keep (blanking it would corrupt the picture).
+ */
+function* planHeifItems(
+  meta: HeifMeta,
+  mdats: ByteRange[],
+  size: number,
+): Walk<{ patches: IsobmffPatch[]; gps: boolean } | null> {
+  const auxiliary = new Set(
+    meta.refs.filter((r) => r.type === "auxl").map((r) => r.from),
+  );
+  const describes = (id: number) =>
+    meta.refs
+      .filter((r) => r.type === "cdsc" && r.from === id)
+      .flatMap((r) => r.to);
+
+  let gps = false;
+  const rewrites: {
+    ranges: ByteRange[];
+    data: Uint8Array;
+    blank: Uint8Array;
+  }[] = [];
+  const rewritten = new Set<number>();
+  for (const [id, info] of meta.items) {
+    const isExif = info.type === "Exif";
+    if (!isExif && !isXmpItem(info)) continue;
+    const loc = meta.locations.get(id);
+    if (!loc || loc.extents.length === 0) continue; // no bytes, nothing to leak
+    if (info.protectedItem) return null;
+    const ranges = itemRanges(loc, meta, size);
+    if (!ranges) return null;
+    let total = 0;
+    for (const [i, r] of ranges.entries()) {
+      if (loc.extents[i].length === 0) return null;
+      const within =
+        loc.method === 0
+          ? mdats.some((m) => r.start >= m.start && r.end <= m.end)
+          : meta.idat !== null &&
+            r.start >= meta.idat.start &&
+            r.end <= meta.idat.end;
+      if (!within) return null;
+      total += r.end - r.start;
+    }
+    if (total > HEIF_ITEM_READ_CAP) return null;
+    const pieces: Uint8Array[] = [];
+    for (const r of ranges) {
+      const piece = yield* readExactly(r.start, r.end);
+      if (!piece) return null;
+      pieces.push(piece);
+    }
+    const data = concatParts(pieces);
+    let blank: Uint8Array;
+    if (isExif) {
+      const tiff = exifItemTiff(data);
+      if (tiff && tiffHasGps(tiff)) gps = true;
+      blank = blankExifBlock(
+        data.length,
+        EXIF_ITEM_PREFIX,
+        tiff ? tiffOrientation(tiff) : null,
+      );
+    } else {
+      const xmpGps = XMP_GPS_NEEDLES.some((n) => findBytes(data, n));
+      if (xmpGps) gps = true;
+      const targets = describes(id);
+      // A gain map's or a depth map's XMP is how it renders, not who took it: keep it.
+      if (
+        targets.length > 0 &&
+        targets.every((t) => auxiliary.has(t)) &&
+        !xmpGps
+      ) {
+        continue;
+      }
+      blank = new Uint8Array(data.length);
+      // An encoded (compressed) item cannot hold plain text: zeroed, its reader fails,
+      // the picture does not.
+      if (info.contentEncoding.trim() === "") {
+        blank.fill(0x20);
+        if (EMPTY_XMP.length <= blank.length) blank.set(EMPTY_XMP, 0);
+      }
+    }
+    rewrites.push({ ranges, data, blank });
+    rewritten.add(id);
+  }
+
+  // Not one rewritten byte may belong to anything else: an image, a thumbnail, a grid's
+  // tiles, a kept XMP, or another rewrite.
+  const kept: ByteRange[] = [];
+  for (const [id, loc] of meta.locations) {
+    if (rewritten.has(id)) continue;
+    kept.push(...(itemRanges(loc, meta, size) ?? []));
+  }
+  const all = rewrites.flatMap((w) => w.ranges);
+  for (const [i, r] of all.entries()) {
+    if (kept.some((k) => intersects(r, k))) return null;
+    if (all.some((o, j) => j !== i && intersects(r, o))) return null;
+  }
+
+  const patches: IsobmffPatch[] = [];
+  for (const w of rewrites) {
+    let at = 0;
+    for (const r of w.ranges) {
+      const len = r.end - r.start;
+      const blank = w.blank.subarray(at, at + len);
+      if (!bytesEqual(blank, w.data.subarray(at, at + len))) {
+        patches.push({ offset: r.start, bytes: blank.slice() });
+      }
+      at += len;
+    }
+  }
+  return { patches, gps };
+}
+
+/**
+ * Plan the in-place patches that scrub an HEIC/HEIF/AVIF. The file must open with ftyp and
+ * carry one file-level `meta` whose handler is 'pict' (an image's item structure); an
+ * image SEQUENCE's moov is scrubbed as a video's, and a top-level udta/xml/XMP uuid is
+ * blanked whole. ok:false = the caller MUST fail open.
+ */
+function* heifWalk(size: number): Walk<WalkPlan> {
+  const notOk: WalkPlan = { ok: false, patches: [], gps: false };
+  const patches: IsobmffPatch[] = [];
+  const mdats: ByteRange[] = [];
+  let meta: { bytes: Uint8Array; pos: number; headerLen: number } | null = null;
+  let pos = 0;
+  while (pos < size) {
+    const h = yield* readTopBoxHeader(pos, size);
+    if (!h || (pos === 0 && h.type !== "ftyp")) return notOk;
+    if (h.type === "meta") {
+      if (meta || h.boxSize > HEIF_META_READ_CAP) return notOk;
+      const bytes = yield* readExactly(pos, pos + h.boxSize);
+      if (!bytes) return notOk;
+      meta = { bytes, pos, headerLen: h.headerLen };
+    } else if (h.type === "mdat") {
+      mdats.push({ start: pos + h.headerLen, end: pos + h.boxSize });
+    } else if (h.type === "moov") {
+      const patch = yield* blankMoov(pos, h);
+      if (patch === "malformed") return notOk;
+      if (patch) patches.push(patch);
+    } else {
+      const patch = yield* blankTopLevelMetadata(pos, h, false);
+      if (patch === "malformed") return notOk;
+      if (patch) patches.push(patch);
+    }
+    pos += h.boxSize;
+  }
+  if (!meta) return notOk;
+  const parsed = parseHeifMeta(meta.bytes, meta.pos, meta.headerLen);
+  if (!parsed || parsed.handler !== "pict") return notOk;
+  const items = yield* planHeifItems(parsed, mdats, size);
+  if (!items) return notOk;
+  return { ok: true, patches: [...patches, ...items.patches], gps: items.gps };
+}
+
+function isItemBasedImage(mime: string): boolean {
+  return (
+    mime === "image/heic" || mime === "image/heif" || mime === "image/avif"
+  );
+}
+
+// ---------------------------------------------------------------------------
+// WebM / Matroska (EBML)
+// ---------------------------------------------------------------------------
+
+const EBML_ID_HEADER = 0x1a45dfa3;
+const EBML_ID_DOCTYPE = 0x4282;
+const EBML_ID_VOID = 0xec;
+const EBML_ID_CRC32 = 0xbf;
+const MKV_ID_SEGMENT = 0x18538067;
+const MKV_ID_CLUSTER = 0x1f43b675;
+const MKV_ID_TAGS = 0x1254c367;
+const MKV_ID_TAG = 0x7373;
+const MKV_ID_SIMPLETAG = 0x67c8;
+const MKV_ID_TAGNAME = 0x45a3;
+
+// What may sit inside a Cluster: Timestamp, SilentTracks, Position, PrevSize, SimpleBlock,
+// BlockGroup, EncryptedBlock, and the two global elements.
+const MKV_CLUSTER_CHILDREN = new Set([
+  0xe7,
+  0x5854,
+  0xa7,
+  0xab,
+  0xa3,
+  0xa0,
+  0xaf,
+  EBML_ID_VOID,
+  EBML_ID_CRC32,
+]);
+// What may end an unknown-sized Cluster: a sibling at the Segment's level (SeekHead, Info,
+// Tracks, Cues, Cluster, Tags, Chapters, Attachments) or a new document.
+const MKV_SEGMENT_LEVEL = new Set([
+  0x114d9b74,
+  0x1549a966,
+  0x1654ae6b,
+  0x1c53bb6b,
+  MKV_ID_CLUSTER,
+  MKV_ID_TAGS,
+  0x1043a770,
+  0x1941a469,
+  EBML_ID_HEADER,
+  MKV_ID_SEGMENT,
+]);
+
+// A tag name that says where (ffmpeg writes LOCATION, and carries Apple's
+// com.apple.quicktime.location.ISO6709 over from a MOV under its own name).
+const LOCATION_TAG_NAME = /LOCATION|ISO6709|GPS|COORDINATES/;
+
+/** An element header: an ID of 1-4 bytes (its marker kept, as the spec writes IDs) and a
+ *  size of 1-8 bytes; dataSize null = "unknown" (every value bit set). Null = malformed. */
+type EbmlHeader = { id: number; headerLen: number; dataSize: number | null };
+
+function parseEbmlHeader(b: Uint8Array, o: number): EbmlHeader | null {
+  if (o >= b.length) return null;
+  const first = b[o];
+  const idLen =
+    first >= 0x80
+      ? 1
+      : first >= 0x40
+        ? 2
+        : first >= 0x20
+          ? 3
+          : first >= 0x10
+            ? 4
+            : 0;
+  if (idLen === 0 || o + idLen >= b.length) return null;
+  let id = 0;
+  for (let i = 0; i < idLen; i++) id = id * 256 + b[o + i];
+  const s = o + idLen;
+  const lead = b[s];
+  if (lead === 0) return null; // a size longer than 8 bytes
+  let sizeLen = 1;
+  while (!(lead & (0x80 >> (sizeLen - 1)))) sizeLen++;
+  if (s + sizeLen > b.length) return null;
+  let value = lead & (0xff >> sizeLen);
+  let unknown = value === 0xff >> sizeLen;
+  for (let i = 1; i < sizeLen; i++) {
+    value = value * 256 + b[s + i];
+    if (b[s + i] !== 0xff) unknown = false;
+  }
+  if (unknown) return { id, headerLen: idLen + sizeLen, dataSize: null };
+  if (!Number.isSafeInteger(value)) return null;
+  return { id, headerLen: idLen + sizeLen, dataSize: value };
+}
+
+/** An element header read through the walk (12 bytes at most: a 4-byte ID + an 8-byte size). */
+function* readEbmlAt(pos: number, limit: number): Walk<EbmlHeader | null> {
+  const head: Uint8Array = yield { start: pos, end: Math.min(pos + 12, limit) };
+  return parseEbmlHeader(head, 0);
+}
+
+/**
+ * A Void element of EXACTLY `total` bytes, zero-filled: the Void ID (0xEC), then a size
+ * whose own length makes the element fill the span, so nothing after it moves. Null when
+ * `total` cannot hold one (under 2 bytes; a Tags element's ID alone is 4).
+ */
+function voidElement(total: number): Uint8Array | null {
+  for (let sizeLen = 1; sizeLen <= 8; sizeLen++) {
+    const dataSize = total - 1 - sizeLen;
+    if (dataSize < 0) return null;
+    if (dataSize > 2 ** (7 * sizeLen) - 2) continue; // all ones would read "unknown"
+    const out = new Uint8Array(total);
+    out[0] = EBML_ID_VOID;
+    let v = dataSize;
+    for (let i = sizeLen; i >= 1; i--) {
+      out[i] = v % 256;
+      v = Math.floor(v / 256);
+    }
+    out[1] |= 0x80 >> (sizeLen - 1); // the length marker
+    return out;
+  }
+  return null;
+}
+
+/** The DocType inside an EBML header's payload ("" when absent or unreadable). */
+function ebmlDocType(header: Uint8Array): string {
+  let p = 0;
+  while (p < header.length) {
+    const el = parseEbmlHeader(header, p);
+    if (!el || el.dataSize === null) return "";
+    const body = p + el.headerLen;
+    const end = body + el.dataSize;
+    if (end > header.length) return "";
+    if (el.id === EBML_ID_DOCTYPE) {
+      let s = "";
+      for (let i = body; i < end && header[i] !== 0; i++) {
+        s += String.fromCharCode(header[i]);
+      }
+      return s;
+    }
+    p = end;
+  }
+  return "";
+}
+
+/** Whether a Tags payload names a location (Tag > SimpleTag, nested, > TagName). */
+function tagsHaveLocation(tags: Uint8Array): boolean {
+  const scan = (start: number, end: number, depth: number): boolean => {
+    let p = start;
+    while (p < end) {
+      const el = parseEbmlHeader(tags, p);
+      if (!el || el.dataSize === null) return false;
+      const body = p + el.headerLen;
+      const elEnd = body + el.dataSize;
+      if (elEnd > end) return false;
+      if (el.id === MKV_ID_TAGNAME) {
+        let name = "";
+        for (let i = body; i < elEnd; i++) name += String.fromCharCode(tags[i]);
+        if (LOCATION_TAG_NAME.test(name.toUpperCase())) return true;
+      } else if (
+        (el.id === MKV_ID_TAG || el.id === MKV_ID_SIMPLETAG) &&
+        depth < 16 &&
+        scan(body, elEnd, depth + 1)
+      ) {
+        return true;
+      }
+      p = elEnd;
+    }
+    return false;
+  };
+  return scan(0, tags.length, 0);
+}
+
+/**
+ * Skip an unknown-sized Cluster (MediaRecorder and other live writers emit them): walk its
+ * children until an element that cannot be its child begins (RFC 8794 §6.2), which must be
+ * a sibling at the Segment's level or a new document. Returns where it ends; null = an
+ * element we cannot place, or a block running past the end (a truncated file).
+ */
+function* skipUnknownCluster(
+  start: number,
+  limit: number,
+): Walk<number | null> {
+  let p = start;
+  while (p < limit) {
+    const el = yield* readEbmlAt(p, limit);
+    if (!el) return null;
+    if (!MKV_CLUSTER_CHILDREN.has(el.id)) {
+      return MKV_SEGMENT_LEVEL.has(el.id) ? p : null;
+    }
+    if (el.dataSize === null) return null;
+    p += el.headerLen + el.dataSize;
+    if (p > limit) return null;
+  }
+  return p;
+}
+
+/**
+ * Walk a Segment's children in [start, limit), turning each Tags element into a Void of
+ * its exact size. An unknown-sized Segment runs to EOF or to the next document's header.
+ * Returns where the Segment ended and whether a Tags element named a location.
+ */
+function* walkSegment(
+  start: number,
+  limit: number,
+  unknownSize: boolean,
+  patches: IsobmffPatch[],
+): Walk<{ end: number; gps: boolean } | null> {
+  let gps = false;
+  let p = start;
+  while (p < limit) {
+    const el = yield* readEbmlAt(p, limit);
+    if (!el) return null;
+    if (unknownSize && (el.id === EBML_ID_HEADER || el.id === MKV_ID_SEGMENT)) {
+      return { end: p, gps }; // the next document begins
+    }
+    const body = p + el.headerLen;
+    if (el.dataSize === null) {
+      // Only a Cluster may be live-written with an unknown size.
+      if (el.id !== MKV_ID_CLUSTER) return null;
+      const end = yield* skipUnknownCluster(body, limit);
+      if (end === null) return null;
+      p = end;
+      continue;
+    }
+    const end = body + el.dataSize;
+    if (end > limit) return null;
+    if (el.id === MKV_ID_TAGS) {
+      if (end - p > TOP_METADATA_READ_CAP) return null;
+      const tags = yield* readExactly(body, end);
+      if (!tags) return null;
+      if (tagsHaveLocation(tags)) gps = true;
+      const blank = voidElement(end - p);
+      if (!blank) return null;
+      patches.push({ offset: p, bytes: blank });
+    }
+    p = end;
+  }
+  return { end: limit, gps };
+}
+
+/**
+ * Plan the in-place patches that scrub a WebM (or any Matroska): an EBML header whose
+ * DocType is webm or matroska, then Segments (Void padding and chained documents allowed),
+ * each walked to its end. ok:false = the caller MUST fail open.
+ */
+function* webmWalk(size: number): Walk<WalkPlan> {
+  const notOk: WalkPlan = { ok: false, patches: [], gps: false };
+  const head = yield* readEbmlAt(0, size);
+  if (!head || head.id !== EBML_ID_HEADER || head.dataSize === null)
+    return notOk;
+  const headerEnd = head.headerLen + head.dataSize;
+  if (head.dataSize > 4096 || headerEnd > size) return notOk;
+  const header = yield* readExactly(head.headerLen, headerEnd);
+  if (!header) return notOk;
+  const docType = ebmlDocType(header);
+  if (docType !== "webm" && docType !== "matroska") return notOk;
+
+  const patches: IsobmffPatch[] = [];
+  let gps = false;
+  let sawSegment = false;
+  let pos = headerEnd;
+  while (pos < size) {
+    const el = yield* readEbmlAt(pos, size);
+    if (!el) return notOk;
+    const body = pos + el.headerLen;
+    if (el.id === MKV_ID_SEGMENT) {
+      sawSegment = true;
+      const limit = el.dataSize === null ? size : body + el.dataSize;
+      if (limit > size) return notOk; // truncated
+      const seg = yield* walkSegment(
+        body,
+        limit,
+        el.dataSize === null,
+        patches,
+      );
+      if (!seg) return notOk;
+      gps = gps || seg.gps;
+      pos = seg.end;
+    } else if (el.id === EBML_ID_HEADER || el.id === EBML_ID_VOID) {
+      // A chained document's header, or padding between documents.
+      if (el.dataSize === null) return notOk;
+      pos = body + el.dataSize;
+      if (pos > size) return notOk;
+    } else {
+      return notOk;
+    }
+  }
+  if (!sawSegment) return notOk;
+  return { ok: true, patches, gps };
 }
 
 // ---------------------------------------------------------------------------
@@ -876,49 +2088,47 @@ export async function stripMetadataBytes(
   bytes: Uint8Array,
   mime: string,
 ): Promise<StripBytesResult> {
-  const failOpen: StripBytesResult = {
-    data: bytes,
-    stripped: false,
-    changed: false,
-  };
   try {
     switch (mime) {
       case "image/jpeg":
-        // await (not return) so a rejection still lands in this catch -> fail open.
-        return await stripJpeg(bytes);
+        return stripJpeg(bytes);
       case "image/png":
         return stripPng(bytes);
       case "image/webp":
         return stripWebp(bytes);
+      case "image/heic":
+      case "image/heif":
+      case "image/avif":
+        return patchedOrOriginal(
+          bytes,
+          walkBytes(heifWalk(bytes.length), bytes),
+        );
       case "video/mp4":
-      case "video/quicktime": {
-        const plan = await planIsobmffPatches(memoryReader(bytes));
-        if (!plan.ok) return failOpen;
-        if (plan.patches.length === 0) {
-          return { data: bytes, stripped: true, changed: false };
-        }
-        const out = bytes.slice();
-        for (const p of plan.patches) out.set(p.bytes, p.offset);
-        // A patch always renames a non-'free' box to 'free', so patches => changed.
-        return { data: out, stripped: true, changed: true };
-      }
+      case "video/quicktime":
+        return patchedOrOriginal(
+          bytes,
+          walkBytes(isobmffWalk(bytes.length), bytes),
+        );
+      case "video/webm":
+        return patchedOrOriginal(
+          bytes,
+          walkBytes(webmWalk(bytes.length), bytes),
+        );
       default:
-        // HEIC/HEIF/AVIF (item-based; blanking meta destroys the image) and WebM (EBML)
-        // are the conscious fail-open gap - see the module docblock.
-        return failOpen;
+        return { data: bytes, stripped: false, changed: false };
     }
   } catch {
-    return failOpen;
+    return { data: bytes, stripped: false, changed: false };
   }
 }
 
 /**
  * The one-call browser entry point (uploader.ts step 0): strip a picked File before ANY
- * size is read. Photos load fully (they're small); videos are patched via lazy slices and
- * the output Blob composes original File slices + the patched regions, so a multi-GB
- * video never sits in memory. NEVER throws; on any failure the ORIGINAL File comes back
- * with stripped:false and the upload proceeds untouched (fail open - a corrupted upload
- * is worse than the leak).
+ * size is read. JPEG/PNG/WebP load fully (they're rebuilt); every other format is patched
+ * in place via lazy slices and the output Blob composes original File slices + the patched
+ * regions, so a multi-GB video never sits in memory. NEVER throws; on any failure the
+ * ORIGINAL File comes back with stripped:false and the upload proceeds untouched (fail
+ * open - a corrupted upload is worse than the leak).
  */
 export async function stripFileMetadata(file: File): Promise<StripFileResult> {
   try {
@@ -937,36 +2147,24 @@ export async function stripFileMetadata(file: File): Promise<StripFileResult> {
         stripped: true,
       };
     }
-    if (mime === "video/mp4" || mime === "video/quicktime") {
-      const plan = await planIsobmffPatches({
-        size: file.size,
-        read: async (start, end) =>
-          new Uint8Array(await file.slice(start, end).arrayBuffer()),
-      });
-      if (!plan.ok) return { blob: file, stripped: false };
-      if (plan.patches.length === 0) return { blob: file, stripped: true };
-      // Compose lazily: untouched regions stay File slices (no copy), only the patched
-      // moov/metadata regions are real buffers. Total length is identical by construction.
-      const ordered = [...plan.patches].sort((a, b) => a.offset - b.offset);
-      const parts: BlobPart[] = [];
-      let cursor = 0;
-      for (const p of ordered) {
-        if (p.offset > cursor) parts.push(file.slice(cursor, p.offset));
-        parts.push(p.bytes as BlobPart);
-        cursor = p.offset + p.bytes.length;
-      }
-      if (cursor < file.size) parts.push(file.slice(cursor));
-      return { blob: new Blob(parts, { type: mime }), stripped: true };
-    }
-    return { blob: file, stripped: false };
+    let walk: Walk<{ ok: boolean; patches: IsobmffPatch[] }>;
+    if (isItemBasedImage(mime)) walk = heifWalk(file.size);
+    else if (mime === "video/mp4" || mime === "video/quicktime") {
+      walk = isobmffWalk(file.size);
+    } else if (mime === "video/webm") walk = webmWalk(file.size);
+    else return { blob: file, stripped: false };
+    const plan = await walkReader(walk, readAhead(fileReader(file)));
+    if (!plan.ok) return { blob: file, stripped: false };
+    if (plan.patches.length === 0) return { blob: file, stripped: true };
+    return { blob: composePatched(file, plan.patches, mime), stripped: true };
   } catch {
     return { blob: file, stripped: false };
   }
 }
 
 // ---------------------------------------------------------------------------
-// GPS detection (reporting only - the backfill's dry-run summary). Heuristic on
-// purpose; the strip itself never depends on this.
+// GPS detection (reporting only - the backfill's dry-run summary). It reads each format
+// the way its strip does; the strip itself never depends on this.
 // ---------------------------------------------------------------------------
 
 const MP4_GPS_NEEDLES: readonly (readonly number[])[] = [
@@ -981,12 +2179,12 @@ function jpegExifHasGps(b: Uint8Array): boolean {
     if (seg.marker !== 0xe1) continue;
     const payload = b.subarray(seg.start + 4, seg.end);
     if (!hasPrefix(payload, EXIF_HEADER)) continue;
-    return findIfd0Tag(payload.subarray(6), TAG_GPS_IFD) !== null;
+    return tiffHasGps(payload.subarray(6));
   }
   return false;
 }
 
-/** Position of the SOS marker (= where the verbatim tail begins), or -1. */
+/** Position of the SOS marker (= where the kept tail begins), or -1. */
 function jpegSosPos(b: Uint8Array): number {
   if (b.length < 4 || b[0] !== 0xff || b[1] !== 0xd8) return -1;
   let end = 2;
@@ -995,29 +2193,36 @@ function jpegSosPos(b: Uint8Array): number {
   return -1;
 }
 
+/**
+ * GPS in a JPEG's trailing bytes, read where the strip scrubs them: a motion-photo MP4's
+ * location boxes, and the Exif (or XMP) of every embedded JPEG before it.
+ */
+function jpegTrailerHasGps(b: Uint8Array): boolean {
+  const sos = jpegSosPos(b);
+  if (sos < 0) return false;
+  const eoi = findEoi(b, sos);
+  if (eoi < 0) return false;
+  const trailer = b.subarray(eoi + 2);
+  if (trailer.length < 4) return false;
+  if (MP4_GPS_NEEDLES.some((n) => findBytes(trailer, n))) return true;
+  const mp4 = findTrailerIsobmff(b, eoi);
+  return embeddedJpegMetadata(b, eoi + 2, mp4?.start ?? b.length).some(
+    (seg) => {
+      const payload = b.subarray(seg.start, seg.end);
+      if (seg.kind === "exif")
+        return tiffHasGps(payload.subarray(EXIF_HEADER.length));
+      return (
+        seg.kind === "xmp" && XMP_GPS_NEEDLES.some((n) => findBytes(payload, n))
+      );
+    },
+  );
+}
+
 /** Does this file carry GPS metadata? (Best-effort; false on anything unparseable.) */
 export function hasGpsMetadata(bytes: Uint8Array, mime: string): boolean {
   try {
     if (mime === "image/jpeg") {
-      if (jpegExifHasGps(bytes)) return true;
-      // Trailing appendages after the EOI carry their OWN metadata: a motion-photo MP4
-      // (udta GPS - the strip blanks it in place) and MPF secondary images, full JPEGs
-      // whose Exif the strip deliberately leaves (excising would shift the trailer).
-      // Scanning them here keeps the backfill report honest about that residual vector.
-      const sos = jpegSosPos(bytes);
-      if (sos < 0) return false;
-      const eoi = findEoi(bytes, sos);
-      if (eoi < 0) return false;
-      const trailer = bytes.subarray(eoi + 2);
-      if (trailer.length < 4) return false;
-      if (MP4_GPS_NEEDLES.some((n) => findBytes(trailer, n))) return true;
-      let candidates = 0;
-      for (let i = 0; i + 2 <= trailer.length && candidates < 8; i++) {
-        if (trailer[i] !== 0xff || trailer[i + 1] !== 0xd8) continue;
-        candidates++;
-        if (jpegExifHasGps(trailer.subarray(i))) return true;
-      }
-      return false;
+      return jpegExifHasGps(bytes) || jpegTrailerHasGps(bytes);
     }
     if (mime === "image/png") {
       // eXIf chunk data is a raw TIFF (no "Exif\0\0" prefix).
@@ -1029,12 +2234,7 @@ export function hasGpsMetadata(bytes: Uint8Array, mime: string): boolean {
         const end = pos + 8 + dataLen + 4;
         if (end > bytes.length) return false;
         if (type === "eXIf") {
-          return (
-            findIfd0Tag(
-              bytes.subarray(pos + 8, pos + 8 + dataLen),
-              TAG_GPS_IFD,
-            ) !== null
-          );
+          return tiffHasGps(bytes.subarray(pos + 8, pos + 8 + dataLen));
         }
         if (type === "IEND") return false;
         pos = end;
@@ -1053,11 +2253,17 @@ export function hasGpsMetadata(bytes: Uint8Array, mime: string): boolean {
           let tiff = bytes.subarray(pos + 8, end);
           // Some writers include the JPEG-style "Exif\0\0" prefix inside the chunk.
           if (hasPrefix(tiff, EXIF_HEADER)) tiff = tiff.subarray(6);
-          return findIfd0Tag(tiff, TAG_GPS_IFD) !== null;
+          return tiffHasGps(tiff);
         }
         pos = end + (chunkSize & 1);
       }
       return false;
+    }
+    if (isItemBasedImage(mime)) {
+      return walkBytes(heifWalk(bytes.length), bytes).gps;
+    }
+    if (mime === "video/webm") {
+      return walkBytes(webmWalk(bytes.length), bytes).gps;
     }
     if (mime === "video/mp4" || mime === "video/quicktime") {
       return MP4_GPS_NEEDLES.some((n) => findBytes(bytes, n));
