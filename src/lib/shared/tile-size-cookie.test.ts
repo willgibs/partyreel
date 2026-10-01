@@ -1,19 +1,13 @@
 /**
- * THE ONE SIZE COOKIE, READ BOTH WAYS (`album-columns` r2: three steps, one
- * index shared by host and guest). What is held: a returning viewer's pick
- * survives the switch from widths to steps, and a cookie written by either
- * spelling reads the same pick through either reader, so a masonry surface and
- * a rows surface on one device never disagree about it.
+ * THE ONE SIZE COOKIE: three steps, one index shared by host and guest. What is
+ * held is that an index reads as itself, that a pick written while the albums
+ * were masonry columns (a pixel width) survives as the step it meant, and that
+ * nothing else changes the step a device lands on.
  */
 import { describe, expect, it } from "vitest";
 
 import { DEFAULT_ROW_STEP } from "./album-rows";
-import {
-  DEFAULT_TILE_SIZE,
-  resolveRowStep,
-  resolveTileSize,
-  TILE_SIZES,
-} from "./tile-size-cookie";
+import { resolveRowStep } from "./tile-size-cookie";
 
 describe("the step a cookie names", () => {
   it("reads an index as itself", () => {
@@ -24,7 +18,7 @@ describe("the step a cookie names", () => {
 
   it("maps the legacy widths across by what they meant", () => {
     expect(resolveRowStep("300")).toBe(0); // loose: the largest photographs
-    expect(resolveRowStep("240")).toBe(1); // the wired default: the middle
+    expect(resolveRowStep("240")).toBe(1); // the former default: the middle
     expect(resolveRowStep("180")).toBe(2); // tight: the densest
   });
 
@@ -39,27 +33,10 @@ describe("the step a cookie names", () => {
       "1.5",
       "big",
       "220",
+      "NaN",
+      "Infinity",
+      "constructor",
     ])
       expect(resolveRowStep(raw)).toBe(DEFAULT_ROW_STEP);
-  });
-});
-
-describe("the width a cookie names, while masonry still reads widths", () => {
-  it("reads a step index as the width it stands for", () => {
-    expect(resolveTileSize("0")).toBe(300);
-    expect(resolveTileSize("1")).toBe(240);
-    expect(resolveTileSize("2")).toBe(180);
-  });
-
-  it("keeps every legacy width, and the default for garbage", () => {
-    for (const size of TILE_SIZES)
-      expect(resolveTileSize(String(size))).toBe(size);
-    for (const raw of [undefined, null, "", "7", "big"])
-      expect(resolveTileSize(raw)).toBe(DEFAULT_TILE_SIZE);
-  });
-
-  it("round-trips: a width read as a step reads back as the same width", () => {
-    for (const size of TILE_SIZES)
-      expect(resolveTileSize(String(resolveRowStep(String(size))))).toBe(size);
   });
 });

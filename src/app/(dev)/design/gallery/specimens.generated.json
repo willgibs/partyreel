@@ -135,9 +135,6 @@
     "route-error": [
       "<RouteErrorMock />"
     ],
-    "anonymous-info": [
-      "<Row>\n  <span className=\"flex items-center gap-1.5 text-sm\">\n    Anonymous\n    <AnonymousInfo />\n  </span>\n  <span className=\"flex items-center gap-1.5 text-sm\">\n    Host view\n    <AnonymousInfo viewerIsHost />\n  </span>\n</Row>"
-    ],
     "set-name-step": [
       "<SetNameStepDemo />"
     ],
@@ -156,14 +153,8 @@
     "action-tooltip": [
       "<ActionTooltipDemo />"
     ],
-    "floating-add-button": [
-      "<FloatingAddDemo />"
-    ],
     "route-skeleton": [
       "<RouteSkeletonDemo />"
-    ],
-    "tile-size-control": [
-      "<TileSizeControlDemo />"
     ],
     "admin-shell": [
       "<AdminRailDemo />",
@@ -184,9 +175,6 @@
     ],
     "storage-list": [
       "<StorageListDemo />"
-    ],
-    "filter-chips": [
-      "<FilterChipsDemo />"
     ],
     "event-card-qr": [
       "<div className=\"flex items-center gap-3\">\n  {qrSlot}\n  <span className=\"text-sm text-muted-foreground\">\n    Opens the share sheet\n  </span>\n</div>"

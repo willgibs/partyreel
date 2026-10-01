@@ -107,7 +107,6 @@ routes.
   (`sections/shared/reel-player.tsx`), which keeps the reader on the page with the film framed and Start free beside it.
 - **The home**: `sections/home/section-ids.ts` is the one source of the sections' order and surface, consecutive paper
   ids rendering inside one `PaperChapter`; the headers read `SECTION_HEADERS` in `marketing-voice.ts`.
-  `constants/features.ts` and `features-layout.ts` are dead scaffold that only their own test reads.
 - **The feature family**: identity in `constants/feature-pages.ts`. The hub is a directory of photographic doors
   (`features/shared/feature-door.tsx`), and the same doors close every feature page (`related-features.tsx`), so the site
   holds one picture of each feature. Every hero but /qr's composes `PageHero` (/qr's plate sits beside its lockup), and

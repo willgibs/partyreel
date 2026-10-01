@@ -30,6 +30,23 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/app/admin/albums/page.tsx
   - src/app/admin/help-feedback/page.tsx
   - src/app/admin/reports/person-report-list.tsx
+  - src/components/app/dashboard/filter-chips.test.tsx
+  - src/components/shared/tile-size-control.test.tsx
+  - src/lib/constants/features.test.ts
+  - src/lib/dashboard/filters.ts
+  - src/lib/dashboard/filters.test.ts
+  - src/lib/shared/tile-size-cookie.ts
+  - src/lib/shared/tile-size-cookie.test.ts
+  - src/lib/shared/use-tile-size.ts
+  - src/components/app/dashboard/events-section.tsx
+  - src/components/guest/guest-action-dock.tsx
+  - src/components/shared/unverified-mark.tsx
+  - src/app/(dev)/design/(shell)/library/patterns/gallery-demos.tsx
+  - src/app/(dev)/design/(shell)/library/patterns/interactive-demos.tsx
+  - src/app/(dev)/design/(shell)/library/compositions/gallery-demos.tsx
+  - src/app/(dev)/design/(shell)/library/compositions/composition-demos.tsx
+  - src/app/(dev)/design/gallery/specimens.generated.json
+  - content/blog/AUTHORING.md
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/design-system.md
   - docs/systems/admin-observability.md
@@ -78,6 +95,9 @@ working.
 
 - `docs/systems/design-system.md`: the ★ on `cn()` and the shadow utilities, now `SHADOW_TOKENS` (crumbs-39 item "cn() and the shadow utilities").
 - `docs/systems/admin-observability.md`: "The chrome's links never prefetch" becomes "No link in the portal prefetches", naming the source scan that holds the pages' and content components' links.
+- `docs/systems/guest-flow.md`: the two "residue only the Library mounts" sentences (`floating-add-button.tsx`, `anonymous-info.tsx`) are deleted with their files.
+- `docs/systems/marketing-content.md`: the "dead scaffold" sentence on `constants/features.ts` and `features-layout.ts` is deleted with them.
+- `docs/systems/design-system.md` (second line): "`drawer.tsx` (vaul's, drawn only by the Library's gallery now)" is deleted from the floating-layer paragraph: the file and vaul are gone.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
@@ -105,11 +125,13 @@ _Agent crumbs-39 (Sonnet 5.5), booted 2026-10-01 in `/Users/gibby/local/ai/party
 - `ui/dialog.tsx` fullScreen scroll lock: the takeover now renders an Overlay that draws nothing (Radix's RemoveScroll is the Overlay's); `src/components/ui/dialog.test.tsx` was red on the takeover before. Still to do for it: look at the Library's fullScreen demo in a browser (no visual change, no scrollbar strip).
 - The portal's links: all 16 `<Link>`s in `components/admin` and `app/admin` that prefetched now say `prefetch={false}` (the six named files hold 7 of them; the other 9 are the admin 404 screens and seven page-level links), and `src/components/admin/admin-prefetch-policy.test.ts` reads the source of both directories (red first: 16 offenders), with one pending page, crumbs-37's `albums/[eventId]/page.tsx`, whose two links take the prop when its lane lands (the test fails when that page is fixed, so its entry is deleted then). `text-[10px]` moved to `text-micro` in `operator-alerts.tsx` (2) and `admin-not-found-screen.tsx` (1), whose stale header sentence about the Ops badge is corrected.
 
+- Dead code, with its Library specimens and the doc lines that named it: `floating-add-button.tsx`, `filter-chips.tsx` (+ test), `tile-size-control.tsx` (+ test), `anonymous-info.tsx`, `constants/features.ts` and `features-layout.ts` (+ test); and what died with them: `lib/dashboard/filters.ts` (+ test: `FILTER_CHIPS` and `FilterValue` served only the chips, `resolveInitialFilter` only its test, and the dashboard's own comment says the `?tab=` / `?filter=` links are gone), `TILE_SIZES`/`TileSize`/`DEFAULT_TILE_SIZE`/`TILE_SIZE_LABEL`/`resolveTileSize` in `tile-size-cookie.ts` and `useTileSize` in `use-tile-size.ts`. `specimens.generated.json` regenerated with `node "src/app/(dev)/design/gallery/collect-specimens.mjs"` (four entries out). `resolveRowStep` keeps reading a legacy 300/240/180 width (kept, pinned; see Questions).
+- `EventCardQr`'s "three unused props": already true before the cut (every call passes only what it reads since popups-wiring made the chip open the code card).
+
 **In progress / next, in this order**
-1. Dead components and the tile-size tools, with their Library specimens and the system-doc lines that name them.
-2. `EventCardQr`'s unused props.
-3. The comment sweep (ROADMAP lines 155 and 163), each verified against current code; `text-[10px]` to `text-micro` in any file opened.
-4. The gate, `lab:smoke`, the handoff.
+1. `guest-masonry.tsx` (read only by its own test; its header claims the marketing stage and the lab draw it, and neither does) with its test: move its three head-stack pins onto `GalleryRows` (`gallery-rows.test.tsx`), then delete, and point the comments that name it at `gallery-rows.tsx`.
+2. The comment sweep (ROADMAP lines 155 and 163), each verified against current code; `text-[10px]` to `text-micro` in any file opened.
+3. The gate, `lab:smoke`, the handoff.
 
 **Measured, so a successor does not redo it**
 - Already gone before the cut (the ROADMAP lines are stale on them): the app's `components/guest/ghost-grid.tsx`, `event-filter-pills.tsx`, `lib/shared/use-active-section.ts`, `enter-event-prompt.tsx`; the `getHostAvatarUrl`-era and "Cost & scaling" and `database-security.md0` comment items.

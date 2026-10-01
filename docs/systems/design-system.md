@@ -464,8 +464,8 @@ fade, a hair of scale, 8px from the anchor) and `floatingEdgeEntrance` (the shee
 three rungs follow frequency: instant for what opens dozens of times an hour (a tooltip, a dropdown, a select),
 standard for a popover or dialog, edge for the sheet. The light is `shadow-layer`, and every panel is opaque until the
 Glass exploration answers its material.
-`drawer.tsx` (vaul's, drawn only by the Library's gallery now) and `sonner.tsx` sit outside the family by name; the QR mini-modal's View
-Transition is its one sanctioned hole ([host-app.md](host-app.md)).
+`sonner.tsx` sits outside the family by name; the QR mini-modal's View Transition is its one sanctioned hole
+([host-app.md](host-app.md)).
 
 - **The product has ONE responsive `Sheet`** (`ui/sheet.tsx`, opted into with `responsive`): a side panel at a desk, a
   bottom sheet in a hand. It emits `data-side="responsive"`, so none of the fixed-side rules can race it, and its

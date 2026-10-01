@@ -2,18 +2,10 @@
 
 import { useState } from "react";
 import { Heart } from "lucide-react";
-import { toast } from "sonner";
 
 import { ActionTooltip } from "@/components/shared/action-tooltip";
-import { FloatingAddButton } from "@/components/shared/floating-add-button";
 import { RouteSkeleton } from "@/components/shared/route-skeleton";
 import { SetNameStep } from "@/components/shared/set-name-step";
-import { TileSizeControl } from "@/components/shared/tile-size-control";
-import { Button } from "@/components/ui/button";
-import {
-  DEFAULT_TILE_SIZE,
-  type TileSize,
-} from "@/lib/shared/tile-size-cookie";
 
 import { Row } from "@/app/(dev)/design/reference/reference-ui";
 
@@ -23,14 +15,6 @@ import { Row } from "@/app/(dev)/design/reference/reference-ui";
  * them at /design/patterns, the page that actually renders them, instead of
  * /design/reference, which is not a route (see components/interactive-demos).
  */
-
-/** TileSizeControl: controlled, so pressing a step here really sets --album-
- *  column — pair it with `masonry` in the same viewport to see it move a
- *  live grid (the control does not scope its own effect). */
-export function TileSizeControlDemo() {
-  const [size, setSize] = useState<TileSize>(DEFAULT_TILE_SIZE);
-  return <TileSizeControl value={size} onChange={setSize} />;
-}
 
 /** RouteSkeleton: the pulse and the hub, the bare app-shell content the real
  *  loading.tsx files return, safe to show inline. */
@@ -76,33 +60,6 @@ export function ActionTooltipDemo() {
       <span className="text-sm text-muted-foreground">
         The child keeps its own aria-label; the tooltip is presentational.
       </span>
-    </Row>
-  );
-}
-
-/** FloatingAddButton: fixed to the viewport, so the demo shows it briefly. */
-export function FloatingAddDemo() {
-  const [show, setShow] = useState(false);
-  return (
-    <Row>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => {
-          setShow(true);
-          window.setTimeout(() => setShow(false), 4000);
-        }}
-      >
-        Show for 4 seconds
-      </Button>
-      <span className="text-sm text-muted-foreground">
-        Appears at the bottom of the viewport with an uploading count.
-      </span>
-      <FloatingAddButton
-        show={show}
-        uploadingCount={2}
-        onClick={() => toast("The picker would open here")}
-      />
     </Row>
   );
 }
