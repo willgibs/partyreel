@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { track } from "@/lib/analytics/web";
+import { JOB_OPENINGS } from "@/lib/constants/careers";
 
 import { setReducedMotion } from "../../../../../../vitest.setup";
 import { submitApplication } from "../actions";
@@ -20,10 +21,8 @@ import { ApplicationForm } from "./application-form";
 vi.mock("../actions", () => ({ submitApplication: vi.fn() }));
 vi.mock("@/lib/analytics/web", () => ({ track: vi.fn() }));
 
-const ROLE = {
-  slug: "graphics-engineer-reel",
-  title: "Graphics Engineer, Reel",
-};
+/** A real listing (the first, whichever role it is), so the receipt names what the page does. */
+const ROLE = JOB_OPENINGS[0];
 
 beforeEach(() => {
   vi.clearAllMocks();
