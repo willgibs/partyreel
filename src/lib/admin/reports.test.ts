@@ -572,6 +572,28 @@ describe("an address's strikes on the queue (`addressStrikes`, `strikeWords`)", 
     );
   });
 
+  // ★ A LATER LIFT ON THE SAME DAY MOVES NOTHING THE LINE PRINTS (crumbs-40, build 35's red-team). Six strikes, two
+  // dismissed the same day: a Dismiss pushes the lift from 18:44 to 23:27 UTC, and the line said the bar's own date
+  // twice ("until Mar 28, 2027 UTC. A Dismiss makes 7, until Mar 28, 2027 UTC"). The dates are compared as printed.
+  it("★ a Dismiss whose later lift prints as the same day says no date, as one that moves nothing", () => {
+    const sameDay = addressStrikes(
+      reading(6, [
+        "2027-03-30T08:00:00.000Z",
+        "2027-03-28T23:27:00.000Z",
+        "2027-03-28T18:44:00.000Z",
+        "2027-03-28T10:00:00.000Z",
+        "2027-03-27T10:00:00.000Z",
+        "2027-03-27T09:00:00.000Z",
+      ]),
+      RULE,
+      1,
+    );
+    expect(sameDay.dismiss.barredUntil).toBe("2027-03-28T23:27:00.000Z");
+    expect(strikeWords(sameDay)).toBe(
+      "This address has 6 strikes, so its reports don't hide right away until Mar 28, 2027 UTC. A Dismiss makes 7.",
+    );
+  });
+
   it("★ a Dismiss of an entry holding several of one address's reports makes a strike of each", () => {
     const s = addressStrikes(reading(1, ["2027-01-15T12:00:00.000Z"]), RULE, 2);
     expect(s.dismiss).toEqual({
