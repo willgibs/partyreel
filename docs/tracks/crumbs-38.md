@@ -154,4 +154,10 @@ Each is built as recommended and is Will's to overrule; none is a one-way door (
   3. **Told on her return** (items 1 and 2): migration `20261001203810_let_in_told.sql` (`media.let_in_at` + its
      trigger, `guests.let_in_told_at`), `readOwnUploads` with `tell`, the route's `{statuses, tell}` answering `news`,
      the tracker sending `tell` and handing the news to the toast through its store.
-- Done: nothing yet.
+- Done:
+  - Item 3 at ec9fe824: migration 20261001203800 proved red then green on the live schema (its foot holds the
+    result and the new bodies' md5s: get_my_uploads 21068680e6eb9a8d1d2f16fe17aac9c2, get_my_likes
+    648daea282e9ef5c82dac6ef405e9198); the queries, feed-actions.ts, my-feed-more.tsx, the galleries, the owner
+    sections; tests green, each new one red on today's code (checked by swapping in launch-prep's file).
+- In progress: item 4 (the credit's face and door).
+- The proof builder for a migration's commented foot is in the scratch dir (`build-proof.py <file> red|green`).
