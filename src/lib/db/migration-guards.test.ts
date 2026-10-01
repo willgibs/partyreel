@@ -2050,14 +2050,15 @@ describe("the host's reel defaults (20260925100000)", () => {
 
     it("returns the hold after the reel's two settings, as a SECURITY DEFINER read with an empty search_path", () => {
       // ★ Reshaped by the doors (20260929120000), which append the guest picker's flag
-      // (`accepts_video`) after the hold: the hold still follows the reel's two settings, and nothing
-      // but that one flag comes after it.
+      // (`accepts_video`) after the hold, and by the host's cap (20261001233000, crumbs-43), which
+      // appends `max_upload_bytes` after the flag: the hold still follows the reel's two settings, and
+      // nothing but those two comes after it (the cap's own pins: guest-cap-and-faces-guards.test.ts).
       const body = code("get_event_by_qr_token");
       expect(body).toContain(
-        "show_reel boolean, reel_style_id text, reel_hold_sec numeric, accepts_video boolean) language sql stable security definer set search_path to ''",
+        "show_reel boolean, reel_style_id text, reel_hold_sec numeric, accepts_video boolean, max_upload_bytes bigint) language sql stable security definer set search_path to ''",
       );
       expect(body).toContain(
-        "e.show_reel, e.reel_style_id, e.reel_hold_sec, (e.allow_videos and coalesce(p.tier <> 'free', false)) from public.events e",
+        "e.show_reel, e.reel_style_id, e.reel_hold_sec, (e.allow_videos and coalesce(p.tier <> 'free', false)), e.max_upload_bytes from public.events e",
       );
       expect(body).toContain(
         "order by (e.qr_token = p_qr_token) desc limit 1;",

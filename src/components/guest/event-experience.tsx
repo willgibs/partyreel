@@ -442,6 +442,11 @@ export function EventExperience({
   const { sentinelRef, inView: headerActionsInView } =
     useInViewSentinel<HTMLDivElement>();
   const canUpload = access === "full" && event.accepting_uploads;
+  /* ★ THE CAP A GUEST'S FILE MEETS, SAID BEFORE THE PICKER (crumbs-43): the host's own per-file cap
+     (`events.max_upload_bytes`) on the Add sheet's terms line, at the door's upload step and the album's Add
+     alike, so the number she reads is the one the presign holds her to. Never the host's on her own album: her
+     uploads ride the host's pair, which the cap exempts (`create_media_as_host`). */
+  const hostCap = isOwner ? null : (event.max_upload_bytes ?? null);
 
   /* ────────────────────────────────────────────────────────────────────────
      A DRIFTING DECISION, AND WHICH WAY IT DRIFTED.
@@ -988,6 +993,7 @@ export function EventExperience({
             gate={gate}
             doorGate={doorGate}
             acceptsVideo={event.accepts_video}
+            capBytes={hostCap}
             hasContributed={serverContributed}
             contributed={clientContributed}
             returning={returning}
@@ -1293,6 +1299,7 @@ export function EventExperience({
                     elsewhere={elsewhere}
                     onAccountRenamed={handleAccountRenamed}
                     removedIds={removedIds}
+                    capBytes={hostCap}
                   />
                 </div>
               ) : (

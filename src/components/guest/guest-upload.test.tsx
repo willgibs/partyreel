@@ -38,6 +38,8 @@ import {
   type UploadedItem,
 } from "@/lib/guest/use-upload-queue";
 import { uploadFile } from "@/lib/upload/uploader";
+import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
+import { formatBytes } from "@/lib/utils";
 
 import { GuestUpload, type GuestUploadHandle } from "./guest-upload";
 
@@ -102,6 +104,7 @@ function Harness({
   suppressFailures?: boolean;
   moment?: boolean;
   removedIds?: ReadonlySet<string>;
+  capBytes?: number | null;
 }) {
   const pendingRef = useRef<string | null>(null);
   const { items, progress, addFiles, retry, dismiss } = useUploadQueue({
@@ -144,6 +147,7 @@ function Harness({
       isDemo={isDemo}
       moment={rest.moment}
       removedIds={rest.removedIds}
+      capBytes={rest.capBytes}
     />
   );
 }
@@ -617,6 +621,30 @@ describe("GuestUpload: the add sheet is the only door in", () => {
     expect(screen.getByRole("button", { name: "Send 2" })).toBeInTheDocument();
     expect(mockUploadFile).not.toHaveBeenCalled();
     expect(snapshots.at(-1) ?? []).toEqual([]);
+  });
+});
+
+/* ── THE ALBUM'S OWN CAP, SAID BEFORE THE PICKER (crumbs-43; ROADMAP: "the upload sheet's terms line states the
+   product's limits rather than the host's own cap"). The page hands the sheet the cap a guest's file meets
+   (`events.max_upload_bytes`, never the host's on her own album), and the line says that number, so the first
+   time a guest reads the limit is not inside a refusal. ── */
+describe("GuestUpload: the Add sheet says the album's own cap", () => {
+  it("states the host's per-file cap the page hands it, and the product's ceiling without one", () => {
+    const cap = 100 * 1024 ** 2;
+    const capped = mount({ capBytes: cap });
+    act(() => capped.handleRef.current!.openAdd());
+    expect(
+      screen.getByText(`Photos and videos, up to ${formatBytes(cap)} each.`),
+    ).toBeInTheDocument();
+    capped.unmount();
+
+    const plain = mount();
+    act(() => plain.handleRef.current!.openAdd());
+    expect(
+      screen.getByText(
+        `Photos and videos, up to ${formatBytes(MAX_UPLOAD_BYTES)} each.`,
+      ),
+    ).toBeInTheDocument();
   });
 });
 

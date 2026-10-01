@@ -314,6 +314,21 @@ describe("getEventByQrToken: the live reel's event facts", () => {
     expect(result.ok && result.data.reel_style_id).toBe("mono");
   });
 
+  // ★ THE HOST'S OWN CAP (crumbs-43; ROADMAP: "`get_event_by_qr_token` does not return `events.max_upload_bytes`,
+  // so the upload sheet's terms line states the product's limits rather than the host's own cap"). The column is
+  // the read's last (20261001233000); a build that meets the read before the migration reads no cap.
+  it("carries the host's own per-file cap, and none where the host set none or the read has no column", async () => {
+    answer(eventRow({ max_upload_bytes: 104857600 }));
+    const capped = await getEventByQrToken(OPEN_QR);
+    expect(capped.ok && capped.data.max_upload_bytes).toBe(104857600);
+    answer(eventRow({ max_upload_bytes: null }));
+    const open = await getEventByQrToken(OPEN_QR);
+    expect(open.ok && open.data.max_upload_bytes).toBeNull();
+    answer(eventRow());
+    const before = await getEventByQrToken(OPEN_QR);
+    expect(before.ok && before.data.max_upload_bytes).toBeNull();
+  });
+
   // ★ RESHAPED ON PURPOSE (crumbs-17, crumbs-15's dead seam; scar kept: the reel's switch reads as the host
   // left it). This read "an RPC from before the column as the defaults"; the reel's migrations are applied
   // and typed, so the switch comes back on every answer, off included.
