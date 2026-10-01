@@ -165,6 +165,9 @@ Each is built as recommended and is Will's to overrule; none is a one-way door (
     d147f214…): the guest links route answers the host's face + /u/willg, Partyreel's + /u/partyr33l, a confirmed
     name with no handle its colour alone; the viewer's credit draws the seeded disc and the door. Full `pnpm test`
     green at that commit (686 files).
-- In progress: items 1 and 2 (told on her return): the migration, then readOwnUploads with `tell`, the route, the
-  tracker, the toast.
+  - Items 1 and 2 at aa8ea67e: migration 20261001203810 proved red (6/6 fail) then green (6/6) on the live
+    schema (its foot holds the result); let-in-news.ts, readOwnUploads with `tell` (forward-only marks), the
+    route's `tell`/`news`, the tracker's news channel, the toast's second source and its door wait. Full
+    `pnpm test` green at that commit (687 files).
+- In progress: the system-doc facts, the local drive of what runs on localhost, the whole gate, the Handoff.
 - The proof builder for a migration's commented foot is in the scratch dir (`build-proof.py <file> red|green`).
