@@ -4,7 +4,7 @@
 > [`systems/`](systems); what might be next is [`ROADMAP.md`](ROADMAP.md); what runs this minute is
 > [`tracks/orchestrator.md`](tracks/orchestrator.md); what shipped is `git log`.
 
-**Updated:** 2026-09-30
+**Updated:** 2026-10-01
 
 ## The era
 
@@ -26,9 +26,11 @@ Nothing is protected: every page, the host app and the guest pages are open to b
   check's stall, a Next dev bug, upstream's fix carried as a pnpm patch) on build 34, red-teamed PASS.
   `crumbs-34` (every published claim made true; Sentry quiet off Vercel) and `crumbs-33` (a report's live strikes on
   the queue, the newsletter row with an email change, four correctness fixes; its two migrations applied) are
-  merged, with `crumbs-35`, `crumbs-36`, `crumbs-39`, `crumbs-37` and `crumbs-38` (their four migrations owed);
-  `crumbs-40` (build 35's finds, its MEDIUM fixed at the claim) is merged too. App work leads (his note); the wiring of each board follows
-  his picks.
+  merged, with `crumbs-35`, `crumbs-36`, `crumbs-39`, `crumbs-37` and `crumbs-38` (their four migrations applied
+  2026-10-01) and `crumbs-40` (build 35's finds, its MEDIUM fixed at the claim), all on build 36, red-teamed next.
+  Milestone 32 ships batch 9 once build 36, or its fix build, passes (his yes, 2026-10-01). `crumbs-41` (admin, data
+  and billing, his call #60 among them), `crumbs-42` (the host app) and `crumbs-43` (guests) run, their merges after
+  the milestone. App work leads (his note); the wiring of each board follows his picks.
 
 ## The desk
 
@@ -42,13 +44,15 @@ and `about-press` r1 (two), in that order.
   load, a stale guest link and an unknown profile draw their own screens (200, noindex), the lab and `/admin` 404 on the
   apex, the admin door redirects; the signed-in walk PASS (the dashboard, a hub's rooms and trail, Settings' rows and
   back arrow and the browser's Back, the door page, the Guests room, the demo's viewer; no console error).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 35 (`be502b45`): build 34
-  (red-teamed PASS) plus crumbs-33, crumbs-34 and crumbs-35, red-teamed (one MEDIUM, in `crumbs-40`); the desk is the same six boards (no
-  board moved since build 31). Vercel installs with pnpm 9.14.4, `package.json`'s `packageManager`.
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 36 (`eb38b6be`, 2026-10-01
+  19:00Z): build 35 plus crumbs-36 to crumbs-40, its red-team walking; the desk is the same six boards (no board moved
+  since build 31). Vercel installs with pnpm 9.14.4, `package.json`'s `packageManager`.
 - **The shared database** runs every migration applied through 2026-10-01: schema-pass part 2 (the reel's three
-  dormant media columns dropped once milestone 31 shipped), the instant hide's three strikes, and crumbs-33's two last
-  (`report_strikes`, the strike rule's one home; the newsletter row moving with an email change); no build of either
-  project reads a dropped thing.
+  dormant media columns dropped once milestone 31 shipped), the instant hide's three strikes, crumbs-33's two
+  (`report_strikes`, the strike rule's one home; the newsletter row moving with an email change), and crumbs-37's and
+  crumbs-38's four last (the album log's watermarks and its prune, `media_removed_idx`, the feeds' cursor, the told
+  news); no build of either project reads a dropped thing. The album-log prune runs nightly only once milestone 32
+  ships (production's cron); until then only a hand-run of build 36's purge on the alias runs it.
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md).
@@ -75,5 +79,5 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-- His desk (above); the calls file's 64 calls to overrule, his review on 2026-10-01 (his two decisions answered
-  2026-09-30); the phone checks and the four walks only he can drive (`tracks/orchestrator.md`).
+- His desk (above); the calls file's 64 calls to overrule (his decisions A and B answered 2026-09-30, C, #60's reopen
+  window, 2026-10-01); the phone checks and the walks only he can drive (`tracks/orchestrator.md`).

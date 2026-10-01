@@ -64,6 +64,10 @@ predecessor's transcript at
 account. Connectors follow the account: Claude in Chrome (every red-team needs it), the Supabase MCP on
 `ddafaemglzmuekbtjwzn`, the Vercel MCP on his personal team (deploys ride `$VERCEL_TOKEN`; only runtime logs need P3).
 
+**Build 36's red-team** (agent `a8ef0d825dc9caf2a`, spawned 2026-10-01 19:00Z, Opus, Will's Chrome): from
+`../partyreel-wt/_scratch/redteam-36/brief.md`; from another session, respawn it from that brief after its `ledger.txt`'s
+last line (the brief carries every rule and restore, the purge hand-runs' limits among them).
+
 Relays that live only in an agent: none.
 
 If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` holds a merge made after this note (push
@@ -82,7 +86,7 @@ but lab:demo's `about-press.facts` dev stall, ROADMAP's line), crumbs-31 (`5898b
 ## Next, in order
 
 1. **Build 36** (build 35 plus crumbs-36 to crumbs-40, the four migrations applied and the types regenerated at
-   `f6d72a9d`, gate 119 green): the `[preview]` record, `alias-ensure`, the prune. The desk is the same six boards (only `words.test.ts` moved in the lab since build 35)
+   `f6d72a9d`, gate 119 green): the `[preview]` record, `alias-ensure`, the prune: ON THE ALIAS since 2026-10-01 19:00Z (`eb38b6be`), both READY. The desk is the same six boards (only `words.test.ts` moved in the lab since build 35)
    and his answers live in his browser's localStorage, so the deploy waits for no sitting. Then its red-team, an agent
    on Claude in Chrome, from `../partyreel-wt/_scratch/redteam-36/brief.md`, written fresh from crumbs-36 to
    crumbs-40's Handoff steps on `redteam-35/brief.md`'s template; strikes going in: willg97's address 2, partyr33l's 7.
