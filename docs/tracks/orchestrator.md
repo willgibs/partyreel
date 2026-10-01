@@ -41,7 +41,6 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `crumbs-33` | six ROADMAP items: a child-abuse report's live strikes on the queue (Will's call B), the newsletter row with an email change, one pinned date formatter, the rows engine's ties, the viewer's link asks coalesced, a tooltip's touch tap on Android | running, cut at `65dbedb2`; may write migrations (applied by protocol; one replacing `create_report` goes to the Advisor first) | Opus, 3131 | |
-| `crumbs-34` | every published claim made true: five help-sync lines, the FAQ's keep answer and the event pages' promises (the Free plan's inactivity removal, the email door), the footer's FAQ link, two dead files, Sentry quiet on localhost | running, cut at `65dbedb2`; no SQL | Sonnet, 3132 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
 no question open (Q1, the `names` hang; Q2, schema-pass part 1; Q3, the notes-into-laws audit; Q4, the door migration:
@@ -61,17 +60,17 @@ If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` ho
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
 staged, uncommitted merge is finished by `usher/kit/merge-lane.sh`'s own steps or reset with `git merge --abort`.
 This session's scratchpad (`/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/157caa18-ec54-4aa9-a12a-04c86d5a667b/scratchpad`,
-until a reboot) holds the specs and gate logs (the next gate is 111); nothing there is needed that these lines and the
+until a reboot) holds the specs and gate logs (the next gate is 112); nothing there is needed that these lines and the
 manifests do not carry.
 
 Batch 8 shipped whole as milestone 31 (`7bd3b947`, 2026-09-30; 40 lanes, crumbs-12 to gone-link-soft; their merges and
 records carry the rest). Merged in batch 9: crumbs-28 (`8ea749bf`), hide-strikes (`669e1717`, its migration applied by
 protocol, 20260930205935), crumbs-29 (`47b5cce8`, its three migrations applied), crumbs-30 (`d0eaf507`; gate 107 green
-but lab:demo's `about-press.facts` dev stall, ROADMAP's line), crumbs-31 (`5898b6d8`, no SQL), demo-stall (`7990d19d`, gate 109 whole and green: the lab:demo stall's root, a Next dev bug, patched), crumbs-32 (`04ddf22e`, no SQL). Schema-pass part 2 is applied (20260930204037).
+but lab:demo's `about-press.facts` dev stall, ROADMAP's line), crumbs-31 (`5898b6d8`, no SQL), demo-stall (`7990d19d`, gate 109 whole and green: the lab:demo stall's root, a Next dev bug, patched), crumbs-32 (`04ddf22e`, no SQL), crumbs-34 (`25b21341`, no SQL; gate 111). Schema-pass part 2 is applied (20260930204037).
 
 ## Next, in order
 
-1. **Integrate each lane as it hands off** (crumbs-33 and crumbs-34 run; build 34's red-team is an agent, not a lane),
+1. **Integrate each lane as it hands off** (crumbs-33 runs; build 34's red-team is an agent, not a lane),
    each migration by protocol, one at a time: drift check, apply verbatim, the rolled-back refusals, advisors, types.
 2. **Build 34** (`65dbedb2`: build 33 plus crumbs-29 to crumbs-32 and demo-stall) is on the alias since 2026-10-01
    03:45Z (Will had not begun his sitting and said go). Its first try failed at install on both projects: with no pin,
