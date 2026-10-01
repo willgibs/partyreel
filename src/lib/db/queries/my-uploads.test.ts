@@ -3,7 +3,8 @@
  * and a load-more"). Pinned: a page asks one row past itself, so `next` is a cursor exactly when more exist and the
  * extra row is never shown; the cursor is the last SHOWN row's own `(created_at, id)`, its time passed back exactly
  * as the server wrote it; a page after a cursor names it to the function; her own events' uploads carry `isHost`
- * from the function's own arm flag.
+ * from the function's own arm flag, and her own name and face (crumbs-45; build 36's red-team found a "?" disc),
+ * asked once a page and only for a page that holds one; her uploads elsewhere carry neither.
  *
  * HER UPLOADS OFFER NO HEART WHERE A LIKE WOULD BE REFUSED (a ROADMAP carry-over from `crumbs-8`:
  * "her Uploads feed shows a heart on a private album's photo that now always refuses").
@@ -62,6 +63,24 @@ vi.mock("@/lib/db/queries/guest-events", () => ({
   },
 }));
 
+/** Her own name and face, as `uploader-faces.ts` reads them (its own test pins the read), each ask recorded. */
+const HER_FACE = {
+  avatarUrl: "https://cdn.test/avatars/her/avatar.webp?v=1",
+  seed: "seed-her",
+  href: null,
+};
+let ownCredit: { name: string | null; face: typeof HER_FACE | null } = {
+  name: "Will Gibson",
+  face: HER_FACE,
+};
+const ownAsks: unknown[] = [];
+vi.mock("@/lib/media/uploader-faces", () => ({
+  ownUploadCredit: async (auth: unknown) => {
+    ownAsks.push(auth);
+    return ownCredit;
+  },
+}));
+
 const { getMyUploadCards, readMyUploadsPage, MY_FEED_PAGE } =
   await import("./my-uploads");
 
@@ -91,6 +110,8 @@ beforeEach(() => {
   reads = {};
   asked.length = 0;
   calls.length = 0;
+  ownAsks.length = 0;
+  ownCredit = { name: "Will Gibson", face: HER_FACE };
 });
 
 describe("her uploads, a page at a time", () => {
@@ -141,6 +162,44 @@ describe("her uploads, a page at a time", () => {
       ["h1", true],
       ["m1", undefined],
     ]);
+  });
+
+  it("★ her own events' uploads wear her name and face, asked once a page; her uploads elsewhere wear neither", async () => {
+    rows = [
+      upload("h1", "tok-mine", true),
+      upload("m1", "tok-open"),
+      upload("h2", "tok-mine", true),
+    ];
+    reads = { "tok-open": "open" };
+    const { items } = await getMyUploadCards();
+    const byId = new Map(items.map((i) => [i.id, i]));
+    for (const id of ["h1", "h2"]) {
+      expect(byId.get(id)).toMatchObject({
+        isHost: true,
+        uploaderName: "Will Gibson",
+        uploaderFace: HER_FACE,
+      });
+    }
+    expect(byId.get("m1")?.uploaderName).toBeUndefined();
+    expect(byId.get("m1")?.uploaderFace).toBeUndefined();
+    expect(ownAsks).toHaveLength(1);
+  });
+
+  it("asks for her face only for a page that holds her own events' uploads, and a face it could not read stays plain", async () => {
+    rows = [upload("m1", "tok-open")];
+    reads = { "tok-open": "open" };
+    await getMyUploadCards();
+    expect(ownAsks).toEqual([]);
+
+    // No name (or a read that failed open): the Host badge alone, never a stand-in, and never a failed page.
+    ownCredit = { name: null, face: null };
+    rows = [upload("h1", "tok-mine", true)];
+    const { items } = await getMyUploadCards();
+    expect(items[0]).toMatchObject({
+      isHost: true,
+      uploaderName: null,
+      uploaderFace: null,
+    });
   });
 
   it("reads nothing signed out", async () => {

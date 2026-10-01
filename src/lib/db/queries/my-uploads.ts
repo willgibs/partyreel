@@ -21,6 +21,11 @@
  * somebody else's event is final; one to an event she hosts lands in its Deleted), and the viewer's confirm
  * says which off `isHost`. The function's own arm flag (`is_host_upload`) is the fact: it splits its two arms
  * on the event's host, so no second read of her events is needed to know which is which.
+ *
+ * ★ AND THEY WEAR HER FACE (crumbs-45; build 36's red-team found a "?" disc): `isHost` makes the viewer's credit a
+ * host's, which wears the byline's face everywhere else, and here the host is her (`ownUploadCredit`: her name and
+ * face, no door, read once for a page that holds one). Her uploads to other people's events keep the event alone,
+ * as the viewer draws a feed whose items are all hers.
  */
 import "server-only";
 
@@ -28,6 +33,7 @@ import { cache } from "react";
 
 import type { GridMedia } from "@/components/app/media-grid";
 import { getEventByQrToken } from "@/lib/db/queries/guest-events";
+import { ownUploadCredit } from "@/lib/media/uploader-faces";
 import { toMyUploadsItems } from "@/lib/r2/grid-items";
 import { getRequestAuth, type RequestAuth } from "@/lib/supabase/request-auth";
 import { formatEventDate } from "@/lib/utils";
@@ -119,7 +125,7 @@ export async function readMyUploadsPage(
   const hostArm = new Set(
     rows.filter((r) => r.is_host_upload).map((r) => r.id),
   );
-  const [items, closed] = await Promise.all([
+  const [items, closed, own] = await Promise.all([
     toMyUploadsItems(
       rows.map((r) => ({
         id: r.id,
@@ -136,10 +142,18 @@ export async function readMyUploadsPage(
       })),
     ),
     albumsReadingPrivate(guestAlbums),
+    hostArm.size > 0 ? ownUploadCredit(auth) : Promise.resolve(null),
   ]);
   return {
     items: items.map((item) => {
-      if (hostArm.has(item.id)) return { ...item, isHost: true };
+      if (hostArm.has(item.id)) {
+        return {
+          ...item,
+          isHost: true,
+          uploaderName: own?.name ?? null,
+          uploaderFace: own?.face ?? null,
+        };
+      }
       // `closed` holds only albums she does not host (the arms split on the event's host).
       return item.eventQrToken != null && closed.has(item.eventQrToken)
         ? { ...item, likeable: false }

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Heart } from "lucide-react";
 
 import { type GridMedia } from "@/components/app/media-grid";
@@ -27,9 +26,10 @@ import type { RowStep } from "@/lib/shared/album-rows";
 // "No likes yet" INSTANTLY -- unlike is a client-only RLS delete with no server revalidation, so the page's
 // server-fetched count never updates; deciding empty here keeps it correct without a refetch.
 //
-// Past its first 200, a Show more adds the next page (`my-feed-more.tsx`), and an unlike drops a loaded item
-// the same way it drops a first-page one. With every shown like undone but a page still waiting after them,
-// the feed is not empty: the Show more stands alone.
+// Past its first 200, a Show more adds the next page (`my-feed-more.tsx`), and an unlike leaves through the feed's
+// own `drop`, the one way a removal leaves every page the same (a first-page item and a loaded one alike, and for
+// good, whatever first page the server hands back later: a revalidation from her Uploads re-renders this one too).
+// With every shown like undone but a page still waiting after them, the feed is not empty: the Show more stands alone.
 export function MyLikesGallery({
   items,
   next = null,
@@ -46,11 +46,10 @@ export function MyLikesGallery({
   rowStep?: RowStep;
 }) {
   const feed = useFeedPages(items, next, readMore);
-  // Confirmed-removed ids (post-unlike). Deriving the visible list from the pages + this set keeps it
-  // correct even if `items` is re-provided. No useOptimistic here: unlike is a browser RLS delete with no
-  // server revalidation, so the removal must STICK (useOptimistic would revert when its transition ends).
-  const [removed, setRemoved] = useState<Set<string>>(new Set());
-  const visible = feed.items.filter((m) => !removed.has(m.id));
+  // A confirmed unlike leaves through `drop`, which keeps it out of every page even if `items` is re-provided.
+  // No useOptimistic here: unlike is a browser RLS delete with no server revalidation, so the removal must
+  // STICK (useOptimistic would revert when its transition ends).
+  const visible = feed.items;
 
   if (visible.length === 0 && !feed.next) {
     return (
@@ -68,7 +67,7 @@ export function MyLikesGallery({
         mediaIds={visible.map((m) => m.id)}
         initialLikedIds={visible.map((m) => m.id)}
         mode="remove"
-        onRemoved={(id) => setRemoved((prev) => new Set(prev).add(id))}
+        onRemoved={feed.drop}
       >
         {/* No hover verbs (a personal feed is not an album to curate) and no
             like MARK: every tile here is liked by definition, so the mark would
