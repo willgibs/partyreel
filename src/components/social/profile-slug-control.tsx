@@ -25,15 +25,12 @@ import {
 /**
  * Claim / change / release the public profile handle (/u/[slug]).
  *
- * ★ FREE FOR EVERYONE SINCE 2026-09-19, and the upgrade hint that used to stand
- * here is gone with the gate. Will, in plan mode: "Free to claim for everyone,
- * as you recommend it. We can keep custom event slugs as a pro feature, but
- * handles for everyone incentivizes guests to get deeper into our ecosystem and
- * hopefully upgrade to host one day." The person this control is for is the
- * guest who was just told, on an album, that their name could be a page; a
- * /pricing wall at the end of that sentence is the whole loop broken. Custom
- * EVENT slugs followed on 2026-09-28 (the free/pro shift): GATED_EVENT_SETTINGS
- * gates nothing, and Pro is video, storage, events and unmarked clips.
+ * ★ FREE FOR EVERYONE, with no gate and no upgrade hint: handles for everyone
+ * get guests deeper into the product, and on to hosting one day. The person
+ * this control is for is the guest who was just told, on an album, that their
+ * name could be a page; a /pricing wall at the end of that sentence is the
+ * whole loop broken. Custom EVENT slugs are free too: `GATED_EVENT_SETTINGS` is
+ * empty (docs/PRICING.md, "What Free gates").
  */
 export function ProfileSlugControl({
   siteUrl,

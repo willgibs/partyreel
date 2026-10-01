@@ -54,6 +54,7 @@ export default async function AdminHomePage() {
         </div>
         <Link
           href="/admin/metrics"
+          prefetch={false}
           className="text-caption font-medium underline decoration-border underline-offset-4 transition-colors duration-150 hover:decoration-foreground"
         >
           All metrics

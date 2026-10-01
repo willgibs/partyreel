@@ -283,7 +283,7 @@ export function SelectableMediaGrid({
       </div>
 
       {/* Peek overlay: a fixed full-bleed view of the tapped media; backdrop / ✕ / Escape closes.
-          Rendered at the feed root (fixed), so it sits above the sticky pills + the floating bar.
+          Rendered at the feed root (fixed), so it sits above whatever sticks to the page.
           ★ AND IT HOLDS FOCUS WHILE IT IS UP (crumbs-28): it says `aria-modal`, so Tab must never walk
           out behind it onto the tiles it covers. Radix's FocusScope, the trap every Dialog here wears:
           trapped and looping, from its last control round to its first. Its own mount focus is ours

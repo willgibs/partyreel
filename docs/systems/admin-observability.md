@@ -62,10 +62,12 @@ The bible's "media is the colour" and "one token set" reach it only as far as th
 never a design variable.
 - **A surface needs its `NAV` entry** (`lib/admin/nav.ts`), or the rail, the breadcrumb and the palette cannot reach
   it; `nav.test.ts` fails on a page the nav cannot reach.
-- **The chrome's links never prefetch** (`prefetch={false}` on the rail, the dropdown, the bar's wordmark and chips;
-  `admin-chrome-prefetch.test.tsx`): `next/link` prefetches whatever paints, and each prefetch of a portal route is two
-  reads of Supabase's auth server (the proxy, then the layout's own `getUser()`), so thirteen rail links were about 30
-  `GET /auth/v1/user` a page view. A page's own `getUser()` is the boundary and is untouched.
+- **No link in the portal prefetches** (`prefetch={false}` on the rail, the dropdown, the bar's wordmark and chips,
+  rendered by `admin-chrome-prefetch.test.tsx`, and on every link a content component or a page draws, read from the
+  source of `components/admin` and `app/admin` by `admin-prefetch-policy.test.ts`): `next/link` prefetches whatever
+  paints, and each prefetch of a portal route is two reads of Supabase's auth server (the proxy, then the layout's own
+  `getUser()`), so thirteen rail links were about 30 `GET /auth/v1/user` a page view, and every row of a long inbox is
+  one more. A page's own `getUser()` is the boundary and is untouched.
 - **State colour comes from one map,** `lib/admin/tone.ts`, so a chip and the row under it cannot disagree.
 - **Every destructive act opens `destructive-sheet.tsx`,** which lists what the act touches; only a permanent act
   with something to identify asks you to type, and the server re-checks what was typed against the row. A confirm
@@ -172,8 +174,11 @@ test (admin-triage r2):
   (20261001100000), which `create_report` asks for its bar and the queue reads, so the line that tells the operator
   can never count by another rule: a child-abuse report's line, on its card and in the report whole, says its
   address's live strikes and what a Dismiss would make of them (a Dismiss closes the whole entry, so each of the
-  address's open child-abuse reports on it becomes a strike), marked when a Dismiss is the one that ends the hide.
-  The address never shows: the read keys on the kept hash. Every other kind inserts only. A
+  address's open child-abuse reports on it becomes a strike), marked when a Dismiss is the one that ends the hide. A
+  dismissed one's closed line says whether its strike still counts and until when (`closedStrike`: the lapse read off
+  the answer's own `fresh_lapses_at`, never a copy of 180), what its address holds, and "Undo takes it back" only
+  while the dismissal can be reopened (30 days, where a strike lasts 180); one that kept no address says it was never
+  a strike. The address never shows: the read keys on the kept hash. Every other kind inserts only. A
   child-abuse report tells the operator after the response (`alertUrgentReport`: a Sentry warning every time, an
   ops-inbox mail once per album per ten minutes) and on the rail and the bell (the urgent count).
 - **The open queue is the review grid** (`components/admin/report-queue.tsx`): the five harm kinds in front, worst

@@ -15,9 +15,7 @@
  *
  * ★ AND IT CARRIES BOTH ACTIONS, NOT ADD ALONE. A floating Add by itself leaves
  * Invite unreachable past the first screen of a 200-photograph album, where both
- * should stay within reach however deep into the album a guest gets. The Add-only
- * pill (`floating-add-button.tsx`) is drawn by the Library alone; nothing in the
- * product mounts it.
+ * should stay within reach however deep into the album a guest gets.
  *
  * ★ A GRADIENT, NOT A HAIRLINE. The album runs to the window's edge, so the
  * dock's ground is photographs: a 1px rule across them reads as a crop, where a

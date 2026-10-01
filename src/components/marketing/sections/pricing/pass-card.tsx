@@ -13,6 +13,7 @@ import {
   friendlyCapacity,
   planById,
 } from "@/lib/constants/tiers";
+import { formatCount } from "@/lib/format/count";
 import { OVER_CAP_GRACE_DAYS } from "@/lib/lifecycle/over-cap";
 import { formatBytes } from "@/lib/utils";
 
@@ -130,9 +131,9 @@ export function PassCard() {
             <StatRow
               stats={[
                 { value: formatBytes(pass.storageBytes), label: "Storage" },
-                { value: `≈ ${cap.photos.toLocaleString()}`, label: "Photos" },
+                { value: `≈ ${formatCount(cap.photos)}`, label: "Photos" },
                 {
-                  value: `${Math.round(cap.videoMinutes / 60).toLocaleString()} h`,
+                  value: `${formatCount(Math.round(cap.videoMinutes / 60))} h`,
                   label: "Video",
                 },
               ]}

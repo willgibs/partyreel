@@ -6,8 +6,8 @@
  * delete them (a deliberate, separate act — see the runbook in
  * docs/systems/trust-safety-forensics.md).
  *
- * EVERY action here writes a forensic_audit_log row, success or failure — the P8 zero-silent-
- * failures contract for an evidence surface.
+ * EVERY action here writes a forensic_audit_log row, success or failure — the zero-silent-
+ * failures contract (admin-observability.md) for an evidence surface.
  */
 import "server-only";
 

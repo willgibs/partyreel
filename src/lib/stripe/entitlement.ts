@@ -6,12 +6,12 @@
  * believes it has is exactly the field an attacker edits. Kept pure and fixture-testable so the
  * checkout route stays a thin gate over it.
  *
- * THE FAILURE THIS PREVENTS (QA #3): nothing stopped a host on an active Pro subscription from
+ * THE FAILURE THIS PREVENTS: nothing stopped a host on an active Pro subscription from
  * opening a SECOND subscription, or from buying an Event Pass whose provisioning writes
  * `storage_cap_bytes = 75 GB` straight over their 2 TB while Stripe keeps billing Pro. The nightly
- * over-capacity sweep then began removing media that sat legitimately inside the cap they pay for,
- * composing directly into the review's second critical. Refusing at checkout kills the whole class
- * at its source instead of patching the sweep downstream.
+ * over-capacity sweep then began removing media that sat legitimately inside the cap they pay for.
+ * Refusing at checkout kills the whole class at its source instead of patching the sweep
+ * downstream.
  *
  * Import-safe from anywhere: no env, no Stripe SDK, no DB. `tiers.ts` is the only dependency.
  */

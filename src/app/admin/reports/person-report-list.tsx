@@ -85,6 +85,7 @@ function PersonReportCard({ report }: { report: ReviewProfileReport }) {
           {report.profile?.slug ? (
             <Link
               href={`/u/${report.profile.slug}`}
+              prefetch={false}
               className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
             >
               @{report.profile.slug}

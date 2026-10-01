@@ -87,10 +87,10 @@ export default function RootLayout({
       <body suppressHydrationWarning className="flex min-h-full flex-col">
         <Providers>{children}</Providers>
         <Toaster />
-        {/* The spill engine's one turbulence field (round 1). Mounted at the
-            ROOT rather than in (marketing) because not-found.tsx renders the
-            marketing footer OUTSIDE that group — the same fact that lit the
-            404 when the engine went global. A filter nothing references is
+        {/* The spill engine's one turbulence field. Mounted at the ROOT rather
+            than in (marketing) because the root 404 (not-found.site.tsx)
+            renders the marketing footer OUTSIDE that group, and the footer's
+            seam is lit through this filter. A filter nothing references is
             parsed and never rasterized, so pages with no lamp pay for the tag
             alone; see glow-filter.tsx for why it is a server component. */}
         <GlowFilter />

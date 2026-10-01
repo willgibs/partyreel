@@ -73,9 +73,10 @@ routes.
   phones" is the same promise in other words, and `content-policy.test.ts` fences both.
 - ★ **A line that says an event "stays up" carries the Free plan's one exception**: an event nobody touches for about six
   months is warned about by email, then moved to Deleted, where it can be restored for 30 days (the help guide's rule 7,
-  derived from `lifecycle/inactivity.ts` and `recently-deleted.ts`). The home FAQ's keep answer and the event pages'
-  lines hold it (`faq-data.test.ts`, `events.test.ts`); the pricing FAQ, the llms files and `/features/privacy` carry it
-  too.
+  derived from `lifecycle/inactivity.ts` (`INACTIVE_MONTHS`) and `recently-deleted.ts`). The
+  home FAQ's keep answer, the event pages' lines and the two blog posts that say how long an album lasts (reunion and
+  trip) hold it (`faq-data.test.ts`, `events.test.ts`, `blog-keep-lines.test.ts`); the pricing FAQ, the llms files and
+  `/features/privacy` carry it too.
 - **A subhead runs opportunity, then what we do, then the benefit**: `SITE_SUBHEAD` is the model (their guests already
   shot the best photographs; what we do in one clause with no mechanism; the failure it spares them).
 - **An empty state names what is about to exist**, with the album as the noun and "starts" as the verb ("Your first
@@ -107,7 +108,6 @@ routes.
   (`sections/shared/reel-player.tsx`), which keeps the reader on the page with the film framed and Start free beside it.
 - **The home**: `sections/home/section-ids.ts` is the one source of the sections' order and surface, consecutive paper
   ids rendering inside one `PaperChapter`; the headers read `SECTION_HEADERS` in `marketing-voice.ts`.
-  `constants/features.ts` and `features-layout.ts` are dead scaffold that only their own test reads.
 - **The feature family**: identity in `constants/feature-pages.ts`. The hub is a directory of photographic doors
   (`features/shared/feature-door.tsx`), and the same doors close every feature page (`related-features.tsx`), so the site
   holds one picture of each feature. Every hero but /qr's composes `PageHero` (/qr's plate sits beside its lockup), and

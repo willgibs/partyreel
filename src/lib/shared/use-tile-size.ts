@@ -3,7 +3,6 @@
 import { useState } from "react";
 
 import type { RowStep } from "@/lib/shared/album-rows";
-import { type TileSize } from "@/lib/shared/tile-size-cookie";
 
 /**
  * A device preference the server paints the first frame with: optimistic
@@ -30,19 +29,10 @@ function useDevicePreference<T>(
   return [value, choose];
 }
 
-/** The masonry's tile width (`--album-column`), until the last masonry surface switches. */
-export function useTileSize(
-  initialSize: TileSize,
-  onPersist: (size: TileSize) => void | Promise<void>,
-) {
-  const [size, setTileSize] = useDevicePreference(initialSize, onPersist);
-  return { size, setTileSize };
-}
-
 /**
- * The justified rows' density step (`album-columns` r2: three steps, one index
- * in the shared `pr_tile_size` cookie, read with `resolveRowStep`). The View
- * menu's slider, a pinch and a ctrl-wheel all set it through `setRowStep`.
+ * The justified rows' density step: three steps, one index in the shared
+ * `pr_tile_size` cookie, read with `resolveRowStep`. The View menu's slider, a
+ * pinch and a ctrl-wheel all set it through `setRowStep`.
  */
 export function useRowStep(
   initialStep: RowStep,

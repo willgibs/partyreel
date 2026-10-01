@@ -23,8 +23,8 @@ import { useAlbumFill } from "./use-album-fill";
  *
  * Simultaneity is structural, not timed: ONE useAlbumFill feeds two grids, so
  * both commit in the same React pass and their FLIPs run in the same frame.
- * The phone takes the product's two columns (guest-masonry is `columns-2`);
- * the laptop keeps the hero's three. Quiet by design: no lamp, no count line,
+ * The phone takes two columns, the product's own default on a phone (two
+ * photographs a row); the laptop keeps the hero's three. Quiet by design: no lamp, no count line,
  * no Replay, no upload prelude, a slower beat, and a loop bounded to four
  * tiles a column so the DOM never grows.
  *

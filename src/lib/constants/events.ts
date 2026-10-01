@@ -17,16 +17,15 @@ import {
 } from "lucide-react";
 
 import type { FaqItem } from "@/components/marketing/faq-data";
-import { INACTIVE_DAYS } from "@/lib/lifecycle/inactivity";
+import { INACTIVE_MONTHS } from "@/lib/lifecycle/inactivity";
 import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 
 /**
  * THE FREE PLAN'S ONE EXCEPTION TO "STAYS UP UNTIL YOU DELETE IT" (help/AUTHORING.md rule 7): an event
- * nobody touches for about this many months is warned about by email, then moved to Deleted. Every line
- * below that says an event or an album stays up carries the exception, derived here from the lifecycle
+ * nobody touches for `INACTIVE_MONTHS` is warned about by email, then moved to Deleted. Every line below
+ * that says an event or an album stays up carries the exception, its months read from the lifecycle
  * constants (`events.test.ts` holds it), the way the help center words it: "about 6 months".
  */
-const IDLE_MONTHS = Math.round(INACTIVE_DAYS / 30);
 
 // Single source for the event-type umbrellas (the home section, the /events hub, and
 // each /events/[slug] landing page all read from here). Each entry carries a short
@@ -226,7 +225,7 @@ export const EVENT_TYPES: EventType[] = [
       },
       {
         q: "How long do the photos stay up?",
-        a: `Your event stays up until you take it down. The one exception is the Free plan, where an event nobody touches for about ${IDLE_MONTHS} months gets a warning email, then moves to Deleted, where you can restore it for ${RECENTLY_DELETED_WINDOW_DAYS} days. Any activity resets the clock, and paid plans are exempt.`,
+        a: `Your event stays up until you take it down. The one exception is the Free plan, where an event nobody touches for about ${INACTIVE_MONTHS} months gets a warning email, then moves to Deleted, where you can restore it for ${RECENTLY_DELETED_WINDOW_DAYS} days. Any activity resets the clock, and paid plans are exempt.`,
       },
     ],
     ctaTitle: "Collect every photo from your wedding",
@@ -463,7 +462,7 @@ export const EVENT_TYPES: EventType[] = [
       {
         icon: CalendarHeart,
         title: "Keeps the memories",
-        body: `Your trip album stays up until you take it down. Only a Free album nobody touches for about ${IDLE_MONTHS} months is warned about by email, then moved to Deleted.`,
+        body: `Your trip album stays up until you take it down. Only a Free album nobody touches for about ${INACTIVE_MONTHS} months is warned about by email, then moved to Deleted.`,
       },
     ],
     faq: [
@@ -481,7 +480,7 @@ export const EVENT_TYPES: EventType[] = [
       },
       {
         q: "How long will the album last?",
-        a: `As long as you want. Your trip album stays up until you delete it. The one exception is the Free plan, where an album nobody touches for about ${IDLE_MONTHS} months gets a warning email, then moves to Deleted, where you can restore it for ${RECENTLY_DELETED_WINDOW_DAYS} days. Any activity resets the clock, and paid plans are exempt.`,
+        a: `As long as you want. Your trip album stays up until you delete it. The one exception is the Free plan, where an album nobody touches for about ${INACTIVE_MONTHS} months gets a warning email, then moves to Deleted, where you can restore it for ${RECENTLY_DELETED_WINDOW_DAYS} days. Any activity resets the clock, and paid plans are exempt.`,
       },
     ],
     ctaTitle: "Make one album for the trip",
@@ -576,7 +575,7 @@ export const EVENTS_HUB: EventsHub = {
     {
       icon: Lock,
       title: "Private, and yours to keep",
-      body: `Your album opens only to the link you share and stays out of search engines. It stays up until you delete it, unless a Free one sits untouched for about ${IDLE_MONTHS} months.`,
+      body: `Your album opens only to the link you share and stays out of search engines. It stays up until you delete it, unless a Free one sits untouched for about ${INACTIVE_MONTHS} months.`,
     },
   ],
   faq: [

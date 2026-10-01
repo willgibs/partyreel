@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   AVG_PHOTO_BYTES,
@@ -20,6 +20,7 @@ import {
   clampReelSeconds,
   effectiveStorageCap,
   formatCapacity,
+  formatLimit,
   friendlyCapacity,
   isSettingLocked,
   monthlyIngressCap,
@@ -31,6 +32,7 @@ import {
   withinLimit,
   withinStorage,
 } from "@/lib/constants/tiers";
+import { runAsGermanNumberRuntime } from "@/lib/test-utils/german-runtime";
 
 describe("withinLimit (event-count wall)", () => {
   it("treats a null limit as unlimited", () => {
@@ -291,5 +293,40 @@ describe("formatCapacity", () => {
     expect(formatCapacity(planById("pro_100").storageBytes)).toBe(
       "29,257 photos or 26 hours of video at an iPhone's default camera settings",
     );
+  });
+});
+
+/**
+ * ★ A CAP READS THE SAME IN EVERY RUNTIME (crumbs-36, from crumbs-33). `formatLimit` printed its number with a bare
+ * `toLocaleString()`: the server's locale while rendering, a visitor's own on hydration. Both formatters here say a
+ * count through `formatCount`, so a browser set to German reads the digits the server drew. The numbers themselves
+ * are tiers.ts's and the SQL's (`tier-limits-parity.test.ts`); only how one prints is pinned here.
+ */
+describe("a limit or an estimate in another runtime's locale", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("★ formatLimit groups a cap in en-US whatever the runtime's locale", () => {
+    runAsGermanNumberRuntime();
+    expect(formatLimit(12_345)).toBe("12,345");
+    expect(formatLimit(7)).toBe("7");
+  });
+
+  it("says the unlimited word for a null cap, in either runtime", () => {
+    expect(formatLimit(null)).toBe("Unlimited");
+    expect(formatLimit(null, "No limit")).toBe("No limit");
+    runAsGermanNumberRuntime();
+    expect(formatLimit(null)).toBe("Unlimited");
+  });
+
+  it("★ formatCapacity groups its photos and hours in en-US whatever the runtime's locale", () => {
+    runAsGermanNumberRuntime();
+    expect(
+      formatCapacity(planById("event_pass").storageBytes, { basis: false }),
+    ).toBe("21,943 photos or 20 hours of video");
+    expect(
+      formatCapacity(planById("pro_2tb").storageBytes, { basis: false }),
+    ).toBe("599,186 photos or 538 hours of video");
   });
 });

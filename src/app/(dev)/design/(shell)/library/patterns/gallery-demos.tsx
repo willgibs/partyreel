@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { CircleAlert, Compass, ImageUp } from "lucide-react";
 
-import { AnonymousInfo } from "@/components/shared/anonymous-info";
 import { Container } from "@/components/shared/container";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Kbd } from "@/components/shared/kbd";
@@ -18,10 +17,8 @@ import type { GalleryEntry } from "@/app/(dev)/design/gallery/entry";
 import { Row } from "@/app/(dev)/design/reference/reference-ui";
 import {
   ActionTooltipDemo,
-  FloatingAddDemo,
   RouteSkeletonDemo,
   SetNameStepDemo,
-  TileSizeControlDemo,
 } from "./interactive-demos";
 
 /**
@@ -250,35 +247,6 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
   },
 
   {
-    id: "anonymous-info",
-    file: "src/components/shared/anonymous-info.tsx",
-    for: "unused in the product and drawn only by this gallery: the (i) beside an Anonymous credit; a marked name wears unverified-mark.tsx instead",
-    family: "patterns",
-    section: "Forms and info",
-    specimens: [
-      {
-        // On the gallery skin because that is where it ships: the trigger is
-        // painted in white/60 for the always-dark lightbox, and on the lab's
-        // light card it is nearly invisible.
-        label: "Guest and host",
-        hint: "the guest copy, then the host copy",
-        skin: "gallery",
-        node: (
-          <Row>
-            <span className="flex items-center gap-1.5 text-sm">
-              Anonymous
-              <AnonymousInfo />
-            </span>
-            <span className="flex items-center gap-1.5 text-sm">
-              Host view
-              <AnonymousInfo viewerIsHost />
-            </span>
-          </Row>
-        ),
-      },
-    ],
-  },
-  {
     id: "set-name-step",
     file: "src/components/shared/set-name-step.tsx",
     for: "the one required add-your-name step, reused at every gate that asks for one",
@@ -382,20 +350,6 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
     ],
   },
   {
-    id: "floating-add-button",
-    file: "src/components/shared/floating-add-button.tsx",
-    for: "the floating Add photos pill, unused in the product (the guest album's deep-scroll chrome is `guest/guest-action-dock.tsx`, which carries Invite beside Add); three lab surfaces still draw it",
-    family: "patterns",
-    section: "Actions",
-    specimens: [
-      {
-        label: "FloatingAddButton",
-        hint: "fixed to the bottom of the viewport",
-        node: <FloatingAddDemo />,
-      },
-    ],
-  },
-  {
     id: "route-skeleton",
     file: "src/components/shared/route-skeleton.tsx",
     for: "the one loading.tsx shape, wired to exactly the three routes with a real pre-paint wait (the dashboard, the event hub, the reel Studio); the pulse and the hub mirror their real page, the Studio is its own always-dark full-bleed room",
@@ -407,25 +361,8 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
     specimens: [
       {
         label: "The three shapes",
-        hint: "pulse and hub inline; the Studio is the real fixed room, shown on demand like FloatingAddButton above",
+        hint: "pulse and hub inline; the Studio is the real fixed room",
         node: <RouteSkeletonDemo />,
-      },
-    ],
-  },
-  {
-    id: "tile-size-control",
-    file: "src/components/shared/tile-size-control.tsx",
-    for: "the gallery's first tile-size cluster: three steps setting --album-column, plus two reserved slots naming Sort and Filter. Production uses ViewMenu's Tile size group instead; this stays on disk, unmounted, for the lab. Controlled: the caller owns the persistence",
-    test: "src/components/shared/tile-size-control.test.tsx",
-    badge: "new",
-    family: "patterns",
-    section: "Surfaces",
-    lede: "The gallery's first tile-size cluster: three steps setting --album-column, plus two reserved, non-interactive slots naming Sort and Filter so the row reads as a group of controls.",
-    specimens: [
-      {
-        label: "TileSizeControl",
-        hint: "controlled: the caller owns persistence (use-tile-size.ts) and applies --album-column to its own grid's ancestor",
-        node: <TileSizeControlDemo />,
       },
     ],
   },

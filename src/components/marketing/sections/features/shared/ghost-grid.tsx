@@ -3,12 +3,13 @@ import { Camera } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
- * The locked-gallery tease, echoing the app's ghost grid
- * (components/guest/ghost-grid.tsx): shape and count, zero pixels. Cameras
- * sit on the outer columns, where a centred card cannot cover them (the app
- * puts one every 4th cell for the same "not a broken grid" read). Extracted
- * from the privacy page's access switch at the /features/album round so the
- * album's "who can open it" frames and the switch draw one ghost.
+ * The locked-gallery tease: shape and count, zero pixels. Cameras sit on the
+ * outer columns, where a centred card cannot cover them, so it reads as "not a
+ * broken grid". The app's own locked page draws a ghosted river of stand-in
+ * photographs instead (`GhostRiver`, guest/gallery-empty-state.tsx); this is
+ * the marketing pages' picture of the same absence, shared by the privacy
+ * page's access switch and the album's "who can open it" frames so they draw
+ * one ghost.
  */
 export function GhostBackdrop({
   cells = 8,

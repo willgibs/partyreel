@@ -298,7 +298,7 @@
      on <html> (which outranks :root), so the playground still tunes against these as the baseline. */
   --tune-route-fade-ms: 310ms; /* the page route fade-in */
   --tune-route-fade-ease: ease-out;
-  --tune-section-swap-ms: 180ms; /* the pill filter swap + the floating-bar morph crossfade */
+  --tune-section-swap-ms: 180ms; /* the hub's view swap (the album, Deleted) */
   --tune-reorder-ms: 500ms; /* the section FLIP when the urgency order flips */
   --tune-review-beat-ms: 2500ms; /* the all-caught-up beat before the review section relocates */
 }
@@ -628,11 +628,10 @@
     }
   }
 
-  /* THE EVENT-FEED SECTION SWAP (ratified B=Fade, the lab's blur variant rejected): the feed
-     container is re-keyed on a pill change, and the floating action bar's content is re-keyed on
-     the active section, so @starting-style fires a crossfade + rise as one view replaces another.
-     translateY + opacity only (hardware-accelerated). Tunable via --tune-section-swap-ms; reduced
-     motion keeps the fade. (Promoted here from the lab's design.css on ship.) */
+  /* THE HUB'S VIEW SWAP: the album's box and the Deleted view's container carry
+     `data-section-swap` (event-gallery.tsx), so @starting-style fires a crossfade + rise as one
+     view replaces another. translateY + opacity only (hardware-accelerated). Tunable via
+     --tune-section-swap-ms; reduced motion keeps the fade. */
   @media (prefers-reduced-motion: no-preference) {
     [data-section-swap] {
       transition:
@@ -721,13 +720,13 @@
     }
   }
 
-  /* ACT 1 "the stage" (Phase 4.5): the locked guest page settles in on first
-     paint - the event name, the lock line, then the ghost grid rise with a
-     small stagger (--arrive-i) so the page reads as composed BEFORE the entry
-     sheet arrives (the arrival beat), instead of everything popping at once.
-     Same language as [data-not-found]: --ease-emphasis, transform+opacity,
-     @starting-style on mount (degrades to fully-visible if an engine skips
-     it on first paint). Reduced motion gets a plain fade, no movement. */
+  /* ACT 1 "the stage": the locked guest page settles in on first paint - the
+     event name, the lock line, then the ghost river rise with a small stagger
+     (--arrive-i) so the page reads as composed BEFORE the entry sheet arrives
+     (the arrival beat), instead of everything popping at once. Same language
+     as [data-not-found]: --ease-emphasis, transform+opacity, @starting-style
+     on mount (degrades to fully-visible if an engine skips it on first
+     paint). Reduced motion gets a plain fade, no movement. */
   @media (prefers-reduced-motion: no-preference) {
     [data-arrive] {
       transition:

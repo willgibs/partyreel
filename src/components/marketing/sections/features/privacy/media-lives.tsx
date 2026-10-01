@@ -3,7 +3,7 @@ import type { CSSProperties } from "react";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { StatBand } from "@/components/marketing/system/stat-band";
-import { INACTIVE_DAYS } from "@/lib/lifecycle/inactivity";
+import { INACTIVE_MONTHS } from "@/lib/lifecycle/inactivity";
 import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 
 /**
@@ -19,7 +19,6 @@ import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
  */
 
 const WINDOW = RECENTLY_DELETED_WINDOW_DAYS;
-const INACTIVITY_MONTHS = Math.round(INACTIVE_DAYS / 30);
 
 const FACTS: string[] = [
   "Every file is copied to a second storage bucket in a different region within seconds of arriving.",
@@ -28,7 +27,7 @@ const FACTS: string[] = [
   "The database is backed up daily to separate off-site storage, and restores are verified, not assumed.",
   "Automated cleanup can never wipe the media store. A circuit breaker halts any run that reaches too far.",
   `Removed media waits ${WINDOW} days in Deleted and restores exactly as it was.`,
-  `A free event untouched for about ${INACTIVITY_MONTHS} months is removed; every other event has no expiry date and stays up until you delete it.`,
+  `A free event untouched for about ${INACTIVE_MONTHS} months is removed; every other event has no expiry date and stays up until you delete it.`,
 ];
 
 export function MediaLives() {

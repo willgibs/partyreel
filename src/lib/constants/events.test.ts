@@ -8,7 +8,7 @@ import {
   getEventType,
 } from "@/lib/constants/events";
 import { isMarketingImageId } from "@/lib/constants/marketing-media";
-import { INACTIVE_DAYS } from "@/lib/lifecycle/inactivity";
+import { INACTIVE_MONTHS } from "@/lib/lifecycle/inactivity";
 import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 
 describe("event-type constants", () => {
@@ -147,7 +147,6 @@ describe("event-type constants", () => {
  * the site never mentioned. The numbers derive from the lifecycle constants, so the line cannot drift.
  */
 describe("the event pages' keep lines", () => {
-  const months = Math.round(INACTIVE_DAYS / 30);
   const lines = [
     ...EVENT_TYPES.flatMap((type) => [
       type.intro,
@@ -171,7 +170,7 @@ describe("the event pages' keep lines", () => {
   it("each names the Free plan and its idle window", () => {
     for (const line of keepClaims) {
       expect(line, line).toContain("Free");
-      expect(line, line).toContain(`about ${months} months`);
+      expect(line, line).toContain(`about ${INACTIVE_MONTHS} months`);
     }
   });
 

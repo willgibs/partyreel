@@ -1304,7 +1304,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   {
     id: "ghost-grid",
     file: "src/components/marketing/sections/features/shared/ghost-grid.tsx",
-    for: "the locked-gallery tease: the app's ghost grid, shape and count, zero pixels",
+    for: "the locked-gallery tease: shape and count, zero pixels (the app's own locked page draws a ghost river instead)",
     family: "marketing",
     section: "Feature pieces",
     title: "GhostBackdrop",

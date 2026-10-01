@@ -9,11 +9,10 @@ import { cn } from "@/lib/utils";
  *
  * A photographic proof sheet: real event frames butted tight, numbered in the
  * corner with tabular figures, with a few circled the way an editor marks a
- * select. It is
- * this page's own composition and nothing else's, which the media doctrine
- * requires (sections/events/event-hero-media.tsx: every page keeps a DISTINCT
- * composition, and "a hero photo is a promise"). Home owns the drifting wall,
- * pricing the stacked photos, the footer the fanning pile.
+ * select. It is this page's own composition and nothing else's: every page
+ * keeps a DISTINCT composition, so a hero photograph reads as that page's own
+ * promise. Home owns the drifting wall, pricing the stacked photos, the footer
+ * the fanning pile.
  *
  * ! WHY A PROOF SHEET, on this page specifically: marking the selects IS our
  *   product's core act. The hero is not decoration that happens to be photos,
