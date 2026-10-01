@@ -7,12 +7,20 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/app/event-feed/event-gallery.tsx
   - src/components/app/event-feed/gallery-actions.tsx
   - src/components/app/event-feed/bulk-bar.tsx
+  - src/components/app/event-feed/bulk-bar.test.tsx
+  - src/components/app/event-feed/feed-section-header.tsx
   - src/components/guest/guest-header.tsx
+  - src/components/guest/guest-header.test.tsx
   - src/components/guest/guest-account-menu.tsx
   - src/components/app/dashboard/claims-card.tsx
   - src/components/app/dashboard/claims-review.tsx
+  - src/components/app/dashboard/claims-review.test.tsx
   - src/components/app/media-grid.tsx
+  - src/components/app/media-grid.test.tsx
   - src/components/admin/admin-nav.tsx
+  - src/components/admin/admin-rail.tsx
+  - src/components/admin/admin-bar.tsx
+  - src/components/admin/admin-chrome-prefetch.test.tsx
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/host-app.md
   - docs/systems/guest-flow.md
@@ -57,7 +65,9 @@ working.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/host-app.md`: the bulk-select line ("the 28px band the header holds never grows") and the claims-review line (the silent claim's refresh).
+- `docs/systems/guest-flow.md`: "Auth-aware header island" (the header follows the device's session) and "The blob re-key" (what the measurement says).
+- `docs/systems/admin-observability.md`: the portal's chrome links never prefetch (one line, with its reason).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
