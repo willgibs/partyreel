@@ -60,22 +60,40 @@ import { cn } from "@/lib/utils";
  * side panel beside the album at a desk, and in a hand the whole screen under a back arrow that says
  * "Album", the phone's own Back closing it. A list is a place she moves through, not a question: no
  * 85 percent cap and no album peeking over her rows.
+ *
+ * ★ HER READS CARRY HER NEWS (crumbs-38, the approval toast's server half): each asks `tell`, and the
+ * server answers which of hers a decision let into the album since she was last told, marking them told
+ * as it answers (`readOwnUploads`). The tracker hands the ids to the album's approval toast through the
+ * store's own news channel (`news`), so the toast says "One of yours is in the album" on her return too,
+ * once, and the page's shell never re-renders for it.
  */
 
 type TrackerSnapshot = { show: boolean; waiting: number };
 
 const HIDDEN: TrackerSnapshot = { show: false, waiting: 0 };
 
+const NO_NEWS: readonly string[] = [];
+
+/** The server's news, as the approval toast reads it: every id told this visit, in the order it arrived. */
+export type ApprovalNews = {
+  get: () => readonly string[];
+  subscribe: (listener: () => void) => () => void;
+};
+
 export type UploadTrackerStore = {
   getSnapshot: () => TrackerSnapshot;
   subscribe: (listener: () => void) => () => void;
   set: (next: TrackerSnapshot) => void;
+  /** Her news this visit (the toast reads it; the button never does). */
+  news: ApprovalNews & { add: (ids: readonly string[]) => void };
 };
 
-/** The two facts the button needs, kept outside React state (the page creates one per mount). */
+/** The two facts the button needs, and the toast's news, kept outside React state (the page creates one per mount). */
 export function createUploadTrackerStore(): UploadTrackerStore {
   let snapshot = HIDDEN;
   const listeners = new Set<() => void>();
+  let news = NO_NEWS;
+  const newsListeners = new Set<() => void>();
   return {
     getSnapshot: () => snapshot,
     subscribe(listener) {
@@ -91,19 +109,35 @@ export function createUploadTrackerStore(): UploadTrackerStore {
       snapshot = next;
       for (const listener of listeners) listener();
     },
+    news: {
+      get: () => news,
+      subscribe(listener) {
+        newsListeners.add(listener);
+        return () => {
+          newsListeners.delete(listener);
+        };
+      },
+      add(ids) {
+        const fresh = ids.filter((id) => !news.includes(id));
+        if (fresh.length === 0) return;
+        news = [...news, ...fresh];
+        for (const listener of newsListeners) listener();
+      },
+    },
   };
 }
 
 const EMPTY: ReadonlySet<string> = new Set();
 
 /**
- * Her own rows' statuses, from the one route that reads them (`/api/guests/mine`, `statuses`).
- * Null on any failure: the list keeps what it knew, and the queue and the album are still live.
+ * Her own rows' statuses, and her news, from the one route that reads them (`/api/guests/mine`,
+ * `statuses` with `tell`). Null on any failure: the list keeps what it knew, and the queue and the
+ * album are still live (and news not answered is not marked told: the next read answers it).
  */
 async function readOwnStatuses(
   qrToken: string,
   sessionToken: string | null,
-): Promise<OwnUploadWire[] | null> {
+): Promise<{ items: OwnUploadWire[]; news: string[] } | null> {
   try {
     const res = await fetch("/api/guests/mine", {
       method: "POST",
@@ -113,14 +147,20 @@ async function readOwnStatuses(
         qr_token: qrToken,
         ...(sessionToken ? { session_token: sessionToken } : {}),
         statuses: true,
+        tell: true,
       }),
     });
     if (!res.ok) return null;
     const body = (await res.json()) as {
       ok?: boolean;
       items?: OwnUploadWire[];
+      news?: unknown;
     };
-    return body.ok && Array.isArray(body.items) ? body.items : null;
+    if (!body.ok || !Array.isArray(body.items)) return null;
+    const news = Array.isArray(body.news)
+      ? body.news.filter((id): id is string => typeof id === "string")
+      : [];
+    return { items: body.items, news };
   } catch {
     return null;
   }
@@ -173,13 +213,16 @@ export function UploadTracker({
     // every opening, never on a timer.
     if (!canAsk || (loaded && !open)) return;
     let active = true;
-    void readOwnStatuses(qrToken, sessionToken).then((items) => {
-      if (active && items) setOwn(items);
+    void readOwnStatuses(qrToken, sessionToken).then((answer) => {
+      if (!answer) return;
+      // The news is the store's, not this render's: told is told, even if the list closed meanwhile.
+      store.news.add(answer.news);
+      if (active) setOwn(answer.items);
     });
     return () => {
       active = false;
     };
-  }, [canAsk, loaded, open, qrToken, sessionToken]);
+  }, [canAsk, loaded, open, qrToken, sessionToken, store]);
 
   /* ── which of hers the album has held (so one that leaves it was taken down) ─────────────────── */
   const [approvedOnce, setApprovedOnce] = useState<ReadonlySet<string>>(
@@ -197,13 +240,15 @@ export function UploadTracker({
     // The arrival's re-read (`newlyInAlbum`): the refusal decided beside it is learned with it.
     if (!canAsk || arrivals === 0) return;
     let active = true;
-    void readOwnStatuses(qrToken, sessionToken).then((items) => {
-      if (active && items) setOwn(items);
+    void readOwnStatuses(qrToken, sessionToken).then((answer) => {
+      if (!answer) return;
+      store.news.add(answer.news);
+      if (active) setOwn(answer.items);
     });
     return () => {
       active = false;
     };
-  }, [canAsk, arrivals, qrToken, sessionToken]);
+  }, [canAsk, arrivals, qrToken, sessionToken, store]);
 
   const rows = useMemo(
     () =>

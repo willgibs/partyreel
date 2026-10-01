@@ -9,6 +9,10 @@
  *      on the whole key (a total order: two rows can share a microsecond), and stays authenticated-only across the
  *      drop and create that changed its arguments. The paging POLICY itself (the clamp, a null limit reading
  *      everything) is row-cap-sql.test.ts's.
+ *   2. Told on her return (20261001203810): `media.let_in_at` is stamped by one BEFORE UPDATE OF status trigger
+ *      whose WHEN takes only a move INTO approved; its function runs for no client role; neither told column is
+ *      granted to a client role by any file; and no file backfills `let_in_at` (a decision already made must never
+ *      become news when the column lands).
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -124,5 +128,57 @@ describe("my uploads and my likes page on a keyset (crumbs-38, 20261001203800)",
       ]);
       expect(latest(fn).body).toContain("(select auth.uid())");
     }
+  });
+});
+
+describe("told on her return: when a decision let it in, and what she was told of (crumbs-38, 20261001203810)", () => {
+  const all = SQL.map((f) => f.sql).join(" ");
+
+  it("adds both columns, once, and no later file drops either", () => {
+    expect(
+      all.match(/alter table public\.media add column let_in_at timestamptz;/g),
+    ).toHaveLength(1);
+    expect(
+      all.match(
+        /alter table public\.guests add column let_in_told_at timestamptz;/g,
+      ),
+    ).toHaveLength(1);
+    expect(all).not.toMatch(/drop column (if exists )?let_in_at\b/);
+    expect(all).not.toMatch(/drop column (if exists )?let_in_told_at\b/);
+  });
+
+  it("★ stamps on a move INTO approved alone: one BEFORE UPDATE OF status trigger, its WHEN the whole rule", () => {
+    const triggers = all.match(
+      /create (?:or replace )?trigger media_stamp_let_in [^;]*;/g,
+    );
+    expect(triggers).toEqual([
+      "create trigger media_stamp_let_in before update of status on public.media for each row when (new.status = 'approved' and old.status is distinct from 'approved') execute function public.stamp_media_let_in();",
+    ]);
+    const fn = latest("stamp_media_let_in");
+    expect(fn.body.trim()).toBe(
+      "begin new.let_in_at := now(); return new; end;",
+    );
+  });
+
+  it("no client role runs the stamp or reads or writes either told column, in any file", () => {
+    expect(all).toContain(
+      "revoke execute on function public.stamp_media_let_in() from public, anon, authenticated;",
+    );
+    expect(all).not.toMatch(
+      /grant [^;]* on function public\.stamp_media_let_in\(/,
+    );
+    for (const column of ["let_in_at", "let_in_told_at"]) {
+      expect(all).not.toMatch(
+        new RegExp(
+          `grant [^;]*\\b${column}\\b[^;]* to [^;]*\\b(anon|authenticated)\\b`,
+        ),
+      );
+    }
+  });
+
+  it("no file writes let_in_at but the trigger: nothing decided becomes news when it lands", () => {
+    // A backfill (or any statement but the trigger's own assignment) would turn old decisions into news.
+    expect(all).not.toMatch(/update public\.media set [^;]*let_in_at/);
+    expect(all).not.toMatch(/insert into public\.media \([^)]*let_in_at/);
   });
 });

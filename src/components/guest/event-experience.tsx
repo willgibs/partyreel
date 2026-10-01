@@ -1405,6 +1405,9 @@ export function EventExperience({
                     canUpload && event.accepts_video ? addClipToAlbum : null
                   }
                   queue={queue}
+                  // Her tracker's own-rows read carries the server's news (what a decision let in since
+                  // she was last told): the toast says it on her return too (crumbs-38).
+                  approvalNews={trackerStore.news}
                   welcomePending={welcomePending}
                   isOwner={isOwner}
                 >
