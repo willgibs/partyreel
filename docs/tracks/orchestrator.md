@@ -40,28 +40,43 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `crumbs-35` | build 34's red-team finds: the hub's album still through Select and Cancel at 375 (LOW, and the ROADMAP's line), the guest header after a session ends elsewhere, the dashboard's claims after the silent claim, a guest's own upload with no second fade (unconfirmed), the portal's sidebar prefetches' auth reads, Escape on the keep sheet | running, cut at `35f68175`; no SQL | Sonnet, 3131 | |
+| `crumbs-35` | build 34's red-team finds: the hub's album still through Select and Cancel at 375 (LOW, and the ROADMAP's line), the guest header after a session ends elsewhere, the dashboard's claims after the silent claim, a guest's own upload with no second fade (unconfirmed), the portal's sidebar prefetches' auth reads, Escape on the keep sheet | running (agent `a8d389ec566e2fa57`, asked 05:35Z to push WIP and keep `## Where I am` current), cut at `35f68175`; no SQL | Sonnet, 3131 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
 no question open (Q1, the `names` hang; Q2, schema-pass part 1; Q3, the notes-into-laws audit; Q4, the door migration;
 Q5, crumbs-33's two function-replacing migrations, "apply as written": each answered and acted on). From another session, respawn it from `usher/kit/advisor-prompt.txt`.
 
-**Handoff across accounts.** The Orchestrator session is `157caa18-ec54-4aa9-a12a-04c86d5a667b` (willg97's account,
-seated 2026-09-29 12:23 EDT; its weekly resets Sunday 9am ET, hi@willgibs.com's Tuesday 5pm ET; Will hands off only
-when one maxes its weekly limit); the first account's `b01c012e` is retired and must not resume. Its agent ids live only
-there; from another session, respawn each running lane per the runbook's "Resume a lane": kill by port any dev server
-left on 3131 to 3135 (and any orphaned headless Chrome), then `spawn-prompt.txt` filled (same track, same port) plus a
-note naming its pushed commits, what remains, its predecessor's transcript at
-`~/.claude/projects/-Users-gibby-local-ai-partyreel/157caa18-ec54-4aa9-a12a-04c86d5a667b/subagents/agent-<id>.jsonl`
-(grep it, never read it whole), that a stale `.next/dev/lock` may be deleted and that MCP tool ids change with the
-account, and the relays below, which live only in the agents: none live (2026-10-01: crumbs-33 and crumbs-34 run from their manifests alone).
+**Handoff across accounts (live: willg97 at 92% weekly on 2026-10-01 05:30Z; its auto-kill at 100% is expected within
+hours, and Will opens a fresh Orchestrator chat on hi@willgibs.com, unused since its reset, the next on Tuesday
+2026-10-06 21:00Z).** The dying session is `157caa18-ec54-4aa9-a12a-04c86d5a667b`: leave it idle or archived, since it
+would resume mid-task at willg97's reset (Sunday 2026-10-04 13:00Z); `b01c012e` stays retired. Connectors follow the
+account: Claude in Chrome answers only once Will moves it over (every red-team needs it), the Supabase MCP must reach
+project `ddafaemglzmuekbtjwzn`, and the Vercel MCP may sit on his personal team (deploys ride `$VERCEL_TOKEN`; only
+runtime logs need it). MCP tool ids change with the account. The new Orchestrator:
+1. **Seats in** (the runbook's "Seat in"): kill by port any dev server on 3131 to 3135 and any orphaned headless Chrome.
+2. **crumbs-35** (Sonnet, 3131, `../partyreel-wt/crumbs-35`): if `origin/lp/crumbs-35`'s manifest says handed off,
+   integrate it (gate 113); otherwise respawn it per "Resume a lane" (`spawn-prompt.txt`, same track and port) from its
+   pushed commits and its manifest's `## Where I am`, with its predecessor's transcript at
+   `~/.claude/projects/-Users-gibby-local-ai-partyreel/157caa18-ec54-4aa9-a12a-04c86d5a667b/subagents/agent-a8d389ec566e2fa57.jsonl`
+   (grep it, never read it whole), a stale `.next/dev/lock` free to delete. Its record adds its calls to Will's file
+   as 59.
+3. **Build 35** (crumbs-33, crumbs-34 and crumbs-35 on build 34): deploy it per the runbook, unless Will is mid-sitting
+   (ask). Then its red-team (Opus) from `../partyreel-wt/_scratch/redteam-35/brief.md`, written 2026-10-01. Before the
+   spawn, fill the stamp's sha and list crumbs-35's walks under its step 4. A ledger already there means a cut-off
+   red-team: respawn it after the ledger's last line.
+4. **Will's morning (2026-10-01):** the calls file first (58 calls, `../partyreel-wt/_scratch/calls/relay-calls.md`,
+   sent to him at 56 and to be re-sent as it grows), then the desk. Seat a respawned Advisor
+   (`usher/kit/advisor-prompt.txt`) when a consult comes due; no question is open.
+
+Relays that live only in an agent: crumbs-35's WIP-and-`## Where I am` ask (05:35Z, above); nothing else.
 
 If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` holds a merge made after this note (push
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
 staged, uncommitted merge is finished by `usher/kit/merge-lane.sh`'s own steps or reset with `git merge --abort`.
 This session's scratchpad (`/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/157caa18-ec54-4aa9-a12a-04c86d5a667b/scratchpad`,
 until a reboot) holds the specs and gate logs (the next gate is 113); nothing there is needed that these lines and the
-manifests do not carry.
+manifests do not carry. Everything a successor reads lives in the repo or in `../partyreel-wt/_scratch/` (the calls
+file, the red-team briefs and ledgers).
 
 Batch 8 shipped whole as milestone 31 (`7bd3b947`, 2026-09-30; 40 lanes, crumbs-12 to gone-link-soft; their merges and
 records carry the rest). Merged in batch 9: crumbs-28 (`8ea749bf`), hide-strikes (`669e1717`, its migration applied by
