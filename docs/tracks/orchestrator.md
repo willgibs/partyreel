@@ -41,7 +41,6 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `crumbs-29` | build 30's red-team finds (a shared phone's double row, a declined newcomer admitted by a door's opening, the door after a sign-out, a blocked phone's flash) and two ROADMAP lines (the door's predicate once, a report's closed status paired with its time) | merged at `47b5cce8` (gate 106 green; work `75600355`); its three migrations (20260930130000 the door admits no block, 140000 one account one ticket, 150000 a report resolved when closed) apply by protocol once build 33's red-team is done, each an expand both ways |  Opus, 3131 | |
-| `crumbs-32` | seven ROADMAP items: the owner's Delete on her guest page, an export surviving a reload, the bulk bars' 44px targets, a place popup's dead Back, a guest's upload landing once, the over-cap banner's door, two dead props | running (agent `ac8ffd3250605977c`), cut at `d53b02cb`; no SQL | Opus, 3131 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
 no question open (Q1, the `names` hang; Q2, schema-pass part 1; Q3, the notes-into-laws audit; Q4, the door migration:
@@ -67,7 +66,7 @@ manifests do not carry.
 Batch 8 shipped whole as milestone 31 (`7bd3b947`, 2026-09-30; 40 lanes, crumbs-12 to gone-link-soft; their merges and
 records carry the rest). Merged in batch 9: crumbs-28 (`8ea749bf`), hide-strikes (`669e1717`, its migration applied by
 protocol, 20260930205935), crumbs-29 (`47b5cce8`, its three migrations applied), crumbs-30 (`d0eaf507`; gate 107 green
-but lab:demo's `about-press.facts` dev stall, ROADMAP's line), crumbs-31 (`5898b6d8`, no SQL), demo-stall (`7990d19d`, gate 109 whole and green: the lab:demo stall's root, a Next dev bug, patched). Schema-pass part 2 is applied (20260930204037).
+but lab:demo's `about-press.facts` dev stall, ROADMAP's line), crumbs-31 (`5898b6d8`, no SQL), demo-stall (`7990d19d`, gate 109 whole and green: the lab:demo stall's root, a Next dev bug, patched), crumbs-32 (`04ddf22e`, no SQL). Schema-pass part 2 is applied (20260930204037).
 
 ## Next, in order
 
