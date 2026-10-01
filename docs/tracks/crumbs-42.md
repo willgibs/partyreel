@@ -23,6 +23,8 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/events/visibility-labels.ts
   - src/lib/events/visibility-labels.test.ts
   - src/lib/dashboard/events-view.ts
+  - content/help/your-dashboard-explained.mdx
+  - src/lib/content/help-product-doors.test.ts
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/host-app.md
   - docs/systems/lifecycle-recovery.md
