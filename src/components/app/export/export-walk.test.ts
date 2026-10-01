@@ -19,8 +19,12 @@ import {
 } from "@/components/app/export/export-walk";
 import type { DownloadPlace } from "@/lib/export/walk";
 
+/** The real timer, taken before any test fakes the clock (the harness's pauses ride it). */
+const turn = globalThis.setTimeout;
+
 const WORKER = "https://partyreel-export.example.workers.dev";
 const CHECK = `${WORKER}/check`;
+const STATUS = "/api/export/status";
 
 type Scripted =
   | { status: number; body: unknown }
@@ -34,6 +38,11 @@ type Call = { url: string; init: RequestInit };
 function harness(place: DownloadPlace = "desk", store?: WalkStore) {
   const mints: Scripted[] = [];
   const checks: Scripted[] = [];
+  /** The selection's summary (`export-ends`'s hidden question): a host mint body with step "summary". */
+  const summaries: Scripted[] = [];
+  /** The status poll (`export-ends`); once the queue is empty it answers `idle`. */
+  const statuses: Scripted[] = [];
+  let idle: Scripted = { status: 200, body: { ok: true, state: "none" } };
   const calls: Call[] = [];
   const posted: [string, string][] = [];
   const shown: { id: string; view: ToastView }[] = [];
@@ -43,8 +52,22 @@ function harness(place: DownloadPlace = "desk", store?: WalkStore) {
   const fetchFn = ((input: RequestInfo | URL, init: RequestInit = {}) => {
     const url = String(input);
     calls.push({ url, init });
-    const queue = url === CHECK ? checks : mints;
-    const next = queue.shift();
+    const step = (() => {
+      try {
+        return (JSON.parse(String(init.body)) as { step?: string }).step;
+      } catch {
+        return undefined;
+      }
+    })();
+    const queue =
+      url === CHECK
+        ? checks
+        : url === STATUS
+          ? statuses
+          : step === "summary"
+            ? summaries
+            : mints;
+    const next = queue.shift() ?? (url === STATUS ? idle : undefined);
     if (!next) throw new Error(`nothing scripted for ${url}`);
     return new Promise<Response>((resolve, reject) => {
       const signal = init.signal;
@@ -70,7 +93,10 @@ function harness(place: DownloadPlace = "desk", store?: WalkStore) {
       dismiss: (id) => dismissed.push(id),
     },
     place: () => place,
-    sleep: () => Promise.resolve(),
+    // A pause yields one turn of the event loop (never real time), so a walk that listens for the Worker's
+    // word moves one poll a turn, as a test steps it, instead of spinning through every poll at once. The
+    // loader's own timer, so a test that fakes the clock still has its pauses turn.
+    sleep: () => new Promise((resolve) => turn(resolve, 0)),
     newId: () => `walk-${++ids}`,
     store,
   });
@@ -82,19 +108,31 @@ function harness(place: DownloadPlace = "desk", store?: WalkStore) {
   };
   const mintBodies = () =>
     calls
-      .filter((c) => c.url.startsWith("/api/export/"))
-      .map((c) => JSON.parse(String(c.init.body)) as Record<string, unknown>);
+      .filter((c) => c.url.startsWith("/api/export/") && c.url !== STATUS)
+      .map((c) => JSON.parse(String(c.init.body)) as Record<string, unknown>)
+      .filter((b) => b.step === "mint");
+  /** The nonces the walk has asked the status route about, in order. */
+  const polled = () =>
+    calls
+      .filter((c) => c.url === STATUS)
+      .map((c) => (JSON.parse(String(c.init.body)) as { jti: string }).jti);
 
   return {
     walker,
     mints,
     checks,
+    summaries,
+    statuses,
+    setIdle: (answer: Scripted) => {
+      idle = answer;
+    },
     calls,
     posted,
     shown,
     dismissed,
     now,
     mintBodies,
+    polled,
   };
 }
 
@@ -641,6 +679,17 @@ describe("a reload between parts", () => {
         found: 1999,
         missing: ["gone-1"],
         handed: 1,
+        // `export-ends`: each handed part's word; no word can come for this one (its mint asked none).
+        handedParts: [
+          {
+            part: 1,
+            items: 2000,
+            jti: null,
+            word: "unheard",
+            outcome: null,
+            missing: [],
+          },
+        ],
       },
     ]);
 
@@ -794,4 +843,486 @@ describe("the Worker's check", () => {
 
 beforeEach(() => {
   vi.clearAllMocks();
+});
+
+/*
+ * ── `export-ends`: every download ends, and says how ───────────────────────────────────────────────────
+ *
+ * The page goes blind when the browser takes a zip, so the Worker reports its stream to the app and the walk
+ * listens (`/api/export/status`). A zip reads saved only on the Worker's word; one the album emptied after
+ * its check was never sent and says so; one cut short or stopped says so with a Try again for what it lacks;
+ * and where no word can come, the walk says what it knows and claims nothing.
+ */
+
+const JTI = "0123456789abcdef0123456789abcdef";
+const JTI_2 = "fedcba9876543210fedcba9876543210";
+
+/** A mint that asked the Worker to report, and a check from a Worker that promised it. */
+const reporting = (over: Record<string, unknown> = {}) =>
+  minted({ jti: JTI, reports: true, ...over });
+const promised = (items: number, missing: string[] = []) => ({
+  status: 200,
+  body: {
+    ok: true,
+    items,
+    found: items - missing.length,
+    missing,
+    reports: true,
+  },
+});
+const said = (state: string, missing?: string[]) => ({
+  status: 200,
+  body: { ok: true, state, ...(missing ? { missing } : {}) },
+});
+
+/** Let the walk's listening run until `ready` holds (each poll is a few ticks). */
+async function until(ready: () => boolean, ticks = 400) {
+  for (let i = 0; i < ticks && !ready(); i++) await settle();
+}
+
+describe("saved means saved (export-ends)", () => {
+  it("★ one zip says it is downloading, and turns to saved only on the Worker's word", async () => {
+    const h = harness();
+    h.mints.push(reporting());
+    h.checks.push(promised(148));
+    h.statuses.push(said("none"), said("streaming"), said("streaming"));
+    h.setIdle(said("saved", []));
+
+    const handed = await h.walker.start("guest", { qr_token: "qr" });
+    expect(handed).toBe(true);
+    expect(h.posted).toHaveLength(1);
+    // Handed over, and held: no "done" until the Worker says its last byte went out.
+    expect(h.now()).toEqual({
+      tone: "downloading",
+      title: "Downloading…",
+      close: { label: "Dismiss", run: expect.any(Function) },
+    });
+
+    await until(() => h.now()?.tone === "done");
+    expect(h.polled().every((j) => j === JTI)).toBe(true);
+    expect(h.now()).toEqual({
+      tone: "done",
+      title: "Your download is saved.",
+      duration: 4000,
+    });
+  });
+
+  it("a phone hears where it went", async () => {
+    for (const [place, during, after] of [
+      ["files", "Saving to your Files app…", "Saved to your Files app."],
+      ["downloads", "Saving to your Downloads…", "Saved to your Downloads."],
+    ] as const) {
+      const h = harness(place);
+      h.mints.push(reporting());
+      h.checks.push(promised(3));
+      h.setIdle(said("saved", []));
+      await h.walker.start("guest", { qr_token: "qr" });
+      expect(h.now()).toMatchObject({ tone: "downloading", title: during });
+      await until(() => h.now()?.tone === "done");
+      expect(h.now()).toMatchObject({ tone: "done", title: after });
+    }
+  });
+
+  it("★ a walk's parts turn saved one by one, and its last word waits for every part", async () => {
+    const h = harness();
+    h.mints.push(
+      reporting({ parts: 2, next: "1_a", items: 2000, token: "t1" }),
+    );
+    h.checks.push(promised(2000));
+    h.setIdle(said("streaming"));
+    await h.walker.start("host", { event_id: "e" });
+    expect(h.now()).toMatchObject({
+      tone: "between",
+      title: "Part 1 of 2 is downloading.",
+      action: { label: "Get part 2" },
+    });
+
+    h.setIdle(said("saved", []));
+    await until(() => h.now()?.title === "Part 1 of 2 is saved.");
+    const first = h.now();
+    expect(first).toMatchObject({
+      tone: "between",
+      title: "Part 1 of 2 is saved.",
+      action: { label: "Get part 2" },
+    });
+
+    h.setIdle(said("streaming"));
+    h.mints.push(
+      reporting({ jti: JTI_2, part: 2, parts: 2, items: 300, token: "t2" }),
+    );
+    h.checks.push(promised(300));
+    if (first?.tone !== "between") throw new Error("not between");
+    first.action.run();
+    await until(() => h.posted.length === 2);
+    // Every part taken, the last still on its way: said, and held.
+    expect(h.now()).toMatchObject({
+      tone: "downloading",
+      title: "Both parts are downloading. That's everything.",
+    });
+
+    h.setIdle(said("saved", []));
+    await until(() => h.now()?.tone === "done");
+    expect(h.now()).toEqual({
+      tone: "done",
+      title: "Both parts are saved. That's everything.",
+      duration: 7000,
+    });
+  });
+
+  it("where no word comes (the Worker cannot reach this app), it stops listening and claims nothing", async () => {
+    const h = harness();
+    h.mints.push(reporting());
+    h.checks.push(promised(148));
+    // Idle: "none" forever.
+    await h.walker.start("guest", { qr_token: "qr" });
+    await until(() => h.now()?.tone === "done");
+    expect(h.now()).toMatchObject({
+      tone: "done",
+      title: "Your download is starting.",
+    });
+    // It listened only through the stream's start: about fifteen polls, then never again.
+    const asked = h.polled().length;
+    expect(asked).toBeGreaterThan(5);
+    expect(asked).toBeLessThanOrEqual(16);
+    await until(() => false, 50);
+    expect(h.polled()).toHaveLength(asked);
+  });
+
+  it("an older Worker promises nothing, so nothing is polled and today's words stand", async () => {
+    const h = harness();
+    h.mints.push(reporting());
+    h.checks.push(counted(148));
+    await h.walker.start("guest", { qr_token: "qr" });
+    expect(h.now()).toMatchObject({
+      tone: "done",
+      title: "Your download is starting.",
+    });
+    await until(() => false, 20);
+    expect(h.polled()).toEqual([]);
+  });
+
+  it("a mint that asked nothing (a laptop behind a deployed Worker) is never listened for either", async () => {
+    const h = harness();
+    h.mints.push(minted({ jti: JTI, reports: false }));
+    h.checks.push(promised(148));
+    await h.walker.start("guest", { qr_token: "qr" });
+    expect(h.now()).toMatchObject({ tone: "done" });
+    await until(() => false, 20);
+    expect(h.polled()).toEqual([]);
+  });
+
+  it("the x lets the toast go and stops the listening; the browser keeps the file", async () => {
+    const h = harness();
+    h.mints.push(reporting());
+    h.checks.push(promised(148));
+    h.setIdle(said("streaming"));
+    await h.walker.start("guest", { qr_token: "qr" });
+    const downloading = h.now();
+    if (downloading?.tone !== "downloading") throw new Error("not downloading");
+    downloading.close.run();
+    expect(h.dismissed).toEqual(["walk-1"]);
+    const asked = h.polled().length;
+    await until(() => false, 30);
+    expect(h.polled().length).toBeLessThanOrEqual(asked + 1);
+    expect(h.shown.at(-1)?.view.tone).toBe("downloading");
+  });
+});
+
+describe("an empty or short zip is said, never sent as if whole (export-ends)", () => {
+  it("★ an album emptied between the check and the stream sent no file, and says so with Try again", async () => {
+    const h = harness();
+    h.mints.push(reporting({ items: 3 }));
+    h.checks.push(promised(3));
+    h.setIdle(said("empty", ["m1", "m2", "m3"]));
+    await h.walker.start("guest", { qr_token: "qr" });
+    await until(() => h.now()?.tone === "refused");
+    expect(h.now()).toMatchObject({
+      tone: "refused",
+      title: "Nothing left to download.",
+      action: { label: "Try again" },
+    });
+  });
+
+  it("★ objects gone mid-stream are counted, with a Try again for exactly those", async () => {
+    const h = harness();
+    h.mints.push(reporting());
+    h.checks.push(promised(148));
+    h.setIdle(said("short", ["m7"]));
+    await h.walker.start("host", { event_id: "e", types: "all" });
+    await until(() => h.now()?.tone === "short");
+    const short = h.now();
+    expect(short).toMatchObject({
+      tone: "short",
+      title: "147 of 148 are in your download.",
+      action: { label: "Try again for the 1" },
+    });
+
+    h.mints.push(minted({ items: 1, token: "tok-2" }));
+    h.checks.push(counted(1));
+    if (short?.tone !== "short" || !short.action) throw new Error("no retry");
+    short.action.run();
+    await settle();
+    expect(h.mintBodies().at(-1)).toMatchObject({ ids: ["m7"], part: 1 });
+  });
+
+  it("a gone one the check already counted is counted once", async () => {
+    const h = harness();
+    h.mints.push(reporting());
+    h.checks.push(promised(148, ["m1"]));
+    h.setIdle(said("short", ["m1", "m2"]));
+    await h.walker.start("guest", { qr_token: "qr" });
+    await until(() => h.now()?.tone === "short");
+    expect(h.now()).toMatchObject({
+      title: "146 of 148 are in your download.",
+      action: { label: "Try again for the 2" },
+    });
+  });
+
+  it("a zip that never finished says so, with Try again", async () => {
+    const h = harness();
+    h.mints.push(reporting({ items: 3 }));
+    h.checks.push(promised(3));
+    h.setIdle(said("stopped", ["m1", "m2", "m3"]));
+    await h.walker.start("guest", { qr_token: "qr" });
+    await until(() => h.now()?.tone === "refused");
+    expect(h.now()).toMatchObject({
+      tone: "refused",
+      title: "That download stopped before it finished.",
+      action: { label: "Try again" },
+    });
+
+    // Try again takes the whole zip again, from its first part.
+    h.mints.push(minted({ token: "tok-2" }));
+    h.checks.push(counted(148));
+    const refused = h.now();
+    if (refused?.tone !== "refused" || !refused.action) throw new Error("no retry");
+    refused.action.run();
+    await settle();
+    expect(h.posted.map(([, t]) => t)).toEqual(["tok-1", "tok-2"]);
+  });
+
+  it("a part that came up short mid-walk says its count between parts, and the walk's last word counts it", async () => {
+    const h = harness();
+    h.mints.push(
+      reporting({ parts: 2, next: "1_a", items: 2000, token: "t1" }),
+    );
+    h.checks.push(promised(2000));
+    h.setIdle(said("short", ["g1"]));
+    await h.walker.start("host", { event_id: "e" });
+    await until(() => h.now()?.title === "1,999 of 2,000 are in part 1.");
+    const first = h.now();
+    expect(first).toMatchObject({ tone: "between", action: { label: "Get part 2" } });
+
+    h.setIdle(said("saved", []));
+    h.mints.push(
+      reporting({ jti: JTI_2, part: 2, parts: 2, items: 300, token: "t2" }),
+    );
+    h.checks.push(promised(300));
+    if (first?.tone !== "between") throw new Error("not between");
+    first.action.run();
+    await until(() => h.now()?.tone === "short");
+    expect(h.now()).toMatchObject({
+      tone: "short",
+      title: "2,299 of 2,300 are in your download.",
+      action: { label: "Try again for the 1" },
+    });
+  });
+});
+
+describe("a reload while the last part downloads (export-ends)", () => {
+  function tab() {
+    let held: unknown = null;
+    const store: WalkStore = {
+      load: () => held,
+      save: (walks) => {
+        held = walks.length === 0 ? null : structuredClone(walks);
+      },
+    };
+    return { store, held: () => held as SavedWalk[] | null };
+  }
+
+  it("keeps the walk, and the page after goes on listening to say saved", async () => {
+    const t = tab();
+    const before = harness("files", t.store);
+    before.mints.push(reporting());
+    before.checks.push(promised(148));
+    before.setIdle(said("streaming"));
+    await before.walker.start("guest", { qr_token: "qr" });
+    expect(t.held()).toEqual([
+      expect.objectContaining({
+        next: null,
+        handed: 1,
+        handedParts: [
+          expect.objectContaining({ jti: JTI, word: "listening" }),
+        ],
+      }),
+    ]);
+
+    const after = harness("files", t.store);
+    after.setIdle(said("saved", []));
+    after.walker.resume();
+    expect(after.now()).toMatchObject({
+      tone: "downloading",
+      title: "Saving to your Files app…",
+    });
+    await until(() => after.now()?.tone === "done");
+    expect(after.now()).toMatchObject({ title: "Saved to your Files app." });
+    expect(after.posted).toEqual([]);
+    expect(t.held()).toBeNull();
+  });
+
+  it("reads a kept walk's parts only as a server and the walk could go on with them", () => {
+    const walk: SavedWalk = {
+      scope: "guest",
+      body: { qr_token: "qr" },
+      retryOf: null,
+      part: 1,
+      parts: 1,
+      next: null,
+      items: 3,
+      found: 3,
+      missing: [],
+      handed: 1,
+      handedParts: [
+        {
+          part: 1,
+          items: 3,
+          jti: JTI,
+          word: "listening",
+          outcome: null,
+          missing: [],
+        },
+      ],
+    };
+    expect(readSavedWalks([walk])).toEqual([walk]);
+    const part = walk.handedParts![0];
+    // Every part taken and nothing listened for: nothing to go on with.
+    expect(
+      readSavedWalks([{ ...walk, handedParts: [{ ...part, word: "saved" }] }]),
+    ).toEqual([]);
+    expect(
+      readSavedWalks([{ ...walk, handedParts: [{ ...part, jti: "x" }] }]),
+    ).toEqual([]);
+    expect(
+      readSavedWalks([{ ...walk, handedParts: [{ ...part, jti: null }] }]),
+    ).toEqual([]);
+    expect(readSavedWalks([{ ...walk, handedParts: "all" }])).toEqual([]);
+  });
+});
+
+describe("a host's selection with hidden items in it (export-ends)", () => {
+  const selection = {
+    event_id: "e",
+    ids: ["a", "b", "c"],
+    types: "all",
+    include_hidden: true,
+  };
+  const mix = (shown: number, hidden: number) => ({
+    status: 200,
+    body: {
+      ok: true,
+      summary: {
+        shown: {
+          photo: { count: shown, bytes: 1 },
+          video: { count: 0, bytes: 0 },
+        },
+        hidden: {
+          photo: { count: hidden, bytes: 1 },
+          video: { count: 0, bytes: 0 },
+        },
+      },
+    },
+  });
+
+  it("★ asks first when it mixes hidden and shown, and lets the bar go while she decides", async () => {
+    const h = harness();
+    h.summaries.push(mix(9, 3));
+    const handed = await h.walker.start("host", selection);
+    expect(handed).toBe(false);
+    expect(h.mintBodies()).toEqual([]);
+    const ask = h.now();
+    expect(ask).toMatchObject({
+      tone: "ask",
+      title: "3 of these 12 are hidden.",
+      actions: [{ label: "Include them" }, { label: "Leave them out" }],
+      close: { label: "Cancel download" },
+    });
+    // The question reads the server's own count of the selection.
+    const summary = h.calls.find(
+      (c) => JSON.parse(String(c.init.body)).step === "summary",
+    );
+    expect(JSON.parse(String(summary?.init.body))).toEqual({
+      step: "summary",
+      ...selection,
+    });
+
+    h.mints.push(minted());
+    h.checks.push(counted(9));
+    if (ask?.tone !== "ask") throw new Error("not asking");
+    ask.actions[1].run();
+    await settle();
+    expect(h.mintBodies()).toEqual([
+      { step: "mint", ...selection, include_hidden: false, part: 1 },
+    ]);
+    expect(h.posted).toHaveLength(1);
+  });
+
+  it("Include them takes the selection whole", async () => {
+    const h = harness();
+    h.summaries.push(mix(9, 1));
+    await h.walker.start("host", selection);
+    const ask = h.now();
+    expect(ask).toMatchObject({
+      title: "1 of these 10 is hidden.",
+      actions: [{ label: "Include it" }, { label: "Leave it out" }],
+    });
+    h.mints.push(minted());
+    h.checks.push(counted(10));
+    if (ask?.tone !== "ask") throw new Error("not asking");
+    ask.actions[0].run();
+    ask.actions[0].run();
+    await settle();
+    expect(h.mintBodies()).toEqual([{ step: "mint", ...selection, part: 1 }]);
+  });
+
+  it("the x on the question takes nothing", async () => {
+    const h = harness();
+    h.summaries.push(mix(9, 3));
+    await h.walker.start("host", selection);
+    const ask = h.now();
+    if (ask?.tone !== "ask") throw new Error("not asking");
+    ask.close.run();
+    ask.actions[0].run();
+    await settle();
+    expect(h.dismissed).toEqual(["walk-1"]);
+    expect(h.mintBodies()).toEqual([]);
+  });
+
+  it.each([
+    ["only shown", mix(12, 0)],
+    ["only hidden (picking them is her answer)", mix(0, 3)],
+    ["a summary that could not answer", { status: 500, body: { ok: false } }],
+  ])("goes as picked for %s", async (_, summary) => {
+    const h = harness();
+    h.summaries.push(summary);
+    h.mints.push(minted());
+    h.checks.push(counted(3));
+    expect(await h.walker.start("host", selection)).toBe(true);
+    expect(h.mintBodies()).toEqual([{ step: "mint", ...selection, part: 1 }]);
+  });
+
+  it("never asks of Download all's own rows, nor of a guest", async () => {
+    for (const [scope, body] of [
+      ["host", { event_id: "e", types: "all", include_hidden: true }],
+      ["guest", { qr_token: "qr", ids: ["a"], include_hidden: true }],
+    ] as const) {
+      const h = harness();
+      h.mints.push(minted());
+      h.checks.push(counted(3));
+      await h.walker.start(scope, body);
+      expect(
+        h.calls.some((c) => String(c.init.body).includes('"step":"summary"')),
+      ).toBe(false);
+    }
+  });
 });

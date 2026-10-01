@@ -47,6 +47,12 @@ export type ExportManifestPayload = {
   items: ExportItem[];
   /** Absolute expiry, unix ms. */
   exp: number;
+  /**
+   * Where the Worker reports this export's check and stream (`report.ts`'s `reportAddressFor`, the minting
+   * app's own `/api/export/report`), or absent to ask for none. ★ Additive, so the token stays v1: a Worker
+   * from before `export-ends` ignores it and answers as it always has (`workers/export/src/compat.test.ts`).
+   */
+  report?: string;
 };
 
 export type ExportVerifyResult =

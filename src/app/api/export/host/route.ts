@@ -131,6 +131,8 @@ export async function POST(request: Request) {
     includeHidden: include_hidden,
     ip: clientIp(request.headers),
     walk: part ? { part, after: after ?? null } : undefined,
+    // The Worker reports this export back here (`export-ends`): the deployment that minted it.
+    appOrigin: new URL(request.url).origin,
   });
   return mintResponse(result);
 }

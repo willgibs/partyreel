@@ -17,6 +17,9 @@
 import { formatCount } from "@/lib/format/count";
 import type { Platform } from "@/lib/media/share-save";
 
+/** A token's nonce: 16 random bytes in hex (the mint's `randomBytes(16)`; `report.ts` keeps the same rule). */
+const JTI_RE = /^[0-9a-f]{32}$/;
+
 /* ── the waits: three tries a step, then a way out ───────────────────────── */
 
 /**
@@ -53,6 +56,10 @@ export type MintAnswer = {
   parts: number;
   next: string | null;
   items: number;
+  /** The token's nonce, which the walk's status poll asks by (`export-ends`; absent from older servers). */
+  jti?: string;
+  /** The token asks the Worker to report, so its word on the stream may come (`export-ends`). */
+  reports?: boolean;
 };
 
 export type MintVerdict =
@@ -95,6 +102,11 @@ export function mintVerdict(a: Attempt): MintVerdict {
         parts: num(body.parts, 1),
         next: typeof body.next === "string" ? body.next : null,
         items: num(body.items, 0),
+        jti:
+          typeof body.jti === "string" && JTI_RE.test(body.jti)
+            ? body.jti
+            : undefined,
+        reports: body.reports === true,
       },
     };
   }
@@ -109,7 +121,13 @@ export function mintVerdict(a: Attempt): MintVerdict {
 }
 
 /** What the Worker's check said about a zip. */
-export type CheckAnswer = { items: number; found: number; missing: string[] };
+export type CheckAnswer = {
+  items: number;
+  found: number;
+  missing: string[];
+  /** The Worker will report this zip's stream (`export-ends`); an older Worker never says so. */
+  reports?: boolean;
+};
 
 export type CheckVerdict =
   | { kind: "ok"; check: CheckAnswer }
@@ -143,6 +161,7 @@ export function checkVerdict(a: Attempt): CheckVerdict {
         items: body.items,
         found: body.found,
         missing: body.missing.filter((m): m is string => typeof m === "string"),
+        reports: body.reports === true,
       },
     };
   }
@@ -157,6 +176,90 @@ export function checkVerdict(a: Attempt): CheckVerdict {
   }
   if (a.status >= 500) return { kind: "retry" };
   return { kind: "skip" };
+}
+
+/* ── the Worker's word on a zip it streamed (`export-ends`) ──────────────── */
+
+/**
+ * ★ SAVED IS THE WORKER'S WORD, NEVER THE PAGE'S GUESS. The page goes blind when the browser's download
+ * manager takes a zip, so a zip reads saved only once the Worker reports its stream finished (`/api/export/
+ * report` keeps it, `/api/export/status` answers it). The walk listens only where both halves said they
+ * would (the mint asked for reports and the Worker's check promised them); anywhere else, and once it stops
+ * listening, it says what it knows and claims nothing.
+ */
+export type StreamOutcome = "saved" | "short" | "stopped" | "failed" | "empty";
+
+export type StreamState =
+  /** Nothing heard yet (or no such export). */
+  | { state: "none" }
+  /** The zip's first file is on its way. */
+  | { state: "streaming" }
+  /** How it ended, and the media ids the zip does not hold whole. */
+  | { state: StreamOutcome; missing: string[] };
+
+const OUTCOMES: readonly StreamOutcome[] = [
+  "saved",
+  "short",
+  "stopped",
+  "failed",
+  "empty",
+];
+
+/** The export's row (as `queries/exports.ts` reads it), as the walk hears it. */
+export function streamStateOf(
+  word: {
+    streamStartedAt: string | null;
+    streamEndedAt: string | null;
+    streamOutcome: string | null;
+    streamMissing: string[];
+  } | null,
+): StreamState {
+  if (!word) return { state: "none" };
+  const outcome = OUTCOMES.find((o) => o === word.streamOutcome);
+  if (word.streamEndedAt && outcome) {
+    return { state: outcome, missing: [...word.streamMissing] };
+  }
+  return word.streamStartedAt ? { state: "streaming" } : { state: "none" };
+}
+
+/** One status poll's meaning: the state, or null for no answer (the next tick asks again). */
+export function statusVerdict(a: Attempt): StreamState | null {
+  if (a.kind !== "answer" || a.status !== 200) return null;
+  const body = isRecord(a.body) ? a.body : null;
+  if (body?.ok !== true) return null;
+  if (body.state === "none" || body.state === "streaming") {
+    return { state: body.state };
+  }
+  const outcome = OUTCOMES.find((o) => o === body.state);
+  if (!outcome || !Array.isArray(body.missing)) return null;
+  return {
+    state: outcome,
+    missing: body.missing.filter((m): m is string => typeof m === "string"),
+  };
+}
+
+/**
+ * How long the walk waits for a stream to BEGIN: the Worker says so within a second or two of the file's
+ * POST, so silence this long means its word cannot reach this app, and the walk stops listening.
+ */
+export const START_HEARD_MS = 15_000;
+
+/** The longest the walk listens for a zip to END: a 20 GB part over a slow line, with time to spare. */
+export const WATCH_MAX_MS = 6 * 60 * 60 * 1000;
+
+/** One status poll's own ceiling. */
+export const STATUS_TRY_MS = 8_000;
+
+/**
+ * The pause before each status poll, by how long the walk has listened: every second while a zip begins
+ * (a small one ends in that time too), then backing off to every ten seconds for a long one, so an hour's
+ * download asks a few hundred times rather than thousands.
+ */
+export function watchPauseMs(listenedMs: number): number {
+  if (listenedMs < 15_000) return 1_000;
+  if (listenedMs < 60_000) return 2_000;
+  if (listenedMs < 5 * 60_000) return 5_000;
+  return 10_000;
 }
 
 /* ── where the file lands ─────────────────────────────────────────────────── */
@@ -216,6 +319,51 @@ export const WALK_COPY = {
     parts === 2
       ? "Both parts are downloading. That's\u00a0everything."
       : `All ${parts} parts are downloading. That's\u00a0everything.`,
+  /**
+   * One zip on its way, while the walk listens for the Worker's word on it (`export-ends`): where this
+   * device keeps it, as it happens.
+   */
+  downloading: (place: DownloadPlace) =>
+    place === "files"
+      ? "Saving to your Files app…"
+      : place === "downloads"
+        ? "Saving to your Downloads…"
+        : "Downloading…",
+  /** One zip, every byte of it out of the Worker: said where it is now. */
+  saved: (place: DownloadPlace) =>
+    place === "files"
+      ? "Saved to your Files app."
+      : place === "downloads"
+        ? "Saved to your Downloads."
+        : "Your download is saved.",
+  /** Between parts, the part before the tap: the Worker finished it. */
+  partSaved: (part: number, parts: number) =>
+    `Part ${part} of ${parts} is saved.`,
+  /** Between parts, a part the album thinned while it streamed: the count, `short`'s register. */
+  partShort: (found: number, items: number, part: number) =>
+    `${formatCount(found)} of ${formatCount(items)} are in part ${part}.`,
+  /** Between parts, a part that never finished (she stopped it, or the line or a read broke it). */
+  partStopped: (part: number, parts: number) =>
+    `Part ${part} of ${parts} stopped before it finished.`,
+  /** Between parts, a part the album emptied after its check: nothing was sent. */
+  partEmpty: (part: number, parts: number) =>
+    `Part ${part} of ${parts} had nothing left to download.`,
+  /** The walk's last word, every part saved by the Worker's own word. */
+  allSaved: (parts: number) =>
+    parts === 2
+      ? "Both parts are saved. That's\u00a0everything."
+      : `All ${parts} parts are saved. That's\u00a0everything.`,
+  /** One zip that never finished: nothing whole reached her. */
+  stopped: "That download stopped before it finished.",
+  /** A host's selection that mixes hidden and shown items asks first (`export-ends`). */
+  hiddenAsk: (hidden: number, total: number) =>
+    hidden === 1
+      ? `1 of these ${formatCount(total)} is hidden.`
+      : `${formatCount(hidden)} of these ${formatCount(total)} are hidden.`,
+  includeHidden: (hidden: number) =>
+    hidden === 1 ? "Include it" : "Include them",
+  leaveHidden: (hidden: number) =>
+    hidden === 1 ? "Leave it out" : "Leave them out",
   /** A walk whose later parts the album emptied meanwhile: what was taken is all there is. */
   everything: "That's everything.",
   /** A short zip, `failed=exact`'s register: the count first, then the act. */

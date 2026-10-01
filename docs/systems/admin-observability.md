@@ -139,10 +139,13 @@ three definitions of healthy:
   swallow and report (the caller raises the warning; Sentry never enters `src/lib/db/*`). Reads throw (`mustQuery`)
   and the page draws a loud banner, because a console reading "nothing to report" when it can read nothing is the
   failure this surface exists to prevent.
-- **A job that cannot reach the database** (the Worker, the GitHub Action) reports through `/api/internal/job-run`
-  with the internal-jobs bearer (`PRUNE_API_SECRET`). The endpoint can pause a job but never start one, so those jobs
-  show no Run now (a button that lies is worse than a sentence that explains), and only a `scheduled` job may open a
-  run there, since a start against a signal or a reading would leave a `running` row nothing closes.
+- **A job that cannot reach the database** (the backup Worker, the GitHub Action) reports through
+  `/api/internal/job-run` with the internal-jobs bearer (`PRUNE_API_SECRET`). The endpoint can pause a job but never
+  start one, so those jobs show no Run now (a button that lies is worse than a sentence that explains), and only a
+  `scheduled` job may open a run there, since a start against a signal or a reading would leave a `running` row
+  nothing closes. ★ The export Worker is the exception: its daily heartbeat (the `export` job) rides its own signed
+  report (`/api/export/report`, [uploads-and-r2.md](uploads-and-r2.md)) and is written as one closed row, so a Worker
+  whose export secret drifted from the app's reads Missed, where a second bearer would have let it check in healthy.
 - ★ **A missing reading is never a zero:** an unreadable queue contributes no key and the card says "No reading", and
   a stale reading inherits its source's health.
 
