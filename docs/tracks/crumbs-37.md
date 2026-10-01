@@ -5,13 +5,27 @@ cut: "3925f9f0"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   - src/lib/events/album-sync.ts
+  - src/lib/events/album-sync.test.ts
   - src/lib/db/queries/album-state.ts
-  - src/app/api/cron/purge/route.ts
+  - src/lib/album/testing/album-sim.ts
+  - src/lib/db/album-version.test.ts
+  - src/app/api/cron/purge/
   - src/lib/jobs/sweep-tally.ts
+  - src/lib/jobs/sweep-tally.test.ts
+  - src/app/admin/jobs/catalog.ts
+  - src/app/admin/jobs/catalog.test.ts
+  - src/lib/lifecycle/sweeps/album-log.ts
+  - src/lib/lifecycle/sweeps/album-log.test.ts
   - src/lib/lifecycle/sweeps/over-capacity.ts
+  - src/lib/lifecycle/sweeps/over-capacity.test.ts
   - src/lib/lifecycle/over-cap.ts
   - src/app/admin/albums/[eventId]/page.tsx
   - src/app/admin/albums/actions.ts
+  - src/lib/db/queries/moderation.ts
+  - src/lib/db/queries/moderation.test.ts
+  - src/lib/db/upkeep-migrations.test.ts
+  - supabase/migrations/20261001150000_album_log_prune.sql
+  - supabase/migrations/20261001151000_removed_media_index.sql
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/guest-flow.md
   - docs/systems/host-app.md
@@ -79,3 +93,14 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am
+
+- Booted at `58b359e8` in `/Users/gibby/local/ai/partyreel-wt/crumbs-37` (port 3131, scratch `_scratch/crumbs-37`).
+- Done: nothing yet.
+- In progress: item 1's planner and model (the watermark rule in `album-sync.ts`, the prune in `album-sim.ts`).
+- Left: items 1 (SQL, the job, the catalog, the route), 2, 3, 4; system docs; the gate; the handoff.
+- Measured (live, 2026-10-01): media 1,480 (67 removed, every one with `purge_at`; `purge_at` is set exactly when
+  removed, by `set_media_purge_at`), events 63 (46 soft-deleted), album_state 58, album_changes 1,344 of which 5 are
+  tombstones in 4 albums; `standby_hosts`' plan today is a Seq Scan on media with the OR as a join filter.
+
