@@ -221,9 +221,15 @@ says so in words, never "No feedback yet".
 
 ## Sentry
 
-`@sentry/nextjs` on the free tier, DSN-gated: with `NEXT_PUBLIC_SENTRY_DSN` unset it is a no-op, so dev and an
-unconfigured build stay green without a hard assert. Session Replay records only on error, with all media blocked and
-all text masked; `sendDefaultPii` is off, and `scrubEvent` strips presigned-URL query strings and emails.
+`@sentry/nextjs` on the free tier, gated twice: with `NEXT_PUBLIC_SENTRY_DSN` unset it is a no-op, so an unconfigured
+build stays green without a hard assert; and it reports only from a Vercel production or preview deployment
+(`isVercelDeployment`: `VERCEL_ENV` on the server and edge, `NEXT_PUBLIC_VERCEL_ENV` in the browser), so a localhost
+run, `next start` included, sends nothing though `.env.local` holds the production DSN. Session Replay records only on
+error, with all media blocked and all text masked; `sendDefaultPii` is off, and `scrubEvent` strips presigned-URL query
+strings and emails.
+- ★ **A Vercel project must expose its system environment variables, or its browser goes quiet** (the server and edge
+  read the runtime variable). A project's first browser error must read `vercel-production` or `vercel-preview` in
+  Sentry, never `production`; the admin project shares the DSN and the check.
 - **Capture with `captureError` / `captureWarning(area, …)` only where an error is swallowed** (the upload finalizer,
   the webhook, the cron's `runSweep`, admin actions); everything else rides `onRequestError`, and routine user
   rejections (caps, limits, a closed album) are not errors. Sentry never enters `src/lib/db/*` (capture at the route

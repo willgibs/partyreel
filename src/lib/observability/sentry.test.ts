@@ -86,3 +86,73 @@ describe("captureError / captureWarning: the scheduled flush", () => {
     });
   });
 });
+
+/**
+ * ONLY A VERCEL DEPLOYMENT REPORTS (crumbs-34). `.env.local` holds the production project's DSN, and
+ * `enabled: Boolean(dsn)` sent every localhost run into it as `environment=development`. The gate is
+ * read at import, so each case imports a fresh copy of the module under its own environment: the
+ * DSN, the server's `VERCEL_ENV` and the browser's `NEXT_PUBLIC_VERCEL_ENV`.
+ */
+describe("commonInit.enabled: a DSN reports only from a Vercel deployment", () => {
+  const DSN = "https://public@o0.ingest.sentry.io/1";
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  async function enabledUnder(vars: {
+    dsn?: string;
+    serverEnv?: string;
+    browserEnv?: string;
+  }): Promise<boolean> {
+    vi.resetModules();
+    vi.stubEnv("NEXT_PUBLIC_SENTRY_DSN", vars.dsn);
+    vi.stubEnv("VERCEL_ENV", vars.serverEnv);
+    vi.stubEnv("NEXT_PUBLIC_VERCEL_ENV", vars.browserEnv);
+    const { commonInit } = await import("./sentry");
+    return commonInit.enabled;
+  }
+
+  it("a localhost run stays quiet with the DSN in .env.local (the report that began this)", async () => {
+    expect(await enabledUnder({ dsn: DSN })).toBe(false);
+  });
+
+  it("an .env.local pulled from Vercel (VERCEL_ENV=development) is a localhost run too", async () => {
+    expect(await enabledUnder({ dsn: DSN, serverEnv: "development" })).toBe(
+      false,
+    );
+    expect(await enabledUnder({ dsn: DSN, browserEnv: "development" })).toBe(
+      false,
+    );
+  });
+
+  it("production and preview both report: the alias and its red-teams keep their errors", async () => {
+    expect(await enabledUnder({ dsn: DSN, serverEnv: "production" })).toBe(
+      true,
+    );
+    expect(await enabledUnder({ dsn: DSN, serverEnv: "preview" })).toBe(true);
+  });
+
+  it("the browser reads Vercel's exposed copy of the same marker", async () => {
+    expect(await enabledUnder({ dsn: DSN, browserEnv: "preview" })).toBe(true);
+    expect(await enabledUnder({ dsn: DSN, browserEnv: "production" })).toBe(
+      true,
+    );
+  });
+
+  it("a deployment with no DSN stays a no-op: an unconfigured build is green, never an error", async () => {
+    expect(await enabledUnder({ serverEnv: "production" })).toBe(false);
+  });
+});
+
+describe("isVercelDeployment", () => {
+  it("is Vercel's own production and preview, and nothing local", async () => {
+    const { isVercelDeployment } = await import("./sentry");
+    expect(isVercelDeployment("production")).toBe(true);
+    expect(isVercelDeployment("preview")).toBe(true);
+    expect(isVercelDeployment("development")).toBe(false);
+    expect(isVercelDeployment("")).toBe(false);
+    expect(isVercelDeployment(undefined)).toBe(false);
+  });
+});

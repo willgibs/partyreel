@@ -259,11 +259,11 @@ makes from it.
 1. who-can-see-your-event
 2. password-protect-your-event
 3. require-verified-emails-explained
-4. photo-metadata-and-location
-5. how-long-media-is-kept
-6. reporting-and-safety
-7. your-data-and-deleting-your-account
-8. require-an-upload-to-view-explained
+4. require-an-upload-to-view-explained
+5. photo-metadata-and-location
+6. how-long-media-is-kept
+7. reporting-and-safety
+8. your-data-and-deleting-your-account
 
 ### 10 Troubleshooting
 
