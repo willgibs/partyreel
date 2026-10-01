@@ -41,9 +41,9 @@ export const KIT_PIECES: readonly KitPiece[] = [
   {
     names: ["Frame"],
     file: "src/components/lab/frame.tsx",
-    note: "the lab's only real viewport: a same-origin iframe the preview portals into, so `vw`, breakpoints and the type ladder read the frame's width, not the lab's",
+    note: "the lab's only real viewport: a same-origin iframe the preview portals into, so `vw`, breakpoints and the type ladder read the frame's width, not the lab's. A portalled one is its own world: a link or a form pressed in it goes nowhere, a production popup, menu or tooltip opens inside it, and it follows the lab's theme toggle while open",
     reach:
-      "for anything judged at a width (a page, a breakpoint, a phone column). Its neighbours in frame.tsx (FrameRow, for frames that scroll together) join the front door in the change whose board first needs them.",
+      "for anything judged at a width (a page, a breakpoint, a phone column), production drawn whole, its layers included: no `stopLinks` or `Inert` of the board's own is needed. Its neighbours in frame.tsx (FrameRow, for frames that scroll together) join the front door in the change whose board first needs them.",
     seen: "/design/lab/sample",
   },
   {

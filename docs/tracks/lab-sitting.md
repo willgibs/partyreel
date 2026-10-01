@@ -12,6 +12,37 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/lab/step.tsx
   - src/app/(dev)/design/(shell)/_shell/copy.tsx
   - src/app/(dev)/design/design.css
+  # added by the lane (each named under its item in the Handoff)
+  - src/app/(dev)/design/(shell)/lab/page.tsx
+  - src/app/(dev)/design/(shell)/lab/[board]/page.tsx
+  - src/app/(dev)/design/(shell)/lab/kit/notes.ts
+  - src/app/(dev)/design/(shell)/_shell/copy.test.tsx
+  - src/app/(dev)/design/_data/state.ts
+  - src/app/(dev)/design/design-css.test.ts
+  - src/components/lab/board-page-context.tsx
+  - src/components/lab/board-state.test.tsx
+  - src/components/lab/dead-components.test.ts
+  - src/components/lab/frame.test.tsx
+  - src/components/lab/step.test.tsx
+  - src/components/lab/step-thumb.tsx
+  - src/components/lab/step-thumb.test.tsx
+  - src/components/lab/walk.tsx
+  - src/components/ui/portal-container.tsx
+  - src/components/ui/portal-container.test.ts
+  - src/components/ui/command-palette.tsx
+  - src/components/ui/dialog.tsx
+  - src/components/ui/dropdown-menu.tsx
+  - src/components/ui/popover.tsx
+  - src/components/ui/responsive-menu.tsx
+  - src/components/ui/select.tsx
+  - src/components/ui/sheet.tsx
+  - src/components/ui/tooltip.tsx
+  - src/components/shared/tooltip-slide.tsx
+  - src/components/app/share/code-card.tsx
+  - src/components/marketing/help/help-palette.tsx
+  - src/components/reel/clip-creator.tsx
+  - src/components/marketing/sections/features/album/everywhere-peek.tsx
+  - scripts/lab-demo.mjs
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/PROGRAM.md
   - docs/systems/design-system.md

@@ -38,6 +38,7 @@
  * the first Make it or an idle warm-up.
  */
 import { Dialog as DialogPrimitive, Tabs as TabsPrimitive } from "radix-ui";
+import { usePortalContainer } from "@/components/ui/portal-container";
 import {
   lazy,
   Suspense,
@@ -632,7 +633,7 @@ export function ClipCreator({
         if (!open) onClose();
       }}
     >
-      <DialogPrimitive.Portal>
+      <DialogPrimitive.Portal container={usePortalContainer()}>
         <DialogPrimitive.Content
           aria-describedby={undefined}
           data-clip-creator={phase}

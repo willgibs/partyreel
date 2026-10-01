@@ -2,7 +2,12 @@
 
 import { useSyncExternalStore } from "react";
 
-import { boardNoteHoldId, holdId, itemHoldId } from "./step-id";
+import {
+  boardNoteHoldId,
+  holdId,
+  itemHoldId,
+  PROGRAM_NOTE_HOLD,
+} from "./step-id";
 
 /**
  * THE SESSION'S ANSWERS (the Library x Lab round, 2026-09-15): what Will has
@@ -55,10 +60,17 @@ export type ReviewStore = {
   items: Record<string, HeldItem>;
   /**
    * The hold ids already composed into a paste: an answer's or an item's own
-   * key, and `note:<board>` for a board note (`boardNoteHoldId`). Writing an
-   * entry clears its mark.
+   * key, `note:<board>` for a board note (`boardNoteHoldId`) and `note:*` for
+   * the note on the whole program. Writing an entry clears its mark.
    */
   sent: Record<string, Sent>;
+  /**
+   * ★ THE NOTE FOR THE WHOLE PROGRAM (lab-sitting, 2026-10-01): what he says
+   * at the end of a walk about no one board. It rides the paste as a bare
+   * `note: "..."`, which the transcript records nowhere and says where it goes.
+   * Empty when there is none; a payload from before it existed loads with none.
+   */
+  program: string;
 };
 
 /**
@@ -77,6 +89,7 @@ export const EMPTY_REVIEW: ReviewStore = Object.freeze({
   notes: {},
   items: {},
   sent: {},
+  program: "",
 });
 
 let store: ReviewStore = EMPTY_REVIEW;
@@ -97,6 +110,8 @@ function load() {
       items: parsed.items ?? {},
       // And a v1 payload loads with nothing marked sent (see KEY, above).
       sent: parsed.sent ?? {},
+      // And a payload from before the program's note loads with none.
+      program: typeof parsed.program === "string" ? parsed.program : "",
     });
   } catch {
     // Private mode, or a blocked store: the session still works, unsaved.
@@ -219,6 +234,16 @@ export function setBoardNote(board: string, note: string): void {
     ...store,
     notes,
     sent: unmark(store.sent, boardNoteHoldId(board)),
+  });
+}
+
+/** The note on the whole program; writing it clears its sent mark. */
+export function setProgramNote(note: string): void {
+  load();
+  setReviewStore({
+    ...store,
+    program: note,
+    sent: unmark(store.sent, PROGRAM_NOTE_HOLD),
   });
 }
 

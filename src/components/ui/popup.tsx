@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { Dialog as PopupPrimitive } from "radix-ui"
+import { usePortalContainer } from "@/components/ui/portal-container"
 import { ChevronLeftIcon, XIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -315,7 +316,7 @@ function PopupContent({
 
   return (
     <PopupShapeContext.Provider value={shape}>
-      <PopupPrimitive.Portal>
+      <PopupPrimitive.Portal container={usePortalContainer()}>
         <PopupPrimitive.Overlay
           data-slot="popup-overlay"
           data-shape={shape}

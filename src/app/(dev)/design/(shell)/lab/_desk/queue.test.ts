@@ -18,6 +18,7 @@ import {
   transcribedFrom,
 } from "./queue";
 import { SAMPLE_BOARD } from "./sample-spec";
+import { stepParam, toSteps } from "./session-step";
 import { holdId, itemHoldId, itemsStepId, stepId } from "./step-id";
 
 /**
@@ -365,5 +366,57 @@ describe("a board's notes are its own", () => {
       "its own, in its own ledger",
       "filed on this board",
     ]);
+  });
+});
+
+/**
+ * AN ANSWERED ASK STAYS REACHABLE BY ITS LINK (lab-sitting, from ROADMAP's line: "a fully answered ask is
+ * unreachable by `?session=<board>.<ask>` even by a direct link (`_desk/queue.ts`'s `boardWork` walks only
+ * asks with no ledger answer), against `lab-demo.mjs`'s claim that an answered step stays measurable").
+ *
+ * The walk is the open work and stays so; a link that names an answered ask (the desk's own pill, a pasted
+ * link, `lab:demo --only`) brings that one ask along, in its place in the board's run, with the ledger's
+ * answer on it, so the step can say it is on record and out of the walk rather than draw a blank page.
+ */
+describe("an answered ask reached by its link", () => {
+  const answered = () =>
+    deskRows(
+      [BOARD],
+      () => status(SAMPLE_BOARD.round.n, [["grain", "five"]]),
+      () => [],
+    );
+
+  it("★ comes along when the session names it, in its place, its answer on it", () => {
+    const [work] = boardWork(answered(), stepId(SAMPLE_BOARD.id, "grain"));
+    const ids = work.asks.map((a) => a.ask.id);
+    expect(ids).toEqual(SAMPLE_BOARD.asks.map((a) => a.id));
+    expect(work.asks.find((a) => a.ask.id === "grain")?.answer).toEqual({
+      choice: "five",
+      note: undefined,
+    });
+  });
+
+  it("stays out of the walk when nothing names it", () => {
+    const [work] = boardWork(answered());
+    expect(work.asks.map((a) => a.ask.id)).not.toContain("grain");
+    const [other] = boardWork(answered(), stepId("another-board", "grain"));
+    expect(other.asks.map((a) => a.ask.id)).not.toContain("grain");
+  });
+
+  it("reaches the step as one on record", () => {
+    const steps = toSteps(
+      boardWork(answered(), stepId(SAMPLE_BOARD.id, "grain")),
+      () => SAMPLE_BOARD,
+      null,
+    );
+    const grain = steps.find((s) => s.kind === "ask" && s.askId === "grain");
+    expect(grain?.kind === "ask" && grain.recorded).toEqual({
+      choice: "five",
+      note: undefined,
+    });
+    // Every open step is still open, and none of them is on record.
+    expect(
+      steps.filter((s) => s.kind === "ask" && s.recorded).map(stepParam),
+    ).toEqual([stepId(SAMPLE_BOARD.id, "grain")]);
   });
 });

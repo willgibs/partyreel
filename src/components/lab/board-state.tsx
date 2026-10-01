@@ -2,6 +2,8 @@
 
 import { useCallback, useMemo, useSyncExternalStore } from "react";
 
+import { cn } from "@/lib/utils";
+
 import type { BoardSpec, BoardState, Control } from "./board-spec";
 import { Knob } from "./dock";
 import { Toggle } from "./toggle";
@@ -156,18 +158,68 @@ export function ControlKnobs({
     <>
       {controls.map((c) => (
         <Knob key={c.id} label={c.label} quiet={quiet}>
-          <Toggle
-            ariaLabel={c.label}
-            options={c.options.map((o) => ({ id: o.id, label: o.label }))}
-            value={state[c.id] ?? c.default}
-            onChange={(v) => setState({ [c.id]: v })}
-            quiet={quiet}
-            // Four or more options overflow a 343px dock at 375 (rounding,
-            // 2026-09-16); the quiet row scrolls instead.
-            wrap={!quiet && c.options.length > 3}
-          />
+          {c.options.length > LONG_CONTROL ? (
+            <LongControl
+              control={c}
+              value={state[c.id] ?? c.default}
+              onChange={(v) => setState({ [c.id]: v })}
+              quiet={quiet}
+            />
+          ) : (
+            <Toggle
+              ariaLabel={c.label}
+              options={c.options.map((o) => ({ id: o.id, label: o.label }))}
+              value={state[c.id] ?? c.default}
+              onChange={(v) => setState({ [c.id]: v })}
+              quiet={quiet}
+              // Four or more options overflow a 343px dock at 375 (rounding,
+              // 2026-09-16); the quiet row scrolls instead.
+              wrap={!quiet && c.options.length > 3}
+            />
+          )}
         </Knob>
       ))}
     </>
+  );
+}
+
+/**
+ * ★ ABOVE EIGHT OPTIONS A CONTROL IS A SELECT (lab-sitting, 2026-10-01). A pill
+ * row of nine wraps to two or three rows in the dock at a desk and runs a long
+ * way along the step's one quiet row, so the dock spends a screen on one knob;
+ * a select is one control's width whatever it holds. Eight and under keep their
+ * pills, where every option is one press and all of them are in view.
+ */
+export const LONG_CONTROL = 8;
+
+function LongControl({
+  control,
+  value,
+  onChange,
+  quiet,
+}: {
+  control: Control;
+  value: string;
+  onChange: (v: string) => void;
+  quiet: boolean;
+}) {
+  return (
+    <select
+      aria-label={control.label}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className={cn(
+        "min-w-0 cursor-pointer border border-border bg-card font-medium text-foreground",
+        quiet
+          ? "h-[24px] rounded-md px-1.5 text-[11px]"
+          : "h-[30px] rounded-lg px-2 text-[12px]",
+      )}
+    >
+      {control.options.map((o) => (
+        <option key={o.id} value={o.id}>
+          {o.label}
+        </option>
+      ))}
+    </select>
   );
 }

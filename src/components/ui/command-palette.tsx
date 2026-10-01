@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { Dialog as DialogPrimitive } from "radix-ui"
+import { usePortalContainer } from "@/components/ui/portal-container"
 import { SearchIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -147,7 +148,7 @@ function CommandPaletteContent({
   label: string
 }) {
   return (
-    <DialogPrimitive.Portal>
+    <DialogPrimitive.Portal container={usePortalContainer()}>
       <DialogPrimitive.Overlay
         data-slot="command-palette-overlay"
         className={cn(

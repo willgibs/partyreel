@@ -13,6 +13,8 @@ import { createPortal } from "react-dom";
 
 import { cn } from "@/lib/utils";
 
+import { PortalContainerProvider } from "@/components/ui/portal-container";
+
 import { useMountOnApproach } from "./approach";
 import { useDesignKey } from "./walk";
 
@@ -279,9 +281,10 @@ export function Frame({
   const register = lock === undefined ? rowLock : lock;
   const key = useDesignKey();
   const [box, near] = useMountOnApproach();
-  // The parent's theme classes, so a portalled scene lands on the same ground.
+  // The parent's theme classes, so a portalled scene lands on the same ground,
+  // and follows it while the frame is open (`subscribeTheme`).
   const themeClass = useSyncExternalStore(
-    () => () => {},
+    subscribeTheme,
     () => document.documentElement.className,
     () => "",
   );
@@ -436,18 +439,6 @@ export function Frame({
           copy.dataset.labCopied = "";
           fdoc.head.appendChild(copy);
         });
-      // ★ THE FONT VARIABLES LIVE ON <html>, NOT IN A SHEET. next/font emits a
-      // class that DECLARES `--font-inter` and `--font-urbanist`, and the rule
-      // that does it comes over with the stylesheets above; what does not come
-      // over is the class itself, which sits on the parent's <html>. Without
-      // it every portalled scene fell back to the browser's serif while its
-      // sizes and colours were correct, which reads as a broken preview rather
-      // than a missing variable (found on the first portalled exploration,
-      // 2026-09-18). Copying the class brings the faces and the theme with it.
-      fdoc.documentElement.setAttribute(
-        "class",
-        document.documentElement.className,
-      );
       const reset = fdoc.createElement("style");
       reset.dataset.labCopied = "";
       // `:where(table)` carries no specificity, so a board's own table rule
@@ -460,6 +451,29 @@ export function Frame({
       setReach("blocked");
     }
   }, [children, loads, ready, src]);
+
+  // ★ THE FONT VARIABLES LIVE ON <html>, NOT IN A SHEET. next/font emits a
+  // class that DECLARES `--font-inter` and `--font-urbanist`, and the rule
+  // that does it comes over with the stylesheets the copy effect brings;
+  // what does not come over is the class itself, which sits on the parent's
+  // <html>. Without it every portalled scene fell back to the browser's serif
+  // while its sizes and colours were correct, which reads as a broken preview
+  // rather than a missing variable (found on the first portalled exploration,
+  // 2026-09-18). Copying the class brings the faces and the theme with it.
+  //
+  // ★ AND IT FOLLOWS THE LAB'S TOGGLE (lab-sitting, 2026-10-01, from
+  // `claims-r3`'s line): it was copied once per load, so the lab's theme
+  // toggle left every open frame in the old theme until a reload. It is
+  // written whenever the parent's class changes, on the frame's <html> and on
+  // the scene's own ground below.
+  useEffect(() => {
+    if (!doc) return;
+    try {
+      doc.documentElement.setAttribute("class", themeClass);
+    } catch {
+      // A document torn down mid-write; the next load writes it again.
+    }
+  }, [doc, themeClass]);
 
   return (
     <figure
@@ -512,7 +526,30 @@ export function Frame({
           />
         ) : null}
         {children && doc
-          ? createPortal(<div className={themeClass}>{children}</div>, doc.body)
+          ? createPortal(
+              // ★ THE SCENE IS ITS OWN WORLD (lab-sitting, 2026-10-01, from
+              // `event-ready`'s line). It is the lab's React tree drawn into
+              // the frame's document, so a production `<Link>` pressed in it
+              // navigated the LAB (boards each carried a `stopLinks` or an
+              // `Inert` of their own) and a radix layer opened over the lab at
+              // the lab's coordinates (a board quoted the Settings popup
+              // inline instead). The frame swallows every link and form here,
+              // once for every board, and hands every portal in the product
+              // its own body (`usePortalContainer`), so a board draws
+              // production whole: its popup, its menus and its tooltips open
+              // inside the page they belong to.
+              <PortalContainerProvider value={doc.body}>
+                <div
+                  className={themeClass}
+                  onClickCapture={swallowLink}
+                  onAuxClickCapture={swallowLink}
+                  onSubmitCapture={(event) => event.preventDefault()}
+                >
+                  {children}
+                </div>
+              </PortalContainerProvider>,
+              doc.body,
+            )
           : null}
         {reach === "blocked" ? (
           <p className="absolute inset-x-0 top-0 bg-destructive px-2 py-1 text-[11px] font-medium text-white">
@@ -523,6 +560,25 @@ export function Frame({
       </div>
     </figure>
   );
+}
+
+/** A press on a link inside a scene goes nowhere: the frame is a picture of a page. */
+function swallowLink(event: React.MouseEvent) {
+  const target = event.target as Element | null;
+  if (target?.closest?.("a[href]")) event.preventDefault();
+}
+
+/**
+ * The parent's theme, as a store: the lab's toggle writes the class on its
+ * <html>, and every open frame hears it.
+ */
+function subscribeTheme(notify: () => void): () => void {
+  const observer = new MutationObserver(notify);
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class"],
+  });
+  return () => observer.disconnect();
 }
 
 /* ── A row of frames ───────────────────────────────────────────────────── */

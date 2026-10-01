@@ -1027,3 +1027,56 @@ describe("a step says where it is before it asks", () => {
     expect(listed).toHaveTextContent("a gate");
   });
 });
+
+/**
+ * AN ANSWERED STEP REACHED BY ITS LINK (lab-sitting, from ROADMAP's line on `?session=<board>.<ask>`). The
+ * route brings an answered ask along when the link names it (`boardWork`), marked with the ledger's answer
+ * (`recorded`); the step draws it, out of the walk, landing on the answer on record, so a link to a question
+ * he already answered shows the question rather than a blank page.
+ */
+describe("a step reached on record", () => {
+  const ON_RECORD: AskStep = {
+    ...REGISTER,
+    recorded: { choice: "accent", note: "warm enough" },
+  };
+  const WALK: SessionStep[] = [DEPTH, ON_RECORD, LANDING, ELSEWHERE];
+
+  it("★ draws the question, says it is on record and out of the walk, and lands on the answer", () => {
+    const board = fakeBoard();
+    const { container } = step("light.register", board, "light", WALK);
+    expect(screen.getByRole("heading")).toHaveTextContent(REGISTER.question);
+    expect(screen.queryByText(/step \d+ of/)).not.toBeInTheDocument();
+    expect(screen.getByText(/answered on record: Accent/)).toBeInTheDocument();
+    expect(board.state.register).toBe("accent");
+    expect(container.querySelector("[data-lab-stage-label]")).toHaveTextContent(
+      "Accent: a glow on one section",
+    );
+  });
+
+  it("is skipped by the walk around it", async () => {
+    step("light.depth", fakeBoard(), "light", WALK);
+    // DEPTH and the moot LANDING aside, the walk is DEPTH then ELSEWHERE.
+    expect(screen.getByText("step 1 of 2")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /^Next$/ }));
+    expect(push).toHaveBeenCalledWith(
+      "/design/lab/type-scale?session=type-scale.ladder",
+    );
+  });
+});
+
+/**
+ * A LINK THAT NAMES NO QUESTION ON THIS BOARD (lab-sitting). A step id with a typo, or one a board has since
+ * withdrawn, used to draw an empty page under the top bar: no question, no way on. It says so, and the
+ * whole board is one press away.
+ */
+describe("a step link that names nothing here", () => {
+  it("says the board asks no such question, with the way to the whole board", () => {
+    step("light.nope", fakeBoard());
+    expect(
+      screen.getByText(/asks no question called .nope./),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Open the whole board" }),
+    ).toHaveAttribute("href", "/design/lab/light");
+  });
+});

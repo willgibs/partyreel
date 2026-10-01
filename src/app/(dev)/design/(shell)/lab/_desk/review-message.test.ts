@@ -214,3 +214,33 @@ describe("the build the message was composed on", () => {
     ).toBe("review light r4: aurora=yes");
   });
 });
+
+/**
+ * A NOTE FOR THE WHOLE PROGRAM (lab-sitting, from ROADMAP's line: "the desk's end-of-walk message has no
+ * place for a note about the whole program (it reaches the Orchestrator only through chat)"). The
+ * transcript has read a bare `note: "..."` since 2026-09-29 and records it nowhere, printing where it goes;
+ * this is its producer: one line of its own, after every board's and the Library's.
+ */
+describe("a note for the whole program", () => {
+  it("rides as a bare note line, after the boards", () => {
+    expect(
+      composeMessage(
+        [{ board: "light", round: 4, ask: "aurora", choice: "yes" }],
+        [],
+        [],
+        [],
+        "6f25638",
+        'the desk; "pictures first" everywhere',
+      ),
+    ).toBe(
+      '# build 6f25638\nreview light r4: aurora=yes\nnote: "the desk; \\"pictures first\\" everywhere"',
+    );
+  });
+
+  it("is a message on its own, and nothing when it is blank", () => {
+    expect(composeMessage([], [], [], [], null, "only this")).toBe(
+      'note: "only this"',
+    );
+    expect(composeMessage([], [], [], [], "6f25638", "   ")).toBe("");
+  });
+});
