@@ -23,6 +23,9 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/lifecycle/sweeps/over-capacity.ts
   - src/lib/lifecycle/sweeps/over-capacity.test.ts
   - src/lib/lifecycle/over-cap.ts
+  - src/lib/media/auto-reduce.ts
+  - src/lib/media/auto-reduce.test.ts
+  - src/lib/lifecycle/recently-deleted.ts
   - src/app/admin/albums/[eventId]/page.tsx
   - src/app/admin/albums/actions.ts
   - src/lib/db/queries/moderation.ts
@@ -108,8 +111,11 @@ working.
   green on the live schema rolled back (`_scratch/crumbs-37/proofA-live.log`), pre-flighted and stressed locally
   (494,326 pgbench transactions, none of 158 random-writer deadlocks names the prune or an album row, invariants
   held); `sweepAlbumLog` (rotating, budgeted, wraps), the `purge_album_log` job, the route's tenth budgeted sweep.
-- In progress: item 4 (the over-capacity reduce paged).
-- Left: items 2, 3, 4; system docs; the gate; the handoff.
+- Done: item 4 (next commit): the reduce reads the active set largest first a page at a time (`reduceToCap`,
+  `takeLargestFirst`), stops reading once what is left fits, asks the deadline before every page; a reduce stopped
+  part way keeps its grace and mail, counts as left and the next run starts AT it. Red on today's code (2 tests).
+- In progress: item 3 (the admin album drill-in paged).
+- Left: items 2, 3; system docs; the gate; the handoff.
 - Measured (live, 2026-10-01): media 1,480 (67 removed, every one with `purge_at`; `purge_at` is set exactly when
   removed, by `set_media_purge_at`), events 63 (46 soft-deleted), album_state 58, album_changes 1,344 of which 5 are
   tombstones in 4 albums; `standby_hosts`' plan today is a Seq Scan on media with the OR as a join filter.
