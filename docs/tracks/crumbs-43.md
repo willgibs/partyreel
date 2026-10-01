@@ -1,6 +1,6 @@
 ---
 track: crumbs-43
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "07277c23"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -130,13 +130,93 @@ Each is built as recommended; each is Will's to overrule.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed on `lp/crumbs-43`, cut from `11653a5e`; no sync.** launch-prep moved to `5090991c` (build 36's
+  records, the regenerated types and the seams they dropped, `readOwnUploads` on the typed admin client: its signature
+  unchanged, none of this lane's reads touched, no conflict). A trial merge (`009a4d66`, never pushed, stepped back
+  off) failed one pin that is not this lane's: `record-depth-policy.test.ts`, `docs/STATUS.md` at 83 lines on
+  `origin/launch-prep` (79 at this lane's base), a record doc. The work: `2e4edda2` "A guest" · `dbac674a` likes ·
+  `9b802a07` + `70b6ac72` the welcome · `0b5a1490` the flip · `219ada38` the two migrations and the cap · `5642b78e` +
+  `f3594782` Back · `a75d6077` + `ec1ff430` waiting uploads · `f7421e7a` the loading state · `15469900` + `d5ab443d`
+  docs and this manifest. The head is in the chat line.
+- **Gates on `d5ab443d`, each on its own exit code** (logs in `_scratch/crumbs-43/g3-*.log`): `pnpm typecheck` 0 ·
+  `pnpm lint` 0 · `pnpm test` 0 (697 files, 8,369 tests) · `zsh scripts/build-lock.sh pnpm build` 0 ·
+  `pnpm lab:smoke --base http://localhost:3133` 0 (137 checks, 0 failing; `/design/lab/tools/boom`'s 500 is that tool's
+  own). Every item's new pin was run against today's code first and failed there (each commit's tests; the red runs
+  restored the old file and ran the pin).
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): every path under `owns` or this file, the four
+  system docs under System-doc edits, and three exceptions, each one assertion in a shared pin this lane's change
+  reshapes on purpose (scar kept, expired reason dropped, both named in the file): `src/lib/db/migration-guards.test.ts`
+  (the read's last-column guard now names `max_upload_bytes` after `accepts_video`), `src/lib/refresh-then-write-policy.test.ts`
+  (masonry's address writers are now `openItem`, `closeItem` and `leaveEntry`), `src/components/app/recently-deleted-grid.test.tsx`
+  (the bin's Restore: the address clears as the close's Back lands, not in the same tick).
+- **The items, one line each:**
+  - Back closes the photograph: the viewer stands on `lib/history-entry.ts` (`prPhoto`): a tap pushes one entry, a walk
+    replaces inside it, every close goes Back, the phone's Back drops the photograph into its tile (at once where the
+    browser drew its own swipe, `hasUAVisualTransition`), Forward reopens, a shared `?photo=` closes in place.
+    `masonry.tsx`, `media-lightbox.tsx` (`closeRequest`, a microtask late: `flushSync` refused inside the effect, measured).
+  - The welcome goes with its ticket: `forgetWelcome` on `dropGuestTicket`, `forgetAllWelcomes` on every sign-out; the
+    door's name step keeps it (its person just passed it). `use-welcome-seen.ts`, `use-stored-session.ts`.
+  - One row for a re-join: the flip keeps a name-only ticket (`use-upload-queue.ts`); no device id read anywhere.
+  - The host's cap: `get_event_by_qr_token` returns `max_upload_bytes` last (migration 233000), read by `hostCapOf`, handed
+    to the Add sheet and the door's upload step, never the owner's.
+  - A face moves at once: `profiles_album_note` and its stamp watch `avatar_updated_at` and `slug` (migration 233100).
+  - Show-more hearts: an id joining `initialLikedIds` is liked before paint (`likes-provider.tsx`).
+  - Her waiting uploads: `hasWaitingUploads` (server, the page, empty held albums only) → `waitingOnArrival` → `galleryEmpty`.
+  - "A guest" retired: the typed-name entry's `displayName` is `string` (the server's shape), no stand-in in chip or look.
+  - The viewer's loading state: a ring on the photograph's corner while the original comes (after 600 ms; load or error
+    ends it; quiet while flying, pulled or zoomed); a clip's ring in its play button while it buffers (after 500 ms).
+- **The rolled-back proofs, on the live schema, red first** (results at each file's foot, nothing persisted, checked
+  after): 233000 red 0/1/4 fail, green 5/5 (the body hashes `024a2e476715c354436de3fa5708f30f`); 233100 red 0/1/2/5 fail,
+  green 6/6 (a new face moves `attr_version` 2 -> 3).
+- **Local, on `:3133` in headless Chrome** (scripts and captures in `_scratch/crumbs-43/`, never the repo): the demo
+  album and a signed-out guest album (`Reel lane probe (disposable)`, joined each run: six name-only rows, "C43 Probe
+  375", "C43 Probe 1440" and "C43 Console" twice each, no uploads, on no list), at 375 (touch) and 1440: a tap pushed one entry with `prPhoto`, the browser's Back closed the viewer onto
+  the album (index 2 -> 1) with the 220 ms drop into the tile, Forward reopened it, a step stayed on one entry, the X
+  went Back, a `?photo=` link closed in place; the terms line read "Photos and videos, up to 10 GB each." on the door's
+  upload step and the Add sheet (no cap until 233000 applies); on a throttled network (50 KB/s, 300 ms) the ring stood
+  on the stand-in from about 3.5 s until the original painted near 12 s, and a clip's play button turned to the ring;
+  console clean on both albums after `f3594782`.
+- **For the next build's red-team (signed-in, or needing the migrations):**
+  1. Back on the host's hub album at 375 (willg97): open a photograph, the browser's Back closes it onto the hub;
+     Forward reopens; the X goes Back; in the bin, Restore closes and the item leaves. A confirmed sender's credit look
+     over the viewer (a hand's Sheet): Back closes the look alone, Back again the viewer.
+  2. The welcome on a shared phone: signed in on a guest album through the welcome, the header's Sign out: the page
+     stays and the door opens on the welcome, consent line and all, before its next step.
+  3. The flip (names mode): a signed-out "C43 Flip" adds a photo; the host turns An email first on; her next file
+     fails with the server's sentence and the page re-gates; the host turns it off; her Add lands; the Guests room and
+     `guests` hold ONE "C43 Flip" row. Variation: she confirms through Google's chooser instead, and the guest list shows
+     her once, confirmed.
+  4. After 233000: a test event with a 100 MB cap: a guest's Add sheet and the door's upload step say "up to 100 MB
+     each"; the host on her own guest page still reads 10 GB.
+  5. After 233100: a confirmed guest with an upload changes her photograph or handle; an open album elsewhere shows the
+     new face and door on the photograph's credit at its next poll, no reload.
+  6. willg97 with more than 200 likes (bulk-like the scale probe from the hub's select mode): Likes, Show more, open a
+     photograph from the new page: its heart is filled at once.
+  7. An empty album that holds uploads: a signed-out guest adds a photograph (it waits), reloads: the row's Add and her
+     tracker's badge from the first frame, and no "Add the first photo".
+  8. Slow 3G in DevTools: the viewer's ring on a photograph and a clip's ring, at 375 and 1440, under reduced motion too.
+- **The legal pages:** no word in `legal-privacy.tsx` goes stale ("small flags such as whether you have seen an event's
+  welcome screen" stays true; clearing site data still removes them).
+- **PREMISE (lab:smoke):** `disposable-mode`'s eight asks (the roll's camera, waiting room, wall, peek, create, video,
+  cost and Save) describe the disposable roll, which none of this touches: its "waiting" is the roll before it develops,
+  not a held upload, and the viewer's Save and Share are untouched. `event-ready`'s five (the host's readiness list,
+  guide, create, needs, door) meet `host-app.md` only through the one line naming the viewer among the history entry's
+  places. `locked-door`'s four (family, shape, wait, lost) keep their screens and words: the page gained one read on an
+  empty held album, and the welcome only moved WHEN it shows, as the brief allows.
+- Assets requested from Will: none.
+- Board ideas: the first tap on a tile over venue Wi-Fi waited 0.6 to 1.5 s for the viewer's own code on `next dev`
+  (the lazy chunk); worth a measure on a production build before any board.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** two migrations, independent, either order, each
+  safe before or after the build that reads it: `20261001233000_guest_event_cap.sql` (drift check: live
+  `get_event_by_qr_token` md5 `7ddab5f2a4e84c7cf788a35e2c5a7f43`; advisors: no delta; then regenerate `types.ts` and
+  drop `hostCapOf` for `row.max_upload_bytes ?? null`) and `20261001233100_faces_move_attribution.sql` (before: the two
+  profiles triggers on `display_name` alone; advisors: no delta; no types). Nothing else.
+- **Calls his to overrule:** the welcome goes with the tickets (the name step's own put-down keeps it) · the flip keeps
+  the name-only ticket, neither device-id option · Back on every album the grid lays, with the drop on the phone's Back ·
+  the waiting read at first paint · the corner ring and the clip's ring as the viewer's loading state · the cap
+  unredacted on the anon read.
+- **Known residuals:** a tile tapped in the instant a close's Back is still landing could see the new viewer closed by
+  it (only a synthetic back-to-back test reached it); a step's write inside a poll's refresh round trip is the class
+  `lib/history-entry.ts` already names.
+- **Look at first:** the phone's Back on a real phone over the guest album (Android's button and iOS's swipe), then the
+  ring on a slow connection.
