@@ -37,9 +37,12 @@ describe("the home FAQ's keep answer", () => {
     );
   });
 
-  it("no FAQ answer says there is no expiry clock", () => {
+  it("no FAQ answer says there is no expiry clock, or that a pass keeps the event for a year", () => {
+    // A pass COVERS its event for about a year; when it ends the account settles to Free and
+    // nothing is deleted, so "kept for about a year" read as a retention window it is not.
     for (const item of FAQ_ITEMS) {
       expect(item.a, item.q).not.toMatch(/expiry clock/i);
+      expect(item.a, item.q).not.toMatch(/kept for about a year/i);
     }
   });
 });

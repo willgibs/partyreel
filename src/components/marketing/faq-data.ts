@@ -58,6 +58,6 @@ export const FAQ_ITEMS: FaqItem[] = [
   },
   {
     q: "What's an Event Pass?",
-    a: "A one-time payment for a single event with plenty of storage, kept for about a year. No subscription.",
+    a: "A one-time payment for a single event with plenty of storage, covered for about a year. No subscription.",
   },
 ];

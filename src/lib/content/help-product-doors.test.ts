@@ -104,6 +104,7 @@ describe("the plan's doors, as the billing articles describe them", () => {
       "what-the-free-plan-includes",
       "what-happens-when-storage-fills-up",
       "payments-receipts-and-invoices",
+      "how-long-an-event-pass-lasts",
     ]) {
       const text = body(slug);
       expect(text, slug).toMatch(
