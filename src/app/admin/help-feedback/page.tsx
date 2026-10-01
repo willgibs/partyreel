@@ -129,6 +129,7 @@ export default async function HelpFeedbackPage() {
               </CardTitle>
               <Link
                 href="/admin/jobs#job-help_feedback"
+                prefetch={false}
                 className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
               >
                 On the jobs console

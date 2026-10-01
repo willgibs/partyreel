@@ -75,6 +75,7 @@ export function InboxPane({
               <li key={item.id}>
                 <Link
                   href={item.href}
+                  prefetch={false}
                   aria-current={current ? "true" : undefined}
                   data-selected={current}
                   className={cn(

@@ -55,6 +55,7 @@ export function QueueList({ items }: { items: QueueItem[] }) {
           </span>
           <Link
             href={item.action.href}
+            prefetch={false}
             className="w-36 shrink-0 text-right text-caption font-medium underline decoration-border underline-offset-4 transition-colors duration-150 hover:decoration-foreground"
           >
             {item.action.label}

@@ -25,7 +25,9 @@ export function AdminNotFoundPageScreen() {
         description="The record may have been deleted, or this link points to something that no longer exists."
         actions={
           <Button asChild size="cta">
-            <Link href="/admin">Back to overview</Link>
+            <Link href="/admin" prefetch={false}>
+              Back to overview
+            </Link>
           </Button>
         }
         // Will, `ways-out=guided` (2026-09-19), UNLINKED here and nowhere else.

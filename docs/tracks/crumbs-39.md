@@ -15,6 +15,21 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/utils.ts
   - src/lib/type-ladder-policy.test.ts
   - src/components/ui/dialog.test.tsx
+  - src/components/admin/queue-list.tsx
+  - src/components/admin/inbox-pane.tsx
+  - src/components/admin/moderation-grid.tsx
+  - src/components/admin/triage-filter.tsx
+  - src/components/admin/health-band.tsx
+  - src/components/admin/operator-alerts.tsx
+  - src/components/admin/admin-not-found-screen.tsx
+  - src/components/admin/admin-prefetch-policy.test.ts
+  - src/app/admin/page.tsx
+  - src/app/admin/not-found.screen.tsx
+  - src/app/admin/accounts/page.tsx
+  - src/app/admin/accounts/[id]/page.tsx
+  - src/app/admin/albums/page.tsx
+  - src/app/admin/help-feedback/page.tsx
+  - src/app/admin/reports/person-report-list.tsx
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/design-system.md
   - docs/systems/admin-observability.md
@@ -62,6 +77,7 @@ working.
 ## System-doc edits (in place, owned facts only)
 
 - `docs/systems/design-system.md`: the ★ on `cn()` and the shadow utilities, now `SHADOW_TOKENS` (crumbs-39 item "cn() and the shadow utilities").
+- `docs/systems/admin-observability.md`: "The chrome's links never prefetch" becomes "No link in the portal prefetches", naming the source scan that holds the pages' and content components' links.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
@@ -87,13 +103,13 @@ _Agent crumbs-39 (Sonnet 5.5), booted 2026-10-01 in `/Users/gibby/local/ai/party
 **Done**
 - `cn()` shadow tokens: `SHADOW_TOKENS` in `src/lib/utils.ts`, red-first test in `src/lib/type-ladder-policy.test.ts`, design-system.md's ★ refined.
 - `ui/dialog.tsx` fullScreen scroll lock: the takeover now renders an Overlay that draws nothing (Radix's RemoveScroll is the Overlay's); `src/components/ui/dialog.test.tsx` was red on the takeover before. Still to do for it: look at the Library's fullScreen demo in a browser (no visual change, no scrollbar strip).
+- The portal's links: all 16 `<Link>`s in `components/admin` and `app/admin` that prefetched now say `prefetch={false}` (the six named files hold 7 of them; the other 9 are the admin 404 screens and seven page-level links), and `src/components/admin/admin-prefetch-policy.test.ts` reads the source of both directories (red first: 16 offenders), with one pending page, crumbs-37's `albums/[eventId]/page.tsx`, whose two links take the prop when its lane lands (the test fails when that page is fixed, so its entry is deleted then). `text-[10px]` moved to `text-micro` in `operator-alerts.tsx` (2) and `admin-not-found-screen.tsx` (1), whose stale header sentence about the Ops badge is corrected.
 
 **In progress / next, in this order**
-1. The portal's content links `prefetch={false}` (six files + a source scan test).
-2. Dead components and the tile-size tools, with their Library specimens and the system-doc lines that name them.
-3. `EventCardQr`'s unused props.
-4. The comment sweep (ROADMAP lines 155 and 163), each verified against current code; `text-[10px]` to `text-micro` in any file opened.
-5. The gate, `lab:smoke`, the handoff.
+1. Dead components and the tile-size tools, with their Library specimens and the system-doc lines that name them.
+2. `EventCardQr`'s unused props.
+3. The comment sweep (ROADMAP lines 155 and 163), each verified against current code; `text-[10px]` to `text-micro` in any file opened.
+4. The gate, `lab:smoke`, the handoff.
 
 **Measured, so a successor does not redo it**
 - Already gone before the cut (the ROADMAP lines are stale on them): the app's `components/guest/ghost-grid.tsx`, `event-filter-pills.tsx`, `lib/shared/use-active-section.ts`, `enter-event-prompt.tsx`; the `getHostAvatarUrl`-era and "Cost & scaling" and `database-security.md0` comment items.

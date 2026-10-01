@@ -89,6 +89,7 @@ export default async function AdminAccountDetailPage({
     <div className="max-w-2xl space-y-6">
       <Link
         href="/admin/accounts"
+        prefetch={false}
         className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
       >
         <ArrowLeft className="size-4" />
