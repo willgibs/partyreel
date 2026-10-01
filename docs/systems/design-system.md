@@ -352,7 +352,10 @@ server answering the poll, the writes and the bin's routes as the real ones do.
   small to fill a row at the cap sits centred at it. Three steps, photos per row by the box's width (`ROW_CLASSES`:
   1/2/3 under 480, 2/3/4, 3/4/6 from 900, 3/5/8 from 1280), never pixels; one index in the shared `pr_tile_size`
   cookie (`resolveRowStep`, the legacy widths mapped across). The feature row never runs at one a row. Extreme ratios
-  clamp to 1:2..2.4:1 (`rowRatio`).
+  clamp to 1:2..2.4:1 (`rowRatio`). ★ A partition beats the best only past a tie (`TIE`, a billionth of the cost),
+  the one met first standing: `Math.log` and `Math.pow` are implementation-approximated, so Node and a browser answer
+  a last bit apart, and many partitions tie exactly, which the search once settled on that bit (a simulated second
+  engine broke 221 of 1,260 layouts of 1,145 photographs; none since, `album-rows.test.ts`).
 - ★ **A full re-solve moves the whole album**, since paths from a new head need not merge with the old ones, so it runs
   only on load, a resize, a step change and a filter; an arrival re-solves the new photos plus the three rows beside
   them and a hide its row and neighbours, each window pinned at its edges and stretched by one row at most: never
@@ -613,9 +616,13 @@ board, its own sheet and scenes), found by the registry and the board route and 
   against transparent black, so the pair resolves to the union. Split the masks across two nested elements.
 - ★ **Radix's `Portal` renders its children one commit after it mounts**, so an effect keyed on a dialog opening finds
   no element: the viewer binds its stage and media through callback refs held in state, and keys its effects on those.
-- ★ **A tap on a tooltip-wrapped control can lose its click**: the touch's compatibility mousedown focuses the button,
-  radix opens the tooltip on focus with no delay, and its arrow lands under the finger. The viewer's chrome cancels a
-  touch pointerdown in capture (`media-lightbox.tsx`), except on a menu trigger, which radix opens on pointerdown.
+- ★ **A tap never opens a tooltip, and its arrow takes no pointer** (`ui/tooltip`). A touch's compatibility mousedown
+  comes AFTER its pointerup, so radix's press guard has already let go when it focuses the button, and radix opened
+  the tooltip on that focus with no delay; its entrance slid the arrow's box (radix's own span) over the trigger's
+  edge, and Chrome sent the click to wherever the mouseup landed, never the control (the viewer's Close lost 3 taps
+  of 3 on its edge). `TooltipTrigger` refuses a focus a finger or a pen began, until the tap's click, a blur or a
+  cancelled touch, and the arrow and its span take no pointer; a keyboard's focus and a cursor's hover open it as
+  before. The viewer's own capture guard went with it.
 - ★ **A full-width `inset-x-0` overlay above a gesture track eats the gesture** across its flanks, killing swipe
   navigation on every viewer at once: the box takes `pointer-events-none`, its controls `pointer-events-auto`.
 - **`src/components/ui/*` keeps the shadcn generator's style** (no semicolons, `.prettierignore`d) while app code uses
