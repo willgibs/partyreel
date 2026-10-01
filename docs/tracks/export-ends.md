@@ -56,6 +56,10 @@ working.
 
 **Verify on.** The gate on the synced tree (CLAUDE.md's four steps), each step on its own exit code; `pnpm lab:smoke --base http://localhost:<port>` when the lane changes anything under `src/` but tests (it crawls what the change reaches: the Library, and every board whose drawings import a changed file); and the surfaces the Handoff is judged on, local and live.
 
+## Where I am
+
+- The downloads of `export-wiring-probe-disposable.zip` in Will's Downloads were mine: 10 (nine of the album's 7 items, one retry of 1), 2026-10-01 21:01:57 to 21:08:02 UTC, one per minted `export_log` row of event 340fcc7b, each posted by this lane's local walk in the Browser pane to the deployed Worker. Changed: the pane's form submit is neutralized for every later step (nothing can be posted), and a download is proved only by reading the Worker's answer in a script of my own or in a headless Chrome saving to `_scratch/export-ends/`; nothing in his folders was touched.
+
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
 - **Hidden items in a host's selection.** Built: a selection that MIXES hidden and shown items asks first, in the
@@ -72,7 +76,7 @@ working.
   saved. That's everything."). With no word from the Worker (an older Worker, a laptop the Worker cannot reach) the
   walk says today's words and claims nothing. Overrule: let the toast go at "starting" as today.
 - **A zip the Worker could not finish** (she cancelled it, the connection dropped, an object read failed) is said with
-  a Try again for exactly what it lacks ("That download stopped before it finished."); the Worker cannot tell her
+  a Try again for exactly what it lacks ("That download didn't finish."); the Worker cannot tell her
   cancel from a dropped line, so both are said. Overrule: stay quiet after a stop.
 - **The window between the check and the stream is closed in the Worker:** a token that asks for reports gets a 204
   (the page stays, no file) when the album emptied after its check, and the toast says "Nothing left to download.";
