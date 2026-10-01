@@ -3,6 +3,7 @@
 import {
   type RefObject,
   useEffect,
+  useEffectEvent,
   useId,
   useRef,
   useState,
@@ -30,6 +31,7 @@ import {
 } from "@/components/ui/popup";
 import type { ClaimableEvent, ClaimedEventNext } from "@/lib/db/queries/claims";
 import { formatCount } from "@/lib/format/count";
+import { onClaimed, type ClaimResult } from "@/lib/guest/claim-uploads";
 import { cn } from "@/lib/utils";
 
 import {
@@ -74,6 +76,12 @@ import { ClaimCard, confirmDeleteTitle, Thumb } from "./claims-card";
  * itself, so a claimed event's Guest card joins Your events and the banner's count drops while she
  * carries on. The review keeps its own account of what she decided (`reviewOf`), so the refreshed,
  * shorter list never pulls a card out from under her.
+ *
+ * ★ AND THE LAYOUT'S OWN CLAIM IS A WRITE TOO (crumbs-35). The silent claim every signed-in landing runs
+ * takes the rows this phone's tickets name under her confirmed address, in a client call that lands after
+ * the server drew `rows`, so the banner and the card went on offering a row already hers (her Claim then
+ * answered "All sorted" over nothing). A claim that carried uploads asks for the same refresh, and the
+ * server's shorter list is what the banner and the card both read.
  */
 
 /** Past this many events the progress is one bar rather than a segment each. */
@@ -106,6 +114,14 @@ export function ClaimsReview({
 }) {
   const router = useRouter();
   const [, startRefresh] = useTransition();
+  // The claim the layout runs on landing says what it carried, never which events; the server's list is
+  // the answer to that, so a claim that moved anything asks the page behind for it.
+  const followClaim = useEffectEvent((result: ClaimResult) => {
+    if (result.here + result.elsewhere > 0) {
+      startRefresh(() => router.refresh());
+    }
+  });
+  useEffect(() => onClaimed((result) => followClaim(result)), []);
   const [batch, setBatch] = useState<Batch>(EMPTY);
   // The machine's latest state, read synchronously by every press: two taps in one frame both see
   // the render's state, and only this sees the first tap's write already in flight.
