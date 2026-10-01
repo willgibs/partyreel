@@ -121,11 +121,26 @@ Each is built as recommended and is Will's to overrule; none is a one-way door (
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/guest-flow.md`: the tracker's read asks `tell` and answers her news (what a decision let in since she
+  was last told), marked told as answered; the store hands it to the toast.
+- `docs/systems/reel.md`: the approval toast's two sources (the queue, the server's news), never over the door; the
+  "queue lives in memory, so only within the visit" clause retired.
+- `docs/systems/uploads-and-r2.md`: the guest tuple carries a face where one may show; the credit's face follows the
+  same cases (`uploader-faces.ts`); the retired "only the counter" clause cut from a nameless row's credit.
+- `docs/systems/profiles-social.md`: the owner mode's two feeds page 200 at a time on a keyset, a Show more through a
+  cursor-only Server Function.
+- `docs/systems/database-security.md`: `media.let_in_at` comes from a trigger and is not granted.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Identity: an open album's credits take a new photograph or handle only at the link's next re-mint (an hour) or a
+  reload, since the attribution version moves on a name (`profiles_album_note` watches `display_name` alone); adding
+  `avatar_updated_at` and `slug` to that trigger's columns would move a face at once (from crumbs-38).
+- Profile: a Likes page that Show more adds paints its hearts when `my_liked_media_ids` answers, since the likes store
+  takes `initialLikedIds` once at mount (`likes-provider.tsx`, crumbs-40's now); a way to mark ids liked as they join
+  would fill them at once (from crumbs-38).
+- Host: Review reads the whole album's attribution (`getUploaderIdentities(event.id)`) to credit its queue alone;
+  `readAlbumAttribution` by the pending ids would read only what it shows (from crumbs-38).
 
 ## Handoff (replaces the chat report)
 

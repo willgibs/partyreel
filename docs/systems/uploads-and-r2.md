@@ -117,12 +117,19 @@ it rather than fork it.
   grant). The host gallery's items carry the email; every guest-facing item is built by `toGridItems`, which names only
   the name, `isHost` and `isVerified`, never an email or `pending_email`, by construction rather than a viewer flag, and
   `grid-items.email-safety.test.ts` guards it. The paged album attributes only the ids a window asks for
-  (`readAlbumAttribution`), and its guest path never even selects `guests.email`; its guest tuple is a name and two
-  flags, guarded by the same test.
+  (`readAlbumAttribution`), and its guest path never even selects `guests.email`; its guest tuple is a name, two
+  flags and, where one may show, a face, guarded by the same test.
 - **Credit follows the identity** (`resolveUploaderIdentity`): no `guest_id` is the Host (the host's name, no email);
   a verified guest shows their profile's name (and, to the host, `guests.email`); an unverified typed name shows with
-  the unverified mark and never an address; a row with no name shows no credit, only the counter, never an invented
-  stand-in. Attribution lives in the viewer; `MediaTile` reads only `type`, `url` and `previewUrl`.
+  the unverified mark and never an address; a row with no name shows no credit, never an invented stand-in.
+  Attribution lives in the viewer; `MediaTile` reads only `type`, `url` and `previewUrl`.
+- ★ **And its face follows the same cases** (`faceOwner`, hydrated server-side by `uploader-faces.ts`): a confirmed
+  sender whose account stands wears the face the album's Guests list paints (the avatar's public URL, `seedFor`'s
+  colour) and a door only to a published page (`/u/<slug>`), the host the byline's; a typed name keeps the plain disc
+  and no door. On a guest's view a person the event blocked keeps the plain disc (on no list, so no face the album
+  shows); the host's album and Review take every confirmed sender's face for the host's look. Faces are read by
+  account after the attribution read, fail open to the plain disc, ride the link's who tuple, and move with the
+  link's re-mint (the attribution version moves on a name, not a face); the teaser and the personal feeds carry none.
 - **Tile previews are made in the browser at upload** (a ~640px WebP: a resize for photos, a frame-grab for videos)
   and PUT as the reserved `preview` variant: $0 and predictable, with no transform fee to meter against a
   storage-billed plan. Tiles serve `previewUrl ?? url` (an `onError` falls back to the original); the viewer and Save

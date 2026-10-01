@@ -137,10 +137,12 @@ The reel stores nothing, so the server says only WHETHER a viewer's album has on
   its first frame until the press. A screen whose album drops under two shows the code and the address alone until the
   reel returns.
 - ★ **Nothing about review ever shows on a reel or a screen**: a room watching never sees the host's queue.
-- **The approval toast** (moderated events only): once per visit, when the first of this device's held uploads shows up
+- **The approval toast** (moderated events only): once per visit, when the first of her held uploads shows up
   approved while the reel is showing, "One of yours is in the album" with "Watch reel" — singular and true on that
-  first approval alone, since another of the same pick can still be left out. No numbers; never for a clip. The
-  queue lives in memory, so it plays only within the visit that made the upload.
+  first approval alone, since another of the same pick can still be left out. No numbers; never for a clip; never
+  over the door (it waits, unspent, while the welcome is owed). Two sources name her held uploads: this device's
+  queue, and the server's news her tracker's read answers (what a decision let in since she was last told,
+  [guest-flow.md](guest-flow.md)), so an upload approved after the visit that made it is told on the next, once.
 
 ## The host's side
 
