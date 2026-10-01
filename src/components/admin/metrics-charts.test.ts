@@ -44,7 +44,9 @@ function yAxes(): { line: number; attrs: Map<string, string> }[] {
             ? "true"
             : ts.isStringLiteral(init)
               ? JSON.stringify(init.text)
-              : (init.expression?.getText(source) ?? ""),
+              : ts.isJsxExpression(init)
+                ? (init.expression?.getText(source) ?? "")
+                : init.getText(source),
         );
       }
       found.push({
