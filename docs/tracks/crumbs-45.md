@@ -1,6 +1,6 @@
 ---
 track: crumbs-45
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "c326bde9"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -14,6 +14,7 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/media/uploader-faces.test.ts
   - src/lib/db/queries/my-uploads.ts
   - src/lib/db/queries/my-uploads.test.ts
+  - src/lib/db/queries/my-likes.test.ts
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/profiles-social.md
   - docs/systems/host-app.md
@@ -66,21 +67,72 @@ working.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `profiles-social.md`, the owner mode's feeds line: a delete or an unlike leaves every page, the first one too, on
+  the page's own word (`drop`), never on the action's revalidation, and why that can land late.
+- `uploads-and-r2.md`, the faces line: the owner's own events' uploads in her Uploads wear her own name and face, no
+  door, credited "You" (`ownUploadCredit`); a host with no name wears no disc.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now · Viewer: an address write (Next's patched `replaceState`) in the same tick just before a revalidating Server
+  Action drops the action's answer until the next router action, which then applies it (Next 16.2.6, measured by
+  crumbs-45 in a bare app, `_scratch/crumbs-45/probe`: a write before it drops it, one after it or long before it
+  lands); `lib/history-entry.ts`'s matrix lacks the row, and a viewer verb that closes then acts (`masonry.tsx`'s
+  Delete, Remove, Restore, Purge) meets it whenever its close writes in place (a photograph opened from its
+  address); the personal feeds hold their own drop since crumbs-45, and a verb that leans on its revalidation
+  should too (from `crumbs-45`).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed:** `6227d367` (owns and the questions), `5f757b79` (the work), `c976fdff` (the system docs), and
+  this manifest commit. No sync: launch-prep moved only by record commits since the cut (`a3b03c59`..`e94bef13`:
+  `docs/ROADMAP.md`, `docs/tracks/orchestrator.md`).
+- **Gates on `c976fdff`**, each on its own exit code (logs `_scratch/crumbs-45/gate-*.log`): `pnpm typecheck` 0,
+  `pnpm lint` 0 (no warnings), `pnpm test` 0 (698 files, 8,366 tests), `zsh scripts/build-lock.sh pnpm build` 0,
+  `pnpm lab:smoke --base http://localhost:3134` 0 (138 checks, 0 failing; SCOPE `event-ready`, which imports
+  `reel-card.tsx`), `pnpm lab:demo --board event-ready --base http://localhost:3134` 0 (5 steps, 0 failing).
+- **Each fix red on today's code:** the new tests against launch-prep's sources fail 13 times across six files, each
+  with the finding's own symptom (`_scratch/crumbs-45/red-on-launch-prep.log`, by `_scratch/crumbs-45/red-check.sh`):
+  the first-page drop (`['a','b','c']` for `['a','c']`), the gallery's delete coming back, a never-answered round
+  trip, `canDelete` absent, the reel card's `focus()` without `preventScroll`, the faces read missing, the "?" disc.
+  The likes guard is green on both, as the check found.
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): the owned paths above, this file, the two system
+  docs, and four files by named exception, each in a handed-off lane's folder and untouched by its branch (checked
+  again at handoff): `src/components/app/event-feed/reel-card.tsx` and its `reel-card.test.tsx` (`crumbs-42`), and
+  `src/components/shared/media-lightbox-parts/credit.tsx` and a new `credit.test.tsx` beside it (`crumbs-43`). The
+  brief's third exception, `u/[slug]/owner-sections.tsx`, went unused: the face rides the feed's own query
+  (`my-uploads.ts`), so the owner mode's signature and its gate test stand as they were.
+- **MEDIUM, a first-page Delete came back:** the viewer's close writes the address in the same tick just before the
+  Delete's revalidating action, and Next commits that write over the answer, so the old first page stood (reproduced
+  in a bare Next 16.2.6 app, visible headless Chrome: `_scratch/crumbs-45/probe`, `s-scenario*.js`; the next router
+  action applies the held tree, `s-catchup.js`). `useFeedPages`' `drop` now takes an item out of every page for the
+  page's life (`my-feed-more.tsx`), joined to the action's transition, a never-answered round trip toasts instead
+  of falling to an error boundary, and My likes leaves through the same `drop` (it held already, on its own set).
+- **LOW, Add photos stopped short:** Radix's close auto-focus is a plain `trigger.focus()` (read in
+  `@radix-ui/react-popover` 1.1.15), which cancels the smooth scroll; Add photos' close now focuses the card with
+  `preventScroll` (`reel-card.tsx`), every other close unchanged. Chrome probe: a plain `focus()` 150 ms into the
+  scroll left the page at 81 px of 981, `preventScroll` landed it (`_scratch/crumbs-45/scroll-probe.html`,
+  `s-scroll.js`). No Library specimen draws Add photos (the `event-ready` hub has no add provider); its reel card's
+  guidance still opens, closes on Escape and hands focus home in a real browser (`s-reel.js`).
+- **NIT, a "?" disc on his own upload:** his own events' uploads carry `isHost` and no name, so the credit drew a host
+  with "?" for an initial; they now wear his own name and face (`ownUploadCredit` in `uploader-faces.ts`, his row
+  through his own client, no door), the gallery tells the viewer every item is his (`canDelete`, so "You"), and a
+  host credit with no name draws no disc anywhere (`credit.tsx`).
+- **PREMISE `disposable-mode`** (its 8 asks describe `uploads-and-r2.md`, which this lane touched): they still hold;
+  the edit refines only the viewer credit's face line (the owner's own face in her Uploads, a nameless host's disc),
+  and none of camera, waiting, wall, peek, create, video, cost or save turns on a credit.
+- Assets requested from Will: none. Board ideas: none. Proposed migrations / Worker / Vercel / Stripe / env: none.
+- **Calls his to overrule:** "You" on his own events' uploads in Your uploads (or his name, as the byline reads); his
+  uploads to other people's events keep the event alone; no door on his own face; a nameless host's credit draws no
+  disc (the Host badge alone).
+- **Look at first, the owner-mode and hub steps for the alias** (a visible tab; signed in as willg97; disposable
+  rows, restored after): (1) `/u/willg` Your uploads, a FIRST-page tile opened from the grid, Delete: it leaves and
+  stays gone, with no reload, for ten seconds and through a Show more, which adds the next page with nothing doubled
+  or skipped; (2) the same from a photograph opened by its address (`/u/willg?photo=<first-page id>`), whose close
+  writes in place, the exact drop case once `crumbs-43`'s Back-closes-the-photograph lands; (3) a Delete on a
+  Show-more item; (4) Your likes, an unlike on the first page, still gone after an Uploads Delete re-renders the
+  page; (5) the viewer on his own event's upload in Your uploads: "You", his face (photo or tint, initial W), the
+  Host badge, no link on face or name, and an upload to someone else's event: the event alone; (6) the hub at
+  375x667, an event with 0 or 1 photo, reel card, Add photos from the top and from scrolled to the end: the page
+  scrolls until the dropzone's foot is in view and the panel clears the band, focus rests on the reel card, and
+  reduced motion still lands at once.
