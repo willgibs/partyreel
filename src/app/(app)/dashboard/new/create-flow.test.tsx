@@ -28,7 +28,8 @@ import { CreateEventWizard } from "@/components/app/create-event-wizard";
  *  4. THE PAPER IS REACHABLE AND IS OUTSIDE THE APP SHELL (`venue=sheet`), and
  *     the two sharing surfaces stayed one (`hand=same`).
  *
- * No class, size, word or duration is pinned.
+ * No class, size, word or duration is pinned, but for the one fact a word
+ * carries: the style step's codes are SAMPLES (below).
  */
 
 const push = vi.fn();
@@ -151,6 +152,20 @@ describe("the style step", () => {
     for (const v of values) {
       expect(v).toMatch(/\/e\/[A-Za-z0-9]{32}$/);
     }
+  });
+
+  it("★ says its codes are samples, never what the guests will scan (crumbs-42)", async () => {
+    // Every swatch encodes the stand-in link, which opens no event: a host who
+    // test-scanned one met a 404 and nothing on the step had said why. The
+    // event, and so its real link, exists only once Create is pressed (an
+    // abandoned wizard leaves no row), so the step says what she is looking at,
+    // and where the real code comes from: the very next screen.
+    renderWizard();
+    await userEvent.type(screen.getByRole("textbox"), EVENT.name);
+    await userEvent.click(screen.getByRole("button", { name: /continue/i }));
+    await screen.findByRole("button", { name: /create event/i });
+    expect(screen.getByText(/samples/i)).toBeInTheDocument();
+    expect(screen.queryByText(/what your guests scan/i)).toBeNull();
   });
 });
 
