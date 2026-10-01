@@ -966,6 +966,10 @@ export function MediaLightbox({
    * settle still running, so a Back taken mid-swipe can never reopen the viewer. Keyed on the ask's
    * count: a re-render never asks again. The ways out are read as they stand at the ask (a ref the
    * commit keeps current), never from the render that first saw the request.
+   * ★ A MICROTASK LATE, OUT OF THE COMMIT: the way back asks the album for the closing photograph's tile
+   * (`returnTo`), and a windowed album mounts that tile's row with `flushSync`, which React refuses from
+   * inside an effect (measured: "flushSync was called from inside a lifecycle method", and no tile to drop
+   * into). The X's own close runs from its click, where this never arose.
    */
   const waysOut = useRef({ open, requestClose, closeNow });
   useEffect(() => {
@@ -974,10 +978,17 @@ export function MediaLightbox({
   const closeAsked = closeRequest?.n ?? 0;
   const closeAtOnce = closeRequest?.instant ?? false;
   useEffect(() => {
-    const ways = waysOut.current;
-    if (closeAsked === 0 || !ways.open) return;
-    if (closeAtOnce) ways.closeNow();
-    else ways.requestClose();
+    if (closeAsked === 0) return;
+    let asked = true;
+    queueMicrotask(() => {
+      const ways = waysOut.current;
+      if (!asked || !ways.open) return;
+      if (closeAtOnce) ways.closeNow();
+      else ways.requestClose();
+    });
+    return () => {
+      asked = false;
+    };
   }, [closeAsked, closeAtOnce]);
 
   /* ── opening ───────────────────────────────────────────────────────────── */
