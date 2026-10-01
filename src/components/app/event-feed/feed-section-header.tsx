@@ -1,3 +1,7 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+
 import { formatCount } from "@/lib/format/count";
 import { cn } from "@/lib/utils";
 
@@ -9,6 +13,15 @@ import { cn } from "@/lib/utils";
 // `icon-sm` (h-7): a `size="default"`/`lg` button is h-8 and would grow the band past 28px, reintroducing
 // the bounce. Subtle by construction: an 11px uppercase eyebrow + the pill-identical count badge, no rules /
 // fills / chevrons. `amber` is the only tone, reserved for a live review queue (needs-action).
+//
+// ★ A BAND THAT WRAPS KEEPS ITS HEIGHT WHILE THE ACTION FILLS IT (crumbs-35, build 34's red-team). The
+// 28px floor holds only where the tools fit on one line. In a hand the album's resting tools (Add photos,
+// Download, Select, View) wrap to a second line, 62px, and the bulk bar that replaces them is one line,
+// 28px, so the album beneath moved 34px on Select and back on Cancel (measured at 375: its first tile at
+// 88, 54, 88; 68px at 320, where the tools wrap to three lines), and leaving select mode after a bulk
+// delete jumped it when the browser's scroll anchoring missed the band growing back. So the row measures
+// itself while the action is NOT filling it and, while it is, keeps that height as its minimum: the bar sits
+// centred in a band exactly as tall as the tools were, at every width, and nothing beneath it moves.
 export function FeedSectionHeader({
   label,
   count,
@@ -25,12 +38,16 @@ export function FeedSectionHeader({
   /**
    * In a hand the action takes the row and the label steps aside, kept for a screen reader (crumbs-32):
    * the album's bulk bar while selecting, whose 44px targets do not fit beside the label at 375. The
-   * band's height never moves, so nothing bounces; at a desk nothing changes.
+   * band keeps the height it had at rest (above), so nothing bounces at any width; at a desk, where the
+   * tools fit on one line, that is 28px and nothing changes.
    */
   actionFills?: boolean;
 }) {
+  const { rowRef, minHeight } = useRestingHeight(actionFills);
   return (
     <div
+      ref={rowRef}
+      style={minHeight ? { minHeight } : undefined}
       className={cn(
         "flex min-h-7 items-center justify-between gap-3",
         actionFills && "max-sm:justify-end",
@@ -66,4 +83,25 @@ export function FeedSectionHeader({
       {action}
     </div>
   );
+}
+
+/**
+ * THE ROW'S HEIGHT AT REST: measured while nothing fills it (a ResizeObserver, so a rotation or a wider
+ * window re-reads it), and handed back as the minimum while something does. A row never measured, or one in
+ * a browser without the observer, holds nothing, which is the band as it was.
+ */
+function useRestingHeight(filled: boolean) {
+  const rowRef = useRef<HTMLDivElement | null>(null);
+  const [resting, setResting] = useState<number | null>(null);
+  useEffect(() => {
+    const row = rowRef.current;
+    if (!row || filled || typeof ResizeObserver === "undefined") return;
+    // The observer reports once as it starts, so the first read needs no call of its own.
+    const observer = new ResizeObserver(() =>
+      setResting(row.getBoundingClientRect().height),
+    );
+    observer.observe(row);
+    return () => observer.disconnect();
+  }, [filled]);
+  return { rowRef, minHeight: filled ? resting : null };
 }

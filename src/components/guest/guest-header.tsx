@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useState,
+} from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -20,6 +26,8 @@ import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
 type MenuData = {
+  /** Whose menu this is: the account the device held when it was drawn. */
+  userId: string;
   email: string | null;
   displayName: string | null;
   avatarUrl: string | null;
@@ -48,6 +56,19 @@ type MenuData = {
 // Default render = the CTA (matches SSR → no flash for the anonymous majority); a logged-in
 // visitor sees a one-frame CTA→avatar swap, the tradeoff every client-resolved session on the
 // guest page accepts.
+//
+// ★ IT FOLLOWS WHO THE DEVICE HOLDS (crumbs-35, build 34's red-team). This island read the session
+// once, on mount, and a page's `router.refresh()` never re-runs a client island, so an account whose
+// session ended in another tab kept its avatar through the door that then asked her name, and an
+// account that signed in under the header (the confirm door's code, in this very tab) never replaced
+// the name beside it, both until a reload. So it looks again whenever something that can change who is
+// here happens: the SDK announces a sign-in or sign-out, the session cookie changes (the Cookie Store
+// API reaches a tab nobody is looking at, which is where a response that cleared the cookie in another
+// tab is otherwise unheard), the tab is looked at again, and the door settles on a guest (a name or
+// ticket written while an account still stands). A look is LOCAL (the client's own read of the cookie)
+// and asks the server only when the account differs from the one drawn, or when the door settled on a
+// guest, since a session revoked on another device leaves this cookie valid for up to an hour and
+// only the server's 401 knows. A server that stumbles (anything but a 401) never un-signs her.
 export function GuestHeader({
   qrToken,
   eventId,
@@ -64,6 +85,17 @@ export function GuestHeader({
 }) {
   // null = signed out (or not yet resolved) → render the CTA. Non-null → render the account menu.
   const [menu, setMenu] = useState<MenuData | null>(null);
+  // What is drawn, as the looks below read it the moment they land (state is a render behind them).
+  const shown = useRef<MenuData | null>(null);
+  const show = useCallback((next: MenuData | null) => {
+    shown.current = next;
+    setMenu(next);
+  }, []);
+  // The newest look wins: a look that lands after a newer one began is let go of, and so is every look
+  // still in the air when the header leaves the page or signs out.
+  const looks = useRef(0);
+  const alive = useRef(false);
+  const leaving = useRef(false);
   const router = useRouter();
   // ★ THE THIRD STATE: a name-only guest.
   // Read through the store's own hook rather than a prop, because the NAME is
@@ -79,63 +111,129 @@ export function GuestHeader({
   const emailAttached = useStoredEmailAttached(qrToken ?? "");
   const [guestSession] = useStoredSession(qrToken ?? "");
 
-  useEffect(() => {
-    let active = true;
-    void (async () => {
-      const supabase = createClient();
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!active || !session) return;
-      // Phase 1: show the menu immediately with the email from the JWT (avatar = initials),
-      // so the menu appears as soon as the local session is known — no wait on the network.
-      // seed stays null here (not avatarUrl either): seedFor is a server-side SHA-256
-      // (src/lib/avatar/seed.ts, node:crypto has no browser build), so the colour can only
-      // arrive with phase 2 — exactly the same beat the photo already waits for.
-      setMenu({
-        email: session.user.email ?? null,
+  /**
+   * LOOK AT WHO THE DEVICE HOLDS and make the slot say so. `verify` asks the server even about the
+   * account already drawn (the door settled on a guest while one stands); without it a look at the
+   * account already drawn is free.
+   *
+   * Phase 1 draws the menu at once from the local session (email from the JWT, initials), so it appears
+   * as soon as the session is known, with no wait on the network. seed stays null (not avatarUrl
+   * either): seedFor is a server-side SHA-256 (src/lib/avatar/seed.ts, node:crypto has no browser
+   * build), so the colour can only arrive with phase 2, exactly the same beat the photo already waits
+   * for. Phase 2 enriches with display name + presigned avatar + ownership (logged-in only).
+   */
+  const look = useEffectEvent(async (verify: boolean) => {
+    if (leaving.current) return;
+    const mine = ++looks.current;
+    const {
+      data: { session },
+    } = await createClient().auth.getSession();
+    if (!alive.current || mine !== looks.current) return;
+    if (!session) {
+      show(null);
+      return;
+    }
+    const user = session.user;
+    if (shown.current?.userId === user.id) {
+      if (!verify) return;
+    } else {
+      show({
+        userId: user.id,
+        email: user.email ?? null,
         displayName: null,
         avatarUrl: null,
         ownsThisEvent: false,
         seed: null,
       });
-      // Phase 2: enrich with display name + presigned avatar + ownership (logged-in only).
-      try {
-        const res = await fetch(
-          eventId
-            ? `/api/me/menu?event=${encodeURIComponent(eventId)}`
-            : "/api/me/menu",
-        );
-        if (!active) return;
-        if (!res.ok) {
-          // 401 = a raced/expired cookie despite a local session → fall back to the CTA.
-          setMenu(null);
-          return;
-        }
-        const body = (await res.json()) as {
-          ok: boolean;
-          email?: string | null;
-          displayName?: string | null;
-          avatarUrl?: string | null;
-          seed?: string | null;
-          ownsThisEvent?: boolean;
-        };
-        if (!active || !body.ok) return;
-        setMenu({
-          email: body.email ?? session.user.email ?? null,
-          displayName: body.displayName ?? null,
-          avatarUrl: body.avatarUrl ?? null,
-          seed: body.seed ?? null,
-          ownsThisEvent: Boolean(body.ownsThisEvent),
-        });
-      } catch {
-        // Keep the phase-1 menu (email + initials) on a network blip — better than dropping to CTA.
+    }
+    try {
+      const res = await fetch(
+        eventId
+          ? `/api/me/menu?event=${encodeURIComponent(eventId)}`
+          : "/api/me/menu",
+      );
+      if (!alive.current || mine !== looks.current) return;
+      // 401 = the server does not know her (a raced/expired cookie despite a local session, or a session
+      // ended elsewhere) → fall back to the CTA or her name. Anything else is the server stumbling, which
+      // says nothing about who she is: keep what is drawn.
+      if (res.status === 401) {
+        show(null);
+        return;
       }
+      if (!res.ok) return;
+      const body = (await res.json()) as {
+        ok: boolean;
+        email?: string | null;
+        displayName?: string | null;
+        avatarUrl?: string | null;
+        seed?: string | null;
+        ownsThisEvent?: boolean;
+      };
+      if (!alive.current || mine !== looks.current || !body.ok) return;
+      show({
+        userId: user.id,
+        email: body.email ?? user.email ?? null,
+        displayName: body.displayName ?? null,
+        avatarUrl: body.avatarUrl ?? null,
+        seed: body.seed ?? null,
+        ownsThisEvent: Boolean(body.ownsThisEvent),
+      });
+    } catch {
+      // Keep the phase-1 menu (email + initials) on a network blip — better than dropping to CTA.
+    }
+  });
+
+  useEffect(() => {
+    alive.current = true;
+    // The first look, at mount: draw whoever is here (its setState lands after the read, in a callback).
+    void (async () => {
+      await look(true);
     })();
-    return () => {
-      active = false;
+    // The SDK's own word: a sign-out in another tab through the client, a sign-in in this one. A
+    // standing session is re-announced on every refocus, which the same-account look makes free. INITIAL_SESSION
+    // and TOKEN_REFRESHED change nobody. Not awaited: a callback is run inside the client's own lock.
+    const {
+      data: { subscription },
+    } = createClient().auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") {
+        looks.current += 1;
+        show(null);
+      } else if (event === "SIGNED_IN") {
+        void look(false);
+      } else if (event === "USER_UPDATED") {
+        void look(true);
+      }
+    });
+    const lookedAt = () => {
+      if (document.visibilityState === "visible") void look(false);
     };
-  }, [eventId]);
+    const cookieChanged = () => void look(false);
+    document.addEventListener("visibilitychange", lookedAt);
+    window.addEventListener("focus", lookedAt);
+    window.addEventListener("pageshow", lookedAt);
+    // Where the browser has the Cookie Store API (Chromium): any change to a cookie on this origin, from any
+    // tab or any response, reaching a tab that is not being looked at too.
+    const cookies = (window as Window & { cookieStore?: EventTarget })
+      .cookieStore;
+    cookies?.addEventListener("change", cookieChanged);
+    return () => {
+      alive.current = false;
+      looks.current += 1;
+      subscription.unsubscribe();
+      document.removeEventListener("visibilitychange", lookedAt);
+      window.removeEventListener("focus", lookedAt);
+      window.removeEventListener("pageshow", lookedAt);
+      cookies?.removeEventListener("change", cookieChanged);
+    };
+  }, [eventId, show]);
+
+  // ★ THE DOOR SETTLING ON A GUEST. The door writes the name (and the ticket) it settled on into the
+  // stores this island reads, and a page's refresh never reaches the island itself, so a write while an
+  // account stands is the one signal that the server may have said somebody else is here: ask it. The
+  // dependencies are the trigger, not inputs the look reads.
+  useEffect(() => {
+    if (shown.current) void look(true);
+  }, [guestName, guestSession]);
 
   // Client-side sign out, which is also how a shared device switches guests. Put every guest
   // ticket on the device down FIRST (sync, even on a flaky network — notifies EventExperience so the
@@ -149,13 +247,19 @@ export function GuestHeader({
     // them there; the upload routes refuse that (the guarantee), and this is the courtesy: the
     // tokens, the names and address flags beside them, the name prefill, and every `pr_guest_*`
     // cookie. So it runs on an event-less page (/u/[slug]) too.
+    leaving.current = true;
+    looks.current += 1;
     leaveAllGuestSessions();
-    setMenu(null);
+    show(null);
     // ★ THIS DEVICE ONLY: a phone handed to the next guest ends the session it holds, and the
     // account's own phone and laptop stay signed in (auth-accounts.md, "Signing out").
-    await createClient().auth.signOut({ scope: "local" });
+    try {
+      await createClient().auth.signOut({ scope: "local" });
+    } finally {
+      leaving.current = false;
+    }
     router.refresh();
-  }, [router]);
+  }, [router, show]);
 
   return (
     <header

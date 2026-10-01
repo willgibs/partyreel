@@ -221,8 +221,10 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
     her ticket `in`. The name step and the add-email dialog read the code the same way: the
     ticket goes down, then a fresh join (the dialog closes and the door asks).
   ★ **The blob re-key**: an in-flight tile's object URL is keyed by queue id and re-keyed to the media id at
-  approved completion (`UploadedItem.queueId`): the SAME URL object, so the `<img src>` never changes and
-  the tile turns optimistic with zero flicker.
+  approved completion (`UploadedItem.queueId`): the SAME URL object, so the album's tile is a fresh `<img>` on a
+  picture the browser already holds, which answers `complete` at mount, and `MediaTile` shows it at once with no
+  fade (measured in a visible Chrome, 0 to 3 s between the stack tile leaving and the tile mounting, and in a
+  hidden tab; WebKit unmeasured). Her link then lands in place (`media-grid.tsx`).
 - **Empty state** ([`gallery-empty-state.tsx`](../../src/components/guest/gallery-empty-state.tsx)): the
   photographic promise, the RIVER (`shared/river`) in a square box the width of the reading column, the
   `public/guest-ghost` WebPs pouring under a centred `font-heading` title and CTA. The fade (85% grayscale,
@@ -1037,7 +1039,13 @@ had" holds only when this device holds a guest ticket a claim would move.
 CTA (the SSR default → zero flash for the anonymous majority); logged-in → the visitor's account menu
 ([`guest-account-menu.tsx`](../../src/components/guest/guest-account-menu.tsx)), fetched via
 `GET /api/me/menu?event=<id>` ONLY when a session exists (the avatar is the viewer's public Storage URL;
-event-ownership is an RLS-scoped select → the owner-only "Manage event" deep link). The menu's **Sign out**
+event-ownership is an RLS-scoped select → the owner-only "Manage event" deep link). ★ **It follows the device's
+session, never reads it once** (a `router.refresh()` does not re-run a client island): a look at the cookie (local,
+and free for the account already drawn) on the SDK's sign-in and sign-out, the Cookie Store API's `change` (it reaches
+a tab nobody is looking at, where a response that cleared the cookie elsewhere is otherwise unheard), the tab being
+looked at again, and the door settling on a guest (a stored name or ticket written while an account stands, which
+also asks the server, since only its 401 knows a session revoked on another device); a server that stumbles never
+drops an account, only a 401 does. The menu's **Sign out**
 puts EVERY guest ticket on the device down, not only this album's (`leaveAllGuestSessions`: the localStorage
 tokens, names and flags through the module-singleton `emit()`s in
 [`use-stored-session.ts`](../../src/lib/guest/use-stored-session.ts), every `pr_guest_*` cookie through

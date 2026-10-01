@@ -61,7 +61,9 @@ has no filter chips and no personal feeds (those are the profile's owner mode, [
   (`claims-batch.ts`). ★ The album link never rides the list (a Not mine is an event she was never at): a claimed row's
   Open album and quieter Follow come from the claim's own follow-up read (`getClaimedEventNext`), for an event she is
   now a guest of. The writes never revalidate; the review refreshes the page behind itself as each lands and keeps its
-  own account of her decisions. A disowned name leaves the guest list and the Guests room with its uploads, and the
+  own account of her decisions. ★ The layout's own silent claim is a write the list follows too: it lands after the
+  server drew the rows, so a claim that carried uploads (`onClaimed`) asks for the same refresh, and the banner and the
+  card drop what it took. A disowned name leaves the guest list and the Guests room with its uploads, and the
   empty guest row survives for the device that minted it. A nameless profile meets the name gate first
   ([auth-accounts.md](auth-accounts.md)), prefilled from the newest claimable row's typed name. One toast as the review
   closes counts what that opening added, its second line pointing at the page unless the page setup's invitation is
@@ -416,10 +418,14 @@ visitor-facing "Private" never collides.
   The selection lives in a thin `HostSelectionProvider`, into which the album grid (owner of the optimistic items)
   registers its handlers, so the bar calls `selection.run(kind)`: the seam whenever a control surface and its grid live
   in different subtrees. ★ In a hand every control in a bulk bar is a 44px target, the peek's verdicts' (`HAND_TARGET`:
-  44 wide, its `::before` reaching 8px past a 28px box, so the 28px band the header holds never grows), a pointer's 28
+  44 wide, its `::before` reaching 8px past a 28px box, so the band never grows), a pointer's 28
   at a desk, and the destructive verb stands apart behind a hairline (`Apart`); the album's header gives the bar its
   row while selecting (`actionFills`: five verbs do not fit beside the label at 375), the label kept for a reader.
-  Measured at 375: every control 44 tall or more, Download and Remove 61px apart where they were 32.
+  Measured at 375: every control 44 tall or more, Download and Remove 61px apart where they were 32. ★ **The band
+  keeps the height its tools had at rest** (`FeedSectionHeader` measures its row while the tools are there and holds
+  that as its minimum while the bar fills it): in a hand the tools wrap to 62px (96 at 320) and the bar is one 28px
+  line, so the album's top moved 34px on Select and back on Cancel until the band held; measured on
+  `/design/album-scale?surface=host` at 320 to 1440, the first tile stays put through Select and Cancel.
 - ★ **The selection prunes to the surviving ids when the album changes, never resets** (`useSelection`), so a poll never
   wipes a selection in progress.
 - **Bulk Like is one `like_many` call a batch under ONE summary toast** (the refused ids reverted), naming what it
