@@ -1,7 +1,7 @@
 ---
 track: orchestrator
 status: open
-cut: "794750cf"          # the launch-prep SHA this state was written at
+cut: "37d20db7"          # the launch-prep SHA this state was written at
 owns:                    # the standing claims no lane touches
   - src/app/(dev)/design/rules/bible.ts
   - src/app/(dev)/design/rules/bible.test.ts
@@ -43,49 +43,33 @@ a lane").
 | `crumbs-37` | scale and upkeep: `album_changes`' tombstones pruned under per-album watermarks, `media_removed_idx`, the admin drill-in paged, the over-capacity reduce paged | MERGED at `cc49cf17` (gate 116 green); its two migrations UNAPPLIED: `20261001150000_album_log_prune` (replaces `album_changes_since`, adds the watermarks and `album_prune_tombstones`) and `20261001151000_removed_media_index` (drops `media_purge_at_idx` for `media_removed_idx`): the Advisor first, then the protocol, both BEFORE build 36 deploys; then regenerate the types (album_state's two columns, `album_prune_tombstones`) and drop the cast in `album-log.ts` | Opus, 3131 | |
 | `crumbs-38` | a person's own record: the return's toast told once, My uploads and My likes past 200, the viewer's credit with a face and a door | MERGED at `c95e6429` (gate 117 green on its re-run: one timing flake, `history-entry.test.tsx`, its ROADMAP line); its two migrations UNAPPLIED and additive, either order: `20261001203800_my_feeds_cursor` (md5 9866ebad) and `20261001203810_let_in_told` (md5 5f3b0099), each by its header's protocol BEFORE build 36 deploys; then regenerate the types and drop the two typed seams (`feedRpc`'s cast in `queries/my-uploads.ts`, `untypedAdmin` in `mutations/guest-media.ts`) | Opus, 3133 | |
 
-**The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
-no question open (Q1, the `names` hang; Q2, schema-pass part 1; Q3, the notes-into-laws audit; Q4, the door migration;
-Q5, crumbs-33's two function-replacing migrations, "apply as written": each answered and acted on). From another session, respawn it from `usher/kit/advisor-prompt.txt`.
+**The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, respawned
+2026-10-01 18:15Z in this session; **Q6 open**: crumbs-37's two migrations and crumbs-38's `my_feeds_cursor` (each drops
+or replaces a function or an index) against the deployed readers, prod `7bd3b947` and build 35 `be502b45`, leaning
+apply as written. Q1 to Q5 are answered and acted on. From another session, respawn it from
+`usher/kit/advisor-prompt.txt`.
 
-**Handoff across accounts (live: willg97 at 99% weekly on 2026-10-01 08:02Z, no lane running, crumbs-37's and crumbs-38's
-four migrations owed, then build 36; its auto-kill at 100% is expected within the hour, and Will opens a fresh Orchestrator chat on hi@willgibs.com, unused since its reset, the next on Tuesday
-2026-10-06 21:00Z).** The dying session is `157caa18-ec54-4aa9-a12a-04c86d5a667b`: leave it idle or archived, since it
-would resume mid-task at willg97's reset (Sunday 2026-10-04 13:00Z); `b01c012e` stays retired. Connectors follow the
-account: Claude in Chrome answers only once Will moves it over (every red-team needs it), the Supabase MCP must reach
-project `ddafaemglzmuekbtjwzn`, and the Vercel MCP may sit on his personal team (deploys ride `$VERCEL_TOKEN`; only
-runtime logs need it). MCP tool ids change with the account. The new Orchestrator:
-1. **Seats in** (the runbook's "Seat in"): kill by port any dev server on 3131 to 3135 and any orphaned headless Chrome.
-2. **No lane runs.** crumbs-37 and crumbs-38 are merged with their four migrations owed (their In-flight rows say
-   what each replaces or adds and which typed seam goes after the types regenerate): apply crumbs-38's two (additive,
-   either order) and crumbs-37's two after a respawned Advisor's answer (one replaces `album_changes_since`, one drops
-   `media_purge_at_idx`), each by the protocol (drift, the lane's rolled-back proof, apply verbatim, the statements'
-   md5, bodies and ACLs, advisors, types, the seam), then clear the two rows. The next gate is 119, and the calls
-   file numbers on from 65.
-3. **Build 35** (`be502b45`: crumbs-33, crumbs-34 and crumbs-35 on build 34) is on the alias since 2026-10-01 06:35Z,
-   red-teamed by 07:35Z (`../partyreel-wt/_scratch/redteam-35/ledger.txt`): every walk PASS but one FAIL, MEDIUM,
-   crumbs-35's dashboard claims (the claims review subscribes after the layout's silent claim lands), with two LOWs (the
-   likes provider after a sign-out elsewhere, Sentry `JAVASCRIPT-NEXTJS-6J`; the viewer's likes asks a step each) and
-   five nits, all in **`crumbs-40`** (spawned 08:02Z, its row). Strikes: willg97's address 2 (with 2 hides in the 24 hours to about 22:15Z on 2026-10-01, so one
-   more can hide), partyr33l's 7. A classifier refusal was relayed to Will: the red-team's one combined read of
-   `report_strikes`, a day's hides and `auth.sessions` with IPs and user agents; it read the strikes another allowed
-   way. **Build 36** (crumbs-36 to crumbs-40, all merged) comes once the four owed migrations stand
-   (crumbs-37's two after the Advisor, since one replaces `album_changes_since` and one drops `media_purge_at_idx`;
-   crumbs-38's two additive), each type regeneration dropping its lane's typed seam (the rows say which). Deploy it per
-   the runbook (unless Will is mid-sitting: ask), then its red-team from a brief written fresh from crumbs-36 to
-   crumbs-40's "For the next build's red-team" steps, `../partyreel-wt/_scratch/redteam-35/brief.md` the template.
-4. **Will's morning (2026-10-01):** the calls file first (64 calls, `../partyreel-wt/_scratch/calls/relay-calls.md`,
-   last sent to him at 64: re-send it with each lane's calls; #60 holds one decision of his, the reopen window), then the desk. Seat a respawned Advisor
-   (`usher/kit/advisor-prompt.txt`) when a consult comes due; no question is open.
+**Handoff across accounts.** The Orchestrator session is `2ba90542-62d6-487c-8c79-3657619f9133` (hi@willgibs.com,
+seated 2026-10-01 18:08Z; its weekly resets Tuesday 2026-10-06 21:00Z, willg97's Sunday 2026-10-04 13:00Z; Will hands
+off only when one maxes its weekly limit). willg97's `157caa18` stays idle (it would resume mid-task at its reset) and
+`b01c012e` stays retired. An agent id lives only in this session; from another, respawn each running lane per the
+runbook's "Resume a lane": kill by port any dev server left on 3131 to 3135 (and any orphaned headless Chrome), then
+`spawn-prompt.txt` filled (same track, same port) plus a note naming its pushed commits, what remains, its
+predecessor's transcript at
+`~/.claude/projects/-Users-gibby-local-ai-partyreel/2ba90542-62d6-487c-8c79-3657619f9133/subagents/agent-<id>.jsonl`
+(grep it, never read it whole), that a stale `.next/dev/lock` may be deleted and that MCP tool ids change with the
+account. Connectors follow the account: Claude in Chrome (every red-team needs it), the Supabase MCP on
+`ddafaemglzmuekbtjwzn`, the Vercel MCP on his personal team (deploys ride `$VERCEL_TOKEN`; only runtime logs need P3).
 
-Relays that live only in an agent: none (no lane runs).
+Relays that live only in an agent: none.
 
 If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` holds a merge made after this note (push
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
 staged, uncommitted merge is finished by `usher/kit/merge-lane.sh`'s own steps or reset with `git merge --abort`.
-This session's scratchpad (`/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/157caa18-ec54-4aa9-a12a-04c86d5a667b/scratchpad`,
-until a reboot) holds the specs and gate logs (the next gate is 119); nothing there is needed that these lines and the
-manifests do not carry. Everything a successor reads lives in the repo or in `../partyreel-wt/_scratch/` (the calls
-file, the red-team briefs and ledgers).
+This session's scratchpad (`/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/2ba90542-62d6-487c-8c79-3657619f9133/scratchpad`,
+until a reboot) holds the specs and gate logs (the next gate is 119, the calls file numbers on from 65); nothing there
+is needed that these lines and the manifests do not carry. Everything a successor reads lives in the repo or in
+`../partyreel-wt/_scratch/` (the calls file, the red-team briefs and ledgers).
 
 Batch 8 shipped whole as milestone 31 (`7bd3b947`, 2026-09-30; 40 lanes, crumbs-12 to gone-link-soft; their merges and
 records carry the rest). Merged in batch 9: crumbs-28 (`8ea749bf`), hide-strikes (`669e1717`, its migration applied by
@@ -94,23 +78,24 @@ but lab:demo's `about-press.facts` dev stall, ROADMAP's line), crumbs-31 (`5898b
 
 ## Next, in order
 
-1. **Apply the owed migrations** (crumbs-37's two, the Advisor first; crumbs-38's two, additive: their rows); no lane
-   runs,
-   each migration by protocol, one at a time: drift check, apply verbatim, the rolled-back refusals, advisors, types.
-2. **Build 34** (`65dbedb2`: build 33 plus crumbs-29 to crumbs-32 and demo-stall) is on the alias since 2026-10-01
-   03:45Z (Will had not begun his sitting and said go). Its first try failed at install on both projects: with no pin,
-   Vercel reads a version 9.0 lockfile as pnpm 10's, which refused the patch hash pnpm 9 wrote for demo-stall's patch;
-   `packageManager` now names pnpm 9.14.4 (`package-manager-pin.test.ts`). Its red-team is done (05:15Z,
-   `../partyreel-wt/_scratch/redteam-34/ledger.txt`): every drivable walk of crumbs-29 to crumbs-32 PASS, no
-   regression, its 13 RT34 events deleted, strikes unchanged (partyr33l's address 6, willg97's 2); one LOW (the hub's
-   Select at 375), two NITs, one unconfirmed look and two observations went to `crumbs-35`. Not driven: the portal's
-   404 for willg97 (his authenticator code), the magic-link return (his email), the 13-guest list, the over-cap banner
-   and the export walk (no such data). Build 35 (crumbs-33, crumbs-34, crumbs-35) is on the alias (06:35Z), its red-team walking; crumbs-36 rides build 36. Lanes run again (Will, 2026-10-01: "keep the calls file running"): pace near 95% weekly (90% at
-   04:57Z on 2026-10-01; willg97 resets Sunday 13:00Z, hi@willgibs.com, fresh, Tuesday 21:00Z), with this block kept
-   current; Will (05:30Z, at 92%): run into the auto-kill, documenting along the way; (06:45Z) "don't have to be quite
-   as conservative yet": four lanes.
-3. **Seats as they free** (at most four lanes; `memory_pressure` before each; app work first, Will's note; `lab-focus`
-   took the lab's phone fold with it). After his desk picks: the demo event (below); about-press's wiring (its three wiring calls,
+1. **The owed migrations**, each by its header's protocol, one at a time: `let_in_told` now (additive, replaces
+   nothing); `my_feeds_cursor`, `album_log_prune` and `removed_media_index` on the Advisor's Q6; then the types
+   regenerated once, the three typed seams dropped (`feedRpc`'s cast in `queries/my-uploads.ts`, `untypedAdmin` in
+   `mutations/guest-media.ts`, the cast at `lifecycle/sweeps/album-log.ts:102`), gate 119 (typecheck, lint, test,
+   build) and the two In-flight rows cleared.
+2. **Build 36** (build 35 plus crumbs-36 to crumbs-40, the four migrations standing): the `[preview]` record,
+   `alias-ensure`, the prune. The desk is the same six boards (only `words.test.ts` moved in the lab since build 35)
+   and his answers live in his browser's localStorage, so the deploy waits for no sitting. Then its red-team, an agent
+   on Claude in Chrome, from `../partyreel-wt/_scratch/redteam-36/brief.md`, written fresh from crumbs-36 to
+   crumbs-40's Handoff steps on `redteam-35/brief.md`'s template; strikes going in: willg97's address 2, partyr33l's 7.
+   **Milestone 32: Will said yes** (2026-10-01, "Ship after the red-team (Recommended)"): batch 9 ships once build 36,
+   or its fix build, passes, any MEDIUM or worse fixed and proven on the alias first; then the full gate, merge, tag,
+   deploy and the read-only prod walk with no further ask. Until it ships only the red-team's fixes merge; any other
+   lane that hands off waits, as crumbs-28 waited for milestone 31.
+3. **Seats as they free** (at most four lanes; `memory_pressure` before each), claimed in this order: the red-team's
+   fixes (milestone-blocking), the wiring of his desk picks, the ROADMAP's app work (his note: app work first), the
+   lab. Three app lanes from the Now bucket run now (admin, data and billing, led by #60's reopen window; the host
+   app; guests), the fourth seat held for the red-team's fixes. After his desk picks: the demo event (below); about-press's wiring (its three wiring calls,
    `git show 3ded6ba9^2:docs/tracks/about-press.md`: /press a temporary redirect, the llms summary kept, the kit's files
    if none wins); the disposable wiring (after `disposable-mode` r2's picks and his Measure a phone; with the lane's
    idea of the premiere on the wall, the reel's screen counting down to the develop time and playing the roll as an
@@ -127,7 +112,7 @@ but lab:demo's `about-press.facts` dev stall, ROADMAP's line), crumbs-31 (`5898b
 
 ## Waiting on Will
 
-- **His desk:** `disposable-mode` r2 (eight asks), `locked-door` r2 (four, redrawn from production) and `event-ready` r1
+- **His desk** (not begun at 18:08Z on 2026-10-01; locked-door first): `disposable-mode` r2 (eight asks), `locked-door` r2 (four, redrawn from production) and `event-ready` r1
   (five; its three settled calls, ready never stored nor shown to a guest among them, his to overrule) on build 25;
   `demo-framing` r2 (three: the demo's address in a host's words, how it shares the stage with the stream, the hero's
   touch; `names` retired into `slug`) and `about-press` r1 (two: the press kit on /about, its four facts; press-page's
@@ -138,7 +123,9 @@ but lab:demo's `about-press.facts` dev stall, ROADMAP's line), crumbs-31 (`5898b
   and sent to him as it grows). He reviews it on 2026-10-01 against the product vision ("keep the calls file running":
   each merge's calls join it). His two decisions are answered (2026-09-30): A, the proof mail stays off until the emails
   round (ROADMAP's Emails bucket); B, the instant hide's bar becomes three strikes lapsing after 180 days ("I don't want
-  to prevent a well-meaning reporter from a second report if I simply disagree with the first"), `hide-strikes`'s.
+  to prevent a well-meaning reporter from a second report if I simply disagree with the first"), `hide-strikes`'s. And
+  #60 (2026-10-01, "Yes, 180 days"): a child-abuse dismissal stays reopenable for as long as its strike counts, other
+  kinds 30 days; the admin lane builds it.
 - **The morning of 2026-09-30, on his phone** (his word): `disposable-mode` r2's Measure a phone on the alias (the
   board's dock: Open the camera, Take a frame, the camera app's photo, on his iPhone and an Android if he has one; paste
   the line back: the full-size promise rides on it); Q1 (on a phone the code card fills the screen, but Back
