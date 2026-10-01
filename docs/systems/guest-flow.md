@@ -531,8 +531,9 @@ through flags in the sheet. No step counter to desync.
   (something always follows it), and the legal consent line. Shown once per PERSON at an album
   (`pr_welcome_<qrToken>` via [`use-welcome-seen.ts`](../../src/lib/guest/use-welcome-seen.ts); server
   snapshot "seen" = no flash): it goes with the ticket of whoever saw it (a ticket put down takes its album's, every
-  sign-out every album's), because the door's identify and sign-in steps carry no consent line and lean on it, so the
-  next person on a shared phone meets it once. The demo's welcome is its `RoleStep` (see "Demo mode"). Inside the drawer it
+  sign-out every album's; the door's name step keeps it when it puts a foreign ticket down, its person having just
+  passed it), because the door's identify and sign-in steps carry no consent line and lean on it, so the next person
+  on a shared phone meets it once. The demo's welcome is its `RoleStep` (see "Demo mode"). Inside the drawer it
   stands `min-height: 55svh` (`[data-entry-drawer] [data-welcome-step]`); the desk panel is full height
   already, so the rule stays drawer-scoped.
 - **THE AFFORDANCE TABLE IS ONE ROW**: every step of the door is HELD (no X, no drag handle, Escape and the

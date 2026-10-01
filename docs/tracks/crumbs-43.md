@@ -74,7 +74,8 @@ Each is built as recommended; each is Will's to overrule.
 
 - **The welcome on a shared phone: does it go with the tickets?** Recommend YES, built: a ticket the device puts down
   (somebody else's, or one whose row is gone) takes its album's `pr_welcome_<qr>`, and every sign-out (the header's,
-  the app menu's, Sign out everywhere, the door's "Use a different email") takes every album's. Gain: everyone who
+  the app menu's, Sign out everywhere, the door's "Use a different email") takes every album's; the door's name step
+  keeps it when it puts a foreign ticket down, since its person has just passed it on the way there. Gain: everyone who
   joins on a shared phone meets the welcome and its consent line once (the door's identify and sign-in steps carry
   none: they lean on the welcome). Cost: one more Continue for a guest who signs out and back in on her own phone, or
   whose waiting ticket an album's move to a password ended; and a signed-in guest whose upload replaces another
