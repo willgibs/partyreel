@@ -115,16 +115,15 @@ Each is built as recommended and is Will's to overrule; none is a one-way door.
 
 - Booted at 8aba036e (launch-prep after crumbs-37's and crumbs-38's merges, so no sync owed); worktree
   `../partyreel-wt/crumbs-40`, dev server port 3132, scratch `../partyreel-wt/_scratch/crumbs-40/`.
-- Read: the ledger (`../partyreel-wt/_scratch/redteam-35/ledger.txt`), the code of every item. Findings a successor
-  would otherwise redo:
-  - MEDIUM: `ClaimUploadsOnAuth` ((app) layout) runs the claim on mount; `ClaimsReview` (page segment, streamed behind
-    `dashboard/loading.tsx`) subscribed to `onClaimed` after it landed. Fix: the layout's component refreshes the
-    route itself on a claim that moved uploads; ClaimsReview drops its listener. Next's action queue runs a refresh
-    dispatched mid-navigation after it (`app-router-instance.js` dispatchAction), so the soft order holds too.
-  - Sentry: `@sentry/core` 10.55 `vercelWaitUntil` returns unless `EdgeRuntime` is defined, so
-    `captureRequestError`'s flush is a no-op on Vercel's Node.js runtime (getsentry/sentry-javascript#23087, open).
-    And `scheduleServerFlush`'s `after(() => { void Sentry.flush() })` never held the flush (the callback returns at
-    once). Fix: hold the flush's own promise (`after(flushed)`), and wrap onRequestError.
-  - Ops mail: `alertUrgentReport` keys `${eventId}:${floor(now/10min)}`.
-  - Title: the admin layout's `title.default` is templated by the ROOT's "%s · Partyreel".
-- Next: the MEDIUM item, then likes, then the NITs, each committed as its test goes green.
+- DONE: MEDIUM claims refresh, ad842289 (`ClaimUploadsOnAuth` refreshes on its own claim; `ClaimsReview` no longer
+  listens; `claim-uploads-on-auth.test.tsx` red on the old code). Likes, b1dca5a5 (`seed-queue.ts`: the account read
+  at every call and followed, a burst as one ask; 7 provider pins red on the old provider). Full `pnpm test` green
+  at b1dca5a5's tree (693 files, 8,317 tests, 39 s); typecheck and lint green.
+- Measured: `@sentry/core` 10.55's `vercelWaitUntil` returns unless `EdgeRuntime` is defined (so
+  `captureRequestError`'s flush never holds a Node.js function; getsentry/sentry-javascript#23087, open), and
+  `scheduleServerFlush`'s `after(() => { void Sentry.flush() })` never held the flush either. The ops mail keys
+  `${eventId}:${floor(now/10min)}`. The admin layout's `title.default` is templated by the root's "%s · Partyreel".
+- NEXT: the NITs (strike line `lib/admin/reports.ts` strikeWords: compare the dates as printed; ops mail:
+  `sendOncePerWindow` in `lib/email/send.ts`, keyed on the album's last mail; Sentry: `captureRequestError` wrapper
+  in `lib/observability/sentry.ts` + `after(flushed)`; title: the admin layout's own title absolute; the help
+  article's Review card "Off" + a pin in `help-product-doors.test.ts`), then the system docs, then the gate.
