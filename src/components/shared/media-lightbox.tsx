@@ -127,6 +127,13 @@ export type ViewerOrigin = {
   returnTo?: (item: GridMedia) => HTMLElement | null;
 };
 
+/**
+ * A CLOSE ASKED FROM OUTSIDE THE VIEWER (crumbs-43): the phone's Back took the viewer's history entry
+ * (`shared/masonry.tsx`). `n` counts the asks, so a re-render never asks again; `instant` says the browser
+ * already drew its own transition (a swipe back's snapshot), where a second motion would close it twice.
+ */
+export type ViewerCloseRequest = { n: number; instant: boolean };
+
 /** A rect a photograph can grow out of or drop into: on the page and not empty. */
 const isRealRect = (r: ViewerRect | null | undefined): r is ViewerRect =>
   !!r && r.width > 0 && r.height > 0;
@@ -378,6 +385,7 @@ export function MediaLightbox({
   origin,
   startAt,
   onNeedLinks,
+  closeRequest = null,
 }: {
   items: ViewerMedia[];
   index: number | null;
@@ -434,6 +442,11 @@ export function MediaLightbox({
    * links (and attribution) as they land. Omitted = every item arrives linked, as before.
    */
   onNeedLinks?: (ids: readonly string[]) => void;
+  /**
+   * A close asked from outside (`ViewerCloseRequest`: the phone's Back took the viewer's entry). Each new
+   * ask closes the viewer the way its own X does, or at once when it says `instant`.
+   */
+  closeRequest?: ViewerCloseRequest | null;
 }) {
   const current = index === null ? null : (items[index] ?? null);
   const open = current !== null;
@@ -888,6 +901,28 @@ export function MediaLightbox({
     anim.onfinish = land;
     anim.oncancel = land;
   };
+
+  /*
+   * ★ A CLOSE ASKED FROM OUTSIDE (crumbs-43): the phone's Back took the viewer's history entry
+   * (`shared/masonry.tsx`), so the viewer leaves by its own way out, the photograph dropping back into
+   * its tile (`requestClose`), or at once where the browser already drew its own transition (a swipe
+   * back's snapshot; a second motion would close it twice). Either ends in `closeNow`, which cancels a
+   * settle still running, so a Back taken mid-swipe can never reopen the viewer. Keyed on the ask's
+   * count: a re-render never asks again. The ways out are read as they stand at the ask (a ref the
+   * commit keeps current), never from the render that first saw the request.
+   */
+  const waysOut = useRef({ open, requestClose, closeNow });
+  useEffect(() => {
+    waysOut.current = { open, requestClose, closeNow };
+  });
+  const closeAsked = closeRequest?.n ?? 0;
+  const closeAtOnce = closeRequest?.instant ?? false;
+  useEffect(() => {
+    const ways = waysOut.current;
+    if (closeAsked === 0 || !ways.open) return;
+    if (closeAtOnce) ways.closeNow();
+    else ways.requestClose();
+  }, [closeAsked, closeAtOnce]);
 
   /* ── opening ───────────────────────────────────────────────────────────── */
 

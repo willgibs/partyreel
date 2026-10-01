@@ -20,6 +20,10 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/app/(guest)/e/[token]/page.tsx
   - supabase/migrations/20261001233000_guest_event_cap.sql
   - supabase/migrations/20261001233100_faces_move_attribution.sql
+  # exceptions, one line each in shared tests this lane's change reshapes (why in the Handoff):
+  - src/lib/db/migration-guards.test.ts
+  - src/lib/refresh-then-write-policy.test.ts
+  - src/components/app/recently-deleted-grid.test.tsx
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/guest-flow.md
   - docs/systems/profiles-social.md

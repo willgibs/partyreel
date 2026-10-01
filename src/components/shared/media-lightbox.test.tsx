@@ -1360,6 +1360,81 @@ describe("MediaLightbox: grow out of the tile, drop back in (r1)", () => {
     await act(async () => {});
     expect(flights()).toHaveLength(1);
   });
+
+  /*
+   * ★ A CLOSE ASKED FROM OUTSIDE (crumbs-43): the phone's Back took the viewer's history entry (the grid's
+   * `closeRequest`), so the viewer leaves by its own way out: the photograph drops back into its tile as the X
+   * does, or closes at once where the browser drew its own transition (a swipe back's snapshot). One ask, one
+   * close, however often the caller renders it.
+   */
+  describe("a close asked from outside (the phone's Back)", () => {
+    const tileEl = () => {
+      const tile = document.createElement("div");
+      tile.innerHTML = `<button type="button">View photo</button>`;
+      document.body.appendChild(tile);
+      return tile;
+    };
+    const ui = (
+      onClose: () => void,
+      returnTo: () => HTMLElement | null,
+      closeRequest: { n: number; instant: boolean } | null,
+    ) => (
+      <TooltipProvider>
+        <MediaLightbox
+          items={SIZED}
+          index={1}
+          onClose={onClose}
+          onIndexChange={() => {}}
+          origin={{ kind: "tile", rect: TILE, returnTo }}
+          closeRequest={closeRequest}
+        />
+      </TooltipProvider>
+    );
+    const landTheGrow = async () => {
+      await act(async () => {});
+      const grow = calls.find((c) => c.el.hasAttribute("data-lightbox-media"))!;
+      await act(async () => {
+        grow.anim.onfinish?.();
+      });
+      calls = [];
+    };
+
+    it("drops the photograph back into its tile, as the X does, and closes once it lands", async () => {
+      const tile = tileEl();
+      const onClose = vi.fn();
+      const returnTo = vi.fn(() => tile);
+      const { rerender } = render(ui(onClose, returnTo, null));
+      await landTheGrow();
+      rerender(ui(onClose, returnTo, { n: 1, instant: false }));
+      await act(async () => {});
+      const drop = calls.find((c) => c.el.hasAttribute("data-lightbox-media"));
+      expect(drop, "the photograph drops").toBeTruthy();
+      expect(onClose).not.toHaveBeenCalled();
+      await act(async () => {
+        drop!.anim.onfinish?.();
+      });
+      expect(onClose).toHaveBeenCalledTimes(1);
+      tile.remove();
+    });
+
+    it("closes at once where the browser drew its own transition, and asks once however often it renders", async () => {
+      const tile = tileEl();
+      const onClose = vi.fn();
+      const ask = { n: 1, instant: true };
+      const { rerender } = render(ui(onClose, () => tile, null));
+      await landTheGrow();
+      rerender(ui(onClose, () => tile, ask));
+      await act(async () => {});
+      expect(
+        calls.filter((c) => c.el.hasAttribute("data-lightbox-media")),
+      ).toHaveLength(0);
+      expect(onClose).toHaveBeenCalledTimes(1);
+      rerender(ui(onClose, () => tile, { ...ask }));
+      await act(async () => {});
+      expect(onClose).toHaveBeenCalledTimes(1);
+      tile.remove();
+    });
+  });
 });
 
 /**

@@ -357,14 +357,16 @@ describe("no function refreshes the router and then moves the address", () => {
     ).toBeGreaterThanOrEqual(40);
     expect(filesWithRefresh).toBeGreaterThanOrEqual(20);
 
-    // The album's address writers, derived from the native call in `writeAddress` and its callers. A step's
-    // write (`addressAfterStep`) waits a beat inside a timer, so it is not a write at once: the scan is right
-    // to leave it out, and it is one of the timing cases the header names.
+    // The album's address writers, derived from the viewer's own entry (`useOwnedEntry`'s push, replace and
+    // close) and its callers (crumbs-43: the viewer stands on an entry of its own, which the phone's Back closes;
+    // `writeAddress` and `addressNow` went with replaceState). A step's write (`addressAfterStep`) waits a beat
+    // inside a timer, so it is not a write at once: the scan is right to leave it out, and it is one of the
+    // timing cases the header names.
     const masonry = census(
       read("src/components/shared/masonry.tsx"),
       "masonry.tsx",
     );
-    for (const name of ["writeAddress", "addressNow"]) {
+    for (const name of ["openItem", "closeItem", "leaveEntry"]) {
       expect(masonry.writers, `masonry's ${name}`).toContain(name);
     }
     expect(masonry.writers).not.toContain("addressAfterStep");
