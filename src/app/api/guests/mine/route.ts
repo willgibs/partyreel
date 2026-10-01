@@ -38,8 +38,8 @@ import { z } from "zod";
 
 import {
   countKeptTicketUploads,
-  listOwnUploadStatuses,
   listSessionMediaIds,
+  readOwnUploads,
 } from "@/lib/db/mutations/guest-media";
 import {
   getEventByQrToken,
@@ -76,11 +76,17 @@ const mineSchema = z.object({
  * viewer is `getUser()`'s (never `getSession()`, a cookie is no boundary), and the answer is the
  * token's unclaimed row plus the account's rows at this event. Statuses only, of her own uploads:
  * never an identity, never a link.
+ *
+ * ★ AND, ASKED WITH `tell` (crumbs-38, the approval toast's server half): `news`, the ids of hers a decision let
+ * into the album since she was last told, marked told as they are answered (`readOwnUploads`), so the album says
+ * "One of yours is in the album" once across a reload, a return or her account's other device. Ids of her own
+ * uploads, already in her `items`; never anybody else's, and nothing when the door holds her.
  */
 const statusesSchema = z.object({
   qr_token: z.string().trim().min(1),
   session_token: z.string().trim().min(1).optional(),
   statuses: z.literal(true),
+  tell: z.literal(true).optional(),
 });
 
 /**
@@ -157,7 +163,7 @@ async function viewerId(): Promise<string | null> {
 
 async function answerStatuses(
   request: Request,
-  input: { qr_token: string; session_token?: string },
+  input: { qr_token: string; session_token?: string; tell?: true },
 ): Promise<Response> {
   const refused = await breadthRefusal(request, input.qr_token);
   if (refused) return refused;
@@ -173,16 +179,20 @@ async function answerStatuses(
   const ticket = input.session_token
     ? ((await sortTickets(userId, [input.session_token])).hers[0] ?? null)
     : null;
-  const items = await listOwnUploadStatuses({
+  const { items, news } = await readOwnUploads({
     eventId: event.data.id,
     sessionToken: ticket,
     userId,
+    tell: input.tell === true,
   });
   // `host-curation`'s `told` is the flag's to answer: at `never` a refusal is not hers to learn.
   const told = TRACKER_TELLS_REFUSAL
     ? items
     : items.filter((item) => item.status !== "refused");
-  return NextResponse.json({ ok: true, items: told }, { headers: PRIVATE });
+  return NextResponse.json(
+    input.tell ? { ok: true, items: told, news } : { ok: true, items: told },
+    { headers: PRIVATE },
+  );
 }
 
 async function answerKept(

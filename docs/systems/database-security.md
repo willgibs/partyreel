@@ -131,16 +131,16 @@ a table created since starts with no client grant, so its migration grants exact
 - **`events`:** hosts write the settings columns and `insert(host_id)`, and `update(deleted_at)` for a soft delete
   only. `event_password_hash`, `custom_slug`, `qr_token` and `purge_at` are RPC, trigger or default only. SELECT is
   table-level (RLS scopes the rows), so a new column reads with no grant.
-- **`media`:** UPDATE `status` and `removed_at` only; `purge_at` comes from a trigger; the removal provenance
-  (`removed_by_uploader`, `removed_by_system`, `removed_by_admin`, `status_before_removed`) is RPC, trigger or
-  service role only; `reel_eligible` is readable and written once, by `create_media*`. **SELECT is column-scoped
-  too:** the hold columns and the provenance are not granted, so a host cannot detect a legal hold, an
-  `authenticated` `select("*")` on media ERRORS, host reads enumerate `MEDIA_HOST_COLUMNS` (a parity test pins it
-  to the grant as the migrations leave it, drops replayed, so a column leaves the list before its drop lands), and a
-  new column stays invisible to hosts until it joins both. ★ `media_host_all`'s USING also
-  leaves out an operator's removal (`status = 'removed' and removed_by_admin`): a policy may test a column its role
-  cannot SELECT, so the host loses the row on every read and write without ever reading the flag
-  ([lifecycle-recovery.md](lifecycle-recovery.md)).
+- **`media`:** UPDATE `status` and `removed_at` only; `purge_at` and `let_in_at` (the approval toast's news) come
+  from triggers; the removal provenance (`removed_by_uploader`, `removed_by_system`, `removed_by_admin`,
+  `status_before_removed`) is RPC, trigger or service role only; `reel_eligible` is readable and written once, by
+  `create_media*`. **SELECT is column-scoped too:** the hold columns, the provenance and `let_in_at` are not
+  granted, so a host cannot detect a legal hold, an `authenticated` `select("*")` on media ERRORS, host reads
+  enumerate `MEDIA_HOST_COLUMNS` (a parity test pins it to the grant as the migrations leave it, drops replayed, so a
+  column leaves the list before its drop lands), and a new column stays invisible to hosts until it joins both.
+  ★ `media_host_all`'s USING also leaves out an operator's removal (`status = 'removed' and removed_by_admin`): a
+  policy may test a column its role cannot SELECT, so the host loses the row on every read and write without ever
+  reading the flag ([lifecycle-recovery.md](lifecycle-recovery.md)).
 - **`guests`:** no client role reads or writes it; every reader is the service role or a definer function, because
   it holds `session_token` (the plaintext upload capability) and both addresses. The token also rides the
   `pr_guest_<eventId>` cookie ([guest-flow.md](guest-flow.md)), ★ as a READ capability only: every write route takes it from the body

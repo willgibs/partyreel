@@ -55,13 +55,11 @@ const SINGLE_ROW: Record<string, string> = {
 
 /**
  * Take p_limit but deliberately never page. Each entry is WHY; a stale entry fails too.
+ *
+ * Empty since crumbs-38 (20261001203800): the owner's Uploads and Likes feeds were its two entries ("no cursor by
+ * design", the page saying it stopped at 200), and they page now, so the rules below hold them like any other.
  */
-const CALLER_BOUNDED: Record<string, string> = {
-  get_my_uploads:
-    "the owner's Uploads feed reads the newest p_limit (the app asks 200) and flags `truncated`, so the page says so; no cursor by design",
-  get_my_likes:
-    "the owner's Likes feed reads the newest p_limit (the app asks 200) and flags `truncated`, so the page says so; no cursor by design",
-};
+const CALLER_BOUNDED: Record<string, string> = {};
 
 /**
  * Read only inside SQL bodies (a FROM in a definer body's own statement), never through PostgREST: each one's EXECUTE

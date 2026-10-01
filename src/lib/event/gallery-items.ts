@@ -3,6 +3,7 @@ import "server-only";
 import { type GridMedia } from "@/components/app/media-grid";
 import { type MediaRow } from "@/lib/db/queries/media";
 import { buildDownloadFilename } from "@/lib/media/download-filename";
+import { withUploaderFaces } from "@/lib/media/uploader-faces";
 import { type UploaderIdentity } from "@/lib/media/uploader-identity";
 import { presignDownload } from "@/lib/r2/presign";
 
@@ -29,11 +30,14 @@ import { presignDownload } from "@/lib/r2/presign";
 export type HostGalleryItem = GridMedia & { reelEligible: boolean };
 
 export async function toHostGalleryItems({
+  eventId,
   media,
   eventName,
   uploaderIdentities,
   likeCounts,
 }: {
+  /** The event the rows belong to: whose host the credits' faces are read for. */
+  eventId: string;
   media: MediaRow[];
   /** Names the downloaded file (the `attachment` presign). */
   eventName: string;
@@ -41,6 +45,15 @@ export async function toHostGalleryItems({
   /** Host-only like counts (get_event_like_counts is gated to this host). */
   likeCounts: Map<string, number>;
 }): Promise<HostGalleryItem[]> {
+  // ★ THE CREDIT'S FACE AND DOOR, for these rows' senders alone (crumbs-38): the peek's credit opens the
+  // person's look, which leads with their face (`credit-look.tsx`). The host's view: every confirmed
+  // sender's, blocked or not (`uploader-faces.ts`); a failed read leaves the plain disc.
+  const ids = new Set(media.map((m) => m.id));
+  const identities = await withUploaderFaces(
+    eventId,
+    new Map([...uploaderIdentities].filter(([id]) => ids.has(id))),
+    "host",
+  );
   return Promise.all(
     media.map(async (m) => {
       // Up to three presigned URLs per item: an INLINE url the grid/lightbox render
@@ -64,7 +77,7 @@ export async function toHostGalleryItems({
       ]);
       // Uploader attribution (Phase 2). The HOST gallery is the ONE surface that
       // includes email (for identifying a guest); guest surfaces never carry it.
-      const who = uploaderIdentities.get(m.id);
+      const who = identities.get(m.id);
       return {
         id: m.id,
         type: m.type,
@@ -77,6 +90,9 @@ export async function toHostGalleryItems({
         // The host sees the mark too (`host-lens=badge`): an unproven name reads as one.
         isVerified: who?.isVerified ?? false,
         uploaderEmail: who?.email ?? null,
+        // The credit's face and door, resolved above and copied by name like every field here; the
+        // rule's owner (an account id) is never copied.
+        uploaderFace: who?.face ?? null,
         likeCount: likeCounts.get(m.id) ?? 0,
         // Quick-add signals (R3), never rendered: recency + per-uploader coverage.
         // A null guest_id means the HOST uploaded it (the same rule the contributor

@@ -4,9 +4,15 @@ import { useState } from "react";
 import { Heart } from "lucide-react";
 
 import { type GridMedia } from "@/components/app/media-grid";
+import {
+  FeedMore,
+  useFeedPages,
+  type ReadFeedPage,
+} from "@/components/app/my-feed-more";
 import { LikesProvider } from "@/components/likes/likes-provider";
 import { MasonryColumns } from "@/components/shared/masonry";
 import { EmptyState } from "@/components/shared/empty-state";
+import type { FeedCursor } from "@/lib/db/queries/my-uploads";
 import type { RowStep } from "@/lib/shared/album-rows";
 
 // The personal cross-event "Likes" gallery (Phase 5): a flat, newest-LIKED-first grid of every photo/video
@@ -20,23 +26,33 @@ import type { RowStep } from "@/lib/shared/album-rows";
 // This component OWNS the empty state (not the dashboard tab) so that unliking the LAST item re-renders to
 // "No likes yet" INSTANTLY -- unlike is a client-only RLS delete with no server revalidation, so the page's
 // server-fetched count never updates; deciding empty here keeps it correct without a refetch.
+//
+// Past its first 200, a Show more adds the next page (`my-feed-more.tsx`), and an unlike drops a loaded item
+// the same way it drops a first-page one. With every shown like undone but a page still waiting after them,
+// the feed is not empty: the Show more stands alone.
 export function MyLikesGallery({
   items,
-  truncated,
+  next = null,
+  readMore,
   rowStep,
 }: {
+  /** Her newest liked page, read by the page. */
   items: GridMedia[];
-  truncated: boolean;
+  /** The cursor of the page after it, null when it is all of them. */
+  next?: FeedCursor | null;
+  /** How a Show more asks for the next page (the owner mode's Server Function). */
+  readMore?: ReadFeedPage;
   /** The justified rows' step (the shared `pr_tile_size` cookie, read by the page). */
   rowStep?: RowStep;
 }) {
-  // Confirmed-removed ids (post-unlike). Deriving the visible list from the prop + this set keeps it
+  const feed = useFeedPages(items, next, readMore);
+  // Confirmed-removed ids (post-unlike). Deriving the visible list from the pages + this set keeps it
   // correct even if `items` is re-provided. No useOptimistic here: unlike is a browser RLS delete with no
   // server revalidation, so the removal must STICK (useOptimistic would revert when its transition ends).
   const [removed, setRemoved] = useState<Set<string>>(new Set());
-  const visible = items.filter((m) => !removed.has(m.id));
+  const visible = feed.items.filter((m) => !removed.has(m.id));
 
-  if (visible.length === 0) {
+  if (visible.length === 0 && !feed.next) {
     return (
       <EmptyState
         icon={Heart}
@@ -65,11 +81,7 @@ export function MyLikesGallery({
           rowStep={rowStep}
         />
       </LikesProvider>
-      {truncated && (
-        <p className="text-center text-xs text-muted-foreground">
-          Showing your {visible.length} most recent likes.
-        </p>
-      )}
+      <FeedMore feed={feed} label="Show more of your likes" />
     </div>
   );
 }

@@ -7,6 +7,7 @@
 import type { AlbumKeyRow } from "@/lib/db/queries/album-guest";
 import type { AlbumPresigner } from "@/lib/events/album-guest-links";
 import {
+  toFaceTuple,
   WHO_HOST,
   WHO_VERIFIED,
   type AlbumLinkTuple,
@@ -15,11 +16,13 @@ import {
 import { buildDownloadFilename } from "@/lib/media/download-filename";
 import type { UploaderIdentity } from "@/lib/media/uploader-identity";
 
-/** The host's attribution tuple: the name, the two flags and the proved address. */
+/** The host's attribution tuple: the name, the two flags, the proved address, and the face where there is one. */
 export function hostWho(who: UploaderIdentity): HostWhoTuple {
   const flags =
     (who.isHost ? WHO_HOST : 0) | (who.isVerified ? WHO_VERIFIED : 0);
-  return [who.displayName, flags, who.email];
+  return who.face
+    ? [who.displayName, flags, who.email, toFaceTuple(who.face)]
+    : [who.displayName, flags, who.email];
 }
 
 export async function toHostAlbumLinks(

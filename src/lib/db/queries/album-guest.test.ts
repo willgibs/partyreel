@@ -30,6 +30,15 @@ const createAdminClient = vi.fn();
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => createAdminClient(),
 }));
+// The credit's faces (crumbs-38): their own rules are uploader-faces.test.ts's; here, only that the guest's
+// window asks for them as the GUEST (the consent line's view), and hands back what it answered.
+const withUploaderFaces = vi.fn(
+  async (_event: string, named: unknown, _viewer: string) => named,
+);
+vi.mock("@/lib/media/uploader-faces", () => ({
+  withUploaderFaces: (...a: [string, unknown, string]) =>
+    withUploaderFaces(...a),
+}));
 // The album's keyset helpers, without the module's own server client (and its env) behind them.
 vi.mock("@/lib/db/queries/guest-events", () => ({
   albumCursorOf: (row: { created_at: string; id: string }) => ({
@@ -150,6 +159,18 @@ describe("every guest read carries the gate", () => {
     await guest.readGuestAttribution(OPEN, IDS);
     for (const call of readAlbumAttribution.mock.calls)
       expect(call[2]).toEqual({ withEmail: false });
+  });
+
+  it("★ the guest's window wears the faces a guest may see, the teaser's nine none (crumbs-38)", async () => {
+    const named = new Map([[IDS[0], { displayName: "Maya" }]]);
+    readAlbumAttribution.mockResolvedValue(named);
+    const out = await guest.readGuestAlbumMedia(OPEN, IDS, { attribute: true });
+    expect(withUploaderFaces).toHaveBeenCalledWith("e-open", named, "guest");
+    expect(out?.identities).toBe(named);
+    withUploaderFaces.mockClear();
+    // The teaser shows no Guests list, so its attribution wears no face.
+    await guest.readGuestAttribution(OPEN, IDS);
+    expect(withUploaderFaces).not.toHaveBeenCalled();
   });
 
   it("the demo's rows are read with no attribution at all", async () => {

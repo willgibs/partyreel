@@ -31,6 +31,7 @@ import {
   WHO_HOST,
   WHO_VERIFIED,
   entryId,
+  faceFromTuple,
   type GuestWhoTuple,
   type ManifestEntry,
 } from "@/lib/events/album-wire";
@@ -102,6 +103,9 @@ export function entryToItem(
     isHost: who ? (who[1] & WHO_HOST) !== 0 : hostOwn,
     // Unverified is the safe default: with no attribution there is no name to mark at all.
     isVerified: who ? (who[1] & WHO_VERIFIED) !== 0 : false,
+    // The credit's face and door (crumbs-38), where the link carries one: the album's own Guests-list
+    // face, never a blocked person's (`uploader-faces.ts`). It rides the link, so it changes with it.
+    uploaderFace: faceFromTuple(who?.[2]),
     width: w > 0 ? w : null,
     height: h > 0 ? h : null,
     durationSeconds: entry.length > 5 ? entry[5] : null,

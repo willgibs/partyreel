@@ -934,9 +934,13 @@ had" holds only when this device holds a guest ticket a claim would move.
     picture of it (nothing not in the album is presigned for a guest).
   - ★ **Her tracker says where each of hers stands**
     ([`upload-tracker.ts`](../../src/lib/guest/upload-tracker.ts), pure): this visit's queue plus her own rows through
-    `/api/guests/mine` `{statuses: true}`, read at mount, at each opening and when one of hers arrives in the album
-    out of waiting (`newlyInAlbum`: a host decides a pick in one go, so the refusal beside it is learned with it),
-    never on a timer; an approval arrives live through the album's sync, a refusal at the next read. Its words
+    `/api/guests/mine` `{statuses: true, tell: true}`, read at mount, at each opening and when one of hers arrives in
+    the album out of waiting (`newlyInAlbum`: a host decides a pick in one go, so the refusal beside it is learned
+    with it), never on a timer; an approval arrives live through the album's sync, a refusal at the next read. ★ Each
+    read also answers her NEWS ([`let-in-news.ts`](../../src/lib/guest/let-in-news.ts)): the uploads of hers a
+    decision let in (`media.let_in_at`, stamped by a trigger) since each row's `guests.let_in_told_at`, the mark
+    moved forward as the read answers, so the approval toast plays on a reload, a return or her account's other
+    device, once ([reel.md](reel.md)); the store hands the ids on (`news`), never through the page's shell. Its words
     (`TRACKER_WORDS`, `status=approval`) are "Waiting for approval", "In the album" and "Not approved"
     (`TRACKER_TELLS_REFUSAL`), the one name each state has wherever it is said (the badge's spoken count, the keep's
     Sent line, the help, the album feature page's mock); only what is in the album draws its album link, a held

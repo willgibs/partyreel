@@ -6,7 +6,6 @@ import { FeedSection } from "@/components/app/dashboard/feed-section";
 import { MyLikesGallery } from "@/components/app/my-likes-gallery";
 import { MyUploadsGallery } from "@/components/app/my-uploads-gallery";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { listEvents } from "@/lib/db/queries/events";
 import { getMyLikeCards } from "@/lib/db/queries/my-likes";
 import { getMyUploadCards } from "@/lib/db/queries/my-uploads";
 import { getMyFollowing } from "@/lib/db/queries/social";
@@ -15,6 +14,8 @@ import {
   TILE_SIZE_COOKIE,
 } from "@/lib/shared/tile-size-cookie";
 import { withAvatarUrls } from "@/lib/social/cards";
+
+import { readMyLikesPageAction, readMyUploadsPageAction } from "./feed-actions";
 
 /**
  * THE OWNER MODE: what only the person themselves sees on their own page.
@@ -46,33 +47,25 @@ import { withAvatarUrls } from "@/lib/social/cards";
  * it `removed_by_uploader`, which no host surface shows or restores), while one
  * you added to an event you HOST lands in that event's Deleted, restorable
  * (the host arm). The lightbox's confirm says which off `isHost`, so the host
- * arm's items carry it: an upload is the host arm exactly when its event is one
- * of yours, because get_my_uploads splits its two arms on the event's host.
- * `listEvents()` is an owner-RLS read (`events_host_all`), so like every read
- * above it answers for the caller alone, and the gate stays one you can only
- * fail safely.
+ * arm's items carry it, from the function's own arm flag (`is_host_upload`:
+ * get_my_uploads splits its two arms on the event's host), set by the feed's
+ * query on every page.
  *
  * ★ THE FEEDS ARE THE JUSTIFIED ROWS, WINDOWED (album-guest-wiring), at the one
  * step the shared `pr_tile_size` cookie holds for the album and the hub alike, so
  * a person who picked the largest photographs there sees them here too. Each
- * keeps its 200 cap (the feed queries'), and the rows mount only what is in view.
+ * renders its newest 200 here and adds 200 a Show more (crumbs-38), through a
+ * Server Function that takes a cursor and nothing else, so it pages only the
+ * caller's own feed; the rows mount only what is in view.
  */
 export async function OwnerSections() {
-  const [uploads, likes, following, hostedEvents, cookieJar] =
-    await Promise.all([
-      getMyUploadCards(),
-      getMyLikeCards(),
-      getMyFollowing(),
-      listEvents(),
-      cookies(),
-    ]);
+  const [uploads, likes, following, cookieJar] = await Promise.all([
+    getMyUploadCards(),
+    getMyLikeCards(),
+    getMyFollowing(),
+    cookies(),
+  ]);
   const rowStep = resolveRowStep(cookieJar.get(TILE_SIZE_COOKIE)?.value);
-  const hostedTokens = new Set(hostedEvents.map((event) => event.qr_token));
-  const uploadItems = uploads.items.map((item) =>
-    item.eventQrToken != null && hostedTokens.has(item.eventQrToken)
-      ? { ...item, isHost: true }
-      : item,
-  );
   const followingItems = await withAvatarUrls(following);
 
   return (
@@ -84,7 +77,7 @@ export async function OwnerSections() {
         Only you can see the sections below.
       </p>
 
-      {uploadItems.length === 0 ? (
+      {uploads.items.length === 0 ? (
         <EmptySectionTeaser
           heading="Your uploads"
           blurb="Photos and videos you add to any event, yours or a friend's, collect here."
@@ -92,8 +85,9 @@ export async function OwnerSections() {
       ) : (
         <FeedSection heading="Your uploads">
           <MyUploadsGallery
-            items={uploadItems}
-            truncated={uploads.truncated}
+            items={uploads.items}
+            next={uploads.next}
+            readMore={readMyUploadsPageAction}
             rowStep={rowStep}
           />
         </FeedSection>
@@ -108,7 +102,8 @@ export async function OwnerSections() {
         <FeedSection heading="Your likes">
           <MyLikesGallery
             items={likes.items}
-            truncated={likes.truncated}
+            next={likes.next}
+            readMore={readMyLikesPageAction}
             rowStep={rowStep}
           />
         </FeedSection>

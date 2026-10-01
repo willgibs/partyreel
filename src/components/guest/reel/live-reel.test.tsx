@@ -92,6 +92,9 @@ const { GalleryLiveProvider } = await import("@/components/guest/gallery-live");
 await import("@/components/guest/reel/live-reel-view");
 const { LiveReel, LiveReelTile } =
   await import("@/components/guest/reel/live-reel");
+// The news channel the page hands the toast (her tracker's store), the real one.
+const { createUploadTrackerStore } =
+  await import("@/components/guest/upload-tracker");
 
 const REEL: GalleryReel = {
   showReel: true,
@@ -196,6 +199,7 @@ async function mount({
   moderated = false,
   welcomePending = false,
   isOwner = false,
+  approvalNews,
   tileClassName,
 }: {
   items?: GalleryItem[];
@@ -205,6 +209,8 @@ async function mount({
   moderated?: boolean;
   welcomePending?: boolean;
   isOwner?: boolean;
+  /** The server's news, as her tracker's store hands it on (crumbs-38). */
+  approvalNews?: ReturnType<typeof createUploadTrackerStore>["news"];
   /** The box the page hands the tile (its column and margins). */
   tileClassName?: string;
 } = {}) {
@@ -260,6 +266,7 @@ async function mount({
           isDemo={false}
           moderated={moderated}
           queue={q}
+          approvalNews={approvalNews}
           welcomePending={pending}
           isOwner={isOwner}
         >
@@ -743,6 +750,104 @@ describe("the approval toast", () => {
   it("does not count a clip the host approved (it will never be in the reel)", async () => {
     await mount({ moderated: true, queue: [held] });
     await pollWith([item(1), item(2), item(9, { reelEligible: false })]);
+    expect(toast).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * ★ THE SERVER'S HALF (crumbs-38): "an upload approved after the visit that made it is told on the next visit".
+ * Her tracker's read answers the server's news (what a decision let in since she was last told, marked told as it
+ * answers) into the store's news channel; the toast watches those ids as it watches this visit's held uploads. So a
+ * return with an empty queue still says it, once a visit, by the same rules, and never over the door.
+ */
+describe("the approval toast on her return", () => {
+  const newsOf = (ids: string[]) => {
+    const store = createUploadTrackerStore();
+    store.news.add(ids);
+    return store.news;
+  };
+
+  it("★ says it once on a return, with no queue at all, when the news names one in the album", async () => {
+    const news = newsOf(["m9"]);
+    await mount({
+      moderated: true,
+      items: [item(1), item(2), item(9)],
+      approvalNews: news,
+    });
+    expect(toast).toHaveBeenCalledTimes(1);
+    expect(toast).toHaveBeenCalledWith(
+      "One of yours is in the album",
+      expect.objectContaining({
+        action: expect.objectContaining({ label: "Watch reel" }),
+      }),
+    );
+    // Once a visit: later news, and later polls, say nothing more.
+    await act(async () => news.add(["m10"]));
+    await pollWith([item(1), item(2), item(9), item(10)]);
+    expect(toast).toHaveBeenCalledTimes(1);
+  });
+
+  it("news that lands after the album (the tracker's read answering late) still plays", async () => {
+    const store = createUploadTrackerStore();
+    await mount({
+      moderated: true,
+      items: [item(1), item(2), item(9)],
+      approvalNews: store.news,
+    });
+    expect(toast).not.toHaveBeenCalled();
+    await act(async () => store.news.add(["m9"]));
+    expect(toast).toHaveBeenCalledTimes(1);
+  });
+
+  it("★ never over the door: it waits, unspent, while her welcome is owed, and plays once she is through", async () => {
+    const view = await mount({
+      moderated: true,
+      items: [item(1), item(2), item(9)],
+      approvalNews: newsOf(["m9"]),
+      welcomePending: true,
+    });
+    expect(toast).not.toHaveBeenCalled();
+    await view.passWelcome();
+    expect(toast).toHaveBeenCalledTimes(1);
+  });
+
+  it("one toast when the queue and the news name the same upload", async () => {
+    await mount({
+      moderated: true,
+      queue: [
+        {
+          id: "q1",
+          file: new File([new Uint8Array([1])], "a.jpg", {
+            type: "image/jpeg",
+          }),
+          kind: "photo",
+          status: "done",
+          progress: 100,
+          mediaStatus: "pending",
+          mediaId: "m9",
+        },
+      ],
+      approvalNews: newsOf(["m9"]),
+    });
+    await pollWith([item(1), item(2), item(9)]);
+    expect(toast).toHaveBeenCalledTimes(1);
+  });
+
+  it("news of a clip, or of one no longer in the album, says nothing", async () => {
+    await mount({
+      moderated: true,
+      items: [item(1), item(2), item(9, { reelEligible: false })],
+      approvalNews: newsOf(["m9", "m77"]),
+    });
+    expect(toast).not.toHaveBeenCalled();
+  });
+
+  it("never on an album that holds nothing for approval", async () => {
+    await mount({
+      moderated: false,
+      items: [item(1), item(2), item(9)],
+      approvalNews: newsOf(["m9"]),
+    });
     expect(toast).not.toHaveBeenCalled();
   });
 });

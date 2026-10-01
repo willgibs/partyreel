@@ -34,10 +34,11 @@
  */
 import "server-only";
 
-import type { PostgrestError } from "@supabase/supabase-js";
+import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
 
 import { mustCount, mustQuery } from "@/lib/db/must-query";
 import { inChunks, readAllPages } from "@/lib/db/read-all";
+import { letInNews } from "@/lib/guest/let-in-news";
 import { captureError } from "@/lib/observability/sentry";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getRequestAuth } from "@/lib/supabase/request-auth";
@@ -256,61 +257,129 @@ export async function listOwnUploadStatuses(input: {
   sessionToken?: string | null;
   userId?: string | null;
 }): Promise<OwnUpload[]> {
+  return (await readOwnUploads({ ...input, tell: false })).items;
+}
+
+/** Her uploads with where each stands, and (asked with `tell`) her news. */
+export type OwnUploadsRead = { items: OwnUpload[]; news: string[] };
+
+/** A column the database does not have yet: the migration not applied (`42703` in SQL, `PGRST204` in a write). */
+const MISSING_COLUMN = new Set(["42703", "PGRST204"]);
+
+function missingColumn(error: unknown): boolean {
+  const code = (error as { code?: string } | null)?.code;
+  return typeof code === "string" && MISSING_COLUMN.has(code);
+}
+
+/**
+ * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `media.let_in_at` and `guests.let_in_told_at` arrive with migration
+ * 20261001203810, and `types.ts` learns them only when the Orchestrator regenerates it, so the reads and the mark
+ * that name them go through this untyped client, which compiles on either side of the regeneration (drop the cast
+ * then). Every row it answers is read field by field and checked.
+ */
+function untypedAdmin(): SupabaseClient {
+  return createAdminClient() as unknown as SupabaseClient;
+}
+
+type OwnRow = {
+  id: string;
+  status: string;
+  created_at: string;
+  guest_id?: string | null;
+  let_in_at?: string | null;
+};
+
+/**
+ * HER UPLOADS, AND WHAT SHE IS TOLD ON HER RETURN (crumbs-38: the approval toast's server half). With `tell`, the same
+ * read also answers her NEWS, the uploads of hers a decision let into the album since she was last told
+ * (`let-in-news.ts` holds the rule), and marks each of her rows told up to the newest it answered, so the moment the
+ * album says "One of yours is in the album" is had once: on a reload, a return, or her account's other device.
+ *
+ * ★ TOLD BY THE READ THAT ANSWERS IT. The mark is written as the news is read (her tracker asks at mount, at each
+ * opening and at each arrival, so an approval she watched arrive is told by that visit's own read), and the page
+ * spends the moment by the toast's own rules (a reel showing, the view not already open; spent either way). A mark
+ * that fails to write is captured and the news still answered: told twice beats never told.
+ *
+ * ★ A DATABASE WITHOUT THE MIGRATION reads as no news (captured, `let_in_schema_missing`) and the statuses as ever:
+ * this build may run before the columns stand, and her tracker must never lose its rows to them.
+ */
+export async function readOwnUploads(input: {
+  eventId: string;
+  sessionToken?: string | null;
+  userId?: string | null;
+  /** Answer her news, and mark it told. */
+  tell?: boolean;
+}): Promise<OwnUploadsRead> {
+  const tell = input.tell === true;
   const token = input.sessionToken?.trim() ?? "";
-  const admin = createAdminClient();
+  const admin = untypedAdmin();
+  const guestColumns = tell ? "id, let_in_told_at" : "id";
+  const mediaColumns = tell
+    ? "id, status, created_at, guest_id, let_in_at"
+    : "id, status, created_at";
   try {
-    const guestIds = new Set<string>();
+    const told = new Map<string, string | null>();
+    const take = (rows: unknown) => {
+      for (const row of (rows ?? []) as {
+        id: string;
+        let_in_told_at?: string | null;
+      }[]) {
+        told.set(row.id, row.let_in_told_at ?? null);
+      }
+    };
     if (token.length >= MIN_SESSION_TOKEN) {
       // row-cap: a session token names one guest row (guests.session_token is unique)
-      const rows = await mustQuery(
-        admin
-          .from("guests")
-          .select("id")
-          .eq("event_id", input.eventId)
-          .eq("session_token", token)
-          .is("user_id", null),
-        "own uploads: session row",
+      take(
+        await mustQuery(
+          admin
+            .from("guests")
+            .select(guestColumns)
+            .eq("event_id", input.eventId)
+            .eq("session_token", token)
+            .is("user_id", null),
+          "own uploads: session row",
+        ),
       );
-      for (const row of rows ?? []) guestIds.add(row.id);
     }
     if (input.userId) {
       // row-cap: one account's guest rows in one event: one per session it claimed, a handful
-      const rows = await mustQuery(
-        admin
-          .from("guests")
-          .select("id")
-          .eq("event_id", input.eventId)
-          .eq("user_id", input.userId),
-        "own uploads: account rows",
+      take(
+        await mustQuery(
+          admin
+            .from("guests")
+            .select(guestColumns)
+            .eq("event_id", input.eventId)
+            .eq("user_id", input.userId),
+          "own uploads: account rows",
+        ),
       );
-      for (const row of rows ?? []) guestIds.add(row.id);
     }
-    if (guestIds.size === 0) return [];
+    if (told.size === 0) return { items: [], news: [] };
 
     const media = await inChunks(
       "own uploads: media",
-      [...guestIds],
+      [...told.keys()],
       async (chunk) => {
         const { rows } = await readAllPages(
           "own uploads: media",
           (after: string | null, limit) => {
             let q = admin
               .from("media")
-              .select("id, status, created_at")
+              .select(mediaColumns)
               .eq("event_id", input.eventId)
               .in("guest_id", chunk)
               .eq("removed_by_uploader", false)
               .order("id", { ascending: true })
               .limit(limit);
             if (after) q = q.gt("id", after);
-            return q;
+            return q.overrideTypes<OwnRow[], { merge: false }>();
           },
           (m) => m.id,
         );
         return rows;
       },
     );
-    return media
+    const items: OwnUpload[] = [...media]
       .sort((a, b) => b.created_at.localeCompare(a.created_at))
       .map((m) => ({
         id: m.id,
@@ -321,12 +390,72 @@ export async function listOwnUploadStatuses(input: {
               ? "pending"
               : "refused",
       }));
+    if (!tell) return { items, news: [] };
+
+    const news = letInNews(
+      media.flatMap((m) =>
+        m.guest_id
+          ? [
+              {
+                id: m.id,
+                guestId: m.guest_id,
+                status: m.status,
+                letInAt: m.let_in_at ?? null,
+              },
+            ]
+          : [],
+      ),
+      told,
+    );
+    await markTold(input.eventId, news.marks);
+    return { items, news: news.ids };
   } catch (error) {
+    if (tell && missingColumn(error)) {
+      captureError("media", error, {
+        seam: "let_in_schema_missing",
+        eventId: input.eventId,
+      });
+      return readOwnUploads({ ...input, tell: false });
+    }
     captureError("media", error, {
       seam: "own_upload_statuses_fail_closed",
       eventId: input.eventId,
     });
-    return [];
+    return { items: [], news: [] };
+  }
+}
+
+/**
+ * Each row's mark, moved forward to the newest it told and never back: a read in flight beside this one may have told
+ * newer news already, so the write takes only a row whose mark is older (or none). A failure is captured, never thrown:
+ * the news is answered either way.
+ */
+async function markTold(
+  eventId: string,
+  marks: ReadonlyMap<string, string>,
+): Promise<void> {
+  if (marks.size === 0) return;
+  const admin = untypedAdmin();
+  const results = await Promise.allSettled(
+    [...marks].map(([guestId, mark]) =>
+      mustQuery(
+        admin
+          .from("guests")
+          .update({ let_in_told_at: mark })
+          .eq("id", guestId)
+          .eq("event_id", eventId)
+          .or(`let_in_told_at.is.null,let_in_told_at.lt.${mark}`),
+        "own uploads: told mark",
+      ),
+    ),
+  );
+  for (const result of results) {
+    if (result.status === "rejected") {
+      captureError("media", result.reason, {
+        seam: "let_in_told_mark_failed",
+        eventId,
+      });
+    }
   }
 }
 

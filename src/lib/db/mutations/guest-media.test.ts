@@ -21,10 +21,67 @@ import {
 
 let fake: FakePostgrest;
 const captured: unknown[][] = [];
+/** A database before migration 20261001203810: a read naming either told column answers PostgREST's 42703. */
+let schemaMissing = false;
+/** A told mark whose write fails. */
+let markFails = false;
+
+/** A builder that takes any chain and answers one error, as postgrest-js resolves a refused request. */
+function refused(code: string, message: string): unknown {
+  const answer = {
+    data: null,
+    error: { code, message, details: "", hint: "" },
+  };
+  const chain: unknown = new Proxy(
+    {},
+    {
+      get(_t, prop) {
+        if (prop === "then") {
+          return (resolve: (v: unknown) => unknown) => resolve(answer);
+        }
+        return () => chain;
+      },
+    },
+  );
+  return chain;
+}
+
+/** The fake, through the two failures the told mark's seam answers (the column missing, the write failing). */
+function adminClient(): unknown {
+  const client = asSupabase(fake) as unknown as {
+    from: (table: string) => Record<string, (...a: unknown[]) => unknown>;
+  };
+  return new Proxy(client, {
+    get(target, prop) {
+      if (prop !== "from") {
+        const value = (target as Record<string | symbol, unknown>)[prop];
+        return typeof value === "function" ? value.bind(target) : value;
+      }
+      return (table: string) => {
+        const query = target.from(table);
+        return new Proxy(query, {
+          get(q, method) {
+            if (method === "select" && schemaMissing) {
+              return (columns?: string, ...rest: unknown[]) =>
+                typeof columns === "string" && columns.includes("let_in")
+                  ? refused("42703", `column ${table}.let_in does not exist`)
+                  : q.select(columns, ...rest);
+            }
+            if (method === "update" && markFails && table === "guests") {
+              return () => refused("57014", "canceling statement");
+            }
+            const value = q[method as string];
+            return typeof value === "function" ? value.bind(q) : value;
+          },
+        });
+      };
+    },
+  });
+}
 
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/supabase/admin", () => ({
-  createAdminClient: () => asSupabase(fake),
+  createAdminClient: () => adminClient(),
 }));
 vi.mock("@/lib/observability/sentry", () => ({
   captureError: (...args: unknown[]) => captured.push(args),
@@ -42,6 +99,7 @@ const {
   listOwnerMediaIds,
   listOwnUploadStatuses,
   listSessionMediaIds,
+  readOwnUploads,
 } = await import("./guest-media");
 
 const TOKEN = "session-token-0123456789";
@@ -60,6 +118,8 @@ function uploads(guestId: string, n: number, from: number): FakeRow[] {
 
 beforeEach(() => {
   captured.length = 0;
+  schemaMissing = false;
+  markFails = false;
   fake = createFakePostgrest({
     tables: {
       guests: [
@@ -342,6 +402,169 @@ describe("her own uploads, with where each stands", () => {
     ).toEqual([]);
     expect(captured.at(-1)?.[2]).toMatchObject({
       seam: "own_upload_statuses_fail_closed",
+      eventId: "ev-1",
+    });
+  });
+});
+
+/**
+ * ★ WHAT SHE IS TOLD ON HER RETURN (crumbs-38, the approval toast's server half; the rule's own pins are
+ * let-in-news.test.ts's). Asked with `tell`, the same read answers the uploads of hers a decision let in since her
+ * row's mark and moves each row's mark up to the newest it told, forward only; without `tell` it marks nothing and
+ * names neither column; a database without the migration answers the statuses and no news, loudly; a mark that fails
+ * to write still answers the news (told twice beats never told), captured.
+ */
+describe("her news, read and marked told once", () => {
+  const T = (micro: number) =>
+    `2026-10-01T12:00:00.${String(micro).padStart(6, "0")}+00:00`;
+
+  function upload(
+    id: string,
+    guestId: string,
+    status: string,
+    letInAt: string | null,
+    i: number,
+  ): FakeRow {
+    return {
+      id,
+      event_id: "ev-1",
+      guest_id: guestId,
+      status,
+      removed_by_uploader: false,
+      created_at: new Date(Date.UTC(2026, 8, 27, 0, 0, i)).toISOString(),
+      let_in_at: letInAt,
+    };
+  }
+
+  beforeEach(() => {
+    fake = createFakePostgrest({
+      tables: {
+        guests: [
+          {
+            id: "g-session",
+            event_id: "ev-1",
+            session_token: TOKEN,
+            user_id: null,
+            let_in_told_at: null,
+          },
+          {
+            id: "g-account",
+            event_id: "ev-1",
+            session_token: "a".repeat(20),
+            user_id: "u-1",
+            let_in_told_at: T(500),
+          },
+        ],
+        media: [
+          upload("m-held-approved", "g-session", "approved", T(300), 0),
+          upload("m-older-approved", "g-session", "approved", T(100), 1),
+          upload("m-straight-in", "g-session", "approved", null, 2),
+          upload("m-waiting", "g-session", "pending", null, 3),
+          upload("m-hidden-again", "g-session", "hidden", T(200), 4),
+          upload("m-told-on-account", "g-account", "approved", T(400), 5),
+          upload("m-new-on-account", "g-account", "approved", T(600), 6),
+        ],
+      },
+    });
+  });
+
+  const guestMark = (id: string) =>
+    fake.tables.guests.find((g) => g.id === id)?.let_in_told_at;
+
+  it("★ answers what a decision let in since her mark, and moves the mark to the newest it told", async () => {
+    const out = await readOwnUploads({
+      eventId: "ev-1",
+      sessionToken: TOKEN,
+      tell: true,
+    });
+    expect(out.news).toEqual(["m-held-approved", "m-older-approved"]);
+    expect(out.items.map((i) => i.id)).toContain("m-waiting");
+    expect(guestMark("g-session")).toBe(T(300));
+    // The write moves the mark forward only: it takes the row only where its mark is older, or none.
+    const patch = fake.requests.find(
+      (r) => r.method === "PATCH" && r.name === "guests",
+    );
+    expect(decodeURIComponent(patch!.url)).toContain(
+      `or=(let_in_told_at.is.null,let_in_told_at.lt.${T(300)})`,
+    );
+  });
+
+  it("told once: the next read, on a reload or another device, answers nothing new", async () => {
+    await readOwnUploads({ eventId: "ev-1", sessionToken: TOKEN, tell: true });
+    const again = await readOwnUploads({
+      eventId: "ev-1",
+      sessionToken: TOKEN,
+      tell: true,
+    });
+    expect(again.news).toEqual([]);
+  });
+
+  it("her ticket's row and her account's are told apart", async () => {
+    const out = await readOwnUploads({
+      eventId: "ev-1",
+      sessionToken: TOKEN,
+      userId: "u-1",
+      tell: true,
+    });
+    expect(out.news).toEqual([
+      "m-new-on-account",
+      "m-held-approved",
+      "m-older-approved",
+    ]);
+    expect(guestMark("g-account")).toBe(T(600));
+    expect(guestMark("g-session")).toBe(T(300));
+  });
+
+  it("a mark already past the news is never moved back", async () => {
+    fake.tables.guests[0].let_in_told_at = T(900);
+    const out = await readOwnUploads({
+      eventId: "ev-1",
+      sessionToken: TOKEN,
+      tell: true,
+    });
+    expect(out.news).toEqual([]);
+    expect(guestMark("g-session")).toBe(T(900));
+    expect(fake.requests.some((r) => r.method === "PATCH")).toBe(false);
+  });
+
+  it("without `tell` it marks nothing, and names neither column", async () => {
+    const out = await readOwnUploads({ eventId: "ev-1", sessionToken: TOKEN });
+    expect(out.news).toEqual([]);
+    expect(guestMark("g-session")).toBeNull();
+    expect(fake.requests.some((r) => r.method === "PATCH")).toBe(false);
+    expect(fake.requests.some((r) => r.url.includes("let_in"))).toBe(false);
+    // And the tracker's plain read is the same read.
+    expect(
+      await listOwnUploadStatuses({ eventId: "ev-1", sessionToken: TOKEN }),
+    ).toEqual(out.items);
+  });
+
+  it("★ a database without the migration answers her statuses and no news, captured", async () => {
+    schemaMissing = true;
+    const out = await readOwnUploads({
+      eventId: "ev-1",
+      sessionToken: TOKEN,
+      tell: true,
+    });
+    expect(out.news).toEqual([]);
+    expect(out.items).toHaveLength(5);
+    expect(captured.at(-1)?.[2]).toMatchObject({
+      seam: "let_in_schema_missing",
+      eventId: "ev-1",
+    });
+  });
+
+  it("a mark that fails to write still answers the news, the failure captured", async () => {
+    markFails = true;
+    const out = await readOwnUploads({
+      eventId: "ev-1",
+      sessionToken: TOKEN,
+      tell: true,
+    });
+    expect(out.news).toEqual(["m-held-approved", "m-older-approved"]);
+    expect(guestMark("g-session")).toBeNull();
+    expect(captured.at(-1)?.[2]).toMatchObject({
+      seam: "let_in_told_mark_failed",
       eventId: "ev-1",
     });
   });
