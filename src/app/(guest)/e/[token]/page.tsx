@@ -56,6 +56,7 @@ import {
   privateEventCardPath,
 } from "@/lib/guest/event-card";
 import { readGuestSessionCookie } from "@/lib/guest/session-cookie";
+import { hasWaitingUploads } from "@/lib/guest/waiting-on-arrival.server";
 import { PHOTO_PARAM, readPhotoParam } from "@/lib/media/share-save";
 import { presignDownload } from "@/lib/r2/presign";
 import {
@@ -590,6 +591,23 @@ export default async function GuestEventPage({
     needsName = needsDisplayName(menu.displayName);
   }
 
+  // ★ HER WAITING UPLOADS ON AN EMPTY HELD ALBUM, KNOWN BEFORE THE FIRST PAINT (crumbs-43): the album's one Add is
+  // the row's while something of hers waits for the host, and her tracker learns an earlier visit's waiting rows
+  // only after mount, so the page asks here, where it decides anything (`waiting-on-arrival.server.ts` says why).
+  const waitingOnArrival =
+    !isDemo &&
+    !isOwner &&
+    access === "full" &&
+    event.accepting_uploads &&
+    event.moderation_mode === "hold_for_approval" &&
+    stats.approvedTotal === 0
+      ? await hasWaitingUploads({
+          eventId: event.id,
+          userId,
+          ticket: cookieSessionToken,
+        })
+      : false;
+
   return (
     <div className="flex min-h-full flex-1 flex-col">
       {/* event.qr_token, NOT the raw `token` route param: `token` may be a
@@ -632,6 +650,7 @@ export default async function GuestEventPage({
         firstPaintWidth={albumWidth}
         rhythmSeed={rhythmSeed}
         albumFull={decision.albumFull}
+        waitingOnArrival={waitingOnArrival}
       />
       {/* ★ WHAT THIS PHONE'S CLAIM WOULD NOT TAKE IN SILENCE (shared-claims): a ticket typed under a
           name at odds with the account, asked about once the door and its sheets are down

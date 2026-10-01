@@ -157,6 +157,7 @@ export function EventExperience({
   firstPaintWidth = null,
   rhythmSeed = 0,
   albumFull = false,
+  waitingOnArrival = false,
 }: {
   event: GuestEvent;
   qrToken: string;
@@ -231,6 +232,11 @@ export function EventExperience({
    * close it, and the lightbox must not say it does.
    */
   albumFull?: boolean;
+  /**
+   * Something of hers from an earlier visit waits for the host on an album still empty (the page's server read,
+   * `waiting-on-arrival.server.ts`): the row's Add is hers from the first paint, never the empty state's.
+   */
+  waitingOnArrival?: boolean;
 }) {
   const router = useRouter();
   // ONE resolution of the step for both boxes the album occupies: the skeleton
@@ -557,7 +563,11 @@ export function EventExperience({
   // passed only while `galleryEmpty`). At a moderated event whose album is
   // still empty, that is every guest who has sent anything, and exactly the
   // guest her tracker sits beside Add for, its badge counting what waits.
-  const galleryEmpty = mediaCount === 0 && inFlightUploads.length === 0;
+  // ★ AND HER WAITING ROWS FROM AN EARLIER VISIT COUNT FROM THE FIRST PAINT (crumbs-43, `waitingOnArrival`): her
+  // tracker reads them only after mount, so the page's server render says whether any wait, and the Add a returning
+  // guest meets is the row's from the first frame, with nothing to move when the tracker's read lands.
+  const galleryEmpty =
+    mediaCount === 0 && inFlightUploads.length === 0 && !waitingOnArrival;
   // Her tracker (`guest-capture` r1, `tracker=button`): the two facts its button needs, kept
   // outside the page's state so a sync re-renders the tracker and never this shell.
   const [trackerStore] = useState(createUploadTrackerStore);
