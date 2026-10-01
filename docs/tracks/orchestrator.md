@@ -41,6 +41,7 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `crumbs-35` | build 34's red-team finds: the hub's album still through Select and Cancel at 375 (LOW, and the ROADMAP's line), the guest header after a session ends elsewhere, the dashboard's claims after the silent claim, a guest's own upload with no second fade (unconfirmed), the portal's sidebar prefetches' auth reads, Escape on the keep sheet | running (agent `a8d389ec566e2fa57`, asked 05:35Z to push WIP and keep `## Where I am` current), cut at `35f68175`; no SQL | Sonnet, 3131 | |
+| `crumbs-36` | five lines tonight's lanes deferred: the pricing pages' counts through `formatCount`, one `INACTIVE_MONTHS`, the host's Add scrolling to its panel, the blog's two keep lines, a dismissed child-abuse report's closed line saying whether it is still a live strike | running (agent `aba73c00eb28c320b`, told at spawn to push WIP and keep `## Where I am` current), cut at `c72d0231`; no SQL | Sonnet, 3132 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
 no question open (Q1, the `names` hang; Q2, schema-pass part 1; Q3, the notes-into-laws audit; Q4, the door migration;
@@ -59,8 +60,10 @@ runtime logs need it). MCP tool ids change with the account. The new Orchestrato
    pushed commits and its manifest's `## Where I am`, with its predecessor's transcript at
    `~/.claude/projects/-Users-gibby-local-ai-partyreel/157caa18-ec54-4aa9-a12a-04c86d5a667b/subagents/agent-a8d389ec566e2fa57.jsonl`
    (grep it, never read it whole), a stale `.next/dev/lock` free to delete. Its record adds its calls to Will's file
-   as 59.
-3. **Build 35** (crumbs-33, crumbs-34 and crumbs-35 on build 34): deploy it per the runbook, unless Will is mid-sitting
+   as 59. **crumbs-36** (Sonnet, 3132, `../partyreel-wt/crumbs-36`, agent `aba73c00eb28c320b`, transcript
+   `.../subagents/agent-aba73c00eb28c320b.jsonl` beside it): the same, its calls as 60. Either respawn's note repeats
+   the ask to push WIP and keep `## Where I am` current.
+3. **Build 35** (crumbs-33 to crumbs-36 on build 34): deploy it per the runbook, unless Will is mid-sitting
    (ask). Then its red-team (Opus) from `../partyreel-wt/_scratch/redteam-35/brief.md`, written 2026-10-01. Before the
    spawn, fill the stamp's sha and list crumbs-35's walks under its step 4. A ledger already there means a cut-off
    red-team: respawn it after the ledger's last line.
@@ -68,7 +71,8 @@ runtime logs need it). MCP tool ids change with the account. The new Orchestrato
    sent to him at 56 and to be re-sent as it grows), then the desk. Seat a respawned Advisor
    (`usher/kit/advisor-prompt.txt`) when a consult comes due; no question is open.
 
-Relays that live only in an agent: crumbs-35's WIP-and-`## Where I am` ask (05:35Z, above); nothing else.
+Relays that live only in an agent: the WIP-and-`## Where I am` ask, to crumbs-35 (05:35Z) and in crumbs-36's spawn;
+nothing else.
 
 If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` holds a merge made after this note (push
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
@@ -85,7 +89,7 @@ but lab:demo's `about-press.facts` dev stall, ROADMAP's line), crumbs-31 (`5898b
 
 ## Next, in order
 
-1. **Integrate each lane as it hands off** (crumbs-35 runs),
+1. **Integrate each lane as it hands off** (crumbs-35 and crumbs-36 run),
    each migration by protocol, one at a time: drift check, apply verbatim, the rolled-back refusals, advisors, types.
 2. **Build 34** (`65dbedb2`: build 33 plus crumbs-29 to crumbs-32 and demo-stall) is on the alias since 2026-10-01
    03:45Z (Will had not begun his sitting and said go). Its first try failed at install on both projects: with no pin,
@@ -95,10 +99,10 @@ but lab:demo's `about-press.facts` dev stall, ROADMAP's line), crumbs-31 (`5898b
    regression, its 13 RT34 events deleted, strikes unchanged (partyr33l's address 6, willg97's 2); one LOW (the hub's
    Select at 375), two NITs, one unconfirmed look and two observations went to `crumbs-35`. Not driven: the portal's
    404 for willg97 (his authenticator code), the magic-link return (his email), the 13-guest list, the over-cap banner
-   and the export walk (no such data). Build 35 waits on crumbs-33, crumbs-34 and crumbs-35, and on Will's word if he
+   and the export walk (no such data). Build 35 waits on crumbs-35 and crumbs-36 (crumbs-33 and crumbs-34 merged), and on Will's word if he
    is at the desk. Lanes run again (Will, 2026-10-01: "keep the calls file running"): pace near 95% weekly (90% at
    04:57Z on 2026-10-01; willg97 resets Sunday 13:00Z, hi@willgibs.com, fresh, Tuesday 21:00Z), with this block kept
-   current; crumbs-35 is the night's last cut.
+   current; Will (05:30Z, at 92%): run into the auto-kill, documenting along the way.
 3. **Seats as they free** (at most four lanes; `memory_pressure` before each; app work first, Will's note; `lab-focus`
    took the lab's phone fold with it). After his desk picks: the demo event (below); about-press's wiring (its three wiring calls,
    `git show 3ded6ba9^2:docs/tracks/about-press.md`: /press a temporary redirect, the llms summary kept, the kit's files

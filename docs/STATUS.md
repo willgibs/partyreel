@@ -26,7 +26,7 @@ Nothing is protected: every page, the host app and the guest pages are open to b
   check's stall, a Next dev bug, upstream's fix carried as a pnpm patch) on build 34, red-teamed PASS.
   `crumbs-34` (every published claim made true; Sentry quiet off Vercel) and `crumbs-33` (a report's live strikes on
   the queue, the newsletter row with an email change, four correctness fixes; its two migrations applied) are
-  merged. App work leads (his note); the wiring of each board follows
+  merged; `crumbs-35` (build 34's red-team finds) and `crumbs-36` (five deferred lines) run. App work leads (his note); the wiring of each board follows
   his picks.
 
 ## The desk
