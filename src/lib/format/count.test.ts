@@ -6,7 +6,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { runAsGermanNumberRuntime } from "@/lib/test-utils/german-runtime";
 
 import {
-  compactAxisWidth,
   formatCompactNumber,
   formatCount,
   formatKindCount,
@@ -104,22 +103,6 @@ describe("formatCompactNumber", () => {
     expect(formatCompactNumber(1050)).toBe("1.1K");
     expect(formatCompactNumber(12_000)).toBe("12K");
     expect(formatCompactNumber(1_200_000)).toBe("1.2M");
-  });
-});
-
-describe("compactAxisWidth", () => {
-  it("never shrinks below the chart's original fixed width", () => {
-    expect(compactAxisWidth([0, 5, 12])).toBeGreaterThanOrEqual(28);
-  });
-
-  it("widens for a longer compact label", () => {
-    const narrow = compactAxisWidth([5, 12]);
-    const wide = compactAxisWidth([5, 12, 1_200_000]);
-    expect(wide).toBeGreaterThan(narrow);
-  });
-
-  it("is stable for an empty series", () => {
-    expect(compactAxisWidth([])).toBe(28);
   });
 });
 

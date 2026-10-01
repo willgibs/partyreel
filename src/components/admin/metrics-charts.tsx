@@ -14,7 +14,7 @@ import {
   YAxis,
 } from "recharts";
 
-import { compactAxisWidth, formatCompactNumber, formatCount } from "@/lib/format/count";
+import { formatCompactNumber, formatCount } from "@/lib/format/count";
 
 // recharts wrappers for the admin metrics dashboard (P6b). Client-only (recharts measures the DOM via
 // ResponsiveContainer), fed serializable data from the server page. Theming is grayscale + the single
@@ -27,15 +27,24 @@ import { compactAxisWidth, formatCompactNumber, formatCount } from "@/lib/format
 // renders cleanly on server + first client paint (no warning, no hydration mismatch); the observer then
 // resizes to the real container width.
 //
-// ★ EVERY YAXIS TICKS COMPACT AND WIDENS TO FIT (the 1,000-row round's follow-on, 2026-09-24). A fixed
-// `width={28}` clipped a four-digit tick ("1400" drew as "400"): the axis now measures the widest
-// COMPACT label its own data can draw (`compactAxisWidth`) and formats every tick with it
-// (`formatCompactNumber`, "1.4K"/"12K"/"1.2M"; a number under 1,000 is unchanged). The tooltip stays
-// exact (`formatCount`), since a hover is where the precise figure belongs.
+// ★ EVERY YAXIS TICKS COMPACT AND IS SIZED FROM THE LABELS IT DRAWS (crumbs-41). A fixed `width={28}`
+// clipped a four-digit tick ("1400" drew as "400"); its first fix (2026-09-24) sized the axis from the
+// widest compact label the DATA could draw, but the axis draws its own rounded ticks, which outgrow the
+// data's: a Free count of 3,000 ticks 1.5K and 2.3K in an axis sized for "3K", and both drew clipped
+// (measured on the Library's `admin-metrics-charts`). So `width="auto"`: recharts 3 measures the tick labels
+// it rendered and sizes the axis to the widest, whatever the domain rounds to. Ticks stay compact
+// (`formatCompactNumber`, "1.4K"/"12K"/"1.2M"; a number under 1,000 is unchanged), and the tooltip exact
+// (`formatCount`), since a hover is where the precise figure belongs. `metrics-charts.test.ts` pins both.
 
 const AXIS = "var(--color-muted-foreground)";
 const GRID = "var(--color-border)";
 const INITIAL_WIDTH = 600;
+/**
+ * The plot's margin. `left` is the slack a measured axis needs: `width="auto"` sizes the axis to its widest label
+ * exactly, rounded (so the label sits flush with the chart's edge, a fraction of a pixel from a clip), and a face that
+ * swaps in after the measurement can draw a hair wider.
+ */
+const MARGIN = { top: 8, right: 8, left: 4, bottom: 0 };
 
 const TOOLTIP_STYLE: React.CSSProperties = {
   background: "var(--color-card)",
@@ -66,11 +75,6 @@ export function TrendChart({
   series: TrendSeries[];
   height?: number;
 }) {
-  // Every value any line can draw, so the axis fits whichever series is
-  // tallest (never just the first, and never a stale width from a prior page).
-  const values = data.flatMap((row) =>
-    series.map((s) => Number(row[s.key]) || 0),
-  );
   return (
     <div className="w-full" style={{ height }}>
       <ResponsiveContainer
@@ -78,10 +82,7 @@ export function TrendChart({
         height="100%"
         initialDimension={{ width: INITIAL_WIDTH, height }}
       >
-        <LineChart
-          data={data}
-          margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
-        >
+        <LineChart data={data} margin={MARGIN}>
           <CartesianGrid strokeDasharray="3 3" stroke={GRID} vertical={false} />
           <XAxis
             dataKey="day"
@@ -93,7 +94,7 @@ export function TrendChart({
           />
           <YAxis
             allowDecimals={false}
-            width={compactAxisWidth(values)}
+            width="auto"
             tickFormatter={formatCompactNumber}
             tick={{ fontSize: 11, fill: AXIS }}
             stroke={GRID}
@@ -138,7 +139,6 @@ export function DistributionChart({
   data: DistributionDatum[];
   height?: number;
 }) {
-  const values = data.map((d) => d.value);
   return (
     <div className="w-full" style={{ height }}>
       <ResponsiveContainer
@@ -146,7 +146,7 @@ export function DistributionChart({
         height="100%"
         initialDimension={{ width: INITIAL_WIDTH, height }}
       >
-        <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+        <BarChart data={data} margin={MARGIN}>
           <CartesianGrid strokeDasharray="3 3" stroke={GRID} vertical={false} />
           <XAxis
             dataKey="label"
@@ -155,7 +155,7 @@ export function DistributionChart({
           />
           <YAxis
             allowDecimals={false}
-            width={compactAxisWidth(values)}
+            width="auto"
             tickFormatter={formatCompactNumber}
             tick={{ fontSize: 11, fill: AXIS }}
             stroke={GRID}

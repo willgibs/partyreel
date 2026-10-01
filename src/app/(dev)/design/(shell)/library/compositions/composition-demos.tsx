@@ -21,6 +21,10 @@ import {
 // A type only (erased at build), so the server-only query module never reaches this page.
 import type { ReviewEntry } from "@/lib/db/queries/reports";
 import { HealthBand } from "@/components/admin/health-band";
+import {
+  DistributionChartLazy,
+  TrendChartLazy,
+} from "@/components/admin/metrics-charts.lazy";
 import { QueueList } from "@/components/admin/queue-list";
 import { ClosedLine, ClosedLog } from "@/components/app/report-review";
 import { StorageMeter } from "@/components/app/dashboard/storage-meter";
@@ -710,6 +714,39 @@ export function AdminReportCardDemo() {
           />
         ))}
       </ClosedLog>
+    </div>
+  );
+}
+
+/**
+ * /admin/metrics' two charts at counts past 1,000 (crumbs-41): the real `TrendChart` and `DistributionChart`, lazily
+ * loaded as the page loads them, over fixed counts chosen where an axis's own rounded ticks outgrow the data's labels
+ * (a Free count of 3,000 ticks 2.3K; views near 99K tick 100K). The portal cannot be signed into on localhost, so
+ * this is the only place the charts can be seen at a scale the test data never reaches.
+ */
+const VIEWS_TREND = Array.from({ length: 14 }, (_, i) => ({
+  day: `2026-09-${String(17 + i).padStart(2, "0")}`,
+  views: 41_000 + Math.round((i * 58_400) / 13 / 1_000) * 1_000,
+  scans: 2_000 + (i % 3) * 1_000,
+}));
+
+export function AdminMetricsChartsDemo() {
+  return (
+    <div className="grid w-full gap-6 lg:grid-cols-2">
+      <TrendChartLazy
+        data={VIEWS_TREND}
+        series={[
+          { key: "views", label: "Views", color: "var(--color-foreground)" },
+          { key: "scans", label: "Scans", color: "var(--color-brand)" },
+        ]}
+      />
+      <DistributionChartLazy
+        data={[
+          { label: "Free", value: 3_000 },
+          { label: "Event Pass", value: 12 },
+          { label: "Pro", value: 1, color: "var(--color-brand)" },
+        ]}
+      />
     </div>
   );
 }
