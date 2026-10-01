@@ -176,7 +176,10 @@ it rather than fork it.
 - ★ **The window between the check and the stream is closed in the Worker** (`workers/export/src/stream.ts`): for a
   token that asks for reports it finds the zip's first object before it answers, and none at all is a `204` (a
   top-level form POST stays on the page, no file) reported `empty`; an object gone mid-stream is skipped and named.
-  A token without the ask is streamed exactly as before, empty zip and all.
+  A token without the ask is streamed exactly as before, empty zip and all. ★ The reported zip is PUSHED into a
+  pass-through the response reads, because a client that leaves shows only as a failed write: the runtime cancels
+  no pulled response body and, under `wrangler dev`, aborts no `request.signal` (a pulled body stalled until the
+  runtime killed the request as hung, its end never reported).
 - ★ **Past one zip's ceilings (2,000 items or 20 GB) an album comes home in parts**, oldest first: each mint
   (`part`, `after`) takes the next part from a position cursor, never a page index, so nothing is skipped or taken
   twice while the album moves, and each part is its own tap (a browser holds back a second download a page starts

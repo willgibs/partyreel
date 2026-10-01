@@ -28,32 +28,27 @@ import type {
  */
 function Controls({
   action,
-  actions,
   close,
 }: {
   action?: ToastAction;
-  /** A question's answers (`ask`), side by side, before the x. */
-  actions?: ToastAction[];
   close?: ToastAction;
 }) {
-  const buttons = actions ?? (action ? [action] : []);
   return (
     <div
       data-export-toast-controls=""
       className="ml-auto flex shrink-0 items-center gap-1.5 self-center"
     >
-      {buttons.map((button) => (
+      {action ? (
         // `data-button` takes sonner's own action styling, so this reads like every toast's Undo.
         <button
-          key={button.label}
           type="button"
           data-button=""
           data-action=""
-          onClick={button.run}
+          onClick={action.run}
         >
-          {button.label}
+          {action.label}
         </button>
-      ))}
+      ) : null}
       {close ? (
         <button
           type="button"
@@ -66,6 +61,34 @@ function Controls({
         </button>
       ) : null}
     </div>
+  );
+}
+
+/**
+ * A QUESTION'S ANSWERS, UNDER ITS LINE (`ask`). Two answers beside the line squeezed "3 of these 12 are
+ * hidden." into four rows at 375 (the toaster's width is fixed, so a desk's too), so they sit in the
+ * description's place, left-aligned, and the x keeps its place on the right. Sonner's own action styling,
+ * with its push to the right undone.
+ */
+function Answers({ actions }: { actions: ToastAction[] }) {
+  return (
+    <span
+      data-export-toast-answers=""
+      className="mt-2 flex flex-wrap items-center gap-1.5"
+    >
+      {actions.map((answer) => (
+        <button
+          key={answer.label}
+          type="button"
+          data-button=""
+          data-action=""
+          style={{ marginInlineStart: 0 }}
+          onClick={answer.run}
+        >
+          {answer.label}
+        </button>
+      ))}
+    </span>
   );
 }
 
@@ -91,10 +114,11 @@ export const exportToasts: ToastPort = {
         // A question about her own selection: neutral, held until she answers or takes the x.
         toast.info(view.title, {
           ...base,
+          description: <Answers actions={view.actions} />,
           icon: <EyeOff className="size-4" aria-hidden />,
           duration: Infinity,
           dismissible: false,
-          action: <Controls actions={view.actions} close={view.close} />,
+          action: <Controls close={view.close} />,
         });
         return;
       case "between":

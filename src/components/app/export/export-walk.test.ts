@@ -1087,7 +1087,7 @@ describe("an empty or short zip is said, never sent as if whole (export-ends)", 
     await until(() => h.now()?.tone === "refused");
     expect(h.now()).toMatchObject({
       tone: "refused",
-      title: "That download stopped before it finished.",
+      title: "That download didn't finish.",
       action: { label: "Try again" },
     });
 

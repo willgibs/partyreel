@@ -271,6 +271,51 @@ describe("the stream, for a token that asks", () => {
     });
   });
 
+  it("★ a client that leaves is heard with no signal at all: the runtime only fails the next write", async () => {
+    const big = new Uint8Array(256 * 1024);
+    const h = harness(
+      createFakeBucket({ [KEYS[0]]: big, [KEYS[1]]: big, [KEYS[2]]: big }),
+    );
+    // No AbortSignal: under wrangler dev the runtime aborted none and cancelled no pulled body.
+    const res = await h.send(post(await sign({ report: REPORT_URL })));
+    const reader = res.body!.getReader();
+    await reader.read();
+    await reader.cancel("gone");
+    expect((await h.drain()).at(-1)?.report).toMatchObject({
+      kind: "end",
+      outcome: "stopped",
+      missing: IDS,
+    });
+  });
+
+  it("an object's bytes that fail mid-read are failed, not stopped", async () => {
+    const bucket = createFakeBucket(ALL);
+    const get = bucket.get.bind(bucket);
+    bucket.get = async (key) => {
+      const obj = await get(key);
+      if (!obj || key !== KEYS[1]) return obj;
+      let sent = false;
+      return {
+        size: obj.size,
+        body: new ReadableStream<Uint8Array>({
+          pull(controller) {
+            if (sent) return controller.error(new Error("R2 read reset"));
+            sent = true;
+            controller.enqueue(new Uint8Array([1, 2, 3]));
+          },
+        }),
+      };
+    };
+    const h = harness(bucket);
+    const res = await h.send(post(await sign({ report: REPORT_URL })));
+    await expect(res.arrayBuffer()).rejects.toThrow();
+    expect((await h.drain()).at(-1)?.report).toMatchObject({
+      outcome: "failed",
+      files: 1,
+      missing: IDS,
+    });
+  });
+
   it("an object read that breaks mid-way is failed, every id missing", async () => {
     const bucket = createFakeBucket(ALL);
     const get = bucket.get.bind(bucket);

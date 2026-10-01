@@ -165,6 +165,20 @@ describe("the download's toast", () => {
     ).toEqual(["Include them", "Leave them out", "Cancel download"]);
     expect(buttons[0]).toHaveAttribute("data-button");
     expect(buttons[1]).toHaveAttribute("data-button");
+    // The answers sit under the line (the description's place), so the line keeps its width at 375;
+    // the x alone keeps the right.
+    const answers = el.querySelector(
+      "[data-export-toast-answers]",
+    ) as HTMLElement;
+    expect(within(answers).getAllByRole("button")).toHaveLength(2);
+    const controls = el.querySelector(
+      "[data-export-toast-controls]",
+    ) as HTMLElement;
+    expect(
+      within(controls)
+        .getAllByRole("button")
+        .map((b) => b.getAttribute("aria-label")),
+    ).toEqual(["Cancel download"]);
     fireEvent.click(buttons[1]);
     expect(leave).toHaveBeenCalledTimes(1);
     expect(include).not.toHaveBeenCalled();

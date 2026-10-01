@@ -344,7 +344,7 @@ export const WALK_COPY = {
     `${formatCount(found)} of ${formatCount(items)} are in part ${part}.`,
   /** Between parts, a part that never finished (she stopped it, or the line or a read broke it). */
   partStopped: (part: number, parts: number) =>
-    `Part ${part} of ${parts} stopped before it finished.`,
+    `Part ${part} of ${parts} didn't finish.`,
   /** Between parts, a part the album emptied after its check: nothing was sent. */
   partEmpty: (part: number, parts: number) =>
     `Part ${part} of ${parts} had nothing left to download.`,
@@ -353,8 +353,11 @@ export const WALK_COPY = {
     parts === 2
       ? "Both parts are saved. That's\u00a0everything."
       : `All ${parts} parts are saved. That's\u00a0everything.`,
-  /** One zip that never finished: nothing whole reached her. */
-  stopped: "That download stopped before it finished.",
+  /**
+   * One zip that never finished: nothing whole reached her. One line beside its Try again at 375 and at a
+   * desk, as the hollow zip's is ("stopped before it finished" ran two).
+   */
+  stopped: "That download didn't finish.",
   /** A host's selection that mixes hidden and shown items asks first (`export-ends`). */
   hiddenAsk: (hidden: number, total: number) =>
     hidden === 1

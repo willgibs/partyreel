@@ -9,11 +9,16 @@
  *    zip's first file is found BEFORE anything is answered: none at all, and the answer is a 204, which
  *    a top-level form POST takes as "stay where you are" (no file, the album page untouched), and the
  *    end report says `empty`. A valid empty zip is never sent to a client that can hear why.
- *  - ★ IT SAYS HOW IT ENDED. The body is read through a stream of our own, so the Worker knows which of
- *    three things happened: the zip's last byte went out (`saved`, or `short` with the ids it skipped),
- *    the client left (`cancel`: she stopped it, or the line dropped; `stopped`), or an object read broke
- *    the zip (`failed`). A zip that never reached its central directory opens in no extractor, so for
- *    those two every id is missing.
+ *  - ★ IT SAYS HOW IT ENDED: the zip's last byte went out (`saved`, or `short` with the ids it skipped),
+ *    the client left before it (she stopped it, or the line dropped: `stopped`), or an object read broke
+ *    it (`failed`). A zip that never reached its central directory opens in no extractor, so for those
+ *    two every id is missing.
+ *
+ * ★ PUSHED, NOT PULLED. The zip is piped into a pass-through the response reads, so a client that leaves
+ * shows as a write that fails. The runtime neither cancels a pulled response body when its client goes
+ * nor, behind every front, aborts `request.signal` (both proved under `wrangler dev`: a pulled body just
+ * stalled until the runtime killed the request as hung, and no word was ever sent); a failed write is
+ * what its own docs detect a disconnect by. `request.signal` is still heard where it fires.
  */
 import { makeZip } from "client-zip";
 
@@ -46,6 +51,19 @@ export type ReportedZip =
       ended: Promise<StreamEnd>;
     };
 
+/** The runtime's own pass-through where there is one (workerd), the standard one in a test. */
+function passThrough(): TransformStream<Uint8Array, Uint8Array> {
+  const native = (
+    globalThis as {
+      IdentityTransformStream?: new () => TransformStream<
+        Uint8Array,
+        Uint8Array
+      >;
+    }
+  ).IdentityTransformStream;
+  return native ? new native() : new TransformStream<Uint8Array, Uint8Array>();
+}
+
 export async function reportedZip(
   bucket: StreamBucket,
   items: ExportItem[],
@@ -53,12 +71,42 @@ export async function reportedZip(
 ): Promise<ReportedZip> {
   const ids = items.map(({ key }) => mediaIdOf(key));
   const skipped: string[] = [];
+  /** An object read failed: what broke the zip was ours, not the client's leaving. */
+  let broke = false;
+
+  /** An object's bytes, read through a stream that remembers if a read of them failed. */
+  const guarded = (body: ReadableStream<Uint8Array>) => {
+    const reader = body.getReader();
+    return new ReadableStream<Uint8Array>({
+      async pull(controller) {
+        try {
+          const chunk = await reader.read();
+          if (chunk.done) controller.close();
+          else controller.enqueue(chunk.value);
+        } catch (error) {
+          broke = true;
+          controller.error(error);
+        }
+      },
+      cancel(reason) {
+        return reader.cancel(reason);
+      },
+    });
+  };
+  const read = async (key: string) => {
+    try {
+      return await bucket.get(key);
+    } catch (error) {
+      broke = true;
+      throw error;
+    }
+  };
 
   // The zip's first file, found before anything is answered (the head's first difference).
   let start = -1;
   let first: { body: ReadableStream<Uint8Array>; size: number } | null = null;
   for (let i = 0; i < items.length; i++) {
-    first = await bucket.get(items[i].key);
+    first = await read(items[i].key);
     if (first) {
       start = i;
       break;
@@ -72,16 +120,20 @@ export async function reportedZip(
 
   let files = 0;
   async function* entries() {
-    yield { input: opening.body, name: items[start].name, size: opening.size };
+    yield {
+      input: guarded(opening.body),
+      name: items[start].name,
+      size: opening.size,
+    };
     // client-zip reads a file's bytes whole before it asks for the next one, so a resume is a file done.
     files += 1;
     for (let i = start + 1; i < items.length; i++) {
-      const obj = await bucket.get(items[i].key);
+      const obj = await read(items[i].key);
       if (!obj) {
         skipped.push(ids[i]);
         continue;
       }
-      yield { input: obj.body, name: items[i].name, size: obj.size };
+      yield { input: guarded(obj.body), name: items[i].name, size: obj.size };
       files += 1;
     }
   }
@@ -98,34 +150,16 @@ export async function reportedZip(
     settle({ outcome, files, missing: whole ? [...skipped] : ids });
   };
 
-  const zip = makeZip(entries()).getReader();
-  const body = new ReadableStream<Uint8Array>({
-    async pull(controller) {
-      let chunk: ReadableStreamReadResult<Uint8Array>;
-      try {
-        chunk = await zip.read();
-      } catch (error) {
-        // An object read broke the zip mid-way (the client leaving is `cancel`, below).
-        finish(signal?.aborted ? "stopped" : "failed");
-        controller.error(error);
-        return;
-      }
-      if (chunk.done) {
-        controller.close();
-        finish(skipped.length > 0 ? "short" : "saved");
-        return;
-      }
-      controller.enqueue(chunk.value);
-    },
-    cancel() {
-      // The client left before the last byte: she stopped it, or the line dropped. The zip is left
-      // where it is rather than cancelled: nothing pulls it again, the invocation's end frees what it
-      // holds, and client-zip's own cancel throws into its generator with nothing there to catch it
-      // (an unhandled rejection in the Worker's log for every stopped download).
-      finish("stopped");
-    },
-  });
+  const pass = passThrough();
+  // `preventCancel`: a client that left never cancels the zip, since client-zip's own cancel throws into
+  // its generator with nothing there to catch it; nothing pulls it again, and the invocation's end frees it.
+  void makeZip(entries())
+    .pipeTo(pass.writable, { preventCancel: true })
+    .then(
+      () => finish(skipped.length > 0 ? "short" : "saved"),
+      () => finish(broke ? "failed" : "stopped"),
+    );
   signal?.addEventListener("abort", () => finish("stopped"), { once: true });
 
-  return { kind: "zip", body, ended };
+  return { kind: "zip", body: pass.readable, ended };
 }
