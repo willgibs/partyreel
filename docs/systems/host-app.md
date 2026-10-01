@@ -432,8 +432,10 @@ visitor-facing "Private" never collides.
 - ★ **Every bulk write, and Delete forever's reads, send the selection through `inChunks`** (an unchunked
   `.in('id', …)` over a big selection outgrew the URL and failed whole), and every bulk action refuses more than
   `MAX_BULK_ITEMS` (`lib/event/bulk-selection.ts`).
-- **Host upload**: Add photos opens a dropzone (`host-upload.tsx`) straight into the album; its pipeline is
-  [uploads-and-r2.md](uploads-and-r2.md)'s.
+- **Host upload**: the album header's Add photos toggles a dropzone panel (`host-upload.tsx`) under it, straight into
+  the album, and the reel card's opens the same panel and brings it into view with the least movement
+  (`HostAddProvider.openAdd` scrolls to the box `HostUpload` registers, clear of the app bar and the stuck cards band),
+  never the top of the page; its pipeline is [uploads-and-r2.md](uploads-and-r2.md)'s.
 - ★ **Block puts one person out of one event, with their uploads** (`block_from_event` on the host's own client, free
   on every plan). It is the quiet last line of every person's look (a name in the Guests room, the uploader's credit in
   the host's viewer and on Review's peek, `event-blocks/`), opening one confirm whose count is the act's own preview

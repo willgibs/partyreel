@@ -135,16 +135,29 @@ Each is built as recommended and is Will's to overrule.
   pricing components' ten bare `toLocaleString()` are `formatCount`'s; `src/lib/test-utils/german-runtime.ts` simulates a
   German runtime for tests; reds on the cut: `count.test.ts` scan (11 hits), `tiers.test.ts` (`formatLimit`),
   `pricing-counts.test.tsx` (4 of 5 draw "21.943"). `formatCount` lives in `src/lib/format/count.ts`, not `utils.ts`.
-- **Done**: item 4, the blog's keep lines (`THIS_COMMIT`): reunion's closing paragraph and trip's closing bullet say the Free plan's
+- **Done**: item 4, the blog's keep lines (`db0a8e97`): reunion's closing paragraph and trip's closing bullet say the Free plan's
   one exception in the event pages' words (spec inlines `<InactivityMonths />`, `<RecoveryWindowDays />`), the absolutes
   ("no expiry clock", "no countdown to a deletion", "Nothing expires underneath it") go and the trip's mid-post "no end date" is
   a scope sentence; `src/lib/content/blog-keep-lines.test.ts` compiles both posts through the real component map (red on the cut,
   4 of 5). `docs/systems/marketing-content.md`'s ★ line says so. Rendered on localhost:3132 (curl, 200).
-- **In progress**: item 3 (host Add scrolls to its panel). Next step: `src/components/app/host-add-provider.test.tsx` (a provider, a
-  consumer pressing `openAdd`, a `HostUpload` stand-in registering its root; red on the cut: `window.scrollTo({ top: 0 })`), then
-  `HostUpload` registers its root with the provider and `openAdd` scrolls to it once mounted (`nearest`, `scroll-margin-top`
-  clearing the app bar and the stuck cards band, smooth unless reduced motion), and both files' comments stop describing the
-  retired command strip and floating Add pill. `uploadingCount` has no reader since the pill retired: removing it needs
-  `event-gallery.tsx` (crumbs-35's), so it stays and the comment says so (a Deferred line).
-- **Left**: item 5 (the closed line's strike); then the
-  system-doc edits below, the lab crawl, localhost walks, the gate, the Handoff.
+- **Done**: item 3, the host's Add scrolls to its panel (`THIS_COMMIT`): `HostUpload` registers its root box with the provider
+  (`registerPanel`, a ref callback; `scroll-mt-52 scroll-mb-4`), `openAdd` bumps a request counter whose effect calls
+  `scrollIntoView({ block: "nearest", behavior: smooth | auto })` on it, never the top; `host-add-provider.test.tsx` (7 tests,
+  5 red on the cut); both files' comments no longer describe the command strip or the floating Add pill. Measured on
+  localhost:3132 at `/design/album-scale?surface=host&n=300&key=fiesta` (the hub's album over fake photos; no cards row there):
+  with a 700 px spacer and a 114 px stand-in for the sticky stack, from scrollY 6000 `openAdd` lands the root at 208 px (box
+  159 px, intro clear of the stack, at 375 too: box 119 px); a panel fully in view does not move; one below the fold moves until
+  its bottom is 16 px above the fold. A hidden tab never ticks smooth scrolls (`document.visibilityState` hidden): read geometry
+  with `behavior: "instant"`. `uploadingCount` (the provider) and `onUploadingCountChange` have no reader since the pill
+  retired; removing them needs `event-gallery.tsx` (crumbs-35's): a Deferred line.
+- **In progress**: item 5 (a dismissed child-abuse report's closed line says its strike). The closed log is NOT in
+  `report-queue.tsx`: it is `ClosedReportLine` in `src/components/app/report-review.tsx` (fed by `listReports` in
+  `src/lib/db/queries/reports.ts`, which reads neither `kind` nor `reporter_hash` today). Plan: (1) `lib/admin/reports.ts`: a pure
+  `closedStrike` (live / lapsed / none, from the address's `StrikeReading`, the rule's `freshLapsesAt` and the page's one clock;
+  the lapse interval is derived from the answer, never copied) and `closedStrikeWords`; (2) `listReports` selects `kind` and
+  `reporter_hash`, asks `readStrikes` once for the dismissed child reports' hashes and attaches `strike` (no hash leaves the
+  server); (3) `ClosedLine` takes a quiet second line; `ClosedReportLine` passes the words and the Undo clause only while
+  `wayBack === "reopen"`; (4) the Library's composition specimen draws each state; (5) tests in `reports.test.ts`,
+  `report-review.test.tsx`, `queries/reports.test.ts`, red on the cut; (6) `docs/systems/admin-observability.md`'s strikes line.
+- **Left**: after item 5, the system-doc edits below, the lab crawl (`pnpm lab:smoke --base http://localhost:3132`), localhost
+  walks (pricing in a German-locale browser, the two blog posts, the Library's queue specimen), the gate, the Handoff.
