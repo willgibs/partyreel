@@ -5,11 +5,51 @@ cut: "3925f9f0"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   - src/lib/db/queries/my-uploads.ts
+  - src/lib/db/queries/my-uploads.test.ts
   - src/lib/db/queries/my-likes.ts
+  - src/lib/db/queries/my-likes.test.ts
   - src/lib/db/mutations/my-uploads.ts
   - src/app/(guest)/u/[slug]/owner-sections.tsx
+  - src/app/(guest)/u/[slug]/feed-actions.ts
+  - src/app/(guest)/u/[slug]/feed-actions.test.ts
+  - src/components/app/my-uploads-gallery.tsx
+  - src/components/app/my-likes-gallery.tsx
+  - src/components/app/my-feed-more.tsx
+  - src/components/app/my-feed-more.test.tsx
+  - src/lib/db/row-cap-sql.test.ts
+  - src/lib/db/my-record-guards.test.ts
+  - supabase/migrations/20261001203800_my_feeds_cursor.sql
+  - supabase/migrations/20261001203810_let_in_told.sql
   - src/components/shared/media-lightbox-parts/credit.tsx
   - src/lib/media/uploader-identity.ts
+  - src/lib/media/uploader-identity.test.ts
+  - src/lib/media/uploader-faces.ts
+  - src/lib/media/uploader-faces.test.ts
+  - src/components/app/media-grid.tsx
+  - src/lib/events/album-wire.ts
+  - src/lib/events/album-guest-links.ts
+  - src/lib/events/album-host-links.ts
+  - src/lib/events/album-links.test.ts
+  - src/lib/db/queries/album-guest.ts
+  - src/lib/db/queries/album-host.ts
+  - src/lib/guest/reconcile-album-items.ts
+  - src/lib/guest/reconcile-album-items.test.ts
+  - src/lib/event/hub-album.ts
+  - src/lib/event/hub-album.test.ts
+  - src/lib/event/gallery-items.ts
+  - src/app/(app)/dashboard/[eventId]/review/page.tsx
+  - src/lib/r2/grid-items.email-safety.test.ts
+  - src/lib/db/mutations/guest-media.ts
+  - src/lib/db/mutations/guest-media.test.ts
+  - src/app/api/guests/mine/route.ts
+  - src/app/api/guests/mine/route.test.ts
+  - src/lib/guest/let-in-news.ts
+  - src/lib/guest/let-in-news.test.ts
+  - src/components/guest/upload-tracker.tsx
+  - src/components/guest/upload-tracker.test.tsx
+  - src/components/guest/reel/live-reel.tsx
+  - src/components/guest/reel/live-reel.test.tsx
+  - src/components/guest/event-experience.tsx
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/profiles-social.md
   - docs/systems/guest-flow.md
@@ -54,7 +94,29 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each is built as recommended and is Will's to overrule; none is a one-way door (every schema change here is additive).
+
+- **What she is told on her return, once (the approval toast's server half and the host-added toast, one answer).**
+  Recommended: the same toast, "One of yours is in the album" with "Watch reel", the first time she opens the album
+  after a decision let one or more of hers in since she was last told, under the in-visit rules unchanged (a moderated
+  event, a reel showing, the view not already open, never for a clip, spent either way). Marked told ON THE SERVER, per
+  guest row: `guests.let_in_told_at`, the newest let-in she has been told of, stamped by her tracker's own-rows read
+  (`/api/guests/mine` `{statuses, tell}`) as it answers the news; the moment a decision lets an upload in is
+  `media.let_in_at`, stamped by a trigger. So a reload, a return, or her account on another device tells it once, and
+  an approval she watched arrive is told by that visit's read. Not drawn: a counted line ("3 of yours are in the
+  album"), which crumbs-6's "no number" rules out.
+- **Does an upload shown again (hidden, then approved) or restored from Deleted count as let in?** Recommended yes: a
+  decision put it in the album, and "One of yours is in the album" is true of it. An upload that went straight in on an
+  unmoderated album never does (`let_in_at` stays null).
+- **My uploads and My likes past 200: a "Show more" button under each feed, or an endless scroll?** Recommended the
+  button (the storage list's own control and words: "Show more", "Loading…", "Try again"), 200 a press, keyset on
+  `(created_at, id)` and `(liked_at, media id)`; the honest note retires.
+- **Whose face and door the viewer's credit carries.** Recommended the guest list's own rule, so the credit shows
+  nothing the album does not already: a confirmed uploader whose account stands wears its face (photo and colour), and
+  a door only where a handle published a page; a typed name keeps the plain disc and no door; a person the event
+  blocked is on no list, so their restored photograph's credit keeps the plain disc and no door; the host's credit
+  wears the byline's face, and the host's page as its door. The teaser's nine carry no face (its album shows no Guests
+  list). For the host's own viewer and Review every confirmed sender's face rides (the host's look already reads it).
 
 ## System-doc edits (in place, owned facts only)
 
@@ -76,3 +138,20 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am
+
+- Booted at 58b359e8 (launch-prep; the manifest says cut 3925f9f0, the records since touch no code of this lane).
+- The plan, in build order (each item committed and pushed as its tests go green):
+  1. **Feeds past 200** (item 3): migration `20261001203800_my_feeds_cursor.sql` (get_my_uploads / get_my_likes take
+     `p_before_*` and clamp; drop + create, grants restated), `getMyUploadCards` / `getMyLikeCards` take a cursor and
+     answer `next` (asking one past the page), `feed-actions.ts` (two Server Functions), the galleries' Show more
+     (`my-feed-more.tsx`), the owner sections reading `is_host_upload` instead of `listEvents()`.
+  2. **The credit's face and door** (item 4): no migration. `resolveUploaderIdentity` names the face's owner
+     (internal), `uploader-faces.ts` hydrates it server-side (profiles by account id, the host's, the event's blocked
+     rows for a guest), the wire's who tuples gain an optional face tuple, the client mappers copy it onto
+     `uploaderFace`, Review's items too. `album-state.ts` (crumbs-37's) untouched: the face is read by account, after it.
+  3. **Told on her return** (items 1 and 2): migration `20261001203810_let_in_told.sql` (`media.let_in_at` + its
+     trigger, `guests.let_in_told_at`), `readOwnUploads` with `tell`, the route's `{statuses, tell}` answering `news`,
+     the tracker sending `tell` and handing the news to the toast through its store.
+- Done: nothing yet.
