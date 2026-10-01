@@ -40,6 +40,11 @@ import {
 } from "@/components/ui/input-otp";
 import { Label } from "@/components/ui/label";
 import { PasswordStrengthMeter } from "@/components/shared/password-strength-meter";
+import {
+  RelationToggle,
+  type Relation,
+  type RelationAct,
+} from "@/components/social/relation-toggle";
 
 import { Row } from "@/app/(dev)/design/reference/reference-ui";
 
@@ -367,5 +372,54 @@ export function ConsequenceLineDemo() {
         open it again.
       </ConsequenceLine>
     </div>
+  );
+}
+
+/**
+ * THE ONE RELATION CONTROL, every state, and no press reaches a row (crumbs-44). Each toggle is the
+ * real `RelationToggle` handed a write of the Library's own (`act`), which answers after a beat the
+ * way a Server Function does, so the flip, the press it refuses while one runs, the ask before a
+ * block and a refusal's spring-back are all the production code's; only the write is a stand-in.
+ */
+const LANDS: RelationAct = () =>
+  new Promise((resolve) => setTimeout(() => resolve({ ok: true }), 700));
+const REFUSES: RelationAct = () =>
+  new Promise((resolve) =>
+    setTimeout(
+      () =>
+        resolve({
+          ok: false,
+          message: "Couldn't follow right now. Please try again.",
+        }),
+      700,
+    ),
+  );
+
+export function RelationToggleDemo({
+  relation,
+  on = false,
+  quiet = false,
+  size,
+  label,
+  refuses = false,
+}: {
+  relation: Relation;
+  on?: boolean;
+  quiet?: boolean;
+  size?: "xs" | "sm" | "default";
+  label?: string;
+  refuses?: boolean;
+}) {
+  return (
+    <RelationToggle
+      relation={relation}
+      profileId="library-specimen"
+      on={on}
+      person="Maya"
+      quiet={quiet}
+      size={size}
+      label={label}
+      act={refuses ? REFUSES : LANDS}
+    />
   );
 }

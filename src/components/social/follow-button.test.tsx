@@ -5,16 +5,20 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { FollowButton } from "./follow-button";
 
 /**
- * THE FOLLOW CONTROL. Pinned: a follow that landed stays followed even where nothing re-reads the
- * server's answer (the moment card, a claimed event's row), a failed one springs back and says why,
- * the server's answer still wins when it changes, and the quieter Follow (`quiet`) is the small ghost
- * button that names whom it follows where nothing beside it does.
+ * THE FOLLOW FACE of the one relation control (`relation-toggle.tsx`). Pinned: a follow that landed
+ * stays followed even where nothing re-reads the server's answer (the moment card, a claimed event's
+ * row), a failed one springs back and says why, the server's answer still wins when it changes, and
+ * the quieter Follow (`quiet`) is the small ghost button that names whom it follows where nothing
+ * beside it does.
+ *
+ * ★ RESHAPED ON PURPOSE (crumbs-44; the scar kept: a landed follow stays the button's own). The
+ * first case also pinned a `router.refresh()` after the follow; the Server Function's revalidation
+ * re-renders the page in its own response now, so the hand-called refresh (a second render of the
+ * page) went, and the write takes the person alone (`relation-toggle.test.tsx` holds the contract).
  */
 
 const follow = vi.fn();
 const unfollow = vi.fn();
-const refresh = vi.fn();
-vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh }) }));
 vi.mock("@/app/(guest)/u/[slug]/actions", () => ({
   followProfileAction: (...args: unknown[]) => follow(...args),
   unfollowProfileAction: (...args: unknown[]) => unfollow(...args),
@@ -32,9 +36,9 @@ describe("FollowButton", () => {
       <FollowButton profileId="host-1" slug="maya" initialFollowing={false} />,
     );
     fireEvent.click(screen.getByRole("button", { name: "Follow" }));
-    await waitFor(() => expect(follow).toHaveBeenCalledWith("host-1", "maya"));
-    await waitFor(() => expect(refresh).toHaveBeenCalled());
-    const button = screen.getByRole("button", { name: "Following" });
+    await waitFor(() => expect(follow).toHaveBeenCalledWith("host-1"));
+    const button = await screen.findByRole("button", { name: "Following" });
+    await waitFor(() => expect(button).not.toHaveAttribute("aria-busy"));
     expect(button).toHaveAttribute("aria-pressed", "true");
   });
 

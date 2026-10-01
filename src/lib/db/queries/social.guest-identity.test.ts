@@ -702,6 +702,8 @@ describe("the events you added to", () => {
         shownOnProfile: false,
         coverUrl: null,
         locked: false,
+        // Open to her, never to the page: a gated album shows no line (crumbs-44's tile says so).
+        albumOpen: false,
       });
       expect(picks.find((p) => p.id === "e-only-me")).toMatchObject({
         locked: true,
@@ -872,6 +874,8 @@ describe("the events you added to", () => {
         shownOnProfile: true,
         coverUrl: null,
         locked: true,
+        // As a private album's: the tile cannot show, and says so in the private album's words.
+        albumOpen: false,
       });
       expect(privateAlbum).toMatchObject({
         name: "Private event",

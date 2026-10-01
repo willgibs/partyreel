@@ -53,7 +53,9 @@ A one-way door; `/privacy` and the Terms word it, so a change here changes them 
   visibility and the album's viewer gates: the choice is the guest's own key, settable whatever the host chose. An
   event that blocked her keeps the tile it had, locked as a private album's (`blocked_events_for`), because the block
   moved her uploads to Deleted and a vanished tile would tell her what the door hides. `getMyAttendedEventPicks` masks each tile by the album's own rules through `guestEventCardProps`, as her
-  dashboard's Guest card is: an open album's cover, a password album's name with no cover, a private album neither.
+  dashboard's Guest card is: an open album's cover, a password album's name with no cover, a private album neither;
+  a tile chosen at an album that is not open says it cannot show (`albumOpen`), since only an open album's line
+  reaches the page.
 
 ## The public profile
 
@@ -76,7 +78,9 @@ A one-way door; `/privacy` and the Terms word it, so a change here changes them 
   approved upload on a proved row and that no block holds the owner there again before presigning): a presign turns an id into
   someone else's photograph. The viewer's gate is the RPC's alone, inherited through the ids it returned.
 - **Every card's cover is `event_covers`:** the newest approved, non-removed photo, as a small preview where one
-  exists, the same rule as the dashboard's cards.
+  exists, the same rule as the dashboard's cards. ★ An attended card has no link, never a lock: one whose gates all
+  held with no photograph is a party of video alone and wears that face (`EventCard`'s `empty`), where the lock read
+  off its missing link told visitors an open album was closed.
 - ★ **The owner mode's gate is the query, not the boolean.** Every owner read is `auth.uid()`-scoped and
   `owner-sections.tsx` takes no parameters at all, so if the page's `isSelf` check were ever wrong, the worst it could
   render is the VIEWER's own media on somebody else's page; `owner-mode.test.ts` pins the empty signature. The
@@ -100,7 +104,7 @@ A one-way door; `/privacy` and the Terms word it, so a change here changes them 
 - **A page is set up once, at `/account/profile`**: the handle, then name and photo, then which events show. Set up
   means a claimed handle, and Finish writes her choices before it claims the handle (the page's existence), so an
   abandoned setup leaves nothing public; a set-up account is sent to Account's card, which before a handle is the
-  wizard's door. The dashboard invites the setup (`shouldInviteToPage`) once no claim waits, to an account with an
+  wizard's door, while the user menu's handle-less Your profile and event settings' claim line open the setup itself. The dashboard invites the setup (`shouldInviteToPage`) once no claim waits, to an account with an
   event its page could show (which proves a confirmed address) and no handle; Not now is an httpOnly cookie holding the
   account's seed, per device.
 - **`profiles.slug` is service-role-write-only;** its format is a CHECK (lowercase, 3 to 30 of `[a-z0-9-]`, no edge
@@ -115,7 +119,10 @@ A one-way door; `/privacy` and the Terms word it, so a change here changes them 
 - **Blocks shape the follow graph only,** never profile reads (the viewer may be anonymous). `follow_user` is
   block-silent, for privacy, and the `enforce_follow_not_blocked` trigger (DEFINER, since owner RLS cannot see "they
   blocked me") is the hard backstop; a block severs both directions atomically. The block menu stays visible even when
-  they blocked me (a vanishing menu would leak the block); only the follow button hides.
+  they blocked me (a vanishing menu would leak the block); only the follow button hides. Every face of a follow or a
+  block (the profile's Follow, the quieter one by an album, the menu's row, Account's Connections) is one control on
+  one contract (`relation-toggle.tsx`): it flips at once, a block asks first, and the four Server Functions revalidate
+  every profile and Account, so the page re-reads in their own response and no face refreshes by hand.
 - **Email preferences follow the consent tiers:** transactional mail always sends and has no column by design;
   relationship and service mail default on with a per-category opt-out, for account holders only (a guest without an
   account receives none of it); marketing stays explicit opt-in. Every send resolves them through
