@@ -630,7 +630,8 @@ const STRIKE_LINES: {
     undo: true,
   },
   {
-    // Past its reopen window, the address barred: the strike counts for its full life and nothing takes it back.
+    // Past the product's 30 days, the address barred: a strike's dismissal reopens for as long as the strike counts
+    // (Will's #60), so its Undo stays and still takes the strike back.
     note: "Duplicate of an earlier dismissal",
     resolvedAt: "2026-08-02T21:10:00.000Z",
     strike: strikeLine(
@@ -641,9 +642,9 @@ const STRIKE_LINES: {
         bar: 3,
         barredUntil: "2026-12-02T19:30:00.000Z",
       },
-      false,
+      true,
     ),
-    undo: false,
+    undo: true,
   },
   {
     note: "No reason given",

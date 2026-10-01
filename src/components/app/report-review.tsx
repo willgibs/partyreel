@@ -46,9 +46,10 @@ import { formatAdminDate, formatAdminTimestamp } from "@/lib/format/admin-time";
  * (`reason=marked`), the verdict's note (`verdict=note`) and the one dismissal toast with its Undo.
  *
  *  - A CLOSED report is one line (`closed=window`): the verdict, its note, the album and when, and an Undo while
- *    the removal it made still waits out its window or a dismissal is inside its 30 days, or Held. A dismissed
- *    child-abuse report carries one quiet line under it, whether it is still a strike against its address and
- *    until when (crumbs-36, from `report_strikes`: `closedStrikeWords`).
+ *    the removal it made still waits out its window or a dismissal can still be reopened (its 30 days, or a
+ *    strike's whole life: Will's #60, `dismissalReopens`), or Held. A dismissed child-abuse report carries one
+ *    quiet line under it, whether it is still a strike against its address and until when (crumbs-36, from
+ *    `report_strikes`: `closedStrikeWords`).
  *
  * ★ NOTHING HERE DECIDES WHAT A VERDICT TOUCHES. The actions read the report's own item and its state; the words
  * below only describe it, from the same read (`wayBack`).
@@ -362,7 +363,8 @@ function DeletedItemLead({ type }: { type: "photo" | "video" | null }) {
 
 function ClosedReportLine({ report }: { report: ReviewReport }) {
   const item = report.media;
-  // The Undo clause is said only while the dismissal can still be reopened: a strike outlives that window.
+  // The Undo clause follows the line's own way back: a strike's dismissal reopens for as long as the strike counts
+  // (Will's #60), so a live strike says it to the end, and nothing offers what the line cannot do.
   const strike = report.strike
     ? {
         state: report.strike.state,

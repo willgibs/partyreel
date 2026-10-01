@@ -83,6 +83,8 @@ vi.mock("@/lib/email/send", () => ({
 }));
 vi.mock("@/lib/db/queries/reports", () => ({
   readProofMailEnabled: async () => state.proofOn,
+  // The strike rule's lapse (`lapse_seconds`); every reopen here is inside the 30 days, so it is never asked.
+  readStrikeLapse: async () => 180 * 86_400_000,
 }));
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => asSupabase(fake),
