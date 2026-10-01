@@ -315,9 +315,14 @@ export function CreateEventWizard({
                   <p className="text-sm font-medium">
                     Pick a style for the code
                   </p>
+                  {/* ★ THE SWATCHES ARE SAMPLES, AND THE STEP SAYS SO (crumbs-42).
+                      They encode the stand-in link (`previewJoinUrl`), since the
+                      event and its link exist only once Create is pressed, and a
+                      host who test-scanned one met a 404 under "This is what your
+                      guests scan". The real code is the very next screen's. */}
                   <p className="text-sm text-muted-foreground">
-                    This is what your guests scan. You can change it later from
-                    Share.
+                    These are samples. Your event&apos;s own code comes when you
+                    create it, and you can change its style later from Share.
                   </p>
                 </div>
                 <QrPresetPicker

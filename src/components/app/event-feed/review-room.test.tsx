@@ -10,6 +10,7 @@
  */
 import {
   act,
+  cleanup,
   fireEvent,
   render,
   screen,
@@ -288,5 +289,52 @@ describe("the host note", () => {
       </TooltipProvider>,
     );
     expect(note()).toHaveLength(0);
+  });
+});
+
+/**
+ * THE ROOM'S ONE HEADING (crumbs-42, from crumbs-7). The page headed the room "Review" and the room said Review
+ * again in the amber label over its grid. The room draws its title itself now, the page's one heading, with the
+ * queue's count beside it and its actions on its row; the page draws none (`review/page.test.tsx`).
+ */
+describe("the room's one heading", () => {
+  const reviewHeadings = () =>
+    screen
+      .queryAllByRole("heading")
+      .filter((h) => /review/i.test(h.textContent ?? ""));
+
+  it("★ is the page's title, Review, once, with the queue's count beside it", () => {
+    room();
+    expect(reviewHeadings()).toHaveLength(1);
+    const title = screen.getByRole("heading", { level: 1, name: "Review" });
+    // The count reads as what it counts.
+    expect(title.parentElement).toHaveTextContent(/^Review3 waiting$/);
+  });
+
+  it("stands in every state, its count gone with the queue: caught up, and review off", async () => {
+    room([item(1)]);
+    fireEvent.click(screen.getByRole("button", { name: /approve all/i }));
+    await waitFor(() =>
+      expect(screen.getByText("You're all caught up")).toBeInTheDocument(),
+    );
+    expect(reviewHeadings()).toHaveLength(1);
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Review" }).parentElement,
+    ).toHaveTextContent(/^Review$/);
+    cleanup();
+    render(
+      <TooltipProvider>
+        <ReviewRoom
+          eventId="ev-2"
+          moderationOn={false}
+          pendingItems={[]}
+          writes={writes as unknown as ReviewWrites}
+          claimPage={false}
+        />
+      </TooltipProvider>,
+    );
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Review" }),
+    ).toBeInTheDocument();
   });
 });

@@ -7,6 +7,7 @@ import {
   GATE_HELP,
   GATE_LABELS,
   GATE_LINES,
+  uploadsLabel,
 } from "@/lib/events/visibility-labels";
 
 /**
@@ -38,7 +39,8 @@ describe("the door's one line", () => {
   });
 
   it("stays short enough for the hub card's half-width line", () => {
-    for (const door of DOORS) expect(doorLabel(door).length).toBeLessThanOrEqual(22);
+    for (const door of DOORS)
+      expect(doorLabel(door).length).toBeLessThanOrEqual(22);
   });
 });
 
@@ -47,5 +49,20 @@ describe("every gate says what a guest meets, and what it is for", () => {
     expect(GATE_LABELS[gate].length).toBeGreaterThan(0);
     expect(GATE_LINES[gate].length).toBeGreaterThan(0);
     expect(GATE_HELP[gate].length).toBeGreaterThan(GATE_LINES[gate].length);
+  });
+});
+
+describe("whether guests can add, beside the door (crumbs-42, from event-ready)", () => {
+  // The dashboard card said Closed for paused uploads while the hub's Settings card said "Private · Closed"
+  // for Only people already in: one word, two states. Whether guests can add is its own state, so neither
+  // of its words is ever a word the door wears.
+  it("★ says Open and Paused, neither of them a word any door wears", () => {
+    expect(uploadsLabel(true)).toBe("Open");
+    expect(uploadsLabel(false)).toBe("Paused");
+    for (const door of DOORS) {
+      const words = doorLabel(door).split(" · ");
+      expect(words, door).not.toContain(uploadsLabel(true));
+      expect(words, door).not.toContain(uploadsLabel(false));
+    }
   });
 });

@@ -4,8 +4,10 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useRef,
   useState,
+  useTransition,
   type ReactNode,
 } from "react";
 import { toast } from "sonner";
@@ -133,6 +135,12 @@ type SettingsState = {
   ) => Promise<boolean>;
   /** Show on my profile, written through the profile's own action. */
   saveProfile: (next: boolean) => Promise<boolean>;
+  /**
+   * Runs `fn` once no save is on its way: at once (answering true) when none is, else once the last one
+   * has landed, what it brought committed (answering false). The panel's page moves wait here
+   * (`event-settings-sheet.tsx`).
+   */
+  afterSaves: (fn: () => void) => boolean;
   /** A setting is being written. */
   saving: (key: Key) => boolean;
 };
@@ -211,6 +219,45 @@ export function SettingsProvider({
   const [inFlight, setInFlight] = useState<ReadonlySet<Key>>(new Set());
   const latest = useRef<Partial<Record<Key, number>>>({});
 
+  /**
+   * ★ THE SAVES ON THEIR WAY, AND WHAT WAITS FOR THEM TO LAND (crumbs-42, from crumbs-24). Every save is a
+   * Server Action that revalidates the hub, and an address written while one is in Next's queue discards
+   * it and re-fetches the page once it answers: a second write inside that re-fetch reloaded the page or
+   * dropped what the save brought (`lib/history-entry.ts` has the matrix). So what writes the address waits
+   * until no save is on its way AND what the last one brought has committed.
+   *
+   * ★ LANDED IS COMMITTED, NEVER ANSWERED. The call is made inside a transition (`useTransition`, a sync
+   * callback, so no async action holds other transitions behind it), whose isPending commits with the
+   * router's own update: Next sets the router's state to a promise in that same transition and settles it
+   * once the action's answer is built into state. The answer alone is early. Measured on a revalidating
+   * action under `next dev` (Next 16.2.6, crumbs-42's probe): two writes inside a save's round trip and its
+   * re-fetch reloaded the page; one write a task after the answer was safe, but a second 20ms later reloaded
+   * it and one 40 to 80ms later dropped the save's data, since Next's history entry still held the tree from
+   * before the save (its `HistoryUpdater` writes the new one only at the commit); two writes 0 to 80ms after
+   * the commit landed the data and reloaded nothing in all 31 tries (15 with this sync callback, 16 with an
+   * async one), and a close written during a save still drew in about 20ms.
+   */
+  const [settling, startSettling] = useTransition();
+  const settlingNow = useRef(false);
+  const flying = useRef(0);
+  const afterLanding = useRef<(() => void)[]>([]);
+  const flushLanded = useCallback(() => {
+    if (flying.current > 0 || settlingNow.current) return;
+    for (const fn of afterLanding.current.splice(0)) fn();
+  }, []);
+  useEffect(() => {
+    settlingNow.current = settling;
+    flushLanded();
+  }, [settling, flushLanded]);
+  const afterSaves = useCallback((fn: () => void): boolean => {
+    if (flying.current === 0 && !settlingNow.current) {
+      fn();
+      return true;
+    }
+    afterLanding.current.push(fn);
+    return false;
+  }, []);
+
   // ★ THE ROW CATCHING UP LETS THE OVERLAY GO, key by key: adjusted during render when the server's
   // row moves (the sanctioned "state from a changed prop" shape), never in an effect.
   const baseKey = JSON.stringify(base);
@@ -250,7 +297,21 @@ export function SettingsProvider({
       }
       setOverlay((o) => ({ ...o, ...patch }));
       setInFlight((s) => new Set([...s, ...keys]));
-      const answer = await write();
+      // The call inside the transition whose commit says it landed (above); counted until it answers.
+      // `settlingNow` is set here because isPending turns true only a render later.
+      flying.current += 1;
+      settlingNow.current = true;
+      let call!: ReturnType<typeof write>;
+      startSettling(() => {
+        call = write();
+      });
+      let answer: Awaited<ReturnType<typeof write>>;
+      try {
+        answer = await call;
+      } finally {
+        flying.current -= 1;
+        flushLanded();
+      }
       const newest = keys.filter((k) => latest.current[k] === seq[k]);
       setInFlight((s) => {
         const next = new Set(s);
@@ -282,7 +343,7 @@ export function SettingsProvider({
       }
       return true;
     },
-    [],
+    [flushLanded],
   );
 
   const saveEvent = useCallback(
@@ -430,6 +491,7 @@ export function SettingsProvider({
     saveReel,
     saveProfile,
     saving: (key) => inFlight.has(key),
+    afterSaves,
   };
 
   return <Context.Provider value={state}>{children}</Context.Provider>;

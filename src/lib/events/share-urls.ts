@@ -13,7 +13,10 @@
 // A same-length stand-in for a real 32-hex `qr_token` (DB default is
 // replace(gen_random_uuid()::text,'-','') → 32 hex chars). Used to preview QR
 // styles BEFORE an event exists, so the preview's module density matches the
-// real QR the host will get.
+// real QR the host will get. ★ It names nobody's album: a v4 uuid always holds
+// a 4 as its thirteenth digit, so no token is all zeroes, and a 32-hex custom
+// link is refused, so a scanned sample can only ever 404 (the wizard says its
+// swatches are samples, crumbs-42).
 const PREVIEW_TOKEN = "0".repeat(32);
 
 function origin(siteUrl: string): string {

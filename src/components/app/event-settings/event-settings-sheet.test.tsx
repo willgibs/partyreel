@@ -273,3 +273,110 @@ describe("videos, the one lock", () => {
     );
   });
 });
+
+/**
+ * A SAVE AND THE PAGE MOVES AROUND IT (crumbs-42, from crumbs-24). Every save is a Server Action that
+ * re-renders the hub in its answer, and a page move writes the address (`&setting=`): one written inside the
+ * save's round trip made Next re-fetch the page once the save answered, and a second move inside that re-fetch
+ * reloaded the page or dropped what the save brought (`lib/history-entry.ts`). So a move made while a save is
+ * on its way is drawn at once and its address waits for the save to land, what it brought committed. jsdom has
+ * no router, so what is pinned is WHEN the panel asks for the address, which is all the hazard turns on (the
+ * commit is the save's transition's, measured against Next's router: `settings-state.tsx` says how).
+ */
+describe("a page move while a save is on its way", () => {
+  /** A save that answers only when `land` is called. */
+  function slowSave() {
+    let land = () => {};
+    updateEventAction.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          land = () => resolve({ ok: true });
+        }),
+    );
+    return { land: () => act(async () => land()) };
+  }
+  const shownPage = () =>
+    document
+      .querySelector("[data-settings-page]")
+      ?.getAttribute("data-settings-page");
+  /** A task later: the landed save's transition has committed, and its waiting moves are written. */
+  const aTaskLater = () =>
+    act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+  it("★ is drawn at once, and asks for its address only once the save has landed", async () => {
+    const save = slowSave();
+    const { onClosePage } = sheet({ page: "adds", tier: "pro" });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("switch", { name: /Videos/ }));
+    });
+    expect(updateEventAction).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
+    expect(shownPage()).toBe("rows");
+    expect(onClosePage).not.toHaveBeenCalled();
+
+    await save.land();
+    await aTaskLater();
+    expect(onClosePage).toHaveBeenCalledTimes(1);
+  });
+
+  it("writes one address for several moves inside one save: the newest", async () => {
+    const save = slowSave();
+    const { onOpenPage, onClosePage } = sheet({ page: "adds", tier: "pro" });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("switch", { name: /Videos/ }));
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
+    fireEvent.click(screen.getByRole("button", { name: "Who can get in" }));
+    expect(shownPage()).toBe("door");
+
+    await save.land();
+    await aTaskLater();
+    expect(onOpenPage).toHaveBeenCalledTimes(1);
+    expect(onOpenPage).toHaveBeenCalledWith("door");
+    expect(onClosePage).not.toHaveBeenCalled();
+  });
+
+  it("asks for nothing when the moves come back to the page the address names", async () => {
+    const save = slowSave();
+    const { onOpenPage, onClosePage } = sheet({ page: "adds", tier: "pro" });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("switch", { name: /Videos/ }));
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "What guests can add" }),
+    );
+    expect(shownPage()).toBe("adds");
+
+    await save.land();
+    await aTaskLater();
+    expect(onOpenPage).not.toHaveBeenCalled();
+    expect(onClosePage).not.toHaveBeenCalled();
+  });
+
+  it("drops a move still waiting when the panel closes", async () => {
+    const save = slowSave();
+    const { onClosePage, onOpenChange } = sheet({ page: "adds", tier: "pro" });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("switch", { name: /Videos/ }));
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
+    fireEvent.keyDown(document.activeElement ?? document.body, {
+      key: "Escape",
+    });
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+
+    await save.land();
+    await aTaskLater();
+    expect(onClosePage).not.toHaveBeenCalled();
+  });
+
+  it("with no save on its way, asks for its address at once, as ever", () => {
+    const { onOpenPage } = sheet();
+    fireEvent.click(screen.getByRole("button", { name: "Who can get in" }));
+    expect(onOpenPage).toHaveBeenCalledWith("door");
+  });
+});
