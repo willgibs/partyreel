@@ -1,6 +1,6 @@
 ---
 track: crumbs-36
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "c72d0231"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -105,61 +105,109 @@ Each is built as recommended and is Will's to overrule.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/marketing-content.md`: the ★ on "stays up" (its holders now include the blog's reunion and trip posts,
+  `blog-keep-lines.test.ts`, and the months are `INACTIVE_MONTHS`).
+- `docs/systems/host-app.md`: the Host upload line (the album header's Add toggles the panel in place; the reel card's
+  opens it and brings it into view, never the top).
+- `docs/systems/admin-observability.md`: the instant hide's strikes line (a dismissed report's closed line says whether
+  its strike still counts, until when, what its address holds, and its Undo only while it can be reopened).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Host app: `HostAddProvider`'s `uploadingCount` and `setUploadingCount`, and `HostUpload`'s `onUploadingCountChange`, have no reader since the floating Add pill retired; removing them takes `event-gallery.tsx`'s `onUploadingCountChange={add?.setUploadingCount}` (from crumbs-36).
+- Housekeeping: the idle window's words typed by hand (the pricing table's "~6 months" cell and its tip, the pricing FAQ, the legal pages, the two sweep emails, the jobs catalog) are held to `INACTIVE_MONTHS` by no test, as `faq-data.test.ts` holds the FAQ's; a retune of `INACTIVE_DAYS` would leave them stale (from crumbs-36).
+- Admin: `report_strikes` could answer the lapse as a duration beside `fresh_lapses_at`, so no reader derives it (`strikeLapseMs` rounds the distance to the minute, exact for an interval of whole days); a migration, so the Orchestrator's to open (from crumbs-36).
+- Code hygiene: `utils.test.ts`'s inline German-runtime helper for dates and `lib/test-utils/german-runtime.ts`'s for numbers are one simulation twice (from crumbs-36).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits**, all on `origin/lp/crumbs-36`: item 2 `d9d28c55`, item 1 `986de08b`, item 4 `db0a8e97` and `377aba19`, item 3
+  `c20de5ed` and `eadaadfe` (comments), item 5 `f6da8e3e`, the named exception `4334261d`; the sync commit `e5813fb1`
+  (merged `origin/launch-prep` at `c32222ab`, crumbs-35's merge and the records, no conflict; it had not moved again at
+  the handoff). The head is in the chat line.
+- **Gates on the synced tree at `eadaadfe`** (logs in `/Users/gibby/local/ai/partyreel-wt/_scratch/crumbs-36/final-*.log`),
+  each on its own exit code: `pnpm typecheck` 0; `pnpm lint` 0; `pnpm test` 0 (684 files, 8204 tests; the cut was 680 and
+  8128); `zsh scripts/build-lock.sh pnpm build` 0; `pnpm lab:smoke --base http://localhost:3132` 0 (149 checks, 0
+  failing). `pnpm lab:demo --base http://localhost:3132` for the three boards the change reached (about-press,
+  disposable-mode, event-ready): 0 (15 steps, 0 failing), run at `4334261d`; `eadaadfe` changed two comments since.
+- **Lane check**, `git diff --name-only origin/launch-prep...HEAD` = the owned paths and this file, with one exception:
+  `src/app/not-found.lazy.test.tsx` (`4334261d`, one call): its first `findByRole` waits for the site chrome's lazy chunk
+  with findBy's default second, which alone takes about 0.5 s but in a full parallel run on this machine (four lanes, load
+  14 to 16) took 1014 to 1019 ms and failed `pnpm test` in four runs of five (green alone, and with `--maxWorkers=6`); it
+  now waits four seconds. Drop that commit if it is not wanted. `src/components/admin/report-queue.tsx` stayed untouched:
+  the closed log is `report-review.tsx`, which the brief's owns did not name (added to `owns` with the files below it).
+- **The items**, each red on the cut before its fix:
+  1. Counts: `formatLimit` and `formatCapacity` (`tiers.ts`) and the ten bare `toLocaleString()` of the four pricing
+     components are `formatCount`'s (`src/lib/format/count.ts`: the brief says `utils.ts`, where the date pin lives).
+     Reds on the cut: `count.test.ts`'s scan (exactly the 11 calls), `tiers.test.ts` (`formatLimit(12_345)` read
+     "12.345"), `pricing-counts.test.tsx` (4 of 5 drew "21.943"), all under `lib/test-utils/german-runtime.ts`. In a German
+     browser (headless Chrome, CDP `Emulation.setLocaleOverride de-DE`, `_scratch/crumbs-36/cdp-pricing.mjs`) the cut
+     drew "≈ 29.257", "≈ 21.943", "≈ 599.186" beside the table's "21,943" and logged React's "Hydration failed because
+     the server rendered text didn't match the client"; this lane draws every count en-US with an empty console
+     (`cdp-before-german.json`, `cdp-after.json`). No number moved: `tier-limits-parity.test.ts` stayed green untouched.
+  2. `INACTIVE_MONTHS` beside `INACTIVE_DAYS`: the seven copies read it; `inactivity.test.ts` (2 reds: the export, and a scan
+     that found exactly the seven) refuses any other division of the day count. No printed word moved: the FAQ, JSON-LD,
+     the help's phrase, the album page, the privacy page, `llms.txt`, `llms-full.txt` and the event pages are
+     byte-identical before and after (104,995 bytes each, `capture-before.json` against `capture-after.json`).
+  3. The host's Add: `HostUpload` registers its box with the provider, `openAdd` brings that into view (`block: "nearest"`,
+     smooth unless reduced motion, `scroll-mt-52 scroll-mb-4` clearing the app bar and the stuck band), never `scrollTo` 0;
+     the album header's Add still toggles in place. `host-add-provider.test.tsx` (5 of 7 red). Measured on
+     localhost:3132 at `/design/album-scale?surface=host&n=300&key=fiesta` (the hub's own album, no cards row there) with a
+     700 px spacer and a 114 px stand-in for the sticky stack: from scrollY 6000 the root lands at 208 px, the panel box at
+     159 px (119 px at 375, intro clear); a panel in view does not move; one below the fold moves until its bottom is 16 px
+     above it. Both files' comments no longer name the command strip or the floating Add pill.
+  4. The blog: reunion's closing paragraph and trip's closing bullet say the Free plan's one exception in the event pages'
+     words (the months and the restore window from the spec inlines); "no expiry clock", "no countdown to a deletion" and
+     "Nothing expires underneath it" are gone and the trip's mid-post line is a scope sentence ("however many days that
+     takes"). `blog-keep-lines.test.ts` compiles both posts through the real component map (4 of 5 red). Read on
+     localhost:3132 at both posts.
+  5. The closed line's strike: a dismissed child-abuse report says, under its one-line row, "A strike on its address until
+     <date> UTC; the address holds N of 3." (barred: "holds 3 strikes, so its reports don't hide right away until <date>"),
+     "Its strike lapsed <date> UTC.", or "Not a strike: it kept no address to count against."; "Undo takes it back." only
+     while `wayBack` is "reopen". `listReports` asks `report_strikes` once and attaches a `ClosedStrike` (no address or
+     hash leaves the server; until the function stands, no line, never "no strike"); the lapse is read off the answer's
+     `fresh_lapses_at` to the minute, never a copy of 180. Reds on the cut: `reports.test.ts` (10), `queries/reports.test.ts`
+     (4), `report-review.test.tsx` (4). Live, read-only: `report_strikes` answers `fresh_lapses_at = now() + 180 days`
+     exactly (Supabase MCP), and the real `listReports("dismissed", 200)` against the real database drew 8 live lines (the
+     8 dismissed child-abuse reports, every `at` = `resolved_at` + 180 days, one address holding 6, SQL's own maximum) and no
+     hash. The Library's closed log draws each state (`/design/library/compositions`, dark and light, 1440 and 375).
+- **PREMISE** (the lab crawl names four boards; why their asks still hold): `about-press` (kit, facts) and `demo-framing`
+  (slug, stage, touch) describe `marketing-content.md`, where this lane refined one line about which pages carry the idle
+  exception (it adds the blog's two posts), none of their asks; `disposable-mode` (camera ... save) describes `tiers.ts`,
+  where only how a count prints changed (`formatCapacity` is byte-identical in one locale, no limit or price moved, the
+  parity test is untouched); `event-ready` (list, guide, create, needs, door) describes `host-app.md`, where one line about
+  the album's Add panel changed, and its asks are the launch list, Settings, Create, What needs you and the code.
+- **For the next build's red-team** (the hub and the portal cannot run signed in on localhost):
+  - Hub, an event with fewer than two playable photos (the reel card is counting, `LIVE_REEL_MINIMUM` is 2; its popover
+    holds the only caller), at 375x667 and 1440: (a) at the top, press the reel card, then Add photos: the panel comes
+    into view with its dropzone whole and the page is not thrown to the top; (b) scroll down the page until the panel is
+    above the fold, press again: the page scrolls up and the panel's top lands under the stuck band, its intro line clear
+    (not y 0); (c) with the panel open and in view, press it again: nothing moves; (d) with the OS's reduced motion on,
+    the move is instant; (e) the album header's own Add photos opens and closes the panel and never moves the page.
+  - Portal, as the admin on `/admin/reports?status=dismissed` (disposable test reports only): file a child-abuse report
+    from a confirmed address, Dismiss it: its closed line says "A strike on its address until <resolved + 180 days> UTC;
+    the address holds 1 of 3. Undo takes it back."; press Undo: the report reopens and its line is gone, and the same
+    address's open card reads "no strikes" again; Dismiss three from one address: the line says "holds 3 strikes, so its
+    reports don't hide right away until ...", matching `select public.report_strikes(array['<hash>'])` (a read-only call);
+    a child-abuse report filed without confirming an address, dismissed, says "Not a strike: it kept no address to
+    count against." At 375 each line is the row plus its caption, no horizontal scroll.
+- **Assets requested from Will**: none.
+- **Board ideas**: a dismissal can be reopened for 30 days (`closed=window`) but its strike lives 180 (his call B): a slip
+  found on day 31 stays a strike for 149 more days with nothing to take it back, and the closed line now says so; whether a
+  child-abuse dismissal's reopen should last as long as its strike is his.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes**: none.
+- **Calls his to overrule**: the four Questions above (the strike line's placement and words; the reopen window left at
+  30 days; the Add scroll's policy; the two posts' wording); the closed log now needs `report_strikes` like the open
+  queue (any failure but "function absent" errors the Dismissed, Actioned and All views, as the open queue's does, rather
+  than hiding the strike lines); `formatCapacity` also moved onto `formatCount` (same bytes out); the 404 test's
+  four-second wait.
+- **Look at first**: `/pricing` in a German-locale browser (the stat rows, the Event Pass ticket, Find your size, the
+  table's Holds about row), then `/design/library/compositions` (the Reports queue specimen's Closed log), then the
+  two posts' last paragraphs (`/blog/family-reunion-photo-sharing`, `/blog/group-trip-photo-sharing`).
 
 ## Where I am
 
-(Kept current at each push, for a successor who respawns this lane from its branch.)
-
-- **Boot**: worktree `/Users/gibby/local/ai/partyreel-wt/crumbs-36` on `lp/crumbs-36`; dev server port 3132; scratch
-  `/Users/gibby/local/ai/partyreel-wt/_scratch/crumbs-36/`. Baseline on the cut: `pnpm test` 680 files, 8128 tests, green (38 s).
-  `src/app/not-found.lazy.test.tsx` flaked once under load in a full run and passed 3 of 3 alone: not this lane's.
-- **Done**: item 2, one `INACTIVE_MONTHS` (`d9d28c55`): the export beside `INACTIVE_DAYS`, the seven copies on it, `inactivity.test.ts`
-  holds it (a scan for any other division of the day count; red on the cut with exactly the seven).
-- **Done**: item 1, counts through `formatCount` (`986de08b`): `formatLimit` and `formatCapacity` in `tiers.ts` and the four
-  pricing components' ten bare `toLocaleString()` are `formatCount`'s; `src/lib/test-utils/german-runtime.ts` simulates a
-  German runtime for tests; reds on the cut: `count.test.ts` scan (11 hits), `tiers.test.ts` (`formatLimit`),
-  `pricing-counts.test.tsx` (4 of 5 draw "21.943"). `formatCount` lives in `src/lib/format/count.ts`, not `utils.ts`.
-- **Done**: item 4, the blog's keep lines (`db0a8e97`): reunion's closing paragraph and trip's closing bullet say the Free plan's
-  one exception in the event pages' words (spec inlines `<InactivityMonths />`, `<RecoveryWindowDays />`), the absolutes
-  ("no expiry clock", "no countdown to a deletion", "Nothing expires underneath it") go and the trip's mid-post "no end date" is
-  a scope sentence; `src/lib/content/blog-keep-lines.test.ts` compiles both posts through the real component map (red on the cut,
-  4 of 5). `docs/systems/marketing-content.md`'s ★ line says so. Rendered on localhost:3132 (curl, 200).
-- **Done**: item 3, the host's Add scrolls to its panel (`THIS_COMMIT`): `HostUpload` registers its root box with the provider
-  (`registerPanel`, a ref callback; `scroll-mt-52 scroll-mb-4`), `openAdd` bumps a request counter whose effect calls
-  `scrollIntoView({ block: "nearest", behavior: smooth | auto })` on it, never the top; `host-add-provider.test.tsx` (7 tests,
-  5 red on the cut); both files' comments no longer describe the command strip or the floating Add pill. Measured on
-  localhost:3132 at `/design/album-scale?surface=host&n=300&key=fiesta` (the hub's album over fake photos; no cards row there):
-  with a 700 px spacer and a 114 px stand-in for the sticky stack, from scrollY 6000 `openAdd` lands the root at 208 px (box
-  159 px, intro clear of the stack, at 375 too: box 119 px); a panel fully in view does not move; one below the fold moves until
-  its bottom is 16 px above the fold. A hidden tab never ticks smooth scrolls (`document.visibilityState` hidden): read geometry
-  with `behavior: "instant"`. `uploadingCount` (the provider) and `onUploadingCountChange` have no reader since the pill
-  retired; removing them needs `event-gallery.tsx` (crumbs-35's): a Deferred line.
-- **In progress**: item 5 (a dismissed child-abuse report's closed line says its strike). The closed log is NOT in
-  `report-queue.tsx`: it is `ClosedReportLine` in `src/components/app/report-review.tsx` (fed by `listReports` in
-  `src/lib/db/queries/reports.ts`, which reads neither `kind` nor `reporter_hash` today). Plan: (1) `lib/admin/reports.ts`: a pure
-  `closedStrike` (live / lapsed / none, from the address's `StrikeReading`, the rule's `freshLapsesAt` and the page's one clock;
-  the lapse interval is derived from the answer, never copied) and `closedStrikeWords`; (2) `listReports` selects `kind` and
-  `reporter_hash`, asks `readStrikes` once for the dismissed child reports' hashes and attaches `strike` (no hash leaves the
-  server); (3) `ClosedLine` takes a quiet second line; `ClosedReportLine` passes the words and the Undo clause only while
-  `wayBack === "reopen"`; (4) the Library's composition specimen draws each state; (5) tests in `reports.test.ts`,
-  `report-review.test.tsx`, `queries/reports.test.ts`, red on the cut; (6) `docs/systems/admin-observability.md`'s strikes line.
-- **Left**: after item 5, the system-doc edits below, the lab crawl (`pnpm lab:smoke --base http://localhost:3132`), localhost
-  walks (pricing in a German-locale browser, the two blog posts, the Library's queue specimen), the gate, the Handoff.
+All five items are done, gated and handed off (above); nothing is in progress. A successor has only to integrate: merge
+`lp/crumbs-36` (the sync with `origin/launch-prep` at `c32222ab` is already in), run the merge gate (the machine's load
+decides whether `pnpm test` needs `--maxWorkers=6`; the one flake this lane met is hardened in `4334261d`), and delete
+this manifest in the merge commit.
