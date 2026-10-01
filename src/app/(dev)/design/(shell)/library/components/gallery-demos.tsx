@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/card";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -1207,6 +1208,38 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
                   Delete
                 </Button>
               </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        ),
+      },
+      {
+        label: "Takeover",
+        hint: "fullScreen: an edge-to-edge room that holds the page still behind it",
+        node: (
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                Open takeover
+              </Button>
+            </DialogTrigger>
+            <DialogContent fullScreen showCloseButton={false}>
+              <div className="flex shrink-0 items-start justify-between gap-3 border-b px-4 py-3">
+                <DialogHeader>
+                  <DialogTitle>Review</DialogTitle>
+                  <DialogDescription>
+                    The page behind cannot scroll, and its scrollbar does not
+                    stay beside this room.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogClose asChild>
+                  <Button variant="ghost" size="sm">
+                    Done
+                  </Button>
+                </DialogClose>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4 text-sm text-muted-foreground">
+                What scrolls is this body.
+              </div>
             </DialogContent>
           </Dialog>
         ),
