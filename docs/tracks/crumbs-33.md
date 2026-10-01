@@ -7,10 +7,25 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/app/admin/reports/
   - src/lib/db/queries/reports.ts
   - src/lib/db/mutations/account.ts
+  - src/lib/db/mutations/account.test.ts
   - src/lib/utils.ts
+  - src/lib/utils.test.ts
+  - src/app/(guest)/u/[slug]/page.tsx
   - src/lib/shared/album-rows.ts
+  - src/lib/shared/album-rows.test.ts
   - src/lib/album/links.ts
+  - src/lib/album/links.test.ts
   - src/components/ui/tooltip.tsx
+  - src/components/ui/tooltip.test.tsx
+  - src/components/shared/media-lightbox.tsx
+  - src/components/admin/report-queue.tsx
+  - src/components/admin/report-queue.test.tsx
+  - src/lib/admin/reports.ts
+  - src/lib/admin/reports.test.ts
+  - src/lib/db/migration-guards.test.ts
+  - src/app/(dev)/design/(shell)/library/compositions/composition-demos.tsx
+  - supabase/migrations/20261001100000_report_strikes_one_home.sql
+  - supabase/migrations/20261001110000_newsletter_follows_the_address.sql
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/admin-observability.md
   - docs/systems/trust-safety-forensics.md
