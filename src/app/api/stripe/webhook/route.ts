@@ -163,7 +163,7 @@ async function readHolder(
   admin: Admin,
   customerId: string,
 ): Promise<{ id: string; stripe_subscription_id: string | null } | null> {
-  // row-cap: stripe_customer_id's partial unique index: at most one profile
+  // At most one profile: stripe_customer_id's partial unique index (a second would make maybeSingle fail loudly).
   const { data, error } = await admin
     .from("profiles")
     .select("id, stripe_subscription_id")
