@@ -137,15 +137,24 @@ function of elapsed time can be frozen at a chosen moment and shot.
   window stretches a 100vh hero), so `lab:demo`'s own scrolled capture is how subtle light is judged, and a capture
   with no variance at all is reported UNPAINTED, to be judged by eye (headless Chrome does not always rasterize a
   composited `backdrop-filter`).
-- ★ **`lab:demo` dying on `Page.navigate did not answer in 60000ms`,** while the dev server answers the page in about
-  200 ms and the renderer still runs timers, is a wedged dev image optimizer and not a hung page: `next dev` hands
-  every request for one image the same pending result, and a first request that is cancelled (an iframe's first
-  document going, with its images in flight) leaves it pending for ever, so the later requests never answer, the six
-  connections to the server fill and the next navigation cannot start (`curl`: sixty requests for one uncached image,
-  aborted after 10 ms, then an ordinary request for that image hangs while every other image answers; five aborted do
-  not). The server stays wedged (0% CPU, GBs resident) and fails every later run whatever the tree: restart it
-  (`rm -rf .next/dev`) before any A/B, then find what cancels the images (`Frame` once mounted every portalled scene
-  twice).
+- **While a page's own navigation is pending, DevTools holds every call to its renderer** until the navigation commits,
+  so an `evaluate` that goes unanswered then says nothing about a busy main thread (one sat unanswered for 3 s on a
+  renderer at 0% CPU): read the renderers' CPU from the browser target (`SystemInfo.getProcessInfo`).
+- ★ **A dev server that never answers an image size** (`lab:demo`'s `Page.navigate did not answer`, or an `UNANSWERED`
+  line under a step) is Next 16.2's image optimizer, not a hung page: it reads the source image through a mocked
+  response bound to the requester's own socket, so a requester that hangs up before that read (a navigation
+  cancelling its page's images) leaves it pending for ever, and the response cache hands that one pending result to
+  every later request for the size (`next dev` and `next start` alike; Vercel optimizes on its own platform). Six of
+  them fill the six connections Chrome opens to one server, and the next navigation queues behind them without
+  leaving the browser (gates 100, 103 and 107 on `about-press.facts`). `patches/next@16.2.6.patch` backports the
+  upstream fix (vercel/next.js#98168, 16.4.0-canary.27; 16.3.8 still has the bug), and
+  `src/lib/next-image-optimizer.test.ts` is red in a checkout that pulled it without `pnpm install` and on an upgrade
+  that still needs it; delete the patch on a Next with the fix of its own. `curl` tells a server's state: sixty
+  requests for one cold size aborted after 10 ms, then an ordinary one, which never answers on a wedging server. A
+  wedged server stays wedged (0% CPU, GBs resident) whatever the tree: restart it (`rm -rf .next/dev`). `lab:demo`
+  sets a new window on about:blank between pages (a resized page re-fits its frames and asks for every photograph
+  again at new sizes) and runs with the back/forward cache off (a page it left kept its held connections a minute),
+  and it names what a stalled call waits on under its row.
 
 ## The presign-roll soak
 
