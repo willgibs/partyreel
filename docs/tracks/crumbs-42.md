@@ -14,6 +14,15 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/db/queries/events.ts
   - src/lib/db/mutations/media.ts
   - src/lib/events/share-urls.ts
+  - src/components/app/event-settings/
+  - src/components/app/host-add-provider.test.tsx
+  - src/components/app/restore-event-button.test.tsx
+  - src/components/app/share/event-code-door.tsx
+  - src/components/app/qr-preset-picker.tsx
+  - src/components/ui/popup.test.tsx
+  - src/lib/events/visibility-labels.ts
+  - src/lib/events/visibility-labels.test.ts
+  - src/lib/dashboard/events-view.ts
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/host-app.md
   - docs/systems/lifecycle-recovery.md
