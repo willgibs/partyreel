@@ -21,8 +21,8 @@ Nothing is protected: every page, the host app and the guest pages are open to b
   guest's photos her own, the reports queue rebuilt, the hub's rooms and live album, lighter pages, the lab rebuilt.
   The legal text is rewritten once, right before launch (his word).
 - **Batch 9 rides `launch-prep`**: crumbs-28 to crumbs-40, hide-strikes (his call B) and demo-stall, every migration
-  applied; builds 33 to 35 red-teamed, build 36 (crumbs-36 to crumbs-40) red-teamed next. Milestone 32 ships it once
-  build 36, or its fix build, passes (his yes, 2026-10-01). Handed off and merging after it: `crumbs-41` (admin, data
+  applied; builds 33 to 36 red-teamed, build 36's one MEDIUM fixed by `crumbs-45` (merged). Milestone 32 ships it once
+  build 37 proves the fix on the alias (his yes, 2026-10-01). Handed off and merging after it: `crumbs-41` (admin, data
   and billing, his call #60 among them), `crumbs-42` (the host app) and `crumbs-43` (guests); `strip-gaps` and
   `export-ends` run. App work leads (his note); the wiring of each board follows his picks.
 
