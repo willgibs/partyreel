@@ -130,7 +130,7 @@ Each is built as recommended and is Will's to overrule.
   8128); `zsh scripts/build-lock.sh pnpm build` 0; `pnpm lab:smoke --base http://localhost:3132` 0 (149 checks, 0
   failing). `pnpm lab:demo --base http://localhost:3132` for the three boards the change reached (about-press,
   disposable-mode, event-ready): 0 (15 steps, 0 failing), run at `4334261d`; `eadaadfe` changed two comments since.
-- **Lane check**, `git diff --name-only origin/launch-prep...HEAD` = the owned paths and this file, with one exception:
+- **Lane check**, `git diff --name-only origin/launch-prep...HEAD` = the owned paths, the three system docs listed above and this file, with one exception:
   `src/app/not-found.lazy.test.tsx` (`4334261d`, one call): its first `findByRole` waits for the site chrome's lazy chunk
   with findBy's default second, which alone takes about 0.5 s but in a full parallel run on this machine (four lanes, load
   14 to 16) took 1014 to 1019 ms and failed `pnpm test` in four runs of five (green alone, and with `--maxWorkers=6`); it
