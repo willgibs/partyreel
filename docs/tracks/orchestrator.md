@@ -40,11 +40,11 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `crumbs-33` | six ROADMAP items: a child-abuse report's live strikes on the queue (Will's call B), the newsletter row with an email change, one pinned date formatter, the rows engine's ties, the viewer's link asks coalesced, a tooltip's touch tap on Android | running, cut at `65dbedb2`; may write migrations (applied by protocol; one replacing `create_report` goes to the Advisor first) | Opus, 3131 | |
+| `crumbs-33` | six ROADMAP items: a child-abuse report's live strikes on the queue (Will's call B), the newsletter row with an email change, one pinned date formatter, the rows engine's ties, the viewer's link asks coalesced, a tooltip's touch tap on Android | merged at `569a3668` (gate 112 green; work `d13327ad`); its two migrations (20261001100000 `report_strikes`, replacing `create_report`; 20261001110000, replacing `handle_user_email_change`) apply by protocol after the Advisor's Q5, then types regenerated and `readStrikes`' cast dropped (`src/lib/db/queries/reports.ts`) | Opus, 3131 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
-no question open (Q1, the `names` hang; Q2, schema-pass part 1; Q3, the notes-into-laws audit; Q4, the door migration:
-each answered and acted on). From another session, respawn it from `usher/kit/advisor-prompt.txt`.
+Q5 open (2026-10-01 04:45Z: crumbs-33's two function-replacing migrations); Q1 to Q4 answered and acted on (the
+`names` hang, schema-pass part 1, the notes-into-laws audit, the door migration). From another session, respawn it from `usher/kit/advisor-prompt.txt`.
 
 **Handoff across accounts.** The Orchestrator session is `157caa18-ec54-4aa9-a12a-04c86d5a667b` (willg97's account,
 seated 2026-09-29 12:23 EDT; its weekly resets Sunday 9am ET, hi@willgibs.com's Tuesday 5pm ET; Will hands off only
@@ -60,17 +60,17 @@ If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` ho
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
 staged, uncommitted merge is finished by `usher/kit/merge-lane.sh`'s own steps or reset with `git merge --abort`.
 This session's scratchpad (`/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/157caa18-ec54-4aa9-a12a-04c86d5a667b/scratchpad`,
-until a reboot) holds the specs and gate logs (the next gate is 112); nothing there is needed that these lines and the
+until a reboot) holds the specs and gate logs (the next gate is 113); nothing there is needed that these lines and the
 manifests do not carry.
 
 Batch 8 shipped whole as milestone 31 (`7bd3b947`, 2026-09-30; 40 lanes, crumbs-12 to gone-link-soft; their merges and
 records carry the rest). Merged in batch 9: crumbs-28 (`8ea749bf`), hide-strikes (`669e1717`, its migration applied by
 protocol, 20260930205935), crumbs-29 (`47b5cce8`, its three migrations applied), crumbs-30 (`d0eaf507`; gate 107 green
-but lab:demo's `about-press.facts` dev stall, ROADMAP's line), crumbs-31 (`5898b6d8`, no SQL), demo-stall (`7990d19d`, gate 109 whole and green: the lab:demo stall's root, a Next dev bug, patched), crumbs-32 (`04ddf22e`, no SQL), crumbs-34 (`25b21341`, no SQL; gate 111). Schema-pass part 2 is applied (20260930204037).
+but lab:demo's `about-press.facts` dev stall, ROADMAP's line), crumbs-31 (`5898b6d8`, no SQL), demo-stall (`7990d19d`, gate 109 whole and green: the lab:demo stall's root, a Next dev bug, patched), crumbs-32 (`04ddf22e`, no SQL), crumbs-34 (`25b21341`, no SQL; gate 111), crumbs-33 (`569a3668`, gate 112; its two migrations wait on Q5). Schema-pass part 2 is applied (20260930204037).
 
 ## Next, in order
 
-1. **Integrate each lane as it hands off** (crumbs-33 runs; build 34's red-team is an agent, not a lane),
+1. **Integrate each lane as it hands off** (no lane runs; build 34's red-team is an agent, not a lane),
    each migration by protocol, one at a time: drift check, apply verbatim, the rolled-back refusals, advisors, types.
 2. **Build 34** (`65dbedb2`: build 33 plus crumbs-29 to crumbs-32 and demo-stall) is on the alias since 2026-10-01
    03:45Z (Will had not begun his sitting and said go). Its first try failed at install on both projects: with no pin,
