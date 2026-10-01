@@ -11,7 +11,31 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/constants/events.ts
   - src/lib/content-policy.test.ts
   - src/components/app/media-grid.tsx
+  - src/components/app/media-grid.test.tsx
   - src/components/marketing/sections/features/shared/feature-faq.tsx
+  - src/components/marketing/sections/features/album/live-album-stage
+  - src/components/marketing/sections/features/album/how-much-fits.tsx
+  - src/components/marketing/faint-copy-policy.test.tsx
+  - src/components/marketing/sections/reel/clip-section
+  - src/components/marketing/system/still-variants
+  - src/components/marketing/chrome/mobile-menu
+  - src/components/marketing/chrome/marketing-nav.tsx
+  - src/components/marketing/chrome/session-hint.tsx
+  - src/components/marketing/chrome/marketing-footer.tsx
+  - src/components/marketing/chrome/footer-faq-link
+  - src/components/marketing/chrome/chrome-link.tsx
+  - src/components/marketing/chrome/mega-panel.tsx
+  - src/components/marketing/marketing-not-found.tsx
+  - src/components/marketing/forms/
+  - src/app/not-found.site
+  - src/app/(marketing)/(cinema)/pricing/page.tsx
+  - src/app/(marketing)/(cinema)/events/page.tsx
+  - src/app/(marketing)/(cinema)/events/[slug]/page.tsx
+  - src/lib/constants/marketing-nav
+  - src/lib/validation/contact
+  - src/lib/validation/careers
+  - src/lib/validation/public-form
+  - src/lib/security/public-form-submit
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/marketing-content.md
   - docs/systems/design-system.md

@@ -2,7 +2,6 @@
 
 import { Search } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { HelpSearchLink } from "@/components/marketing/help/help-search-link";
@@ -14,6 +13,8 @@ import { marketingImage } from "@/lib/constants/marketing-media";
 import { type NavGroup, type NavLink } from "@/lib/constants/marketing-nav";
 import { DEMO_EVENT_URL } from "@/lib/demo";
 import { cn } from "@/lib/utils";
+
+import { ChromeLink as Link } from "./chrome-link";
 
 /**
  * THE MEGA-PANEL (expansion round): the rich content of one nav panel — an

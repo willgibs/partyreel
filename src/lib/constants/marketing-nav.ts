@@ -180,10 +180,28 @@ export const FAQ_HREF = "/#faq";
 
 /**
  * The routes whose own FAQ section is `id="faq"`. A reader there who presses the footer's FAQ
- * link meets THIS page's questions (pricing's are about plans), so the link stays on the page
- * instead of leaving for the home's. A test holds each route against its page's source.
+ * link meets THIS page's questions (pricing's are about plans, a wedding page's about weddings),
+ * so the link stays on the page instead of leaving for the home's. Exact paths, never a prefix:
+ * `/events/nope` is the site's 404, which has no FAQ to stay on.
+ *
+ * Plain strings, like the panels' children (this module stays light in the client bundle), and
+ * held both ways by `marketing-nav.test.ts`: every route here carries the anchor, and every page
+ * that draws an FAQ band (the events template and `FeatureFaq`) is here.
  */
-export const OWN_FAQ_ROUTES: readonly string[] = ["/pricing"];
+export const OWN_FAQ_ROUTES: readonly string[] = [
+  "/pricing",
+  "/events",
+  "/events/weddings",
+  "/events/parties",
+  "/events/conferences",
+  "/events/trips",
+  "/features/album",
+  "/features/qr",
+  "/features/curation",
+  "/features/sharing",
+  "/features/guests",
+  "/features/privacy",
+];
 
 /** Where the footer's FAQ link goes from `pathname`: this page's own FAQ when it has one, else the home's. */
 export function faqHrefFrom(pathname: string | null): string {

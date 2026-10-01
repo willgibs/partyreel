@@ -25,8 +25,10 @@ the colour and only state and actions are coloured.
   as the footer) and the mat `.surface-mat` (declared, worn nowhere yet). `--gallery*` is the media well, always dark in
   both themes.
 - **Three text steps**: `--foreground`, `--muted-foreground` and `--faint`, each one grey on every ground where a
-  hand-set alpha composites against whatever is behind it. `--faint` reads about 3.2:1 on the page: captions and hints
-  only, never body copy, a control's only label, or under a further alpha.
+  hand-set alpha composites against whatever is behind it. `--faint` reads about 3.2:1 on the page (2.9:1 on the mat,
+  4.5:1 in the room, 3.75:1 on a dark card): captions and hints only, never body copy, a control's only label, or under
+  a further alpha. A sentence in it moves up to `--muted-foreground` (`faint-copy-policy.test.tsx` reads /pricing and
+  the album page's strip for one).
 - **The brand is the wordmark alone**: `src/lib/brand/wordmark.ts` holds the export's single SVG path, `Logo` inlines it
   in `currentColor` sized by height, the social card draws the same path, and every door mounts `<Logo />`. ★ Never
   retype or optimise the path: replace the whole string from the next export. The mark (`markOnly`) is a stand-in

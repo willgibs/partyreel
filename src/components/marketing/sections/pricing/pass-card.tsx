@@ -168,7 +168,9 @@ export function PassCard() {
               the day
             </PassPoint>
           </ul>
-          <p className="mt-auto text-xs text-pretty text-faint">
+          {/* The pass's terms: a sentence a buyer reads before paying, so the second text step
+              (7.0:1 on the card), never the faint one (3.2:1), which is a caption's. */}
+          <p className="mt-auto text-xs text-pretty text-muted-foreground">
             Covers its event for about a year. Renew for{" "}
             {EVENT_PASS_RENEWAL_PRICE_LABEL} a year or let it lapse: you drop
             back to Free with a {OVER_CAP_GRACE_DAYS}-day window to free up

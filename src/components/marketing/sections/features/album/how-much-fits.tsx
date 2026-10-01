@@ -167,10 +167,12 @@ export function HowMuchFits() {
           />
         </div>
         {/* The strip's photo counts assume one camera, and say which
-            (host-storage r2): once, under the three columns. */}
+            (host-storage r2): once, under the three columns. A sentence the
+            counts depend on, so the second text step (7.0:1 on the page),
+            never the faint one (3.2:1), which is a caption's. */}
         <p
           data-mkt-reveal
-          className="mt-4 text-center text-xs text-pretty text-faint"
+          className="mt-4 text-center text-xs text-pretty text-muted-foreground"
           style={{ "--i": 6 } as CSSProperties}
         >
           {ESTIMATE_BASIS_NOTE}

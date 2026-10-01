@@ -18,13 +18,14 @@ import {
   friendlyCapacity,
   GATED_EVENT_SETTINGS,
   MAX_EVENTS,
-  MAX_REEL_SECONDS,
   planById,
   plansForTier,
 } from "@/lib/constants/tiers";
 import { formatCount } from "@/lib/format/count";
 import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
 import { formatBytes } from "@/lib/utils";
+
+import { clipTermsFor } from "./clip-terms";
 
 /**
  * The full plan matrix (Resend-informed): row labels carry a hover/focus
@@ -157,24 +158,21 @@ function buildGroups(): MatrixGroup[] {
       ],
     },
     {
-      // `reel-story` r1 `pricing=renamed`: the two rows describe the CLIP a
+      // `reel-story` r1 `pricing=renamed`: the clip row describes the CLIP a
       // viewer makes from the reel, never the live reel, which plays with no
-      // cap and no mark on every plan. Same shape, same numbers, the right noun.
+      // cap and no mark on every plan. Its length and its mark share the row
+      // (`clipTermsFor`): every plan's length is the same, so a length row of
+      // its own read "60 seconds" three times and compared nothing.
       title: "The reel",
       rows: [
         {
-          label: "Clip length",
-          tip: "The longest clip anyone can make from your event's reel. The reel itself runs as long as the album.",
+          label: "Clips",
+          tip: "The longest clip anyone can make from your event's reel, and whether it carries the small mark. The reel itself runs as long as the album, and the reel and the screen carry no mark on any plan.",
           values: [
-            `${MAX_REEL_SECONDS.free} seconds`,
-            `${MAX_REEL_SECONDS.event_pass} seconds`,
-            `${MAX_REEL_SECONDS.pro} seconds`,
+            clipTermsFor("free"),
+            clipTermsFor("event_pass"),
+            clipTermsFor("pro"),
           ],
-        },
-        {
-          label: "Clip watermark",
-          tip: "Free events mark their clips. The reel and the screen carry no mark on any plan.",
-          values: ["Small mark", "None", "None"],
         },
         {
           label: "Photos and album",

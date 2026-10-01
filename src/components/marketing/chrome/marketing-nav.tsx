@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLayoutEffect, useRef, useState } from "react";
 
@@ -20,6 +19,7 @@ import {
 import { readCssMs } from "@/lib/shared/read-css-ms";
 import { cn } from "@/lib/utils";
 
+import { ChromeLink as Link } from "./chrome-link";
 import { MegaPanel } from "./mega-panel";
 import { useNavIndicator } from "./nav-indicator";
 

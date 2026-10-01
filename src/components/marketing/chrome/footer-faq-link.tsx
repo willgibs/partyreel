@@ -1,10 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { faqHrefFrom } from "@/lib/constants/marketing-nav";
+
+import { ChromeLink as Link } from "./chrome-link";
 
 /**
  * THE FOOTER'S FAQ LINK, WHICH FOLLOWS THE READER'S PAGE. The footer draws one index on every marketing

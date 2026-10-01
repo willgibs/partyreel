@@ -20,13 +20,15 @@ function hrefOn(pathname: string | null): string | null {
 }
 
 describe("FooterFaqLink", () => {
+  // An events page joined /pricing here (mkt-polish): its band carries the anchor now, so the
+  // link that sent a wedding page's reader to the home's questions stays on the wedding page's.
   it("stays on the page's own FAQ where the page has one", () => {
     expect(hrefOn("/pricing")).toBe("#faq");
+    expect(hrefOn("/events/weddings")).toBe("#faq");
   });
 
   it("goes to the home's FAQ from every other page", () => {
     expect(hrefOn("/")).toBe("/#faq");
-    expect(hrefOn("/events/weddings")).toBe("/#faq");
     expect(hrefOn("/about")).toBe("/#faq");
   });
 

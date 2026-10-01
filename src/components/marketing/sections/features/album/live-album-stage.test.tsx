@@ -8,12 +8,24 @@ import {
   type StreamTarget,
 } from "@/components/shared/album-stream/album-stream";
 import { marketingImage } from "@/lib/constants/marketing-media";
-import { reflowRows } from "@/lib/shared/album-rows";
+import {
+  DEFAULT_ROW_STEP,
+  layoutRows,
+  perRowFor,
+  reflowRows,
+} from "@/lib/shared/album-rows";
 import { ARRIVAL_GLOW_MS } from "@/lib/shared/arrival";
 
 import { setReducedMotion } from "../../../../../../vitest.setup";
 
-import { LiveAlbum, LiveAlbumStage, READY_AHEAD } from "./live-album-stage";
+import {
+  LiveAlbum,
+  LiveAlbumStage,
+  READY_AHEAD,
+  stageBox,
+  stillSizes,
+  TILE_GAP,
+} from "./live-album-stage";
 
 /**
  * THE ALBUM THE STREAM FALLS INTO, as promises rather than a look.
@@ -30,6 +42,9 @@ import { LiveAlbum, LiveAlbumStage, READY_AHEAD } from "./live-album-stage";
  *     drawn at, the rows lay one arrival and one tail leaving as a local
  *     reflow, which is the only change they push rather than jump.
  *  5  IT IS A PICTURE: inert, hidden from assistive tech, nothing to press.
+ *  6  EACH STILL IS SERVED AT ITS TILE'S SIZE (mkt-polish): the optimizer's
+ *     widths and a `sizes` the rows' own tile bears out, where the stage
+ *     decoded every whole source file into a third of its width.
  *
  * Function, never look: no class, size or colour is pinned here.
  */
@@ -246,4 +261,69 @@ describe("it is a picture", () => {
     expect(stage.hasAttribute("inert")).toBe(true);
     expect(stage.getAttribute("aria-hidden")).toBe("true");
   });
+});
+
+/** What a `sizes` list says at a viewport, for the shapes `stillSizes` writes: a px or a calc on the viewport. */
+function sizeAt(sizes: string, viewport: number): number {
+  for (const entry of sizes.split(/,\s*(?=\(|calc|\d)/)) {
+    const m = /^(?:\(min-width: (\d+)px\) )?(.+)$/.exec(entry.trim())!;
+    if (m[1] && viewport < Number(m[1])) continue;
+    const value = m[2];
+    const px = /^(\d+)px$/.exec(value);
+    if (px) return Number(px[1]);
+    const calc = /^calc\(\(100vw - (\d+)px\) \* ([\d.]+)\)$/.exec(value);
+    if (calc) return (viewport - Number(calc[1])) * Number(calc[2]);
+    throw new Error(`unread sizes entry: ${entry}`);
+  }
+  throw new Error(`no sizes entry answers ${viewport}`);
+}
+
+describe("each still is served at its tile's size", () => {
+  it("draws every tile from the optimizer's widths of its own still, picked by its slot", () => {
+    const { container } = mount();
+    const imgs = [...container.querySelectorAll("[data-media-id] img")];
+    expect(imgs.length).toBeGreaterThan(0);
+    for (const img of imgs) {
+      const src = img.getAttribute("src") ?? "";
+      const srcset = img.getAttribute("srcset") ?? "";
+      // Sized derivatives of this very still, several widths of it.
+      expect(srcset, src).toContain(`url=${encodeURIComponent(src)}`);
+      expect(srcset.split(", ").length, src).toBeGreaterThan(4);
+      expect(img.getAttribute("sizes"), src).toBeTruthy();
+    }
+  });
+
+  it("matches the box the page lays the stage in (measured at 375, 640, 900 and 1440)", () => {
+    expect(stageBox(375)).toBe(317);
+    expect(stageBox(640)).toBe(566);
+    expect(stageBox(900)).toBe(826);
+    expect(stageBox(1440)).toBe(870);
+  });
+
+  it.each([375, 414, 480, 560, 640, 768, 900, 1024, 1440])(
+    "says, at %i px, the width the rows really lay each still at",
+    (viewport) => {
+      const box = stageBox(viewport);
+      const ratioOf = (i: number) => {
+        const img = marketingImage(STREAM_FRAMES[i]);
+        return img.width / img.height;
+      };
+      const layout = layoutRows(
+        STREAM_FRAMES.map((_, i) => ({ id: String(i), ratio: ratioOf(i) })),
+        { width: box, gap: TILE_GAP, perRow: perRowFor(box, DEFAULT_ROW_STEP) },
+      );
+      for (const row of layout.rows) {
+        row.ids.forEach((id, k) => {
+          const laid = row.widths[k];
+          const said = sizeAt(stillSizes(ratioOf(Number(id))), viewport);
+          // A row stretched off its target lays a tile a little off its share; the optimizer's
+          // widths are coarser than that. Never a slot twice the size it says, or half of it.
+          expect(laid / said, `still ${id} at ${viewport}`).toBeGreaterThan(
+            0.7,
+          );
+          expect(laid / said, `still ${id} at ${viewport}`).toBeLessThan(1.35);
+        });
+      }
+    },
+  );
 });
