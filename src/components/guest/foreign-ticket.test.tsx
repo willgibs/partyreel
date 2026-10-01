@@ -6,6 +6,10 @@
  * two doors that post such a ticket do about it (put it down, never argue with it), and that both
  * sign-outs put down every ticket on the device so the next person on a shared phone starts clean.
  * The doors' other pins live in their own test files.
+ *
+ * ★ AND THE WELCOME GOES WITH ITS TICKET (crumbs-43): a sign-out takes every album's, so the next person meets the
+ * welcome and its consent line, and so does the add-email dialog's put-down, which hands the phone to the door; the
+ * name step's own put-down keeps it, because the person typing there has just passed it.
  */
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -81,6 +85,8 @@ function seedDevice() {
   localStorage.setItem("pr_guest_name_tok-2", "Sam");
   localStorage.setItem("pr_guest_email_attached_tok-2", "1");
   localStorage.setItem("pr_guest_name_last", "Hi Will");
+  localStorage.setItem(`pr_welcome_${QR}`, "1");
+  localStorage.setItem("pr_welcome_tok-2", "1");
 }
 
 beforeEach(() => {
@@ -145,6 +151,8 @@ describe("the name step, holding somebody else's ticket", () => {
     expect(localStorage.getItem(`pr_session_${QR}`)).toBeNull();
     // And no refusal was ever shown: nothing typed could have fixed it.
     expect(screen.queryByText(OTHER_ACCOUNT.message)).toBeNull();
+    // She passed the welcome on her way to this step: it is not put back in front of her name.
+    expect(localStorage.getItem(`pr_welcome_${QR}`)).toBe("1");
   });
 });
 
@@ -175,8 +183,11 @@ describe("the add-email dialog, holding somebody else's ticket", () => {
     expect(localStorage.getItem(`pr_guest_name_${QR}`)).toBeNull();
     expect(calls("/api/guests/leave")).toEqual([{ qr_token: QR }]);
     expect(screen.queryByText(OTHER_ACCOUNT.message)).toBeNull();
+    // The door asks whoever holds the phone, from its welcome.
+    expect(localStorage.getItem(`pr_welcome_${QR}`)).toBeNull();
     // Another event's ticket is somebody's too, and not this refusal's to touch.
     expect(localStorage.getItem("pr_session_tok-2")).toBe("t".repeat(64));
+    expect(localStorage.getItem("pr_welcome_tok-2")).toBe("1");
   });
 });
 
@@ -215,6 +226,8 @@ describe("the sign-outs put down every ticket on the device", () => {
       "pr_guest_name_tok-2",
       "pr_guest_email_attached_tok-2",
       "pr_guest_name_last",
+      `pr_welcome_${QR}`,
+      "pr_welcome_tok-2",
     ]) {
       expect(localStorage.getItem(key), key).toBeNull();
     }
@@ -248,5 +261,7 @@ describe("the sign-outs put down every ticket on the device", () => {
     expect(seenAtAction).toEqual([null]);
     expect(localStorage.getItem("pr_session_tok-2")).toBeNull();
     expect(localStorage.getItem("pr_guest_name_last")).toBeNull();
+    expect(localStorage.getItem(`pr_welcome_${QR}`)).toBeNull();
+    expect(localStorage.getItem("pr_welcome_tok-2")).toBeNull();
   });
 });

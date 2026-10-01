@@ -113,9 +113,18 @@ function postLeave(body: { qr_token: string } | { all: true }): Promise<void> {
  * whose response writes this event's cookie afresh; an expiry still in flight could land after it
  * and put the NEW ticket down. Awaiting orders the two, and the leave route never fails loudly.
  */
-export async function dropGuestTicket(qrToken: string): Promise<void> {
+export async function dropGuestTicket(
+  qrToken: string,
+  options: {
+    /**
+     * The person holding the phone has passed this album's welcome already, in this very pass (the door's name
+     * step, which the welcome stands in front of): putting it back would show it after the name she just typed.
+     */
+    keepWelcome?: boolean;
+  } = {},
+): Promise<void> {
   forgetStoredGuest(qrToken);
-  forgetWelcome(qrToken);
+  if (!options.keepWelcome) forgetWelcome(qrToken);
   setStoredSession(qrToken, null);
   await postLeave({ qr_token: qrToken });
 }

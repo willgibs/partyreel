@@ -137,6 +137,13 @@ describe("a refused ticket: that event's alone", () => {
     expect(localStorage.getItem("pr_device_id")).toBe("device-1");
   });
 
+  it("keeps the welcome for the person at the door's name step, who has just passed it", async () => {
+    seedTwoTickets();
+    await dropGuestTicket(QR_A, { keepWelcome: true });
+    expect(localStorage.getItem(`pr_session_${QR_A}`)).toBeNull();
+    expect(localStorage.getItem(`pr_welcome_${QR_A}`)).toBe("1");
+  });
+
   it("★ the prefill goes with it when it IS that ticket's name, so the door never offers the last owner's", () => {
     seedTwoTickets();
     forgetStoredGuest(QR_A);
