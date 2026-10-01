@@ -138,12 +138,24 @@ describe("the album drill-in, a page at a time", () => {
     expect(newest).toHaveAttribute("data-prefetch", "false");
   });
 
+  // ★ RESHAPED ON PURPOSE (crumbs-41; scar kept: the URL's cursor reaches the read, a mangled one reads the newest
+  // page). The read takes the status filter as its fourth argument now, null for every status.
   it("★ the cursor in the URL reaches the read; a mangled one reads the newest page", async () => {
     getAlbumForModeration.mockResolvedValue(detail(10, { next: null }));
     await draw({ at: AT, id: NEXT_ID });
-    expect(getAlbumForModeration).toHaveBeenLastCalledWith(EVENT, AT, NEXT_ID);
+    expect(getAlbumForModeration).toHaveBeenLastCalledWith(
+      EVENT,
+      AT,
+      NEXT_ID,
+      null,
+    );
     await draw({ at: "2026-09-23,x", id: NEXT_ID });
-    expect(getAlbumForModeration).toHaveBeenLastCalledWith(EVENT, null, null);
+    expect(getAlbumForModeration).toHaveBeenLastCalledWith(
+      EVENT,
+      null,
+      null,
+      null,
+    );
   });
 
   it("an album of one page says nothing about pages", async () => {
@@ -153,6 +165,72 @@ describe("the album drill-in, a page at a time", () => {
       screen.queryByRole("navigation", { name: "Album pages" }),
     ).toBeNull();
     expect(screen.getByTestId("grid")).toHaveAttribute("data-count", "12");
+  });
+
+  it("★ draws the feed's status filter, All first and current, every link to a filter's newest page, never prefetched", async () => {
+    getAlbumForModeration.mockResolvedValue(detail(500));
+    await draw();
+    const filter = screen.getByRole("navigation", { name: "Album status" });
+    const links = filter.querySelectorAll("a");
+    expect([...links].map((a) => a.textContent)).toEqual([
+      "All",
+      "Pending",
+      "Approved",
+      "Hidden",
+      "Removed",
+    ]);
+    expect([...links].map((a) => a.getAttribute("href"))).toEqual([
+      `/admin/albums/${EVENT}`,
+      `/admin/albums/${EVENT}?status=pending`,
+      `/admin/albums/${EVENT}?status=approved`,
+      `/admin/albums/${EVENT}?status=hidden`,
+      `/admin/albums/${EVENT}?status=removed`,
+    ]);
+    expect(
+      [...links].every((a) => a.getAttribute("data-prefetch") === "false"),
+    ).toBe(true);
+    expect(links[0]).toHaveAttribute("aria-current", "page");
+  });
+
+  it("★ a status reaches the read, and its pages count and keep it", async () => {
+    getAlbumForModeration.mockResolvedValue(detail(300, { position: 0 }));
+    await draw({ status: "pending" });
+    expect(getAlbumForModeration).toHaveBeenLastCalledWith(
+      EVENT,
+      null,
+      null,
+      "pending",
+    );
+    // The view pages through the album's 300 pending, never its 2,500.
+    expect(
+      screen.getAllByText("Items 1–300 of 300 pending, newest first")[0],
+    ).toBeInTheDocument();
+    const older = screen.getAllByRole("link", { name: "Older" })[0];
+    const url = new URL(older.getAttribute("href")!, "https://admin.test");
+    expect(url.searchParams.get("status")).toBe("pending");
+    expect(url.searchParams.get("at")).toBe(AT);
+    const current = screen
+      .getByRole("navigation", { name: "Album status" })
+      .querySelector('[aria-current="page"]');
+    expect(current?.textContent).toBe("Pending");
+  });
+
+  it("a status the album holds none of says so in the feed's words; a mangled one reads every status", async () => {
+    getAlbumForModeration.mockResolvedValue({
+      ...detail(0, { next: null }),
+      counts: { approved: 2_000, pending: 0, hidden: 100, removed: 100 },
+    });
+    await draw({ status: "pending" });
+    expect(
+      screen.getByText("No pending media in this album."),
+    ).toBeInTheDocument();
+    await draw({ status: "all,removed" });
+    expect(getAlbumForModeration).toHaveBeenLastCalledWith(
+      EVENT,
+      null,
+      null,
+      null,
+    );
   });
 
   it('a page past the album\'s end (a stale link) draws the way back, not "No media"', async () => {

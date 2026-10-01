@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { albumPageHref, parseAlbumCursor } from "@/lib/moderation/album-pages";
+import {
+  ALBUM_STATUSES,
+  albumPageHref,
+  albumStatusLabel,
+  parseAlbumCursor,
+  parseAlbumStatus,
+} from "@/lib/moderation/album-pages";
+import { ALBUM_FILTER_META } from "@/lib/moderation/operator-actions";
 
 const EVENT = "e0000000-0000-4000-8000-000000000001";
 const ID = "a0000000-0000-4000-8000-000000000123";
@@ -52,5 +59,54 @@ describe("albumPageHref", () => {
     expect(
       parseAlbumCursor(Object.fromEntries(url.searchParams.entries())),
     ).toEqual({ at: AT, id: ID });
+  });
+
+  it("★ keeps a status filter on every page of it, and reads back whole", () => {
+    expect(albumPageHref(EVENT, null, "removed")).toBe(
+      `/admin/albums/${EVENT}?status=removed`,
+    );
+    const url = new URL(
+      albumPageHref(EVENT, { at: AT, id: ID }, "pending"),
+      "https://admin.partyreel.com",
+    );
+    const params = Object.fromEntries(url.searchParams.entries());
+    expect(parseAlbumStatus(params)).toBe("pending");
+    expect(parseAlbumCursor(params)).toEqual({ at: AT, id: ID });
+  });
+});
+
+/**
+ * ★ THE DRILL-IN'S STATUS FILTER (crumbs-41, a board idea from crumbs-37): the Albums feed's own four words over one
+ * album, and All for every status, removed included, as the drill-in always drew (the feed's Active leaves the removed
+ * out, a different question, so it is never the drill-in's word).
+ */
+describe("parseAlbumStatus", () => {
+  it("reads the feed's four statuses, in the feed's order and words", () => {
+    expect(ALBUM_STATUSES).toEqual([
+      "pending",
+      "approved",
+      "hidden",
+      "removed",
+    ]);
+    for (const status of ALBUM_STATUSES) {
+      expect(parseAlbumStatus({ status })).toBe(status);
+      expect(albumStatusLabel(status)).toBe(ALBUM_FILTER_META[status].label);
+    }
+    expect(albumStatusLabel(null)).toBe("All");
+  });
+
+  it("★ reads anything else as every status: only the four words ever reach the read's filter", () => {
+    for (const status of [
+      undefined,
+      "",
+      "all",
+      "Removed",
+      "removed,approved",
+      "deleted",
+      ["removed", "pending"],
+    ]) {
+      expect(parseAlbumStatus({ status }), String(status)).toBeNull();
+    }
+    expect(parseAlbumStatus(undefined)).toBeNull();
   });
 });
