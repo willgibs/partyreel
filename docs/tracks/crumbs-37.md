@@ -15,6 +15,7 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/app/api/cron/purge/
   - src/lib/jobs/sweep-tally.ts
   - src/lib/jobs/sweep-tally.test.ts
+  - src/lib/jobs/purge-sweeps.ts
   - src/app/admin/jobs/catalog.ts
   - src/app/admin/jobs/catalog.test.ts
   - src/lib/lifecycle/sweeps/album-log.ts
@@ -100,11 +101,15 @@ working.
 ## Where I am
 
 - Booted at `58b359e8` in `/Users/gibby/local/ai/partyreel-wt/crumbs-37` (port 3131, scratch `_scratch/crumbs-37`).
-- Done: item 1's planner and model (commit below): `planAlbumSync` answers a manifest below the scope's watermark;
-  the model prunes (10,000 schedules, 6,450 polls below the watermark, 0 misses; a blind server lost removals in 536
-  of 2,000); red without the rule (4 tests).
-- In progress: item 1's SQL (`20261001150000_album_log_prune.sql`: the watermarks, the reader, the prune).
-- Left: items 1 (SQL, the job, the catalog, the route), 2, 3, 4; system docs; the gate; the handoff.
+- Done: item 1 whole. The planner and model (`e92281a5`): `planAlbumSync` answers a manifest below the scope's
+  watermark; the model prunes (10,000 schedules, 6,450 polls below the watermark, 0 misses; a blind server lost
+  removals in 536 of 2,000); red without the rule (4 tests). The SQL and the job (next commit):
+  `20261001150000_album_log_prune.sql` (watermarks, the reader, `album_prune_tombstones`, the switch), proved red then
+  green on the live schema rolled back (`_scratch/crumbs-37/proofA-live.log`), pre-flighted and stressed locally
+  (494,326 pgbench transactions, none of 158 random-writer deadlocks names the prune or an album row, invariants
+  held); `sweepAlbumLog` (rotating, budgeted, wraps), the `purge_album_log` job, the route's tenth budgeted sweep.
+- In progress: item 4 (the over-capacity reduce paged).
+- Left: items 2, 3, 4; system docs; the gate; the handoff.
 - Measured (live, 2026-10-01): media 1,480 (67 removed, every one with `purge_at`; `purge_at` is set exactly when
   removed, by `set_media_purge_at`), events 63 (46 soft-deleted), album_state 58, album_changes 1,344 of which 5 are
   tombstones in 4 albums; `standby_hosts`' plan today is a Seq Scan on media with the OR as a join filter.
