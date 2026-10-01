@@ -320,7 +320,7 @@ and `lib/glass.ts` names the classes the product wears. `PosterCardChip` (the st
 ## The album tile
 
 One tile, `shared/album-tile.tsx` (`AlbumTile`), draws every album grid, laid out by `shared/masonry.tsx`
-(`MasonryColumns`): the guest album (`GuestMasonry` wraps it), the host's album, the bin and the personal feeds. The
+(`MasonryColumns`): the guest album (`GalleryRows` wraps it), the host's album, the bin and the personal feeds. The
 admin's `ModerationTile` stays its own: a report is not an album. It lays out as masonry (the default), uniform (a
 fixed aspect: the Reel and Review) or `rows`, the justified album, windowed (`shared/album-window.tsx`, opt-in until
 each surface switches). `/design/album-scale` is the grid over 1,145 photographs and `scripts/album-perf.mjs` its

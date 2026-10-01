@@ -47,6 +47,15 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/app/(dev)/design/(shell)/library/compositions/composition-demos.tsx
   - src/app/(dev)/design/gallery/specimens.generated.json
   - content/blog/AUTHORING.md
+  - src/components/guest/guest-masonry.tsx
+  - src/components/guest/guest-masonry.test.tsx
+  - src/components/guest/gallery-rows.test.tsx
+  - src/components/shared/masonry.tsx
+  - src/app/(dev)/design/album-scale/album-scale.tsx
+  - src/components/marketing/sections/features/album/album-fill-grid.tsx
+  - src/components/marketing/sections/features/album/everywhere-stage.tsx
+  - src/components/marketing/sections/how-it-works/guest-pictures.tsx
+  - src/components/marketing/sections/how-it-works/host-pictures.tsx
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/design-system.md
   - docs/systems/admin-observability.md
@@ -98,6 +107,7 @@ working.
 - `docs/systems/guest-flow.md`: the two "residue only the Library mounts" sentences (`floating-add-button.tsx`, `anonymous-info.tsx`) are deleted with their files.
 - `docs/systems/marketing-content.md`: the "dead scaffold" sentence on `constants/features.ts` and `features-layout.ts` is deleted with them.
 - `docs/systems/design-system.md` (second line): "`drawer.tsx` (vaul's, drawn only by the Library's gallery now)" is deleted from the floating-layer paragraph: the file and vaul are gone.
+- `docs/systems/design-system.md` (third line): the album tile section's "the guest album (`GuestMasonry` wraps it)" says `GalleryRows`.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
@@ -124,14 +134,14 @@ _Agent crumbs-39 (Sonnet 5.5), booted 2026-10-01 in `/Users/gibby/local/ai/party
 - `cn()` shadow tokens: `SHADOW_TOKENS` in `src/lib/utils.ts`, red-first test in `src/lib/type-ladder-policy.test.ts`, design-system.md's ★ refined.
 - `ui/dialog.tsx` fullScreen scroll lock: the takeover now renders an Overlay that draws nothing (Radix's RemoveScroll is the Overlay's); `src/components/ui/dialog.test.tsx` was red on the takeover before. Still to do for it: look at the Library's fullScreen demo in a browser (no visual change, no scrollbar strip).
 - The portal's links: all 16 `<Link>`s in `components/admin` and `app/admin` that prefetched now say `prefetch={false}` (the six named files hold 7 of them; the other 9 are the admin 404 screens and seven page-level links), and `src/components/admin/admin-prefetch-policy.test.ts` reads the source of both directories (red first: 16 offenders), with one pending page, crumbs-37's `albums/[eventId]/page.tsx`, whose two links take the prop when its lane lands (the test fails when that page is fixed, so its entry is deleted then). `text-[10px]` moved to `text-micro` in `operator-alerts.tsx` (2) and `admin-not-found-screen.tsx` (1), whose stale header sentence about the Ops badge is corrected.
-
 - Dead code, with its Library specimens and the doc lines that named it: `floating-add-button.tsx`, `filter-chips.tsx` (+ test), `tile-size-control.tsx` (+ test), `anonymous-info.tsx`, `constants/features.ts` and `features-layout.ts` (+ test); and what died with them: `lib/dashboard/filters.ts` (+ test: `FILTER_CHIPS` and `FilterValue` served only the chips, `resolveInitialFilter` only its test, and the dashboard's own comment says the `?tab=` / `?filter=` links are gone), `TILE_SIZES`/`TileSize`/`DEFAULT_TILE_SIZE`/`TILE_SIZE_LABEL`/`resolveTileSize` in `tile-size-cookie.ts` and `useTileSize` in `use-tile-size.ts`. `specimens.generated.json` regenerated with `node "src/app/(dev)/design/gallery/collect-specimens.mjs"` (four entries out). `resolveRowStep` keeps reading a legacy 300/240/180 width (kept, pinned; see Questions).
 - `EventCardQr`'s "three unused props": already true before the cut (every call passes only what it reads since popups-wiring made the chip open the code card).
+- `guest-masonry.tsx` and its test deleted (read by nothing: its header claimed the marketing stage and the lab's boards draw it, and neither does; the guest album is `gallery-rows.tsx`). Its three head-stack pins were the ONLY pins on the rule "one pick is one object, led by the file in the air", and `GalleryRows` carries the same rule with none: they now live in `gallery-rows.test.tsx` against the product's own wiring (the spy draws the grid's `prefix`), and one was mutation-checked (lead = pending[0] fails it). Comments that named the file (masonry.tsx, album-scale, the album-fill grid, the everywhere stage, the how-it-works pictures, design-system.md) are repointed; masonry.tsx's three stale claims (a wrapper that is gone, "stays the default until the surfaces switch", a tile-size control "when it lands") are corrected.
+- `text-[10px]` left on purpose in `how-it-works/guest-pictures.tsx` and `host-pictures.tsx` (9 each): it is type drawn inside a picture of the product, which design-system.md keeps off the ladder.
 
 **In progress / next, in this order**
-1. `guest-masonry.tsx` (read only by its own test; its header claims the marketing stage and the lab draw it, and neither does) with its test: move its three head-stack pins onto `GalleryRows` (`gallery-rows.test.tsx`), then delete, and point the comments that name it at `gallery-rows.tsx`.
-2. The comment sweep (ROADMAP lines 155 and 163), each verified against current code; `text-[10px]` to `text-micro` in any file opened.
-3. The gate, `lab:smoke`, the handoff.
+1. The comment sweep: ROADMAP lines 155 and 163, each verified against current code (many were already fixed by later lanes); `text-[10px]` to `text-micro` in any file opened (not in pictured type).
+2. The gate (typecheck, lint, test, build through the lock, `lab:smoke --base http://localhost:3134`), the premise note, the Handoff.
 
 **Measured, so a successor does not redo it**
 - Already gone before the cut (the ROADMAP lines are stale on them): the app's `components/guest/ghost-grid.tsx`, `event-filter-pills.tsx`, `lib/shared/use-active-section.ts`, `enter-event-prompt.tsx`; the `getHostAvatarUrl`-era and "Cost & scaling" and `database-security.md0` comment items.
