@@ -108,6 +108,7 @@ but lab:demo's `about-press.facts` dev stall, ROADMAP's line), crumbs-31 (`5898b
    idea of the premiere on the wall, the reel's screen counting down to the develop time and playing the roll as an
    event of its own); the door family's wiring (if the doorway wins, its reveal: walking through the opened door into
    the album, drawn first as motion options; ASSETS row 36 if the host's door wins).
+2b. **`/me`** (Will's answer A to crumbs-44's question, 2026-10-01; its ROADMAP Profile line): cut after crumbs-44 merges, with the post-milestone follow-ups.
 3. **The demo event**, after his `demo-framing` r2 picks (his full permission, 2026-09-29): the demo renamed (or made)
    to its pick, its address claimed so the card's printed address opens it (today `mia-and-theo`, held by no event,
    left as is on his word), one home for the slug in `lib/demo.ts` that the card prints, the seed sets and every demo
@@ -119,8 +120,7 @@ but lab:demo's `about-press.facts` dev stall, ROADMAP's line), crumbs-31 (`5898b
 
 ## Waiting on Will
 
-- **crumbs-44's question** (relayed 2026-10-01): where a confirmed account with no handle keeps its likes; A `/me` (the owner mode at an address needing no handle, redirecting once she has one) recommended; B a Likes band on the dashboard's Guest side; C an Activity card on Account; D leave it. Nothing built.
-- **His desk** (not begun at 21:30Z on 2026-10-01; locked-door first): `disposable-mode` r2 (eight asks), `locked-door` r2 (four, redrawn from production) and `event-ready` r1
+- **His desk** (not begun at 21:30Z on 2026-10-01; locked-door first). Will, 2026-10-01: wind down so he can answer the whole desk and the next round builds on his picks instead of re-adapting standing asks round after round. So no new lane is cut until his paste lands, but the red-team's fixes; the running lanes finish (none touches a board's surface); no alias deploy lands mid-sitting without asking. His sitting never blocks the Orchestrator (answers live in his browser). The boards: `disposable-mode` r2 (eight asks), `locked-door` r2 (four, redrawn from production) and `event-ready` r1
   (five; its three settled calls, ready never stored nor shown to a guest among them, his to overrule) on build 25;
   `demo-framing` r2 (three: the demo's address in a host's words, how it shares the stage with the stream, the hero's
   touch; `names` retired into `slug`) and `about-press` r1 (two: the press kit on /about, its four facts; press-page's
