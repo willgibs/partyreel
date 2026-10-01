@@ -21,6 +21,13 @@
  *
  * And the model is shown to have teeth: the same schedules, run against a mutant server that reads a
  * manifest's version AFTER its pages (the bug the protocol exists to avoid), do lose changes.
+ *
+ * ★ THE PRUNED LOG (crumbs-37, 20261001150000). The purge cron's album-log sweep deletes the change rows
+ * of purged items (their tombstones) and raises the scope's watermark to every version it deleted, in
+ * one transaction, at any moment a write could land: between steps and inside requests, a whole pass or
+ * part of one. A client parked below the watermark must come back whole, never through a delta with a
+ * silent gap: the schedules prune too, and a server blind to the watermark (it prunes, but answers a
+ * delta from below it) is shown to lose removals that only the count check catches.
  */
 import { describe, expect, it } from "vitest";
 
@@ -112,7 +119,31 @@ function world(rng: Rng) {
     }
     return ops;
   };
-  return { sim, media, transaction };
+  /**
+   * One prune: the album-log sweep's transaction over this album or its neighbour, a whole pass or the
+   * part of one a window took (any subset of the tombstones is a legal prune).
+   */
+  const prune = () => {
+    const event = rng() < 0.8 ? EVENT : NEIGHBOUR;
+    sim.prune(event, rng() < 0.5 ? undefined : () => rng() < 0.5);
+  };
+  return { sim, media, transaction, prune };
+}
+
+/** A server that prunes but never says so: its reads answer a zero watermark. */
+function blindToWatermark(sim: AlbumSim): AlbumSim {
+  return new Proxy(sim, {
+    get(target, prop, receiver) {
+      if (prop === "read") {
+        return (...args: Parameters<AlbumSim["read"]>) => ({
+          ...target.read(...args),
+          watermark: 0,
+        });
+      }
+      const value: unknown = Reflect.get(target, prop, receiver);
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  });
 }
 
 type Outcome = {
@@ -122,6 +153,8 @@ type Outcome = {
   pages: number;
   notModified: number;
   integrityMisses: number;
+  /** Polls asked from below the scope's watermark: each must be answered with the album whole. */
+  belowWatermark: number;
   /** The final album differed from the server's. */
   diverged: boolean;
   /** An album was out of order or held an id twice after a poll. */
@@ -135,12 +168,13 @@ async function runSchedule(
     sim: AlbumSim,
     scope: AlbumScope,
   ) => AlbumTransport<GuestWhoTuple>,
+  opts: { blind?: boolean } = {},
 ): Promise<Outcome> {
   const rng = prng(seed);
   const scope: AlbumScope = rng() < 0.5 ? "album" : "host";
   const pageSize = int(rng, 2, 6);
   const resyncAfter = int(rng, 2, 8);
-  const { sim, media, transaction } = world(rng);
+  const { sim, media, transaction, prune } = world(rng);
 
   for (let i = int(rng, 0, 12); i > 0; i--) {
     sim.commit([
@@ -150,10 +184,13 @@ async function runSchedule(
 
   let writing = true;
   const between = (_point: SimPoint) => {
-    if (writing && rng() < 0.3) sim.commit(transaction());
+    if (!writing) return;
+    const roll = rng();
+    if (roll < 0.3) sim.commit(transaction());
+    else if (roll < 0.36) prune();
   };
   let transport: AlbumTransport<GuestWhoTuple> = simTransport({
-    sim,
+    sim: opts.blind ? blindToWatermark(sim) : sim,
     event: EVENT,
     scope,
     pageSize,
@@ -167,14 +204,24 @@ async function runSchedule(
   const check = () => {
     if (!isOrdered(store.getSnapshot().entries)) disordered = true;
   };
+  let belowWatermark = 0;
+  const poll = async () => {
+    const held = store.getSnapshot().version;
+    const v = sim.versions(EVENT);
+    const watermark = scope === "host" ? v.hostWatermark : v.albumWatermark;
+    if (held !== null && held < watermark) belowWatermark += 1;
+    await store.sync();
+    check();
+  };
 
   for (let step = int(rng, 20, 80); step > 0; step--) {
     const roll = rng();
-    if (roll < 0.45) {
+    if (roll < 0.4) {
       sim.commit(transaction());
+    } else if (roll < 0.47) {
+      prune();
     } else if (roll < 0.8) {
-      await store.sync();
-      check();
+      await poll();
     } else if (roll < 0.9) {
       sim.renamed([rng() < 0.8 ? EVENT : NEIGHBOUR]);
     } else {
@@ -189,12 +236,13 @@ async function runSchedule(
     const v = sim.versions(EVENT);
     return scope === "host" ? v.version : v.albumMax;
   };
+  // A last prune with the writes stopped, so the catch-up itself starts below the watermark as often
+  // as a parked tab's would.
+  if (rng() < 0.5) sim.prune(EVENT);
   for (let i = 0; i < 6 && store.getSnapshot().version !== target(); i++) {
-    await store.sync();
-    check();
+    await poll();
   }
-  await store.sync();
-  check();
+  await poll();
 
   const holds = store.getSnapshot().entries;
   const truth = sim.album(EVENT, scope);
@@ -206,6 +254,7 @@ async function runSchedule(
     pages: stats.pages,
     notModified: stats.notModified,
     integrityMisses: stats.integrityMisses,
+    belowWatermark,
     diverged: JSON.stringify(holds) !== JSON.stringify(truth),
     disordered,
   };
@@ -220,6 +269,7 @@ describe("the paged album's integrity model", () => {
       pages: 0,
       notModified: 0,
       integrityMisses: 0,
+      belowWatermark: 0,
       diverged: false,
       disordered: false,
     };
@@ -232,6 +282,7 @@ describe("the paged album's integrity model", () => {
       total.pages += out.pages;
       total.notModified += out.notModified;
       total.integrityMisses += out.integrityMisses;
+      total.belowWatermark += out.belowWatermark;
       if (out.diverged || out.disordered || out.integrityMisses > 0)
         failures.push(seed);
     }
@@ -243,6 +294,8 @@ describe("the paged album's integrity model", () => {
     expect(total.manifests).toBeGreaterThan(SCHEDULES * 1.2); // first loads plus resyncs
     expect(total.pages).toBeGreaterThan(SCHEDULES);
     expect(total.notModified).toBeGreaterThan(SCHEDULES);
+    // Parked below a pruned watermark often enough that the branch is the run's, not a corner's.
+    expect(total.belowWatermark).toBeGreaterThan(SCHEDULES / 2);
     expect(
       failures,
       `failing seeds: ${failures.slice(0, 10).join(", ")}`,
@@ -297,4 +350,111 @@ describe("the paged album's integrity model", () => {
       console.log(JSON.stringify({ mutantSchedules: 2_000, lost }));
     expect(lost).toBeGreaterThan(0);
   }, 120_000);
+
+  it("has teeth: a server blind to the watermark answers a delta from below it, and removals go missing", async () => {
+    // The same prunes, but every read answers watermark 0, so a client parked below a pruned row is
+    // sent a delta that cannot carry the row's removal. Only the count check catches what it lost.
+    let lost = 0;
+    for (let seed = 1; seed <= 2_000; seed++) {
+      const out = await runSchedule(seed, undefined, { blind: true });
+      if (out.diverged || out.integrityMisses > 0) lost += 1;
+    }
+    if (process.env.ALBUM_MODEL_REPORT)
+      console.log(JSON.stringify({ blindSchedules: 2_000, lost }));
+    expect(lost).toBeGreaterThan(0);
+  }, 120_000);
+});
+
+describe("a client parked below the watermark comes back whole", () => {
+  const item = (n: number): SimMedia => ({
+    id: `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`,
+    event: EVENT,
+    status: "approved",
+    t: 1_790_000_000_000_000 + n * 1000,
+    type: "photo",
+    w: 4,
+    h: 3,
+    dur: null,
+    preview: true,
+    reel: true,
+  });
+  const id = (n: number) => item(n).id;
+
+  /**
+   * Twelve photographs; a client parks; two are removed, then purged; a thirteenth arrives; a second
+   * client syncs at the newest version; the sweep prunes the two tombstones.
+   */
+  async function parkedWorld(scope: AlbumScope, blind = false) {
+    const sim = new AlbumSim();
+    sim.commit(
+      Array.from({ length: 12 }, (_, i) => ({
+        op: "insert" as const,
+        media: item(i + 1),
+      })),
+    );
+    const store = (s: AlbumSim) =>
+      createAlbumStore({
+        transport: simTransport({ sim: s, event: EVENT, scope }),
+        linkBatchSize: 3,
+      });
+    const parked = store(blind ? blindToWatermark(sim) : sim);
+    const live = store(sim);
+    await parked.sync();
+    sim.commit([
+      { op: "status", id: id(2), status: "removed" },
+      { op: "status", id: id(5), status: "removed" },
+    ]);
+    // The purge of a removed row moves no version: the removal's stamp is the tombstone.
+    sim.commit([
+      { op: "delete", id: id(2) },
+      { op: "delete", id: id(5) },
+    ]);
+    sim.commit([{ op: "insert", media: item(13) }]);
+    await live.sync();
+    expect(sim.tombstones(EVENT)).toEqual([id(2), id(5)]);
+    expect(sim.prune(EVENT)).toBe(2);
+    expect(sim.tombstones(EVENT)).toEqual([]);
+    return { sim, parked, live };
+  }
+
+  it.each(["album", "host"] as const)(
+    "★ %s scope: one fresh manifest, the server's album entry for entry, no delta and no miss",
+    async (scope) => {
+      const { sim, parked } = await parkedWorld(scope);
+      const v = sim.versions(EVENT);
+      const watermark = scope === "host" ? v.hostWatermark : v.albumWatermark;
+      expect(parked.getSnapshot().version).toBeLessThan(watermark);
+
+      const before = parked.stats();
+      await parked.sync();
+      const after = parked.stats();
+      expect(after.manifests - before.manifests).toBe(1);
+      expect(after.deltas - before.deltas).toBe(0);
+      expect(after.integrityMisses).toBe(0);
+      expect(parked.getSnapshot().entries).toEqual(sim.album(EVENT, scope));
+      expect(parked.getSnapshot().entries.map((e) => e[0])).not.toContain(
+        id(2),
+      );
+    },
+  );
+
+  it.each(["album", "host"] as const)(
+    "%s scope: a client at or above the watermark is not moved by the prune (a quiet 304)",
+    async (scope) => {
+      const { live } = await parkedWorld(scope);
+      const before = live.stats();
+      await live.sync();
+      const after = live.stats();
+      expect(after.notModified - before.notModified).toBe(1);
+      expect(after.manifests).toBe(before.manifests);
+    },
+  );
+
+  it("from a server blind to the watermark, the parked client holds the purged photographs until the count check heals it", async () => {
+    const { sim, parked } = await parkedWorld("album", true);
+    await parked.sync();
+    // The delta from below the watermark could not carry the two removals: the count caught it.
+    expect(parked.stats().integrityMisses).toBe(1);
+    expect(parked.getSnapshot().entries).toEqual(sim.album(EVENT, "album"));
+  });
 });

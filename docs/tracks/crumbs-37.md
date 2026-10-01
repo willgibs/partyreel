@@ -9,6 +9,9 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/db/queries/album-state.ts
   - src/lib/album/testing/album-sim.ts
   - src/lib/db/album-version.test.ts
+  - src/lib/db/queries/album-guest.test.ts
+  - src/app/api/album/guest/sync/route.test.ts
+  - src/app/api/album/host/[eventId]/sync/route.test.ts
   - src/app/api/cron/purge/
   - src/lib/jobs/sweep-tally.ts
   - src/lib/jobs/sweep-tally.test.ts
@@ -97,8 +100,10 @@ working.
 ## Where I am
 
 - Booted at `58b359e8` in `/Users/gibby/local/ai/partyreel-wt/crumbs-37` (port 3131, scratch `_scratch/crumbs-37`).
-- Done: nothing yet.
-- In progress: item 1's planner and model (the watermark rule in `album-sync.ts`, the prune in `album-sim.ts`).
+- Done: item 1's planner and model (commit below): `planAlbumSync` answers a manifest below the scope's watermark;
+  the model prunes (10,000 schedules, 6,450 polls below the watermark, 0 misses; a blind server lost removals in 536
+  of 2,000); red without the rule (4 tests).
+- In progress: item 1's SQL (`20261001150000_album_log_prune.sql`: the watermarks, the reader, the prune).
 - Left: items 1 (SQL, the job, the catalog, the route), 2, 3, 4; system docs; the gate; the handoff.
 - Measured (live, 2026-10-01): media 1,480 (67 removed, every one with `purge_at`; `purge_at` is set exactly when
   removed, by `set_media_purge_at`), events 63 (46 soft-deleted), album_state 58, album_changes 1,344 of which 5 are
