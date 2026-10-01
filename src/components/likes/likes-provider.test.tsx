@@ -147,10 +147,13 @@ beforeEach(() => {
 });
 
 describe("LikesProvider: session + seed", () => {
-  it("resolves the session once on mount", async () => {
+  // Reshaped on purpose (crumbs-40): this pinned "resolves the session ONCE on mount", which is the rule that
+  // asked about a new photograph as nobody after a sign-out in another tab. The scar it keeps is that the
+  // mount looks at the session; every signed-in call now looks again (the account's own pins, below).
+  it("looks at the session on mount", async () => {
     const supa = makeMockSupabase();
     mount(supa);
-    await waitFor(() => expect(supa.getSession).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(supa.getSession).toHaveBeenCalled());
   });
 
   it("signed out: never runs the seed", async () => {
@@ -331,6 +334,232 @@ describe("LikesProvider: the window's seed", () => {
 });
 
 /**
+ * ★ THE ACCOUNT FOLLOWS THE DEVICE (crumbs-40, build 35's red-team; Sentry `JAVASCRIPT-NEXTJS-6J`). With a guest
+ * album open signed in, a sign-out in another tab, then a new photograph: the provider had decided at mount that she
+ * was signed in, so it asked `my_liked_media_ids` as nobody, a 42501 reported as a failed seed. Every signed-in call
+ * reads the session as it goes now, the hearts are the account's and go with it, and an account that arrives has the
+ * album's hearts asked again for her.
+ */
+describe("LikesProvider: the account follows the device", () => {
+  const SIGNED_OUT = { data: { session: null } };
+  const as = (id: string) => ({ data: { session: { user: { id } } } });
+
+  it("★ a session ended in another tab asks nothing about the next photograph, and its hearts go", async () => {
+    const supa = signedIn(["m2"]);
+    vi.mocked(createClient).mockReturnValue(supa.client as never);
+    const { rerender } = render(
+      <LikesProvider mediaIds={IDS}>
+        <Probe id="m2" />
+      </LikesProvider>,
+    );
+    await waitFor(() =>
+      expect(screen.getByTestId("liked-m2")).toHaveTextContent(/^liked$/),
+    );
+    expect(seedCalls(supa)).toHaveLength(1);
+
+    // Another tab signs out: the cookie is gone, and no word of it reached this tab.
+    supa.getSession.mockResolvedValue(SIGNED_OUT);
+    // A guest's new photograph arrives.
+    rerender(
+      <LikesProvider mediaIds={[...IDS, "m4"]}>
+        <Probe id="m2" />
+      </LikesProvider>,
+    );
+    await waitFor(() =>
+      expect(screen.getByTestId("liked-m2")).toHaveTextContent("not liked"),
+    );
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 0));
+    });
+    expect(seedCalls(supa)).toHaveLength(1);
+    expect(captureError).not.toHaveBeenCalled();
+  });
+
+  it("the SDK's sign-out takes the hearts at once, and a tap then opens the like door", async () => {
+    const supa = signedIn(["m1"]);
+    await act(async () => {
+      mount(supa);
+    });
+    await waitFor(() =>
+      expect(screen.getByTestId("liked-m1")).toHaveTextContent(/^liked$/),
+    );
+
+    supa.getSession.mockResolvedValue(SIGNED_OUT);
+    act(() => supa.emitAuth("SIGNED_OUT", null));
+    expect(screen.getByTestId("liked-m1")).toHaveTextContent("not liked");
+
+    fireEvent.click(screen.getByText("toggle-m1"));
+    expect(
+      await screen.findByRole("dialog", { name: "Like this" }),
+    ).toBeDefined();
+    expect(likeCalls(supa)).toHaveLength(0);
+    expect(localStorage.getItem(PENDING_PREFIX + "m1")).toBe("1");
+  });
+
+  it("a tap after a sign-out nothing announced calls nothing, and asks her to sign in", async () => {
+    const supa = signedIn([]);
+    mount(supa);
+    await waitFor(() => expect(seedCalls(supa)).toHaveLength(1));
+
+    supa.getSession.mockResolvedValue(SIGNED_OUT);
+    fireEvent.click(screen.getByText("toggle-m1"));
+    expect(
+      await screen.findByRole("dialog", { name: "Like this" }),
+    ).toBeDefined();
+    expect(screen.getByTestId("liked-m1")).toHaveTextContent("not liked");
+    expect(likeCalls(supa)).toHaveLength(0);
+    expect(supa.deleteEq).not.toHaveBeenCalled();
+  });
+
+  it("an account that arrives has the album's hearts asked for her", async () => {
+    const supa = makeMockSupabase({ session: null });
+    programRpc(supa, { liked: ["m3"] });
+    mount(supa, undefined, "m3");
+    await waitFor(() => expect(supa.getSession).toHaveBeenCalled());
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 0));
+    });
+    expect(seedCalls(supa)).toEqual([]);
+
+    // She signs in (another tab, or a door): the SDK says so with her session.
+    supa.getSession.mockResolvedValue(as("u2"));
+    act(() => supa.emitAuth("SIGNED_IN", { user: { id: "u2" } }));
+    await waitFor(() =>
+      expect(screen.getByTestId("liked-m3")).toHaveTextContent(/^liked$/),
+    );
+    expect(seedCalls(supa)).toEqual([IDS]);
+  });
+
+  it("an answer that lands after the account changed is never painted, and the ids are asked again", async () => {
+    const supa = makeMockSupabase({ session: { user: { id: "u1" } } });
+    // u1's answer waits; u2's comes at once.
+    let answerU1!: (liked: string[]) => void;
+    supa.rpc.mockImplementation(
+      (fn: string, args: { p_media_ids: string[] }) => {
+        if (fn !== "my_liked_media_ids") {
+          return Promise.resolve({ data: { ok: true }, error: null });
+        }
+        if (seedCalls(supa).length === 1) {
+          return new Promise((resolve) => {
+            answerU1 = (liked) => resolve({ data: liked, error: null });
+          });
+        }
+        return Promise.resolve({
+          data: args.p_media_ids.filter((id) => id === "m2"),
+          error: null,
+        });
+      },
+    );
+    vi.mocked(createClient).mockReturnValue(supa.client as never);
+    render(
+      <LikesProvider mediaIds={IDS}>
+        <Probe id="m1" />
+        <Probe id="m2" />
+      </LikesProvider>,
+    );
+    await waitFor(() => expect(seedCalls(supa)).toHaveLength(1));
+
+    // The phone changes hands: u2 signs in while u1's answer is still out.
+    supa.getSession.mockResolvedValue(as("u2"));
+    act(() => supa.emitAuth("SIGNED_IN", { user: { id: "u2" } }));
+    await act(async () => answerU1(["m1"]));
+
+    await waitFor(() =>
+      expect(screen.getByTestId("liked-m2")).toHaveTextContent(/^liked$/),
+    );
+    expect(screen.getByTestId("liked-m1")).toHaveTextContent("not liked");
+    expect(seedCalls(supa)).toEqual([IDS, IDS]);
+  });
+
+  it("a seed refused because the session ended while it was out is the sign-out, never a failure", async () => {
+    const supa = makeMockSupabase({ session: { user: { id: "u1" } } });
+    supa.rpc.mockImplementation(async () => {
+      // The other tab's sign-out lands while the ask is out: the server sees nobody.
+      supa.getSession.mockResolvedValue(SIGNED_OUT);
+      return {
+        data: null,
+        error: {
+          message: "permission denied for function my_liked_media_ids",
+          code: "42501",
+          details: "",
+          hint: "",
+        },
+      };
+    });
+    mount(supa);
+    await waitFor(() => expect(seedCalls(supa)).toHaveLength(1));
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 0));
+    });
+    expect(captureError).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * ★ A BURST'S ASKS GO TOGETHER (crumbs-40, build 35's red-team). A held arrow key in the viewer seeds the next
+ * neighbour a step, and every step was its own `my_liked_media_ids` (157 in about 200 steps, where the link store,
+ * which crumbs-33 coalesced, made 3). Two asks are out at once now, and whatever is seeded meanwhile goes as ONE ask
+ * when a place frees.
+ */
+describe("LikesProvider: a burst of steps", () => {
+  it("★ two asks out, and a held key's 200 steps meanwhile go as one", async () => {
+    const supa = makeMockSupabase({ session: { user: { id: "u1" } } });
+    const answers: (() => void)[] = [];
+    supa.rpc.mockImplementation(
+      (fn: string, args: { p_media_ids: string[] }) =>
+        fn === "my_liked_media_ids"
+          ? new Promise((resolve) => {
+              answers.push(() =>
+                resolve({
+                  data: args.p_media_ids.filter((id) => id.endsWith("7")),
+                  error: null,
+                }),
+              );
+            })
+          : Promise.resolve({ data: { ok: true }, error: null }),
+    );
+    vi.mocked(createClient).mockReturnValue(supa.client as never);
+    const grab: { seed?: (ids: readonly string[]) => void } = {};
+    function Grab() {
+      const likes = useLikes();
+      useEffect(() => {
+        grab.seed = likes!.seed;
+      });
+      return null;
+    }
+    render(
+      <LikesProvider>
+        <Grab />
+        <Probe id="s197" />
+      </LikesProvider>,
+    );
+    const steps = Array.from({ length: 200 }, (_, i) => `s${i}`);
+    // One step a tick, each seeding the neighbour it brings into reach.
+    for (const id of steps) {
+      await act(async () => {
+        grab.seed!([id]);
+        await new Promise((r) => setTimeout(r, 0));
+      });
+    }
+    expect(seedCalls(supa)).toEqual([["s0"], ["s1"]]);
+
+    // The two land: what the other 198 steps seeded goes as one ask.
+    await act(async () => {
+      answers.splice(0).forEach((answer) => answer());
+    });
+    await waitFor(() => expect(seedCalls(supa)).toHaveLength(3));
+    expect(seedCalls(supa)[2]).toEqual(steps.slice(2));
+    await act(async () => {
+      answers.splice(0).forEach((answer) => answer());
+    });
+    await waitFor(() =>
+      expect(screen.getByTestId("liked-s197")).toHaveTextContent(/^liked$/),
+    );
+    expect(seedCalls(supa)).toHaveLength(3);
+  });
+});
+
+/**
  * THE BULK LIKE, ONE CALL A BATCH (album-host-wiring, `like_many`): every not-yet-liked id hearted at
  * once, one `like_many` request, and only the ids it refused reverted. It used to be one
  * `like_media` per id, all at once.
@@ -454,12 +683,19 @@ describe("LikesProvider: signed-out toggle", () => {
     expect(document.activeElement?.tagName).not.toBe("INPUT");
   });
 
+  // Reshaped on purpose (crumbs-40): the code's sign-in is read from the session it saved, as every signed-in
+  // call reads it, where the provider used to take the door's word for it.
   it("in-page verify completes the pending like inline", async () => {
     const supa = makeMockSupabase({ session: null });
+    programRpc(supa);
     mount(supa);
     await waitFor(() => expect(supa.getSession).toHaveBeenCalled());
 
     fireEvent.click(screen.getByText("toggle-m1"));
+    // The code signs her in: the session is saved before the door says so.
+    supa.getSession.mockResolvedValue({
+      data: { session: { user: { id: "u1" } } },
+    });
     fireEvent.click(await screen.findByText("mock-verify"));
 
     await waitFor(() =>

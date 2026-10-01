@@ -3,6 +3,7 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { reviewCardFace } from "@/components/app/event-feed/room-card";
 import { getArticle } from "@/lib/content/help";
 
 /**
@@ -119,5 +120,27 @@ describe("the plan's doors, as the billing articles describe them", () => {
     expect(body("payments-receipts-and-invoices")).not.toContain(
       "<Path>Dashboard › storage meter › Manage billing</Path>",
     );
+  });
+});
+
+/**
+ * ★ THE REVIEW CARD'S EVERY FACE, AS THE HUB DRAWS IT (crumbs-40, build 35's red-team): the event page article gave the
+ * card two states, "All caught up" or a waiting count, and a hub with review off reads "Off". The faces come from
+ * the one place the card and its live count read them (`reviewCardFace`), so a face the card gains is one the
+ * article must name.
+ */
+describe("the event page's Review card, as the help describes it", () => {
+  it("★ names every face the card wears, Off included", () => {
+    const cards = section("your-event-page-explained", "The cards").replace(
+      /<\/?UiLabel>/g,
+      "",
+    );
+    expect(reviewCardFace(false, 0).value).toBe("Off");
+    expect(cards).toContain("Off");
+    expect(reviewCardFace(true, 0).value).toBe("All caught up");
+    expect(cards).toContain("All caught up");
+    // A count's face ("3 waiting") is named by what it is.
+    expect(reviewCardFace(true, 3).value).toBe("3 waiting");
+    expect(cards).toContain("waiting count");
   });
 });

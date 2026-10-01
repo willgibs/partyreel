@@ -272,7 +272,11 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
   opens the create-account dialog (a `LikesProvider` wraps the gallery, replaying after sign-in). The hearts are
   seeded through `my_liked_media_ids` with the window's ids in the POST BODY (never a URL, which a whole album
   outgrows): the ids the rows mount and the viewer asks for, asking only the ones not yet answered as the window
-  moves; a failed seed is reported (Sentry, `media`) and the hearts simply start unfilled. Like COUNTS are
+  moves, two asks out at once and a burst's in one (`seed-queue.ts`, as the link store's); a failed seed is reported
+  (Sentry, `media`) and the hearts simply start unfilled. ★ The hearts follow the session the device holds: every
+  signed-in call (the seed, a like, a bulk like, a replay) reads it as it goes and calls nothing without one, a
+  session that ends takes its hearts with it, and an account that arrives has them asked again (a provider that read
+  the session once called `my_liked_media_ids` as nobody after a sign-out in another tab). Like COUNTS are
   host-only → [host-app.md](host-app.md),
   [database-security.md](database-security.md).
 - **PWA (manifest only, no SW)**: [`manifest.ts`](../../src/app/manifest.ts) + the ink-aperture icon set

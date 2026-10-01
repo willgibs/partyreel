@@ -15,8 +15,13 @@ import { PageHeading } from "@/components/shared/page-heading";
 // per-request presigned review URLs live under here).
 export const dynamic = "force-dynamic";
 
+const PORTAL = "Partyreel Ops";
+
 export const metadata: Metadata = {
-  title: { default: "Operations", template: "%s · Partyreel Ops" },
+  // ★ ABSOLUTE, NOT A DEFAULT (crumbs-40, build 35's red-team): a segment's own title is templated by its
+  // parent's, so a `default` here read "Operations · Partyreel" (the root's "%s · Partyreel") on /admin
+  // and on any portal page without a title of its own, where every other read "<X> · Partyreel Ops".
+  title: { absolute: `Operations · ${PORTAL}`, template: `%s · ${PORTAL}` },
   // Defense in depth alongside robots.ts — the portal must never be indexed.
   robots: { index: false, follow: false },
 };

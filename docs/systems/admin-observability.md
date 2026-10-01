@@ -180,7 +180,9 @@ test (admin-triage r2):
   while the dismissal can be reopened (30 days, where a strike lasts 180); one that kept no address says it was never
   a strike. The address never shows: the read keys on the kept hash. Every other kind inserts only. A
   child-abuse report tells the operator after the response (`alertUrgentReport`: a Sentry warning every time, an
-  ops-inbox mail once per album per ten minutes) and on the rail and the bell (the urgent count).
+  ops-inbox mail at most once per album in any ten minutes, the window running from the album's last mail and the
+  dedupe key naming that mail, `sendOncePerWindow`; a clock bucket mailed twice across a :x0 boundary) and on the
+  rail and the bell (the urgent count).
 - **The open queue is the review grid** (`components/admin/report-queue.tsx`): the five harm kinds in front, worst
   first, the two sexual kinds covered until View (★ and covered wherever an operator meets an item any report names
   as one, open or closed: every closed line and both Albums views, the feed and the drill-in, by one rule,
@@ -249,11 +251,14 @@ strings and emails.
   the webhook, the cron's `runSweep`, admin actions); everything else rides `onRequestError`, and routine user
   rejections (caps, limits, a closed album) are not errors. Sentry never enters `src/lib/db/*` (capture at the route
   or action) and never touches the Stripe webhook's raw body.
-- ★ **Both helpers schedule a flush on the server, never the client.** Vercel freezes a function the instant its
-  response leaves, so a bare SDK call can lose the envelope: crashes arrive (`onRequestError` already flushes) while
-  swallowed-error warnings silently never do. The helpers call `after(() => Sentry.flush(2000))` behind a
-  `typeof window` check and a dynamic import (four client boundaries import the file), and flush directly when
-  `after()` throws outside a request scope.
+- ★ **Every server capture is held by its request until its flush is out, never on the client.** Vercel freezes a
+  function the instant its response leaves, so a bare SDK call can lose the envelope. The helpers start
+  `Sentry.flush(2000)` at the capture and hand its own promise to `after()` (straight to the request's `waitUntil`;
+  Vercel's own request context when `after()` has no request scope), behind a `typeof window` check and a dynamic
+  import (four client boundaries import the file). A callback that only started a flush let the request go at once.
+  ★ `onRequestError` is ours too (`captureRequestError`): Sentry's own hands its flush to `@sentry/core`'s
+  `vercelWaitUntil`, which does nothing off the Edge runtime (getsentry/sentry-javascript#23087), so a cold Node.js
+  function froze with a crash's envelope in flight (build 35 lost one in three).
 - ★ **Guest capability tokens are scrubbed from every channel** (`telemetry-redaction.ts`): `/e/<qr_token>` puts the
   authorization in the URL path, and `beforeSend` sees only errors, so breadcrumbs, pageload transactions, `extra`
   and the replay's URL list would carry the token out. `addEventProcessor`, `beforeBreadcrumb` and the replay's

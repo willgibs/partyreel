@@ -558,12 +558,16 @@ const strikeCount = (n: number) =>
 export function strikeWords(s: AddressStrikes): string {
   const { live, bar, barredUntil, dismiss } = s;
   if (barredUntil) {
+    const lifts = formatAdminDate(barredUntil);
+    // A Dismiss names the later lift only when the line would print a later date: one later by hours on the same
+    // day printed the bar's own date twice (build 35's red-team), so it says no date, as one that moves nothing.
     const later =
       dismiss.barredUntil &&
-      Date.parse(dismiss.barredUntil) > Date.parse(barredUntil)
+      Date.parse(dismiss.barredUntil) > Date.parse(barredUntil) &&
+      formatAdminDate(dismiss.barredUntil) !== lifts
         ? `, until ${formatAdminDate(dismiss.barredUntil)}`
         : "";
-    return `This address has ${strikeCount(live)}, so its reports don't hide right away until ${formatAdminDate(barredUntil)}. A Dismiss makes ${formatCount(dismiss.live)}${later}.`;
+    return `This address has ${strikeCount(live)}, so its reports don't hide right away until ${lifts}. A Dismiss makes ${formatCount(dismiss.live)}${later}.`;
   }
   const held =
     live === 0

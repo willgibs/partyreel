@@ -112,3 +112,53 @@ export async function sendOnce(args: SendOnceArgs): Promise<boolean> {
   }
   return true;
 }
+
+/** A LIKE pattern's own characters, taken literally. */
+function likeLiteral(value: string): string {
+  return value.replace(/[\\%_]/g, (c) => `\\${c}`);
+}
+
+/**
+ * AT MOST ONE MAIL A SCOPE IN ANY WINDOW, the window running from that scope's last mail of the kind (crumbs-40,
+ * build 35's red-team). The urgent-report alert was keyed `album:floor(now / ten minutes)`, a clock bucket, so two
+ * reports four minutes apart on either side of a :x0 boundary mailed the ops inbox twice. Here the scope's last mail
+ * decides whether this one may go, and the dedupe key names that mail (`<scope>:after:<its id>`, or `<scope>:first`),
+ * so two sends that raced past the same last mail claim one key and only one of them sends (`sendOnce`'s unique
+ * claim): never a check-then-send race. A key under the scope's prefix in any older shape counts as a last mail too.
+ * Resolves true when it sent; throws as `sendOnce` does, a failed read recorded in the same signal.
+ */
+export async function sendOncePerWindow(
+  args: Omit<SendOnceArgs, "dedupeKey"> & {
+    /** What the window is per (an album's id); the dedupe key's prefix. */
+    scope: string;
+    windowMs: number;
+    /** The clock the window is read against (a test's; the server's otherwise). */
+    now?: Date;
+  },
+): Promise<boolean> {
+  const { scope, windowMs, now, ...mail } = args;
+  const { data: last, error } = await createAdminClient()
+    .from("sent_emails")
+    .select("id, sent_at")
+    .eq("kind", mail.kind)
+    .like("dedupe_key", `${likeLiteral(scope)}:%`)
+    .order("sent_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) {
+    await recordSignalFailure({
+      job: "email_delivery",
+      area: "other",
+      operation: `sent_emails window (${mail.kind})`,
+      error: new Error(error.message),
+      extra: { kind: mail.kind, code: error.code },
+    });
+    throw new Error(`sent_emails window (${mail.kind}): ${error.message}`);
+  }
+  const at = (now ?? new Date()).getTime();
+  if (last && at - Date.parse(last.sent_at) < windowMs) return false;
+  return sendOnce({
+    ...mail,
+    dedupeKey: last ? `${scope}:after:${last.id}` : `${scope}:first`,
+  });
+}
