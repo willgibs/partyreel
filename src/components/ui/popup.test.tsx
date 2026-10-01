@@ -205,6 +205,48 @@ describe("a screen in a hand is a place", () => {
   })
 })
 
+describe("a head never says its back arrow's words twice (crumbs-42, from event-settings)", () => {
+  // ★ Settings in a hand read "‹ Maya's 30th · Settings" on its bar and "Maya's 30th" again on the line under
+  // it: the line is the panel's only naming of the event at a desk, where no arrow is drawn, and pure repetition
+  // under an arrow that already says it. So a screen drops a line that repeats its arrow, and keeps it for a
+  // screen reader, where it is still the popup's description.
+  function settings(head: { description: string; back?: string }) {
+    render(
+      <Popup defaultOpen>
+        <PopupContent kind="settings" routed>
+          <PopupHeader title="Settings" {...head} />
+        </PopupContent>
+      </Popup>,
+    )
+  }
+  /** The head's own line holding `text`, never the arrow's label. */
+  const line = (text: string) =>
+    [...document.querySelectorAll<HTMLElement>('[data-slot="popup-header"] *')].find(
+      (el) => el.children.length === 0 && el.textContent === text && !el.closest("button"),
+    )
+
+  it("★ in a hand, the line that repeats the arrow is gone from sight and kept for a screen reader", () => {
+    setViewportWidth(375)
+    settings({ description: "Maya's 30th", back: "Maya's 30th" })
+    expect(screen.getByRole("button", { name: "Maya's 30th" })).toBeInTheDocument()
+    expect(line("Maya's 30th")?.className).toContain("sr-only")
+    expect(screen.getByRole("dialog", { name: "Settings" })).toHaveAccessibleDescription("Maya's 30th")
+  })
+
+  it("in a hand, a line that says something else stays in sight", () => {
+    setViewportWidth(375)
+    settings({ description: "Largest first, across every event.", back: "Dashboard" })
+    expect(line("Largest first, across every event.")?.className).not.toContain("sr-only")
+  })
+
+  it("at a desk, where no arrow names the event, the line is its name and stays", () => {
+    setViewportWidth(1024)
+    settings({ description: "Maya's 30th", back: "Maya's 30th" })
+    expect(screen.queryByRole("button", { name: "Maya's 30th" })).toBeNull()
+    expect(line("Maya's 30th")?.className).not.toContain("sr-only")
+  })
+})
+
 describe("where focus lands when it opens", () => {
   it("in a hand, on the popup itself: no field raises a keyboard into a surface still arriving", () => {
     setViewportWidth(375)
