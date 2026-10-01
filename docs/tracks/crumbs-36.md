@@ -121,3 +121,19 @@ Each is built as recommended and is Will's to overrule.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am
+
+(Kept current at each push, for a successor who respawns this lane from its branch.)
+
+- **Boot**: worktree `/Users/gibby/local/ai/partyreel-wt/crumbs-36` on `lp/crumbs-36`; dev server port 3132; scratch
+  `/Users/gibby/local/ai/partyreel-wt/_scratch/crumbs-36/`. Baseline on the cut: `pnpm test` 680 files, 8128 tests, green (38 s).
+  `src/app/not-found.lazy.test.tsx` flaked once under load in a full run and passed 3 of 3 alone: not this lane's.
+- **Done**: item 2, one `INACTIVE_MONTHS` (`d9d28c55`): the export beside `INACTIVE_DAYS`, the seven copies on it, `inactivity.test.ts`
+  holds it (a scan for any other division of the day count; red on the cut with exactly the seven).
+- **In progress**: item 1 (counts through `formatCount`; it lives in `src/lib/format/count.ts`, not `utils.ts` as the brief says).
+  Next step: `src/lib/test-utils/german-runtime.ts` (a runtime whose unpinned number calls answer in German), the red tests
+  (`tiers.test.ts` for `formatLimit`, `pricing-counts.test.tsx` rendering the four pricing components, a scan for a bare
+  `toLocaleString()` in `count.test.ts`), then the fixes.
+- **Left**: item 4 (the two blog posts), item 3 (host Add scrolls to its panel), item 5 (the closed line's strike); then the
+  system-doc edits below, the lab crawl, localhost walks, the gate, the Handoff.
