@@ -1,4 +1,10 @@
 /**
+ * HER UPLOADS, A PAGE AT A TIME (crumbs-38: "My uploads and My likes stop at 200 with an honest note"; "a cursor
+ * and a load-more"). Pinned: a page asks one row past itself, so `next` is a cursor exactly when more exist and the
+ * extra row is never shown; the cursor is the last SHOWN row's own `(created_at, id)`, its time passed back exactly
+ * as the server wrote it; a page after a cursor names it to the function; her own events' uploads carry `isHost`
+ * from the function's own arm flag.
+ *
  * HER UPLOADS OFFER NO HEART WHERE A LIKE WOULD BE REFUSED (a ROADMAP carry-over from `crumbs-8`:
  * "her Uploads feed shows a heart on a private album's photo that now always refuses").
  *
@@ -14,6 +20,7 @@ vi.mock("server-only", () => ({}));
 
 type Row = {
   id: string;
+  created_at: string;
   type: "photo" | "video";
   original_key: string;
   preview_key: string | null;
@@ -27,16 +34,17 @@ type Row = {
 };
 
 let rows: Row[] = [];
+/** What each call asked the function, in order. */
+const calls: Record<string, unknown>[] = [];
+const supabase = {
+  rpc: async (name: string, args: Record<string, unknown>) => {
+    expect(name).toBe("get_my_uploads");
+    calls.push(args);
+    return { data: rows, error: null };
+  },
+};
 vi.mock("@/lib/supabase/request-auth", () => ({
-  getRequestAuth: async () => ({
-    user: { id: "her" },
-    supabase: {
-      rpc: async (name: string) => {
-        expect(name).toBe("get_my_uploads");
-        return { data: rows, error: null };
-      },
-    },
-  }),
+  getRequestAuth: async () => ({ user: { id: "her" }, supabase }),
 }));
 vi.mock("@/lib/r2/presign", () => ({
   presignDownload: async ({ key }: { key: string }) => `signed:${key}`,
@@ -54,11 +62,17 @@ vi.mock("@/lib/db/queries/guest-events", () => ({
   },
 }));
 
-const { getMyUploadCards } = await import("./my-uploads");
+const { getMyUploadCards, readMyUploadsPage, MY_FEED_PAGE } =
+  await import("./my-uploads");
+
+/** A PostgREST timestamp, microseconds and all: the cursor must hand it back exactly. */
+const at = (i: number) =>
+  `2026-09-${String(10 + (i % 18)).padStart(2, "0")}T12:00:00.${String(100000 + i).padStart(6, "0")}+00:00`;
 
 function upload(id: string, token: string, hostArm = false): Row {
   return {
     id,
+    created_at: at(Number(id.replace(/\D/g, "")) || 0),
     type: "photo",
     original_key: `key-${id}`,
     preview_key: null,
@@ -76,6 +90,67 @@ beforeEach(() => {
   rows = [];
   reads = {};
   asked.length = 0;
+  calls.length = 0;
+});
+
+describe("her uploads, a page at a time", () => {
+  it("asks one row past the page, and a page that is all of them has no next", async () => {
+    rows = [upload("m1", "tok-open"), upload("m2", "tok-open")];
+    reads = { "tok-open": "open" };
+    const page = await getMyUploadCards();
+    expect(calls).toEqual([{ p_limit: MY_FEED_PAGE + 1 }]);
+    expect(page.items.map((i) => i.id)).toEqual(["m1", "m2"]);
+    expect(page.next).toBeNull();
+  });
+
+  it("★ a full page shows 200, never the extra row, and hands on the last shown row's own cursor", async () => {
+    rows = Array.from({ length: MY_FEED_PAGE + 1 }, (_, i) =>
+      upload(`m${i}`, "tok-open"),
+    );
+    reads = { "tok-open": "open" };
+    const page = await getMyUploadCards();
+    expect(page.items).toHaveLength(MY_FEED_PAGE);
+    expect(page.items.map((i) => i.id)).not.toContain(`m${MY_FEED_PAGE}`);
+    const last = rows[MY_FEED_PAGE - 1];
+    // The time exactly as the server wrote it, microseconds and offset: a Date would round it to milliseconds and
+    // the next page would skip or repeat the rows inside that millisecond.
+    expect(page.next).toEqual({ at: last.created_at, id: last.id });
+  });
+
+  it("names the cursor to the function for the page after it", async () => {
+    rows = [upload("m9", "tok-open")];
+    reads = { "tok-open": "open" };
+    const { getRequestAuth } = await import("@/lib/supabase/request-auth");
+    const before = { at: at(8), id: "00000000-0000-4000-8000-000000000008" };
+    const page = await readMyUploadsPage(await getRequestAuth(), before);
+    expect(calls).toEqual([
+      {
+        p_limit: MY_FEED_PAGE + 1,
+        p_before_created_at: before.at,
+        p_before_id: before.id,
+      },
+    ]);
+    expect(page.items.map((i) => i.id)).toEqual(["m9"]);
+  });
+
+  it("marks her own events' uploads from the function's arm flag, the guest arm's never", async () => {
+    rows = [upload("h1", "tok-mine", true), upload("m1", "tok-open")];
+    reads = { "tok-open": "open" };
+    const { items } = await getMyUploadCards();
+    expect(items.map((i) => [i.id, i.isHost])).toEqual([
+      ["h1", true],
+      ["m1", undefined],
+    ]);
+  });
+
+  it("reads nothing signed out", async () => {
+    const page = await readMyUploadsPage(
+      { user: null, supabase: supabase as never },
+      null,
+    );
+    expect(page).toEqual({ items: [], next: null });
+    expect(calls).toEqual([]);
+  });
 });
 
 describe("her uploads, and where a heart is offered", () => {
