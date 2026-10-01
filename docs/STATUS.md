@@ -20,17 +20,11 @@ Nothing is protected: every page, the host app and the guest pages are open to b
   door (Public, Private with its gates, Only me, an invite list, the Videos switch), a shared phone that keeps each
   guest's photos her own, the reports queue rebuilt, the hub's rooms and live album, lighter pages, the lab rebuilt.
   The legal text is rewritten once, right before launch (his word).
-- **Batch 9 rides `launch-prep`**: crumbs-28 and hide-strikes (his call B: three strikes that lapse after 180 days)
-  red-teamed on build 33; crumbs-29 (a shared phone's one row, no door admitting a blocked ask; its three migrations
-  applied), crumbs-30, crumbs-31 (the follow moment after a keep through Google), crumbs-32 and demo-stall (the lab
-  check's stall, a Next dev bug, upstream's fix carried as a pnpm patch) on build 34, red-teamed PASS.
-  `crumbs-34` (every published claim made true; Sentry quiet off Vercel) and `crumbs-33` (a report's live strikes on
-  the queue, the newsletter row with an email change, four correctness fixes; its two migrations applied) are
-  merged, with `crumbs-35`, `crumbs-36`, `crumbs-39`, `crumbs-37` and `crumbs-38` (their four migrations applied
-  2026-10-01) and `crumbs-40` (build 35's finds, its MEDIUM fixed at the claim), all on build 36, red-teamed next.
-  Milestone 32 ships batch 9 once build 36, or its fix build, passes (his yes, 2026-10-01). `crumbs-41` (admin, data
-  and billing, his call #60 among them), `crumbs-42` (the host app) and `crumbs-43` (guests) run, their merges after
-  the milestone. App work leads (his note); the wiring of each board follows his picks.
+- **Batch 9 rides `launch-prep`**: crumbs-28 to crumbs-40, hide-strikes (his call B) and demo-stall, every migration
+  applied; builds 33 to 35 red-teamed, build 36 (crumbs-36 to crumbs-40) red-teamed next. Milestone 32 ships it once
+  build 36, or its fix build, passes (his yes, 2026-10-01). Handed off and merging after it: `crumbs-41` (admin, data
+  and billing, his call #60 among them), `crumbs-42` (the host app) and `crumbs-43` (guests); `strip-gaps` and
+  `export-ends` run. App work leads (his note); the wiring of each board follows his picks.
 
 ## The desk
 
@@ -47,12 +41,10 @@ and `about-press` r1 (two), in that order.
 - **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 36 (`eb38b6be`, 2026-10-01
   19:00Z): build 35 plus crumbs-36 to crumbs-40, its red-team walking; the desk is the same six boards (no board moved
   since build 31). Vercel installs with pnpm 9.14.4, `package.json`'s `packageManager`.
-- **The shared database** runs every migration applied through 2026-10-01: schema-pass part 2 (the reel's three
-  dormant media columns dropped once milestone 31 shipped), the instant hide's three strikes, crumbs-33's two
-  (`report_strikes`, the strike rule's one home; the newsletter row moving with an email change), and crumbs-37's and
-  crumbs-38's four last (the album log's watermarks and its prune, `media_removed_idx`, the feeds' cursor, the told
-  news); no build of either project reads a dropped thing. The album-log prune runs nightly only once milestone 32
-  ships (production's cron); until then only a hand-run of build 36's purge on the alias runs it.
+- **The shared database** runs every migration applied through 2026-10-01, crumbs-37's and crumbs-38's four last (the
+  album log's watermarks and its prune, `media_removed_idx`, the feeds' cursor, the told news); no build of either
+  project reads a dropped thing. The album-log prune runs nightly once milestone 32 ships; until then only a hand-run
+  of build 36's purge on the alias runs it.
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md).
