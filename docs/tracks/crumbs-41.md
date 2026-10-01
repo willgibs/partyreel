@@ -33,6 +33,7 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - supabase/migrations/20261001233100_strike_lapse_duration.sql
   - supabase/migrations/20261001233200_deleted_events_index.sql
   - src/lib/reports/strike-lapse-guards.test.ts
+  - src/lib/reports/review-promise.test.ts
   - src/lib/lifecycle/deleted-events-index-guards.test.ts
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/trust-safety-forensics.md
