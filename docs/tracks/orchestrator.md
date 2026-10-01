@@ -93,8 +93,9 @@ Will (2026-10-01): finish the round, then tell him when the alias is ready for h
 settled production, so the round stops re-adapting standing asks, and new boards open from his picks. Build 37 may go to
 the alias mid-sitting (his yes). No new lane until his paste lands.
 
-1. **Milestone 32.** crumbs-45 hands off and merges (the only merge before it); build 37 on the alias and its three
-   fixes proven there (the first-page Delete holds, the reel card's Add lands, the owner's own credit); then, on Will's
+1. **Milestone 32.** crumbs-45 merged (`3b92b770`); build 37 (`e43bd181`) ON THE ALIAS since 2026-10-01 23:20Z; its three
+   fixes being proven there (agent `ac87d6f4f44bab114`, `../partyreel-wt/_scratch/proof-37/brief.md`, respawn after its
+   ledger's last line); gate 120 (FULL) running on it; the prod walk's brief ready (`../partyreel-wt/_scratch/prod-m32/brief.md`) (the first-page Delete holds, the reel card's Add lands, the owner's own credit); then, on Will's
    yes (2026-10-01, "Ship after the red-team"), the full gate, the merge to `main`, the tag, production READY and a
    read-only prod walk from a brief like `prod-m31`'s, then `launch-prep` fast-forwarded.
 2. **The waiting lanes merge**, one at a time, each by the runbook, each migration by protocol: crumbs-41 (two
