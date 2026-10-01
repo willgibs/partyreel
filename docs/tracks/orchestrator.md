@@ -47,6 +47,7 @@ a lane").
 | `export-ends` | every album download ends and says how: a hung mint timed out or cancelled, an emptied or short album said, a part saved only once the Worker finished it, the portal seeing the Worker's checks, skips and heartbeat; the Worker still answering production's app as today (its deploy the Orchestrator's, after milestone 32) | running (agent `a30cd025cccfde718`), cut at `b5f8e4da`; its merge waits for milestone 32 | Opus, 3132 | |
 | `crumbs-44` | a person's page: cards on their preview derivatives, a video-only card's face, one toggle for follow and block, the menu at 375, loading screens, the setup's follow-ons, the report's person arm under test; the no-handle home asked | HANDED OFF at `5fdd6fbb` (gate on `3b70ed3f` green: test 8,372, build, lab:smoke 141; no SQL); merges after milestone 32; one product question asked of Will (where a no-handle account keeps its likes: `/me` recommended, nothing built); `/u/[slug]` kept with no `loading.tsx`, against the brief, its reason in its Questions | Opus, 3133 | `5fdd6fbb` |
 | `lab-sitting` | a faster, truer sitting: the queue pictures first, a copied link with a board's own state, a whole-program note, answered asks reachable, a select for long controls, a frame of its own, the shell's restyle scoped, the dock's dead exports; no board's asks moved | running (agent `a48480e42fd670493`), cut at `f7f99c54`; its merge waits for milestone 32, and its build waits for Will's sitting to end (ask) | Opus, 3131 | |
+| `mkt-polish` | the marketing site's seams: stills through a derivative path, the 404's unused preloads, `--faint` as copy, one contract and one receipt for careers and contact, each page's FAQ, a dynamic route's 404 title, the claim scan's reach, /pricing's rows, the phone sheet's tracking; no desk board's surface moved | running (agent `a590eefa888a51c31`), cut at `cf82f882`; its merge waits for milestone 32 | Opus, 3133 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, respawned
 2026-10-01 18:15Z in this session; no question open. Q6 (crumbs-37's two migrations and crumbs-38's cursor file against
@@ -118,7 +119,8 @@ but lab:demo's `about-press.facts` dev stall, ROADMAP's line), crumbs-31 (`5898b
 
 ## Waiting on Will
 
-- **His desk** (not begun at 18:08Z on 2026-10-01; locked-door first): `disposable-mode` r2 (eight asks), `locked-door` r2 (four, redrawn from production) and `event-ready` r1
+- **crumbs-44's question** (relayed 2026-10-01): where a confirmed account with no handle keeps its likes; A `/me` (the owner mode at an address needing no handle, redirecting once she has one) recommended; B a Likes band on the dashboard's Guest side; C an Activity card on Account; D leave it. Nothing built.
+- **His desk** (not begun at 21:30Z on 2026-10-01; locked-door first): `disposable-mode` r2 (eight asks), `locked-door` r2 (four, redrawn from production) and `event-ready` r1
   (five; its three settled calls, ready never stored nor shown to a guest among them, his to overrule) on build 25;
   `demo-framing` r2 (three: the demo's address in a host's words, how it shares the stage with the stream, the hero's
   touch; `names` retired into `slug`) and `about-press` r1 (two: the press kit on /about, its four facts; press-page's
