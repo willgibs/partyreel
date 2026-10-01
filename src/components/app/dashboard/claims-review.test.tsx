@@ -14,7 +14,6 @@ import type {
   DisownEventResult,
 } from "@/app/(app)/dashboard/claims-actions";
 import type { ClaimableEvent } from "@/lib/db/queries/claims";
-import type { ClaimResult } from "@/lib/guest/claim-uploads";
 
 import { SETTLE_MS } from "./claims-card";
 import { ClaimsReview } from "./claims-review";
@@ -29,25 +28,6 @@ import { ClaimsReview } from "./claims-review";
 
 const refresh = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh }) }));
-// The silent claim the dashboard's layout runs on mount, reduced to what the review listens for: a claim
-// that carried uploads. The test says what it carried (`claimCarried`), as `runClaim` does to its listeners.
-const claimListeners = vi.hoisted(
-  () => new Set<(result: ClaimResult) => void>(),
-);
-vi.mock("@/lib/guest/claim-uploads", () => ({
-  onClaimed: (listener: (result: ClaimResult) => void) => {
-    claimListeners.add(listener);
-    return () => {
-      claimListeners.delete(listener);
-    };
-  },
-}));
-function claimCarried(result: Partial<ClaimResult>) {
-  act(() => {
-    for (const listener of claimListeners)
-      listener({ album: null, here: 0, elsewhere: 0, ...result });
-  });
-}
 vi.mock("@/app/(guest)/u/[slug]/actions", () => ({
   followProfileAction: vi.fn().mockResolvedValue({ ok: true }),
   unfollowProfileAction: vi.fn().mockResolvedValue({ ok: true }),
@@ -175,18 +155,21 @@ describe("the banner", () => {
  * ★ THE DASHBOARD'S OWN CLAIM IS A WRITE THE LIST MUST FOLLOW (crumbs-35, build 34's red-team). The (app) layout's
  * silent claim takes every row this phone's tickets name under her confirmed address, in a client call that lands
  * after the page was drawn, so the banner and the review's card still offered a row it had just claimed, and her
- * Claim answered "All sorted" over nothing. The review already refreshes the page behind itself after its own writes;
- * the claim is the same fact written by another hand, so it asks for the same refresh, and the server's shorter list
- * is what both read.
+ * Claim answered "All sorted" over nothing. The server's shorter list, once the route refreshes, is what both read.
+ *
+ * Reshaped on purpose (crumbs-40, build 35's red-team): the review LISTENED for the claim and asked for the refresh,
+ * and it streams in after the layout whose claim had usually landed by then, so it never heard it. The refresh is the
+ * claim's own caller's now, pinned in both mount orders beside it (`claim-uploads-on-auth.test.tsx`), and so are
+ * these pins' "here as well as elsewhere", "nothing moved, nothing asked" and the listener's teardown, which had no
+ * listener left to hold here. What stays is the scar on this side: the shorter list drops the claimed rows from the
+ * banner and the open review alike.
  */
 describe("the dashboard's own claim", () => {
-  it("★ refreshes the page behind when it took rows, and the banner counts only what still waits", () => {
+  it("★ the banner counts only what still waits once the server's list follows the claim", () => {
     const { rerender } = mount();
     expect(
       screen.getByText("11 photos from 4 events are waiting for you"),
     ).toBeInTheDocument();
-    claimCarried({ elsewhere: 2 });
-    expect(refresh).toHaveBeenCalledTimes(1);
     // The server's answer: the claim took Tom's and the bonfire.
     rerender([ANAS, QUIZ]);
     expect(
@@ -198,31 +181,16 @@ describe("the dashboard's own claim", () => {
     const { rerender } = mount();
     openReview();
     expect(topCard()).toBe("toms");
-    claimCarried({ elsewhere: 1 });
-    expect(refresh).toHaveBeenCalledTimes(1);
     rerender([BONFIRE, ANAS, QUIZ]);
     expect(topCard()).toBe("bonfire");
     expect(progress()).toBe("1 of 3");
     expect(document.querySelector("[data-claims-end]")).toBeNull();
   });
 
-  it("counts a claim at the album's own page as well as elsewhere", () => {
+  it("never asks for a refresh of its own until she decides something", () => {
     mount();
-    claimCarried({ here: 1 });
-    expect(refresh).toHaveBeenCalledTimes(1);
-  });
-
-  it("asks for nothing when the claim moved nothing, which is nearly every visit", () => {
-    mount();
-    claimCarried({});
+    openReview();
     expect(refresh).not.toHaveBeenCalled();
-  });
-
-  it("stops listening when the review leaves the page", () => {
-    const { unmount } = mount();
-    expect(claimListeners.size).toBe(1);
-    unmount();
-    expect(claimListeners.size).toBe(0);
   });
 });
 
