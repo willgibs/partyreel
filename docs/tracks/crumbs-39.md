@@ -13,6 +13,8 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/constants/features.ts
   - src/lib/constants/features-layout.ts
   - src/lib/utils.ts
+  - src/lib/type-ladder-policy.test.ts
+  - src/components/ui/dialog.test.tsx
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/design-system.md
   - docs/systems/admin-observability.md
@@ -59,7 +61,7 @@ working.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/design-system.md`: the ★ on `cn()` and the shadow utilities, now `SHADOW_TOKENS` (crumbs-39 item "cn() and the shadow utilities").
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
@@ -77,3 +79,22 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am
+
+_Agent crumbs-39 (Sonnet 5.5), booted 2026-10-01 in `/Users/gibby/local/ai/partyreel-wt/crumbs-39`, dev port 3134, scratch `/Users/gibby/local/ai/partyreel-wt/_scratch/crumbs-39/`._
+
+**Done**
+- `cn()` shadow tokens: `SHADOW_TOKENS` in `src/lib/utils.ts`, red-first test in `src/lib/type-ladder-policy.test.ts`, design-system.md's ★ refined.
+- `ui/dialog.tsx` fullScreen scroll lock: the takeover now renders an Overlay that draws nothing (Radix's RemoveScroll is the Overlay's); `src/components/ui/dialog.test.tsx` was red on the takeover before. Still to do for it: look at the Library's fullScreen demo in a browser (no visual change, no scrollbar strip).
+
+**In progress / next, in this order**
+1. The portal's content links `prefetch={false}` (six files + a source scan test).
+2. Dead components and the tile-size tools, with their Library specimens and the system-doc lines that name them.
+3. `EventCardQr`'s unused props.
+4. The comment sweep (ROADMAP lines 155 and 163), each verified against current code; `text-[10px]` to `text-micro` in any file opened.
+5. The gate, `lab:smoke`, the handoff.
+
+**Measured, so a successor does not redo it**
+- Already gone before the cut (the ROADMAP lines are stale on them): the app's `components/guest/ghost-grid.tsx`, `event-filter-pills.tsx`, `lib/shared/use-active-section.ts`, `enter-event-prompt.tsx`; the `getHostAvatarUrl`-era and "Cost & scaling" and `database-security.md0` comment items.
+- The proof that a file changed in comments only: `node /Users/gibby/local/ai/partyreel-wt/_scratch/crumbs-39/comment-only.mjs origin/launch-prep <files>` (TypeScript printer with comments removed, both sides compared; CSS stripped of block comments). It lives in the scratch directory, not the repo.

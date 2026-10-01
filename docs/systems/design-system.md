@@ -271,8 +271,10 @@ the card is the page's own white, so the ring carries the edge; a surface lying 
   `--tw-shadow`, so wear the utility or re-state the ring first (the toast re-states sonner's focus ring).
 - ★ **An unlayered rule outranks every utility**: a bare `box-shadow` in marketing.css beats `shadow-lift` whatever the
   specificity. A shadow that must beat that sheet is carried inline as the token.
-- ★ **`cn()` files `shadow-lift` and `shadow-layer` under shadow colour**: `cn("shadow-layer", "shadow-none")` keeps both
-  and the stylesheet decides; the fix, if ever needed, is one `theme.shadow` line in `src/lib/utils.ts`.
+- ★ **A shadow token `cn()` has not been taught is filed under shadow colour**, which sits beside a size instead of
+  replacing it: `cn("shadow-layer", "shadow-none")` kept both and the stylesheet's alphabet decided, as it did for a
+  stock `shadow-md` a generator wrote onto a component. The names live in `SHADOW_TOKENS` (`src/lib/utils.ts`), pinned
+  against theme.css by `type-ladder-policy.test.ts`: a new elevation utility joins it in the same change.
 - ★ **No surface token is translucent**: an alpha reads solid over a page and turns to glass over a photograph. Glass is
   its own material, worn only as media chrome.
 
