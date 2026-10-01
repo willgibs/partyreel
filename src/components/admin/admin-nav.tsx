@@ -48,8 +48,10 @@ export function AdminNav() {
                   asChild
                   className={cn(current && "bg-accent")}
                 >
-                  {/* The icon's rail colour is the primitive's now. */}
-                  <Link href={href}>
+                  {/* The icon's rail colour is the primitive's now. Never prefetched:
+                      opening this menu would paint thirteen links and cost the auth
+                      server two reads each (`admin-rail.tsx`). */}
+                  <Link href={href} prefetch={false}>
                     <Icon />
                     <span className="flex-1">{label}</span>
                     {current ? <Check className="size-4" /> : null}

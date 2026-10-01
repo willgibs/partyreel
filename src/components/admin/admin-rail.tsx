@@ -33,6 +33,18 @@ import { cn } from "@/lib/utils";
  * column, which beside a fixed rail would start the content two hundred pixels
  * right of the header's first word. Every console in the reference set lets the
  * column go once a rail arrives, and `admin-shell.tsx` does the same.
+ *
+ * ★ NONE OF ITS LINKS PREFETCH (crumbs-35, build 34's red-team). `next/link`
+ * prefetches whatever paints, so thirteen surfaces on screen were thirteen
+ * requests a view, and each is two reads of Supabase's auth server (the proxy
+ * asks who is there, then the route's layout renders and asks again): about
+ * thirty `GET /auth/v1/user` for opening one page. An operator reads one
+ * surface at a time and clicks to the next, so the prefetch bought a skeleton
+ * a beat sooner and cost the auth server thirty reads. `prefetch={false}` is
+ * never, on the viewport and on hover; every page's own `getUser()` stands
+ * as it was, since only the pages nobody opened stop being rendered. The bar's
+ * wordmark and health chip and the dropdown below `lg` hold the same rule
+ * (`admin-chrome-prefetch.test.tsx`).
  */
 export function AdminRail({
   counts,
@@ -73,6 +85,7 @@ export function AdminRail({
               <Link
                 key={item.href}
                 href={item.href}
+                prefetch={false}
                 aria-current={current ? "page" : undefined}
                 className={cn(
                   "flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-working transition-colors duration-150 outline-none",

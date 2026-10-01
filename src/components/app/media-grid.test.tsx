@@ -149,6 +149,21 @@ describe("MediaTile and her own upload", () => {
     expect(imgOf(container)).toHaveAttribute("data-instant");
   });
 
+  it("★ the re-key mounts a fresh tile on the same object URL and shows it at once (build 34's LOOK, measured not to fade)", () => {
+    // At approved completion the album's tile replaces the in-flight stack tile: a NEW <img> on the very object
+    // URL the stack tile just drew. The browser holds that picture, so the element answers `complete` the moment it
+    // exists (measured in a visible Chrome with the stack tile leaving 0 to 3 s before the tile mounted, and in a
+    // hidden tab: `data-instant` in the mount's own commit, opacity 1 on the first frame), and the tile shows it
+    // with no fade. Pinned so a change to the landing cannot make it start fading.
+    complete(true);
+    const first = render(<MediaTile item={OWN} />);
+    first.unmount();
+    const { container } = render(<MediaTile item={OWN} />);
+    expect(imgOf(container)).toHaveAttribute("src", OWN.url);
+    expect(shimmerOf(container)).toHaveAttribute("data-done");
+    expect(imgOf(container)).toHaveAttribute("data-instant");
+  });
+
   it("keeps a fade it already ran: an own photograph that faded in is not faded again", () => {
     complete(false);
     const { container, rerender } = render(<MediaTile item={OWN} />);
