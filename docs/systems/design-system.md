@@ -486,7 +486,11 @@ Transition is its one sanctioned hole ([host-app.md](host-app.md)).
   history entry, its marker a field on the state Next merges,
   taken back one tick late so StrictMode's double effect cannot close it; where a router refresh took the marker, its
   own word that it pushed the entry at this address still takes it back, and never at another address, where a link
-  inside it navigated on), unless its page already routes it (`routed`, `?room=`). ★ In a hand focus lands on the popup itself; at a desk the row's `deskFocus` says; a popup with
+  inside it navigated on), unless its page already routes it (`routed`, `?room=`). ★ A link inside a place takes the
+  place's entry with it: a plain click a `Link` would navigate in this tab, to another page of the site, is taken before
+  the link's own handler and navigates by replacing that entry, so Back from the next page lands on the page beneath,
+  never on the place's same-URL entry with nothing open (the claims review's Open album, a look's Open full profile;
+  measured under `next dev`, crumbs-32). ★ In a hand focus lands on the popup itself; at a desk the row's `deskFocus` says; a popup with
   no trigger of its own gives focus back to the control that opened it: inside the layer still open behind it when it
   was stacked over one (a confirm over the viewer or Settings), else on the page; only a menu or a listbox, which close
   as the next popup opens, is never a return target. ★ Size a dialog with `size`, never a width

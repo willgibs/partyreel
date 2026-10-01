@@ -158,7 +158,10 @@ it rather than fork it.
   (`part`, `after`) takes the next part from a position cursor, never a page index, so nothing is skipped or taken
   twice while the album moves, and each part is its own tap (a browser holds back a second download a page starts
   alone; a token lives two minutes). A request without `part` keeps the old 413, so a stale tab never takes part 1 for
-  the album.
+  the album. ★ A walk between parts survives a reload (a phone's browser drops a tab it left for the Files app): its
+  cursor and counts are kept in the tab's sessionStorage (`pr-export-walks`, read back only if every field is one a
+  server would take), and the next page that can start a download offers the same "Get part N" again, a tick after
+  mount so the toaster is listening; its last part and its x let it go. Nothing is posted on a resume.
 - ★ **Yours is the server's** (`lib/export/yours.server.ts`): a guest's own uploads by her account and this
   browser's ticket cookie (the route's read identity) as far as the ticket is hers to a signed-in viewer (her own row,
   or one the claim takes: `sortTickets`, [guest-flow.md](guest-flow.md)'s owner rule), never an id list from the

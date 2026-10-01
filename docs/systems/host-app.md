@@ -29,7 +29,10 @@ has no filter chips and no personal feeds (those are the profile's owner mode, [
   (`getReelProgress`, the guest's `isReelEligible` spelled in SQL); at none the event's launch list speaks, and a step
   there would push "Print the code" out the evening before.
 - **The storage line is unconditional** (a host with no events still has a plan); the over-cap grace banner is its own
-  red alert, never inside the meter.
+  red alert, never inside the meter (`grace-banner.tsx`). ★ Both of its ways out are doors: See plans, and see what's
+  using space, the size list counting down to her own plan's cap (the list's `fit` goal: the meter's number, nothing
+  to switch, the bar's Remove the act), so she chooses what goes before the sweep takes the largest first. The meter's
+  own door carries the same goal whenever she stores more than her cap.
 - **Your events** counts through `event_card_stats`, and each hosted card's cover and stills come from
   `getEventCardStills` (`event_covers` and `event_stills` in one pass: the cover first, no photograph twice, four at
   most); "X of N used" is `countActiveEvents()`, a head count. ★ The cards take turns (`dashboard/cover-cycle.tsx`):
@@ -412,7 +415,11 @@ visitor-facing "Private" never collides.
   `BulkBar`, whose rich tooltips mount only after hydration, and select-all takes every manifest id, mounted or not.
   The selection lives in a thin `HostSelectionProvider`, into which the album grid (owner of the optimistic items)
   registers its handlers, so the bar calls `selection.run(kind)`: the seam whenever a control surface and its grid live
-  in different subtrees.
+  in different subtrees. ★ In a hand every control in a bulk bar is a 44px target, the peek's verdicts' (`HAND_TARGET`:
+  44 wide, its `::before` reaching 8px past a 28px box, so the 28px band the header holds never grows), a pointer's 28
+  at a desk, and the destructive verb stands apart behind a hairline (`Apart`); the album's header gives the bar its
+  row while selecting (`actionFills`: five verbs do not fit beside the label at 375), the label kept for a reader.
+  Measured at 375: every control 44 tall or more, Download and Remove 61px apart where they were 32.
 - ★ **The selection prunes to the surviving ids when the album changes, never resets** (`useSelection`), so a poll never
   wipes a selection in progress.
 - **Bulk Like is one `like_many` call a batch under ONE summary toast** (the refused ids reverted), naming what it

@@ -34,9 +34,15 @@ import { LIST_TITLE } from "./storage-list-rules";
  * `storage-list-body.tsx`; this is the shell every door mounts.
  *
  * ★ ITS KIND IS `list` (popups r1, `lists=panel`): a side panel at a desk, its own screen in a hand
- * whose back arrow says where Back returns. Two doors open it: the storage meter's popover on the
- * dashboard ("Dashboard"), and the refusal a too-small price flips to inside the plan ("Your
- * plan"), where it stacks over the plan at a desk and closing it returns there.
+ * whose back arrow says where Back returns. Three doors open it: the storage meter's popover on the
+ * dashboard ("Dashboard"), the over-cap grace banner above it (crumbs-32: the banner said "largest
+ * files first" with no way to see them), and the refusal a too-small price flips to inside the plan
+ * ("Your plan"), where it stacks over the plan at a desk and closing it returns there.
+ *
+ * ★ TWO GOALS (`StorageGoal`). A smaller plan she chose counts down to that size and finishes the
+ * switch; her own plan, which she is over, counts down to its cap (the meter's number: under it the
+ * grace is over by the next sweep, which clears at the upload headroom above it) and finishes
+ * nothing, since there is nothing to switch: the bar's Remove is the act.
  *
  * ★ REMOVE RUNS AT ONCE, AND UNDO TAKES IT BACK. Everything it removes waits in Deleted for the
  * window, restorable, and stops counting against the plan at once; the toast names what went and
@@ -61,7 +67,8 @@ import { LIST_TITLE } from "./storage-list-rules";
  */
 
 /** The goal a refused price hands the list: the size she chose, and whether it can open. */
-export type StorageGoal = {
+export type SwitchGoal = {
+  kind?: "switch";
   target: Plan & { id: ProPlanId };
   /** Her plan's cap now, when known: a switch below it shrinks Deleted too. */
   capBytes: number | null;
@@ -70,6 +77,14 @@ export type StorageGoal = {
   /** Where a confirmed switch lands: the door's own page, re-checked by the route. */
   returnTo?: string;
 };
+
+/** The goal her own plan sets when she stores more than it holds: its cap, nothing to switch. */
+export type FitGoal = {
+  kind: "fit";
+  capBytes: number;
+};
+
+export type StorageGoal = SwitchGoal | FitGoal;
 
 const StorageListBody = lazy(() =>
   import("./storage-list-body").then((m) => ({ default: m.StorageListBody })),

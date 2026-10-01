@@ -909,7 +909,10 @@ had" holds only when this device holds a guest ticket a claim would move.
   `UploadedItem.queueId` to the media id), read by
   [`reconcile-album-items.ts`](../../src/lib/guest/reconcile-album-items.ts)'s own ledger, by media id;
   `merge-gallery-items.ts` is gone. Completions reach the provider through a `LiveGalleryHandle` callback
-  ref (with a pre-mount buffer, since the gallery streams in async).
+  ref (with a pre-mount buffer, since the gallery streams in async). ★ **It lands once**: when its link lands (half a
+  second later in a local walk), `MediaTile` takes the presigned preview IN PLACE over a tile already showing its
+  object URL, the browser drawing her picture until the preview is ready, where it used to drop to the shimmer for
+  the preview's load (344 ms there) and fade in a second time (crumbs-32's measured walk; `media-grid.test.tsx`).
 - **What THIS DEVICE draws at the album's head**, in
   [`gallery-rows.tsx`](../../src/components/guest/gallery-rows.tsx)'s own head slots, a square each, and
   nowhere else:
@@ -989,7 +992,11 @@ had" holds only when this device holds a guest ticket a claim would move.
   Uploads on a profile share that confirm and hold one other kind: an upload to an event the viewer HOSTS is
   `remove_my_upload`'s host arm, restorable from that event's Deleted, so the owner mode marks it `isHost`
   ([`owner-sections.tsx`](<../../src/app/(guest)/u/[slug]/owner-sections.tsx>), an event the viewer hosts) and
-  the lightbox gives it the host's words (Deleted, and the window). The post-upload card counts this visit's
+  the lightbox gives it the host's words (Deleted, and the window). ★ **So is the album's owner on her own guest
+  page** (she is never her own guest): hers are the rows with no guest, read through her own RLS-scoped client
+  (`listOwnerMediaIds`; never a guest row's, which the RPC's guest arm refuses the event's host), so a reload keeps her
+  Delete on every upload of hers, as the hub does; and the provider knows them as the host's from their first frame
+  (`isOwner`, reconcile's `hostOwn`), so her Delete says the host's words before any link's attribution lands. The post-upload card counts this visit's
   uploads still in the album (the page keeps the removed ids) and leaves once none is left. ★ **On a
   Require-an-upload-to-view album with uploads open, removing your LAST live upload closes the album again** (Own
   deletes close it), unless the album is FULL (the gate fails open there, so the page reads `albumFull`, a second

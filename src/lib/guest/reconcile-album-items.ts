@@ -53,6 +53,13 @@ export type AlbumItemsInput = {
   removed: ReadonlySet<string>;
   /** A rename this visit made, on the credits of this device's own ids until the links carry it. */
   renamed: { name: string; ids: ReadonlySet<string> } | null;
+  /**
+   * ★ THE HOST'S OWN, KNOWN BEFORE THEIR LINKS SAY SO (crumbs-32): on her own guest page every upload
+   * of the album's owner is the host's (her Add rides the host's pair), so an item of hers is the host's
+   * from its first frame, its credit and its Delete's words with it, rather than a guest's until its
+   * link's attribution lands. Absent for everyone else, whose attribution is the link's alone.
+   */
+  hostOwn?: ReadonlySet<string> | null;
   /** This device's clock, for the held links' expiry (a test hands a fake; the album reads the real one). */
   now?: number;
 };
@@ -62,15 +69,20 @@ type Built = {
   link: Link | undefined;
   blob: string | undefined;
   name: string | null;
+  host: boolean;
   item: GalleryItem;
 };
 
-/** One manifest entry, with whatever link and blob it has, as the item every surface draws. */
+/**
+ * One manifest entry, with whatever link and blob it has, as the item every surface draws. `hostOwn`
+ * says the upload is the host's own before a link's attribution can (the input's own note).
+ */
 export function entryToItem(
   entry: ManifestEntry,
   link: Link | undefined,
   blob?: string,
   name?: string | null,
+  hostOwn = false,
 ): GalleryItem {
   const [id, w, h, flags] = entry;
   const video = (flags & ENTRY_VIDEO) !== 0;
@@ -87,7 +99,7 @@ export function entryToItem(
     // Every entry of a guest's manifest is approved by construction (the reel filters on it).
     status: "approved",
     uploaderName: name ?? (who ? who[0] : null),
-    isHost: who ? (who[1] & WHO_HOST) !== 0 : false,
+    isHost: who ? (who[1] & WHO_HOST) !== 0 : hostOwn,
     // Unverified is the safe default: with no attribution there is no name to mark at all.
     isVerified: who ? (who[1] & WHO_VERIFIED) !== 0 : false,
     width: w > 0 ? w : null,
@@ -131,20 +143,22 @@ export function createAlbumItems(initialLinks?: ReadonlyMap<string, Link>) {
       }
       const blob = blobs.get(id);
       const name = renamed && renamed.ids.has(id) ? renamed.name : null;
+      const host = input.hostOwn?.has(id) ?? false;
       const prev = built.get(id);
       if (
         prev &&
         prev.entry === entry &&
         prev.link === link &&
         prev.blob === blob &&
-        prev.name === name
+        prev.name === name &&
+        prev.host === host
       ) {
         next.set(id, prev);
         out.push(prev.item);
         continue;
       }
-      const item = entryToItem(entry, link, blob, name);
-      next.set(id, { entry, link, blob, name, item });
+      const item = entryToItem(entry, link, blob, name, host);
+      next.set(id, { entry, link, blob, name, host, item });
       out.push(item);
     }
     built = next;

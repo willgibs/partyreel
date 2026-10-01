@@ -1,5 +1,6 @@
 "use client";
 
+import { Fragment } from "react";
 import { X, type LucideIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -80,6 +81,31 @@ export type BulkBarAction = {
   };
 };
 
+/**
+ * ★ A THUMB'S FULL TARGET IN A HAND (crumbs-32, build 15's red-team: 28 by 28
+ * there, Download 32px from Remove to Deleted): every control in the bar takes
+ * the 44px the peek's verdicts take in a hand, and keeps a pointer's 28 at a
+ * desk. The band the bar sits in holds 28 (`FeedSectionHeader`: a header that
+ * grew as select mode opened bounced the album beneath it), so in a hand a
+ * control is 44 wide and its target reaches 8px past its box above and below
+ * (its own `::before`, part of it for every tap), to 44 tall with no pixel of
+ * layout moved. Exported so the test reads the rule from here, never a copy.
+ */
+export const HAND_TARGET = cn(
+  "relative max-sm:min-w-11",
+  "max-sm:before:absolute max-sm:before:inset-x-0 max-sm:before:-inset-y-2",
+);
+
+/**
+ * All / Clear is the shared `<Button>`, whose 1px transparent border insets
+ * its `::before`'s box: 9px past that box is the same 8px past its edge
+ * (measured at 375: 8px left it 42 tall).
+ */
+export const HAND_TARGET_BORDERED = cn(
+  HAND_TARGET,
+  "max-sm:before:-inset-y-[9px]",
+);
+
 // The house press feedback for an icon-only control over a photograph's own
 // chrome (host-media-grid.tsx's tile overlay, like-button.tsx, the lightbox's
 // pill — bible 5): a stronger 10% squish than the shared <Button>'s own 3%,
@@ -87,11 +113,28 @@ export type BulkBarAction = {
 // rule (a plain class of the same specificity loses to that :not() selector).
 const ICON_BUTTON = cn(
   "flex size-7 items-center justify-center rounded-[calc(var(--radius-action)*0.7)] outline-none",
+  HAND_TARGET,
   "transition-[color,background-color,transform] duration-150 ease-emphasis",
   "hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring",
   "active:scale-90! motion-reduce:active:scale-100!",
   "disabled:pointer-events-none disabled:opacity-50",
 );
+
+/**
+ * ★ THE DESTRUCTIVE VERB STANDS APART (crumbs-32): a hairline and a gap on
+ * each side before it, so a thumb that misses Download lands on nothing, never
+ * on a removal (the size list's Remove to Deleted runs at once, its Undo after).
+ * The lightbox's own grouping rule (`Rule`), in the bar's muted ink.
+ */
+function Apart() {
+  return (
+    <span
+      aria-hidden
+      data-bulk-apart=""
+      className="mx-1 h-5 w-px shrink-0 bg-border"
+    />
+  );
+}
 
 /**
  * The one icon button, everywhere in the bar. It is the `asChild` TARGET of
@@ -244,6 +287,7 @@ export function BulkBar({
         size="sm"
         disabled={busy}
         onClick={onSelectAll}
+        className={HAND_TARGET_BORDERED}
       >
         {allSelected ? "Clear" : "All"}
       </Button>
@@ -251,12 +295,14 @@ export function BulkBar({
         {formatCount(count)}
       </span>
       {actions.map((action, i) => (
-        <BulkBarActionButton
-          key={action.id}
-          action={action}
-          index={i}
-          interactive={hydrated}
-        />
+        <Fragment key={action.id}>
+          {action.color === "destructive" && i > 0 ? <Apart /> : null}
+          <BulkBarActionButton
+            action={action}
+            index={i}
+            interactive={hydrated}
+          />
+        </Fragment>
       ))}
       {hydrated ? (
         <TooltipSlide index={actions.length} label="Cancel selection">

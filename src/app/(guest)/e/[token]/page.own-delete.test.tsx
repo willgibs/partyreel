@@ -2,13 +2,14 @@ import { render } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
- * THE HOST CARD SAYS WHETHER SHE FOLLOWS THE HOST (crumbs-28, from `claims-wiring`). The follow moment's Follow started
- * on Follow for a guest who already follows the host, because the card the page hands the album held no follow state.
- * The page reads it beside `getHostCard`: one head count (`isFollowing`) for a signed-in guest, and none for anyone
- * signed out or for the host herself, who is never her own guest.
+ * THE OWNER'S OWN PHOTOGRAPHS ON HER OWN GUEST PAGE ARE HERS TO DELETE (crumbs-32, from `crumbs-31`). Her Add there
+ * rides the host's pair, so her uploads have no guest row, and the page read "mine" from guest rows alone: after a
+ * reload she had no Delete on her own uploads at all, where the hub offers it. The page now asks the owner's own read
+ * for her (`listOwnerMediaIds`: the rows with no guest, through her own RLS-scoped client), and a guest's read for
+ * everyone else. What is pinned is the list `EventExperience` is handed.
  *
- * Everything else the album page reads is stood in for: a found, open album this viewer is through the door of, at
- * full access. What is pinned is the card `EventExperience` is handed.
+ * Everything else the album page reads is stood in for, as `page.host-card.test.tsx` does: a found, open album this
+ * viewer is through the door of, at full access.
  */
 vi.mock("server-only", () => ({}));
 vi.mock("next/headers", () => ({
@@ -56,9 +57,11 @@ vi.mock("@/components/shared/album-window-plan", () => ({
 }));
 vi.mock("@/lib/analytics/bots", () => ({ isLikelyBot: () => true }));
 vi.mock("@/lib/db/mutations/analytics", () => ({ recordLinkHit: vi.fn() }));
+const listAccountMediaIds = vi.fn();
+const listOwnerMediaIds = vi.fn();
 vi.mock("@/lib/db/mutations/guest-media", () => ({
-  listAccountMediaIds: async () => [],
-  listOwnerMediaIds: async () => [],
+  listAccountMediaIds: (...a: unknown[]) => listAccountMediaIds(...a),
+  listOwnerMediaIds: (...a: unknown[]) => listOwnerMediaIds(...a),
 }));
 vi.mock("@/lib/db/queries/guest-events-admin", () => ({
   getGalleryStats: async () => ({ approvedTotal: 3, guestCount: 2 }),
@@ -66,20 +69,13 @@ vi.mock("@/lib/db/queries/guest-events-admin", () => ({
   getOpenAlbumItemForCard: stub,
 }));
 vi.mock("@/lib/db/queries/profile", () => ({
-  getProfileMenu: async () => ({ displayName: "Priya" }),
+  getProfileMenu: async () => ({ displayName: "Maya" }),
 }));
-const HOST_CARD = {
-  id: "host-1",
-  slug: "maya",
-  displayName: "Maya",
-  avatarUrl: null,
-};
-const isFollowing = vi.fn();
 vi.mock("@/lib/db/queries/social", () => ({
   getEventGuestList: async () => [],
-  getHostCard: async () => HOST_CARD,
+  getHostCard: async () => null,
   getMyFollowing: async () => [],
-  isFollowing: (...a: unknown[]) => isFollowing(...a),
+  isFollowing: async () => false,
 }));
 vi.mock("@/lib/social/cards", () => ({
   splitGuestList: stub,
@@ -131,7 +127,8 @@ vi.mock("@/lib/welcome", () => ({ needsDisplayName: () => false }));
 
 const { default: GuestEventPage } = await import("./page");
 
-async function hostCardHanded() {
+/** The ids the page hands the album as this viewer's own. */
+async function ownIdsHanded() {
   seen.props = null;
   const page = await GuestEventPage({
     params: Promise.resolve({ token: EVENT.qr_token }),
@@ -139,37 +136,42 @@ async function hostCardHanded() {
   render(<>{page}</>);
   // Set by the render above, which the compiler cannot see through the reset.
   const props = seen.props as Record<string, unknown> | null;
-  return props?.hostCard as (typeof HOST_CARD & { following?: boolean }) | null;
+  return props?.canDeleteIds as string[] | undefined;
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
-  user = { id: "guest-1", email_confirmed_at: "2026-09-01T00:00:00Z" };
-  isRequestOwner.mockResolvedValue(false);
-  isFollowing.mockResolvedValue(false);
+  user = { id: "host-1", email_confirmed_at: "2026-09-01T00:00:00Z" };
+  isRequestOwner.mockResolvedValue(true);
+  // Her own uploads here (no guest row), and a guest row of hers the guest read would list.
+  listOwnerMediaIds.mockResolvedValue(["own-1", "own-2"]);
+  listAccountMediaIds.mockResolvedValue(["guest-row-1"]);
 });
 
-describe("the host card the album is handed", () => {
-  it("★ says a signed-in guest who follows the host already does, read beside the card", async () => {
-    isFollowing.mockResolvedValue(true);
-    const card = await hostCardHanded();
-    expect(card).toMatchObject({ id: "host-1", following: true });
-    expect(isFollowing).toHaveBeenCalledWith("host-1");
+describe("the owner's own photographs on her own guest page", () => {
+  it("★ are the host's own read, so a reload keeps her Delete on every upload of hers", async () => {
+    expect(await ownIdsHanded()).toEqual(["own-1", "own-2"]);
+    expect(listOwnerMediaIds).toHaveBeenCalledWith(EVENT.id);
+    // Never a guest row's: the RPC's guest arm refuses the event's own host.
+    expect(listAccountMediaIds).not.toHaveBeenCalled();
   });
 
-  it("says one who does not, does not", async () => {
-    expect(await hostCardHanded()).toMatchObject({ following: false });
+  it("a signed-in guest's are still her account's guest rows, never the host's read", async () => {
+    user = { id: "guest-1", email_confirmed_at: "2026-09-01T00:00:00Z" };
+    isRequestOwner.mockResolvedValue(false);
+    expect(await ownIdsHanded()).toEqual(["guest-row-1"]);
+    expect(listAccountMediaIds).toHaveBeenCalledWith({
+      eventId: EVENT.id,
+      userId: "guest-1",
+    });
+    expect(listOwnerMediaIds).not.toHaveBeenCalled();
   });
 
-  it("asks nothing for a guest signed out, who follows nobody", async () => {
+  it("a viewer signed out asks neither (her own are the ticket's, asked by the album)", async () => {
     user = null;
-    expect(await hostCardHanded()).toMatchObject({ following: false });
-    expect(isFollowing).not.toHaveBeenCalled();
-  });
-
-  it("asks nothing for the host herself, never her own guest", async () => {
-    isRequestOwner.mockResolvedValue(true);
-    expect(await hostCardHanded()).toMatchObject({ following: false });
-    expect(isFollowing).not.toHaveBeenCalled();
+    isRequestOwner.mockResolvedValue(false);
+    expect(await ownIdsHanded()).toEqual([]);
+    expect(listOwnerMediaIds).not.toHaveBeenCalled();
+    expect(listAccountMediaIds).not.toHaveBeenCalled();
   });
 });

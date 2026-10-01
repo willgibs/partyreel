@@ -19,7 +19,10 @@ import {
 } from "@/components/social/guest-list";
 import { isLikelyBot } from "@/lib/analytics/bots";
 import { recordLinkHit } from "@/lib/db/mutations/analytics";
-import { listAccountMediaIds } from "@/lib/db/mutations/guest-media";
+import {
+  listAccountMediaIds,
+  listOwnerMediaIds,
+} from "@/lib/db/mutations/guest-media";
 import {
   getGalleryStats,
   getHostAvatarSeed,
@@ -465,10 +468,15 @@ export default async function GuestEventPage({
   // identity is a session token in the browser's own storage, so LiveGallery
   // asks `/api/guests/mine` for it. Skipped at access `none` (there is nothing
   // rendered to remove) and in the demo (nothing there is real).
+  // ★ THE ALBUM'S OWNER IS NEVER HER OWN GUEST (crumbs-32): her own here are the
+  // host's uploads, no guest row behind them, so hers is the host's read, and
+  // each Delete goes to her Deleted, as the hub's would.
   const [stats, canDeleteIds] = await Promise.all([
     getGalleryStats(event),
     userId && !isDemo && access !== "none"
-      ? listAccountMediaIds({ eventId: event.id, userId })
+      ? isOwner
+        ? listOwnerMediaIds(event.id)
+        : listAccountMediaIds({ eventId: event.id, userId })
       : Promise.resolve<string[]>([]),
   ]);
 

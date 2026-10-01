@@ -1,15 +1,18 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { Heart, Trash2 } from "lucide-react";
+import { Download, Heart, Trash2 } from "lucide-react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 import {
   BulkBar,
+  HAND_TARGET,
+  HAND_TARGET_BORDERED,
   type BulkBarAction,
 } from "@/components/app/event-feed/bulk-bar";
+import { FeedSectionHeader } from "@/components/app/event-feed/feed-section-header";
 
 /**
  * `app-vocabulary` r1, `bulk-toolbar=icon`: the one bulk bar behind
@@ -229,5 +232,107 @@ describe("BulkBar", () => {
       src,
       "the plain pre-hydration path never imports TooltipSlide",
     ).toMatch(/interactive \? \(/);
+  });
+});
+
+/**
+ * ★ IN A HAND, A THUMB'S FULL TARGET, AND THE DESTRUCTIVE VERB APART (crumbs-32, build 15's red-team: the bars' icon
+ * buttons were 28 by 28 in a hand and Download sat 32px from Remove to Deleted, AA but under the 44px the peek's
+ * verdicts use). jsdom lays nothing out, so what is pinned here is that every control wears the bar's one hand rule
+ * (`HAND_TARGET`, read from the bar, never a copy of its classes) and that the hairline stands before the destructive
+ * verb and nowhere else; the 44 itself is measured in a browser at 375 (the Handoff's numbers).
+ */
+describe("BulkBar in a hand", () => {
+  const verbs = (): BulkBarAction[] => [
+    { id: "like", label: "Like", icon: Heart, color: "like", onRun: () => {} },
+    {
+      id: "download",
+      label: "Download",
+      icon: Download,
+      color: "save",
+      onRun: () => {},
+    },
+    {
+      id: "remove",
+      label: "Remove to Deleted",
+      icon: Trash2,
+      color: "destructive",
+      onRun: () => {},
+    },
+  ];
+  const bar = () =>
+    render(
+      <BulkBar
+        count={3}
+        allSelected={false}
+        onSelectAll={() => {}}
+        onCancel={() => {}}
+        actions={verbs()}
+      />,
+    );
+  const wears = (el: HTMLElement, rule: string) =>
+    rule.split(" ").every((c) => el.classList.contains(c));
+
+  it("★ every control, All and Cancel too, wears the hand's 44px target", () => {
+    bar();
+    const glyphs = [
+      screen.getByRole("button", { name: "Like" }),
+      screen.getByRole("button", { name: "Download" }),
+      screen.getByRole("button", { name: "Remove to Deleted" }),
+      screen.getByRole("button", { name: "Cancel selection" }),
+    ];
+    for (const glyph of glyphs) expect(wears(glyph, HAND_TARGET)).toBe(true);
+    // All / Clear is the bordered `<Button>`: the same rule, its reach measured past its border.
+    expect(
+      wears(screen.getByText("All").closest("button")!, HAND_TARGET_BORDERED),
+    ).toBe(true);
+    // The rule is 44 wide in a hand and reaches past the box to 44 tall, at a desk nothing.
+    expect(HAND_TARGET).toMatch(/max-sm:min-w-11/);
+    expect(HAND_TARGET).toMatch(/max-sm:before:-inset-y-2/);
+    expect(HAND_TARGET_BORDERED).toMatch(/max-sm:before:-inset-y-\[9px\]/);
+  });
+
+  it("★ sets the destructive verb apart from the one beside it, and nothing else", () => {
+    const { container } = bar();
+    const apart = container.querySelectorAll("[data-bulk-apart]");
+    expect(apart).toHaveLength(1);
+    expect(apart[0].getAttribute("aria-hidden")).toBe("true");
+    expect(apart[0].previousElementSibling?.getAttribute("aria-label")).toBe(
+      "Download",
+    );
+    expect(apart[0].nextElementSibling?.getAttribute("aria-label")).toBe(
+      "Remove to Deleted",
+    );
+  });
+
+  it("a bar whose first verb is the destructive one draws no hairline before it", () => {
+    const { container } = render(
+      <BulkBar
+        count={1}
+        allSelected={false}
+        onSelectAll={() => {}}
+        onCancel={() => {}}
+        actions={verbs().slice(2)}
+      />,
+    );
+    expect(container.querySelector("[data-bulk-apart]")).toBeNull();
+  });
+
+  it("the album's header gives the bar its row in a hand while selecting, the label kept for a reader", () => {
+    const { rerender } = render(
+      <FeedSectionHeader label="Album" count={1234} action={<span />} />,
+    );
+    const heading = screen.getByRole("heading", { name: /album/i });
+    expect(heading.className).not.toMatch(/sr-only/);
+    rerender(
+      <FeedSectionHeader
+        label="Album"
+        count={1234}
+        action={<span />}
+        actionFills
+      />,
+    );
+    expect(heading.className).toMatch(/max-sm:sr-only/);
+    expect(heading.parentElement?.className).toMatch(/max-sm:justify-end/);
   });
 });

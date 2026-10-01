@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 
 import {
   createExportWalker,
   type ExportScope,
   type MintBody,
+  type WalkStore,
 } from "@/components/app/export/export-walk";
 import { exportToasts } from "@/components/app/export/export-toast";
 import type { ExportSummary } from "@/lib/export/build-manifest";
@@ -59,6 +60,33 @@ function postToWorker(workerUrl: string, token: string) {
 
 let walks = 0;
 
+/** The tab's own key for the walks it keeps between parts (`export-walk.ts`' reload note). */
+export const WALKS_KEY = "pr-export-walks";
+
+/**
+ * THE WALKS A RELOAD FINDS, IN THE TAB'S OWN STORE: sessionStorage, which a reload keeps and a new
+ * tab never sees. Every read and write may throw (a private window, a full or blocked store), and
+ * then a walk is simply not offered after a reload, which is where it stood before.
+ */
+const tabWalks: WalkStore = {
+  load() {
+    try {
+      const raw = window.sessionStorage.getItem(WALKS_KEY);
+      return raw ? (JSON.parse(raw) as unknown) : null;
+    } catch {
+      return null;
+    }
+  },
+  save(kept) {
+    try {
+      if (kept.length === 0) window.sessionStorage.removeItem(WALKS_KEY);
+      else window.sessionStorage.setItem(WALKS_KEY, JSON.stringify(kept));
+    } catch {
+      // Not kept: the walk goes on in this page, and a reload forgets it as it always did.
+    }
+  },
+};
+
 /** One engine for the page: a walk outlives the menu that started it, so it lives out here. */
 const walker = createExportWalker({
   fetch: (input, init) => fetch(input, init),
@@ -70,6 +98,7 @@ const walker = createExportWalker({
       : downloadPlaceFor(detectPlatform(navigator)),
   sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
   newId: () => `export-${++walks}`,
+  store: tabWalks,
 });
 
 /** One summary try, with its own ceiling: a menu that hangs is a menu that says it could not add up. */
@@ -126,6 +155,15 @@ export function useExportDownload() {
       walker.start(scope, body),
     [],
   );
+
+  // ★ A WALK A RELOAD LEFT BETWEEN PARTS IS OFFERED AGAIN by the first page that can start one (the
+  // album's Download all, the hub's bulk bar, the size list), once per page life (`resume` keeps its
+  // own guard). A tick late on purpose: the toaster subscribes in its own effect, which runs after
+  // this one (it sits after the page in the root layout), and a toast shown before it is never heard.
+  useEffect(() => {
+    const timer = window.setTimeout(() => walker.resume(), 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   return { fetchSummary, startDownload };
 }

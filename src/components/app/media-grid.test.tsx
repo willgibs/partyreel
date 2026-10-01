@@ -115,3 +115,57 @@ describe("MediaTile's fade", () => {
     expect(imgOf(container)).not.toHaveAttribute("data-instant");
   });
 });
+
+/**
+ * ★ HER OWN UPLOAD LANDS ONCE (crumbs-32, from `crumbs-23`'s unmeasured line). A guest's own upload draws its object
+ * URL until its link lands, then the presigned preview, and `sameObject` is false across the two, so the tile ran its
+ * landing again: measured in a local walk, the link landed 494 ms after her photograph appeared, the tile sat on the
+ * shimmer for the 344 ms the preview took, then faded in a second time. An object URL is this device's own picture of
+ * the photograph its link now serves, so a tile already showing it takes the link in place (the browser keeps drawing
+ * what it has until the new address is ready); one still waiting on it takes the link as any new photograph.
+ */
+describe("MediaTile and her own upload", () => {
+  const OWN = { type: "photo" as const, url: "blob:http://localhost:3131/f1" };
+  const LINKED = {
+    type: "photo" as const,
+    url: "https://r2.test/p1/original.jpg?X-Amz-Signature=a",
+    previewUrl: "https://r2.test/p1/preview.webp?X-Amz-Signature=a",
+  };
+
+  it("★ swaps her object URL for the photograph's link in place, the landing not run again", () => {
+    complete(true);
+    const { container, rerender } = render(<MediaTile item={OWN} />);
+    expect(imgOf(container)).toHaveAttribute("data-instant");
+
+    // Her link lands; the preview is not in the browser yet.
+    complete(false);
+    rerender(<MediaTile item={LINKED} />);
+    expect(imgOf(container)).toHaveAttribute("src", LINKED.previewUrl);
+    // Still showing, with no transition switched on: no shimmer, no second fade.
+    expect(shimmerOf(container)).toHaveAttribute("data-done");
+    expect(imgOf(container)).toHaveAttribute("data-instant");
+    fireEvent.load(imgOf(container));
+    expect(shimmerOf(container)).toHaveAttribute("data-done");
+    expect(imgOf(container)).toHaveAttribute("data-instant");
+  });
+
+  it("keeps a fade it already ran: an own photograph that faded in is not faded again", () => {
+    complete(false);
+    const { container, rerender } = render(<MediaTile item={OWN} />);
+    fireEvent.load(imgOf(container));
+    expect(shimmerOf(container)).toHaveAttribute("data-done");
+    rerender(<MediaTile item={LINKED} />);
+    expect(imgOf(container)).toHaveAttribute("src", LINKED.previewUrl);
+    expect(shimmerOf(container)).toHaveAttribute("data-done");
+  });
+
+  it("takes the link as any new photograph while her object URL is still on its way", () => {
+    complete(false);
+    const { container, rerender } = render(<MediaTile item={OWN} />);
+    rerender(<MediaTile item={LINKED} />);
+    expect(imgOf(container)).toHaveAttribute("src", LINKED.previewUrl);
+    expect(shimmerOf(container)).not.toHaveAttribute("data-done");
+    fireEvent.load(imgOf(container));
+    expect(shimmerOf(container)).toHaveAttribute("data-done");
+  });
+});

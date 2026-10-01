@@ -118,6 +118,17 @@ export function goalStep(count: GoalCount): GoalStep {
 }
 
 /**
+ * Where her own plan's goal stands (the over-cap banner's door): nothing yet, enough only selected
+ * (the bar's Remove to Deleted finishes it), or enough freed. No step switches anything.
+ */
+export type FitStep = "counting" | "remove" | "fits";
+
+export function fitStep(count: GoalCount): FitStep {
+  if (!count.done) return "counting";
+  return count.pending > 0 ? "remove" : "fits";
+}
+
+/**
  * A selection's name, for the toast and the bar: "3 photos", "1 video", "4 items" for a mix.
  * "Items", not the Review room's "uploads", because the list is also the host's own files.
  */

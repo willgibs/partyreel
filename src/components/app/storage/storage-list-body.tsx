@@ -248,7 +248,8 @@ export function StorageListBody({
 
   /** The strip's button: remove what is only selected, then ask the change-plan route to switch. */
   async function finish() {
-    if (!goal || phase !== "idle") return;
+    // Her own plan's goal has nothing to switch to, so its strip carries no button.
+    if (!goal || goal.kind === "fit" || phase !== "idle") return;
     const pending = [...state.selected.values()];
     if (pending.length > 0) {
       setPhase("removing");
@@ -306,16 +307,22 @@ export function StorageListBody({
   const count = goal
     ? goalCount({
         storedBytes: storedBefore(state) ?? 0,
-        capBytes: goal.target.storageBytes,
+        // Her own plan's cap, or the size she chose: the strip counts to whichever she is here for.
+        capBytes:
+          goal.kind === "fit" ? goal.capBytes : goal.target.storageBytes,
         removedBytes: totalBytes(state.removed.values()),
         selectedBytes,
         selectedCount: selected.length,
       })
     : null;
-  const shrinks =
+  // Only a switch to a smaller size shrinks Deleted's budget with it.
+  const shrinkTo =
     goal !== null &&
+    goal.kind !== "fit" &&
     goal.capBytes !== null &&
-    goal.target.storageBytes < goal.capBytes;
+    goal.target.storageBytes < goal.capBytes
+      ? goal.target.storageBytes
+      : null;
   const filterName = filter === "all" ? null : eventName(filter);
   const total = countNow(state, filter);
   const firstLoad = state.overview === null && !state.failed;
@@ -353,9 +360,8 @@ export function StorageListBody({
 
       {goal && count && stored !== null ? (
         <GoalStrip
-          target={goal.target}
+          goal={goal}
           count={count}
-          canSwitch={goal.canSwitch}
           phase={phase}
           onFinish={() => void finish()}
         />
@@ -459,11 +465,13 @@ export function StorageListBody({
 
         {state.overview ? (
           <p
-            data-storage-note={shrinks ? "deleted-shrinks" : "deleted"}
+            data-storage-note={
+              shrinkTo !== null ? "deleted-shrinks" : "deleted"
+            }
             className="pt-4 text-xs text-pretty text-muted-foreground"
           >
-            {shrinks && goal
-              ? `Once you switch, Deleted keeps only up to ${formatBytes(RECENTLY_DELETED_BUDGET_MULTIPLIER * goal.target.storageBytes)}, so its oldest items clear sooner.`
+            {shrinkTo !== null
+              ? `Once you switch, Deleted keeps only up to ${formatBytes(RECENTLY_DELETED_BUDGET_MULTIPLIER * shrinkTo)}, so its oldest items clear sooner.`
               : `Removed items stop counting at once, and wait in Deleted for ${RECENTLY_DELETED_WINDOW_DAYS} days.`}
           </p>
         ) : null}

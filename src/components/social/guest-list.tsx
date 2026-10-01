@@ -97,17 +97,19 @@ export type UnverifiedGuestEntry = {
 };
 
 /**
- * What the list renders. The profile half is left EXACTLY as it was, with `kind`
- * optional, because the `profile-page` sandbox board still feeds this
- * component its own fixtures and a wiring lane never breaks the props of a
- * module the lab imports.
+ * What the list renders: a hydrated profile card, or a name nobody proved. A
+ * profile card carries no `kind` (the database's own union, `getEventGuestList`),
+ * so `"kind" in item` is the discriminator, here and in the look. Its seed may be
+ * missing on one road only: a look built from a photograph's credit
+ * (`credit-look.tsx`), whose item carries no face yet; every card that went
+ * through `withAvatarUrls` has one.
  */
 export type GuestListItem =
-  | (ProfileCardItem & { kind?: "profile" })
+  | (Omit<ProfileCardItem, "seed"> & { seed?: string })
   | UnverifiedGuestEntry;
 
 function isUnverified(item: GuestListItem): item is UnverifiedGuestEntry {
-  return item.kind === "unverified";
+  return "kind" in item;
 }
 
 /** Above this many uploaders the list condenses to the faces row. Exported so

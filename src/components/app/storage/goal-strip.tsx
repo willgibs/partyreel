@@ -4,10 +4,10 @@ import { Check } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { formatBytesUp, planWithBilling } from "@/lib/billing/storage-guard";
-import type { Plan } from "@/lib/constants/tiers";
 import { cn } from "@/lib/utils";
 
-import { goalStep, type GoalCount } from "./storage-list-rules";
+import type { StorageGoal } from "./storage-list";
+import { fitStep, goalStep, type GoalCount } from "./storage-list-rules";
 
 /**
  * THE LIVE STRIP (host-storage r1, `goal=live`): when a smaller plan is why she is here, it counts
@@ -19,26 +19,41 @@ import { goalStep, type GoalCount } from "./storage-list-rules";
  * its billing because that is exactly what Stripe's confirm page will show her. The change-plan
  * route decides again, whatever this strip counted.
  *
+ * ★ HER OWN PLAN'S GOAL HAS NO BUTTON (crumbs-32, the over-cap banner's door): nothing is switched,
+ * so it counts to her cap and says where she stands, enough only selected (the bar's Remove to
+ * Deleted finishes it) or enough freed.
+ *
  * The count is a live region: a screen reader hears it close, and hears "Enough freed" once.
  */
 export type GoalPhase = "idle" | "removing" | "opening";
 
+/** What the strip says: the gap left, or that it is closed, for the plan she is here for. */
+function goalWords(goal: StorageGoal, count: GoalCount): string {
+  if (goal.kind === "fit") {
+    if (!count.done) return "left to free to fit your plan";
+    return count.pending > 0
+      ? "Enough selected to fit your plan"
+      : "Enough freed to fit your plan";
+  }
+  return count.done
+    ? `Enough freed for ${goal.target.name}`
+    : `left to free for ${goal.target.name}`;
+}
+
 export function GoalStrip({
-  target,
+  goal,
   count,
-  canSwitch,
   phase,
   onFinish,
 }: {
-  /** The price she tapped that could not hold what she stores. */
-  target: Plan;
+  /** The price she tapped that could not hold what she stores, or her own plan's cap. */
+  goal: StorageGoal;
   count: GoalCount;
-  /** False while her subscription cannot change here (the plan's note says why). */
-  canSwitch: boolean;
   phase: GoalPhase;
   onFinish: () => void;
 }) {
-  const step = goalStep(count);
+  const fit = goal.kind === "fit";
+  const step = fit ? fitStep(count) : goalStep(count);
   const label =
     phase === "removing"
       ? "Removing…"
@@ -46,7 +61,10 @@ export function GoalStrip({
         ? "Opening…"
         : step === "remove-and-switch"
           ? "Remove and switch"
-          : `Switch to ${planWithBilling(target)}`;
+          : goal.kind === "fit"
+            ? null
+            : `Switch to ${planWithBilling(goal.target)}`;
+  const words = goalWords(goal, count);
   return (
     <div data-storage-goal="" data-state={step} className="border-b px-4 py-3">
       <div className="flex min-h-7 flex-wrap items-center justify-between gap-x-3 gap-y-2">
@@ -57,18 +75,18 @@ export function GoalStrip({
           {count.done ? (
             <span className="inline-flex items-center gap-1.5">
               <Check className="size-4 shrink-0 text-success" aria-hidden />
-              Enough freed for {target.name}
+              {words}
             </span>
           ) : (
             <>
               <span className="tabular-nums">
                 {formatBytesUp(count.remaining)}
               </span>{" "}
-              left to free for {target.name}
+              {words}
             </>
           )}
         </p>
-        {count.done && canSwitch ? (
+        {count.done && goal.kind !== "fit" && goal.canSwitch && label ? (
           <Button
             type="button"
             size="sm"

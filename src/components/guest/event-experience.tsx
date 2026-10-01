@@ -1365,6 +1365,7 @@ export function EventExperience({
                 pendingUploads={inFlightUploads}
                 uploadProgress={uploadProgress}
                 canDeleteIds={canDeleteIds}
+                isOwner={isOwner && !isDemo}
                 isAuthed={isAuthed}
                 sessionToken={sessionToken}
                 approvedTotal={stats.approvedTotal}

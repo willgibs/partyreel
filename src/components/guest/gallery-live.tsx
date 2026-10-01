@@ -328,6 +328,12 @@ export type GalleryLiveProviderProps = {
   uploadProgress?: QueueProgress | null;
   /** The ids a SIGNED-IN viewer uploaded, resolved in the page RSC. */
   canDeleteIds?: string[];
+  /**
+   * The viewer is the album's host (crumbs-32). She is never her own guest: every upload of hers here
+   * is the host's (her Add rides the host's pair), so her own items are the host's from their first
+   * frame, and her Delete says the host's words (Deleted, and the window) before any link has landed.
+   */
+  isOwner?: boolean;
   /** Which remove path this viewer is on: the account's Server Function, or the token's route. */
   isAuthed?: boolean;
   /** The anonymous guest's device-bound capability, from the browser's storage (null before a join). */
@@ -359,6 +365,7 @@ export function GalleryLiveProvider({
   pendingUploads = [],
   uploadProgress = null,
   canDeleteIds = [],
+  isOwner = false,
   isAuthed = false,
   sessionToken = null,
   approvedTotal,
@@ -581,6 +588,8 @@ export function GalleryLiveProvider({
     for (const id of removedMine) ids.delete(id);
     return ids;
   }, [canDeleteIds, sessionMine, addedMine, removedMine]);
+  // The owner's own are the host's, all of them (the prop's note); nobody else's are known before a link.
+  const hostOwn = isOwner ? ownIds : null;
 
   /**
    * How many LIVE uploads of this guest's the device knows of, leaving one out (the one being
@@ -676,6 +685,8 @@ export function GalleryLiveProvider({
             width: dims?.width ?? null,
             height: dims?.height ?? null,
             reelEligible: true,
+            // The owner's own is the host's from this first frame (the prop's note).
+            ...(isOwner ? { isHost: true } : {}),
           },
           ...prev.filter((m) => m.id !== u.mediaId),
         ]);
@@ -739,10 +750,19 @@ export function GalleryLiveProvider({
         optimistic: [],
         removed: removedLocal,
         renamed,
+        hostOwn,
       }),
     // `linkRev` stands for the link store's contents, read through `store.links.get`.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [teaserItems, shown.entries, linkRev, blobs, removedLocal, renamed],
+    [
+      teaserItems,
+      shown.entries,
+      linkRev,
+      blobs,
+      removedLocal,
+      renamed,
+      hostOwn,
+    ],
   );
   const serverIds = useMemo(
     () =>

@@ -193,6 +193,16 @@ export function MediaTile({
    * each one, for nothing. So the drawn URL is state: a new link for the same
    * object is remembered and used only when the drawn one fails (an expired
    * signature is exactly such a failure), and a different object replaces it.
+   *
+   * ★ AND HER OWN UPLOAD LANDS ONCE (crumbs-32, from `crumbs-23`). An object
+   * URL is this device's own picture of its upload, and the address that
+   * replaces it is that same photograph's link, once it lands (half a second
+   * later in a local walk). It used to run the landing again: the tile dropped
+   * to the shimmer while the preview loaded (344 ms there) and faded in a second
+   * time. A tile already showing its object URL takes the link IN PLACE: the
+   * browser keeps drawing the picture it has until the new address is ready (an
+   * <img>'s pending request), so nothing on screen changes but the bytes behind
+   * it. Any other new object under a tile is a photograph landing, and fades in.
    */
   const latest = useRef(item);
   useEffect(() => {
@@ -202,7 +212,7 @@ export function MediaTile({
   const wanted = tileSrc(item, previewFailed);
   if (!sameObject(wanted, src)) {
     setSrc(wanted);
-    setLanding("pending");
+    if (!(loaded && wanted && src.startsWith("blob:"))) setLanding("pending");
   }
 
   /*

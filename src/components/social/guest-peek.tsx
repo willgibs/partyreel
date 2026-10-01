@@ -59,8 +59,9 @@ import type { GuestListItem } from "./guest-list";
  * block screen.
  */
 
+// A profile card carries no `kind`: only a name nobody proved has one (the list's discriminator).
 function Face({ item }: { item: GuestListItem }) {
-  const unverified = item.kind === "unverified";
+  const unverified = "kind" in item;
   return (
     <Avatar size="lg" seed={unverified ? undefined : item.seed}>
       {!unverified && <AvatarImage src={item.avatarUrl ?? undefined} alt="" />}
@@ -73,7 +74,7 @@ function Face({ item }: { item: GuestListItem }) {
 
 /** The one line under the name: what kind of name this is. */
 function lookLine(item: GuestListItem): ReactNode {
-  if (item.kind === "unverified") {
+  if ("kind" in item) {
     return (
       <span className="inline-flex items-center gap-1.5">
         <UnverifiedMark name={item.displayName} />
@@ -85,7 +86,7 @@ function lookLine(item: GuestListItem): ReactNode {
 }
 
 function nameOf(item: GuestListItem): string {
-  if (item.kind === "unverified") return item.displayName ?? "A guest";
+  if ("kind" in item) return item.displayName ?? "A guest";
   return item.displayName ?? "Guest";
 }
 
@@ -97,7 +98,7 @@ function LookActions({
   item: GuestListItem;
   canFollow: boolean;
 }) {
-  if (item.kind === "unverified" || !item.slug) return null;
+  if ("kind" in item || !item.slug) return null;
   return (
     <div className="flex flex-col gap-2 pt-1">
       {canFollow ? (

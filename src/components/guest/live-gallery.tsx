@@ -155,6 +155,8 @@ type LiveGalleryProps = {
   joinUrl?: string;
   /** The ids a SIGNED-IN viewer uploaded, resolved in the page RSC. */
   canDeleteIds?: string[];
+  /** The provider's (see gallery-live.tsx); passed through when standalone. */
+  isOwner?: boolean;
   /** Which remove path this viewer is on. */
   isAuthed?: boolean;
   /** The anonymous guest's device-bound capability (null before a join). */
@@ -195,6 +197,7 @@ export function LiveGallery({ ref, ...props }: LiveGalleryProps) {
       onCountChange={props.onCountChange}
       pendingUploads={props.pendingUploads}
       canDeleteIds={props.canDeleteIds}
+      isOwner={props.isOwner}
       isAuthed={props.isAuthed}
       sessionToken={props.sessionToken}
       approvedTotal={props.approvedTotal}

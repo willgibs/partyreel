@@ -20,6 +20,7 @@ import { EventsSection } from "@/components/app/dashboard/events-section";
 import { JustArrived } from "@/components/app/dashboard/just-arrived";
 import { NextStepBand } from "@/components/app/dashboard/next-step-band";
 import { PageInviteCard } from "@/components/app/dashboard/page-invite-card";
+import { GraceBanner } from "@/components/app/dashboard/grace-banner";
 import { StorageMeter } from "@/components/app/dashboard/storage-meter";
 import { PricingSheet } from "@/components/app/pricing/pricing-sheet";
 import { WELCOME_VALUE } from "@/components/app/pricing/return-path";
@@ -448,30 +449,12 @@ export default async function DashboardPage({
       </div>
 
       {graceDeadline && (
-        <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm">
-          <p className="font-medium text-foreground">
-            You&rsquo;re over your storage limit
-          </p>
-          <p className="mt-1 text-muted-foreground">
-            Upgrade or remove media by{" "}
-            <strong className="text-foreground">{graceDeadline}</strong>. After
-            that we&rsquo;ll automatically reduce your storage (largest files
-            first).{" "}
-            <PricingSheet
-              trigger={{ kind: "room", needed: storageUsed }}
-              plan={{ tier, hasBilling }}
-              returnTo="/dashboard"
-            >
-              <button
-                type="button"
-                className="font-medium text-foreground underline underline-offset-4"
-              >
-                See plans
-              </button>
-            </PricingSheet>
-            .
-          </p>
-        </div>
+        <GraceBanner
+          deadline={graceDeadline}
+          storageUsed={storageUsed}
+          storageCap={storageCap}
+          plan={{ tier, hasBilling }}
+        />
       )}
 
       {/* BAND 1 — what needs you. Never empty: it says so calmly instead.

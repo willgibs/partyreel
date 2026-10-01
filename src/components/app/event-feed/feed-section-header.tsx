@@ -14,17 +14,34 @@ export function FeedSectionHeader({
   count,
   amber,
   action,
+  actionFills = false,
 }: {
   label: string;
   count?: number;
   /** The needs-action tone — a live Review queue only. */
   amber?: boolean;
-  /** Right-side slot; ONLY Review-pending fills it (must stay ≤ h-7, see above). */
+  /** Right-side slot: the album's controls, Review's cluster (must stay ≤ h-7, see above). */
   action?: React.ReactNode;
+  /**
+   * In a hand the action takes the row and the label steps aside, kept for a screen reader (crumbs-32):
+   * the album's bulk bar while selecting, whose 44px targets do not fit beside the label at 375. The
+   * band's height never moves, so nothing bounces; at a desk nothing changes.
+   */
+  actionFills?: boolean;
 }) {
   return (
-    <div className="flex min-h-7 items-center justify-between gap-3">
-      <h2 className="flex items-center gap-1.5">
+    <div
+      className={cn(
+        "flex min-h-7 items-center justify-between gap-3",
+        actionFills && "max-sm:justify-end",
+      )}
+    >
+      <h2
+        className={cn(
+          "flex items-center gap-1.5",
+          actionFills && "max-sm:sr-only",
+        )}
+      >
         <span
           className={cn(
             "text-label font-semibold uppercase",

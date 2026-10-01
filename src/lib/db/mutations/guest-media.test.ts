@@ -30,10 +30,16 @@ vi.mock("@/lib/observability/sentry", () => ({
   captureError: (...args: unknown[]) => captured.push(args),
   captureWarning: () => {},
 }));
+// The owner's read goes through HER OWN client (RLS-scoped in production; the fake stands in for it).
+let authUser: { id: string } | null = { id: "host-1" };
+vi.mock("@/lib/supabase/request-auth", () => ({
+  getRequestAuth: async () => ({ supabase: asSupabase(fake), user: authUser }),
+}));
 
 const {
   countKeptTicketUploads,
   listAccountMediaIds,
+  listOwnerMediaIds,
   listOwnUploadStatuses,
   listSessionMediaIds,
 } = await import("./guest-media");
@@ -141,6 +147,68 @@ describe("a guest's removable photographs", () => {
     expect(captured[0][0]).toBe("media");
     expect(captured[0][2]).toMatchObject({
       seam: "guest_media_ids_fail_closed",
+      eventId: "ev-1",
+    });
+  });
+});
+
+/**
+ * THE ALBUM'S OWNER, ON HER OWN GUEST PAGE (crumbs-32): her uploads there ride the host's pair, so they have no guest
+ * row, and the guest reads above never list them. Hers is the rows with no guest in this event, read through her own
+ * client (RLS scopes it to her events in production), whole, failing closed and loudly.
+ */
+describe("the owner's own photographs on her guest page", () => {
+  /** `n` uploads of the host's own (no guest row) in `eventId`, every tenth already removed. */
+  function hostUploads(eventId: string, n: number, from: number): FakeRow[] {
+    return Array.from({ length: n }, (_, i) => ({
+      id: uuid(from + i),
+      event_id: eventId,
+      guest_id: null,
+      status: i % 10 === 9 ? "removed" : i % 7 === 0 ? "hidden" : "approved",
+    }));
+  }
+
+  beforeEach(() => {
+    authUser = { id: "host-1" };
+    fake.tables.media.push(
+      ...hostUploads("ev-1", 1100, 40_000),
+      ...hostUploads("ev-2", 30, 50_000),
+    );
+  });
+
+  const hostLive = (eventId: string) =>
+    fake.tables.media
+      .filter(
+        (m) =>
+          m.event_id === eventId &&
+          m.guest_id === null &&
+          m.status !== "removed",
+      )
+      .map((m) => m.id)
+      .sort();
+
+  it("★ lists every live upload of hers in this event, past the 1,000-row cut, and no guest's", async () => {
+    const ids = await listOwnerMediaIds("ev-1");
+    expect(ids).toHaveLength(990);
+    expect([...ids].sort()).toEqual(hostLive("ev-1"));
+    // A guest row's upload, even an account's, is never on it: the RPC's guest arm refuses the host.
+    expect(ids).not.toContain(uuid(10_000));
+    expect(fake.requests.every((r) => !r.failed)).toBe(true);
+  });
+
+  it("answers nothing, reading nothing, with nobody signed in", async () => {
+    authUser = null;
+    expect(await listOwnerMediaIds("ev-1")).toEqual([]);
+    expect(fake.requests).toHaveLength(0);
+  });
+
+  it("fails CLOSED and LOUDLY: an empty list, and the failure captured", async () => {
+    delete fake.tables.media;
+    expect(await listOwnerMediaIds("ev-1")).toEqual([]);
+    expect(captured).toHaveLength(1);
+    expect(captured[0][0]).toBe("media");
+    expect(captured[0][2]).toMatchObject({
+      seam: "owner_media_ids_fail_closed",
       eventId: "ev-1",
     });
   });

@@ -112,9 +112,17 @@ export function StorageMeter({
           {/* THE SIZE LIST'S DOOR (host-storage r1): everything she stores,
               largest first, to see what is filling the plan and remove it
               from one place (`popups`' `lists=panel`: a side panel at a desk,
-              its own screen in a hand whose Back returns to the dashboard). */}
+              its own screen in a hand whose Back returns to the dashboard).
+              Over her cap, it counts down to it, as the grace banner's does. */}
           {storageUsed > 0 ? (
-            <StorageList back="Dashboard">
+            <StorageList
+              back="Dashboard"
+              goal={
+                storageCap && storageUsed > storageCap
+                  ? { kind: "fit", capBytes: storageCap }
+                  : null
+              }
+            >
               <button
                 type="button"
                 data-storage-door=""
