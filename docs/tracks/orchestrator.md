@@ -61,10 +61,11 @@ runtime logs need it). MCP tool ids change with the account. The new Orchestrato
    `~/.claude/projects/-Users-gibby-local-ai-partyreel/157caa18-ec54-4aa9-a12a-04c86d5a667b/subagents/agent-aba73c00eb28c320b.jsonl`
    (grep it, never read it whole), a stale `.next/dev/lock` free to delete. Its record adds its calls to Will's file
    as 60, and it rides build 36.
-3. **Build 35** (crumbs-33, crumbs-34 and crumbs-35 on build 34): deploy it per the runbook, unless Will is mid-sitting
-   (ask). Then its red-team (Opus) from `../partyreel-wt/_scratch/redteam-35/brief.md`, written 2026-10-01. Before the
-   spawn, fill the stamp's sha and list crumbs-35's walks under its step 4. A ledger already there means a cut-off
-   red-team: respawn it after the ledger's last line.
+3. **Build 35** (`be502b45`: crumbs-33, crumbs-34 and crumbs-35 on build 34) is on the alias since 2026-10-01 06:35Z.
+   Its red-team (Opus, agent `af0b7f251876c81c3`) walks from `../partyreel-wt/_scratch/redteam-35/brief.md`. If the
+   kill lands before its report, respawn it from that brief with "continue after the last line of `ledger.txt` in that
+   folder"; its report's finds go to the next crumbs lane. crumbs-36 rides build 36 (deploy it per the runbook, unless
+   Will is mid-sitting: ask).
 4. **Will's morning (2026-10-01):** the calls file first (58 calls, `../partyreel-wt/_scratch/calls/relay-calls.md`,
    sent to him at 56 and to be re-sent as it grows), then the desk. Seat a respawned Advisor
    (`usher/kit/advisor-prompt.txt`) when a consult comes due; no question is open.
@@ -96,7 +97,7 @@ but lab:demo's `about-press.facts` dev stall, ROADMAP's line), crumbs-31 (`5898b
    regression, its 13 RT34 events deleted, strikes unchanged (partyr33l's address 6, willg97's 2); one LOW (the hub's
    Select at 375), two NITs, one unconfirmed look and two observations went to `crumbs-35`. Not driven: the portal's
    404 for willg97 (his authenticator code), the magic-link return (his email), the 13-guest list, the over-cap banner
-   and the export walk (no such data). Build 35 (crumbs-33, crumbs-34, crumbs-35) deploys at 06:20Z, before his sitting; crumbs-36 rides build 36. Lanes run again (Will, 2026-10-01: "keep the calls file running"): pace near 95% weekly (90% at
+   and the export walk (no such data). Build 35 (crumbs-33, crumbs-34, crumbs-35) is on the alias (06:35Z), its red-team walking; crumbs-36 rides build 36. Lanes run again (Will, 2026-10-01: "keep the calls file running"): pace near 95% weekly (90% at
    04:57Z on 2026-10-01; willg97 resets Sunday 13:00Z, hi@willgibs.com, fresh, Tuesday 21:00Z), with this block kept
    current; Will (05:30Z, at 92%): run into the auto-kill, documenting along the way.
 3. **Seats as they free** (at most four lanes; `memory_pressure` before each; app work first, Will's note; `lab-focus`

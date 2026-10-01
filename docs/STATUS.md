@@ -41,9 +41,9 @@ and `about-press` r1 (two), in that order.
   load, a stale guest link and an unknown profile draw their own screens (200, noindex), the lab and `/admin` 404 on the
   apex, the admin door redirects; the signed-in walk PASS (the dashboard, a hub's rooms and trail, Settings' rows and
   back arrow and the browser's Back, the door page, the Guests room, the demo's viewer; no console error).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 34 (`65dbedb2`): milestone 31
-  plus batch 9's seven lanes, red-teamed PASS (its small finds in `crumbs-35`); the desk is the same six boards (no board moved since build 31).
-  Vercel installs with pnpm 9.14.4, `package.json`'s `packageManager`.
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 35 (`be502b45`): build 34
+  (red-teamed PASS) plus crumbs-33, crumbs-34 and crumbs-35, its red-team walking; the desk is the same six boards (no
+  board moved since build 31). Vercel installs with pnpm 9.14.4, `package.json`'s `packageManager`.
 - **The shared database** runs every migration applied through 2026-10-01: schema-pass part 2 (the reel's three
   dormant media columns dropped once milestone 31 shipped), the instant hide's three strikes, and crumbs-33's two last
   (`report_strikes`, the strike rule's one home; the newsletter row moving with an email change); no build of either
