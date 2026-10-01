@@ -137,6 +137,45 @@ describe("before two, the card is guidance", () => {
     );
   });
 
+  // ★ crumbs-45, build 36's red-team: the guidance handed focus back with a plain focus() at the end of its exit,
+  // which scrolled the card into view and cut the smooth scroll toward the panel short (the dropzone stopped 9 to
+  // 21 px under a 375x667 fold). Focus still goes home; only never by a focus that moves the page.
+  it("★ Add photos takes focus home to the card without moving the page, so the scroll to the panel lands", async () => {
+    render(<ReelCard eventId="e1" reel={{ ...base, have: 1 }} stuck={false} />);
+    await openGuidance();
+    const card = screen.getByRole("button", { name: /highlight reel/i });
+    const focus = vi.spyOn(card, "focus");
+    fireEvent.click(screen.getByRole("button", { name: /add photos/i }));
+    await waitFor(() =>
+      expect(document.querySelector("[data-reel-guidance]")).toBeNull(),
+    );
+    expect(document.activeElement).toBe(card);
+    expect(focus).toHaveBeenCalled();
+    for (const [options] of focus.mock.calls)
+      expect(options).toEqual({ preventScroll: true });
+  });
+
+  it("any other close hands focus back to the card as it always did", async () => {
+    render(<ReelCard eventId="e1" reel={{ ...base, have: 1 }} stuck={false} />);
+    // Add photos once, so a close that follows can never inherit its unscrolled return.
+    await openGuidance();
+    fireEvent.click(screen.getByRole("button", { name: /add photos/i }));
+    await waitFor(() =>
+      expect(document.querySelector("[data-reel-guidance]")).toBeNull(),
+    );
+    const guidance = await openGuidance();
+    const card = screen.getByRole("button", { name: /highlight reel/i });
+    const focus = vi.spyOn(card, "focus");
+    fireEvent.keyDown(guidance, { key: "Escape" });
+    await waitFor(() =>
+      expect(document.querySelector("[data-reel-guidance]")).toBeNull(),
+    );
+    expect(document.activeElement).toBe(card);
+    expect(focus.mock.calls.some(([options]) => options === undefined)).toBe(
+      true,
+    );
+  });
+
   it("on a moderated event, says guests' photos count once approved, and points at the queue", async () => {
     render(
       <ReelCard

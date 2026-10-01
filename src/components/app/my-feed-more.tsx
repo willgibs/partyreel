@@ -17,6 +17,14 @@ import type { FeedCursor } from "@/lib/db/queries/my-uploads";
  * where it first appears, and the next press resumes after the last page she loaded, never the first page's
  * cursor, so nothing is skipped or shown twice.
  *
+ * ★ AND WHAT SHE REMOVED LEAVES EVERY PAGE ON HER OWN WORD (crumbs-45, build 36's red-team: a first-page Delete
+ * came back 20 ms after its answer and stayed until a reload). `drop` takes an item out of the first page and the
+ * loaded ones alike, at once and for the page's life, never leaning on the action's revalidation, which can land
+ * late: the viewer's close writes the address in the same tick, just before its Delete's Server Action, and Next
+ * (16.2.6) then commits that write's restore over the action's answer, so the page keeps its old tree until the
+ * next router action (a Show more, a like) applies the new one (measured in a bare Next app). So the revalidated
+ * first page and her removal agree in either order, and a first page that refills late shows each item once.
+ *
  * ★ A FAILED PAGE KEEPS WHAT SHE HAS: the pages stand, and the button asks again ("Try again"), in the storage
  * list's own control and words (`storage-list-body.tsx`).
  */
@@ -35,7 +43,7 @@ export type FeedPages = {
   next: FeedCursor | null;
   status: FeedMoreStatus;
   more: () => void;
-  /** An item that left for good (a confirmed delete): out of the pages she loaded too. */
+  /** An item that left for good (a confirmed delete, an unlike): out of every page, the first one too, for good. */
   drop: (id: string) => void;
 };
 
@@ -50,16 +58,21 @@ export function useFeedPages(
     next: FeedCursor | null;
   } | null>(null);
   const [status, setStatus] = useState<FeedMoreStatus>("idle");
+  // What left for good while this page stood, whichever page showed it (the head's second ★).
+  const [gone, setGone] = useState<ReadonlySet<string>>(() => new Set());
   // One press at a time, read in the handler (a second press during a load is the same ask).
   const busy = useRef(false);
 
   const next = read ? (loaded ? loaded.next : firstNext) : null;
 
   const items = useMemo(() => {
-    if (!loaded || loaded.items.length === 0) return [...first];
     const seen = new Set(first.map((item) => item.id));
-    return [...first, ...loaded.items.filter((item) => !seen.has(item.id))];
-  }, [first, loaded]);
+    const pages =
+      loaded && loaded.items.length > 0
+        ? [...first, ...loaded.items.filter((item) => !seen.has(item.id))]
+        : [...first];
+    return gone.size === 0 ? pages : pages.filter((item) => !gone.has(item.id));
+  }, [first, loaded, gone]);
 
   const more = useCallback(() => {
     if (!read || !next || busy.current) return;
@@ -92,11 +105,7 @@ export function useFeedPages(
   }, [read, next]);
 
   const drop = useCallback((id: string) => {
-    setLoaded((prev) =>
-      prev && prev.items.some((item) => item.id === id)
-        ? { ...prev, items: prev.items.filter((item) => item.id !== id) }
-        : prev,
-    );
+    setGone((prev) => (prev.has(id) ? prev : new Set(prev).add(id)));
   }, []);
 
   return { items, next, status, more, drop };

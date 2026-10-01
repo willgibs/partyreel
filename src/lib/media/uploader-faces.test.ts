@@ -8,6 +8,10 @@
  * host wears the byline's face; on a GUEST's view a person the event blocked wears nothing (on no list, so no face
  * the album shows), while the host's view keeps it; the rule's owner (an account id) never leaves; a failed read
  * leaves the plain disc, captured, never a failed album; the window's people are read once, by account.
+ *
+ * HER OWN FACE, ON HER OWN PAGE (crumbs-45; build 36's red-team found a "?" disc on the owner's own upload in her
+ * Uploads): her name, photograph and colour, never a door (she is on her page); no name, no face; read from her own
+ * row through her own client, never the admin's; a failed read leaves the plain credit, captured.
  */
 import { createHash } from "node:crypto";
 
@@ -47,7 +51,7 @@ vi.mock("@/lib/supabase/avatar-storage", () => ({
     marker ? `https://cdn.test/avatars/${id}/avatar.webp?v=${marker}` : null,
 }));
 
-const { withUploaderFaces } = await import("./uploader-faces");
+const { ownUploadCredit, withUploaderFaces } = await import("./uploader-faces");
 
 const seed = (id: string) => createHash("sha256").update(id).digest("hex");
 const HOST = "u-host";
@@ -241,5 +245,79 @@ describe("the credit's face and door", () => {
     );
     expect(out.get("m-maya")?.face).toBeNull();
     expect(fake.requests).toEqual([]);
+  });
+});
+
+describe("her own face, on her own page", () => {
+  const ME = "u-will";
+  /** Her own client: her row, through `profiles_select_own`. */
+  function mine(row: Record<string, unknown> | null) {
+    const client = createFakePostgrest({
+      tables: { profiles: row ? [{ id: ME, ...row }] : [] },
+      user: { id: ME },
+    });
+    return {
+      client,
+      auth: {
+        supabase: asSupabase(client) as never,
+        user: { id: ME } as never,
+      },
+    };
+  }
+
+  it("★ wears her name, her photograph and her colour, and never a door: she is on her page", async () => {
+    const { auth, client } = mine({
+      display_name: "Will Gibson",
+      avatar_updated_at: "2026-09-03",
+    });
+    expect(await ownUploadCredit(auth)).toEqual({
+      name: "Will Gibson",
+      face: {
+        avatarUrl: `https://cdn.test/avatars/${ME}/avatar.webp?v=2026-09-03`,
+        seed: seed(ME),
+        href: null,
+      },
+    });
+    // Her own row, through her own client: the admin client is never asked about her.
+    expect(client.requests.map((r) => r.name)).toEqual(["profiles"]);
+    expect(fake.requests).toEqual([]);
+  });
+
+  it("no photograph is her colour's disc, and no name is no face at all", async () => {
+    expect(
+      await ownUploadCredit(
+        mine({ display_name: "Will Gibson", avatar_updated_at: null }).auth,
+      ),
+    ).toEqual({
+      name: "Will Gibson",
+      face: { avatarUrl: null, seed: seed(ME), href: null },
+    });
+    for (const display_name of [null, "   "]) {
+      expect(
+        await ownUploadCredit(
+          mine({ display_name, avatar_updated_at: "2026-09-03" }).auth,
+        ),
+      ).toEqual({ name: null, face: null });
+    }
+  });
+
+  it("asks nothing signed out", async () => {
+    const { client } = mine(null);
+    expect(
+      await ownUploadCredit({
+        supabase: asSupabase(client) as never,
+        user: null,
+      }),
+    ).toEqual({ name: null, face: null });
+    expect(client.requests).toEqual([]);
+  });
+
+  it("a failed read leaves the plain credit, captured, never a failed page", async () => {
+    const { auth, client } = mine(null);
+    delete client.tables.profiles;
+    expect(await ownUploadCredit(auth)).toEqual({ name: null, face: null });
+    expect(captured.at(-1)?.[2]).toMatchObject({
+      seam: "own_upload_credit_fail_open",
+    });
   });
 });

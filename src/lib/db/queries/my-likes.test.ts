@@ -38,10 +38,15 @@ vi.mock("@/lib/supabase/request-auth", () => ({
 vi.mock("@/lib/r2/presign", () => ({
   presignDownload: async ({ key }: { key: string }) => `signed:${key}`,
 }));
-// The uploads module's own reads are never reached from the likes feed; stub the one it imports.
+// The uploads module's own reads are never reached from the likes feed; stub the ones it imports.
 vi.mock("@/lib/db/queries/guest-events", () => ({
   getEventByQrToken: async () => {
     throw new Error("the likes feed asks no album");
+  },
+}));
+vi.mock("@/lib/media/uploader-faces", () => ({
+  ownUploadCredit: async () => {
+    throw new Error("the likes feed reads no face");
   },
 }));
 
