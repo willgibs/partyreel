@@ -131,11 +131,20 @@ Each is built as recommended and is Will's to overrule.
   `src/app/not-found.lazy.test.tsx` flaked once under load in a full run and passed 3 of 3 alone: not this lane's.
 - **Done**: item 2, one `INACTIVE_MONTHS` (`d9d28c55`): the export beside `INACTIVE_DAYS`, the seven copies on it, `inactivity.test.ts`
   holds it (a scan for any other division of the day count; red on the cut with exactly the seven).
-- **Done**: item 1, counts through `formatCount` (`THIS_COMMIT`): `formatLimit` and `formatCapacity` in `tiers.ts` and the four
+- **Done**: item 1, counts through `formatCount` (`986de08b`): `formatLimit` and `formatCapacity` in `tiers.ts` and the four
   pricing components' ten bare `toLocaleString()` are `formatCount`'s; `src/lib/test-utils/german-runtime.ts` simulates a
   German runtime for tests; reds on the cut: `count.test.ts` scan (11 hits), `tiers.test.ts` (`formatLimit`),
   `pricing-counts.test.tsx` (4 of 5 draw "21.943"). `formatCount` lives in `src/lib/format/count.ts`, not `utils.ts`.
-- **In progress**: item 4 (the two blog posts). Next step: `src/lib/content/blog-keep-lines.test.ts` (compile each post through
-  `mdxComponents` as `spec-shared.test.ts` does; red on the cut), then the two paragraphs (see the fourth Question).
-- **Left**: item 3 (host Add scrolls to its panel), item 5 (the closed line's strike); then the
+- **Done**: item 4, the blog's keep lines (`THIS_COMMIT`): reunion's closing paragraph and trip's closing bullet say the Free plan's
+  one exception in the event pages' words (spec inlines `<InactivityMonths />`, `<RecoveryWindowDays />`), the absolutes
+  ("no expiry clock", "no countdown to a deletion", "Nothing expires underneath it") go and the trip's mid-post "no end date" is
+  a scope sentence; `src/lib/content/blog-keep-lines.test.ts` compiles both posts through the real component map (red on the cut,
+  4 of 5). `docs/systems/marketing-content.md`'s ★ line says so. Rendered on localhost:3132 (curl, 200).
+- **In progress**: item 3 (host Add scrolls to its panel). Next step: `src/components/app/host-add-provider.test.tsx` (a provider, a
+  consumer pressing `openAdd`, a `HostUpload` stand-in registering its root; red on the cut: `window.scrollTo({ top: 0 })`), then
+  `HostUpload` registers its root with the provider and `openAdd` scrolls to it once mounted (`nearest`, `scroll-margin-top`
+  clearing the app bar and the stuck cards band, smooth unless reduced motion), and both files' comments stop describing the
+  retired command strip and floating Add pill. `uploadingCount` has no reader since the pill retired: removing it needs
+  `event-gallery.tsx` (crumbs-35's), so it stays and the comment says so (a Deferred line).
+- **Left**: item 5 (the closed line's strike); then the
   system-doc edits below, the lab crawl, localhost walks, the gate, the Handoff.
