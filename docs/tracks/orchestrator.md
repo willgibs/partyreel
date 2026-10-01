@@ -104,9 +104,24 @@ the alias mid-sitting (his yes). No new lane until his paste lands.
 3. **Build 38** on the alias, its red-team from a fresh brief (the batched visible-tab steps; the prune's frozen tab),
    and one read-only pass of the six boards' asks against build 38's code, a desk-tune only if a claim drifted.
 4. **Tell Will the alias is ready** for his sitting (locked-door first).
-5. **After his paste:** transcribe it, then the wiring lanes from his picks (the demo event, about-press, the
-   disposable mode, the door family, event-ready, the privacy hero), `/me` (his A), the strike line's repeated date,
-   and new boards as they're seen.
+5. **After his paste:** transcribe it, then the wiring lanes from his picks, at most four at once (`memory_pressure`
+   before each), `/me` (his A), the strike line's repeated date, and new boards as they're seen. What each wiring
+   carries beyond his picks:
+   - **The demo event** (his full permission, 2026-09-29, after `demo-framing` r2's picks): the demo renamed (or made)
+     to its pick, its address claimed so the card's printed address opens it (today `mia-and-theo`, held by no event,
+     left as is on his word), one home for the slug in `lib/demo.ts` that the card prints, the seed sets and every demo
+     door opens (today all five doors and `/demo` open the token's address, since demo mode matches on the raw token),
+     `OBJECT_EVENT` and `OBJECT_PRINTS` to match, the typed addresses reserved to the demo, a demo host account for the
+     persona (`partyreel-demo` stays refused to anyone else by the brand family, `crumbs-11`), and ASSETS rows 5, 33
+     and 34 unparked with the party's subjects (the board's Handoff names the counts).
+   - **about-press**: its three wiring calls (`git show 3ded6ba9^2:docs/tracks/about-press.md`: /press a temporary
+     redirect, the llms summary kept, the kit's files if none wins).
+   - **The disposable mode** (after `disposable-mode` r2's picks and his Measure a phone): with the lane's idea of the
+     premiere on the wall, the reel's screen counting down to the develop time and playing the roll as an event of its
+     own.
+   - **The door family**: if the doorway wins, its reveal (walking through the opened door into the album, drawn first
+     as motion options); ASSETS row 36 if the host's door wins.
+6. **Google's chooser** names `ddafaemglzmuekbtjwzn.supabase.co` (ROADMAP's launch checkpoint, his call).
 
 ## Waiting on Will
 
