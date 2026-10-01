@@ -27,6 +27,9 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/media/auto-reduce.test.ts
   - src/lib/lifecycle/recently-deleted.ts
   - src/app/admin/albums/[eventId]/page.tsx
+  - src/app/admin/albums/[eventId]/page.test.tsx
+  - src/lib/moderation/album-pages.ts
+  - src/lib/moderation/album-pages.test.ts
   - src/app/admin/albums/actions.ts
   - src/lib/db/queries/moderation.ts
   - src/lib/db/queries/moderation.test.ts
@@ -114,8 +117,11 @@ working.
 - Done: item 4 (next commit): the reduce reads the active set largest first a page at a time (`reduceToCap`,
   `takeLargestFirst`), stops reading once what is left fits, asks the deadline before every page; a reduce stopped
   part way keeps its grace and mail, counts as left and the next run starts AT it. Red on today's code (2 tests).
-- In progress: item 3 (the admin album drill-in paged).
-- Left: items 2, 3; system docs; the gate; the handoff.
+- Done: item 3 (next commit): the drill-in reads and signs one page of 500 (newest first, keyset on the raw
+  `created_at` and id), says which items these are, and links Newest and Older (never prefetched); a mangled cursor
+  reads the newest page. Red on today's code (7 tests).
+- In progress: item 2 (the removed-media index for `standby_hosts` and the `removed_media` sweep).
+- Left: item 2; system docs; the gate; the handoff.
 - Measured (live, 2026-10-01): media 1,480 (67 removed, every one with `purge_at`; `purge_at` is set exactly when
   removed, by `set_media_purge_at`), events 63 (46 soft-deleted), album_state 58, album_changes 1,344 of which 5 are
   tombstones in 4 albums; `standby_hosts`' plan today is a Seq Scan on media with the OR as a join filter.

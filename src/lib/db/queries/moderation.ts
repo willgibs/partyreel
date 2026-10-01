@@ -6,9 +6,12 @@
  */
 import "server-only";
 
-import { mustCount } from "@/lib/db/must-query";
-import { readAllPages } from "@/lib/db/read-all";
+import { mustCount, mustQuery } from "@/lib/db/must-query";
 import { Constants, type Tables } from "@/lib/db/types";
+import {
+  ALBUM_DRILL_IN_PAGE,
+  type AlbumCursor,
+} from "@/lib/moderation/album-pages";
 import {
   type AlbumFilter,
   type ModerationMediaItem,
@@ -103,26 +106,43 @@ export async function listRecentMedia(
 export type AlbumDetail = {
   event: Tables<"events">;
   hostLabel: string | null;
-  /** ALL the event's media (every status, newest-first) — includes removed so it can be restored. */
+  /**
+   * ONE PAGE of the event's media (every status, newest first, at most `ALBUM_DRILL_IN_PAGE`): removed
+   * included, so it can be restored.
+   */
   media: ModerationMediaItem[];
   counts: Record<MediaStatus, number>;
+  /** How many of the album's items come before this page (0 on the newest page). */
+  position: number;
+  /** Where the next, older page starts, or null when this page ends on the album's oldest item. */
+  next: AlbumCursor | null;
 };
 
 /** Every status a media row can hold, from the generated enum, so a new one is counted the day it lands. */
-const MEDIA_STATUSES: readonly MediaStatus[] = Constants.public.Enums.media_status;
+const MEDIA_STATUSES: readonly MediaStatus[] =
+  Constants.public.Enums.media_status;
 
 /**
- * One album (event) with its host + full media list + per-status counts, for the drill-in.
+ * One album (event) with its host, ONE PAGE of its media and its per-status counts, for the drill-in.
  *
- * ★ THE ALBUM WHOLE, THE COUNTS COUNTED (the 1,000-row round, 2026-09-23). The list pages on its own
- * display order, (created_at desc, id desc), the cursor the last row's raw timestamp string, so a
- * 1,500-item album shows all 1,500 and none twice; the "N approved, N pending" line is four HEAD
- * counts, never the length of a list PostgREST could have cut at 1,000.
+ * ★ A PAGE AT A TIME, THE COUNTS COUNTED (crumbs-37, after the 1,000-row round). The drill-in read the whole
+ * album and the page presigned every item, so past a few thousand items one look was thousands of links. It
+ * reads one page on its own display order, (created_at desc, id desc), after the cursor an Older link carries
+ * (the last item's RAW timestamp string, so a tie on the microsecond never skips or repeats one), and asks one
+ * more row than it shows to know whether an older page exists; the "N approved, N pending" line stays four
+ * HEAD counts, and where this page sits among them is one more (the items up to the cursor's own).
+ *
+ * The cursor arrives as two strings, never an object, so the page and its title share one read through
+ * React's `cache()` (which compares arguments by value only for primitives).
  */
 export async function getAlbumForModeration(
   eventId: string,
+  beforeAt: string | null = null,
+  beforeId: string | null = null,
 ): Promise<AlbumDetail | null> {
   const admin = createAdminClient();
+  const before: AlbumCursor | null =
+    beforeAt && beforeId ? { at: beforeAt, id: beforeId } : null;
 
   const { data: event, error } = await admin
     .from("events")
@@ -133,26 +153,27 @@ export async function getAlbumForModeration(
   if (error) throw error;
   if (!event) return null;
 
-  const [{ rows }, statusCounts, hostLabels] = await Promise.all([
-    readAllPages(
-      "admin album: media",
-      (after: { at: string; id: string } | null, limit) => {
-        let q = admin
-          .from("media")
-          .select("id, type, status, created_at, original_key")
-          .eq("event_id", eventId)
-          .order("created_at", { ascending: false })
-          .order("id", { ascending: false })
-          .limit(limit);
-        if (after) {
-          q = q.or(
-            `created_at.lt.${after.at},and(created_at.eq.${after.at},id.lt.${after.id})`,
-          );
-        }
-        return q;
-      },
-      (row) => ({ at: row.created_at, id: row.id }),
-    ),
+  /** The cursor's keyset in the display order: strictly older than the item it names. */
+  const older = (c: AlbumCursor) =>
+    `created_at.lt.${c.at},and(created_at.eq.${c.at},id.lt.${c.id})`;
+  /** The items on the pages before this one: newer than the cursor, and the item it names (their last). */
+  const throughCursor = (c: AlbumCursor) =>
+    `created_at.gt.${c.at},and(created_at.eq.${c.at},id.gte.${c.id})`;
+
+  const pageQuery = () => {
+    let q = admin
+      .from("media")
+      .select("id, type, status, created_at, original_key")
+      .eq("event_id", eventId)
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .limit(ALBUM_DRILL_IN_PAGE + 1);
+    if (before) q = q.or(older(before));
+    return q;
+  };
+
+  const [rows, statusCounts, hostLabels, position] = await Promise.all([
+    mustQuery(pageQuery(), "admin album: media page"),
     Promise.all(
       MEDIA_STATUSES.map((status) =>
         mustCount(
@@ -166,6 +187,16 @@ export async function getAlbumForModeration(
       ),
     ),
     fetchHostLabels(admin, [event.host_id]),
+    before
+      ? mustCount(
+          admin
+            .from("media")
+            .select("id", { count: "exact", head: true })
+            .eq("event_id", eventId)
+            .or(throughCursor(before)),
+          "admin album: items before the page",
+        )
+      : Promise.resolve(0),
   ]);
 
   const hostLabel = hostLabels.get(event.host_id) ?? null;
@@ -173,7 +204,14 @@ export async function getAlbumForModeration(
     MEDIA_STATUSES.map((status, i) => [status, statusCounts[i]]),
   ) as Record<MediaStatus, number>;
 
-  const media: ModerationMediaItem[] = rows.map((m) => ({
+  const page = (rows ?? []).slice(0, ALBUM_DRILL_IN_PAGE);
+  const last = page.at(-1);
+  const next =
+    (rows ?? []).length > ALBUM_DRILL_IN_PAGE && last
+      ? { at: last.created_at, id: last.id }
+      : null;
+
+  const media: ModerationMediaItem[] = page.map((m) => ({
     id: m.id,
     type: m.type,
     status: m.status,
@@ -185,5 +223,5 @@ export async function getAlbumForModeration(
     hostLabel,
   }));
 
-  return { event, hostLabel, media, counts };
+  return { event, hostLabel, media, counts, position, next };
 }
