@@ -79,6 +79,9 @@
     "overrides": {
       "zod": "$zod",
       "react-is": "^19.0.0"
+    },
+    "patchedDependencies": {
+      "next@16.2.6": "patches/next@16.2.6.patch"
     }
   }
 }
