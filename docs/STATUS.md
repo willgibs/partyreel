@@ -21,10 +21,12 @@ Nothing is protected: every page, the host app and the guest pages are open to b
   guest's photos her own, the reports queue rebuilt, the hub's rooms and live album, lighter pages, the lab rebuilt.
   The legal text is rewritten once, right before launch (his word).
 - **Batch 9 rides `launch-prep`**: crumbs-28 and hide-strikes (his call B: three strikes that lapse after 180 days)
-  on build 33, red-teamed; crumbs-29 (a shared phone's one row, no door admitting a blocked ask; its three migrations
+  red-teamed on build 33; crumbs-29 (a shared phone's one row, no door admitting a blocked ask; its three migrations
   applied), crumbs-30, crumbs-31 (the follow moment after a keep through Google), crumbs-32 and demo-stall (the lab
-  check's stall, a Next dev bug, upstream's fix carried as a pnpm patch) wait for build 34, which waits for his word on
-  the desk. App work leads (his note); the wiring of each board follows his picks.
+  check's stall, a Next dev bug, upstream's fix carried as a pnpm patch) on build 34, its red-team walking.
+  `crumbs-33` (a report's live strikes on the queue, the newsletter row with an email change, four correctness fixes)
+  and `crumbs-34` (every published claim made true) run. App work leads (his note); the wiring of each board follows
+  his picks.
 
 ## The desk
 
@@ -38,8 +40,9 @@ and `about-press` r1 (two), in that order.
   load, a stale guest link and an unknown profile draw their own screens (200, noindex), the lab and `/admin` 404 on the
   apex, the admin door redirects; the signed-in walk PASS (the dashboard, a hub's rooms and trail, Settings' rows and
   back arrow and the browser's Back, the door page, the Guests room, the demo's viewer; no console error).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 33 (`cc79d54e`): milestone 31
-  plus crumbs-28 and hide-strikes, its red-team walking; the desk is the same six boards.
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 34 (`65dbedb2`): milestone 31
+  plus batch 9's seven lanes, its red-team walking; the desk is the same six boards (no board moved since build 31).
+  Vercel installs with pnpm 9.14.4, `package.json`'s `packageManager`.
 - **The shared database** runs every migration applied through 2026-09-30, schema-pass part 2 (the reel's three dormant
   media columns dropped once milestone 31 shipped) and the instant hide's three strikes the last two; no build of
   either project reads a dropped thing.
@@ -69,5 +72,5 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-- His desk (above); the calls file's 51 calls to overrule (his two decisions answered 2026-09-30); the phone checks and
-  the four walks only he can drive (`tracks/orchestrator.md`).
+- His desk (above); the calls file's 56 calls to overrule, his review on 2026-10-01 (his two decisions answered
+  2026-09-30); the phone checks and the four walks only he can drive (`tracks/orchestrator.md`).

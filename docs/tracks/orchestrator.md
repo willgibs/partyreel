@@ -40,7 +40,8 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `crumbs-29` | build 30's red-team finds (a shared phone's double row, a declined newcomer admitted by a door's opening, the door after a sign-out, a blocked phone's flash) and two ROADMAP lines (the door's predicate once, a report's closed status paired with its time) | merged at `47b5cce8` (gate 106 green; work `75600355`); its three migrations (20260930130000 the door admits no block, 140000 one account one ticket, 150000 a report resolved when closed) apply by protocol once build 33's red-team is done, each an expand both ways |  Opus, 3131 | |
+| `crumbs-33` | six ROADMAP items: a child-abuse report's live strikes on the queue (Will's call B), the newsletter row with an email change, one pinned date formatter, the rows engine's ties, the viewer's link asks coalesced, a tooltip's touch tap on Android | running, cut at `65dbedb2`; may write migrations (applied by protocol; one replacing `create_report` goes to the Advisor first) | Opus, 3131 | |
+| `crumbs-34` | every published claim made true: five help-sync lines, the FAQ's keep answer and the event pages' promises (the Free plan's inactivity removal, the email door), the footer's FAQ link, two dead files, Sentry quiet on localhost | running, cut at `65dbedb2`; no SQL | Sonnet, 3132 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
 no question open (Q1, the `names` hang; Q2, schema-pass part 1; Q3, the notes-into-laws audit; Q4, the door migration:
@@ -54,13 +55,13 @@ left on 3131 to 3135 (and any orphaned headless Chrome), then `spawn-prompt.txt`
 note naming its pushed commits, what remains, its predecessor's transcript at
 `~/.claude/projects/-Users-gibby-local-ai-partyreel/157caa18-ec54-4aa9-a12a-04c86d5a667b/subagents/agent-<id>.jsonl`
 (grep it, never read it whole), that a stale `.next/dev/lock` may be deleted and that MCP tool ids change with the
-account, and the relays below, which live only in the agents: none live (2026-09-30, after milestone 31).
+account, and the relays below, which live only in the agents: none live (2026-10-01: crumbs-33 and crumbs-34 run from their manifests alone).
 
 If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` holds a merge made after this note (push
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
 staged, uncommitted merge is finished by `usher/kit/merge-lane.sh`'s own steps or reset with `git merge --abort`.
 This session's scratchpad (`/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/157caa18-ec54-4aa9-a12a-04c86d5a667b/scratchpad`,
-until a reboot) holds the specs and gate logs (the next gate is 106); nothing there is needed that these lines and the
+until a reboot) holds the specs and gate logs (the next gate is 111); nothing there is needed that these lines and the
 manifests do not carry.
 
 Batch 8 shipped whole as milestone 31 (`7bd3b947`, 2026-09-30; 40 lanes, crumbs-12 to gone-link-soft; their merges and
@@ -70,31 +71,16 @@ but lab:demo's `about-press.facts` dev stall, ROADMAP's line), crumbs-31 (`5898b
 
 ## Next, in order
 
-1. **Integrate each lane as it hands off** (no lane running; build 30's red-team and the PREMISE audits are agents, not lanes), each migration by protocol, one at a time: drift check, apply verbatim, the rolled-back refusals,
-   advisors, types.
-2. **Build 34 waits for Will's word** (he may be at the desk; a deploy mid-sitting swaps the build under him): crumbs-29,
-   crumbs-30, crumbs-31, demo-stall and crumbs-32 on launch-prep, each gated green, then its red-team from a brief in
-   `../partyreel-wt/_scratch/redteam-34/` (each lane's "For the next build's red-team" steps). New lanes pause (weekly
-   83% on 2026-10-01 02:45Z, context 78%): the next big work is his desk's wiring.
-   **Build 33** (`cc79d54e`, milestone 31 plus crumbs-28 and hide-strikes) is on the alias (Will had not begun his
-   sitting and said go). Its red-team is agent `a742992d213f18cc2`; from another session, respawn it from
-   `../partyreel-wt/_scratch/redteam-33/brief.md` after its `ledger.txt`'s last line. It walks:
-   - crumbs-28's steps (`git show 8ea749bf^2:docs/tracks/crumbs-28.md`, "For the next build's red-team");
-   - the instant hide walked from hi@willgibs.com's address (willg97's address holds two strikes, partyr33l's five
-     until 2027-03-28);
-   - crumbs-29's, if it has merged by then.
-
-   Build 33's red-team is done (22:45Z): crumbs-28 PASS but the peek's first Shift+Tab, hide-strikes PASS both ways
-   (willg97's address still 2 strikes, partyr33l's 6), no regression, crumbs-27 #2 and #4 PASS to the host's Let in
-   with partyreel.com as the host's device; five finds for crumbs-31 (its row). crumbs-29's three migrations are
-   applied (20260930224914, 225059, 225143).
-   **crumbs-29** (merged, its migrations applied) took build 30's red-team's finds:
-   - LOW, two rows of hers in one second on a shared phone (the queue's silent join races the page's; `create_guest`
-     always inserts);
-   - LOW, a declined newcomer admitted by `events_door_opened` on a Public trip (the trigger admits every waiting row,
-     blocked ones included);
-   - NIT, the door after a sign-out still in flight.
-   With them go the door's predicate spelled twice and the reports' closed-status CHECK (ROADMAP's lines).
+1. **Integrate each lane as it hands off** (crumbs-33 and crumbs-34 run; build 34's red-team is an agent, not a lane),
+   each migration by protocol, one at a time: drift check, apply verbatim, the rolled-back refusals, advisors, types.
+2. **Build 34** (`65dbedb2`: build 33 plus crumbs-29 to crumbs-32 and demo-stall) is on the alias since 2026-10-01
+   03:45Z (Will had not begun his sitting and said go). Its first try failed at install on both projects: with no pin,
+   Vercel reads a version 9.0 lockfile as pnpm 10's, which refused the patch hash pnpm 9 wrote for demo-stall's patch;
+   `packageManager` now names pnpm 9.14.4 (`package-manager-pin.test.ts`). Its red-team is agent `a5c18f05199c4d2db`;
+   from another session, respawn it from `../partyreel-wt/_scratch/redteam-34/brief.md` after its `ledger.txt`'s last
+   line. Its finds go to the next crumbs lane. Lanes run again (Will, 2026-10-01: "keep the calls file running"): pace
+   near 95% weekly (83% at 03:08Z on 2026-10-01; willg97 resets Sunday 13:00Z, hi@willgibs.com, fresh, Tuesday 21:00Z),
+   with this block kept current.
 3. **Seats as they free** (at most four lanes; `memory_pressure` before each; app work first, Will's note; `lab-focus`
    took the lab's phone fold with it). After his desk picks: the demo event (below); about-press's wiring (its three wiring calls,
    `git show 3ded6ba9^2:docs/tracks/about-press.md`: /press a temporary redirect, the llms summary kept, the kit's files
@@ -119,11 +105,12 @@ but lab:demo's `about-press.facts` dev stall, ROADMAP's line), crumbs-31 (`5898b
   touch; `names` retired into `slug`) and `about-press` r1 (two: the press kit on /about, its four facts; press-page's
   `a-human` retired as the carried call `named`) reach him with build 26; `privacy-hero` r4 (one: which veil, the lens
   recommended) with build 27.
-- **The calls file** (49 calls to overrule, numbered, one a lane through gone-link-soft; compiled from each merge's
-  "Calls his to overrule", `git show <merge>^2:docs/tracks/<track>.md`, with a copy in this session's scratchpad,
-  `relay-calls.md`). His two decisions are answered (2026-09-30): A, the proof mail stays off until the emails round
-  (ROADMAP's Emails bucket); B, the instant hide's bar becomes three strikes lapsing after 180 days ("I don't want to
-  prevent a well-meaning reporter from a second report if I simply disagree with the first"), `hide-strikes`'s.
+- **The calls file** (56 calls to overrule, numbered, one a lane through crumbs-32; compiled from each merge's "Calls
+  his to overrule", `git show <merge>^2:docs/tracks/<track>.md`, kept at `../partyreel-wt/_scratch/calls/relay-calls.md`
+  and sent to him as it grows). He reviews it on 2026-10-01 against the product vision ("keep the calls file running":
+  each merge's calls join it). His two decisions are answered (2026-09-30): A, the proof mail stays off until the emails
+  round (ROADMAP's Emails bucket); B, the instant hide's bar becomes three strikes lapsing after 180 days ("I don't want
+  to prevent a well-meaning reporter from a second report if I simply disagree with the first"), `hide-strikes`'s.
 - **The morning of 2026-09-30, on his phone** (his word): `disposable-mode` r2's Measure a phone on the alias (the
   board's dock: Open the camera, Take a frame, the camera app's photo, on his iPhone and an Android if he has one; paste
   the line back: the full-size promise rides on it); Q1 (on a phone the code card fills the screen, but Back
