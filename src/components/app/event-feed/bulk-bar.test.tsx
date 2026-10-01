@@ -2,9 +2,9 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { Download, Heart, Trash2 } from "lucide-react";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { renderToString } from "react-dom/server";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   BulkBar,
@@ -334,5 +334,116 @@ describe("BulkBar in a hand", () => {
     );
     expect(heading.className).toMatch(/max-sm:sr-only/);
     expect(heading.parentElement?.className).toMatch(/max-sm:justify-end/);
+  });
+});
+
+/**
+ * ★ THE BAND KEEPS THE HEIGHT ITS TOOLS HAD, WHILE THE BAR FILLS IT (crumbs-35, build 34's red-team). At 375 the
+ * album's resting tools wrap to two lines (62px) and the bulk bar is one (28px), so the album beneath moved 34px on
+ * Select and back on Cancel; at 320 the tools wrap to three and it moved 68. jsdom has no layout, so the row's
+ * height is what the observer is told it measured (`measure`), and what is pinned is what the row does with it:
+ * it reads its height while the action does not fill it and keeps that as its minimum while it does. The numbers
+ * themselves are measured in a real browser on the hub's own album (`/design/album-scale?surface=host`).
+ */
+describe("the band keeps its resting height while the action fills it", () => {
+  const observers: {
+    callback: () => void;
+    observe: ReturnType<typeof vi.fn>;
+    disconnect: ReturnType<typeof vi.fn>;
+  }[] = [];
+  let rowHeight = 28;
+
+  beforeEach(() => {
+    observers.length = 0;
+    rowHeight = 28;
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        observe = vi.fn();
+        disconnect = vi.fn();
+        constructor(callback: () => void) {
+          observers.push({
+            callback,
+            observe: this.observe,
+            disconnect: this.disconnect,
+          });
+        }
+      },
+    );
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(
+      () => ({ height: rowHeight }) as DOMRect,
+    );
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  /** The tools wrapped (or not): the observer reports the row's new height. */
+  function measure(height: number) {
+    rowHeight = height;
+    act(() => observers.at(-1)!.callback());
+  }
+  const rowOf = () =>
+    screen.getByRole("heading", { name: /album/i }).parentElement!;
+  const header = (actionFills: boolean) => (
+    <FeedSectionHeader
+      label="Album"
+      count={14}
+      action={<span />}
+      actionFills={actionFills}
+    />
+  );
+
+  it("★ holds the 62px its wrapped tools stood at while the bar fills the row, and lets go on Cancel", () => {
+    const { rerender } = render(header(false));
+    measure(62);
+    expect(rowOf().style.minHeight).toBe("");
+    rerender(header(true));
+    expect(rowOf().style.minHeight).toBe("62px");
+    rerender(header(false));
+    expect(rowOf().style.minHeight).toBe("");
+  });
+
+  it("★ holds whatever the tools wrapped to: three lines at 320 hold 96px, a single line holds its 28", () => {
+    const { rerender } = render(header(false));
+    measure(96);
+    rerender(header(true));
+    expect(rowOf().style.minHeight).toBe("96px");
+    rerender(header(false));
+    measure(28);
+    rerender(header(true));
+    expect(rowOf().style.minHeight).toBe("28px");
+  });
+
+  it("holds the latest height the tools had, a rotation at rest included", () => {
+    const { rerender } = render(header(false));
+    measure(62);
+    measure(28);
+    rerender(header(true));
+    expect(rowOf().style.minHeight).toBe("28px");
+  });
+
+  it("reads the row only while the tools are there to be read, and stops the moment the bar fills it", () => {
+    const { rerender } = render(header(false));
+    const resting = observers.at(-1)!;
+    expect(resting.observe).toHaveBeenCalledTimes(1);
+    rerender(header(true));
+    expect(resting.disconnect).toHaveBeenCalled();
+    // Nothing observes the bar's own row: its height is the one it was handed, not a new reading of it.
+    expect(observers).toHaveLength(1);
+  });
+
+  it("a row nobody measured holds nothing, which is the band as it was", () => {
+    const { rerender } = render(header(false));
+    rerender(header(true));
+    expect(rowOf().style.minHeight).toBe("");
+  });
+
+  it("a browser with no observer holds nothing and does not fail", () => {
+    vi.stubGlobal("ResizeObserver", undefined);
+    const { rerender } = render(header(false));
+    rerender(header(true));
+    expect(rowOf().style.minHeight).toBe("");
   });
 });

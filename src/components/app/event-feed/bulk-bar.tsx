@@ -85,11 +85,13 @@ export type BulkBarAction = {
  * ★ A THUMB'S FULL TARGET IN A HAND (crumbs-32, build 15's red-team: 28 by 28
  * there, Download 32px from Remove to Deleted): every control in the bar takes
  * the 44px the peek's verdicts take in a hand, and keeps a pointer's 28 at a
- * desk. The band the bar sits in holds 28 (`FeedSectionHeader`: a header that
- * grew as select mode opened bounced the album beneath it), so in a hand a
- * control is 44 wide and its target reaches 8px past its box above and below
- * (its own `::before`, part of it for every tap), to 44 tall with no pixel of
- * layout moved. Exported so the test reads the rule from here, never a copy.
+ * desk. The band the bar sits in holds the height its tools had at rest
+ * (`FeedSectionHeader`: 28 where they fit one line, more where they wrap; a
+ * header that grew or shrank as select mode opened bounced the album beneath
+ * it), so in a hand a control is 44 wide and its target reaches 8px past its
+ * box above and below (its own `::before`, part of it for every tap), to 44
+ * tall with no pixel of layout moved. Exported so the test reads the rule from
+ * here, never a copy.
  */
 export const HAND_TARGET = cn(
   "relative max-sm:min-w-11",
