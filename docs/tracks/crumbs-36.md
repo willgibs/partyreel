@@ -41,6 +41,8 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/app/report-review.tsx
   - src/components/app/report-review.test.tsx
   - src/app/(dev)/design/(shell)/library/compositions/composition-demos.tsx
+  # A one-call exception, named in the Handoff: the root 404's first lazy wait (a gate flake under load, no lane's file).
+  - src/app/not-found.lazy.test.tsx
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/marketing-content.md
   - docs/systems/lifecycle-recovery.md

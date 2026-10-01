@@ -38,10 +38,13 @@ describe("the root 404", () => {
   it("draws the site's screen on the app surface: the chrome, and the words in the trail's stage", async () => {
     surfaceNow.value = "app";
     const { container } = render(<NotFound />);
-    const title = await screen.findByRole("heading", {
-      level: 1,
-      name: "We lost this page",
-    });
+    // The file's first lazy chunk (the whole site chrome) loads here: alone it takes about half a second, but in a
+    // full parallel run on a busy machine it took just over findBy's default second, and failed every lane's gate.
+    const title = await screen.findByRole(
+      "heading",
+      { level: 1, name: "We lost this page" },
+      { timeout: 4000 },
+    );
     const stage = container.querySelector(".trl-stage");
     expect(stage).not.toBeNull();
     expect(stage).toHaveClass(
