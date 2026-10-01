@@ -11,6 +11,7 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/app/event-feed/feed-section-header.tsx
   - src/components/guest/guest-header.tsx
   - src/components/guest/guest-header.test.tsx
+  - src/components/guest/foreign-ticket.test.tsx
   - src/components/guest/guest-account-menu.tsx
   - src/components/app/dashboard/claims-card.tsx
   - src/components/app/dashboard/claims-review.tsx
