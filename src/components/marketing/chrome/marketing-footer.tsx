@@ -12,6 +12,7 @@ import { trackAttrs } from "@/lib/analytics/events";
 import { ASK_AI_TARGETS, LLMS_TXT_HREF } from "@/lib/constants/ask-ai";
 import { IS_HIRING } from "@/lib/constants/careers";
 import {
+  FAQ_HREF,
   FOOTER_LEGAL,
   FOOTER_NAV,
   MARKETING_CTA,
@@ -23,6 +24,7 @@ import { DEMO_EVENT_URL } from "@/lib/demo";
 import { cn } from "@/lib/utils";
 
 import { FooterDemo } from "./footer-demo";
+import { FooterFaqLink } from "./footer-faq-link";
 import { FooterGlow } from "./footer-glow";
 
 /**
@@ -353,6 +355,14 @@ function FooterNavColumn({ column }: { column: FooterColumn }) {
 }
 
 function FooterLink({ link }: { link: NavLink }) {
+  // The FAQ is the one link that follows the page it is pressed on (footer-faq-link.tsx).
+  if (link.href === FAQ_HREF) {
+    return (
+      <li>
+        <FooterFaqLink className={FOOTER_LINK}>{link.label}</FooterFaqLink>
+      </li>
+    );
+  }
   // The badge is matched on the route here rather than declared in
   // marketing-nav.ts on purpose: that module is deliberately dependency-free and
   // never imports the registries it mirrors, and this signal is DERIVED from

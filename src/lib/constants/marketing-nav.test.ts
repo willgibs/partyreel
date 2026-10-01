@@ -1,12 +1,18 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import { EVENT_TYPE_SLUGS } from "@/lib/constants/events";
 import { FEATURE_PAGES } from "@/lib/constants/feature-pages";
 import {
+  FAQ_HREF,
+  faqHrefFrom,
   FOOTER_LEGAL,
   FOOTER_NAV,
   isNavGroup,
   isNavItemCurrent,
+  OWN_FAQ_ROUTES,
   PRIMARY_NAV,
   type FooterColumn,
   type NavItem,
@@ -264,5 +270,49 @@ describe("marketing nav config", () => {
     }
     const column = FOOTER_NAV.find((col) => col.title === "Resources");
     expect(column?.links.map((link) => link.href)).toEqual(expected);
+  });
+});
+
+describe("the footer's FAQ link follows the reader's page", () => {
+  it("is the home's FAQ by default, and the Product column carries that default", () => {
+    expect(FAQ_HREF).toBe("/#faq");
+    const product = FOOTER_NAV.find((col) => col.title === "Product");
+    expect(product?.links.find((link) => link.label === "FAQ")?.href).toBe(
+      FAQ_HREF,
+    );
+  });
+
+  it("stays on a page with its own FAQ (/pricing), and leaves for the home's from every other", () => {
+    expect(faqHrefFrom("/pricing")).toBe("#faq");
+    for (const path of [
+      "/",
+      "/about",
+      "/help",
+      "/events/weddings",
+      "/features/album",
+      "/blog/a-post",
+      "/no-such-page",
+    ]) {
+      expect(faqHrefFrom(path), path).toBe(FAQ_HREF);
+    }
+    // A render with no router context (a test, a not-found shell) takes the default.
+    expect(faqHrefFrom(null)).toBe(FAQ_HREF);
+  });
+
+  it("every route it stays on really carries its FAQ as #faq, and so does the home", () => {
+    const read = (rel: string) =>
+      readFileSync(join(process.cwd(), rel), "utf8");
+    // The home's FAQ is the default target.
+    expect(read("src/components/marketing/sections/home/faq.tsx")).toContain(
+      'id="faq"',
+    );
+    // A route listed here has a cinema page whose FAQ section is #faq; a route
+    // whose page lost its anchor would send the footer's link nowhere.
+    for (const route of OWN_FAQ_ROUTES) {
+      expect(
+        read(`src/app/(marketing)/(cinema)${route}/page.tsx`),
+        `${route} has no id="faq" section`,
+      ).toContain('id="faq"');
+    }
   });
 });
