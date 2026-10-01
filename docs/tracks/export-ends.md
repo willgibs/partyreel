@@ -10,6 +10,11 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/db/queries/exports.ts
   - src/app/admin/exports/
   - workers/export/
+  - src/app/admin/jobs/
+  - src/lib/db/queries/jobs.ts
+  - src/lib/db/queries/jobs.test.ts
+  - src/lib/jobs/health-summary.ts
+  - supabase/migrations/20261001235500_export_worker_reports.sql
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/uploads-and-r2.md
   - docs/systems/admin-observability.md
@@ -53,7 +58,36 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **Hidden items in a host's selection.** Built: a selection that MIXES hidden and shown items asks first, in the
+  download's own toast ("3 of these 12 are hidden." with Include them and Leave them out, the x cancels); a
+  selection of only shown or only hidden items goes as picked, since picking only hidden tiles is its own answer. One
+  root for the album's bulk bar and the storage list (the walk reads the selection's own summary from the server), and
+  the bar is let go the moment the question shows. Overrule: always leave hidden out (Download all's default), or
+  always take the selection and only say so.
+- **"Saved" is the Worker's word.** A zip reads saved when the Worker sent its last byte (its stream finished), the
+  closest the app can see; the phone writing it to Files is the browser's. Recommended: keep.
+- **The toast stays while a zip downloads** ("Saving to your Files app…", "Downloading…" at a desk) and turns to
+  "Saved to your Files app." / "Your download is saved." when the Worker reports; a walk's parts turn from
+  "Part 1 of 3 is downloading." to "Part 1 of 3 is saved.", and its last word waits for every part ("All 3 parts are
+  saved. That's everything."). With no word from the Worker (an older Worker, a laptop the Worker cannot reach) the
+  walk says today's words and claims nothing. Overrule: let the toast go at "starting" as today.
+- **A zip the Worker could not finish** (she cancelled it, the connection dropped, an object read failed) is said with
+  a Try again for exactly what it lacks ("That download stopped before it finished."); the Worker cannot tell her
+  cancel from a dropped line, so both are said. Overrule: stay quiet after a stop.
+- **The window between the check and the stream is closed in the Worker:** a token that asks for reports gets a 204
+  (the page stays, no file) when the album emptied after its check, and the toast says "Nothing left to download.";
+  an object gone mid-stream is counted in the walk's last word with its Try again. A token without the ask (every app
+  before this lane) keeps today's answers exactly. Recommended: keep.
+- **Reports ride the export signing secret, domain-separated** (a report's MAC is over `report:` and its body, which no
+  token body can equal), so the deploy needs no new secret. Overrule: a secret of its own (`EXPORT_REPORT_SECRET`:
+  three app homes and a Worker secret).
+- **The heartbeat is the Worker's own daily self-check** (05:30 UTC: it reads the bucket and signs a ping the app
+  verifies, so a dead, mis-keyed or bucket-less Worker reads Missed or Failed): a `scheduled` job `export` whose switch
+  is the existing `export_enabled`. Beside it a signal, `export_delivery`: zips the Worker finished in a day, and every
+  failure (a check R2 refused, a stream an object read broke, a mint with nothing configured). Overrule: hourly.
+- **The status is read by the export's own nonce** (its `jti`, 128 random bits, which only the token's holder has),
+  polled about every second for 15 s, then backing off to every 10 s, for as long as the toast is open (6 h at most).
+  Recommended: keep (long-polling would hold a function open instead).
 
 ## System-doc edits (in place, owned facts only)
 
