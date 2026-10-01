@@ -227,14 +227,15 @@ export function SettingsProvider({
    * until no save is on its way AND what the last one brought has committed.
    *
    * ★ LANDED IS COMMITTED, NEVER ANSWERED. The call is made inside a transition (`useTransition`, a sync
-   * callback, so nothing else is held behind it), whose isPending commits with the router's own update:
-   * Next sets the router's state to a promise in that same transition and settles it once the action's
-   * answer is built into state. The answer alone is early. Measured on a revalidating action under `next
-   * dev` (Next 16.2.6, crumbs-42's probe): two writes inside a save's round trip and its re-fetch reloaded
-   * the page; one write a task after the answer was safe, but a second 20ms later reloaded it and one 40 to
-   * 80ms later dropped the save's data, since Next's history entry still held the tree from before the save
-   * (its `HistoryUpdater` writes the new one only at the commit); two writes 0 to 40ms after the commit
-   * landed the data and reloaded nothing, in all sixteen tries.
+   * callback, so no async action holds other transitions behind it), whose isPending commits with the
+   * router's own update: Next sets the router's state to a promise in that same transition and settles it
+   * once the action's answer is built into state. The answer alone is early. Measured on a revalidating
+   * action under `next dev` (Next 16.2.6, crumbs-42's probe): two writes inside a save's round trip and its
+   * re-fetch reloaded the page; one write a task after the answer was safe, but a second 20ms later reloaded
+   * it and one 40 to 80ms later dropped the save's data, since Next's history entry still held the tree from
+   * before the save (its `HistoryUpdater` writes the new one only at the commit); two writes 0 to 80ms after
+   * the commit landed the data and reloaded nothing in all 31 tries (15 with this sync callback, 16 with an
+   * async one), and a close written during a save still drew in about 20ms.
    */
   const [settling, startSettling] = useTransition();
   const settlingNow = useRef(false);
