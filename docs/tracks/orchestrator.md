@@ -48,6 +48,7 @@ a lane").
 | `crumbs-44` | a person's page: cards on their preview derivatives, a video-only card's face, one toggle for follow and block, the menu at 375, loading screens, the setup's follow-ons, the report's person arm under test; the no-handle home asked | HANDED OFF at `5fdd6fbb` (gate on `3b70ed3f` green: test 8,372, build, lab:smoke 141; no SQL); merges after milestone 32; one product question asked of Will (where a no-handle account keeps its likes: `/me` recommended, nothing built); `/u/[slug]` kept with no `loading.tsx`, against the brief, its reason in its Questions | Opus, 3133 | `5fdd6fbb` |
 | `lab-sitting` | a faster, truer sitting: the queue pictures first, a copied link with a board's own state, a whole-program note, answered asks reachable, a select for long controls, a frame of its own, the shell's restyle scoped, the dock's dead exports; no board's asks moved | running (agent `a48480e42fd670493`), cut at `f7f99c54`; its merge waits for milestone 32, and its build waits for Will's sitting to end (ask) | Opus, 3131 | |
 | `mkt-polish` | the marketing site's seams: stills through a derivative path, the 404's unused preloads, `--faint` as copy, one contract and one receipt for careers and contact, each page's FAQ, a dynamic route's 404 title, the claim scan's reach, /pricing's rows, the phone sheet's tracking; no desk board's surface moved | running (agent `a590eefa888a51c31`), cut at `cf82f882`; its merge waits for milestone 32 | Opus, 3133 | |
+| `crumbs-45` | build 36's red-team finds, the milestone's last gate: a first-page Delete in My uploads that holds (the MEDIUM), the reel card's Add photos landing, the owner's own credit; three files by named exception | running (agent `ad3933c7d105f8989`), cut at `c326bde9`; merges BEFORE milestone 32, then build 37 and its proof on the alias | Opus, 3134 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, respawned
 2026-10-01 18:15Z in this session; no question open. Q6 (crumbs-37's two migrations and crumbs-38's cursor file against
@@ -69,9 +70,7 @@ predecessor's transcript at
 account. Connectors follow the account: Claude in Chrome (every red-team needs it), the Supabase MCP on
 `ddafaemglzmuekbtjwzn`, the Vercel MCP on his personal team (deploys ride `$VERCEL_TOKEN`; only runtime logs need P3).
 
-**Build 36's red-team** (agent `a8ef0d825dc9caf2a`, spawned 2026-10-01 19:00Z, Opus, Will's Chrome): from
-`../partyreel-wt/_scratch/redteam-36/brief.md`; from another session, respawn it from that brief after its `ledger.txt`'s
-last line (the brief carries every rule and restore, the purge hand-runs' limits among them).
+**Build 36's red-team** is done (19:00 to 22:15Z, `../partyreel-wt/_scratch/redteam-36/ledger.txt`): every drivable walk PASS but one MEDIUM, a first-page Delete in My uploads that comes back until a reload, with one LOW (the reel card's Add photos stopping short, a popover's focus return) and two NITs (the owner's own credit a "?" disc; the closed strike line saying one date twice, which waits for crumbs-41's merge), all but the last in `crumbs-45`; the purge hand-run twice, ok then skipped, the switch ON; strikes unchanged (willg97 2, partyr33l 7, hi@willgibs 0, whose 3 instant hides lapse about 20:58Z 2026-10-02); its RT36 events deleted. Not driven: visible-tab steps (Will's Chrome window never came forward), Sentry (the `.env.local` token answers 403 on reads), the prune's client manifest (needs a tab frozen, not hidden, during the first run).
 
 Relays that live only in an agent: none.
 
@@ -95,6 +94,7 @@ but lab:demo's `about-press.facts` dev stall, ROADMAP's line), crumbs-31 (`5898b
    and his answers live in his browser's localStorage, so the deploy waits for no sitting. Then its red-team, an agent
    on Claude in Chrome, from `../partyreel-wt/_scratch/redteam-36/brief.md`, written fresh from crumbs-36 to
    crumbs-40's Handoff steps on `redteam-35/brief.md`'s template; strikes going in: willg97's address 2, partyr33l's 7.
+   Next: crumbs-45 hands off, merges (the only merge before the milestone), build 37, its three fixes proven on the alias.
    **Milestone 32: Will said yes** (2026-10-01, "Ship after the red-team (Recommended)"): batch 9 ships once build 36,
    or its fix build, passes, any MEDIUM or worse fixed and proven on the alias first; then the full gate, merge, tag,
    deploy and the read-only prod walk with no further ask. Until it ships only the red-team's fixes merge; any other
