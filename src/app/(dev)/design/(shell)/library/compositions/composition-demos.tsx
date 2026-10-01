@@ -52,6 +52,8 @@ import { Button } from "@/components/ui/button";
 import type { PlanFacts } from "@/lib/billing/plan-facts";
 import {
   addressStrikes,
+  type ClosedStrike,
+  closedStrikeWords,
   type HoldScope,
   WAY_BACK_LINE,
 } from "@/lib/admin/reports";
@@ -580,6 +582,86 @@ const QUEUE_ENTRIES: ReviewEntry[] = [
   }),
 ];
 
+/**
+ * A dismissed child-abuse report's closed line, in each state its strike can be in (crumbs-36): the words are the
+ * production function's own (`closedStrikeWords`), over fixed readings, so the Library draws what the portal draws.
+ * The row's Undo is inert here, like every write on this page.
+ */
+const UNDO_BUTTON = (
+  <Button
+    type="button"
+    variant="outline"
+    size="sm"
+    className="shrink-0"
+    aria-label="Undo: reopen the report"
+  >
+    <Undo2 />
+    <span className="hidden sm:inline">Undo</span>
+  </Button>
+);
+
+function strikeLine(
+  strike: ClosedStrike,
+  canUndo: boolean,
+): { state: ClosedStrike["state"]; words: string } {
+  return { state: strike.state, words: closedStrikeWords(strike, { canUndo }) };
+}
+
+const STRIKE_LINES: {
+  note: string;
+  resolvedAt: string;
+  strike: ReturnType<typeof strikeLine>;
+  undo: boolean;
+}[] = [
+  {
+    // Inside its reopen window: the strike counts, and Undo takes it back.
+    note: "A family photo, not harm",
+    resolvedAt: "2026-09-26T08:30:00.000Z",
+    strike: strikeLine(
+      {
+        state: "live",
+        at: "2027-03-25T08:30:00.000Z",
+        live: 2,
+        bar: 3,
+        barredUntil: null,
+      },
+      true,
+    ),
+    undo: true,
+  },
+  {
+    // Past its reopen window, the address barred: the strike counts for its full life and nothing takes it back.
+    note: "Duplicate of an earlier dismissal",
+    resolvedAt: "2026-08-02T21:10:00.000Z",
+    strike: strikeLine(
+      {
+        state: "live",
+        at: "2027-01-29T21:10:00.000Z",
+        live: 3,
+        bar: 3,
+        barredUntil: "2026-12-02T19:30:00.000Z",
+      },
+      false,
+    ),
+    undo: false,
+  },
+  {
+    note: "No reason given",
+    resolvedAt: "2026-03-01T10:00:00.000Z",
+    strike: strikeLine(
+      { state: "lapsed", at: "2026-08-28T10:00:00.000Z" },
+      false,
+    ),
+    undo: false,
+  },
+  {
+    note: "Reported by an unconfirmed address",
+    resolvedAt: "2026-09-27T19:45:00.000Z",
+    strike: strikeLine({ state: "none" }, false),
+    undo: true,
+  },
+];
+
 export function AdminReportCardDemo() {
   return (
     <div className="w-full space-y-4">
@@ -609,6 +691,23 @@ export function AdminReportCardDemo() {
             </Button>
           }
         />
+        {STRIKE_LINES.map((line) => (
+          <ClosedLine
+            key={line.note}
+            lead={
+              <span
+                aria-hidden
+                className="size-8 shrink-0 rounded border border-dashed"
+              />
+            }
+            status="dismissed"
+            note={line.note}
+            where="Jordan & Lee's wedding"
+            resolvedAt={line.resolvedAt}
+            strike={line.strike}
+            end={line.undo ? UNDO_BUTTON : undefined}
+          />
+        ))}
       </ClosedLog>
     </div>
   );

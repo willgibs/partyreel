@@ -1,7 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import { EyeOff, ImageOff, ShieldAlert, Undo2, VideoOff } from "lucide-react";
+import {
+  EyeOff,
+  Gavel,
+  ImageOff,
+  ShieldAlert,
+  Undo2,
+  VideoOff,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -17,6 +24,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  type ClosedStrike,
+  closedStrikeWords,
   deletedItemLine,
   deletedItemNoun,
   HIDE_RESTORED_MESSAGE,
@@ -37,7 +46,9 @@ import { formatAdminDate, formatAdminTimestamp } from "@/lib/format/admin-time";
  * (`reason=marked`), the verdict's note (`verdict=note`) and the one dismissal toast with its Undo.
  *
  *  - A CLOSED report is one line (`closed=window`): the verdict, its note, the album and when, and an Undo while
- *    the removal it made still waits out its window or a dismissal is inside its 30 days, or Held.
+ *    the removal it made still waits out its window or a dismissal is inside its 30 days, or Held. A dismissed
+ *    child-abuse report carries one quiet line under it, whether it is still a strike against its address and
+ *    until when (crumbs-36, from `report_strikes`: `closedStrikeWords`).
  *
  * ★ NOTHING HERE DECIDES WHAT A VERDICT TOUCHES. The actions read the report's own item and its state; the words
  * below only describe it, from the same read (`wayBack`).
@@ -252,6 +263,7 @@ export function ClosedLine({
   where,
   resolvedAt,
   end,
+  strike,
 }: {
   /** The small square at the head: the frame, or a quiet stand-in. */
   lead: React.ReactNode;
@@ -262,12 +274,17 @@ export function ClosedLine({
   resolvedAt: string | null;
   /** Undo, Held, or nothing. */
   end?: React.ReactNode;
+  /**
+   * A dismissed child-abuse report's strike, said under the row (`closedStrikeWords`): the row stays one line, and
+   * a report the strike rule does not count draws nothing.
+   */
+  strike?: { state: ClosedStrike["state"]; words: string } | null;
 }) {
   const meta = REPORT_STATUS_META[status];
   return (
     <li
       data-closed-report
-      className="flex items-center gap-3 border-b px-3 py-2.5 last:border-b-0"
+      className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b px-3 py-2.5 last:border-b-0"
     >
       {lead}
       <div className="grid min-w-0 flex-1 gap-0.5 sm:flex sm:items-center sm:gap-3">
@@ -302,6 +319,20 @@ export function ClosedLine({
       <div className="flex shrink-0 justify-end max-sm:empty:hidden sm:w-20">
         {end ?? null}
       </div>
+      {/* Under the note, past the frame's square (size-8) and the row's gap (gap-x-3). The gavel is the open
+          queue's own mark for a strike (`report-queue.tsx`'s StrikeLine). */}
+      {strike ? (
+        <p
+          data-closed-strike={strike.state}
+          className="flex basis-full items-start gap-1.5 pl-11 text-caption text-pretty text-muted-foreground"
+        >
+          <Gavel
+            className="mt-0.5 size-3.5 shrink-0 text-muted-foreground/80"
+            aria-hidden
+          />
+          <span className="min-w-0">{strike.words}</span>
+        </p>
+      ) : null}
     </li>
   );
 }
@@ -331,6 +362,15 @@ function DeletedItemLead({ type }: { type: "photo" | "video" | null }) {
 
 function ClosedReportLine({ report }: { report: ReviewReport }) {
   const item = report.media;
+  // The Undo clause is said only while the dismissal can still be reopened: a strike outlives that window.
+  const strike = report.strike
+    ? {
+        state: report.strike.state,
+        words: closedStrikeWords(report.strike, {
+          canUndo: report.wayBack === "reopen",
+        }),
+      }
+    : null;
 
   return (
     <ClosedLine
@@ -371,6 +411,7 @@ function ClosedReportLine({ report }: { report: ReviewReport }) {
       note={report.resolution_note}
       where={report.event?.name ?? "Unknown event"}
       resolvedAt={report.resolved_at}
+      strike={strike}
       end={
         report.wayBack === "undo" || report.wayBack === "reopen" ? (
           <ClosedUndo reportId={report.id} way={report.wayBack} />

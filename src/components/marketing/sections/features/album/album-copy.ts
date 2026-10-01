@@ -1,5 +1,5 @@
 import { planById } from "@/lib/constants/tiers";
-import { INACTIVE_DAYS, WARN_BEFORE_DAYS } from "@/lib/lifecycle/inactivity";
+import { INACTIVE_MONTHS, WARN_BEFORE_DAYS } from "@/lib/lifecycle/inactivity";
 import { OVER_CAP_GRACE_DAYS } from "@/lib/lifecycle/over-cap";
 import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 import { UPLOAD_CAP_PRESETS } from "@/lib/media/limits";
@@ -171,7 +171,7 @@ export const STAYS = {
     },
     {
       title: "Free albums need a visit",
-      body: `Idle ${Math.round(INACTIVE_DAYS / 30)} months? An email ${Math.round(WARN_BEFORE_DAYS / 7)} weeks ahead, then ${RECENTLY_DELETED_WINDOW_DAYS} days in Deleted to restore.`,
+      body: `Idle ${INACTIVE_MONTHS} months? An email ${Math.round(WARN_BEFORE_DAYS / 7)} weeks ahead, then ${RECENTLY_DELETED_WINDOW_DAYS} days in Deleted to restore.`,
     },
   ] satisfies CopyItem[],
   backup:

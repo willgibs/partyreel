@@ -22,6 +22,7 @@ import {
   planById,
   plansForTier,
 } from "@/lib/constants/tiers";
+import { formatCount } from "@/lib/format/count";
 import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
 import { formatBytes } from "@/lib/utils";
 
@@ -109,9 +110,9 @@ function buildGroups(): MatrixGroup[] {
           // host-storage r2: an estimate names the camera it assumes, with its working.
           tip: ESTIMATE_BASIS_NOTE,
           values: [
-            `${freePhotos.toLocaleString()} photos`,
-            `${passCap.photos.toLocaleString()} photos or ${Math.round(passCap.videoMinutes / 60)} h of video`,
-            `up to ${proTopCap.photos.toLocaleString()} photos`,
+            `${formatCount(freePhotos)} photos`,
+            `${formatCount(passCap.photos)} photos or ${formatCount(Math.round(passCap.videoMinutes / 60))} h of video`,
+            `up to ${formatCount(proTopCap.photos)} photos`,
           ],
         },
         {

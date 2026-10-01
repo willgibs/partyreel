@@ -24,6 +24,7 @@ import {
   plansForTier,
   videosAllowedForTier,
 } from "@/lib/constants/tiers";
+import { formatCount } from "@/lib/format/count";
 import { cn } from "@/lib/utils";
 import { formatBytes } from "@/lib/utils";
 
@@ -449,7 +450,7 @@ export function PlanPair() {
               stats={[
                 { value: formatBytes(free.storageBytes), label: "Storage" },
                 {
-                  value: `≈ ${freeCap.photos.toLocaleString()}`,
+                  value: `≈ ${formatCount(freeCap.photos)}`,
                   label: "Photos",
                 },
               ]}
@@ -522,11 +523,11 @@ export function PlanPair() {
                 stats={[
                   { value: formatBytes(pro.storageBytes), label: "Storage" },
                   {
-                    value: `≈ ${proCap.photos.toLocaleString()}`,
+                    value: `≈ ${formatCount(proCap.photos)}`,
                     label: "Photos",
                   },
                   {
-                    value: `${Math.round(proCap.videoMinutes / 60).toLocaleString()} h`,
+                    value: `${formatCount(Math.round(proCap.videoMinutes / 60))} h`,
                     label: "Video",
                   },
                 ]}

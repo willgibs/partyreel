@@ -39,7 +39,11 @@ import {
 } from "@/lib/constants/tiers";
 import { TEASER_LIMIT } from "@/lib/events/gallery-access";
 import { UNLOCK_TTL_SECONDS } from "@/lib/events/unlock-token";
-import { INACTIVE_DAYS, WARN_BEFORE_DAYS } from "@/lib/lifecycle/inactivity";
+import {
+  INACTIVE_DAYS,
+  INACTIVE_MONTHS,
+  WARN_BEFORE_DAYS,
+} from "@/lib/lifecycle/inactivity";
 import { OVER_CAP_GRACE_DAYS } from "@/lib/lifecycle/over-cap";
 import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 import { RENEWAL_NUDGE_DAYS } from "@/lib/lifecycle/renewal";
@@ -227,7 +231,7 @@ export const MaxEvents = ({
 export const UploadCapFloor = () => <>{formatBytes(MIN_UPLOAD_CAP_BYTES)}</>;
 /** "about 6 months": the free-tier inactivity window, from the day count. */
 export const InactivityMonths = ({ capitalized }: PhraseCase) =>
-  phrase(`about ${Math.round(INACTIVE_DAYS / 30)} months`, capitalized);
+  phrase(`about ${INACTIVE_MONTHS} months`, capitalized);
 /** "about a year": the Event Pass term. */
 export const EventPassTerm = ({ capitalized }: PhraseCase) => {
   const days = planById("event_pass").termDays ?? 365;

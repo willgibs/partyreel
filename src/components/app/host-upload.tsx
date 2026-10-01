@@ -10,6 +10,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 
+import { useHostAdd } from "@/components/app/host-add-provider";
 import { FileDropzone } from "@/components/guest/file-dropzone";
 import { UploadThumbnail } from "@/components/shared/upload-thumbnail";
 import { Button } from "@/components/ui/button";
@@ -41,11 +42,14 @@ export function HostUpload({
 }: {
   eventId: string;
   videosAllowed: boolean;
-  // Reports the in-flight count (queued + uploading) so a parent can mirror it
-  // (e.g. the command bar's floating Add pill's "N uploading" chip, S3·3b·C).
+  // Reports the in-flight count (queued + uploading) so a parent can mirror it:
+  // `event-gallery.tsx` hands it to `HostAddProvider`, which no surface reads since
+  // the floating Add pill (its "N uploading" chip) retired.
   onUploadingCountChange?: (count: number) => void;
 }) {
   const router = useRouter();
+  // The provider holds this panel's box for the reel card's Add photos (`openAdd`).
+  const add = useHostAdd();
   const [items, setItems] = useState<Item[]>([]);
   // Ref mirror so the sequential queue runner reads current state synchronously.
   const itemsRef = useRef<Item[]>([]);
@@ -99,7 +103,7 @@ export function HostUpload({
     if (anySucceeded) router.refresh();
   }, [patch, eventId, router]);
 
-  // Mirror the in-flight count up (queued + uploading) for the floating Add pill.
+  // Mirror the in-flight count up (queued + uploading) for a parent that shows it.
   useEffect(() => {
     if (!onUploadingCountChange) return;
     onUploadingCountChange(
@@ -122,8 +126,15 @@ export function HostUpload({
     [runQueue, sync],
   );
 
+  // ★ THE PANEL `openAdd` BRINGS INTO VIEW (`host-add-provider.tsx`): this box is registered with the provider,
+  // and its scroll margin clears what sticks above it, the app bar and the cards band stuck under it (about 7rem
+  // together) and the panel's own padding and intro line above this box (`event-gallery.tsx`, up to 5.5rem on a
+  // phone), with a little air, so the whole panel lands in view and never under the band.
   return (
-    <div className="space-y-4">
+    <div
+      ref={add?.registerPanel}
+      className="scroll-mt-52 scroll-mb-4 space-y-4"
+    >
       <FileDropzone onFiles={addFiles} allowVideos={videosAllowed} />
 
       {items.length > 0 && (

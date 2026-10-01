@@ -73,9 +73,10 @@ routes.
   phones" is the same promise in other words, and `content-policy.test.ts` fences both.
 - ★ **A line that says an event "stays up" carries the Free plan's one exception**: an event nobody touches for about six
   months is warned about by email, then moved to Deleted, where it can be restored for 30 days (the help guide's rule 7,
-  derived from `lifecycle/inactivity.ts` and `recently-deleted.ts`). The home FAQ's keep answer and the event pages'
-  lines hold it (`faq-data.test.ts`, `events.test.ts`); the pricing FAQ, the llms files and `/features/privacy` carry it
-  too.
+  derived from `lifecycle/inactivity.ts` (`INACTIVE_MONTHS`) and `recently-deleted.ts`). The
+  home FAQ's keep answer, the event pages' lines and the two blog posts that say how long an album lasts (reunion and
+  trip) hold it (`faq-data.test.ts`, `events.test.ts`, `blog-keep-lines.test.ts`); the pricing FAQ, the llms files and
+  `/features/privacy` carry it too.
 - **A subhead runs opportunity, then what we do, then the benefit**: `SITE_SUBHEAD` is the model (their guests already
   shot the best photographs; what we do in one clause with no mechanism; the failure it spares them).
 - **An empty state names what is about to exist**, with the album as the noun and "starts" as the verb ("Your first
