@@ -2,8 +2,8 @@ import { type LucideIcon } from "lucide-react";
 
 // The shared empty / teaser BODY — Will ratified the Reel treatment (centered, card-LESS, the size-12 muted
 // icon circle) over the old bordered Review cards ("I prefer the Reel one", 2026-06-22). It always sits UNDER
-// a FeedSectionHeader, never replacing it, so the section's header keeps a constant top offset whether the
-// section is full or empty (part of the no-bounce contract). `data-arrive` = the existing fade-rise entrance
+// its section's head (a FeedSectionHeader, or the Review room's own title), never replacing it, so the head
+// keeps a constant top offset whether the section is full or empty (part of the no-bounce contract). `data-arrive` = the existing fade-rise entrance
 // the B=Fade swap re-fires. An optional centered `action` drops under the copy (the Review "Turn on review").
 export function FeedSectionEmpty({
   icon: Icon,

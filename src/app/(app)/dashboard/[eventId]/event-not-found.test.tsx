@@ -25,7 +25,9 @@ const later = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/supabase/request-auth", () => ({ getRequestAuth: later }));
 vi.mock("@/lib/db/queries/guest-events-admin", () => ({
   getLiveReelServerFacts: later,
-  getUploaderIdentities: later,
+}));
+vi.mock("@/lib/db/queries/album-state", () => ({
+  readAlbumAttribution: later,
 }));
 vi.mock("@/lib/db/queries/analytics", () => ({ getLinkStats: later }));
 vi.mock("@/lib/db/queries/event-doors", () => ({
