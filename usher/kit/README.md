@@ -6,7 +6,8 @@ Look up the task in hand; each section stands alone. The scripts run from the re
 
 1. `export S=<this session's scratchpad>` (every script requires it and writes its logs there). Read `docs/tracks/orchestrator.md` (in flight,
    next, waiting on Will), then `docs/STATUS.md`.
-2. `git status --short` (empty), `git worktree list`, the ports 3130 to 3139, `memory_pressure`; kill by port a dev
+2. `git status --short` (empty), the root on `launch-prep` (a fresh session can open on `main`, and `merge-lane.sh`
+   refuses any other branch), `git worktree list`, the ports 3130 to 3139, `memory_pressure`; kill by port a dev
    server whose lane is gone.
 3. The lanes: a `handed-off` manifest in `docs/tracks/` waits to be integrated; `git branch -r --list 'origin/lp/*'`
    finds a branch without one. A lane is integrated when its manifest is gone from HEAD, not merely when its tip is an
