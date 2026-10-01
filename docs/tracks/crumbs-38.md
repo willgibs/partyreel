@@ -1,6 +1,6 @@
 ---
 track: crumbs-38
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "3925f9f0"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -144,45 +144,93 @@ Each is built as recommended and is Will's to overrule; none is a one-way door (
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed to `origin/lp/crumbs-38`:** work ec9fe824 (feeds past 200), 827b6733 (the credit's face and door),
+  aa8ea67e (told on her return), 7c2e8acd (the system docs); sync 3e5d598b (a merge of launch-prep at 116d1555:
+  crumbs-36 and crumbs-39 had landed, and guest-flow.md, one of this lane's reads, moved; no file touched on both
+  sides); d7268af4 the one exception below. The head is in the chat line.
+- **Gates on the synced tree at d7268af4, each on its own exit code:** `pnpm typecheck` 0; `pnpm lint` 0 (no warning);
+  `pnpm test` 0 (687 files, 8,257 tests); `zsh scripts/build-lock.sh pnpm build` 0 (no warning in its log);
+  `pnpm lab:smoke --base http://localhost:3133` 0 (132 checks, 0 failing; scope: the Library, the shell and
+  `event-ready`, which imports `media-grid.tsx`).
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): every path under `owns`, the five system docs under
+  System-doc edits, and this file, with ONE exception: `src/components/lab/words.test.ts` loses its one `NOT_YET` entry
+  (d7268af4). Why: launch-prep's own records retired the ROADMAP line that said "numbered rulings" (e370430b), so the
+  test's own rule ("a retired line takes its entry with it") failed the gate on launch-prep itself; any lane syncing
+  meets it. `src/lib/db/queries/album-state.ts` (crumbs-37's) is untouched: the face is read by account after the
+  attribution read, which already carried the account id the rule reads.
+- **The items, one line each:**
+  - **My uploads and My likes past 200** (ec9fe824): `get_my_uploads` / `get_my_likes` page on a keyset
+    (`(created_at, id)`, `(liked_at, media_id)`), every arm filtered, clamped to the row cap (migration 20261001203800,
+    unapplied); the feeds read 200 a page asking one past it, so `next` is a cursor exactly when more exist; a Show
+    more (`my-feed-more.tsx`) through two cursor-only Server Functions (`feed-actions.ts`); an item is shown once when a
+    delete's revalidation shifts the first page; the honest note retires; the owner mode reads her own events' uploads
+    from the function's arm flag instead of `listEvents()` (so the ROADMAP line about `owner-mode.test.ts` naming
+    `listEvents` is moot: retire it).
+  - **The viewer's credit takes a face and a door** (827b6733): the one precedence rule names whose face
+    (`faceOwner`), `uploader-faces.ts` resolves it server-side (the avatar's public URL, `seedFor`'s colour, `/u/<slug>`
+    only for a published page), the album's who tuples carry it as an optional last field, the client mappers read it
+    defensively onto `uploaderFace`, Review's items too. A typed name, nobody, the teaser and the personal feeds wear
+    none; on a guest's view a person the event blocked keeps the plain disc and no door.
+  - **The approval toast's server half and "the host added your uploads" across a reload, one answer** (aa8ea67e):
+    `media.let_in_at` (a trigger stamps every move INTO approved) and `guests.let_in_told_at` (migration
+    20261001203810, unapplied); her tracker's read asks `tell`, answers her news and moves each row's mark forward to
+    the newest it told; the toast watches the news as it watches the queue, once a visit, by its old rules, and never
+    over the door. A database without the columns reads as no news, captured (`let_in_schema_missing`).
+- **Each item's test red on today's code** (checked by swapping in launch-prep's file, then restoring): the feeds'
+  paging (5 of 9 in `my-uploads.test.ts`); the SQL guards without the migrations (8 in `row-cap-sql.test.ts` and
+  `my-record-guards.test.ts`); the toast on a return (3 of 37 in `live-reel.test.tsx` with launch-prep's
+  `live-reel.tsx`); the rest name exports today's code does not have (`readOwnUploads`, `withUploaderFaces`,
+  `faceFromTuple`, `useFeedPages`, the `tell` body).
+- **Rolled-back proofs on the live schema, red first** (each one `execute_sql` call, nothing persisted; the results are
+  at each file's foot): 20261001203800 red 5 of 6 fail (step 5, the kept shape, holds), green 6/6 (376 uploads across
+  both arms paged 7 at a time equal the whole feed; a tie splits on the id; a stranger reads 0; the three grants);
+  20261001203810 red 6 of 6 fail, green 6/6 (pending, hidden and a restore to approved stamp; a restore that lands
+  hidden does not; the told mark notes no album; no client role reads either column or runs the function).
+- **Measured on localhost** (port 3133, the live database): the guest links route on the open album "guest-view-menu
+  QA" answers the host's face with `/u/willg`, Partyreel's with `/u/partyr33l`, a confirmed name without a handle its
+  colour alone, and the viewer's credit draws the seeded disc and the door; `/api/guests/mine` with `tell` on a
+  moderated album answers the statuses and `news: []` against today's schema (the seam), and without `tell` no `news`
+  key at all.
+- **For the next build's red-team** (signed-in surfaces, after both migrations apply):
+  1. Feeds: as willg97 (376 feed rows) open his own page: Your uploads shows 200 and Show more; press to the end (no
+     duplicate, newest first, no button at the end); Trash one on a loaded page (it leaves and stays gone) and one on
+     the first page (the page refills, nothing doubles); a host-arm item's confirm says Deleted, restorable. Likes need
+     201 to page (seed them with `like_many` on the scale probe as a test account). A hand-made POST to the Server
+     Function with another cursor reads only the caller's feed.
+  2. Faces: signed out on an open album with a confirmed sender, the credit wears their face and their page's door; a
+     typed name the plain disc; the host's credit the byline's face and page. Block a confirmed sender, restore one of
+     their photos: a guest's credit for it keeps the plain disc; the host's album and Review show the face in the look.
+  3. Told on her return: a moderated album with the reel on and two or more photos; as a ticket guest upload a photo
+     (held), close the tab; the host approves; reopen: "One of yours is in the album", Watch reel, once; reload: no
+     toast. Signed in, on a second device: told once across both. Hide then show it again: told on the next return.
+     A fresh device signed in (the welcome owed): the toast after Continue, never over the door.
+- **PREMISE lines** (lab:smoke named `disposable-mode`, 8 asks, and `locked-door`, 4 asks, through guest-flow.md,
+  uploads-and-r2.md, reel.md and `event-experience.tsx`): their asks still hold. disposable-mode's (camera, waiting,
+  wall, peek, create, video, cost, save) are the disposable roll's, hidden until it develops; this lane touched the
+  held-upload tracker's read, the approval toast on a moderated album and the credit's face (its quoted viewer already
+  draws a seeded face), none of which the roll's asks describe. locked-door's (family, shape, wait, lost) are the
+  door's own screens; the toast now waits for the door and changes nothing in it, and `entry-modal.tsx` and the door
+  are untouched.
+- **Assets requested from Will:** none.
+- **Board ideas:** the approval toast needs a reel to lead to ("Watch reel"), so on a moderated album under two photos
+  or with the reel off she is never told one of hers was let in (her tracker says "In the album" if she opens it); a
+  board could draw what she is told when there is no reel to watch.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** two migrations, both additive, apply in either
+  order, each before the build that ships this branch (a Show more and the news need them; the first page and the
+  statuses work either way): `20261001203800_my_feeds_cursor.sql` (md5 9866ebad88ce2d8f1cc02e0ef567462a) and
+  `20261001203810_let_in_told.sql` (md5 5f3b0099b5c9887e08660a4cee39c482); each header holds its apply protocol
+  (advisors: no delta), and after the regeneration the two typed seams go (`feedRpc`'s cast in
+  `src/lib/db/queries/my-uploads.ts`, `untypedAdmin` in `src/lib/db/mutations/guest-media.ts`).
+- **Calls his to overrule** (each built as recommended under Questions): the return is told with the same toast,
+  once, marked on the server per guest row; an upload shown again or restored counts as let in; a Show more button,
+  200 a press; the credit's face follows the guest list's rule (no face for a blocked person on a guest's view, none
+  at the teaser). The avatar is the public avatar bucket's URL resolved server-side (`getAvatarUrl`), as every Guests
+  list face is: avatars are no R2 object and have no presign.
+- **Look at first:** the toast on a return (`live-reel.tsx`'s `ApprovalToast`, its second source) and the credit's
+  face on an open album (`uploader-faces.ts`).
 
 ## Where I am
 
-- Booted at 58b359e8 (launch-prep; the manifest says cut 3925f9f0, the records since touch no code of this lane).
-- The plan, in build order (each item committed and pushed as its tests go green):
-  1. **Feeds past 200** (item 3): migration `20261001203800_my_feeds_cursor.sql` (get_my_uploads / get_my_likes take
-     `p_before_*` and clamp; drop + create, grants restated), `getMyUploadCards` / `getMyLikeCards` take a cursor and
-     answer `next` (asking one past the page), `feed-actions.ts` (two Server Functions), the galleries' Show more
-     (`my-feed-more.tsx`), the owner sections reading `is_host_upload` instead of `listEvents()`.
-  2. **The credit's face and door** (item 4): no migration. `resolveUploaderIdentity` names the face's owner
-     (internal), `uploader-faces.ts` hydrates it server-side (profiles by account id, the host's, the event's blocked
-     rows for a guest), the wire's who tuples gain an optional face tuple, the client mappers copy it onto
-     `uploaderFace`, Review's items too. `album-state.ts` (crumbs-37's) untouched: the face is read by account, after it.
-  3. **Told on her return** (items 1 and 2): migration `20261001203810_let_in_told.sql` (`media.let_in_at` + its
-     trigger, `guests.let_in_told_at`), `readOwnUploads` with `tell`, the route's `{statuses, tell}` answering `news`,
-     the tracker sending `tell` and handing the news to the toast through its store.
-- Done:
-  - Item 3 at ec9fe824: migration 20261001203800 proved red then green on the live schema (its foot holds the
-    result and the new bodies' md5s: get_my_uploads 21068680e6eb9a8d1d2f16fe17aac9c2, get_my_likes
-    648daea282e9ef5c82dac6ef405e9198); the queries, feed-actions.ts, my-feed-more.tsx, the galleries, the owner
-    sections; tests green, each new one red on today's code (checked by swapping in launch-prep's file).
-  - Item 4 at 827b6733: no migration; uploader-faces.ts, the identity's faceOwner, the wire's optional face tuple,
-    the client mappers, Review through toHostGalleryItems. Measured on localhost (album "guest-view-menu QA",
-    d147f214…): the guest links route answers the host's face + /u/willg, Partyreel's + /u/partyr33l, a confirmed
-    name with no handle its colour alone; the viewer's credit draws the seeded disc and the door. Full `pnpm test`
-    green at that commit (686 files).
-  - Items 1 and 2 at aa8ea67e: migration 20261001203810 proved red (6/6 fail) then green (6/6) on the live
-    schema (its foot holds the result); let-in-news.ts, readOwnUploads with `tell` (forward-only marks), the
-    route's `tell`/`news`, the tracker's news channel, the toast's second source and its door wait. Full
-    `pnpm test` green at that commit (687 files).
-- In progress: the system-doc facts, the local drive of what runs on localhost, the whole gate, the Handoff.
-- The proof builder for a migration's commented foot is in the scratch dir (`build-proof.py <file> red|green`).
+- Handed off: the Handoff above is the whole state. Nothing in progress; the dev server on 3133 is stopped and the
+  Browser pane tab closed. The proof builder for a migration's commented foot is in the scratch dir
+  (`../partyreel-wt/_scratch/crumbs-38/build-proof.py <file> red|green`).
