@@ -61,7 +61,9 @@ has no filter chips and no personal feeds (those are the profile's owner mode, [
   (`claims-batch.ts`). ★ The album link never rides the list (a Not mine is an event she was never at): a claimed row's
   Open album and quieter Follow come from the claim's own follow-up read (`getClaimedEventNext`), for an event she is
   now a guest of. The writes never revalidate; the review refreshes the page behind itself as each lands and keeps its
-  own account of her decisions. A disowned name leaves the guest list and the Guests room with its uploads, and the
+  own account of her decisions. ★ The layout's own silent claim is a write the list follows too: it lands after the
+  server drew the rows, so a claim that carried uploads (`onClaimed`) asks for the same refresh, and the banner and the
+  card drop what it took. A disowned name leaves the guest list and the Guests room with its uploads, and the
   empty guest row survives for the device that minted it. A nameless profile meets the name gate first
   ([auth-accounts.md](auth-accounts.md)), prefilled from the newest claimable row's typed name. One toast as the review
   closes counts what that opening added, its second line pointing at the page unless the page setup's invitation is

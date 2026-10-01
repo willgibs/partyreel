@@ -221,8 +221,10 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
     her ticket `in`. The name step and the add-email dialog read the code the same way: the
     ticket goes down, then a fresh join (the dialog closes and the door asks).
   ★ **The blob re-key**: an in-flight tile's object URL is keyed by queue id and re-keyed to the media id at
-  approved completion (`UploadedItem.queueId`): the SAME URL object, so the `<img src>` never changes and
-  the tile turns optimistic with zero flicker.
+  approved completion (`UploadedItem.queueId`): the SAME URL object, so the album's tile is a fresh `<img>` on a
+  picture the browser already holds, which answers `complete` at mount, and `MediaTile` shows it at once with no
+  fade (measured in a visible Chrome, 0 to 3 s between the stack tile leaving and the tile mounting, and in a
+  hidden tab; WebKit unmeasured). Her link then lands in place (`media-grid.tsx`).
 - **Empty state** ([`gallery-empty-state.tsx`](../../src/components/guest/gallery-empty-state.tsx)): the
   photographic promise, the RIVER (`shared/river`) in a square box the width of the reading column, the
   `public/guest-ghost` WebPs pouring under a centred `font-heading` title and CTA. The fade (85% grayscale,
