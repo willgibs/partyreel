@@ -23,8 +23,6 @@
  */
 import "server-only";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-
 import { readNewest } from "@/lib/admin/list-depth";
 import {
   type AddressStrikes,
@@ -390,14 +388,13 @@ const FUNCTION_NOT_PROVISIONED = new Set(["PGRST202", "42883"]);
  * `create_report` asks too, so the queue's line never counts by a copy of it. Keyed on the hashes the reports kept;
  * only counts and instants come back. ★ A SEAM ACROSS THE APPLY: until the function stands PostgREST answers that
  * it does not exist, and this reads as NO READING (null: the queue says nothing of strikes, never "no strikes")
- * rather than failing the queue; any other failure throws, as the queue's facts do. The cast holds until
- * src/lib/db/types.ts is regenerated with the function.
+ * rather than failing the queue; any other failure throws, as the queue's facts do.
  */
 export async function readStrikes(
   hashes: readonly string[],
 ): Promise<StrikesAnswer | null> {
   if (hashes.length === 0) return null;
-  const admin = createAdminClient() as unknown as SupabaseClient;
+  const admin = createAdminClient();
   const { data, error } = await admin.rpc("report_strikes", {
     p_reporter_hashes: [...new Set(hashes)],
   });

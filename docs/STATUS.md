@@ -25,8 +25,8 @@ Nothing is protected: every page, the host app and the guest pages are open to b
   applied), crumbs-30, crumbs-31 (the follow moment after a keep through Google), crumbs-32 and demo-stall (the lab
   check's stall, a Next dev bug, upstream's fix carried as a pnpm patch) on build 34, its red-team walking.
   `crumbs-34` (every published claim made true; Sentry quiet off Vercel) and `crumbs-33` (a report's live strikes on
-  the queue, the newsletter row with an email change, four correctness fixes; its two migrations wait on the Advisor)
-  are merged. App work leads (his note); the wiring of each board follows
+  the queue, the newsletter row with an email change, four correctness fixes; its two migrations applied) are
+  merged. App work leads (his note); the wiring of each board follows
   his picks.
 
 ## The desk
@@ -44,9 +44,10 @@ and `about-press` r1 (two), in that order.
 - **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 34 (`65dbedb2`): milestone 31
   plus batch 9's seven lanes, its red-team walking; the desk is the same six boards (no board moved since build 31).
   Vercel installs with pnpm 9.14.4, `package.json`'s `packageManager`.
-- **The shared database** runs every migration applied through 2026-09-30, schema-pass part 2 (the reel's three dormant
-  media columns dropped once milestone 31 shipped) and the instant hide's three strikes the last two; no build of
-  either project reads a dropped thing.
+- **The shared database** runs every migration applied through 2026-10-01: schema-pass part 2 (the reel's three
+  dormant media columns dropped once milestone 31 shipped), the instant hide's three strikes, and crumbs-33's two last
+  (`report_strikes`, the strike rule's one home; the newsletter row moving with an email change); no build of either
+  project reads a dropped thing.
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md).

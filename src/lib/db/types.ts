@@ -1749,6 +1749,7 @@ export type Database = {
         Args: { p_event_ids: string[]; p_media_ids: string[] }
         Returns: Json
       }
+      report_strikes: { Args: { p_reporter_hashes: string[] }; Returns: Json }
       restore_event: { Args: { p_event_id: string }; Returns: Json }
       restore_media: { Args: { p_media_id: string }; Returns: Json }
       set_event_door: {
