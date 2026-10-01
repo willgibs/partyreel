@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { FAQ_ITEMS } from "@/components/marketing/faq-data";
-import { INACTIVE_DAYS } from "@/lib/lifecycle/inactivity";
+import { INACTIVE_MONTHS } from "@/lib/lifecycle/inactivity";
 import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 
 /**
@@ -24,7 +24,7 @@ describe("the home FAQ's keep answer", () => {
   it("says the Free plan's idle removal, its warning, where it goes and how long it can be restored", () => {
     const answer = keep!.a;
     expect(answer).toContain("Free");
-    expect(answer).toContain(`about ${Math.round(INACTIVE_DAYS / 30)} months`);
+    expect(answer).toContain(`about ${INACTIVE_MONTHS} months`);
     expect(answer).toMatch(/warning email/);
     expect(answer).toContain("Deleted");
     expect(answer).toContain(`${RECENTLY_DELETED_WINDOW_DAYS} days`);

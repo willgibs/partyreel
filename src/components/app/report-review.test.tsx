@@ -59,6 +59,7 @@ function report(over: Partial<ReviewReport> = {}): ReviewReport {
       held: false,
     },
     wayBack: null,
+    strike: null,
     ...over,
   };
 }
@@ -232,5 +233,123 @@ describe("a report whose item is gone reads as that item's (crumbs-21, migration
     for (const line of [video, unknown, album]) {
       expect(line.querySelector("img, video")).toBeNull();
     }
+  });
+});
+
+/**
+ * ★ A DISMISSED CHILD-ABUSE REPORT'S CLOSED LINE SAYS ITS STRIKE (crumbs-36, a board idea from crumbs-33): whether it
+ * is still a strike and until when, what its address holds, and that its Undo takes it back, so an operator reading
+ * past dismissals sees what each one costs its address. The numbers arrive decided on the server (`ClosedStrike`,
+ * from `report_strikes`); the line only says them, and the row itself stays one line.
+ */
+describe("a dismissed child-abuse report's strike on its closed line", () => {
+  const dismissed = (over: Partial<ReviewReport>) =>
+    report({
+      id: "99999999-9999-4999-8999-999999999999",
+      status: "dismissed",
+      resolved_at: "2026-09-15T08:30:00.000Z",
+      ...over,
+    });
+  const live = {
+    state: "live" as const,
+    at: "2027-03-14T08:30:00.000Z",
+    live: 2,
+    bar: 3,
+    barredUntil: null,
+  };
+  const line = () =>
+    document.querySelector("[data-closed-report]") as HTMLElement;
+  const caption = () =>
+    line().querySelector("[data-closed-strike]") as HTMLElement | null;
+
+  it("★ says a live strike, until when and what the address holds, and its Undo while it can be reopened", () => {
+    render(
+      <ReportReviewList
+        reports={[dismissed({ strike: live, wayBack: "reopen" })]}
+      />,
+    );
+    expect(caption()).toHaveAttribute("data-closed-strike", "live");
+    expect(caption()).toHaveTextContent(
+      "A strike on its address until Mar 14, 2027 UTC; the address holds 2 of 3. Undo takes it back.",
+    );
+    // The row is still one line: the verdict, the Undo button and the strike under it.
+    expect(
+      within(line()).getByRole("button", { name: "Undo: reopen the report" }),
+    ).toBeInTheDocument();
+  });
+
+  it("★ never offers an Undo it cannot do: a strike past its reopen window says only that it counts", () => {
+    render(
+      <ReportReviewList
+        reports={[dismissed({ strike: live, wayBack: null })]}
+      />,
+    );
+    expect(caption()).toHaveTextContent(
+      "A strike on its address until Mar 14, 2027 UTC; the address holds 2 of 3.",
+    );
+    expect(caption()).not.toHaveTextContent(/Undo/);
+    expect(within(line()).queryByRole("button")).toBeNull();
+  });
+
+  it("says when the address is barred, and until when its reports stop hiding right away", () => {
+    render(
+      <ReportReviewList
+        reports={[
+          dismissed({
+            strike: {
+              ...live,
+              live: 3,
+              barredUntil: "2027-01-10T10:00:00.000Z",
+            },
+            wayBack: null,
+          }),
+        ]}
+      />,
+    );
+    expect(caption()).toHaveTextContent(
+      "the address holds 3 strikes, so its reports don't hide right away until Jan 10, 2027 UTC.",
+    );
+  });
+
+  it("says a strike that lapsed, and one that never was (no address kept)", () => {
+    render(
+      <ReportReviewList
+        reports={[
+          dismissed({
+            strike: { state: "lapsed", at: "2026-08-28T10:00:00.000Z" },
+          }),
+          dismissed({
+            id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+            strike: { state: "none" },
+          }),
+        ]}
+      />,
+    );
+    const [lapsed, none] = [
+      ...document.querySelectorAll("[data-closed-report]"),
+    ] as HTMLElement[];
+    expect(lapsed.querySelector("[data-closed-strike]")).toHaveTextContent(
+      "Its strike lapsed Aug 28, 2026 UTC.",
+    );
+    expect(none.querySelector("[data-closed-strike]")).toHaveTextContent(
+      "Not a strike: it kept no address to count against.",
+    );
+  });
+
+  it("★ draws nothing for any other closed report, or while the strikes cannot be read", () => {
+    render(
+      <ReportReviewList
+        reports={[
+          dismissed({ strike: null, wayBack: "reopen" }),
+          report({
+            id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+            status: "actioned",
+            resolved_at: "2026-09-28T23:00:00.000Z",
+            wayBack: "undo",
+          }),
+        ]}
+      />,
+    );
+    expect(document.querySelectorAll("[data-closed-strike]")).toHaveLength(0);
   });
 });

@@ -27,6 +27,8 @@ import { readNewest } from "@/lib/admin/list-depth";
 import {
   type AddressStrikes,
   addressStrikes,
+  type ClosedStrike,
+  closedStrike,
   entryKeyOf,
   type EntrySubject,
   frontOrder,
@@ -105,6 +107,12 @@ export type ReviewReport = {
   deleted?: DeletedItem | null;
   /** A closed report's way back (`closed=window`), decided here from the item's own row. */
   wayBack: WayBack;
+  /**
+   * ★ A DISMISSED CHILD-ABUSE REPORT'S STRIKE (crumbs-36): whether it still counts against its address and until
+   * when, from the rule's one home (`report_strikes`) and the page's one clock. Counts and instants only: the
+   * address and its hash stay here. Null on every other report, and while the strikes cannot be read.
+   */
+  strike: ClosedStrike | null;
 };
 
 /** A page's cursor on a newest-first queue: the last report's raw timestamp string and its id. */
@@ -150,7 +158,7 @@ export async function listReports(
       let q = admin
         .from("reports")
         .select(
-          "id, reason, created_at, status, resolved_at, resolution_note, event_id, media_id",
+          "id, reason, created_at, status, resolved_at, resolution_note, event_id, media_id, kind, reporter_hash",
         )
         .not("event_id", "is", null)
         .order("created_at", { ascending: false })
@@ -170,8 +178,14 @@ export async function listReports(
 
   const eventIds = reports.flatMap((r) => (r.event_id ? [r.event_id] : []));
   const mediaIds = reports.flatMap((r) => (r.media_id ? [r.media_id] : []));
+  // The addresses whose strikes a closed line says: every dismissed child-abuse report kept its address's hash.
+  const strikeHashes = reports.flatMap((r) =>
+    r.status === "dismissed" && r.kind === INSTANT_HIDE_KIND && r.reporter_hash
+      ? [r.reporter_hash]
+      : [],
+  );
 
-  const [events, media, covered] = await Promise.all([
+  const [events, media, covered, strikes] = await Promise.all([
     inChunks(
       "admin reports: events",
       eventIds,
@@ -196,6 +210,7 @@ export async function listReports(
         )) ?? [],
     ),
     readCoveredItems({ mediaIds }),
+    readStrikes(strikeHashes),
   ]);
   const eventById = new Map(events.map((e) => [e.id, e]));
   const rowById = new Map((media as MediaRow[]).map((m) => [m.id, m]));
@@ -255,6 +270,17 @@ export async function listReports(
                 }
               : null,
           },
+          nowMs,
+        ),
+        strike: closedStrike(
+          {
+            kind: r.kind,
+            status: r.status,
+            resolvedAt: r.resolved_at,
+            keptAddress: Boolean(r.reporter_hash),
+          },
+          r.reporter_hash ? strikes?.addresses.get(r.reporter_hash) : undefined,
+          strikes?.rule ?? null,
           nowMs,
         ),
       };

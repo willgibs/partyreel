@@ -35,6 +35,8 @@
  * env-referenced Stripe Price IDs and `planForPriceId()` live in lib/stripe/.
  */
 
+import { formatCount } from "@/lib/format/count";
+
 export const BILLING_TIERS = ["free", "pro", "event_pass"] as const;
 export type Tier = (typeof BILLING_TIERS)[number];
 
@@ -401,12 +403,16 @@ export function capWithWriteHeadroom(capBytes: number): number {
   return capBytes + Math.floor(capBytes / 10);
 }
 
-/** Format a cap for display; `null` renders as the unlimited label. */
+/**
+ * Format a cap for display; `null` renders as the unlimited label. A number reads through `formatCount` (en-US,
+ * pinned): a bare `toLocaleString()` printed the RUNTIME's locale, the server's while rendering and a visitor's
+ * own on hydration.
+ */
 export function formatLimit(
   value: number | null,
   unlimited = "Unlimited",
 ): string {
-  return value === null ? unlimited : value.toLocaleString();
+  return value === null ? unlimited : formatCount(value);
 }
 
 /**
@@ -465,7 +471,7 @@ export function friendlyCapacity(bytes: number): {
  * the round retired. `basis: false` is only for a surface that says it once already, beside
  * the figures (a list of plan cards over one note, a table under its caption).
  *
- * Locale is pinned: this renders on the server and in tests, and a machine-dependent
+ * Locale is pinned (`formatCount`): this renders on the server and in tests, and a machine-dependent
  * thousands separator would make llms.txt / snapshot output drift by host.
  */
 export function formatCapacity(
@@ -473,12 +479,12 @@ export function formatCapacity(
   { video = true, basis = true }: { video?: boolean; basis?: boolean } = {},
 ): string {
   const { photos, videoMinutes } = friendlyCapacity(bytes);
-  const photosText = `${photos.toLocaleString("en-US")} photos`;
+  const photosText = `${formatCount(photos)} photos`;
   // Hours from two hours up (the /pricing threshold the site shipped with); minutes below.
   const videoText =
     videoMinutes >= 120
-      ? `${Math.round(videoMinutes / 60).toLocaleString("en-US")} hours of video`
-      : `${videoMinutes.toLocaleString("en-US")} minutes of video`;
+      ? `${formatCount(Math.round(videoMinutes / 60))} hours of video`
+      : `${formatCount(videoMinutes)} minutes of video`;
   const estimate = video ? `${photosText} or ${videoText}` : photosText;
   return basis ? `${estimate} ${ESTIMATE_BASIS}` : estimate;
 }

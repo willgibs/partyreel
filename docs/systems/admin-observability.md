@@ -171,8 +171,11 @@ test (admin-triage r2):
   (20261001100000), which `create_report` asks for its bar and the queue reads, so the line that tells the operator
   can never count by another rule: a child-abuse report's line, on its card and in the report whole, says its
   address's live strikes and what a Dismiss would make of them (a Dismiss closes the whole entry, so each of the
-  address's open child-abuse reports on it becomes a strike), marked when a Dismiss is the one that ends the hide.
-  The address never shows: the read keys on the kept hash. Every other kind inserts only. A
+  address's open child-abuse reports on it becomes a strike), marked when a Dismiss is the one that ends the hide. A
+  dismissed one's closed line says whether its strike still counts and until when (`closedStrike`: the lapse read off
+  the answer's own `fresh_lapses_at`, never a copy of 180), what its address holds, and "Undo takes it back" only
+  while the dismissal can be reopened (30 days, where a strike lasts 180); one that kept no address says it was never
+  a strike. The address never shows: the read keys on the kept hash. Every other kind inserts only. A
   child-abuse report tells the operator after the response (`alertUrgentReport`: a Sentry warning every time, an
   ops-inbox mail once per album per ten minutes) and on the rail and the bell (the urgent count).
 - **The open queue is the review grid** (`components/admin/report-queue.tsx`): the five harm kinds in front, worst

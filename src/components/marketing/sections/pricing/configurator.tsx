@@ -17,6 +17,7 @@ import {
   planById,
   videosAllowedForTier,
 } from "@/lib/constants/tiers";
+import { formatCount } from "@/lib/format/count";
 import { cn, formatBytes } from "@/lib/utils";
 
 import { PhotoStack, StatRow } from "./plan-cards";
@@ -319,11 +320,11 @@ function ResultCard({
           <StatRow
             stats={[
               { value: formatBytes(rec.plan.storageBytes), label: "Storage" },
-              { value: `≈ ${cap.photos.toLocaleString()}`, label: "Photos" },
+              { value: `≈ ${formatCount(cap.photos)}`, label: "Photos" },
               {
                 // A photos-only plan holds no video at all: "0 h" read as a size.
                 value: videosAllowedForTier(rec.plan.tier)
-                  ? `${Math.round(cap.videoMinutes / 60).toLocaleString()} h`
+                  ? `${formatCount(Math.round(cap.videoMinutes / 60))} h`
                   : "None",
                 label: "Video",
               },

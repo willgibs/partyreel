@@ -1,5 +1,5 @@
 import { planById } from "@/lib/constants/tiers";
-import { INACTIVE_DAYS } from "@/lib/lifecycle/inactivity";
+import { INACTIVE_MONTHS } from "@/lib/lifecycle/inactivity";
 import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
 import { formatBytes } from "@/lib/utils";
@@ -10,9 +10,6 @@ import { formatBytes } from "@/lib/utils";
 // come from the limits/tiers single sources so the copy can't drift.
 const uploadSize = formatBytes(MAX_UPLOAD_BYTES);
 const free = planById("free");
-// The Free plan's idle window as the help center words it ("about 6 months": spec-shared's
-// InactivityMonths).
-const idleMonths = Math.round(INACTIVE_DAYS / 30);
 
 export type FaqItem = { q: string; a: string };
 
@@ -47,7 +44,7 @@ export const FAQ_ITEMS: FaqItem[] = [
     // touches is warned about, then moved to Deleted. A line that says an event "stays up"
     // carries that exception in the same breath (`faq-data.test.ts` holds it), and an
     // Event Pass covers its event for about a year.
-    a: `Until you delete them: an event has no end date. The one exception is a Free event untouched for about ${idleMonths} months, which gets a warning email before it moves to Deleted, where you can restore it for ${RECENTLY_DELETED_WINDOW_DAYS} days; any activity resets the clock. An Event Pass covers its event for about a year.`,
+    a: `Until you delete them: an event has no end date. The one exception is a Free event untouched for about ${INACTIVE_MONTHS} months, which gets a warning email before it moves to Deleted, where you can restore it for ${RECENTLY_DELETED_WINDOW_DAYS} days; any activity resets the clock. An Event Pass covers its event for about a year.`,
   },
   {
     q: "What does it cost?",
