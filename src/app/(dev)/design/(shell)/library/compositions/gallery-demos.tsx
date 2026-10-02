@@ -15,6 +15,10 @@ import {
   SAMPLE_MEDIA,
 } from "@/app/(dev)/design/reference/sample-data";
 import {
+  AlbumCoverDemo,
+  HubBandDemo,
+  HubCoverDemo,
+  WhatStaysDemo,
   QrPresetPickerDemo,
   ReviewSectionDemo,
   StorageListDemo,
@@ -68,6 +72,80 @@ const qrSlot = (
 );
 
 export const COMPOSITION_ENTRIES: GalleryEntry[] = [
+  /* THE EVENT'S HEAD (added by lp/header-wiring at the HEAD of the list, under a heading of its own, so
+     it lands on its own hunk): `event-header` r1's three picks as production composes them. */
+  {
+    id: "album-cover",
+    badge: "new",
+    family: "compositions",
+    section: "The event's head",
+    file: "src/components/guest/event-experience-head.tsx",
+    title: "The album's cover",
+    for: "the head a guest walks into past the door: the reel's own photographs dissolving edge to edge under the event's name, Add photos white on them",
+    lede: "The album's head on every event (`guest=cover`). The reel's own stills dissolve under the name, from the very HTML the server streams, on the house light until there are any (an empty album, one sealed until it develops). The byline says who and when in one line, the counts are glyphs at a desk, and the actions stand on the photograph: Add photos in white, the reel's round and Invite in glass. Reduced motion stands it on its first photograph.",
+    specimens: [
+      {
+        label: "Priya lands on the album",
+        hint: "214 photos from 31 guests; widen the window for the desk's two columns",
+        bleed: true,
+        node: <AlbumCoverDemo />,
+      },
+      {
+        label: "The first guest of the night",
+        hint: "nothing in the album yet: the house light, and Add the first photo",
+        bleed: true,
+        node: <AlbumCoverDemo empty />,
+      },
+    ],
+  },
+  {
+    id: "hub-cover",
+    badge: "new",
+    family: "compositions",
+    section: "The event's head",
+    file: "src/components/app/event-feed/event-hub-head.tsx",
+    title: "The hub's head",
+    for: "Maya's hub wearing her album's cover, her numbers and link on it and the code on its white mat",
+    lede: "One head on both sides of the code (`host=shared`): Maya sees her party as her guests do. The facts and the link under the title are today's (r2 redraws them); the code stands on its mat in the cover's corner, scannable from across a table, wearing its door on its corner. Once it has scrolled away the room cards' band carries its face and the code as a chip.",
+    specimens: [
+      {
+        label: "Tonight",
+        hint: "two people at her door, the lock's count on the code's corner",
+        bleed: true,
+        node: <HubCoverDemo />,
+      },
+      {
+        label: "The week before",
+        hint: "nothing in the album: the house light",
+        bleed: true,
+        node: <HubCoverDemo before />,
+      },
+      {
+        label: "Scrolled into the album",
+        hint: "scroll past the head: the band sticks under the bar with its face, the name and the code as a chip",
+        bleed: true,
+        node: <HubBandDemo />,
+      },
+    ],
+  },
+  {
+    id: "what-stays",
+    badge: "new",
+    family: "compositions",
+    section: "The event's head",
+    file: "src/components/guest/guest-action-dock.tsx",
+    test: "src/components/guest/guest-action-dock.test.tsx",
+    title: "What stays",
+    for: "the album's actions once the cover has scrolled away: Invite, the shutter and its twin over the album, the page's ground rising under them",
+    lede: "One round Add at the foot's centre in the album's light (`stays=shutter`), Invite on its left and its twin on its right (the reel, or the way back to the cover where an album has no reel), and the album's own ground rising under them while more album lies below. Press the shutter: its count goes down as a run of three goes.",
+    specimens: [
+      {
+        label: "Deep in the album",
+        hint: "press the shutter",
+        node: <WhatStaysDemo />,
+      },
+    ],
+  },
   /* THE OPERATIONS PORTAL'S SHELL (added by lp/admin-wiring at the HEAD of the
      list, so several lanes in one round land on distinct hunks). The `admin`
      board retires into this: every /admin route is behind requireAdmin() plus
@@ -142,7 +220,7 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
     section: "Event card",
     file: "src/components/app/event-card.tsx",
     title: "EventCard",
-    lede: "The dashboard's atomic unit, stat-forward, in each of its states.",
+    lede: "A party as a card, stat-forward, in each of its states: a profile's grid draws it (the dashboard's tile is its own since host-dashboard r1).",
     variants: [
       {
         prop: "variant",
@@ -223,7 +301,7 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
     section: "Dashboard chrome",
     file: "src/components/app/dashboard/storage-meter.tsx",
     title: "StorageMeter",
-    lede: "The ambient header bar. Open it for the friendly capacity, the Event Pass expiry, the standby bytes and the billing buttons.",
+    lede: "The storage ring beside the dashboard's New event. Open it for the friendly capacity, the Event Pass expiry, the standby bytes and the billing buttons.",
     specimens: [
       {
         label: "Storage meter",

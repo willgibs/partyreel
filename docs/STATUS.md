@@ -13,29 +13,28 @@ and the launch switches unspent ([`ROADMAP.md`](ROADMAP.md) → Launch checkpoin
 catalog in the lab, Will's verdicts on the desk, then the wiring; partyreel.com changes only at tagged milestone merges.
 Nothing is protected: every page, the host app and the guest pages are open to be reconceived from the ground up.
 
-## The current round: round 11, built from his desk
+## The current round: round 12, built from his desk on build 41
 
-- **Milestone 32 is live** (`21697db1`, 2026-10-01): batch 9 whole, red-teamed on builds 33 to 37. The legal text is
-  rewritten once, right before launch (his word).
-- **Batch 10 and round 11 are on `launch-prep`**, unshipped to partyreel.com (a milestone is his yes): batch 10's eight
-  lanes (their seven migrations applied), then round 11 from his desk answers of 2026-10-02 (no migration): the doorway
-  as the door family, event-ready's checklist and Settings steps, the privacy lens and the press band, /me, the lab's
-  prefetch and two guest fixes, red-teamed on build 40 (no MEDIUM or worse).
+- **Milestone 33 is live** (`f210dfaf`, 2026-10-02): batch 10 and round 11 whole (the doorway, event-ready's checklist and
+  Settings steps, the privacy lens and the press band, every download ending, the strip's last leaks), red-teamed on
+  build 40 and proven on build 42. The legal text is rewritten once, right before launch (his word).
+- **Round 12 runs on `launch-prep`** from his answers of 2026-10-02 (20 on seven boards): the wirings of the heads (the
+  cover, the shared hub, the shutter), the dashboard (the stage, this week, the live wall, seasons) and disposable mode's
+  server, then the door's walk-through, the camera and its rooms; and the lab's second layer.
 
 ## The desk
 
-Seven boards for his next sitting, in desk order: `identity` r1 (the app's atomic identity, from his library prompt),
-`host-dashboard` r1, `locked-door` r3 (the reveal and the idle loop), `event-header` r1, `create-wizard` r1,
-`disposable-mode` r3 and `demo-framing` r3 (his hero hybrid), each drawn from the production tonight's wirings left.
+Empty until round 12's boards land: identity r2 (viewfinder atom by atom, its voice first), host-dashboard r2,
+event-header r2, create-wizard r2 (the room's flow) and demo-framing r4 (the hero's stage), in that desk order.
 
 ## Live state
 
-- **Prod:** partyreel.com is `main` at tag `milestone-32` (`21697db1`, 2026-10-01 23:58Z), both projects READY; the
-  read-only walk PASS (pages and German pricing, dead ends, the dashboard, Show more, the hub's Add, credits, the
-  Report sheet, the admin door).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 41 (`ca08cce3`, 2026-10-02
-  11:45Z): build 40 (round 11's production, its red-team passed) plus the seven boards of his next desk and a guest
-  fix (crumbs-47). Vercel installs with pnpm 9.14.4, `package.json`'s `packageManager`.
+- **Prod:** partyreel.com is `main` at tag `milestone-33` (`f210dfaf`, 2026-10-02 19:40Z), both projects READY; the
+  read-only walk PASS (the pages, a German browser's dates, /press to /about#press, the demo's door, a dead link's soft
+  404, the dashboard and a hub's checklist head signed in); the admin portal waits on partyr33l's session.
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 42 (`26bd44f0`, 2026-10-02
+  19:25Z), the milestone's candidate; round 12's builds 43 and 44 follow. Vercel installs with pnpm 9.14.4,
+  `package.json`'s `packageManager`.
 - **The shared database** runs every migration through 2026-10-02, batch 10's seven last (the strike's lapse as a
   duration, the deleted events' index, the export Worker's reports, the host's cap on the album's read, a face moving
   the credits); no build of either project reads a dropped thing. The album-log prune runs nightly with the purge,
@@ -43,7 +42,7 @@ Seven boards for his next sitting, in desk order: `identity` r1 (the app's atomi
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** about 8,700 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
+- **Tests:** about 8,900 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
 - **Jobs:** the daily purge cron (Vercel Hobby fires it at 04:48 UTC; its first run on milestone 28's sweeps was green:
   every sweep ok, none stopped early, the orphan scan read 1,368 objects and deleted none, the standby budget's one host
   willg97 with the withdrawals out), the media-backup Worker and the daily DB-backup Action are live, and the export
@@ -67,5 +66,5 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-- His desk (above); the calls file's 74 calls to overrule (his decisions A and B answered 2026-09-30, C, #60's reopen
+- His desk (above, once round 12's boards land); the calls file's 90 calls to overrule (his decisions A and B answered 2026-09-30, C, #60's reopen
   window, 2026-10-01); the phone checks and the walks only he can drive (`tracks/orchestrator.md`).

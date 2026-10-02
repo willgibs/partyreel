@@ -55,9 +55,20 @@ describe("the hub's ready wiring", () => {
   });
 
   it("dresses the code in its door and who waits at it", () => {
-    const door = PAGE.slice(PAGE.indexOf("<EventCodeDoor"));
-    const props = door.slice(0, door.indexOf("/>"));
-    expect(props).toContain("door={event.door}");
-    expect(props).toContain("waiting={doorCounts.waiting}");
+    // ★ Reshaped on purpose (`event-header` r1, `host=shared`): the code stands on the head's cover
+    // (`HubCover`), so the page hands the door and its waiting count to the head, and the head hands
+    // them to the code, unchanged.
+    const head = PAGE.slice(PAGE.indexOf("<HubCover"));
+    const props = head.slice(0, head.indexOf("/>"));
+    expect(props).toContain("door: event.door");
+    expect(props).toContain("waiting: doorCounts.waiting");
+    const cover = readFileSync(
+      join(process.cwd(), "src/components/app/event-feed/event-hub-head.tsx"),
+      "utf8",
+    );
+    const door = cover.slice(cover.indexOf("<EventCodeDoor"));
+    const handed = door.slice(0, door.indexOf("/>"));
+    expect(handed).toContain("door={code.door}");
+    expect(handed).toContain("waiting={code.waiting}");
   });
 });

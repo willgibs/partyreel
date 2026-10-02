@@ -1,7 +1,7 @@
 ---
 track: orchestrator
 status: open
-cut: "f6d72a9d"          # the launch-prep SHA this state was written at
+cut: "26596e48"          # the launch-prep SHA this state was written at
 owns:                    # the standing claims no lane touches
   - src/app/(dev)/design/rules/bible.ts
   - src/app/(dev)/design/rules/bible.test.ts
@@ -33,136 +33,121 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 ## In flight
 
-Up to four lanes at once (Will, 2026-09-28: eight ran his Mac out of memory; heavy steps take the lock); every production build, a lane's or the kit's gate, takes turns
-through `scripts/build-lock.sh` (the kit's gate takes it itself). The lanes' manifests carry everything they need; an
-agent id below lives only in the Orchestrator session that spawned it (another session respawns: the runbook's "Resume
-a lane").
+Round 12 (Will's desk on build 41, answered 2026-10-02 18:00Z and transcribed at `ab799674`; approving its plan was his
+yes to run continuously to the round's close, tonight included, at the machine's limits; Moltbook's hourly passes only
+after the close). Up to six lanes (ports 3131 to 3136) while `memory_pressure` reads at least 50% free and swap stays
+flat; a lane in its gate, or the milestone's full gate, counts as two. Every production build takes turns through
+`scripts/build-lock.sh`. An agent id lives only in the session that spawned it (another session respawns: the runbook's
+"Resume a lane").
 
-| lane | what | state | model, port | at its handoff |
+| lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
-| `crumbs-41` | admin, data and billing: Will's #60 (a child-abuse dismissal reopenable while its strike counts), two live subscriptions, the strike's lapse as a duration, the drill-in's status filter, the person report's handle, `reviewed`, four-digit ticks, the soft-deleted events' index | MERGED at `6ae5c0b1` (gate 122 green: lint, test, build, lab:smoke 157, lab:demo on five boards 22 steps; PREMISE lines for about-press and disposable-mode, which the lane argued hold and the pre-sitting desk pass re-reads); its two migrations applied by protocol after the Advisor's Q7 (strike_lapse_duration 20261002000612, the file's md5 7903a927, its check held: lapse_seconds 15,552,000, 5 lapses measured; deleted_events_index 20261002000706, 8b207b5e, its check held over 57 deleted events) | Opus, 3131 | `c9c647d0` |
-| `crumbs-42` | the host app: Review's credits by its pending ids, a Settings save's page moves held, Paused, Review's one head, the dead upload count, a restore's Deleted line, the settings head's one name, the wizard's samples | MERGED at `3842b21f` (gate 121 green: test, build, lab:smoke 150, lab:demo on disposable-mode, event-ready and locked-door 17 steps; PREMISE lines for event-ready and disposable-mode, which the lane argued hold and the pre-sitting desk pass re-reads); no SQL | Opus, 3132 | `929659b8` |
-| `crumbs-43` | guests: Back closes the photograph, the welcome on a shared phone, one row for a re-join, the host's own upload cap, a face that moves at once, Show-more hearts, waiting uploads on an empty album, "A guest" retired, the viewer's loading state | MERGED at `5c572152` (gate 129 green, light: `pnpm test`, the merge adding only docs to its gated head `35536130`, whose whole gate the lane ran green: lab:smoke 137, lab:demo on event-ready and locked-door 9 steps; PREMISE line for disposable-mode, event-ready and locked-door, re-read in the pre-sitting desk pass; its `gate-lane.sh` fix, an empty `.next/dev` for the gate's server, accepted, `negative.sh` green); its two migrations applied by protocol after the Advisor's Q7 (faces_move_attribution 20261002020705, the file's md5 6a4b2b98, its proof 6/6; guest_event_cap 20261002020808, f4b8c233, its proof 5/5), the types regenerated and `hostCapOf` dropped (`8877d204`) | Opus, 3133 | `b9181f7c` |
-| `strip-gaps` | the EXIF strip's three documented leak windows closed losslessly (an iPhone's HEIC, HEIF and AVIF; a WebM; a JPEG's MPF secondary images), every claim of it made true | MERGED at `c573275d` (gate 125 green: lint, test, build, lab:smoke 134, lab:demo on locked-door 4 steps; PREMISE line for disposable-mode, re-read in the pre-sitting desk pass); no SQL; the backfill only ever run DRY | Opus, 3131 | `0b7c09b6` |
-| `export-ends` | every album download ends and says how; the portal sees the Worker's checks, skips and heartbeat | MERGED at `15a0d3d2` (gate 126 green: test, build, lab:smoke 139, lab:demo on event-ready and locked-door 9 steps; PREMISE line for disposable-mode, re-read in the pre-sitting desk pass); its migration applied by protocol (export_worker_reports 20261002004012, the file's md5 ffb09416, its check held), the types regenerated and its two seams dropped (`aa80d056`); the Worker deployed (version `abf810e7`, its tsc and 76 tests green first, the 05:30 UTC heartbeat scheduled; it refuses malformed requests 403/405) | Opus, 3132 | `192adda3` |
-| `crumbs-44` | a person's page: cards on their preview derivatives, a video-only card's face, one toggle for follow and block, the menu at 375, loading screens, the setup's follow-ons, the report's person arm under test | MERGED at `4b5adc8a` (gate 124 green: lint, test, build, lab:smoke 141, lab:demo on event-ready and locked-door 9 steps; PREMISE line for event-ready, re-read in the pre-sitting desk pass); no SQL | Opus, 3133 | `5fdd6fbb` |
-| `lab-sitting` | a faster, truer sitting: the queue pictures first, a phone's one-row tabs, a copied link with a board's own state, a whole-program note, answered asks reachable, a select for long controls, a frame of its own, the shell's restyle scoped, the dock's dead exports | MERGED at `d5efa6a3` (gate 128 green over the whole lab: lab:smoke 172, lab:demo all 23 steps; PREMISE line for disposable-mode, re-read in the pre-sitting desk pass); no SQL | Opus, 3131 | `afcb3c6d` |
-| `mkt-polish` | the marketing site's seams: stills through a derivative path, the 404's unused preloads, `--faint` as copy, one contract and one receipt for careers and contact, each page's FAQ, the claim scan's reach, /pricing's rows, the phone sheet's tracking | MERGED at `a20865d5` (gate 127 green: lab:smoke 142, lab:demo on about-press, demo-framing, event-ready and privacy-hero 11 steps; PREMISE lines for about-press and demo-framing, re-read in the pre-sitting desk pass); no SQL | Opus, 3133 | `66ff982f` |
-| `crumbs-45` | build 36's red-team finds, the milestone's last gate: a first-page Delete in My uploads that holds (the MEDIUM), the reel card's Add photos landing, the owner's own credit | MERGED at `3b92b770` (its gate green, light: `pnpm test`, the merge adding only docs to its gated head; no SQL); rides build 37, proven on the alias before milestone 32 | Opus, 3134 | `728e53be` |
-| `desk-tune-3` | the desk made true of build 38 before Will's sitting: event-ready's quoted Settings head at 375 and its paused word, disposable-mode's quoted Review head, three stale portal comments (the desk pass, 2026-10-02) | MERGED at `03a24b3d` (gate 130 green, light: `pnpm test` 8,711, the merge adding only docs to its head, whose whole gate the lane ran green: lab:smoke 20, lab:demo on event-ready, disposable-mode and demo-framing 16 steps at both widths); lab files only, no SQL | Sonnet, 3131 | `24f7eb11` |
-| `door-wiring` | locked-door's picks: the doorway family (one shared design), the waiting door's chooser, the shut door for a broken link; round 2's swing; privacy exactly as before | MERGED at `f538cf8d` (gate 135 FULL green: lab:demo all; the lane's gate: test 8,822, build, lab:smoke 136; its Question 1 answered by Will's "Only what's shown today" at `760cc982`); no SQL | Opus, 3131 | `fefe9d30` |
-| `ready-wiring` | event-ready's picks: the checklist at the hub's head, Settings as steps, Create's hand-off, the code's corner mark; readiness into src/lib; the board retired | MERGED at `38d4f1ec` (gate 133 green: lab:smoke 129; the lane's whole gate on its head: test 8,733, build, lab:smoke 132, lab:demo on disposable-mode); no SQL | Opus, 3132 | `8698a5b8` |
-| `mkt-wiring` | privacy-hero's lens on /features/privacy; about-press's kit band on /about#press, /press 307; both boards retired | MERGED at `fcbd2f89` (gate 134 green; the lane's whole gate on its head: test 8,711, build, lab:smoke 139, the answered steps pressed 7 of 7; the lens's words 7.55:1 or better at 21 widths, about 60 fps at 375 under 6x throttle); no SQL | Sonnet, 3133 | `fefe9d30` |
-| `crumbs-46` | /me for a handle-less account (his A), the strike line's repeated date, /pricing's sticky head, event-card's comment | MERGED at `2ada77e1` (gate 131 green, light: `pnpm test`, the merge adding only docs to its head, whose whole gate the lane ran green: test 8,725, build, lab:smoke 141); no SQL | Sonnet, 3134 | `fefe9d30` |
-| `lab-prefetch` | the lab's keyless prefetch 404s on production builds, at the source | MERGED at `feaab8a9` (gate 132 green over the whole lab: lab:demo all; measured on production builds, 247 refused requests on the Library and one per step page before, 0 after); shell and doc only, the gate untouched | Sonnet, 3135 | `fefe9d30` |
-| `host-dashboard` | board r1 [desk 25]: the host dashboard reconceived (purpose, needs, events, arrivals) | MERGED at `a799127c` (gate 137 green; the lane's gate: test 8,798, build, lab:smoke 6, lab:demo 4 steps at 1440 and 375); lab only; on the desk at the night's final build | Opus, 3132 | `2852a232` |
-| `create-wizard` | board r1 [desk 60]: the whole create wizard (shape, the mode step as create=cards redrawn with a deeper compare, the hand-off) | MERGED at `ae6429ee` (gate 136 green: lab:demo on create-wizard; the lane's gate: test 8,784, build, lab:smoke 5, lab:demo 3 steps at 1440 and 375); lab only; on the desk at the night's final build | Opus, 3134 | `2852a232` |
-| `demo-r3` | board demo-framing r3 [desk 90]: his stage hybrid in three takes (rise, open, words); the demo's door identity | MERGED at `b29aeaf1` (gate 138 green; the lane's gate: test 8,853, build, lab:smoke 4 and --all 174, lab:demo 2 steps at 1440 and 375); lab only; on the desk at the night's final build | Opus, 3133 | `a07496c3` |
-| `crumbs-47` | two guest LOWs: Back over a credit's look; the flip's stale failure sheet | MERGED at `3fe44072` (gate 139 green; each red on the old code); no SQL | Sonnet, 3136 | `8db9cd47` |
-| `locked-door-r3` | board locked-door r3 [desk 30]: the reveal into the album; one calm idle loop for the waiting and shut doors | MERGED at `52f3e61e` (gate 141: its one red, `password-gate.test.tsx`'s stalled-hold case, a flake under load, 3 of 3 alone and the whole suite 8,874 green on a rerun; lab:demo on locked-door green); lab only; on the desk at the night's final build | Opus, 3131 | `8db9cd47` |
-| `event-header` | board r1 [desk 50]: the host hub's head and the guest album's head (guest, host, stays) | MERGED at `461717f0` (gate 140 green; the lane's gate: test 8,832, build, lab:smoke 5, lab:demo 3 steps at 1440 and 375 and with knobs); lab only; on the desk at the night's final build | Opus, 3135 | `8db9cd47` |
-| `identity` | board r1 [desk 10]: Partyreel's atomic identity, today beside Editorial, Soft, Crystal and Viewfinder (recommended), on a specimen and three real screens | MERGED at `2c3c1807` (gate 143 green over the whole lab; the lane's gate: test 8,873, build, lab:smoke 177, lab:demo with its knobs); lab only; first on the desk at the night's final build | Opus, 3132 | `e6607328` |
-| `disposable-r3` | board disposable-mode r3 [desk 80]: six cameras (viewfinder and reel kept; shutter, rim, timeline, scroll), a new waiting room, the look on real photos (Try your photos), video and cost staged | MERGED at `f7596439` (gate 142 green; the lane's gate: test 8,873, build, lab:smoke 7, lab:demo 5 steps at 1440 and 375); lab only; on the desk at the night's final build | Opus, 3134 | `e6607328` |
-| `crumbs-48` | five night crumbs off the boards' surfaces: the Library's prefetch, two load flakes, two help articles, a stale comment | MERGED at `69bb19b8` (gate 144 green; the flakes green 20 times each under a concurrent build) ; no SQL | Sonnet, 3131 | `425ccb0b` |
-| `crumbs-49` | seven off-board crumbs: three help articles, route-error's comments, the Library under the prefetch policy, the history flake (a race), one German-runtime home, help-ui-labels' scope, owner-mode's exact guard | MERGED at `3579caf0` (gate 145 green; the lane's gate: test 8,906, build, lab:smoke 116); no SQL | Sonnet, 3133 | `b0d1dab6` |
+| `header-wiring` | event-header's picks: the cover, the hub wearing it with its sticky bar, the shutter with his scroll fade and a right-hand reel button; the atom contract built in `components/ui/`; the tracker's Remove | MERGED at `e771e80b` (gate 150 green: lint, test, build, lab:smoke 171, lab:demo on seven boards; the lane's gate on its synced head: test 9,035, build, lab:smoke 168); PREMISE re-reads for identity and create-wizard at the desk pass; no SQL | Opus, 3131 | `a167a5fcddb3a287a` |
+| `dashboard-wiring` | host-dashboard's picks: the stage, this week, the live wall, seasons; the four carried calls | MERGED at `ad70c894` (gate 148 green: test, build, lab:smoke 148, lab:demo on create-wizard, event-header, host-dashboard and identity; the lane's gate: test 8,963, build, lab:smoke 149); no SQL | Opus, 3132 | `abf012b4ed5f4a4d8` |
+| `disposable-foundation` | the mode and reveal, the per-row seal from one predicate, develop as a write, the server-counted roll, Settings' control (the Advisor's Q8 model); migrations to apply by protocol | running | Opus, 3133 | `a3c3c52d33e26b082` |
+| `identity-r2` | board identity r2 [desk 10]: voice as a layer, then actions, fields, layers and status in his voice | MERGED at `3af9a608` (gate 149 green: test, build, lab:smoke 22, lab:demo on identity; the lane's gate: test 8,907, build, lab:smoke 7, lab:demo 5 steps at 1440 and 375 with its knobs); lab only; on the desk at build 44 | Opus, 3134 | `a3fb5687c66a613b9` |
+| `create-wizard-r2` | board create-wizard r2 [desk 60]: the room's flow screen by screen in his layout (flow, add, look, beat) | MERGED at `34dba1fa` (gate 147 green, light: test, the merge adding only docs to its gated head; the lane's gate: test 8,902, build, lab:smoke 22, lab:demo 4 steps at 1440 and 375); lab only; on the desk at build 44 | Opus, 3135 | `aaa11532349605aa9` |
+| `demo-r4` | board demo-framing r4 [desk 90]: the centre object nailed, the mini-event card, two or three new heroes | running | Opus, 3136 | `a557d2f6e3b8e9fd8` |
+| `save-speed` | the viewer's Save immediate: his iPhone's 30 s measured to its cause, every slower step with state and a way out | running | Opus, 3135 | `a4d3efdea8ef3c604` |
+| `host-dashboard-r2` | board host-dashboard r2 [desk 25]: the events collection customizable at forty; which event leads when none is dated or near | running | Opus, 3132 | `aea1e17a667c43dfd` |
+| `crumbs-50` | fourteen off-round ROADMAP crumbs (marketing preloads, demo pointers, type steps, tokens, dead fixtures, a help line, legal print, inline code, the sign-in cue, the nav's one source, the blog's tags) | running | Sonnet, 3134 | `ad78669c34ed8b55e` |
+| `door-reveal` | locked-door r3's picks (the walk-through onto the cover, the turning breathing idle), the door always the first paint (his walk), the name after the email where verification is on, the chooser's photos across a reload; retires the board | running | Opus, 3131 | `aec876b5d6becfb32` |
 
-**The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, respawned
-2026-10-01 18:15Z in this session; no question open. Q6 (crumbs-37's two migrations and crumbs-38's cursor file against
-the deployed readers) answered "apply as written", acted on: the four applied by protocol (`f6d72a9d`); the prune runs
-before milestone 32 only when build 36's `/api/cron/purge` is hand-run on the alias, and a milestone-31 tab parked on a
-pruned album may then keep a stale tile until it reloads (expected; the red-team brief says so). Q1 to Q5 are answered
-and acted on. From another session, respawn it from
-`usher/kit/advisor-prompt.txt`.
+**The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Q8
+(round 12's plan) answered with 21 corrections, all folded into the briefs; the next consult is the foundation's
+migrations before they are applied. From another session, respawn it from `usher/kit/advisor-prompt.txt`.
 
 **Handoff across accounts.** The Orchestrator session is `2ba90542-62d6-487c-8c79-3657619f9133` (hi@willgibs.com,
 seated 2026-10-01 18:08Z; its weekly resets Tuesday 2026-10-06 21:00Z, willg97's Sunday 2026-10-04 13:00Z; Will hands
-off only when one maxes its weekly limit). willg97's `157caa18` stays idle (it would resume mid-task at its reset) and
-`b01c012e` stays retired. An agent id lives only in this session; from another, respawn each running lane per the
-runbook's "Resume a lane": kill by port any dev server left on 3131 to 3135 (and any orphaned headless Chrome), then
-`spawn-prompt.txt` filled (same track, same port) plus a note naming its pushed commits, what remains, its
-predecessor's transcript at
+off only when one maxes its weekly limit). willg97's `157caa18` stays idle and `b01c012e` stays retired. From another
+session, respawn each running lane per the runbook's "Resume a lane": kill by port any dev server left on 3131 to 3136
+(and any orphaned headless Chrome), then `spawn-prompt.txt` filled (same track, same port) plus a note naming its pushed
+commits, what remains, its predecessor's transcript at
 `~/.claude/projects/-Users-gibby-local-ai-partyreel/2ba90542-62d6-487c-8c79-3657619f9133/subagents/agent-<id>.jsonl`
 (grep it, never read it whole), that a stale `.next/dev/lock` may be deleted and that MCP tool ids change with the
 account. Connectors follow the account: Claude in Chrome (every red-team needs it), the Supabase MCP on
 `ddafaemglzmuekbtjwzn`, the Vercel MCP on his personal team (deploys ride `$VERCEL_TOKEN`; only runtime logs need P3).
 
-**Build 36's red-team** is done (19:00 to 22:15Z, `../partyreel-wt/_scratch/redteam-36/ledger.txt`): every drivable walk PASS but one MEDIUM, a first-page Delete in My uploads that comes back until a reload, with one LOW (the reel card's Add photos stopping short, a popover's focus return) and two NITs (the owner's own credit a "?" disc; the closed strike line saying one date twice, which waits for crumbs-41's merge), all but the last in `crumbs-45`; the purge hand-run twice, ok then skipped, the switch ON; strikes unchanged (willg97 2, partyr33l 7, hi@willgibs 0, whose 3 instant hides lapse about 20:58Z 2026-10-02); its RT36 events deleted. Not driven: visible-tab steps (Will's Chrome window never came forward), Sentry (the `.env.local` token answers 403 on reads), the prune's client manifest (needs a tab frozen, not hidden, during the first run).
+Relays that live only in an agent (2026-10-02, from Will's walk and answers):
+- `disposable-foundation`, Q9's model (21:10Z, superseding the 20:20Z and 20:55Z relays):
+  - **Two axes**, disposable a preset, no `mode` column:
+    - `events.capture` (text CHECK upload or camera) and `roll_size`;
+    - `moderation_mode` untouched;
+    - `develops_at` (develop applies to free uploads too) and a server-stamped `sealed_from`;
+    - all three in both column grants and returned by `get_event_by_qr_token` (Q7 pattern).
+  - **The predicate:** `status = 'approved' and (sealed_until is null or sealed_until <= now() or host)` in every SQL home and the four app-side reads.
+  - **The sync's `waiting: {count, minutes}`:** pending and sealed together, full access only, in the ETag, no ids.
+  - **The roll counts live shots** (his overrule: a deleted shot frees its slot), with a withdrawn camera shot purged at once and a lifetime ceiling of `roll_size * 3` under the lock.
+  - **Settings:** two questions on `adds-page` (how guests add; when everyone sees, one three-way choice), mountable for the wizard.
+  - Her pending items' read and remove already exist (`guest-media.ts:357`, `remove_my_upload*`).
+- `header-wiring` (21:10Z): a Remove in her tracker on each of her own items not yet in the album (held, later sealed), on the existing `remove_my_upload*` paths, with state while it works.
 
-Relays that live only in an agent: none.
+**Q9 is answered** (the Advisor, 21:05Z) and acted on above. The waiting experience itself goes to a design board (below).
 
 If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` holds a merge made after this note (push
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
 staged, uncommitted merge is finished by `usher/kit/merge-lane.sh`'s own steps or reset with `git merge --abort`.
-This session's scratchpad (`/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/2ba90542-62d6-487c-8c79-3657619f9133/scratchpad`,
-until a reboot) holds the specs and gate logs (the next gate is 119, the calls file numbers on from 65); nothing there
-is needed that these lines and the manifests do not carry. Everything a successor reads lives in the repo or in
-`../partyreel-wt/_scratch/` (the calls file, the red-team briefs and ledgers).
-
-Batch 8 shipped whole as milestone 31 (`7bd3b947`, 2026-09-30; 40 lanes, crumbs-12 to gone-link-soft; their merges and
-records carry the rest). Merged in batch 9: crumbs-28 (`8ea749bf`), hide-strikes (`669e1717`, its migration applied by
-protocol, 20260930205935), crumbs-29 (`47b5cce8`, its three migrations applied), crumbs-30 (`d0eaf507`; gate 107 green
-but lab:demo's `about-press.facts` dev stall, ROADMAP's line), crumbs-31 (`5898b6d8`, no SQL), demo-stall (`7990d19d`, gate 109 whole and green: the lab:demo stall's root, a Next dev bug, patched), crumbs-32 (`04ddf22e`, no SQL), crumbs-34 (`25b21341`, no SQL; gate 111), crumbs-33 (`569a3668`, gate 112; its two migrations applied by protocol after the Advisor's Q5, 20261001045258 and 045429), crumbs-35 (`9b452bcb`, gate 113, no SQL), crumbs-36 (`901ad613`, gate 114, no SQL), crumbs-39 (`be0abd7b`, gate 115, no SQL), crumbs-37 (`cc49cf17`, gate 116; its two migrations unapplied, its row), crumbs-38 (`c95e6429`, gate 117; its two migrations unapplied, its row), crumbs-40 (`96a5d8ee`, gate 118, no SQL). Schema-pass part 2 is applied (20260930204037).
+This session's scratchpad holds the specs (`specs-r12/`) and gate logs (the next gate is 146, the calls file numbers on
+from 91); nothing there is needed that these lines and the manifests do not carry. Everything a successor reads lives
+in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team briefs and ledgers).
 
 ## Next, in order
 
-**Round 11** (Will, 2026-10-02 06:30Z): his desk answered on build 39 and transcribed (`3e1271b9`); approving the plan
-was his yes to run through the night to a natural close at the machine's limits (up to six lanes on measured memory;
-the runbook's four is the floor he lets me raise), then Moltbook one pass an hour; no milestone without his yes. His
-four answers: each redesign board draws whole bespoke designs under one shared direction; wire a screen first, then
-cut the boards drawn on it; the doorway shows only what the album's read gives today (a gated door names the album,
-never the host; private, Only me and blocked doors name nothing; no RPC change); the disposable foundation waits for
-round 3. His library prompt (the atoms still read as shadcn; identity as a sum total) opens an `identity` board.
-
-1. **Waves 1 and 2 are DONE** (2026-10-02 06:40 to 11:35Z): five production lanes (crumbs-46, lab-prefetch, ready-wiring,
-   mkt-wiring, door-wiring), crumbs-47 and seven boards (identity, host-dashboard, locked-door r3, event-header,
-   create-wizard, disposable-mode r3, demo-framing r3), each merged green and recorded (calls 75 to 88). The desk
-   pass is clean: no two asks repeat, and no board's drawing moved after its cut.
-3. **Build 40 is ON THE ALIAS** (`26743369`, 2026-10-02 09:05Z) and its red-team PASSED (09:10 to 10:30Z,
-   `../partyreel-wt/_scratch/redteam-40/ledger.txt`): every drivable walk, no MEDIUM or HIGH; one LOW (a hidden tab's view
-   transition), a NIT and a production warning to the ROADMAP; the redaction held on every kind of door (a blocked
-   guest's page byte-identical to Only me's but the trace meta). Its undriven steps are Will's (below).
-4. **Build 41 [preview]** (`ca08cce3`, 2026-10-02 11:40Z) carries the seven boards: the desk ready for his sitting,
-   identity first, then host-dashboard. The night's close: every lane integrated and pruned (no worktree), the gate
-   green at the tip (143, the whole lab), STATUS and this file current, the calls file at 88 re-sent with a morning
-   note. Then Moltbook, one pass an hour while nothing else runs (`usher/HEARTBEAT.md`).
-5. **After his next sitting:** transcribe it; then the wirings of his picks (the dashboard, the heads, the wizard, the
-   door's reveal and idle, the hero and the demo event's data with its door), identity's wiring at the source and its
-   round two, the disposable foundation once the camera and the look settle (and his phone measurement), and
-   `lab-window` (the frame-scoped window). No milestone without his yes: batch 10 and round 11 wait on launch-prep.
+1. **Milestone 33 is DONE** (`f210dfaf`, tag `milestone-33`, 2026-10-02 19:40Z): gate 146 green over the whole tree
+   (lint, 8,897 tests, build, lab:smoke 179), build 42 (`26bd44f0`) proved crumbs 48 and 49 on the alias, production
+   READY on both projects, the read-only walk PASS; `launch-prep` fast-forwarded. Owed: the export Worker's 05:30 UTC
+   heartbeat read in `export_worker_reports` on 2026-10-03 (its `HEARTBEAT_URLS` already tries partyreel.com first, so
+   nothing to change), and `/admin/exports` when partyr33l's session is at hand.
+2. **Wave 2, each as its dependency merges** (Will's walks of 2026-10-02 add to it):
+   - `door-reveal` after header-wiring, with two of his findings: the welcome's seen-state lives only in localStorage
+     (`use-welcome-seen.ts`), so a signed-out arrival at an open album paints the album for 1 to 3 s before the door
+     rises (his "big bug"; reproduced on build 42, frames in `$S/flash/`): the door must be the first paint; and the
+     door's name step drops a typed name for a verified account's own ("Will Test Mobile" became "Will Gibson",
+     silently). His answers (2026-10-02): the album is NEVER visible before any door or gate a visitor should meet first
+     ("could catch screen recording", and "what just happened? i saw the album, now i'm out"), held by a test on the
+     server's first paint for every door; and where verification is required the name comes after the email, asked
+     only of an account that has none.
+   - `event-header` r2 after header-wiring; `host-dashboard` r2 after dashboard-wiring.
+   - `disposable-camera` after the foundation: his phone line is in (iOS 26, Chrome 154 on WebKit: the stream
+     4032x3024 at 30 fps; a frame drawn whole 3024x4032, 12.2 MP, 2.6 MB at JPEG 0.92; takePhoto 12.2 MP, 7.6 MB; the
+     camera app 12.2 MP, 2.9 MB), so full size holds on iPhone.
+   - (`disposable-rooms` is replaced by `the-wait` board below, then its wiring after his sitting: Q9 made the held
+     and the sealed album one waiting experience.)
+   - `save-speed` (new): the viewer's Save on his iPhone took about 30 s to turn ready for a demo photo (the demo's
+     originals: median 0.3 MB, largest 5.2 MB), so the stall is the path, not the bytes; measure each step, make Save
+     immediate. His standard, for every brief: "Everything should feel as immediate/responsive/snappy, and anything
+     taking longer should provide clear state feedback and potential interruptibility" (design-system.md's line at
+     header-wiring's record, which owns it now).
+   - `the-wait` board (new, cut after the foundation merges): the ONE waiting experience for any delayed album (once
+     approved, or at a develop time): her own shots lit and removable, everyone's as "uploads stacking" (count and
+     minutes), never a landing that vanishes to the empty state; the reveal and the reel's premiere; the host's cover
+     she lifts; whether approve-plus-develop is ever offered; the preset's name ("Disposable"). Its FIRST ask is the
+     mental model itself, which Will leaves open (21:20Z: "I don't want to suggest the correct solution to the right
+     mental model across Moderation and disposables, but they both have that same feel of 'here's only your photos,
+     you'll see the everyone else's on the develop date or when host approves'"): several syntheses drawn end to end
+     (Settings, the guest's wait, the arrival), such as two questions, named album styles, or one question of time;
+     the foundation's two-axis schema serves any of them, and its Settings control is a working version. Disposable's
+     `waiting=sheet` is an anchor option; the screen link is a Question.
+   - `take-home` board (new): how guests and hosts take photos home, from his note: a guest's one-press Download all
+     against Select, Select all, Save; and a host's originals beside an optimized download for quick posts.
+   - Fillers: `crumbs-50` (Sonnet, the off-round ROADMAP lines) and `lab-window` when a seat is free.
+3. **The foundation's migrations**: the Advisor reads them, then the protocol (verbatim, the md5 proof, advisors, types
+   regenerated, its seams dropped).
+4. **Build 43** once header-wiring, dashboard-wiring and the foundation merge, then its red-team (the heads, the hub,
+   the dashboard, the disposable leak matrix live; a sealed test album never opened through partyreel.com before
+   milestone 34).
+5. **Build 44**, the round's last: door-reveal, the camera and rooms if merged (red-teamed), and the five boards in desk
+   order (identity r2, host-dashboard r2, event-header r2, create-wizard r2, demo r4) after the pre-sitting desk pass.
+6. **The close**, then Moltbook one pass an hour.
 
 ## Waiting on Will
 
-- **His desk**: answered 2026-10-02 06:00Z on build 39 and transcribed (`3e1271b9`); the next desk is round 11's boards.
-- **The calls file** (74 calls to overrule, numbered, one a lane through desk-tune-3; compiled from each merge's "Calls
-  his to overrule", `git show <merge>^2:docs/tracks/<track>.md`, kept at `../partyreel-wt/_scratch/calls/relay-calls.md`
-  and sent to him as it grows). He reviews it on 2026-10-01 against the product vision ("keep the calls file running":
-  each merge's calls join it). His two decisions are answered (2026-09-30): A, the proof mail stays off until the emails
-  round (ROADMAP's Emails bucket); B, the instant hide's bar becomes three strikes lapsing after 180 days ("I don't want
-  to prevent a well-meaning reporter from a second report if I simply disagree with the first"), `hide-strikes`'s. And
-  #60 (2026-10-01, "Yes, 180 days"): a child-abuse dismissal stays reopenable for as long as its strike counts, other
-  kinds 30 days; the admin lane builds it.
-- **The morning of 2026-09-30, on his phone** (his word): `disposable-mode` r2's Measure a phone on the alias (the
-  board's dock: Open the camera, Take a frame, the camera app's photo, on his iPhone and an Android if he has one; paste
-  the line back: the full-size promise rides on it); Q1 (on a phone the code card fills the screen, but Back
-  leaves the album; should Back close it like the other full-screen popups?); the 2-minute real-upload check on the
-  alias (a first photo, landscape, as a signed-out guest at a held-uploads event: the keep, her uploads' "Waiting for
-  approval" and the tracker's badge, no held tile at the album's head; then Confirm your email, the one beat, the told
-  name's Change; its `media.file_size_bytes` checks the 3.5 MB estimate); the 10-second iPhone check on partyreel.com
-  (one tap on Save opens the system sheet and a shared photo arrives as a photograph; Settings > Camera > Record
-  Video's size for 1080p at 30 fps, against the 65 MB a minute estimate).
-- **The walks only he can drive** (build 30's red-team, optional):
-  - an event password typed once (Let back in's password landing);
-  - the hub under macOS reduced motion;
-  - a tab hidden, then shown (the hub's album);
-  - crumbs-27's two walks that need a second signed-in device (the host's phone while partyr33l holds the shared one).
-  - crumbs-31's magic-link return: the confirm door's email link tapped in the same browser plays the follow moment.
-  - build 40's: the let-in's swing seen in a visible tab (a guest signed in on his Chrome), a password door's swing
-    (typed), and reduced motion over the signed-in door states;
-  - build 38's: the reel card's Add photos at 375x667 on an event with 0 or 1 photo, its smooth scroll's feel (a
-    visible tab; the mechanics passed hidden); crumbs-41's card, a disposable host paying Pro in two Checkout tabs
-    (4242): Sentry's `stripe_grant_repointed_subscription`, the followed subscription cancelled in Stripe TEST leaving
-    `profiles.tier` pro on the other, and the account's deletion leaving none of its subscriptions billing.
-- **Whenever convenient:** the Vercel MCP on this account points at his personal team; re-pointed at P3 it reads
-  runtime logs (deploys ride `$VERCEL_TOKEN` and need nothing).
-- **Asks that come due later**: Libraries.dev access for a lane (when the help chat is cut), and any F1 frames he loves
-  (when the admin look is cut).
+- **His walks** (2026-10-02): the phone measurement, the real upload and the Save check are DONE (their findings are
+  wave 2's above). Owed: the two-Checkout-tabs check, ON HOLD while he is out (the card entry is his, on Stripe's hosted
+  page; any test host, my call; the account's deletion is fine, "we'll wipe on launch"; a step-by-step chat guide in
+  order of what needs him, ready for his desk), and Record Video's 1080p size on his iPhone. After build 44: the walk-through when let in (a visible tab), a password door, reduced motion over
+  the door states and the new hub, a hidden-then-shown hub tab.
+- **The calls file** (90 calls, `../partyreel-wt/_scratch/calls/relay-calls.md`): he reviews it today.
+- **His next desk** on build 44.
+- **Asks that come due later**: Libraries.dev access for a lane (when the help chat is cut), any F1 frames he loves
+  (when the admin look is cut), asset 38 (the privacy hero's photograph).

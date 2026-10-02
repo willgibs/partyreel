@@ -89,9 +89,12 @@ describe("the Videos switch words its lock from the one record", () => {
 });
 
 describe("nothing in the host app leaves for the marketing page", () => {
-  /** Every door that used to link out, and the two the refusals toasted to. */
+  /**
+   * Every door that used to link out, and the two the refusals toasted to. The dashboard's own two (its
+   * at-cap line and the pulse's storage step) left with host-dashboard r1's wiring: its one plan door is
+   * the storage ring's, the meter's popover below.
+   */
   const DOORS = [
-    ["the dashboard", "src", "app", "(app)", "dashboard", "page.tsx"],
     ["the account page", "src", "app", "(app)", "account", "page.tsx"],
     [
       "the storage meter",
@@ -116,14 +119,6 @@ describe("nothing in the host app leaves for the marketing page", () => {
       "restore-event-button.tsx",
     ],
     ["the bin grid", "src", "components", "app", "recently-deleted-grid.tsx"],
-    [
-      "the pulse's storage step",
-      "src",
-      "components",
-      "app",
-      "dashboard",
-      "next-step-band.tsx",
-    ],
   ] as const;
 
   /** An href in any spelling: a JSX attribute, a braced string, or a field. */

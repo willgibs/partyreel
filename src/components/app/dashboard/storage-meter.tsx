@@ -18,15 +18,18 @@ import {
 } from "@/lib/constants/tiers";
 import { cn, formatBytes } from "@/lib/utils";
 
+/** The ring's radius in its 18px box, and its circumference: what the arc is measured against. */
+const RING_R = 7;
+const RING_C = 2 * Math.PI * RING_R;
+
 /**
- * The AMBIENT storage meter (Phase 5 S2b, the ratified hybrid): demotes the old
- * in-your-face storage card to a slim header bar — polished + visible to
- * incentivize the upgrade when it matters, never a hero block. The whole row is
- * a popover trigger; every datum the old card showed (friendly capacity, Event
- * Pass expiry, standby/Trash overflow, the billing buttons) lives in the popover,
- * so nothing is lost, just the chrome is demoted. The high-urgency over-limit
- * grace banner stays its own top-level alert on the page (never hidden here).
- * The page renders this only for a host with 1+ created events (hosting telemetry).
+ * THE STORAGE RING (host-dashboard r1, the carried `head` call: "the day, then the storage ring and New
+ * event in one slim row; the Dashboard title and the full-width storage line go"). The plan's shelf as
+ * one 18px ring and its percent, beside New event; amber from the dashboard's own threshold, where it is
+ * the storage step the old band used to say. The whole ring is the popover's trigger, and the popover is
+ * the meter's, unchanged: every datum the old card showed (friendly capacity, Event Pass expiry,
+ * standby in Deleted, the billing buttons) lives there, so nothing is lost, just the chrome is demoted.
+ * The over-limit grace banner stays its own top-level alert on the page (never hidden here).
  */
 export function StorageMeter({
   storageUsed,
@@ -77,28 +80,42 @@ export function StorageMeter({
       <PopoverTrigger asChild>
         <button
           type="button"
+          data-storage-ring={storagePct}
           aria-label={`Storage: ${usedLabel}${capLabel ? ` of ${capLabel}` : ""} used. View details.`}
-          className="flex w-full items-center gap-3 rounded-lg px-1.5 py-1 text-left transition-[transform,background-color] duration-150 ease-emphasis outline-none hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.995]"
+          className={cn(
+            "flex h-8 shrink-0 items-center gap-2 rounded-full px-2.5 text-xs tabular-nums transition-[transform,background-color] duration-150 ease-emphasis outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.97] motion-reduce:active:scale-100",
+            warning ? "text-warning" : "text-muted-foreground",
+          )}
         >
-          <span className="shrink-0 text-xs font-medium text-muted-foreground">
-            Storage
-          </span>
-          <span className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
-            <span
-              className={cn(
-                "block h-full rounded-full",
-                warning ? "bg-warning" : "bg-foreground/70",
-              )}
-              style={{ width: `${storagePct}%` }}
+          <svg
+            viewBox="0 0 18 18"
+            className="size-[18px] -rotate-90"
+            aria-hidden
+          >
+            <circle
+              cx="9"
+              cy="9"
+              r={RING_R}
+              fill="none"
+              strokeWidth="2.5"
+              className="stroke-foreground/12"
             />
-          </span>
-          <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
-            {usedLabel}
-            {capLabel ? ` / ${capLabel}` : ""}
-          </span>
+            <circle
+              cx="9"
+              cy="9"
+              r={RING_R}
+              fill="none"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              // A sliver even at nothing used, so the ring reads as a meter rather than a hole.
+              strokeDasharray={`${(Math.max(storagePct, 2) / 100) * RING_C} ${RING_C}`}
+              className={warning ? "stroke-warning" : "stroke-foreground/70"}
+            />
+          </svg>
+          {`${storagePct}%`}
         </button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-72 space-y-2.5">
+      <PopoverContent align="end" className="w-72 space-y-2.5">
         <div>
           <p className="text-sm font-medium">
             {usedLabel}

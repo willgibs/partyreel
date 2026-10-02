@@ -1,12 +1,19 @@
 import {
   Calendar,
+  Clapperboard,
   Compass,
+  Eye,
   Heart,
   ImageUp,
+  Images,
+  ListChecks,
+  Play,
   Plus,
+  QrCode,
   Settings,
   Share2,
   Trash2,
+  Users,
 } from "lucide-react";
 
 import {
@@ -29,9 +36,15 @@ import {
 } from "@/components/shared/river/qr-plate";
 import { River } from "@/components/shared/river/river";
 import { Trail } from "@/components/shared/trail/trail";
+import { StyledQr } from "@/components/app/styled-qr";
+import { resolveQrPreset } from "@/lib/constants/qr-presets";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { CodeChip } from "@/components/ui/code-chip";
+import { CodeMat } from "@/components/ui/code-mat";
+import { GlyphCount } from "@/components/ui/glyph-count";
+import { Shutter } from "@/components/ui/shutter";
 import {
   Card,
   CardContent,
@@ -120,6 +133,9 @@ import { Row } from "@/app/(dev)/design/reference/reference-ui";
 import {
   CommandPaletteDemo,
   ConfirmSwitchDemo,
+  AtTheFoot,
+  OnAPhoto,
+  ShutterDemo,
   ConsequenceLineDemo,
   DormantDemo,
   DestructiveSheetDemo,
@@ -201,6 +217,8 @@ const buttonSizes = [
   "icon-xs",
   "icon-sm",
   "icon-lg",
+  // The 44px round (`event-header` r1): a cover's glass rounds and the shutter's flanks.
+  "icon-cta",
 ];
 
 const badgeVariantNames = [
@@ -215,7 +233,13 @@ const badgeVariantNames = [
   "outline",
   "ghost",
   "link",
+  // The live mark (`event-header` r1, the atom contract with identity r2).
+  "live",
 ];
+
+/** A code that scans, as the hub's mat and the help's pictures draw one: a fixed address, the house's classic look. */
+const SPECIMEN_CODE =
+  "https://partyreel.com/e/3f0c1d2e4a5b6c7d8e9f0a1b2c3d4e5f";
 
 /**
  * THE TRAIL'S WORDS (the trail-wiring lane, 2026-09-19). The shape of the 404's
@@ -322,6 +346,220 @@ function AdminRunsTable() {
 }
 
 export const COMPONENT_ENTRIES: GalleryEntry[] = [
+  /* THE EVENT'S HEAD, ITS ATOMS (added by lp/header-wiring at the HEAD of the list, under a heading of
+     its own, so it lands on its own hunk). The atom contract with identity r2: every hook below is one
+     its board styles (`data-slot="shutter"` and its `data-state` and `--progress`, `data-surface="photo"`,
+     Button's `on-photo` and `glass`, `data-slot="code-mat"`, `data-slot="code-chip"`,
+     `data-slot="glyph-count"`, Badge's `live`). */
+  {
+    id: "shutter",
+    file: "src/components/ui/shutter.tsx",
+    for: "the album's one round Add once the cover has scrolled away, in the album's light: its ring is the progress of hers on their way",
+    test: "src/components/ui/shutter.test.tsx",
+    badge: "new",
+    family: "components",
+    section: "The event's head",
+    title: "Shutter",
+    lede: "The round Add at the foot of an album (`stays=shutter`): a camera's gesture, the least over the photographs, in the thumb's reach. At rest its ring is the album's own light with a soft glow under it; while files go, the same light fills round from the top as the run moves, the count still on its way on its shoulder; when a run lands it stands whole with a check for a beat, then rests. Still a button in every state (a press while files go adds more), and its name says the count. Reduced motion keeps the ring and the fill and drops the glow's breath and the glide.",
+    variants: [
+      {
+        prop: "state",
+        source: "prop",
+        fallback: "idle",
+        options: ["idle", "sending", "done"],
+        note: "The caller's word, never guessed: `sending` while a run goes, `done` for the beat after one lands, then `idle`.",
+        sample: (o) => (
+          <Shutter
+            state={o as "idle"}
+            progress={o === "sending" ? 0.62 : 0}
+            count={o === "sending" ? 3 : 0}
+            aria-label="Add photos"
+          />
+        ),
+      },
+    ],
+    specimens: [
+      {
+        label: "Press it",
+        hint: "a run of three of the Library's own: the ring fills, the count goes down, the check, then rest",
+        node: (
+          <Row>
+            <ShutterDemo />
+          </Row>
+        ),
+      },
+      {
+        label: "In the album's light",
+        hint: "`hues`: an album's sampled light (here a wedding's warm three), the house five where it has none",
+        node: (
+          <Row>
+            <Shutter aria-label="Add photos" />
+            <Shutter aria-label="Add photos" hues={[45, 20, 350]} />
+            <Shutter aria-label="Add photos" hues={[250, 290, 200]} />
+          </Row>
+        ),
+      },
+      {
+        label: "At the foot, over the album",
+        hint: "Invite and its twin flank it, the album's own ground rising under them while more lies below",
+        node: (
+          <AtTheFoot>
+            <div className="flex items-center gap-5">
+              <Button
+                variant="outline"
+                size="icon-cta"
+                aria-label="Invite"
+                className="bg-background shadow-layer"
+              >
+                <QrCode />
+              </Button>
+              <ShutterDemo hues={[45, 20, 350]} />
+              <Button
+                variant="outline"
+                size="icon-cta"
+                aria-label="Watch the highlight reel"
+                className="bg-background shadow-layer"
+              >
+                <Play className="fill-current" />
+              </Button>
+            </div>
+          </AtTheFoot>
+        ),
+      },
+    ],
+  },
+  {
+    id: "glyph-count",
+    file: "src/components/ui/glyph-count.tsx",
+    for: "a count as an icon and a number on a head, its words on hover, a keyboard's focus and a tap",
+    test: "src/components/ui/glyph-count.test.tsx",
+    badge: "new",
+    family: "components",
+    section: "The event's head",
+    title: "GlyphCount",
+    lede: "Will's note on the code's mark, taken by the heads: icons work nearly every time, and a tooltip clarifies. The glance is the glyph; the words are the button's name and its tooltip, which a tap opens and shuts too (the tooltip primitive refuses a finger on purpose, so the atom answers it). It takes its ink from where it stands.",
+    specimens: [
+      {
+        label: "On paper",
+        hint: "hover, focus or tap one for its words",
+        node: (
+          <Row>
+            <span className="flex items-center gap-3 text-sm text-muted-foreground">
+              <GlyphCount
+                icon={<Images />}
+                count={214}
+                label="214 photos & videos"
+              />
+              <GlyphCount icon={<Users />} count={31} label="31 guests" />
+              <GlyphCount icon={<Eye />} count={486} label="486 views" />
+            </span>
+          </Row>
+        ),
+      },
+      {
+        label: "On a photograph",
+        hint: '`data-surface="photo"`: the room\'s ink, white at 85%',
+        node: (
+          <OnAPhoto>
+            <span className="flex items-center gap-3 text-sm text-white/85">
+              <GlyphCount
+                icon={<Images />}
+                count={1240}
+                label="1,240 photos & videos"
+              />
+              <GlyphCount icon={<Users />} count={58} label="58 guests" />
+            </span>
+          </OnAPhoto>
+        ),
+      },
+    ],
+  },
+  {
+    id: "code-mat",
+    file: "src/components/ui/code-mat.tsx",
+    for: "a scannable code standing on its white mat, wherever it stands: the hub's head on its cover, scannable from across a table",
+    test: "src/components/ui/code-mat.test.tsx",
+    badge: "new",
+    family: "components",
+    section: "The event's head",
+    title: "CodeMat",
+    lede: "A code that scans is always on white with its quiet zone, on paper, in the room and on a photograph alike: the mat is that rule as an object. Always a button (a mat opens the code's card), and dimmed is the code's alone, the white staying, for a door that takes no photo. A corner mark rides beside it, never on the modules.",
+    specimens: [
+      {
+        label: "Bright, and dimmed",
+        hint: "`dimmed`: paused uploads or Only me fade the modules, never the mat",
+        node: (
+          <Row>
+            <CodeMat aria-label="Show the code for Maya & Jay">
+              <StyledQr
+                value={SPECIMEN_CODE}
+                size={112}
+                style={resolveQrPreset("classic")}
+              />
+            </CodeMat>
+            <CodeMat aria-label="Show the code for Maya & Jay" dimmed>
+              <StyledQr
+                value={SPECIMEN_CODE}
+                size={112}
+                style={resolveQrPreset("classic")}
+              />
+            </CodeMat>
+          </Row>
+        ),
+      },
+      {
+        label: "On the cover",
+        hint: "the hub's head: the code in the cover's corner",
+        node: (
+          <OnAPhoto still="reception-hall" className="justify-end">
+            <CodeMat aria-label="Show the code for Maya & Jay">
+              <StyledQr
+                value={SPECIMEN_CODE}
+                size={112}
+                style={resolveQrPreset("classic")}
+              />
+            </CodeMat>
+          </OnAPhoto>
+        ),
+      },
+    ],
+  },
+  {
+    id: "code-chip",
+    file: "src/components/ui/code-chip.tsx",
+    for: "the code as a chip in the hub's sticky band, once the head's code has scrolled away: one press from the code, never a shrunken one",
+    test: "src/components/ui/code-chip.test.tsx",
+    badge: "new",
+    family: "components",
+    section: "The event's head",
+    title: "CodeChip",
+    lede: "Under the module floor a code cannot scan, so a thumbnail that looked like a code would be a code that does not work. The chip is the code's glyph on the white a code stands on, at the band's own height, and a press opens the real one.",
+    specimens: [
+      {
+        label: "In the band",
+        hint: "the stuck pills, then the code",
+        node: (
+          <div className="flex items-center gap-2 rounded-xl border bg-background/85 p-2">
+            <span className="flex h-9 items-center gap-1.5 rounded-xl border border-border px-3 text-xs font-medium">
+              <Clapperboard
+                className="size-4 text-muted-foreground"
+                aria-hidden
+              />
+              Highlight reel
+            </span>
+            <span className="flex h-9 items-center gap-1.5 rounded-xl border border-border px-3 text-xs font-medium">
+              <ListChecks
+                className="size-4 text-muted-foreground"
+                aria-hidden
+              />
+              Review
+            </span>
+            <CodeChip aria-label="Show the code for Maya & Jay" />
+          </div>
+        ),
+      },
+    ],
+  },
   /* THE ONE RELATION CONTROL (added by lp/crumbs-44 at the HEAD of the list, under a heading of its
      own, so it lands on its own hunk). */
   {
@@ -616,7 +854,10 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
           "ghost",
           "destructive",
           "link",
+          "on-photo",
+          "glass",
         ],
+        note: "`on-photo` and `glass` stand on a photograph (the cover's Add, its rounds): drawn here on the page, they are judged in the specimen on one.",
         sample: (o) => <Button variant={o as "default"}>Share</Button>,
       },
       {
@@ -648,6 +889,29 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
               <Share2 /> Share
             </Button>
           </Row>
+        ),
+      },
+      {
+        label: "On a photograph",
+        hint: '`on-photo`, the white primary standing on it, and the `glass` rounds beside it (`size="icon-cta"`)',
+        node: (
+          <OnAPhoto>
+            <div className="flex items-center gap-2">
+              <Button variant="on-photo" size="cta">
+                <ImageUp /> Add photos
+              </Button>
+              <Button
+                variant="glass"
+                size="icon-cta"
+                aria-label="Watch the highlight reel"
+              >
+                <Play className="fill-current" />
+              </Button>
+              <Button variant="glass" size="icon-cta" aria-label="Invite">
+                <QrCode />
+              </Button>
+            </div>
+          </OnAPhoto>
         ),
       },
       {
@@ -685,7 +949,7 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
         hint: "inline status; state earns color",
         node: (
           <Row>
-            <Badge>Live</Badge>
+            <Badge variant="live">Live</Badge>
             <Badge variant="secondary">Draft</Badge>
             <Badge variant="outline">Private</Badge>
             <Badge variant="destructive">Over cap</Badge>
