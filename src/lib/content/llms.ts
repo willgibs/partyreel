@@ -19,6 +19,7 @@
  */
 import { FAQ_ITEMS } from "@/components/marketing/faq-data";
 import { PRICING_FAQ_ITEMS } from "@/components/marketing/sections/pricing/pricing-faq-data";
+import { ABOUT_PRESS_HREF } from "@/lib/constants/about";
 import { EVENT_TYPES } from "@/lib/constants/events";
 import { FEATURE_PAGES } from "@/lib/constants/feature-pages";
 import {
@@ -26,7 +27,7 @@ import {
   SITE_SUBHEAD,
   SITE_THESIS,
 } from "@/lib/constants/marketing-voice";
-import { PRESS_BOILERPLATE, PRESS_FACTS } from "@/lib/constants/press";
+import { PRESS_FACTS } from "@/lib/constants/press";
 import {
   ESTIMATE_BASIS,
   EVENT_PASS_RENEWAL_PRICE_LABEL,
@@ -58,6 +59,17 @@ function pricingFacts() {
   const yearly = plansForTier("pro", "year");
   return { free, pass, monthly, yearly };
 }
+
+/**
+ * What Partyreel is, in one paragraph: the quotable version both files open on (it lived in
+ * constants/press.ts for the /press page, which folded into /about; the files are its only
+ * reader now). Sentence one is the strongest line the company has written and is deliberately
+ * untouched. The closing clause names the live reel (it plays itself from the album on every
+ * plan, `reel-story` r1), never a clip's length, whose cap is per-tier (tiers.ts
+ * MAX_REEL_SECONDS), so a fixed number here would be wrong on Free.
+ */
+const BOILERPLATE =
+  "Partyreel turns every guest's phone into the event's camera. The host shares one QR code; guests scan it and upload photos and videos from the browser, with no app required. Everything lands in one live album at full quality, where the host decides what stays and everyone leaves with the originals. Nobody has to chase a group chat the next morning. There are no per-guest fees, and every album plays as its own highlight reel.";
 
 /** How many of the newest posts llms.txt lists; llms-full.txt lists them all. */
 export const LLMS_BLOG_LIMIT = 8;
@@ -92,7 +104,7 @@ function head(site: LlmsSite): string {
 
 > ${SITE_THESIS} ${SITE_SUBHEAD} ${SITE_NAME} is a guest-powered event media platform: one QR code collects every guest's photos and videos into one live album, at full quality, where it also plays as a highlight reel that makes itself. Guests never install an app and never pay; whether they confirm an email first is the host's setting, on by default.
 
-${PRESS_BOILERPLATE}
+${BOILERPLATE}
 
 Category: event photo and video collection (also searched as: wedding photo sharing app, QR code photo sharing, guest photo upload, event photo album, party photo collector).
 
@@ -203,7 +215,7 @@ ${helpLinks}
 ## Company
 
 - [About](${url("/about")}): Why ${SITE_NAME} exists.
-- [Press](${url("/press")}): The boilerplate, the fact sheet, and the brand files.
+- [Press](${url(ABOUT_PRESS_HREF)}): The brand files for a story: the marks, the app icon, the share card and a QR code, in one download.
 - [Blog](${url("/blog")}): ${BLOG_LIBRARY_LINE} The newest posts follow; the full index is at /blog and in llms-full.txt.
 ${blogLinks}
 - [Privacy policy](${url("/privacy")})

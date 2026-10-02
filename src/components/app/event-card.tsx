@@ -50,7 +50,7 @@ const EMPTY_FACE: Record<EventCardFace, LucideIcon> = {
  * profile's attended card (attendance is not a capability). Bare of a cover, the
  * first two wear the lock by default and the third names its own face (`empty`).
  * `variant` drives the chrome: hosted (QR slot + the amber review chip +
- * Open/Closed + item count), guest (the profile's own Guest marker + byline: an
+ * Open/Paused + item count), guest (the profile's own Guest marker + byline: an
  * event you added photos to, guest by upload 2026-09-22), trash (dimmed +
  * countdown + restore action). The amber chip and `action` never coexist by
  * construction (hosted has the chip + no action; trash has an action + no
@@ -116,7 +116,7 @@ export function EventCard({
   variant?: "hosted" | "guest" | "trash";
   /** Hosted: the "N items" pill (approved count). */
   itemsLabel?: string | null;
-  /** A status pill: Open/Closed (hosted), the countdown (trash), Password (guest). */
+  /** A status pill: Open/Paused (hosted, `uploadsLabel`), the countdown (trash), Password (guest). */
   statusLabel?: string | null;
   /** Hosted: the amber "N to review" chip (rendered only when > 0). */
   pendingCount?: number;

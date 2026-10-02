@@ -27,8 +27,20 @@ import {
  *
  * The accent ring marks the one card on the page that is an invitation rather than a fact (the
  * drawn option's own `ring-brand/40`).
+ *
+ * ★ `/me` WEARS IT STANDING (`dismissible={false}`, crumbs-46). An account with no handle keeps her
+ * uploads, likes and connections at /me, and the user menu's Your profile opens it, so the invitation
+ * there is the one way from that page to the setup: a Not now would take it away from the page she
+ * chose to open, and, being the dashboard's cookie, would hide the dashboard's too. The setup's button
+ * stays where the dashboard's points (it does not go through /me: the card IS the invitation, and a
+ * stop on the way would be the tap crumbs-44 took out of the menu's door).
  */
-export function PageInviteCard() {
+export function PageInviteCard({
+  dismissible = true,
+}: {
+  /** False: no Not now, so the card stands wherever it is drawn. */
+  dismissible?: boolean;
+}) {
   const [dismissed, setDismissed] = useState(false);
   const [pending, startTransition] = useTransition();
 
@@ -61,15 +73,17 @@ export function PageInviteCard() {
         <Button asChild size="sm">
           <Link href={PROFILE_SETUP_PATH}>Choose what shows</Link>
         </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant="ghost"
-          disabled={pending}
-          onClick={notNow}
-        >
-          Not now
-        </Button>
+        {dismissible && (
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            disabled={pending}
+            onClick={notNow}
+          >
+            Not now
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );

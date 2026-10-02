@@ -26,6 +26,12 @@ import {
   type QrStyleKey,
 } from "@/lib/constants/qr-presets";
 import { type Tier } from "@/lib/constants/tiers";
+import {
+  newEventFacts,
+  type Readiness,
+  readiness,
+  readyHead,
+} from "@/lib/events/readiness";
 import { eventUrl, previewJoinUrl } from "@/lib/events/share-urls";
 import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 import {
@@ -53,6 +59,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { settingsPageHref } from "@/components/app/event-settings/settings-pages";
 import { PricingSheet } from "@/components/app/pricing/pricing-sheet";
 import { QrPresetPicker } from "@/components/app/qr-preset-picker";
 import { StyledQr } from "@/components/app/styled-qr";
@@ -97,6 +104,9 @@ type CreateEventWizardProps = {
  *  ★ `landing=beat` — Create ends on ONE screen for the one job that is next,
  *    shown exactly once in an event's life. By construction, not by a flag: only
  *    pressing Create reaches step 3, and the route has no other way into it.
+ *    Since event-ready's `create=hand` (2026-10-02) the beat hands over: the code
+ *    first, then what is left before guests arrive, then Get it ready, into
+ *    Settings' first step.
  *
  * The event is still created ONCE, at commit, so an abandoned wizard leaves no
  * row (`createEventInWizard` RETURNS the event rather than redirecting, which is
@@ -113,6 +123,8 @@ export function CreateEventWizard({
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [createdEvent, setCreatedEvent] = useState<CreatedEvent | null>(null);
+  // What is left on the new event, read from what Create sent (the schema's defaults filled).
+  const [left, setLeft] = useState<Readiness | null>(null);
   // The cap refusal's Upgrade no longer LEAVES for /pricing (`first=trigger`):
   // the sheet opens on `room`, knowing the host ran out of events. A toast
   // action has no element to hang a trigger on, so this one is controlled.
@@ -164,6 +176,7 @@ export function CreateEventWizard({
       const result = await createEventInWizard(values);
       if (result.ok) {
         setCreatedEvent(result.event);
+        setLeft(readiness(newEventFacts(values)));
         setStep(3);
         return;
       }
@@ -220,7 +233,7 @@ export function CreateEventWizard({
           </CardTitle>
           <CardDescription>
             {step === 3
-              ? "One thing left: get the code where your guests will be."
+              ? "Get the code out, then finish what is left before guests arrive."
               : "Name it, pick a style for the code, and you're collecting photos."}
           </CardDescription>
           <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 pt-2 text-xs">
@@ -350,13 +363,17 @@ export function CreateEventWizard({
             </>
           )}
 
-          {step === 3 && createdEvent && eventLink && (
+          {step === 3 && createdEvent && eventLink && left && (
             <TheBeat
               eventId={createdEvent.id}
               eventName={createdEvent.name}
               joinUrl={eventLink}
               qrStyle={createdEvent.qr_style}
+              left={left}
               onGo={() => router.push(`/dashboard/${createdEvent.id}`)}
+              onGetReady={() =>
+                router.push(settingsPageHref(createdEvent.id, "door"))
+              }
             />
           )}
         </Form>
@@ -379,19 +396,30 @@ export function CreateEventWizard({
  * ★ `EventSlugControl` IS NOT HERE. It rode the old share step; it belongs to
  * the share sheet, where the readable link already lives and where a host comes
  * back to claim one. A beat with a text input on it is not a beat.
+ *
+ * ★ IT HANDS OVER (event-ready `create=hand`, Will 2026-10-02). The code stays
+ * the subject, first and whole; under its two doors stands what is left before
+ * guests arrive (the checklist's rows still open, titles only, from the one
+ * function the hub and Settings read), and the way on is Get it ready, into
+ * Settings' first step, the event itself one quieter press beside it.
  */
 function TheBeat({
   eventId,
   eventName,
   joinUrl,
   qrStyle,
+  left,
   onGo,
+  onGetReady,
 }: {
   eventId: string;
   eventName: string;
   joinUrl: string;
   qrStyle: string;
+  /** The new event's readiness: what the hand-off lists. */
+  left: Readiness;
   onGo: () => void;
+  onGetReady: () => void;
 }) {
   const { copied, copy } = useCopyLink(joinUrl);
   const canShare = useSyncExternalStore(
@@ -467,13 +495,60 @@ function TheBeat({
         <span aria-live="polite" className="sr-only">
           {copied ? "Link copied" : ""}
         </span>
+        <WhatIsLeft r={left} />
       </CardContent>
-      <CardFooter className="justify-end">
-        <Button type="button" onClick={onGo}>
-          Go to your event <ArrowRight />
+      <CardFooter className="flex-col-reverse items-stretch gap-2 sm:flex-row sm:justify-end">
+        <Button type="button" variant="ghost" onClick={onGo}>
+          Go to your event
+        </Button>
+        <Button
+          type="button"
+          onClick={onGetReady}
+          {...trackAttrs("cta_click", {
+            cta: "get-it-ready",
+            location: "create-beat",
+          })}
+        >
+          Get it ready <ArrowRight />
         </Button>
       </CardFooter>
     </>
+  );
+}
+
+/**
+ * WHAT IS LEFT, UNDER THE CODE: the checklist's head, then its rows still open, titles only, what a guest
+ * needs in the foreground and what is worth doing said so, quieter. The rows' own doors wait in Settings'
+ * steps and on the hub; this screen's one way on is Get it ready.
+ */
+function WhatIsLeft({ r }: { r: Readiness }) {
+  const head = readyHead(r);
+  if (r.left.length === 0) return null;
+  return (
+    <div data-handoff="" className="rounded-lg bg-muted/40 px-3 py-2.5">
+      <p className="text-sm font-medium">{head.title}</p>
+      <p className="text-caption text-muted-foreground">{head.line}</p>
+      <ul aria-label="What is left" className="mt-2 space-y-1">
+        {r.left.map((item) => (
+          <li
+            key={item.id}
+            data-handoff-item={item.id}
+            className={cn(
+              "flex items-center gap-2 text-caption",
+              item.essential ? "text-foreground" : "text-muted-foreground",
+            )}
+          >
+            <span
+              aria-hidden
+              className="size-3.5 shrink-0 rounded-full ring-[1.5px] ring-foreground/25 ring-inset"
+            />
+            <span>
+              {item.essential ? item.title : `${item.title}, worth doing`}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 

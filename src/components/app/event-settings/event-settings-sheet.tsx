@@ -1,17 +1,22 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ArrowRight } from "lucide-react";
 
 import { AddsPage } from "@/components/app/event-settings/adds-page";
 import { DoorPage } from "@/components/app/event-settings/door-page";
 import { EventPage } from "@/components/app/event-settings/event-page";
 import { ReelPage } from "@/components/app/event-settings/reel-page";
-import type { SettingsPage } from "@/components/app/event-settings/settings-pages";
+import {
+  nextSettingsPage,
+  type SettingsPage,
+} from "@/components/app/event-settings/settings-pages";
 import { SettingsRows } from "@/components/app/event-settings/settings-rows";
 import {
   SettingsProvider,
   useSettings,
 } from "@/components/app/event-settings/settings-state";
+import { Button } from "@/components/ui/button";
 import {
   Popup,
   PopupBody,
@@ -22,6 +27,7 @@ import type { Tier } from "@/lib/constants/tiers";
 import type { DoorCounts } from "@/lib/db/queries/event-doors";
 import type { HostEvent } from "@/lib/db/queries/events";
 import { SETTINGS_GROUP_TITLES } from "@/lib/events/guest-experience-summary";
+import type { ReadyFacts } from "@/lib/events/readiness";
 
 /** Each page's head: the group's own title, the one its row stands under. */
 const PAGE_TITLE: Record<SettingsPage, string> = {
@@ -35,7 +41,9 @@ const PAGE_TITLE: Record<SettingsPage, string> = {
  * SETTINGS AS A PANEL BESIDE THE ALBUM (Will, `settings=sheet`: "This does feel cleaner and accessible
  * than a page of cards per event", and the album it GOVERNS stays beside it), rebuilt from the ground
  * up (event-settings r1, 2026-09-29): four rows, each a sentence of where its group stands with its key
- * words live, each opening its own page under a back arrow (`opens=page`).
+ * words live, each opening its own page under a back arrow (`opens=page`). Since event-ready r1
+ * (`guide=steps`, 2026-10-02) the rows are steps on a rail, ticked once ready, the code the fifth, and
+ * every page ends in Next, so Settings walks a host to ready without a mode of its own.
  *
  * ★ ITS KIND IS `settings` (`popups` r1, `settings=panel`): his panel at a desk; in a hand the whole
  * screen under a back arrow that names the event. It rides `?room=settings`, and a page rides beside it
@@ -63,6 +71,8 @@ export function EventSettingsSheet({
   pendingCount,
   social,
   reelSample,
+  ready,
+  onOpenCode,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -82,6 +92,10 @@ export function EventSettingsSheet({
   } | null;
   /** One of the event's own photographs to show the reel's looks on, or null before the first. */
   reelSample: string | null;
+  /** The event's readiness facts, as the hub read them: the rail's ticks. */
+  ready: ReadyFacts;
+  /** The fifth step's door: closes Settings and opens the code card (the hub's sheets wire it). */
+  onOpenCode?: () => void;
 }) {
   // ★ THE STATE OUTLIVES THE PANEL: the provider stands outside the popup, whose content unmounts as it
   // closes, so a change saved a moment ago is still what the rows say when Settings opens again, before
@@ -103,6 +117,8 @@ export function EventSettingsSheet({
         onClosePage={onClosePage}
         eventName={event.name}
         guestsHref={`/dashboard/${event.id}/guests`}
+        ready={ready}
+        onOpenCode={onOpenCode}
       />
     </SettingsProvider>
   );
@@ -131,6 +147,8 @@ function SettingsPanel({
   onClosePage,
   eventName,
   guestsHref,
+  ready,
+  onOpenCode,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -140,6 +158,8 @@ function SettingsPanel({
   onClosePage: () => void;
   eventName: string;
   guestsHref: string;
+  ready: ReadyFacts;
+  onOpenCode?: () => void;
 }) {
   const { afterSaves } = useSettings();
 
@@ -183,12 +203,23 @@ function SettingsPanel({
     [onOpenChange],
   );
 
+  // The code's door closes Settings as the X does: a move still waiting on a save goes with it.
+  const openCode = onOpenCode
+    ? () => {
+        waiting.current = undefined;
+        onOpenCode();
+      }
+    : undefined;
+
   // ★ FOCUS FOLLOWS THE LEVEL: into a page, onto its way back up; back up, onto the row that opened it.
   // The control that was pressed is gone with the level it stood on, and focus must never fall to the
-  // page behind the panel.
+  // page behind the panel. ★ AND A PAGE OPENS AT ITS TOP: Next is pressed at the foot of the page before,
+  // and the panel's body is one scroller for every page.
   const cameFrom = useRef<SettingsPage | null>(null);
+  const body = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (!open) return;
+    if (body.current) body.current.scrollTop = 0;
     if (shown) {
       cameFrom.current = shown;
       document
@@ -224,6 +255,7 @@ function SettingsPanel({
             card clips, so a column once crushed every card past the first to its padding (build 17).
             The popup's body keeps its children whole whatever a caller lays out. */}
         <PopupBody
+          ref={body}
           className="space-y-6 pb-6"
           data-settings-page={shown ?? "rows"}
         >
@@ -236,10 +268,46 @@ function SettingsPanel({
           ) : shown === "event" ? (
             <EventPage />
           ) : (
-            <SettingsRows onOpenPage={move} />
+            <SettingsRows
+              onOpenPage={move}
+              ready={ready}
+              onOpenCode={openCode}
+            />
           )}
+          {shown ? (
+            <SettingsNext page={shown} onNext={move} onOpenCode={openCode} />
+          ) : null}
         </PopupBody>
       </PopupContent>
     </Popup>
+  );
+}
+
+/**
+ * EVERY PAGE ENDS IN NEXT (event-ready `guide=steps`): onto the next step's page, a move like any other
+ * (it waits on a save on its way, above), and after the fourth onto the code, whose door is the code card.
+ * Where there is no code card to open (the Library) the last page simply ends.
+ */
+export function SettingsNext({
+  page,
+  onNext,
+  onOpenCode,
+}: {
+  page: SettingsPage;
+  onNext: (page: SettingsPage) => void;
+  onOpenCode?: () => void;
+}) {
+  const next = nextSettingsPage(page);
+  if (!next && !onOpenCode) return null;
+  return (
+    <Button
+      size="cta"
+      className="w-full"
+      data-settings-next={next ?? "code"}
+      onClick={() => (next ? onNext(next) : onOpenCode?.())}
+    >
+      {next ? `Next: ${SETTINGS_GROUP_TITLES[next]}` : "Next: The code"}
+      <ArrowRight />
+    </Button>
   );
 }

@@ -6,6 +6,7 @@ import { EventCard, RoleMarker } from "@/components/app/event-card";
 import { PAGE_CHOICES_PATH } from "@/app/(app)/account/profile/invite";
 import { emptyPageLine } from "@/app/(guest)/u/[slug]/empty-page";
 import { OwnerSections } from "@/app/(guest)/u/[slug]/owner-sections";
+import { OwnerSkeleton } from "@/app/(guest)/u/[slug]/owner-skeleton";
 import { partyCards } from "@/app/(guest)/u/[slug]/party-cards";
 import { GuestHeader } from "@/components/guest/guest-header";
 import { FollowButton } from "@/components/social/follow-button";
@@ -101,27 +102,6 @@ async function PartyGrid({ profile }: { profile: PublicProfile }) {
         </li>
       ))}
     </ul>
-  );
-}
-
-/** The owner mode's wait: three labelled bands, at the bands' size. */
-function OwnerSkeleton() {
-  return (
-    <div className="mt-10 space-y-8" aria-busy>
-      {Array.from({ length: 2 }, (_, band) => (
-        <div key={band} className="space-y-2.5">
-          <Skeleton className="h-3 w-24" />
-          <div className="grid grid-cols-3 gap-[var(--gap-gallery)] sm:grid-cols-6 lg:grid-cols-9">
-            {Array.from({ length: 9 }, (_, i) => (
-              <Skeleton
-                key={i}
-                className="aspect-square w-full rounded-[var(--radius-tile)]"
-              />
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
   );
 }
 

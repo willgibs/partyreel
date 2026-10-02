@@ -210,6 +210,14 @@
     "review-section": [
       "<ReviewSectionDemo />"
     ],
+    "event-checklist": [
+      "<ChecklistDemo moment=\"fresh\" />",
+      "<ChecklistDemo moment=\"seeded\" />",
+      "<ChecklistDemo moment=\"short\" />"
+    ],
+    "event-code-door": [
+      "<CodeDoorDemo />"
+    ],
     "event-settings": [
       "<SettingsDemo />",
       "<SettingsDemo tier=\"free\" />",

@@ -100,6 +100,8 @@ const APP_RETURNS: readonly RegExp[] = [
   new RegExp(`^/dashboard/${UUID}/(guests|reel|review|settings|print)$`),
   /^\/account$/,
   /^\/account\/(profile|renew)$/,
+  // The owner mode at an address that needs no handle: the user menu's Your profile for an account without one.
+  /^\/me$/,
   /^\/welcome$/,
   // The album and the profile page, which a guest's door (a like, the confirm door, a named
   // guest's sign-in) comes back to through the callback.

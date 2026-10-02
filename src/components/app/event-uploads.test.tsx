@@ -1,9 +1,13 @@
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { EventUploads } from "@/components/app/event-uploads";
 import type { HubAlbumSeed } from "@/lib/event/hub-album";
-import { ENTRY_REEL, type ManifestEntry } from "@/lib/events/album-wire";
+import {
+  ENTRY_PENDING,
+  ENTRY_REEL,
+  type ManifestEntry,
+} from "@/lib/events/album-wire";
 
 import { HostAlbumProvider } from "./event-feed/host-album";
 
@@ -140,5 +144,61 @@ describe("the hub's album", () => {
       </HostAlbumProvider>,
     );
     expect(rowsHanded().onNeedLinks).toBe(first);
+  });
+});
+
+/**
+ * WHAT THE ALBUM'S PLACE HOLDS BEFORE THE FIRST PHOTOGRAPH (moved here from the retired launch list's
+ * test, event-ready 2026-10-02, when the empty place became the album's own again): its empty state,
+ * which gives the place back to the album at the first photograph, live; and never while photographs wait
+ * in Review, since an event whose uploads are all held is a full one whose host has not looked yet. Not a
+ * word is pinned.
+ */
+describe("the album's place before the first photograph", () => {
+  const held = (n: number): ManifestEntry => [
+    uuid(n),
+    400,
+    300,
+    ENTRY_PENDING,
+    1_758_800_000_000_000 - n,
+  ];
+  /** The page's seed for an album holding these entries (held ones count toward Review). */
+  const seeded = (entries: ManifestEntry[]): HubAlbumSeed => {
+    const base = seed(entries);
+    return {
+      ...base,
+      sync: {
+        ...base.sync,
+        counts: {
+          album: entries.filter((e) => !(e[3] & ENTRY_PENDING)).length,
+          pending: entries.filter((e) => e[3] & ENTRY_PENDING).length,
+        },
+      },
+    };
+  };
+  const place = (entries: ManifestEntry[]) =>
+    render(
+      <HostAlbumProvider seed={seeded(entries)} qrToken="qr">
+        <EventUploads eventId={EVENT_ID} />
+      </HostAlbumProvider>,
+    );
+  const empty = () => document.querySelector("[data-album-empty]");
+
+  it("is the album's own empty state", () => {
+    place([]);
+    expect(empty()).not.toBeNull();
+    expect(screen.queryByTestId("album-grid")).toBeNull();
+  });
+
+  it("gives the place back to the album at the first one", () => {
+    place([entry(1)]);
+    expect(screen.getByTestId("album-grid")).toBeInTheDocument();
+    expect(empty()).toBeNull();
+  });
+
+  it("is never drawn while photographs wait in Review", () => {
+    place([held(1), held(2)]);
+    expect(empty()).toBeNull();
+    expect(screen.queryByTestId("album-grid")).toBeNull();
   });
 });
