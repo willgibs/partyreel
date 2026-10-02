@@ -125,8 +125,9 @@ round 3. His library prompt (the atoms still read as shadcn; identity as a sum t
    frame-scoped window) waits for his next sitting: it edits `ui/popup` and `ui/sheet`, which `identity` draws. The eight
    specs are written (`specs-r11/` in this session's scratchpad; a successor rewrites them from this list). Page boards own composition, `identity` owns the atoms; every redesign brief carries his one direction
    (bespoke and experiential, sleek, sophisticated, no tilt, minimal but information-rich, media is the color).
-3. **Build 40** once the three wirings merge, then its red-team (Opus, fresh brief; the desk only in its own headless
-   Chrome; a confirmed MEDIUM ledgered at once, tagged, so a fix lane starts early).
+3. **Build 40 is ON THE ALIAS** (`26743369`, 2026-10-02 09:05Z, both READY, Vercel pruned); its red-team walking (agent
+   `ac3312d7278cb68f6`, Opus, from `../partyreel-wt/_scratch/redteam-40/brief.md`; a confirmed MEDIUM is ledgered at once
+   on a `MEDIUM:` line, so read the ledger at each wake and cut a fix lane early).
 4. **Before the final build**: the pre-sitting pass (`board-card.mjs --desk`) and `lab-scope --since <each cut>`, a
    desk-tune where a drawn claim moved; then the final `[preview]` carries every board, the desk ready when he wakes
    (identity first, then host-dashboard).
