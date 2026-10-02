@@ -10,6 +10,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import type { JoinResult } from "@/lib/guest/join";
+import { NOTHING_WAITS, type UploadsWait } from "@/lib/guest/upload-tracker";
 
 /**
  * THE DOOR SETTLES ON WHO IS HERE BEFORE IT ASKS (crumbs-29, build 30's red-team), pinned on the page itself.
@@ -47,9 +48,15 @@ vi.mock("@/components/guest/reel/live-reel", () => ({
   LiveReel: wrap,
   LiveReelTile: part,
 }));
+const trackerNow = vi.hoisted(() => ({
+  handed: null as Record<string, unknown> | null,
+}));
 vi.mock("@/components/guest/upload-tracker", () => ({
   createUploadTrackerStore: () => ({}),
-  UploadTracker: part,
+  UploadTracker: (props: Record<string, unknown>) => {
+    trackerNow.handed = props;
+    return null;
+  },
   UploadTrackerButton: part,
 }));
 vi.mock("@/components/guest/guest-upload", () => ({
@@ -77,7 +84,13 @@ vi.mock("@/components/guest/gallery-empty-state", () => ({
 // It reports its stage as the test sets it (`stageNow`), before paint, as the real one does.
 const stageNow = vi.hoisted(() => ({
   open: false,
-  handed: {} as { arrival?: unknown; welcomeSeen?: boolean; view?: unknown },
+  handed: {} as {
+    arrival?: unknown;
+    welcomeSeen?: boolean;
+    view?: unknown;
+    keepHeld?: boolean;
+    keepDevelopsAt?: string | null;
+  },
 }));
 vi.mock("@/components/guest/entry-modal", () => ({
   EntryModal: ({
@@ -92,6 +105,8 @@ vi.mock("@/components/guest/entry-modal", () => ({
     arrival?: unknown;
     welcomeSeen?: boolean;
     view?: unknown;
+    keepHeld?: boolean;
+    keepDevelopsAt?: string | null;
   }) => {
     stageNow.handed = rest;
     useEffect(() => onPendingChange?.(false), [onPendingChange]);
@@ -222,6 +237,7 @@ function Page({
   event = EVENT,
   arrival,
   welcomeSeen,
+  uploadsWait = NOTHING_WAITS,
 }: {
   seed: Promise<never>;
   verified: boolean;
@@ -231,6 +247,7 @@ function Page({
   event?: GuestEvent;
   arrival?: { face: "welcome" | "rest" | null; scrim: boolean };
   welcomeSeen?: boolean;
+  uploadsWait?: UploadsWait;
 }) {
   return (
     <Suspense fallback={null}>
@@ -251,6 +268,7 @@ function Page({
         isVerified={verified}
         arrival={arrival}
         welcomeSeen={welcomeSeen}
+        uploadsWait={uploadsWait}
       />
     </Suspense>
   );
@@ -271,6 +289,7 @@ class NoIntersections {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  trackerNow.handed = null;
   heldPicks.files = null;
   queueOptions.current = null;
   stageNow.open = false;
@@ -449,6 +468,44 @@ describe("the door as the page, at the page", () => {
  * ★ HER CHOICE FROM THE HELD DOOR, SENT ON HER RETURN (door-reveal): she chose at the door and left, the host let
  * her in meanwhile, and the album she comes back to sends what she chose, once, put down on the device first.
  */
+/* ★ RED-TEAM 43'S MEDIUM, AT THE PAGE: on an album with a develop time ahead her shots read as joined and vanished on
+   a reload, with no tracker, because the page read "delayed" as the host's approval alone. Whatever the page's
+   reading says waits (`uploadsWait`), her tracker mounts on it and the keep says it waits, and for the develop. */
+describe("what she adds waits: her tracker and the keep are told", () => {
+  it("★ an album with a develop time ahead: the tracker asks after hers, and the keep says the develop", async () => {
+    const ahead = "2026-10-03T13:00:00.000Z";
+    render(
+      <Page
+        seed={seed()}
+        verified={false}
+        uploadsWait={{ waits: true, developsAt: ahead }}
+      />,
+    );
+    await waitFor(() => expect(trackerNow.handed).not.toBeNull());
+    expect(trackerNow.handed).toMatchObject({
+      moderated: true,
+      developsAt: ahead,
+    });
+    expect(stageNow.handed).toMatchObject({
+      keepHeld: true,
+      keepDevelopsAt: ahead,
+    });
+  });
+
+  it("an album that shows what is added at once: no tracker to ask, and the keep says it joined", async () => {
+    render(<Page seed={seed()} verified={false} />);
+    await waitFor(() => expect(trackerNow.handed).not.toBeNull());
+    expect(trackerNow.handed).toMatchObject({
+      moderated: false,
+      developsAt: null,
+    });
+    expect(stageNow.handed).toMatchObject({
+      keepHeld: false,
+      keepDevelopsAt: null,
+    });
+  });
+});
+
 describe("her choice from the held door", () => {
   it("★ the album she returns to sends it, once, and puts it down", async () => {
     const files = [new File(["a"], "a.jpg", { type: "image/jpeg" })];

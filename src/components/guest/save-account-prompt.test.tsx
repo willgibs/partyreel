@@ -15,7 +15,11 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { TRACKER_WORDS } from "@/lib/guest/upload-tracker";
+import {
+  developTimeWords,
+  TRACKER_SEALED_WORDS,
+  TRACKER_WORDS,
+} from "@/lib/guest/upload-tracker";
 
 import {
   KeepConfirm,
@@ -97,6 +101,34 @@ describe("keepSentLine", () => {
     expect(keepSentLine({ count: 1, held: true })).toContain(
       TRACKER_WORDS.waiting.toLowerCase(),
     );
+  });
+
+  /* ★ RED-TEAM 43'S MEDIUM: on an album with a develop time ahead, her shots are sealed until it develops, and the
+     Sent line said "Your 2 photos joined Will Gibson's album." Now it says they wait for the develop, and when. */
+  it("★ a sealed shot waits for the develop, with its time, and never joined", () => {
+    const at = "2026-10-03T13:00:00.000Z";
+    const line = keepSentLine({
+      count: 2,
+      held: true,
+      developsAt: at,
+      hostName: "Will Gibson",
+    });
+    expect(line).toBe(
+      `Your 2 photos are ${TRACKER_SEALED_WORDS.toLowerCase()}, ${developTimeWords(at)}.`,
+    );
+    expect(line).not.toContain("joined");
+    expect(
+      keepSentLine({ count: 1, held: true, developsAt: at, hostName: null }),
+    ).toBe(`Your photo is waiting to develop, ${developTimeWords(at)}.`);
+    // A time it cannot read still waits, and says no time.
+    expect(
+      keepSentLine({
+        count: 1,
+        held: true,
+        developsAt: "soon",
+        hostName: null,
+      }),
+    ).toBe("Your photo is waiting to develop.");
   });
 });
 

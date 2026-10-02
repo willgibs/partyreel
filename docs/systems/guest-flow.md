@@ -82,11 +82,13 @@ stranger has not seen yet.
 account; then follow the host; the copy says "in your account", never "on your profile", since a profile publishes
 nothing until its owner chooses). It is due the instant a signed-out guest's first file lands this visit, from the
 door's upload step or the album's Add, never in the demo or for the host (`keepDue`, `event-experience.tsx`): the door
-reopens on "Sent", beside a check blooming in the album's light, over what went ("Your photo joined Maya's album.", or "Your photo is waiting for approval." where
-uploads are held, her uploads' own words), the ask ("Keep this event": the event by name, her photos counted inside it,
-`keepCopy`; her name menu's card wears the same title, `KEEP_TITLE`), Confirm your email (the account door in the same held sheet, its `keep` wear, a code or
-Google, carrying the product's one newsletter opt-in through `/api/guests/capture-email`) and Maybe later (put down for
-that event on that device, `pr_save_prompt_<qr>`, [`keep-ask.ts`](../../src/lib/guest/keep-ask.ts)).
+reopens on "Sent", beside a check blooming in the album's light, over what went ("Your photo joined Maya's album.",
+or, where what she adds waits, her uploads' own words: "Your photo is waiting for approval." where uploads are held,
+"Your 2 photos are waiting to develop, Sat, Oct 3, 9:00 AM." on an album with a develop time ahead; never "joined"),
+the ask ("Keep this event": the event by name, her photos counted inside it, `keepCopy`; her name menu's card wears
+the same title, `KEEP_TITLE`), Confirm your email (the account door in the same held sheet, its `keep` wear, a code or
+Google, carrying the product's one newsletter opt-in through `/api/guests/capture-email`) and Maybe later (put down
+for that event on that device, `pr_save_prompt_<qr>`, [`keep-ask.ts`](../../src/lib/guest/keep-ask.ts)).
 `ClaimHandlePrompt` owns the album's post-upload slot, ONE card at a time, never in the demo: signed out → nothing
 (the door asked, and her menu's card is the ask's standing home); **just confirmed** →
 [`follow-moment-card.tsx`](../../src/components/guest/follow-moment-card.tsx) (what they now hold, the told name with
@@ -276,11 +278,12 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
   album). ★ It draws no button of its own: the cover's Add is the one Add on every album, saying "Add the first
   photo" while the album is empty and nothing of hers is in flight or waiting (`galleryEmpty`), and "Add photos"
   otherwise, so there is always exactly one Add, in the first screen. ★ An earlier visit's waiting uploads count from
-  the first paint: on an empty held album the page's server render asks whether any of hers wait
-  (`waitingOnArrival`, [`waiting-on-arrival.server.ts`](../../src/lib/guest/waiting-on-arrival.server.ts): her ticket
-  as far as it is hers, and her account), since her tracker learns them only after mount and the Add's words would
-  move when it did. ★ **That wrapper is `GhostRiver`, exported from this file and the ONE home of
-  the depth**: the locked page draws the same picture, and two copies of a fade drift apart.
+  the first paint: on an empty album where what she adds waits (held for the host, or sealed for a develop ahead) the
+  page's server render asks whether any of hers wait (`waitingOnArrival`,
+  [`waiting-on-arrival.server.ts`](../../src/lib/guest/waiting-on-arrival.server.ts): her ticket as far as it is hers,
+  and her account), since her tracker learns them only after mount and the Add's words would move when it did. ★
+  **That wrapper is `GhostRiver`, exported from this file and the ONE home of the depth**: the locked page draws the
+  same picture, and two copies of a fade drift apart.
 - **Lightbox** (the SHARED [`media-lightbox.tsx`](../../src/components/shared/media-lightbox.tsx), its parts in
   `media-lightbox-parts/`): the photograph GROWS out of the tile it was tapped on (`origin`: the tile's rect and a
   `returnTo` that finds the tile of whichever photograph shows at close; the live reel passes its frame's rect and a
@@ -422,9 +425,9 @@ there; a block on it still holds the phone (`event_ticket_blocked`), which is wh
 - **`password`** → access `none`: **the doorway at rest** (shut, the house light, the album's name and the real
   "N photos & videos inside" count tease: the name is link-shared, not the secret) under the door's password step,
   until a signed unlock cookie is present; then the rest of the door. ★ **The page passes a REDACTED `shellEvent` at access `none`**
-  (`host_display_name` + `description` + `event_date` blanked) so they never reach the RSC flight payload:
-  a locked page leaks the event NAME + COUNT only, zero media URLs. The date is blanked too, because the
-  welcome byline renders it.
+  (`host_display_name` + `description` + `event_date` + `develops_at` blanked) so they never reach the RSC flight
+  payload: a locked page leaks the event NAME + COUNT only, zero media URLs. The date is blanked too, because the
+  welcome byline renders it, and the develop time with it (a date too: 9 am the day after the party).
 - **`open`** → the full experience, UNLESS a gate applies (see "Gallery access"). ★ **The OG description is
   ONE invitation for every open event**: "Photos and videos from the day. Add yours." It never warns about
   the email step; that cost (more taps, and a share of guests bounce at the email step) was taken
@@ -1095,15 +1098,20 @@ had" holds only when this device holds a guest ticket a claim would move.
     device, once ([reel.md](reel.md)); the store hands the ids on (`news`), never through the page's shell. Its words
     (`TRACKER_WORDS`, `status=approval`) are "Waiting for approval", "In the album" and "Not approved"
     (`TRACKER_TELLS_REFUSAL`), the one name each state has wherever it is said (the badge's spoken count, the keep's
-    Sent line, the help, the album feature page's mock); only what is in the album draws its album link, a held
-    file this visit sent its own picture. ★ What waits for the host is still hers to take back (Will's live walk:
-    "Definitely need a way to delete pending uploads"): each of hers not yet in the album wears a Remove
-    (`upload-tracker.tsx`), on the album Delete's own paths (`remove_my_upload` for an account, `/api/guests/remove`
-    for a ticket, both taking any of her rows not already removed), so it never reaches the host's Review; no
-    confirm, since nothing else in the list asks one. It says Removing while it works, leaves her list through the
-    page's own record (`removedIds`, which also takes it out of what is in flight, so an emptied album asks for its
-    first photo again and a require-an-upload album asks the server whether its door stands), and stays with Try
-    again when refused.
+    Sent line, the help, the album feature page's mock); only what is in the album draws its album link, a held file
+    this visit sent its own picture. ★ **It stands wherever what she adds waits** (red-team 43: `uploadsWait`, read
+    once by the page's server and handed down: the host's approval, or the album's develop time ahead through
+    `developState`; read as approval alone, a develop album's shots said "joined" and vanished on a reload): a shot
+    approved and sealed for the develop (her rows' read says `sealed`, or this visit's file on an album that seals
+    what is added, `sealing`) waits in its own words, "Waiting to develop" (`TRACKER_SEALED_WORDS`, under the list's
+    "Uploads appear in the album when it develops, <time>." and the badge's "N waiting to develop"), counted and hers
+    to take back like a held one. ★ What waits for the host is still hers to take back (Will's live walk: "Definitely
+    need a way to delete pending uploads"): each of hers not yet in the album wears a Remove (`upload-tracker.tsx`),
+    on the album Delete's own paths (`remove_my_upload` for an account, `/api/guests/remove` for a ticket, both taking
+    any of her rows not already removed), so it never reaches the host's Review; no confirm, since nothing else in the
+    list asks one. It says Removing while it works, leaves her list through the page's own record (`removedIds`, which
+    also takes it out of what is in flight, so an emptied album asks for its first photo again and a require-an-upload
+    album asks the server whether its door stands), and stays with Try again when refused.
   - ★ **Nothing at all for a file that did not go** (the failure sheet owns it), and nothing for one already
     in the album.
   ★ The stack wears the album tile's `data-lit` bright edge, bound by

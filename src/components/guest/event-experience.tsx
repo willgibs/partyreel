@@ -96,6 +96,7 @@ import { joinEvent, passedTicket } from "@/lib/guest/join";
 import { useKeepAskPutDown } from "@/lib/guest/keep-ask";
 import { onNameDoorRequest } from "@/lib/guest/name-door";
 import { settleConfirmedName } from "@/lib/guest/settle-name";
+import type { UploadsWait } from "@/lib/guest/upload-tracker";
 import { useConfirmReturn } from "@/lib/guest/use-confirm-return";
 import { useLiveQueue, useUploadQueue } from "@/lib/guest/use-upload-queue";
 import {
@@ -181,6 +182,7 @@ export function EventExperience({
   welcomeSeen = false,
   arrival = NO_ARRIVAL,
   doorPhase,
+  uploadsWait,
 }: {
   event: GuestEvent;
   qrToken: string;
@@ -276,6 +278,12 @@ export function EventExperience({
   arrival?: DoorArrival;
   /** Where on the wheel the resting door's light starts its turn (the page draws one per visit). */
   doorPhase?: number;
+  /**
+   * ★ WHETHER WHAT SHE ADDS WAITS, AND FOR WHAT (`upload-tracker.ts`'s `uploadsWait`, read by the page's server):
+   * the host's approval, or the album's develop time ahead. Where it waits, her tracker is where hers show and the
+   * keep says they wait, never that they joined (red-team 43: a develop album's shots read as joined, then vanished).
+   */
+  uploadsWait: UploadsWait;
 }) {
   const router = useRouter();
   // ONE resolution of the step for both boxes the album occupies: the skeleton
@@ -1200,7 +1208,8 @@ export function EventExperience({
         onUploadStepActive={onUploadStepActive}
         keepDue={keepDue}
         keepCount={landedCount}
-        keepHeld={event.moderation_mode === "hold_for_approval"}
+        keepHeld={uploadsWait.waits}
+        keepDevelopsAt={uploadsWait.developsAt}
         // The address typed under her name a few minutes ago, so the keep's account door
         // opens on it instead of asking twice.
         hintEmail={attachedEmail}
@@ -1473,7 +1482,8 @@ export function EventExperience({
                     qrToken={qrToken}
                     sessionToken={sessionToken}
                     isAuthed={isAuthed}
-                    moderated={event.moderation_mode === "hold_for_approval"}
+                    moderated={uploadsWait.waits}
+                    developsAt={uploadsWait.developsAt}
                     isDemo={isDemo}
                     isOwner={isOwner}
                     removedIds={removedIds}

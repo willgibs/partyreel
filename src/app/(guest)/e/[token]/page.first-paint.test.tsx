@@ -40,6 +40,7 @@ const EVENT = vi.hoisted(() => ({
   require_upload_to_view: false,
   host_display_name: "Maya Okafor",
   moderation_mode: "live",
+  develops_at: null as string | null,
   doorPass: null,
 }));
 const door = vi.hoisted(() => ({
@@ -85,8 +86,12 @@ vi.mock("@/lib/db/mutations/guest-media", () => ({
   listAccountMediaIds: async () => [],
   listOwnerMediaIds: async () => [],
 }));
+const galleryStats = vi.hoisted(() => ({ approvedTotal: 12 }));
 vi.mock("@/lib/db/queries/guest-events-admin", () => ({
-  getGalleryStats: async () => ({ approvedTotal: 12, guestCount: 3 }),
+  getGalleryStats: async () => ({
+    approvedTotal: galleryStats.approvedTotal,
+    guestCount: 3,
+  }),
   getHostAvatarSeed: async () => ({ avatarUrl: null, seed: "seed-1" }),
   getOpenAlbumItemForCard: stub,
 }));
@@ -130,8 +135,9 @@ const ticket = vi.hoisted(() => ({ value: null as string | null }));
 vi.mock("@/lib/guest/session-cookie", () => ({
   readGuestSessionCookie: async () => ticket.value,
 }));
+const waitingAsk = vi.hoisted(() => vi.fn(async () => false));
 vi.mock("@/lib/guest/waiting-on-arrival.server", () => ({
-  hasWaitingUploads: async () => false,
+  hasWaitingUploads: waitingAsk,
 }));
 vi.mock("@/lib/media/share-save", () => ({
   PHOTO_PARAM: "photo",
@@ -186,6 +192,9 @@ beforeEach(() => {
   ticket.value = null;
   auth.user = null;
   owner.is = false;
+  EVENT.develops_at = null;
+  galleryStats.approvedTotal = 12;
+  waitingAsk.mockResolvedValue(false);
 });
 afterEach(cleanup);
 
@@ -292,5 +301,32 @@ describe("★ the page decides what its first byte draws for the door", () => {
     const phase = Number(way?.style.getPropertyValue("--door-phase"));
     expect(phase).toBeGreaterThanOrEqual(0);
     expect(phase).toBeLessThan(1);
+  });
+});
+
+/* ★ RED-TEAM 43'S MEDIUM, THE PAGE'S HALF: an album with a develop time ahead keeps what she adds out of the album as
+   surely as one that waits for the host, so the page reads it as waiting (her tracker, the keep's words) and asks
+   after her waiting shots on an empty album as it does for the host's. Its time stays off every gate (beside the
+   date, `page.redaction.test.tsx`). */
+describe("★ an album with a develop time ahead: what she adds waits", () => {
+  it("hands down that it waits, and for the develop, and asks after hers on an empty album", async () => {
+    const ahead = new Date(Date.now() + 86_400_000).toISOString();
+    EVENT.develops_at = ahead;
+    galleryStats.approvedTotal = 0;
+    ticket.value = "a".repeat(64);
+    waitingAsk.mockResolvedValue(true);
+    const { experience } = await meet({ kind: "through", admitted: false });
+    expect(experience?.uploadsWait).toEqual({ waits: true, developsAt: ahead });
+    expect(waitingAsk).toHaveBeenCalledTimes(1);
+    expect(experience?.waitingOnArrival).toBe(true);
+  });
+
+  it("a develop time reached has developed: nothing waits, and nothing is asked", async () => {
+    EVENT.develops_at = new Date(Date.now() - 60_000).toISOString();
+    galleryStats.approvedTotal = 0;
+    ticket.value = "a".repeat(64);
+    const { experience } = await meet({ kind: "through", admitted: false });
+    expect(experience?.uploadsWait).toEqual({ waits: false, developsAt: null });
+    expect(waitingAsk).not.toHaveBeenCalled();
   });
 });

@@ -58,6 +58,7 @@ import {
 } from "@/lib/guest/event-card";
 import { doorArrival } from "@/lib/guest/entry-steps";
 import { readGuestSessionCookie } from "@/lib/guest/session-cookie";
+import { uploadsWait } from "@/lib/guest/upload-tracker";
 import { welcomeSeenIn } from "@/lib/guest/use-welcome-seen-cookie";
 import { hasWaitingUploads } from "@/lib/guest/waiting-on-arrival.server";
 import { PHOTO_PARAM, readPhotoParam } from "@/lib/media/share-save";
@@ -518,6 +519,9 @@ export default async function GuestEventPage({
           host_display_name: doorDecision ? event.host_display_name : null,
           description: null,
           event_date: null,
+          // The develop time is a date like the event's own (9 am the day after the party): nothing at a gate
+          // says it (no waiting room, no camera behind a door she is outside).
+          develops_at: null,
           // The slug is only ever said by the reel's code plate, which a locked page never draws.
           custom_slug: null,
           doorPass: null,
@@ -610,15 +614,21 @@ export default async function GuestEventPage({
     needsName = needsDisplayName(menu.displayName);
   }
 
+  // ★ WHETHER WHAT SHE ADDS WAITS, AND FOR WHAT (`uploadsWait`, red-team 43): the host's approval, or the album's
+  // develop time ahead, read once here on the album's own clock and handed down (her tracker, the keep's words).
+  // Off the shell: a gate's carries no develop time.
+  const waits = uploadsWait(shellEvent);
+
   // ★ HER WAITING UPLOADS ON AN EMPTY HELD ALBUM, KNOWN BEFORE THE FIRST PAINT (crumbs-43): the album's one Add is
-  // the row's while something of hers waits for the host, and her tracker learns an earlier visit's waiting rows
-  // only after mount, so the page asks here, where it decides anything (`waiting-on-arrival.server.ts` says why).
+  // the row's while something of hers waits (for the host, or sealed for the develop), and her tracker learns an
+  // earlier visit's waiting rows only after mount, so the page asks here, where it decides anything
+  // (`waiting-on-arrival.server.ts` says why).
   const waitingOnArrival =
     !isDemo &&
     !isOwner &&
     access === "full" &&
     event.accepting_uploads &&
-    event.moderation_mode === "hold_for_approval" &&
+    waits.waits &&
     stats.approvedTotal === 0
       ? await hasWaitingUploads({
           eventId: event.id,
@@ -713,6 +723,7 @@ export default async function GuestEventPage({
         welcomeSeen={welcomeSeen}
         arrival={arrival}
         doorPhase={doorPhase}
+        uploadsWait={waits}
       />
       {/* ★ WHAT THIS PHONE'S CLAIM WOULD NOT TAKE IN SILENCE (shared-claims): a ticket typed under a
           name at odds with the account, asked about once the door and its sheets are down

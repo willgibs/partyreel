@@ -18,6 +18,7 @@
 import { renderToString } from "react-dom/server";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
+import { uploadsWait } from "@/lib/guest/upload-tracker";
 
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import { doorArrival } from "@/lib/guest/entry-steps";
@@ -176,6 +177,7 @@ function firstPaint(door: Door): Document {
       welcomeSeen={door.welcomeSeen ?? false}
       arrival={arrival}
       doorPhase={0.25}
+      uploadsWait={uploadsWait(event)}
     />,
   );
   return new DOMParser().parseFromString(html, "text/html");

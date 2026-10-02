@@ -243,8 +243,13 @@ export const EntryModal = forwardRef<
     keepDue?: boolean;
     /** Her photographs that landed this visit, which the ask counts (live). */
     keepCount?: number;
-    /** The event holds uploads for the host, so what she sent is waiting rather than in. */
+    /**
+     * What she adds waits (`uploadsWait`'s `waits`: the host's approval, or a develop time ahead), so what she sent
+     * is waiting rather than in.
+     */
     keepHeld?: boolean;
+    /** The album's develop time while it is ahead: what she sent waits for it, and the keep says when. */
+    keepDevelopsAt?: string | null;
     /**
      * The address typed under her name this visit, in memory only (the page's state), so the keep's
      * account door opens on it rather than asking twice.
@@ -315,6 +320,7 @@ export const EntryModal = forwardRef<
     keepDue = false,
     keepCount = 0,
     keepHeld = false,
+    keepDevelopsAt = null,
     hintEmail = null,
     onKeepAnswered,
     onStageChange,
@@ -1305,6 +1311,7 @@ export const EntryModal = forwardRef<
               <KeepOffer
                 count={keepCount}
                 held={keepHeld}
+                developsAt={keepDevelopsAt}
                 hostName={hostName}
                 eventName={eventName}
                 onConfirm={() => {
