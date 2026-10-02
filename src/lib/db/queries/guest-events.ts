@@ -147,18 +147,6 @@ async function rehydrateUnlockedDetails(
   };
 }
 
-/**
- * THE CAP THE READ CARRIES, THROUGH A SEAM UNTIL THE TYPES ARE REGENERATED (crumbs-43,
- * 20261001233000_guest_event_cap.sql: the column is appended last to `get_event_by_qr_token`). The generated
- * Returns type does not name it yet, so it is read off the row as unknown and kept only when it is a number: a
- * build that meets the RPC before the migration (no column) reads no cap, which is the line the guest saw before
- * it. Drop it for `row.max_upload_bytes ?? null` once `src/lib/db/types.ts` is regenerated.
- */
-function hostCapOf(row: object): number | null {
-  const cap = (row as { max_upload_bytes?: unknown }).max_upload_bytes;
-  return typeof cap === "number" ? cap : null;
-}
-
 // cache() dedupes within a request so generateMetadata + the page render share
 // ONE get_event_by_qr_token RPC call per qr token.
 export const getEventByQrToken = cache(async function getEventByQrToken(
@@ -204,8 +192,9 @@ export const getEventByQrToken = cache(async function getEventByQrToken(
     reel_hold_sec: row.reel_hold_sec ?? null,
     // The guest picker's flag (the doors' migration, 20260929120000).
     accepts_video: row.accepts_video,
-    // The host's own cap, for the upload sheet's line (20261001233000; `hostCapOf` says why it is a seam).
-    max_upload_bytes: hostCapOf(row),
+    // The host's own cap, for the upload sheet's line (20261001233000). ★ Typed `number` like
+    // `reel_hold_sec`, yet NULL where the host set none (the product's ceiling applies): kept as NULL.
+    max_upload_bytes: row.max_upload_bytes ?? null,
   };
 
   return { ok: true, data: await rehydrateUnlockedDetails(event) };

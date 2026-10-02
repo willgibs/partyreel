@@ -1613,6 +1613,7 @@ export type Database = {
           has_password: boolean
           host_display_name: string
           id: string
+          max_upload_bytes: number
           moderation_mode: Database["public"]["Enums"]["moderation_mode"]
           name: string
           qr_style: string
