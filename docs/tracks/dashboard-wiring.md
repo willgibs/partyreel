@@ -1,6 +1,6 @@
 ---
 track: dashboard-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "7a875407"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -61,25 +61,126 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **Which event leads when none is dated or near** (his "which one gets featured"; the working rule, with what I saw).
+  Create asks no date (the wizard has no date field; the date is Settings' welcome), so "no dates on multiple events"
+  is every new host's case, not an edge. Built: an event's day is its host's date, else the viewer's day of its newest
+  approved upload (`src/lib/dashboard/when.ts`, `dayOf`); the stage leads with the one on its day (a dated party
+  first, then an undated album landing today; of two, the busier), else the nearest within 30 days by its day (a day
+  behind weighs a day and a half ahead), else the next coming, else the latest activity, else the newest made
+  (`moment.ts`, pinned in `moment.test.ts`). Recommended: keep as the working rule; r2 may add a host's own "feature
+  this one" if he wants the choice in hand.
+- **An undated album is live on a day its photographs land, and grouped by when they last landed.** Built: "Live
+  today · N in the last hour" and the live wall for an undated album taking photographs today (never "tonight": its day
+  is evidence, not a date); its tile says No date; it sits under Just past or in its year by its photographs; an undated
+  empty album waits under Coming up; the stage asks "Add the date" under its name (Settings' event page). Recommended:
+  keep; the alternative, one "No date" group, is one wall again at forty undated events.
+- **The at-cap line retires.** The head says "N events · Plan"; at the cap New event opens its own refusal (`limit=door`).
+  The board drew Maya at her one-event cap with no line, and it was a permanent upsell over every Free host's one event.
+  Recommended: keep.
+- **The rows view stays one toggle away; the lens is one row of counts; a search arrives from nine events.** His
+  seasons note asks for more choice, not less, and `density=cover`'s "Let's do both" is production; the row of counts
+  (All, Hosting, Guest, Deleted) is the board's drawn lens bar. Recommended: keep until r2's customizable collection.
+- **The storage ring shows at a phone too** (the board drew it at 1440 only): with the band gone it is the storage
+  step's only home; in a hand it rides the line under the day. Recommended: keep.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/dashboard.md`: rewritten in place for the page as built (an event's day, the stage and its rule, the
+  live wall's one read, one item an event and `finished`, the week, where the reads go, the groups by when and the
+  lens, the tile, the ring); the viewer's day and the claims review kept, their pointers moved off host-app.md.
+- `docs/systems/notifications-analytics-growth.md`: none needed; the bell is unchanged and holds what the page leaves
+  to it.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Host: the stage's live read is a Server Function, which Next dispatches one at a time with the page's other actions
+  (a claim pressed mid-poll waits a beat); a GET route handler under `src/app/api/` would run beside them (from
+  `dashboard-wiring`).
+- Host: a disposable album's host cover (`peek=covered`, UI later): the stage's wall reads approved photographs on the
+  host's client, which the seal exempts, so the covered album covers the wall too when it lands (from
+  `dashboard-wiring`).
+- Host: `EventCard`'s dashboard-only props (`qrSlot`, `pendingCount`, `itemsLabel`, `living`, the trash variant) and
+  `event-card-qr.tsx` have no production caller since the tile; the Library's specimens are their last users, so they
+  go with those entries (from `dashboard-wiring`).
+- Docs: host-app.md (:303, :317) and guest-flow.md (:721) still name "the pulse" where a waiting newcomer or a restore
+  shows; it is the dashboard's stage, its week and its tiles' marks now (from `dashboard-wiring`).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits:** `9a9ce389` (the rewire), `86fde85c` (the wall's Just now only while photographs land; the skeleton's
+  acts at the stage's foot), pushed to `origin/lp/dashboard-wiring`. No sync: since the base `26596e48`, launch-prep
+  moved by record docs alone (`git diff --name-only 26596e48 origin/launch-prep`: `docs/STATUS.md`,
+  `docs/tracks/orchestrator.md`). The head is this manifest's commit, in the chat line.
+- **Gates on `86fde85c`**, each on its own exit code (logs `partyreel-wt/_scratch/dashboard-wiring/gate2-*.log`):
+  typecheck 0; lint 0; test 0 (755 files, 8,963 tests); `build-lock.sh pnpm build` 0; `lab:smoke --base
+  http://localhost:3132` 0 (149 checks, 0 failing; scope create-wizard, event-header, host-dashboard, identity, the
+  Library and the shell).
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): every path under `owns`, this manifest, and four
+  exceptions:
+  - `src/components/shared/route-skeleton.tsx`: its `pulse` shape delegates to the dashboard's own
+    `components/app/dashboard/dashboard-skeleton.tsx` (56 lines out), so the page and its skeleton change in one place;
+    `route-skeleton.test.tsx` still pins the delegation and the trail's hold.
+  - `src/components/app/pricing/gated-sites.test.ts`: the page's at-cap line and the band's storage step are gone, so
+    they leave its list of pricing doors; the ring's popover (`storage-meter.tsx`) stays in it.
+  - `content/help/your-dashboard-explained.mdx` rewritten for the page as built, and one line each in
+    `hide-remove-and-restore.mdx`, `storage-plans-and-limits.mdx`, `how-partyreel-works.mdx` (their `updated` moved)
+    and `AUTHORING.md`'s house term (the Show menu is the row of counts): the articles quote the page's controls,
+    `help-ui-labels.test.ts` and `help-product-doors.test.ts` hold them to the source, and no lane owns content/help
+    this wave.
+  - `src/app/(dev)/design/(shell)/library/compositions/gallery-demos.tsx`: two ledes made true (StorageMeter is the
+    ring; EventCard is a profile's card); no specimen changed.
+- **The items:**
+  - The stage (`purpose=stage`): `momentEvent` leads; before its day the code on its plate (opens the code card) and
+    readiness's ticks, Invite and Print; on its day the live wall; after it the calm album, "in the album", guests,
+    Share the album. Lit by its own lead photograph, blurred (`components/app/dashboard/stage.tsx`).
+  - The live wall (`arrivals=live`): the album's doorbell plus `useLivePoll`'s cadence ask `readStageLiveAction`
+    (`lib/dashboard/stage-action.ts`; `getEvent` proves the host before the door is read) for nine photographs, the
+    counts, the door and the last hour; the stage re-runs the same pure rules, so its act follows its numbers. Just
+    arrived and `getPulse` are gone.
+  - This week (`needs=week`): every other dated party within seven days either way, nearest first, its one item with
+    its act (`ActDoor`: a real link, the print page in a tab, or Invite's code card) or its quiet line; cards from
+    `md`, a list in a hand (`week-row.tsx`).
+  - One item an event (`attention.ts`) with the carried `finished` call: the queues in every phase, paused and the
+    reel on the day, readiness's first essential then Print before it, nothing after it but someone waiting; this
+    answers ROADMAP 36.
+  - Grouped by when (`events=seasons`, `seasons.ts`): Coming up, Just past, earlier this year, each year folded into a
+    line whose covers open their events and whose Show opens it; As a guest at the foot; the stage's event never below
+    it; the row of counts, the search from nine, the rows view and its sort one toggle away (`events-section.tsx`).
+  - The `tile` call (`event-tile.tsx`): photograph or date face, name and when, Live and one state in the corners, a
+    dot under 15rem; no QR chip, no pills (answers ROADMAP 84 and 114's corner mark). `EventCard` unchanged for the
+    profile.
+  - The `head` call (`home-head.tsx`): the day as the h1, "N events · Plan", the storage ring (the meter's popover
+    unchanged, amber from 85) and New event; the Dashboard title, its "X of N used" and the at-cap line gone.
+  - The `busier` call: two on one night, people waiting first, then today's arrivals (counted, `countArrivalsSince`).
+  - Reads (`lib/db/queries/dashboard.ts`, all RLS, bounded): each event's newest arrival (one row an event, chunked),
+    the day's counts, the stage's nine, the hub's opens; readiness's reads only for the week before its day and a stage
+    before its own (at most 12), the day's counts at most 6, the wall and guests for the stage alone.
+  - The skeleton is the page's own shape (`dashboard-skeleton.tsx`); three stale `host-app.md` pointers and
+    next-step's "launch list" comments (ROADMAP 46's first half) fixed.
+- **Verified in a headless Chrome of my own** at 1440 and 375, against an uncommitted scratch route that rendered the
+  production composition (`DashboardHome` through `buildHomeView`) over the host-dashboard board's fixtures: Maya (one
+  event) a week before, on the night, the morning after, a year on and undated-live; Jo (forty) a week before, on the
+  night, the morning after, a year on; the rows view, dark mode, an empty account, the skeleton
+  (`_scratch/dashboard-wiring/*.png`). Reduced motion: the live dot's ping computes `animation-name: none` and the
+  wall's tiles a 1e-05 s transition (ping and 0.24 s without it). The page's reads are pinned by `page.test.tsx` and
+  `queries/dashboard.test.ts` (fake-postgrest past 1,000 rows); the action's refusals by `stage-action.test.ts`.
+- **For build 43's red-team** (localhost cannot sign in): the dashboard signed in as willg97 (Pro, many) and
+  hi@willgibs.com (Free, one) at 1440 and 375; an event dated today, a guest phone uploading: the wall and its numbers
+  move within seconds, and on a review-held event at the approve; someone asking at the door turns the act into "Let N
+  in" (doorbell or the minute's poll); an undated event taking photographs reads Live today; the plate's code card,
+  Invite and Print, Add the date to Settings; the lens, the search, the rows toggle, Restore under Deleted; the ring's
+  popover doors; from devtools, `readStageLiveAction` with another host's event id answers null; a viewer west of UTC
+  after 5 pm reads her own day.
+- **Assets requested from Will:** none.
+- **Board ideas:** the profile's public cards wearing the dashboard's tile (one atom on both surfaces); a host's own
+  pin for the stage ("feature this one", his "which one gets featured" as a choice); Library entries for the two atoms
+  the board named, the tile and the storage ring.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none.
+- **Calls his to overrule:** "Live tonight" from 5 pm of a dated party's day (and "Live today" whenever a photograph
+  landed in the last hour), "Yesterday" never "Last night"; the stage's album number "in the album", never "photos" (it
+  counts video); the wall's newest marked Just now only while photographs land; the week holds dated parties only;
+  before its day the stage reads and draws no guest count; marks as dots on a tile under 15rem; a folded year's covers
+  each open their event; the plate and Share the album open the code card; Most waiting counts people at a door; the
+  stage 420 to 560 px tall at a desk, tiles at the board's 3:2 where the cards were 16:10.
+- **Look at first:** the stage on an event dated today with photographs landing (the live wall and its act), then an
+  undated event, then forty events grouped by when.
