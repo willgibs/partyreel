@@ -734,6 +734,11 @@ export function closedStrike(
  * says it to the end; the clause still follows the line's own way back, never the strike alone, because a line never
  * offers what it cannot do (the seconds either side of a lapse, or a rule it cannot read). Dates are UTC, like every
  * admin date.
+ *
+ * ★ A DATE THE LINE HAS PRINTED IS NOT PRINTED AGAIN. The oldest strike lapses when its address's bar lifts, so the two
+ * dates are often one ("until Mar 30, 2027 UTC; ... until Mar 30, 2027 UTC", build 36's red-team): the bar's says
+ * "then". It compares the printed dates, never the instants, as `strikeWords` does for a Dismiss's later lift: hours
+ * apart on one UTC day is one date, and two minutes across midnight are two.
  */
 export function closedStrikeWords(
   strike: ClosedStrike,
@@ -745,8 +750,10 @@ export function closedStrikeWords(
   if (strike.state === "lapsed") {
     return `Its strike lapsed ${formatAdminDate(strike.at)}.`;
   }
-  const holds = strike.barredUntil
-    ? `the address holds ${strikeCount(strike.live)}, so its reports don't hide right away until ${formatAdminDate(strike.barredUntil)}`
+  const lapses = formatAdminDate(strike.at);
+  const lifts = strike.barredUntil ? formatAdminDate(strike.barredUntil) : null;
+  const holds = lifts
+    ? `the address holds ${strikeCount(strike.live)}, so its reports don't hide right away until ${lifts === lapses ? "then" : lifts}`
     : `the address holds ${formatCount(strike.live)} of ${formatCount(strike.bar)}`;
-  return `A strike on its address until ${formatAdminDate(strike.at)}; ${holds}.${canUndo ? " Undo takes it back." : ""}`;
+  return `A strike on its address until ${lapses}; ${holds}.${canUndo ? " Undo takes it back." : ""}`;
 }

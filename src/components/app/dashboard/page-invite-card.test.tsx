@@ -36,6 +36,25 @@ describe("the page setup's invitation", () => {
     ).not.toBeInTheDocument();
   });
 
+  // crumbs-46: /me wears the invitation as its head (an account with no handle keeps her uploads, likes and
+  // connections there), and the user menu's Your profile has no other door to the setup, so there it stands: a
+  // Not now would take the only way on from the page she chose to open, and it would hide the dashboard's too.
+  it("stands without a Not now where the page asks it not to be dismissible", () => {
+    render(<PageInviteCard dismissible={false} />);
+    expect(
+      screen.getByRole("link", { name: "Choose what shows" }),
+    ).toHaveAttribute("href", "/account/profile");
+    expect(
+      screen.queryByRole("button", { name: "Not now" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getAllByText("Set up your page")).toHaveLength(1);
+  });
+
+  it("is dismissible wherever the page says nothing, as the dashboard's is", () => {
+    render(<PageInviteCard />);
+    expect(screen.getByRole("button", { name: "Not now" })).toBeInTheDocument();
+  });
+
   it("Not now leaves at once and is remembered", async () => {
     vi.mocked(dismissPageInviteAction).mockResolvedValue({ ok: true });
     const { container } = render(<PageInviteCard />);
