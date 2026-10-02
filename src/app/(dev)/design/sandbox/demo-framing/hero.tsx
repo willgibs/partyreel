@@ -20,7 +20,6 @@ import {
 import { MarketingHeader } from "@/components/marketing/chrome/marketing-header";
 import {
   BUILT,
-  FLIGHT,
   frameAt,
   GEO,
   type Geometry,
@@ -46,54 +45,52 @@ import { SITE_SUBHEAD, SITE_THESIS } from "@/lib/constants/marketing-voice";
 import { useAmbientPause } from "@/lib/shared/use-ambient-pause";
 import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
 
-import type { Guest, Party } from "./fixtures";
-import { HeroObject, STANDS, type TakeId } from "./objects";
+import { showCode } from "./code";
+import { type Guest, type Party, titleOf } from "./fixtures";
+import {
+  type FieldHands,
+  HeroObject,
+  type Stand,
+  STANDS,
+  type TakeId,
+} from "./objects";
 import { CinemaRoom, useOffStage } from "./scene";
-import { foldAt, rateAt, type Score, typedAt } from "./typing";
+import { DRIFT, type Score, typedAt, warpAt, warpSince } from "./typing";
 
 /**
- * THE HOME'S FIRST SCREEN, AS PRODUCTION DRAWS IT, WITH HIS HYBRID IN IT.
+ * THE HOME'S FIRST SCREEN, AS PRODUCTION DRAWS IT, WITH AN OBJECT OF ROUND
+ * FOUR ON ITS AXIS.
  *
  * Everything is `cinema-hero.tsx` as it ships (the site header over it, the
- * lamp, the band on `hero-stream.ts`'s own three tables, the block at the
- * measured clear line, without the eyebrow his round one note dropped)
- * except what round three asks: the object (the code over the address, one
- * group, three ways: `objects.tsx`), how the stream and the typing take
- * turns (`Flow`), and a guest's credit inside every photograph's corner.
+ * band on `hero-stream.ts`'s own three tables, the block at the measured clear
+ * line, without the eyebrow his round one note dropped) except what round
+ * four draws: the object (`objects.tsx`), the turns (the stream drifting while
+ * an address types and leaving it at lightspeed as it lands, `warpAt`), a
+ * guest's credit inside every photograph's corner, and a lamp lit in the
+ * standing party's own hues.
  *
- * ★ THE STREAM IS BORN BEHIND THE GROUP, ON ITS AXIS. The object stands on the
- * band's axis at the point its take names (`STANDS`: the address on paper, the
- * code on the night), never floated to the middle of its air as the card is,
- * because the album has to visibly leave (or reach) the link and its code. The
- * axis's floor is re-solved for the group's own box, so it always clears the
- * header.
+ * ★ THE STREAM IS BORN BEHIND THE OBJECT, ON ITS AXIS. The object stands on
+ * the band's axis at the point its stand names (`STANDS`), never floated to
+ * the middle of its air as the shipped card is, because the album has to
+ * visibly leave it. The axis's floor is re-solved for the object's own box,
+ * so it always clears the header.
  *
- * ★ THREE FLOWS, ONE CLOCK. The loop reads the typewriter's score
- * (`typing.ts`) and writes the address, the band and the object's state from
- * it each frame:
- *  - `drift`: round two's turns, which he loved: the stream eases to a drift
- *    while an address types and comes back as it lands, and each photograph
- *    born after a landing is that party's;
- *  - `rewind`: the album folds back into the link before each address goes,
- *    and the new one's album bursts out of it as it lands (the page's own
- *    branch-out, once an address);
- *  - `inflow`: the photographs come IN from both edges and slip behind the
- *    code, "all of our photos go in", easing while an address types.
+ * ★ ONE CLOCK. The loop reads the typewriter's score (`typing.ts`) and writes
+ * the address, the card's name, the code and the band from it each frame; a
+ * photograph born after a landing is that party's, and a landing's warp
+ * sweeps the old party's out ahead of it. The field hands the clock to its
+ * visitor while it is theirs: their pause is their landing.
  *
- * ★ A CREDIT IN EVERY PHOTOGRAPH'S CORNER, INSIDE IT (his note: "likely within
- * card, not on corner so it doesn't go off image"): the guest's face and first
- * name on the glass's tint and edges. Not the glass's blur: eighteen moving
- * backdrop filters would spend a phone's whole frame on chrome. Sized in the
- * photograph's own units (`cqmin`), so it is the same share of every frame and
- * grows with it as it leaves the link, legible on the outer half of its flight.
+ * ★ A CREDIT IN EVERY PHOTOGRAPH'S CORNER, INSIDE IT (his round two note): the
+ * guest's face and first name on the glass's tint and edges, sized in the
+ * photograph's own units (`cqmin`), arriving once the photograph is large
+ * enough to carry a name.
  *
  * ★ THE LOOP READS THE FRAME'S WINDOW: the breakpoint is the frame's, a hidden
  * option holds still (`useOffStage`), and reduced motion leaves the sheet's
- * rest state standing: the demo's own address and code, every photograph
- * credited, nothing typed.
+ * rest state standing: the demo's own address, code and card, every
+ * photograph credited, nothing typed.
  */
-
-export type Flow = "drift" | "rewind" | "inflow";
 
 /** The eyebrow's measured line and air, per geometry (`hero-stream.ts` `Geo.blockH`). */
 const EYEBROW: Record<Geometry, number> = { base: 36, tablet: 28, lg: 28 };
@@ -108,25 +105,21 @@ const MIN_WIDTH: Record<Geometry, number> = {
  *  pointer's lift answers there only: a phone has no pointer to lift under. */
 const DESK_MIN = 640;
 
-/** Room over the object's painted top for the code's overshoot and shadow. */
+/** Room over the object's painted top for its lift and shadow. */
 const OVERSHOOT = 10;
-
-/** How long the inflow's photographs take to fade in on arrival. */
-const ARRIVE_MS = 700;
 
 /**
  * Where a photograph's credit fades in, as its transform scale (0.17 at the
- * link, 0.92 at the edge): from about a third of its full size, so the
- * photographs crowding the link carry no specks of chips and every one past
- * them carries its guest.
+ * object, 0.92 at the edge): from about a third of its full size, so the
+ * photographs crowding the object carry no specks of chips.
  */
 const CREDIT_FROM = 0.3;
 const CREDIT_TO = 0.46;
 
+/** How long a visitor's pause must last for what they typed to land. */
+const SETTLE_MS = 650;
+
 const mod = (a: number, n: number) => ((a % n) + n) % n;
-const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
-/** The house's in-out (ease-in-out-quart), as `revealEase` writes it. */
-const inOut = (t: number) => revealEase(t);
 
 /** Production's frames, one set of nodes for all three geometries. */
 const FRAMES = BUILT.lg.cards.map((lg, i) => {
@@ -145,20 +138,17 @@ const FRAMES = BUILT.lg.cards.map((lg, i) => {
 });
 
 /**
- * PRODUCTION'S LAYOUT NUMBERS, RE-SOLVED FOR THE GROUP. The block hangs from
+ * PRODUCTION'S LAYOUT NUMBERS, RE-SOLVED FOR THE OBJECT. The block hangs from
  * the same measured clear line (`low`), or lower where the object's own foot
- * stands under the axis and needs its air (the words under the code, which a
- * whole loop measured 15 px clear of every photograph at 375 and 41 at 1440),
- * and loses the eyebrow's line (round two's re-solve); the object is pinned to
- * the axis at its take's point (`--hhs-lift`), and the axis's floor is the
- * lowest axis at which the group's painted top still clears the header by
- * `airTop`. A tablet's numbers are composed between the phone's and the
- * desk's, as everything else there is.
+ * stands under the axis and needs its air, and loses the eyebrow's line
+ * (round two's re-solve); the object is pinned to the axis at its stand's
+ * point (`--hhs-lift`), and the axis's floor is the lowest axis at which its
+ * painted top still clears the header by `airTop`. A tablet's numbers are
+ * composed between the phone's and the desk's, as everything else there is.
  */
-function layoutOf(take: TakeId): CSSProperties {
-  const S = STANDS[take];
+export function layoutOf(S: { base: Stand; lg: Stand }): CSSProperties {
   const mix = (a: number, b: number) => a + TABLET_STEP * (b - a);
-  const standOf = (g: Geometry) =>
+  const standOf = (g: Geometry): Stand =>
     g === "base"
       ? S.base
       : g === "lg"
@@ -171,8 +161,6 @@ function layoutOf(take: TakeId): CSSProperties {
   return Object.fromEntries(
     GEOMETRIES.flatMap((g) => {
       const st = standOf(g);
-      // The block hangs from the measured clear line, or lower where the
-      // object's foot stands under the axis and needs its air (`words`).
       const low = Math.max(BUILT[g].low, Math.ceil(st.axis + st.air));
       const below = BUILT[g].below - EYEBROW[g] + (low - BUILT[g].low);
       const lift = st.box / 2 - st.axis;
@@ -201,37 +189,67 @@ function layoutOf(take: TakeId): CSSProperties {
 
 /** The header's scroll postures, undone for a drawing (the frames sit far
  *  down the lab page, whose scroll the header reads). */
-const PINNED =
+export const PINNED =
   "[data-df-hero] header[data-hidden]{translate:none!important}[data-df-hero] header[data-stuck]>[aria-hidden]:first-child{opacity:0!important}";
 
-/** Where the object's centre stands: on the axis, at its take's point. */
+/** Where the object's centre stands: on the axis, at its stand's point. */
 const AT_OBJECT: CSSProperties = {
   top: "calc(var(--hhs-axis) - var(--hhs-lift))",
 };
 
 /**
- * THE LAMP: production's `CardLamp`, the bloom behind the object, centred on
- * the group (or on the code, where the album meets the code itself).
+ * A party's lamp: its three hues at the house lamps' own register (L 0.72,
+ * C 0.15, `sampled-palette.ts`), five as the engine reads them.
  */
-function Lamp() {
+export function lampOf(party: Party): string[] {
+  const [a, b, c] = party.hues;
+  const at = (h: number) => `oklch(0.72 0.15 ${((h % 360) + 360) % 360})`;
+  return [at(a), at(b), at(c), at(a + 24), at(c - 24)];
+}
+
+/**
+ * THE LAMP: production's `CardLamp`, the bloom behind the object, one per
+ * party, the standing party's lit and the last fading under it. Law 3 (the
+ * light takes its colour from the media it lights): the object turns to a
+ * new party, so its light does too, as a crossfade rather than a swell, so the
+ * hero keeps its one motion.
+ */
+function Lamps({
+  parties,
+  party,
+}: {
+  parties: readonly Party[];
+  party: Party;
+}) {
   return (
-    <div
-      aria-hidden
-      className="pointer-events-none absolute top-0 left-0 h-[520px] w-[min(680px,150vw)] -translate-x-1/2 -translate-y-1/2"
-    >
-      <Glow
-        shape="bloom"
-        drive="mask"
-        vars={{
-          "--glw-from-x": "50%",
-          "--glw-from-y": "50%",
-          "--glw-reach": "56%",
-          "--glw-strength": "0.95",
-          "--glw-base": "0.34",
-          "--glw-blur": "26px",
-        }}
-      />
-    </div>
+    <>
+      {parties.map((p) => (
+        <div
+          key={p.slug}
+          aria-hidden
+          data-df-lamp={p.slug === party.slug ? p.slug : undefined}
+          className="pointer-events-none absolute top-0 left-0 h-[520px] w-[min(680px,150vw)] -translate-x-1/2 -translate-y-1/2"
+          style={{
+            opacity: p.slug === party.slug ? 1 : 0,
+            transition: "opacity 900ms var(--ease-emphasis)",
+          }}
+        >
+          <Glow
+            shape="bloom"
+            drive="mask"
+            colors={lampOf(p)}
+            vars={{
+              "--glw-from-x": "50%",
+              "--glw-from-y": "50%",
+              "--glw-reach": "56%",
+              "--glw-strength": "0.95",
+              "--glw-base": "0.34",
+              "--glw-blur": "26px",
+            }}
+          />
+        </div>
+      ))}
+    </>
   );
 }
 
@@ -241,7 +259,7 @@ function Lamp() {
  * photograph's own short side (`cqmin`, the frame is a size container), with
  * a floor so a phone's smallest frame still sets a name a reader can read.
  */
-function Credit({ guest }: { guest: Guest }) {
+export function Credit({ guest }: { guest: Guest }) {
   return (
     <span
       data-df-credit={guest.name}
@@ -322,7 +340,6 @@ const pourOf = (party: Party, i: number) =>
 
 export function HeroStage({
   take,
-  flow,
   score,
   parties,
   addresses,
@@ -330,12 +347,11 @@ export function HeroStage({
   forceLift = false,
 }: {
   take: TakeId;
-  flow: Flow;
   /** The typewriter's score, or null for a still address. */
   score: Score | null;
   /** Every party the loop visits, the demo's own first. */
   parties: readonly Party[];
-  /** Every address the loop types: the line is as wide as the widest. */
+  /** Every address the loop types: a line is as wide as the widest. */
   addresses: readonly string[];
   block: ReactNode;
   /** Draw the object lifted, as a pointer would (a specimen, not a page). */
@@ -356,10 +372,60 @@ export function HeroStage({
   const [standing, setStanding] = useState(0);
   const [up, setUp] = useState(true);
   const [hovered, setHovered] = useState(false);
-  // Which party each photograph is: a drifting or arriving stream turns over
-  // one photograph at a time, as each is born after a landing.
+  // Which party each photograph is: the stream turns over one photograph at a
+  // time, as each is born after a landing.
   const [who, setWho] = useState<readonly number[]>(() => FRAMES.map(() => 0));
   const shown = useRef({ standing: 0, up: true });
+
+  // THE FIELD'S VISITOR: their address, when they last typed, and whether
+  // what they typed has landed (and when).
+  const [mine, setMine] = useState<string | null>(null);
+  const visitor = useRef({
+    mine: null as string | null,
+    key: 0,
+    landed: -1,
+    force: false,
+  });
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  // The frame's own clock: a handler runs in the lab page's realm, but the
+  // loop's timestamps are the frame window's, and the two origins differ.
+  const nowOf = () =>
+    section.current?.ownerDocument.defaultView?.performance.now() ?? 0;
+  const hands: FieldHands | undefined =
+    take === "field"
+      ? {
+          mine,
+          inputRef,
+          take: () => {
+            visitor.current = {
+              mine: "",
+              key: nowOf(),
+              landed: -1,
+              force: false,
+            };
+            setMine("");
+            // Focus once the input exists (it replaces the typed line).
+            requestAnimationFrame(() => inputRef.current?.focus());
+          },
+          type: (value) => {
+            visitor.current = {
+              ...visitor.current,
+              mine: value,
+              key: nowOf(),
+              landed: -1,
+              force: false,
+            };
+            setMine(value);
+          },
+          land: () => {
+            visitor.current = { ...visitor.current, force: true };
+          },
+          release: () => {
+            visitor.current = { mine: null, key: 0, landed: -1, force: false };
+            setMine(null);
+          },
+        }
+      : undefined;
 
   const setRefs = useMemo(
     () =>
@@ -368,28 +434,33 @@ export function HeroStage({
       }),
     [],
   );
-  const layout = useMemo(() => layoutOf(take), [take]);
+  const layout = useMemo(() => layoutOf(STANDS[take]), [take]);
+  // The pane is glass: the album is seen through it from its birth.
+  const seenThrough = take === "plate";
 
   useEffect(() => {
     const root = section.current;
     const els = nodes.current;
-    const typedEls = () =>
-      root
-        ? Array.from(root.querySelectorAll<HTMLElement>("[data-df-typed]"))
-        : [];
-    const caretEls = () =>
-      root
-        ? Array.from(root.querySelectorAll<HTMLElement>("[data-df-caret]"))
-        : [];
+    const all = <T extends Element>(sel: string) =>
+      root ? Array.from(root.querySelectorAll<T>(sel)) : [];
     const write = (text: string, caret: number) => {
-      for (const el of typedEls()) {
+      for (const el of all<HTMLElement>("[data-df-typed]")) {
         const node = el.firstChild;
         if (node && node.nodeValue !== text) node.nodeValue = text;
+        else if (!node && text) el.textContent = text;
       }
-      for (const el of caretEls()) {
+      const title = titleOf(text);
+      for (const el of all<HTMLElement>("[data-df-title]")) {
+        if (el.textContent !== title) el.textContent = title;
+      }
+      for (const el of all<HTMLElement>("[data-df-caret]")) {
         const o = caret.toFixed(2);
         if (el.style.opacity !== o) el.style.opacity = o;
       }
+    };
+    const code = (slug: string | null, photo: string) => {
+      for (const el of all<SVGSVGElement>("svg[data-df-live]"))
+        showCode(el, slug, photo);
     };
     if (reduced) {
       for (const el of els) {
@@ -402,6 +473,7 @@ export function HeroStage({
       zNow.current = [];
       creditNow.current = [];
       write(parties[0]?.slug ?? "", 0);
+      code(parties[0]?.slug ?? null, parties[0]?.cover ?? "");
       return;
     }
     if (still) return;
@@ -425,25 +497,32 @@ export function HeroStage({
       raf = win.requestAnimationFrame(tick);
       const dt = last === 0 ? 0 : Math.min(now - last, 50);
       last = now;
-      elapsed.current += dt;
+      const v = visitor.current;
+      // A visitor's field holds the typewriter where it stood.
+      if (v.mine === null) elapsed.current += dt;
       const t = elapsed.current;
 
-      let rate = 1;
+      let pace = 1;
       let nowStanding = 0;
       let nowUp = true;
-      let fold = { fold: 0, since: t };
-      if (typing) {
+      if (v.mine !== null) {
+        // Their pause (or Enter) is their landing: the code blooms with
+        // their address and the album leaves it, the demo's photographs
+        // standing in for theirs.
+        if (v.landed < 0 && v.mine && (v.force || now - v.key > SETTLE_MS))
+          v.landed = now;
+        const landed = v.landed >= 0;
+        pace = landed ? warpSince(now - v.landed) : DRIFT;
+        nowUp = landed;
+        code(landed ? v.mine : null, parties[0]?.cover ?? "");
+      } else if (typing) {
         const typed = typedAt(typing, t);
         write(typed.text, typed.caret);
         nowStanding = typed.standing;
-        if (flow === "rewind") {
-          fold = foldAt(typing, t);
-          // The invite closes as the album folds in, and opens as it lands.
-          nowUp = typed.phase === "hold" && fold.fold < 0.35;
-        } else {
-          rate = rateAt(typing, t);
-          nowUp = typed.phase === "hold";
-        }
+        nowUp = typed.phase === "hold";
+        pace = warpAt(typing, t);
+        const p = parties[typed.standing] ?? parties[0];
+        code(nowUp ? p.slug : null, p.cover);
       }
       if (nowStanding !== shown.current.standing) {
         shown.current.standing = nowStanding;
@@ -454,56 +533,31 @@ export function HeroStage({
         setUp(nowUp);
       }
 
-      clock.current += dt * rate;
+      clock.current += dt * pace;
       const { cards, box, cycle } = BUILT[g];
       const reveal = revealEase(t / REVEAL_MS);
-      const burst = revealEase(fold.since / REVEAL_MS);
-      const shut = inOut(fold.fold);
-      const arrive = clamp01(t / ARRIVE_MS);
       let reborn: number[] | null = null;
       for (let i = 0; i < cards.length; i++) {
         const el = els[i];
         if (!el) continue;
         const c = cards[i];
-        let at: number;
-        let hide = false;
-        if (flow === "rewind") {
-          at = mod(c.at * burst + fold.since, cycle) / FLIGHT;
-          // A photograph already gone past the edge stays gone: only the ones
-          // on screen fold back in, retracing their own path.
-          if (fold.fold > 0 && at > box[i].exit) hide = true;
-          at *= 1 - shut;
-        } else if (flow === "drift") {
-          const m = mod(c.at * reveal + clock.current, cycle);
-          if (lastMod[i] !== undefined && m < lastMod[i])
-            (reborn ??= []).push(i);
-          lastMod[i] = m;
-          at = phaseOf(c, clock.current, reveal, cycle);
-        } else {
-          // Inflow: the same flight run backwards. A photograph that reaches
-          // the code wraps to beyond the edge and comes in again as the
-          // standing party's.
-          const m = mod(c.at - clock.current, cycle);
-          if (lastMod[i] !== undefined && m > lastMod[i])
-            (reborn ??= []).push(i);
-          lastMod[i] = m;
-          at = m / FLIGHT;
-        }
-        if (hide || at > box[i].exit) {
+        const m = mod(c.at * reveal + clock.current, cycle);
+        if (lastMod[i] !== undefined && m < lastMod[i]) (reborn ??= []).push(i);
+        lastMod[i] = m;
+        const at = phaseOf(c, clock.current, reveal, cycle);
+        if (at > box[i].exit) {
           if (el.style.opacity !== "0") el.style.opacity = "0";
           continue;
         }
         const f = frameAt(c, at, g, box[i].fit);
         el.style.transform = f.transform;
-        el.style.opacity = String(
-          flow === "inflow" ? f.opacity * arrive : f.opacity,
-        );
+        el.style.opacity = String(seenThrough ? 1 : f.opacity);
         if (zNow.current[i] !== f.z) {
           zNow.current[i] = f.z;
           el.style.zIndex = String(f.z);
         }
         // The credit arrives once the photograph is large enough to carry a
-        // name, so the link is never ringed by specks of chips.
+        // name, so the object is never ringed by specks of chips.
         const credit = smoothstep(
           CREDIT_FROM,
           CREDIT_TO,
@@ -531,15 +585,38 @@ export function HeroStage({
       tablet.removeEventListener("change", onChange);
       desk.removeEventListener("change", onChange);
     };
-  }, [reduced, still, flow, score, parties]);
+  }, [reduced, still, score, parties, seenThrough]);
 
   // A pointer lifts the object only at a desk's width, which is the frame's.
   const deskWide = () =>
     (section.current?.ownerDocument.defaultView?.innerWidth ?? 0) >= DESK_MIN;
+  const lift = {
+    onPointerEnter: (e: React.PointerEvent) => {
+      if (e.pointerType === "mouse" && deskWide()) setHovered(true);
+    },
+    onPointerLeave: () => setHovered(false),
+    onFocus: () => {
+      if (deskWide()) setHovered(true);
+    },
+    onBlur: () => setHovered(false),
+  };
 
-  // Reduced motion reads the demo's own address and code, its own album.
-  const party = reduced ? 0 : standing;
-  const rewinding = flow === "rewind";
+  // Reduced motion reads the demo's own address, card and album.
+  const party = parties[reduced ? 0 : standing] ?? parties[0];
+  const object = (
+    <HeroObject
+      take={take}
+      parties={parties}
+      hands={hands}
+      live={{
+        party,
+        addresses,
+        up: reduced ? true : up,
+        lifted: forceLift || (hovered && mine === null),
+        still: still || reduced,
+      }}
+    />
+  );
 
   return (
     <CinemaRoom>
@@ -556,12 +633,11 @@ export function HeroStage({
             pauseRef(el);
           }}
           data-df-take={take}
-          data-df-flow={flow}
           style={layout}
           className="hhs-hero relative -mt-[var(--mkt-header-h,4rem)] overflow-clip bg-background"
         >
           <div className="absolute left-1/2" style={AT_OBJECT}>
-            <Lamp />
+            <Lamps parties={parties} party={party} />
           </div>
           <div
             aria-hidden
@@ -570,9 +646,7 @@ export function HeroStage({
           >
             <div className="hhs-corridor">
               {FRAMES.map((f, i) => {
-                const p =
-                  parties[rewinding || reduced ? party : (who[i] ?? 0)] ??
-                  parties[0];
+                const p = parties[reduced ? 0 : (who[i] ?? 0)] ?? parties[0];
                 const pour = pourOf(p, i);
                 return (
                   <BandFrame
@@ -591,32 +665,22 @@ export function HeroStage({
             className="absolute left-1/2 z-10 -translate-x-1/2 -translate-y-1/2"
             style={AT_OBJECT}
           >
-            <Link
-              href="/demo"
-              aria-label="Open the live demo"
-              data-df-door
-              className="block rounded-[20px] outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-4 focus-visible:ring-offset-background active:scale-[0.99]"
-              style={{ transition: "scale 150ms var(--ease-emphasis)" }}
-              onPointerEnter={(e) => {
-                if (e.pointerType === "mouse" && deskWide()) setHovered(true);
-              }}
-              onPointerLeave={() => setHovered(false)}
-              onFocus={() => {
-                if (deskWide()) setHovered(true);
-              }}
-              onBlur={() => setHovered(false)}
-            >
-              <HeroObject
-                take={take}
-                live={{
-                  slug: parties[party]?.slug ?? parties[0].slug,
-                  addresses,
-                  up: reduced ? true : up,
-                  lifted: forceLift || hovered,
-                  still: still || reduced,
-                }}
-              />
-            </Link>
+            {take === "field" ? (
+              <div data-df-door="" {...lift}>
+                {object}
+              </div>
+            ) : (
+              <Link
+                href="/demo"
+                aria-label="Open the live demo"
+                data-df-door=""
+                className="block rounded-[28px] outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-4 focus-visible:ring-offset-background active:scale-[0.99]"
+                style={{ transition: "scale 150ms var(--ease-emphasis)" }}
+                {...lift}
+              >
+                {object}
+              </Link>
+            )}
           </div>
 
           <div

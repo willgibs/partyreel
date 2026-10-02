@@ -5,58 +5,64 @@ import type { ReactNode } from "react";
 import { ExplorationBoard, optionId, optionLabel } from "@/components/lab";
 import type { PreviewsFor } from "@/components/lab/exploration";
 
-import { AlbumPage } from "./album";
-import { DemoDoor, type DoorId, DOORS } from "./door";
 import { PARTIES } from "./fixtures";
-import { type Flow, HeroStage, HomeBlock } from "./hero";
-import type { TakeId } from "./objects";
-import {
-  albumSays,
-  doorSays,
-  heroSays,
-  Scene,
-  Story,
-  touchSays,
-} from "./scene";
-import { LoopScore } from "./score";
+import { HeroStage, HomeBlock } from "./hero";
+import { HeroObject, LINE, LinkLine, at, type TakeId } from "./objects";
+import { heroSays, Scene, type ScreenId, Story, touchSays } from "./scene";
+import { type Album, LoopScore } from "./score";
 import { Specimen } from "./specimen";
 import { DEMO_FRAMING } from "./spec";
-import { type Pace, type Score, scoreOf } from "./typing";
+import { WallObject, WallStage } from "./tiles";
+import { type Score, scoreOf } from "./typing";
+
+/** Every hero on the board: the objects on the stream, and the wall. */
+type HeroId = TakeId | "wall";
 
 /**
- * THE PREVIEWS, AND NOTHING ELSE: every option drawn whole where it lives.
- * Each take of the stage is the home's real first screen at 1440 and 375,
- * with its loop's score under the laptop and its object close at a desk, at
- * rest and under the pointer; each door is the demo's door at 375 as a
- * visitor lands on it, then the album's head behind it. Every frame is titled
- * with its option's own name, read off the spec, and every caption is read
- * off the frame.
- *
- * ★ THE TWO DECISIONS DO NOT DRAW EACH OTHER: the hero's object opens the demo
- * whichever door it lands on, and the door says what it says whichever take
- * brought the visitor there, so each is drawn on its own.
+ * THE PREVIEWS, AND NOTHING ELSE: every hero drawn whole where it lives, the
+ * home's real first screen at 1440, at a tablet held upright and at 375, with
+ * its loop's score under the laptop and its object close at a desk, at rest
+ * and under the pointer. Every frame is titled with its option's own name,
+ * read off the spec, and every caption is read off the frame.
  */
-
-/** Each take: how its stream and its typing take turns, and how long an address stands. */
-const TAKES: Record<TakeId, { flow: Flow; pace: Pace }> = {
-  // The stream never stops (round two's turns), so an address stands long
-  // enough for its album to have turned over by the next.
-  rise: { flow: "drift", pace: { hold: 4200, restHold: 5200 } },
-  // An address's stand holds its whole breath: the burst (1.75 s), the album
-  // pouring, and the fold back in (0.76 s).
-  open: { flow: "rewind", pace: { hold: 5200, restHold: 5800 } },
-  // The photographs come in at full pace while an address stands.
-  words: { flow: "inflow", pace: { hold: 4200, restHold: 5200 } },
-};
 
 /** Every address the loop types, the demo's own first. */
 const ADDRESSES = PARTIES.map((p) => p.slug);
 
-/** One score per take, made once: the hero's loop restarts when its score changes identity. */
-const SCORES: Record<TakeId, Score> = {
-  rise: scoreOf(ADDRESSES, TAKES.rise.pace),
-  open: scoreOf(ADDRESSES, TAKES.open.pace),
-  words: scoreOf(ADDRESSES, TAKES.words.pace),
+/**
+ * One score for every hero, made once (the loop restarts when its score
+ * changes identity): an address stands long enough for its warp to settle
+ * and its album to turn over, and the demo's own stands first and longest.
+ */
+const SCORE: Score = scoreOf(ADDRESSES, { hold: 4400, restHold: 5400 });
+
+/** What each hero's object does at each turn, for its lane of the score. */
+const OBJECT: Record<HeroId, { lane: string; says: string; album: Album }> = {
+  plate: {
+    lane: "The code",
+    says: "while an address stands its code stands, lit, blooming out of its party's picture as it lands; the tile goes dark to glass while the next is typed",
+    album: "stream",
+  },
+  card: {
+    lane: "The card",
+    says: "the card types its name along with the address, its event soft until the address lands and the new party's cover sharpens in",
+    album: "stream",
+  },
+  field: {
+    lane: "The code",
+    says: "the field's code blooms with each address that lands until a visitor takes the field, when their own pause is the landing",
+    album: "stream",
+  },
+  door: {
+    lane: "The door",
+    says: "the door stands open on its party's light and album while its address stands, swings to as the next is typed and opens on the new party as it lands",
+    album: "stream",
+  },
+  wall: {
+    lane: "The code",
+    says: "the code at the album's heart folds as an address is erased and blooms as the next lands",
+    album: "wall",
+  },
 };
 
 /** An option's own name, off the spec, so a frame's title and its tile agree. */
@@ -67,13 +73,21 @@ const LABEL = (ask: string, option: string) => {
   return found ? optionLabel(found) : option;
 };
 
-/** THE HOME'S FIRST SCREEN, wearing one take. */
-function Home({ take }: { take: TakeId }) {
+/** THE HOME'S FIRST SCREEN, wearing one hero. */
+function Home({ hero }: { hero: HeroId }) {
+  if (hero === "wall")
+    return (
+      <WallStage
+        score={SCORE}
+        parties={PARTIES}
+        addresses={ADDRESSES}
+        block={<HomeBlock />}
+      />
+    );
   return (
     <HeroStage
-      take={take}
-      flow={TAKES[take].flow}
-      score={SCORES[take]}
+      take={hero}
+      score={SCORE}
       parties={PARTIES}
       addresses={ADDRESSES}
       block={<HomeBlock />}
@@ -81,33 +95,70 @@ function Home({ take }: { take: TakeId }) {
   );
 }
 
-/* ── 1. The stage ─────────────────────────────────────────────────────── */
+/** A hero's object close, still, at rest or lifted, under the demo's lamp. */
+function Close({ hero, lifted }: { hero: HeroId; lifted: boolean }) {
+  const party = PARTIES[0];
+  if (hero === "wall")
+    return (
+      <span className="flex flex-col items-center">
+        <WallObject party={party} lifted={lifted} still />
+        <span
+          className="flex items-center"
+          style={{ marginTop: 22, height: at(LINE) }}
+        >
+          <LinkLine
+            slug={party.slug}
+            addresses={ADDRESSES}
+            night
+            lifted={lifted}
+          />
+        </span>
+      </span>
+    );
+  return (
+    <HeroObject
+      take={hero}
+      parties={PARTIES}
+      live={{ party, addresses: ADDRESSES, up: true, lifted, still: true }}
+    />
+  );
+}
 
-function stagePreview(take: TakeId): ReactNode {
+const SCREEN_NAME: Record<Exclude<ScreenId, "close">, string> = {
+  "1440": "the home at 1440",
+  tablet: "the home on a tablet held upright",
+  "375": "the home at 375",
+};
+
+function stagePreview(take: HeroId): ReactNode {
   const name = LABEL("stage", take);
-  const says = heroSays(SCORES[take].addresses);
+  const says = heroSays(SCORE.addresses);
+  const home = (screen: Exclude<ScreenId, "close">) => (
+    <Scene
+      id={`df-stage-${take}-${screen}`}
+      screen={screen}
+      title={`${name}: ${SCREEN_NAME[screen]}`}
+      measure={says}
+    >
+      <Home hero={take} />
+    </Scene>
+  );
   return (
     <Story
-      desk={
-        <Scene
-          id={`df-stage-${take}-desk`}
-          screen="1440"
-          title={`${name}: the home at 1440`}
-          measure={says}
-        >
-          <Home take={take} />
-        </Scene>
+      desk={home("1440")}
+      score={
+        <LoopScore
+          score={SCORE}
+          album={OBJECT[take].album}
+          object={OBJECT[take].lane}
+          caption={OBJECT[take].says}
+        />
       }
-      score={<LoopScore flow={TAKES[take].flow} score={SCORES[take]} />}
-      phones={
-        <Scene
-          id={`df-stage-${take}-phone`}
-          screen="375"
-          title={`${name}: the home at 375`}
-          measure={says}
-        >
-          <Home take={take} />
-        </Scene>
+      row={
+        <>
+          {home("tablet")}
+          {home("375")}
+        </>
       }
       after={
         <Scene
@@ -116,54 +167,22 @@ function stagePreview(take: TakeId): ReactNode {
           title={`${name}: close at a desk, at rest and under the pointer`}
           measure={touchSays}
         >
-          <Specimen take={take} slug={ADDRESSES[0]} addresses={ADDRESSES} />
+          <Specimen
+            party={PARTIES[0]}
+            object={(lifted) => <Close hero={take} lifted={lifted} />}
+          />
         </Scene>
       }
     />
   );
 }
 
-/* ── 2. The door ──────────────────────────────────────────────────────── */
-
-function doorPreview(door: DoorId): ReactNode {
-  const name = LABEL("door", door);
-  const id = DOORS[door];
-  return (
-    <Story
-      phones={
-        <>
-          <Scene
-            id={`df-door-${door}-phone`}
-            screen="375"
-            title={`${name}: the demo's door at 375`}
-            measure={doorSays}
-          >
-            <DemoDoor door={door} />
-          </Scene>
-          <Scene
-            id={`df-door-${door}-album`}
-            screen="375"
-            title={`${name}: the album behind it`}
-            measure={albumSays}
-          >
-            <AlbumPage title={id.album} host={id.albumHost} />
-          </Scene>
-        </>
-      }
-    />
-  );
-}
-
-/* ── the map ──────────────────────────────────────────────────────────── */
-
 const PREVIEWS: PreviewsFor<typeof DEMO_FRAMING> = {
-  "stage.rise": stagePreview("rise"),
-  "stage.open": stagePreview("open"),
-  "stage.words": stagePreview("words"),
-
-  "door.brand": doorPreview("brand"),
-  "door.example": doorPreview("example"),
-  "door.own": doorPreview("own"),
+  "stage.plate": stagePreview("plate"),
+  "stage.card": stagePreview("card"),
+  "stage.field": stagePreview("field"),
+  "stage.wall": stagePreview("wall"),
+  "stage.door": stagePreview("door"),
 };
 
 export function DemoFramingBoard() {
