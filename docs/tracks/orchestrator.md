@@ -64,10 +64,17 @@ commits, what remains, its predecessor's transcript at
 account. Connectors follow the account: Claude in Chrome (every red-team needs it), the Supabase MCP on
 `ddafaemglzmuekbtjwzn`, the Vercel MCP on his personal team (deploys ride `$VERCEL_TOKEN`; only runtime logs need P3).
 
-Relays that live only in an agent: `disposable-foundation` (2026-10-02 20:20Z, from Will's walk): the own-media read
-covers her own HELD (pending) items as well as sealed ones, presigned for her alone (the ROADMAP's tracker-placeholder
-line), with a server path for her to delete her own pending and sealed items, ownership checked in the RPC, each a
-leak-matrix cell; the UI is a later lane's.
+Relays that live only in an agent, all to `disposable-foundation` (2026-10-02, from Will's walk and answers):
+(1) 20:20Z, the own-media read covers her own HELD (pending) items as well as sealed ones, presigned for her alone, with
+a server path for her to delete her own pending and sealed items, ownership checked in the RPC, each a leak-matrix
+cell; (2) 20:55Z, his overrule: a deleted shot frees its slot (the roll counts her live shots since `sealed_from`;
+the churn bounded by the host's cap until the purge); (3) 20:55Z, hold the EVENT-level shape (`mode`, the reveal
+columns, their grants, the Settings control) until Q9's synthesis lands; the row-level seal, develop as a write, the
+roll's enforcement, the own-media read and delete, and the leak matrix stand.
+
+**Q9 is open with the Advisor** (2026-10-02 20:55Z): Will's synthesis of moderation and disposable into one model
+(how guests add: free uploads or the camera's roll; when everyone sees it: right away, once approved, or at a develop
+time; one waiting experience for any delayed album). Its answer goes to the foundation lane at once.
 
 If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` holds a merge made after this note (push
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
@@ -88,8 +95,10 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team brie
      (`use-welcome-seen.ts`), so a signed-out arrival at an open album paints the album for 1 to 3 s before the door
      rises (his "big bug"; reproduced on build 42, frames in `$S/flash/`): the door must be the first paint; and the
      door's name step drops a typed name for a verified account's own ("Will Test Mobile" became "Will Gibson",
-     silently): a Question with my recommendation (email first whenever verification is on, so a returning account is
-     never asked a name it has).
+     silently). His answers (2026-10-02): the album is NEVER visible before any door or gate a visitor should meet first
+     ("could catch screen recording", and "what just happened? i saw the album, now i'm out"), held by a test on the
+     server's first paint for every door; and where verification is required the name comes after the email, asked
+     only of an account that has none.
    - `event-header` r2 after header-wiring; `host-dashboard` r2 after dashboard-wiring.
    - `disposable-camera` after the foundation: his phone line is in (iOS 26, Chrome 154 on WebKit: the stream
      4032x3024 at 30 fps; a frame drawn whole 3024x4032, 12.2 MP, 2.6 MB at JPEG 0.92; takePhoto 12.2 MP, 7.6 MB; the
@@ -99,7 +108,12 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team brie
      (his walk), on the foundation's own-media read; the screen link stays his Question.
    - `save-speed` (new): the viewer's Save on his iPhone took about 30 s to turn ready for a demo photo (the demo's
      originals: median 0.3 MB, largest 5.2 MB), so the stall is the path, not the bytes; measure each step, make Save
-     immediate.
+     immediate. His standard, for every brief: "Everything should feel as immediate/responsive/snappy, and anything
+     taking longer should provide clear state feedback and potential interruptibility" (design-system.md's line at
+     header-wiring's record, which owns it now).
+   - `the-wait` board (new, after Q9): the waiting experience for any delayed album, a held album's "pending but
+     stacking" beside disposable's develop room ("experiential progress versus empty state"), and the host's two
+     questions in Settings as the synthesis lands them.
    - `take-home` board (new): how guests and hosts take photos home, from his note: a guest's one-press Download all
      against Select, Select all, Save; and a host's originals beside an optimized download for quick posts.
    - Fillers: `crumbs-50` (Sonnet, the off-round ROADMAP lines) and `lab-window` when a seat is free.
@@ -115,8 +129,9 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team brie
 ## Waiting on Will
 
 - **His walks** (2026-10-02): the phone measurement, the real upload and the Save check are DONE (their findings are
-  wave 2's above). Owed: the two-Checkout-tabs check (the card entry is his, on Stripe's hosted page; its deletion step
-  only on an account he names as fine to lose), and Record Video's 1080p size on his iPhone. After build 44: the walk-through when let in (a visible tab), a password door, reduced motion over
+  wave 2's above). Owed: the two-Checkout-tabs check, ON HOLD while he is out (the card entry is his, on Stripe's hosted
+  page; any test host, my call; the account's deletion is fine, "we'll wipe on launch"; a step-by-step chat guide in
+  order of what needs him, ready for his desk), and Record Video's 1080p size on his iPhone. After build 44: the walk-through when let in (a visible tab), a password door, reduced motion over
   the door states and the new hub, a hidden-then-shown hub tab.
 - **The calls file** (90 calls, `../partyreel-wt/_scratch/calls/relay-calls.md`): he reviews it today.
 - **His next desk** on build 44.
