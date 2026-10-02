@@ -6,7 +6,7 @@ import { Glow } from "@/components/shared/glow";
 import { GlowFilter } from "@/components/shared/glow-filter";
 
 import { HeroObject, type TakeId } from "./objects";
-import { CinemaRoom, stopLinks } from "./scene";
+import { CinemaRoom } from "./scene";
 
 /**
  * THE SETTLED TOUCH, CLOSE: the object at a desk's size on the cinema ground,
@@ -68,7 +68,6 @@ export function Specimen({
           portal no height for a percentage to resolve against. */}
       <div
         data-df-specimen
-        onClickCapture={stopLinks}
         className="flex h-screen w-full flex-row"
         style={{ "--hhs-k": 1 } as CSSProperties}
       >

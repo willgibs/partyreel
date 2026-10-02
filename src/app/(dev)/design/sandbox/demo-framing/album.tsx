@@ -14,7 +14,6 @@ import { marketingImage } from "@/lib/constants/marketing-media";
 import { cn } from "@/lib/utils";
 
 import { ALBUM, type AlbumStill, type Person } from "./fixtures";
-import { stopLinks } from "./scene";
 
 /**
  * THE DEMO ALBUM'S FIRST SCREEN, AS A PHONE OPENS IT, QUOTED
@@ -126,10 +125,7 @@ export function AlbumPage({ title, host }: { title: string; host: Person }) {
   const album = ALBUM;
   const still = album.stills[0];
   return (
-    <div
-      className="min-h-full bg-background pb-8 text-foreground"
-      onClickCapture={stopLinks}
-    >
+    <div className="min-h-full bg-background pb-8 text-foreground">
       <GuestBar />
       <div className="w-full pt-8">
         <div className={COLUMN}>

@@ -48,7 +48,7 @@ import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion
 
 import type { Guest, Party } from "./fixtures";
 import { HeroObject, STANDS, type TakeId } from "./objects";
-import { CinemaRoom, stopLinks, useOffStage } from "./scene";
+import { CinemaRoom, useOffStage } from "./scene";
 import { foldAt, rateAt, type Score, typedAt } from "./typing";
 
 /**
@@ -146,11 +146,14 @@ const FRAMES = BUILT.lg.cards.map((lg, i) => {
 
 /**
  * PRODUCTION'S LAYOUT NUMBERS, RE-SOLVED FOR THE GROUP. The block hangs from
- * the same measured clear line (`low`) and loses the eyebrow's line (round
- * two's re-solve); the object is pinned to the axis at its take's point
- * (`--hhs-lift`), and the axis's floor is the lowest axis at which the group's
- * painted top still clears the header by `airTop`. A tablet's numbers are
- * composed between the phone's and the desk's, as everything else there is.
+ * the same measured clear line (`low`), or lower where the object's own foot
+ * stands under the axis and needs its air (the words under the code, which a
+ * whole loop measured 15 px clear of every photograph at 375 and 41 at 1440),
+ * and loses the eyebrow's line (round two's re-solve); the object is pinned to
+ * the axis at its take's point (`--hhs-lift`), and the axis's floor is the
+ * lowest axis at which the group's painted top still clears the header by
+ * `airTop`. A tablet's numbers are composed between the phone's and the
+ * desk's, as everything else there is.
  */
 function layoutOf(take: TakeId): CSSProperties {
   const S = STANDS[take];
@@ -545,7 +548,7 @@ export function HeroStage({
           in the lab page's, and a filter a frame cannot reach drops the whole
           chain, blur and all (glow.tsx's tripwire). */}
       <GlowFilter />
-      <div data-df-hero className="h-full" onClickCapture={stopLinks}>
+      <div data-df-hero className="h-full">
         <MarketingHeader skin="cinema" overlay />
         <section
           ref={(el) => {

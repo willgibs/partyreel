@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  type MouseEvent,
-  type ReactNode,
-  type RefObject,
-  useEffect,
-  useState,
-} from "react";
+import { type ReactNode, type RefObject, useEffect, useState } from "react";
 
 import { Fit, Frame, Measured } from "@/components/lab";
 
@@ -127,16 +121,6 @@ export function CinemaRoom({ children }: { children: ReactNode }) {
       {children}
     </div>
   );
-}
-
-/**
- * ★ A REAL <Link> IN A BOARD IS A TRAP THE BOARD DISARMS ITSELF: a frame is a
- * document of its own, so a press on the object or a header link would
- * navigate the frame away from the page being judged. Every drawing roots in
- * this.
- */
-export function stopLinks(e: MouseEvent) {
-  if ((e.target as HTMLElement).closest?.("a[href]")) e.preventDefault();
 }
 
 /**

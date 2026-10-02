@@ -19,7 +19,6 @@ import { HOUSE_HUES, hueOfOklch } from "@/lib/guest/door-light";
 import { useSampledPalette } from "@/lib/shared/sampled-palette";
 
 import { ALBUM, DEMO_HOST, DEMO_SLUG, DOMAIN, type Person } from "./fixtures";
-import { stopLinks } from "./scene";
 
 /**
  * THE DEMO'S DOOR, THREE IDENTITIES (the `door` decision), each in the
@@ -154,7 +153,6 @@ export function DemoDoor({ door }: { door: DoorId }) {
     <div
       data-df-door={door}
       className="flex min-h-svh flex-col bg-background text-foreground"
-      onClickCapture={stopLinks}
     >
       <DoorTop />
       <main className={DOOR_MAIN}>
