@@ -1,615 +1,742 @@
 "use client";
 
-import { ChevronDown, Search } from "lucide-react";
+import { useState } from "react";
+import Link from "next/link";
+import {
+  ArrowDown,
+  LayoutGrid,
+  Rows3,
+  Search,
+  SlidersHorizontal,
+} from "lucide-react";
 
-import { RoleMarker } from "@/components/app/event-card";
+import { CoverCycleProvider } from "@/components/app/dashboard/cover-cycle";
+import {
+  EventTile,
+  type TileSize,
+} from "@/components/app/dashboard/event-tile";
+import { EventsRowList } from "@/components/app/dashboard/events-row-list";
+import { EventsSection } from "@/components/app/dashboard/events-section";
+import { StateDot } from "@/components/app/dashboard/marks";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import {
+  EVENTS_FILTER_OPTIONS,
+  EVENTS_SEARCH_FROM,
+  type EventListRow,
+  type EventsFilter,
+  type EventsView,
+  filterEventRows,
+  lensCounts,
+  searchEventRows,
+} from "@/lib/dashboard/events-view";
+import type { HomeView } from "@/lib/dashboard/home-view";
 import { formatCount } from "@/lib/format/count";
 import { cn } from "@/lib/utils";
 
-import { Face, hasCover } from "./face";
-import type { DashEvent, GuestEvent, Host } from "./fixtures";
 import {
-  byDate,
-  isEvening,
-  phaseOf,
-  photosIn,
-  seasonsOf,
-  whenOf,
+  type Display,
+  displayGroups,
+  type Grouping,
+  indexOf,
+  type Laid,
+  type ListSort,
+  NEW_PIECES_FROM,
+  type Order,
+  recentRows,
+  type Show,
+  sortList,
 } from "./model";
-import { Mark, Still, type Tone, useWide } from "./ui";
 
 /**
- * YOUR EVENTS, THREE WAYS AT FORTY: one wall of covers newest first, grouped
- * by when with the tiles shrinking as they age, and a list you can sort.
+ * YOUR EVENTS, FOUR WAYS (`events`), each drawn from production's own pieces:
+ * the rows and groups `buildHomeView` composes, the tile (`EventTile`), the rows
+ * view (`EventsRowList`), the lens and the search over production's own filters
+ * (`events-view.ts`).
  *
- * ★ ONE TILE IN ALL THREE (a new atom this board names, `EventTile`): the
- * cover or, before a photograph exists, the date; the name and when on it;
- * one mark at most in each top corner (Live; a count waiting or a step the
- * rule put on the page). Today's card carries the QR chip, a date pill, an
- * item pill and Open/Paused on every cover; the counts move to the list view
- * and the event, the code to the event's Invite, so forty covers read as
- * forty photographs.
+ *  - `built`: production's `EventsSection` itself, untouched.
+ *  - `recent`: the events she opened lately in one row over production's
+ *    section, which stays mounted while she is away, so a year she opened is
+ *    still open when she comes back.
+ *  - `display`: one Display menu over the same rows: covers or a list, grouped
+ *    by when (every year open), by year or not at all, in her order.
+ *  - `index`: what is coming and just past as production's covers, and one list
+ *    for the rest, its years as tabs and its columns as the sort.
+ *
+ * ★ THE PIECES SHOW FROM NINE EVENTS, WITH THE SEARCH (`EVENTS_SEARCH_FROM`):
+ * under that a host's every event fits a screen or two, and a Recent row or a
+ * menu would only repeat it.
  */
 
-export type TileMark = { tone: Tone; text: string };
-
-/**
- * A tile's name by its size. ★ EACH ITS OWN STRING: the heading face carries
- * its one weight, and a weight class in the same class expression would beat
- * it (`type-ladder-policy.test.ts`), so the small size's Inter weight never
- * shares a `cn()` with the face.
- */
-const NAME_LG = "font-heading text-subsection";
-const NAME_MD = "font-heading text-card-title";
-const NAME_SM = "text-xs font-medium";
-
-/** The marks one event wears: Live top left, one state top right. */
-export type Marks = { live: boolean; state: TileMark | null };
-
-const evening = (host: Host) => isEvening(host.clock);
-
-export function EventTile({
-  host,
-  event,
-  marks,
-  size,
-}: {
-  host: Host;
-  event: DashEvent;
-  marks: Marks;
-  size: "lg" | "md" | "sm";
-}) {
-  const photo = hasCover(event);
-  return (
-    <div data-hd-tile={size} className="group relative">
-      <div
-        data-lit=""
-        className={cn(
-          "relative aspect-[3/2] overflow-hidden",
-          size === "sm" ? "rounded-md" : "rounded-lg",
-        )}
-      >
-        <Face
-          event={event}
-          size={size === "lg" ? "lg" : size === "md" ? "md" : "sm"}
-        />
-        {photo && (
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-        )}
-        <div
-          className={cn(
-            "absolute inset-x-0 bottom-0",
-            photo ? "text-white" : "text-foreground",
-            size === "sm" ? "p-2" : "p-3",
-          )}
-        >
-          <h3
-            className={cn(
-              "truncate",
-              size === "lg" ? NAME_LG : size === "md" ? NAME_MD : NAME_SM,
-            )}
-          >
-            {event.name}
-          </h3>
-          {size !== "sm" && (
-            <p
-              className={cn(
-                "mt-0.5 text-xs",
-                photo ? "text-white/70" : "text-muted-foreground",
-              )}
-            >
-              {whenOf(event.date, host.today, evening(host))}
-            </p>
-          )}
-        </div>
-      </div>
-      {marks.live && (
-        <span className="absolute top-2 left-2">
-          <Mark tone="live" on={photo ? "photo" : "page"}>
-            Live
-          </Mark>
-        </span>
-      )}
-      {marks.state && size !== "sm" && (
-        <span className="absolute top-2 right-2">
-          <Mark tone={marks.state.tone} on={photo ? "photo" : "page"}>
-            {marks.state.text}
-          </Mark>
-        </span>
-      )}
-      {marks.state && size === "sm" && (
-        <span
-          aria-label={marks.state.text}
-          className={cn(
-            "absolute top-1.5 right-1.5 size-2 rounded-full ring-2 ring-black/30",
-            marks.state.tone === "waiting" ? "bg-warning" : "bg-white",
-          )}
-        />
-      )}
-    </div>
-  );
-}
-
-function GuestTile({
-  guest,
-  size,
-}: {
-  guest: GuestEvent;
-  size: "lg" | "md" | "sm";
-}) {
-  return (
-    <div data-hd-tile="guest" className="relative">
-      <div
-        className={cn(
-          "relative aspect-[3/2] overflow-hidden",
-          size === "sm" ? "rounded-md" : "rounded-lg",
-        )}
-      >
-        <Still photo={guest.cover} />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-        <div
-          className={cn(
-            "absolute inset-x-0 bottom-0 text-white",
-            size === "sm" ? "p-2" : "p-3",
-          )}
-        >
-          <h3 className={cn("truncate", size === "sm" ? NAME_SM : NAME_MD)}>
-            {guest.name}
-          </h3>
-          {size !== "sm" && (
-            <p className="mt-0.5 truncate text-xs text-white/70">
-              {guest.byline}
-            </p>
-          )}
-        </div>
-      </div>
-      <span className="pointer-events-none absolute top-2 right-2">
-        <RoleMarker role="guest" />
-      </span>
-    </div>
-  );
-}
-
-/* ── the lens ───────────────────────────────────────────────────────────── */
-
-/**
- * The lens as one row of counts (production's Show menu, its three lenses
- * and their numbers said at once), and the search a planner needs at forty.
- */
-function LensBar({
-  host,
-  title,
-  sort,
-}: {
-  host: Host;
-  title?: string;
-  sort?: boolean;
-}) {
-  const wide = useWide();
-  const lenses = [
-    { id: "all", label: "All", n: host.events.length + host.guest.length },
-    { id: "hosting", label: "Hosting", n: host.events.length },
-    { id: "guest", label: "Guest", n: host.guest.length },
-    { id: "deleted", label: "Deleted", n: host.deleted },
-  ].filter((l) => l.id === "all" || l.n > 0);
-  const many = host.events.length > 8;
-  return (
-    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-      <div
-        className={cn(
-          "min-w-0",
-          wide ? "flex items-center gap-4" : "w-full space-y-3",
-        )}
-      >
-        {title && <h2 className="font-heading text-subsection">{title}</h2>}
-        <div
-          data-hd-lens=""
-          className={cn(
-            "flex w-max max-w-full [scrollbar-width:none] items-center gap-0.5 overflow-x-auto rounded-full bg-muted p-0.5 text-xs",
-          )}
-        >
-          {lenses.map((l, i) => (
-            <span
-              key={l.id}
-              className={cn(
-                "flex h-7 shrink-0 items-center gap-1.5 rounded-full px-3",
-                i === 0
-                  ? "bg-background font-medium text-foreground shadow-lift"
-                  : "text-muted-foreground",
-              )}
-            >
-              {l.label}
-              <span className="text-muted-foreground tabular-nums">
-                {formatCount(l.n)}
-              </span>
-            </span>
-          ))}
-        </div>
-      </div>
-      {many && (
-        <div className="flex items-center gap-2">
-          {sort && (
-            <span className="flex h-8 items-center gap-1 rounded-full px-3 text-xs text-muted-foreground">
-              Newest
-              <ChevronDown className="size-3.5" aria-hidden />
-            </span>
-          )}
-          <span
-            className={cn(
-              "flex h-8 items-center gap-2 rounded-full border border-border px-3 text-xs text-muted-foreground",
-              wide ? "w-64" : "w-full",
-            )}
-          >
-            <Search className="size-3.5" aria-hidden />
-            {`Search ${formatCount(host.events.length)} events`}
-          </span>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ── one wall of covers ─────────────────────────────────────────────────── */
-
-export function Covers({
-  host,
-  marksOf,
-  title,
-}: {
-  host: Host;
-  marksOf: (e: DashEvent) => Marks;
-  title?: string;
-}) {
-  const wide = useWide();
-  const events = byDate(host);
-  return (
-    <section
-      data-hd-collection="covers"
-      aria-label="Your events"
-      className="space-y-4"
-    >
-      <LensBar host={host} title={title} />
-      <ul
-        className={cn("grid", wide ? "gap-4" : "gap-3")}
-        style={{
-          gridTemplateColumns: `repeat(${colsFor(events.length + host.guest.length, wide ? 5 : 2)}, minmax(0, 1fr))`,
-        }}
-      >
-        {events.map((e) => (
-          <li key={e.id}>
-            <EventTile host={host} event={e} marks={marksOf(e)} size="md" />
-          </li>
-        ))}
-        {host.guest.map((g) => (
-          <li key={g.id}>
-            <GuestTile guest={g} size="md" />
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-/* ── grouped by when ────────────────────────────────────────────────────── */
-
-/**
- * A grid's columns for how many it holds: a group of one or two draws them a
- * third of the page wide rather than a fifth, so a host with one event meets
- * a cover, not a thumbnail in an empty row.
- */
-const colsFor = (n: number, cols: number) => (cols > 2 && n <= 2 ? 3 : cols);
-
-const COLS: Record<"large" | "medium" | "small", [number, number]> = {
-  large: [4, 1],
-  medium: [5, 2],
-  small: [8, 3],
+/** A group's grid by how large its tiles draw: production's own fluid columns (`events-section.tsx`). */
+const GRID: Record<"large" | "medium" | "small" | "few", string> = {
+  large: "grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))]",
+  medium:
+    "grid-cols-[repeat(auto-fill,minmax(min(calc(50%_-_6px),240px),1fr))]",
+  small:
+    "grid-cols-[repeat(auto-fill,minmax(min(calc(33.333%_-_8px),150px),1fr))]",
+  few: "grid-cols-[repeat(auto-fill,minmax(min(100%,360px),1fr))]",
 };
 
-export function Seasons({
-  host,
-  marksOf,
-  title,
+function Tiles({
+  rows,
+  size,
 }: {
-  host: Host;
-  marksOf: (e: DashEvent) => Marks;
-  title?: string;
+  rows: readonly EventListRow[];
+  size: Laid["size"];
 }) {
-  const wide = useWide();
-  const seasons = seasonsOf(host);
+  const grid = rows.length <= 2 ? "few" : size;
+  const tile: TileSize =
+    grid === "few" || grid === "large" ? "lg" : grid === "medium" ? "md" : "sm";
+  return (
+    <ul className={cn("grid gap-3", GRID[grid])}>
+      {rows.map((row) => (
+        <li key={`${row.kind}-${row.id}`}>
+          <EventTile row={row} size={tile} />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** A group's head: its name and its count, as production's groups say them. */
+function GroupHead({ label, count }: { label: string; count: number }) {
+  return (
+    <h3 className="flex items-baseline gap-2">
+      <span className="font-heading text-card-title">{label}</span>
+      <span className="text-xs text-muted-foreground tabular-nums">
+        {formatCount(count)}
+      </span>
+    </h3>
+  );
+}
+
+/** The lens as one row of counts, as production draws it (`events-section.tsx`). */
+function LensRow({
+  counts,
+  filter,
+  onChange,
+}: {
+  counts: Record<EventsFilter, number>;
+  filter: EventsFilter;
+  onChange: (next: EventsFilter) => void;
+}) {
+  const lenses = EVENTS_FILTER_OPTIONS.filter(
+    (o) => o.value === "all" || o.value === filter || counts[o.value] > 0,
+  );
+  return (
+    <ToggleGroup
+      type="single"
+      value={filter}
+      onValueChange={(v) => v && onChange(v as EventsFilter)}
+      aria-label="Show"
+      className="max-w-full [scrollbar-width:none] overflow-x-auto rounded-full bg-muted p-0.5"
+    >
+      {lenses.map((o) => (
+        <ToggleGroupItem
+          key={o.value}
+          value={o.value}
+          aria-label={`${o.label}, ${formatCount(counts[o.value])}`}
+          className="h-7 gap-1.5 rounded-full px-3 text-xs text-muted-foreground hover:bg-transparent data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-lift"
+        >
+          {o.label}
+          <span className="font-normal text-muted-foreground tabular-nums">
+            {formatCount(counts[o.value])}
+          </span>
+        </ToggleGroupItem>
+      ))}
+    </ToggleGroup>
+  );
+}
+
+function SearchField({
+  query,
+  onQuery,
+  count,
+}: {
+  query: string;
+  onQuery: (q: string) => void;
+  count: number;
+}) {
+  return (
+    <label className="relative flex min-w-0 flex-1 items-center sm:w-64 sm:flex-none">
+      <Search
+        className="pointer-events-none absolute left-3 size-3.5 text-muted-foreground"
+        aria-hidden
+      />
+      <span className="sr-only">Search your events</span>
+      <Input
+        type="search"
+        value={query}
+        onChange={(e) => onQuery(e.target.value)}
+        placeholder={`Search ${formatCount(count)} events`}
+        className="h-8 rounded-full pl-8 text-xs md:text-xs"
+      />
+    </label>
+  );
+}
+
+/** The head every redrawn collection shares: its title and lens, the search and the option's own control. */
+function Head({
+  title,
+  counts,
+  filter,
+  onFilter,
+  query,
+  onQuery,
+  control,
+}: {
+  title: string;
+  counts: Record<EventsFilter, number>;
+  filter: EventsFilter;
+  onFilter: (f: EventsFilter) => void;
+  query: string;
+  onQuery: (q: string) => void;
+  control?: React.ReactNode;
+}) {
+  const searchable = counts.all >= EVENTS_SEARCH_FROM;
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+      <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-3">
+        <h2 className="font-heading text-subsection">{title}</h2>
+        <LensRow counts={counts} filter={filter} onChange={onFilter} />
+      </div>
+      <div
+        className={cn(
+          "flex items-center gap-1.5",
+          searchable ? "w-full sm:w-auto" : "ml-auto",
+        )}
+      >
+        {searchable && (
+          <SearchField query={query} onQuery={onQuery} count={counts.all} />
+        )}
+        {control}
+      </div>
+    </div>
+  );
+}
+
+function Empty({ text }: { text: string }) {
+  return (
+    <p className="rounded-xl border border-dashed border-border px-6 py-10 text-center text-sm text-muted-foreground">
+      {text}
+    </p>
+  );
+}
+
+/* ── built, and Recent over it ────────────────────────────────────────── */
+
+/**
+ * THE RECENT ROW: the events she opened lately, newest first, one row of
+ * covers at a desk and one swipe in a hand. It is not a strip of what is new
+ * (Just arrived went for being that): every cover in it is an event she chose.
+ */
+function RecentRow({
+  rows,
+  wide,
+}: {
+  rows: readonly EventListRow[];
+  wide: boolean;
+}) {
   return (
     <section
-      data-hd-collection="seasons"
-      aria-label="Your events"
-      className="space-y-6"
+      data-hd-recent={rows.length}
+      aria-labelledby="hd-recent"
+      className="space-y-3"
     >
-      <LensBar host={host} title={title} />
-      {seasons.map((s) => {
-        if (s.size === "folded") {
-          const count = s.events.length;
-          return (
-            <div
-              key={s.id}
-              data-hd-season={s.id}
-              data-hd-folded={count}
-              className="flex items-center gap-4 border-t border-border pt-4"
-            >
-              <div className="w-36 shrink-0">
-                <p className="font-heading text-card-title">{s.label}</p>
-                <p className="text-xs text-muted-foreground">
-                  {`${formatCount(count)} events · ${formatCount(photosIn(s.events))} photos`}
-                </p>
-              </div>
-              <ul className="flex min-w-0 flex-1 gap-1.5 overflow-hidden">
-                {s.events.slice(0, wide ? 16 : 4).map((e) => (
-                  <li
-                    key={e.id}
-                    className="relative size-11 shrink-0 overflow-hidden rounded-[var(--radius-tile)]"
-                  >
-                    <Face event={e} size="sm" />
-                  </li>
-                ))}
-              </ul>
-              <span className="flex h-8 shrink-0 items-center gap-1 rounded-full border border-border px-3 text-xs font-medium">
-                {`Show ${formatCount(count)}`}
-                <ChevronDown className="size-3.5" aria-hidden />
-              </span>
-            </div>
-          );
-        }
-        const [desk, hand] = COLS[s.size];
-        const size =
-          s.size === "large" || s.events.length <= 2
-            ? "lg"
-            : s.size === "medium"
-              ? "md"
-              : "sm";
-        return (
-          <div key={s.id} data-hd-season={s.id} className="space-y-3">
-            <p className="flex items-baseline gap-2">
-              <span className="font-heading text-card-title">{s.label}</span>
-              <span className="text-xs text-muted-foreground tabular-nums">
-                {formatCount(s.events.length)}
-              </span>
-            </p>
-            <ul
-              className="grid gap-3"
-              style={{
-                gridTemplateColumns: `repeat(${colsFor(s.events.length, wide ? desk : hand)}, minmax(0, 1fr))`,
-              }}
-            >
-              {s.events.map((e) => (
-                <li key={e.id}>
-                  <EventTile
-                    host={host}
-                    event={e}
-                    marks={marksOf(e)}
-                    size={wide ? size : size === "lg" ? "md" : size}
-                  />
-                </li>
-              ))}
-            </ul>
-          </div>
-        );
-      })}
-      {host.guest.length > 0 && (
-        <div data-hd-season="guest" className="space-y-3">
-          <p className="flex items-baseline gap-2">
-            <span className="font-heading text-card-title">As a guest</span>
-            <span className="text-xs text-muted-foreground tabular-nums">
-              {formatCount(host.guest.length)}
-            </span>
-          </p>
-          <ul
-            className="grid gap-3"
-            style={{
-              gridTemplateColumns: `repeat(${colsFor(host.guest.length, wide ? 5 : 2)}, minmax(0, 1fr))`,
-            }}
-          >
-            {host.guest.map((g) => (
-              <li key={g.id}>
-                <GuestTile guest={g} size="md" />
+      <h2 id="hd-recent" className="text-label text-muted-foreground uppercase">
+        Recent
+      </h2>
+      <CoverCycleProvider>
+        {wide ? (
+          <ul className="grid grid-cols-6 gap-3">
+            {rows.map((row) => (
+              <li key={`${row.kind}-${row.id}`}>
+                <EventTile row={row} size="md" />
               </li>
             ))}
           </ul>
-        </div>
+        ) : (
+          <ul className="-mx-3 flex snap-x snap-mandatory scroll-px-3 [scrollbar-width:none] gap-2 overflow-x-auto px-3">
+            {rows.map((row) => (
+              <li
+                key={`${row.kind}-${row.id}`}
+                className="w-[42%] shrink-0 snap-start"
+              >
+                <EventTile row={row} size="sm" />
+              </li>
+            ))}
+          </ul>
+        )}
+      </CoverCycleProvider>
+    </section>
+  );
+}
+
+export function BuiltCollection({
+  view,
+  initialView,
+  mount,
+  recent,
+  trail,
+  wide,
+}: {
+  view: HomeView;
+  initialView: EventsView;
+  /** Production's page draws fresh after Back: a new key is that fresh drawing. */
+  mount: number;
+  /** Draw the Recent row over it (`recent`). */
+  recent: boolean;
+  trail: readonly string[];
+  wide: boolean;
+}) {
+  const live = view.events.rows.filter((r) => r.kind !== "deleted").length;
+  const lately =
+    recent && live >= NEW_PIECES_FROM ? recentRows(view, trail) : [];
+  return (
+    <div data-hd-collection="" className="space-y-7">
+      {lately.length > 0 && <RecentRow rows={lately} wide={wide} />}
+      <EventsSection
+        key={mount}
+        rows={view.events.rows}
+        seasons={view.events.seasons}
+        initialView={initialView}
+        title={view.events.title}
+      />
+    </div>
+  );
+}
+
+/* ── shown her way ────────────────────────────────────────────────────── */
+
+function Choice<T extends string>({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: T;
+  options: readonly { value: T; label: string; icon?: React.ReactNode }[];
+  onChange: (v: T) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <ToggleGroup
+        type="single"
+        value={value}
+        onValueChange={(v) => v && onChange(v as T)}
+        variant="outline"
+        size="sm"
+        aria-label={label}
+      >
+        {options.map((o) => (
+          <ToggleGroupItem
+            key={o.value}
+            value={o.value}
+            aria-label={o.label}
+            className="gap-1 px-2.5"
+          >
+            {o.icon}
+            {o.label}
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
+    </div>
+  );
+}
+
+const SHOWS: { value: Show; label: string; icon: React.ReactNode }[] = [
+  { value: "covers", label: "Covers", icon: <LayoutGrid /> },
+  { value: "list", label: "List", icon: <Rows3 /> },
+];
+const GROUPS: { value: Grouping; label: string }[] = [
+  { value: "when", label: "When" },
+  { value: "year", label: "Year" },
+  { value: "none", label: "None" },
+];
+const ORDERS: { value: Order; label: string }[] = [
+  { value: "date", label: "Date" },
+  { value: "name", label: "Name" },
+  { value: "waiting", label: "Waiting" },
+];
+
+function DisplayMenu({
+  display,
+  onDisplay,
+  open,
+  onOpen,
+}: {
+  display: Display;
+  onDisplay: (d: Display) => void;
+  open: boolean;
+  onOpen: (open: boolean) => void;
+}) {
+  return (
+    <Popover open={open} onOpenChange={onOpen} modal={false}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm" data-hd-display="">
+          <SlidersHorizontal /> Display
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="end"
+        className="w-72 space-y-3"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
+        <Choice
+          label="Show"
+          value={display.show}
+          options={SHOWS}
+          onChange={(show) => onDisplay({ ...display, show })}
+        />
+        <Choice
+          label="Group"
+          value={display.group}
+          options={GROUPS}
+          onChange={(group) => onDisplay({ ...display, group })}
+        />
+        <Choice
+          label="Order"
+          value={display.order}
+          options={ORDERS}
+          onChange={(order) => onDisplay({ ...display, order })}
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+export function DisplayCollection({
+  view,
+  days,
+  display,
+  onDisplay,
+  menuOpen,
+  onMenuOpen,
+}: {
+  view: HomeView;
+  days: ReadonlyMap<string, string | null>;
+  display: Display;
+  onDisplay: (d: Display) => void;
+  menuOpen: boolean;
+  onMenuOpen: (open: boolean) => void;
+}) {
+  const [filter, setFilter] = useState<EventsFilter>("all");
+  const [query, setQuery] = useState("");
+  const rows = view.events.rows;
+  if (rows.length === 0) return null;
+  const counts = lensCounts(rows);
+  const shown = searchEventRows(filterEventRows(rows, filter), query);
+  const menu = counts.all >= NEW_PIECES_FROM;
+  const flat = query.trim().length > 0 || filter === "deleted";
+  const groups: Laid[] = flat
+    ? [{ id: "found", label: "", size: "medium", rows: shown }]
+    : displayGroups(shown, view.events.seasons, days, display);
+  return (
+    <section
+      data-hd-collection=""
+      aria-label={view.events.title}
+      className="space-y-5"
+    >
+      <Head
+        title={view.events.title}
+        counts={counts}
+        filter={filter}
+        onFilter={setFilter}
+        query={query}
+        onQuery={setQuery}
+        control={
+          menu ? (
+            <DisplayMenu
+              display={display}
+              onDisplay={onDisplay}
+              open={menuOpen}
+              onOpen={onMenuOpen}
+            />
+          ) : null
+        }
+      />
+      {shown.length === 0 ? (
+        <Empty text={`No event's name holds “${query.trim()}”.`} />
+      ) : (
+        <CoverCycleProvider>
+          <div className="space-y-7">
+            {groups.map((g) => (
+              <section
+                key={g.id}
+                aria-label={g.label || "Found"}
+                className="space-y-3"
+              >
+                {g.label && <GroupHead label={g.label} count={g.rows.length} />}
+                {display.show === "list" && menu ? (
+                  <EventsRowList rows={g.rows} />
+                ) : (
+                  <Tiles rows={g.rows} size={g.size} />
+                )}
+              </section>
+            ))}
+          </div>
+        </CoverCycleProvider>
       )}
     </section>
   );
 }
 
-/* ── a list you can sort ────────────────────────────────────────────────── */
+/* ── covers near, a list for the past ─────────────────────────────────── */
 
-/** The list's columns at a desk: the event, its date, photos, guests, its state. */
-const INDEX_COLS =
-  "grid-cols-[minmax(0,2.4fr)_minmax(0,1fr)_minmax(0,0.7fr)_minmax(0,0.7fr)_minmax(0,1.3fr)]";
+const COLUMNS: { sort: ListSort; label: string }[] = [
+  { sort: "name", label: "Event" },
+  { sort: "date", label: "Date" },
+  { sort: "size", label: "In the album" },
+];
 
-function StateCell({
-  host,
-  e,
-  marks,
+/** One line of the list: its cover, its name, its date, its size and what waits. */
+function ListRow({
+  row,
+  date,
+  wide,
 }: {
-  host: Host;
-  e: DashEvent;
-  marks: Marks;
+  row: EventListRow;
+  date: string;
+  wide: boolean;
 }) {
-  const phase = phaseOf(e.date, host.today);
-  if (marks.live)
-    return (
-      <span className="flex items-center gap-2 text-sm">
-        <span
-          className="hd-breathe size-2 rounded-full bg-success"
-          aria-hidden
-        />
-        Live
+  const state = row.marks?.state ?? null;
+  const body = (
+    <>
+      <span className="relative size-9 shrink-0 overflow-hidden rounded-md bg-muted">
+        {row.coverUrl && (
+          // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL in production, a fixture crop here
+          <img
+            src={row.coverUrl}
+            alt=""
+            loading="lazy"
+            className="absolute inset-0 size-full object-cover"
+          />
+        )}
       </span>
-    );
-  if (marks.state)
-    return (
-      <span className="flex items-center gap-2 text-sm">
-        <span
-          aria-hidden
-          className={cn(
-            "size-2 rounded-full",
-            marks.state.tone === "waiting"
-              ? "bg-warning"
-              : "border border-foreground/50",
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-medium">{row.name}</span>
+        {!wide && (
+          <span className="block truncate text-xs text-muted-foreground">
+            {date}
+          </span>
+        )}
+      </span>
+      {/* The party, still seen at a desk: its next few photographs, as the rows view keeps them. */}
+      {wide && row.stills.length > 1 && (
+        <span className="flex shrink-0 gap-1" aria-hidden>
+          {row.stills.slice(1, 4).map((url) => (
+            <span
+              key={url}
+              className="relative size-7 overflow-hidden rounded-[var(--radius-tile)] bg-muted"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL in production, a fixture crop here */}
+              <img
+                src={url}
+                alt=""
+                loading="lazy"
+                className="absolute inset-0 size-full object-cover"
+              />
+            </span>
+          ))}
+        </span>
+      )}
+      {wide && (
+        <span className="w-36 shrink-0 text-sm text-muted-foreground tabular-nums">
+          {date}
+        </span>
+      )}
+      <span
+        className={cn(
+          "shrink-0 text-right text-sm text-muted-foreground tabular-nums",
+          wide ? "w-28" : "w-14",
+        )}
+      >
+        {row.kind === "guest" ? "Guest" : formatCount(row.items)}
+      </span>
+      {wide && (
+        <span className="flex w-32 shrink-0 items-center justify-end gap-1.5 text-xs">
+          {state?.tone === "waiting" && (
+            <>
+              <StateDot tone="waiting" className="size-1.5" />
+              <span className="text-warning">{state.text}</span>
+            </>
           )}
-        />
-        <span className="truncate">{marks.state.text}</span>
-      </span>
-    );
+        </span>
+      )}
+    </>
+  );
+  const line =
+    "flex h-13 items-center gap-3 rounded-lg px-2 outline-none hover:bg-muted focus-visible:bg-muted";
   return (
-    <span className="text-sm text-muted-foreground">
-      {phase === "before"
-        ? "Ready"
-        : e.facts.acceptingUploads
-          ? "Open"
-          : "Paused"}
-    </span>
+    <li data-hd-row={row.id}>
+      {row.href ? (
+        <Link href={row.href} className={line}>
+          {body}
+        </Link>
+      ) : (
+        <div className={line}>{body}</div>
+      )}
+    </li>
   );
 }
 
-export function Index({
-  host,
-  marksOf,
-  title,
+export function IndexCollection({
+  view,
+  days,
+  wide,
+  year,
+  onYear,
+  sort,
+  onSort,
 }: {
-  host: Host;
-  marksOf: (e: DashEvent) => Marks;
-  title?: string;
+  view: HomeView;
+  days: ReadonlyMap<string, string | null>;
+  wide: boolean;
+  year: string;
+  onYear: (y: string) => void;
+  sort: ListSort;
+  onSort: (s: ListSort) => void;
 }) {
-  const wide = useWide();
-  // The events you added to stand among your own by date, as All events does today.
-  type Row =
-    | { event: DashEvent; guest?: undefined }
-    | { guest: GuestEvent; event?: undefined };
-  const at = (r: Row) =>
-    r.guest ? r.guest.date : (r.event.date ?? "9999-12-31");
-  const rows: Row[] = [
-    ...byDate(host).map((event): Row => ({ event })),
-    ...host.guest.map((guest): Row => ({ guest })),
-  ].sort((a, b) => at(b).localeCompare(at(a)));
+  const [filter, setFilter] = useState<EventsFilter>("all");
+  const [query, setQuery] = useState("");
+  const rows = view.events.rows;
+  if (rows.length === 0) return null;
+  const counts = lensCounts(rows);
+  const shown = searchEventRows(filterEventRows(rows, filter), query);
+  const { near, past, years } = indexOf(shown, view.events.seasons, days);
+  // Under nine events the list would hold two or three: they stay covers, as built.
+  if (counts.all < NEW_PIECES_FROM)
+    return (
+      <section data-hd-collection="" className="space-y-5">
+        <Head
+          title={view.events.title}
+          counts={counts}
+          filter={filter}
+          onFilter={setFilter}
+          query={query}
+          onQuery={setQuery}
+        />
+        <CoverCycleProvider>
+          <div className="space-y-7">
+            {near.map((g) => (
+              <section key={g.id} className="space-y-3">
+                <GroupHead label={g.label} count={g.rows.length} />
+                <Tiles rows={g.rows} size={g.size} />
+              </section>
+            ))}
+            {past.length > 0 && <Tiles rows={past} size="medium" />}
+          </div>
+        </CoverCycleProvider>
+      </section>
+    );
+  const inYear =
+    year === "all"
+      ? past
+      : past.filter((r) => days.get(r.id)?.startsWith(year));
+  const list = sortList(inYear, sort, days);
+  const dateOf = (r: EventListRow) =>
+    r.kind === "guest"
+      ? r.dateLabel
+      : r.dateLabel.replace("No date set", "No date");
   return (
     <section
-      data-hd-collection="index"
-      aria-label="Your events"
-      className="space-y-4"
+      data-hd-collection=""
+      aria-label={view.events.title}
+      className="space-y-5"
     >
-      <LensBar host={host} title={title} sort />
-      <div className="overflow-hidden rounded-xl border border-border">
-        {wide && (
-          <div
-            className={cn(
-              "grid gap-4 border-b border-border bg-muted/40 px-4 py-2 text-xs text-muted-foreground",
-              INDEX_COLS,
-            )}
-          >
-            <span>Event</span>
-            <span className="flex items-center gap-1">
-              Date
-              <ChevronDown className="size-3" aria-hidden />
-            </span>
-            <span className="text-right">Photos</span>
-            <span className="text-right">Guests</span>
-            <span>State</span>
-          </div>
-        )}
-        <ul className="divide-y divide-border">
-          {rows.map((row) => {
-            if (row.guest) {
-              const g = row.guest;
-              return (
-                <li
-                  key={g.id}
-                  data-hd-row="guest"
-                  className={cn(
-                    "items-center gap-4 px-4",
-                    wide ? `grid ${INDEX_COLS} py-2` : "flex py-2.5",
-                  )}
+      <Head
+        title={view.events.title}
+        counts={counts}
+        filter={filter}
+        onFilter={setFilter}
+        query={query}
+        onQuery={setQuery}
+      />
+      <CoverCycleProvider>
+        <div className="space-y-7">
+          {near.map((g) => (
+            <section key={g.id} aria-label={g.label} className="space-y-3">
+              <GroupHead label={g.label} count={g.rows.length} />
+              <Tiles rows={g.rows} size={g.size} />
+            </section>
+          ))}
+        </div>
+      </CoverCycleProvider>
+      {past.length > 0 && (
+        <section
+          data-hd-list={list.length}
+          aria-label="Earlier"
+          className="space-y-2"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <GroupHead label="Earlier" count={past.length} />
+            <ToggleGroup
+              type="single"
+              value={year}
+              onValueChange={(v) => v && onYear(v)}
+              aria-label="Which year"
+              className="rounded-full bg-muted p-0.5"
+            >
+              {["all", ...years].map((y) => (
+                <ToggleGroupItem
+                  key={y}
+                  value={y}
+                  className="h-7 rounded-full px-3 text-xs text-muted-foreground hover:bg-transparent data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-lift"
                 >
-                  <span className="flex min-w-0 items-center gap-3">
-                    <span className="relative h-8 w-12 shrink-0 overflow-hidden rounded-[var(--radius-tile)]">
-                      <Still photo={g.cover} />
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm font-medium">
-                        {g.name}
-                      </span>
-                      <span className="block truncate text-xs text-muted-foreground">
-                        {g.byline}
-                      </span>
-                    </span>
-                  </span>
-                  {wide ? (
-                    <>
-                      <span className="text-sm text-muted-foreground tabular-nums">
-                        {whenOf(g.date, host.today, evening(host))}
-                      </span>
-                      <span />
-                      <span />
-                      <span className="text-sm text-muted-foreground">
-                        Guest
-                      </span>
-                    </>
-                  ) : (
-                    <span className="ml-auto shrink-0 text-sm text-muted-foreground">
-                      Guest
-                    </span>
-                  )}
-                </li>
-              );
-            }
-            const e = row.event;
-            const marks = marksOf(e);
-            return (
-              <li
-                key={e.id}
-                data-hd-row=""
+                  {y === "all" ? "All" : y}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
+          </div>
+          <div
+            role="row"
+            className="flex h-8 items-center gap-3 border-b border-border px-2 text-xs text-muted-foreground"
+          >
+            <span className="size-9 shrink-0" aria-hidden />
+            {COLUMNS.filter((c) => wide || c.sort !== "date").map((c) => (
+              <button
+                key={c.sort}
+                type="button"
+                onClick={() => onSort(c.sort)}
+                aria-pressed={sort === c.sort}
                 className={cn(
-                  "items-center gap-4 px-4",
-                  wide ? `grid ${INDEX_COLS} py-2` : "flex py-2.5",
+                  "flex items-center gap-1 outline-none hover:text-foreground focus-visible:text-foreground",
+                  c.sort === "name" && "min-w-0 flex-1",
+                  c.sort === "date" && "w-36 shrink-0",
+                  c.sort === "size" &&
+                    cn("shrink-0 justify-end", wide ? "w-28" : "w-14"),
+                  sort === c.sort && "text-foreground",
                 )}
               >
-                <span className="flex min-w-0 items-center gap-3">
-                  <span className="relative h-8 w-12 shrink-0 overflow-hidden rounded-[var(--radius-tile)]">
-                    <Face event={e} size="sm" />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block truncate text-sm font-medium">
-                      {e.name}
-                    </span>
-                    {!wide && (
-                      <span className="block truncate text-xs text-muted-foreground">
-                        {hasCover(e)
-                          ? `${whenOf(e.date, host.today, evening(host))} · ${formatCount(e.facts.approved)} photos`
-                          : whenOf(e.date, host.today, evening(host))}
-                      </span>
-                    )}
-                  </span>
-                </span>
-                {wide ? (
-                  <>
-                    <span className="text-sm text-muted-foreground tabular-nums">
-                      {whenOf(e.date, host.today, evening(host))}
-                    </span>
-                    <span className="text-right text-sm tabular-nums">
-                      {hasCover(e) ? formatCount(e.facts.approved) : ""}
-                    </span>
-                    <span className="text-right text-sm tabular-nums">
-                      {hasCover(e) ? formatCount(e.facts.guests) : ""}
-                    </span>
-                    <StateCell host={host} e={e} marks={marks} />
-                  </>
-                ) : (
-                  <span className="ml-auto shrink-0">
-                    <StateCell host={host} e={e} marks={marks} />
-                  </span>
+                {c.sort === "size" && !wide ? "Size" : c.label}
+                {sort === c.sort && (
+                  <ArrowDown className="size-3" aria-hidden />
                 )}
-              </li>
-            );
-          })}
-        </ul>
-      </div>
+              </button>
+            ))}
+            {wide && <span className="w-32 shrink-0" aria-hidden />}
+          </div>
+          <ul className="divide-y divide-border/60">
+            {list.map((row) => (
+              <ListRow
+                key={`${row.kind}-${row.id}`}
+                row={row}
+                date={dateOf(row)}
+                wide={wide}
+              />
+            ))}
+          </ul>
+        </section>
+      )}
     </section>
   );
 }
