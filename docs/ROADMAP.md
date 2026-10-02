@@ -17,6 +17,12 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Marketing: every marketing page but the home preloads the home's three sheets (the hero's, the river's, the backdrop's) and never draws them, from the header logo's viewport prefetch of `/` (three "preloaded but not used" warnings a load on /pricing, /about and /help, measured on `next start`); prefetching `/` on intent would trade an instant home for them (from `mkt-polish`).
+- Marketing: the faint step's informational captions (the plan and configurator stat labels, "We recommend", "Expected room" and its share, the size slider's ends) read 3.2:1 on paper and 2.9:1 on the mat, under AA's 4.5 for small text; captions by the design system's rule, so the pass left them, and a darker paper `--faint` would lift every one at once (from `mkt-polish`).
+- Marketing: the press sheet's closing note (`press/press-sheet.tsx`, "Everything here is Partyreel artwork…") is a sentence in `--faint` (3.2:1 on the page); it moves up a step when about-press wires, its board being on the desk (from `mkt-polish`).
+- Marketing: the Event Pass ticket's photo count wraps its "≈" onto a line of its own at 1440 (about 56px of text in the stat's cell) (from `mkt-polish`).
+- Admin: the admin host's login page links the legal pages relatively (`/terms`, `/privacy`), which the admin host answers with its 404, and its `/manifest.webmanifest` 404s too, so each load logs console errors; the app's absolute addresses would serve them (milestone 32's prod walk, LOW; the kin of the person report's handle, fixed by `crumbs-41`).
+- Marketing: the site's 404 carries two robots metas (Next's own `noindex` and the page's `noindex, nofollow`); one is enough (milestone 32's prod walk, NIT).
 - Exports: the runtime logs "Uncaught Error: Network connection lost." twice whenever a client leaves a zip mid-stream, reported or not (client-zip's object read left pending); noise in the Worker's log, not a fault (from `export-ends`).
 - Exports: a walk listens by polling `/api/export/status` (about 360 asks over an hour's download, each through the proxy's `getUser()` for a signed-in viewer); a pushed word (SSE) if it ever costs (from `export-ends`).
 - Exports: a walk asks a stopped part again by its ids, so a walk lacking more than 2,000 starts over whole; a re-take by the part's own cursor would be exact (from `export-ends`).
@@ -50,7 +56,6 @@ below hold the rest by surface.
 - Code hygiene: `utils.test.ts`'s inline German-runtime helper for dates and `lib/test-utils/german-runtime.ts`'s for numbers are one simulation twice (from `crumbs-36`).
 - Admin: a dismissed child-abuse report's closed line says one date twice ("until Mar 30, 2027 UTC; ... until Mar 30, 2027 UTC") when its strike and the address's bar lapse together (build 36's red-team NIT); after `crumbs-41` merges, whose rewrite of that line it touches.
 - Guest: a guest's own upload landing is measured in Chrome only (the re-keyed tile is `complete` at mount, no fade); one upload walked on an iPhone in Safari would show any flash between the in-flight tile leaving and hers showing (from `crumbs-35`).
-- Marketing: an `id="faq"` on every FAQ band (the events template, `FeatureFaq`), so the footer's FAQ link meets each page's own questions, not only /pricing's (`OWN_FAQ_ROUTES`, from `crumbs-34`).
 - Code hygiene: `DemoTicket` has one bare caller (the Library specimen), and `components/lab/scene.tsx` still names the retired boards (from `marketing-refresh`; the rest of its line, `GuestListItem`'s `kind` and the cards' `seed`, landed in crumbs-32).
 - Billing: in a hand, Back from Stripe (Checkout, change-plan's confirm, the billing portal), left by a full navigation from inside the plan sheet (a cover, a place), lands on the sheet's same-URL entry with nothing open, one dead Back: `popup-back.ts` now takes its entry with a `Link`'s click, not a `location.href` (from crumbs-32).
 - The lab and the kit: a section-level failure grammar: the album's card is the product's first "this part could not load" while the page stands; the reel tile, the Guests list and the hub's rooms could share one drawn primitive rather than each growing its own (a board idea from `crumbs-28`).
@@ -59,7 +64,6 @@ below hold the rest by surface.
 - The lab: a Library specimen for `HostMediaGrid`'s arrival (a card whose button adds a photograph to a fake store, a link minted only when asked), so `lab:demo` holds what the hub's live push does and localhost cannot reach signed in: this lane's scratch page (`_scratch/crumbs-25/`, never committed) is its first draft (from `crumbs-25`).
 - The lab and the kit: the desk (`/design/lab`) pictures first too, each open step's stage as a thumbnail in the queue, so a sitting's options are seen before any is opened; and at a phone, number-only tabs beside the shown one's name, so a four-option ask shows every option in one row (today the row scrolls, its cut edge faded) (from `lab-focus`).
 - The lab and the kit: the Library draws only the older Dialog and Sheet, never a `PopupContent`, so the popup's arrival guard had no specimen to drive; a specimen (a card that opens a `settings` popup with rows that count their taps) lets `lab:demo` hold it (from `crumbs-23`).
-- Marketing: the 404 itself warns "preloaded but not used" four times a load (`marketing.css` and the home hero's, river's and backdrop's sheets): its header and footer links prefetch `/`, `/pricing`, `/login`, `/contact`, `/features` and `/help`, and the client preloads their sheets unused (from `crumbs-22`).
 - The lab and the kit: a legibility pass for boards that put words over motion, the one `privacy-hero-r4` ran by hand (`_scratch/privacy-hero-r4/cap2.mjs`: every animation under the words seeked through the Web Animations API, the words hidden, the 95th-percentile ground under each line box against the line's own colour across the whole loop), would let a board prove its words readable on screen rather than by eye; `lab:demo` is its natural home (from `privacy-hero-r4`).
 - Marketing: if the privacy hero's lens wins, its veil is a full-viewport backdrop filter (`glass-behind`) under a moving pane; measure a phone on the alias at its wiring, with a pre-blurred still (drawn once, as the beam's dimmed shots are) as the fallback (from `privacy-hero-r4`).
 - Guests: the lens (one photograph's worth of clarity in the lightbox's ground) is the album's own privacy gesture; the door family's wait or a private album's gate could wear it rather than a still card (from `privacy-hero-r4`).
@@ -80,7 +84,6 @@ below hold the rest by surface.
 - Guests: `entry-modal.tsx` exports neither `WelcomeStep` nor `SuccessStep`, so the door family board and the help center's door screens quote both class for class; exported (or moved beside `door/`), both draw the real welcome and "You're in" (from `desk-tune`).
 - Guests: the door family's next round or wiring draws what the board leaves out: production's ask (`AskStep`, "Maya lets each guest in", Ask to join) as a fifth door state, and the welcome at a door Maya answers or an invite list, which shows her face and no date (a board idea from `desk-tune`).
 - Marketing: when `about-press` folds /press into /about, `CONTACT_TOPICS.press.hint` in `constants/contact.ts` links /press ("Open the press kit"): retarget or drop it, and add the directory's Press row only if About carries the kit; `contact.test.ts` fails on a dead page (from `contact-wiring`).
-- Marketing: the careers application form still ends on a toast and a bare drawn check (`careers/[slug]/application-form.tsx`); `contact-receipt.tsx` takes plain data and could serve both, which is also the "two parallel copies of one contract" line (from `contact-wiring`).
 - Growth: a contact hint's links and the receipt's onward link fire no `track` event, so how much a topic's answers deflect is unmeasured (from `contact-wiring`).
 - Marketing: as-you-type answers on /contact: the page already ships the help search index for the palette, so the subject and message could rank help articles live beside a topic's fixed links, no model and no new service, the deflection his r1 note wants before the help chat exists (a board idea from `contact-wiring`).
 - The lab and the kit: the Library carrying the contact receipt (`ContactReceipt` takes plain data) as a `Surfaces` entry, so its motion is judged without sending (from `contact-wiring`).
@@ -101,8 +104,6 @@ below hold the rest by surface.
 - Guests: a way to ask the host to take a photo down, short of a report: the help article and admin-triage's `steer` both say "ask the host first", and nothing in the product lets a guest ask; a board (from `triage-r2`).
 - Admin: an operator release for a squatted custom link, from a report on `/e/<slug>`, now that a free account can hold one (from `pricing-wiring`).
 - Billing follow-ons: measure one iPhone photo and one 10 s video uploaded at the camera's defaults on the alias (`media.file_size_bytes`); if the browser stores a JPEG or a recompressed video at 1.3x or more, retune `AVG_PHOTO_BYTES` / `VIDEO_BYTES_PER_MIN` to what we store (from `pricing-wiring`).
-- Marketing: /pricing's table, /reel's clip table and pro-vs-event-pass each carry a clip-length row that reads 60 s on every plan now; it could fold into the mark's row (from `pricing-wiring`).
-- Marketing: /pricing's Free card lists six lines to Pro's five, so the pair's balance wants a look (from `pricing-wiring`).
 - Guests: a returning guest whose only uploads wait on an empty held album meets the empty state's "Add the first photo" with her badge beside Invite, since the row's Add returns only for this visit's files (`galleryEmpty`); counting her waiting rows would move the Add a beat after they load, so it wants a layout that does not jump (from `voice-wiring`).
 - Guests: her uploads draw a plain placeholder for an earlier visit's held photo (nothing outside the album is presigned for a guest); a thumbnail presigned for its uploader's own ticket alone would let her see which one waits (from `voice-wiring`).
 - Host: a "See it as a guest" row in settings could open the album as a guest meets it, with the door's steps; every door setting is about what a guest meets, and today a host can only guess (from `event-settings`).
@@ -208,10 +209,8 @@ Marketing:
 - Post-launch event types: `/events/birthdays`, `/events/memorials`.
 - `/pricing` opens on paper but the cinema layout pins `themeColor: #040405`, so a phone's browser chrome is dark over a white first screen; the answer is group-level (the layout forbids a per-page `viewport`).
 - Tab into the hidden header costs the reader about 482 px of scroll position (Chrome's scroll-into-view against a sticky element); a keydown-on-Tab return would pre-empt it.
-- The phone sheet's foot actions (Log in, Start free, Dashboard) carry no `trackAttrs` while the header's do.
 - `navigation-menu.tsx`'s cross-slide still spells `data-[motion=…]` inline; swap it onto `floatingCrossSlide` (identical values).
 - The mega panel hand-writes a description per event type beside `EVENT_TYPES.teaser`; one source, in a lane that owns `marketing-nav.ts`.
-- `src/lib/constants/events.ts` sits outside the content policy's claim scan.
 - The blog's tags: the family-reunion post carries `parties` while its subject reads as a trip, and `blog-tags.ts` has no `trips` tag; `guest-album-for-photographers-and-planners`, `wedding-album-password` and `wedding-photo-sharing-app-vs-shared-albums` carry an audience tag and no link into a type page.
 - The blog's follow-ons: real `/blog/page/[n]` routes; a "Start here" strip past about 40 posts; the featured card's eyebrow as the post's purpose; a founder-voice post (Will's pick first); the `compared` posts re-verified on each refresh.
 - The legal pages carry no print styles (only the glow engine carries `@media print` and `forced-colors` rules; copy its pattern).
@@ -219,15 +218,11 @@ Marketing:
 - `SectionShell`'s subhead carries no size class (16 px inherited) while `PageHero`'s rides the `subhead` step; put it on the ladder.
 - /qr's pull quote (`features/qr/print-shop.tsx`) is the last flat `text-3xl` figure, a `font-heading` paragraph the heading scan does not read; give it a step by role.
 - About 26 `bg-muted/N` sites in marketing become sections carrying `.surface-mat` (declared, worn three times).
-- An a11y pass on `--faint` (about 3:1 on the page and the mat): the sites that read as body copy move up a step.
 - `live-demo.tsx`'s mock panel wears a literal `rounded-[14px]`; the token its role calls for.
-- `MediaTile` serves the marketing stand-ins' source files (about 2 MB each into a 287 px tile, 16.8 MB for the album hero), so marketing stills want a derivative.
 - `HERO_FIXTURES`, `HERO_FRAME_H` and `HERO_SEED_COUNT` (`album-fill-fixtures.ts`) serve only tests: fold them into the tests or delete them.
 - The home's how-it-works passage renders as `id="how-it-works"` while `section-ids.ts` and its file still call the slot `film-strip`; rename both, with `index.ts` and `home-sections.test.ts`.
 - The cinema and paper 404s (a `notFound()` inside a marketing route) render in a fixed `min-h-[60vh]` box with the tile strip while the root 404 fills the screen with the trail; one grammar, or rule the root the only one with the trail.
-- A 404 reached through a dynamic marketing route (`/help/nope`) carries the bare `Partyreel` title while the root and paper 404s say Page not found.
 - One copy-with-a-receipt primitive for `marketing/press/copy-button.tsx` and `shared/error-digest.tsx`.
-- The careers form and `/contact` are two parallel copies of one contract (validation, limiter, insert, receipt): one contract, a honeypot named for nothing real (today `website`), and an end-to-end test for the actions (none exists).
 - `sections/careers/contact-sheet.tsx` and `press/press-sheet.tsx` are photography proof sheets named like contact surfaces; rename them when next touched.
 - The hero's warm-up (the lamp arriving neutral and warming into the wall) is built and pulled; it returns when Will can judge the swap on a visible screen.
 - The QR-to-album handoff wants its own ground-up visual round; the pour (photographs leaving one object and landing in another) is banked for a real "photos dump here" moment.

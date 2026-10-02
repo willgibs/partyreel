@@ -33,8 +33,9 @@ and `about-press` r1 (two), in that order.
 
 ## Live state
 
-- **Prod:** partyreel.com is `main` at tag `milestone-32` (`21697db1`, 2026-10-01 23:55Z), both projects READY; its
-  read-only walk running.
+- **Prod:** partyreel.com is `main` at tag `milestone-32` (`21697db1`, 2026-10-01 23:58Z), both projects READY; the
+  read-only walk PASS (pages and German pricing, dead ends, the dashboard, Show more, the hub's Add, credits, the
+  Report sheet, the admin door); production's first album-log prune runs at 04:48Z on 2026-10-02.
 - **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 36 (`eb38b6be`, 2026-10-01
   19:00Z): build 35 plus crumbs-36 to crumbs-40, its red-team walking; the desk is the same six boards (no board moved
   since build 31). Vercel installs with pnpm 9.14.4, `package.json`'s `packageManager`.
