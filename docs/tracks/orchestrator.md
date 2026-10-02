@@ -115,8 +115,9 @@ round 3. His library prompt (the atoms still read as shadcn; identity as a sum t
    door-wiring (Back over the credit look, the flip's stale sheet); `disposable-mode` r3 [80] after door-wiring,
    ready-wiring and crumbs-47 (camera: two branches each from viewfinder and reel, modern; waiting: a new round, no
    tilt; save: the looks on real guest photos beside none; `video` and `cost` staged after camera); `demo-framing` r3
-   [90] after mkt-wiring (his stage hybrid in two or three takes; the demo's door identity); `lab-window` after every
-   board is cut. Page boards own composition, `identity` owns the atoms; every redesign brief carries his one direction
+   [90] after mkt-wiring (his stage hybrid in two or three takes; the demo's door identity). `lab-window` (the
+   frame-scoped window) waits for his next sitting: it edits `ui/popup` and `ui/sheet`, which `identity` draws. The eight
+   specs are written (`specs-r11/` in this session's scratchpad; a successor rewrites them from this list). Page boards own composition, `identity` owns the atoms; every redesign brief carries his one direction
    (bespoke and experiential, sleek, sophisticated, no tilt, minimal but information-rich, media is the color).
 3. **Build 40** once the three wirings merge, then its red-team (Opus, fresh brief; the desk only in its own headless
    Chrome; a confirmed MEDIUM ledgered at once, tagged, so a fix lane starts early).
