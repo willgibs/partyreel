@@ -24,6 +24,7 @@ import {
 import { CopySoFar } from "@/app/(dev)/design/(shell)/lab/_desk/copy-so-far";
 import type { Transcribed } from "@/app/(dev)/design/(shell)/lab/_desk/review-message";
 import {
+  type ReviewStore,
   setAnswerNote,
   toggleAnswer,
   useReviewStore,
@@ -290,50 +291,9 @@ export function Step({
 
   /* ── the world a step is drawn in ─────────────────────────────────────── */
 
-  /**
-   * THE BOARD'S DECIDED ANSWERS, AS THE CONTROLS THAT DRAW THEM: the ledger's
-   * from an earlier sitting (`answered`, resolved on the server), then this
-   * sitting's from the store, which are newer and win. An exploration's control
-   * IS its ask (`defineExploration`), so an answer on record lands on the control of
-   * the same id; an ask in this walk also lends its option's own patch.
-   */
-  const wearing = (s: AskStep): Record<string, string> => {
-    const out: Record<string, string> = { ...s.answered };
-    for (const t of steps) {
-      if (t.kind !== "ask" || t.board !== s.board || t.round !== s.round)
-        continue;
-      if (t.askId === s.askId) continue;
-      const value = store.answers[holdId(t.board, t.round, t.askId)]?.choice;
-      if (!value || value === UNCLEAR) continue;
-      const option = t.options.find((o) => o.id === value);
-      Object.assign(out, option?.state, { [t.control ?? t.askId]: value });
-    }
-    return out;
-  };
-
-  /**
-   * THE CONTROLS THAT DRAW AN OPTION: the board's decided answers, the ask's
-   * own state, then the option's, then the control mirror. With no option it is
-   * the state the question is asked in, and the mirrored control goes back to
-   * its DECLARED DEFAULT: a cleared answer that left the board wearing the
-   * cleared choice would be the un-unpickable pick all over again (Will,
-   * 2026-09-16).
-   */
-  const stateFor = (s: AskStep, option?: SessionOption) => {
-    const cleared =
-      s.control && !option
-        ? board?.controls?.find((c) => c.id === s.control)?.default
-        : undefined;
-    return {
-      ...wearing(s),
-      ...s.state,
-      ...option?.state,
-      ...(s.control && option && option.id !== UNCLEAR
-        ? { [s.control]: option.id }
-        : {}),
-      ...(s.control && cleared ? { [s.control]: cleared } : {}),
-    };
-  };
+  // One derivation for the step and the desk's thumbnail of it (`drawnState`).
+  const stateFor = (s: AskStep, option?: SessionOption) =>
+    drawnState(s, option, steps, store, board?.controls);
 
   /* ── showing, and choosing ────────────────────────────────────────────── */
 
@@ -404,7 +364,13 @@ export function Step({
     land.current = (s) => {
       setPrevious(null);
       if (s.kind === "ask") {
-        const opening = openingFor(s, choice, board);
+        // A step on record lands on the ledger's answer when this sitting
+        // holds none of its own.
+        const opening = openingFor(
+          s,
+          choice || s.recorded?.choice || "",
+          board,
+        );
         setShown(opening?.id ?? null);
         board?.setState(stateFor(s, opening));
       } else {
@@ -511,6 +477,11 @@ export function Step({
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
+  // ★ A LINK THAT NAMES NO QUESTION ON THIS BOARD (lab-sitting, 2026-10-01):
+  // a step id with a typo, or one the board has since withdrawn, drew an empty
+  // page under the top bar. It says so, with the whole board one press away.
+  if (!step && boardId && param?.startsWith(`${boardId}.`))
+    return <Unknown boardId={boardId} name={param.slice(boardId.length + 1)} />;
   if (!step || !mine) return null;
 
   const filled = stepDone(step, store) && !needsWhy;
@@ -558,6 +529,14 @@ export function Step({
         n={n > 0 ? n : walk.length + 1}
         of={Math.max(walk.length, 1)}
         blocked={blocked}
+        recorded={
+          step.kind === "ask" && step.recorded
+            ? step.recorded.choice === null
+              ? null
+              : (step.options.find((o) => o.id === step.recorded?.choice)
+                  ?.label ?? step.recorded.choice)
+            : undefined
+        }
         transcribed={transcribed}
         build={build}
       />
@@ -629,8 +608,64 @@ export function Step({
   );
 }
 
+/**
+ * THE BOARD'S DECIDED ANSWERS, AS THE CONTROLS THAT DRAW THEM: the ledger's
+ * from an earlier sitting (`answered`, resolved on the server), then this
+ * sitting's from the store, which are newer and win. An exploration's control
+ * IS its ask (`defineExploration`), so an answer on record lands on the control of
+ * the same id; an ask in this walk also lends its option's own patch.
+ */
+function wearing(
+  s: AskStep,
+  steps: readonly SessionStep[],
+  store: ReviewStore,
+): Record<string, string> {
+  const out: Record<string, string> = { ...s.answered };
+  for (const t of steps) {
+    if (t.kind !== "ask" || t.board !== s.board || t.round !== s.round)
+      continue;
+    if (t.askId === s.askId) continue;
+    const value = store.answers[holdId(t.board, t.round, t.askId)]?.choice;
+    if (!value || value === UNCLEAR) continue;
+    const option = t.options.find((o) => o.id === value);
+    Object.assign(out, option?.state, { [t.control ?? t.askId]: value });
+  }
+  return out;
+}
+
+/**
+ * THE CONTROLS THAT DRAW AN OPTION: the board's decided answers, the ask's
+ * own state, then the option's, then the control mirror. With no option it is
+ * the state the question is asked in, and the mirrored control goes back to
+ * its DECLARED DEFAULT: a cleared answer that left the board wearing the
+ * cleared choice would be the un-unpickable pick all over again (Will,
+ * 2026-09-16). Shared with the desk's thumbnail (`step-thumb.tsx`), so a
+ * thumbnail is the stage the step would land on, never a second guess at it.
+ */
+export function drawnState(
+  s: AskStep,
+  option: SessionOption | undefined,
+  steps: readonly SessionStep[],
+  store: ReviewStore,
+  controls?: readonly Control[],
+): Record<string, string> {
+  const cleared =
+    s.control && !option
+      ? controls?.find((c) => c.id === s.control)?.default
+      : undefined;
+  return {
+    ...wearing(s, steps, store),
+    ...s.state,
+    ...option?.state,
+    ...(s.control && option && option.id !== UNCLEAR
+      ? { [s.control]: option.id }
+      : {}),
+    ...(s.control && cleared ? { [s.control]: cleared } : {}),
+  };
+}
+
 /** Whether this option can be DRAWN: a state of its own, or the control mirror. */
-const drawable = (
+export const drawable = (
   step: AskStep,
   option: SessionOption,
   board?: StepBoard,
@@ -641,7 +676,7 @@ const drawable = (
  * else the first that can be drawn. "Not clear to me" is not an option to show,
  * and an option in words has nothing to show, so a step of words opens on none.
  */
-function openingFor(
+export function openingFor(
   step: AskStep,
   held: string,
   board?: StepBoard,
@@ -675,6 +710,7 @@ function Spine({
   n,
   of,
   blocked,
+  recorded,
   transcribed,
   build,
 }: {
@@ -682,7 +718,9 @@ function Spine({
   n: number;
   of: number;
   /** Null when the step is in the walk; otherwise why it is not. */
-  blocked?: "staged" | "moot" | null;
+  blocked?: "staged" | "moot" | "answered" | null;
+  /** On a step on record: the answer's label, or null for "not clear to me". */
+  recorded?: string | null;
   transcribed?: Transcribed;
   build?: string | null;
 }) {
@@ -697,12 +735,18 @@ function Spine({
             title={
               blocked === "staged"
                 ? "Answer the question it waits on and it joins the walk."
-                : "The question it waited on went the other way."
+                : blocked === "moot"
+                  ? "The question it waited on went the other way."
+                  : "A link brought you here. Pick again and the new answer rides your next paste."
             }
           >
             {blocked === "staged"
               ? "not in the walk yet: it waits on an earlier answer"
-              : "not in the walk: moot this round"}
+              : blocked === "moot"
+                ? "not in the walk: moot this round"
+                : recorded === null
+                  ? "marked not clear on record, out of the walk"
+                  : `answered on record: ${recorded ?? ""}, out of the walk`}
           </span>
         ) : (
           <span className="text-[11px] text-muted-foreground tabular-nums">
@@ -745,6 +789,27 @@ function Spine({
           }}
         />
       </span>
+    </div>
+  );
+}
+
+/** A step id this board does not ask: said in a line, with the way to the whole board. */
+function Unknown({ boardId, name }: { boardId: string; name: string }) {
+  const key = useDesignKey();
+  return (
+    <div data-lab-unknown-step="" className="lab-step pt-6">
+      <p className="text-sm">
+        This board asks no question called &ldquo;{name}&rdquo; this round.
+      </p>
+      <p className="text-xs text-muted-foreground">
+        The link may name a step the board has since withdrawn, or mistype one.{" "}
+        <Link
+          href={withDesignKey(`/design/lab/${boardId}`, key ?? null)}
+          className="underline underline-offset-2 transition-colors duration-150 hover:text-foreground motion-reduce:transition-none"
+        >
+          Open the whole board
+        </Link>
+      </p>
     </div>
   );
 }
@@ -1155,9 +1220,16 @@ function OptionTabs({
             >
               {mine ? <Check className="size-2.5" /> : i + 1}
             </span>
-            <span className="min-w-0 truncate font-medium">{option.label}</span>
+            {/* Below a tablet's width an unshown tab is its number alone, so
+                every option fits the row (design.css); the name stays here. */}
+            <span data-lab-tab-name="" className="min-w-0 truncate font-medium">
+              {option.label}
+            </span>
             {recommended && (
-              <span className="shrink-0 text-[10px] font-normal text-muted-foreground">
+              <span
+                data-lab-tab-mark=""
+                className="shrink-0 text-[10px] font-normal text-muted-foreground"
+              >
                 the board says
               </span>
             )}
@@ -1668,7 +1740,7 @@ function useScrollEdges(ref: RefObject<HTMLElement | null>, on = true) {
  * option per view: a words step's evidence, a catalog's cards. The same fit
  * as the stage's, over a single view.
  */
-function FitStage({
+export function FitStage({
   stage,
   deps,
   children,

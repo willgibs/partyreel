@@ -50,6 +50,7 @@ import {
   X,
 } from "lucide-react";
 import { Dialog as DialogPrimitive } from "radix-ui";
+import { usePortalContainer } from "@/components/ui/portal-container";
 import {
   Suspense,
   useCallback,
@@ -652,7 +653,7 @@ export function LiveReelView({
         if (!open) onClose();
       }}
     >
-      <DialogPrimitive.Portal>
+      <DialogPrimitive.Portal container={usePortalContainer()}>
         {/* ★ THE OVERLAY IS THE PAGE'S SCROLL LOCK, AND IT HOLDS THE VIEW. Radix locks the page in the
             Overlay (its RemoveScroll, which also takes the desk's scrollbar away), never in Content, so
             a view with no Overlay left the album scrolling under it and a 15 px scrollbar strip down

@@ -6,8 +6,10 @@
  *
  *   review <board> r<n>: <ask>=<option> "a note"; item:<id>=keep "a note"; note: "a board note"
  *   review library: <entry-id>=keep|redesign|retire "a note"
+ *   note: "a note on the whole program"
  *
- * One line per board, plus at most one Library line. This module COMPOSES;
+ * One line per board, plus at most one Library line and one note on the whole
+ * program. This module COMPOSES;
  * `scripts/lab-review.mjs` PARSES, and `lab-review.test.ts` runs the round trip
  * so the two never drift. Pure and isomorphic: the session composes in the
  * browser, the test in node.
@@ -22,7 +24,7 @@
  * nothing here should ever learn to.
  */
 
-import { boardNoteHoldId } from "./step-id";
+import { boardNoteHoldId, PROGRAM_NOTE_HOLD } from "./step-id";
 
 export type SessionAnswer = {
   board: string;
@@ -126,12 +128,23 @@ export function composeLibraryLine(entries: LibraryEntryAnswer[]): string {
 export const buildLine = (build?: string | null) =>
   build ? `# build ${build}` : null;
 
+/**
+ * ★ THE NOTE FOR THE WHOLE PROGRAM (lab-sitting, 2026-10-01): a bare
+ * `note: "..."` line of its own, after every board's and the Library's. The
+ * transcript reads it as a note on no board, records it nowhere and prints
+ * where it goes (`scripts/lab-review.mjs`); empty when there is none.
+ */
+export function composeProgramLine(text?: string | null): string {
+  return text && text.trim() ? `note: ${quoteNote(text)}` : "";
+}
+
 export function composeMessage(
   answers: SessionAnswer[],
   notes: SessionNote[] = [],
   items: SessionItem[] = [],
   library: LibraryEntryAnswer[] = [],
   build?: string | null,
+  program?: string | null,
 ): string {
   const order: { board: string; round: number }[] = [];
   const see = (board: string, round: number) => {
@@ -155,6 +168,7 @@ export function composeMessage(
       return composeBoardLine(board, round, mine, myNotes, myItems);
     }),
     composeLibraryLine(library),
+    composeProgramLine(program),
   ].filter(Boolean);
   // An empty review carries no stamp: a bare "# build ..." reads as a message.
   if (!lines.length) return "";
@@ -264,6 +278,8 @@ export function composeSoFar(
     notes: Record<string, string>;
     /** The hold ids a previous paste already took (review-store.ts). */
     sent?: Record<string, unknown>;
+    /** The note on the whole program, which names no board. */
+    program?: string;
   },
   openOf: (board: string) => OpenRound | undefined,
   transcribed: Transcribed = NOTHING_TRANSCRIBED,
@@ -349,11 +365,16 @@ export function composeSoFar(
     if (marked(key)) continue;
     note(board, open.round, text, key);
   }
+  // The note on the whole program has no round and no board to close it: the
+  // paste's own mark is the only thing that stops it riding again.
+  const program =
+    store.program?.trim() && !marked(PROGRAM_NOTE_HOLD) ? store.program : "";
+  if (program) included.push(PROGRAM_NOTE_HOLD);
   return {
-    message: composeMessage(answers, notes, items, [], build),
+    message: composeMessage(answers, notes, items, [], build, program),
     answers: answers.length,
     items: items.length,
-    notes: notes.length,
+    notes: notes.length + (program ? 1 : 0),
     included,
   };
 }

@@ -6,11 +6,6 @@ import { useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { withDesignKey } from "@/lib/design-gate/links";
 import { cn } from "@/lib/utils";
 
-import {
-  clearCandidate,
-  useTunerCandidate,
-} from "@/components/dev/candidate-style";
-
 import { useBoardPage } from "./board-page-context";
 import { setLabPref, useLabPrefs } from "./lab-prefs";
 import { Toggle } from "./toggle";
@@ -318,89 +313,5 @@ export function DockRow({
     >
       {children}
     </div>
-  );
-}
-
-/**
- * WHICH BLOCK STANDS ON THE SITE, AND THE SWITCH OFF (lifted from the light
- * board's `AppliedCandidate`).
- *
- * Applying a block is a per-candidate decision and its button stays beside the
- * candidate; seeing that one is live, and turning it off, is page-wide. It is
- * the one thing in the dock that is sometimes absent: it renders nothing while
- * no block stands, so the dock never carries an empty slot. The label truncates
- * rather than wraps, so a long candidate name cannot push the dock to a second
- * row at 375.
- */
-export function AppliedBadge() {
-  const applied = useTunerCandidate();
-  if (!applied) return null;
-  return (
-    <span className="flex items-center gap-1.5 rounded-lg border border-foreground/25 bg-card py-1 pr-1 pl-2 text-[11px]">
-      <span className="text-muted-foreground">On the site</span>
-      <span
-        title={applied.label}
-        className="max-w-[14ch] truncate font-medium text-foreground sm:max-w-[26ch]"
-      >
-        {applied.label.replace(/^[^:]+:\s*/, "")}
-      </span>
-      <button
-        type="button"
-        onClick={clearCandidate}
-        className="rounded-[calc(var(--radius-action-sm)-2px)] border border-border px-2 py-0.5 font-medium transition-transform duration-150 ease-emphasis active:scale-[0.97] motion-reduce:transition-none"
-      >
-        Clear
-      </button>
-    </span>
-  );
-}
-
-/**
- * ONE REPLAY FOR EVERY ONE-SHOT ON THE BOARD. A one-shot fires by REMOUNT, not
- * by an animationend listener, so an incrementing key is the whole mechanism
- * (useReplay in motion.ts holds it). The count is on the label because a replay
- * that looks identical to the last one is indistinguishable from a dead button.
- */
-export function ReplayButton({
-  runId,
-  onReplay,
-}: {
-  runId: number;
-  onReplay: () => void;
-}) {
-  return (
-    <button type="button" onClick={onReplay} className={DOCK_PILL}>
-      {runId === 0 ? "Replay" : `Replay ${runId}`}
-    </button>
-  );
-}
-
-/**
- * LIVE OR REST, board-wide. "Every lamp's rest state designed, not absent" is a
- * claim about the whole page, and a per-specimen toggle would let it be true in
- * one place and quietly false in the next, so this is never a per-part control.
- * The board's own sheet does the freezing, scoped to its own animations: a
- * blanket `animation: none` also freezes the marketing reveal grammar, whose
- * pre-animation state is opacity 0, and the board reads as broken.
- */
-export function MotionToggle({
-  rest,
-  onChange,
-}: {
-  rest: boolean;
-  onChange: (rest: boolean) => void;
-}) {
-  return (
-    <Knob label="Motion">
-      <Toggle
-        ariaLabel="Motion"
-        options={[
-          { id: "live", label: "Live" },
-          { id: "rest", label: "Rest" },
-        ]}
-        value={rest ? "rest" : "live"}
-        onChange={(v) => onChange(v === "rest")}
-      />
-    </Knob>
   );
 }

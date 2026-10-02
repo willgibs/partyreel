@@ -44,3 +44,11 @@ export function itemHoldId(scope: string, round: number, item: string): string {
 export function boardNoteHoldId(board: string): string {
   return `note:${board}`;
 }
+
+/**
+ * The key the NOTE FOR THE WHOLE PROGRAM is marked sent under (lab-sitting,
+ * 2026-10-01). It names no board, so it lives beside the board notes' marks
+ * under a name no board can take: a board id is its folder's name, and no
+ * folder is called `*`.
+ */
+export const PROGRAM_NOTE_HOLD = "note:*";

@@ -20,6 +20,12 @@ import { act, render } from "@testing-library/react";
 import { useEffect, useRef } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+
 import { Frame } from "./frame";
 
 const realContentDocument = Object.getOwnPropertyDescriptor(
@@ -149,5 +155,105 @@ describe("Frame: a portalled scene and the iframe's first document", () => {
     await settle();
     // And a load that does come is not a second mount.
     expect(mounts).toEqual([committed]);
+  });
+});
+
+/**
+ * A PORTALLED FRAME IS ITS OWN WORLD (lab-sitting, from ROADMAP's two lines on the frame, from `event-ready`
+ * and `claims-r3`). A scene portalled into a frame is the lab's React tree drawn into the frame's document,
+ * so whatever the tree reaches through the lab's window reached the LAB: a production `<Link>` pressed in it
+ * navigated the lab (boards carried `stopLinks` or `Inert` of their own), a radix layer opened over the lab
+ * at the lab's coordinates (a board quoted the Settings popup inline instead), and the theme was copied
+ * once per load, so the lab's toggle left every open frame in the old one until a reload.
+ */
+describe("Frame: a portalled scene's own world", () => {
+  let committed: Document;
+  beforeEach(() => {
+    vi.stubGlobal(
+      "IntersectionObserver",
+      class {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      },
+    );
+    committed = document.implementation.createHTMLDocument("committed");
+    Object.defineProperty(committed, "URL", { value: "about:srcdoc" });
+    vi.spyOn(
+      HTMLIFrameElement.prototype,
+      "contentDocument",
+      "get",
+    ).mockReturnValue(committed);
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+    document.documentElement.className = "";
+  });
+
+  it("★ follows the lab's theme while it is open, on its <html> and its scene's ground", async () => {
+    document.documentElement.className = "font-vars light";
+    render(
+      <Frame id="scene" w={400} h={300} title="Scene">
+        <p>the scene</p>
+      </Frame>,
+    );
+    const scene = () => committed.body.querySelector("p")!;
+    expect(committed.documentElement.className).toBe("font-vars light");
+    expect(scene().parentElement!.className).toContain("light");
+
+    await act(async () => {
+      document.documentElement.className = "font-vars dark";
+    });
+    expect(committed.documentElement.className).toBe("font-vars dark");
+    expect(scene().parentElement!.className).toContain("dark");
+    expect(scene().parentElement!.className).not.toContain("light");
+  });
+
+  it("★ lets no link pressed in the scene go anywhere, and no form submit", () => {
+    render(
+      <Frame id="scene" w={400} h={300} title="Scene">
+        <a href="/elsewhere">
+          <span>a card that is a link</span>
+        </a>
+        <form action="/somewhere">
+          <button type="submit">Send</button>
+        </form>
+      </Frame>,
+    );
+    const press = (el: Element, type = "click") => {
+      const event = new MouseEvent(type, { bubbles: true, cancelable: true });
+      el.dispatchEvent(event);
+      return event.defaultPrevented;
+    };
+    expect(press(committed.body.querySelector("a span")!)).toBe(true);
+    expect(press(committed.body.querySelector("a")!, "auxclick")).toBe(true);
+    const submit = new Event("submit", { bubbles: true, cancelable: true });
+    committed.body.querySelector("form")!.dispatchEvent(submit);
+    expect(submit.defaultPrevented).toBe(true);
+  });
+
+  it("★ opens a production radix layer inside the frame, not over the lab", async () => {
+    render(
+      <Frame id="scene" w={400} h={300} title="Scene">
+        <Popover open>
+          <PopoverTrigger>the trigger</PopoverTrigger>
+          <PopoverContent>the layer</PopoverContent>
+        </Popover>
+      </Frame>,
+    );
+    await act(async () => {});
+    expect(committed.body.textContent).toContain("the layer");
+    expect(document.body.textContent).not.toContain("the layer");
+  });
+
+  it("hands nothing outside a frame: production keeps radix's own default", () => {
+    render(
+      <Popover open>
+        <PopoverTrigger>the trigger</PopoverTrigger>
+        <PopoverContent>the layer</PopoverContent>
+      </Popover>,
+    );
+    expect(document.body.textContent).toContain("the layer");
   });
 });

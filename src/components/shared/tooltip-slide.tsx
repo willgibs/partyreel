@@ -3,6 +3,7 @@
 import { createContext, useContext, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { Tooltip as TooltipPrimitive } from "radix-ui";
+import { usePortalContainer } from "@/components/ui/portal-container";
 
 import {
   floatingClock,
@@ -96,7 +97,7 @@ export function TooltipSlide({
       }}
     >
       <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
-      <TooltipPrimitive.Portal>
+      <TooltipPrimitive.Portal container={usePortalContainer()}>
         <TooltipPrimitive.Content
           data-slot="tooltip-content"
           data-motion={motion ?? undefined}

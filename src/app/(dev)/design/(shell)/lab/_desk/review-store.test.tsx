@@ -7,11 +7,17 @@ import {
   setAnswerNote,
   setBoardNote,
   setItemNote,
+  setProgramNote,
   setReviewStore,
   toggleAnswer,
   toggleItemVerdict,
 } from "./review-store";
-import { boardNoteHoldId, holdId, itemHoldId } from "./step-id";
+import {
+  boardNoteHoldId,
+  holdId,
+  itemHoldId,
+  PROGRAM_NOTE_HOLD,
+} from "./step-id";
 
 /**
  * THE ONE TOGGLE RULE (Will, 2026-09-16: "I can't unpick a selection to return
@@ -176,5 +182,43 @@ describe("the review store's writers", () => {
     expect(
       getReviewStore().sent[itemHoldId("light", 5, "ember")],
     ).toBeDefined();
+  });
+});
+
+/**
+ * THE NOTE FOR THE WHOLE PROGRAM (lab-sitting) is one more field of the same payload, under the same key:
+ * a browser mid-sitting holds a payload without it, and that payload loads whole, with no note.
+ */
+describe("the note for the whole program", () => {
+  it("loads a payload from before it existed, everything else intact", async () => {
+    localStorage.setItem(
+      "partyreel.lab.review.v2",
+      JSON.stringify({
+        answers: { "a.r1.b": { choice: "x", note: "why" } },
+        notes: { a: "on the board" },
+        items: { "a.r1.item.c": { verdict: "keep", note: "" } },
+        sent: { "a.r1.b": { build: "abc", at: "2026-09-30T10:00:00Z" } },
+      }),
+    );
+    vi.resetModules();
+    const fresh = await import("./review-store");
+    const store = fresh.getReviewStore();
+    expect(store.program).toBe("");
+    expect(store.answers["a.r1.b"]).toEqual({ choice: "x", note: "why" });
+    expect(store.notes).toEqual({ a: "on the board" });
+    expect(store.items["a.r1.item.c"]?.verdict).toBe("keep");
+    expect(store.sent["a.r1.b"]?.build).toBe("abc");
+  });
+
+  it("holds it, persists it, and clears its sent mark on a change", () => {
+    setProgramNote("every board, pictures first");
+    expect(getReviewStore().program).toBe("every board, pictures first");
+    expect(
+      JSON.parse(localStorage.getItem("partyreel.lab.review.v2")!).program,
+    ).toBe("every board, pictures first");
+    markSent([PROGRAM_NOTE_HOLD], "abc1234");
+    expect(getReviewStore().sent[PROGRAM_NOTE_HOLD]?.build).toBe("abc1234");
+    setProgramNote("every board, pictures first, and quiet");
+    expect(getReviewStore().sent[PROGRAM_NOTE_HOLD]).toBeUndefined();
   });
 });

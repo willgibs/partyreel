@@ -16,7 +16,7 @@ import {
 } from "@/app/(dev)/design/review/status";
 
 import type { Transcribed } from "./review-message";
-import { holdId, itemHoldId } from "./step-id";
+import { holdId, itemHoldId, stepId } from "./step-id";
 
 /**
  * THE DESK'S ROWS (the Library x Lab round, 2026-09-15): one standing board,
@@ -187,7 +187,9 @@ export function deskRows(
       // A pick-one catalog's cards are not a wait (status.ts): its decision is
       // the winner ask, so `status.openItems` is already empty for it.
       openItems: items.filter(
-        (i) => i.answer === null && status.openItems.some((o) => o.item.id === i.item.id),
+        (i) =>
+          i.answer === null &&
+          status.openItems.some((o) => o.item.id === i.item.id),
       ),
       // ★ A TRANSCRIBED "NOT CLEAR TO ME" LEAVES THE WALK (Will's ninth
       // batch, 2026-09-18). It used to stay, so the next sitting asked the
@@ -229,10 +231,21 @@ export function openQueue(rows: BoardRow[]): AskState[] {
  * The rows as the session's input: each board's open catalog cards and its
  * open asks. One place builds it, because the desk and the board route both
  * walk the same queue and a second copy would drift the day a row grew a field.
+ *
+ * ★ AND THE ASK A LINK NAMES, ANSWERED OR NOT (lab-sitting, 2026-10-01).
+ * `reach` is the `?session=` the route read. The walk is the open work and
+ * stays so, but a link to an answered ask (the desk's own pill for it, a pasted
+ * link, `lab:demo --only`) used to name a step that was not there, and the page
+ * under it was blank. Such an ask now comes along in its place in the board's
+ * run, carrying the ledger's answer, which is how the step knows to say it is
+ * on record and out of the walk (`stepBlocked`, session-step.ts).
  */
-export function boardWork(rows: BoardRow[]) {
+export function boardWork(rows: BoardRow[], reach?: string | null) {
   return rows.map((r) => ({
-    asks: r.open,
+    asks: r.asks.filter(
+      (a) =>
+        r.open.includes(a) || (reach && stepId(a.board, a.ask.id) === reach),
+    ),
     items: r.openItems,
     // The open work is what the ledger does NOT hold, so a staged step's
     // prerequisite is never in it: the standing answers ride along separately.

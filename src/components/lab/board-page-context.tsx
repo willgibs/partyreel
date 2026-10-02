@@ -30,6 +30,12 @@ export type BoardReview = {
   transcribed?: Transcribed;
   /** The commit this page was built from; it rides the paste as a `#` line. */
   build?: string | null;
+  /**
+   * The desk's thumbnail of the step `param` names (lab-sitting, 2026-10-01):
+   * the board draws that step's stage alone, as it would land, and writes
+   * nothing to the address (`step-thumb.tsx`).
+   */
+  thumb?: boolean;
 };
 
 export type BoardPageContextValue = {

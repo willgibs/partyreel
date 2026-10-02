@@ -13,6 +13,7 @@ import { BoardDock } from "./dock";
 import { Notes } from "./notes";
 import { BoardOpening } from "./opening";
 import { Step } from "./step";
+import { StepThumb } from "./step-thumb";
 import { Walk } from "./walk";
 
 /**
@@ -82,6 +83,23 @@ export function BoardPage({
   const outer = useBoardPage();
   const api: BoardApi = { setState, spec };
   const session = outer?.review;
+
+  // The desk's thumbnail of one step: its stage alone, in a state of its own,
+  // drawn by the same evidence and never written to the desk's address.
+  if (session?.thumb)
+    return (
+      <StepThumb
+        boardId={spec.id}
+        steps={session.steps}
+        param={session.param}
+        board={{
+          controls,
+          state: Object.fromEntries(controls.map((c) => [c.id, c.default])),
+          evidence: (sectionId, at) => evidence(sectionId, at, api),
+          setState: () => {},
+        }}
+      />
+    );
 
   if (session)
     return (
