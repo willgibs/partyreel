@@ -104,7 +104,7 @@ function PulseSkeleton() {
 // that read as the retired strip flashing into existence and then being
 // replaced by a row of cards, which is exactly the kind of flicker a skeleton
 // exists to prevent. The blocks below are the code, the title stack, the cards
-// row and the album, in that order and at those sizes.
+// row and the album, in that order and at those sizes (the head is the cover's room).
 //
 // The (app) layout's AppShell already supplies <main> + Container chrome, so
 // this returns a BARE root matching the page's own.
@@ -114,15 +114,9 @@ function HubSkeleton() {
     // gutter with `data-app-wide`, and a skeleton that did not would paint at
     // 1280 and jump the moment the page streamed in.
     <div data-app-wide className="space-y-6" aria-busy>
-      {/* The code beside the title + metadata + link stack. */}
-      <div className="flex items-center gap-4 sm:gap-5">
-        <Skeleton className="size-28 shrink-0 rounded-lg" />
-        <div className="min-w-0 flex-1 space-y-2">
-          <Skeleton className="h-8 w-64 max-w-full" />
-          <Skeleton className="h-4 w-40" />
-          <Skeleton className="h-4 w-56 max-w-full" />
-        </div>
-      </div>
+      {/* The head (`event-header` r1): the cover's dark room to the window's edges and up to the
+          app's bar, at the head's own height, so the photographs land in the box that held them. */}
+      <div className="dark -mx-3 -mt-8 h-[20.5rem] bg-background sm:-mx-5 sm:h-[25rem]" />
       {/* The cards row at rest: a phone's 2x2 grid, the row of tiles from
           `sm` (event-feed/room-card.ts). */}
       <div className="grid grid-cols-2 gap-2 py-2 sm:flex">

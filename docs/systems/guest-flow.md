@@ -21,19 +21,53 @@ new guest copy says album, new code says whatever the neighbouring code says.
 
 ## Flow (top to bottom, contiguous)
 
-The **left-editorial** layout ([`event-experience.tsx`](../../src/components/guest/event-experience.tsx) is
-the shell): `font-heading` event name → byline ("Hosted by" name+avatar · date) → the **stats line** ("N
-photos & videos from M guests") → the description → the **action block**: a full-width primary **Add
-photos** over a full-width **`[Invite]`** row. Every Add opens the ADD SHEET (`GuestUpload`'s `openAdd`,
-below). `GuestShare` is the Invite trigger onto the event's code card (the code, Copy link, the phone's own Share, Download).
+★ **THE ALBUM OPENS ON ITS COVER** (`event-header` r1, `guest=cover`;
+[`event-experience-head.tsx`](../../src/components/guest/event-experience-head.tsx), composed in
+[`event-experience.tsx`](../../src/components/guest/event-experience.tsx)): the reel's own photographs dissolving edge
+to edge under the event's name, on every event. Over them, in white: the `font-heading` name, one byline (the host's
+face and name · the date; "Hosted by" went, the face says it; at a desk the counts ride it as glyphs,
+`ui/glyph-count.tsx`, their words on hover and a tap, while at a phone the album's own label under the cover says the
+count), the host's note (two lines at a phone, three at a desk), and the actions: **Add photos** white on the
+photograph (`Button`'s `on-photo`), her tracker, the reel's round and **Invite** in glass (`glass`, `icon-cta`); at a
+desk the words take the left and the actions the right. Every Add opens the ADD SHEET (`GuestUpload`'s `openAdd`,
+below). `GuestShare` is the Invite trigger onto the event's code card (the code, Copy link, the phone's own Share,
+Download). The cover is the room (`dark`, `data-surface="photo"`), so its words read the same on any photograph.
+- ★ **The ground is always lit.** Under every cover stands the house light (three pools of the house's coral): an
+  empty album, one sealed until it develops (disposable mode: its stills never reach a guest's payload before then),
+  and the beat before a still's link lands all stand on it, and the photographs dissolve in over it when there are
+  any. Its stills follow one rule on both sides of the code (`pickCoverIds`): the reel's opening (its take's first
+  pass, `tileStills`, so never the album's newest, which sit right under it) while the album has a reel, else the
+  album's newest a guest may see (never a clip); previews only, as every reel surface draws; six slots of one CSS
+  keyframe, so the dissolve runs from the first byte and off the main thread, and reduced motion stands it on its first.
+- ★ **The cover reads the page's seed in a boundary of its own, then the live album.** The album's live source mounts
+  behind the page's `<Suspense>`, and the head is the shell (it paints first and stands through the album's own
+  failure), so `CoverGround` reads the streamed seed itself (read and never thrown, like the source's own
+  `readSeed`) and the stills arrive in the very HTML the album's first rows do; once the album has mounted, its reel
+  controller publishes the live stills and the reel's door through the head's bridge (`createHeadBridge`, the shape
+  her tracker's store has), so an upload of hers leads the cover on her device. The reel's round stands from the first
+  paint on the page's guess (the host's switch and two photographs), corrected by the album's word.
+- ★ **The guest's header stands on the cover** (`guest-header.tsx`'s `over`, the carried call `header`): white, no
+  rule, the cover reaching up under its fixed `h-14` (`-mt-14`); elsewhere it is today's paper bar. The page says so
+  at render and the album moves it (`guest-header-cover.ts`, a module store, since the two are sibling islands): the
+  door's stage arriving over the album takes the header back to paper over a paper door, and the demo's pinned header
+  takes the paper the moment the page moves (a see-through bar would slide the cover's own words under its own).
+- ★ **The door-reveal's landing is named**: the head is `[data-event-head]`, its photographs `[data-head-stills]`,
+  each still `[data-head-still="<slot>"]` (slot 0 the one a reduced-motion reader sees).
 
-★ **THE ROW ON LANDING, A DOCK ONCE IT LEAVES.** [`guest-action-dock.tsx`](../../src/components/guest/guest-action-dock.tsx)
-takes the row's place at the foot once the row's `IntersectionObserver` sentinel
-([`use-in-view-sentinel.ts`](../../src/lib/shared/use-in-view-sentinel.ts)) leaves the viewport, carrying
-BOTH actions over a gradient scrim inside the safe area. It is `inert`, not unmounted, while the row is on
-screen (so it travels in and out), and the page root reserves its height while it is MOUNTED, never only
-while visible, or the page would grow under a thumb. It carries exactly what the row carries and never
-replaces the row as a guest's first sight of Add: a dock alone sits where the eye reaches last.
+★ **WHAT STAYS IS THE SHUTTER** (`stays=shutter`, [`guest-action-dock.tsx`](../../src/components/guest/guest-action-dock.tsx)):
+the cover's row on landing, and once that row's `IntersectionObserver` sentinel
+([`use-in-view-sentinel.ts`](../../src/lib/shared/use-in-view-sentinel.ts)) leaves the viewport, one round Add at the
+foot's centre in the album's light (`ui/shutter.tsx`; the door's lamp hues, sampled only while it stands), Invite its
+twin on the left and on the right the reel's round, or on an album with no reel the way back to the cover (the top,
+and a keyboard's focus handed to the event's name). While her files go the ring is their progress
+(`useRunProgress`, a derived selector over the queue that re-renders the shutter alone per tick), the count on its
+shoulder and in its name; a run that lands with nothing refused stands whole with a check for a beat. ★ His two notes
+are part of the pick: the page's ground rises from the foot under the controls while more album lies below (an
+album's-end sentinel) and is gone at its end, and the twin balances Invite. It is `inert`, not unmounted, while the
+row is on screen (so it travels in and out), the box takes no pointer between its controls, and the page root
+reserves its height while it is MOUNTED, never only while visible, or the page would grow under a thumb. It carries
+exactly what the row carries (no Add where the row has none) and never replaces the row as a guest's first sight of
+Add: a shutter alone sits where the eye reaches last.
 
 ★ **THERE IS NO SAVE, ANYWHERE.** Uploading to an event is what keeps it (the definition under "Invariants"), so
 nothing in this row, or on any other guest surface, saves an event. Keeping what a guest added is asked AFTER her
@@ -123,9 +157,8 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
   `onGuestCountChange`: a guest's
   own first upload moves M without a reload, and only the server can tell a first upload from a returning
   contributor's. It stays outside the ETag: whatever moves M changes the payload the ETag already hashes.
-  ★ The album carries the same N again as its own quiet label, left of "Download all" and the View menu
-  (the Highlight reel tile shows no count), worded like the stats line and the teaser CTA, so the page never
-  counts one album two ways.
+  ★ The album carries N as its own quiet label, left of "Download all" and the View menu, worded like the
+  cover's glyph and the teaser CTA, so the page never counts one album two ways.
 - **The album, in justified rows** ([`gallery-rows.tsx`](../../src/components/guest/gallery-rows.tsx) over the
   SHARED `MasonryColumns` `layout="rows"` ([`shared/masonry.tsx`](../../src/components/shared/masonry.tsx)),
   windowed by [`album-window.tsx`](../../src/components/shared/album-window.tsx)): `album-columns` r2's picks (an
@@ -144,9 +177,9 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
   [`event-experience.tsx`](../../src/components/guest/event-experience.tsx) carries `COLUMN` (632px of
   reading measure pinned LEFT, on the header logo's 20px line) and `BLEED` (the gutter alone: 12px under 640,
   where a phone's two columns want every pixel, 20px above), and the
-  ALBUM ALONE takes the second; everything the page says (action block, upload panel, Highlight reel tile,
-  guest list, empty state) keeps the column, the empty state because its square river would otherwise
-  draw a window-wide box of nothing.
+  ALBUM ALONE takes the second (the cover runs the window's width above both, its words on the same 20px line);
+  everything else the page says (the upload panel, the guest list, the empty state) keeps the column, the empty
+  state because its square river would otherwise draw a window-wide box of nothing.
 - **The upload act.** The queue ([`use-upload-queue.ts`](../../src/lib/guest/use-upload-queue.ts): one at a
   time, JIT silent join, demo sim, retry) is created ONCE in `event-experience.tsx` and shared by the
   album's Add and the door's upload step, so a run started at the door outlives it. `GuestUpload`
@@ -237,13 +270,13 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
   `public/guest-ghost` WebPs pouring under a centred `font-heading` title and CTA. The fade (85% grayscale,
   40% opacity) is a class on the WRAPPER, never a layer over the photographs, and NOTHING sits at the top of
   the flow (the guest surface belongs to the host's event, so no Partyreel demo code sits in a host's own
-  album). At 0 items the header and dock drop
-  their Add and the CTA owns it, only while nothing of hers is in flight or waiting (`galleryEmpty`): her stack at
-  the album's head, or on a held event an empty state with no CTA of its own, and the row's Add and her tracker
-  return, so there is always exactly one Add. ★ An earlier visit's waiting uploads count from the first paint: on an
-  empty held album the page's server render asks whether any of hers wait (`waitingOnArrival`,
-  [`waiting-on-arrival.server.ts`](../../src/lib/guest/waiting-on-arrival.server.ts): her ticket as far as it is
-  hers, and her account), since her tracker learns them only after mount and the Add would move when it did. ★ **That wrapper is `GhostRiver`, exported from this file and the ONE home of
+  album). ★ It draws no button of its own: the cover's Add is the one Add on every album, saying "Add the first
+  photo" while the album is empty and nothing of hers is in flight or waiting (`galleryEmpty`), and "Add photos"
+  otherwise, so there is always exactly one Add, in the first screen. ★ An earlier visit's waiting uploads count from
+  the first paint: on an empty held album the page's server render asks whether any of hers wait
+  (`waitingOnArrival`, [`waiting-on-arrival.server.ts`](../../src/lib/guest/waiting-on-arrival.server.ts): her ticket
+  as far as it is hers, and her account), since her tracker learns them only after mount and the Add's words would
+  move when it did. ★ **That wrapper is `GhostRiver`, exported from this file and the ONE home of
   the depth**: the locked page draws the same picture, and two copies of a fade drift apart.
 - **Lightbox** (the SHARED [`media-lightbox.tsx`](../../src/components/shared/media-lightbox.tsx), its parts in
   `media-lightbox-parts/`): the photograph GROWS out of the tile it was tapped on (`origin`: the tile's rect and a
@@ -1009,7 +1042,14 @@ had" holds only when this device holds a guest ticket a claim would move.
     (`TRACKER_WORDS`, `status=approval`) are "Waiting for approval", "In the album" and "Not approved"
     (`TRACKER_TELLS_REFUSAL`), the one name each state has wherever it is said (the badge's spoken count, the keep's
     Sent line, the help, the album feature page's mock); only what is in the album draws its album link, a held
-    file this visit sent its own picture.
+    file this visit sent its own picture. ★ What waits for the host is still hers to take back (Will's live walk:
+    "Definitely need a way to delete pending uploads"): each of hers not yet in the album wears a Remove
+    (`upload-tracker.tsx`), on the album Delete's own paths (`remove_my_upload` for an account, `/api/guests/remove`
+    for a ticket, both taking any of her rows not already removed), so it never reaches the host's Review; no
+    confirm, since nothing else in the list asks one. It says Removing while it works, leaves her list through the
+    page's own record (`removedIds`, which also takes it out of what is in flight, so an emptied album asks for its
+    first photo again and a require-an-upload album asks the server whether its door stands), and stays with Try
+    again when refused.
   - ★ **Nothing at all for a file that did not go** (the failure sheet owns it), and nothing for one already
     in the album.
   ★ The stack wears the album tile's `data-lit` bright edge, bound by
@@ -1162,10 +1202,11 @@ own `isDemo` prop to swap that step's words for `RoleWords` (`door/welcome.tsx`:
 party this is, that the visitor stands exactly where a guest stands, the one thing to try; Continue, with a ghost
 "Start your own"; its chevron's review shows the same role step). Its itinerary is `[welcome, upload]` with no name, and the upload step's skip reads "Look around".
 `guest-header.tsx`'s `isDemo` prop pins the header to the top of the screen with a Demo mark beside the
-wordmark, so the admission survives every scroll. A completed (simulated) upload surfaces `TurnCard`
+wordmark, so the admission survives every scroll (on the cover in white at the page's top, on the page's paper the
+moment it moves). A completed (simulated) upload surfaces `TurnCard`
 (`guest-upload.tsx`) directly above the album's first tile (the photograph just added, since the album is
-newest-first); the action row puts "Start your own" beside Invite, and a closing card repeats the offer
-below the whole album, in the report footer's place (hidden for the demo).
+newest-first); the cover's row carries "Start your own" in glass (a line of its own at a phone), and a closing card
+repeats the offer below the whole album, in the report footer's place (hidden for the demo).
 
 **The phone pair: one broadcast channel, no stored bytes, no new table** (`lib/demo.ts`, `event-experience.tsx`).
 A demo tab that did NOT arrive via a scanned link mints its own id (`crypto.randomUUID()`) and folds it into
@@ -1179,17 +1220,23 @@ path a real upload uses (`GalleryLiveProvider`'s `notifyUploaded`). A video carr
 client-side poster frame): the laptop's line says it arrived without a tile. Nothing is persisted; the
 channel forgets everything the moment either tab closes.
 
-**The reel in the demo.** The tile and the view run as on any album (the demo resolves to `full` and its
+**The reel in the demo.** The cover and the view run as on any album (the demo resolves to `full` and its
 facts are read the same way), and its reel plays the optimistic tiles too, so a visitor's own simulated
 photograph joins the loop. The view's Add yours is the page's own simulated Add ("Add yours (a demo
 upload)"); there is no creator and no approval toast.
 
 ## The live reel
 
-The Highlight reel tile, the view that is also the wall, the approval toast and the creator's seam are
-[reel.md](reel.md)'s. What this page owes the reel: the gallery payload carries its facts (the one live source,
-above), the tile keeps the words' column in its own slot directly above `aboveAlbum`, and the welcome comes before
-any reel, `?reel=screen` included.
+The view that is also the wall, the approval toast and the creator's seam are [reel.md](reel.md)'s. What this page
+owes the reel: the gallery payload carries its facts (the one live source, above), the reel lives in the head (the
+cover's stills and its round, and the shutter's twin, told through the head's bridge: no tile stands above the
+album, and the creator's door is the view's Make your own), and the welcome comes before any reel, `?reel=screen`
+included. ★ **The owner arriving on `?reel` meets the reel, never her album**: the hub's Reel card opens
+`/e/<token>?reel`, and the view is a lazy chunk that opens after hydration, so the album painted first and flashed
+under it. The page's server knows the owner asked (`reelAsked`: she never owes the door, where a guest's welcome comes
+first), so the view's own black stands from the first byte (`data-reel-curtain`) and the view opens over it; the
+curtain goes the moment the address stops asking (the view closed, or the reel turned out not to play) and never
+comes back for that visit.
 
 ## See also
 

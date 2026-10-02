@@ -36,6 +36,10 @@ const { live } = vi.hoisted(() => ({
 vi.mock("@/components/guest/gallery-live", () => ({
   useGalleryLive: () => live.current,
 }));
+const action = vi.hoisted(() => ({ remove: vi.fn() }));
+vi.mock("@/app/(guest)/e/[token]/actions", () => ({
+  removeMyUploadGuestAction: (id: string) => action.remove(id),
+}));
 
 const QR = "qr-token-1";
 const TOKEN = "sess-token-of-real-length-0000";
@@ -341,6 +345,141 @@ describe("the list", () => {
       statuses: true,
       tell: true,
     });
+  });
+});
+
+/**
+ * ★ WHAT WAITS FOR THE HOST IS STILL HERS TO TAKE BACK (Will's live walk, 2026-10-02: "Definitely need a way to
+ * delete pending uploads ... where something may have been a mistake"). Each of hers not yet in the album wears a
+ * Remove on the album's own delete paths (the account's Server Function, the ticket's route), says so while it
+ * works, leaves her list through the page's own record when the server agrees, and offers Try again when it
+ * does not. Nothing in the album, or still sending, has one: the album's own Delete is that door.
+ */
+describe("taking one of hers back", () => {
+  /** The list open over her rows: m1 held, m3 in the album. */
+  async function openList(
+    over: {
+      isAuthed?: boolean;
+      sessionToken?: string | null;
+      removedIds?: ReadonlySet<string>;
+      onOwnRemoved?: (id: string, remaining: number) => void;
+    } = {},
+  ) {
+    statuses([
+      { id: "m1", status: "pending" },
+      { id: "m3", status: "approved" },
+    ]);
+    live.current.serverIds = new Set(["m3"]);
+    const store = createUploadTrackerStore();
+    const tree = (removedIds: ReadonlySet<string>) => (
+      <UploadTracker
+        store={store}
+        queue={[]}
+        qrToken={QR}
+        sessionToken={
+          over.sessionToken === undefined ? TOKEN : over.sessionToken
+        }
+        isAuthed={over.isAuthed ?? false}
+        moderated
+        isDemo={false}
+        isOwner={false}
+        removedIds={removedIds}
+        onOwnRemoved={over.onOwnRemoved}
+        open
+        onOpenChange={() => {}}
+      />
+    );
+    const view = render(tree(over.removedIds ?? new Set()));
+    await waitFor(() =>
+      expect(
+        document.querySelector('[data-upload-tracker-row="waiting"]'),
+      ).not.toBeNull(),
+    );
+    return {
+      ...view,
+      rerenderRemoved: (ids: ReadonlySet<string>) => view.rerender(tree(ids)),
+    };
+  }
+  const removes = () => [
+    ...document.querySelectorAll("[data-upload-tracker-remove]"),
+  ];
+
+  it("★ offers a Remove on what waits for the host, and only there", async () => {
+    await openList();
+    const buttons = removes();
+    expect(buttons).toHaveLength(1);
+    expect(buttons[0]!.closest("[data-upload-tracker-row]")).toHaveAttribute(
+      "data-upload-tracker-row",
+      "waiting",
+    );
+    expect(buttons[0]).toHaveAccessibleName("Remove this upload");
+  });
+
+  it("★ a guest's ticket takes it back on the ticket's route, the ticket in the body", async () => {
+    const onOwnRemoved = vi.fn();
+    const view = await openList({ onOwnRemoved });
+    vi.mocked(global.fetch).mockResolvedValueOnce({ ok: true } as Response);
+    await act(async () => {
+      fireEvent.click(removes()[0]!);
+    });
+    const call = vi
+      .mocked(global.fetch)
+      .mock.calls.find(([url]) => url === "/api/guests/remove")!;
+    expect(JSON.parse((call[1] as RequestInit).body as string)).toEqual({
+      qr_token: QR,
+      session_token: TOKEN,
+      media_id: "m1",
+    });
+    expect(onOwnRemoved).toHaveBeenCalledWith("m1", expect.any(Number));
+    expect(action.remove).not.toHaveBeenCalled();
+    // The page records it (`removedIds`), and her list forgets it.
+    view.rerenderRemoved(new Set(["m1"]));
+    expect(
+      document.querySelector('[data-upload-tracker-row="waiting"]'),
+    ).toBeNull();
+  });
+
+  it("an account takes it back through its own Server Function", async () => {
+    action.remove.mockResolvedValueOnce({ ok: true });
+    const onOwnRemoved = vi.fn();
+    await openList({ isAuthed: true, sessionToken: null, onOwnRemoved });
+    await act(async () => {
+      fireEvent.click(removes()[0]!);
+    });
+    expect(action.remove).toHaveBeenCalledWith("m1");
+    expect(onOwnRemoved).toHaveBeenCalledWith("m1", expect.any(Number));
+  });
+
+  it("★ says so while it works, and stays with a Try again when the server refuses", async () => {
+    const onOwnRemoved = vi.fn();
+    await openList({ onOwnRemoved });
+    let answer!: (r: Response) => void;
+    vi.mocked(global.fetch).mockReturnValueOnce(
+      new Promise<Response>((resolve) => {
+        answer = resolve;
+      }),
+    );
+    await act(async () => {
+      fireEvent.click(removes()[0]!);
+    });
+    const row = () =>
+      document.querySelector('[data-upload-tracker-row="waiting"]')!;
+    expect(row()).toHaveAttribute("data-removing", "working");
+    expect(removes()[0]).toBeDisabled();
+    expect(removes()[0]).toHaveTextContent("Removing");
+    await act(async () => {
+      answer({ ok: false } as Response);
+    });
+    expect(row()).toHaveAttribute("data-removing", "failed");
+    expect(row()).toHaveTextContent("Couldn't remove it");
+    expect(removes()[0]).toHaveAccessibleName("Try removing this upload again");
+    expect(onOwnRemoved).not.toHaveBeenCalled();
+    // Try again is the same act.
+    vi.mocked(global.fetch).mockResolvedValueOnce({ ok: true } as Response);
+    await act(async () => {
+      fireEvent.click(removes()[0]!);
+    });
+    expect(onOwnRemoved).toHaveBeenCalledWith("m1", expect.any(Number));
   });
 });
 

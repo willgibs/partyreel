@@ -139,13 +139,29 @@ describe("the cards row", () => {
     ).toBe(false);
   });
 
-  it("shows the QR pill only while the header's code is off screen", () => {
-    // Nothing is duplicated at rest: at the top of the page the header's code
-    // IS the code, and the pill is the same object once that one has gone.
+  it("★ stuck, leads with the head it came from: the cover's first photograph and the name", () => {
+    // `event-header` r1 (`host=shared`, his note: "Love how they're captured into a sticky menu on scroll"):
+    // the band carries the head's face once the head has gone, and only then (at rest the head is above it).
     const src = read(CARDS);
     expect(
-      /\{headerCodeHidden && \(/.test(src),
-      "the sticky QR pill stopped being gated on the header's code",
+      /\{stuck && head && \(/.test(src),
+      "the band's lead stopped waiting for the band to stick",
+    ).toBe(true);
+    expect(src).toContain("data-band-lead");
+    // The face is the cover's own, live as the cover is (`event-hub-head.tsx`), never a second rule.
+    expect(src).toMatch(/useHubCoverStills\(/);
+  });
+
+  it("shows the code's chip only once the band has stuck and the head's code is off screen", () => {
+    // Nothing is duplicated at rest: at the top of the page the head's code
+    // IS the code, and the chip is the same object once that one has gone.
+    // ★ Reshaped on purpose (`event-header` r1): the QR pill became the code
+    // chip (`ui/code-chip.tsx`), and it stands in the stuck band alone, since
+    // the code is in the cover above the band at rest.
+    const src = read(CARDS);
+    expect(
+      /\{stuck && headerCodeHidden && \(/.test(src),
+      "the sticky code chip stopped being gated on the head's code",
     ).toBe(true);
   });
 });

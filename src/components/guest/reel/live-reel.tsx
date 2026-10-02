@@ -3,16 +3,23 @@
 /**
  * THE LIVE REEL ON THE ALBUM PAGE: the controller that decides whether this viewer's album has a
  * reel, opens and closes the full-screen view from the address (`?reel`, `?reel=screen`), and hosts
- * the three things that hang off it: the Highlight reel tile, the view itself (lazy), and the
- * once-a-visit approval toast.
+ * what hangs off it: the view itself (lazy), the once-a-visit approval toast, and what the album's
+ * head needs from it (`event-experience-head.tsx`'s bridge: the cover's photographs and the reel's
+ * door, for the cover's round and the shutter's twin).
  *
  * The main reel is a faster-paced slideshow the album builds by itself: a clickable showpiece that
  * shuffles every current (not hidden) photo and video in the event into a reel anyone can watch
  * at any time, with nothing asked of the host. So nothing here is stored and nothing waits on the
  * host: the reel is the album's own live payload (gallery-live.tsx), composed on this device.
  *
- * ★ IT EXISTS FROM THE SECOND ITEM, AND BELOW IT THERE IS NOTHING (`liveReelAvailable`): no tile, no
- * view, no `?reel`. With the host's switch off, the platform lever off, or a door still standing
+ * ★ THE REEL LIVES IN THE HEAD (`event-header` r1's carried call `reel`, taken): the tile that sat
+ * above the album went, and the cover IS the reel's face, its own stills dissolving under the event's
+ * name with a round that plays it. So this controller no longer draws anything above the album; it
+ * publishes the cover's stills and the reel's door to the head, which stands outside the album's
+ * live source (the shell paints first and outlives the album's own failure).
+ *
+ * ★ IT EXISTS FROM THE SECOND ITEM, AND BELOW IT THERE IS NOTHING (`liveReelAvailable`): no round,
+ * no view, no `?reel`. With the host's switch off, the platform lever off, or a door still standing
  * (access short of `full`) there is nothing either. One exception: the screen posture
  * below the minimum shows its idle state (the code and the address alone), because the host set a
  * screen up before anyone arrived, and a blank wall is the one place a code does its job best.
@@ -24,86 +31,56 @@
  *
  * ★ ON THE PAGED ALBUM IT PLANS FROM THE MANIFEST AND READS LINKS BY ID. The list the reel plays is
  * the manifest's items with no urls (`reelItems`: whether each has a still is its flags' word,
- * `drawable`), so the minimum, the take and the tile's stills are counted over the whole album; a
+ * `drawable`), so the minimum, the take and the cover's stills are counted over the whole album; a
  * clip's links are minted a window or two ahead of its turn through the provider's resolver.
  */
 import {
-  createContext,
   lazy,
   Suspense,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
-  useState,
   useSyncExternalStore,
 } from "react";
 import type { ReactNode } from "react";
-import { Clapperboard } from "lucide-react";
 import { toast } from "sonner";
 
 import "./live-reel.css";
 
 import {
+  COVER_SLOTS,
+  type HeadBridge,
+  type HeadStill,
+  pickCoverIds,
+} from "@/components/guest/event-experience-head";
+import {
   useGalleryLive,
   type GalleryLive,
 } from "@/components/guest/gallery-live";
 import type { ApprovalNews } from "@/components/guest/upload-tracker";
-import { PosterCard } from "@/components/reel/poster-card";
 import type { ClipResolver } from "@/lib/album/resolver";
 import { liveReelAvailable } from "@/lib/events/gallery-reel";
-import { GLASS_MARK, GLASS_MARK_LIT } from "@/lib/glass";
 import { setReelDefaults } from "@/lib/reel/defaults-action";
 import { stillUrlFor, type LiveMediaItem } from "@/lib/reel/live/items";
-import { TILE_SLOTS, tileStills } from "@/lib/guest/reel-tile";
 import { useReelParam, type ReelMode } from "@/lib/guest/reel-url";
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
-import { cn } from "@/lib/utils";
 
-import {
-  preloadReelCreator,
-  REEL_CREATOR,
-  type ReelCreator,
-} from "./creator-seam";
+import { REEL_CREATOR } from "./creator-seam";
 import type { ReelViewProps } from "./live-reel-view";
 
 // The view reaches the whole canvas engine; nobody who never opens it downloads it (the
-// EntryModalLazy precedent). The tile and this controller carry no engine at all. ONE import promise
-// serves the warm-up and the lazy boundary alike, so a tap after a hover never asks twice.
+// EntryModalLazy precedent). The head's round and this controller carry no engine at all. ONE import
+// promise serves the warm-up and the lazy boundary alike, so a tap after a hover never asks twice.
 let viewChunk: Promise<typeof import("./live-reel-view")> | null = null;
 const loadView = () => (viewChunk ??= import("./live-reel-view"));
 const LiveReelViewLazy = lazy(() =>
   loadView().then((m) => ({ default: m.LiveReelView })),
 );
 
-/** Warm the view's chunk on intent (a pointer over the tile), so the first tap opens at once. */
+/** Warm the view's chunk on intent (a pointer over the reel's round), so the first tap opens at once. */
 function preloadView() {
   void loadView();
-}
-
-type ReelController = {
-  /** The reel exists for this viewer right now. */
-  available: boolean;
-  /** Open the view (`hand`) or the screen posture (`screen`). */
-  open: (mode?: ReelMode) => void;
-  /**
-   * Open the view with the creator already asked for (the tile's "Make your own clip to share"): the
-   * view opens it the moment it can tell this browser makes clips, and otherwise explains, in its
-   * own greyed button, why not.
-   */
-  openCreator: () => void;
-  /** The list the reel plays (see the header): the manifest's items, no urls. */
-  playable: readonly LiveMediaItem[];
-  /** A creator is registered AND the host's plan was read, so "Make your own" leads somewhere. */
-  creator: ReelCreator | null;
-  eventId: string;
-};
-
-const ReelControllerContext = createContext<ReelController | null>(null);
-
-export function useReelController(): ReelController | null {
-  return useContext(ReelControllerContext);
 }
 
 export type LiveReelProps = {
@@ -139,6 +116,11 @@ export type LiveReelProps = {
   welcomePending?: boolean;
   /** The event's owner is watching: the view shows the host's extras, and its Close goes back. */
   isOwner?: boolean;
+  /**
+   * The album's head, above the live source: this controller tells it the cover's photographs and
+   * the reel's door (`event-experience-head.tsx`). Absent where no head listens.
+   */
+  headBridge?: HeadBridge | null;
   children: ReactNode;
 };
 
@@ -156,6 +138,7 @@ export function LiveReel({
   approvalNews,
   welcomePending = false,
   isOwner = false,
+  headBridge = null,
   children,
 }: LiveReelProps) {
   const live = useGalleryLive();
@@ -201,18 +184,9 @@ export function LiveReel({
     },
     [openParam],
   );
-  // The tile's line asks for the creator itself: the view opens, and opens the creator on arrival.
-  // The ask is spent the moment the view reads it, so a later open is the plain reel again.
-  const [creatorAsked, setCreatorAsked] = useState(false);
-  const openCreator = useCallback(() => {
-    setCreatorAsked(true);
-    open("hand");
-  }, [open]);
-  const spendCreatorAsk = useCallback(() => setCreatorAsked(false), []);
   // The view's own Close (and Escape, and Back): the owner goes back where they came from; the
   // quiet drop above never does, so an album under two keeps its visitor on the page.
   const closeView = useCallback(() => {
-    setCreatorAsked(false);
     close({ returnBack: isOwner });
   }, [close, isOwner]);
   // The owner's "Set for everyone": the event-wide defaults' one write (it re-verifies the owner and
@@ -229,10 +203,34 @@ export function LiveReel({
     [eventId],
   );
 
-  const controller = useMemo<ReelController>(
-    () => ({ available, open, openCreator, playable, creator, eventId }),
-    [available, open, openCreator, playable, creator, eventId],
-  );
+  // ★ WHAT THE HEAD READS (the head note): the cover's photographs as the album moves, and the reel's
+  // door. `viewAsked` is the address's own word (`?reel` stands), which drops the moment the reel is
+  // closed or turns out not to play, so the page's curtain for an owner arriving from her hub
+  // stands exactly as long as the view is on its way or open.
+  const stills = useCoverStills(live, playable, eventId, available);
+  const viewAsked = mode !== null;
+  useEffect(() => {
+    if (!headBridge) return;
+    headBridge.set({
+      stills,
+      reportExpiry: live.reportPossibleExpiry,
+      reel: {
+        available,
+        open: () => open("hand"),
+        preload: preloadView,
+        viewAsked,
+      },
+    });
+  }, [
+    headBridge,
+    stills,
+    live.reportPossibleExpiry,
+    available,
+    open,
+    viewAsked,
+  ]);
+  // And it goes with the album: a remount (an access flip) or a page left takes its word with it.
+  useEffect(() => () => headBridge?.set(null), [headBridge]);
 
   const viewProps: ReelViewProps | null = viewOpen
     ? {
@@ -249,8 +247,6 @@ export function LiveReel({
         creator,
         addClipToAlbum,
         moderated,
-        creatorAsked,
-        onCreatorAskSpent: spendCreatorAsk,
         isOwner,
         onSetForEveryone: isOwner && !isDemo ? setForEveryone : undefined,
         onClose: closeView,
@@ -258,7 +254,7 @@ export function LiveReel({
     : null;
 
   return (
-    <ReelControllerContext value={controller}>
+    <>
       {children}
       {viewProps && (
         <Suspense fallback={null}>
@@ -276,18 +272,18 @@ export function LiveReel({
           onWatch={() => open("hand")}
         />
       )}
-    </ReelControllerContext>
+    </>
   );
 }
 
-/* ── the tile ────────────────────────────────────────────────────────────────── */
+/* ── the cover's photographs ────────────────────────────────────────────────────────────────── */
 
-const NO_ITEMS: readonly LiveMediaItem[] = [];
+const NO_STILLS: readonly HeadStill[] = [];
 
 /**
- * An item as the tile draws it: its own urls where it carries them (the demo's optimistic tiles),
- * else the links the resolver holds (a still is a photograph's `tile`, or a video's preview, which is
- * its `tile` too; a video with no preview is never drawable, so never asked).
+ * An item as a still is drawn: its own urls where it carries them (the demo's optimistic tiles), else
+ * the links the resolver holds (a still is a photograph's `tile`, or a video's preview, which is its
+ * `tile` too; a video with no preview is never drawable, so never asked).
  */
 function linkedStill(
   item: LiveMediaItem,
@@ -298,160 +294,61 @@ function linkedStill(
   return link ? { ...item, url: link.view, previewUrl: link.tile } : item;
 }
 
-/** One still's slot in the six-slot cycle, in seconds (see live-reel.css). */
-const TILE_HOLD_SEC = 3.2;
-
 /**
- * THE HIGHLIGHT REEL TILE: its own slot above the album, a slow crossfade of the reel's own stills
- * (`reel-front` r2, `signature=plain`), headed "Highlight reel". No style name, no moment count, no
- * chip: the album beneath it carries the count. A tap opens the view; absent below the minimum; it
- * stays after uploads close.
+ * THE COVER'S PHOTOGRAPHS, LIVE: the cover rule's picks (`pickCoverIds`: the reel's own opening while
+ * the album has a reel, her own first once she has added one, else the album's newest), each with
+ * its preview's link once it is in hand. WHICH photographs is recomputed only when the album's
+ * membership changes; their LINKS are read by id every render, so a link that lands, or is re-minted,
+ * reaches the cover too. A teaser has no manifest, so its own nine's newest stand in.
  *
- * ★ THE CORNER IS A GLYPH (`badge=glyph`): a 24px disc of the house glass mark holding a 12px
- * clapperboard, 10px in from the top-left, so the tile reads as footage without a word competing
- * with the heading.
- *
- * ★ "MAKE YOUR OWN CLIP TO SHARE" IS A LINE, NOT A PILL (Will's round-1 note on `verbs`; round 2
- * drew a pill by mistake and he turned it down): the violet line under the heading, only once a
- * creator is registered, so no build promises a clip it cannot make. It is its own control, and
- * opens the creator directly (a call, his to overrule), so the watch target is a layer of its own
- * across the whole card rather than a button around it (a button cannot hold a button).
- *
- * ★ `className` IS THE CALLER'S BOX, NEVER THE CARD'S. The page hands the tile its column (the
- * words' measure and its 20px gutters) and its margins; the watch layer and the press's scale live on
- * the card inside that box, so a tap in the gutter stays the page's and the press shrinks the card
- * about its own centre (build 9's red-team found the layer spanning the gutters).
+ * The picks' links are asked for once per set of picks: a reel switched off never minted them with the
+ * page's seed, and the cover draws previews only.
  */
-export function LiveReelTile({ className }: { className?: string }) {
-  const controller = useReelController();
-  const live = useGalleryLive();
-  const playable = controller?.playable ?? NO_ITEMS;
-  const eventId = controller?.eventId ?? "";
-  const ownIds = live?.ownIds ?? null;
-  const clips = live?.clips ?? null;
-
-  // WHICH stills: the reel's own take's first pass (`tileStills`), recomputed only when the album's
-  // membership changes (the manifest's items keep their identity until it does); their URLS are read
-  // by id every render, so a link that lands, or is re-minted, reaches the tile too.
+function useCoverStills(
+  live: GalleryLive,
+  playable: readonly LiveMediaItem[],
+  eventId: string,
+  reelOn: boolean,
+): readonly HeadStill[] {
+  const ownIds = live.ownIds;
   const picked = useMemo(
-    () => [
-      ...new Set(tileStills(playable, { eventId, ownIds }).map((s) => s.id)),
-    ],
-    [playable, eventId, ownIds],
+    () => pickCoverIds(playable, { eventId, ownIds, reelOn }),
+    [playable, eventId, ownIds, reelOn],
   );
-  // The picks' links, asked for once per set of picks (the tile draws previews only).
-  const ensureLinks = live?.ensureLinks;
+  const ensureLinks = live.ensureLinks;
   useEffect(() => {
-    ensureLinks?.(picked);
+    ensureLinks(picked);
   }, [ensureLinks, picked]);
   const byId = useMemo(
     () => new Map(playable.map((item) => [item.id, item])),
     [playable],
   );
-
-  if (!controller?.available || !live) return null;
-  const drawn = picked.flatMap((id) => {
-    const item = byId.get(id);
-    const url = item ? stillUrlFor(linkedStill(item, clips)) : "";
-    return url ? [{ id, url }] : [];
-  });
-  // ★ ALWAYS SIX SLOTS (reel-tile.ts): an album of two cycles its two stills three times round.
-  const slots = Array.from(
-    { length: drawn.length > 0 ? TILE_SLOTS : 0 },
-    (_, i) => drawn[i % drawn.length],
+  const drawn: HeadStill[] = [];
+  if (live.access === "teaser") {
+    for (const item of live.serverItems) {
+      const tile = item.previewUrl ?? (item.type === "photo" ? item.url : null);
+      if (tile) drawn.push({ id: item.id, tile });
+      if (drawn.length === COVER_SLOTS) break;
+    }
+  } else {
+    for (const id of picked) {
+      const item = byId.get(id);
+      const tile = item ? stillUrlFor(linkedStill(item, live.clips)) : "";
+      if (tile) drawn.push({ id, tile });
+    }
+  }
+  // One array per set of drawn stills, so the head is told only when a picture changes.
+  const key = drawn.map((s) => `${s.id} ${s.tile}`).join("\n");
+  return useMemo(
+    () =>
+      key
+        ? key.split("\n").map((line) => {
+            const at = line.indexOf(" ");
+            return { id: line.slice(0, at), tile: line.slice(at + 1) };
+          })
+        : NO_STILLS,
+    [key],
   );
-  // ★ THE TILE STANDS FROM THE FIRST PAINT, ITS STILLS OR NOT. Whether the reel exists is the
-  // manifest's word (two playable items), and its stills' links ride the page's seed; a still whose
-  // link is still on its way leaves the tile's own ground showing for a beat, and the stills fade in
-  // over it. A tile that waited for them would arrive late and push the album down under the eye.
-  const total = TILE_HOLD_SEC * Math.max(1, slots.length);
-
-  return (
-    <div className={className} data-reel-tile>
-      <div
-        data-reel-card
-        className={cn(
-          "relative rounded-lg transition-transform duration-150 ease-emphasis",
-          "has-[[data-reel-watch]:active]:scale-[0.99] motion-reduce:has-[[data-reel-watch]:active]:scale-100",
-        )}
-      >
-        <PosterCard
-          eventName="Highlight reel"
-          chip={
-            <span
-              data-reel-glyph
-              className={cn(
-                "flex size-6 items-center justify-center rounded-full text-white",
-                GLASS_MARK,
-              )}
-            >
-              <Clapperboard
-                className={cn("size-3", GLASS_MARK_LIT)}
-                aria-hidden
-              />
-            </span>
-          }
-          meta={
-            controller.creator ? (
-              <button
-                type="button"
-                onClick={controller.openCreator}
-                onPointerEnter={preloadCreatorDoor}
-                onFocus={preloadCreatorDoor}
-                data-reel-make
-                className={cn(
-                  // Above the watch layer, and a finger's height without growing the line itself.
-                  "pointer-events-auto relative z-[2] -mx-1 -my-2 rounded-sm px-1 py-2 text-left text-micro font-medium text-[oklch(0.8_0.14_300)] outline-none",
-                  "hover:underline hover:underline-offset-2 focus-visible:underline focus-visible:ring-2 focus-visible:ring-white/70",
-                )}
-              >
-                Make your own clip to share
-              </button>
-            ) : undefined
-          }
-          media={
-            <div className="relative aspect-[2/1] w-full overflow-hidden bg-muted sm:aspect-[21/9]">
-              {slots.map(({ id, url }, i) => (
-                // eslint-disable-next-line @next/next/no-img-element -- a presigned preview (next/image would cache a url that expires)
-                <img
-                  key={`${i}-${url.slice(-24)}`}
-                  src={url}
-                  alt=""
-                  loading={i === 0 ? "eager" : "lazy"}
-                  decoding="async"
-                  data-rest={i === 0 ? "" : undefined}
-                  // The watchdog, by id: only this still's link is re-minted.
-                  onError={() => live.reportPossibleExpiry([id])}
-                  className="lr-still"
-                  style={
-                    {
-                      "--lr-hold": TILE_HOLD_SEC,
-                      "--lr-delay": i * TILE_HOLD_SEC - total,
-                    } as React.CSSProperties
-                  }
-                />
-              ))}
-            </div>
-          }
-        />
-        <button
-          type="button"
-          onClick={() => controller.open("hand")}
-          onPointerEnter={preloadView}
-          onFocus={preloadView}
-          aria-label="Watch the highlight reel"
-          data-reel-watch
-          className="absolute inset-0 z-[1] rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-        />
-      </div>
-    </div>
-  );
-}
-
-/** The line's intent warms both halves of the door it opens: the view, and the creator inside it. */
-function preloadCreatorDoor() {
-  preloadView();
-  preloadReelCreator();
 }
 
 /* ── the approval toast ──────────────────────────────────────────────────────── */

@@ -71,6 +71,7 @@ vi.mock("@/lib/supabase/client", () => ({
 }));
 
 import { GuestHeader } from "@/components/guest/guest-header";
+import { publishCoverUnderHeader } from "@/components/guest/guest-header-cover";
 import { setStoredName } from "@/lib/guest/use-stored-name";
 
 describe("GuestHeader: the Demo mark", () => {
@@ -411,5 +412,45 @@ describe("GuestHeader: it follows the viewer the device holds", () => {
     unmount();
     expect(device.listeners.size).toBe(0);
     expect(off).toHaveBeenCalled();
+  });
+});
+
+/**
+ * OVER THE COVER IT STANDS ON THE PHOTOGRAPH (`event-header` r1's carried call `header`): the page says a cover is
+ * under it, and the album moves that word as the page does (`guest-header-cover.ts`: the door's stage arriving, the
+ * demo's pinned bar once the page moves). What is pinned is the hook (`data-surface="photo"`, the room's ink) and who
+ * decides, never a colour.
+ */
+describe("GuestHeader on the album's cover", () => {
+  const header = () => document.querySelector("[data-guest-header]")!;
+
+  afterEach(() => {
+    act(() => publishCoverUnderHeader(null));
+  });
+
+  it("stands on the photograph when the page says a cover is under it, and is paper elsewhere", () => {
+    const { rerender } = render(
+      <GuestHeader qrToken="tok-1" eventId="evt-1" over />,
+    );
+    expect(header()).toHaveAttribute("data-surface", "photo");
+    expect(header()).toHaveClass("dark");
+    rerender(<GuestHeader qrToken="tok-1" eventId="evt-1" />);
+    expect(header()).not.toHaveAttribute("data-surface");
+    expect(header()).not.toHaveClass("dark");
+  });
+
+  it("★ follows the album's word once it has one (the door's stage takes it back to paper), then the page's again", () => {
+    render(<GuestHeader qrToken="tok-1" eventId="evt-1" over />);
+    act(() => publishCoverUnderHeader(false));
+    expect(header()).not.toHaveAttribute("data-surface");
+    act(() => publishCoverUnderHeader(true));
+    expect(header()).toHaveAttribute("data-surface", "photo");
+    act(() => publishCoverUnderHeader(null));
+    expect(header()).toHaveAttribute("data-surface", "photo");
+  });
+
+  it("keeps the Demo mark on the cover too", () => {
+    render(<GuestHeader qrToken="tok-1" eventId="evt-1" isDemo over />);
+    expect(screen.getByText("Demo")).toBeInTheDocument();
   });
 });

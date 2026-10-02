@@ -2,15 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import {
-  ListChecks,
-  QrCode,
-  Settings,
-  Users,
-  type LucideIcon,
-} from "lucide-react";
+import { ListChecks, Settings, Users, type LucideIcon } from "lucide-react";
 
 import { useEventShare } from "@/components/app/share/event-share-provider";
+import type { HeadStill } from "@/components/guest/event-experience-head";
+import { CodeChip } from "@/components/ui/code-chip";
 import { EVENT_ROOMS, type EventRoomId } from "@/lib/event/sections";
 import { trackAttrs } from "@/lib/analytics/events";
 import { cn } from "@/lib/utils";
@@ -21,6 +17,7 @@ import {
 } from "@/components/app/event-feed/host-album";
 
 import { EdgeFadeScroller } from "./edge-fade-scroller";
+import { useHubCoverStills } from "./event-hub-head";
 import { ReelCard, useLiveReel, type ReelCardData } from "./reel-card";
 import {
   reviewCardFace,
@@ -93,12 +90,19 @@ export type RoomCard = {
  * actually something past it, so a row of four that fits at 1440 shows none
  * (`edge-fade-scroller.tsx`, where the flags are written and why they once
  * showed at every width).
+ *
+ * ★ STUCK, IT CARRIES THE HEAD IT CAME FROM (`event-header` r1, `host=shared`; his note: "Love how
+ * they're captured into a sticky menu on scroll for page-wide access"). Once the cover has scrolled
+ * away the band leads with the cover's face, its first photograph and the event's name, so the hub
+ * still reads as the album's however deep Maya goes, and closes on the code as a chip
+ * (`ui/code-chip.tsx`): the code is always one press away, on the white it always stands on.
  */
 export function EventCardsRow({
   eventId,
   cards: served,
   reel: servedReel,
   moderationOn = false,
+  head,
 }: {
   eventId: string;
   cards: RoomCard[];
@@ -106,6 +110,8 @@ export function EventCardsRow({
   reel: ReelCardData;
   /** Whether uploads wait in Review: the Review card's words follow the album's live count. */
   moderationOn?: boolean;
+  /** The head the band came from: its name and its cover's photographs, for the stuck band's lead. */
+  head?: { name: string; stills: readonly HeadStill[] };
 }) {
   // ★ THE REVIEW CARD AND THE REEL CARD FOLLOW THE ALBUM (the album-host-wiring lane). The page is
   // never refreshed to show an arrival, so what these two say is read off the page's album store:
@@ -123,6 +129,9 @@ export function EventCardsRow({
   const { openSheet, headerCodeHidden, openCode, morphNameFor } =
     useEventShare();
   const { stuck, footRef, bandRef } = useStuckBand();
+  // The cover's first photograph, live as the cover's own (`event-hub-head.tsx`).
+  const coverStills = useHubCoverStills(head?.stills ?? NO_STILLS);
+  const face = coverStills[0]?.tile ?? null;
 
   return (
     // THE FOOTPRINT: what sticks and what the bar is measured against, holding
@@ -147,6 +156,27 @@ export function EventCardsRow({
             aria-label="This event"
             className={roomRowLayout(stuck)}
           >
+            {/* THE HEAD'S FACE, once the head has gone (the head note): the cover's first photograph
+                and the name, the page's own title in the bar it rides. Decorative to a reader of the
+                page (the h1 above already named it), so it is words, never a control. */}
+            {stuck && head && (
+              <span
+                data-band-lead=""
+                className="flex min-w-0 shrink-0 items-center gap-2.5 pr-1"
+              >
+                {face ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- a presigned preview (next/image would cache a link that expires)
+                  <img
+                    src={face}
+                    alt=""
+                    className="size-9 shrink-0 rounded-lg object-cover"
+                  />
+                ) : null}
+                <span className="max-w-48 truncate font-heading text-card-title">
+                  {head.name}
+                </span>
+              </span>
+            )}
             {EVENT_ROOMS.map((room) => {
               if (room.id === "reel") {
                 return (
@@ -248,34 +278,22 @@ export function EventCardsRow({
               );
             })}
 
-            {/* SHARE'S PLACE IN THE STICKY ROW (his `nav` note asked for "a
-              creative way to get share in there if it doesn't have a card"):
-              a QR pill that exists ONLY while the header's code is off screen,
-              so at rest nothing is duplicated and the row is four doors. It
-              carries the morph's name while it is the code on screen. */}
-            {headerCodeHidden && (
-              <button
-                type="button"
+            {/* SHARE'S PLACE IN THE STICKY ROW (his `nav` note asked for "a creative way to get share
+              in there if it doesn't have a card"): the code as a chip, which exists ONLY while the
+              head's code is off screen and the band has stuck, so at rest nothing is duplicated and the
+              row is four doors. It carries the morph's name while it is the code on screen. */}
+            {stuck && headerCodeHidden && (
+              <CodeChip
                 onClick={openCode}
                 aria-label="Show the code for this event"
+                title="Invite"
                 style={{ viewTransitionName: morphNameFor("pill") }}
-                className={cn(
-                  "flex shrink-0 items-center gap-1.5 rounded-xl border border-border font-medium transition-all duration-200 ease-emphasis outline-none",
-                  "hover:border-foreground/25 focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.98] motion-reduce:active:scale-100",
-                  // A phone's resting grid holds exactly the four doors; the
-                  // pill joins the row from `sm`, and on a phone once it is stuck.
-                  stuck
-                    ? "h-9 px-3 text-xs"
-                    : "hidden h-24 w-36 flex-col justify-center p-3 text-sm sm:flex md:w-40",
-                )}
+                className="ml-0.5"
                 {...trackAttrs("cta_click", {
                   cta: "event-code",
                   location: "hub-cards",
                 })}
-              >
-                <QrCode className="size-4 shrink-0" aria-hidden />
-                Invite
-              </button>
+              />
             )}
           </div>
         </EdgeFadeScroller>
@@ -283,6 +301,8 @@ export function EventCardsRow({
     </div>
   );
 }
+
+const NO_STILLS: readonly HeadStill[] = [];
 
 /**
  * STUCK, AND THE FOOTPRINT THAT KEEPS IT HONEST. Stuck is "the row has reached
