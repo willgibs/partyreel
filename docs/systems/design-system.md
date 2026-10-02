@@ -20,6 +20,11 @@ pages and content are [marketing-content.md](marketing-content.md)'s.
 The chrome is a cool grey with no brand hue (hue 286, at a chroma that reads as a temperature), so photographs carry
 the colour and only state and actions are coloured.
 
+The component library is a working version that still reads as the shadcn foundation at the atomic level, and nothing
+in it is protected. An identity is pursued as the sum of every part read together: primitives, materials, type, motion
+and composition. A button made different on its own is not an identity, and atoms left at a generator's defaults read
+as generic however custom the layout above them.
+
 - **Four grounds, four classes**: the page `:root, .surface-paper` (the card is the page's own white), the room
   `.dark` (one room for the app and every cinema chapter), the slab `.surface-ink` (an always-dark leaf on paper, such
   as the footer) and the mat `.surface-mat` (declared, worn nowhere yet). `--gallery*` is the media well, always dark in
