@@ -16,7 +16,6 @@
  */
 import "server-only";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { mustCount, QueryFailedError } from "@/lib/db/must-query";
 import type { AdminClient } from "@/lib/lifecycle/reclaim";
@@ -63,19 +62,11 @@ export function parseDevelopAnswer(data: unknown): SweepAnswer {
   };
 }
 
-/**
- * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `develop_due_sweep` and `media.sealed_until` arrive with migration
- * 20261002200000, so the calls that name them go through this untyped client (drop the cast then).
- */
-function untyped(admin: AdminClient): SupabaseClient {
-  return admin as unknown as SupabaseClient;
-}
-
 async function developBatch(
   admin: AdminClient,
   limit: number,
 ): Promise<SweepAnswer> {
-  const { data, error } = await untyped(admin).rpc("develop_due_sweep", {
+  const { data, error } = await admin.rpc("develop_due_sweep", {
     p_limit: limit,
   });
   if (error) {
@@ -87,7 +78,7 @@ async function developBatch(
 /** The albums still holding a sealed row past its time when the deadline stopped the run: the backlog's floor. */
 async function countLeft(admin: AdminClient): Promise<number> {
   return mustCount(
-    untyped(admin)
+    admin
       .from("media")
       .select("event_id", { count: "exact", head: true })
       .not("sealed_until", "is", null)

@@ -78,11 +78,8 @@ export type DevelopEventFacts = {
 };
 
 /**
- * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `capture`, `roll_size`, `develops_at` and `develop_due` arrive with
- * migration 20261002200000, and `types.ts` learns them only when the Orchestrator regenerates it, so a row is read here
- * field by field. It stays the one reader after the regeneration (a defensive parse costs nothing): a row from a
- * database before the migration, or a value it does not know, reads as free uploads with no develop, which is what
- * every event was.
+ * The one reader of an event's develop facts (`capture`, `roll_size`, `develops_at`, the read's `develop_due`). A
+ * defensive parse that costs nothing: a value it does not know reads as free uploads with no develop.
  */
 export function developFactsOf(row: unknown): DevelopEventFacts {
   const o =

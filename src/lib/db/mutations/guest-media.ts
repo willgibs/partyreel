@@ -330,18 +330,14 @@ export async function readOwnUploads(input: {
   userId?: string | null;
   /** Answer her news, and mark it told. */
   tell?: boolean;
-  /** Read the seal (20261002200000); false only for the fallback a database before the migration takes. */
-  sealColumn?: boolean;
 }): Promise<OwnUploadsRead> {
   const tell = input.tell === true;
-  const sealColumn = input.sealColumn !== false;
   const token = input.sessionToken?.trim() ?? "";
   const admin = createAdminClient();
   const guestColumns = tell ? "id, let_in_told_at" : "id";
   // The keys and the type ride for her own held or sealed rows' pictures (`OwnPicture`); they never leave the server.
   const mediaColumns = [
-    "id, status, created_at, type, original_key, preview_key",
-    ...(sealColumn ? ["sealed_until"] : []),
+    "id, status, created_at, type, original_key, preview_key, sealed_until",
     ...(tell ? ["guest_id, let_in_at"] : []),
   ].join(", ");
   try {
@@ -461,15 +457,6 @@ export async function readOwnUploads(input: {
     await markTold(input.eventId, news.marks);
     return { items, news: news.ids, pictures };
   } catch (error) {
-    // ★ A DATABASE BEFORE THE SEAL'S MIGRATION (20261002200000) answers its column missing: read on without it (no
-    // row can be sealed there), captured, so her tracker never loses its rows to a column that is not there yet.
-    if (sealColumn && missingColumn(error)) {
-      captureError("media", error, {
-        seam: "seal_schema_missing",
-        eventId: input.eventId,
-      });
-      return readOwnUploads({ ...input, sealColumn: false });
-    }
     if (tell && missingColumn(error)) {
       captureError("media", error, {
         seam: "let_in_schema_missing",

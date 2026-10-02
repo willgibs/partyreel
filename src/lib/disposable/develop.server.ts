@@ -18,24 +18,13 @@
  */
 import "server-only";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-
 import { QueryFailedError } from "@/lib/db/must-query";
 import { captureError } from "@/lib/observability/sentry";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-/**
- * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `develop_due` arrives with migration 20261002200000 and `types.ts`
- * learns it at the regeneration, so the call goes through this untyped client (drop the cast then). Before the apply
- * the call fails, which every caller here already answers as a develop that did not happen.
- */
-function untypedAdmin(): SupabaseClient {
-  return createAdminClient() as unknown as SupabaseClient;
-}
-
 /** `develop_due(event)`: how many sealed rows it moved. Throws a `QueryFailedError` on a failed call. */
 export async function developDue(eventId: string): Promise<number> {
-  const { data, error } = await untypedAdmin().rpc("develop_due", {
+  const { data, error } = await createAdminClient().rpc("develop_due", {
     p_event_id: eventId,
   });
   if (error) throw new QueryFailedError("disposable: develop_due", error);
