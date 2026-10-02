@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import {
   Clapperboard,
   ImageUp,
@@ -128,6 +128,14 @@ function Fact({
   );
 }
 
+/**
+ * A PIECE OF A HEAD IN ITS ARRIVAL'S ORDER (`event-header.css`, `[data-eh-in]`):
+ * it rises out of a blur at its place in the sequence, once per mount, so the
+ * board's Replay (a remount) plays the whole arrival again.
+ */
+const inAt = (i: number) =>
+  ({ "data-eh-in": "", style: { "--eh-in-i": i } as CSSProperties }) as const;
+
 /* ══ TODAY: production's head, in its order and words ═══════════════════════ */
 
 function TodayHead({ moment }: { moment: GuestMoment }) {
@@ -136,8 +144,13 @@ function TodayHead({ moment }: { moment: GuestMoment }) {
   return (
     <div className={COLUMN}>
       <header data-eh-head="">
-        <h1 className="font-heading text-page text-balance">{EVENT.name}</h1>
-        <p className="mt-2.5 flex items-center gap-2 text-xs text-muted-foreground">
+        <h1 {...inAt(0)} className="font-heading text-page text-balance">
+          {EVENT.name}
+        </h1>
+        <p
+          {...inAt(1)}
+          className="mt-2.5 flex items-center gap-2 text-xs text-muted-foreground"
+        >
           <span className="flex items-center gap-1.5">
             <span className="text-faint">Hosted by</span>
             <Avatar seed={HOST.seed} size="sm">
@@ -150,7 +163,7 @@ function TodayHead({ moment }: { moment: GuestMoment }) {
           </span>
           <span>{formatEventDate(EVENT.date)}</span>
         </p>
-        <p className="mt-1 text-xs text-muted-foreground">
+        <p {...inAt(2)} className="mt-1 text-xs text-muted-foreground">
           {formatMediaCount(m.photos)}
           {m.guests > 0 && (
             <>
@@ -159,11 +172,14 @@ function TodayHead({ moment }: { moment: GuestMoment }) {
             </>
           )}
         </p>
-        <p className="mt-2 max-w-prose text-reading text-pretty text-muted-foreground">
+        <p
+          {...inAt(3)}
+          className="mt-2 max-w-prose text-reading text-pretty text-muted-foreground"
+        >
           {EVENT.description}
         </p>
       </header>
-      <div className="mt-4">
+      <div {...inAt(4)} className="mt-4">
         {canAdd && (
           <div className="flex items-center gap-2">
             <Button
@@ -233,7 +249,7 @@ function TodayReelTile() {
 function LivingCover() {
   const { ref, at } = useLivingClock<HTMLDivElement>(REEL.length);
   return (
-    <div ref={ref} className="absolute inset-0 -z-10">
+    <div ref={ref} className="eh-arrive-cover absolute inset-0 -z-10">
       <LivingStills stills={REEL} at={at} />
     </div>
   );
@@ -300,8 +316,13 @@ function CoverHead({
         )}
       >
         <div className="min-w-0">
-          <h1 className="font-heading text-title text-balance">{EVENT.name}</h1>
-          <p className="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-sm text-white/85">
+          <h1 {...inAt(0)} className="font-heading text-title text-balance">
+            {EVENT.name}
+          </h1>
+          <p
+            {...inAt(1)}
+            className="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-sm text-white/85"
+          >
             <span className="flex items-center gap-2">
               <Avatar seed={HOST.seed} size="sm">
                 <AvatarFallback>{HOST.name.slice(0, 1)}</AvatarFallback>
@@ -325,6 +346,7 @@ function CoverHead({
             )}
           </p>
           <p
+            {...inAt(2)}
             className={cn(
               "mt-3 max-w-xl text-working text-pretty text-white/80",
               !atDesk && "line-clamp-2",
@@ -334,6 +356,7 @@ function CoverHead({
           </p>
         </div>
         <div
+          {...inAt(3)}
           className={cn(
             "flex shrink-0 items-center gap-2",
             atDesk ? "flex-row-reverse" : "mt-5",
@@ -373,6 +396,17 @@ function CoverHead({
  * stepping through it is watching them. Where the album is empty the door
  * stands open on the house light, nobody in yet.
  */
+/**
+ * Where the door stood before it landed: the middle of the screen at the
+ * door's own size, as an offset from the emblem's place (read off the frames:
+ * the emblem's centre at a phone is 62,140 of 375 by 812, at a desk 84,186 of
+ * 1440 by 900).
+ */
+const LAND = {
+  md: { "--eh-land-x": "125px", "--eh-land-y": "266px", "--eh-land-s": 1.4 },
+  lg: { "--eh-land-x": "636px", "--eh-land-y": "264px", "--eh-land-s": 1.2 },
+} as const;
+
 function DoorEmblem({
   hues,
   empty,
@@ -383,7 +417,10 @@ function DoorEmblem({
   size: "md" | "lg";
 }) {
   return (
-    <span className="relative shrink-0">
+    <span
+      className="eh-arrive-door relative shrink-0"
+      style={LAND[size] as CSSProperties}
+    >
       <Doorway
         state="open"
         hues={hues}
@@ -429,6 +466,7 @@ function DoorwayHead({
           <DoorEmblem hues={hues} empty={empty} size={atDesk ? "lg" : "md"} />
           <div className="min-w-0 flex-1 pb-0.5">
             <h1
+              {...inAt(4)}
               className={cn(
                 "font-heading text-balance",
                 atDesk ? "text-title" : "text-chapter",
@@ -436,7 +474,10 @@ function DoorwayHead({
             >
               {EVENT.name}
             </h1>
-            <p className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-sm text-muted-foreground">
+            <p
+              {...inAt(5)}
+              className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-sm text-muted-foreground"
+            >
               <span className="flex items-center gap-1.5">
                 <Avatar seed={HOST.seed} size="sm">
                   <AvatarFallback>{HOST.name.slice(0, 1)}</AvatarFallback>
@@ -449,7 +490,10 @@ function DoorwayHead({
               <span>{formatEventDate(EVENT.date)}</span>
             </p>
             {!empty && (
-              <p className="mt-1.5 flex items-center gap-3 text-sm text-muted-foreground">
+              <p
+                {...inAt(6)}
+                className="mt-1.5 flex items-center gap-3 text-sm text-muted-foreground"
+              >
                 <Fact icon={Images} n={m.photos} label="Photos and videos" />
                 <Fact icon={Users} n={m.guests} label="Guests" />
               </p>
@@ -458,6 +502,7 @@ function DoorwayHead({
           {atDesk && <DoorActions empty={empty} atDesk />}
         </div>
         <p
+          {...inAt(7)}
           className={cn(
             "mt-4 max-w-prose text-reading text-pretty text-muted-foreground",
             atDesk && "mt-6",
@@ -480,6 +525,7 @@ function DoorActions({
 }) {
   return (
     <div
+      {...inAt(8)}
       className={cn(
         "flex items-center gap-2",
         atDesk ? "shrink-0 flex-row-reverse pb-1" : "mt-4",
@@ -521,13 +567,16 @@ function DoorActions({
  * every still so a white dress never takes a letter's edge with it, and the
  * foreground ink wherever colours are forced.
  */
-function PhotoName({ className }: { className?: string }) {
+export function PhotoName({ className }: { className?: string }) {
   const { ref, at } = useLivingClock<HTMLHeadingElement>(REEL.length);
   const current = at % REEL.length;
   return (
     <h1
       ref={ref}
-      className={cn("relative font-heading text-balance", className)}
+      className={cn(
+        "eh-arrive-name relative font-heading text-balance",
+        className,
+      )}
     >
       <span className="sr-only">{EVENT.name}</span>
       {REEL.map((src, i) => (
@@ -539,9 +588,7 @@ function PhotoName({ className }: { className?: string }) {
             i === 0 ? "relative" : "absolute inset-0",
             i === current ? "opacity-100" : "opacity-0",
           )}
-          style={{
-            backgroundImage: `linear-gradient(rgb(0 0 0 / 0.16), rgb(0 0 0 / 0.16)), url(${src})`,
-          }}
+          style={{ "--eh-photo": `url(${src})` } as CSSProperties}
         >
           {EVENT.name}
         </span>
@@ -582,11 +629,11 @@ function ReelDot() {
   return (
     <span
       ref={ref}
-      className="relative inline-flex size-[1.15em] shrink-0 overflow-hidden rounded-full ring-1 ring-border"
+      className="relative inline-flex size-8 shrink-0 overflow-hidden rounded-full ring-1 ring-border"
     >
       <LivingStills stills={REEL} at={at} />
       <span className="absolute inset-0 flex items-center justify-center bg-black/25 text-white">
-        <Play className="size-[0.4em] fill-current" aria-hidden />
+        <Play className="size-3 fill-current" aria-hidden />
       </span>
     </span>
   );
@@ -603,15 +650,23 @@ function MastheadHead({
   const empty = m.photos === 0;
   const atDesk = desk(screen);
   const credits = (
-    <div className="mt-4 flex items-center justify-between gap-4 border-t border-foreground/80 pt-3 text-label text-muted-foreground uppercase">
+    <div
+      {...inAt(2)}
+      className="mt-4 flex items-center justify-between gap-4 border-t border-foreground/80 pt-3 text-label text-muted-foreground uppercase"
+    >
       <span>{formatEventDate(EVENT.date)}</span>
       <span>Hosted by {HOST.name}</span>
     </div>
   );
   const numerals = empty ? (
-    <p className="font-heading text-subsection">The album starts with you</p>
+    <p {...inAt(3)} className="font-heading text-subsection">
+      The album starts with you
+    </p>
   ) : (
-    <div className="grid grid-cols-3 divide-x divide-border [&>*+*]:pl-4">
+    <div
+      {...inAt(3)}
+      className="grid grid-cols-3 divide-x divide-border [&>*+*]:pl-4"
+    >
       <Numeral n={formatCount(m.photos)} label="Photos" />
       <Numeral n={formatCount(m.guests)} label="Guests" />
       <Numeral
@@ -627,7 +682,7 @@ function MastheadHead({
     </div>
   );
   const actions = (
-    <div className="mt-5 flex items-center gap-2">
+    <div {...inAt(5)} className="mt-5 flex items-center gap-2">
       <Button
         type="button"
         size="cta"
@@ -653,7 +708,7 @@ function MastheadHead({
       >
         <div className={cn(atDesk && "col-span-7")}>
           {empty ? (
-            <h1 className="font-heading text-display text-balance">
+            <h1 className="eh-arrive-name font-heading text-display text-balance">
               {EVENT.name}
             </h1>
           ) : (
@@ -663,9 +718,14 @@ function MastheadHead({
         </div>
         <div className={cn(atDesk ? "col-span-5" : "mt-5")}>
           {numerals}
-          <p className="mt-3 max-w-prose text-reading text-pretty text-muted-foreground">
-            {empty ? null : EVENT.description}
-          </p>
+          {!empty && (
+            <p
+              {...inAt(4)}
+              className="mt-3 max-w-prose text-reading text-pretty text-muted-foreground"
+            >
+              {EVENT.description}
+            </p>
+          )}
           {actions}
         </div>
       </section>
@@ -692,7 +752,7 @@ function DockInvite() {
 /** TODAY: production's `GuestActionDock`, the real component, shown. */
 function DockStays({ uploading }: { uploading: number }) {
   return (
-    <div data-eh-stays="the dock at the foot">
+    <div data-eh-stays="the dock at the foot" className="eh-arrive-edge">
       <GuestActionDock
         hidden={false}
         uploadingCount={uploading}
@@ -733,7 +793,10 @@ function ShutterStays({
       >
         <QrCode className="size-4" aria-hidden />
       </span>
-      <span className="eh-shutter pointer-events-auto" style={litVars(hues)}>
+      <span
+        className="eh-shutter eh-arrive-shutter pointer-events-auto"
+        style={litVars(hues)}
+      >
         <span aria-hidden className="eh-shutter-glow" />
         {!sending && <span aria-hidden className="eh-shutter-ring" />}
         {sending && <ProgressRing of={0.62} />}
@@ -772,7 +835,7 @@ function ProgressRing({ of }: { of: number }) {
         r={r}
         fill="none"
         strokeWidth="3"
-        className="stroke-foreground/15"
+        className="stroke-white/35"
       />
       <circle
         cx="36"
@@ -782,7 +845,7 @@ function ProgressRing({ of }: { of: number }) {
         strokeWidth="3"
         strokeLinecap="round"
         strokeDasharray={`${c * of} ${c}`}
-        className="stroke-foreground"
+        className="stroke-white drop-shadow-[0_0_2px_rgb(0_0_0/0.5)]"
       />
     </svg>
   );
@@ -805,7 +868,7 @@ function BarStays({
   return (
     <div
       data-eh-stays="the head as a bar at the top"
-      className="fixed inset-x-0 top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur"
+      className="eh-arrive-bar fixed inset-x-0 top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur"
     >
       <div className="flex h-14 items-center gap-3 px-3 sm:px-5">
         <BarEmblem direction={direction} hues={hues} />

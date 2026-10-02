@@ -14,6 +14,7 @@ import type { GuestMoment, HostMoment } from "./fixtures";
 import { type GuestDirection, GuestPage, type StaysId } from "./guest";
 import { HubPage, type HostOption } from "./host";
 import { AlbumHuesProvider } from "./light";
+import { ReplayButton, useReplay } from "./replay";
 import { guestScreenOf, hostScreenOf, ScrollTo, Strip } from "./scene";
 import { EVENT_HEADER } from "./spec";
 
@@ -57,6 +58,8 @@ function GuestStrip({
 }) {
   const screen = guestScreenOf(s);
   const moment = momentOf(s);
+  // A replay remounts the head inside the same frames, so its arrival plays again.
+  const replay = useReplay();
   const key = `eh-guest-${direction}-${moment}`;
   return (
     <Strip
@@ -67,7 +70,12 @@ function GuestStrip({
           id: `${key}-land`,
           title: "Priya lands on the album",
           node: (
-            <GuestPage direction={direction} screen={screen} moment={moment} />
+            <GuestPage
+              key={replay}
+              direction={direction}
+              screen={screen}
+              moment={moment}
+            />
           ),
         },
         {
@@ -76,6 +84,7 @@ function GuestStrip({
           node: (
             <>
               <GuestPage
+                key={replay}
                 direction={direction}
                 screen={screen}
                 moment={moment}
@@ -91,6 +100,7 @@ function GuestStrip({
 }
 
 function HostStrip({ s, option }: { s: BoardState; option: HostOption }) {
+  const replay = useReplay();
   const screen = hostScreenOf(s);
   const moment = hostMomentOf(s);
   const guest = guestOf(s);
@@ -108,6 +118,7 @@ function HostStrip({ s, option }: { s: BoardState; option: HostOption }) {
               : "Maya opens her hub tonight",
           node: (
             <HubPage
+              key={replay}
               option={option}
               guest={guest}
               screen={screen}
@@ -121,6 +132,7 @@ function HostStrip({ s, option }: { s: BoardState; option: HostOption }) {
           node: (
             <>
               <HubPage
+                key={replay}
                 option={option}
                 guest={guest}
                 screen={screen}
@@ -137,6 +149,7 @@ function HostStrip({ s, option }: { s: BoardState; option: HostOption }) {
 }
 
 function StaysStrip({ s, stays }: { s: BoardState; stays: StaysId }) {
+  const replay = useReplay();
   const screen = guestScreenOf(s);
   const direction = guestOf(s);
   const key = `eh-stays-${stays}-${direction}`;
@@ -151,6 +164,7 @@ function StaysStrip({ s, stays }: { s: BoardState; stays: StaysId }) {
           node: (
             <>
               <GuestPage
+                key={replay}
                 direction={direction}
                 screen={screen}
                 moment="full"
@@ -167,6 +181,7 @@ function StaysStrip({ s, stays }: { s: BoardState; stays: StaysId }) {
           node: (
             <>
               <GuestPage
+                key={replay}
                 direction={direction}
                 screen={screen}
                 moment="full"
@@ -200,7 +215,11 @@ const PREVIEWS: PreviewsFor<typeof EVENT_HEADER> = {
 export function EventHeaderBoard() {
   return (
     <AlbumHuesProvider>
-      <ExplorationBoard spec={EVENT_HEADER} previews={PREVIEWS} />
+      <ExplorationBoard
+        spec={EVENT_HEADER}
+        previews={PREVIEWS}
+        dock={() => <ReplayButton />}
+      />
     </AlbumHuesProvider>
   );
 }

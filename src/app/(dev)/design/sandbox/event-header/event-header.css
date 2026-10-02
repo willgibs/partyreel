@@ -118,16 +118,26 @@
 /* On the cover's dark ground (an album with nothing to show yet), the light
    is the room's: deeper, so it reads as a lit room rather than a stain. */
 .eh-light-room {
-  --lit-l: 0.58;
-  --lit-c: 0.15;
-  -webkit-mask-image: none;
-  mask-image: none;
-  opacity: 0.85;
+  --lit-l: 0.52;
+  --lit-c: 0.11;
+  -webkit-mask-image: radial-gradient(
+    120% 90% at 50% 18%,
+    #000 0%,
+    rgb(0 0 0 / 0.5) 45%,
+    transparent 85%
+  );
+  mask-image: radial-gradient(
+    120% 90% at 50% 18%,
+    #000 0%,
+    rgb(0 0 0 / 0.5) 45%,
+    transparent 85%
+  );
+  opacity: 0.7;
 }
 .dark .eh-light-room {
-  --lit-l: 0.58;
-  --lit-c: 0.15;
-  opacity: 0.85;
+  --lit-l: 0.52;
+  --lit-c: 0.11;
+  opacity: 0.7;
 }
 /* A room with nobody in it yet is lit warm, by the first two of the house
    five (coral and amber): the third, a green, read as a stage light. */
@@ -178,6 +188,11 @@
 /* ══ THE NAME, FILLED WITH THE PARTY ══════════════════════════════════════ */
 
 .eh-photo-type {
+  /* A wash under every still, so a white dress never takes a letter's edge
+     with it on paper, and a dark dance floor never takes one into the dark. */
+  --eh-wash: rgb(0 0 0 / 0.16);
+  background-image:
+    linear-gradient(var(--eh-wash), var(--eh-wash)), var(--eh-photo);
   color: transparent;
   background-size: cover;
   background-position: 50% 42%;
@@ -188,6 +203,9 @@
   letter-spacing: -0.05em;
   line-height: 0.92;
   padding-bottom: 0.06em;
+}
+.dark .eh-photo-type {
+  --eh-wash: rgb(255 255 255 / 0.2);
 }
 @media (forced-colors: active) {
   .eh-photo-type {
@@ -241,9 +259,49 @@
   opacity: 0.75;
 }
 
-/* ══ MOTION: the light drifts, and nothing else here moves ═════════════════ */
+/* ══ MOTION: the arrival, and the light's slow drift ═══════════════════════ */
 
+/* THE ARRIVAL (the door's reveal hands each head the screen): the words rise
+   out of a blur in their order, as production's reveal raises its header
+   (`data-reveal`, 150ms and 50ms steps), and each direction adds its own
+   gesture: the cover's photograph settles from a step closer, the door she
+   walked through lands in the head's corner from the middle of the screen,
+   and the name's letters rise out of a deeper blur. Every keyframe names only
+   its `from`: the resting style is the still frame, so reduced motion (no
+   animation at all) shows each head whole. */
 @media (prefers-reduced-motion: no-preference) {
+  [data-eh-in] {
+    animation: eh-rise 560ms var(--ease-emphasis) both;
+    animation-delay: calc(var(--eh-in-i, 0) * 60ms + 220ms);
+  }
+  .eh-arrive-cover {
+    animation: eh-cover-in 1200ms var(--ease-emphasis) both;
+  }
+  .eh-arrive-door {
+    animation: eh-door-land 980ms var(--ease-emphasis) both;
+    transform-origin: 50% 60%;
+  }
+  .eh-arrive-name {
+    animation: eh-name-in 900ms var(--ease-emphasis) both;
+    animation-delay: 120ms;
+  }
+  /* The hub is a page a host navigates to, not a door she walks through: it
+     fades up as production's route fade does, a beat and no more. */
+  .eh-arrive-hub {
+    animation: eh-hub-in 420ms var(--ease-emphasis) both;
+  }
+  /* What stays arrives as the head leaves: the dock on the floating layer's
+     edge beat (production's 300ms up from 16px), the shutter with a small
+     spring, the bar down from the top edge. */
+  .eh-arrive-edge [data-guest-dock] {
+    animation: eh-edge-in 300ms var(--ease-emphasis) both;
+  }
+  .eh-arrive-shutter {
+    animation: eh-shutter-in 520ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  .eh-arrive-bar {
+    animation: eh-bar-in 320ms var(--ease-emphasis) both;
+  }
   .eh-light-p1 {
     animation: eh-drift-a 22s ease-in-out infinite alternate;
   }
@@ -255,6 +313,57 @@
   }
 }
 
+@keyframes eh-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+    filter: blur(4px);
+  }
+}
+@keyframes eh-cover-in {
+  from {
+    opacity: 0;
+    transform: scale(1.08);
+  }
+}
+/* From where the door stood (the middle of the screen, at the door's own
+   size) to the corner it keeps: `--eh-land-*` are set where the emblem is. */
+@keyframes eh-door-land {
+  from {
+    transform: translate(var(--eh-land-x, 0), var(--eh-land-y, 0))
+      scale(var(--eh-land-s, 1));
+  }
+}
+@keyframes eh-name-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+    filter: blur(10px);
+  }
+}
+@keyframes eh-hub-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes eh-edge-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+@keyframes eh-shutter-in {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+@keyframes eh-bar-in {
+  from {
+    transform: translateY(-100%);
+  }
+}
 @keyframes eh-drift-a {
   to {
     transform: translate(9%, 6%) scale(1.06);

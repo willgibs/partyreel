@@ -198,7 +198,7 @@ export const EVENT_HEADER = defineExploration({
       lands:
         "The album's head on every event: its name, host, counts and note, its actions, and where the reel lives.",
       context:
-        "Two frames each: the album as Priya lands on it, and scrolled into it. The knobs: a phone or a laptop, and the album full or empty (the first guest of the night).",
+        "Two frames each: the album as Priya lands on it, and scrolled into it. Knobs: a phone or a laptop, the album full or empty (the first guest). Replay the arrival plays how each head takes the screen as the door opens.",
       options: [
         {
           id: "today",

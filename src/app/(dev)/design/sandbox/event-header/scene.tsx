@@ -266,7 +266,13 @@ export const measureHead =
     }
     const stays = root.querySelector("[data-eh-stays]");
     if (stays) {
-      const r = stays.getBoundingClientRect();
+      // Production's dock is fixed inside its own wrapper, so the wrapper has
+      // no box: what is measured is the bar itself.
+      const bar =
+        stays.getBoundingClientRect().height > 0
+          ? stays
+          : (stays.querySelector('[role="group"]') ?? stays);
+      const r = bar.getBoundingClientRect();
       if (r.height > 0)
         parts.push(
           `what stays: ${stays.getAttribute("data-eh-stays")}, ${px(r.height)} tall`,

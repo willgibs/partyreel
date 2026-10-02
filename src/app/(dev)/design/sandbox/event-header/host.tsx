@@ -64,7 +64,7 @@ import {
   type HostMoment,
   REEL,
 } from "./fixtures";
-import type { GuestDirection } from "./guest";
+import { type GuestDirection, PhotoName } from "./guest";
 import { AlbumLight, litVars, useAlbumHues } from "./light";
 import type { ScreenId } from "./scene";
 
@@ -230,9 +230,11 @@ function MetaLine({
   className,
 }: {
   f: HostFacts;
+  /** On a photograph (the cover): white, and a count of nothing is left out rather than drawn as a 0. */
   onMedia?: boolean;
   className?: string;
 }) {
+  const shows = (n: number) => !onMedia || n > 0;
   return (
     <div
       className={cn(
@@ -242,21 +244,27 @@ function MetaLine({
       )}
     >
       <span>{formatEventDate(EVENT.date)}</span>
-      <span
-        className="flex items-center gap-1.5"
-        title="Photos and videos in the album"
-      >
-        <Images className="size-3.5" aria-hidden />
-        {formatCount(f.photos)}
-      </span>
-      <span className="flex items-center gap-1.5" title="Guests">
-        <Users className="size-3.5" aria-hidden />
-        {formatCount(f.guests)}
-      </span>
-      <span className="flex items-center gap-1.5" title="Views">
-        <Eye className="size-3.5" aria-hidden />
-        {formatCount(f.views)}
-      </span>
+      {shows(f.photos) && (
+        <span
+          className="flex items-center gap-1.5"
+          title="Photos and videos in the album"
+        >
+          <Images className="size-3.5" aria-hidden />
+          {formatCount(f.photos)}
+        </span>
+      )}
+      {shows(f.guests) && (
+        <span className="flex items-center gap-1.5" title="Guests">
+          <Users className="size-3.5" aria-hidden />
+          {formatCount(f.guests)}
+        </span>
+      )}
+      {shows(f.views) && (
+        <span className="flex items-center gap-1.5" title="Views">
+          <Eye className="size-3.5" aria-hidden />
+          {formatCount(f.views)}
+        </span>
+      )}
       {f.photos > 0 && (
         <span className="flex items-center gap-1.5">
           <span className="size-1.5 rounded-full bg-success" aria-hidden />
@@ -280,7 +288,10 @@ function MediaLinkRow() {
 
 function TodayHead({ f }: { f: HostFacts }) {
   return (
-    <div data-eh-head="" className="flex items-center gap-4 sm:gap-5">
+    <div
+      data-eh-head=""
+      className="eh-arrive-hub flex items-center gap-4 sm:gap-5"
+    >
       <span data-eh-code="">
         <EventCodeDoor
           eventName={EVENT.name}
@@ -319,7 +330,20 @@ const ROOM_ICONS = { guests: Users, review: ListChecks, settings: Settings };
  * cards at rest, or condensed to pills once it has stuck under the bar, with
  * the QR pill that stands in for the header's code when it is off screen.
  */
-function RoomsRow({ f, stuck = false }: { f: HostFacts; stuck?: boolean }) {
+function RoomsRow({
+  f,
+  stuck = false,
+  lead,
+}: {
+  f: HostFacts;
+  stuck?: boolean;
+  /**
+   * What leads the row once it has stuck, where the head it came from has a
+   * face to carry (one grammar: the cover's still, her code, the name).
+   * Today's stuck row is the pills alone.
+   */
+  lead?: ReactNode;
+}) {
   const review = reviewCardFace(true, f.review);
   const settings = settingsValue(f);
   return (
@@ -335,6 +359,14 @@ function RoomsRow({ f, stuck = false }: { f: HostFacts; stuck?: boolean }) {
           aria-label="This event"
           className={cn(roomRowLayout(stuck), "overflow-hidden")}
         >
+          {stuck && lead ? (
+            <span className="flex min-w-0 shrink-0 items-center gap-2.5 pr-2">
+              {lead}
+              <span className="max-w-48 truncate font-heading text-card-title">
+                {EVENT.name}
+              </span>
+            </span>
+          ) : null}
           {EVENT_ROOMS.map((room) => {
             if (room.id === "reel")
               return (
@@ -503,7 +535,7 @@ function HubAlbum({ f, screen }: { f: HostFacts; screen: ScreenId }) {
 function LivingGround() {
   const { ref, at } = useLivingClock<HTMLDivElement>(REEL.length);
   return (
-    <div ref={ref} className="absolute inset-0 -z-10">
+    <div ref={ref} className="eh-arrive-cover absolute inset-0 -z-10">
       <LivingStills stills={REEL} at={at} />
     </div>
   );
@@ -538,7 +570,7 @@ function SharedCover({ f, screen }: { f: HostFacts; screen: ScreenId }) {
       )}
       <div
         className={cn(
-          "relative flex w-full items-end gap-4 px-3 pb-4 sm:px-5",
+          "eh-arrive-hub relative flex w-full items-end gap-4 px-3 pb-4 sm:px-5",
           atDesk && "gap-8 pb-7",
         )}
       >
@@ -572,7 +604,7 @@ function SharedDoorway({ f, screen }: { f: HostFacts; screen: ScreenId }) {
     <section
       data-eh-head=""
       style={TO_THE_BAR}
-      className="relative isolate -mx-3 px-3 pt-8 pb-2 sm:-mx-5 sm:px-5"
+      className="eh-arrive-hub relative isolate -mx-3 px-3 pt-8 pb-2 sm:-mx-5 sm:px-5"
     >
       <AlbumLight
         hues={hues}
@@ -608,10 +640,17 @@ function SharedMasthead({ f, screen }: { f: HostFacts; screen: ScreenId }) {
   return (
     <section
       data-eh-head=""
-      className={cn(atDesk && "grid grid-cols-12 items-end gap-x-12")}
+      className={cn(
+        "eh-arrive-hub",
+        atDesk && "grid grid-cols-12 items-end gap-x-12",
+      )}
     >
       <div className={cn(atDesk && "col-span-7")}>
-        <h1 className="font-heading text-hero text-balance">{EVENT.name}</h1>
+        {f.photos > 0 ? (
+          <PhotoName className="text-hero" />
+        ) : (
+          <h1 className="font-heading text-hero text-balance">{EVENT.name}</h1>
+        )}
         <div className="mt-4 flex items-center justify-between gap-4 border-t border-foreground/80 pt-3 text-label text-muted-foreground uppercase">
           <span>{formatEventDate(EVENT.date)}</span>
           <span className="flex items-center gap-1.5">
@@ -838,7 +877,10 @@ function NumbersHead({
   return (
     <section
       data-eh-head=""
-      className={cn("flex gap-5", atDesk ? "items-center gap-6" : "flex-col")}
+      className={cn(
+        "eh-arrive-hub flex gap-5",
+        atDesk ? "items-center gap-6" : "flex-col",
+      )}
     >
       <div className="flex min-w-0 items-center gap-4">
         <CodeMat f={f} px={atDesk ? 104 : 96} />
@@ -936,7 +978,7 @@ function LineHead({ f, screen }: { f: HostFacts; screen: ScreenId }) {
       data-eh-head=""
       style={{ marginTop: -12 }}
       className={cn(
-        "sticky top-14 z-30 -mx-3 flex gap-3 border-b border-border bg-background/85 px-3 py-3 backdrop-blur sm:-mx-5 sm:px-5",
+        "eh-arrive-hub sticky top-14 z-30 -mx-3 flex gap-3 border-b border-border bg-background/85 px-3 py-3 backdrop-blur sm:-mx-5 sm:px-5",
         atDesk ? "items-center" : "flex-col",
       )}
     >
@@ -963,6 +1005,22 @@ function LineHead({ f, screen }: { f: HostFacts; screen: ScreenId }) {
       <div className={cn(atDesk && "ml-auto")}>{pills}</div>
     </section>
   );
+}
+
+/**
+ * ONE GRAMMAR, STUCK: once the shared head has scrolled away, the row that
+ * sticks carries its face, so the hub still reads as the album's: the cover's
+ * still, her code (the doorway's emblem on her side), or nothing but the name.
+ */
+function stuckLead(guest: GuestDirection, f: HostFacts): ReactNode {
+  if (guest === "today") return null;
+  if (guest === "cover")
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- a bootstrap still, the cover's own
+      <img src={REEL[0]} alt="" className="size-9 rounded-lg object-cover" />
+    );
+  if (guest === "doorway") return <CodeChip f={f} size="size-9" />;
+  return <span aria-hidden className="w-0" />;
 }
 
 /* ══ THE PAGE ══════════════════════════════════════════════════════════════════ */
@@ -1003,7 +1061,11 @@ export function HubPage({
         <NumbersHead f={f} screen={screen} stuck />
       ) : null
     ) : option === "line" ? null : (
-      <RoomsRow f={f} stuck={scrolled} />
+      <RoomsRow
+        f={f}
+        stuck={scrolled}
+        lead={shared ? stuckLead(shared, f) : null}
+      />
     );
   return (
     <HostPage>
