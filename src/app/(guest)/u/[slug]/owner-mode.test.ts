@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
 /**
@@ -20,12 +21,83 @@ import { describe, expect, it } from "vitest";
  * profiles-social migration guard uses next door.
  */
 
+/**
+ * THE NAMES A FILE TAKES FROM THE DATA LAYER, whatever they are called: `@/lib/db/` holds every query and
+ * `@/lib/supabase/` the clients (CLAUDE.md: no SQL in components), so the import is the one place a read cannot hide,
+ * and `get*` is a habit, not a rule. A name is the export's, so an alias cannot rename a reader past the list; a
+ * namespace or a default import takes the whole module and reads as `*` or `default`, which no list names; a type is
+ * no read.
+ */
+function dataLayerNames(source: string): string[] {
+  const file = ts.createSourceFile(
+    "owner-sections.tsx",
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX,
+  );
+  const names: string[] = [];
+  file.forEachChild((node) => {
+    if (!ts.isImportDeclaration(node)) return;
+    if (!ts.isStringLiteral(node.moduleSpecifier)) return;
+    if (!/^@\/lib\/(?:db|supabase)\//.test(node.moduleSpecifier.text)) return;
+    const clause = node.importClause;
+    if (!clause || clause.isTypeOnly) return;
+    if (clause.name) names.push("default");
+    const bound = clause.namedBindings;
+    if (bound && ts.isNamespaceImport(bound)) names.push("*");
+    else if (bound)
+      for (const element of bound.elements)
+        if (!element.isTypeOnly)
+          names.push((element.propertyName ?? element.name).text);
+  });
+  return names;
+}
+
 const DIR = join(process.cwd(), "src", "app", "(guest)", "u", "[slug]");
 const sections = readFileSync(join(DIR, "owner-sections.tsx"), "utf8");
 const page = readFileSync(join(DIR, "page.tsx"), "utf8");
 // /me (crumbs-46): the same sections at an address that needs no handle, in the (app) group.
 const ME_DIR = join(process.cwd(), "src", "app", "(app)", "me");
 const mePage = readFileSync(join(ME_DIR, "page.tsx"), "utf8");
+
+/** The reads the owner mode makes, each for the caller alone (the test of that name says why). */
+const ALLOWED = ["getMyUploadCards", "getMyLikeCards", "getMyFollowing"];
+
+describe("the scan of a file's reads sees what it says it does", () => {
+  it("names a reader whatever it is called, by its export, and ignores a type", () => {
+    const names = dataLayerNames(`
+      import { getMyFollowing, listEvents as hosted, type EventRow } from "@/lib/db/queries/events";
+      import {
+        fetchProfileUploads,
+      } from "@/lib/db/queries/profile";
+      import { createClient } from "@/lib/supabase/server";
+      import { withAvatarUrls } from "@/lib/social/cards";
+      import type { Cards } from "@/lib/db/queries/social";
+    `);
+    expect(names).toEqual([
+      "getMyFollowing",
+      "listEvents",
+      "fetchProfileUploads",
+      "createClient",
+    ]);
+  });
+
+  it("reads a namespace or a default import as the whole module, which no list names", () => {
+    expect(
+      dataLayerNames(`
+        import * as events from "@/lib/db/queries/events";
+        import everything from "@/lib/db/queries/all";
+      `),
+    ).toEqual(["*", "default"]);
+  });
+
+  it("finds the real file's three reads by their imports alone, so the scan is not vacuous", () => {
+    expect(dataLayerNames(sections).sort()).toEqual(
+      ["getMyFollowing", "getMyLikeCards", "getMyUploadCards"].sort(),
+    );
+  });
+});
 
 describe("the owner mode cannot be pointed at somebody else", () => {
   it("takes no identity at all", () => {
@@ -43,7 +115,6 @@ describe("the owner mode cannot be pointed at somebody else", () => {
     // select. So even if the page's isSelf check were wrong, the worst this
     // could render is the VIEWER'S OWN media on somebody else's page — never
     // the page owner's. A gate you can only fail safely.
-    const allowed = ["getMyUploadCards", "getMyLikeCards", "getMyFollowing"];
     const called = [...sections.matchAll(/\bawait\s+(get[A-Za-z]+)\(/g)].map(
       (m) => m[1],
     );
@@ -51,8 +122,23 @@ describe("the owner mode cannot be pointed at somebody else", () => {
       (m) => m[1],
     );
     for (const fn of [...called, ...readers]) {
-      expect(allowed, `${fn} is not an auth.uid()-scoped read`).toContain(fn);
+      expect(ALLOWED, `${fn} is not an auth.uid()-scoped read`).toContain(fn);
     }
+  });
+
+  it("★ sees a reader whatever it is called, and the list names exactly the reads made", () => {
+    // The two scans above see `get*` calls and nothing else, so a read named any other way (`listEvents`, an
+    // owner-RLS read) passed them unseen, allowed or not. The import closes that: every name taken from the data
+    // layer is a read, and an exact list cannot outlive a read it names (a name nobody calls would allow it back
+    // unseen). A read that is fine to add goes into ALLOWED here: the moment the header above calls re-proving the gate.
+    const seen = new Set([
+      ...dataLayerNames(sections),
+      ...[...sections.matchAll(/\b(get[A-Z][A-Za-z]*)\(/g)].map((m) => m[1]),
+    ]);
+    expect(
+      [...seen].sort(),
+      "owner-sections.tsx reads something ALLOWED does not name, or ALLOWED names a read it no longer makes: a new read is added to the list here once it answers for the caller alone, and a gone one is dropped",
+    ).toEqual([...ALLOWED].sort());
   });
 
   it("renders only for the person themselves", () => {

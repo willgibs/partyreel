@@ -47,10 +47,38 @@ afterEach(() => {
 const KEY = "prTestPlace";
 const keyOnEntry = () =>
   (window.history.state as Record<string, unknown> | null)?.[KEY];
-/** A traversal's popstate lands a beat after the call. */
+
+/**
+ * HOW LONG A BACK MAY TAKE TO LAND UNDER THE FULL SUITE'S LOAD. A budget, not a timing claim: a Back that never
+ * lands still fails, only later (and with its own words, before the runner's generic timeout).
+ */
+const LANDING_BUDGET_MS = 3000;
+
+/**
+ * ★ A BACK HAS LANDED WHEN ITS `popstate` HAS, AND THAT IS THE EVENT LOOP'S TO SAY, NEVER A CLOCK'S (crumbs-49; gate
+ * 117, a full run under four lanes: `?open` where `''` was due). jsdom lands a traversal two timer hops after the call
+ * (`SessionHistory.traverseByDelta`: a 0 ms timeout whose callback queues the next), and this once slept a fixed 40 ms: a
+ * loop starved for longer than that, once the sleep's timer existed, ran the sleep before the second hop was due, and
+ * the address was read before the Back had moved it. The entry's own listener was added when it asked for the Back, so
+ * it has run by the time this one does. Call it right after the call that asks for the Back.
+ */
 const settle = () =>
   act(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 40));
+    await new Promise<void>((resolve, reject) => {
+      const floor = window.setTimeout(() => {
+        window.removeEventListener("popstate", landed);
+        reject(
+          new Error(
+            `no Back landed within ${LANDING_BUDGET_MS} ms: none was asked for, or its popstate never came`,
+          ),
+        );
+      }, LANDING_BUDGET_MS);
+      function landed() {
+        window.clearTimeout(floor);
+        resolve();
+      }
+      window.addEventListener("popstate", landed, { once: true });
+    });
   });
 
 /** A page before the place, so a Back that is not ours has somewhere to take the reader. */
@@ -59,6 +87,31 @@ function landOnPage(url = "/page") {
   window.history.pushState(null, "", url);
   next.land(url);
 }
+
+describe("waiting for a Back", () => {
+  it("★ outlasts a starved loop: the Back is waited for, not timed (gate 117's flake, made certain)", async () => {
+    landOnPage();
+    const entry = createOwnedEntry(KEY);
+    entry.push("/page?open");
+    entry.close("/page");
+    const landing = settle();
+    // A busy wait standing in for a starved process: once it ends, the Back's first timer hop and any fixed wait set
+    // before it are all overdue, and the timers run the wait first (the second hop is queued only when the first runs).
+    const until = Date.now() + 80;
+    while (Date.now() < until) continue;
+    await landing;
+    expect(window.location.search).toBe("");
+  });
+
+  it("says so, rather than waiting out the runner's timeout, when no Back was asked for", async () => {
+    vi.useFakeTimers();
+    landOnPage();
+    const landing = settle();
+    const refused = expect(landing).rejects.toThrow(/no Back landed/);
+    await vi.advanceTimersByTimeAsync(LANDING_BUDGET_MS);
+    await refused;
+  });
+});
 
 describe("push", () => {
   it("hands Next a fresh state with our key as a field, and the router hears the address", () => {

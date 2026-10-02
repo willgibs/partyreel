@@ -16,14 +16,26 @@ import { describe, expect, it } from "vitest";
  * shell has to keep mounting it.
  *
  * It reads the source, not the render, so a link a state hides (an About panel, an unknown step) is held as
- * much as one on screen. The Library's own pages are not scanned: the guard is what answers theirs.
+ * much as one on screen. ★ THE LIBRARY'S OWN PAGES AND THE GALLERY'S CHROME ARE SCANNED TOO (crumbs-49): a family
+ * page draws a title and an `open` link for every entry, and on a production build each is a keyed request. What a
+ * SPECIMEN draws is not the lab's: the Library's `*-demos.tsx` modules put production components on the page as
+ * production draws them, links included, so a link there is the guard's to answer, and `prefetch={false}` on it
+ * would change the thing the specimen shows.
  */
 const ROOT = process.cwd();
 const DIRS = [
   "src/app/(dev)/design/(shell)/_shell",
   "src/app/(dev)/design/(shell)/lab",
   "src/components/lab",
+  "src/app/(dev)/design/(shell)/library",
+  "src/app/(dev)/design/gallery",
 ];
+
+/**
+ * The Library's specimen modules: production components drawn as production draws them (the header says why they are
+ * not the lab's). By path, since `lab/kit/kit-demos.tsx` is the lab's own and is read.
+ */
+const SPECIMENS = /\/library\/.*-demos\.tsx$/;
 
 function sources(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -121,21 +133,34 @@ function optingIn(file: string): number[] {
     .map((node) => lineOf(node, source));
 }
 
-const files = DIRS.flatMap((dir) => sources(join(ROOT, dir))).map((full) =>
+const everything = DIRS.flatMap((dir) => sources(join(ROOT, dir))).map((full) =>
   relative(ROOT, full),
 );
+const files = everything.filter((f) => !SPECIMENS.test(f));
 
 describe("the lab's own links never prefetch", () => {
-  it("scanned the shell, the lab's pages and the kit", () => {
-    expect(files.length).toBeGreaterThan(40);
+  it("scanned the shell, the lab's pages, the kit, the Library's pages and the gallery's chrome", () => {
+    expect(files.length).toBeGreaterThan(60);
     for (const expected of [
       "_shell/markdown.tsx",
       "_shell/shell-context.tsx",
       "lab/page.tsx",
       "components/lab/step.tsx",
       "components/lab/dock.tsx",
+      "library/page.tsx",
+      "library/index-list.tsx",
+      "library/[id]/page.tsx",
+      "gallery/gallery-ui.tsx",
+      "gallery/family-gallery.tsx",
     ])
       expect(files.some((f) => f.endsWith(expected))).toBe(true);
+  });
+
+  it("leaves out only the Library's specimen modules: the lab's own `kit-demos.tsx` is still read", () => {
+    expect(everything.filter((f) => SPECIMENS.test(f)).length).toBeGreaterThan(
+      0,
+    );
+    expect(files.some((f) => f.endsWith("lab/kit/kit-demos.tsx"))).toBe(true);
   });
 
   it("★ every next/link the lab renders says prefetch={false}", () => {
