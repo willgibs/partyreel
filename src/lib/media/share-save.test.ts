@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  FETCH_STALL_MS,
   PHOTO_PARAM,
   SHARE_FILE_MAX_BYTES,
   canShareFileNamed,
@@ -25,8 +26,11 @@ import {
  * phone or desk can take, with no browser. What is held is the ORDER Will asked
  * for on Share (the picture itself, then the link, then a copy) and Save's one
  * choice per platform (the sheet on iOS, the plain download elsewhere), plus the
- * two rules a device cannot show a test: the file is fetched on the tap and
- * never cached, and a lapsed tap comes back as a file in hand, never a failure.
+ * rules a device cannot show a test: a file in hand reaches the sheet inside the
+ * tap (save-speed: it used to be fetched on every tap, and that download was Will's
+ * 30 seconds), a file fetched for a tap never goes through the HTTP cache and says
+ * how far it has come, and a lapsed tap comes back as a file in hand, never a
+ * failure.
  */
 
 const IPHONE =
@@ -44,6 +48,27 @@ const SAVE_URL =
 function okResponse(body: string, type: string, length?: number) {
   const headers = new Headers({ "content-type": type });
   if (length !== undefined) headers.set("content-length", String(length));
+  return new Response(body, { status: 200, headers });
+}
+
+/**
+ * An answer whose body arrives in the chunks given, then ends (or, with `hang`,
+ * never sends another byte): what a slow link looks like to a streamed read.
+ */
+function streamedResponse(
+  chunks: string[],
+  opts: { type?: string; length?: number; hang?: boolean } = {},
+) {
+  const bytes = chunks.map((c) => new TextEncoder().encode(c));
+  const body = new ReadableStream<Uint8Array>({
+    start(ctl) {
+      for (const b of bytes) ctl.enqueue(b);
+      if (!opts.hang) ctl.close();
+    },
+  });
+  const headers = new Headers({ "content-type": opts.type ?? "image/jpeg" });
+  if (opts.length !== undefined)
+    headers.set("content-length", String(opts.length));
   return new Response(body, { status: 200, headers });
 }
 
@@ -194,19 +219,22 @@ describe("the file", () => {
   });
 
   it("answers failed on a refusal or a broken read, and aborted when the viewer moved on", async () => {
+    // Why it failed rides along (save-speed): the held store counts a refusal
+    // toward turning itself off for an origin R2 will not answer, and never a
+    // bad status.
     expect(
       await fetchMediaFile("u", "a.jpg", {
         fetch: (async () =>
           new Response("", { status: 403 })) as unknown as typeof fetch,
       }),
-    ).toEqual({ kind: "failed" });
+    ).toEqual({ kind: "failed", why: "status" });
     expect(
       await fetchMediaFile("u", "a.jpg", {
         fetch: (async () => {
           throw new TypeError("Failed to fetch");
         }) as unknown as typeof fetch,
       }),
-    ).toEqual({ kind: "failed" });
+    ).toEqual({ kind: "failed", why: "refused" });
     const ctl = new AbortController();
     ctl.abort();
     expect(
@@ -215,6 +243,111 @@ describe("the file", () => {
         signal: ctl.signal,
       }),
     ).toEqual({ kind: "aborted" });
+  });
+
+  it("★ says how far it has come, chunk by chunk, against the length the answer declared", async () => {
+    const seen: [number, number | null][] = [];
+    const got = await fetchMediaFile("u", "a.jpg", {
+      fetch: (async () =>
+        streamedResponse(["abc", "defg", "hi"], {
+          length: 9,
+        })) as unknown as typeof fetch,
+      onProgress: (received, total) => seen.push([received, total]),
+    });
+    // The headers first (0 of the whole), then every chunk as it lands.
+    expect(seen).toEqual([
+      [0, 9],
+      [3, 9],
+      [7, 9],
+      [9, 9],
+    ]);
+    expect(got.kind).toBe("file");
+    if (got.kind === "file") {
+      expect(await got.file.text()).toBe("abcdefghi");
+      expect(got.file.type).toBe("image/jpeg");
+      expect(got.file.name).toBe("a.jpg");
+    }
+  });
+
+  it("drops a streamed body the moment it outgrows the cap, declared or not", async () => {
+    expect(
+      await fetchMediaFile("u", "clip.mp4", {
+        fetch: (async () =>
+          streamedResponse(["1234", "5678"], {
+            type: "video/mp4",
+          })) as unknown as typeof fetch,
+        onProgress: () => {},
+        maxBytes: 6,
+      }),
+    ).toEqual({ kind: "too-large" });
+  });
+
+  it("★ gives up on a body that stops arriving, instead of holding the button for ever", async () => {
+    vi.useFakeTimers();
+    try {
+      let signal: AbortSignal | undefined;
+      const pending = fetchMediaFile("u", "a.jpg", {
+        fetch: (async (_: string, init: RequestInit) => {
+          signal = init.signal ?? undefined;
+          return streamedResponse(["abc"], { length: 9, hang: true });
+        }) as unknown as typeof fetch,
+        onProgress: () => {},
+      });
+      await vi.advanceTimersByTimeAsync(FETCH_STALL_MS - 1);
+      expect(signal?.aborted).toBe(false);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(await pending).toEqual({ kind: "failed", why: "stalled" });
+      expect(signal?.aborted).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("passes the priority hint through: the photograph on screen high, a neighbour low", async () => {
+    const fetchMock = vi.fn(async () => okResponse("x", "image/jpeg", 1));
+    await fetchMediaFile("u", "a.jpg", {
+      fetch: fetchMock as unknown as typeof fetch,
+      priority: "low",
+    });
+    expect(fetchMock).toHaveBeenCalledWith(
+      "u",
+      expect.objectContaining({ priority: "low", cache: "no-store" }),
+    );
+  });
+});
+
+describe("a file already in hand", () => {
+  const held = new File(["jpeg"], "maya-jay-ab12cd34.jpg", {
+    type: "image/jpeg",
+  });
+
+  it("★ reaches the sheet inside the tap: share() is called before the call returns, with nothing fetched", () => {
+    const fetchMock = vi.fn();
+    const nav = phoneNav();
+    // Not awaited: the sheet must already have been asked for, synchronously,
+    // in the tap's own event, where every browser's activation is alive.
+    void saveToPhotos(
+      { file: held, fileUrl: SAVE_URL, name: held.name },
+      { nav, fetch: fetchMock as unknown as typeof fetch },
+    );
+    expect(nav.share).toHaveBeenCalledWith({ files: [held] });
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    const nav2 = phoneNav();
+    void shareMedia(
+      { file: held, name: held.name, link: "https://x/e/t?photo=p" },
+      { nav: nav2, fetch: fetchMock as unknown as typeof fetch },
+    );
+    expect(nav2.share).toHaveBeenCalledWith({ files: [held] });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("still comes back ready on a lapsed activation, the file in hand", async () => {
+    const out = await saveToPhotos(
+      { file: held, fileUrl: SAVE_URL, name: held.name },
+      { nav: phoneNav({ userActivation: { isActive: false } }) },
+    );
+    expect(out).toEqual({ kind: "needs-tap", file: held });
   });
 });
 

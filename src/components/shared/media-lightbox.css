@@ -60,7 +60,8 @@
   opacity: 0;
 }
 [data-lightbox-original]:not([data-loaded]):not([data-failed])
-  ~ [data-lightbox-loading] {
+  ~ [data-lightbox-loading],
+[data-lightbox-holding] ~ [data-lightbox-loading] {
   animation: lightbox-loading-in 1ms linear 600ms forwards;
 }
 [data-lightbox-track][data-quiet] [data-lightbox-loading],
@@ -112,7 +113,8 @@
   /* The ring arrives, it does not appear (reduced motion: it appears, after
      the same beat, and does not turn). */
   [data-lightbox-original]:not([data-loaded]):not([data-failed])
-    ~ [data-lightbox-loading] {
+    ~ [data-lightbox-loading],
+  [data-lightbox-holding] ~ [data-lightbox-loading] {
     animation-duration: 200ms;
     animation-timing-function: var(--ease-emphasis);
   }
