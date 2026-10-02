@@ -17,6 +17,8 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Marketing: the home hero's round-three object at a tablet (768 to 1023) is composed between the phone's and the desk's drawings and was never drawn; its wiring measures it at 768, 900 and 1023 (from `demo-r3`).
+- Marketing: a phone's hero code draws at 2.6 px a module, under the 3 px a phone reads off a screen; a phone visitor taps rather than scans, so the hero's wiring decides whether a phone's code stays a picture (from `demo-r3`).
 - Host: the dashboard band says "Uploads are paused on X" for every paused event, parties long over included (`nextStepForEvent` has no phase, and pausing after the party is the help's own advice): the at-forty noise Will's note names; host-dashboard r1's carried `finished` call asks only for a door or a queue after a party, so its wiring takes it with his pick, or a crumbs fix first (from `host-dashboard`).
 - The lab and the kit: a portalled frame carries no glow filter host (`GlowFilter` mounts once, in the root layout, which is the lab page's document), so a board cannot draw production's `Glow`, `SectionLight` or `ScreenLamp` in a frame and draws its light as plain gradients instead; a filter host mounted in each portalled frame would let a board draw the real light (from `create-wizard`).
 - Tests: `src/components/social/relation-toggle.test.tsx`'s "every other flip acts at once" failed once in a loaded full run (no call to the follow spy at 1,048 ms) and passed alone 3 of 3 and on the rerun; more room in its wait, or fake timers, would steady it (from `create-wizard`).
