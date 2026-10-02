@@ -1,6 +1,6 @@
 ---
 track: disposable-r3
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "04afe52d"            # the launch-prep SHA the branch was cut from
 board: disposable-mode
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -66,25 +66,77 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **The two cameras he kept: redrawn modern, or as round two drew them?** Recommended and built: as drawn, the
+  references his notes compare against (`viewfinder`, `reel`); the four branches carry the modern push, and the reel's
+  own de-vintaged version is its branch `timeline`.
+- **The look's photographs.** The fixtures folder holds six landscapes (mountains, a pier, an aurora from orbit) and
+  stays out of the repo by design (`.gitignore`). Recommended and built: the default set is the twelve party
+  photographs every board reuses, each named by its light (`fixtures.ts` `LOOK_SET`); the fixtures, or his own camera
+  roll, ride the dock's new Try your photos, which redraws every frame of the look in them on the device (driven with
+  all six fixtures in a headless Chrome: the dock read "Your 6 photos" and every frame redrew).
+- **Does Save keep its own question?** Recommended and built: no. It matters only if a look stays, so it is the
+  carried call `save` (round two's recommendation), and the look is asked whole under round one's id `look` (so the
+  ledger's `look` thread continues: r1 `stocks`, r3 open).
+- **The permission frames (first press, refusal, asking again).** Recommended and built: out of this round. Round two
+  drew them and they read the same in every camera, so each camera gets three larger frames that judge the camera
+  itself: framing, the moment after, the roll done.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none (lab only)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- none
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed:** `707de650` (round three drawn), `68dc13a1` (polish). No sync: launch-prep moved only by other
+  boards' folders and records (event-header `461717f0`, locked-door-r3 `52f3e61e`), none in my `reads`; a trial
+  `git merge --no-commit origin/launch-prep` merged clean and the lab, registry and manifest tests passed on it (17
+  files, 189 tests), then aborted.
+- **Gates on `68dc13a1`'s tree, each its own exit 0** (logs in `../partyreel-wt/_scratch/disposable-r3/gate-*.log`):
+  `pnpm typecheck`; `pnpm lint`; `pnpm test` (746 files, 8,873 tests); `zsh scripts/build-lock.sh pnpm build`;
+  `pnpm lab:smoke --base http://localhost:3134` (7 checks, 0 failing, 859 of 1,200 words); `pnpm lab:demo --board
+  disposable-mode --base http://localhost:3134` (5 steps, 0 failing at 1440 and 375 under reduced motion). No console
+  error or warning on the board or any of its steps.
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` is `src/app/(dev)/design/sandbox/disposable-mode/`
+  only, plus this file.
+- **`camera`, six options, three frames each** (framing her seventh, the moment after, the roll done): the album's own
+  camera and the camera on a reel as round two drew them; `shutter`, the count inside the shutter (full screen under
+  the product's glass, a numeral in the ring of ticks, her sealed shots one glass button away); `rim`, the roll round
+  the picture (24 segments on the live picture's edge, a video's ten seconds tracing it in red); `timeline`, the reel
+  as a timeline (recommended: 24 rounded frames, the live picture in the one she is on, gliding on a frame a shot);
+  `scroll`, the screen scrolls like a reel (a column of frames, the last sealed above, the next under her thumb).
+  The moment after replays with motion allowed (the flash, the count stepping down, the reel moving on); a still under
+  reduced motion.
+- **`video` and `cost`,** round two's options, staged `after: camera` and `after: video`, drawn in the camera picked
+  (every camera draws hold, a switch and a button, filming and a video's three costs); cost's second frame is her
+  shots in the waiting room picked.
+- **`waiting`, four new rooms, nothing tilted, each a room, her shots opened and a delete, 1440 on the knob:**
+  `sheet`, the party's contact sheet (recommended: every shot a square as it lands, the newest warm, hers lit with her
+  photographs); `stack`, the stack squared (a deck that thickens, hers as index tabs, her prints dealt in a row);
+  `glow`, the party's colours (the room lit by the party's own photographs blurred past any picture); `dial`, the
+  night on a dial (shots as bars at their minute from 7 pm round to 9 am, hers as dots).
+- **`look`, three options on twelve real party photographs in twelve lights** (the album at 9:02 am and two up close;
+  1440 on the knob): `none`; `grain`, the grain and the date with every photo's own colour (recommended); `stocks`,
+  Warm, Cool or B&W on the knob. Each look is an SVG colour pass, a tone table and grain drawn as well as it could
+  ship, so a look loses on its idea and never on a crude stand-in.
+- **Retired with their files:** `wall`, `peek` and `create` (settled), the drawn and wrapper cameras, the host's quoted
+  hub and Create, the old viewer and thumbnails. The board's surface moves from shared to guest: every round-three
+  ask is a guest's.
+- **New atoms the cameras and rooms would need** (no production piece yet, nothing asked of `identity`): the camera
+  screen and its glass controls, the count-holding shutter, the rim, the timeline strip, the reel column; the contact
+  sheet's square, the deck, the glow, the dial.
+- **Assets requested from Will:** none (real phone photographs arrive through Try your photos).
+- **Board ideas:** the contact sheet as the host's live view of the night (`host-dashboard`'s arrivals: every shot a
+  square as it lands); the dial as the morning-after recap of when the party peaked; Try your photos as a kit piece
+  for any board judging a treatment on photographs (the reel's styles, a look).
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none. If `glow` wins, its wiring adds a few
+  colours read off each shot on the uploading phone (said in the option's cost).
+- **Calls his to overrule:** `camera=timeline` (overrule: `shutter`); `waiting=sheet` (overrule: `stack`);
+  `look=grain` (overrule: `none`); `video=hold` and `cost=one` stand from round two; the carried calls `live` (the
+  camera's picture wears no look), `save` and `end` (the roll's end says when it comes back, her shots a tap away, the
+  shutter gone); the four Questions above.
+- **Look at first:** the camera step (`/design/lab/disposable-mode?session=disposable-mode.camera`), every option's
+  moment after with motion on; then the look step on his phone with Try your photos and his own camera roll.
