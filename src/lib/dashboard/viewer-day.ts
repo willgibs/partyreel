@@ -11,8 +11,8 @@
  * This resolves the VIEWER's own zone from the request Vercel already
  * carries (`x-vercel-ip-timezone`) and computes THAT zone's calendar day,
  * DST-safe. ★ RENDERING ONLY: the zone is derived per request, used to pick a
- * day boundary and format a date, and never stored or logged (host-app.md
- * says so beside the dashboard's day) — no privacy text changes for it.
+ * day boundary and format a date, and never stored or logged (dashboard.md
+ * says so beside the dashboard's day), so no privacy text changes for it.
  */
 
 /** Vercel's per-request geo header carrying the visitor's IANA zone (vercel.com/docs/headers/request-headers). */
@@ -86,7 +86,14 @@ function zonedParts(ms: number, zone: string): ZonedParts {
 /** `zone`'s offset from UTC AT instant `ms` (local = UTC + offset), in ms. */
 function zoneOffsetMs(ms: number, zone: string): number {
   const p = zonedParts(ms, zone);
-  const asUtc = Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second);
+  const asUtc = Date.UTC(
+    p.year,
+    p.month - 1,
+    p.day,
+    p.hour,
+    p.minute,
+    p.second,
+  );
   return asUtc - ms;
 }
 
@@ -95,7 +102,20 @@ export type ViewerDay = {
   today: string;
   /** The UTC instant of that day's own midnight, in the viewer's zone. */
   startOfTodayMs: number;
+  /** The viewer's clock hour, 0 to 23: what turns Today into Tonight (`when.ts`). */
+  hour: number;
 };
+
+const dayString = (p: { year: number; month: number; day: number }) =>
+  `${p.year}-${String(p.month).padStart(2, "0")}-${String(p.day).padStart(2, "0")}`;
+
+/**
+ * The zone's calendar day of any instant, `YYYY-MM-DD`: the day a photograph landed, as the viewer's
+ * own calendar says it (an upload at 01:30 UTC is the evening before for a host in New York).
+ */
+export function dayInZone(ms: number, zone: string): string {
+  return dayString(zonedParts(ms, zone));
+}
 
 /**
  * The zone's calendar day at `now`, and the UTC instant of THAT day's own
@@ -114,6 +134,5 @@ export function calendarDayInZone(now: number, zone: string): ViewerDay {
   const candidate1 = guessMs - offset1;
   const offset2 = zoneOffsetMs(candidate1, zone);
   const startOfTodayMs = offset2 === offset1 ? candidate1 : guessMs - offset2;
-  const today = `${at.year}-${String(at.month).padStart(2, "0")}-${String(at.day).padStart(2, "0")}`;
-  return { today, startOfTodayMs };
+  return { today: dayString(at), startOfTodayMs, hour: at.hour };
 }

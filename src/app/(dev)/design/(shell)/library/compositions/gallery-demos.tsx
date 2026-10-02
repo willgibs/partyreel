@@ -142,7 +142,7 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
     section: "Event card",
     file: "src/components/app/event-card.tsx",
     title: "EventCard",
-    lede: "The dashboard's atomic unit, stat-forward, in each of its states.",
+    lede: "A party as a card, stat-forward, in each of its states: a profile's grid draws it (the dashboard's tile is its own since host-dashboard r1).",
     variants: [
       {
         prop: "variant",
@@ -223,7 +223,7 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
     section: "Dashboard chrome",
     file: "src/components/app/dashboard/storage-meter.tsx",
     title: "StorageMeter",
-    lede: "The ambient header bar. Open it for the friendly capacity, the Event Pass expiry, the standby bytes and the billing buttons.",
+    lede: "The storage ring beside the dashboard's New event. Open it for the friendly capacity, the Event Pass expiry, the standby bytes and the billing buttons.",
     specimens: [
       {
         label: "Storage meter",

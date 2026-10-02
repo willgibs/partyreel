@@ -1,45 +1,26 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { EventsSection } from "./events-section";
-import type { EventListRow } from "@/lib/dashboard/events-view";
+import type { EventListRow, EventSeason } from "@/lib/dashboard/events-view";
 
 /**
- * THE EVENTS LIST'S CONTRACT (home-wiring, 2026-09-20), from `density=cover`:
- * "Let's do both... a toggle opposite 'your events' (aligned right side)."
+ * THE EVENTS LIST'S CONTRACT (home-wiring, 2026-09-20, `density=cover`: "Let's do both"; grouped by
+ * when since host-dashboard r1, `events=seasons`). Functions, never looks:
  *
- * Four functions are pinned, and not one of them is a look:
- *
- *   1. THE VIEW THE SERVER CHOSE IS THE VIEW THAT PAINTS. `initialView` comes
- *      from a cookie read during render; if this component ignored it and
- *      started on its own default, the cookie would be decorative and every
- *      cold load would flip the list after hydration, which is the exact
- *      failure the cookie exists to prevent.
- *   2. FLIPPING IT PERSISTS. The toggle calls the Server Action. Without this
- *      the choice survives until the next navigation and no further.
- *   3. THE SORT REORDERS. "Most waiting" is the order a host with several
- *      events opens this list to get.
- *   4. THE BIN IS A LENS ON THIS LIST, NOT A CHIP ROW, and it is reachable
- *      from the DEFAULT view — a filter that only existed in the row view
- *      would leave a cover-cards host with no door to their own bin.
- *   5. THE EVENTS YOU ADDED TO ARE IN THE LIVE LIST, and the Guest lens shows
- *      them alone (guest by upload, 2026-09-22: they took the retired Saved
- *      lens's place), with no per-row action: a Guest card leaves with your
- *      last live upload, never by a button here.
- *
- * Labels, icons and chrome are precedent: a contract guards function, never
- * look, and never pins copy.
+ *   1. THE VIEW THE SERVER CHOSE IS THE VIEW THAT PAINTS, and flipping it persists through the Server
+ *      Action, so the cookie is never decorative.
+ *   2. THE ROWS' ORDER REORDERS: "Most waiting" is the order a busy host opens the list to get.
+ *   3. THE LENS IS ONE ROW OF COUNTS, the bin reachable from the default view, the events you added to
+ *      alone under Guest, each with no act of its own.
+ *   4. THE GALLERY GROUPS BY WHEN, each group in the server's order, a folded year one press from open.
+ *   5. PAST EIGHT EVENTS A SEARCH FINDS ONE BY NAME, across the groups.
  */
 
 const setEventsViewAction = vi.hoisted(() => vi.fn());
 vi.mock("@/app/(app)/dashboard/actions", () => ({ setEventsViewAction }));
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
-}));
-// The card's QR chip opens the share dialog, which drags in a live QR renderer;
-// this test is about the list, not the chip.
-vi.mock("@/components/app/event-card-qr", () => ({
-  EventCardQr: () => <span data-testid="qr" />,
 }));
 vi.mock("@/components/app/restore-event-button", () => ({
   RestoreEventButton: () => <button type="button">Restore</button>,
@@ -53,26 +34,37 @@ const row = (over: Partial<EventListRow>): EventListRow => ({
   coverUrl: null,
   stills: [],
   dateLabel: "No date set",
+  when: "No date",
+  face: null,
   sortDate: "2026-09-01T00:00:00.000Z",
   items: 3,
-  guests: null,
   pending: 0,
+  waiting: 0,
   statusLabel: "Open",
   byline: null,
-  needs: null,
-  qr: { token: "t", style: "classic" },
+  marks: { live: false, state: null },
+  seasonId: "coming",
   ...over,
 });
 
 const ROWS = [
-  row({ id: "quiet", name: "Quiet party", pending: 0 }),
+  row({ id: "quiet", name: "Quiet party" }),
   row({
     id: "busy",
     name: "Busy party",
     pending: 9,
     sortDate: "2026-08-01T00:00:00.000Z",
+    seasonId: "recent",
+    marks: { live: false, state: { tone: "waiting", text: "9 to review" } },
   }),
-  row({ id: "bin", name: "Binned party", kind: "deleted", href: null }),
+  row({
+    id: "bin",
+    name: "Binned party",
+    kind: "deleted",
+    href: null,
+    seasonId: null,
+    statusLabel: "Deletes in 18 days",
+  }),
   row({
     id: "friend",
     name: "Friend's wedding",
@@ -81,66 +73,62 @@ const ROWS = [
     items: 0,
     statusLabel: null,
     byline: "Hosted by Priya",
-    qr: null,
+    marks: null,
+    seasonId: "guest",
     sortDate: "2026-07-01T00:00:00.000Z",
   }),
 ];
 
-function draw(initialView: "cards" | "rows" = "cards") {
+const SEASONS: EventSeason[] = [
+  { id: "coming", label: "Coming up", size: "medium", ids: ["quiet"] },
+  { id: "recent", label: "Just past", size: "large", ids: ["busy"] },
+  { id: "guest", label: "As a guest", size: "medium", ids: ["friend"] },
+];
+
+function draw(
+  initialView: "cards" | "rows" = "cards",
+  rows = ROWS,
+  seasons = SEASONS,
+) {
   return render(
     <EventsSection
-      rows={ROWS}
-      newestByEvent={new Map()}
+      rows={rows}
+      seasons={seasons}
       initialView={initialView}
-      siteUrl="https://partyreel.com"
+      title="Everything else"
     />,
   );
 }
 
-/** The toggle's two buttons, by their accessible names. */
-const cardsButton = () => screen.getByRole("radio", { name: /cover cards/i });
-const rowsButton = () => screen.getByRole("radio", { name: /^rows$/i });
-
-/** Radix menus open on pointerdown, not click (the profile menu's test says so
- *  too). A plain click never opens them and the assertion that follows reads as
- *  "the menu has no items" rather than "the menu never opened". */
-function openMenu(name: RegExp) {
-  fireEvent.pointerDown(screen.getByRole("button", { name }), {
-    ctrlKey: false,
-    button: 0,
+const view = (name: RegExp) => screen.getByRole("radio", { name });
+const lens = (name: RegExp) =>
+  within(screen.getByRole("group", { name: "Show" })).getByRole("radio", {
+    name,
   });
-}
 
 beforeEach(() => setEventsViewAction.mockClear());
 
 describe("the view the server chose", () => {
-  it("paints cards when the cookie said cards", () => {
+  it("paints the gallery when the cookie said cards", () => {
     draw("cards");
-    expect(cardsButton()).toHaveAttribute("aria-checked", "true");
+    expect(view(/by when/i)).toHaveAttribute("aria-checked", "true");
   });
 
   it("paints rows when the cookie said rows, without being told twice", () => {
     draw("rows");
-    expect(rowsButton()).toHaveAttribute("aria-checked", "true");
+    expect(view(/^rows$/i)).toHaveAttribute("aria-checked", "true");
   });
-});
 
-describe("flipping the view", () => {
-  it("persists the choice through the Server Action", () => {
+  it("persists a flip both ways through the Server Action", () => {
     draw("cards");
-    fireEvent.click(rowsButton());
+    fireEvent.click(view(/^rows$/i));
     expect(setEventsViewAction).toHaveBeenCalledWith("rows");
-    expect(rowsButton()).toHaveAttribute("aria-checked", "true");
-  });
-
-  it("persists the way back too", () => {
-    draw("rows");
-    fireEvent.click(cardsButton());
+    fireEvent.click(view(/by when/i));
     expect(setEventsViewAction).toHaveBeenCalledWith("cards");
   });
 });
 
-describe("the order", () => {
+describe("the rows' order", () => {
   it("reorders the list by what is waiting", () => {
     draw("rows");
     const names = () =>
@@ -148,74 +136,136 @@ describe("the order", () => {
         .getAllByRole("listitem")
         .map((li) => li.textContent ?? "")
         .filter((t) => t.includes("party"));
-
-    // Newest first to begin with: the quiet party is the more recent row.
     expect(names()[0]).toContain("Quiet party");
-
-    openMenu(/newest/i);
+    // Radix menus open on pointerdown, never on a plain click.
+    fireEvent.pointerDown(screen.getByRole("button", { name: /newest/i }), {
+      button: 0,
+      ctrlKey: false,
+    });
     fireEvent.click(
       screen.getByRole("menuitemradio", { name: /most waiting/i }),
     );
     expect(names()[0]).toContain("Busy party");
   });
 
-  it("offers the order with the rows, where he expects it", () => {
+  it("offers no order in the gallery, which keeps its one order, by when", () => {
     draw("cards");
     expect(screen.queryByRole("button", { name: /newest/i })).toBeNull();
   });
 });
 
 describe("the lens", () => {
-  it("keeps the bin out of the live list", () => {
+  it("counts every lens at once and keeps the bin out of the live list", () => {
     draw("cards");
+    expect(lens(/^all, 3$/i)).toHaveAttribute("aria-checked", "true");
+    expect(lens(/^hosting, 2$/i)).toBeInTheDocument();
+    expect(lens(/^guest, 1$/i)).toBeInTheDocument();
+    expect(lens(/^deleted, 1$/i)).toBeInTheDocument();
     expect(screen.queryByText("Binned party")).toBeNull();
-    expect(screen.getByText("Quiet party")).toBeInTheDocument();
   });
 
-  it("reaches the bin from the DEFAULT view, not only from the rows", () => {
+  it("reaches the bin from the DEFAULT view, with its Restore", () => {
     draw("cards");
-    openMenu(/all events/i);
-    fireEvent.click(screen.getByRole("menuitemradio", { name: /deleted/i }));
+    fireEvent.click(lens(/^deleted/i));
     expect(screen.getByText("Binned party")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /restore/i }),
+    ).toBeInTheDocument();
     expect(screen.queryByText("Quiet party")).toBeNull();
   });
 
-  it("keeps the events you added to in the live list, and the Guest lens shows them alone", () => {
+  it("shows the events you added to alone under Guest, with no act of their own", () => {
     draw("cards");
-    expect(screen.getByText("Friend's wedding")).toBeInTheDocument();
-    openMenu(/all events/i);
-    fireEvent.click(screen.getByRole("menuitemradio", { name: /guest/i }));
+    fireEvent.click(lens(/^guest/i));
     expect(screen.getByText("Friend's wedding")).toBeInTheDocument();
     expect(screen.queryByText("Quiet party")).toBeNull();
-    expect(screen.queryByText("Binned party")).toBeNull();
-  });
-
-  it("gives a Guest card no action of its own: it leaves with your last upload", () => {
-    render(
-      <EventsSection
-        rows={[ROWS[3]]}
-        newestByEvent={new Map()}
-        initialView="cards"
-        siteUrl="https://partyreel.com"
-      />,
-    );
     expect(screen.queryByRole("button", { name: /restore/i })).toBeNull();
     expect(
       screen.getByRole("link", { name: /friend's wedding/i }),
     ).toHaveAttribute("href", "/e/qr-friend");
   });
 
-  it("offers the create hero only to a host with nothing at all", () => {
-    const { container } = render(
-      <EventsSection
-        rows={[]}
-        newestByEvent={new Map()}
-        initialView="cards"
-        siteUrl="https://partyreel.com"
-      />,
+  it("leaves a lens with nothing in it out of the row", () => {
+    draw("cards", [ROWS[0]!], [SEASONS[0]!]);
+    expect(
+      within(screen.getByRole("group", { name: "Show" })).getAllByRole("radio"),
+    ).toHaveLength(2);
+  });
+});
+
+describe("the gallery by when", () => {
+  it("draws each group in the server's order, its tiles with their marks", () => {
+    draw("cards");
+    const groups = screen
+      .getAllByRole("region")
+      .map((r) => r.getAttribute("aria-label"));
+    expect(groups).toEqual([
+      "Everything else",
+      "Coming up",
+      "Just past",
+      "As a guest",
+    ]);
+    expect(screen.getAllByText("9 to review").length).toBeGreaterThan(0);
+  });
+
+  it("folds an earlier year into one line whose Show opens it in place", () => {
+    const years = Array.from({ length: 3 }, (_, i) =>
+      row({ id: `y${i}`, name: `Old party ${i}`, seasonId: "year-2025" }),
     );
-    // The door, never the words: the empty teaser's line is the voice board's (ruled
-    // "Your first album starts here", 2026-09-19) and a test pins function, not copy.
-    expect(container.querySelector('a[href="/dashboard/new"]')).not.toBeNull();
+    draw("cards", years, [
+      {
+        id: "year-2025",
+        label: "2025",
+        size: "folded",
+        ids: years.map((r) => r.id),
+      },
+    ]);
+    const show = screen.getByRole("button", { name: /show 3/i });
+    expect(show).toHaveAttribute("aria-expanded", "false");
+    // Folded, each cover is still one press from its event.
+    expect(screen.getByRole("link", { name: "Old party 1" })).toHaveAttribute(
+      "href",
+      "/dashboard/e",
+    );
+    fireEvent.click(show);
+    expect(screen.getByRole("button", { name: /fold/i })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
+  });
+});
+
+describe("the search", () => {
+  const many = Array.from({ length: 9 }, (_, i) =>
+    row({ id: `p${i}`, name: i === 4 ? "Ángela's Wedding" : `Party ${i}` }),
+  );
+  const one: EventSeason[] = [
+    {
+      id: "coming",
+      label: "Coming up",
+      size: "medium",
+      ids: many.map((r) => r.id),
+    },
+  ];
+
+  it("arrives past eight events and finds one by name, accents aside", () => {
+    draw("cards", many, one);
+    fireEvent.change(screen.getByRole("searchbox"), {
+      target: { value: "angela" },
+    });
+    expect(screen.getByText("Ángela's Wedding")).toBeInTheDocument();
+    expect(screen.queryByText("Party 1")).toBeNull();
+  });
+
+  it("is not drawn for a handful", () => {
+    draw("cards");
+    expect(screen.queryByRole("searchbox")).toBeNull();
+  });
+});
+
+describe("an empty list", () => {
+  it("draws nothing: the page decides what an account with nothing meets", () => {
+    const { container } = draw("cards", [], []);
+    expect(container.firstChild).toBeNull();
   });
 });
