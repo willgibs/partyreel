@@ -17,6 +17,9 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- The lab and the kit: Radix in a portalled `Frame` reads the lab's window and document, not the frame's: a popper's wrapper takes `z-index: auto` (a menu mounted open paints under the page beside it) and a Dialog's Title check warns falsely in the console; `Frame` could lift `[data-radix-popper-content-wrapper]` itself (the host-dashboard board repairs its own frames, `shell.tsx`) (from `host-dashboard-r2`).
+- Host: on a phone at forty events a quiet day's stage fills the first screen and the events begin under it; the stage's height on a quiet day is a question of its own (a board idea from `host-dashboard-r2`).
+- Host: `EventsSection` writes the view's cookie through a Server Function inline; an `onView` seam would let a board or a test draw it whole without catching the press (from `host-dashboard-r2`).
 - Help: `the-highlight-reel.mdx` (lines 22 and 52), `make-your-own-clip.mdx` (line 23) and `browse-the-album.mdx` describe the Highlight reel tile above the album; the reel now lives in the album's cover, its stills and its round (from `header-wiring`).
 - Marketing: the reel section's live tile (`sections/reel/live-tile.tsx`, `live-section.tsx`) and `careers.ts`'s "the tile at the top of the album" draw the retired tile, and `reel/poster-card.tsx` has no app consumer left (from `header-wiring`).
 - Admin: the live-reel kill switch's sheet says every event "loses its reel tile" (`admin/exports/live-reel-kill-switch.tsx`); it now takes the cover's reel round and the shutter's (from `header-wiring`).
