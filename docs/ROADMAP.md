@@ -337,7 +337,7 @@ The app:
   - Front Vercel with Cloudflare: DNS sits at GoDaddy, and the move gets its own runbook (the nameserver switch, the three `_vercel` ownership TXTs, Resend's SPF/DKIM/DMARC records, the apex, `www` and `admin` records, proxying off for Vercel-hosted names).
   - A Vercel Spend-Management hard cap and alerts.
   - Revisit the `proxy.ts` per-request `getUser` matcher scope.
-  - A large-gallery presigned-read strategy (per-media proxy or pagination beyond the stable buckets).
+  - A large-gallery presigned-read strategy (per-media proxy or pagination beyond the stable buckets), where a read proxy at the edge would also lift R2's HTTP/1.1 ceiling of about six connections a page (measured, `save-speed`).
   - The Realtime concurrent-connection quota (one socket per open guest tab) at launch scale.
   - `cacheComponents` / `"use cache"` adoption post-launch (the deferral's why: [`systems/architecture.md`](systems/architecture.md)).
 - **Emails: one exploration once the features settle** (the extension point is [`systems/lifecycle-recovery.md`](systems/lifecycle-recovery.md)). Nothing new sends before it, and the policy is right from the first send so nothing lands in spam (Will, `emails` r1). His picks are its ground:

@@ -98,6 +98,10 @@ it: one file, because the backfill loads it through Node's type stripping, which
   `content-type` and `range`, and exposes `ETag` (multipart completion), `Content-Range` (the reel's byte-range reads),
   `Accept-Ranges` and `Content-Length`; `wrangler r2 bucket cors set` sets it (the R2 MCP cannot). A lifecycle rule
   aborts incomplete multipart uploads.
+- ★ **R2's S3 endpoint speaks HTTP/1.1 only** (`curl --http2` negotiates 1.1), so every R2 read a page makes (tiles,
+  the viewer's originals, a clip's ranges, the light's samples, a Save) shares about six connections to one host, CORS
+  and no-cors alike (iOS 26.5 WebKit carried an `<img>`, a clip and a CORS fetch on one connection). What loads first is
+  a choice the viewer makes (below).
 - **Any S3 client pointed at R2 sets `requestChecksumCalculation` and `responseChecksumValidation` to
   `WHEN_REQUIRED`:** the SDK's automatic CRC checksums make R2 write 0-byte objects or answer
   `SignatureDoesNotMatch`. An upload presign signs `content-type` and `content-length`; an UploadPart presign,
@@ -122,7 +126,8 @@ it: one file, because the backfill loads it through Node's type stripping, which
   Origin, R2 answers without `Access-Control-Allow-Origin` (and without `Vary: Origin`), and the browser caches that
   under the SAME URL the stable scheme shares; a later `fetch(mode: "cors")` reads the poisoned entry and fails with a
   bare "Failed to fetch" and no console error. The reel engine's asset loader and video window reader, and the viewer's
-  Share and Save, fetch with `cache: "no-store"`, and so does any new CORS reader of gallery presigns. R2's
+  held originals and its tap reads (Share, Save), fetch with `cache: "no-store"`, and so does any new CORS reader of
+  gallery presigns. R2's
   403s carry no CORS headers either, so an EXPIRED presign read by a CORS fetch looks like a CORS failure.
 
 ## Rendering media
@@ -150,8 +155,9 @@ it: one file, because the backfill loads it through Node's type stripping, which
   door, credited "You" (`ownUploadCredit`). A host with no name wears no disc, never a "?" standing in for one.
 - **Tile previews are made in the browser at upload** (a ~640px WebP: a resize for photos, a frame-grab for videos)
   and PUT as the reserved `preview` variant: $0 and predictable, with no transform fee to meter against a
-  storage-billed plan. Tiles serve `previewUrl ?? url` (an `onError` falls back to the original); the viewer and Save
-  keep the original; a row with no preview serves the original.
+  storage-billed plan. Tiles serve `previewUrl ?? url` (an `onError` falls back to the original); the viewer draws the
+  original and Save and Share send it (below); a row with no preview serves the original, which the viewer then draws
+  from the tile's cached copy rather than holding it twice.
 - **`videoPosterSrc()` appends `#t=0.1`:** iOS Safari paints a paused `<video>` black unless the src asks it to seek
   and render a frame. A video tile with a preview draws the preview `<img>` and falls back to the poster `<video>`
   only without one. Grid video tiles carry no controls, since a `<video controls>` inside the tile's `<button>` is
@@ -161,6 +167,16 @@ it: one file, because the backfill loads it through Node's type stripping, which
 - **Save is a signed download:** `presignDownload({ key, downloadFilename })` bakes `response-content-disposition`
   into the signature, because a `download` attribute is ignored across origins; a top-level `<a href>` needs no bucket
   CORS.
+- ★ **The viewer holds the original it draws, and Save and Share send those bytes** (`lib/media/share-save-held.ts`):
+  a photograph with a preview has its original read once (CORS, `no-store`) and drawn from an object URL, and a tap
+  hands that file to `navigator.share` with no await before it, since WebKit opens a sheet only within 5 s of the tap
+  (measured 5,023 ms); the old read on the tap, a second copy of the original the viewer had just drawn queued behind
+  the viewer's own loads, was the whole of a 30 s wait. The photograph on screen loads first, its neighbours after it,
+  two at once, and a neighbouring clip asks for nothing until the centre is held, since iOS reads a neighbour's
+  `metadata` as the whole clip; a slot that lets go aborts after a short grace; held files nobody draws stay inside
+  64 MB, oldest out first. A clip is never held: its Save reads on the tap, drawn as a ring with a stop. Anything it
+  cannot hold (over 32 MB, a body quiet for 15 s, a refused read) is drawn and saved the plain way, and two refused
+  reads before any success (an origin R2's CORS does not list, localhost among them) turn holding off for the page.
 
 ## Download all
 
