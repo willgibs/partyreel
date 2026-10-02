@@ -49,7 +49,7 @@ flat; a lane in its gate, or the milestone's full gate, counts as two. Every pro
 | `create-wizard-r2` | board create-wizard r2 [desk 60]: the room's flow screen by screen in his layout (flow, add, look, beat) | MERGED at `34dba1fa` (gate 147 green, light: test, the merge adding only docs to its gated head; the lane's gate: test 8,902, build, lab:smoke 22, lab:demo 4 steps at 1440 and 375); lab only; on the desk at build 44 | Opus, 3135 | `aaa11532349605aa9` |
 | `demo-r4` | board demo-framing r4 [desk 90]: the centre object nailed, the mini-event card, two or three new heroes | running | Opus, 3136 | `a557d2f6e3b8e9fd8` |
 | `save-speed` | the viewer's Save immediate: his iPhone's 30 s measured to its cause, every slower step with state and a way out | running | Opus, 3135 | `a4d3efdea8ef3c604` |
-| `host-dashboard-r2` | board host-dashboard r2 [desk 25]: the events collection customizable at forty; which event leads when none is dated or near | running | Opus, 3132 | `(spawning)` |
+| `host-dashboard-r2` | board host-dashboard r2 [desk 25]: the events collection customizable at forty; which event leads when none is dated or near | running | Opus, 3132 | `aea1e17a667c43dfd` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Q8
 (round 12's plan) answered with 21 corrections, all folded into the briefs; the next consult is the foundation's
