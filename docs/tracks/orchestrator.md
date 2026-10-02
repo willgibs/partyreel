@@ -64,17 +64,21 @@ commits, what remains, its predecessor's transcript at
 account. Connectors follow the account: Claude in Chrome (every red-team needs it), the Supabase MCP on
 `ddafaemglzmuekbtjwzn`, the Vercel MCP on his personal team (deploys ride `$VERCEL_TOKEN`; only runtime logs need P3).
 
-Relays that live only in an agent, all to `disposable-foundation` (2026-10-02, from Will's walk and answers):
-(1) 20:20Z, the own-media read covers her own HELD (pending) items as well as sealed ones, presigned for her alone, with
-a server path for her to delete her own pending and sealed items, ownership checked in the RPC, each a leak-matrix
-cell; (2) 20:55Z, his overrule: a deleted shot frees its slot (the roll counts her live shots since `sealed_from`;
-the churn bounded by the host's cap until the purge); (3) 20:55Z, hold the EVENT-level shape (`mode`, the reveal
-columns, their grants, the Settings control) until Q9's synthesis lands; the row-level seal, develop as a write, the
-roll's enforcement, the own-media read and delete, and the leak matrix stand.
+Relays that live only in an agent (2026-10-02, from Will's walk and answers):
+- `disposable-foundation`, Q9's model (21:10Z, superseding the 20:20Z and 20:55Z relays):
+  - **Two axes**, disposable a preset, no `mode` column:
+    - `events.capture` (text CHECK upload or camera) and `roll_size`;
+    - `moderation_mode` untouched;
+    - `develops_at` (develop applies to free uploads too) and a server-stamped `sealed_from`;
+    - all three in both column grants and returned by `get_event_by_qr_token` (Q7 pattern).
+  - **The predicate:** `status = 'approved' and (sealed_until is null or sealed_until <= now() or host)` in every SQL home and the four app-side reads.
+  - **The sync's `waiting: {count, minutes}`:** pending and sealed together, full access only, in the ETag, no ids.
+  - **The roll counts live shots** (his overrule: a deleted shot frees its slot), with a withdrawn camera shot purged at once and a lifetime ceiling of `roll_size * 3` under the lock.
+  - **Settings:** two questions on `adds-page` (how guests add; when everyone sees, one three-way choice), mountable for the wizard.
+  - Her pending items' read and remove already exist (`guest-media.ts:357`, `remove_my_upload*`).
+- `header-wiring` (21:10Z): a Remove in her tracker on each of her own items not yet in the album (held, later sealed), on the existing `remove_my_upload*` paths, with state while it works.
 
-**Q9 is open with the Advisor** (2026-10-02 20:55Z): Will's synthesis of moderation and disposable into one model
-(how guests add: free uploads or the camera's roll; when everyone sees it: right away, once approved, or at a develop
-time; one waiting experience for any delayed album). Its answer goes to the foundation lane at once.
+**Q9 is answered** (the Advisor, 21:05Z) and acted on above. The waiting experience itself goes to a design board (below).
 
 If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` holds a merge made after this note (push
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
@@ -103,17 +107,18 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team brie
    - `disposable-camera` after the foundation: his phone line is in (iOS 26, Chrome 154 on WebKit: the stream
      4032x3024 at 30 fps; a frame drawn whole 3024x4032, 12.2 MP, 2.6 MB at JPEG 0.92; takePhoto 12.2 MP, 7.6 MB; the
      camera app 12.2 MP, 2.9 MB), so full size holds on iPhone.
-   - `disposable-rooms` after the foundation and header-wiring, widened to "yours, waiting": her held (moderated) and
-     sealed (disposable) photos stay in her view marked and removable, never landing then vanishing to the empty state
-     (his walk), on the foundation's own-media read; the screen link stays his Question.
+   - (`disposable-rooms` is replaced by `the-wait` board below, then its wiring after his sitting: Q9 made the held
+     and the sealed album one waiting experience.)
    - `save-speed` (new): the viewer's Save on his iPhone took about 30 s to turn ready for a demo photo (the demo's
      originals: median 0.3 MB, largest 5.2 MB), so the stall is the path, not the bytes; measure each step, make Save
      immediate. His standard, for every brief: "Everything should feel as immediate/responsive/snappy, and anything
      taking longer should provide clear state feedback and potential interruptibility" (design-system.md's line at
      header-wiring's record, which owns it now).
-   - `the-wait` board (new, after Q9): the waiting experience for any delayed album, a held album's "pending but
-     stacking" beside disposable's develop room ("experiential progress versus empty state"), and the host's two
-     questions in Settings as the synthesis lands them.
+   - `the-wait` board (new, cut after the foundation merges): the ONE waiting experience for any delayed album (once
+     approved, or at a develop time): her own shots lit and removable, everyone's as "uploads stacking" (count and
+     minutes), never a landing that vanishes to the empty state; the reveal and the reel's premiere; the host's cover
+     she lifts; whether approve-plus-develop is ever offered; the preset's name ("Disposable") and the host's two
+     Settings questions' words. Disposable's `waiting=sheet` is the anchor option; the screen link is a Question.
    - `take-home` board (new): how guests and hosts take photos home, from his note: a guest's one-press Download all
      against Select, Select all, Save; and a host's originals beside an optimized download for quick posts.
    - Fillers: `crumbs-50` (Sonnet, the off-round ROADMAP lines) and `lab-window` when a seat is free.
