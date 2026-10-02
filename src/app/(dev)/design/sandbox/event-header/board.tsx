@@ -7,38 +7,51 @@ import {
   ExplorationBoard,
   optionId,
   optionLabel,
+  type PreviewsFor,
 } from "@/components/lab";
-import type { PreviewsFor } from "@/components/lab/exploration";
 
-import type { GuestMoment, HostMoment } from "./fixtures";
-import { type GuestDirection, GuestPage, type StaysId } from "./guest";
-import { HubPage, type HostOption } from "./host";
-import { AlbumHuesProvider } from "./light";
-import { ReplayButton, useReplay } from "./replay";
-import { guestScreenOf, hostScreenOf, ScrollTo, Strip } from "./scene";
+import type { DoorsId } from "./doors";
+import type { Moment } from "./fixtures";
+import type { FactsId } from "./head";
+import { Hub, type HubDraw, type RoomsId, TryHub } from "./hub";
+import {
+  measureDoors,
+  measureFacts,
+  measureRoom,
+  SCREENS,
+  type ScreenId,
+  screenOf,
+  ScrollTo,
+  Strip,
+} from "./scene";
 import { EVENT_HEADER } from "./spec";
 
 /**
- * THE PREVIEWS, AND NOTHING ELSE: every option is the head as its reader meets
- * it, in real frames at the width its Screen knob names.
+ * THE PREVIEWS, AND NOTHING ELSE: every option is Maya's hub as she meets it,
+ * in real frames at the width the Screen knob names, drawn in all three
+ * decisions at once (`hub.tsx`).
+ *
+ * ★ ONE WORLD (`exploration.ts`'s `Preview`). A decision is drawn wearing
+ * what the board holds for the other two: his pick once made, and until then
+ * the option that IS production (each ask declares `today`), so a frame
+ * labelled with one option changes that option alone and every other piece
+ * of the hub is the hub as it ships.
  */
 
 const pick = <T extends string>(ids: readonly T[], v: unknown, d: T): T =>
   (ids as readonly string[]).includes(v as string) ? (v as T) : d;
 
-const GUESTS = ["today", "cover", "doorway", "masthead"] as const;
+const FACTS = ["today", "dial", "strip", "name"] as const;
+const DOORS = ["cards", "windows", "glass"] as const;
+const ROOMS = ["today", "over", "under"] as const;
 
-/** The guest's head every later question is drawn in: his pick, the recommendation until then. */
-const guestOf = (s: BoardState): GuestDirection =>
-  pick(GUESTS, s.guest, "cover");
-
-const momentOf = (s: BoardState): GuestMoment =>
-  s.album === "empty" ? "empty" : "full";
-
-const hostMomentOf = (s: BoardState): HostMoment =>
+const factsOf = (s: BoardState): FactsId => pick(FACTS, s.facts, "today");
+const doorsOf = (s: BoardState): DoorsId => pick(DOORS, s.doors, "cards");
+const roomsOf = (s: BoardState): RoomsId => pick(ROOMS, s.rooms, "today");
+const momentOf = (s: BoardState): Moment =>
   s.moment === "before" ? "before" : "tonight";
 
-/** An option's own name off the spec, so a row's lede and the stage head agree. */
+/** An option's own name off the spec, so a row's lede and the step's head agree. */
 const LABEL = (ask: string, option: string) => {
   const found = EVENT_HEADER.asks
     .find((a) => a.id === ask)
@@ -47,151 +60,131 @@ const LABEL = (ask: string, option: string) => {
 };
 
 /** How far a frame that has moved on into the album is scrolled. */
-const INTO: Record<"375" | "1440", number> = { "375": 1100, "1440": 900 };
+const INTO: Record<ScreenId, number> = { "375": 640, "1440": 640 };
 
-function GuestStrip({
-  s,
-  direction,
-}: {
-  s: BoardState;
-  direction: GuestDirection;
-}) {
-  const screen = guestScreenOf(s);
-  const moment = momentOf(s);
-  // A replay remounts the head inside the same frames, so its arrival plays again.
-  const replay = useReplay();
-  const key = `eh-guest-${direction}-${moment}`;
+const heightOf = (screen: ScreenId) => SCREENS[screen].h;
+const widthOf = (screen: ScreenId) => SCREENS[screen].w;
+
+/* ── 1. the facts ─────────────────────────────────────────────────────────── */
+
+function FactsStrip({ s, facts }: { s: BoardState; facts: FactsId }) {
+  const screen = screenOf(s);
+  const d = (moment: Moment): HubDraw => ({
+    facts,
+    doors: doorsOf(s),
+    rooms: roomsOf(s),
+    moment,
+    screen,
+  });
+  const key = `eh-facts-${facts}-${doorsOf(s)}`;
   return (
     <Strip
       screen={screen}
-      lede={`${LABEL("guest", direction)}: the album as Priya lands on it, then scrolled into it.`}
+      lede={`${LABEL("facts", facts)}: Maya's hub tonight, then the week before.`}
       frames={[
         {
-          id: `${key}-land`,
-          title: "Priya lands on the album",
-          node: (
-            <GuestPage
-              key={replay}
-              direction={direction}
-              screen={screen}
-              moment={moment}
-            />
-          ),
+          id: `${key}-tonight`,
+          title: "Maya opens her hub tonight",
+          node: <Hub d={d("tonight")} />,
+          measure: measureFacts(heightOf(screen)),
         },
         {
-          id: `${key}-into`,
-          title: "Scrolled into the album",
-          node: (
-            <>
-              <GuestPage
-                key={replay}
-                direction={direction}
-                screen={screen}
-                moment={moment}
-                scrolled
-              />
-              <ScrollTo y={moment === "empty" ? 0 : INTO[screen]} />
-            </>
-          ),
+          id: `${key}-before`,
+          title: "The week before, nothing in it",
+          node: <Hub d={d("before")} />,
+          measure: measureFacts(heightOf(screen)),
         },
       ]}
     />
   );
 }
 
-function HostStrip({ s, option }: { s: BoardState; option: HostOption }) {
-  const replay = useReplay();
-  const screen = hostScreenOf(s);
-  const moment = hostMomentOf(s);
-  const guest = guestOf(s);
-  const key = `eh-host-${option}-${guest}-${moment}`;
+/* ── 2. the doors ─────────────────────────────────────────────────────────── */
+
+function DoorsStrip({ s, doors }: { s: BoardState; doors: DoorsId }) {
+  const screen = screenOf(s);
+  const moment = momentOf(s);
+  const d: HubDraw = {
+    facts: factsOf(s),
+    doors,
+    rooms: roomsOf(s),
+    moment,
+    screen,
+  };
+  const key = `eh-doors-${doors}-${factsOf(s)}-${roomsOf(s)}-${moment}`;
   return (
     <Strip
       screen={screen}
-      lede={`${LABEL("host", option)}: Maya opens her hub, then scrolls into the album.`}
+      lede={`${LABEL("doors", doors)}: Maya opens her hub, then scrolls into the album and the doors fold into the band.`}
       frames={[
         {
-          id: `${key}-open`,
+          id: `${key}-rest`,
           title:
             moment === "before"
-              ? "Maya opens her hub, the week before"
+              ? "She opens her hub, the week before"
               : "Maya opens her hub tonight",
-          node: (
-            <HubPage
-              key={replay}
-              option={option}
-              guest={guest}
-              screen={screen}
-              moment={moment}
-            />
-          ),
+          node: <Hub d={d} />,
+          measure: measureDoors(heightOf(screen)),
         },
         {
-          id: `${key}-into`,
+          id: `${key}-band`,
           title: "Scrolled into the album",
           node: (
             <>
-              <HubPage
-                key={replay}
-                option={option}
-                guest={guest}
-                screen={screen}
-                moment={moment}
-                scrolled
-              />
-              <ScrollTo y={screen === "1440" ? 700 : 900} />
-            </>
-          ),
-        },
-      ]}
-    />
-  );
-}
-
-function StaysStrip({ s, stays }: { s: BoardState; stays: StaysId }) {
-  const replay = useReplay();
-  const screen = guestScreenOf(s);
-  const direction = guestOf(s);
-  const key = `eh-stays-${stays}-${direction}`;
-  return (
-    <Strip
-      screen={screen}
-      lede={`${LABEL("stays", stays)}, under ${LABEL("guest", direction).toLowerCase()}: Priya deep in the album, then sending three photos.`}
-      frames={[
-        {
-          id: `${key}-into`,
-          title: "Deep in the album",
-          node: (
-            <>
-              <GuestPage
-                key={replay}
-                direction={direction}
-                screen={screen}
-                moment="full"
-                scrolled
-                stays={stays}
-              />
+              <Hub d={d} stuck />
               <ScrollTo y={INTO[screen]} />
             </>
           ),
+          measure: measureDoors(heightOf(screen)),
+        },
+      ]}
+    />
+  );
+}
+
+/* ── 3. the rooms ─────────────────────────────────────────────────────────── */
+
+function RoomsStrip({ s, rooms }: { s: BoardState; rooms: RoomsId }) {
+  const screen = screenOf(s);
+  const moment = momentOf(s);
+  const d: HubDraw = {
+    facts: factsOf(s),
+    doors: doorsOf(s),
+    rooms,
+    moment,
+    screen,
+  };
+  const key = `eh-rooms-${rooms}-${factsOf(s)}-${doorsOf(s)}-${moment}`;
+  const measure = measureRoom(widthOf(screen));
+  return (
+    <Strip
+      screen={screen}
+      lede={`${LABEL("rooms", rooms)}: try it, then Review, the reel and See it as a guest, each as it opens.`}
+      frames={[
+        {
+          id: `${key}-try`,
+          title: "Try it: press any door, then close it",
+          node: <TryHub key={key} d={d} />,
+          measure,
+          live: true,
         },
         {
-          id: `${key}-sending`,
-          title: "Three of hers on their way",
-          node: (
-            <>
-              <GuestPage
-                key={replay}
-                direction={direction}
-                screen={screen}
-                moment="full"
-                scrolled
-                stays={stays}
-                uploading={3}
-              />
-              <ScrollTo y={INTO[screen] + 400} />
-            </>
-          ),
+          id: `${key}-review`,
+          title: "Review, opened",
+          node: <Hub d={d} open="review" />,
+          measure,
+        },
+        {
+          id: `${key}-reel`,
+          title: "The reel, opened",
+          node: <Hub d={d} open="reel" />,
+          measure,
+        },
+        {
+          id: `${key}-guest`,
+          title: "See it as a guest, opened",
+          node: <Hub d={d} open="guest" />,
+          measure,
         },
       ]}
     />
@@ -199,27 +192,18 @@ function StaysStrip({ s, stays }: { s: BoardState; stays: StaysId }) {
 }
 
 const PREVIEWS: PreviewsFor<typeof EVENT_HEADER> = {
-  "host.today": (s) => <HostStrip s={s} option="today" />,
-  "host.shared": (s) => <HostStrip s={s} option="shared" />,
-  "host.numbers": (s) => <HostStrip s={s} option="numbers" />,
-  "host.line": (s) => <HostStrip s={s} option="line" />,
-  "stays.dock": (s) => <StaysStrip s={s} stays="dock" />,
-  "stays.shutter": (s) => <StaysStrip s={s} stays="shutter" />,
-  "stays.bar": (s) => <StaysStrip s={s} stays="bar" />,
-  "guest.today": (s) => <GuestStrip s={s} direction="today" />,
-  "guest.cover": (s) => <GuestStrip s={s} direction="cover" />,
-  "guest.doorway": (s) => <GuestStrip s={s} direction="doorway" />,
-  "guest.masthead": (s) => <GuestStrip s={s} direction="masthead" />,
+  "facts.today": (s) => <FactsStrip s={s} facts="today" />,
+  "facts.dial": (s) => <FactsStrip s={s} facts="dial" />,
+  "facts.strip": (s) => <FactsStrip s={s} facts="strip" />,
+  "facts.name": (s) => <FactsStrip s={s} facts="name" />,
+  "doors.cards": (s) => <DoorsStrip s={s} doors="cards" />,
+  "doors.windows": (s) => <DoorsStrip s={s} doors="windows" />,
+  "doors.glass": (s) => <DoorsStrip s={s} doors="glass" />,
+  "rooms.today": (s) => <RoomsStrip s={s} rooms="today" />,
+  "rooms.over": (s) => <RoomsStrip s={s} rooms="over" />,
+  "rooms.under": (s) => <RoomsStrip s={s} rooms="under" />,
 };
 
 export function EventHeaderBoard() {
-  return (
-    <AlbumHuesProvider>
-      <ExplorationBoard
-        spec={EVENT_HEADER}
-        previews={PREVIEWS}
-        dock={() => <ReplayButton />}
-      />
-    </AlbumHuesProvider>
-  );
+  return <ExplorationBoard spec={EVENT_HEADER} previews={PREVIEWS} />;
 }
