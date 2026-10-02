@@ -1,70 +1,49 @@
 "use client";
 
-import "./host-dashboard.css";
-
-import type { ReactNode } from "react";
-
 import {
   type BoardState,
   ExplorationBoard,
   optionId,
   optionLabel,
+  type PreviewsFor,
 } from "@/components/lab";
-import type { PreviewsFor } from "@/components/lab/exploration";
 
-import {
-  type Answers,
-  type ArrivalsWay,
-  type CollectionView,
-  Dashboard,
-  type Purpose,
-} from "./dashboard";
-import type { HostId } from "./fixtures";
-import { momentOf, screenOf } from "./knobs";
-import type { Rule } from "./model";
-import {
-  both,
-  onFirstScreen,
-  type Reader,
-  Scene,
-  Story,
-  textOf,
-} from "./scene";
+import { Dashboard, type Start } from "./dashboard";
+import { type HostId, JO_THREE } from "./fixtures";
+import { screenOf } from "./knobs";
+import type { Answers, EventsWay, PickWay, QuietRule } from "./model";
+import { type Reader, readEvents, readStage, Scene, Story } from "./scene";
 import { HOST_DASHBOARD } from "./spec";
 
 /**
- * THE PREVIEWS, AND NOTHING ELSE: every option is the whole dashboard, drawn
- * for Maya (one event) and for Jo (forty) on the day the Day knob names, at
- * the Screen knob's width. A staged question is drawn wearing the answers it
- * waits on (the step hands each preview the board's state), so What asks for
- * attention is judged inside the page Will picked for What it is for.
+ * THE PREVIEWS, AND NOTHING ELSE: every option is the dashboard as it ships,
+ * production's page for one of three hosts on the same quiet Tuesday, wearing
+ * the option's answer and the board's answers to the other two questions (as
+ * built until he answers, `today`). Every frame is titled with its option's own
+ * name, read off the spec, and every caption is read off the frame.
  *
- * Every frame is titled with its option's own name, read off the spec, and
- * every caption is read off the frame.
+ *  - `events`: Try it on Jo's forty, the page as she comes back from Theo &
+ *    Ana's 2025 wedding (played by the page: the year opened, the wedding
+ *    pressed, Your events), and Maya with her one event.
+ *  - `lead` and `pick`: Nia's three undated events, and Try it on Jo's forty.
  */
 
 /* ── reading the board's state ────────────────────────────────────────── */
 
-const pick = <T extends string>(
-  all: readonly T[],
-  v: unknown,
-  fallback: T,
-): T => (all.includes(v as T) ? (v as T) : fallback);
+const pick = <T extends string>(all: readonly T[], v: unknown, d: T): T =>
+  all.includes(v as T) ? (v as T) : d;
 
-function answersOf(s: BoardState): Answers {
-  return {
-    purpose: pick<Purpose>(["stage", "shelf", "desk"], s.purpose, "stage"),
-    needs: pick<Rule>(["bell", "week", "three"], s.needs, "week"),
-    events: pick<CollectionView>(
-      ["covers", "seasons", "index"],
-      s.events,
-      "seasons",
-    ),
-    arrivals: pick<ArrivalsWay>(["none", "live", "since"], s.arrivals, "live"),
-  };
-}
+const answersOf = (s: BoardState): Answers => ({
+  events: pick<EventsWay>(
+    ["built", "recent", "display", "index"],
+    s.events,
+    "built",
+  ),
+  lead: pick<QuietRule>(["time", "made", "left", "rest"], s.lead, "time"),
+  pick: pick<PickWay>(["none", "kept", "step"], s.pick, "none"),
+});
 
-/** An option's own name, off the spec, so the frame's title and the tile agree. */
+/** An option's own name, off the spec, so the frame's title and the tab agree. */
 const LABEL = (ask: string, option: string) => {
   const found = HOST_DASHBOARD.asks
     .find((a) => a.id === ask)
@@ -72,154 +51,139 @@ const LABEL = (ask: string, option: string) => {
   return found ? optionLabel(found) : option;
 };
 
-const HOSTS: { id: HostId; who: string }[] = [
-  { id: "maya", who: "Maya, one event" },
-  { id: "jo", who: "Jo, forty events" },
-];
-
-/* ── what the frames read ─────────────────────────────────────────────── */
-
-const plural = (n: number, one: string, many: string) =>
-  `${n} ${n === 1 ? one : many}`;
-
-/** What leads the page's first screen. */
-const leads: Reader = (root) => {
-  const stage = root.querySelector<HTMLElement>("[data-hd-stage]");
-  if (stage) {
-    const name = textOf(stage.querySelector("[data-hd-stage-name]"));
-    return `Leads with the stage: ${name} (${stage.dataset.hdStage})`;
-  }
-  const desk = root.querySelector<HTMLElement>("[data-hd-desk]");
-  if (desk)
-    return `Leads with a list of ${plural(Number(desk.dataset.hdDesk), "step", "steps")}`;
-  const tiles = root.querySelectorAll("[data-hd-tile], [data-hd-row]").length;
-  return tiles ? "Leads with the events" : null;
+type Shot = {
+  key: string;
+  host: HostId;
+  title: string;
+  read: Reader;
+  start?: Start;
 };
-
-/** How many things on the first screen ask for an act: the at-forty number. */
-const asks: Reader = (root, win) => {
-  if (!root.querySelector("[data-hd-page]")) return null;
-  const acts = onFirstScreen(root, win, "[data-hd-act]").length;
-  const stageAct =
-    root.querySelector<HTMLElement>("[data-hd-acts]")?.dataset.hdActs;
-  const n = acts + (stageAct && stageAct !== "none" ? 1 : 0);
-  return `${plural(n, "thing asks", "things ask")} for an act on the first screen`;
-};
-
-/** What the bell holds, read off its drawn panel or its badge. */
-const bellHolds: Reader = (root) => {
-  const panel = root.ownerDocument.querySelector<HTMLElement>("[data-hd-bell]");
-  if (panel)
-    return `the bell holds ${plural(Number(panel.dataset.hdBell), "row", "rows")}`;
-  const badge = textOf(
-    root.ownerDocument.querySelector(
-      "header [aria-label^='Notifications'] span",
-    ),
-  );
-  return badge ? `the bell's badge reads ${badge}` : "the bell is empty";
-};
-
-/** How many events the first screen draws, of how many. */
-const eventsShown: Reader = (root, win) => {
-  const all = root.querySelectorAll("[data-hd-tile], [data-hd-row]").length;
-  if (!all) return null;
-  const seen = onFirstScreen(root, win, "[data-hd-tile], [data-hd-row]").length;
-  const folded = [
-    ...root.querySelectorAll<HTMLElement>("[data-hd-folded]"),
-  ].reduce((n, el) => n + Number(el.dataset.hdFolded ?? 0), 0);
-  return `${seen} of the events on the first screen${folded ? `, ${folded} more folded by year` : ""}`;
-};
-
-/** How many photographs on the first screen are arriving (no `data-static`). */
-const arriving: Reader = (root, win) => {
-  if (!root.querySelector("[data-hd-page]")) return null;
-  const n = onFirstScreen(
-    root,
-    win,
-    "[data-media-tile]:not([data-static])",
-  ).length;
-  return n === 0
-    ? "No photographs arriving on the first screen"
-    : `${plural(n, "photograph", "photographs")} arriving on the first screen`;
-};
-
-/* ── one option, both hosts ───────────────────────────────────────────── */
 
 function Option({
+  s,
   ask,
   option,
-  s,
-  measure,
-  bellOpen = false,
-  focus = "top",
+  shots,
 }: {
+  s: BoardState;
   ask: keyof Answers;
   option: string;
-  s: BoardState;
-  measure: Reader;
-  bellOpen?: boolean;
-  focus?: "top" | "collection";
-}): ReactNode {
-  const answers = { ...answersOf(s), [ask]: option } as Answers;
-  const moment = momentOf(s.moment);
+  shots: Shot[];
+}) {
   const screen = screenOf(s.screen);
+  const answers = { ...answersOf(s), [ask]: option } as Answers;
   const name = LABEL(ask, option);
+  // Every answer the frame wears names it, so a frame is drawn afresh when any of them moves.
+  const worn = `${answers.events}-${answers.lead}-${answers.pick}`;
   return (
-    <Story>
-      {HOSTS.map((h) => (
-        <Scene
-          key={h.id}
-          id={`hd-${ask}-${option}-${h.id}-${moment}`}
-          screen={screen}
-          title={`${name}: ${h.who}`}
-          measure={measure}
-        >
-          <Dashboard
-            hostId={h.id}
-            moment={moment}
-            answers={answers}
-            bellOpen={bellOpen && h.id === "jo"}
-            focus={focus}
-          />
-        </Scene>
-      ))}
+    <Story screen={screen}>
+      {shots.map((shot) => {
+        const id = `hd-${ask}-${shot.key}-${worn}`;
+        return (
+          <Scene
+            key={`${id}-${screen}`}
+            id={id}
+            screen={screen}
+            title={`${name}: ${shot.title}`}
+            measure={shot.read}
+          >
+            <Dashboard
+              hostId={shot.host}
+              answers={answers}
+              wide={screen === "1440"}
+              start={shot.start}
+            />
+          </Scene>
+        );
+      })}
     </Story>
   );
 }
 
-/** Each question's frames, with what its captions read. */
-const READS: Record<
-  keyof Answers,
-  { measure: Reader; bellOpen?: boolean; focus?: "top" | "collection" }
-> = {
-  purpose: { measure: both(leads, asks) },
-  needs: { measure: both(asks, bellHolds), bellOpen: true },
-  events: { measure: eventsShown, focus: "collection" },
-  arrivals: { measure: arriving },
-};
+/* ── 1. your events at forty ──────────────────────────────────────────── */
 
-function preview(s: BoardState, ask: keyof Answers, option: string): ReactNode {
-  return <Option ask={ask} option={option} s={s} {...READS[ask]} />;
+/**
+ * Jo's own Display where the option draws one: a planner's, set once (a list
+ * by year), with its menu open in Try it so the menu is seen where it lives.
+ */
+function eventsShots(way: EventsWay): Shot[] {
+  const hers: Start =
+    way === "display"
+      ? { display: { show: "list", group: "year", order: "date" } }
+      : {};
+  return [
+    {
+      key: "try",
+      host: "jo",
+      title: "Try it, Jo's forty",
+      read: readEvents(),
+      start: way === "display" ? { ...hers, displayOpen: true } : hers,
+    },
+    {
+      key: "back",
+      host: "jo",
+      title: "Jo, back from Theo & Ana's",
+      read: readEvents(JO_THREE),
+      start: { ...hers, journey: { back: "jo-theo-ana", year: "year-2025" } },
+    },
+    { key: "maya", host: "maya", title: "Maya, one event", read: readEvents() },
+  ];
 }
+
+/* ── 2 and 3. the stage ───────────────────────────────────────────────── */
+
+/**
+ * Nia's frame draws the option's hand in use where it has one: Change open
+ * (`kept`), or one step taken (`step`), so the still shows what the control
+ * does rather than a pill.
+ */
+const stageShots = (pick: PickWay | null): Shot[] => [
+  {
+    key: "nia",
+    host: "nia",
+    title:
+      pick === "step"
+        ? "Nia, three undated, one step on"
+        : "Nia, three undated",
+    read: readStage,
+    start:
+      pick === "kept"
+        ? { pickOpen: true }
+        : pick === "step"
+          ? { step: 1 }
+          : undefined,
+  },
+  { key: "jo", host: "jo", title: "Try it, Jo's forty", read: readStage },
+];
 
 /* ── the map ──────────────────────────────────────────────────────────── */
 
+function eventsPreview(s: BoardState, way: EventsWay) {
+  return <Option s={s} ask="events" option={way} shots={eventsShots(way)} />;
+}
+
+function leadPreview(s: BoardState, rule: QuietRule) {
+  return <Option s={s} ask="lead" option={rule} shots={stageShots(null)} />;
+}
+
+function pickPreview(s: BoardState, way: PickWay) {
+  return <Option s={s} ask="pick" option={way} shots={stageShots(way)} />;
+}
+
 const PREVIEWS: PreviewsFor<typeof HOST_DASHBOARD> = {
-  "purpose.stage": (s) => preview(s, "purpose", "stage"),
-  "purpose.shelf": (s) => preview(s, "purpose", "shelf"),
-  "purpose.desk": (s) => preview(s, "purpose", "desk"),
+  "events.built": (s) => eventsPreview(s, "built"),
+  "events.recent": (s) => eventsPreview(s, "recent"),
+  "events.display": (s) => eventsPreview(s, "display"),
+  "events.index": (s) => eventsPreview(s, "index"),
 
-  "needs.bell": (s) => preview(s, "needs", "bell"),
-  "needs.week": (s) => preview(s, "needs", "week"),
-  "needs.three": (s) => preview(s, "needs", "three"),
+  "lead.time": (s) => leadPreview(s, "time"),
+  "lead.made": (s) => leadPreview(s, "made"),
+  "lead.left": (s) => leadPreview(s, "left"),
+  "lead.rest": (s) => leadPreview(s, "rest"),
 
-  "events.covers": (s) => preview(s, "events", "covers"),
-  "events.seasons": (s) => preview(s, "events", "seasons"),
-  "events.index": (s) => preview(s, "events", "index"),
-
-  "arrivals.none": (s) => preview(s, "arrivals", "none"),
-  "arrivals.live": (s) => preview(s, "arrivals", "live"),
-  "arrivals.since": (s) => preview(s, "arrivals", "since"),
+  "pick.none": (s) => pickPreview(s, "none"),
+  "pick.kept": (s) => pickPreview(s, "kept"),
+  "pick.step": (s) => pickPreview(s, "step"),
 };
 
 export function HostDashboardBoard() {
