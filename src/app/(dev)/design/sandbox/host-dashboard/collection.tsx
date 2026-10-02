@@ -330,6 +330,7 @@ export function Seasons({
             <div
               key={s.id}
               data-hd-season={s.id}
+              data-hd-folded={count}
               className="flex items-center gap-4 border-t border-border pt-4"
             >
               <div className="w-36 shrink-0">
@@ -418,6 +419,10 @@ export function Seasons({
 
 /* ── a list you can sort ────────────────────────────────────────────────── */
 
+/** The list's columns at a desk: the event, its date, photos, guests, its state. */
+const INDEX_COLS =
+  "grid-cols-[minmax(0,2.4fr)_minmax(0,1fr)_minmax(0,0.7fr)_minmax(0,0.7fr)_minmax(0,1.3fr)]";
+
 function StateCell({
   host,
   e,
@@ -474,7 +479,16 @@ export function Index({
   title?: string;
 }) {
   const wide = useWide();
-  const events = byDate(host);
+  // The events you added to stand among your own by date, as All events does today.
+  type Row =
+    | { event: DashEvent; guest?: undefined }
+    | { guest: GuestEvent; event?: undefined };
+  const at = (r: Row) =>
+    r.guest ? r.guest.date : (r.event.date ?? "9999-12-31");
+  const rows: Row[] = [
+    ...byDate(host).map((event): Row => ({ event })),
+    ...host.guest.map((guest): Row => ({ guest })),
+  ].sort((a, b) => at(b).localeCompare(at(a)));
   return (
     <section
       data-hd-collection="index"
@@ -484,7 +498,12 @@ export function Index({
       <LensBar host={host} title={title} sort />
       <div className="overflow-hidden rounded-xl border border-border">
         {wide && (
-          <div className="grid grid-cols-[minmax(0,2.4fr)_minmax(0,1fr)_minmax(0,0.7fr)_minmax(0,0.7fr)_minmax(0,1.3fr)] gap-4 border-b border-border bg-muted/40 px-4 py-2 text-xs text-muted-foreground">
+          <div
+            className={cn(
+              "grid gap-4 border-b border-border bg-muted/40 px-4 py-2 text-xs text-muted-foreground",
+              INDEX_COLS,
+            )}
+          >
             <span>Event</span>
             <span className="flex items-center gap-1">
               Date
@@ -496,7 +515,51 @@ export function Index({
           </div>
         )}
         <ul className="divide-y divide-border">
-          {events.map((e) => {
+          {rows.map((row) => {
+            if (row.guest) {
+              const g = row.guest;
+              return (
+                <li
+                  key={g.id}
+                  data-hd-row="guest"
+                  className={cn(
+                    "items-center gap-4 px-4",
+                    wide ? `grid ${INDEX_COLS} py-2` : "flex py-2.5",
+                  )}
+                >
+                  <span className="flex min-w-0 items-center gap-3">
+                    <span className="relative h-8 w-12 shrink-0 overflow-hidden rounded-[var(--radius-tile)]">
+                      <Still photo={g.cover} />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-medium">
+                        {g.name}
+                      </span>
+                      <span className="block truncate text-xs text-muted-foreground">
+                        {g.byline}
+                      </span>
+                    </span>
+                  </span>
+                  {wide ? (
+                    <>
+                      <span className="text-sm text-muted-foreground tabular-nums">
+                        {whenOf(g.date, host.today, evening(host))}
+                      </span>
+                      <span />
+                      <span />
+                      <span className="text-sm text-muted-foreground">
+                        Guest
+                      </span>
+                    </>
+                  ) : (
+                    <span className="ml-auto shrink-0 text-sm text-muted-foreground">
+                      Guest
+                    </span>
+                  )}
+                </li>
+              );
+            }
+            const e = row.event;
             const marks = marksOf(e);
             return (
               <li
@@ -504,9 +567,7 @@ export function Index({
                 data-hd-row=""
                 className={cn(
                   "items-center gap-4 px-4",
-                  wide
-                    ? "grid grid-cols-[minmax(0,2.4fr)_minmax(0,1fr)_minmax(0,0.7fr)_minmax(0,0.7fr)_minmax(0,1.3fr)] py-2"
-                    : "flex py-2.5",
+                  wide ? `grid ${INDEX_COLS} py-2` : "flex py-2.5",
                 )}
               >
                 <span className="flex min-w-0 items-center gap-3">

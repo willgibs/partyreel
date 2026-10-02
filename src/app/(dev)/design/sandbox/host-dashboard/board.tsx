@@ -93,9 +93,7 @@ const leads: Reader = (root) => {
   if (desk)
     return `Leads with a list of ${plural(Number(desk.dataset.hdDesk), "step", "steps")}`;
   const tiles = root.querySelectorAll("[data-hd-tile], [data-hd-row]").length;
-  return tiles
-    ? `Leads with the events: ${plural(tiles, "event", "events")} drawn`
-    : null;
+  return tiles ? "Leads with the events" : null;
 };
 
 /** How many things on the first screen ask for an act: the at-forty number. */
@@ -126,7 +124,9 @@ const eventsShown: Reader = (root, win) => {
   const all = root.querySelectorAll("[data-hd-tile], [data-hd-row]").length;
   if (!all) return null;
   const seen = onFirstScreen(root, win, "[data-hd-tile], [data-hd-row]").length;
-  const folded = root.querySelectorAll("[data-hd-season^='year-'] li").length;
+  const folded = [
+    ...root.querySelectorAll<HTMLElement>("[data-hd-folded]"),
+  ].reduce((n, el) => n + Number(el.dataset.hdFolded ?? 0), 0);
   return `${seen} of the events on the first screen${folded ? `, ${folded} more folded by year` : ""}`;
 };
 
