@@ -17,6 +17,7 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Host: a cover Maya pins herself (the event head's cover showing a photograph she chose, not the reel's opening stills) would be a new column; drawn nowhere yet (a board idea from `event-header`).
 - Guests: on a phone, Back over a question opened over the viewer (its Delete or Remove confirm, Block's screen from the credit's look) closes the question AND the viewer in one press, since a dialog holds no history entry; say whether a question over a place holds one too, and what Back does while its save is pending (from `crumbs-47`).
 - Guests: the failure sheet's heading counts a run by item index (`runBaseline`), so it reads "1 of 0 didn't upload" after a Retry that fails again and for a slot that mounts mid-run; the run's own items are what it should count (`guest-upload.tsx`) (from `crumbs-47`).
 - Guests: the viewer's arrow keys step the photograph behind an open modal layer (the credit's look, a confirm), since `ownsKeys` in `media-lightbox.tsx` knows sliders, menus and fields but not a dialog above the viewer; the listener should stand down for a layer above it (from `crumbs-47`).
