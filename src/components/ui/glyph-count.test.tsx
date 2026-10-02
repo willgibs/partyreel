@@ -1,0 +1,75 @@
+import { act, fireEvent, render, screen } from "@testing-library/react"
+import { Images } from "lucide-react"
+import { describe, expect, it } from "vitest"
+
+import { GlyphCount } from "@/components/ui/glyph-count"
+import { TooltipProvider } from "@/components/ui/tooltip"
+
+/**
+ * THE GLYPH COUNT (`event-header` r1's carried call `glyphs`): an icon and a number on a head, its words on a
+ * cursor's hover, a keyboard's focus and a tap. The tooltip primitive refuses a finger on purpose
+ * (`tooltip.test.tsx`), so the atom answers the tap itself, as the code's corner mark does: a phone is never left
+ * with a glyph it cannot ask about.
+ */
+function mount(count = 1240, label = "1,240 photos & videos") {
+  render(
+    <TooltipProvider delayDuration={0}>
+      <GlyphCount icon={<Images />} count={count} label={label} />
+    </TooltipProvider>
+  )
+  return screen.getByRole("button", { name: label })
+}
+
+const words = () =>
+  document.querySelector("[data-slot='tooltip-content']")?.textContent ?? null
+
+describe("a glyph and its words", () => {
+  it("is named by its words, and shows the glyph and the number alone", () => {
+    const count = mount()
+    expect(count).toHaveAttribute("data-slot", "glyph-count")
+    // The face is the number, grouped as the site groups, and the glyph: both out of the tree.
+    expect(count.textContent).toBe("1,240")
+    expect(count.querySelector("svg")).not.toBeNull()
+    for (const part of count.children) expect(part).toHaveAttribute("aria-hidden")
+  })
+
+  it("★ a tap shows its words, and a second tap puts them away", async () => {
+    const count = mount()
+    await act(async () => {
+      fireEvent.pointerDown(count, { pointerType: "touch" })
+      fireEvent.click(count)
+    })
+    expect(words()).toContain("1,240 photos & videos")
+    await act(async () => {
+      fireEvent.pointerDown(count, { pointerType: "touch" })
+      fireEvent.click(count)
+    })
+    expect(words()).toBeNull()
+  })
+
+  it("a keyboard's Enter toggles them as a tap does", async () => {
+    const count = mount(31, "31 guests")
+    await act(async () => {
+      fireEvent.click(count, { detail: 0 })
+    })
+    expect(words()).toContain("31 guests")
+    await act(async () => {
+      fireEvent.click(count, { detail: 0 })
+    })
+    expect(words()).toBeNull()
+  })
+
+  it("a cursor's click keeps them open", async () => {
+    const count = mount(31, "31 guests")
+    await act(async () => {
+      fireEvent.pointerDown(count, { pointerType: "mouse" })
+      fireEvent.click(count, { detail: 1 })
+    })
+    expect(words()).toContain("31 guests")
+    await act(async () => {
+      fireEvent.pointerDown(count, { pointerType: "mouse" })
+      fireEvent.click(count, { detail: 1 })
+    })
+    expect(words()).toContain("31 guests")
+  })
+})

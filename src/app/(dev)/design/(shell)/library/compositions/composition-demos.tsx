@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Undo2 } from "lucide-react";
+import Image from "next/image";
+import { ImageUp, Play, QrCode, Undo2 } from "lucide-react";
 
 import {
   AtTheDoor,
@@ -50,6 +51,13 @@ import type { ReviewWrites } from "@/components/app/event-feed/use-review-triage
 import { HostAddProvider } from "@/components/app/host-add-provider";
 import { ProPriceList } from "@/components/app/pricing/pro-price-list";
 import { QrPresetPicker } from "@/components/app/qr-preset-picker";
+import {
+  EventCardsRow,
+  type RoomCard,
+} from "@/components/app/event-feed/event-cards-row";
+import { HubCover } from "@/components/app/event-feed/event-hub-head";
+import { reviewCardFace } from "@/components/app/event-feed/room-card";
+import type { ReelCardData } from "@/components/app/event-feed/reel-card";
 import { EventCodeDoor } from "@/components/app/share/event-code-door";
 import { EventShareProvider } from "@/components/app/share/event-share-provider";
 import { largestFirst } from "@/components/app/storage/storage-list-rules";
@@ -57,6 +65,12 @@ import {
   StorageSourceProvider,
   type StorageSource,
 } from "@/components/app/storage/storage-source";
+import {
+  AlbumCover,
+  type HeadStill,
+  HeadStills,
+} from "@/components/guest/event-experience-head";
+import { GuestActionDock } from "@/components/guest/guest-action-dock";
 import { Button } from "@/components/ui/button";
 import type { PlanFacts } from "@/lib/billing/plan-facts";
 import {
@@ -1103,5 +1117,240 @@ export function InvitedDemo() {
         acts={INVITE_ACTS}
       />
     </div>
+  );
+}
+
+/* ── THE EVENT'S HEAD (`event-header` r1: `guest=cover`, `host=shared`, `stays=shutter`) ──────── */
+
+/** The cover's photographs, the bootstrap stills a party's reel would open on (bible 9: no new asset). */
+const COVER_STILLS: HeadStill[] = [
+  "wedding-toast",
+  "reception-hall",
+  "wedding-golden",
+  "wedding-arch",
+].map((id) => ({ id, tile: marketingImage(id).src }));
+
+/**
+ * THE ALBUM'S COVER, as a guest walks into it: the real composition (`AlbumCover`) on the bootstrap
+ * stills, its actions the real atoms (Add photos on the photograph, the reel's and Invite's glass
+ * rounds). Nothing is wired: a press goes nowhere. `empty` is the first guest of the night: the house
+ * light, nothing to dissolve through, and Add the first photo.
+ */
+export function AlbumCoverDemo({ empty = false }: { empty?: boolean }) {
+  return (
+    <div className="overflow-hidden rounded-xl border">
+      <AlbumCover
+        ground={empty ? null : <HeadStills stills={COVER_STILLS} />}
+        name="Maya & Jay"
+        host={{ name: "Maya", avatarUrl: null, seed: "library-maya" }}
+        date="2026-09-12"
+        description="Everything from the day, in one place. Add whatever you took, whenever you get to it."
+        mediaCount={empty ? 0 : 214}
+        guestCount={empty ? 0 : 31}
+        actions={
+          <>
+            <Button
+              variant="on-photo"
+              size="cta"
+              className="min-w-0 flex-1 md:flex-none"
+            >
+              <ImageUp /> {empty ? "Add the first photo" : "Add photos"}
+            </Button>
+            {!empty && (
+              <Button
+                variant="glass"
+                size="icon-cta"
+                aria-label="Watch the highlight reel"
+              >
+                <Play className="fill-current" />
+              </Button>
+            )}
+            <Button variant="glass" size="icon-cta" aria-label="Invite">
+              <QrCode />
+            </Button>
+          </>
+        }
+      />
+    </div>
+  );
+}
+
+/**
+ * MAYA'S HEAD: the real composition (`HubCover`) on the same stills, under the share provider its code
+ * reads (a press opens nothing here), with her numbers on it and the code on its white mat. `before` is
+ * the week before: nothing in the album, the house light.
+ */
+export function HubCoverDemo({ before = false }: { before?: boolean }) {
+  return (
+    <EventShareProvider initialSheet={null}>
+      <div className="overflow-hidden rounded-xl border px-3 sm:px-5">
+        <HubCover
+          name="Maya & Jay"
+          date="2026-09-12"
+          counts={
+            before
+              ? { album: 0, guests: 0, views: 0 }
+              : { album: 214, guests: 31, views: 486 }
+          }
+          prettyUrl="https://partyreel.com/e/maya-and-jay"
+          eventLink="https://partyreel.com/e/3f0c1d2e4a5b6c7d8e9f0a1b2c3d4e5f"
+          code={{
+            qrStyle: "classic",
+            door: before ? "open" : "approve",
+            acceptingUploads: true,
+            waiting: before ? 0 : 2,
+          }}
+          stills={before ? [] : COVER_STILLS}
+          toBar={false}
+        />
+      </div>
+    </EventShareProvider>
+  );
+}
+
+/**
+ * WHAT STAYS once the cover has scrolled away: the real cluster (`GuestActionDock`), held inside its
+ * frame (a transform makes the frame the cluster's containing block, so its `fixed` foot stands at the
+ * frame's foot rather than the page's), over the album's photographs. Press the shutter for a run of the
+ * Library's own.
+ */
+export function WhatStaysDemo() {
+  return (
+    <div className="relative h-80 [transform:translateZ(0)] overflow-hidden rounded-xl border">
+      <div className="grid grid-cols-3 gap-1 p-1">
+        {[...COVER_STILLS, ...COVER_STILLS, ...COVER_STILLS].map((still, i) => (
+          <span
+            key={i}
+            className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-tile)]"
+          >
+            <Image
+              src={still.tile}
+              alt=""
+              fill
+              sizes="200px"
+              className="object-cover"
+            />
+          </span>
+        ))}
+      </div>
+      <WhatStaysCluster />
+    </div>
+  );
+}
+
+function WhatStaysCluster() {
+  const [sending, setSending] = useState(0);
+  const press = () => {
+    setSending(3);
+    window.setTimeout(() => setSending(2), 900);
+    window.setTimeout(() => setSending(1), 1800);
+    window.setTimeout(() => setSending(0), 2700);
+  };
+  return (
+    <GuestActionDock
+      hidden={false}
+      uploadingCount={sending}
+      onAdd={press}
+      more
+      invite={
+        <Button
+          variant="outline"
+          size="icon-cta"
+          aria-label="Invite"
+          className="bg-background shadow-layer"
+        >
+          <QrCode />
+        </Button>
+      }
+      twin={
+        <Button
+          variant="outline"
+          size="icon-cta"
+          aria-label="Watch the highlight reel"
+          className="bg-background shadow-layer"
+        >
+          <Play className="fill-current" />
+        </Button>
+      }
+    />
+  );
+}
+
+const HUB_CARDS: RoomCard[] = [
+  { id: "review", ...reviewCardFace(true, 8) },
+  { id: "guests", value: "2 waiting", amber: true, count: 2 },
+  { id: "settings", value: "Private · You let in" },
+];
+
+const HUB_REEL: ReelCardData = {
+  state: "live",
+  have: 2,
+  of: 2,
+  stills: COVER_STILLS.map((s) => s.tile),
+  stillIds: COVER_STILLS.map((s) => s.id),
+  viewHref: "#",
+  moderated: true,
+  pending: 8,
+};
+
+/**
+ * THE HEAD, THEN THE BAND: Maya's head and the real room cards under it, then a stretch of album to
+ * scroll. Scroll the Library past the head and the band sticks under the bar as it does on the hub,
+ * leading with the head's face and the name and closing on the code as a chip (`EventCardsRow`).
+ */
+export function HubBandDemo() {
+  return (
+    <EventShareProvider initialSheet={null}>
+      <HostAddProvider>
+        <div className="px-3 sm:px-5">
+          <HubCover
+            name="Maya & Jay"
+            date="2026-09-12"
+            counts={{ album: 214, guests: 31, views: 486 }}
+            prettyUrl="https://partyreel.com/e/maya-and-jay"
+            eventLink="https://partyreel.com/e/3f0c1d2e4a5b6c7d8e9f0a1b2c3d4e5f"
+            code={{
+              qrStyle: "classic",
+              door: "approve",
+              acceptingUploads: true,
+              waiting: 2,
+            }}
+            stills={COVER_STILLS}
+            toBar={false}
+          />
+          <div className="mt-6 space-y-6">
+            <EventCardsRow
+              eventId="library-hub"
+              cards={HUB_CARDS}
+              reel={HUB_REEL}
+              moderationOn
+              head={{ name: "Maya & Jay", stills: COVER_STILLS }}
+            />
+            <div
+              data-hub-band-album=""
+              className="grid grid-cols-3 gap-1 sm:grid-cols-5"
+            >
+              {Array.from(
+                { length: 30 },
+                (_, i) => COVER_STILLS[i % COVER_STILLS.length]!,
+              ).map((still, i) => (
+                <span
+                  key={i}
+                  className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-tile)]"
+                >
+                  <Image
+                    src={still.tile}
+                    alt=""
+                    fill
+                    sizes="240px"
+                    className="object-cover"
+                  />
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </HostAddProvider>
+    </EventShareProvider>
   );
 }

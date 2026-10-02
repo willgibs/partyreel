@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { Eye, Images, Users } from "lucide-react";
 
 import { appNotFoundMetadata } from "@/app/(app)/not-found.metadata";
 import { AppNotFoundScreen } from "@/app/(app)/not-found.screen";
@@ -9,23 +8,20 @@ import { AppNotFoundScreen } from "@/app/(app)/not-found.screen";
 import { HostCreditLookProvider } from "@/components/app/event-blocks/credit-look";
 import { EventChecklist } from "@/components/app/event-feed/checklist";
 import { EventCardsRow } from "@/components/app/event-feed/event-cards-row";
+import { HubCover } from "@/components/app/event-feed/event-hub-head";
+import {
+  newestCoverStills,
+  reelCoverStills,
+} from "@/components/app/event-feed/event-hub-head-stills";
 import { reviewCardFace } from "@/components/app/event-feed/room-card";
-import {
-  EventGallery,
-  EventLive,
-} from "@/components/app/event-feed/event-gallery";
-import {
-  HostAlbumProvider,
-  HubAlbumCount,
-} from "@/components/app/event-feed/host-album";
+import { EventGallery } from "@/components/app/event-feed/event-gallery";
+import { HostAlbumProvider } from "@/components/app/event-feed/host-album";
 import { EventUploads } from "@/components/app/event-uploads";
 import { HostAddProvider } from "@/components/app/host-add-provider";
 import { HostSelectionProvider } from "@/components/app/host-selection-provider";
-import { EventCodeDoor } from "@/components/app/share/event-code-door";
-import { EventLinkRow } from "@/components/app/share/event-link-row";
 import { EventShareProvider } from "@/components/app/share/event-share-provider";
 import { EventSheets } from "@/components/app/share/event-sheets";
-import { PageHeading } from "@/components/shared/page-heading";
+
 import { SetCrumbs } from "@/components/shared/crumbs";
 import { WELCOME_VALUE } from "@/components/app/pricing/return-path";
 import { WelcomeToPro } from "@/components/app/pricing/welcome-to-pro";
@@ -63,7 +59,11 @@ import {
   readRestOfManifest,
   seedFrom,
 } from "@/lib/event/host-album.server";
-import { firstWindowIds, newestPreviewUrl } from "@/lib/event/hub-album";
+import {
+  firstWindowIds,
+  newestPreviewUrl,
+  seedLinkMap,
+} from "@/lib/event/hub-album";
 import { readHostLinksBody } from "@/lib/event/host-links.server";
 import { REEL_MINIMUM } from "@/lib/event/reel-progress";
 import { legacySectionRoom, resolveEventSheet } from "@/lib/event/sections";
@@ -80,7 +80,7 @@ import {
 } from "@/lib/shared/tile-size-cookie";
 import { getSiteUrl } from "@/lib/site-url";
 import { getRequestAuth } from "@/lib/supabase/request-auth";
-import { formatEventDate } from "@/lib/utils";
+
 import { doorLabel } from "@/lib/events/visibility-labels";
 
 // Presigned gallery URLs (the first window's) are per-request + short-lived, so
@@ -343,6 +343,18 @@ export default async function EventDetailPage({
     pending: pendingCount,
   };
 
+  // ★ THE HUB'S COVER (`event-header` r1, `host=shared`): the album's own head, her tools on it. Its
+  // photographs are the guests' cover's (`event-hub-head-stills.ts`): the reel's opening stills while it
+  // plays, else the album's newest a guest can see, from the links the first window already minted.
+  const seedLinks = seedLinkMap(seed);
+  const coverStills =
+    reelFace.state === "live" && reelFace.stills.length > 0
+      ? reelCoverStills(reelFace)
+      : newestCoverStills(seed.sync.entries, (id) => seedLinks.get(id)?.tile);
+  // A receipt above the head (Checkout's return) keeps the head in the page's flow; otherwise the
+  // cover reaches up to the app's bar, taking back the main's 32px.
+  const welcomed = welcome === WELCOME_VALUE;
+
   return (
     // ★ A WIDE PAGE (Will's `host=same`, 2026-09-19): the host's album runs to
     // the window's edges. `data-app-wide` is how a page asks the shell to drop
@@ -377,61 +389,31 @@ export default async function EventDetailPage({
             or a number off it: the header's count and pip, the cards' Review
             and Reel, the checklist and Settings' rail, the album and its header. */}
         <HostAlbumProvider seed={seed} qrToken={event.qr_token}>
-          {/* THE HEADER AS ONE OBJECT: the code's height IS the title + metadata
-            + link stack, so the two columns read as a single block rather than
-            a badge pinned beside a heading. It runs as wide as the page (his
-            `album-columns` width note): a long name truncates at the window,
-            not at a 1280 column the album beneath it ignores. */}
-          <div className="flex items-center gap-4 sm:gap-5">
-            <EventCodeDoor
-              eventName={event.name}
-              joinUrl={eventLink}
-              qrStyle={event.qr_style}
-              door={event.door}
-              acceptingUploads={event.accepting_uploads}
-              waiting={doorCounts.waiting}
-            />
-            <div className="min-w-0 flex-1 space-y-1">
-              {/* No size override: the event name is this page's h1 and wears the
-                ladder's `page` step like every other app title. The code beside
-                it is a sibling BUTTON, never a child of the heading. */}
-              <PageHeading className="truncate">{event.name}</PageHeading>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
-                {event.event_date && (
-                  <span>{formatEventDate(event.event_date)}</span>
-                )}
-                <span
-                  className="flex items-center gap-1.5"
-                  title="Photos and videos in the album"
-                >
-                  <Images className="size-3.5" />
-                  {/* The album's count, live off the album's store (the page is
-                    never refreshed to move it). */}
-                  <HubAlbumCount />
-                </span>
-                <span
-                  className="flex items-center gap-1.5"
-                  title={
-                    guestsCount === 1 ? "1 guest" : `${guestsCount} guests`
-                  }
-                >
-                  <Users className="size-3.5" />
-                  {formatCount(guestsCount)}
-                </span>
-                <span className="flex items-center gap-1.5" title="Views">
-                  <Eye className="size-3.5" />
-                  {formatCount(views)}
-                </span>
-                {/* ★ THE PIP (`first=live`, Will 2026-09-21). It sits in the
-                  metadata row because that is where a host is already reading
-                  the counts the album keeps current, and it renders NOTHING
-                  until the Realtime channel is actually subscribed — a pip
-                  claiming "Live" over a dead socket is worse than no pip. */}
-                <EventLive />
-              </div>
-              <EventLinkRow prettyUrl={prettyUrl} permanentUrl={eventLink} />
-            </div>
-          </div>
+          {/* ★ THE HEAD IS THE ALBUM'S OWN (`event-header` r1, `host=shared`): the cover her guests walk
+              into, its photographs dissolving edge to edge under the name, with her tools on it: the
+              facts and the link under the title (r2 redraws both from his note; today's words stand),
+              and the live code on its white mat in the cover's corner, scannable from across a table
+              and pressing it grows it (`EventCodeDoor`). It bleeds by the wide page's own gutter to the
+              window's edges, and reaches up to the app's bar. */}
+          <HubCover
+            name={event.name}
+            date={event.event_date}
+            counts={{
+              album: seed.sync.counts.album,
+              guests: guestsCount,
+              views,
+            }}
+            prettyUrl={prettyUrl}
+            eventLink={eventLink}
+            code={{
+              qrStyle: event.qr_style,
+              door: event.door,
+              acceptingUploads: event.accepting_uploads,
+              waiting: doorCounts.waiting,
+            }}
+            stills={coverStills}
+            toBar={!welcomed}
+          />
 
           {/* A photograph's credit in the host's viewer opens its sender's look, with its quiet Block
               (event-safety `entry=all`, the viewer's face-led credit). */}
@@ -443,6 +425,7 @@ export default async function EventDetailPage({
                   cards={cards}
                   reel={reel}
                   moderationOn={isModerationOn}
+                  head={{ name: event.name, stills: coverStills }}
                 />
                 <EventChecklist
                   eventId={event.id}

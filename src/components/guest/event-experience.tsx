@@ -5,23 +5,30 @@ import {
   lazy,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
 } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ImageUp, Laptop, Smartphone } from "lucide-react";
+import { ArrowUp, ImageUp, Laptop, Play, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 
-import { initial } from "@/components/app/user-menu";
 import { AlbumBoundary } from "@/components/guest/album-boundary";
 import { ClaimHandlePrompt } from "@/components/guest/claim-handle-prompt";
 import { AlbumLightSampler } from "@/components/guest/door/album-light";
 import { DoorStage, RestWords } from "@/components/guest/door/stage";
 import type { EntryModalHandle } from "@/components/guest/entry-modal";
+import {
+  AlbumCover,
+  CoverGround,
+  createHeadBridge,
+  useHeadBridge,
+} from "@/components/guest/event-experience-head";
 import type { FollowMomentHost } from "@/components/guest/follow-moment-card";
 import { GuestActionDock } from "@/components/guest/guest-action-dock";
+import { publishCoverUnderHeader } from "@/components/guest/guest-header-cover";
 import { GallerySkeleton } from "@/components/guest/gallery-skeleton";
 import { GalleryLiveProvider } from "@/components/guest/gallery-live";
 import { GuestShare } from "@/components/guest/guest-share";
@@ -36,14 +43,13 @@ import {
   type GalleryPayload,
   type LiveGalleryHandle,
 } from "@/components/guest/live-gallery";
-import { LiveReel, LiveReelTile } from "@/components/guest/reel/live-reel";
+import { LiveReel } from "@/components/guest/reel/live-reel";
 import { ReportFoot } from "@/components/guest/report-dialog";
 import {
   createUploadTrackerStore,
   UploadTracker,
   UploadTrackerButton,
 } from "@/components/guest/upload-tracker";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import {
@@ -57,7 +63,7 @@ import {
   type DemoPairArrival,
 } from "@/lib/demo";
 import type { GalleryAccess, GalleryGate } from "@/lib/events/gallery-access";
-import { formatCount, formatMediaCount } from "@/lib/format/count";
+import { formatCount } from "@/lib/format/count";
 import { useInViewSentinel } from "@/lib/shared/use-in-view-sentinel";
 import { DEFAULT_ROW_STEP, type RowStep } from "@/lib/shared/album-rows";
 import { claimLeftForAnotherAddress } from "@/lib/guest/claim-uploads";
@@ -73,6 +79,7 @@ import {
 } from "@/lib/guest/confirm-beat-name";
 import { closesOnLastRemoval as lastRemovalCloses } from "@/lib/guest/delete-consequence";
 import { createDoorHold, heldDoorName } from "@/lib/guest/door-hold";
+import { useDoorHues, useLampLit } from "@/lib/guest/door-light";
 import { contributionAnswered } from "@/lib/guest/entry-steps";
 import { joinEvent, passedTicket } from "@/lib/guest/join";
 import { useKeepAskPutDown } from "@/lib/guest/keep-ask";
@@ -89,7 +96,7 @@ import {
   useStoredSession,
 } from "@/lib/guest/use-stored-session";
 import { createClient } from "@/lib/supabase/client";
-import { cn, formatEventDate } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 /**
  * THE PAGE'S TWO BOXES.
@@ -158,6 +165,7 @@ export function EventExperience({
   rhythmSeed = 0,
   albumFull = false,
   waitingOnArrival = false,
+  reelAsked = false,
 }: {
   event: GuestEvent;
   qrToken: string;
@@ -237,6 +245,12 @@ export function EventExperience({
    * `waiting-on-arrival.server.ts`): the row's Add is hers from the first paint, never the empty state's.
    */
   waitingOnArrival?: boolean;
+  /**
+   * The album's owner arrived asking for the reel (`?reel`, the hub's Reel card's door): the page's
+   * server knows it before any script runs, so the reel's black stands from the first byte instead of
+   * the album flashing under a view still loading (see the curtain below).
+   */
+  reelAsked?: boolean;
 }) {
   const router = useRouter();
   // ONE resolution of the step for both boxes the album occupies: the skeleton
@@ -433,20 +447,16 @@ export function EventExperience({
     ? gate !== "upload"
     : false;
 
-  // WHAT THIS DEVICE HAS SENT THAT THE ALBUM DOES NOT SHOW YET: everything in
-  // flight (the head's stack), AND anything a hold-for-approval event finished
-  // but is keeping back, which draws nowhere in the album (`held=uploads`) but
-  // keeps its object URL alive for her uploads' picture of it, and counts
-  // toward her own-delete consequence, until the host decides.
-  const inFlightUploads = queue.filter(
-    (it) => it.status !== "done" || it.mediaStatus === "pending",
-  );
   const uploadingCount = queue.filter(
     (it) => it.status === "uploading" || it.status === "queued",
   ).length;
-  // The row on landing, the DOCK once that row scrolls away: one sentinel
-  // decides which, and the dock carries both of a guest's actions, not only Add.
+  // The cover's row on landing, the SHUTTER once that row scrolls away: one sentinel decides which,
+  // and the shutter carries every one of the row's actions, not only Add.
   const { sentinelRef, inView: headerActionsInView } =
+    useInViewSentinel<HTMLDivElement>();
+  // The album's end: while it is below the screen, the shutter's foot fade stands over the album (his
+  // note on `stays=shutter`: "when there is more to scroll"), and it goes once the end is in view.
+  const { sentinelRef: albumEndRef, inView: albumEndInView } =
     useInViewSentinel<HTMLDivElement>();
   const canUpload = access === "full" && event.accepting_uploads;
   /* ★ THE CAP A GUEST'S FILE MEETS, SAID BEFORE THE PICKER (crumbs-43): the host's own per-file cap
@@ -546,6 +556,18 @@ export function EventExperience({
     },
     [closesOnLastRemoval, router],
   );
+  // WHAT THIS DEVICE HAS SENT THAT THE ALBUM DOES NOT SHOW YET: everything in
+  // flight (the head's stack), AND anything a hold-for-approval event finished
+  // but is keeping back, which draws nowhere in the album (`held=uploads`) but
+  // keeps its object URL alive for her uploads' picture of it, and counts
+  // toward her own-delete consequence, until the host decides. ★ Never one she
+  // took back from her list (her tracker's Remove): it is hers no longer, so it
+  // neither counts toward that consequence nor keeps the album from being empty.
+  const inFlightUploads = queue.filter(
+    (it) =>
+      (it.status !== "done" || it.mediaStatus === "pending") &&
+      !(it.mediaId && removedIds.has(it.mediaId)),
+  );
 
   // The header's own name menu is a SIBLING island and cannot reach the modal's
   // handle; `lib/guest/name-door.ts` is the one channel between them (the same
@@ -554,19 +576,11 @@ export function EventExperience({
     () => onNameDoorRequest((mode) => entryRef.current?.openToName(mode)),
     [],
   );
-  // At 0 items the PHOTOGRAPHIC-PROMISE empty state owns the primary Add
-  // (its centered CTA), so the header drops its Add to avoid two primaries.
-  // ★ BUT ONLY WHILE NOTHING OF HERS IS ON THE WAY: a guest whose own files
-  // are in flight sees them at the album's head (the album draws its grid for
-  // them), and one whose files are held for the host has the album's empty
-  // state with no CTA of its own (the album shows only what is in it), so in
-  // both the row's Add is the only Add there is (the empty state's CTA is
-  // passed only while `galleryEmpty`). At a moderated event whose album is
-  // still empty, that is every guest who has sent anything, and exactly the
-  // guest her tracker sits beside Add for, its badge counting what waits.
-  // ★ AND HER WAITING ROWS FROM AN EARLIER VISIT COUNT FROM THE FIRST PAINT (crumbs-43, `waitingOnArrival`): her
-  // tracker reads them only after mount, so the page's server render says whether any wait, and the Add a returning
-  // guest meets is the row's from the first frame, with nothing to move when the tracker's read lands.
+  /* ★ THE COVER'S ADD IS THE ONE ADD (`event-header` r1, `guest=cover`). The album's empty state draws
+     its river and its words and no button of its own: the cover's white Add says "Add the first photo"
+     on an album with nothing in it yet, in the first screen, and "Add photos" once anything is (her own
+     files on their way, held for the host, or waiting from an earlier visit count from the first paint,
+     crumbs-43's `waitingOnArrival`), so a guest always has exactly one Add in front of her. */
   const galleryEmpty =
     mediaCount === 0 && inFlightUploads.length === 0 && !waitingOnArrival;
   // Her tracker (`guest-capture` r1, `tracker=button`): the two facts its button needs, kept
@@ -574,11 +588,39 @@ export function EventExperience({
   const [trackerStore] = useState(createUploadTrackerStore);
   const [trackerOpen, setTrackerOpen] = useState(false);
   const openTracker = useCallback(() => setTrackerOpen(true), []);
-  /* ★ THE STORED REEL'S CARD AND OVERLAY DO NOT RENDER. The reel is live: the Highlight reel tile
-     sits in its own slot above the album and opens the full-screen view (reel/live-reel.tsx), both
-     reading the album's own live payload. The stored reel's two components stay on disk until the
-     teardown that deletes them with the tables. */
-  const revealBase = 0;
+  /* ★ WHAT THE LIVE ALBUM TELLS THE HEAD (`event-experience-head.tsx`'s bridge): the album streams in
+     under its own <Suspense>, and the cover is the shell, so the album's reel controller publishes the
+     cover's photographs and the reel's door here (`LiveReel`'s `headBridge`), as her tracker publishes
+     its button's two facts through `trackerStore`. Null until the album has mounted. */
+  const [headBridge] = useState(createHeadBridge);
+  const head = useHeadBridge(headBridge);
+  /* Whether the album has a reel to play from the cover's round: the album's own word once it has one,
+     and until then the page's guess from what it knows at render (the host's switch, and two photos at
+     least), so the round stands from the first paint rather than pushing Add over when the album lands.
+     A guess the album corrects is the rare album whose two are a clip or a video with no poster. */
+  const reelRound = head
+    ? head.reel.available
+    : access === "full" && event.show_reel && mediaCount >= 2;
+  const openReel = useCallback(() => head?.reel.open(), [head]);
+  const preloadReel = useCallback(() => head?.reel.preload(), [head]);
+  /* ★ AN OWNER ARRIVING FROM HER HUB ON `?reel` MEETS THE REEL, NOT HER ALBUM (`event-header` r1's
+     folded fix, his note: "some (reel) seems to flash a guest album as it loads the slideshow"). The
+     view is a lazy chunk that opens after the page hydrates, so the album painted first and flashed
+     under it. The page knows at render that she asked for the reel (`reelAsked`: the owner, who never
+     owes the door, with `?reel` in the address), so the view's own black stands from the first byte and
+     the view opens over it. The curtain goes the moment the address stops asking (the view closed, or
+     the reel turned out not to play and the album dropped `?reel`), and never comes back: a reel she
+     opens later from the cover opens over the album, as it should. */
+  const [curtainDown, setCurtainDown] = useState(!reelAsked);
+  if (!curtainDown && head && !head.reel.viewAsked) setCurtainDown(true);
+  const reelCurtain = !curtainDown;
+  // The shutter's ring: the run reads the page's queue and its progress store (`useRunProgress`, inside
+  // the shutter, so a tick re-renders the shutter alone), in the album's own light.
+  const shutterRun = useMemo(
+    () => ({ items: queue, progress: uploadProgress }),
+    [queue, uploadProgress],
+  );
+  const { hues: albumHues } = useDoorHues();
   /* ────────────────────────────────────────────────────────────────────────
      THE IMMEDIATE HEAL.
 
@@ -653,6 +695,45 @@ export function EventExperience({
   // chunk and a hydrating page cannot know yet: a `?reel` waits a beat for the owner rather than
   // opening under a welcome that is about to arrive for a guest.
   const [welcomePending, setWelcomePending] = useState(true);
+
+  /* ★ THE HEADER STANDS ON THE COVER WHILE THE COVER IS UNDER IT (`guest-header-cover.ts`): the page
+     says so at render, and this moves it as the page does. The door's stage arriving over the album
+     takes the header back to paper over a paper door. And the demo's header, pinned to the top for its
+     Demo mark, stands on the cover only at the page's top: the moment the page moves, the cover's words
+     would slide under a see-through bar and collide with its own, so it takes the paper (a real event's
+     header scrolls away with its cover and never needs to). */
+  const [coverEl, setCoverEl] = useState<HTMLElement | null>(null);
+  const [coverUnderBar, setCoverUnderBar] = useState(true);
+  useEffect(() => {
+    if (!isDemo) return;
+    const read = () => setCoverUnderBar(window.scrollY < 8);
+    // A reload restored mid-page reads where it landed; every later move is the scroll's own event.
+    const first = requestAnimationFrame(read);
+    window.addEventListener("scroll", read, { passive: true });
+    return () => {
+      cancelAnimationFrame(first);
+      window.removeEventListener("scroll", read);
+    };
+  }, [isDemo]);
+  const coverUnderHeader =
+    access !== "none" && !stageUp && (!isDemo || coverUnderBar);
+  useEffect(() => {
+    publishCoverUnderHeader(coverUnderHeader);
+  }, [coverUnderHeader]);
+  // A page left takes its word with it, so the next page's header follows its own render.
+  useEffect(() => () => publishCoverUnderHeader(null), []);
+  /* THE WAY BACK TO THE COVER, the shutter's right flank on an album with no reel: the page's top, and
+     a keyboard's focus with it (the shutter goes inert as the cover's row returns, so a focus left on it
+     would fall to the page), handed to the event's name, which takes it as a landmark and never as a stop
+     in the tab order. */
+  const backToCover = useCallback(() => {
+    const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({ top: 0, behavior: still ? "auto" : "smooth" });
+    const title = coverEl?.querySelector<HTMLElement>("h1");
+    if (!title) return;
+    if (!title.hasAttribute("tabindex")) title.setAttribute("tabindex", "-1");
+    title.focus({ preventScroll: true });
+  }, [coverEl]);
 
   /* ★ PAST THE DOOR IS A TICKET (the doors, event-settings r1). "Already in" means everyone past the
      door, a confirmed guest who only looks included (Will's `inside` note: "X guests are already
@@ -988,14 +1069,16 @@ export function EventExperience({
       // screen while it does (`data-guest-experience`, `door/doorway.css`).
       data-guest-experience=""
       className={cn(
-        "relative w-full flex-1 pt-8",
-        // The dock is fixed, so the page owes it room or it crops the last row
-        // and the report line. Reserved for as long as the dock is MOUNTED
-        // rather than while it is visible: a padding that appeared with the bar
-        // would grow the page under a guest's thumb mid-scroll.
+        "relative w-full flex-1",
+        // The shutter is fixed, so the page owes it room or it crops the last row
+        // and the report line. Reserved for as long as it is MOUNTED rather than
+        // while it is visible: a padding that appeared with the shutter would grow
+        // the page under a guest's thumb mid-scroll. Past the door the cover
+        // reaches the top itself (under the header); a door that is the page keeps
+        // its own air above.
         access !== "none"
-          ? "pb-[calc(6rem+env(safe-area-inset-bottom))]"
-          : "pb-8",
+          ? "pb-[calc(7.5rem+env(safe-area-inset-bottom))]"
+          : "pt-8 pb-8",
       )}
       data-reveal-curtain={holdCurtain ? "" : undefined}
     >
@@ -1120,249 +1203,172 @@ export function EventExperience({
         // ★ THE ALBUM UNDER AN OPEN STAGE IS `inert`: the door is the page, so nothing behind it can be
         // reached by a tab or read aloud until the door lets her through.
         <div data-door-behind="" inert={stageUp || undefined}>
-          {/* THE WORDS. One box, on the left line, holding everything above the
-          album; the album is its own box below (see COLUMN / BLEED). */}
-          <div className={COLUMN}>
-            {/* No in-page demo banner: a Demo mark sits beside the wordmark in
-            guest-header.tsx, pinned to the top, so it never scrolls away. A
-            banner here would scroll off and need re-saying itself. */}
-            {/* LEFT-EDITORIAL header: identity title, one byline line, the stats
-                line, then the action block. ★ Only past the door: at `none` the door
-                is the page (above), with the name and the count and nothing else.
-                "Hosted by" shows only when the host set a real name; the avatar only
-                if one exists (no initials fallback here). */}
-            <header>
-              <h1
-                data-arrive
-                style={{ "--arrive-i": 0 } as React.CSSProperties}
-                className="font-heading text-page text-balance"
-              >
-                {event.name}
-              </h1>
-              <>
-                {(event.host_display_name?.trim() || event.event_date) && (
-                  <p
-                    data-reveal
-                    style={{ "--reveal-i": revealBase } as React.CSSProperties}
-                    className="mt-2.5 flex items-center gap-2 text-xs text-muted-foreground"
-                  >
-                    {event.host_display_name?.trim() && (
-                      <span className="flex items-center gap-1.5">
-                        <span className="text-faint">Hosted by</span>
-                        {/* Seeded, photo or not: without a photo the byline
-                          still draws the seeded initial rather than nothing. */}
-                        <Avatar seed={hostSeed ?? undefined} size="sm">
-                          <AvatarImage
-                            src={hostAvatarUrl ?? undefined}
-                            alt=""
-                          />
-                          <AvatarFallback>
-                            {initial(null, event.host_display_name)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="font-medium text-foreground">
-                          {event.host_display_name}
-                        </span>
-                      </span>
-                    )}
-                    {event.host_display_name?.trim() && event.event_date && (
-                      <span aria-hidden className="text-faint">
-                        ·
-                      </span>
-                    )}
-                    {event.event_date && (
-                      <span>{formatEventDate(event.event_date)}</span>
-                    )}
-                  </p>
-                )}
-                <p
-                  data-reveal
-                  style={
-                    { "--reveal-i": revealBase + 1 } as React.CSSProperties
+          {/* ★ THE COVER (`event-header` r1, `guest=cover`): the reel's own photographs dissolving edge
+              to edge under the event's name, on the house light until there are any; Add photos white on
+              them, the reel and Invite beside it. It reaches up under the header (`-mt-14`, the
+              header's own `h-14`), which stands on it in white (`guest-header-cover.ts`). ★ The words
+              keep the page's left line (the header's logo, the album's first column): 20px in. */}
+          <AlbumCover
+            ref={setCoverEl}
+            className="-mt-14"
+            ground={
+              <CoverGround
+                seed={galleryPromise}
+                bridge={headBridge}
+                eventId={event.id}
+              />
+            }
+            name={event.name}
+            host={
+              event.host_display_name?.trim()
+                ? {
+                    name: event.host_display_name,
+                    avatarUrl: hostAvatarUrl,
+                    seed: hostSeed ?? null,
                   }
-                  className="mt-1 text-xs text-muted-foreground"
-                >
-                  {formatMediaCount(mediaCount)}
-                  {guestCount > 0 && (
-                    <>
-                      {" "}
-                      from {formatCount(guestCount)}{" "}
-                      {guestCount === 1 ? "guest" : "guests"}
-                    </>
-                  )}
-                </p>
-                {event.description && (
-                  <p
-                    data-reveal
-                    style={
-                      { "--reveal-i": revealBase + 2 } as React.CSSProperties
-                    }
-                    className="mt-2 max-w-prose text-reading text-pretty text-muted-foreground"
+                : null
+            }
+            date={event.event_date}
+            description={event.description}
+            mediaCount={mediaCount}
+            guestCount={guestCount}
+            actionsRef={sentinelRef}
+            actions={
+              <>
+                {canUpload && (
+                  <Button
+                    type="button"
+                    variant="on-photo"
+                    size="cta"
+                    onClick={openAdd}
+                    className="min-w-0 flex-1 md:flex-none"
                   >
-                    {event.description}
-                  </p>
+                    <ImageUp />{" "}
+                    {galleryEmpty ? "Add the first photo" : "Add photos"}
+                  </Button>
+                )}
+                <UploadTrackerButton
+                  look="glass"
+                  store={trackerStore}
+                  onOpen={openTracker}
+                />
+                {reelRound && (
+                  <Button
+                    type="button"
+                    variant="glass"
+                    size="icon-cta"
+                    aria-label="Watch the highlight reel"
+                    title="Watch the highlight reel"
+                    onClick={openReel}
+                    onPointerEnter={preloadReel}
+                    onFocus={preloadReel}
+                  >
+                    <Play className="fill-current" />
+                  </Button>
+                )}
+                <GuestShare
+                  look="glass"
+                  joinUrl={shareUrl}
+                  qrStyle={event.qr_style}
+                  eventName={event.name}
+                />
+                {/* ★ THE DEMO'S CONVERSION OBJECT rides the same row (its visitor is a prospective
+                    host, not a guest choosing whether to keep an album), on a line of its own at a
+                    phone, where the row has no room for its words. */}
+                {isDemo && (
+                  <Button
+                    variant="glass"
+                    size="cta"
+                    className="w-full md:w-auto"
+                    asChild
+                  >
+                    <Link href="/">Start your own</Link>
+                  </Button>
                 )}
               </>
-            </header>
+            }
+          />
 
-            <>
-              {/* The action block: a full-width primary Add (only when
-              the viewer can actually upload right now) over the secondary row.
-              data-reveal: rises in last on the unlock reveal (the masonry's own
-              seeded stagger carries from here).
-
-              ★ NO SAVE IN THIS ROW: it feels natural after an upload, where
-              above an album it is a random button, a growth lever asking a
-              stranger to keep an album they have not seen yet, one tap from the
-              event's own name. The offer waits until a guest has actually put
-              something in the album, where the door's own last screen makes it
-              (the keep, above), in the door's own voice. Invite takes the
-              width: a 2-col grid with one button in it is a row with a hole in
-              it.
-
-              ★ THE DEMO FILLS THE SAME HOLE DIFFERENTLY, with its Start your
-              own button: a real guest has nothing to put there, but a demo
-              VISITOR does — the conversion object the empty slot always was, on
-              the same row as Invite rather than replacing it (the demo's visitor
-              is a prospective host, not a guest choosing whether to keep an
-              album). */}
-              <div
-                className="mt-4"
-                ref={sentinelRef}
-                data-reveal
-                style={{ "--reveal-i": revealBase + 3 } as React.CSSProperties}
-              >
-                {/* Her tracker's round button rides beside Add (`guest-capture` r1,
-                  `tracker=button`); where the row has no Add (uploads closed), beside
-                  Invite. It draws nothing until she has something sent at a moderated
-                  event. */}
-                {canUpload && !galleryEmpty && (
-                  <div className="flex items-center gap-2">
-                    <Button
-                      type="button"
-                      size="lg"
-                      className="min-w-0 flex-1"
-                      onClick={openAdd}
-                    >
-                      <ImageUp /> Add photos
-                    </Button>
-                    <UploadTrackerButton
-                      store={trackerStore}
-                      onOpen={openTracker}
-                    />
-                  </div>
-                )}
-                <div className="mt-2 flex items-center gap-2">
-                  <div
-                    className={cn(
-                      "grid min-w-0 flex-1 gap-2",
-                      isDemo ? "grid-cols-2" : "grid-cols-1",
-                    )}
-                  >
-                    {isDemo && (
-                      <Button size="sm" className="h-9 w-full" asChild>
-                        <Link href="/">Start your own</Link>
-                      </Button>
-                    )}
-                    <GuestShare
-                      joinUrl={shareUrl}
-                      qrStyle={event.qr_style}
-                      eventName={event.name}
-                      triggerClassName="h-9 w-full"
-                    />
-                  </div>
-                  {!(canUpload && !galleryEmpty) && (
-                    <UploadTrackerButton
-                      store={trackerStore}
-                      onOpen={openTracker}
-                    />
-                  )}
+          {/* Upload area: only at `full` access (a `teaser` viewer is still at the door, which owns every
+              step in front of them). Uploads off => a quiet view-only line. ★ NO SAVE, AND NO INLINE "Add
+              your name to upload" PANEL: a confirmed account with no profile name is asked at the DOOR,
+              as its name step in `profile` mode, like every other guest and before the album. */}
+          <div className={COLUMN}>
+            {access === "full" &&
+              (event.accepting_uploads ? (
+                <div className="mt-5 empty:hidden">
+                  <GuestUpload
+                    ref={uploadRef}
+                    event={event}
+                    qrToken={qrToken}
+                    queue={queue}
+                    onAddFiles={addFiles}
+                    onRetry={retry}
+                    onDismiss={dismiss}
+                    // The door's own step is showing this run's failures, or its keep stands in
+                    // front of the album: one run never gets two surfaces, and the failure sheet
+                    // waits for the keep to be answered (see the one queue's note above).
+                    suppressFailures={uploadStepActive || keepDue}
+                    onFailuresClosed={flushPendingVerification}
+                    isDemo={isDemo}
+                    host={hostCard}
+                    moment={moment}
+                    elsewhere={elsewhere}
+                    onAccountRenamed={handleAccountRenamed}
+                    removedIds={removedIds}
+                    capBytes={hostCap}
+                  />
                 </div>
-              </div>
-
-              {/* Upload area — only at `full` access (a `teaser` viewer is still at the door, which
-              owns every step in front of them). Uploads off => a quiet view-only line.
-
-              ★ NO INLINE "Add your name to upload" PANEL: a confirmed account with no profile name
-              is asked at the DOOR, as its name step in `profile` mode, like every other guest and
-              before the album rather than in a card halfway down it. */}
-              {access === "full" &&
-                (event.accepting_uploads ? (
-                  <div className="mt-7">
-                    <GuestUpload
-                      ref={uploadRef}
-                      event={event}
-                      qrToken={qrToken}
-                      queue={queue}
-                      onAddFiles={addFiles}
-                      onRetry={retry}
-                      onDismiss={dismiss}
-                      // The door's own step is showing this run's failures, or its keep stands in
-                      // front of the album: one run never gets two surfaces, and the failure sheet
-                      // waits for the keep to be answered (see the one queue's note above).
-                      suppressFailures={uploadStepActive || keepDue}
-                      onFailuresClosed={flushPendingVerification}
-                      isDemo={isDemo}
-                      host={hostCard}
-                      moment={moment}
-                      elsewhere={elsewhere}
-                      onAccountRenamed={handleAccountRenamed}
-                      removedIds={removedIds}
-                      capBytes={hostCap}
-                    />
-                  </div>
-                ) : (
-                  !isDemo && (
-                    <>
-                      <p className="mt-7 text-center text-reading text-muted-foreground">
-                        The host has closed uploads. You can still browse the
-                        album.
-                      </p>
-                      {/* A confirmation from the name menu or the mark can land
-                        here too, on an album whose uploads have since closed:
-                        the moment still plays, in the slot's place. */}
-                      {moment && (
-                        <div className="mt-4">
-                          <ClaimHandlePrompt
-                            doneCount={0}
-                            qrToken={qrToken}
-                            host={hostCard}
-                            moment
-                            elsewhere={elsewhere}
-                            onAccountRenamed={handleAccountRenamed}
-                          />
-                        </div>
-                      )}
-                    </>
-                  )
-                ))}
-            </>
+              ) : (
+                !isDemo && (
+                  <>
+                    <p className="mt-5 text-center text-reading text-muted-foreground">
+                      The host has closed uploads. You can still browse the
+                      album.
+                    </p>
+                    {/* A confirmation from the name menu or the mark can land
+                      here too, on an album whose uploads have since closed:
+                      the moment still plays, in the slot's place. */}
+                    {moment && (
+                      <div className="mt-4">
+                        <ClaimHandlePrompt
+                          doneCount={0}
+                          qrToken={qrToken}
+                          host={hostCard}
+                          moment
+                          elsewhere={elsewhere}
+                          onAccountRenamed={handleAccountRenamed}
+                        />
+                      </div>
+                    )}
+                  </>
+                )
+              ))}
           </div>
 
           <>
             {/* THE ALBUM, and nothing else, leaves the column to run the window's
               width. It is a sibling of the words box, not a block inside it. */}
-            {/* ★ ONE LIVE SOURCE ABOVE THE ALBUM AND THE REEL. The provider owns the gallery's live
-              state (the refreshed list, the arrivals, this device's own ids, the doorbell and the
-              poll), so the Highlight reel tile, the full-screen view and the album all read ONE
-              list: an upload reaches the grid and the reel in the same breath. The gallery streams
-              in (the presign-heavy payload): the skeleton holds its layout slot, and nothing above
-              the album waits for it. key={access} makes an access flip (teaser -> full after
-              sign-in via router.refresh(), a transition - old UI holds) a clean remount that
-              re-seeds from the fresh promise. The fallback wears the SAME box as the gallery, and
-              the skeleton the same column rule AT THE SAME TILE SIZE, so the swap is layout-stable
-              at every window: a two-column placeholder under a six-column album, or an
-              eight-column one under seven, would flash the wrong layout on every load. */}
+            {/* ★ ONE LIVE SOURCE BELOW THE COVER, FOR THE ALBUM AND THE REEL. The provider owns the
+              gallery's live state (the refreshed list, the arrivals, this device's own ids, the doorbell
+              and the poll), so the cover's photographs, the full-screen reel and the album all read ONE
+              list: an upload reaches the grid and the reel in the same breath. The gallery streams in
+              (the presign-heavy payload): the skeleton holds its layout slot, and nothing above the
+              album waits for it (the cover reads the same seed in a boundary of its own). key={access}
+              makes an access flip (teaser -> full after sign-in via router.refresh(), a transition - old
+              UI holds) a clean remount that re-seeds from the fresh promise. The fallback wears the SAME
+              box as the gallery, and the skeleton the same column rule AT THE SAME TILE SIZE, so the swap
+              is layout-stable at every window. */}
             {/* ★ AND ITS FAILURE IS THE ALBUM'S ALONE (crumbs-28, `album-boundary.tsx`): a crash where
-              the album renders stays here, so the header, the door and Add photos stand while the
-              album says it could not load, with a Try again that asks the page again. A seed whose
+              the album renders stays here, so the header, the cover, the door and Add photos stand while
+              the album says it could not load, with a Try again that asks the page again. A seed whose
               read failed never throws (crumbs-30): the live source stands, her uploads list with it,
               and heals the album with its own sync. Keyed as the provider is, so an access flip
               starts it clean too. */}
             <AlbumBoundary key={access} className={COLUMN}>
               <Suspense
                 fallback={
-                  <div className={BLEED}>
+                  <div className={cn(BLEED, "mt-5")}>
                     <GallerySkeleton step={rowStep} />
                   </div>
                 }
@@ -1389,8 +1395,8 @@ export function EventExperience({
                   {/* The door's light takes its colour from here, the album's three newest (it draws
                   nothing; `door/album-light.tsx`). */}
                   <AlbumLightSampler />
-                  {/* Her tracker's list, inside the one live source it reads (its button sits in the
-                  row and the dock, above this provider, reading `trackerStore`). */}
+                  {/* Her tracker's list, inside the one live source it reads (its button sits on the
+                  cover and the shutter, above this provider, reading `trackerStore`). */}
                   <UploadTracker
                     store={trackerStore}
                     queue={queue}
@@ -1401,6 +1407,8 @@ export function EventExperience({
                     isDemo={isDemo}
                     isOwner={isOwner}
                     removedIds={removedIds}
+                    // Her Remove on what waits for the host: the page's own record of what she took back.
+                    onOwnRemoved={handleOwnRemoved}
                     open={trackerOpen}
                     onOpenChange={setTrackerOpen}
                   />
@@ -1424,12 +1432,9 @@ export function EventExperience({
                     approvalNews={trackerStore.news}
                     welcomePending={welcomePending}
                     isOwner={isOwner}
+                    // The cover's photographs and the reel's door, told to the head above the album.
+                    headBridge={headBridge}
                   >
-                    {/* THE HIGHLIGHT REEL TILE: its own slot directly above the demo's one slot and the
-                    album (never a fourth arm of `pickAboveAlbumState`), on the words' column so it
-                    reads as the page's showpiece rather than a banner the width of the window.
-                    Absent below the minimum. */}
-                    <LiveReelTile className={cn(COLUMN, "mt-7 mb-4")} />
                     {/* The demo's turn card or the phone pair: one card directly
                     above the album's first tile — the photograph a visitor just
                     added IS that tile (the album is newest first), so whatever is
@@ -1438,18 +1443,17 @@ export function EventExperience({
                     photographs under it; the album itself is one CSS multi-column
                     box and nothing can be put in the middle of one. */}
                     {aboveAlbum && (
-                      <div className={cn(BLEED, "mb-4")}>{aboveAlbum}</div>
+                      <div className={cn(BLEED, "mt-5")}>{aboveAlbum}</div>
                     )}
-                    <div className={BLEED}>
+                    <div className={cn(BLEED, aboveAlbum ? "mt-4" : "mt-5")}>
                       <LiveGallery
                         galleryPromise={galleryPromise}
                         qrToken={qrToken}
                         access={access}
                         isDemo={isDemo}
                         onOpenGate={() => entryRef.current?.openToGate()}
-                        onAddFirst={
-                          canUpload && galleryEmpty ? openAdd : undefined
-                        }
+                        // ★ No Add of its own: the cover's is the one Add (see `galleryEmpty`).
+                        onAddFirst={undefined}
                         joinUrl={joinUrl}
                         initialRowStep={rowStep}
                         firstPaintWidth={firstPaintWidth}
@@ -1461,6 +1465,8 @@ export function EventExperience({
                 </GalleryLiveProvider>
               </Suspense>
             </AlbumBoundary>
+            {/* The album's end, which the shutter's foot fade watches for. */}
+            <div ref={albumEndRef} aria-hidden data-album-end="" />
 
             {/* The named Guests section (profiles-social.md, host-keyed) — after the album,
               before the report footer: context about who filled it, never
@@ -1468,31 +1474,76 @@ export function EventExperience({
               It is words, so it keeps the column. */}
             {guestListSlot && <div className={COLUMN}>{guestListSlot}</div>}
 
-            {/* THE DOCK: the row sits on landing, and the dock takes its place the
-              moment it leaves the screen, with the row's own two actions (and
-              mounted-but-inert until then, so it travels in rather than
-              appearing). Both actions, because an Add alone would leave Invite
-              unreachable deep in an album. */}
+            {/* WHAT STAYS (`event-header` r1, `stays=shutter`): the cover's row sits on landing, and
+              the shutter takes its place the moment it leaves the screen (mounted-but-inert until
+              then, so it travels in rather than appearing): Invite on its left, the round Add in the
+              album's light at the centre, its ring the progress of hers on their way, and Invite's
+              twin on its right, the reel's round (or, on an album with no reel, the way back to the
+              cover). The page's ground rises under them while more album lies below. */}
             <GuestActionDock
-              // Under an open stage the door is the page, so the dock waits with the rest of the album.
+              // Under an open stage the door is the page, so the shutter waits with the rest of the album.
               hidden={headerActionsInView || stageUp}
               uploadingCount={uploadingCount}
-              onAdd={canUpload && !galleryEmpty ? openAdd : undefined}
+              onAdd={canUpload ? openAdd : undefined}
+              run={shutterRun}
+              hues={albumHues}
+              more={!albumEndInView}
               invite={
                 <GuestShare
+                  look="round"
                   joinUrl={shareUrl}
                   qrStyle={event.qr_style}
                   eventName={event.name}
-                  triggerClassName="h-9 flex-1 sm:flex-none"
                 />
+              }
+              twin={
+                reelRound ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon-cta"
+                    aria-label="Watch the highlight reel"
+                    title="Watch the highlight reel"
+                    onClick={openReel}
+                    onPointerEnter={preloadReel}
+                    onFocus={preloadReel}
+                    className="bg-background shadow-layer"
+                  >
+                    <Play className="fill-current" />
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon-cta"
+                    aria-label="Back to the top"
+                    title="Back to the top"
+                    onClick={backToCover}
+                    className="bg-background shadow-layer"
+                  >
+                    <ArrowUp />
+                  </Button>
+                )
               }
               tracker={
                 <UploadTrackerButton
+                  look="round"
                   store={trackerStore}
                   onOpen={openTracker}
                 />
               }
             />
+            {/* The album's light is asked for only while the shutter stands to wear it. */}
+            {!(headerActionsInView || stageUp) && <LampWhileShown />}
+            {/* The reel's own black, for an owner arriving on `?reel` (the curtain's note above), under
+              the view's own overlay (z-50) and over everything else on the page. */}
+            {reelCurtain && (
+              <div
+                aria-hidden
+                data-reel-curtain=""
+                className="fixed inset-0 z-[49] bg-black"
+              />
+            )}
 
             {/* Discreet anonymous report path (the report capability is the qr_token), never
               for the album's own host: without it no photo offers Report to her either
@@ -1519,6 +1570,12 @@ export function EventExperience({
       )}
     </div>
   );
+}
+
+/** The album's light is sampled only while a lamp stands to wear it (`door-light.ts`): the shutter, here. */
+function LampWhileShown() {
+  useLampLit();
+  return null;
 }
 
 /** The closing card at the demo's foot: "Yours would look like this" — the

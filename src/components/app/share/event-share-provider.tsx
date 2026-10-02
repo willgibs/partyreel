@@ -236,20 +236,44 @@ export function EventShareProvider({
    * browser would tween a page against itself.
    *
    * Every guard degrades to an ordinary open, never to a broken one: no API
-   * support, and reduced motion (which never starts a transition at all).
+   * support, reduced motion (which never starts a transition at all), and a
+   * hidden document.
+   *
+   * ★ A HIDDEN DOCUMENT SKIPS THE TRANSITION (red-team 40's LOW). A tab nobody
+   * is looking at cannot capture a snapshot, so the browser aborts the
+   * transition it was asked for, and every promise it hands back rejects with
+   * `InvalidStateError: Transition was aborted` (two unhandled rejections on
+   * each open and close of the code card in a background tab). There is no
+   * tween to see there anyway, so the change simply lands. A tab hidden
+   * mid-transition aborts the same way: the transition's promises are caught,
+   * since an aborted tween is not a failure (the change already committed).
    */
   const withMorph = useCallback(
     (change: () => void) => {
       const start = (
         document as Document & {
-          startViewTransition?: (cb: () => void) => { finished: Promise<void> };
+          startViewTransition?: (cb: () => void) => {
+            ready: Promise<void>;
+            finished: Promise<void>;
+          };
         }
       ).startViewTransition;
-      if (!start || reduced) {
+      if (!start || reduced || document.visibilityState === "hidden") {
         change();
         return;
       }
-      start.call(document, () => flushSync(change));
+      const transition = start.call(document, () => flushSync(change));
+      // Only an abort is let go: a failure inside the change itself still surfaces as it always did.
+      const abortedOnly = (error: unknown) => {
+        if (
+          error instanceof DOMException &&
+          (error.name === "InvalidStateError" || error.name === "AbortError")
+        )
+          return;
+        throw error;
+      };
+      transition.ready.catch(abortedOnly);
+      transition.finished.catch(abortedOnly);
     },
     [reduced],
   );

@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 
 import { GuestActionDock } from "@/components/guest/guest-action-dock";
+import type { QueueItem, QueueProgress } from "@/lib/guest/use-upload-queue";
 
 /**
  * THE DOCK'S CONTRACT. A guest sees the actions high on the page on landing,
@@ -54,14 +55,25 @@ describe("the dock carries the row's own two actions", () => {
   });
 
   it("says how many uploads are in flight, and nothing at zero", () => {
+    // ★ Reshaped on purpose (`event-header` r1, `stays=shutter`): the count rides the shutter's
+    // shoulder as a number and its name says it in words, where the bar's button said "3 uploading".
     const { rerender } = render(
       <GuestActionDock hidden={false} uploadingCount={0} onAdd={() => {}} />,
     );
-    expect(screen.queryByText(/uploading/)).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Add photos" }),
+    ).toBeInTheDocument();
+    expect(document.querySelector("[data-slot='shutter-count']")).toBeNull();
     rerender(
       <GuestActionDock hidden={false} uploadingCount={3} onAdd={() => {}} />,
     );
-    expect(screen.getByText("3 uploading")).toBeInTheDocument();
+    const shutter = screen.getByRole("button", {
+      name: "Add photos, 3 uploading",
+    });
+    expect(shutter).toHaveAttribute("data-state", "sending");
+    expect(
+      shutter.querySelector("[data-slot='shutter-count']")?.textContent,
+    ).toBe("3");
   });
 
   it("opens the picker on a tap", () => {
@@ -149,5 +161,104 @@ describe("the dock carries her tracker", () => {
       />,
     );
     expect(screen.queryByRole("button", { name: /Your uploads/ })).toBeNull();
+  });
+});
+
+/**
+ * WHAT STAYS IS THE SHUTTER (`event-header` r1, `stays=shutter`), with his two notes: a matching secondary on the
+ * shutter's right (Invite's twin), and the page's ground rising from the foot while more album lies below.
+ */
+describe("the shutter's flanks and its foot", () => {
+  it("★ stands Invite on its left and the twin on its right, the shutter between", () => {
+    render(
+      <GuestActionDock
+        hidden={false}
+        uploadingCount={0}
+        onAdd={() => {}}
+        invite={invite}
+        twin={<button type="button">Watch the highlight reel</button>}
+      />,
+    );
+    const group = screen.getByRole("group", { name: "Album actions" });
+    const order = [...group.querySelectorAll("button")].map(
+      (b) => b.getAttribute("aria-label") ?? b.textContent,
+    );
+    expect(order).toEqual(["Invite", "Add photos", "Watch the highlight reel"]);
+    expect(screen.getByRole("button", { name: "Add photos" })).toHaveAttribute(
+      "data-slot",
+      "shutter",
+    );
+  });
+
+  it("★ lets the page's ground rise only while more album lies below", () => {
+    const fade = () => document.querySelector("[data-dock-fade]");
+    const { rerender } = render(
+      <GuestActionDock
+        hidden={false}
+        uploadingCount={0}
+        onAdd={() => {}}
+        more
+      />,
+    );
+    expect(fade()).toHaveAttribute("data-more");
+    rerender(
+      <GuestActionDock
+        hidden={false}
+        uploadingCount={0}
+        onAdd={() => {}}
+        more={false}
+      />,
+    );
+    expect(fade()).not.toHaveAttribute("data-more");
+  });
+});
+
+describe("the shutter's ring is her run", () => {
+  const file = (id: string, status: QueueItem["status"]): QueueItem => ({
+    id,
+    file: new File(["x"], `${id}.jpg`, { type: "image/jpeg" }),
+    kind: "photo",
+    status,
+    progress: status === "done" ? 100 : 0,
+  });
+  const NO_TICKS: QueueProgress = { get: () => 0, subscribe: () => () => {} };
+  const dock = (items: QueueItem[]) => (
+    <GuestActionDock
+      hidden={false}
+      uploadingCount={
+        items.filter((it) => it.status !== "done" && it.status !== "error")
+          .length
+      }
+      onAdd={() => {}}
+      run={{ items, progress: NO_TICKS }}
+    />
+  );
+  const shutter = () => document.querySelector("[data-slot='shutter']")!;
+
+  it("★ sends while files go, stands whole with its check for a beat when they land, then rests", () => {
+    vi.useFakeTimers();
+    try {
+      const { rerender } = render(dock([]));
+      expect(shutter()).toHaveAttribute("data-state", "idle");
+      rerender(dock([file("a", "uploading"), file("b", "queued")]));
+      expect(shutter()).toHaveAttribute("data-state", "sending");
+      rerender(dock([file("a", "done"), file("b", "done")]));
+      expect(shutter()).toHaveAttribute("data-state", "done");
+      act(() => {
+        vi.advanceTimersByTime(1600);
+      });
+      expect(shutter()).toHaveAttribute("data-state", "idle");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("never claims a run with a refusal in it landed (the failure sheet says so instead)", () => {
+    const { rerender } = render(dock([file("a", "uploading")]));
+    rerender(dock([file("a", "error")]));
+    expect(shutter()).toHaveAttribute("data-state", "idle");
+    rerender(dock([file("a", "error"), file("b", "uploading")]));
+    rerender(dock([file("a", "error"), file("b", "done")]));
+    expect(shutter()).toHaveAttribute("data-state", "done");
   });
 });

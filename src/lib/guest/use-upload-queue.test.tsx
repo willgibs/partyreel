@@ -15,8 +15,10 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  runProgressOf,
   useLiveQueue,
   useQueueProgress,
+  useRunProgress,
   useUploadQueue,
   type QueueItem,
   type QueueProgress,
@@ -698,6 +700,114 @@ describe("useLiveQueue", () => {
     expect(result.current.map((it) => it.progress)).toEqual([40, 100]);
     act(() => progress.tick("q1", 90));
     expect(result.current[0].progress).toBe(90);
+  });
+});
+
+/**
+ * THE RUN, AS ONE NUMBER (`event-header` r1, `stays=shutter`: the shutter's ring is the progress of hers on their
+ * way). A derived selector over the queue the page already holds: the queue's own API does not move.
+ */
+describe("runProgressOf", () => {
+  const NONE: ReadonlySet<string> = new Set();
+
+  it("counts a landed or refused file whole, a going one its own share, a queued one nothing", () => {
+    const progress = fakeProgress({ q2: 50 });
+    const items = [
+      flying("q1", { status: "done", progress: 100 }),
+      flying("q2"),
+      flying("q3", { status: "queued" }),
+      flying("q4", { status: "error" }),
+    ];
+    expect(runProgressOf(items, progress, NONE)).toEqual({
+      sending: 2,
+      progress: 0.625,
+      landed: 1,
+      failed: 1,
+    });
+  });
+
+  it("★ leaves out what finished before the run began, but not a file going again", () => {
+    const progress = fakeProgress({});
+    const items = [
+      flying("old", { status: "done", progress: 100 }),
+      flying("retry", { status: "queued" }),
+      flying("new", { status: "done", progress: 100 }),
+    ];
+    const run = runProgressOf(items, progress, new Set(["old", "retry"]));
+    expect(run.sending).toBe(1);
+    expect(run.landed).toBe(1);
+    expect(run.progress).toBe(0.5);
+  });
+
+  it("is nothing at all with nothing in the run", () => {
+    expect(runProgressOf([], fakeProgress(), NONE)).toEqual({
+      sending: 0,
+      progress: 0,
+      landed: 0,
+      failed: 0,
+    });
+  });
+});
+
+describe("useRunProgress", () => {
+  it("★ starts a run when something goes where nothing was, and follows its ticks", () => {
+    const progress = fakeProgress({});
+    const before = [flying("old", { status: "done", progress: 100 })];
+    const { result, rerender } = renderHook(
+      ({ items }) => useRunProgress(items, progress),
+      { initialProps: { items: before } },
+    );
+    expect(result.current).toEqual({
+      sending: 0,
+      progress: 0,
+      landed: 0,
+      failed: 0,
+    });
+    const run = [...before, flying("a"), flying("b", { status: "queued" })];
+    rerender({ items: run });
+    expect(result.current.sending).toBe(2);
+    expect(result.current.progress).toBe(0);
+    act(() => progress.tick("a", 50));
+    expect(result.current.progress).toBe(0.25);
+    // `a` lands and `b` goes: the run's whole is still its own two.
+    const later = [
+      before[0]!,
+      flying("a", { status: "done", progress: 100 }),
+      flying("b"),
+    ];
+    rerender({ items: later });
+    act(() => progress.tick("b", 50));
+    expect(result.current).toEqual({
+      sending: 1,
+      progress: 0.75,
+      landed: 1,
+      failed: 0,
+    });
+  });
+
+  it("stands whole once the run ends, until the next begins", () => {
+    const progress = fakeProgress({});
+    const { result, rerender } = renderHook(
+      ({ items }) => useRunProgress(items, progress),
+      { initialProps: { items: [flying("a")] } },
+    );
+    rerender({ items: [flying("a", { status: "done", progress: 100 })] });
+    expect(result.current).toEqual({
+      sending: 0,
+      progress: 1,
+      landed: 1,
+      failed: 0,
+    });
+    // A new pick is a new run: what landed before is not in it.
+    rerender({
+      items: [
+        flying("a", { status: "done", progress: 100 }),
+        flying("c", { status: "queued" }),
+      ],
+    });
+    expect(result.current.sending).toBe(1);
+    expect(result.current.landed).toBe(0);
+    expect(result.current.progress).toBe(0);
   });
 });
 

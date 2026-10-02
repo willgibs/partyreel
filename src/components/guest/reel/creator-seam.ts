@@ -3,14 +3,14 @@
  *
  * A clip ("your own clip" to a viewer) is made on the viewer's device by the creator in
  * `src/components/reel/clip-creator.tsx`. This is the one place it plugs in, and a promise: no build
- * shows a dead end. The tile's line ("Make your own clip to share") and the view's "Make your own"
- * render ONLY when a creator is registered here AND the host's plan could be read (the clip's facts
- * come from the server, `gallery-reel.ts`).
+ * shows a dead end. The view's "Make your own" renders ONLY when a creator is registered here AND the
+ * host's plan could be read (the clip's facts come from the server, `gallery-reel.ts`).
  *
  * ★ REGISTERED LAZILY, SO THE ALBUM CARRIES NONE OF IT. The creator reaches the whole canvas engine;
- * the album page imports this module (the tile reads whether a creator exists), so the component is
- * a `React.lazy` over one import promise, which the view also warms on intent (`preloadReelCreator`,
- * a pointer over Make your own). Nobody who never opens the creator downloads it.
+ * the album page imports this module (the reel's controller reads whether a creator exists), so the
+ * component is a `React.lazy` over one import promise, which the view also warms on intent
+ * (`preloadReelCreator`, a pointer over Make your own). Nobody who never opens the creator
+ * downloads it.
  *
  * Everything the creator needs arrives as props: the album it may clip from (the live provider's
  * items, the latest presigns), the viewer's mood, what the host's plan lets a clip do,

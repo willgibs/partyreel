@@ -271,8 +271,11 @@ async function photoCard(
 //  a "uploads closed" line + the gallery. EventExperience handles that layout branch.)
 export default async function GuestEventPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ token: string }>;
+  /** Next always hands it; optional so a test that renders the page needs no address. */
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { token } = await params;
 
@@ -617,6 +620,15 @@ export default async function GuestEventPage({
         })
       : false;
 
+  // ★ THE OWNER ARRIVING FOR HER REEL (`?reel`, the hub's Reel card's door): the page says so before
+  // any script runs, so the album's shell stands the reel's black from the first byte rather than the
+  // album flashing under a view still loading (`event-experience.tsx`'s curtain). The owner alone: she
+  // never owes the door, where a guest's welcome comes first and the reel waits behind it.
+  // The parameter is `reel-url.ts`'s `REEL_PARAM`, spelled here because that module is the client's (a
+  // server import of it would be a client reference, not the string).
+  const reelAsked =
+    isOwner && !isDemo && (await searchParams)?.reel !== undefined;
+
   return (
     // `data-guest-page`: while the door stands as the page over the album, the page holds to one screen
     // (`door/doorway.css`'s stage rules), so nothing scrolls past the door.
@@ -626,11 +638,14 @@ export default async function GuestEventPage({
           this key while EventExperience below reads it by the canonical
           qr_token. Mismatched keys meant sign-out on a slug URL removed a key
           that was never written, leaving the previous guest's upload
-          capability live on a shared phone. */}
+          capability live on a shared phone. ★ Past the door the album's
+          cover stands under it, and the header stands on the photograph
+          (`over`); a door that is the page keeps today's paper bar. */}
       <GuestHeader
         qrToken={event.qr_token}
         eventId={event.id}
         isDemo={isDemo}
+        over={access !== "none"}
       />
       <EventExperience
         event={shellEvent}
@@ -662,6 +677,7 @@ export default async function GuestEventPage({
         rhythmSeed={rhythmSeed}
         albumFull={decision.albumFull}
         waitingOnArrival={waitingOnArrival}
+        reelAsked={reelAsked}
       />
       {/* ★ WHAT THIS PHONE'S CLAIM WOULD NOT TAKE IN SILENCE (shared-claims): a ticket typed under a
           name at odds with the account, asked about once the door and its sheets are down

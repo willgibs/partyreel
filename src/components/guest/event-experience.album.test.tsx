@@ -1,4 +1,5 @@
 import { Suspense, use, type ReactNode } from "react";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { act, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -156,25 +157,28 @@ async function page(
   const event = over.event ?? EVENT;
   await act(async () => {
     render(
-      // The page's own boundary, as the (guest) route's error.tsx stands above it.
-      <Suspense fallback={null}>
-        <EventExperience
-          event={event}
-          qrToken={event.qr_token}
-          joinUrl={`https://partyreel.test/e/${event.qr_token}`}
-          galleryPromise={galleryPromise}
-          stats={{ approvedTotal: over.approvedTotal ?? 3, guestCount: 2 }}
-          isDemo={false}
-          access="full"
-          gate={null}
-          needsName={false}
-          hostAvatarUrl={null}
-          isOwner={false}
-          canDeleteIds={[]}
-          isAuthed={false}
-          waitingOnArrival={over.waitingOnArrival}
-        />
-      </Suspense>,
+      // The page's own boundary, as the (guest) route's error.tsx stands above it, under the root's
+      // tooltip provider (`providers.tsx`), which the cover's glyph counts read.
+      <TooltipProvider>
+        <Suspense fallback={null}>
+          <EventExperience
+            event={event}
+            qrToken={event.qr_token}
+            joinUrl={`https://partyreel.test/e/${event.qr_token}`}
+            galleryPromise={galleryPromise}
+            stats={{ approvedTotal: over.approvedTotal ?? 3, guestCount: 2 }}
+            isDemo={false}
+            access="full"
+            gate={null}
+            needsName={false}
+            hostAvatarUrl={null}
+            isOwner={false}
+            canDeleteIds={[]}
+            isAuthed={false}
+            waitingOnArrival={over.waitingOnArrival}
+          />
+        </Suspense>
+      </TooltipProvider>,
     );
   });
 }
@@ -205,7 +209,10 @@ describe("a guest album that crashes where it renders", () => {
     expect(
       screen.getByRole("heading", { level: 1, name: "Maya's 30th" }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/3 photos & videos/)).toBeInTheDocument();
+    // The count stands on the cover as a glyph, named by its words (`event-header` r1's `glyphs`).
+    expect(
+      screen.getByRole("button", { name: "3 photos & videos" }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Add photos/ })).toBeEnabled();
     expect(screen.getByRole("button", { name: "Invite" })).toBeEnabled();
     expect(screen.getByRole("alert")).toHaveTextContent(
@@ -226,9 +233,12 @@ describe("a guest album that crashes where it renders", () => {
  * ★ HER WAITING UPLOADS ON AN EMPTY HELD ALBUM (crumbs-43; ROADMAP, from `voice-wiring`: "a returning guest whose only
  * uploads wait on an empty held album meets the empty state's 'Add the first photo' with her badge beside Invite,
  * since the row's Add returns only for this visit's files (`galleryEmpty`)"). The page's server render says whether
- * an earlier visit's uploads wait (`waitingOnArrival`), so the one Add is the row's from the first paint, with her
- * tracker beside it, and nothing moves when the tracker's own read lands; a guest with nothing waiting still meets
- * the empty state's own Add, and the row has none.
+ * an earlier visit's uploads wait (`waitingOnArrival`), so her Add says "Add photos" from the first paint, with her
+ * tracker beside it, and nothing moves when the tracker's own read lands.
+ *
+ * ★ RESHAPED ON PURPOSE (`event-header` r1, `guest=cover`; scar kept: there is exactly one Add): the cover's Add is
+ * the one Add on every album, and the empty state draws its river and its words with no button of its own. So a
+ * guest with nothing waiting meets the cover's "Add the first photo", where she met the empty state's.
  */
 describe("her waiting uploads on an empty album that holds uploads", () => {
   const HELD = {
@@ -237,19 +247,25 @@ describe("her waiting uploads on an empty album that holds uploads", () => {
   } as unknown as GuestEvent;
   const landed = () => Promise.resolve({ kind: "locked" }) as Promise<never>;
 
-  it("★ the row's Add is hers from the first paint, and the empty state offers none", async () => {
+  it("★ the cover's Add is hers from the first paint, and the empty state offers none", async () => {
     await page(landed(), {
       event: HELD,
       approvedTotal: 0,
       waitingOnArrival: true,
     });
     expect(screen.getByRole("button", { name: /Add photos/ })).toBeEnabled();
+    expect(
+      screen.queryByRole("button", { name: /Add the first photo/ }),
+    ).toBeNull();
     expect(await screen.findByTestId("add-first")).toHaveTextContent("no");
   });
 
-  it("with nothing of hers waiting, the empty state's Add is the only one", async () => {
+  it("with nothing of hers waiting, the cover asks for the first photo, and its Add is the only one", async () => {
     await page(landed(), { event: HELD, approvedTotal: 0 });
-    expect(screen.queryByRole("button", { name: /Add photos/ })).toBeNull();
-    expect(await screen.findByTestId("add-first")).toHaveTextContent("yes");
+    expect(
+      screen.getByRole("button", { name: /Add the first photo/ }),
+    ).toBeEnabled();
+    expect(screen.queryByRole("button", { name: /^Add photos/ })).toBeNull();
+    expect(await screen.findByTestId("add-first")).toHaveTextContent("no");
   });
 });

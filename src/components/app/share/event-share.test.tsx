@@ -53,10 +53,13 @@ describe("the code's morph", () => {
     // order to explain why it is banned, and a scan that reads the explanation
     // as the offence is a test that can only be passed by deleting the reason.
     const css = read("share.css").replace(/\/\*[\s\S]*?\*\//g, "");
-    const groups = [...css.matchAll(/::view-transition-[a-z-]+\(([^)]+)\)/g)].map(
-      (m) => m[1].trim(),
-    );
-    expect(groups.length, "found the view-transition rules at all").toBeGreaterThan(0);
+    const groups = [
+      ...css.matchAll(/::view-transition-[a-z-]+\(([^)]+)\)/g),
+    ].map((m) => m[1].trim());
+    expect(
+      groups.length,
+      "found the view-transition rules at all",
+    ).toBeGreaterThan(0);
     expect(
       groups.filter((g) => g !== CODE_MORPH_NAME),
       "a view-transition rule that is not scoped to this morph's own name",
@@ -82,11 +85,17 @@ describe("the code's morph", () => {
     }
   });
 
-  it("never starts a transition under reduced motion", () => {
+  it("never starts a transition under reduced motion, nor in a hidden document", () => {
     const provider = read("event-share-provider.tsx");
     expect(
-      /if \(!start \|\| reduced\)/.test(provider),
+      /if \(!start \|\| reduced \|\|/.test(provider),
       "the reduced-motion guard left the morph",
+    ).toBe(true);
+    // ★ A hidden document cannot snapshot, so the browser aborts the transition and every promise
+    // it hands back rejects (red-team 40's LOW): the morph never starts there.
+    expect(
+      /document\.visibilityState === "hidden"/.test(provider),
+      "the hidden-document guard left the morph",
     ).toBe(true);
   });
 });
@@ -182,9 +191,9 @@ describe("what rides the URL, and what does not", () => {
     // Radix portals them; what matters here is that they are not rendered
     // INSIDE a section that a filter or a room could unmount.
     const sheets = read("event-sheets.tsx");
-    expect(/EventShareSheet/.test(sheets) && /EventSettingsSheet/.test(sheets)).toBe(
-      true,
-    );
+    expect(
+      /EventShareSheet/.test(sheets) && /EventSettingsSheet/.test(sheets),
+    ).toBe(true);
     const page = readFileSync(
       join(ROOT, "src/app/(app)/dashboard/[eventId]/page.tsx"),
       "utf8",
