@@ -68,12 +68,13 @@ const ENTRIES: ParityEntry[] = [
     appFile: "src/components/guest/live-gallery.tsx",
     literal: "See all",
   },
-  // The live album page (/features/album) <-> the guest and host surfaces.
+  // The live album page (/features/album) <-> the guest and host surfaces. ★ The welcome's words live
+  // with the welcome at the doorway (`locked-door` r2): `door/welcome.tsx`, no longer the entry sheet.
   {
     label: "album entry phone welcome promise",
     marketingFile:
       "src/components/marketing/sections/features/album/entry-phone.tsx",
-    appFile: "src/components/guest/entry-modal.tsx",
+    appFile: "src/components/guest/door/welcome.tsx",
     literal: "No app required.",
   },
   // ★ THE NOUN (Will, 2026-09-17: `noun=album`). These three quote the guest's
@@ -85,14 +86,14 @@ const ENTRIES: ParityEntry[] = [
     label: "album entry phone one-album promise",
     marketingFile:
       "src/components/marketing/sections/features/album/entry-phone.tsx",
-    appFile: "src/components/guest/entry-modal.tsx",
+    appFile: "src/components/guest/door/welcome.tsx",
     literal: "shots land in one album",
   },
   {
     label: "qr entry flow one-album promise",
     marketingFile:
       "src/components/marketing/sections/features/qr/entry-flow.tsx",
-    appFile: "src/components/guest/entry-modal.tsx",
+    appFile: "src/components/guest/door/welcome.tsx",
     literal: "shots land in one album",
   },
   // ★ "Continue" REPLACED "View the album" HERE (Will, 2026-09-21, "the door as three steps"):
@@ -104,7 +105,7 @@ const ENTRIES: ParityEntry[] = [
     label: "qr entry flow welcome primary",
     marketingFile:
       "src/components/marketing/sections/features/qr/entry-flow.tsx",
-    appFile: "src/components/guest/entry-modal.tsx",
+    appFile: "src/components/guest/door/welcome.tsx",
     literal: "Continue",
   },
   // voice-guest r2 (`held=uploads`, `status=approval`): the album's waiting tile retired, and a held

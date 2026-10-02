@@ -359,6 +359,14 @@ export function useUploadQueue({
   useEffect(() => {
     isVerifiedRef.current = isVerified;
   }, [isVerified]);
+  /* ★ NOTHING GOES UP WHILE A DOOR HOLDS HER (`locked-door` r2, Will's `wait=pick`: "Nothing leaves your
+     phone until Maya lets you in"). The held door lets her choose what she will add while she waits,
+     and her ticket there is a waiting one the routes refuse in the private album's words, so a run is
+     never started on it: the picks wait `queued`, and the door's opening starts them (the flip below). */
+  const doorOpenRef = useRef(doorOpen);
+  useEffect(() => {
+    doorOpenRef.current = doorOpen;
+  }, [doorOpen]);
 
   const sync = useCallback((next: QueueItem[]) => {
     itemsRef.current = next;
@@ -494,6 +502,8 @@ export function useUploadQueue({
     processingRef.current = true;
     try {
       for (;;) {
+        // The owner never meets a door; anyone else waits for hers to open (the note above).
+        if (!ownerEventId && !doorOpenRef.current) break;
         const next = itemsRef.current.find((it) => it.status === "queued");
         if (!next) break;
         /* ★ THE TICKET IS READ PER FILE, NEVER ONCE PER RUN. Both re-joins
@@ -777,6 +787,24 @@ export function useUploadQueue({
   }, [onDoorNeeded, sync]);
 
   /**
+   * ★ HER CHOICE AT THE HELD DOOR (`locked-door` r2, Will's `wait=pick`: "adds a lot of value to the
+   * waiting door"): what she picked while the host decides, held here as `queued` and sent the moment the
+   * door lets her through (the flip above), never before (the runner's door guard). A new choice replaces
+   * the last one (her Change), so what is held is always exactly what the door shows her. ★ IN THIS TAB
+   * ALONE: a File lives in the page that picked it, so a reload or a closed tab loses the choice, and the
+   * door says so where she makes it.
+   */
+  const holdAtDoor = useCallback(
+    (files: File[]) => {
+      sync([
+        ...itemsRef.current.filter((it) => it.status !== "queued"),
+        ...files.map((file) => queueItem(file)),
+      ]);
+    },
+    [sync],
+  );
+
+  /**
    * THE SILENT JOIN, AND IT STAYS NAMELESS.
    *
    * This is the path for the two people who never meet the name door: a
@@ -921,6 +949,7 @@ export function useUploadQueue({
     progress: progress as QueueProgress,
     addFiles,
     addClip,
+    holdAtDoor,
     retry,
     dismiss,
   };

@@ -3,9 +3,10 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Clock } from "lucide-react";
 
-import { DoorHeading } from "@/components/guest/door/heading";
-import { DoorGlyph } from "@/components/guest/door/lit";
+import { DoorWords } from "@/components/guest/door/door-page";
+import { StageGlyph } from "@/components/guest/door/stage";
 import { switchEmail } from "@/components/guest/door/switch-email";
+import { WaitPicks, type WaitPick } from "@/components/guest/door/wait-picks";
 import { Button } from "@/components/ui/button";
 import { checkInAtDoor } from "@/lib/guest/join";
 
@@ -18,8 +19,10 @@ export const WAITING_CHECK_IN_MS = 30_000;
 
 /**
  * THE HELD DOOR'S WORDS (event-settings r1, `waiting=held`: "The door she confirmed in says Maya will
- * let her in, and opens onto the album the moment she does, from the same sheet"). The host is named
- * again rather than given a pronoun: a display name can be anyone's ("Maya", "The Chens").
+ * let her in, and opens onto the album the moment she does"). The host is named again rather than
+ * given a pronoun where a name is given: a display name can be anyone's ("Maya", "The Chens"). ★ The page
+ * gives the held door no host's name (Will, 2026-10-02: a gated door never names the host), so it reads
+ * "The host will let you in".
  */
 export function waitingCopy(hostName?: string | null): {
   title: string;
@@ -33,9 +36,10 @@ export function waitingCopy(hostName?: string | null): {
 }
 
 /**
- * THE HELD DOOR: a newcomer who confirmed an email at a door the host answers waits in the same sheet,
- * with nothing real behind it (the ghost river), and the door opens onto the album by itself the
- * moment the host lets her in. `locked-door` r2 redraws this family; this is today's lit door.
+ * THE HELD DOOR: a newcomer who confirmed an email at a door the host answers waits at the doorway,
+ * ajar, with nothing of the album behind it, and the door swings the rest of the way open by itself the
+ * moment the host lets her in (`locked-door` r2: the door as the page, `door/stage.tsx`). While she waits
+ * she can choose what she will add (`wait=pick`), and the page's queue sends it once she is in.
  *
  * ★ IT ASKS, IT NEVER GUESSES. Every check-in answers `in` (the beat, then the album), `moved` (the
  * door changed under her: the page refreshes onto whatever the server now says, the shut screen
@@ -47,6 +51,9 @@ export function WaitingStep({
   hostName,
   onLetIn,
   onMoved,
+  picks,
+  onPick,
+  acceptsVideo,
 }: {
   qrToken: string;
   /** This device's ticket for the event, which the check-in carries beside the account. */
@@ -56,6 +63,10 @@ export function WaitingStep({
   onLetIn: () => void;
   /** Something else changed about the door: a plain refresh. */
   onMoved: () => void;
+  /** What she has chosen to add while she waits (the page's queue, held), and how she chooses. */
+  picks?: readonly WaitPick[];
+  onPick?: (files: File[]) => void;
+  acceptsVideo?: boolean;
 }) {
   const [switching, setSwitching] = useState(false);
 
@@ -123,47 +134,57 @@ export function WaitingStep({
         setSwitching(true);
         void switchEmail();
       }}
+      picks={picks}
+      onPick={onPick}
+      acceptsVideo={acceptsVideo}
     />
   );
 }
 
 /**
  * THE HELD DOOR'S FACE, without its check-in loop: `WaitingStep` wraps it, and the help center's
- * picture of the step (`step-screens/door-screens.tsx`) draws this very face, inert, so the picture
- * changes when the door does and never checks in from an article.
+ * picture of the step (`step-screens/door-screens.tsx`) draws this very face under its doorway, inert,
+ * so the picture changes when the door does and never checks in from an article. Under the doorway,
+ * ajar: "Asked" over who will let her in and why to keep the link, the live mark, her choice while she
+ * waits (`WaitPicks`), and the one way out, another address.
  */
 export function WaitingDoor({
   hostName,
   switching = false,
   onSwitchEmail,
+  picks = [],
+  onPick,
+  acceptsVideo = true,
 }: {
   hostName?: string | null;
   switching?: boolean;
   onSwitchEmail?: () => void;
+  picks?: readonly WaitPick[];
+  onPick?: (files: File[]) => void;
+  acceptsVideo?: boolean;
 }) {
   const copy = waitingCopy(hostName);
   return (
-    <div data-door-waiting className="flex flex-col gap-6">
-      <DoorHeading
+    <div data-door-waiting="" className="flex w-full flex-col items-center">
+      <DoorWords
         eyebrow={
           <>
-            <DoorGlyph icon={Clock} hue={1} className="size-3" />
+            <StageGlyph icon={Clock} />
             Asked
           </>
         }
         title={copy.title}
-        reason={copy.reason}
-        // The shell announces the same two sentences as the sheet's name.
-        hidden
+        titleAs="h1"
+        lines={[copy.reason]}
       />
       <p
         data-door-line
         style={{ "--door-line-i": 3 } as CSSProperties}
-        className="flex items-center gap-2 text-sm text-muted-foreground"
+        className="mt-5 flex items-center gap-2 text-sm text-muted-foreground"
         aria-live="polite"
       >
         {/* The live mark: a dot that breathes while the door is held, still under reduced motion,
-            so the one moving thing on the sheet is honest about being alive. */}
+            so the one moving thing on the door is honest about being alive. */}
         <span
           aria-hidden
           data-door-waiting-dot
@@ -174,10 +195,17 @@ export function WaitingDoor({
         </span>
         Waiting at the door
       </p>
+      <div
+        data-door-line
+        style={{ "--door-line-i": 4 } as CSSProperties}
+        className="mt-7 w-full"
+      >
+        <WaitPicks picks={picks} onPick={onPick} acceptsVideo={acceptsVideo} />
+      </div>
       <Button
         type="button"
         variant="ghost"
-        className="w-full text-muted-foreground"
+        className="mt-5 w-full text-muted-foreground"
         disabled={switching}
         onClick={onSwitchEmail}
       >

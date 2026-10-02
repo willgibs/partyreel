@@ -25,6 +25,11 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  publishDoorView,
+  resetDoorViewForTests,
+} from "@/components/guest/door/album-view";
+import { askCopy } from "@/components/guest/door/ask-step";
+import {
   EntryModal,
   type EntryModalHandle,
 } from "@/components/guest/entry-modal";
@@ -33,6 +38,11 @@ import {
   recordMomentPlayed,
   type ConfirmBeat,
 } from "@/lib/guest/confirm-beat";
+import {
+  HOUSE_HUES,
+  publishDoorHues,
+  resetDoorLightForTests,
+} from "@/lib/guest/door-light";
 import { resetKeepAskForTests } from "@/lib/guest/keep-ask";
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
 
@@ -537,10 +547,14 @@ describe("the demo", () => {
     fireEvent.click(screen.getByRole("button", { name: "Look around" }));
     expect(localStorage.getItem(`pr_welcome_${QR}`)).toBeNull();
 
-    // The first instance already advanced past its own role step (Continue, then Look around),
-    // so this fresh instance is the ONLY thing that can show it now.
-    renderModal({ isDemo: true });
-    expect(screen.getByText("A live demo")).toBeInTheDocument();
+    // The first instance already advanced past its own role step (Continue, then Look around);
+    // the fresh instance shows it again. ★ Read inside the fresh one alone: the first's stage, the
+    // doorway the role step stands at, stays drawn for the length of its fade as it leaves
+    // (`STAGE_EXIT_MS`), so the page as a whole cannot tell the two instances apart for that moment.
+    const fresh = renderModal({ isDemo: true });
+    expect(
+      within(fresh.container).getByText("A live demo"),
+    ).toBeInTheDocument();
   });
 });
 
@@ -1338,16 +1352,28 @@ describe("the told name's Change: the account's edit door", () => {
   });
 });
 
-/** THE DOOR IS LIT (`identity-door` r2, `look=lit`): the lamp on every step, blooming on "You're in". */
+/**
+ * THE DOOR IS LIT (`identity-door` r2, `look=lit`): the lamp on every step of the sheet, blooming on
+ * "You're in". ★ And the welcome stands at the doorway (`locked-door` r2, `family=doorway` and
+ * `shape=shared`): the door is the page, so its light is the doorway's own, not a sheet's lamp.
+ */
 describe("the door's light", () => {
-  it("every step stands in the lamp, and the welcome's count is the page's live number", () => {
+  it("the welcome stands at the doorway, its count the page's live number; every sheet step stands in the lamp", () => {
     renderModal({ mediaTotal: 48 });
-    const lamp = document.querySelector("[data-door-lamp]");
-    expect(lamp).not.toBeNull();
-    expect(lamp?.getAttribute("data-door-lamp")).toBe("base");
+    expect(
+      document.querySelector("[data-door-stage] [data-door-way]"),
+    ).not.toBeNull();
     expect(
       document.querySelector("[data-door-count-settled]")?.textContent,
     ).toBe("48");
+    // No sheet has risen for the welcome: the door is the page.
+    expect(document.querySelector("[data-door-lamp]")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    expect(
+      document
+        .querySelector("[data-door-lamp]")
+        ?.getAttribute("data-door-lamp"),
+    ).toBe("base");
   });
 
   it("the lamp blooms on the success beat", async () => {
@@ -1382,15 +1408,157 @@ describe("the door's light", () => {
     );
   });
 
-  /* ★ THE PROMISES STAND IN THE ALBUM'S LIGHT (`icons=lit`): each of the welcome's rows leads with a
-     pool of one of the lamp's hues, in turn. */
-  it("the welcome's promises lead with pools of the lamp's hues", () => {
-    renderModal({ mediaTotal: 48 });
-    const pools = [...document.querySelectorAll("[data-door-pool]")];
-    expect(pools.map((p) => p.getAttribute("data-door-pool"))).toEqual([
-      "1",
-      "2",
-    ]);
+  /* ★ THE LIGHT IS THE DOOR'S NOW (`locked-door` r2's doorway, which drew the welcome's promises as its
+     own lines, retiring `icons=lit`'s pools on the welcome): an open door wears the album's own hues and
+     shows the album through its opening, where she may see the album; a gate's door is shut, in the
+     house five, and shows nothing of it (Will, 2026-10-02: a gated door names the album and never the
+     host, and shows only what the album's read gives). */
+  it("an open door wears the album's light and shows the album through it; a gate's shows nothing", () => {
+    publishDoorHues([12, 140, 222]);
+    publishDoorView(["https://r2.test/p/1.webp", "https://r2.test/p/2.webp"]);
+    try {
+      const open = renderModal({ mediaTotal: 48 });
+      const way = open.container.querySelector("[data-door-way]");
+      expect(way?.getAttribute("data-door-way")).toBe("open");
+      expect(way?.getAttribute("data-door-hues")).toBe("12,140,222");
+      expect(
+        [...(way?.querySelectorAll("img") ?? [])].map((img) =>
+          img.getAttribute("src"),
+        ),
+      ).toEqual(["https://r2.test/p/1.webp", "https://r2.test/p/2.webp"]);
+      expect(open.container.querySelector("[data-door-pool]")).toBeNull();
+      cleanup();
+
+      const gate = renderModal({ access: "none", gate: "password" });
+      const shut = gate.container.querySelector("[data-door-way]");
+      expect(shut?.getAttribute("data-door-way")).toBe("shut");
+      expect(shut?.getAttribute("data-door-hues")).toBe(
+        HOUSE_HUES.slice(0, 3).join(","),
+      );
+      expect(shut?.querySelector("img")).toBeNull();
+    } finally {
+      resetDoorLightForTests();
+      resetDoorViewForTests();
+    }
+  });
+});
+
+/**
+ * ★ THE DOOR AS THE PAGE (`locked-door` r2, Will's `family=doorway` and `shape=shared`): the steps a guest
+ * reads AT the door stand on the stage as the doorway's own page (the welcome, the ask, the wait, the
+ * moment she is let in), and the steps that ask something of her rise as the sheet: over the album she
+ * has walked into at a Public album, over the door itself at a gate she is still outside.
+ */
+describe("the door as the page", () => {
+  const stage = () => document.querySelector("[data-door-stage]");
+  const stageWay = () =>
+    document
+      .querySelector("[data-door-stage] [data-door-way]")
+      ?.getAttribute("data-door-way");
+  const photo = () =>
+    new File([new Uint8Array([1])], "a.jpg", { type: "image/jpeg" });
+
+  it("★ the held door stands on the stage, ajar, with no sheet, and her choice goes to the page's queue to hold", () => {
+    seeWelcome();
+    const onHold = vi.fn();
+    renderModal({ access: "none", gate: "waiting", onHold });
+    expect(stage()?.getAttribute("data-state")).toBe("open");
+    expect(stageWay()).toBe("ajar");
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.getByText("Waiting at the door")).toBeInTheDocument();
+    const input = stage()!.querySelector<HTMLInputElement>(
+      "[data-door-picks] input[type=file]",
+    )!;
+    const files = [photo()];
+    fireEvent.change(input, { target: { files } });
+    expect(onHold).toHaveBeenCalledWith(files);
+  });
+
+  it("★ let in: the door she waited at swings open on the stage, and what she chose goes in", async () => {
+    seeWelcome();
+    global.fetch = vi.fn(async (url: RequestInfo | URL) =>
+      String(url).includes("/api/guests/door")
+        ? ({ ok: true, json: async () => ({ standing: "in" }) } as Response)
+        : ({ ok: false, json: async () => ({}) } as Response),
+    );
+    renderModal({
+      access: "none",
+      gate: "waiting",
+      queue: [
+        {
+          id: "q1",
+          file: photo(),
+          kind: "photo",
+          status: "queued",
+          progress: 0,
+        },
+      ],
+    });
+    await waitFor(() =>
+      expect(document.querySelector('[data-door-beat="in"]')).not.toBeNull(),
+    );
+    expect(stageWay()).toBe("open");
+    expect(
+      document
+        .querySelector("[data-door-stage] [data-door-way]")
+        ?.getAttribute("data-door-way-from"),
+    ).toBe("ajar");
+    expect(screen.getByText("You’re in")).toBeInTheDocument();
+    expect(screen.getByText("Sending your 1 photo")).toBeInTheDocument();
+    // The beat is the door's own: no sheet rises for it, and the page refreshes onto the album.
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(refresh).toHaveBeenCalled();
+  });
+
+  it("the ask stands on the stage, shut, with its way back to the welcome", () => {
+    seeWelcome();
+    renderModal({ access: "none", gate: "ask", isVerified: true });
+    expect(stageWay()).toBe("shut");
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(
+      screen.getByRole("button", { name: askCopy(null).primary }),
+    ).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Back to the welcome" }),
+    );
+    expect(screen.getByText("You’re invited to")).toBeInTheDocument();
+    expect(stageWay()).toBe("shut");
+  });
+
+  it("★ at a gate, the password's sheet rises over the door at rest: shut above it, with no words of its own", () => {
+    seeWelcome();
+    renderModal({ access: "none", gate: "password" });
+    expect(stage()?.getAttribute("data-state")).toBe("open");
+    expect(stageWay()).toBe("shut");
+    expect(stage()?.querySelector("h1")).toBeNull();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByLabelText("Event password")).toBeInTheDocument();
+  });
+
+  it("at a Public album she walks through the open door: the stage leaves, the sheet rises over the album", () => {
+    const onStageChange = vi.fn();
+    renderModal({ onStageChange });
+    expect(stageWay()).toBe("open");
+    expect(onStageChange).toHaveBeenLastCalledWith(true);
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    expect(stage()?.getAttribute("data-state")).toBe("closed");
+    expect(onStageChange).toHaveBeenLastCalledWith(false);
+    expect(
+      screen.getByRole("button", { name: "Continue as guest" }),
+    ).toBeInTheDocument();
+  });
+
+  it("a stage that has left is gone once its fade has played", () => {
+    vi.useFakeTimers();
+    try {
+      renderModal();
+      fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+      expect(stage()).not.toBeNull();
+      act(() => vi.advanceTimersByTime(1000));
+      expect(stage()).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 

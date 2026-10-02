@@ -1,13 +1,11 @@
 "use client";
 
 import {
-  Camera,
   ChevronLeft,
   CircleCheckIcon,
   Download,
   Flag,
   Heart,
-  Images,
   Link2,
   Search,
   Share2,
@@ -21,9 +19,13 @@ import {
   codeSentLine,
 } from "@/components/auth/email-sign-in";
 import { DoorChooser } from "@/components/guest/door/chooser";
+import { DOOR_MAIN, DoorColumn } from "@/components/guest/door/door-page";
+import { Doorway } from "@/components/guest/door/doorway";
 import { AlmostIn, DoorHeading } from "@/components/guest/door/heading";
+import { DoorLamp } from "@/components/guest/door/lit";
 import { WaitingDoor } from "@/components/guest/door/waiting-step";
-import { DoorLamp, DoorPool, LiveCount } from "@/components/guest/door/lit";
+import { STAGE_SCRIM } from "@/components/guest/door/stage";
+import { WelcomeWords } from "@/components/guest/door/welcome";
 import { DOOR_SHEET } from "@/components/guest/entry-shell";
 import { GuestNameStep } from "@/components/guest/guest-name-step";
 import { IdentifyStep } from "@/components/guest/identify-step";
@@ -35,8 +37,7 @@ import {
   EVENT_NAME,
   MiniQr,
 } from "@/components/marketing/sections/how-it-works/picture-parts";
-import { LegalConsentLine } from "@/components/shared/legal-consent-line";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
 import {
   InputOTP,
@@ -47,18 +48,19 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { KIND_WORDS, REPORT_KINDS } from "@/lib/reports/kinds";
-import { cn, formatEventDate } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 import type { PhoneScreenId } from "./registry";
 
 /**
  * THE DOOR AS IT SHIPS, ONE SCREEN A STEP (help-center r1 `article=screen`, moved in from the
- * board's `door-screens.tsx`, which Will picked): the lit door's sheet over the blurred album,
- * drawn from the door's own pieces wherever they stand alone (`PasswordGate`, `DoorChooser`,
- * `GuestNameStep`, `IdentifyStep`, `UploadIntentBody`, `KeepOffer`, `WaitingDoor`, `DoorHeading`,
- * `DoorLamp`) and
- * quoted, classes and words, where they cannot (the welcome is `entry-modal.tsx`'s unexported
- * `WelcomeStep`; the code screen is `AccountDoor`'s state after a send, which no prop reaches).
+ * board's `door-screens.tsx`, which Will picked): the welcome and the wait at the doorway, the door
+ * as the page (`locked-door` r2), and every other step in the lit door's sheet over the blurred
+ * album, drawn from the door's own pieces wherever they stand alone (`Doorway`, `WelcomeWords`,
+ * `WaitingDoor`, `PasswordGate`, `DoorChooser`, `GuestNameStep`, `IdentifyStep`, `UploadIntentBody`,
+ * `KeepOffer`, `DoorHeading`, `DoorLamp`) and quoted, classes and words, where they cannot (the
+ * guest's header resolves a session; the code screen is `AccountDoor`'s state after a send, which no
+ * prop reaches).
  *
  * ★ A PICTURE BUILT FROM THE PIECES CHANGES WHEN THEY DO. The board's first round drew stand-ins,
  * and within six days they said "Nobody has to prove a name" over a four-box code while the door
@@ -117,18 +119,31 @@ function AlbumBehind() {
 /**
  * The door's sheet as `entry-shell.tsx` builds it (the responsive Sheet's phone half, `DOOR_SHEET`,
  * the lamp on its free edge) with `entry-modal.tsx`'s step box inside: the chevron back and the
- * `pt-7` that clears it.
+ * `pt-7` that clears it. `behind` is what it rises over: the album blurred (a step after the
+ * welcome's open door), or at a gate the doorway itself, shut, under the gate's light dim
+ * (`STAGE_SCRIM`), keeping its state above the sheet.
  */
 function DoorSheet({
   back = true,
+  behind = "album",
   children,
 }: {
   back?: boolean;
+  behind?: "album" | "door";
   children: ReactNode;
 }) {
   return (
     <div className="relative h-full">
-      <AlbumBehind />
+      {behind === "door" ? (
+        <div aria-hidden className="absolute inset-0">
+          <DoorPageScreen doorway={<Doorway state="shut" />}>
+            {null}
+          </DoorPageScreen>
+          <div className={cn("absolute inset-0", STAGE_SCRIM)} />
+        </div>
+      ) : (
+        <AlbumBehind />
+      )}
       <div
         data-door-lit=""
         className={cn(
@@ -209,57 +224,55 @@ function ScanScreen() {
   );
 }
 
-/* ── The welcome: entry-modal.tsx's WelcomeStep, quoted ─────────────────────────────────── */
+/* ── The door as the page: the welcome and the wait at the doorway (`door/stage.tsx`) ───── */
 
+/**
+ * The door's page as a guest's phone shows it: the guest header (quoted: the real one resolves a
+ * session on mount), then the doorway and its words in the door's own column (`DOOR_MAIN`).
+ */
+function DoorPageScreen({
+  doorway,
+  children,
+}: {
+  doorway: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <div className="flex h-full flex-col bg-background text-foreground">
+      <header className="flex items-center justify-between gap-2 border-b border-border/60 px-5 py-3">
+        <Logo />
+        <div className="flex h-8 items-center">
+          <Button variant="ghost" size="sm" tabIndex={-1}>
+            Start for free
+          </Button>
+        </div>
+      </header>
+      <main className={DOOR_MAIN}>
+        <DoorColumn doorway={doorway}>{children}</DoorColumn>
+      </main>
+    </div>
+  );
+}
+
+/** The welcome at a Public album: the door open onto it, the album seen through the opening. */
 function WelcomeScreen() {
   return (
-    <DoorSheet back={false}>
-      <div data-welcome-step className="flex flex-col gap-5">
-        <div className="flex flex-col">
-          <p className="text-label font-medium text-muted-foreground uppercase">
-            You&rsquo;re invited to
-          </p>
-          <p className="mt-1.5 font-heading text-hero text-balance sm:text-section">
-            {EVENT_NAME}
-          </p>
-          <div className="mt-3 flex items-center gap-2.5">
-            <Avatar size="lg">
-              <AvatarFallback>{HOST.slice(0, 1)}</AvatarFallback>
-            </Avatar>
-            <p className="text-working leading-snug text-muted-foreground">
-              Hosted by{" "}
-              <span className="font-medium text-foreground">{HOST}</span>
-              <br />
-              {formatEventDate(EVENT_DATE)}
-            </p>
-          </div>
-        </div>
-        <div className="flex flex-col gap-4">
-          <p className="flex items-center gap-3.5 text-base leading-relaxed">
-            <DoorPool hue={1}>
-              <Camera strokeWidth={1.75} />
-            </DoorPool>
-            <span>Add your photos and videos in seconds. No app required.</span>
-          </p>
-          <p className="flex items-center gap-3.5 text-base leading-relaxed">
-            <DoorPool hue={2}>
-              <Images strokeWidth={1.75} />
-            </DoorPool>
-            <span>
-              {"Everyone's shots land in one album. "}
-              <LiveCount value={IN_ALBUM} />
-              {" are already inside."}
-            </span>
-          </p>
-        </div>
-        <div className="mt-auto flex flex-col gap-1">
-          <Button size="cta" className="w-full">
-            Continue
-          </Button>
-          <LegalConsentLine newTab className="mt-2 text-center" />
-        </div>
-      </div>
-    </DoorSheet>
+    <DoorPageScreen
+      doorway={
+        <Doorway
+          state="open"
+          photos={ALBUM.slice(0, 4).map((id) => marketingImage(id).src)}
+        />
+      }
+    >
+      <WelcomeWords
+        eventName={EVENT_NAME}
+        hostName={HOST}
+        eventDate={EVENT_DATE}
+        mediaTotal={IN_ALBUM}
+        acceptsVideo
+      />
+    </DoorPageScreen>
   );
 }
 
@@ -627,8 +640,9 @@ function ReportScreen({ step }: { step: ReportStep }) {
 const SCREENS: Record<PhoneScreenId, () => ReactNode> = {
   "door-scan": () => <ScanScreen />,
   "door-welcome": () => <WelcomeScreen />,
+  // A password is a gate: its step rises over the doorway, shut, never over the album it keeps.
   "door-password": () => (
-    <DoorSheet>
+    <DoorSheet behind="door">
       <PasswordGate token="help-fixture" eventName={EVENT_NAME} />
     </DoorSheet>
   ),
@@ -665,11 +679,12 @@ const SCREENS: Record<PhoneScreenId, () => ReactNode> = {
   "door-code-link": () => <CodeScreen mark="link" />,
   "door-code-different": () => <CodeScreen mark="different" />,
   "door-photo": () => <PhotoScreen />,
-  // The held door's face alone (`WaitingDoor`), never `WaitingStep`, whose loop would check in.
+  // The held door's face alone (`WaitingDoor`), never `WaitingStep`, whose loop would check in: at the
+  // doorway, ajar, in the house light, and naming no host (a gated door never does).
   "door-waiting": () => (
-    <DoorSheet back={false}>
-      <WaitingDoor hostName={HOST} />
-    </DoorSheet>
+    <DoorPageScreen doorway={<Doorway state="ajar" />}>
+      <WaitingDoor />
+    </DoorPageScreen>
   ),
   "door-keep": () => (
     <DoorSheet back={false}>

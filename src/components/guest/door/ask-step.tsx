@@ -3,15 +3,16 @@
 import { useState } from "react";
 import { DoorOpen } from "lucide-react";
 
-import { DoorHeading } from "@/components/guest/door/heading";
-import { DoorGlyph } from "@/components/guest/door/lit";
+import { DOOR_FOOT, DoorWords } from "@/components/guest/door/door-page";
+import { StageGlyph } from "@/components/guest/door/stage";
 import { switchEmail } from "@/components/guest/door/switch-email";
 import { Button } from "@/components/ui/button";
 import { askToJoinEvent, type JoinedGuest } from "@/lib/guest/join";
 
 /**
  * THE ASK'S WORDS, at a door where the host lets each guest in. The host is named again rather than
- * given a pronoun: a display name can be anyone's ("Maya", "The Chens").
+ * given a pronoun where a name is given: a display name can be anyone's ("Maya", "The Chens"). ★ The page
+ * gives a gated door no host's name (Will, 2026-10-02), so it reads "The host lets each guest in".
  */
 export function askCopy(hostName?: string | null): {
   title: string;
@@ -31,6 +32,10 @@ export function askCopy(hostName?: string | null): {
  * tap mints her a waiting ticket (the join), and the page refreshes onto the held door. Someone who
  * confirms her email at that door never meets it: confirming there is the ask (the confirmation's own
  * join). The invite list's ask is the shut door's foot instead (`door/unlisted-ask.tsx`).
+ *
+ * ★ DRAWN AT THE DOORWAY, SHUT (`locked-door` r2's shared design; the board never drew the ask, so it
+ * takes the door's own grammar): the light under the door, "Ask to join" over who lets each guest in,
+ * and the ask itself. Asking swings the door ajar, because the refresh lands on the held door.
  */
 export function AskStep({
   qrToken,
@@ -59,20 +64,19 @@ export function AskStep({
   }
 
   return (
-    <div data-door-ask className="flex flex-col gap-6">
-      <DoorHeading
+    <div data-door-ask="" className="flex w-full flex-col items-center">
+      <DoorWords
         eyebrow={
           <>
-            <DoorGlyph icon={DoorOpen} hue={1} className="size-3" />
+            <StageGlyph icon={DoorOpen} />
             Ask to join
           </>
         }
         title={copy.title}
-        reason={copy.reason}
-        // The shell announces the same two sentences as the sheet's name.
-        hidden
+        titleAs="h1"
+        lines={[copy.reason]}
       />
-      <div className="flex flex-col gap-2">
+      <div className={DOOR_FOOT}>
         <Button
           type="button"
           size="cta"

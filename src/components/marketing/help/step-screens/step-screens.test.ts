@@ -139,16 +139,8 @@ const QUOTES: { file: string; words: string[] }[] = [
       "`Resend in ${resendIn}s`",
     ],
   },
-  {
-    // The welcome, entry-modal.tsx's unexported WelcomeStep (phone `door-welcome`).
-    file: "src/components/guest/entry-modal.tsx",
-    words: [
-      "You&rsquo;re invited to",
-      "Add your photos and videos in seconds. No app required.",
-      " are already inside.",
-      "Continue",
-    ],
-  },
+  // The welcome is no longer quoted (`locked-door` r2's doorway): `door-welcome` draws the real piece,
+  // `door/welcome.tsx`'s `WelcomeWords`, so its words cannot drift from the door's.
   {
     // The door's upload step's soft skip (phone `door-photo`).
     file: "src/components/guest/upload-step.tsx",
@@ -222,8 +214,6 @@ describe("a picture's quoted words are the product's", () => {
       "Use a different email",
       "Resend code",
       "Resend in 42s",
-      "You&rsquo;re invited to",
-      "Add your photos and videos in seconds. No app required.",
       "Skip for now",
       "Report this photo",
       ", and only this one",

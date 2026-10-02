@@ -1,0 +1,397 @@
+/* THE DOORWAY (`locked-door` r2, Will's `family=doorway` and `shape=shared`):
+   a door standing on the page with the party's light behind it, its LEAF the
+   state. Open on a welcome she may walk through (the album seen through it,
+   its light thrown across the floor), ajar while the host decides (a blade of
+   light down its edge), shut on every door that is not hers to open (one line
+   of light under it: the party is on), and gone on a link that opens nothing
+   (an empty frame). Ported from the board's `locked-door.css`, renamed
+   `door-way-*` so the board's own sheet and this one never style each other.
+
+   ★ A LAMP ANSWERS FOUR QUESTIONS (design-system.md). What emits: the room
+   behind the door (the party). From where: the doorway's opening, which is
+   why the light's reach IS the state. Sampled from: the album's newest
+   previews where she may see the album (a Public album's welcome, the moment
+   she is let in), the house five everywhere else (a door she cannot open
+   shows nothing of the album, not even its colour). What admits it: the
+   floor, where the light falls, and the frame's own edge.
+
+   ★ THE REGISTER IS THE GROUND'S, THE HUE THE ALBUM'S, as the door's lamp
+   has it (`lit.css`): `--lit-l` and `--lit-c` are set here per ground, and
+   `--lit-h1..3` come from the doorway's own element.
+
+   ★ THE REST STATE IS THE DEFAULT (bible 5): the leaf's angle is a custom
+   property per state, and only the swing and the room's drift move anything,
+   both behind `no-preference`, so reduced motion shows the door whole and
+   still. No keyframe of its own: the drift is the lamps' (`door-drift-a/b`). */
+
+@layer components {
+  /* ★ ON PAPER THE LIGHT RUNS DEEPER than the lamp's paper register: light
+     cannot glow brighter than the white it falls on, so a doorway's light
+     reads as light on paper only when its colour carries it. */
+  .door-way {
+    --way-w: 116px;
+    --way-h: 176px;
+    --way-r: 14px;
+    --lit-l: 0.8;
+    --lit-c: 0.13;
+    position: relative;
+    isolation: isolate;
+    width: var(--way-w);
+    height: var(--way-h);
+    flex-shrink: 0;
+  }
+  .dark .door-way {
+    --lit-l: 0.74;
+    --lit-c: 0.15;
+  }
+  /* 40rem is the Sheet's own breakpoint, where the door family turns to a desk. */
+  @media (width >= 40rem) {
+    .door-way {
+      --way-w: 150px;
+      --way-h: 228px;
+      --way-r: 18px;
+    }
+  }
+
+  /* THE LEAF'S ANGLE IS THE STATE, and so is how far the light reaches. */
+  .door-way[data-door-way="open"] {
+    --way-turn: 74deg;
+    --way-floor: 1;
+    --way-sill: 0;
+  }
+  .door-way[data-door-way="ajar"] {
+    --way-turn: 15deg;
+    --way-floor: 0.62;
+    --way-floor-x: 74%;
+    --way-sill: 1;
+  }
+  .door-way[data-door-way="shut"] {
+    --way-turn: 0deg;
+    --way-floor: 0.4;
+    --way-sill: 1;
+  }
+  .door-way[data-door-way="none"] {
+    --way-floor: 0;
+    --way-sill: 0;
+  }
+
+  /* The frame: a hairline in the ground's own border, the room inside it. */
+  .door-way-frame {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--way-r) var(--way-r) 2px 2px;
+    perspective: calc(var(--way-w) * 4.5);
+    box-shadow: 0 0 0 1px var(--border);
+    background: var(--background);
+  }
+  .door-way[data-door-way="none"] .door-way-frame {
+    box-shadow: none;
+    outline: 1.5px dashed var(--border);
+    outline-offset: -1px;
+  }
+
+  /* The room: the party's own light, or the album itself seen through. */
+  .door-way-room {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: inherit;
+    background: oklch(0.93 0.06 var(--lit-h2));
+  }
+  .dark .door-way-room {
+    background: oklch(0.44 0.08 var(--lit-h2));
+  }
+  .door-way-glow {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(calc(var(--way-w) * 0.14));
+  }
+  .door-way-g1 {
+    background: oklch(var(--lit-l) var(--lit-c) var(--lit-h1));
+    left: -25%;
+    top: 0%;
+    width: 90%;
+    height: 55%;
+  }
+  .door-way-g2 {
+    background: oklch(var(--lit-l) var(--lit-c) var(--lit-h2));
+    left: 25%;
+    top: 25%;
+    width: 95%;
+    height: 55%;
+  }
+  .door-way-g3 {
+    background: oklch(var(--lit-l) var(--lit-c) var(--lit-h3));
+    left: -15%;
+    top: 55%;
+    width: 100%;
+    height: 55%;
+  }
+
+  /* The album seen through the open door: its newest photographs, as many as
+     it has up to four (one fills the opening, two stack, three lay one over
+     two). Only ever drawn where she may see the album. */
+  .door-way-album {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 2px;
+    opacity: 0.94;
+  }
+  .door-way-album[data-count="1"] {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+  }
+  .door-way-album[data-count="2"] {
+    grid-template-columns: 1fr;
+  }
+  .door-way-album[data-count="3"] > :first-child {
+    grid-column: 1 / -1;
+  }
+  .door-way-album img {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    object-fit: cover;
+  }
+
+  /* The leaf, hinged on its left, turned by the state (perspective on the frame). */
+  .door-way-leaf {
+    position: absolute;
+    inset: 0 0 3px 0;
+    border-radius: var(--way-r) var(--way-r) 1px 1px;
+    transform-origin: 0% 50%;
+    transform: rotateY(var(--way-turn, 0deg));
+    background: linear-gradient(
+      180deg,
+      oklch(0.975 0.002 286),
+      oklch(0.925 0.003 286)
+    );
+    box-shadow:
+      inset 0 0 0 1px oklch(0.2 0.01 286 / 0.09),
+      0 1px 2px oklch(0.2 0.01 286 / 0.06);
+  }
+  .dark .door-way-leaf {
+    background: linear-gradient(
+      180deg,
+      oklch(0.31 0.006 286),
+      oklch(0.245 0.006 286)
+    );
+    box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.07);
+  }
+  /* Two recessed panels, so the leaf reads as a door and never a card. */
+  .door-way-panel {
+    position: absolute;
+    left: 16%;
+    right: 16%;
+    border-radius: calc(var(--way-r) * 0.3);
+    box-shadow: inset 0 0 0 1px oklch(0.2 0.01 286 / 0.08);
+  }
+  .dark .door-way-panel {
+    box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.06);
+  }
+  .door-way-panel-top {
+    top: 11%;
+    height: 36%;
+    border-top-left-radius: calc(var(--way-r) * 0.7);
+    border-top-right-radius: calc(var(--way-r) * 0.7);
+  }
+  .door-way-panel-low {
+    top: 55%;
+    height: 33%;
+  }
+
+  /* THE LIGHT UNDER THE DOOR: the party is on behind it. A line of light, not
+     a bar of colour: its core is near-white (light at its brightest has little
+     hue left), and the room's hues live in the glow it throws, which is what
+     the eye reads as coloured light. Deeper on paper, where light is a wash. */
+  .door-way-sill {
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    bottom: 0;
+    height: 2px;
+    border-radius: 9999px;
+    opacity: var(--way-sill, 1);
+    background: linear-gradient(
+      90deg,
+      oklch(0.82 0.11 var(--lit-h1) / 0.7),
+      oklch(0.86 0.11 var(--lit-h2)) 50%,
+      oklch(0.82 0.11 var(--lit-h3) / 0.7)
+    );
+    box-shadow:
+      0 0 6px 1px oklch(0.7 0.16 var(--lit-h2) / 0.85),
+      0 1px 14px 3px oklch(0.74 0.14 var(--lit-h1) / 0.5);
+  }
+  .dark .door-way-sill {
+    background: linear-gradient(
+      90deg,
+      oklch(0.9 0.08 var(--lit-h1) / 0.55),
+      oklch(0.96 0.05 var(--lit-h2)) 50%,
+      oklch(0.9 0.08 var(--lit-h3) / 0.55)
+    );
+    box-shadow:
+      0 0 7px 1px oklch(var(--lit-l) var(--lit-c) var(--lit-h2) / 0.95),
+      0 1px 16px 3px oklch(var(--lit-l) var(--lit-c) var(--lit-h1) / 0.5);
+  }
+
+  /* THE FLOOR: the room's light thrown out through the doorway, as far as the
+     leaf lets it (a whole doorway, a blade from the edge, a line under it). */
+  .door-way-floor {
+    position: absolute;
+    z-index: -1;
+    left: 50%;
+    top: calc(100% - 2px);
+    width: calc(var(--way-w) * 2.6);
+    height: calc(var(--way-w) * 0.62);
+    translate: -50% 0;
+    opacity: var(--way-floor, 0.4);
+    filter: blur(calc(var(--way-w) * 0.05));
+    background: radial-gradient(
+      50% 70% at var(--way-floor-x, 50%) 0%,
+      oklch(var(--lit-l) var(--lit-c) var(--lit-h2) / 0.75),
+      oklch(var(--lit-l) var(--lit-c) var(--lit-h1) / 0.28) 55%,
+      transparent 100%
+    );
+  }
+  /* The ground the door stands on: one hairline, spent at both ends. */
+  .door-way-ground {
+    position: absolute;
+    z-index: -1;
+    left: 50%;
+    top: 100%;
+    width: calc(var(--way-w) * 2.8);
+    height: 1px;
+    translate: -50% 0;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+  }
+
+  /* A photograph of hers going in, on the beat (the wait's chooser): the tile
+     dims under a thin line of light while the queue sends it. */
+  .door-way-sending {
+    position: absolute;
+    inset: 0;
+    background: oklch(0 0 0 / 0.32);
+  }
+  .door-way-sending::after {
+    content: "";
+    position: absolute;
+    left: 5px;
+    right: 5px;
+    bottom: 5px;
+    height: 3px;
+    border-radius: 9999px;
+    background: linear-gradient(
+      90deg,
+      #fff var(--sent, 0%),
+      rgb(255 255 255 / 0.35) var(--sent, 0%)
+    );
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    /* THE SWING IS THE REVEAL (round two's door swing, the working version):
+       an open door swings open as it lands, a shut door swings ajar when she
+       asks, and the door she waited at swings the rest of the way the moment
+       she is let in. The door is met once, so it may take its time (the
+       arrival's own exception to the 300ms ceiling). */
+    .door-way-leaf {
+      transition: transform 900ms var(--ease-drawer, ease-out) 250ms;
+    }
+    /* The light follows the leaf: the floor fills as the door opens. */
+    .door-way-floor,
+    .door-way-sill {
+      transition: opacity 700ms ease-out 250ms;
+    }
+    @starting-style {
+      .door-way[data-door-way="open"] .door-way-leaf {
+        transform: rotateY(0deg);
+      }
+      /* The beat opens a door that was ajar, so it swings from where it stood. */
+      .door-way[data-door-way="open"][data-door-way-from="ajar"]
+        .door-way-leaf {
+        transform: rotateY(15deg);
+      }
+    }
+    /* The party behind the door keeps moving: the room's light drifts on the
+       lamps' own drift (`lit.css`), wherever any of it shows. */
+    .door-way-g1 {
+      animation: door-drift-a calc(var(--spill-cadence, 8s) * 1.5) ease-in-out
+        infinite alternate;
+    }
+    .door-way-g2 {
+      animation: door-drift-b calc(var(--spill-cadence, 8s) * 1.5) ease-in-out
+        infinite alternate;
+    }
+    .door-way-g3 {
+      animation: door-drift-a calc(var(--spill-cadence, 8s) * 1.5)
+        ease-in-out -4s infinite alternate-reverse;
+    }
+  }
+
+  /* ══ THE STAGE: the door as the album's page ═════════════════════════════
+
+     ★ WHILE THE DOOR IS THE PAGE, THE PAGE IS ONE SCREEN. The stage stands
+     over the album (`door/stage.tsx`), which keeps its layout under it (the
+     light's sample, the reveal's choreography), so the page is held to the
+     window and nothing scrolls past the door; the stage scrolls itself when a
+     short phone needs it. The album page carries `data-guest-page` and its
+     body `data-guest-experience`. */
+  /* A cap, never a height: the page is a flex item whose basis is its content, which a height alone
+     does not move (measured: the album page stood 2,500px tall under an open stage). */
+  [data-guest-page]:has([data-door-stage][data-state="open"]) {
+    max-height: 100svh;
+    overflow: hidden;
+  }
+  [data-guest-page]:has([data-door-stage][data-state="open"])
+    [data-guest-experience] {
+    min-height: 0;
+  }
+
+  /* A step of the sheet beside the door (a gate's password or email): at a desk
+     the sheet is a panel from the right edge, `min(75vw, 28rem)` wide (the
+     responsive Sheet's own desk width), so the door moves into the middle of
+     the room the panel leaves, and glides back when the panel goes. */
+  @media (width >= 40rem) {
+    [data-door-stage][data-door-stage-aside] [data-door-stage-column] {
+      translate: calc(min(75vw, 28rem) / -2) 0;
+    }
+  }
+
+  /* The stage leaves by fading where it stood, the album rising under it (the
+     reveal curtain's own rise); `inert` and hidden once it has gone. */
+  [data-door-stage][data-state="closed"] {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    [data-door-stage-column] {
+      transition: translate 300ms var(--ease-in-out-strong, ease-in-out);
+    }
+    [data-door-stage] {
+      transition:
+        opacity 320ms var(--ease-emphasis, ease-out),
+        visibility 0s linear 0s;
+    }
+    [data-door-stage][data-state="closed"] {
+      transition:
+        opacity 320ms var(--ease-emphasis, ease-out),
+        visibility 0s linear 320ms;
+    }
+    @starting-style {
+      [data-door-stage][data-state="open"] {
+        opacity: 0;
+      }
+    }
+    /* At a gate the stage arrives over its own server-drawn twin (the door and
+       the album's name in the same place), so it needs no fade of its own: its
+       new words rise, and the door is already standing. */
+    @starting-style {
+      [data-door-stage][data-state="open"][data-door-stage-at="gate"] {
+        opacity: 1;
+      }
+    }
+  }
+}
