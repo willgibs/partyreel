@@ -787,7 +787,12 @@ export function MasonryColumns<T extends GridMedia>(props: {
      closes the viewer as its own X does (or at once where the browser drew its own transition), with the
      entry already gone; one that lands on a photograph's address with no viewer standing (Forward onto a
      viewer's entry) opens it where it stands, fading in, in the grid that last held one. A popup over the
-     viewer going Back over its own entry lands on the same photograph and moves nothing. */
+     viewer going Back over its own entry lands on the same photograph and moves nothing. ★ NOT ONE
+     PHOTOGRAPH BEHIND, EITHER, WHILE A STEP'S ADDRESS WRITE IS STILL WAITING (crumbs-47): a step waits out a
+     popup before it writes (`addressAfterStep`), and an arrow key behind the look's scrim steps the viewer,
+     which re-keys the credit and takes the look away with its entry, so that Back lands on the viewer's own
+     entry still naming the photograph just left. The viewer has not been left (a Back that leaves it lands
+     off every photograph, `id` null): the write is on its way. */
   useEffect(() => {
     if (!photoAddress) return;
     const onPop = (event: PopStateEvent) => {
@@ -795,6 +800,7 @@ export function MasonryColumns<T extends GridMedia>(props: {
       const shown = shownRef.current;
       if (shown !== null) {
         if (id === shown) return;
+        if (id !== null && addressTimer.current !== null) return;
         shownRef.current = null;
         poppedRef.current = true;
         stopStep();

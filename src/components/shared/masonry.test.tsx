@@ -870,7 +870,15 @@ describe("the phone's Back peels the credit's look, then the photograph (crumbs-
       isVerified: true,
       uploaderEmail: "maya@example.com",
     },
-    { id: "b", type: "video", url: "/b.mp4", width: 1920, height: 1080 },
+    {
+      id: "b",
+      type: "photo",
+      url: "/b.jpg",
+      width: 800,
+      height: 1200,
+      uploaderName: "Tom",
+      isVerified: true,
+    },
   ];
   const tree = () => (
     <TooltipProvider>
@@ -905,7 +913,7 @@ describe("the phone's Back peels the credit's look, then the photograph (crumbs-
   async function openLook() {
     setViewportWidth(375);
     render(tree());
-    fireEvent.click(screen.getByLabelText("View photo"));
+    fireEvent.click(screen.getAllByLabelText("View photo")[0]);
     await frame();
     expect(viewerUp()).toBe(true);
     const atViewer = window.history.length;
@@ -958,6 +966,64 @@ describe("the phone's Back peels the credit's look, then the photograph (crumbs-
     expect(here()).toBe("/e/tok");
   });
 
+  it("★ stepping the viewer while the look is open (an arrow key behind the scrim) takes the look away and keeps the viewer on the next photograph", async () => {
+    await openLook();
+    // The key lands inside the look (focus is trapped there) and bubbles to the viewer's window listener, which
+    // steps; the credit re-keys for the next photograph, so the look goes with its entry. That Back lands on the
+    // viewer's own entry, whose address still names the photograph left (its write waits behind a popup).
+    fireEvent.keyDown(look() as HTMLElement, { key: "ArrowRight" });
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 450));
+    });
+    expect(look()).toBeNull();
+    expect(viewerUp()).toBe(true);
+    expect(here()).toBe("/e/tok?photo=b");
+    expect(entryOf("prPopup")).toBeUndefined();
+    expect(entryOf("prPhoto")).toBeDefined();
+
+    // The viewer still holds exactly its one entry: one Back closes it onto the album.
+    await traverse(() => window.history.back());
+    expect(viewerUp()).toBe(false);
+    expect(here()).toBe("/e/tok");
+  });
+
+  it("the same over a photograph a shared link opened: the step keeps the viewer, and its close leaves the album in place", async () => {
+    window.history.replaceState(null, "", "/e/tok?photo=a");
+    setViewportWidth(375);
+    render(tree());
+    await frame();
+    expect(viewerUp()).toBe(true);
+    fireEvent.click(await screen.findByRole("button", { name: "Maya" }));
+    await frame();
+    expect(look()).not.toBeNull();
+
+    fireEvent.keyDown(look() as HTMLElement, { key: "ArrowRight" });
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 450));
+    });
+    expect(look()).toBeNull();
+    expect(viewerUp()).toBe(true);
+    expect(here()).toBe("/e/tok?photo=b");
+
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    await frame();
+    expect(viewerUp()).toBe(false);
+    expect(here()).toBe("/e/tok");
+  });
+
+  it("a Back that really leaves the viewer, pressed while a step's address write is still waiting, still closes it", async () => {
+    setViewportWidth(375);
+    render(tree());
+    fireEvent.click(screen.getAllByLabelText("View photo")[0]);
+    await frame();
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    // The step's write waits for a beat of quiet: the address still names the first photograph.
+    expect(here()).toBe("/e/tok?photo=a");
+    await traverse(() => window.history.back());
+    expect(viewerUp()).toBe(false);
+    expect(here()).toBe("/e/tok");
+  });
+
   /* Under Next's own patch: the host's album refreshes the router while a look is open (a decision landing, the
      poll), which writes the top entry again with Next's state alone and takes the look's marker with it
      (`lib/history-entry.ts`). The viewer's `keep` must not read the stripped look as a viewer with no entry and
@@ -971,7 +1037,7 @@ describe("the phone's Back peels the credit's look, then the photograph (crumbs-
       const standIn = () => <NextRouterStandIn>{tree()}</NextRouterStandIn>;
       const { rerender } = render(standIn());
       await frame();
-      fireEvent.click(screen.getByLabelText("View photo"));
+      fireEvent.click(screen.getAllByLabelText("View photo")[0]);
       await frame();
       fireEvent.click(await screen.findByRole("button", { name: "Maya" }));
       await frame();
