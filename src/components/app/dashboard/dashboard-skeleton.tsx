@@ -24,11 +24,15 @@ export function DashboardSkeleton() {
       {/* The stage: a picture on top in a hand, words beside it at a desk. */}
       <div className="flex flex-col overflow-hidden rounded-2xl lg:grid lg:h-[clamp(420px,30vw,560px)] lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
         <Skeleton className="order-first aspect-[4/3] w-full rounded-none lg:order-last lg:aspect-auto lg:h-full" />
-        <div className="space-y-3 bg-muted/60 p-5 sm:p-8 lg:p-10">
-          <Skeleton className="h-3 w-24" />
-          <Skeleton className="h-9 w-3/4" />
-          <Skeleton className="h-4 w-40" />
-          <div className="flex gap-2 pt-4">
+        {/* The words: the phase, the name and its date at the top, the acts at the foot, as the stage
+            lays them out. */}
+        <div className="flex flex-col gap-6 bg-muted/60 p-5 sm:p-8 lg:justify-between lg:p-10">
+          <div className="space-y-3">
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-9 w-3/4" />
+            <Skeleton className="h-4 w-40" />
+          </div>
+          <div className="flex gap-2">
             <Skeleton className="h-9 w-28 rounded-action-sm" />
             <Skeleton className="h-9 w-20 rounded-action-sm" />
           </div>

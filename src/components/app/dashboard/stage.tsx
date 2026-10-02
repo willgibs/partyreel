@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Check } from "lucide-react";
 
 import { ActDoor } from "@/components/app/dashboard/act-door";
-import { LiveDot } from "@/components/app/dashboard/marks";
+import { LiveDot, Mark } from "@/components/app/dashboard/marks";
 import { useStageLive } from "@/components/app/dashboard/use-stage-live";
 import { settingsPageHref } from "@/components/app/event-settings/settings-pages";
 import { CodeCard, readableLink } from "@/components/app/share/code-card";
@@ -134,11 +134,18 @@ function Calm({ photos }: { photos: readonly StagePhoto[] }) {
 }
 
 /**
- * THE LIVE WALL: the newest photographs as they land, newest first, the newest four cells large and
- * marked; nine at a desk, three in a hand. Keyed by photograph, so a new one fades in where it lands
- * and the ones already there never replay theirs.
+ * THE LIVE WALL: the newest photographs as they land, newest first, the newest four cells large; nine at
+ * a desk, three in a hand. Keyed by photograph, so a new one fades in where it lands and the ones
+ * already there never replay theirs. The newest is marked Just now only while photographs are landing
+ * (an arrival in the last hour): the morning's last one, hours later, is not.
  */
-function Wall({ photos }: { photos: readonly StagePhoto[] }) {
+function Wall({
+  photos,
+  fresh,
+}: {
+  photos: readonly StagePhoto[];
+  fresh: boolean;
+}) {
   const shown = photos.slice(0, WALL_PHOTOS);
   return (
     <ul
@@ -156,10 +163,11 @@ function Wall({ photos }: { photos: readonly StagePhoto[] }) {
           )}
         >
           <Still photo={p} />
-          {i === 0 && (
-            <span className="absolute top-2.5 right-2.5 flex h-6 items-center gap-1.5 rounded-full bg-black/40 pr-2.5 pl-2 text-[11px] leading-none font-medium text-white backdrop-blur-sm">
-              <LiveDot small />
-              Just now
+          {i === 0 && fresh && (
+            <span className="absolute top-2.5 right-2.5">
+              <Mark tone="live" on="photo">
+                Just now
+              </Mark>
             </span>
           )}
         </li>
@@ -412,7 +420,11 @@ export function Stage({
             aria-label={`Open ${event.name}`}
             className="absolute inset-0 outline-none focus-visible:ring-3 focus-visible:ring-white/50 focus-visible:ring-inset"
           >
-            {wall ? <Wall photos={photos} /> : <Calm photos={photos} />}
+            {wall ? (
+              <Wall photos={photos} fresh={event.arrivals.lastHour > 0} />
+            ) : (
+              <Calm photos={photos} />
+            )}
           </Link>
         )}
         {/* The photographs melt into the dark the words stand on. */}
