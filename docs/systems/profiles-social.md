@@ -92,6 +92,12 @@ A one-way door; `/privacy` and the Terms word it, so a change here changes them 
   (`my-feed-more.tsx`'s `drop`), never on the action's revalidation: the viewer's close writes the address just
   before its Delete, and Next commits that write over the answer, so the old first page stands until the next router
   action. A like count is the host's alone and appears on no profile.
+- **`/me` is the owner mode for an account with no handle** (`(app)/me`): the same `OwnerSections`, in the app shell
+  behind the sign-in gate and the name gate (`name-gate.test.ts` holds every (app) route to one). It names nobody (no
+  segment, no param), so there is no `isSelf` to get wrong, and `owner-mode.test.ts` reads it beside the profile. Its
+  head is the setup's invitation with no Not now, since it is the user menu's only profile door for an account without a
+  handle; the dashboard's card points at the setup directly, not through it. Once a handle exists it redirects to
+  `/u/<handle>`, a real 307, so it has no `loading.tsx` either, and it is noindex.
 - **An empty page says how many events it keeps private** ("2 private events", `private_event_count`, migration
   20260927100000): the attended arm's predicate with only the owner's choice inverted, so a viewer counts only what
   she could confirm (a Require-an-upload-to-view album she has not passed stays out). The RPC returns it only while the
@@ -107,9 +113,10 @@ A one-way door; `/privacy` and the Terms word it, so a change here changes them 
 - **A page is set up once, at `/account/profile`**: the handle, then name and photo, then which events show. Set up
   means a claimed handle, and Finish writes her choices before it claims the handle (the page's existence), so an
   abandoned setup leaves nothing public; a set-up account is sent to Account's card, which before a handle is the
-  wizard's door, while the user menu's handle-less Your profile and event settings' claim line open the setup itself. The dashboard invites the setup (`shouldInviteToPage`) once no claim waits, to an account with an
-  event its page could show (which proves a confirmed address) and no handle; Not now is an httpOnly cookie holding the
-  account's seed, per device.
+  wizard's door, while event settings' claim line opens the setup itself and the user menu's handle-less Your profile
+  opens `/me`, whose head is the same invitation. The dashboard invites the setup (`shouldInviteToPage`) once no claim
+  waits, to an account with an event its page could show (which proves a confirmed address) and no handle; Not now is
+  an httpOnly cookie holding the account's seed, per device.
 - **`profiles.slug` is service-role-write-only;** its format is a CHECK (lowercase, 3 to 30 of `[a-z0-9-]`, no edge
   hyphen) plus a PLAIN partial unique index, since the CHECK already forces lowercase and the RPC's
   `slug = lower(trim(input))` can use only a plain index. The handle is free on every tier, and `profileSlugSchema` is

@@ -49,7 +49,7 @@ export const getProfile = cache(
  *
  * It also reads the SLUG, because the menu grew a second door this round
  * (`you=?`, Will 2026-09-20): "Your profile" goes to /u/<slug> for a host who
- * has claimed a handle and to the claim card on /account for one who has not.
+ * has claimed a handle and to /me for one who has not.
  * Three narrow columns on the hot layout path is still one round-trip, and the
  * alternative — the layout guessing and the menu discovering it was wrong — is
  * a door that 404s the first time a handle-less host taps it.

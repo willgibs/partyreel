@@ -49,6 +49,9 @@ describe("the pages a sign-in may return to", () => {
     `/dashboard/${EVENT}/print`,
     "/account",
     "/account/profile",
+    // The owner mode at an address that needs no handle (crumbs-46): the user menu's Your profile for an account
+    // with none, so a session that ended under an open menu comes back to the page it asked for.
+    "/me",
     "/welcome",
     // A guest's door comes back to the album (a token or a custom link) or a profile page.
     "/e/0123456789abcdef0123456789abcdef",

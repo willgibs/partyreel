@@ -23,6 +23,9 @@ import { describe, expect, it } from "vitest";
 const DIR = join(process.cwd(), "src", "app", "(guest)", "u", "[slug]");
 const sections = readFileSync(join(DIR, "owner-sections.tsx"), "utf8");
 const page = readFileSync(join(DIR, "page.tsx"), "utf8");
+// /me (crumbs-46): the same sections at an address that needs no handle, in the (app) group.
+const ME_DIR = join(process.cwd(), "src", "app", "(app)", "me");
+const mePage = readFileSync(join(ME_DIR, "page.tsx"), "utf8");
 
 describe("the owner mode cannot be pointed at somebody else", () => {
   it("takes no identity at all", () => {
@@ -59,6 +62,38 @@ describe("the owner mode cannot be pointed at somebody else", () => {
     expect(page.match(/<OwnerSections/g) ?? []).toHaveLength(1);
     const guard = page.slice(0, page.indexOf("<OwnerSections"));
     expect(guard.slice(-400)).toContain("isSelf &&");
+  });
+});
+
+describe("/me draws the same owner mode for an account with no handle, and names nobody else", () => {
+  // Will's answer A to crumbs-44's question. There is no `isSelf` to get wrong here: the address has no segment, so
+  // there is no person it could be pointed at, and the sections answer for the caller as they do on the profile.
+  it("takes no params, no search params and no identity", () => {
+    expect(mePage).toMatch(/export default async function MePage\(\)/);
+    expect(mePage).not.toMatch(/\bparams\b|searchParams/);
+  });
+
+  it("draws the sections once, with no props, after a handle has sent her on", () => {
+    expect(mePage.match(/<OwnerSections\b/g) ?? []).toHaveLength(1);
+    expect(mePage).toContain("<OwnerSections />");
+    // A page that exists is where the owner mode lives (with its public half): the redirect decides first.
+    const sentOn = mePage.indexOf("redirect(`/u/${profile.slug}`)");
+    expect(sentOn).toBeGreaterThan(-1);
+    expect(sentOn).toBeLessThan(mePage.indexOf("<OwnerSections"));
+  });
+
+  it("reads no one else's profile: the public RPC and the relation reads are never imported here", () => {
+    expect(mePage).not.toMatch(
+      /getPublicProfile|isFollowing|hasBlocked|isBlockedEitherWay/,
+    );
+  });
+
+  it("stands behind its own layout, the name gate (name-gate.test.ts reads it)", () => {
+    expect(existsSync(join(ME_DIR, "layout.tsx"))).toBe(true);
+  });
+
+  it("has no loading.tsx either: a handle that exists must redirect before anything streams", () => {
+    expect(existsSync(join(ME_DIR, "loading.tsx"))).toBe(false);
   });
 });
 

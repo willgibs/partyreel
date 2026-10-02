@@ -853,6 +853,63 @@ describe("a closed report's strike (`closedStrike`, `closedStrikeWords`)", () =>
     );
   });
 
+  // ★ A DATE THE LINE HAS PRINTED IS NEVER PRINTED AGAIN (build 36's red-team NIT: "until Mar 30, 2027 UTC; ... until
+  // Mar 30, 2027 UTC"). The oldest of an address's strikes lapses when the bar lifts, to the very instant, and any
+  // strike that lapses the same UTC day prints the same date, so the second mention says "then", as the open queue's
+  // `strikeWords` names no later date for a Dismiss that would move nothing. It compares what the line PRINTS, never
+  // the instants: two minutes across midnight are two dates, and the line says both.
+  it("★ says a date once when the strike and the address's bar lapse the same day", () => {
+    const together = closedStrike(
+      dismissed,
+      reading(3, [
+        "2027-05-01T10:00:00.000Z",
+        "2027-04-02T21:05:00.000Z",
+        "2027-03-14T08:30:00.000Z",
+      ]),
+      RULE,
+      NOW,
+    )!;
+    expect(together).toMatchObject({
+      at: "2027-03-14T08:30:00.000Z",
+      barredUntil: "2027-03-14T08:30:00.000Z",
+    });
+    expect(closedStrikeWords(together, { canUndo: true })).toBe(
+      "A strike on its address until Mar 14, 2027 UTC; the address holds 3 strikes, so its reports don't hide right away until then. Undo takes it back.",
+    );
+
+    // Four live strikes: this, the oldest, lapses first and the bar lifts hours later, the same UTC day.
+    const sameDay = closedStrike(
+      dismissed,
+      reading(4, [
+        "2027-05-01T10:00:00.000Z",
+        "2027-04-02T21:05:00.000Z",
+        "2027-03-14T21:05:00.000Z",
+      ]),
+      RULE,
+      NOW,
+    )!;
+    expect(closedStrikeWords(sameDay, { canUndo: false })).toBe(
+      "A strike on its address until Mar 14, 2027 UTC; the address holds 4 strikes, so its reports don't hide right away until then.",
+    );
+  });
+
+  it("★ names both dates when the bar lifts on another day, even minutes later across midnight", () => {
+    const acrossMidnight = closedStrike(
+      { ...dismissed, resolvedAt: "2026-09-15T23:59:00.000Z" },
+      reading(4, [
+        "2027-05-01T10:00:00.000Z",
+        "2027-04-02T21:05:00.000Z",
+        "2027-03-15T00:01:00.000Z",
+      ]),
+      RULE,
+      NOW,
+    )!;
+    expect(acrossMidnight).toMatchObject({ at: "2027-03-14T23:59:00.000Z" });
+    expect(closedStrikeWords(acrossMidnight, { canUndo: false })).toBe(
+      "A strike on its address until Mar 14, 2027 UTC; the address holds 4 strikes, so its reports don't hide right away until Mar 15, 2027 UTC.",
+    );
+  });
+
   it("★ says a strike that has lapsed, and when", () => {
     const s = closedStrike(
       { ...dismissed, resolvedAt: "2026-03-01T10:00:00.000Z" },
