@@ -1,29 +1,40 @@
 import type { Control } from "@/components/lab/exploration";
 
 /**
- * THE BOARD'S TWO KNOBS, AS PURE DATA: split from the drawings so `spec.ts`
+ * THE BOARD'S THREE KNOBS, AS PURE DATA: split from the drawings so `spec.ts`
  * can declare them without importing React into a module the registry hands
  * to a server page.
  *
- * ★ THE SPECIMEN FIRST. A family is judged as a sum, and the specimen is the
- * sum laid out: every atom, in its states, on one sheet. The three screens are
- * where the sum is proved on production, one press away. Every frame of both
- * comes at 1440 and at 375.
+ * ★ THE ATOMS FIRST. An option is judged on its atoms in every state, and
+ * that sheet is the default; the real screens are where it is proved on
+ * production, one press away, one screen at a time so each is drawn large.
+ * Every frame comes at 1440 and at 375. An atom sheet draws paper and the
+ * room side by side; Ground picks the screens' one.
  */
 export const SHOW: Control = {
   id: "show",
   label: "Show",
   options: [
-    { id: "specimen", label: "The specimen" },
-    { id: "screens", label: "Three screens" },
+    { id: "atoms", label: "Atoms" },
+    { id: "settings", label: "Settings" },
+    { id: "add", label: "The Add" },
+    { id: "account", label: "Account" },
+    { id: "review", label: "Review" },
   ],
-  default: "specimen",
+  default: "atoms",
 };
 
-export type ShowId = "specimen" | "screens";
+export const SHOW_IDS = [
+  "atoms",
+  "settings",
+  "add",
+  "account",
+  "review",
+] as const;
+export type ShowId = (typeof SHOW_IDS)[number];
 
 export const showOf = (v: unknown): ShowId =>
-  v === "screens" ? "screens" : "specimen";
+  (SHOW_IDS as readonly unknown[]).includes(v) ? (v as ShowId) : "atoms";
 
 export const SCREEN: Control = {
   id: "screen",
@@ -35,7 +46,14 @@ export const SCREEN: Control = {
   default: "1440",
 };
 
-export type ScreenId = "1440" | "375";
+export const screenOf = (v: unknown): 1440 | 375 => (v === "375" ? 375 : 1440);
 
-export const screenOf = (v: unknown): ScreenId =>
-  v === "375" ? "375" : "1440";
+export const GROUND: Control = {
+  id: "ground",
+  label: "Ground",
+  options: [
+    { id: "room", label: "Room" },
+    { id: "paper", label: "Paper" },
+  ],
+  default: "room",
+};

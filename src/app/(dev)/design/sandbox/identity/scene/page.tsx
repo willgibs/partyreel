@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 
 import { requireDesignKey } from "@/lib/design-gate/server";
 
-import { familyOf, viewOf, widthOf } from "../model";
+import { choiceOf, groundOf, pageOf, viewOf, widthOf } from "../model";
 
 import { SceneRoot } from "./scene-root";
 
 /**
  * THE IDENTITY BOARD'S SCENE ROUTE: the document every one of its frames
- * loads, `?family=&view=&w=&id=` (built by `sceneSrc`, `model.ts`).
+ * loads, `?voice=&actions=&fields=&layers=&status=&view=&w=&ground=&page=&id=`
+ * (built by `sceneSrc`, `model.ts`).
  *
  * It renders bare (the design root layout carries no chrome; the lab's lives
  * in `(shell)`), so the frame is the page and nothing else. Gated like every
@@ -33,9 +34,17 @@ export default async function IdentityScenePage({
   };
   return (
     <SceneRoot
-      family={familyOf(one("family"))}
+      choice={choiceOf({
+        voice: one("voice"),
+        actions: one("actions"),
+        fields: one("fields"),
+        layers: one("layers"),
+        status: one("status"),
+      })}
       view={viewOf(one("view"))}
       w={widthOf(one("w"))}
+      ground={groundOf(one("ground"))}
+      page={pageOf(one("page"))}
       id={one("id") ?? ""}
     />
   );
