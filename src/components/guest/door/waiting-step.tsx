@@ -7,6 +7,12 @@ import { DoorWords } from "@/components/guest/door/door-page";
 import { StageGlyph } from "@/components/guest/door/stage";
 import { switchEmail } from "@/components/guest/door/switch-email";
 import { WaitPicks, type WaitPick } from "@/components/guest/door/wait-picks";
+import {
+  doorOwner,
+  forgetHeldPicks,
+  keepHeldPicks,
+  readHeldPicks,
+} from "@/components/guest/door/wait-picks-store";
 import { Button } from "@/components/ui/button";
 import { checkInAtDoor } from "@/lib/guest/join";
 
@@ -42,6 +48,11 @@ export function waitingCopy(hostName?: string | null): {
  * ★ IT ASKS, IT NEVER GUESSES. Every check-in answers `in` (the beat, then the album), `moved` (the
  * door changed under her: the page refreshes onto whatever the server now says, the shut screen
  * included, with no beat) or `waiting`. A failed check-in waits for the next one.
+ *
+ * ★ HER CHOICE OUTLIVES THE TAB (`wait-picks-store.ts`): what she picks is kept on the device as well as
+ * held by the page's queue, so the door that comes back after a reload or a closed tab puts it back in her
+ * hands, and the album she returns to once let in sends it (`event-experience.tsx`). It is put down the
+ * moment she is let in, the door moves, or she switches address.
  */
 export function WaitingStep({
   qrToken,
@@ -67,12 +78,40 @@ export function WaitingStep({
   acceptsVideo?: boolean;
 }) {
   const [switching, setSwitching] = useState(false);
+  // Whether her choice is kept on the device (null until she has chosen, or it came back from there).
+  const [kept, setKept] = useState<boolean | null>(null);
 
   // The latest callbacks and ticket, read by the loop without restarting it.
-  const latest = useRef({ sessionToken, onLetIn, onMoved });
+  const latest = useRef({ sessionToken, onLetIn, onMoved, onPick, picks });
   useEffect(() => {
-    latest.current = { sessionToken, onLetIn, onMoved };
+    latest.current = { sessionToken, onLetIn, onMoved, onPick, picks };
   });
+
+  // ★ HER CHOICE COMES BACK: the door she left (a reload, a closed tab) finds what she picked kept on the
+  // device under her account, and hands it back to the page's queue, where it waits for the door as before.
+  useEffect(() => {
+    let live = true;
+    void (async () => {
+      const owner = await doorOwner();
+      if (!live || !owner || (latest.current.picks?.length ?? 0) > 0) return;
+      const files = await readHeldPicks(qrToken, owner);
+      if (!live || !files?.length) return;
+      latest.current.onPick?.(files);
+      setKept(true);
+    })();
+    return () => {
+      live = false;
+    };
+  }, [qrToken]);
+
+  /** Her choice: held by the page's queue, and kept on the device for the door's return. */
+  const choose = (files: File[]) => {
+    onPick?.(files);
+    void (async () => {
+      const owner = await doorOwner();
+      setKept(owner ? await keepHeldPicks(qrToken, owner, files) : false);
+    })();
+  };
 
   useEffect(() => {
     let stopped = false;
@@ -98,11 +137,15 @@ export function WaitingStep({
       if (stopped) return;
       if (answer === "in") {
         stopped = true;
+        // Her choice goes in from the page's queue now: the device's copy has done its job.
+        void forgetHeldPicks(qrToken);
         latest.current.onLetIn();
         return;
       }
       if (answer === "moved") {
         stopped = true;
+        // The door it waited for is not this one any more.
+        void forgetHeldPicks(qrToken);
         latest.current.onMoved();
         return;
       }
@@ -130,10 +173,12 @@ export function WaitingStep({
       switching={switching}
       onSwitchEmail={() => {
         setSwitching(true);
-        void switchEmail();
+        // Another address is another person at the door: her choice goes with her.
+        void forgetHeldPicks(qrToken).then(() => switchEmail());
       }}
       picks={picks}
-      onPick={onPick}
+      onPick={choose}
+      kept={kept}
       acceptsVideo={acceptsVideo}
     />
   );
@@ -152,6 +197,7 @@ export function WaitingDoor({
   onSwitchEmail,
   picks = [],
   onPick,
+  kept = null,
   acceptsVideo = true,
 }: {
   hostName?: string | null;
@@ -159,6 +205,8 @@ export function WaitingDoor({
   onSwitchEmail?: () => void;
   picks?: readonly WaitPick[];
   onPick?: (files: File[]) => void;
+  /** Her choice is kept on the device (it outlives the tab), or could not be (it lives in the tab). */
+  kept?: boolean | null;
   acceptsVideo?: boolean;
 }) {
   const copy = waitingCopy(hostName);
@@ -198,7 +246,12 @@ export function WaitingDoor({
         style={{ "--door-line-i": 4 } as CSSProperties}
         className="mt-7 w-full"
       >
-        <WaitPicks picks={picks} onPick={onPick} acceptsVideo={acceptsVideo} />
+        <WaitPicks
+          picks={picks}
+          onPick={onPick}
+          kept={kept}
+          acceptsVideo={acceptsVideo}
+        />
       </div>
       <Button
         type="button"

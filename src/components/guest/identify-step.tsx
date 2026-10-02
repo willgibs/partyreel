@@ -16,8 +16,8 @@ import { readLastName, setLastName } from "@/lib/guest/use-stored-name";
 import { DISPLAY_NAME_MAX_LENGTH } from "@/lib/validation/profile";
 
 /**
- * THE NAME AND THE EMAIL, ON ONE SCREEN, CONFIRMED BY A CODE: a verification event's only way in,
- * and a name-only event's "Create account".
+ * THE EMAIL, CONFIRMED BY A CODE: a verification event's only way in (its name asked AFTER, only of an
+ * account that has none), and, with the name on the same screen, a name-only event's "Create account".
  *
  * ★ ONE PATH FOR A NEWCOMER AND A MEMBER (Will, `identity-door` r1 `nudge`: "with magic link/codes,
  * there should be no different handling between create account vs login (new vs existing user
@@ -25,13 +25,20 @@ import { DISPLAY_NAME_MAX_LENGTH } from "@/lib/validation/profile";
  * code signs a member in and creates a newcomer's account alike, so this screen never asks which
  * one the guest is.
  *
- * ★ THE NAME RIDES THE CODE REQUEST, never a second trip: it is checked here with the one name
- * policy (`checkDisplayName`), kept by the modal for the confirmation's four writes (a profile with
- * no name takes it), written to `pr_guest_name_last` as the same-browser fallback, and sent as the
- * new user's metadata (`DOOR_NAME_KEY`) so a guest who confirms by the emailed LINK, in another tab
- * or on another device, still lands named (`/auth/callback` adopts it: `adopt-door-name.ts`).
- * A code the account already had keeps that account's own name: the hint under the field says so
- * before they confirm, rather than after they see somebody else's version of their name.
+ * ★ WHERE VERIFICATION IS REQUIRED, THE EMAIL COMES FIRST AND THE NAME AFTER (Will, 2026-10-02, on his
+ * live walk, where "Will Test Mobile" typed at the door was credited "Will Gibson" with no word: "where
+ * verification is required i think it makes more sense to handle name after so we aren't handling two
+ * different versions for every new event on that account"). So this screen asks the address alone there:
+ * the account a code reaches already has its name, or the door asks it next, once, as the account's own
+ * (`entry-modal.tsx`'s name step in `profile` mode).
+ *
+ * ★ ON A NAME-ONLY EVENT'S CREATE ACCOUNT THE NAME RIDES THE CODE REQUEST, never a second trip: it is
+ * checked here with the one name policy (`checkDisplayName`), kept by the modal for the confirmation's
+ * four writes (a profile with no name takes it), written to `pr_guest_name_last` as the same-browser
+ * fallback, and sent as the new user's metadata (`DOOR_NAME_KEY`) so a guest who confirms by the emailed
+ * LINK, in another tab or on another device, still lands named (`/auth/callback` adopts it:
+ * `adopt-door-name.ts`). A code the account already had keeps that account's own name: the hint under the
+ * field says so before they confirm, rather than after they see somebody else's version of their name.
  *
  * ★ GOOGLE AND THE PASSWORD LINK LIVE UNDER LOG IN (a call for Will to overrule): this screen asks
  * for exactly what it needs, a name and an address, and one button.
@@ -64,15 +71,17 @@ export function IdentifyStep({
   hostName?: string | null;
   /** Approved media count, for the verification door's "N photos are waiting". */
   mediaTotal?: number;
-  /** The name this device already typed at THIS event, if any (the mid-visit flip). */
+  /** The name this device already typed at THIS event, if any (Create account's prefill). */
   storedName?: string | null;
-  /** The checked name, the moment the code is requested with it. */
+  /** The checked name, the moment the code is requested with it (Create account's alone). */
   onTypedName: (name: string) => void;
   /** The code confirmed: the modal's four writes follow. */
   onVerified: (result: DoorVerified) => void | Promise<void>;
 }) {
   const [name, setName] = useState(() => storedName ?? readLastName() ?? "");
   const [refusal, setRefusal] = useState<JoinRefusal | null>(null);
+  // An email-first event asks the name after the code, and only of an account with none.
+  const asksName = !verification;
   // Read once, when the screen arrives: the tickets that could be claimed are the ones held now.
   const [claimable] = useState(deviceHoldsTickets);
   const copy = identifyCopy({ verification, mediaTotal, door, hostName });
@@ -118,61 +127,67 @@ export function IdentifyStep({
         inputClassName="h-11 text-base"
         buttonSize="cta"
         leading={
-          <div className="space-y-1.5">
-            <Label htmlFor="pr-identify-name">Your name</Label>
-            <Input
-              id="pr-identify-name"
-              value={name}
-              onChange={(e) => {
-                setName(e.target.value);
-                if (refusal) setRefusal(null);
-              }}
-              onKeyDown={(e) => {
-                // Return moves on to the address, the next field of the same form.
-                if (e.key !== "Enter") return;
-                e.preventDefault();
-                e.currentTarget.form
-                  ?.querySelector<HTMLInputElement>('input[type="email"]')
-                  ?.focus();
-              }}
-              placeholder="Your name"
-              maxLength={DISPLAY_NAME_MAX_LENGTH}
-              autoComplete="name"
-              autoCapitalize="words"
-              inputMode="text"
-              enterKeyHint="next"
-              aria-invalid={refusal ? true : undefined}
-              aria-describedby="pr-identify-name-hint"
-              className="h-11 text-base"
-            />
-            {refusal ? (
-              <p
-                id="pr-identify-name-hint"
-                className="text-reading text-destructive"
-              >
-                {refusal.message}
-              </p>
-            ) : (
-              <p
-                id="pr-identify-name-hint"
-                className="text-reading text-muted-foreground"
-              >
-                If you already have a Partyreel account, its name is the one
-                that shows.
-              </p>
-            )}
-          </div>
+          asksName ? (
+            <div className="space-y-1.5">
+              <Label htmlFor="pr-identify-name">Your name</Label>
+              <Input
+                id="pr-identify-name"
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (refusal) setRefusal(null);
+                }}
+                onKeyDown={(e) => {
+                  // Return moves on to the address, the next field of the same form.
+                  if (e.key !== "Enter") return;
+                  e.preventDefault();
+                  e.currentTarget.form
+                    ?.querySelector<HTMLInputElement>('input[type="email"]')
+                    ?.focus();
+                }}
+                placeholder="Your name"
+                maxLength={DISPLAY_NAME_MAX_LENGTH}
+                autoComplete="name"
+                autoCapitalize="words"
+                inputMode="text"
+                enterKeyHint="next"
+                aria-invalid={refusal ? true : undefined}
+                aria-describedby="pr-identify-name-hint"
+                className="h-11 text-base"
+              />
+              {refusal ? (
+                <p
+                  id="pr-identify-name-hint"
+                  className="text-reading text-destructive"
+                >
+                  {refusal.message}
+                </p>
+              ) : (
+                <p
+                  id="pr-identify-name-hint"
+                  className="text-reading text-muted-foreground"
+                >
+                  If you already have a Partyreel account, its name is the one
+                  that shows.
+                </p>
+              )}
+            </div>
+          ) : undefined
         }
-        beforeSend={() => {
-          const checked = checkDisplayName(name);
-          if (!checked.ok) {
-            setRefusal(checked.refusal);
-            return false;
-          }
-          setLastName(checked.name);
-          onTypedName(checked.name);
-          return { data: { [DOOR_NAME_KEY]: checked.name } };
-        }}
+        beforeSend={
+          asksName
+            ? () => {
+                const checked = checkDisplayName(name);
+                if (!checked.ok) {
+                  setRefusal(checked.refusal);
+                  return false;
+                }
+                setLastName(checked.name);
+                onTypedName(checked.name);
+                return { data: { [DOOR_NAME_KEY]: checked.name } };
+              }
+            : undefined
+        }
         onVerified={onVerified}
       />
     </div>
@@ -212,11 +227,15 @@ export function identifyCopy(input: {
     const who = host ?? "the host";
     return door === "approve"
       ? {
-          title: host ? `${host} lets each guest in` : "The host lets each guest in",
+          title: host
+            ? `${host} lets each guest in`
+            : "The host lets each guest in",
           reason: `Confirm your email to ask. The album opens the moment ${who} lets you in.`,
         }
       : {
-          title: host ? `${host} invited the guests` : "The host invited the guests",
+          title: host
+            ? `${host} invited the guests`
+            : "The host invited the guests",
           reason: `Confirm the email ${who} invited, and the album opens. Not on the list? You can ask ${who} to let you in.`,
         };
   }

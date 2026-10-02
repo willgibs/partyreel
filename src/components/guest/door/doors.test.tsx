@@ -43,6 +43,19 @@ vi.mock("@/lib/guest/use-stored-session", () => ({
   setStoredSession: (...args: unknown[]) => setStoredSession(...args),
 }));
 
+// Her choice at the held door, kept on the device (`wait-picks-store.ts`, pinned against IndexedDB beside it).
+const store = vi.hoisted(() => ({
+  held: null as File[] | null,
+  keepHeldPicks: vi.fn(async () => true),
+  forgetHeldPicks: vi.fn(async () => {}),
+}));
+vi.mock("@/components/guest/door/wait-picks-store", () => ({
+  doorOwner: async () => "u-lena",
+  readHeldPicks: async () => store.held,
+  keepHeldPicks: store.keepHeldPicks,
+  forgetHeldPicks: store.forgetHeldPicks,
+}));
+
 const { HOUSE_HUES } = await import("@/lib/guest/door-light");
 const { ShutDoor, shutDoorCopy } =
   await import("@/components/guest/door/shut-door");
@@ -62,6 +75,7 @@ afterEach(() => {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  store.held = null;
   localStorage.clear();
   document.cookie = `pr_welcome_${QR}=; path=/; max-age=0`;
 });
@@ -274,17 +288,81 @@ describe("the held door", () => {
     await act(async () => {});
     expect(onLetIn).toHaveBeenCalledOnce();
     expect(onMoved).not.toHaveBeenCalled();
+    // Her choice goes in from the page's queue: the device's copy has done its job.
+    expect(store.forgetHeldPicks).toHaveBeenCalledWith(QR);
     await act(async () => {
       await vi.advanceTimersByTimeAsync(WAITING_CHECK_IN_MS * 3);
     });
     expect(checkInAtDoor).toHaveBeenCalledTimes(1);
   });
 
-  it("★ a door that moved refreshes with no beat", async () => {
+  it("★ a door that moved refreshes with no beat, and puts her choice down", async () => {
     checkInAtDoor.mockResolvedValue("moved");
     const { onLetIn, onMoved } = mount();
     await waitFor(() => expect(onMoved).toHaveBeenCalledOnce());
     expect(onLetIn).not.toHaveBeenCalled();
+    expect(store.forgetHeldPicks).toHaveBeenCalledWith(QR);
+  });
+
+  it("★ her choice comes back: the door she left finds it on the device and hands it to the page's queue", async () => {
+    checkInAtDoor.mockResolvedValue("waiting");
+    const files = [new File(["a"], "a.jpg", { type: "image/jpeg" })];
+    store.held = files;
+    const onPick = vi.fn();
+    render(
+      <WaitingStep
+        qrToken={QR}
+        sessionToken={TICKET}
+        hostName="Maya"
+        onLetIn={vi.fn()}
+        onMoved={vi.fn()}
+        onPick={onPick}
+      />,
+    );
+    await waitFor(() => expect(onPick).toHaveBeenCalledWith(files));
+    // Handed back, never written again or sent from here.
+    expect(store.keepHeldPicks).not.toHaveBeenCalled();
+  });
+
+  it("a tab that still holds her choice is not handed the device's copy over it", async () => {
+    checkInAtDoor.mockResolvedValue("waiting");
+    store.held = [new File(["a"], "a.jpg", { type: "image/jpeg" })];
+    const onPick = vi.fn();
+    render(
+      <WaitingStep
+        qrToken={QR}
+        sessionToken={TICKET}
+        hostName="Maya"
+        onLetIn={vi.fn()}
+        onMoved={vi.fn()}
+        picks={[
+          {
+            id: "1",
+            file: new File(["b"], "b.jpg", { type: "image/jpeg" }),
+            kind: "photo",
+            status: "queued",
+            progress: 0,
+          },
+        ]}
+        onPick={onPick}
+      />,
+    );
+    await waitFor(() => expect(checkInAtDoor).toHaveBeenCalled());
+    await act(async () => {});
+    expect(onPick).not.toHaveBeenCalled();
+  });
+
+  it('"Use a different email" puts her choice down before it switches', async () => {
+    checkInAtDoor.mockResolvedValue("waiting");
+    mount();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Use a different email" }),
+    );
+    await waitFor(() => expect(switchEmail).toHaveBeenCalledOnce());
+    expect(store.forgetHeldPicks).toHaveBeenCalledWith(QR);
+    expect(store.forgetHeldPicks.mock.invocationCallOrder[0]).toBeLessThan(
+      switchEmail.mock.invocationCallOrder[0],
+    );
   });
 
   it("★ her choice while she waits is handed to the page's queue to hold, and nothing is sent from here", async () => {
@@ -313,31 +391,32 @@ describe("the held door", () => {
     ];
     fireEvent.change(input, { target: { files } });
     expect(onPick).toHaveBeenCalledWith(files);
+    // And kept on the device under her account, for a reload or a closed tab.
+    await waitFor(() =>
+      expect(store.keepHeldPicks).toHaveBeenCalledWith(QR, "u-lena", files),
+    );
     // The door's own work is the check-in alone: no upload route is reached from the held door.
     expect(checkInAtDoor).toHaveBeenCalledTimes(1);
   });
 
-  it("★ what she chose stands on the door, counted, with the tab it waits in said quietly", () => {
-    render(
-      <WaitingDoor
-        picks={[
-          {
-            id: "1",
-            file: new File(["a"], "a.jpg", { type: "image/jpeg" }),
-            kind: "photo",
-            status: "queued",
-            progress: 0,
-          },
-          {
-            id: "2",
-            file: new File(["b"], "b.mp4", { type: "video/mp4" }),
-            kind: "video",
-            status: "queued",
-            progress: 0,
-          },
-        ]}
-      />,
-    );
+  it("★ what she chose stands on the door, counted; the tab is named only where the device could not keep it", () => {
+    const picks = [
+      {
+        id: "1",
+        file: new File(["a"], "a.jpg", { type: "image/jpeg" }),
+        kind: "photo",
+        status: "queued",
+        progress: 0,
+      },
+      {
+        id: "2",
+        file: new File(["b"], "b.mp4", { type: "video/mp4" }),
+        kind: "video",
+        status: "queued",
+        progress: 0,
+      },
+    ] as const;
+    render(<WaitingDoor picks={picks} kept />);
     expect(
       document
         .querySelector("[data-door-picks]")
@@ -345,6 +424,13 @@ describe("the held door", () => {
     ).toBe("ready");
     expect(screen.getByText(/2 photos & videos ready/)).toBeTruthy();
     expect(screen.getByRole("button", { name: "Change" })).toBeTruthy();
+    expect(
+      screen.getByText("They go in the moment you’re let in."),
+    ).toBeTruthy();
+    expect(screen.queryByText(/Keep this tab open/)).toBeNull();
+    cleanup();
+    // A browser that could not keep it: the choice lives in the tab, and the door says so.
+    render(<WaitingDoor picks={picks} kept={false} />);
     expect(screen.getByText(/Keep this tab open/)).toBeTruthy();
   });
 

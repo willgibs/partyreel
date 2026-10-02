@@ -17,6 +17,12 @@ import { toast } from "sonner";
 import { AlbumBoundary } from "@/components/guest/album-boundary";
 import { ClaimHandlePrompt } from "@/components/guest/claim-handle-prompt";
 import { AlbumLightSampler } from "@/components/guest/door/album-light";
+import { pickedLine } from "@/components/guest/door/wait-picks";
+import {
+  doorOwner,
+  forgetHeldPicks,
+  readHeldPicks,
+} from "@/components/guest/door/wait-picks-store";
 import {
   EntryModal,
   type EntryModalHandle,
@@ -133,6 +139,9 @@ const subscribeNoop = () => () => {};
 
 /** A page with nothing to say about the door's first paint (the tests', and the demo's own page). */
 const NO_ARRIVAL: DoorArrival = { face: null, scrim: false };
+
+/** The albums whose held-door choice is being sent right now (one sending per album, whatever mounts). */
+const deliveringPicks = new Set<string>();
 
 // ★ THE DOOR IS IN THE FIRST BYTE, SO IT IS NOT A LAZY CHUNK ANY MORE (door-reveal). The entry-modal tree
 // was split out of first-load JS when it only ever opened after hydration; the door's page is now the
@@ -434,6 +443,48 @@ export function EventExperience({
      reads for itself. The door's upload step draws a bar a pick off the items, so while it is on
      screen (and only then) it gets the queue with live progress folded in. */
   const doorQueue = useLiveQueue(queue, uploadProgress, uploadStepActive);
+  /* ★ HER CHOICE FROM THE HELD DOOR, SENT ON HER RETURN (`door/wait-picks-store.ts`): she chose what she would
+     add while the host decided, then left (a closed tab, her phone in her pocket), and the host let her in
+     meanwhile; the album she comes back to (the let-in mail, a reload) sends that choice, once, as the door
+     would have the moment it opened. Put down on the device first, so a second tab never sends it twice. */
+  const queueNow = useRef(queue);
+  useEffect(() => {
+    queueNow.current = queue;
+  });
+  useEffect(() => {
+    if (isDemo || isOwner || !isVerified || access === "none") return;
+    if (!event.accepting_uploads || deliveringPicks.has(qrToken)) return;
+    deliveringPicks.add(qrToken);
+    void (async () => {
+      try {
+        const owner = await doorOwner();
+        const files = owner ? await readHeldPicks(qrToken, owner) : null;
+        if (!files?.length) return;
+        await forgetHeldPicks(qrToken);
+        // The tab that waited still holds her choice in its queue: that copy goes, never both.
+        if (queueNow.current.length > 0) return;
+        addFiles(files);
+        toast.success(
+          `Sending your ${pickedLine(
+            files.map((file) => ({
+              kind: file.type.startsWith("video/") ? "video" : "photo",
+            })),
+          )} from the door`,
+        );
+      } finally {
+        deliveringPicks.delete(qrToken);
+      }
+    })();
+  }, [
+    access,
+    addFiles,
+    event.accepting_uploads,
+    isDemo,
+    isOwner,
+    isVerified,
+    qrToken,
+  ]);
+
   /* THIS DEVICE HAS PUT SOMETHING IN, this visit, before any refresh has landed. It is the client
      half of the server's `hasContributed`, and either one closes the door's upload step. */
   const contributed = queue.some((it) => it.status === "done");

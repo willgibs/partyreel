@@ -5,7 +5,7 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
@@ -112,6 +112,17 @@ const queueOptions = vi.hoisted(() => ({
     onDoorNeeded?: (ticketDown?: Promise<void>) => void;
     ownerEventId?: string | null;
   },
+  addFiles: vi.fn(),
+}));
+// Her choice at the held door, kept on the device (`door/wait-picks-store.ts`).
+const heldPicks = vi.hoisted(() => ({
+  files: null as File[] | null,
+  forget: vi.fn(async () => {}),
+}));
+vi.mock("@/components/guest/door/wait-picks-store", () => ({
+  doorOwner: async () => "u-lena",
+  readHeldPicks: async () => heldPicks.files,
+  forgetHeldPicks: heldPicks.forget,
 }));
 vi.mock("@/lib/guest/use-upload-queue", () => ({
   useUploadQueue: (options: {
@@ -122,7 +133,7 @@ vi.mock("@/lib/guest/use-upload-queue", () => ({
     return {
       items: [],
       progress: {},
-      addFiles: vi.fn(),
+      addFiles: queueOptions.addFiles,
       addClip: vi.fn(),
       retry: vi.fn(),
       dismiss: vi.fn(),
@@ -260,6 +271,7 @@ class NoIntersections {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  heldPicks.files = null;
   queueOptions.current = null;
   stageNow.open = false;
   phoneName.set(null);
@@ -430,5 +442,33 @@ describe("the door as the page, at the page", () => {
         .querySelector("[data-guest-experience]")
         ?.hasAttribute("data-reveal-curtain"),
     ).toBe(false);
+  });
+});
+
+/**
+ * ★ HER CHOICE FROM THE HELD DOOR, SENT ON HER RETURN (door-reveal): she chose at the door and left, the host let
+ * her in meanwhile, and the album she comes back to sends what she chose, once, put down on the device first.
+ */
+describe("her choice from the held door", () => {
+  it("★ the album she returns to sends it, once, and puts it down", async () => {
+    const files = [new File(["a"], "a.jpg", { type: "image/jpeg" })];
+    heldPicks.files = files;
+    render(<Page seed={seed()} verified />);
+    await waitFor(() =>
+      expect(queueOptions.addFiles).toHaveBeenCalledWith(files),
+    );
+    expect(heldPicks.forget).toHaveBeenCalledWith(EVENT.qr_token);
+    expect(queueOptions.addFiles).toHaveBeenCalledOnce();
+  });
+
+  it("nothing is sent from a door she is still outside, or for a visitor who was never at one", async () => {
+    heldPicks.files = [new File(["a"], "a.jpg", { type: "image/jpeg" })];
+    render(<Page seed={seed()} verified access="none" gate="waiting" />);
+    await screen.findByTestId("door-name");
+    cleanup();
+    render(<Page seed={seed()} verified={false} />);
+    await screen.findByTestId("door-name");
+    await act(async () => {});
+    expect(queueOptions.addFiles).not.toHaveBeenCalled();
   });
 });

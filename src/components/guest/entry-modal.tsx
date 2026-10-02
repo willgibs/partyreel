@@ -575,10 +575,10 @@ export const EntryModal = forwardRef<
   /* ────────────────────────────────────────────────────────────────────────
      WHAT HAPPENS THE INSTANT A CODE CONFIRMS (identify and Log in share it).
 
-     The steps cannot own this: `identify` holds a NAME that has never been sent anywhere, and the
-     order the four writes happen in is the whole difference between a guest who lands named and
-     one whose photographs carry no name. So both steps take a plain callback and the sequence is
-     the modal's:
+     The steps cannot own this: a name-only event's Create account (`identify`'s `create`) holds a NAME
+     that has never been sent anywhere, and the order the four writes happen in is the whole difference
+     between a guest who lands named and one whose photographs carry no name. So both steps take a plain
+     callback and the sequence is the modal's:
 
        1. claim this browser's anonymous uploads onto the freshly confirmed account;
        2. join, VERIFIED and nameless (create_guest nulls a typed name beside a confirmed
@@ -588,8 +588,12 @@ export const EntryModal = forwardRef<
        5. hold the beat (when the album is directly behind), then refresh.
 
      ★ THE ACCOUNT'S NAME WINS. A confirmed viewer whose profile already says "Priya" is credited
-     as Priya even if they typed "P" at the door a minute ago: one person, one name, and the
-     identify step says so under the name field before they confirm.
+     as Priya even if they typed "P" at Create account a minute ago: one person, one name, and the
+     identify step says so under the name field before they confirm. ★ WHERE VERIFICATION IS
+     REQUIRED NOTHING IS TYPED BEFORE THE CODE (Will, 2026-10-02: "handle name after so we aren't
+     handling two different versions for every new event on that account"): the account a code reaches
+     keeps its own name, and an account with none is asked for one by the door's next step, as its own
+     (the name step's `profile` mode), once.
 
      ★ AND THEN SHE IS TOLD (`guest-capture` r1, Will's `name=told`): the name her photographs now
      carry, whenever she typed one at this door, whichever name won. Told once, with whatever the

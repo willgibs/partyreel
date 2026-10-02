@@ -440,14 +440,20 @@ describe("the chooser: how a guest comes in on a name-only event", () => {
   });
 });
 
-describe("a verification event: one path, identify", () => {
-  it("the welcome hands straight to identify, with no chooser", () => {
+/**
+ * ★ WHERE VERIFICATION IS REQUIRED, THE EMAIL COMES FIRST AND THE NAME AFTER (Will, 2026-10-02, on his live
+ * walk, where "Will Test Mobile" typed at the door was credited "Will Gibson" with no word: "where verification
+ * is required i think it makes more sense to handle name after so we aren't handling two different versions for
+ * every new event on that account"). Reshaped on purpose: these pins held a name and an email on one screen.
+ */
+describe("a verification event: one path, identify, the email first", () => {
+  it("the welcome hands straight to identify, with no chooser: the email alone", () => {
     renderModal(VERIFY_EVENT);
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
     expect(
       screen.queryByRole("button", { name: "Continue as guest" }),
     ).toBeNull();
-    expect(screen.getByLabelText("Your name")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Your name")).toBeNull();
     expect(screen.getByTestId("email-sign-in")).toBeInTheDocument();
   });
 
@@ -467,23 +473,65 @@ describe("a verification event: one path, identify", () => {
     expect(screen.queryByRole("button", { name: /google/i })).toBeNull();
   });
 
-  it("says whose name wins before they confirm, and goes back to the welcome", () => {
+  it("asks no name before the code (nothing for an account's own name to overrule), and goes back to the welcome", () => {
     seeWelcome();
     renderModal(VERIFY_EVENT);
     expect(
-      screen.getByText(
+      screen.queryByText(
         "If you already have a Partyreel account, its name is the one that shows.",
       ),
-    ).toBeInTheDocument();
+    ).toBeNull();
+    // The code request carries no name either.
+    fireEvent.click(screen.getByTestId("stub-send"));
+    expect(sent.gates).toEqual([{}]);
     fireEvent.click(
       screen.getByRole("button", { name: "Back to the welcome" }),
     );
     expect(screen.getByText("You’re invited to")).toBeInTheDocument();
   });
 
-  it("refuses a bad name in place, and sends nothing", () => {
+  it("★ a confirmed account with no name is asked its name next, as its own (the name after the email)", () => {
     seeWelcome();
-    renderModal(VERIFY_EVENT);
+    renderModal({ isVerified: true, hasProfileName: false });
+    expect(screen.getByLabelText("Your name")).toBeInTheDocument();
+    expect(
+      screen.getAllByText(
+        "Your name goes on the photos you add. It becomes your Partyreel name too.",
+      )[0],
+    ).toBeInTheDocument();
+  });
+
+  it("★ a confirmed account with a name is never asked one, whatever this device typed at an earlier door", () => {
+    seeWelcome();
+    renderModal({
+      isVerified: true,
+      hasProfileName: true,
+      storedName: "Will Test Mobile",
+      uploadsOpen: false,
+    });
+    expect(screen.queryByLabelText("Your name")).toBeNull();
+    expect(document.querySelector("[data-door-stage]")).toBeNull();
+  });
+
+  it("★ a name this device typed at an earlier door never stands in for a nameless account's own", () => {
+    seeWelcome();
+    renderModal({
+      isVerified: true,
+      hasProfileName: false,
+      storedName: "Old Guest Name",
+    });
+    expect(screen.getByLabelText("Your name")).toBeInTheDocument();
+  });
+
+  it("Create account on a name-only event still carries the name, and refuses a bad one in place", () => {
+    seeWelcome();
+    renderModal();
+    pick("Create account");
+    expect(
+      screen.getByText(
+        "If you already have a Partyreel account, its name is the one that shows.",
+      ),
+    ).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("Your name"), {
       target: { value: "admin" },
     });
@@ -954,11 +1002,35 @@ describe("the confirmation sequence (identify and Log in share it)", () => {
       }),
     } as Response);
 
-  it("the four writes: claims, then joins nameless, then writes the typed name, then refreshes", async () => {
+  it("★ an email-first event's writes: claims, then joins nameless, and writes no name (one is asked after, where the account has none)", async () => {
     verifiedJoin();
     seeWelcome();
     const onNamed = vi.fn();
     renderModal({ ...VERIFY_EVENT, onNamed });
+    fireEvent.click(screen.getByTestId("stub-send"));
+    expect(sent.gates).toEqual([{}]);
+    fireEvent.click(screen.getByTestId("stub-verify"));
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    expect(claimAnonymousUploads).toHaveBeenCalled();
+    const joinCall = vi
+      .mocked(global.fetch)
+      .mock.calls.find((c) => c[0] === "/api/guests");
+    expect(
+      JSON.parse((joinCall![1] as RequestInit).body as string).display_name,
+    ).toBeUndefined();
+    // Nothing was typed, so nothing is written; the door asks the name next where the account has none.
+    expect(updateDisplayNameAction).not.toHaveBeenCalled();
+    expect(onNamed).toHaveBeenCalledWith(
+      expect.objectContaining({ source: "verified" }),
+    );
+  });
+
+  it("the four writes on Create account: claims, then joins nameless, then writes the typed name, then refreshes", async () => {
+    verifiedJoin();
+    seeWelcome();
+    const onNamed = vi.fn();
+    renderModal({ onNamed });
+    pick("Create account");
     fireEvent.change(screen.getByLabelText("Your name"), {
       target: { value: "Priya" },
     });
@@ -997,7 +1069,8 @@ describe("the confirmation sequence (identify and Log in share it)", () => {
     profileName.value = "Priyanka";
     verifiedJoin();
     seeWelcome();
-    renderModal(VERIFY_EVENT);
+    renderModal();
+    pick("Create account");
     fireEvent.change(screen.getByLabelText("Your name"), {
       target: { value: "Priya" },
     });
@@ -1284,10 +1357,11 @@ describe("the confirmation's one beat", () => {
       }),
     } as Response);
 
-  it("identify with a typed name: the name her photos now carry is reported", async () => {
+  it("Create account with a typed name: the name her photos now carry is reported", async () => {
     verifiedJoin();
     seeWelcome();
-    renderModal(VERIFY_EVENT);
+    renderModal();
+    pick("Create account");
     fireEvent.change(screen.getByLabelText("Your name"), {
       target: { value: "Priya" },
     });
@@ -1301,7 +1375,8 @@ describe("the confirmation's one beat", () => {
     profileName.value = "Priyanka";
     verifiedJoin();
     seeWelcome();
-    renderModal(VERIFY_EVENT);
+    renderModal();
+    pick("Create account");
     fireEvent.change(screen.getByLabelText("Your name"), {
       target: { value: "Priya" },
     });
@@ -1309,6 +1384,19 @@ describe("the confirmation's one beat", () => {
     fireEvent.click(screen.getByTestId("stub-verify"));
     await waitFor(() => expect(refresh).toHaveBeenCalled());
     expect(beats).toEqual([{ album: QR, name: "Priyanka", elsewhere: 0 }]);
+  });
+
+  it("★ an email-first event types no name and tells none: nothing was typed for the account's to overrule", async () => {
+    profileName.value = "Will Gibson";
+    verifiedJoin();
+    seeWelcome();
+    renderModal(VERIFY_EVENT);
+    fireEvent.click(screen.getByTestId("stub-send"));
+    fireEvent.click(screen.getByTestId("stub-verify"));
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    expect(beats).toEqual([]);
+    // The account's name is the device's name for this album now.
+    expect(localStorage.getItem(`pr_guest_name_${QR}`)).toBe("Will Gibson");
   });
 
   it("Log in types no name and tells none; the other events it carried are still said once", async () => {
