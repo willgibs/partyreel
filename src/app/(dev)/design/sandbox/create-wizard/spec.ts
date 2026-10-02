@@ -12,12 +12,15 @@ import { SCREEN } from "./knobs";
  * bespoke and experiential, sleek, sophisticated (no tilt), minimal yet
  * high-information, media and light as the colour.
  *
- * ★ THREE DECISIONS, ONE STAGED WORLD. `shape` (a card in the app, a room of
- * its own, a studio beside a live preview) is asked first and draws all four
- * screens; `mode` (the album or the camera, his `create=cards` redrawn with
- * the deeper compare) and `hand` (what stands beside the code when it
- * arrives) wait on it and are drawn in the shape picked. Until he answers,
- * each wears the recommendation, the kit's own rule.
+ * ★ THREE DECISIONS, ONE WORLD, NOTHING STAGED. `shape` (a card in the app, a
+ * room of its own, a studio beside a live preview) is asked first and draws
+ * all four screens; `mode` (the album or the camera, his `create=cards`
+ * redrawn with the deeper compare) and `hand` (what stands beside the code
+ * when it arrives) are drawn in whatever shape the board holds: his pick once
+ * he has made it, the room until then, the kit's own rule. Neither waits on
+ * `shape` (`after`): each is its own decision in any shape, and a shape he
+ * leaves open (the broadest question here, the likeliest to come back as a
+ * note) must not hold the other two out of his walk.
  *
  * ★ SETTLED, NOT ASKED: one field, the name (`asks=one`); the code's look a
  * step of its own on samples (`style=step`, chosen over "on the real code");
@@ -183,7 +186,7 @@ export const CREATE_WIZARD = defineExploration({
       lands:
         "Create's second step and the event's mode, the camera's two defaults, and how the two experiences are set side by side.",
       context:
-        "Your create=cards, redrawn: two pictures of a guest's phone, a line each, the camera's defaults once picked; each option adds the deeper compare its own way. Drawn in the shape you picked.",
+        "Your create=cards, redrawn: two pictures of a guest's phone, a line each, the camera's defaults once picked; each option adds the deeper compare its own way. Drawn in the shape you pick, the room until then.",
       options: [
         {
           id: "rows",
@@ -219,7 +222,6 @@ export const CREATE_WIZARD = defineExploration({
       because:
         "The two differ most in when everyone sees the photos, so a slider through the night shows it in the cards themselves.",
       overrule: "If a host should see both nights whole at once, the sheet.",
-      after: { ask: "shape" },
       configs: [SCREEN],
     },
 
@@ -236,7 +238,7 @@ export const CREATE_WIZARD = defineExploration({
       lands:
         "What the beat draws beside the code, and Settings' rail standing under it as what is left.",
       context:
-        "Your picks stand: the code first, then what is left, then Get it ready into Settings' first step. Each option changes what stands beside the code; what is left is Settings' rail, read from production. Drawn in the shape you picked.",
+        "Your picks stand: the code first, then what is left, then Get it ready into Settings' first step. Each option changes what stands beside the code; what is left is Settings' rail, read from production. Drawn in the shape you pick.",
       options: [
         {
           id: "lit",
@@ -273,7 +275,6 @@ export const CREATE_WIZARD = defineExploration({
         "A new event lacks only an opened code, so asking her to scan it finishes it in the moment and shows her what guests see.",
       overrule:
         "If the beat should stay one quiet look at the code, the code alone, lit.",
-      after: { ask: "shape" },
       configs: [SCREEN],
     },
   ],
