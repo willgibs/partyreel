@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { ChromeLink as Link } from "@/components/marketing/chrome/chrome-link";
 import { Compass } from "lucide-react";
 
 import { NotFoundScreen } from "@/components/shared/not-found-screen";

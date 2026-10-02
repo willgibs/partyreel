@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { contactSchema } from "@/lib/validation/contact";
+import { HONEYPOT_FIELD } from "@/lib/validation/public-form";
 
 const valid = {
   topic: "hosting",
@@ -32,10 +33,14 @@ describe("contactSchema", () => {
     );
   });
 
+  // The honeypot was `website` until mkt-polish renamed it for nothing real (public-form.ts).
   it("allows an optional subject and the (empty) honeypot field", () => {
     expect(
-      contactSchema.safeParse({ ...valid, subject: "Billing", website: "" })
-        .success,
+      contactSchema.safeParse({
+        ...valid,
+        subject: "Billing",
+        [HONEYPOT_FIELD]: "",
+      }).success,
     ).toBe(true);
   });
 

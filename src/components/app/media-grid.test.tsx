@@ -16,7 +16,7 @@
 import { fireEvent, render } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { MediaTile } from "@/components/app/media-grid";
+import { decodeTileImage, MediaTile } from "@/components/app/media-grid";
 
 const realComplete = Object.getOwnPropertyDescriptor(
   HTMLImageElement.prototype,
@@ -182,5 +182,72 @@ describe("MediaTile and her own upload", () => {
     expect(shimmerOf(container)).not.toHaveAttribute("data-done");
     fireEvent.load(imgOf(container));
     expect(shimmerOf(container)).toHaveAttribute("data-done");
+  });
+});
+
+/**
+ * THE PRODUCT'S TILE RENDERS AS IT DID; A MARKETING STILL'S CARRIES ITS SIZES (mkt-polish). A marketing
+ * still's sized variants ride a field only the marketing stage sets (`variants`), so a product tile (a
+ * presigned R2 URL the image optimizer must never touch) writes neither attribute. Proven byte for byte
+ * once, against snapshots the tile wrote before the field existed (the lane's Handoff); held here by the
+ * behaviour that matters, so a visual change to the tile owes this test nothing.
+ */
+describe("the variants only a marketing still carries", () => {
+  const PRODUCT = [
+    {
+      type: "photo" as const,
+      url: "https://r2.test/p.jpg?sig=1",
+      previewUrl: "https://r2.test/p.webp?sig=1",
+    },
+    { type: "photo" as const, url: "https://r2.test/p.jpg?sig=1" },
+    {
+      type: "video" as const,
+      url: "https://r2.test/v.mp4?sig=1",
+      previewUrl: "https://r2.test/v.webp?sig=1",
+    },
+  ];
+
+  it.each(PRODUCT)(
+    "a product tile writes no srcset and no sizes ($type, $url)",
+    (item) => {
+      complete(false);
+      for (const eager of [false, true]) {
+        const { container, unmount } = render(
+          <MediaTile item={item} eager={eager} />,
+        );
+        const img = imgOf(container);
+        expect(img).not.toHaveAttribute("srcset");
+        expect(img).not.toHaveAttribute("sizes");
+        expect(img).toHaveAttribute("src", item.previewUrl ?? item.url);
+        unmount();
+      }
+    },
+  );
+
+  it("a marketing still draws its variants, its own path the fallback", () => {
+    complete(false);
+    const variants = {
+      srcSet:
+        "/_next/image?url=%2Fm.jpg&w=384&q=75 384w, /_next/image?url=%2Fm.jpg&w=640&q=75 640w",
+      sizes: "(min-width: 944px) 370px, 58vw",
+    };
+    const { container } = render(
+      <MediaTile item={{ type: "photo", url: "/m.jpg", variants }} />,
+    );
+    const img = imgOf(container);
+    expect(img).toHaveAttribute("srcset", variants.srcSet);
+    expect(img).toHaveAttribute("sizes", variants.sizes);
+    expect(img).toHaveAttribute("src", "/m.jpg");
+  });
+
+  it("decodes a still ahead with the same variants its tile will pick from", () => {
+    const variants = { srcSet: "/a 384w, /b 640w", sizes: "200px" };
+    const { image } = decodeTileImage("/m.jpg", variants);
+    expect(image.getAttribute("sizes")).toBe(variants.sizes);
+    expect(image.getAttribute("srcset")).toBe(variants.srcSet);
+    expect(image.getAttribute("src")).toBe("/m.jpg");
+    // A product photograph decodes by its address alone, as before.
+    const plain = decodeTileImage("https://r2.test/p.webp?sig=1").image;
+    expect(plain.hasAttribute("srcset")).toBe(false);
   });
 });

@@ -70,7 +70,10 @@ import { formatBytes } from "@/lib/utils";
  * it has and keeps exactly two minuses, photos only and the mark on clips; Pro's
  * leads with Everything in Free and then names only what it adds, the storage
  * being the slider and the stats. Clip length left both lists: it is the same on
- * every plan, so it is no longer a reason to choose one.
+ * every plan, so it is no longer a reason to choose one. The verified-email
+ * default left Free's list by the same rule (every plan has it, and the matrix
+ * still says so), which stands the pair five lines to five, its two minuses
+ * facing the two lines of Pro's that lift them.
  */
 
 const STACK_IDS = {
@@ -440,7 +443,6 @@ export function PlanPair() {
             </Item>
             <Item>Every gate and a custom link</Item>
             <Item>No watermark on photos or the album</Item>
-            <Item>Verified-email uploads, on by default</Item>
             <Item limit>Photos only</Item>
             <Item limit>A small mark on clips</Item>
           </ul>
@@ -466,7 +468,9 @@ export function PlanPair() {
                 Start free
               </Link>
             </Button>
-            <p className="mt-3 text-center text-xs text-faint">
+            {/* A promise a reader acts on ("No card"), so the second text step, as Pro's
+                twin line under its button reads in its own ink; faint is a caption's. */}
+            <p className="mt-3 text-center text-xs text-muted-foreground">
               No card. Upgrade when you want video or more room.
             </p>
           </div>

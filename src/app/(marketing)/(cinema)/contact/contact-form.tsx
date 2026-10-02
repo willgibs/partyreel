@@ -3,15 +3,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import Link from "next/link";
-import {
-  useEffect,
-  useRef,
-  useState,
-  type CSSProperties,
-  type ReactNode,
-} from "react";
+import { useEffect, type ReactNode } from "react";
 import { useForm, useWatch } from "react-hook-form";
 
+import { HoneypotField } from "@/components/marketing/forms/honeypot-field";
+import { useReceiptSwap } from "@/components/marketing/forms/receipt-swap";
 import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
 import { Caption } from "@/components/marketing/system/caption";
 import { Button } from "@/components/ui/button";
@@ -44,6 +40,7 @@ import { showActionError } from "@/lib/errors";
 import { useHydrated } from "@/lib/shared/use-hydrated";
 import { cn } from "@/lib/utils";
 import { contactSchema, type ContactInput } from "@/lib/validation/contact";
+import { HONEYPOT_FIELD } from "@/lib/validation/public-form";
 
 import { submitContactForm, type ContactResult } from "./actions";
 import {
@@ -125,9 +122,6 @@ function TopicHint({ hint }: { hint: ContactHint }) {
   );
 }
 
-/** The form's exit before the receipt: exits are faster than entrances. */
-const FORM_EXIT_MS = 150;
-
 export function ContactForm({
   helpSubjects,
 }: {
@@ -139,15 +133,19 @@ export function ContactForm({
 }) {
   // The receipt's data once a note is sent (null while the form stands), the
   // form's short exit before the swap, and "Send another"'s arrival: three
-  // states of one card, never three components.
-  const [receipt, setReceipt] = useState<ContactReceiptData | null>(null);
-  const [leaving, setLeaving] = useState(false);
-  const [returning, setReturning] = useState(false);
-  // The height the form held when it was sent: from lg the receipt keeps that
-  // frame (the desk's composition never changes under it), and in a hand it
-  // condenses from it to its own height (contact-receipt.tsx).
-  const [frame, setFrame] = useState(0);
-  const body = useRef<HTMLDivElement>(null);
+  // states of one card, the public forms' one choreography (receipt-swap.ts).
+  // Send another hands the keyboard back to the topic, the first field.
+  // Taken apart at once: the wrapper's ref rides beside values a render reads.
+  const {
+    body,
+    receipt,
+    leaving,
+    frameStyle,
+    measure,
+    land,
+    another,
+    formMotion,
+  } = useReceiptSwap<ContactReceiptData>('[role="combobox"]');
   const form = useForm<ContactInput>({
     resolver: zodResolver(contactSchema),
     defaultValues: {
@@ -155,7 +153,7 @@ export function ContactForm({
       email: "",
       subject: "",
       message: "",
-      website: "",
+      [HONEYPOT_FIELD]: "",
     },
   });
   const { isSubmitting } = form.formState;
@@ -212,78 +210,27 @@ export function ContactForm({
       return;
     }
     track("contact_submit");
-    const sent = receiptFrom(values, new Date());
-    // Exits are faster than entrances: the form leaves in 150ms and the receipt
-    // arrives on its own beats. Awaited here so the button stays disabled (and
-    // the form inert) until the swap; a reader who asked for less motion gets
-    // the swap at once, and the receipt's arrival is motion-safe on its own.
-    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setLeaving(true);
-      await new Promise((resolve) => setTimeout(resolve, FORM_EXIT_MS));
-    }
     // reset() lands on the form's baseline (the help handoff's article context,
     // when there was one), after the swap so the fields never blank mid-exit.
-    form.reset();
-    setLeaving(false);
-    setReturning(false);
-    setReceipt(sent);
+    await land(receiptFrom(values, new Date()), () => form.reset());
   }
-
-  function sendAnother() {
-    setReceipt(null);
-    setReturning(true);
-  }
-
-  // "Send another" hands the keyboard back to the first field, the way the
-  // receipt took it from the button that sent.
-  useEffect(() => {
-    if (!returning) return;
-    body.current
-      ?.querySelector<HTMLElement>('[role="combobox"]')
-      ?.focus({ preventScroll: true });
-  }, [returning]);
 
   return (
     <FormCard postmark={receipt?.postmark}>
-      <div
-        ref={body}
-        style={
-          receipt && frame
-            ? ({ "--frame": `${frame}px` } as CSSProperties)
-            : undefined
-        }
-      >
+      <div ref={body} style={frameStyle}>
         {receipt ? (
-          <ContactReceipt receipt={receipt} onAnother={sendAnother} />
+          <ContactReceipt receipt={receipt} onAnother={another} />
         ) : (
           <Form {...form}>
             <ClientForm
               onSubmit={(event) => {
-                // The frame is measured as the send starts, while the form still
-                // stands; the receipt keeps it (a ref read belongs in a handler).
-                setFrame(body.current?.offsetHeight ?? 0);
+                measure();
                 return form.handleSubmit(onSubmit)(event);
               }}
               inert={leaving}
-              className={cn(
-                "flex flex-col gap-5",
-                // The exit and the return, each motion-safe by construction.
-                "blur-[0px] transition-[opacity,filter,scale] duration-150 ease-emphasis motion-reduce:transition-none",
-                leaving &&
-                  "pointer-events-none scale-[0.985] opacity-0 blur-[2px]",
-                returning &&
-                  "animate-in duration-200 fade-in motion-reduce:animate-none",
-              )}
+              className={cn("flex flex-col gap-5", formMotion)}
             >
-              {/* Honeypot — hidden from real users; bots that fill it are silently dropped. */}
-              <input
-                type="text"
-                tabIndex={-1}
-                autoComplete="off"
-                aria-hidden="true"
-                className="hidden"
-                {...form.register("website")}
-              />
+              <HoneypotField registration={form.register(HONEYPOT_FIELD)} />
               {/* The topic router as ONE clean field (from that sitting: seven
                   open chips ate the form; a dropdown keeps the routing without the
                   room). The portaled content must carry the paper skin itself

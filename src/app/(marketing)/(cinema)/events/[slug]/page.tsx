@@ -186,8 +186,11 @@ export default async function EventTypePage({
 
       {/* The FAQ-to-close gap, halved below `sm` and only below it (Will,
           `the-phone=tightened`): two full section paddings stacked put a ~160px
-          dead band between the last answer and the last button on a phone. */}
+          dead band between the last answer and the last button on a phone.
+          `id="faq"` is where the footer's FAQ link lands on this page
+          (`OWN_FAQ_ROUTES`), so a reader meets this type's own questions. */}
       <SectionShell
+        id="faq"
         width="narrow"
         eyebrow="FAQ"
         heading="Common questions"

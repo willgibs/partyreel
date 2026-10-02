@@ -103,8 +103,10 @@ export default function PricingPage() {
             <PlanPair />
             <PassCard />
             {/* Every photo and video count above assumes one camera, and says
-                which (host-storage r2): once, under the plans it qualifies. */}
-            <p className="mx-auto mt-5 max-w-4xl text-center text-xs text-pretty text-faint">
+                which (host-storage r2): once, under the plans it qualifies. A
+                sentence a reader needs to read the counts, so the second text
+                step (7.0:1 on the page), never the faint one (3.2:1). */}
+            <p className="mx-auto mt-5 max-w-4xl text-center text-xs text-pretty text-muted-foreground">
               {ESTIMATE_BASIS_NOTE}
             </p>
           </div>
