@@ -99,12 +99,21 @@ the alias mid-sitting (his yes). No new lane until his paste lands.
    hidden tab, its forced frames passing; one new LOW to the ROADMAP; `../partyreel-wt/_scratch/proof-37/ledger.txt`); gate 120 (FULL) GREEN on it (lab:demo --all 23 steps, red steps 0); the prod walk's brief ready (`../partyreel-wt/_scratch/prod-m32/brief.md`) (the first-page Delete holds, the reel card's Add lands, the owner's own credit); then, on Will's
    yes (2026-10-01, "Ship after the red-team"), the full gate, the merge to `main`, the tag, production READY and a
    read-only prod walk from a brief like `prod-m31`'s, then `launch-prep` fast-forwarded.
-2. **The waiting lanes merge**, one at a time, each by the runbook, each migration by protocol: crumbs-41 (two
-   migrations), crumbs-42, crumbs-43 (two; its head `b9181f7c`), crumbs-44, strip-gaps, export-ends (one migration,
-   then the Worker's deploy, `wrangler whoami` first), then lab-sitting and mkt-polish as they hand off; the types
-   regenerated after each migration's lane, its typed seams dropped; each merge's calls into the calls file, re-sent.
-3. **Build 38** on the alias, its red-team from a fresh brief (the batched visible-tab steps; the prune's frozen tab),
-   and one read-only pass of the six boards' asks against build 38's code, a desk-tune only if a claim drifted.
+2. **The waiting lanes: all merged but crumbs-43** (2026-10-02 01:05Z): crumbs-42 `3842b21f`, crumbs-41 `6ae5c0b1` (its two
+   migrations applied), crumbs-44 `4b5adc8a`, strip-gaps `c573275d`, export-ends `15a0d3d2` (its migration applied, the types
+   and seams at `aa80d056`, the Worker deployed `abf810e7`), mkt-polish `a20865d5`, lab-sitting `d5efa6a3`; each recorded
+   and pruned; the calls file at 72. **crumbs-43 is handed back** (its row): when it re-hands off, integrate it (its
+   `uploads-and-r2.md` conflict is both sides' lines kept), then its two migrations by protocol after the Advisor's Q7
+   ("apply as written"): `20261001233000_guest_event_cap` (drift md5 `7ddab5f2`; its rolled-back proof already 5/5 on
+   2026-10-02 00:22Z, re-run it if the file moved) and `20261001233110_faces_move_attribution` (its proof before the
+   apply), then the types regenerated (`get_event_by_qr_token` gains `max_upload_bytes`) and its `hostCapOf` seam dropped.
+3. **Build 38** once crumbs-43 lands: the `[preview]` record, `alias-ensure`, the prune; then its red-team from
+   `../partyreel-wt/_scratch/redteam-38/brief.md` (fill `{BUILD}`, and `{STAGED}`: three dismissed child-abuse reports
+   staged by SQL with fake reporter hashes, resolved 40 and 181 days back and one with no address 31 days back, for
+   crumbs-41's #60 walk; delete them after), and one read-only pass of the six boards' asks against build 38's code
+   (PREMISE lines from gates 121 to 128 name event-ready, disposable-mode, about-press, demo-framing and locked-door),
+   a desk-tune only if a claim drifted. Also: production's first album-log prune after 04:48Z on 2026-10-02 and the
+   export Worker's first heartbeat after 05:30Z, both read in `job_runs`.
 4. **Tell Will the alias is ready** for his sitting (locked-door first).
 5. **After his paste:** transcribe it, then the wiring lanes from his picks, at most four at once (`memory_pressure`
    before each), `/me` (his A), the strike line's repeated date, and new boards as they're seen. What each wiring
