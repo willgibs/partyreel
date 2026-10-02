@@ -117,8 +117,13 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team brie
    - `the-wait` board (new, cut after the foundation merges): the ONE waiting experience for any delayed album (once
      approved, or at a develop time): her own shots lit and removable, everyone's as "uploads stacking" (count and
      minutes), never a landing that vanishes to the empty state; the reveal and the reel's premiere; the host's cover
-     she lifts; whether approve-plus-develop is ever offered; the preset's name ("Disposable") and the host's two
-     Settings questions' words. Disposable's `waiting=sheet` is the anchor option; the screen link is a Question.
+     she lifts; whether approve-plus-develop is ever offered; the preset's name ("Disposable"). Its FIRST ask is the
+     mental model itself, which Will leaves open (21:20Z: "I don't want to suggest the correct solution to the right
+     mental model across Moderation and disposables, but they both have that same feel of 'here's only your photos,
+     you'll see the everyone else's on the develop date or when host approves'"): several syntheses drawn end to end
+     (Settings, the guest's wait, the arrival), such as two questions, named album styles, or one question of time;
+     the foundation's two-axis schema serves any of them, and its Settings control is a working version. Disposable's
+     `waiting=sheet` is an anchor option; the screen link is a Question.
    - `take-home` board (new): how guests and hosts take photos home, from his note: a guest's one-press Download all
      against Select, Select all, Save; and a host's originals beside an optimized download for quick posts.
    - Fillers: `crumbs-50` (Sonnet, the off-round ROADMAP lines) and `lab-window` when a seat is free.
