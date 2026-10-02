@@ -31,10 +31,10 @@ import { LibraryIndex, type LibraryRow } from "./index-list";
  *
  * ★ NONE OF ITS LINKS PREFETCH (crumbs-48). Each href carries the lab key, so a
  * prefetching `<Link>` is a keyed server render of its Library page the moment
- * it scrolls into view (the index's rows alone are about two hundred), and
- * Next's keyless sibling besides, which `prefetch-guard.tsx` has to answer.
- * Every link here says `prefetch={false}`, as `LabLink` does; a press still
- * navigates in place.
+ * it scrolls into view (a visit sent a couple of hundred prefetch requests,
+ * most of them the index's rows), and Next's keyless sibling besides, which
+ * `prefetch-guard.tsx` has to answer. Every link here says `prefetch={false}`,
+ * as `LabLink` does; a press still navigates in place.
  */
 
 /** The index's group order: the four catalog families, then the brand kit's own entries. */
