@@ -102,6 +102,48 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 3,
+      "opened": "2026-10-02",
+      "answers": [
+        {
+          "ask": "camera",
+          "choice": "timeline",
+          "note": "I think this is the winning direction. I like having the camera preview contained, as that's the native and expected experience on iPhones, so it's more natural for guests to frame shots. The more modern reel also feels more bespoke to the product, while staying pretty subtle and not overwhelming the screen. Makes you want to keep capturing. I loved the count tickers around the shutter button in option 1, but this is far more clear for the average user, and actually feels like Partyreel. Think we could still polish slightly, especially around the timeline design within the reel here.",
+          "by": "Will",
+          "at": "2026-10-02T18:55:56Z"
+        },
+        {
+          "ask": "video",
+          "choice": "hold",
+          "by": "Will",
+          "at": "2026-10-02T18:55:56Z"
+        },
+        {
+          "ask": "cost",
+          "choice": "one",
+          "by": "Will",
+          "at": "2026-10-02T18:55:56Z"
+        },
+        {
+          "ask": "waiting",
+          "choice": "sheet",
+          "note": "This feels like it ties in very cleanly with the minimal reel in the disposable camera. You take shots, see that reel timeline populate, revisit the event page while developing to see your shots in similar small tiles, and you intuitively think \"oh, I'll be able to see everyone else's shots later in here\". Nice visual connection. The night on a dial was super cool, wonder if that could be banked and used as a cool analytics UI or something for hosts?",
+          "by": "Will",
+          "at": "2026-10-02T18:55:56Z"
+        },
+        {
+          "ask": "look",
+          "choice": "none",
+          "note": "I think this is more a risk than a benefit - hosts or guests may think we're actually augmenting the original images permanently, and that saving or downloading would carry that styling, so may be best to simply continue the original looks. Additionally, while a global added style may enhance the right images, I'd guess the majority of guest-shot images would actually end up worse. Only exception would be grain or B&W, but again, don't want to scare users thinking we're changing anything.",
+          "by": "Will",
+          "at": "2026-10-02T18:55:56Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }

@@ -1,0 +1,34 @@
+{
+  "board": "event-header",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-10-02",
+      "answers": [
+        {
+          "ask": "guest",
+          "choice": "cover",
+          "by": "Will",
+          "at": "2026-10-02T18:55:56Z"
+        },
+        {
+          "ask": "host",
+          "choice": "shared",
+          "note": "Still don't love how we're presenting some of the metadata under the title (item counts, date, live, etc). Love how they're captured into a sticky menu on scroll for page-wide access. Currently hate how some actions open a sheet, some are a new page, some (reel) seems to flash a guest album as it loads the slideshow, etc. Very unpredictable handling across actions stemming from the same row. Annoying that I have to go all the way into and all the way back from a guest page, for example. Wonder if there's a better way to redesign the action cards to pair with this new host head direction?",
+          "by": "Will",
+          "at": "2026-10-02T18:55:56Z"
+        },
+        {
+          "ask": "stays",
+          "choice": "shutter",
+          "note": "Maybe a gradient overlay from the bottom, between the album and shutter/share controls, when there is more to scroll, both hinting to continue scrolling and providing more contrast between the gallery and UI. Could also add another button to the right side of the shutter (similar secondary design as other side) to visually balance those controls symmetrically.",
+          "by": "Will",
+          "at": "2026-10-02T18:55:56Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
+    }
+  ]
+}

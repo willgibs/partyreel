@@ -59,6 +59,29 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 3,
+      "opened": "2026-10-02",
+      "answers": [
+        {
+          "ask": "reveal",
+          "choice": "through",
+          "note": "I think this feels so much cooler than the single image alone, really feels like you're entering this door into the world of the album. The animation/transition has some bugs and could definitely be more polished to feel like seamless magic. If we can't nail it, the party's light (option 1) can be our failsafe for a smooth fullscreen fade transition that should be easier to perfect. Would like to nail the option 3 though.",
+          "by": "Will",
+          "at": "2026-10-02T18:55:56Z"
+        },
+        {
+          "ask": "idle",
+          "choice": "turn",
+          "note": "Hitting different colors across the rainbow makes this feel really cool, rather than being a static predictable color every time. Maybe it could be subtly combined with the light breathing? Also, could we speed up just slightly so a visitor is more likely to notice the animation before closing a gated page?",
+          "by": "Will",
+          "at": "2026-10-02T18:55:56Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }

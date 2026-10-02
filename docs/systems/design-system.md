@@ -23,7 +23,11 @@ the colour and only state and actions are coloured.
 The component library is a working version that still reads as the shadcn foundation at the atomic level, and nothing
 in it is protected. An identity is pursued as the sum of every part read together: primitives, materials, type, motion
 and composition. A button made different on its own is not an identity, and atoms left at a generator's defaults read
-as generic however custom the layout above them.
+as generic however custom the layout above them. The direction is a camera's own instruments (identity r1 picked
+`viewfinder`; its atoms are refined in the lab one group at a time before they wire at the source), pitched at a modern
+consumer app for the crowd that actually comes, about 18 at a party to about 50 at a wedding or a conference: it reads
+as bespoke and current to them and never as a developer's tool (no bench readouts for their own sake), and it is never
+flattened into a lowest-common-denominator app, since the core path (scan, add, view) is plain to anyone already.
 
 - **Four grounds, four classes**: the page `:root, .surface-paper` (the card is the page's own white), the room
   `.dark` (one room for the app and every cinema chapter), the slab `.surface-ink` (an always-dark leaf on paper, such

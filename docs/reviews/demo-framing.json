@@ -53,6 +53,29 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 3,
+      "opened": "2026-10-02",
+      "answers": [
+        {
+          "ask": "stage",
+          "choice": null,
+          "note": "None of these are perfect, but I think two directions have potential. First, for options 1 and 2, the link and QR don't feel like a beautiful, cohesive item for the photos to stream from. The code rising out doesn't feel very premium, and the code opening on its invite leaves a very bland big card in the center when fully open, doesn't feel polished at all. If we could nail this switching center item, both of these directions could lead to something nice. Second, for option 3, I do like keeping the link more minimal under a more prominent QR that adjusts. However, the QR itself looks pretty bad, and a far more well designed mini-event card that updates off the slug typing would feel much more beautiful. I also don't like the streaming *into* the QR; I get the concept of they get uploaded to it, but the animations feels unnatural compared to the more common 'lightspeed tunnel' the stream out version creates. However, if you have any brand new home hero ideas, I'd also love to see those so we aren't knocking our head against a wall on one idea in a world of infinite.",
+          "by": "Will",
+          "at": "2026-10-02T18:55:56Z"
+        },
+        {
+          "ask": "door",
+          "choice": "brand",
+          "note": "With the new door screen being built from this desk's review batch, I'd like to see how the demo feels going through the regular experience first. Then we can open up another exploration to customize the demo door if needed.",
+          "by": "Will",
+          "at": "2026-10-02T18:55:56Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }
