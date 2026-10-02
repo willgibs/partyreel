@@ -1,6 +1,8 @@
 /**
  * SETTINGS, REBUILT (event-settings r1): four rows at rest, each a sentence with its live words; a page
- * per row under a back arrow; Delete a quiet row at the foot; every control saving itself.
+ * per row under a back arrow; Delete a quiet row at the foot; every control saving itself. Since
+ * event-ready r1 (`guide=steps`), the rows are steps, ticked once ready, the code the fifth, and every
+ * page ends in Next.
  *
  * What is pinned is the frame and the rules that fail silently, never a word: the body is never a flex
  * column that shrinks a card (build 17's red-team: the cards past the first were crushed to their
@@ -48,7 +50,8 @@ vi.mock("@/components/app/pricing/pricing-sheet", () => ({
 }));
 
 const { EventSettingsSheet } = await import("./event-settings-sheet");
-const { hostEvent, NO_COUNTS } = await import("./testing/host-event");
+const { hostEvent, NO_COUNTS, readyFacts } =
+  await import("./testing/host-event");
 
 type Page = "door" | "adds" | "reel" | "event";
 
@@ -57,11 +60,13 @@ function sheet(
     page?: Page | null;
     tier?: "free" | "event_pass" | "pro";
     event?: Parameters<typeof hostEvent>[0];
+    ready?: Parameters<typeof readyFacts>[0];
   } = {},
 ) {
   const onOpenPage = vi.fn();
   const onClosePage = vi.fn();
   const onOpenChange = vi.fn();
+  const onOpenCode = vi.fn();
   const view = render(
     <EventSettingsSheet
       open
@@ -75,11 +80,20 @@ function sheet(
       pendingCount={0}
       social={{ displayInProfile: false, hostHasSlug: true }}
       reelSample={null}
+      ready={readyFacts(opts.ready)}
+      onOpenCode={onOpenCode}
     />,
   );
   const body = document.querySelector<HTMLElement>('[data-slot="popup-body"]');
   expect(body, "the sheet's body").not.toBeNull();
-  return { body: body!, onOpenPage, onClosePage, onOpenChange, ...view };
+  return {
+    body: body!,
+    onOpenPage,
+    onClosePage,
+    onOpenChange,
+    onOpenCode,
+    ...view,
+  };
 }
 
 /** Does this element lay its children out as a flex column that lets them shrink? */
@@ -101,7 +115,7 @@ beforeEach(() => {
   });
 });
 
-describe("at rest: four rows and a quiet foot", () => {
+describe("at rest: five steps and a quiet foot", () => {
   it("★ never lets its scroller shrink a card to fit, at rest or on a page", () => {
     expect(shrinksItsChildren(sheet().body)).toBe(false);
     for (const page of ["door", "adds", "reel", "event"] as const) {
@@ -110,12 +124,14 @@ describe("at rest: four rows and a quiet foot", () => {
     }
   });
 
-  it("stands the four rows in the order a guest meets them, Delete last", () => {
+  // ★ RESHAPED ON PURPOSE (event-ready `guide=steps`): four rows in a guest's order became five steps,
+  // the code the fifth; the order and Delete's place at the foot are what still hold.
+  it("stands the steps in the order a guest meets them, the code fifth, Delete last", () => {
     const { body } = sheet();
     const rows = [
       ...body.querySelectorAll<HTMLElement>("[data-settings-row]"),
     ].map((r) => r.dataset.settingsRow);
-    expect(rows).toEqual(["door", "adds", "reel", "event"]);
+    expect(rows).toEqual(["door", "adds", "reel", "event", "code"]);
     const last = body.lastElementChild?.lastElementChild;
     expect(last?.hasAttribute("data-settings-delete")).toBe(true);
   });
@@ -271,5 +287,239 @@ describe("videos, the one lock", () => {
       "11111111-2222-4333-8444-555555555555",
       { allow_videos: false },
     );
+  });
+});
+
+/**
+ * A SAVE AND THE PAGE MOVES AROUND IT (crumbs-42, from crumbs-24). Every save is a Server Action that
+ * re-renders the hub in its answer, and a page move writes the address (`&setting=`): one written inside the
+ * save's round trip made Next re-fetch the page once the save answered, and a second move inside that re-fetch
+ * reloaded the page or dropped what the save brought (`lib/history-entry.ts`). So a move made while a save is
+ * on its way is drawn at once and its address waits for the save to land, what it brought committed. jsdom has
+ * no router, so what is pinned is WHEN the panel asks for the address, which is all the hazard turns on (the
+ * commit is the save's transition's, measured against Next's router: `settings-state.tsx` says how).
+ */
+describe("a page move while a save is on its way", () => {
+  /** A save that answers only when `land` is called. */
+  function slowSave() {
+    let land = () => {};
+    updateEventAction.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          land = () => resolve({ ok: true });
+        }),
+    );
+    return { land: () => act(async () => land()) };
+  }
+  const shownPage = () =>
+    document
+      .querySelector("[data-settings-page]")
+      ?.getAttribute("data-settings-page");
+  /** A task later: the landed save's transition has committed, and its waiting moves are written. */
+  const aTaskLater = () =>
+    act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+  it("★ is drawn at once, and asks for its address only once the save has landed", async () => {
+    const save = slowSave();
+    const { onClosePage } = sheet({ page: "adds", tier: "pro" });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("switch", { name: /Videos/ }));
+    });
+    expect(updateEventAction).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
+    expect(shownPage()).toBe("rows");
+    expect(onClosePage).not.toHaveBeenCalled();
+
+    await save.land();
+    await aTaskLater();
+    expect(onClosePage).toHaveBeenCalledTimes(1);
+  });
+
+  it("writes one address for several moves inside one save: the newest", async () => {
+    const save = slowSave();
+    const { onOpenPage, onClosePage } = sheet({ page: "adds", tier: "pro" });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("switch", { name: /Videos/ }));
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
+    fireEvent.click(screen.getByRole("button", { name: "Who can get in" }));
+    expect(shownPage()).toBe("door");
+
+    await save.land();
+    await aTaskLater();
+    expect(onOpenPage).toHaveBeenCalledTimes(1);
+    expect(onOpenPage).toHaveBeenCalledWith("door");
+    expect(onClosePage).not.toHaveBeenCalled();
+  });
+
+  it("asks for nothing when the moves come back to the page the address names", async () => {
+    const save = slowSave();
+    const { onOpenPage, onClosePage } = sheet({ page: "adds", tier: "pro" });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("switch", { name: /Videos/ }));
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "What guests can add" }),
+    );
+    expect(shownPage()).toBe("adds");
+
+    await save.land();
+    await aTaskLater();
+    expect(onOpenPage).not.toHaveBeenCalled();
+    expect(onClosePage).not.toHaveBeenCalled();
+  });
+
+  it("drops a move still waiting when the panel closes", async () => {
+    const save = slowSave();
+    const { onClosePage, onOpenChange } = sheet({ page: "adds", tier: "pro" });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("switch", { name: /Videos/ }));
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
+    fireEvent.keyDown(document.activeElement ?? document.body, {
+      key: "Escape",
+    });
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+
+    await save.land();
+    await aTaskLater();
+    expect(onClosePage).not.toHaveBeenCalled();
+  });
+
+  it("with no save on its way, asks for its address at once, as ever", () => {
+    const { onOpenPage } = sheet();
+    fireEvent.click(screen.getByRole("button", { name: "Who can get in" }));
+    expect(onOpenPage).toHaveBeenCalledWith("door");
+  });
+});
+
+/**
+ * SETTINGS AS STEPS (event-ready r1, `guide=steps`, Will 2026-10-02). What fails silently: a tick that
+ * reads anything but the checklist's own function (Settings would call an event ready the hub does not), a
+ * tick that waits for the row to come back after a choice, and a Next that leads nowhere. Not a word of
+ * the steps is pinned but the code's door, whose words are the product's (every door onto the code card
+ * reads Invite).
+ */
+describe("the steps", () => {
+  const done = (group: string) =>
+    document
+      .querySelector(`[data-settings-row='${group}']`)
+      ?.hasAttribute("data-done");
+  const wants = (group: string) =>
+    document.querySelector(
+      `[data-settings-row='${group}'] [data-settings-wants]`,
+    )?.textContent ?? null;
+
+  it("★ ticks each step from the checklist's own facts, and says what an open one still wants", () => {
+    sheet({
+      event: { event_date: "2026-10-10", description: "Bring everything" },
+      ready: { approved: 1, playable: 1 },
+    });
+    expect(done("door")).toBe(true);
+    expect(done("adds")).toBe(true);
+    // The reel's step is its first photos: one is in, and the reel starts at two.
+    expect(done("reel")).toBe(false);
+    expect(wants("reel")).toBeTruthy();
+    expect(done("event")).toBe(true);
+    expect(wants("event")).toBeNull();
+    // Nobody has opened the code yet: its two doors stand under it.
+    expect(done("code")).toBe(false);
+    const code = document.querySelector<HTMLElement>(
+      "[data-settings-row='code']",
+    )!;
+    expect(within(code).getByRole("button", { name: /invite/i })).toBeTruthy();
+    expect(within(code).getByRole("link", { name: /print/i })).toHaveAttribute(
+      "href",
+      "/dashboard/11111111-2222-4333-8444-555555555555/print",
+    );
+    expect(
+      document
+        .querySelector("[data-settings-head]")
+        ?.hasAttribute("data-ready"),
+    ).toBe(false);
+  });
+
+  it("reads Settings' own values over the hub's, so a step ticks the moment its choice is made", async () => {
+    sheet();
+    expect(done("adds")).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: "Photos and videos" }));
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("menuitem", { name: /Nothing, for now/ }),
+      );
+    });
+    // Paused, before the row it wrote comes back: guests can no longer add.
+    expect(done("adds")).toBe(false);
+  });
+
+  it("calls the event ready once the code has been opened, whatever is still worth doing", () => {
+    sheet({ ready: { opened: 2 } });
+    expect(done("code")).toBe(true);
+    expect(
+      document
+        .querySelector("[data-settings-head]")
+        ?.hasAttribute("data-ready"),
+    ).toBe(true);
+    // Still worth doing, never a gate: the reel's photos and the welcome stay unticked.
+    expect(done("reel")).toBe(false);
+    expect(done("event")).toBe(false);
+  });
+
+  it("leaves room to the hub: a full shelf never holds Settings' steps back", () => {
+    sheet({ ready: { opened: 1, storagePct: 100 } });
+    expect(document.querySelector("[data-settings-row='room']")).toBeNull();
+    expect(
+      document
+        .querySelector("[data-settings-head]")
+        ?.hasAttribute("data-ready"),
+    ).toBe(true);
+  });
+
+  it("★ the code is the fifth step: its row and its Invite hand over to the code card", () => {
+    const { onOpenCode, onOpenChange } = sheet();
+    fireEvent.click(screen.getByRole("button", { name: "The code" }));
+    expect(onOpenCode).toHaveBeenCalledTimes(1);
+    const code = document.querySelector<HTMLElement>(
+      "[data-settings-row='code']",
+    )!;
+    fireEvent.click(within(code).getByRole("button", { name: /invite/i }));
+    expect(onOpenCode).toHaveBeenCalledTimes(2);
+    // The sheet wires the close itself (the hub's sheets close Settings, then open the card).
+    expect(onOpenChange).not.toHaveBeenCalled();
+  });
+});
+
+describe("every page ends in Next", () => {
+  it("★ onto the next step's page, in the rail's order", () => {
+    for (const [page, next] of [
+      ["door", "adds"],
+      ["adds", "reel"],
+      ["reel", "event"],
+    ] as const) {
+      cleanup();
+      const { onOpenPage, body } = sheet({ page });
+      const button = body.querySelector<HTMLElement>("[data-settings-next]")!;
+      expect(button.dataset.settingsNext).toBe(next);
+      fireEvent.click(button);
+      expect(onOpenPage).toHaveBeenCalledWith(next);
+    }
+  });
+
+  it("and after the fourth onto the code, whose door is the code card", () => {
+    const { onOpenCode, onOpenPage, body } = sheet({ page: "event" });
+    const button = body.querySelector<HTMLElement>("[data-settings-next]")!;
+    expect(button.dataset.settingsNext).toBe("code");
+    fireEvent.click(button);
+    expect(onOpenCode).toHaveBeenCalledTimes(1);
+    expect(onOpenPage).not.toHaveBeenCalled();
+  });
+
+  it("is never drawn at rest: the steps are the way in", () => {
+    const { body } = sheet();
+    expect(body.querySelector("[data-settings-next]")).toBeNull();
   });
 });

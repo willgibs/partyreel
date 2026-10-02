@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 
+import { useAdoptTypedValue } from "@/lib/adopt-typed-value";
 import { cn } from "@/lib/utils";
 
 import { Step } from "@/components/lab/step";
@@ -20,6 +21,7 @@ import {
 import {
   EMPTY_REVIEW,
   type ReviewStore,
+  setProgramNote,
   setReviewStore,
   useReviewStore,
 } from "./review-store";
@@ -195,11 +197,18 @@ export function ReviewSession({
     return { answers, items, notes };
   }, [steps, store, transcribed]);
 
+  const program = store.program ?? "";
+  // ★ The note on the whole program is drawn at the end of the walk from the
+  // server's first paint, so a word typed before the page hydrated is kept
+  // (`adopt-typed-value.ts`).
+  const adoptProgram = useAdoptTypedValue<HTMLTextAreaElement>(program);
   const message = useMemo(
-    () => composeMessage(answers, notes, items, [], build),
-    [answers, notes, items, build],
+    () => composeMessage(answers, notes, items, [], build, program),
+    [answers, notes, items, build, program],
   );
   const answered = answers.length + items.length;
+  // A note on the whole program is a message on its own.
+  const said = answered > 0 || program.trim() !== "";
 
   if (steps.length === 0) return null;
 
@@ -256,7 +265,7 @@ export function ReviewSession({
             {blurb}
           </p>
 
-          {answered === 0 ? (
+          {!said ? (
             <p className="mt-6 rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
               Nothing answered yet. Walk back through the steps and pick a word
               on the ones you have a view on; skipping is a fine answer too.
@@ -395,6 +404,28 @@ export function ReviewSession({
             </>
           )}
 
+          {/* ★ A NOTE FOR THE WHOLE PROGRAM (lab-sitting, 2026-10-01): what
+              he says about no one board had only the chat beside the paste to
+              go to. It rides the message as its own bare line, which the
+              transcript reads, records nowhere and says where it goes. */}
+          <label className="mt-6 block">
+            <span className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+              For the whole program
+            </span>
+            <textarea
+              ref={adoptProgram}
+              rows={2}
+              value={program}
+              onChange={(e) => setProgramNote(e.target.value)}
+              placeholder="Optional. Anything about the lab, the rounds or every board, rather than one."
+              className="mt-1 w-full resize-y rounded-lg border border-border bg-background px-3 py-2 text-sm transition-colors duration-150 outline-none placeholder:text-muted-foreground/70 focus:border-foreground/40"
+            />
+            <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">
+              It rides the message as its own line, recorded on no board: the
+              Orchestrator folds it into the doc it refines.
+            </span>
+          </label>
+
           <div className="mt-6 flex flex-wrap items-center gap-2 border-t border-border pt-4">
             <button
               type="button"
@@ -411,7 +442,7 @@ export function ReviewSession({
             >
               Back to the desk
             </LabLink>
-            {answered > 0 && (
+            {said && (
               <button
                 type="button"
                 onClick={() => {

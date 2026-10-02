@@ -5,6 +5,7 @@ import {
   Dialog as DialogPrimitive,
   Popover as PopoverPrimitive,
 } from "radix-ui"
+import { usePortalContainer } from "@/components/ui/portal-container"
 
 import { cn } from "@/lib/utils"
 import { useMediaQuery } from "@/lib/use-media-query"
@@ -138,6 +139,7 @@ function ResponsiveMenu({
   const anchorRef = anchor === "pressed" ? pressed : anchor
   const close = React.useCallback(() => onOpenChange(false), [onOpenChange])
   const shape = shapeFor("choice", desk)
+  const container = usePortalContainer()
 
   const giveBackFocus = (event: Event) => {
     event.preventDefault()
@@ -154,7 +156,7 @@ function ResponsiveMenu({
             }>
           }
         />
-        <PopoverPrimitive.Portal>
+        <PopoverPrimitive.Portal container={container}>
           <PopoverPrimitive.Content
             data-slot="responsive-menu"
             role="menu"
@@ -199,7 +201,7 @@ function ResponsiveMenu({
   if (shape === "rows") {
     return (
       <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
-        <DialogPrimitive.Portal>
+        <DialogPrimitive.Portal container={container}>
           <DialogPrimitive.Overlay
             className={cn(
               "fixed inset-0 z-50 bg-black/10 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",

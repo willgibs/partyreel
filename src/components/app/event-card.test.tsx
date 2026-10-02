@@ -41,7 +41,7 @@ describe("EventCard (V3 stat-forward)", () => {
   });
 
   it("guest-private (href null) renders no link and the private name (lock fallback)", () => {
-    render(
+    const { container } = render(
       <EventCard
         variant="guest"
         href={null}
@@ -52,6 +52,63 @@ describe("EventCard (V3 stat-forward)", () => {
     );
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
     expect(screen.getByText("Private event")).toBeInTheDocument();
+    // Naming no face of its own, an unlinked card is the locked album the dashboard means by it.
+    expect(
+      container.querySelector("[data-face]")?.getAttribute("data-face"),
+    ).toBe("locked");
+  });
+
+  /**
+   * ★ A MISSING LINK IS NOT A LOCK (crumbs-44). A profile's attended card has no link because
+   * attendance is not a capability grant, while its album is open by the RPC's own gate; one whose
+   * party is all video has no photograph to cover it, and it wore the lock read off `href: null`,
+   * telling every visitor an open album was locked. It names its own face now.
+   */
+  it("an attended card with no cover wears the face it names (all video), never the lock", () => {
+    const { container, rerender } = render(
+      <EventCard
+        href={null}
+        name="Sam's birthday"
+        coverUrl={null}
+        dateLabel="May 30"
+        empty="video"
+        action={<RoleMarker role="guest" />}
+      />,
+    );
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    const face = () => container.querySelector("[data-face]");
+    expect(face()?.getAttribute("data-face")).toBe("video");
+    expect(container.querySelector(".lucide-lock")).toBeNull();
+    expect(face()?.querySelector(".lucide-film")).not.toBeNull();
+
+    // A cover, when the album has one, is the face: no empty face is drawn under it.
+    rerender(
+      <EventCard
+        href={null}
+        name="Sam's birthday"
+        coverUrl="https://example.test/preview.webp"
+        dateLabel="May 30"
+        empty="video"
+      />,
+    );
+    expect(face()).toBeNull();
+    expect(container.querySelector("img")?.getAttribute("src")).toBe(
+      "https://example.test/preview.webp",
+    );
+  });
+
+  it("a linked card with no cover is waiting for a photograph, whatever its variant", () => {
+    const { container } = render(
+      <EventCard
+        href="/e/abc"
+        name="Office Summer Party"
+        coverUrl={null}
+        dateLabel="Aug 2"
+      />,
+    );
+    expect(
+      container.querySelector("[data-face]")?.getAttribute("data-face"),
+    ).toBe("photo");
   });
 
   it("guest: an event you added photos to wears the Guest marker and a byline, never a QR or a review chip", () => {

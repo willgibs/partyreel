@@ -14,12 +14,12 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import { Dialog as DialogPrimitive } from "radix-ui";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2, X } from "lucide-react";
 
 import type { GridMedia } from "@/components/app/media-grid";
 import { ActionTooltip } from "@/components/shared/action-tooltip";
 import { Dialog, DialogPortal } from "@/components/ui/dialog";
-import { GLASS, GLASS_BEHIND, GLASS_MARK_LIT } from "@/lib/glass";
+import { GLASS, GLASS_BEHIND, GLASS_MARK, GLASS_MARK_LIT } from "@/lib/glass";
 import { DeleteConsequence } from "@/lib/guest/delete-consequence";
 import { videoPosterSrc } from "@/lib/media/poster";
 import { detectPlatform, type NavigatorLike } from "@/lib/media/share-save";
@@ -126,6 +126,13 @@ export type ViewerOrigin = {
   rect: ViewerRect | null;
   returnTo?: (item: GridMedia) => HTMLElement | null;
 };
+
+/**
+ * A CLOSE ASKED FROM OUTSIDE THE VIEWER (crumbs-43): the phone's Back took the viewer's history entry
+ * (`shared/masonry.tsx`). `n` counts the asks, so a re-render never asks again; `instant` says the browser
+ * already drew its own transition (a swipe back's snapshot), where a second motion would close it twice.
+ */
+export type ViewerCloseRequest = { n: number; instant: boolean };
 
 /** A rect a photograph can grow out of or drop into: on the page and not empty. */
 const isRealRect = (r: ViewerRect | null | undefined): r is ViewerRect =>
@@ -290,6 +297,51 @@ function Placeholder({ frame, fitted }: { frame: Size; fitted: boolean }) {
 }
 
 /**
+ * THE VIEWER'S OWN LOADING STATE (crumbs-43; ROADMAP: "the media viewer's own
+ * image and video have no loading state (a tile has a skeleton; the opened
+ * photograph pops in when the full-size presign lands, the slowest picture in
+ * the product on venue Wi-Fi)"). The tile's own picture already stands in (the
+ * preview the tile drew, in the cache, the very picture that flies out of the
+ * tile), and the full size fades in over it; what a guest could not tell, for
+ * the ten seconds a venue's Wi-Fi takes over an original, was that a sharper
+ * picture was on its way. So while the original is still coming, a small ring
+ * on the photograph's own corner says so (the viewer's busy grammar: the
+ * capsule's Save and Share spin the same ring while they work).
+ *
+ * ★ AFTER A BEAT, AND ONLY WHILE A REQUEST IS ACTUALLY OUT. An original from the
+ * cache lands in a frame or two, and a ring that came and went would be a
+ * flicker, so it waits (`media-lightbox.css`); it leaves the moment the original
+ * paints, or fails (a failure is the watchdog's to re-mint, never a ring that
+ * spins for ever). A photograph with no link yet keeps its static placeholder
+ * and no ring: a link that never lands must not read as loading for ever.
+ *
+ * ★ THE MOTION FOLLOWS THE OPEN. The ring stands down while the photograph
+ * flies out of its tile or back into it, while it is pulled down and while it is
+ * held in a close-up (the track's `data-quiet`), so it arrives with the chrome,
+ * after the photograph has landed; under reduced motion it appears without a
+ * fade and does not turn.
+ */
+function SharpeningRing() {
+  return (
+    <span
+      data-lightbox-loading
+      aria-hidden
+      className={cn(
+        "pointer-events-none absolute right-2 bottom-2 flex size-7 items-center justify-center rounded-full",
+        GLASS_MARK,
+      )}
+    >
+      <Loader2
+        className={cn(
+          "size-4 animate-spin text-white motion-reduce:animate-none",
+          GLASS_MARK_LIT,
+        )}
+      />
+    </span>
+  );
+}
+
+/**
  * A PHOTOGRAPH IN A SLOT, AS FAR AS ITS LINKS HAVE COME. Linked, it is what it
  * always was: the tile's preview at once, the original fading in over it. Not
  * linked yet, it is its placeholder and no `<img>` at all (an empty `src`
@@ -301,6 +353,11 @@ function Placeholder({ frame, fitted }: { frame: Size; fitted: boolean }) {
  * loaded, so the slot goes from the fill to the photograph, never through the
  * bare ground between. An item that arrives linked never shows it (every
  * surface as it was); one whose link lapses back to nothing shows it again.
+ *
+ * ★ AND WHILE THE ORIGINAL IS STILL COMING, ITS RING SAYS SO (`SharpeningRing`,
+ * crumbs-43): `data-lightbox-original` marks the full size, `data-loaded` and
+ * `data-failed` say it has finished, and the ring is drawn after it so the sheet
+ * can read the one from the other.
  */
 function ViewerPhoto({
   item,
@@ -345,6 +402,7 @@ function ViewerPhoto({
           alt=""
           draggable={false}
           aria-hidden={!isCenter}
+          data-lightbox-original=""
           data-lightbox-full={overPreview ? "" : undefined}
           ref={(el) => {
             if (el?.complete && el.naturalWidth > 0) el.dataset.loaded = "";
@@ -355,9 +413,14 @@ function ViewerPhoto({
             onSize(item.id, img.naturalWidth, img.naturalHeight);
             painted();
           }}
+          // A failure ends the ring (the watchdog re-mints the link); the stand-in stays.
+          onError={(e) => {
+            e.currentTarget.dataset.failed = "";
+          }}
           className={cn(MEDIA_FILL, cover)}
         />
       )}
+      {full !== null && isCenter && <SharpeningRing />}
     </>
   );
 }
@@ -378,6 +441,7 @@ export function MediaLightbox({
   origin,
   startAt,
   onNeedLinks,
+  closeRequest = null,
 }: {
   items: ViewerMedia[];
   index: number | null;
@@ -434,6 +498,11 @@ export function MediaLightbox({
    * links (and attribution) as they land. Omitted = every item arrives linked, as before.
    */
   onNeedLinks?: (ids: readonly string[]) => void;
+  /**
+   * A close asked from outside (`ViewerCloseRequest`: the phone's Back took the viewer's entry). Each new
+   * ask closes the viewer the way its own X does, or at once when it says `instant`.
+   */
+  closeRequest?: ViewerCloseRequest | null;
 }) {
   const current = index === null ? null : (items[index] ?? null);
   const open = current !== null;
@@ -888,6 +957,39 @@ export function MediaLightbox({
     anim.onfinish = land;
     anim.oncancel = land;
   };
+
+  /*
+   * ★ A CLOSE ASKED FROM OUTSIDE (crumbs-43): the phone's Back took the viewer's history entry
+   * (`shared/masonry.tsx`), so the viewer leaves by its own way out, the photograph dropping back into
+   * its tile (`requestClose`), or at once where the browser already drew its own transition (a swipe
+   * back's snapshot; a second motion would close it twice). Either ends in `closeNow`, which cancels a
+   * settle still running, so a Back taken mid-swipe can never reopen the viewer. Keyed on the ask's
+   * count: a re-render never asks again. The ways out are read as they stand at the ask (a ref the
+   * commit keeps current), never from the render that first saw the request.
+   * ★ A MICROTASK LATE, OUT OF THE COMMIT: the way back asks the album for the closing photograph's tile
+   * (`returnTo`), and a windowed album mounts that tile's row with `flushSync`, which React refuses from
+   * inside an effect (measured: "flushSync was called from inside a lifecycle method", and no tile to drop
+   * into). The X's own close runs from its click, where this never arose.
+   */
+  const waysOut = useRef({ open, requestClose, closeNow });
+  useEffect(() => {
+    waysOut.current = { open, requestClose, closeNow };
+  });
+  const closeAsked = closeRequest?.n ?? 0;
+  const closeAtOnce = closeRequest?.instant ?? false;
+  useEffect(() => {
+    if (closeAsked === 0) return;
+    let asked = true;
+    queueMicrotask(() => {
+      const ways = waysOut.current;
+      if (!asked || !ways.open) return;
+      if (closeAtOnce) ways.closeNow();
+      else ways.requestClose();
+    });
+    return () => {
+      asked = false;
+    };
+  }, [closeAsked, closeAtOnce]);
 
   /* ── opening ───────────────────────────────────────────────────────────── */
 

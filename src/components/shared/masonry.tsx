@@ -79,12 +79,17 @@ import {
   type RowRhythm,
   type RowTile,
 } from "@/components/shared/album-window";
-import type { ViewerOrigin } from "@/components/shared/media-lightbox";
+import type {
+  ViewerCloseRequest,
+  ViewerOrigin,
+} from "@/components/shared/media-lightbox";
 import {
   MediaLightboxLazy,
   preloadMediaLightbox,
 } from "@/components/shared/media-lightbox.lazy";
 import { layerIsUp } from "@/components/ui/layer-is-up";
+import { POPUP_HISTORY_MARKER } from "@/components/ui/popup-back";
+import { useOwnedEntry } from "@/lib/history-entry";
 import { readPhotoParam, withPhotoParam } from "@/lib/media/share-save";
 import { tileAspect } from "@/lib/media/tile-aspect";
 import type { RowAnchor, RowStep } from "@/lib/shared/album-rows";
@@ -160,28 +165,60 @@ const COLUMN_FLOOR = 220;
  * (nothing at a password, the teaser at a gate), and the viewer waits for any
  * dialog already open (the door) to close before it opens over the album.
  *
+ * ★ AND IT IS A PLACE THE PHONE'S BACK CLOSES (crumbs-43; ROADMAP: "the phone's
+ * Back closes the open photograph (pushState and popstate) instead of leaving
+ * the album; `?photo=` rides replaceState today"). A photograph filling the
+ * screen looks like a page, so the one gesture a phone has for leaving a page
+ * closes it, as it closes the hub's sheets, a phone's screen-shaped popup and
+ * the reel, on the one rule they share for which history entry is ours
+ * (`lib/history-entry.ts`, its header): opening from a tile PUSHES an entry at
+ * `?photo=<id>` carrying `PHOTO_ENTRY_KEY`, a walk moves the address inside that
+ * one entry, and closing (the X, a tap on blank space, a pull down, Escape)
+ * goes Back over it, so nothing dead is left to press through. A photograph
+ * opened from its address (a shared link, a reload, a refresh) has no entry of
+ * ours beneath it: its close replaces the address in place and lands in the
+ * album, never off the page. The phone's own Back drops the photograph back
+ * into its tile as the X does, or closes it at once where the browser already
+ * drew its own transition (`hasUAVisualTransition`, a swipe back's snapshot);
+ * Forward onto the entry opens the photograph again.
+ *
  * ★ ONE GRID CLAIMS IT. A page can mount two grids (the profile's uploads and
  * likes; the host's album beside its bin), and a photograph in both must open
- * once. The claim is released when its grid unmounts, so the album a door
- * remounts at `full` can take it.
+ * once. The grid that last opened one holds the claim, so a Forward reopens it
+ * there and nowhere else; the claim is released when its grid unmounts, so the
+ * album a door remounts at `full` can take it.
  */
 let addressClaim: string | null = null;
+
+/** The marker a viewer's own history entry carries (`lib/history-entry.ts`). */
+const PHOTO_ENTRY_KEY = "prPhoto";
 
 /** How long a walk through the viewer rests before the address follows it (see `addressAfterStep`). */
 const ADDRESS_STEP_QUIET_MS = 300;
 
-/** Write the open photograph into the address (null clears it), history untouched. */
-function writeAddress(id: string | null) {
-  if (typeof window === "undefined") return;
-  try {
-    const next = withPhotoParam(window.location.href, id);
-    const here = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-    // `null` state: Next's patched replaceState copies its own history state
-    // in and tells the router, so useSearchParams sees the new address.
-    if (next !== here) window.history.replaceState(null, "", next);
-  } catch {
-    // An address the browser will not rewrite leaves the viewer working.
-  }
+/** The page's address with the open photograph (null: none), every other segment as written. */
+function photoHref(id: string | null): string {
+  return withPhotoParam(window.location.href, id);
+}
+
+/**
+ * Whether the window stands on another place's entry (a popup that is a place
+ * in a hand, over the viewer: the credit's look, a sheet, `isPlaceShape` in
+ * `ui/popup-kinds.ts`; a question, a confirm or the report form, holds none):
+ * the viewer's own entry is the one beneath it, and its marker is not this
+ * entry's to write.
+ */
+function standsOnAPopup(): boolean {
+  const state = window.history.state as Record<string, unknown> | null;
+  return state?.[POPUP_HISTORY_MARKER] !== undefined;
+}
+
+/** Whether the browser already drew its own transition for this traversal (a swipe back's snapshot). */
+function drewItsOwnTransition(event: PopStateEvent): boolean {
+  return (
+    (event as PopStateEvent & { hasUAVisualTransition?: boolean })
+      .hasUAVisualTransition === true
+  );
 }
 
 /** A dialog someone else opened (the album's door), which the address waits behind. */
@@ -505,8 +542,9 @@ export function MasonryColumns<T extends GridMedia>(props: {
   onRestore?: (item: GridMedia) => void;
   onPurge?: (item: GridMedia) => void;
   /**
-   * The open photograph rides the page's address as `?photo=<id>` (on by default; see
-   * `writeAddress`). Off for a grid that is not the page's subject.
+   * The open photograph rides the page's address as `?photo=<id>` on an entry of its own, which
+   * the phone's Back closes (on by default; see `PHOTO_ENTRY_KEY`'s note). Off for a grid that is
+   * not the page's subject: no address and no history.
    */
   photoAddress?: boolean;
 }) {
@@ -619,30 +657,55 @@ export function MasonryColumns<T extends GridMedia>(props: {
    * close's own write was dropped too, leaving a closed viewer's `?photo=`
    * behind for a refresh to reopen. So a step waits for a beat of quiet, and an
    * open, a close and a vanish write at once (cancelling a step still waiting).
+   * A step moves the address inside the viewer's one entry (`replace`, still
+   * ours exactly when it was), so a walk never stacks entries for Back to
+   * press through.
    */
+  const entry = useOwnedEntry(PHOTO_ENTRY_KEY);
   const addressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const addressNow = useCallback(
-    (id: string | null) => {
-      if (addressTimer.current !== null) clearTimeout(addressTimer.current);
-      addressTimer.current = null;
-      if (photoAddress) writeAddress(id);
-    },
-    [photoAddress],
-  );
+  const stopStep = useCallback(() => {
+    if (addressTimer.current !== null) clearTimeout(addressTimer.current);
+    addressTimer.current = null;
+  }, []);
   const addressAfterStep = (id: string | null) => {
     if (!photoAddress) return;
-    if (addressTimer.current !== null) clearTimeout(addressTimer.current);
-    addressTimer.current = setTimeout(() => {
+    stopStep();
+    addressTimer.current = setTimeout(function rest() {
+      // A place the viewer opened meanwhile (the credit's look) stands on an entry of its own: the
+      // address is the viewer's entry's to move, so it waits the popup out.
+      if (standsOnAPopup()) {
+        addressTimer.current = setTimeout(rest, ADDRESS_STEP_QUIET_MS);
+        return;
+      }
       addressTimer.current = null;
-      writeAddress(id);
+      entry.replace(photoHref(id));
     }, ADDRESS_STEP_QUIET_MS);
   };
+  useEffect(() => stopStep, [stopStep]);
+
+  /* The photograph the viewer shows, kept as each way in and out happens rather than after the render that
+     shows it: the traversal a close starts can land before that render, and the popstate below must know
+     whether a viewer still stands. */
+  const shownRef = useRef<string | null>(null);
+  /* The phone's Back took the viewer's entry: the close it asked for has nothing left to undo. */
+  const poppedRef = useRef(false);
+  /* A close asked of the viewer from outside (the phone's Back): it leaves the way its own X does. */
+  const [closeAsk, setCloseAsk] = useState<ViewerCloseRequest | null>(null);
+  const claimId = useId();
+  // The claim (the address's note) is let go when its grid goes, however it was taken.
   useEffect(
     () => () => {
-      if (addressTimer.current !== null) clearTimeout(addressTimer.current);
+      if (addressClaim === claimId) addressClaim = null;
     },
-    [],
+    [claimId],
   );
+
+  /** The viewer is gone: its entry goes Back when it is ours, and a photograph's own address is cleared in place. */
+  const leaveEntry = () => {
+    if (entry.isOurs()) entry.close(photoHref(null));
+    else if (readPhotoParam(window.location.search) !== null)
+      entry.replace(photoHref(null));
+  };
 
   const openItem = (id: string, tile: Element | null) => {
     setOpenId(id);
@@ -651,18 +714,32 @@ export function MasonryColumns<T extends GridMedia>(props: {
         ? { kind: "tile", rect: tile.getBoundingClientRect(), returnTo }
         : undefined,
     );
-    addressNow(id);
+    shownRef.current = id;
+    poppedRef.current = false;
+    if (!photoAddress) return;
+    stopStep();
+    addressClaim = claimId;
+    // One entry a viewer: one already standing on its own entry moves inside it.
+    if (entry.stands()) entry.replace(photoHref(id));
+    else entry.push(photoHref(id));
   };
 
   const closeItem = () => {
     setOpenId(null);
-    addressNow(null);
+    shownRef.current = null;
+    stopStep();
+    if (!photoAddress) return;
+    if (poppedRef.current) {
+      poppedRef.current = false;
+      return;
+    }
+    leaveEntry();
   };
 
-  // The address, read once on mount (see `writeAddress`). Async on purpose: a
+  // The address, read once on mount (see the address's note). Async on purpose: a
   // frame lets the page settle and a door open first, and a door that is
-  // open is waited out.
-  const claimId = useId();
+  // open is waited out. A photograph opened here stands on no entry of ours, so
+  // its close clears the address in place and lands in the album.
   useEffect(() => {
     if (!photoAddress) return;
     const id = readPhotoParam(window.location.search);
@@ -691,6 +768,8 @@ export function MasonryColumns<T extends GridMedia>(props: {
         return;
       }
       addressClaim = claimId;
+      shownRef.current = id;
+      poppedRef.current = false;
       setOpenId(id);
       // It did not grow from anywhere on screen (its tile may be far down the
       // page), so it fades in; it still drops back into its tile.
@@ -704,11 +783,67 @@ export function MasonryColumns<T extends GridMedia>(props: {
     };
   }, [photoAddress, claimId, returnTo]);
 
-  // The open photograph vanished under the viewer (removed, filtered away):
-  // the address stops naming it.
+  /* ★ THE PHONE'S BACK, AND FORWARD (the address's note). A traversal that leaves the viewer's photograph
+     closes the viewer as its own X does (or at once where the browser drew its own transition), with the
+     entry already gone; one that lands on a photograph's address with no viewer standing (Forward onto a
+     viewer's entry) opens it where it stands, fading in, in the grid that last held one. A popup over the
+     viewer going Back over its own entry lands on the same photograph and moves nothing. ★ NOT ONE
+     PHOTOGRAPH BEHIND, EITHER, WHILE A STEP'S ADDRESS WRITE IS STILL WAITING (crumbs-47): a step waits out a
+     popup before it writes (`addressAfterStep`), and an arrow key behind the look's scrim steps the viewer,
+     which re-keys the credit and takes the look away with its entry, so that Back lands on the viewer's own
+     entry still naming the photograph just left. The viewer has not been left (a Back that leaves it lands
+     off every photograph, `id` null): the write is on its way. */
   useEffect(() => {
-    if (openId && openAt < 0) addressNow(null);
-  }, [addressNow, openId, openAt]);
+    if (!photoAddress) return;
+    const onPop = (event: PopStateEvent) => {
+      const id = readPhotoParam(window.location.search);
+      const shown = shownRef.current;
+      if (shown !== null) {
+        if (id === shown) return;
+        if (id !== null && addressTimer.current !== null) return;
+        shownRef.current = null;
+        poppedRef.current = true;
+        stopStep();
+        entry.forget();
+        const instant = drewItsOwnTransition(event);
+        setCloseAsk((ask) => ({ n: (ask?.n ?? 0) + 1, instant }));
+        return;
+      }
+      if (id === null) return;
+      if (addressClaim !== null && addressClaim !== claimId) return;
+      if (!latest.current.items.some((m) => m.id === id)) return;
+      addressClaim = claimId;
+      shownRef.current = id;
+      poppedRef.current = false;
+      setOpenId(id);
+      setOrigin({ kind: "tile", rect: null, returnTo });
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [photoAddress, entry, claimId, returnTo, stopStep]);
+
+  // The open photograph vanished under the viewer (removed, hidden, filtered
+  // away): the lightbox reads the lost index as closed, and the id goes with it,
+  // so a photograph that comes back later never reopens a viewer nobody asked
+  // for (the adjust-state-during-render pattern). The address follows below.
+  if (openId !== null && openAt < 0) setOpenId(null);
+
+  // After each render: no close ran for a viewer that has gone (a vanish), so
+  // its address and entry follow here; and an open viewer's entry keeps its
+  // marker through a router refresh and adopts one a reload kept
+  // (`lib/history-entry.ts`), unless a popup it opened stands on top, whose
+  // entry is not the viewer's to mark.
+  const viewing = openIndex !== null;
+  useEffect(() => {
+    if (!viewing && shownRef.current !== null) {
+      shownRef.current = null;
+      stopStep();
+      if (photoAddress) leaveEntry();
+    }
+    if (!photoAddress) return;
+    if (viewing && standsOnAPopup()) return;
+    entry.keep(viewing);
+  });
 
   const measure = useCallback(() => {
     const el = boxRef.current;
@@ -984,8 +1119,10 @@ export function MasonryColumns<T extends GridMedia>(props: {
         onIndexChange={(i) => {
           const id = items[i]?.id ?? null;
           setOpenId(id);
+          shownRef.current = id;
           addressAfterStep(id);
         }}
+        closeRequest={closeAsk}
         viewerIsHost={viewerIsHost}
         shareUrl={shareUrl}
         onNeedLinks={onViewerNeedLinks}

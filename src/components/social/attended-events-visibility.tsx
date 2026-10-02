@@ -1,6 +1,6 @@
 "use client";
 
-import { useOptimistic, useTransition } from "react";
+import { useId, useOptimistic, useTransition } from "react";
 import { Check, Image as ImageIcon, Lock } from "lucide-react";
 import { toast } from "sonner";
 
@@ -28,6 +28,14 @@ import { cn } from "@/lib/utils";
  * A locked tile still toggles, because a choice she can see is one she can take back.
  */
 
+/** What a tile's line says of it: the page's answer to her choice, never the choice alone. */
+export function pickLine(shown: boolean, albumOpen: boolean): string {
+  if (!shown) return "Private";
+  return albumOpen
+    ? "Showing on your page"
+    : "Can't show: the album isn't public";
+}
+
 /**
  * The grid itself, stateless: a caller owns what is chosen. Account saves each tap as it lands
  * (`AttendedEventsVisibility`); the wizard holds its taps until Finish.
@@ -43,16 +51,20 @@ export function AttendedEventTiles({
   onToggle: (id: string, show: boolean) => void;
   disabled?: boolean;
 }) {
+  const ids = useId();
   return (
     <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
       {events.map((event) => {
         const shown = isShown(event.id);
+        const stateId = `${ids}-${event.id}`;
         return (
           <li key={event.id}>
             <button
               type="button"
               aria-pressed={shown}
               aria-label={`Show ${event.name} on my page`}
+              // The line under the name is the tile's state in words, read after its name.
+              aria-describedby={stateId}
               disabled={disabled}
               onClick={() => onToggle(event.id, !shown)}
               className={cn(
@@ -101,8 +113,13 @@ export function AttendedEventTiles({
                 <span className="truncate text-sm font-medium text-foreground">
                   {event.name}
                 </span>
-                <span className="text-xs text-muted-foreground">
-                  {shown ? "Showing on your page" : "Private"}
+                {/* ★ A CHOICE THAT CANNOT SHOW SAYS SO (crumbs-44, from `profile-setup`). A line on
+                    her page needs an open album, so a tile chosen at a password, gated or private
+                    album (or one that blocked her, which reads as private) said "Showing on your
+                    page" over a page that showed nothing. The choice stays hers and stays lifted:
+                    the line is what the page will do with it, and an album that opens shows it. */}
+                <span id={stateId} className="text-xs text-muted-foreground">
+                  {pickLine(shown, event.albumOpen)}
                 </span>
               </span>
             </button>

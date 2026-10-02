@@ -8,6 +8,11 @@ cd "$(cd "$(dirname "$0")" && pwd)/../.."
 BOARD="$1"; DIR="$2"; PORT="${3:-3140}"
 export DESIGN_PREVIEW_KEY="$(grep '^DESIGN_PREVIEW_KEY=' .env.local | cut -d= -f2- | tr -d '"')"
 lsof -ti tcp:$PORT | xargs -r kill 2>/dev/null; sleep 1
+# The server starts on an empty dev cache, as the gate's does (gate 123: a cache warmed on another tree can hand a frame
+# a stale chunk that reloads it for ever), unless another dev server runs from this tree (the gate's, on 3130, shares
+# it): src/lib/gate-dev-cache-policy.test.ts holds this line between the stop and the start.
+OTHERS=$(for p in $(pgrep -f 'next dev'); do lsof -a -p $p -d cwd -Fn 2>/dev/null | sed -n 's/^n//p'; done | grep -Fxc "$PWD")
+if [ "$OTHERS" = 0 ]; then rm -rf .next/dev; else echo "dev cache kept: another dev server runs from this tree"; fi
 (pnpm dev -p $PORT >"/tmp/dev$PORT.log" 2>&1 &)
 for i in $(seq 1 60); do curl -s -o /dev/null -w '%{http_code}' http://localhost:$PORT/ 2>/dev/null | grep -q '^[23]' && break; sleep 2; done
 for j in $(seq 1 120); do curl -s -o /dev/null -w '%{http_code}' "http://localhost:$PORT/design/library?key=$DESIGN_PREVIEW_KEY" 2>/dev/null | grep -q '^200' && break; sleep 2; done

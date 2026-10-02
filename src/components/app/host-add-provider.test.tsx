@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, renderHook, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -141,6 +141,24 @@ describe("the album header's Add photos (toggleAdd)", () => {
     press("Album Add photos"); // opens again
     expect(screen.getByTestId("panel")).toBeTruthy();
     expect(scrollIntoView).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("what the provider shares", () => {
+  // ★ THE TOGGLES AND THE PANEL'S PLACE, NOTHING ELSE (crumbs-42, from crumbs-36). It also carried the panel's
+  // in-flight upload count, mirrored up from `HostUpload` on every queue change, for the floating Add pill's
+  // "N uploading" chip; the pill retired and nothing read the count again, so it was a state the album
+  // re-rendered under for no reader.
+  it("★ shares the toggles and the panel's place, and no upload count", () => {
+    const { result } = renderHook(() => useHostAdd(), {
+      wrapper: HostAddProvider,
+    });
+    expect(Object.keys(result.current ?? {}).sort()).toEqual([
+      "adding",
+      "openAdd",
+      "registerPanel",
+      "toggleAdd",
+    ]);
   });
 });
 

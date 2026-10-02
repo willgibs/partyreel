@@ -63,6 +63,14 @@ export type GuestEvent = {
    */
   accepts_video: boolean;
   /**
+   * THE HOST'S OWN PER-FILE CAP for a guest's upload (`events.max_upload_bytes`, 25 MiB to 10 GiB; the host's own
+   * uploads are exempt), null where the host set none and the product's ceiling applies. The upload sheet's terms
+   * line states it (`uploadTermsLine`'s `capBytes`), so a guest reads the album's real limit before the picker
+   * rather than in a refusal after the bytes have started. Optional because a GuestEvent built anywhere but this
+   * read (a fixture, a stand-in) need not say it: absent reads as no cap, the line the guest saw before it.
+   */
+  max_upload_bytes?: number | null;
+  /**
    * THE DOOR AS THIS VIEWER MEETS IT, set only by the door's resolution (`closed-door.server.ts`,
    * from `event_door_standing`): the anon read answers a gated album as a private one, so until the
    * door is resolved this is absent and the album reads as its stored visibility (the safe side).
@@ -184,6 +192,9 @@ export const getEventByQrToken = cache(async function getEventByQrToken(
     reel_hold_sec: row.reel_hold_sec ?? null,
     // The guest picker's flag (the doors' migration, 20260929120000).
     accepts_video: row.accepts_video,
+    // The host's own cap, for the upload sheet's line (20261001233000). ★ Typed `number` like
+    // `reel_hold_sec`, yet NULL where the host set none (the product's ceiling applies): kept as NULL.
+    max_upload_bytes: row.max_upload_bytes ?? null,
   };
 
   return { ok: true, data: await rehydrateUnlockedDetails(event) };

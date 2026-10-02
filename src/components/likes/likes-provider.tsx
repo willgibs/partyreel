@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -205,7 +206,8 @@ export function LikesProvider({
    * calls `seed(ids)` as its window moves.
    */
   mediaIds?: string[];
-  /** Optional instant-paint seed (the Likes tab passes every id, all liked) before the select resolves. */
+  /** Optional instant-paint seed (the Likes tab passes every id, all liked) before the select resolves; an id
+   *  that joins it later (a Show more's page) is liked at once too. */
   initialLikedIds?: string[];
   /** "keep" = the heart toggles in place (event page, Uploads). "remove" = an unlike drops the tile (Likes tab). */
   mode?: "keep" | "remove";
@@ -269,6 +271,25 @@ export function LikesProvider({
     // idsKey stands in for mediaIds; seed is stable.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idsKey, seed]);
+
+  /* ★ AN ID THAT JOINS THE INSTANT SEED LATER IS LIKED AT ONCE (crumbs-43; ROADMAP: "a Likes page that Show
+     more adds paints its hearts when `my_liked_media_ids` answers, since the likes store takes
+     `initialLikedIds` once at mount"). The Likes page hands every id it shows as liked (the feed IS her
+     likes), and a Show more adds a page of them after mount, which waited on the seed's round trip to fill.
+     Each id the prop offers for the FIRST time is marked liked before the frame paints, as the first page's
+     were at mount; an id offered before is never marked again, so a heart she has since emptied here stays
+     empty, and the seed still asks after every id (its answers only ever add hearts). */
+  const [offered] = useState(() => new Set(initialLikedIds ?? []));
+  const offeredKey = initialLikedIds?.join(",") ?? "";
+  useLayoutEffect(() => {
+    for (const id of initialLikedIds ?? []) {
+      if (offered.has(id)) continue;
+      offered.add(id);
+      store.set(id, true);
+    }
+    // offeredKey stands in for initialLikedIds (a new array each render); the set and the store are stable.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [offeredKey, offered, store]);
 
   // The first look at who is here, and a like queued before a redirect sign-in, replayed.
   useEffect(() => {

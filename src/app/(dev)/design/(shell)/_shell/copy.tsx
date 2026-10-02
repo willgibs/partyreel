@@ -5,7 +5,7 @@ import { Check, Copy, Link2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-import { labUrl } from "@/app/(dev)/design/_data/state";
+import { applyLabState, type LabState } from "@/app/(dev)/design/_data/state";
 import { getCopySource, getPageFacts } from "./page-facts";
 import { elementToMarkdown, factsToMarkdown } from "./page-markdown";
 import { useLabState } from "./shell-context";
@@ -100,10 +100,30 @@ export function CopyPage() {
 }
 
 /**
- * The link to exactly this view: the path plus the whole URL state (the key,
- * the canvas, the ground, the candidate, the section, the review position), so
- * "look at candidate B on the phone" is a link rather than a sentence.
+ * THE LINK TO EXACTLY THIS VIEW: the path, the address bar's whole query and
+ * the section, so "look at the shut door when Lena is turned away" is a link
+ * rather than a sentence.
+ *
+ * ★ THE BAR'S OWN QUERY, NEVER THE LAB'S SIX PARAMS ALONE (lab-sitting, from
+ * ROADMAP's line on `CopyLink`). A board writes each of its controls to the
+ * address under the control's own id (`useBoardState`: "the URL is the share
+ * format"), and a one-at-a-time catalog its card, so a copy rebuilt from the
+ * lab's six params (`_data/state.ts`) dropped every one of them. The query is
+ * read from `location` at the press, the same moment the bar shows, the key
+ * is the page's own (the proxy's, never a stale one the bar was left holding),
+ * and the lab's params lead in their order so two links to one view read
+ * alike.
  */
+export function viewLink(
+  at: { origin: string; pathname: string; search: string; hash: string },
+  state: LabState,
+): string {
+  const params = new URLSearchParams(at.search);
+  if (state.key) params.set("key", state.key);
+  const query = params.toString();
+  return `${at.origin}${applyLabState(`${at.pathname}${query ? `?${query}` : ""}${at.hash}`, {})}`;
+}
+
 export function CopyLink({
   label = "Copy link",
   className,
@@ -120,9 +140,7 @@ export function CopyLink({
       title="This exact view: the page, its switches and its position"
       className={className}
       getText={() =>
-        typeof location === "undefined"
-          ? ""
-          : labUrl(location.origin, location.pathname, state, location.hash)
+        typeof location === "undefined" ? "" : viewLink(location, state)
       }
     />
   );

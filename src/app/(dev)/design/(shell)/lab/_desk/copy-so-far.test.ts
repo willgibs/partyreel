@@ -5,7 +5,7 @@ import {
   type OpenRound,
   type Transcribed,
 } from "./review-message";
-import { holdId, itemHoldId } from "./step-id";
+import { holdId, itemHoldId, PROGRAM_NOTE_HOLD } from "./step-id";
 
 /**
  * "COPY SO FAR" (Will, 2026-09-16: "it's really annoying that there's not an
@@ -388,5 +388,46 @@ describe("composeSoFar", () => {
         nothing,
       ).message,
     ).toBe("");
+  });
+});
+
+describe("the note for the whole program, so far", () => {
+  const OPEN: Record<string, OpenRound> = {
+    light: { round: 6, asks: ["cadence"], items: [] },
+  };
+  const roundOf = (b: string) => OPEN[b];
+  const nothing: Transcribed = { answers: {}, items: {}, notes: {} };
+  const sat = { build: "abc1234", at: "2026-10-01T12:00:00Z" };
+
+  it("rides once, as its own line, under its own hold id", () => {
+    const out = composeSoFar(
+      {
+        answers: { "light.r6.cadence": { choice: "eleven", note: "" } },
+        items: {},
+        notes: {},
+        program: "a note about every board",
+      },
+      roundOf,
+      nothing,
+    );
+    expect(out.message).toBe(
+      'review light r6: cadence=eleven\nnote: "a note about every board"',
+    );
+    expect(out.notes).toBe(1);
+    expect(out.included).toContain(PROGRAM_NOTE_HOLD);
+  });
+
+  it("stops riding once a paste took it, and rides again with Copy everything", () => {
+    const store = {
+      answers: {},
+      items: {},
+      notes: {},
+      program: "a note about every board",
+      sent: { [PROGRAM_NOTE_HOLD]: sat },
+    };
+    expect(composeSoFar(store, roundOf, nothing).message).toBe("");
+    expect(
+      composeSoFar(store, roundOf, nothing, null, { ignoreSent: true }).message,
+    ).toBe('note: "a note about every board"');
   });
 });

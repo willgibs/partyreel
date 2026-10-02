@@ -14,8 +14,9 @@
  * and the alerting scan can never hold two definitions of healthy:
  *
  *   scheduled — fires on a clock and writes its own `job_runs` rows. The cadence + the missed-run
- *               rule apply. The purge cron, the two Worker jobs, the DB-backup Action, and the five
- *               purge SUB-SWEEPS, each of which opens and closes a row of its own.
+ *               rule apply. The purge cron, the backup Worker's two jobs and the export Worker's
+ *               heartbeat, the DB-backup Action, and the five purge SUB-SWEEPS, each of which opens
+ *               and closes a row of its own.
  *   signal    — no clock. Something else does the work (a transactional email, a rate-limiter read)
  *               and the only question is "did any of it fail in the last 24 hours?". `job_runs`
  *               carries the FAILURES (status `error`); the successes are counted in their own table.
@@ -46,11 +47,14 @@ export type JobId =
   // The Cloudflare queue's backlog + its dead letters, read by the Worker, reported on its runs.
   | "backup_queue"
   | "backup_dead_letters"
+  // The "Download all" zip Worker's daily self-check (`export-ends`), on the exports' own switch.
+  | "export"
   // Rolling 24h signals over work that has no schedule of its own.
   | "email_delivery"
   | "abuse_limiter"
   | "unlock_limiter"
-  | "help_feedback";
+  | "help_feedback"
+  | "export_delivery";
 
 /** Where the job actually executes. Decides what an operator can do about it from /admin. */
 export type JobHost =
@@ -307,6 +311,23 @@ export const JOBS: JobDef[] = [
     canRunNow: false,
     readFrom: ["backup_reconcile", "backup_prune"],
   },
+  // --- the "Download all" Worker --------------------------------------------------------------
+  // Its switch is the exports' own kill switch (`export_enabled`, the one /admin/exports flips): pausing
+  // downloads is the only thing a switch here could mean, and a heartbeat with a switch of its own would
+  // only silence the reading.
+  {
+    id: "export",
+    label: "Download all Worker",
+    description:
+      "The zip Worker's daily self-check: it reads the bucket and signs a ping the app verifies, so a Worker that stopped, lost its bucket or its signing secret reads here before a host's download fails.",
+    kind: "scheduled",
+    host: "cloudflare_worker",
+    cron: "30 5 * * *",
+    cadence: "Daily, 05:30 UTC",
+    expectedEveryMs: DAY_MS,
+    flagKey: "export_enabled",
+    canRunNow: false,
+  },
   {
     id: "db_backup",
     label: "Database backup",
@@ -376,6 +397,20 @@ export const JOBS: JobDef[] = [
     flagKey: null,
     canRunNow: false,
   },
+  {
+    // `export-ends`: the Worker's own reports (export_log), read at /admin/exports.
+    id: "export_delivery",
+    label: "Album downloads",
+    description:
+      "Every Download all the Worker finished in the last day, and every one that failed: a check the bucket could not answer, a zip an object read broke, a mint with nothing configured. A guest sees a toast; nothing else would tell us.",
+    kind: "signal",
+    host: "app",
+    cron: null,
+    cadence: "Rolling 24 hours",
+    expectedEveryMs: 0,
+    flagKey: null,
+    canRunNow: false,
+  },
 ];
 
 /** Why a job has no Run now button, said in the operator's language on the card. */
@@ -413,6 +448,33 @@ export type JobHealth =
   | "running"
   | "ok"
   | "never";
+
+/**
+ * Every health, in the operator's words: one home for the jobs console and any page that shows one job's
+ * state beside its own work (`/admin/exports` shows its Worker's heartbeat and its downloads' signal).
+ */
+export const HEALTH_LABEL: Record<JobHealth, string> = {
+  ok: "Healthy",
+  running: "Running",
+  paused: "Paused",
+  missed: "Overdue",
+  failed: "Last run failed",
+  attention: "Needs a look",
+  never: "No runs yet",
+};
+
+/** A signal job's "No activity" reads differently from a scheduled job's "No runs yet". */
+export const NEVER_LABEL: Record<string, string> = {
+  signal: "No activity",
+  derived: "No reading",
+};
+
+/** One job's health as its card words it: a job that has never reported says so in its own kind's words. */
+export function healthLabel(def: JobDef, health: JobHealth): string {
+  return health === "never"
+    ? (NEVER_LABEL[def.kind] ?? HEALTH_LABEL.never)
+    : HEALTH_LABEL[health];
+}
 
 /** The health states an operator has to do something about. Drives the alerts bell. */
 export const UNHEALTHY: readonly JobHealth[] = [

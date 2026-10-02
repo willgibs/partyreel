@@ -1,7 +1,15 @@
 import { Download, EyeOff } from "lucide-react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 
+import { HostCreditLookProvider } from "@/components/app/event-blocks/credit-look";
 import type { GridMedia } from "@/components/app/media-grid";
 import { LikesProvider } from "@/components/likes/likes-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,6 +28,19 @@ import {
 } from "@/components/shared/masonry";
 import { rowRatio } from "@/lib/media/tile-aspect";
 import { layoutRows, perRowFor, ROW_CLASSES } from "@/lib/shared/album-rows";
+import {
+  installNextHistory,
+  NextRouterStandIn,
+} from "@/lib/test-utils/next-history";
+
+import { setViewportWidth } from "../../../vitest.setup";
+
+// The look's Follow is the real FollowButton, which reaches the profile's server actions (server-only); jsdom has
+// none, and the host's look never draws a Follow (guest-list.test.tsx's own stand-in).
+vi.mock("@/app/(guest)/u/[slug]/actions", () => ({
+  followProfileAction: vi.fn().mockResolvedValue({ ok: true }),
+  unfollowProfileAction: vi.fn().mockResolvedValue({ ok: true }),
+}));
 
 // The lazy wrapper is next/dynamic, which resolves after the pin is over; the
 // address pins need the real viewer, so it mounts synchronously here (closed, it
@@ -513,6 +534,13 @@ describe("columnsFor counts on the gap the box resolves", () => {
  * once on mount, and ACCESS STAYS EXACTLY AS IT WAS: it opens only an item this
  * viewer already holds, so an unknown, held or hidden id opens the album
  * plainly with no error and no sign the item exists.
+ *
+ * ★ RESHAPED ON PURPOSE (crumbs-43): the address rode `replaceState`, so a
+ * close cleared it at once; it rides an entry of its own now, which the phone's
+ * Back closes, and a close goes Back over it, so these wait for that Back's
+ * popstate. The scar kept: the address sits beside the page's other params, a
+ * walk writes it once when it rests, and a close leaves none behind; the
+ * expired reason dropped: that a close writes the address in the same tick.
  */
 describe("the open photograph rides the address", () => {
   const TooltipWrap = ({ children }: { children: React.ReactNode }) => (
@@ -534,12 +562,23 @@ describe("the open photograph rides the address", () => {
     expect(tiles[1].getAttribute("data-media-id")).toBe("b");
   });
 
+  /** A tap whose close goes Back over the viewer's entry: its popstate lands a beat after (bounded). */
+  const pressAndLand = (name: string) =>
+    act(async () => {
+      const landed = new Promise<void>((resolve) => {
+        window.addEventListener("popstate", () => resolve(), { once: true });
+      });
+      fireEvent.click(screen.getByRole("button", { name }));
+      await Promise.race([landed, new Promise((r) => setTimeout(r, 400))]);
+      await new Promise((r) => setTimeout(r, 0));
+    });
+
   it("writes ?photo= beside the page's other params on open, and clears it on close", async () => {
     render(<MasonryColumns items={items} />, { wrapper: TooltipWrap });
     fireEvent.click(screen.getByLabelText("View photo"));
     expect(here()).toBe("/e/tok?reel&photo=a");
     await frame();
-    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    await pressAndLand("Close");
     expect(here()).toBe("/e/tok?reel");
   });
 
@@ -587,9 +626,10 @@ describe("the open photograph rides the address", () => {
       await quiet();
       expect(replace).toHaveBeenCalledTimes(1);
       expect(here()).toBe("/e/tok?reel&photo=p30");
-      // Straight on and straight out: the close clears it at once, and the step still waiting never lands.
+      // Straight on and straight out: the close takes the address with its entry, and the step still
+      // waiting never lands.
       fireEvent.keyDown(window, { key: "ArrowRight" });
-      fireEvent.click(screen.getByRole("button", { name: "Close" }));
+      await pressAndLand("Close");
       expect(here()).toBe("/e/tok?reel");
       await quiet();
       expect(here()).toBe("/e/tok?reel");
@@ -650,6 +690,378 @@ describe("the open photograph rides the address", () => {
     });
     fireEvent.click(screen.getByLabelText("View photo"));
     expect(here()).toBe("/e/tok?reel");
+  });
+});
+
+/**
+ * ★ THE PHONE'S BACK CLOSES THE PHOTOGRAPH (crumbs-43; ROADMAP: "the phone's Back closes the open photograph
+ * (pushState and popstate) instead of leaving the album; `?photo=` rides replaceState today"). The viewer joins the
+ * one rule the hub's sheets, a phone's popups and the reel share for which history entry is ours
+ * (`lib/history-entry.ts`): a tap pushes ONE entry at the photograph's address, a walk moves inside it, every close
+ * goes Back over it, the phone's own Back closes the viewer, Forward opens it again, and a photograph opened from its
+ * address (a shared link, a reload) has no entry of ours beneath it, so its close clears the address in place and
+ * lands in the album.
+ */
+describe("the phone's Back closes the photograph", () => {
+  const TooltipWrap = ({ children }: { children: React.ReactNode }) => (
+    <TooltipProvider>{children}</TooltipProvider>
+  );
+  const frame = () =>
+    act(async () => {
+      await new Promise((r) => setTimeout(r, 40));
+    });
+  const here = () => `${window.location.pathname}${window.location.search}`;
+  /** A traversal (the phone's Back or Forward, or a close going Back), and its popstate landing (bounded). */
+  const traverse = (go: () => void) =>
+    act(async () => {
+      const landed = new Promise<void>((resolve) => {
+        window.addEventListener("popstate", () => resolve(), { once: true });
+      });
+      go();
+      await Promise.race([landed, new Promise((r) => setTimeout(r, 400))]);
+      await new Promise((r) => setTimeout(r, 0));
+    });
+  const viewer = () => screen.queryByRole("dialog");
+  const marker = () =>
+    (window.history.state as Record<string, unknown> | null)?.prPhoto;
+
+  beforeEach(() => window.history.pushState(null, "", "/e/tok"));
+  afterEach(() => window.history.replaceState(null, "", "/"));
+
+  it("★ a tap pushes ONE entry, and the phone's Back closes the viewer onto the album", async () => {
+    render(<MasonryColumns items={items} />, { wrapper: TooltipWrap });
+    const before = window.history.length;
+    fireEvent.click(screen.getByLabelText("View photo"));
+    expect(window.history.length).toBe(before + 1);
+    expect(marker()).toBeDefined();
+    expect(here()).toBe("/e/tok?photo=a");
+    await frame();
+    expect(viewer()).toBeTruthy();
+
+    await traverse(() => window.history.back());
+    expect(viewer()).toBeNull();
+    expect(here()).toBe("/e/tok");
+    expect(marker()).toBeUndefined();
+  });
+
+  it("the X goes Back over the entry it pushed, a walk stays inside it, and Forward opens the photograph again", async () => {
+    const back = vi.spyOn(window.history, "back");
+    try {
+      render(<MasonryColumns items={items} />, { wrapper: TooltipWrap });
+      const before = window.history.length;
+      fireEvent.click(screen.getByLabelText("View photo"));
+      await frame();
+      fireEvent.keyDown(window, { key: "ArrowRight" });
+      await act(async () => {
+        await new Promise((r) => setTimeout(r, 360));
+      });
+      expect(here()).toBe("/e/tok?photo=b");
+      expect(window.history.length).toBe(before + 1);
+
+      await traverse(() =>
+        fireEvent.click(screen.getByRole("button", { name: "Close" })),
+      );
+      expect(back).toHaveBeenCalledTimes(1);
+      expect(viewer()).toBeNull();
+      expect(here()).toBe("/e/tok");
+
+      // Forward lands on the viewer's entry again, at the photograph the walk rested on.
+      await traverse(() => window.history.forward());
+      expect(here()).toBe("/e/tok?photo=b");
+      await frame();
+      expect(screen.getByRole("dialog", { name: "Video 2 of 2" })).toBeTruthy();
+    } finally {
+      back.mockRestore();
+    }
+  });
+
+  it("a shared link's photograph closes in place, onto the album, never off the page", async () => {
+    window.history.replaceState(null, "", "/e/tok?photo=b");
+    const back = vi.spyOn(window.history, "back");
+    try {
+      render(<MasonryColumns items={items} />, { wrapper: TooltipWrap });
+      await frame();
+      expect(screen.getByRole("dialog", { name: "Video 2 of 2" })).toBeTruthy();
+      const before = window.history.length;
+      fireEvent.click(screen.getByRole("button", { name: "Close" }));
+      await frame();
+      expect(back).not.toHaveBeenCalled();
+      expect(viewer()).toBeNull();
+      expect(here()).toBe("/e/tok");
+      expect(window.history.length).toBe(before);
+    } finally {
+      back.mockRestore();
+    }
+  });
+
+  /* Under Next's own patch (`@/lib/test-utils/next-history`): the router hears the photograph's address (the host's
+     album mints the open photograph's links off `useSearchParams`), a router refresh that took the marker cannot
+     leave a dead entry (`keep` gives it back after the render), and no traversal is a reload. */
+  it("under Next's patch: the router hears the address, a refresh leaves no dead entry, and nothing reloads", async () => {
+    window.history.replaceState(null, "", "/");
+    const next = installNextHistory();
+    try {
+      next.land("/e/tok");
+      const tree = () => (
+        <NextRouterStandIn>
+          <TooltipProvider>
+            <MasonryColumns items={items} />
+          </TooltipProvider>
+        </NextRouterStandIn>
+      );
+      const { rerender } = render(tree());
+      await frame();
+      const before = window.history.length;
+      fireEvent.click(screen.getByLabelText("View photo"));
+      expect(next.href).toBe("/e/tok?photo=a");
+      await frame();
+
+      // A poll's router refresh writes the entry again with Next's state alone; the page re-renders.
+      next.refresh();
+      expect(marker()).toBeUndefined();
+      rerender(tree());
+      expect(marker()).toBeDefined();
+
+      const back = vi.spyOn(window.history, "back");
+      await traverse(() =>
+        fireEvent.click(screen.getByRole("button", { name: "Close" })),
+      );
+      expect(back).toHaveBeenCalledTimes(1);
+      back.mockRestore();
+      expect(viewer()).toBeNull();
+      expect(next.href).toBe("/e/tok");
+      expect(window.history.length).toBe(before + 1);
+      expect(next.reloads).toBe(0);
+    } finally {
+      next.uninstall();
+    }
+  });
+
+  it("a grid that is not the page's subject touches no history at all", async () => {
+    render(<MasonryColumns items={items} photoAddress={false} />, {
+      wrapper: TooltipWrap,
+    });
+    const before = window.history.length;
+    fireEvent.click(screen.getByLabelText("View photo"));
+    await frame();
+    expect(window.history.length).toBe(before);
+    expect(here()).toBe("/e/tok");
+  });
+});
+
+/**
+ * ★ BACK PEELS ONE LAYER A PRESS (crumbs-47; build 38's red-team, W3 #1 part 2, LOW: "on a phone, Back over a
+ * credit's look closes the look AND the viewer in one press"). The host's viewer opens the sender's look from the
+ * credit's name (`HostCreditLookProvider`, the real one, over the real `GuestPeek`), and in a hand the look is the
+ * Sheet (kind `peek`), which took no history entry: the viewer's own entry was the only one there to go Back over, so
+ * one Back closed the viewer with the look standing on it. The look holds its entry as a screen does, so a Back lands
+ * on the viewer's own entry (the same photograph: "a popup over the viewer going Back over its own entry lands on the
+ * same photograph and moves nothing") and the next one closes the viewer.
+ */
+describe("the phone's Back peels the credit's look, then the photograph (crumbs-47)", () => {
+  const named: GridMedia[] = [
+    {
+      id: "a",
+      type: "photo",
+      url: "/a.jpg",
+      width: 800,
+      height: 1200,
+      uploaderName: "Maya",
+      isVerified: true,
+      uploaderEmail: "maya@example.com",
+    },
+    {
+      id: "b",
+      type: "photo",
+      url: "/b.jpg",
+      width: 800,
+      height: 1200,
+      uploaderName: "Tom",
+      isVerified: true,
+    },
+  ];
+  const tree = () => (
+    <TooltipProvider>
+      <HostCreditLookProvider>
+        <MasonryColumns items={named} viewerIsHost />
+      </HostCreditLookProvider>
+    </TooltipProvider>
+  );
+  const frame = () =>
+    act(async () => {
+      await new Promise((r) => setTimeout(r, 40));
+    });
+  const here = () => `${window.location.pathname}${window.location.search}`;
+  const traverse = (go: () => void) =>
+    act(async () => {
+      const landed = new Promise<void>((resolve) => {
+        window.addEventListener("popstate", () => resolve(), { once: true });
+      });
+      go();
+      await Promise.race([landed, new Promise((r) => setTimeout(r, 400))]);
+      await new Promise((r) => setTimeout(r, 0));
+    });
+  // The viewer sits aria-hidden behind a modal look, so it is read off its own mark, never by role.
+  const viewerUp = () =>
+    document.querySelector("[data-lightbox-content]") !== null;
+  const look = () =>
+    document.querySelector<HTMLElement>('[data-slot="guest-peek"]');
+  const entryOf = (key: "prPhoto" | "prPopup") =>
+    (window.history.state as Record<string, unknown> | null)?.[key];
+
+  /** A phone, the viewer open on Maya's photograph and her look opened from the credit's name. */
+  async function openLook() {
+    setViewportWidth(375);
+    render(tree());
+    fireEvent.click(screen.getAllByLabelText("View photo")[0]);
+    await frame();
+    expect(viewerUp()).toBe(true);
+    const atViewer = window.history.length;
+    fireEvent.click(await screen.findByRole("button", { name: "Maya" }));
+    await frame();
+    expect(look()).not.toBeNull();
+    return { atViewer };
+  }
+
+  beforeEach(() => window.history.pushState(null, "", "/e/tok"));
+  afterEach(() => {
+    setViewportWidth(1024);
+    window.history.replaceState(null, "", "/");
+  });
+
+  it("★ a Back over the look closes the look alone, and the next one closes the viewer onto the album", async () => {
+    const { atViewer } = await openLook();
+    // The look stands on an entry of its own, over the viewer's (the same address: the photograph stays).
+    expect(window.history.length).toBe(atViewer + 1);
+    expect(entryOf("prPopup")).toBeDefined();
+    expect(here()).toBe("/e/tok?photo=a");
+
+    await traverse(() => window.history.back());
+    expect(look()).toBeNull();
+    expect(viewerUp()).toBe(true);
+    expect(here()).toBe("/e/tok?photo=a");
+    expect(entryOf("prPhoto")).toBeDefined();
+
+    await traverse(() => window.history.back());
+    expect(viewerUp()).toBe(false);
+    expect(here()).toBe("/e/tok");
+    expect(entryOf("prPhoto")).toBeUndefined();
+  });
+
+  it("the look's own X goes Back over its entry: the viewer stays, and one Back more closes it", async () => {
+    await openLook();
+    expect(entryOf("prPopup")).toBeDefined();
+    fireEvent.click(
+      within(look() as HTMLElement).getByRole("button", { name: "Close" }),
+    );
+    await waitFor(() => expect(look()).toBeNull());
+    // The entry the look took goes with it (a tick late, on purpose), landing on the viewer's own.
+    await waitFor(() => expect(entryOf("prPopup")).toBeUndefined());
+    expect(viewerUp()).toBe(true);
+    expect(here()).toBe("/e/tok?photo=a");
+    expect(entryOf("prPhoto")).toBeDefined();
+
+    await traverse(() => window.history.back());
+    expect(viewerUp()).toBe(false);
+    expect(here()).toBe("/e/tok");
+  });
+
+  it("★ stepping the viewer while the look is open (an arrow key behind the scrim) takes the look away and keeps the viewer on the next photograph", async () => {
+    await openLook();
+    // The key lands inside the look (focus is trapped there) and bubbles to the viewer's window listener, which
+    // steps; the credit re-keys for the next photograph, so the look goes with its entry. That Back lands on the
+    // viewer's own entry, whose address still names the photograph left (its write waits behind a popup).
+    fireEvent.keyDown(look() as HTMLElement, { key: "ArrowRight" });
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 450));
+    });
+    expect(look()).toBeNull();
+    expect(viewerUp()).toBe(true);
+    expect(here()).toBe("/e/tok?photo=b");
+    expect(entryOf("prPopup")).toBeUndefined();
+    expect(entryOf("prPhoto")).toBeDefined();
+
+    // The viewer still holds exactly its one entry: one Back closes it onto the album.
+    await traverse(() => window.history.back());
+    expect(viewerUp()).toBe(false);
+    expect(here()).toBe("/e/tok");
+  });
+
+  it("the same over a photograph a shared link opened: the step keeps the viewer, and its close leaves the album in place", async () => {
+    window.history.replaceState(null, "", "/e/tok?photo=a");
+    setViewportWidth(375);
+    render(tree());
+    await frame();
+    expect(viewerUp()).toBe(true);
+    fireEvent.click(await screen.findByRole("button", { name: "Maya" }));
+    await frame();
+    expect(look()).not.toBeNull();
+
+    fireEvent.keyDown(look() as HTMLElement, { key: "ArrowRight" });
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 450));
+    });
+    expect(look()).toBeNull();
+    expect(viewerUp()).toBe(true);
+    expect(here()).toBe("/e/tok?photo=b");
+
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    await frame();
+    expect(viewerUp()).toBe(false);
+    expect(here()).toBe("/e/tok");
+  });
+
+  it("a Back that really leaves the viewer, pressed while a step's address write is still waiting, still closes it", async () => {
+    setViewportWidth(375);
+    render(tree());
+    fireEvent.click(screen.getAllByLabelText("View photo")[0]);
+    await frame();
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    // The step's write waits for a beat of quiet: the address still names the first photograph.
+    expect(here()).toBe("/e/tok?photo=a");
+    await traverse(() => window.history.back());
+    expect(viewerUp()).toBe(false);
+    expect(here()).toBe("/e/tok");
+  });
+
+  /* Under Next's own patch: the host's album refreshes the router while a look is open (a decision landing, the
+     poll), which writes the top entry again with Next's state alone and takes the look's marker with it
+     (`lib/history-entry.ts`). The viewer's `keep` must not read the stripped look as a viewer with no entry and
+     mark it as its own, and the Back still has to land on the viewer's entry and peel the look alone. */
+  it("a router refresh while the look is open leaves Back peeling the look first, then the viewer, and nothing reloads", async () => {
+    window.history.replaceState(null, "", "/");
+    const next = installNextHistory();
+    try {
+      next.land("/e/tok");
+      setViewportWidth(375);
+      const standIn = () => <NextRouterStandIn>{tree()}</NextRouterStandIn>;
+      const { rerender } = render(standIn());
+      await frame();
+      fireEvent.click(screen.getAllByLabelText("View photo")[0]);
+      await frame();
+      fireEvent.click(await screen.findByRole("button", { name: "Maya" }));
+      await frame();
+      expect(look()).not.toBeNull();
+      expect(entryOf("prPopup")).toBeDefined();
+
+      next.refresh();
+      expect(entryOf("prPopup")).toBeUndefined();
+      rerender(standIn());
+      await frame();
+      expect(look()).not.toBeNull();
+
+      await traverse(() => window.history.back());
+      expect(look()).toBeNull();
+      expect(viewerUp()).toBe(true);
+      expect(next.href).toBe("/e/tok?photo=a");
+
+      await traverse(() => window.history.back());
+      expect(viewerUp()).toBe(false);
+      expect(next.href).toBe("/e/tok");
+      expect(next.reloads).toBe(0);
+    } finally {
+      next.uninstall();
+    }
   });
 });
 

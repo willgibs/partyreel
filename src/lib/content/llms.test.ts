@@ -8,6 +8,7 @@ import { describe, expect, it } from "vitest";
 
 import { FAQ_ITEMS } from "@/components/marketing/faq-data";
 import { PRICING_FAQ_ITEMS } from "@/components/marketing/sections/pricing/pricing-faq-data";
+import { ABOUT_PRESS_HREF } from "@/lib/constants/about";
 import { EVENT_TYPE_SLUGS } from "@/lib/constants/events";
 import { FEATURE_PAGE_SLUGS } from "@/lib/constants/feature-pages";
 import { monthlyIngressCap, PLANS } from "@/lib/constants/tiers";
@@ -27,6 +28,8 @@ const SITE = {
 };
 const SITE_URL = SITE.url;
 
+// /press is a redirect now (it folded into /about#press): no file lists it, the way no file lists an
+// address that only answers with a redirect.
 const KNOWN_PATHS = new Set<string>([
   "/",
   "/pricing",
@@ -37,7 +40,6 @@ const KNOWN_PATHS = new Set<string>([
   "/help",
   "/blog",
   "/about",
-  "/press",
   "/privacy",
   "/terms",
   "/careers",
@@ -63,9 +65,28 @@ describe("buildLlmsTxt", () => {
     expect(links.length).toBeGreaterThan(20);
     for (const link of links) {
       expect(link.startsWith(SITE_URL), `${link} is absolute`).toBe(true);
-      const path = link.slice(SITE_URL.length);
+      const [path, fragment] = link.slice(SITE_URL.length).split("#");
       expect(KNOWN_PATHS.has(path), `${path} is a known route`).toBe(true);
+      // A fragment is a real anchor on that page: the only one a file may name is the press kit band's.
+      if (fragment !== undefined)
+        expect(`${path}#${fragment}`, `${link} is a known anchor`).toBe(
+          ABOUT_PRESS_HREF,
+        );
     }
+  });
+
+  it("opens on the boilerplate paragraph, which now lives in the builder", () => {
+    // It was constants/press.ts's for the /press page; the move must keep the paragraph whole.
+    const paragraph = txt
+      .split("\n")
+      .find((l) => l.startsWith("Partyreel turns every guest's phone"));
+    expect(paragraph).toBeDefined();
+    expect(paragraph).toMatch(/every album plays as its own highlight reel\.$/);
+  });
+
+  it("points its Press link at the press kit band, never at the /press redirect", () => {
+    expect(txt).toContain(`[Press](${SITE_URL}${ABOUT_PRESS_HREF}):`);
+    expect(txt).not.toContain(`${SITE_URL}/press`);
   });
 
   it("carries the marketed numbers and never the fenced ones", () => {

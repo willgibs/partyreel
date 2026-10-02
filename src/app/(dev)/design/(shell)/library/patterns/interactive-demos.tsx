@@ -16,27 +16,31 @@ import { Row } from "@/app/(dev)/design/reference/reference-ui";
  * /design/reference, which is not a route (see components/interactive-demos).
  */
 
-/** RouteSkeleton: the pulse and the hub, the bare app-shell content the real
- *  loading.tsx files return, safe to show inline. */
+/** RouteSkeleton: every shape, the bare app-shell content the real loading.tsx
+ *  files return, safe to show inline (Account and the welcome since crumbs-44). */
+const ROUTE_SHAPES = [
+  { variant: "pulse", label: "Pulse: the dashboard" },
+  { variant: "hub", label: "Hub: the event page" },
+  { variant: "account", label: "Account" },
+  { variant: "welcome", label: "Welcome: the name step" },
+] as const;
+
 export function RouteSkeletonDemo() {
   return (
     <div className="space-y-4">
-      <div className="overflow-hidden rounded-lg border border-border">
-        <p className="border-b border-border bg-muted/40 px-3 py-1.5 text-micro text-muted-foreground">
-          Pulse: the dashboard
-        </p>
-        <div className="p-3">
-          <RouteSkeleton variant="pulse" />
+      {ROUTE_SHAPES.map(({ variant, label }) => (
+        <div
+          key={variant}
+          className="overflow-hidden rounded-lg border border-border"
+        >
+          <p className="border-b border-border bg-muted/40 px-3 py-1.5 text-micro text-muted-foreground">
+            {label}
+          </p>
+          <div className="p-3">
+            <RouteSkeleton variant={variant} />
+          </div>
         </div>
-      </div>
-      <div className="overflow-hidden rounded-lg border border-border">
-        <p className="border-b border-border bg-muted/40 px-3 py-1.5 text-micro text-muted-foreground">
-          Hub: the event page
-        </p>
-        <div className="p-3">
-          <RouteSkeleton variant="hub" />
-        </div>
-      </div>
+      ))}
     </div>
   );
 }

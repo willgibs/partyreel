@@ -1,0 +1,42 @@
+{
+  "board": "host-dashboard",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-10-02",
+      "answers": [
+        {
+          "ask": "purpose",
+          "choice": "stage",
+          "note": "This is by far my favorite due to the fact that in 1 event dashboards (which every user will experience creating their first and only event, until adding more), the experience feels much more alive that expecting many more events to populate. For example, if I'm getting Partyreel for my wedding, I'm likely to only have that one event for a while (maybe ever), and this makes the host dashboard experience much more engaging on that 1 event. We'll have to decide which one gets featured in different cases, such as no dates on multiple events.",
+          "by": "Will",
+          "at": "2026-10-02T18:55:56Z"
+        },
+        {
+          "ask": "needs",
+          "choice": "week",
+          "note": "This stacks amazingly with the featured event. Loving the new UI over our previous simple gallery cards, which felt generic and bland.",
+          "by": "Will",
+          "at": "2026-10-02T18:55:56Z"
+        },
+        {
+          "ask": "events",
+          "choice": "seasons",
+          "note": "This feels like something a host may have custom preferences on (such as filter, sort, gallery vs table/list, etc). Ideally it's a bit customizable, so in a layout with 40 events as you presented, the host isn't always having to scroll to the very bottom if they're trying to bounce between old events back-to-back (like saving old photos from old events). That's where this stacked organization becomes more cumbersome, where it actually impedes quicker access sometimes. Likely worth a second round of ideas. Best selection is likely some Frankenstein across all three, but if that fails, we can always revert back to an option here.",
+          "by": "Will",
+          "at": "2026-10-02T18:55:56Z"
+        },
+        {
+          "ask": "arrivals",
+          "choice": "live",
+          "note": "I didn't really like the 'Just arrived' strip on the last dashboard, so if we simple display the featured event with that type of gallery preview to see what's happening, think that's a perfect direction for including that idea. Doesn't need its own section for sure.",
+          "by": "Will",
+          "at": "2026-10-02T18:55:56Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
+    }
+  ]
+}

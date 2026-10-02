@@ -1,3 +1,4 @@
+import { QuietChromePrefetch } from "@/components/marketing/chrome/chrome-link";
 import { MarketingFooter } from "@/components/marketing/chrome/marketing-footer";
 import { MarketingHeader } from "@/components/marketing/chrome/marketing-header";
 import { MarketingNotFound } from "@/components/marketing/marketing-not-found";
@@ -21,8 +22,20 @@ import { Trail } from "@/components/shared/trail/trail";
  * Renders outside (marketing), so marketing.css never loads and [data-mkt] is absent: the chrome's
  * --mkt-header-h fallback covers the bar, and FORCED LIGHT is `surface-paper` (globals.css, so it holds
  * without marketing.css). No data-mkt: its token rules live in marketing.css and would be inert here.
+ *
+ * ★ AND ITS LINKS PREFETCH NOTHING ON SIGHT (`QuietChromePrefetch`, mkt-polish): every route they point
+ * at needs a sheet this page never loads, so each prefetch preloaded marketing.css and the home's sheets
+ * for nothing, four console warnings a load. A press still navigates in place; it fetches then.
  */
 export function SiteNotFound() {
+  return (
+    <QuietChromePrefetch>
+      <SiteNotFoundScreen />
+    </QuietChromePrefetch>
+  );
+}
+
+function SiteNotFoundScreen() {
   return (
     <div className="surface-paper flex min-h-0 flex-1 flex-col bg-background text-foreground">
       <MarketingHeader />

@@ -18,13 +18,14 @@ import {
   friendlyCapacity,
   GATED_EVENT_SETTINGS,
   MAX_EVENTS,
-  MAX_REEL_SECONDS,
   planById,
   plansForTier,
 } from "@/lib/constants/tiers";
 import { formatCount } from "@/lib/format/count";
 import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
-import { formatBytes } from "@/lib/utils";
+import { cn, formatBytes } from "@/lib/utils";
+
+import { clipTermsFor } from "./clip-terms";
 
 /**
  * The full plan matrix (Resend-informed): row labels carry a hover/focus
@@ -35,10 +36,11 @@ import { formatBytes } from "@/lib/utils";
  *
  * Layout: the plan header row is STICKY from lg up (the Biograph sticky-summary
  * move adapted to a matrix: names, prices and CTAs stay present while rows
- * scroll). Below sm each row becomes its own block with the plan names carried
- * inline (the /reel clip table's pattern). Divider grammar (Will's note 7):
- * dashed hairlines between rows inside a group, solid rules around group
- * headers, which sit on the whisper-gray band (note 8).
+ * scroll), and it follows the site header (`STICKY_HEAD`). Below sm each row
+ * becomes its own block with the plan names carried inline (the /reel clip
+ * table's pattern). Divider grammar (Will's note 7): dashed hairlines between
+ * rows inside a group, solid rules around group headers, which sit on the
+ * whisper-gray band (note 8).
  *
  * ★ THE TABLE IS DARK NOW (Will, 2026-09-20, his own answer on `sheet`: "Let's
  * make the table dark so there's not a harsh back-to-back chapter transition on
@@ -157,24 +159,21 @@ function buildGroups(): MatrixGroup[] {
       ],
     },
     {
-      // `reel-story` r1 `pricing=renamed`: the two rows describe the CLIP a
+      // `reel-story` r1 `pricing=renamed`: the clip row describes the CLIP a
       // viewer makes from the reel, never the live reel, which plays with no
-      // cap and no mark on every plan. Same shape, same numbers, the right noun.
+      // cap and no mark on every plan. Its length and its mark share the row
+      // (`clipTermsFor`): every plan's length is the same, so a length row of
+      // its own read "60 seconds" three times and compared nothing.
       title: "The reel",
       rows: [
         {
-          label: "Clip length",
-          tip: "The longest clip anyone can make from your event's reel. The reel itself runs as long as the album.",
+          label: "Clips",
+          tip: "The longest clip anyone can make from your event's reel, and whether it carries the small mark. The reel itself runs as long as the album, and the reel and the screen carry no mark on any plan.",
           values: [
-            `${MAX_REEL_SECONDS.free} seconds`,
-            `${MAX_REEL_SECONDS.event_pass} seconds`,
-            `${MAX_REEL_SECONDS.pro} seconds`,
+            clipTermsFor("free"),
+            clipTermsFor("event_pass"),
+            clipTermsFor("pro"),
           ],
-        },
-        {
-          label: "Clip watermark",
-          tip: "Free events mark their clips. The reel and the screen carry no mark on any plan.",
-          values: ["Small mark", "None", "None"],
         },
         {
           label: "Photos and album",
@@ -229,6 +228,26 @@ function buildGroups(): MatrixGroup[] {
 }
 
 const PLAN_COLUMNS = ["Free", "Event Pass", "Pro"] as const;
+
+/**
+ * ★ THE PLAN HEAD FOLLOWS THE SITE HEADER (build 38's red-team: with the bar scrolled away the head stayed 4rem down,
+ * and rows ran visibly through the band above it). The header leaves by a transform and keeps `--mkt-header-h`, so the
+ * head rests on that knob and takes the top of the screen the moment the header is out of the way: the condition is
+ * the header's own hide rule, escapes and all (focus inside it, a nav panel open, the phone sheet open: the bar stays
+ * then, and so does the head under it), which `comparison-table.test.ts` holds to header-shell.tsx's text. `header ~ *`
+ * reaches the page's `main`, the header's later sibling that holds the matrix; anywhere else (a lab frame) no header
+ * precedes it and the head rests on the knob, as it always did.
+ *
+ * The head moves on the header's arrival clock both ways: coming back they travel together, and leaving the head is
+ * ahead of the bar and under its glass, so no gap shows between them. Reduced motion keeps the move and drops the slide,
+ * as the header does. Spelled out in one constant for the Tailwind scanner, which reads source text, and for the four
+ * cells that wear it, so they can never differ.
+ */
+const STICKY_HEAD = cn(
+  "lg:sticky lg:top-[var(--mkt-header-h)] lg:z-10",
+  "lg:motion-safe:transition-[top] lg:motion-safe:duration-150 lg:motion-safe:ease-emphasis",
+  "lg:[header[data-hidden]:not(:focus-within):not(:has([data-slot=navigation-menu-trigger][data-state=open])):not(:has([data-slot=sheet-trigger][data-state=open]))_~_*_&]:top-0",
+);
 
 // The glyphs live in matrix-mark.tsx, shared with the blog's comparison tables.
 function CellContent({ value }: { value: CellValue }) {
@@ -320,7 +339,10 @@ export function ComparisonTable() {
               <tr className="border-b text-left">
                 <th
                   scope="col"
-                  className="bg-background px-4 py-4 align-bottom text-xs font-medium tracking-[0.08em] text-muted-foreground uppercase lg:sticky lg:top-[var(--mkt-header-h)] lg:z-10"
+                  className={cn(
+                    "bg-background px-4 py-4 align-bottom text-xs font-medium tracking-[0.08em] text-muted-foreground uppercase",
+                    STICKY_HEAD,
+                  )}
                 >
                   What you get
                 </th>
@@ -328,7 +350,10 @@ export function ComparisonTable() {
                   <th
                     key={name}
                     scope="col"
-                    className="bg-background px-4 py-4 align-bottom lg:sticky lg:top-[var(--mkt-header-h)] lg:z-10"
+                    className={cn(
+                      "bg-background px-4 py-4 align-bottom",
+                      STICKY_HEAD,
+                    )}
                   >
                     <div className="flex flex-col items-start gap-2">
                       <span className="font-heading text-card-title">

@@ -183,6 +183,42 @@ describe("LikesProvider: session + seed", () => {
     expect(screen.getByTestId("liked-m1")).toHaveTextContent(/^liked$/);
   });
 
+  /*
+   * ★ AND SO DOES A PAGE THAT JOINS IT LATER (crumbs-43; ROADMAP: "a Likes page that Show more adds paints its
+   * hearts when `my_liked_media_ids` answers, since the likes store takes `initialLikedIds` once at mount"). The
+   * seed here never answers, so a heart that fills is the instant seed's alone; and a heart she emptied before the
+   * page grew stays empty (only an id the prop offers for the first time is marked).
+   */
+  it("a Show more's ids paint liked at once, and an id offered before keeps the heart she left it with", async () => {
+    const supa = makeMockSupabase({ session: { user: { id: "u1" } } });
+    supa.rpc.mockImplementation((fn: string) =>
+      fn === "my_liked_media_ids"
+        ? new Promise(() => {})
+        : Promise.resolve({ data: { ok: true }, error: null }),
+    );
+    vi.mocked(createClient).mockReturnValue(supa.client as never);
+    const page = (ids: string[]) => (
+      <LikesProvider mediaIds={ids} initialLikedIds={ids} mode="remove">
+        <Probe id="m1" />
+        <Probe id="m4" />
+      </LikesProvider>
+    );
+    const { rerender } = render(page(["m1"]));
+    expect(screen.getByTestId("liked-m1")).toHaveTextContent(/^liked$/);
+    expect(screen.getByTestId("liked-m4")).toHaveTextContent("not liked");
+    // Signed in once the seed has gone out (it never comes back).
+    await waitFor(() => expect(seedCalls(supa)).toHaveLength(1));
+
+    // She empties m1's heart in place (a remove-mode feed whose caller has not dropped it yet).
+    fireEvent.click(screen.getByText("toggle-m1"));
+    expect(screen.getByTestId("liked-m1")).toHaveTextContent("not liked");
+    await waitFor(() => expect(supa.client.from).toHaveBeenCalled());
+
+    rerender(page(["m1", "m4"]));
+    expect(screen.getByTestId("liked-m4")).toHaveTextContent(/^liked$/);
+    expect(screen.getByTestId("liked-m1")).toHaveTextContent("not liked");
+  });
+
   it("useLikes returns null outside a provider", () => {
     render(<Probe id="m1" />);
     expect(screen.getByText("no-context")).toBeDefined();

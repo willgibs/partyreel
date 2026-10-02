@@ -43,10 +43,12 @@ routes.
   `@supabase/ssr` keeps the session in `document.cookie`. ★ It is a hint, never authorization: the `(app)` layout's
   `getUser()` and RLS are the boundary, and either wrong answer lands the visitor on `/login`.
 - **The Resources group** is the header panel and the footer column at once (Help, Blog, Press, Contact), held as a
-  two-way mirror by a test. One idea has one page and two doors: the Resources panel's featured card is the primary door
-  to `/how-it-works`, the Features panel's footnote the second. Each also carries a plain Search row (the panel's in the
-  Features footnote's grammar, the phone menu's in its Resources group), component-side because an action is not a route:
-  the help palette's doorbell (the help center's bullets below).
+  two-way mirror by a test; Press goes straight to the kit band on About (`/about#press`, a literal here that
+  `marketing-nav.test.ts` pins to `ABOUT_PRESS_HREF`), and a row that names an anchor is never "current". One idea has
+  one page and two doors: the Resources panel's featured card is the primary door to `/how-it-works`, the Features
+  panel's footnote the second. Each also carries a plain Search row (the panel's in the Features footnote's grammar,
+  the phone menu's in its Resources group), component-side because an action is not a route: the help palette's
+  doorbell (the help center's bullets below).
 - **The footer is the ink slab** (`.surface-ink`, never a nested `.dark` or `bg-gallery`), with three registers: the
   demo invitation (the demo's code on a pile of photographs that fans on hover, from `sm` up, since a phone cannot scan
   itself; phones get a link), the index and the legal bar. ★ `Start free` renders at every width in both branches of the `if (!DEMO_EVENT_URL)` return, because
@@ -55,8 +57,10 @@ routes.
   Resources' tail), the hubs linked from the Features and Events titles, Privacy and Terms in the legal bar with
   `/llms.txt`. Nothing is collapsed: the sitemap is small enough to show whole, and a test refuses an accordion. The
   FAQ link is the one link that follows the page (`footer-faq-link.tsx`, a client island because a server footer cannot
-  read the pathname): on a route whose own FAQ section is `id="faq"` (`OWN_FAQ_ROUTES`, `/pricing`) it stays there,
-  and from every other page it goes to the home's.
+  read the pathname): on a route whose own FAQ section is `id="faq"` (`OWN_FAQ_ROUTES`: /pricing, the events hub, every
+  event page and every feature page, whose bands carry the anchor) it stays there, and from every other page it goes
+  to the home's. The routes are exact (a 404 under a family has no FAQ to stay on), and a test holds them both ways:
+  each carries the anchor, and every page that draws an FAQ band is listed.
 - **The root 404 renders the same footer outside `(marketing)`**, where marketing.css never loads, so the footer carries
   everything it needs itself: the slab's tokens, the seam glow, and the pile's box, size and rest pose. ★ The rest pose
   is a layered utility on purpose: the `.mkt-stack` recipe is unlayered, so on a marketing page its rest pose and hover
@@ -96,8 +100,10 @@ routes.
   video, never a "clip". The live reel and the screen carry no mark and no cap on any plan, so every watermark or
   length claim names the clip ("30-second clips with a small mark"), never the reel, which carries neither
   ([reel.md](reel.md)).
-- `content-policy.test.ts`'s header lists every fenced claim and the files it scans (`CLAIM_FILES`: the copy
-  single-sources, the llms builders, the legal content); a copy source outside `(marketing)` joins that list.
+- `content-policy.test.ts`'s header lists every fenced claim, and its claims fence reads every constant under
+  `src/lib/constants/` (the copy single-sources and the legal content, so a new one is fenced the day it lands) but
+  the ones `CLAIM_EXEMPT_CONSTANTS` names with a reason (`tiers.ts`, which defines the ingress backstop), plus the
+  FAQ answers and the llms builders; a copy source outside `src/lib/constants/` joins `CLAIM_FILES` by hand.
 
 ## Pages and their single sources
 
@@ -130,6 +136,33 @@ routes.
   The stage's clip is the album's own scroller, never only a clip: the rows anchor whatever scrolls them, and with the
   page as their scroller every arrival moved the page under a reader a little past the album's first row. The stream,
   the stage and the hero's floor change composition together at 1280 (`STREAM_LG_MIN`, `stream-engine.test.ts`).
+  ★ Its stills reach the product's own tile at their slot's size: `MediaTile` draws a presigned URL as it is, so the
+  stage hands each still the optimizer's widths and a `sizes` (`variants`, a field no product surface sets) through
+  `stillVariants`, its slot `ratio × the rows' target` at the stage's box (`stillSizes`, held against the real rows
+  engine at nine widths), and its ahead-of-arrival decode takes the same variants, or it would ready a file the tile
+  never draws. A still dropped into the manifest later inherits the path; the source files are never resized by hand.
+- ★ **`/features/privacy`'s hero is the lens** (`sections/features/privacy/`: `privacy-lens.ts` holds every number,
+  `privacy-lens.css` the structure, `lens-stage.tsx` the markup, a server component with no script of its own): a photograph
+  under the page's own words, veiled in the lightbox's ground, and one clear round pane that rests 2.4 seconds on one
+  thing at a time, never a face and never the words. ★ **The rests are bands, not pixels**: the hero's padding IS the
+  two bands the pane rests in (`bandPx`: its diameter and a gap each side, below the header and above the foot), the
+  lockup sits in what is left, and a rest is a share of the width in its band (`REST_PLACES`: the board's four round
+  the words from `WIDE_MIN_PX`, the screen's four corners below), so no rest can sit under a word at any width or any
+  copy; a pane that rested at pixels drawn on two canvases would be on its objects at two widths only. ★ **The pane
+  and the photograph in it move as one**: transforms only, the photograph the stage's own size (`cq` units, a size
+  container) moving exactly against the pane (`restTransforms`, held to `pane + view = 0` at a grid of screens by an
+  evaluator for the CSS it writes), and the keyframes are written once per reach, in `%` of a stage-sized box, never
+  per screen. ★ **The veil is the lightbox's ground as a still**: the photograph under `--glass-behind-*` as a filter
+  drawn once, a tint over it, never the live backdrop filter under a pane that moves every frame (a full-screen blur
+  re-run round the pane each time, which no stylesheet can spare a weak phone); it measured the same picture at under
+  half the GPU process's frame time, falls off to the room at the screen's edges where a backdrop filter would mirror,
+  and the pane's sharp photograph is never inside the filtered element. The words' ground is two pools of the room's
+  colour inside the lockup's own Container (`PageHero`'s `children`, negative z under the hero's `isolation`): they
+  follow the copy's height, their widths follow the measured lines, and a glide that crosses the words crosses under
+  them. ★ **The photograph is the one thing to swap** (`PRIVACY_STILL`, a manifest id): people toward the middle,
+  small bright things in the top and bottom thirds; re-measure the words' contrast over the loop when it changes,
+  since the pools were sized on the stand-in, and re-measure the lockup (`privacy-lens.test.ts`) when the copy
+  changes.
 - **`/events`**: one `[slug]` template for the four types, all copy and per-type media in `constants/events.ts`
   (`EVENT_TYPE*`, named apart from the real `events` domain). ★ `media` is the single home of a per-type photograph: no
   component names a still of its own. ★ **Every event object carries the demo's real code, never a dead link**: the
@@ -151,7 +184,8 @@ routes.
 - **`/reel`**: the live style switcher is the engine's proof (the canvas arrives only behind its lazy island), then the
   live reel, the screen and the clip. The tile is the app's own `PosterCard` over `LivingStills`, so the motion a
   visitor meets there is the one they meet on their album; the screen's corner code is the demo's real one and drops
-  with the demo; the clip table reads `MAX_REEL_SECONDS` and `TIER_NAMES`. The hero's heading is `REEL_LINE`
+  with the demo; the clip table gives each plan's clip one cell, its length and its mark together (`clipTermsFor`,
+  the clip creator's own facts, the pricing matrix's phrase too), under `TIER_NAMES`. The hero's heading is `REEL_LINE`
   (`marketing-voice.ts`), the reel door's line at both sizes, so the door and the room it opens agree; the home's close
   keeps words of its own.
 - **`/pricing`**: one paper chapter (the Free and Pro pair, the Event Pass, the configurator closing it), then one dark
@@ -179,10 +213,21 @@ routes.
   weaker neutralization fence. It tells the mission as a story (the opportunity, the problem, a better way), and its six
   convictions land as the answer, each linking to the page that proves it; it says who we are, never who we are not,
   and closes on careers with no `CtaBand`. The gather (`about/gather.tsx`) carries the dark-to-paper cut from `sm` up.
+  ★ **The press kit is a muted band between the convictions and the close** (`about/press-kit-band.tsx`, copy in
+  `ABOUT_PRESS_KIT`, `id="press"`): four different plates (the mark on paper and on ink, the QR, the share card; never
+  a grid of near-twins), one download and the usage line, in the ledger's own measure and split. `/press` is a page
+  whose only act is `redirect()` (a 307, never a 308: the kit's home may move again, and a permanent redirect would sit
+  in every CDN and phone that followed it), out of the sitemap, and every door that names the kit reads
+  `ABOUT_PRESS_HREF` (the nav's Press rows, /contact's directory row and `press` hint, the llms files). The plates'
+  grounds are literal colours (`PLATE_PAPER`, `BRAND_HEX`), never theme utilities: a plate is the artwork's own ground,
+  and following a token flip hides the artwork. The kit is manifest-driven (`PRESS_KIT`, `scripts/build-press-kit.mjs`,
+  `scripts/build-press-qr.mjs` and the committed zip, which `press-kit.test.ts` parses back and CRC-checks), so a logo
+  change is a files-and-rows edit. No boilerplate, one-liner or fact strip on the page: the paragraph both llms files
+  open on lives in `lib/content/llms.ts`, and the fact sheet (`PRESS_FACTS`) feeds `/llms-full.txt` alone.
   ★ A beat whose concept is a change of arrangement must not hide its starting arrangement: `[data-mkt-fly]` animates
   opacity from 0, which would hide the scatter, so `.mkt-gather` moves only position and angle, and the scatter is an
   authored table (never `Math.random()`, which desyncs SSR), so the no-JS page is prints on a table.
-- **The utility-page rhythm**: a cinema hero, a paper body, the ink footer, on about, blog, careers, contact, press,
+- **The utility-page rhythm**: a cinema hero, a paper body, the ink footer, on about, blog, careers, contact,
   privacy and terms. A page takes the rhythm by JOINING the `(cinema)` group and wrapping its body in one
   `PaperChapter`, which brings the dark nav, the overscroll and the browser chrome with it (route groups are not in URLs,
   so moving a page needs no redirect): a dark hero decides the route group, never a hand-built dark set on the paper
@@ -202,35 +247,30 @@ routes.
   only, because inheriting `reel` or `open` asserts something false. ★ The role rail's `lg:self-stretch` is
   load-bearing, or `lg:items-start` collapses the aside and sticky gets no travel (the help ToC's trap).
 - **`/contact`**: a dark hero, then one `PaperChapter` (the desk, the self-serve search band, the close). Its first
-  field is a required topic, single-sourced in `constants/contact.ts` (labels, icons, each topic's own note with one to
-  four help links, and the directory beside the form) and read by the zod enum, the `contact_submissions.topic` CHECK,
-  the email's subject tag and the `/admin/support` chip; a parity test pins the enum to the migration, and
-  `contact.test.ts` holds every hint link to a real route or article and each topic to its own answers (no shared shelf
-  link, and no reply timing of a hint's own: `REPLY_LINE` is the only true one, so a per-topic promise would be
-  invented). `/press` is no tile in the directory while it folds into `/about`; the `press` topic's hint keeps the kit's
-  link while the page exists. `?about=<slug>` prefills the subject and picks the topic through the exhaustive
-  `CATEGORY_TOPIC` map (a new help category fails typecheck until mapped), via `form.reset` so "Send another" keeps it;
-  the route stays static, reading `window.location` on mount against an allowlist of OWN keys (a plain object also
-  answers `constructor`), never `useSearchParams`. ★ A Radix Select takes no controlled `""` (it latches the placeholder
-  over a later value), its hidden native bridge emits an empty `onValueChange` during mount that would clobber a
-  programmatic pick, and `SelectValue` cannot resolve a label before the items mount, so the trigger's label is
-  hand-rendered.
-- **A sent note becomes a receipt on the card that wrote it** (`contact-receipt.tsx`), and nothing leaves the server a
-  second time: a receipt email is a send to an address nobody verified (spoofed sends, inbox bombing), so the sender's own
-  words and the address a reply goes to come back on the card, and no toast repeats the thanks. ★ Every arrival is
-  `motion-safe:starting:` (the visible state is the default), so reduced motion, a throttled tab and a browser without
-  `@starting-style` meet the finished card. The form's height is measured in the submit handler (a ref read in render is
-  a lint error) and kept from `lg`, condensed to the receipt's in a hand; focus moves to the receipt's heading and back
-  to the first field on Send another; a Server Function that rejects is a failed send with the words kept. The write
-  path is under "Public forms".
-- **`/press`, the contact sheet**: titled "Press" everywhere (a 160px masthead has to be the word the reader clicked;
-  detail goes in the eyebrow), its boilerplate and fact sheet in `constants/press.ts`, the one quotable home that the
-  llms builders share. The sheet's frames are deliberately not one kind of thing (a uniform grid of marks is a downloads
-  table): do not tidy it. ★ The plates' grounds are literal colours (`PLATE_PAPER`, `BRAND_HEX`), never theme
-  utilities: a plate is the artwork's own ground, and following a token flip hides the artwork. The grid's rebate
-  insets by the same `--gap-gallery` as its gaps, or it stops reading as a rebate. The kit is manifest-driven
-  (`PRESS_KIT`, `scripts/build-press-kit.mjs`, `scripts/build-press-qr.mjs` and the committed zip, which
-  `press-kit.test.ts` parses back and CRC-checks), so a logo change is a files-and-rows edit.
+  field is a required topic, single-sourced in `constants/contact.ts` (labels, icons, each topic's own note with one
+  to four help links, and the directory beside the form) and read by the zod enum, the `contact_submissions.topic`
+  CHECK, the email's subject tag and the `/admin/support` chip; a parity test pins the enum to the migration, and
+  `contact.test.ts` holds every hint link to a real route or article and each topic to its own answers (no shared
+  shelf link, and no reply timing of a hint's own: `REPLY_LINE` is the only true one, so a per-topic promise would be
+  invented). The directory's Press row and the `press` topic's hint both go to the kit band (`ABOUT_PRESS_HREF`), and
+  a door may name an anchor: `contact.test.ts` resolves it to an id written in the page's folder. `?about=<slug>`
+  prefills the subject and picks the topic through the exhaustive `CATEGORY_TOPIC` map (a new help category fails
+  typecheck until mapped), via `form.reset` so "Send another" keeps it; the route stays static, reading
+  `window.location` on mount against an allowlist of OWN keys (a plain object also answers `constructor`), never
+  `useSearchParams`. ★ A Radix Select takes no controlled `""` (it latches the placeholder over a later value), its
+  hidden native bridge emits an empty `onValueChange` during mount that would clobber a programmatic pick, and
+  `SelectValue` cannot resolve a label before the items mount, so the trigger's label is hand-rendered.
+- **A sent note becomes a receipt on the card that wrote it**, /contact's and a job application's alike (`NoteReceipt`
+  and its choreography `useReceiptSwap`, `components/marketing/forms/`; each form says only what is its own: the topic,
+  `REPLY_LINE` and the postmark, or the role and the careers page's own "we read every application"), and nothing
+  leaves the server a second time: a receipt email is a send to an address nobody verified (spoofed sends, inbox
+  bombing), so the sender's own words and the address a reply goes to come back on the card, and no toast repeats the
+  thanks. ★ Every arrival is `motion-safe:starting:` (the visible state is the default), so reduced motion, a throttled
+  tab and a browser without `@starting-style` meet the finished card. The form's height is measured in the submit
+  handler (a ref read in render is a lint error, and so is reading the hook's returned object, which holds the ref:
+  take it apart where it is called) and kept from `lg`, condensed to the receipt's in a hand; focus moves to the
+  receipt's heading and back to the first field on Send another; the submit waits for hydration; a Server Function
+  that rejects is a failed send with the words kept. The write path is under "Public forms".
 
 ## The content pipeline: help and blog
 
@@ -320,15 +360,21 @@ with `help.ts` and `blog.ts` as thin wrappers.
 
 ## Public forms
 
-The contact and application forms write the deny-all `contact_submissions` and `job_applications` tables.
+The contact and application forms write the deny-all `contact_submissions` and `job_applications` tables, on ONE
+contract: the shared fields and honeypot (`lib/validation/public-form.ts`) and one pipeline (`submitPublicForm`,
+`lib/security/public-form-submit.ts`: validate, the honeypot, the form's own refusal, the rate gate, the row, the
+notify), each Server Function naming only its schema, its row and its mail (`public-form-submit.test.ts` drives both
+end to end).
 
-- **The row is authoritative; the email is best effort.** The Server Action inserts on the service-role admin client
+- **The row is authoritative; the email is best effort.** The pipeline inserts on the service-role admin client
   FIRST, then tries the Resend notify in a try/catch (`sendOnce`, `dedupeKey` the row id so a double submit notifies
   once, `replyTo` the submitter); a missing key, an unset inbox or a failed send is logged and swallowed, never changing
   what the visitor sees.
-- **No anon RPC and no anon grant sit behind a public form**, so it adds no anon-executable surface. The hidden
-  `website` honeypot returns success before the rate gate and stores nothing, so a bot learns nothing, and a walk of the
-  success path on a dev server fills it to send no row and no mail.
+- **No anon RPC and no anon grant sit behind a public form**, so it adds no anon-executable surface. ★ The hidden
+  honeypot is named for nothing real (`HONEYPOT_FIELD`, `lantern`; it was `website`, which an autofill fills for a real
+  person, whose note then vanished behind a success): it returns success before the rate gate (and before a careers
+  role is looked up) and stores nothing, so a bot learns nothing, and a walk of the success path on a dev server fills
+  it to send no row and no mail.
 - The address shown is `SUPPORT_EMAIL`; the destination is the optional `CONTACT_NOTIFY_EMAIL` (falling back to it), so
   moving the mail is an env swap. Resend Inbound stays unused (webhook-only ingestion, no mailbox).
 
@@ -360,8 +406,9 @@ The contact and application forms write the deny-all `contact_submissions` and `
 
 ## The 404 pages
 
-Six `not-found.tsx` files share one presentational core, `shared/not-found-screen.tsx` (exactly one of `visual` or
-`icon`, a `help` line, and a `digest` on the crash screens only), each with one chrome, a 404 status and `noindex`.
+Six `not-found.tsx` files, five sharing one presentational core, `shared/not-found-screen.tsx` (exactly one of
+`visual` or `icon`, a `help` line, and a `digest` on the crash screens only), and the guest link's wearing the door's
+own empty doorway ([guest-flow.md](guest-flow.md), the door family), each with one chrome, a 404 status and `noindex`.
 
 - **The root 404 renders its own header and footer** (`app/not-found.site.tsx`), because an unmatched URL falls
   through to `app/layout.tsx` with no group chrome; on the admin build `not-found.tsx` branches on
@@ -410,6 +457,12 @@ Six `not-found.tsx` files share one presentational core, `shared/not-found-scree
   Nothing is laid over a photograph: the words punch a feathered window in the trail, so the muted description keeps its
   contrast; the trail needs layout, so without scripting a reader gets the words and links on clean paper. Its code
   and `trail.css` arrive in the site screen's own chunk, so no other page preloads the sheet.
+- ★ **The root 404's links prefetch nothing on sight** (`QuietChromePrefetch` around its screen; the chrome and the
+  words draw every link through `ChromeLink`, `next/link` itself everywhere else). Standing outside `(marketing)`, it
+  holds none of the sheets its links' routes need, and a prefetched payload makes React preload each sheet it names:
+  marketing.css and the home's three were preloaded and never drawn, four "preloaded but not used" warnings a load. A
+  press still navigates in place and fetches then. (The home's three warn on every other marketing page too, from the
+  header logo's prefetch of `/`: ROADMAP's line.)
 
 ## The demo (marketing side)
 

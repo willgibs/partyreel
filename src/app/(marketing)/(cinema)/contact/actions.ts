@@ -1,108 +1,53 @@
 "use server";
 
-import { headers } from "next/headers";
-
 import { contactTopicLabel } from "@/lib/constants/contact";
-import { SUPPORT_EMAIL } from "@/lib/constants/site";
-import { sendOnce } from "@/lib/email/send";
 import { contactFormEmail } from "@/lib/email/templates";
-import { serverEnv } from "@/lib/env";
-import { checkPublicFormRate } from "@/lib/security/public-form-limit";
-import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  type PublicFormResult,
+  submitPublicForm,
+} from "@/lib/security/public-form-submit";
 import { contactSchema, type ContactInput } from "@/lib/validation/contact";
 
-// Failure arm carries a taxonomy code (slice 4 proof adoption); the client
-// resolves copy via showActionError, so `message` is only for overrides.
-export type ContactResult =
-  | { ok: true }
-  | {
-      ok: false;
-      code: "validation" | "send_failed" | "rate_limited";
-      message?: string;
-    };
+export type ContactResult = PublicFormResult;
 
+/**
+ * /contact's Server Function: the public forms' one pipeline (`public-form-submit.ts`: validate, the
+ * honeypot, the rate gate, the row, the best-effort notification), with what is this form's own. The row
+ * lands in the deny-all `contact_submissions`, which `/admin/support` reads.
+ */
 export async function submitContactForm(
   input: ContactInput,
 ): Promise<ContactResult> {
-  // Re-validate server-side — never trust the client.
-  const parsed = contactSchema.safeParse(input);
-  if (!parsed.success) {
-    return { ok: false, code: "validation" };
-  }
-  const data = parsed.data;
-
-  // Honeypot: real users leave this hidden field empty. Pretend success, store nothing.
-  // Checked BEFORE the limiter on purpose: a bot caught here costs us nothing (no row, no email),
-  // so it must not spend the budget of a real person sharing the same office address.
-  if (data.website && data.website.trim() !== "") {
-    return { ok: true };
-  }
-
-  const requestHeaders = await headers();
-
-  // The rate gate (QA #14). This form is unauthenticated and each accepted submission costs one
-  // service-role insert plus one Resend send, so it is the one limiter in the app that FAILS CLOSED:
-  // there is no capability token behind it to hold the line if the counter goes dark.
-  const gate = await checkPublicFormRate("contact", requestHeaders);
-  if (!gate.allowed) {
-    return {
-      ok: false,
-      code: "rate_limited",
-      message:
-        gate.reason === "rate_limited"
-          ? "That is a lot of messages from this network. Please try again in a bit."
-          : "We could not accept that just now. Please try again in a minute.",
-    };
-  }
-
-  const admin = createAdminClient();
-  const userAgent = requestHeaders.get("user-agent")?.slice(0, 500) ?? null;
-
-  // The DB row is AUTHORITATIVE — written via the service-role admin client into the
-  // deny-all contact_submissions table.
-  const { data: row, error } = await admin
-    .from("contact_submissions")
-    .insert({
-      name: data.name,
-      email: data.email,
-      subject: data.subject?.trim() || null,
-      message: data.message,
-      topic: data.topic,
-      source: "marketing_contact",
-      user_agent: userAgent,
-    })
-    .select("id")
-    .single();
-
-  if (error || !row) {
-    console.error("contact_submissions insert failed:", error);
-    return { ok: false, code: "send_failed" };
-  }
-
-  // Best-effort notification — a missing/unconfigured/failed email must NEVER cost the
-  // user their message (the row above is already saved). dedupeKey = the row id makes a
-  // double-submit idempotent.
-  try {
-    const to = serverEnv.CONTACT_NOTIFY_EMAIL ?? SUPPORT_EMAIL;
-    const { subject, html, text } = contactFormEmail({
-      name: data.name,
-      email: data.email,
-      subject: data.subject,
-      message: data.message,
-      topic: contactTopicLabel(data.topic) ?? undefined,
-    });
-    await sendOnce({
-      kind: "contact_form",
-      dedupeKey: row.id,
-      to,
-      subject,
-      html,
-      text,
-      replyTo: data.email,
-    });
-  } catch (err) {
-    console.error("contact_form email failed (row still saved):", err);
-  }
-
-  return { ok: true };
+  return submitPublicForm(
+    {
+      kind: "contact",
+      schema: contactSchema,
+      plural: "messages",
+      insert: (admin, data, userAgent) =>
+        admin
+          .from("contact_submissions")
+          .insert({
+            name: data.name,
+            email: data.email,
+            subject: data.subject?.trim() || null,
+            message: data.message,
+            topic: data.topic,
+            source: "marketing_contact",
+            user_agent: userAgent,
+          })
+          .select("id")
+          .single(),
+      notify: (data) => ({
+        kind: "contact_form",
+        mail: contactFormEmail({
+          name: data.name,
+          email: data.email,
+          subject: data.subject,
+          message: data.message,
+          topic: contactTopicLabel(data.topic) ?? undefined,
+        }),
+      }),
+    },
+    input,
+  );
 }

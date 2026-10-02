@@ -14,10 +14,7 @@ import { SignOutEverywhereCard } from "./sign-out-everywhere-card";
 import { AccountSecurityForm } from "@/components/app/account-security-form";
 import { DisplayNameForm } from "@/components/app/display-name-form";
 import { NotificationPrefsForm } from "@/components/app/notification-prefs-form";
-import {
-  UnblockButton,
-  UnfollowButton,
-} from "@/components/social/connection-buttons";
+import { RelationToggle } from "@/components/social/relation-toggle";
 import { AttendedEventsVisibility } from "@/components/social/attended-events-visibility";
 import { ProfileBioForm } from "@/components/social/profile-bio-form";
 import { ProfileSlugControl } from "@/components/social/profile-slug-control";
@@ -81,7 +78,10 @@ import { PageHeading } from "@/components/shared/page-heading";
 export const metadata: Metadata = { title: "Account" };
 
 // A Connections row: the person + one action. The lists are RSC-rendered
-// (avatar URLs resolved server-side); only the action buttons hydrate.
+// (avatar URLs resolved server-side); only the action hydrates, and it is the
+// one relation control (`relation-toggle.tsx`): Following flips off at once and
+// Unblock undoes a block at once, and the Server Function's re-render takes the
+// row out of its list in the same round trip (no toast: the list shows it).
 function PersonRow({
   item,
   action,
@@ -377,10 +377,11 @@ export default async function AccountPage({
         </CardContent>
       </Card>
 
-      {/* The id is every door's landing: the after-upload prompt, the user menu's "Your profile"
-          and event settings all point here. Before a page exists this card IS the setup's door
-          (`setup=wizard`: the first setup is a guided wizard, and Account holds the quick, direct
-          edits that follow), so each of those doors reaches the wizard through it. */}
+      {/* The id is where a set-up page's later choices land (`PAGE_CHOICES_PATH`: the profile's
+          "Choose what shows", the claims toast, the wizard sending a set-up account here). Before a
+          page exists this card IS the setup's door (`setup=wizard`: the first setup is a guided
+          wizard, and Account holds the quick, direct edits that follow); the user menu's "Your
+          profile" and event settings' claim line open the setup itself (crumbs-44). */}
       <Card id="public-profile" className="scroll-mt-6">
         <CardHeader>
           <CardTitle>Public profile</CardTitle>
@@ -454,9 +455,12 @@ export default async function AccountPage({
                     key={item.id}
                     item={item}
                     action={
-                      <UnfollowButton
+                      <RelationToggle
+                        relation="follow"
                         profileId={item.id}
-                        displayName={item.displayName}
+                        on
+                        person={item.displayName}
+                        size="sm"
                       />
                     }
                   />
@@ -475,9 +479,12 @@ export default async function AccountPage({
                     key={item.id}
                     item={item}
                     action={
-                      <UnblockButton
+                      <RelationToggle
+                        relation="block"
                         profileId={item.id}
-                        displayName={item.displayName}
+                        on
+                        person={item.displayName}
+                        size="sm"
                       />
                     }
                   />

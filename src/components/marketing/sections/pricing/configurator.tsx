@@ -139,7 +139,9 @@ export function Configurator() {
             <div className="flex flex-col justify-center gap-6 bg-muted p-6 sm:p-8">
               <div>
                 <div className="flex items-baseline justify-between gap-3">
-                  <span className="text-label text-faint uppercase">
+                  {/* The slider's only visible label, so the second text step, as its two
+                      siblings' labels are: the faint one is 2.9:1 on this recess. */}
+                  <span className="text-label text-muted-foreground uppercase">
                     How much room
                   </span>
                   {/* A step UNDER the section's own h2, never level with it:
@@ -331,13 +333,15 @@ function ResultCard({
             ]}
           />
 
+          {/* Sentences a reader weighs against the verdict, so the verdict's own why's step
+              (7.0:1 on this card), never the faint one (3.2:1). */}
           {annual && (
-            <p className="text-caption text-faint">
+            <p className="text-caption text-muted-foreground">
               Or {annual.priceLabel} billed yearly, two months free.
             </p>
           )}
           {rec.alternative && (
-            <p className="text-caption text-pretty text-faint">
+            <p className="text-caption text-pretty text-muted-foreground">
               {rec.alternative}
             </p>
           )}

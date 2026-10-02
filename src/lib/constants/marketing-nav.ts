@@ -22,7 +22,9 @@ export function isNavGroup(item: NavItem): item is NavGroup {
 }
 
 /** Does `pathname` sit under `href`? Exact match, or a real path segment below
- *  it — never a prefix match, or /press would light up /pressure. */
+ *  it — never a prefix match, or /blog would light up /blogger. A pathname never
+ *  carries a fragment, so a row that points at an anchor (Press, `/about#press`)
+ *  is never current and never inks its group on /about. */
 function isUnder(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
@@ -142,9 +144,12 @@ export const PRIMARY_NAV: NavItem[] = [
         description: "Notes on hosting and sharing.",
       },
       {
+        // The press kit is a band on About (about-press r1): /press redirects there, so the
+        // row goes straight to it. Pinned to ABOUT_PRESS_HREF by the nav test (this module
+        // imports nothing).
         label: "Press",
-        href: "/press",
-        description: "Logos, facts, and who to ask.",
+        href: "/about#press",
+        description: "Logos and brand files, ready to use.",
       },
       {
         label: "Contact",
@@ -180,10 +185,28 @@ export const FAQ_HREF = "/#faq";
 
 /**
  * The routes whose own FAQ section is `id="faq"`. A reader there who presses the footer's FAQ
- * link meets THIS page's questions (pricing's are about plans), so the link stays on the page
- * instead of leaving for the home's. A test holds each route against its page's source.
+ * link meets THIS page's questions (pricing's are about plans, a wedding page's about weddings),
+ * so the link stays on the page instead of leaving for the home's. Exact paths, never a prefix:
+ * `/events/nope` is the site's 404, which has no FAQ to stay on.
+ *
+ * Plain strings, like the panels' children (this module stays light in the client bundle), and
+ * held both ways by `marketing-nav.test.ts`: every route here carries the anchor, and every page
+ * that draws an FAQ band (the events template and `FeatureFaq`) is here.
  */
-export const OWN_FAQ_ROUTES: readonly string[] = ["/pricing"];
+export const OWN_FAQ_ROUTES: readonly string[] = [
+  "/pricing",
+  "/events",
+  "/events/weddings",
+  "/events/parties",
+  "/events/conferences",
+  "/events/trips",
+  "/features/album",
+  "/features/qr",
+  "/features/curation",
+  "/features/sharing",
+  "/features/guests",
+  "/features/privacy",
+];
 
 /** Where the footer's FAQ link goes from `pathname`: this page's own FAQ when it has one, else the home's. */
 export function faqHrefFrom(pathname: string | null): string {
@@ -251,7 +274,7 @@ export const FOOTER_NAV: FooterColumn[] = [
     links: [
       { label: "Help center", href: "/help" },
       { label: "Blog", href: "/blog" },
-      { label: "Press", href: "/press" },
+      { label: "Press", href: "/about#press" },
       { label: "Contact", href: "/contact" },
     ],
     // About is FOOTER-ONLY (R5): quiet placement, no

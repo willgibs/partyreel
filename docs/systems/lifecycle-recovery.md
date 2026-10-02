@@ -22,9 +22,10 @@ bodies live in `lib/lifecycle/sweeps/` and `account-deletion.ts`, each tested on
   backlog in one never starves the rest nor runs the invocation into Vercel's kill. A sweep the deadline stops
   returns `stopped_early` with a counted `remaining` where it can take one, and its run reads "Needs a look".
 - **A sweep that deletes drains:** the next run starts at what is left. `expired_events` reclaims each batch's media
-  before its event rows go (a batch the deadline interrupts keeps its event rows); `removed_media` goes oldest
-  `purge_at` first; `deleted_accounts` leaves an account caught mid-purge with its events and auth user; and
-  `standby_budget`.
+  before its event rows go (a batch the deadline interrupts keeps its event rows), finding them index-only through
+  `events_deleted_idx` (the soft-deleted events by id, carrying `purge_at` and `deleted_at`, 20261001233200);
+  `removed_media` goes oldest `purge_at` first; `deleted_accounts` leaves an account caught mid-purge with its events
+  and auth user; and `standby_budget`.
 - **A sweep that examines rotates:** `expired_passes`, `over_capacity`, `renewal_nudges` and
   `inactive_free_events` (accounts) and `album_log` (albums) store `resume_after` on their run row when the deadline
   stops them, and the next run starts after it, so a list longer than a night still has every candidate examined in
@@ -58,7 +59,8 @@ bodies live in `lib/lifecycle/sweeps/` and `account-deletion.ts`, each tested on
   withdrawal and an operator's removal, plus a soft-deleted event's live media, never a held row. It reads the bin's
   two halves by index, never media whole: the removed rows through `media_removed_idx` (`where status =
   'removed'`, keyed in the `removed_media` sweep's own `(purge_at, id)` order, which that sweep reads too), and each
-  deleted event's live media by event id (20261001151000). Only a host over
+  deleted event's live media by event id (20261001151000), the deleted events themselves through `events_deleted_idx`.
+  Only a host over
   budget has its bin read, and read whole, so eviction is oldest-first across all of it. The meter's Deleted figure
   (`host_storage_summary`) is exactly what her two Deleted lists show, inside the window: system removals and a held
   row count while they are listed and never after, since a figure outliving its list would tell her a hold exists.
@@ -81,7 +83,8 @@ bodies live in `lib/lifecycle/sweeps/` and `account-deletion.ts`, each tested on
 - **A restore is capacity-gated against the BASE cap,** never the 10% headroom (`insufficient_space` with
   `needed_bytes`), so the size list's Undo (one `restore_media` per item) can put back only part of a removal on a
   full plan; the rest stays in Deleted and the toast says so. `restore_event` re-checks the event slot and restores all or nothing; media removed on their own
-  stay in the bin, and the RPC reports how many her Deleted still shows (`media_still_removed`). `purge_media_now`
+  stay in the bin, and the RPC reports how many her Deleted still shows (`media_still_removed`), which the restore's
+  toast says ("are still in its album's Deleted"), so what did not come back never reads as lost. `purge_media_now`
   deletes the R2 objects first in its wrapper, then the rows.
 - ★ **A restore returns an item to the status it HELD,** not to `approved`: `media_derive_removal_provenance` stamps
   `status_before_removed` on every removal path, so a hidden item comes back hidden and a pending one pending.

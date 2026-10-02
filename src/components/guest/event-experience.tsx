@@ -11,18 +11,18 @@ import {
 } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ImageUp, Laptop, Lock, Smartphone } from "lucide-react";
+import { ImageUp, Laptop, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 
 import { initial } from "@/components/app/user-menu";
 import { AlbumBoundary } from "@/components/guest/album-boundary";
 import { ClaimHandlePrompt } from "@/components/guest/claim-handle-prompt";
 import { AlbumLightSampler } from "@/components/guest/door/album-light";
+import { DoorStage, RestWords } from "@/components/guest/door/stage";
 import type { EntryModalHandle } from "@/components/guest/entry-modal";
 import type { FollowMomentHost } from "@/components/guest/follow-moment-card";
 import { GuestActionDock } from "@/components/guest/guest-action-dock";
 import { GallerySkeleton } from "@/components/guest/gallery-skeleton";
-import { GhostRiver } from "@/components/guest/gallery-empty-state";
 import { GalleryLiveProvider } from "@/components/guest/gallery-live";
 import { GuestShare } from "@/components/guest/guest-share";
 import {
@@ -157,6 +157,7 @@ export function EventExperience({
   firstPaintWidth = null,
   rhythmSeed = 0,
   albumFull = false,
+  waitingOnArrival = false,
 }: {
   event: GuestEvent;
   qrToken: string;
@@ -231,6 +232,11 @@ export function EventExperience({
    * close it, and the lightbox must not say it does.
    */
   albumFull?: boolean;
+  /**
+   * Something of hers from an earlier visit waits for the host on an album still empty (the page's server read,
+   * `waiting-on-arrival.server.ts`): the row's Add is hers from the first paint, never the empty state's.
+   */
+  waitingOnArrival?: boolean;
 }) {
   const router = useRouter();
   // ONE resolution of the step for both boxes the album occupies: the skeleton
@@ -362,6 +368,7 @@ export function EventExperience({
     progress: uploadProgress,
     addFiles,
     addClip,
+    holdAtDoor,
     retry,
     dismiss,
   } = useUploadQueue({
@@ -442,6 +449,11 @@ export function EventExperience({
   const { sentinelRef, inView: headerActionsInView } =
     useInViewSentinel<HTMLDivElement>();
   const canUpload = access === "full" && event.accepting_uploads;
+  /* ★ THE CAP A GUEST'S FILE MEETS, SAID BEFORE THE PICKER (crumbs-43): the host's own per-file cap
+     (`events.max_upload_bytes`) on the Add sheet's terms line, at the door's upload step and the album's Add
+     alike, so the number she reads is the one the presign holds her to. Never the host's on her own album: her
+     uploads ride the host's pair, which the cap exempts (`create_media_as_host`). */
+  const hostCap = isOwner ? null : (event.max_upload_bytes ?? null);
 
   /* ────────────────────────────────────────────────────────────────────────
      A DRIFTING DECISION, AND WHICH WAY IT DRIFTED.
@@ -552,7 +564,11 @@ export function EventExperience({
   // passed only while `galleryEmpty`). At a moderated event whose album is
   // still empty, that is every guest who has sent anything, and exactly the
   // guest her tracker sits beside Add for, its badge counting what waits.
-  const galleryEmpty = mediaCount === 0 && inFlightUploads.length === 0;
+  // ★ AND HER WAITING ROWS FROM AN EARLIER VISIT COUNT FROM THE FIRST PAINT (crumbs-43, `waitingOnArrival`): her
+  // tracker reads them only after mount, so the page's server render says whether any wait, and the Add a returning
+  // guest meets is the row's from the first frame, with nothing to move when the tracker's read lands.
+  const galleryEmpty =
+    mediaCount === 0 && inFlightUploads.length === 0 && !waitingOnArrival;
   // Her tracker (`guest-capture` r1, `tracker=button`): the two facts its button needs, kept
   // outside the page's state so a sync re-renders the tracker and never this shell.
   const [trackerStore] = useState(createUploadTrackerStore);
@@ -628,6 +644,10 @@ export function EventExperience({
   // attribute drops and everything rises AS the sheet exits, instead of
   // playing invisibly behind it during the refresh roundtrip.
   const [holdCurtain, setHoldCurtain] = useState(false);
+  /* ★ THE DOOR STANDS AS THE PAGE (`locked-door` r2, `door/stage.tsx`), as the door itself reports it
+     (EntryModal's `onStageChange`, before paint): the album keeps its layout under the stage and goes
+     `inert` there, and a gate's own server-drawn door gives way to the stage the moment it arrives. */
+  const [stageUp, setStageUp] = useState(false);
   // ★ THE WELCOME COMES FIRST: whether this visitor still owes the door, as the door itself reports
   // it (EntryModal's `onPendingChange`). OWED until its first report, because the door is a lazy
   // chunk and a hydrating page cannot know yet: a `?reel` waits a beat for the owner rather than
@@ -964,8 +984,11 @@ export function EventExperience({
 
   return (
     <div
+      // `relative`: the door's stage stands over this box (`door/stage.tsx`), and the page holds to one
+      // screen while it does (`data-guest-experience`, `door/doorway.css`).
+      data-guest-experience=""
       className={cn(
-        "w-full flex-1 pt-8",
+        "relative w-full flex-1 pt-8",
         // The dock is fixed, so the page owes it room or it crops the last row
         // and the report line. Reserved for as long as the dock is MOUNTED
         // rather than while it is visible: a padding that appeared with the bar
@@ -988,6 +1011,7 @@ export function EventExperience({
             gate={gate}
             doorGate={doorGate}
             acceptsVideo={event.accepts_video}
+            capBytes={hostCap}
             hasContributed={serverContributed}
             contributed={clientContributed}
             returning={returning}
@@ -1020,9 +1044,10 @@ export function EventExperience({
             // itself there - the privacy rule needs no extra guard.
             hostName={event.host_display_name}
             eventDate={event.event_date}
-            hostAvatarUrl={hostAvatarUrl}
-            hostSeed={hostSeed}
             onHoldingChange={setHoldCurtain}
+            onStageChange={setStageUp}
+            // Her choice at the held door: the queue holds it until the door lets her in.
+            onHold={holdAtDoor}
             onPendingChange={setWelcomePending}
             sessionToken={sessionToken}
             // Held while the page re-reads who is here (`doorName`, the hold above).
@@ -1074,124 +1099,114 @@ export function EventExperience({
           />
         )}
       </Suspense>
-      {/* THE WORDS. One box, on the left line, holding everything above the
+      {/* ★ AT A GATE THE DOOR IS THE PAGE FROM THE FIRST PAINT (`locked-door` r2, `shape=shared`): the
+          doorway, shut (ajar while the host decides), in the house light, over the album's name and
+          what it holds, and nothing else of the album (the locked redaction: no host, no date, no
+          photograph). Drawn here, on the server, so a cold phone meets the door before the door's own
+          island has loaded; that island's stage then stands over it in the same place (`at="gate"`),
+          and this one gives way. Act 1, the stage; Act 2, the door's words. */}
+      {access === "none" && !stageUp && (
+        <DoorStage
+          open
+          at="gate"
+          door={{ state: gate === "waiting" ? "ajar" : "shut", album: false }}
+          modal={false}
+          className="z-20"
+        >
+          <RestWords eventName={event.name} mediaTotal={stats.approvedTotal} />
+        </DoorStage>
+      )}
+      {access !== "none" && (
+        // ★ THE ALBUM UNDER AN OPEN STAGE IS `inert`: the door is the page, so nothing behind it can be
+        // reached by a tab or read aloud until the door lets her through.
+        <div data-door-behind="" inert={stageUp || undefined}>
+          {/* THE WORDS. One box, on the left line, holding everything above the
           album; the album is its own box below (see COLUMN / BLEED). */}
-      <div className={COLUMN}>
-        {/* No in-page demo banner: a Demo mark sits beside the wordmark in
+          <div className={COLUMN}>
+            {/* No in-page demo banner: a Demo mark sits beside the wordmark in
             guest-header.tsx, pinned to the top, so it never scrolls away. A
             banner here would scroll off and need re-saying itself. */}
-        {/* LEFT-EDITORIAL header: identity title, one byline line, the stats
-          line, then the action block.
-          PRIVACY RULE: at `none` (locked password event) only the NAME renders —
-          no byline/stats/avatar (matches the OG metadata; the entry sheet owns
-          the count tease). "Hosted by" shows only when the host set a real name;
-          the avatar only if one exists (no initials fallback here). */}
-        <header>
-          <h1
-            data-arrive
-            style={{ "--arrive-i": 0 } as React.CSSProperties}
-            className="font-heading text-page text-balance"
-          >
-            {event.name}
-          </h1>
-          {access !== "none" && (
-            <>
-              {(event.host_display_name?.trim() || event.event_date) && (
-                <p
-                  data-reveal
-                  style={{ "--reveal-i": revealBase } as React.CSSProperties}
-                  className="mt-2.5 flex items-center gap-2 text-xs text-muted-foreground"
-                >
-                  {event.host_display_name?.trim() && (
-                    <span className="flex items-center gap-1.5">
-                      <span className="text-faint">Hosted by</span>
-                      {/* Seeded, photo or not: without a photo the byline
-                          still draws the seeded initial rather than nothing. */}
-                      <Avatar seed={hostSeed ?? undefined} size="sm">
-                        <AvatarImage src={hostAvatarUrl ?? undefined} alt="" />
-                        <AvatarFallback>
-                          {initial(null, event.host_display_name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="font-medium text-foreground">
-                        {event.host_display_name}
-                      </span>
-                    </span>
-                  )}
-                  {event.host_display_name?.trim() && event.event_date && (
-                    <span aria-hidden className="text-faint">
-                      ·
-                    </span>
-                  )}
-                  {event.event_date && (
-                    <span>{formatEventDate(event.event_date)}</span>
-                  )}
-                </p>
-              )}
-              <p
-                data-reveal
-                style={{ "--reveal-i": revealBase + 1 } as React.CSSProperties}
-                className="mt-1 text-xs text-muted-foreground"
+            {/* LEFT-EDITORIAL header: identity title, one byline line, the stats
+                line, then the action block. ★ Only past the door: at `none` the door
+                is the page (above), with the name and the count and nothing else.
+                "Hosted by" shows only when the host set a real name; the avatar only
+                if one exists (no initials fallback here). */}
+            <header>
+              <h1
+                data-arrive
+                style={{ "--arrive-i": 0 } as React.CSSProperties}
+                className="font-heading text-page text-balance"
               >
-                {formatMediaCount(mediaCount)}
-                {guestCount > 0 && (
-                  <>
-                    {" "}
-                    from {formatCount(guestCount)}{" "}
-                    {guestCount === 1 ? "guest" : "guests"}
-                  </>
+                {event.name}
+              </h1>
+              <>
+                {(event.host_display_name?.trim() || event.event_date) && (
+                  <p
+                    data-reveal
+                    style={{ "--reveal-i": revealBase } as React.CSSProperties}
+                    className="mt-2.5 flex items-center gap-2 text-xs text-muted-foreground"
+                  >
+                    {event.host_display_name?.trim() && (
+                      <span className="flex items-center gap-1.5">
+                        <span className="text-faint">Hosted by</span>
+                        {/* Seeded, photo or not: without a photo the byline
+                          still draws the seeded initial rather than nothing. */}
+                        <Avatar seed={hostSeed ?? undefined} size="sm">
+                          <AvatarImage
+                            src={hostAvatarUrl ?? undefined}
+                            alt=""
+                          />
+                          <AvatarFallback>
+                            {initial(null, event.host_display_name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="font-medium text-foreground">
+                          {event.host_display_name}
+                        </span>
+                      </span>
+                    )}
+                    {event.host_display_name?.trim() && event.event_date && (
+                      <span aria-hidden className="text-faint">
+                        ·
+                      </span>
+                    )}
+                    {event.event_date && (
+                      <span>{formatEventDate(event.event_date)}</span>
+                    )}
+                  </p>
                 )}
-              </p>
-              {event.description && (
                 <p
                   data-reveal
                   style={
-                    { "--reveal-i": revealBase + 2 } as React.CSSProperties
+                    { "--reveal-i": revealBase + 1 } as React.CSSProperties
                   }
-                  className="mt-2 max-w-prose text-reading text-pretty text-muted-foreground"
+                  className="mt-1 text-xs text-muted-foreground"
                 >
-                  {event.description}
+                  {formatMediaCount(mediaCount)}
+                  {guestCount > 0 && (
+                    <>
+                      {" "}
+                      from {formatCount(guestCount)}{" "}
+                      {guestCount === 1 ? "guest" : "guests"}
+                    </>
+                  )}
                 </p>
-              )}
-            </>
-          )}
-        </header>
+                {event.description && (
+                  <p
+                    data-reveal
+                    style={
+                      { "--reveal-i": revealBase + 2 } as React.CSSProperties
+                    }
+                    className="mt-2 max-w-prose text-reading text-pretty text-muted-foreground"
+                  >
+                    {event.description}
+                  </p>
+                )}
+              </>
+            </header>
 
-        {access === "none" && (
-          // Password not yet unlocked: the real COUNT tease over the ghosted
-          // RIVER — shape and motion, zero pixels of this event's own media.
-          //
-          // ★ ONE PICTURE FOR NOTHING, IN BOTH PLACES A GUEST MEETS IT: the
-          // locked page and the empty album both draw the flow, at the empty
-          // album's own depth (`GhostRiver` owns that fade, so the two cannot
-          // drift apart). The locked page leaks only the name, the count, and
-          // stand-in frames that are not this event's, because the river's pack
-          // is the local guest-ghost WebPs, never the album behind the lock.
-          //
-          // Act 1 "the stage": the lock line + the flow settle in (data-arrive)
-          // under the planted name, instead of popping, before the sheet arrives.
-          <div className="mt-8 space-y-4">
-            <div
-              data-arrive
-              style={{ "--arrive-i": 1 } as React.CSSProperties}
-              className="flex items-center justify-center gap-2 text-muted-foreground"
-            >
-              <Lock className="size-4" aria-hidden />
-              <p className="text-reading">
-                {stats.approvedTotal > 0
-                  ? `${formatMediaCount(stats.approvedTotal)} inside`
-                  : "This event is private"}
-              </p>
-            </div>
-            <div data-arrive style={{ "--arrive-i": 2 } as React.CSSProperties}>
-              <GhostRiver />
-            </div>
-          </div>
-        )}
-
-        {access !== "none" && (
-          <>
-            {/* The action block: a full-width primary Add (only when
+            <>
+              {/* The action block: a full-width primary Add (only when
               the viewer can actually upload right now) over the secondary row.
               data-reveal: rises in last on the unlock reveal (the masonry's own
               seeded stagger carries from here).
@@ -1211,124 +1226,123 @@ export function EventExperience({
               the same row as Invite rather than replacing it (the demo's visitor
               is a prospective host, not a guest choosing whether to keep an
               album). */}
-            <div
-              className="mt-4"
-              ref={sentinelRef}
-              data-reveal
-              style={{ "--reveal-i": revealBase + 3 } as React.CSSProperties}
-            >
-              {/* Her tracker's round button rides beside Add (`guest-capture` r1,
+              <div
+                className="mt-4"
+                ref={sentinelRef}
+                data-reveal
+                style={{ "--reveal-i": revealBase + 3 } as React.CSSProperties}
+              >
+                {/* Her tracker's round button rides beside Add (`guest-capture` r1,
                   `tracker=button`); where the row has no Add (uploads closed), beside
                   Invite. It draws nothing until she has something sent at a moderated
                   event. */}
-              {canUpload && !galleryEmpty && (
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    size="lg"
-                    className="min-w-0 flex-1"
-                    onClick={openAdd}
-                  >
-                    <ImageUp /> Add photos
-                  </Button>
-                  <UploadTrackerButton
-                    store={trackerStore}
-                    onOpen={openTracker}
-                  />
-                </div>
-              )}
-              <div className="mt-2 flex items-center gap-2">
-                <div
-                  className={cn(
-                    "grid min-w-0 flex-1 gap-2",
-                    isDemo ? "grid-cols-2" : "grid-cols-1",
-                  )}
-                >
-                  {isDemo && (
-                    <Button size="sm" className="h-9 w-full" asChild>
-                      <Link href="/">Start your own</Link>
+                {canUpload && !galleryEmpty && (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      size="lg"
+                      className="min-w-0 flex-1"
+                      onClick={openAdd}
+                    >
+                      <ImageUp /> Add photos
                     </Button>
-                  )}
-                  <GuestShare
-                    joinUrl={shareUrl}
-                    qrStyle={event.qr_style}
-                    eventName={event.name}
-                    triggerClassName="h-9 w-full"
-                  />
-                </div>
-                {!(canUpload && !galleryEmpty) && (
-                  <UploadTrackerButton
-                    store={trackerStore}
-                    onOpen={openTracker}
-                  />
+                    <UploadTrackerButton
+                      store={trackerStore}
+                      onOpen={openTracker}
+                    />
+                  </div>
                 )}
+                <div className="mt-2 flex items-center gap-2">
+                  <div
+                    className={cn(
+                      "grid min-w-0 flex-1 gap-2",
+                      isDemo ? "grid-cols-2" : "grid-cols-1",
+                    )}
+                  >
+                    {isDemo && (
+                      <Button size="sm" className="h-9 w-full" asChild>
+                        <Link href="/">Start your own</Link>
+                      </Button>
+                    )}
+                    <GuestShare
+                      joinUrl={shareUrl}
+                      qrStyle={event.qr_style}
+                      eventName={event.name}
+                      triggerClassName="h-9 w-full"
+                    />
+                  </div>
+                  {!(canUpload && !galleryEmpty) && (
+                    <UploadTrackerButton
+                      store={trackerStore}
+                      onOpen={openTracker}
+                    />
+                  )}
+                </div>
               </div>
-            </div>
 
-            {/* Upload area — only at `full` access (a `teaser` viewer is still at the door, which
+              {/* Upload area — only at `full` access (a `teaser` viewer is still at the door, which
               owns every step in front of them). Uploads off => a quiet view-only line.
 
               ★ NO INLINE "Add your name to upload" PANEL: a confirmed account with no profile name
               is asked at the DOOR, as its name step in `profile` mode, like every other guest and
               before the album rather than in a card halfway down it. */}
-            {access === "full" &&
-              (event.accepting_uploads ? (
-                <div className="mt-7">
-                  <GuestUpload
-                    ref={uploadRef}
-                    event={event}
-                    qrToken={qrToken}
-                    queue={queue}
-                    onAddFiles={addFiles}
-                    onRetry={retry}
-                    onDismiss={dismiss}
-                    // The door's own step is showing this run's failures, or its keep stands in
-                    // front of the album: one run never gets two surfaces, and the failure sheet
-                    // waits for the keep to be answered (see the one queue's note above).
-                    suppressFailures={uploadStepActive || keepDue}
-                    onFailuresClosed={flushPendingVerification}
-                    isDemo={isDemo}
-                    host={hostCard}
-                    moment={moment}
-                    elsewhere={elsewhere}
-                    onAccountRenamed={handleAccountRenamed}
-                    removedIds={removedIds}
-                  />
-                </div>
-              ) : (
-                !isDemo && (
-                  <>
-                    <p className="mt-7 text-center text-reading text-muted-foreground">
-                      The host has closed uploads. You can still browse the
-                      album.
-                    </p>
-                    {/* A confirmation from the name menu or the mark can land
+              {access === "full" &&
+                (event.accepting_uploads ? (
+                  <div className="mt-7">
+                    <GuestUpload
+                      ref={uploadRef}
+                      event={event}
+                      qrToken={qrToken}
+                      queue={queue}
+                      onAddFiles={addFiles}
+                      onRetry={retry}
+                      onDismiss={dismiss}
+                      // The door's own step is showing this run's failures, or its keep stands in
+                      // front of the album: one run never gets two surfaces, and the failure sheet
+                      // waits for the keep to be answered (see the one queue's note above).
+                      suppressFailures={uploadStepActive || keepDue}
+                      onFailuresClosed={flushPendingVerification}
+                      isDemo={isDemo}
+                      host={hostCard}
+                      moment={moment}
+                      elsewhere={elsewhere}
+                      onAccountRenamed={handleAccountRenamed}
+                      removedIds={removedIds}
+                      capBytes={hostCap}
+                    />
+                  </div>
+                ) : (
+                  !isDemo && (
+                    <>
+                      <p className="mt-7 text-center text-reading text-muted-foreground">
+                        The host has closed uploads. You can still browse the
+                        album.
+                      </p>
+                      {/* A confirmation from the name menu or the mark can land
                         here too, on an album whose uploads have since closed:
                         the moment still plays, in the slot's place. */}
-                    {moment && (
-                      <div className="mt-4">
-                        <ClaimHandlePrompt
-                          doneCount={0}
-                          qrToken={qrToken}
-                          host={hostCard}
-                          moment
-                          elsewhere={elsewhere}
-                          onAccountRenamed={handleAccountRenamed}
-                        />
-                      </div>
-                    )}
-                  </>
-                )
-              ))}
-          </>
-        )}
-      </div>
+                      {moment && (
+                        <div className="mt-4">
+                          <ClaimHandlePrompt
+                            doneCount={0}
+                            qrToken={qrToken}
+                            host={hostCard}
+                            moment
+                            elsewhere={elsewhere}
+                            onAccountRenamed={handleAccountRenamed}
+                          />
+                        </div>
+                      )}
+                    </>
+                  )
+                ))}
+            </>
+          </div>
 
-      {access !== "none" && (
-        <>
-          {/* THE ALBUM, and nothing else, leaves the column to run the window's
+          <>
+            {/* THE ALBUM, and nothing else, leaves the column to run the window's
               width. It is a sibling of the words box, not a block inside it. */}
-          {/* ★ ONE LIVE SOURCE ABOVE THE ALBUM AND THE REEL. The provider owns the gallery's live
+            {/* ★ ONE LIVE SOURCE ABOVE THE ALBUM AND THE REEL. The provider owns the gallery's live
               state (the refreshed list, the arrivals, this device's own ids, the doorbell and the
               poll), so the Highlight reel tile, the full-screen view and the album all read ONE
               list: an upload reaches the grid and the reel in the same breath. The gallery streams
@@ -1339,164 +1353,169 @@ export function EventExperience({
               the skeleton the same column rule AT THE SAME TILE SIZE, so the swap is layout-stable
               at every window: a two-column placeholder under a six-column album, or an
               eight-column one under seven, would flash the wrong layout on every load. */}
-          {/* ★ AND ITS FAILURE IS THE ALBUM'S ALONE (crumbs-28, `album-boundary.tsx`): a crash where
+            {/* ★ AND ITS FAILURE IS THE ALBUM'S ALONE (crumbs-28, `album-boundary.tsx`): a crash where
               the album renders stays here, so the header, the door and Add photos stand while the
               album says it could not load, with a Try again that asks the page again. A seed whose
               read failed never throws (crumbs-30): the live source stands, her uploads list with it,
               and heals the album with its own sync. Keyed as the provider is, so an access flip
               starts it clean too. */}
-          <AlbumBoundary key={access} className={COLUMN}>
-            <Suspense
-              fallback={
-                <div className={BLEED}>
-                  <GallerySkeleton step={rowStep} />
-                </div>
-              }
-            >
-              <GalleryLiveProvider
-                key={access}
-                ref={attachGallery}
-                galleryPromise={galleryPromise}
-                qrToken={qrToken}
-                access={access}
-                isDemo={isDemo}
-                onAccessDrift={handleAccessDrift}
-                onCountChange={setMediaCount}
-                pendingUploads={inFlightUploads}
-                uploadProgress={uploadProgress}
-                canDeleteIds={canDeleteIds}
-                isOwner={isOwner && !isDemo}
-                isAuthed={isAuthed}
-                sessionToken={sessionToken}
-                approvedTotal={stats.approvedTotal}
-                onOwnRemoved={handleOwnRemoved}
-                onGuestCountChange={setGuestCount}
+            <AlbumBoundary key={access} className={COLUMN}>
+              <Suspense
+                fallback={
+                  <div className={BLEED}>
+                    <GallerySkeleton step={rowStep} />
+                  </div>
+                }
               >
-                {/* The door's light takes its colour from here, the album's three newest (it draws
-                  nothing; `door/album-light.tsx`). */}
-                <AlbumLightSampler />
-                {/* Her tracker's list, inside the one live source it reads (its button sits in the
-                  row and the dock, above this provider, reading `trackerStore`). */}
-                <UploadTracker
-                  store={trackerStore}
-                  queue={queue}
+                <GalleryLiveProvider
+                  key={access}
+                  ref={attachGallery}
+                  galleryPromise={galleryPromise}
                   qrToken={qrToken}
-                  sessionToken={sessionToken}
+                  access={access}
+                  isDemo={isDemo}
+                  onAccessDrift={handleAccessDrift}
+                  onCountChange={setMediaCount}
+                  pendingUploads={inFlightUploads}
+                  uploadProgress={uploadProgress}
+                  canDeleteIds={canDeleteIds}
+                  isOwner={isOwner && !isDemo}
                   isAuthed={isAuthed}
-                  moderated={event.moderation_mode === "hold_for_approval"}
-                  isDemo={isDemo}
-                  isOwner={isOwner}
-                  removedIds={removedIds}
-                  open={trackerOpen}
-                  onOpenChange={setTrackerOpen}
-                />
-                <LiveReel
-                  eventId={event.id}
-                  eventName={event.name}
-                  joinUrl={joinUrl}
-                  displayAddress={displayAddress}
-                  qrStyle={event.qr_style}
-                  isDemo={isDemo}
-                  moderated={event.moderation_mode !== "live"}
-                  onAddYours={canUpload ? openAdd : undefined}
-                  // A clip is a video: with the host's Videos off (`accepts_video`), a guest's clip
-                  // stays hers to save or share, rather than an Add the upload would refuse.
-                  addClipToAlbum={
-                    canUpload && event.accepts_video ? addClipToAlbum : null
-                  }
-                  queue={queue}
-                  // Her tracker's own-rows read carries the server's news (what a decision let in since
-                  // she was last told): the toast says it on her return too (crumbs-38).
-                  approvalNews={trackerStore.news}
-                  welcomePending={welcomePending}
-                  isOwner={isOwner}
+                  sessionToken={sessionToken}
+                  approvedTotal={stats.approvedTotal}
+                  onOwnRemoved={handleOwnRemoved}
+                  onGuestCountChange={setGuestCount}
                 >
-                  {/* THE HIGHLIGHT REEL TILE: its own slot directly above the demo's one slot and the
+                  {/* The door's light takes its colour from here, the album's three newest (it draws
+                  nothing; `door/album-light.tsx`). */}
+                  <AlbumLightSampler />
+                  {/* Her tracker's list, inside the one live source it reads (its button sits in the
+                  row and the dock, above this provider, reading `trackerStore`). */}
+                  <UploadTracker
+                    store={trackerStore}
+                    queue={queue}
+                    qrToken={qrToken}
+                    sessionToken={sessionToken}
+                    isAuthed={isAuthed}
+                    moderated={event.moderation_mode === "hold_for_approval"}
+                    isDemo={isDemo}
+                    isOwner={isOwner}
+                    removedIds={removedIds}
+                    open={trackerOpen}
+                    onOpenChange={setTrackerOpen}
+                  />
+                  <LiveReel
+                    eventId={event.id}
+                    eventName={event.name}
+                    joinUrl={joinUrl}
+                    displayAddress={displayAddress}
+                    qrStyle={event.qr_style}
+                    isDemo={isDemo}
+                    moderated={event.moderation_mode !== "live"}
+                    onAddYours={canUpload ? openAdd : undefined}
+                    // A clip is a video: with the host's Videos off (`accepts_video`), a guest's clip
+                    // stays hers to save or share, rather than an Add the upload would refuse.
+                    addClipToAlbum={
+                      canUpload && event.accepts_video ? addClipToAlbum : null
+                    }
+                    queue={queue}
+                    // Her tracker's own-rows read carries the server's news (what a decision let in since
+                    // she was last told): the toast says it on her return too (crumbs-38).
+                    approvalNews={trackerStore.news}
+                    welcomePending={welcomePending}
+                    isOwner={isOwner}
+                  >
+                    {/* THE HIGHLIGHT REEL TILE: its own slot directly above the demo's one slot and the
                     album (never a fourth arm of `pickAboveAlbumState`), on the words' column so it
                     reads as the page's showpiece rather than a banner the width of the window.
                     Absent below the minimum. */}
-                  <LiveReelTile className={cn(COLUMN, "mt-7 mb-4")} />
-                  {/* The demo's turn card or the phone pair: one card directly
+                    <LiveReelTile className={cn(COLUMN, "mt-7 mb-4")} />
+                    {/* The demo's turn card or the phone pair: one card directly
                     above the album's first tile — the photograph a visitor just
                     added IS that tile (the album is newest first), so whatever is
                     said here is said right beside it. It keeps the ALBUM's own box
                     (BLEED), not the words' column, so it lines up with the
                     photographs under it; the album itself is one CSS multi-column
                     box and nothing can be put in the middle of one. */}
-                  {aboveAlbum && (
-                    <div className={cn(BLEED, "mb-4")}>{aboveAlbum}</div>
-                  )}
-                  <div className={BLEED}>
-                    <LiveGallery
-                      galleryPromise={galleryPromise}
-                      qrToken={qrToken}
-                      access={access}
-                      isDemo={isDemo}
-                      onOpenGate={() => entryRef.current?.openToGate()}
-                      onAddFirst={
-                        canUpload && galleryEmpty ? openAdd : undefined
-                      }
-                      joinUrl={joinUrl}
-                      initialRowStep={rowStep}
-                      firstPaintWidth={firstPaintWidth}
-                      rhythmSeed={visitSeed}
-                      closesOnLastRemoval={closesOnLastRemoval}
-                    />
-                  </div>
-                </LiveReel>
-              </GalleryLiveProvider>
-            </Suspense>
-          </AlbumBoundary>
+                    {aboveAlbum && (
+                      <div className={cn(BLEED, "mb-4")}>{aboveAlbum}</div>
+                    )}
+                    <div className={BLEED}>
+                      <LiveGallery
+                        galleryPromise={galleryPromise}
+                        qrToken={qrToken}
+                        access={access}
+                        isDemo={isDemo}
+                        onOpenGate={() => entryRef.current?.openToGate()}
+                        onAddFirst={
+                          canUpload && galleryEmpty ? openAdd : undefined
+                        }
+                        joinUrl={joinUrl}
+                        initialRowStep={rowStep}
+                        firstPaintWidth={firstPaintWidth}
+                        rhythmSeed={visitSeed}
+                        closesOnLastRemoval={closesOnLastRemoval}
+                      />
+                    </div>
+                  </LiveReel>
+                </GalleryLiveProvider>
+              </Suspense>
+            </AlbumBoundary>
 
-          {/* The named Guests section (profiles-social.md, host-keyed) — after the album,
+            {/* The named Guests section (profiles-social.md, host-keyed) — after the album,
               before the report footer: context about who filled it, never
               competing with the media. Server-composed slot; null = key off.
               It is words, so it keeps the column. */}
-          {guestListSlot && <div className={COLUMN}>{guestListSlot}</div>}
+            {guestListSlot && <div className={COLUMN}>{guestListSlot}</div>}
 
-          {/* THE DOCK: the row sits on landing, and the dock takes its place the
+            {/* THE DOCK: the row sits on landing, and the dock takes its place the
               moment it leaves the screen, with the row's own two actions (and
               mounted-but-inert until then, so it travels in rather than
               appearing). Both actions, because an Add alone would leave Invite
               unreachable deep in an album. */}
-          <GuestActionDock
-            hidden={headerActionsInView}
-            uploadingCount={uploadingCount}
-            onAdd={canUpload && !galleryEmpty ? openAdd : undefined}
-            invite={
-              <GuestShare
-                joinUrl={shareUrl}
-                qrStyle={event.qr_style}
-                eventName={event.name}
-                triggerClassName="h-9 flex-1 sm:flex-none"
-              />
-            }
-            tracker={
-              <UploadTrackerButton store={trackerStore} onOpen={openTracker} />
-            }
-          />
+            <GuestActionDock
+              // Under an open stage the door is the page, so the dock waits with the rest of the album.
+              hidden={headerActionsInView || stageUp}
+              uploadingCount={uploadingCount}
+              onAdd={canUpload && !galleryEmpty ? openAdd : undefined}
+              invite={
+                <GuestShare
+                  joinUrl={shareUrl}
+                  qrStyle={event.qr_style}
+                  eventName={event.name}
+                  triggerClassName="h-9 flex-1 sm:flex-none"
+                />
+              }
+              tracker={
+                <UploadTrackerButton
+                  store={trackerStore}
+                  onOpen={openTracker}
+                />
+              }
+            />
 
-          {/* Discreet anonymous report path (the report capability is the qr_token), never
+            {/* Discreet anonymous report path (the report capability is the qr_token), never
               for the album's own host: without it no photo offers Report to her either
               (build 23's BUG-3, `ReportFoot`). */}
-          <ReportFoot qrToken={qrToken} isOwner={isOwner} isDemo={isDemo} />
-          <ToldNameForm
-            onRenamed={(renamed) => {
-              galleryRef.current?.renameMine(renamed);
-              router.refresh();
-            }}
-          />
-          {/* The demo's closing card at the foot, in the slot a real event gives
+            <ReportFoot qrToken={qrToken} isOwner={isOwner} isDemo={isDemo} />
+            <ToldNameForm
+              onRenamed={(renamed) => {
+                galleryRef.current?.renameMine(renamed);
+                router.refresh();
+              }}
+            />
+            {/* The demo's closing card at the foot, in the slot a real event gives
               the report footer (hidden here — nothing to report in a demo) and,
               once uploads are ever closed, the reel. Below the whole album on
               purpose: the ask belongs after a visitor has actually seen what
               they came to see. */}
-          {isDemo && (
-            <div className={COLUMN}>
-              <ClosingCard guestCount={guestCount} />
-            </div>
-          )}
-        </>
+            {isDemo && (
+              <div className={COLUMN}>
+                <ClosingCard guestCount={guestCount} />
+              </div>
+            )}
+          </>
+        </div>
       )}
     </div>
   );

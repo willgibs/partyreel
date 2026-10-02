@@ -24,8 +24,9 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
   - ★ **An anon read never discloses more than the page it backs.** `get_event_by_qr_token` redacts the
     description, date, custom slug and host name (the name too, for `private`) from a non-owner of a gated event;
     an unlocked viewer's fields come back through a self-guarded admin re-read inside `getEventByQrToken`. Its
-    switches and the reel's defaults (`accepting_uploads`, `require_verified_email`, `require_upload_to_view`,
-    `show_reel`, `reel_style_id`, `reel_hold_sec`) come back unredacted, as presentation settings. A leak is fixed
+    switches, the reel's defaults and the host's per-file cap (`accepting_uploads`, `require_verified_email`,
+    `require_upload_to_view`, `show_reel`, `reel_style_id`, `reel_hold_sec`, `accepts_video`, `max_upload_bytes`) come
+    back unredacted, as presentation settings. A leak is fixed
     in the payload, never by revoking the grant. ★ To an account or confirmed address the event blocked, it reads the
     event as `private`, so every caller's private branch serves the block ([guest-flow.md](guest-flow.md)). `get_public_profile`'s attended arm applies the album's own gates ([profiles-social.md](profiles-social.md)).
   - ★ **A response the edge shares asks with NO caller.** A public `Cache-Control` hands the first viewer's answer

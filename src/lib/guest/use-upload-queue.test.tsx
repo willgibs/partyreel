@@ -526,6 +526,50 @@ describe("the ticket is read per file, never once per run", () => {
   });
 });
 
+/*
+ * ★ ONE ROW FOR A RE-JOIN (crumbs-43; ROADMAP: "a name-only guest whose session drops re-joins on the same device as a
+ * second guest row with the same name, so the guest list shows one person twice"). The drop was the flip's: a host
+ * turning An email first on mid-run put a name-only guest's ticket down, so her next Add after the host turned it off
+ * again joined afresh under the same name (a second row), and a confirmation in between had no ticket left to claim.
+ * The ticket stays now; the switch is asked again at every upload.
+ */
+describe("a name-only guest through the flip", () => {
+  it("★ keeps her ticket: the files fail in place, and once the switch is off her next Add rides the SAME row", async () => {
+    answer({});
+    mockUploadFile
+      .mockResolvedValueOnce({
+        ok: false,
+        code: "verification_required",
+        message: "Confirm your email to add photos to this event.",
+      })
+      .mockResolvedValueOnce(landed("med-1"));
+    const q = mountQueue({ sessionToken: STALE, isVerified: false });
+
+    act(() => q.result.current.addFiles([makeFile("a.jpg")]));
+    await waitFor(() =>
+      expect(q.items()).toEqual([
+        expect.objectContaining({
+          status: "error",
+          errorCode: "verification_required",
+        }),
+      ]),
+    );
+    expect(q.onSession).not.toHaveBeenCalled();
+    expect(q.onVerificationRequired).toHaveBeenCalledWith(
+      "Confirm your email to add photos to this event.",
+      true,
+    );
+
+    // The host turns it off again; she adds another.
+    act(() => q.result.current.addFiles([makeFile("b.jpg")]));
+    await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(1));
+    expect(sentOn(1)).toBe(STALE);
+    // No join, so no second row under her name: the queue called nothing but the upload.
+    expect(fetchUrls()).toEqual([]);
+    expect(q.onSession).not.toHaveBeenCalled();
+  });
+});
+
 describe("the clip's seam (addClipToAlbum)", () => {
   it("sends a clip through the ordinary queue, not reel-eligible, with its poster as the preview", async () => {
     mockUploadFile.mockResolvedValue({
@@ -888,5 +932,82 @@ describe("the album's owner, adding to her own album", () => {
     expect(sent.reelEligible).toBe(false);
     expect(sent.poster).toBe(poster);
     expect(fetchUrls()).toEqual([]);
+  });
+});
+
+/**
+ * ★ HER CHOICE AT THE HELD DOOR (`locked-door` r2, Will's `wait=pick`): she chooses what she will add
+ * while the host decides, and the queue holds it. Her ticket at that door is a waiting one the routes
+ * refuse in the private album's words, so the pins are what the door promises her: "Nothing is sent
+ * until you're let in", and then that it goes in the moment she is.
+ */
+describe("her choice at the held door", () => {
+  it("★ is held, never sent and never failed, while the door holds her, whatever ticket the device keeps", async () => {
+    answer({});
+    mockUploadFile.mockResolvedValue(landed("med-1"));
+    const q = mountQueue({
+      sessionToken: STALE,
+      isVerified: true,
+      doorOpen: false,
+    });
+
+    act(() =>
+      q.result.current.holdAtDoor([makeFile("a.jpg"), makeFile("b.jpg")]),
+    );
+    expect(q.items().map((it) => it.status)).toEqual(["queued", "queued"]);
+
+    // A ticket arriving under the held door (the ask's own, adopted) starts nothing either.
+    q.rerender({
+      sessionToken: "w".repeat(64),
+      isVerified: true,
+      doorOpen: false,
+    });
+    // And an Add that somehow reaches the queue while the door holds her waits with the rest.
+    act(() => q.result.current.addFiles([makeFile("c.jpg")]));
+    await act(async () => {});
+    expect(mockUploadFile).not.toHaveBeenCalled();
+    expect(fetchUrls()).toEqual([]);
+    expect(q.items().every((it) => it.status === "queued")).toBe(true);
+    expect(q.onDoorNeeded).not.toHaveBeenCalled();
+  });
+
+  it("a new choice replaces the last: what is held is what the door shows her", () => {
+    answer({});
+    const q = mountQueue({
+      sessionToken: STALE,
+      isVerified: true,
+      doorOpen: false,
+    });
+    act(() =>
+      q.result.current.holdAtDoor([makeFile("a.jpg"), makeFile("b.jpg")]),
+    );
+    act(() => q.result.current.holdAtDoor([makeFile("c.jpg")]));
+    expect(q.items().map((it) => it.file.name)).toEqual(["c.jpg"]);
+  });
+
+  it("★ goes in, on her ticket, the moment the door lets her through", async () => {
+    answer({});
+    mockUploadFile.mockResolvedValue(landed("med-1"));
+    const WAITING_TICKET = "w".repeat(64);
+    const q = mountQueue({
+      sessionToken: WAITING_TICKET,
+      isVerified: true,
+      doorOpen: false,
+    });
+    act(() =>
+      q.result.current.holdAtDoor([makeFile("a.jpg"), makeFile("b.jpg")]),
+    );
+    expect(mockUploadFile).not.toHaveBeenCalled();
+
+    // The host lets her in: the same row is admitted (`let_guest_in` flips her waiting rows to `in`),
+    // so her ticket now passes, and the refresh opens the page's door.
+    q.rerender({
+      sessionToken: WAITING_TICKET,
+      isVerified: true,
+      doorOpen: true,
+    });
+    await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(2));
+    expect(sentOn(0)).toBe(WAITING_TICKET);
+    expect(q.items().map((it) => it.status)).toEqual(["done", "done"]);
   });
 });

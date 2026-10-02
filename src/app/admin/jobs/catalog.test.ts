@@ -697,3 +697,39 @@ describe("readDepth and the reading rules", () => {
     expect(readDepthAgeMinutes(defOf("purge_cron"), { x: 1 })).toBeNull();
   });
 });
+
+describe("the Download all Worker (export-ends)", () => {
+  it("beats daily on the exports' own switch, on the cron its Worker deploys", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { join } = await import("node:path");
+    const beat = defOf("export");
+    expect(beat).toMatchObject({
+      kind: "scheduled",
+      host: "cloudflare_worker",
+      // The switch /admin/exports flips: pausing downloads is the one thing a switch here could mean.
+      flagKey: "export_enabled",
+      canRunNow: false,
+      expectedEveryMs: DAY,
+    });
+    // The card's cron is the one wrangler.jsonc deploys, so the missed-run rule judges the real clock.
+    const wrangler = readFileSync(
+      join(process.cwd(), "workers", "export", "wrangler.jsonc"),
+      "utf8",
+    );
+    expect(wrangler).toMatch(
+      new RegExp(
+        `"crons":\\s*\\[\\s*"${beat.cron!.replace(/\*/g, "\\*")}"\\s*\\]`,
+      ),
+    );
+  });
+
+  it("counts the downloads as a signal: no switch, no clock", () => {
+    expect(defOf("export_delivery")).toMatchObject({
+      kind: "signal",
+      host: "app",
+      flagKey: null,
+      cron: null,
+      expectedEveryMs: 0,
+    });
+  });
+});

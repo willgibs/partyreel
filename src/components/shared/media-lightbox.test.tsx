@@ -19,6 +19,9 @@
  * 600). Velocity needs CONTROLLED timestamps, so gestures are dispatched as
  * hand-built PointerEvents with a defineProperty'd timeStamp.
  */
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -490,6 +493,121 @@ describe("MediaLightbox: video behavior", () => {
     });
     fireEvent.loadedMetadata(video);
     expect(video.currentTime).toBeCloseTo(2.4, 5);
+  });
+});
+
+/*
+ * ★ THE VIEWER'S OWN LOADING STATE (crumbs-43; ROADMAP: "the media viewer's own image and video have no loading
+ * state (a tile has a skeleton; the opened photograph pops in when the full-size presign lands, the slowest picture
+ * in the product on venue Wi-Fi)"). The tile's picture stands in and the original fades in over it; while the
+ * original is still on its way the photograph wears a ring (after a beat, `media-lightbox.css`), and a clip waiting
+ * for its bytes wears the same ring in its play button's place. What is pinned is the contract between the markup
+ * and the sheet: the ring follows the original, which the sheet reads by its attributes, so the ring's own selector
+ * is asked whether it would draw.
+ */
+describe("MediaLightbox: its own loading state", () => {
+  const DRAWS =
+    "[data-lightbox-original]:not([data-loaded]):not([data-failed]) ~ [data-lightbox-loading]";
+  const ring = () =>
+    document.querySelector<HTMLElement>(
+      "[data-lightbox-slot][data-current] [data-lightbox-loading]",
+    );
+  const original = () =>
+    document.querySelector<HTMLImageElement>(
+      "[data-lightbox-slot][data-current] img[data-lightbox-original]",
+    )!;
+  const withPreview: GridMedia[] = PHOTOS.map((p) => ({
+    ...p,
+    previewUrl: p.url.replace(".jpg", ".webp"),
+  }));
+
+  it("★ a photograph whose original is still coming wears the ring over its stand-in, until it paints", () => {
+    mount(withPreview, 1);
+    expect(ring()).toBeTruthy();
+    expect(ring()!.matches(DRAWS)).toBe(true);
+    // The stand-in is the tile's own picture, already drawn.
+    expect(
+      document.querySelector(
+        "[data-lightbox-slot][data-current] img:not([data-lightbox-original])",
+      ),
+    ).toBeTruthy();
+    fireEvent.load(original());
+    expect(ring()!.matches(DRAWS)).toBe(false);
+  });
+
+  it("an original that fails ends the ring: a re-mint is the watchdog's, never a ring that spins for ever", () => {
+    mount(withPreview, 1);
+    fireEvent.error(original());
+    expect(ring()!.matches(DRAWS)).toBe(false);
+  });
+
+  it("a photograph with no link yet keeps its static placeholder and no ring; a neighbour wears none", () => {
+    const unlinked = PHOTOS.map((p, k) =>
+      k === 1 ? { ...p, url: "", downloadUrl: undefined } : p,
+    );
+    mount(unlinked, 1);
+    expect(
+      document.querySelector(
+        "[data-lightbox-slot][data-current] [data-lightbox-placeholder]",
+      ),
+    ).toBeTruthy();
+    expect(ring()).toBeNull();
+    expect(
+      document.querySelectorAll(
+        "[data-lightbox-slot]:not([data-current]) [data-lightbox-loading]",
+      ),
+    ).toHaveLength(0);
+  });
+
+  it("★ a clip waiting for its bytes wears the ring in its play button's place, after a beat, and loses it as it plays", () => {
+    vi.useFakeTimers();
+    try {
+      mount(WITH_VIDEO, 1);
+      const video = document.querySelector(
+        "video[data-center-media]",
+      ) as HTMLVideoElement;
+      let ready = 1;
+      Object.defineProperty(video, "paused", {
+        configurable: true,
+        get: () => false,
+      });
+      Object.defineProperty(video, "readyState", {
+        configurable: true,
+        get: () => ready,
+      });
+      const button = () => screen.getByRole("button", { name: "Pause" });
+      act(() => {
+        fireEvent.waiting(video);
+      });
+      // A beat first: a clip from the cache starts within a few frames.
+      expect(document.querySelector("[data-lightbox-buffering]")).toBeNull();
+      act(() => {
+        vi.advanceTimersByTime(600);
+      });
+      expect(document.querySelector("[data-lightbox-buffering]")).toBeTruthy();
+      expect(button()).toHaveAttribute("aria-busy", "true");
+      ready = 4;
+      act(() => {
+        fireEvent.playing(video);
+      });
+      expect(document.querySelector("[data-lightbox-buffering]")).toBeNull();
+      expect(button()).not.toHaveAttribute("aria-busy");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("the sheet draws the ring after a beat and stands it down while the photograph flies or is held", () => {
+    const sheet = readFileSync(
+      join(process.cwd(), "src/components/shared/media-lightbox.css"),
+      "utf8",
+    ).replace(/\s+/g, " ");
+    expect(sheet).toContain(
+      `${DRAWS} { animation: lightbox-loading-in 1ms linear 600ms forwards; }`,
+    );
+    expect(sheet).toContain(
+      "[data-lightbox-track][data-quiet] [data-lightbox-loading], [data-lightbox-content][data-dismissing] [data-lightbox-loading], [data-lightbox-slot]:not([data-current]) [data-lightbox-loading] { display: none; }",
+    );
   });
 });
 
@@ -1359,6 +1477,81 @@ describe("MediaLightbox: grow out of the tile, drop back in (r1)", () => {
     rerender(ui(SIZED));
     await act(async () => {});
     expect(flights()).toHaveLength(1);
+  });
+
+  /*
+   * ★ A CLOSE ASKED FROM OUTSIDE (crumbs-43): the phone's Back took the viewer's history entry (the grid's
+   * `closeRequest`), so the viewer leaves by its own way out: the photograph drops back into its tile as the X
+   * does, or closes at once where the browser drew its own transition (a swipe back's snapshot). One ask, one
+   * close, however often the caller renders it.
+   */
+  describe("a close asked from outside (the phone's Back)", () => {
+    const tileEl = () => {
+      const tile = document.createElement("div");
+      tile.innerHTML = `<button type="button">View photo</button>`;
+      document.body.appendChild(tile);
+      return tile;
+    };
+    const ui = (
+      onClose: () => void,
+      returnTo: () => HTMLElement | null,
+      closeRequest: { n: number; instant: boolean } | null,
+    ) => (
+      <TooltipProvider>
+        <MediaLightbox
+          items={SIZED}
+          index={1}
+          onClose={onClose}
+          onIndexChange={() => {}}
+          origin={{ kind: "tile", rect: TILE, returnTo }}
+          closeRequest={closeRequest}
+        />
+      </TooltipProvider>
+    );
+    const landTheGrow = async () => {
+      await act(async () => {});
+      const grow = calls.find((c) => c.el.hasAttribute("data-lightbox-media"))!;
+      await act(async () => {
+        grow.anim.onfinish?.();
+      });
+      calls = [];
+    };
+
+    it("drops the photograph back into its tile, as the X does, and closes once it lands", async () => {
+      const tile = tileEl();
+      const onClose = vi.fn();
+      const returnTo = vi.fn(() => tile);
+      const { rerender } = render(ui(onClose, returnTo, null));
+      await landTheGrow();
+      rerender(ui(onClose, returnTo, { n: 1, instant: false }));
+      await act(async () => {});
+      const drop = calls.find((c) => c.el.hasAttribute("data-lightbox-media"));
+      expect(drop, "the photograph drops").toBeTruthy();
+      expect(onClose).not.toHaveBeenCalled();
+      await act(async () => {
+        drop!.anim.onfinish?.();
+      });
+      expect(onClose).toHaveBeenCalledTimes(1);
+      tile.remove();
+    });
+
+    it("closes at once where the browser drew its own transition, and asks once however often it renders", async () => {
+      const tile = tileEl();
+      const onClose = vi.fn();
+      const ask = { n: 1, instant: true };
+      const { rerender } = render(ui(onClose, () => tile, null));
+      await landTheGrow();
+      rerender(ui(onClose, () => tile, ask));
+      await act(async () => {});
+      expect(
+        calls.filter((c) => c.el.hasAttribute("data-lightbox-media")),
+      ).toHaveLength(0);
+      expect(onClose).toHaveBeenCalledTimes(1);
+      rerender(ui(onClose, () => tile, { ...ask }));
+      await act(async () => {});
+      expect(onClose).toHaveBeenCalledTimes(1);
+      tile.remove();
+    });
   });
 });
 

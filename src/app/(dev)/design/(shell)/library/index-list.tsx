@@ -101,6 +101,8 @@ export function LibraryIndex({ rows }: { rows: LibraryRow[] }) {
                   <li key={r.id}>
                     <Link
                       href={r.href}
+                      // No prefetch: a row per catalog entry, each href keyed (the page's note).
+                      prefetch={false}
                       className="group/row flex flex-wrap items-baseline gap-x-3 gap-y-0.5 px-4 py-2 transition-colors hover:bg-muted/50"
                     >
                       <span className="flex items-baseline gap-1.5">

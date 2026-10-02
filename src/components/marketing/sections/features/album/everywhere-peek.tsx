@@ -3,6 +3,7 @@
 import { X } from "lucide-react";
 import Image from "next/image";
 import { Dialog as DialogPrimitive } from "radix-ui";
+import { usePortalContainer } from "@/components/ui/portal-container";
 import { useLayoutEffect, useRef, useState } from "react";
 
 import { marketingImage } from "@/lib/constants/marketing-media";
@@ -164,12 +165,13 @@ export function EverywherePeek({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const container = usePortalContainer();
   if (!peek) return null;
   const image = marketingImage(peek.id);
   const ratio = image.width / image.height;
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
-      <DialogPrimitive.Portal>
+      <DialogPrimitive.Portal container={container}>
         <DialogPrimitive.Overlay
           className={cn(
             "fixed inset-0 z-50 ease-emphasis",

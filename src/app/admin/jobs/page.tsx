@@ -37,6 +37,7 @@ import { RESUME_KEY } from "@/lib/jobs/sweep-tally";
 import {
   JOBS,
   JOB_RUN_NOW_NOTE,
+  healthLabel,
   jobHealth,
   readDepth,
   readDepthAgeMinutes,
@@ -57,16 +58,6 @@ export const metadata: Metadata = { title: "Jobs" };
 // THREE KINDS OF CARD, one per catalog kind (catalog.ts explains the split). They share the card,
 // the badge and the definition list deliberately — an operator should not have to learn three
 // layouts to read one console — and differ only in the three or four facts that genuinely differ.
-
-const HEALTH_LABEL: Record<JobHealth, string> = {
-  ok: "Healthy",
-  running: "Running",
-  paused: "Paused",
-  missed: "Overdue",
-  failed: "Last run failed",
-  attention: "Needs a look",
-  never: "No runs yet",
-};
 
 // HEALTH_VARIANT used to live here, greyscale but for a red failure. The four states now speak in
 // four voices and the map is `lib/admin/tone.ts`, so the chip on this card and the tint on the row
@@ -97,6 +88,7 @@ const SIGNAL_LABEL: Partial<Record<JobId, { ok: string; failed: string }>> = {
   abuse_limiter: { ok: "actions recorded", failed: "limiter errors" },
   unlock_limiter: { ok: "failed unlocks recorded", failed: "limiter errors" },
   help_feedback: { ok: "clicks recorded", failed: "clicks dropped" },
+  export_delivery: { ok: "downloads finished", failed: "failed" },
 };
 
 /** What a `derived` reading counts, and the remedy to say when it is not zero. */
@@ -114,11 +106,6 @@ const READING_LABEL: Partial<Record<JobId, { unit: string; remedy: string }>> =
     },
   };
 
-/** A signal job's "No activity" reads differently from a scheduled job's "No runs yet". */
-const NEVER_LABEL: Record<string, string> = {
-  signal: "No activity",
-  derived: "No reading",
-};
 
 function formatDuration(ms: number | null): string {
   if (ms === null) return "";
@@ -319,9 +306,7 @@ export default async function JobsPage() {
                 <CardTitle className="flex items-center gap-2">
                   {def.label}
                   <Badge variant={healthBadge(health)}>
-                    {health === "never"
-                      ? (NEVER_LABEL[def.kind] ?? HEALTH_LABEL.never)
-                      : HEALTH_LABEL[health]}
+                    {healthLabel(def, health)}
                   </Badge>
                 </CardTitle>
                 {flags && def.flagKey ? (

@@ -94,7 +94,10 @@ export default async function BoardPage({
   const rows = param?.startsWith(`${spec.id}.`) ? deskRows(deskBoards()) : null;
   const review = rows
     ? {
-        steps: toSteps(boardWork(rows), boardSpec, key),
+        // The ask the link names comes along even when the ledger answers it
+        // (`boardWork`'s `reach`): the step says it is on record rather than
+        // drawing an empty page.
+        steps: toSteps(boardWork(rows, param), boardSpec, key),
         param,
         // What the ledger holds, so the step's "Copy so far" sends only what
         // this sitting added (the stepped review, 2026-09-16).

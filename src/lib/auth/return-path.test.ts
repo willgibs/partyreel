@@ -49,6 +49,9 @@ describe("the pages a sign-in may return to", () => {
     `/dashboard/${EVENT}/print`,
     "/account",
     "/account/profile",
+    // The owner mode at an address that needs no handle (crumbs-46): the user menu's Your profile for an account
+    // with none, so a session that ended under an open menu comes back to the page it asked for.
+    "/me",
     "/welcome",
     // A guest's door comes back to the album (a token or a custom link) or a profile page.
     "/e/0123456789abcdef0123456789abcdef",
@@ -232,6 +235,13 @@ describe("everything else is refused, and comes back as nothing", () => {
     ["a room that is not a page", `/dashboard/${EVENT}/share`],
     ["a short event id", "/dashboard/9f1c2b3a"],
     ["an album sub-path", "/e/sarahs-wedding/x"],
+    // /me (crumbs-46) is one exact page: nothing under it, nothing longer, nothing carried on it.
+    ["a trailing slash on /me", "/me/"],
+    ["a page under /me", "/me/uploads"],
+    ["a longer word than /me", "/mex"],
+    ["another case of /me", "/Me"],
+    ["a query on /me", "/me?x=1"],
+    ["a fragment on /me", "/me#likes"],
     // Pages that are real but never a sign-in's return.
     ["the login page", "/login"],
     ["the callback", "/auth/callback"],

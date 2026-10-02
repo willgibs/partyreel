@@ -1,57 +1,40 @@
 import { type Control, defineExploration } from "@/components/lab/exploration";
 
 /**
- * THE DOOR FAMILY, ROUND TWO (his locked-door r1 answers, 2026-09-29).
+ * THE DOOR, ROUND THREE (his locked-door r2 answers, 2026-10-02).
  *
- * His words. `lock=host`, not a direct selection: "I'd like to see more
- * polished/creative explorations off of this and option 2 (today's lit), as
- * well as maybe one fresh one. Today's closed screen falls short, but I'm still
- * not in love with our door design either. Curious if we can unlock something
- * perfect for everything, whether shared or bespoke to each screen." And from
- * event-settings r1, `waiting=held`: "This could definitely be redesigned to be
- * a more engaging waiting experience."
+ * His words, on `family=doorway`: "This is absolutely gorgeous, big win for
+ * our design assets and really sets a good new standard on experiential
+ * design. Two additional notes. First, the album behind the door opening
+ * doesn't feel very polished, kind of makes the door hard to see. I love the
+ * door (and light leak in the other versions), just want to nail this state
+ * too. Second, even the wait/shut states should have some sort of minimal,
+ * calmer, looped animation to keep the page a little interesting. Maybe a
+ * slight glow to the light or something?"
  *
- * ★ THE BOARD WIDENS INTO THE DOOR FAMILY. "Our door design" is the door every
- * guest meets, so every state is drawn together and judged whole: the welcome
- * that opens (a Public album's), the wait while the host decides (which opens
- * itself the moment she is let in), the one shut door every newcomer turned
- * away meets, and that door as someone who was in reads it. Four frames a
- * direction, 375 first with 1440 on the knob.
+ * ★ THE BOARD STARTS FROM PRODUCTION. door-wiring built his r2 picks (the
+ * doorway, one design for every state, a wait to spend, the 404 following the
+ * shut door), so every frame here is production's own door page: its header,
+ * `DOOR_MAIN`, `DoorColumn`, the welcome's, the wait's and the shut door's own
+ * words and chooser, and production's `Doorway` itself wherever this round
+ * asks nothing of it. Its files are `lives`, all inside
+ * `src/components/guest/door/` and the CSS it uses, so the next change to the
+ * door raises this board's PREMISE line and a change anywhere else does not.
  *
- * ★ FOUR QUESTIONS, ONE ROOT. `family` is the direction (today, the host's door
- * pushed further, the lit column pushed further, the doorway), each drawn in
- * its own shape (`family.tsx`'s NATURAL). The other three wait on it and are
- * drawn in it: `shape` (one design or each its own, drawn all three ways),
- * `wait` (a wait worth holding), `lost` (whether the 404 follows the shut door).
+ * ★ TWO QUESTIONS, NEITHER WAITING ON THE OTHER. `reveal` is the open door
+ * (what is seen through it, so the door reads) and the walk through into the
+ * album, as one moment, since the first is the start of the second; `idle` is
+ * the loop that keeps the ajar and the shut door alive, graded against his own
+ * slow glow so the three differ in kind rather than in strength.
  *
- * ★ `family` DECLARES NO `today`, ON PURPOSE. Its control's default is what the
- * three staged asks are drawn in before he answers it, and in today's door two
- * of them have nothing to ask: today's shut door is already the 404's sibling,
- * so `lost`'s two options draw one picture, and today's welcome stands in the
- * sheet in every shape. Drawn in the recommendation they each show a real
- * choice, and once `family` is answered every step wears his answer instead.
+ * ★ THE LIGHT LEAK IS A RESOURCE, NOT A QUESTION: every option of `reveal`
+ * spends it (the party's sampled light spilling out of the opening, round the
+ * frame and across the floor), each its own way.
  *
- * ★ SETTLED, DRAWN AND NEVER ASKED: `previous=private` (someone who was in reads
- * that Maya made it private, and Dom, blocked, reads the same, the `was` knob
- * proving it word for word); `newcomer=same` (one shut door for an Only me
- * album, a closed door, a decline, an address not on the list and a block, its
- * words true of all five); `unlisted=ask` (Ask Maya to let me in, then Use a
- * different email); `back-in` (a visitor signed out is offered her way back,
- * "Already a guest? Log in"). The vocabulary is `settings-wiring`'s: Public,
- * Private (a gate) and Only me; a gate stops newcomers, and only Only me and a
- * block shut out someone already in.
- *
- * ★ TODAY IS PRODUCTION. `settings-wiring` built the doors beside this round
- * (the held door, the shut door with its unlisted foot, the ask), so today's
- * door is drawn by those pieces themselves (`today.tsx`), and the directions
- * say today's words wherever they say what today says (`words.ts`). Their
- * files are in `lives`, so the next change to them raises this board's
- * PREMISE line.
- *
- * ★ NEVER ASKED HERE: `disposable-mode` r2's waiting room, which is the
- * camera's, inside the album after the door (a sibling in mood, not in job);
- * whether anyone is mailed when let in (the Emails bucket); the welcome's words
- * (voice-guest's), which every direction keeps.
+ * ★ NEVER ASKED HERE: the doorway itself (his r2 pick), its words (the
+ * voice's and door-wiring's), the album's head (`event-header`'s), the
+ * chooser's look (door-wiring's, drawn as production has it), and the door's
+ * sheet steps.
  */
 
 /** The width a door is read at: a phone off a printed code first. */
@@ -66,46 +49,18 @@ const SCREEN: Control = {
 };
 
 /**
- * WHERE THE WELCOME IS MET: a Public album's first screen (the album behind, its
- * own light), or a gate's first step, a password album before the password
- * (nothing of the album behind, the house light, and today no host or date).
+ * WHICH OPEN DOOR SHE WALKS THROUGH: a Public album's welcome (the door
+ * standing open while she reads, then her Continue), or the moment Maya lets
+ * Lena in (the door she waited at swinging the rest of the way, "You're in").
  */
-const WELCOME_AT: Control = {
-  id: "welcome",
-  label: "The welcome at",
+const MOMENT: Control = {
+  id: "moment",
+  label: "The moment",
   options: [
-    { id: "public", label: "A Public album" },
-    { id: "gate", label: "A password gate" },
+    { id: "welcome", label: "A Public album's welcome" },
+    { id: "let-in", label: "Maya lets Lena in" },
   ],
-  default: "public",
-};
-
-/**
- * WHO IS AT THE SHUT DOOR: flipping it moves the header and the foot and
- * nothing else, which is `newcomer=same` made visible. A newcomer off the code
- * is offered the way back in; Lena, confirmed and turned away, is not; Lena at
- * an invite list that does not hold her address is offered the ask.
- */
-const AT: Control = {
-  id: "at",
-  label: "At the shut door",
-  options: [
-    { id: "code", label: "A newcomer off the code" },
-    { id: "declined", label: "Lena, turned away" },
-    { id: "unlisted", label: "Lena, not on the list" },
-  ],
-  default: "code",
-};
-
-/** WHO WAS IN: Priya reads Maya made it private; Dom, blocked, must read the same. */
-const WAS: Control = {
-  id: "was",
-  label: "Who was in",
-  options: [
-    { id: "priya", label: "Priya, made private" },
-    { id: "dom", label: "Dom, blocked" },
-  ],
-  default: "priya",
+  default: "welcome",
 };
 
 export const LOCKED_DOOR = defineExploration({
@@ -114,28 +69,31 @@ export const LOCKED_DOOR = defineExploration({
   surface: "guest",
   desk: 30,
   lives: [
-    "docs/systems/guest-flow.md",
-    "src/app/(guest)/e/[token]/page.tsx",
-    "src/app/(guest)/e/[token]/not-found.tsx",
-    "src/app/(guest)/e/[token]/not-found.screen.tsx",
-    "src/components/shared/not-found-screen.tsx",
-    "src/components/guest/entry-shell.tsx",
-    "src/components/guest/entry-modal.tsx",
-    "src/components/guest/door/lit.tsx",
-    "src/components/guest/door/lit.css",
-    "src/components/guest/door/heading.tsx",
+    "src/components/guest/door/doorway.tsx",
+    "src/components/guest/door/doorway.css",
+    "src/components/guest/door/door-page.tsx",
+    "src/components/guest/door/stage.tsx",
+    "src/components/guest/door/album-view.ts",
+    "src/components/guest/door/welcome.tsx",
     "src/components/guest/door/waiting-step.tsx",
+    "src/components/guest/door/wait-picks.tsx",
     "src/components/guest/door/shut-door.tsx",
-    "src/components/guest/door/ask-step.tsx",
-    "src/components/guest/door/unlisted-ask.tsx",
+    "src/components/guest/door/lit.css",
+    "src/components/guest/door.css",
   ],
   round: {
-    n: 2,
-    date: "2026-09-29",
+    n: 3,
+    date: "2026-10-02",
     changed:
-      "From your round one notes: the whole door as one family (the welcome, the wait, the shut door, and the line someone who was in reads), drawn three ways against today's, then one design or four, a wait worth holding, and the 404.",
+      "From your round two notes, on the doorway as it now ships: the open door drawn three ways so it reads, each with its walk into the album, and three calm loops for the wait and the shut door, graded against your slow glow.",
   },
   history: [
+    {
+      n: 2,
+      date: "2026-09-29",
+      changed:
+        "The whole door family drawn four ways. You picked the doorway, one design for every state, a wait to spend choosing photos, and the 404 following the shut door; all four are built.",
+    },
     {
       n: 1,
       date: "2026-09-28",
@@ -144,308 +102,174 @@ export const LOCKED_DOOR = defineExploration({
     },
   ],
   context:
-    "Round two, from your notes: the door judged whole. Maya and Jay's wedding, every state a guest can meet: a Public album's welcome, the wait while Maya lets newcomers in one by one, the one shut door for all five reasons, and that door for Priya, who was in. Every frame's caption says what it shows of the album and whose light it wears.",
+    "Round three, on production's doorway: Maya and Jay's wedding, a Public album whose light is sampled from its newest photographs, Lena waiting while Maya decides, and a newcomer at the shut door. Every frame is the real door page; only the open door's opening, the walk into the album and the loops are new.",
   opening: {
     about:
-      "The door a guest meets before an album opens: its welcome, the wait while the host decides, the one shut door, and a dead link's page.",
+      "The door a guest meets before an album opens, as it now ships: a doorway on the page, its leaf the state, the party's light behind it.",
     settled: [
-      "Someone who was in reads that the host made it private (your round one pick, now built); a guest Maya blocked reads the same line.",
-      "One shut door for all five ways a newcomer is kept out, now built: Only me, a closed door, a decline, the invite list, a block.",
-      "An address not on the invite list is offered Ask Maya to let me in, then Use a different email, as now built.",
-      "The welcome and the wait keep today's words; this round asks how the door looks and behaves.",
+      "The doorway, built: open on a welcome, ajar while Maya decides, shut with light under it, an empty frame on a dead link.",
+      "One design for every state, built: only the words and the light change from the welcome to the shut door.",
+      "The wait keeps its chooser, built: she picks what she'll add, and it goes in the moment she's let in.",
+      "The door shows only what it showed before: the shut door names nothing, and a gate the album's name and count.",
     ],
     earlier: [
-      "The host's door, 'not a direct selection': push it and today's lit column further, and try one fresh.",
-      "'Today's closed screen falls short, but I'm still not in love with our door design either.'",
-      "'Curious if we can unlock something perfect for everything, whether shared or bespoke to each screen.'",
-      "From event settings: the wait while Maya decides could be a more engaging waiting experience.",
+      "'This is absolutely gorgeous ... really sets a good new standard on experiential design.'",
+      "'The album behind the door opening doesn't feel very polished, kind of makes the door hard to see.'",
+      "'I love the door (and light leak in the other versions), just want to nail this state too.'",
+      "'Even the wait/shut states should have some sort of minimal, calmer, looped animation. Maybe a slight glow to the light?'",
     ],
   },
   terms: [
     {
-      term: "shut door",
-      means:
-        "The one screen every newcomer who can't get in meets, whatever the reason.",
+      term: "leaf",
+      means: "The door itself, hinged on its left: its angle is the state.",
     },
     {
-      term: "lit column",
+      term: "opening",
       means:
-        "A centred layout: one emblem in a pool of light, a headline and one line, as today's not-found page.",
+        "What is seen inside the frame once the leaf swings: today, four photographs edge to edge.",
     },
     {
-      term: "held sheet",
+      term: "light leak",
       means:
-        "The panel that rises over the blurred album on a phone, where today's welcome stands.",
+        "The party's coloured light spilling out of the doorway, round its frame and across the floor.",
     },
     {
-      term: "not-found family",
+      term: "walk through",
       means:
-        "The screens all broken links share: a glyph, a headline and a way out; a guest's broken link wears a QR code.",
+        "The move from the door's page into the album, once the door has opened for her.",
     },
     {
-      term: "lamp",
+      term: "reduced motion",
       means:
-        "The glow along the door's edge, coloured by the album's newest photos.",
+        "A phone setting asking for less movement: the page then stands still, drawn whole.",
     },
     {
       term: "Public album",
       means: "An album anyone with the link opens straight away.",
     },
-    {
-      term: "Private album",
-      means:
-        "An album with a step before it opens: a password, Maya's yes, or the invite list.",
-    },
-    { term: "Only me", means: "An album only its host can see." },
-    {
-      term: "closed door",
-      means: "An album whose host has stopped letting newcomers in.",
-    },
-    {
-      term: "decline",
-      means: "Maya turning down a newcomer's request to join.",
-    },
-    {
-      term: "block",
-      means: "Maya barring one person from the album, even after they were in.",
-    },
   ],
   carried: [
     {
-      id: "unlisted",
+      id: "dot",
       question:
-        "Where does a guest whose address is not on the invite list get the way to ask?",
+        "Does the wait's live dot keep its own quick ping beside the door's loop?",
       taken:
-        "On the shut door, under its one message, as now built: Ask Maya to let me in, then Use a different email. Asking takes her to the wait.",
+        "No: it breathes on the door's own clock in every option, so the page keeps one rhythm.",
       overrule:
-        "Put the ask on the invite list's own step, and the shut door keeps one foot for everyone.",
+        "Keep its ping: a quicker pulse says 'live' sooner, at the cost of a second rhythm.",
     },
     {
-      id: "shows",
-      question: "What may each direction's shut door show of the album?",
+      id: "gate-light",
+      question:
+        "When Maya lets Lena in, what lights the opening before the album has loaded?",
       taken:
-        "Its own, measured under every frame: the host's door the name and Maya's face, at a gate too; the doorway the name and Maya's; the lit column nothing.",
+        "The house light, then the album's own as it arrives: nothing of the album shows while she is outside.",
       overrule:
-        "Hold every direction to nothing, as a private album today, and the host's door loses its face.",
-    },
-    {
-      id: "own-shape",
-      question: "Is each direction drawn in a shape of its own?",
-      taken:
-        "Yes, at its best: the host's door and the doorway one design throughout, the lit column and today a sheet and a page.",
-      overrule:
-        "Draw all four in one shape if the directions should be compared frame for frame.",
+        "Hold the door ajar until the album has loaded, so it opens straight onto the album's own light.",
     },
   ],
   asks: [
     {
-      id: "family",
-      label: "The door's direction",
+      id: "reveal",
+      label: "Through the open door",
       question:
-        "Which direction should the door take, across every state a guest can meet it in?",
-      where: ["Guest", "The album's door", "Before the album opens"],
-      when: "A guest scans Maya and Jay's code; the album may welcome her, make her wait for Maya, or stay shut.",
+        "When the door opens, what should she see through it, and how should she walk through into the album?",
+      where: ["Guest", "The album's door", "The door opens"],
+      when: "A Public album's welcome, the door open while she reads; she presses Continue. It plays again when Maya lets Lena in.",
       context:
-        "Four frames each: a Public album's welcome, the wait while Maya decides, the shut door every newcomer turned away meets, and that door for someone who was in. Each in its own shape.",
+        "Each drawn as it plays, looping, then in stills: the open door at rest (what reduced motion sees, standing still), the walk through, and the album she lands in. The Moment knob swaps the welcome for Lena being let in; the walk is the same.",
       options: [
         {
-          id: "today",
-          label: "Today's door, as it ships",
+          id: "light",
+          label: "The party's light, then the album",
           means:
-            "Today's welcome and wait in the held sheet, then the not-found page with a lock: closed to a newcomer, private to someone who was in.",
-          gains: "Nothing to build or learn: it is what guests meet now.",
+            "Only the album's light shows through the door, pouring out across the floor; she walks into the light and the album rises out of it.",
+          gains:
+            "The door reads sharpest: a silhouette against light, with the light leak you liked.",
           costs:
-            "Its shut door is a plain page naming no album or host, unrelated to the sheet.",
+            "Nothing of the album shows until she is through; its colour is the only preview.",
         },
         {
-          id: "host",
-          label: "The host's door",
+          id: "one",
+          label: "One photograph, then the album",
           means:
-            "Maya's face leads every state in a halo of the lamp's light, lit, breathing or unlit. Shut, it still shows the album's name and her face.",
+            "The album's newest photograph, deep in the room's light; walking through, it comes forward and lands as the album's first photo.",
           gains:
-            "Maya's face on every state says whose party it is and who can let her in.",
+            "A real glimpse of the party, and the photo she saw carries her into the album.",
           costs:
-            "A shut door still shows the album's name and Maya's face to someone kept out.",
+            "The door's look rides on whichever photo is newest; a dark one dims the doorway.",
         },
         {
-          id: "lit",
-          label: "The lit column",
+          id: "through",
+          label: "Walk through the doorway",
           means:
-            "One centred emblem per state in a pool of light: the album, an hourglass, the lock. Shut, it is today's page and words, its lock lit.",
+            "The album's own photographs, small and lit, through the door; walking through, the doorway grows past the screen and they settle into place.",
           gains:
-            "The calmest: one emblem, one headline and one line per state.",
+            "The truest walk: the photographs behind the door are the ones she lands on, in place.",
           costs:
-            "Shut, it names no album and no host, so she may not know whose door it is.",
-        },
-        {
-          id: "doorway",
-          label: "The doorway",
-          means:
-            "A door on the page, its leaf the state: open onto the album, ajar, shut with light under it. The album shows through it, not behind a sheet.",
-          gains:
-            "One picture every state reads at a glance: open, ajar, or shut with light under it.",
-          costs:
-            "At a desk the welcome no longer sits beside the blurred album that pulls her in.",
+            "The photographs are tiny and busy in the doorway, and the move is the longest.",
         },
       ],
-      recommended: "doorway",
+      recommended: "one",
       because:
-        "Every state reads at a glance before a word: open, ajar while Maya decides, shut with the party's light under it.",
+        "It keeps the album's reward in view and the door crisp, and the photo she saw through the door is the one that carries her in.",
       overrule:
-        "If the door should stay the sheet over the album, the host's door keeps today's grammar and makes Maya the way on.",
+        "If the door should read before anything else, the party's light keeps the opening to light alone.",
       lands:
-        "The look of every door screen: the welcome, the wait, the shut door's page and the lines on it.",
+        "What the open door shows at a Public album's welcome and when someone is let in, and the move from the door into the album.",
       matters:
-        "It is the first thing of an album anyone sees, and all a guest who is kept out ever sees.",
-      configs: [SCREEN, WELCOME_AT, AT, WAS],
+        "It is the moment the door pays off, for every guest of a Public album and everyone let in.",
+      configs: [SCREEN, MOMENT],
     },
     {
-      id: "shape",
-      label: "One design or four",
+      id: "idle",
+      label: "The door at rest",
       question:
-        "Should the door's four states share one design, or should each get its own?",
-      where: ["Guest", "The album's door", "Welcome, wait and shut"],
-      when: "The same guests at the same door: welcomed, waiting for Maya, or kept out, drawn in the direction you pick.",
+        "What should keep the waiting door and the shut door quietly alive while she stands at them?",
+      where: ["Guest", "The album's door", "Waiting, or shut"],
+      when: "Lena waits while Maya decides, or a newcomer meets the shut door; nothing changes for minutes.",
       context:
-        "Drawn in your direction. One design stands every state in one frame; two is today's, the sheet for the doors that open and a page for the one that does not; each its own builds every state for its job.",
+        "Each loops as it would on her phone: the wait, the shut door, and the shut door as reduced motion sees it, with one loop in stills beneath. The slow glow is yours, drawn so you can feel it; the other two are as calm, in another kind.",
       options: [
         {
-          id: "shared",
-          label: "One design for every state",
+          id: "glow",
+          label: "The light breathes (your slow glow)",
           means:
-            "The same frame, emblem and heading from the welcome to the shut door; only the words and the light move. One door to learn, once.",
-          gains: "One door to learn once; only the words and the light change.",
-          costs: "The shut door looks like a door that might still open.",
+            "The line of light under the door and its glow on the floor swell and settle, once every eight seconds.",
+          gains: "The calmest: the door is alive without anything crossing it.",
+          costs:
+            "The expected answer; after a minute it is easy to stop seeing.",
         },
         {
-          id: "split",
-          label: "Two, as today: a sheet and a page",
+          id: "pass",
+          label: "Someone passes inside",
           means:
-            "The welcome and the wait in the held sheet; the shut door a page of its own, as the not-found family draws it today.",
-          gains:
-            "Today's arrangement: the sheet over the album, then a plain page when shut.",
+            "Every twelve seconds a soft shadow crosses the light under the door, as if a guest walked past inside; between, it holds still.",
+          gains: "Says the party is going on, and rarely enough to stay calm.",
           costs:
-            "A turned-away guest lands on a page that looks unrelated to the door she met.",
+            "On the shut door, life inside can read as a party she is kept from.",
         },
         {
-          id: "bespoke",
-          label: "Each state its own",
+          id: "turn",
+          label: "The party's colours turn",
           means:
-            "The welcome the sheet over the album, the wait a page of its own to hold, the shut door a quiet page: each shaped for its one job.",
+            "The light under the door turns through the party's colours, once round in about half a minute, its brightness steady.",
           gains:
-            "Each screen built for its one job: a welcome that sells, a wait to hold.",
+            "Colour moves, never brightness, so it is the least distracting while she reads.",
           costs:
-            "Three designs to build and keep in step, and a new look at every state.",
+            "The slowest to notice, and on the house light it can read as decoration.",
         },
       ],
-      today: "split",
-      recommended: "shared",
+      recommended: "glow",
       because:
-        "A guest meets the door once; one design means a wait or a shut door reads as the same door, not a new screen.",
+        "Your slow glow is the calmest of the three and true to both doors: the party is on, and nothing about it says she is shut out.",
       overrule:
-        "If the shut door should never look like a door that might open, the split keeps it a page apart.",
+        "If the wait should feel more alive than the shut door, someone passing inside gives it a story.",
       lands:
-        "Which states stand in the held sheet and which on a page of their own.",
+        "The one loop the ajar and the shut door both run, and what reduced motion keeps still.",
       matters:
-        "It decides whether a guest who waits or is turned away still feels at the same door, or lost on a new screen.",
-      after: { ask: "family" },
-      configs: [SCREEN, WELCOME_AT, AT, WAS],
-    },
-    {
-      id: "wait",
-      label: "The wait",
-      question:
-        "What should a newcomer hold while Maya decides whether to let her in?",
-      where: ["Guest", "The album's door", "Waiting for Maya"],
-      when: "Lena asked to join a Private album where Maya lets each newcomer in herself, and Maya has not answered yet.",
-      context:
-        "From your event settings note that the wait could be more engaging. Drawn in your door: the wait, then the moment Maya lets her in and it opens itself. She sees nothing of the album until then.",
-      options: [
-        {
-          id: "still",
-          label: "Today's wait, as it ships",
-          means:
-            "Today's words (Maya will let you in; keep this link) over a dot that breathes while she waits. The door opens by itself when Maya lets her in.",
-          gains:
-            "Built and honest: today's words, a live dot, and the door opens itself.",
-          costs:
-            "Nothing to do, and nothing says Maya knows she is there, so a long wait feels ignored.",
-        },
-        {
-          id: "live",
-          label: "A wait to watch",
-          means:
-            "Today's wait with its clock ticking and the whole door breathing, saying the one true thing about the other side: Maya has been told she is here.",
-          gains:
-            "She sees the wait is alive: Maya has been told, and the clock ticks.",
-          costs:
-            "Still nothing to do, and a ticking clock can make a long wait feel longer.",
-        },
-        {
-          id: "pick",
-          label: "A wait to spend",
-          means:
-            "Today's wait with a chooser on it: she picks what she will add. The upload queue already holds it on her phone until Maya lets her in, then sends it.",
-          gains:
-            "She spends the wait choosing photos, and the queue sends them the moment she is let in.",
-          costs:
-            "Asks a stranger to pick photos before she knows she's in; a no wastes it.",
-        },
-      ],
-      today: "still",
-      recommended: "pick",
-      because:
-        "It gives her the reason she came: her photos are picked and go in the moment Maya lets her in, and nothing is sent before.",
-      overrule:
-        "If picking before she is in asks too much of a stranger, the wait to watch keeps her company with nothing to do.",
-      lands:
-        "What the waiting door holds, and whether she can choose photos while she waits.",
-      matters:
-        "A wait can run minutes; what she holds decides whether she stays or leaves the page.",
-      after: { ask: "shape" },
-      configs: [SCREEN],
-    },
-    {
-      id: "lost",
-      label: "The 404",
-      question:
-        "Should a link that opens nothing wear the shut door's design, or keep the not-found family's?",
-      where: ["Guest", "The 404 page", "A link that opens nothing"],
-      when: "Someone opens a mistyped link, or the link to an album the host deleted, off the same printed code.",
-      context:
-        "Today a broken link and the shut door share one look, the not-found family's page, the shut door with a lock on it. Drawn beside your shut door; the words stay today's in both.",
-      options: [
-        {
-          id: "own",
-          label: "Keep the not-found family's",
-          means:
-            "The QR glyph in the dead-end grammar every 404 on the site wears; the shut door leaves that family.",
-          gains:
-            "Every dead end on the site keeps one grammar: a glyph, a headline and a way out.",
-          costs: "The shut door and a broken link stop looking related.",
-        },
-        {
-          id: "follows",
-          label: "Wear the shut door's design",
-          means:
-            "The same door with nothing in it, in its own words, so a link's two dead ends stay siblings, as they are today.",
-          gains:
-            "A link's two dead ends stay siblings, told apart by their words.",
-          costs:
-            "The 404 leaves the look every other dead end on the site shares.",
-        },
-      ],
-      today: "own",
-      recommended: "follows",
-      because:
-        "Off the same code, an empty door says the link is wrong as plainly as a locked one says she can't come in.",
-      overrule:
-        "If every dead end on the site should share one grammar, the 404 keeps the not-found family's.",
-      lands:
-        "What a guest's broken link draws: the not-found family, or the door's own.",
-      matters:
-        "Both dead ends start at the same code, so the page must tell 'wrong link' apart from 'you can't come in'.",
-      after: { ask: "family" },
+        "A wait can run minutes and a shut door is all a turned-away guest sees; the loop keeps it a place.",
       configs: [SCREEN],
     },
   ],

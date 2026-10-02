@@ -377,6 +377,16 @@ export async function getPublicProfileCoverUrls(
 }
 
 /**
+ * What the attended half of a profile's grid can draw (crumbs-44): a cover per event whose gates
+ * all held and whose album has a photograph, and the events whose gates all held with no photograph
+ * to cover them, since what such an album holds is video alone.
+ */
+export type AttendedCovers = {
+  covers: Map<string, string>;
+  videoOnly: Set<string>;
+};
+
+/**
  * Cover URLs for the events this person ATTENDED — the other half of the /u/
  * grid since Will's `made-of=covers` (2026-09-19): "rather than a separate
  * 'also at' section, maybe we could just have host/guest UI on each event card
@@ -404,9 +414,13 @@ export async function getPublicProfileCoverUrls(
 export async function getPublicProfileAttendedCoverUrls(
   profileId: string,
   events: PublicProfileAttendedEvent[],
-): Promise<Map<string, string>> {
+): Promise<AttendedCovers> {
+  const none = (): AttendedCovers => ({
+    covers: new Map(),
+    videoOnly: new Set(),
+  });
   const ids = events.map((e) => e.id);
-  if (ids.length === 0) return new Map();
+  if (ids.length === 0) return none();
 
   const admin = createAdminClient();
   // Gate 1: the album is still open (the guest list is always on, so the host keeps no key).
@@ -425,13 +439,13 @@ export async function getPublicProfileAttendedCoverUrls(
       )) ?? [],
   );
   const allowed = new Set(open.map((e) => e.id));
-  if (allowed.size === 0) return new Map();
+  if (allowed.size === 0) return none();
 
   // Gate 2: no block holds the owner there. A blocked person is on no list of that event, so her
   // page shows no picture from it either.
   const blocked = await getBlockedEventsFor(profileId);
   for (const id of [...allowed]) if (blocked.has(id)) allowed.delete(id);
-  if (allowed.size === 0) return new Map();
+  if (allowed.size === 0) return none();
 
   // Gate 3: the guest's own CHOICE. Inverted by the guest identity round (2026-09-22): an event
   // is published because its owner put a row in `profile_shown_events`, never because they failed
@@ -455,7 +469,7 @@ export async function getPublicProfileAttendedCoverUrls(
   );
   const chosen = new Set(shown.map((row) => row.event_id));
   for (const id of [...allowed]) if (!chosen.has(id)) allowed.delete(id);
-  if (allowed.size === 0) return new Map();
+  if (allowed.size === 0) return none();
 
   // Gate 4: the owner is a guest there, as the public line requires: an APPROVED upload of theirs
   // on a PROVED row (`verified_at`, never a bare user id). A choice survives the owner's last
@@ -489,9 +503,19 @@ export async function getPublicProfileAttendedCoverUrls(
   );
   const proved = new Set(attended.map((row) => row.event_id));
   for (const id of [...allowed]) if (!proved.has(id)) allowed.delete(id);
-  if (allowed.size === 0) return new Map();
+  if (allowed.size === 0) return none();
 
-  return adminCoverUrls([...allowed]);
+  // ★ PROVED, AND NO PHOTOGRAPH: ALL VIDEO (crumbs-44). Every event left here holds an approved
+  // upload of the owner's, and `event_covers` answers for any approved photograph outside the bin,
+  // so one it leaves out holds approved video and nothing else. Its card says so with a face of its
+  // own rather than the lock a missing link used to draw (`EventCard`'s `empty`). An event a gate
+  // dropped (a race with the RPC: the album closed, the choice taken back) is in neither set and
+  // keeps the plain no-photograph face.
+  const covers = await adminCoverUrls([...allowed]);
+  return {
+    covers,
+    videoOnly: new Set([...allowed].filter((id) => !covers.has(id))),
+  };
 }
 
 /**
@@ -644,6 +668,13 @@ export type AttendedEventPick = {
   coverUrl: string | null;
   /** The host made the album private: the tile wears a lock and no name, never a cover. */
   locked: boolean;
+  /**
+   * The album is open, the one door through which a chosen event's line can reach her page
+   * (`get_public_profile`'s attended arm requires it). A password, gated or private album never shows
+   * one, and an event that blocked her reads as private, so a tile chosen there says it cannot show
+   * rather than claiming to (crumbs-44, from `profile-setup`).
+   */
+  albumOpen: boolean;
 };
 
 /**
@@ -765,6 +796,8 @@ export async function getMyAttendedEventPicks(): Promise<AttendedEventPick[]> {
       shownOnProfile: e.shownOnProfile,
       coverUrl: card.coverUrl,
       locked: !card.accessible,
+      // `visibility` already reads "private" for an event that blocked her (`getMyAttendedEvents`).
+      albumOpen: e.visibility === "open",
     };
   });
 }

@@ -3,33 +3,43 @@
  * (`export-flow` r1; the rules and every word are `lib/export/walk.ts`).
  *
  *   tap → the toast: Preparing your download… [x]
+ *       → (a host's selection that mixes hidden and shown items asks first, in the toast)
  *       → mint (the app authorizes and signs; two quiet re-attempts on a dropped request)
  *       → check (the Worker says what the zip would hold; `workers/export/src/check.ts`)
  *       → post (a top-level form: the browser's download manager takes the stream)
+ *       → listen (the Worker's word on the stream, `/api/export/status`), and say it: saved, short, stopped
  *       → the toast says what happened, and what to do next when there is a next
  *
- * ★ THE APP GOES BLIND AT THE POST, SO EVERYTHING WORTH SAYING IS LEARNED BEFORE IT. The form's
- * answer can never be read (and a refusal there would replace the page), so the Worker is asked
- * first, in a fetch that can be: an empty zip is refused in one line and never sent, a short one is
- * counted with a Try again for exactly what it missed, and a token the Worker would refuse is said
- * here. A check that cannot answer (a Worker from before it, R2 down) never stops the zip.
+ * ★ THE APP GOES BLIND AT THE POST, SO EVERYTHING WORTH SAYING IS LEARNED BEFORE IT, OR FROM THE WORKER
+ * AFTER IT. The form's answer can never be read (and a refusal there would replace the page), so the
+ * Worker is asked first, in a fetch that can be: an empty zip is refused in one line and never sent, a
+ * short one is counted with a Try again for exactly what it missed, and a token the Worker would refuse is
+ * said here. A check that cannot answer (a Worker from before it, R2 down) never stops the zip. After the
+ * post the Worker reports its stream to the app (`export-ends`), so the walk listens: a zip reads SAVED
+ * only once the Worker says its last byte went out, one the album emptied after its check was never sent
+ * (the Worker's 204) and is said, and one it could not finish is said with a Try again. Where the Worker's
+ * word cannot come (an older Worker, a laptop it cannot reach), the walk says what it knows and claims
+ * nothing; it stops listening once the stream has been silent past its start (`START_HEARD_MS`).
  *
  * ★ EVERY WAIT CAN BE LEFT (Will: "Interruptibility is a huge win in UX"). The x on the right ends
  * whatever is in flight: the mint's or the check's fetch is aborted (the Worker stops reading when
- * its client leaves), the toast goes, and nothing is posted afterwards, whatever arrives late. A
- * file already handed to the browser is the browser's to cancel.
+ * its client leaves), the listening stops, the toast goes, and nothing is posted afterwards, whatever
+ * arrives late. A file already handed to the browser is the browser's to cancel.
  *
  * ★ A BIG ALBUM IS A WALK, ONE TAP A PART. Each part is minted when it is asked for (a token lives
  * two minutes), and each is a download a person pressed, because a browser holds back a second
  * download a page starts on its own. The walk's position is the server's cursor, so nothing is
- * taken twice or missed while the album moves.
+ * taken twice or missed while the album moves. Each part's line turns from downloading to saved as
+ * the Worker finishes it, and the walk's last word waits for every part ("All 3 parts are saved.
+ * That's everything.": Will's "Would hate for someone to think they downloaded everything then delete
+ * the event not knowing").
  *
- * ★ AND A RELOAD BETWEEN PARTS OFFERS THE NEXT ONE AGAIN (crumbs-32, from `export-wiring`'s
- * deferred). A walk lives in the page, so a reload (a phone's browser drops a tab it left for the
- * Files app) forgot it, and with it where the next part starts. Between parts, a walk keeps that
- * cursor and its counts in the tab's own store (`deps.store`: sessionStorage in the page), and the
- * page's next walker offers the same "Get part N" toast again (`resume`); every way a walk ends
- * (its last part, the x) lets it go. Nothing is posted on a resume: the next part is still a tap.
+ * ★ AND A RELOAD OFFERS WHAT IT LEFT AGAIN (crumbs-32, from `export-wiring`'s deferred). A walk lives in
+ * the page, so a reload (a phone's browser drops a tab it left for the Files app) forgot it, and with it
+ * where the next part starts. Between parts, and while its last parts still download, a walk keeps its
+ * cursor, its counts and its parts' words in the tab's own store (`deps.store`: sessionStorage in the
+ * page), and the page's next walker offers the same "Get part N" again, or goes on listening (`resume`);
+ * every way a walk ends (its last word, the x) lets it go. Nothing is posted on a resume.
  *
  * The engine owns no React: it drives a toast through `ToastPort`, fetches through `deps.fetch` and
  * posts through `deps.post`, so its tests stand in for all three (export-walk.test.ts), and a
@@ -52,7 +62,15 @@ import {
   type MintAnswer,
   mintVerdict,
   RETRY_PAUSE_MS,
+  START_HEARD_MS,
+  STATUS_TRY_MS,
+  type StreamOutcome,
+  type StreamState,
+  statusVerdict,
+  SUMMARY_TRIES_MS,
   WALK_COPY,
+  WATCH_MAX_MS,
+  watchPauseMs,
 } from "@/lib/export/walk";
 
 export type ExportScope = "host" | "guest";
@@ -63,19 +81,23 @@ export type MintBody = Record<string, unknown>;
 export type ToastAction = { label: string; run: () => void };
 
 /**
- * The toast's five states. Every one but `done` stays until it is answered, and carries the x (its
- * label says what it does there: cancel, stop, dismiss).
+ * The toast's states. Every one but `done` stays until it is answered, and carries the x (its label
+ * says what it does there: cancel, stop, dismiss).
  */
 export type ToastView =
   /** Preparing: a spinner, and the x that cancels. */
   | { tone: "wait"; title: string; close: ToastAction }
-  /** A part is on its way and the next is a tap. */
+  /** A host's selection holds hidden items among shown ones: include them, or leave them out? */
+  | { tone: "ask"; title: string; actions: ToastAction[]; close: ToastAction }
+  /** A part is on its way (or saved) and the next is a tap. */
   | { tone: "between"; title: string; action: ToastAction; close: ToastAction }
+  /** Handed over; the Worker's word on it has not come yet. */
+  | { tone: "downloading"; title: string; close: ToastAction }
   /** Handed over, all of it. */
   | { tone: "done"; title: string; duration: number }
   /** Handed over, short: the count, and a Try again for what it missed. */
   | { tone: "short"; title: string; action?: ToastAction; close: ToastAction }
-  /** Nothing was handed over, and why. */
+  /** Nothing was handed over (or nothing whole), and why. */
   | {
       tone: "refused";
       title: string;
@@ -101,9 +123,29 @@ export type WalkDeps = {
   store?: WalkStore;
 };
 
+/** The status route the walk listens to (`api/export/status`). */
+export const STATUS_URL = "/api/export/status";
+
 /**
- * A WALK BETWEEN PARTS, AS A RELOAD FINDS IT: what it asked for, the part on its way, where the next
- * one starts (the server's cursor), and the counts its last word is made of.
+ * ONE PART HANDED TO THE BROWSER, and what the Worker said of it (`export-ends`): `listening` while the walk
+ * waits for its word, `saved` once every byte went out, `ended` when it ended without all of them (its
+ * outcome, and the ids its zip lacks), `unheard` when no word can come.
+ */
+export type HandedPart = {
+  part: number;
+  /** How many items its zip was counted to hold (the Worker's check, or the mint's own count). */
+  items: number;
+  /** The token's nonce, while the walk listens for the Worker's word on it. */
+  jti: string | null;
+  word: "listening" | "saved" | "ended" | "unheard";
+  outcome: StreamOutcome | null;
+  missing: string[];
+};
+
+/**
+ * A WALK AS A RELOAD FINDS IT: what it asked for, the part last handed over, where the next one starts
+ * (the server's cursor; null once every part is taken and only the Worker's word is awaited), the counts
+ * its last word is made of, and each handed part's word.
  */
 export type SavedWalk = {
   scope: ExportScope;
@@ -112,11 +154,13 @@ export type SavedWalk = {
   /** The part last handed over; the next tap takes the one after it. */
   part: number;
   parts: number;
-  next: string;
+  next: string | null;
   items: number;
   found: number;
   missing: string[];
   handed: number;
+  /** Absent from a walk an older build kept: its parts' words are then unknown, and nothing is claimed. */
+  handedParts?: HandedPart[];
 };
 
 /** The tab's own store of walks between parts: read once by `resume`, written whole on every change. */
@@ -128,6 +172,28 @@ export type WalkStore = {
 const isCount = (v: unknown): v is number =>
   typeof v === "number" && Number.isInteger(v) && v >= 0;
 
+const JTI_RE = /^[0-9a-f]{32}$/;
+const WORDS = new Set(["listening", "saved", "ended", "unheard"]);
+const OUTCOMES = new Set(["saved", "short", "stopped", "failed", "empty"]);
+
+function readHandedPart(v: unknown): HandedPart | null {
+  if (typeof v !== "object" || v === null) return null;
+  const p = v as Record<string, unknown>;
+  const ok =
+    isCount(p.part) &&
+    p.part >= 1 &&
+    isCount(p.items) &&
+    (p.jti === null || (typeof p.jti === "string" && JTI_RE.test(p.jti))) &&
+    typeof p.word === "string" &&
+    WORDS.has(p.word) &&
+    (p.word !== "listening" || p.jti !== null) &&
+    (p.outcome === null ||
+      (typeof p.outcome === "string" && OUTCOMES.has(p.outcome))) &&
+    Array.isArray(p.missing) &&
+    p.missing.every((m) => typeof m === "string");
+  return ok ? (p as HandedPart) : null;
+}
+
 /**
  * What a store holds, read as walks: anything that is not one (another build's shape, a hand edit,
  * a cursor no server would take) is dropped, never offered.
@@ -137,6 +203,20 @@ export function readSavedWalks(raw: unknown): SavedWalk[] {
   return raw.flatMap((w: unknown): SavedWalk[] => {
     if (typeof w !== "object" || w === null) return [];
     const s = w as Record<string, unknown>;
+    const parts =
+      s.handedParts === undefined
+        ? undefined
+        : Array.isArray(s.handedParts)
+          ? s.handedParts.map(readHandedPart)
+          : [null];
+    const partsOk = parts === undefined || parts.every((p) => p !== null);
+    // Between parts: a cursor a server would take. Every part taken: only a walk still listening.
+    const positionOk =
+      typeof s.next === "string"
+        ? EXPORT_CURSOR_RE.test(s.next) && isCount(s.parts) && isCount(s.part) && s.parts > s.part
+        : s.next === null &&
+          !!parts &&
+          parts.some((p) => p?.word === "listening");
     const ok =
       (s.scope === "host" || s.scope === "guest") &&
       typeof s.body === "object" &&
@@ -146,15 +226,16 @@ export function readSavedWalks(raw: unknown): SavedWalk[] {
       isCount(s.part) &&
       s.part >= 1 &&
       isCount(s.parts) &&
-      s.parts > s.part &&
-      typeof s.next === "string" &&
-      EXPORT_CURSOR_RE.test(s.next) &&
+      positionOk &&
       isCount(s.items) &&
       isCount(s.found) &&
       Array.isArray(s.missing) &&
       s.missing.every((m) => typeof m === "string") &&
-      isCount(s.handed);
-    return ok ? [s as SavedWalk] : [];
+      isCount(s.handed) &&
+      partsOk;
+    return ok
+      ? [{ ...(s as SavedWalk), handedParts: parts as HandedPart[] | undefined }]
+      : [];
   });
 }
 
@@ -175,7 +256,17 @@ type Walk = {
   /** How many files the browser was handed, and whether she was ever walked between parts. */
   handed: number;
   walked: boolean;
+  /** Every part handed over, and the Worker's word on each (`export-ends`). */
+  handedParts: HandedPart[];
+  /** The hidden question was asked, or needed none: a restart never asks it twice. */
+  asked: boolean;
+  /** Every part is taken: the last word waits only on the Worker. */
+  done: boolean;
+  /** Where the next part starts while the walk is between parts (the toast's "Get part N"). */
+  waiting: { next: string; parts: number } | null;
   controller: AbortController;
+  /** Every status poll's signal: aborted when the walk ends, so nothing listens after. */
+  listening: AbortController;
   /** A part is being taken: a second tap on Try again or Get part N waits its turn. */
   busy: boolean;
   /** Ended (cancelled, dismissed or finished): nothing more is said or posted. */
@@ -225,27 +316,56 @@ type MintOutcome =
   | { kind: "failed" }
   | { kind: "cancelled" };
 
+const JSON_POST = {
+  method: "POST",
+  headers: { "content-type": "application/json" },
+} as const;
+
+/** The summary's buckets, summed: how many of a selection are hidden, and how many shown. */
+function hiddenMixOf(body: unknown): { hidden: number; shown: number } | null {
+  const b = body as {
+    ok?: unknown;
+    summary?: {
+      shown?: { photo?: { count?: unknown }; video?: { count?: unknown } };
+      hidden?: { photo?: { count?: unknown }; video?: { count?: unknown } };
+    };
+  } | null;
+  if (b?.ok !== true || !b.summary) return null;
+  const n = (v: unknown) => (isCount(v) ? v : 0);
+  const { shown, hidden } = b.summary;
+  return {
+    shown: n(shown?.photo?.count) + n(shown?.video?.count),
+    hidden: n(hidden?.photo?.count) + n(hidden?.video?.count),
+  };
+}
+
 export function createExportWalker(deps: WalkDeps) {
   const show = (w: Walk, view: ToastView) => {
     if (!w.over) deps.toast.show(w.id, view);
   };
 
-  /* ── the walks between parts, as the tab keeps them for its next page (the head's reload note) ── */
+  /* ── the walks a reload finds, as the tab keeps them for its next page (the head's reload note) ── */
   const kept = new Map<string, SavedWalk>();
   const save = () => deps.store?.save([...kept.values()]);
-  /** Between parts: what the next part needs, kept until the walk takes it or ends. */
-  const keep = (w: Walk, next: string, parts: number) => {
+  /**
+   * Between parts (the cursor the next one starts from) or with every part taken and its last parts
+   * still downloading (`next: null`): what the next page needs, kept until the walk ends.
+   */
+  const keep = (w: Walk) => {
+    const at = w.waiting;
+    if (!at && !w.done) return;
     kept.set(w.id, {
       scope: w.scope,
       body: w.body,
       retryOf: w.retryOf,
       part: w.part,
-      parts,
-      next,
+      parts: at ? at.parts : (w.parts ?? w.part),
+      next: at ? at.next : null,
       items: w.items,
       found: w.found,
       missing: [...w.missing],
       handed: w.handed,
+      handedParts: w.handedParts.map((p) => ({ ...p, missing: [...p.missing] })),
     });
     save();
   };
@@ -259,21 +379,53 @@ export function createExportWalker(deps: WalkDeps) {
     if (w.over) return;
     w.over = true;
     w.controller.abort();
+    w.listening.abort();
     letGo(w);
     deps.toast.dismiss(w.id);
   };
+
+  const closeAs = (w: Walk, label: string): ToastAction => ({
+    label,
+    run: () => end(w),
+  });
+
+  /** The part before the tap, said as the Worker last said it. */
+  function betweenTitle(w: Walk, parts: number): string {
+    const latest = w.handedParts.at(-1);
+    if (latest && latest.part === w.part) {
+      if (latest.word === "saved") return WALK_COPY.partSaved(w.part, parts);
+      if (latest.word === "ended") {
+        if (latest.outcome === "short") {
+          const found = Math.max(0, latest.items - latest.missing.length);
+          return WALK_COPY.partShort(found, latest.items, w.part);
+        }
+        return latest.outcome === "empty"
+          ? WALK_COPY.partEmpty(w.part, parts)
+          : WALK_COPY.partStopped(w.part, parts);
+      }
+    }
+    return WALK_COPY.partStarted(w.part, parts);
+  }
 
   /**
    * A part is on its way and the next is a tap: said, and kept, so a reload offers the same tap again.
    * The button reads the cursor it was drawn with, never the walk's, so an old toast's tap is its own.
    */
   function between(w: Walk, next: string, parts: number) {
-    const nextPart = w.part + 1;
     w.walked = true;
-    keep(w, next, parts);
+    w.waiting = { next, parts };
+    keep(w);
+    showBetween(w);
+  }
+
+  function showBetween(w: Walk) {
+    const at = w.waiting;
+    if (!at) return;
+    const nextPart = w.part + 1;
+    const { next, parts } = at;
     show(w, {
       tone: "between",
-      title: WALK_COPY.partStarted(w.part, parts),
+      title: betweenTitle(w, parts),
       action: {
         label: WALK_COPY.nextPart(nextPart),
         run: () => {
@@ -281,17 +433,13 @@ export function createExportWalker(deps: WalkDeps) {
           if (w.over || w.busy || w.part >= nextPart) return;
           w.part = nextPart;
           w.after = next;
+          w.waiting = null;
           void takePart(w);
         },
       },
       close: closeAs(w, WALK_COPY.stop),
     });
   }
-
-  const closeAs = (w: Walk, label: string): ToastAction => ({
-    label,
-    run: () => end(w),
-  });
 
   async function mint(w: Walk): Promise<MintOutcome> {
     const body = JSON.stringify({
@@ -309,11 +457,7 @@ export function createExportWalker(deps: WalkDeps) {
         await attempt(
           deps.fetch,
           `/api/export/${w.scope}`,
-          {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body,
-          },
+          { ...JSON_POST, body },
           MINT_TRIES_MS[i],
           w.controller.signal,
         ),
@@ -350,28 +494,147 @@ export function createExportWalker(deps: WalkDeps) {
     return { kind: "skip" };
   }
 
-  /** Nothing more to take: say how it went, in one toast. */
+  /* ── listening for the Worker's word on a handed part (`export-ends`) ── */
+
+  /**
+   * Ask the app, now and then, what the Worker said of this part: every second while it begins, backing
+   * off for a long one (`watchPauseMs`). A stream silent past its start, or one past the longest a zip
+   * could take, is let go unheard; a poll with no answer just waits for the next.
+   */
+  async function listen(w: Walk, p: HandedPart) {
+    // This walk's ear as it stands now: a restart (or the x) aborts it, and this loop with it.
+    const ear = w.listening.signal;
+    const gone = () => w.over || ear.aborted || p.word !== "listening";
+    let listened = 0;
+    let begun = false;
+    for (;;) {
+      const pause = watchPauseMs(listened);
+      await deps.sleep(pause);
+      listened += pause;
+      if (gone()) return;
+      const state = statusVerdict(
+        await attempt(
+          deps.fetch,
+          STATUS_URL,
+          { ...JSON_POST, body: JSON.stringify({ jti: p.jti }) },
+          STATUS_TRY_MS,
+          ear,
+        ),
+      );
+      if (gone()) return;
+      if (state?.state === "streaming") begun = true;
+      else if (state && state.state !== "none") return heard(w, p, state);
+      if ((!begun && listened >= START_HEARD_MS) || listened >= WATCH_MAX_MS) {
+        return heard(w, p, null);
+      }
+    }
+  }
+
+  /** The Worker's word on one part (null: none will come), said where the walk now stands. */
+  function heard(w: Walk, p: HandedPart, state: StreamState | null) {
+    if (w.over) return;
+    if (!state || state.state === "none" || state.state === "streaming") {
+      p.word = "unheard";
+    } else if (state.state === "saved") {
+      p.word = "saved";
+      p.outcome = "saved";
+    } else {
+      p.word = "ended";
+      p.outcome = state.state;
+      p.missing = state.missing;
+    }
+    if (w.done) {
+      say(w);
+    } else if (w.waiting) {
+      keep(w);
+      showBetween(w);
+    }
+    // Otherwise the next part is being prepared: its toast stands, and the last word counts this one.
+  }
+
+  /** Every id a handed zip lacks or its check found gone, once each. */
+  const missingOf = (w: Walk) => [
+    ...new Set([...w.missing, ...w.handedParts.flatMap((p) => p.missing)]),
+  ];
+
+  /** Nothing more to take: the last word, once the Worker has said what it will. */
   function finish(w: Walk) {
+    w.done = true;
+    w.waiting = null;
+    say(w);
+  }
+
+  /** Say how it went, in one toast: still downloading, saved, short, or nothing whole. */
+  function say(w: Walk) {
+    if (w.over) return;
+    const place = deps.place();
+    if (w.handedParts.some((p) => p.word === "listening")) {
+      // Kept, so a reload goes on listening rather than forgetting the walk's last word.
+      keep(w);
+      show(w, {
+        tone: "downloading",
+        title:
+          w.walked && w.handed > 1
+            ? WALK_COPY.allStarted(w.handed)
+            : WALK_COPY.downloading(place),
+        close: closeAs(w, WALK_COPY.dismiss),
+      });
+      return;
+    }
     letGo(w);
-    if (w.missing.length === 0) {
+    const missing = missingOf(w);
+    if (missing.length === 0) {
+      // Saved only by the Worker's own word on every part handed over; otherwise what the walk knows.
+      const saved =
+        w.handed > 0 &&
+        w.handedParts.length === w.handed &&
+        w.handedParts.every((p) => p.word === "saved");
       // One file is said where it lands; a walk ends on the whole of it, counted by what was
       // really handed over (a last part the album emptied meanwhile is not one of them).
       show(w, {
         tone: "done",
         title: !w.walked
-          ? WALK_COPY.started(deps.place())
+          ? saved
+            ? WALK_COPY.saved(place)
+            : WALK_COPY.started(place)
           : w.handed > 1
-            ? WALK_COPY.allStarted(w.handed)
+            ? saved
+              ? WALK_COPY.allSaved(w.handed)
+              : WALK_COPY.allStarted(w.handed)
             : WALK_COPY.everything,
         duration: w.walked ? DONE_MS.walk : DONE_MS.one,
       });
       w.over = true;
       return;
     }
-    const missing = [...w.missing];
+
+    const found = Math.max(0, w.items - missing.length);
+    if (found === 0) {
+      // Nothing whole reached her: a zip that never finished, or one the album emptied after its check.
+      const broke = w.handedParts.some(
+        (p) => p.outcome === "stopped" || p.outcome === "failed",
+      );
+      show(w, {
+        tone: "refused",
+        title:
+          w.retryOf !== null
+            ? WALK_COPY.missingUnreachable(w.retryOf)
+            : broke
+              ? WALK_COPY.stopped
+              : EMPTY_EXPORT_MESSAGE,
+        action:
+          w.retryOf !== null
+            ? undefined
+            : { label: WALK_COPY.tryAgain, run: () => restart(w) },
+        close: closeAs(w, WALK_COPY.dismiss),
+      });
+      return;
+    }
+
     show(w, {
       tone: "short",
-      title: WALK_COPY.short(w.found, w.items),
+      title: WALK_COPY.short(found, w.items),
+      // Exactly the missed ones, as one zip's worth; past that, the whole walk again (never a dead end).
       action:
         missing.length <= MAX_EXPORT_ITEMS
           ? {
@@ -385,13 +648,20 @@ export function createExportWalker(deps: WalkDeps) {
                 );
               },
             }
-          : undefined,
+          : {
+              label: WALK_COPY.tryAgain,
+              run: () => {
+                end(w);
+                void begin(w.scope, w.body, w.retryOf, true);
+              },
+            },
       close: closeAs(w, WALK_COPY.dismiss),
     });
   }
 
   /** Begin this walk again from its first part (an empty zip's Try again). */
   function restart(w: Walk) {
+    w.listening.abort();
     Object.assign(w, {
       part: 1,
       parts: null,
@@ -401,6 +671,10 @@ export function createExportWalker(deps: WalkDeps) {
       missing: [],
       handed: 0,
       walked: false,
+      handedParts: [],
+      done: false,
+      waiting: null,
+      listening: new AbortController(),
     });
     void takePart(w);
   }
@@ -423,6 +697,53 @@ export function createExportWalker(deps: WalkDeps) {
     }
   }
 
+  /**
+   * ★ A HOST'S SELECTION THAT MIXES HIDDEN AND SHOWN ITEMS ASKS FIRST (`export-ends`; ROADMAP: "the album's
+   * bulk Download mints with hidden items in and no confirmation"). Download all's own menu leaves hidden
+   * items out unless she says so; a selection is her say for the tiles she picked, except where Select all
+   * swept hidden ones in among the rest. So only a mix asks, in the download's own toast, and the bar that
+   * started it is let go at once. Read from the server's own summary of the selection; a summary that cannot
+   * answer asks nothing and takes what she picked, as before.
+   */
+  async function hiddenAsk(w: Walk): Promise<boolean> {
+    if (
+      w.asked ||
+      w.part !== 1 ||
+      w.retryOf !== null ||
+      w.scope !== "host" ||
+      !Array.isArray(w.body.ids) ||
+      w.body.include_hidden !== true
+    ) {
+      return false;
+    }
+    w.asked = true;
+    const answer = await attempt(
+      deps.fetch,
+      `/api/export/${w.scope}`,
+      { ...JSON_POST, body: JSON.stringify({ step: "summary", ...w.body }) },
+      SUMMARY_TRIES_MS[0],
+      w.controller.signal,
+    );
+    if (w.over) return true;
+    const mix = answer.kind === "answer" ? hiddenMixOf(answer.body) : null;
+    if (!mix || mix.hidden === 0 || mix.shown === 0) return false;
+    const go = (includeHidden: boolean) => () => {
+      if (w.over || w.busy) return;
+      if (!includeHidden) w.body = { ...w.body, include_hidden: false };
+      void takePart(w);
+    };
+    show(w, {
+      tone: "ask",
+      title: WALK_COPY.hiddenAsk(mix.hidden, mix.hidden + mix.shown),
+      actions: [
+        { label: WALK_COPY.includeHidden(mix.hidden), run: go(true) },
+        { label: WALK_COPY.leaveHidden(mix.hidden), run: go(false) },
+      ],
+      close: closeAs(w, WALK_COPY.cancel),
+    });
+    return true;
+  }
+
   /** One part: minted, checked, posted, said. "skip" when it held nothing and the walk goes on. */
   async function takeOne(w: Walk): Promise<boolean | "skip"> {
     if (w.over) return false;
@@ -437,6 +758,9 @@ export function createExportWalker(deps: WalkDeps) {
             : WALK_COPY.preparing,
       close: closeAs(w, WALK_COPY.cancel),
     });
+
+    // The question waits on her answer, whose button takes the part from here.
+    if (await hiddenAsk(w)) return false;
 
     const minted = await mint(w);
     if (w.over || minted.kind === "cancelled") return false;
@@ -538,6 +862,23 @@ export function createExportWalker(deps: WalkDeps) {
 
     deps.post(answer.workerUrl, answer.token);
     w.handed += 1;
+    // Listen only where both halves said the Worker's word will come: the mint asked for it, and the
+    // Worker's own check promised it (an older Worker never does).
+    const listening =
+      !!answer.reports &&
+      !!answer.jti &&
+      checked.kind === "ok" &&
+      checked.check.reports === true;
+    const handed: HandedPart = {
+      part: w.part,
+      items: counted.items,
+      jti: listening ? (answer.jti ?? null) : null,
+      word: listening ? "listening" : "unheard",
+      outcome: null,
+      missing: [],
+    };
+    w.handedParts.push(handed);
+    if (listening) void listen(w, handed);
 
     if (answer.next) {
       between(w, answer.next, answer.parts);
@@ -547,12 +888,12 @@ export function createExportWalker(deps: WalkDeps) {
     return true;
   }
 
-  function begin(
+  function newWalk(
     scope: ExportScope,
     body: MintBody,
-    retryOf: number | null = null,
-  ): Promise<boolean> {
-    const w: Walk = {
+    retryOf: number | null,
+  ): Walk {
+    return {
       id: deps.newId(),
       scope,
       body,
@@ -565,18 +906,34 @@ export function createExportWalker(deps: WalkDeps) {
       missing: [],
       handed: 0,
       walked: false,
+      handedParts: [],
+      asked: false,
+      done: false,
+      waiting: null,
       controller: new AbortController(),
+      listening: new AbortController(),
       busy: false,
       over: false,
     };
+  }
+
+  function begin(
+    scope: ExportScope,
+    body: MintBody,
+    retryOf: number | null = null,
+    asked = false,
+  ): Promise<boolean> {
+    const w = newWalk(scope, body, retryOf);
+    w.asked = asked;
     return takePart(w);
   }
 
   let resumed = false;
   /**
-   * Offer again every walk the tab kept between parts (the page before a reload), once per walker:
-   * the toast it was left on, its "Get part N" taking the next part from the cursor it kept. A store
-   * holding nothing readable is emptied, so it is never read again.
+   * Offer again every walk the tab kept (the page before a reload), once per walker: between parts, the
+   * toast it was left on, its "Get part N" taking the next part from the cursor it kept; with every part
+   * taken, the toast that waits for the Worker's word. Either way, every part it was still listening for
+   * is listened for again. A store holding nothing readable is emptied, so it is never read again.
    */
   function resume() {
     if (resumed) return;
@@ -584,27 +941,26 @@ export function createExportWalker(deps: WalkDeps) {
     const saved = readSavedWalks(deps.store?.load());
     kept.clear();
     for (const s of saved) {
-      between(
-        {
-          id: deps.newId(),
-          scope: s.scope,
-          body: s.body,
-          retryOf: s.retryOf,
-          part: s.part,
-          parts: s.parts,
-          after: null,
-          items: s.items,
-          found: s.found,
-          missing: [...s.missing],
-          handed: s.handed,
-          walked: true,
-          controller: new AbortController(),
-          busy: false,
-          over: false,
-        },
-        s.next,
-        s.parts,
-      );
+      const w = newWalk(s.scope, s.body, s.retryOf);
+      Object.assign(w, {
+        asked: true,
+        part: s.part,
+        parts: s.parts,
+        items: s.items,
+        found: s.found,
+        missing: [...s.missing],
+        handed: s.handed,
+        walked: s.next !== null || s.handed > 1,
+        handedParts: (s.handedParts ?? []).map((p) => ({
+          ...p,
+          missing: [...p.missing],
+        })),
+      });
+      if (s.next !== null) between(w, s.next, s.parts);
+      else finish(w);
+      for (const p of w.handedParts) {
+        if (p.word === "listening") void listen(w, p);
+      }
     }
     if (kept.size === 0) save();
   }

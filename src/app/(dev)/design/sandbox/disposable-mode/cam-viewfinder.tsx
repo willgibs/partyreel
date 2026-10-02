@@ -1,34 +1,36 @@
 "use client";
 
-import { Aperture, Check, SwitchCamera } from "lucide-react";
+import { Check, SwitchCamera } from "lucide-react";
 
 import { GLASS } from "@/lib/glass";
 import { cn } from "@/lib/utils";
 
 import {
-  askLine,
   CamBar,
   type CamProps,
+  CamScreen,
   FrameRing,
-  IosAlert,
+  hint,
   isLive,
-  leftWords,
+  justSpent,
+  leftUnit,
+  ModeSwitch,
+  pill,
   RecPill,
-  Refused,
-  videosWord,
+  RollDone,
+  VIDEO_SECONDS,
 } from "./cam-shared";
 import { FilmStill } from "./film";
 
 /**
- * THE ALBUM'S OWN CAMERA, PUSHED (round one's `camera=viewfinder`, kept).
+ * THE ALBUM'S OWN CAMERA, AS ROUND TWO DREW IT (kept, the reference the two
+ * branches beside it are read against).
  *
- * What round one drew, and what this pushes: the live picture at the phone's
- * whole frame, the shutter the one big act, no retake and no library. Pushed:
- * the count moves INTO the shutter as twenty-four ticks around it, one going
- * dark with each shot (the frame just spent still glowing), so the roll is
- * read where the thumb already is; the moment after is a receipt at the top
- * of the picture and never the shot itself (a disposable shows nothing); the
- * picture wears the roll's look live.
+ * The live picture at the phone's whole width, the shutter the one big act,
+ * no retake and no library; the count lives round the shutter as twenty-four
+ * ticks, one going dark with each shot, the frame just spent still glowing,
+ * so the roll is read where the thumb already is; the moment after is a
+ * receipt at the top of the picture and never the shot itself.
  */
 export function Viewfinder(p: CamProps) {
   const live = isLive(p.phase);
@@ -36,35 +38,31 @@ export function Viewfinder(p: CamProps) {
   const hold = p.video === "hold";
   const switchWay = p.video === "switch";
   const buttonWay = p.video === "button";
-  const videoMode = switchWay && recording;
+  const done = p.phase === "done";
   return (
-    <div className="dm-cam" data-dm-camera="viewfinder">
+    <CamScreen id="viewfinder">
       <CamBar
-        sub={recording ? "Filming" : `Develops at 9 am · ${leftWords(p)}`}
+        sub={
+          recording
+            ? "Filming"
+            : done
+              ? "Your roll is done"
+              : `Develops at 9 am · ${p.left} left`
+        }
       />
       <div className="relative shrink-0">
         {live ? (
           <FilmStill
             still={p.still}
-            look={p.look}
             className="aspect-[3/4] w-full"
             position="50% 45%"
           />
         ) : (
-          <div
-            className={cn(
-              "flex aspect-[3/4] w-full flex-col items-center gap-3 bg-[#0c0c0c] px-8 text-center",
-              "justify-center",
-            )}
-          >
-            {p.phase === "refused" ? (
-              <Refused left={p.left} />
-            ) : (
-              <Aperture className="size-8 text-white/35" aria-hidden />
-            )}
+          <div className="flex aspect-[3/4] w-full items-center bg-[#0c0c0c] px-7">
+            <RollDone />
           </div>
         )}
-        {p.phase === "after" && p.taken !== undefined && (
+        {p.phase === "after" && (
           <span
             data-dm-receipt
             className={cn(
@@ -73,9 +71,7 @@ export function Viewfinder(p: CamProps) {
             )}
           >
             <Check className="size-3.5" aria-hidden />
-            {p.afterVideo
-              ? `Your video is on the roll`
-              : `Shot ${p.taken} is on the roll`}
+            {pill(hint(p))}
           </span>
         )}
         {recording && p.seconds !== undefined && (
@@ -83,42 +79,22 @@ export function Viewfinder(p: CamProps) {
             <RecPill seconds={p.seconds} />
           </span>
         )}
-        {buttonWay && live && (
-          <span
-            className={cn(
-              GLASS,
-              "absolute right-3 bottom-3 flex size-10 items-center justify-center rounded-full text-white",
-            )}
-            aria-label="Turn the camera round"
-          >
-            <SwitchCamera className="size-5" aria-hidden />
-          </span>
-        )}
+        {p.phase === "after" && <span aria-hidden className="dm-flash" />}
       </div>
-      <div className="flex flex-1 flex-col justify-center pb-5">
-        {switchWay && (
-          <div
-            className="mb-4 flex justify-center gap-6 text-xs font-semibold tracking-[0.16em] uppercase"
-            data-dm-modes
-          >
-            <span className={videoMode ? "text-white/45" : "text-white"}>
-              Photo
-            </span>
-            <span className={videoMode ? "text-white" : "text-white/45"}>
-              Video
-            </span>
-          </div>
+      <div
+        className="flex flex-1 flex-col justify-center pb-5"
+        data-dm-controls
+        data-off={p.phase === "done" ? "" : undefined}
+      >
+        {switchWay && live && (
+          <ModeSwitch video={recording} className="mb-4 self-center" />
         )}
         <div className="grid grid-cols-3 items-center px-6">
           <div className="justify-self-start" data-dm-say>
             <p className="font-heading text-[30px] leading-none tabular-nums">
               {p.left}
             </p>
-            <p className="mt-1 text-xs text-white/60">
-              {p.count === "own"
-                ? `photos · ${videosWord(p.videosLeft ?? 3)}`
-                : "left"}
-            </p>
+            <p className="mt-1 text-xs text-white/60">{leftUnit(p)}</p>
           </div>
           <span
             className="relative grid place-items-center justify-self-center"
@@ -127,18 +103,10 @@ export function Viewfinder(p: CamProps) {
             <FrameRing
               left={p.left}
               size={112}
-              justSpent={
-                p.phase !== "after"
-                  ? 0
-                  : !p.afterVideo
-                    ? 1
-                    : p.count === "own"
-                      ? 0
-                      : p.count === "three"
-                        ? 3
-                        : 1
+              just={justSpent(p)}
+              recording={
+                hold && recording ? (p.seconds ?? 0) / VIDEO_SECONDS : undefined
               }
-              recording={hold && recording ? (p.seconds ?? 0) / 10 : undefined}
             />
             <span
               className="dm-shutter absolute inset-0 m-auto"
@@ -163,21 +131,12 @@ export function Viewfinder(p: CamProps) {
             </span>
           )}
         </div>
-        <p className="mt-5 text-center text-xs text-white/55" data-dm-hint>
-          {recording
-            ? hold
-              ? "Let go to stop."
-              : "Press again to stop."
-            : p.phase === "after"
-              ? "On the roll. It develops at 9 am with everyone's."
-              : hold
-                ? "Tap for a photo. Hold for a video."
-                : "Every shot counts. There is no retake."}
+        <p className="mt-5 h-4 text-center text-xs text-white/55" data-dm-hint>
+          {p.phase === "after"
+            ? "It develops at 9 am with everyone's."
+            : hint(p)}
         </p>
       </div>
-      {(p.phase === "ask" || p.phase === "again") && (
-        <IosAlert mic={p.mic} note={askLine(p.phase, p.mic)} />
-      )}
-    </div>
+    </CamScreen>
   );
 }

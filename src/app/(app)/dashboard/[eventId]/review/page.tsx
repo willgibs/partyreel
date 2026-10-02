@@ -5,14 +5,14 @@ import { AppNotFoundScreen } from "@/app/(app)/not-found.screen";
 import { HostCreditLookProvider } from "@/components/app/event-blocks/credit-look";
 import { ReviewRoom } from "@/components/app/event-feed/review-room";
 import { SetCrumbs } from "@/components/shared/crumbs";
-import { PageHeading } from "@/components/shared/page-heading";
+import { readAlbumAttribution } from "@/lib/db/queries/album-state";
 import { getEvent } from "@/lib/db/queries/events";
-import { getUploaderIdentities } from "@/lib/db/queries/guest-events-admin";
 import { getEventLikeCounts } from "@/lib/db/queries/likes";
 import { listEventMedia } from "@/lib/db/queries/media";
 import { planHubManifest, seedFrom } from "@/lib/event/host-album.server";
 import { readHostLinksBody } from "@/lib/event/host-links.server";
 import { toHostGalleryItems } from "@/lib/event/gallery-items";
+import type { UploaderIdentity } from "@/lib/media/uploader-identity";
 import { getRequestAuth } from "@/lib/supabase/request-auth";
 
 // Presigned URLs are per-request + short-lived, so this route must never be
@@ -57,11 +57,27 @@ export default async function EventReviewPage({ params }: PageProps) {
   // the room presigns what it shows and nothing else, and reaches the queue's
   // oldest upload however large the album around it grows. Beside it, the
   // host's manifest for the live signal (the hub's own first sync).
+  //
+  // ★ AND ITS CREDITS ALONE (crumbs-42, from crumbs-38): who sent each upload in
+  // the queue, by those ids, once the queue is read (`readAlbumAttribution`, with
+  // the address the host's look shows). It read the whole album's attribution,
+  // every item's uploader paged to the last, to credit the few it shows.
   const { supabase } = await getRequestAuth();
-  const [pending, uploaderIdentities, likeCounts, plan, noLinks] =
+  const [[pending, uploaderIdentities], likeCounts, plan, noLinks] =
     await Promise.all([
-      listEventMedia(event.id, "pending"),
-      getUploaderIdentities(event.id),
+      listEventMedia(event.id, "pending").then(
+        async (queue) =>
+          [
+            queue,
+            queue.length > 0
+              ? await readAlbumAttribution(
+                  event.id,
+                  queue.map((m) => m.id),
+                  { withEmail: true },
+                )
+              : new Map<string, UploaderIdentity>(),
+          ] as const,
+      ),
       getEventLikeCounts(event.id),
       planHubManifest(supabase, event.id),
       readHostLinksBody(supabase, event, []),
@@ -83,9 +99,9 @@ export default async function EventReviewPage({ params }: PageProps) {
           { label: "Review" },
         ]}
       />
-      <PageHeading>Review</PageHeading>
-      {/* The uploader's name on the peek opens their look, with its quiet Block (event-safety
-          `entry=all`, the uploader in Review). */}
+      {/* The room draws its own title, the page's one heading, with the queue's count and the
+          room's actions on its row (`review-section.tsx`). The uploader's name on the peek opens
+          their look, with its quiet Block (event-safety `entry=all`, the uploader in Review). */}
       <HostCreditLookProvider>
         <ReviewRoom
           eventId={event.id}

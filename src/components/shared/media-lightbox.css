@@ -49,6 +49,31 @@
   opacity: 0;
 }
 
+/* THE VIEWER'S OWN LOADING STATE (`SharpeningRing`, crumbs-43): a ring on the
+   photograph's corner while its original is still on its way, after a beat (an
+   original from the cache lands in a frame or two, and a ring that came and
+   went would be a flicker), gone the moment the original paints or fails. It
+   stands down while the photograph flies, is pulled down or held close up, and
+   on a neighbour, so it arrives with the chrome, after the photograph has
+   landed. */
+[data-lightbox-loading] {
+  opacity: 0;
+}
+[data-lightbox-original]:not([data-loaded]):not([data-failed])
+  ~ [data-lightbox-loading] {
+  animation: lightbox-loading-in 1ms linear 600ms forwards;
+}
+[data-lightbox-track][data-quiet] [data-lightbox-loading],
+[data-lightbox-content][data-dismissing] [data-lightbox-loading],
+[data-lightbox-slot]:not([data-current]) [data-lightbox-loading] {
+  display: none;
+}
+@keyframes lightbox-loading-in {
+  to {
+    opacity: 1;
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   /* A neighbour's media rides the track's settle, on the same clock and the
      same curve, so a sliver arrives centred exactly when the track lands.
@@ -82,6 +107,14 @@
 
   [data-lightbox-full] {
     transition: opacity 200ms var(--ease-emphasis);
+  }
+
+  /* The ring arrives, it does not appear (reduced motion: it appears, after
+     the same beat, and does not turn). */
+  [data-lightbox-original]:not([data-loaded]):not([data-failed])
+    ~ [data-lightbox-loading] {
+    animation-duration: 200ms;
+    animation-timing-function: var(--ease-emphasis);
   }
 
   /* "Ready": the word a lapsed tap leaves on its button. It arrives, it does

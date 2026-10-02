@@ -31,8 +31,9 @@ const ROUTES: Entry[] = [
   { path: "/help", changeFrequency: "weekly", priority: 0.6 },
   { path: "/blog", changeFrequency: "weekly", priority: 0.6 },
   { path: "/contact", changeFrequency: "yearly", priority: 0.5 },
+  // /press is not listed: it redirects to /about#press (about-press r1), and a sitemap names
+  // the address a crawler should index, which for the press kit is /about itself.
   { path: "/about", changeFrequency: "yearly", priority: 0.5 },
-  { path: "/press", changeFrequency: "monthly", priority: 0.5 },
   { path: "/careers", changeFrequency: "weekly", priority: 0.6 },
   // The legal pages carry their version date (the legal single-source), not
   // build time: a policy that "changed" every deploy is the sitemap lying.

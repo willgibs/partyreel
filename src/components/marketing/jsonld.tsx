@@ -85,11 +85,10 @@ export function SoftwareApplicationJsonLd() {
           "Host moderation: approve, hide, and remove anything",
           "No per-guest fees and no guest limit; plans are sized by storage",
           `An inactive free album is eventually removed after about ${INACTIVE_MONTHS} months; every other album never expires, and deletions wait ${RECENTLY_DELETED_WINDOW_DAYS} days in Deleted`,
-          // ★ The ruled short form (Will, 2026-09-02): the clause "for the
-          // common formats" rides every shortened version of this claim (HEIC,
-          // HEIF, AVIF and WebM are stored exactly as sent). Structured data is
-          // quoted back by assistants verbatim, so it carries the clause too.
-          "Location data is stripped in the browser before a photo ever uploads, for the common formats.",
+          // ★ Structured data is quoted back by assistants verbatim, so it says
+          // only what is true of every accepted format, exactly as every short
+          // form of this claim does (the rule and its history: home/privacy.tsx).
+          "Location data is stripped in the browser before a photo ever uploads.",
           "Public, private (a password, host approval, or an invite list), or host-only albums",
         ],
       }}

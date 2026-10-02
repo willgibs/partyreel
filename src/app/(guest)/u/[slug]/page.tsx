@@ -6,6 +6,8 @@ import { EventCard, RoleMarker } from "@/components/app/event-card";
 import { PAGE_CHOICES_PATH } from "@/app/(app)/account/profile/invite";
 import { emptyPageLine } from "@/app/(guest)/u/[slug]/empty-page";
 import { OwnerSections } from "@/app/(guest)/u/[slug]/owner-sections";
+import { OwnerSkeleton } from "@/app/(guest)/u/[slug]/owner-skeleton";
+import { partyCards } from "@/app/(guest)/u/[slug]/party-cards";
 import { GuestHeader } from "@/components/guest/guest-header";
 import { FollowButton } from "@/components/social/follow-button";
 import { ProfileActionsMenu } from "@/components/social/profile-actions-menu";
@@ -24,7 +26,7 @@ import {
   type PublicProfile,
 } from "@/lib/db/queries/social";
 import { getAvatarUrl } from "@/lib/supabase/avatar-storage";
-import { createClient } from "@/lib/supabase/server";
+import { getRequestAuth } from "@/lib/supabase/request-auth";
 import { formatEventDate, formatMonthYear } from "@/lib/utils";
 
 import { notFoundMetadata } from "./not-found.metadata";
@@ -73,48 +75,12 @@ export async function generateMetadata({
  *  the slow half (a presign per cover, both arms) streams in behind the
  *  skeleton, which is what the wait was ever about. */
 async function PartyGrid({ profile }: { profile: PublicProfile }) {
-  const [hostedCovers, attendedCovers] = await Promise.all([
+  const [hostedCovers, attended] = await Promise.all([
     getPublicProfileCoverUrls(profile.hosted_events),
     getPublicProfileAttendedCoverUrls(profile.id, profile.attended_events),
   ]);
-
-  // One group, newest first across both kinds: the order each arm already
-  // arrives in, merged, so a person's year reads as one year rather than as two
-  // lists that happen to share a page.
-  const parties = [
-    ...profile.hosted_events.map((event) => ({
-      id: event.id,
-      name: event.name,
-      eventDate: event.event_date,
-      role: "host" as const,
-      // The album link the host PUBLISHED (display_in_profile);
-      // password/private events still gate at the /e/ page.
-      href: `/e/${event.custom_slug ?? event.qr_token}`,
-      coverUrl: hostedCovers.get(event.id) ?? null,
-      statusLabel:
-        event.visibility === "password"
-          ? "Password"
-          : event.visibility === "private"
-            ? "Private"
-            : null,
-    })),
-    ...profile.attended_events.map((event) => ({
-      id: event.id,
-      name: event.name,
-      eventDate: event.event_date,
-      role: "guest" as const,
-      // No link: being on a guest list is not a capability grant. EventCard
-      // draws an unopenable card for href: null, which is exactly what this is.
-      href: null,
-      coverUrl: attendedCovers.get(event.id) ?? null,
-      statusLabel: null,
-    })),
-  ].sort((a, b) => {
-    if (a.eventDate === b.eventDate) return 0;
-    if (!a.eventDate) return 1;
-    if (!b.eventDate) return -1;
-    return a.eventDate < b.eventDate ? 1 : -1;
-  });
+  // One group, newest first across both kinds (`party-cards.ts` says what each card claims).
+  const parties = partyCards(profile, hostedCovers, attended);
 
   return (
     <ul className="grid gap-4 sm:grid-cols-2">
@@ -128,6 +94,7 @@ async function PartyGrid({ profile }: { profile: PublicProfile }) {
               party.eventDate ? formatEventDate(party.eventDate) : "No date set"
             }
             statusLabel={party.statusLabel}
+            empty={party.empty}
             // The marker on every card: one grid with a mark on it, not two grids sharing a
             // heading. The dashboard's Guest cards wear the same object (event-card.tsx owns it).
             action={<RoleMarker role={party.role} />}
@@ -135,27 +102,6 @@ async function PartyGrid({ profile }: { profile: PublicProfile }) {
         </li>
       ))}
     </ul>
-  );
-}
-
-/** The owner mode's wait: three labelled bands, at the bands' size. */
-function OwnerSkeleton() {
-  return (
-    <div className="mt-10 space-y-8" aria-busy>
-      {Array.from({ length: 2 }, (_, band) => (
-        <div key={band} className="space-y-2.5">
-          <Skeleton className="h-3 w-24" />
-          <div className="grid grid-cols-3 gap-[var(--gap-gallery)] sm:grid-cols-6 lg:grid-cols-9">
-            {Array.from({ length: 9 }, (_, i) => (
-              <Skeleton
-                key={i}
-                className="aspect-square w-full rounded-[var(--radius-tile)]"
-              />
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
   );
 }
 
@@ -197,7 +143,15 @@ function GridSkeleton({ count }: { count: number }) {
  */
 export default async function PublicProfilePage({ params }: PageProps) {
   const { slug } = await params;
-  const profile = await getPublicProfile(slug.toLowerCase());
+  // ★ THE PAGE AND ITS VIEWER, ASKED TOGETHER (crumbs-44). The shell waits on exactly these two, so
+  // they run side by side rather than one after the other, and the viewer is the request's one
+  // `getUser()` (`getRequestAuth`, cached), which `isFollowing` below reuses: a signed-in visit asked
+  // the auth server twice, once before the follow reads could start. An anonymous visit asks it
+  // nothing (no session, no call). getUser(), never getSession().
+  const [profile, { user }] = await Promise.all([
+    getPublicProfile(slug.toLowerCase()),
+    getRequestAuth(),
+  ]);
   // Missing handle -> the not-found; we never distinguish "no user" from "no slug". ★ The segment's
   // own screen, drawn here and never through `notFound()`, whose throw is served as Next's error
   // shell (a white page until the script has run), at 200 and noindex: a soft 404, as the album
@@ -205,11 +159,6 @@ export default async function PublicProfilePage({ params }: PageProps) {
   // boundary, which would widen two references on every profile load.
   if (!profile) return <ProfileNotFoundScreen />;
 
-  // The viewer (for the follow affordance). getUser() — never getSession().
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
   const isSelf = user?.id === profile.id;
 
   // The follow affordance renders ONLY signed-in, non-self, and NOT blocked in
@@ -300,7 +249,6 @@ export default async function PublicProfilePage({ params }: PageProps) {
               {showMenu && (
                 <ProfileActionsMenu
                   profileId={profile.id}
-                  slug={profile.slug}
                   displayName={profile.display_name}
                   blocked={viewerBlockedThem}
                 />

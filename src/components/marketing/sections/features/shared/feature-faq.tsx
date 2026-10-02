@@ -15,6 +15,10 @@ import { SectionShell } from "@/components/marketing/system/section-shell";
  * the page files emitted the JSON-LD a second time beside it. The items stay
  * per page (each `*-faq.ts` is data, exported for the JSON-LD pairing test);
  * the band, its one quiet arrival slot and the JSON-LD emission live here.
+ *
+ * `id="faq"` is where the footer's FAQ link lands on these pages
+ * (`OWN_FAQ_ROUTES`): a reader on a feature page meets its own questions, never
+ * the home's.
  */
 export function FeatureFaq({
   items,
@@ -24,7 +28,12 @@ export function FeatureFaq({
   children?: ReactNode;
 }) {
   return (
-    <SectionShell width="narrow" eyebrow="FAQ" heading="Common questions">
+    <SectionShell
+      id="faq"
+      width="narrow"
+      eyebrow="FAQ"
+      heading="Common questions"
+    >
       <FaqPageJsonLd items={items} />
       {/* R4 body choreography: the list used to appear statically under a header
           that rose. ONE quiet slot continuing the header's two (eyebrow +

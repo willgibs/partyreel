@@ -143,6 +143,13 @@ export type AskStep = StepBase & {
    */
   answered?: Readonly<Record<string, string>>;
   /**
+   * ★ THE LEDGER'S ANSWER, ON A STEP A LINK REACHED THOUGH IT WAS ANSWERED
+   * (lab-sitting, 2026-10-01; `boardWork`'s `reach`). Such a step is out of
+   * the walk (`stepBlocked` says "answered") and lands showing the answer on
+   * record; a null `choice` is a "not clear to me" the ledger holds.
+   */
+  recorded?: { choice: string | null; note?: string };
+  /**
    * ★ THE BOARD'S OPENING AND ITS TERMS RIDE EVERY STEP OF IT (the context
    * layer, 2026-09-29). Which step is the one his sitting ENTERS the board on
    * is the walk's to say (a staged step is skipped until its answer lands, and
@@ -236,11 +243,16 @@ export function stepDone(step: SessionStep, store: ReviewStore): boolean {
  *
  * "Not clear to me" is not a decision: it leaves the follow-up staged, which is
  * exactly right, because the question it waits on has not been answered.
+ *
+ * ★ AND A STEP ON RECORD IS "answered" (lab-sitting, 2026-10-01): a link
+ * reached an ask the ledger already holds, and the walk goes round it.
  */
 export function stepBlocked(
   step: SessionStep,
   store: ReviewStore,
-): "staged" | "moot" | null {
+): "staged" | "moot" | "answered" | null {
+  // A step the ledger already answers is never in the walk: a link reached it.
+  if (step.kind === "ask" && step.recorded) return "answered";
   const after = step.after;
   if (!after) return null;
   const held =
@@ -404,6 +416,10 @@ function toAskStep(
     tile: a.ask.tile,
     after: a.ask.after,
     afterAnswered: ledgerFor(a.ask.after, ledger),
+    // Only a step a link reached carries an answer: the open work has none.
+    recorded: a.answer
+      ? { choice: a.answer.choice, note: a.answer.note }
+      : undefined,
     answered: decidedIn(ledger, a.ask.id),
     winner: winner || undefined,
     catalogSection: winner ? catalog?.section : undefined,

@@ -146,7 +146,16 @@ beforeAll(() => {
     "foundations",
     "marketing",
   ]) {
-    const dir = join(root, "src", "app", "(dev)", "design", "(shell)", "library", family);
+    const dir = join(
+      root,
+      "src",
+      "app",
+      "(dev)",
+      "design",
+      "(shell)",
+      "library",
+      family,
+    );
     mkdirSync(dir, { recursive: true });
     copyFileSync(
       join(
@@ -743,10 +752,10 @@ describe("the carried calls", () => {
   });
 
   it("records a call in the ledger, and overwrites it in the round", () => {
-    const first = lab.run(
-      `review ${BOARD} r${ROUND}: call:base=no "keep it"`,
-      { root, at: "2026-09-19T21:00:00Z" },
-    );
+    const first = lab.run(`review ${BOARD} r${ROUND}: call:base=no "keep it"`, {
+      root,
+      at: "2026-09-19T21:00:00Z",
+    });
     expect(first.ok).toBe(true);
     expect(first.summary.find((r) => r[1] === "call:base")).toEqual([
       `${BOARD} r${ROUND}`,
@@ -1119,5 +1128,37 @@ describe("a note that names no board", () => {
     expect(out).toContain("0 recorded");
     expect(out).toContain("1 named no board (not recorded)");
     expect(out).toContain(lab.unfiledAdvice(1));
+  });
+});
+
+/**
+ * THE DESK'S NOTE FOR THE WHOLE PROGRAM IS THE BARE NOTE THIS READS (lab-sitting). The end of the walk
+ * composes it as its own line; the transcript parses it beside the board's line, records it nowhere and
+ * says where it goes, so the paste around it lands as ever.
+ */
+describe("the desk's note for the whole program", () => {
+  it("round-trips: composed by the desk, read as a note on no board, the board's line recorded as ever", () => {
+    const message = composeMessage(
+      [{ board: BOARD, round: ROUND, ask: "default", choice: "always" }],
+      [],
+      [],
+      [],
+      "abc1234",
+      'the desk, pictures first; "every" board',
+    );
+    const entries = lab.parseMessage(message);
+    expect(entries.map((e) => e.kind)).toEqual(["board", "unfiled"]);
+    expect(entries[1].notes.map((n) => n.text)).toEqual([
+      'the desk, pictures first; "every" board',
+    ]);
+    const result = lab.run(message, { root, dry: true });
+    expect(result.ok).toBe(true);
+    expect(result.unfiled).toBe(1);
+    expect(result.summary).toContainEqual([
+      "no board",
+      "note",
+      'the desk, pictures first; "every" board',
+      "not recorded",
+    ]);
   });
 });

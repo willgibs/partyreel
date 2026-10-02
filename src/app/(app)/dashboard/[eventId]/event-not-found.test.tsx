@@ -25,9 +25,12 @@ const later = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/supabase/request-auth", () => ({ getRequestAuth: later }));
 vi.mock("@/lib/db/queries/guest-events-admin", () => ({
   getLiveReelServerFacts: later,
-  getUploaderIdentities: later,
+}));
+vi.mock("@/lib/db/queries/album-state", () => ({
+  readAlbumAttribution: later,
 }));
 vi.mock("@/lib/db/queries/analytics", () => ({ getLinkStats: later }));
+vi.mock("@/lib/db/queries/storage", () => ({ getHostStorageSummary: later }));
 vi.mock("@/lib/db/queries/event-doors", () => ({
   getDoorCounts: later,
   getDoorQueue: later,
@@ -85,9 +88,8 @@ vi.mock("@/components/app/event-feed/event-gallery", () => ({
   EventGallery: part,
   EventLive: part,
 }));
-vi.mock("@/components/app/event-feed/launch-list", () => ({
-  LaunchList: part,
-  launchItems: part,
+vi.mock("@/components/app/event-feed/checklist", () => ({
+  EventChecklist: part,
 }));
 vi.mock("@/components/app/event-feed/host-album", () => ({
   HostAlbumProvider: part,

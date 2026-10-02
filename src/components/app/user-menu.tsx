@@ -41,8 +41,8 @@ type UserMenuProps = {
   avatarUrl: string | null;
   /**
    * The claimed handle, or null. It decides where the profile door GOES, not
-   * whether it exists: a host without one is offered the claim card rather
-   * than a dead link (the handle is FREE for everyone, profiles-social.md).
+   * whether it exists: an account without one opens /me rather than a dead
+   * link (the handle is FREE for everyone, profiles-social.md).
    */
   slug?: string | null;
   /**
@@ -128,12 +128,14 @@ export function UserMenu({
   planName = null,
 }: UserMenuProps) {
   // ★ THE HANDLE-LESS DOOR. /u/<slug> does not exist until a handle is claimed,
-  // and claiming it is free, so the door leads to the claim card rather than
-  // disappearing: #public-profile is the id on /account's Public profile card,
-  // the same anchor the after-upload prompt uses. A host who has never thought
-  // about a handle taps "Your profile" and lands on the one box that gives
-  // them one.
-  const profileHref = slug ? `/u/${slug}` : "/account#public-profile";
+  // and claiming it is free, so the door leads to /me rather than disappearing
+  // (crumbs-46, Will's answer A): the private half of the profile (her uploads,
+  // her likes, the people she follows) at an address that needs no handle,
+  // whose head is the invitation to set a page up, and which sends her on to
+  // /u/<slug> the day she has one. It opened the page's setup itself after
+  // crumbs-44, and Account's Public profile card before it: an account that is
+  // not ready to publish anything had no profile of its own to open.
+  const profileHref = slug ? `/u/${slug}` : "/me";
   return (
     <DropdownMenu>
       <DropdownMenuTrigger

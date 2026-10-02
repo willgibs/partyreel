@@ -125,7 +125,9 @@ export const ABOUT_CONVICTIONS: readonly {
   },
   {
     title: "Review comes before removal.",
-    body: "Every report gets reviewed before anything comes down, and a host can remove anything from their album instantly.",
+    // ★ Not "before anything comes down" (crumbs-41): a child-abuse report from a confirmed email hides its item at
+    // once, pending review (the instant hide), so the one exception is said, as the help article says it.
+    body: "Every report is reviewed, and only a child-abuse report can hide anything first. A host can remove anything instantly.",
     linkLabel: "Reporting and safety",
     href: "/help/reporting-and-safety",
   },
@@ -136,6 +138,36 @@ export const ABOUT_CONVICTIONS: readonly {
     href: "/help/download-photos-videos-and-albums",
   },
 ];
+
+/**
+ * THE PRESS KIT BAND (about-press r1, `kit=band`, `facts=none`): where /press
+ * lands now. The page folded into /about, so a writer who comes for the logo
+ * arrives at this band, between the six convictions and the close, and the
+ * story still leads.
+ *
+ * ★ ONE ANCHOR, ONE HOME. `ABOUT_PRESS_HREF` is what the contact page's Press
+ * door and topic hint, the llms files and /press's own redirect point at, and
+ * the band's `id` is `ABOUT_PRESS_KIT.id` (`press-kit-band.test.tsx` holds the
+ * pair). The nav keeps a literal of its own, since that module imports nothing,
+ * pinned by its test the way its other hrefs are.
+ *
+ * The band says what is in the zip and the one rule for using it (his usage
+ * line: use the marks as provided). The boilerplate, the one-liner and the fact
+ * sheet left with the page, as he said: no press outreach is planned, and the
+ * facts live on in /llms-full.txt.
+ */
+export const ABOUT_PRESS_KIT = {
+  id: "press",
+  eyebrow: "Press kit",
+  heading: "The brand files, ready to publish.",
+  body: "The mark, the app icon, the share card and a QR code, in one download.",
+  usage: "Use the marks as provided: no recoloring, no stretching.",
+  downloadLabel: "Download the kit",
+  platesLabel: "In the kit",
+} as const;
+
+/** Where the press kit lives, for every door that points at it. */
+export const ABOUT_PRESS_HREF = `/about#${ABOUT_PRESS_KIT.id}`;
 
 /**
  * The close. Points at careers rather than at signup: the footer already owns

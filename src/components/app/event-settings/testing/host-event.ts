@@ -5,6 +5,7 @@
  */
 import type { DoorCounts } from "@/lib/db/queries/event-doors";
 import type { HostEvent } from "@/lib/db/queries/events";
+import type { ReadyFacts } from "@/lib/events/readiness";
 
 export function hostEvent(over: Partial<HostEvent> = {}): HostEvent {
   return {
@@ -46,3 +47,26 @@ export const NO_COUNTS: DoorCounts = {
   invited: 0,
   joined: 0,
 };
+
+/**
+ * THE EVENT'S READINESS AS THE HUB READS IT, for Settings' rail: production's new event (Public, uploads
+ * open, the reel on), nothing in the album, the code never opened, with whatever a test needs over it.
+ */
+export function readyFacts(over: Partial<ReadyFacts> = {}): ReadyFacts {
+  return {
+    door: "open",
+    hasPassword: false,
+    guestsIn: 0,
+    invited: 0,
+    acceptingUploads: true,
+    approved: 0,
+    playable: 0,
+    showReel: true,
+    liveReelEnabled: true,
+    eventDate: null,
+    description: null,
+    opened: 0,
+    storagePct: 0,
+    ...over,
+  };
+}

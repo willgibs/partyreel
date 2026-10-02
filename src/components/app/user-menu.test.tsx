@@ -70,6 +70,34 @@ describe("the host's account menu", () => {
     expect(rows[0]).toHaveAttribute("target", "_blank");
   });
 
+  // crumbs-46 (Will's answer A to crumbs-44's question): a handle-less account's Your profile opens /me, her
+  // own uploads, likes and connections at an address that needs no handle, whose head invites the setup. It
+  // opened the setup itself after crumbs-44 (Account's Public profile card before it), which left the account
+  // that is not ready to publish with no page of its own.
+  it("opens a page that exists, and /me for an account with no handle", async () => {
+    const { unmount } = render(
+      <UserMenu email="host@example.com" displayName="Maya" avatarUrl={null} />,
+    );
+    openMenu();
+    expect(
+      await screen.findByRole("menuitem", { name: /your profile/i }),
+    ).toHaveAttribute("href", "/me");
+    unmount();
+
+    render(
+      <UserMenu
+        email="host@example.com"
+        displayName="Maya"
+        avatarUrl={null}
+        slug="maya"
+      />,
+    );
+    openMenu();
+    expect(
+      await screen.findByRole("menuitem", { name: /your profile/i }),
+    ).toHaveAttribute("href", "/u/maya");
+  });
+
   it("★ signs out this device: its one sign-out row posts the device sign-out, never everywhere", async () => {
     render(
       <UserMenu email="host@example.com" displayName="Maya" avatarUrl={null} />,

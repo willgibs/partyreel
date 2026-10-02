@@ -20,13 +20,24 @@ pages and content are [marketing-content.md](marketing-content.md)'s.
 The chrome is a cool grey with no brand hue (hue 286, at a chroma that reads as a temperature), so photographs carry
 the colour and only state and actions are coloured.
 
+The component library is a working version that still reads as the shadcn foundation at the atomic level, and nothing
+in it is protected. An identity is pursued as the sum of every part read together: primitives, materials, type, motion
+and composition. A button made different on its own is not an identity, and atoms left at a generator's defaults read
+as generic however custom the layout above them. The direction is a camera's own instruments (identity r1 picked
+`viewfinder`; its atoms are refined in the lab one group at a time before they wire at the source), pitched at a modern
+consumer app for the crowd that actually comes, about 18 at a party to about 50 at a wedding or a conference: it reads
+as bespoke and current to them and never as a developer's tool (no bench readouts for their own sake), and it is never
+flattened into a lowest-common-denominator app, since the core path (scan, add, view) is plain to anyone already.
+
 - **Four grounds, four classes**: the page `:root, .surface-paper` (the card is the page's own white), the room
   `.dark` (one room for the app and every cinema chapter), the slab `.surface-ink` (an always-dark leaf on paper, such
   as the footer) and the mat `.surface-mat` (declared, worn nowhere yet). `--gallery*` is the media well, always dark in
   both themes.
 - **Three text steps**: `--foreground`, `--muted-foreground` and `--faint`, each one grey on every ground where a
-  hand-set alpha composites against whatever is behind it. `--faint` reads about 3.2:1 on the page: captions and hints
-  only, never body copy, a control's only label, or under a further alpha.
+  hand-set alpha composites against whatever is behind it. `--faint` reads about 3.2:1 on the page (2.9:1 on the mat,
+  4.5:1 in the room, 3.75:1 on a dark card): captions and hints only, never body copy, a control's only label, or under
+  a further alpha. A sentence in it moves up to `--muted-foreground` (`faint-copy-policy.test.tsx` reads /pricing and
+  the album page's strip for one).
 - **The brand is the wordmark alone**: `src/lib/brand/wordmark.ts` holds the export's single SVG path, `Logo` inlines it
   in `currentColor` sized by height, the social card draws the same path, and every door mounts `<Logo />`. ★ Never
   retype or optimise the path: replace the whole string from the next export. The mark (`markOnly`) is a stand-in
@@ -485,9 +496,14 @@ Glass exploration answers its material.
   dialog selector), and a test proving a confirm gone asks for `alertdialog`, or it passes for nothing.
   ★ `PopupBody` is the one part that scrolls and keeps its children whole (`*:shrink-0`): a caller's flex column
   would otherwise shrink a clipping Card to its padding instead of scrolling, as build 17's Event Settings did.
+  ★ A screen's head never says its back arrow's words twice: a `description` equal to the arrow's label is drawn for a
+  screen reader alone (Settings named its event on the arrow and again under the bar); at a desk, where no arrow is
+  drawn, the line stays.
   ★ Every shape stands on the keyboard (the Dialog learned the Sheet's rule; a centred shape's `top` is
-  `var(--vv-top) + var(--vv-h) / 2`, exactly `top-1/2` with nothing written). ★ A screen or a cover in a hand is a place
-  the phone's Back closes (`ui/popup-back.ts`, on `lib/history-entry.ts` with the hub's sheets and the reel: one same-URL
+  `var(--vv-top) + var(--vv-h) / 2`, exactly `top-1/2` with nothing written). ★ A screen, a cover or a sheet (the look's) in
+  a hand is a place the phone's Back closes, so over the photograph viewer (which holds an entry of its own) Back peels a
+  layer a press, the look and then the photograph; a dialog is a question and holds none (`ui/popup-back.ts`, on
+  `lib/history-entry.ts` with the hub's sheets and the reel: one same-URL
   history entry, its marker a field on the state Next merges,
   taken back one tick late so StrictMode's double effect cannot close it; where a router refresh took the marker, its
   own word that it pushed the entry at this address still takes it back, and never at another address, where a link
@@ -518,6 +534,10 @@ Glass exploration answers its material.
   iOS reports it only once risen. An `overflow: hidden` ancestor defeats the sticky foot (use `overflow: clip`), and a
   fixed-height flex child inside the sheet needs `shrink-0` or it clips instead of scrolling. `overlayClassName`
   carries a door's own scrim.
+- ★ **Every layer portals into the container its page provides** (`ui/portal-container.tsx`: every radix `.Portal`
+  names `usePortalContainer()`, and `portal-container.test.ts` refuses one that does not). Nothing in the product
+  provides one, so a layer lands on `document.body`, radix's own default; the lab's `Frame` provides its own body, so
+  a production page drawn in a frame opens its popup, menus and tooltips inside the page, never over the lab.
 - ★ **An unportalled submenu can open with a real box and paint nothing.** `SubContent` sits in a `Portal`: inside the
   scrolling, transform-animated `Content`, the transformed ancestor becomes the containing block for fixed
   descendants, so a submenu opened by a click mid-close paints nothing, while hover on a settled parent works. Two
@@ -598,6 +618,16 @@ board, its own sheet and scenes), found by the registry and the board route and 
   404) and forwards the key as `x-design-key`; the pages still call `requireDesignKey`. Never wrap the shell's page in
   Suspense (its `notFound()` would answer 200), and never read the key there with `useSearchParams`. The gate lives
   outside the lab (`src/lib/design-gate/`), because production depends on it; `pnpm lab:smoke --production` proves it.
+- ★ **No keyless request may leave the lab's tab, and a frame cannot stop a drawn link from sending one.** Next fetches
+  the route tree of every prefetched URL that has a query again without it (scheduler `pingRoute`), every lab URL has
+  `?key=`, and the gate 404s the keyless one: a console error per link on a production build (dev never prefetches),
+  from the step's links, a doc's, the Library's own and every production `<Link href="#">` a board draws (`#` resolves
+  to the page it is on). The lab's own links say `prefetch={false}` (`LabLink`, the step, the doc reader), which Next 16
+  honours on hover and touch too, and `_shell/prefetch-policy.test.ts` scans for one that does not. A drawn link cannot
+  be switched off from the frame: `next/link` reads no context of ours, and a null router would break `useRouter()` in
+  every production component drawn beside it. So the shell's `PrefetchGuard` answers a keyless Next prefetch of a
+  `/design` URL in the tab with the gate's own 404 before a request exists; a scene route outside the shell group is
+  its own document and mounts the guard itself.
 - ★ **The lab compiles nothing if it references `globals.css`.** Two Tailwind entries, one theme: globals.css excludes
   the lab and `docs/` from its scan (`@source not`), and `design.css` compiles the lab's utilities while
   `@reference`-ing theme.css. Never move a theme set's value into theme.css, which holds only the variant and `@theme`.
@@ -608,6 +638,16 @@ board, its own sheet and scenes), found by the registry and the board route and 
   the wrong layout: board markup keys off the `mode` prop, and phone chrome is judged in an iframe at 375.
 - **`design.css` declares no keyframes**: keyframe names are document-global, and a lab one would shadow production's
   on every `/design` visit.
+- ★ **A lab rule's `:has()` styles only its own element.** Production's `group-has-*` utilities are on every lab page,
+  and with them a `:has()` in an earlier compound (`.a:has(b) .c`) makes Chrome restyle `.a`'s whole subtree on any
+  insertion or text change beneath it: the shell's table-of-contents rule turned one appended tile into 6,364 of a
+  padded board's 6,722 elements restyled, and 5 without it (Chrome 154, UpdateLayoutTree counts on fresh loads). A
+  `:has()` in a rule's subject re-matches that element alone and hands its children the answer as an inherited custom
+  property, which costs nothing until it changes (`--lab-wide-toc`); `design-css.test.ts` holds the sheet to it.
+- **A portalled `Frame` is its own world**: a link or a form pressed in it goes nowhere, a layer opens inside it (the
+  floating-layer contract's container), and it follows the lab's theme class while open. A `loading="lazy"` image in
+  it loads once it is in the frame's own view; one below the frame's own fold waits for that frame's scroll, as on
+  any page.
 
 ## Gotchas / don't-revert
 

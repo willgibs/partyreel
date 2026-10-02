@@ -123,7 +123,7 @@ export type EventListRow = {
   guests: number | null;
   /** The amber count: media waiting on the host's review. */
   pending: number;
-  /** "Open" / "Closed" / "Password" / the bin countdown. */
+  /** Open / Paused (`uploadsLabel`), "Password" on a guest row, or the bin countdown. */
   statusLabel: string | null;
   /** Guest rows only: "Hosted by X". */
   byline: string | null;

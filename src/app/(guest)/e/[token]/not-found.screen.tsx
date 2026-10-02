@@ -1,8 +1,15 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
-import { QrCode } from "lucide-react";
 
+import {
+  DOOR_FOOT,
+  DOOR_MAIN,
+  DoorColumn,
+  DoorWords,
+} from "@/components/guest/door/door-page";
+import { Doorway } from "@/components/guest/door/doorway";
 import { GuestBar } from "@/components/guest/guest-bar";
-import { HelpLine, NotFoundScreen } from "@/components/shared/not-found-screen";
+import { HelpLine } from "@/components/shared/not-found-screen";
 import { Button } from "@/components/ui/button";
 import { DEMO_EVENT_URL } from "@/lib/demo";
 
@@ -12,6 +19,11 @@ import { DEMO_EVENT_URL } from "@/lib/demo";
  * album page for a link that names nothing, on that one line (stale-link: the page draws its own 404 rather than
  * throw for Next's white error shell). The album already reaches every client part of it through the shut door, so
  * that import costs a found album nothing.
+ *
+ * ★ IT WEARS THE SHUT DOOR'S DESIGN, EMPTY (`locked-door` r2, Will's `lost=follows`): the same doorway with nothing
+ * in it, no leaf and no light (there is no party behind a link that opens nothing), in its own words, so a link's two
+ * dead ends stay siblings and are told apart by what they say: an empty frame is a wrong link, a shut door with
+ * light under it is a door she cannot open. It leaves the not-found family every other dead end on the site shares.
  *
  * Real guests hit this from a mistyped or stale QR, so the copy reassures (double-check the link, ask the host)
  * and softly introduces Partyreel (the growth loop).
@@ -30,37 +42,50 @@ export function GuestNotFoundScreen() {
   return (
     <>
       <GuestBar />
-      <main className="flex flex-1 flex-col items-center justify-center px-5 py-20">
-        <NotFoundScreen
-          icon={QrCode}
-          eyebrow="Event link"
-          title="This event link didn't work"
-          description="The link may be mistyped, or the host may have deleted the event. Double-check the QR code or link, or ask the host to resend it."
-          actions={
-            <Button asChild size="cta">
-              <Link href="/">What is Partyreel?</Link>
-            </Button>
-          }
-          // A guest holding a link that will not open is the reader most likely
-          // to want a person, and the help center's QR article is written for
-          // exactly this screen.
-          help={<HelpLine href="/help">Visit the help center</HelpLine>}
-          footnote={
-            DEMO_EVENT_URL ? (
-              <Link
-                href={DEMO_EVENT_URL}
-                className="font-medium text-brand underline-offset-4 hover:underline"
-              >
-                See how it works with a live demo
-              </Link>
-            ) : (
-              <span className="text-muted-foreground">
-                Hosting your own? It is free to start. No app required.
-              </span>
-            )
-          }
-        />
+      <main className={DOOR_MAIN}>
+        <DoorColumn doorway={<Doorway state="none" />}>
+          <DoorWords
+            eyebrow="Event link"
+            title="This event link didn't work"
+            titleAs="h1"
+            lines={[
+              "The link may be mistyped, or the host may have deleted the event. Double-check the QR code or link, or ask the host to resend it.",
+            ]}
+          />
+          <LostFoot
+            // A guest holding a link that will not open is the reader most likely to want a person, and the
+            // help center's QR article is written for exactly this screen.
+            help={<HelpLine href="/help">Visit the help center</HelpLine>}
+          />
+        </DoorColumn>
       </main>
     </>
+  );
+}
+
+/**
+ * The broken link's way on: Partyreel as its one primary (nothing behind the link is hers to reach), the quiet line
+ * to a person under it, and the live demo for a reader curious what the link was meant to open.
+ */
+function LostFoot({ help }: { help: ReactNode }) {
+  return (
+    <div data-door-foot="" className={DOOR_FOOT}>
+      <Button asChild size="cta" className="w-full">
+        <Link href="/">What is Partyreel?</Link>
+      </Button>
+      {help}
+      {DEMO_EVENT_URL ? (
+        <Link
+          href={DEMO_EVENT_URL}
+          className="text-sm font-medium text-brand underline-offset-4 hover:underline"
+        >
+          See how it works with a live demo
+        </Link>
+      ) : (
+        <span className="text-sm text-muted-foreground">
+          Hosting your own? It is free to start. No app required.
+        </span>
+      )}
+    </div>
   );
 }

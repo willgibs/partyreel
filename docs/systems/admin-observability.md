@@ -49,7 +49,8 @@ also the rollback. Both projects build every route; the security boundary is RLS
   allow-list carries the admin project's preview `/auth/callback` beside production's, and the app's preview alias
   never signs anyone into the portal.
 - **Verifying:** auth and MFA complete only on a real host, and `lab:smoke` can never reach `/admin`; the Library's
-  compositions page renders the real rail, band, queue, table, palette and sheet, the one automated eye on the portal.
+  compositions page renders the real rail, band, queue, table, palette and sheet, and the metrics charts at counts
+  past 1,000 the test data never reaches (`admin-metrics-charts`), the one automated eye on the portal.
   The admin host's sign-in plumbing short of Google (the gate's page, the login form's cookie, the callback) walks
   locally under `NEXT_PUBLIC_ADMIN_HOST=admin.localhost pnpm dev` at `http://admin.localhost:<port>`.
 
@@ -139,10 +140,13 @@ three definitions of healthy:
   swallow and report (the caller raises the warning; Sentry never enters `src/lib/db/*`). Reads throw (`mustQuery`)
   and the page draws a loud banner, because a console reading "nothing to report" when it can read nothing is the
   failure this surface exists to prevent.
-- **A job that cannot reach the database** (the Worker, the GitHub Action) reports through `/api/internal/job-run`
-  with the internal-jobs bearer (`PRUNE_API_SECRET`). The endpoint can pause a job but never start one, so those jobs
-  show no Run now (a button that lies is worse than a sentence that explains), and only a `scheduled` job may open a
-  run there, since a start against a signal or a reading would leave a `running` row nothing closes.
+- **A job that cannot reach the database** (the backup Worker, the GitHub Action) reports through
+  `/api/internal/job-run` with the internal-jobs bearer (`PRUNE_API_SECRET`). The endpoint can pause a job but never
+  start one, so those jobs show no Run now (a button that lies is worse than a sentence that explains), and only a
+  `scheduled` job may open a run there, since a start against a signal or a reading would leave a `running` row
+  nothing closes. ★ The export Worker is the exception: its daily heartbeat (the `export` job) rides its own signed
+  report (`/api/export/report`, [uploads-and-r2.md](uploads-and-r2.md)) and is written as one closed row, so a Worker
+  whose export secret drifted from the app's reads Missed, where a second bearer would have let it check in healthy.
 - ★ **A missing reading is never a zero:** an unreadable queue contributes no key and the card says "No reading", and
   a stale reading inherits its source's health.
 
@@ -175,10 +179,11 @@ test (admin-triage r2):
   can never count by another rule: a child-abuse report's line, on its card and in the report whole, says its
   address's live strikes and what a Dismiss would make of them (a Dismiss closes the whole entry, so each of the
   address's open child-abuse reports on it becomes a strike), marked when a Dismiss is the one that ends the hide. A
-  dismissed one's closed line says whether its strike still counts and until when (`closedStrike`: the lapse read off
-  the answer's own `fresh_lapses_at`, never a copy of 180), what its address holds, and "Undo takes it back" only
-  while the dismissal can be reopened (30 days, where a strike lasts 180); one that kept no address says it was never
-  a strike. The address never shows: the read keys on the kept hash. Every other kind inserts only. A
+  dismissed one's closed line says whether its strike still counts and until when (`closedStrike`: `resolved_at` plus
+  the lapse the answer itself carries, `lapse_seconds`, 20261001233100, so no reader derives it or copies 180), what
+  its address holds, and "Undo takes it back" while the dismissal can be reopened, which for a strike is as long as
+  it counts; one that kept no address says it was never a strike. The address never shows: the read keys on the kept
+  hash. Every other kind inserts only. A
   child-abuse report tells the operator after the response (`alertUrgentReport`: a Sentry warning every time, an
   ops-inbox mail at most once per album in any ten minutes, the window running from the album's last mail and the
   dedupe key naming that mail, `sendOncePerWindow`; a clock bucket mailed twice across a :x0 boundary) and on the
@@ -212,8 +217,15 @@ test (admin-triage r2):
   Undo lives exactly as long as the removal ITS verdict made (the removal's `removed_at` equal to the verdict's
   `resolved_at`, still an operator's, not held): it reopens the report first, then restores the item where it was; a
   held item reads Held and has no Undo. ★ A dismissal reopens, from its toast's Undo or its line, inside 30 days of
-  the verdict (the write itself requires `dismissed` and the window's floor); Mark actioned and an album's Action have
-  no way back.
+  the verdict, and a child-abuse dismissal that is a strike for as long as the strike counts (Will's #60,
+  `dismissalReopens`: the reopen asks the strike rule's own lapse rather than keep a second clock, and never shortens
+  the 30 days; one that kept no address was never a strike and keeps them). The write itself requires `dismissed`
+  and either floor (`reopenGuard`). Mark actioned and an album's Action have no way back.
+- ★ **The verdict is the review the copy promises.** Dismissed and Actioned each record who decided and when, and an
+  open report keeps its item and its album from every purge until one lands, so "every report is reviewed" holds of
+  every report; `report_status`'s `reviewed` is written by no code and is no inbox word (the enum keeps the value:
+  dropping one rebuilds the type). The copy promises review before removal but for the instant hide, which it names
+  (`review-promise.test.ts`).
 - ★ **Hold for forensics carries Take it down too, ON by default** (Will, 2026-09-29: "a hold is for what police
   should see"). It reads what it reaches first (the reported item and the same uploader's other items in the event:
   its guest row, or every row the same account holds there; no guest row means the host's own uploads), makes each

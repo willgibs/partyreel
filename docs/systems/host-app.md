@@ -1,75 +1,19 @@
-# Host app: dashboard, events, QR and print, the event page, moderation
+# Host app: events, QR and print, the event page, moderation
 
 Open this before you:
-- change the dashboard (its bands, the events list, the Guest cards, the claims review);
 - change how an event is created, an event setting or the door (who can get in, the Guests room's At the door and
   Invited);
 - change the QR designer, a code's size or the print sheet;
 - touch the custom event link;
 - change the first-time welcome;
-- change the event page: its header, cards row, sheets, launch list, album or live refresh;
+- change the event page: its header, cards row, sheets, checklist, album or live refresh;
 - change host moderation, a tile verb or bulk select;
 - change the hub's door into the highlight reel (the reel itself, the Reel card and Settings' Highlight reel section are
   [reel.md](reel.md)'s).
 
-The upload pipeline is [uploads-and-r2.md](uploads-and-r2.md)'s, the guest side [guest-flow.md](guest-flow.md)'s,
+The dashboard is [dashboard.md](dashboard.md)'s, the upload pipeline [uploads-and-r2.md](uploads-and-r2.md)'s, the guest side [guest-flow.md](guest-flow.md)'s,
 caps and billing [billing-caps.md](billing-caps.md)'s, and operator moderation
 [admin-observability.md](admin-observability.md)'s.
-
-## Dashboard landing
-
-`/dashboard` is a pulse, not an inbox, in four bands: what needs you, the storage line, your events, just arrived. It
-has no filter chips and no personal feeds (those are the profile's owner mode, [profiles-social.md](profiles-social.md)).
-
-- **What needs you** is one next best step per event from a pure rule, first match wins (`lib/dashboard/next-step.ts`:
-  a queue, paused uploads, a reel one photo short, an event dated tomorrow), then the account's storage step. ★ It
-  never renders as a void: a band wired to the review queue would be blank for every up-to-date host, so an empty
-  result renders "Nothing needs you". Past three steps it folds behind a "+N more" chip, and a host with no events sees
-  no band at all. ★ The reel step appears only at exactly one playable item with the switch and the lever on, and leaves at two
-  (`getReelProgress`, the guest's `isReelEligible` spelled in SQL); at none the event's launch list speaks, and a step
-  there would push "Print the code" out the evening before.
-- **The storage line is unconditional** (a host with no events still has a plan); the over-cap grace banner is its own
-  red alert, never inside the meter (`grace-banner.tsx`). ★ Both of its ways out are doors: See plans, and see what's
-  using space, the size list counting down to her own plan's cap (the list's `fit` goal: the meter's number, nothing
-  to switch, the bar's Remove the act), so she chooses what goes before the sweep takes the largest first. The meter's
-  own door carries the same goal whenever she stores more than her cap.
-- **Your events** counts through `event_card_stats`, and each hosted card's cover and stills come from
-  `getEventCardStills` (`event_covers` and `event_stills` in one pass: the cover first, no photograph twice, four at
-  most); "X of N used" is `countActiveEvents()`, a head count. ★ The cards take turns (`dashboard/cover-cycle.tsx`):
-  every 3.5 s exactly one card dissolves to its next still, in reading order, wrapping; a card with one still or off
-  screen sits out, and nothing moves in a hidden tab or under reduced motion. The grid's columns live once
-  (`event-card-grid.ts`), shared with the loading skeleton.
-- **Just arrived** is the newest approved uploads in a window that widens until it holds twelve (`arrivals.ts`); its
-  number is a head count, never a read's length. ★ These are the one host tiles that keep the `[data-media-tile]`
-  arrival fade (no `data-static`): they literally just arrived. Their reads live in `db/queries/pulse.ts`, apart from
-  the `events.ts` that every event room shares.
-- ★ **"Today" is the viewer's calendar day, never the server's**: Vercel runs on UTC, so from evening on west of UTC the
-  server's today is already tomorrow. The page reads the viewer's zone from the `x-vercel-ip-timezone` header
-  (validated by constructing an `Intl` formatter, falling back to the server's zone) and computes the day DST-safely
-  (`viewer-day.ts`); "N today", "an event dated tomorrow", the Event Pass expiry and the grace deadline
-  (`format/date-in-zone.ts`) all read it. The zone is used only to render and is never stored or logged, so no privacy
-  text changes for it.
-- **The claims review** appears when `getMyClaimableGuestRows()` finds rows typed under the account's own CONFIRMED
-  email at a names-mode door before that email was proved: one banner line above the events with Review, which opens
-  the list kind (`claims-review.tsx`: a side panel at a desk, its own screen in a hand) and goes through them one event
-  at a time (`claims-card.tsx`), each with up to four of its own approved photographs from an open album, presigned on
-  the server (a password or private album shows a lock and the count). Every decision is written as it is made, one
-  event a call (`claims-actions.ts`): Claim through `claim_guest_rows_by_email`, Not mine through
-  `disown_guest_rows_by_email` once its confirm dialog at the card says Delete, since that is the guest saying those
-  uploads were not theirs; an event she never reaches waits, and the banner counts it. ★ An answer names its card, a
-  card waits for its write, and an arriving card holds its answers 250 ms, so a double tap never claims the next event
-  (`claims-batch.ts`). ★ The album link never rides the list (a Not mine is an event she was never at): a claimed row's
-  Open album and quieter Follow come from the claim's own follow-up read (`getClaimedEventNext`), for an event she is
-  now a guest of. The writes never revalidate; the review refreshes the page behind itself as each lands and keeps its
-  own account of her decisions. ★ The layout's own silent claim is a write the page follows too: it lands after the
-  server drew the rows, so the claim's own caller (`ClaimUploadsOnAuth`, on the (app) layout) refreshes the route once
-  a claim it ran moved uploads, and the banner, the card and the Guest card follow. The refresh is the caller's, never
-  a listener's in the page: the page segment streams in behind `dashboard/loading.tsx` after the layout, so the claim
-  usually lands before the review mounts (a soft navigation and a hard load after sign-in alike). A disowned name leaves the guest list and the Guests room with its uploads, and the
-  empty guest row survives for the device that minted it. A nameless profile meets the name gate first
-  ([auth-accounts.md](auth-accounts.md)), prefilled from the newest claimable row's typed name. One toast as the review
-  closes counts what that opening added, its second line pointing at the page unless the page setup's invitation is
-  about to take the banner's place ([profiles-social.md](profiles-social.md)): one pointer a beat.
 
 ## Events and the create flow
 
@@ -81,10 +25,13 @@ its gate (below); `allow_videos` is the Videos switch, binding guests only, as `
 - **The sole create path is the `/dashboard/new` wizard** (`create-event-wizard.tsx`): Name, Style, then the beat. It
   creates once, at commit (an abandoned wizard leaves no row), through the non-redirecting `createEventInWizard`, which
   returns the id and token so the beat can draw the real code. Only the name is required; everything else is edited in
-  Settings (below). `enforce_event_limit` guards `MAX_EVENTS` in SQL.
+  Settings (below). `enforce_event_limit` guards `MAX_EVENTS` in SQL. ★ So the Style step's swatches are samples and
+  say so: they encode the stand-in link (`previewJoinUrl`, as long as a real one, naming nobody's album), which a
+  test-scan meets as a 404.
 - ★ **The beat happens once in an event's life, by construction**: only pressing Create reaches it. It draws the real
-  code in a plain mat, two doors out (print the table cards; share the link) and one into the event; the custom link
-  belongs to the share sheet.
+  code in a plain mat, two doors out (print the table cards; share the link), then hands over: what is left before
+  guests arrive (the checklist's open rows, read from what Create sent, `newEventFacts`) and Get it ready into
+  Settings' first step, the event itself a quieter press beside it. The custom link belongs to the share sheet.
 - ★ **The cap is a door, not a dead button**: a host never does the work of an event and only then learns the plan cannot
   hold it. The route computes `atCap` with the dashboard's own math (`profile.event_slots ?? MAX_EVENTS[tier]`, as
   `enforce_event_limit` does), and the wizard renders the refusal (the plan's number, the event holding the slot, Delete,
@@ -138,7 +85,7 @@ its gate (below); `allow_videos` is the Videos switch, binding guests only, as `
   are 3px a module on a screen and 0.5mm on paper, and `module-floor.test.ts` runs every shipped size at the longest link
   an event can carry.
 - **The print sheet** (`/dashboard/<id>/print`: nine table cards to a page, a welcome sign, a poster) is reached from the
-  beat, the share sheet and the launch list.
+  beat, the share sheet and the code's row on the checklist and in Settings.
 - ★ **Print is its own route group, `(print)`**, because `AppShell`'s sticky header would print on every sheet; and
   ★ `(print)` does NOT inherit the `(app)` auth gate, so its layout re-declares `getUser()` and the page re-reads the
   event through RLS.
@@ -209,9 +156,17 @@ beneath, newest first.
   from `sm`), so the logo, the code, the cards and the album share one left line. Their skeletons mark it too, or the
   page paints at 1280 and jumps; the cards row's sticky band bleeds by exactly that gutter.
 - **The header is one object**: a scannable `StyledQr` in a button BESIDE the h1, never inside it (an h1 holding a
-  control stops being the page's accessible name). ★ It carries no status chips: a paused event dims the code, and
-  the door rides the Settings card (`doorLabel`). The link row shows the readable URL and copies the permanent one, confirmed in
-  place, never by a toast.
+  control stops being the page's accessible name). ★ It carries no status chips: the code wears the door on its corner
+  (`share/event-code-door.tsx`, its words `codeMark` in `visibility-labels.ts`): a lock for a gate, a closed eye for
+  Only me, a pause for paused uploads, the waiting count in the needs-action tone, nothing for Public taking uploads;
+  paused and Only me dim the code, since a guest who scans either cannot add. The mark is its own button beside the
+  code's (pressing the code opens the card, asking what a corner means must not), outside the mat so nothing lands on
+  the modules. ★ Its words come on hover, a keyboard's focus and a tap: the tooltip primitive refuses a tap on purpose,
+  so the mark controls the tooltip itself (a tap toggles it, a cursor's click keeps it), and the radix tooltip mounts
+  only after hydration, the server's paint carrying the native `title`. The Settings card counts what a guest still
+  needs while Settings' steps are not all ticked ("2 left", in the foreground, never the waiting amber), then names the
+  door (`doorLabel`). The link row shows the readable URL and copies the permanent one, confirmed in place, never by a
+  toast.
 - **The cards row** (Highlight reel, Guests, Review, Settings) is a group of links, never tabs, since nothing switches
   a panel in place. ★ The Guests card and the header read THE ONE COUNT (`getEventGuests`, the album header's own
   function), so the hub, the Guests room and the album say one number. The row is sticky and condenses in place,
@@ -235,12 +190,16 @@ beneath, newest first.
   (`setReelDefaults` revalidates the hub for the switch), which Next replays when a tap moves the address mid-save; a
   refresh in flight turned a tap on the page's back arrow or a row into a reload, or dropped the refresh
   (`refresh-then-write-policy.test.ts` keeps it out of the sheets; `lib/history-entry.ts` holds the matrix and the one
-  two-tap residual). ★ Every native history call hands Next a FRESH object (the marker as a field) or `null`, never
+  two-tap residual). ★ So a Settings page move made while a save is on its way is drawn at once and its address
+  written once the save has LANDED, its transition committed (`settings-state.tsx`'s `afterSaves`; the newest of
+  several moves, none if it comes back to the address's page, dropped by a close): written at the save's answer, a
+  second move 20ms later still reloaded the page, since Next's history entry holds the old tree until the commit
+  (crumbs-42, measured under `next dev`). ★ Every native history call hands Next a FRESH object (the marker as a field) or `null`, never
   `window.history.state`: Next's patched `pushState` and `replaceState` apply the URL only to a state without `__NA`
   (`history-state-policy.test.ts` refuses the shape; a write from a mount effect waits a microtask, because it would
   meet the browser's own function before Next patches it: `lab/board-state.tsx` says why). ★ Whose entry a place stands
-  on is `lib/history-entry.ts`'s, which the hub's sheets, a phone's screen-shaped popup and the reel all use (its header
-  holds what Next does to an entry). Opening pushes an entry carrying the marker (a sheet already open is left alone, so
+  on is `lib/history-entry.ts`'s, which the hub's sheets, a phone's screen-shaped popup, the reel and the photo viewer
+  (`?photo=`, every album's) all use (its header holds what Next does to an entry). Opening pushes an entry carrying the marker (a sheet already open is left alone, so
   a double tap pushes one entry, never two); closing goes Back only when the entry is ours (the marker says so, or this
   page pushed it) and only once until that Back lands (two taps on the X used to leave the hub); a router commit that is
   not a traversal (a save's re-render) rewrites an entry without the marker and a reload forgets what the page pushed,
@@ -256,12 +215,16 @@ beneath, newest first.
 - **The code card is every share's first surface** (`share/code-card.tsx`: the code on white filling a phone, a 384
   card at a desk, Copy link, the device's own Share where it has one, and Everything into the kit,
   `share/event-share-sheet.tsx`, which holds the downloads, the designer and the custom link). Every door to it reads
-  Invite: the header's code, the sticky row's pill, the launch list (`share/invite-button.tsx`) and the dashboard card's
-  QR chip, which opens the card in place. ★ Never draw the code in a second sharing surface, or a fix lands in only one
+  Invite: the header's code, the sticky row's pill, the checklist's code row (`share/invite-button.tsx`), Settings'
+  fifth step (which closes Settings first) and the dashboard card's QR chip, which opens the card in place. ★ Never draw the code in a second sharing surface, or a fix lands in only one
   of them.
-- **Settings is four sentences** (`event-settings/`): Who can get in, What guests can add, The highlight reel and The
+- **Settings is five steps** (`event-settings/`): Who can get in, What guests can add, The highlight reel and The
   event, each row one sentence (`settingsSentence`, the one home) whose underlined words are live controls
-  (`SettingWord`) and whose row opens its own page with a back arrow (`PopupHeader`'s `up`). Every control saves
+  (`SettingWord`) and whose row opens its own page with a back arrow (`PopupHeader`'s `up`), then the code. The rows are
+  numbered down one rail and ticked once ready, by the checklist's own function (`settingsReadiness`: the server's
+  facts, the album's live counts over them, Settings' optimistic values over both, so a step ticks the moment its
+  choice is made; room is the plan's and stays on the hub). Every page ends in Next (`nextSettingsPage`), a page move
+  like a row's, and the fourth's, Next: The code, closes Settings onto the code card, as the code's own row does. Every control saves
   itself (no form, no Save): `SettingsProvider` lays an optimistic overlay over the server row, a key dropped once the
   row catches up, with a sequence per key so a late answer never undoes a newer choice; a text field saves when it is
   left. ★ A setting with no effect right now stays in view as one quiet line under the switch that governs it
@@ -274,10 +237,18 @@ beneath, newest first.
   of the header, the pill and the modal carries the name at a time (a duplicate makes the browser skip the transition).
   ★ Its entrance is the one sanctioned hole in the floating-layer contract: `floatingTransitionEntrance` declares no
   animation, because the transition is the entrance, and falls back to the standard clock under reduced motion.
-- **Before the first photograph the album's place is a launch list** (`event-feed/launch-list.tsx`), derived from the
-  event's own nulls so it lists only what is left (the date, the note, printing the table cards, always last because
-  the app cannot observe it done). It is a server component passed as a slot, so the client `EventUploads` never needs
-  the event's fields. A held-only event shows "Everything's in Review": it is full, not empty.
+- **The checklist stands at the head of the hub until the event is done** (`event-feed/checklist.tsx`, under the cards):
+  the whole list while the album is empty, one line with a ring once it has photos (Show unfolds it), gone once
+  everything is done. ★ Ready is one pure function (`lib/events/readiness.ts`) the checklist, Settings' steps, the
+  Settings card and Create's hand-off all read, never stored and never shown to a guest; ready waits only on what a
+  guest needs (a door she can pass, uploads open, the code opened once, room once the shelf is full), and the first
+  photos and the welcome are worth doing, never a gate. ★ Every fact is already read: the code ticks at its first open,
+  the header's own Views number (the host's test scan included), and the first photos ride the album store's live
+  counts (`useLiveReadyFacts`), so they tick with nothing refreshed; the code's tick waits for the hub's next render.
+  ★ It never leaves under her eyes (finished while she looks, it stays ticked for the visit), and from the day after
+  the event's date it is not drawn (`checklistOver`, the viewer's day): an album paused after the party is finished,
+  not unready. The album's empty place is its own ("No photos yet", `EventUploads`); a held-only event shows
+  "Everything's in Review": it is full, not empty.
 - ★ **The hub is live: an upload lands while the host looks, and nothing refreshes the page.** The album is the page's
   store (`event-feed/host-album.tsx`, its pure half `lib/event/hub-album.ts`), seeded with the host's first sync and
   its validator, and moved by `sync()` on the guest's Realtime doorbell, a fallback poll (12s with the socket down, 60s
@@ -309,8 +280,9 @@ beneath, newest first.
   ctrl and the wheel, in the per-device `pr_tile_size` cookie painted by the hub, never localStorage, which would
   repaint after hydration), Sort (Newest or Oldest first: the manifest reversed and laid from its start, so an arrival
   lands at the end; it resets each visit) and Filter (All, Deleted).
-- **SSR'd surfaces use native `title` only**, never a radix Tooltip (the hydration regression in
-  [architecture.md](architecture.md)); rich client UI is safe inside its islands.
+- **SSR'd surfaces paint native `title` only**, never a radix Tooltip in the server's paint (the hydration regression
+  in [architecture.md](architecture.md)): one mounts there only after hydration (`useHydrated`, the bulk bar and the
+  code's mark); rich client UI is safe inside its islands.
 
 ## The door, the host's side
 
@@ -363,9 +335,13 @@ visitor-facing "Private" never collides.
 `media.status` is `pending | approved | hidden | removed`; `create_media` sets pending or approved from the event's
 `moderation_mode`.
 
-- **The Review room** reads and presigns the `pending` slice alone, whole; its states (pending, caught up, moderation
+- **The Review room** reads and presigns the `pending` slice alone, whole, and credits it by those ids alone
+  (`readAlbumAttribution`, never the whole album's); its states (pending, caught up, moderation
   off with a one-tap "Turn on review", the all-caught-up beat) live in `use-review-triage.ts`, its pure rules in
-  `review-queue.ts`. Its grid is the shared `SelectableMediaGrid` on the uniform layout, because uniform tiles
+  `review-queue.ts`. ★ The room draws its own title, the page's one heading, in every state, with the queue's count
+  beside it and its actions on its row (the page drew one over the room's amber label: Review twice); in a hand the
+  actions take their own row, since the bulk bar is wider than the browse duo and beside the title it wrapped the row
+  on Select. Its grid is the shared `SelectableMediaGrid` on the uniform layout, because uniform tiles
   standardize the selection targets and scan fast. Over the queue, while there is one, sits its one line of advice,
   "Anything you approve can still be hidden later." (`REVIEW_NOTE`, Will's host note: so a host is lenient toward
   approve-and-hide over reject), a sentence and never a hint row.

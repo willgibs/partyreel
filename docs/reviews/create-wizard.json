@@ -1,0 +1,34 @@
+{
+  "board": "create-wizard",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-10-02",
+      "answers": [
+        {
+          "ask": "shape",
+          "choice": "screen",
+          "note": "Much better direction, though some of these screens (how guests add, code's look, the beat) could all be improved. May be bettwer design to always keep the question up top so users aren't searching for the spot of the new one in a centered group each time, keeping the button at the bottom, and using the center space as needed. The name screen, for example, would be \"Name your event\" up top, input center, continue bottom. Then on the next screen for how guests add, the 'How will guests add photos\" will also be at the top and give more space in the center for clearer UI. Knowing we're giving it a room of its own, think we could use a second-layer exploration to design that room experience flow perfectly. Love the subtle steppers up top now, question would be a bit below that, lower at the top.",
+          "by": "Will",
+          "at": "2026-10-02T18:55:56Z"
+        },
+        {
+          "ask": "mode",
+          "choice": "night",
+          "by": "Will",
+          "at": "2026-10-02T18:55:56Z"
+        },
+        {
+          "ask": "hand",
+          "choice": "lit",
+          "note": "I like this direction more because once they've created their event, we'd rather continue funneling them into the event rather than stop here and ask them to simply explore the guest experience. This screen presents more cleanly with less going on (first win), but also keeps hosts in the event flow where they can explore the event as a guest from their (ideally) completed host event page rather than mid-setup. That should feel like a final payoff, not mid-point distraction.",
+          "by": "Will",
+          "at": "2026-10-02T18:55:56Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
+    }
+  ]
+}

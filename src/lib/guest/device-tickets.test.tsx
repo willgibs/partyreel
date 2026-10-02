@@ -10,6 +10,12 @@
  * ★ THE SHARED PHONE'S ANSWERS GO WITH THEIR TICKETS (shared-claims): a "Not mine" is remembered on
  * the album whose ticket it answered, so the ticket put down takes its answer with it, and the next
  * person on the phone starts with neither.
+ *
+ * ★ AND SO DOES THE WELCOME (crumbs-43, reshaped on purpose: these pins held `pr_welcome_` among the
+ * survivors, "not tickets"). The welcome carries the consent line every guest passes once, so "seen"
+ * is the person's, and the next person on a shared phone skipped it, consent line and all. The scar
+ * kept: what is not a person's (the device id, the theme) still survives every act below; the expired
+ * reason dropped: that the welcome was the phone's.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -37,8 +43,10 @@ function seedTwoTickets() {
   // An account's "Not mine" to each ticket (claim-ask.ts): answers beside tickets, not tickets.
   localStorage.setItem(`pr_not_mine_${QR_A}`, JSON.stringify(["acct-1"]));
   localStorage.setItem(`pr_not_mine_${QR_B}`, JSON.stringify(["acct-1"]));
-  // Not tickets: these must survive every act below.
+  // Each album's welcome, seen by the person holding its ticket (use-welcome-seen.ts).
   localStorage.setItem(`pr_welcome_${QR_A}`, "1");
+  localStorage.setItem(`pr_welcome_${QR_B}`, "1");
+  // Not a person's: these must survive every act below.
   localStorage.setItem("pr_device_id", "device-1");
   localStorage.setItem("theme", "dark");
 }
@@ -65,7 +73,7 @@ describe("storedKeysWithPrefixes", () => {
 });
 
 describe("the sign-out: every ticket on the device", () => {
-  it("★ forgetGuestTickets clears every token, name, address flag and the prefill, and nothing else", () => {
+  it("★ forgetGuestTickets clears every token, name, address flag, the prefill and every welcome, and nothing else", () => {
     seedTwoTickets();
     forgetGuestTickets();
     for (const key of [
@@ -77,10 +85,11 @@ describe("the sign-out: every ticket on the device", () => {
       `pr_guest_email_attached_${QR_B}`,
       `pr_not_mine_${QR_A}`,
       `pr_not_mine_${QR_B}`,
+      `pr_welcome_${QR_A}`,
+      `pr_welcome_${QR_B}`,
     ]) {
       expect(localStorage.getItem(key), key).toBeNull();
     }
-    expect(localStorage.getItem(`pr_welcome_${QR_A}`)).toBe("1");
     expect(localStorage.getItem("pr_device_id")).toBe("device-1");
     expect(localStorage.getItem("theme")).toBe("dark");
   });
@@ -117,11 +126,22 @@ describe("a refused ticket: that event's alone", () => {
     expect(localStorage.getItem(`pr_guest_name_${QR_A}`)).toBeNull();
     expect(localStorage.getItem(`pr_guest_email_attached_${QR_A}`)).toBeNull();
     expect(localStorage.getItem(`pr_not_mine_${QR_A}`)).toBeNull();
+    // The person who saw this album's welcome is not the one at the door now.
+    expect(localStorage.getItem(`pr_welcome_${QR_A}`)).toBeNull();
     expect(leaveCalls()).toEqual([{ qr_token: QR_A }]);
     // The other event's ticket is somebody's too, and it is not this refusal's to touch.
     expect(localStorage.getItem(`pr_session_${QR_B}`)).toBe("b".repeat(64));
     expect(localStorage.getItem(`pr_guest_name_${QR_B}`)).toBe("Sam");
     expect(localStorage.getItem(`pr_not_mine_${QR_B}`)).toBe('["acct-1"]');
+    expect(localStorage.getItem(`pr_welcome_${QR_B}`)).toBe("1");
+    expect(localStorage.getItem("pr_device_id")).toBe("device-1");
+  });
+
+  it("keeps the welcome for the person at the door's name step, who has just passed it", async () => {
+    seedTwoTickets();
+    await dropGuestTicket(QR_A, { keepWelcome: true });
+    expect(localStorage.getItem(`pr_session_${QR_A}`)).toBeNull();
+    expect(localStorage.getItem(`pr_welcome_${QR_A}`)).toBe("1");
   });
 
   it("★ the prefill goes with it when it IS that ticket's name, so the door never offers the last owner's", () => {

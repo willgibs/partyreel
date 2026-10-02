@@ -104,7 +104,9 @@ export default function EventsHub() {
 
       <EventDoor singular="event" angle={EVENTS_HUB.reelAngle} />
 
+      {/* `id="faq"`: the footer's FAQ link lands here on the hub (`OWN_FAQ_ROUTES`). */}
       <SectionShell
+        id="faq"
         width="narrow"
         eyebrow="FAQ"
         heading="Common questions"

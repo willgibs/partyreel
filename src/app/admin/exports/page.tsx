@@ -18,8 +18,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import Link from "next/link";
+
 import { PageHeading } from "@/components/shared/page-heading";
+import { healthLabel, jobById, type JobId } from "@/app/admin/jobs/catalog";
 import { requireAdmin } from "@/lib/auth/admin-context";
+import { readPendingWork } from "@/lib/admin/pending";
+import { HEALTH_BADGE } from "@/lib/admin/tone";
 import {
   countExportRejections24h,
   getExportEnabled,
@@ -32,32 +37,34 @@ import { formatBytes } from "@/lib/utils";
 import { ExportKillSwitch } from "./export-kill-switch";
 import { LiveReelKillSwitch } from "./live-reel-kill-switch";
 import { getLiveReelEnabled } from "./live-reel-status";
+import { outcomeWord } from "./outcome-word";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Exports" };
 
-// Human label for an export_log outcome (the mint route's vocabulary).
-const OUTCOME_LABEL: Record<string, string> = {
-  minted: "Downloaded",
-  rejected_mode: "Paused",
-  rejected_cap: "Too large",
-  rejected_empty: "Empty",
-  rate_limited: "Rate limited",
-};
+/** The two jobs this page's work reports through (`app/admin/jobs/catalog.ts`). */
+const HEALTH_OF: { id: JobId; what: string }[] = [
+  { id: "export", what: "The Worker" },
+  { id: "export_delivery", what: "Downloads, 24h" },
+];
 
-// Backend-job observability for "Download all" (P8): the recent-exports log + the platform kill-switch.
-// The Worker can't reach the DB, so the mint routes are the choke point that writes export_log; Worker
-// stream errors live in the Cloudflare dashboard.
+// Backend-job observability for "Download all" (P8): the recent-exports log, the platform kill-switch, and
+// (`export-ends`) what the Worker saw: each row's outcome is the furthest anyone saw (`outcome-word.ts`), and
+// the card carries the Worker's daily heartbeat and the downloads' signal, the same verdicts /admin/jobs
+// draws (`readPendingWork`, read once per request with the layout's).
 export default async function ExportsPage() {
   const ctx = await requireAdmin();
   if (ctx.aal !== "aal2") return null;
 
-  const [enabled, rejections, recent, liveReelEnabled] = await Promise.all([
-    getExportEnabled(),
-    countExportRejections24h(),
-    listRecentExports(50),
-    getLiveReelEnabled(),
-  ]);
+  const [enabled, rejections, recent, liveReelEnabled, pending] =
+    await Promise.all([
+      getExportEnabled(),
+      countExportRejections24h(),
+      listRecentExports(50),
+      getLiveReelEnabled(),
+      readPendingWork(),
+    ]);
+  const health = pending.health;
 
   return (
     <div className="max-w-3xl space-y-6">
@@ -81,8 +88,39 @@ export default async function ExportsPage() {
             in-progress downloads finish.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <ExportKillSwitch enabled={enabled} />
+          {/* The heartbeat beside the switch it shares (`export_enabled` pauses both). An unreadable
+              console says so in words, never as a healthy chip. */}
+          <dl className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+            {HEALTH_OF.map(({ id, what }) => {
+              const def = jobById(id);
+              const verdict = health.readable ? health.byId?.[id] : undefined;
+              return (
+                <div key={id} className="flex items-center gap-2">
+                  <dt className="text-muted-foreground">{what}</dt>
+                  <dd>
+                    {def && verdict ? (
+                      <Badge variant={HEALTH_BADGE[verdict]}>
+                        {healthLabel(def, verdict)}
+                      </Badge>
+                    ) : (
+                      <Badge variant="destructive">Unreadable</Badge>
+                    )}
+                  </dd>
+                </div>
+              );
+            })}
+            <div>
+              <Link
+                href="/admin/jobs#job-export"
+                prefetch={false}
+                className="text-muted-foreground underline-offset-4 hover:underline"
+              >
+                On Jobs
+              </Link>
+            </div>
+          </dl>
         </CardContent>
       </Card>
 
@@ -117,8 +155,9 @@ export default async function ExportsPage() {
             ) : null}
           </CardTitle>
           <CardDescription>
-            The last {recent.length || 0} download attempts. A request hashes
-            the IP, so no raw addresses are stored.
+            The last {recent.length || 0} download attempts, each as far as
+            anyone saw it: refused, or the Worker’s word on its check and
+            its stream. A request hashes the IP, so no raw addresses are stored.
           </CardDescription>
         </CardHeader>
         <CardContent className="px-0">
@@ -139,45 +178,41 @@ export default async function ExportsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {recent.map((r) => (
-                  <TableRow
-                    key={r.id}
-                    // A refusal tints its row: the point of this log is to find
-                    // the ones that did not work by scrolling, not by reading.
-                    tone={r.outcome === "minted" ? undefined : "warning"}
-                  >
-                    <TableCell className="whitespace-nowrap text-muted-foreground">
-                      {formatAdminTimestamp(r.created_at)}
-                    </TableCell>
-                    <TableCell className="capitalize">{r.scope}</TableCell>
-                    <TableCell>
-                      {r.eventName ?? (
-                        <span className="text-muted-foreground">
-                          {r.eventId
-                            ? `${r.eventId.slice(0, 8)}\u2026`
-                            : "unknown"}
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {r.itemCount ? formatCount(r.itemCount) : ""}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {r.totalBytes ? formatBytes(r.totalBytes) : ""}
-                    </TableCell>
-                    <TableCell>
-                      {r.outcome === "minted" ? (
-                        <Badge variant="success">
-                          {OUTCOME_LABEL[r.outcome]}
-                        </Badge>
-                      ) : (
-                        <Badge variant="warning">
-                          {OUTCOME_LABEL[r.outcome] ?? r.outcome}
-                        </Badge>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {recent.map((r) => {
+                  const word = outcomeWord(r);
+                  return (
+                    <TableRow
+                      key={r.id}
+                      // A refusal or a zip that did not arrive whole tints its row: the
+                      // point of this log is to find the ones that did not work by
+                      // scrolling, not by reading.
+                      tone={word.row}
+                    >
+                      <TableCell className="whitespace-nowrap text-muted-foreground">
+                        {formatAdminTimestamp(r.created_at)}
+                      </TableCell>
+                      <TableCell className="capitalize">{r.scope}</TableCell>
+                      <TableCell>
+                        {r.eventName ?? (
+                          <span className="text-muted-foreground">
+                            {r.eventId
+                              ? `${r.eventId.slice(0, 8)}\u2026`
+                              : "unknown"}
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {r.itemCount ? formatCount(r.itemCount) : ""}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {r.totalBytes ? formatBytes(r.totalBytes) : ""}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={word.badge}>{word.label}</Badge>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}

@@ -258,14 +258,15 @@ export async function restoreMediaAction(
 /**
  * restore_event is all-or-nothing over the event, but media removed INDEPENDENTLY of the
  * event stay in the bin (lifecycle-recovery.md): the RPC reports how many as
- * `media_still_removed`, and a host who restores an event with 12 of its photos still
- * binned is told "Event restored." That count reached this action and stopped here.
+ * `media_still_removed`, counted as her Deleted lists them, and the toast
+ * (`RestoreEventButton`) says how many are still in the album's Deleted, or a host who
+ * restored an event with 12 of its photos still binned was told "Event restored." alone.
  *
- * `customSlugReleased` carries further, into the toast (`RestoreEventButton`): a soft-deleted
- * event's custom slug is freed at once (host-app.md), so another event may have claimed it
- * while this one sat in Deleted, and the RPC comes back on the permanent link rather than
- * failing the restore. Silent, that is a link that quietly stopped working; the host has to
- * hear it from the one surface that knows, at the moment it happens.
+ * `customSlugReleased` carries into the same toast: a soft-deleted event's custom slug is
+ * freed at once (host-app.md), so another event may have claimed it while this one sat in
+ * Deleted, and the RPC comes back on the permanent link rather than failing the restore.
+ * Silent, that is a link that quietly stopped working; the host has to hear it from the one
+ * surface that knows, at the moment it happens.
  *
  * So this action has its OWN result type. The shared ActionResult stays `{ ok: true }`
  * deliberately: it is the contract of a dozen form actions, and widening it to carry one

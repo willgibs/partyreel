@@ -239,9 +239,11 @@ describe("the bin's viewer carries its two verbs", () => {
     fireEvent.click(
       within(capsule()!).getByRole("button", { name: "Restore" }),
     );
-    // Closed first (its address with it), as the album's viewer closes for Remove.
-    expect(window.location.search).not.toContain("photo=");
-    await act(async () => {});
+    // Closed first, as the album's viewer closes for Remove, its address leaving with its entry (crumbs-43,
+    // reshaped on purpose: the viewer stands on an entry of its own and a close goes Back over it, so the address
+    // clears as that Back lands rather than in the same tick; the scar kept: closed first, address and all).
+    expect(document.querySelector("[data-lightbox-content]")).toBeNull();
+    await waitFor(() => expect(window.location.search).not.toContain("photo="));
     expect(restoreMediaAction).toHaveBeenCalledWith("e1", id(1));
     expect(onGone).toHaveBeenCalledWith(id(1));
     expect(onRestored).toHaveBeenCalledTimes(1);

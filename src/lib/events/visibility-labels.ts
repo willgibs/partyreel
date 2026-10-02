@@ -5,15 +5,16 @@ import {
   type DoorStep,
   type PrivateGate,
 } from "@/lib/event/door/door";
+import { peopleWaiting } from "@/lib/event/door/words";
 
 /**
  * THE DOOR'S WORDS, SINGLE-SOURCED: the settings, the hub, the Library and marketing's plates all read
  * this one module, and nothing re-types a door word next to the data. Server-safe on purpose (no "use
  * client"), so an RSC dots into it as readily as the door page.
  *
- * ★ "Open" is never a door word: it is the ACCEPTING-UPLOADS state (the event card's Open/Closed). The two
- * were written separately once, and the settings said Public while the event header said Open for the
- * same row ("Public sounds much clearer than open"). The data's `open` reads Public.
+ * ★ "Open" is never a door word: it is the ACCEPTING-UPLOADS state (`uploadsLabel`, the event card's Open and
+ * Paused). The two were written separately once, and the settings said Public while the event header said
+ * Open for the same row ("Public sounds much clearer than open"). The data's `open` reads Public.
  */
 
 /* ── the door, in steps (event-settings r1, Will 2026-09-29, `join=steps`) ─────────────────────── */
@@ -90,4 +91,64 @@ export function doorLabel(door: Door): string {
   const gate = gateOf(door);
   if (step !== "private" || !gate) return DOOR_STEP_LABELS[step];
   return `${DOOR_STEP_LABELS.private} · ${DOOR_GATE_SHORT[gate]}`;
+}
+
+/* ── whether guests can add, beside the door ────────────────────────────────────────────────────── */
+
+/**
+ * WHETHER GUESTS CAN ADD, IN ONE WORD: the dashboard card's (crumbs-42, from `event-ready`). Open while
+ * they can; Paused while the host has paused uploads, the word Settings' own sentence says ("Paused.
+ * Guests can still look."). ★ Never "Closed": that is the door's word for Only people already in
+ * ("Private · Closed", above), and the card that said it for paused uploads told a host her door had shut.
+ */
+export function uploadsLabel(acceptingUploads: boolean): "Open" | "Paused" {
+  return acceptingUploads ? "Open" : "Paused";
+}
+
+/* ── the code as the door (event-ready, `door=mark`, Will 2026-10-02) ─────────────────────────────── */
+
+/** The glyph on the code's corner: a closed eye for Only me, a pause for paused uploads, a lock for a gate. */
+export type CodeMarkGlyph = "only-me" | "paused" | "gate";
+
+export type CodeMark = {
+  glyph: CodeMarkGlyph;
+  /** People waiting at a gate for the host, drawn beside the glyph in the needs-action tone; 0 for none. */
+  waiting: number;
+  /** What the mark means, whole: its tooltip, its tap and its accessible name. */
+  words: string;
+};
+
+/**
+ * WHAT THE HUB'S CODE WEARS ON ITS CORNER, or null for a Public album taking uploads, which needs no mark.
+ * His note: "the mark keeps the header from getting too crowded with text where icons will likely work 99%
+ * of the time, and we could add tooltips to clarify on the mark". So the glyph is the glance and these words
+ * are the clarification, said in the door's own words from this one home.
+ *
+ * ★ ONE GLYPH, THE STRONGEST: Only me (no guest gets in at all) over paused uploads (guests get in and
+ * cannot add) over a gate (guests get in past it). The words say all of what holds, so a paused Private
+ * album still names its gate. The waiting count is a gate's alone: Public lets everyone waiting in, and
+ * nobody waits at Only me.
+ */
+export function codeMark(input: {
+  door: Door;
+  acceptingUploads: boolean;
+  waiting: number;
+}): CodeMark | null {
+  if (stepOf(input.door) === "only_me") {
+    return { glyph: "only-me", waiting: 0, words: DOOR_STEP_LINES.only_me };
+  }
+  const gate = gateOf(input.door);
+  const paused = !input.acceptingUploads;
+  if (!gate && !paused) return null;
+  const waiting = gate && input.waiting > 0 ? input.waiting : 0;
+  const words = [
+    paused ? "Uploads paused. Guests can still look." : null,
+    gate
+      ? `${DOOR_STEP_LABELS.private}: ${GATE_LABELS[gate].toLowerCase()}.`
+      : null,
+    waiting > 0 ? `${peopleWaiting(waiting)} at the door.` : null,
+  ]
+    .filter(Boolean)
+    .join(" ");
+  return { glyph: paused ? "paused" : "gate", waiting, words };
 }

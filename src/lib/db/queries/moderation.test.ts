@@ -154,6 +154,60 @@ describe("getAlbumForModeration", () => {
     expect(past?.position).toBe(2500);
   });
 
+  // ★ ONE STATUS AT A TIME (crumbs-41, a board idea from crumbs-37): the album's 200 removed items are its oldest, so
+  // unfiltered they sit four pages deep; narrowed, they are the first page, and every status pages the same keyset.
+  it("★ narrows to one status, its oldest items on its first page, and pages it whole; the counts stay the album's", async () => {
+    const media = album(2500);
+    fake = createFakePostgrest({
+      tables: {
+        events: [
+          { id: EVENT, host_id: "host-1", name: "Big one", deleted_at: null },
+        ],
+        media,
+        profiles: [],
+      },
+    });
+    const inDisplayOrder = (status: string) =>
+      [...media]
+        .filter((m) => m.status === status)
+        .sort((a, b) =>
+          a.created_at === b.created_at
+            ? String(b.id).localeCompare(String(a.id))
+            : String(b.created_at).localeCompare(String(a.created_at)),
+        )
+        .map((m) => m.id);
+
+    const removed = await getAlbumForModeration(EVENT, null, null, "removed");
+    expect(removed?.media.map((m) => m.id)).toEqual(inDisplayOrder("removed"));
+    expect(removed?.media.every((m) => m.status === "removed")).toBe(true);
+    expect(removed?.next).toBeNull();
+    expect(removed?.counts).toEqual({
+      pending: 700,
+      approved: 1300,
+      hidden: 300,
+      removed: 200,
+    });
+
+    // The commonest status pages across several, every item once, each page's place counted within the status.
+    const walked: string[] = [];
+    const positions: number[] = [];
+    let page = await getAlbumForModeration(EVENT, null, null, "approved");
+    for (;;) {
+      positions.push(page?.position ?? -1);
+      walked.push(...(page?.media ?? []).map((m) => m.id));
+      if (!page?.next) break;
+      page = await getAlbumForModeration(
+        EVENT,
+        page.next.at,
+        page.next.id,
+        "approved",
+      );
+    }
+    expect(positions).toEqual([0, 500, 1000]);
+    expect(walked).toEqual(inDisplayOrder("approved"));
+    expect(fake.requests.every((r) => !r.failed)).toBe(true);
+  });
+
   it("null for a deleted or missing album, and nothing else is read", async () => {
     fake = createFakePostgrest({ tables: { events: [], media: album(3) } });
     await expect(getAlbumForModeration(EVENT)).resolves.toBeNull();

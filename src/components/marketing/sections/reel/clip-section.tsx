@@ -3,13 +3,14 @@ import Image from "next/image";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 
+import { clipTermsFor } from "@/components/marketing/sections/pricing/clip-terms";
 import { EVENT_NAME } from "@/components/marketing/sections/how-it-works/picture-parts";
 import { Eyebrow } from "@/components/marketing/system/eyebrow";
 import { MediaSplit } from "@/components/marketing/system/media-split";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { marketingImage } from "@/lib/constants/marketing-media";
-import { MAX_REEL_SECONDS, TIER_NAMES, type Tier } from "@/lib/constants/tiers";
+import { TIER_NAMES, type Tier } from "@/lib/constants/tiers";
 import { STYLE_CATALOG } from "@/lib/reel/engine/style-registry";
 
 /**
@@ -26,15 +27,14 @@ import { STYLE_CATALOG } from "@/lib/reel/engine/style-registry";
  *
  * The plan table is `reel-story` r1 `pricing=renamed`: the rows describe the
  * CLIP, never the live reel, which plays with no cap and no mark on any plan.
- * Lengths come from MAX_REEL_SECONDS and names from TIER_NAMES (tiers.ts is the
- * single source; a typed 30 or 60 here is the drift the table exists to stop).
+ * One column per plan's clips, their length and their mark together
+ * (`clipTermsFor`, the pricing table's own phrase): every plan's length is the
+ * same, so a length column of its own read "60 seconds" down the table and
+ * compared nothing. Both halves come from the creator's own facts and the names
+ * from TIER_NAMES, so no length or mark is typed here.
  */
 
-const ROWS: { tier: Tier; mark: string }[] = [
-  { tier: "free", mark: "Small mark" },
-  { tier: "event_pass", mark: "None" },
-  { tier: "pro", mark: "None" },
-];
+const TIERS: readonly Tier[] = ["free", "event_pass", "pro"];
 
 /** The column name repeated inside a cell for the stacked phone layout only
  *  (display:none from sm up, so the desktop table is byte-identical). */
@@ -160,35 +160,30 @@ export function ClipSection() {
                     Plan
                   </th>
                   <th scope="col" className="px-4 py-3 font-medium">
-                    Clip length
-                  </th>
-                  <th scope="col" className="px-4 py-3 font-medium">
-                    Clip watermark
+                    Clips
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {ROWS.map((row) => (
+                {TIERS.map((tier) => (
                   <tr
-                    key={row.tier}
+                    key={tier}
                     className="border-b last:border-0 max-sm:block max-sm:py-2"
                   >
                     <th
                       scope="row"
                       className="px-4 py-3 text-left font-medium whitespace-nowrap max-sm:block max-sm:pt-2 max-sm:pb-1"
                     >
-                      {TIER_NAMES[row.tier]}
+                      {TIER_NAMES[tier]}
                     </th>
                     <td className="px-4 py-3 tabular-nums max-sm:flex max-sm:items-baseline max-sm:justify-between max-sm:gap-4 max-sm:py-1">
-                      {/* ONE span on purpose: as bare text nodes the number and
-                          "seconds" became separate flex items below sm and
+                      {/* ONE span on purpose: as bare text nodes the phrase's
+                          parts became separate flex items below sm and
                           justify-between blew them apart. */}
-                      <RowLabel>Clip length</RowLabel>
-                      <span>{MAX_REEL_SECONDS[row.tier]} seconds</span>
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground max-sm:flex max-sm:items-baseline max-sm:justify-between max-sm:gap-4 max-sm:py-1">
-                      <RowLabel>Clip watermark</RowLabel>
-                      <span className="max-sm:text-right">{row.mark}</span>
+                      <RowLabel>Clips</RowLabel>
+                      <span className="max-sm:text-right">
+                        {clipTermsFor(tier)}
+                      </span>
                     </td>
                   </tr>
                 ))}

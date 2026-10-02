@@ -37,7 +37,7 @@ vi.mock("@/lib/supabase/avatar-storage", () => ({
   removeAvatar: vi.fn(async () => undefined),
 }));
 vi.mock("@/lib/stripe/account-cancel", () => ({
-  cancelSubscriptionForDeletion: vi.fn(async () => ({ status: "none" })),
+  cancelSubscriptionsForDeletion: vi.fn(async () => ({ status: "none" })),
 }));
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => asSupabase(state.fake!),
@@ -232,6 +232,49 @@ describe("requestAccountDeletion takes the address with it (lp/identity-email)",
       (call) => (call[2] as { step?: string } | undefined)?.step,
     );
     expect(steps).toContain("account_deletion_scrub");
+  });
+});
+
+/**
+ * ★ THE PLAN GOES FIRST, EVERY SUBSCRIPTION OF IT (crumbs-41, from `hardening`): two Checkout tabs can leave a host
+ * paying twice while the profile follows one, so the cancel is handed the customer itself, not only the subscription
+ * the profile follows, and a cancel that fails stops the request before anything is destroyed.
+ */
+describe("requestAccountDeletion cancels every live subscription first", () => {
+  it("★ hands the cancel the profile's customer and the subscription it follows", async () => {
+    const fake = world(1);
+    Object.assign(fake.tables.profiles[0], {
+      stripe_customer_id: "cus_1",
+      stripe_subscription_id: "sub_followed",
+    });
+    const { cancelSubscriptionsForDeletion } =
+      await import("@/lib/stripe/account-cancel");
+    vi.mocked(cancelSubscriptionsForDeletion).mockClear();
+    await expect(
+      requestAccountDeletion({ userId: USER, actor: "self" }),
+    ).resolves.toMatchObject({ ok: true });
+    expect(cancelSubscriptionsForDeletion).toHaveBeenCalledWith({
+      customerId: "cus_1",
+      subscriptionId: "sub_followed",
+    });
+  });
+
+  it("★ a cancel that fails on any subscription stops the request before the stamp, and destroys nothing", async () => {
+    const fake = world(2);
+    Object.assign(fake.tables.profiles[0], { stripe_customer_id: "cus_1" });
+    const { cancelSubscriptionsForDeletion } =
+      await import("@/lib/stripe/account-cancel");
+    vi.mocked(cancelSubscriptionsForDeletion).mockResolvedValueOnce({
+      status: "failed",
+      subscriptionId: "sub_second_tab",
+      message: "Stripe is unreachable.",
+    });
+    await expect(
+      requestAccountDeletion({ userId: USER, actor: "self" }),
+    ).resolves.toMatchObject({ ok: false, code: "subscription" });
+    expect(fake.tables.profiles[0].deletion_requested_at).toBeNull();
+    expect(state.softDeleted).toEqual([]);
+    expect(state.banned).toEqual([]);
   });
 });
 

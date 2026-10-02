@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   AlertCircle,
@@ -38,14 +38,9 @@ type Item = {
 export function HostUpload({
   eventId,
   videosAllowed,
-  onUploadingCountChange,
 }: {
   eventId: string;
   videosAllowed: boolean;
-  // Reports the in-flight count (queued + uploading) so a parent can mirror it:
-  // `event-gallery.tsx` hands it to `HostAddProvider`, which no surface reads since
-  // the floating Add pill (its "N uploading" chip) retired.
-  onUploadingCountChange?: (count: number) => void;
 }) {
   const router = useRouter();
   // The provider holds this panel's box for the reel card's Add photos (`openAdd`).
@@ -102,15 +97,6 @@ export function HostUpload({
     }
     if (anySucceeded) router.refresh();
   }, [patch, eventId, router]);
-
-  // Mirror the in-flight count up (queued + uploading) for a parent that shows it.
-  useEffect(() => {
-    if (!onUploadingCountChange) return;
-    onUploadingCountChange(
-      items.filter((it) => it.status === "queued" || it.status === "uploading")
-        .length,
-    );
-  }, [items, onUploadingCountChange]);
 
   const addFiles = useCallback(
     (files: File[]) => {

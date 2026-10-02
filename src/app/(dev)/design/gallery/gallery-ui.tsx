@@ -24,6 +24,13 @@ import { specimenCode } from "./specimen-code";
  * Every block's heading carries `id="c-<id>"`, which puts every component of
  * a family in the table of contents and gives the family page a deep link per
  * component.
+ *
+ * ★ BOTH OF AN ENTRY'S LINKS SAY `prefetch={false}` (crumbs-49). `link()` puts
+ * the lab key on the href, so a prefetching `<Link>` is a keyed server render
+ * of that entry's Library page the moment it scrolls into view, and Next's
+ * keyless sibling besides, which `prefetch-guard.tsx` has to answer; a family
+ * page draws two per entry. A press still navigates in place.
+ * `prefetch-policy.test.ts` scans this file.
  */
 
 export function EntryBlock({
@@ -42,13 +49,18 @@ export function EntryBlock({
           id={`c-${entry.id}`}
           className="flex items-baseline gap-2 font-heading text-lg"
         >
-          <Link href={link(item.href)} className="hover:underline">
+          <Link
+            href={link(item.href)}
+            prefetch={false}
+            className="hover:underline"
+          >
             {title}
           </Link>
           {entry.badge && <Tag badge={entry.badge} />}
         </h3>
         <Link
           href={link(item.href)}
+          prefetch={false}
           className="group/open flex items-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
         >
           open

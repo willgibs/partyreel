@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { Dialog as PopupPrimitive } from "radix-ui"
+import { usePortalContainer } from "@/components/ui/portal-container"
 import { ChevronLeftIcon, XIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -315,7 +316,7 @@ function PopupContent({
 
   return (
     <PopupShapeContext.Provider value={shape}>
-      <PopupPrimitive.Portal>
+      <PopupPrimitive.Portal container={usePortalContainer()}>
         <PopupPrimitive.Overlay
           data-slot="popup-overlay"
           data-shape={shape}
@@ -451,6 +452,13 @@ function PopupHeader({
 }) {
   const shape = usePopupShape()
   if (shape === "screen") {
+    const label = up?.label ?? back ?? "Back"
+    // ★ A LINE THAT REPEATS THE ARROW IS NOT DRAWN (crumbs-42, from
+    // event-settings). Settings names its event in its line, the only place a
+    // desk's panel says it, and in a hand its arrow already does: the bar read
+    // "‹ Maya's 30th · Settings" over "Maya's 30th". Such a line stays the
+    // popup's description for a screen reader, out of sight.
+    const echoesArrow = typeof description === "string" && description === label
     const arrow = (
       <Button
         variant="ghost"
@@ -460,7 +468,7 @@ function PopupHeader({
         onClick={up?.onUp}
       >
         <ChevronLeftIcon className="size-5" />
-        <span className="truncate">{up?.label ?? back ?? "Back"}</span>
+        <span className="truncate">{label}</span>
       </Button>
     )
     return (
@@ -494,7 +502,13 @@ function PopupHeader({
           <span aria-hidden />
         </div>
         {description ? (
-          <PopupPrimitive.Description className="px-4 pb-3 text-sm text-pretty text-muted-foreground">
+          <PopupPrimitive.Description
+            className={
+              echoesArrow
+                ? "sr-only"
+                : "px-4 pb-3 text-sm text-pretty text-muted-foreground"
+            }
+          >
             {description}
           </PopupPrimitive.Description>
         ) : null}

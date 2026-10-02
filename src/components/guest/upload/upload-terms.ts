@@ -12,15 +12,13 @@
  * and the house rule is that we never ask an uploader to assert provenance. A
  * sentence about rights on the Add sheet would be a warning on an invitation.
  *
- * ★ THE NUMBER IS THE PRODUCT'S CEILING UNTIL THE HOST'S REACHES THE GUEST.
- * A host may set a STRICTER per-event cap (`events.max_upload_bytes`), and the
- * line should state it in the host's own number — but the guest page never
- * receives it: `get_event_by_qr_token` does not return the column, so honouring
- * it needs a migration, a types regeneration and a query change, all of which
- * are the Orchestrator's to land. `capBytes` is that seam, already wired and
- * already tested: the day the RPC returns the number, one call site passes it
- * and this line is right everywhere at once. Until then it states the universal
- * ceiling, which is true for every event and never over-promises a bigger one.
+ * ★ THE NUMBER IS THE HOST'S WHEN SHE SET ONE (crumbs-43). A host may set a
+ * STRICTER per-event cap (`events.max_upload_bytes`), and the presign holds a
+ * guest's file to it, so the line states it in the host's own number:
+ * `get_event_by_qr_token` carries the column (20261001233000) and the page hands
+ * it in as `capBytes` (never to the host on her own album, whose uploads the cap
+ * exempts). With none it states the universal ceiling, which is true for every
+ * event and never over-promises a bigger one.
  */
 import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
 import { formatBytes } from "@/lib/utils";

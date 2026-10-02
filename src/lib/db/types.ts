@@ -420,6 +420,8 @@ export type Database = {
       }
       export_log: {
         Row: {
+          check_found: number | null
+          checked_at: string | null
           created_at: string
           error: string | null
           event_id: string | null
@@ -429,9 +431,16 @@ export type Database = {
           outcome: string
           requester_hash: string | null
           scope: string
+          stream_ended_at: string | null
+          stream_files: number | null
+          stream_missing: string[] | null
+          stream_outcome: string | null
+          stream_started_at: string | null
           total_bytes: number
         }
         Insert: {
+          check_found?: number | null
+          checked_at?: string | null
           created_at?: string
           error?: string | null
           event_id?: string | null
@@ -441,9 +450,16 @@ export type Database = {
           outcome: string
           requester_hash?: string | null
           scope: string
+          stream_ended_at?: string | null
+          stream_files?: number | null
+          stream_missing?: string[] | null
+          stream_outcome?: string | null
+          stream_started_at?: string | null
           total_bytes?: number
         }
         Update: {
+          check_found?: number | null
+          checked_at?: string | null
           created_at?: string
           error?: string | null
           event_id?: string | null
@@ -453,6 +469,11 @@ export type Database = {
           outcome?: string
           requester_hash?: string | null
           scope?: string
+          stream_ended_at?: string | null
+          stream_files?: number | null
+          stream_missing?: string[] | null
+          stream_outcome?: string | null
+          stream_started_at?: string | null
           total_bytes?: number
         }
         Relationships: []
@@ -1592,6 +1613,7 @@ export type Database = {
           has_password: boolean
           host_display_name: string
           id: string
+          max_upload_bytes: number
           moderation_mode: Database["public"]["Enums"]["moderation_mode"]
           name: string
           qr_style: string

@@ -15,6 +15,10 @@ import { describe, expect, it, vi } from "vitest";
  */
 
 vi.mock("server-only", () => ({}));
+// Her waiting uploads on an empty held album: the page's one read for it (crumbs-43), stood in for here.
+vi.mock("@/lib/guest/waiting-on-arrival.server", () => ({
+  hasWaitingUploads: async () => false,
+}));
 vi.mock("@/lib/events/closed-door.server", () => ({
   pageDoor: async () => null,
 }));

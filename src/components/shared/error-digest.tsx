@@ -18,10 +18,10 @@ import { cn } from "@/lib/utils";
  * `NotFoundScreen` renders this only when a `digest` prop arrives, which only
  * the crash boundaries pass.
  *
- * Three details are load-bearing rather than stylistic, and the precedent for
- * all three is `marketing/press/copy-button.tsx` (which stays its own component:
- * it is a press-page affordance, and a failure screen on the guest, app and
- * admin surfaces should not import marketing):
+ * Three details are load-bearing rather than stylistic (the press page's copy
+ * button, retired when /press folded into /about, taught the same three; a
+ * failure screen on the guest, app and admin surfaces never imports marketing,
+ * so they are kept here):
  *
  *  1. `navigator.clipboard` is undefined outside a secure context and REJECTS
  *     under a locked-down profile or an iframe with no `clipboard-write`

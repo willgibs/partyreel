@@ -359,6 +359,14 @@ export function useUploadQueue({
   useEffect(() => {
     isVerifiedRef.current = isVerified;
   }, [isVerified]);
+  /* ★ NOTHING GOES UP WHILE A DOOR HOLDS HER (`locked-door` r2, Will's `wait=pick`: "Nothing leaves your
+     phone until Maya lets you in"). The held door lets her choose what she will add while she waits,
+     and her ticket there is a waiting one the routes refuse in the private album's words, so a run is
+     never started on it: the picks wait `queued`, and the door's opening starts them (the flip below). */
+  const doorOpenRef = useRef(doorOpen);
+  useEffect(() => {
+    doorOpenRef.current = doorOpen;
+  }, [doorOpen]);
 
   const sync = useCallback((next: QueueItem[]) => {
     itemsRef.current = next;
@@ -494,6 +502,8 @@ export function useUploadQueue({
     processingRef.current = true;
     try {
       for (;;) {
+        // The owner never meets a door; anyone else waits for hers to open (the note above).
+        if (!ownerEventId && !doorOpenRef.current) break;
         const next = itemsRef.current.find((it) => it.status === "queued");
         if (!next) break;
         /* ★ THE TICKET IS READ PER FILE, NEVER ONCE PER RUN. Both re-joins
@@ -629,11 +639,21 @@ export function useUploadQueue({
            run continues on the new token — the guest never learns any of this
            happened, which is right, because nothing about THEM changed.
 
-           ★ A NAME-ONLY GUEST CANNOT. The session is dropped here (so the next
-           Add meets the gate rather than a token that cannot work) and the rest
+           ★ A NAME-ONLY GUEST CANNOT, AND KEEPS HER TICKET (crumbs-43). The rest
            of the run is failed in place with the server's own sentence, so the
            failure sheet opens once, lists everything that did not go, and says
-           the same true thing about all of it.
+           the same true thing about all of it; the page then re-gates (the door
+           asks for her email, and the album's Add is not hers until it opens).
+           The ticket stays: her row is still hers, and only the switch stands
+           in front of it. This used to put the session down, and every road
+           back then minted a second row under the same name (one person twice
+           in the guest list, ROADMAP): the host turning the switch off again
+           sent her next Add through a fresh join, and a confirmation could not
+           claim photographs whose ticket the device no longer held. Kept, the
+           next Add after the switch goes off rides the same row, and the
+           confirmation's claim takes it (`whose_ticket`'s rules, untouched).
+           Every upload asks the switch again (`get_upload_context`), so a kept
+           ticket can never send past it.
            ────────────────────────────────────────────────────────────────── */
         if (outcome.code === VERIFICATION_REQUIRED) {
           if (isVerifiedRef.current && !rejoinedRef.current) {
@@ -648,8 +668,6 @@ export function useUploadQueue({
               continue;
             }
           }
-          sessionRef.current = null;
-          onSession(null);
           const refused = itemsRef.current.map((it) =>
             it.id === next.id || it.status === "queued"
               ? {
@@ -767,6 +785,24 @@ export function useUploadQueue({
     ]);
     onDoorNeeded?.();
   }, [onDoorNeeded, sync]);
+
+  /**
+   * ★ HER CHOICE AT THE HELD DOOR (`locked-door` r2, Will's `wait=pick`: "adds a lot of value to the
+   * waiting door"): what she picked while the host decides, held here as `queued` and sent the moment the
+   * door lets her through (the flip above), never before (the runner's door guard). A new choice replaces
+   * the last one (her Change), so what is held is always exactly what the door shows her. ★ IN THIS TAB
+   * ALONE: a File lives in the page that picked it, so a reload or a closed tab loses the choice, and the
+   * door says so where she makes it.
+   */
+  const holdAtDoor = useCallback(
+    (files: File[]) => {
+      sync([
+        ...itemsRef.current.filter((it) => it.status !== "queued"),
+        ...files.map((file) => queueItem(file)),
+      ]);
+    },
+    [sync],
+  );
 
   /**
    * THE SILENT JOIN, AND IT STAYS NAMELESS.
@@ -913,6 +949,7 @@ export function useUploadQueue({
     progress: progress as QueueProgress,
     addFiles,
     addClip,
+    holdAtDoor,
     retry,
     dismiss,
   };

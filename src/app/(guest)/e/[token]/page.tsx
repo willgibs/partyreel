@@ -5,6 +5,7 @@ import { cookies, headers } from "next/headers";
 import { z } from "zod";
 import { after } from "next/server";
 
+import { DOOR_MAIN } from "@/components/guest/door/door-page";
 import { ShutDoor } from "@/components/guest/door/shut-door";
 import { EventExperience } from "@/components/guest/event-experience";
 import {
@@ -56,6 +57,7 @@ import {
   privateEventCardPath,
 } from "@/lib/guest/event-card";
 import { readGuestSessionCookie } from "@/lib/guest/session-cookie";
+import { hasWaitingUploads } from "@/lib/guest/waiting-on-arrival.server";
 import { PHOTO_PARAM, readPhotoParam } from "@/lib/media/share-save";
 import { presignDownload } from "@/lib/r2/presign";
 import {
@@ -309,24 +311,27 @@ export default async function GuestEventPage({
   // event blocked, and a ticket a block holds, meet it word for word (Will's "Sneaky block"), with
   // the same work (`closed-door.server.ts`).
   //
-  // ★ IT IS THE NOT-FOUND FAMILY, WEARING A LOCK (`door/shut-door.tsx`). It keeps the REAL
-  // GuestHeader (not the failure bar): this render holds a live qr_token and event id, so the header
-  // can resolve a session and a returning host meets their own menu.
+  // ★ IT IS THE DOORWAY, SHUT (`door/shut-door.tsx`, locked-door r2's `family=doorway`): the door the
+  // welcome and the wait stand at, with the light under it. It keeps the REAL GuestHeader (not the
+  // failure bar): this render holds a live qr_token and event id, so the header can resolve a session
+  // and a returning host meets their own menu.
   //
   // ★ SOMEONE THE INVITE LIST DOES NOT NAME meets it too, with her own foot (`locked-door` r2 places
-  // `unlisted=ask` there): "Ask Maya to let me in", or "Use a different email".
+  // `unlisted=ask` there): "Ask Maya to let me in", or "Use a different email". The message above it
+  // names nothing whoever reads it (Will, 2026-10-02: the door shows only what is shown today); the
+  // ask names the host she asks, as it always has.
   const unlistedAsk =
     door.decision.kind === "ask" && door.decision.gate === "invite";
   if (door.decision.kind === "shut" || unlistedAsk) {
     const { user } = await getRequestAuth();
     return (
-      <div className="flex min-h-full flex-1 flex-col">
+      <div data-guest-page="" className="flex min-h-full flex-1 flex-col">
         <GuestHeader
           qrToken={event.qr_token}
           eventId={event.id}
           isDemo={isDemo}
         />
-        <main className="flex flex-1 flex-col items-center justify-center px-5 py-20">
+        <main className={DOOR_MAIN}>
           <ShutDoor
             previous={door.decision.kind === "shut" && door.decision.previous}
             signedIn={Boolean(user)}
@@ -485,9 +490,14 @@ export default async function GuestEventPage({
   // flight payload whether or not the UI renders them - so blank the host name
   // + description + DATE (and skip the avatar read) BEFORE they reach the
   // client. The date is in the redaction because the entry welcome's byline
-  // would otherwise show it on a locked page. ★ A DOOR NAMES ITS HOST: the held
-  // door, the ask and a gate's email step say who lets her in ("Maya will let
-  // you in"), where a password step names nobody.
+  // would otherwise show it on a locked page.
+  //
+  // ★ THE DOOR SHOWS ONLY WHAT IT SHOWED (Will, 2026-10-02, on `locked-door` r2's doorway: "Only what's
+  // shown today"). A DOOR THAT ANSWERS TO THE HOST NAMES THE HOST: the held door, the ask and the email
+  // step where the host lets each guest in or a list keeps say who lets her in ("Maya will let you in"),
+  // and their welcome's byline names her (with no date); a password step names nobody; the shut door
+  // names nothing (above). The door's own re-read gives a gate the album's name and its host
+  // (`closed-door.server.ts`).
   //
   // ★ AND THE DOOR'S PASS NEVER LEAVES THE SERVER: it is the proof the album's own
   // reads ask for, issued to this request alone (`lib/event/door/pass.server.ts`).
@@ -590,8 +600,27 @@ export default async function GuestEventPage({
     needsName = needsDisplayName(menu.displayName);
   }
 
+  // ★ HER WAITING UPLOADS ON AN EMPTY HELD ALBUM, KNOWN BEFORE THE FIRST PAINT (crumbs-43): the album's one Add is
+  // the row's while something of hers waits for the host, and her tracker learns an earlier visit's waiting rows
+  // only after mount, so the page asks here, where it decides anything (`waiting-on-arrival.server.ts` says why).
+  const waitingOnArrival =
+    !isDemo &&
+    !isOwner &&
+    access === "full" &&
+    event.accepting_uploads &&
+    event.moderation_mode === "hold_for_approval" &&
+    stats.approvedTotal === 0
+      ? await hasWaitingUploads({
+          eventId: event.id,
+          userId,
+          ticket: cookieSessionToken,
+        })
+      : false;
+
   return (
-    <div className="flex min-h-full flex-1 flex-col">
+    // `data-guest-page`: while the door stands as the page over the album, the page holds to one screen
+    // (`door/doorway.css`'s stage rules), so nothing scrolls past the door.
+    <div data-guest-page="" className="flex min-h-full flex-1 flex-col">
       {/* event.qr_token, NOT the raw `token` route param: `token` may be a
           CUSTOM SLUG, and the header's sign-out clears the stored session by
           this key while EventExperience below reads it by the canonical
@@ -632,6 +661,7 @@ export default async function GuestEventPage({
         firstPaintWidth={albumWidth}
         rhythmSeed={rhythmSeed}
         albumFull={decision.albumFull}
+        waitingOnArrival={waitingOnArrival}
       />
       {/* ★ WHAT THIS PHONE'S CLAIM WOULD NOT TAKE IN SILENCE (shared-claims): a ticket typed under a
           name at odds with the account, asked about once the door and its sheets are down

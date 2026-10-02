@@ -218,6 +218,40 @@ export async function recordJobFailure(
 }
 
 /**
+ * A RUN REPORTED WHOLE, after the fact: a job that says what it did in one call (the export Worker's daily
+ * heartbeat, `api/export/report`) is written as one closed row, so no `running` row is ever left open by a
+ * second call that never came. Degrades like every heartbeat write.
+ */
+export async function recordClosedRun(
+  job: JobId,
+  triggeredBy: JobTrigger,
+  outcome: {
+    status: Exclude<JobRunStatus, "running">;
+    counts?: Json;
+    note?: string;
+  },
+): Promise<{ heartbeatError: string | null }> {
+  try {
+    const now = new Date().toISOString();
+    const { error } = await jobRunsDb()
+      .from("job_runs")
+      .insert({
+        job,
+        status: outcome.status,
+        triggered_by: triggeredBy,
+        started_at: now,
+        finished_at: now,
+        duration_ms: 0,
+        counts: outcome.counts ?? null,
+        note: outcome.note ?? null,
+      });
+    return { heartbeatError: error?.message ?? null };
+  } catch (e) {
+    return { heartbeatError: String(e) };
+  }
+}
+
+/**
  * Record a run that never happened because the job is paused. Written as a CLOSED row so a paused
  * job keeps reporting in and never trips the missed-run alert: pausing is a decision, not a fault.
  */
@@ -366,7 +400,7 @@ export async function readSweepCursor(
 export type JobSignals = Partial<Record<JobId, JobSignal>>;
 
 /**
- * The 24h windows for the four signal jobs, as EIGHT head-counts in parallel.
+ * The 24h windows for the five signal jobs, as TEN head-counts in parallel.
  *
  * A QUERY, not a stored daily aggregate, and the cost is why: every one of these is a bounded
  * count over a table that is either tiny by construction (`action_attempts` and `unlock_attempts`
@@ -404,6 +438,8 @@ export async function getJobSignals(nowMs = Date.now()): Promise<JobSignals> {
     unlockFailures,
     feedbackRecorded,
     feedbackFailures,
+    exportsFinished,
+    exportFailures,
   ] = await Promise.all([
     mustCount(
       db
@@ -438,6 +474,17 @@ export async function getJobSignals(nowMs = Date.now()): Promise<JobSignals> {
       "admin/jobs: 24h help feedback recorded",
     ),
     failuresOf("help_feedback"),
+    // The downloads' success half is the Worker's own word on the day's mints (`export-ends`): a zip it
+    // finished, whole or short. Keyed on the mint's time, which `export_log_created_idx` carries.
+    mustCount(
+      db
+        .from("export_log")
+        .select("*", { count: "exact", head: true })
+        .gt("created_at", sinceIso)
+        .in("stream_outcome", ["saved", "short"]),
+      "admin/jobs: 24h downloads the Worker finished",
+    ),
+    failuresOf("export_delivery"),
   ]);
 
   return {
@@ -445,5 +492,6 @@ export async function getJobSignals(nowMs = Date.now()): Promise<JobSignals> {
     abuse_limiter: { ok24h: abuseAttempts, failed24h: abuseFailures },
     unlock_limiter: { ok24h: unlockAttempts, failed24h: unlockFailures },
     help_feedback: { ok24h: feedbackRecorded, failed24h: feedbackFailures },
+    export_delivery: { ok24h: exportsFinished, failed24h: exportFailures },
   };
 }

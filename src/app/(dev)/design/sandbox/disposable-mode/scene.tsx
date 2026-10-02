@@ -1,9 +1,10 @@
 "use client";
 
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode, useState } from "react";
 
 import { Fit, Frame, Measured } from "@/components/lab";
 
+import { LookDefs } from "./film";
 import { SCREENS, type ScreenId } from "./knobs";
 
 /**
@@ -13,23 +14,24 @@ import { SCREENS, type ScreenId } from "./knobs";
  * in the album a guest holds in one hand, so every guest frame is that phone
  * at 1:1 (the kit's `Frame`, a same-origin iframe, so a line wraps where it
  * will wrap and a `sm:` class answers the phone's width, not the lab's). The
- * host's hub and Create are drawn at 1440 too, on the Screen knob, and the
- * room's screen is a 16:9 wall.
+ * waiting room and the developed album are drawn at 1440 too, on the Screen
+ * knob.
  *
  * ★ NOTHING HERE REACHES A SESSION, A SERVER FUNCTION, THE CAMERA OR THE
- * NETWORK, AND NOTHING MOUNTS A RADIX PORTAL. A Dialog, Sheet or Popover
- * opened inside a portalled frame renders on the LAB PAGE's document, not the
- * phone being judged, so every floating surface here is QUOTED: the shipped
- * classes and postures, never the primitive. `fixed`, never `absolute`, for
- * anything pinned to the screen: the frame IS the viewport. Every camera's
- * live picture is a photograph standing in for the stream (a frame asking for
- * the reader's camera would be a permission prompt on a design review; the
- * dock's Measure is the one place the board asks, and only when pressed).
+ * NETWORK, AND EVERY FLOATING SURFACE IS QUOTED, NOT MOUNTED. `fixed`, never
+ * `absolute`, for anything pinned to the screen: the frame IS the viewport.
+ * Every camera's live picture is a photograph standing in for the stream (a
+ * frame asking for the reader's camera would be a permission prompt on a
+ * design review; the dock's Measure is the one place the board asks, and only
+ * when pressed).
  *
  * ★ EVERY CAPTION IS READ OFF THE FRAME, NEVER ASSERTED: where the shutter
- * sits for a thumb, what the count says, how many steps Create takes, what an
- * estimate reads. If a caption and the words above a frame disagree, the
- * caption is the truth.
+ * sits for a thumb, what the count says, how many frames the roll shows lit.
+ * If a caption and the words above a frame disagree, the caption is the
+ * truth.
+ *
+ * ★ EVERY FRAME MOUNTS THE LOOKS' COLOUR PASSES (`LookDefs`), so any
+ * photograph in it can wear one by id.
  */
 
 export type Reader = (root: HTMLElement, win: Window) => string | null;
@@ -39,16 +41,13 @@ export function Scene({
   screen = "375",
   title,
   measure,
-  caption,
   children,
 }: {
   id: string;
   screen?: ScreenId;
   title: string;
-  /** A number read off the frame for its caption. */
-  measure?: Reader;
-  /** A static caption where nothing on the frame is worth measuring. */
-  caption?: string;
+  /** What the frame says, read off it for its caption. */
+  measure: Reader;
   children: ReactNode;
 }) {
   const { w, h } = SCREENS[screen];
@@ -60,20 +59,17 @@ export function Scene({
         w={w}
         h={h}
         title={title}
-        caption={measure ? measured : caption}
+        caption={measured}
       >
-        {measure ? (
-          <Measured
-            probe={measure}
-            deps={[id, screen]}
-            onMeasure={setMeasured}
-            className="min-h-full"
-          >
-            {children}
-          </Measured>
-        ) : (
-          children
-        )}
+        <LookDefs />
+        <Measured
+          probe={measure}
+          deps={[id, screen]}
+          onMeasure={setMeasured}
+          className="min-h-full"
+        >
+          {children}
+        </Measured>
       </Frame>
     </Fit>
   );
@@ -81,8 +77,8 @@ export function Scene({
 
 /**
  * THE FRAMES OF ONE OPTION, read left to right as time runs. Phones stand in
- * a row (it wraps where the stage is narrower); laptops and the room's screen
- * stack, since two 1440 frames side by side would each be a thumbnail.
+ * a row (it wraps where the stage is narrower); laptops stack, since two 1440
+ * frames side by side would each be a thumbnail.
  */
 export function Story({
   screen = "375",
@@ -118,44 +114,18 @@ export const reach =
     return `${what}: ${Math.round(r.width)} by ${Math.round(r.height)} px, ${down}% of the way down`;
   };
 
-/** What the element marked `data-dm-say` says, in a sentence of the caller's. */
-export const says =
-  (frame: (words: string) => string): Reader =>
+/** What one marked element says, framed in a sentence. */
+export const said =
+  (selector: string, frame: (words: string) => string): Reader =>
   (root) => {
-    const words = textOf(root.querySelector("[data-dm-say]"));
+    const words = textOf(root.querySelector(selector));
     return words ? frame(words) : null;
   };
 
-/** Two readers, one caption: each part must have settled. */
-export const both =
-  (a: Reader, b: Reader): Reader =>
+/** Readers joined into one caption: each part must have settled. */
+export const all =
+  (...readers: Reader[]): Reader =>
   (root, win) => {
-    const x = a(root, win);
-    const y = b(root, win);
-    return x && y ? `${x}; ${y}` : null;
+    const parts = readers.map((r) => r(root, win));
+    return parts.every(Boolean) ? parts.join("; ") : null;
   };
-
-/**
- * SCROLLS THE FRAME SO ITS OWN SPOT SITS AT THE TOP, once the frame has
- * settled (`voice-guest`'s `ScrollHere`, retyped: a board's folder leaves
- * when the board retires). The album's rows sit below a phone's first screen, so a
- * frame about what stands there opens scrolled to them. Re-runs as the
- * webfont lands; a second run is a no-op.
- */
-export function ScrollHere({ offset = 12 }: { offset?: number }) {
-  const ref = useRef<HTMLSpanElement | null>(null);
-  useEffect(() => {
-    const el = ref.current;
-    const win = el?.ownerDocument.defaultView;
-    if (!el || !win) return;
-    const go = () => {
-      const top = el.getBoundingClientRect().top;
-      win.scrollTo(0, win.scrollY + top - offset);
-    };
-    go();
-    const timers = [150, 600, 1500].map((ms) => win.setTimeout(go, ms));
-    win.document.fonts?.ready.then(go).catch(() => {});
-    return () => timers.forEach((t) => win.clearTimeout(t));
-  }, [offset]);
-  return <span ref={ref} aria-hidden className="block h-0" />;
-}

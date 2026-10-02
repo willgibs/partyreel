@@ -126,6 +126,9 @@ function of elapsed time can be frozen at a chosen moment and shot.
 - **Downloads in Will's Chrome land in** `~/Library/Mobile Documents/com~apple~CloudDocs/cloud/downloads/`, not
   `~/Downloads`. For the export Worker the network panel shows phantom 503s while the stream succeeds: `wrangler tail
   partyreel-export` is the truth (a bad signature is a clean "Forbidden", never a 503).
+- ★ **The desk's answers live in Will's Chrome:** `/design/lab` keeps his held picks, notes and verdicts
+  (`partyreel.lab.review.v2`) and his desk prefs (`partyreel.lab.prefs.v1`) in the alias origin's localStorage, so an
+  agent walks the desk only in a headless Chrome of its own; a pick, a note or a pref set in his Chrome reads as his.
 - **The Preview MCP's `preview_start` runs the dev server in the shared git root,** the Orchestrator's checkout and
   branch, never your worktree (it resolves the project by git common dir; `preview_logs`' first line prints the cwd).
   From a worktree, run `pnpm dev -p <your port>` through Bash and drive it with `navigate`, `read_page` and
@@ -182,8 +185,13 @@ that read as "broken":
   server runs rewrites `.next` under it and 404s the chunks.
 - ★ **Turbopack's persistent cache is `.next/dev`,** which `rm -rf .next/cache` does not touch: a rule added to
   `globals.css`, `theme.css` or the lab's `design.css` while the server runs never reaches the served sheet, and a
-  restart can serve a TRUNCATED sheet that reads exactly like a syntax error you just made. Remove `.next/dev` (or all
-  of `.next`) between the stop and the start.
+  restart can serve a TRUNCATED sheet that reads exactly like a syntax error you just made. ★ Scripts too: a cache
+  warmed on one tree and served on another whose client graph moved can hand a page a chunk naming a dynamic
+  import's chunk list by the OLD tree's name; the HMR subscription to that name answers `restart`, and the page
+  reloads itself for ever (gate 123: the lab's `event-ready` frame on `qr-code-styling`'s list, every `lab:demo` step
+  reading `Cannot read properties of undefined (reading 'dock')`; the same tree pressed clean on an empty cache).
+  Remove `.next/dev` (or all of `.next`) between the stop and the start, with no dev server of the checkout running
+  (the removal takes its lock and its cache from under it).
 - **The build is the ground truth:** grep `.next/static/chunks/*.css` for the escaped form (Tailwind escapes `[`, `]`,
   `.`, `%` and `/`). A new utility with no effect in dev is no proof the class is wrong.
 - **The lab's stylesheet guard:** `design.css` and `lab-css-generation.ts` hold one generation number, bumped together

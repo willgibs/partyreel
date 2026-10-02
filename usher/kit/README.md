@@ -136,7 +136,9 @@ Read the Handoff, the lane check and the captures, never the whole diff.
    `rm -rf ../partyreel-wt/_scratch/<track>`; kill its port.
 
 **Migrations** are global state (one Supabase behind prod and every preview): a lane writes the SQL file; you apply it
-(`apply_migration`), additive-only while an open lane's code still calls what a contract migration would drop, and a
+(`apply_migration`, the whole file, trailing newline included: `md5(statements[1])` in
+`supabase_migrations.schema_migrations` then equals the file's `md5 -q`, the proof it went in verbatim),
+additive-only while an open lane's code still calls what a contract migration would drop, and a
 destructive one only on Will's yes; then `get_advisors` (the accepted set: `docs/systems/database-security.md`),
 regenerate `src/lib/db/types.ts`, and commit both. A migration that replaces a function starts from its newest
 definition in `supabase/migrations/`.

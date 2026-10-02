@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { Flag, MoreHorizontal, ShieldOff, UserRoundX } from "lucide-react";
+import { Flag, MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
 
 import {
-  blockProfileAction,
-  unblockProfileAction,
-} from "@/app/(guest)/u/[slug]/actions";
+  RELATION_FACE,
+  useRelation,
+} from "@/components/social/relation-toggle";
+import { useMediaQuery } from "@/lib/use-media-query";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -44,58 +44,44 @@ import { Textarea } from "@/components/ui/textarea";
  * sat under an iPhone keyboard before the Dialog learned the Sheet's rule), and
  * Block is a CONFIRMATION, a centred dialog that asks before it acts.
  *
+ * ★ THE BLOCK ROW IS A FACE OF THE ONE RELATION CONTROL (`relation-toggle.tsx`,
+ * crumbs-44): the same hook as the profile's Follow and the Connections card's
+ * rows, so the same flip, the same ask (`BlockConfirm`, rendered outside the
+ * menu so it outlives the menu closing) and the same quiet on success. It waited
+ * and toasted "Blocked Maya." of its own before.
+ *
  * Blocking is PRIVATE: the other side is never notified and can't see it, so
- * the confirm copy says so (unchanged, profiles-social.md point 5). After a
- * block the refresh hides the follow button (the server's blocked-either-way
- * gate) while the profile itself stays public-by-existence, and THIS MENU STAYS
+ * the ask says so (profiles-social.md). After a block the Server Function's
+ * re-render hides the follow button (the server's blocked-either-way gate)
+ * while the profile itself stays public-by-existence, and THIS MENU STAYS
  * VISIBLE under a block in either direction: a menu that vanished would tell
  * the other side they had been blocked, which is the one thing a block promises
  * it will not do.
  */
 export function ProfileActionsMenu({
   profileId,
-  slug,
   displayName,
   blocked,
 }: {
   profileId: string;
-  slug: string;
   displayName: string | null;
   /** Whether *I* currently block this profile (drives Block vs Unblock). */
   blocked: boolean;
 }) {
-  const router = useRouter();
-  const [confirmOpen, setConfirmOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [reason, setReason] = useState("");
-  const [pending, startTransition] = useTransition();
   const [reporting, startReport] = useTransition();
   const name = displayName ?? "this person";
-
-  function runBlock() {
-    startTransition(async () => {
-      const result = await blockProfileAction(profileId, slug);
-      if (!result.ok) {
-        toast.error(result.message);
-        return;
-      }
-      setConfirmOpen(false);
-      toast.success(`Blocked ${name}.`);
-      router.refresh();
-    });
-  }
-
-  function runUnblock() {
-    startTransition(async () => {
-      const result = await unblockProfileAction(profileId, slug);
-      if (!result.ok) {
-        toast.error(result.message);
-        return;
-      }
-      toast.success(`Unblocked ${name}.`);
-      router.refresh();
-    });
-  }
+  const block = useRelation({
+    relation: "block",
+    profileId,
+    on: blocked,
+    person: name,
+  });
+  const blockFace = RELATION_FACE.block[block.on ? "on" : "off"];
+  const BlockIcon = blockFace.icon;
+  // The width at which the page's actions leave the name's row for their own (its `max-sm:`).
+  const actionsBesideName = useMediaQuery("(min-width: 40rem)");
 
   // The same endpoint and the same shape as a reported photograph, with a
   // person in place of the album: one queue, one rate limit, one status
@@ -152,22 +138,32 @@ export function ProfileActionsMenu({
             back to the panel's `min-w-32` (128px, `ui/dropdown-menu.tsx`), which
             wraps "Report this person" onto two lines. `w-56`, the same override
             every other icon-triggered menu in the app uses, fits it on one. */}
-        <DropdownMenuContent align="end" className="w-56">
+        {/* ★ IT HANGS FROM ITS TRIGGER'S OWN SIDE (crumbs-44). Beside the name
+            (from `sm`) the trigger ends the row, so the panel aligns to its end.
+            At a phone the actions take a row of their own from its left, and an
+            end-aligned panel hung 77px off the screen: Radix pushed it back to
+            the glass's very edge, under Follow rather than its own trigger, with
+            no gutter at all (measured at 375: left 0, the trigger at 115). So a
+            phone aligns it to the trigger's start, and the 8px collision pad,
+            the sub-menu's and the responsive menu's, keeps it off the edge
+            wherever it lands. (The board that found it drew the panel over the
+            name, in a frame with nothing under the row; on the page it opens
+            down.) */}
+        <DropdownMenuContent
+          align={actionsBesideName ? "end" : "start"}
+          collisionPadding={8}
+          className="w-56"
+        >
           <DropdownMenuItem onSelect={() => setReportOpen(true)}>
             <Flag /> Report this person
           </DropdownMenuItem>
-          {blocked ? (
-            <DropdownMenuItem onSelect={runUnblock} disabled={pending}>
-              <ShieldOff /> Unblock
-            </DropdownMenuItem>
-          ) : (
-            <DropdownMenuItem
-              variant="destructive"
-              onSelect={() => setConfirmOpen(true)}
-            >
-              <UserRoundX /> Block
-            </DropdownMenuItem>
-          )}
+          <DropdownMenuItem
+            variant={block.on ? "default" : "destructive"}
+            onSelect={block.press}
+            disabled={block.pending}
+          >
+            <BlockIcon /> {blockFace.label}
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -216,39 +212,7 @@ export function ProfileActionsMenu({
         </PopupContent>
       </Popup>
 
-      <Popup open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <PopupContent kind="confirm">
-          <PopupHeader
-            title={`Block ${name}?`}
-            description={
-              <>
-                You&rsquo;ll stop following each other, and neither of you can
-                follow the other again while the block is on. They won&rsquo;t
-                be notified, and they can&rsquo;t see that you blocked them. You
-                can undo this anytime from your account settings.
-              </>
-            }
-          />
-          <PopupFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setConfirmOpen(false)}
-              disabled={pending}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={runBlock}
-              disabled={pending}
-            >
-              {pending ? "Blocking…" : "Block"}
-            </Button>
-          </PopupFooter>
-        </PopupContent>
-      </Popup>
+      {block.ask}
     </>
   );
 }

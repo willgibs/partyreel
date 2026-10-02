@@ -22,8 +22,37 @@ describe("the page setup's invitation", () => {
   it("opens the setup", () => {
     render(<PageInviteCard />);
     expect(
-      screen.getByRole("link", { name: "Set up your page" }),
+      screen.getByRole("link", { name: "Choose what shows" }),
     ).toHaveAttribute("href", "/account/profile");
+  });
+
+  // crumbs-44 (from `profile-setup`): the button repeated the card's title, so it said what twice and
+  // why never. It carries the reason now, and the title stays the card's alone.
+  it("says the setup once: the button carries its reason, never the title again", () => {
+    render(<PageInviteCard />);
+    expect(screen.getAllByText("Set up your page")).toHaveLength(1);
+    expect(
+      screen.queryByRole("link", { name: "Set up your page" }),
+    ).not.toBeInTheDocument();
+  });
+
+  // crumbs-46: /me wears the invitation as its head (an account with no handle keeps her uploads, likes and
+  // connections there), and the user menu's Your profile has no other door to the setup, so there it stands: a
+  // Not now would take the only way on from the page she chose to open, and it would hide the dashboard's too.
+  it("stands without a Not now where the page asks it not to be dismissible", () => {
+    render(<PageInviteCard dismissible={false} />);
+    expect(
+      screen.getByRole("link", { name: "Choose what shows" }),
+    ).toHaveAttribute("href", "/account/profile");
+    expect(
+      screen.queryByRole("button", { name: "Not now" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getAllByText("Set up your page")).toHaveLength(1);
+  });
+
+  it("is dismissible wherever the page says nothing, as the dashboard's is", () => {
+    render(<PageInviteCard />);
+    expect(screen.getByRole("button", { name: "Not now" })).toBeInTheDocument();
   });
 
   it("Not now leaves at once and is remembered", async () => {
@@ -38,7 +67,7 @@ describe("the page setup's invitation", () => {
     vi.mocked(dismissPageInviteAction).mockResolvedValue({ ok: false });
     render(<PageInviteCard />);
     fireEvent.click(screen.getByRole("button", { name: "Not now" }));
-    await screen.findByRole("link", { name: "Set up your page" });
+    await screen.findByRole("link", { name: "Choose what shows" });
     expect(toast.error).toHaveBeenCalled();
   });
 });

@@ -1,11 +1,8 @@
 "use client";
 
 import { Dialog as DialogPrimitive } from "radix-ui";
-import {
-  useRef,
-  useSyncExternalStore,
-  type ReactElement,
-} from "react";
+import { usePortalContainer } from "@/components/ui/portal-container";
+import { useRef, useSyncExternalStore, type ReactElement } from "react";
 import { Check, Copy, Download, QrCode, Share2, X } from "lucide-react";
 
 import { StyledQr, type StyledQrHandle } from "@/components/app/styled-qr";
@@ -32,7 +29,7 @@ import "./share.css";
  *
  * So one card, from every door: the host's code on the event page (where it
  * started, his `share=room` mini-modal), the host's code chip on the dashboard,
- * the launch list's Invite and a guest's Invite. Each door reads Invite; the
+ * the checklist's Invite and a guest's Invite. Each door reads Invite; the
  * card's Share hands the link to the phone's own share sheet (Messages,
  * AirDrop), and where a browser has none (most laptops) Share is simply not
  * offered and Copy link stands alone. A host's full kit waits one tap behind
@@ -130,7 +127,7 @@ export function CodeCard({
       {trigger ? (
         <DialogPrimitive.Trigger asChild>{trigger}</DialogPrimitive.Trigger>
       ) : null}
-      <DialogPrimitive.Portal>
+      <DialogPrimitive.Portal container={usePortalContainer()}>
         <DialogPrimitive.Overlay
           className={cn(
             "fixed inset-0 z-50 bg-black/40 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
@@ -151,7 +148,7 @@ export function CodeCard({
             "bg-white text-neutral-900",
             viewTransition
               ? floatingTransitionEntrance
-              : "ease-emphasis data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0 sm:data-open:zoom-in-95 sm:data-closed:zoom-out-95",
+              : "ease-emphasis data-open:animate-in data-open:fade-in-0 sm:data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 sm:data-closed:zoom-out-95",
             floatingClock.standard,
           )}
         >
@@ -235,7 +232,7 @@ export function CodeCard({
             <button
               type="button"
               aria-label="Close"
-              className="absolute top-4 right-4 flex size-8 items-center justify-center rounded-full text-neutral-500 outline-none transition-colors hover:bg-neutral-100 hover:text-neutral-900 focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.97]"
+              className="absolute top-4 right-4 flex size-8 items-center justify-center rounded-full text-neutral-500 transition-colors outline-none hover:bg-neutral-100 hover:text-neutral-900 focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.97]"
             >
               <X className="size-4" aria-hidden />
             </button>

@@ -205,6 +205,114 @@ describe("a screen in a hand is a place", () => {
   })
 })
 
+/**
+ * ★ THE LOOK IN A HAND IS A PLACE TOO (crumbs-47; build 38's red-team: "on a phone, Back over a credit's look closes
+ * the look AND the viewer in one press"). The look is kind `peek`, whose hand shape is the SHEET, and only the screen
+ * and the cover took the phone's Back, so a look opened over the photograph viewer (which holds an entry of its own)
+ * took none: the Back popped the viewer's, and the viewer closed with the look standing on it. A layer that rises
+ * from the foot over a place holds its entry as a screen does, so Back peels one layer a press. A dialog (a question)
+ * is not a place and holds none, in a hand as at a desk.
+ */
+describe("a sheet in a hand is a place too: the look (crumbs-47)", () => {
+  const marker = () =>
+    (window.history.state as Record<string, unknown> | null)?.[POPUP_HISTORY_MARKER]
+
+  // The window's stack outlives a test: one that went Back left a forward entry, which the next push would drop,
+  // so a count of entries would read one short. Stand on its tip first.
+  beforeEach(() => window.history.pushState(null, ""))
+
+  it("★ holds one history entry while open, and the phone's Back closes it", async () => {
+    setViewportWidth(375)
+    const before = window.history.length
+    const { panel } = mount("peek")
+    await act(async () => {})
+    expect(panel()?.getAttribute("data-shape")).toBe("sheet")
+    expect(window.history.length).toBe(before + 1)
+    expect(marker()).toBeTruthy()
+
+    act(() => window.history.back())
+    await waitFor(() => expect(panel()).toBeNull())
+  })
+
+  it("closed by its own X, it takes its entry back with it, so no dead Back is left to press", async () => {
+    setViewportWidth(375)
+    // The entries of the tests before it stay on the window's stack: what stood here is what must stand again.
+    const was = marker()
+    const { panel } = mount("peek")
+    await act(async () => {})
+    const mine = marker()
+    expect(mine).toBeTruthy()
+    expect(mine).not.toBe(was)
+    const depth = window.history.length
+
+    fireEvent.click(screen.getByRole("button", { name: "Close" }))
+    await waitFor(() => expect(panel()).toBeNull())
+    await waitFor(() => expect(marker()).toBe(was))
+    expect(window.history.length).toBe(depth)
+  })
+
+  it("at a desk, where the look is a card beside the name, it holds none", async () => {
+    setViewportWidth(1024)
+    const before = window.history.length
+    mount("peek")
+    await act(async () => {})
+    expect(window.history.length).toBe(before)
+  })
+
+  it("a question is no place: a confirm and a form hold none in a hand", async () => {
+    setViewportWidth(375)
+    for (const kind of ["confirm", "form"] as const) {
+      const before = window.history.length
+      const { unmount } = mount(kind)
+      await act(async () => {})
+      expect(window.history.length, kind).toBe(before)
+      unmount()
+    }
+  })
+})
+
+describe("a head never says its back arrow's words twice (crumbs-42, from event-settings)", () => {
+  // ★ Settings in a hand read "‹ Maya's 30th · Settings" on its bar and "Maya's 30th" again on the line under
+  // it: the line is the panel's only naming of the event at a desk, where no arrow is drawn, and pure repetition
+  // under an arrow that already says it. So a screen drops a line that repeats its arrow, and keeps it for a
+  // screen reader, where it is still the popup's description.
+  function settings(head: { description: string; back?: string }) {
+    render(
+      <Popup defaultOpen>
+        <PopupContent kind="settings" routed>
+          <PopupHeader title="Settings" {...head} />
+        </PopupContent>
+      </Popup>,
+    )
+  }
+  /** The head's own line holding `text`, never the arrow's label. */
+  const line = (text: string) =>
+    [...document.querySelectorAll<HTMLElement>('[data-slot="popup-header"] *')].find(
+      (el) => el.children.length === 0 && el.textContent === text && !el.closest("button"),
+    )
+
+  it("★ in a hand, the line that repeats the arrow is gone from sight and kept for a screen reader", () => {
+    setViewportWidth(375)
+    settings({ description: "Maya's 30th", back: "Maya's 30th" })
+    expect(screen.getByRole("button", { name: "Maya's 30th" })).toBeInTheDocument()
+    expect(line("Maya's 30th")?.className).toContain("sr-only")
+    expect(screen.getByRole("dialog", { name: "Settings" })).toHaveAccessibleDescription("Maya's 30th")
+  })
+
+  it("in a hand, a line that says something else stays in sight", () => {
+    setViewportWidth(375)
+    settings({ description: "Largest first, across every event.", back: "Dashboard" })
+    expect(line("Largest first, across every event.")?.className).not.toContain("sr-only")
+  })
+
+  it("at a desk, where no arrow names the event, the line is its name and stays", () => {
+    setViewportWidth(1024)
+    settings({ description: "Maya's 30th", back: "Maya's 30th" })
+    expect(screen.queryByRole("button", { name: "Maya's 30th" })).toBeNull()
+    expect(line("Maya's 30th")?.className).not.toContain("sr-only")
+  })
+})
+
 describe("where focus lands when it opens", () => {
   it("in a hand, on the popup itself: no field raises a keyboard into a surface still arriving", () => {
     setViewportWidth(375)

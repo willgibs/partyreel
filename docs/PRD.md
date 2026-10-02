@@ -25,6 +25,9 @@ next host. **North-star metric: a host creates a second event.**
   install. By default a guest confirms an email with a code, and that confirmed email is their account; where the host
   turns verified emails off, a guest types a display name and uploads under it with an "Unverified" mark. Every upload
   carries a name, and the events a guest added to are what their account keeps.
+- **Who it is built to delight**: hosts and guests from about 18 (a party) to about 50 (a wedding, a conference). The
+  product aims to feel modern and cool to them rather than designed down to the least technical guest; the core path
+  (scan, add, view) stays plain enough for anyone, grandparents included.
 
 ## The core loop
 

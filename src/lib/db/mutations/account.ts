@@ -6,7 +6,8 @@
  * in a deliberate order, and the order is the design:
  *
  *   1. read the profile (idempotency + the address the later steps need)
- *   2. CANCEL THE SUBSCRIPTION, and abort the whole request if Stripe refuses.
+ *   2. CANCEL EVERY LIVE SUBSCRIPTION OF THE CUSTOMER (two Checkout tabs can
+ *      leave two; crumbs-41), and abort the whole request if Stripe refuses.
  *      "Account gone, card still charged" is far worse than "try again", and at
  *      this point nothing has been destroyed.
  *   3. stamp `deletion_requested_at` -- THE POINT OF NO RETURN. From here the
@@ -41,7 +42,7 @@ import {
 } from "@/lib/lifecycle/account-deletion";
 import { captureError } from "@/lib/observability/sentry";
 import {
-  cancelSubscriptionForDeletion,
+  cancelSubscriptionsForDeletion,
   type SubscriptionCancelResult,
 } from "@/lib/stripe/account-cancel";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -102,7 +103,9 @@ export async function requestAccountDeletion({
   const profile = await mustQuery(
     admin
       .from("profiles")
-      .select("id, email, stripe_subscription_id, deletion_requested_at")
+      .select(
+        "id, email, stripe_customer_id, stripe_subscription_id, deletion_requested_at",
+      )
       .eq("id", userId)
       .maybeSingle(),
     "requestAccountDeletion: profile",
@@ -120,10 +123,12 @@ export async function requestAccountDeletion({
     };
   }
 
-  // 2. Cancel the plan FIRST and refuse the request if Stripe will not play.
-  const subscription = await cancelSubscriptionForDeletion(
-    profile.stripe_subscription_id,
-  );
+  // 2. Cancel the plan FIRST, every live subscription of the customer and not only the one the profile follows,
+  // and refuse the request if Stripe will not play.
+  const subscription = await cancelSubscriptionsForDeletion({
+    customerId: profile.stripe_customer_id,
+    subscriptionId: profile.stripe_subscription_id,
+  });
   if (subscription.status === "failed") {
     captureError("billing", new Error(subscription.message), {
       step: "account_deletion_cancel",

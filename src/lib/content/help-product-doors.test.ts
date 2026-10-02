@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 
 import { reviewCardFace } from "@/components/app/event-feed/room-card";
 import { getArticle } from "@/lib/content/help";
+import { uploadsLabel } from "@/lib/events/visibility-labels";
 
 /**
  * THE DOORS THE HELP NAMES ARE WHERE IT SAYS (crumbs-34). `help-ui-labels.test.ts` holds that every
@@ -142,5 +143,20 @@ describe("the event page's Review card, as the help describes it", () => {
     // A count's face ("3 waiting") is named by what it is.
     expect(reviewCardFace(true, 3).value).toBe("3 waiting");
     expect(cards).toContain("waiting count");
+  });
+});
+
+/**
+ * ★ A HOSTED CARD'S WORD FOR WHETHER GUESTS CAN ADD (crumbs-42, from event-ready): the card says Open or Paused
+ * (`uploadsLabel`, the hub code's word), never Closed, the door's word for Only people already in. The dashboard
+ * article quoted the card's old pair, so its words are held to the one place the card reads them.
+ */
+describe("the dashboard's hosted card, as the help describes it", () => {
+  it("★ names the card's two words for uploads, and never Closed", () => {
+    const events = section("your-dashboard-explained", "Your events");
+    const labels = labelsIn(events);
+    expect(labels).toContain(uploadsLabel(true));
+    expect(labels).toContain(uploadsLabel(false));
+    expect(labels).not.toContain("Closed");
   });
 });

@@ -1,11 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { useSyncExternalStore } from "react";
 
 import { Button } from "@/components/ui/button";
 import { trackAttrs } from "@/lib/analytics/events";
 import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
+
+import { ChromeLink as Link } from "./chrome-link";
 
 /**
  * THE RETURNING HOST (`returning=dashboard`, Will 2026-09-19): the bar stops

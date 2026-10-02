@@ -32,6 +32,7 @@ const shownEvent: AttendedEventPick = {
   shownOnProfile: true,
   coverUrl: "https://r2.example/cover-a.webp",
   locked: false,
+  albumOpen: true,
 };
 
 const hiddenEvent: AttendedEventPick = {
@@ -40,6 +41,7 @@ const hiddenEvent: AttendedEventPick = {
   shownOnProfile: false,
   coverUrl: null,
   locked: false,
+  albumOpen: true,
 };
 
 const lockedEvent: AttendedEventPick = {
@@ -48,6 +50,7 @@ const lockedEvent: AttendedEventPick = {
   shownOnProfile: true,
   coverUrl: null,
   locked: true,
+  albumOpen: false,
 };
 
 function tile(name: RegExp) {
@@ -142,6 +145,36 @@ describe("a tile is the album's own window", () => {
     const covers = container.querySelectorAll("img");
     expect(covers).toHaveLength(1);
     expect(covers[0]).toHaveAttribute("src", shownEvent.coverUrl);
+  });
+
+  /**
+   * ★ A CHOICE THAT CANNOT SHOW SAYS SO (crumbs-44, from `profile-setup`). Her page draws a line only
+   * for an open album, so a tile she chose at a password album, a gated one, a private one or one that
+   * blocked her (which reads as private) said "Showing on your page" over a page that showed nothing.
+   */
+  it("a chosen tile whose album is not public says it cannot show, and stays chosen", () => {
+    const passwordEvent: AttendedEventPick = {
+      id: "e-password",
+      name: "Tara's 30th",
+      shownOnProfile: true,
+      coverUrl: null,
+      locked: false,
+      albumOpen: false,
+    };
+    render(
+      <AttendedEventsVisibility
+        events={[shownEvent, passwordEvent, lockedEvent, hiddenEvent]}
+      />,
+    );
+    const line = (name: RegExp) =>
+      document.getElementById(tile(name).getAttribute("aria-describedby")!)
+        ?.textContent;
+    expect(line(/Maya & Theo/)).toBe("Showing on your page");
+    expect(line(/Tara's 30th/)).toBe("Can't show: the album isn't public");
+    expect(line(/Private event/)).toBe("Can't show: the album isn't public");
+    expect(line(/Summer BBQ/)).toBe("Private");
+    // The choice is hers whatever the door: the tile stays pressed, one tap from taking it back.
+    expect(tile(/Tara's 30th/)).toHaveAttribute("aria-pressed", "true");
   });
 
   it("a private album's tile still toggles, so a choice she can see is one she can take back", async () => {

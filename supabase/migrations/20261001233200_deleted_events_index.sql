@@ -1,0 +1,113 @@
+-- =============================================================================================
+-- THE SOFT-DELETED EVENTS, BY INDEX (lane `crumbs-41`; ROADMAP's Performance line, from `crumbs-37`).
+--
+-- Why: the two nightly readers that look for soft-deleted events platform-wide found them by a scan of every
+-- event, since nothing indexes `deleted_at`:
+--   - expired_events' discovery (lib/lifecycle/sweeps/expired-events.ts: `expiredEventsPage`, a keyset page of the
+--     ids whose recoverable tail has elapsed, `deleted_at is not null and (purge_at <= now or (purge_at is null and
+--     deleted_at <= now - 30 days))` ordered by id, and `countExpiredEvents`, the same filter counted when the
+--     deadline stops the sweep);
+--   - standby_hosts' deleted-event half (20261001151000: `from public.events d ... where d.deleted_at is not null`,
+--     each deleted event's live media then read by event id).
+-- Past about a million events each read spends the sweep's share on events no bin holds. So one partial index holds
+-- exactly the soft-deleted events, keyed by id (the discovery's own keyset order and the half's join key).
+--
+-- ★ IT CARRIES `purge_at` AND `deleted_at` (INCLUDE), beyond the ROADMAP's `(id) where deleted_at is not null`,
+-- because the discovery's filter reads both: keyed on id alone, every candidate is a heap visit, and soft-deleted
+-- events are scattered through the table (deleted whenever their hosts chose), so on the stand-in below the bare index
+-- planned a Bitmap Heap Scan that touched about as many pages as the scan it replaced (36 ms against the scan's 22 ms
+-- for the first page). Carried, every expired-events read is an Index Only Scan with no heap fetch. The cost is a
+-- larger partial index (504 kB at 10,000 deleted events against 328 kB bare) and no HOT update for a write that moves
+-- `deleted_at` or `purge_at`, which only a soft delete and a restore make (`purge_at` is trigger-derived from
+-- `deleted_at`, lifecycle-recovery.md), never an ordinary edit of an event.
+--
+-- MEASURED on a throwaway Postgres 17 stand-in (2026-10-01): 1,000,000 events of which 10,000 soft-deleted (4,991 past
+-- their purge_at), 2,000,000 media, the live indexes of both tables (pg_indexes, read 2026-10-01) and standby_hosts'
+-- deployed body, EXPLAIN ANALYZE warm, before -> after:
+--   expired_events, the first page   Parallel Seq Scan on events, 1,000,000 rows read (22 ms)
+--                                    -> Index Only Scan using events_deleted_idx, Heap Fetches 0 (0.25 ms)
+--   expired_events, a later page     Parallel Seq Scan (21 ms) -> Index Only Scan, Heap Fetches 0 (0.2 ms)
+--   expired_events, the count        Parallel Seq Scan (21 ms) -> Index Only Scan, Heap Fetches 0 (0.7 ms)
+--   standby_hosts, the deleted half  Parallel Seq Scan on events d keeping 10,000 of 1,000,000
+--                                    -> Index Only Scan using events_deleted_idx on events d, 10,000 rows, Heap Fetches 0
+-- standby_hosts as a whole is unchanged (about 250 ms warm either way): its OUTER join to events (`join public.events e
+-- on e.id = m.event_id`, for each row's host) still hashes every event, which no index on the deleted events serves; a
+-- rewrite of that body is the lane's Deferred line, not this file's.
+--
+-- Answers unchanged by construction (an index changes no result); no function, grant or column moves, so the
+-- advisors move not at all and no deployed caller changes. Types unchanged.
+--
+-- LOCKS AT APPLY: `create index` (not concurrently: apply_migration runs in a transaction) holds SHARE on events while
+-- it builds over the soft-deleted rows (49 live on 2026-10-01: an instant), blocking writes to events for that instant.
+--
+-- APPLY PROTOCOL (database-security.md -> Workflow):
+--   (1) Drift, read-only: no events_deleted_idx exists (select indexname from pg_indexes where tablename = 'events').
+--   (2) Apply verbatim.
+--   (3) get_advisors: EXPECTED DELTA none (performance: an unused-index notice for events_deleted_idx may show until
+--       the purge cron's first night reads it).
+--   (4) Types unchanged.
+--   (5) The rolled-back check at the foot, in one execute_sql call; it ends in a deliberate raise.
+-- =============================================================================================
+
+create index events_deleted_idx on public.events (id) include (purge_at, deleted_at)
+  where deleted_at is not null;
+
+-- =============================================================================================
+-- THE ROLLED-BACK CHECK. Run it AFTER the apply, in one execute_sql call; it ends in a deliberate raise, so nothing it
+-- touches persists (database-security.md, Workflow). The live table is far too small for the planner to prefer an
+-- index on its own (it seq-scans 63 rows, rightly), so the plans are read with `enable_seqscan` off, which shows what
+-- the index CAN serve: each reader finds the soft-deleted events through events_deleted_idx and through no other
+-- index of events. Whether a read is index-only is the planner's call from the visibility map (a 63-row table updated
+-- all day has few all-visible pages, so live it takes a bitmap scan); the stand-in above shows the index-only reads at
+-- a million. The readers are asked as they run: expired_events' page and count as PostgREST writes them (`not.is.null`
+-- is `NOT (deleted_at IS NULL)`), and standby_hosts through its own deployed prosrc.
+-- The error it ends on must read `ROLLED BACK: every deleted-events-index check held {...}`.
+-- The lane ran it on the live project BEFORE the apply (2026-10-01): red on today's schema ("FAIL 1: ...missing"),
+-- then green with this file's statement at the head of the same call, rolled back.
+-- =============================================================================================
+-- do $check$
+-- declare
+--   v_body text;
+--   v_plan text;
+--   v_report jsonb := '{}'::jsonb;
+-- begin
+--   -- ── 1. The index: the soft-deleted events keyed by id, carrying purge_at and deleted_at ──
+--   if (select pg_get_indexdef(i.indexrelid) from pg_index i
+--        where i.indexrelid = to_regclass('public.events_deleted_idx'))
+--      is distinct from 'CREATE INDEX events_deleted_idx ON public.events USING btree (id) INCLUDE (purge_at, deleted_at) WHERE (deleted_at IS NOT NULL)' then
+--     raise exception 'FAIL 1: events_deleted_idx is missing or not the deleted events keyed by id, carrying purge_at and deleted_at';
+--   end if;
+--
+--   -- ── 2. The plans, with seq scans off: what the index can serve ──
+--   set local enable_seqscan = off;
+--   execute $q$explain (format json)
+--     select id from public.events
+--      where not (deleted_at is null)
+--        and (purge_at <= now() or (purge_at is null and deleted_at <= now() - interval '30 days'))
+--      order by id limit 1000$q$ into v_plan;
+--   if v_plan not like '%"Index Name": "events_deleted_idx"%' or v_plan like '%"Index Name": "events_pkey"%' then
+--     raise exception 'FAIL 2: the expired-events page does not find its events through events_deleted_idx alone: %', v_plan;
+--   end if;
+--   execute $q$explain (format json)
+--     select count(*) from public.events
+--      where not (deleted_at is null)
+--        and (purge_at <= now() or (purge_at is null and deleted_at <= now() - interval '30 days'))$q$ into v_plan;
+--   if v_plan not like '%"Index Name": "events_deleted_idx"%' or v_plan like '%"Index Name": "events_pkey"%' then
+--     raise exception 'FAIL 2: the expired-events count does not find its events through events_deleted_idx alone: %', v_plan;
+--   end if;
+--   select p.prosrc into v_body from pg_proc p where p.oid = 'public.standby_hosts(uuid, integer)'::regprocedure;
+--   v_body := replace(replace(rtrim(btrim(v_body, E' \n'), ';'), 'p_after', 'null::uuid'), 'p_limit', 'null::integer');
+--   execute 'explain (format json) ' || v_body into v_plan;
+--   if v_plan not like '%"Index Name": "events_deleted_idx"%' then
+--     raise exception 'FAIL 2: standby_hosts'' deleted half does not read events_deleted_idx: %', v_plan;
+--   end if;
+--   reset enable_seqscan;
+--   v_report := v_report || jsonb_build_object(
+--     'deleted_events', (select count(*) from public.events where deleted_at is not null),
+--     'expired', (select count(*) from public.events
+--                  where deleted_at is not null
+--                    and (purge_at <= now() or (purge_at is null and deleted_at <= now() - interval '30 days'))));
+--
+--   raise exception 'ROLLED BACK: every deleted-events-index check held %', v_report;
+-- end
+-- $check$;

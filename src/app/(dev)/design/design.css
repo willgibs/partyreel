@@ -117,15 +117,16 @@
 .lab-toc {
   display: none;
 }
+/* `--lab-wide-toc` is `none` on a wide page (below) and unset elsewhere. */
 .lab-toc-compact {
-  display: block;
+  display: var(--lab-wide-toc, block);
 }
 @media (min-width: 1280px) {
   .lab-shell-body {
     grid-template-columns: var(--lab-sidebar-w) minmax(0, 1fr) var(--lab-toc-w);
   }
   .lab-toc {
-    display: block;
+    display: var(--lab-wide-toc, block);
     position: sticky;
     top: var(--lab-topbar-h, 48px);
     max-height: calc(100dvh - var(--lab-topbar-h, 48px));
@@ -138,10 +139,23 @@
 }
 /* A wide page has no rail at any width, and no compact disclosure either: its
    dock carries the Sections menu, and two jump controls for one list of
-   sections is one more than a reader needs (the sweep, 2026-09-16). */
-.lab-shell-body:has([data-lab-wide]) .lab-toc,
-.lab-shell-body:has([data-lab-wide]) .lab-toc-compact {
-  display: none;
+   sections is one more than a reader needs (the sweep, 2026-09-16).
+
+   ★ AND THE SHELL ASKS ONLY ITSELF WHETHER THE PAGE IS WIDE (lab-sitting,
+   2026-10-01). These rules used to read `.lab-shell-body:has([data-lab-wide])
+   .lab-toc`: a `:has()` that styles something other than its own element.
+   Chrome answers a change under such an anchor by restyling the anchor's whole
+   subtree, which with production's `group-has-*` utilities on the page is every
+   element the shell holds: one tile appended to a board padded to 6,722
+   elements restyled 6,364 of them, and a line of text changed did the same
+   (Chrome 154, the trace's UpdateLayoutTree counts, each sheet rewritten on a
+   fresh load). A `:has()` in a rule's own subject re-matches only that element,
+   so the shell body answers the question for itself, here, and hands its
+   children the answer as an inherited property, which costs a descendant
+   nothing until the answer changes. `design-css.test.ts` refuses a `:has()`
+   anywhere but a rule's subject. */
+.lab-shell-body:has([data-lab-wide]) {
+  --lab-wide-toc: none;
 }
 @media (min-width: 1280px) {
   .lab-shell-body:has([data-lab-wide]) {
@@ -615,6 +629,70 @@ html
   gap: 0.5rem;
   grid-template-columns: repeat(auto-fill, minmax(min(16rem, 100%), 1fr));
 }
+/* EVERY OPTION IN A PHONE'S ROW (lab-sitting, 2026-10-01; `lab-focus`'s board
+   idea). Four named tabs ran past 375 and the row scrolled, its cut edge faded,
+   so an option could be off screen while he chose between the others. Below a
+   tablet's width a tab is its number, and the shown one its number and its
+   name, which takes the rest of the row and is cut where it runs out; the name
+   stays in the button for a screen reader and the tab's title. */
+@media (max-width: 639px) {
+  .lab-tab:not([data-shown]) [data-lab-tab-name],
+  .lab-tab:not([data-shown]) [data-lab-tab-mark] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .lab-tab:not([data-shown]) {
+    padding-inline: 0.375rem;
+  }
+  .lab-tab[data-shown] {
+    flex: 1 1 auto;
+    max-width: none;
+  }
+}
+/* THE DESK'S PICTURES (lab-sitting, 2026-10-01): each open question's stage as
+   it would land, in a box of its own beside the row's words at a desk and above
+   them at a phone (`desk-thumb.tsx`, `step-thumb.tsx`). The box is the stage's
+   room, and whole.ts fits the option into it as it fits a step's; the frames'
+   names and captions are the step's to show. The row is one link: the picture
+   takes no pointer, and the link's box is stretched over the whole row. */
+.lab-queue-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+.lab-desk-thumb {
+  position: relative;
+  flex: none;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--muted);
+  pointer-events: none;
+}
+@media (min-width: 640px) {
+  .lab-desk-thumb {
+    width: 11.5rem;
+  }
+}
+.lab-desk-thumb .lab-thumb {
+  position: absolute;
+  inset: 0.25rem;
+}
+.lab-desk-thumb .lab-stage[data-fit="whole"] {
+  flex: none;
+  height: 100%;
+  min-height: 0;
+  padding: 0;
+}
+.lab-desk-thumb figcaption {
+  display: none;
+}
 /* THE DOCK: the answer alone (the options are the tabs), sticky at the foot
    of the window, one row at a desk and at a phone. */
 .lab-dock {
@@ -629,11 +707,14 @@ html
   border-top: 1px solid var(--border);
   background: color-mix(in oklab, var(--background) 94%, transparent);
   backdrop-filter: blur(8px);
+  padding-right: var(--lab-dev-indicator, 0px);
 }
 /* Next's dev indicator sits bottom-right over whatever is there, which was
-   Next itself on a reviewer's local server. Only while it is on the page. */
-html:has(nextjs-portal) .lab-dock {
-  padding-right: 3.25rem;
+   Next itself on a reviewer's local server. Only while it is on the page:
+   `<html>` answers for itself and the dock inherits it (the shell's note on a
+   `:has()` that styles another element, above). */
+html:has(nextjs-portal) {
+  --lab-dev-indicator: 3.25rem;
 }
 .lab-dock-note {
   display: flex;

@@ -10,7 +10,8 @@ import { describe, expect, it, vi } from "vitest";
  * about why, and its metadata is the not-found's: the tab reads "Profile not found" (it read "Profile"), and noindex,
  * which at 200 is all that keeps a dead handle out of an index.
  *
- * Everything a real profile reads is stubbed: the missing handle returns before any of it is asked.
+ * Everything a real profile reads is stubbed: the missing handle returns before any of it is asked,
+ * but for the viewer, who is asked beside the RPC itself.
  */
 
 vi.mock("server-only", () => ({}));
@@ -40,7 +41,10 @@ vi.mock("@/components/social/profile-actions-menu", () => ({
 }));
 vi.mock("@/lib/avatar/seed", () => ({ seedFor: stub }));
 vi.mock("@/lib/supabase/avatar-storage", () => ({ getAvatarUrl: stub }));
-vi.mock("@/lib/supabase/server", () => ({ createClient: stub }));
+// The viewer is asked beside the RPC (crumbs-44), so a dead handle meets an anonymous one.
+vi.mock("@/lib/supabase/request-auth", () => ({
+  getRequestAuth: async () => ({ supabase: null, user: null }),
+}));
 
 const { default: PublicProfilePage, generateMetadata } = await import("./page");
 const { notFoundMetadata } = await import("./not-found.metadata");

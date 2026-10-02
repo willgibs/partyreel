@@ -15,9 +15,10 @@ import {
   useState,
 } from "react";
 
-import type { GridMedia } from "@/components/app/media-grid";
+import { decodeTileImage, type GridMedia } from "@/components/app/media-grid";
 import { BrowserFrame } from "@/components/marketing/frames";
 import { STREAM_FRAMES } from "@/components/marketing/sections/home/hero-stream";
+import { stillVariants } from "@/components/marketing/system/still-variants";
 import {
   AlbumStreamTarget,
   type StreamTarget,
@@ -31,7 +32,12 @@ import {
 import { Glow } from "@/components/shared/glow";
 import { MasonryColumns } from "@/components/shared/masonry";
 import { marketingImage } from "@/lib/constants/marketing-media";
-import { DEFAULT_ROW_STEP } from "@/lib/shared/album-rows";
+import {
+  DEFAULT_ROW_STEP,
+  meanRatio,
+  perRowFor,
+  targetFor,
+} from "@/lib/shared/album-rows";
 import { ARRIVAL_GLOW_MS, useArrivalMarks } from "@/lib/shared/arrival";
 import { useSampledPaletteFromDom } from "@/lib/shared/sampled-palette";
 
@@ -86,11 +92,8 @@ type Still = { id: string; photo: number };
  * ★ TWELVE, AND NONE TWICE, EVER. Two rows of three at 896 (about three rows of
  * two at a phone) is as much as the stage shows, so twelve fills it with the
  * rest under the dissolve and no photograph appears in the frame twice,
- * which a repeat inside one screen reads as at once. It is also what a tile
- * costs: it serves the source file straight (a real guest tile is a
- * server-sized preview, and a marketing still has no derivative), so every
- * extra tile is the whole still decoded. The arrivals keep it twelve
- * (`LiveAlbum`).
+ * which a repeat inside one screen reads as at once. The arrivals keep it
+ * twelve (`LiveAlbum`).
  */
 const OPENING: readonly Still[] = STREAM_FRAMES.map((id, i) => ({
   id: `alb-${id}-${i}`,
@@ -100,7 +103,82 @@ const OPENING: readonly Still[] = STREAM_FRAMES.map((id, i) => ({
 /** The ids the album gives its arrivals, so the glow can find them. */
 const ARRIVAL = "alb-arrival-";
 
-/** A still at its real dimensions, as the rows lay a guest's photograph. */
+/**
+ * THE STAGE'S ALBUM BOX, AT EVERY WIDTH (mkt-polish, measured against the
+ * page): the stage is `max-w-4xl` (896) inside the page's `Container` gutters
+ * (16, 24 from sm, 32 from lg), and the frame takes 13px a side (`p-3` and its
+ * border), so the box is 317 at 375 and 870 from 944 up. Exported for the test
+ * that holds the stills' `sizes` against the rows laid in it.
+ */
+export const STAGE_MAX = 896;
+export const FRAME_INSET = 26;
+export const GUTTER = { base: 16, sm: 24, lg: 32 } as const;
+/** The tiles' gap (`--gap-gallery`, max(3px, the 4px tile corner)). */
+export const TILE_GAP = 4;
+
+export function stageBox(viewport: number): number {
+  const gutter =
+    viewport >= 1024 ? GUTTER.lg : viewport >= 640 ? GUTTER.sm : GUTTER.base;
+  return Math.min(viewport - 2 * gutter, STAGE_MAX) - FRAME_INSET;
+}
+
+/** The album's mean shape, in the rows' own unit: the set never changes, only its order. */
+const MEAN = meanRatio(
+  STREAM_FRAMES.map((id) => {
+    const m = marketingImage(id);
+    return { ratio: m.width / m.height };
+  }),
+);
+
+/**
+ * ★ A STILL'S `sizes` IS THE TILE THE ROWS LAY IT IN (mkt-polish). A tile
+ * stands its photograph's ratio times its row's height, and the rows aim every
+ * row at one target (`targetFor`: the box shared out at the step's photographs
+ * a row, in the album's mean shape), so a still's slot is `ratio × target` at
+ * the box's width: a portrait's is half a landscape's, which one `sizes` for
+ * the whole stage would have spent on it. The box is fixed from 944 and a share
+ * of the viewport below it, two a row under a 480 box and three above, so each
+ * band is a `calc()` on the viewport. A row stretched off its target lays its
+ * tiles a little wider or narrower than this (`live-album-stage.test.tsx` holds
+ * every still within a band of it, through the real rows engine), which the
+ * optimizer's coarse widths absorb.
+ */
+export function stillSizes(ratio: number): string {
+  const share = (box: number) =>
+    ratio / (perRowFor(box, DEFAULT_ROW_STEP) * MEAN);
+  const deskFrom = STAGE_MAX + 2 * GUTTER.sm;
+  const desk = Math.ceil(
+    ratio *
+      targetFor(
+        STAGE_MAX - FRAME_INSET,
+        TILE_GAP,
+        perRowFor(STAGE_MAX - FRAME_INSET, DEFAULT_ROW_STEP),
+        MEAN,
+      ),
+  );
+  const sm = 2 * GUTTER.sm + FRAME_INSET;
+  const base = 2 * GUTTER.base + FRAME_INSET;
+  // Where the box reaches 480, the rows step from two a row to three.
+  const threeFrom = 480 + base;
+  return [
+    `(min-width: ${deskFrom}px) ${desk}px`,
+    `(min-width: 640px) calc((100vw - ${sm}px) * ${share(480).toFixed(4)})`,
+    `(min-width: ${threeFrom}px) calc((100vw - ${base}px) * ${share(480).toFixed(4)})`,
+    `calc((100vw - ${base}px) * ${share(0).toFixed(4)})`,
+  ].join(", ");
+}
+
+/** Each of the twelve at its slot's size, worked out once: the set never changes. */
+const VARIANTS = STREAM_FRAMES.map((id) => {
+  const img = marketingImage(id);
+  return stillVariants(img, stillSizes(img.width / img.height));
+});
+
+/**
+ * A still at its real dimensions, as the rows lay a guest's photograph, and at
+ * its slot's size: the optimizer's widths and the tile it fills (`VARIANTS`),
+ * where the stage used to decode the whole source file into a third of its width.
+ */
 function mediaOf({ id, photo }: Still): GridMedia {
   const img = marketingImage(STREAM_FRAMES[photo]);
   return {
@@ -109,6 +187,7 @@ function mediaOf({ id, photo }: Still): GridMedia {
     url: img.src,
     width: img.width,
     height: img.height,
+    variants: VARIANTS[photo],
   };
 }
 
@@ -175,19 +254,16 @@ export function LiveAlbum({ children }: { children: ReactNode }) {
   // document already holds is also one the grid never aborts: in development,
   // React's second pass over a ref ran the grid's cleanup, which cancels an
   // unfinished download (`abortUnfinishedImages`), on every arrival, and left
-  // it blank.
+  // it blank. ★ It decodes the width the tile will ask for: the tile picks
+  // from its still's variants, so the decode is handed the same ones
+  // (`decodeTileImage`), or it would ready a file the tile never draws.
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     for (let k = 0; k < Math.min(READY_AHEAD, album.length); k++) {
-      const { src } = marketingImage(
-        STREAM_FRAMES[album[album.length - 1 - k].photo],
-      );
+      const { url: src, variants } = mediaOf(album[album.length - 1 - k]);
       if (ready.current.has(src)) continue;
-      const img = new Image();
-      img.decoding = "async";
-      img.src = src;
-      img.decode?.().catch(() => {});
-      ready.current.set(src, img);
+      const { image } = decodeTileImage(src, variants);
+      ready.current.set(src, image);
     }
   }, [album]);
 

@@ -72,17 +72,12 @@ type View = "album" | "deleted";
  */
 export function EventGallery({
   eventId,
-  launchCount = 0,
   videosAllowed,
   initialStep,
   tier,
   children,
 }: {
   eventId: string;
-  /** How many things are still outstanding on an empty event (`empty=list`), so
-   *  the section can be named for what it actually holds before the first
-   *  photograph. Ignored the moment the album has one. */
-  launchCount?: number;
   videosAllowed: boolean;
   /** The density step the server painted from the `pr_tile_size` cookie, so the
    *  first paint is already the step a returning host picked. */
@@ -163,22 +158,14 @@ export function EventGallery({
   return (
     <section aria-label="Album" className="space-y-2.5">
       <FeedSectionHeader
-        // ★ THE SECTION IS NAMED FOR WHAT IT HOLDS (`empty=list`, Will
-        // 2026-09-21). Before the first photograph this room is not an album
-        // with nothing in it, it is the launch list — so the header says so, and
-        // its count is what is still outstanding rather than a zero. The name
-        // and the count both go back the moment a photograph lands, which is the
-        // verdict's own sentence: "The album takes the room back".
-        label={
-          view === "deleted"
-            ? "Deleted"
-            : albumCount === 0
-              ? "Before the first photo"
-              : "Album"
-        }
+        // The album is the album from its first moment: what the event still
+        // needs before guests arrive is the checklist's, at the head of the hub
+        // (event-ready `list=head`), and an empty album carries no count at all,
+        // never a zero.
+        label={view === "deleted" ? "Deleted" : "Album"}
         count={
           view === "album"
-            ? albumCount || launchCount || undefined
+            ? albumCount || undefined
             : bin.status === "ready"
               ? bin.entries.length
               : undefined
@@ -236,11 +223,7 @@ export function EventGallery({
               ? "Add your own photos and videos, for example a batch from your photographer. These post to the album right away."
               : "Add your own photos, for example a batch from your photographer. These post to the album right away."}
           </p>
-          <HostUpload
-            eventId={eventId}
-            videosAllowed={videosAllowed}
-            onUploadingCountChange={add?.setUploadingCount}
-          />
+          <HostUpload eventId={eventId} videosAllowed={videosAllowed} />
         </div>
       )}
 
@@ -286,10 +269,6 @@ export function EventGallery({
           )}
         </div>
       )}
-
-      {/* The empty album's Share door moved INTO the launch list, which is the
-          empty room's subject now (`empty=list`): two doors to sharing, one
-          under the other, was the shape his verdict replaced. */}
     </section>
   );
 }

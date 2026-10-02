@@ -19,11 +19,16 @@ import { readCoveredItems } from "@/lib/db/queries/reports";
 import { formatAdminTimestamp } from "@/lib/format/admin-time";
 import { formatCount } from "@/lib/format/count";
 import {
+  ALBUM_STATUSES,
   albumPageHref,
+  albumStatusLabel,
   parseAlbumCursor,
+  parseAlbumStatus,
   type AlbumCursor,
+  type AlbumStatus,
 } from "@/lib/moderation/album-pages";
 import { toModerationFeedItems } from "@/lib/r2/grid-items";
+import { cn } from "@/lib/utils";
 import { isUuidShape } from "@/lib/validation/uuid-shape";
 import { PageHeading } from "@/components/shared/page-heading";
 
@@ -33,7 +38,7 @@ type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 /**
  * The album's page, read once a request for the page and its title (React's cache shares it within the render:
- * both ask with the same three strings, the cursor's two parts or nulls).
+ * both ask with the same four strings, the cursor's two parts or nulls and the status or null).
  */
 const readAlbum = cache(getAlbumForModeration);
 
@@ -49,11 +54,13 @@ export async function generateMetadata({
   const ctx = await requireAdmin();
   if (ctx.aal !== "aal2") return { title: "Album" };
   const { eventId } = await params;
-  const cursor = parseAlbumCursor(await searchParams);
+  const query = await searchParams;
+  const cursor = parseAlbumCursor(query);
+  const status = parseAlbumStatus(query);
   // ★ A record that is gone is titled as the 404 it is (crumbs-28): the page draws its not-found itself. So is an id
   // that is not one, which is never read (the page says why).
   return isUuidShape(eventId) &&
-    (await readAlbum(eventId, cursor?.at ?? null, cursor?.id ?? null))
+    (await readAlbum(eventId, cursor?.at ?? null, cursor?.id ?? null, status))
     ? { title: "Album" }
     : adminNotFoundMetadata;
 }
@@ -85,22 +92,27 @@ const PAGE_LINK =
  * WHERE THIS PAGE SITS, AND THE WAY TO THE OTHERS (crumbs-37): the album is drawn a page at a time, newest
  * first, so a long one says which items these are and links the newest page and the next older one. Plain
  * links, no client JS, never prefetched (each portal prefetch is two auth reads). An album of one page says
- * nothing.
+ * nothing. Under a status filter (crumbs-41) it counts and pages that status's items, and keeps the filter.
  */
 function AlbumPager({
   eventId,
+  status,
   position,
   shown,
   total,
   next,
 }: {
   eventId: string;
+  status: AlbumStatus | null;
   position: number;
   shown: number;
   total: number;
   next: AlbumCursor | null;
 }) {
   if (position === 0 && !next) return null;
+  const of = status
+    ? `${formatCount(total)} ${albumStatusLabel(status).toLowerCase()}`
+    : formatCount(total);
   return (
     <nav
       aria-label="Album pages"
@@ -108,13 +120,13 @@ function AlbumPager({
     >
       <p className="text-sm text-muted-foreground">
         {shown > 0
-          ? `Items ${formatCount(position + 1)}–${formatCount(position + shown)} of ${formatCount(total)}, newest first`
-          : `Nothing older here, of ${formatCount(total)}`}
+          ? `Items ${formatCount(position + 1)}–${formatCount(position + shown)} of ${of}, newest first`
+          : `Nothing older here, of ${of}`}
       </p>
       <div className="flex gap-1">
         {position > 0 ? (
           <Link
-            href={albumPageHref(eventId, null)}
+            href={albumPageHref(eventId, null, status)}
             prefetch={false}
             className={PAGE_LINK}
           >
@@ -123,7 +135,7 @@ function AlbumPager({
         ) : null}
         {next ? (
           <Link
-            href={albumPageHref(eventId, next)}
+            href={albumPageHref(eventId, next, status)}
             prefetch={false}
             className={PAGE_LINK}
           >
@@ -131,6 +143,41 @@ function AlbumPager({
           </Link>
         ) : null}
       </div>
+    </nav>
+  );
+}
+
+/**
+ * THE DRILL-IN'S STATUS FILTER (crumbs-41, a board idea from crumbs-37): the Albums feed's own words over one album,
+ * so a big album's pending, hidden or removed items are one press away rather than pages deep. All is every status,
+ * removed included, as the drill-in always drew; each filter starts at its newest page. Plain links, server-drawn,
+ * never prefetched, as the feed's tabs are.
+ */
+function AlbumStatusFilter({
+  eventId,
+  status,
+}: {
+  eventId: string;
+  status: AlbumStatus | null;
+}) {
+  return (
+    <nav aria-label="Album status" className="flex flex-wrap gap-1">
+      {[null, ...ALBUM_STATUSES].map((s) => (
+        <Link
+          key={s ?? "all"}
+          href={albumPageHref(eventId, null, s)}
+          prefetch={false}
+          aria-current={s === status ? "page" : undefined}
+          className={cn(
+            "rounded-md px-3 py-1.5 text-sm transition-colors",
+            s === status
+              ? "bg-foreground text-background"
+              : "text-muted-foreground hover:bg-muted hover:text-foreground",
+          )}
+        >
+          {albumStatusLabel(s)}
+        </Link>
+      ))}
     </nav>
   );
 }
@@ -146,9 +193,12 @@ export default async function AdminAlbumDetailPage({
   if (ctx.aal !== "aal2") return null;
 
   const { eventId } = await params;
+  const query = await searchParams;
   // ★ ONE PAGE OF THE ALBUM (crumbs-37): the read and the presigns stop at `ALBUM_DRILL_IN_PAGE`, and an Older
   // link carries the next page's cursor. A cursor that is not one reads as the newest page.
-  const cursor = parseAlbumCursor(await searchParams);
+  const cursor = parseAlbumCursor(query);
+  // ★ OF ONE STATUS, WHEN ASKED (crumbs-41): anything but the feed's four words reads as every status.
+  const status = parseAlbumStatus(query);
   // ★ The worst kinds arrive covered here as in Reports (build 23's NIT-7): every item of the album any
   // report names as one, read by the rule's one home, and a covered item is never signed.
   // ★ AN ID THAT IS NOT ONE NAMES NO ALBUM, AND IS NEVER READ (build 33's red-team): both reads handed it to a
@@ -156,7 +206,7 @@ export default async function AdminAlbumDetailPage({
   // an error each hit. Asked after the gate and before any read, a mangled link is an album that is not there.
   const [album, covered] = isUuidShape(eventId)
     ? await Promise.all([
-        readAlbum(eventId, cursor?.at ?? null, cursor?.id ?? null),
+        readAlbum(eventId, cursor?.at ?? null, cursor?.id ?? null, status),
         readCoveredItems({ eventId }),
       ])
     : [null, undefined];
@@ -168,10 +218,13 @@ export default async function AdminAlbumDetailPage({
 
   const { event, hostLabel, counts, position, next } = album;
   const items = await toModerationFeedItems(album.media, covered);
-  const total = Object.values(counts).reduce((sum, n) => sum + n, 0);
+  const whole = Object.values(counts).reduce((sum, n) => sum + n, 0);
+  // What this view pages through: the album, or its items of the one status asked.
+  const total = status ? counts[status] : whole;
   const pager = (
     <AlbumPager
       eventId={event.id}
+      status={status}
       position={position}
       shown={items.length}
       total={total}
@@ -237,6 +290,11 @@ export default async function AdminAlbumDetailPage({
         </CardContent>
       </Card>
 
+      {/* An album with nothing in it has nothing to filter. */}
+      {whole > 0 ? (
+        <AlbumStatusFilter eventId={event.id} status={status} />
+      ) : null}
+
       {items.length > 0 ? (
         <>
           {pager}
@@ -250,7 +308,11 @@ export default async function AdminAlbumDetailPage({
         <Card>
           <CardHeader>
             <CardTitle>No media</CardTitle>
-            <CardDescription>This album has no uploads.</CardDescription>
+            <CardDescription>
+              {status
+                ? `No ${albumStatusLabel(status).toLowerCase()} media in this album.`
+                : "This album has no uploads."}
+            </CardDescription>
           </CardHeader>
         </Card>
       )}

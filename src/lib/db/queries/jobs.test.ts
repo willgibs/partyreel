@@ -215,6 +215,8 @@ describe("getJobSignals", () => {
         ],
       },
     });
+    // `export-ends`: the downloads' signal reads export_log too, so the fixture carries it (empty here).
+    state.fake.tables.export_log = [];
     const signals = await getJobSignals(now);
     expect(signals.help_feedback).toEqual({ ok24h: 2, failed24h: 1 });
     expect(signals.abuse_limiter).toEqual({ ok24h: 0, failed24h: 1 });
@@ -227,8 +229,50 @@ describe("getJobSignals", () => {
         action_attempts: [],
         unlock_attempts: [],
         job_runs: [],
+        export_log: [],
       },
     });
     await expect(getJobSignals()).rejects.toThrow(/help feedback/);
+  });
+
+  // `export-ends`: the downloads' success half is the Worker's own word on the day's mints (a zip it
+  // finished, whole or short), never a mint alone; its failure half the error rows the report route writes.
+  it("windows the downloads' signal on the zips the Worker finished, and their failures", async () => {
+    const now = Date.parse("2026-10-01T12:00:00.000Z");
+    const mint = (created: string, outcome: string | null) => ({
+      outcome: "minted",
+      created_at: created,
+      stream_outcome: outcome,
+    });
+    state.fake = createFakePostgrest({
+      tables: {
+        sent_emails: [],
+        action_attempts: [],
+        unlock_attempts: [],
+        article_feedback: [],
+        export_log: [
+          mint("2026-10-01T11:00:00.000000+00:00", "saved"),
+          mint("2026-10-01T10:00:00.000000+00:00", "short"),
+          // Stopped by her, or broken: not a download the Worker finished.
+          mint("2026-10-01T09:00:00.000000+00:00", "stopped"),
+          mint("2026-10-01T08:00:00.000000+00:00", "failed"),
+          // A mint the Worker never spoke of is not a finished download.
+          mint("2026-10-01T07:00:00.000000+00:00", null),
+          // Yesterday's.
+          mint("2026-09-29T11:00:00.000000+00:00", "saved"),
+        ],
+        job_runs: [
+          runRow(
+            1,
+            "export_delivery",
+            "error",
+            "2026-10-01T08:00:00.000000+00:00",
+            null,
+          ),
+        ],
+      },
+    });
+    const signals = await getJobSignals(now);
+    expect(signals.export_delivery).toEqual({ ok24h: 2, failed24h: 1 });
   });
 });

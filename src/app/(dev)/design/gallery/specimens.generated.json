@@ -1,6 +1,12 @@
 {
   "version": 2,
   "code": {
+    "relation-toggle": [
+      "<Row>\n  <RelationToggleDemo relation=\"follow\" />\n  <RelationToggleDemo relation=\"follow\" on />\n</Row>",
+      "<Row>\n  <RelationToggleDemo relation=\"follow\" quiet size=\"xs\" label=\"Tom\" />\n  <RelationToggleDemo\n    relation=\"follow\"\n    quiet\n    size=\"xs\"\n    label=\"Tom\"\n    on\n  />\n</Row>",
+      "<Row>\n  <RelationToggleDemo relation=\"block\" size=\"sm\" />\n  <RelationToggleDemo relation=\"block\" size=\"sm\" on />\n</Row>",
+      "<RelationToggleDemo relation=\"follow\" refuses />"
+    ],
     "table": [
       "<AdminRunsTable />"
     ],
@@ -165,6 +171,9 @@
     "admin-report-cards": [
       "<AdminReportCardDemo />"
     ],
+    "admin-metrics-charts": [
+      "<AdminMetricsChartsDemo />"
+    ],
     "event-card": [
       "<EventCard\n  variant=\"hosted\"\n  href=\"#\"\n  name={SAMPLE.eventName}\n  coverUrl={SAMPLE.cover}\n  dateLabel={SAMPLE.dateLabel}\n  itemsLabel=\"128 items\"\n  statusLabel=\"Open\"\n  pendingCount={3}\n  qrSlot={qrSlot}\n/>",
       "<EventCard\n  variant=\"hosted\"\n  href=\"#\"\n  name=\"Office Summer Party\"\n  coverUrl={null}\n  dateLabel=\"Aug 2\"\n  itemsLabel=\"0 items\"\n  statusLabel=\"Open\"\n  pendingCount={0}\n/>",
@@ -200,6 +209,14 @@
     ],
     "review-section": [
       "<ReviewSectionDemo />"
+    ],
+    "event-checklist": [
+      "<ChecklistDemo moment=\"fresh\" />",
+      "<ChecklistDemo moment=\"seeded\" />",
+      "<ChecklistDemo moment=\"short\" />"
+    ],
+    "event-code-door": [
+      "<CodeDoorDemo />"
     ],
     "event-settings": [
       "<SettingsDemo />",
