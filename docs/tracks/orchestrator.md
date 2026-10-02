@@ -105,19 +105,13 @@ the alias mid-sitting (his yes). No new lane until his paste lands.
    and seams at `aa80d056`, the Worker deployed `abf810e7`), mkt-polish `a20865d5`, lab-sitting `d5efa6a3`, crumbs-43
    `5c572152` (its two migrations applied by protocol, faces_move_attribution 20261002020705 and guest_event_cap
    20261002020808, each payload the file's md5; the types and `hostCapOf` at `8877d204`); each pruned; the calls file at 73.
-3. **Build 38 is ON THE ALIAS** (`c46c23a8`, both READY 2026-10-02 02:20Z, Vercel pruned). Running, both read-only:
-   - **its red-team** (agent `a73dd83f2c4210804`, Opus, Will's Chrome), from `../partyreel-wt/_scratch/redteam-38/brief.md`;
-     its ledger beside it (a respawn on the same brief continues after the ledger's last line). Staged for its #60
-     walk by SQL, to delete after it (and the 40-day one's photo `cc2517cc` restored, which its Take it down removes):
-     reports `b541d98b` (40 days), `88c5223f` (181 days), `a76ca9da` (no address, 31 days), on "Reel lane probe
-     (disposable)" `aefb1f5d`.
-   - **the desk pass** DONE (02:45Z): 21 of the 22 asks hold; event-ready's `guide` DRIFTED in what its frames draw
-     (the quoted Settings panel at 375 shows the event's name under the bar, which production hides since crumbs-42),
-     and two quotes went stale beside it (event-ready's "Closed", disposable-mode's Review head). **desk-tune-3**
-     made them true, MERGED at `03a24b3d` (gate 130) and recorded; build 39 (lab-only beside
-     build 38, every product file identical) carries it to the alias, the red-team told.
-   Also: production's first album-log prune after 04:48Z on 2026-10-02 and the export Worker's first heartbeat after
-   05:30Z, both read in `job_runs`.
+3. **Build 38's round is done.** Its red-team (02:22 to 05:02Z, `../partyreel-wt/_scratch/redteam-38/ledger.txt`) passed
+   every walk it could drive on build 38 and, from 03:40Z, build 39: no MEDIUM or worse; four LOWs, two NITs and two
+   observations, the new ones on the ROADMAP (no fix lane in the wind-down); its two undriven walks are Will's (below).
+   The staged reports deleted and their photo `cc2517cc` restored; strikes as before (willg97 2, partyr33l 7, hi 0).
+   The desk pass's one drift fixed by desk-tune-3 (`03a24b3d`), carried by build 39 (`0e57c5a3`). Production's first
+   album-log prune green (2026-10-02 04:48Z, one row over 58 albums); the export Worker's first heartbeat is read in
+   `job_runs` after 05:30Z.
 4. **Will TOLD the alias is ready** (2026-10-02 03:55Z, build 39 `0e57c5a3`, locked-door first; the calls file at 74
    re-sent). His sitting never blocks the Orchestrator; no alias deploy lands mid-sitting without asking him.
 5. **After his paste:** transcribe it, then the wiring lanes from his picks, at most four at once (`memory_pressure`
@@ -141,13 +135,13 @@ the alias mid-sitting (his yes). No new lane until his paste lands.
 
 ## Waiting on Will
 
-- **His desk** (not begun at 21:30Z on 2026-10-01; locked-door first). Will, 2026-10-01: wind down so he can answer the whole desk and the next round builds on his picks instead of re-adapting standing asks round after round. So no new lane is cut until his paste lands, but the red-team's fixes; the running lanes finish (none touches a board's surface); no alias deploy lands mid-sitting without asking. His sitting never blocks the Orchestrator (answers live in his browser). The boards: `disposable-mode` r2 (eight asks), `locked-door` r2 (four, redrawn from production) and `event-ready` r1
+- **His desk** (the alias READY for his sitting since 2026-10-02 03:55Z, build 39; locked-door first). Will, 2026-10-01: wind down so he can answer the whole desk and the next round builds on his picks instead of re-adapting standing asks round after round. So no new lane is cut until his paste lands, but the red-team's fixes; the running lanes finish (none touches a board's surface); no alias deploy lands mid-sitting without asking. His sitting never blocks the Orchestrator (answers live in his browser). The boards: `disposable-mode` r2 (eight asks), `locked-door` r2 (four, redrawn from production) and `event-ready` r1
   (five; its three settled calls, ready never stored nor shown to a guest among them, his to overrule) on build 25;
   `demo-framing` r2 (three: the demo's address in a host's words, how it shares the stage with the stream, the hero's
   touch; `names` retired into `slug`) and `about-press` r1 (two: the press kit on /about, its four facts; press-page's
   `a-human` retired as the carried call `named`) reach him with build 26; `privacy-hero` r4 (one: which veil, the lens
   recommended) with build 27.
-- **The calls file** (64 calls to overrule, numbered, one a lane through crumbs-40; compiled from each merge's "Calls
+- **The calls file** (74 calls to overrule, numbered, one a lane through desk-tune-3; compiled from each merge's "Calls
   his to overrule", `git show <merge>^2:docs/tracks/<track>.md`, kept at `../partyreel-wt/_scratch/calls/relay-calls.md`
   and sent to him as it grows). He reviews it on 2026-10-01 against the product vision ("keep the calls file running":
   each merge's calls join it). His two decisions are answered (2026-09-30): A, the proof mail stays off until the emails
@@ -170,6 +164,10 @@ the alias mid-sitting (his yes). No new lane until his paste lands.
   - a tab hidden, then shown (the hub's album);
   - crumbs-27's two walks that need a second signed-in device (the host's phone while partyr33l holds the shared one).
   - crumbs-31's magic-link return: the confirm door's email link tapped in the same browser plays the follow moment.
+  - build 38's: the reel card's Add photos at 375x667 on an event with 0 or 1 photo, its smooth scroll's feel (a
+    visible tab; the mechanics passed hidden); crumbs-41's card, a disposable host paying Pro in two Checkout tabs
+    (4242): Sentry's `stripe_grant_repointed_subscription`, the followed subscription cancelled in Stripe TEST leaving
+    `profiles.tier` pro on the other, and the account's deletion leaving none of its subscriptions billing.
 - **Whenever convenient:** the Vercel MCP on this account points at his personal team; re-pointed at P3 it reads
   runtime logs (deploys ride `$VERCEL_TOKEN` and need nothing).
 - **Asks that come due later**: Libraries.dev access for a lane (when the help chat is cut), and any F1 frames he loves

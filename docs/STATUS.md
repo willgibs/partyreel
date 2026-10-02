@@ -35,15 +35,16 @@ and `about-press` r1 (two), in that order.
 
 - **Prod:** partyreel.com is `main` at tag `milestone-32` (`21697db1`, 2026-10-01 23:58Z), both projects READY; the
   read-only walk PASS (pages and German pricing, dead ends, the dashboard, Show more, the hub's Add, credits, the
-  Report sheet, the admin door); production's first album-log prune runs at 04:48Z on 2026-10-02.
+  Report sheet, the admin door).
 - **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 39 (`0e57c5a3`, 2026-10-02
-  03:50Z): milestone 32 plus batch 10, and the desk made true of it (desk-tune-3); build 38's red-team walking its
-  product, which build 39 leaves byte for byte. The desk is the same six boards, ready for his sitting. Vercel
-  installs with pnpm 9.14.4, `package.json`'s `packageManager`.
+  03:50Z): milestone 32 plus batch 10, and the desk made true of it (desk-tune-3). Build 38's red-team (whose product
+  build 39 leaves byte for byte) passed every walk it could drive, no MEDIUM or worse, its four LOWs on the ROADMAP.
+  The desk is the same six boards, ready for his sitting. Vercel installs with pnpm 9.14.4, `package.json`'s
+  `packageManager`.
 - **The shared database** runs every migration through 2026-10-02, batch 10's seven last (the strike's lapse as a
   duration, the deleted events' index, the export Worker's reports, the host's cap on the album's read, a face moving
-  the credits); no build of either project reads a dropped thing. The album-log prune runs nightly with the purge
-  from 2026-10-02.
+  the credits); no build of either project reads a dropped thing. The album-log prune runs nightly with the purge,
+  its first production run green (2026-10-02 04:48Z: one row pruned over 58 albums).
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md).
