@@ -7,6 +7,7 @@ import {
   DoorLamp,
   type LampStrength,
 } from "@/components/guest/door/lit";
+import { STAGE_SCRIM } from "@/components/guest/door/stage";
 import {
   Sheet,
   SheetContent,
@@ -83,6 +84,7 @@ export function EntryShell({
   title,
   description,
   lamp = "base",
+  scrim = "album",
   children,
 }: {
   /** The panel, for the modal's own "is focus inside the door" checks. */
@@ -96,6 +98,11 @@ export function EntryShell({
   description: string;
   /** The lamp blooms on "You're in"; the code screen's lean is the stylesheet's (`lit.css`). */
   lamp?: LampStrength;
+  /**
+   * What the sheet stands over: the album (`DOOR_SCRIM`, blurred as the reward), or the doorway at a
+   * gate (`STAGE_SCRIM`, a light dim that leaves the door and its light legible above the sheet).
+   */
+  scrim?: "album" | "door";
   children: React.ReactNode;
 }) {
   const held = dismissMode === "held";
@@ -112,7 +119,7 @@ export function EntryShell({
         responsive
         data-entry-sheet
         showCloseButton={!held}
-        overlayClassName={DOOR_SCRIM}
+        overlayClassName={scrim === "door" ? STAGE_SCRIM : DOOR_SCRIM}
         onInteractOutside={held ? (e) => e.preventDefault() : undefined}
         onEscapeKeyDown={held ? (e) => e.preventDefault() : undefined}
         // No field autofocuses on open (the Sheet puts focus on the panel).

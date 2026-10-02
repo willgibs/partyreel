@@ -1,8 +1,12 @@
 import Link from "next/link";
-import { Lock } from "lucide-react";
 
+import {
+  DOOR_FOOT,
+  DoorColumn,
+  DoorWords,
+} from "@/components/guest/door/door-page";
+import { Doorway } from "@/components/guest/door/doorway";
 import { UnlistedAsk } from "@/components/guest/door/unlisted-ask";
-import { NotFoundScreen } from "@/components/shared/not-found-screen";
 import { Button } from "@/components/ui/button";
 import { loginPath } from "@/lib/auth/return-path";
 
@@ -18,8 +22,9 @@ import { loginPath } from "@/lib/auth/return-path";
  * private, as her dashboard card already says. A blocked former guest reads the same line, so the
  * block stays invisible (his "Sneaky block").
  *
- * The host is "the host" here: the shut screen's message names no album and no host (it shows nothing a
- * door keeps), and `locked-door` r2 draws this family.
+ * ★ IT NAMES NOTHING (Will, 2026-10-02: the door shows only what is shown today, and the shut door has
+ * never named the album or its host). The host is "the host" here, and no album is named: the
+ * locked-door board's doorway named both on its shut door, and that call (`shows`) is overruled.
  */
 export function shutDoorCopy(previous: boolean): {
   title: string;
@@ -39,14 +44,17 @@ export function shutDoorCopy(previous: boolean): {
 }
 
 /**
- * THE SHUT DOOR: the not-found family wearing a lock (NotFoundScreen itself, never a hand-rolled stack
- * mirroring it), one link home as its way out, and, for a visitor signed out, the quiet way back in
- * (event-safety's carried `back-in`): someone already in on another phone signs in, and the door knows
- * her by her account.
+ * THE SHUT DOOR (`locked-door` r2, `family=doorway`, `shape=shared`): the doorway, shut, with the line of
+ * the party's light under it in the house five (nothing of a closed album is sampled, not even its
+ * colour), its one message, one link home as its way out, and, for a visitor signed out, the quiet way
+ * back in (event-safety's carried `back-in`): someone already in on another phone signs in, and the
+ * door knows her by her account. It is the same door the welcome and the wait stand at, so a guest
+ * turned away is still at the door she met, never on a page apart.
  *
  * ★ SOMEONE THE INVITE LIST DOES NOT NAME READS THE SAME MESSAGE, WITH HER OWN FOOT (`ask`: `locked-door`
- * r2 places `unlisted=ask` here): "Ask Maya to let me in", or "Use a different email", in place of the
- * way home. The message never moves, so a block, a decline, a closed door and Only me still read as one.
+ * r2 places `unlisted=ask` here): "Ask Maya to let me in", or "Use a different email", in place of
+ * the way home. The message never moves, so a block, a decline, a closed door and Only me still read
+ * as one.
  */
 export function ShutDoor({
   previous,
@@ -63,22 +71,19 @@ export function ShutDoor({
 }) {
   const copy = shutDoorCopy(previous);
   return (
-    <NotFoundScreen
-      icon={Lock}
-      title={copy.title}
-      description={copy.description}
-      actions={
-        ask ? (
+    <DoorColumn doorway={<Doorway state="shut" />}>
+      <DoorWords title={copy.title} titleAs="h1" lines={[copy.description]} />
+      <div data-door-foot="" className={DOOR_FOOT}>
+        {ask ? (
           <UnlistedAsk qrToken={ask.qrToken} hostName={ask.hostName} />
         ) : (
-          <Button asChild size="cta" variant="outline">
+          // Outline rather than a push: the door is telling her to come back, not selling her a way on.
+          <Button asChild size="cta" variant="outline" className="w-full">
             <Link href="/">What is Partyreel?</Link>
           </Button>
-        )
-      }
-      footnote={
-        signedIn || ask ? undefined : (
-          <p className="text-muted-foreground">
+        )}
+        {signedIn || ask ? null : (
+          <p className="text-sm text-muted-foreground">
             {"Already a guest? "}
             <Link
               href={loginPath(returnTo)}
@@ -88,8 +93,8 @@ export function ShutDoor({
               Log in
             </Link>
           </p>
-        )
-      }
-    />
+        )}
+      </div>
+    </DoorColumn>
   );
 }

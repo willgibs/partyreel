@@ -934,3 +934,80 @@ describe("the album's owner, adding to her own album", () => {
     expect(fetchUrls()).toEqual([]);
   });
 });
+
+/**
+ * ★ HER CHOICE AT THE HELD DOOR (`locked-door` r2, Will's `wait=pick`): she chooses what she will add
+ * while the host decides, and the queue holds it. Her ticket at that door is a waiting one the routes
+ * refuse in the private album's words, so the pins are what the door promises her: "Nothing is sent
+ * until you're let in", and then that it goes in the moment she is.
+ */
+describe("her choice at the held door", () => {
+  it("★ is held, never sent and never failed, while the door holds her, whatever ticket the device keeps", async () => {
+    answer({});
+    mockUploadFile.mockResolvedValue(landed("med-1"));
+    const q = mountQueue({
+      sessionToken: STALE,
+      isVerified: true,
+      doorOpen: false,
+    });
+
+    act(() =>
+      q.result.current.holdAtDoor([makeFile("a.jpg"), makeFile("b.jpg")]),
+    );
+    expect(q.items().map((it) => it.status)).toEqual(["queued", "queued"]);
+
+    // A ticket arriving under the held door (the ask's own, adopted) starts nothing either.
+    q.rerender({
+      sessionToken: "w".repeat(64),
+      isVerified: true,
+      doorOpen: false,
+    });
+    // And an Add that somehow reaches the queue while the door holds her waits with the rest.
+    act(() => q.result.current.addFiles([makeFile("c.jpg")]));
+    await act(async () => {});
+    expect(mockUploadFile).not.toHaveBeenCalled();
+    expect(fetchUrls()).toEqual([]);
+    expect(q.items().every((it) => it.status === "queued")).toBe(true);
+    expect(q.onDoorNeeded).not.toHaveBeenCalled();
+  });
+
+  it("a new choice replaces the last: what is held is what the door shows her", () => {
+    answer({});
+    const q = mountQueue({
+      sessionToken: STALE,
+      isVerified: true,
+      doorOpen: false,
+    });
+    act(() =>
+      q.result.current.holdAtDoor([makeFile("a.jpg"), makeFile("b.jpg")]),
+    );
+    act(() => q.result.current.holdAtDoor([makeFile("c.jpg")]));
+    expect(q.items().map((it) => it.file.name)).toEqual(["c.jpg"]);
+  });
+
+  it("★ goes in, on her ticket, the moment the door lets her through", async () => {
+    answer({});
+    mockUploadFile.mockResolvedValue(landed("med-1"));
+    const WAITING_TICKET = "w".repeat(64);
+    const q = mountQueue({
+      sessionToken: WAITING_TICKET,
+      isVerified: true,
+      doorOpen: false,
+    });
+    act(() =>
+      q.result.current.holdAtDoor([makeFile("a.jpg"), makeFile("b.jpg")]),
+    );
+    expect(mockUploadFile).not.toHaveBeenCalled();
+
+    // The host lets her in: the same row is admitted (`let_guest_in` flips her waiting rows to `in`),
+    // so her ticket now passes, and the refresh opens the page's door.
+    q.rerender({
+      sessionToken: WAITING_TICKET,
+      isVerified: true,
+      doorOpen: true,
+    });
+    await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(2));
+    expect(sentOn(0)).toBe(WAITING_TICKET);
+    expect(q.items().map((it) => it.status)).toEqual(["done", "done"]);
+  });
+});

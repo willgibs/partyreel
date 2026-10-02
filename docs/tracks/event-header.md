@@ -1,40 +1,51 @@
 ---
-track: create-wizard
+track: event-header
 status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "10705484"            # the launch-prep SHA the branch was cut from
-board: create-wizard
+cut: "26743369"            # the launch-prep SHA the branch was cut from
+board: event-header
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
-  - src/app/(dev)/design/sandbox/create-wizard/
+  - src/app/(dev)/design/sandbox/event-header/
 reads:                  # single-sources you depend on: never duplicate, never edit
-  - docs/reviews/disposable-mode.json
-  - src/components/app/create-event-wizard.tsx
-  - src/app/(app)/dashboard/new/page.tsx
-  - src/components/app/qr-preset-picker.tsx
-  - src/lib/constants/qr-presets.ts
-  - src/app/(dev)/design/sandbox/disposable-mode/
+  - src/app/(app)/dashboard/[eventId]/page.tsx
+  - src/components/app/share/
+  - src/components/app/event-feed/event-cards-row.tsx
+  - src/components/shared/crumbs.tsx
+  - src/components/guest/event-experience.tsx
+  - src/components/guest/guest-header.tsx
+  - src/components/guest/guest-action-dock.tsx
+  - src/components/guest/guest-share.tsx
+  - docs/systems/host-app.md
+  - docs/systems/guest-flow.md
 ---
 
-# lp/create-wizard
+# lp/event-header
 
-**Goal.** Open the create wizard's redesign board: the whole wizard, minimal and image-led, including the disposable mode's choice step (a named redraw of create=cards with his deeper compare) and Create's hand-off into Settings.
+**Goal.** Open the event headers' redesign board: the host hub's head and the guest album's head reconceived as bespoke, polished heads, drawn from the production tonight's wirings leave.
 
 ## The brief
 
-**Why.** Will, on `disposable-mode`'s `create` (answered `cards`, 2026-10-02), verbatim:
+**Why.** Will, on `event-ready`'s `door` (answered `mark`, wired tonight), verbatim:
 
-> The pictures help immediately visualize the distinct experiences, with light copy to clearly define. Should also have an option to compare more deeply somehow. However, the entire create wizard, including this screen, needs to be redesigned and polished. Lots going on. Many parts could be reshaped into more minimal yet high-info-conveyance UI, very text heavy right now.
+> I think the mark keeps the header from getting too crowded with text where icons will likely work 99% of the time, and we could add tooltips to clarify on the mark. As a broader note, I'd like to explore redesigning the event headers for both hosts and guests entirely. Similar to the host dashboard, we're getting much closer to the final feature set, so we can be more confident in more bespoke polished design now.
 
-**The wizard today** (`create-event-wizard.tsx`, 569 lines):
-1. **Name:** one field, about 18 words of helper text.
-2. **Style:** four QR swatches and a samples note, about 50 words.
-3. **Ready:** since tonight's ready-wiring, the code, what's left, and "Get it ready" into Settings' step 1.
-
-Its cap door (at the plan's limit) replaces it.
+**The heads today:**
+- **The host hub** (`dashboard/[eventId]/page.tsx`, the head region):
+  - the shell's crumbs;
+  - the scannable code, with tonight's corner mark;
+  - the title and its detail row (date, count, guests, views, Live);
+  - the link row;
+  - since tonight, the readiness checklist at the head until done;
+  - below it, the room row (Review, Highlight reel, Guests, Settings), sticky on scroll.
+- **The guest album** (`event-experience.tsx`'s head and actions, `guest-header.tsx`, `guest-action-dock.tsx`):
+  - the title, "Hosted by", the counts and the description;
+  - a full-width Add photos button, Invite, and a dock once they scroll away.
 
 **Asks, yours to shape:**
-- The wizard's shape.
-- The mode step, choosing the album or the disposable camera. Disposable mode isn't built yet, so draw the step it will be. It is a named redraw of `disposable-mode`'s answered `create=cards`: say so in its `earlier`, and keep his deeper compare.
-- The hand-off moment.
+- `host`: the hub's head.
+- `guest`: the album's head.
+- Whether the two share one grammar.
+
+The door's reveal (`locked-door` r3) ends on the album's head, so read its brief for the moment it hands to.
 
 **The direction, one for every board this round** (Will's notes, 2026-10-02):
 - **Bespoke and experiential,** with the disposable-mode boards' creativity as the bar. On those boards: "These are so much cooler than the current host dashboard, standard event pages for both host and guest, and other areas of our app. Really creates a bespoke, experiential feeling. Going off my previous notes about wanting to redesign most of our app and especially breaking away from the shadcn generic AI build feel, this is the kind of creativity I like to see."
@@ -55,7 +66,7 @@ Its cap door (at the plan's limit) replaces it.
 
 A page board draws composition, layout, hierarchy and its page's own expression in production's atoms. It names any new atom an option needs, and spends no option on a button's style.
 
-**The board's shape.** The board is one folder, `src/app/(dev)/design/sandbox/create-wizard/`, and nothing else names it: the registry finds it, and retiring it is deleting it. `spec.ts` is `defineExploration` (`src/components/lab/exploration.ts`) and pure data: its id `create-wizard`, its title, `surface`, `desk: 60` (by leverage, lower first) and `lives` (the paths it redraws), its `opening` and `terms`, and every ask with its context layer (`where`, `when`, `matters` beside `lands`, each option's `gains` and `costs`, `because` in a line). `board.tsx` exports one component, `ExplorationBoard` with a preview per option (`PreviewsFor`). `registry.test.ts` holds all of it; `pnpm lab:smoke` and `pnpm lab:demo` run on the board your change reaches.
+**The board's shape.** The board is one folder, `src/app/(dev)/design/sandbox/event-header/`, and nothing else names it: the registry finds it, and retiring it is deleting it. `spec.ts` is `defineExploration` (`src/components/lab/exploration.ts`) and pure data: its id `event-header`, its title, `surface`, `desk: 50` (by leverage, lower first) and `lives` (the paths it redraws), its `opening` and `terms`, and every ask with its context layer (`where`, `when`, `matters` beside `lands`, each option's `gains` and `costs`, `because` in a line). `board.tsx` exports one component, `ExplorationBoard` with a preview per option (`PreviewsFor`). `registry.test.ts` holds all of it; `pnpm lab:smoke` and `pnpm lab:demo` run on the board your change reaches.
 
 **Starts from.** CLAUDE.md's working loop, the bible's ten and production as it is; the tests say what has to keep
 working.
