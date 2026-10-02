@@ -17,6 +17,9 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Design: identity's head stand-ins (`views/atoms.tsx`: the shutter, the code mat and chip, the glyph count, the live badge, the on-photo and glass buttons) mount header-wiring's real atoms once it merges, so the board judges the components rather than their stand-ins (from `identity-r2`).
+- Design: wiring identity's picks adds the primitives the board draws on shadcn's hooks that production lacks (`checkbox`, `radio-group-item`, `slider`, and its own `radio-card` and `empty`), and replaces Settings' inline door choices, gates and password state with them (from `identity-r2`).
+- Design: Review's selection marks (the glass circle that turns green) and Settings' step numerals are drawn locally; once identity wires they take the check and readout atoms (a board idea from `identity-r2`).
 - Host: the stage's live read is a Server Function, which Next dispatches one at a time with the page's other actions (a claim pressed mid-poll waits a beat); a GET route handler under `src/app/api/` would run beside them (from `dashboard-wiring`).
 - Host: a disposable album's host cover (`peek=covered`): the stage's wall reads approved photographs on the host's client, which the seal exempts, so the covered album must cover the wall too when the cover lands (from `dashboard-wiring`).
 - Host: `EventCard`'s dashboard-only props (`qrSlot`, `pendingCount`, `itemsLabel`, `living`, the trash variant) and `event-card-qr.tsx` have no production caller since the tile; the Library's specimens are their last users, so they go with those entries (from `dashboard-wiring`).
@@ -28,8 +31,6 @@ below hold the rest by surface.
 - Help: `why-an-event-asks-for-your-email.mdx` still says "behind the welcome screen" (lines 22 and 48); the welcome is the doorway's page since `door-wiring` (from `crumbs-49`).
 - Tests: `reel-url-history.test.tsx` waits a fixed 40 ms after a Back and a Forward, the race `history-entry.test.tsx` had; waiting for the popstate, as its `settle()` now does, would close it (from `crumbs-49`).
 - Code hygiene: `entry-steps.ts`'s head still calls the door "one held sheet"; it is the doorway's page with sheets over it since `door-wiring` (from `crumbs-49`).
-- Design: identity round two, inside his pick: its density and type pairing first, then one atom group a round (actions, fields and selection, surfaces and layers, status), the specimen and the three screens carried over (from `identity`).
-- Design: the identity specimen draws event-header's five atoms as that board drew them; once event-header's picks are wired, mount the real ones (from `identity`).
 - Host: opening or closing the hub's code card while the tab is hidden throws two uncaught `InvalidStateError: Transition was aborted … Document hidden` from its view transition (likely Sentry noise; before build 40) (build 40's red-team, LOW).
 - Guests: every `/e/` page logs three "preloaded but not used" warnings for marketing CSS (about 31 KB), on partyreel.com too (build 40's red-team).
 - Guests: the door's swing shows one gap of about 50 ms on its way open (build 40's red-team, NIT).
