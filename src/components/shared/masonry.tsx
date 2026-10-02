@@ -202,9 +202,11 @@ function photoHref(id: string | null): string {
 }
 
 /**
- * Whether the window stands on another place's entry (a phone's screen-shaped
- * popup over the viewer: the credit's look, a report): the viewer's own entry
- * is the one beneath it, and its marker is not this entry's to write.
+ * Whether the window stands on another place's entry (a popup that is a place
+ * in a hand, over the viewer: the credit's look, a sheet, `isPlaceShape` in
+ * `ui/popup-kinds.ts`; a question, a confirm or the report form, holds none):
+ * the viewer's own entry is the one beneath it, and its marker is not this
+ * entry's to write.
  */
 function standsOnAPopup(): boolean {
   const state = window.history.state as Record<string, unknown> | null;
@@ -669,7 +671,7 @@ export function MasonryColumns<T extends GridMedia>(props: {
     if (!photoAddress) return;
     stopStep();
     addressTimer.current = setTimeout(function rest() {
-      // A popup the viewer opened meanwhile (the credit's look, a report) stands on an entry of its own: the
+      // A place the viewer opened meanwhile (the credit's look) stands on an entry of its own: the
       // address is the viewer's entry's to move, so it waits the popup out.
       if (standsOnAPopup()) {
         addressTimer.current = setTimeout(rest, ADDRESS_STEP_QUIET_MS);

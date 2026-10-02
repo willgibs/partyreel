@@ -28,7 +28,13 @@ import {
 } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { toast } from "sonner";
-import { createRef, useEffect, useRef } from "react";
+import {
+  createRef,
+  StrictMode,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+} from "react";
 
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import {
@@ -75,12 +81,20 @@ function makeFile(name = "photo.jpg") {
   return new File([new Uint8Array([1, 2, 3])], name, { type: "image/jpeg" });
 }
 
+/** The queue's own doors, for a test that must add or retry while the slot is gone (the page's, not the slot's). */
+type QueueApi = Pick<ReturnType<typeof useUploadQueue>, "addFiles" | "retry">;
+
 /**
  * The page shell's own shape, small enough to read: the queue lives here, `GuestUpload` is handed
  * its snapshot and the three callbacks, and the test drives it through the real sheets.
+ *
+ * `showSlot` is the page's access flip (`event-experience.tsx` mounts the slot only at `full`): off, the
+ * slot is gone and the queue is not, exactly as when a gate takes the album's slot down.
  */
 function Harness({
   handleRef,
+  queueRef,
+  showSlot = true,
   onSession,
   onUploaded,
   onQueueChange,
@@ -92,6 +106,8 @@ function Harness({
   ...rest
 }: {
   handleRef: React.RefObject<GuestUploadHandle | null>;
+  queueRef?: React.RefObject<QueueApi | null>;
+  showSlot?: boolean;
   onSession: (token: string | null) => void;
   onUploaded: (item: UploadedItem) => void;
   onQueueChange?: (items: QueueItem[]) => void;
@@ -122,12 +138,14 @@ function Harness({
       onVerificationRequired?.(message);
     },
   });
+  useImperativeHandle(queueRef, () => ({ addFiles, retry }), [addFiles, retry]);
   useEffect(() => {
     onQueueChange?.(items);
   }, [items, onQueueChange]);
   useEffect(() => {
     onProgressStore?.(progress);
   }, [progress, onProgressStore]);
+  if (!showSlot) return null;
   return (
     <GuestUpload
       ref={handleRef}
@@ -152,6 +170,23 @@ function Harness({
   );
 }
 
+/**
+ * THE WHOLE FRONT OF THE ACT, as a guest performs it: open the sheet, choose
+ * from the album, then SEND on the review step. Nothing reaches the queue
+ * before that last tap, which is the point of the step.
+ */
+function sendThroughSheet(
+  handleRef: React.RefObject<GuestUploadHandle | null>,
+  files: File[],
+) {
+  act(() => handleRef.current!.openAdd());
+  const album = document.querySelector(
+    'input[type="file"][multiple]',
+  ) as HTMLInputElement;
+  fireEvent.change(album, { target: { files } });
+  fireEvent.click(screen.getByRole("button", { name: `Send ${files.length}` }));
+}
+
 function mount(props?: Record<string, unknown>) {
   const onSession = vi.fn();
   const onUploaded = vi.fn();
@@ -164,21 +199,7 @@ function mount(props?: Record<string, unknown>) {
       {...props}
     />,
   );
-  /**
-   * THE WHOLE FRONT OF THE ACT, as a guest performs it: open the sheet, choose
-   * from the album, then SEND on the review step. Nothing reaches the queue
-   * before that last tap, which is the point of the step.
-   */
-  const addFiles = (files: File[]) => {
-    act(() => handleRef.current!.openAdd());
-    const album = document.querySelector(
-      'input[type="file"][multiple]',
-    ) as HTMLInputElement;
-    fireEvent.change(album, { target: { files } });
-    fireEvent.click(
-      screen.getByRole("button", { name: `Send ${files.length}` }),
-    );
-  };
+  const addFiles = (files: File[]) => sendThroughSheet(handleRef, files);
   return { ...utils, onSession, onUploaded, handleRef, addFiles };
 }
 
@@ -774,6 +795,212 @@ describe("GuestUpload: dismissing a failure retires it for good", () => {
     });
     expect(mockUploadFile).toHaveBeenCalledTimes(4);
     expect(screen.queryByText(/didn't upload/)).toBeNull();
+  });
+});
+
+/**
+ * ★ A FAILURE THE SLOT NEVER REPORTED IS NOT THE NEXT RUN'S (crumbs-47; build 38's red-team, W3 #3, LOW: "after the
+ * flip, the next run's end reopens the OLD failure sheet ('1 of 1 didn't upload ... Confirm your email to add photos
+ * to this event.') and its Retry sends the refused file"). The album's slot stands only at full access
+ * (`event-experience.tsx`), so a gate takes it down and the page's queue outlives it. A file the flip refused, then
+ * refused AGAIN once its Retry went up as the page re-gated, stayed in the queue as an error nobody was shown, and
+ * the slot that mounted when the gate fell away listed it at the end of the next run, whatever that run did (a
+ * landed file, a clean twelve), under a count that read "1 of 1" for a run that had gone through. The slot judges
+ * only what failed in front of it, and what its own open sheet was listing goes with it when it goes (the re-gate),
+ * as it does by every other way the sheet closes.
+ */
+describe("GuestUpload: a failure the slot never reported is not the next run's (crumbs-47)", () => {
+  const REFUSED = {
+    ok: false as const,
+    code: "verification_required",
+    message: "Confirm your email to add photos to this event.",
+  };
+  const LANDED = {
+    ok: true as const,
+    status: "approved",
+    mediaId: "med-2",
+    kind: "photo" as const,
+  };
+
+  /**
+   * The page: its queue, and the slot the access flip mounts (`slot`) and takes down (`regate`) around it.
+   * `strict` wears development's StrictMode, whose simulated unmount of a fresh mount must dismiss nothing.
+   */
+  function mountGated(
+    props: Record<string, unknown> = {},
+    slot = true,
+    strict = false,
+  ) {
+    const onSession = vi.fn();
+    const onUploaded = vi.fn();
+    const handleRef = createRef<GuestUploadHandle>();
+    const queueRef = createRef<QueueApi>();
+    const snapshots: QueueItem[][] = [];
+    const tree = (showSlot: boolean) => {
+      const page = (
+        <Harness
+          handleRef={handleRef}
+          queueRef={queueRef}
+          showSlot={showSlot}
+          onSession={onSession}
+          onUploaded={onUploaded}
+          onQueueChange={(items) => snapshots.push(items)}
+          {...props}
+        />
+      );
+      return strict ? <StrictMode>{page}</StrictMode> : page;
+    };
+    const view = render(tree(slot));
+    return {
+      handleRef,
+      queueRef,
+      snapshots,
+      /** The page re-gates a viewer who was in the album: the slot is gone, the queue is not. */
+      regate: () => view.rerender(tree(false)),
+      /** The gate falls away: the slot mounts afresh over the queue the page kept. */
+      ungate: () => view.rerender(tree(true)),
+    };
+  }
+  const last = (g: ReturnType<typeof mountGated>) => g.snapshots.at(-1)!;
+
+  it("★ the re-gate takes the slot down under its open sheet, and the refused file goes with it", async () => {
+    mockUploadFile.mockReset();
+    mockUploadFile.mockResolvedValue(REFUSED);
+    const gated = mountGated();
+    sendThroughSheet(gated.handleRef, [makeFile("rt38-i.jpg")]);
+    await screen.findByText("1 of 1 didn't upload");
+
+    // The access flip: the slot goes, sheet and all, with no close for the sheet to dismiss through.
+    gated.regate();
+    await act(async () => {});
+    expect(screen.queryByText(/didn't upload/)).toBeNull();
+    expect(last(gated).filter((it) => it.status === "error")).toEqual([]);
+  });
+
+  it("★ a refusal that lands while the slot is gone is nobody's to report: the next run's end never opens on it", async () => {
+    mockUploadFile.mockReset();
+    let refuseAgain!: () => void;
+    mockUploadFile
+      .mockResolvedValueOnce(REFUSED)
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            refuseAgain = () => resolve(REFUSED);
+          }),
+      )
+      .mockResolvedValue(LANDED);
+    const gated = mountGated();
+    sendThroughSheet(gated.handleRef, [makeFile("rt38-i.jpg")]);
+    await screen.findByText("1 of 1 didn't upload");
+
+    // Its Retry closes the sheet and sends the file again while the page re-gates,
+    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+    await waitFor(() => expect(mockUploadFile).toHaveBeenCalledTimes(2));
+    gated.regate();
+    // and the second refusal lands with no slot standing to show it.
+    await act(async () => refuseAgain());
+    await waitFor(() =>
+      expect(last(gated)).toMatchObject([{ status: "error" }]),
+    );
+
+    // The host turned the switch off again: the gate falls away, the slot mounts over the same queue, her next Add lands.
+    gated.ungate();
+    sendThroughSheet(gated.handleRef, [makeFile("rt38-j.jpg")]);
+    await waitFor(() => expect(mockUploadFile).toHaveBeenCalledTimes(3));
+    await waitFor(() =>
+      expect(last(gated).some((it) => it.status === "done")).toBe(true),
+    );
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 30));
+    });
+    // No old sheet, so no Retry that sends the refused file once more.
+    expect(screen.queryByText(/didn't upload/)).toBeNull();
+    expect(mockUploadFile).toHaveBeenCalledTimes(3);
+  });
+
+  it("under StrictMode's double effect, a fresh mount dismisses nothing, and the re-gate still takes the refused file with it", async () => {
+    mockUploadFile.mockReset();
+    mockUploadFile.mockResolvedValue(REFUSED);
+    // A failure already in the queue when the slot mounts (carried), then a run that fails in front of it.
+    const gated = mountGated({}, false, true);
+    act(() => gated.queueRef.current!.addFiles([makeFile("old.jpg")]));
+    await waitFor(() =>
+      expect(last(gated)).toMatchObject([{ status: "error" }]),
+    );
+    gated.ungate();
+    expect(last(gated)).toMatchObject([{ status: "error" }]);
+    expect(screen.queryByText(/didn't upload/)).toBeNull();
+
+    sendThroughSheet(gated.handleRef, [makeFile("new.jpg")]);
+    await screen.findByText("1 of 1 didn't upload");
+    expect(screen.getByText("new.jpg")).toBeInTheDocument();
+    expect(screen.queryByText("old.jpg")).toBeNull();
+
+    gated.regate();
+    await act(async () => {});
+    // The sheet's own file went with the slot; the one it never listed is still the queue's, unreported and unlisted.
+    expect(last(gated).map((it) => it.file.name)).toEqual(["old.jpg"]);
+  });
+
+  it("a slot that mounts mid-run reports that run's failures: nobody else was going to", async () => {
+    mockUploadFile.mockReset();
+    let landB!: () => void;
+    mockUploadFile
+      .mockResolvedValueOnce({ ok: false, message: "That upload failed." })
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            landB = () => resolve(LANDED);
+          }),
+      );
+    // The door's run, handed to the album when its first file landed: a is refused, b still going.
+    const gated = mountGated({}, false);
+    act(() =>
+      gated.queueRef.current!.addFiles([makeFile("a.jpg"), makeFile("b.jpg")]),
+    );
+    await waitFor(() => expect(mockUploadFile).toHaveBeenCalledTimes(2));
+    gated.ungate();
+    await act(async () => landB());
+
+    expect(await screen.findByText(/didn't upload/)).toBeInTheDocument();
+    expect(screen.getByText("a.jpg")).toBeInTheDocument();
+  });
+
+  it("a failure the slot carried in, sent again and refused again, is that run's own and is reported", async () => {
+    mockUploadFile.mockReset();
+    mockUploadFile.mockResolvedValue({ ok: false, message: "Nope." });
+    const gated = mountGated({}, false);
+    act(() => gated.queueRef.current!.addFiles([makeFile("a.jpg")]));
+    await waitFor(() =>
+      expect(last(gated)).toMatchObject([{ status: "error" }]),
+    );
+    gated.ungate();
+    expect(screen.queryByText(/didn't upload/)).toBeNull();
+
+    // The door's own Retry, not the sheet's: the same file goes up again and is refused again.
+    act(() => gated.queueRef.current!.retry(last(gated)[0].id));
+    expect(await screen.findByText(/didn't upload/)).toBeInTheDocument();
+    expect(screen.getByText("a.jpg")).toBeInTheDocument();
+  });
+
+  it("sending one failure again leaves the others on the sheet that is listing them", async () => {
+    mockUploadFile.mockReset();
+    mockUploadFile
+      .mockResolvedValueOnce({ ok: false, message: "Nope A." })
+      .mockResolvedValueOnce({ ok: false, message: "Nope B." })
+      .mockResolvedValue(LANDED);
+    const gated = mountGated();
+    sendThroughSheet(gated.handleRef, [makeFile("a.jpg"), makeFile("b.jpg")]);
+    await screen.findByText("2 of 2 didn't upload");
+
+    // a.jpg's own row Retry: its run starts and ends with b.jpg still refused, still on the open sheet.
+    fireEvent.click(screen.getAllByRole("button", { name: "Retry" })[0]);
+    await waitFor(() => expect(mockUploadFile).toHaveBeenCalledTimes(3));
+    await waitFor(() =>
+      expect(last(gated).map((it) => it.status)).toEqual(["done", "error"]),
+    );
+    expect(screen.getByText("b.jpg")).toBeInTheDocument();
+    expect(screen.getByText("Nope B.")).toBeInTheDocument();
   });
 });
 

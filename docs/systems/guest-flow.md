@@ -197,7 +197,14 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
     refresh until `GuestUpload`'s failure sheet closes (`onFailuresClosed`), because an immediate
     `router.refresh()` flips `access` to `teaser` and remounts the gallery-and-upload slot (`key={access}`)
     out from under it; `hadQueuedFiles=false` (`joinSilently`'s own refusal) and a run from the door's step
-    (outside `key={access}`) refresh at once.
+    (outside `key={access}`) refresh at once. ★ **THE SLOT REPORTS ONLY WHAT FAILED IN FRONT OF IT.** The re-gate takes
+    the slot down while the page's queue stays, so a Retry's second refusal can land with no slot standing, and the
+    slot that mounts when the gate falls away would list that file at the end of a run that went through (the OLD
+    sheet, its Retry sending a file the switch refused). `GuestUpload` carries in whatever errors the queue holds when
+    it mounts with nothing running and never lists them (`carriedFailures`, held by the item, so one sent again and
+    refused again is the run's own); a slot that mounts mid-run (the door's run handed to the album) carries nothing.
+    ★ A slot going away under its open sheet dismisses what it listed, as every close does (`closeFailures`), without
+    calling `onFailuresClosed`: the page re-gated, which is why it is going.
   - ★ **SOMEBODY ELSE'S TICKET** (`session_other_account`, the Invariants' owner rule: an account's row the viewer
     is not, or a name-only row while she is signed in that the claim left as another guest's, a shared phone's). The
     file is NOT failed: the queue puts the ticket down (`dropGuestTicket`: the token, its name and address flag, the name prefill
@@ -268,8 +275,10 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
   the album plainly, and a door already open comes first. ★ It is a place the phone's Back closes, on
   `lib/history-entry.ts` with the hub's sheets, the popups and the reel: a tap PUSHES one entry (`prPhoto`), a walk
   moves inside it, every close goes Back over it, the phone's Back drops the photograph into its tile (at once where
-  the browser drew its own swipe, `hasUAVisualTransition`), Forward opens it again, and a photograph opened from its
-  address (a shared link, a reload) closes in place onto the album. A walk writes the address only once it rests
+  the browser drew its own swipe, `hasUAVisualTransition`), Forward opens it again, a popup over it that is a place (the
+  host's credit look, a sheet in a hand) holds an entry of its own so a Back closes the look and the next the photograph,
+  and a photograph opened from its address (a shared link, a reload) closes in place onto the album. A walk writes the
+  address only once it rests
   (300ms: the browsers' history APIs cap how fast it can move, Chrome past 200 calls in 10s and Safari past 100), and
   waits out a popup the viewer opened; the way back mounts the closed item's tile (`scrollToId`). ★ **SHARE SENDS
   THE FILE** (fetched on the tap with `cache: "no-store"`, never prefetched; over 100 MB it falls back), then the

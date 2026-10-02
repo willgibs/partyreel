@@ -144,10 +144,15 @@ export function shapeFor(kind: PopupKind, desk: boolean): PopupShape {
 }
 
 /**
- * A shape that is a PLACE in a hand (the whole screen), so the phone's own Back
- * closes it (`lists=panel`: "the phone's Back closing it"; the carried call
- * `stacked`: "a plan or another place replaces it in a hand, and Back returns").
+ * A shape that is a PLACE in a hand, so the phone's own Back closes it
+ * (`lists=panel`: "the phone's Back closing it"; the carried call `stacked`: "a
+ * plan or another place replaces it in a hand, and Back returns"): the whole
+ * screen and the cover, and the SHEET, the look's (crumbs-47). A sheet rises
+ * from the foot over whatever opened it, and over the photograph viewer, which
+ * holds an entry of its own, a look with none left the viewer's the only entry
+ * to go Back over: one Back closed the viewer with the look still standing on
+ * it (build 38's red-team). A dialog is a question, never a place: it holds none.
  */
 export function isPlaceShape(shape: PopupShape): boolean {
-  return shape === "screen" || shape === "cover"
+  return shape === "screen" || shape === "cover" || shape === "sheet"
 }

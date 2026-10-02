@@ -18,6 +18,11 @@ import { useOwnedEntry } from "@/lib/history-entry"
  * other way (its arrow, Escape) it takes its entry back with it, so nothing
  * dead is left behind to press through.
  *
+ * ★ THE SHEET IS A PLACE TOO (crumbs-47, `isPlaceShape`): the credit's look is a
+ * sheet in a hand, and over the photograph viewer, which holds an entry of its
+ * own, a look with none made one Back close the viewer with the look standing on
+ * it. Back peels one layer a press: the look, then the viewer.
+ *
  * ★ WHOSE THE ENTRY IS LIVES IN `lib/history-entry.ts`, which every place that
  * pushes an entry stands on (its header says what Next does to one: the marker
  * is a field on the state Next merges, never the state itself, and a router
