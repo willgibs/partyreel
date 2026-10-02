@@ -45,6 +45,22 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 4,
+      "opened": "2026-10-02",
+      "answers": [
+        {
+          "ask": "veil",
+          "choice": "lens",
+          "note": "This feels like a far cleaner design. Great work.",
+          "by": "Will",
+          "at": "2026-10-02T06:35:41Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }

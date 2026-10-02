@@ -23,6 +23,42 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 2,
+      "opened": "2026-10-02",
+      "answers": [
+        {
+          "ask": "family",
+          "choice": "doorway",
+          "note": "This is absolutely gorgeous, big win for our design assets and really sets a good new standard on experiential design. Two additional notes. First, the album behind the door opening doesn't feel very polished, kind of makes the door hard to see. I love the door (and light leak in the other versions), just want to nail this state too. Second, even the wait/shut states should have some sort of minimal, calmer, looped animation to keep the page a little interesting. Maybe a slight glow to the light or something?",
+          "by": "Will",
+          "at": "2026-10-02T06:35:41Z"
+        },
+        {
+          "ask": "shape",
+          "choice": "shared",
+          "by": "Will",
+          "at": "2026-10-02T06:35:41Z"
+        },
+        {
+          "ask": "wait",
+          "choice": "pick",
+          "note": "The \"while you wait\" upload UI should definitely be designed cleaner within this, but adds a lot of value to the waiting door.",
+          "by": "Will",
+          "at": "2026-10-02T06:35:41Z"
+        },
+        {
+          "ask": "lost",
+          "choice": "follows",
+          "note": "Side note, this is the first time I've noticed the lab's tooltips in the question, and that's phenomenal design from you. Really helps me understand the context when I'm across so many surfaces.",
+          "by": "Will",
+          "at": "2026-10-02T06:35:41Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }

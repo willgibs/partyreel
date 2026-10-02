@@ -23,6 +23,36 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 2,
+      "opened": "2026-10-02",
+      "answers": [
+        {
+          "ask": "slug",
+          "choice": "our-party",
+          "note": "Good catch-all slug, still open to better ideas if any pop up. However, the demo's welcome door specifically should likely avoid this event title, can keep slug but maybe clearer name like 'Partyreel Demo' or 'Example Party' or just a custom demo door in general. I know we want to simulate the guest experience on scan, but it also seems there'd be friction if the demo is unclear overall and they land on a generic 'Our party' name.",
+          "by": "Will",
+          "at": "2026-10-02T06:35:41Z"
+        },
+        {
+          "ask": "stage",
+          "choice": "centre",
+          "note": "This is going to be a dual selection of both options 2 and 4. I absolutely love the typing and streaming taking turns so each work off of the other (new slug, new event stream, repeat). However, the address taking the stage cleans up that visual design of the item a lot, making the full screen present more polished overall, but I hate losing the stream and QR visuals. Other page heroes could definitely take some leftovers or extra ideas from our work here. But for this home hero, I was curious if we could knock the partyreel link typing font size down a little so it doesn't fight with the H1, then maybe bounce in a new QR above the input each time it's updated, and stream images off of that QR + link with the turn taking each time it updates. I'd like the QR to be vertically centered so it doesn't shift the visual balance/weight to either side, but if the QR + input could stack/overlap/somehow present as one group for the stream to emanate from, I think that would help with clarity. \"Oh, I make this event with a link/custom slug/QR, and all of our photos go in to make an album\". If the emanating photos each had a guest credit in their corner (likely within card, not on corner so it doesn't go off image). Please take this idea with a grain of salt and build your best version of the overall idea. Starting to think you've got me beat on creativity, I'm just the tastemaker at this point - let's act accordingly, drive your best ideas across our site/app/platform as the world's leading design engineer.",
+          "by": "Will",
+          "at": "2026-10-02T06:35:41Z"
+        },
+        {
+          "ask": "touch",
+          "choice": "arrow",
+          "note": "There should be a slight hover state so a user feels it is clickable when their cursor reaches the item.",
+          "by": "Will",
+          "at": "2026-10-02T06:35:41Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }

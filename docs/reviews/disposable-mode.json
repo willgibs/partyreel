@@ -51,6 +51,57 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 2,
+      "opened": "2026-10-02",
+      "answers": [
+        {
+          "ask": "camera",
+          "choice": null,
+          "note": "I'd like to carry over the album's own camera and the camera that shoots on a reel (options 1 and 3). Let's also branch 2 new design ideas from each. I love the more minimalist camera design of the first, where everything is immediately understandable, UI is amazingly clear, and subtle design touches like the tick count around the shot button are a nice touch. However, the reel idea really ties into the product as well, and makes it a little more fun/novel as you take pictures. My main pushback on this one may be the reel having a more vintage feel within our far more modern app design, which is only getting sleeker as we iterate.",
+          "by": "Will",
+          "at": "2026-10-02T06:35:41Z"
+        },
+        {
+          "ask": "waiting",
+          "choice": null,
+          "note": "These are so much cooler than the current host dashboard, standard event pages for both host and guest, and other areas of our app. Really creates a bespoke, experiential feeling. Going off my previous notes about wanting to redesign most of our app and especially breaking away from the shadcn generic AI build feel, this is the kind of creativity I like to see. I'd like to see another round of these to get the best option - by one note is that for grids, I'd prefer not to get messy and begin tilting anything, the slight rotation may make us feel too playful for more sophisticated events.",
+          "by": "Will",
+          "at": "2026-10-02T06:35:41Z"
+        },
+        {
+          "ask": "wall",
+          "choice": "slideshow",
+          "note": "This makes it way more fun so everyone can see what's happening as the event goes on. Builds the excitement publicly for when the album develops later for everyone to access.",
+          "by": "Will",
+          "at": "2026-10-02T06:35:41Z"
+        },
+        {
+          "ask": "peek",
+          "choice": "covered",
+          "note": "I love keeping the host within the 'develop' experience initially, but also offering them an easy skip to check the album out. Could probably polish this design more.",
+          "by": "Will",
+          "at": "2026-10-02T06:35:41Z"
+        },
+        {
+          "ask": "create",
+          "choice": "cards",
+          "note": "The pictures help immediately visualize the distinct experiences, with light copy to clearly define. Should also have an option to compare more deeply somehow. However, the entire create wizard, including this screen, needs to be redesigned and polished. Lots going on. Many parts could be reshaped into more minimal yet high-info-conveyance UI, very text heavy right now.",
+          "by": "Will",
+          "at": "2026-10-02T06:35:41Z"
+        },
+        {
+          "ask": "save",
+          "choice": null,
+          "note": "Can we revisit the roll looks/styles idea, whether with a live preview in Chrome through Orchestrator or with some examples of how it's being used in the lab or something? I'm not sure I want to include - feels like filters are going to make the majority of guest photos worse that don't match the palette well.",
+          "by": "Will",
+          "at": "2026-10-02T06:35:41Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }

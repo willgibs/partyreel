@@ -1,0 +1,26 @@
+{
+  "board": "about-press",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-10-02",
+      "answers": [
+        {
+          "ask": "kit",
+          "choice": "band",
+          "by": "Will",
+          "at": "2026-10-02T06:35:41Z"
+        },
+        {
+          "ask": "facts",
+          "choice": "none",
+          "by": "Will",
+          "at": "2026-10-02T06:35:41Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
+    }
+  ]
+}
