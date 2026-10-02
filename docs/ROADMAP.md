@@ -17,6 +17,7 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Tests: `src/components/guest/password-gate.test.tsx`'s "a stalled hold turns the button into Retry" failed once in a loaded full run (gate 141: no "Open the album" button found) and passed alone 3 of 3 and in the full rerun; a wider wait or fake timers would steady it, as with relation-toggle's (from gate 141).
 - Host: opening or closing the hub's code card while the tab is hidden throws two uncaught `InvalidStateError: Transition was aborted … Document hidden` from its view transition (likely Sentry noise; before build 40) (build 40's red-team, LOW).
 - Guests: every `/e/` page logs three "preloaded but not used" warnings for marketing CSS (about 31 KB), on partyreel.com too (build 40's red-team).
 - Guests: the door's swing shows one gap of about 50 ms on its way open (build 40's red-team, NIT).
