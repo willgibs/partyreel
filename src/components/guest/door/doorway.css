@@ -328,6 +328,10 @@
       animation: door-drift-a calc(var(--spill-cadence, 8s) * 1.5)
         ease-in-out -4s infinite alternate-reverse;
     }
+    /* Behind a shut leaf none of it shows, so nothing is kept moving there. */
+    .door-way[data-door-way="shut"] .door-way-glow {
+      animation: none;
+    }
   }
 
   /* ══ THE STAGE: the door as the album's page ═════════════════════════════
