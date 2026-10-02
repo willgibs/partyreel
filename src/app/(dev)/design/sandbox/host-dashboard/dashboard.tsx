@@ -55,7 +55,7 @@ export type Answers = {
 const markText = (line: string) =>
   line
     .replace(/^(\d[\d,]*) people at the door$/, "$1 at the door")
-    .replace(/^(\d[\d,]*) photos? to review$/, "$1 to review");
+    .replace(/^(\d[\d,]*) uploads? to review$/, "$1 to review");
 
 function Head({
   title,

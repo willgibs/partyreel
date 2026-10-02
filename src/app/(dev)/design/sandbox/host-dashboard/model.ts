@@ -238,7 +238,7 @@ export function itemFor(e: DashEvent, host: Host): Item | null {
   if (queue?.kind === "review")
     return make(
       "review",
-      `${word(e.facts.pending, "photo", "photos")} to review`,
+      `${word(e.facts.pending, "upload", "uploads")} to review`,
       "Review",
       "waiting",
     );

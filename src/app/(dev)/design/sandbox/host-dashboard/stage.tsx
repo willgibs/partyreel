@@ -237,7 +237,9 @@ export function Stage({
   const photos = event.photos;
   const lead = photos[0];
   const showCode = phase === "before" && photos.length === 0;
-  const wall = media === "wall" && phase === "live" && photos.length > 0;
+  // A wall needs a wall's worth: a morning's first few stand calm until it fills.
+  const wall =
+    media === "wall" && phase === "live" && photos.length >= (wide ? 9 : 3);
   const numbers = numbersOf(event, phase);
 
   const primary =
@@ -283,6 +285,12 @@ export function Stage({
         >
           {live ? <Dot tone="live" /> : null}
           {word}
+          {/* The party's pulse, beside the word that says it is on. */}
+          {phase === "live" && event.facts.lastHour > 0 && (
+            <span className="tracking-normal normal-case">
+              {`· ${formatCount(event.facts.lastHour)} in the last hour`}
+            </span>
+          )}
         </p>
         <div className={wide ? "mt-4" : "mt-2"}>{name}</div>
         <p className="mt-1.5 text-sm text-gallery-muted">
@@ -299,7 +307,9 @@ export function Stage({
             className={cn("flex", wide ? "gap-10" : "gap-6")}
           >
             {numbers.map((n) => (
-              <div key={n.label}>
+              // The term before its value, as a list reads it; the number drawn on top.
+              <div key={n.label} className="flex flex-col-reverse">
+                <dt className="mt-0.5 text-xs text-gallery-muted">{n.label}</dt>
                 <dd
                   className={cn(
                     "font-heading tabular-nums",
@@ -309,7 +319,6 @@ export function Stage({
                 >
                   {formatCount(n.value)}
                 </dd>
-                <dt className="mt-0.5 text-xs text-gallery-muted">{n.label}</dt>
               </div>
             ))}
           </dl>

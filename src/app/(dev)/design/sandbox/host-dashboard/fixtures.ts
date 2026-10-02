@@ -103,6 +103,8 @@ export type Facts = {
   hasPassword: boolean;
   /** Arrived since the host last looked at the dashboard (the `since` strip). */
   fresh: number;
+  /** Arrived in the last hour: a live party's pulse. */
+  lastHour: number;
 };
 
 export type DashEvent = {
@@ -189,6 +191,7 @@ const facts = (f: Partial<Facts>): Facts => ({
   description: SITE_NOTE,
   hasPassword: false,
   fresh: 0,
+  lastHour: 0,
   ...f,
 });
 
@@ -235,6 +238,7 @@ function maya(m: MomentId): Host {
           waiting: 2,
           opened: 31,
           fresh: 142,
+          lastHour: 31,
         },
         after: { approved: 312, guests: 41, opened: 58, fresh: 170 },
       },
@@ -359,7 +363,14 @@ const JO_ROWS: readonly Row[] = [
     facts: (m) =>
       by(m, {
         before: { opened: 9 },
-        night: { approved: 86, guests: 19, waiting: 2, opened: 40, fresh: 86 },
+        night: {
+          approved: 86,
+          guests: 19,
+          waiting: 2,
+          opened: 40,
+          fresh: 86,
+          lastHour: 24,
+        },
         after: { approved: 204, guests: 44, opened: 61, fresh: 118 },
       }),
   },

@@ -57,7 +57,7 @@ export const HOST_DASHBOARD = defineExploration({
       "The host dashboard reconceived: what it is for, what asks for attention at 1 event and at 40, how 40 events present, and what replaces Just arrived.",
     settled: [
       "Readiness is production's one function (the hub's checklist and Settings' steps): every tick and step here reads it, never a copy.",
-      "The bell stays in the bar on every host page, and its words for a queue stay as they are: 2 people at the door, 18 photos to review.",
+      "The bell stays in the bar on every host page, and its words for a queue stay as they are: 2 people at the door, 18 uploads to review.",
       "The grace banner, the claims review and the page invite keep their places and words; the New event door stays live at the cap.",
       "Buttons, chips and cards are the identity board's; the hub's head is event-header's; Create is create-wizard's.",
     ],
@@ -129,7 +129,7 @@ export const HOST_DASHBOARD = defineExploration({
       id: "busier",
       question: "Which event leads when two share a night?",
       taken:
-        "The busier: people waiting first, then photographs landing; the other leads This week's row beneath it.",
+        "The busier: people waiting first, then photographs landing; the other comes first among the rest.",
       overrule: "The one made first, so the stage never swaps mid-evening.",
     },
   ],
@@ -162,7 +162,7 @@ export const HOST_DASHBOARD = defineExploration({
           id: "shelf",
           label: "Every event, in its place",
           means:
-            "The page is your events: covers that wear their own state as a mark (Live, a count waiting, a step). Nothing stands above them.",
+            "The page is your events: covers that each wear their own state as a mark (Live, a count waiting, a step), in one collection that scales.",
           gains:
             "The calmest page: one collection that scales, each state marked on its own event.",
           costs:
@@ -176,7 +176,7 @@ export const HOST_DASHBOARD = defineExploration({
           gains:
             "A busy host clears what waits without opening a single event.",
           costs:
-            "Its list repeats the bell's, and on a quiet day the page leads with nothing.",
+            "Its list repeats much of the bell's, and on a quiet day the page leads with an empty list.",
         },
       ],
       recommended: "stage",
@@ -194,13 +194,13 @@ export const HOST_DASHBOARD = defineExploration({
       question:
         "What should ask for your attention on the dashboard, at 1 event and at 40?",
       where: ["Host", "The dashboard", "When something waits"],
-      when: "Jo's Friday night: 2 people at tonight's door, a wedding tomorrow, 25 photos waiting on review, and 32 parties asking nothing.",
+      when: "Jo's Friday night: 2 people at tonight's door, a wedding tomorrow, 25 uploads waiting on review, and 32 parties asking nothing.",
       matters:
         "At 40 events one step per event is 40 things; the page has to flag only what is important.",
       lands:
         "Which states reach the dashboard, the most it ever shows, and what the bell holds, so one never repeats the other.",
       context:
-        "Drawn in the dashboard you picked (the party of the moment until you do): Maya and Jo on the night, and Jo's bell drawn open beside her page, holding what the rule leaves to it.",
+        "Drawn in the dashboard you picked (the party of the moment until you do): Maya and Jo on the night, and at 1440 Jo's bell drawn open beside her page, holding what the rule leaves to it.",
       options: [
         {
           id: "bell",
@@ -262,7 +262,7 @@ export const HOST_DASHBOARD = defineExploration({
             "One wall of equal covers by date, newest first, each wearing at most a mark; the lens and a search above it.",
           gains: "The simplest and closest to today: every event a photograph.",
           costs:
-            "At 40 it is eight rows of equal covers, old parties as loud as tonight's.",
+            "At 40 it is rows on rows of equal covers, old parties as loud as tonight's.",
         },
         {
           id: "seasons",

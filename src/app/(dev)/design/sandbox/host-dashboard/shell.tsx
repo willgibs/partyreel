@@ -120,8 +120,9 @@ function BellPanel({ host, items }: { host: Host; items: readonly Item[] }) {
         <div className="min-w-0 text-sm leading-tight font-semibold tracking-tight">
           Notifications
         </div>
+        {/* Production's header counts what its badge counts (every person and upload waiting). */}
         <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
-          {items.length > 0 ? `${items.length} new` : ""}
+          {items.length > 0 ? `${badgeOf(host, items)} new` : ""}
         </span>
       </div>
       {items.length === 0 ? (
