@@ -1,51 +1,47 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Camera, Mic, X, Zap } from "lucide-react";
+import { X, Zap } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 import { EVENT, ROLL, type Still } from "./fixtures";
-import type { LookId } from "./film";
 
 /**
- * WHAT EVERY CAMERA SHARES: the states a night puts it in, the phone's own
- * permission prompt (drawn plain, it is the operating system's), the refusal,
- * and the ring of frames around a shutter.
+ * WHAT EVERY CAMERA SHARES: the states a night puts it in, the words each
+ * state says, the ring of ticks round a shutter, the filming mark and the
+ * roll's end.
  *
- * ★ THE LIVE PICTURE IS A PHOTOGRAPH STANDING IN FOR THE CAMERA. In the
- * proposal it is the rear camera's stream in the page (getUserMedia, asked of
- * the phone on the first press), and the shutter takes the largest frame the
- * phone hands a page: on an iPhone a frame of the live video, at most 12 MP
- * (Safari 27 has no ImageCapture), on Android a full photo through
- * ImageCapture. The board's dock measures a real phone.
+ * ★ THE LIVE PICTURE IS A PHOTOGRAPH STANDING IN FOR THE CAMERA, DRAWN AS THE
+ * PHONE SEES IT. In the proposal it is the rear camera's stream in the page
+ * (getUserMedia, asked of the phone on the first press, as round two drew
+ * it), and the shutter takes the largest frame the phone hands a page. It
+ * wears no look: whether the roll wears one is its own decision, and a look
+ * is part of what develops (the carried call `live`).
  *
- * ★ SAFARI ASKS EACH VISIT. A page's camera permission on an iPhone is kept
- * for the page load only unless the guest sets it to Allow in Website
- * Settings, so "an iPhone asking again" is every return to the album after a
- * reload, and each camera says how to stop it.
+ * ★ ONE VOCABULARY, SIX CAMERAS. The words a state says (`hint`) and the
+ * end of the roll (`RollDone`) are the same in every camera, so a flip
+ * between two cameras changes the camera and nothing else.
  *
  * Nothing here is wired: every control is inert, drawn at rest.
  */
 
-export type CameraId = "viewfinder" | "body" | "reel" | "wrapper";
+export type CameraId =
+  | "viewfinder"
+  | "shutter"
+  | "rim"
+  | "reel"
+  | "timeline"
+  | "scroll";
 
 /** Where the night has the camera. */
-export type Phase =
-  | "framing"
-  | "after"
-  | "ask"
-  | "again"
-  | "refused"
-  | "recording";
+export type Phase = "framing" | "after" | "done" | "recording";
 
 export type VideoWay = "hold" | "switch" | "button";
 export type VideoCount = "one" | "three" | "own";
 
 export type CamProps = {
   phase: Phase;
-  look: LookId;
   still: Still;
   /** Her shots left (her photos left, when videos count on their own). */
   left: number;
@@ -59,21 +55,21 @@ export type CamProps = {
   videosLeft?: number;
   /** Seconds into the video ("recording"). */
   seconds?: number;
-  /** A paid event's first press asks for the microphone with the camera. */
-  mic?: boolean;
   /** "after" drawn just after a video rather than a photo. */
   afterVideo?: boolean;
 };
 
-/** What the count line says, in every camera's own words. */
-export function leftWords(p: CamProps): string {
-  if (p.count === "own")
-    return `${p.left} photos · ${videosWord(p.videosLeft ?? 3)} left`;
-  return `${p.left} left`;
-}
+/** The longest video (the carried call `ten`, round two). */
+export const VIDEO_SECONDS = 10;
 
 /** "1 video", "2 videos". */
 export const videosWord = (n: number) => `${n} video${n === 1 ? "" : "s"}`;
+
+/** What the count says under its numeral, in every camera's own words. */
+export function leftUnit(p: CamProps): string {
+  if (p.count === "own") return `photos · ${videosWord(p.videosLeft ?? 3)}`;
+  return "left";
+}
 
 /** Whether the camera is live (its picture showing) in this phase. */
 export const isLive = (phase: Phase) =>
@@ -82,7 +78,37 @@ export const isLive = (phase: Phase) =>
 /** The seconds, as the camera's clock says them: 0:04. */
 export const clock = (s: number) => `0:${String(s).padStart(2, "0")}`;
 
-/* ── the bar every screen camera wears ──────────────────────────────────── */
+/** How many frames the last act spent, for the tick or frame still glowing. */
+export function justSpent(p: CamProps): number {
+  if (p.phase !== "after") return 0;
+  if (!p.afterVideo) return 1;
+  if (p.count === "own") return 0;
+  return p.count === "three" ? 3 : 1;
+}
+
+/** The frame she is on: 7 at 10:40 pm. */
+export const frameOf = (p: CamProps) => ROLL.shots - p.left + 1;
+
+/**
+ * THE ONE LINE A CAMERA SAYS, by state: how to film where filming is a hold,
+ * what just happened, and nothing at all when there is nothing to say.
+ */
+export function hint(p: CamProps): string {
+  const hold = p.video === "hold";
+  if (p.phase === "recording")
+    return hold ? "Let go to stop." : "Press again to stop.";
+  if (p.phase === "after")
+    return p.afterVideo
+      ? "Your video is on the roll."
+      : `Shot ${p.taken ?? frameOf(p) - 1} is on the roll.`;
+  if (p.phase === "done") return "";
+  return hold ? "Tap for a photo. Hold for a video." : "There is no retake.";
+}
+
+/** The same words as a pill's: a pill carries no full stop. */
+export const pill = (words: string) => words.replace(/\.$/, "");
+
+/* ── the bar a black-ground camera wears ───────────────────────────────── */
 
 /** Close, whose camera it is (the host's names first, bible 7), the flash. */
 export function CamBar({
@@ -93,13 +119,15 @@ export function CamBar({
   flash?: boolean;
 }) {
   return (
-    <div className="flex h-14 shrink-0 items-center justify-between px-3">
+    <div className="relative z-10 flex h-14 shrink-0 items-center justify-between px-3">
       <span className="dm-cam-round" aria-label="Back to the album">
         <X className="size-5" aria-hidden />
       </span>
       <div className="min-w-0 text-center">
         <p className="truncate font-heading text-base">{EVENT.name}</p>
-        <p className="text-micro text-white/60">{sub}</p>
+        <p className="text-micro text-white/60" data-dm-sub>
+          {sub}
+        </p>
       </div>
       <span
         className="dm-cam-round"
@@ -112,32 +140,34 @@ export function CamBar({
   );
 }
 
-/* ── the ring of frames around a shutter ────────────────────────────────── */
+/* ── the ring of ticks around a shutter ────────────────────────────────── */
 
 /**
  * TWENTY-FOUR TICKS, ONE A FRAME: lit while unexposed, dark once spent, the
- * frame just spent still glowing. `spend` is how many the last shot took (a
- * video spends three where the count decision says so).
+ * frame just spent still glowing. A video running fills an inner arc red to
+ * its share of the ten seconds.
  */
 export function FrameRing({
   left,
   of = ROLL.shots,
   size,
-  justSpent = 0,
+  just = 0,
   recording,
+  className,
 }: {
   left: number;
   of?: number;
   size: number;
-  justSpent?: number;
-  /** A video running: the ring fills red to this fraction of its 10 seconds. */
+  just?: number;
+  /** A video running: the fraction of its ten seconds. */
   recording?: number;
+  className?: string;
 }) {
   const r = size / 2;
   const spent = of - left;
   return (
     <svg
-      className="dm-ring"
+      className={cn("dm-ring", className)}
       viewBox={`0 0 ${size} ${size}`}
       width={size}
       height={size}
@@ -148,8 +178,7 @@ export function FrameRing({
         const a = (i / of) * Math.PI * 2 - Math.PI / 2;
         const inner = r - 7;
         const outer = r - 1.5;
-        const state =
-          i < spent - justSpent ? "spent" : i < spent ? "just" : "lit";
+        const state = i < spent - just ? "spent" : i < spent ? "just" : "lit";
         return (
           <line
             key={i}
@@ -179,162 +208,77 @@ export function FrameRing({
   );
 }
 
-/* ── the phone's own prompt, a stand-in drawn plain ──────────────────────── */
-
-/**
- * SAFARI'S PERMISSION ALERT, AS AN IPHONE DRAWS IT: the site's name in
- * quotes, what it would like, Don't Allow and Allow. It is the operating
- * system's screen, not ours, so it is drawn as generic furniture: nothing of
- * its exact material is claimed, only its words and its two answers.
- */
-export function IosAlert({
-  mic = false,
-  note,
-}: {
-  mic?: boolean;
-  /** The page's own line under the prompt (`askLine`), read through the scrim. */
-  note?: string;
-}) {
-  return (
-    <div className="dm-ios-scrim" data-dm-alert>
-      <div className="dm-ios-alert" role="alertdialog">
-        <div className="px-4 pt-5 pb-4 text-center">
-          <p className="text-[17px] leading-snug font-semibold" data-dm-say>
-            {mic
-              ? "“partyreel.com” Would Like to Access the Camera and Microphone"
-              : "“partyreel.com” Would Like to Access the Camera"}
-          </p>
-        </div>
-        <div className="grid grid-cols-2 border-t border-black/15 text-[17px]">
-          <span className="border-r border-black/15 py-3 text-center text-[#0a84ff]">
-            Don&rsquo;t Allow
-          </span>
-          <span className="py-3 text-center font-semibold text-[#0a84ff]">
-            Allow
-          </span>
-        </div>
-      </div>
-      {note && (
-        <p className="dm-ios-note" data-dm-note>
-          {note}
-        </p>
-      )}
-    </div>
-  );
-}
-
-/**
- * THE LINE A CAMERA SAYS WHILE THE PHONE ASKS, under the prompt: on the first
- * press what Allow does; on a return visit how to stop the asking.
- */
-export function askLine(phase: Phase, mic?: boolean): string {
-  if (phase === "again")
-    return "Your iPhone asks each visit. To stop it: aA in the address bar, Website Settings, Camera, Allow.";
-  return mic
-    ? "Allow, and the camera is ready for photos, and videos with their sound."
-    : "Allow, and the camera is ready.";
-}
-
-/**
- * THE REFUSAL, in the camera's own ground: what happened, how to turn it back
- * on in Safari, Try again, and the phone's own camera as the way through
- * (bible 3: nothing is a dead end), counted the same (the carried call
- * `refused`).
- */
-export function Refused({
-  tone = "dark",
-  left,
-}: {
-  tone?: "dark" | "paper";
-  left: number;
-}) {
-  const paper = tone === "paper";
-  return (
-    <div
-      data-dm-refused
-      className={cn(
-        "surface-ink w-full rounded-2xl bg-card p-5 text-left text-card-foreground",
-        !paper && "bg-white/[0.07]",
-      )}
-    >
-      <span className="mb-3 flex size-10 items-center justify-center rounded-full bg-muted">
-        <Camera className="size-5" aria-hidden />
-      </span>
-      <p className="font-heading text-lg" data-dm-say>
-        The camera is off for this page
-      </p>
-      <p className="mt-1.5 text-sm text-pretty text-muted-foreground">
-        To turn it on: aA in the address bar, Website Settings, Camera, Allow.
-        Then try again.
-      </p>
-      <div className="mt-4 flex flex-col gap-2">
-        <Button
-          type="button"
-          size="cta"
-          className="w-full"
-          tabIndex={-1}
-          data-dm-reach
-        >
-          Try again
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="cta"
-          className="w-full"
-          tabIndex={-1}
-        >
-          Use your phone&rsquo;s camera
-        </Button>
-      </div>
-      <p className="mt-3 text-center text-xs text-muted-foreground">
-        {`It counts the same: ${left} shots left.`}
-      </p>
-    </div>
-  );
-}
-
-/** The microphone's own glyph, for a camera whose first press asks for it too. */
-export function MicNote() {
-  return (
-    <span className="inline-flex items-center gap-1 text-micro text-white/60">
-      <Mic className="size-3" aria-hidden /> With sound
-    </span>
-  );
-}
-
 /** A red dot and the clock, the one mark every camera wears while it films. */
 export function RecPill({ seconds }: { seconds: number }) {
   return (
     <span className="dm-rec-pill" data-dm-rec={clock(seconds)}>
       <span className="dm-rec-dot" aria-hidden />
-      {`${clock(seconds)} of 0:10`}
+      {`${clock(seconds)} of ${clock(VIDEO_SECONDS)}`}
     </span>
   );
 }
 
-/** A phase's words for a caption, when a frame needs to name it. */
-export const PHASE_WORDS: Record<Phase, string> = {
-  framing: "framing her seventh",
-  after: "the moment after",
-  ask: "7:48 pm, her first press",
-  refused: "she tapped Don't Allow",
-  again: "10:40 pm, her iPhone asks again",
-  recording: "four seconds into a video",
-};
-
-/** Layout helper: a whole-screen camera ground. */
-export function Screen({
+/** Photo or Video, the switch over a shutter where filming is a mode. */
+export function ModeSwitch({
+  video,
   className,
-  children,
-  data,
 }: {
-  className: string;
-  children: ReactNode;
-  data?: string;
+  video: boolean;
+  className?: string;
 }) {
   return (
-    <div className={className} data-dm-camera={data}>
+    <div className={cn("dm-modes", className)} data-dm-modes>
+      <span data-on={video ? undefined : ""}>Photo</span>
+      <span data-on={video ? "" : undefined}>Video</span>
+    </div>
+  );
+}
+
+/* ── the end of the roll ───────────────────────────────────────────────── */
+
+/**
+ * THE ROLL, DONE: what her twenty-fourth shot leaves her with, the same in
+ * every camera (bible 3: nothing is a dead end). Her shots are one tap away,
+ * the album behind them; the shutter is gone, since there is nothing left to
+ * press.
+ */
+export function RollDone({
+  className,
+  children,
+}: {
+  className?: string;
+  /** What the camera keeps of itself beside the words (its spent ring, its strip). */
+  children?: ReactNode;
+}) {
+  return (
+    <div className={cn("dm-done", className)} data-dm-done>
+      {children}
+      <p className="font-heading text-[26px] leading-tight" data-dm-say>
+        That&rsquo;s your roll
+      </p>
+      <p className="mt-1.5 text-sm text-pretty text-white/70">
+        {`${ROLL.shots} shots, developing with everyone's. They're back at ${ROLL.develops}.`}
+      </p>
+      <div className="mt-5 grid w-full gap-2">
+        <span className="dm-done-primary">See your shots</span>
+        <span className="dm-done-secondary">Back to the album</span>
+      </div>
+    </div>
+  );
+}
+
+/** Layout helper: a whole-screen camera ground. */
+export function CamScreen({
+  id,
+  className,
+  children,
+}: {
+  id: CameraId;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className={cn("dm-cam", className)} data-dm-camera={id}>
       {children}
     </div>
   );

@@ -17,43 +17,53 @@ import {
   EVENT,
   HER_SHOTS,
   LEFT,
+  LOOK_SET,
+  NIGHT,
   PARTY,
   PRIYA,
   ROLL,
   type Shot,
+  type Still,
 } from "./fixtures";
-import { FilmStill, type LookId } from "./film";
+import { FilmStill } from "./film";
 
 /**
  * THE WAITING ROOM: what the album is, full screen, from a guest's first shot
- * until the roll develops (his `waiting` note, whole, and the lane's own two).
+ * until the roll develops (his `waiting` notes: an atmospheric room, a live
+ * count, a mystery stack in the middle, her own shots to manage; and this
+ * round, "for grids, I'd prefer not to get messy and begin tilting anything").
+ *
+ * ★ NOTHING IS TILTED. Every print, square and photograph stands square to
+ * the screen; depth comes from light and from stacking straight, never from
+ * a rotation.
  *
  * ★ INSIDE THE ALBUM, AFTER THE DOOR. The door (`locked-door`'s family) is
  * before joining; this is the album's own face while the roll develops, so it
- * keeps what the album always offers (her camera, Invite, her name's menu)
- * and nothing of the Partyreel chrome (bible 7).
+ * keeps what the album always offers (her camera, Invite, her name) and
+ * nothing of the Partyreel chrome (bible 7).
  *
- * ★ THE COUNT RIDES THE ALBUM'S OWN SYNC. The head count every gallery
- * payload already carries (`onCountChange`) is the number here, moved by the
- * doorbell at once and by the minute-long poll otherwise: no new traffic, and
- * never a name or a picture of anyone else's shot.
+ * ★ WHAT A ROOM MAY KNOW OF ANYONE ELSE'S SHOT IS ITS PLACE IN THE COUNT AND
+ * ITS MINUTE. The count rides the album's own sync (the head count every
+ * gallery payload carries, moved by the doorbell): no new traffic, and never
+ * a name or a picture of anyone else's shot. The contact sheet and the dial
+ * draw exactly that (`NIGHT`); the colour room needs a few colours read off
+ * each shot on the phone that took it, which is new and says so in its cost.
  *
  * ★ HER SHOTS ARE HERS ALONE. "Mine" is the server's read it always is
  * (`/api/guests/mine`), and her own undeveloped shots are the one thing the
  * page may show her before 9 am; each is hers to delete through the same
- * removal the album's viewer uses, final for the host too.
- *
- * ★ LIGHT WITH A SOURCE (bible 6): the only colour is the safelight's red, at
- * the room's top edge, and a photograph's own.
+ * removal the album's viewer uses, final for the host too. They are drawn as
+ * the phone took them: whether the roll wears a look is its own decision.
  */
+
+export type RoomId = "sheet" | "stack" | "glow" | "dial";
 
 /* ── the room's ground, shared ──────────────────────────────────────────── */
 
 /**
  * A LAPTOP'S ROOM: the same room at 1440 (a guest opening the album on her
- * laptop the next morning, or anyone at a desk), its middle a centred column
- * and her shots a wider grid. A context rather than a prop, so every piece
- * of a room reads it without the board threading it through each one.
+ * laptop, or anyone at a desk), its middle a centred column. A context rather
+ * than a prop, so every piece of a room reads it.
  */
 const Wide = createContext(false);
 
@@ -67,20 +77,26 @@ export function WaitingScreen({
   return <Wide.Provider value={wide}>{children}</Wide.Provider>;
 }
 
-function RoomBar() {
+/** Each room's light, the one colour it has (bible 6): a source, never paint. */
+const LIGHT: Record<RoomId, string> = {
+  sheet: "ink",
+  stack: "safe",
+  glow: "glow",
+  dial: "night",
+};
+
+function RoomBar({ sub = "Developing" }: { sub?: string }) {
   const wide = useContext(Wide);
   return (
     <div
       className={cn(
-        "relative flex h-14 shrink-0 items-center justify-between",
+        "relative z-10 flex h-14 shrink-0 items-center justify-between",
         wide ? "px-8" : "px-5",
       )}
     >
       <div className="min-w-0">
         <p className="truncate font-heading text-base">{EVENT.name}</p>
-        <p className="text-micro tracking-[0.14em] text-[#f7e9e4]/55 uppercase">
-          Developing
-        </p>
+        <p className="dm-room-sub">{sub}</p>
       </div>
       <span className="flex items-center gap-2">
         <Avatar size="sm" seed={PRIYA.seed}>
@@ -97,28 +113,21 @@ function RoomBar() {
 /**
  * Her camera over Invite, where the album's action block always stands: the
  * product's own buttons on the ink surface (`surface-ink` re-maps the tokens
- * for an always-dark leaf, globals.css), her shots left beside the camera as
- * her tracker's place has it today.
+ * for an always-dark leaf), her shots left beside the camera.
  */
-function RoomActions({ left = LEFT }: { left?: number }) {
+function RoomActions() {
   const wide = useContext(Wide);
   return (
     <div
       className={cn(
-        "relative space-y-2 px-5 pb-8",
+        "relative z-10 space-y-2 px-5 pb-7",
         wide && "mx-auto w-full max-w-sm",
       )}
     >
-      <Button
-        type="button"
-        size="cta"
-        className="w-full"
-        tabIndex={-1}
-        data-dm-camera-row
-      >
+      <Button type="button" size="cta" className="w-full" tabIndex={-1}>
         <Camera /> Take a photo
         <span className="ml-1 rounded-full bg-primary-foreground/10 px-2 py-0.5 text-xs tabular-nums">
-          {`${left} left`}
+          {`${LEFT} left`}
         </span>
       </Button>
       <Button
@@ -135,29 +144,35 @@ function RoomActions({ left = LEFT }: { left?: number }) {
 }
 
 function Room({
-  children,
   kind,
-  left,
+  children,
+  under,
 }: {
+  kind: RoomId;
   children: ReactNode;
-  kind: string;
-  left?: number;
+  /** What lies under the room's middle: its light, drawn first. */
+  under?: ReactNode;
 }) {
   const wide = useContext(Wide);
   return (
-    <div className="dm-room surface-ink" data-dm-room={kind}>
+    <div
+      className="dm-room surface-ink"
+      data-dm-room={kind}
+      data-light={LIGHT[kind]}
+    >
       <span aria-hidden className="dm-room-light" />
+      {under}
       <span aria-hidden className="dm-room-grain" />
       <RoomBar />
       <div
         className={cn(
-          "relative flex flex-1 flex-col",
-          wide && "mx-auto w-full max-w-[560px]",
+          "relative z-10 flex flex-1 flex-col",
+          wide && "mx-auto w-full max-w-[680px]",
         )}
       >
         {children}
       </div>
-      <RoomActions left={left} />
+      <RoomActions />
     </div>
   );
 }
@@ -167,233 +182,357 @@ function Develops({ className }: { className?: string }) {
   return (
     <p
       data-dm-when
-      className={cn("text-center text-sm text-[#f7e9e4]/70", className)}
+      className={cn("dm-room-dim text-center text-sm", className)}
     >
-      {`Develops tomorrow at ${ROLL.develops}`}
-      <span className="text-[#f7e9e4]/45">{` · in ${PARTY.until}`}</span>
+      {`Develops at ${ROLL.develops}`}
+      <span className="dm-room-faint">{` · in ${PARTY.until}`}</span>
     </p>
   );
 }
 
 /**
- * The party's count, the one number every room is built round, with what it
- * gained since she opened the page (the sync's own delta, read on her device:
- * the count is all that travels).
+ * The party's count, the one number every room is built round, with the shot
+ * that just landed (the sync's own delta, read on her device: the count is
+ * all that travels).
  */
 function Count({
-  big = true,
   line,
-  since = 3,
+  size = 56,
+  arrival = true,
 }: {
-  big?: boolean;
   line: string;
-  since?: number;
+  size?: number;
+  arrival?: boolean;
 }) {
   return (
     <div className="text-center" data-dm-count>
       <p
-        className={cn(
-          "font-heading leading-none tabular-nums",
-          big ? "text-[64px]" : "text-[44px]",
-        )}
+        className="font-heading leading-none tabular-nums"
+        style={{ fontSize: size }}
       >
         {PARTY.shots}
       </p>
-      <p className="mt-2 text-sm text-[#f7e9e4]/80">{line}</p>
-      {since > 0 && (
-        <p className="mt-2 inline-flex rounded-full bg-[#f7e9e4]/[0.08] px-2.5 py-0.5 text-xs text-[#f7e9e4]/70 tabular-nums">
-          {`+${since} since you opened it`}
+      <p className="dm-room-dim mt-2 text-sm">{line}</p>
+      {arrival && (
+        <p className="dm-arrival" data-dm-arrival>
+          +1 just now
         </p>
       )}
     </div>
   );
 }
 
-/* ── a print, face down ─────────────────────────────────────────────────── */
+/** Her six, oldest first: the order the night took them in. */
+const HERS_IN_ORDER = [...HER_SHOTS].reverse();
 
-/**
- * THE BACK OF A PRINT: photo paper's warm white with its maker's line printed
- * across it, the way every lab's paper carries one, here the host's names.
- * Nothing of the picture.
- */
-function PrintBack({
-  style,
-  mine,
-  className,
-}: {
-  style?: CSSProperties;
-  mine?: boolean;
-  className?: string;
-}) {
+/** Her shot for the n-th of hers in the night's order. */
+const hersAt = (() => {
+  const map = new Map<number, Shot>();
+  let k = 0;
+  for (const s of NIGHT) if (s.mine) map.set(s.n, HERS_IN_ORDER[k++]);
+  return map;
+})();
+
+/* ── 1. the party's contact sheet ───────────────────────────────────────── */
+
+/** How many of the newest squares still glow, warm with being just shot. */
+const WARM = 14;
+
+export function SheetRoom() {
+  const wide = useContext(Wide);
   return (
-    <span
-      className={cn("dm-print-back", className)}
-      data-mine={mine ? "" : undefined}
-      style={style}
-    >
-      <span aria-hidden className="dm-print-back-line">
-        {`${EVENT.name} · ${EVENT.date} · `.repeat(4)}
-      </span>
-    </span>
+    <Room kind="sheet">
+      <div className="flex flex-1 flex-col items-center justify-center gap-5 px-5">
+        <Count
+          line={`shots from ${PARTY.guests} guests, developing`}
+          size={52}
+        />
+        <div
+          className="dm-sheet"
+          style={{
+            gridTemplateColumns: `repeat(${wide ? 20 : 12}, minmax(0, 1fr))`,
+          }}
+          data-dm-sheet={NIGHT.length}
+        >
+          {NIGHT.map((s) => {
+            const mine = hersAt.get(s.n);
+            if (mine)
+              return (
+                <span key={s.n} className="dm-cell" data-mine data-dm-hers-cell>
+                  <FilmStill still={mine.still} className="size-full" />
+                </span>
+              );
+            const age = NIGHT.length - s.n;
+            return (
+              <span
+                key={s.n}
+                className="dm-cell"
+                data-new={age === 0 ? "" : undefined}
+                style={
+                  age < WARM
+                    ? ({ "--warm": (WARM - age) / WARM } as CSSProperties)
+                    : undefined
+                }
+              />
+            );
+          })}
+        </div>
+        <p className="dm-room-dim flex items-center gap-2 text-xs">
+          <span className="dm-key" aria-hidden />
+          {`Yours, ${PARTY.hers} of them · tap one to open`}
+        </p>
+        <Develops />
+      </div>
+    </Room>
   );
 }
 
-/* ── 1. his room, whole: her stack in the middle ────────────────────────── */
+/* ── 2. the stack, squared ──────────────────────────────────────────────── */
 
-const STACK_TILT = [-7, 4, -3, 6, -1, 2];
+/** One edge line in the deck for every ten shots: 142 stands fourteen deep. */
+const DEPTH = Math.round(PARTY.shots / 10);
+
+/** Where her six tabs stand on the deck's edge, from its top. */
+const TABS = [26, 64, 98, 134, 170, 206];
 
 export function StackRoom() {
   return (
     <Room kind="stack">
-      <div className="flex flex-1 flex-col items-center justify-center gap-8 px-6">
-        <Count line={`shots developing, from ${PARTY.guests} guests`} />
-        <span
-          className="relative block h-[222px] w-[170px]"
-          data-dm-stack={PARTY.hers}
-        >
-          {STACK_TILT.map((deg, i) => (
-            <PrintBack
+      <div className="flex flex-1 flex-col items-center justify-center gap-7">
+        <Count
+          line={`shots in the stack, from ${PARTY.guests} guests`}
+          size={52}
+        />
+        <span className="dm-deck" data-dm-deck={DEPTH}>
+          {Array.from({ length: DEPTH }, (_, i) => (
+            <span
               key={i}
-              mine
-              className="absolute inset-0"
-              style={{
-                transform: `rotate(${deg}deg) translateY(${-i * 1.5}px)`,
-              }}
+              aria-hidden
+              className="dm-deck-under"
+              style={{ translate: `0 ${(DEPTH - i) * 2.2}px` }}
             />
           ))}
-          <span className="dm-stack-badge">{`Yours · ${PARTY.hers}`}</span>
-        </span>
-        <div className="space-y-1.5">
-          <Develops />
-          <p className="text-center text-xs text-[#f7e9e4]/45">
-            Tap your stack to see yours.
-          </p>
-        </div>
-      </div>
-    </Room>
-  );
-}
-
-/* ── 2. the tray: her shots, coming up ──────────────────────────────────── */
-
-const TRAY_AT: { x: number; y: number; r: number; w: number }[] = [
-  { x: 18, y: 14, r: -4, w: 104 },
-  { x: 134, y: 6, r: 3, w: 96 },
-  { x: 236, y: 22, r: -2, w: 92 },
-  { x: 40, y: 150, r: 5, w: 98 },
-  { x: 150, y: 138, r: -6, w: 104 },
-  { x: 250, y: 158, r: 2, w: 84 },
-];
-
-export function TrayRoom({ look }: { look: LookId }) {
-  return (
-    <Room kind="tray">
-      <div className="flex flex-1 flex-col items-center justify-center gap-6">
-        <Count
-          big={false}
-          line={`shots in the tray, ${PARTY.hers} of them yours`}
-        />
-        <div
-          className="dm-tray mx-4 h-[292px] w-[343px]"
-          data-dm-tray={PARTY.hers}
-        >
-          {HER_SHOTS.map((s, i) => {
-            const at = TRAY_AT[i];
-            return (
-              <span
-                key={s.id}
-                className="dm-latent absolute"
-                style={{
-                  left: at.x,
-                  top: at.y,
-                  width: at.w,
-                  transform: `rotate(${at.r}deg)`,
-                }}
-              >
-                <FilmStill
-                  still={s.still}
-                  look={look}
-                  stamp={false}
-                  className="aspect-[3/4] w-full"
-                />
-              </span>
-            );
-          })}
-          <span aria-hidden className="dm-tray-sheen" />
-        </div>
-        <div className="space-y-1.5">
-          <p
-            data-dm-when
-            className="px-8 text-center text-sm text-balance text-[#f7e9e4]/70"
-          >
-            {`Yours come up by ${ROLL.develops} with everyone's, in ${PARTY.until}.`}
-          </p>
-          <p className="text-center text-xs text-[#f7e9e4]/45">
-            Tap one of yours to lift it out.
-          </p>
-        </div>
-      </div>
-    </Room>
-  );
-}
-
-/* ── 3. the pile: the party's roll, landing live ────────────────────────── */
-
-/** Fourteen backs stand for the 142 (the pile's height grows with the count). */
-const PILE: { x: number; y: number; r: number; mine?: boolean }[] = [
-  { x: 10, y: 60, r: -18 },
-  { x: 140, y: 48, r: 14 },
-  { x: 62, y: 92, r: 7 },
-  { x: 118, y: 104, r: -9 },
-  { x: 30, y: 30, r: 24, mine: true },
-  { x: 160, y: 88, r: -22 },
-  { x: 88, y: 40, r: -4 },
-  { x: 48, y: 110, r: 16 },
-  { x: 128, y: 20, r: 9, mine: true },
-  { x: 96, y: 76, r: -13 },
-  { x: 20, y: 86, r: 3 },
-  { x: 150, y: 64, r: 27 },
-  { x: 72, y: 58, r: -26 },
-];
-
-export function PileRoom() {
-  return (
-    <Room kind="pile">
-      <div className="flex flex-1 flex-col items-center justify-center gap-5">
-        <Count
-          line={`shots on the pile, ${PARTY.guests} guests shooting`}
-          since={0}
-        />
-        <span className="relative block h-[250px] w-[300px]" data-dm-pile>
-          {PILE.map((p, i) => (
-            <PrintBack
+          {TABS.map((top, i) => (
+            <span
               key={i}
-              mine={p.mine}
-              className="dm-pile-print absolute"
-              style={{ left: p.x, top: p.y, transform: `rotate(${p.r}deg)` }}
+              className="dm-deck-tab"
+              style={{ top }}
+              data-dm-tab
+              aria-label={`Your shot from ${HERS_IN_ORDER[i].time}`}
             />
           ))}
-          {/* The newest, landing: someone just shot. */}
-          <PrintBack
-            className="dm-pile-print dm-pile-new absolute"
-            style={{ left: 104, top: 52, transform: "rotate(-6deg)" }}
-          />
-          <span
-            className={cn(
-              GLASS,
-              "absolute top-2 right-0 rounded-full px-2.5 py-1 text-xs font-medium text-white",
-            )}
-            data-dm-arrival
-          >
-            +1 just now
+          <span className="dm-print-back dm-deck-top">
+            <span aria-hidden className="dm-print-back-line">
+              {`${EVENT.name} · ${EVENT.date} · `.repeat(30)}
+            </span>
+            <span className="dm-print-stamp">{`No. ${PARTY.shots} · ${PARTY.time}`}</span>
           </span>
         </span>
+        <div className="space-y-1.5">
+          <p className="dm-room-dim text-center text-xs">
+            {`Yours are the ${PARTY.hers} tabs · tap one to open`}
+          </p>
+          <Develops />
+        </div>
+      </div>
+    </Room>
+  );
+}
+
+/* ── 3. the party's colours ─────────────────────────────────────────────── */
+
+/**
+ * THE GLOW: where the party's colour hangs in the room. Each pool stands in
+ * for the few colours read off a shot on the phone that took it (in the
+ * proposal a handful of bytes beside the count, never the picture): here a
+ * party photograph blurred past recognition, so the colour is real and no
+ * picture survives.
+ */
+const POOLS: { light: string; x: number; y: number; s: number }[] = [
+  { light: "String lights", x: -40, y: 60, s: 260 },
+  { light: "A club's lights", x: 150, y: 20, s: 280 },
+  { light: "Blue stage light", x: 30, y: 250, s: 300 },
+  { light: "Lasers", x: 190, y: 300, s: 250 },
+  { light: "Golden hour", x: -60, y: 430, s: 270 },
+];
+
+/** The party's own photographs (everyone's, which she never sees), by their light. */
+const POOL_STILLS: readonly Still[] = POOLS.map(
+  (p) => LOOK_SET.find((s) => s.light === p.light) ?? LOOK_SET[0],
+);
+
+function Glow({ dim = false }: { dim?: boolean }) {
+  const wide = useContext(Wide);
+  const k = wide ? 2.4 : 1;
+  return (
+    <span aria-hidden className="dm-glow" data-dim={dim ? "" : undefined}>
+      {POOLS.map((p, i) => (
         <span
-          className="rounded-full border border-[#f7e9e4]/25 px-4 py-2 text-sm text-[#f7e9e4]/90"
-          data-dm-yours
+          key={i}
+          className="dm-pool"
+          data-new={i === POOLS.length - 1 && !dim ? "" : undefined}
+          style={{
+            left: p.x * k,
+            top: p.y,
+            width: p.s * k,
+            height: p.s,
+          }}
         >
-          {`Yours (${PARTY.hers})`}
-          <span className="text-[#f7e9e4]/50"> · the folded corners</span>
+          <FilmStill still={POOL_STILLS[i]} className="size-full" />
+        </span>
+      ))}
+    </span>
+  );
+}
+
+export function GlowRoom() {
+  return (
+    <Room kind="glow" under={<Glow />}>
+      <div className="flex flex-1 flex-col items-center justify-center gap-3">
+        <Count
+          line={`shots from ${PARTY.guests} guests, developing`}
+          size={64}
+        />
+        <Develops />
+      </div>
+      <div className="px-5 pb-5" data-dm-yours>
+        <p className="dm-room-dim mb-2 text-xs">{`Yours · ${PARTY.hers}`}</p>
+        <div className="grid grid-cols-6 gap-1.5">
+          {HER_SHOTS.map((s) => (
+            <span key={s.id} className="dm-thumb" data-dm-hers-cell>
+              <FilmStill still={s.still} className="aspect-square w-full" />
+            </span>
+          ))}
+        </div>
+      </div>
+    </Room>
+  );
+}
+
+/* ── 4. the night on a dial ─────────────────────────────────────────────── */
+
+/** The dial runs from 7 pm, bottom left, round to 9 am, bottom right. */
+const DIAL = { size: 300, r: 118, from: 135, sweep: 270, span: 14 * 60 };
+const angleOf = (minute: number) =>
+  ((DIAL.from + (minute / DIAL.span) * DIAL.sweep) * Math.PI) / 180;
+const at = (minute: number, r: number) => {
+  const a = angleOf(minute);
+  const c = DIAL.size / 2;
+  return [c + Math.cos(a) * r, c + Math.sin(a) * r] as const;
+};
+const arc = (from: number, to: number, r: number) => {
+  const [x0, y0] = at(from, r);
+  const [x1, y1] = at(to, r);
+  const large = ((to - from) / DIAL.span) * DIAL.sweep > 180 ? 1 : 0;
+  return `M ${x0.toFixed(1)} ${y0.toFixed(1)} A ${r} ${r} 0 ${large} 1 ${x1.toFixed(1)} ${y1.toFixed(1)}`;
+};
+
+/** Five-minute bins of the night: how many shots landed in each. */
+const BINS = (() => {
+  const bins = new Map<number, number>();
+  for (const s of NIGHT) {
+    const b = Math.floor(s.minute / 5) * 5;
+    bins.set(b, (bins.get(b) ?? 0) + 1);
+  }
+  return [...bins.entries()].sort((a, b) => a[0] - b[0]);
+})();
+
+const NOW = NIGHT[NIGHT.length - 1].minute;
+
+function Dial() {
+  const c = DIAL.size / 2;
+  return (
+    <svg
+      viewBox={`0 0 ${DIAL.size} ${DIAL.size}`}
+      width={DIAL.size}
+      height={DIAL.size}
+      className="dm-dial"
+      data-dm-dial={`${BINS.length} bins`}
+      aria-hidden
+    >
+      <path d={arc(0, DIAL.span, DIAL.r)} className="dm-dial-track" />
+      <path d={arc(NOW, DIAL.span, DIAL.r)} className="dm-dial-ahead" />
+      <path d={arc(0, NOW, DIAL.r)} className="dm-dial-past" />
+      {BINS.map(([minute, n]) => {
+        const [x0, y0] = at(minute + 2.5, DIAL.r + 6);
+        const [x1, y1] = at(minute + 2.5, DIAL.r + 6 + 3 + n * 2.6);
+        return (
+          <line
+            key={minute}
+            x1={x0}
+            y1={y0}
+            x2={x1}
+            y2={y1}
+            className="dm-dial-bar"
+            data-new={minute + 5 > NOW ? "" : undefined}
+          />
+        );
+      })}
+      {NIGHT.filter((s) => s.mine).map((s) => {
+        const [x, y] = at(s.minute, DIAL.r - 9);
+        return (
+          <circle
+            key={s.n}
+            cx={x}
+            cy={y}
+            r={3}
+            className="dm-dial-hers"
+            data-dm-hers-dot
+          />
+        );
+      })}
+      {(() => {
+        const [x, y] = at(NOW, DIAL.r);
+        const [lx, ly] = at(NOW + 22, DIAL.r + 16);
+        return (
+          <>
+            <circle cx={x} cy={y} r={5} className="dm-dial-now" />
+            <text x={lx} y={ly} className="dm-dial-label dm-dial-now-label">
+              now
+            </text>
+          </>
+        );
+      })()}
+      {(() => {
+        const [x, y] = at(DIAL.span, DIAL.r);
+        return <circle cx={x} cy={y} r={4} className="dm-dial-develop" />;
+      })()}
+      <text
+        x={at(0, DIAL.r)[0] - 6}
+        y={at(0, DIAL.r)[1] + 22}
+        className="dm-dial-label"
+      >
+        7 pm
+      </text>
+      <text
+        x={at(DIAL.span, DIAL.r)[0] + 6}
+        y={at(DIAL.span, DIAL.r)[1] + 22}
+        className="dm-dial-label"
+        textAnchor="end"
+      >
+        {ROLL.develops}
+      </text>
+      <text x={c} y={c - 6} className="dm-dial-count" textAnchor="middle">
+        {PARTY.shots}
+      </text>
+      <text x={c} y={c + 18} className="dm-dial-sub" textAnchor="middle">
+        shots so far
+      </text>
+    </svg>
+  );
+}
+
+export function DialRoom() {
+  return (
+    <Room kind="dial">
+      <div className="flex flex-1 flex-col items-center justify-center gap-5">
+        <div className="relative" data-dm-count>
+          <Dial />
+          <p className="sr-only">{`${PARTY.shots} shots`}</p>
+        </div>
+        <span className="dm-yours-pill" data-dm-yours>
+          {`Yours · ${PARTY.hers}`}
+          <span className="dm-room-faint">{`, the dots on the dial`}</span>
         </span>
         <Develops />
       </div>
@@ -401,168 +540,165 @@ export function PileRoom() {
   );
 }
 
-/* ── 4. her roll, wound on a reel ───────────────────────────────────────── */
-
-/**
- * HER ROLL AS A STRIP OUT OF ITS CANISTER: the reel camera's own strip, at
- * the room's scale, her exposed frames dark with their minutes and the rest
- * waiting; the party's count over it. The camera's strip carried on, so the
- * roll she watches run out in her hand is the one she waits on.
- */
-export function StripRoom() {
-  const spent = PARTY.hers;
-  const times = [...HER_SHOTS].reverse().map((s) => s.time);
-  return (
-    <Room kind="strip">
-      <div className="flex flex-1 flex-col items-center justify-center gap-8">
-        <Count line={`shots developing, from ${PARTY.guests} guests`} />
-        <div className="relative h-[150px] w-full" data-dm-roll={spent}>
-          <span aria-hidden className="dm-canister" />
-          <div className="dm-roll-strip">
-            <span aria-hidden className="dm-strip-holes dm-strip-holes-top" />
-            <span
-              aria-hidden
-              className="dm-strip-holes dm-strip-holes-bottom"
-            />
-            <p aria-hidden className="dm-edge dm-edge-top">
-              {`${EVENT.name.toUpperCase()}  ▸ ${ROLL.shots} EXP  ▸ ${PRIYA.name.toUpperCase()}`}
-            </p>
-            {Array.from({ length: 9 }, (_, i) => {
-              const n = i + 1;
-              const state =
-                n <= spent ? "exposed" : n === spent + 1 ? "current" : "fresh";
-              return (
-                <span
-                  key={n}
-                  className="dm-roll-cell"
-                  data-state={state}
-                  style={{ left: 16 + i * 78 }}
-                >
-                  {state === "exposed" && (
-                    <span className="dm-strip-time">{times[i]}</span>
-                  )}
-                </span>
-              );
-            })}
-          </div>
-        </div>
-        <div className="space-y-1.5">
-          <p className="text-center text-sm text-[#f7e9e4]/85" data-dm-yours>
-            {`Your roll: ${spent} of ${ROLL.shots} exposed`}
-          </p>
-          <Develops />
-          <p className="text-center text-xs text-[#f7e9e4]/45">
-            Tap your roll to see yours.
-          </p>
-        </div>
-      </div>
-    </Room>
-  );
-}
-
 /* ── her shots, opened: each hers to delete ─────────────────────────────── */
 
-/** A shot of hers, face up for her alone, with its time and its Delete. */
-function Hers({
-  shot,
-  look,
-  latent,
-  tilt,
-}: {
-  shot: Shot;
-  look: LookId;
-  latent?: boolean;
-  tilt: number;
-}) {
+function DeleteMark() {
   return (
     <span
-      className="relative block"
-      style={{ transform: `rotate(${tilt}deg)` }}
-      data-dm-hers
+      className={cn(
+        GLASS,
+        "absolute top-1.5 right-1.5 flex size-8 items-center justify-center rounded-full text-white",
+      )}
+      aria-label="Delete this shot"
+      data-dm-delete
     >
-      <span className={cn("dm-print-face block", latent && "dm-latent")}>
-        <FilmStill
-          still={shot.still}
-          look={look}
-          stamp={false}
-          className="aspect-[3/4] w-full"
-        />
-      </span>
-      <span className="absolute bottom-2 left-2 flex items-center gap-1 text-micro font-medium text-white/90 tabular-nums drop-shadow">
-        {shot.video ? (
-          <>
-            <Play className="size-2.5 fill-current" aria-hidden />
-            {`0:0${shot.video}`}
-          </>
-        ) : (
-          shot.time
-        )}
-      </span>
-      <span
-        className={cn(
-          GLASS,
-          "absolute top-1.5 right-1.5 flex size-8 items-center justify-center rounded-full text-white",
-        )}
-        aria-label="Delete this shot"
-        data-dm-delete
-      >
-        <Trash2 className="size-3.5" aria-hidden />
-      </span>
+      <Trash2 className="size-3.5" aria-hidden />
     </span>
   );
 }
 
-const HERS_TILT = [-3, 2, -1.5, 2.5, -2, 1];
+function When({ shot }: { shot: Shot }) {
+  return (
+    <span className="flex items-center gap-1 tabular-nums">
+      {shot.video ? (
+        <>
+          <Play className="size-2.5 fill-current" aria-hidden />
+          {`0:0${shot.video}`}
+        </>
+      ) : (
+        shot.time
+      )}
+    </span>
+  );
+}
 
+/** One of hers, face up and square, with its minute and its Delete. */
+function Hers({ shot, className }: { shot: Shot; className?: string }) {
+  return (
+    <span className={cn("dm-hers relative block", className)} data-dm-hers>
+      <FilmStill still={shot.still} className="aspect-square w-full" />
+      <span className="dm-hers-when">
+        <When shot={shot} />
+      </span>
+      <DeleteMark />
+    </span>
+  );
+}
+
+/**
+ * HER SHOTS, OPENED, in the room's own light and the room's own order: lifted
+ * off the sheet into a grid, dealt out of the stack in a row, gathered under
+ * the glow, or read by the minute round the dial. Square, never tilted.
+ */
 export function HerShots({
-  look,
-  latent,
+  room,
   lead,
   shots = HER_SHOTS,
 }: {
-  look: LookId;
-  /** The tray's: hers are still coming up, faint even to her. */
-  latent?: boolean;
+  room: RoomId;
   lead: string;
   shots?: readonly Shot[];
 }) {
   const wide = useContext(Wide);
   return (
-    <div className="dm-room surface-ink" data-dm-room="hers">
+    <div
+      className="dm-room surface-ink"
+      data-dm-room="hers"
+      data-light={LIGHT[room]}
+    >
+      {room === "glow" && <Glow dim />}
       <span aria-hidden className="dm-room-light" />
       <div
         className={cn(
-          "relative flex h-14 shrink-0 items-center justify-between",
+          "relative z-10 flex h-14 shrink-0 items-center justify-between",
           wide ? "px-8" : "px-5",
         )}
       >
         <div>
           <p className="font-heading text-base">Your shots</p>
-          <p className="text-micro text-[#f7e9e4]/55">{lead}</p>
+          <p className="dm-room-sub" data-dm-lead>
+            {lead}
+          </p>
         </div>
-        <span className="dm-cam-round" aria-label="Close">
+        <span className="dm-room-round" aria-label="Close">
           <X className="size-5" aria-hidden />
         </span>
       </div>
       <div
         className={cn(
-          "relative grid gap-x-4 gap-y-5 pt-4",
+          "relative z-10",
           wide
-            ? "mx-auto w-full max-w-5xl grid-cols-6 gap-x-6 px-8 pt-10"
-            : "grid-cols-2 px-5",
+            ? "mx-auto flex w-full max-w-4xl flex-1 flex-col justify-center px-8 pb-24"
+            : "px-5 pt-4",
         )}
       >
-        {shots.map((s, i) => (
-          <Hers
-            key={s.id}
-            shot={s}
-            look={look}
-            latent={latent}
-            tilt={HERS_TILT[i % HERS_TILT.length]}
-          />
-        ))}
+        {room === "stack" ? (
+          <div className={cn(!wide && "pt-16")}>
+            <div className="dm-dealt" data-dm-dealt>
+              {shots.map((s) => (
+                <Hers key={s.id} shot={s} className="dm-hers-print" />
+              ))}
+            </div>
+            <p className="dm-room-dim mt-3 flex items-center justify-center gap-1.5 text-xs">
+              {shots.map((s, i) => (
+                <span
+                  key={s.id}
+                  className="dm-dot"
+                  data-on={i === 0 ? "" : undefined}
+                />
+              ))}
+            </p>
+          </div>
+        ) : room === "dial" ? (
+          <ol className={cn("grid gap-2", wide && "grid-cols-2 gap-x-6")}>
+            {[...shots].reverse().map((s, i) => (
+              <li key={s.id} className="dm-hers-row" data-dm-hers>
+                <span className="w-16 shrink-0 overflow-hidden rounded-lg">
+                  <FilmStill still={s.still} className="aspect-square w-full" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block font-heading text-lg leading-tight tabular-nums">
+                    {`${s.time} pm`}
+                  </span>
+                  <span className="dm-room-dim block text-xs">
+                    {s.video
+                      ? `A ${s.video}-second video`
+                      : `Shot ${i + 1} on your roll`}
+                  </span>
+                </span>
+                <span
+                  className="dm-room-round"
+                  aria-label="Delete this shot"
+                  data-dm-delete
+                >
+                  <Trash2 className="size-4" aria-hidden />
+                </span>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <div
+            className={cn(
+              "grid gap-2",
+              wide
+                ? "grid-cols-3 gap-4"
+                : room === "sheet"
+                  ? "grid-cols-3"
+                  : "grid-cols-2",
+            )}
+          >
+            {shots.map((s) => (
+              <Hers key={s.id} shot={s} />
+            ))}
+          </div>
+        )}
       </div>
-      <p className="relative mt-6 px-8 text-center text-xs text-pretty text-[#f7e9e4]/50">
+      <p
+        className={cn(
+          "dm-room-faint relative z-10 px-8 text-center text-xs text-pretty",
+          wide ? "absolute inset-x-0 bottom-10" : "mt-6",
+        )}
+      >
         {`Only you can see these until ${ROLL.develops}. Delete one and it's gone for everyone.`}
       </p>
     </div>
@@ -571,53 +707,33 @@ export function HerShots({
 
 /**
  * THE DELETE, CONFIRMED: the guest's own removal's words (final, the host's
- * view included), and the carried call `spent` said where she decides.
+ * view included), and the carried call that the frame stays spent.
  */
-export function DeleteShot({
-  look,
-  latent,
-}: {
-  look: LookId;
-  latent?: boolean;
-}) {
+export function DeleteShot({ room }: { room: RoomId }) {
   const wide = useContext(Wide);
   const shot = HER_SHOTS[1];
   return (
     <div className="relative min-h-screen">
-      <HerShots
-        look={look}
-        latent={latent}
-        lead={`${PARTY.hers} of ${ROLL.shots}`}
-      />
-      <div className="fixed inset-0 bg-black/55" aria-hidden />
+      <HerShots room={room} lead={`${PARTY.hers} of ${ROLL.shots}`} />
+      <div className="fixed inset-0 z-20 bg-black/55" aria-hidden />
       <div
         className={cn(
-          "surface-ink fixed bg-[#1a1311] px-5 pt-5 pb-8 text-[#f7efe9]",
+          "surface-ink fixed z-30 bg-[#18181b] px-5 pt-5 pb-8 text-[#f4f4f5]",
           wide
             ? "rounded-3xl top-1/2 left-1/2 w-[440px] -translate-1/2 border border-white/10 pb-5"
             : "rounded-t-3xl inset-x-0 bottom-0 border-t border-white/10",
         )}
-        data-dm-sheet
+        data-dm-sheet-ask
       >
         <div className="flex items-start gap-4">
-          <span
-            className={cn(
-              "w-16 shrink-0 overflow-hidden rounded-md",
-              latent && "dm-latent",
-            )}
-          >
-            <FilmStill
-              still={shot.still}
-              look={look}
-              stamp={false}
-              className="aspect-[3/4] w-full"
-            />
+          <span className="w-16 shrink-0 overflow-hidden rounded-md">
+            <FilmStill still={shot.still} className="aspect-square w-full" />
           </span>
           <div className="min-w-0 space-y-1.5">
             <p className="font-heading text-lg" data-dm-say>
               Delete this shot?
             </p>
-            <p className="text-sm text-pretty text-[#f7efe9]/70">
+            <p className="text-sm text-pretty text-white/70">
               {`It's deleted from the roll right away and can't be recovered. The frame stays spent: you'll still have ${LEFT} left.`}
             </p>
           </div>

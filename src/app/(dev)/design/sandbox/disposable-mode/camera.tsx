@@ -1,29 +1,38 @@
 "use client";
 
-import { BodyCamera } from "./cam-body";
-import { ReelCamera } from "./cam-reel";
 import type { CameraId, CamProps } from "./cam-shared";
+import { ReelCamera } from "./cam-reel";
+import { RimCamera } from "./cam-rim";
+import { ScrollCamera } from "./cam-scroll";
+import { ShutterCamera } from "./cam-shutter";
+import { TimelineCamera } from "./cam-timeline";
 import { Viewfinder } from "./cam-viewfinder";
-import { WrapperCamera } from "./cam-wrapper";
 
 /**
- * THE FOUR CAMERAS, one door: every decision after the first draws in the
- * camera Will picked (a staged decision is drawn in the world it waits on),
- * so a caller names the camera and the phase and nothing else.
+ * THE SIX CAMERAS, one door: the two Will carried (the album's own camera and
+ * the camera on a reel) and two branches of each. Every decision after the
+ * first draws in the camera he picked (a staged decision is drawn in the
+ * world it waits on), so a caller names the camera and the phase and nothing
+ * else.
  */
 export function Camera({ id, ...p }: CamProps & { id: CameraId }) {
-  if (id === "body") return <BodyCamera {...p} />;
+  if (id === "shutter") return <ShutterCamera {...p} />;
+  if (id === "rim") return <RimCamera {...p} />;
   if (id === "reel") return <ReelCamera {...p} />;
-  if (id === "wrapper") return <WrapperCamera {...p} />;
+  if (id === "timeline") return <TimelineCamera {...p} />;
+  if (id === "scroll") return <ScrollCamera {...p} />;
   return <Viewfinder {...p} />;
 }
 
 export const CAMERA_IDS: readonly CameraId[] = [
   "viewfinder",
-  "body",
+  "shutter",
+  "rim",
   "reel",
-  "wrapper",
+  "timeline",
+  "scroll",
 ];
 
-export const cameraOf = (v: unknown): CameraId =>
-  CAMERA_IDS.includes(v as CameraId) ? (v as CameraId) : "reel";
+/** The camera the board's state names, or the recommendation's. */
+export const cameraOf = (v: unknown, fallback: CameraId): CameraId =>
+  CAMERA_IDS.includes(v as CameraId) ? (v as CameraId) : fallback;
