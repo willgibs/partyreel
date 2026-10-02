@@ -1014,6 +1014,9 @@ function LineHead({ f, screen }: { f: HostFacts; screen: ScreenId }) {
  */
 function stuckLead(guest: GuestDirection, f: HostFacts): ReactNode {
   if (guest === "today") return null;
+  // An album with nothing in it has no still to carry; the name leads alone.
+  if (guest === "cover" && f.photos === 0)
+    return <span aria-hidden className="w-0" />;
   if (guest === "cover")
     return (
       // eslint-disable-next-line @next/next/no-img-element -- a bootstrap still, the cover's own

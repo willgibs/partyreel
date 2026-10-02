@@ -118,8 +118,8 @@
 /* On the cover's dark ground (an album with nothing to show yet), the light
    is the room's: deeper, so it reads as a lit room rather than a stain. */
 .eh-light-room {
-  --lit-l: 0.52;
-  --lit-c: 0.11;
+  --lit-l: 0.76;
+  --lit-c: 0.16;
   -webkit-mask-image: radial-gradient(
     120% 90% at 50% 18%,
     #000 0%,
@@ -132,15 +132,19 @@
     rgb(0 0 0 / 0.5) 45%,
     transparent 85%
   );
-  opacity: 0.7;
+  opacity: 0.62;
 }
 .dark .eh-light-room {
-  --lit-l: 0.52;
-  --lit-c: 0.11;
-  opacity: 0.7;
+  --lit-l: 0.76;
+  --lit-c: 0.16;
+  opacity: 0.62;
 }
-/* A room with nobody in it yet is lit warm, by the first two of the house
-   five (coral and amber): the third, a green, read as a stage light. */
+/* A room with nobody in it yet is lit warm, by the house five's first (the
+   coral) and a step toward amber: on the dark ground the amber itself reads
+   olive and the green a stage light. */
+.eh-light-room .eh-light-p2 {
+  background: oklch(var(--lit-l) var(--lit-c) calc(var(--lit-h1) + 30));
+}
 .eh-light-room .eh-light-p3 {
   background: oklch(var(--lit-l) var(--lit-c) var(--lit-h1));
 }
