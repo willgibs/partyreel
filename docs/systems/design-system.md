@@ -618,9 +618,8 @@ board, its own sheet and scenes), found by the registry and the board route and 
   the route tree of every prefetched URL that has a query again without it (scheduler `pingRoute`), every lab URL has
   `?key=`, and the gate 404s the keyless one: a console error per link on a production build (dev never prefetches),
   from the step's links, a doc's, the Library's own and every production `<Link href="#">` a board draws (`#` resolves
-  to the page it is on). The lab's own links say `prefetch={false}` (`LabLink`, the step, the doc reader, the Library's
-  front page), which Next 16 honours on hover and touch too, and `_shell/prefetch-policy.test.ts` scans for one that
-  does not (not the Library's pages). A drawn link cannot
+  to the page it is on). The lab's own links say `prefetch={false}` (`LabLink`, the step, the doc reader), which Next 16
+  honours on hover and touch too, and `_shell/prefetch-policy.test.ts` scans for one that does not. A drawn link cannot
   be switched off from the frame: `next/link` reads no context of ours, and a null router would break `useRouter()` in
   every production component drawn beside it. So the shell's `PrefetchGuard` answers a keyless Next prefetch of a
   `/design` URL in the tab with the gate's own 404 before a request exists; a scene route outside the shell group is
