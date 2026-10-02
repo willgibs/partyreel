@@ -255,13 +255,14 @@ async function runUpload(args: {
   const kind = classifyMime(pickedFile.type);
   if (!kind) return { ok: false, message: "That file type isn't supported." };
 
-  // 0. Strip identifying metadata (EXIF GPS/device tags, XMP, MP4/MOV udta location)
-  //    BEFORE anything reads a size: presign binds the R2 PUT's Content-Length to the
-  //    size_bytes declared below, so the stripped bytes MUST be what every downstream
-  //    step (measure -> validate -> preview -> presign -> PUT) sees. Lossless byte-level
-  //    excision, never a pixel re-encode; JPEG orientation survives via a rebuilt minimal
-  //    Exif. Best-effort like generatePreview: unparseable/exotic input (HEIC, WebM)
-  //    comes back stripped:false with the ORIGINAL - a failed strip never blocks a guest.
+  // 0. Strip identifying metadata (EXIF GPS/device tags, XMP, MP4/MOV udta location, the
+  //    Exif and XMP items of a HEIC/HEIF/AVIF, a WebM's Tags) BEFORE anything reads a size:
+  //    presign binds the R2 PUT's Content-Length to the size_bytes declared below, so the
+  //    stripped bytes MUST be what every downstream step (measure -> validate -> preview
+  //    -> presign -> PUT) sees. Lossless byte-level surgery, never a pixel re-encode;
+  //    orientation survives in every format. Best-effort like generatePreview: input the
+  //    parsers cannot walk (truncated, malformed) comes back stripped:false with the
+  //    ORIGINAL - a failed strip never blocks a guest.
   const cleaned = await stripFileMetadata(pickedFile);
   const file =
     cleaned.blob === pickedFile

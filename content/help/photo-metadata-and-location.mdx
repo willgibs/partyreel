@@ -1,9 +1,9 @@
 ---
 title: Photo metadata and location data
-description: "Phone photos carry hidden GPS and device details. Partyreel strips them in the browser before upload for JPEG, PNG, WebP, MP4, and MOV, without touching the image. HEIC, AVIF, and WebM upload as is."
+description: "Phone photos and videos carry hidden GPS and device details. Partyreel strips them in the browser before upload, from every format it accepts, without touching the picture."
 category: privacy-and-safety
 order: 4
-updated: "2026-09-01"
+updated: "2026-10-01"
 audience: both
 keywords:
   - metadata
@@ -20,23 +20,23 @@ Every phone photo carries a hidden record: where it was taken, on what device, s
 
 ## What's stripped
 
-For JPEG, PNG, and WebP photos and MP4 and MOV videos, the upload step removes the location and device metadata: GPS coordinates, camera and phone model, the embedded notes and tags most apps write. The metadata is cut out without re-saving the image, so the picture itself is untouched, at full quality, and the color profile is kept. Orientation is preserved so nothing ends up sideways.
+Every format Partyreel accepts is covered: JPEG, PNG, WebP, HEIC, HEIF, and AVIF photos, and MP4, MOV, and WebM videos. The upload step removes the location and device metadata: GPS coordinates, camera and phone model, the embedded notes and tags most apps write. The metadata is cut out or blanked without re-saving the file, so the picture itself is untouched, at full quality, and the color profile is kept. Orientation is preserved so nothing ends up sideways.
 
 Because it happens in the browser before upload, the file Partyreel stores never had the data, which also means the backup copies are clean.
 
 ## What isn't
 
-Three formats upload exactly as they are: **HEIC and HEIF** (the iPhone's default photo format), **AVIF**, and **WebM** video. Their structure makes blanking the metadata risky, and a corrupted photo is worse than the metadata. In practice the iPhone camera's HEIC files often carry location. If that matters for a photo, the iPhone share sheet can remove location as you export, and a screenshot or a JPEG export carries no metadata.
+A file that's damaged, or built in a way the uploader can't read safely, uploads exactly as it is rather than risk breaking it, because a corrupted photo is worse than the metadata. If location matters for one photo, your phone can drop it as you share: on an iPhone, tap Options at the top of the share sheet and turn off Location.
 
-In one sentence: GPS location metadata is stripped from uploads, for every format Partyreel can safely edit.
+In one sentence: GPS location metadata is stripped from uploads, in every format Partyreel accepts.
 
 ## Downloads
 
-What you download is what was stored, so a downloaded JPEG carries no location, and a downloaded HEIC carries whatever it arrived with.
+What you download is what was stored, so a downloaded photo or video carries no location.
 
 ## Nothing is analyzed
 
-Partyreel doesn't read the metadata before removing it, doesn't run face recognition, and doesn't scan photo content. What it does keep, per upload, is in [your data and deleting your account](/help/your-data-and-deleting-your-account).
+Partyreel doesn't keep or send the metadata it removes, doesn't run face recognition, and doesn't scan photo content. What it does keep, per upload, is in [your data and deleting your account](/help/your-data-and-deleting-your-account).
 
 <Callout type="info" title="For hosts">
 

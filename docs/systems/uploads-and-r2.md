@@ -70,14 +70,21 @@ ledger and enforces the caps. Guests (the session-token capability) and hosts (a
 Originals are served byte-for-byte (the viewer, Save, the zip), so a phone's GPS and device EXIF would leak a location.
 `uploadFile()` strips identifying metadata at step 0, BEFORE any size is read, because the presigned PUT binds
 Content-Length to the declared size and every later step must see the stripped bytes; guests and hosts pass the same
-seam. The stripper (`media/strip-metadata.ts`, whose header carries the per-format rules) is pure and lossless, byte
-excision and never a pixel re-encode, and the browser and the Node backfill (`scripts/backfill-strip-exif.mjs`) share
-it rather than fork it.
-- **It fails open:** unparseable or exotic input (HEIC/HEIF/AVIF, where blanking the item-based metadata destroys
-  the image, and WebM) uploads untouched with `stripped: false`, and the EXIF inside a JPEG's post-EOI MPF secondary
-  images survives (excising it would shift the trailer the MPF index points into). A corrupted upload is worse than
-  the leak. `/privacy` discloses the exception, so the two change together, and `hasGpsMetadata` scans the trailers
-  so a backfill report flags clean-but-GPS.
+seam. The stripper (`media/strip-metadata.ts`, whose header carries the per-format rules) is pure and lossless, never
+a pixel re-encode, and the browser and the Node backfill (`scripts/backfill-strip-exif.mjs`) share it rather than fork
+it: one file, because the backfill loads it through Node's type stripping, which cannot follow an extensionless import.
+- **Every accepted format is stripped; only JPEG, PNG and WebP shrink.** The rest are rewritten in place at their exact
+  length, because something points at their bytes: a video's chunk-offset tables, an HEIF's iloc (its Exif and XMP
+  are items, and blanking `meta` would destroy the image), a WebM's SeekHead and Cues (each Tags becomes a Void of its
+  size), a JPEG's MPF index (an embedded image's Exif is overwritten at its segment's length). Rendering data stays:
+  orientation, the color profile, an HDR gain map and the XMP that describes it.
+- **It fails open:** input it cannot walk end to end, or cannot rewrite without touching a byte something else points
+  at, uploads untouched with `stripped: false` (the header lists the cases). A corrupted upload is worse than the leak.
+  `/privacy`'s metadata section and the help article on it describe this, so they change with it, and
+  `hasGpsMetadata` reads every place the strip scrubs, so a backfill report's clean-but-GPS line is a file to look at.
+- ★ **A Matroska walk meets unknown sizes.** MediaRecorder writes an unknown-size Segment of unknown-size Clusters,
+  and one ends where an element that cannot be its child begins (RFC 8794 §6.2): the walk knows a Cluster's children,
+  and anything else unknown-sized (a Tags) fails open.
 
 ## R2 and presigns
 

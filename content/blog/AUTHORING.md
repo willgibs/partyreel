@@ -127,9 +127,8 @@ replaces them by id.
    figures for booths or disposables.
 10. **Reuse the ratified lines byte-for-byte.** "every guest is a second shooter". "a thousand
     guests cost the same as ten". The metadata line: "Location data is stripped in the browser
-    before a photo ever uploads, for the common formats." The failure-mode clause: "compression
-    ruins quality, media scatters across threads, and nothing is collected" (`FAILURE_MODE_LINE`).
-    Vary nothing.
+    before a photo ever uploads." The failure-mode clause: "compression ruins quality, media
+    scatters across threads, and nothing is collected" (`FAILURE_MODE_LINE`). Vary nothing.
 11. **"night" is never identity language.** Not in a title, a standfirst, or a tag line.
 12. **Link the ladder.** At least two inline links to other posts, one to a help article, and one
     to a marketing rung (`/events/<type>`, `/features/<page>`, `/reel`, `/pricing`,
@@ -203,14 +202,14 @@ here too; `../help/AUTHORING.md` lists them.
   all serve the original. Accepted: JPEG, PNG, WebP, HEIC/HEIF, AVIF; MP4, MOV, WebM. One per-file
   size ceiling (a host may set a lower one per event), no duration cap. No watermark on
   photos, the album or the live reel on any plan; only a free event's clips carry a small mark.
-- **Privacy.** Location data is stripped in the browser before a photo ever uploads, for the
-  common formats (JPEG, PNG and WebP photos, MP4 and MOV video; HEIC, HEIF, AVIF and WebM are
-  stored as the phone sends them). Albums are open, password-locked or private on every plan (the
-  app's labels: Public, Password, Private); a locked album shows the name and the count and no
-  media; teaser access shows the newest few photos with a count. Every album has a guest list,
-  naming each guest who added photos, confirmed or marked, to anyone who can open the album, with
-  no switch to hide it; a guest the host blocks leaves it. View and scan counts are aggregate with
-  no personal data. No ads; event media is never used to train models or sold.
+- **Privacy.** Location data is stripped in the browser before a photo ever uploads, in every
+  accepted format (a file too damaged to read safely uploads as it is). Albums are open,
+  password-locked or private on every plan (the app's labels: Public, Password, Private); a locked
+  album shows the name and the count and no media; teaser access shows the newest few photos with a
+  count. Every album has a guest list, naming each guest who added photos, confirmed or marked, to
+  anyone who can open the album, with no switch to hide it; a guest the host blocks leaves it. View
+  and scan counts are aggregate with no personal data. No ads; event media is never used to train
+  models or sold.
 - **Plans.** Free: one event, photos only, the album and its live reel, clips with a small mark.
   Event Pass: one-time, one event with video and unmarked clips for about a year, renewable, and
   passes stack. Pro: monthly or yearly (two months free), unlimited events, video, unmarked clips.
