@@ -266,6 +266,7 @@ describe("letting go", () => {
     };
     (await hold("old", "123456"))();
     (await hold("new", "123456"))();
+    await settle();
     // Twelve bytes unused over a ten-byte budget: the older one goes.
     expect(store.get("old")).toBeNull();
     expect(urls.revoke).toHaveBeenCalledWith("blob:held-1");
@@ -275,6 +276,21 @@ describe("letting go", () => {
     await hold("big", "1234567890ab");
     expect(store.get("new")?.kind).toBe("held");
     third();
+  });
+
+  it("a held photograph whose slot re-mounts in the same breath is never evicted, past the budget or not", async () => {
+    store = makeStore({ budgetBytes: 1 });
+    const first = want("a");
+    const answer = net.calls[0].respond({ length: 4 });
+    answer.chunk("abcd");
+    answer.end();
+    await settle();
+    first();
+    want("a", "low");
+    await settle();
+    expect(store.get("a")?.kind).toBe("held");
+    expect(urls.revoke).not.toHaveBeenCalled();
+    expect(net.fetch).toHaveBeenCalledTimes(1);
   });
 
   it("whenHeld answers null when the photograph is let go, or its caller stops waiting", async () => {

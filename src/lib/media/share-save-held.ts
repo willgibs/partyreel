@@ -305,7 +305,9 @@ export function createHeldStore(deps: HeldDeps): HeldStore {
     if (e.refs > 0) return;
     e.lastUsed = now();
     if (e.state.kind === "held") {
-      evict();
+      // After the commit: a slot that re-mounts in the same breath (a swipe
+      // moving it out of the middle) holds it again before anything is evicted.
+      queueMicrotask(evict);
       return;
     }
     // Waiting, loading or plain: a short grace (a slot re-mounting in the same
