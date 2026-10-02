@@ -1,0 +1,240 @@
+/* THE DEMO'S STORY, ROUND FOUR: the board's own sheet. Classes and keyframes
+   under df- only (keyframe-uniqueness.test.ts holds the names unique across
+   every sheet the lab can load).
+
+   ★ THE REST STATE IS THE DEFAULT (bible 5): every rule outside the
+   `no-preference` block is the still, whole object a reduced-motion reader, a
+   crawler and a paused frame see; only what moves lives inside it. */
+
+/* ── the live code (code.tsx) ─────────────────────────────────────────── */
+
+/* A data dot stands or is gone; the heart is open or shut. Scaled about its
+   own box, so a dot shrinks into its own centre. */
+[data-df-live] circle[data-i] {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(0);
+}
+[data-df-live] circle[data-i][data-on] {
+  transform: scale(1);
+}
+[data-df-live] [data-df-heart] {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(0.001);
+}
+[data-df-live][data-df-open] [data-df-heart] {
+  transform: scale(1);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* THE BLOOM: as an address lands its picture opens at the heart and the
+     dots come out of it ring by ring (the spring overshoots a hair, so each
+     dot lands rather than appears). */
+  [data-df-live][data-df-motion] circle[data-i] {
+    transition: transform 260ms cubic-bezier(0.2, 0.9, 0.25, 1.25);
+  }
+  [data-df-live][data-df-motion][data-df-dir="out"] circle[data-i] {
+    transition-delay: calc(110ms + var(--ring) * 16ms);
+  }
+  [data-df-live][data-df-motion] [data-df-heart] {
+    transition: transform 360ms cubic-bezier(0.2, 1.1, 0.3, 1.12);
+  }
+  /* THE FOLD: as an address is erased the dots go into the heart, the
+     corners first, quicker than they came (a thing that leaves goes fast),
+     and the heart closes behind the last of them. */
+  [data-df-live][data-df-motion][data-df-dir="in"] circle[data-i] {
+    transition-duration: 170ms;
+    transition-timing-function: cubic-bezier(0.55, 0, 0.8, 0.2);
+    transition-delay: calc((var(--rings) - var(--ring)) * 9ms);
+  }
+  [data-df-live][data-df-motion][data-df-dir="in"] [data-df-heart] {
+    transition: transform 200ms cubic-bezier(0.55, 0, 0.8, 0.2) 150ms;
+  }
+
+  /* A card's line arriving with its party: a breath of blur and rise. */
+  [data-df-swap] {
+    animation: df-swap 440ms var(--ease-emphasis) both;
+  }
+}
+
+@keyframes df-swap {
+  from {
+    opacity: 0;
+    filter: blur(3px);
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+}
+
+/* ── the plate's tile (objects.tsx) ───────────────────────────────────── */
+
+/* Lit white while an address stands; the pane's own glass while the next is
+   typed, its eyes gone with the light. */
+[data-df-tile] {
+  background-color: #fff;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
+}
+[data-df-tile]:not([data-df-lit]) {
+  background-color: rgb(255 255 255 / 0.08);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12);
+}
+[data-df-tile]:not([data-df-lit]) [data-df-eye] {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* On: the light first, quick, so the code blooms onto white. Off: after
+     the dots have gone into the heart, so nothing is cut short. */
+  [data-df-tile][data-df-lit] {
+    transition:
+      background-color 200ms var(--ease-emphasis),
+      box-shadow 200ms var(--ease-emphasis);
+  }
+  [data-df-tile]:not([data-df-lit]) {
+    transition:
+      background-color 260ms cubic-bezier(0.55, 0, 0.8, 0.2) 260ms,
+      box-shadow 260ms cubic-bezier(0.55, 0, 0.8, 0.2) 260ms;
+  }
+  [data-df-tile] [data-df-eye] {
+    transition: opacity 200ms var(--ease-emphasis) 60ms;
+  }
+  [data-df-tile]:not([data-df-lit]) [data-df-eye] {
+    transition: opacity 200ms ease-in 260ms;
+  }
+}
+
+/* ── the card (objects.tsx) ───────────────────────────────────────────── */
+
+/* Between two parties, the card's event goes soft while its name types. */
+[data-df-card]:not([data-df-up]) [data-df-covers] {
+  filter: blur(9px) saturate(0.85);
+  transform: scale(1.06);
+}
+[data-df-card]:not([data-df-up]) [data-df-dims] {
+  opacity: 0.28;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-df-covers] {
+    transition:
+      filter 420ms var(--ease-emphasis),
+      transform 700ms var(--ease-emphasis);
+  }
+  [data-df-dims] {
+    transition: opacity 260ms var(--ease-emphasis);
+  }
+}
+
+/* ── the wall (tiles.tsx) ─────────────────────────────────────────────── */
+
+/* The wall's own sizes per geometry, as the hero's sheet picks them: the
+   phone's drawing, the tablet's composed between, the desk's. */
+[data-df-wall-hero] {
+  --hhs-k: 0;
+}
+@media (min-width: 768px) {
+  [data-df-wall-hero] {
+    --hhs-k: 0.49296;
+  }
+}
+@media (min-width: 1024px) {
+  [data-df-wall-hero] {
+    --hhs-k: 1;
+  }
+}
+
+/* It dissolves at the screen's edges as the band does, and steps back while
+   the next address is typed (the loop writes --df-rest, 0 to 1). */
+[data-df-wall-tiles] {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 14%,
+    #000 86%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 14%,
+    #000 86%,
+    transparent 100%
+  );
+  opacity: calc(1 - 0.62 * var(--df-rest, 0));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* A new party's photograph lands in its tile: quick, a breath of scale. */
+  [data-df-wall-in] {
+    animation: df-tile-in 520ms var(--ease-emphasis) both;
+  }
+}
+
+@keyframes df-tile-in {
+  from {
+    opacity: 0;
+    transform: scale(1.08);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+/* ── the plate's sheen (objects.tsx) ──────────────────────────────────── */
+
+/* One sweep of light across the pane as a new code switches on, on the
+   landing's own beat. Mounted per landing, so it runs once each. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-df-sheen]::after {
+    content: "";
+    position: absolute;
+    inset: -20% -60%;
+    background: linear-gradient(
+      105deg,
+      transparent 38%,
+      rgb(255 255 255 / 0.16) 47%,
+      rgb(255 255 255 / 0.26) 50%,
+      rgb(255 255 255 / 0.16) 53%,
+      transparent 62%
+    );
+    transform: translateX(-70%);
+    animation: df-sheen 1100ms cubic-bezier(0.3, 0, 0.2, 1) 160ms both;
+  }
+}
+
+@keyframes df-sheen {
+  to {
+    transform: translateX(70%);
+  }
+}
+
+/* ── the door (objects.tsx) ───────────────────────────────────────────── */
+
+/* Production's doorway at a hero's size, every length on the hero's own
+   --hhs-k (the object hands them down), and its swing quickened for a loop:
+   the doorway swings once per guest's arrival, the hero once per address. */
+[data-df-doorway] .door-way {
+  --way-w: var(--df-way-w);
+  --way-h: var(--df-way-h);
+  --way-r: var(--df-way-r);
+}
+@media (prefers-reduced-motion: no-preference) {
+  [data-df-doorway] .door-way-leaf {
+    transition: transform 640ms var(--ease-emphasis);
+  }
+  [data-df-doorway] .door-way[data-door-way="shut"] .door-way-leaf {
+    transition: transform 420ms cubic-bezier(0.55, 0, 0.8, 0.2);
+  }
+  [data-df-doorway] .door-way-floor,
+  [data-df-doorway] .door-way-sill {
+    transition: opacity 520ms ease-out;
+  }
+}

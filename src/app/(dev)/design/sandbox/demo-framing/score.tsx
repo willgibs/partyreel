@@ -1,20 +1,23 @@
 "use client";
 
 import {
-  REVEAL_MS,
-  revealEase,
-} from "@/components/marketing/sections/home/hero-stream";
-
-import type { Flow } from "./hero";
-import { DRIFT, foldAt, rateAt, type Score, secondsOf, stepAt } from "./typing";
+  DRIFT,
+  type Score,
+  secondsOf,
+  stepAt,
+  WARP,
+  WAVE_MS,
+  waveAt,
+  warpAt,
+} from "./typing";
 
 /**
- * THE LOOP'S SCORE, UNDER A TAKE: what moves when, over one loop, so the
+ * THE LOOP'S SCORE, UNDER A HERO: what moves when, over one loop, so the
  * turns can be seen in a still as well as in the frames. It is drawn from the
  * very table the frames run (`typing.ts`), sampled, so the score and the
  * motion cannot disagree: the address's lane (standing, or changing), the
- * code's (standing over it, or gone), and the stream's (its pace, or how far
- * the album is out of the link).
+ * object's (what it does at each turn), and the album's (the stream's pace,
+ * its warps standing out of it, or how full a wall of photographs is).
  *
  * Plain SVG in the lab's own ink (`currentColor`), so it reads on the lab's
  * light and dark alike.
@@ -28,13 +31,21 @@ const LABEL = 132;
 /** A span of the loop as x on the chart. */
 const xOf = (ms: number, loop: number) => LABEL + ((W - LABEL) * ms) / loop;
 
-/** How far the album is out of the link, 0 to 1, in the takes that rewind. */
-function outOf(score: Score, t: number) {
-  const f = foldAt(score, t);
-  return revealEase(f.since / REVEAL_MS) * (1 - revealEase(f.fold));
-}
+/** How each hero's album moves, for its score: a stream, or a wall that fills. */
+export type Album = "stream" | "wall";
 
-export function LoopScore({ flow, score }: { flow: Flow; score: Score }) {
+export function LoopScore({
+  score,
+  album,
+  object,
+  caption,
+}: {
+  score: Score;
+  album: Album;
+  /** The object's lane: its name, and what it does while an address stands. */
+  object: string;
+  caption: string;
+}) {
   const loop = score.loop;
   const y1 = 6;
   const y2 = y1 + LANE + GAP;
@@ -42,38 +53,36 @@ export function LoopScore({ flow, score }: { flow: Flow; score: Score }) {
   const axis = y3 + LANE + 14;
   const H = axis + 12;
 
-  // A later pass, where every landing ramps (the first opens at full).
+  // A later pass, where every landing warps (the first opens at full).
   const later = (ms: number) => ms + loop;
-  const level = (ms: number) =>
-    flow === "rewind" ? outOf(score, later(ms)) : rateAt(score, later(ms));
+  const level = (ms: number) => {
+    if (album === "stream") return warpAt(score, later(ms)) / WARP;
+    const w = waveAt(score, later(ms));
+    return Math.min(1, w.since / WAVE_MS) * (1 - w.rest * 0.6);
+  };
   const pts: string[] = [];
-  for (let ms = 0; ms <= loop; ms += 30) {
+  for (let ms = 0; ms <= loop; ms += 20) {
     const y = y3 + LANE - level(ms) * LANE;
     pts.push(`${xOf(ms, loop).toFixed(1)},${y.toFixed(1)}`);
   }
   const area = `M${xOf(0, loop)},${y3 + LANE} L${pts.join(" L")} L${xOf(loop, loop)},${y3 + LANE} Z`;
 
-  // The code: standing over an address, gone while it changes (and, where the
-  // album rewinds, gone as soon as the album has folded halfway in).
-  const codeUp = (ms: number) => {
-    const s = stepAt(score, later(ms));
-    if (s.phase !== "hold") return false;
-    return flow !== "rewind" || foldAt(score, later(ms)).fold < 0.35;
-  };
-  const codeSpans: { from: number; to: number }[] = [];
+  // The object: turned to the address while it stands, between two while
+  // the next is typed.
+  const objectSpans: { from: number; to: number }[] = [];
   let open: number | null = null;
   for (let ms = 0; ms <= loop; ms += 10) {
-    const on = codeUp(ms);
+    const on = stepAt(score, later(ms)).phase === "hold";
     if (on && open === null) open = ms;
     if ((!on || ms + 10 > loop) && open !== null) {
-      codeSpans.push({ from: open, to: on ? loop : ms });
+      objectSpans.push({ from: open, to: on ? loop : ms });
       open = null;
     }
   }
 
   const ticks: number[] = [];
   for (let s = 0; s * 1000 <= loop; s += 5) ticks.push(s * 1000);
-  const lane3 = flow === "rewind" ? "The album, out" : "The stream";
+  const lane3 = album === "stream" ? "The stream" : "The album";
 
   return (
     <figure className="flex max-w-5xl flex-col gap-2">
@@ -85,7 +94,7 @@ export function LoopScore({ flow, score }: { flow: Flow; score: Score }) {
       >
         {[
           ["The address", y1],
-          ["The code", y2],
+          [object, y2],
           [lane3, y3],
         ].map(([label, y]) => (
           <text
@@ -128,8 +137,7 @@ export function LoopScore({ flow, score }: { flow: Flow; score: Score }) {
           );
         })}
 
-        {/* The code, while it stands. */}
-        {codeSpans.map((s, i) => (
+        {objectSpans.map((s, i) => (
           <rect
             key={i}
             x={xOf(s.from, loop)}
@@ -142,7 +150,6 @@ export function LoopScore({ flow, score }: { flow: Flow; score: Score }) {
           />
         ))}
 
-        {/* The stream's pace, or how far the album is out of the link. */}
         <rect
           x={LABEL}
           y={y3}
@@ -168,7 +175,7 @@ export function LoopScore({ flow, score }: { flow: Flow; score: Score }) {
         ))}
       </svg>
       <figcaption className="text-xs text-pretty text-muted-foreground">
-        {captionOf(flow, score)}
+        {captionOf(score, album, caption)}
       </figcaption>
     </figure>
   );
@@ -189,15 +196,10 @@ function spansOf(
   return out;
 }
 
-function captionOf(flow: Flow, score: Score): string {
+function captionOf(score: Score, album: Album, object: string): string {
   const s = secondsOf(score);
   const drift = Math.round(DRIFT * 100);
-  switch (flow) {
-    case "drift":
-      return `One loop, ${s} s, read off the table the frames run: while an address stands its code stands over it and the stream runs full; the code sinks and the stream eases to ${drift}% as the next is typed, and both come back as it lands.`;
-    case "rewind":
-      return `One loop, ${s} s, read off the table the frames run: each address that lands opens its code and bursts its own album out of the link; before the next, the album folds back in and the invite closes, so the typing always has the stage.`;
-    case "inflow":
-      return `One loop, ${s} s, read off the table the frames run: while an address stands its code stands and photographs come in from both edges at full pace; they ease to ${drift}% while the next is typed, and the new code arrives as it lands.`;
-  }
+  return album === "stream"
+    ? `One loop, ${s} s, read off the table the frames run: ${object}; the stream eases to ${drift}% while the next address is typed, and leaves each landing at ${WARP} times its pace before settling.`
+    : `One loop, ${s} s, read off the table the frames run: ${object}; the album steps back while the next address is typed, and fills anew from the link as it lands.`;
 }

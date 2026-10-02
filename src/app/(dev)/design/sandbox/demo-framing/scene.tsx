@@ -3,6 +3,9 @@
 import { type ReactNode, type RefObject, useEffect, useState } from "react";
 
 import { Fit, Frame, Measured } from "@/components/lab";
+import { MODULE_FLOOR_PX } from "@/lib/qr/module-floor";
+
+import { decodedOf } from "./code";
 
 /**
  * THE ONE FRAME EVERY DECISION DRAWS IN: a real viewport at a real width, the
@@ -10,20 +13,22 @@ import { Fit, Frame, Measured } from "@/components/lab";
  * same-origin iframe). Nothing here reaches a session, a Server Function or
  * the network.
  *
- * ★ A SCREEN IS THE DEVICE'S OWN SCREEN (1440 by 900, 375 by 812): the hero
- * is exactly one screen tall, so its air and the object's place are only true
- * at a real height. A `close` screen is the one exception, and says so: the
- * object at a desk's size, at rest and under a pointer side by side, which no
- * single real screen can show at once.
+ * ★ A SCREEN IS THE DEVICE'S OWN SCREEN (1440 by 900, a tablet held upright
+ * at 820 by 1180, 375 by 812): the hero is exactly one screen tall, so its air
+ * and the object's place are only true at a real height. A `close` screen is
+ * the one exception, and says so: the object at a desk's size, at rest and
+ * under a pointer side by side, which no single real screen can show at once.
  *
  * ★ EVERY CAPTION IS READ OFF THE FRAME, NEVER ASSERTED: the address's size
- * against the headline's, the code's modules and what it opens, the credits on
- * the photographs, the door's words, how far the object rises. If a caption
- * and the words above a frame disagree, the caption is the truth.
+ * against the headline's, what the drawn code says when a camera reads it and
+ * how large its modules are, the card's words, the credits on the
+ * photographs, how far the object rises. If a caption and the words above a
+ * frame disagree, the caption is the truth.
  */
 
 export const SCREENS = {
   "1440": { w: 1440, h: 900 },
+  tablet: { w: 820, h: 1180 },
   "375": { w: 375, h: 812 },
   close: { w: 1100, h: 420 },
 } as const;
@@ -74,34 +79,31 @@ export function Scene({
 /**
  * THE FRAMES OF ONE OPTION: the laptop first and alone (two 1440 frames side
  * by side would each be a thumbnail), the loop's score right under it where
- * the motion is judged, the phones after it in one row, read left to right,
- * then any second screen, and a line under them.
+ * the motion is judged, the tablet and the phone after it in one row, read
+ * left to right, then any second screen.
  */
 export function Story({
   desk,
   score,
-  phones,
+  row,
   after,
-  note,
 }: {
   desk?: ReactNode;
   /** The loop's score, under the laptop it describes. */
   score?: ReactNode;
-  phones?: ReactNode;
+  /** The smaller screens, side by side. */
+  row?: ReactNode;
   /** A second screen of the same option, after the first. */
   after?: ReactNode;
-  /** Under the frames: what the stand-ins stand in for. */
-  note?: ReactNode;
 }) {
   return (
     <div className="flex flex-col gap-6">
       {desk}
       {score}
-      {phones ? (
-        <div className="flex flex-wrap items-start gap-6">{phones}</div>
+      {row ? (
+        <div className="flex flex-wrap items-start gap-6">{row}</div>
       ) : null}
       {after ? <div className="flex flex-col gap-6">{after}</div> : null}
-      {note}
     </div>
   );
 }
@@ -159,11 +161,30 @@ const px = (n: number) => `${Math.round(n)} px`;
 const sizeOf = (el: Element | null, win: Window) =>
   el ? Math.round(Number.parseFloat(win.getComputedStyle(el).fontSize)) : 0;
 
+/** What a code says, read off the frame by a camera's own reader. */
+function codeSays(code: SVGSVGElement, win: Window): string | null {
+  const modules = Number(code.dataset.dfModules ?? 0);
+  const each = code.getBoundingClientRect().width / Math.max(1, modules);
+  const read = decodedOf(code, win);
+  if (read === null) return null;
+  const heard =
+    read === "unread"
+      ? "no barcode reader in this browser to read it"
+      : read === "nothing"
+        ? "a camera reads nothing"
+        : `a camera reads ${read.replace(/^https?:\/\//, "")}`;
+  // The product's own floor for a code read off a screen (`module-floor.ts`):
+  // under it the code is a picture, which a phone visitor taps instead.
+  const kind =
+    each >= MODULE_FLOOR_PX ? "a scan off a screen" : "a picture to tap";
+  return `Its code: ${modules} modules at ${each.toFixed(1)} px each, ${kind}; ${heard}`;
+}
+
 /**
  * THE HERO, AS A VISITOR READS IT: the address and its size against the
  * headline's (his "so it doesn't fight with the H1"), the hosts' addresses it
- * types, the code over it (its modules, how large each is, and what it
- * opens), and the credits on the photographs.
+ * types, the code (how large its modules are, and what a camera reads off the
+ * drawn code), the card's words, and the credits on the photographs.
  */
 export function heroSays(addresses: readonly string[]): Reader {
   return (root, win) => {
@@ -172,63 +193,36 @@ export function heroSays(addresses: readonly string[]): Reader {
       root.querySelector<HTMLElement>("[data-df-typed]")?.dataset.dfOwn ?? "";
     const line = root.querySelector("[data-df-line]");
     const h1 = root.querySelector("h1");
-    const code = root.querySelector<SVGElement>("svg[data-df-code]");
-    if (!domain || !own || !line || !h1 || !code) return null;
-    const modules = Number(code.dataset.dfModules ?? 0);
-    const edge = code.getBoundingClientRect().width;
-    const opens = (code.dataset.dfCode ?? "").replace(/^https?:\/\//, "");
-    const credits = root.querySelectorAll("[data-df-credit]").length;
-    const frames = root.querySelectorAll(".hhs-card").length;
     const object = root.querySelector("[data-hero-object]");
+    if (!domain || !own || !line || !h1 || !object) return null;
     const types =
       addresses.length > 1 ? `; types ${addresses.slice(1).join(", ")}` : "";
-    const each = modules > 0 ? edge / (modules + 8) : 0;
     // The air between the object's foot and the headline's line box.
-    const air = object
-      ? h1.getBoundingClientRect().top - object.getBoundingClientRect().bottom
-      : 0;
-    return `The address: ${domain}${own} at ${px(sizeOf(line, win))}, ${px(air)} over a ${px(sizeOf(h1, win))} headline${types}. Its code: ${modules} modules at ${each.toFixed(1)} px each, opening ${opens}. ${credits} of ${frames} photographs credited`;
+    const air =
+      h1.getBoundingClientRect().top - object.getBoundingClientRect().bottom;
+    const said = [
+      `The address: ${domain}${own} at ${px(sizeOf(line, win))}, ${px(air)} over a ${px(sizeOf(h1, win))} headline${types}`,
+    ];
+    const code = root.querySelector<SVGSVGElement>("svg[data-df-live]");
+    if (code) {
+      const c = codeSays(code, win);
+      if (c === null) return null;
+      said.push(c);
+    }
+    const card = root.querySelector("[data-df-card]");
+    if (card)
+      said.push(
+        `The card: "${textOf(card.querySelector("[data-df-title]"))}", ${textOf(card.querySelector("[data-df-meta]"))}`,
+      );
+    // A stream's photographs, or a wall's tiles: every one carries a credit.
+    const credits = root.querySelectorAll("[data-df-credit]").length;
+    const frames = root.querySelectorAll(
+      ".hhs-card, [data-df-wall-tile]",
+    ).length;
+    if (frames > 0) said.push(`${credits} of ${frames} photographs credited`);
+    return said.join(". ");
   };
 }
-
-/**
- * THE DOOR, AS THE VISITOR LANDS ON IT, read off production's own door words
- * (`DoorWords`: the eyebrow, the headline, what stands under it, its lines)
- * and the ways on under them, in order.
- */
-export const doorSays: Reader = (root) => {
-  const words = root.querySelector("[data-door-words]");
-  const title = words?.querySelector("h1");
-  if (!words || !title) return null;
-  const parts = [...words.querySelectorAll(":scope > [data-door-line]")];
-  const at = parts.indexOf(title);
-  const eyebrow = at > 0 ? textOf(parts[0]) : "";
-  const under = parts
-    .slice(at + 1)
-    .map(textOf)
-    .filter(Boolean)
-    .map((l) => `"${l}"`)
-    .join(", ");
-  const ways = [
-    ...root.querySelectorAll(
-      "[data-welcome-step] button, [data-welcome-step] a",
-    ),
-  ]
-    .map(textOf)
-    .filter(Boolean)
-    .join(" or ");
-  const head = eyebrow ? `"${eyebrow}" over ` : "";
-  return `The door: ${head}"${textOf(title)}"; under it ${under}; ${ways}`;
-};
-
-/** The album's head, as the page says it: the title, then the stats line. */
-export const albumSays: Reader = (root) => {
-  const title = textOf(root.querySelector("[data-df-title]"));
-  const stats = textOf(root.querySelector("[data-df-stats]"));
-  const host = textOf(root.querySelector("[data-df-host]"));
-  if (!title || !stats) return null;
-  return `The album behind it: "${title}", hosted by ${host}; ${stats}`;
-};
 
 /**
  * THE SETTLED TOUCH, READ OFF THE CLOSE FRAME: the arrow at rest and how far
