@@ -4,9 +4,11 @@ import {
   DEFAULT_EVENTS_VIEW,
   type EventListRow,
   filterEventRows,
+  lensCounts,
   resolveEventsFilter,
   resolveEventsSort,
   resolveEventsView,
+  searchEventRows,
   sortEventRows,
 } from "./events-view";
 
@@ -36,14 +38,16 @@ const row = (over: Partial<EventListRow>): EventListRow => ({
   coverUrl: null,
   stills: [],
   dateLabel: "No date set",
+  when: "No date",
+  face: null,
   sortDate: "2026-09-01T00:00:00.000Z",
   items: 0,
-  guests: null,
   pending: 0,
+  waiting: 0,
   statusLabel: null,
   byline: null,
-  needs: null,
-  qr: null,
+  marks: null,
+  seasonId: null,
   ...over,
 });
 
@@ -71,6 +75,7 @@ describe("which view paints first", () => {
     expect(resolveEventsFilter(undefined)).toBe("all");
     expect(resolveEventsFilter("deleted")).toBe("deleted");
     expect(resolveEventsFilter("guest")).toBe("guest");
+    expect(resolveEventsFilter("hosting")).toBe("hosting");
     expect(resolveEventsFilter("everything")).toBe("all");
   });
 
@@ -93,8 +98,38 @@ describe("the lens", () => {
   });
 
   it("shows exactly one kind when asked for one", () => {
+    expect(filterEventRows(rows, "hosting").map((r) => r.id)).toEqual(["h"]);
     expect(filterEventRows(rows, "guest").map((r) => r.id)).toEqual(["g"]);
     expect(filterEventRows(rows, "deleted").map((r) => r.id)).toEqual(["d"]);
+  });
+
+  it("counts every lens at once, All being the live list", () => {
+    expect(lensCounts(rows)).toEqual({
+      all: 2,
+      hosting: 1,
+      guest: 1,
+      deleted: 1,
+    });
+  });
+});
+
+describe("the search", () => {
+  const rows = [
+    row({ id: "a", name: "Ángela's Wedding" }),
+    row({ id: "b", name: "Leo Turns 40" }),
+    row({ id: "c", name: "Ines & Tom's Rehearsal Dinner" }),
+  ];
+
+  it("finds a name by every word typed, accents and case aside, in the list's own order", () => {
+    expect(searchEventRows(rows, "angela").map((r) => r.id)).toEqual(["a"]);
+    expect(searchEventRows(rows, "  TOM   dinner ").map((r) => r.id)).toEqual([
+      "c",
+    ]);
+    expect(searchEventRows(rows, "tom wedding")).toEqual([]);
+  });
+
+  it("is the whole list with nothing typed", () => {
+    expect(searchEventRows(rows, "   ")).toBe(rows);
   });
 });
 
@@ -120,6 +155,17 @@ describe("the order", () => {
       "b",
       "a",
       "c",
+    ]);
+  });
+
+  it("counts people at a door as waiting too", () => {
+    const rows = [
+      row({ id: "uploads", pending: 2 }),
+      row({ id: "door", waiting: 3 }),
+    ];
+    expect(sortEventRows(rows, "waiting").map((r) => r.id)).toEqual([
+      "door",
+      "uploads",
     ]);
   });
 
