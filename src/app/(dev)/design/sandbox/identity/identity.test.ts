@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
 
-import { optionId } from "@/components/lab/board-spec";
-
 import {
   ACTIONS_IDS,
   choiceOf,
@@ -36,7 +34,9 @@ describe("the identity board", () => {
     for (const [ask, { ids, css }] of Object.entries(ASKS)) {
       const spec = IDENTITY.asks.find((a) => a.id === ask);
       expect(spec, `the spec asks no "${ask}"`).toBeTruthy();
-      expect(spec!.options.map(optionId)).toEqual([...ids]);
+      expect(
+        spec!.options.map((o) => (typeof o === "string" ? o : o.id)),
+      ).toEqual([...ids]);
       expect(Object.keys(css).sort()).toEqual([...ids].sort());
       // A frame wears the recommendation for an answer not yet held, so the two agree.
       expect(spec!.recommended).toBe(RECOMMENDED[ask as keyof typeof ASKS]);

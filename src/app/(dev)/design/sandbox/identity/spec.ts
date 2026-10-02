@@ -59,7 +59,7 @@ export const IDENTITY = defineExploration({
       "Viewfinder made ours atom by atom: first how loudly the camera's language speaks, then actions, fields, layers and status, each in that voice.",
     settled: [
       "Viewfinder is the family: its matte body, silver on paper and near-black in the room, the recording red, and photographs at its 2px.",
-      "Two faces stay, state keeps its colour, and every height stays production's (the 32px button, the 44px call to action).",
+      "Two faces stay, state keeps its colour, and every action keeps production's height (the 32px button, the 44px call to action).",
       "Pages are their boards': the dashboard, the hub's head, Create and the hero draw in production's atoms this round.",
       "The voice is a pure layer: every build below reads it, so any pick renders in any voice and nothing binds.",
     ],
@@ -121,6 +121,13 @@ export const IDENTITY = defineExploration({
         "Yes: the door's choice of what the link opens draws as a segmented control and its gates as radio cards, as wiring would make them.",
       overrule:
         "Only today's atoms change; the door's own parts keep their look until its board.",
+    },
+    {
+      id: "field-height",
+      question: "Do fields keep production's 32px height?",
+      taken:
+        "No: every build grows a field to 38 or 40px, so it is found and pressed in a hand; actions keep their heights.",
+      overrule: "Fields keep production's 32px in every build.",
     },
     {
       id: "one-empty",
@@ -330,7 +337,7 @@ export const IDENTITY = defineExploration({
           id: "corners",
           label: "Corners: framed, not boxed",
           means:
-            "A surface is its tone inside four corner marks, no line; panels are square-cornered and framed; the chosen row wears the frame.",
+            "A card is its four corner marks alone, no fill, no line; panels are square-cornered and framed; the chosen row wears the frame.",
           gains: "The most bespoke surfaces: framed like a viewfinder.",
           costs: "Marks on every card and panel add up to a busy page.",
         },

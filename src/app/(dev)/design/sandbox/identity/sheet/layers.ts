@@ -7,7 +7,7 @@ import { CARDS, OVERLAYS, QUICK, ROW_ON, ROWS, TOAST, WORK } from "./states";
  * LAYERS: CARDS, AND EVERYTHING THAT OPENS OVER A PAGE (a menu, a popover, a
  * select, a tooltip, a toast, a dialog, a panel, a sheet), and the code on
  * its white mat. Three materials, each opaque: glass stays media chrome (the
- * glass ruling), so no build here blurs what is under a panel.
+ * glass board's pick), so no build here blurs what is under a panel.
  *
  * Two kinds of layer, by frequency (the floating-layer contract's clocks): the
  * QUICK ones a press opens and the next press closes, and the WORK ones a
@@ -143,15 +143,16 @@ ${TOAST}[data-styled="true"] {
 /* ── CORNERS: the viewfinder's own frame ──────────────────────────────── */
 
 /**
- * CORNERS: a surface is framed, not boxed. A card is its tone with four
- * corner marks and no line; a floating panel is square-cornered with its
- * marks and the layer's shadow; the highlighted row wears the frame itself,
- * the lock as selection; the code's mat stands inside a scanner's frame.
+ * CORNERS: a surface is framed, not boxed. A card is its four corner marks
+ * alone, no fill and no line, the page running through it; a floating panel
+ * (which must stand over what is under it) is opaque, square-cornered, with
+ * its marks and the layer's shadow; the highlighted row wears the frame
+ * itself, the lock as selection; the code's mat stands in a scanner's frame.
  */
 const CORNERS = `
 ${CARDS} {
-  border-radius: 2px; background-color: var(--card); box-shadow: none;
-  --m-c: var(--vf-ring-strong); --m-a: 11px; --m-w: 1.5px; ${MARKS}
+  border-radius: 0; background-color: transparent; box-shadow: none;
+  --m-c: var(--vf-ring-strong); --m-a: 12px; --m-w: 1.5px; ${MARKS}
 }
 [data-slot="card-footer"] { background: transparent; border-color: var(--border); }
 

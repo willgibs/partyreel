@@ -85,10 +85,10 @@ export function Ground({
  * toaster to the viewport's centre, which is the seam between the halves).
  */
 export const GROUND_TOASTS = `
-[data-ground] [data-sonner-toaster][data-y-position="top"] { top: 54px !important; }
+[data-ground] [data-sonner-toaster][data-y-position="top"] { top: 46px !important; }
 [data-ground-side="left"] [data-sonner-toaster][data-x-position="center"] { left: 25% !important; }
 [data-ground-side="right"] [data-sonner-toaster][data-x-position="center"] { left: 75% !important; }
 `;
 
 /** The band a sheet keeps clear under its title for the toast it holds up. */
-export const TOAST_BAND = 70;
+export const TOAST_BAND = 84;

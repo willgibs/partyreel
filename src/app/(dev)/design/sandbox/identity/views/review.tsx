@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+
 import { ReviewRoom } from "@/components/app/event-feed/review-room";
 import type { ReviewWrites } from "@/components/app/event-feed/use-review-triage";
 import { SetCrumbs } from "@/components/shared/crumbs";
@@ -16,6 +18,11 @@ import { HostFrame } from "./settings";
  * ★ THE ROOM WITHOUT ITS LIVE ALBUM (the Library's own specimen does the
  * same): no seed, so nothing polls, and its writes answer after a round trip
  * and change nothing, so a press here never approves anyone's upload.
+ *
+ * ★ MID-TRIAGE: once the room has settled, Select is pressed and three
+ * uploads chosen, the real way, so the frame holds the room's bulk bar and
+ * its chosen tiles (more of the atoms than a room at rest), then the focus
+ * is let go, as a tap leaves it.
  */
 const answered = () =>
   new Promise<{ ok: true }>((resolve) =>
@@ -28,6 +35,27 @@ const INERT: ReviewWrites = {
 };
 
 export function ReviewScreen() {
+  useEffect(() => {
+    const room = () => document.querySelector("[data-review-room]");
+    const select = window.setTimeout(() => {
+      const button = [...(room()?.querySelectorAll("button") ?? [])].find(
+        (b) => b.textContent?.trim() === "Select",
+      );
+      button?.click();
+    }, 600);
+    const pick = window.setTimeout(() => {
+      room()
+        ?.querySelectorAll<HTMLElement>("[data-tile-button]")
+        .forEach((tile, i) => {
+          if (i === 1 || i === 2 || i === 4) tile.click();
+        });
+      (document.activeElement as HTMLElement | null)?.blur();
+    }, 1000);
+    return () => {
+      window.clearTimeout(select);
+      window.clearTimeout(pick);
+    };
+  }, []);
   return (
     <HostFrame>
       <div data-route-fade className="space-y-6">
