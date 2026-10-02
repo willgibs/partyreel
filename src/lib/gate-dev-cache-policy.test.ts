@@ -32,15 +32,25 @@ describe("the integration gate's dev server", () => {
   const start = lines.findIndex((line) => /\(pnpm dev -p \$PORT\b/.test(line));
   const stop = lines
     .slice(0, Math.max(start, 0))
-    .findLastIndex((line) => /lsof -ti tcp:\$PORT \| xargs -r kill\b/.test(line));
+    .findLastIndex((line) =>
+      /lsof -ti tcp:\$PORT \| xargs -r kill\b/.test(line),
+    );
 
   it("is started by the gate after it stops whatever held its port", () => {
-    expect(start, "gate-lane.sh no longer starts `pnpm dev -p $PORT`").toBeGreaterThan(-1);
-    expect(stop, "gate-lane.sh no longer stops its port before its server").toBeGreaterThan(-1);
+    expect(
+      start,
+      "gate-lane.sh no longer starts `pnpm dev -p $PORT`",
+    ).toBeGreaterThan(-1);
+    expect(
+      stop,
+      "gate-lane.sh no longer stops its port before its server",
+    ).toBeGreaterThan(-1);
   });
 
   it("starts on an empty .next/dev, removed between that stop and the start", () => {
     const between = lines.slice(stop + 1, start);
-    expect(between.some((line) => /^rm -rf \.next\/dev(?:$|[\s;&|])/.test(line))).toBe(true);
+    expect(
+      between.some((line) => /^rm -rf \.next\/dev(?:$|[\s;&|])/.test(line)),
+    ).toBe(true);
   });
 });
