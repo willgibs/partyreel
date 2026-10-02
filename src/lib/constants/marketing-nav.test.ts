@@ -3,6 +3,7 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { ABOUT_PRESS_HREF } from "@/lib/constants/about";
 import { EVENT_TYPE_SLUGS, getEventType } from "@/lib/constants/events";
 import { FEATURE_PAGES } from "@/lib/constants/feature-pages";
 import {
@@ -131,8 +132,12 @@ describe("marketing nav config", () => {
 
     expect(isNavItemCurrent(pricing, "/pricing")).toBe(true);
     expect(isNavItemCurrent(pricing, "/")).toBe(false);
-    // Segment-aware, not a raw prefix: /pressure must never ink /press.
-    expect(isNavItemCurrent(resources, "/pressure")).toBe(false);
+    // Segment-aware, not a raw prefix: /blogger must never ink /blog.
+    expect(isNavItemCurrent(resources, "/blogger")).toBe(false);
+    // The Press row points at an anchor on About (above: /about does not ink Resources), and a
+    // pathname never carries a fragment, so the row is never current and the redirecting /press
+    // is no segment of any row either.
+    expect(isNavItemCurrent(resources, "/press")).toBe(false);
   });
 
   // ── the footer (the ink-slab IA) ──────────────────────────────────────────
@@ -229,7 +234,7 @@ describe("marketing nav config", () => {
     expect(resources?.links.map((link) => link.href)).toEqual([
       "/help",
       "/blog",
-      "/press",
+      ABOUT_PRESS_HREF,
       "/contact",
     ]);
     // About is footer-only by ruling (no header-nav row), so this pin is the one
@@ -259,8 +264,11 @@ describe("marketing nav config", () => {
   });
 
   it("Resources surfaces Help + Blog + Press + Contact in both the header group and footer column", () => {
-    // Press joined at R5 (the media-kit page; ruled into Resources).
-    const expected = ["/help", "/blog", "/press", "/contact"];
+    // Press joined at R5 (the media-kit page; ruled into Resources) and moved with the kit when
+    // /press folded into /about (about-press r1): its row goes straight to the band. This module
+    // imports nothing, so the literal is pinned here to the one home of that address.
+    const expected = ["/help", "/blog", ABOUT_PRESS_HREF, "/contact"];
+    expect(ABOUT_PRESS_HREF).toBe("/about#press");
     const group = PRIMARY_NAV.find(
       (item) => isNavGroup(item) && item.label === "Resources",
     );

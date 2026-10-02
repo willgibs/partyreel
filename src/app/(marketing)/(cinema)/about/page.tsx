@@ -22,6 +22,7 @@ import { IS_HIRING } from "@/lib/constants/careers";
 import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
 
 import { Gather } from "./gather";
+import { PressKitBand } from "./press-kit-band";
 
 export const metadata: Metadata = {
   title: ABOUT_META.title,
@@ -70,6 +71,10 @@ export const metadata: Metadata = {
  * is the paper lane's ONE conversion action, so the close points at careers
  * instead. No mono anywhere (the R6 ruling): the ledger's "30 days" rides
  * Inter's proportional figures because nothing here aligns in a column.
+ *
+ * ★ THE PRESS KIT IS A BAND BETWEEN THE LEDGER AND THE CLOSE (`id="press"`,
+ * about-press r1): /press redirects to it, and the story still leads. It is an
+ * appendix with its own muted panel, so the close below keeps its one ask.
  */
 export default function AboutPage() {
   return (
@@ -223,6 +228,10 @@ export default function AboutPage() {
             ))}
           </ul>
         </SectionShell>
+
+        {/* THE PRESS KIT. A short muted band after the convictions: /press's
+          redirect lands here, and the close's own border-t is its lower hairline. */}
+        <PressKitBand />
 
         {/* THE CLOSE. Points at careers, not at signup: the footer directly below
           already owns the paper lane's one conversion action, and a second

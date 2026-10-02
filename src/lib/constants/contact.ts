@@ -11,6 +11,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { ABOUT_PRESS_HREF } from "./about";
+
 // The /contact topic router's single source (the contact round, 2026-08-28):
 // the form's chip picker, the zod enum, the notify-email subject prefix, and
 // the /admin/support chip all read THIS list. The DB CHECK in
@@ -32,8 +34,8 @@ export type ContactTopicValue = (typeof CONTACT_TOPIC_VALUES)[number];
 
 /**
  * The reply promise, one home (the library phase, 2026-09-11): /contact's subhead
- * and metadata, the form's commit point and its thank-you, /help's and /press's
- * closing notes, and the careers "not sure yet" card all read this line. The
+ * and metadata, the form's commit point and its thank-you, /help's closing
+ * note, and the careers "not sure yet" card all read this line. The
  * content policy names it as the standard line; the two help articles that
  * quote it are prose (MDX) and keep the sentence as text.
  */
@@ -150,8 +152,8 @@ export const CONTACT_TOPICS: readonly ContactTopic[] = [
     label: "Press & partnerships",
     icon: Newspaper,
     hint: {
-      text: "The press kit has the boilerplate, the fact sheet, and brand marks.",
-      links: [{ href: "/press", label: "Open the press kit" }],
+      text: "The press kit has the brand marks, the app icon, the share card and a QR code.",
+      links: [{ href: ABOUT_PRESS_HREF, label: "Open the press kit" }],
     },
   },
   {
@@ -224,11 +226,10 @@ export type ContactDirectoryEntry = {
 
 /**
  * The self-serve doors beside the form (contact-page r1 `beside=directory`):
- * the paths that answer a visitor before a note is needed. Two today.
- * ★ Press is not one: /press folds into /about (the press-page pick) and About
- * carries no kit yet, so a tile would point at a page that is going away or at
- * one with nothing to take; the `press` topic's hint keeps the kit's link while
- * /press exists.
+ * the paths that answer a visitor before a note is needed. Three today.
+ * ★ Press is one since /press folded into /about (about-press r1): the kit is a
+ * band on About, so the door goes to the band itself (`ABOUT_PRESS_HREF`), the
+ * same place the `press` topic's hint sends a writer.
  */
 export const CONTACT_DIRECTORY: readonly ContactDirectoryEntry[] = [
   {
@@ -242,5 +243,11 @@ export const CONTACT_DIRECTORY: readonly ContactDirectoryEntry[] = [
     body: "How the team works, and the roles open right now.",
     href: "/careers",
     icon: Briefcase,
+  },
+  {
+    title: "Press",
+    body: "The brand marks, the app icon and a QR code, in one download.",
+    href: ABOUT_PRESS_HREF,
+    icon: Newspaper,
   },
 ];

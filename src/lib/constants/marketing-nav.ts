@@ -22,7 +22,9 @@ export function isNavGroup(item: NavItem): item is NavGroup {
 }
 
 /** Does `pathname` sit under `href`? Exact match, or a real path segment below
- *  it — never a prefix match, or /press would light up /pressure. */
+ *  it — never a prefix match, or /blog would light up /blogger. A pathname never
+ *  carries a fragment, so a row that points at an anchor (Press, `/about#press`)
+ *  is never current and never inks its group on /about. */
 function isUnder(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
@@ -142,9 +144,12 @@ export const PRIMARY_NAV: NavItem[] = [
         description: "Notes on hosting and sharing.",
       },
       {
+        // The press kit is a band on About (about-press r1): /press redirects there, so the
+        // row goes straight to it. Pinned to ABOUT_PRESS_HREF by the nav test (this module
+        // imports nothing).
         label: "Press",
-        href: "/press",
-        description: "Logos, facts, and who to ask.",
+        href: "/about#press",
+        description: "Logos and brand files, ready to use.",
       },
       {
         label: "Contact",
@@ -269,7 +274,7 @@ export const FOOTER_NAV: FooterColumn[] = [
     links: [
       { label: "Help center", href: "/help" },
       { label: "Blog", href: "/blog" },
-      { label: "Press", href: "/press" },
+      { label: "Press", href: "/about#press" },
       { label: "Contact", href: "/contact" },
     ],
     // About is FOOTER-ONLY (R5): quiet placement, no

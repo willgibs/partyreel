@@ -1,7 +1,10 @@
 /**
- * THE PRESS KIT SOURCE. One quotable home for "what is Partyreel": the /press page
- * renders these and the /llms.txt builder feeds them to AI crawlers, so the canonical
- * summary can never fork. Covered by the content-policy claims fence.
+ * THE PRESS KIT SOURCE: the kit's manifest (the press kit band on /about draws its plates
+ * and its download from `PRESS_KIT`, and scripts/build-press-kit.mjs zips the same rows) and
+ * the fact sheet (`/llms-full.txt` is built from `PRESS_FACTS`; `FOUNDED_YEAR` feeds the
+ * Organization JSON-LD). The boilerplate left with /press (about-press r1: no press outreach
+ * is planned) and lives in the llms builder, its only reader. Covered by the content-policy
+ * claims fence.
  *
  * ★ KEEP THIS MODULE ENV-FREE. constants/site.ts imports lib/env.ts, whose `env` is
  * parsed EAGERLY at import and throws without NEXT_PUBLIC_SUPABASE_*. The node Vitest
@@ -21,19 +24,6 @@ const PRESS_EMAIL = "help@partyreel.com";
 /** The apex host. Deliberately NOT derived from SITE_URL, which resolves to the
  *  deploy origin: on a branch preview that would print a vercel host to a journalist. */
 const PRESS_DOMAIN = "partyreel.com";
-
-/**
- * The paragraph version. Sentence one is the strongest line the company has written and
- * is deliberately untouched. The closing clause names the live reel (it plays itself from
- * the album on every plan, `reel-story` r1), never a clip's length, whose cap is per-tier
- * (tiers.ts MAX_REEL_SECONDS), so a fixed number here would be wrong on Free.
- */
-export const PRESS_BOILERPLATE =
-  "Partyreel turns every guest's phone into the event's camera. The host shares one QR code; guests scan it and upload photos and videos from the browser, with no app required. Everything lands in one live album at full quality, where the host decides what stays and everyone leaves with the originals. Nobody has to chase a group chat the next morning. There are no per-guest fees, and every album plays as its own highlight reel.";
-
-/** The one-sentence version: what a reporter pastes into a story. */
-export const PRESS_BOILERPLATE_SHORT =
-  "Partyreel turns every guest's phone into the event's camera: guests scan one QR code, their photos and videos land in one live album at full quality, and the album plays as a highlight reel as it fills.";
 
 /**
  * The fact sheet, ordered by what a reporter reaches for first rather than by logic.
@@ -103,8 +93,8 @@ export type PressKitAsset = {
 };
 
 /**
- * THE KIT MANIFEST. The single source for what ships in the press kit: the /press page
- * maps over it, and scripts/build-press-kit.mjs zips exactly these files.
+ * THE KIT MANIFEST. The single source for what ships in the press kit: the band on /about
+ * draws its plates from it, and scripts/build-press-kit.mjs zips exactly these files.
  *
  * ★ This array is what makes the coming logo change a one-edit job. Swap the files in
  * public/press/, edit the rows, rerun the build script. No component changes.

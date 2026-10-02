@@ -43,10 +43,12 @@ routes.
   `@supabase/ssr` keeps the session in `document.cookie`. ★ It is a hint, never authorization: the `(app)` layout's
   `getUser()` and RLS are the boundary, and either wrong answer lands the visitor on `/login`.
 - **The Resources group** is the header panel and the footer column at once (Help, Blog, Press, Contact), held as a
-  two-way mirror by a test. One idea has one page and two doors: the Resources panel's featured card is the primary door
-  to `/how-it-works`, the Features panel's footnote the second. Each also carries a plain Search row (the panel's in the
-  Features footnote's grammar, the phone menu's in its Resources group), component-side because an action is not a route:
-  the help palette's doorbell (the help center's bullets below).
+  two-way mirror by a test; Press goes straight to the kit band on About (`/about#press`, a literal here that
+  `marketing-nav.test.ts` pins to `ABOUT_PRESS_HREF`), and a row that names an anchor is never "current". One idea has
+  one page and two doors: the Resources panel's featured card is the primary door to `/how-it-works`, the Features
+  panel's footnote the second. Each also carries a plain Search row (the panel's in the Features footnote's grammar,
+  the phone menu's in its Resources group), component-side because an action is not a route: the help palette's
+  doorbell (the help center's bullets below).
 - **The footer is the ink slab** (`.surface-ink`, never a nested `.dark` or `bg-gallery`), with three registers: the
   demo invitation (the demo's code on a pile of photographs that fans on hover, from `sm` up, since a phone cannot scan
   itself; phones get a link), the index and the legal bar. ★ `Start free` renders at every width in both branches of the `if (!DEMO_EVENT_URL)` return, because
@@ -189,10 +191,21 @@ routes.
   weaker neutralization fence. It tells the mission as a story (the opportunity, the problem, a better way), and its six
   convictions land as the answer, each linking to the page that proves it; it says who we are, never who we are not,
   and closes on careers with no `CtaBand`. The gather (`about/gather.tsx`) carries the dark-to-paper cut from `sm` up.
+  ★ **The press kit is a muted band between the convictions and the close** (`about/press-kit-band.tsx`, copy in
+  `ABOUT_PRESS_KIT`, `id="press"`): four different plates (the mark on paper and on ink, the QR, the share card; never
+  a grid of near-twins), one download and the usage line, in the ledger's own measure and split. `/press` is a page
+  whose only act is `redirect()` (a 307, never a 308: the kit's home may move again, and a permanent redirect would sit
+  in every CDN and phone that followed it), out of the sitemap, and every door that names the kit reads
+  `ABOUT_PRESS_HREF` (the nav's Press rows, /contact's directory row and `press` hint, the llms files). The plates'
+  grounds are literal colours (`PLATE_PAPER`, `BRAND_HEX`), never theme utilities: a plate is the artwork's own ground,
+  and following a token flip hides the artwork. The kit is manifest-driven (`PRESS_KIT`, `scripts/build-press-kit.mjs`,
+  `scripts/build-press-qr.mjs` and the committed zip, which `press-kit.test.ts` parses back and CRC-checks), so a logo
+  change is a files-and-rows edit. No boilerplate, one-liner or fact strip on the page: the paragraph both llms files
+  open on lives in `lib/content/llms.ts`, and the fact sheet (`PRESS_FACTS`) feeds `/llms-full.txt` alone.
   ★ A beat whose concept is a change of arrangement must not hide its starting arrangement: `[data-mkt-fly]` animates
   opacity from 0, which would hide the scatter, so `.mkt-gather` moves only position and angle, and the scatter is an
   authored table (never `Math.random()`, which desyncs SSR), so the no-JS page is prints on a table.
-- **The utility-page rhythm**: a cinema hero, a paper body, the ink footer, on about, blog, careers, contact, press,
+- **The utility-page rhythm**: a cinema hero, a paper body, the ink footer, on about, blog, careers, contact,
   privacy and terms. A page takes the rhythm by JOINING the `(cinema)` group and wrapping its body in one
   `PaperChapter`, which brings the dark nav, the overscroll and the browser chrome with it (route groups are not in URLs,
   so moving a page needs no redirect): a dark hero decides the route group, never a hand-built dark set on the paper
@@ -212,19 +225,19 @@ routes.
   only, because inheriting `reel` or `open` asserts something false. ★ The role rail's `lg:self-stretch` is
   load-bearing, or `lg:items-start` collapses the aside and sticky gets no travel (the help ToC's trap).
 - **`/contact`**: a dark hero, then one `PaperChapter` (the desk, the self-serve search band, the close). Its first
-  field is a required topic, single-sourced in `constants/contact.ts` (labels, icons, each topic's own note with one to
-  four help links, and the directory beside the form) and read by the zod enum, the `contact_submissions.topic` CHECK,
-  the email's subject tag and the `/admin/support` chip; a parity test pins the enum to the migration, and
-  `contact.test.ts` holds every hint link to a real route or article and each topic to its own answers (no shared shelf
-  link, and no reply timing of a hint's own: `REPLY_LINE` is the only true one, so a per-topic promise would be
-  invented). `/press` is no tile in the directory while it folds into `/about`; the `press` topic's hint keeps the kit's
-  link while the page exists. `?about=<slug>` prefills the subject and picks the topic through the exhaustive
-  `CATEGORY_TOPIC` map (a new help category fails typecheck until mapped), via `form.reset` so "Send another" keeps it;
-  the route stays static, reading `window.location` on mount against an allowlist of OWN keys (a plain object also
-  answers `constructor`), never `useSearchParams`. ★ A Radix Select takes no controlled `""` (it latches the placeholder
-  over a later value), its hidden native bridge emits an empty `onValueChange` during mount that would clobber a
-  programmatic pick, and `SelectValue` cannot resolve a label before the items mount, so the trigger's label is
-  hand-rendered.
+  field is a required topic, single-sourced in `constants/contact.ts` (labels, icons, each topic's own note with one
+  to four help links, and the directory beside the form) and read by the zod enum, the `contact_submissions.topic`
+  CHECK, the email's subject tag and the `/admin/support` chip; a parity test pins the enum to the migration, and
+  `contact.test.ts` holds every hint link to a real route or article and each topic to its own answers (no shared
+  shelf link, and no reply timing of a hint's own: `REPLY_LINE` is the only true one, so a per-topic promise would be
+  invented). The directory's Press row and the `press` topic's hint both go to the kit band (`ABOUT_PRESS_HREF`), and
+  a door may name an anchor: `contact.test.ts` resolves it to an id written in the page's folder. `?about=<slug>`
+  prefills the subject and picks the topic through the exhaustive `CATEGORY_TOPIC` map (a new help category fails
+  typecheck until mapped), via `form.reset` so "Send another" keeps it; the route stays static, reading
+  `window.location` on mount against an allowlist of OWN keys (a plain object also answers `constructor`), never
+  `useSearchParams`. ★ A Radix Select takes no controlled `""` (it latches the placeholder over a later value), its
+  hidden native bridge emits an empty `onValueChange` during mount that would clobber a programmatic pick, and
+  `SelectValue` cannot resolve a label before the items mount, so the trigger's label is hand-rendered.
 - **A sent note becomes a receipt on the card that wrote it**, /contact's and a job application's alike (`NoteReceipt`
   and its choreography `useReceiptSwap`, `components/marketing/forms/`; each form says only what is its own: the topic,
   `REPLY_LINE` and the postmark, or the role and the careers page's own "we read every application"), and nothing
@@ -236,14 +249,6 @@ routes.
   take it apart where it is called) and kept from `lg`, condensed to the receipt's in a hand; focus moves to the
   receipt's heading and back to the first field on Send another; the submit waits for hydration; a Server Function
   that rejects is a failed send with the words kept. The write path is under "Public forms".
-- **`/press`, the contact sheet**: titled "Press" everywhere (a 160px masthead has to be the word the reader clicked;
-  detail goes in the eyebrow), its boilerplate and fact sheet in `constants/press.ts`, the one quotable home that the
-  llms builders share. The sheet's frames are deliberately not one kind of thing (a uniform grid of marks is a downloads
-  table): do not tidy it. ★ The plates' grounds are literal colours (`PLATE_PAPER`, `BRAND_HEX`), never theme
-  utilities: a plate is the artwork's own ground, and following a token flip hides the artwork. The grid's rebate
-  insets by the same `--gap-gallery` as its gaps, or it stops reading as a rebate. The kit is manifest-driven
-  (`PRESS_KIT`, `scripts/build-press-kit.mjs`, `scripts/build-press-qr.mjs` and the committed zip, which
-  `press-kit.test.ts` parses back and CRC-checks), so a logo change is a files-and-rows edit.
 
 ## The content pipeline: help and blog
 
