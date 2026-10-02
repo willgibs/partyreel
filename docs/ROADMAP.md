@@ -17,6 +17,8 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Guests: her tracker draws the `picture` `/api/guests/mine` now answers for her held and sealed items (presigned for her alone; the server half shipped in `disposable-foundation`), which retires the lines on her placeholders for held photos once drawn (from `disposable-foundation`).
+- Disposable: a develop time set on an album whose camera is already running stamps a new period (`events_reveal_stamp`), so every guest gets a fresh roll mid-party; stamping the period on the camera alone is the alternative (the Advisor's Q10; a call in Will's file, 96) (from `disposable-foundation`).
 - The lab and the kit: Radix in a portalled `Frame` reads the lab's window and document, not the frame's: a popper's wrapper takes `z-index: auto` (a menu mounted open paints under the page beside it) and a Dialog's Title check warns falsely in the console; `Frame` could lift `[data-radix-popper-content-wrapper]` itself (the host-dashboard board repairs its own frames, `shell.tsx`) (from `host-dashboard-r2`).
 - Host: on a phone at forty events a quiet day's stage fills the first screen and the events begin under it; the stage's height on a quiet day is a question of its own (a board idea from `host-dashboard-r2`).
 - Host: `EventsSection` writes the view's cookie through a Server Function inline; an `onView` seam would let a board or a test draw it whole without catching the press (from `host-dashboard-r2`).

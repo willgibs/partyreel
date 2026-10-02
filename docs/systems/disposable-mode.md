@@ -89,6 +89,10 @@ A lazy predicate alone reaches nobody: the guest poll's quiet path reads one row
 - **A straggler heals on the next read.** An upload that read the event an instant before a save committed lands on
   the old answer; `seal_disagrees` sees it and the next read's develop brings it to the event's. The narrow leak: a
   straggler sealed to an earlier time that no read reaches before that time shows then, once.
+- **What a develop touches besides the seal.** Every row `develop_rows` moves is stamped by `media_set_updated_at`, so
+  a develop reads as activity on every developed row to anything keyed on `media.updated_at`; and a held row sealed by
+  a save and then approved while still sealed moves only the host's scope (`album_bits` 1), so the guest's waiting
+  count rightly stands still while `let_in_at` is stamped (her tracker's read leaves it out of her news).
 
 ## The roll, its ceiling and the withdrawn shot
 
@@ -117,13 +121,6 @@ one save of both columns. A change that would show held or waiting photos asks f
 asks. Leaving "approve each" approves what is held (`updateEventAction` runs `approveAllPending` on a live save); into a
 develop time, the save sealed them first, so they wait for the develop. The waiting experience's words and drawings,
 whether approve plus develop is offered, and the preset's name are the design boards' after this foundation.
-
-## Until the types regenerate
-
-`src/lib/db/types.ts` learns the columns, the table and the functions at the Orchestrator's regeneration. Until then
-each read and write names them through one seam: `developFactsOf` (the event read's four columns), the `develop`
-record in `updateEvent`, `untypedAdmin` in `develop.server.ts`, `untyped` in `lifecycle/sweeps/develop.ts`, and the
-media reads' `overrideTypes` (`MEDIA_HOST_COLUMNS`). Drop each at the regeneration.
 
 ## Verifying it
 
