@@ -98,6 +98,51 @@ describe("what guests can add", () => {
     expect(sentenceText(parts)).toBe("Paused. Guests can still look.");
     expect(words(parts)).toEqual(["uploads"]);
   });
+
+  // THE CAMERA AND THE DEVELOP (20261002200000): the camera says its roll; a develop time owns the answer, so the
+  // review word is said as prose wherever one is set (its time is no word a sentence can pick).
+  const camera = (over: Partial<NonNullable<SettingsFacts["develop"]>> = {}) => ({
+    develop: { capture: "camera" as const, rollSize: 24, state: "none" as const, ...over },
+  });
+
+  it("the album's camera says its roll, and where the shots go, still a word", () => {
+    const parts = say("adds", camera());
+    expect(sentenceText(parts)).toBe(
+      "Photos on the album's camera, 24 shots each, straight into the album.",
+    );
+    expect(words(parts)).toEqual(["uploads", "review"]);
+    expect(sentenceText(say("adds", camera({ rollSize: 12 })))).toContain("12 shots each");
+  });
+
+  it("★ a develop time ahead: hidden until it develops, the review word no longer a word", () => {
+    const upload = say("adds", { develop: { capture: "upload", rollSize: null, state: "waiting" } });
+    expect(sentenceText(upload)).toBe("Photos, hidden until the album develops.");
+    expect(words(upload)).toEqual(["uploads"]);
+    expect(sentenceText(say("adds", { ...camera({ state: "waiting" }), videos: true }))).toBe(
+      "Photos and videos on the album's camera, 24 shots each, hidden until the album develops.",
+    );
+    // Approve plus develop, as the schema allows it: both said, neither a word.
+    const both = say("adds", { ...camera({ state: "waiting" }), review: true });
+    expect(sentenceText(both)).toBe(
+      "Photos on the album's camera, 24 shots each, held for your approval and hidden until the album develops.",
+    );
+    expect(words(both)).toEqual(["uploads"]);
+  });
+
+  it("developed: says so, and what new ones do", () => {
+    const parts = say("adds", { develop: { capture: "upload", rollSize: null, state: "developed" } });
+    expect(sentenceText(parts)).toBe("Photos, developed; new ones show straight away.");
+    expect(words(parts)).toEqual(["uploads"]);
+    expect(
+      sentenceText(say("adds", { review: true, develop: { capture: "upload", rollSize: null, state: "developed" } })),
+    ).toBe("Photos, developed; new ones wait for your approval.");
+  });
+
+  it("paused is paused, camera and develop alike", () => {
+    expect(sentenceText(say("adds", { ...camera({ state: "waiting" }), acceptingUploads: false }))).toBe(
+      "Paused. Guests can still look.",
+    );
+  });
 });
 
 describe("the reel and this event", () => {

@@ -12,6 +12,8 @@ import {
   readGuestAlbumVersions,
   readGuestAttribution,
 } from "@/lib/db/queries/album-guest";
+import { developIfDue } from "@/lib/disposable/develop.server";
+import { developFactsOf, waitingFor } from "@/lib/disposable/facts";
 import { guestAlbumEtag } from "@/lib/events/album-validator";
 import { resolveAlbumViewer } from "@/lib/events/album-viewer.server";
 import type {
@@ -66,6 +68,14 @@ export const dynamic = "force-dynamic";
  * No request limiter, like the gallery poll it replaces: a read behind the capability, and a
  * limiter row per poll would turn a venue's phones into write load (database-security.md, "Limit
  * abuse, never volume"). The manifest's Questions carry the call.
+ *
+ * ★ THE DEVELOP AND WHAT WAITS (docs/systems/disposable-mode.md). Before the versions are read, an album the event
+ * read says is due a develop develops (`developIfDue`: one call, only then), so a parked phone's next poll is the
+ * write that moves the album for everyone. A full answer carries what waits (`waiting`: the held and sealed rows'
+ * count and minutes from the plan's own snapshot, and the develop time), and the validator hashes the develop time,
+ * so a host's new one reaches an open page on its next poll. Only at full access: never on the teaser, behind
+ * `require_upload_to_view` or to a blocked viewer, each of which answers before it. Never a waiting id: the album's
+ * reads leave every held and sealed row out.
  */
 const bodySchema = z.object({
   qr_token: z.string().min(1).max(200),
@@ -103,6 +113,9 @@ export async function POST(request: Request) {
   const ifNoneMatch = request.headers.get("if-none-match");
 
   if (decision.access === "none") return locked(decision.gate, headers);
+
+  // A develop the event read asked for lands before the versions are read, so this very poll carries it.
+  await developIfDue(event);
 
   // Everything after the decision reads through the guarded queries: a null is the gate refusing
   // (a password album without its cookie, and not its host), which the decision should already
@@ -154,6 +167,7 @@ export async function POST(request: Request) {
 
   // FULL: the paged album.
   const reel = await loadGalleryReel(event, "full");
+  const develop = developFactsOf(event);
   const quietEtag = guestAlbumEtag({
     eventId: event.id,
     access: "full",
@@ -161,6 +175,7 @@ export async function POST(request: Request) {
     albumMax: versions.albumMax,
     attrVersion: versions.attrVersion,
     reel,
+    developsAt: develop.developsAt,
   });
   if (!heal && since !== null && ifNoneMatch === quietEtag) {
     headers.set("ETag", quietEtag);
@@ -179,10 +194,12 @@ export async function POST(request: Request) {
         albumMax: plan.read.albumMax,
         attrVersion: plan.read.attrVersion,
         reel,
+        developsAt: develop.developsAt,
       }),
     );
   }
   const guestCount = isDemo ? undefined : await getGuestCount(event);
+  const waiting = waitingFor(develop, plan.waiting);
   const payload: GuestFullSync = {
     ...plan.part,
     ok: true,
@@ -191,6 +208,7 @@ export async function POST(request: Request) {
     total: plan.read.approved,
     reel,
     ...(guestCount === undefined ? {} : { guestCount }),
+    ...(waiting ? { waiting } : {}),
   };
   return NextResponse.json(payload, { headers });
 }

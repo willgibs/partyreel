@@ -175,10 +175,18 @@ export async function updateEvent(
   // narrows (the upload's gate reads the plan).
   if (values.allow_videos !== undefined)
     patch.allow_videos = values.allow_videos;
+  // HOW GUESTS ADD AND WHEN THE ALBUM DEVELOPS (20261002200000): bare granted-column writes. The database does the
+  // rest in this same save: `events_reveal_stamp` fills in the camera's roll and stamps its period, and a new develop
+  // time rewrites the album's rows (`events_develops_rewrite`: Develop now, right away and a moved time land with the
+  // save, ringing the album once). ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `TablesUpdate<"events">` learns the
+  // two columns at the regeneration (assign them on `patch` then, and drop this record).
+  const develop: Record<string, unknown> = {};
+  if (values.capture !== undefined) develop.capture = values.capture;
+  if (values.develops_at !== undefined) develop.develops_at = values.develops_at;
 
   const { data, error } = await supabase
     .from("events")
-    .update(patch)
+    .update({ ...patch, ...develop } as unknown as TablesUpdate<"events">)
     .eq("id", id)
     .is("deleted_at", null)
     .select("*")

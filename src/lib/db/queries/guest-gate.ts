@@ -17,6 +17,7 @@
  */
 import "server-only";
 
+import { parseRollCount, type RollCount } from "@/lib/disposable/roll";
 import { captureWarning } from "@/lib/observability/sentry";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -32,6 +33,13 @@ export type UploadGate = {
   albumFull: boolean;
   /** The event is gone; the caller's own not-found path owns what that means. */
   eventGone: boolean;
+  /**
+   * The camera's roll for this viewer (20261002200000): her live shots this period of the roll's size, and every shot
+   * she took in it of the ceiling. Null for free uploads, and on a failed read (her camera says nothing it does not
+   * know; the presign and `create_media` hold the line). Optional so a gate built anywhere but this read (a test's
+   * stand-in) need not say it.
+   */
+  roll?: RollCount | null;
 };
 
 /** The shape a failed read resolves to: uncontributed, but unable to contribute, so nothing holds. */
@@ -39,6 +47,7 @@ const FAIL_OPEN: UploadGate = {
   contributed: false,
   albumFull: true,
   eventGone: false,
+  roll: null,
 };
 
 export async function getUploadGate(input: {
@@ -82,5 +91,6 @@ export async function getUploadGate(input: {
     contributed: row.contributed === true,
     albumFull: row.album_full === true,
     eventGone: row.event_gone === true,
+    roll: parseRollCount(row.roll),
   };
 }

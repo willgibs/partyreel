@@ -134,7 +134,7 @@ const guestCompleteStrategy: CompleteStrategy<typeof guestCompleteSchema> = {
           code === SESSION_OTHER_ACCOUNT ||
           code === "verification_required"
         ? 403
-        : code === "cap_reached"
+        : code === "cap_reached" || code === "roll_spent"
           ? 409
           : code === "bad_key"
             ? 400

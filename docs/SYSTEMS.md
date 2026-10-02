@@ -12,6 +12,7 @@
 | [dashboard.md](systems/dashboard.md) | change the host dashboard: its bands, the events list, the Guest cards, the claims review |
 | [host-app.md](systems/host-app.md) | change a host surface: creating an event, the QR designer and print, the custom link, the welcome, the event page and its settings, moderation |
 | [reel.md](systems/reel.md) | change the highlight reel (when it exists, its take, the tile, the view that is also the screen, the host's card and defaults, the platform lever) or the clip (the creator, Add to event), or a word either says |
+| [disposable-mode.md](systems/disposable-mode.md) | touch the develop or the camera: `develops_at`, `capture` and the roll, a row's seal (`sealed_until`) and its one predicate in any guest read, what waits on the guest's sync, the develop and its sweep, a guest's withdrawn shot |
 | [uploads-and-r2.md](systems/uploads-and-r2.md) | touch the upload pipeline, an R2 key, client or presign, the EXIF strip, or how media renders (tiles, previews, posters, the viewer) and downloads (Save, Download all) |
 | [billing-caps.md](systems/billing-caps.md) | change a price or a limit, anything that decides whether an upload, a restore or a plan change fits, Stripe checkout, change-plan or the webhook, or the in-app pricing surface and the Plan card |
 | [lifecycle-recovery.md](systems/lifecycle-recovery.md) | add or change a purge-cron sweep, touch deleting and restoring (the 30-day window, the standby budget, the Deleted filters) or the over-cap, lapsed-pass and inactivity sweeps, or send an email |

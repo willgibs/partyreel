@@ -64,6 +64,12 @@ ledger and enforces the caps. Guests (the session-token capability) and hosts (a
 - **A host upload is `guest_id is null`:** `create_media_as_host` authorizes by the route's `getUser()` id and event
   ownership, counts against the plan like any upload, lands `approved` (the host is the moderator) and ignores
   `accepting_uploads` (the guests' switch).
+- ★ **The seal and the camera are decided at insert** (`20261002200000`, [disposable-mode.md](disposable-mode.md)):
+  `create_media*` seal a row to the album's develop time while it is ahead, whatever the capture; with the album's
+  camera on, a guest's shot also meets her roll (live shots against `roll_size`) and its ceiling (three rolls' worth a
+  period, in the `camera_rolls` ledger), and a camera video 10 s and 128 MB. The presign refuses each first in the
+  server's own words (`cameraShotRefusal`, from `get_upload_context`'s `roll`), and the complete answers the race it
+  loses with 409 `roll_spent`; the host's own uploads meet none of them.
 
 ## The EXIF strip
 
@@ -97,7 +103,9 @@ it: one file, because the backfill loads it through Node's type stripping, which
   `SignatureDoesNotMatch`. An upload presign signs `content-type` and `content-length`; an UploadPart presign,
   `content-length`.
 - **Raw keys never reach the browser:** every read is presigned server-side (`toGridItems`; the paged album's
-  `album-guest-links.ts` and `album-host-links.ts`), and the render routes are dynamic.
+  `album-guest-links.ts` and `album-host-links.ts`), and the render routes are dynamic. A guest's own items the album
+  cannot show her (held, or sealed for the develop) are presigned for her alone by her tracker's read
+  (`/api/guests/mine`, as far as the ticket is hers), never a refused one's.
 - **Gallery read presigns are stable:** `presignDownload({ stable: true })` pins the signing date to the current
   30-minute bucket (`r2/presign-bucket.ts`), so two presigns of one key in a bucket are byte-identical: the image
   cache works across refetches and the gallery's ETag rolls with the bucket. They live 90 minutes (two buckets and
@@ -201,8 +209,9 @@ it: one file, because the backfill loads it through Node's type stripping, which
 - ★ **Yours is the server's** (`lib/export/yours.server.ts`): a guest's own uploads by her account and this
   browser's ticket cookie (the route's read identity) as far as the ticket is hers to a signed-in viewer (her own row,
   or one the claim takes: `sortTickets`, [guest-flow.md](guest-flow.md)'s owner rule), never an id list from the
-  request, intersected with what she can see; the summary carries its counts, and the closed door is asked first on
-  every path (Yours, a retry, a part).
+  request, intersected with what she can see, plus her own shots still sealed for the develop (`readOwnSealedMedia`,
+  of those ids alone: hers to see, never the album's zip); the summary carries its counts, and the closed door is
+  asked first on every path (Yours, a retry, a part).
 - ★ **One Worker deployment serves every app's build**, so a request an older app sends is answered exactly as the
   Worker it was built against answered it (`workers/export/src/compat.test.ts` replays milestone 29's requests at the
   vendored `milestone-29/` Worker, and milestones 30 to 32's, the check included, at `milestone-31/`); everything new

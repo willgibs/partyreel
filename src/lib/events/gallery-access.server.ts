@@ -29,6 +29,8 @@ import {
 } from "@/lib/db/queries/guest-events-admin";
 import { getUploadGate } from "@/lib/db/queries/guest-gate";
 import { isDemoToken } from "@/lib/demo";
+import { developIfDue } from "@/lib/disposable/develop.server";
+import { developFactsOf, waitingFor } from "@/lib/disposable/facts";
 import { toGuestAlbumLinks } from "@/lib/events/album-guest-links";
 import { guestAlbumEtag } from "@/lib/events/album-validator";
 import type { AlbumManifestPart } from "@/lib/events/album-wire";
@@ -269,6 +271,9 @@ export async function loadGallerySeed(
 ): Promise<GallerySeed> {
   if (decision.access === "none") return { kind: "locked" };
   const isDemo = isDemoToken(event.qr_token);
+  // ★ AN ALBUM DUE A DEVELOP DEVELOPS BEFORE ITS FIRST READ (the sync route's own rule,
+  // `lib/disposable/develop.server.ts`), so the page paints the album the next poll would answer.
+  await developIfDue(event);
 
   if (decision.access === "teaser") {
     const [versions, teaser, approvedTotal] = await Promise.all([
@@ -356,6 +361,9 @@ export async function loadGallerySeed(
     : [];
   const found = new Set(links.map((l) => l[0]));
 
+  // What waits rides the seed as it rides each full sync (the plan's own snapshot), its develop time hashed.
+  const develop = developFactsOf(event);
+  const waiting = waitingFor(develop, plan.waiting);
   return {
     kind: "full",
     sync: {
@@ -365,6 +373,7 @@ export async function loadGallerySeed(
       gate: null,
       total: plan.read.approved,
       reel,
+      ...(waiting ? { waiting } : {}),
     },
     etag: guestAlbumEtag({
       eventId: event.id,
@@ -373,6 +382,7 @@ export async function loadGallerySeed(
       albumMax: plan.read.albumMax,
       attrVersion: plan.read.attrVersion,
       reel,
+      developsAt: develop.developsAt,
     }),
     links: {
       ok: true,

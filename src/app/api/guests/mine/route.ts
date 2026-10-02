@@ -40,11 +40,15 @@ import {
   countKeptTicketUploads,
   listSessionMediaIds,
   readOwnUploads,
+  type OwnPicture,
+  type OwnUpload,
 } from "@/lib/db/mutations/guest-media";
 import {
   getEventByQrToken,
   type GuestEvent,
 } from "@/lib/db/queries/guest-events";
+import { getUploadGate } from "@/lib/db/queries/guest-gate";
+import type { RollCount } from "@/lib/disposable/roll";
 import {
   doorCallerFor,
   isThrough,
@@ -52,7 +56,8 @@ import {
 } from "@/lib/events/closed-door.server";
 import { sortTickets } from "@/lib/guest/session-owner.server";
 import { TRACKER_TELLS_REFUSAL } from "@/lib/guest/upload-tracker";
-import { captureWarning } from "@/lib/observability/sentry";
+import { captureError, captureWarning } from "@/lib/observability/sentry";
+import { presignDownload } from "@/lib/r2/presign";
 import {
   abuseHashes,
   checkAbuseRate,
@@ -74,8 +79,16 @@ const mineSchema = z.object({
  * be learned, since the album's sync moves only in and out of `approved` (`listOwnUploadStatuses`
  * says why). The token is optional here because an ACCOUNT speaks for its own rows: signed in, the
  * viewer is `getUser()`'s (never `getSession()`, a cookie is no boundary), and the answer is the
- * token's unclaimed row plus the account's rows at this event. Statuses only, of her own uploads:
- * never an identity, never a link.
+ * token's unclaimed row plus the account's rows at this event. Never an identity.
+ *
+ * ★ AND HER OWN PICTURES, FOR HER ALONE (the develop, and Will's walk of a held album, 2026-10-02: his held uploads
+ * "landed" and vanished, with no way to remove them). An item the album cannot show her, held for the host's review or
+ * sealed until the album develops (`sealed: true`), carries `picture: { type, at, tile }`: its preview (or the
+ * original where it has none) presigned here, read only as far as the ticket is hers, so no other guest's read can
+ * ever carry it. Never a refused item's (an operator's takedown is never presigned, even to its uploader). Her Remove
+ * for any of them is the album's own (`/api/guests/remove`, `remove_my_upload`): both withdraw her own row in any
+ * status, a held one before it ever reaches Review, a camera's shot giving its frame back (and purged that night). An
+ * album with its camera on also answers her `roll` ({used, cap, taken, ceiling}).
  *
  * ★ AND, ASKED WITH `tell` (crumbs-38, the approval toast's server half): `news`, the ids of hers a decision let
  * into the album since she was last told, marked told as they are answered (`readOwnUploads`), so the album says
@@ -179,20 +192,87 @@ async function answerStatuses(
   const ticket = input.session_token
     ? ((await sortTickets(userId, [input.session_token])).hers[0] ?? null)
     : null;
-  const { items, news } = await readOwnUploads({
-    eventId: event.data.id,
-    sessionToken: ticket,
-    userId,
-    tell: input.tell === true,
-  });
+  const [{ items, news, pictures }, roll] = await Promise.all([
+    readOwnUploads({
+      eventId: event.data.id,
+      sessionToken: ticket,
+      userId,
+      tell: input.tell === true,
+    }),
+    rollOf(event.data, ticket, userId),
+  ]);
   // `host-curation`'s `told` is the flag's to answer: at `never` a refusal is not hers to learn.
   const told = TRACKER_TELLS_REFUSAL
     ? items
     : items.filter((item) => item.status !== "refused");
+  const pictured = await withPictures(told, pictures, event.data.id);
   return NextResponse.json(
-    input.tell ? { ok: true, items: told, news } : { ok: true, items: told },
+    {
+      ok: true,
+      items: pictured,
+      ...(input.tell ? { news } : {}),
+      ...(roll ? { roll } : {}),
+    },
     { headers: PRIVATE },
   );
+}
+
+/** Her own upload's picture, as her tracker draws it: the kind, when she took it, and its tile, for her alone. */
+type OwnPictureLink = { type: "photo" | "video"; at: number; tile: string };
+
+/**
+ * Each of her items the album cannot show her gets its picture, presigned here (stable inside the bucket, like every
+ * album link, so a re-ask hands the browser the URL it cached). A presign that fails costs that picture alone: the
+ * item stays, drawn as the placeholder it always was, and the failure is reported.
+ */
+async function withPictures(
+  items: OwnUpload[],
+  pictures: OwnPicture[],
+  eventId: string,
+): Promise<(OwnUpload & { picture?: OwnPictureLink })[]> {
+  if (pictures.length === 0) return items;
+  const minted = await Promise.allSettled(
+    pictures.map(async (p): Promise<[string, OwnPictureLink]> => [
+      p.id,
+      {
+        type: p.type,
+        at: Date.parse(p.created_at),
+        tile: await presignDownload({
+          key: p.preview_key ?? p.original_key,
+          stable: true,
+        }),
+      },
+    ]),
+  );
+  const links = new Map<string, OwnPictureLink>();
+  for (const result of minted) {
+    if (result.status === "fulfilled") links.set(...result.value);
+    else {
+      captureError("media", result.reason, {
+        seam: "own_picture_presign",
+        eventId,
+      });
+    }
+  }
+  return items.map((item) => {
+    const picture = links.get(item.id);
+    return picture ? { ...item, picture } : item;
+  });
+}
+
+/** The camera's roll for this viewer (her ticket as far as it is hers, and her account), else null. */
+async function rollOf(
+  event: GuestEvent,
+  ticket: string | null,
+  userId: string | null,
+): Promise<RollCount | null> {
+  if (event.capture !== "camera" || (!ticket && !userId)) return null;
+  const gate = await getUploadGate({
+    eventId: event.id,
+    sessionToken: ticket,
+    userId,
+  });
+  return gate.roll ?? null;
 }
 
 async function answerKept(

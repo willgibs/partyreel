@@ -41,6 +41,8 @@ export type ErrorCode =
   | "limit_reached"
   | "insufficient_space"
   | "event_limit"
+  // the camera (20261002200000): a guest's roll has no frame left, or her period no retake
+  | "roll_spent"
   // event lifecycle
   | "event_deleted"
   | "event_gone"
@@ -96,6 +98,7 @@ export const FALLBACK_MESSAGES: Record<ErrorCode, string> = {
   limit_reached: "You've reached your plan's limit.",
   insufficient_space: "There isn't enough space left to do that.",
   event_limit: "You've reached your plan's event limit.",
+  roll_spent: "You've taken every shot on your roll.",
   event_deleted: "That event has been deleted.",
   event_gone: "That event is no longer available.",
   verification_required: "Confirm your email to join this event.",

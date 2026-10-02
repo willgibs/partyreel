@@ -976,9 +976,11 @@ had" holds only when this device holds a guest ticket a claim would move.
   asleep past the 90-minute expiry answers a CORS-shaped failure with no status) and re-mints only the ids
   whose picture failed, at most once a minute each, never in the demo.
 - **The doorbell:** the `media_gallery_doorbell` DB trigger sends a contentless `ping` on the PUBLIC
-  Realtime broadcast channel `gallery:<qr_token>` whenever the approved-visible set changes (uploads,
-  moderation flips, restores, purges — pending/hidden-internal transitions stay silent). The token IS the
-  channel capability; the ping carries no data, the refetch is access-gated server-side.
+  Realtime broadcast channel `gallery:<qr_token>` whenever what a guest's album shows changes: the visible set
+  (uploads, moderation flips, restores, purges) or what waits (a held upload, its approval or refusal, a row sealed
+  for the develop: their count rides the sync, [disposable-mode.md](disposable-mode.md)); hidden-internal
+  transitions stay silent. The token IS the channel capability; the ping carries no data, the refetch is
+  access-gated server-side.
   Client: [`use-gallery-doorbell.ts`](../../src/lib/guest/use-gallery-doorbell.ts) + a leading-edge
   coalescer ([`refresh-coalescer.ts`](../../src/lib/guest/refresh-coalescer.ts): immediate refetch, ~2 s
   suppression + jitter, one trailing flush for bursts).

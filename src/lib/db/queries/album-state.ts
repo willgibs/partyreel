@@ -12,6 +12,7 @@ import "server-only";
 
 import { inChunks } from "@/lib/db/read-all";
 import { mustQuery } from "@/lib/db/must-query";
+import { parseWaitingFacts, type WaitingFacts } from "@/lib/disposable/facts";
 import {
   parseAlbumRead,
   type AlbumRead,
@@ -85,6 +86,33 @@ export async function readAlbumChanges(
     "album: changes since",
   );
   return parseAlbumRead(data);
+}
+
+/**
+ * `album_changes_since` for the GUEST album, with what waits read in the same snapshot (20261002200000: scope `album`
+ * answers `waiting: {count, minutes}`, the rows held for the host and the rows sealed for the develop, together). One
+ * statement, so the facts are exactly the album at the versions beside them; a reader before the migration answers
+ * none (`parseWaitingFacts`).
+ */
+export async function readGuestAlbumChanges(
+  eventId: string,
+  after: number,
+  limit: number,
+): Promise<{ read: AlbumRead; waiting: WaitingFacts }> {
+  const data = await mustQuery(
+    createAdminClient().rpc("album_changes_since", {
+      p_event_id: eventId,
+      p_scope: "album",
+      p_after: after,
+      p_limit: limit,
+    }),
+    "album: changes since",
+  );
+  const waiting =
+    data && typeof data === "object" && !Array.isArray(data)
+      ? (data as Record<string, unknown>).waiting
+      : null;
+  return { read: parseAlbumRead(data), waiting: parseWaitingFacts(waiting) };
 }
 
 /**
