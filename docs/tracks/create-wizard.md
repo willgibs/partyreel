@@ -1,6 +1,6 @@
 ---
 track: create-wizard
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "10705484"            # the launch-prep SHA the branch was cut from
 board: create-wizard
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -64,25 +64,90 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- Do `mode` and `hand` wait on `shape` (`after`)? Built: no. Each is its own decision in any shape and draws in whatever
+  shape the board holds (his pick once made, the room until then), so a shape he leaves open (the broadest ask, the
+  likeliest to come back as a note, as `disposable-mode`'s camera did and held two asks with it) holds nothing out of
+  the walk. Overrule: stage both after `shape`, so they are only ever judged in his shape.
+- Does `shape` draw today's wizard as an option? Built: no; he asked for the redesign, so the three are real contenders
+  and each frame's caption counts the words a host reads instead. Overrule: a fourth option, today's screens as built.
+- Which mode is picked as the camera's step opens? Built: the album (a new event's mode until she picks), the camera
+  one press away.
+- How would the `scan` beat know the code opened? Built at rest: the wiring reads the event's link opens while the beat
+  is open, the same light read ROADMAP's checklist line asks for (`event_link_totals` while the code row waits).
+- The three carried calls (`sample`, `defaults`, `room`) are on the board, each built on its taken answer.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none (a lab board: no production byte, no system fact moved)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now, the lab and the kit: a portalled frame carries no glow filter host (`GlowFilter` mounts once, in the root
+  layout, which is the lab page's document: the page holds `#glw-warp` and a frame's document does not, measured), so
+  a board cannot draw production's `Glow`, `SectionLight` or `ScreenLamp` in a frame and draws its light as plain
+  gradients instead (`create-wizard.css`); a filter host mounted in each portalled frame would let a board draw the real
+  light (from `create-wizard`).
+- Now, tests: `src/components/social/relation-toggle.test.tsx`'s "every other flip acts at once" failed once in a loaded
+  full run (no call to the follow spy at 1,048 ms) and passed alone 3 of 3 and on the rerun; more room in its wait, or
+  fake timers, would steady it (from `create-wizard`).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed on `lp/create-wizard`:** `757fb973` (the board), `9cd90ab8` (fitted and lit), `28309924` (the
+  compare and the beat unstaged from the shape), then this manifest. No sync: launch-prep moved to `6755a2a5`
+  (mkt-wiring, door-wiring, build 40, records), touching none of this lane's `reads` nor any file the board imports,
+  and `git merge-tree` merges it clean.
+- **Gates on `28309924`, each its own exit code** (`../partyreel-wt/_scratch/create-wizard/gate-final.log`, a log per
+  step beside it): typecheck 0; lint 0; test 0 (740 files, 8,784 tests; `final-test.log`); build 0 under the lock
+  (`final-build.log`); `lab:smoke --base http://localhost:3134` 0 (5 checks, 0 failing, the board's reading 669 of
+  1,200 words; `final-smoke.log`); `lab:demo --board create-wizard` 0 (3 steps, 0 failing, measured at 1440 and 375
+  under reduced motion; `final-demo.log`), and 0 again wearing `--state screen=1440` (`final-demo-1440.log`). The
+  first full test run on `9cd90ab8` failed only the social flake above (`gate.log`); its rerun was green.
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = the ten files of
+  `src/app/(dev)/design/sandbox/create-wizard/` + this file; no exceptions.
+- **The board** (`create-wizard`, host, desk 60): three decisions over Maya & Jay's wedding, every option drawn at a
+  phone and a laptop (the Screen knob, 375 by default) from production's atoms (`Button`, `Logo`, `Avatar`, `Container`,
+  `PhoneShell`, `StyledQr`) and production's readiness (`readiness(newEventFacts(...))`, `readyHead`,
+  `SETTINGS_GROUP_TITLES`, so the beat's rail is the call the wizard makes). Each caption reads the words a host reads
+  on that screen (pictures' own type aside), the picture's size and where the action sits.
+- **`shape`** (recommends `screen`): a quiet card in the app; a room of its own (the whole screen, dark in both themes,
+  a hairline of four, one button at the thumb, the light a seam at its foot); a studio (the steps stacked and folding to
+  their answers beside a stage where the code and a guest's phone change as she picks). Four screens each; words read,
+  measured: the room 7 / 27-37 / 16-20 / 43-55, the card 11 / 34-38 / 21 / 47, the studio 18-25 / 39-46 / 22-29 / 61-74.
+- **`mode`** (recommends `night`, his `create=cards` redrawn, named in `opening.earlier`): two pictures of a guest's
+  phone with a line each and the camera's two defaults once picked, plus the deeper compare three ways: rows unfolding
+  under the cards; a slider moving both cards from 8 pm to the party to 9 am; both nights as six pictures in a sheet.
+- **`hand`** (recommends `scan`): what stands beside the code, Settings' rail of five always under it: the code alone
+  and lit; the code asking for a scan (Open it as a guest on a phone), then ticked ("The code works", Ready for guests,
+  3 of 5); the code beside a phone showing what a guest opens, in the album and in the camera.
+- **What a drawing is not:** the camera, its waiting room and its premiere are plain stand-ins in `disposable-mode`'s
+  settled numbers (24 shots, 9 am), never deciding r3's camera; the photographs are the marketing stills; the light is
+  gradients in the lamp hues (the Deferred line above); nothing is wired.
+- **Assets requested from Will:**
+  - Maya & Jay's wedding as a guest's album · 12 photographs of one wedding's night, one grade, 1080x1350 (4:5) JPEG;
+    each legible as a 50 px square (the rows crop them 1:1), one surviving a 16:9 crop with "Highlight reel" on a dark
+    fade at its bottom left; ceremony to dance floor · replaces `ALBUM_STILLS` in
+    `sandbox/create-wizard/fixtures.ts` (the marketing stand-ins), then the camera step's album pictures in the wiring
+  - The venue before anyone shoots, as the camera's viewfinder · 1 photograph, 1080x1350 (4:5), early evening, its top
+    and bottom fifths quiet (the event's name and the develop time over the top, a shutter ring at the bottom centre)
+    · replaces `ARRIVING` (`wedding-arch`) in the same file; row 35's six disposable stills serve the developed roll
+    (`VIEWFINDER`) once delivered
+- **Board ideas:**
+  - The printed table cards print the Classic shape whatever style Create picked (`print-stock.tsx`'s `FooterQr`, a
+    documented trade), so the style step introduces a look the table never wears; a DOM-free renderer for the four
+    presets (their finder and dot shapes as paths) would let paper wear it.
+  - The style step's sample link (`/e/` and 32 zeros) opens a 404; a page of its own that says it is a sample would let
+    the step drop even its one word (the `sample` call's overrule).
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none.
+- **Calls his to overrule:**
+  - `shape=screen`: a once-an-event moment earns the whole screen (the card if Create should feel part of the app).
+  - `mode=night`: the two differ most in when everyone sees the photos (the sheet if both nights should show whole).
+  - `hand=scan`: a new event lacks only an opened code (the code alone, lit, if the beat stays one quiet look).
+  - `sample`: one word, Sample, on the code's plate in place of today's sentence.
+  - `defaults`: two of the camera's defaults in Create (24 shots, develops 9 am); the look waits on `disposable-mode`'s
+    save.
+  - `room`: the room is dark in a light session too.
+  - Nothing staged (Questions, first line); no today option (Questions, second line).
+- **Look at first:** `/design/lab/create-wizard?session=create-wizard.shape` (the room's four screens at a phone, then
+  1440 on the knob), then `create-wizard.mode`'s "The cards, playing the night" slid to the morning, then
+  `create-wizard.hand`'s "The code, asking for a scan" and its opened frame.
