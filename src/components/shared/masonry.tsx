@@ -202,9 +202,11 @@ function photoHref(id: string | null): string {
 }
 
 /**
- * Whether the window stands on another place's entry (a phone's screen-shaped
- * popup over the viewer: the credit's look, a report): the viewer's own entry
- * is the one beneath it, and its marker is not this entry's to write.
+ * Whether the window stands on another place's entry (a popup that is a place
+ * in a hand, over the viewer: the credit's look, a sheet, `isPlaceShape` in
+ * `ui/popup-kinds.ts`; a question, a confirm or the report form, holds none):
+ * the viewer's own entry is the one beneath it, and its marker is not this
+ * entry's to write.
  */
 function standsOnAPopup(): boolean {
   const state = window.history.state as Record<string, unknown> | null;
@@ -669,7 +671,7 @@ export function MasonryColumns<T extends GridMedia>(props: {
     if (!photoAddress) return;
     stopStep();
     addressTimer.current = setTimeout(function rest() {
-      // A popup the viewer opened meanwhile (the credit's look, a report) stands on an entry of its own: the
+      // A place the viewer opened meanwhile (the credit's look) stands on an entry of its own: the
       // address is the viewer's entry's to move, so it waits the popup out.
       if (standsOnAPopup()) {
         addressTimer.current = setTimeout(rest, ADDRESS_STEP_QUIET_MS);
@@ -785,7 +787,12 @@ export function MasonryColumns<T extends GridMedia>(props: {
      closes the viewer as its own X does (or at once where the browser drew its own transition), with the
      entry already gone; one that lands on a photograph's address with no viewer standing (Forward onto a
      viewer's entry) opens it where it stands, fading in, in the grid that last held one. A popup over the
-     viewer going Back over its own entry lands on the same photograph and moves nothing. */
+     viewer going Back over its own entry lands on the same photograph and moves nothing. ★ NOT ONE
+     PHOTOGRAPH BEHIND, EITHER, WHILE A STEP'S ADDRESS WRITE IS STILL WAITING (crumbs-47): a step waits out a
+     popup before it writes (`addressAfterStep`), and an arrow key behind the look's scrim steps the viewer,
+     which re-keys the credit and takes the look away with its entry, so that Back lands on the viewer's own
+     entry still naming the photograph just left. The viewer has not been left (a Back that leaves it lands
+     off every photograph, `id` null): the write is on its way. */
   useEffect(() => {
     if (!photoAddress) return;
     const onPop = (event: PopStateEvent) => {
@@ -793,6 +800,7 @@ export function MasonryColumns<T extends GridMedia>(props: {
       const shown = shownRef.current;
       if (shown !== null) {
         if (id === shown) return;
+        if (id !== null && addressTimer.current !== null) return;
         shownRef.current = null;
         poppedRef.current = true;
         stopStep();

@@ -205,6 +205,72 @@ describe("a screen in a hand is a place", () => {
   })
 })
 
+/**
+ * ★ THE LOOK IN A HAND IS A PLACE TOO (crumbs-47; build 38's red-team: "on a phone, Back over a credit's look closes
+ * the look AND the viewer in one press"). The look is kind `peek`, whose hand shape is the SHEET, and only the screen
+ * and the cover took the phone's Back, so a look opened over the photograph viewer (which holds an entry of its own)
+ * took none: the Back popped the viewer's, and the viewer closed with the look standing on it. A layer that rises
+ * from the foot over a place holds its entry as a screen does, so Back peels one layer a press. A dialog (a question)
+ * is not a place and holds none, in a hand as at a desk.
+ */
+describe("a sheet in a hand is a place too: the look (crumbs-47)", () => {
+  const marker = () =>
+    (window.history.state as Record<string, unknown> | null)?.[POPUP_HISTORY_MARKER]
+
+  // The window's stack outlives a test: one that went Back left a forward entry, which the next push would drop,
+  // so a count of entries would read one short. Stand on its tip first.
+  beforeEach(() => window.history.pushState(null, ""))
+
+  it("★ holds one history entry while open, and the phone's Back closes it", async () => {
+    setViewportWidth(375)
+    const before = window.history.length
+    const { panel } = mount("peek")
+    await act(async () => {})
+    expect(panel()?.getAttribute("data-shape")).toBe("sheet")
+    expect(window.history.length).toBe(before + 1)
+    expect(marker()).toBeTruthy()
+
+    act(() => window.history.back())
+    await waitFor(() => expect(panel()).toBeNull())
+  })
+
+  it("closed by its own X, it takes its entry back with it, so no dead Back is left to press", async () => {
+    setViewportWidth(375)
+    // The entries of the tests before it stay on the window's stack: what stood here is what must stand again.
+    const was = marker()
+    const { panel } = mount("peek")
+    await act(async () => {})
+    const mine = marker()
+    expect(mine).toBeTruthy()
+    expect(mine).not.toBe(was)
+    const depth = window.history.length
+
+    fireEvent.click(screen.getByRole("button", { name: "Close" }))
+    await waitFor(() => expect(panel()).toBeNull())
+    await waitFor(() => expect(marker()).toBe(was))
+    expect(window.history.length).toBe(depth)
+  })
+
+  it("at a desk, where the look is a card beside the name, it holds none", async () => {
+    setViewportWidth(1024)
+    const before = window.history.length
+    mount("peek")
+    await act(async () => {})
+    expect(window.history.length).toBe(before)
+  })
+
+  it("a question is no place: a confirm and a form hold none in a hand", async () => {
+    setViewportWidth(375)
+    for (const kind of ["confirm", "form"] as const) {
+      const before = window.history.length
+      const { unmount } = mount(kind)
+      await act(async () => {})
+      expect(window.history.length, kind).toBe(before)
+      unmount()
+    }
+  })
+})
+
 describe("a head never says its back arrow's words twice (crumbs-42, from event-settings)", () => {
   // ★ Settings in a hand read "‹ Maya's 30th · Settings" on its bar and "Maya's 30th" again on the line under
   // it: the line is the panel's only naming of the event at a desk, where no arrow is drawn, and pure repetition

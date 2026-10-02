@@ -496,8 +496,10 @@ Glass exploration answers its material.
   screen reader alone (Settings named its event on the arrow and again under the bar); at a desk, where no arrow is
   drawn, the line stays.
   ★ Every shape stands on the keyboard (the Dialog learned the Sheet's rule; a centred shape's `top` is
-  `var(--vv-top) + var(--vv-h) / 2`, exactly `top-1/2` with nothing written). ★ A screen or a cover in a hand is a place
-  the phone's Back closes (`ui/popup-back.ts`, on `lib/history-entry.ts` with the hub's sheets and the reel: one same-URL
+  `var(--vv-top) + var(--vv-h) / 2`, exactly `top-1/2` with nothing written). ★ A screen, a cover or a sheet (the look's) in
+  a hand is a place the phone's Back closes, so over the photograph viewer (which holds an entry of its own) Back peels a
+  layer a press, the look and then the photograph; a dialog is a question and holds none (`ui/popup-back.ts`, on
+  `lib/history-entry.ts` with the hub's sheets and the reel: one same-URL
   history entry, its marker a field on the state Next merges,
   taken back one tick late so StrictMode's double effect cannot close it; where a router refresh took the marker, its
   own word that it pushed the entry at this address still takes it back, and never at another address, where a link

@@ -17,6 +17,25 @@ import type { QueueItem } from "@/lib/guest/use-upload-queue";
 
 export type { UploadedItem } from "@/lib/guest/use-upload-queue";
 
+/**
+ * ★ THE FAILURES THE QUEUE ALREADY HELD WHEN THIS SLOT MOUNTED WITH NOTHING RUNNING, which it never saw happen
+ * (crumbs-47). The slot stands only at full access, so a gate takes it down and the page's queue outlives it: a
+ * file refused while it was gone, or refused again as a Retry went up while the page re-gated, is still an error
+ * when the slot mounts afresh, and was reported by whoever stood there (the door's own step) or by nobody.
+ * They are held by the ITEM, never its id: the queue replaces an item on every change, so one sent again and
+ * refused again is a new object and is the run's own.
+ *
+ * A slot that mounts MID-RUN carries nothing: the run it joins is the door's, handed over when its first file
+ * landed, and what failed before the handoff is this slot's to report when it ends (the door's step hides its
+ * failures while a run is going).
+ */
+function carriedFailures(items: readonly QueueItem[]): ReadonlySet<QueueItem> {
+  const running = items.some(
+    (it) => it.status === "queued" || it.status === "uploading",
+  );
+  return new Set(running ? [] : items.filter((it) => it.status === "error"));
+}
+
 export type GuestUploadHandle = {
   /**
    * Open the ADD SHEET (the row's Add, the dock's Add, the empty album's CTA),
@@ -131,10 +150,19 @@ export function GuestUpload({
      opens the sheet (running -> not running), so a guest who dismissed it is
      never shown it again by an unrelated re-render, and a Retry that starts the
      queue again earns a fresh one when that run ends.
+
+     ★ AND IT OPENS ON WHAT FAILED IN FRONT OF THIS SLOT, never on any error the
+     queue happens to hold (crumbs-47): a failure carried in from before the slot
+     mounted (`carriedFailures`) is not this run's, so a clean run after a gate
+     never reopens the OLD sheet, with its Retry for a file the host's switch
+     refused an hour ago.
      ──────────────────────────────────────────────────────────────────────── */
   const [failuresOpen, setFailuresOpen] = useState(false);
   const wasRunning = useRef(false);
-  const failures = items.filter((it) => it.status === "error");
+  const [carried] = useState(() => carriedFailures(items));
+  const failures = items.filter(
+    (it) => it.status === "error" && !carried.has(it),
+  );
   /**
    * ★ crumbs-6, one line into a lane it does not own, why: the exact register's failure heading
    * ("N of SENT didn't upload", `failure-sheet.tsx`'s `uploadFailureHeading`) needs the whole
@@ -163,14 +191,35 @@ export function GuestUpload({
     if (
       wasRunning.current &&
       !running &&
-      items.some((it) => it.status === "error")
+      items.some((it) => it.status === "error" && !carried.has(it))
     ) {
       setFailuresOpen(true);
     }
     wasRunning.current = running;
     prevItemsLen.current = items.length;
-  }, [items]);
+  }, [items, carried]);
   const sentThisRun = items.length - runBaseline;
+  const sheetOpen = failuresOpen && failures.length > 0 && !suppressFailures;
+  /**
+   * ★ THE SLOT GOING AWAY IS A CLOSE TOO (crumbs-47). A gate takes the slot down (`event-experience.tsx`
+   * mounts it only at full access), sheet and all, with no `onOpenChange(false)` for `closeFailures` to
+   * dismiss through; the failures it was listing stayed in the queue, unseen, for the next run's end to
+   * resurface. What the open sheet lists is kept in a ref for the one moment it cannot say so itself (read in
+   * the cleanup, never in render), and goes the way every other close sends it. `onFailuresClosed` is not
+   * called: the page re-gated by its own refresh, which is why the slot is going.
+   */
+  const listed = useRef<string[]>([]);
+  const dismissListed = useRef(onDismiss);
+  useEffect(() => {
+    listed.current = sheetOpen ? failures.map((it) => it.id) : [];
+    dismissListed.current = onDismiss;
+  });
+  useEffect(
+    () => () => {
+      if (listed.current.length > 0) dismissListed.current(listed.current);
+    },
+    [],
+  );
   /**
    * "Not now" AND every other way the sheet closes (backdrop, Escape, the X)
    * all funnel through this one `onOpenChange` — Retry-all closes through it
@@ -214,7 +263,7 @@ export function GuestUpload({
         acceptsVideo={event.accepts_video}
       />
       <UploadFailureSheet
-        open={failuresOpen && failures.length > 0 && !suppressFailures}
+        open={sheetOpen}
         onOpenChange={closeFailures}
         failures={failures.map((it) => ({
           id: it.id,
