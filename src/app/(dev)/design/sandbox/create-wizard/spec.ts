@@ -62,7 +62,7 @@ export const CREATE_WIZARD = defineExploration({
     earlier: [
       "The camera's step redraws your disposable-mode pick, create=cards: 'The pictures help immediately visualize the distinct experiences.'",
       "Its note: '...with light copy to clearly define. Should also have an option to compare more deeply somehow.'",
-      "'The entire create wizard, including this screen, needs to be redesigned and polished. Lots going on.'",
+      "'...the entire create wizard, including this screen, needs to be redesigned and polished. Lots going on.'",
       "'Many parts could be reshaped into more minimal yet high-info-conveyance UI, very text heavy right now.'",
       "This round's direction: bespoke and experiential, sleek, sophisticated with no tilt, the media and the light as the colour.",
     ],
@@ -242,7 +242,7 @@ export const CREATE_WIZARD = defineExploration({
           id: "lit",
           label: "The code alone, lit",
           means:
-            "The code is the whole moment, large, with light falling from it, Print and Share under it, and Settings' rail below.",
+            "The code is the whole moment, at its largest, lit from below on a dark ground; Print and Share under it, Settings' rail below.",
           gains:
             "Nothing competes with the code, and the rail shows exactly where Get it ready goes.",
           costs:

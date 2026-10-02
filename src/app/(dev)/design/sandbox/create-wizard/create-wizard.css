@@ -109,6 +109,35 @@
   filter: blur(22px);
 }
 
+/*
+  The chosen picture's spill, in a room: the card she picked throws a soft
+  light down onto the floor under it, so the pick reads as lit rather than
+  boxed. The room is dark in both themes, so the fence above holds by itself.
+*/
+.cw-chosen {
+  position: relative;
+  isolation: isolate;
+}
+.cw-chosen::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 78% -14% -22% -14%;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      46% 50% at 38% 30%,
+      color-mix(in oklch, var(--lamp-2) 34%, transparent),
+      transparent 74%
+    ),
+    radial-gradient(
+      44% 48% at 64% 34%,
+      color-mix(in oklch, var(--lamp-1) 26%, transparent),
+      transparent 74%
+    );
+  filter: blur(20px);
+}
+
 /* The studio's stage: one soft light from above, so the preview sits in a lit room. */
 .cw-stage {
   background:

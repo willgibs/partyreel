@@ -41,13 +41,7 @@ export const STEP_TITLES: Record<StepN, string> = {
 /* ── the pieces every shape shares ──────────────────────────────────────── */
 
 /** Four hairlines, the steps done and the one she is on filled. */
-export function Progress({
-  at,
-  className,
-}: {
-  at: StepN;
-  className?: string;
-}) {
+export function Progress({ at, className }: { at: StepN; className?: string }) {
   return (
     <span
       data-cw-progress={at}
@@ -169,11 +163,14 @@ export function CardPage({
 export function Room({
   wide,
   at,
+  name,
   actions,
   children,
 }: {
   wide: boolean;
   at: StepN;
+  /** The event being made, quiet beside the close once it has a name (a desk only: a phone's bar has no room). */
+  name?: string;
   actions: Actions;
   children: ReactNode;
 }) {
@@ -192,6 +189,11 @@ export function Room({
         <Button variant="ghost" size="icon-lg" tabIndex={-1} aria-label="Close">
           <X />
         </Button>
+        {wide && name && (
+          <span className="ml-2 truncate text-working text-muted-foreground">
+            {name}
+          </span>
+        )}
         <Progress
           at={at}
           className={cn(
@@ -277,7 +279,10 @@ export function Item({
   return (
     <div
       data-cw-item={state}
-      className={cn("border-b border-border", state === "now" ? "py-5" : "py-3.5")}
+      className={cn(
+        "border-b border-border",
+        state === "now" ? "py-5" : "py-3.5",
+      )}
     >
       <div className="flex items-center gap-3">
         {mark}

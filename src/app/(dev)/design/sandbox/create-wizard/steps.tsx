@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Check,
   ChevronDown,
   ChevronUp,
   Columns2,
@@ -10,7 +11,6 @@ import {
   Smartphone,
   X,
 } from "lucide-react";
-import { Check } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { QR_STYLE_KEYS, type QrStyleKey } from "@/lib/constants/qr-presets";
@@ -40,9 +40,10 @@ import {
 
 /**
  * WHAT EACH STEP HOLDS, whichever shape holds it: the name, the album or the
- * camera with its deeper compare, the code's look, and the beat. `room` says
- * the step stands in a room of its own (bigger, centred), `wide` that the
- * frame is a laptop's.
+ * camera with its deeper compare, the code's look, and the beat. `fit` says
+ * where the step stands (a room of its own, bigger and centred; a card in the
+ * app; the studio's column, beside a stage that draws the code), `wide` that
+ * the frame is a laptop's.
  */
 
 export type Compare = "rows" | "night" | "story";
@@ -67,7 +68,11 @@ export function NameField({ fit, wide }: { fit: Fit; wide: boolean }) {
         data-cw-hero
         className={cn(
           "font-heading text-balance",
-          big ? "mt-5 text-title" : fit === "card" ? "text-section" : "text-page",
+          big
+            ? "mt-5 text-title"
+            : fit === "card"
+              ? "text-section"
+              : "text-page",
         )}
       >
         {EVENT.name}
@@ -77,7 +82,9 @@ export function NameField({ fit, wide }: { fit: Fit; wide: boolean }) {
         aria-hidden
         className={cn(
           "block h-0.5 rounded-full bg-foreground/85",
-          big ? cn("mx-auto mt-5", wide ? "w-[880px]" : "w-full") : "mt-3 w-full",
+          big
+            ? cn("mx-auto mt-5", wide ? "w-[880px]" : "w-full")
+            : "mt-3 w-full",
         )}
       />
     </div>
@@ -94,8 +101,14 @@ const TITLE: Record<Mode, string> = {
 /** Each card's one line, by the hour the night has reached (the night option). */
 const LINE_AT: Record<HourId, Record<Mode, string>> = {
   arrive: { album: "Add from any phone", camera: `${ROLL.shots} shots each` },
-  party: { album: "Seen as they land", camera: `Hidden until ${ROLL.develops}` },
-  morning: { album: "All of it, and the reel", camera: "Revealed, with a premiere" },
+  party: {
+    album: "Seen as they land",
+    camera: `Hidden until ${ROLL.develops}`,
+  },
+  morning: {
+    album: "All of it, and the reel",
+    camera: "Revealed, with a premiere",
+  },
 };
 
 /** Each card's one line where the night does not move (the rows and the story). */
@@ -141,18 +154,26 @@ function ModeCard({
       data-state={on ? "on" : "off"}
       className="flex min-w-0 flex-col text-left"
     >
-      <span
-        className={cn(
-          "relative block overflow-hidden rounded-tile outline-2 outline-offset-[3px]",
-          on ? "outline-foreground" : "outline-transparent",
-        )}
-      >
-        <GuestScreen mode={mode} hour={hour} className="aspect-[4/5] w-full" />
-        {on && (
-          <span className="absolute top-2 right-2 flex size-6 items-center justify-center rounded-full bg-white text-black shadow-lift">
-            <Check className="size-3.5" strokeWidth={3} />
-          </span>
-        )}
+      {/* In a room the chosen picture throws its light down onto the floor
+          (create-wizard.css, `cw-chosen`): the pick is lit, not boxed. */}
+      <span className={cn("block", on && fit === "room" && "cw-chosen")}>
+        <span
+          className={cn(
+            "relative block overflow-hidden rounded-tile outline-2 outline-offset-[3px]",
+            on ? "outline-foreground" : "outline-transparent",
+          )}
+        >
+          <GuestScreen
+            mode={mode}
+            hour={hour}
+            className="aspect-[4/5] w-full"
+          />
+          {on && (
+            <span className="absolute top-2 right-2 flex size-6 items-center justify-center rounded-full bg-white text-black shadow-lift">
+              <Check className="size-3.5" strokeWidth={3} />
+            </span>
+          )}
+        </span>
       </span>
       <span
         className={cn(
@@ -186,7 +207,7 @@ function Rows({ gap }: { gap: string }) {
           data-cw-row
           className={cn("grid grid-cols-2 border-t border-border py-2.5", gap)}
         >
-          <span className="col-span-2 mb-1 text-micro font-medium tracking-[0.06em] text-muted-foreground uppercase">
+          <span className="col-span-2 mb-1 text-label font-medium text-muted-foreground uppercase">
             {label}
           </span>
           <span className="text-sm">{a}</span>
@@ -233,8 +254,8 @@ function Night({ hour }: { hour: HourId }) {
   );
 }
 
-/** Both nights as a story (`story`), in a sheet over the step. */
-function Story({ wide }: { wide: boolean }) {
+/** Both nights side by side (`story`), in a sheet over the step. */
+function BothNights({ wide }: { wide: boolean }) {
   const modes: Mode[] = ["album", "camera"];
   return (
     <>
@@ -402,9 +423,7 @@ export function ModeChoice({
           className={cn("text-muted-foreground", room ? "mt-6" : "mt-4")}
         >
           {compare === "rows" ? (
-            <>
-              Compare {open ? <ChevronUp /> : <ChevronDown />}
-            </>
+            <>Compare {open ? <ChevronUp /> : <ChevronDown />}</>
           ) : (
             <>
               <Columns2 /> See both nights
@@ -413,7 +432,7 @@ export function ModeChoice({
         </Button>
       )}
       {compare === "rows" && open && <Rows gap={gap} />}
-      {compare === "story" && open && <Story wide={wide} />}
+      {compare === "story" && open && <BothNights wide={wide} />}
     </div>
   );
 }
@@ -532,11 +551,9 @@ function ScanAsk({
         >
           <Check className="size-5" strokeWidth={3} />
         </span>
-        <p className="mt-3 font-heading text-subsection">
-          Opened on your phone
-        </p>
+        <p className="mt-3 font-heading text-subsection">The code works</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          That&rsquo;s what your guests will see.
+          What you just saw is what guests will see.
         </p>
       </div>
     );
@@ -605,7 +622,13 @@ export function Beat({
   );
   const row = wide;
   // Settings' rail: a row in a room at a desk, two columns in a card at a desk, else a column.
-  const rail = wide ? (room ? "row" : fit === "card" ? "grid" : "column") : "column";
+  const rail = wide
+    ? room
+      ? "row"
+      : fit === "card"
+        ? "grid"
+        : "column"
+    : "column";
   return (
     <div
       className={cn(
@@ -644,7 +667,9 @@ export function Beat({
           <ScanAsk scanned={scanned} wide={wide} left />
         </div>
       )}
-      <div className={cn(code ? (room ? "mt-7" : "mt-6") : "", !wide && "w-full")}>
+      <div
+        className={cn(code ? (room ? "mt-7" : "mt-6") : "", !wide && "w-full")}
+      >
         <Doors wide={wide} />
       </div>
       <div

@@ -8,13 +8,7 @@ import { cn } from "@/lib/utils";
 
 import { EVENT, REAL_LINK, SAMPLE_LINK } from "./fixtures";
 import { CodePlate, GuestPhone, type Mode } from "./pictures";
-import {
-  CardPage,
-  Item,
-  Room,
-  type StepN,
-  Studio,
-} from "./shells";
+import { CardPage, Item, Room, type StepN, Studio } from "./shells";
 import {
   Beat,
   type Beside,
@@ -145,7 +139,12 @@ export function WizardScreen({
       );
     if (moment.step === 2)
       return (
-        <Room wide={wide} at={2} actions={{ back: true, go: "Continue" }}>
+        <Room
+          wide={wide}
+          at={2}
+          name={EVENT.name}
+          actions={{ back: true, go: "Continue" }}
+        >
           <ModeChoice
             compare={compare}
             picked={moment.picked}
@@ -157,7 +156,12 @@ export function WizardScreen({
       );
     if (moment.step === 3)
       return (
-        <Room wide={wide} at={3} actions={{ back: true, go: "Create event" }}>
+        <Room
+          wide={wide}
+          at={3}
+          name={EVENT.name}
+          actions={{ back: true, go: "Create event" }}
+        >
           <StylePick fit="room" wide={wide} />
         </Room>
       );

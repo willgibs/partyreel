@@ -156,7 +156,11 @@ function AlbumAt({ hour }: { hour: HourId }) {
 function TickRing({ left }: { left: number }) {
   const taken = ROLL.shots - left;
   return (
-    <svg viewBox="0 0 100 100" className="absolute inset-0 size-full" aria-hidden>
+    <svg
+      viewBox="0 0 100 100"
+      className="absolute inset-0 size-full"
+      aria-hidden
+    >
       {Array.from({ length: ROLL.shots }, (_, i) => {
         const a = (i / ROLL.shots) * Math.PI * 2 - Math.PI / 2;
         const r1 = 44;

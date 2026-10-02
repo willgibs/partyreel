@@ -193,7 +193,7 @@ function handPreview(s: BoardState, beside: Beside) {
         <Screen
           {...common}
           id={`cw-hand-${beside}-opened`}
-          title={`${name}: her phone has opened it`}
+          title={`${name}: once the code has opened`}
           moment={{ step: 4, scanned: true }}
           read={readBeat}
         />
