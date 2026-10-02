@@ -38,6 +38,7 @@ import {
   type NextStep,
   resolveNextSteps,
 } from "@/lib/dashboard/next-step";
+import { uploadsLabel } from "@/lib/events/visibility-labels";
 import { formatCount } from "@/lib/format/count";
 import { GLASS_MARK } from "@/lib/glass";
 import { cn } from "@/lib/utils";
@@ -292,7 +293,8 @@ export function Dashboard({
                     }
                     dateLabel={e.dateLabel}
                     itemsLabel={`${formatCount(e.approved)} ${e.approved === 1 ? "item" : "items"}`}
-                    statusLabel={e.acceptingUploads ? "Open" : "Closed"}
+                    // Paused, never Closed (the door's word): production's one helper says it.
+                    statusLabel={uploadsLabel(e.acceptingUploads)}
                     // Today's card keeps its own amber chip; a candidate's line takes the slot.
                     pendingCount={variant === "quiet" ? e.pending : 0}
                     qrSlot={

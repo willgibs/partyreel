@@ -31,9 +31,11 @@ import { stopLinks } from "./scene";
  * step (`perRowFor`), the gallery's 4 px gap, over the stills' declared
  * shapes, so the first row breaks where the real album would break it.
  *
- * ★ THE WELCOME IS QUOTED, NEVER OPENED: `RoleStep` (`entry-modal.tsx`), the
+ * ★ THE WELCOME IS QUOTED, NOT OPENED: `RoleStep` (`entry-modal.tsx`), the
  * demo's own arrival, in the door's sheet at a phone's foot over the album's
- * lit scrim. A real Sheet would portal to the lab page, not the phone.
+ * lit scrim. A portalled `Frame` hands a Sheet its own body now
+ * (`portal-container.tsx`), so a real one would land in the phone; mounting
+ * production's own is ROADMAP's line.
  */
 
 /** The words' column and the album's box, `event-experience.tsx`'s own. */

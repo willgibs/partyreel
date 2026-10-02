@@ -17,14 +17,15 @@ import { SCREENS, type ScreenId } from "./knobs";
  * room's screen is a 16:9 wall.
  *
  * ★ NOTHING HERE REACHES A SESSION, A SERVER FUNCTION, THE CAMERA OR THE
- * NETWORK, AND NOTHING MOUNTS A RADIX PORTAL. A Dialog, Sheet or Popover
- * opened inside a portalled frame renders on the LAB PAGE's document, not the
- * phone being judged, so every floating surface here is QUOTED: the shipped
- * classes and postures, never the primitive. `fixed`, never `absolute`, for
- * anything pinned to the screen: the frame IS the viewport. Every camera's
- * live picture is a photograph standing in for the stream (a frame asking for
- * the reader's camera would be a permission prompt on a design review; the
- * dock's Measure is the one place the board asks, and only when pressed).
+ * NETWORK, AND EVERY FLOATING SURFACE IS QUOTED, NOT MOUNTED: the shipped
+ * classes and postures, never the primitive. A portalled `Frame` hands a
+ * Dialog, Sheet or Popover its own body now (`portal-container.tsx`), so one
+ * opened here lands in the phone; mounting production's own is ROADMAP's
+ * line. `fixed`, never `absolute`, for anything pinned to the screen: the
+ * frame IS the viewport. Every camera's live picture is a photograph standing
+ * in for the stream (a frame asking for the reader's camera would be a
+ * permission prompt on a design review; the dock's Measure is the one place
+ * the board asks, and only when pressed).
  *
  * ★ EVERY CAPTION IS READ OFF THE FRAME, NEVER ASSERTED: where the shutter
  * sits for a thumb, what the count says, how many steps Create takes, what an

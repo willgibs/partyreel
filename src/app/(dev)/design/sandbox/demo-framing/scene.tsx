@@ -14,9 +14,10 @@ import { Fit, Frame, Measured } from "@/components/lab";
  * THE ONE FRAME EVERY DECISION DRAWS IN: a real viewport at a real width, the
  * real marketing and guest pieces portalled into it (the kit's `Frame`, a
  * same-origin iframe). Nothing here reaches a session, a Server Function or
- * the network, and nothing mounts a Radix portal: a Dialog or Sheet opened in
- * a portalled frame renders on the lab page's document, not the screen being
- * judged, so the demo's welcome sheet is QUOTED, never opened.
+ * the network, and the demo's welcome sheet is QUOTED, not opened: a portalled
+ * frame hands a Radix layer its own body now (`portal-container.tsx`), so a
+ * real one would land in the screen; mounting production's own is ROADMAP's
+ * line.
  *
  * ★ A SCREEN IS THE DEVICE'S OWN SCREEN (1440 by 900, 375 by 812): the hero
  * is exactly one screen tall, so its air and the object's place are only true

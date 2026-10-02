@@ -46,9 +46,12 @@ import type { ScreenId } from "./scene";
  * the settings kind's two shapes, a panel from the right at a desk and the
  * whole screen under a back arrow in a hand.
  *
- * The panel itself is quoted rather than opened: the real `Popup` portals to
- * the lab's page, not the frame being judged. Its head, body and widths are
- * the kind's own (`popup.tsx`, `floating-layer.ts`'s `panel` and `screen`).
+ * The panel itself is quoted rather than opened: its head, body and widths are
+ * the kind's own (`popup.tsx`, `floating-layer.ts`'s `panel` and `screen`),
+ * kept by hand. A portalled `Frame` hands a Radix layer its own body now
+ * (`portal-container.tsx`), so production's `Popup` could mount here, but it
+ * picks its shape off the LAB's window (`useMediaQuery`), so on a laptop a 375
+ * frame would still open the desk's panel. Mounting it is ROADMAP's line.
  *
  * ★ THE STEPS ARE THE CHECKLIST, IN SETTINGS' OWN WORDS: the four groups in
  * the order a guest meets them, each ticked by the same function that ticks
@@ -142,11 +145,12 @@ export function SettingsPanel({
             </span>
             <span aria-hidden />
           </div>
-          {up ? null : (
-            <p className="px-4 pb-3 text-sm text-pretty text-muted-foreground">
-              {"Maya's 30th"}
-            </p>
-          )}
+          {/* ★ A LINE THAT REPEATS THE ARROW IS NOT DRAWN, ONLY HEARD (`popup.tsx`'s
+              `echoesArrow`, crumbs-42). Settings gives the event's name as both
+              its description and its back label, so in a hand the arrow already
+              says it and the line stays for a screen reader. A page one level in
+              has no description. */}
+          {up ? null : <p className="sr-only">{"Maya's 30th"}</p>}
         </div>
         <div className="min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-contain px-4 pt-4 pb-6 *:shrink-0">
           {children}
