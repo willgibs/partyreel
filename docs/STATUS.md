@@ -13,23 +13,20 @@ and the launch switches unspent ([`ROADMAP.md`](ROADMAP.md) → Launch checkpoin
 catalog in the lab, Will's verdicts on the desk, then the wiring; partyreel.com changes only at tagged milestone merges.
 Nothing is protected: every page, the host app and the guest pages are open to be reconceived from the ground up.
 
-## The current round: batch 10, toward his sitting
+## The current round: round 11, built from his desk
 
-- **Milestone 32 is live** (`21697db1`, 2026-10-01): batch 9 whole (crumbs-28 to crumbs-40, crumbs-45, hide-strikes,
-  demo-stall), red-teamed on builds 33 to 36 and build 36's one MEDIUM fixed and proven on build 37: the instant
-  hide's three strikes, a shared phone's one ticket per account, My uploads and My likes past 200 with faces in the
-  credits, the album log pruned under watermarks, every published claim made true. The legal text is rewritten once,
-  right before launch (his word).
-- **Batch 10 is merged on `launch-prep`** (Will, 2026-10-01: finish the round, then he answers the desk once, on settled
-  production): crumbs-41 to crumbs-44, strip-gaps, export-ends (and its Worker), lab-sitting and mkt-polish, their seven
-  migrations applied by protocol (the Advisor's Q7: all as written). Build 38 carries them to the alias for its red-team
-  and one pass of the desk against it; then his sitting. No new lane until his paste.
+- **Milestone 32 is live** (`21697db1`, 2026-10-01): batch 9 whole, red-teamed on builds 33 to 37. The legal text is
+  rewritten once, right before launch (his word).
+- **Batch 10 and round 11 are on `launch-prep`**, unshipped to partyreel.com (a milestone is his yes): batch 10's eight
+  lanes (their seven migrations applied), then round 11 from his desk answers of 2026-10-02 (no migration): the doorway
+  as the door family, event-ready's checklist and Settings steps, the privacy lens and the press band, /me, the lab's
+  prefetch and two guest fixes, red-teamed on build 40 (no MEDIUM or worse).
 
 ## The desk
 
-Six boards, made true of production on build 31 (a re-read of every claim they make): `locked-door` r2 (four asks),
-`event-ready` r1 (five), `privacy-hero` r4 (one: which veil), `disposable-mode` r2 (eight), `demo-framing` r2 (three)
-and `about-press` r1 (two), in that order.
+Seven boards for his next sitting, in desk order: `identity` r1 (the app's atomic identity, from his library prompt),
+`host-dashboard` r1, `locked-door` r3 (the reveal and the idle loop), `event-header` r1, `create-wizard` r1,
+`disposable-mode` r3 and `demo-framing` r3 (his hero hybrid), each drawn from the production tonight's wirings left.
 
 ## Live state
 
