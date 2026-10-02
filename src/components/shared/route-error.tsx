@@ -35,7 +35,7 @@ type RouteErrorProps = {
  * and the reset in one transition, the docs' own choice over `reset`), so the page is drawn again from what the server
  * answers now. And while it is asked for, the button says so and waits, the album card's words and behaviour
  * (`album-boundary.tsx`): a retry that crashes again is seen to have been tried. Every crash screen's one button: the
- * five groups' and the root's through `RouteError`, the marketing site's through its own screen; `global-error`,
+ * route groups' and the root's through `RouteError`, the marketing site's through its own screen; `global-error`,
  * which may import nothing of the kit, draws the same two words itself.
  */
 export function TryAgain({ retry }: { retry: () => void }) {
@@ -49,8 +49,8 @@ export function TryAgain({ retry }: { retry: () => void }) {
 
 /**
  * THE QUIET LINE, worded for the surface that crashed (Will, `ways-out=guided`,
- * 2026-09-19). Module-local on purpose: the five `error.tsx` files stay one line
- * each, which is what keeps five boundaries from drifting into five screens
+ * 2026-09-19). Module-local on purpose: every `error.tsx` stays one line
+ * each, which is what keeps the boundaries from drifting into a screen apiece
  * again, and a new surface adds a row here rather than a paragraph of JSX.
  *
  * The portal's line carries no href: no runbook page exists to point at, and his
@@ -80,9 +80,10 @@ const HELP_BY_AREA: Record<RouteErrorArea, ReactNode> = {
 // crash are one grammar; what stays here is the reporting effect, the digest
 // and the per-surface words around it.
 //
-// ★ captureError STAYS HERE AND NEVER MOVES DOWN. NotFoundScreen draws six 404s
-// as well as these five crashes; a capture inside the primitive would file a
-// Sentry issue for every real not-found in the product.
+// ★ captureError STAYS HERE AND NEVER MOVES DOWN. NotFoundScreen draws the
+// product's dead ends (its head lists them) as well as these crashes; a capture
+// inside the primitive would file a Sentry issue for every real not-found in the
+// product.
 //
 // SECURITY: never renders error.message (server errors can carry internals);
 // the screen is generic by design and the digest is the support correlation

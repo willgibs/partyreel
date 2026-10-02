@@ -12,10 +12,15 @@ import { getAllArticles } from "./help";
  * MDX entities are decoded, so a label that wraps in JSX still matches.
  *
  * Scope: every .ts/.tsx under src/ EXCEPT tests, the help pages (which would
- * match their own rendering), and the MDX components (which quote nothing).
+ * match their own rendering), the MDX components (which quote nothing), and the
+ * lab (`src/app/(dev)/` and its kit, `src/components/lab/`). ★ THE LAB IS NOT
+ * THE PRODUCT (crumbs-49): a board quotes the very strings it proposes to
+ * retire, so a stale label that only a board still quotes would pass while no
+ * control a reader meets says it (help-center's old stub hid "Tap to retry" in
+ * two articles that way).
  */
 const SKIP =
-  /\.test\.tsx?$|\/help\/|mdx-components\.tsx$|\/mdx\/spec-[a-z]+\.tsx$/;
+  /\.test\.tsx?$|\/help\/|mdx-components\.tsx$|\/mdx\/spec-[a-z]+\.tsx$|\/app\/\(dev\)\/|\/components\/lab\//;
 
 function walk(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -41,11 +46,37 @@ function normalize(text: string): string {
   );
 }
 
+describe("the scan reads the product's source and not the lab's", () => {
+  // By path, so it holds whatever the repo contains today: a board's file or
+  // the lab kit's is out, a guest page, a shared component and a lib are in.
+  it.each([
+    "/r/src/app/(dev)/design/sandbox/locked-door/board.tsx",
+    "/r/src/app/(dev)/design/(shell)/library/patterns/gallery-demos.tsx",
+    "/r/src/components/lab/step.tsx",
+    "/r/src/components/guest/door/doors.test.tsx",
+    "/r/src/components/marketing/help/checklist.tsx",
+  ])("skips %s", (path) => {
+    expect(SKIP.test(path)).toBe(true);
+  });
+
+  it.each([
+    "/r/src/components/guest/door/welcome.tsx",
+    "/r/src/app/(guest)/e/[token]/page.tsx",
+    "/r/src/components/shared/not-found-screen.tsx",
+    "/r/src/lib/guest/entry-steps.ts",
+  ])("reads %s", (path) => {
+    expect(SKIP.test(path)).toBe(false);
+  });
+});
+
 describe("every <UiLabel> quotes a shipped app string", () => {
   const files = walk(join(process.cwd(), "src"));
   // Pinned for non-emptiness (the policy-test lesson): an empty walk would
   // make every label "missing" or, worse, every label pass.
   expect(files.length).toBeGreaterThan(300);
+  expect(files.filter((f) => /\(dev\)|\/components\/lab\//.test(f))).toEqual(
+    [],
+  );
   const raw = files.map((file) => readFileSync(file, "utf8")).join("\n");
   // Two views of the same source. The RAW view keeps attributes, because many
   // labels live in aria-label/title props. The TEXT view drops tags, because a

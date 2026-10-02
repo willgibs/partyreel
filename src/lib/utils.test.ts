@@ -3,6 +3,7 @@ import { join } from "node:path";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { runAsGermanRuntime } from "@/lib/test-utils/german-runtime";
 import { formatBytes, formatEventDate, formatMonthYear } from "@/lib/utils";
 
 const MB = 1024 ** 2;
@@ -63,39 +64,11 @@ describe("formatBytes", () => {
  * ★ ONE PINNED DATE FORMAT (crumbs-33, from `hardening`). A date printed in the RUNTIME's locale reads one way on the
  * server and another in a browser that is not en-US, which is a hydration mismatch, and a server page prints
  * whatever its runtime's locale is. Another runtime is simulated here the only way a test can be: every formatting
- * call that names no locale is answered in German, and the process's zone is moved west of UTC. A pinned formatter
- * reads the same through both.
+ * call that names no locale is answered in German (`runAsGermanRuntime`, the one simulation the count tests share),
+ * and the process's zone is moved west of UTC. A pinned formatter reads the same through both.
  */
 describe("the pinned dates", () => {
   const ORIGINAL_TZ = process.env.TZ;
-
-  /** A runtime whose own locale is German: a call that names a locale keeps it. */
-  function runAsGermanRuntime() {
-    const toLocaleDate = Date.prototype.toLocaleDateString;
-    const toLocale = Date.prototype.toLocaleString;
-    vi.spyOn(Date.prototype, "toLocaleDateString").mockImplementation(function (
-      this: Date,
-      locales,
-      options,
-    ) {
-      return toLocaleDate.call(this, locales ?? "de-DE", options);
-    });
-    vi.spyOn(Date.prototype, "toLocaleString").mockImplementation(function (
-      this: Date,
-      locales,
-      options,
-    ) {
-      return toLocale.call(this, locales ?? "de-DE", options);
-    });
-    const RealDateTimeFormat = Intl.DateTimeFormat;
-    vi.spyOn(Intl, "DateTimeFormat").mockImplementation(
-      ((locales?: string | string[], options?: Intl.DateTimeFormatOptions) =>
-        new RealDateTimeFormat(
-          locales ?? "de-DE",
-          options,
-        )) as unknown as typeof Intl.DateTimeFormat,
-    );
-  }
 
   afterEach(() => {
     vi.restoreAllMocks();
