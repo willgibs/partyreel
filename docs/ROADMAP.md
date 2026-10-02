@@ -17,6 +17,11 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Exports: the runtime logs "Uncaught Error: Network connection lost." twice whenever a client leaves a zip mid-stream, reported or not (client-zip's object read left pending); noise in the Worker's log, not a fault (from `export-ends`).
+- Exports: a walk listens by polling `/api/export/status` (about 360 asks over an hour's download, each through the proxy's `getUser()` for a signed-in viewer); a pushed word (SSE) if it ever costs (from `export-ends`).
+- Exports: a walk asks a stopped part again by its ids, so a walk lacking more than 2,000 starts over whole; a re-take by the part's own cursor would be exact (from `export-ends`).
+- Admin: an export whose stream's word never came (the reports lost while the heartbeat beats) shows only as a row reading Started or Checked on `/admin/exports`, never on the bell (from `export-ends`).
+- Exports: Download all's toast could count a part as it goes ("Saving 812 of 2,000"), from a progress report the Worker could send a minute (a board idea from `export-ends`).
 - Media: carry Apple's MakerNote HDR headroom (tags 0x0021 and 0x0030) into the minimal Exif the strip rebuilds, on JPEG and HEIC, so a pre-iOS-18 HDR photo keeps its exact HDR rendering (from `strip-gaps`).
 - Media: `event_covers` is photo only, so a party of video alone has no picture on any card (the dashboard's, the picker's, the profile's, which now says "all video") though each video carries its frame-grab preview; a previewed video as the fallback cover, photos first, is one migration (from `crumbs-44`).
 - Design: `DropdownMenuContent` takes no collision padding, so a menu pushed against the viewport touches the glass (the profile's did at 375); the sub-menu's and the responsive menu's 8px as the panel's default keeps every menu off the edge (from `crumbs-44`).
@@ -92,8 +97,6 @@ below hold the rest by surface.
 - Help: the four email-code screens quote `AccountDoor`'s post-send code view as markup, since no prop reaches it; an exported code view would make them the real piece (from `help-wiring`).
 - Admin: `/admin/help-feedback` could take a last-30-days window beside all time once the counts grow (from `help-wiring`).
 - Marketing: /contact's chips under its search could take /help's drop-from-the-field treatment; the palette already drops there (from `help-wiring`).
-- Exports: a part's "saved" needs the Worker to report a finished stream (a signed call into `export_log`, or a status the walk polls); the walk says "downloading" meanwhile (from `export-wiring`).
-- Admin: `/admin/exports` counts mints only; a check that found objects gone and a stream's skips live in the Worker's logs (`export-check`, `export-stream`), and a report back into `export_log` would put them on the page (from `export-wiring`).
 - Host: the Guests room, always on now and home to the Blocked foot, is still the flat chip list drawn when it was opt-in; how it reads at 200 guests with blocks at its foot is a board (from `safety-wiring`).
 - Guests: a way to ask the host to take a photo down, short of a report: the help article and admin-triage's `steer` both say "ask the host first", and nothing in the product lets a guest ask; a board (from `triage-r2`).
 - Admin: an operator release for a squatted custom link, from a report on `/e/<slug>`, now that a free account can hold one (from `pricing-wiring`).
@@ -254,8 +257,6 @@ The app:
 - Guest: the album, the door and the report dialog carry no link to `/help` (only the guest 404s do).
 - Guest: the media viewer's own image and video have no loading state (a tile has a skeleton; the opened photograph pops in when the full-size presign lands, the slowest picture in the product on venue Wi-Fi).
 - Guest, the demo: the per-tile Save and Share and the export routes enforce no `isDemo` server-side (the guest export serves the demo album in full; the UI hides the rest); decide whether the demo's capability token carries a read-only claim.
-- Exports: the mint has no timeout and no cancel (a hung request leaves the toast spinning and Download disabled until a reload), the dialog prints raw integers ("2440 items"), and the album's bulk Download mints with hidden items in and no confirmation.
-- Exports: the Worker skips an R2 object it cannot find in silence, so an album emptied between mint and stream downloads as a valid, empty zip; a failed-export state.
 - Exports: zip follow-ons: an async build-to-R2 job past the cap; a custom `export.partyreel.com`.
 - Media: preview-variant follow-ons: a server-side backfill for pre-feature media; preview bytes on the storage meter; the admin moderation feed's preview; AVIF if quality demands.
 - Media: forensic capture follow-ons, all gated: the pre-strip client-side EXIF capture (counsel-gated), proactive hashing at scale, widening the CSAM scanner past proxied traffic ([`systems/trust-safety-forensics.md`](systems/trust-safety-forensics.md)).
@@ -263,7 +264,6 @@ The app:
 - Admin: `/admin/reports` cannot reach a reported person's account (suspend, clear a bio, remove a handle), so the operator acts out of band and only closes the report.
 - Admin: `ModerationGrid` imports live server actions at module scope; take the action as a prop, as `TriageStatusControl` does.
 - Admin: the MFA enrolment secret (`admin/mfa-enroll.tsx`) is a bare `<code>`, so preflight sets it in the mono stack; `font-sans`, or the muted plate.
-- Admin: `/admin/exports` has no heartbeat (exports sit outside the jobs catalog).
 - Admin: "Check the runbook" (`admin/not-found.tsx`, `HELP_BY_AREA`'s admin row) is plain text until a runbook page exists for the operator.
 - Admin: an immediate hard-purge for egregious content in `/admin/albums`.
 - UI: `ui/drawer` and `ui/tabs` have no product caller (adopt or retire them), and `action-tooltip.tsx`'s comment claims a 200 ms root delay the provider sets to 0.
