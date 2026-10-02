@@ -49,12 +49,11 @@ const SANDBOX_DIR = "src/app/(dev)/design/sandbox";
 // The crawl starts at the two areas, plus any iframe scene route an href crawl
 // can never reach (a board builds its src client-side, key included).
 const SEEDS = ["/design/library", "/design/lab"];
-// EMPTY, AND THAT IS CORRECT, NOT A GAP: no standing board draws its stage in
-// an iframe scene route any more. type-scale's and floating-surfaces' scenes
-// left with their boards on 2026-09-17, and rounding's `screen/` (the last one)
-// left with its board when its picks were built on 2026-09-18. A board that adds a scene
-// route adds it here in the same change, or the crawl never visits it.
-const SCENES = [];
+// The boards that draw their stage in an iframe scene route (identity's, so a
+// production popup answers to the frame's own window); a scene leaves with its
+// board. A board that adds a scene route adds it here in the same change, or
+// the crawl never visits it.
+const SCENES = ["/design/sandbox/identity/scene"];
 // The boundary probe throws during server render on purpose (its page.tsx).
 // Whether that surfaces as a 500 or inside a 200 depends on where the shell's
 // Suspense boundary sits, so both pass; only the gate's 404 or no answer fails.
