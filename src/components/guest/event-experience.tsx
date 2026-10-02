@@ -1040,8 +1040,8 @@ export function EventExperience({
             // never says a different size than the line beside it.
             mediaTotal={mediaCount}
             // The welcome's byline. On a locked page `event` is the REDACTED
-            // shellEvent (host_display_name null at every gated door), so the
-            // host name hides itself there - the privacy rule needs no extra guard.
+            // shellEvent (host_display_name null), so the host name hides
+            // itself there - the privacy rule needs no extra guard.
             hostName={event.host_display_name}
             eventDate={event.event_date}
             onHoldingChange={setHoldCurtain}

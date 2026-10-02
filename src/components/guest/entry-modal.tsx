@@ -174,7 +174,7 @@ export const EntryModal = forwardRef<
      *  waiting" tease + the welcome's count proof (a deliberate
      *  cardinality-only leak). */
     mediaTotal?: number;
-    /** Welcome byline (null on locked pages: the redacted shellEvent, every gated door included). */
+    /** Welcome byline (null on locked pages: the redacted shellEvent). */
     hostName?: string | null;
     eventDate?: string | null;
     /** The success-hold signal for the page's REVEAL CURTAIN: the freshly

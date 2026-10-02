@@ -20,9 +20,7 @@ export const WAITING_CHECK_IN_MS = 30_000;
 /**
  * THE HELD DOOR'S WORDS (event-settings r1, `waiting=held`: "The door she confirmed in says Maya will
  * let her in, and opens onto the album the moment she does"). The host is named again rather than
- * given a pronoun where a name is given: a display name can be anyone's ("Maya", "The Chens"). ★ The page
- * gives the held door no host's name (Will, 2026-10-02: a gated door never names the host), so it reads
- * "The host will let you in".
+ * given a pronoun: a display name can be anyone's ("Maya", "The Chens").
  */
 export function waitingCopy(hostName?: string | null): {
   title: string;

@@ -680,10 +680,10 @@ const SCREENS: Record<PhoneScreenId, () => ReactNode> = {
   "door-code-different": () => <CodeScreen mark="different" />,
   "door-photo": () => <PhotoScreen />,
   // The held door's face alone (`WaitingDoor`), never `WaitingStep`, whose loop would check in: at the
-  // doorway, ajar, in the house light, and naming no host (a gated door never does).
+  // doorway, ajar, in the house light.
   "door-waiting": () => (
     <DoorPageScreen doorway={<Doorway state="ajar" />}>
-      <WaitingDoor />
+      <WaitingDoor hostName={HOST} />
     </DoorPageScreen>
   ),
   "door-keep": () => (

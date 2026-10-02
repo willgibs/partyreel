@@ -327,18 +327,19 @@ there; a block on it still holds the phone (`event_ticket_blocked`), which is wh
   held ticket in the private album's words. Her own dashboard and picker read the event as private too
   ([host-app.md](host-app.md)), so nothing she can reach says blocked.
 - **`ask {invite}`**, an address the invite list does not name: the shut door with her own foot (`unlisted=ask`,
-  placed there by locked-door r2): "Ask the host to let me in" (`UnlistedAsk`, `POST /api/guests/ask`, then the held
+  placed there by locked-door r2): "Ask Maya to let me in" (`UnlistedAsk`, `POST /api/guests/ask`, then the held
   door) or "Use a different email" (`switch-email.ts`: every ticket on the device put down, then this device signed out,
   `local`: every sign-out names its scope, `sign-out-scope.test.ts`). A
-  declined ask meets the shut door with no ask. **`ask {approve}`**, a confirmed newcomer: "The host lets each guest
-  in", Ask to join (`ask-step.tsx`, the same route), at the doorway, shut. The ask route re-reads `getUser()` (a
+  declined ask meets the shut door with no ask. **`ask {approve}`**, a confirmed newcomer: "Maya lets each guest in",
+  Ask to join (`ask-step.tsx`, the same route), at the doorway, shut. The ask route re-reads `getUser()` (a
   confirmed address or 422), rides the join limiter, and answers a shut door 403 in the private album's words.
-- ★ **A GATED DOOR NAMES THE ALBUM AND NEVER THE HOST; A SHUT ONE NAMES NOTHING** (Will, 2026-10-02: the door shows
-  only what the album's read gives). The page hands every access `none` door a `shellEvent` with no host (and no
-  date, description or slug), and the unlisted ask no host, so the held door, the ask and a gate's email step say
-  "the host" ("The host will let you in"); the album's name comes from the door's own re-read
-  (`closed-door.server.ts`) at a gate, and the shut door is handed nothing of the event at all.
-  [`page.redaction.test.tsx`](<../../src/app/(guest)/e/[token]/page.redaction.test.tsx>) pins every kind of door.
+- ★ **THE DOOR SHOWS ONLY WHAT IT SHOWED** (Will, 2026-10-02, on the doorway: "Only what's shown today"). A door the
+  host answers (letting each guest in, the invite list) names the album and the host who lets her in, never its
+  date: its welcome's byline, the email step, the ask, the held door, and the unlisted reader's own foot; a password
+  album's door names the album, never its host; the shut door names nothing, whoever reads it. The page hands every
+  access `none` door a `shellEvent` with no date, description or slug, and the host only where the door holds her
+  (`doorGalleryDecision`); [`page.redaction.test.tsx`](<../../src/app/(guest)/e/[token]/page.redaction.test.tsx>)
+  pins every kind of door.
 - **`waiting`**, the held door ([`waiting-step.tsx`](../../src/components/guest/door/waiting-step.tsx), `waiting=held`):
   the doorway ajar, the host will let her in, with nothing of the album behind it; it checks in every 30 s and on the
   tab's return (`POST /api/guests/door`: `waiting` | `in` | `moved`, `private, no-store`; a missing event answers
@@ -561,9 +562,10 @@ through flags in the sheet. No step counter to desync.
   (`openToGate`) is instant.
 - **welcome = THE INVITATION**, at the doorway ([`door/welcome.tsx`](../../src/components/guest/door/welcome.tsx)):
   open onto a Public album, shut at a gate; a "You're invited to" eyebrow over the event name, "Hosted by" and the
-  date on one line (self-hiding at every gate via the redacted shellEvent), the count as social proof, ticking as
-  photographs land (`LiveCount`; the gate's title ticks too; reduced motion lands the number), two warm `text-base`
-  lines, one primary that always reads "Continue" (something always follows it), and the legal consent line. Shown once per PERSON at an album
+  date on one line (the date self-hiding at every gate, the host at a password, via the redacted shellEvent), the
+  count as social proof, ticking as photographs land (`LiveCount`; the gate's title ticks too; reduced motion lands
+  the number), two warm `text-base` lines, one primary that always reads "Continue" (something always follows it),
+  and the legal consent line. Shown once per PERSON at an album
   (`pr_welcome_<qrToken>` via [`use-welcome-seen.ts`](../../src/lib/guest/use-welcome-seen.ts); server
   snapshot "seen" = no flash): it goes with the ticket of whoever saw it (a ticket put down takes its album's, every
   sign-out every album's; the door's name step keeps it when it puts a foreign ticket down, its person having just

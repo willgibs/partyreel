@@ -2,22 +2,22 @@ import { cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
- * ★ WHAT EACH KIND OF DOOR SHOWS OF THE ALBUM (Will, 2026-10-02, on `locked-door` r2's doorway: the door
- * shows only what the album's read gives; a gated door names the album and never the host; private,
- * Only me and blocked doors name nothing; no RPC change).
+ * ★ WHAT EACH KIND OF DOOR SHOWS OF THE ALBUM (Will, 2026-10-02, on `locked-door` r2's doorway: "Only
+ * what's shown today", the board's doorway naming the host on its shut door overruled; no RPC change).
  *
  * The page is where it is decided, because props serialize into the RSC payload whether or not a screen
  * draws them: whatever the page hands the door is in the HTML. So these pin what the page HANDS each
  * door, and what each door's page then says, for every kind of door a request can meet:
  *   - a Public album she is through: its name, its host and its date (the control);
- *   - a password album before the password, and the door's own steps where the host lets each guest in
- *     or a list keeps (the email step, the ask, the held door): the album's name, never the host;
- *   - the shut door (Only me, a closed gate, a decline, a block, someone who was in) and the unlisted
- *     reader's ask: nothing of the album at all, its name and its host included.
+ *   - the door's own steps where the host lets each guest in or a list keeps (the email step, the ask,
+ *     the held door): the album's name and its host, who lets her in, and never its date;
+ *   - a password album before the password: its name, never its host;
+ *   - the shut door (Only me, a closed gate, a decline, a block, someone who was in): nothing of the
+ *     album at all, and the unlisted reader the same message, her own foot naming the host she asks.
  *
  * The door's decision is the real mapping (`doorGalleryDecision`); the event is handed to the page as the
  * door's own re-read gives it to a request standing at a gated door (`closed-door.server.ts`), with the
- * album's name AND its host, which is exactly what the page must not pass on.
+ * album's name AND its host, and the page passes on only what each door showed.
  */
 vi.mock("server-only", () => ({}));
 vi.mock("next/headers", () => ({
@@ -211,7 +211,7 @@ describe("what each kind of door shows of the album", () => {
     expect(props?.hostSeed).toBeNull();
   });
 
-  it("★ every door's own step at a gate (the email step, the ask, the held door): the album's name, never the host", async () => {
+  it("★ every door's own step where the host answers (the email step, the ask, the held door): the album and who lets her in, never its date", async () => {
     for (const decision of [
       { kind: "newcomer", gate: "approve" },
       { kind: "newcomer", gate: "invite" },
@@ -221,11 +221,8 @@ describe("what each kind of door shows of the album", () => {
       const { handed, props } = await meet(decision);
       expect(props?.access, decision.kind).toBe("none");
       expect(handed?.name, JSON.stringify(decision)).toBe(NAME);
-      expect(handed?.host_display_name, JSON.stringify(decision)).toBeNull();
+      expect(handed?.host_display_name, JSON.stringify(decision)).toBe(HOST);
       expect(handed?.event_date, JSON.stringify(decision)).toBeNull();
-      // Nothing of the host rides beside the event either: no face, no seed.
-      expect(props?.hostAvatarUrl).toBeNull();
-      expect(props?.hostSeed).toBeNull();
       cleanup();
     }
   });
@@ -251,13 +248,15 @@ describe("what each kind of door shows of the album", () => {
     }
   });
 
-  it('★ the unlisted reader\'s ask names nothing either: she asks "the host"', async () => {
+  it("★ the unlisted reader reads the shut door's one message, naming nothing; her own foot asks the host by name", async () => {
     auth.user = { id: "u1", email_confirmed_at: "2026-09-01" };
     const { text, html, props } = await meet({ kind: "ask", gate: "invite" });
     expect(props).toBeNull();
     expect(html).toContain('data-door-way="shut"');
-    expect(text).toContain("Ask the host to let me in");
     expect(text).not.toContain(NAME);
-    expect(text).not.toContain("Maya");
+    expect(text).toContain(`Ask ${HOST} to let me in`);
+    // The message itself names nobody: the host is named only on the button she presses.
+    const message = document.querySelector("h1")?.parentElement?.textContent;
+    expect(message).not.toContain("Maya");
   });
 });

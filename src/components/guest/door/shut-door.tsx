@@ -22,8 +22,8 @@ import { loginPath } from "@/lib/auth/return-path";
  * private, as her dashboard card already says. A blocked former guest reads the same line, so the
  * block stays invisible (his "Sneaky block").
  *
- * ★ IT NAMES NOTHING (Will, 2026-10-02: the door shows only what the album's read gives, and a private,
- * Only me or blocked door names nothing). The host is "the host" here, and no album is named: the
+ * ★ IT NAMES NOTHING (Will, 2026-10-02: the door shows only what is shown today, and the shut door has
+ * never named the album or its host). The host is "the host" here, and no album is named: the
  * locked-door board's doorway named both on its shut door, and that call (`shows`) is overruled.
  */
 export function shutDoorCopy(previous: boolean): {
@@ -52,7 +52,7 @@ export function shutDoorCopy(previous: boolean): {
  * turned away is still at the door she met, never on a page apart.
  *
  * ★ SOMEONE THE INVITE LIST DOES NOT NAME READS THE SAME MESSAGE, WITH HER OWN FOOT (`ask`: `locked-door`
- * r2 places `unlisted=ask` here): "Ask the host to let me in", or "Use a different email", in place of
+ * r2 places `unlisted=ask` here): "Ask Maya to let me in", or "Use a different email", in place of
  * the way home. The message never moves, so a block, a decline, a closed door and Only me still read
  * as one.
  */
@@ -66,10 +66,7 @@ export function ShutDoor({
   signedIn: boolean;
   /** The album's own path, which a sign-in comes back to. */
   returnTo: string;
-  /**
-   * The unlisted reader's foot: the album to ask at, and the host she asks. The page passes no host's
-   * name at a gated door (`hostName` null: "Ask the host to let me in").
-   */
+  /** The unlisted reader's foot: the album to ask at, and the host she asks. */
   ask?: { qrToken: string; hostName: string | null } | null;
 }) {
   const copy = shutDoorCopy(previous);

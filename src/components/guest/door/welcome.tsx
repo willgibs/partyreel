@@ -21,9 +21,10 @@ import { formatEventDate } from "@/lib/utils";
  * and the album is the reward the door's asks pay for, not a lobby. Still "Continue" on a revisit,
  * never "Back": back never points both ways, and this button only ever moves forward again.
  *
- * ★ WHO IS HOSTING, ONLY WHERE THE DOOR MAY SAY IT (Will, 2026-10-02): a Public album's welcome names
- * its host and its date; a gate's welcome names the album and never the host, because the page hands
- * a gated door neither (its `shellEvent` is redacted at access `none`), so the byline hides itself.
+ * ★ WHO IS HOSTING, ONLY WHERE THE DOOR SAID IT (Will, 2026-10-02: "Only what's shown today"): a Public
+ * album's welcome names its host and its date; the welcome where the host lets each guest in or a list
+ * keeps names her and no date; a password album's names neither (the page's `shellEvent` is redacted at
+ * access `none`), so the byline hides itself there.
  */
 
 /**

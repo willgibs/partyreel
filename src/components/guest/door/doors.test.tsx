@@ -146,7 +146,7 @@ describe("the shut door", () => {
 });
 
 describe("the unlisted reader's ask", () => {
-  it('★ asks "the host" when the page hands it no name, which it never does at a gated door', () => {
+  it('★ asks "the host" when the page hands it no name', () => {
     render(
       <ShutDoor
         previous={false}

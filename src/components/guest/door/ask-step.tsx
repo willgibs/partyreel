@@ -11,8 +11,7 @@ import { askToJoinEvent, type JoinedGuest } from "@/lib/guest/join";
 
 /**
  * THE ASK'S WORDS, at a door where the host lets each guest in. The host is named again rather than
- * given a pronoun where a name is given: a display name can be anyone's ("Maya", "The Chens"). ★ The page
- * gives a gated door no host's name (Will, 2026-10-02), so it reads "The host lets each guest in".
+ * given a pronoun: a display name can be anyone's ("Maya", "The Chens").
  */
 export function askCopy(hostName?: string | null): {
   title: string;

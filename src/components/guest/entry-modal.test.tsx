@@ -1412,8 +1412,7 @@ describe("the door's light", () => {
   /* ★ THE LIGHT IS THE DOOR'S NOW (`locked-door` r2's doorway, which drew the welcome's promises as its
      own lines, retiring `icons=lit`'s pools on the welcome): an open door wears the album's own hues and
      shows the album through its opening, where she may see the album; a gate's door is shut, in the
-     house five, and shows nothing of it (Will, 2026-10-02: a gated door names the album and never the
-     host, and shows only what the album's read gives). */
+     house five, and shows nothing of it (Will, 2026-10-02: the door shows only what is shown today). */
   it("an open door wears the album's light and shows the album through it; a gate's shows nothing", () => {
     publishDoorHues([12, 140, 222]);
     publishDoorView(["https://r2.test/p/1.webp", "https://r2.test/p/2.webp"]);

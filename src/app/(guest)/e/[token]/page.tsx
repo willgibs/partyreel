@@ -317,9 +317,9 @@ export default async function GuestEventPage({
   // and a returning host meets their own menu.
   //
   // ★ SOMEONE THE INVITE LIST DOES NOT NAME meets it too, with her own foot (`locked-door` r2 places
-  // `unlisted=ask` there): "Ask the host to let me in", or "Use a different email". ★ NEVER THE HOST'S
-  // NAME (Will, 2026-10-02: a gated door names the album and never the host, and the shut door names
-  // nothing), so the ask is handed no host.
+  // `unlisted=ask` there): "Ask Maya to let me in", or "Use a different email". The message above it
+  // names nothing whoever reads it (Will, 2026-10-02: the door shows only what is shown today); the
+  // ask names the host she asks, as it always has.
   const unlistedAsk =
     door.decision.kind === "ask" && door.decision.gate === "invite";
   if (door.decision.kind === "shut" || unlistedAsk) {
@@ -337,7 +337,12 @@ export default async function GuestEventPage({
             signedIn={Boolean(user)}
             returnTo={`/e/${event.qr_token}`}
             ask={
-              unlistedAsk ? { qrToken: event.qr_token, hostName: null } : null
+              unlistedAsk
+                ? {
+                    qrToken: event.qr_token,
+                    hostName: event.host_display_name,
+                  }
+                : null
             }
           />
         </main>
@@ -487,13 +492,12 @@ export default async function GuestEventPage({
   // client. The date is in the redaction because the entry welcome's byline
   // would otherwise show it on a locked page.
   //
-  // ★ A GATED DOOR NAMES THE ALBUM AND NEVER THE HOST (Will, 2026-10-02, on `locked-door` r2's doorway:
-  // the door shows only what the album's read gives, and the read gives a gated album's host to nobody
-  // standing outside it). Every access `none` is a door she stands at (a password, the email step where
-  // the host lets each guest in or a list keeps, the ask, the held door), so the host's name blanks at
-  // every one of them, and their words say "the host" ("The host will let you in"). The door's own
-  // re-read still names the album at a gate (`closed-door.server.ts`), which the welcome and the tab
-  // carry; the shut door names nothing, above.
+  // ★ THE DOOR SHOWS ONLY WHAT IT SHOWED (Will, 2026-10-02, on `locked-door` r2's doorway: "Only what's
+  // shown today"). A DOOR THAT ANSWERS TO THE HOST NAMES THE HOST: the held door, the ask and the email
+  // step where the host lets each guest in or a list keeps say who lets her in ("Maya will let you in"),
+  // and their welcome's byline names her (with no date); a password step names nobody; the shut door
+  // names nothing (above). The door's own re-read gives a gate the album's name and its host
+  // (`closed-door.server.ts`).
   //
   // ★ AND THE DOOR'S PASS NEVER LEAVES THE SERVER: it is the proof the album's own
   // reads ask for, issued to this request alone (`lib/event/door/pass.server.ts`).
@@ -501,7 +505,7 @@ export default async function GuestEventPage({
     access === "none"
       ? {
           ...event,
-          host_display_name: null,
+          host_display_name: doorDecision ? event.host_display_name : null,
           description: null,
           event_date: null,
           // The slug is only ever said by the reel's code plate, which a locked page never draws.
