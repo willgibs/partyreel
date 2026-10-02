@@ -64,6 +64,7 @@ export const DISPOSABLE_MODE = defineExploration({
     "src/components/guest/reel/live-reel-view.tsx",
     "src/components/app/create-event-wizard.tsx",
     "src/components/app/event-feed/host-album.tsx",
+    "src/components/app/event-feed/review-section.tsx",
     "src/components/shared/media-lightbox-parts/actions.tsx",
     "src/lib/constants/tiers.ts",
   ],

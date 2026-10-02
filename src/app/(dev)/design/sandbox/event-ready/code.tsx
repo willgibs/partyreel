@@ -31,8 +31,8 @@ import { THIRTIETH_URL } from "./fixtures";
  * words the door everywhere): the step, the gate's short word, and "Only you"
  * in the host's voice for Only me.
  *
- * Drawn with pointer events off: pressing it opens the code card, a layer
- * that would land on the lab's page rather than the frame being judged.
+ * Drawn with pointer events off: a picture of the code's face, since pressing
+ * it opens the code card, a layer this board does not judge.
  */
 
 export type CodeVariant = "today" | "mark" | "sign";

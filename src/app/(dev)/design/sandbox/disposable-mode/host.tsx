@@ -9,7 +9,6 @@ import {
   Check,
   ChevronDown,
   ChevronLeft,
-  CircleX,
   Clapperboard,
   Eye,
   EyeOff,
@@ -47,6 +46,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { formatCount } from "@/lib/format/count";
 import { GLASS } from "@/lib/glass";
 import { cn } from "@/lib/utils";
 
@@ -492,7 +492,18 @@ export function HostViewer({ look }: { look: LookId }) {
   );
 }
 
-/** Her Review room, quoted: the held shots she approves one by one. */
+/**
+ * Her Review room, quoted: the held shots she approves one by one.
+ *
+ * ★ THE HEAD IS PRODUCTION'S `RoomHead` (`review-section.tsx`, crumbs-42),
+ * class for class: the title with the queue's count beside it in the
+ * needs-action tone (its " waiting" for a screen reader only), and the room's
+ * two actions with a queue, Select and Approve all, on the title's row from
+ * `sm` and on a row of their own under it in a hand. The bulk bar (Reject,
+ * Approve) takes that same slot only while she selects, so nothing is drawn at
+ * the grid's foot. The line under the head is this board's proposal, standing
+ * where the room's host note stands, at the room's own `space-y-2.5`.
+ */
 export function ReviewQueue({
   look,
   pending,
@@ -504,10 +515,23 @@ export function ReviewQueue({
 }) {
   return (
     <HostPage screen={screen} trail={EVENT.name}>
-      <div className="space-y-4" data-dm-review>
-        <div className="flex items-center justify-between">
-          <PageHeading>Review</PageHeading>
-          <span className="text-sm text-warning tabular-nums">{`${pending} waiting`}</span>
+      <div className="space-y-2.5" data-dm-review>
+        <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+          <div className="flex min-w-0 items-center gap-2">
+            <PageHeading>Review</PageHeading>
+            <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-warning/15 px-2 text-sm font-semibold text-warning tabular-nums">
+              {formatCount(pending)}
+              <span className="sr-only"> waiting</span>
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button type="button" variant="outline" size="sm" tabIndex={-1}>
+              <ListChecks /> Select
+            </Button>
+            <Button type="button" size="sm" tabIndex={-1}>
+              <Check /> Approve all
+            </Button>
+          </div>
         </div>
         <p className="text-sm text-pretty text-muted-foreground" data-dm-say>
           {`Each one develops for everyone at ${ROLL.develops} once you approve it.`}
@@ -526,14 +550,6 @@ export function ReviewQueue({
               />
             </div>
           ))}
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <Button type="button" variant="outline" tabIndex={-1}>
-            <CircleX className="text-warning" /> Reject
-          </Button>
-          <Button type="button" tabIndex={-1}>
-            <Check /> Approve
-          </Button>
         </div>
       </div>
     </HostPage>
