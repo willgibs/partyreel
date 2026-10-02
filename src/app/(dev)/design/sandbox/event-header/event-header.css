@@ -1,0 +1,272 @@
+/* THE BOARD'S OWN SHEET: the album's light behind a head (`light.tsx`), the
+   cover's scrim (`guest.tsx`, `host.tsx`), the doorway carried as the album's
+   emblem, and the shutter's ring. Every other rule is production's own: the
+   doorway itself (`door/doorway.css`), the glass (`globals.css`), the ladder.
+
+   ★ THE REGISTER IS THE GROUND'S, THE HUE THE ALBUM'S (or the house five), as
+   the door's own lamp has it (`door/lit.css`): `--lit-l` and `--lit-c` are set
+   here per ground, `--lit-h1..3` come from each piece's element (`litVars`).
+
+   ★ EVERY KEYFRAME CARRIES THE BOARD'S PREFIX (`eh-`): keyframe names are
+   document-global, and `keyframe-uniqueness.test.ts` reads every sheet under
+   the lab.
+
+   ★ THE REST STATE IS THE DEFAULT (bible 5): every animated element's resting
+   style is the still frame it settles on, and every movement sits behind
+   `no-preference`, so reduced motion shows each head whole and still. */
+
+/* ══ THE ALBUM'S LIGHT: three pools in its hues behind a head ══════════════ */
+
+.eh-light {
+  --lit-l: 0.9;
+  --lit-c: 0.075;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 55%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 100%);
+}
+.dark .eh-light {
+  --lit-l: 0.62;
+  --lit-c: 0.13;
+  opacity: 0.6;
+}
+.eh-light-pool {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(56px);
+}
+.eh-light-p1 {
+  background: oklch(var(--lit-l) var(--lit-c) var(--lit-h1));
+  left: -18%;
+  top: -22%;
+  width: 70%;
+  height: 78%;
+}
+.eh-light-p2 {
+  background: oklch(var(--lit-l) var(--lit-c) var(--lit-h2));
+  left: 22%;
+  top: -34%;
+  width: 62%;
+  height: 74%;
+}
+.eh-light-p3 {
+  background: oklch(var(--lit-l) var(--lit-c) var(--lit-h3));
+  right: -20%;
+  top: -16%;
+  width: 66%;
+  height: 80%;
+}
+
+/* THE LIGHT HAS A SOURCE (bible 6: "light brings color with a source and a
+   direction"): a doorway's or a code's light comes from it, strongest at it
+   and spent across the head, never a wash the width of the page. The source
+   is the element's own `--eh-sx`/`--eh-sy`, set where the emblem stands. */
+.eh-light-source {
+  -webkit-mask-image: radial-gradient(
+    farthest-corner at var(--eh-sx, 12%) var(--eh-sy, 45%),
+    #000 0%,
+    rgb(0 0 0 / 0.55) 26%,
+    transparent 62%
+  );
+  mask-image: radial-gradient(
+    farthest-corner at var(--eh-sx, 12%) var(--eh-sy, 45%),
+    #000 0%,
+    rgb(0 0 0 / 0.55) 26%,
+    transparent 62%
+  );
+}
+.eh-light-source .eh-light-pool {
+  filter: blur(40px);
+}
+/* From a source the light is ONE light: the album's first hue carries it, and
+   its second only tints the edge it is spent at, so it reads as a lamp in a
+   room rather than a spectrum. */
+.eh-light-source .eh-light-p2 {
+  background: oklch(var(--lit-l) var(--lit-c) var(--lit-h1));
+}
+.eh-light-source .eh-light-p3 {
+  background: oklch(var(--lit-l) calc(var(--lit-c) * 0.7) var(--lit-h2));
+  opacity: 0.7;
+}
+.eh-light-source .eh-light-p1 {
+  left: calc(var(--eh-sx, 12%) - 22%);
+  top: calc(var(--eh-sy, 45%) - 46%);
+  width: 44%;
+  height: 92%;
+}
+.eh-light-source .eh-light-p2 {
+  left: calc(var(--eh-sx, 12%) - 6%);
+  top: calc(var(--eh-sy, 45%) - 18%);
+  width: 46%;
+  height: 74%;
+}
+.eh-light-source .eh-light-p3 {
+  left: calc(var(--eh-sx, 12%) - 30%);
+  top: calc(var(--eh-sy, 45%) - 10%);
+  width: 38%;
+  height: 70%;
+}
+
+/* On the cover's dark ground (an album with nothing to show yet), the light
+   is the room's: deeper, so it reads as a lit room rather than a stain. */
+.eh-light-room {
+  --lit-l: 0.58;
+  --lit-c: 0.15;
+  -webkit-mask-image: none;
+  mask-image: none;
+  opacity: 0.85;
+}
+.dark .eh-light-room {
+  --lit-l: 0.58;
+  --lit-c: 0.15;
+  opacity: 0.85;
+}
+/* A room with nobody in it yet is lit warm, by the first two of the house
+   five (coral and amber): the third, a green, read as a stage light. */
+.eh-light-room .eh-light-p3 {
+  background: oklch(var(--lit-l) var(--lit-c) var(--lit-h1));
+}
+
+/* ══ THE COVER: the album's own photographs under the head ═════════════════ */
+
+/* The scrim: a breath at the top for the bar's words, and the weight at the
+   foot where the name and the actions stand, so they read over the brightest
+   still a guest could take. */
+.eh-cover-scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, rgb(0 0 0 / 0.42) 0, rgb(0 0 0 / 0) 120px),
+    linear-gradient(
+      to bottom,
+      rgb(0 0 0 / 0) 34%,
+      rgb(0 0 0 / 0.38) 58%,
+      rgb(0 0 0 / 0.78) 100%
+    );
+}
+
+/* ══ THE DOORWAY, LEFT OPEN AS THE ALBUM'S EMBLEM ═════════════════════════ */
+
+/* Production's doorway, at an emblem's size: every length in it is figured
+   from `--way-w`, so the frame, the leaf, the glow and the floor scale with
+   it. Unlayered, so it wins over the doorway's own per-breakpoint size. */
+.eh-door-emblem {
+  --way-w: 84px;
+  --way-h: 126px;
+  --way-r: 11px;
+}
+.eh-door-emblem-lg {
+  --way-w: 128px;
+  --way-h: 194px;
+  --way-r: 16px;
+}
+.eh-door-emblem-sm {
+  --way-w: 30px;
+  --way-h: 44px;
+  --way-r: 5px;
+}
+
+/* ══ THE NAME, FILLED WITH THE PARTY ══════════════════════════════════════ */
+
+.eh-photo-type {
+  color: transparent;
+  background-size: cover;
+  background-position: 50% 42%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  /* The letters are heavy and tight: a window has to be wide enough to hold a
+     picture. */
+  letter-spacing: -0.05em;
+  line-height: 0.92;
+  padding-bottom: 0.06em;
+}
+@media (forced-colors: active) {
+  .eh-photo-type {
+    color: CanvasText;
+    background: none;
+  }
+}
+
+/* ══ THE SHUTTER: one round Add, lit by the album ══════════════════════════ */
+
+.eh-shutter {
+  --lit-l: 0.8;
+  --lit-c: 0.13;
+  position: relative;
+  isolation: isolate;
+}
+.dark .eh-shutter {
+  --lit-l: 0.74;
+  --lit-c: 0.15;
+}
+.eh-shutter-ring,
+.eh-shutter-glow {
+  position: absolute;
+  inset: -4px;
+  border-radius: 9999px;
+  pointer-events: none;
+  background: conic-gradient(
+    from 210deg,
+    oklch(var(--lit-l) var(--lit-c) var(--lit-h1)),
+    oklch(var(--lit-l) var(--lit-c) var(--lit-h2)),
+    oklch(var(--lit-l) var(--lit-c) var(--lit-h3)),
+    oklch(var(--lit-l) var(--lit-c) var(--lit-h1))
+  );
+}
+.eh-shutter-ring {
+  z-index: 1;
+  -webkit-mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 3px),
+    #000 calc(100% - 2.5px)
+  );
+  mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 3px),
+    #000 calc(100% - 2.5px)
+  );
+}
+.eh-shutter-glow {
+  z-index: -1;
+  filter: blur(14px);
+  opacity: 0.75;
+}
+
+/* ══ MOTION: the light drifts, and nothing else here moves ═════════════════ */
+
+@media (prefers-reduced-motion: no-preference) {
+  .eh-light-p1 {
+    animation: eh-drift-a 22s ease-in-out infinite alternate;
+  }
+  .eh-light-p3 {
+    animation: eh-drift-b 26s ease-in-out infinite alternate;
+  }
+  .eh-shutter-glow {
+    animation: eh-breathe 4.8s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes eh-drift-a {
+  to {
+    transform: translate(9%, 6%) scale(1.06);
+  }
+}
+@keyframes eh-drift-b {
+  to {
+    transform: translate(-8%, 4%) scale(1.05);
+  }
+}
+@keyframes eh-breathe {
+  to {
+    opacity: 0.45;
+  }
+}
