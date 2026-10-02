@@ -140,6 +140,85 @@ describe("the download's toast", () => {
     expect(document.querySelector("[data-sonner-toast]")).toBeNull();
   });
 
+  it("asks about hidden items with both answers side by side, then the x, and holds until answered", () => {
+    const include = vi.fn();
+    const leave = vi.fn();
+    act(() =>
+      exportToasts.show("dl", {
+        tone: "ask",
+        title: "3 of these 12 are hidden.",
+        actions: [
+          { label: "Include them", run: include },
+          { label: "Leave them out", run: leave },
+        ],
+        close: { label: "Cancel download", run: vi.fn() },
+      }),
+    );
+    flush();
+
+    const el = toastEl();
+    expect(el).toHaveAttribute("data-type", "info");
+    expect(el).toHaveAttribute("data-dismissible", "false");
+    const buttons = within(el).getAllByRole("button");
+    expect(
+      buttons.map((b) => b.getAttribute("aria-label") ?? b.textContent),
+    ).toEqual(["Include them", "Leave them out", "Cancel download"]);
+    expect(buttons[0]).toHaveAttribute("data-button");
+    expect(buttons[1]).toHaveAttribute("data-button");
+    // The answers sit under the line (the description's place), so the line keeps its width at 375;
+    // the x alone keeps the right.
+    const answers = el.querySelector(
+      "[data-export-toast-answers]",
+    ) as HTMLElement;
+    expect(within(answers).getAllByRole("button")).toHaveLength(2);
+    const controls = el.querySelector(
+      "[data-export-toast-controls]",
+    ) as HTMLElement;
+    expect(
+      within(controls)
+        .getAllByRole("button")
+        .map((b) => b.getAttribute("aria-label")),
+    ).toEqual(["Cancel download"]);
+    fireEvent.click(buttons[1]);
+    expect(leave).toHaveBeenCalledTimes(1);
+    expect(include).not.toHaveBeenCalled();
+  });
+
+  it("downloading is held, neutral, with only the x, and turns saved with nothing carried over", () => {
+    act(() =>
+      exportToasts.show("dl", {
+        tone: "downloading",
+        title: "Downloading…",
+        close: { label: "Dismiss", run: vi.fn() },
+      }),
+    );
+    flush();
+    const el = toastEl();
+    expect(el).toHaveAttribute("data-type", "info");
+    expect(el).toHaveAttribute("data-dismissible", "false");
+    expect(
+      within(el)
+        .getAllByRole("button")
+        .map((b) => b.getAttribute("aria-label")),
+    ).toEqual(["Dismiss"]);
+    // Still there long after a success would have gone.
+    act(() => {
+      vi.advanceTimersByTime(60_000);
+    });
+    expect(toastEl()).toHaveTextContent("Downloading…");
+
+    act(() =>
+      exportToasts.show("dl", {
+        tone: "done",
+        title: "Your download is saved.",
+        duration: 4000,
+      }),
+    );
+    flush();
+    expect(toastEl()).toHaveAttribute("data-type", "success");
+    expect(toastEl().querySelector("[data-export-toast-controls]")).toBeNull();
+  });
+
   it("a short zip is amber, with its Try again and the x", () => {
     act(() =>
       exportToasts.show("dl", {

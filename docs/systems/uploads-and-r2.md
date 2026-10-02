@@ -169,7 +169,26 @@ it: one file, because the backfill loads it through Node's type stripping, which
   with a Try again narrowed to exactly its missing ids (`ids`, intersected server-side), and a token the Worker would
   refuse is said in the toast instead of replacing the page. A check that cannot answer (an older Worker, R2 down)
   never stops the zip. One toast carries it all, with the x that aborts whatever is in flight; a mint gets two quiet
-  re-attempts first.
+  re-attempts first. A host's selection that mixes hidden and shown items asks first in that toast (Include them,
+  Leave them out), read from the selection's own summary; one of only shown or only hidden goes as picked.
+- ★ **After the POST the Worker reports, and SAVED is its word, never the page's guess.** The mint signs the
+  minting deployment's own `/api/export/report` into the token (`report`, additive: the token stays v1) wherever the
+  Worker can reach it (`lib/export/report.ts`'s `reportAddressFor`: never a laptop behind the deployed Worker); the
+  Worker then reports the check's count, the stream's start and its end (saved, short, stopped, failed, empty, with
+  the ids its zip lacks), each a POST signed with the export secret in a `report:` domain no token can share, fresh
+  within five minutes. The app keeps each on the mint's `export_log` row by its nonce (`jti`, unique), filling only
+  empty fields; the walk polls `/api/export/status` by that nonce (every second, backing off to ten, six hours at
+  most) only where the mint asked and the Worker's check promised (`reports: true`), so a zip reads saved once its
+  last byte left the Worker, a walk's last word waits for every part, and silence past a stream's start (15 s) means
+  the word cannot come: the walk then says what it knows and claims nothing. A walk still listening survives a
+  reload the way a walk between parts does (`next: null`).
+- ★ **The window between the check and the stream is closed in the Worker** (`workers/export/src/stream.ts`): for a
+  token that asks for reports it finds the zip's first object before it answers, and none at all is a `204` (a
+  top-level form POST stays on the page, no file) reported `empty`; an object gone mid-stream is skipped and named.
+  A token without the ask is streamed exactly as before, empty zip and all. ★ The reported zip is PUSHED into a
+  pass-through the response reads, because a client that leaves shows only as a failed write: the runtime cancels
+  no pulled response body and, under `wrangler dev`, aborts no `request.signal` (a pulled body stalled until the
+  runtime killed the request as hung, its end never reported).
 - ★ **Past one zip's ceilings (2,000 items or 20 GB) an album comes home in parts**, oldest first: each mint
   (`part`, `after`) takes the next part from a position cursor, never a page index, so nothing is skipped or taken
   twice while the album moves, and each part is its own tap (a browser holds back a second download a page starts
@@ -183,13 +202,19 @@ it: one file, because the backfill loads it through Node's type stripping, which
   or one the claim takes: `sortTickets`, [guest-flow.md](guest-flow.md)'s owner rule), never an id list from the
   request, intersected with what she can see; the summary carries its counts, and the closed door is asked first on
   every path (Yours, a retry, a part).
-- ★ **One Worker deployment serves partyreel.com's app too**: every path but `/check` answers as milestone 29's did
-  (`workers/export/src/compat.test.ts` replays that app's requests against the vendored Worker), the token stays v1,
-  and the entry module exports its handler alone (workerd refuses to start on any other named export).
+- ★ **One Worker deployment serves every app's build**, so a request an older app sends is answered exactly as the
+  Worker it was built against answered it (`workers/export/src/compat.test.ts` replays milestone 29's requests at the
+  vendored `milestone-29/` Worker, and milestones 30 to 32's, the check included, at `milestone-31/`); everything new
+  is opt-in by the token, today's tokens still stream at both older Workers, and the entry module exports its handler
+  alone (workerd refuses to start on any other named export).
 - **A STORE-method zip, streamed, from a proven library (`client-zip`).** Media is already compressed, so deflate would
   burn Worker CPU for nothing; streaming ZIP64 fails silently in specific extractors (offsets, data descriptors, CRC),
   so a hand-rolled encoder is out; streaming keeps zero temp storage (the storage-billed margin) and needs no job table.
   A token is not single-use: a 2-minute TTL, where a replay only re-downloads what was already authorized, is the
   accepted bound.
-- The per-export `export_log` (one row a part) and the `export_enabled` kill switch show on `/admin/exports`; a check
-  that finds objects gone and a stream that skips one are logged by the Worker (`export-check`, `export-stream`).
+- The per-export `export_log` (one row a part, its outcome the furthest anyone saw: the mint's refusal, or the
+  Worker's word on its check and stream) and the `export_enabled` kill switch show on `/admin/exports`, beside the
+  Worker's daily heartbeat (the `export` job, whose switch is `export_enabled`: the Worker reads the bucket and signs a
+  ping to `HEARTBEAT_URLS`, partyreel.com first) and the downloads' signal (`export_delivery`: zips the Worker
+  finished; failures are a check R2 refused, a stream an object read broke, a mint with nothing configured). The
+  Worker still logs what it saw (`export-check`, `export-stream`, `export-report`).
