@@ -57,6 +57,7 @@ a lane").
 | `lab-prefetch` | the lab's keyless prefetch 404s on production builds, at the source | MERGED at `feaab8a9` (gate 132 green over the whole lab: lab:demo all; measured on production builds, 247 refused requests on the Library and one per step page before, 0 after); shell and doc only, the gate untouched | Sonnet, 3135 | `fefe9d30` |
 | `host-dashboard` | board r1 [desk 25]: the host dashboard reconceived (what it is for, what needs you at 1 and at 40, events at scale, what replaces just arrived) | RUNNING since 2026-10-02 08:00Z (round 11, wave 2) | Opus, 3132, agent `a2ba7075dfae8a7aa` | `10705484` |
 | `create-wizard` | board r1 [desk 60]: the whole create wizard, minimal and image-led, its mode step a named redraw of create=cards | RUNNING since 2026-10-02 08:00Z (round 11, wave 2) | Opus, 3134, agent `a69459a92149b4378` | `10705484` |
+| `demo-r3` | board demo-framing r3 [desk 90]: his stage hybrid (the link smaller, a QR bouncing in above it, the stream from the QR and link as one group, credits inside each card) in two or three takes; the demo's door identity | RUNNING since 2026-10-02 08:35Z (round 11, wave 2) | Opus, 3133 | `243e7cd0` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, respawned
 2026-10-01 18:15Z in this session; no question open. Q6 (crumbs-37's two migrations and crumbs-38's cursor file against
