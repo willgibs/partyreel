@@ -153,9 +153,12 @@ function RoomBody({ room, d }: { room: RoomId; d: HubDraw }) {
 
 /**
  * THE SETTINGS KIND (`popup-kinds.ts`: a panel at a desk, the whole screen in
- * a hand): the room's own heading leads it, the panel's close sits in its
- * corner, and a hand's bar names where its arrow returns. Its scrim takes a
- * press as the close.
+ * a hand): the room's own heading leads it, and a hand's bar names where its
+ * arrow returns. Its scrim takes a press as the close.
+ *
+ * ★ ONE PANEL FOR EVERY ROOM, A STEP WIDER THAN SETTINGS' TODAY (512 where
+ * the kind's panel is 448), because Review's grid and the Guests room's rows
+ * are working rooms; Settings opening in it is 64px wider than it ships.
  */
 function PlaceLayer({
   room,

@@ -23,8 +23,9 @@ import {
  * ★ THE DIAL IS A CLOCK, NOT A CHART. It is a 12-hour face, so a photograph
  * taken at 9:30 stands where the hand would at 9:30 and anyone reads it
  * without a legend: the night fills the face clockwise from the first
- * photograph, a mark every five minutes as long as that five minutes was busy,
- * the count at its heart and now a lit point on the rim.
+ * photograph, a mark every ten minutes as long as that stretch of the night was
+ * busy, the count at its heart and now a lit point on the rim. A party of
+ * several days would need a dial of days (its cost, said on the option).
  *
  * ★ STILL, NEVER A PULSE (`ui/badge`'s live mark, and why): a host keeps the
  * hub open all night, and a light that beat for hours would pull her eye off

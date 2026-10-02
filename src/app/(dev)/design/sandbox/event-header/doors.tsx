@@ -399,12 +399,12 @@ function WindowPicture({
         {faces.length === 0 ? (
           <Users className="size-5 text-white/60" aria-hidden />
         ) : (
-          <span className="flex -space-x-2.5">
+          <span className={cn("flex", small ? "-space-x-1.5" : "-space-x-2.5")}>
             {faces.slice(0, small ? 2 : 3).map((p) => (
               <Avatar
                 key={p.name}
                 seed={p.seed}
-                size={small ? "default" : "lg"}
+                size={small ? "sm" : "lg"}
                 className="ring-2 ring-black/50"
               >
                 <AvatarFallback>{p.name.charAt(0)}</AvatarFallback>
@@ -568,9 +568,11 @@ function WindowDoor({
           </span>
           {face.count ? <WindowCount n={face.count} small /> : null}
         </span>
+        {/* A word that outgrows its door (six doors at 375 where the album is one) takes a
+            second line rather than an ellipsis. */}
         <span
           className={cn(
-            "max-w-full truncate text-[11px] leading-none font-medium",
+            "max-w-full text-center text-[11px] leading-[1.15] font-medium text-balance",
             face.strong && "text-foreground",
             !face.strong && "text-muted-foreground",
             selected && "text-foreground",
