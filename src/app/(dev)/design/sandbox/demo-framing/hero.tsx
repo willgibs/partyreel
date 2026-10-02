@@ -145,7 +145,21 @@ const FRAMES = BUILT.lg.cards.map((lg, i) => {
  * point (`--hhs-lift`), and the axis's floor is the lowest axis at which its
  * painted top still clears the header by `airTop`. A tablet's numbers are
  * composed between the phone's and the desk's, as everything else there is.
+ *
+ * ★ A TABLET'S AXIS IS SOLVED FOR ITS OBJECT, as production solved it for the
+ * shipped card (`hero-stream.ts` GEO_TABLET: 38 percent left the card's top
+ * and the block's foot the same distance from the header and the fold at 900
+ * by 1200). Each object stands a different height over the axis, so the one
+ * percentage left the pane high and the card low on the first tablet any
+ * round drew (measured at 820 by 1180: 164 px over the pane against 296 under
+ * the block; 307 over the card against 173); here the axis is the point where
+ * the two airs meet at the same reference, the clamp still holding it between
+ * the header and the fold on any other screen.
  */
+const TABLET_REF_H = 1200;
+/** The block's height at 900 without its eyebrow (GEO_TABLET's 334, less 28). */
+const TABLET_BLOCK_H = 306;
+
 export function layoutOf(S: { base: Stand; lg: Stand }): CSSProperties {
   const mix = (a: number, b: number) => a + TABLET_STEP * (b - a);
   const standOf = (g: Geometry): Stand =>
@@ -167,8 +181,21 @@ export function layoutOf(S: { base: Stand; lg: Stand }): CSSProperties {
       const axisMin = Math.ceil(
         HEADER + GEO[g].airTop + OVERSHOOT + st.box - st.axis,
       );
+      // The tablet's own balance point: the object's top as far under the
+      // header as the block's foot stands over the fold.
+      const pct =
+        g === "tablet"
+          ? (100 *
+              (TABLET_REF_H +
+                HEADER +
+                (st.box - st.axis) -
+                low -
+                TABLET_BLOCK_H)) /
+            2 /
+            TABLET_REF_H
+          : GEO[g].axisPct;
       return [
-        [`--hhs-axis-pct-${g}`, `${GEO[g].axisPct}%`],
+        [`--hhs-axis-pct-${g}`, `${pct.toFixed(2)}%`],
         [`--hhs-axis-min-${g}`, `${axisMin}px`],
         [`--hhs-below-${g}`, `${below}px`],
         [`--hhs-min-h-${g}`, `${axisMin + below}px`],
