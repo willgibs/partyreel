@@ -11,6 +11,17 @@ export const HOVER = ':is(:hover,[data-demo~="hover"])';
 export const PRESS = ':is(:active,[data-demo~="press"])';
 export const FOCUS = ':is(:focus-visible,[data-demo~="focus"])';
 
+/**
+ * EVERY BUTTON, INCLUDING THE ONES A TRIGGER WEARS. A `Button` inside a Radix
+ * trigger or close (`DropdownMenuTrigger asChild`, `TooltipTrigger asChild`,
+ * `PopupClose asChild`) has its `data-slot` overwritten by the trigger's own
+ * (`dropdown-menu-trigger`, `tooltip-trigger`, `popup-close`), since the slot
+ * hands its props to the child last; its `data-variant` and `data-size`
+ * survive. So a button is what carries both, a toggle's item excepted (it
+ * carries both too, and is a chip, not a button).
+ */
+export const BTN = '[data-variant][data-size]:not([data-slot^="toggle-group"])';
+
 /** Every floating panel the product opens, by the hook its primitive writes. */
 export const PANELS = [
   '[data-slot="dropdown-menu-content"]',

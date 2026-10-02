@@ -147,7 +147,7 @@ export const IDENTITY = defineExploration({
           id: "soft",
           label: "Soft: tonal, round, pressable",
           means:
-            "Objects a thumb presses: pills and 16px surfaces, no line anywhere, depth by tone and a soft light from above, Urbanist on controls.",
+            "Objects a thumb presses: pills and round 16 to 22px surfaces, no line anywhere, depth by tone and a soft light from above, Urbanist on controls.",
           gains:
             "The warmest and easiest in a hand: 40px controls, and nothing reads as a border.",
           costs:
@@ -174,12 +174,12 @@ export const IDENTITY = defineExploration({
             "Strongest where people shoot, a costume on billing; a red signal light joins the palette.",
         },
       ],
-      recommended: "crystal",
+      recommended: "viewfinder",
       today: "today",
       because:
-        "It makes the material only Partyreel wears the whole product's, and lets every photograph colour the chrome laid over it.",
+        "It is the one family only Partyreel could wear: the party's own act becomes the language of every control, precise enough for a wedding.",
       overrule:
-        "If glass on every surface is too much, Viewfinder is the boldest identity and Editorial the calmest.",
+        "If a camera's language reads as a costume on Settings and billing, Crystal: the house glass on everything.",
       configs: [SHOW, SCREEN],
     },
   ],

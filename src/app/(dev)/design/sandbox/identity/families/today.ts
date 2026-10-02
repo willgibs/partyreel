@@ -1,3 +1,5 @@
+import { BTN } from "./states";
+
 /**
  * AS TODAY: production, untouched, with one addition the specimen needs.
  *
@@ -14,25 +16,25 @@ const PINNED_FOCUS = `
 `;
 
 export const TODAY_CSS = `
-[data-slot="button"][data-variant="outline"][data-demo~="hover"],
-[data-slot="button"][data-variant="ghost"][data-demo~="hover"] {
+${BTN}[data-variant="outline"][data-demo~="hover"],
+${BTN}[data-variant="ghost"][data-demo~="hover"] {
   background-color: var(--muted);
   color: var(--foreground);
 }
-.dark [data-slot="button"][data-variant="outline"][data-demo~="hover"] {
+.dark ${BTN}[data-variant="outline"][data-demo~="hover"] {
   background-color: color-mix(in oklab, var(--input) 50%, transparent);
 }
-.dark [data-slot="button"][data-variant="ghost"][data-demo~="hover"] {
+.dark ${BTN}[data-variant="ghost"][data-demo~="hover"] {
   background-color: color-mix(in oklab, var(--muted) 50%, transparent);
 }
-[data-slot="button"][data-variant="secondary"][data-demo~="hover"] {
+${BTN}[data-variant="secondary"][data-demo~="hover"] {
   background-color: color-mix(in oklab, var(--secondary) 80%, transparent);
 }
-[data-slot="button"][data-variant="destructive"][data-demo~="hover"] {
+${BTN}[data-variant="destructive"][data-demo~="hover"] {
   background-color: color-mix(in oklab, var(--destructive) 20%, transparent);
 }
-[data-slot="button"][data-demo~="press"] { scale: 0.97; }
-[data-slot="button"][data-demo~="focus"],
+${BTN}[data-demo~="press"] { scale: 0.97; }
+${BTN}[data-demo~="focus"],
 [data-slot="input"][data-demo~="focus"],
 [data-slot="select-trigger"][data-demo~="focus"],
 [data-slot="toggle-group-item"][data-demo~="focus"],

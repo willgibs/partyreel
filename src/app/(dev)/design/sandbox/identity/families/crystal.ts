@@ -1,4 +1,5 @@
 import {
+  BTN,
   each,
   FIELDS,
   FOCUS,
@@ -109,37 +110,37 @@ export const CRYSTAL_CSS = `
 }
 
 /* ── actions: a lit pearl, clear glass ──────────────────────────────── */
-[data-slot="button"] {
+${BTN} {
   border: 0; border-radius: 999px; font-weight: 600; letter-spacing: -0.005em;
   transition: filter 160ms var(--ease-emphasis), box-shadow 200ms var(--ease-emphasis),
     background-color 160ms var(--ease-emphasis), scale 150ms var(--ease-emphasis);
 }
-[data-slot="button"][data-size="default"] { height: 36px; padding-inline: 16px; }
-[data-slot="button"][data-size="sm"] { height: 32px; padding-inline: 13px; }
-[data-slot="button"][data-size="lg"] { height: 40px; padding-inline: 18px; }
-[data-slot="button"][data-size="cta"] { height: 48px; padding-inline: 24px; }
-[data-slot="button"][data-size="icon"] { width: 36px; height: 36px; }
-[data-slot="button"][data-size="icon-sm"] { width: 32px; height: 32px; }
-[data-slot="button"][data-size="icon-lg"] { width: 40px; height: 40px; }
-[data-slot="button"]${HOVER} { filter: brightness(1.07); }
-[data-slot="button"]${PRESS} { filter: brightness(0.92); scale: 0.97; }
-[data-slot="button"][data-variant="default"] { ${PEARL_LIGHT} }
-.dark [data-slot="button"][data-variant="default"] { ${PEARL_DARK} }
-[data-slot="button"]:is([data-variant="outline"],[data-variant="secondary"]) { ${PANE_LIGHT} color: var(--foreground); }
-.dark [data-slot="button"]:is([data-variant="outline"],[data-variant="secondary"]) { ${PANE_DARK} color: var(--foreground); }
-[data-slot="button"][data-variant="ghost"] { background: transparent; }
-[data-slot="button"][data-variant="ghost"]${HOVER} { ${PANE_LIGHT} filter: none; }
-.dark [data-slot="button"][data-variant="ghost"]${HOVER} { ${PANE_DARK} }
-[data-slot="button"][data-variant="destructive"] {
+${BTN}[data-size="default"] { height: 36px; padding-inline: 16px; }
+${BTN}[data-size="sm"] { height: 32px; padding-inline: 13px; }
+${BTN}[data-size="lg"] { height: 40px; padding-inline: 18px; }
+${BTN}[data-size="cta"] { height: 48px; padding-inline: 24px; }
+${BTN}[data-size="icon"] { width: 36px; height: 36px; }
+${BTN}[data-size="icon-sm"] { width: 32px; height: 32px; }
+${BTN}[data-size="icon-lg"] { width: 40px; height: 40px; }
+${BTN}${HOVER} { filter: brightness(1.07); }
+${BTN}${PRESS} { filter: brightness(0.92); scale: 0.97; }
+${BTN}[data-variant="default"] { ${PEARL_LIGHT} }
+.dark ${BTN}[data-variant="default"] { ${PEARL_DARK} }
+${BTN}:is([data-variant="outline"],[data-variant="secondary"]) { ${PANE_LIGHT} color: var(--foreground); }
+.dark ${BTN}:is([data-variant="outline"],[data-variant="secondary"]) { ${PANE_DARK} color: var(--foreground); }
+${BTN}[data-variant="ghost"] { background: transparent; }
+${BTN}[data-variant="ghost"]${HOVER} { ${PANE_LIGHT} filter: none; }
+.dark ${BTN}[data-variant="ghost"]${HOVER} { ${PANE_DARK} }
+${BTN}[data-variant="destructive"] {
   background: color-mix(in oklab, var(--destructive) 14%, transparent); color: var(--destructive);
   box-shadow: inset 0 1px 0 oklch(1 0 0 / 14%), inset 0 0 0 1px color-mix(in oklab, var(--destructive) 26%, transparent);
 }
-[data-slot="button"][data-variant="link"] { height: auto; padding-inline: 0; background: none; box-shadow: none; font-weight: 500; }
-[data-slot="button"]${FOCUS} { outline: none; box-shadow: ${HALO}; }
-[data-slot="button"][data-variant="default"]${FOCUS} {
+${BTN}[data-variant="link"] { height: auto; padding-inline: 0; background: none; box-shadow: none; font-weight: 500; }
+${BTN}${FOCUS} { outline: none; box-shadow: ${HALO}; }
+${BTN}[data-variant="default"]${FOCUS} {
   box-shadow: inset 0 1px 0 oklch(1 0 0 / 30%), ${HALO};
 }
-[data-slot="button"]:disabled { opacity: 0.4; filter: saturate(0.6); }
+${BTN}:disabled { opacity: 0.4; filter: saturate(0.6); }
 
 [data-slot="toggle-group"] { gap: 6px; }
 [data-slot="toggle-group-item"] {
@@ -284,22 +285,25 @@ header.sticky.border-b { -webkit-backdrop-filter: blur(24px) saturate(1.8); back
 [data-slot="responsive-menu-item"] { font-weight: 600; }
 [data-slot="responsive-menu-item"] > svg { color: var(--foreground) !important; }
 
-/* ── on a photograph: the house glass, lit, and a pearl ─────────────── */
+/* a hand's whole-screen shapes are the page itself: opaque, on the ground */
+[data-slot="popup-content"]:is([data-shape="screen"],[data-shape="cover"]) {
+  background: var(--background); -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+
+/* ── on a photograph, and the head's new atoms: the house glass, lit ── */
 [data-on-photo] [data-eh="live"], [data-on-photo] [data-eh="round"] {
   background: linear-gradient(180deg, oklch(1 0 0 / 28%), oklch(1 0 0 / 8%));
   -webkit-backdrop-filter: blur(16px) saturate(1.8); backdrop-filter: blur(16px) saturate(1.8);
   box-shadow: inset 0 1px 0 oklch(1 0 0 / 50%), inset 0 0 0 1px oklch(1 0 0 / 18%), 0 4px 14px oklch(0 0 0 / 0.25);
 }
 [data-on-photo] [data-eh="live"]::before { box-shadow: 0 0 8px var(--success); }
-[data-on-photo] [data-slot="button"][data-variant="default"] { ${PEARL_DARK} }
-[data-eh="shutter"] {
-  background:
-    radial-gradient(closest-side, oklch(0.99 0.002 286) calc(100% - 8px), transparent calc(100% - 7px)),
-    conic-gradient(oklch(1 0 0) var(--p, 0%), oklch(1 0 0 / 22%) 0);
-  box-shadow: 0 0 18px oklch(1 0 0 / 35%), 0 4px 14px oklch(0 0 0 / 0.3);
+[data-on-photo] ${BTN}[data-variant="default"] { ${PEARL_DARK} }
+[data-eh="code-chip"] {
+  border-radius: 12px;
+  box-shadow: inset 0 1px 0 oklch(1 0 0), inset 0 0 0 1px oklch(0.2 0.01 286 / 10%), var(--shadow-lift);
 }
-[data-eh="code-chip"] { border-radius: 10px; box-shadow: inset 0 1px 0 oklch(1 0 0), inset 0 0 0 1px oklch(0.2 0.01 286 / 10%), var(--shadow-lift); }
-[data-eh="number-door"] { border-radius: 16px; }
-[data-eh="number-door"]:hover { ${PANE_LIGHT} }
-.dark [data-eh="number-door"]:hover { ${PANE_DARK} }
+[data-eh="numbers"] { gap: 8px; }
+[data-eh="number-door"], [data-eh="number-door"]:first-child { padding: 12px 16px; border-radius: 18px; ${PANE_LIGHT} }
+.dark [data-eh="number-door"] { ${PANE_DARK} }
+[data-eh="number-door"] + [data-eh="number-door"] { border-left: 0; }
 `;

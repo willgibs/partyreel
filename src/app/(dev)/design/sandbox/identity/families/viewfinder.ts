@@ -1,4 +1,5 @@
 import {
+  BTN,
   each,
   FIELDS,
   FOCUS,
@@ -47,22 +48,22 @@ const LOCKED = `opacity: 1; inset: -5px;`;
 export const VIEWFINDER_CSS = `
 /* ── material: a matte body, a silver one on paper ──────────────────── */
 :root, .surface-paper {
-  --background: oklch(0.952 0.002 286);
+  --background: oklch(0.972 0.002 286);
   --foreground: oklch(0.12 0.004 286);
-  --card: oklch(0.985 0.001 286);
+  --card: oklch(0.993 0.001 286);
   --card-foreground: oklch(0.12 0.004 286);
   --popover: oklch(0.99 0.001 286);
   --popover-foreground: oklch(0.12 0.004 286);
   --primary: oklch(0.12 0.004 286);
   --primary-foreground: oklch(0.985 0.001 286);
-  --secondary: oklch(0.905 0.003 286);
+  --secondary: oklch(0.93 0.003 286);
   --secondary-foreground: oklch(0.12 0.004 286);
-  --muted: oklch(0.925 0.003 286);
+  --muted: oklch(0.945 0.003 286);
   --muted-foreground: oklch(0.42 0.006 286);
   --faint: oklch(0.6 0.006 286);
-  --accent: oklch(0.9 0.003 286);
+  --accent: oklch(0.91 0.003 286);
   --accent-foreground: oklch(0.12 0.004 286);
-  --border: oklch(0.12 0.004 286 / 12%);
+  --border: oklch(0.12 0.004 286 / 13%);
   --input: oklch(0.12 0.004 286 / 22%);
   --ring: oklch(0.12 0.004 286);
   --signal: oklch(0.6 0.22 27);
@@ -102,32 +103,37 @@ export const VIEWFINDER_CSS = `
 body { font-variant-numeric: tabular-nums; }
 
 /* ── actions: keys and dials; focus is a lock ───────────────────────── */
-[data-slot="button"] {
+${BTN} {
   position: relative; border-radius: 6px; font-size: 13px; font-weight: 600; letter-spacing: 0.005em;
   transition: background-color 90ms linear, color 90ms linear, box-shadow 90ms linear, scale 80ms linear;
 }
-[data-slot="button"]::after { ${LOCK_AT_REST} }
-[data-slot="button"]${FOCUS} { outline: none; box-shadow: none; }
-[data-slot="button"]${FOCUS}::after { ${LOCKED} }
-[data-slot="button"]${PRESS} { scale: 0.96; }
-[data-slot="button"][data-variant="default"] { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
-[data-slot="button"][data-variant="default"]${HOVER} { background: color-mix(in oklab, var(--primary) 88%, var(--background)); }
-[data-slot="button"]:is([data-variant="outline"],[data-variant="secondary"]) {
+${BTN}::after { ${LOCK_AT_REST} }
+${BTN}${FOCUS} { outline: none; box-shadow: none; }
+${BTN}${FOCUS}::after { ${LOCKED} }
+${BTN}${PRESS} { scale: 0.96; }
+${BTN}[data-variant="default"] { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+${BTN}[data-variant="default"]${HOVER} { background: color-mix(in oklab, var(--primary) 88%, var(--background)); }
+${BTN}:is([data-variant="outline"],[data-variant="secondary"]) {
   background: var(--secondary); color: var(--foreground); border-color: transparent;
-  box-shadow: inset 0 1px 0 oklch(1 0 0 / 6%), inset 0 0 0 1px var(--border);
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 70%), inset 0 -1px 0 oklch(0 0 0 / 7%), inset 0 0 0 1px var(--border);
 }
-[data-slot="button"]:is([data-variant="outline"],[data-variant="secondary"])${HOVER} { background: var(--accent); }
-[data-slot="button"][data-variant="ghost"] { background: transparent; }
-[data-slot="button"][data-variant="ghost"]${HOVER} { background: var(--secondary); }
-[data-slot="button"][data-variant="destructive"] {
+.dark ${BTN}:is([data-variant="outline"],[data-variant="secondary"]) {
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 7%), inset 0 -1px 0 oklch(0 0 0 / 40%), inset 0 0 0 1px var(--border);
+}
+${BTN}[data-variant="default"] { box-shadow: inset 0 1px 0 oklch(1 0 0 / 14%), inset 0 -1px 0 oklch(0 0 0 / 30%); }
+.dark ${BTN}[data-variant="default"] { box-shadow: inset 0 -1px 0 oklch(0 0 0 / 22%); }
+${BTN}:is([data-variant="outline"],[data-variant="secondary"])${HOVER} { background: var(--accent); }
+${BTN}[data-variant="ghost"] { background: transparent; }
+${BTN}[data-variant="ghost"]${HOVER} { background: var(--secondary); }
+${BTN}[data-variant="destructive"] {
   background: var(--secondary); color: var(--signal); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--signal) 40%, transparent);
 }
-[data-slot="button"][data-variant="destructive"]${HOVER} { background: color-mix(in oklab, var(--signal) 14%, var(--secondary)); }
-[data-slot="button"][data-variant="link"] { ${READOUT} height: auto; padding-inline: 0; text-decoration: none; }
-[data-slot="button"][data-variant="link"]::before { content: "→"; order: 2; letter-spacing: 0; }
-[data-slot="button"]:is([data-size="icon"],[data-size="icon-sm"],[data-size="icon-xs"],[data-size="icon-lg"]) { border-radius: 999px; }
-[data-slot="button"]:is([data-size="icon"],[data-size="icon-sm"],[data-size="icon-xs"],[data-size="icon-lg"])::after { border-radius: 999px; }
-[data-slot="button"]:disabled { opacity: 0.32; }
+${BTN}[data-variant="destructive"]${HOVER} { background: color-mix(in oklab, var(--signal) 14%, var(--secondary)); }
+${BTN}[data-variant="link"] { ${READOUT} height: auto; padding-inline: 0; text-decoration: none; }
+${BTN}[data-variant="link"]::before { content: "→"; order: 2; letter-spacing: 0; }
+${BTN}:is([data-size="icon"],[data-size="icon-sm"],[data-size="icon-xs"],[data-size="icon-lg"]) { border-radius: 999px; }
+${BTN}:is([data-size="icon"],[data-size="icon-sm"],[data-size="icon-xs"],[data-size="icon-lg"])::after { border-radius: 999px; }
+${BTN}:disabled { opacity: 0.32; }
 
 [data-slot="toggle-group"] { gap: 4px; }
 [data-slot="toggle-group-item"] {
@@ -287,7 +293,12 @@ ${ROW_ON} { background: var(--accent) !important; box-shadow: inset 2px 0 0 var(
 }
 [data-slot="responsive-menu-rows"] h2 { ${READOUT} font-size: 10px; }
 
-/* ── on a photograph: the camera's own overlay ──────────────────────── */
+/* a hand's whole-screen shapes are the page itself: opaque, on the ground */
+[data-slot="popup-content"]:is([data-shape="screen"],[data-shape="cover"]) {
+  background: var(--background); -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+
+/* ── on a photograph, and the head's new atoms: the camera's overlay ─── */
 [data-on-photo] [data-eh="live"] {
   border-radius: 3px; background: oklch(0 0 0 / 55%); box-shadow: inset 0 0 0 1px oklch(1 0 0 / 14%);
   -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); ${READOUT} font-size: 10px; color: oklch(1 0 0);
@@ -297,19 +308,20 @@ ${ROW_ON} { background: var(--accent) !important; box-shadow: inset 2px 0 0 var(
   background: oklch(0 0 0 / 45%); box-shadow: inset 0 0 0 1px oklch(1 0 0 / 22%);
   -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
 }
-[data-on-photo] [data-slot="button"][data-variant="default"] { background: oklch(1 0 0); color: oklch(0.1 0 0); }
+[data-on-photo] ${BTN}[data-variant="default"] { background: oklch(1 0 0); color: oklch(0.1 0 0); }
+/* the shutter is a camera's: a white disc inside its own ring */
 [data-eh="shutter"] {
-  width: 66px; height: 66px;
+  color: oklch(0.1 0 0);
   background:
-    radial-gradient(closest-side, oklch(1 0 0) calc(100% - 9px), transparent calc(100% - 8.5px) calc(100% - 4.5px), transparent calc(100% - 4px)),
+    radial-gradient(closest-side, oklch(1 0 0) calc(100% - 9px), transparent calc(100% - 8.5px)),
     conic-gradient(oklch(1 0 0) var(--p, 0%), oklch(1 0 0 / 30%) 0);
   -webkit-mask: radial-gradient(closest-side, #000 calc(100% - 9px), transparent calc(100% - 8.5px) calc(100% - 4.5px), #000 calc(100% - 4px));
   mask: radial-gradient(closest-side, #000 calc(100% - 9px), transparent calc(100% - 8.5px) calc(100% - 4.5px), #000 calc(100% - 4px));
 }
 [data-eh="code-chip"] { position: relative; border-radius: 3px; }
 [data-eh="code-chip"]::after { content: ""; position: absolute; inset: -5px; pointer-events: none; ${BRACKETS("var(--foreground)", "6px", "1.5px")} }
-[data-eh="number-door"] { border-radius: 6px; position: relative; }
-[data-eh="number-door"]:hover { background: var(--secondary); }
-[data-eh="number-door"] > b { font-family: var(--font-sans); font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums slashed-zero; }
-[data-eh="number-door"] > span { ${READOUT} font-size: 10px; }
+[data-eh="number-door"] > [data-eh-n="word"], [data-eh="number-door"] > [data-eh-n="sub"] { ${READOUT} font-size: 10px; }
+[data-eh="number-door"] > b {
+  font-family: var(--font-sans); font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums slashed-zero;
+}
 `;

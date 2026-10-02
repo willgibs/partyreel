@@ -14,6 +14,7 @@ import {
   Rows3,
   Share,
   Trash2,
+  Users,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -210,11 +211,23 @@ export function Actions() {
           <ToggleGroupItem value="mine">Yours</ToggleGroupItem>
         </ToggleGroup>
       </Row>
-      <Row note="the number door">
-        <button type="button" data-eh="number-door">
-          <b>214</b>
-          <span>photos</span>
-        </button>
+      <Row note="the number doors">
+        <div data-eh="numbers">
+          <button type="button" data-eh="number-door">
+            <span data-eh-n="word">
+              <Images /> Photos
+            </span>
+            <b>214</b>
+            <span data-eh-n="sub">12 tonight</span>
+          </button>
+          <button type="button" data-eh="number-door" data-amber="">
+            <span data-eh-n="word">
+              <Users /> Guests
+            </span>
+            <b>38</b>
+            <span data-eh-n="sub">2 at the door</span>
+          </button>
+        </div>
       </Row>
     </Group>
   );
@@ -316,7 +329,7 @@ function Cover({ compact = false }: { compact?: boolean }) {
               type="button"
               data-eh="round"
               aria-label="Like"
-              className={cn(GLASS, "flex size-9 items-center justify-center")}
+              className={cn(GLASS, "flex size-10 items-center justify-center")}
             >
               <Heart className="size-4" />
             </button>
@@ -324,7 +337,7 @@ function Cover({ compact = false }: { compact?: boolean }) {
               type="button"
               data-eh="round"
               aria-label="More"
-              className={cn(GLASS, "flex size-9 items-center justify-center")}
+              className={cn(GLASS, "flex size-10 items-center justify-center")}
             >
               <MoreHorizontal className="size-4" />
             </button>
@@ -337,7 +350,7 @@ function Cover({ compact = false }: { compact?: boolean }) {
             aria-label="Add photos, sending"
             style={{ "--p": "62%" } as React.CSSProperties}
           >
-            <Plus />
+            <ImageUp />
           </button>
           <Button size="sm">Add photos</Button>
         </div>
@@ -492,10 +505,12 @@ function Masthead({ size }: { size: number }) {
     <div className="flex flex-col gap-1">
       <p
         data-eh="photo-type"
-        style={{
-          fontSize: size,
-          backgroundImage: `url(${PHOTO.confetti})`,
-        }}
+        style={
+          {
+            fontSize: size,
+            "--eh-photo": `url(${PHOTO.confetti})`,
+          } as React.CSSProperties
+        }
       >
         Maya &amp; Jay
       </p>
@@ -523,8 +538,8 @@ export function Specimen({ w, part }: { w: Width; part?: GroupId }) {
         ) : part === "status" ? (
           <Status />
         ) : (
-          <div className="flex flex-col gap-8">
-            <Masthead size={58} />
+          <div className="flex flex-col gap-6">
+            <Masthead size={46} />
             <Actions />
           </div>
         )}
