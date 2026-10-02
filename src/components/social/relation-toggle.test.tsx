@@ -95,7 +95,16 @@ describe("the relation contract", () => {
     render(<RelationToggle relation="follow" profileId="p2" on={false} />);
     fireEvent.click(screen.getByRole("button", { name: "Follow" }));
     await waitFor(() => expect(follow).toHaveBeenCalledWith("p2"));
-    fireEvent.click(await screen.findByRole("button", { name: "Following" }));
+    // ★ THE SECOND PRESS WAITS FOR THE FIRST FLIP TO LAND (crumbs-48). "Following" is on screen from the
+    // press (the optimistic flip), well before the write is answered, and a flip in flight takes no second
+    // press (the next test): pressed on sight, it was swallowed whenever a loaded run got there first, and
+    // the unfollow spy was never called. The busy state going is the flip landing.
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Following" }),
+      ).not.toHaveAttribute("aria-busy"),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Following" }));
     await waitFor(() => expect(unfollow).toHaveBeenCalledWith("p2"));
   });
 
@@ -127,7 +136,14 @@ describe("the relation contract", () => {
     await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith("Couldn't unblock right now."),
     );
-    expect(screen.getByRole("button", { name: "Unblock" })).toBeInTheDocument();
+    // The spring-back is a render after the toast (the optimistic flip reverts once the action ends), so
+    // it is waited for, not read the instant the toast is heard (crumbs-48: the race "every other flip
+    // acts at once" lost, a loaded run reaching the control before the page had caught up).
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Unblock" }),
+      ).toBeInTheDocument(),
+    );
   });
 
   it("Follow is a toggle that reads as pressed; Block is an act and carries no pressed state", () => {

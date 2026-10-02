@@ -28,6 +28,13 @@ import { LibraryIndex, type LibraryRow } from "./index-list";
  *
  * The index under it is every catalog entry, one row each, grouped by family
  * and searchable by name, file and what it is for.
+ *
+ * ★ NONE OF ITS LINKS PREFETCH (crumbs-48). Each href carries the lab key, so a
+ * prefetching `<Link>` is a keyed server render of its Library page the moment
+ * it scrolls into view (the index's rows alone are about two hundred), and
+ * Next's keyless sibling besides, which `prefetch-guard.tsx` has to answer.
+ * Every link here says `prefetch={false}`, as `LabLink` does; a press still
+ * navigates in place.
  */
 
 /** The index's group order: the four catalog families, then the brand kit's own entries. */
@@ -141,6 +148,7 @@ export default async function LibraryHomePage({
               <Link
                 key={family}
                 href={link(FAMILY_ROUTE[family])}
+                prefetch={false}
                 className="rounded-xl border border-border bg-card px-3 py-2.5 transition-colors hover:border-foreground/25"
               >
                 <p className="text-[13px] font-medium">
@@ -186,6 +194,7 @@ function StepTitle({
   return (
     <Link
       href={link(step.href)}
+      prefetch={false}
       className="underline-offset-2 hover:underline"
     >
       {label}
