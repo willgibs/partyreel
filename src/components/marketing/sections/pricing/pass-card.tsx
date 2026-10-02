@@ -105,18 +105,21 @@ export function PassCard() {
       >
         {/* The frame. aria-hidden by omission: the alt is empty because the
             picture is identity, and every word of the offer is beside it. */}
-        <div className="relative h-44 w-full shrink-0 sm:h-52 lg:h-auto lg:w-60">
+        <div className="relative h-44 w-full shrink-0 sm:h-52 lg:h-auto lg:w-52">
           <Image
             src={frame.src}
             alt=""
             fill
-            sizes="(min-width: 1024px) 15rem, 100vw"
+            sizes="(min-width: 1024px) 13rem, 100vw"
             className="object-cover transition-transform duration-300 ease-emphasis group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
           />
         </div>
 
         {/* The stub: who it is for, what it costs, what it holds. */}
-        <div className="flex flex-col gap-2 p-6 sm:p-7 lg:w-72 lg:shrink-0">
+        {/* `lg:w-80`: the three stats sit side by side in this column, and "≈ 21,943" needs about 61px of
+            text where the 288px stub (`w-72`) left each cell 55, so its `≈` wrapped onto a line of its
+            own at 1440. The 32px come from the frame's strip (`lg:w-52`), so the words half keeps its width. */}
+        <div className="flex flex-col gap-2 p-6 sm:p-7 lg:w-80 lg:shrink-0">
           <h2 className="font-heading text-subsection">{pass.name}</h2>
           <p className="text-sm text-pretty text-muted-foreground">
             One big event, paid once.

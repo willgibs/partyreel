@@ -239,7 +239,11 @@ export function StatRow({
           >
             {s.label}
           </dt>
-          <dd className="mt-0.5 text-sm font-medium tabular-nums">{s.value}</dd>
+          {/* A figure never breaks from its marker or its unit: `≈ 21,943` at the Pass's narrow stub
+              wrapped its `≈` onto a line of its own, and "100 GB" could strand its "GB" the same way. */}
+          <dd className="mt-0.5 text-sm font-medium whitespace-nowrap tabular-nums">
+            {s.value}
+          </dd>
         </div>
       ))}
     </dl>

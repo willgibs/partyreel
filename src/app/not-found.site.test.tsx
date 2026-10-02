@@ -20,6 +20,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  */
 
 vi.mock("next/link", () => ({
+  // The wordmark's door draws a pending cue (`HomeLink`); a stand-in link is never pending.
+  useLinkStatus: () => ({ pending: false }),
   default: ({
     prefetch,
     href,
@@ -104,13 +106,19 @@ describe("the root 404", () => {
 });
 
 describe("the chrome on every other page", () => {
-  it("prefetches as it always did", () => {
+  it("prefetches as it always did, but for the wordmark's door to the home", () => {
     const { container } = render(<MarketingHeader />);
-    const home = internalLinks(container).find(
+    const links = internalLinks(container);
+    const pricing = links.find((a) => a.getAttribute("href") === "/pricing");
+    expect(pricing).toBeTruthy();
+    // No prop at all: `next/link`'s own default. The quiet page is the 404's alone.
+    expect(pricing!.getAttribute("data-prefetch")).toBe("undefined");
+    // The one change (crumbs-50): the wordmark's link to `/` waits for a pointer or focus, since its
+    // viewport prefetch preloaded the home's three sheets into every other page (chrome-link.test.tsx).
+    const home = links.find(
       (a) => a.getAttribute("aria-label") === "Partyreel home",
     );
     expect(home).toBeTruthy();
-    // No prop at all: `next/link`'s own default.
-    expect(home!.getAttribute("data-prefetch")).toBe("undefined");
+    expect(home!.getAttribute("data-prefetch")).toBe("false");
   });
 });

@@ -22,7 +22,7 @@ import { SITE_THESIS } from "@/lib/constants/marketing-voice";
 import { DEMO_EVENT_URL } from "@/lib/demo";
 import { cn } from "@/lib/utils";
 
-import { ChromeLink as Link } from "./chrome-link";
+import { ChromeLink as Link, HomeLink } from "./chrome-link";
 import { FooterDemo } from "./footer-demo";
 import { FooterFaqLink } from "./footer-faq-link";
 import { FooterGlow } from "./footer-glow";
@@ -252,9 +252,9 @@ function Index() {
         {/* The v1 wordmark, alone, as in the nav (Will, 2026-09-17). It was
             already wordmark-only here: a mark's filled tile is a second white
             rectangle directly under the QR plate, and the two read as a clash. */}
-        <Link href="/" aria-label="Partyreel home">
+        <HomeLink>
           <Logo />
-        </Link>
+        </HomeLink>
         {/* Imports the ruled thesis rather than duplicating it: the original
             footer carried a byte-identical hardcoded copy, so a thesis rewrite
             would silently have skipped the most-seen surface on the site. */}

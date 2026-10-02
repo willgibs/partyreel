@@ -1,5 +1,7 @@
 /**
- * THE FILLING ALBUM'S FIXTURES (the /features/album round, 2026-09-02).
+ * THE FILLING ALBUM'S FIXTURES (the /features/album round, 2026-09-02): the table the "everywhere" pair
+ * fills (`everywhere-stage.tsx`). The album page's hero had a table of its own here until it became the
+ * live stream (`arrivals-hero.tsx`).
  *
  * A table in LANDING ORDER. The first `seedCount` entries are the resting
  * album (the frame the server renders, oldest at the bottom of each column);
@@ -23,7 +25,7 @@ export type AlbumFixture = {
   id: string;
   /** The column in the 3-column layout; a 2-column grid takes `col % 2`. */
   col: 0 | 1 | 2;
-  /** Tile height at the hero's full width, in px (scaled by the grid). */
+  /** Tile height at the stage's full width, in px (scaled by the grid). */
   h: number;
   /** The uploader's display name, for the "from N guests" line. */
   by: string;
@@ -31,28 +33,7 @@ export type AlbumFixture = {
   kind?: "photo" | "video";
 };
 
-/** The hero's clip height at full scale; each column's seeds must overfill it. */
-export const HERO_FRAME_H = 372;
-export const HERO_SEED_COUNT = 6;
-
-export const HERO_FIXTURES: readonly AlbumFixture[] = [
-  // The resting album: two per column, summed past HERO_FRAME_H.
-  { id: "wedding-golden", col: 0, h: 196, by: "Maya" },
-  { id: "reception-table", col: 1, h: 206, by: "Jay" },
-  { id: "party-balloons", col: 2, h: 182, by: "Priya" },
-  { id: "reception-hall", col: 0, h: 186, by: "Sam" },
-  { id: "party-dj", col: 1, h: 176, by: "Theo" },
-  { id: "wedding-arch", col: 2, h: 200, by: "Maya" },
-  // The arrivals, newest first as they land.
-  { id: "wedding-toast", col: 1, h: 160, by: "Maya" },
-  { id: "wedding-rings", col: 0, h: 152, by: "Jay" },
-  { id: "concert-confetti", col: 2, h: 168, by: "Noor", kind: "video" },
-  { id: "festival-crowd", col: 1, h: 150, by: "Priya" },
-  { id: "wedding-petals", col: 0, h: 172, by: "Jay" },
-  { id: "festival-lights", col: 2, h: 144, by: "Alex" },
-];
-
-/** The "everywhere" pair: a smaller resting set and a short loop of arrivals. */
+/** The "everywhere" pair's table: a resting set and a short loop of arrivals. */
 export const EVERYWHERE_FRAME_H = 236;
 export const EVERYWHERE_SEED_COUNT = 6;
 
