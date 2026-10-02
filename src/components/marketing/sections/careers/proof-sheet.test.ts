@@ -1,5 +1,5 @@
 /**
- * The contact sheet's derivations, pinned at the careers merge (2026-08-29).
+ * The proof sheet's derivations, pinned at the careers merge (2026-08-29).
  *
  * The round shipped ~2,900 lines with no tests, and these three facts are the
  * ones whose comments PROMISE they cannot rot while nothing enforces it. Each
@@ -14,12 +14,12 @@ import {
   HERO_SELECTS,
   ROLL_SELECTS,
 } from "@/components/marketing/sections/careers/careers-story";
-import { SHEET_FRAMES } from "@/components/marketing/sections/careers/contact-sheet";
+import { SHEET_FRAMES } from "@/components/marketing/sections/careers/proof-sheet";
 
 /** The hero repeats the roll this many times (careers/page.tsx `repeat={3}`). */
 const HERO_REPEAT = 3;
 
-describe("the contact sheet's selects", () => {
+describe("the proof sheet's selects", () => {
   it("★ derives the roll's marks to a REAL frame, never to -1", () => {
     // ROLL_SELECTS is KEPT_FRAMES.map(id => SHEET_FRAMES.indexOf(id)), and the
     // comment on it says a literal index list "silently rots the moment

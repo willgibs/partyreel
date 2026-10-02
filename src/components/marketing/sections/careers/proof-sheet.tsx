@@ -5,7 +5,7 @@ import { marketingImage } from "@/lib/constants/marketing-media";
 import { cn } from "@/lib/utils";
 
 /**
- * THE CONTACT SHEET - the careers page's signature composition.
+ * THE PROOF SHEET - the careers page's signature composition.
  *
  * A photographic proof sheet: real event frames butted tight, numbered in the
  * corner with tabular figures, with a few circled the way an editor marks a
@@ -49,7 +49,7 @@ export const SHEET_FRAMES = [
  *  the same early bandwidth, which is the opposite of what it is for. */
 const PRIORITY_FRAMES = 6;
 
-type ContactSheetProps = {
+type ProofSheetProps = {
   /** Frame indices circled as selects. Empty = an unmarked roll. */
   selects?: number[];
   /**
@@ -69,13 +69,13 @@ type ContactSheetProps = {
   className?: string;
 };
 
-export function ContactSheet({
+export function ProofSheet({
   selects = [],
   variant = "hero",
   columns = "grid-cols-4 sm:grid-cols-6",
   repeat = 1,
   className,
-}: ContactSheetProps) {
+}: ProofSheetProps) {
   const selected = new Set(selects);
   const isRoll = variant === "roll";
   const frames = Array.from({ length: repeat }, () => SHEET_FRAMES).flat();
