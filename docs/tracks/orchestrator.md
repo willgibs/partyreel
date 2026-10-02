@@ -111,12 +111,14 @@ the alias mid-sitting (his yes). No new lane until his paste lands.
      walk by SQL, to delete after it (and the 40-day one's photo `cc2517cc` restored, which its Take it down removes):
      reports `b541d98b` (40 days), `88c5223f` (181 days), `a76ca9da` (no address, 31 days), on "Reel lane probe
      (disposable)" `aefb1f5d`.
-   - **the desk pass** (agent `acf3e73280c6b401a`): the 22 open asks of the five boards `lab-scope --since 21697db1`
-     names (about-press, demo-framing, disposable-mode, event-ready, locked-door) re-read against build 38; a
-     desk-tune only where a claim drifted, never an ask's or an option's id.
+   - **the desk pass** DONE (02:45Z): 21 of the 22 asks hold; event-ready's `guide` DRIFTED in what its frames draw
+     (the quoted Settings panel at 375 shows the event's name under the bar, which production hides since crumbs-42),
+     and two quotes went stale beside it (event-ready's "Closed", disposable-mode's Review head). **desk-tune-3**
+     makes them true (agent `a46ad17e1fdfc358f`, Sonnet, 3131; its manifest is its whole init); integrate it, then
+     build 39 (lab-only beside build 38) carries it to the alias.
    Also: production's first album-log prune after 04:48Z on 2026-10-02 and the export Worker's first heartbeat after
    05:30Z, both read in `job_runs`.
-4. **Tell Will the alias is ready** for his sitting (locked-door first).
+4. **Tell Will the alias is ready** for his sitting (locked-door first) once build 39 carries desk-tune-3.
 5. **After his paste:** transcribe it, then the wiring lanes from his picks, at most four at once (`memory_pressure`
    before each), `/me` (his A), the strike line's repeated date, and new boards as they're seen. What each wiring
    carries beyond his picks:
