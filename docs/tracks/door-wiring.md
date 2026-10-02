@@ -71,12 +71,13 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- **"A gated door names the album and never the host": every gate, or the password alone?** Built across every gate a
-  newcomer stands at (the password, letting each guest in, the invite list), since the read gives a gated album's host to
-  nobody outside it: the held door, the ask, a gate's email step and the unlisted ask now say "the host" where production
-  named the host ("Maya will let you in" is "The host will let you in"), and a gate's welcome shows no byline; the album's
-  name stays at those doors. Overrule: name the host again at the approve and invite doors (one line, `page.tsx`'s
-  `shellEvent`; the copy already words both).
+- **ANSWERED: "A gated door names the album and never the host": every gate, or the password alone?** Answered by Will's
+  own words of 2026-10-02, "Only what's shown today" (the brief's paraphrase had read them as never naming the host): the
+  doorway keeps today's privacy exactly, so the overrule is applied (`760cc982`). The doors the host answers name her as
+  production always did (the welcome's byline where she lets each guest in or a list keeps, the email step, the ask, the
+  held door, the unlisted reader's "Ask Maya to let me in"); the password door names the album and never its host; the
+  shut door (Only me, a closed door, a decline, a block, someone who was in) names nothing; the board's doorway naming the
+  host on its shut door stays overruled.
 - **What a gate's sheet stands over.** Built: at a gate the sheet's own steps (the password, the email) rise over the
   doorway, shut, under a light dim with no blur (`STAGE_SCRIM`), so the door keeps its state above them (beside the panel
   at a desk) and swings open on the step's own success; at a Public album the steps after the welcome rise over the
@@ -111,7 +112,10 @@ working.
 - **Commits**, pushed: `de964afc` (the door family), `38c9fb61` (the stage's modal semantics, the view cleared with its
   album, the records), `93217837` (nothing drifts behind a shut leaf), `ad200d2f` (sync: `git merge origin/launch-prep`
   at `6f1da1a3`, ready-wiring, crumbs-46, lab-prefetch and mkt-wiring; `visibility-labels.ts` and
-  `marketing-content.md` had moved, no conflict). The head is this manifest's commit.
+  `marketing-content.md` had moved, no conflict), `760cc982` (today's privacy restored at the doors the host answers,
+  the Orchestrator's correction). The head is this manifest's commit.
+- **After `760cc982`** (the steps it touches, logs `_scratch/door-wiring/gate2-*.log`): typecheck 0, lint 0, test 0 (745
+  files, 8,822 tests), `pnpm lab:smoke --base http://localhost:3131` 0 (136 checks).
 - **Gates on the synced tree `ad200d2f`**, each on its own exit code (logs in `_scratch/door-wiring/gate-*.log`):
   `zsh scripts/build-lock.sh pnpm typecheck` 0; `pnpm lint` 0; `zsh scripts/build-lock.sh pnpm test` 0 (745 files, 8,822
   tests); `zsh scripts/build-lock.sh pnpm build` 0; `pnpm lab:smoke --base http://localhost:3131` 0 (136 checks);
@@ -140,8 +144,9 @@ working.
 - The wait's chooser (`door/wait-picks.tsx`), cleaner than the board's card: one outline button and one line, then her
   row, a count, a Change and the tab note; the queue's `holdAtDoor` holds it and the runner sends nothing while a door
   holds her (`use-upload-queue.test.tsx`, "her choice at the held door", red without the guard); sent on the let-in.
-- Privacy: `page.tsx` hands every access `none` door no host and the unlisted ask none; `page.redaction.test.tsx` pins
-  every kind of door (red without the redaction: 2 of 5 fail).
+- Privacy, today's exactly: `page.tsx`'s `shellEvent` and the unlisted ask are production's lines (the host where the
+  door answers to her, never at a password, nothing at the shut door); `page.redaction.test.tsx` pins every kind of
+  door, red both ways (a host leaked at the password door fails one, a host lost where she answers fails another).
 - The help center's welcome, wait and password pictures redrawn as the doorway (`door-screens.tsx`).
 - **Read in a headless Chrome of my own**, signed out on localhost, reduced motion, 375 and 1440 (light; dark where the
   light matters): `_scratch/door-wiring/final/` (44 PNGs: the 404, a Public welcome and the chooser after it, a password
@@ -152,7 +157,7 @@ working.
   the check-in left the held door while a choice stood (network logged).
 - **Build 40's red-team, what localhost cannot run**: the ask at an approve door as a confirmed visitor (Google), then
   the held door ajar; a real choice at the held door, the host's Let in, the beat, and her photos landing (no upload
-  request before the let-in); the unlisted ask ("Ask the host to let me in") at an invite door; the email step at both
+  request before the let-in); the unlisted ask ("Ask Maya to let me in") at an invite door; the email step at both
   gates, confirmed by code; the Public welcome's sampled light and photographs on the alias (R2's CORS refuses
   localhost); the password's unlock with the door swinging open behind the sheet; iOS Safari's page cap, `inert` and the
   keyboard over a gate's sheet.
