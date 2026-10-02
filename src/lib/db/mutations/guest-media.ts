@@ -38,6 +38,7 @@ import type { PostgrestError } from "@supabase/supabase-js";
 
 import { mustCount, mustQuery } from "@/lib/db/must-query";
 import { inChunks, readAllPages } from "@/lib/db/read-all";
+import { isSealed } from "@/lib/disposable/seal";
 import { letInNews } from "@/lib/guest/let-in-news";
 import { captureError } from "@/lib/observability/sentry";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -227,13 +228,35 @@ export async function countKeptTicketUploads(input: {
 /**
  * Where one of her uploads stands, as her own tracker says it: waiting for the
  * host, in the album, or refused (hidden or removed by the host, an operator or
- * the system). Never an identity and never a link: the tracker's thumbnails come
- * from what the page already holds, because a pending or hidden item is never
- * presigned for a guest (`r2/grid-items.ts`).
+ * the system). Never an identity. A link only for her own upload the album cannot
+ * show her (`OwnPicture`, below); everything else draws from what the page holds.
  */
 export type OwnUploadStatus = "pending" | "approved" | "refused";
 
-export type OwnUpload = { id: string; status: OwnUploadStatus };
+export type OwnUpload = {
+  id: string;
+  status: OwnUploadStatus;
+  /**
+   * THE DEVELOP: approved, and sealed until the album develops, so it is in nobody's album yet, hers included; her
+   * waiting room draws it as hers (`OwnPicture`). Absent for everything else.
+   */
+  sealed?: true;
+};
+
+/**
+ * ★ HER OWN UPLOAD, FOR HER ALONE: the keys of a row of hers the album cannot show her (held for the host's review, or
+ * sealed until the album develops), so her tracker's route presigns its picture for her and nobody else (the route is
+ * the one place, `/api/guests/mine`, read only as far as the ticket is hers). Never a refused row: an operator's
+ * takedown must never be presigned, even to the person who uploaded it, and a host's hide or removal is hers to keep
+ * out of view. Keys never leave the server: the route turns them into links.
+ */
+export type OwnPicture = {
+  id: string;
+  type: "photo" | "video";
+  original_key: string;
+  preview_key: string | null;
+  created_at: string;
+};
 
 /**
  * HER UPLOADS HERE, WITH WHERE EACH STANDS (`guest-capture` r1, Will's
@@ -260,8 +283,12 @@ export async function listOwnUploadStatuses(input: {
   return (await readOwnUploads({ ...input, tell: false })).items;
 }
 
-/** Her uploads with where each stands, and (asked with `tell`) her news. */
-export type OwnUploadsRead = { items: OwnUpload[]; news: string[] };
+/** Her uploads with where each stands, (asked with `tell`) her news, and the pictures the album cannot show her. */
+export type OwnUploadsRead = {
+  items: OwnUpload[];
+  news: string[];
+  pictures: OwnPicture[];
+};
 
 /** A column the database does not have yet: the migration not applied (`42703` in SQL, `PGRST204` in a write). */
 const MISSING_COLUMN = new Set(["42703", "PGRST204"]);
@@ -275,6 +302,10 @@ type OwnRow = {
   id: string;
   status: string;
   created_at: string;
+  type?: "photo" | "video";
+  original_key?: string;
+  preview_key?: string | null;
+  sealed_until?: string | null;
   guest_id?: string | null;
   let_in_at?: string | null;
 };
@@ -299,14 +330,20 @@ export async function readOwnUploads(input: {
   userId?: string | null;
   /** Answer her news, and mark it told. */
   tell?: boolean;
+  /** Read the seal (20261002200000); false only for the fallback a database before the migration takes. */
+  sealColumn?: boolean;
 }): Promise<OwnUploadsRead> {
   const tell = input.tell === true;
+  const sealColumn = input.sealColumn !== false;
   const token = input.sessionToken?.trim() ?? "";
   const admin = createAdminClient();
   const guestColumns = tell ? "id, let_in_told_at" : "id";
-  const mediaColumns = tell
-    ? "id, status, created_at, guest_id, let_in_at"
-    : "id, status, created_at";
+  // The keys and the type ride for her own held or sealed rows' pictures (`OwnPicture`); they never leave the server.
+  const mediaColumns = [
+    "id, status, created_at, type, original_key, preview_key",
+    ...(sealColumn ? ["sealed_until"] : []),
+    ...(tell ? ["guest_id, let_in_at"] : []),
+  ].join(", ");
   try {
     const told = new Map<string, string | null>();
     const take = (rows: unknown) => {
@@ -344,7 +381,7 @@ export async function readOwnUploads(input: {
         ),
       );
     }
-    if (told.size === 0) return { items: [], news: [] };
+    if (told.size === 0) return { items: [], news: [], pictures: [] };
 
     const media = await inChunks(
       "own uploads: media",
@@ -369,22 +406,46 @@ export async function readOwnUploads(input: {
         return rows;
       },
     );
-    const items: OwnUpload[] = [...media]
-      .sort((a, b) => b.created_at.localeCompare(a.created_at))
-      .map((m) => ({
-        id: m.id,
-        status:
-          m.status === "approved"
-            ? "approved"
-            : m.status === "pending"
-              ? "pending"
-              : "refused",
-      }));
-    if (!tell) return { items, news: [] };
+    const now = Date.now();
+    const newest = [...media].sort((a, b) =>
+      b.created_at.localeCompare(a.created_at),
+    );
+    const items: OwnUpload[] = newest.map((m) => {
+      const status: OwnUploadStatus =
+        m.status === "approved"
+          ? "approved"
+          : m.status === "pending"
+            ? "pending"
+            : "refused";
+      return status === "approved" && isSealed(m.sealed_until, now)
+        ? { id: m.id, status, sealed: true }
+        : { id: m.id, status };
+    });
+    // Her own rows the album cannot show her: held, or sealed. Never a refused one (`OwnPicture`).
+    const pictures: OwnPicture[] = newest.flatMap((m) =>
+      (m.status === "pending" ||
+        (m.status === "approved" && isSealed(m.sealed_until, now))) &&
+      m.type &&
+      m.original_key
+        ? [
+            {
+              id: m.id,
+              type: m.type,
+              original_key: m.original_key,
+              preview_key: m.preview_key ?? null,
+              created_at: m.created_at,
+            },
+          ]
+        : [],
+    );
+    if (!tell) return { items, news: [], pictures };
 
+    // ★ A SEALED SHOT IS NO NEWS YET (the develop): "One of yours is in the album" would not be true while it waits
+    // for the album to develop, so a sealed row is left out of the news and moves no mark; the develop itself is the
+    // moment she hears (the reel premieres the roll), and a sealed approval may go untold behind a later one's mark.
     const news = letInNews(
       media.flatMap((m) =>
-        m.guest_id
+        m.guest_id && !isSealed(m.sealed_until, now)
           ? [
               {
                 id: m.id,
@@ -398,8 +459,17 @@ export async function readOwnUploads(input: {
       told,
     );
     await markTold(input.eventId, news.marks);
-    return { items, news: news.ids };
+    return { items, news: news.ids, pictures };
   } catch (error) {
+    // ★ A DATABASE BEFORE THE SEAL'S MIGRATION (20261002200000) answers its column missing: read on without it (no
+    // row can be sealed there), captured, so her tracker never loses its rows to a column that is not there yet.
+    if (sealColumn && missingColumn(error)) {
+      captureError("media", error, {
+        seam: "seal_schema_missing",
+        eventId: input.eventId,
+      });
+      return readOwnUploads({ ...input, sealColumn: false });
+    }
     if (tell && missingColumn(error)) {
       captureError("media", error, {
         seam: "let_in_schema_missing",
@@ -411,7 +481,7 @@ export async function readOwnUploads(input: {
       seam: "own_upload_statuses_fail_closed",
       eventId: input.eventId,
     });
-    return { items: [], news: [] };
+    return { items: [], news: [], pictures: [] };
   }
 }
 

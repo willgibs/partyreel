@@ -13,7 +13,7 @@ DEFINER RPCs validate inside; `anon` never touches a table. A feature's own RPC 
 
 ## The RPC inventory and the advisor set
 
-`get_advisors` (security) after every schema change reads 18 `rls_enabled_no_policy`, 4 in lint `0028` and 35 in
+`get_advisors` (security) after every schema change reads 19 `rls_enabled_no_policy`, 4 in lint `0028` and 35 in
 `0029`.
 Leaked Password Protection is on, so its WARN never shows. A function in the wrong list means a grant slipped.
 
@@ -89,7 +89,9 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
   `record_link_hit`, `host_active_bytes`, `host_storage_summary`, `tier_limits` and `monthly_ingress_cap` (INVOKER;
   every other caller is a DEFINER body), the paged album's reader
   `album_changes_since` (an INVOKER read the Next routes call after their own capability check) and its log's prune
-  `album_prune_tombstones` (DEFINER: the tables grant the service role SELECT only), `media_like_counts`
+  `album_prune_tombstones` (DEFINER: the tables grant the service role SELECT only), the develop's `develop_due` and
+  `develop_due_sweep` (DEFINER: they write `sealed_until`, which no role holds; [disposable-mode.md](disposable-mode.md)),
+  `media_like_counts`
   (an INVOKER read the host's links route and the hub page call after their `getEvent` check), the per-event block's
   reads (`event_ticket_blocked` and `event_blocked_guest_ids`, INVOKER; `blocked_events_for`, DEFINER because it
   reads `auth.users`, which the service role cannot) and its four predicates (INVOKER, run inside the guest paths'
@@ -98,7 +100,8 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
   is created, never when it fires).
 - **The owner's alone** (revoked from the service role too, so no role PostgREST serves can call them): helpers only
   a definer body reads, `event_door_asks` (a set no request can page) and `event_account_ticket` (a whole guest row,
-  its ticket in it).
+  its ticket in it), and the develop's five (`album_bits`, `album_doorbell`, `seal_disagrees`, `guest_roll`,
+  `develop_rows`).
 - ★ **Every SECURITY DEFINER function pins `set search_path = ''` and fully qualifies every name** (`public.events`,
   `auth.users`, `extensions.crypt`): an unpinned path lets a caller shadow a name and run it as the owner. No
   DEFINER body uses dynamic SQL.
@@ -108,7 +111,7 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
   IP), `ops_flags` (the kill switches), `upload_forensics` and `forensic_audit_log` (raw IP by design; the deny-all is
   the containment: [trust-safety-forensics.md](trust-safety-forensics.md)), `album_state` and `album_changes` (the
   paged album's versions and change log: service_role SELECT only, written by the deferred triggers and the log's
-  prune alone),
+  prune alone), `camera_rolls` (the camera's ledger, service_role SELECT only, written by `create_media` alone),
   `article_feedback` (the help center's feedback beacon: a slug, Yes or No and a time, no identity of any kind), and
   `storage_ledger` (the monthly ingress meter: its readers are the upload gates, DEFINER, and the service role).
 
@@ -196,6 +199,12 @@ a table created since starts with no client grant, so its migration grants exact
   `album_state` or `album_changes` goes through that flush or not at all (a guard refuses any other writer), but for
   the log's prune (`album_prune_tombstones`, 20261001150000), a transaction of its own that holds nothing else and
   takes each album's version row before its change rows, album by album in event-id order.
+- ★ **A write that holds an event row never waits on a media row** (`20261002200000`). A host's save of `develops_at`
+  rewrites the album's sealed rows inside her UPDATE, so it takes only the media rows it can lock at once (SKIP
+  LOCKED, the next read healing the rest), and no upload and no develop locks the event row: each closed deadlock
+  cycles with a restore (profiles, then the event) and a purge or a takedown (a media row, then profiles), measured.
+  The camera's roll counts under the host's profiles lock and then its own advisory lock, which nothing else takes
+  ([disposable-mode.md](disposable-mode.md)).
 - **The guest write path inherits the read gate:** `create_guest` refuses a `private` event and requires
   `p_unlock_proven` for `password` (the server derives it: the database cannot read the unlock cookie), and
   `get_upload_context` returns `visibility` so presign and complete re-check it per request ([uploads-and-r2.md](uploads-and-r2.md)).

@@ -19,11 +19,13 @@ vi.mock("@/lib/events/gallery-access-owner.server", () => ({
   isRequestOwner: (...a: unknown[]) => isRequestOwner(...a),
 }));
 const readAlbumVersions = vi.fn();
+// ★ Reshaped by disposable-foundation (20261002200000): the guest plan reads its snapshot through
+// `readGuestAlbumChanges` (the guest scope's read, what waits beside it), never the scoped `readAlbumChanges`.
 const readAlbumChanges = vi.fn();
 const readAlbumAttribution = vi.fn();
 vi.mock("@/lib/db/queries/album-state", () => ({
   readAlbumVersions: (...a: unknown[]) => readAlbumVersions(...a),
-  readAlbumChanges: (...a: unknown[]) => readAlbumChanges(...a),
+  readGuestAlbumChanges: (...a: unknown[]) => readAlbumChanges(...a),
   readAlbumAttribution: (...a: unknown[]) => readAlbumAttribution(...a),
 }));
 const createAdminClient = vi.fn();
@@ -87,7 +89,10 @@ beforeEach(() => {
     albumMax: 1,
     attrVersion: 0,
   });
-  readAlbumChanges.mockResolvedValue(READ);
+  readAlbumChanges.mockResolvedValue({
+    read: READ,
+    waiting: { count: 2, minutes: [[1_790_000_000_000, 2]] },
+  });
   readAlbumAttribution.mockResolvedValue(new Map());
   createAdminClient.mockReturnValue(emptyAdmin());
 });
@@ -126,7 +131,9 @@ describe("every guest read carries the gate", () => {
     expect(out.page).toEqual({ entries: [], next: null });
     expect(out.media).toEqual({ rows: [], identities: new Map() });
     expect(out.attribution).toEqual(new Map());
-    expect(readAlbumChanges).toHaveBeenCalledWith("e-pw", "album", 0, 0);
+    expect(readAlbumChanges).toHaveBeenCalledWith("e-pw", 0, 0);
+    // What waits rides the plan, from the same read.
+    expect(out.plan?.waiting).toEqual({ count: 2, minutes: [[1_790_000_000_000, 2]] });
     expect(isRequestOwner).toHaveBeenCalledWith("e-pw");
   });
 
@@ -204,7 +211,7 @@ describe("planGuestAlbumSync: one gate for the whole plan", () => {
     isUnlocked.mockResolvedValue(true);
     const plan = await guest.planGuestAlbumSync(PASSWORD, 1);
     expect(plan?.part).toMatchObject({ kind: "delta", v: 1 });
-    expect(readAlbumChanges).toHaveBeenCalledWith("e-pw", "album", 1, 501);
+    expect(readAlbumChanges).toHaveBeenCalledWith("e-pw", 1, 501);
   });
 
   it("a FAILED read still throws: a broken album is not a locked one", async () => {

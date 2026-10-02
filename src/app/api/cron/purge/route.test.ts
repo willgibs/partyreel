@@ -102,10 +102,14 @@ vi.mock("@/lib/lifecycle/sweeps/standby-budget", () => ({
 vi.mock("@/lib/lifecycle/sweeps/album-log", () => ({
   sweepAlbumLog: stub("album_log", 1),
 }));
+vi.mock("@/lib/lifecycle/sweeps/develop", () => ({
+  sweepDevelop: stub("develop", 1),
+}));
 
 const { GET } = await import("@/app/api/cron/purge/route");
 
 const BUDGETED = [
+  "develop",
   "expired_events",
   "removed_media",
   "deleted_accounts",

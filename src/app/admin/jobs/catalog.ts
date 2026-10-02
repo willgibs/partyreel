@@ -15,7 +15,7 @@
  *
  *   scheduled — fires on a clock and writes its own `job_runs` rows. The cadence + the missed-run
  *               rule apply. The purge cron, the backup Worker's two jobs and the export Worker's
- *               heartbeat, the DB-backup Action, and the five purge SUB-SWEEPS, each of which opens
+ *               heartbeat, the DB-backup Action, and the six purge SUB-SWEEPS, each of which opens
  *               and closes a row of its own.
  *   signal    — no clock. Something else does the work (a transactional email, a rate-limiter read)
  *               and the only question is "did any of it fail in the last 24 hours?". `job_runs`
@@ -44,6 +44,8 @@ export type JobId =
   // The album change log's prune (crumbs-37): rows only, but in the album's live core, so it keeps
   // its own switch and card like the four that touch accounts.
   | "purge_album_log"
+  // The develop (20261002200000): it reveals photographs, so it keeps its own switch and card.
+  | "develop_rolls"
   // The Cloudflare queue's backlog + its dead letters, read by the Worker, reported on its runs.
   | "backup_queue"
   | "backup_dead_letters"
@@ -254,6 +256,21 @@ export const JOBS: JobDef[] = [
     cadence: "Daily, inside the purge sweep",
     expectedEveryMs: DAY_MS,
     flagKey: "purge_album_log_enabled",
+    canRunNow: false,
+  },
+  // A sixth that deletes nothing: the develop, the backstop for an album nobody opened after its develop
+  // time (the album's own first read develops it in the day). It REVEALS photographs, so an operator can stop it alone.
+  {
+    id: "develop_rolls",
+    label: "Developing rolls",
+    description:
+      "Develops every album whose develop time has passed, so its photos appear for every guest even if nobody has opened it since. Stopping silently leaves photos sealed past their time until someone opens the album.",
+    kind: "scheduled",
+    host: "purge_sweep",
+    cron: "0 4 * * *",
+    cadence: "Daily, inside the purge sweep",
+    expectedEveryMs: DAY_MS,
+    flagKey: "develop_rolls_enabled",
     canRunNow: false,
   },
   // --- the backup Worker ------------------------------------------------------------------------

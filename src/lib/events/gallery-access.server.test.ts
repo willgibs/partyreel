@@ -79,13 +79,29 @@ vi.mock("@/lib/db/queries/album-guest", () => ({
     readGuestAlbumVersions(...args),
   readGuestAttribution: (...args: unknown[]) => readGuestAttribution(...args),
 }));
+/** What waits, as the plan's snapshot answers it (20261002200000): nothing, unless a test says. */
+let waiting: { count: number; minutes: [number, number][] } = {
+  count: 0,
+  minutes: [],
+};
 function planThroughTheGate() {
   planGuestAlbumSync
     .mockReset()
-    .mockImplementation(async (_event: unknown, since: number | null) =>
-      planAlbumSync({ scope: "album", since, read: planRead, page: planPage }),
-    );
+    .mockImplementation(async (_event: unknown, since: number | null) => ({
+      ...(await planAlbumSync({
+        scope: "album",
+        since,
+        read: planRead,
+        page: planPage,
+      })),
+      waiting,
+    }));
 }
+// THE DEVELOP (20261002200000): the page's seed develops an album due one before its first read.
+const developIfDue = vi.fn();
+vi.mock("@/lib/disposable/develop.server", () => ({
+  developIfDue: (...args: unknown[]) => developIfDue(...args),
+}));
 vi.mock("@/lib/demo", () => ({ isDemoToken: () => false }));
 
 const getUploadGate = vi.fn();
@@ -450,6 +466,40 @@ describe("loadGallerySeed: the page's album seed", () => {
         albumMax: 7,
         attrVersion: 3,
         reel: seed.sync.reel,
+      }),
+    );
+    // Nothing waits and no develop time is set: the seed says nothing of either.
+    expect(seed.sync).not.toHaveProperty("waiting");
+  });
+
+  it("★ at full: an album due a develop develops first, and what waits rides the seed as it rides each sync", async () => {
+    waiting = { count: 2, minutes: [[1_790_000_000_000, 2]] };
+    const due = { ...EVENT, develop_due: true, develops_at: "2026-10-03T09:00:00.000Z" };
+    const seed = await loadGallerySeed(
+      due as typeof EVENT,
+      { access: "full", gate: null },
+      { ...FIRST, width: null },
+    );
+    waiting = { count: 0, minutes: [] };
+    if (seed.kind !== "full") throw new Error("expected a full seed");
+    expect(developIfDue).toHaveBeenCalledWith(due);
+    expect(developIfDue.mock.invocationCallOrder[0]).toBeLessThan(
+      planGuestAlbumSync.mock.invocationCallOrder[0],
+    );
+    expect(seed.sync.waiting).toEqual({
+      count: 2,
+      minutes: [[1_790_000_000_000, 2]],
+      developsAt: "2026-10-03T09:00:00.000Z",
+    });
+    expect(seed.etag).toBe(
+      guestAlbumEtag({
+        eventId: EVENT.id,
+        access: "full",
+        gate: null,
+        albumMax: 7,
+        attrVersion: 3,
+        reel: seed.sync.reel,
+        developsAt: "2026-10-03T09:00:00.000Z",
       }),
     );
   });

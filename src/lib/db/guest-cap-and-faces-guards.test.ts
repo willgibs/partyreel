@@ -54,15 +54,19 @@ describe("the host's own cap on the album's read (20261001233000)", () => {
       /create (?:or replace )?function public\.get_event_by_qr_token\(p_qr_token text\)[^$]*\$function\$[^$]*\$function\$;/g,
     );
 
-  it("returns max_upload_bytes LAST, after every column the deployed build reads", () => {
+  // ★ Reshaped by disposable-foundation (20261002200000), which carries this body whole and appends four columns
+  // after the cap (whether a develop is due, the develop time, the capture and the roll's size; their own pins are
+  // src/lib/disposable/migration-guards.test.ts): the cap keeps its place, after every column the deployed build
+  // reads, and the build that reads the cap reads it where it always has.
+  it("returns max_upload_bytes after every column the deployed build reads", () => {
     const { file, text } = create();
-    expect(file).toBe("20261001233000_guest_event_cap.sql");
+    expect(file).toBe("20261002200000_disposable_foundation.sql");
     expect(text).toContain(
-      "returns table( id uuid, name text, description text, moderation_mode public.moderation_mode, visibility public.event_visibility, has_password boolean, accepting_uploads boolean, require_verified_email boolean, require_upload_to_view boolean, event_date date, qr_style text, qr_token text, custom_slug text, host_display_name text, show_reel boolean, reel_style_id text, reel_hold_sec numeric, accepts_video boolean, max_upload_bytes bigint)",
+      "returns table( id uuid, name text, description text, moderation_mode public.moderation_mode, visibility public.event_visibility, has_password boolean, accepting_uploads boolean, require_verified_email boolean, require_upload_to_view boolean, event_date date, qr_style text, qr_token text, custom_slug text, host_display_name text, show_reel boolean, reel_style_id text, reel_hold_sec numeric, accepts_video boolean, max_upload_bytes bigint, develop_due boolean, develops_at timestamptz, capture text, roll_size integer)",
     );
     // The value is the event's own column, unredacted (a presentation setting, as the switches are), last.
     expect(text).toContain(
-      "(e.allow_videos and coalesce(p.tier <> 'free', false)), e.max_upload_bytes from public.events e",
+      "(e.allow_videos and coalesce(p.tier <> 'free', false)), e.max_upload_bytes, public.seal_disagrees(e), e.develops_at, e.capture, e.roll_size from public.events e",
     );
   });
 

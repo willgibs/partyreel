@@ -87,14 +87,18 @@ vi.mock("@/lib/db/queries/guest-events", () => ({
 // The album's version rows and change log (`album_state`, `album_changes_since`): a one-photo album.
 vi.mock("@/lib/db/queries/album-state", () => ({
   readAlbumVersions: async () => ({ version: 3, albumMax: 3, attrVersion: 1 }),
-  readAlbumChanges: async () => ({
-    version: 3,
-    albumMax: 3,
-    attrVersion: 1,
-    approved: 1,
-    hidden: null,
-    pending: null,
-    changes: [],
+  // ★ The guest scope's read (20261002200000): the snapshot, and what waits beside it (nothing, here).
+  readGuestAlbumChanges: async () => ({
+    read: {
+      version: 3,
+      albumMax: 3,
+      attrVersion: 1,
+      approved: 1,
+      hidden: null,
+      pending: null,
+      changes: [],
+    },
+    waiting: { count: 0, minutes: [] },
   }),
   readAlbumAttribution: async () => new Map(),
 }));
@@ -115,6 +119,8 @@ vi.mock("@/lib/db/queries/guest-events-admin", async (importOriginal) => {
     getApprovedPhotoTeaser: vi.fn(),
     getUploaderIdentities: async () => new Map(),
     getApprovedMediaForUnlock: real.getApprovedMediaForUnlock,
+    // Her own sealed shots (the guest export's Yours, 20261002200000): none in a one-photo album.
+    readOwnSealedMedia: async () => [],
   };
 });
 vi.mock("@/lib/db/queries/social", () => ({ getEventGuests: vi.fn() }));

@@ -41,6 +41,12 @@ vi.mock("@/lib/events/gallery-access.server", () => ({
   loadGalleryReel: (...a: unknown[]) => loadGalleryReel(...a),
   reportAlbumRefused: (...a: unknown[]) => reportAlbumRefused(...a),
 }));
+// THE DEVELOP (20261002200000): the read's develop, its own rules develop.server.test.ts's; here, only that the
+// route asks it with the event before it reads a version.
+const developIfDue = vi.fn();
+vi.mock("@/lib/disposable/develop.server", () => ({
+  developIfDue: (...a: unknown[]) => developIfDue(...a),
+}));
 vi.mock("@/lib/r2/presign", () => ({
   presignDownload: async ({
     key,
@@ -58,6 +64,11 @@ const EVENT = {
   qr_token: "qr-1",
   name: "Maya & Jay",
   visibility: "open",
+};
+/** What waits, as the plan's snapshot answers it (nothing, unless a test says). */
+let waiting: { count: number; minutes: [number, number][] } = {
+  count: 0,
+  minutes: [],
 };
 const M1 = "00000000-0000-4000-8000-000000000001";
 const HEAL = { name: "pr_guest_e1", value: "a".repeat(64), maxAge: 60 };
@@ -100,9 +111,18 @@ beforeEach(() => {
     albumMax: 5,
     attrVersion: 2,
   });
+  waiting = { count: 0, minutes: [] };
+  developIfDue.mockResolvedValue(undefined);
   planGuestAlbumSync.mockImplementation(
-    async (_event: unknown, since: number | null) =>
-      planAlbumSync({ scope: "album", since, read: planRead, page: planPage }),
+    async (_event: unknown, since: number | null) => ({
+      ...(await planAlbumSync({
+        scope: "album",
+        since,
+        read: planRead,
+        page: planPage,
+      })),
+      waiting,
+    }),
   );
   planRead.mockImplementation(async (after: number, limit: number) =>
     limit === 0
@@ -464,5 +484,77 @@ describe("malformed input", () => {
   it("a version above the server's answers a fresh manifest (a resync)", async () => {
     const res = await post({ qr_token: "qr-1", since: 999 });
     expect((await res.json()).kind).toBe("manifest");
+  });
+});
+
+describe("the develop and what waits (20261002200000)", () => {
+  const DEVELOPS = "2026-10-03T09:00:00.000Z";
+  const viewer = (over: Record<string, unknown>, access = "full") =>
+    resolveAlbumViewer.mockResolvedValue({
+      kind: "viewer",
+      event: { ...EVENT, ...over },
+      decision: { access, gate: access === "full" ? null : "account" },
+      isDemo: false,
+      heal: null,
+    });
+
+  it("★ an album due a develop develops BEFORE its versions are read, so this very poll carries it", async () => {
+    viewer({ develop_due: true });
+    await post({ qr_token: "qr-1" });
+    expect(developIfDue).toHaveBeenCalledTimes(1);
+    expect(developIfDue.mock.calls[0][0]).toMatchObject({ id: EVENT.id, develop_due: true });
+    expect(developIfDue.mock.invocationCallOrder[0]).toBeLessThan(
+      readGuestAlbumVersions.mock.invocationCallOrder[0],
+    );
+  });
+
+  it("★ at full access, what waits rides the answer with the develop time, as numbers and never an id", async () => {
+    viewer({ develops_at: DEVELOPS, capture: "camera", roll_size: 24 });
+    waiting = { count: 3, minutes: [[1_790_000_000_000, 2], [1_790_000_060_000, 1]] };
+    const body = await (await post({ qr_token: "qr-1" })).json();
+    expect(body.waiting).toEqual({
+      count: 3,
+      minutes: [[1_790_000_000_000, 2], [1_790_000_060_000, 1]],
+      developsAt: DEVELOPS,
+    });
+    expect(JSON.stringify(body.waiting)).not.toMatch(/[0-9a-f]{8}-[0-9a-f]{4}-/);
+  });
+
+  it("a held row waits with no develop time: the count rides, the time is none", async () => {
+    viewer({ moderation_mode: "hold_for_approval" });
+    waiting = { count: 1, minutes: [[1_790_000_000_000, 1]] };
+    const body = await (await post({ qr_token: "qr-1" })).json();
+    expect(body.waiting).toEqual({
+      count: 1,
+      minutes: [[1_790_000_000_000, 1]],
+      developsAt: null,
+    });
+  });
+
+  it("nothing waiting and no develop time: no field, and the validator byte for byte what it was", async () => {
+    const plain = await post({ qr_token: "qr-1" });
+    expect(await plain.json()).not.toHaveProperty("waiting");
+    viewer({ capture: "camera", roll_size: 24 });
+    const camera = await post({ qr_token: "qr-1" });
+    expect(camera.headers.get("etag")).toBe(plain.headers.get("etag"));
+  });
+
+  it("★ the validator hashes the develop time: a host's new one reaches a parked page on its next poll", async () => {
+    viewer({ develops_at: DEVELOPS });
+    const etag = (await post({ qr_token: "qr-1" })).headers.get("etag")!;
+    const quiet = await post({ qr_token: "qr-1", since: 5 }, { "If-None-Match": etag });
+    expect(quiet.status).toBe(304);
+    viewer({ develops_at: "2026-10-04T09:00:00.000Z" });
+    const moved = await post({ qr_token: "qr-1", since: 5 }, { "If-None-Match": etag });
+    expect(moved.status).toBe(200);
+    expect((await moved.json()).waiting.developsAt).toBe("2026-10-04T09:00:00.000Z");
+  });
+
+  it("never on the teaser: what waits is a full album's alone", async () => {
+    viewer({ develops_at: DEVELOPS }, "teaser");
+    waiting = { count: 4, minutes: [[1_790_000_000_000, 4]] };
+    const body = await (await post({ qr_token: "qr-1" })).json();
+    expect(body.kind).toBe("teaser");
+    expect(body).not.toHaveProperty("waiting");
   });
 });

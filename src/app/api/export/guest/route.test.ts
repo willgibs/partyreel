@@ -54,6 +54,12 @@ const ownMediaIds = vi.fn();
 vi.mock("@/lib/export/yours.server", () => ({
   ownMediaIds: (...a: unknown[]) => ownMediaIds(...a),
 }));
+// HER OWN SEALED SHOTS (20261002200000): the read's own cells are the leak matrix's (src/lib/disposable/); here,
+// what the route does with what it answers. None, unless a test says.
+const readOwnSealedMedia = vi.fn();
+vi.mock("@/lib/db/queries/guest-events-admin", () => ({
+  readOwnSealedMedia: (...a: unknown[]) => readOwnSealedMedia(...a),
+}));
 const mintExport = vi.fn();
 vi.mock("@/lib/export/export-service", () => ({
   exportSummary: (rows: Parameters<typeof summarizeMedia>[0]) =>
@@ -133,6 +139,7 @@ beforeEach(() => {
   authUser = null;
   readGuestSessionCookie.mockResolvedValue(null);
   ownMediaIds.mockResolvedValue(new Set());
+  readOwnSealedMedia.mockResolvedValue([]);
   getEventByQrToken.mockResolvedValue({
     ok: true,
     data: {
@@ -419,6 +426,55 @@ describe("Yours: her own uploads, filtered on the server", () => {
     expect((await res.json()).yours).toBeNull();
   });
 
+  it("★ her own sealed shots are hers to take: Yours carries them, the album's own summary never", async () => {
+    const { rows, media } = album(30);
+    const sealed = {
+      ...rows[0],
+      id: uid(500),
+      type: "photo" as const,
+      original_key: "events/probe/photo/500/original.jpg",
+    };
+    fake = createFakePostgrest({
+      tables: { media: [...media, { id: uid(500), file_size_bytes: 5000 }] },
+    });
+    loadGalleryRowsForAccess.mockResolvedValue(galleryOf(rows));
+    readGuestSessionCookie.mockResolvedValue(TICKET);
+    ownMediaIds.mockResolvedValue(new Set([uid(2), uid(500)]));
+    readOwnSealedMedia.mockResolvedValue([sealed]);
+
+    const res = await post({ step: "summary", qr_token: QR });
+    const body = (await res.json()) as {
+      summary: ReturnType<typeof summarizeMedia>;
+      yours: ReturnType<typeof summarizeMedia> | null;
+    };
+    // Asked of exactly the ids the server found hers, never a request's.
+    expect(readOwnSealedMedia).toHaveBeenCalledWith("evt-1", [uid(2), uid(500)]);
+    // The album's summary is the album: thirty, her sealed shot none of it.
+    expect(
+      body.summary.shown.photo.count + body.summary.shown.video.count,
+    ).toBe(30);
+    // Yours: her one photo in the album, and her sealed one.
+    expect(body.yours?.shown.photo).toEqual({ count: 2, bytes: 1001 + 5000 });
+
+    mintExport.mockResolvedValue({ ok: true, token: "t", workerUrl: "w" });
+    await post({ step: "mint", qr_token: QR, set: "yours", part: 1 });
+    const input = mintExport.mock.calls[0][0] as { rows: { id: string }[] };
+    expect(input.rows.map((r) => r.id).sort()).toEqual([uid(2), uid(500)]);
+  });
+
+  it("a sealed shot that developed between the two reads is the album's, never counted twice", async () => {
+    const { rows, media } = album(3);
+    fake = createFakePostgrest({ tables: { media } });
+    loadGalleryRowsForAccess.mockResolvedValue(galleryOf(rows));
+    readGuestSessionCookie.mockResolvedValue(TICKET);
+    ownMediaIds.mockResolvedValue(new Set([uid(2)]));
+    // The second read, on its own clock, still calls it sealed.
+    readOwnSealedMedia.mockResolvedValue([rows[1]]);
+    const body = await (await post({ step: "summary", qr_token: QR })).json();
+    expect(body.yours.shown.photo.count + body.yours.shown.video.count).toBe(1);
+    expect(body.summary.shown.photo.count + body.summary.shown.video.count).toBe(3);
+  });
+
   it("an album zip never asks who she is", async () => {
     const { rows, media } = album(3);
     fake = createFakePostgrest({ tables: { media } });
@@ -428,6 +484,7 @@ describe("Yours: her own uploads, filtered on the server", () => {
     await post({ step: "mint", qr_token: QR, part: 1 });
 
     expect(ownMediaIds).not.toHaveBeenCalled();
+    expect(readOwnSealedMedia).not.toHaveBeenCalled();
     expect(
       (mintExport.mock.calls[0][0] as { rows: unknown[] }).rows,
     ).toHaveLength(3);
