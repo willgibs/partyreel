@@ -4,7 +4,7 @@ import "@/components/guest/door.css";
 import "@/components/guest/door/doorway.css";
 import "./locked-door.css";
 
-import type { CSSProperties } from "react";
+import { type CSSProperties, useLayoutEffect, useRef } from "react";
 
 import { DOOR_MAIN } from "@/components/guest/door/door-page";
 import { Doorway } from "@/components/guest/door/doorway";
@@ -96,9 +96,40 @@ export const STRIP_AT: Record<Idle, readonly number[]> = {
  * a row in a laptop's, each moment's floor kept to its own cell so no door
  * lights its neighbour's floor.
  */
+/**
+ * The pieces a loop runs on, which a still freezes (`locked-door.css`'s paused
+ * animations, at `--ld-at` of the loop).
+ */
+const LOOPED = ".door-way, .door-way-sill, .door-way-floor, .door-way-room";
+
 export function LoopStrip({ idle }: { idle: Idle }) {
+  const root = useRef<HTMLDivElement>(null);
+  // ★ A STILL IS A PICTURE, SO REDUCED MOTION'S GUARD MAY NOT REACH IT. The
+  // global guard (`globals.css`) clamps every animation to 0.01ms and one
+  // iteration under `prefers-reduced-motion: reduce`, which would carry each
+  // paused moment past its end to the rest state, and a reviewer with less
+  // motion would read four identical doors. Its rule is `!important` in the
+  // base layer, which only a declaration on the element itself outranks, so
+  // each frozen piece restates the loop's own length and count there.
+  useLayoutEffect(() => {
+    const el = root.current;
+    if (!el) return;
+    for (const piece of el.querySelectorAll<HTMLElement>(LOOPED)) {
+      piece.style.setProperty(
+        "animation-duration",
+        "var(--ld-loop)",
+        "important",
+      );
+      piece.style.setProperty(
+        "animation-iteration-count",
+        "infinite",
+        "important",
+      );
+    }
+  }, [idle]);
   return (
     <div
+      ref={root}
       data-ld-loop-strip={idle}
       className="grid min-h-svh grid-cols-2 content-center gap-x-2 gap-y-10 bg-background px-3 text-foreground sm:grid-cols-4 sm:px-16"
     >
