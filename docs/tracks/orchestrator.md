@@ -118,7 +118,8 @@ the alias mid-sitting (his yes). No new lane until his paste lands.
      build 38, every product file identical) carries it to the alias, the red-team told.
    Also: production's first album-log prune after 04:48Z on 2026-10-02 and the export Worker's first heartbeat after
    05:30Z, both read in `job_runs`.
-4. **Tell Will the alias is ready** for his sitting (locked-door first) once build 39 carries desk-tune-3.
+4. **Will TOLD the alias is ready** (2026-10-02 03:55Z, build 39 `0e57c5a3`, locked-door first; the calls file at 74
+   re-sent). His sitting never blocks the Orchestrator; no alias deploy lands mid-sitting without asking him.
 5. **After his paste:** transcribe it, then the wiring lanes from his picks, at most four at once (`memory_pressure`
    before each), `/me` (his A), the strike line's repeated date, and new boards as they're seen. What each wiring
    carries beyond his picks:
