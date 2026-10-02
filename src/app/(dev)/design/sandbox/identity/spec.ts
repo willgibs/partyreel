@@ -258,7 +258,7 @@ export const IDENTITY = defineExploration({
       lands:
         "Input, Textarea, Select, Switch and Tabs, and the check, radio, radio card and slider primitives the product adds.",
       context:
-        "Drawn in your voice: every field and choice in every state (rest, hover, focus, off, loading, error) on paper and in the room, then on the real screens.",
+        "Drawn in your voice: every field and choice in every state (rest, hover, focus, off, loading, error) on paper and in the room, then on Settings and Account, where fields live.",
       after: { ask: "voice" },
       options: [
         {
@@ -311,7 +311,7 @@ export const IDENTITY = defineExploration({
       lands:
         "Card, the floating layers (menus, popovers, selects, tooltips, toasts), the popup's shapes and its overlay, and the code mat.",
       context:
-        "Drawn in your voice: a card, an open menu, a popover, a tooltip, a toast, a dialog, the Add's rows and the code's mat, on paper and in the room, then on the real screens.",
+        "Drawn in your voice: a card, a menu, a popover, a tooltip, a toast, a dialog, the Add's rows and the code's mat, on paper and in the room, then on Settings, the Add and Account.",
       after: { ask: "voice" },
       options: [
         {
@@ -361,7 +361,7 @@ export const IDENTITY = defineExploration({
       lands:
         "Badge and its live mark, the meter's colours, Skeleton, the face row's overlap, the glyph count, and one empty atom for four drawings.",
       context:
-        "Drawn in your voice: badges, the live mark, meters (sending, sent, failed), loading, faces and a row of them, the glyph count and the one empty place, on paper and in the room.",
+        "Drawn in your voice: badges, the live mark, meters, loading, faces, the glyph count and the one empty place, on paper and in the room, then on the Add, Review, Settings and Account.",
       after: { ask: "voice" },
       options: [
         {
@@ -385,7 +385,7 @@ export const IDENTITY = defineExploration({
           id: "corners",
           label: "Corners: status framed",
           means:
-            "A badge is its word inside small marks in its colour; a skeleton an empty frame; the empty place an empty viewfinder with its glyph.",
+            "A badge is its word inside small marks in its colour; a skeleton an empty frame; faces in square frames; empty is an empty viewfinder.",
           gains: "The frame runs through status too, the most of a piece.",
           costs: "Small marks round small words can read as noise.",
         },

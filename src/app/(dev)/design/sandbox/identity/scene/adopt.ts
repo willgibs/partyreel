@@ -54,6 +54,16 @@ const RULES: Rule[] = [
     },
   },
   {
+    // Settings' door, the password's state: a success badge once wired (its dot is the badge's own).
+    sel: "span.inline-flex:has(> span.rounded-full.bg-emerald-500)",
+    adopt: (el) => {
+      set(el, "data-slot", "badge");
+      set(el, "data-variant", "success");
+      const dot = el.querySelector<HTMLElement>(":scope > span.rounded-full");
+      if (dot && !dot.hidden) dot.hidden = true;
+    },
+  },
+  {
     // A form's own `<label>` is the Label atom once wired.
     sel: "label[for]:not([data-slot])",
     adopt: (el) => set(el, "data-slot", "label"),

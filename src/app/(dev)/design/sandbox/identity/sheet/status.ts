@@ -165,8 +165,9 @@ ${PHOTO} [data-slot="glyph-count"] svg, ${PHOTO} [data-slot="glyph-count"] [data
 /**
  * CORNERS: status framed. A badge is its word inside four small marks in the
  * state's colour; the live mark is the red frame; a skeleton is an empty
- * frame; a row of faces overlaps by a third with its count framed; the empty
- * place is an empty viewfinder, its glyph at the centre of a frame.
+ * frame; a face is a soft square, as a camera frames a face it finds, and a
+ * row of them barely overlaps; the empty place is an empty viewfinder, its
+ * glyph at the centre of a frame.
  */
 const CORNERS = `
 [data-slot="badge"] {
@@ -194,6 +195,8 @@ ${PHOTO} [data-slot="badge"][data-variant="live"] { color: oklch(1 0 0); backgro
   animation: vf-breathe 1.4s ease-in-out infinite alternate;
 }
 
+/* a face in a frame, as a camera's face detection draws one: a square with soft corners */
+[data-slot="avatar"], [data-slot="avatar"]::after, [data-slot="avatar-group-count"] { border-radius: 28%; }
 [data-slot="avatar"]::after { border-color: var(--input) !important; mix-blend-mode: normal !important; }
 ${overlap(0.12)}
 [data-slot="avatar-group-count"] {

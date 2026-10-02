@@ -1,8 +1,8 @@
 /**
  * VIEWFINDER'S MATERIAL (r1's pick, carried): a matte body, a silver one on
  * paper and a near-black one in the room, with the recording red as its one
- * signal light. Every atom option stands on it, so the options differ by the
- * atoms alone.
+ * signal light (`--signal`, delete's own red, so the palette gains no hue).
+ * Every atom option stands on it, so the options differ by the atoms alone.
  *
  * ★ EVERY GROUND-DEPENDENT VALUE IS A TOKEN DECLARED ON BOTH GROUNDS. A frame
  * draws paper and the room side by side (a `.surface-paper` subtree inside a
@@ -36,7 +36,7 @@ export const MATERIAL_CSS = `
   --input: oklch(0.14 0.004 286 / 22%);
   --ring: oklch(0.14 0.004 286);
   --destructive: oklch(0.56 0.21 27);
-  --signal: oklch(0.6 0.22 27);
+  --signal: var(--destructive);
   --vf-key-hi: oklch(1 0 0 / 85%);
   --vf-key-lo: oklch(0 0 0 / 9%);
   --vf-ink-hi: oklch(1 0 0 / 16%);
@@ -72,7 +72,7 @@ export const MATERIAL_CSS = `
   --input: oklch(1 0 0 / 18%);
   --ring: oklch(0.97 0.002 286);
   --destructive: oklch(0.68 0.2 24);
-  --signal: oklch(0.66 0.22 27);
+  --signal: var(--destructive);
   --vf-key-hi: oklch(1 0 0 / 8%);
   --vf-key-lo: oklch(0 0 0 / 45%);
   --vf-ink-hi: oklch(1 0 0 / 75%);
