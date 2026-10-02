@@ -50,6 +50,11 @@ a lane").
 | `mkt-polish` | the marketing site's seams: stills through a derivative path, the 404's unused preloads, `--faint` as copy, one contract and one receipt for careers and contact, each page's FAQ, the claim scan's reach, /pricing's rows, the phone sheet's tracking | MERGED at `a20865d5` (gate 127 green: lab:smoke 142, lab:demo on about-press, demo-framing, event-ready and privacy-hero 11 steps; PREMISE lines for about-press and demo-framing, re-read in the pre-sitting desk pass); no SQL | Opus, 3133 | `66ff982f` |
 | `crumbs-45` | build 36's red-team finds, the milestone's last gate: a first-page Delete in My uploads that holds (the MEDIUM), the reel card's Add photos landing, the owner's own credit | MERGED at `3b92b770` (its gate green, light: `pnpm test`, the merge adding only docs to its gated head; no SQL); rides build 37, proven on the alias before milestone 32 | Opus, 3134 | `728e53be` |
 | `desk-tune-3` | the desk made true of build 38 before Will's sitting: event-ready's quoted Settings head at 375 and its paused word, disposable-mode's quoted Review head, three stale portal comments (the desk pass, 2026-10-02) | MERGED at `03a24b3d` (gate 130 green, light: `pnpm test` 8,711, the merge adding only docs to its head, whose whole gate the lane ran green: lab:smoke 20, lab:demo on event-ready, disposable-mode and demo-framing 16 steps at both widths); lab files only, no SQL | Sonnet, 3131 | `24f7eb11` |
+| `door-wiring` | locked-door's picks: the doorway family (one shared design), the waiting door's chooser made cleaner, the shut door for a broken link; round 2's swing; the read's redaction held | RUNNING since 2026-10-02 06:55Z (round 11, wave 1) | Opus, 3131 | `a5c42530` |
+| `ready-wiring` | event-ready's picks: the checklist at the hub's head, Settings as steps, Create's hand-off, the code's corner mark with tooltip and tap; readiness into src/lib; the board retired | RUNNING since 2026-10-02 06:55Z (round 11, wave 1) | Opus, 3132 | `a5c42530` |
+| `mkt-wiring` | privacy-hero's lens on /features/privacy; about-press's kit band on /about#press, /press 307; both boards retired | RUNNING since 2026-10-02 06:55Z (round 11, wave 1) | Sonnet, 3133 | `a5c42530` |
+| `crumbs-46` | /me for a handle-less account (his A), the strike line's repeated date, /pricing's sticky head, event-card's comment | RUNNING since 2026-10-02 06:55Z (round 11, wave 1) | Sonnet, 3134 | `a5c42530` |
+| `lab-prefetch` | the lab's keyless prefetch 404s on production builds, at the source, shell and frame only | RUNNING since 2026-10-02 06:55Z (round 11, wave 1) | Sonnet, 3135 | `a5c42530` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, respawned
 2026-10-01 18:15Z in this session; no question open. Q6 (crumbs-37's two migrations and crumbs-38's cursor file against
@@ -90,57 +95,42 @@ but lab:demo's `about-press.facts` dev stall, ROADMAP's line), crumbs-31 (`5898b
 
 ## Next, in order
 
-Will (2026-10-01): finish the round, then tell him when the alias is ready for his sitting; he answers the desk once, on
-settled production, so the round stops re-adapting standing asks, and new boards open from his picks. Build 37 may go to
-the alias mid-sitting (his yes). No new lane until his paste lands.
+**Round 11** (Will, 2026-10-02 06:30Z): his desk answered on build 39 and transcribed (`3e1271b9`); approving the plan
+was his yes to run through the night to a natural close at the machine's limits (up to six lanes on measured memory;
+the runbook's four is the floor he lets me raise), then Moltbook one pass an hour; no milestone without his yes. His
+four answers: each redesign board draws whole bespoke designs under one shared direction; wire a screen first, then
+cut the boards drawn on it; the doorway shows only what the album's read gives today (a gated door names the album,
+never the host; private, Only me and blocked doors name nothing; no RPC change); the disposable foundation waits for
+round 3. His library prompt (the atoms still read as shadcn; identity as a sum total) opens an `identity` board.
 
-1. **Milestone 32 is LIVE** (`21697db1`, both projects READY 2026-10-01 23:58Z / 00:01Z; the prod walk PASS; check the
-   first production album-log prune in `job_runs` after 04:48Z on 2026-10-02). Its path: crumbs-45 merged (`3b92b770`); build 37 (`e43bd181`) ON THE ALIAS since 2026-10-01 23:20Z; its fixes
-   PROVEN there (the MEDIUM at 1440 and 375, likes, the owner's credit; the reel card's smooth scroll not drivable in a
-   hidden tab, its forced frames passing; one new LOW to the ROADMAP; `../partyreel-wt/_scratch/proof-37/ledger.txt`); gate 120 (FULL) GREEN on it (lab:demo --all 23 steps, red steps 0); the prod walk's brief ready (`../partyreel-wt/_scratch/prod-m32/brief.md`) (the first-page Delete holds, the reel card's Add lands, the owner's own credit); then, on Will's
-   yes (2026-10-01, "Ship after the red-team"), the full gate, the merge to `main`, the tag, production READY and a
-   read-only prod walk from a brief like `prod-m31`'s, then `launch-prep` fast-forwarded.
-2. **The waiting lanes: all merged and recorded** (2026-10-02 02:15Z): crumbs-42 `3842b21f`, crumbs-41 `6ae5c0b1` (its two
-   migrations applied), crumbs-44 `4b5adc8a`, strip-gaps `c573275d`, export-ends `15a0d3d2` (its migration applied, the types
-   and seams at `aa80d056`, the Worker deployed `abf810e7`), mkt-polish `a20865d5`, lab-sitting `d5efa6a3`, crumbs-43
-   `5c572152` (its two migrations applied by protocol, faces_move_attribution 20261002020705 and guest_event_cap
-   20261002020808, each payload the file's md5; the types and `hostCapOf` at `8877d204`); each pruned; the calls file at 73.
-3. **Build 38's round is done.** Its red-team (02:22 to 05:02Z, `../partyreel-wt/_scratch/redteam-38/ledger.txt`) passed
-   every walk it could drive on build 38 and, from 03:40Z, build 39: no MEDIUM or worse; four LOWs, two NITs and two
-   observations, the new ones on the ROADMAP (no fix lane in the wind-down); its two undriven walks are Will's (below).
-   The staged reports deleted and their photo `cc2517cc` restored; strikes as before (willg97 2, partyr33l 7, hi 0).
-   The desk pass's one drift fixed by desk-tune-3 (`03a24b3d`), carried by build 39 (`0e57c5a3`). Production's first
-   album-log prune green (2026-10-02 04:48Z, one row over 58 albums); the export Worker's first scheduled check green
-   (05:31Z, its R2 reach ok), the media backup's reconcile too (05:06Z, 1,822 objects, none missing).
-4. **Will TOLD the alias is ready** (2026-10-02 03:55Z, build 39 `0e57c5a3`, locked-door first; the calls file at 74
-   re-sent). His sitting never blocks the Orchestrator; no alias deploy lands mid-sitting without asking him.
-5. **After his paste:** transcribe it, then the wiring lanes from his picks, at most four at once (`memory_pressure`
-   before each), `/me` (his A), the strike line's repeated date, and new boards as they're seen. What each wiring
-   carries beyond his picks:
-   - **The demo event** (his full permission, 2026-09-29, after `demo-framing` r2's picks): the demo renamed (or made)
-     to its pick, its address claimed so the card's printed address opens it (today `mia-and-theo`, held by no event,
-     left as is on his word), one home for the slug in `lib/demo.ts` that the card prints, the seed sets and every demo
-     door opens (today all five doors and `/demo` open the token's address, since demo mode matches on the raw token),
-     `OBJECT_EVENT` and `OBJECT_PRINTS` to match, the typed addresses reserved to the demo, a demo host account for the
-     persona (`partyreel-demo` stays refused to anyone else by the brand family, `crumbs-11`), and ASSETS rows 5, 33
-     and 34 unparked with the party's subjects (the board's Handoff names the counts).
-   - **about-press**: its three wiring calls (`git show 3ded6ba9^2:docs/tracks/about-press.md`: /press a temporary
-     redirect, the llms summary kept, the kit's files if none wins).
-   - **The disposable mode** (after `disposable-mode` r2's picks and his Measure a phone): with the lane's idea of the
-     premiere on the wall, the reel's screen counting down to the develop time and playing the roll as an event of its
-     own.
-   - **The door family**: if the doorway wins, its reveal (walking through the opened door into the album, drawn first
-     as motion options); ASSETS row 36 if the host's door wins.
-6. **Google's chooser** names `ddafaemglzmuekbtjwzn.supabase.co` (ROADMAP's launch checkpoint, his call).
+1. **Wave 1, running** (In flight above): door-wiring, ready-wiring, mkt-wiring, crumbs-46, lab-prefetch. Integrate each
+   on its handoff; a retired board's ledger (`docs/reviews/<board>.json`) is mine to delete at its record, then
+   `registry.test.ts` and `queue.test.ts`.
+2. **Wave 2, each cut from the production its dependencies leave** (desk place in brackets): `identity` r1 [10] after
+   door-wiring, ready-wiring and crumbs-47; `host-dashboard` r1 [25] after ready-wiring and crumbs-46 (it inherits
+   event-ready's `needs` with his note quoted in `opening.earlier`); `locked-door` r3 [30] after door-wiring (the reveal
+   into the album with the album behind polished, calm idle loops; its `lives` inside `door/`); `event-header` r1 [50]
+   after door- and ready-wiring (the hub's head and the guest album's head); `create-wizard` r1 [60] after ready-wiring
+   (the whole wizard, its mode step a named redraw of `create=cards` with his deeper compare); `crumbs-47` after
+   door-wiring (Back over the credit look, the flip's stale sheet); `disposable-mode` r3 [80] after door-wiring,
+   ready-wiring and crumbs-47 (camera: two branches each from viewfinder and reel, modern; waiting: a new round, no
+   tilt; save: the looks on real guest photos beside none; `video` and `cost` staged after camera); `demo-framing` r3
+   [90] after mkt-wiring (his stage hybrid in two or three takes; the demo's door identity); `lab-window` after every
+   board is cut. Page boards own composition, `identity` owns the atoms; every redesign brief carries his one direction
+   (bespoke and experiential, sleek, sophisticated, no tilt, minimal but information-rich, media is the color).
+3. **Build 40** once the three wirings merge, then its red-team (Opus, fresh brief; the desk only in its own headless
+   Chrome; a confirmed MEDIUM ledgered at once, tagged, so a fix lane starts early).
+4. **Before the final build**: the pre-sitting pass (`board-card.mjs --desk`) and `lab-scope --since <each cut>`, a
+   desk-tune where a drawn claim moved; then the final `[preview]` carries every board, the desk ready when he wakes
+   (identity first, then host-dashboard).
+5. **The close**: every lane integrated, the gate green, STATUS and this file current, the calls file re-sent with a
+   morning note (what reached the alias, the desk's order, every call in his name, what needs his yes); then Moltbook.
+   After his next sitting: identity's wiring, the disposable foundation, the demo event's data, the dashboard's,
+   headers' and wizard's wirings.
 
 ## Waiting on Will
 
-- **His desk** (the alias READY for his sitting since 2026-10-02 03:55Z, build 39; locked-door first). Will, 2026-10-01: wind down so he can answer the whole desk and the next round builds on his picks instead of re-adapting standing asks round after round. So no new lane is cut until his paste lands, but the red-team's fixes; the running lanes finish (none touches a board's surface); no alias deploy lands mid-sitting without asking. His sitting never blocks the Orchestrator (answers live in his browser). The boards: `disposable-mode` r2 (eight asks), `locked-door` r2 (four, redrawn from production) and `event-ready` r1
-  (five; its three settled calls, ready never stored nor shown to a guest among them, his to overrule) on build 25;
-  `demo-framing` r2 (three: the demo's address in a host's words, how it shares the stage with the stream, the hero's
-  touch; `names` retired into `slug`) and `about-press` r1 (two: the press kit on /about, its four facts; press-page's
-  `a-human` retired as the carried call `named`) reach him with build 26; `privacy-hero` r4 (one: which veil, the lens
-  recommended) with build 27.
+- **His desk**: answered 2026-10-02 06:00Z on build 39 and transcribed (`3e1271b9`); the next desk is round 11's boards.
 - **The calls file** (74 calls to overrule, numbered, one a lane through desk-tune-3; compiled from each merge's "Calls
   his to overrule", `git show <merge>^2:docs/tracks/<track>.md`, kept at `../partyreel-wt/_scratch/calls/relay-calls.md`
   and sent to him as it grows). He reviews it on 2026-10-01 against the product vision ("keep the calls file running":
