@@ -55,12 +55,14 @@ const TITLE_STEP = {
   app: "text-page",
 } as const;
 
-// Shared "dead end" hero for EVERY failure page (Will, `grammar=shared`,
-// 2026-09-19: one primitive, per-surface words). Nine call sites now: the root
-// 404 and the two marketing group 404s (through MarketingNotFound), the host
-// app's 404, the guest's bad-link 404 and its private lock, the admin portal's
-// 404 and the admin host's refused path (through AdminNotFoundScreen), and
-// every render crash (through RouteError and MarketingRouteError).
+// Shared "dead end" hero for the failure pages (Will, `grammar=shared`,
+// 2026-09-19: one primitive, per-surface words): the site's 404 and the cinema
+// group's (through MarketingNotFound), the host app's, the operations portal's
+// and a guest profile's, the admin host's refused path (through
+// AdminNotFoundScreen), the renewal's two dead ends, and every render crash
+// (through RouteError and MarketingRouteError). The guest link's two dead ends,
+// a link that names nothing and an album that is shut, wear the doorway
+// instead (GuestNotFoundScreen, ShutDoor) and are not call sites.
 // Presentational + content-only: NO Container or page chrome, because the call
 // sites live in different wrappers (the host variant already sits inside
 // AppShell's <main><Container>, so a self-wrapping component would double-wrap).

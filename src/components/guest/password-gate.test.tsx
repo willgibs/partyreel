@@ -4,7 +4,13 @@
  * unlock call contract. The 5-strikes/20s cooldown machinery is exercised via
  * its copy. Behaviors only - no classes, no timings.
  */
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PasswordGate } from "@/components/guest/password-gate";
@@ -115,15 +121,22 @@ describe("PasswordGate", { timeout: 20_000 }, () => {
     );
     submit("right-password");
     await screen.findByText(/You(’|')re in/, undefined, UNDER_LOAD);
-    rerender(
-      <PasswordGate
-        token="testtoken1234"
-        eventName="Test Wedding"
-        onUnlocked={vi.fn()}
-        stalled
-        onRetry={onRetry}
-      />,
-    );
+    // ★ THE STALL IS RENDERED THROUGH AN AWAITED `act` (crumbs-48). The unlock runs in a transition, and its
+    // own last render (the pending state, which waits on the action's promise) can still be due when the
+    // stall arrives: React then ends a plain `act` with work left over ("A component suspended inside an
+    // `act` scope, but the `act` call was not awaited") and the Retry is never drawn, not drawn late, so no
+    // wait on it would help (measured: absent after ten seconds). Awaited, `act` drives that work to the end.
+    await act(async () => {
+      rerender(
+        <PasswordGate
+          token="testtoken1234"
+          eventName="Test Wedding"
+          onUnlocked={vi.fn()}
+          stalled
+          onRetry={onRetry}
+        />,
+      );
+    });
     fireEvent.click(screen.getByRole("button", { name: "Open the album" }));
     expect(onRetry).toHaveBeenCalledTimes(1);
     expect(screen.getByLabelText("Event password")).toBeDisabled();
