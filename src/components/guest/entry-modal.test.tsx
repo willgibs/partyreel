@@ -22,7 +22,7 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { askCopy } from "@/components/guest/door/ask-step";
 import { waitingCopy } from "@/components/guest/door/waiting-step";
@@ -1649,6 +1649,97 @@ describe("the door as the page", () => {
     expect(
       screen.getByRole("button", { name: "Continue as guest" }),
     ).toBeInTheDocument();
+  });
+
+  /* ★ THE WALK THROUGH (locked-door r3's `reveal=through`, `door/stage-walk.ts`), run here on a recorded
+     stand-in for the browser's animations (jsdom has none): her Continue is the walk, the stage holds her
+     (taking no press, no sheet over it) until she has arrived on the album's cover, then goes, and the step
+     the door still owes rises once the album has stood a moment. */
+  describe("the walk through the open door", () => {
+    let finish: () => void = () => {};
+    let restore: () => void = () => {};
+    afterEach(() => restore());
+    beforeEach(() => {
+      const arrive = Promise.withResolvers<void>();
+      finish = () => arrive.resolve();
+      const proto = HTMLElement.prototype as Partial<HTMLElement>;
+      const width = Object.getOwnPropertyDescriptor(
+        HTMLElement.prototype,
+        "offsetWidth",
+      );
+      proto.animate = function () {
+        return {
+          ready: Promise.resolve(),
+          finished: arrive.promise,
+          startTime: null,
+          currentTime: null,
+          cancel: vi.fn(),
+        } as unknown as Animation;
+      };
+      // The doorway's picture is laid out at the cover's own width (jsdom lays out nothing).
+      Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
+        configurable: true,
+        get: () => 375,
+      });
+      const cover = document.createElement("section");
+      cover.setAttribute("data-event-head", "album");
+      document.body.appendChild(cover);
+      vi.useFakeTimers();
+      restore = () => {
+        vi.useRealTimers();
+        cover.remove();
+        delete proto.animate;
+        if (width) {
+          Object.defineProperty(HTMLElement.prototype, "offsetWidth", width);
+        }
+      };
+    });
+    const afterFrames = (ms: number) =>
+      act(async () => {
+        await vi.advanceTimersByTimeAsync(ms);
+      });
+    const view = <div data-cover-picture="" />;
+
+    it("★ her Continue walks her through: the stage holds until she arrives, then goes, and the sheet rises after a moment", async () => {
+      renderModal({ view });
+      fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+      // The walk is the compositor's from her press, before the page does any work of its own.
+      expect(stage()?.hasAttribute("data-door-walking")).toBe(true);
+      expect(welcomeCookie()).toBe(false);
+      // A second press before her first stride is the same press.
+      fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+      expect(welcomeCookie()).toBe(false);
+      await afterFrames(40);
+      // Its first frame drawn, the page's own work: the welcome is seen, and the stage holds her.
+      expect(welcomeCookie()).toBe(true);
+      expect(stage()?.getAttribute("data-state")).toBe("open");
+      expect(stage()?.hasAttribute("inert")).toBe(true);
+      expect(sheet()).toBeNull();
+
+      await act(async () => finish());
+      expect(stage()?.getAttribute("data-state")).toBe("closed");
+      expect(stage()?.hasAttribute("data-door-walked")).toBe(true);
+      expect(
+        screen.queryByRole("button", { name: "Continue as guest" }),
+      ).toBeNull();
+      await afterFrames(500);
+      expect(
+        screen.getByRole("button", { name: "Continue as guest" }),
+      ).toBeInTheDocument();
+    });
+
+    it("★ a walk that arrives before its first frame is drawn (a tab put away mid-walk) never leaves the door standing", async () => {
+      renderModal({ view });
+      fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+      await act(async () => finish());
+      await afterFrames(40);
+      expect(welcomeCookie()).toBe(true);
+      expect(stage()?.getAttribute("data-state")).toBe("closed");
+      await afterFrames(500);
+      expect(
+        screen.getByRole("button", { name: "Continue as guest" }),
+      ).toBeInTheDocument();
+    });
   });
 
   it("a stage that has left is gone once its fade has played", () => {

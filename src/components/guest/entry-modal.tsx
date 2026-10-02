@@ -435,6 +435,8 @@ export const EntryModal = forwardRef<
   // The stage's own box, and the walk running through it (the compositor's from its first frame).
   const stageEl = useRef<HTMLDivElement>(null);
   const running = useRef<Walk | null>(null);
+  /** The last walk that arrived: one whose own work comes after it (`Walk.started`) must not walk it again. */
+  const arrived = useRef<Walk | null>(null);
   /** Walk through the stage's open door now; null where it cannot be walked (the stage then fades). */
   const startWalk = useCallback((): Walk | null => {
     const el = stageEl.current;
@@ -443,6 +445,7 @@ export const EntryModal = forwardRef<
     running.current = run;
     run.done.then(
       () => {
+        arrived.current = run;
         if (running.current === run) onWalked();
       },
       () => {},
@@ -892,6 +895,8 @@ export const EntryModal = forwardRef<
     // frame, and the page's re-render for the welcome seen (the cookie, the steps after it, the album's own
     // listeners) waits for that frame, so no render ever stands between her press and the first stride. At a
     // gate the door is shut, and the next step simply rises over it.
+    // A second press while she walks is the same press (the stage takes none once the walk is the page's).
+    if (running.current && arrived.current !== running.current) return;
     const run =
       walk === null &&
       !running.current &&
@@ -900,12 +905,14 @@ export const EntryModal = forwardRef<
         ? startWalk()
         : null;
     if (run) {
-      void run.started.then(() =>
-        setTimeout(() => {
+      void run.started.then(() => {
+        // Still walking, the stage holds until she has arrived; a walk that arrived first (a tab put away
+        // mid-walk runs no frames) is not walked again, and the stage goes.
+        if (running.current === run && arrived.current !== run) {
           setWalk("welcome");
-          markSeen();
-        }, 0),
-      );
+        }
+        markSeen();
+      });
       return;
     }
     markSeen();

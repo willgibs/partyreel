@@ -123,7 +123,11 @@ export function syncCover(cover: Element, picture: Element) {
 }
 
 export type Walk = {
-  /** Resolves on the walk's first frame: the compositor has it, and the page may do its own work. */
+  /**
+   * Resolves once the walk's first frame is drawn: the compositor has it, and the page may do its own work.
+   * ★ IT CAN COME AFTER `done`: a tab put away mid-walk runs no frames, and on its return the walk has
+   * already arrived, so what waits on this asks whether it still walks.
+   */
   started: Promise<void>;
   /** Resolves when she has arrived (the last frame drawn). */
   done: Promise<void>;
@@ -292,10 +296,13 @@ export function walkThrough(stage: HTMLElement): Walk | null {
   const done = Promise.all(all.map((a) => a.finished.catch(() => null))).then(
     () => undefined,
   );
-  const started = all[0].ready.then(
-    () => undefined,
-    () => undefined,
-  );
+  // The first frame is the compositor's once a frame has run and been committed (the task after the frame's
+  // own callbacks). Not `ready`: an animation given its start time is never pending, so it is ready at once.
+  const started = new Promise<void>((resolve) => {
+    if (typeof win.requestAnimationFrame === "function") {
+      win.requestAnimationFrame(() => win.setTimeout(resolve, 0));
+    } else win.setTimeout(resolve, 16);
+  });
   return {
     started,
     done: done.then(() => {
