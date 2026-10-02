@@ -61,7 +61,7 @@ a lane").
 | `crumbs-47` | two guest LOWs: Back over a credit's look; the flip's stale failure sheet | MERGED at `3fe44072` (gate 139 green; each red on the old code); no SQL | Sonnet, 3136 | `8db9cd47` |
 | `locked-door-r3` | board locked-door r3 [desk 30]: the reveal into the album; one calm idle loop for the waiting and shut doors | MERGED at `52f3e61e` (gate 141: its one red, `password-gate.test.tsx`'s stalled-hold case, a flake under load, 3 of 3 alone and the whole suite 8,874 green on a rerun; lab:demo on locked-door green); lab only; on the desk at the night's final build | Opus, 3131 | `8db9cd47` |
 | `event-header` | board r1 [desk 50]: the host hub's head and the guest album's head (guest, host, stays) | MERGED at `461717f0` (gate 140 green; the lane's gate: test 8,832, build, lab:smoke 5, lab:demo 3 steps at 1440 and 375 and with knobs); lab only; on the desk at the night's final build | Opus, 3135 | `8db9cd47` |
-| `identity` | board r1 [desk 10]: Partyreel's atomic identity, three or four complete families across every primitive, on a specimen and three real screens (his library prompt) | RUNNING since 2026-10-02 09:55Z (round 11, wave 2) | Opus, 3132, agent `a2da3ac367414ec91` | `04afe52d` |
+| `identity` | board r1 [desk 10]: Partyreel's atomic identity, today beside Editorial, Soft, Crystal and Viewfinder (recommended), on a specimen and three real screens | MERGED at `2c3c1807` (gate 143 green over the whole lab; the lane's gate: test 8,873, build, lab:smoke 177, lab:demo with its knobs); lab only; first on the desk at the night's final build | Opus, 3132 | `e6607328` |
 | `disposable-r3` | board disposable-mode r3 [desk 80]: six cameras (viewfinder and reel kept; shutter, rim, timeline, scroll), a new waiting room, the look on real photos (Try your photos), video and cost staged | MERGED at `f7596439` (gate 142 green; the lane's gate: test 8,873, build, lab:smoke 7, lab:demo 5 steps at 1440 and 375); lab only; on the desk at the night's final build | Opus, 3134 | `e6607328` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, respawned
@@ -111,22 +111,10 @@ cut the boards drawn on it; the doorway shows only what the album's read gives t
 never the host; private, Only me and blocked doors name nothing; no RPC change); the disposable foundation waits for
 round 3. His library prompt (the atoms still read as shadcn; identity as a sum total) opens an `identity` board.
 
-1. **Wave 1, running** (In flight above): door-wiring, ready-wiring, mkt-wiring, crumbs-46, lab-prefetch. Integrate each
-   on its handoff; a retired board's ledger (`docs/reviews/<board>.json`) is mine to delete at its record, then
-   `registry.test.ts` and `queue.test.ts`.
-2. **Wave 2, each cut from the production its dependencies leave** (desk place in brackets): `identity` r1 [10] after
-   door-wiring, ready-wiring and crumbs-47; `host-dashboard` r1 [25] after ready-wiring and crumbs-46 (it inherits
-   event-ready's `needs` with his note quoted in `opening.earlier`); `locked-door` r3 [30] after door-wiring (the reveal
-   into the album with the album behind polished, calm idle loops; its `lives` inside `door/`); `event-header` r1 [50]
-   after door- and ready-wiring (the hub's head and the guest album's head); `create-wizard` r1 [60] after ready-wiring
-   (the whole wizard, its mode step a named redraw of `create=cards` with his deeper compare); `crumbs-47` after
-   door-wiring (Back over the credit look, the flip's stale sheet); `disposable-mode` r3 [80] after door-wiring,
-   ready-wiring and crumbs-47 (camera: two branches each from viewfinder and reel, modern; waiting: a new round, no
-   tilt; save: the looks on real guest photos beside none; `video` and `cost` staged after camera); `demo-framing` r3
-   [90] after mkt-wiring (his stage hybrid in two or three takes; the demo's door identity). `lab-window` (the
-   frame-scoped window) waits for his next sitting: it edits `ui/popup` and `ui/sheet`, which `identity` draws. The eight
-   specs are written (`specs-r11/` in this session's scratchpad; a successor rewrites them from this list). Page boards own composition, `identity` owns the atoms; every redesign brief carries his one direction
-   (bespoke and experiential, sleek, sophisticated, no tilt, minimal but information-rich, media is the color).
+1. **Waves 1 and 2 are DONE** (2026-10-02 06:40 to 11:35Z): five production lanes (crumbs-46, lab-prefetch, ready-wiring,
+   mkt-wiring, door-wiring), crumbs-47 and seven boards (identity, host-dashboard, locked-door r3, event-header,
+   create-wizard, disposable-mode r3, demo-framing r3), each merged green and recorded (calls 75 to 88). The desk
+   pass is clean: no two asks repeat, and no board's drawing moved after its cut.
 3. **Build 40 is ON THE ALIAS** (`26743369`, 2026-10-02 09:05Z) and its red-team PASSED (09:10 to 10:30Z,
    `../partyreel-wt/_scratch/redteam-40/ledger.txt`): every drivable walk, no MEDIUM or HIGH; one LOW (a hidden tab's view
    transition), a NIT and a production warning to the ROADMAP; the redaction held on every kind of door (a blocked
