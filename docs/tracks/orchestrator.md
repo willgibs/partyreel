@@ -52,6 +52,7 @@ flat; a lane in its gate, or the milestone's full gate, counts as two. Every pro
 | `host-dashboard-r2` | board host-dashboard r2 [desk 25]: the events collection customizable at forty; which event leads when none is dated or near | running | Opus, 3132 | `aea1e17a667c43dfd` |
 | `crumbs-50` | fourteen off-round ROADMAP crumbs (marketing preloads, demo pointers, type steps, tokens, dead fixtures, a help line, legal print, inline code, the sign-in cue, the nav's one source, the blog's tags) | running | Sonnet, 3134 | `ad78669c34ed8b55e` |
 | `door-reveal` | locked-door r3's picks (the walk-through onto the cover, the turning breathing idle), the door always the first paint (his walk), the name after the email where verification is on, the chooser's photos across a reload; retires the board | running | Opus, 3131 | `aec876b5d6becfb32` |
+| `event-header-r2` | board event-header r2 [desk 50]: the hub head's facts (the night on a dial among them) and one predictable way every room opens | running | Opus, 3133 | `(spawning)` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Q8
 (round 12's plan) answered with 21 corrections, all folded into the briefs; the next consult is the foundation's
