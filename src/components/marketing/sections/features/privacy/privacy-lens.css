@@ -246,3 +246,15 @@
     width: clamp(711px, calc(711px + (100vw - 768px) * 0.518), 1059px);
   }
 }
+
+/* Forced colours: a stage of backgrounds and filters has nothing to say to a
+   reader whose system picks the colours, a forced canvas would paint over the
+   photograph, and a dark pool behind black words on a light canvas would unread
+   them: the words stand on the system's own ground. */
+@media (forced-colors: active) {
+  .pvl-stage,
+  .pvl-pool,
+  .pvl-eyebrow-pool {
+    display: none;
+  }
+}

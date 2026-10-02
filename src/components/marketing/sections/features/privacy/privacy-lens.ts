@@ -21,7 +21,7 @@ import type { CSSProperties } from "react";
  * under a rest at any width or any copy: the band is the section's own padding and
  * the lockup sits in what is left. At the picked canvases this reproduces the
  * board's rests (1440: 288 and 1152 across at 194, 806 and 403 at 800; 375: the
- * four corners of the screen) and its hero heights (930 and 762).
+ * four corners of the screen) and its hero heights (930 and 762, its 760).
  *
  * ★ TWO REACHES, ONE SET OF NODES. The words span the narrow screens nearly edge
  * to edge and sit in the middle of the wide ones, so the rests differ: at the
@@ -73,7 +73,7 @@ export const REST_PLACES: Record<Reach, readonly Rest[]> = {
  * two sizes (240 at 1440, 124 at 375) joined by a line and held outside them, and
  * the gap round the pane in its band easing the other way (24 at 375, 10 at 1440:
  * the board's phone left air round its rests, its laptop did not). Same numbers
- * as CSS (`lensCss`) and as TS (`lensDiameter`), held equal by the test.
+ * as CSS (`DIAMETER_CSS`, `GAP_CSS`) and as TS (`lensDiameter`, `lensGap`), held equal by the test.
  */
 export const LENS = {
   dMinPx: 124,

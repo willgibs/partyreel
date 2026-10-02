@@ -152,7 +152,7 @@ export const CONTACT_TOPICS: readonly ContactTopic[] = [
     label: "Press & partnerships",
     icon: Newspaper,
     hint: {
-      text: "The press kit has the brand marks, the app icon, the share card and a QR code.",
+      text: "The press kit has the brand marks, the app icon and a QR code.",
       links: [{ href: ABOUT_PRESS_HREF, label: "Open the press kit" }],
     },
   },
