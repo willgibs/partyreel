@@ -6,6 +6,7 @@ import type { Nav } from "@/app/(dev)/design/_data/catalog";
 import type { SearchIndex } from "@/app/(dev)/design/_data/search";
 import { LabKeys } from "./keys";
 import { Palette } from "./palette";
+import { PrefetchGuard } from "./prefetch-guard";
 import { ShellProvider } from "./shell-context";
 import { Sidebar } from "./sidebar";
 import { Toc } from "./toc";
@@ -21,7 +22,8 @@ import { TopBar } from "./top-bar";
  *
  * `LabKeys` binds the window once for the whole lab and `Palette` is the one
  * ⌘K surface; both live here rather than on a page so no two pages can install
- * a second copy.
+ * a second copy. `PrefetchGuard` is the third: the one net under every link a
+ * board or the Library draws (prefetch-guard.tsx).
  *
  * THE NARROW-WINDOW TABLE OF CONTENTS IS NOT HERE (the sweep, 2026-09-16). It
  * used to open the content column, above the breadcrumbs and the title, so
@@ -77,6 +79,7 @@ export function Shell({
         </div>
       </div>
       <LabKeys />
+      <PrefetchGuard />
       <Palette />
     </ShellProvider>
   );

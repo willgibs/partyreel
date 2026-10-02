@@ -117,8 +117,10 @@ export function docComponents(ctx: Ctx) {
         </a>
       );
     }
+    // No prefetch: a doc's links into the lab carry the key in their query,
+    // which makes Next fetch a keyless sibling the gate 404s (`LabLink`'s note).
     return (
-      <Link href={target.href} title={title}>
+      <Link href={target.href} title={title} prefetch={false}>
         {children}
       </Link>
     );

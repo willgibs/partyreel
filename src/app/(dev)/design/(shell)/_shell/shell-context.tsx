@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
 
 import type { Nav } from "@/app/(dev)/design/_data/catalog";
 import type { SearchIndex } from "@/app/(dev)/design/_data/search";
@@ -142,12 +148,16 @@ export function useKeyed(): (href: string) => string {
 }
 
 /**
- * No viewport prefetch by default (the Library x Lab round, 2026-09-15): the
- * sidebar alone holds about twenty-five links, every lab route is dynamic
- * (the docs reader runs at request time), and Next prefetches a dynamic
- * route's shell WITHOUT its search params, so each prefetch was a keyless
- * request the proxy gate 404s: twenty-five server renders and twenty-five
- * console errors per page load, for nothing. Hover prefetch still applies.
+ * No prefetch by default (the Library x Lab round, 2026-09-15; the mechanism
+ * read again in lab-prefetch, 2026-10-02): the sidebar alone holds about
+ * twenty-five links, every lab route is dynamic (the docs reader runs at
+ * request time), and for every prefetched URL that has a query (every lab URL
+ * has `?key=`) Next also fetches the route tree WITHOUT it (scheduler
+ * `pingRoute`): a keyless request the proxy gate 404s, twenty-five server
+ * renders and twenty-five console errors per page load, for nothing.
+ * `false` is the whole of the contract: Next 16 gives such a link no hover or
+ * touch prefetch either. Whatever the lab does not render itself is the
+ * `PrefetchGuard`'s.
  */
 export function LabLink({
   href,
