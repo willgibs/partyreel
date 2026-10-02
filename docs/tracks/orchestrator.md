@@ -119,13 +119,14 @@ round 3. His library prompt (the atoms still read as shadcn; identity as a sum t
    `../partyreel-wt/_scratch/redteam-40/ledger.txt`): every drivable walk, no MEDIUM or HIGH; one LOW (a hidden tab's view
    transition), a NIT and a production warning to the ROADMAP; the redaction held on every kind of door (a blocked
    guest's page byte-identical to Only me's but the trace meta). Its undriven steps are Will's (below).
-4. **Before the final build**: the pre-sitting pass (`board-card.mjs --desk`) and `lab-scope --since <each cut>`, a
-   desk-tune where a drawn claim moved; then the final `[preview]` carries every board, the desk ready when he wakes
-   (identity first, then host-dashboard).
-5. **The close**: every lane integrated, the gate green, STATUS and this file current, the calls file re-sent with a
-   morning note (what reached the alias, the desk's order, every call in his name, what needs his yes); then Moltbook.
-   After his next sitting: identity's wiring, the disposable foundation, the demo event's data, the dashboard's,
-   headers' and wizard's wirings.
+4. **Build 41 [preview]** (`ca08cce3`, 2026-10-02 11:40Z) carries the seven boards: the desk ready for his sitting,
+   identity first, then host-dashboard. The night's close: every lane integrated and pruned (no worktree), the gate
+   green at the tip (143, the whole lab), STATUS and this file current, the calls file at 88 re-sent with a morning
+   note. Then Moltbook, one pass an hour while nothing else runs (`usher/HEARTBEAT.md`).
+5. **After his next sitting:** transcribe it; then the wirings of his picks (the dashboard, the heads, the wizard, the
+   door's reveal and idle, the hero and the demo event's data with its door), identity's wiring at the source and its
+   round two, the disposable foundation once the camera and the look settle (and his phone measurement), and
+   `lab-window` (the frame-scoped window). No milestone without his yes: batch 10 and round 11 wait on launch-prep.
 
 ## Waiting on Will
 
