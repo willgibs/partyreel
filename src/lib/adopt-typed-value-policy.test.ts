@@ -42,13 +42,9 @@ import { isTextLikeInputType } from "@/lib/adopt-typed-value";
  * refused rather than let through under it.
  */
 const ALLOWED: Readonly<Record<string, { fields: number; why: string }>> = {
-  "src/app/(marketing)/(cinema)/careers/[slug]/application-form.tsx": {
+  "src/components/marketing/forms/honeypot-field.tsx": {
     fields: 1,
-    why: "the honeypot: hidden from applicants, spread from react-hook-form's register (uncontrolled); a person never types in it",
-  },
-  "src/app/(marketing)/(cinema)/contact/contact-form.tsx": {
-    fields: 1,
-    why: "the honeypot: hidden from visitors, spread from react-hook-form's register (uncontrolled); a person never types in it",
+    why: "the public forms' one honeypot (/contact's and a job application's): hidden from people, spread from react-hook-form's register (uncontrolled); a person never types in it",
   },
   "src/components/marketing/help/help-palette.tsx": {
     fields: 1,

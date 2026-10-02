@@ -52,13 +52,14 @@ export function PageInviteCard() {
     <Card data-page-invite className="ring-brand/40">
       <CardHeader>
         <CardTitle>Set up your page</CardTitle>
-        <CardDescription>
-          Choose what shows before anyone sees it.
-        </CardDescription>
+        <CardDescription>Nothing shows until you finish.</CardDescription>
       </CardHeader>
       <CardFooter className="flex-wrap gap-2">
+        {/* ★ THE BUTTON CARRIES THE REASON (crumbs-44, from `profile-setup`): it repeated the
+            title, so the card said "Set up your page" twice and why never. Choosing what shows is
+            what the setup is for, and the line above is the promise that makes pressing it safe. */}
         <Button asChild size="sm">
-          <Link href={PROFILE_SETUP_PATH}>Set up your page</Link>
+          <Link href={PROFILE_SETUP_PATH}>Choose what shows</Link>
         </Button>
         <Button
           type="button"

@@ -55,8 +55,10 @@ routes.
   Resources' tail), the hubs linked from the Features and Events titles, Privacy and Terms in the legal bar with
   `/llms.txt`. Nothing is collapsed: the sitemap is small enough to show whole, and a test refuses an accordion. The
   FAQ link is the one link that follows the page (`footer-faq-link.tsx`, a client island because a server footer cannot
-  read the pathname): on a route whose own FAQ section is `id="faq"` (`OWN_FAQ_ROUTES`, `/pricing`) it stays there,
-  and from every other page it goes to the home's.
+  read the pathname): on a route whose own FAQ section is `id="faq"` (`OWN_FAQ_ROUTES`: /pricing, the events hub, every
+  event page and every feature page, whose bands carry the anchor) it stays there, and from every other page it goes
+  to the home's. The routes are exact (a 404 under a family has no FAQ to stay on), and a test holds them both ways:
+  each carries the anchor, and every page that draws an FAQ band is listed.
 - **The root 404 renders the same footer outside `(marketing)`**, where marketing.css never loads, so the footer carries
   everything it needs itself: the slab's tokens, the seam glow, and the pile's box, size and rest pose. ★ The rest pose
   is a layered utility on purpose: the `.mkt-stack` recipe is unlayered, so on a marketing page its rest pose and hover
@@ -96,8 +98,10 @@ routes.
   video, never a "clip". The live reel and the screen carry no mark and no cap on any plan, so every watermark or
   length claim names the clip ("30-second clips with a small mark"), never the reel, which carries neither
   ([reel.md](reel.md)).
-- `content-policy.test.ts`'s header lists every fenced claim and the files it scans (`CLAIM_FILES`: the copy
-  single-sources, the llms builders, the legal content); a copy source outside `(marketing)` joins that list.
+- `content-policy.test.ts`'s header lists every fenced claim, and its claims fence reads every constant under
+  `src/lib/constants/` (the copy single-sources and the legal content, so a new one is fenced the day it lands) but
+  the ones `CLAIM_EXEMPT_CONSTANTS` names with a reason (`tiers.ts`, which defines the ingress backstop), plus the
+  FAQ answers and the llms builders; a copy source outside `src/lib/constants/` joins `CLAIM_FILES` by hand.
 
 ## Pages and their single sources
 
@@ -130,6 +134,11 @@ routes.
   The stage's clip is the album's own scroller, never only a clip: the rows anchor whatever scrolls them, and with the
   page as their scroller every arrival moved the page under a reader a little past the album's first row. The stream,
   the stage and the hero's floor change composition together at 1280 (`STREAM_LG_MIN`, `stream-engine.test.ts`).
+  ★ Its stills reach the product's own tile at their slot's size: `MediaTile` draws a presigned URL as it is, so the
+  stage hands each still the optimizer's widths and a `sizes` (`variants`, a field no product surface sets) through
+  `stillVariants`, its slot `ratio × the rows' target` at the stage's box (`stillSizes`, held against the real rows
+  engine at nine widths), and its ahead-of-arrival decode takes the same variants, or it would ready a file the tile
+  never draws. A still dropped into the manifest later inherits the path; the source files are never resized by hand.
 - **`/events`**: one `[slug]` template for the four types, all copy and per-type media in `constants/events.ts`
   (`EVENT_TYPE*`, named apart from the real `events` domain). ★ `media` is the single home of a per-type photograph: no
   component names a still of its own. ★ **Every event object carries the demo's real code, never a dead link**: the
@@ -151,7 +160,8 @@ routes.
 - **`/reel`**: the live style switcher is the engine's proof (the canvas arrives only behind its lazy island), then the
   live reel, the screen and the clip. The tile is the app's own `PosterCard` over `LivingStills`, so the motion a
   visitor meets there is the one they meet on their album; the screen's corner code is the demo's real one and drops
-  with the demo; the clip table reads `MAX_REEL_SECONDS` and `TIER_NAMES`. The hero's heading is `REEL_LINE`
+  with the demo; the clip table gives each plan's clip one cell, its length and its mark together (`clipTermsFor`,
+  the clip creator's own facts, the pricing matrix's phrase too), under `TIER_NAMES`. The hero's heading is `REEL_LINE`
   (`marketing-voice.ts`), the reel door's line at both sizes, so the door and the room it opens agree; the home's close
   keeps words of its own.
 - **`/pricing`**: one paper chapter (the Free and Pro pair, the Event Pass, the configurator closing it), then one dark
@@ -215,14 +225,17 @@ routes.
   over a later value), its hidden native bridge emits an empty `onValueChange` during mount that would clobber a
   programmatic pick, and `SelectValue` cannot resolve a label before the items mount, so the trigger's label is
   hand-rendered.
-- **A sent note becomes a receipt on the card that wrote it** (`contact-receipt.tsx`), and nothing leaves the server a
-  second time: a receipt email is a send to an address nobody verified (spoofed sends, inbox bombing), so the sender's own
-  words and the address a reply goes to come back on the card, and no toast repeats the thanks. ★ Every arrival is
-  `motion-safe:starting:` (the visible state is the default), so reduced motion, a throttled tab and a browser without
-  `@starting-style` meet the finished card. The form's height is measured in the submit handler (a ref read in render is
-  a lint error) and kept from `lg`, condensed to the receipt's in a hand; focus moves to the receipt's heading and back
-  to the first field on Send another; a Server Function that rejects is a failed send with the words kept. The write
-  path is under "Public forms".
+- **A sent note becomes a receipt on the card that wrote it**, /contact's and a job application's alike (`NoteReceipt`
+  and its choreography `useReceiptSwap`, `components/marketing/forms/`; each form says only what is its own: the topic,
+  `REPLY_LINE` and the postmark, or the role and the careers page's own "we read every application"), and nothing
+  leaves the server a second time: a receipt email is a send to an address nobody verified (spoofed sends, inbox
+  bombing), so the sender's own words and the address a reply goes to come back on the card, and no toast repeats the
+  thanks. ★ Every arrival is `motion-safe:starting:` (the visible state is the default), so reduced motion, a throttled
+  tab and a browser without `@starting-style` meet the finished card. The form's height is measured in the submit
+  handler (a ref read in render is a lint error, and so is reading the hook's returned object, which holds the ref:
+  take it apart where it is called) and kept from `lg`, condensed to the receipt's in a hand; focus moves to the
+  receipt's heading and back to the first field on Send another; the submit waits for hydration; a Server Function
+  that rejects is a failed send with the words kept. The write path is under "Public forms".
 - **`/press`, the contact sheet**: titled "Press" everywhere (a 160px masthead has to be the word the reader clicked;
   detail goes in the eyebrow), its boilerplate and fact sheet in `constants/press.ts`, the one quotable home that the
   llms builders share. The sheet's frames are deliberately not one kind of thing (a uniform grid of marks is a downloads
@@ -320,15 +333,21 @@ with `help.ts` and `blog.ts` as thin wrappers.
 
 ## Public forms
 
-The contact and application forms write the deny-all `contact_submissions` and `job_applications` tables.
+The contact and application forms write the deny-all `contact_submissions` and `job_applications` tables, on ONE
+contract: the shared fields and honeypot (`lib/validation/public-form.ts`) and one pipeline (`submitPublicForm`,
+`lib/security/public-form-submit.ts`: validate, the honeypot, the form's own refusal, the rate gate, the row, the
+notify), each Server Function naming only its schema, its row and its mail (`public-form-submit.test.ts` drives both
+end to end).
 
-- **The row is authoritative; the email is best effort.** The Server Action inserts on the service-role admin client
+- **The row is authoritative; the email is best effort.** The pipeline inserts on the service-role admin client
   FIRST, then tries the Resend notify in a try/catch (`sendOnce`, `dedupeKey` the row id so a double submit notifies
   once, `replyTo` the submitter); a missing key, an unset inbox or a failed send is logged and swallowed, never changing
   what the visitor sees.
-- **No anon RPC and no anon grant sit behind a public form**, so it adds no anon-executable surface. The hidden
-  `website` honeypot returns success before the rate gate and stores nothing, so a bot learns nothing, and a walk of the
-  success path on a dev server fills it to send no row and no mail.
+- **No anon RPC and no anon grant sit behind a public form**, so it adds no anon-executable surface. ★ The hidden
+  honeypot is named for nothing real (`HONEYPOT_FIELD`, `lantern`; it was `website`, which an autofill fills for a real
+  person, whose note then vanished behind a success): it returns success before the rate gate (and before a careers
+  role is looked up) and stores nothing, so a bot learns nothing, and a walk of the success path on a dev server fills
+  it to send no row and no mail.
 - The address shown is `SUPPORT_EMAIL`; the destination is the optional `CONTACT_NOTIFY_EMAIL` (falling back to it), so
   moving the mail is an env swap. Resend Inbound stays unused (webhook-only ingestion, no mailbox).
 
@@ -410,6 +429,12 @@ Six `not-found.tsx` files share one presentational core, `shared/not-found-scree
   Nothing is laid over a photograph: the words punch a feathered window in the trail, so the muted description keeps its
   contrast; the trail needs layout, so without scripting a reader gets the words and links on clean paper. Its code
   and `trail.css` arrive in the site screen's own chunk, so no other page preloads the sheet.
+- ★ **The root 404's links prefetch nothing on sight** (`QuietChromePrefetch` around its screen; the chrome and the
+  words draw every link through `ChromeLink`, `next/link` itself everywhere else). Standing outside `(marketing)`, it
+  holds none of the sheets its links' routes need, and a prefetched payload makes React preload each sheet it names:
+  marketing.css and the home's three were preloaded and never drawn, four "preloaded but not used" warnings a load. A
+  press still navigates in place and fetches then. (The home's three warn on every other marketing page too, from the
+  header logo's prefetch of `/`: ROADMAP's line.)
 
 ## The demo (marketing side)
 

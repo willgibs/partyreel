@@ -224,6 +224,8 @@ export async function POST(request: Request) {
     ip: clientIp(request.headers),
     walk: part ? { part, after: after ?? null } : undefined,
     zipLabel: set === "yours" ? "yours" : undefined,
+    // The Worker reports this export back here (`export-ends`): the deployment that minted it.
+    appOrigin: new URL(request.url).origin,
   });
   return mintResponse(result);
 }

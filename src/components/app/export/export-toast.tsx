@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, X } from "lucide-react";
+import { Download, EyeOff, X } from "lucide-react";
 import { toast } from "sonner";
 
 import type {
@@ -18,8 +18,9 @@ import type {
  * cancel"). Sonner's own close sits at the top-left corner and is off on these (`closeButton: false`,
  * which also beats the patched `toast.error`'s default). The x is the toast's own control, quiet at
  * rest and full at a hover or a focus, and it inherits the tone's ink, so it reads on the red and the
- * amber too. While something is still in flight (preparing, or between parts) the toast cannot be
- * swiped away: the x is the one way out, so a stray swipe never silently drops a walk.
+ * amber too. While something is still in flight (preparing, a question, between parts, or a zip on its
+ * way whose Worker has not yet said it is saved) the toast cannot be swiped away: the x is the one way
+ * out, so a stray swipe never silently drops a walk.
  *
  * ★ EVERY FIELD IS SET ON EVERY UPDATE. Sonner merges an update into the toast it replaces, so an
  * unset `duration` or `action` would carry over from the state before (a spinner's endless life
@@ -63,6 +64,34 @@ function Controls({
   );
 }
 
+/**
+ * A QUESTION'S ANSWERS, UNDER ITS LINE (`ask`). Two answers beside the line squeezed "3 of these 12 are
+ * hidden." into four rows at 375 (the toaster's width is fixed, so a desk's too), so they sit in the
+ * description's place, left-aligned, and the x keeps its place on the right. Sonner's own action styling,
+ * with its push to the right undone.
+ */
+function Answers({ actions }: { actions: ToastAction[] }) {
+  return (
+    <span
+      data-export-toast-answers=""
+      className="mt-2 flex flex-wrap items-center gap-1.5"
+    >
+      {actions.map((answer) => (
+        <button
+          key={answer.label}
+          type="button"
+          data-button=""
+          data-action=""
+          style={{ marginInlineStart: 0 }}
+          onClick={answer.run}
+        >
+          {answer.label}
+        </button>
+      ))}
+    </span>
+  );
+}
+
 export const exportToasts: ToastPort = {
   show(id: string, view: ToastView) {
     const base = {
@@ -81,6 +110,17 @@ export const exportToasts: ToastPort = {
           action: <Controls close={view.close} />,
         });
         return;
+      case "ask":
+        // A question about her own selection: neutral, held until she answers or takes the x.
+        toast.info(view.title, {
+          ...base,
+          description: <Answers actions={view.actions} />,
+          icon: <EyeOff className="size-4" aria-hidden />,
+          duration: Infinity,
+          dismissible: false,
+          action: <Controls close={view.close} />,
+        });
+        return;
       case "between":
         // Neutral, not green: the walk is half done, and green says finished.
         toast.info(view.title, {
@@ -89,6 +129,17 @@ export const exportToasts: ToastPort = {
           duration: Infinity,
           dismissible: false,
           action: <Controls action={view.action} close={view.close} />,
+        });
+        return;
+      case "downloading":
+        // Handed over and on its way; the Worker's word turns it to saved (`export-ends`). Neutral, as
+        // between parts, and held: the x only lets the toast go, the browser keeps the download.
+        toast.info(view.title, {
+          ...base,
+          icon: <Download className="size-4" aria-hidden />,
+          duration: Infinity,
+          dismissible: false,
+          action: <Controls close={view.close} />,
         });
         return;
       case "done":

@@ -222,7 +222,10 @@ describe("the host's walk", () => {
     const { body } = await post({ step: "mint", part: 1 });
     const verified = verifyExportToken(SECRET, body.token, Date.now());
     if (!verified.ok) throw new Error(verified.reason);
-    // Exactly milestone 29's keys, in its order: nothing a walk adds rides in the token.
+    // Milestone 29's keys, in its order: nothing a walk adds rides in the token. Reshaped by `export-ends`:
+    // one key follows them, `report` (where the Worker reports this export), which every older Worker
+    // ignores and still streams (workers/export/src/compat.test.ts, "today's app, reaching an older
+    // Worker"); the version stays 1.
     expect(Object.keys(verified.payload)).toEqual([
       "v",
       "jti",
@@ -231,8 +234,36 @@ describe("the host's walk", () => {
       "zipName",
       "items",
       "exp",
+      "report",
     ]);
     expect(verified.payload.v).toBe(1);
+  });
+
+  it("asks the Worker to report back to this deployment, and hands the walk the nonce to listen by", async () => {
+    useAlbum(album(3));
+    const { body } = await post({ step: "mint", part: 1 });
+    const verified = verifyExportToken(SECRET, body.token, Date.now());
+    if (!verified.ok) throw new Error(verified.reason);
+    expect(verified.payload.report).toBe(
+      "https://partyreel.test/api/export/report",
+    );
+    expect(body).toMatchObject({ jti: verified.payload.jti, reports: true });
+    expect(body.jti).toMatch(/^[0-9a-f]{32}$/);
+  });
+
+  it("asks nothing of a deployed Worker from a laptop it could never reach", async () => {
+    useAlbum(album(3));
+    const res = await POST(
+      new Request("http://localhost:3132/api/export/host", {
+        method: "POST",
+        body: JSON.stringify({ event_id: EVENT_ID, step: "mint", part: 1 }),
+      }),
+    );
+    const body = await res.json();
+    const verified = verifyExportToken(SECRET, body.token, Date.now());
+    if (!verified.ok) throw new Error(verified.reason);
+    expect(verified.payload.report).toBeUndefined();
+    expect(body.reports).toBe(false);
   });
 
   it("a selection past 20 GB is walked by its bytes", async () => {

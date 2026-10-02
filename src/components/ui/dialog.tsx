@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { Dialog as DialogPrimitive } from "radix-ui"
+import { usePortalContainer } from "@/components/ui/portal-container"
 
 import { cn } from "@/lib/utils"
 import { useKeyboardInset } from "@/lib/use-keyboard-inset"
@@ -29,7 +30,7 @@ function DialogTrigger({
 function DialogPortal({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Portal>) {
-  return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />
+  return <DialogPrimitive.Portal data-slot="dialog-portal" container={usePortalContainer()} {...props} />
 }
 
 function DialogClose({

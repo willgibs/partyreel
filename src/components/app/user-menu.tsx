@@ -15,6 +15,7 @@ import {
 import { useTheme } from "next-themes";
 import Link from "next/link";
 
+import { PROFILE_SETUP_PATH } from "@/app/(app)/account/profile/invite";
 import { signOutHere } from "@/components/auth/sign-out";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -128,12 +129,12 @@ export function UserMenu({
   planName = null,
 }: UserMenuProps) {
   // ★ THE HANDLE-LESS DOOR. /u/<slug> does not exist until a handle is claimed,
-  // and claiming it is free, so the door leads to the claim card rather than
-  // disappearing: #public-profile is the id on /account's Public profile card,
-  // the same anchor the after-upload prompt uses. A host who has never thought
-  // about a handle taps "Your profile" and lands on the one box that gives
-  // them one.
-  const profileHref = slug ? `/u/${slug}` : "/account#public-profile";
+  // and claiming it is free, so the door leads to the page's setup rather than
+  // disappearing: a host who has never thought about a handle taps "Your
+  // profile" and lands on the guided setup that gives them one. It opened
+  // Account's Public profile card until crumbs-44, whose one button was the
+  // setup's door, one tap more.
+  const profileHref = slug ? `/u/${slug}` : PROFILE_SETUP_PATH;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger

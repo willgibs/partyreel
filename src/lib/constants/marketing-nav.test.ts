@@ -1,9 +1,9 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { EVENT_TYPE_SLUGS } from "@/lib/constants/events";
+import { EVENT_TYPE_SLUGS, getEventType } from "@/lib/constants/events";
 import { FEATURE_PAGES } from "@/lib/constants/feature-pages";
 import {
   FAQ_HREF,
@@ -282,16 +282,30 @@ describe("the footer's FAQ link follows the reader's page", () => {
     );
   });
 
-  it("stays on a page with its own FAQ (/pricing), and leaves for the home's from every other", () => {
-    expect(faqHrefFrom("/pricing")).toBe("#faq");
+  // Reshaped on purpose (mkt-polish): an event page and a feature page used to send the reader to the
+  // home's FAQ, because only /pricing's band carried the anchor. Every page with a band of its own now
+  // keeps its readers; a page with none (and a 404 under a page family) still leaves for the home's.
+  it("stays on every page with its own FAQ, and leaves for the home's from every other", () => {
+    for (const path of [
+      "/pricing",
+      "/events",
+      "/events/weddings",
+      "/features/album",
+      "/features/privacy",
+    ]) {
+      expect(faqHrefFrom(path), path).toBe("#faq");
+    }
     for (const path of [
       "/",
       "/about",
       "/help",
-      "/events/weddings",
-      "/features/album",
+      "/features",
+      "/reel",
       "/blog/a-post",
       "/no-such-page",
+      // A 404 under a page family has no FAQ to stay on: the routes are exact, never a prefix.
+      "/events/nope",
+      "/features/album/nope",
     ]) {
       expect(faqHrefFrom(path), path).toBe(FAQ_HREF);
     }
@@ -299,20 +313,67 @@ describe("the footer's FAQ link follows the reader's page", () => {
     expect(faqHrefFrom(null)).toBe(FAQ_HREF);
   });
 
+  const read = (rel: string) => readFileSync(join(process.cwd(), rel), "utf8");
+  const CINEMA = "src/app/(marketing)/(cinema)";
+  /** A page draws an FAQ band of its own when it mounts the shared accordion or the feature band. */
+  const drawsFaq = (source: string) =>
+    /<(FaqAccordion|FeatureFaq)\b/.test(source);
+
   it("every route it stays on really carries its FAQ as #faq, and so does the home", () => {
-    const read = (rel: string) =>
-      readFileSync(join(process.cwd(), rel), "utf8");
     // The home's FAQ is the default target.
     expect(read("src/components/marketing/sections/home/faq.tsx")).toContain(
       'id="faq"',
     );
-    // A route listed here has a cinema page whose FAQ section is #faq; a route
-    // whose page lost its anchor would send the footer's link nowhere.
+    // The feature pages' band carries the anchor once, for all six.
+    expect(
+      read("src/components/marketing/sections/features/shared/feature-faq.tsx"),
+    ).toContain('id="faq"');
+    // A route listed here has a page whose FAQ section is #faq; a route whose
+    // page lost its anchor would send the footer's link nowhere.
     for (const route of OWN_FAQ_ROUTES) {
+      const slug = /^\/events\/([^/]+)$/.exec(route)?.[1];
+      if (slug) {
+        // One template draws every type, its band from the type's own answers.
+        expect(EVENT_TYPE_SLUGS, `${route} is no event type`).toContain(slug);
+        expect(getEventType(slug)?.faq.length, route).toBeGreaterThan(0);
+        expect(read(`${CINEMA}/events/[slug]/page.tsx`), route).toContain(
+          'id="faq"',
+        );
+        continue;
+      }
+      const page = read(`${CINEMA}${route}/page.tsx`);
       expect(
-        read(`src/app/(marketing)/(cinema)${route}/page.tsx`),
+        page.includes('id="faq"') || /<FeatureFaq\b/.test(page),
         `${route} has no id="faq" section`,
-      ).toContain('id="faq"');
+      ).toBe(true);
+    }
+  });
+
+  it("every page that draws an FAQ band of its own is a route it stays on", () => {
+    const pages = (dir: string): string[] =>
+      readdirSync(join(process.cwd(), dir), { withFileTypes: true }).flatMap(
+        (entry) =>
+          entry.isDirectory()
+            ? pages(`${dir}/${entry.name}`)
+            : entry.name === "page.tsx"
+              ? [`${dir}/${entry.name}`]
+              : [],
+      );
+    const drawing = pages(CINEMA).filter((file) => drawsFaq(read(file)));
+    // Pinned for non-emptiness: a sweep that finds no band is a broken sweep.
+    expect(drawing.length).toBeGreaterThan(5);
+    for (const file of drawing) {
+      const route = file.slice(CINEMA.length, -"/page.tsx".length) || "/";
+      if (route === "/events/[slug]") {
+        for (const slug of EVENT_TYPE_SLUGS)
+          expect(OWN_FAQ_ROUTES, file).toContain(`/events/${slug}`);
+        continue;
+      }
+      // Another dynamic page with a band would need its slugs expanded here.
+      expect(route, `${file} draws an FAQ under a dynamic route`).not.toMatch(
+        /\[/,
+      );
+      expect(OWN_FAQ_ROUTES, file).toContain(route);
     }
   });
 });

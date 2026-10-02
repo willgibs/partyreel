@@ -51,6 +51,7 @@ const EVENTS: AttendedEventPick[] = [
     shownOnProfile: false,
     coverUrl: "https://r2.example/a.webp",
     locked: false,
+    albumOpen: true,
   },
   {
     id: "22222222-2222-4222-8222-222222222222",
@@ -58,6 +59,7 @@ const EVENTS: AttendedEventPick[] = [
     shownOnProfile: false,
     coverUrl: null,
     locked: false,
+    albumOpen: true,
   },
 ];
 

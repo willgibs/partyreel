@@ -79,7 +79,9 @@ export function UnlockGrid() {
                 {tile.body}
               </p>
             </div>
-            <p className="text-xs text-faint">{tile.freeLine}</p>
+            {/* Where Free stands on this tile is the tile's point, a sentence, so the second
+                text step: the faint one is 4.3:1 on this tile's wash, under AA's 4.5. */}
+            <p className="text-xs text-muted-foreground">{tile.freeLine}</p>
           </div>
         ))}
       </Reveal>

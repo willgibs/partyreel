@@ -49,6 +49,12 @@ export type JobHealthReport = {
   pausedCount: number;
   /** Age of the freshest terminal run across every job, or null if nothing has ever finished. */
   heartbeatAgeMs: number | null;
+  /**
+   * Every job's verdict, healthy ones included, for a page that shows one job's state beside its own
+   * work (`/admin/exports` shows its Worker's heartbeat and its downloads' signal). Empty when unreadable;
+   * optional, so a hand-made report (a Library specimen, a test) need not name every job.
+   */
+  byId?: Partial<Record<JobId, JobHealth>>;
 };
 
 const UNREADABLE: JobHealthReport = {
@@ -56,6 +62,7 @@ const UNREADABLE: JobHealthReport = {
   unhealthy: [],
   pausedCount: 0,
   heartbeatAgeMs: null,
+  byId: {},
 };
 
 /**
@@ -134,6 +141,7 @@ export async function readJobHealth(
       unhealthy,
       pausedCount,
       heartbeatAgeMs: freshest === null ? null : Math.max(0, nowMs - freshest),
+      byId: Object.fromEntries(healthById),
     };
   } catch (e) {
     captureError("admin", e, { surface: "job_health", signal: "jobs" });

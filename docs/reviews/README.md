@@ -74,7 +74,8 @@ lands as `<board> r<n>: <ask>=none "what to try instead"` and the grammar never 
 `review <board> r<n>: <ask>=? "what was unclear"` records "not clear to me" (the note is required).
 An option is its id (one token); the board's spec carries the label and the meaning a reviewer reads.
 
-A line that is only `note: "..."` names no board, so `pnpm lab:review` records nothing for it and
+A line that is only `note: "..."` names no board (the end of the walk composes one from its "For the
+whole program" field, and "Copy so far" carries it once), so `pnpm lab:review` records nothing for it and
 prints where it goes: if it is meant for the whole program, fold it into the doc it refines
 (synthesized, never quoted); if it was given on a board, file it there with
 `review <board> r<n>: note: "..."`. The rest of the paste records as ever. A note with no words is

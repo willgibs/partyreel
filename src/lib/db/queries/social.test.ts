@@ -43,7 +43,10 @@ const ME = "u0000000-0000-4000-8000-000000000001";
 let fake: FakePostgrest;
 
 vi.mock("@/lib/supabase/request-auth", () => ({
-  getRequestAuth: async () => ({ supabase: asSupabase(fake), user: { id: ME } }),
+  getRequestAuth: async () => ({
+    supabase: asSupabase(fake),
+    user: { id: ME },
+  }),
 }));
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => asSupabase(fake),
@@ -81,15 +84,18 @@ function profiles(n: number, prefix = "p"): FakeRow[] {
 function covers(fakeDb: FakePostgrest) {
   return ({ p_event_ids }: Record<string, unknown>) => {
     const wanted = new Set(p_event_ids as string[]);
-    const out: Record<string, { preview_key: string | null; original_key: string }> =
-      {};
+    const out: Record<
+      string,
+      { preview_key: string | null; original_key: string }
+    > = {};
     const newest = [...(fakeDb.tables.media ?? [])].sort((a, b) =>
       String(b.created_at).localeCompare(String(a.created_at)),
     );
     for (const m of newest) {
       const id = m.event_id as string;
       if (!wanted.has(id) || out[id]) continue;
-      if (m.status !== "approved" || m.type !== "photo" || m.removed_at) continue;
+      if (m.status !== "approved" || m.type !== "photo" || m.removed_at)
+        continue;
       out[id] = {
         preview_key: (m.preview_key as string | null) ?? null,
         original_key: m.original_key as string,
@@ -198,7 +204,9 @@ describe("getEventGuests: the one count, past the row cap", () => {
 
     expect(guests.verifiedUserIds).toHaveLength(1250);
     expect(guests.unverifiedRows).toHaveLength(1250);
-    expect(fake.requests.every((r) => r.filters.every((f) => f.op !== "in"))).toBe(true);
+    expect(
+      fake.requests.every((r) => r.filters.every((f) => f.op !== "in")),
+    ).toBe(true);
   });
 });
 
@@ -246,14 +254,18 @@ describe("the events you added to, past the row cap", () => {
     const cards = await getMyGuestEventCards();
 
     expect(cards).toHaveLength(1200);
-    expect(cards.every((c) => c.byline?.startsWith("Hosted by Person"))).toBe(true);
+    expect(cards.every((c) => c.byline?.startsWith("Hosted by Person"))).toBe(
+      true,
+    );
     expect(cards.every((c) => c.coverUrl !== null)).toBe(true);
     // The newest upload per event decides its cover: uploads 0..1199 are the newest, the even ones
     // carry a preview.
     const covered = new Map(cards.map((c) => [c.eventId, c.coverUrl]));
     expect(covered.get(uuid("e", 0))).toBe("signed:preview-0");
     expect(covered.get(uuid("e", 1))).toBe("signed:original-1");
-    expect(fake.requests.filter((r) => r.name === "event_covers")).toHaveLength(1);
+    expect(fake.requests.filter((r) => r.name === "event_covers")).toHaveLength(
+      1,
+    );
     expectChunked(fake.requests);
   });
 
@@ -281,16 +293,57 @@ describe("the events you added to, past the row cap", () => {
       (row) => row.event_id !== uuid("e", 6),
     );
 
-    const urls = await getPublicProfileAttendedCoverUrls(ME, events);
+    const { covers: urls, videoOnly } = await getPublicProfileAttendedCoverUrls(
+      ME,
+      events,
+    );
 
     expect(urls.size).toBe(998);
     expect(urls.has(uuid("e", 5))).toBe(false);
     expect(urls.has(uuid("e", 6))).toBe(false);
+    // A gate that dropped an event says nothing about what its album holds.
+    expect(videoOnly.size).toBe(0);
+    // The attended arm's covers are the small preview too, the original only without one.
+    expect(urls.get(uuid("e", 0))).toBe("signed:preview-0");
+    expect(urls.get(uuid("e", 1))).toBe("signed:original-1");
     expectChunked(fake.requests);
     // The owner's choices are read by the owner, never by an id list.
-    for (const read of fake.requests.filter((r) => r.name === "profile_shown_events")) {
+    for (const read of fake.requests.filter(
+      (r) => r.name === "profile_shown_events",
+    )) {
       expect(read.filters.some((f) => f.op === "in")).toBe(false);
     }
+  });
+
+  it("★ an attended party whose gates all hold and whose album is all video is named, never covered", async () => {
+    fake = world();
+    // Event 7's approved uploads become video: the owner is still a guest there (gate 4 holds), and
+    // `event_covers` (photo only) leaves it out, so its card wears the all-video face.
+    for (const m of fake.tables.media) {
+      if (m.event_id === uuid("e", 7)) m.type = "video";
+    }
+    // Event 8 is all video too, but its owner never chose it: no gate holds, so nothing is said.
+    for (const m of fake.tables.media) {
+      if (m.event_id === uuid("e", 8)) m.type = "video";
+    }
+    fake.tables.profile_shown_events = fake.tables.profile_shown_events.filter(
+      (row) => row.event_id !== uuid("e", 8),
+    );
+    const events = [7, 8, 9].map((i) => ({
+      id: uuid("e", i),
+      name: `Event ${i}`,
+      event_date: null,
+    }));
+
+    const { covers: urls, videoOnly } = await getPublicProfileAttendedCoverUrls(
+      ME,
+      events,
+    );
+
+    expect([...videoOnly]).toEqual([uuid("e", 7)]);
+    expect(urls.has(uuid("e", 7))).toBe(false);
+    expect(urls.has(uuid("e", 8))).toBe(false);
+    expect(urls.get(uuid("e", 9))).toBe("signed:original-9");
   });
 
   it("the hosted covers take the preview when there is one", async () => {

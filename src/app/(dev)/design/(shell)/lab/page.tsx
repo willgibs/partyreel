@@ -1,4 +1,5 @@
 import { requireDesignKey, withDesignKey } from "@/lib/design-gate/server";
+import { cn } from "@/lib/utils";
 
 import {
   type BoardSpec,
@@ -31,6 +32,8 @@ import {
   transcribedFrom,
 } from "./_desk/queue";
 import { HeldBadge } from "./_desk/held-badge";
+import { DeskThumb } from "./_desk/desk-thumb";
+import { BOARD_COMPONENTS } from "./[board]/board-components";
 import { buildStamp } from "@/app/(dev)/design/_data/build-stamp";
 
 import { ReviewSession } from "./_desk/review-session";
@@ -99,7 +102,25 @@ type Params = Promise<Record<string, string | string[] | undefined>>;
  * there up it is the one baseline it was.
  */
 const ROW =
-  "flex flex-col gap-1 px-4 py-3 transition-colors duration-150 hover:bg-muted/40 sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-3 sm:gap-y-1";
+  "flex min-w-0 flex-1 flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-3 sm:gap-y-1";
+
+/**
+ * ★ THE QUEUE PICTURES FIRST (lab-sitting, 2026-10-01; `lab-focus`'s board
+ * idea). A row that can be drawn leads with its step's stage as the step would
+ * land on it (`DeskThumb`, `StepThumb`), beside its words at a desk and above
+ * them at a phone, so a sitting's pictures are seen before any question is
+ * opened. The row is one link still: the picture takes no pointer, and the
+ * link's own box is stretched over the row (design.css, `.lab-queue-link`).
+ */
+const ROW_BOX =
+  "lab-queue-row relative flex flex-col gap-2.5 px-4 py-3 transition-colors duration-150 hover:bg-muted/40 sm:flex-row sm:items-center sm:gap-4";
+
+/** Whether a step's stage can be drawn: an ask whose options draw (step.tsx's `drawable`). */
+const pictured = (s: SessionStep) =>
+  s.kind === "ask" &&
+  !s.winner &&
+  Boolean(s.section) &&
+  s.options.some((o) => o.state || s.control);
 
 /**
  * ★ THE DESK'S ROWS ARE THE WALK'S STEPS (the stepped review, 2026-09-16). The
@@ -135,6 +156,12 @@ export default async function DeskPage({
   const build = buildStamp()?.sha ?? null;
   // A staged step is listed (dim) but not counted: it is not a question yet.
   const waiting = steps.filter((s) => !s.after || s.afterAnswered).length;
+  // Each board's steps, for its rows' pictures to wear its other answers:
+  // built once and handed to every row of the board as the same array of the
+  // same steps "Start the review" carries, so the page sends them once.
+  const pictures = new Map<string, SessionStep[]>();
+  for (const s of steps)
+    pictures.set(s.board, [...(pictures.get(s.board) ?? []), s]);
 
   // The dry run: one fixture board, walked the same way, so the session can be
   // judged before a standing board carries a spec. It carries a catalog too,
@@ -256,6 +283,7 @@ export default async function DeskPage({
         {steps.length > 0 ? (
           <ol
             data-dir-stagger
+            data-lab-queue
             className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card"
           >
             {steps.map((step, i) => {
@@ -263,13 +291,31 @@ export default async function DeskPage({
               // list so the reviewer can see the round has more in it, and out
               // of the way so it is not a question he thinks he owes an answer.
               const staged = Boolean(step.after) && !step.afterAnswered;
+              // Its picture, when the step is a question it can draw now.
+              const Board = BOARD_COMPONENTS[step.board];
+              const thumb =
+                !staged && pictured(step) && Board ? (
+                  <DeskThumb
+                    board={step.board}
+                    title={step.boardTitle}
+                    steps={pictures.get(step.board) ?? []}
+                    param={stepParam(step)}
+                    marketing={specOf(step.board)?.surface === "marketing"}
+                  >
+                    <Board />
+                  </DeskThumb>
+                ) : null;
               return (
                 <li
                   key={stepParam(step)}
                   style={{ "--i": i } as React.CSSProperties}
-                  className={staged ? "opacity-55" : undefined}
+                  className={cn(ROW_BOX, staged && "opacity-55")}
                 >
-                  <LabLink href={stepHref(step)} className={ROW}>
+                  {thumb}
+                  <LabLink
+                    href={stepHref(step)}
+                    className={cn(ROW, "lab-queue-link")}
+                  >
                     <span className="text-xs text-muted-foreground">
                       {step.boardTitle}
                     </span>
@@ -547,17 +593,16 @@ function BoardCard({
             .map((a) => (
               <li key={a.ask.id}>
                 <LabLink
-                  // An answered ask, or one marked unclear, is not in the walk:
-                  // it opens the board rather than a step that is not there.
-                  href={
-                    a.answer
-                      ? `/design/lab/${row.id}`
-                      : askHref(row.id, a.ask.id)
-                  }
+                  // An answered ask, or one marked unclear, is not in the walk,
+                  // and its link still opens its step: on record, out of the
+                  // walk, its answer shown (the board route's `reach`).
+                  href={askHref(row.id, a.ask.id)}
                   title={
                     a.answer && a.answer.choice === null
                       ? `Not clear to you: ${a.answer.note ?? ""}`
-                      : undefined
+                      : a.answer
+                        ? "On record. Opens the step, out of the walk."
+                        : undefined
                   }
                   className={
                     a.answer?.choice

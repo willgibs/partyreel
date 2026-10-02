@@ -352,16 +352,16 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
   {
     id: "route-skeleton",
     file: "src/components/shared/route-skeleton.tsx",
-    for: "the one loading.tsx shape, wired to exactly the three routes with a real pre-paint wait (the dashboard, the event hub, the reel Studio); the pulse and the hub mirror their real page, the Studio is its own always-dark full-bleed room",
+    for: "the one loading.tsx primitive, a shape per route with a real pre-paint wait (the dashboard, the event hub, Account and the welcome), each mirroring the page it precedes on the page's own column",
     test: "src/components/shared/route-skeleton.test.tsx",
     badge: "new",
     family: "patterns",
     section: "Surfaces",
-    lede: "One loading.tsx shape, wired to exactly the three routes with a real pre-paint wait: the dashboard and the event hub mirror the page they precede byte for byte, and the Studio's skeleton is its own real shape rather than a rough sketch.",
+    lede: "One loading.tsx primitive, wired to exactly the routes with a real pre-paint wait: the dashboard and the event hub mirror the page they precede, Account its heading and first three cards on the real Card, and the welcome the name step a first visit opens on. Each holds the app bar's trail through its wait.",
     specimens: [
       {
-        label: "The three shapes",
-        hint: "pulse and hub inline; the Studio is the real fixed room",
+        label: "The four shapes",
+        hint: "pulse, hub, Account and the welcome, inline",
         node: <RouteSkeletonDemo />,
       },
     ],

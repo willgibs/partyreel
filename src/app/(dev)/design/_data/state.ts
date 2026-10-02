@@ -153,16 +153,6 @@ export function withLabParam(
   return next;
 }
 
-/** The absolute URL of the current view, for CopyLink and a pasted handoff. */
-export function labUrl(
-  origin: string,
-  pathname: string,
-  state: LabState,
-  hash = "",
-): string {
-  return `${origin}${pathname}${labSearchString(state)}${hash}`;
-}
-
 // ── The keyboard contract ────────────────────────────────────────────────────
 
 /**

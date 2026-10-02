@@ -1,12 +1,15 @@
 /**
- * ★ PARTYREEL.COM'S REQUESTS STILL GET MILESTONE 29'S ANSWERS.
+ * ★ EVERY APP'S REQUESTS STILL GET THE ANSWERS ITS WORKER GAVE.
  *
- * This Worker is one deployment that two apps post to: launch-prep's, and partyreel.com's (the
- * milestone-29 app, whose export code is `git show milestone-29:src/lib/export/export-service.ts` and
- * `.../use-export-download.ts`). The Orchestrator deploys it once, so nothing that app sends may get
- * a different answer. These tests replay that app's requests, byte for byte, at the Worker milestone
- * 29 shipped (vendored verbatim in `./milestone-29/`) and at today's, and hold every answer equal:
- * status, every header, and the zip's own bytes.
+ * This Worker is one deployment that every app posts to: launch-prep's alias and partyreel.com, whatever
+ * milestone each runs. The Orchestrator deploys it once, so nothing an older app sends may get a
+ * different answer. These tests replay those apps' requests, byte for byte, at the Worker each was built
+ * against and at today's, and hold every answer equal: status, every header, the body's own bytes, and
+ * every object read. Milestone 29's app (`git show milestone-29:src/lib/export/export-service.ts` and
+ * `.../use-export-download.ts`) against the Worker it shipped (vendored verbatim in `./milestone-29/`);
+ * milestones 30 to 32's apps, which add the check (`export-walk.ts`), against the Worker they shipped
+ * with (`./milestone-31/`). What `export-ends` adds is asked for by the token alone (a report address),
+ * which no older app signs: their answers never move, and today's app's tokens still stream at both.
  *
  * The token is not re-derived here: `M29_TOKEN` is the string milestone 29's signer produced
  * (node:crypto HMAC-SHA256 hex over base64url(JSON), the payload in export-service.ts's key order),
@@ -17,7 +20,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import today from "./index";
 import m29 from "./milestone-29/index";
+import m31 from "./milestone-31/index";
 import { createFakeBucket, type FakeBucket } from "./testing/fake-bucket";
+import { payloadOf, signToken } from "./testing/sign";
 
 const SECRET = "m29-replay-secret-not-a-real-one";
 const E = "0c1d2e3f-4a5b-4c6d-8e7f-9a0b1c2d3e4f";
@@ -34,7 +39,9 @@ const NOW = 1_899_999_000_000;
 /** The deployed Worker's address, as the app's EXPORT_WORKER_URL names it (the form's action). */
 const WORKER_URL = "https://partyreel-export.example.workers.dev";
 
-type Worker = { fetch(request: Request, env: never): Promise<Response> };
+type Worker = {
+  fetch(request: Request, env: never, ctx?: never): Promise<Response>;
+};
 type Env = {
   PRIMARY: FakeBucket;
   EXPORT_SIGNING_SECRET: string;
@@ -62,24 +69,38 @@ async function answer(worker: Worker, request: Request, env: Env) {
   };
 }
 
-/** The same request, sent fresh to each Worker over its own copy of the bucket. */
+/**
+ * The same request, sent fresh to each Worker over its own copy of the bucket. Today's gets a live
+ * execution context too, as the runtime hands it one, so an answer that reached for a report would
+ * show here: none may (`reported` stays empty).
+ */
 async function bothAnswer(
   make: () => Request,
   objects: Record<string, string>,
   env: Partial<Env> = {},
+  old: Worker = m29 as Worker,
 ) {
   const oldBucket = createFakeBucket(objects);
   const newBucket = createFakeBucket(objects);
   const base = { EXPORT_SIGNING_SECRET: SECRET, ...env };
-  const before = await answer(m29 as Worker, make(), {
+  const before = await answer(old, make(), {
     ...base,
     PRIMARY: oldBucket,
   });
-  const after = await answer(today as Worker, make(), {
-    ...base,
-    PRIMARY: newBucket,
-  });
-  return { before, after, oldBucket, newBucket };
+  const waiting: Promise<unknown>[] = [];
+  const ctx = { waitUntil: (p: Promise<unknown>) => void waiting.push(p) };
+  const res = await (today as Worker).fetch(
+    make(),
+    { ...base, PRIMARY: newBucket } as never,
+    ctx as never,
+  );
+  const after = {
+    status: res.status,
+    headers: [...res.headers.entries()].sort(),
+    body: new Uint8Array(await res.arrayBuffer()),
+  };
+  await Promise.all(waiting);
+  return { before, after, oldBucket, newBucket, reported: waiting };
 }
 
 const ALL = {
@@ -88,11 +109,24 @@ const ALL = {
   [KEYS[2]]: "a clip",
 };
 
+/** Every request today's Worker makes of the world: none, for an older app's token. */
+let outbound: string[] = [];
+
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ["Date"], now: NOW });
+  outbound = [];
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string) => {
+      outbound.push(String(url));
+      return new Response(null, { status: 204 });
+    }),
+  );
 });
 afterEach(() => {
   vi.useRealTimers();
+  vi.unstubAllGlobals();
+  expect(outbound).toEqual([]);
 });
 
 describe("milestone 29's app, replayed at both Workers", () => {
@@ -215,6 +249,9 @@ describe("the deployment itself", () => {
     expect(Object.keys(await import("./milestone-29/index"))).toEqual([
       "default",
     ]);
+    expect(Object.keys(await import("./milestone-31/index"))).toEqual([
+      "default",
+    ]);
   });
 });
 
@@ -244,5 +281,148 @@ describe("today's app, reaching a Worker from before the check", () => {
       EXPORT_SIGNING_SECRET: SECRET,
     } as never);
     expect(res.status).toBe(200);
+  });
+});
+
+/** Milestones 30 to 32's check, as `export-walk.ts` sends it: the token as the whole text/plain body. */
+const walkCheck =
+  (token: string, init: RequestInit = {}) =>
+  () =>
+    new Request(`${WORKER_URL}/check`, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=UTF-8" },
+      body: token,
+      ...init,
+    });
+
+describe("milestones 30 to 32's app, replayed at both Workers", () => {
+  const old = m31 as Worker;
+
+  it("a whole album, a short one and an emptied one: the same zips, byte for byte", async () => {
+    for (const objects of [ALL, { [KEYS[0]]: "a photograph" }, {}]) {
+      const { before, after, oldBucket, newBucket, reported } =
+        await bothAnswer(m29FormPost(M29_TOKEN), objects, {}, old);
+      expect(before.status).toBe(200);
+      expect(after).toEqual(before);
+      expect(newBucket.calls).toEqual(oldBucket.calls);
+      expect(reported).toEqual([]);
+    }
+  });
+
+  it("the check of a whole album, a short one and an emptied one: the same counts, no word of reports", async () => {
+    for (const objects of [ALL, { [KEYS[2]]: "a clip" }, {}]) {
+      const { before, after, oldBucket, newBucket, reported } =
+        await bothAnswer(walkCheck(M29_TOKEN), objects, {}, old);
+      expect(before.status).toBe(200);
+      expect(after).toEqual(before);
+      expect(new TextDecoder().decode(after.body)).not.toContain("reports");
+      expect(newBucket.calls).toEqual(oldBucket.calls);
+      expect(reported).toEqual([]);
+    }
+  });
+
+  it.each([
+    [
+      "a preflight",
+      () =>
+        new Request(`${WORKER_URL}/check`, {
+          method: "OPTIONS",
+          headers: { "Access-Control-Request-Method": "POST" },
+        }),
+      204,
+    ],
+    ["a GET", () => new Request(`${WORKER_URL}/check`), 405],
+    [
+      "a forged token",
+      walkCheck(M29_TOKEN.slice(0, -1) + (M29_TOKEN.endsWith("9") ? "8" : "9")),
+      403,
+    ],
+    ["an empty body", walkCheck(""), 403],
+    [
+      "an expired token",
+      () => {
+        vi.setSystemTime(1_900_000_000_001);
+        return walkCheck(M29_TOKEN)();
+      },
+      403,
+    ],
+  ])("%s at the check: the same answer", async (_, make, status) => {
+    const { before, after, newBucket } = await bothAnswer(make, ALL, {}, old);
+    expect(before.status).toBe(status);
+    expect(after).toEqual(before);
+    expect(newBucket.calls).toEqual([]);
+  });
+
+  it("a paused Worker's check and stream: the same 503s", async () => {
+    for (const make of [walkCheck(M29_TOKEN), m29FormPost(M29_TOKEN)]) {
+      const { before, after } = await bothAnswer(
+        make,
+        ALL,
+        { EXPORT_MODE: "off" },
+        old,
+      );
+      expect(before.status).toBe(503);
+      expect(after).toEqual(before);
+    }
+  });
+
+  it("a check whose bucket is down: the same 502", async () => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const failing = () => {
+      const bucket = createFakeBucket(ALL);
+      bucket.failing = true;
+      return bucket;
+    };
+    const base = { EXPORT_SIGNING_SECRET: SECRET };
+    const before = await answer(old, walkCheck(M29_TOKEN)(), {
+      ...base,
+      PRIMARY: failing(),
+    });
+    const after = await answer(today as Worker, walkCheck(M29_TOKEN)(), {
+      ...base,
+      PRIMARY: failing(),
+    });
+    expect(before.status).toBe(502);
+    expect(after).toEqual(before);
+    error.mockRestore();
+  });
+});
+
+describe("today's app, reaching an older Worker (the deploy may come after the app)", () => {
+  /** Today's signer, asking for reports: the payload grows one field, the token stays v1. */
+  const asking = () =>
+    signToken(SECRET, {
+      ...payloadOf(M29_TOKEN),
+      report: "https://app.example/api/export/report",
+    });
+
+  it("its token still streams at milestone 29's and 31's Workers, the same zip as before", async () => {
+    for (const old of [m29, m31] as Worker[]) {
+      const res = await old.fetch(m29FormPost(await asking())(), {
+        PRIMARY: createFakeBucket(ALL),
+        EXPORT_SIGNING_SECRET: SECRET,
+      } as never);
+      expect(res.status).toBe(200);
+      const plain = await old.fetch(m29FormPost(M29_TOKEN)(), {
+        PRIMARY: createFakeBucket(ALL),
+        EXPORT_SIGNING_SECRET: SECRET,
+      } as never);
+      expect(new Uint8Array(await res.arrayBuffer())).toEqual(
+        new Uint8Array(await plain.arrayBuffer()),
+      );
+    }
+  });
+
+  it("milestone 31's check never promises reports, so the walk never waits for one", async () => {
+    const res = await (m31 as Worker).fetch(walkCheck(await asking())(), {
+      PRIMARY: createFakeBucket(ALL),
+      EXPORT_SIGNING_SECRET: SECRET,
+    } as never);
+    expect(await res.json()).toEqual({
+      ok: true,
+      items: 3,
+      found: 3,
+      missing: [],
+    });
   });
 });

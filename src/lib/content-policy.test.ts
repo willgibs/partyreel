@@ -84,30 +84,32 @@ function collectSource(dir: string): string[] {
   return out;
 }
 
-// Copy single-sources the fence applies to beyond MDX (careers JD, the golden
-// voice lines, the FAQ answers - the FAQ also feeds FAQPage JSON-LD verbatim).
+// THE CONSTANTS THE CLAIMS FENCE READS PAST, each with its reason. Every other
+// source under src/lib/constants/ is scanned, so a copy constant is fenced the
+// day it lands rather than the day someone remembers to list it: the list this
+// replaced was opt-in, and the events pages' copy (`events.ts`: every type's
+// statement, help lines and FAQ answers) sat outside it for as long as it existed.
+const CLAIM_EXEMPT_CONSTANTS: Record<string, string> = {
+  // The pricing single source DEFINES the ingress backstop: its comments name
+  // the bound and derive its numbers, which is exactly what the fence keeps out
+  // of the copy every other constant feeds.
+  "src/lib/constants/tiers.ts": "defines the ingress backstop",
+};
+
+// The copy the claims fence reads beyond MDX: every constant (above) and the two
+// copy sources that live outside src/lib/constants, the FAQ answers (which also
+// feed FAQPage JSON-LD verbatim) and the llms.txt builders (which carry marketing
+// claims straight to model training and retrieval). The constants hold the legal
+// documents too, where a stray cap number or a child-safety acronym would read as
+// a binding claim, and the footer's assistant row, which ships its question to
+// third-party assistants.
 const CLAIM_FILES = [
-  "src/lib/constants/careers.ts",
-  "src/lib/constants/marketing-voice.ts",
-  "src/components/marketing/faq-data.ts",
-  // The AI-crawler surfaces (2026-08-28): the llms.txt builders and the shared
-  // press boilerplate carry marketing claims straight to model training and
-  // retrieval, so the fence covers them like any other claim source.
-  "src/lib/content/llms.ts",
-  "src/lib/constants/press.ts",
-  // The footer's assistant row: its question ships to third-party assistants
-  // and is user-facing copy on every page, so it answers to the same fence.
-  "src/lib/constants/ask-ai.ts",
-  // /about's copy single-source. The claims fence runs over MDX + this list, so
-  // before the copy moved here the About PAGE was reachable only by the weaker
-  // neutralization fence: social proof written inline on it was caught by
-  // nothing at all.
-  "src/lib/constants/about.ts",
-  // The legal documents (2026-09-01): a contract is the one place a stray
-  // cap number or a child-safety acronym would be read as a binding claim.
-  "src/lib/constants/legal-privacy.tsx",
-  "src/lib/constants/legal-terms.tsx",
-].map((f) => join(ROOT, f));
+  ...collectSource(join(ROOT, "src/lib/constants")).filter(
+    (file) => !(relative(ROOT, file) in CLAIM_EXEMPT_CONSTANTS),
+  ),
+  join(ROOT, "src/components/marketing/faq-data.ts"),
+  join(ROOT, "src/lib/content/llms.ts"),
+];
 
 function scanLines(
   files: string[],
@@ -174,6 +176,28 @@ describe("content policy", () => {
       found,
       `Fenced marketing claims found (the T2.5 "must not claim" fence):\n${found.join("\n")}`,
     ).toEqual([]);
+  });
+
+  it("reads every constant's claims but the ones it names, the events pages' copy included", () => {
+    const scanned = new Set(CLAIM_FILES.map((file) => relative(ROOT, file)));
+    // The gap this walk closed: the events pages' copy single-source.
+    expect(scanned).toContain("src/lib/constants/events.ts");
+    for (const file of collectSource(join(ROOT, "src/lib/constants"))) {
+      const rel = relative(ROOT, file);
+      expect(
+        scanned.has(rel) || rel in CLAIM_EXEMPT_CONSTANTS,
+        `${rel} is neither scanned nor exempt with a reason`,
+      ).toBe(true);
+    }
+    // An exemption is a reason about a real file: one whose file is gone is stale.
+    for (const rel of Object.keys(CLAIM_EXEMPT_CONSTANTS)) {
+      expect(
+        collectSource(join(ROOT, "src/lib/constants")).map((f) =>
+          relative(ROOT, f),
+        ),
+        `${rel} is exempt from the claims fence but no longer exists`,
+      ).toContain(rel);
+    }
   });
 
   it("promises no human response, no human moderation, and no automation absolutes", () => {

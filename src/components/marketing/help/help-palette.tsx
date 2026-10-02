@@ -14,6 +14,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import { Dialog as DialogPrimitive } from "radix-ui";
+import { usePortalContainer } from "@/components/ui/portal-container";
 
 import { portalSkinProps } from "@/components/marketing/chrome/portal-skin";
 import {
@@ -345,7 +346,7 @@ export function HelpPaletteProvider({
     <PaletteContext.Provider value={{ open: openPalette, heroRef }}>
       {children}
       <DialogPrimitive.Root open={isOpen} onOpenChange={handleOpenChange}>
-        <DialogPrimitive.Portal>
+        <DialogPrimitive.Portal container={usePortalContainer()}>
           <DialogPrimitive.Overlay
             data-mkt=""
             className={cn(

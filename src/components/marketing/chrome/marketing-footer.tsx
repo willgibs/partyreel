@@ -1,5 +1,4 @@
 import { Search } from "lucide-react";
-import Link from "next/link";
 
 import { HelpSearchLink } from "@/components/marketing/help/help-search-link";
 import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
@@ -23,6 +22,7 @@ import { SITE_THESIS } from "@/lib/constants/marketing-voice";
 import { DEMO_EVENT_URL } from "@/lib/demo";
 import { cn } from "@/lib/utils";
 
+import { ChromeLink as Link } from "./chrome-link";
 import { FooterDemo } from "./footer-demo";
 import { FooterFaqLink } from "./footer-faq-link";
 import { FooterGlow } from "./footer-glow";

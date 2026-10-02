@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRef, useState } from "react";
 import { ChevronDown, Menu, Search, X } from "lucide-react";
@@ -15,6 +14,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { trackAttrs } from "@/lib/analytics/events";
 import {
   isNavGroup,
   isNavItemCurrent,
@@ -24,6 +24,7 @@ import {
 } from "@/lib/constants/marketing-nav";
 import { cn } from "@/lib/utils";
 
+import { ChromeLink as Link } from "./chrome-link";
 import { portalSkinProps, type MarketingSkin } from "./portal-skin";
 import { useSignedInHint } from "./session-hint";
 
@@ -154,23 +155,50 @@ export function MarketingNavMobile({
           ))}
         </nav>
 
+        {/* The phone's right cluster, so it counts as the bar's does (`session-hint.tsx`), under a
+            location of its own: on a phone the bar shows Start free alone, and the menu's foot is
+            where Log in and the returning host's Dashboard are pressed. */}
         <div className="flex shrink-0 flex-col gap-2 border-t p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
           {signedIn ? (
             <SheetClose asChild>
               <Button asChild size="lg">
-                <Link href="/dashboard">Dashboard</Link>
+                <Link
+                  href="/dashboard"
+                  {...trackAttrs("cta_click", {
+                    cta: "dashboard",
+                    location: MENU_LOCATION,
+                  })}
+                >
+                  Dashboard
+                </Link>
               </Button>
             </SheetClose>
           ) : (
             <>
               <SheetClose asChild>
                 <Button asChild variant="outline" size="lg">
-                  <Link href="/login">Log in</Link>
+                  <Link
+                    href="/login"
+                    {...trackAttrs("cta_click", {
+                      cta: "log-in",
+                      location: MENU_LOCATION,
+                    })}
+                  >
+                    Log in
+                  </Link>
                 </Button>
               </SheetClose>
               <SheetClose asChild>
                 <Button asChild size="lg">
-                  <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
+                  <Link
+                    href={MARKETING_CTA.href}
+                    {...trackAttrs("cta_click", {
+                      cta: "start-free",
+                      location: MENU_LOCATION,
+                    })}
+                  >
+                    {MARKETING_CTA.label}
+                  </Link>
                 </Button>
               </SheetClose>
             </>
@@ -292,6 +320,10 @@ function MobileGroup({
     </div>
   );
 }
+
+/** Where the analytics taxonomy says the menu's foot is (`lib/analytics/events.ts`): beside the bar's
+ *  `header`, so the two clusters read apart on the dashboard. */
+const MENU_LOCATION = "phone-menu";
 
 // SheetClose closes the menu on tap; active:scale gives the emil press feedback.
 // min-h-11 keeps every row at the 44px touch target even at the muted size.

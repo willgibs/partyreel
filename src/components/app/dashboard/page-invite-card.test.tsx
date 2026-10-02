@@ -22,8 +22,18 @@ describe("the page setup's invitation", () => {
   it("opens the setup", () => {
     render(<PageInviteCard />);
     expect(
-      screen.getByRole("link", { name: "Set up your page" }),
+      screen.getByRole("link", { name: "Choose what shows" }),
     ).toHaveAttribute("href", "/account/profile");
+  });
+
+  // crumbs-44 (from `profile-setup`): the button repeated the card's title, so it said what twice and
+  // why never. It carries the reason now, and the title stays the card's alone.
+  it("says the setup once: the button carries its reason, never the title again", () => {
+    render(<PageInviteCard />);
+    expect(screen.getAllByText("Set up your page")).toHaveLength(1);
+    expect(
+      screen.queryByRole("link", { name: "Set up your page" }),
+    ).not.toBeInTheDocument();
   });
 
   it("Not now leaves at once and is remembered", async () => {
@@ -38,7 +48,7 @@ describe("the page setup's invitation", () => {
     vi.mocked(dismissPageInviteAction).mockResolvedValue({ ok: false });
     render(<PageInviteCard />);
     fireEvent.click(screen.getByRole("button", { name: "Not now" }));
-    await screen.findByRole("link", { name: "Set up your page" });
+    await screen.findByRole("link", { name: "Choose what shows" });
     expect(toast.error).toHaveBeenCalled();
   });
 });

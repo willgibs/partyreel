@@ -25,8 +25,10 @@ the colour and only state and actions are coloured.
   as the footer) and the mat `.surface-mat` (declared, worn nowhere yet). `--gallery*` is the media well, always dark in
   both themes.
 - **Three text steps**: `--foreground`, `--muted-foreground` and `--faint`, each one grey on every ground where a
-  hand-set alpha composites against whatever is behind it. `--faint` reads about 3.2:1 on the page: captions and hints
-  only, never body copy, a control's only label, or under a further alpha.
+  hand-set alpha composites against whatever is behind it. `--faint` reads about 3.2:1 on the page (2.9:1 on the mat,
+  4.5:1 in the room, 3.75:1 on a dark card): captions and hints only, never body copy, a control's only label, or under
+  a further alpha. A sentence in it moves up to `--muted-foreground` (`faint-copy-policy.test.tsx` reads /pricing and
+  the album page's strip for one).
 - **The brand is the wordmark alone**: `src/lib/brand/wordmark.ts` holds the export's single SVG path, `Logo` inlines it
   in `currentColor` sized by height, the social card draws the same path, and every door mounts `<Logo />`. ★ Never
   retype or optimise the path: replace the whole string from the next export. The mark (`markOnly`) is a stand-in
@@ -521,6 +523,10 @@ Glass exploration answers its material.
   iOS reports it only once risen. An `overflow: hidden` ancestor defeats the sticky foot (use `overflow: clip`), and a
   fixed-height flex child inside the sheet needs `shrink-0` or it clips instead of scrolling. `overlayClassName`
   carries a door's own scrim.
+- ★ **Every layer portals into the container its page provides** (`ui/portal-container.tsx`: every radix `.Portal`
+  names `usePortalContainer()`, and `portal-container.test.ts` refuses one that does not). Nothing in the product
+  provides one, so a layer lands on `document.body`, radix's own default; the lab's `Frame` provides its own body, so
+  a production page drawn in a frame opens its popup, menus and tooltips inside the page, never over the lab.
 - ★ **An unportalled submenu can open with a real box and paint nothing.** `SubContent` sits in a `Portal`: inside the
   scrolling, transform-animated `Content`, the transformed ancestor becomes the containing block for fixed
   descendants, so a submenu opened by a click mid-close paints nothing, while hover on a settled parent works. Two
@@ -611,6 +617,16 @@ board, its own sheet and scenes), found by the registry and the board route and 
   the wrong layout: board markup keys off the `mode` prop, and phone chrome is judged in an iframe at 375.
 - **`design.css` declares no keyframes**: keyframe names are document-global, and a lab one would shadow production's
   on every `/design` visit.
+- ★ **A lab rule's `:has()` styles only its own element.** Production's `group-has-*` utilities are on every lab page,
+  and with them a `:has()` in an earlier compound (`.a:has(b) .c`) makes Chrome restyle `.a`'s whole subtree on any
+  insertion or text change beneath it: the shell's table-of-contents rule turned one appended tile into 6,364 of a
+  padded board's 6,722 elements restyled, and 5 without it (Chrome 154, UpdateLayoutTree counts on fresh loads). A
+  `:has()` in a rule's subject re-matches that element alone and hands its children the answer as an inherited custom
+  property, which costs nothing until it changes (`--lab-wide-toc`); `design-css.test.ts` holds the sheet to it.
+- **A portalled `Frame` is its own world**: a link or a form pressed in it goes nowhere, a layer opens inside it (the
+  floating-layer contract's container), and it follows the lab's theme class while open. A `loading="lazy"` image in
+  it loads once it is in the frame's own view; one below the frame's own fold waits for that frame's scroll, as on
+  any page.
 
 ## Gotchas / don't-revert
 

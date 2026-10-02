@@ -23,7 +23,19 @@
   // The app ALSO checks the `export_enabled` DB flag at mint, so an operator can pause without a redeploy.
   // EXPORT_SIGNING_SECRET is a SECRET — set it with `wrangler secret put EXPORT_SIGNING_SECRET` (must equal
   // the app's EXPORT_SIGNING_SECRET). For local `wrangler dev`, put it in `.dev.vars` (gitignored).
-  "vars": { "EXPORT_MODE": "on" },
+  // HEARTBEAT_URLS: where the daily heartbeat goes (src/heartbeat.ts), space-separated, tried in order; every
+  // app writes the one shared database, so the first that takes it is enough. partyreel.com first; the
+  // launch-prep alias behind it until partyreel.com's app has the report path (the milestone after
+  // `export-ends`), when the alias may go.
+  "vars": {
+    "EXPORT_MODE": "on",
+    "HEARTBEAT_URLS": "https://partyreel.com/api/export/report https://partyreel-git-launch-prep-partyreel.vercel.app/api/export/report",
+  },
+
+  // The daily heartbeat (src/heartbeat.ts): reads the bucket and signs a ping the app verifies, recorded as
+  // the `export` job on /admin/jobs and /admin/exports. 05:30 UTC, between the backup Worker's 05:00 and
+  // the DB backup's 06:00. A cron answers no request, so no app's answers move.
+  "triggers": { "crons": ["30 5 * * *"] },
 
   // Store-only zip CPU is CRC32 over the bytes (I/O wait is NOT billed). Raise the CPU ceiling to the
   // 5-min max for headroom on large albums; the app caps each zip (<=2000 items / ~20 GB, a bigger

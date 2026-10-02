@@ -8,8 +8,6 @@ import {
   setProfileBio,
   setProfileSlug,
   showEventOnProfile,
-  unblockUser,
-  unfollowUser,
 } from "@/lib/db/mutations/social";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -154,21 +152,5 @@ export async function hideEventFromProfileAction(
     revalidatePath("/account");
     revalidatePath("/u/[slug]", "page");
   }
-  return fromMutation(result);
-}
-
-export async function unfollowAction(
-  profileId: string,
-): Promise<SocialActionResult> {
-  const result = await unfollowUser(profileId);
-  if (result.ok) revalidatePath("/account");
-  return fromMutation(result);
-}
-
-export async function unblockAction(
-  profileId: string,
-): Promise<SocialActionResult> {
-  const result = await unblockUser(profileId);
-  if (result.ok) revalidatePath("/account");
   return fromMutation(result);
 }

@@ -34,8 +34,9 @@
  * that: real Chrome over its DevTools protocol, Node's built-in WebSocket, no new
  * dependency, reduced motion emulated so a still stage compares as still.
  *
- * WHAT IT JUDGES. The steps are the desk's own "waiting" links (`?session=`), so
- * an answered step is never pressed. A step passes when at least one pair of its
+ * WHAT IT JUDGES. The steps are the desk's own "waiting" links (`?session=`),
+ * read off the desk's HTML (its queue alone), so an answered step is never
+ * pressed unless `--only` names it. A step passes when at least one pair of its
  * pictured options draws stages that differ by more than `--threshold` percent
  * of the stage's pixels (default 0.1: the frozen corner this was written for
  * moved 0.06 percent, its real menu's corners alone, and the fix moves it 0.9 to
@@ -69,6 +70,9 @@
  *    window he could not scroll;
  *  - UNLABELLED: the stage head does not name the option it is showing, which
  *    is "labels on which height is which";
+ *  - TABS: at a phone, the options' row runs past its edge, so an option is
+ *    off the screen while he chooses (every option fits as its number, the
+ *    shown one with its name; lab-sitting, 2026-10-01);
  *  - NO DOCK: the dock is off screen at the top of the page or at its foot.
  * Every row says where each screen's stage starts and how far above the dock
  * its frames end.
@@ -775,6 +779,11 @@ const PAGE_LIB = `
         kind: document.querySelector('main .lab-word-options') ? 'words' : 'cards',
       };
     },
+    /** How far the options' row runs past its own edge, in pixels (0 when every tab shows). */
+    tabsOver() {
+      const row = document.querySelector('main [data-lab-tabs]');
+      return row ? Math.max(0, Math.round(row.scrollWidth - row.clientWidth)) : 0;
+    },
     /** What the stage head says it is showing. */
     label() {
       return (document.querySelector('main [data-lab-stage-head] [data-lab-stage-label]')?.textContent || '').trim();
@@ -1076,17 +1085,31 @@ try {
     maxResourceBufferSize: 100_000,
   });
 
-  // The open steps, from the desk itself.
-  await go(ws, withKey("/design/lab"), {
-    metrics: PICTURES,
-    media: MEDIA_STILL,
-  });
-  const steps = await evaluate(
-    ws,
-    `[...new Set([...document.querySelectorAll('a[href*="session="]')]
-        .map((a) => new URL(a.href).searchParams.get('session')))]
-        .filter((s) => s && s.includes('.') && !s.endsWith('.items'))`,
-  );
+  // ★ THE OPEN STEPS, FROM THE DESK'S OWN QUEUE, READ OFF THE PAGE THE SERVER
+  // SENDS (lab-sitting, 2026-10-01). The desk now draws every open step's stage
+  // in its queue, and a page loaded here only to read its links would start
+  // those frames' requests and cancel them a second later, which is how the
+  // dev server's image optimizer is left holding a pending result for ever
+  // (the stall below). The server renders the queue's links and no picture, so
+  // the HTML says everything this needs. Only the queue's rows: the board
+  // cards below it link an ANSWERED ask's step too (it opens on record), and
+  // an answered step is never pressed.
+  const desk = await fetch(withKey("/design/lab"));
+  if (!desk.ok) {
+    console.error(`lab:demo could not read the desk: ${desk.status}`);
+    process.exit(2);
+  }
+  const html = await desk.text();
+  const queueAt = html.indexOf("data-lab-queue");
+  const queue =
+    queueAt < 0 ? "" : html.slice(queueAt, html.indexOf("</ol>", queueAt));
+  const steps = [
+    ...new Set(
+      [...queue.matchAll(/href="([^"]*session=[^"]*)"/g)].map((m) =>
+        new URL(m[1].replace(/&amp;/g, "&"), base).searchParams.get("session"),
+      ),
+    ),
+  ].filter((s) => s && s.includes(".") && !s.endsWith(".items"));
   // `--only` may name a step the desk no longer lists (an answered one), so a
   // layout can be measured on any step the board still declares.
   const wanted = onlyStep
@@ -1187,6 +1210,15 @@ try {
             layout.push(
               `UNLABELLED at ${at}: showing "${want}", the head says "${said}"`,
             );
+          // ★ EVERY OPTION IN A PHONE'S ROW (lab-sitting, 2026-10-01): a tab
+          // past the row's edge is an option he cannot see while he chooses.
+          if (screen.mobile) {
+            const over = await evaluate(ws, "window.__labDemo.tabsOver()");
+            if (over > 0)
+              layout.push(
+                `TABS at ${at}: showing "${want}", the options' row runs ${over}px past its edge, so an option is off the screen`,
+              );
+          }
           const cut = await evaluate(
             ws,
             `window.__labDemo.clipped(${JSON.stringify(id)})`,

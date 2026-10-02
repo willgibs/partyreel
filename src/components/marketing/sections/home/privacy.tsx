@@ -26,14 +26,16 @@ import { SECTION_HEADERS } from "@/lib/constants/marketing-voice";
 
 const CLAIMS: { title: string; body: string }[] = [
   {
-    // ★ THE RULED SHORT FORM (Will, 2026-09-02). The clause "for the common
-    // formats" rides EVERY shortened version of this claim: HEIC, HEIF and AVIF
-    // images and WebM video are stored exactly as the device sends them, so the
-    // unconditional sentence this used to carry was not true. The long form,
-    // naming the formats, is the privacy policy's own paragraph (the "metadata"
-    // section of constants/legal-privacy.tsx). Do not drop the clause.
+    // ★ THE SHORT FORM SAYS ONLY WHAT IS TRUE OF EVERY ACCEPTED FORMAT. From
+    // 2026-09-02 it carried "for the common formats", because HEIC, HEIF, AVIF and
+    // WebM were stored exactly as sent; the strip covers every accepted format
+    // since strip-gaps, so the clause left every short form at once (this,
+    // jsonld.tsx, content/llms.ts, the blog's AUTHORING rule 10). A format the
+    // strip cannot rewrite brings a clause back to all of them together. The long
+    // form, with the one exception (a file too damaged to read safely uploads as
+    // it is), is the help article photo-metadata-and-location.
     title: "Location data stays on the phone",
-    body: "Location data is stripped in the browser before a photo ever uploads, for the common formats.",
+    body: "Location data is stripped in the browser before a photo ever uploads.",
   },
   {
     title: "Three ways to share",

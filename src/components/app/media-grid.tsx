@@ -86,6 +86,17 @@ export type GridMedia = {
    */
   createdAt?: string | null;
   uploaderKey?: string | null;
+  /**
+   * A MARKETING STILL'S SIZED VARIANTS (mkt-polish), set ONLY where a marketing page draws its own
+   * same-origin stills through this tile (the album page's stage, `stillVariants`): the image
+   * optimizer's widths as a `srcSet` and the slot they fill as `sizes`, so the browser fetches and
+   * decodes a still at its tile's size rather than its source file's. NEVER set by the product, whose
+   * media is a short-lived presigned R2 URL the optimizer must not touch; a tile without it draws
+   * exactly what it drew before the field existed. `url` stays the still's own path: it is the
+   * fallback, and the object a tile keeps (`sameObject`). Derived from `url`, so the grid's
+   * `sameItem` comparing `url` compares this too.
+   */
+  variants?: { srcSet: string; sizes: string };
 };
 
 // Presentational thumbnail shared by every gallery surface (the shared
@@ -114,7 +125,9 @@ function tileSrc(
  * where it draws none: an item whose link has not landed (`url: ""`, the tile holds its shimmer), and a
  * video with no preview still (its own <video> poster frame, which has no fade to run). The address is
  * the tile's own (`tileSrc`), never a second reading of it: the browser hands a new <img> a photograph it
- * already holds only when the address is the very one it fetched.
+ * already holds only when the address is the very one it fetched. (A marketing still with `variants`
+ * asks for whichever width its `srcSet` picks, so it is decoded ahead through `decodeTileImage` with the
+ * same variants, never through this address.)
  */
 export function tileImageSrc(
   item: Pick<GridMedia, "type" | "url" | "previewUrl">,
@@ -130,13 +143,24 @@ export function tileImageSrc(
  * could not be (a dead link, a file no engine can draw): it never rejects, and the caller decides how
  * long it will wait for it. The returned element is the caller's to HOLD until its tile has mounted: the
  * browser keeps a photograph only while something in the document still refers to it.
+ *
+ * A marketing still hands its `variants` too, and they are set before the address, as the tile's own
+ * <img> sets them: the same `srcSet` and `sizes` in the same document pick the same width, which is the
+ * one the tile will ask for.
  */
-export function decodeTileImage(src: string): {
+export function decodeTileImage(
+  src: string,
+  variants?: GridMedia["variants"],
+): {
   image: HTMLImageElement;
   ready: Promise<boolean>;
 } {
   const image = new Image();
   image.decoding = "async";
+  if (variants) {
+    image.sizes = variants.sizes;
+    image.srcset = variants.srcSet;
+  }
   image.src = src;
   const ready =
     typeof image.decode === "function"
@@ -171,7 +195,7 @@ export function MediaTile({
   playBadge = "center",
   eager = false,
 }: {
-  item: Pick<GridMedia, "type" | "url" | "previewUrl">;
+  item: Pick<GridMedia, "type" | "url" | "previewUrl" | "variants">;
   /** "none" lets a caller (the guest masonry) supply its own corner badge. */
   playBadge?: "center" | "none";
   /**
@@ -290,6 +314,10 @@ export function MediaTile({
   const imgProps = {
     ref: imgRef,
     src,
+    // A marketing still's sized variants (`GridMedia.variants`); absent on every product tile, where
+    // React writes neither attribute and the markup is what it always was.
+    sizes: item.variants?.sizes,
+    srcSet: item.variants?.srcSet,
     loading: eager ? ("eager" as const) : ("lazy" as const),
     fetchPriority: eager ? ("high" as const) : ("auto" as const),
     // Decode off the main thread: a fling mounts dozens of photographs a second.

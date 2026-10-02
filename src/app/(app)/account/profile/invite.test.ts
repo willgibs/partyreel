@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -67,5 +70,24 @@ describe("where the claims toast and the owner's empty page point", () => {
   it("the page's choices on Account, once there is one", () => {
     expect(pageChoicesHref(true)).toBe(PAGE_CHOICES_PATH);
     expect(PAGE_CHOICES_PATH).toBe("/account#public-profile");
+  });
+});
+
+/**
+ * THE HANDLE-LESS DOORS OPEN THE SETUP ITSELF (crumbs-44, from `profile-setup`). The user menu's
+ * "Your profile" and event settings' "Claim your handle to publish the page" pointed at Account's
+ * Public profile card, which before a handle exists is one line and the setup's button: a tap more
+ * on every door. Each names the setup's one address now, never the card's anchor.
+ */
+describe("the doors a handle-less account meets", () => {
+  const read = (rel: string) => readFileSync(join(process.cwd(), rel), "utf8");
+
+  it.each([
+    "src/components/app/user-menu.tsx",
+    "src/components/app/event-settings/event-page.tsx",
+  ])("%s opens the setup, never Account's card", (rel) => {
+    const source = read(rel);
+    expect(source).toMatch(/\bPROFILE_SETUP_PATH\b/);
+    expect(source).not.toContain(`"${PAGE_CHOICES_PATH}"`);
   });
 });

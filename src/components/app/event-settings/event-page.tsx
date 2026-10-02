@@ -7,6 +7,7 @@ import {
   SettingsCard,
   SwitchSetting,
 } from "@/components/app/event-settings/settings-furniture";
+import { PROFILE_SETUP_PATH } from "@/app/(app)/account/profile/invite";
 import { useSettings } from "@/components/app/event-settings/settings-state";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -213,9 +214,11 @@ export function EventPage() {
               {
                 "Lists this event, with its album link, on your public profile page. "
               }
+              {/* The page's own setup, straight (crumbs-44): it opened Account's
+                  Public profile card, whose one button was this same door. */}
               {s.hostHasSlug ? null : (
                 <Link
-                  href="/account#public-profile"
+                  href={PROFILE_SETUP_PATH}
                   className="font-medium text-foreground underline underline-offset-4"
                 >
                   Claim your handle to publish the page

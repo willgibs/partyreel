@@ -33,7 +33,9 @@ import {
   type ExportScope,
   signExportToken,
 } from "@/lib/export/export-token";
+import { reportAddressFor } from "@/lib/export/report";
 import { EMPTY_EXPORT_MESSAGE, WALK_COPY } from "@/lib/export/walk";
+import { recordSignalFailure } from "@/lib/jobs/failure-log";
 import { captureWarning } from "@/lib/observability/sentry";
 import {
   abuseHashes,
@@ -61,6 +63,11 @@ type MintInput = {
   walk?: ExportWalk;
   /** A word the zip's name carries after the event's (`yours`). */
   zipLabel?: string;
+  /**
+   * The minting app's own origin (the route's request), where the Worker is asked to report this export
+   * (`export-ends`): its check, its stream's start and end. Absent, nothing is asked.
+   */
+  appOrigin?: string;
 };
 
 export type MintOutcome =
@@ -75,6 +82,10 @@ export type MintOutcome =
       /** What this zip holds: the count the Worker's check is read against. */
       itemCount: number;
       totalBytes: number;
+      /** The token's nonce: the export's row, and what the walk's status poll asks by. */
+      jti: string;
+      /** The token asks the Worker to report (the walk may then wait for its word). */
+      reports: boolean;
     }
   | {
       ok: false;
@@ -135,7 +146,14 @@ export async function mintExport(input: MintInput): Promise<MintOutcome> {
   let signing: { EXPORT_SIGNING_SECRET: string; EXPORT_WORKER_URL: string };
   try {
     signing = assertExportEnv();
-  } catch {
+  } catch (error) {
+    // Every download refused until someone notices: the delivery signal is how they do (`export-ends`).
+    await recordSignalFailure({
+      job: "export_delivery",
+      area: "export",
+      operation: "mint (the export secret or Worker URL is unset)",
+      error,
+    });
     return { ok: false, reason: "unconfigured" };
   }
 
@@ -216,6 +234,10 @@ export async function mintExport(input: MintInput): Promise<MintOutcome> {
   }
 
   const jti = randomBytes(16).toString("hex");
+  // Where the Worker reports this export, when it can reach this app at all (`report.ts`).
+  const report = input.appOrigin
+    ? reportAddressFor(input.appOrigin, signing.EXPORT_WORKER_URL)
+    : null;
   const token = signExportToken(signing.EXPORT_SIGNING_SECRET, {
     v: EXPORT_TOKEN_VERSION,
     jti,
@@ -224,6 +246,7 @@ export async function mintExport(input: MintInput): Promise<MintOutcome> {
     zipName: manifest.zipName,
     items: manifest.items,
     exp: Date.now() + EXPORT_TOKEN_TTL_MS,
+    ...(report ? { report } : {}),
   });
 
   await recordExport(admin, {
@@ -248,6 +271,8 @@ export async function mintExport(input: MintInput): Promise<MintOutcome> {
     next: manifest.next,
     itemCount: manifest.itemCount,
     totalBytes: manifest.totalBytes,
+    jti,
+    reports: report !== null,
   };
 }
 
@@ -273,6 +298,9 @@ export function mintResponse(result: MintOutcome): NextResponse {
       next: result.next,
       items: result.itemCount,
       bytes: result.totalBytes,
+      // `export-ends`: the nonce the walk's status poll asks by, and whether the Worker will report.
+      jti: result.jti,
+      reports: result.reports,
     });
   }
   switch (result.reason) {

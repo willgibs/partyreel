@@ -70,6 +70,32 @@ describe("the host's account menu", () => {
     expect(rows[0]).toHaveAttribute("target", "_blank");
   });
 
+  // crumbs-44 (from `profile-setup`): a handle-less account's Your profile opens the page's setup
+  // itself; it opened Account's Public profile card, whose one button was the same door, a tap later.
+  it("opens a page that exists, and the setup itself for an account with no handle", async () => {
+    const { unmount } = render(
+      <UserMenu email="host@example.com" displayName="Maya" avatarUrl={null} />,
+    );
+    openMenu();
+    expect(
+      await screen.findByRole("menuitem", { name: /your profile/i }),
+    ).toHaveAttribute("href", "/account/profile");
+    unmount();
+
+    render(
+      <UserMenu
+        email="host@example.com"
+        displayName="Maya"
+        avatarUrl={null}
+        slug="maya"
+      />,
+    );
+    openMenu();
+    expect(
+      await screen.findByRole("menuitem", { name: /your profile/i }),
+    ).toHaveAttribute("href", "/u/maya");
+  });
+
   it("★ signs out this device: its one sign-out row posts the device sign-out, never everywhere", async () => {
     render(
       <UserMenu email="host@example.com" displayName="Maya" avatarUrl={null} />,

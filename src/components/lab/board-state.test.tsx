@@ -20,7 +20,7 @@
  */
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { useEffect } from "react";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   installNextHistory,
@@ -29,7 +29,7 @@ import {
 } from "@/lib/test-utils/next-history";
 
 import type { BoardSpec } from "./board-spec";
-import { useBoardState } from "./board-state";
+import { ControlKnobs, useBoardState } from "./board-state";
 
 const SPEC = {
   controls: [
@@ -138,5 +138,58 @@ describe("the board's controls write the address", () => {
     fireEvent.click(screen.getByRole("button", { name: "steal the key" }));
     await settle();
     expect(barParam("key")).toBe("k");
+  });
+});
+
+/**
+ * A LONG CONTROL IS A SELECT (lab-sitting, from ROADMAP's line: "the dock draws every control as a pill row;
+ * above about eight options a select gives the dock back a screen"). A pill row of nine options wraps to two
+ * or three rows in the dock and scrolls a long way on the step's one quiet row; a select is one control's
+ * width whatever it holds. Eight and under keep their pills, where every option is one press.
+ */
+describe("a control's knob", () => {
+  const control = (id: string, n: number) => ({
+    id,
+    label: id === "long" ? "A long one" : "A short one",
+    options: Array.from({ length: n }, (_, i) => ({
+      id: `o${i + 1}`,
+      label: `Option ${i + 1}`,
+    })),
+    default: "o1",
+  });
+
+  it("★ draws more than eight options as a select, and a pick through it sets the state", () => {
+    const setState = vi.fn();
+    render(
+      <ControlKnobs
+        controls={[control("long", 9), control("short", 8)]}
+        state={{ long: "o3", short: "o2" }}
+        setState={setState}
+      />,
+    );
+    const select = screen.getByRole("combobox", { name: "A long one" });
+    expect(select).toHaveValue("o3");
+    expect(
+      [...(select as HTMLSelectElement).options].map((o) => o.textContent),
+    ).toEqual(Array.from({ length: 9 }, (_, i) => `Option ${i + 1}`));
+    fireEvent.change(select, { target: { value: "o7" } });
+    expect(setState).toHaveBeenCalledWith({ long: "o7" });
+    // Eight is still a row of pills.
+    expect(screen.getByRole("tablist", { name: "A short one" })).toBeTruthy();
+    expect(screen.queryByRole("combobox", { name: "A short one" })).toBeNull();
+  });
+
+  it("draws the step's quiet row the same way", () => {
+    render(
+      <ControlKnobs
+        controls={[control("long", 12)]}
+        state={{}}
+        setState={() => {}}
+        quiet
+      />,
+    );
+    expect(screen.getByRole("combobox", { name: "A long one" })).toHaveValue(
+      "o1",
+    );
   });
 });

@@ -1,10 +1,40 @@
 import Link from "next/link";
-import { Calendar, Image as ImageIcon, Images, Lock } from "lucide-react";
+import {
+  Calendar,
+  Film,
+  Image as ImageIcon,
+  Images,
+  Lock,
+  type LucideIcon,
+} from "lucide-react";
 
 import { CycledCover } from "@/components/app/dashboard/cover-cycle";
 import { formatCount } from "@/lib/format/count";
 import { GLASS_MARK } from "@/lib/glass";
 import { cn } from "@/lib/utils";
+
+/**
+ * WHAT A CARD WITH NO COVER SHOWS, said by the caller rather than read off its link (crumbs-44). A
+ * card's cover is the album's newest approved PHOTOGRAPH (`event_covers`, photo only), so a card can
+ * be bare for three different reasons, and each gets its own face on the dark gallery ground:
+ *   - `photo`: the album holds no photograph yet (an empty album, or one behind a door that shows
+ *     no thumbnail);
+ *   - `video`: the album holds only video, which no card draws: a profile's attended card whose
+ *     party is all video (its gates proved, `getPublicProfileAttendedCoverUrls`);
+ *   - `locked`: the album is closed to this viewer (a guest card whose host made it private, a
+ *     binned event).
+ * ★ A MISSING LINK IS NOT A LOCK. A profile's attended card carries no link because attendance is
+ * not a capability grant, while its album is open by the RPC's own gate; read off `href: null`, the
+ * face told every visitor that album was locked. So the lock is only ever the default for a card
+ * that names no face of its own, which is what the dashboard's private and binned cards rely on.
+ */
+export type EventCardFace = "photo" | "video" | "locked";
+
+const EMPTY_FACE: Record<EventCardFace, LucideIcon> = {
+  photo: ImageIcon,
+  video: Film,
+  locked: Lock,
+};
 
 /**
  * The dashboard event card (Phase 5 S2a, the ratified STAT-FORWARD V3): a 16:10
@@ -15,9 +45,10 @@ import { cn } from "@/lib/utils";
  * never navigates). Used for the dashboard's events list (the events you host
  * and the events you added to), the bin, and the public profile's grid.
  *
- * `href: null` = an unopenable card with a lock fallback: a guest album whose
- * host has since made it private (the guestEventCardProps privacy contract), a
- * binned event, or a profile's attended card (attendance is not a capability).
+ * `href: null` = an unopenable card: a guest album whose host has since made it
+ * private (the guestEventCardProps privacy contract), a binned event, or a
+ * profile's attended card (attendance is not a capability). Bare of a cover, the
+ * first two wear the lock by default and the third names its own face (`empty`).
  * `variant` drives the chrome: hosted (QR slot + the amber review chip +
  * Open/Closed + item count), guest (the profile's own Guest marker + byline: an
  * event you added photos to, guest by upload 2026-09-22), trash (dimmed +
@@ -76,6 +107,7 @@ export function EventCard({
   qrSlot,
   action,
   living,
+  empty,
 }: {
   href: string | null;
   name: string;
@@ -100,8 +132,14 @@ export function EventCard({
    * fewer than two, and the card holds its `coverUrl`, as every other page draws it.
    */
   living?: { id: string; stills: readonly string[] };
+  /**
+   * The face a card with no cover wears (`EventCardFace`). Omitted, an unlinked card is locked and
+   * a linked one is waiting for a photograph, which is what the dashboard's cards mean by them.
+   */
+  empty?: EventCardFace;
 }) {
-  const locked = href === null;
+  const face: EventCardFace = empty ?? (href === null ? "locked" : "photo");
+  const EmptyIcon = EMPTY_FACE[face];
 
   const cycles = Boolean(living && living.stills.length > 1);
 
@@ -120,12 +158,11 @@ export function EventCard({
       ) : (
         // No-cover fallback = the always-dark gallery surface, so the white
         // overlay chrome stays legible in both themes (never a light card).
-        <div className="absolute inset-0 flex items-center justify-center bg-gallery text-gallery-muted">
-          {locked ? (
-            <Lock className="size-7" aria-hidden />
-          ) : (
-            <ImageIcon className="size-7" aria-hidden />
-          )}
+        <div
+          data-face={face}
+          className="absolute inset-0 flex items-center justify-center bg-gallery text-gallery-muted"
+        >
+          <EmptyIcon className="size-7" aria-hidden />
         </div>
       )}
       {/* Legibility gradient: dark at the foot where the chrome sits. */}
