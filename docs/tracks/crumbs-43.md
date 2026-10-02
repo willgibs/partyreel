@@ -21,6 +21,8 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/app/(guest)/e/[token]/card/card.test.tsx
   - supabase/migrations/20261001233000_guest_event_cap.sql
   - supabase/migrations/20261001233110_faces_move_attribution.sql
+  - usher/kit/gate-lane.sh
+  - src/lib/gate-dev-cache-policy.test.ts
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/guest-flow.md
   - docs/systems/profiles-social.md
@@ -108,6 +110,12 @@ Each is built as recommended; each is Will's to overrule.
   wiring); the ring is what was missing. Alternative: the tile skeleton's shimmer swept over the stand-in. A UI call.
 - **The host's cap on the anon read: unredacted?** Recommend YES, built: like the other switches, a number the
   presign's refusal already says.
+- **Gate 123's red `event-ready`: where does its fix live?** Its root is the gate's dev cache, not this lane's code
+  (Handoff, "Gate 123's red"). Recommend the gate empties `.next/dev` itself between stopping its port and starting
+  its server, built in `usher/kit/gate-lane.sh` (the Orchestrator's kit: one line, pinned by
+  `src/lib/gate-dev-cache-policy.test.ts`). Gain: a merge resolved by hand gates on its own tree like any other.
+  Cost: the gate's first lab compile is always cold, as it already is after every merge that takes `merge-lane.sh`'s
+  typecheck path. The Orchestrator's to keep or drop.
 
 ## System-doc edits (in place, owned facts only)
 
@@ -118,6 +126,8 @@ Each is built as recommended; each is Will's to overrule.
 - `uploads-and-r2.md`: a face and a handle move the attribution version.
 - `host-app.md`: the photo viewer stands on `lib/history-entry.ts` with the hub's sheets, the popups and the reel.
 - `database-security.md`: `get_event_by_qr_token`'s unredacted settings name `accepts_video` and `max_upload_bytes`.
+- `testing-verification.md`: the `.next/dev` gotcha's script case (a cache warmed on one tree reloads a page for ever
+  on another).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
@@ -127,24 +137,45 @@ Each is built as recommended; each is Will's to overrule.
 - Social: a confirmed guest whose profile has no name reads "Guest" on the album's guest list and its look
   (`guest-list.tsx`, `guest-peek.tsx`), the invented stand-in "A guest" was for a typed name; the host's at-the-door
   list says "A guest" for a person with neither name nor address (`at-the-door.tsx`) (from crumbs-43).
+- Now, the lab and the kit: `capture.sh` and `capture-all.sh` start their dev server on whatever `.next/dev` the root
+  last warmed, which a light-scoped merge (no lab, so no server) leaves from the tree before it, so a frame there can
+  reload itself for ever as gate 123's `event-ready` did; emptying it first, as `gate-lane.sh` now does, would close
+  it wherever no gate's server runs beside them (from crumbs-43).
 
 ## Handoff (replaces the chat report)
 
-- **Commits, pushed on `lp/crumbs-43`, cut from `11653a5e`; no sync.** launch-prep moved to `5090991c` (build 36's
-  records, the regenerated types and the seams they dropped, `readOwnUploads` on the typed admin client: its signature
-  unchanged, none of this lane's reads touched, no conflict). A trial merge (`009a4d66`, never pushed, stepped back
-  off) failed one pin that is not this lane's: `record-depth-policy.test.ts`, `docs/STATUS.md` at 83 lines on
-  `origin/launch-prep` (79 at this lane's base), a record doc. The work: `2e4edda2` "A guest" · `dbac674a` likes ·
-  `9b802a07` + `70b6ac72` the welcome · `0b5a1490` the flip · `219ada38` the two migrations and the cap · `5642b78e` +
-  `f3594782` Back · `a75d6077` + `ec1ff430` waiting uploads · `f7421e7a` the loading state · `15469900` + `d5ab443d`
-  docs and this manifest. The head is in the chat line.
-- **Gates on `d5ab443d`, each on its own exit code** (logs in `_scratch/crumbs-43/g3-*.log`): `pnpm typecheck` 0 ·
-  `pnpm lint` 0 · `pnpm test` 0 (697 files, 8,369 tests) · `zsh scripts/build-lock.sh pnpm build` 0 ·
-  `pnpm lab:smoke --base http://localhost:3133` 0 (137 checks, 0 failing; `/design/lab/tools/boom`'s 500 is that tool's
-  own). Every item's new pin was run against today's code first and failed there (each commit's tests; the red runs
-  restored the old file and ran the pin).
-- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): every path under `owns` or this file, the four
-  system docs under System-doc edits, and three exceptions, each one assertion in a shared pin this lane's change
+- **Commits, pushed on `lp/crumbs-43`, cut from `11653a5e`, synced with launch-prep at `f00622f7`.** The work:
+  `2e4edda2` "A guest" · `dbac674a` likes · `9b802a07` + `70b6ac72` the welcome · `0b5a1490` the flip · `219ada38` the
+  two migrations and the cap · `5642b78e` + `f3594782` Back · `a75d6077` + `ec1ff430` waiting uploads · `f7421e7a` the
+  loading state · `15469900` + `d5ab443d` docs · `b9181f7c` the face migration renamed to `233110` (crumbs-41's
+  `233100` holds the name) · `ac4b9d65` sync at `9b0465d6` (`uploads-and-r2.md` keeps both lines, the faces' and the
+  owner's "You") · `e864bb56` sync at `f00622f7` (no conflict) · `c873b1c9` gate 123's root (below) · `35536130`
+  its pin in prettier's style · then this manifest. The head is in the chat line.
+- **Gates on `35536130`, each on its own exit code** (logs in `_scratch/crumbs-43/g6-*.log`): `pnpm typecheck` 0 ·
+  `pnpm lint` 0 · `pnpm test` 0 (732 files, 8,713 tests) · `zsh scripts/build-lock.sh pnpm build` 0 · on a dev server
+  started on an empty `.next/dev`, `pnpm lab:smoke --base http://localhost:3133` 0 (137 checks, 0 failing),
+  `pnpm lab:demo --board event-ready,locked-door --base http://localhost:3133` 0 (9 steps, 0 failing) and with
+  `--width 375` 0 (9 steps, 0 failing); the same two presses against `next start` of that build (what the alias
+  serves) 0 and 0. Every item's new pin was run against the code before it first and failed there (each commit's
+  tests; the red runs restored the old file and ran the pin).
+- **Gate 123's red (`520c2271`, every `event-ready` step "Cannot read properties of undefined (reading 'dock')"): the
+  gate's dev cache, not this lane's code.** The merge went red on `uploads-and-r2.md` and was resolved by hand, so it
+  never reached `merge-lane.sh`'s `rm -rf .next/dev` (on its typecheck path), and `gate-lane.sh` started :3130 on gate
+  122's Turbopack cache, warmed on `6ae5c0b1` (the tree without this lane) by pressing five boards, these two among
+  them. That cache handed the `event-ready` frame a chunk naming `qr-code-styling`'s chunk list by the old tree's name
+  (measured on the first pair: `…_0d8qmm4.js`, the lane's own `…_05cdqdo.js`); the HMR subscription to it answered
+  `{"type":"restart"}`, and
+  Turbopack's client reloaded the frame for ever, taking the harness's `window.__labDemo` with it (`:1:18` is `.dock`
+  in `window.__labDemo.dock()`). Reproduced on both pairs, red then green: a cache warmed by pressing both boards on
+  launch-prep (`9b0465d6`, then `f00622f7`), then this lane served on it, reads gate 123's five failing steps; the same
+  tree on an empty cache presses 9 of 9, every time (`_scratch/crumbs-43/repro-gate123.sh`, its `repro-*.log`). The
+  fix is the gate's: `gate-lane.sh` empties `.next/dev` between stopping its port and starting its server, whichever
+  way the merge was made, and `src/lib/gate-dev-cache-policy.test.ts` holds that line there (red on `520c2271`'s kit,
+  green on this one). No test of the lane's own code can fail on that tree: one sha passes or fails by the cache
+  alone.
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): every path under `owns` (the gate's line and its
+  pin among them, Questions) or this file, the five system docs under System-doc edits, and three exceptions, each one
+  assertion in a shared pin this lane's change
   reshapes on purpose (scar kept, expired reason dropped, both named in the file): `src/lib/db/migration-guards.test.ts`
   (the read's last-column guard now names `max_upload_bytes` after `accepts_video`), `src/lib/refresh-then-write-policy.test.ts`
   (masonry's address writers are now `openItem`, `closeItem` and `leaveEntry`), `src/components/app/recently-deleted-grid.test.tsx`
