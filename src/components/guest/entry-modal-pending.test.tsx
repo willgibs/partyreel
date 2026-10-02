@@ -72,28 +72,33 @@ function renderDoor(
 
 beforeEach(() => {
   localStorage.clear();
+  // The welcome's flag is a cookie (the page's server reads it), and jsdom keeps cookies across tests.
+  document.cookie = `pr_welcome_${QR}=; path=/; max-age=0`;
 });
 
 describe("EntryModal tells the page whether the welcome is still owed", () => {
   it("a first-time guest owes it from the very first report (never 'clear' for a frame first)", () => {
     const onPendingChange = renderDoor();
     expect(onPendingChange).toHaveBeenCalled();
-    expect(onPendingChange.mock.calls.every(([pending]) => pending === true)).toBe(
-      true,
-    );
+    expect(
+      onPendingChange.mock.calls.every(([pending]) => pending === true),
+    ).toBe(true);
   });
 
   it("the owner never owes it", () => {
     const onPendingChange = renderDoor({ isOwner: true });
     expect(onPendingChange).toHaveBeenCalled();
-    expect(onPendingChange.mock.calls.every(([pending]) => pending === false)).toBe(
-      true,
-    );
+    expect(
+      onPendingChange.mock.calls.every(([pending]) => pending === false),
+    ).toBe(true);
   });
 
   it("a guest is through the moment the last step is behind them", async () => {
     // A named guest at an event taking no uploads: the welcome is the whole door.
-    const onPendingChange = renderDoor({ storedName: "Theo", uploadsOpen: false });
+    const onPendingChange = renderDoor({
+      storedName: "Theo",
+      uploadsOpen: false,
+    });
     expect(onPendingChange).toHaveBeenLastCalledWith(true);
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: "Continue" }));
@@ -102,10 +107,13 @@ describe("EntryModal tells the page whether the welcome is still owed", () => {
   });
 
   it("a returning guest with nothing owed is clear from the start", () => {
-    localStorage.setItem(`pr_welcome_${QR}`, "1");
-    const onPendingChange = renderDoor({ storedName: "Theo", uploadsOpen: false });
-    expect(onPendingChange.mock.calls.every(([pending]) => pending === false)).toBe(
-      true,
-    );
+    document.cookie = `pr_welcome_${QR}=1; path=/`;
+    const onPendingChange = renderDoor({
+      storedName: "Theo",
+      uploadsOpen: false,
+    });
+    expect(
+      onPendingChange.mock.calls.every(([pending]) => pending === false),
+    ).toBe(true);
   });
 });

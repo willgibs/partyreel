@@ -181,14 +181,14 @@ export function WaitingDoor({
         className="mt-5 flex items-center gap-2 text-sm text-muted-foreground"
         aria-live="polite"
       >
-        {/* The live mark: a dot that breathes while the door is held, still under reduced motion,
-            so the one moving thing on the door is honest about being alive. */}
+        {/* The live mark: a dot that breathes on the door's own clock while the door is held, with the
+            light under it (the carried call `dot`: one rhythm on the page, never a ping of its own),
+            still under reduced motion (`doorway.css`). */}
         <span
           aria-hidden
           data-door-waiting-dot
           className="relative flex size-2 shrink-0 items-center justify-center"
         >
-          <span className="absolute inset-0 rounded-full bg-brand/60 motion-safe:animate-ping" />
           <span className="relative size-2 rounded-full bg-brand" />
         </span>
         Waiting at the door

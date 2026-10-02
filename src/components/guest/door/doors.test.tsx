@@ -63,7 +63,15 @@ afterEach(() => {
 beforeEach(() => {
   vi.clearAllMocks();
   localStorage.clear();
+  document.cookie = `pr_welcome_${QR}=; path=/; max-age=0`;
 });
+
+/** Whether this album's welcome is marked seen (its cookie, which the page's server reads). */
+const welcomeCookie = () =>
+  document.cookie
+    .split(";")
+    .map((part) => part.trim())
+    .includes(`pr_welcome_${QR}=1`);
 
 /** The message a shut door shows: its heading and its line, nothing else. */
 function message(): string {
@@ -190,7 +198,8 @@ describe("the unlisted reader's ask", () => {
       screen.getByRole("button", { name: unlistedAskCopy("Maya").primary }),
     );
     await waitFor(() => expect(refresh).toHaveBeenCalledOnce());
-    expect(localStorage.getItem(`pr_welcome_${QR}`)).toBe("1");
+    // The welcome's flag is the cookie the page's server reads, so the refresh lands on the held door.
+    expect(welcomeCookie()).toBe(true);
   });
 
   it("a refused ask says why, stores nothing and stays put", async () => {
@@ -209,7 +218,7 @@ describe("the unlisted reader's ask", () => {
     expect(setStoredSession).not.toHaveBeenCalled();
     expect(refresh).not.toHaveBeenCalled();
     // Nothing was asked, so nothing is marked: the welcome still greets her on the album's own door.
-    expect(localStorage.getItem(`pr_welcome_${QR}`)).toBeNull();
+    expect(welcomeCookie()).toBe(false);
   });
 
   it('"Use a different email" switches the address', () => {

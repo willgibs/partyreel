@@ -4,7 +4,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { resetDoorLightForTests } from "@/lib/guest/door-light";
 
 import { AlbumLightSampler } from "./album-light";
-import { resetDoorViewForTests, useDoorView } from "./album-view";
 import { DoorLamp } from "./lit";
 
 /**
@@ -136,35 +135,3 @@ describe("AlbumLightSampler", () => {
     expect(lamp).toHaveAttribute("data-door-sampled");
   });
 });
-
-describe("what the open door shows", () => {
-  afterEach(() => resetDoorViewForTests());
-
-  it("★ publishes the album's newest previews for the doorway's opening, never an item with none", () => {
-    render(<AlbumLightSampler />);
-    expect(viewNow()).toEqual([
-      "https://r2/b.webp",
-      "https://r2/c-poster.webp",
-      "https://r2/f.webp",
-    ]);
-  });
-
-  it("★ takes them away when the album's page goes, so another door never shows this album", () => {
-    const view = render(<AlbumLightSampler />);
-    expect(viewNow().length).toBeGreaterThan(0);
-    view.unmount();
-    expect(viewNow()).toEqual([]);
-  });
-});
-
-/** What the doorway's opening would show now (the store, read as the doorway reads it). */
-function viewNow(): readonly string[] {
-  let seen: readonly string[] = [];
-  function Probe() {
-    seen = useDoorView();
-    return null;
-  }
-  const probe = render(<Probe />);
-  probe.unmount();
-  return seen;
-}

@@ -75,17 +75,25 @@ vi.mock("@/components/guest/gallery-empty-state", () => ({
 }));
 // The door: the name it is handed, and clear of steps once it has mounted (so the page's own join may run).
 // It reports its stage as the test sets it (`stageNow`), before paint, as the real one does.
-const stageNow = vi.hoisted(() => ({ open: false }));
+const stageNow = vi.hoisted(() => ({
+  open: false,
+  handed: {} as { arrival?: unknown; welcomeSeen?: boolean; view?: unknown },
+}));
 vi.mock("@/components/guest/entry-modal", () => ({
   EntryModal: ({
     storedName,
     onPendingChange,
     onStageChange,
+    ...rest
   }: {
     storedName?: string | null;
     onPendingChange?: (pending: boolean) => void;
     onStageChange?: (open: boolean) => void;
+    arrival?: unknown;
+    welcomeSeen?: boolean;
+    view?: unknown;
   }) => {
+    stageNow.handed = rest;
     useEffect(() => onPendingChange?.(false), [onPendingChange]);
     useLayoutEffect(() => onStageChange?.(stageNow.open), [onStageChange]);
     return <p data-testid="door-name">{storedName ?? "(no name)"}</p>;
@@ -201,6 +209,8 @@ function Page({
   access = "full",
   gate = null,
   event = EVENT,
+  arrival,
+  welcomeSeen,
 }: {
   seed: Promise<never>;
   verified: boolean;
@@ -208,6 +218,8 @@ function Page({
   access?: "none" | "teaser" | "full";
   gate?: "password" | "account" | "waiting" | "ask" | null;
   event?: GuestEvent;
+  arrival?: { face: "welcome" | "rest" | null; scrim: boolean };
+  welcomeSeen?: boolean;
 }) {
   return (
     <Suspense fallback={null}>
@@ -226,6 +238,8 @@ function Page({
         canDeleteIds={[]}
         isAuthed={verified}
         isVerified={verified}
+        arrival={arrival}
+        welcomeSeen={welcomeSeen}
       />
     </Suspense>
   );
@@ -334,10 +348,10 @@ describe("the page's one queue, for the album's owner", () => {
 });
 
 /**
- * ★ THE DOOR AS THE PAGE, AT THE PAGE (`locked-door` r2, `shape=shared`): at a gate the page draws the
- * door itself from its first paint (the doorway, the album's name and what it holds, and nothing else of
- * the album), which gives way the moment the door's own stage arrives; and an album under an open stage
- * is `inert`, so nothing behind the door can be reached until it lets her through.
+ * ★ THE DOOR AS THE PAGE, AT THE PAGE (`locked-door` r2, `shape=shared`; door-reveal's first byte): the page hands
+ * the door what its first byte draws (`arrival`, the server's), and stands the album under it from that byte:
+ * `inert`, and its words held so the walk through lands on the cover's photographs alone. At a gate nothing of the
+ * album's own page is drawn at all (the door's stage is the page). An album under no stage is the page.
  */
 describe("the door as the page, at the page", () => {
   /** A gate's event as the page hands it: the locked redaction (no host, no date). */
@@ -348,51 +362,31 @@ describe("the door as the page, at the page", () => {
     event_date: null,
   } as unknown as GuestEvent;
 
-  it("★ at a gate the page draws the door itself: the doorway, the album's name and its count, nothing of its host", async () => {
+  it("★ the first byte's door is the door's to draw: the page hands it the arrival and the welcome's word", async () => {
+    stageNow.open = true;
+    const arrival = { face: "welcome" as const, scrim: false };
     const view = render(
       <Page
         seed={seed()}
         verified={false}
-        access="none"
-        gate="password"
-        event={GATED}
+        arrival={arrival}
+        welcomeSeen={false}
       />,
     );
     await screen.findByTestId("door-name");
-    const door = view.container.querySelector(
-      '[data-door-stage][data-door-stage-at="gate"]',
-    );
-    expect(door?.getAttribute("data-state")).toBe("open");
+    expect(stageNow.handed.arrival).toEqual(arrival);
+    expect(stageNow.handed.welcomeSeen).toBe(false);
+    // The album's own cover rides into the open door (the walk lands on it).
+    expect(stageNow.handed.view).toBeTruthy();
+    // Under the welcome the album is laid out, inert, and its words wait for her.
+    const box = view.container.querySelector("[data-guest-experience]");
+    expect(box?.hasAttribute("data-reveal-curtain")).toBe(true);
     expect(
-      door?.querySelector("[data-door-way]")?.getAttribute("data-door-way"),
-    ).toBe("shut");
-    expect(door?.querySelector("h1")?.textContent).toBe("Maya's 30th");
-    expect(door?.textContent).toContain("3 photos & videos inside");
-    expect(view.container.textContent).not.toContain("Maya ");
-    expect(view.container.textContent).not.toContain("Hosted by");
-    // Nothing of the album's own page is drawn behind a gate.
-    expect(view.container.querySelector("[data-door-behind]")).toBeNull();
+      view.container.querySelector("[data-door-behind]")?.hasAttribute("inert"),
+    ).toBe(true);
   });
 
-  it("the held door's own twin stands ajar", async () => {
-    const view = render(
-      <Page
-        seed={seed()}
-        verified
-        access="none"
-        gate="waiting"
-        event={GATED}
-      />,
-    );
-    await screen.findByTestId("door-name");
-    expect(
-      view.container
-        .querySelector("[data-door-stage] [data-door-way]")
-        ?.getAttribute("data-door-way"),
-    ).toBe("ajar");
-  });
-
-  it("gives way the moment the door's own stage arrives", async () => {
+  it("★ at a gate nothing of the album's own page is drawn, and the door is handed no album to show", async () => {
     stageNow.open = true;
     const view = render(
       <Page
@@ -401,13 +395,16 @@ describe("the door as the page, at the page", () => {
         access="none"
         gate="password"
         event={GATED}
+        arrival={{ face: "rest", scrim: false }}
       />,
     );
     await screen.findByTestId("door-name");
-    expect(view.container.querySelector("[data-door-stage]")).toBeNull();
+    expect(view.container.querySelector("[data-door-behind]")).toBeNull();
+    expect(view.container.textContent).not.toContain("Hosted by");
+    expect(stageNow.handed.view).toBeUndefined();
   });
 
-  it("★ an album under an open stage is inert; under none, it is the page", async () => {
+  it("★ an album under an open stage is inert with its words held; under none, it is the page", async () => {
     stageNow.open = true;
     const staged = render(<Page seed={seed()} verified={false} />);
     await screen.findByTestId("door-name");
@@ -416,12 +413,22 @@ describe("the door as the page, at the page", () => {
         .querySelector("[data-door-behind]")
         ?.hasAttribute("inert"),
     ).toBe(true);
+    expect(
+      staged.container
+        .querySelector("[data-guest-experience]")
+        ?.hasAttribute("data-reveal-curtain"),
+    ).toBe(true);
     staged.unmount();
     stageNow.open = false;
     const open = render(<Page seed={seed()} verified={false} />);
     await screen.findByTestId("door-name");
     expect(
       open.container.querySelector("[data-door-behind]")?.hasAttribute("inert"),
+    ).toBe(false);
+    expect(
+      open.container
+        .querySelector("[data-guest-experience]")
+        ?.hasAttribute("data-reveal-curtain"),
     ).toBe(false);
   });
 });

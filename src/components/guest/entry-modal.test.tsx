@@ -24,10 +24,6 @@ import {
 } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  publishDoorView,
-  resetDoorViewForTests,
-} from "@/components/guest/door/album-view";
 import { askCopy } from "@/components/guest/door/ask-step";
 import { waitingCopy } from "@/components/guest/door/waiting-step";
 import {
@@ -155,7 +151,15 @@ function renderModal(
 }
 
 const closeButton = () => screen.queryByRole("button", { name: "Close" });
-const seeWelcome = () => localStorage.setItem(`pr_welcome_${QR}`, "1");
+/** The welcome's flag is a cookie (the page's server reads it): this device has met the welcome. */
+const seeWelcome = () => {
+  document.cookie = `pr_welcome_${QR}=1; path=/`;
+};
+const welcomeCookie = () =>
+  document.cookie
+    .split(";")
+    .map((part) => part.trim())
+    .includes(`pr_welcome_${QR}=1`);
 const pick = (name: "Continue as guest" | "Create account" | "Log in") =>
   fireEvent.click(screen.getByRole("button", { name }));
 /** A welcomed guest at a name-only event, past the chooser on the guest path. */
@@ -175,6 +179,7 @@ let stopBeats: () => void = () => {};
 beforeEach(() => {
   vi.clearAllMocks();
   localStorage.clear();
+  document.cookie = `pr_welcome_${QR}=; path=/; max-age=0`;
   profileName.value = null;
   sent.gates.length = 0;
   global.fetch = vi.fn();
@@ -296,7 +301,7 @@ describe("the chooser: how a guest comes in on a name-only event", () => {
     expect(
       screen.getByRole("button", { name: "Continue as guest" }),
     ).toBeInTheDocument();
-    expect(localStorage.getItem(`pr_welcome_${QR}`)).toBe("1");
+    expect(welcomeCookie()).toBe(true);
   });
 
   it("offers his three ways in, in his order, Continue as guest first", () => {
@@ -546,7 +551,7 @@ describe("the demo", () => {
     // The skip must never call markSeen() for the demo: that flag is exactly the "returning"
     // state a demo must never reach.
     fireEvent.click(screen.getByRole("button", { name: "Look around" }));
-    expect(localStorage.getItem(`pr_welcome_${QR}`)).toBeNull();
+    expect(welcomeCookie()).toBe(false);
 
     // The first instance already advanced past its own role step (Continue, then Look around);
     // the fresh instance shows it again. ★ Read inside the fresh one alone: the first's stage, the
@@ -1411,34 +1416,37 @@ describe("the door's light", () => {
 
   /* ★ THE LIGHT IS THE DOOR'S NOW (`locked-door` r2's doorway, which drew the welcome's promises as its
      own lines, retiring `icons=lit`'s pools on the welcome): an open door wears the album's own hues and
-     shows the album through its opening, where she may see the album; a gate's door is shut, in the
-     house five, and shows nothing of it (Will, 2026-10-02: the door shows only what is shown today). */
-  it("an open door wears the album's light and shows the album through it; a gate's shows nothing", () => {
+     shows the album's own cover through its opening (r3's `reveal=through`, the page's `CoverPicture`),
+     where she may see the album; a gate's door is shut, in the house five, and shows nothing of it, even
+     handed the cover (Will, 2026-10-02: the door shows only what is shown today). */
+  it("an open door wears the album's light and shows the album's cover through it; a gate's shows nothing", () => {
     publishDoorHues([12, 140, 222]);
-    publishDoorView(["https://r2.test/p/1.webp", "https://r2.test/p/2.webp"]);
+    const cover = <p data-testid="cover">the cover</p>;
     try {
-      const open = renderModal({ mediaTotal: 48 });
+      const open = renderModal({ mediaTotal: 48, view: cover });
       const way = open.container.querySelector("[data-door-way]");
       expect(way?.getAttribute("data-door-way")).toBe("open");
       expect(way?.getAttribute("data-door-hues")).toBe("12,140,222");
       expect(
-        [...(way?.querySelectorAll("img") ?? [])].map((img) =>
-          img.getAttribute("src"),
-        ),
-      ).toEqual(["https://r2.test/p/1.webp", "https://r2.test/p/2.webp"]);
+        way?.querySelector('[data-door-view="cover"] [data-testid="cover"]'),
+      ).not.toBeNull();
       expect(open.container.querySelector("[data-door-pool]")).toBeNull();
       cleanup();
 
-      const gate = renderModal({ access: "none", gate: "password" });
+      const gate = renderModal({
+        access: "none",
+        gate: "password",
+        view: cover,
+      });
       const shut = gate.container.querySelector("[data-door-way]");
       expect(shut?.getAttribute("data-door-way")).toBe("shut");
       expect(shut?.getAttribute("data-door-hues")).toBe(
         HOUSE_HUES.slice(0, 3).join(","),
       );
-      expect(shut?.querySelector("img")).toBeNull();
+      expect(shut?.querySelector('[data-testid="cover"]')).toBeNull();
+      expect(shut?.querySelector("[data-door-view]")).toBeNull();
     } finally {
       resetDoorLightForTests();
-      resetDoorViewForTests();
     }
   });
 });
