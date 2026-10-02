@@ -55,7 +55,7 @@ flat; a lane in its gate, or the milestone's full gate, counts as two. Every pro
 | `event-header-r2` | board event-header r2 [desk 50]: the hub head's facts (the night on a dial among them) and one predictable way every room opens | running | Opus, 3133 | `a65948cf0ee9a18da` |
 | `the-wait` | board the-wait [desk 35]: the one waiting experience of a delayed album, the mental model first (his to find), then her wait, the arrival, the host's cover and the words | running | Opus, 3132 | `a9256f068ba6dbfb9` |
 | `disposable-camera` | disposable-mode r3's camera wired (the reel as a timeline, hold to film, a video one shot, the roll's end) at full size on the server's roll; Add opens it on a camera album; retires the board | running | Opus, 3135 | `a420bc1f815081dce` |
-| `take-home` | board take-home [desk 70], new: how guests and hosts take photographs home (a guest's one-press Download all against Select all; a host's originals beside an optimized set) | running | Opus, 3136 | `(spawning)` |
+| `take-home` | board take-home [desk 70], new: how guests and hosts take photographs home (a guest's one-press Download all against Select all; a host's originals beside an optimized set) | running | Opus, 3136 | `af6d50656e540a41c` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Q8
 (round 12's plan) answered with 21 corrections, all folded into the briefs; the next consult is the foundation's
