@@ -110,8 +110,8 @@ the alias mid-sitting (his yes). No new lane until his paste lands.
    observations, the new ones on the ROADMAP (no fix lane in the wind-down); its two undriven walks are Will's (below).
    The staged reports deleted and their photo `cc2517cc` restored; strikes as before (willg97 2, partyr33l 7, hi 0).
    The desk pass's one drift fixed by desk-tune-3 (`03a24b3d`), carried by build 39 (`0e57c5a3`). Production's first
-   album-log prune green (2026-10-02 04:48Z, one row over 58 albums); the export Worker's first heartbeat is read in
-   `job_runs` after 05:30Z.
+   album-log prune green (2026-10-02 04:48Z, one row over 58 albums); the export Worker's first scheduled check green
+   (05:31Z, its R2 reach ok), the media backup's reconcile too (05:06Z, 1,822 objects, none missing).
 4. **Will TOLD the alias is ready** (2026-10-02 03:55Z, build 39 `0e57c5a3`, locked-door first; the calls file at 74
    re-sent). His sitting never blocks the Orchestrator; no alias deploy lands mid-sitting without asking him.
 5. **After his paste:** transcribe it, then the wiring lanes from his picks, at most four at once (`memory_pressure`
