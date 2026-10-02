@@ -54,7 +54,7 @@ a lane").
 | `ready-wiring` | event-ready's picks: the checklist at the hub's head, Settings as steps, Create's hand-off, the code's corner mark with tooltip and tap; readiness into src/lib; the board retired | RUNNING since 2026-10-02 06:55Z (round 11, wave 1) | Opus, 3132, agent `a5407cdc73b3bfe1d` | `a5c42530` |
 | `mkt-wiring` | privacy-hero's lens on /features/privacy; about-press's kit band on /about#press, /press 307; both boards retired | RUNNING since 2026-10-02 06:55Z (round 11, wave 1) | Sonnet, 3133, agent `afe562ee7b1119c87` | `a5c42530` |
 | `crumbs-46` | /me for a handle-less account (his A), the strike line's repeated date, /pricing's sticky head, event-card's comment | MERGED at `2ada77e1` (gate 131 green, light: `pnpm test`, the merge adding only docs to its head, whose whole gate the lane ran green: test 8,725, build, lab:smoke 141); no SQL | Sonnet, 3134 | `fefe9d30` |
-| `lab-prefetch` | the lab's keyless prefetch 404s on production builds, at the source, shell and frame only | RUNNING since 2026-10-02 06:55Z (round 11, wave 1) | Sonnet, 3135, agent `a0ea760c59fae42f1` | `a5c42530` |
+| `lab-prefetch` | the lab's keyless prefetch 404s on production builds, at the source | MERGED at `feaab8a9` (gate 132 green over the whole lab: lab:demo all; measured on production builds, 247 refused requests on the Library and one per step page before, 0 after); shell and doc only, the gate untouched | Sonnet, 3135 | `fefe9d30` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, respawned
 2026-10-01 18:15Z in this session; no question open. Q6 (crumbs-37's two migrations and crumbs-38's cursor file against
