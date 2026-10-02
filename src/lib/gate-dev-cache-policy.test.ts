@@ -54,3 +54,45 @@ describe("the integration gate's dev server", () => {
     ).toBe(true);
   });
 });
+
+/**
+ * THE CAPTURE SCRIPTS' DEV SERVER TOO (crumbs-43's deferred line, 2026-10-02): `capture.sh` and `capture-all.sh` start
+ * `pnpm dev` on whatever `.next/dev` the tree last warmed, the same stale-chunk reload the gate met. They empty it the
+ * same way, unless another dev server runs from the same tree (the gate's on 3130 shares the primary checkout's
+ * cache, and emptying it under a running gate would break that gate instead).
+ */
+describe.each(["usher/kit/capture.sh", "usher/kit/capture-all.sh"])(
+  "%s's dev server",
+  (script) => {
+    const lines = codeLines(join(process.cwd(), script));
+    const start = lines.findIndex((line) =>
+      /\(pnpm dev -p \$PORT\b/.test(line),
+    );
+    const stop = lines
+      .slice(0, Math.max(start, 0))
+      .findLastIndex((line) =>
+        /lsof -ti tcp:\$PORT \| xargs -r kill\b/.test(line),
+      );
+    const between = lines.slice(stop + 1, start);
+
+    it("is started after the script stops whatever held its port", () => {
+      expect(start).toBeGreaterThan(-1);
+      expect(stop).toBeGreaterThan(-1);
+    });
+
+    it("empties .next/dev between that stop and the start, unless another dev server runs from this tree", () => {
+      const clear = between.find((line) => /rm -rf \.next\/dev\b/.test(line));
+      expect(
+        clear,
+        `${script} no longer empties .next/dev before its server`,
+      ).toBeDefined();
+      expect(clear).toMatch(/OTHERS/);
+      expect(
+        between.some(
+          (line) => /pgrep -f 'next dev'/.test(line) && /-d cwd/.test(line),
+        ),
+        `${script} no longer asks which dev servers run from this tree`,
+      ).toBe(true);
+    });
+  },
+);
