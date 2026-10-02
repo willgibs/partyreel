@@ -64,7 +64,10 @@ commits, what remains, its predecessor's transcript at
 account. Connectors follow the account: Claude in Chrome (every red-team needs it), the Supabase MCP on
 `ddafaemglzmuekbtjwzn`, the Vercel MCP on his personal team (deploys ride `$VERCEL_TOKEN`; only runtime logs need P3).
 
-Relays that live only in an agent: none.
+Relays that live only in an agent: `disposable-foundation` (2026-10-02 20:20Z, from Will's walk): the own-media read
+covers her own HELD (pending) items as well as sealed ones, presigned for her alone (the ROADMAP's tracker-placeholder
+line), with a server path for her to delete her own pending and sealed items, ownership checked in the RPC, each a
+leak-matrix cell; the UI is a later lane's.
 
 If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` holds a merge made after this note (push
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
@@ -80,10 +83,26 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team brie
    READY on both projects, the read-only walk PASS; `launch-prep` fast-forwarded. Owed: the export Worker's 05:30 UTC
    heartbeat read in `export_worker_reports` on 2026-10-03 (its `HEARTBEAT_URLS` already tries partyreel.com first, so
    nothing to change), and `/admin/exports` when partyr33l's session is at hand.
-2. **Wave 2, each as its dependency merges:** `door-reveal` and `event-header` r2 after header-wiring; `host-dashboard`
-   r2 after dashboard-wiring; `disposable-camera` after the foundation and Will's phone line; `disposable-rooms` after
-   the foundation and header-wiring (the screen link is his Question there); fillers `crumbs-50` (Sonnet) and
-   `lab-window` when a seat is free.
+2. **Wave 2, each as its dependency merges** (Will's walks of 2026-10-02 add to it):
+   - `door-reveal` after header-wiring, with two of his findings: the welcome's seen-state lives only in localStorage
+     (`use-welcome-seen.ts`), so a signed-out arrival at an open album paints the album for 1 to 3 s before the door
+     rises (his "big bug"; reproduced on build 42, frames in `$S/flash/`): the door must be the first paint; and the
+     door's name step drops a typed name for a verified account's own ("Will Test Mobile" became "Will Gibson",
+     silently): a Question with my recommendation (email first whenever verification is on, so a returning account is
+     never asked a name it has).
+   - `event-header` r2 after header-wiring; `host-dashboard` r2 after dashboard-wiring.
+   - `disposable-camera` after the foundation: his phone line is in (iOS 26, Chrome 154 on WebKit: the stream
+     4032x3024 at 30 fps; a frame drawn whole 3024x4032, 12.2 MP, 2.6 MB at JPEG 0.92; takePhoto 12.2 MP, 7.6 MB; the
+     camera app 12.2 MP, 2.9 MB), so full size holds on iPhone.
+   - `disposable-rooms` after the foundation and header-wiring, widened to "yours, waiting": her held (moderated) and
+     sealed (disposable) photos stay in her view marked and removable, never landing then vanishing to the empty state
+     (his walk), on the foundation's own-media read; the screen link stays his Question.
+   - `save-speed` (new): the viewer's Save on his iPhone took about 30 s to turn ready for a demo photo (the demo's
+     originals: median 0.3 MB, largest 5.2 MB), so the stall is the path, not the bytes; measure each step, make Save
+     immediate.
+   - `take-home` board (new): how guests and hosts take photos home, from his note: a guest's one-press Download all
+     against Select, Select all, Save; and a host's originals beside an optimized download for quick posts.
+   - Fillers: `crumbs-50` (Sonnet, the off-round ROADMAP lines) and `lab-window` when a seat is free.
 3. **The foundation's migrations**: the Advisor reads them, then the protocol (verbatim, the md5 proof, advisors, types
    regenerated, its seams dropped).
 4. **Build 43** once header-wiring, dashboard-wiring and the foundation merge, then its red-team (the heads, the hub,
@@ -95,10 +114,9 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team brie
 
 ## Waiting on Will
 
-- **His walks today** (he offered, 2026-10-02): the phone measurement on the disposable board's dock (the camera's
-  full-size promise rides on it), the 10-second iPhone Save check on partyreel.com, a real upload as a signed-out guest
-  at a held-uploads event staged for him, and the two-Checkout-tabs check (its deletion step only on an account he names
-  as fine to lose). After build 44: the walk-through when let in (a visible tab), a password door, reduced motion over
+- **His walks** (2026-10-02): the phone measurement, the real upload and the Save check are DONE (their findings are
+  wave 2's above). Owed: the two-Checkout-tabs check (the card entry is his, on Stripe's hosted page; its deletion step
+  only on an account he names as fine to lose), and Record Video's 1080p size on his iPhone. After build 44: the walk-through when let in (a visible tab), a password door, reduced motion over
   the door states and the new hub, a hidden-then-shown hub tab.
 - **The calls file** (90 calls, `../partyreel-wt/_scratch/calls/relay-calls.md`): he reviews it today.
 - **His next desk** on build 44.
