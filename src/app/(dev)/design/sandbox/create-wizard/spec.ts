@@ -3,36 +3,43 @@ import { defineExploration } from "@/components/lab/exploration";
 import { SCREEN } from "./knobs";
 
 /**
- * CREATE, REDRAWN WHOLE (the create-wizard track, round one, cut 2026-10-02).
+ * CREATE, ROUND TWO: THE ROOM DESIGNED WHOLE (his r1 answers, 2026-10-02).
  *
- * His note on `disposable-mode`'s `create` (answered `cards`, 2026-10-02) is
- * the brief: the pictures help, with light copy; there should be a way to
- * compare more deeply; and the whole wizard, that screen included, is "very
- * text heavy right now". This round's one direction rides every option:
- * bespoke and experiential, sleek, sophisticated (no tilt), minimal yet
- * high-information, media and light as the colour.
+ * His picks: `shape=screen` (a room of its own), `mode=night` (the cards
+ * playing the night on a slider) and `hand=lit` (the code alone, lit). His
+ * note on the room is this round's brief: "always keep the question up top so
+ * users aren't searching for the spot of the new one in a centered group each
+ * time, keeping the button at the bottom, and using the center space as
+ * needed ... think we could use a second-layer exploration to design that
+ * room experience flow perfectly. Love the subtle steppers up top now."
  *
- * ★ THREE DECISIONS, ONE WORLD, NOTHING STAGED. `shape` (a card in the app, a
- * room of its own, a studio beside a live preview) is asked first and draws
- * all four screens; `mode` (the album or the camera, his `create=cards`
- * redrawn with the deeper compare) and `hand` (what stands beside the code
- * when it arrives) are drawn in whatever shape the board holds: his pick once
- * he has made it, the room until then, the kit's own rule. Neither waits on
- * `shape` (`after`): each is its own decision in any shape, and a shape he
- * leaves open (the broadest question here, the likeliest to come back as a
- * note) must not hold the other two out of his walk.
+ * ★ SETTLED, DRAWN IN EVERY OPTION, NEVER ASKED: the room in his layout
+ * (`room.tsx`: the steppers quiet at the top, the question just under them at
+ * the same place on every screen, the answer's space in the centre, one
+ * button at the foot); the night; lit, its beat leading into Get it ready and
+ * Settings' first step (the hub's See it as a guest is the payoff,
+ * `event-header` r2's, never mid-setup); and round one's settled lines (one
+ * field, the look a step on samples, the beat once, the camera's step after
+ * the name, the door at the cap).
  *
- * ★ SETTLED, NOT ASKED: one field, the name (`asks=one`); the code's look a
- * step of its own on samples (`style=step`, chosen over "on the real code");
- * the beat once, the code first, then what is left, then Get it ready into
- * Settings' first step (`landing=beat`, `create=hand`, chosen over Create
- * walking the first steps); the camera's step right after the name, switching
- * both ways later (`pick=step`); the door at the cap (`limit=door`).
+ * ★ FOUR DECISIONS, ONE WORLD, NOTHING STAGED. `flow` (how one screen becomes
+ * the next, Back and the steppers) frames every screen; `add`, `look` and
+ * `beat` are each one screen's centre. Each is drawn in what the board holds
+ * for the other three (his pick once made, the recommendation until then),
+ * and none waits on another (`after`), so a note on one never holds the rest
+ * out of his walk. `name` is not asked: its centre holds no decision (the
+ * carried call `name`).
+ *
+ * ★ EVERY DECISION OPENS ON A LIVE FRAME: Try it is Create running in the
+ * option's flow, and each step's first frame is that step as it opens, its
+ * picks and its night pressable, so the motion and the feel he is choosing
+ * between are felt rather than described.
  *
  * Nothing here asks what another board asks tonight: the atoms are
- * `identity`'s, the dashboard `host-dashboard`'s, the hub's head
- * `event-header`'s, and the camera itself `disposable-mode` r3's (its pictures
- * here are stand-ins in its settled numbers).
+ * `identity`'s (drawn in production's), the hub's head and its See it as a
+ * guest `event-header`'s, the camera itself `disposable-mode`'s (drawn here in
+ * its round-three picks), and the camera's setting `disposable-foundation`'s
+ * control (`camera-settings`), drawn as the place it mounts.
  */
 export const CREATE_WIZARD = defineExploration({
   id: "create-wizard",
@@ -43,34 +50,48 @@ export const CREATE_WIZARD = defineExploration({
     "src/components/app/create-event-wizard.tsx",
     "src/app/(app)/dashboard/new/page.tsx",
     "src/components/app/qr-preset-picker.tsx",
+    "src/lib/events/readiness.ts",
     "docs/systems/host-app.md",
   ],
   round: {
-    n: 1,
+    n: 2,
     date: "2026-10-02",
     changed:
-      "From your note on the camera's step: Create redrawn whole for Maya & Jay's wedding, three shapes for its four screens, three deeper compares for the album or the camera, and three things to stand beside the code when it arrives.",
+      "From your round one notes: the room drawn screen by screen in your layout, the question up top on every screen. How one screen becomes the next, the add step's night, the code's look and the lit beat, three ways each, each to try.",
   },
+  history: [
+    {
+      n: 1,
+      date: "2026-10-02",
+      changed:
+        "Create redrawn whole for Maya & Jay's wedding. You picked a room of its own, the cards playing the night, and the code alone, lit; this round designs that room screen by screen.",
+    },
+  ],
   context:
-    "Every drawing is Create at /dashboard/new for Maya & Jay's wedding, from production's atoms: the name, the album or camera step (new; the camera is not built yet), the code's look on samples, and the beat once Create is pressed, its rail read from production's readiness. The shape is asked first; the camera step and the beat are drawn in the shape you pick. Each caption counts the words a host reads on that screen.",
+    "Round two, in the room you picked, for Maya & Jay's wedding: every screen in your layout, from production's atoms and readiness. Each decision's first frame is live (Try it, or the step as it opens): press Continue, Back, the phones, the night and the looks. Moving frames play where motion is welcome and stand still under reduced motion. The camera is drawn in disposable-mode's picks. Each caption counts the words a host reads.",
   opening: {
     about:
-      "Create, redrawn whole and image-led: its shape, the new step that picks an album or a disposable camera, and the moment the code arrives.",
+      "Create as a room of its own, designed screen by screen in your layout: how it moves, the add step's night, the code's look and the lit code's arrival.",
     settled: [
-      "One field, the name, at the size it will be (asks=one); the code's look stays a step of its own, on samples (style=step).",
-      "Create ends on the beat, once: the code, then what is left, then Get it ready into Settings' first step (create=hand).",
-      "The camera's step comes right after the name, and an event switches between the two later, both ways (pick=step).",
-      "At the plan's limit the door stands in Create's place before any work (limit=door), drawn in whichever shape wins.",
+      "The room, in your layout: subtle steppers up top, the question just under them in one place, the answer in the centre, one button at the foot.",
+      "How guests add compares the two on your night slider; the beat is the code alone, lit, leading into Get it ready.",
+      "See it as a guest stays the hub's payoff, never offered mid-setup; the name is one field, and the code's look is picked on samples.",
+      "The camera's step stays right after the name, switching both ways later; at the plan's limit the door stands in Create's place.",
     ],
     earlier: [
-      "The camera's step redraws your disposable-mode pick, create=cards: 'The pictures help immediately visualize the distinct experiences.'",
-      "Its note: '...with light copy to clearly define. Should also have an option to compare more deeply somehow.'",
-      "'...the entire create wizard, including this screen, needs to be redesigned and polished. Lots going on.'",
-      "'Many parts could be reshaped into more minimal yet high-info-conveyance UI, very text heavy right now.'",
-      "This round's direction: bespoke and experiential, sleek, sophisticated with no tilt, the media and the light as the colour.",
+      "'Always keep the question up top so users aren't searching for the spot of the new one in a centered group each time.'",
+      "'The name screen, for example, would be \"Name your event\" up top, input center, continue bottom.'",
+      "'Some of these screens (how guests add, code's look, the beat) could all be improved.' 'Love the subtle steppers up top now.'",
+      "On lit: 'This screen presents more cleanly with less going on (first win), but also keeps hosts in the event flow.'",
+      "'...rather than mid-setup. That should feel like a final payoff, not mid-point distraction.'",
     ],
   },
   terms: [
+    {
+      term: "the room",
+      means:
+        "Create as a screen of its own: the whole screen, dark, nothing of the app around it.",
+    },
     {
       term: "the beat",
       means:
@@ -79,202 +100,257 @@ export const CREATE_WIZARD = defineExploration({
     {
       term: "disposable camera",
       means:
-        "A mode where each guest shoots 24 shots in the album's own camera, hidden until they appear for everyone at 9 am.",
+        "A mode where each guest shoots 24 shots in the album's own camera, hidden until they develop at 9 am.",
     },
     {
-      term: "Settings' rail",
+      term: "night slider",
       means:
-        "Settings' five numbered steps (who can get in, what guests add, the reel, the event, the code), each ticked once ready.",
+        "The track under the add step's phones that moves both from 8 pm to the party to 9 am.",
     },
     {
-      term: "room",
+      term: "Settings' steps",
       means:
-        "A screen of its own: Create taking the whole screen, dark, with nothing of the app around it.",
+        "Settings' five numbered steps (who gets in, what guests add, the reel, the event, the code), each ticked once ready.",
+    },
+    {
+      term: "Try it",
+      means:
+        "A decision's first frame: Create itself, running in that option; Continue, Back and the picks all work.",
     },
   ],
   carried: [
     {
-      id: "sample",
-      question: "What tells a host the style step's codes are samples?",
+      id: "name",
+      question: "Does the name's screen show anything but the name?",
       taken:
-        "One word, Sample, on the code's plate, in place of today's sentence; a scanned sample still opens nothing.",
+        "No: the name alone at its size. At a phone the keyboard holds the lower part of the screen and Continue rides on it.",
       overrule:
-        "The sample link opens a page of its own that says what it is, so the step needs no word at all.",
+        "The name typed onto what guests meet first, the album's door, so she watches it land.",
     },
     {
-      id: "defaults",
+      id: "reveal",
       question:
-        "Which of the camera's defaults does Create show once it is picked?",
+        "What of the camera's own setting does Create show once the camera is picked?",
       taken:
-        "Two, each its own little menu: 24 shots each, and develops at 9 am. The look waits on disposable-mode's save.",
+        "Its develop time, where its control will mount: 9 am tomorrow, or straight away. The 24 shots are the server's count, never a setting.",
       overrule:
-        "All three with the look, or none: the camera's defaults set in Settings.",
+        "Nothing: Create picks album or camera, and the develop time waits in Settings.",
+    },
+    {
+      id: "night",
+      question: "Does the night play by itself as the add step opens?",
+      taken:
+        "Once, from 8 pm to the party, then it rests for her hand; under reduced motion it opens on the party.",
+      overrule: "It waits for her to drag it.",
+    },
+    {
+      id: "close",
+      question: "On the beat, where does Go to your event go?",
+      taken:
+        "Into the close at the top, which now leaves for the event's page; the foot keeps Get it ready alone.",
+      overrule:
+        "A quieter second press beside Get it ready, as Create has it today.",
     },
     {
       id: "room",
-      question: "Is the room dark in a light session too?",
+      question:
+        "Does Create's hand-off say when her account is running out of room?",
       taken:
-        "Yes: Create is a room of its own, so the pictures and the light carry it in both themes, as the darkroom does.",
+        "Yes: past 85% room joins what is left, as on the hub, read from the account's storage.",
       overrule:
-        "It follows the app's theme, paper in light, like every other host screen.",
+        "No: room stays the hub's, and Create lists the event's own steps only.",
     },
   ],
   asks: [
-    /* ── 1. The shape ───────────────────────────────────────────────────── */
+    /* ── 1. From one screen to the next ─────────────────────────────────── */
     {
-      id: "shape",
-      label: "The wizard's shape",
-      question: "How should Create be shaped, from the name to the code?",
-      where: ["Host", "Create an event", "Every screen"],
-      when: "Maya presses New event: she names the wedding, picks how guests add photos and the code's look, then meets the code.",
+      id: "flow",
+      label: "From one screen to the next",
+      question:
+        "How should one screen of Create become the next, and how should she go back?",
+      where: ["Host", "Create an event", "Between the screens"],
+      when: "Maya presses Continue on each of Create's screens, or goes back to change an answer, before she presses Create event.",
       matters:
-        "Every event starts here, most hosts pass through it once, and today it reads like a form.",
+        "It is the room's whole feel: every host passes through it, and it decides where Back lives and what the steppers say.",
       lands:
-        "The layout of every screen of Create and of its door at the cap: a card in the app, a room of its own, or a studio.",
+        "The room's head, its steppers and Back, and the motion between Create's screens.",
       context:
-        "Each option draws Create's four screens for the wedding: the name, how guests add (in the compare picked next), the code's look, and the beat (in what is picked last to stand beside the code).",
+        "Four frames each: Try it (Create running, Continue and Back working), the change from the name to how guests add played there and back, then how guests add and the code's look at rest.",
       options: [
         {
-          id: "card",
-          label: "A quiet card in the app",
+          id: "still",
+          label: "The room holds still",
           means:
-            "Today's card inside the app, each screen cut to one question, its picture and one action; four hairlines count the steps.",
+            "Only the question and its answer change, fading in place, as the steppers fill; Back waits beside the button, at the thumb.",
           gains:
-            "Familiar and calm: the app stays around her, and each screen reads at a glance.",
+            "Calm: nothing moves but what changed, and Back is where her thumb already is.",
           costs:
-            "The pictures stay small, and Create still looks like every other card in the app.",
+            "Little sense of going forward, and Back crowds the one button.",
         },
         {
-          id: "screen",
-          label: "A room of its own",
+          id: "slide",
+          label: "Each screen slides in",
           means:
-            "Create takes the whole screen, dark, one question to a screen: the picture as large as it can be, one button at the thumb.",
-          gains:
-            "Each step is a moment: big pictures, big type, and almost nothing to read.",
-          costs:
-            "Four full screens, and Create leaves the app's frame while it runs.",
+            "Each screen slides in from the right, the way a phone's own setup does; Back at the head's left, the close at its right.",
+          gains: "Familiar from every phone's setup: forward and back read at once.",
+          costs: "The whole page moves on every step, and Back is a reach at a phone.",
         },
         {
-          id: "preview",
-          label: "A studio beside a live preview",
+          id: "carry",
+          label: "Each answer rises into the head",
           means:
-            "The steps stack on the left and fold to their answers; on the right, the code and a guest's phone change as she picks.",
+            "Her answer rises into the head: the name stays there as the room's title, a pick drops into its stepper, and the head is the way back.",
           gains:
-            "She sees what guests will get at every step, and every answer stays in view.",
-          costs:
-            "Two places to look, and at a phone the preview shrinks to a strip above the steps.",
+            "Her event visibly takes shape, and any answer is one press away in the head.",
+          costs: "More motion on every step, and a busier head than a bare stepper.",
         },
       ],
-      recommended: "screen",
+      recommended: "carry",
       because:
-        "A once-an-event moment earns the whole screen: the pictures carry each step, and the words drop to a question and a button.",
+        "The name she typed titles the room from then on, so each step reads as building her event, and the head is her way back.",
+      overrule: "If Create should feel as calm as it can, the room holding still.",
+      configs: [SCREEN],
+    },
+
+    /* ── 2. How guests add, compared ────────────────────────────────────── */
+    {
+      id: "add",
+      label: "How guests add, compared",
+      question:
+        "How should the room's centre show the album and the camera through your night?",
+      where: ["Host", "Create an event", "How guests add"],
+      when: "Maya has named the wedding; before the code's look she picks whether guests add to an album or shoot a disposable camera.",
+      matters:
+        "One of an event's biggest choices, made here once: your night slider is settled, and how it fills the centre is open.",
+      lands:
+        "Create's second step: the event's mode, and where the camera's own setting, its develop time, stands.",
+      context:
+        "Three frames each: the step as it opens (live: the night plays once, then pick and drag), slid to the morning, and the camera picked, its develop time where its own setting will mount.",
+      options: [
+        {
+          id: "pair",
+          label: "Side by side, the night under both",
+          means:
+            "The two phones as large as two fit, each with its line at that hour; the night slider spans both.",
+          gains: "The difference is seen at a glance, at every hour.",
+          costs: "At a phone each picture is about 150 px wide.",
+        },
+        {
+          id: "switch",
+          label: "One phone, a switch over it",
+          means:
+            "One phone as large as the room allows, the album or the camera a switch over it, the night under it.",
+          gains: "The biggest picture of what a guest gets, and the least to look at.",
+          costs: "The two are never seen together: comparing means switching.",
+        },
+        {
+          id: "stack",
+          label: "The pick in front, the other behind",
+          means:
+            "The picked phone stands in front, the other behind it to the right, a tap from coming forward; the night under both.",
+          gains: "The pick is large, and the other stays in sight.",
+          costs: "The one behind is half hidden, so the compare is weaker.",
+        },
+      ],
+      recommended: "pair",
+      because:
+        "The two differ most in when everyone sees the photos, and side by side the night shows that at a glance.",
       overrule:
-        "If Create should feel like part of the app rather than a moment of its own, the quiet card.",
+        "If the picture should be as big as a phone allows, one phone with a switch.",
       configs: [SCREEN],
     },
 
-    /* ── 2. The album or the camera ─────────────────────────────────────── */
+    /* ── 3. The code's look ─────────────────────────────────────────────── */
     {
-      id: "mode",
-      label: "Comparing the two",
-      question:
-        "How should the step that picks an album or a disposable camera let her compare them more deeply?",
-      where: ["Host", "Create an event", "Right after the name"],
-      when: "Maya has named the wedding; before the code, she picks whether guests add to an album or shoot a disposable camera.",
+      id: "look",
+      label: "The code's look",
+      question: "How should the code's look step show what she is choosing?",
+      where: ["Host", "Create an event", "The code's look"],
+      when: "Maya has picked how guests add; before Create event she picks one of four looks for her code, on samples.",
       matters:
-        "It is one of an event's biggest choices, made here once; you asked for pictures, light words and a deeper compare.",
+        "It is how a host learns her code has a look at all, and you said the step could be improved.",
       lands:
-        "Create's second step and the event's mode, the camera's two defaults, and how the two experiences are set side by side.",
+        "Create's third step: what its centre shows, and how the four looks are offered.",
       context:
-        "Your create=cards, redrawn: two pictures of a guest's phone, a line each, the camera's defaults once picked; each option adds the deeper compare its own way. Drawn in the shape you pick, the room until then.",
+        "Two frames each: the step as it opens on today's default look (live: press the looks), then Rounded picked. Every code is a sample: her real one arrives on the beat.",
       options: [
         {
-          id: "rows",
-          label: "The cards, rows unfolding under them",
+          id: "plate",
+          label: "The code large, its looks under it",
           means:
-            "Compare unfolds three rows under the two cards (how guests add, when everyone sees it, the reel), each lined up with its card.",
-          gains:
-            "The differences read side by side in a few words, without leaving the step.",
-          costs:
-            "The deeper compare is words, the kind of reading you asked to cut.",
+            "One code at full size on its plate, the four looks under it as corners, each showing its own finder.",
+          gains: "The code is the subject, and the four read as one choice.",
+          costs: "It never says where the look will show.",
         },
         {
-          id: "night",
-          label: "The cards, playing the night",
+          id: "places",
+          label: "The code where guests meet it",
           means:
-            "Each card is a guest's phone; a slider under both moves them from 8 pm to the party to 9 am, so the difference is seen.",
-          gains:
-            "The real difference, when everyone sees the photos, shown in the cards themselves.",
-          costs:
-            "A new control on the step, and a host who never slides it sees one hour.",
+            "The code held up on her phone and in the corner of the room's screen, both re-dressed as she picks.",
+          gains: "She sees what the look is for, in the two places it really goes.",
+          costs: "Each code is smaller, and the centre holds more to look at.",
         },
         {
-          id: "story",
-          label: "The cards, both nights in a sheet",
+          id: "four",
+          label: "Every look whole, side by side",
           means:
-            "See both nights opens a sheet: each night as three pictures, the album above the camera, the same hours lined up.",
-          gains:
-            "Everything at once, in pictures: the deepest compare, one press from the cards.",
-          costs: "A sheet over the step, one more surface to open and close.",
+            "The four codes whole in a square, each named, the pick lit by the room's light.",
+          gains: "Every look seen whole, and all at once.",
+          costs: "Four codes at once read busy, and each is smaller.",
         },
       ],
-      recommended: "night",
+      recommended: "places",
       because:
-        "The two differ most in when everyone sees the photos, so a slider through the night shows it in the cards themselves.",
-      overrule: "If a host should see both nights whole at once, the sheet.",
+        "Seeing her code on her own phone and on the room's screen tells her what the look is for, which is the step's whole job.",
+      overrule: "If the code itself should be the whole subject, the code large.",
       configs: [SCREEN],
     },
 
-    /* ── 3. The code arrives ────────────────────────────────────────────── */
+    /* ── 4. The lit code arrives ────────────────────────────────────────── */
     {
-      id: "hand",
-      label: "Beside the code",
+      id: "beat",
+      label: "The code's arrival",
       question:
-        "What should stand beside the code when it arrives, before she gets the event ready?",
+        "How should the lit code arrive, and how should its acts and what is left read?",
       where: ["Host", "Create an event", "The beat"],
-      when: "Maya has just pressed Create: the wedding exists, its code is real, and a guest still needs one thing, the code opened once.",
+      when: "Maya has pressed Create event: the wedding exists, its code is real, and guests still need the code opened once.",
       matters:
-        "Every host meets this screen once, at the moment the event most needs getting out and set up.",
+        "Every host meets it once, as the first win; you asked for it clean and leading on into the event.",
       lands:
-        "What the beat draws beside the code, and Settings' rail standing under it as what is left.",
+        "The beat: its arrival, Print and Share, and how Settings' steps and room read before Get it ready.",
       context:
-        "Your picks stand: the code first, then what is left, then Get it ready into Settings' first step. Each option changes what stands beside the code; what is left is Settings' rail, read from production. Drawn in the shape you pick.",
+        "Three frames each: as it arrives (played where motion is welcome), at rest, and for a host whose storage is 92% used, so room joins what is left.",
       options: [
         {
-          id: "lit",
-          label: "The code alone, lit",
+          id: "develop",
+          label: "The sample develops into her code",
           means:
-            "The code is the whole moment, at its largest, lit from below on a dark ground; Print and Share under it, Settings' rail below.",
-          gains:
-            "Nothing competes with the code, and the rail shows exactly where Get it ready goes.",
-          costs:
-            "The one thing left, the code opened once, is a step she reads rather than does.",
+            "The sample she styled develops into her real code where it stands while Create runs; two quiet rounds; what is left in one line.",
+          gains: "One moment from her pick to her code, with the least to read.",
+          costs: "What is left is a line and five ticks, not the steps' names.",
         },
         {
-          id: "scan",
-          label: "The code, asking for a scan",
+          id: "rise",
+          label: "The code rises into its light",
           means:
-            "Beside the code: scan it with your phone (open it, on a phone). When it opens, the beat ticks it: Ready for guests.",
-          gains:
-            "She finishes the one thing guests still need right here, and sees what they will see.",
-          costs:
-            "The beat waits on a live read of the code's first open, plumbing it does not have today.",
+            "The room dims, light gathers on the floor and the code rises into it; Print and Share; Settings' steps as the rail.",
+          gains: "A staged reveal, and the rail shows where Get it ready leads.",
+          costs: "The most words of the three, under the code.",
         },
         {
-          id: "guest",
-          label: "The code beside a guest's view",
+          id: "two",
+          label: "The code alone, then the hand-off",
           means:
-            "Beside the code, a phone shows what a guest opens, in the mode she picked; the rail waits under both.",
-          gains: "She sees where the code leads before anyone scans it.",
-          costs:
-            "A picture of the guest's view beside a code that already opens the real one.",
+            "The code alone first, nothing else on the screen; a moment later the hand-off rises under it as a sheet, Get it ready at its foot.",
+          gains: "The code has its moment entirely to itself.",
+          costs: "A second beat to wait for, and a sheet over the room.",
         },
       ],
-      recommended: "scan",
+      recommended: "develop",
       because:
-        "A new event lacks only an opened code, so asking her to scan it finishes it in the moment and shows her what guests see.",
+        "Her pick becomes her code in one moment, the first win, and what is left reads in a line on the way to Get it ready.",
       overrule:
-        "If the beat should stay one quiet look at the code, the code alone, lit.",
+        "If the beat should show where Get it ready leads, the code rising onto the rail.",
       configs: [SCREEN],
     },
   ],
