@@ -141,6 +141,28 @@ routes.
   `stillVariants`, its slot `ratio × the rows' target` at the stage's box (`stillSizes`, held against the real rows
   engine at nine widths), and its ahead-of-arrival decode takes the same variants, or it would ready a file the tile
   never draws. A still dropped into the manifest later inherits the path; the source files are never resized by hand.
+- ★ **`/features/privacy`'s hero is the lens** (`sections/features/privacy/`: `privacy-lens.ts` holds every number,
+  `privacy-lens.css` the structure, `lens-stage.tsx` the markup, a server component with no script): a photograph
+  under the page's own words, veiled in the lightbox's ground, and one clear round pane that rests 2.4 seconds on one
+  thing at a time, never a face and never the words. ★ **The rests are bands, not pixels**: the hero's padding IS the
+  two bands the pane rests in (`bandPx`: its diameter and a gap each side, below the header and above the foot), the
+  lockup sits in what is left, and a rest is a share of the width in its band (`REST_PLACES`: the board's four round
+  the words from `WIDE_MIN_PX`, the screen's four corners below), so no rest can sit under a word at any width or any
+  copy; a pane that rested at pixels drawn on two canvases would be on its objects at two widths only. ★ **The pane
+  and the photograph in it move as one**: transforms only, the photograph the stage's own size (`cq` units, a size
+  container) moving exactly against the pane (`restTransforms`, held to `pane + view = 0` at a grid of screens by an
+  evaluator for the CSS it writes), and the keyframes are written once per reach, in `%` of a stage-sized box, never
+  per screen. ★ **The veil is the lightbox's ground as a still**: the photograph under `--glass-behind-*` as a filter
+  drawn once, a tint over it, never the live backdrop filter under a pane that moves every frame (a full-screen blur
+  re-run round the pane each time, which no stylesheet can spare a weak phone); it measured the same picture at under
+  half the GPU process's frame time, falls off to the room at the screen's edges where a backdrop filter would mirror,
+  and the pane's sharp photograph is never inside the filtered element. The words' ground is two pools of the room's
+  colour inside the lockup's own Container (`PageHero`'s `children`, negative z under the hero's `isolation`): they
+  follow the copy's height, their widths follow the measured lines, and a glide that crosses the words crosses under
+  them. ★ **The photograph is the one thing to swap** (`PRIVACY_STILL`, a manifest id): people toward the middle,
+  small bright things in the top and bottom thirds; re-measure the words' contrast over the loop when it changes,
+  since the pools were sized on the stand-in, and re-measure the lockup (`privacy-lens.test.ts`) when the copy
+  changes.
 - **`/events`**: one `[slug]` template for the four types, all copy and per-type media in `constants/events.ts`
   (`EVENT_TYPE*`, named apart from the real `events` domain). ★ `media` is the single home of a per-type photograph: no
   component names a still of its own. ★ **Every event object carries the demo's real code, never a dead link**: the

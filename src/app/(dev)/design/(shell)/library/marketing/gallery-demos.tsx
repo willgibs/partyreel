@@ -394,7 +394,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
     family: "marketing",
     section: "Heroes",
     play: "page-hero",
-    lede: "A page renders one. The h1 holds at paint in every register, which is why no entrance may gate it.",
+    lede: "A page renders one. The h1 holds at paint in every register, which is why no entrance may gate it. Its backdrop slot holds whatever sits behind the type (careers' proof sheet; the privacy page's lens, whose bands are the section's own padding), rendered before the Container and never in front.",
     variants: [
       {
         prop: "scale",

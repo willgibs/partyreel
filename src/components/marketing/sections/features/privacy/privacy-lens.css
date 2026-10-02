@@ -1,0 +1,248 @@
+/* THE PRIVACY HERO'S LENS: its structure (privacy-hero r4, `veil=lens`, wired
+   2026-10-02). Classes under `pvl-`, and one keyframe of its own, the stage's
+   arrival (`pvl-stage-in`): the pane's keyframes are written from
+   privacy-lens.ts's numbers into a <style> of the stage's own (`pvl-lens-*`; all
+   the names are unique across the repo), and every size, clock and rest the
+   picture runs on reaches this sheet as a custom property on the hero section
+   (`lensVars`), so a rest has one home and the sheet never retypes it.
+
+   ★ THE REST STATE IS THE DEFAULT (bible 5). Every base rule below is the picture
+   a reader with reduced motion, a crawler or scripting off sees: the pane parked
+   on its first rest. Every `animation` lives ONLY inside `@media
+   (prefers-reduced-motion: no-preference)`, so reduced motion is not a case to
+   remember: it is what happens when that block does not apply. */
+
+/* ── The hero: the room's first screen, the words in its middle ───────────
+   The section's PADDING is the two bands the pane rests in (`--pvl-band`: the
+   pane's diameter and a gap each side, below the header above and above the foot
+   below), and the lockup sits in what is left, so no rest can be under a word
+   whatever the copy or the width is. It is at least a screen tall, so a taller
+   screen only widens the bands. The negative margin slides it under the overlay
+   header (a sticky header still takes its 64px of flow), cinema-hero.tsx's
+   mechanism. `isolation` keeps the stage (-2) and the pool behind the words (-1)
+   inside this section and nowhere else. */
+.pvl-hero {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  overflow: clip;
+  min-height: 100svh;
+  margin-top: calc(-1 * var(--pvl-hdr));
+  padding-top: calc(var(--pvl-hdr) + var(--pvl-band));
+  padding-bottom: var(--pvl-band);
+}
+
+/* ── The stage: the photograph, the veil, the pane ────────────────────────
+   A size container, so the pane's own photograph (`.pvl-view`) can be the
+   stage's exact size in `cq` units: it and the base are the same box, cover-fit
+   the same way, which is what makes the pane show exactly what is behind it. */
+.pvl-stage {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  overflow: hidden;
+  container-type: size;
+  pointer-events: none;
+  /* The fall under the header, so the nav reads over the veil. */
+  --pvl-top-fall: calc(var(--pvl-hdr) + 2.6rem);
+}
+
+@media (min-width: 640px) {
+  .pvl-stage {
+    --pvl-top-fall: calc(var(--pvl-hdr) + 5.3rem);
+  }
+}
+
+/* ★ THE VEIL IS THE LIGHTBOX'S OWN GROUND, AS A STILL: the album blurred at half
+   brightness under a black tint, by the same numbers (`--glass-behind-*`, so a
+   retune of the material moves the hero with it), as a filter on the photograph
+   drawn once and a tint over it, never the live backdrop filter the lightbox puts
+   on its overlay. A pane moves over this layer every frame, and a backdrop filter
+   under a moving sibling is a full-screen blur the compositor re-runs round the
+   pane each time, which a phone's GPU pays for and no stylesheet can tell a weak
+   phone from a strong one to spare it; a filter on a still photograph is rasterised
+   once and composited. It measured the same picture (the middle of the frame to a
+   thousandth of luminance) at under half the GPU process's frame time (the
+   Handoff's table). It has no backdrop to mirror at its edge, so it falls off to
+   the room there (under 0.004 of luminance in the outermost 50px). `will-change`
+   makes it a layer of its own, which is what lets WebKit apply the blur on the GPU
+   (an unpromoted blur is painted on the CPU there). */
+.pvl-photo {
+  position: absolute;
+  inset: 0;
+  filter: blur(var(--glass-behind-blur))
+    brightness(var(--glass-behind-brightness))
+    saturate(var(--glass-behind-saturate));
+  will-change: transform;
+}
+
+.pvl-tint {
+  position: absolute;
+  inset: 0;
+  background-color: rgb(0 0 0 / var(--glass-behind-tint));
+}
+
+/* ── The pane: a clear round window that settles on one thing at a time ────
+   The track is stage-sized, so a `%` in its transform is the stage's own width
+   and height: the pane's top-left corner follows it (in the board's terms, a rest
+   `u` of the way across, in the band above or below the words), and the pane sits
+   in its corner. The pane carries the same photograph at the stage's size and
+   moves it the opposite way by exactly as much (`.pvl-view`, on the pane's own
+   clock and curve), so what is in the pane is always the part of the photograph
+   behind it. Transforms only: the compositor runs them with no paint. */
+.pvl-track {
+  position: absolute;
+  inset: 0;
+  transform: var(--pvl-rest-narrow);
+}
+
+.pvl-lens {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--pvl-d);
+  height: var(--pvl-d);
+  border-radius: 50%;
+  overflow: hidden;
+  /* A rounded clip over a child that animates (the photograph) holds in WebKit
+     only when the clipping box is a stacking context of its own. */
+  isolation: isolate;
+}
+
+.pvl-view {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100cqw;
+  height: 100cqh;
+  transform: var(--pvl-rest-view-narrow);
+}
+
+/* Crystal's double edge on the pane's rim: the lip a pixel down (light on the
+   upper edge) and the hairline all the way round, the tokens' own. */
+.pvl-rim {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / var(--glass-lip)),
+    inset 0 0 0 1px rgb(255 255 255 / var(--glass-hairline));
+}
+
+@media (min-width: 640px) {
+  .pvl-track {
+    transform: var(--pvl-rest-wide);
+  }
+  .pvl-view {
+    transform: var(--pvl-rest-view-wide);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pvl-track {
+    animation: var(--pvl-name-narrow) var(--pvl-cycle-narrow) linear infinite;
+    will-change: transform;
+  }
+  .pvl-view {
+    animation: var(--pvl-name-view-narrow) var(--pvl-cycle-narrow) linear
+      infinite;
+    will-change: transform;
+  }
+  @media (min-width: 640px) {
+    .pvl-track {
+      animation-name: var(--pvl-name-wide);
+      animation-duration: var(--pvl-cycle-wide);
+    }
+    .pvl-view {
+      animation-name: var(--pvl-name-view-wide);
+      animation-duration: var(--pvl-cycle-wide);
+    }
+  }
+}
+
+/* The stage arrives as the room's light comes up, not as a cut: the photograph
+   is a large image and may land after the words. No fill mode: once it has run
+   the animation is gone and the stage is just a stage, with no filling opacity
+   animation holding a render surface open over the pane and the veil. */
+@media (prefers-reduced-motion: no-preference) {
+  .pvl-stage {
+    animation: pvl-stage-in 900ms ease-out;
+  }
+}
+
+@keyframes pvl-stage-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ── The falls: the header's, and the foot's ───────────────────────────────
+   A fall of the room's ground under the header (its nav is the one text over the
+   veil that is not behind the pool) and another at the foot, where the first
+   paper chapter begins. */
+.pvl-falls {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--background) 72%, transparent) 0%,
+    transparent var(--pvl-top-fall),
+    transparent 82%,
+    color-mix(in oklab, var(--background) 80%, transparent) 100%
+  );
+}
+
+/* ── The pools: what keeps the words readable where the pane only passes ──
+   Two pools of the room's ground behind the lockup, inside the hero's
+   container (the lockup's own box: the heights follow the copy, whatever it
+   becomes). A pane's glide may cross behind the words; a rest never sits there.
+   ★ THE POOL'S PLATEAU COVERS THE EYEBROW AND THE SUBHEAD, the two lines in the
+   muted grey, which need the ground under them near black (4.5:1 against
+   `--muted-foreground` is a luminance of about 0.04). The eyebrow is the smallest
+   words, at the big pool's thin end, so it gets a pool of its own. Their widths
+   follow the words' widest line (it wraps in 300 to 700px across the screens),
+   measured. */
+.pvl-pool,
+.pvl-eyebrow-pool {
+  position: absolute;
+  left: 50%;
+  z-index: -1;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
+.pvl-pool {
+  top: 50%;
+  width: clamp(570px, calc(570px + (100vw - 375px) * 0.76), 780px);
+  height: 160%;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in oklab, var(--background) 97%, transparent) 0%,
+    color-mix(in oklab, var(--background) 95%, transparent) 58%,
+    color-mix(in oklab, var(--background) 52%, transparent) 80%,
+    transparent 100%
+  );
+}
+
+.pvl-eyebrow-pool {
+  top: 0.5rem;
+  width: 300px;
+  height: 88px;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in oklab, var(--background) 88%, transparent) 30%,
+    transparent 100%
+  );
+}
+
+@media (min-width: 640px) {
+  .pvl-pool {
+    width: clamp(711px, calc(711px + (100vw - 768px) * 0.518), 1059px);
+  }
+}
