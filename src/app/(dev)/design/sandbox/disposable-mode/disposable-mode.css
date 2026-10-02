@@ -1,35 +1,27 @@
-/* THE SURFACES THIS BOARD DRAWS FROM ITS OWN SHEET: the film looks, the four
-   cameras production has no piece for yet, the phone's own prompt, the
-   waiting rooms, the wall and the small pictures Create shows. Everything a
-   guest or a host already meets wears production's own classes and
-   components (`host.tsx`, `viewer.tsx`, the buttons everywhere).
+/* THE SURFACES THIS BOARD DRAWS FROM ITS OWN SHEET: the looks, the six
+   cameras production has no piece for yet, the four waiting rooms and the
+   developed album the look is judged on. Everything a guest already meets
+   wears production's own classes and components (the buttons, the glass, the
+   avatar).
 
    ★ UNLAYERED ON PURPOSE. A lab utility compiles into the `utilities.lab`
    sub-layer and loses to production's own layer on the same element
    (`design.css`'s landmine), so every rule a proposal adds lives here, where
-   an unlayered rule wins.
+   an unlayered rule wins. And so no rule here sets `position` on an element
+   a caller positions with a utility: an unlayered rule would beat it.
 
    ★ COLOUR COMES FROM LIGHT AND FROM THE PHOTOGRAPH (bible 6). The only hues
-   here are a photograph's, a light's (the darkroom's safelight, the flash's
-   ready lamp, the date a camera prints into its picture, the film's own edge
-   print) and a state's (the red of a camera that is filming). The phone's
-   own prompt is the operating system's, drawn plain.
+   here are a photograph's, a light's (a room's light, the flash's lamp, the
+   date a disposable prints) and a state's (the red of a camera filming).
 
-   ★ MOTION ONLY WHERE IT SHOWS STATE OR EARNS ATTENTION, AND ONLY WITH
-   MOTION ALLOWED (bible 5). A waiting room is visited now and then, so its
-   safelight breathes and the pile's newest print lands; a camera's shutter,
-   pressed twenty-four times a night, is drawn at rest. Under reduced motion
-   every frame is its still, which is also what `lab:demo` compares. */
+   ★ MOTION ONLY WHERE IT SHOWS STATE, AND ONLY WITH MOTION ALLOWED (bible 5).
+   A shot's moment (the flash, the count stepping down, the reel moving on)
+   replays on a slow loop in its "moment after" frame, so a reader sees it
+   happen; a room's light breathes and its newest shot lands. Under reduced
+   motion every frame is its still, which is also what `lab:demo` compares. */
 
-/* ── the film looks ─────────────────────────────────────────────────────── */
+/* ── the looks ──────────────────────────────────────────────────────────── */
 
-/* One photograph wearing a look. NEVER BAKED: in the proposal the look is
-   applied where the photograph is shown (the viewfinder, the album, the reel,
-   on the device); here CSS stands in for that pass, so one still reads four
-   ways side by side. */
-/* ★ NO `position` HERE: an unlayered rule beats a layered utility, so a
-   caller's `absolute` would lose to it; FilmStill carries `relative` as a
-   utility, which the caller's own class can replace. */
 .dm-film {
   overflow: hidden;
   isolation: isolate;
@@ -41,53 +33,31 @@
   height: 100%;
   object-fit: cover;
 }
-.dm-film[data-look="warm"] > img {
-  filter: sepia(0.22) saturate(1.22) contrast(1.08) brightness(1.03);
-}
-.dm-film[data-look="cool"] > img {
-  filter: saturate(0.86) hue-rotate(-12deg) contrast(1.07) brightness(1.03);
-}
-.dm-film[data-look="mono"] > img {
-  filter: grayscale(1) contrast(1.2) brightness(1.03);
-}
-.dm-film-tint,
 .dm-film-vignette,
 .dm-film-grain {
   position: absolute;
+  inset: 0;
   pointer-events: none;
 }
-.dm-film-tint {
-  inset: 0;
-  mix-blend-mode: soft-light;
-}
-.dm-film[data-look="warm"] .dm-film-tint {
-  background: rgb(255 146 56 / 0.3);
-}
-.dm-film[data-look="cool"] .dm-film-tint {
-  background: rgb(64 150 255 / 0.24);
-}
 .dm-film-vignette {
-  inset: 0;
   background: radial-gradient(
-    ellipse at 50% 46%,
-    transparent 58%,
-    rgb(0 0 0 / 0.34) 100%
+    ellipse at 50% 48%,
+    transparent 62%,
+    rgb(0 0 0 / 0.26) 100%
   );
 }
 /* The grain: fractal noise, tiled, laid over the photograph. */
 .dm-film-grain,
-.dm-room-grain,
-.dm-wrap-fibre {
-  inset: 0;
+.dm-room-grain {
   background-size: 160px 160px;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 1.4 -0.2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 .dm-film-grain {
-  opacity: 0.26;
+  opacity: 0.2;
   mix-blend-mode: overlay;
 }
 .dm-film[data-look="mono"] .dm-film-grain {
-  opacity: 0.34;
+  opacity: 0.3;
 }
 
 /* The date a disposable prints into the corner: seven-segment digits in the
@@ -118,7 +88,7 @@
   width: 0.28em;
 }
 
-/* ── the screen cameras: the viewfinder and the reel ────────────────────── */
+/* ── every camera ───────────────────────────────────────────────────────── */
 
 /* The whole screen, black like every camera's: the photograph is the only
    colour on it. */
@@ -156,7 +126,6 @@
   height: 62px;
   border-radius: 999px;
   background: #fff;
-  transition: none;
 }
 .dm-shutter[data-video]::after {
   background: #ff3b30;
@@ -168,19 +137,19 @@
   background: #ff3b30;
 }
 .dm-shutter[data-off] {
-  opacity: 0.35;
+  opacity: 0.3;
 }
 
-/* The ring of frames round the viewfinder's shutter: a tick a frame. */
+/* The ring of ticks round a shutter: a tick a frame. */
 .dm-ring [data-tick="lit"] {
   stroke: #fff;
 }
 .dm-ring [data-tick="spent"] {
-  stroke: rgb(255 255 255 / 0.18);
+  stroke: rgb(255 255 255 / 0.2);
 }
 .dm-ring [data-tick="just"] {
-  stroke: #ffd9a0;
-  filter: drop-shadow(0 0 3px rgb(255 190 110 / 0.9));
+  stroke: #ffe2b8;
+  filter: drop-shadow(0 0 3px rgb(255 200 130 / 0.95));
 }
 .dm-ring-rec {
   stroke: #ff3b30;
@@ -208,6 +177,33 @@
   border-radius: 4px;
 }
 
+/* Photo or Video: the mode a shutter is in, where filming is a mode. */
+.dm-modes {
+  display: inline-flex;
+  gap: 2px;
+  border-radius: 999px;
+  padding: 3px;
+  background: rgb(255 255 255 / 0.1);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.dm-modes > span {
+  border-radius: 999px;
+  padding: 5px 14px;
+  color: rgb(255 255 255 / 0.6);
+}
+.dm-modes > span[data-on] {
+  background: rgb(255 255 255 / 0.92);
+  color: #0b0b0b;
+}
+.dm-modes-glass {
+  background: rgb(0 0 0 / 0.28);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.14);
+}
+
 /* The filming mark every camera wears: a red dot and the clock. */
 .dm-rec-pill {
   display: inline-flex;
@@ -220,6 +216,7 @@
   font-size: 13px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 .dm-rec-dot {
   width: 8px;
@@ -228,7 +225,242 @@
   background: #ff3b30;
 }
 
-/* ── the reel's strip ───────────────────────────────────────────────────── */
+/* The moment a shot is taken: the picture flashes white and settles. Drawn
+   at rest as nothing at all, so reduced motion shows the moment after. */
+.dm-flash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: #fff;
+  opacity: 0;
+}
+
+/* The roll's end: the same words in every camera. */
+.dm-done {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  color: #fff;
+}
+.dm-done-primary,
+.dm-done-secondary {
+  display: flex;
+  height: 48px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.dm-done-primary {
+  background: #fff;
+  color: #0b0b0b;
+}
+.dm-done-secondary {
+  background: rgb(255 255 255 / 0.12);
+  color: #fff;
+}
+.dm-done-glass {
+  border-radius: 28px;
+  padding: 22px 18px 18px;
+}
+/* A picture the roll is finished with: blurred and dimmed behind the end. */
+.dm-dim {
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / 0.52);
+  -webkit-backdrop-filter: blur(16px) saturate(0.8);
+  backdrop-filter: blur(16px) saturate(0.8);
+}
+
+/* ── the count inside the shutter ───────────────────────────────────────── */
+
+.dm-scrim-top,
+.dm-scrim-bottom {
+  position: absolute;
+  inset-inline: 0;
+  pointer-events: none;
+}
+.dm-scrim-top {
+  top: 0;
+  height: 150px;
+  background: linear-gradient(rgb(0 0 0 / 0.42), transparent);
+}
+.dm-scrim-bottom {
+  bottom: 0;
+  height: 320px;
+  background: linear-gradient(transparent, rgb(0 0 0 / 0.58));
+}
+.dm-glass-round {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  color: #fff;
+}
+.dm-glass-round[data-on] {
+  color: #ffd27a;
+}
+.dm-glass-lg {
+  width: 50px;
+  height: 50px;
+}
+.dm-capsule {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 8px 14px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.dm-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  display: grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  padding: 0 5px;
+  background: #fff;
+  color: #0b0b0b;
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.dm-hint-on-photo {
+  color: rgb(255 255 255 / 0.9);
+  font-size: 13px;
+  font-weight: 500;
+  text-shadow: 0 1px 10px rgb(0 0 0 / 0.6);
+}
+/* The shutter that holds the count: a white disc in the ring of ticks, the
+   numeral inside it. */
+.dm-shutter-count {
+  position: relative;
+  display: grid;
+  width: 104px;
+  height: 104px;
+  place-items: center;
+}
+.dm-shutter-count > svg {
+  position: absolute;
+  inset: 0;
+}
+.dm-shutter-count::before {
+  content: "";
+  position: absolute;
+  inset: 15px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 6px 24px rgb(0 0 0 / 0.35);
+}
+.dm-shutter-count[data-video]::before {
+  background: #ff3b30;
+}
+.dm-shutter-count[data-off] {
+  width: 64px;
+  height: 64px;
+}
+.dm-shutter-count[data-off]::before {
+  inset: 10px;
+  background: rgb(255 255 255 / 0.14);
+  box-shadow: none;
+}
+.dm-ring-on-photo {
+  filter: drop-shadow(0 1px 3px rgb(0 0 0 / 0.5));
+}
+.dm-shutter-num {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  color: #0b0b0b;
+  font-family: var(--font-heading);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.dm-shutter-num-rec {
+  color: #fff;
+  font-size: 19px;
+}
+.dm-shutter-num-sm {
+  color: #fff;
+  font-size: 20px;
+}
+.dm-shutter-unit {
+  margin-top: 2px;
+  font-family: var(--font-sans);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  opacity: 0.55;
+}
+.dm-roll-digit {
+  display: block;
+}
+.dm-shutter-stop {
+  position: relative;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: #fff;
+}
+.dm-rec-glyph {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #ff3b30;
+}
+.dm-rec-glyph[data-stop] {
+  width: 15px;
+  height: 15px;
+  border-radius: 4px;
+}
+
+/* ── the roll round the picture ─────────────────────────────────────────── */
+
+.dm-rim {
+  display: block;
+  overflow: visible;
+}
+.dm-rim path {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.dm-rim [data-tick="lit"] {
+  stroke: #fff;
+}
+.dm-rim [data-tick="spent"] {
+  stroke: rgb(255 255 255 / 0.17);
+}
+.dm-rim [data-tick="just"] {
+  stroke: #ffe2b8;
+  filter: drop-shadow(0 0 4px rgb(255 200 130 / 0.95));
+}
+.dm-rim[data-rec] [data-tick] {
+  stroke: rgb(255 255 255 / 0.14);
+}
+.dm-rim .dm-rim-rec {
+  stroke: #ff3b30;
+  stroke-width: 3.5;
+  filter: drop-shadow(0 0 5px rgb(255 59 48 / 0.7));
+}
+
+/* ── the reel, as round two drew it ─────────────────────────────────────── */
 
 .dm-strip {
   position: relative;
@@ -239,7 +471,6 @@
   border-top: 1px solid rgb(0 0 0 / 0.6);
   border-bottom: 1px solid rgb(0 0 0 / 0.6);
 }
-/* Sprocket holes, rounded, a row along each edge. */
 .dm-strip-holes {
   position: absolute;
   left: 0;
@@ -255,7 +486,6 @@
 .dm-strip-holes-bottom {
   bottom: 4px;
 }
-/* The film's own edge print: its stock, its frame numbers. */
 .dm-edge {
   font-size: 8px;
   line-height: 1;
@@ -320,855 +550,241 @@
   color: #ffd2cc;
 }
 
-/* ── the drawn disposable ───────────────────────────────────────────────── */
+/* ── the reel as a timeline ─────────────────────────────────────────────── */
 
-/* The camera's back, as the screen: moulded black plastic, a light across its
-   top edge, the event's names on its label. */
-.dm-body {
+.dm-tl {
   position: relative;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  color: #f4f1ea;
-  background:
-    radial-gradient(
-      120% 60% at 50% -10%,
-      rgb(255 255 255 / 0.1),
-      transparent 60%
-    ),
-    linear-gradient(180deg, #232326 0%, #161618 55%, #0f0f10 100%);
-}
-.dm-body-round {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-  background: linear-gradient(180deg, #2c2c30, #1a1a1c);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.08),
-    0 2px 4px rgb(0 0 0 / 0.5);
-}
-.dm-body-label {
-  background: linear-gradient(180deg, #e9e2d3, #d8cfbc);
-  color: #1b1a17;
-}
-.dm-body-window {
-  position: relative;
-  border-radius: 14px;
-  padding: 7px;
-  background: linear-gradient(180deg, #050505, #1a1a1c);
-  box-shadow:
-    inset 0 2px 6px rgb(0 0 0 / 0.9),
-    0 1px 0 rgb(255 255 255 / 0.08);
-}
-.dm-body-window > .dm-film {
-  border-radius: 8px;
-}
-/* The optical window's own look: the plastic's vignette and its bright-line
-   frame, what an eye sees through a disposable. */
-.dm-optic {
-  position: absolute;
-  inset: 7px;
-  border-radius: 8px;
-  pointer-events: none;
-  box-shadow: inset 0 0 26px rgb(0 0 0 / 0.6);
-  background:
-    linear-gradient(#fff, #fff) top 12px left 12px / 16px 1.5px no-repeat,
-    linear-gradient(#fff, #fff) top 12px left 12px / 1.5px 16px no-repeat,
-    linear-gradient(#fff, #fff) top 12px right 12px / 16px 1.5px no-repeat,
-    linear-gradient(#fff, #fff) top 12px right 12px / 1.5px 16px no-repeat,
-    linear-gradient(#fff, #fff) bottom 12px left 12px / 16px 1.5px no-repeat,
-    linear-gradient(#fff, #fff) bottom 12px left 12px / 1.5px 16px no-repeat,
-    linear-gradient(#fff, #fff) bottom 12px right 12px / 16px 1.5px no-repeat,
-    linear-gradient(#fff, #fff) bottom 12px right 12px / 1.5px 16px no-repeat;
-  opacity: 0.8;
-}
-.dm-body-led {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  background: #3a3a3e;
-}
-.dm-body-led[data-state="ready"] {
-  background: #ffb040;
-  box-shadow: 0 0 10px #ff9a1f;
-}
-.dm-body-led[data-state="rec"] {
-  background: #ff3b30;
-  box-shadow: 0 0 10px #ff3b30;
-}
-.dm-body-counter {
-  display: grid;
-  place-items: center;
-  width: 64px;
-  height: 64px;
-  border-radius: 999px;
-  background:
-    repeating-conic-gradient(
-      from 0deg,
-      rgb(255 255 255 / 0.12) 0deg 1.5deg,
-      transparent 1.5deg 15deg
-    ),
-    radial-gradient(circle at 50% 40%, #1c1c1e, #050505);
-  box-shadow:
-    inset 0 2px 5px rgb(0 0 0 / 0.95),
-    0 0 0 3px #2a2a2d;
-}
-.dm-body-counter[data-rec] {
-  color: #ff6a5f;
-}
-.dm-body-slide {
-  position: relative;
-  width: 44px;
-  height: 20px;
-  border-radius: 999px;
-  background: #0b0b0c;
-  box-shadow: inset 0 2px 4px rgb(0 0 0 / 0.9);
-}
-.dm-body-slide::after {
-  content: "";
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 14px;
-  height: 14px;
-  border-radius: 999px;
-  background: linear-gradient(180deg, #d9d8d4, #8e8d88);
-}
-.dm-body-slide[data-video]::after {
-  left: 27px;
-  background: #ff3b30;
-}
-.dm-body-wheel {
-  height: 40px;
-  border-radius: 10px;
-  background: repeating-linear-gradient(90deg, #3a3a3e 0 3px, #121214 3px 7px);
-  box-shadow:
-    inset 0 0 0 1px rgb(255 255 255 / 0.06),
-    inset 0 6px 10px rgb(0 0 0 / 0.7),
-    inset 0 -6px 10px rgb(0 0 0 / 0.7);
-}
-.dm-body-wheel[data-due] {
-  outline: 2px solid #f4f1ea;
-  outline-offset: 4px;
-}
-/* Letters moulded into the plastic (a heading numeral keeps the face's one
-   weight; the plastic's small print is Inter's semibold). */
-.dm-emboss {
-  color: rgb(244 241 234 / 0.5);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  text-shadow: 0 1px 0 rgb(0 0 0 / 0.7);
-}
-.dm-emboss:not(.font-heading) {
-  font-weight: 600;
-}
-.dm-emboss-lit {
-  color: #f4f1ea;
-}
-.dm-body-flash {
-  width: 34px;
-  height: 34px;
-  border-radius: 999px;
-  background: radial-gradient(circle at 40% 32%, #3a3a3e, #121214 70%);
-  box-shadow:
-    0 0 0 3px #2c2c30,
-    0 3px 8px rgb(0 0 0 / 0.6);
-}
-.dm-body-flash[data-lit] {
-  background: radial-gradient(circle at 40% 32%, #ffcf85, #b86a14 75%);
-  box-shadow:
-    0 0 0 3px #2c2c30,
-    0 0 14px rgb(255 160 60 / 0.6);
-}
-.dm-body-shutter {
-  width: 84px;
-  height: 84px;
-  border-radius: 999px;
-  background: radial-gradient(circle at 40% 32%, #ededea, #9b9a95 70%, #6f6e6a);
-  box-shadow:
-    0 0 0 5px #2c2c30,
-    0 6px 14px rgb(0 0 0 / 0.6);
-}
-.dm-body-shutter[data-locked] {
-  opacity: 0.4;
-}
-.dm-body-shutter[data-pressed] {
-  background: radial-gradient(circle at 50% 50%, #b7b6b1, #6f6e6a 80%);
-  box-shadow:
-    0 0 0 5px #2c2c30,
-    inset 0 3px 8px rgb(0 0 0 / 0.5),
-    0 0 18px rgb(255 59 48 / 0.35);
-}
-.dm-body-video {
-  width: 36px;
-  height: 36px;
-  border-radius: 999px;
-  background: radial-gradient(circle at 40% 32%, #ff7a70, #b3150c 75%);
-  box-shadow:
-    0 0 0 3px #2c2c30,
-    0 3px 8px rgb(0 0 0 / 0.6);
-}
-.dm-body-video[data-stop] {
-  border-radius: 9px;
-}
-
-/* ── the event's own disposable: paper and ink ──────────────────────────── */
-
-.dm-wrap {
-  position: relative;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  height: 52px;
+  flex-shrink: 0;
+  margin-top: 16px;
   overflow: hidden;
-  background: #efe9dc;
-  color: #1b1a17;
-}
-.dm-wrap-fibre {
-  position: absolute;
-  opacity: 0.16;
-  mix-blend-mode: multiply;
-  pointer-events: none;
-}
-.dm-wrap-round {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-  border: 1.5px solid #1b1a17;
-}
-.dm-wrap-window {
-  position: relative;
-  overflow: hidden;
-  border-radius: 10px;
-  background: #0c0b0a;
-}
-/* The die-cut edge, over the picture it frames. */
-.dm-wrap-window::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  box-shadow:
-    inset 0 0 0 2px rgb(27 26 23 / 0.9),
-    inset 0 4px 10px rgb(0 0 0 / 0.45);
-}
-.dm-wrap-tab {
-  display: flex;
-  aspect-ratio: 3 / 4;
-  width: 100%;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  background:
-    repeating-linear-gradient(
-      -45deg,
-      rgb(27 26 23 / 0.05) 0 6px,
-      transparent 6px 12px
-    ),
-    #e2d9c6;
-  border: 2px dashed rgb(27 26 23 / 0.35);
-  border-radius: 10px;
-  color: #1b1a17;
-}
-.dm-wrap-counter {
-  position: absolute;
-  right: -14px;
-  bottom: -14px;
-  display: grid;
-  place-items: center;
-  width: 64px;
-  height: 64px;
-  border-radius: 999px;
-  background: #0d0c0b;
-  color: #f3efe6;
-  border: 5px solid #efe9dc;
-  box-shadow: inset 0 2px 5px rgb(0 0 0 / 0.85);
-}
-.dm-wrap-counter[data-rec] {
-  color: #ff6a5f;
-}
-.dm-wrap-stamp {
-  position: absolute;
-  left: -10px;
-  top: 14px;
-  transform: rotate(-4deg);
-  border-radius: 3px;
-  padding: 5px 9px;
-  background: #1b1a17;
-  color: #efe9dc;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-.dm-wrap-hole {
-  display: grid;
-  place-items: center;
-  width: 96px;
-  height: 96px;
-  border-radius: 999px;
-  background: #1b1a17;
-  box-shadow: inset 0 3px 8px rgb(0 0 0 / 0.6);
-}
-.dm-wrap-shutter {
-  width: 72px;
-  height: 72px;
-  border-radius: 999px;
-  background: radial-gradient(circle at 40% 32%, #45443f, #0c0c0b 72%);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.1),
-    0 4px 10px rgb(0 0 0 / 0.5);
-}
-.dm-wrap-shutter[data-video] {
-  background: radial-gradient(circle at 40% 32%, #ff7a70, #b3150c 72%);
-}
-.dm-wrap-shutter[data-off] {
-  opacity: 0.45;
-}
-.dm-wrap-slide {
-  display: flex;
-  overflow: hidden;
-  border: 1.5px solid #1b1a17;
-  border-radius: 999px;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-.dm-wrap-slide > span {
-  padding: 3px 8px;
-}
-.dm-wrap-slide > span:first-child,
-.dm-wrap-slide[data-video] > span:last-child {
-  background: #1b1a17;
-  color: #efe9dc;
-}
-.dm-wrap-slide[data-video] > span:first-child {
-  background: transparent;
-  color: #1b1a17;
-}
-.dm-wrap-video {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-  border: 2px solid #1b1a17;
-}
-.dm-wrap-video::after {
-  content: "";
-  width: 16px;
-  height: 16px;
-  border-radius: 999px;
-  background: #d8261b;
-}
-.dm-wrap-video[data-stop]::after {
-  border-radius: 4px;
-}
-
-/* The wrapper's barcode, the one mark every boxed camera carries. */
-.dm-wrap-barcode {
-  display: block;
-  width: 46px;
-  height: 20px;
-  background: repeating-linear-gradient(
+  -webkit-mask-image: linear-gradient(
     90deg,
-    #1b1a17 0 1px,
-    transparent 1px 2px,
-    #1b1a17 2px 4px,
-    transparent 4px 5px,
-    #1b1a17 5px 6px,
-    transparent 6px 8px,
-    #1b1a17 8px 11px,
-    transparent 11px 12px
+    transparent,
+    #000 16%,
+    #000 84%,
+    transparent
   );
-}
-
-/* ── the phone's own prompt (a stand-in, drawn plain) ───────────────────── */
-
-.dm-ios-scrim {
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-  display: grid;
-  place-items: center;
-  background: rgb(0 0 0 / 0.38);
-}
-/* The page's own line, under the prompt and over its scrim. */
-.dm-ios-note {
-  position: absolute;
-  left: 50%;
-  top: calc(50% + 78px);
-  width: 290px;
-  translate: -50% 0;
-  text-align: center;
-  font-size: 13px;
-  line-height: 1.45;
-  color: rgb(255 255 255 / 0.85);
-  text-shadow: 0 1px 8px rgb(0 0 0 / 0.6);
-}
-.dm-ios-alert {
-  width: 270px;
-  overflow: hidden;
-  border-radius: 22px;
-  background: rgb(242 242 247 / 0.94);
-  color: #000;
-  backdrop-filter: blur(20px);
-  font-family: -apple-system, "SF Pro Text", "Helvetica Neue", sans-serif;
-}
-
-/* ── the waiting room ───────────────────────────────────────────────────── */
-
-.dm-room {
-  position: relative;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: #0d0807;
-  color: #f7efe9;
-}
-/* The one colour here is LIGHT with a source: the safelight a darkroom works
-   under, at the room's top edge. */
-.dm-room-light {
-  position: absolute;
-  inset: -34% -20% auto;
-  height: 72%;
-  pointer-events: none;
-  background: radial-gradient(
-    closest-side,
-    rgb(255 48 32 / 0.36),
-    rgb(255 48 32 / 0.08) 60%,
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 16%,
+    #000 84%,
     transparent
   );
 }
-.dm-room-light-wide {
-  inset: -46% 12% auto;
-  height: 96%;
-}
-.dm-room-grain {
+.dm-tl-track {
   position: absolute;
-  opacity: 0.07;
-  mix-blend-mode: screen;
-  pointer-events: none;
+  inset: 0;
 }
-/* The back of a print: photo paper's warm white and its maker's line. */
-/* Positioned by its caller (every print here is `absolute` in a stack or a
-   pile), so no `position` of its own to beat the utility. */
-.dm-print-back {
-  display: block;
+.dm-tl-cell {
+  position: absolute;
+  top: 6px;
   overflow: hidden;
-  border-radius: 3px;
-  background: #ece3d7;
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.5),
-    0 0 0 1px rgb(0 0 0 / 0.25),
-    0 8px 18px rgb(0 0 0 / 0.55),
-    0 -2px 14px rgb(255 60 40 / 0.14);
+  border-radius: 7px;
 }
-.dm-print-back-line {
+.dm-tl-cell[data-state="exposed"] {
+  background:
+    radial-gradient(90% 70% at 50% 0%, rgb(255 255 255 / 0.1), transparent),
+    linear-gradient(180deg, #24242a, #141417);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.09);
+}
+.dm-tl-cell[data-state="current"] {
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 18px rgb(255 255 255 / 0.3);
+}
+.dm-tl-cell[data-state="fresh"] {
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.16);
+}
+.dm-tl-cell[data-state="rolling"] {
+  background: linear-gradient(180deg, #4a0f0b, #250806);
+  box-shadow:
+    0 0 0 2px #ff3b30,
+    0 0 16px rgb(255 59 48 / 0.45);
+}
+.dm-tl-cell[data-just] {
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.5),
+    0 0 14px rgb(255 226 184 / 0.55);
+}
+.dm-tl-time {
   position: absolute;
-  inset: -30%;
-  transform: rotate(-28deg);
-  font-size: 8px;
-  line-height: 18px;
+  inset-inline: 0;
+  bottom: 3px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1px;
+  font-size: 7.5px;
   font-weight: 600;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: rgb(70 56 44 / 0.2);
-  word-break: break-all;
+  color: rgb(255 255 255 / 0.55);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
-/* Hers: a folded corner, the room's dark showing under the fold. */
-.dm-print-back[data-mine]::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 20px;
-  height: 20px;
-  background: linear-gradient(225deg, #0d0807 50%, #cfc4b5 50%);
-  box-shadow: -1px 1px 2px rgb(0 0 0 / 0.25);
-}
-.dm-stack-badge {
-  position: absolute;
-  bottom: -16px;
-  left: 50%;
-  translate: -50% 0;
-  border-radius: 999px;
-  padding: 4px 11px;
-  background: #f7efe9;
-  color: #1a0f0c;
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
-  box-shadow: 0 4px 12px rgb(0 0 0 / 0.5);
-}
-.dm-pile-print {
-  width: 96px;
-  height: 126px;
-}
-.dm-pile-new {
-  box-shadow:
-    0 0 0 2px rgb(255 255 255 / 0.55),
-    0 14px 26px rgb(0 0 0 / 0.6),
-    0 0 30px rgb(255 80 60 / 0.35);
-}
-/* Her roll out of its canister: the reel camera's strip at the room's scale. */
-.dm-roll-strip {
-  position: absolute;
-  top: 28px;
-  left: 58px;
-  right: -60px;
-  height: 96px;
-  overflow: hidden;
-  border-radius: 2px;
-  background: linear-gradient(180deg, #221c17, #1a1511);
-  transform: rotate(-5deg);
-  transform-origin: left center;
-  box-shadow: 0 12px 30px rgb(0 0 0 / 0.6);
-}
-.dm-roll-cell {
-  position: absolute;
-  top: 26px;
-  width: 68px;
-  height: 44px;
-  border-radius: 2px;
-}
-.dm-roll-cell[data-state="exposed"] {
-  background: radial-gradient(120% 90% at 50% 20%, #4d1e12, #1c0d08 72%);
-  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.5);
-}
-.dm-roll-cell[data-state="current"] {
-  background: #2d2621;
-  box-shadow:
-    inset 0 0 0 1.5px #fff,
-    0 0 14px rgb(255 255 255 / 0.22);
-}
-.dm-roll-cell[data-state="fresh"] {
-  background: linear-gradient(180deg, #3b322a, #2d261f);
-}
-/* The canister: a metal cylinder with its paper label, lit from the left. */
-.dm-canister {
-  position: absolute;
-  top: 12px;
-  left: -14px;
-  width: 84px;
-  height: 124px;
-  border-radius: 12px;
-  background: linear-gradient(
-    90deg,
-    #1a1a1c,
-    #6d6d72 32%,
-    #2a2a2e 68%,
-    #0d0d0e
-  );
-  box-shadow: 0 10px 24px rgb(0 0 0 / 0.6);
-  z-index: 1;
-}
-.dm-canister::before {
-  content: "";
-  position: absolute;
-  inset: 22px 0;
-  background: linear-gradient(90deg, #cfc6b3, #efe7d6 40%, #cfc6b3);
+.dm-tl-time-rec {
+  color: #ffd2cc;
 }
 
-/* Prints face up, with the white border a lab print has. */
-.dm-print-face {
-  overflow: hidden;
-  border-radius: 2px;
-  box-shadow:
-    0 0 0 5px #f4ede3,
-    0 10px 20px rgb(0 0 0 / 0.5);
+/* ── the screen scrolls like a reel ─────────────────────────────────────── */
+
+.dm-reel-col {
+  position: absolute;
+  inset-inline: 0;
+  height: 1500px;
 }
-.dm-tray {
-  position: relative;
+.dm-reel-card {
+  position: absolute;
   overflow: hidden;
-  border-radius: 18px;
-  background: linear-gradient(180deg, #1c0f0c, #120a08);
-  box-shadow:
-    inset 0 0 0 2px rgb(255 255 255 / 0.04),
-    inset 0 18px 40px rgb(0 0 0 / 0.6),
-    0 0 60px rgb(255 40 24 / 0.12);
+  border-radius: 26px;
 }
-.dm-tray-sheen {
+.dm-reel-sealed {
+  background:
+    radial-gradient(70% 40% at 50% 100%, rgb(255 255 255 / 0.08), transparent),
+    linear-gradient(180deg, #1b1b1f, #121215);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08);
+}
+.dm-reel-sealed[data-just] {
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.4),
+    0 0 22px rgb(255 226 184 / 0.4);
+}
+.dm-reel-edge {
+  position: absolute;
+  inset-inline: 18px;
+  bottom: 13px;
+  display: flex;
+  justify-content: space-between;
+  color: rgb(255 255 255 / 0.55);
+  font-size: 12px;
+  font-weight: 600;
+}
+.dm-reel-live {
+  background: #0c0c0c;
+  box-shadow: 0 10px 40px rgb(0 0 0 / 0.6);
+}
+.dm-reel-end {
+  background: #0d0d10;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.1);
+}
+.dm-reel-fresh {
+  background: linear-gradient(180deg, #111114, #0b0b0d);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.1);
+}
+.dm-reel-num {
+  position: absolute;
+  top: 14px;
+  left: 18px;
+  color: rgb(255 255 255 / 0.32);
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.dm-reel-live .dm-reel-num {
+  top: auto;
+  bottom: 14px;
+  color: rgb(255 255 255 / 0.85);
+  text-shadow: 0 1px 8px rgb(0 0 0 / 0.6);
+}
+.dm-reel-rec {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(
-    115deg,
-    transparent 30%,
-    rgb(255 90 70 / 0.1) 45%,
-    transparent 60%
-  );
-  mix-blend-mode: screen;
 }
-/* A latent image: there, faint and red under the safelight, not yet up. */
-.dm-latent {
-  opacity: 0.62;
+.dm-reel-rec rect {
+  fill: none;
+  stroke: #ff3b30;
+  stroke-width: 3;
+  stroke-linecap: round;
 }
-.dm-latent .dm-film > img {
-  filter: grayscale(0.6) sepia(0.6) hue-rotate(-18deg) contrast(0.6)
-    brightness(0.55) blur(0.7px);
-}
-.dm-latent .dm-film-tint {
-  display: none;
-}
-/* The destructive act on the ink ground, in the dark theme's own red. */
-.dm-destructive {
-  background: oklch(0.7 0.19 22 / 0.22);
-  color: oklch(0.82 0.13 22);
-}
-
-/* ── the room's screen ──────────────────────────────────────────────────── */
-
-.dm-wall {
-  position: relative;
-  width: 100%;
-  height: 100vh;
-  overflow: hidden;
-  background: #0d0807;
-  color: #f7efe9;
-}
-.dm-ink {
-  text-shadow:
-    0 1px 2px rgb(0 0 0 / 0.55),
-    0 2px 24px rgb(0 0 0 / 0.45);
-}
-/* An undeveloped frame: film base under the safelight, its time, nothing of
-   its picture. */
-.dm-undeveloped {
-  position: relative;
-  display: block;
-  overflow: hidden;
-  border-radius: 4px;
-  background:
-    radial-gradient(120% 90% at 50% 0%, rgb(255 60 36 / 0.22), transparent 70%),
-    linear-gradient(160deg, #2b1a12 0%, #17100c 55%, #0e0a08 100%);
-  color: rgb(255 236 226 / 0.72);
-}
-.dm-undeveloped[data-new] {
+.dm-reel-live[data-rec] {
   box-shadow:
-    0 0 0 2px rgb(255 255 255 / 0.7),
-    0 0 28px rgb(255 90 60 / 0.5);
+    inset 0 0 0 1px rgb(255 59 48 / 0.35),
+    0 10px 40px rgb(0 0 0 / 0.6);
 }
-.dm-glimpse {
-  position: relative;
-  overflow: hidden;
-  border-radius: 6px;
-  box-shadow: 0 0 70px rgb(255 60 40 / 0.25);
-}
-.dm-glimpse[data-state="up"] {
-  opacity: 0.9;
-}
-.dm-glimpse[data-state="up"] .dm-film > img {
-  filter: sepia(0.3) contrast(0.85) brightness(0.95) blur(2px);
-}
-.dm-glimpse[data-state="down"] {
-  opacity: 0.1;
-}
-.dm-glimpse[data-state="down"] .dm-film > img {
-  filter: blur(9px) brightness(0.6);
-}
-
-/* ── the host's cover ───────────────────────────────────────────────────── */
-
-.dm-cover {
-  position: relative;
-  overflow: hidden;
-  border-radius: 14px;
-  background: #0d0807;
-  color: #f7efe9;
-}
-
-/* ── the small pictures Create shows ────────────────────────────────────── */
-
-.dm-thumb {
-  position: relative;
-  display: block;
-  overflow: hidden;
-  border-radius: 10px;
-}
-.dm-thumb-screen {
-  background: #000;
-}
-.dm-thumb-screen > .dm-film {
-  height: 100%;
-}
-.dm-thumb-strip {
+.dm-rail {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 18%;
-  display: flex;
-  gap: 3px;
-  height: 14%;
-  padding: 3px 4px;
-  background: #1f1a15;
-}
-.dm-thumb-strip > span {
-  flex: 1;
-  border-radius: 1px;
-  background: #3a3129;
-}
-.dm-thumb-strip > span[data-state="exposed"] {
-  background: #4d1e12;
-}
-.dm-thumb-strip > span[data-state="current"] {
-  box-shadow: inset 0 0 0 1px #fff;
-}
-.dm-thumb-shutter {
-  position: absolute;
-  left: 50%;
-  bottom: 6%;
-  width: 24%;
-  aspect-ratio: 1;
-  translate: -50% 0;
-  border-radius: 999px;
-  border: 2px solid #fff;
-  background: radial-gradient(circle, #fff 58%, transparent 61%);
-}
-.dm-thumb-body {
+  top: 190px;
+  right: 6px;
   display: flex;
   flex-direction: column;
-  gap: 6%;
-  padding: 8%;
-  background: linear-gradient(180deg, #232326, #0f0f10);
+  gap: 4px;
 }
-.dm-thumb-label {
-  overflow: hidden;
+.dm-rail > span {
+  display: block;
+  width: 3px;
+  height: 9px;
   border-radius: 2px;
-  padding: 2px 4px;
-  background: #e9e2d3;
-  color: #1b1a17;
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  white-space: nowrap;
+  background: rgb(255 255 255 / 0.14);
 }
-.dm-thumb-window {
-  display: block;
-  overflow: hidden;
-  aspect-ratio: 3 / 4;
-  width: 62%;
-  border-radius: 4px;
-  box-shadow: 0 0 0 3px #050505;
+.dm-rail > span[data-state="spent"] {
+  background: rgb(255 255 255 / 0.42);
 }
-.dm-thumb-dial {
-  position: absolute;
-  right: 9%;
-  top: 36%;
-  display: grid;
-  place-items: center;
-  width: 22%;
-  aspect-ratio: 1;
-  border-radius: 999px;
-  background: #050505;
-  color: #fff;
-  font-size: 9px;
-  font-weight: 700;
-}
-.dm-thumb-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 5%;
-  padding: 8%;
-  background: #efe9dc;
-  color: #1b1a17;
-}
-.dm-thumb-name {
-  font-family: var(--font-heading);
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 0.95;
-  text-transform: uppercase;
-}
-.dm-thumb-wrap .dm-thumb-window {
-  width: 100%;
-  box-shadow: inset 0 0 0 2px #1b1a17;
-}
-.dm-phone-mock {
-  display: block;
-  overflow: hidden;
-  width: 150px;
-  height: 300px;
-  border: 6px solid #111;
-  border-radius: 24px;
-  background: #000;
-}
-.dm-phone-mock > .dm-thumb {
-  border-radius: 0;
+.dm-rail > span[data-state="now"] {
+  height: 18px;
+  background: #fff;
+  box-shadow: 0 0 8px rgb(255 255 255 / 0.5);
 }
 
 /* ── motion, only where it is allowed ───────────────────────────────────── */
 
 @media (prefers-reduced-motion: no-preference) {
-  .dm-room-light {
-    animation: dm-breathe 6s ease-in-out infinite alternate;
+  .dm-flash {
+    animation: dm-flash 3.6s ease-out infinite;
   }
-  .dm-room-grain {
-    animation: dm-grain 1.4s steps(4) infinite;
+  .dm-roll-digit[data-rolled] {
+    animation: dm-roll 3.6s cubic-bezier(0.2, 0.9, 0.25, 1) infinite;
   }
-  .dm-pile-new {
-    animation: dm-land 5s cubic-bezier(0.2, 0.9, 0.25, 1) infinite;
+  .dm-tl-track[data-wound] {
+    animation: dm-wind-x 3.6s cubic-bezier(0.25, 1, 0.3, 1) infinite;
   }
-  .dm-tray-sheen {
-    animation: dm-sheen 8s ease-in-out infinite;
+  .dm-reel-col[data-wound] {
+    animation: dm-wind-y 3.6s cubic-bezier(0.25, 1, 0.3, 1) infinite;
   }
   .dm-rec-dot {
     animation: dm-blink 1s steps(2) infinite;
   }
-  .dm-glimpse[data-state="up"] {
-    animation: dm-surface 7s ease-in-out infinite;
-  }
 }
-@keyframes dm-breathe {
-  from {
-    opacity: 0.82;
-  }
-  to {
-    opacity: 1;
-  }
-}
-@keyframes dm-grain {
+@keyframes dm-flash {
   0% {
-    background-position: 0 0;
+    opacity: 0.85;
   }
+  10%,
   100% {
-    background-position: 160px 80px;
-  }
-}
-/* The newest print lands, then rests: it translates on its own property so
-   the tilt written on the element stays whole. */
-@keyframes dm-land {
-  0% {
-    translate: 0 -54px;
     opacity: 0;
   }
-  12% {
-    translate: 0 0;
-    opacity: 1;
+}
+@keyframes dm-roll {
+  0%,
+  4% {
+    translate: 0 -110%;
+    opacity: 0;
   }
+  16%,
   100% {
     translate: 0 0;
     opacity: 1;
   }
 }
-@keyframes dm-sheen {
+@keyframes dm-wind-x {
   0%,
-  100% {
-    opacity: 0.4;
-    translate: -8% 0;
+  6% {
+    translate: 37px 0;
   }
-  50% {
-    opacity: 1;
-    translate: 8% 0;
+  22%,
+  100% {
+    translate: 0 0;
+  }
+}
+@keyframes dm-wind-y {
+  0%,
+  6% {
+    translate: 0 457px;
+  }
+  26%,
+  100% {
+    translate: 0 0;
   }
 }
 @keyframes dm-blink {
@@ -1176,13 +792,482 @@
     opacity: 0.2;
   }
 }
-@keyframes dm-surface {
-  0%,
-  100% {
-    opacity: 0.12;
+
+/* A finished roll has nothing left to press: the controls go, the end stays. */
+[data-dm-controls][data-off] {
+  visibility: hidden;
+}
+
+/* ── the waiting rooms ──────────────────────────────────────────────────── */
+
+.dm-room {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #0a0a0b;
+  color: #f4f4f5;
+}
+.dm-room[data-light="safe"] {
+  background: #0d0807;
+  color: #f7efe9;
+}
+.dm-room[data-light="glow"] {
+  background: #050506;
+}
+.dm-room[data-light="night"] {
+  background: #06070a;
+}
+/* Each room's one light, with a source: a lamp over the sheet, the
+   darkroom's safelight, the party's own colour, the night's moonlight. */
+.dm-room-light {
+  position: absolute;
+  inset: -34% -20% auto;
+  height: 72%;
+  pointer-events: none;
+  background: radial-gradient(
+    closest-side,
+    rgb(255 255 255 / 0.1),
+    rgb(255 255 255 / 0.03) 60%,
+    transparent
+  );
+}
+.dm-room[data-light="safe"] .dm-room-light {
+  background: radial-gradient(
+    closest-side,
+    rgb(255 48 32 / 0.36),
+    rgb(255 48 32 / 0.08) 60%,
+    transparent
+  );
+}
+.dm-room[data-light="night"] .dm-room-light {
+  background: radial-gradient(
+    closest-side,
+    rgb(170 190 255 / 0.12),
+    rgb(170 190 255 / 0.03) 60%,
+    transparent
+  );
+}
+.dm-room[data-light="glow"] .dm-room-light {
+  inset: 0;
+  height: auto;
+  z-index: 1;
+  background: radial-gradient(
+    ellipse 70% 60% at 50% 42%,
+    rgb(0 0 0 / 0.04),
+    rgb(0 0 0 / 0.5)
+  );
+}
+.dm-room-grain {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  opacity: 0.06;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+.dm-room-sub {
+  font-size: 11px;
+  line-height: 1.3;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+.dm-room-dim {
+  opacity: 0.72;
+}
+.dm-room-faint {
+  opacity: 0.45;
+}
+.dm-room-round {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.1);
+}
+.dm-arrival {
+  display: inline-flex;
+  margin-top: 10px;
+  border-radius: 999px;
+  padding: 3px 10px;
+  background: rgb(255 255 255 / 0.09);
+  font-size: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The contact sheet: a square a shot, in the order the night took them. */
+.dm-sheet {
+  display: grid;
+  width: 100%;
+  gap: 3px;
+}
+.dm-cell {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 3px;
+  background: #1b1b1e;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.05);
+}
+/* The newest squares are still warm with being shot, cooling as more land. */
+.dm-cell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgb(255 236 214 / calc(var(--warm, 0) * 0.2));
+}
+.dm-cell[data-mine] {
+  z-index: 1;
+  box-shadow:
+    0 0 0 1.5px #fff,
+    0 0 12px rgb(255 255 255 / 0.35);
+}
+.dm-cell[data-new] {
+  background: #2c2b2e;
+  box-shadow:
+    0 0 0 1.5px rgb(255 255 255 / 0.85),
+    0 0 14px rgb(255 240 220 / 0.6);
+}
+.dm-key {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+  background: linear-gradient(135deg, #e9b27a, #6c7fd8);
+  box-shadow: 0 0 0 1.5px #fff;
+}
+
+/* The stack, squared: a deck of prints face down, fourteen edges deep. */
+.dm-deck {
+  position: relative;
+  display: block;
+  width: 196px;
+  height: 288px;
+}
+.dm-deck-under,
+.dm-deck-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 196px;
+  height: 252px;
+  border-radius: 3px;
+}
+.dm-deck-under {
+  background: #cfc3b4;
+  box-shadow: inset 0 -1px 0 rgb(0 0 0 / 0.35);
+}
+.dm-deck-under:nth-child(odd) {
+  background: #e2d7c9;
+}
+.dm-deck-under:first-child {
+  box-shadow:
+    inset 0 -1px 0 rgb(0 0 0 / 0.35),
+    0 16px 30px rgb(0 0 0 / 0.6),
+    0 0 60px rgb(255 48 32 / 0.16);
+}
+.dm-print-back {
+  overflow: hidden;
+  background: #ece3d7;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.55),
+    0 0 0 1px rgb(0 0 0 / 0.2);
+}
+/* The maker's line a lab's paper carries across its back, here the host's
+   names, in straight rows. */
+.dm-print-back-line {
+  position: absolute;
+  inset: 14px 12px;
+  overflow: hidden;
+  font-size: 7.5px;
+  line-height: 19px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgb(70 56 44 / 0.18);
+  word-break: break-all;
+}
+.dm-print-stamp {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  color: rgb(70 56 44 / 0.62);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+/* Her six, marked: a tab on the deck's edge for each print of hers in it. */
+.dm-deck-tab {
+  position: absolute;
+  right: -11px;
+  width: 13px;
+  height: 22px;
+  border-radius: 0 5px 5px 0;
+  background: #f7efe9;
+  box-shadow:
+    inset 1px 0 0 rgb(0 0 0 / 0.12),
+    0 0 12px rgb(255 70 50 / 0.3);
+}
+
+/* The party's colours: its photographs, blurred past any picture. */
+.dm-glow {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  filter: blur(44px) saturate(1.45) brightness(0.9);
+}
+.dm-pool {
+  position: absolute;
+  overflow: hidden;
+  border-radius: 999px;
+  opacity: 0.9;
+}
+.dm-thumb {
+  display: block;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.18);
+}
+
+/* The night on a dial. */
+.dm-dial {
+  display: block;
+  overflow: visible;
+}
+.dm-dial path {
+  fill: none;
+  stroke-linecap: round;
+}
+.dm-dial-track {
+  stroke: rgb(255 255 255 / 0.06);
+  stroke-width: 2;
+}
+.dm-dial-ahead {
+  stroke: rgb(255 255 255 / 0.22);
+  stroke-width: 2;
+  stroke-dasharray: 1.5 6;
+}
+.dm-dial-past {
+  stroke: rgb(255 255 255 / 0.5);
+  stroke-width: 2;
+}
+.dm-dial-bar {
+  stroke: rgb(255 255 255 / 0.78);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+.dm-dial-bar[data-new] {
+  stroke: #fff;
+  filter: drop-shadow(0 0 3px rgb(255 255 255 / 0.9));
+}
+.dm-dial-hers {
+  fill: #fff;
+  filter: drop-shadow(0 0 4px rgb(255 255 255 / 0.85));
+}
+.dm-dial-now {
+  fill: #fff;
+  stroke: rgb(255 255 255 / 0.25);
+  stroke-width: 8;
+}
+.dm-dial-develop {
+  fill: none;
+  stroke: #ffd27a;
+  stroke-width: 2;
+  filter: drop-shadow(0 0 4px rgb(255 200 110 / 0.8));
+}
+.dm-dial-label {
+  fill: rgb(255 255 255 / 0.5);
+  font-size: 11px;
+  font-weight: 600;
+}
+.dm-dial-count {
+  fill: #fff;
+  font-family: var(--font-heading);
+  font-size: 58px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.dm-dial-sub {
+  fill: rgb(255 255 255 / 0.72);
+  font-size: 13px;
+}
+.dm-dial-faint {
+  fill: rgb(255 255 255 / 0.45);
+  font-size: 11px;
+}
+.dm-yours-pill {
+  border-radius: 999px;
+  padding: 8px 16px;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.22);
+  font-size: 14px;
+}
+
+/* Her shots, opened: square, each with its minute and its Delete. */
+.dm-hers {
+  overflow: hidden;
+  border-radius: 10px;
+}
+.dm-hers-when {
+  position: absolute;
+  bottom: 6px;
+  left: 8px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  text-shadow: 0 1px 6px rgb(0 0 0 / 0.7);
+}
+/* Dealt out of the stack: prints face up in a row, the next one waiting. */
+.dm-dealt {
+  display: flex;
+  gap: 18px;
+  overflow: hidden;
+  padding: 8px 6px 16px;
+}
+.dm-hers-print {
+  width: 232px;
+  flex-shrink: 0;
+  border-radius: 2px;
+  box-shadow:
+    0 0 0 7px #f4ede3,
+    0 14px 28px rgb(0 0 0 / 0.55);
+}
+.dm-hers-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-radius: 16px;
+  padding: 10px;
+  background: rgb(255 255 255 / 0.05);
+}
+/* The destructive act on the ink ground, in the dark theme's own red. */
+.dm-destructive {
+  background: oklch(0.7 0.19 22 / 0.22);
+  color: oklch(0.82 0.13 22);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .dm-room-light {
+    animation: dm-breathe 6s ease-in-out infinite alternate;
   }
-  40%,
-  60% {
+  .dm-cell[data-new] {
+    animation: dm-land-cell 4.8s cubic-bezier(0.2, 0.9, 0.25, 1) infinite;
+  }
+  .dm-deck-top {
+    animation: dm-land-print 4.8s cubic-bezier(0.2, 0.9, 0.25, 1) infinite;
+  }
+  .dm-pool {
+    animation: dm-drift 14s ease-in-out infinite alternate;
+  }
+  .dm-pool[data-new] {
+    animation: dm-bloom 4.8s cubic-bezier(0.2, 0.9, 0.25, 1) infinite;
+  }
+  .dm-dial-bar[data-new],
+  .dm-dial-now {
+    animation: dm-glint 4.8s ease-out infinite;
+  }
+  .dm-arrival {
+    animation: dm-arrive 4.8s ease-out infinite;
+  }
+}
+@keyframes dm-breathe {
+  from {
     opacity: 0.8;
   }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes dm-land-cell {
+  0% {
+    opacity: 0;
+    scale: 1.8;
+  }
+  10%,
+  100% {
+    opacity: 1;
+    scale: 1;
+  }
+}
+@keyframes dm-land-print {
+  0% {
+    opacity: 0;
+    translate: 0 -40px;
+  }
+  12%,
+  100% {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@keyframes dm-drift {
+  from {
+    translate: -12px -8px;
+  }
+  to {
+    translate: 14px 10px;
+  }
+}
+@keyframes dm-bloom {
+  0% {
+    opacity: 0;
+    scale: 0.4;
+  }
+  20%,
+  100% {
+    opacity: 0.9;
+    scale: 1;
+  }
+}
+@keyframes dm-glint {
+  0% {
+    opacity: 0.2;
+  }
+  12%,
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes dm-arrive {
+  0% {
+    opacity: 0;
+    translate: 0 4px;
+  }
+  10%,
+  100% {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+/* The colour room, brighter where the party's light pools; dimmer behind her
+   own shots, which are the picture there. */
+.dm-room[data-light="glow"] .dm-glow {
+  filter: blur(40px) saturate(1.9) brightness(1.2);
+}
+.dm-glow[data-dim] {
+  opacity: 0.45;
+}
+.dm-room[data-light="glow"] [data-dm-count] {
+  text-shadow: 0 2px 30px rgb(0 0 0 / 0.45);
+}
+.dm-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.35;
+}
+.dm-dot[data-on] {
+  opacity: 1;
+}
+.dm-dial-now-label {
+  fill: #fff;
 }
