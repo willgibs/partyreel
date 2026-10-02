@@ -47,6 +47,12 @@ export type RoomCard = {
   amber?: boolean;
   /** Review only: the live count, so a return from the room ticks it down. */
   count?: number;
+  /**
+   * Settings only, while a guest still needs something its steps hold ("2 left", event-ready): the line
+   * reads in the foreground, a count to act on, never the needs-action amber, since nothing waits on the
+   * host right now.
+   */
+  strong?: boolean;
 };
 
 /**
@@ -220,7 +226,9 @@ export function EventCardsRow({
                       stuck && "hidden",
                       card.amber
                         ? "font-medium text-warning"
-                        : "text-muted-foreground",
+                        : card.strong
+                          ? "font-medium text-foreground"
+                          : "text-muted-foreground",
                     )}
                   >
                     {card.count != null ? (

@@ -537,11 +537,10 @@ describe("the album, and the bin as its filter", () => {
     // A host reading "48 photos" must be reading the number their guests can
     // see or they have tucked away. The bin says its own size on its own header.
     //
-    // The album branch leads with albumCount and falls through to the LAUNCH
-    // list's outstanding count when the album is empty (`empty=list`, Will
-    // 2026-09-21: before the first photograph this section is the launch list,
-    // and a "0" beside its name would be a count of the wrong thing). What is
-    // still forbidden, and is what this guards, is the bin reaching that branch.
+    // The album branch is albumCount alone, and none at all on an empty album,
+    // never a "0" (what an event still needs is the checklist's now, event-ready
+    // `list=head`). What is forbidden, and is what this guards, is the bin
+    // reaching that branch.
     const src = read(GALLERY);
     const branch = /view === "album"\s*\?([\s\S]*?):\s*bin\.status/.exec(src);
     expect(

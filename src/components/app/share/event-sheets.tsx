@@ -4,6 +4,7 @@ import { EventSettingsSheet } from "@/components/app/event-settings/event-settin
 import type { Tier } from "@/lib/constants/tiers";
 import type { DoorCounts } from "@/lib/db/queries/event-doors";
 import type { HostEvent } from "@/lib/db/queries/events";
+import type { ReadyFacts } from "@/lib/events/readiness";
 
 import { EventCodeModal } from "./event-code-modal";
 import { EventShareSheet } from "./event-share-sheet";
@@ -31,6 +32,7 @@ export function EventSheets({
   siteUrl,
   slugLocked,
   reelSample,
+  ready,
 }: {
   event: HostEvent;
   tier: Tier;
@@ -47,6 +49,8 @@ export function EventSheets({
   slugLocked: boolean;
   /** One of the event's photographs for Settings to show the reel's looks on, or null. */
   reelSample: string | null;
+  /** The event's readiness facts: Settings' rail ticks its steps from them (`lib/events/readiness.ts`). */
+  ready: ReadyFacts;
 }) {
   const {
     sheet,
@@ -55,6 +59,7 @@ export function EventSheets({
     settingsPage,
     openSettingsPage,
     closeSettingsPage,
+    openCode,
   } = useEventShare();
 
   return (
@@ -88,6 +93,12 @@ export function EventSheets({
         pendingCount={pendingCount}
         social={social}
         reelSample={reelSample}
+        ready={ready}
+        // Settings' fifth step is the code: it closes Settings and opens the code card, the hub's own.
+        onOpenCode={() => {
+          closeSheet();
+          openCode();
+        }}
       />
     </>
   );

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { Eye, Images, Users } from "lucide-react";
 
@@ -7,16 +7,13 @@ import { appNotFoundMetadata } from "@/app/(app)/not-found.metadata";
 import { AppNotFoundScreen } from "@/app/(app)/not-found.screen";
 
 import { HostCreditLookProvider } from "@/components/app/event-blocks/credit-look";
+import { EventChecklist } from "@/components/app/event-feed/checklist";
 import { EventCardsRow } from "@/components/app/event-feed/event-cards-row";
 import { reviewCardFace } from "@/components/app/event-feed/room-card";
 import {
   EventGallery,
   EventLive,
 } from "@/components/app/event-feed/event-gallery";
-import {
-  LaunchList,
-  launchItems,
-} from "@/components/app/event-feed/launch-list";
 import {
   HostAlbumProvider,
   HubAlbumCount,
@@ -40,6 +37,12 @@ import {
   toBillingTier,
   videosAllowedForTier,
 } from "@/lib/constants/tiers";
+import {
+  calendarDayInZone,
+  resolveViewerZone,
+  serverZone,
+  VIEWER_ZONE_HEADER,
+} from "@/lib/dashboard/viewer-day";
 import { getLinkStats } from "@/lib/db/queries/analytics";
 import { getDoorCounts } from "@/lib/db/queries/event-doors";
 import { getEvent } from "@/lib/db/queries/events";
@@ -50,6 +53,7 @@ import {
   getEventSocialSettings,
   getMyProfileSlug,
 } from "@/lib/db/queries/social";
+import { getHostStorageSummary } from "@/lib/db/queries/storage";
 import { guestCount } from "@/lib/events/event-guests";
 import { formatCount } from "@/lib/format/count";
 import {
@@ -63,7 +67,13 @@ import { firstWindowIds, newestPreviewUrl } from "@/lib/event/hub-album";
 import { readHostLinksBody } from "@/lib/event/host-links.server";
 import { REEL_MINIMUM } from "@/lib/event/reel-progress";
 import { legacySectionRoom, resolveEventSheet } from "@/lib/event/sections";
+import {
+  checklistOver,
+  type ReadyFacts,
+  stepsLeft,
+} from "@/lib/events/readiness";
 import { preferredEventUrl } from "@/lib/events/share-urls";
+import { captureError } from "@/lib/observability/sentry";
 import {
   resolveRowStep,
   TILE_SIZE_COOKIE,
@@ -180,7 +190,7 @@ export default async function EventDetailPage({
   const { supabase } = await getRequestAuth();
   // ★ THE DOOR'S NUMBERS (the doors, 20260929120000): who is in, who waits, the list, read on the
   // service role only now that `getEvent` has proved the host (RLS). They feed the Guests card's
-  // waiting count and Settings' door page ("31 guests are already in").
+  // waiting count, the code's corner mark and Settings' door page ("31 guests are already in").
   const [
     plan,
     linkStats,
@@ -188,8 +198,10 @@ export default async function EventDetailPage({
     socialSettings,
     myProfileSlug,
     jar,
+    headerList,
     liveReelFacts,
     doorCounts,
+    storage,
   ] = await Promise.all([
     planHubManifest(supabase, event.id),
     getLinkStats(event.id),
@@ -197,8 +209,16 @@ export default async function EventDetailPage({
     getEventSocialSettings(event.id),
     getMyProfileSlug(),
     cookies(),
+    headers(),
     getLiveReelServerFacts(event.id),
     getDoorCounts(event.id),
+    // The checklist's room row, the dashboard meter's own read. ★ A ROW IS NEVER WORTH THE PAGE: a failed
+    // read leaves the row out (the quiet direction; the dashboard's meter still says it) and says so
+    // where failures are read.
+    getHostStorageSummary().catch((error: unknown) => {
+      captureError("db", error, { seam: "hub_checklist_storage" });
+      return null;
+    }),
   ]);
   // The first window's links and the Reel card, in parallel: both read off the
   // manifest, neither off the other. The card reads the whole album's flags (its
@@ -238,18 +258,44 @@ export default async function EventDetailPage({
   // the real number on their OWN event, whatever its visibility.
   const guestsCount = guestCount(guests);
 
-  // ★ Visibility left the header's chip row for the Settings card's value line
-  // (the header's two chips are gone: "accepting uploads" became the code's own
-  // state). The word for `visibility = 'open'` is "Public", never "Open" (Will,
-  // 2026-09-02), and the door's words come from the one server-safe record.
-  // The launch list's outstanding items (`empty=list`), derived from the event's
-  // own nulls by the same pure function the list renders from — so the section
-  // header's count and the list can never disagree.
-  const launch = launchItems({
-    eventId: event.id,
+  // ★ READY FOR GUESTS (event-ready, Will 2026-10-02): the checklist at the head of the hub, Settings'
+  // rail and the Settings card all read these facts through one function (`lib/events/readiness.ts`).
+  // Every one is state already read above; the album's two ride live on the client from here.
+  // ★ The code ticks at its first open, and "opened" is the header's own Views number, so "Opened 3
+  // times" and the eye's 3 never disagree. The storage percent is the dashboard meter's own math.
+  const storageCap = effectiveStorageCap(
+    tier,
+    profile?.storage_cap_bytes ?? null,
+  );
+  const storagePct =
+    storage && storageCap && storageCap > 0
+      ? Math.min(100, Math.round((storage.activeBytes / storageCap) * 100))
+      : 0;
+  const readyFacts: ReadyFacts = {
+    door: event.door,
+    hasPassword: event.has_password,
+    guestsIn: doorCounts.in,
+    invited: doorCounts.invited,
+    acceptingUploads: event.accepting_uploads,
+    approved: seed.sync.counts.album,
+    playable: reelFace.have,
+    showReel: event.show_reel,
+    liveReelEnabled: liveReelFacts.liveReelEnabled,
     eventDate: event.event_date,
     description: event.description,
-  });
+    opened: views,
+    storagePct,
+  };
+  // ★ "Before guests arrive" is moot once they have: from the day after the event's date the checklist
+  // steps aside, and the Settings card stops counting. The day is the VIEWER's (host-app.md: Vercel's
+  // UTC is already tomorrow from evening on west of it), read as the dashboard reads it.
+  const viewerZone = resolveViewerZone(
+    headerList.get(VIEWER_ZONE_HEADER),
+    serverZone(),
+  );
+  const { today } = calendarDayInZone(new Date().getTime(), viewerZone);
+  const over = checklistOver(event.event_date, today);
+  const guestNeeds = over ? 0 : stepsLeft(readyFacts);
 
   const cards = [
     {
@@ -276,9 +322,12 @@ export default async function EventDetailPage({
     },
     {
       id: "settings" as const,
-      // The door, in the one function that words it everywhere (Public, Private
-      // and its gate, Only me).
-      value: doorLabel(event.door),
+      // ★ WHAT A GUEST STILL NEEDS, COUNTED, while Settings' steps are not all ticked (event-ready: the
+      // steps live in Settings, so its card says how many are left); then the door, in the one function
+      // that words it everywhere (Public, Private and its gate, Only me).
+      ...(guestNeeds > 0
+        ? { value: `${formatCount(guestNeeds)} left`, strong: true }
+        : { value: doorLabel(event.door) }),
     },
   ];
 
@@ -311,10 +360,7 @@ export default async function EventDetailPage({
         <WelcomeToPro
           applied={tier !== "free"}
           planName={TIER_NAMES[tier]}
-          capBytes={effectiveStorageCap(
-            tier,
-            profile?.storage_cap_bytes ?? null,
-          )}
+          capBytes={storageCap}
           nextUrl={`/dashboard/${event.id}${room ? `?room=${room}` : ""}`}
           door={{ label: "Back to what you were doing" }}
         />
@@ -329,7 +375,7 @@ export default async function EventDetailPage({
       <EventShareProvider initialSheet={resolveEventSheet(room)}>
         {/* THE ALBUM'S STORE wraps everything on the page that shows the album
             or a number off it: the header's count and pip, the cards' Review
-            and Reel, the album and its header. */}
+            and Reel, the checklist and Settings' rail, the album and its header. */}
         <HostAlbumProvider seed={seed} qrToken={event.qr_token}>
           {/* THE HEADER AS ONE OBJECT: the code's height IS the title + metadata
             + link stack, so the two columns read as a single block rather than
@@ -341,7 +387,9 @@ export default async function EventDetailPage({
               eventName={event.name}
               joinUrl={eventLink}
               qrStyle={event.qr_style}
+              door={event.door}
               acceptingUploads={event.accepting_uploads}
+              waiting={doorCounts.waiting}
             />
             <div className="min-w-0 flex-1 space-y-1">
               {/* No size override: the event name is this page's h1 and wears the
@@ -396,9 +444,17 @@ export default async function EventDetailPage({
                   reel={reel}
                   moderationOn={isModerationOn}
                 />
+                <EventChecklist
+                  eventId={event.id}
+                  facts={readyFacts}
+                  over={over}
+                  plan={{
+                    tier,
+                    hasBilling: Boolean(profile?.stripe_customer_id),
+                  }}
+                />
                 <EventGallery
                   eventId={event.id}
-                  launchCount={launch.length}
                   videosAllowed={videosAllowedForTier(tier)}
                   initialStep={rowStep}
                   tier={tier}
@@ -407,42 +463,38 @@ export default async function EventDetailPage({
                     eventId={event.id}
                     shareUrl={eventLink}
                     rhythmSeed={rhythmSeed}
-                    launchList={
-                      <LaunchList
-                        eventId={event.id}
-                        eventDate={event.event_date}
-                        description={event.description}
-                      />
-                    }
                   />
                 </EventGallery>
               </HostSelectionProvider>
             </HostAddProvider>
           </HostCreditLookProvider>
-        </HostAlbumProvider>
 
-        <EventSheets
-          event={event}
-          tier={tier}
-          counts={doorCounts}
-          pendingCount={pendingCount}
-          social={
-            socialSettings
-              ? {
-                  displayInProfile: socialSettings.displayInProfile,
-                  hostHasSlug: Boolean(myProfileSlug),
-                }
-              : null
-          }
-          joinUrl={eventLink}
-          prettyUrl={prettyUrl}
-          siteUrl={siteUrl}
-          slugLocked={isSettingLocked("custom_slug", tier)}
-          // Settings shows the reel's looks on one of this album's own
-          // photographs: the reel's opening still, else the newest previewed
-          // photo the first window already linked.
-          reelSample={reelFace.stills[0] ?? newestPreviewUrl(seed)}
-        />
+          {/* Inside the album's store, after the album: Settings' rail ticks the reel's first photos as
+              the album brings them, and a sheet is never inside a section a filter could unmount. */}
+          <EventSheets
+            event={event}
+            tier={tier}
+            counts={doorCounts}
+            pendingCount={pendingCount}
+            social={
+              socialSettings
+                ? {
+                    displayInProfile: socialSettings.displayInProfile,
+                    hostHasSlug: Boolean(myProfileSlug),
+                  }
+                : null
+            }
+            joinUrl={eventLink}
+            prettyUrl={prettyUrl}
+            siteUrl={siteUrl}
+            slugLocked={isSettingLocked("custom_slug", tier)}
+            // Settings shows the reel's looks on one of this album's own
+            // photographs: the reel's opening still, else the newest previewed
+            // photo the first window already linked.
+            reelSample={reelFace.stills[0] ?? newestPreviewUrl(seed)}
+            ready={readyFacts}
+          />
+        </HostAlbumProvider>
       </EventShareProvider>
     </div>
   );

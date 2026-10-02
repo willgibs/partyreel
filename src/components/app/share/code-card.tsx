@@ -29,7 +29,7 @@ import "./share.css";
  *
  * So one card, from every door: the host's code on the event page (where it
  * started, his `share=room` mini-modal), the host's code chip on the dashboard,
- * the launch list's Invite and a guest's Invite. Each door reads Invite; the
+ * the checklist's Invite and a guest's Invite. Each door reads Invite; the
  * card's Share hands the link to the phone's own share sheet (Messages,
  * AirDrop), and where a browser has none (most laptops) Share is simply not
  * offered and Copy link stands alone. A host's full kit waits one tap behind

@@ -30,7 +30,9 @@ import { ClosedLine, ClosedLog } from "@/components/app/report-review";
 import { StorageMeter } from "@/components/app/dashboard/storage-meter";
 import { MediaTile } from "@/components/app/media-grid";
 import { ReviewRoom } from "@/components/app/event-feed/review-room";
+import { EventChecklist } from "@/components/app/event-feed/checklist";
 import { DoorPage } from "@/components/app/event-settings/door-page";
+import { SettingsNext } from "@/components/app/event-settings/event-settings-sheet";
 import type { SettingsPage } from "@/components/app/event-settings/settings-pages";
 import { SettingsRows } from "@/components/app/event-settings/settings-rows";
 import {
@@ -45,8 +47,11 @@ import { AddsPage } from "@/components/app/event-settings/adds-page";
 import { EventPage } from "@/components/app/event-settings/event-page";
 import { ReelPage } from "@/components/app/event-settings/reel-page";
 import type { ReviewWrites } from "@/components/app/event-feed/use-review-triage";
+import { HostAddProvider } from "@/components/app/host-add-provider";
 import { ProPriceList } from "@/components/app/pricing/pro-price-list";
 import { QrPresetPicker } from "@/components/app/qr-preset-picker";
+import { EventCodeDoor } from "@/components/app/share/event-code-door";
+import { EventShareProvider } from "@/components/app/share/event-share-provider";
 import { largestFirst } from "@/components/app/storage/storage-list-rules";
 import {
   StorageSourceProvider,
@@ -65,6 +70,8 @@ import type { QrStyleKey } from "@/lib/constants/qr-presets";
 import { GIGABYTE, planById } from "@/lib/constants/tiers";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import type { StorageItem } from "@/lib/db/queries/storage-list";
+import type { Door } from "@/lib/event/door/door";
+import type { ReadyFacts } from "@/lib/events/readiness";
 import { buildOperatorQueue } from "@/lib/admin/queue";
 import type { JobHealthReport } from "@/lib/jobs/health-summary";
 
@@ -784,11 +791,33 @@ const WEDDING = hostEvent({
 });
 
 /**
+ * THE WEDDING'S READINESS, as the hub would read it: one photo in (the reel one short), its date and its
+ * note written, and the code never opened, so the steps show ticks and steps still open side by side.
+ */
+const WEDDING_READY: ReadyFacts = {
+  door: "open",
+  hasPassword: false,
+  guestsIn: 31,
+  invited: 24,
+  acceptingUploads: true,
+  approved: 1,
+  playable: 1,
+  showReel: true,
+  liveReelEnabled: true,
+  eventDate: "2026-10-10",
+  description: "Add everything from the ceremony too.",
+  opened: 0,
+  storagePct: 12,
+};
+
+/**
  * Settings at rest and one level in, drawn inline (never in the popup, which would cover the page):
- * the four rows, and whichever page a row opens, with the back row up.
+ * the steps, and whichever page a step opens, with the back row up and Next at its foot. The fifth
+ * step's door is the hub's code card; here, with no hub behind it, it comes back to the steps.
  */
 export function SettingsDemo({ tier = "pro" }: { tier?: "free" | "pro" }) {
   const [page, setPage] = useState<SettingsPage | null>(null);
+  const backToSteps = () => setPage(null);
   return (
     <SettingsProvider
       event={WEDDING}
@@ -821,10 +850,152 @@ export function SettingsDemo({ tier = "pro" }: { tier?: "free" | "pro" }) {
         ) : page === "event" ? (
           <EventPage />
         ) : (
-          <SettingsRows onOpenPage={setPage} />
+          <SettingsRows
+            onOpenPage={setPage}
+            ready={WEDDING_READY}
+            onOpenCode={backToSteps}
+          />
         )}
+        {page ? (
+          <SettingsNext page={page} onNext={setPage} onOpenCode={backToSteps} />
+        ) : null}
       </div>
     </SettingsProvider>
+  );
+}
+
+/* ── THE CHECKLIST AT THE HUB'S HEAD (event-ready r1), Maya's 30th at two moments ─────────────────── */
+
+/** Maya's 30th an hour after Create: named and styled, nothing else touched. */
+const FRESH_30TH: ReadyFacts = {
+  door: "open",
+  hasPassword: false,
+  guestsIn: 0,
+  invited: 0,
+  acceptingUploads: true,
+  approved: 0,
+  playable: 0,
+  showReel: true,
+  liveReelEnabled: true,
+  eventDate: null,
+  description: null,
+  opened: 0,
+  storagePct: 4,
+};
+
+const CHECKLIST_MOMENTS = {
+  /** The whole list: the album is still empty. */
+  fresh: FRESH_30TH,
+  /** Three photos in and the date set, the code never opened: folded to one line over the album. */
+  seeded: {
+    ...FRESH_30TH,
+    approved: 3,
+    playable: 3,
+    eventDate: "2026-10-10",
+  },
+  /** Ready for guests, the welcome's note still worth writing, and the account's shelf running short. */
+  short: {
+    ...FRESH_30TH,
+    eventDate: "2026-10-10",
+    opened: 6,
+    storagePct: 91,
+  },
+} satisfies Record<string, ReadyFacts>;
+
+/**
+ * The checklist as the hub draws it under the cards, on production's own providers (the code card's
+ * Invite, the album's uploader, Settings' pages) with no hub behind them: its doors answer and open
+ * nothing here. Show unfolds the folded line, and Fold folds it back.
+ */
+export function ChecklistDemo({
+  moment,
+}: {
+  moment: keyof typeof CHECKLIST_MOMENTS;
+}) {
+  return (
+    <EventShareProvider initialSheet={null}>
+      <HostAddProvider>
+        <EventChecklist
+          eventId="demo"
+          facts={CHECKLIST_MOMENTS[moment]}
+          over={false}
+          plan={{ tier: "free", hasBilling: false }}
+        />
+      </HostAddProvider>
+    </EventShareProvider>
+  );
+}
+
+/** The code's five doors, as the hub's header wears them. */
+const CODE_DOORS: readonly {
+  id: string;
+  title: string;
+  door: Door;
+  acceptingUploads: boolean;
+  waiting: number;
+}[] = [
+  {
+    id: "public",
+    title: "Public",
+    door: "open",
+    acceptingUploads: true,
+    waiting: 0,
+  },
+  {
+    id: "approve",
+    title: "You let each in, 2 waiting",
+    door: "approve",
+    acceptingUploads: true,
+    waiting: 2,
+  },
+  {
+    id: "password",
+    title: "A password",
+    door: "password",
+    acceptingUploads: true,
+    waiting: 0,
+  },
+  {
+    id: "only-me",
+    title: "Only me",
+    door: "private",
+    acceptingUploads: true,
+    waiting: 0,
+  },
+  {
+    id: "paused",
+    title: "Uploads paused",
+    door: "open",
+    acceptingUploads: false,
+    waiting: 0,
+  },
+];
+
+/**
+ * The hub's code in each of five doors, its corner mark's tooltip on hover or focus and a tap. Pressing a
+ * code would open the hub's code card, which is not mounted here.
+ */
+export function CodeDoorDemo() {
+  return (
+    <EventShareProvider initialSheet={null}>
+      <div className="flex flex-wrap gap-x-8 gap-y-6">
+        {CODE_DOORS.map((d) => (
+          <figure key={d.id} data-code-door-demo={d.id} className="space-y-3">
+            <EventCodeDoor
+              eventName="Maya's 30th"
+              joinUrl="https://partyreel.com/e/3f0c1d2e4a5b6c7d8e9f0a1b2c3d4e5f"
+              qrStyle="classic"
+              door={d.door}
+              acceptingUploads={d.acceptingUploads}
+              waiting={d.waiting}
+            />
+            <figcaption className="text-xs text-muted-foreground">
+              {d.title}
+            </figcaption>
+          </figure>
+        ))}
+      </div>
+    </EventShareProvider>
   );
 }
 
