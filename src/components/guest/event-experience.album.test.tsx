@@ -40,7 +40,12 @@ vi.mock("@/components/guest/gallery-live", () => ({
     return <div data-testid="album">{children}</div>;
   },
 }));
-vi.mock("@/components/guest/live-gallery", () => ({ LiveGallery: part }));
+// The album's view says only which Add it was handed: the empty state's own (`onAddFirst`) or none.
+vi.mock("@/components/guest/live-gallery", () => ({
+  LiveGallery: ({ onAddFirst }: { onAddFirst?: () => void }) => (
+    <p data-testid="add-first">{onAddFirst ? "yes" : "no"}</p>
+  ),
+}));
 vi.mock("@/components/guest/reel/live-reel", () => ({
   LiveReel: wrap,
   LiveReelTile: part,
@@ -140,17 +145,25 @@ const EVENT = {
   doorPass: null,
 } as unknown as GuestEvent;
 
-async function page(galleryPromise: Promise<never>) {
+async function page(
+  galleryPromise: Promise<never>,
+  over: {
+    event?: GuestEvent;
+    approvedTotal?: number;
+    waitingOnArrival?: boolean;
+  } = {},
+) {
+  const event = over.event ?? EVENT;
   await act(async () => {
     render(
       // The page's own boundary, as the (guest) route's error.tsx stands above it.
       <Suspense fallback={null}>
         <EventExperience
-          event={EVENT}
-          qrToken={EVENT.qr_token}
-          joinUrl={`https://partyreel.test/e/${EVENT.qr_token}`}
+          event={event}
+          qrToken={event.qr_token}
+          joinUrl={`https://partyreel.test/e/${event.qr_token}`}
           galleryPromise={galleryPromise}
-          stats={{ approvedTotal: 3, guestCount: 2 }}
+          stats={{ approvedTotal: over.approvedTotal ?? 3, guestCount: 2 }}
           isDemo={false}
           access="full"
           gate={null}
@@ -159,6 +172,7 @@ async function page(galleryPromise: Promise<never>) {
           isOwner={false}
           canDeleteIds={[]}
           isAuthed={false}
+          waitingOnArrival={over.waitingOnArrival}
         />
       </Suspense>,
     );
@@ -205,5 +219,37 @@ describe("a guest album that crashes where it renders", () => {
     await page(Promise.resolve({ kind: "locked" }) as Promise<never>);
     expect(await screen.findByTestId("album")).toBeInTheDocument();
     expect(screen.queryByRole("alert")).toBeNull();
+  });
+});
+
+/*
+ * ★ HER WAITING UPLOADS ON AN EMPTY HELD ALBUM (crumbs-43; ROADMAP, from `voice-wiring`: "a returning guest whose only
+ * uploads wait on an empty held album meets the empty state's 'Add the first photo' with her badge beside Invite,
+ * since the row's Add returns only for this visit's files (`galleryEmpty`)"). The page's server render says whether
+ * an earlier visit's uploads wait (`waitingOnArrival`), so the one Add is the row's from the first paint, with her
+ * tracker beside it, and nothing moves when the tracker's own read lands; a guest with nothing waiting still meets
+ * the empty state's own Add, and the row has none.
+ */
+describe("her waiting uploads on an empty album that holds uploads", () => {
+  const HELD = {
+    ...EVENT,
+    moderation_mode: "hold_for_approval",
+  } as unknown as GuestEvent;
+  const landed = () => Promise.resolve({ kind: "locked" }) as Promise<never>;
+
+  it("★ the row's Add is hers from the first paint, and the empty state offers none", async () => {
+    await page(landed(), {
+      event: HELD,
+      approvedTotal: 0,
+      waitingOnArrival: true,
+    });
+    expect(screen.getByRole("button", { name: /Add photos/ })).toBeEnabled();
+    expect(await screen.findByTestId("add-first")).toHaveTextContent("no");
+  });
+
+  it("with nothing of hers waiting, the empty state's Add is the only one", async () => {
+    await page(landed(), { event: HELD, approvedTotal: 0 });
+    expect(screen.queryByRole("button", { name: /Add photos/ })).toBeNull();
+    expect(await screen.findByTestId("add-first")).toHaveTextContent("yes");
   });
 });

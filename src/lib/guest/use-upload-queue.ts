@@ -629,11 +629,21 @@ export function useUploadQueue({
            run continues on the new token — the guest never learns any of this
            happened, which is right, because nothing about THEM changed.
 
-           ★ A NAME-ONLY GUEST CANNOT. The session is dropped here (so the next
-           Add meets the gate rather than a token that cannot work) and the rest
+           ★ A NAME-ONLY GUEST CANNOT, AND KEEPS HER TICKET (crumbs-43). The rest
            of the run is failed in place with the server's own sentence, so the
            failure sheet opens once, lists everything that did not go, and says
-           the same true thing about all of it.
+           the same true thing about all of it; the page then re-gates (the door
+           asks for her email, and the album's Add is not hers until it opens).
+           The ticket stays: her row is still hers, and only the switch stands
+           in front of it. This used to put the session down, and every road
+           back then minted a second row under the same name (one person twice
+           in the guest list, ROADMAP): the host turning the switch off again
+           sent her next Add through a fresh join, and a confirmation could not
+           claim photographs whose ticket the device no longer held. Kept, the
+           next Add after the switch goes off rides the same row, and the
+           confirmation's claim takes it (`whose_ticket`'s rules, untouched).
+           Every upload asks the switch again (`get_upload_context`), so a kept
+           ticket can never send past it.
            ────────────────────────────────────────────────────────────────── */
         if (outcome.code === VERIFICATION_REQUIRED) {
           if (isVerifiedRef.current && !rejoinedRef.current) {
@@ -648,8 +658,6 @@ export function useUploadQueue({
               continue;
             }
           }
-          sessionRef.current = null;
-          onSession(null);
           const refused = itemsRef.current.map((it) =>
             it.id === next.id || it.status === "queued"
               ? {

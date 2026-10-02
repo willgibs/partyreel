@@ -89,11 +89,17 @@ import type { ProfileCardItem } from "@/lib/social/cards";
  * typed name's row). A person the host blocked is not on this list at all.
  */
 
-/** A guest with no proof: a `guests` row carrying a typed name and nothing else. */
+/**
+ * A guest with no proof: a `guests` row carrying a typed name and nothing else. ★ The name is never null:
+ * a row with no name is on no list (`resolveEventGuests` drops it, the one count's rule), so there is no
+ * nameless entry to draw, and no stand-in to invent for one ("A guest" was retired with the identity
+ * reshape: a nameless credit shows nothing). The server's own entry (`UnverifiedGuestListEntry`) has the
+ * same shape, and a look built from a credit carries the credit's name.
+ */
 export type UnverifiedGuestEntry = {
   kind: "unverified";
   id: string;
-  displayName: string | null;
+  displayName: string;
 };
 
 /**
@@ -262,7 +268,7 @@ function Chips({
                   >
                     <Face item={item} />
                     <span className="max-w-40 truncate">
-                      {item.displayName ?? "A guest"}
+                      {item.displayName}
                     </span>
                   </button>
                 </GuestPeek>

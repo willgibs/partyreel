@@ -9,7 +9,7 @@ import {
   type PointerEvent as ReactPointerEvent,
   type RefObject,
 } from "react";
-import { Pause, Play } from "lucide-react";
+import { Loader2, Pause, Play } from "lucide-react";
 
 import { ActionTooltip } from "@/components/shared/action-tooltip";
 import { GLASS, GLASS_MARK_LIT } from "@/lib/glass";
@@ -36,27 +36,60 @@ export type VideoState = {
   playing: boolean;
   muted: boolean;
   duration: number;
+  /**
+   * The clip is meant to be playing and is waiting for its bytes, and has been for a beat (crumbs-43: the
+   * viewer's own loading state). Its transport says so in the play button's place.
+   */
+  buffering: boolean;
 };
+
+/**
+ * How long a clip may wait for its bytes before its transport says it is loading: a clip from the cache, or a
+ * stall a network rides out, starts within a few frames, and a ring that came and went would be a flicker.
+ */
+export const BUFFERING_BEAT_MS = 500;
 
 /**
  * The center clip's state, read off its own events (never polled). The viewer
  * hands in the element it bound (a callback ref's state), so a swipe to another
  * clip re-subscribes.
+ *
+ * ★ AND WHETHER IT IS WAITING FOR ITS BYTES (crumbs-43; ROADMAP: "the media viewer's own image and video have no
+ * loading state"). A clip meant to play (not paused) that has too little to play on (`readyState` under
+ * HAVE_FUTURE_DATA, which `waiting` and a stall announce) is buffering once that has lasted `BUFFERING_BEAT_MS`;
+ * the moment it plays, is paused or ends, it is not. The poster, the frame its tile drew, stands in meanwhile.
  */
 export function useVideoState(el: HTMLVideoElement | null): VideoState {
   const [state, setState] = useState<VideoState>({
     playing: false,
     muted: true,
     duration: 0,
+    buffering: false,
   });
   useEffect(() => {
     if (!el) return;
-    const read = () =>
+    let beat = 0;
+    let waited = false;
+    const read = () => {
+      const starved = !el.paused && !el.ended && el.readyState < 3;
+      if (!starved) {
+        window.clearTimeout(beat);
+        beat = 0;
+        waited = false;
+      } else if (!waited && beat === 0) {
+        beat = window.setTimeout(() => {
+          beat = 0;
+          waited = true;
+          read();
+        }, BUFFERING_BEAT_MS);
+      }
       setState({
         playing: !el.paused && !el.ended,
         muted: el.muted,
         duration: Number.isFinite(el.duration) ? el.duration : 0,
+        buffering: starved && waited,
       });
+    };
     const events = [
       "play",
       "playing",
@@ -65,6 +98,11 @@ export function useVideoState(el: HTMLVideoElement | null): VideoState {
       "volumechange",
       "loadedmetadata",
       "durationchange",
+      // Its bytes: running short, and arriving.
+      "waiting",
+      "stalled",
+      "canplay",
+      "canplaythrough",
     ];
     for (const e of events) el.addEventListener(e, read);
     // The first read waits a frame: a clip that is already playing or already
@@ -72,6 +110,7 @@ export function useVideoState(el: HTMLVideoElement | null): VideoState {
     const first = requestAnimationFrame(read);
     return () => {
       cancelAnimationFrame(first);
+      window.clearTimeout(beat);
       for (const e of events) el.removeEventListener(e, read);
     };
   }, [el]);
@@ -121,10 +160,18 @@ export function VideoTransport({
         <button
           type="button"
           aria-label={label}
+          aria-busy={state.buffering || undefined}
           onClick={onTogglePlay}
           className={TRANSPORT_BUTTON}
         >
-          {state.playing ? (
+          {/* Waiting for its bytes: the viewer's busy ring in the button's place, as the
+              capsule's Save and Share wear it; the button still pauses. */}
+          {state.buffering ? (
+            <Loader2
+              data-lightbox-buffering
+              className="size-4 animate-spin motion-reduce:animate-none"
+            />
+          ) : state.playing ? (
             <Pause className="size-4 fill-current" />
           ) : (
             <Play className="ml-px size-4 fill-current" />

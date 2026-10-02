@@ -86,7 +86,8 @@ function lookLine(item: GuestListItem): ReactNode {
 }
 
 function nameOf(item: GuestListItem): string {
-  if ("kind" in item) return item.displayName ?? "A guest";
+  // A typed name is never null (the entry's own note): no stand-in to invent.
+  if ("kind" in item) return item.displayName;
   return item.displayName ?? "Guest";
 }
 

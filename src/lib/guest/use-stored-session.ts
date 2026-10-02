@@ -10,6 +10,7 @@ import {
   forgetAllStoredGuests,
   forgetStoredGuest,
 } from "@/lib/guest/use-stored-name";
+import { forgetAllWelcomes, forgetWelcome } from "@/lib/guest/use-welcome-seen";
 
 // The session_token is the guest's upload capability (database-security.md). Persist it per
 // event (keyed by qr_token) so a returning guest / refresh skips the join step
@@ -105,25 +106,37 @@ function postLeave(body: { qr_token: string } | { all: true }): Promise<void> {
  * `session_other_account` when this device's token for an event names a row that belongs to an
  * account the viewer is not (lib/guest/session-owner.ts), and every client that hears it lands here
  * before it joins again as whoever is holding the phone: the token, the name and address flag
- * beside it (and the prefill, when it is that same name), then the server-readable cookie.
+ * beside it (and the prefill, when it is that same name), the album's welcome (the next person
+ * meets it and its consent line, `use-welcome-seen.ts`), then the server-readable cookie.
  *
  * ★ THE COOKIE IS AWAITED, unlike the sign-out's. The very next thing every caller does is a join,
  * whose response writes this event's cookie afresh; an expiry still in flight could land after it
  * and put the NEW ticket down. Awaiting orders the two, and the leave route never fails loudly.
  */
-export async function dropGuestTicket(qrToken: string): Promise<void> {
+export async function dropGuestTicket(
+  qrToken: string,
+  options: {
+    /**
+     * The person holding the phone has passed this album's welcome already, in this very pass (the door's name
+     * step, which the welcome stands in front of): putting it back would show it after the name she just typed.
+     */
+    keepWelcome?: boolean;
+  } = {},
+): Promise<void> {
   forgetStoredGuest(qrToken);
+  if (!options.keepWelcome) forgetWelcome(qrToken);
   setStoredSession(qrToken, null);
   await postLeave({ qr_token: qrToken });
 }
 
 /**
  * THE DEVICE HALF OF A SIGN-OUT: every guest ticket this browser holds, for every event, with the
- * names and address flags beside them and the name prefill. Synchronous, so it runs to completion
- * before the account's own sign-out navigates away (the account menu calls it from its form's
- * submit, ahead of `signOutAction`, which expires the cookie half on its own response). A sign-out
- * is an account's; a guest's photographs on a claimed row stay theirs to manage from that account
- * on any device.
+ * names and address flags beside them, the name prefill and every album's welcome (the next person
+ * on the phone meets each welcome, and its consent line, once: `use-welcome-seen.ts`). Synchronous,
+ * so it runs to completion before the account's own sign-out navigates away (the account menu calls
+ * it from its form's submit, ahead of `signOutAction`, which expires the cookie half on its own
+ * response). A sign-out is an account's; a guest's photographs on a claimed row stay theirs to
+ * manage from that account on any device.
  */
 export function forgetGuestTickets(): void {
   try {
@@ -135,6 +148,7 @@ export function forgetGuestTickets(): void {
   }
   emit();
   forgetAllStoredGuests();
+  forgetAllWelcomes();
 }
 
 /**

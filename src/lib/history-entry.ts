@@ -7,7 +7,8 @@ import { useContext, useState } from "react";
  * AN ENTRY A PLACE PUSHED, AND HOW ITS PAGE KNOWS IT LATER (crumbs-19). Three places kept this each their own
  * way and each was found broken in its own turn: the hub's sheets (`?room=`, `event-share-provider.tsx`), a
  * phone's screen-shaped popup (`ui/popup-back.ts`) and the reel's full-screen view (`guest/reel-url.ts`). What
- * they share is here, so a lesson lands once.
+ * they share is here, so a lesson lands once; the photo viewer joined them (crumbs-43: `?photo=`, every album's,
+ * `shared/masonry.tsx`) rather than growing a fourth way.
  *
  * A place that a phone's Back should close pushes ONE history entry when it opens, and closing it any other
  * way goes Back over that entry, so nothing dead is left behind to press through. Going Back is only right

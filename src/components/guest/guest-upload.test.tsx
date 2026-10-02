@@ -38,6 +38,8 @@ import {
   type UploadedItem,
 } from "@/lib/guest/use-upload-queue";
 import { uploadFile } from "@/lib/upload/uploader";
+import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
+import { formatBytes } from "@/lib/utils";
 
 import { GuestUpload, type GuestUploadHandle } from "./guest-upload";
 
@@ -102,6 +104,7 @@ function Harness({
   suppressFailures?: boolean;
   moment?: boolean;
   removedIds?: ReadonlySet<string>;
+  capBytes?: number | null;
 }) {
   const pendingRef = useRef<string | null>(null);
   const { items, progress, addFiles, retry, dismiss } = useUploadQueue({
@@ -144,6 +147,7 @@ function Harness({
       isDemo={isDemo}
       moment={rest.moment}
       removedIds={rest.removedIds}
+      capBytes={rest.capBytes}
     />
   );
 }
@@ -426,9 +430,12 @@ describe("GuestUpload: who a queue uploads as", () => {
     expect(body).not.toHaveProperty("display_name");
   });
 
-  it("a mid-run verification_required drops the session, refuses the rest, and the sheet says the server's own line", async () => {
+  // Reshaped on purpose (crumbs-43): this pinned that the flip DROPS the session, which minted a second guest row
+  // under the same name on every road back (the switch turned off again, a confirmation that could not claim a
+  // ticket the device no longer held). The scar it keeps: the run ends at the flip, one sheet, the server's line.
+  it("a mid-run verification_required refuses the rest, keeps the ticket, and the sheet says the server's own line", async () => {
     // Three files: the first goes, the second meets the flip, and the third
-    // must never be tried — the session is spent for all of them.
+    // must never be tried — the switch refuses all of them alike.
     mockUploadFile
       .mockResolvedValueOnce({
         ok: true,
@@ -445,15 +452,16 @@ describe("GuestUpload: who a queue uploads as", () => {
     const { addFiles, onSession } = mount({ sessionToken: "sess-1" });
     addFiles([makeFile("a.jpg"), makeFile("b.jpg"), makeFile("c.jpg")]);
 
-    await waitFor(() => expect(onSession).toHaveBeenCalledWith(null));
-    // The run ENDED here rather than walking into a third refusal.
-    expect(mockUploadFile).toHaveBeenCalledTimes(2);
     // One sheet, both remaining files on it, one true sentence.
     const sheet = await screen.findByText("2 of 3 didn't upload");
     expect(sheet).toBeInTheDocument();
     expect(
       screen.getAllByText("This event now needs a confirmed email."),
     ).toHaveLength(2);
+    // The run ENDED here rather than walking into a third refusal.
+    expect(mockUploadFile).toHaveBeenCalledTimes(2);
+    // And her ticket stands: the switch, not the row, refused the files.
+    expect(onSession).not.toHaveBeenCalledWith(null);
   });
 });
 
@@ -613,6 +621,30 @@ describe("GuestUpload: the add sheet is the only door in", () => {
     expect(screen.getByRole("button", { name: "Send 2" })).toBeInTheDocument();
     expect(mockUploadFile).not.toHaveBeenCalled();
     expect(snapshots.at(-1) ?? []).toEqual([]);
+  });
+});
+
+/* ── THE ALBUM'S OWN CAP, SAID BEFORE THE PICKER (crumbs-43; ROADMAP: "the upload sheet's terms line states the
+   product's limits rather than the host's own cap"). The page hands the sheet the cap a guest's file meets
+   (`events.max_upload_bytes`, never the host's on her own album), and the line says that number, so the first
+   time a guest reads the limit is not inside a refusal. ── */
+describe("GuestUpload: the Add sheet says the album's own cap", () => {
+  it("states the host's per-file cap the page hands it, and the product's ceiling without one", () => {
+    const cap = 100 * 1024 ** 2;
+    const capped = mount({ capBytes: cap });
+    act(() => capped.handleRef.current!.openAdd());
+    expect(
+      screen.getByText(`Photos and videos, up to ${formatBytes(cap)} each.`),
+    ).toBeInTheDocument();
+    capped.unmount();
+
+    const plain = mount();
+    act(() => plain.handleRef.current!.openAdd());
+    expect(
+      screen.getByText(
+        `Photos and videos, up to ${formatBytes(MAX_UPLOAD_BYTES)} each.`,
+      ),
+    ).toBeInTheDocument();
   });
 });
 

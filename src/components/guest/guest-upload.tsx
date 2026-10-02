@@ -67,6 +67,7 @@ export function GuestUpload({
   elsewhere = 0,
   onAccountRenamed,
   removedIds,
+  capBytes = null,
 }: {
   ref?: Ref<GuestUploadHandle>;
   event: GuestEvent;
@@ -107,6 +108,12 @@ export function GuestUpload({
    * album" any more, so the slot's count leaves it out.
    */
   removedIds?: ReadonlySet<string>;
+  /**
+   * The per-file cap this viewer's uploads meet, for the Add sheet's terms line (`upload-terms.ts`): the host's own
+   * (`events.max_upload_bytes`) for a guest, null for the host on her own album (her uploads ride the host's pair,
+   * which the cap exempts) and where the host set none. The page decides it, as it decides who is the owner.
+   */
+  capBytes?: number | null;
 }) {
   const items = queue;
   const [addOpen, setAddOpen] = useState(false);
@@ -203,6 +210,7 @@ export function GuestUpload({
         onOpenChange={setAddOpen}
         hostName={hostName}
         onSend={onAddFiles}
+        capBytes={capBytes}
         acceptsVideo={event.accepts_video}
       />
       <UploadFailureSheet

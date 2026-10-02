@@ -4,7 +4,11 @@ import { describe, expect, it, vi } from "vitest";
 import { UNVERIFIED_LABEL } from "@/components/shared/unverified-mark";
 import type { ProfileCardItem } from "@/lib/social/cards";
 
-import { GUEST_LIST_FACES_THRESHOLD, GuestList } from "./guest-list";
+import {
+  GUEST_LIST_FACES_THRESHOLD,
+  GuestList,
+  type GuestListItem,
+} from "./guest-list";
 
 // A chip's Follow is the real FollowButton, which reaches the profile's server
 // actions (server-only) and the app router; neither exists in jsdom.
@@ -175,6 +179,30 @@ describe("GuestList: unverified guests", () => {
     fireEvent.click(screen.getByRole("button", { name: /sam/i }));
     expect(screen.getByText(/anyone can type a name/i)).toBeInTheDocument();
     expect(screen.queryByRole("link")).toBeNull();
+  });
+
+  /*
+   * ★ NO STAND-IN NAME, EVER (crumbs-43; ROADMAP: "draws 'A guest' for a null `displayName`, a label the
+   * product retired (a nameless credit shows nothing)"). A row with no name is on no list
+   * (`resolveEventGuests` drops it, the one count's rule), so the entry's type admits no null, and the chip
+   * and its look draw the typed name alone. The expect-error is the type's half (the typecheck fails the
+   * day a null is admitted again); the render is the drawing's, for a null that got past a cast.
+   */
+  it("invents no name for a typed-name guest: 'A guest' is retired, chip and look alike", () => {
+    // @ts-expect-error a nameless row is on no list, so its entry has no null name to draw
+    const nameless: GuestListItem = {
+      kind: "unverified",
+      id: "g0",
+      displayName: null,
+    };
+    render(<GuestList items={[nameless]} />);
+    expect(screen.queryByText(/a guest/i)).toBeNull();
+    const [chip] = screen
+      .getAllByRole("button")
+      .filter((b) => b.getAttribute("aria-label") !== UNVERIFIED_LABEL);
+    fireEvent.click(chip);
+    expect(screen.getByText(/anyone can type a name/i)).toBeInTheDocument();
+    expect(screen.queryByText(/a guest/i)).toBeNull();
   });
 
   it("offers a Follow on a HANDLED chip for a signed-in viewer, and never on an unverified one", () => {

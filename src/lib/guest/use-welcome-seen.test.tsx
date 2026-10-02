@@ -1,11 +1,16 @@
 /**
- * Pins for the welcome-seen flag: once per device per event for an ordinary guest, NEVER for the demo,
- * which treats every visit as a fresh one, even a returning one, so every demo runs end to end.
+ * Pins for the welcome-seen flag: once per PERSON per event for an ordinary guest (once per device until the
+ * device puts that album's ticket down, crumbs-43), NEVER for the demo, which treats every visit as a fresh
+ * one, even a returning one, so every demo runs end to end.
  */
 import { act, renderHook } from "@testing-library/react";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useWelcomeSeen } from "@/lib/guest/use-welcome-seen";
+import {
+  dropGuestTicket,
+  forgetGuestTickets,
+} from "@/lib/guest/use-stored-session";
 
 const QR = "welcome-seen-qr-1";
 
@@ -27,6 +32,41 @@ describe("useWelcomeSeen: an ordinary guest", () => {
     localStorage.setItem(`pr_welcome_${QR}`, "1");
     const { result } = renderHook(() => useWelcomeSeen(QR, false));
     expect(result.current[0]).toBe(true);
+  });
+});
+
+/*
+ * ★ THE NEXT PERSON ON A SHARED PHONE MEETS IT (crumbs-43; ROADMAP: "the next person on a shared phone skips the
+ * welcome, and with it the legal consent line (`pr_welcome_<qr>` survives every sign-out and the ticket drop)").
+ * The welcome carries the consent line the door's identify and sign-in steps lean on, so it goes with the ticket
+ * of the person who saw it, and a door already mounted hears it at once.
+ */
+describe("useWelcomeSeen: it goes with the ticket", () => {
+  beforeEach(() => {
+    global.fetch = vi.fn().mockResolvedValue({ ok: true } as Response);
+  });
+
+  it("a sign-out on the device brings every album's welcome back, for whoever holds the phone next", () => {
+    localStorage.setItem(`pr_session_${QR}`, "a".repeat(64));
+    const { result } = renderHook(() => useWelcomeSeen(QR, false));
+    act(() => result.current[1]());
+    expect(result.current[0]).toBe(true);
+
+    act(() => forgetGuestTickets());
+    expect(result.current[0]).toBe(false);
+    expect(localStorage.getItem(`pr_welcome_${QR}`)).toBeNull();
+  });
+
+  it("a ticket put down as someone else's takes its album's welcome, and leaves another album's", async () => {
+    const other = "welcome-seen-qr-3";
+    localStorage.setItem(`pr_session_${QR}`, "a".repeat(64));
+    localStorage.setItem(`pr_welcome_${other}`, "1");
+    const { result } = renderHook(() => useWelcomeSeen(QR, false));
+    act(() => result.current[1]());
+
+    await act(() => dropGuestTicket(QR));
+    expect(result.current[0]).toBe(false);
+    expect(localStorage.getItem(`pr_welcome_${other}`)).toBe("1");
   });
 });
 

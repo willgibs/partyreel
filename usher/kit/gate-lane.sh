@@ -68,6 +68,11 @@ else
   esac
   if [ -n "$LABS" ]; then
     lsof -ti tcp:$PORT | xargs -r kill 2>/dev/null; sleep 1
+    # The server starts on an empty dev cache, whichever way the merge was made: one warmed on another tree can hand a
+    # frame a stale chunk that reloads it for ever (gate 123: a MERGE RED resolved by hand never reaches merge-lane.sh's
+    # clear, so event-ready ran on gate 122's cache and every lab:demo step read "(reading 'dock')"; green on an empty
+    # one). src/lib/gate-dev-cache-policy.test.ts holds this line between the stop and the start.
+    rm -rf .next/dev
     (pnpm dev -p $PORT >"$S/dev$PORT.log" 2>&1 &)
     for i in $(seq 1 60); do curl -s -o /dev/null -w '%{http_code}' http://localhost:$PORT/ 2>/dev/null | grep -q '^[23]' && break; sleep 2; done
     echo "dev ready after ${i}x2s"

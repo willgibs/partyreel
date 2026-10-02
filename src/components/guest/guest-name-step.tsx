@@ -279,7 +279,10 @@ export function GuestNameStep({
         if (renamed.refusal.kind === SESSION_OTHER_ACCOUNT) {
           // Somebody else's ticket: down it goes, then the fresh join below
           // mints this person their own row under the name they just typed.
-          await dropGuestTicket(qrToken);
+          // Its welcome stays: she has just passed it on her way to this step
+          // (or stands in the album past it), and putting it back would show it
+          // after the name she typed (crumbs-43, `dropGuestTicket`).
+          await dropGuestTicket(qrToken, { keepWelcome: true });
         } else if (
           renamed.refusal.kind !== "invalid_session" &&
           renamed.refusal.kind !== "unauthorized"

@@ -159,9 +159,9 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
   - ★ **THE ADD CHOICE**: every Add opens
     [`upload/intent-sheet.tsx`](../../src/components/guest/upload/intent-sheet.tsx) on the responsive menu,
     *Take a photo* over *Choose from your album*, then the terms line
-    ([`upload-terms.ts`](../../src/components/guest/upload/upload-terms.ts): kinds and the universal ceiling
-    from `media/limits.ts`, since the guest page never receives the host's own cap; nothing about rights,
-    ever). TWO hidden inputs in the page beside the menu, where they outlive it, because `capture` cannot be both: the camera row
+    ([`upload-terms.ts`](../../src/components/guest/upload/upload-terms.ts): the kinds, and the host's own per-file
+    cap where she set one (`get_event_by_qr_token`'s `max_upload_bytes`, never handed to the host on her own album,
+    whose uploads it exempts), else the universal ceiling from `media/limits.ts`; nothing about rights, ever). TWO hidden inputs in the page beside the menu, where they outlive it, because `capture` cannot be both: the camera row
     (`accept="image/*" capture="environment"`) takes ONE photograph (iOS ignores `multiple` under `capture`;
     Android adds a Camera/Camcorder chooser once video is accepted); the album row is
     `accept="image/*,video/*" multiple`. ★ **Each is `.click()`ed SYNCHRONOUSLY from its row's tap**: one
@@ -188,8 +188,10 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
     `verification_required`, carried up as `UploadOutcome.code` (one of the TWO codes the queue reads by name,
     both the session's). It spends the SESSION, not one file: a CONFIRMED viewer re-joins silently ONCE (their
     uid mints a verified row and the run continues on it: the queue reads its ticket per FILE, never once per
-    run); a name-only guest cannot, so the session is dropped and everything still
-    queued fails in place with the SERVER's sentence, opening the failure sheet once. ★ **THE PAGE'S REFRESH
+    run); a name-only guest cannot, so everything still queued fails in place with the SERVER's sentence, opening
+    the failure sheet once, and ★ her ticket STAYS (the switch refused the files, not her row): the switch turned off
+    again sends her next Add on the same row, and a confirmation claims it, where a dropped ticket minted her a second
+    row under the same name (one person twice in the guest list). ★ **THE PAGE'S REFRESH
     WAITS FOR THE SHEET TO CLOSE.** `useUploadQueue`'s `onVerificationRequired(message, hadQueuedFiles)`
     tells `EventExperience` whether a sheet is about to stand in the way: `hadQueuedFiles=true` holds the
     refresh until `GuestUpload`'s failure sheet closes (`onFailuresClosed`), because an immediate
@@ -231,7 +233,10 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
   album). At 0 items the header and dock drop
   their Add and the CTA owns it, only while nothing of hers is in flight or waiting (`galleryEmpty`): her stack at
   the album's head, or on a held event an empty state with no CTA of its own, and the row's Add and her tracker
-  return, so there is always exactly one Add. ★ **That wrapper is `GhostRiver`, exported from this file and the ONE home of
+  return, so there is always exactly one Add. ★ An earlier visit's waiting uploads count from the first paint: on an
+  empty held album the page's server render asks whether any of hers wait (`waitingOnArrival`,
+  [`waiting-on-arrival.server.ts`](../../src/lib/guest/waiting-on-arrival.server.ts): her ticket as far as it is
+  hers, and her account), since her tracker learns them only after mount and the Add would move when it did. ★ **That wrapper is `GhostRiver`, exported from this file and the ONE home of
   the depth**: the locked page draws the same picture, and two copies of a fade drift apart.
 - **Lightbox** (the SHARED [`media-lightbox.tsx`](../../src/components/shared/media-lightbox.tsx), its parts in
   `media-lightbox-parts/`): the photograph GROWS out of the tile it was tapped on (`origin`: the tile's rect and a
@@ -253,12 +258,20 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
   desk adds hover chevrons and a filmstrip. `media-lightbox.test.tsx` pins the physics, `geometry.test.ts` the
   arithmetic. ★ **ITS LIST IS THE WHOLE ALBUM**, the manifest, mostly unlinked: next and previous cross all of it and
   "Photo k of N" is read over the album; it asks `onNeedLinks` for the photograph ±1 and the filmstrip's ±7
-  (`FILMSTRIP_REACH`), and an unlinked item is a placeholder at its own shape, never a request. ★ **THE ADDRESS**:
-  the open photograph rides the page as `?photo=<id>` (`PHOTO_PARAM`, written by `shared/masonry.tsx` with
-  replaceState, read once on mount), and it opens any item the manifest holds, loaded or not: an unknown, held or
-  hidden id still opens the album plainly, and a door already open comes first. A walk writes the address only once
-  it rests (300ms: the browsers' history APIs cap how fast it can move, Chrome past 200 calls in 10s and Safari past
-  100), an open and a close writing at once; the way back mounts the closed item's tile (`scrollToId`). ★ **SHARE SENDS
+  (`FILMSTRIP_REACH`), and an unlinked item is a placeholder at its own shape, never a request. ★ **WHILE THE
+  ORIGINAL IS ON ITS WAY, THE PHOTOGRAPH SAYS SO**: the tile's own preview stands in and the original fades in over
+  it, and after a beat a small ring sits on the photograph's corner until the original paints or fails (a clip
+  waiting for its bytes wears it in its play button's place); it stands down while the photograph flies, is pulled
+  down or is held close up, and a placeholder never wears it (a link that never lands must not read as loading).
+  ★ **THE ADDRESS**: the open photograph rides the page as `?photo=<id>` (`PHOTO_PARAM`, `shared/masonry.tsx`), read
+  once on mount, and it opens any item the manifest holds, loaded or not: an unknown, held or hidden id still opens
+  the album plainly, and a door already open comes first. ★ It is a place the phone's Back closes, on
+  `lib/history-entry.ts` with the hub's sheets, the popups and the reel: a tap PUSHES one entry (`prPhoto`), a walk
+  moves inside it, every close goes Back over it, the phone's Back drops the photograph into its tile (at once where
+  the browser drew its own swipe, `hasUAVisualTransition`), Forward opens it again, and a photograph opened from its
+  address (a shared link, a reload) closes in place onto the album. A walk writes the address only once it rests
+  (300ms: the browsers' history APIs cap how fast it can move, Chrome past 200 calls in 10s and Safari past 100), and
+  waits out a popup the viewer opened; the way back mounts the closed item's tile (`scrollToId`). ★ **SHARE SENDS
   THE FILE** (fetched on the tap with `cache: "no-store"`, never prefetched; over 100 MB it falls back), then the
   link, then a copy; Copy link copies the PUBLIC album link (`shareUrl`, the event JOIN url, never a presigned media
   URL or a dashboard URL) with `?photo=` on an approved item; Save offers the system sheet in one tap on iOS (its
@@ -434,7 +447,7 @@ when absent or different: by `POST /api/guests` (a mint), `POST /api/guests/name
 token), **only as a 200 with no ETag**, because Vercel's edge turns a validator-matching 200 into a 304
 and drops `Set-Cookie`. `POST /api/guests/leave` expires it (`{ qr_token }` one event's, `{ all: true }` every
 `pr_guest_*` the request carried); ★ **EVERY SIGN-OUT PUTS DOWN EVERY TICKET ON THE DEVICE**, the tokens, names,
-address flags and the name prefill with the cookies: the guest page's account menu through
+address flags, the name prefill and the welcomes with the cookies: the guest page's account menu through
 `leaveAllGuestSessions`, the app's account menu through `forgetGuestTickets` on its form's submit and
 `signOutAction` expiring the cookies on its own response
 ([`session-cookie-family.ts`](../../src/lib/guest/session-cookie-family.ts)), so a shared phone never renders
@@ -515,9 +528,12 @@ through flags in the sheet. No step counter to desync.
 - **welcome = THE INVITATION**: a "You're invited to" eyebrow over the event name large beside the host's
   face, "Hosted by" over the date (self-hiding on locked pages via the redacted shellEvent), the count as social
   proof, ticking as photographs land (`LiveCount`; the gate's title ticks too; reduced motion lands the number), two warm `text-base` rows, each on a pool of the lamp's hues, one primary that always reads "Continue"
-  (something always follows it), and the legal consent line. Shown on the FIRST visit per device
+  (something always follows it), and the legal consent line. Shown once per PERSON at an album
   (`pr_welcome_<qrToken>` via [`use-welcome-seen.ts`](../../src/lib/guest/use-welcome-seen.ts); server
-  snapshot "seen" = no flash). The demo's welcome is its `RoleStep` (see "Demo mode"). Inside the drawer it
+  snapshot "seen" = no flash): it goes with the ticket of whoever saw it (a ticket put down takes its album's, every
+  sign-out every album's; the door's name step keeps it when it puts a foreign ticket down, its person having just
+  passed it), because the door's identify and sign-in steps carry no consent line and lean on it, so the next person
+  on a shared phone meets it once. The demo's welcome is its `RoleStep` (see "Demo mode"). Inside the drawer it
   stands `min-height: 55svh` (`[data-entry-drawer] [data-welcome-step]`); the desk panel is full height
   already, so the rule stays drawer-scoped.
 - **THE AFFORDANCE TABLE IS ONE ROW**: every step of the door is HELD (no X, no drag handle, Escape and the

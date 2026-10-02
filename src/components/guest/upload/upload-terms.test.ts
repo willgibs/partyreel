@@ -52,11 +52,25 @@ describe("the seam for the host's own cap", () => {
   });
 
   it("falls back to the universal ceiling when the event has no cap", () => {
-    // `events.max_upload_bytes` is nullable and the guest RPC does not return
-    // it at all yet: both arrive here as nothing, and nothing must never
-    // promise a guest a bigger allowance than the product has.
+    // `events.max_upload_bytes` is nullable, and a read from before its column
+    // (20261001233000) carries none: both arrive here as nothing, and nothing
+    // must never promise a guest a bigger allowance than the product has.
     expect(uploadTermsLine(null)).toBe(uploadTermsLine());
     expect(uploadTermsLine(undefined)).toBe(uploadTermsLine());
+  });
+
+  // ★ THE HOST'S CAP BINDS HER GUESTS, NEVER HER (crumbs-43): her own uploads ride the host's pair, which the cap
+  // exempts, so the page hands the line the host's number for everyone but the album's owner, at the door's upload
+  // step and the album's Add alike.
+  it("is the page's to hand: the host's number for a guest, none for the host on her own album", () => {
+    const page = readFileSync(
+      join(process.cwd(), "src/components/guest/event-experience.tsx"),
+      "utf8",
+    );
+    expect(page).toMatch(
+      /const hostCap = isOwner \? null : \(event\.max_upload_bytes \?\? null\);/,
+    );
+    expect(page.match(/capBytes=\{hostCap\}/g)).toHaveLength(2);
   });
 });
 

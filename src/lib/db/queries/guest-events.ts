@@ -63,6 +63,14 @@ export type GuestEvent = {
    */
   accepts_video: boolean;
   /**
+   * THE HOST'S OWN PER-FILE CAP for a guest's upload (`events.max_upload_bytes`, 25 MiB to 10 GiB; the host's own
+   * uploads are exempt), null where the host set none and the product's ceiling applies. The upload sheet's terms
+   * line states it (`uploadTermsLine`'s `capBytes`), so a guest reads the album's real limit before the picker
+   * rather than in a refusal after the bytes have started. Optional because a GuestEvent built anywhere but this
+   * read (a fixture, a stand-in) need not say it: absent reads as no cap, the line the guest saw before it.
+   */
+  max_upload_bytes?: number | null;
+  /**
    * THE DOOR AS THIS VIEWER MEETS IT, set only by the door's resolution (`closed-door.server.ts`,
    * from `event_door_standing`): the anon read answers a gated album as a private one, so until the
    * door is resolved this is absent and the album reads as its stored visibility (the safe side).
@@ -139,6 +147,18 @@ async function rehydrateUnlockedDetails(
   };
 }
 
+/**
+ * THE CAP THE READ CARRIES, THROUGH A SEAM UNTIL THE TYPES ARE REGENERATED (crumbs-43,
+ * 20261001233000_guest_event_cap.sql: the column is appended last to `get_event_by_qr_token`). The generated
+ * Returns type does not name it yet, so it is read off the row as unknown and kept only when it is a number: a
+ * build that meets the RPC before the migration (no column) reads no cap, which is the line the guest saw before
+ * it. Drop it for `row.max_upload_bytes ?? null` once `src/lib/db/types.ts` is regenerated.
+ */
+function hostCapOf(row: object): number | null {
+  const cap = (row as { max_upload_bytes?: unknown }).max_upload_bytes;
+  return typeof cap === "number" ? cap : null;
+}
+
 // cache() dedupes within a request so generateMetadata + the page render share
 // ONE get_event_by_qr_token RPC call per qr token.
 export const getEventByQrToken = cache(async function getEventByQrToken(
@@ -184,6 +204,8 @@ export const getEventByQrToken = cache(async function getEventByQrToken(
     reel_hold_sec: row.reel_hold_sec ?? null,
     // The guest picker's flag (the doors' migration, 20260929120000).
     accepts_video: row.accepts_video,
+    // The host's own cap, for the upload sheet's line (20261001233000; `hostCapOf` says why it is a seam).
+    max_upload_bytes: hostCapOf(row),
   };
 
   return { ok: true, data: await rehydrateUnlockedDetails(event) };

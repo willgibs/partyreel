@@ -246,8 +246,8 @@ beneath, newest first.
   `window.history.state`: Next's patched `pushState` and `replaceState` apply the URL only to a state without `__NA`
   (`history-state-policy.test.ts` refuses the shape; a write from a mount effect waits a microtask, because it would
   meet the browser's own function before Next patches it: `lab/board-state.tsx` says why). ★ Whose entry a place stands
-  on is `lib/history-entry.ts`'s, which the hub's sheets, a phone's screen-shaped popup and the reel all use (its header
-  holds what Next does to an entry). Opening pushes an entry carrying the marker (a sheet already open is left alone, so
+  on is `lib/history-entry.ts`'s, which the hub's sheets, a phone's screen-shaped popup, the reel and the photo viewer
+  (`?photo=`, every album's) all use (its header holds what Next does to an entry). Opening pushes an entry carrying the marker (a sheet already open is left alone, so
   a double tap pushes one entry, never two); closing goes Back only when the entry is ours (the marker says so, or this
   page pushed it) and only once until that Back lands (two taps on the X used to leave the hub); a router commit that is
   not a traversal (a save's re-render) rewrites an entry without the marker and a reload forgets what the page pushed,
