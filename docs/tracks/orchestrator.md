@@ -75,10 +75,11 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team brie
 
 ## Next, in order
 
-1. **Milestone 33** (his yes, 2026-10-02): build 42 `[preview]` at the tip (crumbs 48 and 49 are not on build 41), a
-   short headless proof of crumbs 47 to 49, the full gate (`FULL=1`), `--no-ff` into main, the tag, production READY,
-   the read-only walk (with `/admin/exports` and a signed heartbeat), the export Worker's `HEARTBEAT_URLS` pointed at
-   partyreel.com, `launch-prep` fast-forwarded. ★ No round-12 lane is integrated before main has merged.
+1. **Milestone 33 is DONE** (`f210dfaf`, tag `milestone-33`, 2026-10-02 19:40Z): gate 146 green over the whole tree
+   (lint, 8,897 tests, build, lab:smoke 179), build 42 (`26bd44f0`) proved crumbs 48 and 49 on the alias, production
+   READY on both projects, the read-only walk PASS; `launch-prep` fast-forwarded. Owed: the export Worker's 05:30 UTC
+   heartbeat read in `export_worker_reports` on 2026-10-03 (its `HEARTBEAT_URLS` already tries partyreel.com first, so
+   nothing to change), and `/admin/exports` when partyr33l's session is at hand.
 2. **Wave 2, each as its dependency merges:** `door-reveal` and `event-header` r2 after header-wiring; `host-dashboard`
    r2 after dashboard-wiring; `disposable-camera` after the foundation and Will's phone line; `disposable-rooms` after
    the foundation and header-wiring (the screen link is his Question there); fillers `crumbs-50` (Sonnet) and
