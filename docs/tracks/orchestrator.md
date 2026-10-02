@@ -114,8 +114,8 @@ the alias mid-sitting (his yes). No new lane until his paste lands.
    - **the desk pass** DONE (02:45Z): 21 of the 22 asks hold; event-ready's `guide` DRIFTED in what its frames draw
      (the quoted Settings panel at 375 shows the event's name under the bar, which production hides since crumbs-42),
      and two quotes went stale beside it (event-ready's "Closed", disposable-mode's Review head). **desk-tune-3**
-     makes them true (agent `a46ad17e1fdfc358f`, Sonnet, 3131; its manifest is its whole init); integrate it, then
-     build 39 (lab-only beside build 38) carries it to the alias.
+     made them true, MERGED at `03a24b3d` (gate 130) and recorded; build 39 (lab-only beside
+     build 38, every product file identical) carries it to the alias, the red-team told.
    Also: production's first album-log prune after 04:48Z on 2026-10-02 and the export Worker's first heartbeat after
    05:30Z, both read in `job_runs`.
 4. **Tell Will the alias is ready** for his sitting (locked-door first) once build 39 carries desk-tune-3.
