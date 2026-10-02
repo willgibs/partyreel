@@ -225,11 +225,14 @@ const ENTRIES: ParityEntry[] = [
     appFile: "src/components/app/event-feed/review-actions.tsx",
     literal: "Reject",
   },
+  // ★ Reshaped by disposable-foundation (20261002200000): the Review switch became "Once you approve each", one of
+  // the three answers to "When everyone sees what's added" (`camera-settings.tsx`), and its line went with it, word
+  // for word; the pin follows the line to its new file.
   {
     label: "curation modes, the review switch's line",
     marketingFile:
       "src/components/marketing/sections/features/curation/review-modes.tsx",
-    appFile: "src/components/app/event-settings/adds-page.tsx",
+    appFile: "src/components/app/event-settings/camera-settings.tsx",
     literal: "Hold new photos until you approve or reject them, instead of",
   },
   // Zip export demo (/features/sharing) <-> the real download dialog.

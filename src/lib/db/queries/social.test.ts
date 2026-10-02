@@ -208,6 +208,39 @@ describe("getEventGuests: the one count, past the row cap", () => {
       fake.requests.every((r) => r.filters.every((f) => f.op !== "in")),
     ).toBe(true);
   });
+
+  // ★ THE DEVELOP (20261002200000): a guest whose only approved upload waits for the develop is nobody's guest yet,
+  // on the hub as on the album; one whose upload developed by the clock is (its row reads visible at once).
+  it("★ a sealed upload makes nobody a guest yet; a developed one does", async () => {
+    const EVENT = uuid("e", 2);
+    const tomorrow = new Date(Date.now() + 86_400_000).toISOString();
+    const yesterday = new Date(Date.now() - 86_400_000).toISOString();
+    const row = (n: number, sealed_until: string | null) => ({
+      id: uuid("m", n),
+      event_id: EVENT,
+      status: "approved",
+      guest_id: uuid("g", n),
+      sealed_until,
+    });
+    fake = createFakePostgrest({
+      rpc: { event_blocked_guest_ids: () => [] },
+      tables: {
+        events: [{ id: EVENT, host_id: "host-1", deleted_at: null }],
+        media: [row(1, null), row(2, tomorrow), row(3, yesterday)],
+        guests: [1, 2, 3].map((n) => ({
+          id: uuid("g", n),
+          event_id: EVENT,
+          user_id: null,
+          display_name: `Guest ${n}`,
+          verified_at: null,
+        })),
+      },
+    });
+
+    const guests = await getEventGuests(EVENT);
+    const names = guests.unverifiedRows.map((r) => r.displayName).sort();
+    expect(names).toEqual(["Guest 1", "Guest 3"]);
+  });
 });
 
 describe("the events you added to, past the row cap", () => {

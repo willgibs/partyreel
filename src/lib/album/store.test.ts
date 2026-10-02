@@ -90,11 +90,21 @@ describe("a first load, then the poll", () => {
     expect(ids()).toEqual([b.id]);
   });
 
-  it("a held upload moves nothing a guest sees: the guest's poll stays on 304", async () => {
-    const { sim, store } = setup();
-    sim.commit([{ op: "insert", media: photo() }]);
+  // ★ Reshaped by disposable-foundation (20261002200000, the program's synthesis of 2026-10-02): what waits (held
+  // rows and sealed ones, counted together) is the guest's to count, so a held upload now moves `album_max` and her
+  // poll answers once (a delta carrying no change, the waiting count beside it) where it stayed on 304. Its expired
+  // reason: "a held upload moves nothing a guest sees" held while guests saw nothing of a held row. What it still
+  // guards: her album never takes the held row.
+  it("a held upload moves nothing in a guest's album: her poll answers once with no change", async () => {
+    const { sim, store, ids } = setup();
+    const open = photo();
+    sim.commit([{ op: "insert", media: open }]);
     await store.sync();
     sim.commit([{ op: "insert", media: photo("pending") }]);
+    await store.sync();
+    expect(store.stats().notModified).toBe(0);
+    expect(store.stats().deltas).toBe(1);
+    expect(ids()).toEqual([open.id]);
     await store.sync();
     expect(store.stats().notModified).toBe(1);
   });

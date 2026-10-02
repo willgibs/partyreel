@@ -34,6 +34,7 @@
  * Pure and isomorphic: the routes, the client store and the tests import it, so it takes nothing
  * from `node:*` or the server.
  */
+import type { GuestWaiting } from "@/lib/disposable/facts";
 import type { GalleryAccess, GalleryGate } from "@/lib/events/gallery-access";
 import type { GalleryItem, GalleryReel } from "@/lib/events/gallery-reel";
 import type { UploaderFace } from "@/lib/media/uploader-identity";
@@ -349,6 +350,13 @@ export type GuestFullSync = (AlbumManifestPart | AlbumDeltaPart) & {
   total: number;
   reel: GalleryReel | null;
   guestCount?: number;
+  /**
+   * WHAT WAITS (`lib/disposable/facts.ts`, 20261002200000): the rows held for the host's approval and the rows sealed
+   * for the develop, together, as numbers (the count and its minutes, read in the same snapshot as `v`), and when the
+   * album develops. Never an id. Absent where nothing waits and no develop time is set, and from an older server; the
+   * validator hashes the develop time, and every change to what waits moves `v`.
+   */
+  waiting?: GuestWaiting;
 };
 
 /** A guest poll at the teaser: today's tiny inline payload, links and all. */

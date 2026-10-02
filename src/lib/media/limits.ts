@@ -38,6 +38,19 @@ export const UPLOAD_CAP_PRESETS: { label: string; bytes: number | null }[] = [
   { label: "25 MB", bytes: 25 * 1024 ** 2 },
 ];
 
+/**
+ * A CAMERA SHOT THAT IS A VIDEO (Will, r3: `video=hold`, `cost=one`): held to record, up to ten seconds, one shot of
+ * the roll. Its length is the client's word (`duration_seconds` is never verified server-side), so the cost bound is
+ * its bytes: 128 MB holds ten seconds of 4K at 60 fps from any current phone, and a client that lies about the length
+ * still spends at most that a shot. Guests only, where the album's camera is on (`events.capture = 'camera'`); the
+ * host's own uploads are exempt. MIRRORED by create_media's `c_camera_video_bytes` and `c_camera_video_seconds`
+ * (20261002200000) under a parity test (`src/lib/disposable/roll.test.ts`), which is why the grace is its own constant:
+ * a ten-second recording measures a few hundredths over.
+ */
+export const CAMERA_VIDEO_SECONDS = 10;
+export const CAMERA_VIDEO_GRACE_SECONDS = 0.5;
+export const CAMERA_VIDEO_MAX_BYTES = 128 * 1024 ** 2; // 128 MB
+
 /** Mirrors the Postgres `media_type` enum. */
 export type MediaKind = "photo" | "video";
 

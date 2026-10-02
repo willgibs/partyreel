@@ -18,10 +18,11 @@ import {
 import { Throttle } from "@/lib/jobs/throttle";
 
 describe("the sub-sweep map", () => {
-  it("names the five promoted sweeps: the round's four and the album log's prune", () => {
+  it("names the six promoted sweeps: the round's four, the album log's prune and the develop", () => {
     expect(Object.keys(SUB_SWEEP_JOB_BY_NAME).sort()).toEqual([
       "album_log",
       "deleted_accounts",
+      "develop",
       "inactive_free_events",
       "orphans",
       "over_capacity",

@@ -291,3 +291,18 @@ describe("the clip-add limiter (reel_clip_add)", () => {
     expect(recordAbuseEvent).not.toHaveBeenCalled();
   });
 });
+
+// THE CAMERA (20261002200000): a shot the roll refuses at the moment it lands (two phones of one guest, the 25th's
+// race lost at create_media) answers 409 in the server's own sentence, as a full album does; a cookie is never set.
+describe("the roll's refusal at the complete", () => {
+  it("answers 409 with the roll's own sentence", async () => {
+    createMedia.mockResolvedValue({
+      ok: false,
+      code: "roll_spent",
+      message: "You've taken all 24 shots on your roll.",
+    });
+    const { status, body } = await complete();
+    expect(status).toBe(409);
+    expect(body.code).toBe("roll_spent");
+  });
+});

@@ -150,6 +150,32 @@ export type Database = {
         }
         Relationships: []
       }
+      camera_rolls: {
+        Row: {
+          guest_id: string
+          sealed_from: string
+          taken: number
+        }
+        Insert: {
+          guest_id: string
+          sealed_from: string
+          taken: number
+        }
+        Update: {
+          guest_id?: string
+          sealed_from?: string
+          taken?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "camera_rolls_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_submissions: {
         Row: {
           created_at: string
@@ -330,10 +356,12 @@ export type Database = {
         Row: {
           accepting_uploads: boolean
           allow_videos: boolean
+          capture: string
           created_at: string
           custom_slug: string | null
           deleted_at: string | null
           description: string | null
+          develops_at: string | null
           display_in_profile: boolean
           event_date: string | null
           event_password_hash: string | null
@@ -350,6 +378,8 @@ export type Database = {
           reel_style_id: string | null
           require_upload_to_view: boolean
           require_verified_email: boolean
+          roll_size: number | null
+          sealed_from: string | null
           show_reel: boolean
           updated_at: string
           visibility: Database["public"]["Enums"]["event_visibility"]
@@ -357,10 +387,12 @@ export type Database = {
         Insert: {
           accepting_uploads?: boolean
           allow_videos?: boolean
+          capture?: string
           created_at?: string
           custom_slug?: string | null
           deleted_at?: string | null
           description?: string | null
+          develops_at?: string | null
           display_in_profile?: boolean
           event_date?: string | null
           event_password_hash?: string | null
@@ -377,6 +409,8 @@ export type Database = {
           reel_style_id?: string | null
           require_upload_to_view?: boolean
           require_verified_email?: boolean
+          roll_size?: number | null
+          sealed_from?: string | null
           show_reel?: boolean
           updated_at?: string
           visibility?: Database["public"]["Enums"]["event_visibility"]
@@ -384,10 +418,12 @@ export type Database = {
         Update: {
           accepting_uploads?: boolean
           allow_videos?: boolean
+          capture?: string
           created_at?: string
           custom_slug?: string | null
           deleted_at?: string | null
           description?: string | null
+          develops_at?: string | null
           display_in_profile?: boolean
           event_date?: string | null
           event_password_hash?: string | null
@@ -404,6 +440,8 @@ export type Database = {
           reel_style_id?: string | null
           require_upload_to_view?: boolean
           require_verified_email?: boolean
+          roll_size?: number | null
+          sealed_from?: string | null
           show_reel?: boolean
           updated_at?: string
           visibility?: Database["public"]["Enums"]["event_visibility"]
@@ -716,6 +754,7 @@ export type Database = {
           removed_by_admin: boolean
           removed_by_system: boolean
           removed_by_uploader: boolean
+          sealed_until: string | null
           status: Database["public"]["Enums"]["media_status"]
           status_before_removed:
             | Database["public"]["Enums"]["media_status"]
@@ -744,6 +783,7 @@ export type Database = {
           removed_by_admin?: boolean
           removed_by_system?: boolean
           removed_by_uploader?: boolean
+          sealed_until?: string | null
           status?: Database["public"]["Enums"]["media_status"]
           status_before_removed?:
             | Database["public"]["Enums"]["media_status"]
@@ -772,6 +812,7 @@ export type Database = {
           removed_by_admin?: boolean
           removed_by_system?: boolean
           removed_by_uploader?: boolean
+          sealed_until?: string | null
           status?: Database["public"]["Enums"]["media_status"]
           status_before_removed?:
             | Database["public"]["Enums"]["media_status"]
@@ -1377,6 +1418,15 @@ export type Database = {
         Args: { p_fortnight_days?: number; p_window_days?: number }
         Returns: Json
       }
+      album_bits: {
+        Args: {
+          p_is: Database["public"]["Enums"]["media_status"]
+          p_is_sealed: boolean
+          p_was: Database["public"]["Enums"]["media_status"]
+          p_was_sealed: boolean
+        }
+        Returns: number
+      }
       album_changes_since: {
         Args: {
           p_after: number
@@ -1386,6 +1436,7 @@ export type Database = {
         }
         Returns: Json
       }
+      album_doorbell: { Args: { p_event_id: string }; Returns: undefined }
       album_flush: { Args: never; Returns: undefined }
       album_prune_tombstones: {
         Args: { p_after?: string; p_limit?: number }
@@ -1501,6 +1552,15 @@ export type Database = {
         Returns: Json
       }
       defer_kept_due_media: { Args: never; Returns: number }
+      develop_due: { Args: { p_event_id: string }; Returns: number }
+      develop_due_sweep: { Args: { p_limit?: number }; Returns: Json }
+      develop_rows: {
+        Args: {
+          p_event: Database["public"]["Tables"]["events"]["Row"]
+          p_skip_locked: boolean
+        }
+        Returns: number
+      }
       disown_guest_rows_by_email: {
         Args: { p_event_ids: string[] }
         Returns: number
@@ -1607,8 +1667,11 @@ export type Database = {
         Returns: {
           accepting_uploads: boolean
           accepts_video: boolean
+          capture: string
           custom_slug: string
           description: string
+          develop_due: boolean
+          develops_at: string
           event_date: string
           has_password: boolean
           host_display_name: string
@@ -1622,6 +1685,7 @@ export type Database = {
           reel_style_id: string
           require_upload_to_view: boolean
           require_verified_email: boolean
+          roll_size: number
           show_reel: boolean
           visibility: Database["public"]["Enums"]["event_visibility"]
         }[]
@@ -1718,6 +1782,14 @@ export type Database = {
         }
         Returns: Json
       }
+      guest_roll: {
+        Args: {
+          p_event: Database["public"]["Tables"]["events"]["Row"]
+          p_guest_id: string
+          p_user_id: string
+        }
+        Returns: Record<string, unknown>
+      }
       has_password: { Args: never; Returns: boolean }
       held_event_ids: { Args: { p_event_ids: string[] }; Returns: string[] }
       host_active_bytes: { Args: { p_host_id: string }; Returns: number }
@@ -1799,6 +1871,10 @@ export type Database = {
       report_strikes: { Args: { p_reporter_hashes: string[] }; Returns: Json }
       restore_event: { Args: { p_event_id: string }; Returns: Json }
       restore_media: { Args: { p_media_id: string }; Returns: Json }
+      seal_disagrees: {
+        Args: { p_event: Database["public"]["Tables"]["events"]["Row"] }
+        Returns: boolean
+      }
       set_event_door: {
         Args: { p_door: string; p_event_id: string }
         Returns: Json

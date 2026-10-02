@@ -83,7 +83,9 @@ type GuestPresignCode =
   | "cap_reached"
   | "verification_required" // the identity reshape: the switch flipped under a live session
   | "session_other_account" // upload-owner: an account's row writes only for that account
-  | "too_large";
+  | "too_large"
+  | "too_long" // the camera: a video shot runs ten seconds
+  | "roll_spent"; // the camera: her roll has no frame left
 type HostPresignCode =
   | "unauthorized"
   | "bad_request"

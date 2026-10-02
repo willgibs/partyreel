@@ -1,31 +1,32 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import { Glow } from "@/components/shared/glow";
 import { GlowFilter } from "@/components/shared/glow-filter";
 
-import { HeroObject, type TakeId } from "./objects";
+import type { Party } from "./fixtures";
+import { lampOf } from "./hero";
 import { CinemaRoom } from "./scene";
 
 /**
- * THE SETTLED TOUCH, CLOSE: the object at a desk's size on the cinema ground,
- * at rest and under the pointer, side by side. No real screen can show both
- * at once, which is why this is the one frame on the board that is not a
- * screen: the home frames are, and pointing at the 1440 one lifts the object
- * for real.
+ * THE SETTLED TOUCH, CLOSE: the object at a desk's size on the cinema ground
+ * under its party's lamp, at rest and under the pointer, side by side. No real
+ * screen can show both at once, which is why this is the one frame on the
+ * board that is not a screen: the home frames are, and pointing at the 1440
+ * one lifts the object for real.
  *
  * `--hhs-k: 1` is the desk's drawing of every length (the hero's sheet sets it
  * from the frame's width, and this frame is not a hero).
  */
 export function Specimen({
-  take,
-  slug,
-  addresses,
+  party,
+  object,
 }: {
-  take: TakeId;
-  slug: string;
-  addresses: readonly string[];
+  /** Whose lamp it stands under: the demo's own. */
+  party: Party;
+  /** The object, at rest or lifted, still. */
+  object: (lifted: boolean) => ReactNode;
 }) {
   const cell = (label: string, lifted: boolean) => (
     <div
@@ -39,6 +40,7 @@ export function Specimen({
         <Glow
           shape="bloom"
           drive="mask"
+          colors={lampOf(party)}
           vars={{
             "--glw-from-x": "50%",
             "--glw-from-y": "50%",
@@ -49,12 +51,7 @@ export function Specimen({
           }}
         />
       </div>
-      <div className="relative z-10">
-        <HeroObject
-          take={take}
-          live={{ slug, addresses, up: true, lifted, still: true }}
-        />
-      </div>
+      <div className="relative z-10">{object(lifted)}</div>
       <p className="absolute bottom-4 left-5 text-label font-medium text-muted-foreground uppercase">
         {label}
       </p>

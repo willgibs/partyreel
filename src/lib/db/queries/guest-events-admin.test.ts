@@ -49,6 +49,7 @@ vi.mock("@/lib/observability/sentry", () => ({
 // guest-events.ts (the cursor helpers' home) imports the server client; nothing here reads through
 // it, and its env check would refuse the unit runner.
 vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }));
+vi.mock("@/lib/supabase/anon", () => ({ createAnonClient: vi.fn() }));
 
 /** The fake the admin client answers from; each test seeds its own. */
 let fake: FakePostgrest;
@@ -181,14 +182,22 @@ describe("getApprovedMediaForUnlock: the unlocked password album, read whole", (
     );
     expect(rows.some((r) => r.reel_eligible === false)).toBe(true);
     // Every page asked for MAX_ROWS, none failed, and each page after the first carried the
-    // composite cursor.
+    // composite cursor. ★ Reshaped by disposable-foundation (20261002200000): every page also carries the seal's
+    // own logic tree (`unsealedFilter`, `lib/disposable/seal.ts`), an `or` of its own, which PostgREST ANDs with the
+    // cursor's; so the first page holds one `or` (the seal) where it held none, and every later page two.
     const pages = fake.requests.filter((r) => r.name === "media");
     expect(pages.length).toBe(Math.ceil(approved.length / MAX_ROWS));
     expect(pages.every((p) => !p.failed && p.limit === MAX_ROWS)).toBe(true);
-    expect(pages[0].filters.some((f) => f.op === "or")).toBe(false);
+    const ors = (page: (typeof pages)[number]) =>
+      page.filters.filter((f) => f.op === "or").map((f) => String(f.value));
+    const SEAL = /^sealed_until\.is\.null,sealed_until\.lte\..+$/;
+    expect(ors(pages[0])).toHaveLength(1);
+    expect(ors(pages[0])[0]).toMatch(SEAL);
     for (const page of pages.slice(1)) {
-      const cursor = page.filters.find((f) => f.op === "or");
-      expect(String(cursor?.value)).toMatch(
+      const trees = ors(page);
+      expect(trees).toHaveLength(2);
+      expect(trees.filter((t) => SEAL.test(t))).toHaveLength(1);
+      expect(trees.find((t) => !SEAL.test(t))).toMatch(
         /^created_at\.lt\..+,and\(created_at\.eq\..+,id\.lt\..+\)$/,
       );
     }

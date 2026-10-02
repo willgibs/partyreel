@@ -56,6 +56,7 @@ import {
 } from "@/lib/jobs/sweep-tally";
 import { sweepDeletedAccounts } from "@/lib/lifecycle/account-deletion";
 import { sweepAlbumLog } from "@/lib/lifecycle/sweeps/album-log";
+import { sweepDevelop } from "@/lib/lifecycle/sweeps/develop";
 import {
   createSweepClock,
   SWEEP_WINDOW_MS,
@@ -84,7 +85,7 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 /** The sweeps that work under a deadline, in the order they run: the clock shares the window between them. */
-const BUDGETED_SWEEPS = 10;
+const BUDGETED_SWEEPS = 11;
 
 type AdminClient = ReturnType<typeof createAdminClient>;
 
@@ -308,7 +309,7 @@ export async function GET(request: Request): Promise<Response> {
   const sweeps: Record<string, unknown> = {};
 
   // Each sweep is independently guarded so one failure doesn't abort the rest. The guard reports to
-  // Sentry and, for the FOUR promoted sub-sweeps, keeps a `job_runs` row, a kill switch and a card of
+  // Sentry and, for the promoted sub-sweeps (the catalog's `purge_sweep` jobs), keeps a `job_runs` row, a kill switch and a card of
   // their own (`createSweepRunner`, src/lib/jobs/purge-sweeps.ts).
   const sweepRunner = createSweepRunner(triggeredBy);
   const runSweep = async (name: string, fn: () => Promise<unknown>) => {
@@ -329,6 +330,10 @@ export async function GET(request: Request): Promise<Response> {
     await runSweep(name, () => fn(deadline));
   };
 
+  // FIRST of the budgeted (disposable-foundation): the develop. A reveal a guest waits on, it deletes nothing and
+  // usually finds nothing (the album's own first read after its develop time develops it in the day), so it takes its
+  // share before the heavy sweeps and hands the rest down the line.
+  await runBudgeted("develop", (deadline) => sweepDevelop(admin, { deadline }));
   await runBudgeted("expired_events", (deadline) =>
     sweepExpiredEvents(admin, now, handled, { deadline }),
   );

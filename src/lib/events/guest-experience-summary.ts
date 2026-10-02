@@ -1,3 +1,6 @@
+import type { Capture } from "@/lib/disposable/facts";
+import type { DevelopState } from "@/lib/disposable/reveal";
+import { ROLL_SHOTS } from "@/lib/disposable/roll";
 import type { Door } from "@/lib/event/door/door";
 
 /**
@@ -56,6 +59,16 @@ export type SettingsFacts = {
   dateLabel: string | null;
   /** Listed on the host's public profile, or null where the profile's key is not read. */
   onProfile: boolean | null;
+  /**
+   * How guests add and where a develop stands (20261002200000): free uploads or the album's camera (its roll's size),
+   * and none, waiting or developed. Optional, so facts built anywhere but Settings' state (a Library stand-in, a test)
+   * read as free uploads with no develop, which every event was.
+   */
+  develop?: {
+    capture: Capture;
+    rollSize: number | null;
+    state: DevelopState["kind"];
+  };
 };
 
 /** The group titles, which the sentence under each one answers. */
@@ -129,9 +142,42 @@ function addsSentence(f: SettingsFacts): SentencePart[] {
   if (!f.acceptingUploads) {
     return [word("Paused", "uploads"), prose(". Guests can still look.")];
   }
+  const what = word(f.videos ? "Photos and videos" : "Photos", "uploads");
+  // ★ THE CAMERA says its roll after what guests add; the three-way "when everyone sees" follows. The review word
+  // stays a live word only where it says the whole answer: with a develop time set, the page owns the answer (its
+  // time is no word a sentence can pick), so it is said as prose.
+  const camera = f.develop?.capture === "camera";
+  const lead: SentencePart[] = camera
+    ? [
+        what,
+        prose(
+          ` on the album's camera, ${f.develop?.rollSize ?? ROLL_SHOTS} shots each, `,
+        ),
+      ]
+    : [what, prose(", ")];
+  const state = f.develop?.state ?? "none";
+  if (state === "waiting") {
+    return [
+      ...lead,
+      prose(
+        f.review
+          ? "held for your approval and hidden until the album develops."
+          : "hidden until the album develops.",
+      ),
+    ];
+  }
+  if (state === "developed") {
+    return [
+      ...lead,
+      prose(
+        f.review
+          ? "developed; new ones wait for your approval."
+          : "developed; new ones show straight away.",
+      ),
+    ];
+  }
   return [
-    word(f.videos ? "Photos and videos" : "Photos", "uploads"),
-    prose(", "),
+    ...lead,
     word(
       f.review ? "held until you approve them" : "straight into the album",
       "review",

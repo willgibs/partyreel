@@ -309,3 +309,55 @@ describe("reelDefaultsInputSchema: setReelDefaults' input", () => {
     }
   });
 });
+
+// HOW GUESTS ADD AND WHEN THE ALBUM DEVELOPS (20261002200000): update-only, each its own key, the three-way "when
+// everyone sees" writing `moderation_mode` beside `develops_at` in one save.
+describe("updateEventSchema: the capture and the develop time", () => {
+  const inAWeek = new Date(Date.now() + 7 * 86_400_000).toISOString();
+
+  it("takes the capture, and a develop time with its offset, or none", () => {
+    expect(updateEventSchema.parse({ capture: "camera" })).toEqual({
+      capture: "camera",
+    });
+    expect(
+      updateEventSchema.parse({ develops_at: inAWeek, moderation_mode: "live" }),
+    ).toEqual({ develops_at: inAWeek, moderation_mode: "live" });
+    expect(updateEventSchema.parse({ develops_at: null })).toEqual({
+      develops_at: null,
+    });
+    // Develop now: a time at or before now is the write's to store as the database's own now.
+    const now = new Date().toISOString();
+    expect(updateEventSchema.parse({ develops_at: now })).toEqual({
+      develops_at: now,
+    });
+  });
+
+  it("refuses a capture it does not know, a time past the reach, a time with no zone, and the columns no host writes", () => {
+    for (const input of [
+      { capture: "disposable" },
+      { capture: "film" },
+      { develops_at: new Date(Date.now() + 400 * 86_400_000).toISOString() },
+      { develops_at: "2026-10-03 09:00" },
+      { develops_at: "tomorrow" },
+    ]) {
+      expect(
+        updateEventSchema.safeParse(input).success,
+        JSON.stringify(input),
+      ).toBe(false);
+    }
+    // The period and the roll's size are the database's: an update never carries them.
+    expect(
+      updateEventSchema.parse({ sealed_from: inAWeek, roll_size: 99, mode: "disposable" }),
+    ).toEqual({});
+  });
+
+  it("a create carries neither: a new album takes free uploads and no develop (the column defaults)", () => {
+    const created = createEventSchema.parse({
+      name: "Party",
+      capture: "camera",
+      develops_at: inAWeek,
+    });
+    expect(created).not.toHaveProperty("capture");
+    expect(created).not.toHaveProperty("develops_at");
+  });
+});

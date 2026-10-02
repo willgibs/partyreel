@@ -35,6 +35,9 @@ bodies live in `lib/lifecycle/sweeps/` and `account-deletion.ts`, each tested on
   switch and card, through `createSweepRunner`), and its per-account body runs under `forEachIsolated`, so one bad
   row never costs the rest ([admin-observability.md](admin-observability.md)). So is `album_log`, though it deletes
   rows only: it writes in the album's live core.
+- **`develop_rolls` runs first of the budgeted sweeps** (`develop_due_sweep`, 20261002200000): it develops every
+  album whose sealed rows disagree with its event (a develop time passed with nobody reading), a batch of albums a
+  call, and deletes nothing; its own job and switch, since it reveals photographs ([disposable-mode.md](disposable-mode.md)).
 - ★ **`album_log` prunes the paged album's change log under a watermark** (`album_prune_tombstones`, 20261001150000):
   a purged item's change row (its tombstone) goes, and the album's watermark rises to its versions in the same
   transaction, so a client below the watermark is sent its album whole ([guest-flow.md](guest-flow.md)). It walks
@@ -51,7 +54,10 @@ bodies live in `lib/lifecycle/sweeps/` and `account-deletion.ts`, each tested on
 
 - **One 30-day window** (`RECENTLY_DELETED_WINDOW_DAYS`). `purge_at` is trigger-derived on both tables
   (`deleted_at` + 30 days, `removed_at` + 30 days) across every removal path, so it cannot be spoofed and no host
-  holds a grant on it. The grace clock is `media.removed_at`, never `updated_at`, which every touch bumps.
+  holds a grant on it. The grace clock is `media.removed_at`, never `updated_at`, which every touch bumps. One
+  exception: a shot a guest withdraws from an album camera's period purges that night (`purge_at = removed_at`), since
+  the frame it frees invites a reshoot; a hold, an open report and `kept_media_ids` keep it as any row
+  ([disposable-mode.md](disposable-mode.md)).
 - **The standby budget caps what a host keeps in Deleted:** at most the effective cap in deleted-but-stored bytes,
   evicted oldest-first, so size is the anti-abuse bound, not the clock. A move to a smaller cap shrinks Deleted too
   and purges its oldest items early; the plan sheet says so before such a switch. The sweep finds its hosts through

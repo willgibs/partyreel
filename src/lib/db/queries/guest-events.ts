@@ -9,10 +9,12 @@ import { cache } from "react";
 
 import { readAllPages } from "@/lib/db/read-all";
 import type { Database } from "@/lib/db/types";
+import { developFactsOf, type Capture } from "@/lib/disposable/facts";
 import type { Door } from "@/lib/event/door/door";
 import type { DoorPass } from "@/lib/event/door/pass.server";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createAnonClient } from "@/lib/supabase/anon";
 import { createClient } from "@/lib/supabase/server";
 
 export type GuestEvent = {
@@ -70,6 +72,20 @@ export type GuestEvent = {
    * read (a fixture, a stand-in) need not say it: absent reads as no cap, the line the guest saw before it.
    */
   max_upload_bytes?: number | null;
+  /**
+   * HOW GUESTS ADD AND WHEN THE ALBUM DEVELOPS (20261002200000): the capture (free uploads, or the album's camera),
+   * its roll's size (null for free uploads) and the develop time (ISO; null for none), presentation settings the
+   * waiting room and the camera say, unredacted like the switches beside them. Optional because a GuestEvent built
+   * anywhere but this read (a fixture, a stand-in) need not say them: absent reads as free uploads with no develop.
+   */
+  capture?: Capture;
+  roll_size?: number | null;
+  develops_at?: string | null;
+  /**
+   * Server-side cue, never a guest's to read: a sealed row here disagrees with the event (its develop time passed, a
+   * straggler), so the album's reads run `develop_due` first (`lib/disposable/develop.server.ts`).
+   */
+  develop_due?: boolean;
   /**
    * THE DOOR AS THIS VIEWER MEETS IT, set only by the door's resolution (`closed-door.server.ts`,
    * from `event_door_standing`): the anon read answers a gated album as a private one, so until the
@@ -195,10 +211,25 @@ export const getEventByQrToken = cache(async function getEventByQrToken(
     // The host's own cap, for the upload sheet's line (20261001233000). ★ Typed `number` like
     // `reel_hold_sec`, yet NULL where the host set none (the product's ceiling applies): kept as NULL.
     max_upload_bytes: row.max_upload_bytes ?? null,
+    // The develop and the camera (20261002200000), read through the seam until the types regenerate.
+    ...developEventFields(row),
   };
 
   return { ok: true, data: await rehydrateUnlockedDetails(event) };
 });
+
+/** The read's develop and camera columns as GuestEvent carries them (`developFactsOf`, the seam's one parser). */
+function developEventFields(
+  row: unknown,
+): Pick<GuestEvent, "capture" | "roll_size" | "develops_at" | "develop_due"> {
+  const facts = developFactsOf(row);
+  return {
+    capture: facts.capture,
+    roll_size: facts.rollSize,
+    develops_at: facts.developsAt,
+    develop_due: facts.developDue,
+  };
+}
 
 /**
  * The fields the gallery needs (keys stay server-side, uploads-and-r2.md). Dimensions +
@@ -272,7 +303,10 @@ export function olderThan(after: AlbumCursor): string {
 export async function getEventMediaByQrToken(
   qrToken: string,
 ): Promise<GuestMediaRow[]> {
-  const supabase = await createClient();
+  // ★ ASKED AS NOBODY (20261002200000): the RPC exempts an album's host from the seal when her session asks, and the
+  // guest's page is the guests' view, its host's included (`lib/disposable/seal.ts`). So the export's open arm reads
+  // with no session, the way every other guest-path read of the album already does (the service role, no `auth.uid()`).
+  const supabase = createAnonClient();
   const { rows } = await readAllPages(
     "guest album: get_event_media_by_qr_token",
     (after: AlbumCursor | null, limit) =>

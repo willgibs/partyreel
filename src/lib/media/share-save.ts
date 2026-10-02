@@ -21,11 +21,20 @@
  * the gallery and a desk downloads, so both keep the one plain Save they
  * already had.
  *
- * ★ THE FILE IS FETCHED ON THE TAP, NEVER BEFORE. A swipe through an album must
- * never pull originals a guest did not ask for. The cost is that a slow fetch can
- * outlive the tap's user activation, and iOS refuses `share()` without one, so a
- * lapsed activation comes back as `needs-tap` with the file in hand: the viewer
- * turns the button into a one-tap "Ready" rather than failing.
+ * ★ A PHOTOGRAPH'S FILE IS THE ONE THE VIEWER ALREADY HOLDS; ONLY A CLIP'S IS
+ * FETCHED ON THE TAP (save-speed, Will's iPhone, 2026-10-02: "waited for a good
+ * 30 seconds before the looping/loading icon stopped and switched to 'ready'").
+ * It used to be fetched on the tap, never before, and that tap-bound download was
+ * the whole wait: a second, cache-bypassing download of the original the viewer
+ * had just drawn, queued on R2's HTTP/1.1 connections behind whatever the viewer
+ * was loading (on iOS, the next clip in full), while the sheet needs the tap's
+ * activation, which WebKit holds for five seconds (measured 5,023 ms). So the
+ * viewer now downloads a photograph's original once, as bytes, and draws AND
+ * shares those (`share-save-held.ts`): the tap meets a file in hand and the
+ * sheet opens inside the tap. A clip still waits for its tap (the viewer streams
+ * it and never holds it whole); its download shows its progress, can be
+ * stopped, and a lapsed activation still comes back as `needs-tap` with the
+ * file in hand, never a failure.
  *
  * ★ A CORS READ OF A GALLERY PRESIGN BYPASSES THE HTTP CACHE (uploads-and-r2.md):
  * a tile's plain <img> caches R2's answer without Access-Control-Allow-Origin
@@ -188,16 +197,42 @@ export function filenameFor(item: {
   return `partyreel-${item.id.slice(0, 8)}.${item.type === "video" ? "mp4" : "jpg"}`;
 }
 
+/**
+ * Why a read failed, where the caller acts on it: `refused` is a request the
+ * browser would not let us read (a CORS refusal, an expired presign's bare 403
+ * and a dropped network all look alike from here), `status` an answer that was
+ * not a 200, `stalled` a body that stopped arriving.
+ */
+export type FetchFailure = "refused" | "status" | "stalled";
+
 export type FetchedFile =
   | { kind: "file"; file: File }
   | { kind: "too-large" }
-  | { kind: "failed" }
+  | { kind: "failed"; why?: FetchFailure }
   | { kind: "aborted" };
+
+/**
+ * How long a body may go without a byte before the read gives up. A phone on a
+ * weak link still moves bytes every second or two; a connection that has gone
+ * quiet for this long is not coming back, and a fresh request beats waiting on
+ * it (the caller falls back to one).
+ */
+export const FETCH_STALL_MS = 15_000;
+
+/** Bytes so far and the whole, when the answer declared it. */
+export type FetchProgress = (received: number, total: number | null) => void;
 
 /**
  * The original, as a File, fetched now. A declared length over the cap stops
  * the read before a byte of body is held; a body that turns out over it is
  * dropped. `signal` is the viewer's: moving on or closing aborts the read.
+ *
+ * ★ READ AS A STREAM, SO IT CAN SAY HOW FAR IT HAS COME. With `onProgress`, the
+ * body is read chunk by chunk and every chunk is reported, which is what lets a
+ * wait show progress rather than a bare spinner, and lets a body that stops
+ * arriving (`stallMs` without a byte) end as `failed: stalled` instead of
+ * holding the button for ever. A browser with no readable body falls back to
+ * one `blob()` read, as before.
  */
 export async function fetchMediaFile(
   url: string,
@@ -206,35 +241,89 @@ export async function fetchMediaFile(
     fetch?: typeof fetch;
     signal?: AbortSignal;
     maxBytes?: number;
+    onProgress?: FetchProgress;
+    /** The Fetch Priority hint: the photograph on screen high, a neighbour low. */
+    priority?: RequestPriority;
+    stallMs?: number;
   } = {},
 ): Promise<FetchedFile> {
   const doFetch = opts.fetch ?? fetch;
   const maxBytes = opts.maxBytes ?? SHARE_FILE_MAX_BYTES;
   const own = new AbortController();
-  const relay = () => own.abort();
-  opts.signal?.addEventListener("abort", relay);
+  let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+  // Ending a read cancels its body too: an aborted fetch errors its stream in
+  // a browser, but a pending `read()` must never outlive the decision to stop.
+  const end = () => {
+    own.abort();
+    reader?.cancel().catch(() => {});
+  };
+  opts.signal?.addEventListener("abort", end);
+  let stalled = false;
+  let quiet: ReturnType<typeof setTimeout> | undefined;
   try {
     if (opts.signal?.aborted) return { kind: "aborted" };
     const res = await doFetch(url, {
       mode: "cors",
       cache: "no-store",
       signal: own.signal,
+      ...(opts.priority && { priority: opts.priority }),
     });
-    if (!res.ok) return { kind: "failed" };
+    if (!res.ok) return { kind: "failed", why: "status" };
     const declared = Number(res.headers.get("content-length"));
-    if (Number.isFinite(declared) && declared > maxBytes) {
+    const total = Number.isFinite(declared) && declared > 0 ? declared : null;
+    if (total !== null && total > maxBytes) {
       own.abort();
       return { kind: "too-large" };
     }
-    const blob = await res.blob();
-    if (blob.size > maxBytes) return { kind: "too-large" };
-    const type =
-      blob.type || res.headers.get("content-type") || mimeForName(name);
-    return { kind: "file", file: new File([blob], name, { type }) };
+    const type = () => res.headers.get("content-type") || mimeForName(name);
+    reader = opts.onProgress ? res.body?.getReader() : undefined;
+    if (!reader) {
+      const blob = await res.blob();
+      if (blob.size > maxBytes) return { kind: "too-large" };
+      return {
+        kind: "file",
+        file: new File([blob], name, { type: blob.type || type() }),
+      };
+    }
+    const chunks: Uint8Array<ArrayBuffer>[] = [];
+    let received = 0;
+    const stallMs = opts.stallMs ?? FETCH_STALL_MS;
+    const watch = () => {
+      clearTimeout(quiet);
+      quiet = setTimeout(() => {
+        stalled = true;
+        end();
+      }, stallMs);
+    };
+    opts.onProgress?.(0, total);
+    watch();
+    for (;;) {
+      const { done, value } = await reader.read();
+      // A cancel resolves the pending read as done: what ended it decides.
+      if (stalled) return { kind: "failed", why: "stalled" };
+      if (own.signal.aborted)
+        return opts.signal?.aborted
+          ? { kind: "aborted" }
+          : { kind: "failed", why: "refused" };
+      if (done) break;
+      received += value.byteLength;
+      if (received > maxBytes) {
+        end();
+        return { kind: "too-large" };
+      }
+      chunks.push(value as Uint8Array<ArrayBuffer>);
+      opts.onProgress?.(received, total);
+      watch();
+    }
+    return { kind: "file", file: new File(chunks, name, { type: type() }) };
   } catch {
-    return opts.signal?.aborted ? { kind: "aborted" } : { kind: "failed" };
+    if (stalled) return { kind: "failed", why: "stalled" };
+    return opts.signal?.aborted
+      ? { kind: "aborted" }
+      : { kind: "failed", why: "refused" };
   } finally {
-    opts.signal?.removeEventListener("abort", relay);
+    clearTimeout(quiet);
+    opts.signal?.removeEventListener("abort", end);
   }
 }
 
@@ -349,21 +438,34 @@ type Deps = {
   fetch?: typeof fetch;
   signal?: AbortSignal;
   maxBytes?: number;
+  /** The tap's own download, reported as it comes (the button draws it). */
+  onProgress?: FetchProgress;
 };
 
 /**
  * SHARE, ON ITS TAP: the picture itself, then the link, then a copy of it.
  * `link` is the photograph's public link where it has one (an approved item on
  * a surface with an album link), else the album's, else nothing.
+ *
+ * ★ `file` IS THE ORIGINAL THE VIEWER ALREADY HOLDS, AND IT REACHES `share()`
+ * WITHOUT A SINGLE AWAIT BEFORE IT. An async function runs synchronously up to
+ * its first await, so a tap that hands one in reaches the sheet inside its own
+ * event, where every browser's activation is still alive. Saving and sharing
+ * alike.
  */
 export async function shareMedia(
-  input: { fileUrl?: string; name: string; link?: string },
+  input: { file?: File; fileUrl?: string; name: string; link?: string },
   deps: Deps,
 ): Promise<ShareOutcome> {
-  if (input.fileUrl && canShareFileNamed(input.name, deps.nav)) {
-    const got = await fetchMediaFile(input.fileUrl, input.name, deps);
-    if (got.kind === "aborted") return { kind: "cancelled" };
-    if (got.kind === "file") {
+  const { file, fileUrl } = input;
+  if ((file || fileUrl) && canShareFileNamed(input.name, deps.nav)) {
+    const got = file
+      ? ({ kind: "file", file } as const)
+      : fileUrl
+        ? await fetchMediaFile(fileUrl, input.name, deps)
+        : null;
+    if (got?.kind === "aborted") return { kind: "cancelled" };
+    if (got?.kind === "file") {
       const sent = await shareFile(got.file, deps.nav);
       if (sent.kind === "shared") return { kind: "shared-file" };
       if (sent.kind === "cancelled") return { kind: "cancelled" };
@@ -387,14 +489,17 @@ export type SaveOutcome =
  * SAVE TO PHOTOS (iOS): the file into the system sheet, whose "Save Image" is
  * the one web path into the library. Anything that keeps the file from the
  * sheet (too big, a refusal, a broken read) falls back to the plain download,
- * because a Save that saves nothing is the one outcome to avoid.
+ * because a Save that saves nothing is the one outcome to avoid. A held `file`
+ * goes straight in, as it does for Share.
  */
 export async function saveToPhotos(
-  input: { fileUrl: string; name: string },
+  input: { file?: File; fileUrl: string; name: string },
   deps: Deps,
 ): Promise<SaveOutcome> {
   if (!canShareFileNamed(input.name, deps.nav)) return { kind: "download" };
-  const got = await fetchMediaFile(input.fileUrl, input.name, deps);
+  const got = input.file
+    ? ({ kind: "file", file: input.file } as const)
+    : await fetchMediaFile(input.fileUrl, input.name, deps);
   if (got.kind === "aborted") return { kind: "cancelled" };
   if (got.kind !== "file") return { kind: "download" };
   const sent = await shareFile(got.file, deps.nav);

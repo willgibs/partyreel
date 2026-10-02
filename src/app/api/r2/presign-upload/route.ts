@@ -1,4 +1,6 @@
 import { getUploadContext } from "@/lib/db/mutations/guest";
+import { parseRollCount } from "@/lib/disposable/roll";
+import { cameraShotRefusal } from "@/lib/disposable/shot";
 import { mayUploadPastLock } from "@/lib/events/upload-lock";
 import { checkSessionOwner } from "@/lib/guest/session-owner.server";
 import { captureWarning } from "@/lib/observability/sentry";
@@ -152,6 +154,16 @@ const guestPresignStrategy: PresignStrategy<typeof presignUploadSchema> = {
         },
       };
     }
+    // ★ THE ALBUM'S CAMERA (20261002200000): a video shot is ten seconds and 128 MB, her roll holds its frames (24),
+    // and a period takes three rolls' worth. Refused here before the bytes move, in the server's own words;
+    // create_media holds the same lines on the R2-HEAD size and counts the roll under its locks, so this is the
+    // friendly half, never the boundary.
+    const shot = cameraShotRefusal(
+      { capture: ctx.data.capture, roll: parseRollCount(ctx.data.roll) },
+      kind,
+      parsed,
+    );
+    if (shot) return { ok: false, refusal: shot };
     return { ok: true, eventId: ctx.data.event_id };
   },
 };

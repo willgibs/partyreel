@@ -24,7 +24,7 @@ import {
 } from "@/lib/constants/marketing-nav";
 import { cn } from "@/lib/utils";
 
-import { ChromeLink as Link } from "./chrome-link";
+import { ChromeLink as Link, HomeLink } from "./chrome-link";
 import { portalSkinProps, type MarketingSkin } from "./portal-skin";
 import { useSignedInHint } from "./session-hint";
 
@@ -115,9 +115,9 @@ export function MarketingNavMobile({
       >
         <div className="flex h-[var(--mkt-header-h,4rem)] shrink-0 items-center justify-between px-4">
           <SheetClose asChild>
-            <Link href="/" aria-label="Partyreel home">
+            <HomeLink>
               <Logo />
-            </Link>
+            </HomeLink>
           </SheetClose>
           <SheetTitle className="sr-only">Menu</SheetTitle>
           <SheetClose asChild>

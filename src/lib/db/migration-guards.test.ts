@@ -1446,10 +1446,13 @@ describe("the row cap: the SQL shapes the 1,000-row fixes read", () => {
   });
 
   describe("event_card_stats and event_covers: one jsonb for any number of cards", () => {
+    // ★ Reshaped by disposable-foundation (20261002200000), which carries both bodies in place (`create or replace`,
+    // the signatures untouched) with the seal's one predicate: the pins read the shape, never the verb (crumbs-21's
+    // reshape of get_event_like_counts), and the covers' read keeps its gates with the predicate after them.
     it("event_card_stats is SECURITY INVOKER, answers every input id, and counts outside the bin", () => {
       const body = code("event_card_stats");
       expect(body).toContain(
-        "create function public.event_card_stats(p_event_ids uuid[]) returns jsonb language sql stable security invoker set search_path = ''",
+        "function public.event_card_stats(p_event_ids uuid[]) returns jsonb language sql stable security invoker set search_path = ''",
       );
       expect(body).toContain(
         "from ( select distinct u.event_id from unnest(p_event_ids) as u(event_id) where u.event_id is not null ) ids left join",
@@ -1462,10 +1465,10 @@ describe("the row cap: the SQL shapes the 1,000-row fixes read", () => {
     it("event_covers is SECURITY INVOKER: the newest approved photo outside the bin, id as the tiebreak", () => {
       const body = code("event_covers");
       expect(body).toContain(
-        "create function public.event_covers(p_event_ids uuid[]) returns jsonb language sql stable security invoker set search_path = ''",
+        "function public.event_covers(p_event_ids uuid[]) returns jsonb language sql stable security invoker set search_path = ''",
       );
       expect(body).toContain(
-        "select distinct on (m.event_id) m.event_id, m.preview_key, m.original_key from public.media m where m.event_id = any(p_event_ids) and m.status = 'approved' and m.type = 'photo' and m.removed_at is null order by m.event_id, m.created_at desc, m.id desc",
+        "select distinct on (m.event_id) m.event_id, m.preview_key, m.original_key from public.media m where m.event_id = any(p_event_ids) and m.status = 'approved' and m.type = 'photo' and m.removed_at is null and (m.sealed_until is null or m.sealed_until <= now() or exists (select 1 from public.events e where e.id = m.event_id and e.host_id = (select auth.uid()))) order by m.event_id, m.created_at desc, m.id desc",
       );
     });
 
@@ -1796,9 +1799,12 @@ describe("the live reel: the expand (20260924100000) and the drop (2026092411000
         }
       });
 
+      // ★ Reshaped by disposable-foundation (20261002200000): the insert also writes the seal it decided
+      // (`v_sealed_until`, the album's develop time while it is ahead, else null), last; every earlier
+      // column and value where it was.
       it(`${name}: writes reel_eligible, and an explicit null reads as the default`, () => {
         expect(code(name)).toContain(
-          `insert into public.media ( id, event_id, guest_id, type, original_key, preview_key, file_size_bytes, duration_seconds, width, height, status, reel_eligible ) values ( p_media_id, v_event.id, ${shape.guest}, p_type, p_original_key, p_preview_key, p_file_size_bytes, p_duration_seconds, p_width, p_height, v_status, coalesce(p_reel_eligible, true) );`,
+          `insert into public.media ( id, event_id, guest_id, type, original_key, preview_key, file_size_bytes, duration_seconds, width, height, status, reel_eligible, sealed_until ) values ( p_media_id, v_event.id, ${shape.guest}, p_type, p_original_key, p_preview_key, p_file_size_bytes, p_duration_seconds, p_width, p_height, v_status, coalesce(p_reel_eligible, true), v_sealed_until );`,
         );
       });
 
@@ -2050,15 +2056,17 @@ describe("the host's reel defaults (20260925100000)", () => {
 
     it("returns the hold after the reel's two settings, as a SECURITY DEFINER read with an empty search_path", () => {
       // ★ Reshaped by the doors (20260929120000), which append the guest picker's flag
-      // (`accepts_video`) after the hold, and by the host's cap (20261001233000, crumbs-43), which
-      // appends `max_upload_bytes` after the flag: the hold still follows the reel's two settings, and
-      // nothing but those two comes after it (the cap's own pins: guest-cap-and-faces-guards.test.ts).
+      // (`accepts_video`) after the hold, by the host's cap (20261001233000, crumbs-43), which
+      // appends `max_upload_bytes` after the flag, and by disposable-foundation (20261002200000), which appends
+      // whether a develop is due, the develop time, the capture and the roll's size after the cap: the hold still follows the reel's two
+      // settings, and nothing but those comes after it (the later columns' own pins: guest-cap-and-faces-guards.test.ts
+      // and src/lib/disposable/migration-guards.test.ts).
       const body = code("get_event_by_qr_token");
       expect(body).toContain(
-        "show_reel boolean, reel_style_id text, reel_hold_sec numeric, accepts_video boolean, max_upload_bytes bigint) language sql stable security definer set search_path to ''",
+        "show_reel boolean, reel_style_id text, reel_hold_sec numeric, accepts_video boolean, max_upload_bytes bigint, develop_due boolean, develops_at timestamptz, capture text, roll_size integer) language sql stable security definer set search_path to ''",
       );
       expect(body).toContain(
-        "e.show_reel, e.reel_style_id, e.reel_hold_sec, (e.allow_videos and coalesce(p.tier <> 'free', false)), e.max_upload_bytes from public.events e",
+        "e.show_reel, e.reel_style_id, e.reel_hold_sec, (e.allow_videos and coalesce(p.tier <> 'free', false)), e.max_upload_bytes, public.seal_disagrees(e), e.develops_at, e.capture, e.roll_size from public.events e",
       );
       expect(body).toContain(
         "order by (e.qr_token = p_qr_token) desc limit 1;",
@@ -2087,9 +2095,11 @@ describe("the host's reel defaults (20260925100000)", () => {
   });
 
   describe("event_stills: the dashboard cards' stills, one jsonb", () => {
+    // ★ Reshaped by disposable-foundation (20261002200000), which carries the body in place (`create or replace`) with
+    // the seal's one predicate after the stills' own four conditions: the pins read the shape, never the verb.
     it("is SECURITY INVOKER with an empty search_path and answers one jsonb (the row cap cannot cut it)", () => {
       expect(code("event_stills")).toContain(
-        "create function public.event_stills(p_event_ids uuid[], p_per_event integer) returns jsonb language sql stable security invoker set search_path = ''",
+        "function public.event_stills(p_event_ids uuid[], p_per_event integer) returns jsonb language sql stable security invoker set search_path = ''",
       );
       expect(code("event_stills")).not.toContain("security definer");
     });
@@ -2105,7 +2115,7 @@ describe("the host's reel defaults (20260925100000)", () => {
       // ★ A null or non-positive N answers nothing: `greatest` ignores the null, so the limit is 0,
       // never the unbounded read a null p_limit means on a paged function.
       expect(body).toContain(
-        "where m.event_id = e.id and m.status = 'approved' and m.type = 'photo' and m.removed_at is null and m.preview_key is not null order by m.created_at desc, m.id desc limit least(greatest(p_per_event, 0), 12)",
+        "where m.event_id = e.id and m.status = 'approved' and m.type = 'photo' and m.removed_at is null and m.preview_key is not null and (m.sealed_until is null or m.sealed_until <= now() or e.host_id = (select auth.uid())) order by m.created_at desc, m.id desc limit least(greatest(p_per_event, 0), 12)",
       );
       // An event with no previewed photo is absent; the ids are the caller's, scoped by RLS.
       expect(body).toContain(
@@ -2711,13 +2721,15 @@ describe("a private album likes nothing but its host (20260929100000)", () => {
   const code = (name: string) =>
     collapse(latestDefinition(name).body.replace(/--[^\n]*/g, ""));
 
-  it("is carried by the doors (20260929120000), which win like_media now", () => {
+  it("is carried by disposable-foundation (20261002200000), which wins like_media now", () => {
     // ★ Reshaped by the doors: they carry like_media with a gated album's guest arm, so the winner
     // moved to their file; what this file set down (a private album likes nothing but its host) is
-    // pinned below in the winning body's own words.
+    // pinned below in the winning body's own words. ★ Reshaped again by disposable-foundation, which carries
+    // the doors' body whole with the seal's one predicate beside the item's own gates (a sealed shot is the
+    // not_found every unseen item answers, to everyone but its host).
     expect(latestDefinition("like_media").file).toBe(
       readFileSync(
-        join(MIGRATIONS_DIR, "20260929120000_event_doors.sql"),
+        join(MIGRATIONS_DIR, "20261002200000_disposable_foundation.sql"),
         "utf8",
       ),
     );

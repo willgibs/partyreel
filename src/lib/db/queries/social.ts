@@ -49,6 +49,7 @@ import { readEventGates } from "@/lib/db/queries/event-doors";
 import { readCoverUrls } from "@/lib/db/queries/events";
 import { inChunks, readAllPages } from "@/lib/db/read-all";
 import type { Database } from "@/lib/db/types";
+import { nowIso, unsealedFilter } from "@/lib/disposable/seal";
 import {
   resolveEventGuests,
   type EventGuests,
@@ -475,6 +476,9 @@ export async function getPublicProfileAttendedCoverUrls(
   // on a PROVED row (`verified_at`, never a bare user id). A choice survives the owner's last
   // removal (profile_shown_events keeps it), and this gate is what hides the picture meanwhile.
   // A chunk of events can hold more than 1,000 of the owner's uploads, so each chunk pages.
+  // ★ And one a viewer may see (the develop): a sealed upload attends nothing until the album develops, the RPC's
+  // attended arm's own rule (20261002200000), so the two never disagree about her line.
+  const now = nowIso();
   const attended = await inChunks(
     "social: attended covers, the owner's uploads",
     [...allowed],
@@ -490,6 +494,7 @@ export async function getPublicProfileAttendedCoverUrls(
               )
               .in("event_id", chunk)
               .eq("status", "approved")
+              .or(unsealedFilter(now))
               .eq("guests.user_id", profileId)
               .not("guests.verified_at", "is", null)
               .order("id")
@@ -924,6 +929,10 @@ export async function getMyGuestEventCards(): Promise<GuestEventCardData[]> {
  * holds leave before the rows become people, so they are on no list and in no count, even while the
  * host has one of their photographs restored. SQL answers which rows (`event_blocked_guest_ids`, the
  * rule's one home), so this never re-derives it and never reads an address.
+ *
+ * ★ A SEALED UPLOAD MAKES NOBODY A GUEST YET (the develop, 20261002200000): a guest whose only approved shots wait
+ * for their roll to develop joins the list, the count and the credits at develop, not before, on the hub as on the
+ * album, so the two keep saying one number (the lane's call, Will's to overrule: docs/systems/disposable-mode.md).
  */
 export const getEventGuests = cache(async function getEventGuests(
   eventId: string,
@@ -931,6 +940,7 @@ export const getEventGuests = cache(async function getEventGuests(
   // cache(): request-scoped, because the album page asks twice in one render (its header's count
   // and its guest list), and the answer cannot change between them.
   const admin = createAdminClient();
+  const now = nowIso();
   const [eventRes, approved, guestRows, blockedRows] = await Promise.all([
     admin
       .from("events")
@@ -946,6 +956,7 @@ export const getEventGuests = cache(async function getEventGuests(
           .select("id, guest_id")
           .eq("event_id", eventId)
           .eq("status", "approved")
+          .or(unsealedFilter(now))
           .not("guest_id", "is", null)
           .order("id", { ascending: true })
           .limit(limit);

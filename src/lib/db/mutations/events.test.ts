@@ -139,3 +139,26 @@ describe("updateEvent: the reel's defaults patch as sent", () => {
     expect(patches).toEqual([{ name: "Backyard party", qr_style: "dots" }]);
   });
 });
+
+// HOW GUESTS ADD AND WHEN THE ALBUM DEVELOPS (20261002200000): the three-way "when everyone sees" is ONE save of two
+// columns, so no half-state is ever stored; the database does the rest in that same save (the roll, the period, the
+// rows' rewrite), so the write is the patch and nothing after it.
+describe("updateEvent: the capture and the develop time", () => {
+  it("writes the capture alone, and a develop answer's two columns together", async () => {
+    await updateEvent("event-1", updateEventSchema.parse({ capture: "camera" }));
+    const at = new Date(Date.now() + 86_400_000).toISOString();
+    await updateEvent(
+      "event-1",
+      updateEventSchema.parse({ moderation_mode: "live", develops_at: at }),
+    );
+    await updateEvent(
+      "event-1",
+      updateEventSchema.parse({ moderation_mode: "hold_for_approval", develops_at: null }),
+    );
+    expect(patches).toEqual([
+      { capture: "camera" },
+      { moderation_mode: "live", develops_at: at },
+      { moderation_mode: "hold_for_approval", develops_at: null },
+    ]);
+  });
+});

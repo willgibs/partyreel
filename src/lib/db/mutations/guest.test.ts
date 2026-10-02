@@ -122,3 +122,53 @@ describe("a blocked ticket's write reads as a private album's", () => {
     ).toEqual(PRIVATE);
   });
 });
+
+/**
+ * THE CAMERA'S REFUSALS (20261002200000): the shot past the roll and past its ceiling travel in create_media's own
+ * sentence (its number is the album's roll), the code the complete route answers 409 for; a video past a camera
+ * shot's bounds is too_long or too_large, by the words every such refusal uses; a sentence this code does not know
+ * reads as the taxonomy's own, never as the server's raw words.
+ */
+describe("the camera's refusals, by their own words", () => {
+  const shot = () =>
+    createMedia({
+      sessionToken: "t".repeat(64),
+      mediaId: "m",
+      type: "video",
+      originalKey: "k",
+      fileSizeBytes: 1,
+    });
+
+  it("the roll, at the album's own size, and the ceiling, each in the server's sentence", async () => {
+    refused("You've taken all 24 shots on your roll.");
+    expect(await shot()).toEqual({
+      ok: false,
+      code: "roll_spent",
+      message: "You've taken all 24 shots on your roll.",
+    });
+    refused("You've taken all 12 shots on your roll.");
+    expect(await shot()).toMatchObject({ code: "roll_spent", message: "You've taken all 12 shots on your roll." });
+    refused("You've used every retake this roll allows.");
+    expect(await shot()).toEqual({
+      ok: false,
+      code: "roll_spent",
+      message: "You've used every retake this roll allows.",
+    });
+  });
+
+  it("a roll sentence it does not know reads as the taxonomy's own", async () => {
+    refused("The roll is jammed <b>today</b>.");
+    expect(await shot()).toEqual({
+      ok: false,
+      code: "roll_spent",
+      message: "You've taken every shot on your roll.",
+    });
+  });
+
+  it("a camera video's bounds are too_long and too_large, as every such refusal is", async () => {
+    refused("This video is longer than the 10 seconds a camera shot can be.");
+    expect((await shot()).ok === false && (await shot())).toMatchObject({ code: "too_long" });
+    refused("This video exceeds the 128 MB a camera shot can be.");
+    expect(await shot()).toMatchObject({ code: "too_large" });
+  });
+});

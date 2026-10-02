@@ -20,12 +20,13 @@
  * stands; after the last, the demo's own is typed back. Reduced motion never
  * runs it: it reads the demo's own address, still.
  *
- * ★ ROUND THREE'S TURNS ARE READ OFF THE SAME STEPS. An address standing is
- * the code standing over it and its album pouring; the steps between two
- * addresses are the code gone and the stream resting. How the stream rests is
- * the take's: a drift (`rateAt`, round two's `turns`, which he loved), or the
- * album folding back into the link before the next address and bursting out
- * of it after (`foldAt`).
+ * ★ THE TURNS ARE READ OFF THE SAME STEPS. An address standing is its album
+ * pouring; the steps between two addresses are the stream resting while the
+ * typing has the stage. Round four's stream rests at a drift (round two's
+ * turns, which he loved) and leaves each landing at lightspeed (`warpAt`): the
+ * album the address made rushes out of it, then settles to its pace, the
+ * tunnel his round three note named. A hero whose album fills in place rather
+ * than streaming reads the same steps through `fillAt`.
  */
 
 export type Phase = "hold" | "erase" | "gap" | "type";
@@ -77,17 +78,30 @@ export const CARET_TAIL_MS = 520;
 /** How far the stream slows while the address types, in `turns`: a drift, never a stop. */
 export const DRIFT = 0.1;
 
-/** The stream's ramps round the typing, in `turns`: down before an erase, back up after a landing. */
+/** The stream's ramp down before an erase, in `turns`. */
 export const DOWN_MS = 600;
-export const UP_MS = 900;
 
 /**
- * How long the album takes to fold back into the link before the next
- * address, in the takes that rewind: the last stretch of an address's stand.
- * Slower than a reply and quicker than the burst it answers (1,750 ms), so
- * the in-breath and the out-breath read as one gesture.
+ * ★ THE LIGHTSPEED LEAVING (his round three note: "the more common
+ * 'lightspeed tunnel' the stream out version creates"). As an address lands,
+ * the stream jumps from its drift to `WARP` times its pace in `WARP_IN_MS`,
+ * then settles back to its pace over `WARP_OUT_MS` on a cubic ease-out: the
+ * album the address made rushes out of it, the old party's photographs swept
+ * to the edges ahead of it. The extra distance a warp covers is
+ * `(WARP - 1) * (WARP_IN_MS / 2 + WARP_OUT_MS / 4)` of the stream's own clock,
+ * about a third of a photograph's flight, so the new party has most of the
+ * band by the time its address is erased.
  */
-export const FOLD_MS = 760;
+export const WARP = 6;
+export const WARP_IN_MS = 180;
+export const WARP_OUT_MS = 1800;
+
+/**
+ * How long a new album takes to fill in place, in the heroes whose album is
+ * a wall rather than a stream (`waveAt`): its first tile at the landing, its
+ * last this long after.
+ */
+export const WAVE_MS = 1500;
 
 const mod = (a: number, n: number) => ((a % n) + n) % n;
 
@@ -220,66 +234,78 @@ const smooth = (x: number) => {
   return u * u * (3 - 2 * u);
 };
 
+/** A cubic ease-out: quick to leave, slow to settle. */
+const easeOut = (x: number) => {
+  const u = 1 - Math.min(1, Math.max(0, x));
+  return 1 - u * u * u;
+};
+
 /**
- * THE STREAM'S PACE IN `turns`, as a share of its full speed: full while an
- * address stands, easing to a drift `DOWN_MS` before it is erased and back up
- * over `UP_MS` once the next has landed, so the two motions take turns and
- * the stream is never quite still. `t` is the time since the typing began, so
- * the first pass's opening hold (the band just branched out) starts at full.
+ * THE STREAM'S PACE, as a share of its full speed: a drift while the typing
+ * has the stage, a jump to lightspeed as an address lands (`WARP`), settling
+ * to full over `WARP_OUT_MS`, and easing back to the drift `DOWN_MS` before
+ * the address is erased, so the two motions take turns and the stream is
+ * never quite still. `t` is the time since the typing began: the first pass's
+ * opening hold is the page's own branch-out, so it runs at full with no warp
+ * of its own, and a loop of one address never warps or slows at all.
  */
-export function rateAt(score: Score, t: number): number {
+export function warpAt(score: Score, t: number): number {
   const s = stepAt(score, t);
   if (s.phase !== "hold") return DRIFT;
+  if (score.steps.length === 1) return 1;
   const into = mod(t, score.loop) - s.from;
   const left = s.to - s.from - into;
+  const down = smooth(left / DOWN_MS);
   const first = s.from === 0 && t < score.loop;
-  const up = first ? 1 : smooth(into / UP_MS);
-  // A loop of one address has no erase to slow down for.
-  const down = score.steps.length === 1 ? 1 : smooth(left / DOWN_MS);
-  return DRIFT + (1 - DRIFT) * Math.min(up, down);
+  const pace = first ? 1 : warpSince(into);
+  return DRIFT + (pace - DRIFT) * down;
+}
+
+/**
+ * The stream's pace `ms` after a landing, from the drift: up to `WARP`, then
+ * settling to its full pace. The one curve every landing runs, the
+ * typewriter's and a visitor's own alike.
+ */
+export function warpSince(ms: number): number {
+  if (ms < 0) return DRIFT;
+  if (ms < WARP_IN_MS) return DRIFT + (WARP - DRIFT) * smooth(ms / WARP_IN_MS);
+  return 1 + (WARP - 1) * (1 - easeOut((ms - WARP_IN_MS) / WARP_OUT_MS));
 }
 
 /** The loop's length in seconds, as the score prints it. */
 export const secondsOf = (score: Score) => Math.round(score.loop / 100) / 10;
 
-export type Fold = {
-  /**
-   * How far the album has folded back into the link: 0 while it pours, rising
-   * over the last `FOLD_MS` of an address's stand, 1 from the erase until the
-   * next address lands.
-   */
-  readonly fold: number;
-  /**
-   * How long the album has been pouring, in ms: from the landing of the
-   * address standing (its burst), or the page's arrival for the first. Held
-   * where the fold began, so a folding album retraces the very places it
-   * stood rather than running on as it shrinks.
-   */
+export type Wave = {
+  /** How long ago the address standing landed (the page's arrival for the first), in ms. */
   readonly since: number;
+  /**
+   * How far the album has stepped back while the typing has the stage: 0
+   * while an address stands, rising over `DOWN_MS` before its erase, 1 until
+   * the next lands.
+   */
+  readonly rest: number;
 };
 
 /**
- * THE ALBUM'S BREATH, IN THE TAKES THAT REWIND: each address bursts its own
- * album out of the link when it lands, pours it while it stands, and folds it
- * back in before it is erased, so the typing always has the stage to itself
- * and every address reads as a new album. A loop of one address never folds.
+ * THE ALBUM'S TURN, IN THE HEROES WHOSE ALBUM FILLS IN PLACE: each address
+ * that lands fills its own album outward from the link over `WAVE_MS`
+ * (`since`), and the album steps back (`rest`) while the next address is
+ * erased and typed, so the typing has the stage to itself. The arrival's
+ * album is already full; a loop of one address never rests.
  */
-export function foldAt(score: Score, t: number): Fold {
+export function waveAt(score: Score, t: number): Wave {
   const s = stepAt(score, t);
   const at = mod(t, score.loop);
+  if (score.steps.length === 1) return { since: WAVE_MS * 4, rest: 0 };
   if (s.phase === "hold") {
     const into = at - s.from;
-    const len = s.to - s.from;
-    if (score.steps.length === 1) return { fold: 0, since: t };
-    const start = len - FOLD_MS;
-    const fold = smooth((into - start) / FOLD_MS);
-    return { fold, since: Math.min(into, start) };
+    const left = s.to - s.from - into;
+    const first = s.from === 0 && t < score.loop;
+    return {
+      since: first ? WAVE_MS * 4 + into : into,
+      rest: 1 - smooth(left / DOWN_MS),
+    };
   }
-  // Between two addresses: folded, and frozen where the last stand's fold
-  // began. The stand before this change is the last hold behind it.
-  const i = score.steps.indexOf(s);
-  let h = i - 1;
-  while (h >= 0 && score.steps[h].phase !== "hold") h--;
-  const held = h >= 0 ? score.steps[h] : score.steps[0];
-  return { fold: 1, since: held.to - held.from - FOLD_MS };
+  // Between two addresses: the album that stood rests, its wave long done.
+  return { since: WAVE_MS * 4, rest: 1 };
 }
