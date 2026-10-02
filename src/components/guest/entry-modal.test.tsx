@@ -29,6 +29,7 @@ import {
   resetDoorViewForTests,
 } from "@/components/guest/door/album-view";
 import { askCopy } from "@/components/guest/door/ask-step";
+import { waitingCopy } from "@/components/guest/door/waiting-step";
 import {
   EntryModal,
   type EntryModalHandle,
@@ -1457,14 +1458,21 @@ describe("the door as the page", () => {
       ?.getAttribute("data-door-way");
   const photo = () =>
     new File([new Uint8Array([1])], "a.jpg", { type: "image/jpeg" });
+  /** The sheet, whose rising is what the stage's own steps never need. */
+  const sheet = () => document.querySelector("[data-entry-sheet]");
 
   it("★ the held door stands on the stage, ajar, with no sheet, and her choice goes to the page's queue to hold", () => {
     seeWelcome();
     const onHold = vi.fn();
     renderModal({ access: "none", gate: "waiting", onHold });
     expect(stage()?.getAttribute("data-state")).toBe("open");
+    // The door holds her as the sheet did: a modal layer, named by its own headline.
+    expect(stage()?.getAttribute("role")).toBe("dialog");
+    expect(screen.getByRole("dialog", { name: waitingCopy(null).title })).toBe(
+      stage(),
+    );
     expect(stageWay()).toBe("ajar");
-    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(sheet()).toBeNull();
     expect(screen.getByText("Waiting at the door")).toBeInTheDocument();
     const input = stage()!.querySelector<HTMLInputElement>(
       "[data-door-picks] input[type=file]",
@@ -1506,7 +1514,7 @@ describe("the door as the page", () => {
     expect(screen.getByText("You’re in")).toBeInTheDocument();
     expect(screen.getByText("Sending your 1 photo")).toBeInTheDocument();
     // The beat is the door's own: no sheet rises for it, and the page refreshes onto the album.
-    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(sheet()).toBeNull();
     expect(refresh).toHaveBeenCalled();
   });
 
@@ -1514,7 +1522,7 @@ describe("the door as the page", () => {
     seeWelcome();
     renderModal({ access: "none", gate: "ask", isVerified: true });
     expect(stageWay()).toBe("shut");
-    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(sheet()).toBeNull();
     expect(
       screen.getByRole("button", { name: askCopy(null).primary }),
     ).toBeInTheDocument();
@@ -1531,7 +1539,7 @@ describe("the door as the page", () => {
     expect(stage()?.getAttribute("data-state")).toBe("open");
     expect(stageWay()).toBe("shut");
     expect(stage()?.querySelector("h1")).toBeNull();
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(sheet()).not.toBeNull();
     expect(screen.getByLabelText("Event password")).toBeInTheDocument();
   });
 

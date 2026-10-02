@@ -88,6 +88,9 @@ export function AlbumLightSampler() {
   useEffect(() => {
     publishDoorView(viewKey ? viewKey.split("\n") : []);
   }, [viewKey]);
+  // ★ AND THEY GO WITH THE ALBUM: a page that leaves (a client-side step to another album) takes its
+  // photographs with it, so the next door never shows this album through its opening.
+  useEffect(() => () => publishDoorView([]), []);
 
   useEffect(() => {
     if (!colors) return;

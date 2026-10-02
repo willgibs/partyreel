@@ -379,8 +379,9 @@ end to end).
 
 ## The 404 pages
 
-Six `not-found.tsx` files share one presentational core, `shared/not-found-screen.tsx` (exactly one of `visual` or
-`icon`, a `help` line, and a `digest` on the crash screens only), each with one chrome, a 404 status and `noindex`.
+Six `not-found.tsx` files, five sharing one presentational core, `shared/not-found-screen.tsx` (exactly one of
+`visual` or `icon`, a `help` line, and a `digest` on the crash screens only), and the guest link's wearing the door's
+own empty doorway ([guest-flow.md](guest-flow.md), the door family), each with one chrome, a 404 status and `noindex`.
 
 - **The root 404 renders its own header and footer** (`app/not-found.site.tsx`), because an unmatched URL falls
   through to `app/layout.tsx` with no group chrome; on the admin build `not-found.tsx` branches on

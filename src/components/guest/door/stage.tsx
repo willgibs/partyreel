@@ -2,7 +2,13 @@
 
 import "./lit.css";
 
-import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
+import {
+  useEffect,
+  useId,
+  useRef,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import type { LucideIcon } from "lucide-react";
 
 import { useDoorView } from "@/components/guest/door/album-view";
@@ -64,6 +70,7 @@ export function DoorStage({
   back,
   focusKey,
   aside = false,
+  modal = true,
   className,
   children,
 }: {
@@ -83,11 +90,31 @@ export function DoorStage({
    * the sheet is a panel from the right edge, the door moves into the room the panel leaves it.
    */
   aside?: boolean;
+  /**
+   * ★ THE DOOR HOLDS HER, AS THE SHEET DID (a dialog, modal): the album behind it is `inert`, and every
+   * surface that waits for "another layer" before it speaks (`ui/layer-is-up.ts`: the claim's own ask,
+   * the album's keys and address) sees the door as one. False for the page's own server-drawn twin of
+   * a gate's door, which is the page itself before the door's island has arrived.
+   */
+  modal?: boolean;
   /** The stage's layer, for the page's own server-drawn twin of a gate's door (one step below). */
   className?: string;
   children: ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const titleId = useId();
+  // The door is named by its own headline (whichever words stand on it), as the sheet was by its title.
+  useEffect(() => {
+    const stage = ref.current;
+    if (!stage || !modal) return;
+    const title = stage.querySelector<HTMLElement>("h1");
+    if (title) {
+      if (!title.id) title.id = titleId;
+      stage.setAttribute("aria-labelledby", title.id);
+    } else {
+      stage.removeAttribute("aria-labelledby");
+    }
+  });
   const lastKey = useRef(focusKey);
   useEffect(() => {
     if (lastKey.current === focusKey) return;
@@ -98,7 +125,11 @@ export function DoorStage({
     // Only where the focus was hers on this stage (or fell to the page when its button left): a door
     // that changes while she reads elsewhere never pulls her focus.
     if (active && active !== document.body && !stage.contains(active)) return;
-    stage.querySelector<HTMLElement>("h1")?.focus({ preventScroll: true });
+    const title = stage.querySelector<HTMLElement>("h1");
+    if (!title) return;
+    // A headline takes the focus only as the door's own landmark, never as a stop in the tab order.
+    if (!title.hasAttribute("tabindex")) title.setAttribute("tabindex", "-1");
+    title.focus({ preventScroll: true });
   }, [focusKey, open]);
 
   return (
@@ -108,6 +139,8 @@ export function DoorStage({
       data-state={open ? "open" : "closed"}
       data-door-stage-at={at}
       data-door-stage-aside={aside ? "" : undefined}
+      role={modal && open ? "dialog" : undefined}
+      aria-modal={modal && open ? true : undefined}
       inert={!open || undefined}
       className={cn(
         "absolute inset-0 overflow-y-auto overscroll-contain bg-background text-foreground",

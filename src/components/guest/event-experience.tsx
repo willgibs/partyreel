@@ -1110,6 +1110,7 @@ export function EventExperience({
           open
           at="gate"
           door={{ state: gate === "waiting" ? "ajar" : "shut", album: false }}
+          modal={false}
           className="z-20"
         >
           <RestWords eventName={event.name} mediaTotal={stats.approvedTotal} />

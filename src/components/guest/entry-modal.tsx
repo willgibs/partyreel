@@ -15,7 +15,7 @@ import { ChevronLeft } from "lucide-react";
 
 import { updateDisplayNameAction } from "@/app/(app)/account/actions";
 import { DOOR_WEAR } from "@/components/auth/account-door";
-import { askCopy, AskStep } from "@/components/guest/door/ask-step";
+import { AskStep } from "@/components/guest/door/ask-step";
 import { chooserCopy, DoorChooser } from "@/components/guest/door/chooser";
 import { DoorCheck } from "@/components/guest/door/lit";
 import { SigninStep, signinCopy } from "@/components/guest/door/signin-step";
@@ -28,11 +28,7 @@ import {
   SendingPicks,
   type WaitPick,
 } from "@/components/guest/door/wait-picks";
-import {
-  waitingCopy,
-  WaitingDoor,
-  WaitingStep,
-} from "@/components/guest/door/waiting-step";
+import { WaitingDoor, WaitingStep } from "@/components/guest/door/waiting-step";
 import { RoleWords, WelcomeWords } from "@/components/guest/door/welcome";
 import { EntryShell, type DismissMode } from "@/components/guest/entry-shell";
 import { EntryStepTransition } from "@/components/guest/entry-step-transition";
@@ -801,8 +797,6 @@ export const EntryModal = forwardRef<
   const sheetCopy = entrySheetCopy({
     holding,
     displayKey: sheetKey,
-    reviewing,
-    isDemo,
     eventName,
     hostName,
     nameMode,
@@ -1138,13 +1132,12 @@ export const EntryModal = forwardRef<
 /**
  * The sheet's sr-only accessible name and description, per step, in one place (the shell's own
  * division of labour: the shell announces, the step renders). Pure and exported so the copy table
- * is readable as a table rather than as nested ternaries inside JSX.
+ * is readable as a table rather than as nested ternaries inside JSX. ★ Only the sheet's own steps: the
+ * welcome, the ask and the wait stand on the stage (`door/stage.tsx`), named by their own headlines.
  */
 export function entrySheetCopy(input: {
   holding: boolean;
   displayKey: string;
-  reviewing: boolean;
-  isDemo: boolean;
   eventName: string;
   hostName?: string | null;
   nameMode: GuestNameMode;
@@ -1162,8 +1155,6 @@ export function entrySheetCopy(input: {
   const {
     holding,
     displayKey,
-    reviewing,
-    isDemo,
     eventName,
     hostName,
     nameMode,
@@ -1175,14 +1166,6 @@ export function entrySheetCopy(input: {
     uploadReason,
   } = input;
   if (holding) return { title: "You're in", description: "Opening the album." };
-  if (displayKey === "waiting") {
-    const copy = waitingCopy(hostName);
-    return { title: copy.title, description: copy.reason };
-  }
-  if (displayKey === "ask") {
-    const copy = askCopy(hostName);
-    return { title: copy.title, description: copy.reason };
-  }
   if (displayKey.startsWith("name-")) {
     const mode: GuestNameMode =
       displayKey === "name-edit" ? editMode : nameMode;
@@ -1200,22 +1183,6 @@ export function entrySheetCopy(input: {
     return {
       title: DOOR_WEAR.keep.heading,
       description: DOOR_WEAR.keep.reason,
-    };
-  }
-  if (displayKey === "welcome" && !reviewing && isDemo) {
-    return {
-      title: "You're trying a live demo",
-      description: "A real album, running exactly as a guest would see it.",
-    };
-  }
-  if (
-    reviewing ||
-    displayKey === "welcome" ||
-    displayKey === "welcome-review"
-  ) {
-    return {
-      title: `Welcome to ${eventName}`,
-      description: "A shared album for the whole event.",
     };
   }
   if (displayKey === "password") {
