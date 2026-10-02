@@ -52,7 +52,7 @@ export const DEMO_FRAMING = defineExploration({
     n: 4,
     date: "2026-10-02",
     changed:
-      "From your round three notes: the centre object nailed as one pane, a mini event card over a minimal link, and new heroes of my own; every one leaves each address at lightspeed.",
+      "From your round three notes: your two directions nailed (the code and its link as one pane, and a mini event card over a minimal link) beside three new heroes of mine; every stream leaves each address at lightspeed.",
   },
   history: [
     {
@@ -75,10 +75,10 @@ export const DEMO_FRAMING = defineExploration({
     },
   ],
   context:
-    "Round four, from your round three notes. Every photograph is a stand-in from the band's twelve stills and every guest a persona: the kit is replaced before launch, so judge the object, the motion and the words. Each code is a real one, read back off the screen by the browser's own barcode reader.",
+    "Round four, from your round three notes. Every photograph is a stand-in from the band's twelve stills and every guest a persona: the kit is replaced before launch, so judge the object, the motion and the words. Each code is the real code of the address beside it, and each frame's caption says what the browser's own barcode reader read off it.",
   opening: {
     about:
-      "The home's first screen: the object over the headline that the album leaves, nailed your two ways, and new heroes beside them.",
+      "The home's first screen: your two directions for the object the album leaves, each nailed, and three new heroes of mine beside them.",
     settled: [
       "The demo's address is partyreel.com/e/our-party, and every address the hero types is reserved to the demo, so each one opens it.",
       "An arrow after the address says it opens; under a pointer the object lifts and the arrow nudges toward where it goes.",
@@ -200,57 +200,59 @@ export const DEMO_FRAMING = defineExploration({
           id: "plate",
           label: "One pane: the code and its link",
           means:
-            "The link and its code as one pane of the product's glass; each address's code blooms out of its party's picture as it lands.",
+            "The code over its link in one pane of the product's glass; each address's code switches on and blooms out of its party's picture as it lands.",
           gains:
-            "One object that never changes shape, lit by the album passing through it.",
+            "One object that never changes shape: only the light in it moves, per address.",
           costs:
-            "A glass pane over a moving album is the page's one live blur.",
+            "The code is the loudest thing on the screen; the link reads second, under it.",
         },
         {
           id: "card",
           label: "An event card over its link",
           means:
-            "A mini event card (its cover, its name typed with the address, its day and its first faces) over the link set minimal in white.",
-          gains: "Every address reads as a real event at a glance.",
-          costs: "No code on the first screen: a desk visitor cannot scan it.",
+            "A mini event card (its cover, its name typed with the address, its day, faces and code) over the link set minimal; it comes into focus as each lands.",
+          gains: "Every address reads as a real event, at a glance.",
+          costs:
+            "Its code is a picture, not a scan: a desk visitor scans in the demo's modal.",
         },
         {
           id: "field",
           label: "The link, yours to type",
           means:
-            "The link as a field that types the demo's addresses until a visitor takes it and types their own party's.",
+            "The link as a field that types the demo's addresses until a visitor takes it and types their own party's, their code blooming as they pause.",
           gains:
-            "The first screen is the product's first step, in their words.",
+            "The first screen is the product's first step, in the visitor's own words.",
           costs:
-            "A press types rather than opens the demo; the arrow keeps the demo.",
+            "A press types rather than opens the demo; only its arrow opens the demo.",
         },
         {
           id: "wall",
           label: "The album fills from its code",
           means:
-            "Two level rows of the party's photographs with its code at their heart; each address that lands fills the wall anew, outward from the code.",
+            "Two level rows of the party's photographs with its code at their heart, filling anew outward from the code as each address lands.",
           gains:
-            "The album itself is the picture: everyone's photographs, at once.",
+            "The album itself is the picture: everyone's photographs, at once, live.",
           costs:
-            "Calmer than a stream: no lightspeed, and the most photographs to load.",
+            "No lightspeed: the calmest motion, and the most photographs to load.",
         },
         {
           id: "door",
           label: "Every link a door to its party",
           means:
-            "The door every guest meets, open on the party's own light and album with the link on its threshold; it swings to and opens anew per address.",
+            "The door every guest meets, open on its party's light and album, the link on its threshold; it shuts while an address types and opens on the next.",
           gains:
             "The home shows the very door the demo, and every guest, walks through.",
-          costs: "A drawing of a door rather than the link's own code.",
+          costs:
+            "A drawing of a door, not the link's own code: nothing on it scans.",
         },
       ],
-      recommended: "plate",
+      recommended: "card",
       because:
-        "One cohesive object that switches in place: its code blooms anew per address and the album leaves it at lightspeed.",
+        "An address reads as an event: its cover, its name in the host's own words, its faces and code, the album leaving it at lightspeed.",
       overrule:
-        "If an address should read as an event before a link, the card; if the first screen should start their own, the field.",
+        "If the hero should show the scan itself, the pane; the album over its link, the wall; the visitor's own first step, the field.",
       lands:
-        "cinema-hero.tsx's object and loop, a designed code per address (reserved to the demo), hero-stream.ts's object geometry, the lamp's hues.",
+        "cinema-hero.tsx's object and loop, cinema-hero-card.tsx, a designed code per address (reserved to the demo), hero-stream.ts's geometry.",
     },
   ],
 });

@@ -34,7 +34,7 @@ import {
   type Pair,
 } from "./objects";
 import { CinemaRoom, useOffStage } from "./scene";
-import { type Score, typedAt, WAVE_MS, waveAt } from "./typing";
+import { type Score, stepAt, typedAt, WAVE_MS, waveAt } from "./typing";
 
 /**
  * THE ALBUM FILLS (a new hero of the lane's own): the stream's photographs
@@ -48,7 +48,8 @@ import { type Score, typedAt, WAVE_MS, waveAt } from "./typing";
  * dims and its code folds into its heart) and the typing has the stage; as
  * it lands the new party's photographs fill the wall outward from the code,
  * the nearest first, each with its guest's credit, two columns at a time, as
- * if poured from the link into the album.
+ * if poured from the link into the album; and while it stands, its guests'
+ * next photographs keep landing, one tile at a time.
  *
  * ★ NOTHING IS UNDER A WORD: the wall stands over the link and the headline,
  * never behind them, so no scrim is needed and none is laid; the link and
@@ -120,6 +121,54 @@ const RANK = new Map(
   SPOTS.map((s) => [s.key, SPOTS.filter((x) => landOf(x) <= landOf(s)).length]),
 );
 
+/**
+ * ★ THE ALBUM STAYS LIVE WHILE AN ADDRESS STANDS: once its wall has filled, a
+ * guest's next photograph lands in one tile every `ARRIVAL_MS`, in a declared
+ * order that never lands two in a row side by side (nothing is dealt), so the
+ * wall is an album taking uploads rather than a still.
+ */
+const ARRIVAL_MS = 1100;
+const ARRIVAL_ORDER: readonly number[] = [
+  3, 14, 8, 1, 18, 11, 6, 16, 0, 9, 13, 4, 19, 7, 2, 12, 17, 5, 10, 15,
+];
+
+/** How many photographs have landed in a spot after `arrivals` arrivals. */
+const shiftOf = (spot: number, arrivals: number) => {
+  const n = ARRIVAL_ORDER.length;
+  const at = ARRIVAL_ORDER.indexOf(spot);
+  if (at < 0 || arrivals <= at) return 0;
+  return Math.floor((arrivals - 1 - at) / n) + 1;
+};
+
+/** Two spots touch: the same column's other row, or a neighbour in its row. */
+const touches = (a: Spot, b: Spot) =>
+  (a.col === b.col && a.row !== b.row) ||
+  (a.row === b.row &&
+    Math.sign(a.col) === Math.sign(b.col) &&
+    Math.abs(Math.abs(a.col) - Math.abs(b.col)) === 1);
+
+/**
+ * WHICH PHOTOGRAPH EACH SPOT SHOWS for a party after its arrivals: each spot
+ * steps through the party's set as photographs land in it, and never shows
+ * the photograph a spot it touches is showing (the stand-ins repeat; a real
+ * album's set would not need the guard, and it costs nothing).
+ */
+function photosOf(party: Party, arrivals: number): number[] {
+  const out: number[] = [];
+  const n = party.pours.length;
+  SPOTS.forEach((spot, i) => {
+    let k = spot.photo + shiftOf(i, arrivals) * 5;
+    for (let tries = 0; tries < n; tries++, k++) {
+      const clash = SPOTS.some(
+        (other, j) => j < i && touches(spot, other) && out[j] % n === k % n,
+      );
+      if (!clash) break;
+    }
+    out.push(k);
+  });
+  return out;
+}
+
 const topOf = (s: Spot) =>
   s.row === 0 ? `calc(-1 * ${at(C)} / 2)` : `calc(${at(G)} / 2)`;
 
@@ -127,16 +176,23 @@ const topOf = (s: Spot) =>
 const Tile = memo(function Tile({
   spot,
   over,
+  photo,
   under,
+  underPhoto,
   still,
 }: {
   spot: Spot;
   over: Party;
+  /** Which of the party's photographs it shows (`photosOf`). */
+  photo: number;
+  /** What it showed before: the last party's, or this one's before an arrival. */
   under: Party | null;
+  underPhoto: number;
   still: boolean;
 }) {
-  const pour = (p: Party) => p.pours[spot.photo % p.pours.length];
-  const top = pour(over);
+  const pour = (p: Party, k: number) => p.pours[k % p.pours.length];
+  const top = pour(over, photo);
+  const below = under ? pour(under, underPhoto) : null;
   return (
     <div
       data-df-wall-tile={spot.key}
@@ -149,9 +205,9 @@ const Tile = memo(function Tile({
         containerType: "size",
       }}
     >
-      {under ? (
+      {below ? (
         <Image
-          src={marketingImage(pour(under).photo).src}
+          src={marketingImage(below.photo).src}
           alt=""
           fill
           unoptimized
@@ -159,8 +215,8 @@ const Tile = memo(function Tile({
         />
       ) : null}
       <div
-        key={over.slug}
-        data-df-wall-in={still || !under ? undefined : ""}
+        key={`${over.slug}-${photo % over.pours.length}`}
+        data-df-wall-in={still || !below ? undefined : ""}
         className="absolute inset-0"
       >
         <Image
@@ -199,7 +255,12 @@ export function WallStage({
   const [hovered, setHovered] = useState(false);
   // The standing party, the one before it, and how many spots the new one
   // has reached: the wave's state, written on change only.
-  const [turn, setTurn] = useState({ standing: 0, before: -1, reached: 99 });
+  const [turn, setTurn] = useState({
+    standing: 0,
+    before: -1,
+    reached: 99,
+    arrivals: 0,
+  });
   const [up, setUp] = useState(true);
   const upNow = useRef(true);
   const shown = useRef(turn);
@@ -255,11 +316,28 @@ export function WallStage({
       let reached = 0;
       for (const s of SPOTS) if (wave.since >= landOf(s)) reached++;
       const cur = shown.current;
+      // Arrivals run only while the address stands, once its wave is done
+      // (or, on the page's arrival, once the first paint has settled).
+      const step = stepAt(typing, t);
+      const into = (t % typing.loop) - step.from;
+      const first = step.from === 0 && t < typing.loop;
+      const live = into - (first ? 1200 : WAVE_MS + 600);
+      const arrivals =
+        standingUp && live >= 0
+          ? Math.floor(live / ARRIVAL_MS) + 1
+          : typed.standing === cur.standing
+            ? cur.arrivals
+            : 0;
       const next =
         typed.standing !== cur.standing
-          ? { standing: typed.standing, before: cur.standing, reached }
-          : reached !== cur.reached
-            ? { ...cur, reached }
+          ? {
+              standing: typed.standing,
+              before: cur.standing,
+              reached,
+              arrivals: 0,
+            }
+          : reached !== cur.reached || arrivals !== cur.arrivals
+            ? { ...cur, reached, arrivals }
             : null;
       if (next) {
         shown.current = next;
@@ -280,6 +358,10 @@ export function WallStage({
   // last party (dimmed with the album) until then.
   const reachedSpot = (s: Spot) =>
     before === null || (RANK.get(s.key) ?? 0) <= turn.reached;
+  const arrivals = reduced ? 0 : turn.arrivals;
+  const nowShown = photosOf(standing, arrivals);
+  const prevShown = photosOf(standing, Math.max(0, arrivals - 1));
+  const lastShown = photosOf(before ?? standing, 0);
 
   return (
     <CinemaRoom>
@@ -331,13 +413,20 @@ export function WallStage({
             </div>
             <div aria-hidden data-df-wall-tiles="" className="absolute inset-0">
               {SPOTS.map((s) => {
+                const i = SPOTS.indexOf(s);
                 const on = reachedSpot(s);
+                // Under an arrival, the photograph it replaces; under the
+                // wave, the last party's; under a waiting spot, nothing (it
+                // still shows the last party, dimmed with the album).
+                const arrived = on && prevShown[i] !== nowShown[i];
                 return (
                   <Tile
                     key={s.key}
                     spot={s}
                     over={on ? standing : (before ?? standing)}
-                    under={on ? before : null}
+                    photo={on ? nowShown[i] : lastShown[i]}
+                    under={arrived ? standing : on ? before : null}
+                    underPhoto={arrived ? prevShown[i] : lastShown[i]}
                     still={still || reduced}
                   />
                 );

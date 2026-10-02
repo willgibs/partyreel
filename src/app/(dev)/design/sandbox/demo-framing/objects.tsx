@@ -248,7 +248,8 @@ const PLATE = {
   pad: { base: 12, lg: 16 },
   tilePad: { base: 10, lg: 14 },
   code: { base: 132, lg: 168 },
-  tileR: { base: 17, lg: 22 },
+  // Concentric with the pane: its radius less the inset between them.
+  tileR: { base: 14, lg: 18 },
   r: { base: 26, lg: 34 },
   gap: { base: 11, lg: 15 },
   domain: { base: 11, lg: 13 },
