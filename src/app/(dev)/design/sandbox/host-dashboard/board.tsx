@@ -132,13 +132,26 @@ function eventsShots(way: EventsWay): Shot[] {
 
 /* ── 2 and 3. the stage ───────────────────────────────────────────────── */
 
-const stageShots = (open: boolean): Shot[] => [
+/**
+ * Nia's frame draws the option's hand in use where it has one: Change open
+ * (`kept`), or one step taken (`step`), so the still shows what the control
+ * does rather than a pill.
+ */
+const stageShots = (pick: PickWay | null): Shot[] => [
   {
     key: "nia",
     host: "nia",
-    title: "Nia, three undated",
+    title:
+      pick === "step"
+        ? "Nia, three undated, one step on"
+        : "Nia, three undated",
     read: readStage,
-    start: open ? { pickOpen: true } : undefined,
+    start:
+      pick === "kept"
+        ? { pickOpen: true }
+        : pick === "step"
+          ? { step: 1 }
+          : undefined,
   },
   { key: "jo", host: "jo", title: "Try it, Jo's forty", read: readStage },
 ];
@@ -150,13 +163,11 @@ function eventsPreview(s: BoardState, way: EventsWay) {
 }
 
 function leadPreview(s: BoardState, rule: QuietRule) {
-  return <Option s={s} ask="lead" option={rule} shots={stageShots(false)} />;
+  return <Option s={s} ask="lead" option={rule} shots={stageShots(null)} />;
 }
 
 function pickPreview(s: BoardState, way: PickWay) {
-  return (
-    <Option s={s} ask="pick" option={way} shots={stageShots(way === "kept")} />
-  );
+  return <Option s={s} ask="pick" option={way} shots={stageShots(way)} />;
 }
 
 const PREVIEWS: PreviewsFor<typeof HOST_DASHBOARD> = {

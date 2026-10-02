@@ -272,7 +272,7 @@ export const HOST_DASHBOARD = defineExploration({
       lands:
         "Whether the stage carries a control, and whether her choice is kept.",
       context:
-        "Two frames each: Nia's three undated events with the control open, and Try it on Jo's forty, where the stage's top corner works.",
+        "Two frames each: Nia's three undated events with the control in use (Change open, or one step on), and Try it on Jo's forty, where the stage's top corner works.",
       options: [
         {
           id: "none",

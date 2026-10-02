@@ -65,6 +65,8 @@ export type Start = {
   journey?: Journey;
   /** The stage's Change list, drawn open (`pick=kept`). */
   pickOpen?: boolean;
+  /** Steps already taken through the stage's contenders (`pick=step`). */
+  step?: number;
   /** Her Display, and its menu drawn open (`events=display`). */
   display?: Display;
   displayOpen?: boolean;
@@ -91,7 +93,7 @@ export function Dashboard({
   const [open, setOpen] = useState<string | null>(null);
   const [featured, setFeatured] = useState<string | null>(host.featured);
   const [pickOpen, setPickOpen] = useState(Boolean(start.pickOpen));
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(start.step ?? 0);
   const [mount, setMount] = useState(0);
   // Each visit to an event draws the stage afresh on the way back, as a route change would:
   // a code card left open over it (its Everything opens the event) closes with the visit.
