@@ -127,9 +127,10 @@ round 3. His library prompt (the atoms still read as shadcn; identity as a sum t
    frame-scoped window) waits for his next sitting: it edits `ui/popup` and `ui/sheet`, which `identity` draws. The eight
    specs are written (`specs-r11/` in this session's scratchpad; a successor rewrites them from this list). Page boards own composition, `identity` owns the atoms; every redesign brief carries his one direction
    (bespoke and experiential, sleek, sophisticated, no tilt, minimal but information-rich, media is the color).
-3. **Build 40 is ON THE ALIAS** (`26743369`, 2026-10-02 09:05Z, both READY, Vercel pruned); its red-team walking (agent
-   `ac3312d7278cb68f6`, Opus, from `../partyreel-wt/_scratch/redteam-40/brief.md`; a confirmed MEDIUM is ledgered at once
-   on a `MEDIUM:` line, so read the ledger at each wake and cut a fix lane early).
+3. **Build 40 is ON THE ALIAS** (`26743369`, 2026-10-02 09:05Z) and its red-team PASSED (09:10 to 10:30Z,
+   `../partyreel-wt/_scratch/redteam-40/ledger.txt`): every drivable walk, no MEDIUM or HIGH; one LOW (a hidden tab's view
+   transition), a NIT and a production warning to the ROADMAP; the redaction held on every kind of door (a blocked
+   guest's page byte-identical to Only me's but the trace meta). Its undriven steps are Will's (below).
 4. **Before the final build**: the pre-sitting pass (`board-card.mjs --desk`) and `lab-scope --since <each cut>`, a
    desk-tune where a drawn claim moved; then the final `[preview]` carries every board, the desk ready when he wakes
    (identity first, then host-dashboard).
@@ -164,6 +165,8 @@ round 3. His library prompt (the atoms still read as shadcn; identity as a sum t
   - a tab hidden, then shown (the hub's album);
   - crumbs-27's two walks that need a second signed-in device (the host's phone while partyr33l holds the shared one).
   - crumbs-31's magic-link return: the confirm door's email link tapped in the same browser plays the follow moment.
+  - build 40's: the let-in's swing seen in a visible tab (a guest signed in on his Chrome), a password door's swing
+    (typed), and reduced motion over the signed-in door states;
   - build 38's: the reel card's Add photos at 375x667 on an event with 0 or 1 photo, its smooth scroll's feel (a
     visible tab; the mechanics passed hidden); crumbs-41's card, a disposable host paying Pro in two Checkout tabs
     (4242): Sentry's `stripe_grant_repointed_subscription`, the followed subscription cancelled in Stripe TEST leaving

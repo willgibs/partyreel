@@ -39,7 +39,7 @@ and `about-press` r1 (two), in that order.
 - **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 40 (`26743369`, 2026-10-02
   09:05Z): build 39 plus round 11's five production lanes from his desk answers (the doorway as the door family,
   event-ready's checklist and Settings steps, the privacy lens and the press band, /me, the lab's prefetch); its
-  red-team walking. The round's new boards follow in the night's final build. Vercel installs with pnpm 9.14.4.
+  red-team passed every drivable walk, no MEDIUM or worse. The round's new boards follow in the night's final build. Vercel installs with pnpm 9.14.4.
 - **The shared database** runs every migration through 2026-10-02, batch 10's seven last (the strike's lapse as a
   duration, the deleted events' index, the export Worker's reports, the host's cap on the album's read, a face moving
   the credits); no build of either project reads a dropped thing. The album-log prune runs nightly with the purge,
