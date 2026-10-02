@@ -11,8 +11,6 @@
  */
 import "server-only";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-
 import { mustCount, mustQuery } from "@/lib/db/must-query";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -26,17 +24,6 @@ const OUTCOMES: ReadonlySet<string> = new Set([
   "failed",
   "empty",
 ]);
-
-/**
- * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: export_log's Worker columns (checked_at, check_found,
- * stream_*) arrive with migration 20261001235500, and `types.ts` learns them only when the Orchestrator
- * regenerates it, so the reads and writes that name them go through this untyped client, which compiles on
- * either side of the regeneration (drop the cast then). Every row it answers is read field by field and
- * checked. Before the apply, those writes fail (logged by the report route) and those reads throw.
- */
-function untypedAdmin(): SupabaseClient {
-  return createAdminClient() as unknown as SupabaseClient;
-}
 
 const str = (v: unknown): string | null => (typeof v === "string" ? v : null);
 const int = (v: unknown): number | null =>
@@ -90,7 +77,7 @@ export type ExportLogRow = {
 /** Recent export ATTEMPTS, newest-first, with the event name resolved and what the Worker saw. */
 export async function listRecentExports(limit = 50): Promise<ExportLogRow[]> {
   const data = await mustQuery(
-    untypedAdmin()
+    createAdminClient()
       .from("export_log")
       .select(
         `id, created_at, scope, event_id, item_count, total_bytes, outcome, ${WORKER_COLUMNS}`,
@@ -192,7 +179,7 @@ export function recordWorkerCheck(
   found: number | null,
 ): Promise<ReportWrite> {
   return write(() =>
-    untypedAdmin()
+    createAdminClient()
       .from("export_log")
       .update({
         checked_at: new Date(atMs).toISOString(),
@@ -209,7 +196,7 @@ export function recordStreamStart(
   atMs: number,
 ): Promise<ReportWrite> {
   return write(() =>
-    untypedAdmin()
+    createAdminClient()
       .from("export_log")
       .update({ stream_started_at: new Date(atMs).toISOString() })
       .eq("jti", jti)
@@ -225,7 +212,7 @@ export function recordStreamEnd(
   end: { outcome: StreamOutcome; files: number; missing: string[] },
 ): Promise<ReportWrite> {
   return write(() =>
-    untypedAdmin()
+    createAdminClient()
       .from("export_log")
       .update({
         stream_ended_at: new Date(atMs).toISOString(),
@@ -244,7 +231,7 @@ export function recordStreamEnd(
 /** What the walk asks: has this export's stream begun, and how did it end? Null: no such export. */
 export async function readStreamWord(jti: string): Promise<WorkerWord | null> {
   const row = await mustQuery(
-    untypedAdmin()
+    createAdminClient()
       .from("export_log")
       .select(WORKER_COLUMNS)
       .eq("jti", jti)

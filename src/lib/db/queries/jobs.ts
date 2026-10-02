@@ -22,8 +22,6 @@
  */
 import "server-only";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-
 import {
   JOBS,
   SIGNAL_WINDOW_MS,
@@ -478,9 +476,8 @@ export async function getJobSignals(nowMs = Date.now()): Promise<JobSignals> {
     failuresOf("help_feedback"),
     // The downloads' success half is the Worker's own word on the day's mints (`export-ends`): a zip it
     // finished, whole or short. Keyed on the mint's time, which `export_log_created_idx` carries.
-    // ★ The typed seam, until the types regenerate (20261001235500 adds `stream_outcome`; drop the cast then).
     mustCount(
-      (db as unknown as SupabaseClient)
+      db
         .from("export_log")
         .select("*", { count: "exact", head: true })
         .gt("created_at", sinceIso)
