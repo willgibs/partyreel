@@ -102,7 +102,7 @@ the alias mid-sitting (his yes). No new lane until his paste lands.
 2. **The waiting lanes: all merged but crumbs-43** (2026-10-02 01:05Z): crumbs-42 `3842b21f`, crumbs-41 `6ae5c0b1` (its two
    migrations applied), crumbs-44 `4b5adc8a`, strip-gaps `c573275d`, export-ends `15a0d3d2` (its migration applied, the types
    and seams at `aa80d056`, the Worker deployed `abf810e7`), mkt-polish `a20865d5`, lab-sitting `d5efa6a3`; each recorded
-   and pruned; the calls file at 72. **crumbs-43 is handed back** (its row): when it re-hands off, integrate it (its
+   and pruned; the calls file at 72. **crumbs-43 re-handed off at `100998fb`** (its gate 123 red traced to the gate's stale dev cache, not its code; its fix edits the kit's `gate-lane.sh` to start the dev server on an empty `.next/dev`, accepted by the Orchestrator, so `negative.sh` runs after its merge): integrate it (its
    `uploads-and-r2.md` conflict is both sides' lines kept), then its two migrations by protocol after the Advisor's Q7
    ("apply as written"): `20261001233000_guest_event_cap` (drift md5 `7ddab5f2`; its rolled-back proof already 5/5 on
    2026-10-02 00:22Z, re-run it if the file moved) and `20261001233110_faces_move_attribution` (its proof before the
