@@ -17,6 +17,7 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Media: carry Apple's MakerNote HDR headroom (tags 0x0021 and 0x0030) into the minimal Exif the strip rebuilds, on JPEG and HEIC, so a pre-iOS-18 HDR photo keeps its exact HDR rendering (from `strip-gaps`).
 - Media: `event_covers` is photo only, so a party of video alone has no picture on any card (the dashboard's, the picker's, the profile's, which now says "all video") though each video carries its frame-grab preview; a previewed video as the fallback cover, photos first, is one migration (from `crumbs-44`).
 - Design: `DropdownMenuContent` takes no collision padding, so a menu pushed against the viewport touches the glass (the profile's did at 375); the sub-menu's and the responsive menu's 8px as the panel's default keeps every menu off the edge (from `crumbs-44`).
 - Routes: `/welcome` builds every Guest card, covers presigned, only to count them (`getMyGuestEventCards().length`), and asks the auth server again beside the layout's cached `getRequestAuth`; a count read and the cached viewer would shorten the wait its new skeleton covers (from `crumbs-44`).
@@ -210,7 +211,6 @@ Marketing:
 - `src/lib/constants/events.ts` sits outside the content policy's claim scan.
 - The blog's tags: the family-reunion post carries `parties` while its subject reads as a trip, and `blog-tags.ts` has no `trips` tag; `guest-album-for-photographers-and-planners`, `wedding-album-password` and `wedding-photo-sharing-app-vs-shared-albums` carry an audience tag and no link into a type page.
 - The blog's follow-ons: real `/blog/page/[n]` routes; a "Start here" strip past about 40 posts; the featured card's eyebrow as the post's purpose; a founder-voice post (Will's pick first); the `compared` posts re-verified on each refresh.
-- The EXIF claim's "for the common formats" clause is missing on its last two sites: `features/privacy/never-rides-along.tsx` and `constants/feature-pages.ts`.
 - The legal pages carry no print styles (only the glow engine carries `@media print` and `forced-colors` rules; copy its pattern).
 - Inline code in help and blog prose has no plate (the wrappers set it sans and nothing else); give it the muted plate.
 - `SectionShell`'s subhead carries no size class (16 px inherited) while `PageHero`'s rides the `subhead` step; put it on the ladder.
@@ -258,7 +258,6 @@ The app:
 - Exports: the Worker skips an R2 object it cannot find in silence, so an album emptied between mint and stream downloads as a valid, empty zip; a failed-export state.
 - Exports: zip follow-ons: an async build-to-R2 job past the cap; a custom `export.partyreel.com`.
 - Media: preview-variant follow-ons: a server-side backfill for pre-feature media; preview bytes on the storage meter; the admin moderation feed's preview; AVIF if quality demands.
-- Media: the client-side strip fails open on HEIC/HEIF/AVIF (item-based ISOBMFF) and WebM (EBML), and a JPEG's MPF secondary images keep their own Exif; strip those.
 - Media: forensic capture follow-ons, all gated: the pre-strip client-side EXIF capture (counsel-gated), proactive hashing at scale, widening the CSAM scanner past proxied traffic ([`systems/trust-safety-forensics.md`](systems/trust-safety-forensics.md)).
 - Admin: `/admin/forensics` renders no per-upload identity (neither the typed name nor the unproved address reaches a table); an uploader column on the held-media table needs `listHeldMedia` (`queries/forensics.ts`) to read it.
 - Admin: `/admin/reports` cannot reach a reported person's account (suspend, clear a bio, remove a handle), so the operator acts out of band and only closes the report.
@@ -387,6 +386,7 @@ leaked-password protection, the Sentry alert rule, one DB-backup test-restore â†
 repointed, `PRUNE_MODE=live`, "Allow new users to sign up" back ON (off until launch, so only test accounts exist) â†’
 the program teardown.
 
+- The legal rewrite: `legal-privacy.tsx`'s location lines predate the full strip (273, "For the common photo and video formats ... A few formats are stored exactly as sent."; 279, naming JPEG, PNG, WebP, MP4, MOV; 282, "HEIC, HEIF and AVIF images and WebM videos are stored exactly as your device sends them"; 664, "for the common formats"); the truth since `strip-gaps`: every format the service accepts, but a file too damaged to read safely, which is stored as sent.
 - The legal rewrite: the Privacy Policy's Reports and safety ("Every report is reviewed before anything comes down", "filing one never removes content by itself", "Reports are stored without the reporter's identity") and the Terms' moderation paragraph ("reports are anonymous and are reviewed before anything is removed") predate the instant hide and the confirmed address a report keeps while open (and its keyed hash after, on the worst kind); the rewrite takes them, with `legal-privacy.tsx`'s "never auto-hide" comment (from `crumbs-41`).
 - A demo event set and ready on every environment: nothing guards `NEXT_PUBLIC_DEMO_QR_TOKEN` (inlined at build), so a deploy without it ships a footer without the code.
 - Enable leaked-password protection (HaveIBeenPwned) `[human]`: not Pro-gated, so it can flip any time; the long-standing advisor WARN.
