@@ -1,6 +1,6 @@
 ---
 track: identity-r2
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "7a875407"            # the launch-prep SHA the branch was cut from
 board: identity
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -65,25 +65,84 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each is built as recommended and drawn on the board as a carried call (`spec.ts` `carried`), so his answer rides the
+review line as `call:<id>=yes|no`.
+
+1. `rings-lock`: does every build lock focus with the four corner marks? **Recommended: no, rings lock with a ring
+   closing in** (6px to 2.5px), since a mark drawn on a rounded field sits on its curve; keys and corners keep the marks.
+2. `live-red`: is the live mark the recording red or today's green dot? **Recommended: the recording red**, r1's signal
+   light, and now delete's own red (`--signal: var(--destructive)`), so the palette gains no hue.
+3. `door-parts`: do Settings' own parts wear the atoms on the screens? **Recommended: yes**: the door's "What the link
+   opens" draws as the segmented control, its gates as radio cards, the password's state as a success badge, handed
+   their atoms in the scene (`scene/adopt.ts`, the drawing's, never the sheet's), as wiring would make them.
+4. `field-height`: do fields keep production's 32px? **Recommended: no**: every build grows a field to 38px (wells,
+   corners) or 40px (rings), found and pressed in a hand; every action keeps its height.
+5. `one-empty`: how many ways is an empty place drawn? **Recommended: one** (the `empty` atom: a glyph, a title, a
+   line, an action, never a dashed box), which the four drawings today become when status wires.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none: the round is lab only, and design-system.md's identity paragraph (viewfinder refined in the lab a group at a
+  time before it wires at the source) is still true as written.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Design: identity's head stand-ins (`views/atoms.tsx`: the shutter, the code mat and chip, the glyph count, the live
+  badge, the on-photo and glass buttons) mount header-wiring's real atoms once it merges, so the board judges the
+  components rather than their stand-ins (refines the "identity specimen draws event-header's five atoms" line; from
+  `identity-r2`).
+- Design: wiring identity's picks adds the primitives the board draws on shadcn's hooks that production lacks
+  (`checkbox`, `radio-group-item`, `slider`, and its own `radio-card` and `empty`), and replaces Settings' inline door
+  choices, gates and password state with them (from `identity-r2`).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed on `lp/identity-r2`**: `74f2cbb6` (the board's round two), `a3524554` (polish), `1069f4dd`
+  (every screen carries the groups it can; the live red), then this manifest. No sync: launch-prep moved
+  (dashboard-wiring, create-wizard-r2 merged), and the one read of mine it reached is the Library's
+  `compositions/gallery-demos.tsx`, which the board neither imports nor draws.
+- **Gates on `1069f4dd`, each on its own exit code** (logs in the lane's scratch): `pnpm typecheck` 0; `pnpm lint` 0;
+  `pnpm test` 0 (748 files, 8,907 tests); `zsh scripts/build-lock.sh pnpm build` 0; `pnpm lab:smoke --base
+  http://localhost:3134` 0 (7 checks, the board at 721 of 1,200 words); `pnpm lab:demo --board identity --base
+  http://localhost:3134` 0 (5 steps, every step draws its options, at 1440 and 375), and again 0 with `--width 375`,
+  `--state screen=375` and `--state show=review`.
+- **Lane check**: `git diff --name-only origin/launch-prep...HEAD` = `src/app/(dev)/design/sandbox/identity/**` and
+  this file; no exception.
+- **The board** (`/design/lab/identity`, round 2, desk 10): five asks, the voice first and each atom group staged
+  after it (`after: { ask: "voice" }`), three options each; every option one stylesheet over production's atoms
+  (`sheet/`: material, voice, then a build per group), drawn on its atom sheet (every state: rest, hover, press, focus,
+  off, `aria-busy` loading, `aria-invalid` error; paper and the room side by side at 1440, two phone pages in a hand)
+  and on Settings' door and event pages, the guest's Add, Account and billing, and Review (Show, Screen and Ground
+  knobs).
+- **The voice is a pure layer**: `sheet/voice.ts` sets variables (label, readout, word and say roles, figures, the
+  link's mark, the meter's build) on every ground's root, and `ROLES_CSS` hands each atom its role; every build reads
+  them, so nothing binds (the opening says so). Options: `instrument` (r1 as drawn), `camera` (recommended), `display`
+  (my bold take: no capitals, counts bold in the loud face, the meter a lit bar).
+- **The atom groups, three builds each, one line through all four or mixed**: actions `keys` / `rings` (rec.) /
+  `corners`; fields `wells` (rec.) / `rings` / `corners`; layers `matte` / `display` (rec.) / `corners`; status
+  `readouts` / `lights` (rec.) / `corners`. The first of each is r1's drawing refined, the second the camera in a hand's, the
+  third the viewfinder's frame taken furthest.
+- **The atom contract, styled exactly**: `data-slot="shutter"` (idle, sending with `--progress`, done; each build its
+  own: a domed release, a phone's ring, a 24-tick frame counter in one gradient), `data-surface="photo"`, Button
+  `on-photo` and `glass`, `code-mat`, `code-chip`, `glyph-count` (words in a tooltip), Badge `live`, as stand-ins
+  (`views/atoms.tsx`) until header-wiring's land.
+- **Folded into status**: one empty atom in every build (the four drawings today), and `AvatarGroup`'s overlap as a
+  share of the face (a fifth, a quarter, an eighth by build), never a fixed 8px.
+- **The sheet styles atoms only**: `identity.test.ts` refuses an ARIA label or a screen's own hook in any built sheet;
+  r1's three ARIA-label selectors are gone, and the views drop `guest-action-dock`, `event-link-row`,
+  `event-code-door`, `room-card` and `notification-bell` (none imported).
+- **Every frame proves its words**: each caption is read off the frame (`scene/reading.ts`: heights, corners, faces,
+  edges, the meter's build, the lock's kind); `lab:demo --verbose` prints them (`gate-demo.log`).
+- **r1 retired with the round**: `families/` (today, editorial, soft, crystal, viewfinder), the hub view and r1's
+  specimen are deleted; viewfinder's r1 sheet lives on as the material plus the `instrument`, `keys`, `wells`, `matte`
+  and `readouts` options.
+- Assets requested from Will: none (the frames use the bootstrap stills every board reuses).
+- Board ideas: Review's selection marks (the glass circle that turns green) and Settings' step numerals are drawn
+  locally; once identity wires, they could take the check and readout atoms, the last two screen parts this round
+  could not reach.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Calls his to overrule: the five Questions above (`rings-lock`, `live-red`, `door-parts`, `field-height`,
+  `one-empty`), plus two of the lab's own: the frames hold their ground by the Ground knob (an atom sheet draws both)
+  rather than following the lab's theme toggle, and a phone draws a sheet as two pages on one ground.
+- Look at first: the voice step at 1440 (`/design/lab/identity?session=identity.voice`): the three voices side by side
+  on paper and in the room; then actions, where rings, keys and corners differ most.
