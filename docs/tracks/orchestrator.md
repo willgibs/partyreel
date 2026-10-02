@@ -64,6 +64,7 @@ a lane").
 | `identity` | board r1 [desk 10]: Partyreel's atomic identity, today beside Editorial, Soft, Crystal and Viewfinder (recommended), on a specimen and three real screens | MERGED at `2c3c1807` (gate 143 green over the whole lab; the lane's gate: test 8,873, build, lab:smoke 177, lab:demo with its knobs); lab only; first on the desk at the night's final build | Opus, 3132 | `e6607328` |
 | `disposable-r3` | board disposable-mode r3 [desk 80]: six cameras (viewfinder and reel kept; shutter, rim, timeline, scroll), a new waiting room, the look on real photos (Try your photos), video and cost staged | MERGED at `f7596439` (gate 142 green; the lane's gate: test 8,873, build, lab:smoke 7, lab:demo 5 steps at 1440 and 375); lab only; on the desk at the night's final build | Opus, 3134 | `e6607328` |
 | `crumbs-48` | five night crumbs off the boards' surfaces: the Library's prefetch, two load flakes, two help articles, a stale comment | MERGED at `69bb19b8` (gate 144 green; the flakes green 20 times each under a concurrent build) ; no SQL | Sonnet, 3131 | `425ccb0b` |
+| `crumbs-49` | seven more off-board crumbs: three help articles, a comment, the Library's prefetch policy, a history flake, one German-runtime helper, two test scans | RUNNING since 2026-10-02 14:55Z | Sonnet, 3133 | `16f85a7f` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, respawned
 2026-10-01 18:15Z in this session; no question open. Q6 (crumbs-37's two migrations and crumbs-38's cursor file against
