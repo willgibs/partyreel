@@ -371,7 +371,7 @@ function LookFrames({ s, option }: { s: BoardState; option: LookOption }) {
         title={`${name}: the album at ${MORNING_TIME}`}
         measure={albumSays}
       >
-        <LookAlbum set={set} look={look} wide={wide} />
+        <LookAlbum set={set} look={look} wide={wide} own={mine.length > 0} />
       </Scene>
       {close.slice(0, wide ? 1 : 2).map((still, i) => (
         <Scene

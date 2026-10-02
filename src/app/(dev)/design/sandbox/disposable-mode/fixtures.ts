@@ -167,13 +167,6 @@ function night(): NightShot[] {
 
 export const NIGHT: readonly NightShot[] = night();
 
-/** "10:33", from minutes after 7 pm. */
-export const clockOf = (minute: number) => {
-  const h = 7 + Math.floor(minute / 60);
-  const m = minute % 60;
-  return `${h > 12 ? h - 12 : h}:${String(m).padStart(2, "0")}`;
-};
-
 /* ── the look's test set ─────────────────────────────────────────────────── */
 
 /**

@@ -87,7 +87,7 @@ export const DISPOSABLE_MODE = defineExploration({
     ],
     earlier: [
       "The camera: 'I love the more minimalist camera design of the first ... subtle design touches like the tick count around the shot button are a nice touch.'",
-      "'The reel idea really ties into the product ... my main pushback on this one may be the reel having a more vintage feel within our far more modern app.'",
+      "'The reel idea really ties into the product ... My main pushback on this one may be the reel having a more vintage feel within our far more modern app design.'",
       "The waiting room: 'another round of these to get the best option', and 'for grids, I'd prefer not to get messy and begin tilting anything.'",
       "The look: 'I'm not sure I want to include - feels like filters are going to make the majority of guest photos worse that don't match the palette well.'",
     ],

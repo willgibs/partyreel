@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Images, SwitchCamera, X, Zap } from "lucide-react";
+import { Check, SwitchCamera, X, Zap } from "lucide-react";
 
 import { GLASS } from "@/lib/glass";
 import { cn } from "@/lib/utils";
@@ -35,6 +35,26 @@ import { FilmStill } from "./film";
  * inside the ring of ticks. The camera is three objects (close, the shutter,
  * the flip) over her picture, the way the phone's own camera is.
  */
+/** Her sealed shots, as a glyph: two frames stacked square, the roll's own mark. */
+function SealedStack() {
+  return (
+    <svg viewBox="0 0 20 20" className="size-5" aria-hidden>
+      <rect
+        x="6"
+        y="2.5"
+        width="11"
+        height="13"
+        rx="2.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        opacity="0.55"
+      />
+      <rect x="3" y="5" width="11" height="13" rx="2.5" fill="currentColor" />
+    </svg>
+  );
+}
+
 export function ShutterCamera(p: CamProps) {
   const recording = p.phase === "recording";
   const done = p.phase === "done";
@@ -132,7 +152,7 @@ export function ShutterCamera(p: CamProps) {
               )}
               aria-label="Your shots"
             >
-              <Images className="size-5" aria-hidden />
+              <SealedStack />
               <span className="dm-badge" data-dm-hers>
                 {hers}
               </span>

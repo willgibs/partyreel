@@ -56,10 +56,13 @@ export function LookAlbum({
   set,
   look,
   wide,
+  own = false,
 }: {
   set: readonly LitStill[];
   look: LookId;
   wide: boolean;
+  /** The reader's own photographs (Try your photos), said as theirs. */
+  own?: boolean;
 }) {
   const width = wide ? 1440 - 64 : 375;
   const rows = rowsOf(set, width, wide ? 300 : 150);
@@ -79,7 +82,9 @@ export function LookAlbum({
           {EVENT.name}
         </p>
         <p className="mt-1.5 text-sm text-muted-foreground">
-          {`${MORNING.shots} photos & videos from ${MORNING.guests} guests · developed at ${ROLL.develops}`}
+          {own
+            ? `Your ${set.length} photos, as the developed album would show them`
+            : `${MORNING.shots} photos & videos from ${MORNING.guests} guests · developed at ${ROLL.develops}`}
         </p>
       </div>
       <div className={cn("flex flex-col", wide && "px-8")} style={{ gap: GAP }}>

@@ -386,7 +386,8 @@
   align-items: center;
   overflow: hidden;
   color: #0b0b0b;
-  font-family: var(--font-heading);
+  font-family: var(--font-display, var(--font-sans));
+  letter-spacing: -0.03em;
   font-size: 30px;
   font-weight: 700;
   line-height: 1;
@@ -590,6 +591,7 @@
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.09);
 }
 .dm-tl-cell[data-state="current"] {
+  scale: 1.12;
   box-shadow:
     0 0 0 2px #fff,
     0 0 18px rgb(255 255 255 / 0.3);
@@ -598,6 +600,7 @@
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.16);
 }
 .dm-tl-cell[data-state="rolling"] {
+  scale: 1.12;
   background: linear-gradient(180deg, #4a0f0b, #250806);
   box-shadow:
     0 0 0 2px #ff3b30,
@@ -676,7 +679,8 @@
   top: 14px;
   left: 18px;
   color: rgb(255 255 255 / 0.32);
-  font-family: var(--font-heading);
+  font-family: var(--font-display, var(--font-sans));
+  letter-spacing: -0.03em;
   font-size: 15px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -744,6 +748,22 @@
   }
   .dm-rec-dot {
     animation: dm-blink 1s steps(2) infinite;
+  }
+  /* The frame just spent: lit when the shutter fires, then settling to the
+     warm glow it keeps until the next shot. */
+  .dm-ring [data-tick="just"],
+  .dm-rim [data-tick="just"] {
+    animation: dm-spend 3.6s ease-out infinite;
+  }
+}
+@keyframes dm-spend {
+  0%,
+  4% {
+    stroke: #fff;
+  }
+  18%,
+  100% {
+    stroke: #ffe2b8;
   }
 }
 @keyframes dm-flash {
@@ -1089,7 +1109,8 @@
 }
 .dm-dial-count {
   fill: #fff;
-  font-family: var(--font-heading);
+  font-family: var(--font-display, var(--font-sans));
+  letter-spacing: -0.03em;
   font-size: 58px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
