@@ -127,6 +127,7 @@ import {
   FormDemo,
   OtpDemo,
   PasswordStrengthDemo,
+  RelationToggleDemo,
   ToastDemo,
 } from "./interactive-demos";
 
@@ -265,7 +266,12 @@ const RUNS: {
   { started: "04:00", job: "Purge orphans", outcome: "Succeeded", took: "4s" },
   { started: "05:00", job: "Backup reconcile", outcome: "Running", took: "" },
   { started: "06:00", job: "Backup prune", outcome: "Skipped", took: "" },
-  { started: "06:30", job: "Database backup", outcome: "Succeeded", took: "31s" },
+  {
+    started: "06:30",
+    job: "Database backup",
+    outcome: "Succeeded",
+    took: "31s",
+  },
 ];
 
 const RUN_TONE = {
@@ -316,6 +322,70 @@ function AdminRunsTable() {
 }
 
 export const COMPONENT_ENTRIES: GalleryEntry[] = [
+  /* THE ONE RELATION CONTROL (added by lp/crumbs-44 at the HEAD of the list, under a heading of its
+     own, so it lands on its own hunk). */
+  {
+    id: "relation-toggle",
+    file: "src/components/social/relation-toggle.tsx",
+    for: "every face of following or blocking a person, on one contract: the flip at once, the ask before a block, a refusal sprung back with the server's words, the page re-read by the Server Function itself",
+    test: "src/components/social/relation-toggle.test.tsx",
+    badge: "new",
+    family: "components",
+    section: "People",
+    title: "RelationToggle",
+    lede: "The one control behind Follow and Block. The profile's Follow, the quieter Follow beside an album, the profile menu's Block row and the Connections card's rows were three hand-rolled controls with three sets of manners; each is a face of this now. A press flips at once and takes no second press while it runs, turning a block on asks first, a refusal springs back and says why, and a landed flip says nothing, because the control shows it. Every write here is the Library's own and lands or refuses after a beat, so no press reaches a row.",
+    variants: [
+      {
+        prop: "relation",
+        source: "prop",
+        options: ["follow", "block"],
+        note: "Follow is a toggle whose label is its state (Follow, Following); Block names its act in both states (Block, Unblock) and asks before it blocks.",
+      },
+    ],
+    specimens: [
+      {
+        label: "Follow, the profile's own",
+        hint: "filled until it is on, then the outline Following; press either and it flips at once, then lands",
+        node: (
+          <Row>
+            <RelationToggleDemo relation="follow" />
+            <RelationToggleDemo relation="follow" on />
+          </Row>
+        ),
+      },
+      {
+        label: "The quieter Follow, beside an album's own actions",
+        hint: "`quiet`: the small ghost in the muted ink, naming whom it follows where nothing beside it does",
+        node: (
+          <Row>
+            <RelationToggleDemo relation="follow" quiet size="xs" label="Tom" />
+            <RelationToggleDemo
+              relation="follow"
+              quiet
+              size="xs"
+              label="Tom"
+              on
+            />
+          </Row>
+        ),
+      },
+      {
+        label: "Block and Unblock, a Connections row's size",
+        hint: "Block asks first (the one copy of what a block does); Unblock acts at once",
+        node: (
+          <Row>
+            <RelationToggleDemo relation="block" size="sm" />
+            <RelationToggleDemo relation="block" size="sm" on />
+          </Row>
+        ),
+      },
+      {
+        label: "A refusal",
+        hint: "this write refuses: the control springs back and the server's words arrive in one toast",
+        node: <RelationToggleDemo relation="follow" refuses />,
+      },
+    ],
+  },
   /* THE PORTAL'S THREE NEW PARTS (added by lp/admin-wiring at the HEAD of the
      list, so several lanes in one round land on distinct hunks). The admin is
      the one surface in the product nothing automated can sign into, so these

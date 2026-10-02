@@ -1,16 +1,18 @@
 import { EVENT_CARD_GRID } from "@/components/app/dashboard/event-card-grid";
 import { CrumbsHold } from "@/components/shared/crumbs";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export type RouteSkeletonVariant = "pulse" | "hub";
+export type RouteSkeletonVariant = "pulse" | "hub" | "account" | "welcome";
 
 /**
- * ONE ROUTE SKELETON, TWO SHAPES (`app-vocabulary` r1, `loading=asneeded`:
- * the dashboard and the event hub share one real trait the other host routes
- * do not, a genuine wait before first paint (both presign URLs before they can
- * render anything), so one shared primitive is wired to exactly those two,
- * named as a rule rather than spread to routes already instant (Settings,
- * Account) or stripped from where it is earned).
+ * ONE ROUTE SKELETON, ONE SHAPE PER ROUTE WITH A WAIT (`app-vocabulary` r1,
+ * `loading=asneeded`: one shared primitive wired to exactly the routes with a
+ * genuine wait before first paint, named as a rule rather than spread to routes
+ * already instant or stripped from where it is earned). The dashboard and the
+ * event hub presign before they can paint; since crumbs-44, Account and the
+ * welcome too: Account grew to fourteen reads, then the picker's presigns, before
+ * its first card, and the welcome builds every Guest card it counts.
  *
  * `dashboard/loading.tsx` and `dashboard/[eventId]/loading.tsx` BECAME this
  * (their content moved here byte for byte, so nothing about either shape
@@ -27,7 +29,15 @@ export function RouteSkeleton({ variant }: { variant: RouteSkeletonVariant }) {
   return (
     <>
       <CrumbsHold />
-      {variant === "pulse" ? <PulseSkeleton /> : <HubSkeleton />}
+      {variant === "pulse" ? (
+        <PulseSkeleton />
+      ) : variant === "hub" ? (
+        <HubSkeleton />
+      ) : variant === "account" ? (
+        <AccountSkeleton />
+      ) : (
+        <WelcomeSkeleton />
+      )}
     </>
   );
 }
@@ -134,5 +144,102 @@ function HubSkeleton() {
         </div>
       </div>
     </div>
+  );
+}
+
+/** A card's header as the page draws it: the title, then its one line. */
+function CardHeading({ title, line }: { title: string; line: string }) {
+  return (
+    <CardHeader>
+      <Skeleton className={`h-5 ${title}`} />
+      <Skeleton className={`h-4 ${line} max-w-full`} />
+    </CardHeader>
+  );
+}
+
+// Account's first screen: the heading and its line, then the Plan card (its
+// two facts and its buttons), the Profile card (the photo row and the name) and
+// the Public profile card, each on the real Card, so the skeleton's chrome is
+// the page's own and only the bars give way when it lands.
+//
+// ★ THE PAGE'S OWN COLUMN, NOT THE SHELL'S WIDE ONE: Account is
+// `mx-auto max-w-2xl`, and a skeleton at the shell's width would paint wide and
+// snap narrow the moment the page streamed in. The (app) layout's AppShell
+// supplies <main> + Container chrome, so this returns a BARE root.
+function AccountSkeleton() {
+  return (
+    <div className="mx-auto max-w-2xl space-y-6" aria-busy>
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-36" />
+        <Skeleton className="h-4 w-64 max-w-full" />
+      </div>
+      {/* Plan: two facts, then the buttons. */}
+      <Card>
+        <CardHeading title="w-14" line="w-56" />
+        <CardContent className="space-y-4">
+          <div className="grid gap-3 sm:grid-cols-2">
+            {Array.from({ length: 2 }, (_, i) => (
+              <div key={i} className="space-y-1.5">
+                <Skeleton className="h-3 w-14" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <Skeleton className="h-7 w-20 rounded-action-sm" />
+            <Skeleton className="h-7 w-28 rounded-action-sm" />
+          </div>
+        </CardContent>
+      </Card>
+      {/* Profile: the photo row, then the name. */}
+      <Card>
+        <CardHeading title="w-16" line="w-72" />
+        <CardContent className="space-y-6">
+          <div className="flex items-center gap-4">
+            <Skeleton className="size-16 shrink-0 rounded-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-7 w-28 rounded-action-sm" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-8 w-full rounded-lg" />
+          </div>
+        </CardContent>
+      </Card>
+      {/* Public profile: its line and the handle's field. */}
+      <Card>
+        <CardHeading title="w-28" line="w-80" />
+        <CardContent className="space-y-2">
+          <Skeleton className="h-4 w-20" />
+          <Skeleton className="h-8 w-full rounded-lg" />
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// The welcome's first screen is the name step for the account it most often
+// greets (every account is born nameless, so a first visit names itself before
+// any tour): the welcome's heading and line, the name field's label, guidance
+// and input, and its full-width button, on the real Card at the flow's own
+// `max-w-lg`. The (app) layout's AppShell supplies the chrome; a BARE root.
+function WelcomeSkeleton() {
+  return (
+    <Card className="mx-auto w-full max-w-lg" aria-busy>
+      <CardHeader className="space-y-2">
+        <Skeleton className="h-8 w-64 max-w-full" />
+        <Skeleton className="h-4 w-80 max-w-full" />
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="space-y-1.5">
+          <Skeleton className="h-5 w-32" />
+          <Skeleton className="h-4 w-full" />
+        </div>
+        <Skeleton className="h-8 w-full rounded-lg" />
+        <Skeleton className="h-8 w-full rounded-action-sm" />
+      </CardContent>
+    </Card>
   );
 }

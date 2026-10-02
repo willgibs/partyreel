@@ -1,6 +1,12 @@
 {
   "version": 2,
   "code": {
+    "relation-toggle": [
+      "<Row>\n  <RelationToggleDemo relation=\"follow\" />\n  <RelationToggleDemo relation=\"follow\" on />\n</Row>",
+      "<Row>\n  <RelationToggleDemo relation=\"follow\" quiet size=\"xs\" label=\"Tom\" />\n  <RelationToggleDemo\n    relation=\"follow\"\n    quiet\n    size=\"xs\"\n    label=\"Tom\"\n    on\n  />\n</Row>",
+      "<Row>\n  <RelationToggleDemo relation=\"block\" size=\"sm\" />\n  <RelationToggleDemo relation=\"block\" size=\"sm\" on />\n</Row>",
+      "<RelationToggleDemo relation=\"follow\" refuses />"
+    ],
     "table": [
       "<AdminRunsTable />"
     ],

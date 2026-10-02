@@ -15,18 +15,22 @@ import { RouteSkeleton } from "@/components/shared/route-skeleton";
 /**
  * `app-vocabulary` r1, `loading=asneeded`: one shared skeleton, wired to
  * exactly the routes with a real pre-paint wait. What this guards is that the
- * shapes stay bare app-shell content and that both routes still delegate here
- * rather than drifting back to a hand-rolled fallback, never a size, a count
- * or a color. (The Studio's fixed dark shape and its two tests left with the
- * Studio: the reel no longer has a room of its own to load into.)
+ * shapes stay bare app-shell content and that every such route still delegates
+ * here rather than drifting back to a hand-rolled fallback, never a size, a
+ * count or a color. (The Studio's fixed dark shape and its two tests left with
+ * the Studio: the reel no longer has a room of its own to load into.) Account
+ * and the welcome joined the dashboard and the hub in crumbs-44, each a wait of
+ * several reads and presigns that froze the page a press came from.
  */
+
+const SHAPES = ["pulse", "hub", "account", "welcome"] as const;
 
 const ROOT = process.cwd();
 const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
 
 describe("RouteSkeleton", () => {
   it("marks every shape busy for assistive tech", () => {
-    for (const variant of ["pulse", "hub"] as const) {
+    for (const variant of SHAPES) {
       const { container, unmount } = render(
         <RouteSkeleton variant={variant} />,
       );
@@ -40,8 +44,8 @@ describe("RouteSkeleton", () => {
 
   it("draws the pulse and the hub as bare app-shell content, never a fixed takeover", () => {
     // The (app) layout's AppShell already supplies <main> + Container chrome
-    // for these two — a `fixed` root here would double up with it.
-    for (const variant of ["pulse", "hub"] as const) {
+    // for every one of them — a `fixed` root here would double up with it.
+    for (const variant of SHAPES) {
       const { container, unmount } = render(
         <RouteSkeleton variant={variant} />,
       );
@@ -52,7 +56,7 @@ describe("RouteSkeleton", () => {
   });
 
   it("honours reduced motion on every shape", () => {
-    for (const variant of ["pulse", "hub"] as const) {
+    for (const variant of SHAPES) {
       const { container, unmount } = render(
         <RouteSkeleton variant={variant} />,
       );
@@ -64,16 +68,19 @@ describe("RouteSkeleton", () => {
     }
   });
 
-  it("is what both loading.tsx files delegate to, on their own shape", () => {
+  it("is what every route with a wait delegates to, on its own shape", () => {
     // The Studio's route became a redirect (`reel-host`, `home=view`) and lost
     // its loading.tsx with it: a skeleton of a room that never renders would
-    // flash on the way to the view.
+    // flash on the way to the view. Account and the welcome carried none at all
+    // until crumbs-44, so a press on either froze the page it came from.
     const cases: { rel: string; variant: string }[] = [
       { rel: "src/app/(app)/dashboard/loading.tsx", variant: "pulse" },
       {
         rel: "src/app/(app)/dashboard/[eventId]/loading.tsx",
         variant: "hub",
       },
+      { rel: "src/app/(app)/account/loading.tsx", variant: "account" },
+      { rel: "src/app/(app)/welcome/loading.tsx", variant: "welcome" },
     ];
     for (const { rel, variant } of cases) {
       const src = read(rel);
@@ -109,7 +116,7 @@ describe("RouteSkeleton holds the trail", () => {
     screen.queryByRole("navigation", { name: /breadcrumb/i })?.textContent ??
     null;
 
-  it.each(["pulse", "hub"] as const)(
+  it.each(SHAPES)(
     "keeps the last trail through the %s wait, and lets go when the page lands with none",
     (variant) => {
       const view = render(
@@ -148,7 +155,30 @@ describe("RouteSkeleton holds the trail", () => {
   });
 
   it("draws nothing of its own: the skeleton's root is still the first element", () => {
-    const { container } = render(<RouteSkeleton variant="hub" />);
-    expect(container.firstElementChild?.hasAttribute("aria-busy")).toBe(true);
+    for (const variant of SHAPES) {
+      const { container, unmount } = render(
+        <RouteSkeleton variant={variant} />,
+      );
+      expect(
+        container.firstElementChild?.hasAttribute("aria-busy"),
+        variant,
+      ).toBe(true);
+      unmount();
+    }
+  });
+
+  it("paints Account and the welcome at their pages' own width, never the shell's wide one", () => {
+    // A skeleton wider than its page snaps narrow the moment the page streams in.
+    const account = render(<RouteSkeleton variant="account" />);
+    expect(account.container.firstElementChild?.className).toMatch(
+      /\bmax-w-2xl\b/,
+    );
+    expect(account.container.querySelector("[data-app-wide]")).toBeNull();
+    account.unmount();
+    const welcome = render(<RouteSkeleton variant="welcome" />);
+    expect(welcome.container.firstElementChild?.className).toMatch(
+      /\bmax-w-lg\b/,
+    );
+    welcome.unmount();
   });
 });
