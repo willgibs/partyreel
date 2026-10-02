@@ -214,8 +214,11 @@ export function heroSays(addresses: readonly string[]): Reader {
       said.push(
         `The card: "${textOf(card.querySelector("[data-df-title]"))}", ${textOf(card.querySelector("[data-df-meta]"))}`,
       );
+    // A stream's photographs, or a wall's tiles: every one carries a credit.
     const credits = root.querySelectorAll("[data-df-credit]").length;
-    const frames = root.querySelectorAll(".hhs-card").length;
+    const frames = root.querySelectorAll(
+      ".hhs-card, [data-df-wall-tile]",
+    ).length;
     if (frames > 0) said.push(`${credits} of ${frames} photographs credited`);
     return said.join(". ");
   };
