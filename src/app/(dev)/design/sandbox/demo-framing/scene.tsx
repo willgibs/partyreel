@@ -208,18 +208,33 @@ export function heroSays(addresses: readonly string[]): Reader {
 }
 
 /**
- * THE DOOR, AS THE VISITOR LANDS ON IT: its eyebrow, its headline, the line
- * under it and what it offers, in order.
+ * THE DOOR, AS THE VISITOR LANDS ON IT, read off production's own door words
+ * (`DoorWords`: the eyebrow, the headline, what stands under it, its lines)
+ * and the ways on under them, in order.
  */
 export const doorSays: Reader = (root) => {
-  const eyebrow = textOf(root.querySelector("[data-df-door-eyebrow]"));
-  const title = textOf(root.querySelector("[data-df-door-title]"));
-  const by = textOf(root.querySelector("[data-df-door-by]"));
-  const lines = [...root.querySelectorAll("[data-df-door-line]")].map(textOf);
-  if (!title) return null;
+  const words = root.querySelector("[data-door-words]");
+  const title = words?.querySelector("h1");
+  if (!words || !title) return null;
+  const parts = [...words.querySelectorAll(":scope > [data-door-line]")];
+  const at = parts.indexOf(title);
+  const eyebrow = at > 0 ? textOf(parts[0]) : "";
+  const under = parts
+    .slice(at + 1)
+    .map(textOf)
+    .filter(Boolean)
+    .map((l) => `"${l}"`)
+    .join(", ");
+  const ways = [
+    ...root.querySelectorAll(
+      "[data-welcome-step] button, [data-welcome-step] a",
+    ),
+  ]
+    .map(textOf)
+    .filter(Boolean)
+    .join(" or ");
   const head = eyebrow ? `"${eyebrow}" over ` : "";
-  const byline = by ? `, ${by}` : "";
-  return `The door: ${head}"${title}"${byline}; ${lines.map((l) => `"${l}"`).join(", ")}`;
+  return `The door: ${head}"${textOf(title)}"; under it ${under}; ${ways}`;
 };
 
 /** The album's head, as the page says it: the title, then the stats line. */

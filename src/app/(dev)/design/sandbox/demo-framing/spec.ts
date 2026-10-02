@@ -22,7 +22,8 @@ import { defineExploration } from "@/components/lab/exploration";
  * ★ TWO DECISIONS. `stage` is his hybrid in three takes, each the whole idea
  * built its own way (the object, how the turns breathe, which way the album
  * flows), so he picks a hero rather than assembling one. `door` is the demo's
- * identity at its door, drawn in the doorway he picked on the door board.
+ * identity at its door, drawn in the doorway production now draws (his
+ * `family=doorway`, wired by door-wiring), today's name among the three.
  *
  * ★ SETTLED AND DRAWN IN EVERY TAKE, NEVER ASKED: the address `our-party`; the
  * arrow after it and its hover (the object lifts, the arrow nudges toward
@@ -44,7 +45,7 @@ export const DEMO_FRAMING = defineExploration({
     "src/components/marketing/sections/home/cinema-hero.tsx",
     "src/components/marketing/sections/home/cinema-hero-card.tsx",
     "src/components/marketing/sections/home/hero-stream.ts",
-    "src/components/guest/entry-modal.tsx",
+    "src/components/guest/door/welcome.tsx",
     "src/lib/demo.ts",
     "src/lib/constants/reserved-slugs.ts",
     "scripts/seed-demo-event.mjs",
@@ -236,22 +237,23 @@ export const DEMO_FRAMING = defineExploration({
       matters:
         "The door is where the demo says what it is; a generic party name there leaves a visitor unsure what they opened.",
       context:
-        "Each drawn at 375 in the doorway you picked on the door board, open onto the demo album, then the album's head behind it. The address stays our-party in every one.",
+        "Each drawn at 375 in the doorway as production now draws it, open onto the demo album, then the album's head behind it. The address stays our-party in every one.",
       options: [
         {
           id: "brand",
-          label: "Partyreel Demo",
+          label: "Partyreel Demo, as today",
           means:
-            "The demo is named Partyreel Demo and hosted by Partyreel: on its door, at its album's head, wherever it is named.",
-          gains: "Unmistakable: nobody wonders whose party it is.",
+            "The demo's name today, in today's demo door: a live demo, you're a guest at Partyreel Demo, and so at its album's head.",
+          gains:
+            "Unmistakable, and nothing new to build: nobody wonders whose party it is.",
           costs:
-            "Partyreel's name first on a guest's door, and no party a visitor could picture as theirs.",
+            "Partyreel's own name on a guest's door, and no party a visitor could picture as theirs.",
         },
         {
           id: "example",
           label: "Example Party",
           means:
-            "The demo is named Example Party and hosted by Sam Okafor: still a party a guest is invited to, plainly a sample.",
+            "Today's demo door round a party said plainly to be a sample: you're a guest at Example Party, and so at its album's head.",
           gains: "Still an invitation to a party, and plainly a sample.",
           costs:
             "A placeholder's name on the first door most hosts will ever see.",
@@ -267,13 +269,14 @@ export const DEMO_FRAMING = defineExploration({
             "One more set of words the shared door has to carry, and the only door that names no party.",
         },
       ],
+      today: "brand",
       recommended: "own",
       because:
         "The door is the one place the demo may speak as Partyreel, so it says what this is there, and the album keeps feeling like a party.",
       overrule:
-        "If the demo should be named for what it is everywhere, Partyreel Demo.",
+        "If the demo should be named for what it is everywhere, keep Partyreel Demo.",
       lands:
-        "The demo's door words (entry-modal.tsx's demo step, the doorway's once wired), the demo event's name in its seed and its host persona.",
+        "The demo's door words (RoleWords in door/welcome.tsx), the demo event's name in its seed, and its host persona.",
     },
   ],
 });

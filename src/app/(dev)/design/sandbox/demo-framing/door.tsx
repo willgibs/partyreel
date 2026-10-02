@@ -1,32 +1,31 @@
 "use client";
 
-import "./door.css";
-
 import { Link2 } from "lucide-react";
-import { type CSSProperties, useMemo } from "react";
+import { useMemo } from "react";
 
+import {
+  DOOR_FOOT,
+  DOOR_MAIN,
+  DoorColumn,
+  DoorWords,
+} from "@/components/guest/door/door-page";
+import { Doorway } from "@/components/guest/door/doorway";
+import { RoleWords } from "@/components/guest/door/welcome";
 import { LiveDot } from "@/components/marketing/system/demo-modal/demo-door";
 import { Logo } from "@/components/shared/logo";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { HOUSE_HUES, hueOfOklch } from "@/lib/guest/door-light";
 import { useSampledPalette } from "@/lib/shared/sampled-palette";
 
-import {
-  ALBUM,
-  DEMO_HOST,
-  DEMO_SLUG,
-  DOMAIN,
-  PARTYREEL_HOST,
-  type Person,
-} from "./fixtures";
+import { ALBUM, DEMO_HOST, DEMO_SLUG, DOMAIN, type Person } from "./fixtures";
 import { stopLinks } from "./scene";
 
 /**
- * THE DEMO'S DOOR, THREE IDENTITIES (the `door` decision), each in the doorway
- * he picked on the door board: the door open onto the demo album, its light
- * the album's own, the words under it, and the way in.
+ * THE DEMO'S DOOR, THREE IDENTITIES (the `door` decision), each in the
+ * doorway as production now draws it (door-wiring, `locked-door` r2's
+ * `family=doorway`): the real `Doorway` open onto the demo album, its light the
+ * album's own, the real door column and words under it, and the way in.
  *
  * His note on the address: "the demo's welcome door specifically should
  * likely avoid this event title, can keep slug but maybe clearer name like
@@ -35,83 +34,41 @@ import { stopLinks } from "./scene";
  * generic 'Our party' name." So the address stays `our-party` in all three,
  * and what changes is what the door says the visitor has walked into:
  *
- *  - `brand`: the demo is named for what it is, Partyreel Demo, hosted by
- *    Partyreel, on its door and at its album's head;
- *  - `example`: a party said plainly to be a sample, Example Party, hosted by
- *    the demo's persona;
- *  - `own`: the door speaks as Partyreel, once, and names the visitor's part
- *    rather than a party: their guests start here, through the link they
- *    came in by. The album behind it keeps its party's name.
+ *  - `brand`: Partyreel Demo, the name the demo event carries today (its
+ *    seed's default), in production's own demo words (`RoleWords`): "A live
+ *    demo", "You're a guest at Partyreel Demo";
+ *  - `example`: the same words round a party plainly said to be a sample,
+ *    Example Party;
+ *  - `own`: a door of the demo's own, in the door's own grammar
+ *    (`DoorWords`): it speaks as Partyreel, once, and names the visitor's part
+ *    rather than a party (their guests start here, through the link they came
+ *    in by); the album behind it keeps its party's name.
  *
- * ★ THE WORDS ARE THE DEMO'S OWN, IN THE DOOR'S GRAMMAR: the eyebrow, the
- * headline at the doorway's size, the byline's place, two lines, and the way
- * in, which is production's demo step (`RoleStep`) moved into the doorway's
- * shape. "Nothing you add is saved" is production's own promise, kept.
+ * ★ EVERY OPTION'S HOST IS THE DEMO'S PERSONA (round one's carried `host`),
+ * never Will's own account, which is who hosts the demo today.
  *
  * ★ THE LIGHT IS THE ALBUM'S, SAMPLED OFF THE FOUR PHOTOGRAPHS THE DOOR SHOWS,
- * with production's sampler (`useSampledPalette`), the house five until it
- * lands, as the real door's lamp does.
+ * with production's sampler, the house five until it lands, as the real
+ * door's light is; handed to the `Doorway` as its props, never through the
+ * door's module store, which every frame on the board would share.
  */
 
 export type DoorId = "brand" | "example" | "own";
 
 type Identity = {
-  readonly eyebrow: string;
-  readonly title: string;
-  /** Who hosts it, in the byline's place; `own` puts the link there instead. */
-  readonly host: Person | null;
-  readonly lines: readonly [string, string];
-  readonly go: string;
-  /** The name at the album's head behind the door. */
+  /** The name at the album's head behind the door, and on the door where it names one. */
   readonly album: string;
   readonly albumHost: Person;
 };
 
 export const DOORS: Record<DoorId, Identity> = {
-  brand: {
-    eyebrow: "You're invited to",
-    title: "Partyreel Demo",
-    host: PARTYREEL_HOST,
-    lines: [
-      "A live album, exactly as a guest sees it.",
-      "Add a photo the way a guest would. Nothing you add is saved.",
-    ],
-    go: "Continue",
-    album: "Partyreel Demo",
-    albumHost: PARTYREEL_HOST,
-  },
-  example: {
-    eyebrow: "You're invited to",
-    title: "Example Party",
-    host: DEMO_HOST,
-    lines: [
-      "A live album, exactly as a guest sees it.",
-      "Add a photo the way a guest would. Nothing you add is saved.",
-    ],
-    go: "Continue",
-    album: "Example Party",
-    albumHost: DEMO_HOST,
-  },
-  own: {
-    eyebrow: "A live demo",
-    title: "Your guests start here",
-    host: null,
-    lines: [
-      "Every guest who scans your code walks through this door.",
-      "Step in as one of them and add a photo. Nothing you add is saved.",
-    ],
-    go: "Step in",
-    album: "Our party",
-    albumHost: DEMO_HOST,
-  },
+  brand: { album: "Partyreel Demo", albumHost: DEMO_HOST },
+  example: { album: "Example Party", albumHost: DEMO_HOST },
+  own: { album: "Our party", albumHost: DEMO_HOST },
 };
 
 /** The album's light, off the four photographs the door shows. */
-function useAlbumHues(): readonly number[] {
-  const srcs = useMemo(
-    () => ALBUM.through.map((id) => marketingImage(id).src),
-    [],
-  );
+function useAlbumHues(srcs: readonly string[]): readonly number[] {
   const colors = useSampledPalette(srcs, "dark");
   return useMemo(() => {
     const list = (colors ?? [])
@@ -119,44 +76,6 @@ function useAlbumHues(): readonly number[] {
       .filter((h): h is number => h !== null);
     return list.length >= 3 ? list : HOUSE_HUES;
   }, [colors]);
-}
-
-/** The doorway, open, the album seen through it (`door.css`). */
-function Doorway({ hues }: { hues: readonly number[] }) {
-  return (
-    <div
-      aria-hidden
-      data-df-way
-      className="df-way"
-      style={
-        {
-          "--lit-h1": hues[0],
-          "--lit-h2": hues[1],
-          "--lit-h3": hues[2],
-        } as CSSProperties
-      }
-    >
-      <span className="df-way-floor" />
-      <span className="df-way-ground" />
-      <div className="df-way-frame">
-        <div className="df-way-room">
-          <span className="df-way-glow df-way-g1" />
-          <span className="df-way-glow df-way-g2" />
-          <span className="df-way-glow df-way-g3" />
-          <div className="df-way-album">
-            {ALBUM.through.map((id) => (
-              // eslint-disable-next-line @next/next/no-img-element -- a stand-in still seen through the door, as the door board draws it
-              <img key={id} src={marketingImage(id).src} alt="" />
-            ))}
-          </div>
-        </div>
-        <div className="df-way-leaf">
-          <span className="df-way-panel df-way-panel-top" />
-          <span className="df-way-panel df-way-panel-low" />
-        </div>
-      </div>
-    </div>
-  );
 }
 
 /** The guest header as a stranger meets the demo's: the wordmark and its Demo mark. */
@@ -178,86 +97,79 @@ function DoorTop() {
   );
 }
 
+/**
+ * A DOOR OF THE DEMO'S OWN, in the door's grammar: the live demo's eyebrow
+ * with its live dot (the sign every other door to the demo wears), the
+ * visitor's part as the headline, the link they came in by in the byline's
+ * place, two lines, and the way in.
+ */
+function OwnWords() {
+  return (
+    <div data-welcome-step="" className="flex w-full flex-col items-center">
+      <DoorWords
+        eyebrow={
+          <>
+            <LiveDot />A live demo
+          </>
+        }
+        title="Your guests start here"
+        titleAs="h1"
+        byline={
+          <p className="flex items-center justify-center gap-1.5 text-working text-muted-foreground">
+            <Link2 aria-hidden className="size-3.5" />
+            <span>
+              {DOMAIN}
+              <span className="font-medium text-foreground">{DEMO_SLUG}</span>
+            </span>
+          </p>
+        }
+        lines={[
+          "Every guest who scans your code walks through this door.",
+          "Step in as one of them and add a photo. Nothing you add is saved.",
+        ]}
+      />
+      <div className={DOOR_FOOT}>
+        <Button size="cta" className="w-full" tabIndex={-1}>
+          Step in
+        </Button>
+        <Button
+          variant="ghost"
+          className="w-full text-muted-foreground"
+          tabIndex={-1}
+        >
+          Start your own
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export function DemoDoor({ door }: { door: DoorId }) {
-  const id = DOORS[door];
-  const hues = useAlbumHues();
+  const srcs = useMemo(
+    () => ALBUM.through.map((id) => marketingImage(id).src),
+    [],
+  );
+  const hues = useAlbumHues(srcs);
   return (
     <div
+      data-df-door={door}
       className="flex min-h-svh flex-col bg-background text-foreground"
       onClickCapture={stopLinks}
     >
       <DoorTop />
-      <main className="isolate flex flex-1 flex-col items-center justify-center px-5 py-16">
-        <div className="flex w-full max-w-sm flex-col items-center text-center sm:max-w-md">
-          <Doorway hues={hues} />
-          <div className="mt-10 flex flex-col items-center">
-            <p
-              data-df-door-eyebrow
-              className="flex items-center gap-2 text-label font-medium text-muted-foreground uppercase"
-            >
-              {door === "own" ? <LiveDot /> : null}
-              {id.eyebrow}
-            </p>
-            <p
-              data-df-door-title
-              className="mt-1.5 font-heading text-section text-balance"
-            >
-              {id.title}
-            </p>
-            <div className="mt-2">
-              {id.host ? (
-                <p
-                  data-df-door-by
-                  className="flex items-center justify-center gap-1.5 text-working text-muted-foreground"
-                >
-                  Hosted by
-                  <Avatar seed={id.host.seed} size="sm">
-                    <AvatarFallback>{id.host.initial}</AvatarFallback>
-                  </Avatar>
-                  <span className="font-medium text-foreground">
-                    {id.host.name}
-                  </span>
-                </p>
-              ) : (
-                <p
-                  data-df-door-by
-                  className="flex items-center justify-center gap-1.5 text-working text-muted-foreground"
-                >
-                  <Link2 aria-hidden className="size-3.5" />
-                  <span>
-                    {DOMAIN}
-                    <span className="font-medium text-foreground">
-                      {DEMO_SLUG}
-                    </span>
-                  </span>
-                </p>
-              )}
-            </div>
-          </div>
-          <div className="mt-3 flex flex-col gap-1.5">
-            {id.lines.map((l) => (
-              <p
-                key={l}
-                data-df-door-line
-                className="text-base leading-relaxed text-pretty text-muted-foreground"
-              >
-                {l}
-              </p>
-            ))}
-          </div>
-          <div className="mt-8 flex w-full flex-col gap-2">
-            <Button size="cta" className="w-full" tabIndex={-1}>
-              {id.go}
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full text-muted-foreground"
-              tabIndex={-1}
-            >
-              Start your own
-            </Button>
-          </div>
-        </div>
+      <main className={DOOR_MAIN}>
+        <DoorColumn
+          doorway={<Doorway state="open" hues={hues} photos={srcs} />}
+        >
+          {door === "own" ? (
+            <OwnWords />
+          ) : (
+            <RoleWords
+              eventName={DOORS[door].album}
+              hostName={DOORS[door].albumHost.name}
+            />
+          )}
+        </DoorColumn>
       </main>
     </div>
   );
