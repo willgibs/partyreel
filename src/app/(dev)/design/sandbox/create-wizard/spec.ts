@@ -192,8 +192,10 @@ export const CREATE_WIZARD = defineExploration({
           label: "Each screen slides in",
           means:
             "Each screen slides in from the right, the way a phone's own setup does; Back at the head's left, the close at its right.",
-          gains: "Familiar from every phone's setup: forward and back read at once.",
-          costs: "The whole page moves on every step, and Back is a reach at a phone.",
+          gains:
+            "Familiar from every phone's setup: forward and back read at once.",
+          costs:
+            "The whole page moves on every step, and Back is a reach at a phone.",
         },
         {
           id: "carry",
@@ -202,13 +204,15 @@ export const CREATE_WIZARD = defineExploration({
             "Her answer rises into the head: the name stays there as the room's title, a pick drops into its stepper, and the head is the way back.",
           gains:
             "Her event visibly takes shape, and any answer is one press away in the head.",
-          costs: "More motion on every step, and a busier head than a bare stepper.",
+          costs:
+            "More motion on every step, and a busier head than a bare stepper.",
         },
       ],
       recommended: "carry",
       because:
         "The name she typed titles the room from then on, so each step reads as building her event, and the head is her way back.",
-      overrule: "If Create should feel as calm as it can, the room holding still.",
+      overrule:
+        "If Create should feel as calm as it can, the room holding still.",
       configs: [SCREEN],
     },
 
@@ -239,8 +243,9 @@ export const CREATE_WIZARD = defineExploration({
           id: "switch",
           label: "One phone, a switch over it",
           means:
-            "One phone as large as the room allows, the album or the camera a switch over it, the night under it.",
-          gains: "The biggest picture of what a guest gets, and the least to look at.",
+            "One phone at a time, the album or the camera a plain switch over it, the night under it.",
+          gains:
+            "The least to look at, and the switch says plainly which she picked.",
           costs: "The two are never seen together: comparing means switching.",
         },
         {
@@ -256,7 +261,7 @@ export const CREATE_WIZARD = defineExploration({
       because:
         "The two differ most in when everyone sees the photos, and side by side the night shows that at a glance.",
       overrule:
-        "If the picture should be as big as a phone allows, one phone with a switch.",
+        "If the step should hold one picture and a plain choice, one phone with a switch.",
       configs: [SCREEN],
     },
 
@@ -287,7 +292,8 @@ export const CREATE_WIZARD = defineExploration({
           label: "The code where guests meet it",
           means:
             "The code held up on her phone and in the corner of the room's screen, both re-dressed as she picks.",
-          gains: "She sees what the look is for, in the two places it really goes.",
+          gains:
+            "She sees what the look is for, in the two places it really goes.",
           costs: "Each code is smaller, and the centre holds more to look at.",
         },
         {
@@ -302,7 +308,8 @@ export const CREATE_WIZARD = defineExploration({
       recommended: "places",
       because:
         "Seeing her code on her own phone and on the room's screen tells her what the look is for, which is the step's whole job.",
-      overrule: "If the code itself should be the whole subject, the code large.",
+      overrule:
+        "If the code itself should be the whole subject, the code large.",
       configs: [SCREEN],
     },
 
@@ -311,7 +318,7 @@ export const CREATE_WIZARD = defineExploration({
       id: "beat",
       label: "The code's arrival",
       question:
-        "How should the lit code arrive, and how should its acts and what is left read?",
+        "How should her lit code arrive, and how should Print, Share and what is left read under it?",
       where: ["Host", "Create an event", "The beat"],
       when: "Maya has pressed Create event: the wedding exists, its code is real, and guests still need the code opened once.",
       matters:
@@ -326,7 +333,8 @@ export const CREATE_WIZARD = defineExploration({
           label: "The sample develops into her code",
           means:
             "The sample she styled develops into her real code where it stands while Create runs; two quiet rounds; what is left in one line.",
-          gains: "One moment from her pick to her code, with the least to read.",
+          gains:
+            "One moment from her pick to her code, with the least to read.",
           costs: "What is left is a line and five ticks, not the steps' names.",
         },
         {
@@ -334,7 +342,8 @@ export const CREATE_WIZARD = defineExploration({
           label: "The code rises into its light",
           means:
             "The room dims, light gathers on the floor and the code rises into it; Print and Share; Settings' steps as the rail.",
-          gains: "A staged reveal, and the rail shows where Get it ready leads.",
+          gains:
+            "A staged reveal, and the rail shows where Get it ready leads.",
           costs: "The most words of the three, under the code.",
         },
         {

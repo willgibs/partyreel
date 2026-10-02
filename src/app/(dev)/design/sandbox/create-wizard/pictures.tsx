@@ -136,11 +136,9 @@ function Rows({
     // stays at the thumb in a tall phone, a square or a wide one.
     <span className="mt-[3.5cqw] block min-h-0 flex-1 overflow-hidden">
       <span className="grid grid-cols-3 gap-[1.3cqw]">
-        {[...ALBUM_STILLS, ...ALBUM_STILLS]
-          .slice(from, to)
-          .map((s, i) => (
-            <Tile key={`${s.id}-${i}`} still={s} fresh={fresh && i === 0} />
-          ))}
+        {[...ALBUM_STILLS, ...ALBUM_STILLS].slice(from, to).map((s, i) => (
+          <Tile key={`${s.id}-${i}`} still={s} fresh={fresh && i === 0} />
+        ))}
       </span>
     </span>
   );
@@ -171,7 +169,9 @@ function AlbumAt({ hour }: { hour: HourId }) {
   const { photos } = hourOf(hour);
   return (
     <span className="flex h-full flex-col px-[6cqw] pt-[13cqw] pb-[7cqw]">
-      <Head count={`${photos} photos · ${morning ? 14 : PARTY.guests} guests`} />
+      <Head
+        count={`${photos} photos · ${morning ? 14 : PARTY.guests} guests`}
+      />
       {morning && (
         <span className="relative mt-[4cqw] block aspect-[16/10] shrink-0 overflow-hidden rounded-[2.4cqw]">
           <Img still={ALBUM_STILLS[3]} />
@@ -365,6 +365,7 @@ export function Phone({
   mode,
   hour,
   dim,
+  lit,
   className,
   style,
 }: {
@@ -372,21 +373,26 @@ export function Phone({
   hour: HourId;
   /** Standing behind the pick: the room's dark laid over its screen. */
   dim?: boolean;
+  /** The pick: its rim catches the room's light. */
+  lit?: boolean;
   className?: string;
   style?: CSSProperties;
 }) {
+  // ★ THE CONTAINER IS THE WRAPPER, NEVER THE BODY: a `cqw` on an element
+  // reads its nearest ANCESTOR container, so a body that was its own container
+  // took its bezel and corners from the frame's width (a capsule at a desk).
   return (
     <span
       data-cw-phone={mode}
-      className={cn("cw-phone @container block", className)}
+      className={cn("@container block", className)}
       style={style}
     >
-      <span className="cw-phone-glass block">
-        <GuestScreen mode={mode} hour={hour} className="size-full" />
-        <span aria-hidden className="cw-phone-island" />
-        {dim && (
-          <span aria-hidden className="absolute inset-0 bg-black/55" />
-        )}
+      <span className={cn("cw-phone block", lit && "cw-phone-lit")}>
+        <span className="cw-phone-glass block">
+          <GuestScreen mode={mode} hour={hour} className="size-full" />
+          <span aria-hidden className="cw-phone-island" />
+          {dim && <span aria-hidden className="absolute inset-0 bg-black/55" />}
+        </span>
       </span>
     </span>
   );
@@ -561,9 +567,7 @@ export function Keyboard() {
         <span className="flex gap-[6px] px-[3px]">
           <span className={cn(dim, "w-[88px] shrink-0 text-[16px]")}>123</span>
           <span className={cn(key, "flex-1 text-[16px]")}>space</span>
-          <span className={cn(dim, "w-[88px] shrink-0 text-[16px]")}>
-            next
-          </span>
+          <span className={cn(dim, "w-[88px] shrink-0 text-[16px]")}>next</span>
         </span>
       </span>
       <span className="mt-2 flex justify-between px-5 text-white/80">

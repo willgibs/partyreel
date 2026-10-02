@@ -117,46 +117,48 @@ function Swatches({
  */
 function CardOnPhone({ look, width }: { look: QrStyleKey; width: number }) {
   return (
-    <span className="cw-phone @container block" style={{ width }}>
-      <span
-        data-cw-picture="code-card"
-        className="cw-phone-glass flex flex-col items-center justify-center gap-[5cqw] bg-white px-[7cqw] text-neutral-900"
-      >
-        <span className="block w-[78cqw]">
-          <StyledQr
-            value={SAMPLE_LINK}
-            size={240}
-            style={QR_PRESETS[look].options}
-            className="[&>svg]:block [&>svg]:h-auto [&>svg]:w-full"
-          />
-        </span>
-        <span className="block text-center">
-          <span className="block font-heading text-[6.2cqw] leading-tight">
-            {EVENT.name}
+    <span className="@container block" style={{ width }}>
+      <span className="cw-phone block">
+        <span
+          data-cw-picture="code-card"
+          className="cw-phone-glass flex flex-col items-center justify-center gap-[5cqw] bg-white px-[7cqw] text-neutral-900"
+        >
+          <span className="block w-[78cqw]">
+            <StyledQr
+              value={SAMPLE_LINK}
+              size={240}
+              style={QR_PRESETS[look].options}
+              className="[&>svg]:block [&>svg]:h-auto [&>svg]:w-full"
+            />
           </span>
-          <span className="mt-[1cqw] block text-[3.6cqw] text-neutral-500">
-            partyreel.com/e/maya-jay
-          </span>
-        </span>
-        <span className="flex w-full gap-[2cqw]">
-          {[
-            { icon: Copy, label: "Copy link" },
-            { icon: Share2, label: "Share" },
-          ].map(({ icon: Icon, label }) => (
-            <span
-              key={label}
-              className="flex h-[9cqw] flex-1 items-center justify-center gap-[1.2cqw] rounded-[2.6cqw] border border-neutral-300 text-[3.3cqw] font-medium"
-            >
-              <Icon className="size-[3.6cqw]" />
-              {label}
+          <span className="block text-center">
+            <span className="block font-heading text-[6.2cqw] leading-tight">
+              {EVENT.name}
             </span>
-          ))}
-          <span className="flex h-[9cqw] flex-1 items-center justify-center gap-[1.2cqw] rounded-[2.6cqw] bg-neutral-900 text-[3.3cqw] font-medium text-white">
-            <QrCode className="size-[3.6cqw]" />
-            All
+            <span className="mt-[1cqw] block text-[3.6cqw] text-neutral-500">
+              partyreel.com/e/maya-jay
+            </span>
           </span>
+          <span className="flex w-full gap-[2cqw]">
+            {[
+              { icon: Copy, label: "Copy link" },
+              { icon: Share2, label: "Share" },
+            ].map(({ icon: Icon, label }) => (
+              <span
+                key={label}
+                className="flex h-[9cqw] flex-1 items-center justify-center gap-[1.2cqw] rounded-[2.6cqw] border border-neutral-300 text-[3.3cqw] font-medium"
+              >
+                <Icon className="size-[3.6cqw]" />
+                {label}
+              </span>
+            ))}
+            <span className="flex h-[9cqw] flex-1 items-center justify-center gap-[1.2cqw] rounded-[2.6cqw] bg-neutral-900 text-[3.3cqw] font-medium text-white">
+              <QrCode className="size-[3.6cqw]" />
+              All
+            </span>
+          </span>
+          <span aria-hidden className="cw-phone-island" />
         </span>
-        <span aria-hidden className="cw-phone-island" />
       </span>
     </span>
   );
@@ -260,7 +262,10 @@ export function LookCentre({
             <ScreenOnWall look={picked} width={screen} />
           </span>
           <span
-            className={cn("absolute", wide ? "top-0 left-0" : "bottom-0 left-[6%]")}
+            className={cn(
+              "absolute",
+              wide ? "top-0 left-0" : "bottom-0 left-[6%]",
+            )}
           >
             <CardOnPhone look={picked} width={phone} />
           </span>
@@ -282,7 +287,10 @@ export function LookCentre({
       data-cw-look={way}
       role="radiogroup"
       aria-label="The code's look"
-      className={cn("grid grid-cols-2", wide ? "gap-x-10 gap-y-6" : "gap-x-5 gap-y-5")}
+      className={cn(
+        "grid grid-cols-2",
+        wide ? "gap-x-10 gap-y-6" : "gap-x-5 gap-y-5",
+      )}
     >
       {QR_STYLE_KEYS.map((k) => {
         const on = k === picked;

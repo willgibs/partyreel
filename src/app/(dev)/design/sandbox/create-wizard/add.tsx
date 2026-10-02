@@ -277,7 +277,12 @@ export function AddCentre({
                 data-cw-carry={picked === m ? "pick" : undefined}
                 className={cn("block w-full", picked === m && "cw-chosen")}
               >
-                <Phone mode={m} hour={hour} className="w-full" />
+                <Phone
+                  mode={m}
+                  hour={hour}
+                  lit={picked === m}
+                  className="w-full"
+                />
               </span>
               <span className="mt-3 block w-full">
                 <Label mode={m} hour={hour} on={picked === m} wide={wide} />
@@ -292,7 +297,10 @@ export function AddCentre({
   }
 
   if (way === "switch") {
-    const w = wide ? 208 : 184;
+    // Height-bound at both widths: the switch, the phone, its line, the
+    // night and the camera's setting share the centre, so the one phone is
+    // as tall as that leaves.
+    const w = wide ? 180 : 164;
     return (
       <div data-cw-add={way} className="flex w-full flex-col items-center">
         <div
@@ -331,12 +339,12 @@ export function AddCentre({
         <span
           data-cw-hero
           data-cw-carry="pick"
-          className={cn("cw-chosen block", wide ? "mt-7" : "mt-5")}
+          className={cn("cw-chosen block", wide ? "mt-6" : "mt-4")}
           style={{ width: w }}
         >
-          <Phone mode={picked} hour={hour} className="w-full" />
+          <Phone mode={picked} hour={hour} lit className="w-full" />
         </span>
-        <p className="mt-3 text-working text-muted-foreground">
+        <p className="mt-2.5 text-working text-muted-foreground">
           {LINE_AT[hour][picked]}
         </p>
         {night}
@@ -381,7 +389,7 @@ export function AddCentre({
           className="cw-chosen absolute top-0 left-0 block"
           style={{ width: front }}
         >
-          <Phone mode={picked} hour={hour} className="w-full" />
+          <Phone mode={picked} hour={hour} lit className="w-full" />
         </span>
       </div>
       <div

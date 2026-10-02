@@ -143,6 +143,19 @@ function backOf(root: HTMLElement): string | null {
     : "Back at the head's left";
 }
 
+/**
+ * Whether the answer's space holds what it is given: the arriving page's
+ * centre against its own box (its content centred, so an overflow spills both
+ * ways, under the question and over the foot). Said only when it does.
+ */
+function overflowOf(root: HTMLElement): string | null {
+  const page = pageOf(root);
+  const centre = page?.querySelector<HTMLElement>("[data-cw-centre]");
+  if (!centre) return null;
+  const over = centre.scrollHeight - centre.clientHeight;
+  return over > 1 ? `THE CENTRE OVERFLOWS by ${px(over)} px` : null;
+}
+
 /** The page a reader should count: the arriving one when two are drawn. */
 function pageOf(root: HTMLElement): HTMLElement | null {
   const pages = root.querySelectorAll<HTMLElement>("[data-cw-page]");
@@ -167,8 +180,7 @@ export const readScreen: Reader = (root, win) => {
   if (!screen || !page) return null;
   // A change draws the leaving page too; the words are the arriving step's.
   const leaving = [...screen.querySelectorAll("[data-cw-page]")].slice(0, -1);
-  const words =
-    wordsIn(screen) - leaving.reduce((n, p) => n + wordsIn(p), 0);
+  const words = wordsIn(screen) - leaving.reduce((n, p) => n + wordsIn(p), 0);
   const parts = [`${words} words to read`];
   const q = questionAt(root);
   if (q) parts.push(q);
@@ -178,6 +190,8 @@ export const readScreen: Reader = (root, win) => {
   if (back) parts.push(back);
   const go = reachOf(screen, win);
   if (go) parts.push(go);
+  const over = overflowOf(root);
+  if (over) parts.push(over);
   return parts.join("; ");
 };
 
@@ -203,6 +217,8 @@ export const readAdd: Reader = (root) => {
   const reveal = root.querySelector<HTMLElement>("[data-cw-reveal]");
   if (reveal) parts.push(`develops ${reveal.dataset.cwReveal}`);
   parts.push(`${wordsIn(screen)} words to read`);
+  const over = overflowOf(root);
+  if (over) parts.push(over);
   return parts.join("; ");
 };
 
@@ -210,7 +226,9 @@ export const readAdd: Reader = (root) => {
 export const readLook: Reader = (root) => {
   const screen = root.querySelector<HTMLElement>("[data-cw-screen]");
   if (!screen) return null;
-  const codes = [...root.querySelectorAll("[data-cw-code] svg, [data-cw-picture] svg")]
+  const codes = [
+    ...root.querySelectorAll("[data-cw-code] svg, [data-cw-picture] svg"),
+  ]
     .map((s) => s.getBoundingClientRect().width)
     .filter((w) => w > 2);
   if (!codes.length) return null;
@@ -224,6 +242,8 @@ export const readLook: Reader = (root) => {
     root.querySelector<HTMLElement>("[data-cw-code]")?.dataset.cwCode;
   if (look) parts.push(`on ${look}`);
   parts.push(`${wordsIn(screen)} words to read`);
+  const over = overflowOf(root);
+  if (over) parts.push(over);
   return parts.join("; ");
 };
 
@@ -247,5 +267,7 @@ export const readBeat: Reader = (root, win) => {
   parts.push(`${wordsIn(screen)} words to read`);
   const go = reachOf(screen, win);
   if (go) parts.push(go);
+  const over = overflowOf(root);
+  if (over) parts.push(over);
   return parts.join("; ");
 };

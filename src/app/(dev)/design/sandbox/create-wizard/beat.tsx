@@ -59,7 +59,7 @@ export const BEAT_MS: Record<BeatWay, number> = {
 
 /** Where each arrival is drawn when a frame holds it still. */
 export const BEAT_MID: Record<BeatWay, number> = {
-  develop: 0.4,
+  develop: 0.3,
   rise: 0.42,
   two: 0.4,
 };
@@ -338,13 +338,15 @@ const fade = (el: HTMLElement | null, o: number, dy = 0) => {
 
 function arrive(way: BeatWay, p: number, x: BeatParts) {
   if (way === "develop") {
+    // The sample she styled softens away as her own code comes up sharp
+    // under it; its one word goes as the code turns real.
     const dev = span(p, 0.12, 0.62);
     if (x.sampleCode) {
       x.sampleCode.style.opacity = `${1 - easeInOut(dev)}`;
-      x.sampleCode.style.filter = `blur(${5 * dev}px)`;
+      x.sampleCode.style.filter = `blur(${4 * dev}px)`;
     }
-    if (x.real) x.real.style.filter = `blur(${7 * (1 - span(p, 0.2, 0.7))}px)`;
-    fade(x.sample, 1 - span(p, 0.04, 0.3));
+    if (x.real) x.real.style.filter = `blur(${6 * (1 - span(p, 0.2, 0.7))}px)`;
+    fade(x.sample, 1 - span(p, 0.3, 0.52));
     fade(x.spill, easeOut(span(p, 0.3, 0.95)));
     const h = easeOut(span(p, 0.45, 0.8));
     fade(x.heading, h, (1 - h) * 8);
@@ -380,8 +382,11 @@ function arrive(way: BeatWay, p: number, x: BeatParts) {
       ? `translateY(${-x.lift.dy * s}px) scale(${1 - (1 - x.lift.k) * s})`
       : "";
   }
-  if (x.sheet)
-    x.sheet.style.transform = `translateY(${(1 - easeOut(span(p, 0.62, 1))) * 104}%)`;
+  if (x.sheet) {
+    // Off the screen's foot until it rises, a floating card's gap included.
+    const down = 1 - easeOut(span(p, 0.62, 1));
+    x.sheet.style.transform = `translateY(calc(${down * 100}% + ${down * 64}px))`;
+  }
 }
 
 /**
@@ -413,14 +418,23 @@ export function BeatCentre({
 }) {
   const root = useRef<HTMLDivElement | null>(null);
   const size =
-    way === "two" ? (wide ? 280 : 232) : way === "rise" ? (wide ? 236 : 188) : wide ? 252 : 200;
+    way === "two"
+      ? wide
+        ? 264
+        : 232
+      : way === "rise"
+        ? wide
+          ? 236
+          : 188
+        : wide
+          ? 252
+          : 200;
 
   useLayoutEffect(() => {
     const el = root.current;
     const screen = el?.closest<HTMLElement>("[data-cw-screen]");
     if (!el || !screen) return;
-    const q = <T extends HTMLElement>(s: string) =>
-      screen.querySelector<T>(s);
+    const q = <T extends HTMLElement>(s: string) => screen.querySelector<T>(s);
     const parts: BeatParts = {
       plate: q("[data-cw-plate]"),
       spill: q("[data-cw-spill]"),
@@ -519,29 +533,59 @@ export function BeatCentre({
   });
 
   const plate = (
-    <span data-cw-plate data-cw-hero className="relative block origin-center">
+    <span
+      data-cw-plate
+      data-cw-hero
+      className="relative isolate block origin-center"
+    >
       {way === "rise" && <span data-cw-pool className="cw-pool" />}
-      <LitCode look={look} size={size} name={name} develop={way === "develop"} />
+      <LitCode
+        look={look}
+        size={size}
+        name={name}
+        develop={way === "develop"}
+      />
     </span>
   );
 
   if (way === "two")
     return (
-      <div ref={root} data-cw-beat={way} className="flex w-full flex-1 flex-col items-center justify-center">
+      <div
+        ref={root}
+        data-cw-beat={way}
+        className="flex w-full flex-1 flex-col items-center justify-center"
+      >
         {plate}
         <div
           data-cw-sheet
+          // A sheet from the foot at a phone; at a desk a card that floats up
+          // under the code, the room showing round it.
           className={cn(
-            "absolute inset-x-0 bottom-0 z-10 mx-auto rounded-t-[28px] bg-card px-5 pt-3 pb-5 text-card-foreground shadow-[0_-12px_40px_-12px_rgb(0_0_0/0.6)] ring-1 ring-foreground/10",
-            wide ? "max-w-[560px] px-7 pb-7" : "",
+            "absolute inset-x-0 z-10 mx-auto bg-card text-card-foreground shadow-[0_-12px_40px_-12px_rgb(0_0_0/0.6)] ring-1 ring-foreground/10",
+            wide
+              ? "bottom-10 max-w-[540px] rounded-[28px] px-7 pt-3 pb-7"
+              : "bottom-0 rounded-t-[28px] px-5 pt-3 pb-5",
           )}
         >
-          <span aria-hidden className="mx-auto mb-4 block h-1 w-9 rounded-full bg-foreground/20" />
+          <span
+            aria-hidden
+            className="mx-auto mb-4 block h-1 w-9 rounded-full bg-foreground/20"
+          />
           <div className="flex gap-2">
-            <Button variant="outline" size="lg" tabIndex={-1} className="flex-1">
+            <Button
+              variant="outline"
+              size="lg"
+              tabIndex={-1}
+              className="flex-1"
+            >
               <Printer /> Print
             </Button>
-            <Button variant="outline" size="lg" tabIndex={-1} className="flex-1">
+            <Button
+              variant="outline"
+              size="lg"
+              tabIndex={-1}
+              className="flex-1"
+            >
               <Share2 /> Share
             </Button>
           </div>
@@ -562,17 +606,31 @@ export function BeatCentre({
     );
 
   return (
-    <div ref={root} data-cw-beat={way} className="flex w-full flex-col items-center">
+    <div
+      ref={root}
+      data-cw-beat={way}
+      className="flex w-full flex-col items-center"
+    >
       {plate}
       <div
         data-cw-below
         className={cn(
           "flex w-full flex-col items-center",
-          way === "develop" ? (wide ? "mt-12 gap-9" : "mt-10 gap-7") : wide ? "mt-10 gap-8" : "mt-8 gap-6",
+          way === "develop"
+            ? wide
+              ? "mt-12 gap-9"
+              : "mt-10 gap-7"
+            : wide
+              ? "mt-10 gap-8"
+              : "mt-8 gap-6",
         )}
       >
         {way === "develop" ? <Rounds /> : <Doors wide={wide} />}
-        {way === "develop" ? <LeftLine r={r} /> : <LeftRail r={r} wide={wide} />}
+        {way === "develop" ? (
+          <LeftLine r={r} />
+        ) : (
+          <LeftRail r={r} wide={wide} />
+        )}
       </div>
     </div>
   );
