@@ -50,7 +50,7 @@ import { cn, formatEventDate } from "@/lib/utils";
 /** One photograph the cover dissolves through: its id, and its small preview's link. */
 export type HeadStill = { id: string; tile: string };
 
-/** How many photographs a cover dissolves through: the reel tile's six, so one take reads the same. */
+/** How many photographs a cover dissolves through: six, the head of the reel's own take (`TILE_SLOTS`). */
 export const COVER_SLOTS = 6;
 
 /** A still holds this long, in seconds, before the next dissolves in (`living-stills.tsx`'s calm). */
@@ -325,8 +325,8 @@ export function AlbumCover({
 /**
  * WHICH PHOTOGRAPHS A COVER SHOWS, by id (one rule for the page's first paint and the live album, so
  * the two never disagree): the reel's own opening while the album has a reel (its take's first pass,
- * `tileStills`, the stills the reel tile crossfaded, never the album's newest, which sit right under
- * the cover), and otherwise the album's newest photographs (a reel switched off, or one photograph
+ * `tileStills`, so the cover opens on what the reel plays, never the album's newest, which sit right
+ * under the cover), and otherwise the album's newest photographs (a reel switched off, or one photograph
  * short of starting). Only what the reel itself may draw: a clip someone added is never a cover.
  */
 export function pickCoverIds(
