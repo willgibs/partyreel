@@ -3,6 +3,7 @@
 import { type ReactNode, type RefObject, useEffect, useState } from "react";
 
 import { Fit, Frame, Measured } from "@/components/lab";
+import { MODULE_FLOOR_PX } from "@/lib/qr/module-floor";
 
 import { decodedOf } from "./code";
 
@@ -160,12 +161,6 @@ const px = (n: number) => `${Math.round(n)} px`;
 const sizeOf = (el: Element | null, win: Window) =>
   el ? Math.round(Number.parseFloat(win.getComputedStyle(el).fontSize)) : 0;
 
-/**
- * A phone reads a code off a screen from about 3 px a module (the demo
- * modal's own floor): under it the code is a picture a phone visitor taps.
- */
-const SCAN_PX = 3;
-
 /** What a code says, read off the frame by a camera's own reader. */
 function codeSays(code: SVGSVGElement, win: Window): string | null {
   const modules = Number(code.dataset.dfModules ?? 0);
@@ -178,7 +173,10 @@ function codeSays(code: SVGSVGElement, win: Window): string | null {
       : read === "nothing"
         ? "a camera reads nothing"
         : `a camera reads ${read.replace(/^https?:\/\//, "")}`;
-  const kind = each >= SCAN_PX ? "a scan off a screen" : "a picture to tap";
+  // The product's own floor for a code read off a screen (`module-floor.ts`):
+  // under it the code is a picture, which a phone visitor taps instead.
+  const kind =
+    each >= MODULE_FLOOR_PX ? "a scan off a screen" : "a picture to tap";
   return `Its code: ${modules} modules at ${each.toFixed(1)} px each, ${kind}; ${heard}`;
 }
 
