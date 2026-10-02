@@ -2,6 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { SITE_URL } from "@/lib/constants/site";
 import type { ReviewProfileReport } from "@/lib/db/queries/reports";
 
 /**
@@ -53,6 +54,27 @@ beforeEach(() => {
 });
 
 describe("a reported person", () => {
+  // ★ crumbs-41 (from crumbs-39): the handle was a relative `/u/<slug>`, which the admin host's allow-list answers
+  // with its 404. It is the app's own absolute address now, opened beside the queue.
+  it("★ the handle opens the app's own profile page in a new tab, never the portal's 404", () => {
+    render(
+      <PersonReportList
+        reports={[
+          person({
+            profile: { id: "p1", displayName: "Jordan Pike", slug: "jo dan" },
+          }),
+        ]}
+      />,
+    );
+    const handle = screen.getByRole("link", { name: "@jo dan" });
+    expect(handle).toHaveAttribute("href", `${SITE_URL}/u/jo%20dan`);
+    expect(new URL(handle.getAttribute("href")!).origin).toBe(
+      new URL(SITE_URL).origin,
+    );
+    expect(handle).toHaveAttribute("target", "_blank");
+    expect(handle).toHaveAttribute("rel", "noopener noreferrer");
+  });
+
   it("says a wordless report in the album arm's words, muted", () => {
     render(<PersonReportList reports={[person()]} />);
     const line = screen.getByText("No reason provided.");

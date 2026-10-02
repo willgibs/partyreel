@@ -23,7 +23,8 @@ import {
  *  - `closed=window`: a closed report is one line, and a removal it made can be undone for as long as
  *    the removed item's copy exists, the product's own 30-day window (`wayBackOf`). A dismissal
  *    reopens inside the same 30 days (build 19's red-team: one press with no way back let a slip
- *    close a harm report for good).
+ *    close a harm report for good), and a child-abuse dismissal for as long as its strike counts
+ *    (Will's #60, 2026-10-01: `dismissalReopens`).
  *  - `escalate=door`: Hold for forensics opens the portal's one confirm, filled in from the report
  *    (`holdReasonFor`, `holdTouches`).
  *
@@ -34,7 +35,12 @@ import {
  * instant hide's way back (`hideUndoOf`).
  */
 
-/** Every value `report_status` holds. `reviewed` is in the enum and nothing writes it. */
+/**
+ * Every value `report_status` holds. ★ `reviewed` is in the enum and nothing writes it, by decision (crumbs-41): a
+ * verdict IS the review the copy promises (Dismissed and Actioned each record who decided and when, and an open report
+ * keeps its item and its album until one lands), so it is never a fourth word here. The value stays only because
+ * dropping one rebuilds the enum's type; a row could carry it only by a write no code makes.
+ */
 export type ReportStatus = "open" | "reviewed" | "dismissed" | "actioned";
 
 /** The three words Reports speaks, in the order its filter and picker say them. */
@@ -163,12 +169,74 @@ export function withinReopenWindow(
   return Number.isFinite(at) && at >= nowMs - REOPEN_WINDOW_MS;
 }
 
+/** What a closed report's way back reads of it, beyond its verdict: its kind, and whether it kept its address's hash. */
+export type ClosedReportFacts = {
+  status: ReportStatus;
+  resolvedAt: string | null;
+  /** Absent on a report the strike rule can never count (a person report carries no kind of its own). */
+  kind?: ReportKind;
+  /** The report kept its address's hash: a confirmed child-abuse reporter, the only one a strike counts against. */
+  keptAddress?: boolean;
+};
+
+/**
+ * WHETHER A DISMISSAL'S STRIKE STILL COUNTS at `nowMs`, by the rule's own test (`report_strikes`: a child-abuse report
+ * from a kept address, dismissed, while `resolved_at + the lapse` is still ahead). `lapseMs` is the lapse the rule
+ * itself answers (`lapse_seconds`, crumbs-41), never a copy of 180 days; null while it cannot be read, which counts
+ * nothing.
+ */
+export function strikeCounts(
+  report: ClosedReportFacts,
+  nowMs: number,
+  lapseMs: number | null,
+): boolean {
+  if (report.kind !== INSTANT_HIDE_KIND || report.status !== "dismissed") {
+    return false;
+  }
+  if (!report.keptAddress || lapseMs === null || !(lapseMs > 0)) return false;
+  const at = report.resolvedAt ? Date.parse(report.resolvedAt) : Number.NaN;
+  return Number.isFinite(at) && at + lapseMs > nowMs;
+}
+
+/**
+ * ★ HOW LONG A DISMISSAL CAN BE TAKEN BACK (`closed=window`, and Will's #60, 2026-10-01: "a child-abuse dismissal stays
+ * reopenable for as long as its strike counts"): the product's 30 days, or, for a dismissal that is a strike, as long
+ * as the strike counts, whichever is longer. The reopen ASKS THE STRIKE rather than keeping a second clock, so the
+ * line's Undo, its "Undo takes it back" and the action's guarded write (`reopenGuard`) can never disagree with the
+ * rule that counts the strike. A child-abuse dismissal that kept no address was never a strike: it keeps the 30 days
+ * every other dismissal has.
+ */
+export function dismissalReopens(
+  report: ClosedReportFacts,
+  nowMs: number,
+  lapseMs: number | null = null,
+): boolean {
+  if (report.status !== "dismissed") return false;
+  return (
+    withinReopenWindow(report.resolvedAt, nowMs) ||
+    strikeCounts(report, nowMs, lapseMs)
+  );
+}
+
+/**
+ * THE REOPEN'S GUARD AS ITS WRITE CARRIES IT (a PostgREST `or()` beside `status = dismissed`): inside the product's
+ * window, or a strike still counting. The same two tests as `dismissalReopens`, the window's floor inclusive and the
+ * strike's strict, as the rule counts it (`resolved_at > now() - the lapse`), so a stale page or a second tab can
+ * never reopen what the line no longer offers. Without a lapse to read, only the window.
+ */
+export function reopenGuard(nowMs: number, lapseMs: number | null): string {
+  const window = `resolved_at.gte.${reopenFloor(nowMs)}`;
+  if (lapseMs === null || !(lapseMs > 0)) return window;
+  const strikeFloor = new Date(nowMs - lapseMs).toISOString();
+  return `${window},and(kind.eq.${INSTANT_HIDE_KIND},reporter_hash.not.is.null,resolved_at.gt.${strikeFloor})`;
+}
+
 /**
  * A closed report's way back (`closed=window`), measured at `nowMs`: "undo" while the removal ITS
  * verdict made still waits out the window (the copy exists until the purge takes it, so Undo lasts
- * exactly as long as a removed item would anyway, one clock), "reopen" for a dismissal inside the
- * same 30 days, "held" for an item under a legal hold (only Forensics releases one, so its removal
- * has no Undo), and nothing otherwise.
+ * exactly as long as a removed item would anyway, one clock), "reopen" for a dismissal that can still
+ * be taken back (`dismissalReopens`: 30 days, or a strike's whole life), "held" for an item under a
+ * legal hold (only Forensics releases one, so its removal has no Undo), and nothing otherwise.
  *
  * ★ A DISMISSAL TOUCHED ONLY THE REPORT, so reopening is the whole of its undo, and a hold is no bar
  * to it: reopening restores nothing. A report held and then dismissed by a slip is the one that most
@@ -181,19 +249,11 @@ export function withinReopenWindow(
  * restored from Albums if at all.
  */
 export function wayBackOf(
-  report: {
-    status: ReportStatus;
-    resolvedAt: string | null;
-    item: ReportedItemState | null;
-  },
+  report: ClosedReportFacts & { item: ReportedItemState | null },
   nowMs: number,
+  lapseMs: number | null = null,
 ): WayBack {
-  if (
-    report.status === "dismissed" &&
-    withinReopenWindow(report.resolvedAt, nowMs)
-  ) {
-    return "reopen";
-  }
+  if (dismissalReopens(report, nowMs, lapseMs)) return "reopen";
   const { item } = report;
   if (!item) return null;
   if (item.held) return "held";
@@ -203,9 +263,9 @@ export function wayBackOf(
 }
 
 /** The line under the album arm's closed log that says what its Undo does and for how long. */
-export const WAY_BACK_LINE = `Undo takes a verdict back inside the product's own ${RECENTLY_DELETED_WINDOW_DAYS}-day window: a dismissal reopens its report, and a removal restores its item too, for as long as the copy exists. A held item is never restored here: only Forensics releases a hold.`;
+export const WAY_BACK_LINE = `Undo takes a verdict back inside the product's own ${RECENTLY_DELETED_WINDOW_DAYS}-day window: a dismissal reopens its report (a child-abuse one for as long as its strike counts), and a removal restores its item too, for as long as the copy exists. A held item is never restored here: only Forensics releases a hold.`;
 
-/** The same line for the People arm, whose verdicts remove nothing. */
+/** The same line for the People arm, whose verdicts remove nothing and whose reports are never a strike. */
 export const REOPEN_LINE = `Undo reopens a dismissed report inside the product's own ${RECENTLY_DELETED_WINDOW_DAYS}-day window.`;
 
 /** What a reopen says once it lands, from the toast's Undo or the closed line's. */
@@ -213,6 +273,10 @@ export const REOPENED_MESSAGE = "The report is open again.";
 
 /** Why a dismissal past its window stays closed, in the window's own number. */
 export const PAST_WINDOW_MESSAGE = `That dismissal is older than ${RECENTLY_DELETED_WINDOW_DAYS} days, past its window, so it stays closed.`;
+
+/** Why a child-abuse dismissal whose strike has lapsed stays closed: its window was the strike's, and it is over. */
+export const STRIKE_LAPSED_MESSAGE =
+  "That dismissal's strike has lapsed, past its window, so it stays closed.";
 
 /** The reason a hold from a report starts with (the runbook's step two: "the report's reference"). */
 export function holdReasonFor(reportId: string): string {
@@ -498,6 +562,13 @@ export type StrikeRule = {
   strikes: number;
   /** When a strike made now would lapse. */
   freshLapsesAt: string;
+  /**
+   * How long a strike counts after its dismissal, the rule's own `lapse_seconds` (crumbs-41) in milliseconds; absent or
+   * null while the answer carries none (its migration unapplied), which reads as no lapse to tell, never a guessed
+   * one. The open queue's line never needs it (a Dismiss's strikes lapse at `freshLapsesAt`); a closed line and the
+   * reopen do.
+   */
+  lapseMs?: number | null;
 };
 
 /**
@@ -581,21 +652,6 @@ export function strikeWords(s: AddressStrikes): string {
 
 /* ── A closed report's strike (crumbs-36, a board idea from `crumbs-33`) ─────────────────────────── */
 
-const MINUTE_MS = 60_000;
-
-/**
- * HOW LONG A STRIKE COUNTS, read off the rule's own answer, never held here. `freshLapsesAt` is the instant a strike
- * made when the answer was asked would lapse, so its distance from that moment is the rule's lapse (the answer's
- * `now() + c_strike_lapse`). `answeredMs` is that moment as this server read it (the page's one clock), and the
- * distance is rounded to the minute: the rule is an interval of whole days, and the milliseconds the round trip took
- * must not move a printed date, so a strike's lapse here is `resolved_at + the lapse` exactly as the rule's own
- * reading lists it.
- */
-export function strikeLapseMs(rule: StrikeRule, answeredMs: number): number {
-  const raw = Date.parse(rule.freshLapsesAt) - answeredMs;
-  return Math.max(0, Math.round(raw / MINUTE_MS) * MINUTE_MS);
-}
-
 /**
  * WHERE A DISMISSED CHILD-ABUSE REPORT STANDS AS A STRIKE, said on its closed line so an operator reading past
  * dismissals sees what each one costs its address. `live`: it still counts against the address until `at`, and the
@@ -620,7 +676,12 @@ export type ClosedStrike =
  * answer does not name has none of), the rule's own numbers and the page's one clock (`nowMs`, the instant every
  * closed line's window is measured from). Null for any report the rule does not count (another kind, or a verdict
  * that was not a dismissal), for a verdict with no time (never guessed at), and while the rule cannot be read (`rule`
- * null: no reading, never "no strike"); a dismissal that kept no address needs no rule to say it is none.
+ * null, or an answer with no lapse: no reading, never "no strike"); a dismissal that kept no address needs no rule to
+ * say it is none.
+ *
+ * ★ THE LAPSE IS THE RULE'S OWN ANSWER (`lapse_seconds`, crumbs-41), so a strike's lapse here is `resolved_at + the
+ * lapse` exactly as the rule's reading lists it: nothing derives it from `fresh_lapses_at` and a clock any more (the
+ * minute-rounded `strikeLapseMs` it replaces).
  *
  * ★ THE ANSWER'S OWN COUNT HAS THE LAST WORD: a strike the clock says still counts, for an address the rule counts
  * no live strike for, is lapsed (the seconds either side of a lapse are the only place the two could differ), so a
@@ -642,13 +703,13 @@ export function closedStrike(
     return null;
   }
   if (!report.keptAddress) return { state: "none" };
-  // No rule to read (the function is not provisioned yet, or the read has nothing to say): no reading, never "no strike".
-  if (!rule) return null;
+  // No rule to read (the function is not provisioned yet, or its answer carries no lapse): no reading, never "no strike".
+  if (!rule || rule.lapseMs === null || rule.lapseMs === undefined) return null;
   const resolved = report.resolvedAt
     ? Date.parse(report.resolvedAt)
     : Number.NaN;
   if (!Number.isFinite(resolved)) return null;
-  const lapsesAt = resolved + strikeLapseMs(rule, nowMs);
+  const lapsesAt = resolved + rule.lapseMs;
   const held = reading ?? { live: 0, barred: false, lapses: [] };
   if (lapsesAt <= nowMs || held.live === 0) {
     return {
@@ -668,10 +729,11 @@ export function closedStrike(
 
 /**
  * THE LINE A DISMISSED CHILD-ABUSE REPORT WEARS ON THE CLOSED LOG: whether it is still a strike and until when, what
- * its address holds, and (`canUndo`, from the line's own way back) that its Undo takes the strike back. The Undo
- * clause is only said while the dismissal is inside its reopen window: a strike outlives that window (a reopen
- * lasts the product's 30 days, a strike its lapse), and a line never offers what it cannot do. Dates are UTC, like
- * every admin date.
+ * its address holds, and (`canUndo`, from the line's own way back) that its Undo takes the strike back. Since Will's
+ * #60 a strike's dismissal reopens for as long as the strike counts (`dismissalReopens`), so a live strike's line
+ * says it to the end; the clause still follows the line's own way back, never the strike alone, because a line never
+ * offers what it cannot do (the seconds either side of a lapse, or a rule it cannot read). Dates are UTC, like every
+ * admin date.
  */
 export function closedStrikeWords(
   strike: ClosedStrike,

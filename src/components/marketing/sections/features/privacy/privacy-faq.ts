@@ -20,6 +20,8 @@ export const PRIVACY_FAQ: FaqItem[] = [
   },
   {
     q: "What happens when something gets reported?",
-    a: "Anyone viewing an album can flag a photo or video, and every report is reviewed before anything comes down. Hosts can remove anything from their own album instantly, any time.",
+    // ★ The instant hide's one exception, said as the help article says it (crumbs-41): "reviewed before anything
+    // comes down" stopped being true when a child-abuse report from a confirmed email began hiding its item at once.
+    a: "Anyone viewing an album can flag a photo or video, and every report is reviewed. Review comes before removal, with one exception: a report of child abuse from a confirmed email hides the photo or video at once, until it's reviewed. Hosts can remove anything from their own album instantly, any time.",
   },
 ];

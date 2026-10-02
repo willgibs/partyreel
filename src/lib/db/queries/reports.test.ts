@@ -1049,10 +1049,14 @@ describe("the closed log's strikes (crumbs-36)", () => {
       }),
     ],
   });
-  /** What `report_strikes` answers for them: the rule's bar, and when a strike made now lapses (a hair of latency on). */
+  /**
+   * What `report_strikes` answers for them: the rule's bar, when a strike made now lapses (a hair of latency on), and
+   * since crumbs-41 the lapse itself, in whole seconds.
+   */
   const answer = {
     strikes: 3,
     fresh_lapses_at: `${iso(NOW + 180 * DAY + 123).slice(0, -1)}456+00:00`,
+    lapse_seconds: 180 * 86_400,
     addresses: {
       "hash:a@example.com": {
         live: 1,
@@ -1069,6 +1073,12 @@ describe("the closed log's strikes (crumbs-36)", () => {
         ],
       },
     },
+  };
+  /** The same answer as the rule gave it before its lapse migration (20261001233100): no `lapse_seconds`. */
+  const withoutLapse = () => {
+    const before: Record<string, unknown> = { ...answer };
+    delete before.lapse_seconds;
+    return before;
   };
   const byId = (reports: { id: string }[], i: number) =>
     reports.find((r) => r.id === uuid("r", i)) as
@@ -1123,6 +1133,57 @@ describe("the closed log's strikes (crumbs-36)", () => {
     });
     const { reports } = await listReports("all", 50, NOW);
     expect(JSON.stringify(reports)).not.toMatch(/hash:|example\.com|reporter/);
+  });
+
+  it("★ reads each line's lapse from the answer's own `lapse_seconds`; an answer from before that migration says nothing of a strike", async () => {
+    fake = createFakePostgrest({
+      tables: tables(),
+      rpc: { report_strikes: () => withoutLapse() },
+    });
+    const { reports } = await listReports("all", 50, NOW);
+    // No lapse to read: no reading, never a lapse derived from `fresh_lapses_at` and a clock.
+    expect(byId(reports, 1)?.strike).toBeNull();
+    expect(byId(reports, 6)?.strike).toBeNull();
+    expect(byId(reports, 3)?.strike).toEqual({ state: "none" });
+  });
+
+  it("★ a strike's dismissal past the 30 days still offers its reopen, for as long as the strike counts (Will's #60)", async () => {
+    const ways = (reports: { id: string; wayBack?: unknown }[], i: number) =>
+      reports.find((r) => r.id === uuid("r", i))?.wayBack;
+    const old = iso(NOW - 100 * DAY);
+    const rows = {
+      ...tables(),
+      reports: [
+        // A strike, 100 days on: it still counts, so its Undo stays.
+        closed(7, { reporter_hash: "hash:a@example.com", resolved_at: old }),
+        // The same age from an address never confirmed: never a strike, so the 30 days, long gone.
+        closed(8, { reporter_hash: null, resolved_at: old }),
+        // Another kind: the 30 days.
+        closed(9, { kind: "violence", resolved_at: old }),
+        // A strike past its lapse: nothing to take back.
+        closed(10, {
+          reporter_hash: "hash:a@example.com",
+          resolved_at: iso(NOW - 181 * DAY),
+        }),
+      ],
+    };
+    fake = createFakePostgrest({
+      tables: rows,
+      rpc: { report_strikes: () => answer },
+    });
+    let { reports } = await listReports("all", 50, NOW);
+    expect(ways(reports, 7)).toBe("reopen");
+    expect(ways(reports, 8)).toBeNull();
+    expect(ways(reports, 9)).toBeNull();
+    expect(ways(reports, 10)).toBeNull();
+
+    // Before the lapse migration the rule answers no lapse: every dismissal keeps the 30 days, as before #60.
+    fake = createFakePostgrest({
+      tables: rows,
+      rpc: { report_strikes: () => withoutLapse() },
+    });
+    ({ reports } = await listReports("all", 50, NOW));
+    expect(ways(reports, 7)).toBeNull();
   });
 
   it("★ reads as no reading, never as no strike, until the function stands", async () => {

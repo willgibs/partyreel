@@ -202,11 +202,13 @@ Dashboard state, held nowhere in the repo, that the code assumes:
 
 ## Deleting an account
 
-- **Deletion is immediate, has no undo, and cancels an active plan.** The request cancels the subscription FIRST and
-  refuses everything if Stripe will not, so "deleted but still billed" is unreachable; then it stamps
-  `deletion_requested_at`, bins every hosted event, removes the newsletter address, anonymises the profile (never an
-  entitlement column) and bans the auth user. Cancelling an already-canceled subscription raises `resource_missing`,
-  which `cancelSubscriptionForDeletion` counts as success so a retry does not abort.
+- **Deletion is immediate, has no undo, and cancels an active plan.** The request cancels FIRST every subscription
+  of its customer that has not ended, not only the one the profile follows (two Checkout tabs can leave two;
+  crumbs-41), and refuses everything if Stripe will not, the list's failure included, so "deleted but still billed"
+  is unreachable; then it stamps `deletion_requested_at`, bins every hosted event, removes the newsletter address,
+  anonymises the profile (never an entitlement column) and bans the auth user. Cancelling an already-canceled
+  subscription raises `resource_missing`, which `cancelSubscriptionsForDeletion` counts as success so a retry does not
+  abort.
 - ★ **The `auth.users` row is deleted only by the sweep, and only at ZERO remaining events.** The chain
   `auth.users → profiles → events → media` cascades, so an early delete destroys the keys the R2 delete still
   needs; the zero is a `mustCount`, because a failed count reads as a confident zero. A forensic hold on any of the

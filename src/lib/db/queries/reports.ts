@@ -255,10 +255,14 @@ export async function listReports(
           r.media_id && !row
             ? { id: r.media_id, type: kinds.get(r.id) ?? null }
             : null,
+        // ★ A child-abuse dismissal that kept its address reopens for as long as its strike counts (Will's #60), so the
+        // way back asks the rule's own lapse, read in the same answer its strike line is.
         wayBack: wayBackOf(
           {
             status: r.status,
             resolvedAt: r.resolved_at,
+            kind: parseReportKind(r.kind),
+            keptAddress: Boolean(r.reporter_hash),
             item: row
               ? {
                   status: row.status,
@@ -271,6 +275,7 @@ export async function listReports(
               : null,
           },
           nowMs,
+          strikes?.rule.lapseMs ?? null,
         ),
         strike: closedStrike(
           {
@@ -420,15 +425,40 @@ export async function readStrikes(
   hashes: readonly string[],
 ): Promise<StrikesAnswer | null> {
   if (hashes.length === 0) return null;
+  return askStrikes(hashes, "admin reports: strikes");
+}
+
+/**
+ * HOW LONG A STRIKE COUNTS, AS THE RULE ANSWERS IT (`lapse_seconds`, crumbs-41), for the reopen's guarded write (Will's
+ * #60: a child-abuse dismissal reopens for as long as its strike counts). The rule is asked with no address, so only
+ * its own numbers come back. Null while it cannot say (the function or its `lapse_seconds` not provisioned yet), which
+ * the reopen reads as the product's 30 days alone; any other failure throws, so a reopen never guesses.
+ */
+export async function readStrikeLapse(): Promise<number | null> {
+  const answer = await askStrikes([], "admin reports: the strike's lapse");
+  return answer?.rule.lapseMs ?? null;
+}
+
+async function askStrikes(
+  hashes: readonly string[],
+  label: string,
+): Promise<StrikesAnswer | null> {
   const admin = createAdminClient();
   const { data, error } = await admin.rpc("report_strikes", {
     p_reporter_hashes: [...new Set(hashes)],
   });
   if (error) {
     if (FUNCTION_NOT_PROVISIONED.has(error.code ?? "")) return null;
-    throw new QueryFailedError("admin reports: strikes", error);
+    throw new QueryFailedError(label, error);
   }
   return parseStrikes(data);
+}
+
+/** Whole seconds, positive, as `lapse_seconds` is written; anything else is no lapse, never a guessed one. */
+function lapseMsOf(value: unknown): number | null {
+  return typeof value === "number" && Number.isInteger(value) && value > 0
+    ? value * 1000
+    : null;
 }
 
 /** The answer read defensively: a shape this code does not know is no reading, never a zero. */
@@ -474,6 +504,8 @@ function parseStrikes(data: unknown): StrikesAnswer | null {
     rule: {
       strikes,
       freshLapsesAt: new Date(Date.parse(fresh)).toISOString(),
+      // The lapse as the rule answers it (20261001233100); an answer from before that migration carries none.
+      lapseMs: lapseMsOf(answer.lapse_seconds),
     },
     addresses: read,
   };

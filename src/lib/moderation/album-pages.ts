@@ -4,7 +4,18 @@
  * links. It now draws one page, newest first, and an Older link carries the page's last item as a keyset
  * cursor (`?at=<its raw created_at>&id=<its id>`), the same order and cursor the read pages on. Pure: the
  * page and its test share it.
+ *
+ * ★ AND ONE STATUS AT A TIME, WHEN ASKED (crumbs-41, a board idea from crumbs-37): `?status=` narrows the album
+ * to the Albums feed's own words (Pending, Approved, Hidden, Removed), so an operator meets a big album's held or
+ * removed items without paging through the rest; each filter pages the same way, its cursor carrying the filter.
+ * The drill-in's All stays every status, removed included, as it always was (the feed's first tab is Active, which
+ * leaves the removed out: a different question, so a different word).
  */
+import {
+  ALBUM_FILTER_META,
+  ALBUM_FILTERS,
+  type AlbumFilter,
+} from "@/lib/moderation/operator-actions";
 import { isUuidShape } from "@/lib/validation/uuid-shape";
 
 /** Items one page of the drill-in reads and signs. */
@@ -12,6 +23,19 @@ export const ALBUM_DRILL_IN_PAGE = 500;
 
 /** Where a page ends: its last item's RAW `created_at` (microseconds decide ties) and its id. */
 export type AlbumCursor = { at: string; id: string };
+
+/** One status the drill-in narrows to: the feed's own four, never its Active. */
+export type AlbumStatus = Exclude<AlbumFilter, "all">;
+
+/** The drill-in's filters in the feed's order: every status (null, its All), then the four. */
+export const ALBUM_STATUSES: readonly AlbumStatus[] = ALBUM_FILTERS.filter(
+  (f): f is AlbumStatus => f !== "all",
+);
+
+/** A filter's word: the feed's own for a status, and All for every status (never the feed's "Active"). */
+export function albumStatusLabel(status: AlbumStatus | null): string {
+  return status ? ALBUM_FILTER_META[status].label : "All";
+}
 
 /**
  * A timestamp as PostgREST writes one (`2026-09-23T12:00:00.123456+00:00`): the only shape a cursor's `at`
@@ -39,12 +63,31 @@ export function parseAlbumCursor(
   return { at, id };
 }
 
-/** A page's address: the album's own, with the cursor when the page is an older one. */
+/**
+ * The status a page's URL narrows to, or null for every status. Anything else (a mangled or hand-typed value, the
+ * feed's `all`) reads as every status: only the four words ever reach the read's filter.
+ */
+export function parseAlbumStatus(
+  params: SearchParams | undefined,
+): AlbumStatus | null {
+  const status = one(params?.status);
+  return ALBUM_STATUSES.find((s) => s === status) ?? null;
+}
+
+/**
+ * A page's address: the album's own, with its filter when it narrows to one status, and the cursor when the page is
+ * an older one. A filter's own first page carries no cursor, so changing the filter always starts at its newest.
+ */
 export function albumPageHref(
   eventId: string,
   cursor: AlbumCursor | null,
+  status: AlbumStatus | null = null,
 ): string {
   const base = `/admin/albums/${eventId}`;
-  if (!cursor) return base;
-  return `${base}?${new URLSearchParams({ at: cursor.at, id: cursor.id })}`;
+  const params = new URLSearchParams({
+    ...(status ? { status } : {}),
+    ...(cursor ? { at: cursor.at, id: cursor.id } : {}),
+  });
+  const query = params.toString();
+  return query ? `${base}?${query}` : base;
 }

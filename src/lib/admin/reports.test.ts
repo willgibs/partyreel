@@ -5,6 +5,7 @@ import {
   askableProof,
   closedStrike,
   closedStrikeWords,
+  dismissalReopens,
   dismissEndsTheHide,
   entryKeyOf,
   frontOrder,
@@ -21,6 +22,7 @@ import {
   REOPEN_LINE,
   REOPEN_WINDOW_MS,
   reopenFloor,
+  reopenGuard,
   REPORT_FILTERS,
   REPORT_NOTE_MAX,
   REPORT_STATUS_META,
@@ -28,7 +30,8 @@ import {
   reporterWho,
   reporterWords,
   sameInstant,
-  strikeLapseMs,
+  strikeCounts,
+  STRIKE_LAPSED_MESSAGE,
   strikeWords,
   WAY_BACK_LINE,
   wayBackOf,
@@ -241,6 +244,109 @@ describe("a closed report's way back (`closed=window`)", () => {
     expect(WAY_BACK_LINE).toMatch(/a dismissal reopens its report/);
     expect(WAY_BACK_LINE).toContain("30-day window");
     expect(WAY_BACK_LINE).toContain("only Forensics releases a hold");
+  });
+});
+
+/**
+ * ★ WILL'S #60 (2026-10-01, "Yes, 180 days"): A CHILD-ABUSE DISMISSAL STAYS REOPENABLE FOR AS LONG AS ITS STRIKE COUNTS.
+ * Every dismissal reopened for the product's 30 days while a child-abuse one's strike lived 180, so a slip found on
+ * day 31 left a strike on a well-meaning reporter's address that nothing could take back. The reopen ASKS THE STRIKE
+ * (the lapse the rule itself answers), never a second clock: a dismissal that is a strike reopens while it counts,
+ * everything else keeps the 30 days, and the write's guard is the same rule as the line's offer.
+ */
+describe("a strike's dismissal reopens for as long as the strike counts (#60)", () => {
+  const DAY = 86_400_000;
+  const NOW = Date.parse("2026-10-01T12:00:00.000Z");
+  /** The rule's own lapse, as `report_strikes` answers it (`lapse_seconds`), never a number of this module's. */
+  const LAPSE = 180 * DAY;
+  const ago = (ms: number) => new Date(NOW - ms).toISOString();
+  const strike = (resolvedAt: string) => ({
+    status: "dismissed" as const,
+    resolvedAt,
+    kind: "child" as const,
+    keptAddress: true,
+  });
+
+  it("★ reopens a strike's dismissal past the 30 days, for as long as the strike counts", () => {
+    for (const days of [31, 90, 179]) {
+      const report = strike(ago(days * DAY));
+      expect(dismissalReopens(report, NOW, LAPSE), `${days} days`).toBe(true);
+      expect(
+        wayBackOf({ ...report, item: null }, NOW, LAPSE),
+        `${days} days`,
+      ).toBe("reopen");
+    }
+  });
+
+  it("★ stops the instant the strike lapses, by the rule's own strict test", () => {
+    // report_strikes counts `resolved_at > now() - the lapse`: the instant of the lapse is the first it no longer counts.
+    expect(strikeCounts(strike(ago(LAPSE - 1)), NOW, LAPSE)).toBe(true);
+    expect(strikeCounts(strike(ago(LAPSE)), NOW, LAPSE)).toBe(false);
+    expect(dismissalReopens(strike(ago(LAPSE)), NOW, LAPSE)).toBe(false);
+    expect(
+      wayBackOf({ ...strike(ago(LAPSE + DAY)), item: null }, NOW, LAPSE),
+    ).toBeNull();
+  });
+
+  it("★ keeps the 30 days for a child-abuse dismissal that kept no address (never a strike) and for every other kind", () => {
+    const old = ago(31 * DAY);
+    expect(
+      dismissalReopens({ ...strike(old), keptAddress: false }, NOW, LAPSE),
+    ).toBe(false);
+    expect(
+      dismissalReopens({ ...strike(old), kind: "violence" }, NOW, LAPSE),
+    ).toBe(false);
+    // A person report carries no kind of its own: the 30 days.
+    expect(
+      dismissalReopens({ status: "dismissed", resolvedAt: old }, NOW, LAPSE),
+    ).toBe(false);
+    // Inside the 30 days, every dismissal reopens, strike or not.
+    expect(
+      dismissalReopens(
+        { ...strike(ago(29 * DAY)), keptAddress: false },
+        NOW,
+        LAPSE,
+      ),
+    ).toBe(true);
+  });
+
+  it("never reopens a verdict that was not a dismissal, however live its strike would be", () => {
+    expect(
+      dismissalReopens(
+        { ...strike(ago(2 * DAY)), status: "actioned" },
+        NOW,
+        LAPSE,
+      ),
+    ).toBe(false);
+    expect(
+      strikeCounts({ ...strike(ago(2 * DAY)), status: "open" }, NOW, LAPSE),
+    ).toBe(false);
+  });
+
+  it("★ a strike's window never shortens the product's 30 days, whatever the lapse becomes", () => {
+    expect(dismissalReopens(strike(ago(20 * DAY)), NOW, 7 * DAY)).toBe(true);
+  });
+
+  it("★ without the rule's lapse (its migration unapplied, or no answer), only the 30 days: nothing is guessed", () => {
+    expect(dismissalReopens(strike(ago(31 * DAY)), NOW, null)).toBe(false);
+    expect(dismissalReopens(strike(ago(29 * DAY)), NOW, null)).toBe(true);
+    expect(wayBackOf({ ...strike(ago(31 * DAY)), item: null }, NOW)).toBeNull();
+  });
+
+  it("★ the write's guard is the line's rule: the window's floor, or a kept child-abuse strike past the lapse's floor", () => {
+    expect(reopenGuard(NOW, LAPSE)).toBe(
+      `resolved_at.gte.${new Date(NOW - 30 * DAY).toISOString()},and(kind.eq.child,reporter_hash.not.is.null,resolved_at.gt.${new Date(NOW - LAPSE).toISOString()})`,
+    );
+    // No lapse to read: the window alone, exactly the guard the write carried before #60.
+    expect(reopenGuard(NOW, null)).toBe(`resolved_at.gte.${reopenFloor(NOW)}`);
+  });
+
+  it("says why a lapsed strike's dismissal stays closed, in no number of its own", () => {
+    expect(STRIKE_LAPSED_MESSAGE).toMatch(/strike has lapsed/);
+    expect(STRIKE_LAPSED_MESSAGE).not.toMatch(/\d/);
+    expect(WAY_BACK_LINE).toContain(
+      "a child-abuse one for as long as its strike counts",
+    );
   });
 });
 
@@ -621,14 +727,18 @@ describe("an address's strikes on the queue (`addressStrikes`, `strikeWords`)", 
  * ★ A DISMISSED CHILD-ABUSE REPORT'S CLOSED LINE SAYS WHETHER IT IS STILL A STRIKE, AND UNTIL WHEN (crumbs-36, a board
  * idea from crumbs-33). The open queue says what a Dismiss WOULD make of an address; an operator reading past
  * dismissals saw nothing of what each one cost. The numbers are `report_strikes`'s, the rule's one home: a strike
- * counts for a lapse after its dismissal, and the lapse is read off the answer (`strikeLapseMs`), never copied here.
- * Only counts and instants say it: the address itself never shows.
+ * counts for a lapse after its dismissal, and the lapse is the answer's own `lapse_seconds` (crumbs-41), never copied
+ * here and never derived. Only counts and instants say it: the address itself never shows.
  */
 describe("a closed report's strike (`closedStrike`, `closedStrikeWords`)", () => {
   const DAY = 86_400_000;
   /** The page's one clock read, and the answer's "a strike made now lapses at", a lapse and a hair of latency on. */
   const NOW = Date.parse("2026-09-29T12:00:00.000Z");
-  const RULE = { strikes: 3, freshLapsesAt: "2027-03-28T12:00:00.123Z" };
+  const RULE = {
+    strikes: 3,
+    freshLapsesAt: "2027-03-28T12:00:00.123Z",
+    lapseMs: 180 * DAY,
+  };
   const dismissed = {
     kind: "child" as const,
     status: "dismissed" as const,
@@ -642,11 +752,41 @@ describe("a closed report's strike (`closedStrike`, `closedStrikeWords`)", () =>
     lapses,
   });
 
-  it("★ reads the lapse off the rule's own answer, to the minute, and never holds a number of its own", () => {
-    expect(strikeLapseMs(RULE, NOW)).toBe(180 * DAY);
-    // The same function on a rule that lapses in 90 days: nothing here says 180.
-    const short = { strikes: 3, freshLapsesAt: "2026-12-28T12:00:00.987Z" };
-    expect(strikeLapseMs(short, NOW)).toBe(90 * DAY);
+  // ★ RESHAPED ON PURPOSE (crumbs-41; scar kept: the lapse is the rule's, never a number here). This pinned
+  // `strikeLapseMs`, which derived the lapse from `fresh_lapses_at` and the page's clock, rounded to the minute; the
+  // rule now answers the lapse itself (`lapse_seconds`), so the derivation and its rounding are gone.
+  it("★ takes the lapse the rule answers, exactly, and never derives it from `fresh_lapses_at` and a clock", () => {
+    // A rule whose own lapse is 90 days, beside a `fresh_lapses_at` that would derive 180: the answer's lapse wins.
+    const short = { ...RULE, lapseMs: 90 * DAY };
+    expect(
+      closedStrike(
+        dismissed,
+        reading(1, ["2026-12-14T08:30:00.000Z"]),
+        short,
+        NOW,
+      ),
+    ).toMatchObject({
+      state: "live",
+      at: new Date(Date.parse(dismissed.resolvedAt) + 90 * DAY).toISOString(),
+    });
+  });
+
+  it("★ says nothing of a strike while the answer carries no lapse (its migration unapplied): no reading, never a guess", () => {
+    const r = reading(1, ["2027-03-14T08:30:00.000Z"]);
+    const before = { strikes: 3, freshLapsesAt: RULE.freshLapsesAt };
+    expect(closedStrike(dismissed, r, before, NOW)).toBeNull();
+    expect(
+      closedStrike(dismissed, r, { ...before, lapseMs: null }, NOW),
+    ).toBeNull();
+    // An addressless dismissal needs no lapse to say it was never a strike.
+    expect(
+      closedStrike(
+        { ...dismissed, keptAddress: false },
+        undefined,
+        before,
+        NOW,
+      ),
+    ).toEqual({ state: "none" });
   });
 
   it("★ says a live strike, until when, and what the address holds", () => {
