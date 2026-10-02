@@ -1,6 +1,6 @@
 ---
 track: host-dashboard
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "10705484"            # the launch-prep SHA the branch was cut from
 board: host-dashboard
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -78,25 +78,78 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **If `arrivals=since` wins, where does "when she last looked" live?** Recommended: a profile column
+  (`profiles.dashboard_seen_at`, written after the dashboard reads it, one more host-writable column under the column
+  lock: a migration for the Orchestrator), so a phone and a laptop agree; a cookie would be per device. The board
+  recommends `live`, which needs nothing new. Built: nothing (an exploration ships no production byte).
+- **If `needs=bell` or `needs=three` wins, what does the bell gain?** Recommended: one row per page item, in the page's
+  own words and order (`model.ts`'s `itemsOf`: print, code never opened, no password, nobody can get in, uploads paused
+  before or on the night, storage over 85%), the account alerts and announcements keeping their places; one new case per
+  kind in `buildNotifications`. Under `week` (the recommendation) the bell is production's, unchanged.
+- **Does a host with no events meet anything new?** Recommended: no, the create-first teaser as today; a stage has
+  nothing to hold until the first event. Not drawn.
+- **Can an undated event lead the stage?** Recommended: no, nothing says when it is (`momentEvent` reads dated events
+  only); it heads Coming up in the list.
+- **Whose is the event tile?** Recommended: the dashboard's own composition (`collection.tsx`'s `EventTile` and
+  `face.tsx`), production's `EventCard` staying for the profile's grid; identity's atoms (the marks' glass, the chips,
+  the buttons) reach it unchanged.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none (an exploration: production is unchanged, so `host-app.md` and `notifications-analytics-growth.md` still say
+  what is true)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: the dashboard band says "Uploads are paused on X" for every paused event, parties long over included
+  (`nextStepForEvent` has no phase, and pausing after the party is the help's own advice), which is the at-forty noise
+  Will's note names; host-dashboard r1's carried `finished` call asks only for a door or a queue after a party, so the
+  wiring takes it with his pick, or a crumbs fix first.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed:** `cf52e63c` (the board), `3c924421` (the desk as an agenda, the live pulse, the wall's
+  threshold, production's queue words), `0cb44764` (guest rows in the list, captions), then this manifest. No sync:
+  launch-prep moved past the base `ec254645` (door-wiring, mkt-wiring and records) touching none of this lane's
+  `reads` and no file of its own, so PROGRAM's Sync rule does not call for one.
+- **Gates on `0cb44764`'s tree, each on its own exit code:** `pnpm typecheck` 0; `pnpm lint` 0; `pnpm test` 0 (741
+  files, 8,798 tests); `zsh scripts/build-lock.sh pnpm build` 0; `pnpm lab:smoke --base http://localhost:3132` 0 (6
+  checks, the board at 801 of 1,200 words); `pnpm lab:demo --board host-dashboard --base http://localhost:3132` 0 (4
+  steps, every option drawn, both screens' reach held) and again with `--width 375` 0.
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = the 16 files under
+  `src/app/(dev)/design/sandbox/host-dashboard/` + this file. No exceptions.
+- **The board `host-dashboard`** (surface host, desk 25, round 1): four asks, progressive (`needs`, `events` and
+  `arrivals` wait on `purpose` and are drawn inside his pick), three options each, every option the whole dashboard in
+  production's shell for Maya (one event, an Event Pass) and Jo (forty, Pro) at 1440, with The day knob (a week before,
+  on the night, the morning after) and the Screen knob (375). Will's note is quoted word for word in
+  `opening.earlier` (`spec.ts`).
+- **`purpose`:** the party of the moment (recommended: one event leads on a stage made of its own photographs; the
+  code on its white plate before, the live wall on the night, the album after) · every event in its place · what needs
+  you first (an agenda: Now, the party's day, Waiting).
+- **`needs`:** the bell holds it all · this week's parties (recommended) · the three that matter most; Jo's bell drawn
+  open at 1440 shows what each leaves to it (8, 4 and 8 rows); captions count what asks for an act on the first screen
+  (Jo: 0, 6, 3).
+- **`events`:** covers, newest first · grouped by when (recommended: coming up, just past largest, this year small,
+  each year before folded into a line) · a list you can sort.
+- **`arrivals`:** nothing · only a party that is live (recommended: the live wall on its day, else nothing) · new since
+  you last looked.
+- **The rules are pure and tested:** `model.ts` (phases, the moment, one item per event ranked by importance, the
+  three page rules, the bell per rule, the groups by when) reading production's `readiness()` and
+  `nextStepForEvent`; `model.test.ts`, 13 tests.
+- **New atoms named:** the event tile with its date face (a party still to come wears its day, not a black blank) and
+  the storage ring (the plan's shelf as one ring beside New event).
+- **Assets requested from Will:** none (the twelve bootstrap stills at crops; production's stage shows the host's own
+  photographs).
+- **Board ideas:** if the party of the moment wins, the stage and the hub's head as one object, pressing the stage
+  opening the hub with the same photographs and light (bible 4; event-header's board draws the head) · the no-cover
+  face everywhere a card has no photograph yet (the profile's grid, the bin) wearing its date rather than the black
+  gallery blank.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none (the `since` option alone would need
+  `profiles.dashboard_seen_at`, Question 1).
+- **Calls his to overrule:** the four carried on the board (`spec.ts` `carried`): the head (the day, the storage ring
+  and New event; the Dashboard title and the full-width storage line go) · the tile (its photograph or date, name and
+  when, a mark per top corner; the QR chip and pills move off) · a party long over asks only for a door or a queue ·
+  two parties on one night, the busier leads; and each ask's recommendation: `purpose=stage`, `needs=week`,
+  `events=seasons`, `arrivals=live`.
+- **Look at first:** `/design/lab/host-dashboard?session=host-dashboard.purpose`, the party of the moment, Jo's frame on
+  the night; then The day's "A week before" (the code is the stage) and "The morning after".
