@@ -235,6 +235,13 @@ describe("everything else is refused, and comes back as nothing", () => {
     ["a room that is not a page", `/dashboard/${EVENT}/share`],
     ["a short event id", "/dashboard/9f1c2b3a"],
     ["an album sub-path", "/e/sarahs-wedding/x"],
+    // /me (crumbs-46) is one exact page: nothing under it, nothing longer, nothing carried on it.
+    ["a trailing slash on /me", "/me/"],
+    ["a page under /me", "/me/uploads"],
+    ["a longer word than /me", "/mex"],
+    ["another case of /me", "/Me"],
+    ["a query on /me", "/me?x=1"],
+    ["a fragment on /me", "/me#likes"],
     // Pages that are real but never a sign-in's return.
     ["the login page", "/login"],
     ["the callback", "/auth/callback"],
