@@ -73,19 +73,13 @@ commits, what remains, its predecessor's transcript at
 account. Connectors follow the account: Claude in Chrome (every red-team needs it), the Supabase MCP on
 `ddafaemglzmuekbtjwzn`, the Vercel MCP on his personal team (deploys ride `$VERCEL_TOKEN`; only runtime logs need P3).
 
-Relays that live only in an agent (2026-10-02, from Will's walk and answers):
-- `disposable-foundation`, Q9's model (21:10Z, superseding the 20:20Z and 20:55Z relays):
-  - **Two axes**, disposable a preset, no `mode` column:
-    - `events.capture` (text CHECK upload or camera) and `roll_size`;
-    - `moderation_mode` untouched;
-    - `develops_at` (develop applies to free uploads too) and a server-stamped `sealed_from`;
-    - all three in both column grants and returned by `get_event_by_qr_token` (Q7 pattern).
-  - **The predicate:** `status = 'approved' and (sealed_until is null or sealed_until <= now() or host)` in every SQL home and the four app-side reads.
-  - **The sync's `waiting: {count, minutes}`:** pending and sealed together, full access only, in the ETag, no ids.
-  - **The roll counts live shots** (his overrule: a deleted shot frees its slot), with a withdrawn camera shot purged at once and a lifetime ceiling of `roll_size * 3` under the lock.
-  - **Settings:** two questions on `adds-page` (how guests add; when everyone sees, one three-way choice), mountable for the wizard.
-  - Her pending items' read and remove already exist (`guest-media.ts:357`, `remove_my_upload*`).
-- `header-wiring` (21:10Z): a Remove in her tracker on each of her own items not yet in the album (held, later sealed), on the existing `remove_my_upload*` paths, with state while it works.
+Relays that live only in an agent (2026-10-02): red-team 43's MEDIUM (23:38Z, `../partyreel-wt/_scratch/redteam-43/
+ledger.txt`): on an album with a develop time ahead the guest page reads "delayed" as approve-each only, so her sealed
+shots show as album tiles and "joined the album", then vanish, with no tracker. The fix, "delayed" = approve-each OR a
+develop time ahead from `lib/disposable/reveal.ts`, red first: `door-reveal` takes the page half
+(`event-experience.tsx` :1117 keepHeld and :1406 the tracker's `moderated`, `page.tsx` :614, `save-account-prompt.tsx`'s
+`keepSentLine`, accepted outside its owns); `disposable-camera` the upload half (`guest-upload.tsx` :252 and the queue's
+optimistic tile, honouring `create_media`'s `sealed`). Earlier relays are merged (the foundation's, header-wiring's).
 
 **Q9 is answered** (the Advisor, 21:05Z) and acted on above. The waiting experience itself goes to a design board (below).
 
