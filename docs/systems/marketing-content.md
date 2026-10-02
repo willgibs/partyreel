@@ -142,7 +142,7 @@ routes.
   engine at nine widths), and its ahead-of-arrival decode takes the same variants, or it would ready a file the tile
   never draws. A still dropped into the manifest later inherits the path; the source files are never resized by hand.
 - ★ **`/features/privacy`'s hero is the lens** (`sections/features/privacy/`: `privacy-lens.ts` holds every number,
-  `privacy-lens.css` the structure, `lens-stage.tsx` the markup, a server component with no script): a photograph
+  `privacy-lens.css` the structure, `lens-stage.tsx` the markup, a server component with no script of its own): a photograph
   under the page's own words, veiled in the lightbox's ground, and one clear round pane that rests 2.4 seconds on one
   thing at a time, never a face and never the words. ★ **The rests are bands, not pixels**: the hero's padding IS the
   two bands the pane rests in (`bandPx`: its diameter and a gap each side, below the header and above the foot), the

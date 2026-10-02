@@ -19,10 +19,12 @@ import {
  * `privacy-lens.css`, and the page's hero carries the sizes (`lensVars`) and the
  * `pvl-hero` class, whose padding is the bands the pane rests in.
  *
- * ★ A SERVER COMPONENT, AND NO SCRIPT AT ALL. CSS drives every picture, so the
- * route stays prerendered and the hero ships no client JavaScript: a
- * `@keyframes` animation already yields to a hidden tab at the compositor, and
- * reduced motion is the sheet's own media query, so nothing here reads either.
+ * ★ A SERVER COMPONENT WITH NO SCRIPT OF ITS OWN. CSS drives every picture, so
+ * the route stays prerendered and the hero adds no client JavaScript (the images
+ * are `next/image`, already in the page's bundle): a `@keyframes` animation
+ * already yields to a hidden tab at the compositor, and reduced motion is the
+ * sheet's own media query, so nothing here reads either, and the main thread is
+ * idle while the pane moves (transforms only: no layout, style or script).
  *
  * ★ THE PHOTOGRAPH COMES THROUGH THE MEDIA MANIFEST BY ID (bible 9), twice: the
  * veil's copy and the pane's own, the same box cover-fit the same way, the pane's
