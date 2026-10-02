@@ -225,7 +225,7 @@ describe("the guest-row scrub (source text)", () => {
 });
 
 describe("the request path's order", () => {
-  const cancel = requestSrc.indexOf("cancelSubscriptionForDeletion(");
+  const cancel = requestSrc.indexOf("cancelSubscriptionsForDeletion(");
   const abort = requestSrc.indexOf('subscription.status === "failed"');
   const stamp = requestSrc.indexOf("deletion_requested_at: new Date()");
   const bin = requestSrc.indexOf("binHostedEvents(");

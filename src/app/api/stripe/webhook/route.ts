@@ -15,6 +15,7 @@ import {
   proCreditSession,
   resolveSubscriptionUpdate,
   subscriptionQuantityWarning,
+  successorSubscription,
 } from "@/lib/stripe/provision";
 import { assertStripeEnv } from "@/lib/env";
 import type { TablesUpdate } from "@/lib/db/types";
@@ -155,6 +156,36 @@ async function applyEntitlement(
       profile.stripe_subscription_id !== endsSubscriptionId,
   );
   return followsAnother ? "superseded" : "stale";
+}
+
+/** The profile a customer's events write, and the subscription it follows; null when no profile holds the customer. */
+async function readHolder(
+  admin: Admin,
+  customerId: string,
+): Promise<{ id: string; stripe_subscription_id: string | null } | null> {
+  // At most one profile: stripe_customer_id's partial unique index (a second would make maybeSingle fail loudly).
+  const { data, error } = await admin
+    .from("profiles")
+    .select("id, stripe_subscription_id")
+    .eq("stripe_customer_id", customerId)
+    .maybeSingle();
+  if (error) throw new Error(`subscription holder lookup: ${error.message}`);
+  return data;
+}
+
+/**
+ * The customer's subscriptions that have not been cancelled (Stripe's default list), one read. A customer holds a
+ * handful at most (Checkout refuses a second Pro to an active Pro; only open tabs and a stale session mint more), so
+ * one page of the most Stripe returns is the whole of it.
+ */
+async function listCustomerSubscriptions(
+  customerId: string,
+): Promise<Stripe.Subscription[]> {
+  const page = await getStripe().subscriptions.list({
+    customer: customerId,
+    limit: 100,
+  });
+  return page.data;
 }
 
 export async function POST(request: Request) {
@@ -309,8 +340,44 @@ export async function POST(request: Request) {
     // patch writes nothing: an unrelated event, an unknown price, or a first payment
     // still in flight (`incomplete`, which must never downgrade a host it is paying for).
     // A downgrade lands only on a profile following the subscription it ends, or none.
-    const patch = resolveSubscriptionUpdate(event, planForPriceId);
-    if (patch) {
+    const resolved = resolveSubscriptionUpdate(event, planForPriceId);
+    if (resolved) {
+      // The profile this customer's events write, read once, before the write: which
+      // subscription it follows decides whether a downgrade asks Stripe for a successor,
+      // and whether a grant re-points it away from one it still follows. The write's own
+      // WHERE stays the guard; this read only steers and warns.
+      const holder = await readHolder(admin, resolved.customerId);
+      let patch = resolved;
+      let stillBilling: string[] = [];
+      // ★ TWO LIVE SUBSCRIPTIONS (crumbs-41, from `hardening`): a downgrade of the subscription
+      // the profile follows (or of one while it follows none) asks Stripe, once, whether the
+      // customer still pays for another, and the profile follows that one instead of landing
+      // Free while it bills (`successorSubscription`: the most storage, the newest on a tie).
+      // A downgrade of a subscription the profile does not follow asks nothing: its write is
+      // declined in the WHERE clause whatever Stripe says. A failed read throws, so the
+      // delivery is a 500 and Stripe retries: never a Free guess about a paying host.
+      if (
+        resolved.endsSubscriptionId !== null &&
+        holder !== null &&
+        (holder.stripe_subscription_id === null ||
+          holder.stripe_subscription_id === resolved.endsSubscriptionId)
+      ) {
+        const next = successorSubscription(
+          await listCustomerSubscriptions(resolved.customerId),
+          resolved.endsSubscriptionId,
+          planForPriceId,
+        );
+        if (next) {
+          patch = {
+            ...resolved,
+            tier: next.successor.plan.tier,
+            storageCapBytes: next.successor.plan.storageBytes,
+            subscriptionId: next.successor.id,
+          };
+          stillBilling = next.others.map((other) => other.id);
+        }
+      }
+
       const result = await applyEntitlement(
         admin,
         {
@@ -325,6 +392,38 @@ export async function POST(request: Request) {
         "absolute",
         patch.endsSubscriptionId,
       );
+
+      // ★ A GRANT THAT RE-POINTS A PROFILE AWAY FROM A SUBSCRIPTION IT STILL FOLLOWS is the
+      // second Checkout tab's payment: both now bill for one cap, and only the operator can
+      // settle that in Stripe. A successor's grant re-points too, away from the one ending, so
+      // it warns only when more than one still bills after it.
+      if (result === "applied") {
+        const from = holder?.stripe_subscription_id ?? null;
+        if (
+          resolved.endsSubscriptionId === null &&
+          from !== null &&
+          from !== resolved.subscriptionId
+        ) {
+          captureWarning("billing", "stripe_grant_repointed_subscription", {
+            customerId: resolved.customerId,
+            from,
+            to: resolved.subscriptionId,
+            eventType: event.type,
+          });
+        }
+        if (patch.subscriptionId !== null && stillBilling.length > 0) {
+          captureWarning(
+            "billing",
+            "stripe_customer_live_subscriptions_above_1",
+            {
+              customerId: patch.customerId,
+              following: patch.subscriptionId,
+              alsoBilling: stillBilling,
+              eventType: event.type,
+            },
+          );
+        }
+      }
 
       // A downgrade to Free re-derives from the ledger: if the host somehow still owns
       // live UNCREDITED passes (they never started Pro through the credited checkout),

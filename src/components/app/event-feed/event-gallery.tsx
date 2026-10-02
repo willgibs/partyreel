@@ -236,11 +236,7 @@ export function EventGallery({
               ? "Add your own photos and videos, for example a batch from your photographer. These post to the album right away."
               : "Add your own photos, for example a batch from your photographer. These post to the album right away."}
           </p>
-          <HostUpload
-            eventId={eventId}
-            videosAllowed={videosAllowed}
-            onUploadingCountChange={add?.setUploadingCount}
-          />
+          <HostUpload eventId={eventId} videosAllowed={videosAllowed} />
         </div>
       )}
 

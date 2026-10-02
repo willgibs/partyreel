@@ -60,6 +60,8 @@ const ACTIVE_STATUSES = new Set<Stripe.Subscription.Status>([
  * on the customer alone, the abandoned tab's `incomplete_expired` (a day later) or
  * the duplicate's cancellation put a host whose other subscription is active on Free.
  * A grant names nothing: it applies whatever the profile followed, and re-points it.
+ * And a downgrade that WOULD apply first asks whether another subscription still bills
+ * (`successorSubscription`, crumbs-41): the profile follows that one rather than land Free.
  */
 export function resolveSubscriptionUpdate(
   event: Stripe.Event,
@@ -114,6 +116,39 @@ export function resolveSubscriptionUpdate(
     subscriptionId: sub.id,
     endsSubscriptionId: null,
   };
+}
+
+/** A subscription the customer still pays for, at a price we know: its plan, and when it began (unix seconds). */
+export type LiveSubscription = { id: string; plan: Plan; created: number };
+
+/**
+ * THE SUBSCRIPTION A PROFILE FOLLOWS WHEN THE ONE IT FOLLOWED ENDS (crumbs-41, from `hardening`). A host who paid in
+ * both Checkout tabs holds two live subscriptions, and the profile follows the last grant's; when that one ends (a
+ * cancel, a lapse), the other still bills, so landing Free would charge her for a plan she no longer has. The webhook
+ * reads the customer's subscriptions once and hands them here: of every one but `endingId` that still grants (the
+ * grant's own statuses, at a price `resolvePlan` knows), the profile follows the one whose plan stores the most
+ * (never less room than a plan she still pays for), the newest on a tie, then the id, so a replay picks the same.
+ * `others` are the rest still billing beside it, which the operator settles in Stripe. Null when none grants.
+ */
+export function successorSubscription(
+  subscriptions: readonly Stripe.Subscription[],
+  endingId: string,
+  resolvePlan: (priceId: string) => Plan | null,
+): { successor: LiveSubscription; others: LiveSubscription[] } | null {
+  const live = subscriptions.flatMap((sub): LiveSubscription[] => {
+    if (sub.id === endingId || !ACTIVE_STATUSES.has(sub.status)) return [];
+    const priceId = sub.items?.data[0]?.price?.id;
+    const plan = priceId ? resolvePlan(priceId) : null;
+    return plan ? [{ id: sub.id, plan, created: sub.created ?? 0 }] : [];
+  });
+  live.sort(
+    (a, b) =>
+      b.plan.storageBytes - a.plan.storageBytes ||
+      b.created - a.created ||
+      (a.id < b.id ? -1 : a.id > b.id ? 1 : 0),
+  );
+  const [successor, ...others] = live;
+  return successor ? { successor, others } : null;
 }
 
 export type SubscriptionQuantityWarning = {

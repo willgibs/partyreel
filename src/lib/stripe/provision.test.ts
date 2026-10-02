@@ -8,6 +8,7 @@ import {
   proCreditSession,
   resolveSubscriptionUpdate,
   subscriptionQuantityWarning,
+  successorSubscription,
 } from "@/lib/stripe/provision";
 
 // Minimal fixture builders — resolveSubscriptionUpdate only reads a few fields.
@@ -246,6 +247,92 @@ describe("resolveSubscriptionUpdate: two subscriptions, one customer", () => {
         )?.endsSubscriptionId,
       ).toBe(id);
     }
+  });
+});
+
+/**
+ * ★ THE SUBSCRIPTION A PROFILE FOLLOWS WHEN ITS OWN ENDS (crumbs-41, from `hardening`): of the customer's listed
+ * subscriptions, every one but the ending one that still grants at a price we know, the most storage first, the newest
+ * on a tie, then the id; the rest are still billing beside it.
+ */
+describe("successorSubscription", () => {
+  const plans: Record<string, Plan> = {
+    price_pro_100: planById("pro_100"),
+    price_pro_500: planById("pro_500"),
+    price_pro_2tb: planById("pro_2tb"),
+  };
+  const known = (priceId: string): Plan | null => plans[priceId] ?? null;
+  const sub = (
+    id: string,
+    opts: { status?: string; price?: string; created?: number } = {},
+  ) =>
+    ({
+      id,
+      status: opts.status ?? "active",
+      created: opts.created ?? 1_790_000_000,
+      items: { data: [{ price: { id: opts.price ?? "price_pro_500" } }] },
+    }) as unknown as Stripe.Subscription;
+
+  it("★ never the ending one, and only what still grants: active, trialing or past due, at a known price", () => {
+    expect(
+      successorSubscription(
+        [
+          sub("sub_ending"),
+          sub("sub_expired", { status: "incomplete_expired" }),
+          sub("sub_open", { status: "incomplete" }),
+          sub("sub_unpaid", { status: "unpaid" }),
+          sub("sub_paused", { status: "paused" }),
+          sub("sub_cancelled", { status: "canceled" }),
+          sub("sub_foreign", { price: "price_not_ours" }),
+        ],
+        "sub_ending",
+        known,
+      ),
+    ).toBeNull();
+    for (const status of ["active", "trialing", "past_due"]) {
+      expect(
+        successorSubscription([sub("sub_b", { status })], "sub_a", known)
+          ?.successor.id,
+        status,
+      ).toBe("sub_b");
+    }
+  });
+
+  it("★ the one that stores the most, the newest on a tie, then the id; the rest still bill", () => {
+    const next = successorSubscription(
+      [
+        sub("sub_small", { price: "price_pro_100", created: 9 }),
+        sub("sub_big_b", { price: "price_pro_2tb", created: 5 }),
+        sub("sub_big_a", { price: "price_pro_2tb", created: 5 }),
+        sub("sub_big_old", { price: "price_pro_2tb", created: 1 }),
+      ],
+      "sub_ending",
+      known,
+    );
+    expect(next?.successor).toMatchObject({
+      id: "sub_big_a",
+      plan: planById("pro_2tb"),
+    });
+    expect(next?.others.map((o) => o.id)).toEqual([
+      "sub_big_b",
+      "sub_big_old",
+      "sub_small",
+    ]);
+  });
+
+  it("answers the same whatever order Stripe lists them in, so a replay follows the same one", () => {
+    const listed = [
+      sub("sub_x", { price: "price_pro_500", created: 3 }),
+      sub("sub_y", { price: "price_pro_500", created: 7 }),
+    ];
+    const forward = successorSubscription(listed, "sub_a", known);
+    const backward = successorSubscription(
+      [...listed].reverse(),
+      "sub_a",
+      known,
+    );
+    expect(forward?.successor.id).toBe("sub_y");
+    expect(backward?.successor.id).toBe("sub_y");
   });
 });
 

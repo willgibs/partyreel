@@ -60,24 +60,10 @@ export function formatSignedCount(n: number): string {
 /**
  * A chart tick that fits at any magnitude: "1400" -> "1.4K", "12000" -> "12K",
  * "1200000" -> "1.2M"; a number under 1,000 is unchanged. `Intl`'s own compact
- * notation already rounds to at most one decimal digit, which is what keeps
- * the label short enough for a fixed-width axis.
+ * notation already rounds to at most one decimal digit, which keeps a tick
+ * short; the axis then sizes itself to the labels it draws (`width="auto"` in
+ * `components/admin/metrics-charts.tsx`).
  */
 export function formatCompactNumber(n: number): string {
   return COMPACT.format(n);
-}
-
-/**
- * A YAxis pixel width that fits the widest compact label `values` can draw,
- * never narrower than the chart's original fixed 28px (so a single-digit
- * axis does not shrink). ~8px per character at the chart's 11px tick font,
- * plus a small margin — generous rather than exact, since Recharts measures
- * nothing and a clipped tick is the bug this exists to prevent.
- */
-export function compactAxisWidth(values: readonly number[]): number {
-  const widest = values.reduce(
-    (max, v) => Math.max(max, formatCompactNumber(v).length),
-    1,
-  );
-  return Math.max(28, widest * 8 + 10);
 }

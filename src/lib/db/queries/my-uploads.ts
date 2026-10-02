@@ -21,15 +21,19 @@
  * somebody else's event is final; one to an event she hosts lands in its Deleted), and the viewer's confirm
  * says which off `isHost`. The function's own arm flag (`is_host_upload`) is the fact: it splits its two arms
  * on the event's host, so no second read of her events is needed to know which is which.
+ *
+ * ★ AND THEY WEAR HER FACE (crumbs-45; build 36's red-team found a "?" disc): `isHost` makes the viewer's credit a
+ * host's, which wears the byline's face everywhere else, and here the host is her (`ownUploadCredit`: her name and
+ * face, no door, read once for a page that holds one). Her uploads to other people's events keep the event alone,
+ * as the viewer draws a feed whose items are all hers.
  */
 import "server-only";
 
-import type { PostgrestError } from "@supabase/supabase-js";
 import { cache } from "react";
 
 import type { GridMedia } from "@/components/app/media-grid";
 import { getEventByQrToken } from "@/lib/db/queries/guest-events";
-import type { Database } from "@/lib/db/types";
+import { ownUploadCredit } from "@/lib/media/uploader-faces";
 import { toMyUploadsItems } from "@/lib/r2/grid-items";
 import { getRequestAuth, type RequestAuth } from "@/lib/supabase/request-auth";
 import { formatEventDate } from "@/lib/utils";
@@ -46,46 +50,8 @@ export const MY_FEED_PAGE = 200;
 /** Albums asked about at once: one read an album, and a page of 200 uploads can span as many. */
 const VISIBILITY_READS_AT_ONCE = 6;
 
-type FeedFunction = "get_my_uploads" | "get_my_likes";
-type FeedRow<F extends FeedFunction> =
-  Database["public"]["Functions"][F]["Returns"][number];
-
-/**
- * One page of a feed function, by name.
- *
- * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: the cursor's two arguments arrive with migration 20261001203800,
- * and `types.ts` learns them only when the Orchestrator regenerates it, so they are named through this one
- * untyped call, which compiles on either side of the regeneration (drop the cast then). The rows keep their
- * generated type: the migration does not move a RETURNS TABLE. Before the apply, only a cursor call fails (the
- * first page asks by `p_limit` alone, as the deployed build does), and its caller answers "Try again".
- */
-export async function feedRpc<F extends FeedFunction>(
-  supabase: RequestAuth["supabase"],
-  fn: F,
-  args: Record<string, string | number>,
-): Promise<FeedRow<F>[]> {
-  const call = supabase.rpc as unknown as (
-    name: F,
-    params: Record<string, string | number>,
-  ) => PromiseLike<{ data: FeedRow<F>[] | null; error: PostgrestError | null }>;
-  const { data, error } = await call.call(supabase, fn, args);
-  if (error) throw error;
-  return data ?? [];
-}
-
-/** The RPC's arguments for a page: one row past the page, and the cursor's two halves when there is one. */
-export function feedArgs(
-  before: FeedCursor | null,
-  names: { at: string; id: string },
-): Record<string, string | number> {
-  return before
-    ? {
-        p_limit: MY_FEED_PAGE + 1,
-        [names.at]: before.at,
-        [names.id]: before.id,
-      }
-    : { p_limit: MY_FEED_PAGE + 1 };
-}
+/** A page asks for one row past itself (`splitPage` reads the extra row as "more exist"). */
+export const MY_FEED_ASK = MY_FEED_PAGE + 1;
 
 /** The page's rows and the cursor after it: the extra row only says that more exist, and is never shown. */
 export function splitPage<R>(
@@ -138,14 +104,15 @@ export async function readMyUploadsPage(
   const { supabase, user } = auth;
   if (!user) return { items: [], next: null };
 
-  const page = splitPage(
-    await feedRpc(
-      supabase,
-      "get_my_uploads",
-      feedArgs(before, { at: "p_before_created_at", id: "p_before_id" }),
-    ),
-    (r) => ({ at: r.created_at, id: r.id }),
-  );
+  // The first page asks by `p_limit` alone, as the build before the cursor did.
+  const { data, error } = await supabase.rpc("get_my_uploads", {
+    p_limit: MY_FEED_ASK,
+    ...(before
+      ? { p_before_created_at: before.at, p_before_id: before.id }
+      : {}),
+  });
+  if (error) throw error;
+  const page = splitPage(data ?? [], (r) => ({ at: r.created_at, id: r.id }));
   const rows = page.rows;
   // Only the guest arm's albums: the host arm is her own, where she always likes.
   const guestAlbums = [
@@ -158,7 +125,7 @@ export async function readMyUploadsPage(
   const hostArm = new Set(
     rows.filter((r) => r.is_host_upload).map((r) => r.id),
   );
-  const [items, closed] = await Promise.all([
+  const [items, closed, own] = await Promise.all([
     toMyUploadsItems(
       rows.map((r) => ({
         id: r.id,
@@ -175,10 +142,18 @@ export async function readMyUploadsPage(
       })),
     ),
     albumsReadingPrivate(guestAlbums),
+    hostArm.size > 0 ? ownUploadCredit(auth) : Promise.resolve(null),
   ]);
   return {
     items: items.map((item) => {
-      if (hostArm.has(item.id)) return { ...item, isHost: true };
+      if (hostArm.has(item.id)) {
+        return {
+          ...item,
+          isHost: true,
+          uploaderName: own?.name ?? null,
+          uploaderFace: own?.face ?? null,
+        };
+      }
       // `closed` holds only albums she does not host (the arms split on the event's host).
       return item.eventQrToken != null && closed.has(item.eventQrToken)
         ? { ...item, likeable: false }

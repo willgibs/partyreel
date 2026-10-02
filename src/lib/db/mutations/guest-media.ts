@@ -34,7 +34,7 @@
  */
 import "server-only";
 
-import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
+import type { PostgrestError } from "@supabase/supabase-js";
 
 import { mustCount, mustQuery } from "@/lib/db/must-query";
 import { inChunks, readAllPages } from "@/lib/db/read-all";
@@ -271,16 +271,6 @@ function missingColumn(error: unknown): boolean {
   return typeof code === "string" && MISSING_COLUMN.has(code);
 }
 
-/**
- * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `media.let_in_at` and `guests.let_in_told_at` arrive with migration
- * 20261001203810, and `types.ts` learns them only when the Orchestrator regenerates it, so the reads and the mark
- * that name them go through this untyped client, which compiles on either side of the regeneration (drop the cast
- * then). Every row it answers is read field by field and checked.
- */
-function untypedAdmin(): SupabaseClient {
-  return createAdminClient() as unknown as SupabaseClient;
-}
-
 type OwnRow = {
   id: string;
   status: string;
@@ -312,7 +302,7 @@ export async function readOwnUploads(input: {
 }): Promise<OwnUploadsRead> {
   const tell = input.tell === true;
   const token = input.sessionToken?.trim() ?? "";
-  const admin = untypedAdmin();
+  const admin = createAdminClient();
   const guestColumns = tell ? "id, let_in_told_at" : "id";
   const mediaColumns = tell
     ? "id, status, created_at, guest_id, let_in_at"
@@ -435,7 +425,7 @@ async function markTold(
   marks: ReadonlyMap<string, string>,
 ): Promise<void> {
   if (marks.size === 0) return;
-  const admin = untypedAdmin();
+  const admin = createAdminClient();
   const results = await Promise.allSettled(
     [...marks].map(([guestId, mark]) =>
       mustQuery(

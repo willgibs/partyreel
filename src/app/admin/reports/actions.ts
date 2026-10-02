@@ -6,6 +6,7 @@ import { z } from "zod";
 import { type ActionResult } from "@/app/(app)/dashboard/actions";
 import {
   askableProof,
+  dismissalReopens,
   hideUndoOf,
   holdReasonFor,
   type HoldScope,
@@ -13,9 +14,10 @@ import {
   PAST_WINDOW_MESSAGE,
   PROOF_OFF_LINE,
   PROOF_QUESTION_MAX,
-  reopenFloor,
+  reopenGuard,
   REPORT_NOTE_MAX,
   sameInstant,
+  STRIKE_LAPSED_MESSAGE,
   wayBackOf,
   withinReopenWindow,
 } from "@/lib/admin/reports";
@@ -23,7 +25,10 @@ import { requireAdminAction } from "@/lib/auth/admin-context";
 import { SITE_URL } from "@/lib/constants/site";
 import { mustQuery } from "@/lib/db/must-query";
 import { inChunks, readAllPages } from "@/lib/db/read-all";
-import { readProofMailEnabled } from "@/lib/db/queries/reports";
+import {
+  readProofMailEnabled,
+  readStrikeLapse,
+} from "@/lib/db/queries/reports";
 import type { Tables } from "@/lib/db/types";
 import { sendOnce } from "@/lib/email/send";
 import { reportProofAskEmail } from "@/lib/email/templates";
@@ -417,16 +422,20 @@ export async function dismissReportsAction(
 
 /**
  * THE DISMISSAL'S WAY BACK (build 19's red-team; `closed=window`): a report an operator dismissed
- * reopens inside the product's own window, from the toast's Undo or its closed line. Dismiss is one
- * press with no confirm, so this is where a slip is caught; a dismissal touched nothing but the
+ * reopens inside the product's own window, from the toast's Undo or its closed line, and a child-abuse
+ * dismissal that is a strike for as long as the strike counts (Will's #60, 2026-10-01: a slip found on
+ * day 31 left a strike on a well-meaning reporter's address that nothing could take back). Dismiss is
+ * one press with no confirm, so this is where a slip is caught; a dismissal touched nothing but the
  * report, so reopening it is the whole of its undo (the verdict's note goes with it, as a removal's
  * Undo clears its own), except for a child-abuse report whose dismissal put its hidden item back,
  * which is hidden again.
  *
  * ★ THE GUARDS ARE IN THE WRITE, not only in the read before it: only a report still `dismissed`,
- * and only while its verdict is inside the window (`reopenFloor`), so a stale page or a second tab
- * can never reopen a report nobody dismissed, and an actioned one keeps its own Undo, which restores
- * what it removed. A report already open is what the press asked for, and answers done.
+ * and only while its verdict is inside the window or its strike still counts (`reopenGuard`, the
+ * line's own `dismissalReopens`), so a stale page or a second tab can never reopen a report nobody
+ * dismissed, and an actioned one keeps its own Undo, which restores what it removed. The strike's
+ * lapse is the rule's own answer (`readStrikeLapse`), asked only when a strike is past the 30 days,
+ * never a copy of 180 here. A report already open is what the press asked for, and answers done.
  */
 export async function reopenReportAction(
   reportId: string,
@@ -452,7 +461,13 @@ export async function reopenReportsAction(
 async function reopenReports(ids: readonly string[]): Promise<ActionResult> {
   const admin = createAdminClient();
   const unique = [...new Set(ids)];
-  let rows: { id: string; status: string; resolved_at: string | null }[];
+  let rows: {
+    id: string;
+    status: string;
+    resolved_at: string | null;
+    kind: string;
+    reporter_hash: string | null;
+  }[];
   try {
     rows = await inChunks(
       "admin reports: reopen read",
@@ -461,7 +476,7 @@ async function reopenReports(ids: readonly string[]): Promise<ActionResult> {
         (await mustQuery(
           admin
             .from("reports")
-            .select("id, status, resolved_at")
+            .select("id, status, resolved_at, kind, reporter_hash")
             .in("id", chunk),
           "admin reports: reopen read",
         )) ?? [],
@@ -480,8 +495,38 @@ async function reopenReports(ids: readonly string[]): Promise<ActionResult> {
     return DECIDED;
   }
   const now = Date.now();
-  if (!dismissed.some((r) => withinReopenWindow(r.resolved_at, now))) {
-    return { ok: false, code: "validation", message: PAST_WINDOW_MESSAGE };
+  const facts = dismissed.map((r) => ({
+    status: "dismissed" as const,
+    resolvedAt: r.resolved_at,
+    kind: parseReportKind(r.kind),
+    keptAddress: Boolean(r.reporter_hash),
+  }));
+  // The rule's own lapse, asked only when a strike past the product's 30 days needs it (Will's #60).
+  let lapseMs: number | null = null;
+  if (
+    facts.some(
+      (f) =>
+        !withinReopenWindow(f.resolvedAt, now) &&
+        f.kind === INSTANT_HIDE_KIND &&
+        f.keptAddress,
+    )
+  ) {
+    try {
+      lapseMs = await readStrikeLapse();
+    } catch (e) {
+      captureError("admin", e, { action: "reopen_report_lapse" });
+      return failed("Couldn't read the report. Please try again.");
+    }
+  }
+  if (!facts.some((f) => dismissalReopens(f, now, lapseMs))) {
+    const strike =
+      lapseMs !== null &&
+      facts.some((f) => f.kind === INSTANT_HIDE_KIND && f.keptAddress);
+    return {
+      ok: false,
+      code: "validation",
+      message: strike ? STRIKE_LAPSED_MESSAGE : PAST_WINDOW_MESSAGE,
+    };
   }
 
   let reopened: string[];
@@ -501,7 +546,7 @@ async function reopenReports(ids: readonly string[]): Promise<ActionResult> {
             })
             .in("id", chunk)
             .eq("status", "dismissed")
-            .gte("resolved_at", reopenFloor(now))
+            .or(reopenGuard(now, lapseMs))
             .select("id"),
           "admin reports: reopen",
         )) ?? [],

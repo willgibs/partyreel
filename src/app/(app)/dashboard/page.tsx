@@ -69,6 +69,7 @@ import {
 } from "@/lib/db/queries/social";
 import { getHostStorageSummary } from "@/lib/db/queries/storage";
 import { captureError } from "@/lib/observability/sentry";
+import { uploadsLabel } from "@/lib/events/visibility-labels";
 import { formatDateInZone } from "@/lib/format/date-in-zone";
 import { binCountdownLabel } from "@/lib/lifecycle/recently-deleted";
 import { overStandbyBudget } from "@/lib/lifecycle/recently-deleted";
@@ -342,7 +343,8 @@ export default async function DashboardPage({
         items: stats?.approved ?? 0,
         guests: null,
         pending: stats?.pending ?? 0,
-        statusLabel: event.accepting_uploads ? "Open" : "Closed",
+        // Paused, the hub code's word, never Closed, the door's (`uploadsLabel` says why).
+        statusLabel: uploadsLabel(event.accepting_uploads),
         byline: null,
         needs: needsByEvent.get(event.id) ?? null,
         qr: { token: event.qr_token, style: event.qr_style },

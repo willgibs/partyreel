@@ -8,6 +8,9 @@
  *    `incomplete` delivered after the `active` cannot put a paying host back on Free;
  *  - ★ a downgrade lands only on a profile following the subscription it ends (or none), so the
  *    second subscription of two Checkout tabs can die without taking the live one's plan with it;
+ *  - ★ and when the one it follows ends while another still bills, the profile follows that one, read
+ *    from Stripe once, instead of landing Free (crumbs-41); a grant that re-points a profile away from
+ *    a subscription it still follows warns the operator, who settles the double billing;
  *  - a subscription billed more than once for one cap raises a Sentry warning while the profile is
  *    written exactly as a quantity of one would write it.
  *
@@ -31,16 +34,34 @@ vi.mock("@/lib/env", () => ({
   assertStripeEnv: () => ({ STRIPE_WEBHOOK_SECRET: "whsec_test" }),
 }));
 
+// The customer's subscriptions as Stripe lists them (the one read a downgrade makes), and every list asked.
+const stripe = vi.hoisted(() => ({
+  subscriptions: [] as unknown[],
+  listed: [] as unknown[],
+  fails: false,
+}));
+
 // The signature check is Stripe's; here the body IS the event.
 vi.mock("@/lib/stripe/client", () => ({
   getStripe: () => ({
     webhooks: { constructEvent: (body: string) => JSON.parse(body) },
+    subscriptions: {
+      list: async (params: unknown) => {
+        stripe.listed.push(params);
+        if (stripe.fails) throw new Error("Stripe is unreachable");
+        return { data: stripe.subscriptions, has_more: false };
+      },
+    },
   }),
 }));
 
+const PRICES: Record<string, Plan> = {
+  price_pro_100: planById("pro_100"),
+  price_pro_500: planById("pro_500"),
+  price_pro_2tb: planById("pro_2tb"),
+};
 vi.mock("@/lib/stripe/plans", () => ({
-  planForPriceId: (priceId: string): Plan | null =>
-    priceId === "price_pro_500" ? planById("pro_500") : null,
+  planForPriceId: (priceId: string): Plan | null => PRICES[priceId] ?? null,
 }));
 
 const recomputePassEntitlement = vi.fn(async (_profileId: string) => {});
@@ -180,7 +201,26 @@ beforeEach(() => {
   captureWarning.mockClear();
   captureError.mockClear();
   recomputePassEntitlement.mockClear();
+  stripe.subscriptions = [];
+  stripe.listed = [];
+  stripe.fails = false;
 });
+
+/** A subscription as Stripe lists it: its status, its one item's price, and when it began. */
+function listed(
+  id: string,
+  opts: { status?: string; price?: string; created?: number } = {},
+) {
+  return {
+    id,
+    customer: "cus_1",
+    status: opts.status ?? "active",
+    created: opts.created ?? T0,
+    items: {
+      data: [{ price: { id: opts.price ?? "price_pro_500" }, quantity: 1 }],
+    },
+  };
+}
 
 describe("the subscription branch", () => {
   it("grants the plan on an active subscription", async () => {
@@ -450,6 +490,233 @@ describe("two subscriptions, one customer", () => {
       stripe_subscription_id: null,
     });
     expect(recomputePassEntitlement).toHaveBeenCalledWith("host-1");
+  });
+});
+
+/**
+ * ★ WHEN THE ONE IT FOLLOWS ENDS, ANOTHER MAY STILL BILL (crumbs-41, from `hardening`). A host who paid in both tabs
+ * holds two live subscriptions and the profile follows the last grant's; cancelling that one put her on Free while
+ * the other billed. Now a downgrade that would apply reads the customer's subscriptions from Stripe, once, and the
+ * profile follows the live one that stores the most. A grant that re-points a profile away from one it still follows
+ * warns the operator, who settles the double billing in Stripe.
+ */
+describe("the followed subscription ends while another still bills", () => {
+  it("★ the profile follows the live one, never Free, and asks Stripe exactly once", async () => {
+    seed(proOn("sub_a"));
+    stripe.subscriptions = [
+      listed("sub_a", { status: "canceled" }),
+      listed("sub_b", { price: "price_pro_2tb" }),
+    ];
+
+    const response = await deliver(
+      subscriptionEvent("customer.subscription.deleted", {
+        id: "sub_a",
+        status: "canceled",
+        created: T0 + 60,
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(stripe.listed).toEqual([{ customer: "cus_1", limit: 100 }]);
+    expect(row()).toMatchObject({
+      tier: "pro",
+      storage_cap_bytes: planById("pro_2tb").storageBytes,
+      stripe_subscription_id: "sub_b",
+      stripe_event_created_at: at(T0 + 60),
+    });
+    // Nothing to re-derive from the ledger: she is still Pro.
+    expect(recomputePassEntitlement).not.toHaveBeenCalled();
+    expect(captureWarning).not.toHaveBeenCalled();
+  });
+
+  it("★ with nothing else live (an expired tab, a cancelled one, an unknown price), Free, as before", async () => {
+    seed(proOn("sub_a"));
+    stripe.subscriptions = [
+      listed("sub_old", { status: "incomplete_expired" }),
+      listed("sub_paused", { status: "paused" }),
+      listed("sub_legacy", { price: "price_not_ours" }),
+    ];
+
+    await deliver(
+      subscriptionEvent("customer.subscription.deleted", {
+        id: "sub_a",
+        status: "canceled",
+        created: T0 + 60,
+      }),
+    );
+
+    expect(row()).toMatchObject({
+      tier: "free",
+      storage_cap_bytes: null,
+      stripe_subscription_id: null,
+    });
+    expect(recomputePassEntitlement).toHaveBeenCalledWith("host-1");
+  });
+
+  it("★ follows the one that stores the most, the newest on a tie, and warns that the rest still bill", async () => {
+    seed(proOn("sub_a"));
+    stripe.subscriptions = [
+      listed("sub_small", { price: "price_pro_100", created: T0 + 9 }),
+      listed("sub_big_old", { price: "price_pro_2tb", created: T0 + 1 }),
+      listed("sub_big_new", { price: "price_pro_2tb", created: T0 + 5 }),
+      listed("sub_due", { status: "past_due", price: "price_pro_500" }),
+    ];
+
+    await deliver(
+      subscriptionEvent("customer.subscription.updated", {
+        id: "sub_a",
+        status: "unpaid",
+        created: T0 + 60,
+      }),
+    );
+
+    expect(row()).toMatchObject({
+      tier: "pro",
+      storage_cap_bytes: planById("pro_2tb").storageBytes,
+      stripe_subscription_id: "sub_big_new",
+    });
+    expect(captureWarning).toHaveBeenCalledWith(
+      "billing",
+      "stripe_customer_live_subscriptions_above_1",
+      expect.objectContaining({
+        customerId: "cus_1",
+        following: "sub_big_new",
+        alsoBilling: ["sub_big_old", "sub_due", "sub_small"],
+      }),
+    );
+  });
+
+  it("★ a downgrade of a subscription the profile does not follow asks Stripe nothing and writes nothing", async () => {
+    seed(proOn("sub_live"));
+    const before = { ...row() };
+
+    await deliver(
+      subscriptionEvent("customer.subscription.deleted", {
+        id: "sub_stale",
+        status: "canceled",
+        created: T0 + 60,
+      }),
+    );
+
+    expect(stripe.listed).toEqual([]);
+    expect(row()).toEqual(before);
+  });
+
+  it("★ a Stripe read that fails is a 500, so Stripe retries: never a Free guess about a paying host", async () => {
+    seed(proOn("sub_a"));
+    const before = { ...row() };
+    stripe.fails = true;
+
+    const response = await deliver(
+      subscriptionEvent("customer.subscription.deleted", {
+        id: "sub_a",
+        status: "canceled",
+        created: T0 + 60,
+      }),
+    );
+
+    expect(response.status).toBe(500);
+    expect(captureError).toHaveBeenCalledTimes(1);
+    expect(row()).toEqual(before);
+    expect(recomputePassEntitlement).not.toHaveBeenCalled();
+  });
+
+  it("the stale tab's expiry on a profile following none already finds the live one", async () => {
+    // Holding none, the downgrade would apply: the live subscription's grant has not arrived, but Stripe lists it.
+    stripe.subscriptions = [listed("sub_live")];
+
+    await deliver(
+      subscriptionEvent("customer.subscription.updated", {
+        id: "sub_stale",
+        status: "incomplete_expired",
+        created: T0 + 10,
+      }),
+    );
+
+    expect(row()).toMatchObject({
+      tier: "pro",
+      stripe_subscription_id: "sub_live",
+    });
+    // Its own grant, when it lands, writes the same.
+    await deliver(
+      subscriptionEvent("customer.subscription.updated", {
+        id: "sub_live",
+        created: T0 + 20,
+      }),
+    );
+    expect(row()).toMatchObject({
+      tier: "pro",
+      stripe_subscription_id: "sub_live",
+    });
+    expect(captureWarning).not.toHaveBeenCalled();
+  });
+
+  it("a replay of the ended one's downgrade, once the profile follows its successor, is declined and asks nothing", async () => {
+    seed(proOn("sub_a"));
+    stripe.subscriptions = [listed("sub_b")];
+    const ended = subscriptionEvent("customer.subscription.deleted", {
+      id: "sub_a",
+      status: "canceled",
+      created: T0 + 60,
+    });
+    await deliver(ended);
+    stripe.listed = [];
+    const after = { ...row() };
+
+    const response = await deliver(ended);
+
+    expect(response.status).toBe(200);
+    expect(stripe.listed).toEqual([]);
+    expect(row()).toEqual(after);
+  });
+});
+
+describe("a grant that re-points a profile", () => {
+  it("★ away from a subscription it still follows warns the operator: both tabs now bill", async () => {
+    seed(proOn("sub_a"));
+
+    await deliver(
+      subscriptionEvent("customer.subscription.updated", {
+        id: "sub_b",
+        created: T0 + 30,
+      }),
+    );
+
+    expect(row()).toMatchObject({
+      tier: "pro",
+      stripe_subscription_id: "sub_b",
+    });
+    expect(captureWarning).toHaveBeenCalledWith(
+      "billing",
+      "stripe_grant_repointed_subscription",
+      expect.objectContaining({
+        customerId: "cus_1",
+        from: "sub_a",
+        to: "sub_b",
+      }),
+    );
+  });
+
+  it("warns nothing for a grant of the one it follows, of one while it follows none, or one the guard declined", async () => {
+    seed(proOn("sub_a"));
+    await deliver(
+      subscriptionEvent("customer.subscription.updated", {
+        id: "sub_a",
+        created: T0 + 30,
+      }),
+    );
+    seed(profile());
+    await deliver(subscriptionEvent("customer.subscription.created"));
+    // An out-of-order grant of another subscription: declined by recency, so nothing re-pointed.
+    seed(proOn("sub_a"));
+    await deliver(
+      subscriptionEvent("customer.subscription.updated", {
+        id: "sub_b",
+        created: T0 - 60,
+      }),
+    );
+    expect(row().stripe_subscription_id).toBe("sub_a");
+    expect(captureWarning).not.toHaveBeenCalled();
   });
 });
 

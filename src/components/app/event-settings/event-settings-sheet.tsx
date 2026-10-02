@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { AddsPage } from "@/components/app/event-settings/adds-page";
 import { DoorPage } from "@/components/app/event-settings/door-page";
@@ -8,7 +8,10 @@ import { EventPage } from "@/components/app/event-settings/event-page";
 import { ReelPage } from "@/components/app/event-settings/reel-page";
 import type { SettingsPage } from "@/components/app/event-settings/settings-pages";
 import { SettingsRows } from "@/components/app/event-settings/settings-rows";
-import { SettingsProvider } from "@/components/app/event-settings/settings-state";
+import {
+  SettingsProvider,
+  useSettings,
+} from "@/components/app/event-settings/settings-state";
 import {
   Popup,
   PopupBody,
@@ -80,30 +83,6 @@ export function EventSettingsSheet({
   /** One of the event's own photographs to show the reel's looks on, or null before the first. */
   reelSample: string | null;
 }) {
-  const guestsHref = `/dashboard/${event.id}/guests`;
-
-  // ★ FOCUS FOLLOWS THE LEVEL: into a page, onto its way back up; back up, onto the row that opened it.
-  // The control that was pressed is gone with the level it stood on, and focus must never fall to the
-  // page behind the panel.
-  const cameFrom = useRef<SettingsPage | null>(null);
-  useEffect(() => {
-    if (!open) return;
-    if (page) {
-      cameFrom.current = page;
-      document
-        .querySelector<HTMLElement>("[data-popup-up]")
-        ?.focus({ preventScroll: true });
-      return;
-    }
-    const from = cameFrom.current;
-    cameFrom.current = null;
-    if (from) {
-      document
-        .querySelector<HTMLElement>(`[data-settings-open="${from}"]`)
-        ?.focus({ preventScroll: true });
-    }
-  }, [open, page]);
-
   // ★ THE STATE OUTLIVES THE PANEL: the provider stands outside the popup, whose content unmounts as it
   // closes, so a change saved a moment ago is still what the rows say when Settings opens again, before
   // the row it wrote has come back.
@@ -116,41 +95,151 @@ export function EventSettingsSheet({
       social={social}
       reelSample={reelSample}
     >
-      <Popup open={open} onOpenChange={onOpenChange}>
-        <PopupContent kind="settings" routed>
-          {page ? (
-            <PopupHeader
-              title={PAGE_TITLE[page]}
-              up={{ label: "Settings", onUp: onClosePage }}
-            />
-          ) : (
-            <PopupHeader
-              title="Settings"
-              description={event.name}
-              back={event.name}
-            />
-          )}
-          {/* ★ BLOCK FLOW, NEVER A FLEX COLUMN THAT SHRINKS ITS CHILDREN: the body is the scroller, and a
-              card clips, so a column once crushed every card past the first to its padding (build 17).
-              The popup's body keeps its children whole whatever a caller lays out. */}
-          <PopupBody
-            className="space-y-6 pb-6"
-            data-settings-page={page ?? "rows"}
-          >
-            {page === "door" ? (
-              <DoorPage guestsHref={guestsHref} />
-            ) : page === "adds" ? (
-              <AddsPage />
-            ) : page === "reel" ? (
-              <ReelPage />
-            ) : page === "event" ? (
-              <EventPage />
-            ) : (
-              <SettingsRows onOpenPage={onOpenPage} />
-            )}
-          </PopupBody>
-        </PopupContent>
-      </Popup>
+      <SettingsPanel
+        open={open}
+        onOpenChange={onOpenChange}
+        page={page}
+        onOpenPage={onOpenPage}
+        onClosePage={onClosePage}
+        eventName={event.name}
+        guestsHref={`/dashboard/${event.id}/guests`}
+      />
     </SettingsProvider>
+  );
+}
+
+/** A page move: a page, or the four rows (null). */
+type Move = SettingsPage | null;
+
+/**
+ * THE PANEL ITSELF, inside the provider so its page moves can wait on its saves.
+ *
+ * ★ A PAGE MOVE WAITS FOR A SAVE ON ITS WAY, AND SHOWS AT ONCE (crumbs-42, from crumbs-24). Every save
+ * re-renders the hub in its own answer, and a move is an address written (`&setting=` replaced): one
+ * written inside a save's round trip made Next re-fetch the page once the save answered, and a second
+ * move inside that re-fetch reloaded the page or dropped what the save brought. So a move made while a
+ * save is on its way is drawn at once and its address written once the save has landed (the provider's
+ * `afterSaves`), the newest move of several being the one written; with nothing on its way, the address
+ * is written at once, as before. A close drops a move still waiting: the panel is gone and so is the
+ * page it named.
+ */
+function SettingsPanel({
+  open,
+  onOpenChange,
+  page,
+  onOpenPage,
+  onClosePage,
+  eventName,
+  guestsHref,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  /** The page the address names, or null for the four rows. */
+  page: SettingsPage | null;
+  onOpenPage: (page: SettingsPage) => void;
+  onClosePage: () => void;
+  eventName: string;
+  guestsHref: string;
+}) {
+  const { afterSaves } = useSettings();
+
+  // The move drawn while its address waits, and the newest one asked for (undefined: none waits).
+  const [held, setHeld] = useState<{ to: Move } | null>(null);
+  const waiting = useRef<Move | undefined>(undefined);
+  // The page the address names, read when a waiting move is written.
+  const addressed = useRef(page);
+  useEffect(() => {
+    addressed.current = page;
+  });
+
+  // The address caught up with the move, or the panel closed: what was drawn is the address's again
+  // (adjusted during render, the sanctioned "state from a changed prop" shape).
+  if (held && (!open || held.to === page)) setHeld(null);
+  const shown: Move = held ? held.to : page;
+
+  const write = useCallback(() => {
+    const to = waiting.current;
+    waiting.current = undefined;
+    if (to === undefined || to === addressed.current) return;
+    if (to) onOpenPage(to);
+    else onClosePage();
+  }, [onOpenPage, onClosePage]);
+
+  const move = useCallback(
+    (to: Move) => {
+      waiting.current = to;
+      // Written now, the address is the answer again, whatever an earlier move drew; held, it is drawn.
+      if (afterSaves(write)) setHeld(null);
+      else setHeld({ to });
+    },
+    [afterSaves, write],
+  );
+
+  const changeOpen = useCallback(
+    (next: boolean) => {
+      if (!next) waiting.current = undefined;
+      onOpenChange(next);
+    },
+    [onOpenChange],
+  );
+
+  // ★ FOCUS FOLLOWS THE LEVEL: into a page, onto its way back up; back up, onto the row that opened it.
+  // The control that was pressed is gone with the level it stood on, and focus must never fall to the
+  // page behind the panel.
+  const cameFrom = useRef<SettingsPage | null>(null);
+  useEffect(() => {
+    if (!open) return;
+    if (shown) {
+      cameFrom.current = shown;
+      document
+        .querySelector<HTMLElement>("[data-popup-up]")
+        ?.focus({ preventScroll: true });
+      return;
+    }
+    const from = cameFrom.current;
+    cameFrom.current = null;
+    if (from) {
+      document
+        .querySelector<HTMLElement>(`[data-settings-open="${from}"]`)
+        ?.focus({ preventScroll: true });
+    }
+  }, [open, shown]);
+
+  return (
+    <Popup open={open} onOpenChange={changeOpen}>
+      <PopupContent kind="settings" routed>
+        {shown ? (
+          <PopupHeader
+            title={PAGE_TITLE[shown]}
+            up={{ label: "Settings", onUp: () => move(null) }}
+          />
+        ) : (
+          <PopupHeader
+            title="Settings"
+            description={eventName}
+            back={eventName}
+          />
+        )}
+        {/* ★ BLOCK FLOW, NEVER A FLEX COLUMN THAT SHRINKS ITS CHILDREN: the body is the scroller, and a
+            card clips, so a column once crushed every card past the first to its padding (build 17).
+            The popup's body keeps its children whole whatever a caller lays out. */}
+        <PopupBody
+          className="space-y-6 pb-6"
+          data-settings-page={shown ?? "rows"}
+        >
+          {shown === "door" ? (
+            <DoorPage guestsHref={guestsHref} />
+          ) : shown === "adds" ? (
+            <AddsPage />
+          ) : shown === "reel" ? (
+            <ReelPage />
+          ) : shown === "event" ? (
+            <EventPage />
+          ) : (
+            <SettingsRows onOpenPage={move} />
+          )}
+        </PopupBody>
+      </PopupContent>
+    </Popup>
   );
 }

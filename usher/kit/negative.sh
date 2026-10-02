@@ -49,6 +49,9 @@ mkdir -p "$T/cut/docs/tracks"; printf '%s' '{"track":"t","board":"b","owns":["sr
 BEFORE="$(git status --short)"; node scripts/new-board.mjs locked-door "x" --surface guest --desk 90 > "$T/nb1.out" 2>&1; N1=$?
 node scripts/new-board.mjs zz-negative "x" --surface nowhere --desk 90 > "$T/nb2.out" 2>&1; N2=$?; node scripts/new-board.mjs zz-negative "x" --surface guest > "$T/nb3.out" 2>&1; N3=$?
 [ $N1 = 1 ] && [ $N2 = 1 ] && [ $N3 = 1 ] && grep -q "already exists" "$T/nb1.out" && grep -q "not a surface" "$T/nb2.out" && grep -q "usage" "$T/nb3.out" && [ ! -d "src/app/(dev)/design/sandbox/zz-negative" ] && [ "$(git status --short)" = "$BEFORE" ] && ok "new-board.mjs refuses an existing board, a bad surface and no desk place, and writes nothing" || bad "new-board.mjs scaffolded over a board or without its facts"
+# 13. merge-lane.sh refuses to merge on any branch but launch-prep (a session can open on main), and leaves the tree
+echo msg > "$T/msg13.txt"; BEFORE="$(git status --short)"; S="$T" KIT_BRANCH=zz-not-this-branch zsh "$KIT/merge-lane.sh" no-such-lane deadbeef "$T/msg13.txt" > "$T/br.out" 2>&1; R13=$?
+[ $R13 != 0 ] && grep -q "not zz-not-this-branch" "$T/br.out" && [ "$(git status --short)" = "$BEFORE" ] && ok "merge-lane.sh refuses to merge off launch-prep and leaves the tree" || bad "merge-lane.sh merged off launch-prep"
 # the costs the refusals were written for, re-read from the system as it is now (a report, never a refusal; cost-readings.mjs)
 node "$KIT/cost-readings.mjs" 2>&1 | cut -c1-400 || echo "cost readings: the script failed (read it before the next integration)"
 rm -rf "$T"; echo "negative control: $([ $RC = 0 ] && echo all refusals hold || echo A REFUSAL HAS GONE QUIET)"; exit $RC

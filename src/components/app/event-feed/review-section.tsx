@@ -3,12 +3,12 @@
 import { useRef } from "react";
 import { ArrowUp, Check, Eye, ShieldCheck } from "lucide-react";
 
+import { PageHeading } from "@/components/shared/page-heading";
 import { Button } from "@/components/ui/button";
 import { formatCount } from "@/lib/format/count";
 import { GLASS, GLASS_MARK_LIT } from "@/lib/glass";
 import { cn } from "@/lib/utils";
 import { FeedSectionEmpty } from "./feed-section-empty";
-import { FeedSectionHeader } from "./feed-section-header";
 import { ReviewActions } from "./review-actions";
 import { ReviewGrid } from "./review-grid";
 import { type ReviewKind } from "./review-queue";
@@ -26,8 +26,45 @@ const KEY_HINT =
  */
 export const REVIEW_NOTE = "Anything you approve can still be hidden later.";
 
-// The Review room's body. Every state leads with the shared `FeedSectionHeader`, then a body:
-//   pending        → the amber header (label + count + the Select/Approve-all action slot), the
+/**
+ * ★ THE ROOM'S ONE HEADING (crumbs-42, from crumbs-7). The page headed the room "Review" and the room
+ * said Review again in the amber label over its grid: the stacked feed's section header, kept when the
+ * queue became a room of its own. The room's title carries what that label carried now, the queue's
+ * count beside it in the needs-action tone, and the room's actions sit on its row at a desk, as the
+ * Guests room's Invite does. Every state draws it, so the title stands where it stood whatever the queue
+ * does.
+ *
+ * ★ IN A HAND THE ACTIONS TAKE THEIR OWN ROW UNDER THE TITLE. The two faces are not one width (measured at
+ * 375: the browse duo 188px, the bulk bar 204px), and beside the title (118px) the bar alone overflowed a
+ * 333px room, so Select wrapped the row and moved the grid 36px. On a row of their own both faces are one
+ * height and nothing beneath them moves; from `sm` the row has room for either.
+ */
+function RoomHead({
+  waiting,
+  action,
+}: {
+  /** Uploads in the queue: a count beside the title while any wait. */
+  waiting?: number;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+      <div className="flex min-w-0 items-center gap-2">
+        <PageHeading>Review</PageHeading>
+        {waiting ? (
+          <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-warning/15 px-2 text-sm font-semibold text-warning tabular-nums">
+            {formatCount(waiting)}
+            <span className="sr-only"> waiting</span>
+          </span>
+        ) : null}
+      </div>
+      {action}
+    </div>
+  );
+}
+
+// The Review room's body. Every state leads with the room's head (`RoomHead`), then a body:
+//   pending        → the head with the queue's count and the Select/Approve-all action slot, the
 //                    host note, and the triage grid, with the line over its head when uploads
 //                    arrived since the queue was drawn;
 //   beat           → the all-caught-up success pop ([data-unlock-success]), un-carded;
@@ -64,8 +101,8 @@ export function ReviewSection({
 
   if (visualState === "moderation-off") {
     return (
-      <section aria-label="Review" className="space-y-2.5">
-        <FeedSectionHeader label="Review" />
+      <section className="space-y-2.5">
+        <RoomHead />
         <FeedSectionEmpty
           icon={ShieldCheck}
           title="Review uploads before they appear"
@@ -88,8 +125,8 @@ export function ReviewSection({
 
   if (visualState === "beat") {
     return (
-      <section aria-label="Review" className="space-y-2.5">
-        <FeedSectionHeader label="Review" amber />
+      <section className="space-y-2.5">
+        <RoomHead />
         <div
           data-unlock-success
           className="flex flex-col items-center gap-3 py-6 text-center"
@@ -111,8 +148,8 @@ export function ReviewSection({
 
   if (visualState === "caught-up") {
     return (
-      <section aria-label="Review" className="space-y-2.5">
-        <FeedSectionHeader label="Review" />
+      <section className="space-y-2.5">
+        <RoomHead />
         <FeedSectionEmpty
           icon={Check}
           title="You're all caught up"
@@ -149,14 +186,12 @@ export function ReviewSection({
 
   // visualState === "pending"
   return (
-    <section aria-label="Review" className="space-y-2.5">
+    <section className="space-y-2.5">
       {/* ReviewActions draws BOTH its own faces (`app-vocabulary` r1, `bulk-toolbar=icon`: the
-          browse duo, and the shared BulkBar cluster in select mode), so the header's action slot
+          browse duo, and the shared BulkBar cluster in select mode), so the head's action slot
           never goes empty: a host mid-selection always has Reject, Approve and Cancel. */}
-      <FeedSectionHeader
-        label="Review"
-        count={pending.length}
-        amber
+      <RoomHead
+        waiting={pending.length}
         action={<ReviewActions triage={triage} />}
       />
       {/* The host note: one quiet sentence where approvals are made, only while there is a queue

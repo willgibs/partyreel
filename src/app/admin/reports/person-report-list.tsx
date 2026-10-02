@@ -1,8 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
-import Link from "next/link";
-import { UserRound } from "lucide-react";
+import { ArrowUpRight, UserRound } from "lucide-react";
 
 import {
   actionReportAction,
@@ -33,6 +32,7 @@ import {
   REPORT_WORDS,
   type ReportWord,
 } from "@/lib/admin/reports";
+import { SITE_URL } from "@/lib/constants/site";
 import type { ReviewProfileReport } from "@/lib/db/queries/reports";
 import { formatAdminTimestamp } from "@/lib/format/admin-time";
 
@@ -51,6 +51,11 @@ import { formatAdminTimestamp } from "@/lib/format/admin-time";
  * looking at what they published, and /u/<slug> is that page. A reported
  * account with no handle has no page to open, so the name renders plain.
  * Nothing here names the reporter, because nothing stores one.
+ *
+ * ★ TO THE APP'S OWN ADDRESS, IN A NEW TAB (crumbs-41, from crumbs-39): the
+ * portal is its own host, an allow-list (`lib/surface`) that answers a relative
+ * `/u/<slug>` with its 404, so the link is the site's absolute address and opens
+ * beside the queue, as the help-feedback table's article links do.
  *
  * ★ BOTH VERBS ARE ONE PRESS. Mark actioned removes nothing (a person is
  * actioned out of band, so marking one only closes the report), so it never
@@ -83,13 +88,15 @@ function PersonReportCard({ report }: { report: ReviewProfileReport }) {
         <div className="min-w-0">
           <CardTitle className="truncate">{name}</CardTitle>
           {report.profile?.slug ? (
-            <Link
-              href={`/u/${report.profile.slug}`}
-              prefetch={false}
-              className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
+            <a
+              href={`${SITE_URL}/u/${encodeURIComponent(report.profile.slug)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
             >
               @{report.profile.slug}
-            </Link>
+              <ArrowUpRight className="size-3.5 shrink-0" aria-hidden />
+            </a>
           ) : (
             <p className="text-sm text-muted-foreground">No public handle</p>
           )}

@@ -485,6 +485,9 @@ Glass exploration answers its material.
   dialog selector), and a test proving a confirm gone asks for `alertdialog`, or it passes for nothing.
   ★ `PopupBody` is the one part that scrolls and keeps its children whole (`*:shrink-0`): a caller's flex column
   would otherwise shrink a clipping Card to its padding instead of scrolling, as build 17's Event Settings did.
+  ★ A screen's head never says its back arrow's words twice: a `description` equal to the arrow's label is drawn for a
+  screen reader alone (Settings named its event on the arrow and again under the bar); at a desk, where no arrow is
+  drawn, the line stays.
   ★ Every shape stands on the keyboard (the Dialog learned the Sheet's rule; a centred shape's `top` is
   `var(--vv-top) + var(--vv-h) / 2`, exactly `top-1/2` with nothing written). ★ A screen or a cover in a hand is a place
   the phone's Back closes (`ui/popup-back.ts`, on `lib/history-entry.ts` with the hub's sheets and the reel: one same-URL

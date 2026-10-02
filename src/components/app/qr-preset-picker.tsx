@@ -14,7 +14,11 @@ import { cn } from "@/lib/utils";
 type QrPresetPickerProps = {
   value: QrStyleKey;
   onChange: (value: QrStyleKey) => void;
-  /** The real join URL, so each swatch previews this event's actual QR. */
+  /**
+   * The link every swatch encodes. Before an event exists (the wizard) it is the stand-in
+   * (`previewJoinUrl`), as long as a real one so each swatch draws the real code's density, and
+   * opening no event: the wizard's step says its swatches are samples.
+   */
   joinUrl: string;
 };
 
@@ -91,7 +95,9 @@ export function QrPresetPicker({
                 />
               </span>
               <span className="block">
-                <span className="block text-sm font-medium">{preset.label}</span>
+                <span className="block text-sm font-medium">
+                  {preset.label}
+                </span>
                 <span className="block text-caption text-muted-foreground">
                   {preset.description}
                 </span>

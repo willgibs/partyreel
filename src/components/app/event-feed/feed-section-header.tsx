@@ -5,14 +5,15 @@ import { useEffect, useRef, useState } from "react";
 import { formatCount } from "@/lib/format/count";
 import { cn } from "@/lib/utils";
 
-// The single subtle header EVERY stacked feed section leads with (Gallery / Reel / Review), so a long
-// scroll reads clearly AND — the load-bearing bit — toggling pills never bounces the layout. The band is
-// locked to `min-h-7` (28px == a `size="sm"` Button's h-7) on the ROW, not derived from its children, so a
-// label-only header (Gallery/Reel) and an action-bearing header (Review-pending carries the Select /
-// Approve all cluster) resolve to the EXACT same height + top. ★ Keep any `action` control at `size="sm"` /
-// `icon-sm` (h-7): a `size="default"`/`lg` button is h-8 and would grow the band past 28px, reintroducing
-// the bounce. Subtle by construction: an 11px uppercase eyebrow + the pill-identical count badge, no rules /
-// fills / chevrons. `amber` is the only tone, reserved for a live review queue (needs-action).
+// The single subtle header every section of a page leads with (the hub's album, the Guests room's At the
+// door, Invited and Blocked), so a long scroll reads clearly AND — the load-bearing bit — toggling pills
+// never bounces the layout. The band is locked to `min-h-7` (28px == a `size="sm"` Button's h-7) on the
+// ROW, not derived from its children, so a label-only header and an action-bearing one (the album's tools)
+// resolve to the EXACT same height + top. ★ Keep any `action` control at `size="sm"` / `icon-sm` (h-7): a
+// `size="default"`/`lg` button is h-8 and would grow the band past 28px, reintroducing the bounce. Subtle by
+// construction: an 11px uppercase eyebrow + the pill-identical count badge, no rules / fills / chevrons, and
+// one tone. A room that is one section is headed by its page's title instead, never by this under it (the
+// Review room said Review twice that way: `review-section.tsx`'s `RoomHead`).
 //
 // ★ A BAND THAT WRAPS KEEPS ITS HEIGHT WHILE THE ACTION FILLS IT (crumbs-35, build 34's red-team). The
 // 28px floor holds only where the tools fit on one line. In a hand the album's resting tools (Add photos,
@@ -25,15 +26,12 @@ import { cn } from "@/lib/utils";
 export function FeedSectionHeader({
   label,
   count,
-  amber,
   action,
   actionFills = false,
 }: {
   label: string;
   count?: number;
-  /** The needs-action tone — a live Review queue only. */
-  amber?: boolean;
-  /** Right-side slot: the album's controls, Review's cluster (must stay ≤ h-7, see above). */
+  /** Right-side slot: the album's controls (must stay ≤ h-7, see above). */
   action?: React.ReactNode;
   /**
    * In a hand the action takes the row and the label steps aside, kept for a screen reader (crumbs-32):
@@ -59,23 +57,11 @@ export function FeedSectionHeader({
           actionFills && "max-sm:sr-only",
         )}
       >
-        <span
-          className={cn(
-            "text-label font-semibold uppercase",
-            amber ? "text-warning" : "text-muted-foreground",
-          )}
-        >
+        <span className="text-label font-semibold text-muted-foreground uppercase">
           {label}
         </span>
         {count ? (
-          <span
-            className={cn(
-              "flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold tabular-nums",
-              amber
-                ? "bg-warning/15 text-warning"
-                : "bg-muted text-muted-foreground",
-            )}
-          >
+          <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-muted px-1 text-[10px] font-semibold text-muted-foreground tabular-nums">
             {formatCount(count)}
           </span>
         ) : null}

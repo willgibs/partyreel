@@ -131,7 +131,8 @@ it rather than fork it.
   account after the attribution read, fail open to the plain disc, ride the link's who tuple, and move with the
   link's re-mint, which an open album asks at once whenever the attribution version moves: on a name, a face
   (`avatar_updated_at`) or a handle (`slug`; `profiles_album_note`, 20261001233110); the teaser and the personal
-  feeds carry none.
+  feeds carry none, but for the owner's own events' uploads in her Uploads, which wear her own name and face with no
+  door, credited "You" (`ownUploadCredit`). A host with no name wears no disc, never a "?" standing in for one.
 - **Tile previews are made in the browser at upload** (a ~640px WebP: a resize for photos, a frame-grab for videos)
   and PUT as the reserved `preview` variant: $0 and predictable, with no transform fee to meter against a
   storage-billed plan. Tiles serve `previewUrl ?? url` (an `onError` falls back to the original); the viewer and Save

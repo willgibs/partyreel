@@ -290,13 +290,23 @@ function CountingCard({
 }) {
   const [open, setOpen] = useState(false);
   const add = useHostAdd();
+  const trigger = useRef<HTMLButtonElement>(null);
+  // Add photos closed the guidance: its focus goes home without moving the page (the content's note).
+  const adding = useRef(false);
   const still = reel.stills[0];
   const onPhoto = Boolean(still) && !stuck;
   const toGo = photosToGo(reel.have);
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        if (next) adding.current = false;
+        setOpen(next);
+      }}
+    >
       <PopoverTrigger asChild>
         <button
+          ref={trigger}
           type="button"
           data-reel-card="counting"
           data-have={reel.have}
@@ -368,6 +378,19 @@ function CountingCard({
         align="start"
         className="w-72 space-y-3"
         data-reel-guidance=""
+        // ★ ADD PHOTOS TAKES FOCUS HOME WITHOUT MOVING THE PAGE (crumbs-45; build 36's red-team). Its press
+        // starts the smooth scroll to the upload panel (`openAdd`), and the guidance hands focus back to this
+        // card at the end of its 150 ms exit. Radix's own return is a plain `focus()`, which scrolls the card
+        // into view and so cancels the smooth scroll mid-way (the dropzone stopped 9 to 21 px under a 375x667
+        // fold; a probe in Chrome: a plain `focus()` 150 ms into such a scroll left the page at 81 px of its
+        // 981, `preventScroll` let it land). So that one close takes focus home itself, unscrolled; every
+        // other close keeps Radix's return.
+        onCloseAutoFocus={(event) => {
+          if (!adding.current) return;
+          adding.current = false;
+          event.preventDefault();
+          trigger.current?.focus({ preventScroll: true });
+        }}
       >
         <div className="space-y-1">
           <p className="text-sm font-medium">
@@ -402,6 +425,7 @@ function CountingCard({
             size="sm"
             className="w-full"
             onClick={() => {
+              adding.current = true;
               setOpen(false);
               add.openAdd();
             }}

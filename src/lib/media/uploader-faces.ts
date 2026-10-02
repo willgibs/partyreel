@@ -36,9 +36,49 @@ import type {
 import { captureError } from "@/lib/observability/sentry";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getAvatarUrl } from "@/lib/supabase/avatar-storage";
+import type { RequestAuth } from "@/lib/supabase/request-auth";
 
 /** Who is looking: a guest of the album (the consent line applies), or its host. */
 export type FaceViewer = "guest" | "host";
+
+/** Her own name and face, as her own uploads wear them on her own page. */
+export type OwnCredit = { name: string | null; face: UploaderFace | null };
+
+/**
+ * HER OWN FACE, ON HER OWN PAGE (crumbs-45; build 36's red-team: "the owner's feed viewer credits his own upload
+ * with a '?' disc"). Her Uploads feed marks her own events' uploads `isHost` (the confirm's words), and a host's
+ * credit wears the byline's face everywhere else; there the host is the caller, so those uploads wear her own name
+ * and face, read from her own row through her own client (`profiles_select_own`, no admin read for one's self):
+ * her photograph and `seedFor`'s colour, and no name means no face, by the rule's case 1. NO DOOR: she is already
+ * on her page. A courtesy, never a gate: a failed read leaves the plain credit, captured.
+ */
+export async function ownUploadCredit(auth: RequestAuth): Promise<OwnCredit> {
+  const { supabase, user } = auth;
+  if (!user) return { name: null, face: null };
+  try {
+    const row = await mustQuery(
+      supabase
+        .from("profiles")
+        .select("display_name, avatar_updated_at")
+        .eq("id", user.id)
+        .maybeSingle(),
+      "faces: own profile",
+    );
+    const name = row?.display_name?.trim() || null;
+    if (name === null) return { name: null, face: null };
+    return {
+      name,
+      face: {
+        avatarUrl: await getAvatarUrl(user.id, row?.avatar_updated_at ?? null),
+        seed: seedFor(user.id),
+        href: null,
+      },
+    };
+  } catch (error) {
+    captureError("media", error, { seam: "own_upload_credit_fail_open" });
+    return { name: null, face: null };
+  }
+}
 
 type ProfileFace = { slug: string | null; avatarMarker: string | null };
 

@@ -38,7 +38,8 @@ has no filter chips and no personal feeds (those are the profile's owner mode, [
   most); "X of N used" is `countActiveEvents()`, a head count. ★ The cards take turns (`dashboard/cover-cycle.tsx`):
   every 3.5 s exactly one card dissolves to its next still, in reading order, wrapping; a card with one still or off
   screen sits out, and nothing moves in a hidden tab or under reduced motion. The grid's columns live once
-  (`event-card-grid.ts`), shared with the loading skeleton.
+  (`event-card-grid.ts`), shared with the loading skeleton. ★ A hosted card says Open or Paused (`uploadsLabel`, the
+  hub code's own badge reads it too), never Closed: that is the door's word for Only people already in.
 - **Just arrived** is the newest approved uploads in a window that widens until it holds twelve (`arrivals.ts`); its
   number is a head count, never a read's length. ★ These are the one host tiles that keep the `[data-media-tile]`
   arrival fade (no `data-static`): they literally just arrived. Their reads live in `db/queries/pulse.ts`, apart from
@@ -81,7 +82,9 @@ its gate (below); `allow_videos` is the Videos switch, binding guests only, as `
 - **The sole create path is the `/dashboard/new` wizard** (`create-event-wizard.tsx`): Name, Style, then the beat. It
   creates once, at commit (an abandoned wizard leaves no row), through the non-redirecting `createEventInWizard`, which
   returns the id and token so the beat can draw the real code. Only the name is required; everything else is edited in
-  Settings (below). `enforce_event_limit` guards `MAX_EVENTS` in SQL.
+  Settings (below). `enforce_event_limit` guards `MAX_EVENTS` in SQL. ★ So the Style step's swatches are samples and
+  say so: they encode the stand-in link (`previewJoinUrl`, as long as a real one, naming nobody's album), which a
+  test-scan meets as a 404.
 - ★ **The beat happens once in an event's life, by construction**: only pressing Create reaches it. It draws the real
   code in a plain mat, two doors out (print the table cards; share the link) and one into the event; the custom link
   belongs to the share sheet.
@@ -235,7 +238,11 @@ beneath, newest first.
   (`setReelDefaults` revalidates the hub for the switch), which Next replays when a tap moves the address mid-save; a
   refresh in flight turned a tap on the page's back arrow or a row into a reload, or dropped the refresh
   (`refresh-then-write-policy.test.ts` keeps it out of the sheets; `lib/history-entry.ts` holds the matrix and the one
-  two-tap residual). ★ Every native history call hands Next a FRESH object (the marker as a field) or `null`, never
+  two-tap residual). ★ So a Settings page move made while a save is on its way is drawn at once and its address
+  written once the save has LANDED, its transition committed (`settings-state.tsx`'s `afterSaves`; the newest of
+  several moves, none if it comes back to the address's page, dropped by a close): written at the save's answer, a
+  second move 20ms later still reloaded the page, since Next's history entry holds the old tree until the commit
+  (crumbs-42, measured under `next dev`). ★ Every native history call hands Next a FRESH object (the marker as a field) or `null`, never
   `window.history.state`: Next's patched `pushState` and `replaceState` apply the URL only to a state without `__NA`
   (`history-state-policy.test.ts` refuses the shape; a write from a mount effect waits a microtask, because it would
   meet the browser's own function before Next patches it: `lab/board-state.tsx` says why). ★ Whose entry a place stands
@@ -363,9 +370,13 @@ visitor-facing "Private" never collides.
 `media.status` is `pending | approved | hidden | removed`; `create_media` sets pending or approved from the event's
 `moderation_mode`.
 
-- **The Review room** reads and presigns the `pending` slice alone, whole; its states (pending, caught up, moderation
+- **The Review room** reads and presigns the `pending` slice alone, whole, and credits it by those ids alone
+  (`readAlbumAttribution`, never the whole album's); its states (pending, caught up, moderation
   off with a one-tap "Turn on review", the all-caught-up beat) live in `use-review-triage.ts`, its pure rules in
-  `review-queue.ts`. Its grid is the shared `SelectableMediaGrid` on the uniform layout, because uniform tiles
+  `review-queue.ts`. ★ The room draws its own title, the page's one heading, in every state, with the queue's count
+  beside it and its actions on its row (the page drew one over the room's amber label: Review twice); in a hand the
+  actions take their own row, since the bulk bar is wider than the browse duo and beside the title it wrapped the row
+  on Select. Its grid is the shared `SelectableMediaGrid` on the uniform layout, because uniform tiles
   standardize the selection targets and scan fast. Over the queue, while there is one, sits its one line of advice,
   "Anything you approve can still be hidden later." (`REVIEW_NOTE`, Will's host note: so a host is lenient toward
   approve-and-hide over reject), a sentence and never a hint row.

@@ -107,12 +107,13 @@ export type AlbumDetail = {
   event: Tables<"events">;
   hostLabel: string | null;
   /**
-   * ONE PAGE of the event's media (every status, newest first, at most `ALBUM_DRILL_IN_PAGE`): removed
-   * included, so it can be restored.
+   * ONE PAGE of the event's media (every status, or the one asked, newest first, at most
+   * `ALBUM_DRILL_IN_PAGE`): removed included, so it can be restored.
    */
   media: ModerationMediaItem[];
+  /** The whole album's per-status counts, whatever the page narrows to. */
   counts: Record<MediaStatus, number>;
-  /** How many of the album's items come before this page (0 on the newest page). */
+  /** How many of the album's items (of the status asked, when one is) come before this page (0 on the newest page). */
   position: number;
   /** Where the next, older page starts, or null when this page ends on the album's oldest item. */
   next: AlbumCursor | null;
@@ -134,11 +135,16 @@ const MEDIA_STATUSES: readonly MediaStatus[] =
  *
  * The cursor arrives as two strings, never an object, so the page and its title share one read through
  * React's `cache()` (which compares arguments by value only for primitives).
+ *
+ * ★ ONE STATUS, WHEN ASKED (crumbs-41): `status` narrows the page and where it sits to that status, paging the
+ * same keyset (`media_event_id_status_idx` finds a rare status in a big album; the common one walks
+ * `media_event_created_id_idx`), while the four counts stay the whole album's.
  */
 export async function getAlbumForModeration(
   eventId: string,
   beforeAt: string | null = null,
   beforeId: string | null = null,
+  status: MediaStatus | null = null,
 ): Promise<AlbumDetail | null> {
   const admin = createAdminClient();
   const before: AlbumCursor | null =
@@ -168,40 +174,45 @@ export async function getAlbumForModeration(
       .order("created_at", { ascending: false })
       .order("id", { ascending: false })
       .limit(ALBUM_DRILL_IN_PAGE + 1);
+    if (status) q = q.eq("status", status);
     if (before) q = q.or(older(before));
+    return q;
+  };
+
+  /** Where this page sits: the items before it, of the status asked when one is. */
+  const positionQuery = (c: AlbumCursor) => {
+    let q = admin
+      .from("media")
+      .select("id", { count: "exact", head: true })
+      .eq("event_id", eventId)
+      .or(throughCursor(c));
+    if (status) q = q.eq("status", status);
     return q;
   };
 
   const [rows, statusCounts, hostLabels, position] = await Promise.all([
     mustQuery(pageQuery(), "admin album: media page"),
     Promise.all(
-      MEDIA_STATUSES.map((status) =>
+      MEDIA_STATUSES.map((counted) =>
         mustCount(
           admin
             .from("media")
             .select("id", { count: "exact", head: true })
             .eq("event_id", eventId)
-            .eq("status", status),
-          `admin album: ${status} count`,
+            .eq("status", counted),
+          `admin album: ${counted} count`,
         ),
       ),
     ),
     fetchHostLabels(admin, [event.host_id]),
     before
-      ? mustCount(
-          admin
-            .from("media")
-            .select("id", { count: "exact", head: true })
-            .eq("event_id", eventId)
-            .or(throughCursor(before)),
-          "admin album: items before the page",
-        )
+      ? mustCount(positionQuery(before), "admin album: items before the page")
       : Promise.resolve(0),
   ]);
 
   const hostLabel = hostLabels.get(event.host_id) ?? null;
   const counts = Object.fromEntries(
-    MEDIA_STATUSES.map((status, i) => [status, statusCounts[i]]),
+    MEDIA_STATUSES.map((counted, i) => [counted, statusCounts[i]]),
   ) as Record<MediaStatus, number>;
 
   const page = (rows ?? []).slice(0, ALBUM_DRILL_IN_PAGE);
