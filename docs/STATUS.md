@@ -36,9 +36,10 @@ and `about-press` r1 (two), in that order.
 - **Prod:** partyreel.com is `main` at tag `milestone-32` (`21697db1`, 2026-10-01 23:58Z), both projects READY; the
   read-only walk PASS (pages and German pricing, dead ends, the dashboard, Show more, the hub's Add, credits, the
   Report sheet, the admin door); production's first album-log prune runs at 04:48Z on 2026-10-02.
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 36 (`eb38b6be`, 2026-10-01
-  19:00Z): build 35 plus crumbs-36 to crumbs-40, its red-team walking; the desk is the same six boards (no board moved
-  since build 31). Vercel installs with pnpm 9.14.4, `package.json`'s `packageManager`.
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 38 (`c46c23a8`, 2026-10-02
+  02:20Z): milestone 32 plus batch 10, its red-team walking; the desk is the same six boards (no board moved
+  since build 31), its premises re-read against build 38. Vercel installs with pnpm 9.14.4, `package.json`'s
+  `packageManager`.
 - **The shared database** runs every migration through 2026-10-02, batch 10's seven last (the strike's lapse as a
   duration, the deleted events' index, the export Worker's reports, the host's cap on the album's read, a face moving
   the credits); no build of either project reads a dropped thing. The album-log prune runs nightly with the purge

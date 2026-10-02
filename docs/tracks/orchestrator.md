@@ -104,13 +104,17 @@ the alias mid-sitting (his yes). No new lane until his paste lands.
    and seams at `aa80d056`, the Worker deployed `abf810e7`), mkt-polish `a20865d5`, lab-sitting `d5efa6a3`, crumbs-43
    `5c572152` (its two migrations applied by protocol, faces_move_attribution 20261002020705 and guest_event_cap
    20261002020808, each payload the file's md5; the types and `hostCapOf` at `8877d204`); each pruned; the calls file at 73.
-3. **Build 38, now:** the `[preview]` record, `alias-ensure`, the prune; then its red-team from
-   `../partyreel-wt/_scratch/redteam-38/brief.md` (fill `{BUILD}`, and `{STAGED}`: three dismissed child-abuse reports
-   staged by SQL with fake reporter hashes, resolved 40 and 181 days back and one with no address 31 days back, for
-   crumbs-41's #60 walk; delete them after), and one read-only pass of the six boards' asks against build 38's code
-   (PREMISE lines from gates 121 to 128 name event-ready, disposable-mode, about-press, demo-framing and locked-door),
-   a desk-tune only if a claim drifted. Also: production's first album-log prune after 04:48Z on 2026-10-02 and the
-   export Worker's first heartbeat after 05:30Z, both read in `job_runs`.
+3. **Build 38 is ON THE ALIAS** (`c46c23a8`, both READY 2026-10-02 02:20Z, Vercel pruned). Running, both read-only:
+   - **its red-team** (agent `a73dd83f2c4210804`, Opus, Will's Chrome), from `../partyreel-wt/_scratch/redteam-38/brief.md`;
+     its ledger beside it (a respawn on the same brief continues after the ledger's last line). Staged for its #60
+     walk by SQL, to delete after it (and the 40-day one's photo `cc2517cc` restored, which its Take it down removes):
+     reports `b541d98b` (40 days), `88c5223f` (181 days), `a76ca9da` (no address, 31 days), on "Reel lane probe
+     (disposable)" `aefb1f5d`.
+   - **the desk pass** (agent `acf3e73280c6b401a`): the 22 open asks of the five boards `lab-scope --since 21697db1`
+     names (about-press, demo-framing, disposable-mode, event-ready, locked-door) re-read against build 38; a
+     desk-tune only where a claim drifted, never an ask's or an option's id.
+   Also: production's first album-log prune after 04:48Z on 2026-10-02 and the export Worker's first heartbeat after
+   05:30Z, both read in `job_runs`.
 4. **Tell Will the alias is ready** for his sitting (locked-door first).
 5. **After his paste:** transcribe it, then the wiring lanes from his picks, at most four at once (`memory_pressure`
    before each), `/me` (his A), the strike line's repeated date, and new boards as they're seen. What each wiring
