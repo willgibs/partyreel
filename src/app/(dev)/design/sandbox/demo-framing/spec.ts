@@ -70,7 +70,7 @@ export const DEMO_FRAMING = defineExploration({
     },
   ],
   context:
-    "Round three, from your round two answers. Every photograph is a stand-in from the band's twelve stills and every guest a persona: the kit is replaced before launch, so judge the object, the motion and the words. Each address's code is real and opens its own link.",
+    "Round three, from your round two answers. Every photograph is a stand-in from the band's twelve stills and every guest a persona: the kit is replaced before launch, so judge the object, the motion and the words. Each address's code is a real one, encoding that address's own link.",
   opening: {
     about:
       "The home's first screen and the demo's door: your hybrid of the turns and the address on the stage in three takes, and what the door says it is.",
@@ -99,7 +99,7 @@ export const DEMO_FRAMING = defineExploration({
     {
       term: "code",
       means:
-        "The QR code: the square a phone's camera reads to open a link. Each address here has its own, and it scans.",
+        "The QR code: the square a phone's camera reads to open a link. Each address here has its own.",
     },
     {
       term: "stream",
@@ -194,7 +194,7 @@ export const DEMO_FRAMING = defineExploration({
           gains:
             "Closest to your note, and the card's own idea: things standing out of the link.",
           costs:
-            "Two white shapes, so a busier silhouette than one; the stream never fully rests.",
+            "A more intricate silhouette than one card, and the stream never quite rests while it types.",
         },
         {
           id: "open",

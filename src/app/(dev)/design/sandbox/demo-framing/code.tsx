@@ -8,8 +8,9 @@ import { SITE_URL } from "@/lib/constants/site";
  * standing under it, `https://partyreel.com/e/<slug>`, so a new address is a
  * new code (his "bounce in a new QR above the input each time it's updated")
  * and the code a visitor scans is always the link they are reading. Every
- * address the demo prints is reserved to it, so any code caught off the hero
- * opens the demo on the phone that scanned it.
+ * address the demo prints is reserved to it (the wiring's, with the demo's
+ * seed), so any code caught off the hero will open the demo on the phone that
+ * scanned it; until then a scan lands on the link's own not-found door.
  *
  * ★ DRAWN AS `footer-qr.tsx` DRAWS ITS CODE: `qrcode-generator` is DOM-free,
  * so the matrix is plain arithmetic in the render, one <path> of unit squares

@@ -116,11 +116,12 @@ const ARRIVE_MS = 700;
 
 /**
  * Where a photograph's credit fades in, as its transform scale (0.17 at the
- * link, 0.92 at the edge): from about half its full size, where a phone's
- * frame sets a first name at 9 px and a desk's at 13.
+ * link, 0.92 at the edge): from about a third of its full size, so the
+ * photographs crowding the link carry no specks of chips and every one past
+ * them carries its guest.
  */
-const CREDIT_FROM = 0.4;
-const CREDIT_TO = 0.6;
+const CREDIT_FROM = 0.3;
+const CREDIT_TO = 0.46;
 
 const mod = (a: number, n: number) => ((a % n) + n) % n;
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
