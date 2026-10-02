@@ -1,13 +1,20 @@
 /**
- * THE LIVE REEL ON THE ALBUM PAGE: the controller, the Highlight reel tile and the approval toast.
+ * THE LIVE REEL ON THE ALBUM PAGE: the controller, what it tells the album's head, and the approval
+ * toast.
  *
  * What is pinned is behaviour: the reel exists from the SECOND reel-eligible item and below it
  * there is nothing; a clip never counts; the host's switch, the platform lever and a door still
- * standing each take it away; a tap (or `?reel`) opens the view; the screen posture below the
- * minimum is the code alone; the tile wears the reel's glyph and says "Make your own clip to share"
- * only with a creator to make one, a line that opens the view with the creator asked for; and on a
- * moderated event the toast "One of yours is in the album" with "Watch reel" plays once, when this
- * device's held upload shows up approved.
+ * standing each take it away; a press on the head's round (or `?reel`) opens the view; the screen
+ * posture below the minimum is the code alone; the head is told the cover's own stills (the reel's
+ * opening while it plays, the album's newest while it does not, previews only) and the reel's door;
+ * and on a moderated event the toast "One of yours is in the album" with "Watch reel" plays once,
+ * when this device's held upload shows up approved.
+ *
+ * ★ RESHAPED ON PURPOSE (`event-header` r1; scar kept: the reel's door and its stills are counted
+ * exactly as before): the Highlight reel tile went, the reel living in the album's head now, so what
+ * the tile proved is proved here on the head's bridge (`event-experience-head.tsx`), read the way the
+ * page reads it, from OUTSIDE the album's live source. The tile's box, its glyph and its clip line went
+ * with it (the creator's door is the view's own Make your own).
  *
  * The view itself is stubbed (its own file pins it); the doorbell is the one seam driven by hand.
  */
@@ -90,8 +97,9 @@ vi.mock("@/components/guest/reel/creator-seam", () => ({
 const { GalleryLiveProvider } = await import("@/components/guest/gallery-live");
 // The lazy view's module, loaded once up front, so its chunk resolves at once when a test opens it.
 await import("@/components/guest/reel/live-reel-view");
-const { LiveReel, LiveReelTile } =
-  await import("@/components/guest/reel/live-reel");
+const { LiveReel } = await import("@/components/guest/reel/live-reel");
+const { createHeadBridge, useHeadBridge } =
+  await import("@/components/guest/event-experience-head");
 // The news channel the page hands the toast (her tracker's store), the real one.
 const { createUploadTrackerStore } =
   await import("@/components/guest/upload-tracker");
@@ -191,6 +199,37 @@ function serve() {
   }) as unknown as typeof fetch;
 }
 
+/**
+ * THE HEAD, AS THE PAGE DRAWS IT FROM THE BRIDGE: the reel's round while the album has a reel (its
+ * press opens the view), and the cover's stills as plain images. Only what the page's own cover and
+ * shutter read, nothing of their look.
+ */
+function HeadProbe({
+  bridge,
+}: {
+  bridge: ReturnType<typeof createHeadBridge>;
+}) {
+  const head = useHeadBridge(bridge);
+  return (
+    <div data-head-probe="">
+      {head?.reel.available && (
+        <button type="button" onClick={head.reel.open}>
+          Watch the highlight reel
+        </button>
+      )}
+      {head?.stills.map((still) => (
+        // eslint-disable-next-line @next/next/no-img-element -- a probe of the bridge's stills
+        <img
+          key={still.id}
+          data-probe-still={still.id}
+          src={still.tile}
+          alt=""
+        />
+      ))}
+    </div>
+  );
+}
+
 async function mount({
   items = [item(1), item(2)],
   reel = REEL,
@@ -200,7 +239,6 @@ async function mount({
   welcomePending = false,
   isOwner = false,
   approvalNews,
-  tileClassName,
 }: {
   items?: GalleryItem[];
   reel?: GalleryReel | null;
@@ -211,8 +249,6 @@ async function mount({
   isOwner?: boolean;
   /** The server's news, as her tracker's store hands it on (crumbs-38). */
   approvalNews?: ReturnType<typeof createUploadTrackerStore>["news"];
-  /** The box the page hands the tile (its column and margins). */
-  tileClassName?: string;
 } = {}) {
   latest = new Map(items.map((it) => [it.id, it]));
   nextSync = null;
@@ -248,32 +284,38 @@ async function mount({
           },
         };
   const galleryPromise = Promise.resolve(payload);
+  // The head's bridge, read from OUTSIDE the live source, where the page's cover stands.
+  const bridge = createHeadBridge();
   const tree = (q: QueueItem[], pending = welcomePending) => (
-    <Suspense fallback={<div>loading</div>}>
-      <GalleryLiveProvider
-        galleryPromise={galleryPromise}
-        qrToken="qr-token"
-        access={access}
-        isDemo={false}
-        pendingUploads={q}
-      >
-        <LiveReel
-          eventId="event-1"
-          eventName="Maya & Jay"
-          joinUrl="https://partyreel.com/e/qr-token"
-          displayAddress="partyreel.com/e/qr-token"
-          qrStyle="classic"
+    <>
+      <HeadProbe bridge={bridge} />
+      <Suspense fallback={<div>loading</div>}>
+        <GalleryLiveProvider
+          galleryPromise={galleryPromise}
+          qrToken="qr-token"
+          access={access}
           isDemo={false}
-          moderated={moderated}
-          queue={q}
-          approvalNews={approvalNews}
-          welcomePending={pending}
-          isOwner={isOwner}
+          pendingUploads={q}
         >
-          <LiveReelTile className={tileClassName} />
-        </LiveReel>
-      </GalleryLiveProvider>
-    </Suspense>
+          <LiveReel
+            eventId="event-1"
+            eventName="Maya & Jay"
+            joinUrl="https://partyreel.com/e/qr-token"
+            displayAddress="partyreel.com/e/qr-token"
+            qrStyle="classic"
+            isDemo={false}
+            moderated={moderated}
+            queue={q}
+            approvalNews={approvalNews}
+            welcomePending={pending}
+            isOwner={isOwner}
+            headBridge={bridge}
+          >
+            {null}
+          </LiveReel>
+        </GalleryLiveProvider>
+      </Suspense>
+    </>
   );
   let utils!: ReturnType<typeof render>;
   await act(async () => {
@@ -323,51 +365,12 @@ afterEach(() => {
   window.history.replaceState(null, "", "/");
 });
 
-describe("the Highlight reel tile", () => {
-  /** The tile's own box: the heading, the glyph, the line and the watch layer across them. */
-  const theTile = (container: HTMLElement) =>
-    container.querySelector<HTMLElement>("[data-reel-tile]");
-
-  it("is there at two reel-eligible items, headed Highlight reel", async () => {
-    const { container } = await mount();
-    // The watch target is a layer across the whole card (a button cannot hold the line's button).
+describe("the reel's door in the album's head", () => {
+  it("is there at two reel-eligible items", async () => {
+    await mount();
     expect(
       screen.getByRole("button", { name: "Watch the highlight reel" }),
     ).toBeInTheDocument();
-    const tile = theTile(container);
-    expect(tile).toHaveTextContent("Highlight reel");
-    // No creator yet: no promise of a clip nobody can make.
-    expect(tile).not.toHaveTextContent("Make your own clip to share");
-    // No style name, no moment count, no text chip in the corner (the corner is a glyph).
-    expect(tile).not.toHaveTextContent(/Cinematic|moments|The reel/);
-  });
-
-  it("takes a tap and a press on its card alone, never in the column's gutters the page hands it", async () => {
-    // The page's own box for it (event-experience.tsx: the words' column, and the tile's margins).
-    const COLUMN_BOX = "w-full max-w-2xl px-5 mt-7 mb-4";
-    const { container } = await mount({ tileClassName: COLUMN_BOX });
-    const tile = theTile(container)!;
-    // The caller's box stays the caller's: nothing in it takes a tap or moves on a press.
-    expect(tile.className).toBe(COLUMN_BOX);
-    const watch = screen.getByRole("button", {
-      name: "Watch the highlight reel",
-    });
-    // The watch layer (absolute, inset 0) spans its positioned parent, which is the card: the
-    // gutters' 20px are outside it, and the press's scale moves the card about its own centre.
-    const card = watch.parentElement!;
-    expect(card).toHaveAttribute("data-reel-card");
-    expect(card.parentElement).toBe(tile);
-    expect(card.className).toMatch(/(^|\s)relative(\s|$)/);
-    expect(card.className).toContain("scale-[0.99]");
-    expect(card.className).not.toMatch(/px-5|max-w-2xl|mt-7|mb-4/);
-  });
-
-  it("wears the reel's glyph in its corner, a mark with no words (`badge=glyph`)", async () => {
-    const { container } = await mount();
-    const glyph = container.querySelector("[data-reel-glyph]");
-    expect(glyph).not.toBeNull();
-    expect(glyph?.textContent).toBe("");
-    expect(glyph?.querySelector("svg")).not.toBeNull();
   });
 
   it("is absent at one item, and a clip never counts toward the two", async () => {
@@ -405,52 +408,6 @@ describe("the Highlight reel tile", () => {
     }
   });
 
-  it("offers the clip only with a creator AND the host's plan in hand", async () => {
-    hooks.creator = () => null;
-    const { unmount } = await mount();
-    expect(
-      screen.getByRole("button", { name: "Make your own clip to share" }),
-    ).toBeInTheDocument();
-    unmount();
-    await mount({ reel: { ...REEL, clip: null } });
-    expect(
-      screen.queryByRole("button", { name: "Make your own clip to share" }),
-    ).toBeNull();
-  });
-
-  it("its line opens the view with the creator asked for, and a plain tap never asks", async () => {
-    hooks.creator = () => null;
-    await mount();
-    fireEvent.click(
-      screen.getByRole("button", { name: "Make your own clip to share" }),
-    );
-    await settle();
-    const view = screen.getByTestId("reel-view");
-    expect(view).toHaveAttribute("data-creator-asked", "true");
-    expect(view).toHaveAttribute("data-event-name", "Maya & Jay");
-    expect(window.location.search).toBe("?reel");
-    // Closing spends the ask: the next open is the plain reel.
-    fireEvent.click(screen.getByRole("button", { name: "Close the view" }));
-    await settle();
-    fireEvent.click(
-      screen.getByRole("button", { name: "Watch the highlight reel" }),
-    );
-    await settle();
-    expect(screen.getByTestId("reel-view")).toHaveAttribute(
-      "data-creator-asked",
-      "false",
-    );
-  });
-
-  it("crossfades the reel's own stills: previews only, six slots", async () => {
-    const { container } = await mount();
-    const stills = [...container.querySelectorAll("img.lr-still")];
-    expect(stills).toHaveLength(6);
-    for (const img of stills) {
-      expect(img.getAttribute("src")).toMatch(/\/p\/\d\.webp$/);
-    }
-  });
-
   it("appears the moment the doorbell brings the second photograph", async () => {
     await mount({ items: [item(1)] });
     expect(
@@ -460,6 +417,69 @@ describe("the Highlight reel tile", () => {
     expect(
       screen.getByRole("button", { name: "Watch the highlight reel" }),
     ).toBeInTheDocument();
+  });
+});
+
+describe("the cover's photographs", () => {
+  const stills = (container: HTMLElement) => [
+    ...container.querySelectorAll<HTMLImageElement>("[data-probe-still]"),
+  ];
+
+  it("are the reel's own opening while it plays: previews only, each once, at most six", async () => {
+    const items = Array.from({ length: 9 }, (_, i) => item(i + 1));
+    const { container } = await mount({ items });
+    const drawn = stills(container);
+    expect(drawn.length).toBeGreaterThan(0);
+    expect(drawn.length).toBeLessThanOrEqual(6);
+    const ids = drawn.map((img) => img.dataset.probeStill);
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const img of drawn) {
+      expect(img.getAttribute("src")).toMatch(/\/p\/\d\.webp$/);
+    }
+  });
+
+  it("are the album's newest when it has no reel (switched off, or one photograph short)", async () => {
+    const { container, unmount } = await mount({
+      items: [item(1), item(2), item(3)],
+      reel: { ...REEL, showReel: false },
+    });
+    // The manifest is newest first: the fixture's lowest number is its newest.
+    expect(stills(container).map((img) => img.dataset.probeStill)).toEqual([
+      "m1",
+      "m2",
+      "m3",
+    ]);
+    unmount();
+    const one = await mount({ items: [item(1)] });
+    expect(stills(one.container).map((img) => img.dataset.probeStill)).toEqual([
+      "m1",
+    ]);
+  });
+
+  it("never draw a clip, a held item or one with nothing to draw", async () => {
+    const { container } = await mount({
+      items: [
+        item(1),
+        item(2, { reelEligible: false }),
+        item(3, { status: "pending" }),
+        item(4, { type: "video", previewUrl: null }),
+      ],
+    });
+    expect(stills(container).map((img) => img.dataset.probeStill)).toEqual([
+      "m1",
+    ]);
+  });
+
+  it("a teaser's own nine stand in, newest first", async () => {
+    const { container } = await mount({
+      access: "teaser",
+      reel: null,
+      items: [item(1), item(2)],
+    });
+    expect(stills(container).map((img) => img.dataset.probeStill)).toEqual([
+      "m1",
+      "m2",
+    ]);
   });
 });
 

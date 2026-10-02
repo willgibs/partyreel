@@ -3,114 +3,219 @@ import { READING_MESSAGE, type ViewId } from "../model";
 /**
  * WHAT A FRAME SAYS UNDER ITSELF, READ OFF ITS OWN DOCUMENT.
  *
- * A family's words claim things a reader can check ("square corners", "no
- * line anywhere", "glass"), so each frame's caption is the computed style of
- * the parts those words are about, never the words themselves: the primary's
- * height, corner and face, how a surface ends, what a layer is made of. If a
- * caption and an option's words disagree, the caption is the truth.
+ * An option's words claim things a reader can check ("a pill", "four corner
+ * marks", "the display, near-black on paper"), so each caption is the computed
+ * style of the parts those words are about, never the words themselves. If a
+ * caption and an option's words disagree, the caption is the truth. (A step
+ * hides the captions from the reviewer; `lab:demo --verbose` prints them.)
  */
 
 const px = (v: string) => Math.round(Number.parseFloat(v) * 10) / 10 || 0;
 
-/** "pill", or the corner in pixels. */
+function q(doc: Document, sel: string, within?: string): HTMLElement | null {
+  const root = within ? doc.querySelector(within) : doc;
+  return (root?.querySelector(sel) as HTMLElement | null) ?? null;
+}
+
+/** "a pill", "a circle", or the corner in pixels. */
 function corner(el: Element): string {
   const cs = getComputedStyle(el);
   const r = px(cs.borderTopLeftRadius);
   const h = (el as HTMLElement).offsetHeight;
-  return h > 0 && r >= h / 2 - 0.5 ? "a pill" : `${r}px corners`;
+  const w = (el as HTMLElement).offsetWidth;
+  if (h > 0 && r >= h / 2 - 0.5) return w - h < 2 ? "a circle" : "a pill";
+  return `${r}px corners`;
 }
 
-/** The face a control speaks in, as a reader would name it. */
+/** Whether a box's background (or a pseudo-element's) draws the four corner marks, visibly. */
+function marked(el: Element, pseudo?: string): boolean {
+  const cs = getComputedStyle(el, pseudo);
+  const layers = (cs.backgroundImage.match(/linear-gradient/g) ?? []).length;
+  if (layers < 8 || cs.opacity === "0") return false;
+  const ink = cs.getPropertyValue("--m-c").trim();
+  return ink !== "" && ink !== "transparent" && !/rgba\(0, 0, 0, 0\)/.test(ink);
+}
+
+/** A computed shadow list as offsets: `[x, y, blur, spread, inset]` each, its colour dropped. */
+function shadowsOf(
+  el: Element,
+): { x: number; y: number; blur: number; spread: number; inset: boolean }[] {
+  const raw = getComputedStyle(el).boxShadow;
+  if (raw === "none") return [];
+  return raw.split(/,(?![^(]*\))/).map((one) => {
+    const lengths =
+      one.replace(/^\s*\S*\([^)]*\)\s*/, "").match(/-?[\d.]+px/g) ?? [];
+    const [x = 0, y = 0, blur = 0, spread = 0] = lengths.map((l) => px(l));
+    return { x, y, blur, spread, inset: /inset/.test(one) };
+  });
+}
+
+/** How a box ends: marks, a ring, a hairline, a bevel, a line, a shadow, its tone. */
+function edge(el: Element): string {
+  const parts: string[] = [];
+  if (marked(el) || marked(el, "::before")) parts.push("four corner marks");
+  const shadows = shadowsOf(el);
+  const ring = shadows.filter(
+    (s) => s.inset && !s.x && !s.y && !s.blur && s.spread > 0,
+  );
+  const widest = Math.max(0, ...ring.map((s) => s.spread));
+  const above = shadows.some((s) => s.inset && s.y > 0 && !s.blur);
+  const below = shadows.some((s) => s.inset && s.y < 0 && !s.blur);
+  if (widest >= 1.4) parts.push(`a ${widest}px ring`);
+  else if (widest > 0) parts.push("a hairline");
+  if (above && below) parts.push("a bevel");
+  else if (below) parts.push("a line underneath");
+  if (shadows.some((s) => !s.inset && (s.blur > 0 || s.y !== 0)))
+    parts.push("a shadow");
+  if (!parts.length) parts.push("its tone alone");
+  return parts.join(", ");
+}
+
+/** The face a control speaks in. */
 function face(el: Element): string {
   const cs = getComputedStyle(el);
   const family = /urbanist/i.test(cs.fontFamily) ? "Urbanist" : "Inter";
   const caps = cs.textTransform === "uppercase" ? " capitals" : "";
-  return `${family} ${cs.fontWeight} at ${px(cs.fontSize)}px${caps}`;
+  const track = px(cs.letterSpacing) / Math.max(1, px(cs.fontSize));
+  const tracked =
+    track > 0.05 ? ` tracked ${Math.round(track * 100) / 100}em` : "";
+  return `${family} ${cs.fontWeight} at ${px(cs.fontSize)}px${caps}${tracked}`;
 }
 
-/** How a surface ends: a rule, a hairline, a shadow, glass. */
-function edge(el: Element): string {
+/**
+ * Light, dark or clear, off a background colour. A token resolves to the
+ * colour space it was written in, so an `oklch()` reads its lightness and an
+ * `rgb()` its luminance.
+ */
+function tone(el: Element): string {
+  const bg = getComputedStyle(el).backgroundColor;
+  const n = (bg.match(/-?[\d.]+/g) ?? []).map(Number);
+  if (!n.length) return "clear";
+  const alpha = /\//.test(bg) || /rgba/.test(bg) ? (n[3] ?? 1) : 1;
+  if (alpha < 0.2) return "clear";
+  const l = /^oklch|^oklab/.test(bg)
+    ? n[0]
+    : (0.2126 * n[0] + 0.7152 * n[1] + 0.0722 * n[2]) / 255;
+  return l < 0.4 ? "dark" : l > 0.75 ? "light" : "mid-grey";
+}
+
+/** The meter's build, off the voice's own variables. */
+function meter(el: Element): string {
   const cs = getComputedStyle(el);
-  const parts: string[] = [];
-  const blur = cs.backdropFilter && cs.backdropFilter !== "none";
-  if (blur) parts.push("glass");
-  const top = px(cs.borderTopWidth);
-  const sides = px(cs.borderLeftWidth) + px(cs.borderRightWidth);
-  if (top > 0 && sides === 0) parts.push("a rule above");
-  else if (top > 0) parts.push("a border");
-  if (cs.outlineStyle !== "none" && px(cs.outlineWidth) > 0)
-    parts.push("an ink frame");
-  const shadow = cs.boxShadow === "none" ? "" : cs.boxShadow;
-  const layers = shadow.split(/,(?![^(]*\))/).map((s) => s.trim());
-  const outer = layers.filter(
-    (s) => s && !s.includes("inset") && !/ 0px 0px 0px /.test(s),
-  );
-  const ring = layers.some((s) => / 0px 0px 0px [0-9.]+px/.test(s));
-  if (ring && !blur) parts.push("a hairline");
-  if (outer.some((s) => !/0px 0px 0px 0px/.test(s))) parts.push("a shadow");
-  if (parts.length === 0) parts.push("its tone alone");
-  return parts.join(" and ");
+  const mask = cs.getPropertyValue("--vf-meter-mask").trim();
+  if (mask && mask !== "none") return `frames, ${px(cs.height)}px tall`;
+  if (px(cs.borderTopLeftRadius) > 1) return `a bar, ${px(cs.height)}px tall`;
+  return `tape, ${px(cs.height)}px tall`;
 }
 
-/** A line about the first element a selector finds, or nothing. */
-function about(
-  doc: Document,
-  selector: string,
-  say: (el: Element) => string,
-): string | null {
-  const el = doc.querySelector(selector);
-  return el ? say(el) : null;
+/** The lock's kind, off a pinned focus. */
+function lock(el: Element | null): string {
+  if (!el) return "not drawn";
+  const after = getComputedStyle(el, "::after");
+  if (marked(el, "::after") && after.opacity !== "0")
+    return `four marks ${-px(after.top)}px out`;
+  const cs = getComputedStyle(el);
+  if (
+    cs.outlineStyle !== "none" &&
+    px(cs.outlineWidth) > 0 &&
+    !/0\)$/.test(cs.outlineColor)
+  )
+    return `a ring ${px(cs.outlineOffset)}px out`;
+  return "not drawn";
 }
+
+const ROOM = '[data-ground="room"]';
 
 /** The reading for one view, or null while it has not settled. */
 export function readView(view: ViewId, doc: Document): string | null {
-  const primary = about(
+  if (view === "voice") {
+    const label = q(doc, '[data-slot="label"]', ROOM);
+    const badge = q(doc, '[data-slot="badge"]', ROOM);
+    const progress = q(doc, '[data-slot="progress"]', ROOM);
+    const link = q(doc, '[data-variant="link"]', ROOM);
+    if (!label || !badge || !progress) return null;
+    const mark = link ? getComputedStyle(link, "::before").content : "none";
+    const said =
+      mark === "none" || mark === '""' || mark === "normal" ? "none" : mark;
+    return `Labels in ${face(label)}; readouts in ${face(badge)}; the meter as ${meter(progress)}; a link's mark ${said}`;
+  }
+  if (view === "actions") {
+    const primary = q(
+      doc,
+      '[data-variant="default"][data-size="default"]',
+      ROOM,
+    );
+    const outline = q(
+      doc,
+      '[data-variant="outline"][data-size="default"]',
+      ROOM,
+    );
+    const dial = q(doc, '[data-size="icon"]', ROOM);
+    const focus = q(doc, '[data-variant="default"][data-demo~="focus"]', ROOM);
+    if (!primary || !outline) return null;
+    return `Primary ${primary.offsetHeight}px, ${corner(primary)}, ${face(primary)}; outline ends in ${edge(outline)}; a dial is ${dial ? corner(dial) : "absent"}; focus is ${lock(focus)}`;
+  }
+  if (view === "fields") {
+    const input = q(doc, '[data-slot="input"]', ROOM);
+    const sw = q(doc, '[data-slot="switch"]', ROOM);
+    const check = q(doc, '[data-slot="checkbox"]', ROOM);
+    if (!input || !sw || !check) return null;
+    return `A field ${input.offsetHeight}px, ${corner(input)}, ${tone(input) === "clear" ? "open" : "filled"}, ends in ${edge(input)}; a switch ${sw.offsetWidth}×${sw.offsetHeight}, ${corner(sw)}; a check ${corner(check)}`;
+  }
+  if (view === "layers") {
+    const card = q(doc, '[data-slot="card"]', ROOM);
+    const roomMenu = q(doc, '[data-slot="dropdown-menu-content"]', ROOM);
+    const paperMenu = q(
+      doc,
+      '[data-slot="dropdown-menu-content"]',
+      '[data-ground="paper"]',
+    );
+    const menu = roomMenu ?? paperMenu;
+    if (!card || !menu) return null;
+    return `A card ends in ${edge(card)}, ${corner(card)}; a menu is ${roomMenu ? tone(roomMenu) : "?"} in the room${paperMenu ? ` and ${tone(paperMenu)} on paper` : ""}, ${corner(menu)}, ending in ${edge(menu)}`;
+  }
+  if (view === "status") {
+    const badge = q(doc, '[data-slot="badge"][data-variant="success"]', ROOM);
+    const face1 = doc.querySelector<HTMLElement>(
+      `${ROOM} [data-slot="avatar-group"] > [data-slot="avatar"][data-size="default"]`,
+    );
+    const glyph = q(doc, '[data-slot="empty-glyph"]', ROOM);
+    if (!badge || !face1 || !glyph) return null;
+    const share = Math.round(
+      (-px(getComputedStyle(face1).marginInlineEnd) /
+        Math.max(1, face1.offsetWidth)) *
+        100,
+    );
+    return `A badge has ${tone(badge) === "clear" ? "no plate" : "a plate"} and ends in ${edge(badge)}; faces overlap ${share}% of a face; the empty place's glyph ${glyph.offsetWidth}×${glyph.offsetHeight}, ${corner(glyph)}`;
+  }
+  // A screen: the atoms the page is made of, as this identity draws them.
+  const primary = q(doc, '[data-slot="button"][data-variant="default"]');
+  const field = q(doc, '[data-slot="input"]');
+  const panel = q(
     doc,
-    '[data-slot="button"][data-variant="default"]:not([data-on-photo] *)',
-    (el) =>
-      `Primary ${(el as HTMLElement).offsetHeight}px, ${corner(el)}, ${face(el)}`,
+    '[data-slot="popup-content"], [data-slot="responsive-menu"], [data-slot="responsive-menu-rows"] > *',
   );
-  if (view === "hub") {
-    const checklist = about(doc, "[data-checklist]", edge);
-    const mark = about(doc, "[data-code-mark]", corner);
-    if (!primary || !checklist) return null;
-    return `${primary}; the checklist ends in ${checklist}; the code's mark has ${mark ?? "none"}`;
-  }
-  if (view === "settings") {
-    const popup = doc.querySelector<HTMLElement>('[data-slot="popup-content"]');
-    if (!popup) return null;
-    const choice = about(doc, "[data-door-choice][data-state='on']", (el) =>
-      corner(el),
-    );
-    return `Settings as a ${popup.dataset.shape}, made of ${edge(popup)}; the chosen door has ${choice ?? "no mark"}; ${primary ?? ""}`.replace(
-      /; $/,
-      "",
-    );
-  }
-  if (view === "add") {
-    const rows = doc.querySelector('[data-slot="responsive-menu-rows"]');
-    const menu = doc.querySelector('[data-slot="responsive-menu"]');
-    const item = doc.querySelector('[data-slot="responsive-menu-item"]');
-    if (!item) return null;
-    const panel = rows?.firstElementChild ?? menu;
-    return `The Add ${rows ? "rises as rows with Cancel beneath" : "opens as a menu under the Add"}, made of ${panel ? edge(panel) : "nothing"}; a row ${(item as HTMLElement).offsetHeight}px, ${face(item)}`;
-  }
-  const card = about(doc, '[data-slot="card"]', edge);
-  const layer = about(doc, '[data-slot="dropdown-menu-content"]', edge);
-  const field = about(doc, '[data-slot="input"]', (el) => {
-    const cs = getComputedStyle(el);
-    const line =
-      px(cs.borderTopWidth) === 0 && px(cs.borderBottomWidth) > 0
-        ? "a line to write on"
-        : `${corner(el)}`;
-    return `${(el as HTMLElement).offsetHeight}px, ${line}`;
-  });
   const parts = [
-    primary,
-    field ? `a field ${field}` : null,
-    card ? `a card ends in ${card}` : null,
-    layer ? `a menu is ${layer}` : null,
-  ].filter(Boolean);
+    primary ? `primary ${primary.offsetHeight}px, ${corner(primary)}` : null,
+    field ? `a field ${field.offsetHeight}px, ${corner(field)}` : null,
+    panel ? `the layer ${tone(panel)}, ${corner(panel)}` : null,
+  ].filter(Boolean) as string[];
+  if (view === "door") {
+    const seg = q(doc, '[data-slot="toggle-group-item"][data-state="on"]');
+    const gate = q(doc, '[data-slot="radio-card"][data-state="on"]');
+    if (!seg || !gate) return null;
+    parts.push(
+      `the door's choice ${corner(seg)}; its gate ends in ${edge(gate)}`,
+    );
+  }
+  if (view === "review") {
+    const count = q(doc, '[data-review-room] [data-slot="badge"]');
+    if (!count) return null;
+    parts.push(
+      `the queue's count ${tone(count) === "clear" ? "a light" : "a plate"}`,
+    );
+  }
+  if (view === "add" && !panel) return null;
   return parts.length ? parts.join("; ") : null;
 }
 

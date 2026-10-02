@@ -161,8 +161,9 @@ export type ReelViewProps = {
   /** The album holds guests' uploads for the host's review (the creator's Add to event says so). */
   moderated?: boolean;
   /**
-   * The creator was asked for before the view opened (the tile's "Make your own clip to share"): it
-   * opens the moment this browser is known to make clips, or the greyed button explains why not.
+   * The creator was asked for before the view opened (a door that opens the reel straight into Make
+   * your own; none asks today): it opens the moment this browser is known to make clips, or the greyed
+   * button explains why not.
    */
   creatorAsked?: boolean;
   /** The ask is spent (read once, on arrival). */

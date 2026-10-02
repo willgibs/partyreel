@@ -177,3 +177,34 @@ describe("the host card the album is handed", () => {
     expect(isFollowing).not.toHaveBeenCalled();
   });
 });
+
+/**
+ * ★ AN OWNER ARRIVING FOR HER REEL (`event-header` r1's folded fix: "some (reel) seems to flash a guest album as it
+ * loads the slideshow"). The hub's Reel card opens `?reel` on this page; the page knows before any script runs that
+ * the owner asked, so the album's shell stands the reel's black from the first byte (`event-experience.tsx`'s
+ * curtain). The owner alone: a guest's welcome comes before any reel, so her `?reel` waits behind the door.
+ */
+describe("the reel an owner asks for", () => {
+  async function reelAskedFor(search: Record<string, string> | undefined) {
+    seen.props = null;
+    const page = await GuestEventPage({
+      params: Promise.resolve({ token: EVENT.qr_token }),
+      searchParams: search ? Promise.resolve(search) : undefined,
+    });
+    render(<>{page}</>);
+    const props = seen.props as Record<string, unknown> | null;
+    return props?.reelAsked;
+  }
+
+  it("★ is known at render for the owner on `?reel`", async () => {
+    isRequestOwner.mockResolvedValue(true);
+    expect(await reelAskedFor({ reel: "" })).toBe(true);
+  });
+
+  it("is never a guest's (her welcome comes first), nor an owner's without the address", async () => {
+    expect(await reelAskedFor({ reel: "" })).toBe(false);
+    isRequestOwner.mockResolvedValue(true);
+    expect(await reelAskedFor({})).toBe(false);
+    expect(await reelAskedFor(undefined)).toBe(false);
+  });
+});

@@ -213,6 +213,110 @@ export function useLiveQueue(
   );
 }
 
+/** One run of hers, as the shutter's ring reads it (`useRunProgress`). */
+export type RunProgress = {
+  /** Files of the run still on their way (queued or going up). */
+  sending: number;
+  /** How far the run has gone, 0 to 1: a landed or refused file whole, a going one its own share. */
+  progress: number;
+  /** Files of the run that landed, and that were refused. */
+  landed: number;
+  failed: number;
+};
+
+const isActive = (it: QueueItem) =>
+  it.status === "queued" || it.status === "uploading";
+
+/** Whether a file is the run's: not already finished when the run began, or going again (a Retry). */
+const inRun = (it: QueueItem, before: ReadonlySet<string>) =>
+  isActive(it) || !before.has(it.id);
+
+/** The run's progress over its files, read off the queue and the progress store at this moment. */
+export function runProgressOf(
+  items: readonly QueueItem[],
+  progress: QueueProgress,
+  before: ReadonlySet<string>,
+): RunProgress {
+  let sending = 0;
+  let landed = 0;
+  let failed = 0;
+  let total = 0;
+  let gone = 0;
+  for (const it of items) {
+    if (!inRun(it, before)) continue;
+    total += 1;
+    if (it.status === "done") {
+      landed += 1;
+      gone += 1;
+    } else if (it.status === "error") {
+      failed += 1;
+      gone += 1;
+    } else {
+      sending += 1;
+      if (it.status === "uploading") gone += progress.get(it.id) / 100;
+    }
+  }
+  // Rounded to a thousandth, so a tick that moves nothing the ring can draw re-renders nothing.
+  const fraction = total > 0 ? Math.round((gone / total) * 1000) / 1000 : 0;
+  return { sending, progress: fraction, landed, failed };
+}
+
+const NOTHING_BEFORE: ReadonlySet<string> = new Set();
+const noProgressSubscription = () => () => {};
+
+/**
+ * ★ THE RUN, AS ONE NUMBER (`event-header` r1, `stays=shutter`: "while hers send, its ring is their
+ * progress"). A DERIVED SELECTOR, ADDITIVE TO THE QUEUE: it reads the snapshot the page already holds
+ * and the progress store beside it, and the queue's own API does not move (twelve files import it).
+ *
+ * A RUN begins the moment something is on its way where nothing was, and takes in every file added
+ * while it goes (a second pick mid-run widens the ring's whole rather than starting a new one); its
+ * files are every one not already finished when it began, and any going again (a Retry). It ends when
+ * nothing is queued or going up, and the next pick starts a new one.
+ *
+ * ★ A TICK RE-RENDERS ONLY THE CALLER, and only while a run goes: the progress store is subscribed to
+ * while something is on its way, and the snapshot is a rounded number, so the page's shell never
+ * renders for a tick (`QueueProgress`'s own rule). Call it where the ring is drawn, never in the shell.
+ */
+export function useRunProgress(
+  items: readonly QueueItem[],
+  progress: QueueProgress,
+): RunProgress {
+  const running = items.some(isActive);
+  // The ids already finished when this run began, taken the render the run starts (the sanctioned
+  // adjust-state-during-render pattern), and kept after it ends so the ring can stand whole.
+  const [before, setBefore] = useState<ReadonlySet<string> | null>(null);
+  const [wasRunning, setWasRunning] = useState(false);
+  if (running !== wasRunning) {
+    setWasRunning(running);
+    if (running) {
+      setBefore(
+        new Set(items.filter((it) => !isActive(it)).map((it) => it.id)),
+      );
+    }
+  }
+  const baseline = before ?? NOTHING_BEFORE;
+  const subscribe = useCallback(
+    (onChange: () => void) =>
+      running ? progress.subscribe(onChange) : noProgressSubscription(),
+    [progress, running],
+  );
+  const fraction = useSyncExternalStore(
+    subscribe,
+    () => runProgressOf(items, progress, baseline).progress,
+    () => 0,
+  );
+  // The counts move with the items alone (a status change); the fraction is read above, per tick.
+  const counts = useMemo(
+    () => runProgressOf(items, progress, baseline),
+    [items, progress, baseline],
+  );
+  if (before === null) {
+    return { sending: counts.sending, progress: 0, landed: 0, failed: 0 };
+  }
+  return { ...counts, progress: fraction };
+}
+
 export type UploadedItem = {
   mediaId: string;
   /** The queue item that produced this upload - lets the gallery re-key its

@@ -9,11 +9,15 @@ import {
 
 import { CANVAS, Fit, Frame } from "@/components/lab";
 
+import type { ShowId } from "./knobs";
 import {
-  type FamilyId,
-  GROUPS,
+  type Choice,
+  type GroundId,
   isReading,
+  isSheet,
+  type PageNo,
   sceneSrc,
+  type SheetView,
   type ViewId,
   type Width,
 } from "./model";
@@ -38,29 +42,47 @@ function useLabKey(): string | null | undefined {
 }
 
 /**
- * A frame's viewport: a laptop's canvas and a phone's, except the hub, whose
- * head (the code, the rooms and tonight's checklist) ends well above a
- * laptop's fold: its frame stops there rather than drawing an empty album.
+ * A frame's viewport: a laptop's canvas and a phone's. A desk's atom sheet
+ * ends above a laptop's fold, so its frame stops there (the stage draws it
+ * larger); a phone's sheet is two phone pages, each a whole screen.
  */
+const DESK_SHEET_H = 820;
+/** A phone's whole screen (an iPhone's 812, as every phone frame on the board). */
+const PHONE_H = 812;
 function heightOf(view: ViewId, w: Width): number {
-  if (w === 375) return 812;
-  return view === "hub" ? 700 : CANVAS.desktop.h;
+  if (w === 375) return PHONE_H;
+  return isSheet(view) ? DESK_SHEET_H : CANVAS.desktop.h;
 }
 
-/** One frame: a family's view at a width, captioned by what it read. */
+/** One frame: an identity's view at a width, captioned by what it read. */
 export function SceneFrame({
-  family,
+  choice,
   view,
   w,
+  ground,
+  page = 1,
   title,
 }: {
-  family: FamilyId;
+  choice: Choice;
   view: ViewId;
   w: Width;
+  ground: GroundId;
+  page?: PageNo;
   title: string;
 }) {
   const key = useLabKey();
-  const id = `identity-${family}-${view}-${w}`;
+  const id = [
+    "identity",
+    view,
+    w,
+    ground,
+    page,
+    choice.voice,
+    choice.actions,
+    choice.fields,
+    choice.layers,
+    choice.status,
+  ].join("-");
   const [caption, setCaption] = useState("reading the frame");
   useEffect(() => {
     const hear = (event: MessageEvent) => {
@@ -75,7 +97,7 @@ export function SceneFrame({
     <Fit w={w}>
       <Frame
         id={id}
-        src={sceneSrc({ family, view, w, id }, key)}
+        src={sceneSrc({ ...choice, view, w, ground, page, id }, key)}
         gated
         w={w}
         h={heightOf(view, w)}
@@ -92,79 +114,76 @@ export function Story({ children }: { children: ReactNode }) {
   return <div className="flex flex-wrap items-start gap-6">{children}</div>;
 }
 
-const GROUP_NAME: Record<(typeof GROUPS)[number], string> = {
-  actions: "actions",
-  fields: "fields and selection",
-  surfaces: "surfaces and layers",
-  status: "status",
+const GROUND_NAME: Record<GroundId, string> = {
+  paper: "on paper",
+  room: "in the room",
 };
 
-/** A family's specimen: one sheet at a desk, its four groups as phone pages. */
-export function SpecimenFrames({
-  family,
-  name,
+/**
+ * AN OPTION, DRAWN: its atoms (paper and the room in one desk's frame, a phone
+ * of each in a hand) or one of the real screens, at the width and on the
+ * ground the knobs hold.
+ */
+export function OptionFrames({
+  choice,
+  part,
+  show,
   w,
+  ground,
+  name,
 }: {
-  family: FamilyId;
-  name: string;
+  choice: Choice;
+  /** The sheet the atoms view draws: the voice's places, or one atom group. */
+  part: SheetView;
+  show: ShowId;
   w: Width;
+  ground: GroundId;
+  name: string;
 }) {
-  if (w === 1440)
+  const frame = (view: ViewId, g: GroundId, what: string, page: PageNo = 1) => (
+    <SceneFrame
+      key={`${view}-${g}-${page}`}
+      choice={choice}
+      view={view}
+      w={w}
+      ground={g}
+      page={page}
+      title={`${name}: ${what}`}
+    />
+  );
+  if (show === "atoms")
     return (
       <Story>
-        <SceneFrame
-          family={family}
-          view="specimen"
-          w={1440}
-          title={`${name}: the specimen`}
-        />
+        {w === 1440
+          ? frame(part, ground, "the atoms, on paper and in the room")
+          : ([1, 2] as const).map((p) =>
+              frame(
+                part,
+                ground,
+                `the atoms, ${p} of 2, ${GROUND_NAME[ground]}`,
+                p,
+              ),
+            )}
       </Story>
     );
+  if (show === "settings")
+    return (
+      <Story>
+        {frame("door", ground, `Settings on the door, ${GROUND_NAME[ground]}`)}
+        {frame(
+          "event",
+          ground,
+          `Settings on the event, ${GROUND_NAME[ground]}`,
+        )}
+      </Story>
+    );
+  const what =
+    show === "add"
+      ? "the guest's Add"
+      : show === "account"
+        ? "Account and billing"
+        : "Review";
   return (
-    <Story>
-      {GROUPS.map((g) => (
-        <SceneFrame
-          key={g}
-          family={family}
-          view={g}
-          w={375}
-          title={`${name}: ${GROUP_NAME[g]}`}
-        />
-      ))}
-    </Story>
-  );
-}
-
-/** A family on the three real screens. */
-export function ScreenFrames({
-  family,
-  name,
-  w,
-}: {
-  family: FamilyId;
-  name: string;
-  w: Width;
-}) {
-  return (
-    <Story>
-      <SceneFrame
-        family={family}
-        view="hub"
-        w={w}
-        title={`${name}: the hub's head, tonight`}
-      />
-      <SceneFrame
-        family={family}
-        view="settings"
-        w={w}
-        title={`${name}: Settings, on the door`}
-      />
-      <SceneFrame
-        family={family}
-        view="add"
-        w={w}
-        title={`${name}: the guest's Add`}
-      />
-    </Story>
+    <Story>{frame(show, ground, `${what}, ${GROUND_NAME[ground]}`)}</Story>
   );
 }

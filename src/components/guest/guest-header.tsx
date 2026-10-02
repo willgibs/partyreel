@@ -11,6 +11,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { GuestAccountMenu } from "@/components/guest/guest-account-menu";
+import { useCoverUnderHeader } from "@/components/guest/guest-header-cover";
 import { GuestNameMenu } from "@/components/guest/guest-name-menu";
 import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
@@ -69,10 +70,17 @@ type MenuData = {
 // and asks the server only when the account differs from the one drawn, or when the door settled on a
 // guest, since a session revoked on another device leaves this cookie valid for up to an hour and
 // only the server's 401 knows. A server that stumbles (anything but a 401) never un-signs her.
+//
+// ★ OVER THE ALBUM'S COVER IT STANDS ON THE PHOTOGRAPH (`event-header` r1's carried call `header`):
+// white, with no rule, so the album's own picture reaches the top edge; elsewhere it is today's paper
+// bar. `over` is the page's word (a cover is drawn under it), and the album moves it after
+// (`guest-header-cover.ts`: the door's stage arriving, the demo's pinned bar once the page moves). It is
+// a fixed `h-14`, the height the cover reaches up under (`event-experience.tsx`).
 export function GuestHeader({
   qrToken,
   eventId,
   isDemo = false,
+  over = false,
 }: {
   /** The event's canonical token, omitted on an event-less page (/u/[slug]). */
   qrToken?: string;
@@ -82,7 +90,10 @@ export function GuestHeader({
    *  the top so the mark stays on screen through the whole visit. Never true
    *  on `/u/[slug]` (no event there to be a demo of). */
   isDemo?: boolean;
+  /** The album's cover is drawn under the header (the page's word for the first paint). */
+  over?: boolean;
 }) {
+  const onCover = useCoverUnderHeader(over);
   // null = signed out (or not yet resolved) → render the CTA. Non-null → render the account menu.
   const [menu, setMenu] = useState<MenuData | null>(null);
   // What is drawn, as the looks below read it the moment they land (state is a render behind them).
@@ -263,12 +274,22 @@ export function GuestHeader({
 
   return (
     <header
+      data-guest-header=""
+      data-surface={onCover ? "photo" : undefined}
       className={cn(
-        "flex items-center justify-between gap-2 border-b border-border/60 px-5 py-3",
+        "relative z-20 flex h-14 shrink-0 items-center justify-between gap-2 border-b px-5",
+        "transition-[background-color,border-color,color] duration-300 ease-emphasis motion-reduce:transition-none",
+        // On the cover: the room's ink over the photograph, and no rule across it.
+        // Off it, the page's own paper, opaque: the cover reaches up under the
+        // header, so a door's stage standing over the album (its paper door
+        // below a paper bar) must not show the cover's top strip through it.
+        onCover
+          ? "dark border-transparent text-foreground"
+          : "border-border/60 bg-background",
         // The demo's header is pinned to the top so the Demo mark stays on every
         // screen of the visit, not just the first one; a real event's header
         // keeps its ordinary place in the flow.
-        isDemo && "sticky top-0 z-20 bg-background",
+        isDemo && "sticky top-0",
       )}
     >
       <Link

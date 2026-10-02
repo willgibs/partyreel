@@ -1,6 +1,22 @@
 {
   "version": 2,
   "code": {
+    "shutter": [
+      "<Row>\n  <ShutterDemo />\n</Row>",
+      "<Row>\n  <Shutter aria-label=\"Add photos\" />\n  <Shutter aria-label=\"Add photos\" hues={[45, 20, 350]} />\n  <Shutter aria-label=\"Add photos\" hues={[250, 290, 200]} />\n</Row>",
+      "<AtTheFoot>\n  <div className=\"flex items-center gap-5\">\n    <Button\n      variant=\"outline\"\n      size=\"icon-cta\"\n      aria-label=\"Invite\"\n      className=\"bg-background shadow-layer\"\n    >\n      <QrCode />\n    </Button>\n    <ShutterDemo hues={[45, 20, 350]} />\n    <Button\n      variant=\"outline\"\n      size=\"icon-cta\"\n      aria-label=\"Watch the highlight reel\"\n      className=\"bg-background shadow-layer\"\n    >\n      <Play className=\"fill-current\" />\n    </Button>\n  </div>\n</AtTheFoot>"
+    ],
+    "glyph-count": [
+      "<Row>\n  <span className=\"flex items-center gap-3 text-sm text-muted-foreground\">\n    <GlyphCount\n      icon={<Images />}\n      count={214}\n      label=\"214 photos & videos\"\n    />\n    <GlyphCount icon={<Users />} count={31} label=\"31 guests\" />\n    <GlyphCount icon={<Eye />} count={486} label=\"486 views\" />\n  </span>\n</Row>",
+      "<OnAPhoto>\n  <span className=\"flex items-center gap-3 text-sm text-white/85\">\n    <GlyphCount\n      icon={<Images />}\n      count={1240}\n      label=\"1,240 photos & videos\"\n    />\n    <GlyphCount icon={<Users />} count={58} label=\"58 guests\" />\n  </span>\n</OnAPhoto>"
+    ],
+    "code-mat": [
+      "<Row>\n  <CodeMat aria-label=\"Show the code for Maya & Jay\">\n    <StyledQr\n      value={SPECIMEN_CODE}\n      size={112}\n      style={resolveQrPreset(\"classic\")}\n    />\n  </CodeMat>\n  <CodeMat aria-label=\"Show the code for Maya & Jay\" dimmed>\n    <StyledQr\n      value={SPECIMEN_CODE}\n      size={112}\n      style={resolveQrPreset(\"classic\")}\n    />\n  </CodeMat>\n</Row>",
+      "<OnAPhoto still=\"reception-hall\" className=\"justify-end\">\n  <CodeMat aria-label=\"Show the code for Maya & Jay\">\n    <StyledQr\n      value={SPECIMEN_CODE}\n      size={112}\n      style={resolveQrPreset(\"classic\")}\n    />\n  </CodeMat>\n</OnAPhoto>"
+    ],
+    "code-chip": [
+      "<div className=\"flex items-center gap-2 rounded-xl border bg-background/85 p-2\">\n  <span className=\"flex h-9 items-center gap-1.5 rounded-xl border border-border px-3 text-xs font-medium\">\n    <Clapperboard\n      className=\"size-4 text-muted-foreground\"\n      aria-hidden\n    />\n    Highlight reel\n  </span>\n  <span className=\"flex h-9 items-center gap-1.5 rounded-xl border border-border px-3 text-xs font-medium\">\n    <ListChecks\n      className=\"size-4 text-muted-foreground\"\n      aria-hidden\n    />\n    Review\n  </span>\n  <CodeChip aria-label=\"Show the code for Maya & Jay\" />\n</div>"
+    ],
     "relation-toggle": [
       "<Row>\n  <RelationToggleDemo relation=\"follow\" />\n  <RelationToggleDemo relation=\"follow\" on />\n</Row>",
       "<Row>\n  <RelationToggleDemo relation=\"follow\" quiet size=\"xs\" label=\"Tom\" />\n  <RelationToggleDemo\n    relation=\"follow\"\n    quiet\n    size=\"xs\"\n    label=\"Tom\"\n    on\n  />\n</Row>",
@@ -32,10 +48,11 @@
     ],
     "button": [
       "<Row>\n  <Button>\n    <ImageUp /> Add photos\n  </Button>\n  <Button variant=\"outline\">\n    <Share2 /> Share\n  </Button>\n</Row>",
+      "<OnAPhoto>\n  <div className=\"flex items-center gap-2\">\n    <Button variant=\"on-photo\" size=\"cta\">\n      <ImageUp /> Add photos\n    </Button>\n    <Button\n      variant=\"glass\"\n      size=\"icon-cta\"\n      aria-label=\"Watch the highlight reel\"\n    >\n      <Play className=\"fill-current\" />\n    </Button>\n    <Button variant=\"glass\" size=\"icon-cta\" aria-label=\"Invite\">\n      <QrCode />\n    </Button>\n  </div>\n</OnAPhoto>",
       "<Row>\n  <Button disabled>Default</Button>\n  <Button variant=\"outline\" disabled>\n    Outline\n  </Button>\n</Row>"
     ],
     "badge": [
-      "<Row>\n  <Badge>Live</Badge>\n  <Badge variant=\"secondary\">Draft</Badge>\n  <Badge variant=\"outline\">Private</Badge>\n  <Badge variant=\"destructive\">Over cap</Badge>\n</Row>"
+      "<Row>\n  <Badge variant=\"live\">Live</Badge>\n  <Badge variant=\"secondary\">Draft</Badge>\n  <Badge variant=\"outline\">Private</Badge>\n  <Badge variant=\"destructive\">Over cap</Badge>\n</Row>"
     ],
     "input": [
       "<div className=\"space-y-2\">\n  <Label htmlFor=\"ref-name\">Event name</Label>\n  <Input id=\"ref-name\" placeholder=\"Maya & Jay's Wedding\" />\n</div>",
@@ -162,6 +179,18 @@
     ],
     "route-skeleton": [
       "<RouteSkeletonDemo />"
+    ],
+    "album-cover": [
+      "<AlbumCoverDemo />",
+      "<AlbumCoverDemo empty />"
+    ],
+    "hub-cover": [
+      "<HubCoverDemo />",
+      "<HubCoverDemo before />",
+      "<HubBandDemo />"
+    ],
+    "what-stays": [
+      "<WhatStaysDemo />"
     ],
     "admin-shell": [
       "<AdminRailDemo />",

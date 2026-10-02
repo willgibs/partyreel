@@ -33,6 +33,16 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
+        // ★ TWO FOR A PHOTOGRAPH (`event-header` r1's picks, the atom contract with identity r2):
+        // where a photograph is the ground (the album's cover, the hub's), the page's paper is not
+        // behind the control, so paper's variants read as stickers. `on-photo` is the white primary
+        // standing on it (the one Add of a cover), `glass` the round beside it in the material every
+        // control on a photograph wears (`lib/glass.ts`: Crystal, its glyph carrying its own light
+        // over a bright sky). Their focus ring is white, the one ring that reads on any photograph.
+        "on-photo":
+          "bg-white text-neutral-950 shadow-layer hover:bg-white/90 focus-visible:border-white focus-visible:ring-white/60",
+        glass:
+          "glass text-white hover:bg-white/15 aria-expanded:bg-white/15 focus-visible:border-white/70 focus-visible:ring-white/45 [&_svg]:glass-mark-lit",
       },
       // Radius rides height (ratio ~0.4): h-8 is --radius-action-sm and the
       // in-between sizes DERIVE from --radius-action (h-6 0.6x, h-7 0.7x, h-9
@@ -77,6 +87,11 @@ const buttonVariants = cva(
         "icon-xs": "size-6 rounded-[calc(var(--radius-action)*0.6)] [&_svg:not([class*='size-'])]:size-3.5",
         "icon-sm": "size-7 rounded-[calc(var(--radius-action)*0.7)] [&_svg:not([class*='size-'])]:size-3.5",
         "icon-lg": "size-9 rounded-[calc(var(--radius-action)*0.9)] [&_svg:not([class*='size-'])]:size-4",
+        // ★ THE 44px ROUND, `cta`'s height as a circle (`event-header` r1): the glass rounds that stand
+        // beside a cover's Add, and the shutter's two flanks. Round, not cornered: on a photograph and
+        // at the foot, a control is media chrome, and media chrome is round (the viewer's capsule, the
+        // reel's dock). Its icon pairs with `cta`'s text step, as every icon size pairs by height.
+        "icon-cta": "size-11 rounded-full [&_svg:not([class*='size-'])]:size-4.5",
       },
     },
     defaultVariants: {

@@ -17,6 +17,7 @@ import { useHostSelection } from "@/components/app/host-selection-provider";
 import { HostUpload } from "@/components/app/host-upload";
 import { HubBin, useHubBin } from "@/components/app/recently-deleted-grid";
 import { GalleryDownloadAllButton } from "@/components/app/export/download-all-button";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   ViewMenu,
@@ -88,6 +89,7 @@ export function EventGallery({
   children: React.ReactNode;
 }) {
   const album = useHostAlbum();
+  const landed = useCallback(() => void album?.sync(), [album]);
   const [view, setView] = useState<View>("album");
   const [sort, setSort] = useState<HubSort>("newest");
   const { step, setRowStep } = useRowStep(initialStep, setRowStepAction);
@@ -223,7 +225,12 @@ export function EventGallery({
               ? "Add your own photos and videos, for example a batch from your photographer. These post to the album right away."
               : "Add your own photos, for example a batch from your photographer. These post to the album right away."}
           </p>
-          <HostUpload eventId={eventId} videosAllowed={videosAllowed} />
+          <HostUpload
+            eventId={eventId}
+            videosAllowed={videosAllowed}
+            // The album's own store brings her batch (`host-upload.tsx`'s note), never a refresh.
+            onBatchLanded={landed}
+          />
         </div>
       )}
 
@@ -313,13 +320,10 @@ function useBoxWidth(
 export function EventLive() {
   const live = useHubLive(useHostAlbum());
   if (!live) return null;
+  // The live mark (`ui/badge`'s `live`): its dot and its word are the badge's own.
   return (
-    <span
-      className="flex items-center gap-1.5"
-      title="New photos appear here as they arrive"
-    >
-      <span className="size-1.5 rounded-full bg-success" aria-hidden />
+    <Badge variant="live" title="New photos appear here as they arrive">
       Live
-    </span>
+    </Badge>
   );
 }
