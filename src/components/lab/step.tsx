@@ -769,6 +769,14 @@ function Spine({
           <CopySoFar transcribed={transcribed} build={build} />
           <Link
             href={withDesignKey(step.boardHref, key ?? null)}
+            // ★ A LAB LINK NEVER PREFETCHES (lab-prefetch, 2026-10-02). The
+            // key rides this href's query, and Next also fetches the route
+            // tree of any prefetched URL that has a query WITHOUT it
+            // (scheduler `pingRoute`): a keyless request the gate 404s, a
+            // console error on every step page. (Its first render has no key
+            // at all, `useDesignKey` being client-only.) The shell's
+            // `LabLink` does the same, and `prefetch-policy.test.ts` holds both.
+            prefetch={false}
             className="text-[11px] text-muted-foreground underline underline-offset-2 transition-colors duration-150 hover:text-foreground motion-reduce:transition-none"
           >
             Open the whole board
@@ -805,6 +813,7 @@ function Unknown({ boardId, name }: { boardId: string; name: string }) {
         The link may name a step the board has since withdrawn, or mistype one.{" "}
         <Link
           href={withDesignKey(`/design/lab/${boardId}`, key ?? null)}
+          prefetch={false}
           className="underline underline-offset-2 transition-colors duration-150 hover:text-foreground motion-reduce:transition-none"
         >
           Open the whole board
