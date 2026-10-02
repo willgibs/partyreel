@@ -49,10 +49,13 @@ Download). The cover is the room (`dark`, `data-surface="photo"`), so its words 
 - ★ **The guest's header stands on the cover** (`guest-header.tsx`'s `over`, the carried call `header`): white, no
   rule, the cover reaching up under its fixed `h-14` (`-mt-14`); elsewhere it is today's paper bar. The page says so
   at render and the album moves it (`guest-header-cover.ts`, a module store, since the two are sibling islands): the
-  door's stage arriving over the album takes the header back to paper over a paper door, and the demo's pinned header
-  takes the paper the moment the page moves (a see-through bar would slide the cover's own words under its own).
-- ★ **The door-reveal's landing is named**: the head is `[data-event-head]`, its photographs `[data-head-stills]`,
-  each still `[data-head-still="<slot>"]` (slot 0 the one a reduced-motion reader sees).
+  door's stage takes the header to paper over a paper door (from the first byte where the door stands first,
+  `arrival.face`) and gives it back to the cover as she lands, and the demo's pinned header takes the paper the
+  moment the page moves (a see-through bar would slide the cover's own words under its own).
+- ★ **The walk through the door lands on the head** (the ARRIVAL, below): the head is `[data-event-head]`, its
+  photographs `[data-head-stills]`, each still `[data-head-still="<slot>"]` (slot 0 the one a reduced-motion reader
+  sees), and its picture is one component (`CoverPicture`, `event-experience-head.tsx`: the house light and
+  `CoverGround`) that the open doorway draws too, at the cover's own height (`--cover-h`).
 
 ★ **WHAT STAYS IS THE SHUTTER** (`stays=shutter`, [`guest-action-dock.tsx`](../../src/components/guest/guest-action-dock.tsx)):
 the cover's row on landing, and once that row's `IntersectionObserver` sentinel
@@ -386,11 +389,19 @@ there; a block on it still holds the phone (`event_ticket_blocked`), which is wh
   the doorway ajar, the host will let her in, with nothing of the album behind it; it checks in every 30 s and on the
   tab's return (`POST /api/guests/door`: `waiting` | `in` | `moved`, `private, no-store`; a missing event answers
   `moved`), which stamps her rows for the banked let-in mail, and on `in` the door swings the rest of the way open and
-  the album opens. ★ **She can choose what she will add while she waits** (locked-door `wait=pick`,
-  [`wait-picks.tsx`](../../src/components/guest/door/wait-picks.tsx)): the page's one queue holds her choice
-  (`holdAtDoor`, a new choice replacing the last) and NOTHING goes up while a door holds her (the runner stops while
-  `doorOpen` is false, so her waiting ticket is never sent on); the door's opening starts it, on the same row the host
-  just let in. A choice lives in the open tab alone (a `File` is the page's), and the door says so.
+  she walks through it onto the album's cover (the ARRIVAL, below). ★ **She can choose what she will add while she
+  waits** (locked-door `wait=pick`, [`wait-picks.tsx`](../../src/components/guest/door/wait-picks.tsx)): the page's
+  one queue holds her choice (`holdAtDoor`, a new choice replacing the last) and NOTHING goes up while a door holds
+  her (the runner stops while `doorOpen` is false, so her waiting ticket is never sent on); the door's opening starts
+  it, on the same row the host just let in. ★ **Her choice outlives the tab**
+  ([`door/wait-picks-store.ts`](../../src/components/guest/door/wait-picks-store.ts)): a copy waits in this browser's
+  IndexedDB, filed under the album and the account that made it (`doorOwner`, the device's own session; a choice that
+  is not this account's is put down unread), for `KEEP_DAYS` (14). The held door that comes back after a reload puts
+  it back in the queue; a page that opens on the album with one waiting for this account (the let-in mail's link, a
+  tab closed while she waited) sends it into the queue with a word ("Sending your 3 photos from the door"), once (put
+  down first, and never beside the copy a tab that waited still queues); it is put down the moment she is let in, the
+  door reads `moved` or she switches address. "Keep this tab open." is said only where the copy could not be kept (no
+  IndexedDB, a private window).
   ★ **Only a door the host answers holds an ask**: the moment an album takes a password, every ask at its door ends
   (`events_door_to_password`, every path to a password; never a row an upload names), because a password lets in
   whoever proves it and nobody waits on the host there, and a waiting ticket would only stand between her and it. Her
@@ -529,44 +540,81 @@ runs: the lock line says the render's head count.
 
 The arrival is the PRIMARY first experience (a guest comes off a QR with zero context) and plays as four
 acts on the "Calm + 700ms" choreography ([design-system.md](design-system.md)): **the stage** (the page as
-it paints: the album, or at a gate the doorway over the album's name) → **the invitation** (after the ARRIVAL
-BEAT the door's page arrives) → **the threshold** (the steps) → **the reveal** (the success beat, then the
-gallery rises as the door goes).
+it paints: the door she meets first, from the first byte, or her album where she owes nothing) → **the invitation**
+(the welcome on the door's page) → **the threshold** (the steps, the sheet rising after the ARRIVAL BEAT) → **the
+reveal** (the success beat, then the album: walked into through an open door, risen into as a gate's sheet goes).
 
 ★ **THE DOOR FAMILY: ONE DOORWAY, ITS LEAF THE STATE** (`locked-door` r2, Will's `family=doorway`,
 `shape=shared`, `wait=pick`, `lost=follows`). [`door/doorway.tsx`](../../src/components/guest/door/doorway.tsx)
 (`doorway.css`) draws a door standing on the page with the party's light behind it: OPEN on a welcome she may walk
-through (the album's own newest previews through the opening, `door/album-view.ts`, and its own sampled light), AJAR
-while the host decides, SHUT with one line of light under it wherever the door is not hers to open, and an EMPTY
-FRAME on a link that opens nothing. Its light is the album's only where she may see the album (a Public album's
-welcome, the moment she is let in); everywhere else the house five, and a photograph is only ever drawn through an
-open door. Every door screen stands it in one page ([`door-page.tsx`](../../src/components/guest/door/door-page.tsx):
-`DoorColumn`, `DoorWords` in the door's text reveal, `DOOR_MAIN`, the door at one height on every screen, held below
-the header rather than centred, so a door whose words change under her never moves): the shut door, the broken
-link's page (`e/[token]/not-found.screen.tsx`, the doorway empty, in its own words, still behind the one lazy
-not-found boundary), and the album's STAGE ([`door/stage.tsx`](../../src/components/guest/door/stage.tsx)).
+through (the album's own cover through the opening, `view`: the page's `CoverPicture`, its stills in step with the
+head's, and its own sampled light), AJAR while the host decides, SHUT with one line of light under it wherever the
+door is not hers to open, and an EMPTY FRAME on a link that opens nothing. Its light is the album's only where she may
+see the album (a Public album's welcome, the moment she is let in); everywhere else the house five, and a photograph
+is only ever drawn through an open door. ★ **A door that is not open is never still** (`locked-door` r3, `idle=turn`):
+the light of a shut or ajar door turns through the whole rainbow (`--door-turn`, a registered hue stepped round in
+`--door-turn-ms`, 24s, so a visitor sees it move before she leaves) and breathes with it on a third of that (the sill
+and the floor, opacity alone), from a phase the server draws per door (`doorPhase`, so the first byte and hydration
+agree and no two visits start on one colour); an open door holds the album's own light; each lit hue is written near
+its house twin (`nearestHue`), so a glide between the house light and the album's goes the short way round; reduced
+motion stands it still. Every door screen stands it in one page
+([`door-page.tsx`](../../src/components/guest/door/door-page.tsx): `DoorColumn`, `DoorWords` in the door's text
+reveal, `DOOR_MAIN`, the door at one height on every screen, held below the header rather than centred, so a door
+whose words change under her never moves): the shut door, the broken link's page (`e/[token]/not-found.screen.tsx`,
+the doorway empty, in its own words, still behind the one lazy not-found boundary), and the album's STAGE
+([`door/stage.tsx`](../../src/components/guest/door/stage.tsx)).
 ★ **THE STAGE IS THE DOOR AS THE ALBUM'S PAGE**: the steps a guest reads AT the door stand on it (the welcome, the
 demo's role step, the ask, the wait, and the beat when the door she waited at swings open), a modal layer like the
-sheet it replaced (`role="dialog"`, named by its headline, so `layer-is-up.ts`'s waiters see it) standing
-`absolute` over `EventExperience`'s box, which is `inert` under it; the page holds to one screen while it is open
+sheet it replaced (`role="dialog"`, named by its headline, so `layer-is-up.ts`'s waiters see it) standing `absolute`
+over `EventExperience`'s box, which is `inert` under it; the page holds to one screen while it is open
 (`[data-guest-page]:has(...)` caps it, `doorway.css`: a cap, since the page is a flex item whose basis is its
-content), and it fades where it stood when it leaves and is unmounted after (`STAGE_EXIT_MS`). At a gate the page
-draws the same doorway itself from the first paint (shut, ajar at the held door, over the album's name and count),
-and the stage arrives over that twin with no fade of its own. The steps that ask something of her rise as the SHEET:
-over the album she has walked into at a Public album (the open door led in), and at a gate over the door at rest
-(`STAGE_SCRIM`, a light dim and no blur, so the door keeps its state above the sheet, moving beside the panel at a
-desk, and swinging open on the step's own success).
+content), and it fades where it stood when it leaves (at an open door she walks through it instead, below) and is
+unmounted after (`STAGE_EXIT_MS`). The steps that ask something of her rise as the SHEET: over the album she has
+walked into at a Public album (the open door led in), and at a gate over the door at rest (`STAGE_SCRIM`, a light dim
+and no blur, so the door keeps its state above the sheet, moving beside the panel at a desk, and swinging open on the
+step's own success).
+
+★ **THE FIRST BYTE IS THE DOOR** (Will: "the album is never visible before any door/gate that should be encountered
+first"). The page decides on the server what its first byte draws (`doorArrival`,
+[`entry-steps.ts`](../../src/lib/guest/entry-steps.ts), `computeDoor` over what the request carries: the welcome's
+cookie, the ticket cookie standing for a name and a return, a confirmed account's profile name): the stage on its face
+(the welcome, the role step, the ask, the wait, a gate's door at rest), or the album behind the door's own scrim where
+a sheet step comes first (the email step past the welcome, the name, the first photo), which the sheet rises into with
+no fade of either (`arriving`); a returning guest who owes nothing lands on her album at once. `EntryModal` is in the
+page's own bundle, its stage server-drawn and only its sheet after hydration; where the server's reading of this
+browser turns out wrong, the door corrects after hydration (a scrim that owed nothing lifts; a sheet it could not
+foresee rises over the album), never toward the album for a newcomer, who holds no ticket. Pinned on the server render
+for every door: [`page.first-paint.test.tsx`](<../../src/app/(guest)/e/[token]/page.first-paint.test.tsx>) (the
+decision per door, the header, the shut door) and
+[`event-experience.first-paint.test.tsx`](../../src/components/guest/event-experience.first-paint.test.tsx) (what that
+decision draws).
+
+★ **THROUGH AN OPEN DOOR SHE WALKS** (`locked-door` r3, `reveal=through`;
+[`door/stage-walk.ts`](../../src/components/guest/door/stage-walk.ts)): on a Public album's Continue and the moment
+she is let in, the door's page is a camera pushing into the doorway: the frame passes her and leaves the screen while
+the cover beyond it grows more slowly, and it lands on the album's own cover under the stage. ★ Seamless by
+construction: every rect is read at the press (the opening, the picture in it, the head, a scrolled stage too), each
+path is one similarity solved from them, sampled into compositor keyframes (transform and opacity only) started on one
+clock, so the picture's last frame is the head's box to the subpixel; the picture's dissolve is put in step with the
+head's (`syncCover`); the walk starts in her press and the page's own work waits for its first frame (`Walk.started`,
+which can come after a tab put away mid-walk has already arrived, and the door asks). While she walks the stage holds
+her (inert, no sheet), the album's words wait under the reveal curtain (the head's `[data-arrive]` lines and
+everything below the cover, `[data-door-below]`, `door.css`); arrived, the stage goes in a breath (`walked`), the
+head's name rises, then its byline and actions, then the album, and a step the door still owes rises after
+`SETTLE_AFTER_WALK_MS` (420). Under reduced motion, or wherever the walk cannot land (no head laid out, nothing
+measured), the stage fades where it stood, the party's light lifting off the album. A password's door is shut, so its
+unlock keeps the sheet's own reveal.
 
 ★ **THE DOOR IS AN ITINERARY, AND IT HAS NO EXIT.** The doorway and one held sheet carry the welcome, the password
 when the event has one, the NAME, the EMAIL (held until confirmed) when the album asks for an email first, and
-the first UPLOAD asked, and then the album. The album is the reward the door's asks pay for (seen through the open
-door at the welcome, blurred behind the sheet after it, the capped teaser wherever a server gate holds), so there is
-no "just browsing" way past it. `computeDoor` ([`entry-steps.ts`](../../src/lib/guest/entry-steps.ts), pure and
-unit-tested) derives the ordered steps from the server's `{access, gate}` plus this browser's own facts
-(welcome seen, a name, a contribution, "returning" snapshotted at hydration), because the server can see
-the password and the email and cannot see whether THIS browser typed a name. A server gate is TERMINAL for
-the steps behind it: the resolver has no opinion past an unmet password or email, so the itinerary stops
-and re-derives on that step's refresh. `autoOpen` is true whenever a step exists.
+the first UPLOAD asked, and then the album. The album is the reward the door's asks pay for (its cover seen through
+the open door at the welcome, blurred behind the sheet after it, the capped teaser wherever a server gate holds), so
+there is no "just browsing" way past it. `computeDoor` ([`entry-steps.ts`](../../src/lib/guest/entry-steps.ts), pure
+and unit-tested) derives the ordered steps from the server's `{access, gate}` plus this browser's own facts (welcome
+seen, a name, a contribution, "returning" snapshotted at hydration), because the server can see the password, the
+email and the welcome's cookie and cannot see whether THIS browser typed a name. A server gate is TERMINAL for the
+steps behind it: the resolver has no opinion past an unmet password or email, so the itinerary stops and re-derives on
+that step's refresh. `autoOpen` is true whenever a step exists.
 
 The itinerary is `welcome | password | chooser | name | identify | signin | upload | keep` (the keep last and only
 when due, never ahead of a step she still owes), its rules in
@@ -574,10 +622,11 @@ when due, never ahead of a step she still owes), its rules in
 `[welcome?, password]` then the rest; names mode `[welcome?, chooser → name | identify | signin, upload?]` (the
 chooser's Continue as guest, Create account and Log in, each carrying its small line of what it gives; the chevron is
 `doorBack()`, and a way in returns to the chooser
-and clears the pick); verified mode `[welcome?, identify]` then `[upload?]`; both, in that order; the demo `[welcome (its role step), upload]`, which asks no name; a returning guest with a name and
-(when required) a contribution `[]`; the mid-visit flip `[email]`. ★ **THE NAME STEP CARRIES AN OPTIONAL
-ADDRESS in names mode**, a one-line ghost under the name that opens into the labelled field: it adds no step, and
-`computeDoor` does not know it exists (see "Joining + identity").
+and clears the pick); verified mode `[welcome?, identify]` (the email alone) then `[name?, upload?]` (the name only
+for an account with none, in `profile` mode); both, in that order; the demo `[welcome (its role step), upload]`, which
+asks no name; a returning guest with a name and (when required) a contribution `[]`; the mid-visit flip `[email]`.
+★ **THE NAME STEP CARRIES AN OPTIONAL ADDRESS in names mode**, a one-line ghost under the name that opens into the
+labelled field: it adds no step, and `computeDoor` does not know it exists (see "Joining + identity").
 
 One shell ([`entry-shell.tsx`](../../src/components/guest/entry-shell.tsx)) renders the ONE product Sheet
 (`SheetContent responsive`) at both widths: a bottom sheet in a hand, keyboard-safe
@@ -600,16 +649,17 @@ CURRENT step is always the itinerary's first; SERVER steps advance through the R
 through flags in the sheet. No step counter to desync.
 
 - **The ARRIVAL BEAT** ([`use-arrival-beat.ts`](../../src/lib/guest/use-arrival-beat.ts): 700ms, a password
-  re-visit 350ms, reduced motion 0): only the AUTO-open waits (the page settles first); a re-assert
-  (`openToGate`) is instant.
+  re-visit 350ms, reduced motion 0): only the sheet's AUTO-open waits (the page settles first; the door's page
+  stands from the first byte); a re-assert (`openToGate`) is instant.
 - **welcome = THE INVITATION**, at the doorway ([`door/welcome.tsx`](../../src/components/guest/door/welcome.tsx)):
   open onto a Public album, shut at a gate; a "You're invited to" eyebrow over the event name, "Hosted by" and the
   date on one line (the date self-hiding at every gate, the host at a password, via the redacted shellEvent), the
   count as social proof, ticking as photographs land (`LiveCount`; the gate's title ticks too; reduced motion lands
   the number), two warm `text-base` lines, one primary that always reads "Continue" (something always follows it),
-  and the legal consent line. Shown once per PERSON at an album
-  (`pr_welcome_<qrToken>` via [`use-welcome-seen.ts`](../../src/lib/guest/use-welcome-seen.ts); server
-  snapshot "seen" = no flash): it goes with the ticket of whoever saw it (a ticket put down takes its album's, every
+  and the legal consent line. Shown once per PERSON at an album: the `pr_welcome_<qrToken>` cookie (a year, not
+  HttpOnly: [`use-welcome-seen.ts`](../../src/lib/guest/use-welcome-seen.ts) writes it and puts it down), which the
+  page's server reads (`welcomeSeenIn`) so the welcome is the first byte and its hydration agrees; the demo's is
+  never written. It goes with the ticket of whoever saw it (a ticket put down takes its album's, every
   sign-out every album's; the door's name step keeps it when it puts a foreign ticket down, its person having just
   passed it), because the door's identify and sign-in steps carry no consent line and lean on it, so the next person
   on a shared phone meets it once. The demo's welcome is its role step (`RoleWords`, see "Demo mode"), at the
@@ -828,8 +878,9 @@ name writes the PROFILE's; the album has no inline name panel, and the shared `S
 no caller since the told name's Change opens its own form). The line under the name reads "You can change it anytime." (the working step); the two doors that
 change a name show none. No unique name is claimed at the door.
 
-★ **THE CONFIRMATION'S FOUR WRITES, IN ORDER, ARE THE MODAL'S,** shared by `identify` (name and email to a code:
-Create account, and every verification event) and `signin` (Log in, the email alone), and `entry-modal.tsx` owns the
+★ **THE CONFIRMATION'S FOUR WRITES, IN ORDER, ARE THE MODAL'S,** shared by `identify` (Create account's name and
+email to a code; at a verification event the email alone, the name asked after it of an account with none) and
+`signin` (Log in, the email alone), and `entry-modal.tsx` owns the
 sequence, because the door holds a name never sent anywhere and the
 order decides whether a guest lands named or with no name at all: claim this browser's anonymous uploads →
 `joinEvent` (verified and NAMELESS, since `create_guest` nulls a typed name beside a confirmed account) →
@@ -891,11 +942,12 @@ had" holds only when this device holds a guest ticket a claim would move.
   pipeline runs identically whichever identity the uploader carries.
 - **`require_verified_email = true` gates the VIEW as well as the upload**, free on every tier (see
   [host-app.md](host-app.md)); turning it OFF is the opt-in, behind a consequence-confirm, not a paid
-  feature. The door's verification step is `identify`: one name-and-email form over
+  feature. The door's verification step is `identify`: the email alone over
   [`<EmailSignIn>`](../../src/components/auth/email-sign-in.tsx)'s emailed code (one path for a new or an existing
-  guest), with the teaser behind; Google and the password link live under the chooser's Log in
-  ([`<AccountDoor>`](../../src/components/auth/account-door.tsx)'s `signin` wear). `create_guest` derives identity
-  (`user_id`, `email`, `verified_at`) from the trusted uid, NEVER the client.
+  guest), with the teaser behind, then the name only for an account with none (Will: "handle name after so we aren't
+  handling two different versions for every new event on that account"); Google and the password link live under the
+  chooser's Log in ([`<AccountDoor>`](../../src/components/auth/account-door.tsx)'s `signin` wear). `create_guest`
+  derives identity (`user_id`, `email`, `verified_at`) from the trusted uid, NEVER the client.
 - **The named unverified are LISTED, with the mark:** `getEventGuestList(id, {includeUnverified: true})`
   appends them after the profile cards, one entry per guest row (without an account there is nothing to
   de-duplicate by, so two people who both typed "Sam" are two entries), and the union splits before
