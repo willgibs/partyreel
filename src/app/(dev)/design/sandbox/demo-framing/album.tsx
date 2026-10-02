@@ -2,9 +2,7 @@
 
 import { Clapperboard, ImageUp, Play, QrCode } from "lucide-react";
 import Image from "next/image";
-import type { ReactNode } from "react";
 
-import { DoorLamp, DoorPool } from "@/components/guest/door/lit";
 import { PosterCard } from "@/components/reel/poster-card";
 import { Logo } from "@/components/shared/logo";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -15,8 +13,7 @@ import { layoutRows, perRowFor } from "@/lib/shared/album-rows";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { cn } from "@/lib/utils";
 
-import type { Album, AlbumStill } from "./fixtures";
-import { stopLinks } from "./scene";
+import { ALBUM, type AlbumStill, type Person } from "./fixtures";
 
 /**
  * THE DEMO ALBUM'S FIRST SCREEN, AS A PHONE OPENS IT, QUOTED
@@ -31,11 +28,9 @@ import { stopLinks } from "./scene";
  * step (`perRowFor`), the gallery's 4 px gap, over the stills' declared
  * shapes, so the first row breaks where the real album would break it.
  *
- * ★ THE WELCOME IS QUOTED, NOT OPENED: `RoleStep` (`entry-modal.tsx`), the
- * demo's own arrival, in the door's sheet at a phone's foot over the album's
- * lit scrim. A portalled `Frame` hands a Sheet its own body now
- * (`portal-container.tsx`), so a real one would land in the phone; mounting
- * production's own is ROADMAP's line.
+ * ★ ONLY THE NAME AND THE HOST CHANGE BY OPTION: the `door` decision names
+ * the album (Partyreel Demo, Example Party, or the address's own words behind
+ * a door of its own), and the rest is the demo album as it stands.
  */
 
 /** The words' column and the album's box, `event-experience.tsx`'s own. */
@@ -118,41 +113,32 @@ function AlbumRows({ stills }: { stills: readonly AlbumStill[] }) {
 }
 
 /** The byline's host face: seeded, with the initial, as the page draws it. */
-function HostFace({ album }: { album: Album }) {
+function HostFace({ host }: { host: Person }) {
   return (
-    <Avatar seed={album.host.seed} size="sm">
-      <AvatarFallback>{album.host.initial}</AvatarFallback>
+    <Avatar seed={host.seed} size="sm">
+      <AvatarFallback>{host.initial}</AvatarFallback>
     </Avatar>
   );
 }
 
-export function AlbumPage({
-  album,
-  overlay,
-}: {
-  album: Album;
-  /** The demo's welcome, standing over the album on the first visit. */
-  overlay?: ReactNode;
-}) {
+export function AlbumPage({ title, host }: { title: string; host: Person }) {
+  const album = ALBUM;
   const still = album.stills[0];
   return (
-    <div
-      className="min-h-full bg-background pb-8 text-foreground"
-      onClickCapture={stopLinks}
-    >
+    <div className="min-h-full bg-background pb-8 text-foreground">
       <GuestBar />
       <div className="w-full pt-8">
         <div className={COLUMN}>
           <header>
             <p data-df-title className="font-heading text-page text-balance">
-              {album.naming.title}
+              {title}
             </p>
             <p className="mt-2.5 flex items-center gap-2 text-xs text-muted-foreground">
               <span className="flex items-center gap-1.5">
                 <span className="text-faint">Hosted by</span>
-                <HostFace album={album} />
+                <HostFace host={host} />
                 <span data-df-host className="font-medium text-foreground">
-                  {album.host.name}
+                  {host.name}
                 </span>
               </span>
             </p>
@@ -232,80 +218,6 @@ export function AlbumPage({
           <AlbumRows stills={album.stills} />
         </div>
       </div>
-      {overlay}
     </div>
-  );
-}
-
-/**
- * THE DEMO'S WELCOME, QUOTED (`RoleStep` in `entry-modal.tsx`): "A live
- * demo", the event's name at the welcome's hero size inside its sentence, the
- * host's guests, the two promises on the album's light, Continue. `data-df-*`
- * marks the two sentences a name is said in, which the caption reads.
- */
-export function Welcome({ album }: { album: Album }) {
-  const host = album.host.name.trim();
-  return (
-    <>
-      {/* The door's lit scrim (DOOR_SCRIM), spelled for a drawing. */}
-      <div
-        aria-hidden
-        className="fixed inset-0 z-40 bg-black/30 supports-backdrop-filter:backdrop-blur-[28px] supports-backdrop-filter:backdrop-brightness-72 supports-backdrop-filter:backdrop-saturate-120"
-      />
-      <div
-        data-door-lit=""
-        className="fixed inset-x-0 bottom-0 z-50 flex flex-col gap-0 border-t bg-popover p-6 pt-5 pb-6 text-sm text-popover-foreground shadow-layer"
-      >
-        <DoorLamp edge="free" />
-        <div className="flex flex-col gap-5">
-          <div className="flex flex-col">
-            <p className="text-label font-medium text-muted-foreground uppercase">
-              A live demo
-            </p>
-            <p data-df-welcome-at className="mt-1.5 font-heading text-balance">
-              <span className="block text-page">You&rsquo;re a guest at</span>
-              <span className="block text-hero sm:text-section">
-                {album.naming.title}
-              </span>
-            </p>
-            <p
-              data-df-welcome-as
-              className="mt-2 text-working text-muted-foreground"
-            >
-              This is a real album, exactly as{" "}
-              {host ? `${host}’s` : "the host’s"} guests see it.
-            </p>
-          </div>
-          <div className="flex flex-col gap-4">
-            <p className="flex items-center gap-3.5 text-base leading-relaxed">
-              <DoorPool hue={1}>
-                <ImageUp strokeWidth={1.75} />
-              </DoorPool>
-              <span>
-                Add a photo the way a guest would. Nothing you add is saved.
-              </span>
-            </p>
-            <p className="flex items-center gap-3.5 text-base leading-relaxed">
-              <DoorPool hue={2}>
-                <QrCode strokeWidth={1.75} />
-              </DoorPool>
-              <span>One code did all of this. Yours takes about a minute.</span>
-            </p>
-          </div>
-          <div className="mt-2 flex flex-col gap-2">
-            <Button size="cta" className="w-full" tabIndex={-1}>
-              Continue
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full text-muted-foreground"
-              tabIndex={-1}
-            >
-              Start your own
-            </Button>
-          </div>
-        </div>
-      </div>
-    </>
   );
 }

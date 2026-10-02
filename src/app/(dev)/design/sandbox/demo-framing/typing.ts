@@ -19,6 +19,13 @@
  * caret waits a beat on the bare domain, the next is typed a key at a time and
  * stands; after the last, the demo's own is typed back. Reduced motion never
  * runs it: it reads the demo's own address, still.
+ *
+ * ★ ROUND THREE'S TURNS ARE READ OFF THE SAME STEPS. An address standing is
+ * the code standing over it and its album pouring; the steps between two
+ * addresses are the code gone and the stream resting. How the stream rests is
+ * the take's: a drift (`rateAt`, round two's `turns`, which he loved), or the
+ * album folding back into the link before the next address and bursting out
+ * of it after (`foldAt`).
  */
 
 export type Phase = "hold" | "erase" | "gap" | "type";
@@ -74,8 +81,13 @@ export const DRIFT = 0.1;
 export const DOWN_MS = 600;
 export const UP_MS = 900;
 
-/** The stream's steady pace in `together`: calmer, so the two can run at once. */
-export const TOGETHER_RATE = 0.62;
+/**
+ * How long the album takes to fold back into the link before the next
+ * address, in the takes that rewind: the last stretch of an address's stand.
+ * Slower than a reply and quicker than the burst it answers (1,750 ms), so
+ * the in-breath and the out-breath read as one gesture.
+ */
+export const FOLD_MS = 760;
 
 const mod = (a: number, n: number) => ((a % n) + n) % n;
 
@@ -229,3 +241,45 @@ export function rateAt(score: Score, t: number): number {
 
 /** The loop's length in seconds, as the score prints it. */
 export const secondsOf = (score: Score) => Math.round(score.loop / 100) / 10;
+
+export type Fold = {
+  /**
+   * How far the album has folded back into the link: 0 while it pours, rising
+   * over the last `FOLD_MS` of an address's stand, 1 from the erase until the
+   * next address lands.
+   */
+  readonly fold: number;
+  /**
+   * How long the album has been pouring, in ms: from the landing of the
+   * address standing (its burst), or the page's arrival for the first. Held
+   * where the fold began, so a folding album retraces the very places it
+   * stood rather than running on as it shrinks.
+   */
+  readonly since: number;
+};
+
+/**
+ * THE ALBUM'S BREATH, IN THE TAKES THAT REWIND: each address bursts its own
+ * album out of the link when it lands, pours it while it stands, and folds it
+ * back in before it is erased, so the typing always has the stage to itself
+ * and every address reads as a new album. A loop of one address never folds.
+ */
+export function foldAt(score: Score, t: number): Fold {
+  const s = stepAt(score, t);
+  const at = mod(t, score.loop);
+  if (s.phase === "hold") {
+    const into = at - s.from;
+    const len = s.to - s.from;
+    if (score.steps.length === 1) return { fold: 0, since: t };
+    const start = len - FOLD_MS;
+    const fold = smooth((into - start) / FOLD_MS);
+    return { fold, since: Math.min(into, start) };
+  }
+  // Between two addresses: folded, and frozen where the last stand's fold
+  // began. The stand before this change is the last hold behind it.
+  const i = score.steps.indexOf(s);
+  let h = i - 1;
+  while (h >= 0 && score.steps[h].phase !== "hold") h--;
+  const held = h >= 0 ? score.steps[h] : score.steps[0];
+  return { fold: 1, since: held.to - held.from - FOLD_MS };
+}
