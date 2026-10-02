@@ -58,9 +58,9 @@ a lane").
 | `host-dashboard` | board r1 [desk 25]: the host dashboard reconceived (what it is for, what needs you at 1 and at 40, events at scale, what replaces just arrived) | RUNNING since 2026-10-02 08:00Z (round 11, wave 2) | Opus, 3132, agent `a2ba7075dfae8a7aa` | `10705484` |
 | `create-wizard` | board r1 [desk 60]: the whole create wizard, minimal and image-led, its mode step a named redraw of create=cards | RUNNING since 2026-10-02 08:00Z (round 11, wave 2) | Opus, 3134, agent `a69459a92149b4378` | `10705484` |
 | `demo-r3` | board demo-framing r3 [desk 90]: his stage hybrid (the link smaller, a QR bouncing in above it, the stream from the QR and link as one group, credits inside each card) in two or three takes; the demo's door identity | RUNNING since 2026-10-02 08:35Z (round 11, wave 2) | Opus, 3133, agent `a7b01347f37da886f` | `243e7cd0` |
-| `crumbs-47` | two guest LOWs: Back over a credit's look closing the viewer with it; the flip's stale failure sheet | RUNNING since 2026-10-02 09:00Z (round 11, wave 2) | Sonnet, 3136 | `26743369` |
-| `locked-door-r3` | board locked-door r3 [desk 30]: the reveal into the album (the album behind polished so the door reads); calm idle loops for the waiting and shut doors | RUNNING since 2026-10-02 09:00Z (round 11, wave 2) | Opus, 3131 | `26743369` |
-| `event-header` | board r1 [desk 50]: the host hub's head and the guest album's head reconceived | RUNNING since 2026-10-02 09:00Z (round 11, wave 2) | Opus, 3135 | `26743369` |
+| `crumbs-47` | two guest LOWs: Back over a credit's look closing the viewer with it; the flip's stale failure sheet | RUNNING since 2026-10-02 09:00Z (round 11, wave 2) | Sonnet, 3136, agent `a2d80ad9eedd07f03` | `26743369` |
+| `locked-door-r3` | board locked-door r3 [desk 30]: the reveal into the album (the album behind polished so the door reads); calm idle loops for the waiting and shut doors | RUNNING since 2026-10-02 09:00Z (round 11, wave 2) | Opus, 3131, agent `a3df0a6f9ddad5f34` | `26743369` |
+| `event-header` | board r1 [desk 50]: the host hub's head and the guest album's head reconceived | RUNNING since 2026-10-02 09:00Z (round 11, wave 2) | Opus, 3135, agent `ac779afaae3c3f9ca` | `26743369` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, respawned
 2026-10-01 18:15Z in this session; no question open. Q6 (crumbs-37's two migrations and crumbs-38's cursor file against
