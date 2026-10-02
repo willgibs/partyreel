@@ -34,7 +34,8 @@ describe("LegalConsentLine", () => {
   it("both consumers use the component, not a copy", () => {
     for (const rel of [
       "src/components/auth/account-door.tsx",
-      "src/components/guest/entry-modal.tsx",
+      // The welcome at the doorway (`locked-door` r2), the door every guest passes once.
+      "src/components/guest/door/welcome.tsx",
     ]) {
       const src = readFileSync(join(process.cwd(), rel), "utf8");
       expect(src).toContain("LegalConsentLine");

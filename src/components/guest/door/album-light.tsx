@@ -2,6 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import {
+  DOOR_VIEW_SIZE,
+  publishDoorView,
+} from "@/components/guest/door/album-view";
 import { useGalleryLive } from "@/components/guest/gallery-live";
 import {
   hueOfOklch,
@@ -39,6 +43,10 @@ const LOOKBACK = 12;
  *
  * At a password event before its unlock no provider mounts, so nothing is sampled and every lamp
  * wears the house five (the no-media branch), as the board drew it.
+ *
+ * ★ AND WHAT THE OPEN DOOR SHOWS (`locked-door` r2's doorway): the newest previews themselves, for the
+ * doorway's opening (`album-view.ts`). Links only, never a fetch: the doorway loads them only where it
+ * draws them, which is only where she may see the album.
  */
 export function AlbumLightSampler() {
   const live = useGalleryLive();
@@ -70,6 +78,19 @@ export function AlbumLightSampler() {
     setTarget({ key: idsKey, srcs: newest.map((n) => n.src) });
   }
   const colors = useSampledPalette(target?.srcs ?? null, "dark");
+
+  // The opening's photographs, re-published when a link is re-minted under them (an expired link would
+  // draw a broken tile), so keyed on the links themselves rather than the ids.
+  const viewKey = newest
+    .slice(0, DOOR_VIEW_SIZE)
+    .map((n) => n.src)
+    .join("\n");
+  useEffect(() => {
+    publishDoorView(viewKey ? viewKey.split("\n") : []);
+  }, [viewKey]);
+  // ★ AND THEY GO WITH THE ALBUM: a page that leaves (a client-side step to another album) takes its
+  // photographs with it, so the next door never shows this album through its opening.
+  useEffect(() => () => publishDoorView([]), []);
 
   useEffect(() => {
     if (!colors) return;

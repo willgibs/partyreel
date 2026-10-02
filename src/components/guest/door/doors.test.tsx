@@ -2,11 +2,14 @@
  * THE DOORS' OWN SCREENS (event-settings r1), against the real components: the shut door's one message
  * (event-safety `newcomer=same`, locked-door `previous=private`), the unlisted reader's own foot under
  * it (`unlisted=ask`, placed there by locked-door r2), the held door that checks in and opens by itself
- * (`waiting=held`), and the one-tap ask where the host lets each guest in. The routes are stand-ins.
+ * (`waiting=held`) with her choice of what to add while she waits (`wait=pick`), and the one-tap ask
+ * where the host lets each guest in, all at the doorway (`locked-door` r2, `family=doorway`). The routes
+ * are stand-ins.
  *
  * FUNCTION, NOT COPY: the words stay open. What is held is what each screen must never do: name the
- * album or its host on the shut message, move that message for any one reader, play "You're in" for a
- * door that has not opened, or poll a tab nobody is looking at.
+ * album or its host on the shut message, wear the album's light at a door that is not hers, move that
+ * message for any one reader, play "You're in" for a door that has not opened, send her choice before
+ * she is in, or poll a tab nobody is looking at.
  */
 import {
   act,
@@ -40,11 +43,12 @@ vi.mock("@/lib/guest/use-stored-session", () => ({
   setStoredSession: (...args: unknown[]) => setStoredSession(...args),
 }));
 
+const { HOUSE_HUES } = await import("@/lib/guest/door-light");
 const { ShutDoor, shutDoorCopy } =
   await import("@/components/guest/door/shut-door");
 const { UnlistedAsk, unlistedAskCopy } =
   await import("@/components/guest/door/unlisted-ask");
-const { WaitingStep, waitingCopy, WAITING_CHECK_IN_MS } =
+const { WaitingDoor, WaitingStep, waitingCopy, WAITING_CHECK_IN_MS } =
   await import("@/components/guest/door/waiting-step");
 const { AskStep, askCopy } = await import("@/components/guest/door/ask-step");
 
@@ -73,6 +77,27 @@ describe("the shut door", () => {
       const copy = shutDoorCopy(previous);
       expect(`${copy.title} ${copy.description}`).not.toMatch(/Maya|30th/);
       expect(copy.description).toMatch(/host/);
+    }
+  });
+
+  it("★ stands at the doorway, shut, in the house light, showing nothing of the album, whoever reads it", () => {
+    for (const previous of [false, true]) {
+      for (const signedIn of [false, true]) {
+        const { container } = render(
+          <ShutDoor
+            previous={previous}
+            signedIn={signedIn}
+            returnTo={`/e/${QR}`}
+          />,
+        );
+        const way = container.querySelector("[data-door-way]");
+        expect(way?.getAttribute("data-door-way")).toBe("shut");
+        expect(way?.getAttribute("data-door-hues")).toBe(
+          HOUSE_HUES.slice(0, 3).join(","),
+        );
+        expect(container.querySelector("img")).toBeNull();
+        cleanup();
+      }
     }
   });
 
@@ -121,6 +146,20 @@ describe("the shut door", () => {
 });
 
 describe("the unlisted reader's ask", () => {
+  it('★ asks "the host" when the page hands it no name', () => {
+    render(
+      <ShutDoor
+        previous={false}
+        signedIn
+        returnTo={`/e/${QR}`}
+        ask={{ qrToken: QR, hostName: null }}
+      />,
+    );
+    expect(
+      screen.getByRole("button", { name: "Ask the host to let me in" }),
+    ).toBeTruthy();
+  });
+
   it("names the host she asks, or the host when there is no name", () => {
     expect(unlistedAskCopy("Maya").primary).toContain("Maya");
     expect(unlistedAskCopy("  ").primary).toContain("the host");
@@ -237,6 +276,67 @@ describe("the held door", () => {
     const { onLetIn, onMoved } = mount();
     await waitFor(() => expect(onMoved).toHaveBeenCalledOnce());
     expect(onLetIn).not.toHaveBeenCalled();
+  });
+
+  it("★ her choice while she waits is handed to the page's queue to hold, and nothing is sent from here", async () => {
+    checkInAtDoor.mockResolvedValue("waiting");
+    const onPick = vi.fn();
+    const { container } = render(
+      <WaitingStep
+        qrToken={QR}
+        sessionToken={TICKET}
+        hostName={null}
+        onLetIn={vi.fn()}
+        onMoved={vi.fn()}
+        onPick={onPick}
+      />,
+    );
+    await waitFor(() => expect(checkInAtDoor).toHaveBeenCalledTimes(1));
+    expect(
+      screen.getByText("Nothing is sent until you’re let in."),
+    ).toBeTruthy();
+    const input = container.querySelector<HTMLInputElement>(
+      "[data-door-picks] input[type=file]",
+    )!;
+    const files = [
+      new File(["a"], "a.jpg", { type: "image/jpeg" }),
+      new File(["b"], "b.jpg", { type: "image/jpeg" }),
+    ];
+    fireEvent.change(input, { target: { files } });
+    expect(onPick).toHaveBeenCalledWith(files);
+    // The door's own work is the check-in alone: no upload route is reached from the held door.
+    expect(checkInAtDoor).toHaveBeenCalledTimes(1);
+  });
+
+  it("★ what she chose stands on the door, counted, with the tab it waits in said quietly", () => {
+    render(
+      <WaitingDoor
+        picks={[
+          {
+            id: "1",
+            file: new File(["a"], "a.jpg", { type: "image/jpeg" }),
+            kind: "photo",
+            status: "queued",
+            progress: 0,
+          },
+          {
+            id: "2",
+            file: new File(["b"], "b.mp4", { type: "video/mp4" }),
+            kind: "video",
+            status: "queued",
+            progress: 0,
+          },
+        ]}
+      />,
+    );
+    expect(
+      document
+        .querySelector("[data-door-picks]")
+        ?.getAttribute("data-door-picks"),
+    ).toBe("ready");
+    expect(screen.getByText(/2 photos & videos ready/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Change" })).toBeTruthy();
+    expect(screen.getByText(/Keep this tab open/)).toBeTruthy();
   });
 
   it("a hidden tab waits for its return rather than polling", async () => {
