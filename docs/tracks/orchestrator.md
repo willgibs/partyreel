@@ -50,6 +50,7 @@ flat; a lane in its gate, or the milestone's full gate, counts as two. Every pro
 | `demo-r4` | board demo-framing r4 [desk 90]: the centre object nailed, the mini-event card, two or three new heroes | running | Opus, 3136 | `a557d2f6e3b8e9fd8` |
 | `save-speed` | the viewer's Save immediate: his iPhone's 30 s measured to its cause, every slower step with state and a way out | running | Opus, 3135 | `a4d3efdea8ef3c604` |
 | `host-dashboard-r2` | board host-dashboard r2 [desk 25]: the events collection customizable at forty; which event leads when none is dated or near | running | Opus, 3132 | `aea1e17a667c43dfd` |
+| `crumbs-50` | fourteen off-round ROADMAP crumbs (marketing preloads, demo pointers, type steps, tokens, dead fixtures, a help line, legal print, inline code, the sign-in cue, the nav's one source, the blog's tags) | running | Sonnet, 3134 | `ad78669c34ed8b55e` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Q8
 (round 12's plan) answered with 21 corrections, all folded into the briefs; the next consult is the foundation's
