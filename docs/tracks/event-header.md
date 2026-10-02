@@ -1,6 +1,6 @@
 ---
 track: event-header
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "26743369"            # the launch-prep SHA the branch was cut from
 board: event-header
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -75,25 +75,88 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **Is "whether the two share one grammar" an ask of its own?** Recommended and built: no. It is `host`'s option "The
+  album's head, hers", drawn in whatever head he picks for `guest` (`guest` declares no `today`, so before he answers it
+  draws in the recommendation), so picking it is the one grammar and the board never asks it twice: a separate ask
+  would draw one picture under two names whenever his two picks match.
+- **Where does the Highlight reel live under a new head?** Recommended and built: inside the head (the cover's living
+  stills and its play, the door's view and its play, the name's numeral); the reel's tile above the album goes
+  (carried `reel`).
+- **Words or glyphs for the counts?** Recommended and built: glyphs, their words on hover and a tap, from his mark note;
+  today keeps its words; at a phone the cover leaves the counts to the album's own label right under it (carried
+  `glyphs`).
+- **Is the guest's header part of the head?** Recommended and built: yes; over the cover it stands on the photograph
+  in white with no rule; elsewhere it is today's (carried `header`).
+- **What does a cover show?** Recommended and built: the reel's own opening stills (the server's pick, `readHubReel`:
+  who uploaded, how liked), dissolving on the living clock; never simply the newest upload; an empty album shows the
+  house light, warm. A cover Maya pins herself would be a new column (a board idea below), not drawn.
+- **The new atoms the options need (identity's to style, named here as the brief asks):** photo-filled type (the name's
+  letters as windows onto the reel, `.eh-photo-type`, a wash per theme, ink where colours are forced); the shutter (one
+  round Add ringed in the album's light, the ring its progress while hers send); a white primary and glass rounds on a
+  photograph (the cover); the code chip (the code's glyph on its white mat where a scannable code has no room, since
+  `StyledQr` refuses a code under the module floor); the number door (a numeral that opens its room).
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none (an exploration: production is unchanged, so `guest-flow.md` and `host-app.md` still say what is true)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- none
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed:** `a27cc7fb` (the board drawn), `040f6b42` (the arrivals and their Replay, the photo-filled name on
+  both sides, the album's light from its source, the shared head's face in the stuck row), `6953926f` (the empty
+  states), then this manifest. No sync: launch-prep moved past the base `e4e04eb0` (crumbs-47, host-dashboard, demo-r3
+  and create-wizard merged, and records), touching no file this board imports; `guest-flow.md`, a read, took crumbs-47's
+  Back and flip facts, which no drawing here shows, so PROGRAM's Sync rule does not call for one.
+- **Gates on `6953926f`'s tree, each on its own exit code:** `pnpm typecheck` 0; `pnpm lint` 0; `pnpm test` 0 (745
+  files, 8,832 tests); `zsh scripts/build-lock.sh pnpm build` 0; `pnpm lab:smoke --base http://localhost:3135` 0 (5
+  checks, the board at 607 of 1,200 words); `pnpm lab:demo --board event-header --base http://localhost:3135` 0 (3 steps,
+  every option drawn, both screens' reach held), again 0 with `--width 375`, and again 0 wearing `--state
+  guest-screen=1440 --state album=empty --state host-screen=375 --state moment=before`.
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = the 10 files under
+  `src/app/(dev)/design/sandbox/event-header/` + this file. No exceptions.
+- **The board `event-header`** (surface shared, desk 50, round 1): three asks, `guest` the root, `host` and `stays`
+  waiting on it and drawn in his pick. Every option is two real frames (as Priya lands and scrolled into the album; as
+  Maya opens her hub and scrolled), with the Screen knobs (a guest's 375 first, a host's 1440 first), The album (214
+  photos, or empty for the first guest) and The moment (tonight, or the week before with the checklist at the head).
+  His `door=mark` note is quoted in `opening.earlier`. The party is Maya and Jay's, the door boards' wedding, so the
+  door's reveal lands on this album.
+- **`guest`:** today's head · the cover (recommended: the reel's own stills dissolving edge to edge under the name, Add
+  photos white on them, the reel and Invite in glass beside it) · the doorway, left open (the door she walked through as
+  the album's emblem, the newest photos through it, its light coming from it) · the name, filled with the party (the
+  name set as large as the column takes, its letters windows onto the reel's stills, the counts as numerals).
+- **`host`:** today's head · the album's head, hers (recommended: his guest pick worn by the hub; under the cover, the
+  code on its white mat in the cover's corner like the room's screen, the room cards under it, the cover's still
+  carried into the stuck row) · the numbers are the doors (one band: the code, the name, five live numbers that open
+  their rooms, the room cards gone) · the album first (one slim sticky line, a code chip and the rooms as pills).
+- **`stays`:** the dock, as today (production's `GuestActionDock`) · one shutter (recommended) · the head as a bar at the
+  top.
+- **The arrival:** Replay the arrival, in the board's dock and every step's stage head, remounts the frames: the cover's
+  still settles from a step closer, the door lands in the head's corner from mid-screen, the name's letters rise out of
+  a blur, the words rise in order as production's reveal raises its header, the hub fades up, and what stays arrives as
+  the head leaves. Under reduced motion every head stands whole and still (`event-header.css`).
+- **Captions are read off the frames** (`scene.tsx`, `measureHead`): where the album's first photo lands and what share
+  of the screen that is, the head's words, where the primary sits and its height, the code's size, what stays and its
+  height.
+- **Production's own pieces in the frames:** `AppShell`, `NotificationBell`, `UserMenu`, `EventShareProvider`,
+  `EventCodeDoor`, `EventLinkRow`, `ReelCard`, the room cards' shell (`room-card.ts`), `EventChecklist`,
+  `FeedSectionHeader`, `FeedSectionEmpty`, `GuestActionDock`, `PosterCard`, `Doorway`, `LivingStills`,
+  `GalleryEmptyState`, `GhostRiver`, `StyledQr`; the rest is quoted from them in their own order and words.
+- **Assets requested from Will:** none (the bootstrap stills at crops; production's cover is the album's own photos).
+- **Board ideas:** host-dashboard's `purpose=stage` (an event on a stage of its own photographs) and this board's
+  `host=shared` under the cover are one object: the stage could open into the hub with the same cover, one picture from
+  the dashboard to the hub · locked-door r3's reveal lands on whichever head `guest` picks: under the cover the open
+  door's view grows into the cover, under the doorway the door itself lands in the head's corner (this board's arrival),
+  so one wiring lane can take both picks · a cover Maya pins herself (a column on `events`, a migration), the reel's pick
+  standing until she does · identity's redressed hub head (one of its three screens) is today's composition, so its
+  pick and this board's meet at one wiring.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none (a pinned cover, a board idea, would be one).
+- **Calls his to overrule:** the three carried on the board (`spec.ts` `carried`): the reel inside the head, glyphs over
+  words, the guest's header as part of the head; the grammar folded into `host`; the cover leading with the reel's
+  stills; and each ask's recommendation: `guest=cover`, `host=shared`, `stays=shutter`.
+- **Look at first:** `/design/lab/event-header?session=event-header.guest`, the cover at 375, then Replay the arrival;
+  then The album's "Empty, the first guest"; then the doorway at 1440 (the light from the door); then `host`, the
+  album's head, hers, at 1440 (Maya's code in the cover's corner).
