@@ -1,8 +1,9 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { ABOUT_PRESS_KIT } from "@/lib/constants/about";
 import {
   CONTACT_DIRECTORY,
   CONTACT_TOPIC_VALUES,
@@ -16,6 +17,24 @@ const CINEMA = join(process.cwd(), "src/app/(marketing)/(cinema)");
 /** A marketing route that is a real page (the hints and the directory link no other kind). */
 function pageExists(path: string): boolean {
   return existsSync(join(CINEMA, path, "page.tsx"));
+}
+
+/**
+ * A door may name an anchor on a real page (the press kit band, `/about#press`): the page
+ * must exist AND something in its folder must carry that id, or the link lands at the top of
+ * the page with nothing to say why. The id may sit in the page or a piece beside it
+ * (about/press-kit-band.tsx), so the whole folder is read.
+ */
+function pageHasAnchor(path: string, fragment: string): boolean {
+  const dir = join(CINEMA, path);
+  const ids = new Set<string>();
+  for (const file of readdirSync(dir).filter((f) => f.endsWith(".tsx"))) {
+    const src = readFileSync(join(dir, file), "utf8");
+    for (const m of src.matchAll(/\bid="([\w-]+)"/g)) ids.add(m[1]);
+    // The band writes its id from the constant the doors' address is built from.
+    if (src.includes("id={ABOUT_PRESS_KIT.id}")) ids.add(ABOUT_PRESS_KIT.id);
+  }
+  return ids.has(fragment);
 }
 
 /** Every href a topic's hint shows, with the topic that shows it. */
@@ -72,7 +91,12 @@ describe("CONTACT_TOPICS", () => {
           `${href}: unknown help article slug`,
         ).toBe(true);
       } else {
-        expect(pageExists(href.slice(1)), `${href}: no such page`).toBe(true);
+        const [path, fragment] = href.slice(1).split("#");
+        expect(pageExists(path), `${href}: no such page`).toBe(true);
+        if (fragment)
+          expect(pageHasAnchor(path, fragment), `${href}: no such anchor`).toBe(
+            true,
+          );
       }
     }
   });
@@ -147,10 +171,13 @@ describe("CONTACT_DIRECTORY", () => {
       expect(entry.href.startsWith("/"), `${entry.href}: not a site path`).toBe(
         true,
       );
-      expect(
-        pageExists(entry.href.slice(1)),
-        `${entry.href}: no such page`,
-      ).toBe(true);
+      const [path, fragment] = entry.href.slice(1).split("#");
+      expect(pageExists(path), `${entry.href}: no such page`).toBe(true);
+      if (fragment)
+        expect(
+          pageHasAnchor(path, fragment),
+          `${entry.href}: no such anchor`,
+        ).toBe(true);
       expect(entry.body.length, `${entry.title}: empty line`).toBeGreaterThan(
         0,
       );
