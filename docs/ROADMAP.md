@@ -17,6 +17,8 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Host: the code's look never reaches paper: `print-stock.tsx` draws the classic shape at zero client JS whatever the look; drawing the four presets server-side, as `FooterQr` draws the classic, would carry the look onto the table cards (from `create-wizard-r2`).
+- Design: the code's four looks (Bold's coral corners, "Playful dots") predate the room and the identity round; the share studio could redraw the set so Create's look step offers looks worth choosing (from `create-wizard-r2`).
 - Docs: design-system.md's lab paragraph ("No keyless request may leave the lab's tab") should name the Library's front page and the gallery's entry links beside `LabLink` once `identity` leaves the desk, the doc being in its `lives` (from `crumbs-49`).
 - Help: `why-an-event-asks-for-your-email.mdx` still says "behind the welcome screen" (lines 22 and 48); the welcome is the doorway's page since `door-wiring` (from `crumbs-49`).
 - Tests: `reel-url-history.test.tsx` waits a fixed 40 ms after a Back and a Forward, the race `history-entry.test.tsx` had; waiting for the popstate, as its `settle()` now does, would close it (from `crumbs-49`).

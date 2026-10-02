@@ -46,8 +46,9 @@ flat; a lane in its gate, or the milestone's full gate, counts as two. Every pro
 | `dashboard-wiring` | host-dashboard's picks: the stage, this week, the live wall, seasons; the four carried calls | running | Opus, 3132 | `abf012b4ed5f4a4d8` |
 | `disposable-foundation` | the mode and reveal, the per-row seal from one predicate, develop as a write, the server-counted roll, Settings' control (the Advisor's Q8 model); migrations to apply by protocol | running | Opus, 3133 | `a3c3c52d33e26b082` |
 | `identity-r2` | board identity r2 [desk 10]: voice as a layer, then actions, fields, layers and status in his voice | running | Opus, 3134 | `a3fb5687c66a613b9` |
-| `create-wizard-r2` | board create-wizard r2 [desk 60]: the room's flow screen by screen in his layout | running | Opus, 3135 | `aaa11532349605aa9` |
+| `create-wizard-r2` | board create-wizard r2 [desk 60]: the room's flow screen by screen in his layout (flow, add, look, beat) | MERGED at `34dba1fa` (gate 147 green, light: test, the merge adding only docs to its gated head; the lane's gate: test 8,902, build, lab:smoke 22, lab:demo 4 steps at 1440 and 375); lab only; on the desk at build 44 | Opus, 3135 | `aaa11532349605aa9` |
 | `demo-r4` | board demo-framing r4 [desk 90]: the centre object nailed, the mini-event card, two or three new heroes | running | Opus, 3136 | `a557d2f6e3b8e9fd8` |
+| `save-speed` | the viewer's Save immediate: his iPhone's 30 s measured to its cause, every slower step with state and a way out | running | Opus, 3135 | `a4d3efdea8ef3c604` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Q8
 (round 12's plan) answered with 21 corrections, all folded into the briefs; the next consult is the foundation's
