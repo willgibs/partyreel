@@ -57,7 +57,7 @@ flat; a lane in its gate, or the milestone's full gate, counts as two. Every pro
 | `disposable-camera` | disposable-mode r3's camera wired (the reel as a timeline, hold to film, a video one shot, the roll's end) at full size on the server's roll; Add opens it on a camera album; retires the board | running | Opus, 3135 | `a420bc1f815081dce` |
 | `take-home` | board take-home [desk 70], new: how guests and hosts take photographs home (a guest's one-press Download all against Select all; a host's originals beside an optimized set) | running | Opus, 3136 | `af6d50656e540a41c` |
 | `redteam-43` | build 43's red-team (`96c6dcdc` on the alias): the disposable leak matrix live first, the cover and shutter, the hub, the dashboard, Save; brief and ledger in `../partyreel-wt/_scratch/redteam-43/` | running | Opus, Will's Chrome | `a7abfa3530cd42e8c` |
-| `crumbs-51` | words made true after round 12's merges: four help articles and the admin switch on the retired reel tile and the welcome screen, careers, two hero comments, host-app.md's pulse | running | Sonnet, 3133 | `(spawning)` |
+| `crumbs-51` | words made true after round 12's merges: four help articles and the admin switch on the retired reel tile and the welcome screen, careers, two hero comments, host-app.md's pulse | running | Sonnet, 3133 | `ae456d79d5e6fcd48` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Q8
 (round 12's plan) answered with 21 corrections, all folded into the briefs; the next consult is the foundation's
