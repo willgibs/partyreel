@@ -53,6 +53,8 @@ flat; a lane in its gate, or the milestone's full gate, counts as two. Every pro
 | `crumbs-50` | fourteen off-round ROADMAP crumbs (marketing preloads, demo pointers, type steps, tokens, dead fixtures, a help line, legal print, inline code, the sign-in cue, the nav's one source, the blog's tags) | running | Sonnet, 3134 | `ad78669c34ed8b55e` |
 | `door-reveal` | locked-door r3's picks (the walk-through onto the cover, the turning breathing idle), the door always the first paint (his walk), the name after the email where verification is on, the chooser's photos across a reload; retires the board | running | Opus, 3131 | `aec876b5d6becfb32` |
 | `event-header-r2` | board event-header r2 [desk 50]: the hub head's facts (the night on a dial among them) and one predictable way every room opens | running | Opus, 3133 | `a65948cf0ee9a18da` |
+| `the-wait` | board the-wait [desk 35]: the one waiting experience of a delayed album, the mental model first (his to find), then her wait, the arrival, the host's cover and the words | running | Opus, 3132 | `(spawning)` |
+| `disposable-camera` | disposable-mode r3's camera wired (the reel as a timeline, hold to film, a video one shot, the roll's end) at full size on the server's roll; Add opens it on a camera album; retires the board | running | Opus, 3135 | `(spawning)` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Q8
 (round 12's plan) answered with 21 corrections, all folded into the briefs; the next consult is the foundation's
