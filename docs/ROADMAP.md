@@ -17,6 +17,12 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Help: `the-highlight-reel.mdx` (lines 22 and 52), `make-your-own-clip.mdx` (line 23) and `browse-the-album.mdx` describe the Highlight reel tile above the album; the reel now lives in the album's cover, its stills and its round (from `header-wiring`).
+- Marketing: the reel section's live tile (`sections/reel/live-tile.tsx`, `live-section.tsx`) and `careers.ts`'s "the tile at the top of the album" draw the retired tile, and `reel/poster-card.tsx` has no app consumer left (from `header-wiring`).
+- Admin: the live-reel kill switch's sheet says every event "loses its reel tile" (`admin/exports/live-reel-kill-switch.tsx`); it now takes the cover's reel round and the shutter's (from `header-wiring`).
+- Guests: `lib/guest/reel-tile.ts` is named and described for the retired tile while its `tileStills` is the cover's first pass, and `GuestActionDock` draws the shutter under its old name (kept while the event-header and identity boards import it); both renamed with their next change (from `header-wiring`).
+- Host: on a sealed album the hub's head drops sealed shots in `event-hub-head-stills.ts`'s `isCoverEntry` once the foundation's flag reaches the host's manifest (from `header-wiring`).
+- Design: a cover rendition (about 1600px, one more derivative per photograph) so the album's cover reads sharp across a desk, where the 640px previews soften (a board idea from `header-wiring`).
 - Design: identity's head stand-ins (`views/atoms.tsx`: the shutter, the code mat and chip, the glyph count, the live badge, the on-photo and glass buttons) mount header-wiring's real atoms once it merges, so the board judges the components rather than their stand-ins (from `identity-r2`).
 - Design: wiring identity's picks adds the primitives the board draws on shadcn's hooks that production lacks (`checkbox`, `radio-group-item`, `slider`, and its own `radio-card` and `empty`), and replaces Settings' inline door choices, gates and password state with them (from `identity-r2`).
 - Design: Review's selection marks (the glass circle that turns green) and Settings' step numerals are drawn locally; once identity wires they take the check and readout atoms (a board idea from `identity-r2`).

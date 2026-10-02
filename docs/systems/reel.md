@@ -75,20 +75,11 @@ The reel stores nothing, so the server says only WHETHER a viewer's album has on
   its head alone (`passes: 1`, [`reel-tile.ts`](../../src/lib/guest/reel-tile.ts)), never the album's newest,
   which sit right beneath it.
 
-## The tile, the view and the screen (the guest's side)
+## The cover, the view and the screen (the guest's side)
 
-- **The Highlight reel tile** (`LiveReelTile`, [`reel/live-reel.tsx`](../../src/components/guest/reel/live-reel.tsx))
-  sits in its own slot directly above `aboveAlbum`, never a fourth arm of `pickAboveAlbumState`: a slow crossfade of
-  six stills from the take, previews only, the app's `PosterCard` headed "Highlight reel", with no engine on the
-  album. ★ **IT STANDS FROM THE FIRST PAINT**, its stills or not: their links ride the page's own seed, and a still
-  whose link is still on its way leaves the tile's own ground showing for a beat while the rest fade in over it. Its
-  corner is a glyph (a 24px glass-mark disc holding a 12px clapperboard), and the violet "Make your own clip to
-  share" under the heading renders only once a creator is registered AND the host's plan was read: a control of its
-  own, lifted above the tile's watch layer (a button cannot hold a button), that opens the creator directly.
-  ★ **`className` IS THE CALLER'S BOX, NEVER THE CARD'S**: the page hands the tile its column (the words'
-  measure) and its margins, and the watch layer and the press's scale live on the card inside that box, so a
-  tap in the gutter stays the page's. A tap on the card opens the view (a pointer over it warms the view's
-  chunk); it stays after uploads close.
+- **The reel's face is the album's cover** (since `header-wiring`; [guest-flow.md](guest-flow.md)'s album head): the
+  tile above the album is gone; `reel/live-reel.tsx`'s controller publishes the take's opening stills and the reel's
+  door to the head, whose round plays it.
 - **The view** ([`reel/live-reel-view.tsx`](../../src/components/guest/reel/live-reel-view.tsx), `React.lazy`, ONE
   import promise shared by the warm-up and the lazy boundary) is a full-bleed Radix dialog over the player in `fill`,
   following the viewport's orientation. ★ **HELD INSIDE THE OVERLAY, THE PAGE'S SCROLL LOCK**: Radix locks the page

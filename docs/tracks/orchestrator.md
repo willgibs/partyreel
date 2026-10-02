@@ -42,7 +42,7 @@ flat; a lane in its gate, or the milestone's full gate, counts as two. Every pro
 
 | lane | what | state | model, port | agent |
 | --- | --- | --- | --- | --- |
-| `header-wiring` | event-header's picks: the cover, the hub wearing it with its sticky bar, the shutter with his scroll fade and a right-hand reel button; the atom contract built in `components/ui/` | running | Opus, 3131 | `a167a5fcddb3a287a` |
+| `header-wiring` | event-header's picks: the cover, the hub wearing it with its sticky bar, the shutter with his scroll fade and a right-hand reel button; the atom contract built in `components/ui/`; the tracker's Remove | MERGED at `e771e80b` (gate 150 green: lint, test, build, lab:smoke 171, lab:demo on seven boards; the lane's gate on its synced head: test 9,035, build, lab:smoke 168); PREMISE re-reads for identity and create-wizard at the desk pass; no SQL | Opus, 3131 | `a167a5fcddb3a287a` |
 | `dashboard-wiring` | host-dashboard's picks: the stage, this week, the live wall, seasons; the four carried calls | MERGED at `ad70c894` (gate 148 green: test, build, lab:smoke 148, lab:demo on create-wizard, event-header, host-dashboard and identity; the lane's gate: test 8,963, build, lab:smoke 149); no SQL | Opus, 3132 | `abf012b4ed5f4a4d8` |
 | `disposable-foundation` | the mode and reveal, the per-row seal from one predicate, develop as a write, the server-counted roll, Settings' control (the Advisor's Q8 model); migrations to apply by protocol | running | Opus, 3133 | `a3c3c52d33e26b082` |
 | `identity-r2` | board identity r2 [desk 10]: voice as a layer, then actions, fields, layers and status in his voice | MERGED at `3af9a608` (gate 149 green: test, build, lab:smoke 22, lab:demo on identity; the lane's gate: test 8,907, build, lab:smoke 7, lab:demo 5 steps at 1440 and 375 with its knobs); lab only; on the desk at build 44 | Opus, 3134 | `a3fb5687c66a613b9` |
@@ -51,6 +51,7 @@ flat; a lane in its gate, or the milestone's full gate, counts as two. Every pro
 | `save-speed` | the viewer's Save immediate: his iPhone's 30 s measured to its cause, every slower step with state and a way out | running | Opus, 3135 | `a4d3efdea8ef3c604` |
 | `host-dashboard-r2` | board host-dashboard r2 [desk 25]: the events collection customizable at forty; which event leads when none is dated or near | running | Opus, 3132 | `aea1e17a667c43dfd` |
 | `crumbs-50` | fourteen off-round ROADMAP crumbs (marketing preloads, demo pointers, type steps, tokens, dead fixtures, a help line, legal print, inline code, the sign-in cue, the nav's one source, the blog's tags) | running | Sonnet, 3134 | `ad78669c34ed8b55e` |
+| `door-reveal` | locked-door r3's picks (the walk-through onto the cover, the turning breathing idle), the door always the first paint (his walk), the name after the email where verification is on, the chooser's photos across a reload; retires the board | running | Opus, 3131 | `(spawning)` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Q8
 (round 12's plan) answered with 21 corrections, all folded into the briefs; the next consult is the foundation's
