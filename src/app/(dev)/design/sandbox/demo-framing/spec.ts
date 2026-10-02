@@ -1,41 +1,38 @@
 import { defineExploration } from "@/components/lab/exploration";
 
 /**
- * THE DEMO'S STORY, ROUND TWO (his round one answers, 2026-09-29).
+ * THE DEMO'S STORY, ROUND THREE (his round two answers, 2026-10-02).
  *
- * His words, `story`, no pick: "we'll be replacing our full media kit
- * pre-launch, so not worried about which exact pictures we're using. Most
- * focused on the best slug here that conveys the idea, almost like
- * 'our-wedding' or 'my-party' ... Unless we did some sort of typewriter effect
- * on the slug, occasionally typing out different slugs for ways it can be used
- * to show the customizability? ... the variants in that exploration should
- * attempt to get the stream and typewriter to either work together (both in
- * full force would be overwhelming, eye goes everywhere), or let the
- * typewriter effect take center stage with new more subtle surrounding
- * animation and repurpose the centered qr + stream for the QR code page
- * hero." And `demo=one`: "Let's drop the 'try our demo event' eyebrow and
- * simply add a subtle touch to make the hero visual feel clickable."
+ * His words. `stage=centre`, "a dual selection of both options 2 and 4": "I
+ * absolutely love the typing and streaming taking turns so each work off of
+ * the other (new slug, new event stream, repeat). However, the address taking
+ * the stage cleans up that visual design of the item a lot ... but I hate
+ * losing the stream and QR visuals. ... knock the partyreel link typing font
+ * size down a little so it doesn't fight with the H1, then maybe bounce in a
+ * new QR above the input each time it's updated, and stream images off of
+ * that QR + link with the turn taking each time it updates. I'd like the QR
+ * to be vertically centered ... if the QR + input could stack/overlap/somehow
+ * present as one group for the stream to emanate from ... If the emanating
+ * photos each had a guest credit in their corner (likely within card, not on
+ * corner so it doesn't go off image). Please take this idea with a grain of
+ * salt and build your best version of the overall idea." `slug=our-party`,
+ * with "the demo's welcome door specifically should likely avoid this event
+ * title". `touch=arrow`, with "a slight hover state".
  *
- * ★ THREE DECISIONS, IN THE ORDER A VISITOR MEETS THEM: the address the card
- * prints (drawn still, as reduced motion and a first paint both show it, and
- * at the head of the album it opens, which is titled in its words), how that
- * address shares the first screen with the stream (still, or typing hosts'
- * addresses three ways), and the touch that says the card opens. Each is
- * drawn in the world the others hold: the stage in the address picked, the
- * touch on whatever object the stage leaves on the home.
+ * ★ TWO DECISIONS. `stage` is his hybrid in three takes, each the whole idea
+ * built its own way (the object, how the turns breathe, which way the album
+ * flows), so he picks a hero rather than assembling one. `door` is the demo's
+ * identity at its door, drawn in the doorway he picked on the door board.
  *
- * ★ STILL-OR-TYPEWRITER AND THE TYPEWRITER'S VARIANTS ARE ONE DECISION, on
- * purpose (the lane's first Question): he compares the still hero with each
- * variant side by side, and a variant cannot be drawn without its stage.
- *
- * ★ ROUND ONE'S `names` RETIRES INTO `slug` (the carried call `title`): the
- * album is titled in the address's own words, so each address is drawn on the
- * card, at the album's head and in the welcome. Its `story` and `demo` are
- * answered, so neither is asked again.
+ * ★ SETTLED AND DRAWN IN EVERY TAKE, NEVER ASKED: the address `our-party`; the
+ * arrow after it and its hover (the object lifts, the arrow nudges toward
+ * where it goes); the eyebrow gone; the turns (never both motions at full
+ * force); a credit inside every photograph's corner; the address a size down
+ * from round two's stage.
  *
  * ★ EVERY LOOP IS ONE TABLE (`typing.ts`): the frames run it, the captions read
- * the addresses it holds, and the score under each `stage` option is drawn
- * from it, so the words, the motion and the score cannot disagree.
+ * the addresses it holds, and the score under each take is drawn from it, so
+ * the words, the motion and the score cannot disagree.
  */
 export const DEMO_FRAMING = defineExploration({
   id: "demo-framing",
@@ -47,18 +44,24 @@ export const DEMO_FRAMING = defineExploration({
     "src/components/marketing/sections/home/cinema-hero.tsx",
     "src/components/marketing/sections/home/cinema-hero-card.tsx",
     "src/components/marketing/sections/home/hero-stream.ts",
-    "src/components/marketing/sections/features/qr/qr-hero.tsx",
+    "src/components/guest/entry-modal.tsx",
     "src/lib/demo.ts",
     "src/lib/constants/reserved-slugs.ts",
     "scripts/seed-demo-event.mjs",
   ],
   round: {
-    n: 2,
-    date: "2026-09-29",
+    n: 3,
+    date: "2026-10-02",
     changed:
-      "From your round one notes: the demo's address in a host's own words, a typewriter of hosts' addresses drawn three ways against the stream, and four touches that say the card opens, in place of the eyebrow.",
+      "From your round two answers: your hybrid in three takes (the code over a smaller address as one group the album leaves, a credit in every photograph, the turns kept), and the demo's door in three identities.",
   },
   history: [
+    {
+      n: 2,
+      date: "2026-09-29",
+      changed:
+        "From your round one notes: the demo's address in a host's own words, a typewriter of hosts' addresses drawn three ways against the stream, and four touches that say the card opens, in place of the eyebrow.",
+    },
     {
       n: 1,
       date: "2026-09-29",
@@ -67,23 +70,24 @@ export const DEMO_FRAMING = defineExploration({
     },
   ],
   context:
-    "Round two, from your notes on round one. Every photograph is a stand-in from the band's twelve stills: the kit is replaced before launch, so judge the words, the layout and the motion. The demo event itself (its address claimed, its album seeded) is built after your picks.",
+    "Round three, from your round two answers. Every photograph is a stand-in from the band's twelve stills and every guest a persona: the kit is replaced before launch, so judge the object, the motion and the words. Each address's code is real and opens its own link.",
   opening: {
     about:
-      "The demo's invite on the home's first screen: the address its card prints, whether that address types others, and what says the card opens.",
+      "The home's first screen and the demo's door: your hybrid of the turns and the address on the stage in three takes, and what the door says it is.",
     settled: [
-      "The card opens one demo, renamed to its address (your round one pick): every door to the demo opens the album the card shows.",
-      "The demo's album holds every kind of party, so any host sees their event in it; its photographs are the new media kit's.",
-      "Every address the demo prints is reserved to it, as partyreel-demo is, so a printed address always opens the demo.",
-      "The eyebrow over the headline, Try our demo event, goes (your note): the card becomes the first screen's one door to the demo.",
-      "Round one's calls stand: the chip counts the guests past the four prints, faces on the prints, no date, and the host's own line.",
+      "The demo's address is partyreel.com/e/our-party (your pick), and every address the hero types is reserved to the demo, so each one opens it.",
+      "An arrow after the address says it opens; under a pointer the object lifts and the arrow nudges toward where it goes (your note).",
+      "The eyebrow over the headline is gone: the object is the first screen's one door to the demo.",
+      "The typing and the stream take turns in every take, never both at full force (round two's turns, which you loved).",
+      "Every photograph carries its guest's credit, a face and a first name, inside its corner and never off its edge (your note).",
     ],
     earlier: [
-      "The party, no pick: 'Most focused on the best slug here that conveys the idea, almost like our-wedding or my-party.'",
-      "'Unless we did some sort of typewriter effect on the slug, occasionally typing out different slugs.'",
-      "Its variants: the stream and the typing working together (both at full force is too much), or the typing taking the stage.",
-      "And for that one, 'repurpose the centered qr + stream for the QR code page hero'.",
-      "Which event it opens, one demo: 'drop the try our demo event eyebrow and simply add a subtle touch to make the hero visual feel clickable'.",
+      "'I absolutely love the typing and streaming taking turns so each work off of the other (new slug, new event stream, repeat).'",
+      "'The address taking the stage cleans up that visual design of the item a lot ... but I hate losing the stream and QR visuals.'",
+      "'Knock the partyreel link typing font size down a little so it doesn't fight with the H1.'",
+      "'Bounce in a new QR above the input each time it's updated, and stream images off of that QR + link.'",
+      "'If the QR + input could stack/overlap/somehow present as one group for the stream to emanate from.'",
+      "On the address: 'the demo's welcome door specifically should likely avoid this event title.'",
     ],
   },
   terms: [
@@ -93,287 +97,183 @@ export const DEMO_FRAMING = defineExploration({
         "The part of an event's link its host names, after partyreel.com/e/: our-party in partyreel.com/e/our-party.",
     },
     {
-      term: "card",
+      term: "code",
       means:
-        "The small white invite at the centre of the home's first screen: a code, the address and four prints.",
-    },
-    {
-      term: "prints",
-      means:
-        "The four photographs standing out of the card, each with the face of the guest who added it.",
+        "The QR code: the square a phone's camera reads to open a link. Each address here has its own, and it scans.",
     },
     {
       term: "stream",
       means:
-        "The photographs pouring out from behind the card, left and right, across the home's first screen.",
+        "The photographs flowing along one line across the home's first screen, out of the object or into it.",
     },
     {
-      term: "typewriter",
+      term: "credit",
       means:
-        "The address typing itself a key at a time, then erasing and typing another host's.",
+        "The guest's face and first name inside a photograph's corner: who added it.",
     },
     {
-      term: "eyebrow",
+      term: "turns",
       means:
-        "The small line over a headline; the home's says Try our demo event, beside a live dot.",
+        "The typing and the stream taking turns: one moves while the other rests, then they swap.",
     },
     {
-      term: "live dot",
+      term: "invite",
       means:
-        "The small green dot that breathes beside every link to the demo, saying its album is live.",
+        "One white card holding the code at its head and the address under it, like a printed table card.",
     },
     {
-      term: "lamp",
+      term: "doorway",
       means:
-        "The soft light behind the card on the dark ground, which swells once as the page opens.",
-    },
-    {
-      term: "QR code page",
-      means:
-        "The page about the event's code, /features/qr; today its hero is a lit code beside its words.",
+        "The door every guest meets, as you picked it on the door board: a drawn door, open onto the album.",
     },
     {
       term: "reduced motion",
       means:
-        "A visitor's setting asking for less motion: they see one still address and the stream at rest.",
+        "A visitor's setting asking for less motion: they see the demo's own address and code, and the stream at rest.",
     },
   ],
   carried: [
     {
-      id: "title",
-      question:
-        "What is the demo's album called, now its address is in a host's own words?",
+      id: "codes",
+      question: "What does the code over the address open?",
       taken:
-        "The address's own words (our-party is Our party), so the card, the album's head and the welcome say one name; round one's names ask retires.",
+        "The address standing under it: each address is its own real code, and every one is reserved to the demo, so any scan opens it.",
       overrule:
-        "A name of its own at the album's head, as today's Partyreel Demo, which the welcome then says.",
+        "One code for every address (the short /demo door), drawn anew each time for the look alone.",
     },
     {
-      id: "prints",
-      question: "What do the card's four prints show at rest?",
+      id: "credit-words",
+      question: "What does a photograph's credit say?",
       taken:
-        "Four kinds of party from the one album (a wedding, a 30th, a lake weekend, a team party), so the card says any party before a word is read.",
-      overrule:
-        "Four from one party, so the card tells one story and the address alone says any kind.",
+        "The guest's face and first name, nothing else: Ruby, never Added by Ruby or a time.",
+      overrule: "A fuller credit (Ruby, 9:41 pm), or the face alone.",
     },
     {
-      id: "host",
-      question: "Who hosts the demo?",
+      id: "pours",
+      question: "Whose photographs does each address pour?",
       taken:
-        "A persona on a demo account of its own, Sam Okafor, named in the byline and the welcome, never your own account.",
-      overrule: "Your own account, as today: Hosted by Will Gibson.",
+        "Its own party's, credited to its own guests; the stand-ins lean on the nearest still until the month makes each party's set.",
+      overrule:
+        "The demo's own album for every address, so only the address and the code change.",
     },
     {
       id: "typed",
-      question: "Which addresses does the typewriter type?",
+      question: "Which addresses does the hero type?",
       taken:
-        "Round one's five parties in a host's words: our-wedding, my-30th, lake-weekend, our-reunion, team-party, then the demo's own again.",
+        "Round two's five, standing: our-wedding, my-30th, lake-weekend, our-reunion, team-party, then our-party again.",
       overrule:
         "Fewer, or others: the list is one line, and every address in it is reserved to the demo.",
     },
     {
-      id: "air",
-      question: "Where does the eyebrow's line go?",
+      id: "album-name",
+      question: "What is the album behind a door of its own called?",
       taken:
-        "The block is re-solved without it, as production solves it: the headline is its first line, the card stays, and the air under the block grows.",
-      overrule: "Re-balance the whole first screen round the shorter block.",
-    },
-    {
-      id: "qr-hero",
-      question:
-        "If the stream moves to the QR code page, what does that page's hero become?",
-      taken:
-        "The home's composition moved whole: the card and its stream centred over the page's own words, the card's lamp standing for the code's.",
-      overrule: "The page's own lit code as the object the stream pours from.",
+        "Our party, the address's own words, as round two drew it: the door says what the demo is, the album stays a party.",
+      overrule:
+        "A name of its own at the album's head too, as the other two doors have.",
     },
   ],
   asks: [
-    /* ── 1. The address ───────────────────────────────────────────────── */
-    {
-      id: "slug",
-      label: "The demo's address",
-      question:
-        "Which address, in a host's own words, should the demo's card print?",
-      where: ["Marketing", "The home's first screen", "The card's address"],
-      when: "Anyone arriving at partyreel.com: the card over the headline is the demo's invite, and its address the first link they read.",
-      matters:
-        "It is the demo's real address and its name everywhere, and the one line that says a host names their own link.",
-      context:
-        "Drawn still, as reduced motion and a first paint show it: the home at 1440 and 375, then at 375 the album the card opens, its head and its welcome, titled in the address's words.",
-      options: [
-        {
-          id: "our-party",
-          label: "partyreel.com/e/our-party",
-          means:
-            "The party as its hosts would name it, in the plural most parties are thrown in: a couple, a family, a team, friends.",
-          gains:
-            "Fits every kind of party the album holds, and reads as a party the visitor could throw.",
-          costs:
-            "Names no kind of party, so the card's four prints have to say what it was.",
-        },
-        {
-          id: "my-party",
-          label: "partyreel.com/e/my-party",
-          means:
-            "One host's party, in the first person: the shortest address of the four, and the most personal.",
-          gains:
-            "The shortest and the most personal: it reads as the visitor's own.",
-          costs:
-            "Reads as a birthday; a couple, a family or a team would say our.",
-        },
-        {
-          id: "our-big-night",
-          label: "partyreel.com/e/our-big-night",
-          means:
-            "The night itself, in its hosts' words: a wedding, a 30th, a launch and a gala each has one.",
-          gains:
-            "The most life in it, and it still fits most of the parties the album holds.",
-          costs:
-            "A reunion or a weekend away is not a night, and it is the longest of the four.",
-        },
-        {
-          id: "our-wedding",
-          label: "partyreel.com/e/our-wedding",
-          means:
-            "Your example: the wedding in the couple's own words, the custom link couples most want.",
-          gains:
-            "The Event Pass's biggest buyer, in the address couples most want for their own.",
-          costs:
-            "Tells a birthday or a work host the demo is a wedding, over an album of every party.",
-        },
-      ],
-      recommended: "our-party",
-      because:
-        "It fits every party the album holds, in the voice most are thrown in, and 'You're a guest at Our party' reads true.",
-      overrule:
-        "If the demo should speak to one host first, my-party; to its biggest buyer, our-wedding.",
-      lands:
-        "OBJECT_EVENT.slug, the demo event's name and custom address in its seed, and the reserved slugs that keep it the demo's.",
-    },
-
-    /* ── 2. The address and the stream ─────────────────────────────────── */
+    /* ── 1. The stage ─────────────────────────────────────────────────── */
     {
       id: "stage",
-      label: "The address and the stream",
-      question:
-        "How should the card's address and the stream share the home's first screen?",
-      where: ["Marketing", "The home's first screen", "Its motion"],
-      when: "The first seconds on partyreel.com with motion allowed: the stream pours out of the card while a visitor reads the headline.",
+      label: "Your hybrid, three takes",
+      question: "Which take on your hybrid should the home's first screen run?",
+      where: ["Marketing", "The home's first screen", "Its object and motion"],
+      when: "Anyone arriving at partyreel.com: the object over the headline is the demo's invite, and the first thing on the page that moves.",
       matters:
-        "The first screen has one motion to say what Partyreel is; two at full force and the eye goes everywhere.",
+        "It is every visitor's first picture of the product: one link, its code, and everyone's photographs going into one album.",
       context:
-        "Each drawn live at 1440 and 375, with the loop's score under the desk, what moves when; the last also on the QR code page's hero, where the stream moves. Reduced motion sees one still address in every option.",
+        "Each take live at 1440 and 375 with its loop's score under the laptop, then close at a desk, at rest and under the pointer. Reduced motion stands each still: the demo's own address and code, every photograph with its credit.",
       options: [
         {
-          id: "still",
-          label: "The address stays still, as today",
+          id: "rise",
+          label: "The code rises out of the link",
           means:
-            "The stream as it ships and the card's address still: the stream is the first screen's one motion.",
+            "A slimmer address with its code standing up out of it; a new code rises as each address lands, and the stream drifts while it types.",
           gains:
-            "Keeps the hero as composed: one motion, and nothing new to watch.",
+            "Closest to your note, and the card's own idea: things standing out of the link.",
           costs:
-            "Shows one party, and leaves that a host names their link to the words.",
+            "Two white shapes, so a busier silhouette than one; the stream never fully rests.",
         },
         {
-          id: "turns",
-          label: "They take turns",
+          id: "open",
+          label: "The link opens into its invite",
           means:
-            "Every few seconds the stream eases to a drift, the address types another host's, and the stream pours again.",
+            "One white object: a pill while the address types, an invite with its code once it lands; its album folds back in, then bursts out anew.",
           gains:
-            "Both motions, never at full force together: the eye goes to the address, then back.",
+            "One object and one breath: every address reads as a new event with its own album.",
           costs:
-            "The pour pauses every few seconds, so the stream is no longer one flow.",
+            "The whole album moves twice a turn: the most motion of the three.",
         },
         {
-          id: "together",
-          label: "The stream pours the party it types",
+          id: "words",
+          label: "Just the code, photos coming in",
           means:
-            "A calmer stream, and each address the card types turns its prints, then the photographs it pours, to that party.",
+            "The code alone on paper, its address in white type under it; photographs come in from both edges and slip behind the code.",
           gains:
-            "One story: every address brings its own album out of the card.",
+            "The cleanest object, and the motion says collects, the subhead's own word.",
           costs:
-            "Two motions at once, if calmer, and the typing is small beside the band.",
-        },
-        {
-          id: "centre",
-          label: "The address takes the stage",
-          means:
-            "The address, large, types hosts' own with their prints dealt round it; the card and its stream move to the QR code page.",
-          gains:
-            "Says the one idea first, this link is yours to name, with nothing beside it.",
-          costs:
-            "The home loses its album pouring out of the link, and two heroes change.",
+            "The album arrives into the link rather than leaving it, against your note's direction.",
         },
       ],
-      today: "still",
-      recommended: "turns",
+      recommended: "open",
       because:
-        "It keeps the hero's rule of one motion at a time and lets the address type in the stream's rest, so neither competes.",
+        "One object that breathes with the turns: each address opens its own code and pours its own album, and the typing always has the stage.",
       overrule:
-        "If the home should say 'yours to name' before 'everyone's photos', the address takes the stage.",
+        "If the stream should never pause, the code rising out of the link; if the page should be its calmest, just the code.",
       lands:
-        "cinema-hero.tsx's loop and the card's address; for the last, a home hero of its own and /features/qr's hero.",
+        "cinema-hero.tsx's object, its loop and its frames; a code per address, each reserved to the demo; hero-stream.ts's object geometry.",
     },
 
-    /* ── 3. The touch ──────────────────────────────────────────────────── */
+    /* ── 2. The door ──────────────────────────────────────────────────── */
     {
-      id: "touch",
-      label: "What says the card opens",
-      question:
-        "With the eyebrow gone, what should tell a visitor the card opens the demo?",
-      where: ["Marketing", "The home's first screen", "The card"],
-      when: "A visitor sees the card: pressing it opens the demo, in a modal at a desk and in a new tab on a phone.",
+      id: "door",
+      label: "The demo's door",
+      question: "What should the demo's door say a visitor has walked into?",
+      where: ["Guest", "The demo's door", "On arrival"],
+      when: "A visitor opens the demo from the home's object, in a new tab at a desk or off its code with a phone, and meets its door.",
       matters:
-        "The card becomes the first screen's one door to the demo; if it does not look pressable, the demo goes unopened.",
+        "The door is where the demo says what it is; a generic party name there leaves a visitor unsure what they opened.",
       context:
-        "Each close at a desk's size, at rest and under the pointer; then the home at 375, where there is no pointer and the resting cue is the whole cue, and at 1440, where hovering the card lifts it.",
+        "Each drawn at 375 in the doorway you picked on the door board, open onto the demo album, then the album's head behind it. The address stays our-party in every one.",
       options: [
         {
-          id: "lift",
-          label: "It rises under the pointer",
+          id: "brand",
+          label: "Partyreel Demo",
           means:
-            "Nothing at rest; under a pointer or focus the card lifts a few pixels, its prints fan a little and its shadow deepens.",
-          gains: "Adds nothing at rest: the first screen stays as composed.",
-          costs: "A phone, where most visitors are, gets no cue at all.",
+            "The demo is named Partyreel Demo and hosted by Partyreel: on its door, at its album's head, wherever it is named.",
+          gains: "Unmistakable: nobody wonders whose party it is.",
+          costs:
+            "Partyreel's name first on a guest's door, and no party a visitor could picture as theirs.",
         },
         {
-          id: "arrow",
-          label: "An arrow after the address",
+          id: "example",
+          label: "Example Party",
           means:
-            "A small arrow after the address, the web's own sign for a link that opens, and the lift under a pointer.",
-          gains:
-            "Reads as a link at a glance on every screen, and never moves.",
+            "The demo is named Example Party and hosted by Sam Okafor: still a party a guest is invited to, plainly a sample.",
+          gains: "Still an invitation to a party, and plainly a sample.",
           costs:
-            "One more mark on a small card; it says the address opens, not what.",
+            "A placeholder's name on the first door most hosts will ever see.",
         },
         {
-          id: "live",
-          label: "The live dot moves onto the card",
+          id: "own",
+          label: "A door of its own",
           means:
-            "The eyebrow's breathing live dot stands before the address, and the lift under a pointer.",
+            "The door speaks as Partyreel, once: your guests start here, with the link the visitor came through; the album keeps its party's name.",
           gains:
-            "Keeps the demo's one sign, live, on the thing it now describes.",
+            "Says what the demo is at the door, while the album behind it still feels like a real party.",
           costs:
-            "A second small motion on the card, and live reads as a state before a door.",
-        },
-        {
-          id: "lamp",
-          label: "Its light swells now and then",
-          means:
-            "Every few seconds the lamp behind the card swells and settles, and the lift under a pointer.",
-          gains:
-            "Draws the eye with the house's own light, adding nothing to the card.",
-          costs:
-            "A second motion beside the stream, and soft enough to go unseen.",
+            "One more set of words the shared door has to carry, and the only door that names no party.",
         },
       ],
-      recommended: "arrow",
+      recommended: "own",
       because:
-        "It is the one cue a phone gets at rest, it never moves beside the stream, and the web already reads it as a link.",
+        "The door is the one place the demo may speak as Partyreel, so it says what this is there, and the album keeps feeling like a party.",
       overrule:
-        "If the card should wear the sign every other door to the demo wears, the live dot.",
+        "If the demo should be named for what it is everywhere, Partyreel Demo.",
       lands:
-        "The card's door in cinema-hero.tsx and its address in cinema-hero-card.tsx; the eyebrow leaves the block (GEO.blockH).",
+        "The demo's door words (entry-modal.tsx's demo step, the doorway's once wired), the demo event's name in its seed and its host persona.",
     },
   ],
 });

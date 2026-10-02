@@ -1,0 +1,171 @@
+/* THE DOORWAY, OPEN, QUOTED for the demo's door (`door.tsx`).
+
+   The door family Will picked on the door board (locked-door r2,
+   `family=doorway`, `shape=shared`) is being wired by its own lane; until it
+   is production, a board may not import another board's folder, so its open
+   state is quoted here under `df-way`, rule for rule from
+   `sandbox/locked-door/locked-door.css`: the frame, the room lit by the
+   album's own hues with four of its photographs seen through it, the leaf
+   swung open on its hinge, and the light thrown across the floor. Only the
+   open door is quoted (the demo's door is always a welcome), and it stands
+   still: the swing and the idle loops are locked-door r3's.
+
+   No keyframe is declared here, so nothing can collide with one
+   (`src/app/keyframe-uniqueness.test.ts`). */
+
+.df-way {
+  --way-w: 116px;
+  --way-h: 176px;
+  --way-r: 14px;
+  --way-turn: 74deg;
+  --lit-l: 0.8;
+  --lit-c: 0.13;
+  position: relative;
+  isolation: isolate;
+  width: var(--way-w);
+  height: var(--way-h);
+  flex-shrink: 0;
+}
+.dark .df-way {
+  --lit-l: 0.74;
+  --lit-c: 0.15;
+}
+@media (width >= 40rem) {
+  .df-way {
+    --way-w: 150px;
+    --way-h: 228px;
+    --way-r: 18px;
+  }
+}
+
+.df-way-frame {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--way-r) var(--way-r) 2px 2px;
+  perspective: calc(var(--way-w) * 4.5);
+  box-shadow: 0 0 0 1px var(--border);
+  background: var(--background);
+}
+
+.df-way-room {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  background: oklch(0.93 0.06 var(--lit-h2));
+}
+.dark .df-way-room {
+  background: oklch(0.44 0.08 var(--lit-h2));
+}
+.df-way-glow {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(calc(var(--way-w) * 0.14));
+}
+.df-way-g1 {
+  background: oklch(var(--lit-l) var(--lit-c) var(--lit-h1));
+  left: -25%;
+  top: 0%;
+  width: 90%;
+  height: 55%;
+}
+.df-way-g2 {
+  background: oklch(var(--lit-l) var(--lit-c) var(--lit-h2));
+  left: 25%;
+  top: 25%;
+  width: 95%;
+  height: 55%;
+}
+.df-way-g3 {
+  background: oklch(var(--lit-l) var(--lit-c) var(--lit-h3));
+  left: -15%;
+  top: 55%;
+  width: 100%;
+  height: 55%;
+}
+.df-way-album {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 2px;
+  opacity: 0.94;
+}
+.df-way-album img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.df-way-leaf {
+  position: absolute;
+  inset: 0 0 3px 0;
+  border-radius: var(--way-r) var(--way-r) 1px 1px;
+  transform-origin: 0% 50%;
+  transform: rotateY(var(--way-turn));
+  background: linear-gradient(
+    180deg,
+    oklch(0.975 0.002 286),
+    oklch(0.925 0.003 286)
+  );
+  box-shadow:
+    inset 0 0 0 1px oklch(0.2 0.01 286 / 0.09),
+    0 1px 2px oklch(0.2 0.01 286 / 0.06);
+}
+.dark .df-way-leaf {
+  background: linear-gradient(
+    180deg,
+    oklch(0.31 0.006 286),
+    oklch(0.245 0.006 286)
+  );
+  box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.07);
+}
+.df-way-panel {
+  position: absolute;
+  left: 16%;
+  right: 16%;
+  border-radius: calc(var(--way-r) * 0.3);
+  box-shadow: inset 0 0 0 1px oklch(0.2 0.01 286 / 0.08);
+}
+.dark .df-way-panel {
+  box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.06);
+}
+.df-way-panel-top {
+  top: 11%;
+  height: 36%;
+  border-top-left-radius: calc(var(--way-r) * 0.7);
+  border-top-right-radius: calc(var(--way-r) * 0.7);
+}
+.df-way-panel-low {
+  top: 55%;
+  height: 33%;
+}
+
+/* The floor: the room's light thrown out through the open doorway. */
+.df-way-floor {
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  top: calc(100% - 2px);
+  width: calc(var(--way-w) * 2.6);
+  height: calc(var(--way-w) * 0.62);
+  translate: -50% 0;
+  filter: blur(calc(var(--way-w) * 0.05));
+  background: radial-gradient(
+    50% 70% at 50% 0%,
+    oklch(var(--lit-l) var(--lit-c) var(--lit-h2) / 0.75),
+    oklch(var(--lit-l) var(--lit-c) var(--lit-h1) / 0.28) 55%,
+    transparent 100%
+  );
+}
+.df-way-ground {
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  top: 100%;
+  width: calc(var(--way-w) * 2.8);
+  height: 1px;
+  translate: -50% 0;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+}

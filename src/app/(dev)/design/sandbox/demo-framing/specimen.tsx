@@ -1,51 +1,60 @@
 "use client";
 
-import { type CSSProperties, type ReactNode, useRef } from "react";
+import type { CSSProperties } from "react";
 
+import { Glow } from "@/components/shared/glow";
 import { GlowFilter } from "@/components/shared/glow-filter";
-import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
 
-import type { TouchId } from "./card";
-import { ObjectLamp, useSwell } from "./hero";
-import { CinemaRoom, stopLinks, useOffStage } from "./scene";
+import { HeroObject, type TakeId } from "./objects";
+import { CinemaRoom, stopLinks } from "./scene";
 
 /**
- * THE TOUCH, CLOSE: the object at a desk's size on the cinema ground, at rest
- * and under the pointer, side by side (or one over the other, for the wide
- * address plate). No real screen can show both at once, which is why this is
- * the one frame on the board that is not a screen: the home frames beside it
- * are, and hovering the 1440 one lifts the card for real.
+ * THE SETTLED TOUCH, CLOSE: the object at a desk's size on the cinema ground,
+ * at rest and under the pointer, side by side. No real screen can show both
+ * at once, which is why this is the one frame on the board that is not a
+ * screen: the home frames are, and pointing at the 1440 one lifts the object
+ * for real.
  *
  * `--hhs-k: 1` is the desk's drawing of every length (the hero's sheet sets it
  * from the frame's width, and this frame is not a hero).
  */
 export function Specimen({
-  touch,
-  lamp,
-  stacked,
-  object,
+  take,
+  slug,
+  addresses,
 }: {
-  touch: TouchId;
-  lamp: { w: string; h: number };
-  /** One over the other, for an object too wide to stand two abreast. */
-  stacked?: boolean;
-  object: (lifted: boolean) => ReactNode;
+  take: TakeId;
+  slug: string;
+  addresses: readonly string[];
 }) {
-  const root = useRef<HTMLDivElement | null>(null);
-  const swell = useRef<HTMLDivElement | null>(null);
-  const off = useOffStage(root);
-  const reduced = usePrefersReducedMotion();
-  useSwell(swell, touch === "lamp" && !reduced && !off);
-
-  const cell = (label: string, lifted: boolean, lit: boolean) => (
+  const cell = (label: string, lifted: boolean) => (
     <div
       data-df-cell
       className="relative flex flex-1 items-center justify-center overflow-hidden"
     >
-      <div className="absolute top-1/2 left-1/2">
-        <ObjectLamp w={lamp.w} h={lamp.h} swell={lit ? swell : null} />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute top-1/2 left-1/2 h-[520px] w-[680px] -translate-x-1/2 -translate-y-1/2"
+      >
+        <Glow
+          shape="bloom"
+          drive="mask"
+          vars={{
+            "--glw-from-x": "50%",
+            "--glw-from-y": "50%",
+            "--glw-reach": "56%",
+            "--glw-strength": "0.95",
+            "--glw-base": "0.34",
+            "--glw-blur": "26px",
+          }}
+        />
       </div>
-      <div className="relative z-10">{object(lifted)}</div>
+      <div className="relative z-10">
+        <HeroObject
+          take={take}
+          live={{ slug, addresses, up: true, lifted, still: true }}
+        />
+      </div>
       <p className="absolute bottom-4 left-5 text-label font-medium text-muted-foreground uppercase">
         {label}
       </p>
@@ -58,14 +67,13 @@ export function Specimen({
       {/* One screen tall, the frame's own: the frame's document gives its
           portal no height for a percentage to resolve against. */}
       <div
-        ref={root}
         data-df-specimen
         onClickCapture={stopLinks}
-        className={`flex h-screen w-full ${stacked ? "flex-col" : "flex-row"}`}
+        className="flex h-screen w-full flex-row"
         style={{ "--hhs-k": 1 } as CSSProperties}
       >
-        {cell("At rest", false, touch === "lamp")}
-        {cell("Under the pointer", true, false)}
+        {cell("At rest", false)}
+        {cell("Under the pointer", true)}
       </div>
     </CinemaRoom>
   );
