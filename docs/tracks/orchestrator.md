@@ -61,6 +61,8 @@ a lane").
 | `crumbs-47` | two guest LOWs: Back over a credit's look; the flip's stale failure sheet | MERGED at `3fe44072` (gate 139 green; each red on the old code); no SQL | Sonnet, 3136 | `8db9cd47` |
 | `locked-door-r3` | board locked-door r3 [desk 30]: the reveal into the album (the album behind polished so the door reads); calm idle loops for the waiting and shut doors | RUNNING since 2026-10-02 09:00Z (round 11, wave 2) | Opus, 3131, agent `a3df0a6f9ddad5f34` | `26743369` |
 | `event-header` | board r1 [desk 50]: the host hub's head and the guest album's head reconceived | RUNNING since 2026-10-02 09:00Z (round 11, wave 2) | Opus, 3135, agent `ac779afaae3c3f9ca` | `26743369` |
+| `identity` | board r1 [desk 10]: Partyreel's atomic identity, three or four complete families across every primitive, on a specimen and three real screens (his library prompt) | RUNNING since 2026-10-02 09:55Z (round 11, wave 2) | Opus, 3132 | `04afe52d` |
+| `disposable-r3` | board disposable-mode r3 [desk 80]: four new cameras (two from viewfinder, two from reel, modern), a new waiting room (no tilt), save with the looks on real photos beside none; video and cost staged | RUNNING since 2026-10-02 09:55Z (round 11, wave 2) | Opus, 3134 | `04afe52d` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, respawned
 2026-10-01 18:15Z in this session; no question open. Q6 (crumbs-37's two migrations and crumbs-38's cursor file against
