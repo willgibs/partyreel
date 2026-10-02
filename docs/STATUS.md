@@ -13,18 +13,17 @@ and the launch switches unspent ([`ROADMAP.md`](ROADMAP.md) → Launch checkpoin
 catalog in the lab, Will's verdicts on the desk, then the wiring; partyreel.com changes only at tagged milestone merges.
 Nothing is protected: every page, the host app and the guest pages are open to be reconceived from the ground up.
 
-## The current round: batch 9, from the desk
+## The current round: batch 10, toward his sitting
 
-- **Milestone 31 is live** (`7bd3b947`, 2026-09-30): batch 8 whole, 40 lanes, red-teamed live through build 30 and its
-  one MEDIUM (a stale guest link's own screen) fixed and proven before the merge: event settings rebuilt around the
-  door (Public, Private with its gates, Only me, an invite list, the Videos switch), a shared phone that keeps each
-  guest's photos her own, the reports queue rebuilt, the hub's rooms and live album, lighter pages, the lab rebuilt.
-  The legal text is rewritten once, right before launch (his word).
-- **Batch 9 rides `launch-prep`**: crumbs-28 to crumbs-40, hide-strikes (his call B) and demo-stall, every migration
-  applied; builds 33 to 36 red-teamed, build 36's one MEDIUM fixed by `crumbs-45` (merged). Milestone 32 ships it once
-  build 37 proves the fix on the alias (his yes, 2026-10-01). Handed off and merging after it: `crumbs-41` (admin, data
-  and billing, his call #60 among them), `crumbs-42` (the host app) and `crumbs-43` (guests); `strip-gaps` and
-  `export-ends` run. App work leads (his note); the wiring of each board follows his picks.
+- **Milestone 32 is live** (`21697db1`, 2026-10-01): batch 9 whole (crumbs-28 to crumbs-40, crumbs-45, hide-strikes,
+  demo-stall), red-teamed on builds 33 to 36 and build 36's one MEDIUM fixed and proven on build 37: the instant
+  hide's three strikes, a shared phone's one ticket per account, My uploads and My likes past 200 with faces in the
+  credits, the album log pruned under watermarks, every published claim made true. The legal text is rewritten once,
+  right before launch (his word).
+- **Batch 10 merges onto `launch-prep`** (Will, 2026-10-01: finish the round, then he answers the desk once, on settled
+  production): crumbs-41 to crumbs-44, strip-gaps, export-ends, lab-sitting and mkt-polish, each migration by protocol
+  (the Advisor's Q7: all five as written), then build 38, its red-team and one pass of the desk against it. No new
+  lane until his paste.
 
 ## The desk
 
@@ -34,10 +33,8 @@ and `about-press` r1 (two), in that order.
 
 ## Live state
 
-- **Prod:** partyreel.com is `main` at tag `milestone-31` (`7bd3b947`, 2026-09-30), both projects READY: its pages
-  load, a stale guest link and an unknown profile draw their own screens (200, noindex), the lab and `/admin` 404 on the
-  apex, the admin door redirects; the signed-in walk PASS (the dashboard, a hub's rooms and trail, Settings' rows and
-  back arrow and the browser's Back, the door page, the Guests room, the demo's viewer; no console error).
+- **Prod:** partyreel.com is `main` at tag `milestone-32` (`21697db1`, 2026-10-01 23:55Z), both projects READY; its
+  read-only walk running.
 - **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 36 (`eb38b6be`, 2026-10-01
   19:00Z): build 35 plus crumbs-36 to crumbs-40, its red-team walking; the desk is the same six boards (no board moved
   since build 31). Vercel installs with pnpm 9.14.4, `package.json`'s `packageManager`.
