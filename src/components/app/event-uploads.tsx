@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Clock } from "lucide-react";
+import { Clock, Images } from "lucide-react";
 
 import { FeedSectionEmpty } from "@/components/app/event-feed/feed-section-empty";
 import {
@@ -33,28 +33,22 @@ import { PHOTO_PARAM } from "@/lib/media/share-save";
 // an entry and the links of what the window mounts. So the list here is the WHOLE album, each tile
 // drawn once its window's links land, and nothing on this page is refreshed to show an arrival.
 //
-// ★ THE ZERO STATE IS A LAUNCH LIST NOW (Will, `empty=list`, 2026-09-21: "Three
-// things the app already knows, as three things she can finish"). It arrives as
-// a SLOT rather than being built here, because the list is derived from the
-// event's own nulls and this is a client island: passing the rendered element
-// down keeps the event row on the server, where it already is, instead of
-// threading `event_date` and `description` through the album's props. And the
-// album takes the room back the moment the first photograph lands, live.
+// ★ THE ZERO STATE IS THE ALBUM'S OWN: no photos yet, and the album fills here.
+// What an event still needs before guests arrive is the checklist's, at the head
+// of the hub (event-ready `list=head`, 2026-10-02), which stays past the first
+// photograph where the launch list that stood here left with it, done or not.
+// The album takes the place back the moment the first photograph lands, live.
 //
 // ★ THE PENDING VARIANT STAYS ITS OWN THING. "Everything's in Review" is not an
-// empty event — it is a full one whose host has not looked yet, and a launch
-// list there would ask her to print table cards while photographs wait.
+// empty event — it is a full one whose host has not looked yet.
 export function EventUploads({
   eventId,
   shareUrl,
-  launchList,
   rhythmSeed = 0,
 }: {
   eventId: string;
   // The event JOIN url, threaded to the host lightbox Share (3c.2).
   shareUrl?: string;
-  /** The server-rendered launch list, shown only before the first photograph. */
-  launchList?: React.ReactNode;
   /** The visit's seed for the rows' rhythm, dealt by the server so the first paint holds. */
   rhythmSeed?: number;
 }) {
@@ -65,7 +59,6 @@ export function EventUploads({
       album={album}
       eventId={eventId}
       shareUrl={shareUrl}
-      launchList={launchList}
       rhythmSeed={rhythmSeed}
     />
   );
@@ -78,13 +71,11 @@ function HubAlbum({
   album,
   eventId,
   shareUrl,
-  launchList,
   rhythmSeed,
 }: {
   album: HubAlbum;
   eventId: string;
   shareUrl?: string;
-  launchList?: React.ReactNode;
   rhythmSeed: number;
 }) {
   const snap = useHubSnapshot(album);
@@ -117,7 +108,15 @@ function HubAlbum({
         />
       );
     }
-    return <>{launchList}</>;
+    return (
+      <div data-album-empty="">
+        <FeedSectionEmpty
+          icon={Images}
+          title="No photos yet"
+          desc="The album fills here as you and your guests add photos."
+        />
+      </div>
+    );
   }
   const grid = (
     <HubGrid

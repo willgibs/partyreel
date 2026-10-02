@@ -36,7 +36,8 @@ vi.mock("@/components/app/pricing/pricing-sheet", () => ({
 
 const { doorConsequence } = await import("./settings-rows");
 const { EventSettingsSheet } = await import("./event-settings-sheet");
-const { hostEvent, NO_COUNTS } = await import("./testing/host-event");
+const { hostEvent, NO_COUNTS, readyFacts } =
+  await import("./testing/host-event");
 
 const FACTS = {
   in: 0,
@@ -125,6 +126,7 @@ describe("the door menu, drawn", () => {
         pendingCount={0}
         social={{ displayInProfile: false, hostHasSlug: true }}
         reelSample={null}
+        ready={readyFacts()}
       />,
     );
     fireEvent.click(screen.getByRole("button", { name: "People you let in" }));
