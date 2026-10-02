@@ -4,7 +4,7 @@
 > [`systems/`](systems); what might be next is [`ROADMAP.md`](ROADMAP.md); what runs this minute is
 > [`tracks/orchestrator.md`](tracks/orchestrator.md); what shipped is `git log`.
 
-**Updated:** 2026-10-01
+**Updated:** 2026-10-02
 
 ## The era
 
@@ -20,10 +20,10 @@ Nothing is protected: every page, the host app and the guest pages are open to b
   hide's three strikes, a shared phone's one ticket per account, My uploads and My likes past 200 with faces in the
   credits, the album log pruned under watermarks, every published claim made true. The legal text is rewritten once,
   right before launch (his word).
-- **Batch 10 merges onto `launch-prep`** (Will, 2026-10-01: finish the round, then he answers the desk once, on settled
-  production): crumbs-41 to crumbs-44, strip-gaps, export-ends, lab-sitting and mkt-polish, each migration by protocol
-  (the Advisor's Q7: all five as written), then build 38, its red-team and one pass of the desk against it. No new
-  lane until his paste.
+- **Batch 10 is merged on `launch-prep`** (Will, 2026-10-01: finish the round, then he answers the desk once, on settled
+  production): crumbs-41 to crumbs-44, strip-gaps, export-ends (and its Worker), lab-sitting and mkt-polish, their seven
+  migrations applied by protocol (the Advisor's Q7: all as written). Build 38 carries them to the alias for its red-team
+  and one pass of the desk against it; then his sitting. No new lane until his paste.
 
 ## The desk
 
@@ -39,17 +39,18 @@ and `about-press` r1 (two), in that order.
 - **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 36 (`eb38b6be`, 2026-10-01
   19:00Z): build 35 plus crumbs-36 to crumbs-40, its red-team walking; the desk is the same six boards (no board moved
   since build 31). Vercel installs with pnpm 9.14.4, `package.json`'s `packageManager`.
-- **The shared database** runs every migration applied through 2026-10-01, crumbs-37's and crumbs-38's four last (the
-  album log's watermarks and its prune, `media_removed_idx`, the feeds' cursor, the told news); no build of either
-  project reads a dropped thing. The album-log prune runs nightly once milestone 32 ships; until then only a hand-run
-  of build 36's purge on the alias runs it.
+- **The shared database** runs every migration through 2026-10-02, batch 10's seven last (the strike's lapse as a
+  duration, the deleted events' index, the export Worker's reports, the host's cap on the album's read, a face moving
+  the credits); no build of either project reads a dropped thing. The album-log prune runs nightly with the purge
+  from 2026-10-02.
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** about 7,900 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
+- **Tests:** about 8,700 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
 - **Jobs:** the daily purge cron (Vercel Hobby fires it at 04:48 UTC; its first run on milestone 28's sweeps was green:
   every sweep ok, none stopped early, the orphan scan read 1,368 objects and deleted none, the standby budget's one host
-  willg97 with the withdrawals out), the media-backup Worker and the daily DB-backup Action are live; the deletion-aware
+  willg97 with the withdrawals out), the media-backup Worker and the daily DB-backup Action are live, and the export
+  Worker checks itself daily at 05:30 UTC (`/admin/jobs`); the deletion-aware
   backup prune runs dry (`PRUNE_MODE=live` is a launch flip).
 - **The repo is public for the interim** (GitHub Actions minutes); private again when the budget clears.
 
@@ -69,5 +70,5 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-- His desk (above); the calls file's 64 calls to overrule (his decisions A and B answered 2026-09-30, C, #60's reopen
+- His desk (above); the calls file's 73 calls to overrule (his decisions A and B answered 2026-09-30, C, #60's reopen
   window, 2026-10-01); the phone checks and the walks only he can drive (`tracks/orchestrator.md`).
