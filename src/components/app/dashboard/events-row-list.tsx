@@ -1,11 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Images, ListChecks, Lock } from "lucide-react";
+import { ArrowRight, Images, Lock } from "lucide-react";
 
-import { MediaTile } from "@/components/app/media-grid";
+import { StateDot } from "@/components/app/dashboard/marks";
 import type { EventListRow } from "@/lib/dashboard/events-view";
-import type { PulseTile } from "@/lib/db/queries/pulse";
 import { formatCount } from "@/lib/format/count";
 import { cn } from "@/lib/utils";
 
@@ -29,15 +28,10 @@ import { cn } from "@/lib/utils";
 
 const STAT = "flex items-center gap-1.5 tabular-nums";
 
-function Row({
-  row,
-  tiles,
-  action,
-}: {
-  row: EventListRow;
-  tiles: PulseTile[];
-  action?: React.ReactNode;
-}) {
+function Row({ row, action }: { row: EventListRow; action?: React.ReactNode }) {
+  // The party, still visible: its newest few beside the name (its tile's own stills).
+  const tiles = row.stills;
+  const state = row.marks?.state ?? null;
   const body = (
     <>
       {/* The cover as the row's ground: 12 percent, so the row reads as this
@@ -57,7 +51,10 @@ function Row({
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <span className="flex items-center gap-1.5 truncate font-heading text-card-title">
             {row.href === null && row.kind === "guest" && (
-              <Lock className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
+              <Lock
+                className="size-3.5 shrink-0 text-muted-foreground"
+                aria-hidden
+              />
             )}
             {row.name}
           </span>
@@ -76,20 +73,23 @@ function Row({
           </span>
         </div>
 
-        {/* The party, still visible: the newest few beside the name. Static —
-            this is a management list, not an arrivals strip. */}
+        {/* The party, still visible: the newest few beside the name. Static: this is a management
+            list, not an arrivals strip. */}
         {tiles.length > 0 && (
           <div className="flex shrink-0 gap-1.5">
-            {tiles.map((tile) => (
+            {tiles.map((url) => (
               <span
-                key={tile.id}
+                key={url}
                 data-media-tile
                 data-static
                 className="relative size-11 overflow-hidden rounded-[var(--radius-tile)]"
               >
-                <MediaTile
-                  item={{ type: tile.type, url: tile.url, previewUrl: null }}
-                  playBadge="none"
+                {/* eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, not optimizable */}
+                <img
+                  src={url}
+                  alt=""
+                  loading="lazy"
+                  className="absolute inset-0 size-full object-cover"
                 />
               </span>
             ))}
@@ -110,14 +110,15 @@ function Row({
                 />
               )}
             </span>
-          ) : row.pending > 0 ? (
+          ) : state?.tone === "waiting" ? (
             <span className="flex items-center gap-1.5 rounded-full bg-warning/15 px-2.5 py-1 text-xs font-medium text-warning">
-              <ListChecks className="size-3.5" aria-hidden />
-              {formatCount(row.pending)} to review
+              <StateDot tone="waiting" className="size-1.5" />
+              {state.text}
             </span>
           ) : (
-            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-              {row.needs ?? "Nothing waiting"}
+            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              {state ? <StateDot tone="setup" className="size-1.5" /> : null}
+              {state?.text ?? (row.kind === "deleted" ? "" : "Nothing waiting")}
               {row.href && (
                 <ArrowRight
                   className="size-3.5 opacity-0 transition-[opacity,translate] duration-150 ease-emphasis group-hover/row:translate-x-0.5 group-hover/row:opacity-70 motion-reduce:transition-none"
@@ -144,7 +145,7 @@ function Row({
           // of that contract on purpose — and copying it across was the mistake
           // the contract caught.
           className={cn(
-            "group/row relative block overflow-hidden rounded-xl border border-border bg-card outline-none transition-transform duration-150 ease-emphasis active:scale-[0.995] focus-visible:ring-3 focus-visible:ring-ring/50 motion-reduce:active:scale-100",
+            "group/row relative block overflow-hidden rounded-xl border border-border bg-card transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-[0.995] motion-reduce:active:scale-100",
           )}
         >
           {body}
@@ -170,13 +171,11 @@ function Row({
 
 export function EventsRowList({
   rows,
-  newestByEvent,
   actions,
 }: {
   rows: EventListRow[];
-  newestByEvent: Map<string, PulseTile[]>;
   /** Per-row action element (the bin's restore), keyed by kind and row id. */
-  actions?: Map<string, React.ReactNode>;
+  actions?: ReadonlyMap<string, React.ReactNode>;
 }) {
   return (
     <ul className="space-y-2">
@@ -184,7 +183,6 @@ export function EventsRowList({
         <Row
           key={`${row.kind}-${row.id}`}
           row={row}
-          tiles={newestByEvent.get(row.id) ?? []}
           action={actions?.get(`${row.kind}-${row.id}`)}
         />
       ))}

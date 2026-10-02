@@ -120,8 +120,8 @@ Make your own; never a "cut", and never a word for a video upload, which is a
 "video"), **the screen** (the reel's screen mode, from Play on a screen),
 **event link** (the address guests open;
 "permanent link" only against a "custom link"), **share dialog** (the host's
-Share sheet; guests have the `Invite` button), the **Show** menu (the
-dashboard's All events, Guest and Deleted), the **View** menu (the event
+Share sheet; guests have the `Invite` button), the dashboard's **row of counts** over
+its events (All, Hosting, Guest and Deleted), the **View** menu (the event
 page's sort, filter and tile size), **grid** (the album layout), **Review**
 (the switch and the section; "waiting in Review" for the state), and
 **confirm an email** for what a guest does at the email step.
