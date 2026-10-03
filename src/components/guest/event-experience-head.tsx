@@ -254,7 +254,7 @@ export function AlbumCover({
               data-arrive
               data-cover-eyebrow=""
               style={{ "--arrive-i": 0 } as CSSProperties}
-              className="mb-2 text-label font-medium tracking-[0.14em] text-white/80 uppercase"
+              className="mb-2 text-label font-medium text-white/80 uppercase"
             >
               {eyebrow}
             </p>

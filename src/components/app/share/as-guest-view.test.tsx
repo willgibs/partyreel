@@ -18,6 +18,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const live = vi.hoisted(() => ({
   provider: [] as unknown[],
   gallery: [] as unknown[],
+  wait: [] as unknown[],
 }));
 vi.mock("@/components/guest/gallery-live", () => ({
   GalleryLiveProvider: (props: { children: ReactNode }) => {
@@ -31,9 +32,25 @@ vi.mock("@/components/guest/live-gallery", () => ({
     return <div data-testid="album" />;
   },
 }));
+vi.mock("@/components/guest/gallery-empty-state-wait", () => ({
+  AlbumWaitSource: (props: { children: ReactNode }) => {
+    live.wait.push(props);
+    return <>{props.children}</>;
+  },
+  AlbumWait: () => <div data-testid="wait" />,
+}));
 vi.mock("@/components/guest/event-experience-head", () => ({
-  AlbumCover: ({ name, actions }: { name: string; actions: ReactNode }) => (
+  AlbumCover: ({
+    name,
+    actions,
+    eyebrow,
+  }: {
+    name: string;
+    actions: ReactNode;
+    eyebrow?: ReactNode;
+  }) => (
     <section data-testid="cover">
+      {eyebrow ? <p data-testid="eyebrow">{eyebrow}</p> : null}
       <h1>{name}</h1>
       {actions}
     </section>
@@ -99,6 +116,8 @@ const EVENT = {
   accepting_uploads: true,
   show_reel: true,
   capture: "upload" as const,
+  moderation_mode: "live" as "live" | "hold_for_approval",
+  develops_at: null as string | null,
 };
 
 function view(over: Partial<Parameters<typeof AsGuestView>[0]> = {}) {
@@ -119,6 +138,7 @@ function view(over: Partial<Parameters<typeof AsGuestView>[0]> = {}) {
 beforeEach(() => {
   live.provider.length = 0;
   live.gallery.length = 0;
+  live.wait.length = 0;
 });
 
 describe("★ a look, never a door", () => {
@@ -216,5 +236,40 @@ describe("what a guest meets, as it stands", () => {
     ).toBeInTheDocument();
     expect(screen.queryByTestId("album")).toBeNull();
     expect(live.provider).toHaveLength(0);
+  });
+});
+
+/* WHAT WAITS, AS A GUEST MEETS IT (wait-wiring, the-wait r1's `wait=sheet` and `name=disposable`): a guest meets the
+   contact sheet wherever photos wait and the cover's preset words on a disposable; her look is that page, so it mounts
+   the guests' wait over the album (numbers only, off the guests' own live source; nothing of hers) and names the preset.
+   Without it, a waiting album read here as the empty album, which no guest sees. */
+describe("★ what waits, as a guest meets it", () => {
+  type Source = { clock: unknown; hers: unknown; rule?: boolean };
+  const source = () => live.wait.at(-1) as Source;
+  const AHEAD = new Date(Date.now() + 6 * 3_600_000).toISOString();
+
+  it("★ a disposable: the guests' sheet over the album, its clock the develop, and the cover names the preset", () => {
+    view({
+      event: { ...EVENT, capture: "camera", develops_at: AHEAD },
+    });
+    expect(screen.getByTestId("wait")).toBeInTheDocument();
+    expect(source().clock).toEqual({ kind: "develop", developsAt: AHEAD });
+    // Nothing of hers: no ticket, so no shots of her own to light.
+    expect(source().hers).toBeNull();
+    // Before anything waits, the album's rule is a guest's to read where she can add.
+    expect(source().rule).toBe(true);
+    expect(screen.getByTestId("eyebrow").textContent).toMatch(/^Disposable/);
+  });
+
+  it("a reviewed album waits as the host lets each in, with no word over its name", () => {
+    view({ event: { ...EVENT, moderation_mode: "hold_for_approval" } });
+    expect(source().clock).toEqual({ kind: "held", hostName: "Maya" });
+    expect(screen.queryByTestId("eyebrow")).toBeNull();
+  });
+
+  it("a live album waits for nothing; uploads closed, no rule", () => {
+    view({ event: { ...EVENT, accepting_uploads: false } });
+    expect(source().clock).toBeNull();
+    expect(source().rule).toBe(false);
   });
 });

@@ -200,7 +200,9 @@ describe("the album's one rule: said before anything waits, then the sheet's clo
 
   it("★ an album with a develop time ahead says its uploads develop all at once", () => {
     mount({ waiting: waiting(0, []), rule: true, clock: AHEAD });
-    expect(screen.getByText(/^Uploads develop all at once/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/^Uploads develop all at once/),
+    ).toBeInTheDocument();
     expect(screen.queryByText(/lets each one in/)).toBeNull();
   });
 

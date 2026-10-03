@@ -112,7 +112,10 @@ export function AlbumWait({
   if (!state?.clock) return null;
   if (!state.stands)
     return state.rule ? (
-      <WaitRuleLine clock={state.clock} className={ruleClassName ?? className} />
+      <WaitRuleLine
+        clock={state.clock}
+        className={ruleClassName ?? className}
+      />
     ) : null;
   return (
     <div className={className} data-album-wait={state.clock.kind}>
