@@ -6,6 +6,7 @@ import { ArrowUp, Camera, ChevronLeft, ImageUp, Play } from "lucide-react";
 
 import { AlbumBoundary } from "@/components/guest/album-boundary";
 import { AlbumLightSampler } from "@/components/guest/door/album-light";
+import { DOOR_MAIN } from "@/components/guest/door/door-page";
 import { ShutDoor } from "@/components/guest/door/shut-door";
 import {
   AlbumCover,
@@ -102,14 +103,15 @@ export function AsGuestView({
     return (
       <div data-as-guest="shut" className="flex min-h-full flex-1 flex-col">
         <GuestBar back={back} onCover={false} />
-        <div inert className="flex flex-1 flex-col">
+        {/* The guest page's own door canvas (`DOOR_MAIN`), as the shut door stands there. */}
+        <main inert className={DOOR_MAIN}>
           <ShutDoor
             previous={false}
             signedIn={false}
             returnTo={`/e/${event.qr_token}`}
             phase={0.35}
           />
-        </div>
+        </main>
       </div>
     );
   }
