@@ -104,6 +104,8 @@ export type DoorFace = {
   count?: number;
   /** A count to act on, never waiting on her (Settings' steps left): the foreground, never amber. */
   strong?: boolean;
+  /** That count, where a door too small for its line still says it: an unlit light, never amber. */
+  left?: number;
 };
 
 /** Every door's face, from the album's facts: production's words (`page.tsx`, `room-card.ts`). */
@@ -140,7 +142,7 @@ export function facesOf(c: Case): Record<RoomId, DoorFace> {
         : { value: "All caught up" },
     settings:
       left > 0
-        ? { value: `${formatCount(left)} left`, strong: true }
+        ? { value: `${formatCount(left)} left`, strong: true, left }
         : { value: doorLabel(c.door) },
     guest: { value: "What they see" },
   };
@@ -148,8 +150,20 @@ export function facesOf(c: Case): Record<RoomId, DoorFace> {
 
 export type DoorPress = (room: RoomId) => void;
 
-/** The amber light and its number: what waits on her, as status=lights draws a state. */
-function WaitLight({ n, className }: { n: number; className?: string }) {
+/**
+ * A COUNT AS status=lights DRAWS ONE: the amber light where it waits on her,
+ * an unlit light (a ring) where it is only hers to act on, and its number
+ * beside it in the ground's ink.
+ */
+function WaitLight({
+  n,
+  unlit = false,
+  className,
+}: {
+  n: number;
+  unlit?: boolean;
+  className?: string;
+}) {
   return (
     <span
       className={cn(
@@ -157,7 +171,7 @@ function WaitLight({ n, className }: { n: number; className?: string }) {
         className,
       )}
     >
-      <span className="eh-amber" aria-hidden />
+      <span className={unlit ? "eh-unlit" : "eh-amber"} aria-hidden />
       {formatCount(n)}
     </span>
   );
@@ -276,7 +290,9 @@ function SeamPill({
         aria-hidden
       />
       {phone ? null : SHORT[room]}
-      {face.count ? <WaitLight n={face.count} /> : null}
+      {face.count || face.left ? (
+        <WaitLight n={face.count ?? face.left ?? 0} unlit={!face.count} />
+      ) : null}
     </button>
   );
 }
@@ -492,6 +508,10 @@ function Well({
         <span className="absolute -top-1 -right-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-warning px-1 text-[10px] font-semibold text-warning-foreground tabular-nums ring-2 ring-card">
           {formatCount(face.count)}
         </span>
+      ) : face.left && at === "square" ? (
+        <span className="absolute -top-1 -right-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-card px-1 text-[10px] font-semibold text-foreground tabular-nums ring-[1.5px] ring-foreground/45 ring-inset">
+          {formatCount(face.left)}
+        </span>
       ) : null}
     </span>
   );
@@ -607,8 +627,12 @@ function WindowPill({
         className="size-7 overflow-hidden rounded-full"
       />
       {phone ? null : SHORT[room]}
-      {face.count ? (
-        <WaitLight n={face.count} className={phone ? "pr-1.5" : undefined} />
+      {face.count || face.left ? (
+        <WaitLight
+          n={face.count ?? face.left ?? 0}
+          unlit={!face.count}
+          className={phone ? "pr-1.5" : undefined}
+        />
       ) : null}
     </button>
   );
@@ -660,6 +684,10 @@ function Segment({
           <span className="absolute -top-1.5 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-warning px-1 text-[10px] leading-none font-semibold text-warning-foreground tabular-nums">
             {formatCount(face.count)}
           </span>
+        ) : face.left && (hand || bare) ? (
+          <span className="absolute -top-1.5 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] leading-none font-semibold text-white tabular-nums ring-[1.5px] ring-white/70 ring-inset">
+            {formatCount(face.left)}
+          </span>
         ) : null}
       </span>
       {bare ? null : (
@@ -667,8 +695,12 @@ function Segment({
           {form === "desk" ? ROOM_LABEL[room] : SHORT[room]}
         </span>
       )}
-      {face.count && !hand && !bare ? (
-        <WaitLight n={face.count} className="text-white" />
+      {!hand && !bare && (face.count || face.left) ? (
+        <WaitLight
+          n={face.count ?? face.left ?? 0}
+          unlit={!face.count}
+          className="text-white"
+        />
       ) : null}
     </button>
   );

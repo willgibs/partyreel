@@ -209,7 +209,7 @@ export const EVENT_HEADER = defineExploration({
           gains:
             "Your pick kept whole: alive, roomy, and true for a morning, a weekend, no date or a trickle.",
           costs:
-            "An abstract line: what a mark means waits for a hover, and a small album fills only its end.",
+            "An abstract line: a mark says how busy, never what, and a very small album gathers at its end.",
         },
         {
           id: "faces",
@@ -235,7 +235,7 @@ export const EVENT_HEADER = defineExploration({
           id: "colours",
           label: "The album's colours",
           means:
-            "One ribbon along the foot made of every photo's own colour, in the order they landed, the count at its end.",
+            "A strip of colour chips along the foot, each a run of photos in its own colour, in the order they landed, the count at its end.",
           gains:
             "The cleanest head: the album's own light, distilled, with nothing to read but the count.",
           costs:
@@ -270,7 +270,7 @@ export const EVENT_HEADER = defineExploration({
           gains:
             "App Store depth: the cover and its doors read as one composition, each card roomy and calm.",
           costs:
-            "The tallest row, so the album starts lowest, and a phone's shelf of cards scrolls sideways.",
+            "A deep row that pushes the album down, and a phone's shelf of cards scrolls sideways.",
         },
         {
           id: "windows",
@@ -280,7 +280,7 @@ export const EVENT_HEADER = defineExploration({
           gains:
             "Each door shows what is inside it, and the row stays quiet between the cover and the album.",
           costs:
-            "Five small pictures to read, and a photo in grey is a step from the real one.",
+            "Five small pictures to read, the album starts lowest, and a grey photo is a step from the real one.",
         },
         {
           id: "glass",
