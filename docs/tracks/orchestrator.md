@@ -53,6 +53,7 @@ plan's whole text (lane splits, the Advisor's Q11 corrections, Will's answers) i
 | `demo-framing-r5` | board demo-framing r5 [desk 90]: the hero's stage, a more polished set of three or four from r4's five | running (respawned 09:43Z after a memory stop at its boot; its worktree at the cut reused); WIP pushes each milestone | Opus, 3136 | `a8f0856b99cc9ed00` |
 | `event-header-r3` | board event-header r3 [desk 50]: facts (the strip free of a timeline, new ideas; the dial banked) and doors (app-store depth, quieter windows, polished glass, each with its sticky form); ranges drawn | running (cut at `518aff34`); WIP pushes each milestone | Opus, 3134 | `ac26dc46271773f37` |
 | `crumbs-55` | four crumbs from tonight's merges: frame-ancestors and X-Frame-Options against clickjacking, the next-step chip's room link, the brand kit's fifth ground and tokens, How it works' Create picture | running (cut at `8c2dce39`); WIP pushes each milestone | Sonnet, 3131 | `af911157a822471ec` |
+| `host-dashboard-r3` | board host-dashboard r3 [desk 25]: events (a collapsible Recent row over one gallery/table/list, 1 to 200 events), the empty featured stage, the feature's rule as a choice; ranges and lead=made drawn as settled | running (cut at `499612e4`, ahead of event-dates by the Orchestrator's call); WIP pushes each milestone | Opus, 3135 | `a96b83311939a385c` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Q8
 (round 12's plan) answered with 21 corrections, all folded into the briefs; the next consult is the foundation's
@@ -94,7 +95,7 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team brie
    Merged tonight: milestone 34, cost-model, wizard-wiring, identity-r3, rooms-wiring, identity-wiring.
 2. **Wave 2 still to cut** (briefs from the plan file, ports as seats free, memory at least 50%): `event-dates` once
    `wait-wiring` merges (its migration by protocol; lead=made in `moment.ts`), then `the-wait-r2` (arrival) after
-   `wait-wiring`, and `host-dashboard-r3` after `event-dates`.
+   `wait-wiring` (`host-dashboard-r3` is running, drawing ranges and lead=made as settled).
 3. **Build 46 `[preview]`** once wait-wiring and take-home-wiring merge with their migrations applied and the Worker
    deployed, then red-team 46 (the plan's list); the desk pass; build 47 for his next desk.
 4. **The close:** STATUS, the calls file (91 to 120 tonight), his morning message (the cost model's four decisions
