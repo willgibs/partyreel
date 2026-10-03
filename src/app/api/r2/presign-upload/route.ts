@@ -3,6 +3,7 @@ import { parseRollCount } from "@/lib/disposable/roll";
 import { cameraShotRefusal } from "@/lib/disposable/shot";
 import { mayUploadPastLock } from "@/lib/events/upload-lock";
 import { checkSessionOwner } from "@/lib/guest/session-owner.server";
+import { guestUploadsOpen } from "@/lib/jobs/spend-watch-switches";
 import { captureWarning } from "@/lib/observability/sentry";
 import {
   runPresignPipeline,
@@ -21,6 +22,21 @@ import { presignUploadSchema } from "@/lib/validation/upload";
 const guestPresignStrategy: PresignStrategy<typeof presignUploadSchema> = {
   schema: presignUploadSchema,
   async resolveEvent(parsed, kind) {
+    // ★ THE PLATFORM'S UPLOADS SWITCH (the spend watch's offer, `ops_flags.uploads_enabled`), asked FIRST: while it
+    // is off, a runaway costs one small read a request and nothing else, and the sentence is Partyreel's, never the
+    // host's, so it says nothing about the album. It fails OPEN (`guestUploadsOpen`): a switch nobody can read never
+    // stops a real party. A file already presigned completes; nothing in flight is cut.
+    if (!(await guestUploadsOpen())) {
+      return {
+        ok: false,
+        refusal: {
+          status: 503,
+          code: "uploads_paused",
+          message:
+            "Uploads are paused on Partyreel for now. Try again in a little while.",
+        },
+      };
+    }
     const ctx = await getUploadContext(parsed.session_token, kind);
     if (!ctx.ok) {
       return {

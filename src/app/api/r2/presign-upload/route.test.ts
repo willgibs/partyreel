@@ -12,6 +12,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const getUploadContext = vi.fn();
 const mayUploadPastLock = vi.fn();
+const guestUploadsOpen = vi.fn();
 const presignUpload = vi.fn();
 const rowRead = vi.fn();
 const getUser = vi.fn();
@@ -25,6 +26,10 @@ vi.mock("@/lib/db/mutations/guest", () => ({
 }));
 vi.mock("@/lib/events/upload-lock", () => ({
   mayUploadPastLock: (...args: unknown[]) => mayUploadPastLock(...args),
+}));
+// The platform's uploads switch (the spend watch): its own fail-open read is `spend-watch-switches.test.ts`'s.
+vi.mock("@/lib/jobs/spend-watch-switches", () => ({
+  guestUploadsOpen: () => guestUploadsOpen(),
 }));
 vi.mock("@/lib/observability/sentry", () => ({
   captureWarning: vi.fn(),
@@ -126,6 +131,7 @@ async function presign() {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  guestUploadsOpen.mockResolvedValue(true);
   getUploadContext.mockResolvedValue(context());
   mayUploadPastLock.mockResolvedValue(true);
   presignUpload.mockResolvedValue({
@@ -292,7 +298,10 @@ describe("the album's camera", () => {
         }),
       }),
     );
-    return { status: res.status, body: (await res.json()) as { code?: string; message?: string } };
+    return {
+      status: res.status,
+      body: (await res.json()) as { code?: string; message?: string },
+    };
   }
   const ROLL = { used: 3, cap: 24, taken: 3, ceiling: 72 };
 
@@ -320,7 +329,9 @@ describe("the album's camera", () => {
   });
 
   it("a frame left presigns as ever; free uploads never meet a roll", async () => {
-    getUploadContext.mockResolvedValue(context({ capture: "camera", roll: ROLL }));
+    getUploadContext.mockResolvedValue(
+      context({ capture: "camera", roll: ROLL }),
+    );
     expect((await presign()).status).toBe(200);
     getUploadContext.mockResolvedValue(
       context({ capture: "upload", roll: { ...ROLL, used: 24 } }),
@@ -335,10 +346,40 @@ describe("the album's camera", () => {
     const long = await presignVideo(30, 1024);
     expect(long.status).toBe(422);
     expect(long.body.code).toBe("too_long");
-    getUploadContext.mockResolvedValue(context({ capture: "camera", roll: ROLL }));
+    getUploadContext.mockResolvedValue(
+      context({ capture: "camera", roll: ROLL }),
+    );
     const large = await presignVideo(8, 129 * 1024 ** 2);
     expect(large.status).toBe(422);
     expect(large.body.code).toBe("too_large");
     expect(presignUpload).not.toHaveBeenCalled();
+  });
+});
+
+describe("the platform's uploads switch (spend-watch)", () => {
+  it("★ refuses every guest upload while it is off, in Partyreel's words, before anything else is asked", async () => {
+    guestUploadsOpen.mockResolvedValue(false);
+    // A ticket that would otherwise be refused (not this caller's) still meets the platform's sentence first: it
+    // says nothing about the album, and a runaway costs one small read a request.
+    ticketBelongsTo(OWNER);
+    callerIs(OTHER);
+    const { status, body } = await presign();
+    expect(status).toBe(503);
+    expect(body).toEqual({
+      ok: false,
+      code: "uploads_paused",
+      message:
+        "Uploads are paused on Partyreel for now. Try again in a little while.",
+    });
+    expect(getUploadContext).not.toHaveBeenCalled();
+    expect(presignUpload).not.toHaveBeenCalled();
+  });
+
+  it("presigns as ever while it is on", async () => {
+    guestUploadsOpen.mockResolvedValue(true);
+    const { status, body } = await presign();
+    expect(status).toBe(200);
+    expect(body.ok).toBe(true);
+    expect(presignUpload).toHaveBeenCalled();
   });
 });

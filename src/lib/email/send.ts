@@ -18,12 +18,21 @@
  * `email_delivery` signal (a Sentry event plus one throttled `job_runs` error row), which is
  * what /admin/jobs reads as "N sent, N failed in the last 24 hours". The THROW is unchanged —
  * the caller's behaviour is exactly what it was.
+ *
+ * THE LIFECYCLE-MAIL PAUSE (the spend watch, `ops_flags.lifecycle_mail_enabled`). While it is off, the mail a
+ * lifecycle sweep sends again every night its state lasts (`HELD_WHILE_PAUSED`, send-kinds.ts) is HELD: never
+ * claimed, so it goes out the first night after the switch is back on, and `false` comes back as if it had gone
+ * already (no caller records a state on it). A one-time notice and every operator mail always send, because a held
+ * notice would be lost for good and a held alert would silence the thing saying why mail stopped. The switch fails
+ * CLOSED for what it holds (`lifecycleMailFlowing`): a hold nobody chose is recorded in `email_delivery`.
  */
 import "server-only";
 
 import { getResend } from "@/lib/email/client";
+import { heldWhilePaused } from "@/lib/email/send-kinds";
 import { assertResendEnv } from "@/lib/env";
 import { recordSignalFailure } from "@/lib/jobs/failure-log";
+import { lifecycleMailFlowing } from "@/lib/jobs/spend-watch-switches";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const UNIQUE_VIOLATION = "23505";
@@ -47,7 +56,10 @@ export type SendOnceArgs = {
   replyTo?: string;
 };
 
-/** Returns true if an email was sent, false if it was already sent (deduped). */
+/**
+ * Returns true if an email was sent; false if it was not sent this time: already sent (deduped), or held while
+ * lifecycle mail is paused (it goes the first run after the switch is back on).
+ */
 export async function sendOnce(args: SendOnceArgs): Promise<boolean> {
   const admin = createAdminClient();
 
@@ -64,6 +76,11 @@ export async function sendOnce(args: SendOnceArgs): Promise<boolean> {
   // claim and the send and burn the key. Resolving both dependencies first costs nothing and leaves
   // the window between claim and send holding exactly one fallible call, the send itself.
   const resend = getResend();
+
+  // ★ THE PAUSE HOLDS BEFORE THE CLAIM: a held mail claims nothing, so its sweep sends it the night it is back on.
+  if (heldWhilePaused(args.kind) && !(await lifecycleMailFlowing(args.kind))) {
+    return false;
+  }
 
   const { error: claimError } = await admin.from("sent_emails").insert({
     kind: args.kind,

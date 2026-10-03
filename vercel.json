@@ -2,5 +2,8 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "ignoreCommand": "node scripts/vercel-ignore-build.mjs",
   "git": { "deploymentEnabled": { "launch-prep": false, "lp/*": false } },
-  "crons": [{ "path": "/api/cron/purge", "schedule": "0 4 * * *" }]
+  "crons": [
+    { "path": "/api/cron/purge", "schedule": "0 4 * * *" },
+    { "path": "/api/cron/spend-watch", "schedule": "0 5 * * *" }
+  ]
 }

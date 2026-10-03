@@ -31,6 +31,9 @@
 
 export type JobId =
   | "purge_cron"
+  // Our own spend guards (lane `spend-watch`): reads our counters, alerts past ten times the week's busiest, and
+  // pauses the switch that stops a vector where a false alarm costs no guest's moment.
+  | "spend_watch"
   | "backup_reconcile"
   | "backup_prune"
   | "db_backup"
@@ -91,6 +94,11 @@ export type JobDef = {
   flagKey: string | null;
   /** True only where the app can actually start the job itself (see JOB_RUN_NOW_NOTE). */
   canRunNow: boolean;
+  /**
+   * The route Run now calls with the cron secret, for a job the app can start: the one `vercel.json` schedules, so
+   * a manual run is the scheduled run in every sense (`catalog.test.ts` holds the two together).
+   */
+  runPath?: string;
   /** `derived` only: the jobs whose `counts` can carry this reading, freshest wins. */
   readFrom?: JobId[];
 };
@@ -148,13 +156,14 @@ export function countsStoppedEarly(counts: unknown): boolean {
 }
 
 /**
- * THE ORPHAN BREAKER'S FLAG, a top-level `counts` key on the Orphan sweep's run. When the
- * circuit-breaker finds the orphan candidates pathological (durability-backups.md) it deletes
- * nothing, fires its Sentry error and the operator email, and returns normally with this `true`,
- * so the run closes `ok`: the breaker did its job, and nothing failed. Read here as `attention`,
- * because a tripped breaker is a person's call to make (a lost media set, or an intentional purge
- * on the wrong path), and a card reading Healthy beside that email was a quiet contradiction.
- * The sweep types the key on its tally (`OrphansTally`); the catalog's test pins the two together.
+ * A TRIPPED BREAKER'S FLAG, a top-level `counts` key. When the Orphan sweep's circuit-breaker finds the
+ * orphan candidates pathological (durability-backups.md) it deletes nothing, fires its Sentry error and
+ * the operator email, and returns normally with this `true`, so the run closes `ok`: the breaker did its
+ * job, and nothing failed. Read here as `attention`, because a tripped breaker is a person's call to make
+ * (a lost media set, or an intentional purge on the wrong path), and a card reading Healthy beside that
+ * email was a quiet contradiction. The spend watch is a breaker too and sets the same key while a reading
+ * trips or a switch it paused still stands (`runCounts`, src/lib/jobs/spend-watch.ts). The sweep types the
+ * key on its tally (`OrphansTally`); the catalog's test pins the two together.
  */
 export const BREAKER_TRIPPED_KEY = "breaker_tripped";
 
@@ -184,6 +193,7 @@ export const JOBS: JobDef[] = [
     flagKey: "purge_cron_enabled",
     // The app can call its own route with the cron secret, so this one is genuinely runnable.
     canRunNow: true,
+    runPath: "/api/cron/purge",
   },
   // --- the purge cron's sub-sweeps -------------------------------------------------------------
   // Each opens and closes its own row inside the parent run. WHY these four and not the other eight:
@@ -272,6 +282,25 @@ export const JOBS: JobDef[] = [
     expectedEveryMs: DAY_MS,
     flagKey: "develop_rolls_enabled",
     canRunNow: false,
+  },
+  // --- our own spend guards ----------------------------------------------------------------------
+  // Its own route and its own cron, never a ride on the purge's: it must run while the purge is paused, and it may
+  // be the one pausing it. Hobby fires a daily cron anywhere in its hour, so 05:00 lands after the purge's 04:00
+  // hour has sent the night's lifecycle mail. ★ HOURLY AT LAUNCH: `0 * * * *` here and in vercel.json (Pro), with
+  // `expectedEveryMs` an hour.
+  {
+    id: "spend_watch",
+    label: "Spend watch",
+    description:
+      "Our own spend guards: reads uploads, mail, sign-ins, album changes, downloads and the purge's runs from our own tables, alerts past ten times the busiest of the week, and pauses lifecycle mail, downloads or the purge on its own. Stopping silently leaves the vendors with no cap of ours.",
+    kind: "scheduled",
+    host: "vercel_cron",
+    cron: "0 5 * * *",
+    cadence: "Daily, 05:00 UTC (hourly at launch)",
+    expectedEveryMs: DAY_MS,
+    flagKey: "spend_watch_enabled",
+    canRunNow: true,
+    runPath: "/api/cron/spend-watch",
   },
   // --- the backup Worker ------------------------------------------------------------------------
   {

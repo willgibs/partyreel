@@ -54,7 +54,38 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **Which guards stop their vector on their own?** Recommended, built: the watch pauses lifecycle mail, Download all
+  and the purge sweep by itself on a new trip, since a false alarm there delays a reminder, a zip or a night's
+  reclamation and never a guest's moment; for uploads it alerts (Sentry and the ops mail) and the card offers the
+  switch, one press and its sheet, since a false alarm would stop a real party. Sign-ins, album changes and Resend's
+  own count alert only: no switch of ours stops them without hurting someone.
+- **What does pausing lifecycle mail hold?** Recommended, built: only the mail its sweep re-sends while the state
+  lasts (the inactivity warning, the over-cap reminder, the renewal nudge), each sent the first night the switch is
+  back on. Never the one-time notices (an idle event put in Deleted, a grace opened, a plan reduced): their sweep never
+  meets that state again, so a held one would be lost for good; each is bounded by a real change, and its sweep's own
+  switch stops it. Never operator mail (the watch's own alert rides it). Sign-in codes are Supabase Auth's, untouched.
+- **Does the uploads switch stop a host's own uploads too?** Recommended, built: guests only. A host's uploads are her
+  signed-in account's, bounded by her plan's ingress meter, and a host refused on her own album mid-event reads as
+  Partyreel broken; the runaways it guards against (a leaked link, a looping guest client, a bot) come through the
+  guest door. Both is one check in the host presign route.
+- **Does the watch ever lift its own pause?** Recommended, built: never. A pause it made stays until a person turns the
+  switch back on (a looped function would restart), and its card reads Needs a look (bell and band) until then; and a
+  person's resume wins for the rest of that trip (it pauses again only on a new trip).
+- **How does it run before launch?** Recommended, built: its own route and its own daily cron at 05:00 UTC (Hobby fires
+  it within that hour, after the purge's 04:00 hour has sent the night's mail), not a ride on the purge's run, since it
+  must run while the purge is paused and may be the one pausing it. It also raises the purge cron's own missed run,
+  which no job watched. Hourly at launch is `0 * * * *` in vercel.json and the catalog (Pro).
+- **The floors** (the ceiling's least value, which a quiet week cannot reach; each a line in `spend-watch.ts`):
+  uploads 1,000 an hour; bytes 10 GB an hour; album changes 2,000 an hour; lifecycle mail 50 a day; mail through
+  Resend 50 a day, and never above 80 while Resend is on its free plan (its hard stop is 100 a day, the alerts' own
+  mail included); accounts signed in 200 a day; Download all 100 a day; purge runs 4 a day. Recommended, built.
+
+## Where I am
+
+- Built and green locally (lane tests 168/168, typecheck, lint on the touched files): the readings and rules, the
+  run, the route and cron, the three switches, the mail hold, the presign gate, the card and its controls, the
+  migration (proved rolled back live, red then green: `_scratch/spend-watch/sql-proof.log`). Next: the system doc,
+  the captures, the full gate, the Handoff.
 
 ## System-doc edits (in place, owned facts only)
 
