@@ -33,6 +33,21 @@ describe("a glyph and its words", () => {
     for (const part of count.children) expect(part).toHaveAttribute("aria-hidden")
   })
 
+  it("★ its number is the hook the voice's sheets style (`data-n`), and nothing else in the atom is", () => {
+    const count = mount()
+    // Identity's voice and status sheets write `[data-slot="glyph-count"] [data-n]` for the readout's face and ink. A rule
+    // that names a hook the atom never draws reaches nothing, silently: the real atom answers to it on the number's
+    // span, once, and never on the glyph beside it.
+    const reached = document.querySelectorAll(
+      '[data-slot="glyph-count"] [data-n]'
+    )
+    expect(reached).toHaveLength(1)
+    const [number] = reached
+    expect(number).toHaveTextContent("1,240")
+    expect(number?.closest('[data-slot="glyph-count"]')).toBe(count)
+    expect(count.querySelector("svg")?.closest("[data-n]")).toBeNull()
+  })
+
   it("★ a tap shows its words, and a second tap puts them away", async () => {
     const count = mount()
     await act(async () => {

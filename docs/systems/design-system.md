@@ -345,7 +345,7 @@ name here never moves without both:
 | Button `data-variant="glass"` (with `size="icon-cta"`, the 44px round) | the glass round beside it |
 | `data-slot="code-mat"` | `ui/code-mat.tsx`: a scannable code on its white mat, always a button |
 | `data-slot="code-chip"` | `ui/code-chip.tsx`: the code's glyph on white in a sticky bar, never a shrunken code |
-| `data-slot="glyph-count"` | `ui/glyph-count.tsx`: an icon and a number, its words on hover, focus and a tap |
+| `data-slot="glyph-count"`, its number's `data-n` | `ui/glyph-count.tsx`: an icon and a number, its words on hover, focus and a tap |
 | Badge `data-variant="live"` | the live mark: a still dot and the word, never a pulse |
 
 - ★ **A photograph is the room**: a head wears `dark` with `data-surface="photo"`, in both themes, so every token its

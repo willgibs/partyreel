@@ -26,7 +26,9 @@ import { EventShareProvider } from "@/components/app/share/event-share-provider"
 import { Logo } from "@/components/shared/logo";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { REEL_MINIMUM } from "@/lib/event/reel-progress";
 import { EVENT_ROOMS, type EventRoomId } from "@/lib/event/sections";
+import { doorLabel } from "@/lib/events/visibility-labels";
 import { formatCount } from "@/lib/format/count";
 import { GLASS } from "@/lib/glass";
 import { cn } from "@/lib/utils";
@@ -65,6 +67,9 @@ import { Wait, type WaitFacts, type WaitId } from "./wait";
 
 export type HostCoverId = "card" | "guests" | "frost";
 export type HostBeat = "covered" | "lifted" | "held";
+
+/** What the wedding's link opens: anyone with it comes in (the head's code wears no mark, Settings' card says Public). */
+const DOOR = "open" as const;
 
 /** Maya's own two photos of the night: hers seal with everyone's, lit to her. */
 const MAYA_HERS = [
@@ -136,8 +141,10 @@ function Rooms({ held }: { held: boolean }) {
     EventRoomId,
     { value: string; Icon: typeof ListChecks; amber?: boolean }
   > = {
+    // The Reel card's own words (`reel-card.tsx`): a developing album's reel goes live at the develop, since until
+    // then every guest's album, and so her reel, is empty; a held album with nothing let in is counting to two.
     reel: {
-      value: held ? "Off until 2 photos" : `Premieres at ${DEVELOP.at}`,
+      value: held ? `Starts at ${REEL_MINIMUM} photos` : "Live at the develop",
       Icon: Clapperboard,
     },
     guests: {
@@ -145,7 +152,9 @@ function Rooms({ held }: { held: boolean }) {
       Icon: Users,
     },
     review: { value: face.value, Icon: ListChecks, amber: face.amber },
-    settings: { value: held ? "Reviewed" : "Disposable", Icon: Settings },
+    // The door, in the one function that words it everywhere (`doorLabel`, the hub page's card): Settings' card says
+    // how many steps are left only while a guest still needs one, and on the night itself none is.
+    settings: { value: doorLabel(DOOR), Icon: Settings },
   };
   return (
     <div className={roomRowLayout(false)}>
@@ -216,7 +225,7 @@ function Hub({
             eventLink={`https://${EVENT.link}`}
             code={{
               qrStyle: "classic",
-              door: "open",
+              door: DOOR,
               acceptingUploads: true,
               waiting: 0,
             }}

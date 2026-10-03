@@ -55,6 +55,9 @@ export function WaitPage({
       mediaCount={0}
       waitingHers={waitingHers}
       sealed={album === "developing"}
+      // ★ THE DEVELOPING ALBUM IS THE ALBUM'S CAMERA (fixtures.ts), so its Add says Take photos with the camera's
+      // glyph and the shutter wears it (production's `cameraAlbum`, crumbs-52); the held album is free uploads.
+      camera={album === "developing"}
       eyebrow={m.chip ? m.chip[album] : undefined}
       ground={
         coverWait

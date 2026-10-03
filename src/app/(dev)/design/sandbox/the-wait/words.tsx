@@ -285,6 +285,11 @@ export function NameFrame({
       <GuestPage
         wide={wide}
         mediaCount={0}
+        // ★ THE ALBUM'S CAMERA, WITH HERS WAITING: the wait below is Priya's own six (`FACTS.developing`), so her uploads'
+        // round stands beside the camera's Add as it does on every developing frame (the carried call `round`).
+        waitingHers={FACTS.developing.hers.length}
+        sealed
+        camera
         eyebrow={<span data-tw-word="">{n.cover}</span>}
       >
         <Wait
@@ -311,6 +316,7 @@ export function NameFrame({
       wide={wide}
       ground={{ kind: "stills", stills: albumStills(6, 3) }}
       mediaCount={MORNING.shots}
+      camera
       reel="premiere"
       eyebrow={<span>{n.card}</span>}
     >
@@ -373,13 +379,14 @@ function BothSettings({ both, wide }: { both: BothId; wide: boolean }) {
   );
 }
 
-/** Priya's album where her photo waits twice: for Maya, then for 9 am. */
+/** Priya's album where her photo waits twice: for Maya, then for 9 am. It is the album's camera (`FACTS.developing`). */
 function TwiceWait({ wait, wide }: { wait: WaitId; wide: boolean }) {
   return (
     <GuestPage
       wide={wide}
       mediaCount={0}
       waitingHers={FACTS.developing.hers.length}
+      camera
     >
       <Wait
         id={wait}
