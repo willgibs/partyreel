@@ -100,7 +100,8 @@ actually running.
   `src/lib/supabase/*` (the clients), `src/lib/env.ts`, `src/lib/utils.ts` (`cn()`).
 - A new secret goes in `.env.local`, the Vercel env (NON-sensitive until launch; a lane proposes it in its Handoff) and
   `src/lib/env.ts` (zod, `.optional()` with a lazy `assert*Env()`).
-- A backend job ships its `/admin` management and health signal in the same change: zero silent failures.
+- Partyreel runs with no AI managing it: a backend job, and any fix an operator may need (an account's recovery
+  included), ships its `/admin` control and health signal in the same change, never a hand-run SQL: zero silent failures.
 - `pnpm format` formats only your changed files (prettier over the whole repo mangles dynamic classNames). When a CSS
   edit does not show in `pnpm dev`, `rm -rf .next/dev`.
 

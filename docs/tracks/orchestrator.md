@@ -59,7 +59,7 @@ flat; a lane in its gate, or the milestone's full gate, counts as two. Every pro
 | `redteam-43` | build 43's red-team (`96c6dcdc`) | DONE 2026-10-03 00:50Z: two MEDIUMs (the develop album's tracker, fixed in door-reveal and the camera; the hub's Reel card flash, `crumbs-52`), a LOW and four NITs; the leak matrix PASS on every route; RT43 events deleted; ledger `../partyreel-wt/_scratch/redteam-43/ledger.txt` | Opus, Will's Chrome | `a7abfa3530cd42e8c` |
 | `crumbs-51` | words made true after round 12's merges: four help articles and the admin switch on the retired reel tile and the welcome screen, careers, two hero comments, host-app.md's pulse | MERGED at `86dfef81` (gate 159 green; the lane's gate: typecheck, lint, test, build, lab:smoke); no SQL | Sonnet, 3133 | `ae456d79d5e6fcd48` |
 | `crumbs-52` | red-team 43's second MEDIUM: the hub's Reel card (a soft navigation) showed the album before the reel; the curtain made to stand from the first frame; the camera's page half and red-team 43's two NITs | MERGED at `1cc96371` (gate 163 green, light: test 9,457; the lane's gate on its synced head: test, build, lab:smoke 148); no SQL | Sonnet, 3134 | `a43b82a5650dc8a64` |
-| `lab-frame` | the lab's Frame a faithful window: a frame-scoped window for the media hooks, Radix's layers inside the frame, a glow filter host; nothing under components/ui | running | Opus, 3131 | `ab041e184bfe9d164` |
+| `lab-frame` | the lab's Frame a faithful window: a frame-scoped window for the media hooks, Radix's layers inside the frame, a glow filter host | MERGED at `0d69c92b` (gate 164 green, full: test, build, lab:smoke 186, lab:demo all 25 steps; the lane's gate: test 9,347, build, lab:smoke --all 188, lab:demo --all 19 steps); its design-system.md line placed; no SQL | Opus, 3131 | `ab041e184bfe9d164` |
 | `crumbs-53` | the next words after round 12: the reel's place and the welcome in help and marketing, reel.md, the welcome cookie's tests, one home for the develop time's words, the hero fill's and pulse's names | MERGED at `57825ec2` (gate 162 green, light: test; the lane's gate on its synced head: test 9,430, build, lab:smoke 150); no SQL | Sonnet, 3133 | `a60b9ee6392ade237` |
 | `redteam-44` | build 44's red-team (`ece3f8a1`): the door's first byte and walk-through, the idle, the name after the email, the album's camera, both of red-team 43's MEDIUMs again, regressions | running (from 01:37Z); brief and ledger `../partyreel-wt/_scratch/redteam-44/` | Opus, Will's Chrome | `a186d402e4367102f` |
 | `desk-premise` | the pre-sitting desk pass's PREMISE re-reads (no two of the 25 asks one decision; host-dashboard and demo-framing unmoved) | DONE: identity, event-header, create-wizard and take-home HOLD; the-wait MOVED (crumbs-52's Take photos on a camera album and the Reel card's "Live at the develop", plus three older slips): `desk-tune-4`; identity's sheets style a `data-n` production's glyph count lacks: the same lane | Opus | `a20a4c46761a0fb61` |
@@ -89,14 +89,16 @@ Relays that live only in an agent: none (red-team 43's two MEDIUMs are merged: t
 If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` holds a merge made after this note (push
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
 staged, uncommitted merge is finished by `usher/kit/merge-lane.sh`'s own steps or reset with `git merge --abort`.
-This session's scratchpad holds the specs (`specs-r12/`) and gate logs (the next gate is 164, the calls file numbers on
-from 110); nothing there is needed that these lines and the manifests do not carry. Everything a successor reads lives
+This session's scratchpad holds the specs (`specs-r12/`) and gate logs (the next gate is 165, the calls file numbers on
+from 111); nothing there is needed that these lines and the manifests do not carry. Everything a successor reads lives
 in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team briefs and ledgers).
 
 ## Next, in order
 
-1. **Running:** `lab-frame` (the Frame a faithful window) and `account-exit` (Will's ask, his calls on the refund, the
-   checkbox and the window in its Questions). Integrate each as it hands off (gates from 164); both ride build 45.
+1. **Running:** `account-exit` (Will's ask; his answers of 2026-10-03 relayed: the checkbox unchecked, no refund said
+   plainly, the window private and unlengthened, the admin Cancel deletion required, a held account blocked with a
+   contact line) and `desk-tune-4` (the-wait's drawings). Integrate each as it hands off (gates from 165); both ride
+   build 45.
 2. **Build 44** (`ece3f8a1`) serves the alias; its red-team walks from
    `../partyreel-wt/_scratch/redteam-44/brief.md` (its stamp `BUILD44` filled in): the door's first byte and
    walk-through, the idle, the name after the email, the camera on a camera album (a fake stream in its own headless
@@ -105,7 +107,7 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team brie
    the-wait 35, event-header r2 50, create-wizard r2 60, take-home 70, demo-framing r4 90) and `lab-scope --since`
    their cuts; PREMISE re-reads named at the gates (identity, create-wizard, take-home, the-wait); a desk-tune lane only
    if a drawn claim moved. Then the final `[preview]` (45) for his sitting, identity first.
-4. **The close:** STATUS rewritten, the calls file sent (91 to 109 tonight), his morning message; then Moltbook one
+4. **The close:** STATUS rewritten, the calls file sent (91 to 110 tonight), his morning message; then Moltbook one
    pass an hour.
 
 ## Waiting on Will
