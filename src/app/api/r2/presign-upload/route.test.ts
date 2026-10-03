@@ -16,8 +16,14 @@ const guestUploadsOpen = vi.fn();
 const presignUpload = vi.fn();
 const rowRead = vi.fn();
 const getUser = vi.fn();
+const meterUpload = vi.fn();
 
 vi.mock("server-only", () => ({}));
+// The presign's meter (upload-meter): its own reading and its fail-closed call are `server-pipeline-meter.test.ts`'s;
+// here it is the dial for what the meter answers.
+vi.mock("@/lib/upload/server-pipeline-meter", () => ({
+  meterUpload: (...args: unknown[]) => meterUpload(...args),
+}));
 vi.mock("next/headers", () => ({
   cookies: async () => ({ get: () => undefined, getAll: () => [] }),
 }));
@@ -141,6 +147,7 @@ beforeEach(() => {
   ticketBelongsTo(null);
   callerIs(null);
   claimRpc.mockResolvedValue({ data: 0, error: null });
+  meterUpload.mockResolvedValue({ ok: true });
 });
 
 describe("an account's ticket presigns only for that account", () => {
@@ -381,5 +388,223 @@ describe("the platform's uploads switch (spend-watch)", () => {
     expect(status).toBe(200);
     expect(body.ok).toBe(true);
     expect(presignUpload).toHaveBeenCalled();
+  });
+});
+
+/**
+ * THE PRESIGN COUNTS (upload-meter, 20261003210500): the declared bytes are counted against the host's month after
+ * every gate and before any URL is minted (the engine's meter), and every refusal it makes reaches the guest in the
+ * album's words, never the plan's, with nothing presigned. The meter's own SQL is its migration's rolled-back proof.
+ */
+describe("the meter", () => {
+  async function presignWith(over: Record<string, unknown>) {
+    const res = await POST(
+      new Request("https://partyreel.com/api/r2/presign-upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_token: TOKEN,
+          content_type: "image/jpeg",
+          size_bytes: 1000,
+          ...over,
+        }),
+      }),
+    );
+    return {
+      status: res.status,
+      retryAfter: res.headers.get("Retry-After"),
+      body: (await res.json()) as {
+        ok: boolean;
+        code?: string;
+        message?: string;
+        preview?: unknown;
+        preview_refused?: string;
+      },
+    };
+  }
+
+  it("★ counts the declared bytes once, for the event the ticket resolved, before any URL is minted", async () => {
+    const { status } = await presignWith({
+      content_type: "video/mp4",
+      size_bytes: 52_428_800,
+    });
+    expect(status).toBe(200);
+    expect(meterUpload).toHaveBeenCalledTimes(1);
+    expect(meterUpload).toHaveBeenCalledWith({
+      eventId: EVENT,
+      kind: "video",
+      bytes: 52_428_800,
+    });
+    expect(meterUpload.mock.invocationCallOrder[0]).toBeLessThan(
+      presignUpload.mock.invocationCallOrder[0]!,
+    );
+  });
+
+  it("a request any gate refuses is never counted", async () => {
+    getUploadContext.mockResolvedValue(context({ visibility: "private" }));
+    expect((await presign()).status).toBe(403);
+    getUploadContext.mockResolvedValue(context({ accepting_uploads: false }));
+    expect((await presign()).status).toBe(403);
+    getUploadContext.mockResolvedValue(context({ at_monthly_cap: true }));
+    expect((await presign()).status).toBe(409);
+    getUploadContext.mockResolvedValue(context({ max_upload_bytes: 999 }));
+    expect((await presign()).status).toBe(422);
+    guestUploadsOpen.mockResolvedValue(false);
+    expect((await presign()).status).toBe(503);
+    expect(meterUpload).not.toHaveBeenCalled();
+    expect(presignUpload).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [
+      "storage",
+      { ok: false, reason: "storage" },
+      409,
+      "cap_reached",
+      "This album is full right now. The host needs to free up space.",
+    ],
+    [
+      "monthly",
+      { ok: false, reason: "monthly" },
+      409,
+      "cap_reached",
+      "This album has hit its upload limit for the month.",
+    ],
+    [
+      "hourly",
+      { ok: false, reason: "hourly", retryAfterSec: 1234 },
+      429,
+      "rate_limited",
+      "This album has taken a lot of uploads this hour. Try again in a little while.",
+    ],
+    [
+      "event_gone",
+      { ok: false, reason: "event_gone" },
+      409,
+      "event_gone",
+      "This event is no longer available.",
+    ],
+  ])(
+    "★ the meter's %s refusal reaches her in the album's words, and nothing is presigned",
+    async (_reason, answer, status, code, message) => {
+      meterUpload.mockResolvedValue(answer);
+      const res = await presignWith({});
+      expect(res.status).toBe(status);
+      expect(res.body).toEqual({ ok: false, code, message });
+      expect(res.body.message).not.toMatch(/\bplan\b/i);
+      expect(res.retryAfter).toBe(code === "rate_limited" ? "1234" : null);
+      expect(presignUpload).not.toHaveBeenCalled();
+    },
+  );
+
+  it("★ a meter that cannot answer refuses the upload (fail CLOSED), nothing presigned", async () => {
+    meterUpload.mockResolvedValue({ ok: false, reason: "unavailable" });
+    const res = await presignWith({});
+    expect(res.status).toBe(503);
+    expect(res.body).toEqual({
+      ok: false,
+      code: "server_error",
+      message: "Couldn't start the upload. Please try again.",
+    });
+    expect(presignUpload).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * A PREVIEW NEVER HEAVIER THAN ITS ORIGINAL (upload-meter): the preview is never metered, so past its original's
+ * declared bytes (or past 2 MB) its PUT is refused, in words, in the preview's own slot of the answer, and the original
+ * presigns as ever: its tile then serves the original, and a guest never loses a photograph over its tile.
+ */
+describe("the preview", () => {
+  async function presignWith(over: Record<string, unknown>) {
+    const res = await POST(
+      new Request("https://partyreel.com/api/r2/presign-upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_token: TOKEN,
+          content_type: "image/jpeg",
+          ...over,
+        }),
+      }),
+    );
+    return {
+      status: res.status,
+      body: (await res.json()) as {
+        ok: boolean;
+        url?: string;
+        preview?: { key: string };
+        preview_refused?: string;
+      },
+    };
+  }
+  const MB = 1024 * 1024;
+
+  it("★ refuses a preview heavier than its original, in words, and still presigns the original (and counts it)", async () => {
+    const { status, body } = await presignWith({
+      size_bytes: 1000,
+      preview_size_bytes: 2_000_000,
+    });
+    expect(status).toBe(200);
+    expect(body.ok).toBe(true);
+    expect(body.url).toBe("https://r2.example/put");
+    expect(body.preview).toBeUndefined();
+    expect(body.preview_refused).toBe(
+      "A preview can't be larger than the file it shows, so this upload's tile shows the file itself.",
+    );
+    expect(presignUpload).toHaveBeenCalledTimes(1);
+    expect(presignUpload.mock.calls[0]![0]).toMatchObject({
+      contentLength: 1000,
+    });
+    expect(meterUpload).toHaveBeenCalledWith(
+      expect.objectContaining({ bytes: 1000 }),
+    );
+  });
+
+  it("one byte heavier is refused; as heavy as its original, or lighter, goes", async () => {
+    expect(
+      (await presignWith({ size_bytes: 1000, preview_size_bytes: 1001 })).body
+        .preview_refused,
+    ).toBeDefined();
+    for (const preview_size_bytes of [1000, 999, 1]) {
+      presignUpload.mockClear();
+      const { body } = await presignWith({
+        size_bytes: 1000,
+        preview_size_bytes,
+      });
+      expect(body.preview_refused, `${preview_size_bytes}`).toBeUndefined();
+      expect(body.preview).toMatchObject({
+        key: expect.stringMatching(/\/preview\.webp$/),
+      });
+      expect(presignUpload).toHaveBeenCalledTimes(2);
+      expect(presignUpload.mock.calls[0]![0]).toMatchObject({
+        contentType: "image/webp",
+        contentLength: preview_size_bytes,
+      });
+    }
+  });
+
+  it("past 2 MB beside any original is refused in its own words, as before but no longer silently", async () => {
+    const { body } = await presignWith({
+      size_bytes: 50 * MB,
+      preview_size_bytes: 2 * MB + 1,
+    });
+    expect(body.preview).toBeUndefined();
+    expect(body.preview_refused).toBe(
+      "A preview can be at most 2 MB, so this upload's tile shows the file itself.",
+    );
+    const atTheCap = await presignWith({
+      size_bytes: 50 * MB,
+      preview_size_bytes: 2 * MB,
+    });
+    expect(atTheCap.body.preview).toBeDefined();
+    expect(atTheCap.body.preview_refused).toBeUndefined();
+  });
+
+  it("an upload that declares no preview hears nothing about one", async () => {
+    const { body } = await presignWith({ size_bytes: 1000 });
+    expect(body.preview).toBeUndefined();
+    expect(body.preview_refused).toBeUndefined();
+    expect(Object.keys(body)).not.toContain("preview_refused");
   });
 });

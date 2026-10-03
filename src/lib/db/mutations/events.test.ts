@@ -10,7 +10,7 @@
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { updateEventSchema } from "@/lib/validation/event";
+import { createEventSchema, updateEventSchema } from "@/lib/validation/event";
 
 vi.mock("server-only", () => ({}));
 
@@ -25,6 +25,8 @@ function eventsBuilder() {
       patches.push(patch);
       return builder;
     },
+    // A creation (upload-meter's daily breaker): the row is the test's to ignore, the answer `single`'s.
+    insert: () => builder,
     select(columns: string) {
       reads.push(columns);
       return builder;
@@ -60,7 +62,7 @@ vi.mock("@/lib/supabase/server", () => ({
     }),
 }));
 
-const { updateEvent } = await import("@/lib/db/mutations/events");
+const { createEvent, updateEvent } = await import("@/lib/db/mutations/events");
 const { APPROVAL_NEVER_WITH_A_DEVELOP } =
   await import("@/lib/disposable/album-style");
 
@@ -302,5 +304,47 @@ describe("updateEvent: the event's dates", () => {
       code: "unknown",
       message: "The end date can't be before the event date.",
     });
+  });
+});
+
+/**
+ * THE DAILY BREAKER'S WORDS (upload-meter, 20261003210500): `enforce_event_limit` refuses an account's 101st creation in
+ * any 24 hours with its own sentence, and the create action says that sentence, never the plan limit's (a Pro host has
+ * no event limit, and the wizard offers Upgrade on `limit_reached`). Read by its words, as the CHECKs above are read by
+ * their names; the plan limit's refusal keeps its own code and sentence.
+ */
+describe("createEvent: the daily breaker", () => {
+  const values = createEventSchema.parse({ name: "A party" });
+
+  it("★ says the breaker's own sentence, never the plan limit's, and never offers an upgrade", async () => {
+    nextError = {
+      code: "23514",
+      message: "You've created a lot of events today. Try again tomorrow.",
+    };
+    const result = await createEvent(values);
+    expect(result).toEqual({
+      ok: false,
+      code: "unknown",
+      message: "You've created a lot of events today. Try again tomorrow.",
+    });
+  });
+
+  it("the plan's own limit keeps its code and its sentence", async () => {
+    nextError = {
+      code: "23514",
+      message:
+        "Event limit reached for the free plan (max 1 event(s)). Delete an event or upgrade.",
+    };
+    const result = await createEvent(values);
+    expect(result).toEqual({
+      ok: false,
+      code: "limit_reached",
+      message: "You've reached the event limit for your plan.",
+    });
+  });
+
+  it("a creation the database takes is the row", async () => {
+    const result = await createEvent(values);
+    expect(result).toEqual({ ok: true, data: { id: "event-1" } });
   });
 });

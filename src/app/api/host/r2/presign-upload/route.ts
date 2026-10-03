@@ -8,6 +8,9 @@ import {
 } from "@/lib/upload/server-pipeline";
 import { hostPresignUploadSchema } from "@/lib/validation/upload";
 
+/** The plan's month spent: one home for the context's early answer and the meter's exact one (upload-meter). */
+const PLAN_MONTH_SPENT = "You've hit this plan's upload limit for the month.";
+
 // Host twin of /api/r2/presign-upload, now a thin strategy over the shared
 // pipeline engine. The auth gate stays HERE, before the engine runs (the
 // legacy 401-before-body-parse ordering); get_host_upload_context re-checks
@@ -54,11 +57,40 @@ const hostPresignStrategy: PresignStrategy<typeof hostPresignUploadSchema> = {
           code: "cap_reached",
           message: ctx.data.at_storage_cap
             ? "Storage is full for your plan. Free up space or upgrade."
-            : "You've hit this plan's upload limit for the month.",
+            : PLAN_MONTH_SPENT,
         },
       };
     }
     return { ok: true, eventId: ctx.data.event_id };
+  },
+  // ★ THE METER'S REFUSALS, IN THE PLAN'S WORDS (upload-meter, the engine's meter): she is the owner, so her plan may
+  // be named, and the meter judges THIS file, so the room's sentence says the file will not fit. An event deleted since
+  // the gates reads as the not-owner 404 above (existence never leaks); the breaker's is a retry, `Retry-After` its hour.
+  meterRefusal(refusal) {
+    switch (refusal.reason) {
+      case "storage":
+        return {
+          status: 409,
+          code: "cap_reached",
+          message:
+            "This file won't fit in your plan's storage. Free up space or upgrade.",
+        };
+      case "monthly":
+        return { status: 409, code: "cap_reached", message: PLAN_MONTH_SPENT };
+      case "hourly":
+        return {
+          status: 429,
+          code: "rate_limited",
+          message:
+            "You've uploaded a lot this hour. Try again in a little while.",
+        };
+      case "event_gone":
+        return {
+          status: 404,
+          code: "not_found",
+          message: "This event isn't available.",
+        };
+    }
   },
 };
 

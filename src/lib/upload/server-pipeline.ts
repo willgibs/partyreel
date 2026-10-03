@@ -6,6 +6,7 @@
  *
  * The spine (presign): parse -> zod -> classify/derive ext server-side ->
  * universal validateUpload -> strategy.resolveEvent (ALL per-strategy gates)
+ * -> THE METER (the declared bytes counted, or refused in the strategy's words)
  * -> server-built key -> single-PUT or multipart presign.
  * The spine (complete): parse -> zod -> classify -> multipart sum/abort guard
  * + assemble -> R2-HEAD authoritative size (database-security.md) -> strategy.createRecord
@@ -19,6 +20,11 @@
  *   minted only within 4 MB and half the declared original, and complete records it only within both on
  *   the HEAD sizes, else drops it (deleting its object) and lands the photograph without one.
  * - An over-stuffed multipart is ABORTED, never assembled.
+ * - ★ EVERY MINTED URL WAS COUNTED FIRST (upload-meter, 20261003210500): the presign meters its declared bytes
+ *   (`meterUpload`) after every gate and before any URL exists, and nothing after the meter refuses, so no byte
+ *   reaches R2 uncounted and the complete counts nothing again. The meter fails CLOSED.
+ * - A preview is never heavier than its original: past it (or past 2 MB) its PUT is refused, in words, and the
+ *   original still presigns (its tile serves the original, which is the smaller anyway).
  * - Response JSON shapes/key order are the uploadFile() client contract.
  *   Do not reorder fields.
  * - The auth boundary stays in the ROUTES: the host routes gate on getUser()
@@ -66,6 +72,11 @@ import {
   sumMultipartParts,
 } from "@/lib/r2/presign";
 import { planParts, uploadStrategyFor } from "@/lib/upload/part-plan";
+import {
+  meterUpload,
+  type MeterRefusal,
+} from "@/lib/upload/server-pipeline-meter";
+import { formatBytes } from "@/lib/utils";
 
 /** A refusal the strategy fully specifies (status + the exact code/message copy). */
 export type PipelineRefusal = {
@@ -74,11 +85,50 @@ export type PipelineRefusal = {
   message: string;
 };
 
-function refuse(r: PipelineRefusal) {
+export type { MeterRefusal };
+
+/** `retryAfterSec` rides as `Retry-After` (the hourly breaker's refusal says when the hour ends). */
+function refuse(r: PipelineRefusal, retryAfterSec?: number) {
   return NextResponse.json(
     { ok: false, code: r.code, message: r.message },
-    { status: r.status },
+    {
+      status: r.status,
+      ...(retryAfterSec
+        ? { headers: { "Retry-After": String(retryAfterSec) } }
+        : {}),
+    },
   );
+}
+
+/**
+ * A meter that could not answer (`meterUpload`'s `unavailable`): the same words for a guest and a host, since nothing
+ * in them is the album's or the plan's, and a 503, since another try may well pass.
+ */
+export const METER_UNAVAILABLE: PipelineRefusal = {
+  status: 503,
+  code: "server_error",
+  message: "Couldn't start the upload. Please try again.",
+};
+
+/** The two sentences a refused preview carries in the presign's answer (`preview_refused`). */
+export const PREVIEW_HEAVIER_THAN_ORIGINAL =
+  "A preview can't be larger than the file it shows, so this upload's tile shows the file itself.";
+export const PREVIEW_PAST_ITS_CAP = `A preview can be at most ${formatBytes(MAX_PREVIEW_BYTES)}, so this upload's tile shows the file itself.`;
+
+/**
+ * ★ A PREVIEW IS NEVER HEAVIER THAN ITS ORIGINAL (upload-meter). The preview is never metered, so a PUT at its key is
+ * bounded twice on the declared sizes: 2 MB, and its original's bytes (which the meter counts). Past either, the
+ * preview alone is refused, in the answer's words, and the original presigns as ever: the browser's 640 px WebP can
+ * outweigh a small, heavily compressed photograph, and a guest's upload must never fail over its tile, which then
+ * serves the original (the smaller of the two anyway). Null when the preview may go.
+ */
+export function previewRefusal(
+  previewBytes: number,
+  originalBytes: number,
+): string | null {
+  if (previewBytes > MAX_PREVIEW_BYTES) return PREVIEW_PAST_ITS_CAP;
+  if (previewBytes > originalBytes) return PREVIEW_HEAVIER_THAN_ORIGINAL;
+  return null;
 }
 
 // ─── Presign ─────────────────────────────────────────────────────────────────
@@ -106,6 +156,12 @@ export type PresignStrategy<Schema extends z.ZodType<PresignCommon>> = {
   ): Promise<
     { ok: true; eventId: string } | { ok: false; refusal: PipelineRefusal }
   >;
+  /**
+   * THE METER'S REFUSALS IN THIS ROUTE'S WORDS (upload-meter): the month spent, a file the storage will not fit, the
+   * hour's breaker, an event deleted since its gates. A guest's words name the album and never the plan (a guest must
+   * not learn the host's plan); a host's name her plan. The engine adds `Retry-After` to the breaker's.
+   */
+  meterRefusal(refusal: MeterRefusal): PipelineRefusal;
 };
 
 export async function runPresignPipeline<
@@ -152,6 +208,23 @@ export async function runPresignPipeline<
   const resolved = await strategy.resolveEvent(parsed.data, kind);
   if (!resolved.ok) return refuse(resolved.refusal);
 
+  // ★ THE METER (upload-meter, 20261003210500): the declared bytes count against the host's month HERE, after every
+  // gate and before any URL exists, and never again at complete. The presigned PUT binds its Content-Length to these
+  // bytes, so what is counted is what can land, and an upload abandoned after this line has already counted (the meter
+  // never refunds). Refused, nothing is minted; unanswered, nothing is minted either (it fails CLOSED).
+  const metered = await meterUpload({
+    eventId: resolved.eventId,
+    kind,
+    bytes: size_bytes,
+  });
+  if (!metered.ok) {
+    if (metered.reason === "unavailable") return refuse(METER_UNAVAILABLE);
+    return refuse(
+      strategy.meterRefusal(metered),
+      metered.reason === "hourly" ? metered.retryAfterSec : undefined,
+    );
+  }
+
   // Server-built key: the resolved event + a server-generated id + classified
   // kind/ext. The client never influences the key.
   const mediaId = crypto.randomUUID();
@@ -164,8 +237,9 @@ export async function runPresignPipeline<
   });
 
   // The OPTIONAL preview PUT (a small client-generated WebP, served on tiles). Server-built key, same
-  // event/media/kind. Bind its content-length (skip if the declared size exceeds the cap — the original
-  // still uploads; a missing preview falls back to the original tile). webp is always single-PUT (tiny).
+  // event/media/kind. Bind its content-length, within 2 MB and its original's bytes (`previewRefusal`): past either,
+  // the preview alone is refused and the answer says why in `preview_refused`, in the preview's own slot, while the
+  // original still uploads and its tile serves the original. webp is always single-PUT (tiny).
   const previewKey = mediaObjectKey({
     eventId: resolved.eventId,
     mediaId,
@@ -174,8 +248,10 @@ export async function runPresignPipeline<
     ext: "webp",
   });
   const previewSize = parsed.data.preview_size_bytes;
+  const previewRefused =
+    previewSize === undefined ? null : previewRefusal(previewSize, size_bytes);
   const preview =
-    previewSize && previewSize <= MAX_PREVIEW_BYTES
+    previewSize !== undefined && previewRefused === null
       ? await presignUpload({
           key: previewKey,
           contentType: "image/webp",
@@ -190,7 +266,9 @@ export async function runPresignPipeline<
           headers: preview.headers,
         },
       }
-    : {};
+    : previewRefused
+      ? { preview_refused: previewRefused }
+      : {};
 
   // ★ THE PHONE-SIZE COPY (take-home r1): a photograph's 2048 px JPEG, best-effort like the preview. Its PUT is
   // minted only within both caps on the declared sizes (`phoneCopyFits`: 4 MB, and half the original), bound to

@@ -15,8 +15,13 @@ const rowRead = vi.fn();
 const getUser = vi.fn();
 const checkAbuseRate = vi.fn();
 const recordAbuseEvent = vi.fn();
+const meterUpload = vi.fn();
 
 vi.mock("server-only", () => ({}));
+// The presign's meter (upload-meter): stubbed only so the complete can be shown never to ask it.
+vi.mock("@/lib/upload/server-pipeline-meter", () => ({
+  meterUpload: (...args: unknown[]) => meterUpload(...args),
+}));
 vi.mock("next/headers", () => ({
   cookies: async () => ({ get: () => undefined, getAll: () => [] }),
 }));
@@ -219,6 +224,18 @@ describe("an account's ticket completes only for that account", () => {
     expect(status).toBe(403);
     expect(body.code).toBe("session_other_account");
     expect(createMedia).not.toHaveBeenCalled();
+  });
+});
+
+describe("the month was counted at the presign (upload-meter)", () => {
+  it("★ a completion never asks the meter: the file counted once, when its URL was minted", async () => {
+    const { status } = await complete();
+    expect(status).toBe(200);
+    expect(createMedia).toHaveBeenCalledTimes(1);
+    // The size the row records is still R2's HEAD, never the declaration the presign counted.
+    expect(createMedia.mock.calls[0][0].fileSizeBytes).toBe(1000);
+    await complete({ reel_eligible: false });
+    expect(meterUpload).not.toHaveBeenCalled();
   });
 });
 

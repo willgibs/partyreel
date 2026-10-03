@@ -15,8 +15,10 @@
  *     sized by the SAME pure math the browser uses (src/lib/media/preview-size.ts), and PUT to the
  *     reserved `preview` variant, so tiles serve the small file like every real upload;
  *   - file_size_bytes comes from an R2 HEAD after the PUT (database-security.md), never from the local file;
+ *   - each file is counted against the host's month by meter_upload before its bytes go up, as the
+ *     presign route counts it (billing-caps.md);
  *   - the row itself is written by create_media_as_host, the service-role-only RPC the host complete
- *     route calls. NEVER insert into `media` directly: the RPC is what keeps the storage ledger,
+ *     route calls. NEVER insert into `media` directly: the RPC is what keeps
  *     profiles.storage_used_bytes and the cap checks honest (uploads-and-r2.md invariant).
  * The result is indistinguishable from a host batch upload: guest_id null, status approved.
  *
@@ -845,6 +847,21 @@ async function seedFile(file, { hostId, eventId, uploader }) {
         ext: "webp",
       })
     : null;
+
+  // ★ THE PRESIGN'S METER (upload-meter, 20261003210500): the product counts an upload's bytes against the host's
+  // month at its presign, never at its complete, so this script, which mints no presign, counts each file here,
+  // before its bytes go up, through the same service-role RPC; a refusal (the month, the room, the hour) skips it.
+  const { data: metered, error: meterError } = await supabase.rpc(
+    "meter_upload",
+    { p_event_id: eventId, p_type: file.kind, p_bytes: bytes.length },
+  );
+  if (meterError || metered?.ok !== true) {
+    await rm(workDir, { recursive: true, force: true });
+    console.error(
+      `  REFUSED ${file.name} (${uploader.label}): ${meterError?.message ?? metered?.reason ?? "no answer"}`,
+    );
+    return null;
+  }
 
   await s3.send(
     new PutObjectCommand({

@@ -19,6 +19,21 @@ describe("abuseRateDecision", () => {
     ).toBe(true);
   });
 
+  it("★ the 2,000-guest wedding joins on one venue Wi-Fi in one quarter-hour, with half again to spare (upload-meter)", () => {
+    // PRICING.md's largest archetype, every guest arriving on the venue's one address inside the same quarter-hour
+    // (a toast's "scan the code now"), plus a second phone, a re-join, an ask or a remove each for half of them: the
+    // join, the ask and the remove ride this one count, and every guest's own-uploads read there checks it.
+    const WEDDING = 2_000;
+    for (const hits of [0, WEDDING, WEDDING * 1.5 - 1]) {
+      expect(abuseRateDecision("join", 1, hits).allowed, `${hits}`).toBe(true);
+    }
+    // Still a backstop: one address minting a single album's tickets without end is stopped inside the quarter-hour.
+    expect(abuseRateDecision("join", 1, WEDDING * 1.5).allowed).toBe(false);
+    expect(ABUSE_LIMITS.join.scopeWindowMin).toBe(15);
+    // Breadth is still the scraper's guard, unchanged.
+    expect(ABUSE_LIMITS.join.breadthMax).toBe(25);
+  });
+
   it("blocks a scraper joining many DISTINCT events from one IP (breadth)", () => {
     const r = abuseRateDecision("join", ABUSE_LIMITS.join.breadthMax, 0);
     expect(r.allowed).toBe(false);

@@ -77,6 +77,22 @@ function rangeRefusal(error: { code?: string; message?: string }): boolean {
   );
 }
 
+/**
+ * ★ AN ACCOUNT'S EVENTS A DAY (upload-meter, 20261003210500): `enforce_event_limit` refuses the 101st creation in any
+ * 24 hours in its own sentence ("You've created a lot of events today. Try again tomorrow."), which the wizard prints
+ * as it is. Read by its words, as the CHECKs above are read by their names, and ahead of the plan limit's branch, whose
+ * `limit_reached` offers an upgrade: a Pro host has no event limit to upgrade past.
+ */
+const EVENTS_TODAY = "a lot of events today";
+
+function breakerRefusal(error: { code?: string; message?: string }): boolean {
+  return (
+    error.code === CHECK_VIOLATION &&
+    typeof error.message === "string" &&
+    error.message.includes(EVENTS_TODAY)
+  );
+}
+
 export async function createEvent(
   values: CreateEventValues,
 ): Promise<MutationResult<EventRow>> {
@@ -119,6 +135,9 @@ export async function createEvent(
 
   if (error) {
     if (rangeRefusal(error)) return RANGE_REFUSED;
+    if (breakerRefusal(error)) {
+      return { ok: false, code: "unknown", message: error.message };
+    }
     if (error.code === CHECK_VIOLATION) {
       return {
         ok: false,

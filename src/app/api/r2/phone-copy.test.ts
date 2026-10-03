@@ -57,6 +57,7 @@ vi.mock("@/lib/supabase/admin", () => ({
     from: () => ({
       select: () => ({ eq: () => ({ maybeSingle: () => rowRead() }) }),
     }),
+    rpc: async () => ({ data: { ok: true }, error: null }), // the presign's meter (upload-meter) counts it
   }),
 }));
 vi.mock("@/lib/supabase/server", () => ({
