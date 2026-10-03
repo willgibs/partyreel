@@ -32,8 +32,8 @@ import type { ScreenId } from "./scene";
 const PER_ROW: Record<ScreenId, number> = { "375": 2, "1440": 5 };
 
 /** The album, repeated to a real album's depth, so a scrolled frame has somewhere to go. */
-function photos(n: number): Still[] {
-  return Array.from({ length: n }, (_, i) => ALBUM[i % ALBUM.length]!);
+function photos(n: number, album: readonly Still[]): Still[] {
+  return Array.from({ length: n }, (_, i) => album[i % album.length]!);
 }
 
 /**
@@ -45,14 +45,17 @@ function photos(n: number): Still[] {
 export function AlbumRows({
   screen,
   count = 36,
+  album = ALBUM,
   className,
 }: {
   screen: ScreenId;
   count?: number;
+  /** The album's own photographs (the wedding's unless an album says otherwise). */
+  album?: readonly Still[];
   className?: string;
 }) {
   const n = PER_ROW[screen];
-  const all = photos(count);
+  const all = photos(count, album);
   const rows = Array.from({ length: Math.ceil(all.length / n) }, (_, r) =>
     all.slice(r * n, r * n + n),
   );
@@ -96,7 +99,15 @@ export function AlbumRows({
  * the album's own empty place the week before (`FeedSectionEmpty`, the words
  * `EventUploads` says).
  */
-export function HubAlbum({ f, screen }: { f: HostFacts; screen: ScreenId }) {
+export function HubAlbum({
+  f,
+  screen,
+  album,
+}: {
+  f: HostFacts;
+  screen: ScreenId;
+  album?: readonly Still[];
+}) {
   const has = f.photos > 0;
   return (
     <section aria-label="Album" className="space-y-2.5">
@@ -126,7 +137,7 @@ export function HubAlbum({ f, screen }: { f: HostFacts; screen: ScreenId }) {
       />
       {has ? (
         <div className="-mx-1">
-          <AlbumRows screen={screen} />
+          <AlbumRows screen={screen} album={album} />
         </div>
       ) : (
         <div data-eh-empty="">

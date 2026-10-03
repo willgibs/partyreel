@@ -16,23 +16,27 @@ import { type BoardState, Fit, Frame, Measured } from "@/components/lab";
  * ★ A REAL VIEWPORT, NEVER A STYLED DIV (the kit's `vw-in-a-narrow-div`
  * trap): the hub is the app's wide page, a cover on the ladder's `vw` clamps
  * and a row that changes shape at `sm`, all of which read the frame's width
- * only inside a same-origin frame at its true size. 1440 by 900 is her
- * laptop; 375 by 812 the phone in her hand at the party.
+ * only inside a same-origin frame at its true size. 1440 is her laptop; 375
+ * the phone in her hand at the party.
  *
- * ★ A STILL FRAME IS INERT (a picture, never a control); TRY IT IS LIVE. A
- * rooms option's first frame is the hub running in that option, its doors
- * pressable and its rooms closable, because what that decision chooses is
- * how a press feels, and a still can only show where it lands.
+ * ★ A FACTS FRAME IS THE FIRST SCREEN'S TOP ONLY (the bar, the cover and the
+ * doors' row), since everything under it is the album as built in every
+ * option, and six albums side by side are read whole at a size their covers
+ * can be judged at. A DOORS FRAME IS THE WHOLE FIRST SCREEN.
+ *
+ * ★ A STILL FRAME IS INERT (a picture, never a control); TRY IT IS LIVE: the
+ * doors' first frame is the hub running, so scrolling it folds the doors into
+ * their band and a press opens the room over the hub as wired, because how
+ * the doors slide into the band is half of what the decision chooses.
  *
  * ★ NOTHING HERE REACHES A SESSION, A SERVER FUNCTION OR THE NETWORK beyond
- * the stills and the code's renderer: the hub reads a session and the album's
- * live store, so it is composed from production's presentational pieces in
- * its own order, and its state is local.
+ * the stills and the code's renderer: the hub is composed from production's
+ * presentational pieces in its own order, and its state is local.
  *
- * ★ EVERY CAPTION IS READ OFF THE FRAME, NEVER COMPUTED: where the album
- * starts, how many words the cover says, how big the night's instrument and
- * the doors are, what shape a room opened in, found by the marks each drawing
- * puts on its own pieces (`data-eh-*`).
+ * ★ EVERY CAPTION IS READ OFF THE FRAME, NEVER COMPUTED: how many words the
+ * cover says, what the fact draws and how big, where the doors stand and how
+ * big, where the album starts, found by the marks each drawing puts on its own
+ * pieces (`data-eh-*`).
  */
 
 export const SCREENS = {
@@ -42,11 +46,14 @@ export const SCREENS = {
 
 export type ScreenId = keyof typeof SCREENS;
 
+/** A facts frame's height: the bar, the cover and the doors' row under it. */
+export const COVER_H: Record<ScreenId, number> = { "375": 520, "1440": 590 };
+
 /** The Screen knob: her laptop first. */
 export const screenOf = (s: BoardState): ScreenId =>
   s.screen === "375" ? "375" : "1440";
 
-/** The gap between two phones of a row, in the lab's own pixels. */
+/** The gap between two frames of a row, in the lab's own pixels. */
 const GAP = 24;
 
 export type Probe = (root: HTMLElement, win: Window) => string | null;
@@ -75,6 +82,7 @@ export function ScrollTo({ y }: { y: number }) {
 export function Scene({
   id,
   screen,
+  h,
   title,
   measure,
   live = false,
@@ -83,20 +91,22 @@ export function Scene({
 }: {
   id: string;
   screen: ScreenId;
+  /** The frame's height, where it is not the whole first screen. */
+  h?: number;
   title: string;
   measure: Probe;
-  /** A frame he presses (Try it); every other frame is a picture. */
+  /** A frame he works (Try it); every other frame is a picture. */
   live?: boolean;
   bare?: boolean;
   children: ReactNode;
 }) {
-  const { w, h, name } = SCREENS[screen];
+  const { w, h: screenH, name } = SCREENS[screen];
   const [caption, setCaption] = useState("measuring");
   const frame = (
     <Frame
       id={`${id}-${screen}`}
       w={w}
-      h={h}
+      h={h ?? screenH}
       title={`${title}, ${name}`}
       caption={caption}
     >
@@ -145,20 +155,22 @@ function useOnPhone(): boolean {
 }
 
 /**
- * AN OPTION'S FRAMES: phones side by side in one fitted canvas (one scale,
- * one baseline), laptops stacked (the step's stage lays a stack out as the
- * row that draws it largest), and phones stacked too when the lab itself is
- * read on a phone. `lede` is the one line above the frames saying what they
- * hold.
+ * AN OPTION'S FRAMES: laptops wrapping (the step's stage lays them out as the
+ * rows that draw them largest), phones side by side in one fitted canvas (one
+ * scale, one baseline), and phones stacked when the lab itself is read on a
+ * phone. `lede` is the one line above the frames saying what they hold.
  */
 export function Strip({
   screen,
   frames,
   lede,
+  h,
 }: {
   screen: ScreenId;
   frames: readonly StripFrame[];
   lede?: ReactNode;
+  /** Every frame's height, where it is not the whole first screen. */
+  h?: number;
 }) {
   const onPhone = useOnPhone();
   const head = lede ? (
@@ -168,20 +180,23 @@ export function Strip({
   ) : null;
   if (screen === "1440" || onPhone) {
     return (
-      <div data-eh-row className="flex flex-col gap-6">
+      <div data-eh-row className="flex flex-col gap-3">
         {head}
-        {frames.map((f) => (
-          <Scene
-            key={f.id}
-            id={f.id}
-            screen={screen}
-            title={f.title}
-            measure={f.measure}
-            live={f.live}
-          >
-            {f.node}
-          </Scene>
-        ))}
+        <div className="flex flex-wrap items-start gap-6">
+          {frames.map((f) => (
+            <Scene
+              key={f.id}
+              id={f.id}
+              screen={screen}
+              h={h}
+              title={f.title}
+              measure={f.measure}
+              live={f.live}
+            >
+              {f.node}
+            </Scene>
+          ))}
+        </div>
       </div>
     );
   }
@@ -196,6 +211,7 @@ export function Strip({
               key={f.id}
               id={f.id}
               screen="375"
+              h={h}
               title={f.title}
               measure={f.measure}
               live={f.live}
@@ -215,8 +231,7 @@ export function Strip({
 /**
  * The words a reader meets in an element: every text node outside a screen
  * reader's own line (`.sr-only`, laid out but never seen), split on
- * whitespace, a token counted when it holds a letter or a digit. A glyph
- * count's number is a word here: it is read.
+ * whitespace, a token counted when it holds a letter or a digit.
  */
 export function wordsIn(el: Element | null): number {
   if (!el) return 0;
@@ -224,7 +239,7 @@ export function wordsIn(el: Element | null): number {
   const walk = doc.createTreeWalker(el, 4 /* NodeFilter.SHOW_TEXT */);
   let n = 0;
   for (let t = walk.nextNode(); t; t = walk.nextNode()) {
-    if (t.parentElement?.closest(".sr-only, svg")) continue;
+    if (t.parentElement?.closest(".sr-only, svg, [data-code-door]")) continue;
     for (const token of (t.textContent ?? "").split(/\s+/))
       if (/[\p{L}\p{N}]/u.test(token)) n++;
   }
@@ -253,39 +268,29 @@ function albumStart(root: HTMLElement, screenH: number): string | null {
 }
 
 /**
- * THE COVER'S CAPTION: the words it says (the code's own glyphs aside), how big
- * the night's instrument is where it carries one, and where the album starts.
+ * THE COVER'S CAPTION: the words it says (the code's own glyphs aside), what
+ * its fact draws and how big, and where the doors' row begins under it.
  */
-export const measureFacts =
-  (screenH: number): Probe =>
-  (root) => {
-    const head = root.querySelector("[data-eh-head]");
-    if (!head) return null;
-    const parts: string[] = [`the cover says ${wordsIn(head)} words`];
-    const dial = root.querySelector("[data-eh-dial]");
-    if (dial) {
-      const r = dial.getBoundingClientRect();
-      parts.push(
-        `the dial ${px(r.width)} across, ${dial.getAttribute("data-eh-dial")}`,
-      );
-    }
-    const strip = root.querySelector("[data-eh-strip]");
-    if (strip) {
-      const r = strip.getBoundingClientRect();
-      parts.push(
-        `the strip ${px(r.width)} by ${px(r.height)}, ${strip.getAttribute("data-eh-strip")}`,
-      );
-    }
-    const code = root.querySelector("[data-code-door]");
-    if (code) parts.push(`the code ${px(code.getBoundingClientRect().width)}`);
-    const start = albumStart(root, screenH);
-    if (start) parts.push(start);
-    return `Measured: ${parts.join("; ")}.`;
-  };
+export const measureFacts: Probe = (root) => {
+  const head = root.querySelector("[data-eh-head]");
+  if (!head) return null;
+  const parts: string[] = [`the cover says ${wordsIn(head)} words`];
+  const fact = root.querySelector("[data-eh-facts]");
+  if (fact) {
+    const r = fact.getBoundingClientRect();
+    parts.push(
+      `the ${fact.getAttribute("data-eh-facts")} ${px(r.width)} by ${px(r.height)}: ${fact.getAttribute("data-eh-read")}`,
+    );
+  }
+  const code = root.querySelector("[data-code-door]");
+  if (code) parts.push(`the code ${px(code.getBoundingClientRect().width)}`);
+  return `Measured: ${parts.join("; ")}.`;
+};
 
 /**
- * THE DOORS' CAPTION: how many, how big, whether they stand on the cover or
- * under it, where the album starts, and the band's height once it has stuck.
+ * THE DOORS' CAPTION: how many, how big, whether they stand on the cover,
+ * over its seam, under it, in the stuck band or docked, where the album
+ * starts, and the band's height once it has stuck.
  */
 export const measureDoors =
   (screenH: number): Probe =>
@@ -298,11 +303,17 @@ export const measureDoors =
     if (doors.length === 0) return null;
     const parts: string[] = [];
     const first = doors[0].getBoundingClientRect();
+    const head = root.querySelector("[data-eh-head]");
+    const coverFoot = head?.getBoundingClientRect().bottom ?? 0;
     const where = doors[0].closest("[data-eh-head]")
       ? "on the cover"
       : doors[0].closest("[data-eh-band][data-stuck]")
-        ? "in the stuck band"
-        : "under the cover";
+        ? doors[0].closest(".eh-dock")
+          ? "docked under the bar"
+          : "in the stuck band"
+        : first.top < coverFoot
+          ? `over the seam, ${px(coverFoot - first.top)} up into the cover`
+          : "under the cover";
     parts.push(
       `${doors.length} doors ${where}, the first ${px(first.width)} by ${px(first.height)}`,
     );
@@ -311,30 +322,5 @@ export const measureDoors =
       parts.push(`the band ${px(band.getBoundingClientRect().height)} tall`);
     const start = albumStart(root, screenH);
     if (start) parts.push(start);
-    return `Measured: ${parts.join("; ")}.`;
-  };
-
-/**
- * A ROOM'S CAPTION: what shape it opened in and how much of the screen it
- * takes, and whether the hub still stands behind it.
- */
-export const measureRoom =
-  (screenW: number): Probe =>
-  (root) => {
-    const room = root.querySelector("[data-eh-room]");
-    if (!room) {
-      const doors = root.querySelectorAll("[data-eh-door]").length;
-      return doors
-        ? `Measured: the hub at rest, ${doors} doors to press.`
-        : null;
-    }
-    const r = room.getBoundingClientRect();
-    if (r.width === 0) return null;
-    const shape = room.getAttribute("data-eh-shape") ?? "room";
-    const parts = [
-      `${room.getAttribute("data-eh-room")} opens as ${shape}, ${px(r.width)} wide (${Math.round((r.width / screenW) * 100)}% of the screen)`,
-    ];
-    if (root.querySelector("[data-eh-behind]"))
-      parts.push("the hub stands behind it");
     return `Measured: ${parts.join("; ")}.`;
   };

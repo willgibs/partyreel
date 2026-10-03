@@ -30,6 +30,19 @@ import type { Host } from "./fixtures";
  */
 
 /**
+ * THE EMPTY STAGE'S TWO MOTIONS (`empty-stage.tsx`), each rare or slow enough
+ * to earn its place (bible 5) and gone under reduced motion, where the stage
+ * stands complete at rest: the lamp igniting once as she lands from Create
+ * (`lit`), and the album's empty frames drifting like a print in its tray
+ * (`album`).
+ */
+const MOTION = `@keyframes hd-ignite{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:none}}
+[data-hd-ignite]{animation:hd-ignite 1.8s cubic-bezier(.2,.7,.2,1) both}
+@keyframes hd-develop{from{transform:translate3d(-5%,-4%,0)}to{transform:translate3d(5%,4%,0) scale(1.08)}}
+[data-hd-develop]{animation:hd-develop 10s ease-in-out infinite alternate}
+@media (prefers-reduced-motion:reduce){[data-hd-ignite],[data-hd-develop]{animation:none}}`;
+
+/**
  * Each crop's position and zoom, and one repair the frame needs: Radix lifts a
  * popover's positioned wrapper to its content's z-index by reading
  * `getComputedStyle` off the LAB's window, which answers `auto` for an element
@@ -38,7 +51,8 @@ import type { Host } from "./fixtures";
  * never meet it.
  */
 const FRAME_SHEET = `${cropRules()}
-[data-radix-popper-content-wrapper]{z-index:50!important}`;
+[data-radix-popper-content-wrapper]{z-index:50!important}
+${MOTION}`;
 
 function bellOf(host: Host): { items: NotificationItem[]; badge: number } {
   const items = host.hosted
