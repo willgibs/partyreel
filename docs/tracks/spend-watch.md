@@ -1,7 +1,7 @@
 ---
 track: spend-watch
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "4c23717e"            # the launch-prep SHA the branch was cut from
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
+cut: "7e89d732"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   - src/lib/jobs/spend-watch
@@ -80,30 +80,95 @@ working.
   Resend 50 a day, and never above 80 while Resend is on its free plan (its hard stop is 100 a day, the alerts' own
   mail included); accounts signed in 200 a day; Download all 100 a day; purge runs 4 a day. Recommended, built.
 
-## Where I am
-
-- Built and green locally (lane tests 168/168, typecheck, lint on the touched files): the readings and rules, the
-  run, the route and cron, the three switches, the mail hold, the presign gate, the card and its controls, the
-  migration (proved rolled back live, red then green: `_scratch/spend-watch/sql-proof.log`). Next: the system doc,
-  the captures, the full gate, the Handoff.
-
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/admin-observability.md`: "The spend watch" (new: the readings and what could not be read, the
+  ceiling, a trip never raising its own, what a trip does, the pause it never lifts, the two switches and their
+  hold, who watches the watchman, cadence); "The kill switches fail differently on purpose" and the tripped-breaker
+  line refined in place; the opener's list gains the spend guards. `lifecycle-recovery.md` (a read) is not edited:
+  the hold's home is the spend watch's section, and a pointer from "Sending email" is a Deferred line.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: a one-time lifecycle notice (a grace's start, an inactivity removal, a reduce) is lost on a night its send
+  fails, since its sweep never meets the state again: a Resend outage drops it for good (found by `spend-watch`; its
+  pause never holds these for that reason).
+- Now: the palette could name the spend watch's two switches (`lib/admin/palette.ts`), jumping to
+  `/admin/jobs#switch-uploads_enabled` and `#switch-lifecycle_mail_enabled`.
+- Now: a Library specimen of the spend watch's card (healthy, tripped, a reading missing), so `lab:smoke` renders it;
+  the card is presentation-only (`spend-watch-card.tsx`) for exactly that.
+- Now: `lifecycle-recovery.md`'s "Sending email" could name the lifecycle-mail hold, whose home is
+  `admin-observability.md` "The spend watch".
+- Data: with `spend_watch` applied and the types regenerated, drop `spend-watch-run.ts`'s typed seam (`untyped`).
+- Launch checkpoint: the spend watch hourly at the Vercel Pro cutover (`0 * * * *` in `vercel.json` and the catalog,
+  `expectedEveryMs` an hour, the cadence words) and `RESEND_DAILY_QUOTA` null at the Resend Pro cutover.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits:** the WIP `24307cc2` and the work `9fa97235`, pushed to `lp/spend-watch`; this manifest's commit is the
+  head. No sync: launch-prep moved (crumbs-57's and crumbs-58's merges and records) but nothing in it touches a read
+  or a file of this lane, so a merge would only cost a gate.
+- **Gates on `9fa97235`, each its own exit code** (logs in `../partyreel-wt/_scratch/spend-watch/`): `pnpm
+  typecheck` 0 (`gate-typecheck.log`); `pnpm lint` 0 (`gate-lint.log`); `pnpm test` 0, 859 files, 10,176 tests
+  (`gate-test.log`); `zsh scripts/build-lock.sh pnpm build` 0, `ƒ /api/cron/spend-watch` (`gate-build.log`);
+  `pnpm lab:smoke --base http://localhost:3134` 0, 179 checks, scope all because `vercel.json` changed
+  (`gate-lab-smoke.log`; a first run after a deleted scratch route 404'd every lab page until `rm -rf .next/dev`).
+  No board, so no `lab:demo`.
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` is the owned paths and this file, plus two
+  exceptions: `src/lib/email/templates.ts` (`spendWatchEmail`, the watch's ops mail: every mail is one shell and
+  `composeMail` is private there, so a template elsewhere would fork it) and `vercel.json` (the watch's cron line).
+- **The rules** (`src/lib/jobs/spend-watch.ts`): eight readings, each judged against ten times the busiest untripped
+  reading of the trailing week, never under its floor nor past a vendor's own stop; a missing reading is never a zero
+  (it says why, never trips, fails the run); a counter with no baseline warms; a new trip pauses lifecycle mail,
+  Download all or the purge sweep; uploads are only ever offered; `breaker_tripped` (attention) while a trip, a pause
+  of the watch's or guest uploads off stands. Red first by mutation: every rule broken alone fails its test
+  (`red-first.log`).
+- **The run and its route:** `spend-watch-run.ts`, `/api/cron/spend-watch` (the purge's door: cron secret in constant
+  time, the app surface alone, Run now told apart), its own daily cron `0 5 * * *` and catalog entry `spend_watch`
+  (Run now calls the route vercel.json schedules: `catalog.test.ts` holds the two together); it also raises the purge
+  cron's own missed run, which no job watched.
+- **The vendor reading:** Resend's sent-mail list, every sender (Supabase Auth's sign-in codes ride its SMTP), paged to
+  3,000 and "at least" past it. Not readable with our tokens: Supabase usage (no Management token), R2 and Workers (R2's
+  S3 keys read no usage), Vercel, Sentry; Resend's quota headers come back only on a send.
+- **The switches:** `uploads_enabled` asked first at the guest presign (`uploads_paused`, a 503 in Partyreel's words;
+  fails open); `lifecycle_mail_enabled` in `sendOnce` before the claim, holding only the re-sent three (fails closed, a
+  hold recorded in `email_delivery`); `send-kinds.ts` classifies every send's kind, held to it by a compiler walk of
+  `src/**` (`send-kinds.test.ts`); the watch's pause never re-stamps an operator's.
+- **The card** (`spend-watch-card.tsx`, `switch-controls.tsx`): each reading against its ceiling and the week's
+  busiest, "Tripped" with what to check, "No reading" with why; "What it can stop" with the two new switches in place
+  (the portal's sheet on OFF) and the other two linked to their homes; the watch's own pause and an offered switch said
+  beside it. Captures: `card-healthy-1440.png` (the live week's numbers), `card-tripped-1440.png`,
+  `card-missing-1440.png`, `card-tripped-375.jpg`, from an uncommitted harness rendering the real card in the real
+  `AdminShell` (the /admin page itself needs Google and TOTP); at 375 the table measured 311 in a 311 container, no
+  page overflow.
+- **The migration** `supabase/migrations/20261003190000_spend_watch.sql`: `spend_watch_readings` (INVOKER) and
+  `spend_watch_sign_ins` (DEFINER, auth.users), the service role's alone, three switches seeded on. Proved on the live
+  schema before any apply, rolled back: red on today's schema ("FAIL 1"), green with the file's statements at the head
+  (md5 of the statements `cf17df6e`; the readings before and after each write moved exactly their own;
+  `sql-proof.log`); nothing persisted (re-read). Expected advisors delta: none. Types: the two functions join Functions.
+- **Live, from localhost against the project:** the cron door 401 twice; the presign gate open with no row, 503
+  `uploads_paused` with `uploads_enabled` inserted false (deployed code ignores the key), open again once the row was
+  deleted by its own instant (`live-local.log`); one watch run before the migration, `job_runs` `28cf35eb`, status
+  error, every DB reading "No reading" in PostgREST's words, Resend 2 a day: left as the watch's first real history.
+- **Assets requested from Will:** none.
+- **Board ideas:** the admin bar at 375 draws the section dropdown over the "1 job needs you" chip (the phone capture);
+  the guest queue could stop its batch on `uploads_paused` with one sentence rather than failing each file with it.
+- **Proposed changes:** apply `20261003190000_spend_watch.sql` by protocol before the alias build that carries this
+  (before it, the watch reads "No reading" and fails, never quiet); the `vercel.json` cron (both projects register it,
+  the admin deployment answers and stops, like the purge). No env change (it reuses `CRON_SECRET`, `RESEND_API_KEY`,
+  `CONTACT_NOTIFY_EMAIL`). **Vendor postures, for cost-atlas's PRICING.md** (every vendor setting stays yours and
+  Will's): Supabase's spend cap ON until launch (verified on at 17:25Z), OFF at launch with this watch and a weekly
+  look at the org's usage page (the cap is a dashboard toggle: no documented Management API, and the app holds no
+  Management token); Supabase Auth's email limit 100 an hour until the Resend cutover (Resend's free 100 a day binds
+  first), then 600 an hour (a 1,200-guest door's first hour), checked against the watch's Resend reading; Vercel Pro's
+  Spend Management at launch with notices at $50, $100 and $150 and "pause production" at $500 the first month, then
+  ten times the trailing week's busiest day times thirty; Cloudflare a usage notice at $10 now, $25, $50, $100 and
+  $250 at launch; Resend free now, Pro at launch (50,000 a month, overage to five times, then a hard stop) with
+  `RESEND_DAILY_QUOTA` null; Sentry free now, on-demand OFF at launch.
+- **Calls his to overrule:** guest uploads only (not a host's own); the floors (1,000 uploads and 10 GB an hour, 2,000
+  album changes an hour, 50 lifecycle mails, 50 Resend mails capped at 80, 200 sign-ins, 100 zips, 4 purge runs a
+  day); the watch never lifts its own pause; guest uploads off keeps the watch at Needs a look; the one-time notices
+  never held; `lifecycle_mail_enabled` for the brief's `mail_paused` (the table's `*_enabled` convention); the guest's
+  words "Uploads are paused on Partyreel for now. Try again in a little while."; "Tripped" on the card.
+- **Look at first:** `card-tripped-1440.png`, then `READINGS` in `src/lib/jobs/spend-watch.ts` (each floor and what
+  each trip does).
