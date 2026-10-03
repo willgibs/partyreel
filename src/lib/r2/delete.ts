@@ -69,15 +69,17 @@ export type R2Object = {
 
 /**
  * One page of objects under a prefix. The caller drives pagination (feed
- * `nextToken` back as `continuationToken`) so the cron can cap pages per run —
- * see the orphan sweep. `nextToken` is null when the listing is exhausted.
+ * `nextToken` back as `continuationToken`, or the last key back as `startAfter`,
+ * which a later run can resume from) so the cron can cap pages per run — see the
+ * orphan sweep. `nextToken` is null when the listing is exhausted.
  */
 export async function listR2Objects(params: {
   prefix?: string;
   continuationToken?: string;
+  startAfter?: string;
   maxKeys?: number;
 }): Promise<{ objects: R2Object[]; nextToken: string | null }> {
-  const { prefix, continuationToken, maxKeys } = params;
+  const { prefix, continuationToken, startAfter, maxKeys } = params;
   const { R2_BUCKET } = assertR2Env();
 
   const out = await getR2Client().send(
@@ -85,6 +87,7 @@ export async function listR2Objects(params: {
       Bucket: R2_BUCKET,
       Prefix: prefix,
       ContinuationToken: continuationToken,
+      StartAfter: startAfter,
       MaxKeys: maxKeys,
     }),
   );

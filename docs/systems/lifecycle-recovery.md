@@ -29,8 +29,9 @@ bodies live in `lib/lifecycle/sweeps/` and `account-deletion.ts`, each tested on
 - **A sweep that examines rotates:** `expired_passes`, `over_capacity`, `renewal_nudges` and
   `inactive_free_events` (accounts) and `album_log` (albums) store `resume_after` on their run row when the deadline
   stops them, and the next run starts after it, so a list longer than a night still has every candidate examined in
-  turn (an unreadable cursor starts over, with a warning). `orphans` does neither: at most 20 R2 pages from the top
-  each night, saying so when it stops.
+  turn (an unreadable cursor starts over, with a warning). `orphans` rotates by position: at most 20 R2 pages a night,
+  then the key it stopped at rides the purge run's row under its name, and the next run lists after it
+  ([durability-backups.md](durability-backups.md)).
 - **A sweep that loops over accounts and emails someone or deletes bytes is a job of its own** (its own run row,
   switch and card, through `createSweepRunner`), and its per-account body runs under `forEachIsolated`, so one bad
   row never costs the rest ([admin-observability.md](admin-observability.md)). So is `album_log`, though it deletes

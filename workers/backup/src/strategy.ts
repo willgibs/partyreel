@@ -15,6 +15,17 @@ export const SINGLE_PUT_MAX_BYTES = 100 * 1024 * 1024; // 100 MiB
 // 2 GB cap, so the proposed unified 5 GB upload limit needs no Worker change.
 export const COPY_PART_BYTES = 32 * 1024 * 1024; // 32 MiB
 
+/**
+ * True when a key belongs in the backup: event media under `events/`, and nothing else. The queue's R2
+ * notification is already filtered to `events/`, but that filter is infrastructure; this is the same rule in
+ * code, so a widened subscription can never copy an upload's `staging/` object (single PUTs land there before
+ * the complete copies them to `events/`, and an R2 lifecycle rule deletes `staging/` after a day: copied
+ * here, a staging object would sit under the 35-day lock, unmetered) or an avatar into the locked bucket.
+ */
+export function isBackedUpKey(key: string): boolean {
+  return key.startsWith("events/");
+}
+
 /** True when an object should be copied via the multipart API rather than a single streaming put. */
 export function needsMultipart(sizeBytes: number): boolean {
   return sizeBytes > SINGLE_PUT_MAX_BYTES;
