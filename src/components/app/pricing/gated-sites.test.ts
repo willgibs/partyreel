@@ -91,7 +91,7 @@ describe("the Videos switch words its lock from the one record", () => {
 describe("nothing in the host app leaves for the marketing page", () => {
   /**
    * Every door that used to link out, and the two the refusals toasted to. The dashboard's own two (its
-   * at-cap line and the pulse's storage step) left with host-dashboard r1's wiring: its one plan door is
+   * at-cap line and its storage step) left with host-dashboard r1's wiring: its one plan door is
    * the storage ring's, the meter's popover below.
    */
   const DOORS = [
@@ -136,11 +136,11 @@ describe("nothing in the host app leaves for the marketing page", () => {
     },
   );
 
-  it("the pulse's rule hands the storage step no route out of the app", () => {
-    // The band draws whatever door the rule names, and the rule is a pure
+  it("the dashboard's step rule hands no step a route out of the app", () => {
+    // The dashboard draws whatever door the rule names, and the rule is a pure
     // module, so its door was an object field this file's scan never read:
-    // that is how the storage step kept leaving for /pricing after every
-    // other door stopped.
+    // that is how a step kept leaving for /pricing after every other door
+    // stopped.
     const rule = read("src", "lib", "dashboard", "next-step.ts");
     expect(rule).not.toMatch(PRICING_HREF);
   });

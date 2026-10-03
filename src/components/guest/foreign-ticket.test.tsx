@@ -9,7 +9,9 @@
  *
  * ★ AND THE WELCOME GOES WITH ITS TICKET (crumbs-43): a sign-out takes every album's, so the next person meets the
  * welcome and its consent line, and so does the add-email dialog's put-down, which hands the phone to the door; the
- * name step's own put-down keeps it, because the person typing there has just passed it.
+ * name step's own put-down keeps it, because the person typing there has just passed it. The flag is the
+ * `pr_welcome_<qr>` cookie the page's server reads to draw the door first (door-reveal), so these pins read
+ * `document.cookie`, never the localStorage key it once was.
  */
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -78,6 +80,27 @@ function calls(url: string) {
     .map(([, init]) => JSON.parse(String((init as RequestInit).body)));
 }
 
+/** An album's welcome, seen on this device: the cookie the page's server reads (`use-welcome-seen-cookie.ts`). */
+function seeWelcome(qr: string) {
+  document.cookie = `pr_welcome_${qr}=1; path=/`;
+}
+
+/** Whether that cookie is on the document. */
+function welcomeSeen(qr: string): boolean {
+  return document.cookie
+    .split(";")
+    .map((part) => part.trim())
+    .includes(`pr_welcome_${qr}=1`);
+}
+
+/** Cookies outlive `localStorage.clear()`, so a test would otherwise inherit the last one's welcomes. */
+function clearCookies() {
+  for (const part of document.cookie.split(";")) {
+    const name = part.trim().split("=")[0];
+    if (name) document.cookie = `${name}=; path=/; max-age=0`;
+  }
+}
+
 function seedDevice() {
   localStorage.setItem(`pr_session_${QR}`, STALE);
   localStorage.setItem(`pr_guest_name_${QR}`, "Hi Will");
@@ -85,13 +108,14 @@ function seedDevice() {
   localStorage.setItem("pr_guest_name_tok-2", "Sam");
   localStorage.setItem("pr_guest_email_attached_tok-2", "1");
   localStorage.setItem("pr_guest_name_last", "Hi Will");
-  localStorage.setItem(`pr_welcome_${QR}`, "1");
-  localStorage.setItem("pr_welcome_tok-2", "1");
+  seeWelcome(QR);
+  seeWelcome("tok-2");
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
   localStorage.clear();
+  clearCookies();
 });
 
 describe("the name step, holding somebody else's ticket", () => {
@@ -152,7 +176,7 @@ describe("the name step, holding somebody else's ticket", () => {
     // And no refusal was ever shown: nothing typed could have fixed it.
     expect(screen.queryByText(OTHER_ACCOUNT.message)).toBeNull();
     // She passed the welcome on her way to this step: it is not put back in front of her name.
-    expect(localStorage.getItem(`pr_welcome_${QR}`)).toBe("1");
+    expect(welcomeSeen(QR)).toBe(true);
   });
 });
 
@@ -184,10 +208,10 @@ describe("the add-email dialog, holding somebody else's ticket", () => {
     expect(calls("/api/guests/leave")).toEqual([{ qr_token: QR }]);
     expect(screen.queryByText(OTHER_ACCOUNT.message)).toBeNull();
     // The door asks whoever holds the phone, from its welcome.
-    expect(localStorage.getItem(`pr_welcome_${QR}`)).toBeNull();
+    expect(welcomeSeen(QR)).toBe(false);
     // Another event's ticket is somebody's too, and not this refusal's to touch.
     expect(localStorage.getItem("pr_session_tok-2")).toBe("t".repeat(64));
-    expect(localStorage.getItem("pr_welcome_tok-2")).toBe("1");
+    expect(welcomeSeen("tok-2")).toBe(true);
   });
 });
 
@@ -226,11 +250,12 @@ describe("the sign-outs put down every ticket on the device", () => {
       "pr_guest_name_tok-2",
       "pr_guest_email_attached_tok-2",
       "pr_guest_name_last",
-      `pr_welcome_${QR}`,
-      "pr_welcome_tok-2",
     ]) {
       expect(localStorage.getItem(key), key).toBeNull();
     }
+    // Every album's welcome goes with them, the cookies the page's server reads.
+    expect(welcomeSeen(QR)).toBe(false);
+    expect(welcomeSeen("tok-2")).toBe(false);
     expect(calls("/api/guests/leave")).toEqual([{ all: true }]);
     await waitFor(() => expect(refresh).toHaveBeenCalled());
   });
@@ -261,7 +286,7 @@ describe("the sign-outs put down every ticket on the device", () => {
     expect(seenAtAction).toEqual([null]);
     expect(localStorage.getItem("pr_session_tok-2")).toBeNull();
     expect(localStorage.getItem("pr_guest_name_last")).toBeNull();
-    expect(localStorage.getItem(`pr_welcome_${QR}`)).toBeNull();
-    expect(localStorage.getItem("pr_welcome_tok-2")).toBeNull();
+    expect(welcomeSeen(QR)).toBe(false);
+    expect(welcomeSeen("tok-2")).toBe(false);
   });
 });

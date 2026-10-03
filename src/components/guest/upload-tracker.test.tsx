@@ -7,6 +7,7 @@ import {
 } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { developTimeWords } from "@/lib/disposable/develop-words";
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
 
 import {
@@ -413,8 +414,11 @@ describe("the develop", () => {
     expect(
       screen.getAllByRole("button", { name: "Remove this upload" }),
     ).toHaveLength(2);
+    // The time is the one formatter's (`develop-words`), the same words the host's Settings says it in.
     expect(
-      screen.getByText(/^Uploads appear in the album when it develops, /),
+      screen.getByText(
+        `Uploads appear in the album when it develops, ${developTimeWords(ahead)}.`,
+      ),
     ).toBeInTheDocument();
   });
 });

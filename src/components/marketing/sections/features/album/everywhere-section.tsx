@@ -11,11 +11,12 @@ import { EverywhereStage } from "./everywhere-stage";
 
 /**
  * /features/album, chapter 1's supporting beat: the doorbell, as a benefit.
- * The hero showed one album filling; this shows that the SAME upload lands on
- * every open album at once (the venue screen, the laptop by the door, every
- * phone), which is the thing a host cannot get from a group chat. Medium
- * register: a media split with the paired stage, two rows of copy, one
- * pointer onward to curation. Chapter 1 then winds down on the quiet numbers.
+ * The hero's live album takes photographs in one at a time; this shows that the
+ * SAME upload lands on every open album at once (the venue screen, the laptop
+ * by the door, every phone), which is the thing a host cannot get from a group
+ * chat. Medium register: a media split with the paired stage, two rows of
+ * copy, one pointer onward to curation. Chapter 1 then winds down on the quiet
+ * numbers.
  */
 export function EverywhereSection() {
   const rise = (i: number) => ({

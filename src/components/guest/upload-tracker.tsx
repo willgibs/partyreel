@@ -27,10 +27,10 @@ import {
   PopupHeader,
 } from "@/components/ui/popup";
 import { NOT_APPROVED_HELP_HREF } from "@/lib/content/help-links";
+import { developTimeWords } from "@/lib/disposable/develop-words";
 import { formatCount } from "@/lib/format/count";
 import {
   buildTrackerRows,
-  developTimeWords,
   newlyInAlbum,
   TRACKER_SEALED_WORDS,
   TRACKER_WORDS,
