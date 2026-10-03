@@ -45,11 +45,12 @@ working.
 
 ## Where I am
 
-Booted at `015ff8e6`; read the brief, PRICING's atlas, the Worker, the confirm and job-run routes, the purge route
-and its runner. Measured the real buckets read-only (2026-10-03 19:58Z): primary 2,954 objects, backup 3,358; 41
-backup keys of 31 media are 36+ days old with no primary object and no row (the prunable set today). Building: the
-Worker's prune (cursor in a Durable Object, primary-first merge, budget from the Worker's limits, a hold sized to
-the trailing deletions), then the orphan sweep's cursor, then the dry-run evidence and the doc.
+Built and green (not yet the whole gate): the Worker's prune rewritten as a pure engine (`workers/backup/src/
+prune-run.ts`, primary first, three readings before a delete, a doubt deletes nothing, a budget from the Worker's
+limits), its ledger (`prune-ledger.ts`: cursor, the last runs, the hold) in a Durable Object (`prune-state.ts`,
+`wrangler.jsonc`), and the orphan sweep's cursor (`src/lib/lifecycle/sweeps/orphans.ts`). Red logs:
+`../partyreel-wt/_scratch/backup-prune/red-worker.log` (20 of the new tests against a port of today's prune) and
+`red-orphans.log` (12). Next: the dry-run against the real buckets with an independent count, the docs, the gate.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 

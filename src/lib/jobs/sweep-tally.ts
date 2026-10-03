@@ -48,7 +48,7 @@ export const ROWS_NOTE_KEY = "rows_note";
 
 /**
  * The key a sweep that stopped early uses for its own line, when the generic one would not be true
- * (the orphan sweep starts again from the top rather than carrying on). `rows_note`'s twin: it goes
+ * (the orphan sweep counts the pages it listed, never what it left). `rows_note`'s twin: it goes
  * to the run's note, never into `counts`.
  */
 export const STOPPED_NOTE_KEY = "stopped_note";
