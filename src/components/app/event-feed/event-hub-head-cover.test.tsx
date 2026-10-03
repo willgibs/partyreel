@@ -5,7 +5,7 @@
  * her guests see; the head holds her manifest to the same test her cover's count does (`waitsOf`), the rows the page
  * read as the roll's among the develop facts.
  */
-import { renderHook } from "@testing-library/react";
+import { render, renderHook, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { HeadStill } from "@/components/guest/event-experience-head";
@@ -46,12 +46,25 @@ vi.mock("@/components/app/share/event-code-door", () => ({
 vi.mock("@/components/app/share/event-link-row", () => ({
   EventLinkRow: () => null,
 }));
+// The head is its ground and its children, nothing more here: what it PUBLISHES is what the band beside it reads.
 vi.mock("@/components/guest/event-experience-head", () => ({
-  EventHead: () => null,
+  EventHead: ({
+    ground,
+    children,
+  }: {
+    ground: React.ReactNode;
+    children: React.ReactNode;
+  }) => (
+    <div>
+      {ground}
+      {children}
+    </div>
+  ),
   HeadStills: () => null,
 }));
+vi.mock("./event-gallery-live", () => ({ EventLive: () => null }));
 
-const { useHubCoverStills } = await import("./event-hub-head");
+const { HubCover, useHubCoverStills } = await import("./event-hub-head");
 
 const MIN_US = 60_000_000;
 const NOW = Date.now();
@@ -122,5 +135,43 @@ describe("★ her head wears what her guests can see while the album develops", 
       }),
     );
     expect(ids(result.current)).toEqual(["new", "joined-b"]);
+  });
+});
+
+describe("★ the band beside her head reads the roll the head publishes", () => {
+  // The sticky band's face is the cover's own (`event-cards-row.tsx` calls `useHubCoverStills(served)` with no facts of
+  // its own): the head hands it the develop facts once mounted, and a roll it left out would dress the band in the
+  // photographs her guests cannot see.
+  function Band({ served }: { served: HeadStill[] }) {
+    const stills = useHubCoverStills(served);
+    return <ul data-testid="band">{ids(stills).join(",")}</ul>;
+  }
+
+  it("★ the band wears what her guests see, never a held photograph the switch put in the roll", () => {
+    render(
+      <>
+        <HubCover
+          name="The party"
+          date={null}
+          counts={{ album: 4, guests: 1, views: 0 }}
+          prettyUrl="partyreel.com/e/x"
+          eventLink="https://partyreel.com/e/x"
+          code={{
+            qrStyle: "classic",
+            door: {} as never,
+            acceptingUploads: true,
+            waiting: 0,
+          }}
+          stills={[still("joined-b"), still("seen")]}
+          develop={{
+            develops_at: AHEAD,
+            sealed_from: SEALED_FROM,
+            joined: ["joined-a", "joined-b"],
+          }}
+        />
+        <Band served={[still("joined-b"), still("seen"), still("new")]} />
+      </>,
+    );
+    expect(screen.getByTestId("band").textContent).toBe("seen");
   });
 });
