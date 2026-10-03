@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   daysBetween,
   endDateOf,
+  endForNewStart,
   endToStore,
   eventDays,
   isRange,
@@ -67,6 +68,28 @@ describe("an event's days", () => {
     expect(endToStore("2026-10-03", null)).toBeNull();
     // An earlier end is kept for the database's CHECK to refuse in its own name, never dropped in silence.
     expect(endToStore("2026-10-03", "2026-10-01")).toBe("2026-10-01");
+  });
+
+  it("★ follow a moved first day: an end still after it stays, one it reaches or passes keeps the range's length", () => {
+    // Friday 2 to Sunday 4, the first day moved a day earlier: Sunday stays.
+    expect(endForNewStart("2026-10-01", "2026-10-02", "2026-10-04")).toBe(
+      "2026-10-04",
+    );
+    // Moved inside the range: the end stays.
+    expect(endForNewStart("2026-10-03", "2026-10-02", "2026-10-04")).toBe(
+      "2026-10-04",
+    );
+    // Rescheduled a week on: still a weekend.
+    expect(endForNewStart("2026-10-09", "2026-10-02", "2026-10-04")).toBe(
+      "2026-10-11",
+    );
+    // Moved onto its own last day: the weekend moves with it.
+    expect(endForNewStart("2026-10-04", "2026-10-02", "2026-10-04")).toBe(
+      "2026-10-06",
+    );
+    // A cleared date takes its end with it; one day stays one day.
+    expect(endForNewStart("", "2026-10-02", "2026-10-04")).toBe("");
+    expect(endForNewStart("2026-10-09", "2026-10-02", "")).toBe("");
   });
 
   it("read the row's end through the seam: a calendar day or nothing", () => {

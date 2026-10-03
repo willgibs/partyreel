@@ -394,7 +394,7 @@ describe("the event's dates: a first day and an optional last", () => {
     expect(r.success).toBe(false);
     if (!r.success) {
       expect(r.error.issues[0]?.message).toBe(
-        "The last day can't be before the first.",
+        "The end date can't be before the event date.",
       );
       expect(r.error.issues[0]?.path).toEqual(["event_end_date"]);
     }
@@ -409,7 +409,7 @@ describe("the event's dates: a first day and an optional last", () => {
       expect(r.success, JSON.stringify(input)).toBe(false);
       if (!r.success)
         expect(r.error.issues[0]?.message).toBe(
-          "Set the first day before the last.",
+          "Add the event date first.",
         );
     }
   });

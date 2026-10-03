@@ -212,6 +212,7 @@ async function eventAtDoor(
     name: details.name,
     description: details.description,
     event_date: details.eventDate,
+    event_end_date: details.eventEndDate,
     custom_slug: details.customSlug,
     host_display_name: details.hostDisplayName,
   };

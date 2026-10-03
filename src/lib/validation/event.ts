@@ -107,9 +107,10 @@ const eventFields = {
   qr_style: z.enum(QR_STYLE_KEYS),
 };
 
-/** The refusals of a range in words, said on its last day where the field sits. */
-export const LAST_DAY_BEFORE_FIRST = "The last day can't be before the first.";
-export const LAST_DAY_WITHOUT_FIRST = "Set the first day before the last.";
+/** The refusals of a range in words, in Settings' own field names, said on the end date where the field sits. */
+export const LAST_DAY_BEFORE_FIRST =
+  "The end date can't be before the event date.";
+export const LAST_DAY_WITHOUT_FIRST = "Add the event date first.";
 
 /**
  * ★ AN END TRAVELS WITH ITS START, AND NEVER BEFORE IT. A save or a create that names a last day names its first

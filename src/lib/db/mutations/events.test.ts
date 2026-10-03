@@ -290,7 +290,7 @@ describe("updateEvent: the event's dates", () => {
     expect(result).toEqual({
       ok: false,
       code: "unknown",
-      message: "The last day can't be before the first.",
+      message: "The end date can't be before the event date.",
     });
   });
 });

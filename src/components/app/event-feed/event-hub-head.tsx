@@ -161,6 +161,7 @@ export function HubAlbumGlyph({ served }: { served: number }) {
 export function HubCover({
   name,
   date,
+  endDate,
   counts,
   prettyUrl,
   eventLink,
@@ -171,6 +172,8 @@ export function HubCover({
 }: {
   name: string;
   date: string | null;
+  /** The last day of a range (`events.event_end_date`), or null for one day. */
+  endDate?: string | null;
   /** The page's numbers: the album's (live after), the guests, the views. */
   counts: { album: number; guests: number; views: number };
   prettyUrl: string;
@@ -203,7 +206,7 @@ export function HubCover({
             {name}
           </PageHeading>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/85">
-            {date && <span>{formatEventDate(date)}</span>}
+            {date && <span>{formatEventDate(date, endDate)}</span>}
             {/* The album's count, live off the album's store (the page is never refreshed to move it). */}
             <HubAlbumGlyph served={counts.album} />
             <GlyphCount

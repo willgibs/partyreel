@@ -519,6 +519,8 @@ export default async function GuestEventPage({
           host_display_name: doorDecision ? event.host_display_name : null,
           description: null,
           event_date: null,
+          // A range's last day is the date's own (20261003120000): blanked with it.
+          event_end_date: null,
           // The develop time is a date like the event's own (9 am the day after the party): nothing at a gate
           // says it (no waiting room, no camera behind a door she is outside).
           develops_at: null,

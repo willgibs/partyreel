@@ -88,6 +88,7 @@ export function AlbumStyleSettings({ children }: { children?: ReactNode }) {
       }}
       rollSize={s.values.rollSize}
       eventDate={s.values.eventDate || null}
+      eventEndDate={s.values.eventEndDate || null}
       heldCount={s.pendingCount}
       savingCapture={s.saving("capture")}
       savingReveal={s.saving("review") || s.saving("developsAt")}
@@ -110,6 +111,7 @@ export function CameraSettings() {
       }}
       rollSize={s.values.rollSize}
       eventDate={s.values.eventDate || null}
+      eventEndDate={s.values.eventEndDate || null}
       heldCount={s.pendingCount}
       savingCapture={s.saving("capture")}
       savingReveal={s.saving("review") || s.saving("developsAt")}
@@ -126,6 +128,8 @@ type ControlProps = {
   rollSize: number | null;
   /** The party's date (`YYYY-MM-DD`), which the default develop time follows. */
   eventDate: string | null;
+  /** A range's last day, which it follows instead (9 am the morning after it); absent reads as one day. */
+  eventEndDate?: string | null;
   /** Uploads held for the host's approval now: leaving approval releases them, so it asks first. */
   heldCount: number;
   savingCapture: boolean;
@@ -171,6 +175,7 @@ export function AlbumStyles({
   value,
   rollSize,
   eventDate,
+  eventEndDate,
   heldCount,
   savingCapture,
   savingReveal,
@@ -194,7 +199,7 @@ export function AlbumStyles({
   const choose = (to: AlbumStyle) => {
     setPending(null);
     if (to === style) return;
-    const patch = patchForStyle(to, value, { eventDate });
+    const patch = patchForStyle(to, value, { eventDate, eventEndDate });
     const consequence = styleSwitchConsequence({
       from: value,
       to: patch,
@@ -285,6 +290,7 @@ export function AlbumStyles({
             value={value}
             rollSize={rollSize}
             eventDate={eventDate}
+            eventEndDate={eventEndDate}
             heldCount={heldCount}
             savingCapture={savingCapture}
             savingReveal={savingReveal}
@@ -469,6 +475,7 @@ export function CaptureAndReveal({
   value,
   rollSize,
   eventDate,
+  eventEndDate,
   heldCount,
   savingCapture,
   savingReveal,
@@ -495,7 +502,7 @@ export function CaptureAndReveal({
       review: false,
       developsAt: waiting
         ? value.developsAt
-        : defaultDevelopAt({ eventDate }).toISOString(),
+        : defaultDevelopAt({ eventDate, eventEndDate }).toISOString(),
     };
   };
 

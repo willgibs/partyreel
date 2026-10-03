@@ -6,6 +6,8 @@ export type PartyCard = {
   id: string;
   name: string;
   eventDate: string | null;
+  /** A range's last day, or null for one day. */
+  eventEndDate: string | null;
   role: "host" | "guest";
   href: string | null;
   coverUrl: string | null;
@@ -40,6 +42,7 @@ export function partyCards(
         id: event.id,
         name: event.name,
         eventDate: event.event_date,
+        eventEndDate: event.event_end_date ?? null,
         role: "host",
         href: `/e/${event.custom_slug ?? event.qr_token}`,
         coverUrl: hostedCovers.get(event.id) ?? null,
@@ -57,6 +60,7 @@ export function partyCards(
         id: event.id,
         name: event.name,
         eventDate: event.event_date,
+        eventEndDate: event.event_end_date ?? null,
         role: "guest",
         href: null,
         coverUrl: attended.covers.get(event.id) ?? null,

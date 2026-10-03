@@ -84,6 +84,23 @@ export function endToStore(
 }
 
 /**
+ * WHERE A NEW FIRST DAY LEAVES A RANGE'S END (Settings' range control; days as its fields hold them, "" for none): an
+ * end still after the new day stays (a host moving her first day earlier keeps her Sunday); one the new day reaches or
+ * passes moves with it, keeping the range's length (a weekend rescheduled is still a weekend); a cleared date takes its
+ * end with it, since an end never stands alone.
+ */
+export function endForNewStart(
+  next: string,
+  wasDate: string,
+  wasEnd: string,
+): string {
+  if (!next || !wasEnd) return "";
+  if (wasEnd > next) return wasEnd;
+  const moved = shiftDay(wasEnd, wasDate ? daysBetween(wasDate, next) : 0);
+  return moved > next ? moved : "";
+}
+
+/**
  * The row's end date, or null. ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: the events row and the album's read
  * carry `event_end_date` from 20261003120000, and `Tables<"events">` learns it at the regeneration; until then the
  * pages read it through here, at run time, as a calendar day or nothing (before the migration is applied the column

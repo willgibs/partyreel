@@ -67,6 +67,7 @@ import {
 import { readHostLinksBody } from "@/lib/event/host-links.server";
 import { REEL_MINIMUM } from "@/lib/event/reel-progress";
 import { legacyRoomAddress, resolveEventSheet } from "@/lib/event/sections";
+import { endDateOf } from "@/lib/events/dates";
 import {
   checklistOver,
   type ReadyFacts,
@@ -318,6 +319,8 @@ export default async function EventDetailPage({
     showReel: event.show_reel,
     liveReelEnabled: liveReelFacts.liveReelEnabled,
     eventDate: event.event_date,
+    // A range's last day (20261003120000), read through the seam until the types regenerate.
+    eventEndDate: endDateOf(event),
     description: event.description,
     opened: views,
     storagePct,
@@ -330,7 +333,7 @@ export default async function EventDetailPage({
     serverZone(),
   );
   const { today } = calendarDayInZone(new Date().getTime(), viewerZone);
-  const over = checklistOver(event.event_date, today);
+  const over = checklistOver(event.event_date, today, endDateOf(event));
   const guestNeeds = over ? 0 : stepsLeft(readyFacts);
 
   const cards = [
@@ -436,6 +439,7 @@ export default async function EventDetailPage({
           <HubCover
             name={event.name}
             date={event.event_date}
+            endDate={endDateOf(event)}
             counts={{
               album: seed.sync.counts.album,
               guests: guestsCount,

@@ -54,6 +54,7 @@ export type AsGuestEvent = Pick<
   | "name"
   | "description"
   | "event_date"
+  | "event_end_date"
   | "host_display_name"
   | "qr_style"
   | "accepting_uploads"
@@ -243,6 +244,7 @@ function AlbumAsGuest({
               : null
           }
           date={event.event_date}
+          endDate={event.event_end_date}
           description={event.description}
           mediaCount={mediaCount}
           guestCount={guestCount}

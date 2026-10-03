@@ -13,6 +13,7 @@ import "server-only";
 import { mustQuery } from "@/lib/db/must-query";
 import { inChunks } from "@/lib/db/read-all";
 import { readStanding, type DoorStanding } from "@/lib/event/door/decide";
+import { endDateOf } from "@/lib/events/dates";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /** Who is asking: the `getUser()` id (or none), and the tickets the request carries (shape-checked). */
@@ -215,6 +216,8 @@ export type DoorEventDetails = {
   name: string;
   description: string | null;
   eventDate: string | null;
+  /** The last day of a range (20261003120000), or null for one day. */
+  eventEndDate: string | null;
   customSlug: string | null;
   hostDisplayName: string | null;
 };
@@ -229,13 +232,16 @@ export async function readDoorEventDetails(
   eventId: string,
 ): Promise<DoorEventDetails | null> {
   const admin = createAdminClient();
+  // ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: the row learns `event_end_date` (20261003120000) then; drop the
+  // override once it has.
   const event = await mustQuery(
     admin
       .from("events")
-      .select("name, description, event_date, custom_slug, host_id")
+      .select("name, description, event_date, event_end_date, custom_slug, host_id")
       .eq("id", eventId)
       .is("deleted_at", null)
-      .maybeSingle(),
+      .maybeSingle()
+      .overrideTypes<{ event_end_date: string | null }>(),
     "door: the event's details",
   );
   if (!event) return null;
@@ -255,6 +261,7 @@ export async function readDoorEventDetails(
     name: event.name,
     description: event.description ?? null,
     eventDate: event.event_date ?? null,
+    eventEndDate: endDateOf(event),
     customSlug: event.custom_slug ?? null,
     hostDisplayName,
   };

@@ -76,7 +76,7 @@ export function styleOf(v: StyleColumns): AlbumStyle | null {
 export function patchForStyle(
   style: AlbumStyle,
   current: StyleColumns,
-  opts: { eventDate: string | null; nowMs?: number },
+  opts: { eventDate: string | null; eventEndDate?: string | null; nowMs?: number },
 ): StyleColumns {
   if (style === "live")
     return { capture: "upload", review: false, developsAt: null };
@@ -91,6 +91,7 @@ export function patchForStyle(
       ? current.developsAt
       : defaultDevelopAt({
           eventDate: opts.eventDate,
+          eventEndDate: opts.eventEndDate,
           now: new Date(nowMs),
         }).toISOString(),
   };

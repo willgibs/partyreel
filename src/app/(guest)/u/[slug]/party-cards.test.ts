@@ -106,3 +106,24 @@ describe("partyCards", () => {
     expect(cards.map((c) => c.id)).toEqual(["a1", "h1", "a2", "h2"]);
   });
 });
+
+describe("partyCards: a range of days (20261003120000)", () => {
+  it("carries a range's last day on both kinds of card, and none where the payload has none", () => {
+    const cards = partyCards(
+      {
+        hosted_events: [{ ...hosted("h1", "2026-10-03"), event_end_date: "2026-10-05" }],
+        attended_events: [
+          { ...attended("a1", "2026-09-04"), event_end_date: "2026-09-06" },
+          attended("a2", "2026-08-01"),
+        ],
+      },
+      covers(),
+      { covers: new Map(), videoOnly: new Set() },
+    );
+    expect(cards.map((c) => [c.id, c.eventDate, c.eventEndDate])).toEqual([
+      ["h1", "2026-10-03", "2026-10-05"],
+      ["a1", "2026-09-04", "2026-09-06"],
+      ["a2", "2026-08-01", null],
+    ]);
+  });
+});

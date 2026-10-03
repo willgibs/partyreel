@@ -82,6 +82,7 @@ import {
   getMyGuestEventCards,
 } from "@/lib/db/queries/social";
 import { getHostStorageSummary } from "@/lib/db/queries/storage";
+import { endDateOf } from "@/lib/events/dates";
 import { guestCount } from "@/lib/events/event-guests";
 import { uploadsLabel } from "@/lib/events/visibility-labels";
 import { formatCount } from "@/lib/format/count";
@@ -261,10 +262,13 @@ export default async function DashboardPage({
   let hosted: HostedEvent[] = events.map((event) => {
     const stats = eventStats.get(event.id);
     const lastAt = lastArrivals.get(event.id) ?? null;
+    // A range's last day (20261003120000), read through the seam until the types regenerate.
+    const endDate = endDateOf(event);
     return {
       id: event.id,
       name: event.name,
       date: event.event_date,
+      endDate,
       lastArrival: lastAt
         ? { at: lastAt, day: dayInZone(Date.parse(lastAt), viewerZone) }
         : null,
@@ -286,7 +290,7 @@ export default async function DashboardPage({
       // Paused, the hub code's word, never Closed, the door's (`uploadsLabel` says why).
       uploadsLabel: uploadsLabel(event.accepting_uploads),
       dateLabel: event.event_date
-        ? formatEventDate(event.event_date)
+        ? formatEventDate(event.event_date, endDate)
         : "No date set",
     };
   });
@@ -401,8 +405,9 @@ export default async function DashboardPage({
     id: event.id,
     name: event.name,
     date: event.event_date,
+    endDate: endDateOf(event),
     dateLabel: event.event_date
-      ? formatEventDate(event.event_date)
+      ? formatEventDate(event.event_date, endDateOf(event))
       : "No date set",
     coverUrl: binCovers.get(event.id) ?? null,
     deletedAt: event.deleted_at ?? event.created_at,
