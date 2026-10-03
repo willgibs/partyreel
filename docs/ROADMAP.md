@@ -17,6 +17,8 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Guests: a real-device pass on how many files and bytes one share sheet takes on an iPhone and on Android before it fails or stalls, measured before a bulk Save picks its 100 MB line (from `take-home`).
+- Guests: if a phone size is made, the viewer on a phone could draw it in place of the original (a fifth of the bytes, every photograph sharp sooner on a party's network), keeping the original for a desk and for Save; and a host's own word over how guests take photos home (a board idea from `take-home`).
 - Host: the night, pressed: the hub's dial or strip opens the night's analytics (the busiest moments, who added most), the home of the views the cover no longer carries (a board idea from `event-header-r2`).
 - Marketing: the same-class preload warnings left are a page body's own links to a route with its own sheets: the curation and guests heroes' "See the live album" prefetches `/features/album`'s five sheets (six warnings a load), /how-it-works links `/features` and /features/privacy links `/features/curation`; a body link takes `prefetchOnIntent` (from `crumbs-50`).
 - Help: `browse-the-album.mdx` (:22, "behind a blurred welcome screen") and `play-the-reel-on-a-screen.mdx` (:24) still draw the welcome as a screen in front of the album; it is the doorway's page and the steps rise over it as sheets (from `crumbs-50`).
