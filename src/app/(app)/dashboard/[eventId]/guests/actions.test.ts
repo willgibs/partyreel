@@ -94,7 +94,7 @@ describe("a raw client value never reaches a mutation", () => {
 });
 
 describe("what the host is told", () => {
-  it("a block answers its count and refreshes the hub, the Guests room and Review", async () => {
+  it("a block answers its count and refreshes the hub, which holds the Guests room and Review", async () => {
     blockFromEvent.mockResolvedValue({
       ok: true,
       data: { eventId: EVENT, blockId: BLOCK, removed: 2, already: false },
@@ -105,10 +105,10 @@ describe("what the host is told", () => {
         { requireVerifiedEmail: false },
       ),
     ).resolves.toEqual({ ok: true, removed: 2, already: false });
+    // Reshaped on purpose (event-header r2, `rooms=over`): the rooms stand over the hub, and their old routes only
+    // redirect, so the hub is the one page to re-render.
     expect(revalidatePath.mock.calls.map(([p]) => p)).toEqual([
       `/dashboard/${EVENT}`,
-      `/dashboard/${EVENT}/guests`,
-      `/dashboard/${EVENT}/review`,
     ]);
   });
 
@@ -125,7 +125,7 @@ describe("what the host is told", () => {
       noRoom: 0,
     });
     expect(letBackIn).toHaveBeenCalledWith(BLOCK, { restore: true });
-    expect(revalidatePath).toHaveBeenCalledTimes(3);
+    expect(revalidatePath).toHaveBeenCalledTimes(1);
   });
 
   it("a refusal travels as its words, uncaptured; only an unknown failure with a cause is reported", async () => {
@@ -161,15 +161,25 @@ describe("the door's Server Functions (event-settings r1)", () => {
   const USER = "55555555-6666-4777-8888-999999999999";
 
   it("refuse a malformed event, row, account or list before any write", async () => {
-    await expect(letInAtDoorAction({ eventId: EVENT, guestId: "x" })).resolves.toEqual(BAD);
     await expect(
-      declineAtDoorAction({ eventId: EVENT, guestId: GUEST, userId: "someone" }),
+      letInAtDoorAction({ eventId: EVENT, guestId: "x" }),
     ).resolves.toEqual(BAD);
-    await expect(addInvitesAction({ eventId: EVENT, emails: [] })).resolves.toEqual(BAD);
+    await expect(
+      declineAtDoorAction({
+        eventId: EVENT,
+        guestId: GUEST,
+        userId: "someone",
+      }),
+    ).resolves.toEqual(BAD);
+    await expect(
+      addInvitesAction({ eventId: EVENT, emails: [] }),
+    ).resolves.toEqual(BAD);
     await expect(
       addInvitesAction({ eventId: EVENT, emails: Array(2001).fill("a@b.co") }),
     ).resolves.toEqual(BAD);
-    await expect(removeInviteAction({ eventId: "nope", email: "a@b.co" })).resolves.toEqual(BAD);
+    await expect(
+      removeInviteAction({ eventId: "nope", email: "a@b.co" }),
+    ).resolves.toEqual(BAD);
     expect(letInAtDoor).not.toHaveBeenCalled();
     expect(blockFromEvent).not.toHaveBeenCalled();
     expect(addEventInvites).not.toHaveBeenCalled();
@@ -177,13 +187,17 @@ describe("the door's Server Functions (event-settings r1)", () => {
   });
 
   it("let in writes through let_in_at_door and refreshes every room it changes", async () => {
-    letInAtDoor.mockResolvedValue({ ok: true, data: { admitted: 2, already: false } });
-    await expect(letInAtDoorAction({ eventId: EVENT, guestId: GUEST })).resolves.toEqual({
+    letInAtDoor.mockResolvedValue({
+      ok: true,
+      data: { admitted: 2, already: false },
+    });
+    await expect(
+      letInAtDoorAction({ eventId: EVENT, guestId: GUEST }),
+    ).resolves.toEqual({
       ok: true,
       admitted: 2,
     });
     expect(letInAtDoor).toHaveBeenCalledWith(EVENT, GUEST);
-    expect(revalidatePath).toHaveBeenCalledWith(`/dashboard/${EVENT}/guests`);
     expect(revalidatePath).toHaveBeenCalledWith(`/dashboard/${EVENT}`);
   });
 
@@ -212,7 +226,10 @@ describe("the door's Server Functions (event-settings r1)", () => {
       data: { added: 2, already: 1, invalid: 0, overCap: 0, total: 24 },
     });
     await expect(
-      addInvitesAction({ eventId: EVENT, emails: ["maya@example.com", "jay@example.com", "sam@example.com"] }),
+      addInvitesAction({
+        eventId: EVENT,
+        emails: ["maya@example.com", "jay@example.com", "sam@example.com"],
+      }),
     ).resolves.toEqual({
       ok: true,
       result: { added: 2, already: 1, invalid: 0, overCap: 0, total: 24 },
@@ -224,7 +241,10 @@ describe("the door's Server Functions (event-settings r1)", () => {
     });
     await expect(
       removeInviteAction({ eventId: EVENT, email: "maya@example.com" }),
-    ).resolves.toEqual({ ok: false, message: "That event is no longer available." });
+    ).resolves.toEqual({
+      ok: false,
+      message: "That event is no longer available.",
+    });
     expect(captureError).not.toHaveBeenCalled();
   });
 });

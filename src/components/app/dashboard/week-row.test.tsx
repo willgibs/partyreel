@@ -78,9 +78,10 @@ describe("WeekRow", () => {
       "href",
       "/dashboard/a/print",
     );
+    // Review stands over the hub (event-header r2, `rooms=over`): the hub's own address with the room on it.
     expect(screen.getByRole("link", { name: "Review" })).toHaveAttribute(
       "href",
-      "/dashboard/b/review",
+      "/dashboard/b?room=review",
     );
     const quiet = screen.getByText("Christening").closest("li")!;
     expect(

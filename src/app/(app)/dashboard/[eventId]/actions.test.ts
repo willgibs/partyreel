@@ -26,7 +26,14 @@ vi.mock("server-only", () => ({}));
 vi.mock("next/cache", () => ({
   revalidatePath: (path: string) => revalidated.push(path),
 }));
-vi.mock("next/headers", () => ({ cookies: async () => ({ set: () => {} }) }));
+vi.mock("next/headers", () => ({
+  cookies: async () => ({ set: () => {} }),
+  headers: async () => new Headers({ "x-viewer-zone": "Europe/London" }),
+}));
+const readGuestsRoom = vi.fn();
+vi.mock("@/app/(app)/dashboard/[eventId]/guests/room.server", () => ({
+  readGuestsRoom: (...a: unknown[]) => readGuestsRoom(...a),
+}));
 vi.mock("@/app/(app)/dashboard/actions", () => ({}));
 vi.mock("@/lib/db/mutations/media", () => {
   const spy = (fn: string) => async (_eventId: string, ids: unknown) => {
@@ -281,9 +288,8 @@ describe("the door, set (event-settings r1)", () => {
   const EVENT = "11111111-2222-4333-8444-555555555555";
 
   it("refuses a malformed event or an unknown door at the boundary, before any write", async () => {
-    const { setEventDoorAction } = await import(
-      "@/app/(app)/dashboard/[eventId]/actions"
-    );
+    const { setEventDoorAction } =
+      await import("@/app/(app)/dashboard/[eventId]/actions");
     setEventDoor.mockReset();
     for (const [eventId, door] of [
       ["not-a-uuid", "open"],
@@ -299,9 +305,8 @@ describe("the door, set (event-settings r1)", () => {
   });
 
   it("writes the door, revalidates the hub and the dashboard, and says what came with it", async () => {
-    const { setEventDoorAction } = await import(
-      "@/app/(app)/dashboard/[eventId]/actions"
-    );
+    const { setEventDoorAction } =
+      await import("@/app/(app)/dashboard/[eventId]/actions");
     setEventDoor.mockResolvedValue({
       ok: true,
       data: { emailHeld: true, admitted: 0 },
@@ -317,9 +322,8 @@ describe("the door, set (event-settings r1)", () => {
   });
 
   it("passes a refusal on in its own words, revalidating nothing", async () => {
-    const { setEventDoorAction } = await import(
-      "@/app/(app)/dashboard/[eventId]/actions"
-    );
+    const { setEventDoorAction } =
+      await import("@/app/(app)/dashboard/[eventId]/actions");
     setEventDoor.mockResolvedValue({
       ok: false,
       code: "no_password",
@@ -332,5 +336,55 @@ describe("the door, set (event-settings r1)", () => {
       message: "Set a password first, then it becomes the way in.",
     });
     expect(revalidated).toEqual([]);
+  });
+});
+
+describe("readGuestsRoomAction: the Guests room, read for a card that opened it in place (`rooms=over`)", () => {
+  const EVENT = "e0000000-0000-4000-8000-000000000001";
+  const ROOM = {
+    readAt: 1,
+    items: [],
+    emails: [],
+    atTheDoor: [],
+    doorTotal: 0,
+    invited: [],
+    blocked: [],
+  };
+
+  it("★ reads the room only once the session and the event (RLS) have proved the host", async () => {
+    readGuestsRoom.mockResolvedValue(ROOM);
+    expect(await actions.readGuestsRoomAction(EVENT)).toEqual({
+      ok: true,
+      room: ROOM,
+    });
+    expect(getEvent).toHaveBeenCalledWith(EVENT);
+    expect(readGuestsRoom).toHaveBeenCalledWith(EVENT, expect.any(String));
+  });
+
+  it("answers nothing, and reads nothing, for a malformed id, no session or an event that is not hers", async () => {
+    expect(await actions.readGuestsRoomAction("not-an-id")).toEqual({
+      ok: false,
+    });
+    expect(await actions.readGuestsRoomAction({ id: EVENT })).toEqual({
+      ok: false,
+    });
+    signedIn = false;
+    expect(await actions.readGuestsRoomAction(EVENT)).toEqual({ ok: false });
+    signedIn = true;
+    getEvent.mockResolvedValue(null);
+    expect(await actions.readGuestsRoomAction(EVENT)).toEqual({ ok: false });
+    expect(readGuestsRoom).not.toHaveBeenCalled();
+  });
+
+  it("a read that fails answers nothing, never the page's error", async () => {
+    readGuestsRoom.mockRejectedValue(new Error("down"));
+    expect(await actions.readGuestsRoomAction(EVENT)).toEqual({ ok: false });
+  });
+
+  it("writes nothing and revalidates nothing", async () => {
+    readGuestsRoom.mockResolvedValue(ROOM);
+    await actions.readGuestsRoomAction(EVENT);
+    expect(revalidated).toEqual([]);
+    expect(calls).toEqual([]);
   });
 });

@@ -52,15 +52,23 @@ export function useReviewKeys({
       if (!root || t.visualState !== "pending") return;
 
       const target = e.target instanceof Element ? e.target : null;
+      // ★ THE ROOM'S OWN PANEL IS ITS PAGE (event-header r2, `rooms=over`): over the hub the room stands in a panel,
+      // which is a dialog, so that dialog is no other layer, and focus resting on the panel itself is nothing focused.
+      const panel = root.closest("[data-room-panel]");
       const onBody =
         !target ||
         target === document.body ||
-        target === document.documentElement;
+        target === document.documentElement ||
+        target === panel;
       const peek = root.querySelector("[data-review-peek]");
       const inPeek = !!(peek && target && peek.contains(target));
       // Another layer is up (a dialog, a confirm, a menu): its keys are its own. The peek is this
-      // room's own layer, never "another".
-      if (!inPeek && layerIsUp({ except: "[data-review-peek]" })) return;
+      // room's own layer, never "another", and so is the panel it stands in.
+      if (
+        !inPeek &&
+        layerIsUp({ except: "[data-review-peek], [data-room-panel]" })
+      )
+        return;
 
       if (t.peekId) {
         if (!inPeek && !(claimPage && onBody)) return;
