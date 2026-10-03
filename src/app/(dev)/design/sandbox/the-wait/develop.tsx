@@ -58,14 +58,19 @@ export type DevelopId = "in-place" | "light" | "darkroom";
 /* ── the takes' timelines, ms from the take's first movement ──────────────── */
 
 /** Where each moment of a take falls, full and reduced. */
+/**
+ * ★ THE SHEET FIRST, THEN THE PRINTS (a darkroom's own order: the contact sheet comes up, then the enlargements). Each
+ * take develops the sheet before anything else moves, and the cover's photographs come up with the album, so a phone's
+ * first screen, most of it cover, reads one story: her sheet developing under it, then the whole page arriving.
+ */
 const TIMES = {
   "in-place": {
-    full: { wave: 150, spread: 1050, word: 1350, cover: 250, open: 1900 },
-    reduced: { wave: 200, spread: 0, word: 700, cover: 200, open: 1500 },
+    full: { wave: 150, spread: 950, word: 1250, cover: 1650, open: 1750 },
+    reduced: { wave: 200, spread: 0, word: 700, cover: 1500, open: 1500 },
   },
   light: {
-    full: { wave: 150, spread: 1050, word: 1350, cover: 250, open: 1650 },
-    reduced: { wave: 200, spread: 0, word: 700, cover: 200, open: 1100 },
+    full: { wave: 150, spread: 950, word: 1250, cover: 1600, open: 1600 },
+    reduced: { wave: 200, spread: 0, word: 700, cover: 1100, open: 1100 },
   },
   darkroom: {
     full: { wave: 250, spread: 1300, word: 1600, cover: 2800, open: 2200 },
@@ -73,18 +78,18 @@ const TIMES = {
   },
 } as const;
 
-/** How long each take runs, from its first movement to its last. */
+/** How long each take runs, from its first movement to its last (the cover's coming up is the longest part). */
 export const DEVELOP_MS: Record<DevelopId, { full: number; reduced: number }> =
   {
-    "in-place": { full: 3050, reduced: 1900 },
-    light: { full: 3000, reduced: 1600 },
+    "in-place": { full: 2950, reduced: 2800 },
+    light: { full: 2900, reduced: 2400 },
     darkroom: { full: 4100, reduced: 3100 },
   };
 
 /** The moment each take is held at for its still: where the sheet turns into the album. */
 export const TURN_MS: Record<DevelopId, number> = {
-  "in-place": 2260,
-  light: 2050,
+  "in-place": 2100,
+  light: 2000,
   darkroom: 1150,
 };
 
@@ -443,7 +448,7 @@ function InPlaceStage({ take, screen }: { take: "in-place" | "light"; screen: Sc
     return () => ro?.disconnect();
   }, [slots]);
 
-  const growAt = (k: number) => t.open + 40 + k * 70;
+  const growAt = (k: number) => t.open + 40 + k * 60;
   const slotWave = new Map(
     sheet.cells.map((c, i) => [
       c.photo.id,
@@ -638,10 +643,7 @@ function Darkroom({ screen }: { screen: ScreenId }) {
           </div>
         </div>
       </div>
-      <div
-        className="tw-a tw-fade-out absolute inset-x-0 bottom-6 flex justify-center px-5 md:justify-end md:px-10"
-        style={at(t.open)}
-      >
+      <div className="tw-a tw-fade-out tw-skip-row" style={at(t.open)}>
         <Button type="button" variant="glass" size="cta" tabIndex={-1} data-tw-skip="">
           The album <SkipForward />
         </Button>

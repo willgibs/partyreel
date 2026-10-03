@@ -21,7 +21,7 @@ import { AlbumHead, CoverGround, GuestPage, OpenRows } from "./album";
 /** The regular open's run: the cover's settle (1.2 s) is its longest part. */
 export const OPEN_MS = { full: 1300, reduced: 300 } as const;
 /** The still's moment: the tiles half risen, the cover still settling. */
-export const OPEN_TURN_MS = 330;
+export const OPEN_TURN_MS = 140;
 
 export function OpenFrame({
   screen,

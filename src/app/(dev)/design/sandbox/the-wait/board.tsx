@@ -50,6 +50,14 @@ const LABEL = (option: string) => {
 
 const s1 = (ms: number) => `${(ms / 1000).toFixed(1)} s`;
 
+/** How much of an element is drawn this instant: its opacity times every one of its boxes' above it. */
+function seenOpacity(el: Element, win: Window): number {
+  let k = 1;
+  for (let node: Element | null = el; node; node = node.parentElement)
+    k *= opacityOf(node, win);
+  return k;
+}
+
 /** How many of these are drawn more than half there this instant. */
 const shown = (els: Iterable<Element>, win: Window) =>
   [...els].filter((el) => opacityOf(el, win) > 0.5).length;
@@ -100,9 +108,7 @@ const frameSays: Reader = (root, win) => {
         parts.push(`${shown(lit, win)} of ${lit.length} turned to light`);
       const ground = root.querySelector(".wait-well");
       if (ground)
-        parts.push(
-          `the well ${Math.round(opacityOf(ground.parentElement, win) * 100)}% there`,
-        );
+        parts.push(`the well ${Math.round(seenOpacity(ground, win) * 100)}% there`);
     }
   }
   if (grows.length)
@@ -146,6 +152,8 @@ const TAKES: Record<
     first: (screen: ScreenId) => ReactNode;
     ms: { full: number; reduced: number };
     turn: number;
+    /** How long a live frame stands at its first frame: the sheet is worth a look, an empty page is not. */
+    lead: number;
     /** What the held frame shows, in a few words. */
     turnWords: string;
   }
@@ -154,24 +162,28 @@ const TAKES: Record<
     first: (screen) => <DevelopFrame take="in-place" screen={screen} />,
     ms: DEVELOP_MS["in-place"],
     turn: TURN_MS["in-place"],
+    lead: 700,
     turnWords: "the squares growing into the rows",
   },
   darkroom: {
     first: (screen) => <DevelopFrame take="darkroom" screen={screen} />,
     ms: DEVELOP_MS.darkroom,
     turn: TURN_MS.darkroom,
+    lead: 700,
     turnWords: "the roll developing, full screen",
   },
   light: {
     first: (screen) => <DevelopFrame take="light" screen={screen} />,
     ms: DEVELOP_MS.light,
     turn: TURN_MS.light,
+    lead: 700,
     turnWords: "the album rising out of the light",
   },
   premiere: {
     first: (screen) => <PremiereFrame screen={screen} />,
     ms: PREMIERE_MS,
     turn: PREMIERE_TURN_MS,
+    lead: 0,
     turnWords: "the reel playing, The album in reach",
   },
   place: {
@@ -180,6 +192,7 @@ const TAKES: Record<
     ),
     ms: OPEN_MS,
     turn: OPEN_TURN_MS,
+    lead: 0,
     turnWords: "the album rising into its rows",
   },
 };
@@ -206,7 +219,12 @@ function arrivalPreview(s: BoardState, option: ArrivalId): ReactNode {
         title={`${name}: Sunday 9:40 am, her first open`}
         measure={frameSays}
       >
-        <Play clock={LIVE} length={take.ms.full} take={TAKE_WORDS[option]}>
+        <Play
+          clock={LIVE}
+          length={take.ms.full}
+          lead={take.lead}
+          take={TAKE_WORDS[option]}
+        >
           {take.first(screen)}
         </Play>
       </Scene>
@@ -234,6 +252,7 @@ function arrivalPreview(s: BoardState, option: ArrivalId): ReactNode {
           clock={LIVE}
           forceReduced
           length={take.ms.reduced}
+          lead={take.lead}
           take={TAKE_WORDS[option]}
         >
           {take.first(screen)}
@@ -245,7 +264,12 @@ function arrivalPreview(s: BoardState, option: ArrivalId): ReactNode {
         title={`${name}: Monday, her second open`}
         measure={frameSays}
       >
-        <Play clock={LIVE} length={OPEN_MS.full} take="Her second open">
+        <Play
+          clock={LIVE}
+          length={OPEN_MS.full}
+          lead={0}
+          take="Her second open"
+        >
           <OpenFrame screen={screen} nowMs={SECOND_OPEN_MS} />
         </Play>
       </Scene>

@@ -55,6 +55,11 @@
   transition: opacity 200ms ease-out !important;
 }
 
+/* A live frame playing again: it fades in, never cuts from the album back to the sheet. */
+.tw-replay {
+  animation: tw-fade-in 260ms ease-out both;
+}
+
 /* ── the parts, and what each does ────────────────────────────────────── */
 
 /* A square of the sheet developing: its photograph comes up out of a flash, from blown-out pale to itself. */
@@ -202,6 +207,53 @@
   animation-name: tw-progress;
   animation-duration: var(--tw-run, 9000ms);
   animation-timing-function: linear;
+}
+/* Where the full-screen takes stand their Skip: the foot's middle at a phone, its right at a desk. (A breakpoint utility
+   loses to production's own layer in a frame, `design.css`, so the media query is this sheet's.) */
+.tw-skip-row {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 1.5rem;
+  display: flex;
+  justify-content: center;
+  padding-inline: 1.25rem;
+}
+.tw-premiere-skip {
+  position: absolute;
+  right: 1rem;
+  bottom: 3.75rem;
+}
+/* Over the reel's dock where it stands up (reduced motion's start), never on it. */
+.tw-premiere-skip[data-dock] {
+  bottom: 7rem;
+}
+.tw-beat-at {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.25rem;
+}
+@media (width >= 48rem) {
+  .tw-skip-row {
+    justify-content: flex-end;
+    padding-inline: 2.5rem;
+  }
+  .tw-premiere-skip,
+  .tw-premiere-skip[data-dock] {
+    right: 2rem;
+    bottom: 1.25rem;
+  }
+  .tw-beat-at {
+    top: 2.5rem;
+    left: 2.5rem;
+  }
+}
+/* The beat's own scrim, so its words read over the brightest photograph: a breath at the top, gone with the beat. */
+.tw-beat-scrim {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 11rem;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgb(0 0 0 / 0.5), rgb(0 0 0 / 0));
 }
 /* The premiere's beat: what this is, said once as the pass begins. */
 .tw-beat {

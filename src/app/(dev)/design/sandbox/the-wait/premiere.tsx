@@ -42,8 +42,8 @@ const FRAMES = [...PREMIERE_FRAMES.slice(0, 4), ALBUM[0]!.picture];
 const DROP = FRAMES.length * HOLD;
 
 export const PREMIERE_MS = { full: DROP + 900, reduced: 600 } as const;
-/** The still's moment: the second photograph playing, the bar a third along. */
-export const PREMIERE_TURN_MS = HOLD + 900;
+/** The still's moment: the first photograph playing under the beat, The album in reach. */
+export const PREMIERE_TURN_MS = 1200;
 
 /** The reel's bar at rest (132 by 34, glass, at the foot's middle): play and the pass's progress. */
 function Bar({ run }: { run: number }) {
@@ -133,16 +133,17 @@ function Premiere() {
   }, []);
 
   const skip = (
-    <Button
-      type="button"
-      variant="glass"
-      size="cta"
-      tabIndex={-1}
-      data-tw-skip=""
-      className="absolute right-4 bottom-16 md:right-8 md:bottom-6"
-    >
-      The album <SkipForward />
-    </Button>
+    <div className="tw-premiere-skip" data-dock={reduced ? "up" : undefined}>
+      <Button
+        type="button"
+        variant="glass"
+        size="cta"
+        tabIndex={-1}
+        data-tw-skip=""
+      >
+        The album <SkipForward />
+      </Button>
+    </div>
   );
 
   if (reduced)
@@ -208,19 +209,19 @@ function Premiere() {
 function Beat({ still }: { still: boolean }) {
   return (
     <div
-      className={cn(
-        "absolute top-6 left-5 text-white md:top-10 md:left-10",
-        !still && "tw-a tw-beat",
-      )}
+      className={cn(!still && "tw-a tw-beat")}
       style={still ? undefined : at(150)}
       data-tw-beat=""
     >
-      <p className="text-label font-medium text-white/80 uppercase">
-        Developed at 9 am
-      </p>
-      <p className="mt-1 text-sm text-white/85 tabular-nums">
-        {`${ROLL_SIZE.shots} photos from ${ROLL_SIZE.guests} guests`}
-      </p>
+      <div className="tw-beat-scrim" />
+      <div className="tw-beat-at text-white">
+        <p className="text-label font-medium text-white/85 uppercase">
+          Developed at 9 am
+        </p>
+        <p className="mt-1 text-sm text-white/90 tabular-nums">
+          {`${ROLL_SIZE.shots} photos from ${ROLL_SIZE.guests} guests`}
+        </p>
+      </div>
     </div>
   );
 }

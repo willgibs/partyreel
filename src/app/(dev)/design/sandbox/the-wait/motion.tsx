@@ -3,7 +3,6 @@
 import {
   type CSSProperties,
   createContext,
-  Fragment,
   type ReactNode,
   type RefObject,
   useContext,
@@ -87,6 +86,7 @@ export function Play({
   forceReduced = false,
   length,
   rest = 2800,
+  lead: leadMs = LEAD_MS,
   take,
   children,
 }: {
@@ -95,6 +95,8 @@ export function Play({
   forceReduced?: boolean;
   length: number;
   rest?: number;
+  /** How long a live frame stands at its first frame before it moves (0 where that frame is an empty page). */
+  lead?: number;
   /** What the frame's caption calls the take. */
   take: string;
   children: ReactNode;
@@ -102,10 +104,11 @@ export function Play({
   const ref = useRef<HTMLDivElement | null>(null);
   const off = useOffStage(ref);
   const prefersReduced = usePrefersReducedMotion();
-  const reduced = forceReduced || prefersReduced;
   const isHeld = clock.mode === "held";
+  // A held frame never moves, so it shows its moment whatever the reader's setting; a live one follows hers.
+  const reduced = forceReduced || (prefersReduced && !isHeld);
   const at = clock.mode === "held" ? clock.at : 0;
-  const lead = isHeld ? 0 : LEAD_MS;
+  const lead = isHeld ? 0 : leadMs;
 
   // Drawn once it has been shown, and kept: a frame that unloaded on a tab press would load its page again.
   const [seen, setSeen] = useState(false);
@@ -141,7 +144,13 @@ export function Play({
     >
       {seen && (
         <PlayContext.Provider value={{ reduced, held: isHeld, at }}>
-          <Fragment key={cycle}>{children}</Fragment>
+          {/* A replay fades in rather than cutting from the album back to the sheet (the first play is the page's first paint). */}
+          <div
+            key={cycle}
+            className={cycle > 0 ? "tw-replay min-h-full" : "min-h-full"}
+          >
+            {children}
+          </div>
         </PlayContext.Provider>
       )}
     </div>
