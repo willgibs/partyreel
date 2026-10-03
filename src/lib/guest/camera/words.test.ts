@@ -1,9 +1,13 @@
 /**
  * THE CAMERA'S WORDS: the album's reveal decides what a shot is told, and the develop time is said from now.
  */
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import {
+  addWords,
   afterShotHint,
   CAMERA_HINT,
   cameraSubLine,
@@ -117,6 +121,33 @@ describe("the develop time, said from now", () => {
     expect(developsWhen(new Date(2026, 10, 2, 9, 0).toISOString(), sun)).toBe(
       "tomorrow at 9 am",
     );
+  });
+});
+
+/* THE ALBUM'S ONE ADD (red-team 46's NIT): See it as a guest said "Take the first photo" over 102 developing shots, where a
+   newcomer reads "Take photos"; the view and the guest page word it from one function's four phrases. */
+describe("the album's one Add", () => {
+  it("says Take at the album's camera and Add elsewhere, and the first photo only over an album nothing was added to", () => {
+    expect(addWords({ camera: true, empty: false })).toBe("Take photos");
+    expect(addWords({ camera: true, empty: true })).toBe(
+      "Take the first photo",
+    );
+    expect(addWords({ camera: false, empty: false })).toBe("Add photos");
+    expect(addWords({ camera: false, empty: true })).toBe(
+      "Add the first photo",
+    );
+  });
+
+  it("★ the guest page says the same four phrases, so the view and the page cannot word it apart again", () => {
+    const page = readFileSync(
+      join(process.cwd(), "src/components/guest/event-experience.tsx"),
+      "utf8",
+    );
+    for (const camera of [true, false]) {
+      for (const empty of [true, false]) {
+        expect(page).toContain(`"${addWords({ camera, empty })}"`);
+      }
+    }
   });
 });
 

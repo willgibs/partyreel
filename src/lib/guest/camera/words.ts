@@ -121,6 +121,18 @@ export function afterShotHint(frame: number): string {
   return `Shot ${frame} taken.`;
 }
 
+/**
+ * THE ALBUM'S ONE ADD, IN WORDS: the album's camera says Take, the others Add, and "the first photo" only over an album
+ * nothing has been added to, visible or waiting (red-team 46's NIT: See it as a guest said "Take the first photo" over
+ * 102 developing shots, where a newcomer to the same album reads "Take photos"). The guest page (`event-experience.tsx`)
+ * carries the same four phrases inline and a test holds the two to them; `empty` is the caller's to decide from what the
+ * guest page decides it from, the visible count and what waits.
+ */
+export function addWords(input: { camera: boolean; empty: boolean }): string {
+  const verb = input.camera ? "Take" : "Add";
+  return input.empty ? `${verb} the first photo` : `${verb} photos`;
+}
+
 /** The camera's own controls, by name. */
 export const CAMERA_CONTROLS = {
   shutter: "Take a photo",

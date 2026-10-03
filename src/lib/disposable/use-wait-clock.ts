@@ -33,6 +33,9 @@ export const WAIT_CLOCK_STEP_MS = 30_000;
  */
 export const WAIT_CLOCK_FRESH_MS = 250;
 
+/** How far short of its half minute the wall clock may read when a timer fires: a hair, never a clock that was set back. */
+const EARLY_MS = 50;
+
 let now: number | null = null;
 let timer: ReturnType<typeof setTimeout> | null = null;
 /** The half minute the armed timer is for. */
@@ -41,16 +44,17 @@ const listeners = new Set<() => void>();
 
 /**
  * Reads the clock again when the reading is older than `WAIT_CLOCK_FRESH_MS` (or the clock was set back). Called as a
- * reader renders, so it only ever moves a reading the readers that hold it are about to be told of: they are moved by
- * the step, as before, and no reader is notified of a refresh (a render is never another reader's reason to render).
+ * reader renders, and it tells nobody: readers that already hold the old reading move at the next step, as before, and
+ * a render is never another reader's reason to render.
  */
 function refresh() {
   const at = Date.now();
   if (now === null || Math.abs(at - now) >= WAIT_CLOCK_FRESH_MS) now = at;
 }
 
-/** Arms the timer for the next half minute of the wall clock, strictly ahead of now. */
+/** Arms the timer for the next half minute of the wall clock, strictly ahead of now (and never a second one). */
 function arm() {
+  if (timer !== null) clearTimeout(timer);
   const at = Date.now();
   due = (Math.floor(at / WAIT_CLOCK_STEP_MS) + 1) * WAIT_CLOCK_STEP_MS;
   timer = setTimeout(fire, due - at);
@@ -59,8 +63,9 @@ function arm() {
 function fire() {
   timer = null;
   const at = Date.now();
-  if (at < due) {
-    // A timer may land a hair before its moment: a step is never taken before the half minute it is for.
+  if (at < due && due - at <= EARLY_MS) {
+    // A timer may land a hair before its moment: a step is never taken before the half minute it is for. (A wall
+    // clock set back is no hair: it steps at once and goes on from the clock as it now reads, never waiting it out.)
     timer = setTimeout(fire, due - at);
     return;
   }

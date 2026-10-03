@@ -19,12 +19,15 @@ const live = vi.hoisted(() => ({
   provider: [] as unknown[],
   gallery: [] as unknown[],
   wait: [] as unknown[],
+  /** What the guests' live source says is waiting in the album (`GuestFullSync.waiting`), or null before it has a word. */
+  waiting: null as { count: number } | null,
 }));
 vi.mock("@/components/guest/gallery-live", () => ({
   GalleryLiveProvider: (props: { children: ReactNode }) => {
     live.provider.push(props);
     return <div data-testid="live-source">{props.children}</div>;
   },
+  useGalleryLive: () => (live.waiting ? { waiting: live.waiting } : null),
 }));
 vi.mock("@/components/guest/live-gallery", () => ({
   LiveGallery: (props: unknown) => {
@@ -139,6 +142,7 @@ beforeEach(() => {
   live.provider.length = 0;
   live.gallery.length = 0;
   live.wait.length = 0;
+  live.waiting = null;
 });
 
 describe("★ a look, never a door", () => {
@@ -271,5 +275,81 @@ describe("★ what waits, as a guest meets it", () => {
     view({ event: { ...EVENT, accepting_uploads: false } });
     expect(source().clock).toBeNull();
     expect(source().rule).toBe(false);
+  });
+});
+
+/* ★ THE COVER'S ADD SAYS WHAT A NEWCOMER'S DOES (red-team 46's NIT): "Take the first photo" stood over 102 developing
+   shots here, where a real newcomer to the same album reads "Take photos". The guest page says "the first photo" only
+   over an album nothing has been added to, visible or waiting (`waitingOnArrival`, `albumWaits`: the same fact the
+   album's sync tells any guest at full access, `waiting.count`); this view reads that fact off the guests' own live
+   source and says the same words (`addWords`, the one home of them). */
+describe("★ the cover's Add says what a newcomer's does", () => {
+  const AHEAD = new Date(Date.now() + 6 * 3_600_000).toISOString();
+  const add = () => screen.getByRole("button", { name: /photo/i });
+  const nothingVisible = { approvedTotal: 0, guestCount: 4 };
+
+  it("★ over shots that are developing the camera says Take photos, never the first photo", () => {
+    live.waiting = { count: 102 };
+    view({
+      event: { ...EVENT, capture: "camera", develops_at: AHEAD },
+      stats: nothingVisible,
+    });
+    expect(add()).toHaveTextContent(/^Take photos$/);
+    expect(screen.queryByText(/first photo/i)).toBeNull();
+  });
+
+  it("an album that takes uploads says Add photos over what waits for the host, as a newcomer reads it", () => {
+    live.waiting = { count: 5 };
+    view({
+      event: { ...EVENT, moderation_mode: "hold_for_approval" },
+      stats: nothingVisible,
+    });
+    expect(add()).toHaveTextContent(/^Add photos$/);
+  });
+
+  it("★ over an album nothing has been added to, visible or waiting, it is still the first photo", () => {
+    live.waiting = { count: 0 };
+    const camera = view({
+      event: { ...EVENT, capture: "camera" },
+      stats: nothingVisible,
+    });
+    expect(add()).toHaveTextContent(/^Take the first photo$/);
+    camera.unmount();
+    view({ stats: nothingVisible });
+    expect(add()).toHaveTextContent(/^Add the first photo$/);
+  });
+
+  it("before the source has a word, the Add stands on the visible count alone, as every album's did", () => {
+    live.waiting = null;
+    view({ stats: nothingVisible });
+    expect(add()).toHaveTextContent(/^Add the first photo$/);
+  });
+
+  it("anything visible is Add photos, whatever waits", () => {
+    live.waiting = { count: 0 };
+    view({
+      event: { ...EVENT, capture: "camera" },
+      stats: { approvedTotal: 3, guestCount: 4 },
+    });
+    expect(add()).toHaveTextContent(/^Take photos$/);
+  });
+
+  it("★ and it moves with the source: shots that begin to wait take the first photo off the Add", () => {
+    live.waiting = { count: 0 };
+    const { rerender } = view({ stats: nothingVisible });
+    expect(add()).toHaveTextContent(/^Add the first photo$/);
+    live.waiting = { count: 1 };
+    rerender(
+      <AsGuestView
+        event={EVENT}
+        joinUrl="https://partyreel.test/e/abc"
+        galleryPromise={new Promise(() => {})}
+        stats={nothingVisible}
+        host={{ avatarUrl: null, seed: "s" }}
+        guests={[]}
+        shut={false}
+      />,
+    );
+    expect(add()).toHaveTextContent(/^Add photos$/);
   });
 });

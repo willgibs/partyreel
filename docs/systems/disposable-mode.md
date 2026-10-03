@@ -178,8 +178,8 @@ mounts) in place of the add sheet; a free-upload album never loads it.
 `camera-settings.tsx` asks it as **album styles** (the-wait r1, Will's pick of option 2's Settings: "cleaner
 design/presentation, difference feels more clear"): three picture cards (Live, Reviewed, Disposable; their pictures
 from the guest ghost pack), each one save of all three columns (`patchForStyle`); the develop time in one row with
-Develop now, where the album has one; the page's switches; a note on a disposable that waits ("Before it develops at 9
-am, look under the cover on your event page to take anything out"); and Customize, where the foundation's control
+Develop now, where the album has one; the page's switches; a note on a disposable that waits ("Before it develops tomorrow
+at 9 am, look under the cover on your event page to take anything out"); and Customize, where the foundation's control
 (`CaptureAndReveal`) asks the two answers apart (`timeElsewhere`: the develop time stays in the page's row). A change
 that would show waiting photos or release held ones asks first (`ConsequenceLine`, `styleSwitchConsequence`); into a
 develop time the held photos "join the roll" (the release above); nothing else asks.
@@ -197,6 +197,17 @@ seen ("0 developing" over the 195 her guests read, red-team 46). The page reads 
 facts (`host-cover.server.ts`'s `readJoinedIds`: approved, sealed now, created before the period; only while a develop
 time is ahead) and hands them down as `joined`; `waitsOf` is the one test the count and the head share. They ride the
 page, so they are as fresh as its save-and-refresh (nothing can join the roll while a develop time is ahead).
+
+**The wait's words and clock** (`wait-words.ts`, `lib/guest/camera/words.ts`, `lib/disposable/use-wait-clock.ts`): every
+line that says when it develops is said from now, in the reader's own clock and only after hydration, by the calendar's
+days (`developsWhen`: "at 9 am" only for today, "tomorrow at 9 am", the weekday inside the week, then the date;
+`developedWhen` looking back, "yesterday"; a day is the calendar's, never 24 hours). ★ **Every reader decides ahead or
+reached on the one clock, and the clock turns at the develop** (red-team 46's LOW: the cover stood, and a guest's eyebrow
+promised a develop, up to 30 s after Develop now): `useWaitClock` is one shared store whose steps fall on the wall
+clock's half minutes (a develop is picked to the minute, so it meets a step at its own moment) and whose reading a render
+finds older than 250 ms is read again, so a develop moved to now, or arriving, reads reached on the render that brings
+it. A reader that keeps a clock of its own (a `Date.now()` in a render, an interval of its own) brings the stale cover
+back.
 
 ## Verifying it
 

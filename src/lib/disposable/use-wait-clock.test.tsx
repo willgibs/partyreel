@@ -124,6 +124,27 @@ describe("★ the clock turns at the develop itself (red-team 46's LOW)", () => 
     expect(vi.getTimerCount()).toBe(0);
   });
 
+  it("★ a clock set back does not stall the steps: they go on from the clock as it now reads", () => {
+    vi.setSystemTime(new Date(2026, 9, 10, 7, 42, 0));
+    const { container, unmount } = render(<Show />);
+    const read = () =>
+      Number(container.querySelector("p")?.getAttribute("data-now"));
+    // Ten minutes back, with the timer armed for 7:42:30: it fires on schedule and finds the clock behind its moment.
+    act(() => {
+      vi.setSystemTime(new Date(2026, 9, 10, 7, 32, 0));
+    });
+    act(() => {
+      vi.advanceTimersByTime(WAIT_CLOCK_STEP_MS);
+    });
+    expect(read()).toBe(new Date(2026, 9, 10, 7, 32, 30).getTime());
+    // And the next step is the next half minute of the clock as it reads, not ten minutes on.
+    act(() => {
+      vi.advanceTimersByTime(WAIT_CLOCK_STEP_MS);
+    });
+    expect(read()).toBe(new Date(2026, 9, 10, 7, 33, 0).getTime());
+    unmount();
+  });
+
   it("steps on the clock's own half minutes, so a develop picked to the minute meets a step exactly", () => {
     vi.setSystemTime(new Date(2026, 9, 10, 7, 42, 11, 500));
     const { container, unmount } = render(<Show />);
