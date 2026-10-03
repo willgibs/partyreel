@@ -266,8 +266,9 @@ bounds it better. ≈ The operations behind the per-item figures: a call ≈3 ms
   Better: the proxy off the API routes, which verify for themselves; one `getUser()` a request; a lean presigner.
 - **Realtime's connections.** The cycle's peak, $10 a thousand past 500. With the spend cap on, Pro stops at 500
   connections and 500 messages a second, 10,000 and 2,500 without ([limits](https://supabase.com/docs/guides/realtime/limits));
-  past either a socket is refused and the album falls back to its 12 s poll. Better: `album-calm`, since a hidden tab
-  leaves its channel and realtime-js closes a socket left with none.
+  past the first a new socket is refused, past the second the project's sockets are dropped, and an album falls back to
+  its 12 s poll. Better: `album-calm`, since a hidden tab leaves its channel and realtime-js closes a socket left with
+  none.
 - **The jobs.** ≈$0 a day: the purge cron, 60 s at most (`vercel.json:5`, `src/app/api/cron/purge/route.ts:85`); the
   reconcile HEADs the first 5,000 objects daily (`workers/backup/src/index.ts:77`); the prune lists 5,000 weekly; the
   export heartbeat; the nightly database dump into the backup's `db/` (`.github/workflows/db-backup.yml:35,158`), which
