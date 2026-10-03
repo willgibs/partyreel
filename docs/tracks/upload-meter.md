@@ -105,5 +105,9 @@ and how the meter counts is a fact no host can feel).
 
 ## Where I am
 
-- 2026-10-03: booted; plan and Questions written (above). Next: the tests red first (logged at
-  `../_scratch/upload-meter/red-green.log`), the migration `20261003210500_upload_meter.sql`, the engine's meter step.
+- 2026-10-03: booted; plan and Questions written (above).
+- 2026-10-03 20:35Z: the work is committed at `a4684412` (the migration with its live red 11/11 and green 12/12
+  rolled-back proof at its foot; the engine's meter; both strategies' words; the preview; both breakers; the join
+  backstop; the create action's words; the seed; two reshaped pins). Red and green logged at
+  `../_scratch/upload-meter/red-green.log` (the live red walk, the SQL red and green, the TS red 34 failing and green
+  507/507). Typecheck and lint green. Next: billing-caps.md, the whole gate, lab:smoke, the Handoff.
