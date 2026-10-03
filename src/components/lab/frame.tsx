@@ -14,9 +14,8 @@ import { createPortal } from "react-dom";
 
 import { cn } from "@/lib/utils";
 
-import { PortalContainerProvider } from "@/components/ui/portal-container";
-
 import { useMountOnApproach } from "./approach";
+import { FrameWindow, SCENE_ATTR } from "./frame-window";
 import { useDesignKey } from "./walk";
 
 /**
@@ -33,7 +32,7 @@ import { useDesignKey } from "./walk";
  * entirely. A frame lies about neither. That is what makes it evidence rather
  * than a picture of evidence.
  *
- * Six things follow, and each one was a bug before it was a rule:
+ * Seven things follow, and each one was a bug before it was a rule:
  *
  * 1. ★ THE CANDIDATE GOES IN AN ADOPTED STYLESHEET, CONSTRUCTED IN THE FRAME'S
  *    OWN REALM. A candidate paste usually rewrites UTILITIES (`@theme inline`
@@ -73,6 +72,11 @@ import { useDesignKey } from "./walk";
  *    the document parsed in quirks mode and a <table> inside it stopped
  *    inheriting colour; `srcdoc` (PORTAL_DOC) is the same origin, the same
  *    load event and standards mode.
+ * 7. ★ AND A PORTALLED SCENE IS DRAWN IN A WINDOW OF ITS OWN (`FrameWindow`):
+ *    its media hooks read the frame's width, its layers, their scroll lock
+ *    and their focus guards stay in the frame, and it carries its own glow
+ *    filter host. It mounts once the frame's copied sheets have loaded, so a
+ *    layer drawn open measures a styled page (the copy effect).
  *
  * An outline rather than a border, because a bordered box is border-box here: a
  * 1px frame each side hands the iframe a 1438px viewport while the caption says
@@ -109,6 +113,16 @@ const SHEET_ID = "lab-candidate";
  */
 const PORTAL_DOC =
   '<!doctype html><html><head><meta charset="utf-8"></head><body></body></html>';
+
+/**
+ * How long a portalled scene waits for its copied sheets before it mounts
+ * anyway: they come from the lab's own cache in a few milliseconds, so this is
+ * only the ceiling for one that never answers (a frame is never left empty).
+ */
+const SHEETS_CEILING = 3000;
+
+/** The document a portalled scene is drawn into, and its window. */
+type Scene = { doc: Document; win: Window | null };
 
 /* ── The scroll lock ───────────────────────────────────────────────────── */
 
@@ -275,7 +289,9 @@ export function Frame({
   const ref = useRef<HTMLIFrameElement | null>(null);
   const [loads, setLoads] = useState(0);
   const [reach, setReach] = useState<"waiting" | "ok" | "blocked">("waiting");
-  const [doc, setDoc] = useState<Document | null>(null);
+  const [scene, setScene] = useState<Scene | null>(null);
+  const doc = scene?.doc ?? null;
+  const portalled = Boolean(children);
   /** The document this iframe last fired `load` for (see the copy effect: never portal into a first document). */
   const loadedDoc = useRef<Document | null>(null);
   const rowLock = useContext(LockCtx);
@@ -405,9 +421,10 @@ export function Frame({
   // document. A wrapper inside the body carries the class and the reset, and it
   // is what the portal renders into.
   useEffect(() => {
-    if (!children || !ready) return;
+    if (!portalled || !ready) return;
     try {
-      const fdoc = ref.current?.contentDocument;
+      const frame = ref.current;
+      const fdoc = frame?.contentDocument;
       if (!fdoc?.head || fdoc.head.querySelector("[data-lab-copied]")) return;
       // ★ NEVER INTO THE FIRST DOCUMENT (crumbs-16: gate 71's lab:demo hung on
       // demo-framing.names). An iframe with a `srcdoc` is born holding an
@@ -433,12 +450,14 @@ export function Frame({
       // the iframe has loaded" (`loadedDoc`) is the test that holds in both.
       if (!src && fdoc.URL === "about:blank" && loadedDoc.current !== fdoc)
         return;
+      const linked: HTMLLinkElement[] = [];
       document
         .querySelectorAll<HTMLElement>('style, link[rel="stylesheet"]')
         .forEach((node) => {
           const copy = node.cloneNode(true) as HTMLElement;
           copy.dataset.labCopied = "";
           fdoc.head.appendChild(copy);
+          if (copy.tagName === "LINK") linked.push(copy as HTMLLinkElement);
         });
       const reset = fdoc.createElement("style");
       reset.dataset.labCopied = "";
@@ -447,11 +466,44 @@ export function Frame({
       // mode again (PORTAL_DOC's note).
       reset.textContent = "body{margin:0}:where(table){color:inherit}";
       fdoc.head.appendChild(reset);
-      setDoc(fdoc);
+      // ★ THE SCENE MOUNTS INTO A STYLED DOCUMENT (lab-frame, from
+      // `host-dashboard-r2`'s line). A copied <link> loads like any other, a
+      // beat after it is appended, and a scene portalled before then mounts
+      // into an unstyled page: whatever measures itself on mount measures
+      // that page. Radix lifts a menu's positioned wrapper to its content's
+      // z-index read on mount, read `auto` there, and kept it, so a menu
+      // drawn open from the first commit painted under the page's own z-10
+      // card (opened by a press, after the sheets, it stood at 50). So the
+      // scene waits for the copied sheets, under a ceiling. The wait is read
+      // against the frame's document, not this effect's run: a board renders
+      // again while it waits, and a frame that loads a new document must
+      // never mount its scene into the old one.
+      const win = fdoc.defaultView ?? frame?.contentWindow ?? null;
+      const mount = () => {
+        if (ref.current?.contentDocument !== fdoc) return;
+        setScene((now) => (now?.doc === fdoc ? now : { doc: fdoc, win }));
+      };
+      const waiting = linked.filter((link) => !link.sheet);
+      if (waiting.length === 0) {
+        mount();
+        return;
+      }
+      let left = waiting.length;
+      const arrived = () => {
+        left -= 1;
+        if (left === 0) mount();
+      };
+      waiting.forEach((link) => {
+        link.addEventListener("load", arrived, { once: true });
+        link.addEventListener("error", arrived, { once: true });
+      });
+      window.setTimeout(mount, SHEETS_CEILING);
     } catch {
-      setReach("blocked");
+      // Reported a tick later, as the injection's result is: a setState in
+      // the body of an effect cascades renders.
+      window.setTimeout(() => setReach("blocked"), 0);
     }
-  }, [children, loads, ready, src]);
+  }, [portalled, loads, ready, src]);
 
   // ★ THE FONT VARIABLES LIVE ON <html>, NOT IN A SHEET. next/font emits a
   // class that DECLARES `--font-inter` and `--font-urbanist`, and the rule
@@ -527,21 +579,22 @@ export function Frame({
             }}
           />
         ) : null}
-        {children && doc
+        {children && scene
           ? createPortal(
               // ★ THE SCENE IS ITS OWN WORLD (lab-sitting, 2026-10-01, from
-              // `event-ready`'s line). It is the lab's React tree drawn into
-              // the frame's document, so a production `<Link>` pressed in it
-              // navigated the LAB (boards each carried a `stopLinks` or an
-              // `Inert` of their own) and a radix layer opened over the lab at
-              // the lab's coordinates (a board quoted the Settings popup
-              // inline instead). The frame swallows every link and form here,
-              // once for every board, and hands every portal in the product
-              // its own body (`usePortalContainer`), so a board draws
-              // production whole: its popup, its menus and its tooltips open
-              // inside the page they belong to.
-              <PortalContainerProvider value={doc.body}>
+              // `event-ready`'s line; its window, lab-frame). It is the lab's
+              // React tree drawn into the frame's document, so a production
+              // `<Link>` pressed in it navigated the LAB (boards each carried
+              // a `stopLinks` or an `Inert` of their own), and whatever it
+              // read through the lab's window answered for the lab. The frame
+              // swallows every link and form here, once for every board, and
+              // `FrameWindow` hands the scene the frame's own window, body and
+              // light, so a board draws production whole: its popup at the
+              // frame's width, its menus and tooltips inside the page they
+              // belong to.
+              <FrameWindow doc={scene.doc} win={scene.win}>
                 <div
+                  {...{ [SCENE_ATTR]: "" }}
                   className={themeClass}
                   onClickCapture={swallowLink}
                   onAuxClickCapture={swallowLink}
@@ -549,8 +602,8 @@ export function Frame({
                 >
                   {children}
                 </div>
-              </PortalContainerProvider>,
-              doc.body,
+              </FrameWindow>,
+              scene.doc.body,
             )
           : null}
         {reach === "blocked" ? (
