@@ -50,10 +50,11 @@ export const MODEL_WORDS: Record<ModelId, ModelWords> = {
       clock: "Shows once Maya approves",
       mine: "Waiting for approval",
     },
+    // Production's own words for the two waits (`TRACKER_WORDS`, `TRACKER_SEALED_WORDS`).
     developing: {
-      title: "Developing",
+      title: "Waiting to develop",
       clock: `Develops at ${DEVELOP.at}`,
-      mine: "Developing",
+      mine: "Waiting to develop",
     },
     trickle: (n) => `Maya approved ${n}`,
   },

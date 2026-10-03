@@ -14,13 +14,13 @@ import { SCREEN } from "./knobs";
  * when host approves". He left the model open: "I don't want to suggest the
  * correct solution".
  *
- * ★ WHAT PRODUCTION DOES TODAY, MEASURED IN ITS CODE. A held upload "shows only
- * in her uploads" (`stack-tile.tsx`'s `held=uploads`), so the album she just
- * added to reads empty, Add's round counting it; a developing album is worse:
- * her uploads' round shows only where uploads are held (`trackerShows`), so a
- * sealed shot has no home on her page at all. The sync already carries what a
- * wait needs (`waiting: {count, minutes, developsAt}`, never an id), and her
- * own ride `/api/guests/mine`; nothing of it is drawn yet.
+ * ★ WHAT PRODUCTION DOES TODAY, MEASURED IN ITS CODE. Her photo, once its
+ * bytes are in, leaves the album for her uploads' round (`stack-tile.tsx`'s
+ * `held=uploads`; since door-reveal a sealed one waits there too, "Waiting to
+ * develop", `uploadsWait`), so the album she just added to reads as the empty
+ * state, everyone's invisible, until something arrives. The sync already
+ * carries what a wait needs (`waiting: {count, minutes, developsAt}`, never an
+ * id), and her own ride `/api/guests/mine`; nothing of either is drawn yet.
  *
  * ★ SIX DECISIONS, THE MODEL FIRST. `model` is his to find: four syntheses
  * drawn end to end (Settings, her album held and developing, the trickle).
@@ -138,7 +138,7 @@ export const THE_WAIT = defineExploration({
       question:
         "Does her uploads' round stay beside Add once her own photos stand in the wait?",
       taken:
-        "Yes, on every album that holds photos back (today a developing album has none): the list stays her one place for all of hers.",
+        "Yes, as production has it on both albums since door-reveal: the list stays her one place for all of hers.",
       overrule: "It goes once the wait shows hers: one place, not two.",
     },
   ],
@@ -215,7 +215,7 @@ export const THE_WAIT = defineExploration({
       where: ["Guest", "The album", "While photos wait"],
       when: "Priya has just added her third photo at 10:40 pm; nothing of anyone else's shows yet, held for Maya or developing until 9 am.",
       matters:
-        "Today a held album reads as empty and a developing one shows her nothing of hers at all; guests come back all night.",
+        "Today her photo leaves the album for her uploads list and the album reads empty all night; guests keep coming back.",
       lands:
         "What the album draws under its cover while photos wait: hers, everyone's count and minutes, the clock, and her Remove.",
       context:

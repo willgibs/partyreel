@@ -79,17 +79,22 @@ function GuestBar() {
 
 /* ── her uploads' round, with its real store ───────────────────────────── */
 
-/** Production's `UploadTrackerButton`, its store holding the two facts it reads. */
+/**
+ * Production's `UploadTrackerButton`, its store holding the facts it reads: whether it shows, how many of
+ * hers wait, and how many of those wait for the develop (red-team 43's "Waiting to develop").
+ */
 function Tracker({
   waiting,
+  sealed,
   look,
 }: {
   waiting: number;
+  sealed: boolean;
   look: "glass" | "round";
 }) {
   const [store] = useState(() => {
     const s = createUploadTrackerStore();
-    s.set({ show: true, waiting });
+    s.set({ show: true, waiting, sealed: sealed ? waiting : 0 });
     return s;
   });
   return <UploadTrackerButton store={store} look={look} onOpen={() => {}} />;
@@ -117,6 +122,7 @@ export function GuestPage({
   mediaCount,
   guestCount = 0,
   waitingHers = 0,
+  sealed = false,
   reel = false,
   eyebrow,
   line,
@@ -130,6 +136,8 @@ export function GuestPage({
   guestCount?: number;
   /** Hers waiting: her uploads' round and its count (production shows it where she has any). */
   waitingHers?: number;
+  /** Hers wait for the develop rather than the host (the round's spoken words). */
+  sealed?: boolean;
   /** The album has a reel to play (the cover's round and the shutter's twin), or its premiere waits. */
   reel?: boolean | "premiere";
   /** A word over the event's name (a style's). */
@@ -155,7 +163,9 @@ export function GuestPage({
       >
         <ImageUp /> Add photos
       </Button>
-      {waitingHers > 0 && <Tracker waiting={waitingHers} look="glass" />}
+      {waitingHers > 0 && (
+        <Tracker waiting={waitingHers} sealed={sealed} look="glass" />
+      )}
       {reel === "premiere" ? (
         <Button
           type="button"
@@ -256,7 +266,7 @@ export function GuestPage({
             }
             tracker={
               waitingHers > 0 ? (
-                <Tracker waiting={waitingHers} look="round" />
+                <Tracker waiting={waitingHers} sealed={sealed} look="round" />
               ) : undefined
             }
           />

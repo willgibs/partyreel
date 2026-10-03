@@ -45,15 +45,16 @@ export function WaitPage({
   const words = album === "held" ? m.held : m.developing;
   const landing = moment === "landing";
   const loupe = moment === "loupe";
-  // ★ HER UPLOADS' ROUND STANDS WHERE PRODUCTION SHOWS IT TODAY: on an album held for approval
-  // (`trackerShows`). A developing album has none today, which is half of what this board answers.
-  const waitingHers = album === "held" ? facts.hers.length : 0;
+  // ★ HER UPLOADS' ROUND STANDS WHERE PRODUCTION SHOWS IT: wherever what she adds waits, for the host's approval
+  // or for a develop time ahead (`uploadsWait`, red-team 43), its count hers and its words the wait's.
+  const waitingHers = facts.hers.length;
   const coverWait = wait === "cover" && words !== null;
   return (
     <GuestPage
       wide={wide}
       mediaCount={0}
       waitingHers={waitingHers}
+      sealed={album === "developing"}
       eyebrow={m.chip ? m.chip[album] : undefined}
       ground={
         coverWait
