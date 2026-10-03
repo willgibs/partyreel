@@ -8,10 +8,11 @@
  * universal validateUpload -> strategy.resolveEvent (ALL per-strategy gates)
  * -> THE METER (refused in the strategy's words, or the hour tallied)
  * -> server-built key -> a single PUT at its STAGING twin, or a multipart at its key.
- * The spine (complete): parse -> zod -> classify -> multipart sum/abort guard
- * + assemble -> R2-HEAD authoritative size (database-security.md) -> a staged
- * single PUT copied into events/ -> strategy.createRecord (which counts the
- * month) -> per-strategy error-status mapping.
+ * The spine (complete): parse -> zod -> classify -> the row already recorded
+ * answers at once -> multipart sum/abort guard + assemble -> R2-HEAD
+ * authoritative size (database-security.md) -> a staged single PUT copied into
+ * events/ -> strategy.createRecord (which counts the month) -> per-strategy
+ * error-status mapping, a refusal taking back out only what no row names.
  *
  * INVARIANTS THIS FILE OWNS (must survive any edit — docs/systems/
  * uploads-and-r2.md):
@@ -28,6 +29,11 @@
  *   unsent byte never counts, an abandoned one never persists nor is backed up, and a retried PUT counts once.
  * - The presign's meter (`meterUpload`) refuses what the hour, the month or the room cannot take, before a byte moves,
  *   and counts no month itself; it fails OPEN, as the limiters do, since the complete is the count.
+ * - ★ A COMPLETE FOR AN UPLOAD ALREADY RECORDED IS ITS ROW'S TO ANSWER (crumbs-62, red-team 49's LOW): read by its id
+ *   before any gate, copy or withdrawal, it answers `recorded` and moves nothing, whoever sends it; and a refused or
+ *   failed record takes back out of `events/` only what no row names (`withdrawUnlessRecorded`). A gate that moved
+ *   since the first complete (the roll its own shot filled, the album closed, a cap its own bytes reached), or any
+ *   ticket at all from someone who knows the key, once withdrew the files a recorded row names.
  * - A preview is never heavier than its original: past it (or past 2 MB) its PUT is refused, in words, and the
  *   original still presigns (its tile serves the original, which is the smaller anyway).
  * - Response JSON shapes/key order are the uploadFile() client contract.
@@ -83,6 +89,7 @@ import {
   meterUpload,
   type MeterRefusal,
 } from "@/lib/upload/server-pipeline-meter";
+import { readRecordedUpload } from "@/lib/upload/server-pipeline-recorded";
 import { formatBytes } from "@/lib/utils";
 
 /** A refusal the strategy fully specifies (status + the exact code/message copy). */
@@ -547,6 +554,16 @@ export async function runCompletePipeline<
     });
   }
 
+  // ★ AN UPLOAD ALREADY RECORDED IS ANSWERED BY ITS ROW, AT ONCE (crumbs-62, red-team 49's LOW): after the request's
+  // own shape and before any gate, copy or withdrawal, as `create_media*` answer a duplicate id. A complete comes again
+  // for a recorded upload whenever its first answer was lost (a phone retries such a request, a multipart's included,
+  // which R2 would refuse to assemble twice), and anyone can send one for an upload whose key a tile's link shows; landed
+  // again, it met every gate as it stood NOW and a refusal withdrew the files the row names. The answer is the
+  // duplicate's (`recorded`), with no cookie and no forensic record, both the first landing's. A read that fails lets
+  // the complete go on as it always did: the row is asked again before anything is taken back out.
+  const prior = await readRecorded(media_id);
+  if (prior.kind === "row") return answerRecorded(prior.originalKey, key);
+
   // Multipart: assemble the object before recording it. (Single-PUT is already
   // finalized by the browser's PUT.)
   if (upload_id) {
@@ -607,19 +624,24 @@ export async function runCompletePipeline<
       ? { ...parsed.data, preview_key: undefined }
       : parsed.data;
 
-  // ★ A REFUSED OR FAILED RECORD TAKES ITS COPIES BACK OUT: the objects this complete wrote into `events/` have no row
-  // to name them, so they are deleted at once rather than left for the orphan sweep (the backup would copy them
-  // meanwhile). The staged objects stay where they are, for the lifecycle rule.
+  // ★ A REFUSED OR FAILED RECORD TAKES ITS COPIES BACK OUT, UNLESS A ROW NAMES THEM (`withdrawUnlessRecorded`): the
+  // objects this complete wrote into `events/` with no row to name them are deleted at once rather than left for the
+  // orphan sweep (the backup would copy them meanwhile); a twin complete of this upload that recorded it meanwhile
+  // makes it this one's answer too. The staged objects stay where they are, for the lifecycle rule.
   let result: CreateRecordOutcome;
   try {
     result = await strategy.createRecord(record, kind, realSize, phone);
   } catch (e) {
-    await unlandCopies(copied, media_id);
-    throw e;
+    const recorded = await withdrawUnlessRecorded({ copied, media_id, key });
+    if (!recorded) throw e;
+    // The twin's row answers; the throw is still reported, never swallowed.
+    captureError("upload", e, { key, media_id, phase: "record_twin" });
+    return recorded;
   }
 
   if (!result.ok) {
-    await unlandCopies(copied, media_id);
+    const recorded = await withdrawUnlessRecorded({ copied, media_id, key });
+    if (recorded) return recorded;
     // Routine user rejections (cap/limits/closed/session/ownership) are expected;
     // only a key mismatch or an unmapped DB error signals a bug.
     if (result.code === "bad_key" || result.code === "unknown") {
@@ -640,7 +662,8 @@ export async function runCompletePipeline<
   // AFTER createRecord so a rejected upload records nothing; AWAITED (serverless would kill a
   // floating promise at response time); best-effort-but-loud inside (a capture failure never
   // fails the upload — captureUploadForensics Sentry-warns and the /admin coverage signal shows
-  // the gap). The idempotent-retry case upserts-ignore, so a retry never duplicates the record.
+  // the gap). A twin complete that lost the insert to its own row (idempotent) upserts-ignore, so it never duplicates
+  // the record; one sent after the row existed never reaches here (its row answered it above).
   await captureUploadForensics({
     headers: request.headers,
     mediaId: media_id,
@@ -649,7 +672,7 @@ export async function runCompletePipeline<
     identity: strategy.forensicIdentity(parsed.data),
   });
 
-  // {media_id, status} on a fresh insert; {idempotent:true} on a retry.
+  // {media_id, status} on a fresh insert; {idempotent:true} for a twin whose insert met its own row.
   const status = "idempotent" in result.data ? "recorded" : result.data.status;
   // ★ SEALED, AS THE WRITE SAID IT (disposable-camera, build 43's red-team): a row sealed until its album develops
   // completes `approved` but is no album content yet, and the uploader's caller must not draw it as such. Said only
@@ -830,4 +853,80 @@ async function unlandCopies(keys: string[], media_id: string): Promise<void> {
       error: e instanceof Error ? e.message : String(e),
     });
   }
+}
+
+/** What the media row says of an upload: recorded (under the key it was recorded with), none, or a read that failed. */
+type RecordedRead =
+  | { kind: "row"; originalKey: string }
+  | { kind: "none" }
+  | { kind: "unknown" };
+
+/** The row, read and said when the read fails: a caller that cannot tell neither answers for a row nor takes a file out. */
+async function readRecorded(media_id: string): Promise<RecordedRead> {
+  try {
+    const row = await readRecordedUpload(media_id);
+    return row
+      ? { kind: "row", originalKey: row.originalKey }
+      : { kind: "none" };
+  } catch (e) {
+    captureWarning("upload", "recorded_read_failed", {
+      media_id,
+      error: e instanceof Error ? e.message : String(e),
+    });
+    return { kind: "unknown" };
+  }
+}
+
+/** The duplicate's answer, word for word what a twin whose insert met its own row says (`recorded`). */
+const recordedAnswer = () =>
+  NextResponse.json({ ok: true, status: "recorded" });
+
+/**
+ * A recorded upload's answer. A key that is not the one its row was recorded with (the id is the row's, the event,
+ * kind or ext is not) is a complete our client never sends: refused in the key binding's words, and nothing moves.
+ */
+function answerRecorded(originalKey: string, key: string): NextResponse {
+  if (originalKey !== key) {
+    captureWarning("upload", "complete_key_not_its_row", { key });
+    return refuse({
+      status: 400,
+      code: "bad_key",
+      message: "That upload key doesn't match this upload.",
+    });
+  }
+  return recordedAnswer();
+}
+
+/**
+ * ★ A REFUSAL NEVER WITHDRAWS A KEY A RECORDED ROW POINTS TO (crumbs-62). What a refused or failed record copied into
+ * `events/` goes back out only once the row is read and there is none. Found, the row wins: a twin complete of this
+ * upload recorded it while this one met a gate the twin had just moved (the roll its insert filled, the room its bytes
+ * took), so the upload IS recorded and this complete says so (with a key not its row's, it keeps its refusal, and the
+ * files stay). A read that fails takes nothing out and says so: the orphan sweep reclaims, a day on, a key no row
+ * names. The read and the delete are two acts, so a twin recording in the milliseconds between them could still lose
+ * its files; that needs both completes of one upload to straddle a host's change of a gate, and the backup holds every
+ * object of `events/` meanwhile.
+ */
+async function withdrawUnlessRecorded(args: {
+  copied: string[];
+  media_id: string;
+  key: string;
+}): Promise<NextResponse | null> {
+  const { copied, media_id, key } = args;
+  const now = await readRecorded(media_id);
+  if (now.kind === "row") {
+    return now.originalKey === key ? recordedAnswer() : null;
+  }
+  if (now.kind === "unknown") {
+    if (copied.length > 0) {
+      captureWarning("upload", "unrecorded_copies_left", {
+        keys: copied,
+        media_id,
+        error: "the media row could not be read",
+      });
+    }
+    return null;
+  }
+  await unlandCopies(copied, media_id);
+  return null;
 }

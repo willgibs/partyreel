@@ -50,6 +50,11 @@ vi.mock("@/lib/r2/presign", () => ({
 vi.mock("@/lib/r2/delete", () => ({
   deleteR2Objects: (...args: unknown[]) => deleteR2Objects(...args),
 }));
+// The row a complete may already have (crumbs-62): none unless a case records one.
+const readRecordedUpload = vi.fn();
+vi.mock("@/lib/upload/server-pipeline-recorded", () => ({
+  readRecordedUpload: (...args: unknown[]) => readRecordedUpload(...args),
+}));
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({ auth: { getUser: () => getUser() } }),
 }));
@@ -114,6 +119,7 @@ beforeEach(() => {
   headObject.mockResolvedValue(null);
   copyObject.mockResolvedValue(undefined);
   deleteR2Objects.mockResolvedValue({ deleted: 1, errored: [] });
+  readRecordedUpload.mockResolvedValue(null);
 });
 
 describe("the host's presign meets the meter too", () => {
@@ -295,6 +301,51 @@ describe("the host's staging", () => {
     expect(status).toBe(409);
     expect(deleteR2Objects).toHaveBeenCalledWith([ORIGINAL]);
   });
+
+  /**
+   * ★ HER COMPLETE SENT AGAIN IS ITS ROW'S TO ANSWER (crumbs-62, red-team 49's LOW): a recorded upload's complete that
+   * comes again (an answer lost on the way back) used to land her staged file a second time and meet her plan again,
+   * where the room her own bytes now fill refused it and withdrew the file her row names; a signed-in stranger's
+   * complete for it (ownership refused) withdrew it the same way. Answered by the row now, before anything moves.
+   */
+  it.each([
+    [
+      "her room, full with its own bytes",
+      {
+        ok: false,
+        code: "cap_reached",
+        message: "Storage capacity exceeded for this plan.",
+      },
+    ],
+    [
+      "a signed-in stranger's, whose event it is not",
+      {
+        ok: false,
+        code: "not_owner",
+        message: "This event isn't available.",
+      },
+    ],
+  ])(
+    "★ sent again and refused by %s: answered `recorded` from its row, her file kept",
+    async (_who, refusal) => {
+      headObject.mockImplementation(async ({ key }: { key: string }) =>
+        key === STAGED ? { size: 1000, lastModified: null } : null,
+      );
+      expect((await hostComplete()).body).toEqual({
+        ok: true,
+        status: "approved",
+      });
+      readRecordedUpload.mockResolvedValue({ originalKey: ORIGINAL });
+      createMediaAsHost.mockResolvedValue(refusal);
+
+      const again = await hostComplete();
+      expect(again.status).toBe(200);
+      expect(again.body).toEqual({ ok: true, status: "recorded" });
+      expect(copyObject).toHaveBeenCalledTimes(1);
+      expect(createMediaAsHost).toHaveBeenCalledTimes(1);
+      expect(deleteR2Objects).not.toHaveBeenCalled();
+    },
+  );
 });
 
 describe("stagingKeyFor, the staging twin", () => {
