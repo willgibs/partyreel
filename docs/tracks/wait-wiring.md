@@ -101,12 +101,11 @@ working.
 
 ## Where I am
 
-- Done: all six builds, committed and pushed (fc2dfd7a, 27f1cf0e); the migration written and proved by a rolled-back
-  MCP check (red 6/7 on today's schema, green 7/7 with it; `_scratch/wait-wiring/sql/check-results.txt`). On 27f1cf0e:
-  typecheck 0, lint 0, test 0 (9,667), build 0 (`_scratch/wait-wiring/build-1.log`, same tree), lab:smoke 0 (167
-  checks).
-- Remains: `pnpm lab:demo --board the-wait` at 1440 and 375 (PREMISE drift); the captures (a guest's wait on a
-  disposable and a reviewed album, Settings' album styles, the host's cover covered and looked; the driver is
-  `_scratch/wait-wiring/cap/cdp.mjs`); this manifest's Questions, doc edits, Deferred and Handoff; crumbs-52's
-  ROADMAP line retired; the sync and the gate on it.
-- Running: one dev server, `pnpm dev -p 3132` in this worktree (kill by port).
+- Done: the six builds, the rule moved into the album's wait (9256aeea), launch-prep synced at 8c2dce39 (d6cf9893, no
+  conflicts), See it as a guest given the wait (6006851b, a crossing); the migration proved by its rolled-back check
+  (`_scratch/wait-wiring/sql/check-results.txt`); lab:demo the-wait's six steps at 1440 and 375, 0 failing; captures
+  taken before the sync (`_scratch/wait-wiring/cap/out/`), the capture events deleted after.
+- Remains: the gate on the synced tree (test, build, smoke, demo); the captures again after the sync (reseed two
+  events with `scripts/seed-demo-event.mjs`, plans in `_scratch/wait-wiring/cap/`, driver `cap/cdp.mjs`, cleanup
+  `cap/cleanup.mjs` with the new ids); this manifest's Questions, doc edits, Deferred and Handoff.
+- Running: nothing (the dev server on 3132 is stopped).
