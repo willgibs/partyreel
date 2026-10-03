@@ -6,73 +6,60 @@ import { HomeHead } from "@/components/app/dashboard/home-head";
 import { StorageMeter } from "@/components/app/dashboard/storage-meter";
 import { WeekRow } from "@/components/app/dashboard/week-row";
 import { effectiveStorageCap } from "@/lib/constants/tiers";
-import type { EventsView } from "@/lib/dashboard/events-view";
 import { longDate } from "@/lib/dashboard/when";
 import { formatCount } from "@/lib/format/count";
 
-import {
-  BuiltCollection,
-  DisplayCollection,
-  IndexCollection,
-} from "./collection";
-import { dayById, HOSTS, type HostId, TODAY } from "./fixtures";
+import { Collection, type CollectionStart } from "./collection";
+import { HOSTS, type HostId, TODAY } from "./fixtures";
 import {
   type Answers,
-  contenders,
-  type Display,
-  DISPLAY_DEFAULT,
+  factsOf,
   homeAround,
-  type ListSort,
+  leadOf,
   partyOnItsDay,
-  rests,
-  ruleLead,
+  type RuleId,
+  RULES,
 } from "./model";
+import { HeadCustomize, SettingsPage } from "./prefs";
 import { HostShell } from "./shell";
-import { StageSlot } from "./stage-slot";
+import { type Picks, StageSlot } from "./stage-slot";
 import { StandIn } from "./stand-in";
 
 /**
- * ONE DASHBOARD, AS A HOST USES IT: production's head, stage and week over the
- * collection an option draws, for one host, in the answers the board holds.
+ * ONE DASHBOARD, AS A HOST USES IT: production's head, stage and week over her
+ * events, for one host, in the answers the board holds.
  *
- * ★ PRESS ANY EVENT AND IT OPENS. A press on an event (a tile, a row, a folded
- * year's thumbnail, the stage) opens a stand-in of its page, and Your events
- * comes back the way the option says a host comes back:
- *  - as built, production's page draws fresh (it is not kept between routes:
- *    no `cacheComponents` in `next.config.ts`), so a year she opened is folded
- *    again; the scroll comes back where it was, the kindest reading of Back;
- *  - every new option keeps the page as she left it, the way Next keeps a
- *    route it hides (its `Activity`): her scroll and an open year come back.
- * What she opened joins her trail, which `left` and Recent read.
+ * ★ PRESS ANY EVENT AND IT OPENS. A press on an event (a tile, a row, a Recent
+ * cover, the stage) opens a stand-in of its page, and Your events comes back
+ * the way a kept route comes back (Next's `Activity`): her scroll, her layout,
+ * her filter and the Recent row as she left it. What she opened joins her
+ * trail, which Recent and the Last opened rule read.
  *
- * ★ A JOURNEY CAN BE PLAYED ONCE AS A FRAME OPENS (`journey`): open the year an
- * event sits in, press it, come back. A still of "back from her first 2025
- * wedding" is that journey played by the page itself, so what it shows is what
- * production's own components do, never a picture of it.
+ * ★ THE RULE IS HERS AND THE STAGE FOLLOWS AT ONCE: pick Upcoming and the next
+ * party takes the stage in the same frame, through production's own
+ * composition around the new lead (`homeAround`).
  *
- * ★ TWO PRESSES IN PRODUCTION'S EVENTS LIST CALL A SERVER FUNCTION, and a frame
- * must not: the view toggle writes its cookie (`setEventsViewAction`) and a
- * bin's Restore restores. Both are caught before they reach production; the
- * toggle is then honoured by drawing the section afresh in the view pressed.
+ * ★ A FRAME CAN OPEN SCROLLED TO HER EVENTS (`scroll: "events"`), the way she
+ * scrolls to them under the stage, so a still of the collection is the page
+ * itself at that scroll, never a picture of a part of it.
  */
 
-export type Journey = { back: string; year?: string };
-
 export type Start = {
-  /** Her opens, newest first; the host's own week when not said. */
+  /** Her opens, newest first; the host's own when not said. */
   trail?: readonly string[];
-  /** Played once as the frame opens. */
-  journey?: Journey;
-  /** The stage's Change list, drawn open (`pick=kept`). */
-  pickOpen?: boolean;
-  /** Steps already taken through the stage's contenders (`pick=step`). */
-  step?: number;
-  /** Her Display, and its menu drawn open (`events=display`). */
-  display?: Display;
-  displayOpen?: boolean;
+  /** The rule she keeps; Newest when not said. */
+  rule?: RuleId;
+  /** The rule's control drawn open (the corner's menu, the head's Customize). */
+  ruleOpen?: boolean;
+  /** The page opens on Settings (`rule=settings`). */
+  settings?: boolean;
+  /** Her events as she left them, a control drawn open. */
+  collection?: CollectionStart;
+  /** The frame opens scrolled to her events. */
+  scroll?: "events";
+  /** She has just come from Create: the empty stage's light ignites once. */
+  fresh?: boolean;
 };
-
-const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export function Dashboard({
   hostId,
@@ -86,52 +73,39 @@ export function Dashboard({
   start?: Start;
 }) {
   const host = HOSTS[hostId];
-  const days = useMemo(() => dayById(host), [host]);
   const [trail, setTrail] = useState<string[]>(() => [
     ...(start.trail ?? host.trail),
   ]);
   const [open, setOpen] = useState<string | null>(null);
-  const [featured, setFeatured] = useState<string | null>(host.featured);
-  const [pickOpen, setPickOpen] = useState(Boolean(start.pickOpen));
-  const [step, setStep] = useState(start.step ?? 0);
-  const [mount, setMount] = useState(0);
-  // Each visit to an event draws the stage afresh on the way back, as a route change would:
-  // a code card left open over it (its Everything opens the event) closes with the visit.
-  const [visits, setVisits] = useState(0);
-  const [builtView, setBuiltView] = useState<EventsView>("cards");
-  const [display, setDisplay] = useState<Display>(
-    start.display ?? DISPLAY_DEFAULT,
+  const [page, setPage] = useState<"home" | "settings">(
+    start.settings ? "settings" : "home",
   );
-  const [displayOpen, setDisplayOpen] = useState(Boolean(start.displayOpen));
-  const [year, setYear] = useState("all");
-  const [sort, setSort] = useState<ListSort>("date");
+  const [rule, setRule] = useState<RuleId>(start.rule ?? "newest");
+  const [ruleOpen, setRuleOpen] = useState(Boolean(start.ruleOpen));
+  const [recentShown, setRecentShown] = useState(true);
+  // Each visit to an event draws the stage afresh on the way back, as a route change would.
+  const [visits, setVisits] = useState(0);
   const root = useRef<HTMLDivElement>(null);
   const saved = useRef(0);
 
   /* ── what leads ──────────────────────────────────────────────────────── */
 
-  const rule = ruleLead(answers.lead, host, trail);
-  const steps = contenders(answers.lead, host, trail);
-  const hers =
-    answers.pick === "kept" && featured !== null && !partyOnItsDay(host);
-  const leadId =
-    answers.pick === "step"
-      ? (steps[step % steps.length]?.id ?? rule?.id ?? null)
-      : hers
-        ? featured
-        : (rule?.id ?? null);
-  const view = useMemo(() => homeAround(host, leadId), [host, leadId]);
-  // Change lists the stage's contenders first, then what she opened, then the rest.
-  const pickable = useMemo(() => {
-    const order = [
-      ...steps.map((e) => e.id),
-      ...trail,
-      ...host.hosted.map((e) => e.id),
-    ];
-    return [...new Set(order)]
-      .map((id) => host.hosted.find((e) => e.id === id))
-      .filter((e): e is NonNullable<typeof e> => Boolean(e));
-  }, [steps, trail, host]);
+  const lead = leadOf(host, rule, trail);
+  const view = useMemo(
+    () => homeAround(host, lead?.id ?? null),
+    [host, lead?.id],
+  );
+  const picks = useMemo(
+    () =>
+      Object.fromEntries(
+        RULES.map((r) => [r.id, leadOf(host, r.id, trail)]),
+      ) as Picks,
+    [host, trail],
+  );
+  const facts = useMemo(() => factsOf(host, trail), [host, trail]);
+  const total = host.hosted.length + host.guests.length;
+  // A party on its own day leads whatever the rule; with one event there is nothing to choose.
+  const hand = host.hosted.length > 1 && !partyOnItsDay(host);
 
   /* ── into an event and back ──────────────────────────────────────────── */
 
@@ -142,19 +116,19 @@ export function Dashboard({
     saved.current = win?.scrollY ?? 0;
     setTrail((t) => [id, ...t.filter((x) => x !== id)]);
     setOpen(id);
+    setRuleOpen(false);
     setVisits((v) => v + 1);
     win?.scrollTo(0, 0);
   }, []);
 
   const back = useCallback(() => {
     setOpen(null);
-    // Production draws the page fresh after Back; every new option keeps it as she left it.
-    if (answers.events === "built") setMount((m) => m + 1);
+    setPage("home");
     const win = winOf();
     win?.requestAnimationFrame(() =>
       win.requestAnimationFrame(() => win.scrollTo(0, saved.current)),
     );
-  }, [answers.events]);
+  }, []);
 
   const idOf = useCallback(
     (href: string): string | null => {
@@ -176,76 +150,36 @@ export function Dashboard({
 
   function onClickCapture(e: React.MouseEvent) {
     const el = e.target as Element;
-    const toggle = el.closest<HTMLElement>(
-      '[aria-label="How your events are shown"] button',
-    );
-    if (toggle) {
-      e.stopPropagation();
-      e.preventDefault();
-      setBuiltView(
-        toggle.getAttribute("aria-label") === "Rows" ? "rows" : "cards",
-      );
-      setMount((m) => m + 1);
-      return;
-    }
-    if (el.closest("button")?.textContent?.trim() === "Restore") {
-      e.stopPropagation();
-      e.preventDefault();
-      return;
-    }
     const a = el.closest<HTMLAnchorElement>("a[href]");
     if (!a) return;
     const href = a.getAttribute("href") ?? "";
     const id = idOf(href);
     // The frame already keeps every link from navigating; this decides what the press means.
     if (id) openEvent(id);
-    else if (href === "/dashboard" && open) back();
   }
 
-  /* ── a journey, played once ──────────────────────────────────────────── */
+  /* ── a frame opened at her events ────────────────────────────────────── */
 
-  const journey = start.journey;
+  const scroll = start.scroll;
   useEffect(() => {
-    if (!journey) return;
-    let gone = false;
+    if (scroll !== "events") return;
     const doc = root.current?.ownerDocument;
     const win = doc?.defaultView;
     if (!doc || !win) return;
-    void (async () => {
-      await wait(500);
-      if (gone) return;
-      if (journey.year) {
-        doc
-          .querySelector<HTMLButtonElement>(
-            `[data-season="${journey.year}"] button[aria-expanded="false"]`,
-          )
-          ?.click();
-        await wait(250);
-      }
-      const link = [
-        ...doc.querySelectorAll<HTMLAnchorElement>(
-          `[data-hd-collection] a[href="/dashboard/${journey.back}"]`,
-        ),
-      ].find(
-        (a) =>
-          !a.closest("[data-hd-recent]") &&
-          a.getBoundingClientRect().height > 0 &&
-          // An open year keeps its thumbnail line in place, invisible: the tile is the one she presses.
-          win.getComputedStyle(a).visibility !== "hidden",
-      );
-      if (!link || gone) return;
-      const top = link.getBoundingClientRect().top + win.scrollY;
-      win.scrollTo(0, Math.max(0, top - win.innerHeight * 0.4));
-      await wait(150);
-      if (gone) return;
-      openEvent(journey.back);
-      await wait(250);
-      if (!gone) back();
-    })();
-    return () => {
-      gone = true;
+    const place = () => {
+      const top = doc.querySelector<HTMLElement>("[data-hd-collection]");
+      // The app's bar stays at the top as the page scrolls, so her events start under it.
+      const bar = doc.querySelector("header")?.getBoundingClientRect().height ?? 0;
+      if (top)
+        win.scrollTo(
+          0,
+          Math.max(0, top.getBoundingClientRect().top + win.scrollY - bar - 16),
+        );
     };
-    // Played once, as the frame opens.
+    // Once the stills have their size, and again once the faces have landed.
+    const timers = [80, 400, 1200].map((ms) => win.setTimeout(place, ms));
+    return () => timers.forEach((t) => win.clearTimeout(t));
+    // Placed once, as the frame opens.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -254,42 +188,42 @@ export function Dashboard({
   const count = host.hosted.length;
   const cap = effectiveStorageCap(host.plan.tier, host.plan.capBytes);
   const line = `${count > 0 ? `${formatCount(count)} ${count === 1 ? "event" : "events"}` : "No events yet"} · ${host.plan.name}`;
+  const ruleProps = {
+    rule,
+    onRule: setRule,
+    picks,
+    ends: host.ends,
+    today: host.ctx.today,
+  };
 
-  let collection: React.ReactNode;
-  if (answers.events === "display")
-    collection = (
-      <DisplayCollection
-        view={view}
-        days={days}
-        display={display}
-        onDisplay={setDisplay}
-        menuOpen={displayOpen}
-        onMenuOpen={setDisplayOpen}
-      />
-    );
-  else if (answers.events === "index")
-    collection = (
-      <IndexCollection
-        view={view}
-        days={days}
-        wide={wide}
-        year={year}
-        onYear={setYear}
-        sort={sort}
-        onSort={setSort}
-      />
-    );
-  else
-    collection = (
-      <BuiltCollection
-        view={view}
-        initialView={builtView}
-        mount={mount}
-        recent={answers.events === "recent"}
-        trail={trail}
-        wide={wide}
-      />
-    );
+  const storage = (
+    <span className="flex items-center gap-1">
+      {hand && answers.rule === "head" && (
+        <HeadCustomize
+          {...ruleProps}
+          open={ruleOpen}
+          onOpen={setRuleOpen}
+          recent={recentShown}
+          onRecent={setRecentShown}
+        />
+      )}
+      {/* Drawn, not wired: its popover's plans lead to Checkout. */}
+      <span inert>
+        <StorageMeter
+          storageUsed={host.plan.usedBytes}
+          storageCap={cap}
+          storagePct={host.ctx.storagePct}
+          standbyBytes={0}
+          overBudget={false}
+          passExpiry={null}
+          planName={host.plan.name}
+          hasBilling={host.plan.tier !== "free"}
+          isEventPass={host.plan.tier === "event_pass"}
+          tier={host.plan.tier}
+        />
+      </span>
+    </span>
+  );
 
   return (
     <HostShell host={host} onNavigate={onNavigate}>
@@ -297,52 +231,48 @@ export function Dashboard({
         ref={root}
         onClickCapture={onClickCapture}
         data-hd-page={hostId}
-        data-hd-events={answers.events}
+        data-hd-lead={lead?.id ?? ""}
       >
         {open && <StandIn host={host} id={open} wide={wide} onBack={back} />}
-        <div hidden={open !== null}>
+        {!open && page === "settings" && (
+          <SettingsPage {...ruleProps} wide={wide} onBack={back} />
+        )}
+        <div hidden={open !== null || page === "settings"}>
           {/* Production's own composition (`home.tsx`): wide like the album, the head, the stage, the week, the events. */}
           <div data-app-wide data-home="" className="space-y-7 lg:space-y-9">
-            <HomeHead
-              day={longDate(TODAY)}
-              line={line}
-              storage={
-                // Drawn, not wired: its popover's plans lead to Checkout.
-                <span inert>
-                  <StorageMeter
-                    storageUsed={host.plan.usedBytes}
-                    storageCap={cap}
-                    storagePct={host.ctx.storagePct}
-                    standbyBytes={0}
-                    overBudget={false}
-                    passExpiry={null}
-                    planName={host.plan.name}
-                    hasBilling={host.plan.tier !== "free"}
-                    isEventPass={host.plan.tier === "event_pass"}
-                    tier={host.plan.tier}
-                  />
-                </span>
-              }
-            />
+            <HomeHead day={longDate(TODAY)} line={line} storage={storage} />
             {view.stage && (
               <StageSlot
                 key={visits}
                 stage={view.stage}
                 ctx={host.ctx}
-                resting={rests(answers.lead, host)}
-                pick={answers.pick}
-                events={pickable}
-                featured={hers}
-                onFeature={setFeatured}
-                pickOpen={pickOpen}
-                onPickOpen={setPickOpen}
-                step={step % Math.max(1, steps.length)}
-                steps={steps.length}
-                onStep={setStep}
+                ends={host.ends}
+                stageWay={answers.stage}
+                ruleWay={answers.rule}
+                rule={rule}
+                onRule={setRule}
+                picks={picks}
+                hand={hand}
+                open={answers.rule === "corner" && ruleOpen}
+                onOpen={setRuleOpen}
+                onSettings={() => {
+                  saved.current = winOf()?.scrollY ?? 0;
+                  setPage("settings");
+                  winOf()?.scrollTo(0, 0);
+                }}
+                fresh={Boolean(start.fresh) && visits === 0}
               />
             )}
             <WeekRow cards={view.week} />
-            {collection}
+            <Collection
+              way={answers.events}
+              view={view}
+              facts={facts}
+              trail={recentShown ? trail : []}
+              total={total}
+              wide={wide}
+              start={start.collection}
+            />
           </div>
         </div>
       </div>

@@ -89,7 +89,6 @@ const plural = (n: number, one: string, many = `${one}s`) =>
 function seen(el: Element, win: Window): boolean {
   const r = el.getBoundingClientRect();
   return (
-    // An open year keeps its thumbnail line in place, invisible.
     win.getComputedStyle(el).visibility !== "hidden" &&
     r.width > 0 &&
     r.height > 0 &&
@@ -101,15 +100,13 @@ function seen(el: Element, win: Window): boolean {
 }
 
 /**
- * Every event the page links to below the stage, by id: the tiles, the rows, a
- * folded year's thumbnails, the Recent row. An event's own page is
- * `/dashboard/<id>`; a guest album's is `/e/<token>`, named by its tile.
+ * Every event the collection links to, by id: the tiles, the table's lines,
+ * the rows, the Recent row. An event's own page is `/dashboard/<id>`; a guest
+ * album's is `/e/<token>`, named by its href.
  */
-function eventLinks(root: HTMLElement): Map<string, HTMLElement[]> {
+function eventLinks(root: HTMLElement, within: string): Map<string, HTMLElement[]> {
   const out = new Map<string, HTMLElement[]>();
-  for (const a of root.querySelectorAll<HTMLAnchorElement>(
-    "[data-hd-collection] a[href]",
-  )) {
+  for (const a of root.querySelectorAll<HTMLAnchorElement>(`${within} a[href]`)) {
     const href = a.getAttribute("href") ?? "";
     const id =
       href.match(/^\/dashboard\/([^/?#]+)/)?.[1] ??
@@ -120,84 +117,104 @@ function eventLinks(root: HTMLElement): Map<string, HTMLElement[]> {
   return out;
 }
 
-/** A name for a folded or open year the page draws (production's `data-season`). */
-function folds(root: HTMLElement): string[] {
-  return [...root.querySelectorAll<HTMLElement>("[data-folded]")].map(
-    (el) =>
-      `${el.dataset.season?.replace("year-", "") ?? "a year"} folded (${el.dataset.folded})`,
-  );
-}
-
 /**
- * THE COLLECTION, AS ITS FIRST SCREEN SHOWS IT: how many events are on screen
- * of how many, the pieces the option adds, and (where she has been saving old
- * weddings) how far the nearest of them is.
+ * HER EVENTS, AS THE FRAME SHOWS THEM: how many are named on screen of how
+ * many she has, the layout and what it is set to, the Recent row, and (where a
+ * frame sends her back for an old party) whether that party is on screen.
  */
-export function readEvents(her: readonly string[] = []): Reader {
+export function readEvents(target?: string): Reader {
   return (root, win) => {
     if (root.querySelector("[data-hd-stand-in]")) return "an event is open";
-    const links = eventLinks(root);
-    if (links.size === 0) return null;
-    // A folded year's thumbnail (44px, no name) is on screen without being readable there.
-    const named = (el: HTMLElement) =>
-      seen(el, win) && el.getBoundingClientRect().width > 60;
-    const thumb = (el: HTMLElement) => seen(el, win) && !named(el);
-    const all = [...links.values()];
-    const shown = all.filter((els) => els.some(named)).length;
-    const thumbs = all.filter(
-      (els) => !els.some(named) && els.some(thumb),
+    const all = eventLinks(root, "[data-hd-events]");
+    const arranged = root.querySelector<HTMLElement>("[data-hd-arranged]");
+    if (!arranged && all.size === 0) {
+      return root.querySelector("[data-hd-page]")
+        ? "no events below the stage"
+        : null;
+    }
+    const named = [...all.values()].filter((els) =>
+      els.some((el) => seen(el, win)),
     ).length;
     const parts = [
-      `${shown} of ${links.size} events named on the first screen${thumbs ? `, ${thumbs} more as thumbnails` : ""}`,
+      `${named} of ${arranged?.dataset.hdCount ?? all.size} events on screen, as ${arranged?.dataset.hdArranged ?? "nothing"}`,
     ];
     const recent = root.querySelector<HTMLElement>("[data-hd-recent]");
-    if (recent) parts.push(`Recent holds ${recent.dataset.hdRecent}`);
-    if (root.querySelector("[data-hd-display]")) parts.push("a Display menu");
-    const list = root.querySelector<HTMLElement>("[data-hd-list]");
-    if (list) parts.push(`a list of ${list.dataset.hdList}`);
-    parts.push(...folds(root));
-    if (her.length) {
-      const on = her.filter((id) => (links.get(id) ?? []).some(named));
-      const tops = her
-        .filter((id) => !on.includes(id))
-        .map((id) =>
-          Math.min(
-            ...(links.get(id) ?? [])
-              .filter((el) => el.getBoundingClientRect().width > 60)
-              .map((el) => Math.abs(el.getBoundingClientRect().top)),
-          ),
-        )
-        .filter(Number.isFinite);
-      const far = tops.length
-        ? `, the nearest other ${(Math.min(...tops) / win.innerHeight).toFixed(1)} screens away`
-        : on.length < her.length
-          ? ", the others only as thumbnails"
-          : "";
-      parts.push(`her three weddings: ${on.length} named on screen${far}`);
+    if (recent)
+      parts.push(
+        `Recent ${recent.hasAttribute("data-hd-recent-open") ? "open" : "folded"}, ${recent.dataset.hdRecent}`,
+      );
+    const said = root.querySelector<HTMLElement>("[data-hd-said]");
+    if (said) parts.push(`set to ${said.innerText.replace(/Reset$/, "").trim()}`);
+    const chips = [...root.querySelectorAll<HTMLElement>("[data-hd-chip]")]
+      .map((c) => c.innerText.trim())
+      .filter(Boolean);
+    if (chips.length) parts.push(`chips: ${chips.join(", ")}`);
+    const views = root.querySelector<HTMLElement>("[aria-label='Your views'] [aria-selected='true']");
+    if (views) parts.push(`view: ${views.innerText.replace(/\s+/g, " ").trim()}`);
+    const menu = root.ownerDocument.querySelector("[data-radix-popper-content-wrapper]");
+    if (menu) parts.push("its menu open");
+    if (target) {
+      const els = all.get(target) ?? [];
+      const on = els.some((el) => seen(el, win));
+      const inRecent = (eventLinks(root, "[data-hd-recent]").get(target) ?? []).some(
+        (el) => seen(el, win),
+      );
+      parts.push(
+        on
+          ? "the old wedding on screen"
+          : inRecent
+            ? "the old wedding in Recent"
+            : els.length
+              ? `the old wedding ${(Math.min(...els.map((el) => Math.abs(el.getBoundingClientRect().top))) / win.innerHeight).toFixed(1)} screens away`
+              : "the old wedding not in the list",
+      );
     }
     return parts.join("; ");
   };
 }
 
-/** WHAT LEADS: the stage's event, its word, and the host's control on it if the option draws one. */
+/** THE STAGE: its event, its word, the way it is drawn without photographs, and its readiness. */
 export const readStage: Reader = (root) => {
   const stage = root.querySelector<HTMLElement>("[data-stage]");
   if (!stage) return root.querySelector("[data-hd-page]") ? "no stage" : null;
   const word = stage.querySelector<HTMLElement>("[data-stage-word]");
-  const what = `${stage.getAttribute("aria-label")}, ${(word?.innerText ?? "").trim().toLowerCase()}`;
   const tall = Math.round(stage.getBoundingClientRect().height);
+  const empty = stage.dataset.hdEmpty;
   const parts = [
-    stage.dataset.stage === "rest"
-      ? `the stage rests, one line ${tall} px tall: ${what}`
-      : `the stage: ${what}, ${tall} px tall`,
+    `${stage.getAttribute("aria-label")}, ${(word?.innerText ?? "").trim().toLowerCase()}, ${tall} px tall`,
+    empty ? `no photos: ${empty}, lamp ${stage.dataset.hdLamp}` : "its photographs",
   ];
-  const pick = root.querySelector<HTMLElement>("[data-hd-pick]");
-  if (pick)
-    parts.push(`its control: ${pick.innerText.replace(/\s+/g, " ").trim()}`);
-  const list = root.ownerDocument.querySelectorAll(
-    "[data-hd-pick-item]",
-  ).length;
-  if (list) parts.push(`${plural(list, "event")} to pick from`);
+  const ticks = stage.querySelectorAll("[data-stage-ticks] li, [data-stage-rail] li");
+  if (ticks.length) {
+    const done = stage.querySelectorAll(
+      "[data-stage-ticks] li[data-done], [data-stage-rail] li[data-done]",
+    ).length;
+    parts.push(`${done} of ${plural(ticks.length, "step")} done`);
+  }
+  if (stage.querySelector("[data-stage-plate]")) parts.push("the code on it");
+  return parts.join("; ");
+};
+
+/** THE RULE: which one she keeps, what it leads with, and where its control stands. */
+export const readRule: Reader = (root) => {
+  const page = root.querySelector<HTMLElement>("[data-hd-page]");
+  if (!page) return null;
+  const control = root.querySelector<HTMLElement>("[data-hd-rule]");
+  const settings = root.querySelector("[data-hd-settings]");
+  const stage = root.querySelector<HTMLElement>("[data-stage]");
+  const items = root.ownerDocument.querySelectorAll("[data-hd-rule-item]").length;
+  const on = root.ownerDocument.querySelector<HTMLElement>(
+    "[data-hd-rule-item][aria-checked='true']",
+  );
+  const parts = [
+    settings
+      ? "Settings open"
+      : `leads with ${stage?.getAttribute("aria-label") ?? "nothing"}`,
+  ];
+  if (on) parts.push(`rule: ${on.dataset.hdRuleItem}`);
+  else if (control) parts.push(`rule: ${control.dataset.hdRule}`);
+  if (items) parts.push(`${plural(items, "rule")} to choose`);
+  else if (!control) parts.push("no control on this page");
   return parts.join("; ");
 };
 
