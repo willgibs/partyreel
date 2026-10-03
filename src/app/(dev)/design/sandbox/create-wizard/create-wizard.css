@@ -1,127 +1,28 @@
 /*
-  THE CREATE WIZARD BOARD'S OWN SHEET: what a utility cannot say. Unlayered on
-  purpose (design.css: a board's own sheet wins where a lab utility would lose
-  to production's layer), and every rule hangs off a `cw-` hook so nothing
-  here reaches a production component.
+  THE CREATE WIZARD BOARD'S OWN SHEET: what a utility cannot say, for the add
+  step's centre only. The room around it is production's (`create-room.css`
+  styles it), so nothing here touches the head, the question, the foot or the
+  light. Unlayered on purpose (design.css: a board's own sheet wins where a
+  lab utility would lose to production's layer), and every rule hangs off a
+  `cw-` hook so nothing here reaches a production component.
 
-  ★ THE LIGHT IS A STAND-IN FOR THE AURORA. The room's seam, the picked
-  phone's spill and the code's underlight are drawn as plain gradients in the
-  lamp set's own hues (`--lamp-*`), because the engine's filter host lives in
-  the lab page's document and never in a frame's (design-system.md: a missing
-  host drops the whole filter chain; the ROADMAP's lab line). The wiring draws
-  them with `SectionLight` and `ScreenLamp`, where they belong.
+  ★ THE PICK'S LIGHT IS THE LAMP SET'S, THROWN DOWN UNDER IT: a soft pool of
+  `--lamp-*` under the picked phone or card, so the pick reads lit rather than
+  boxed (the room's own floor is the Aurora's field, production's).
 
-  ★ EVERYTHING THAT MOVES IS GATED: the caret and the scripted changes run
-  only where motion is welcome, and a frame under reduced motion stands still,
-  drawn whole (bible 5).
+  ★ EVERYTHING THAT MOVES IS GATED: a transition the global reduced-motion
+  guard clamps, or an animation declared only where motion is welcome, so a
+  frame under reduced motion stands still, drawn whole (bible 5).
 */
-
-/* ── the room ─────────────────────────────────────────────────────────── */
-
-/* The room's light: a seam along its foot, warm on the left, violet on the right. */
-.cw-room-light {
-  position: absolute;
-  inset: auto 0 0 0;
-  height: 42%;
-  pointer-events: none;
-  background:
-    radial-gradient(
-      55% 70% at 20% 100%,
-      color-mix(in oklch, var(--lamp-2) 24%, transparent),
-      transparent 72%
-    ),
-    radial-gradient(
-      50% 62% at 80% 100%,
-      color-mix(in oklch, var(--lamp-5) 24%, transparent),
-      transparent 72%
-    ),
-    radial-gradient(
-      40% 40% at 50% 100%,
-      color-mix(in oklch, var(--lamp-1) 14%, transparent),
-      transparent 70%
-    );
-  filter: blur(8px);
-  mix-blend-mode: screen;
-}
-
-/* The page sliding in over the last (`slide`): its leading edge in shadow. */
-.cw-edge {
-  box-shadow: -18px 0 36px -14px rgb(0 0 0 / 0.85);
-}
-
-/* The beat's room: the seam lowered, so the code's own light is the room's. */
-.cw-room-light.cw-low {
-  height: 26%;
-  opacity: 0.55;
-}
-
-/* The name's caret: a bar that blinks only where motion is welcome. */
-.cw-caret {
-  display: inline-block;
-  width: 0.06em;
-  height: 0.86em;
-  margin-left: 0.05em;
-  vertical-align: -0.06em;
-  background: var(--lamp-2);
-  border-radius: 1px;
-}
-@media (prefers-reduced-motion: no-preference) {
-  .cw-caret {
-    animation: cw-blink 1.05s steps(1) infinite;
-  }
-}
-@keyframes cw-blink {
-  50% {
-    opacity: 0;
-  }
-}
-
-/* The live name: a field with no box, on its rule, the caret the lamp's. */
-.cw-name-input {
-  caret-color: var(--lamp-2);
-}
-.cw-name-input::placeholder {
-  color: color-mix(in oklch, var(--foreground) 28%, transparent);
-}
 
 /* ── a guest's phone ──────────────────────────────────────────────────── */
 
-/*
-  The device: a black body with one hairline of light on its rim, the island
-  at its head. Sized by width (cqw), so it reads the same at every size.
-*/
-.cw-phone {
-  aspect-ratio: 9 / 19.2;
-  padding: 2.6cqw;
-  border-radius: 14cqw;
-  background: oklch(0.12 0 0);
-  box-shadow:
-    inset 0 0 0 0.45cqw oklch(1 0 0 / 0.14),
-    0 1px 0 0 oklch(1 0 0 / 0.06),
-    0 18px 40px -12px oklch(0 0 0 / 0.7);
-}
-/* The pick: its rim catches the room's light, warm along the edge. */
-.cw-phone-lit {
+/* The pick: the wired phone's rim catches the room's warm lamp. */
+.cr-phone.cw-phone-lit {
   box-shadow:
     inset 0 0 0 0.55cqw color-mix(in oklch, var(--lamp-2) 55%, white),
     0 0 0 0.3cqw color-mix(in oklch, var(--lamp-2) 22%, transparent),
     0 18px 44px -12px color-mix(in oklch, var(--lamp-2) 30%, black);
-}
-.cw-phone-glass {
-  position: relative;
-  height: 100%;
-  overflow: hidden;
-  border-radius: 11.6cqw;
-}
-.cw-phone-island {
-  position: absolute;
-  top: 2.6cqw;
-  left: 50%;
-  width: 26cqw;
-  height: 7.4cqw;
-  translate: -50% 0;
-  border-radius: 9999px;
-  background: #000;
 }
 
 /* The newest tile's rim, the album's arrival read as a picture. */
@@ -146,9 +47,14 @@
   background: color-mix(in oklch, var(--lamp-2) 46%, oklch(1 0 0 / 0.1));
 }
 
+/* ── the pick's light ─────────────────────────────────────────────────── */
+
 /*
-  The picked phone's light, in a room: it throws a soft light down onto the
-  floor under it, so the pick reads as lit rather than boxed.
+  ★ THE LIGHT STAYS INSIDE ITS BOX AND SPILLS ONLY AS INK: a pool laid over
+  the pick's lower half and blurred, so it reads as light thrown down onto the
+  floor under it while adding nothing to what the room's body can scroll (an
+  absolutely placed layer that reached past the phone made the room scroll by
+  its reach; a blur is ink, never layout).
 */
 .cw-chosen {
   position: relative;
@@ -158,25 +64,340 @@
   content: "";
   position: absolute;
   z-index: -1;
-  inset: 64% -30% -22% -30%;
+  inset: 52% 0 0 0;
   pointer-events: none;
   background:
     radial-gradient(
-      46% 50% at 38% 34%,
-      color-mix(in oklch, var(--lamp-2) 50%, transparent),
-      transparent 74%
+      50% 60% at 36% 70%,
+      color-mix(in oklch, var(--lamp-2) 52%, transparent),
+      transparent 76%
     ),
     radial-gradient(
-      44% 48% at 64% 38%,
-      color-mix(in oklch, var(--lamp-1) 38%, transparent),
-      transparent 74%
+      48% 58% at 66% 74%,
+      color-mix(in oklch, var(--lamp-1) 40%, transparent),
+      transparent 76%
     );
-  filter: blur(24px);
+  filter: blur(30px);
+}
+
+/* ── the choices' own material: a card of the room ────────────────────── */
+
+.cw-card {
+  border-radius: 1.125rem;
+  background: color-mix(in oklch, var(--foreground) 5%, transparent);
+  box-shadow: inset 0 0 0 1px
+    color-mix(in oklch, var(--foreground) 10%, transparent);
+  transition:
+    background-color 150ms var(--ease-emphasis),
+    box-shadow 150ms var(--ease-emphasis);
+}
+.cw-card:hover {
+  box-shadow: inset 0 0 0 1px
+    color-mix(in oklch, var(--foreground) 20%, transparent);
+}
+.cw-card[data-state="on"] {
+  background: color-mix(in oklch, var(--foreground) 8%, transparent);
+  box-shadow: inset 0 0 0 1.5px
+    color-mix(in oklch, var(--foreground) 62%, transparent);
+}
+.cw-card:focus-visible,
+.cw-pair:focus-visible > span:first-child,
+.cw-switch button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+/* A card's light pools under its whole foot, quieter than a phone's. */
+.cw-card.cw-chosen::before {
+  inset: 60% 0 0 0;
+  filter: blur(34px);
+  opacity: 0.7;
+}
+
+/* ── the compositions' own layouts (`add.tsx` says why they live here) ── */
+
+/* The night and the develop time, under whatever the composition draws. */
+.cw-under {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  margin-top: 1.25rem;
+}
+.cw-under-pair {
+  max-width: 340px;
+}
+.cw-under-styles {
+  max-width: 400px;
+}
+
+/* `pair`: two phones, sized by the room's height as well as its width, so
+   the step never scrolls: they take what the head, the question, the labels,
+   the night, the develop time and the foot leave. */
+.cw-pair-row {
+  display: flex;
+  justify-content: center;
+  gap: 1.25rem;
+}
+.cw-pair-phone {
+  width: min(150px, calc((100dvh - 28rem) * 0.469));
+}
+
+/* `styles`: Settings' cards, a row each at a phone, three columns at a desk. */
+.cw-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  width: 100%;
+  max-width: 400px;
+}
+.cw-style-card {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.625rem;
+}
+.cw-style-pic-box {
+  display: block;
+  flex-shrink: 0;
+}
+.cw-style-pic {
+  height: 88px;
+  width: 110px;
+}
+.cw-style-words {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+/* `one`: a grid of named places, stacked at a phone. */
+.cw-one {
+  display: grid;
+  width: 100%;
+  justify-items: center;
+  grid-template-areas: "switch" "phone" "line" "night";
+}
+.cw-one-switch {
+  grid-area: switch;
+  width: 100%;
+  max-width: 340px;
+}
+.cw-one-pic {
+  grid-area: phone;
+  margin-top: 1.25rem;
+}
+.cw-one-phone {
+  width: min(176px, calc((100dvh - 30.5rem) * 0.469));
+}
+.cw-one-line {
+  grid-area: line;
+  margin-top: 0.75rem;
+  text-align: center;
+}
+.cw-one-under {
+  grid-area: night;
+  max-width: 340px;
+  margin-top: 1rem;
+}
+
+/* `strip`: the night's moments as columns, a row for each style. */
+.cw-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  width: 100%;
+  max-width: 400px;
+}
+.cw-strip-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: 0.5rem;
+  align-items: start;
+}
+.cw-strip-head {
+  padding: 0 0.625rem;
+}
+.cw-strip-corner {
+  display: none;
+}
+.cw-strip-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+.cw-strip-row {
+  padding: 0.625rem;
+}
+.cw-strip-name {
+  grid-column: span 3;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  padding-bottom: 0.5rem;
+}
+.cw-strip-shot {
+  aspect-ratio: 9 / 14;
+}
+
+/* At a desk: wider, and the one phone stands tall beside the rest. */
+@media (min-width: 48rem) {
+  .cw-under {
+    margin-top: 1.75rem;
+  }
+  .cw-under-pair {
+    max-width: 520px;
+  }
+  .cw-under-styles {
+    max-width: 560px;
+  }
+  .cw-pair-row {
+    gap: 3.5rem;
+  }
+  .cw-pair-phone {
+    width: min(208px, calc((100dvh - 32rem) * 0.469));
+  }
+  .cw-cards {
+    flex-direction: row;
+    gap: 1.25rem;
+    max-width: 1040px;
+  }
+  .cw-style-card {
+    flex: 1 1 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 0.75rem;
+  }
+  .cw-style-pic {
+    height: 236px;
+    width: 100%;
+  }
+  .cw-style-words {
+    margin-top: 0.875rem;
+    align-items: flex-start;
+  }
+  .cw-one {
+    grid-template-columns: auto 22rem;
+    grid-template-rows: 1fr auto auto auto 1fr;
+    grid-template-areas:
+      "phone ."
+      "phone switch"
+      "phone line"
+      "phone night"
+      "phone .";
+    column-gap: 4rem;
+    justify-content: center;
+    justify-items: stretch;
+    align-items: start;
+  }
+  .cw-one-switch,
+  .cw-one-under {
+    max-width: none;
+  }
+  .cw-one-pic {
+    margin-top: 0;
+  }
+  .cw-one-phone {
+    width: min(270px, calc((100dvh - 21rem) * 0.469));
+  }
+  .cw-one-line {
+    margin-top: 1rem;
+    text-align: left;
+  }
+  .cw-strip {
+    max-width: 820px;
+    gap: 0.75rem;
+  }
+  .cw-strip-grid {
+    grid-template-columns: 12rem repeat(3, minmax(0, 1fr));
+    column-gap: 0.75rem;
+  }
+  .cw-strip-head {
+    padding: 0 0.75rem;
+  }
+  .cw-strip-corner {
+    display: block;
+  }
+  .cw-strip-rows {
+    gap: 0.75rem;
+  }
+  .cw-strip-row {
+    padding: 0.75rem;
+  }
+  .cw-strip-name {
+    grid-column: span 1;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-right: 1rem;
+    padding-bottom: 0;
+  }
+  .cw-strip-shot {
+    aspect-ratio: 3 / 4;
+  }
+}
+
+/* The one switch over the phone: its thumb slides to the pick. */
+.cw-switch {
+  background: color-mix(in oklch, var(--foreground) 7%, transparent);
+}
+.cw-switch-thumb {
+  transition: transform 240ms var(--ease-emphasis);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* A new pick develops in where the last stood, the way a print comes up. */
+  .cw-one-in {
+    animation: cw-develop-in 420ms var(--ease-emphasis);
+  }
+  .cw-develop-in {
+    animation: cw-rise-in 280ms var(--ease-emphasis);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  /* A moment of the night comes up like a print: a guest's screen, and each
+     photograph a style's small album gains. */
+  .cw-screen-in {
+    animation: cw-screen-in 340ms var(--ease-emphasis);
+  }
+  .cw-style-cell img {
+    transition: opacity 320ms var(--ease-emphasis);
+    @starting-style {
+      opacity: 0;
+    }
+  }
+}
+@keyframes cw-screen-in {
+  from {
+    opacity: 0.55;
+    filter: blur(3px);
+  }
+}
+@keyframes cw-develop-in {
+  from {
+    opacity: 0.35;
+    filter: blur(6px);
+  }
+}
+@keyframes cw-rise-in {
+  from {
+    opacity: 0;
+    translate: 0 6px;
+  }
+}
+
+/* ── the develop time's row ───────────────────────────────────────────── */
+
+.cw-develop {
+  background: color-mix(in oklch, var(--foreground) 6%, transparent);
+  box-shadow: inset 0 0 0 1px
+    color-mix(in oklch, var(--foreground) 10%, transparent);
 }
 
 /* ── the night ────────────────────────────────────────────────────────── */
 
-/* The track, three stops, the knob: the one she drags lit. */
+/* The track, three moments, the knob: the night's own light along the fill. */
 .cw-night {
   position: relative;
   height: 28px;
@@ -209,7 +430,10 @@
   height: 8px;
   margin-left: -4px;
   border-radius: 9999px;
-  background: color-mix(in oklch, var(--foreground) 32%, transparent);
+  background: color-mix(in oklch, var(--foreground) 30%, transparent);
+}
+.cw-night-stop[data-on] {
+  background: color-mix(in oklch, var(--lamp-2) 70%, var(--foreground));
 }
 .cw-night-knob {
   position: absolute;
@@ -230,77 +454,4 @@
       left 320ms var(--ease-in-out-strong),
       width 320ms var(--ease-in-out-strong);
   }
-}
-
-/* ── the code ─────────────────────────────────────────────────────────── */
-
-/*
-  The code's underlight: light thrown down off the plate's bottom edge onto
-  the floor under it (ScreenLamp's shape, the one underlight), on its own
-  element so a beat can raise it.
-*/
-.cw-spill {
-  position: absolute;
-  z-index: -1;
-  inset: 58% -52% -64% -52%;
-  pointer-events: none;
-  background:
-    radial-gradient(
-      40% 42% at 34% 30%,
-      color-mix(in oklch, var(--lamp-2) 48%, transparent),
-      transparent 74%
-    ),
-    radial-gradient(
-      38% 40% at 66% 34%,
-      color-mix(in oklch, var(--lamp-5) 42%, transparent),
-      transparent 74%
-    ),
-    radial-gradient(
-      30% 30% at 50% 22%,
-      color-mix(in oklch, var(--lamp-1) 32%, transparent),
-      transparent 72%
-    );
-  filter: blur(24px);
-}
-
-/* The floor the code rises onto (the beat's `rise`): a pool of the same light. */
-.cw-pool {
-  position: absolute;
-  z-index: -1;
-  left: 50%;
-  bottom: -30%;
-  width: 170%;
-  aspect-ratio: 3 / 1;
-  translate: -50% 0;
-  pointer-events: none;
-  border-radius: 50%;
-  background: radial-gradient(
-    closest-side,
-    color-mix(in oklch, var(--lamp-2) 62%, transparent),
-    color-mix(in oklch, var(--lamp-5) 34%, transparent) 52%,
-    transparent
-  );
-  filter: blur(16px);
-}
-
-/* A look picked: a ring of the room's light, offset from the swatch. */
-.cw-picked {
-  outline: 2px solid var(--foreground);
-  outline-offset: 3px;
-}
-
-/* The answer in flight, `carry`: copied off its page, so it keeps its own look. */
-[data-cw-flyer] > * {
-  margin: 0 !important;
-}
-
-/* An act on the beat: a round of the room's own material, its word under it. */
-.cw-round {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 9999px;
-  background: color-mix(in oklch, var(--foreground) 9%, transparent);
-  box-shadow: inset 0 0 0 1px
-    color-mix(in oklch, var(--foreground) 12%, transparent);
 }
