@@ -94,12 +94,15 @@ working.
 
 - **Commits, pushed** (`lp/crumbs-52`, cut at `fac5dc83`): work `3f06d0d9` (the curtain), `db0db9dc` (the card's press
   warm-up, standing alone), sync `911b2d5c` (launch-prep at `c45b69a8`, disposable-camera merged: no conflict; at that
-  moment `origin/launch-prep` did not hold it yet, so the SHA was merged from the shared repo; launch-prep has since
-  moved to `c418312c`, a record commit that retired the disposable-mode board and touches none of this lane's files, so
-  no second sync), `780d82f7` (the camera's page half), `0fb084e3` (the Reel card's develop wording), and this file.
-- **Gates on the synced tree, `0fb084e3`**, each on its own exit code (logs in `_scratch/crumbs-52/final-*.log`):
-  typecheck 0; lint 0; test 0 (799 files, 9,460 tests); `zsh scripts/build-lock.sh pnpm build` 0 (no error or failure
-  line); `pnpm lab:smoke --base http://localhost:3134` 0 (148 checks, 0 failing). No board, so no `lab:demo`.
+  moment `origin/launch-prep` did not hold it yet, so the SHA was merged from the shared repo), `780d82f7` (the
+  camera's page half), `0fb084e3` (the Reel card's develop wording), `198ce02c` (this file, first fill), sync
+  `fcb704fe` (`origin/launch-prep` at `657f93ee`, crumbs-53 merged: one conflict, `docs/systems/reel.md`'s Reel card
+  bullet, resolved keeping both lanes' words; nothing else of the eight commits touches this lane), and this file's
+  last fill.
+- **Gates on the synced tree, `fcb704fe`**, each on its own exit code (logs in `_scratch/crumbs-52/sync2-*.log`):
+  typecheck 0; lint 0; test 0 (800 files, 9,459 tests); `zsh scripts/build-lock.sh pnpm build` 0 (no error or failure
+  line); `pnpm lab:smoke --base http://localhost:3134` 0 (147 checks, 0 failing). No board, so no `lab:demo`. (The same
+  four on `0fb084e3`, before the second sync: `final-*.log`.)
 - **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): this file, and owned paths (`reel-url.ts`,
   `reel-url-history.test.tsx`, `reel/live-reel.tsx`, `event-experience.tsx`, `event-experience.curtain.test.tsx`,
   `event-experience.camera.test.tsx`, `reel-card.tsx`, `reel-card.test.tsx`), the three system docs above, plus these
