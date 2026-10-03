@@ -10,7 +10,6 @@ import {
 import {
   Check,
   Clapperboard,
-  Images,
   ListChecks,
   Play,
   Settings,
@@ -19,15 +18,6 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import {
-  ROOM_CARD_BASE,
-  ROOM_CARD_QUIET,
-  ROOM_CARD_VALUE,
-  roomCardSize,
-  roomRowLayout,
-} from "@/components/app/event-feed/room-card";
-import { LivingStills, useLivingClock } from "@/components/app/living-stills";
-import { HouseLight } from "@/components/guest/event-experience-head";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { CodeChip } from "@/components/ui/code-chip";
 import { doorLabel } from "@/lib/events/visibility-labels";
@@ -35,55 +25,42 @@ import { settingsReadiness, stepsLeft } from "@/lib/events/readiness";
 import { formatCount } from "@/lib/format/count";
 import { cn } from "@/lib/utils";
 
-import {
-  ALBUM,
-  AT_THE_DOOR,
-  COVER,
-  EVENT,
-  GUESTS,
-  type HostFacts,
-  REEL,
-  REVIEW,
-} from "./fixtures";
+import { AT_THE_DOOR, type Case, GUESTS, REVIEW } from "./fixtures";
 import type { ScreenId } from "./scene";
 
 /**
- * THE DOORS INTO HER ROOMS, THREE WAYS, AT REST AND FOLDED INTO THE BAND.
+ * THE DOORS INTO HER ROOMS, ROUND THREE: each of round two's three, refined
+ * as he asked, and each with its sticky form ("slides right into the sticky
+ * menu on scroll (important for all options to have their version in cleanly
+ * doing so)").
  *
- * The row is production's order (Will, `event-settings` `queue`: the reel,
- * Guests, Review, Settings, `EVENT_ROOMS`), with See it as a guest last, the
- * payoff at the row's end (the carried call `guest-door`). Where every room
- * opens under the band (`rooms=under`) the album is a door too, first, since
- * a room that swaps the album out needs a way back to it.
+ *  - `cards`, today's cards with App Store depth: the cover fades into the
+ *    page at its foot and the cards stand over that seam on the lift shadow,
+ *    the reel's card one of them (its glyph in the reel's own violet, no
+ *    stills: "we have images in event head and gallery below"); stuck, pills
+ *    under a band that fades into the album rather than ending on a line;
+ *  - `windows`, windows into each room made quiet: each door's picture a
+ *    small inset well drawn in ink and grey, taking its colour only under the
+ *    pointer, the reel's own a small player rather than its photographs;
+ *    stuck, each window becomes its pill's glyph;
+ *  - `glass`, the doors on the cover in one glass capsule, polished: one
+ *    object of five segments at the cover's foot, the waiting counts as amber
+ *    lights; stuck, the capsule itself floats on under the bar, the cover's
+ *    face leading it and the code's chip closing it.
  *
- *  - `cards`, today's: production's own card shell (`room-card.ts`), the reel's
- *    living stills and its pips as `reel-card.tsx` draws them, quoted so a
- *    press opens what the board's rooms option says rather than the route;
- *  - `windows`: each door a picture of its room, on the cover's own house
- *    light where the room has no photograph (bible 6: colour from the
- *    photographs and from light);
- *  - `glass`: the doors on the cover's photograph in its material (`glass`),
- *    so no row stands under it.
- *
- * ★ THE BAND IS PRODUCTION'S IN EVERY OPTION (`event-cards-row.tsx`): sticky
- * under the bar, the cover's first photograph and the name at its lead, the
- * doors as pills, the code's chip closing it. A still frame says `stuck`
- * outright; a live one reads it off its own scroll (`useStuckIn`, in
- * `hub.tsx`), since an observer's root margin does not reach into a frame.
+ * The row is production's order (`EVENT_ROOMS`: the reel, Guests, Review,
+ * Settings) with See it as a guest last, the payoff at the row's end
+ * (`AS_GUEST_DOOR`). Every press opens its room over the hub, as wired.
  *
  * ★ THE NEEDS-ACTION TONE IS THE ONE COLOUR (production's amber `warning`): a
- * count of people at the door or uploads in Review, and nothing else.
+ * count of people at the door or uploads in Review, and nothing else; the
+ * reel's violet marks the reel itself (design-system.md's one colour per
+ * action), never a state.
  */
 
 export type DoorsId = "cards" | "windows" | "glass";
 
-export type RoomId =
-  | "album"
-  | "reel"
-  | "guests"
-  | "review"
-  | "settings"
-  | "guest";
+export type RoomId = "reel" | "guests" | "review" | "settings" | "guest";
 
 /** The rooms a door opens, in production's order, the guest's view last. */
 export const ROOM_ORDER: readonly RoomId[] = [
@@ -94,21 +71,16 @@ export const ROOM_ORDER: readonly RoomId[] = [
   "guest",
 ];
 
-/** The row with the album as a door, where a room takes the album's place. */
-export const UNDER_ORDER: readonly RoomId[] = ["album", ...ROOM_ORDER];
-
 export const ROOM_LABEL: Record<RoomId, string> = {
-  album: "Album",
   reel: "Highlight reel",
   guests: "Guests",
   review: "Review",
   settings: "Settings",
-  guest: "See it as a guest",
+  guest: "As a guest",
 };
 
-/** The word a phone's door has room for. */
+/** The word a small door has room for. */
 const SHORT: Record<RoomId, string> = {
-  album: "Album",
   reel: "Reel",
   guests: "Guests",
   review: "Review",
@@ -117,7 +89,6 @@ const SHORT: Record<RoomId, string> = {
 };
 
 const ICON: Record<RoomId, LucideIcon> = {
-  album: Images,
   reel: Clapperboard,
   guests: Users,
   review: ListChecks,
@@ -129,405 +100,399 @@ const ICON: Record<RoomId, LucideIcon> = {
 export type DoorFace = {
   value: string;
   amber?: boolean;
-  /** The needs-action count, drawn on the door as a badge. */
+  /** The needs-action count. */
   count?: number;
   /** A count to act on, never waiting on her (Settings' steps left): the foreground, never amber. */
   strong?: boolean;
 };
 
-/** Every door's face, from the moment's facts: production's words (`page.tsx`, `room-card.ts`). */
-export function facesOf(f: HostFacts): Record<RoomId, DoorFace> {
-  // The hub's own count: what a guest still needs that Settings' steps hold (`page.tsx`).
-  const left = stepsLeft(f.ready);
+/** Every door's face, from the album's facts: production's words (`page.tsx`, `room-card.ts`). */
+export function facesOf(c: Case): Record<RoomId, DoorFace> {
+  const left = stepsLeft(c.ready);
+  const toGo = 2 - c.reelHave;
   return {
-    album: { value: f.photos > 0 ? formatCount(f.photos) : "Empty" },
     reel:
-      f.reel === "live"
+      c.reel === "live"
         ? { value: "Live for guests" }
-        : { value: `Starts at 2 photos` },
+        : {
+            value:
+              c.reelHave === 0
+                ? "Starts at 2 photos"
+                : `${toGo} more ${toGo === 1 ? "photo" : "photos"}`,
+          },
     guests:
-      f.waiting > 0
+      c.waiting > 0
         ? {
-            value: `${formatCount(f.waiting)} waiting`,
+            value: `${formatCount(c.waiting)} waiting`,
             amber: true,
-            count: f.waiting,
+            count: c.waiting,
           }
-        : { value: `${formatCount(f.guests)} guests` },
+        : {
+            value: `${formatCount(c.guests)} ${c.guests === 1 ? "guest" : "guests"}`,
+          },
     review:
-      f.review > 0
+      c.review > 0
         ? {
-            value: `${formatCount(f.review)} waiting`,
+            value: `${formatCount(c.review)} waiting`,
             amber: true,
-            count: f.review,
+            count: c.review,
           }
         : { value: "All caught up" },
     settings:
       left > 0
         ? { value: `${formatCount(left)} left`, strong: true }
-        : { value: doorLabel(f.door) },
+        : { value: doorLabel(c.door) },
     guest: { value: "What they see" },
   };
 }
 
 export type DoorPress = (room: RoomId) => void;
 
-/* ══ CARDS: today's shell ══════════════════════════════════════════════════ */
+/** The amber light and its number: what waits on her, as status=lights draws a state. */
+function WaitLight({ n, className }: { n: number; className?: string }) {
+  return (
+    <span
+      className={cn(
+        "flex shrink-0 items-center gap-1.5 text-label font-semibold tabular-nums",
+        className,
+      )}
+    >
+      <span className="eh-amber" aria-hidden />
+      {formatCount(n)}
+    </span>
+  );
+}
 
-function CardDoor({
+/**
+ * THE VALUE LINE, as status=lights draws a state: where something waits on
+ * her, its amber light leads the words and the words stay the ground's ink;
+ * a count that is hers to act on is the foreground; anything else is quiet.
+ */
+function Value({ face, className }: { face: DoorFace; className?: string }) {
+  return (
+    <span
+      className={cn(
+        "flex min-w-0 items-center gap-1.5 text-xs tabular-nums",
+        face.amber || face.strong
+          ? "font-medium text-foreground"
+          : "text-muted-foreground",
+        className,
+      )}
+    >
+      {face.amber ? <span className="eh-amber" aria-hidden /> : null}
+      <span className="truncate">{face.value}</span>
+    </span>
+  );
+}
+
+/* ══ CARDS: App Store depth, over the seam ═════════════════════════════════ */
+
+/** The glyph in its own small round: the reel's in its violet, every other in the page's grey (a waiting room's state is its light). */
+function GlyphChip({ room, size }: { room: RoomId; size: "sm" | "md" }) {
+  const Icon = ICON[room];
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        "flex shrink-0 items-center justify-center rounded-full",
+        size === "md" ? "size-9" : "size-8",
+        room === "reel" ? "eh-chip-reel" : "bg-muted text-muted-foreground",
+      )}
+    >
+      <Icon className={size === "md" ? "size-[18px]" : "size-4"} />
+    </span>
+  );
+}
+
+function SeamCard({
   room,
   face,
-  f,
-  stuck,
+  phone,
   selected,
   onOpen,
 }: {
   room: RoomId;
   face: DoorFace;
-  f: HostFacts;
-  stuck: boolean;
+  phone: boolean;
   selected: boolean;
   onOpen?: DoorPress;
 }) {
-  const Icon = ICON[room];
-  const living = room === "reel" && f.reel === "live" && !stuck;
-  const counting = room === "reel" && f.reel !== "live";
-  const { ref, at } = useLivingClock<HTMLButtonElement>(REEL.length);
   return (
     <button
-      ref={ref}
       type="button"
       data-eh-door={room}
       aria-pressed={selected || undefined}
       onClick={() => onOpen?.(room)}
       className={cn(
-        ROOM_CARD_BASE,
-        roomCardSize(stuck),
-        "relative text-left",
-        living
-          ? "overflow-hidden border-transparent text-white"
-          : counting && !stuck
-            ? "border-dashed border-foreground/25 hover:border-foreground/40"
-            : face.amber
-              ? "border-warning/40 bg-warning/5 hover:border-warning/60"
-              : ROOM_CARD_QUIET,
+        "eh-lift group relative flex min-w-0 flex-col justify-between rounded-2xl bg-card text-left text-card-foreground shadow-lift outline-none",
+        phone ? "h-[6.75rem] w-[8.5rem] shrink-0 p-3" : "h-[7.25rem] flex-1 p-4",
         selected && "ring-2 ring-foreground",
       )}
     >
-      {living ? (
-        <>
-          <LivingStills stills={REEL} at={at} />
-          <span
-            aria-hidden
-            className="absolute inset-0 bg-linear-to-t from-black/80 via-black/50 to-black/30"
-          />
-        </>
-      ) : null}
-      <Icon
-        className={cn(
-          "relative size-4 shrink-0",
-          living
-            ? "text-white/85"
-            : face.amber
-              ? "text-warning"
-              : "text-muted-foreground",
-        )}
-        aria-hidden
-      />
-      {stuck ? (
-        <span className="relative text-xs font-medium">{SHORT[room]}</span>
-      ) : (
-        <span className="relative font-heading text-card-title">
-          {room === "guest" ? "As a guest" : ROOM_LABEL[room]}
+      <GlyphChip room={room} size={phone ? "sm" : "md"} />
+      <span className="flex min-w-0 flex-col">
+        <span className="truncate font-heading text-card-title">
+          {phone ? SHORT[room] : ROOM_LABEL[room]}
         </span>
-      )}
-      <span
-        className={cn(
-          "relative truncate text-xs tabular-nums",
-          ROOM_CARD_VALUE,
-          stuck && "hidden",
-          living
-            ? "text-white/85"
-            : face.amber
-              ? "font-medium text-warning"
-              : face.strong
-                ? "font-medium text-foreground"
-                : "text-muted-foreground",
-        )}
-      >
-        {face.value}
+        <Value face={face} />
       </span>
-      {stuck && face.count ? <StuckCount n={face.count} /> : null}
     </button>
   );
 }
 
-/** Stuck, the amber count is the only thing worth keeping (production's own pill badge). */
-function StuckCount({ n }: { n: number }) {
+/** A card, stuck: a pill on the same lift, its glyph, its word and the amber count. */
+function SeamPill({
+  room,
+  face,
+  phone,
+  selected,
+  onOpen,
+}: {
+  room: RoomId;
+  face: DoorFace;
+  phone: boolean;
+  selected: boolean;
+  onOpen?: DoorPress;
+}) {
+  const Icon = ICON[room];
   return (
-    <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-warning/15 px-1 text-[10px] font-semibold text-warning tabular-nums">
-      {n}
-    </span>
-  );
-}
-
-/* ══ WINDOWS: each door a picture of its room ══════════════════════════════ */
-
-/**
- * Where a window's picture stands: a desk's door keeps its foot for the words
- * (the picture in its upper part, never under the label), a phone's square
- * door has its word outside and centres it, and a band's pill is one round.
- */
-type WindowAt = "door" | "icon" | "pill";
-
-/** A room with no photograph of its own stands on the cover's house light. */
-function Lit({ at, children }: { at: WindowAt; children?: ReactNode }) {
-  return (
-    <span className="dark absolute inset-0 overflow-hidden bg-background">
-      <HouseLight />
-      <span
+    <button
+      type="button"
+      data-eh-door={room}
+      aria-pressed={selected || undefined}
+      aria-label={phone ? ROOM_LABEL[room] : undefined}
+      onClick={() => onOpen?.(room)}
+      className={cn(
+        "eh-pill-lift flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-card text-xs font-medium text-card-foreground shadow-lift outline-none",
+        phone ? "px-2.5" : "px-3",
+        selected && "ring-2 ring-foreground",
+      )}
+    >
+      <Icon
         className={cn(
-          "absolute inset-x-0 top-0 flex items-center justify-center",
-          at === "door" ? "h-[62%]" : "h-full",
+          "size-4",
+          room === "reel" ? "eh-reel-ink" : "text-muted-foreground",
         )}
-      >
-        {children}
-      </span>
-    </span>
+        aria-hidden
+      />
+      {phone ? null : SHORT[room]}
+      {face.count ? <WaitLight n={face.count} /> : null}
+    </button>
   );
 }
 
-/** Four photographs, two by two, each a quarter of the window. */
-function Mosaic({ srcs }: { srcs: readonly string[] }) {
+/* ══ WINDOWS: a small quiet picture of each room ═══════════════════════════ */
+
+/** Where a window's picture stands: a desk's card, a phone's square, a band's pill. */
+type WindowAt = "card" | "square" | "pill";
+
+/** A window's photographs: in grey at rest, their colour under the pointer (`.eh-window`). */
+function Tiles({ srcs, at }: { srcs: readonly string[]; at: WindowAt }) {
+  if (at === "pill")
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- a bootstrap still, drawn as the window's picture
+      <img src={srcs[0]} alt="" className="eh-mono size-full object-cover" />
+    );
   return (
-    <span className="absolute inset-0 grid grid-cols-2 grid-rows-2 gap-px bg-black">
+    <span className="grid size-[68%] grid-cols-2 grid-rows-2 gap-[2px]">
       {srcs.slice(0, 4).map((src, i) => (
-        // eslint-disable-next-line @next/next/no-img-element -- a bootstrap still, drawn as the door's picture
+        // eslint-disable-next-line @next/next/no-img-element -- a bootstrap still, drawn as the window's picture
         <img
           key={i}
           src={src}
           alt=""
-          className="size-full min-h-0 object-cover"
+          className="eh-mono size-full min-h-0 rounded-[2px] object-cover"
         />
       ))}
     </span>
   );
 }
 
-/** One photograph, filling the window. */
-function OneStill({ src }: { src: string }) {
+/**
+ * THE REEL'S OWN WINDOW: a small player drawn in ink, never its photographs
+ * (his note: the reel "should have its own card design within this option"):
+ * a screen's outline, its play mark, and a line that fills while it is live;
+ * before it can play, the two pips it counts to.
+ */
+function Player({ c, at }: { c: Case; at: WindowAt }) {
+  if (at === "pill")
+    return <Play className="size-3 fill-current" aria-hidden />;
+  const live = c.reel === "live";
   return (
-    // eslint-disable-next-line @next/next/no-img-element -- a bootstrap still, drawn as the door's picture
-    <img src={src} alt="" className="absolute inset-0 size-full object-cover" />
-  );
-}
-
-/** What each room looks like from its door. */
-function WindowPicture({
-  room,
-  f,
-  at,
-}: {
-  room: RoomId;
-  f: HostFacts;
-  at: WindowAt;
-}) {
-  const { ref, at: still } = useLivingClock<HTMLSpanElement>(REEL.length);
-  const small = at !== "door";
-  if (room === "album")
-    return f.photos > 0 ? (
-      at === "pill" ? (
-        <OneStill src={ALBUM[0].src} />
-      ) : (
-        <Mosaic srcs={ALBUM.map((p) => p.src)} />
-      )
-    ) : (
-      <Lit at={at}>
-        <Images className="size-4 text-white/60" aria-hidden />
-      </Lit>
-    );
-  if (room === "reel")
-    return f.reel === "live" ? (
-      <span ref={ref} className="absolute inset-0">
-        <LivingStills stills={REEL} at={still} />
-        {at === "pill" ? null : (
-          <span
+    <span
+      className={cn(
+        "relative flex flex-col items-center justify-center rounded-[5px] border-[1.5px] border-current",
+        at === "card" ? "h-[34px] w-[52px]" : "h-[26px] w-[40px]",
+      )}
+    >
+      {live ? (
+        <>
+          <Play
             className={cn(
-              "absolute flex items-center justify-center rounded-full glass",
-              at === "door"
-                ? "top-2.5 left-2.5 size-7"
-                : "inset-0 m-auto size-6",
+              "fill-current",
+              at === "card" ? "size-3.5" : "size-3",
             )}
-          >
-            <Play className="size-3 fill-current" aria-hidden />
+            aria-hidden
+          />
+          <span className="absolute inset-x-1.5 bottom-1 h-[2px] overflow-hidden rounded-full bg-current/25">
+            <span className="eh-reel-line block h-full rounded-full bg-current" />
           </span>
-        )}
-      </span>
-    ) : (
-      <Lit at={at}>
+        </>
+      ) : (
         <span className="flex items-center gap-1" aria-hidden>
           {[0, 1].map((i) => (
             <span
               key={i}
               className={cn(
-                "h-1.5 rounded-full",
-                small ? "w-2.5" : "w-5",
-                i < f.reelHave ? "bg-white" : "bg-white/30",
+                "h-[3px] w-2.5 rounded-full",
+                i < c.reelHave ? "bg-current" : "bg-current/30",
               )}
             />
           ))}
         </span>
-      </Lit>
-    );
-  if (room === "guests") {
-    const faces = f.waiting > 0 ? AT_THE_DOOR : f.guests > 0 ? GUESTS : [];
-    if (at === "pill")
-      return faces.length > 0 ? (
-        <span className="absolute inset-0 flex items-center justify-center">
-          <Avatar seed={faces[0].seed} size="sm">
-            <AvatarFallback className="text-[10px]">
-              {faces[0].name.charAt(0)}
-            </AvatarFallback>
-          </Avatar>
-        </span>
-      ) : (
-        <Lit at={at}>
-          <Users className="size-3.5 text-white/70" aria-hidden />
-        </Lit>
-      );
-    return (
-      <Lit at={at}>
-        {faces.length === 0 ? (
-          <Users className="size-5 text-white/60" aria-hidden />
-        ) : (
-          <span className={cn("flex", small ? "-space-x-1.5" : "-space-x-2.5")}>
-            {faces.slice(0, small ? 2 : 3).map((p) => (
-              <Avatar
-                key={p.name}
-                seed={p.seed}
-                size={small ? "sm" : "lg"}
-                className="ring-2 ring-black/50"
-              >
-                <AvatarFallback>{p.name.charAt(0)}</AvatarFallback>
-              </Avatar>
-            ))}
-          </span>
-        )}
-      </Lit>
-    );
-  }
-  if (room === "review")
-    return f.review > 0 ? (
-      at === "pill" ? (
-        <OneStill src={REVIEW[0].src} />
-      ) : (
-        <Mosaic srcs={REVIEW.map((r) => r.src)} />
-      )
-    ) : (
-      <Lit at={at}>
-        <Check className="size-5 text-white/70" aria-hidden />
-      </Lit>
-    );
-  if (room === "settings") {
-    // Settings' rail: the essentials a guest needs, each a segment, lit once ticked.
-    const r = settingsReadiness(f.ready).needed;
-    return (
-      <Lit at={at}>
-        <StepsRing
-          done={r.done}
-          total={r.of}
-          size={at === "door" ? 44 : at === "icon" ? 32 : 22}
-        />
-      </Lit>
-    );
-  }
-  // See it as a guest: her album as it stands in a guest's phone.
-  if (at === "pill")
-    return f.photos > 0 ? (
-      <OneStill src={COVER[0].tile} />
-    ) : (
-      <Lit at={at}>
-        <Smartphone className="size-3.5 text-white/70" aria-hidden />
-      </Lit>
-    );
-  return (
-    <Lit at={at}>
-      <span
-        className={cn(
-          "relative overflow-hidden bg-black ring-1 ring-white/45",
-          at === "door"
-            ? "h-[58px] w-[30px] rounded-[7px]"
-            : "h-[36px] w-[19px] rounded-[5px]",
-        )}
-      >
-        {f.photos > 0 ? (
-          // eslint-disable-next-line @next/next/no-img-element -- the cover's own still, drawn small
-          <img
-            src={COVER[0].tile}
-            alt=""
-            className="absolute inset-x-0 top-0 h-3/5 w-full object-cover"
-          />
-        ) : (
-          <span className="absolute inset-x-0 top-0 h-3/5 bg-white/15" />
-        )}
-        <span className="absolute inset-x-[18%] bottom-[14%] h-[9%] rounded-full bg-white" />
-      </span>
-    </Lit>
-  );
-}
-
-/** Settings' five steps as a ring, a segment each, lit once ticked. */
-function StepsRing({
-  done,
-  total,
-  size,
-}: {
-  done: number;
-  total: number;
-  size: number;
-}) {
-  const small = size < 40;
-  const r = 15;
-  const gap = 0.16;
-  return (
-    <span className="relative flex items-center justify-center">
-      <svg viewBox="0 0 36 36" width={size} height={size} aria-hidden>
-        {Array.from({ length: total }, (_, i) => {
-          const a0 = (i / total) * Math.PI * 2 - Math.PI / 2 + gap;
-          const a1 = ((i + 1) / total) * Math.PI * 2 - Math.PI / 2 - gap;
-          const p = (a: number) =>
-            `${(18 + Math.cos(a) * r).toFixed(2)} ${(18 + Math.sin(a) * r).toFixed(2)}`;
-          return (
-            <path
-              key={i}
-              d={`M ${p(a0)} A ${r} ${r} 0 0 1 ${p(a1)}`}
-              fill="none"
-              strokeWidth={2.6}
-              strokeLinecap="round"
-              stroke={i < done ? "white" : "rgb(255 255 255 / 0.25)"}
-            />
-          );
-        })}
-      </svg>
-      <Settings
-        className={cn("absolute text-white/80", small ? "size-3" : "size-4")}
-        aria-hidden
-      />
+      )}
     </span>
   );
 }
 
-/** The needs-action count on a window's corner. */
-function WindowCount({ n, small }: { n: number; small: boolean }) {
+/**
+ * SETTINGS' OWN WINDOW: its steps in miniature, a row each, the ticked ones'
+ * points in ink and the rest a ring. Never a ring of segments: a ring short of
+ * whole reads as a spinner, and nothing on the hub may look like it loads.
+ */
+function StepRows({
+  done,
+  total,
+  at,
+}: {
+  done: number;
+  total: number;
+  at: WindowAt;
+}) {
+  const rows = Math.min(total, 4);
+  const widths = ["78%", "62%", "70%", "54%"];
   return (
     <span
       className={cn(
-        "absolute z-10 flex items-center justify-center rounded-full bg-warning font-semibold text-warning-foreground tabular-nums shadow-layer",
-        small
-          ? "-top-1.5 -right-1.5 h-5 min-w-5 px-1 text-[11px]"
-          : "top-2 right-2 h-6 min-w-6 px-1.5 text-xs",
+        "flex flex-col",
+        at === "card" ? "w-[46px] gap-[7px]" : "w-[36px] gap-[5px]",
+      )}
+      aria-hidden
+    >
+      {Array.from({ length: rows }, (_, i) => (
+        <span key={i} className="flex items-center gap-1.5">
+          <span
+            className={cn(
+              "size-[6px] shrink-0 rounded-full",
+              i < done ? "bg-current" : "ring-[1.5px] ring-current/45 ring-inset",
+            )}
+          />
+          <span
+            className="h-[2px] rounded-full bg-current/40"
+            style={{ width: widths[i] }}
+          />
+        </span>
+      ))}
+    </span>
+  );
+}
+
+/** What each room looks like from its door, in the page's ink and grey. */
+function WindowPicture({
+  room,
+  c,
+  at,
+}: {
+  room: RoomId;
+  c: Case;
+  at: WindowAt;
+}) {
+  const small = at !== "card";
+  if (room === "reel") return <Player c={c} at={at} />;
+  if (room === "guests") {
+    const faces = c.waiting > 0 ? AT_THE_DOOR : c.guests > 0 ? GUESTS : [];
+    if (faces.length === 0)
+      return <Users className="size-4 opacity-70" aria-hidden />;
+    const shown = at === "pill" ? 1 : small ? 2 : 3;
+    return (
+      <span className="flex">
+        {faces.slice(0, shown).map((p, i) => (
+          <Avatar
+            key={p.name}
+            seed={p.seed}
+            size="sm"
+            className={cn("eh-mono ring-2 ring-muted", i > 0 && "-ms-2")}
+          >
+            <AvatarFallback className="text-[10px]">
+              {p.name.charAt(0)}
+            </AvatarFallback>
+          </Avatar>
+        ))}
+      </span>
+    );
+  }
+  if (room === "review")
+    return c.review > 0 ? (
+      <Tiles srcs={REVIEW.map((r) => r.src)} at={at} />
+    ) : (
+      <Check className="size-4 opacity-70" aria-hidden />
+    );
+  if (room === "settings") {
+    if (at === "pill") return <Settings className="size-3.5" aria-hidden />;
+    const r = settingsReadiness(c.ready).needed;
+    return <StepRows done={r.done} total={r.of} at={at} />;
+  }
+  // See it as a guest: her album standing in a guest's phone.
+  if (at === "pill") return <Smartphone className="size-3.5" aria-hidden />;
+  return (
+    <span
+      className={cn(
+        "relative overflow-hidden rounded-[5px] border-[1.5px] border-current",
+        at === "card" ? "h-[38px] w-[21px]" : "h-[30px] w-[17px]",
       )}
     >
-      {formatCount(n)}
+      {c.photos > 0 && c.stills[0] ? (
+        // eslint-disable-next-line @next/next/no-img-element -- the cover's own still, drawn small
+        <img
+          src={c.stills[0].tile}
+          alt=""
+          className="eh-mono absolute inset-x-0 top-0 h-3/5 w-full object-cover"
+        />
+      ) : (
+        <span className="absolute inset-x-0 top-0 h-3/5 bg-current/15" />
+      )}
+      <span className="absolute inset-x-[22%] bottom-[12%] h-[8%] rounded-full bg-current" />
+    </span>
+  );
+}
+
+/** The window's well: a quiet inset of the page, its picture in ink, the amber count on its corner. */
+function Well({
+  room,
+  c,
+  face,
+  at,
+  className,
+}: {
+  room: RoomId;
+  c: Case;
+  face: DoorFace;
+  at: WindowAt;
+  className?: string;
+}) {
+  return (
+    <span
+      className={cn(
+        "eh-well relative flex shrink-0 items-center justify-center bg-muted text-foreground/65",
+        className,
+      )}
+    >
+      <WindowPicture room={room} c={c} at={at} />
+      {face.count && at === "square" ? (
+        <span className="absolute -top-1 -right-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-warning px-1 text-[10px] font-semibold text-warning-foreground tabular-nums ring-2 ring-card">
+          {formatCount(face.count)}
+        </span>
+      ) : null}
     </span>
   );
 }
@@ -535,47 +500,42 @@ function WindowCount({ n, small }: { n: number; small: boolean }) {
 function WindowDoor({
   room,
   face,
-  f,
-  small,
+  c,
+  phone,
   selected,
   onOpen,
 }: {
   room: RoomId;
   face: DoorFace;
-  f: HostFacts;
-  small: boolean;
+  c: Case;
+  phone: boolean;
   selected: boolean;
   onOpen?: DoorPress;
 }) {
-  if (small)
+  if (phone)
     return (
       <button
         type="button"
         data-eh-door={room}
         aria-pressed={selected || undefined}
         onClick={() => onOpen?.(room)}
-        className="group flex min-w-0 flex-1 flex-col items-center gap-1.5 outline-none"
+        className="eh-window group flex min-w-0 flex-1 flex-col items-center gap-1.5 outline-none"
       >
-        <span
+        <Well
+          room={room}
+          c={c}
+          face={face}
+          at="square"
           className={cn(
-            "relative aspect-square w-full max-w-[60px] rounded-[18px] transition-transform duration-150 ease-emphasis group-active:scale-[0.96]",
+            "aspect-square w-full max-w-[60px] rounded-[16px] ring-0",
             selected &&
               "ring-2 ring-foreground ring-offset-2 ring-offset-background",
           )}
-        >
-          <span className="absolute inset-0 overflow-hidden rounded-[18px] ring-1 ring-black/5 dark:ring-white/10">
-            <WindowPicture room={room} f={f} at="icon" />
-          </span>
-          {face.count ? <WindowCount n={face.count} small /> : null}
-        </span>
-        {/* A word that outgrows its door (six doors at 375 where the album is one) takes a
-            second line rather than an ellipsis. */}
+        />
         <span
           className={cn(
             "max-w-full text-center text-[11px] leading-[1.15] font-medium text-balance",
-            face.strong && "text-foreground",
-            !face.strong && "text-muted-foreground",
-            selected && "text-foreground",
+            face.amber ? "text-foreground" : "text-muted-foreground",
           )}
         >
           {SHORT[room]}
@@ -589,161 +549,244 @@ function WindowDoor({
       aria-pressed={selected || undefined}
       onClick={() => onOpen?.(room)}
       className={cn(
-        "group relative h-28 w-44 shrink-0 overflow-hidden rounded-xl text-left text-white ring-1 ring-black/5 transition-transform duration-150 ease-emphasis outline-none active:scale-[0.98] dark:ring-white/10",
-        selected &&
-          "ring-2 ring-foreground ring-offset-2 ring-offset-background",
-      )}
-    >
-      <WindowPicture room={room} f={f} at="door" />
-      <span
-        aria-hidden
-        className="absolute inset-0 bg-linear-to-t from-black/80 via-black/25 to-transparent"
-      />
-      {face.count ? <WindowCount n={face.count} small={false} /> : null}
-      <span className="absolute inset-x-3 bottom-2.5 flex flex-col">
-        <span className="font-heading text-card-title">
-          {room === "guest" ? "As a guest" : ROOM_LABEL[room]}
-        </span>
-        <span
-          className={cn(
-            "truncate text-xs tabular-nums",
-            face.amber || face.strong
-              ? "font-medium text-white"
-              : "text-white/75",
-          )}
-        >
-          {face.value}
-        </span>
-      </span>
-    </button>
-  );
-}
-
-/** A window's stuck pill: its picture as the pill's glyph, its word, and the count that needs her. */
-function WindowPill({
-  room,
-  face,
-  f,
-  selected,
-  onOpen,
-}: {
-  room: RoomId;
-  face: DoorFace;
-  f: HostFacts;
-  selected: boolean;
-  onOpen?: DoorPress;
-}) {
-  return (
-    <button
-      type="button"
-      data-eh-door={room}
-      aria-pressed={selected || undefined}
-      onClick={() => onOpen?.(room)}
-      className={cn(
-        "flex h-9 shrink-0 items-center gap-2 rounded-full border border-border pr-3 pl-1 text-xs font-medium",
-        face.amber && "border-warning/40 bg-warning/5",
+        "eh-window group flex h-[5.25rem] min-w-0 flex-1 items-center gap-3 rounded-xl bg-card p-2.5 pr-3.5 text-left text-card-foreground outline-none",
         selected && "ring-2 ring-foreground",
       )}
     >
-      <span className="relative size-7 overflow-hidden rounded-full">
-        <WindowPicture room={room} f={f} at="pill" />
+      <Well
+        room={room}
+        c={c}
+        face={face}
+        at="card"
+        className="size-16 rounded-[10px]"
+      />
+      <span className="flex min-w-0 flex-col">
+        <span className="truncate font-heading text-card-title">
+          {ROOM_LABEL[room]}
+        </span>
+        <Value face={face} />
       </span>
-      {SHORT[room]}
-      {face.count ? <StuckCount n={face.count} /> : null}
     </button>
   );
 }
 
-/* ══ GLASS: the doors on the photograph ════════════════════════════════════ */
-
-function GlassDoor({
+/** A window, stuck: its picture as the pill's glyph, its word, and the count that needs her. */
+function WindowPill({
   room,
   face,
-  round,
+  c,
+  phone,
   selected,
   onOpen,
 }: {
   room: RoomId;
   face: DoorFace;
-  /** A phone's door: the glyph alone, its word on hover and a tap, as every glyph's. */
-  round: boolean;
+  c: Case;
+  phone: boolean;
   selected: boolean;
   onOpen?: DoorPress;
 }) {
-  const Icon = ICON[room];
   return (
     <button
       type="button"
       data-eh-door={room}
       aria-pressed={selected || undefined}
-      aria-label={round ? SHORT[room] : undefined}
-      title={round ? `${ROOM_LABEL[room]}: ${face.value}` : undefined}
+      aria-label={phone ? ROOM_LABEL[room] : undefined}
       onClick={() => onOpen?.(room)}
       className={cn(
-        "relative flex shrink-0 items-center justify-center glass text-white transition-transform duration-150 ease-emphasis outline-none active:scale-[0.97]",
-        round
-          ? "size-10 rounded-full"
-          : "h-9 gap-2 rounded-full pr-3.5 pl-3 text-sm font-medium",
-        selected && "bg-white/25 ring-2 ring-white",
+        "eh-window flex h-9 shrink-0 items-center gap-2 rounded-full bg-card text-xs font-medium outline-none",
+        phone ? "px-1" : "pr-3 pl-1",
+        selected && "ring-2 ring-foreground",
       )}
     >
-      <Icon className="size-4 shrink-0" aria-hidden />
-      {round ? null : (
-        <span>{room === "guest" ? "As a guest" : ROOM_LABEL[room]}</span>
-      )}
+      <Well
+        room={room}
+        c={c}
+        face={face}
+        at="pill"
+        className="size-7 overflow-hidden rounded-full"
+      />
+      {phone ? null : SHORT[room]}
       {face.count ? (
-        round ? (
-          <span className="absolute -top-1 -right-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-warning px-1 text-[10px] font-semibold text-warning-foreground tabular-nums">
-            {face.count}
-          </span>
-        ) : (
-          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-warning px-1.5 text-[11px] font-semibold text-warning-foreground tabular-nums">
-            {face.count}
-          </span>
-        )
+        <WaitLight n={face.count} className={phone ? "pr-1.5" : undefined} />
       ) : null}
     </button>
   );
 }
 
-/** The doors on the cover, a row of glass at its foot. */
-export function GlassDoors({
-  f,
-  screen,
-  order,
+/* ══ GLASS: one capsule on the cover ═══════════════════════════════════════ */
+
+/** How a segment stands: on the cover at a desk, on the cover in a hand (its glyph over its word), docked. */
+type SegmentForm = "desk" | "hand" | "dock" | "dock-hand";
+
+/** One segment of the capsule: its glyph, its word where there is room, the amber count. */
+function Segment({
+  room,
+  face,
+  form,
   selected,
   onOpen,
 }: {
-  f: HostFacts;
-  screen: ScreenId;
-  order: readonly RoomId[];
-  selected?: RoomId | null;
+  room: RoomId;
+  face: DoorFace;
+  form: SegmentForm;
+  selected: boolean;
   onOpen?: DoorPress;
 }) {
-  const faces = facesOf(f);
-  const round = screen === "375";
+  const Icon = ICON[room];
+  const hand = form === "hand";
+  const bare = form === "dock-hand";
+  return (
+    <button
+      type="button"
+      data-eh-door={room}
+      aria-pressed={selected || undefined}
+      aria-label={bare ? `${ROOM_LABEL[room]}: ${face.value}` : undefined}
+      title={`${ROOM_LABEL[room]}: ${face.value}`}
+      onClick={() => onOpen?.(room)}
+      className={cn(
+        "eh-seg relative flex shrink-0 items-center justify-center text-white outline-none",
+        hand
+          ? "h-full min-w-0 flex-1 flex-col gap-1 rounded-[18px] text-[11px] font-medium"
+          : bare
+            ? "size-9 rounded-full"
+            : "h-9 gap-2 rounded-full px-3.5 text-sm font-medium",
+        selected && "bg-white/20",
+      )}
+    >
+      <span className="relative">
+        <Icon className={hand ? "size-5" : "size-4"} aria-hidden />
+        {face.count && (hand || bare) ? (
+          <span className="absolute -top-1.5 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-warning px-1 text-[10px] leading-none font-semibold text-warning-foreground tabular-nums">
+            {formatCount(face.count)}
+          </span>
+        ) : null}
+      </span>
+      {bare ? null : (
+        <span className="truncate">
+          {form === "desk" ? ROOM_LABEL[room] : SHORT[room]}
+        </span>
+      )}
+      {face.count && !hand && !bare ? (
+        <WaitLight n={face.count} className="text-white" />
+      ) : null}
+    </button>
+  );
+}
+
+/** The capsule's hairline between two segments (a desk's; a hand's segments part by their own room). */
+function Hair() {
+  return <span aria-hidden className="h-4 w-px shrink-0 bg-white/18" />;
+}
+
+/** The doors on the cover: one glass capsule at its foot. */
+export function GlassDoors({
+  c,
+  screen,
+  selected,
+  onOpen,
+  capsuleRef,
+}: {
+  c: Case;
+  screen: ScreenId;
+  selected?: RoomId | null;
+  onOpen?: DoorPress;
+  /** A live frame reads its stuck state off the capsule's own top. */
+  capsuleRef?: RefObject<HTMLDivElement | null>;
+}) {
+  const faces = facesOf(c);
+  const hand = screen === "375";
   return (
     <div
+      ref={capsuleRef}
       data-eh-doors="glass"
+      data-eh-capsule=""
       role="group"
       aria-label="This event"
-      className={cn("flex items-center", round ? "gap-2" : "flex-wrap gap-2")}
+      className={cn(
+        "glass flex items-center text-white",
+        hand
+          ? "h-14 w-full gap-0.5 rounded-[22px] p-1"
+          : "h-11 w-fit gap-0.5 rounded-full p-1",
+      )}
     >
-      {order.map((room) => (
-        <GlassDoor
-          key={room}
-          room={room}
-          face={faces[room]}
-          round={round}
-          selected={selected === room}
-          onOpen={onOpen}
-        />
+      {ROOM_ORDER.map((room, i) => (
+        <span key={room} className={cn("contents")}>
+          {!hand && i > 0 ? <Hair /> : null}
+          <Segment
+            room={room}
+            face={faces[room]}
+            form={hand ? "hand" : "desk"}
+            selected={selected === room}
+            onOpen={onOpen}
+          />
+        </span>
       ))}
     </div>
   );
 }
 
+/**
+ * GLASS, STUCK: the capsule floats on under the bar once the cover's has gone
+ * under it, the cover's face leading it and the code's chip closing it, over
+ * the album scrolling beneath. It takes no room in the page (fixed), so the
+ * album never moves when it arrives.
+ */
+function GlassDock({
+  c,
+  name,
+  phone,
+  selected,
+  onOpen,
+}: {
+  c: Case;
+  name: string;
+  phone: boolean;
+  selected?: RoomId | null;
+  onOpen?: DoorPress;
+}) {
+  const faces = facesOf(c);
+  return (
+    <div
+      data-eh-band=""
+      data-stuck=""
+      className={cn(
+        "eh-dock pointer-events-none fixed inset-x-0 top-14 z-30 flex",
+        phone ? "justify-center px-3 pt-2" : "px-5 pt-2.5",
+      )}
+    >
+      <div
+        data-eh-doors="glass"
+        role="group"
+        aria-label="This event"
+        className="eh-dock-glass glass pointer-events-auto flex h-12 max-w-full items-center gap-0.5 rounded-full p-1.5 text-white"
+      >
+        <BandLead c={c} name={name} onGlass phone={phone} />
+        <Hair />
+        {ROOM_ORDER.map((room) => (
+          <Segment
+            key={room}
+            room={room}
+            face={faces[room]}
+            form={phone ? "dock-hand" : "dock"}
+            selected={selected === room}
+            onOpen={onOpen}
+          />
+        ))}
+        <CodeChip
+          aria-label={`Show the code for ${name}`}
+          title="Invite"
+          className="ms-1"
+        />
+      </div>
+    </div>
+  );
+}
+
 /* ══ THE ROW AND ITS BAND ══════════════════════════════════════════════════ */
+
+/** How far the cards rise into the cover: the seam they stand over (the cover clears it, `head.tsx`). */
+export const SEAM_RISE: Record<ScreenId, number> = { "375": 44, "1440": 64 };
 
 /**
  * THE ROW UNDER THE COVER, sticky, condensing to the band once it reaches the
@@ -753,26 +796,27 @@ export function GlassDoors({
  * ★ THE FOOTPRINT HOLDS THE RESTING ROW'S HEIGHT (production's `useStuckBand`),
  * so condensing never moves the album: a row that shrank under a live frame's
  * scroll would lift its own footprint off the bar and unstick it, for ever.
+ * ★ OVER THE SEAM, THE ROW RISES INTO THE COVER by its overlap (an inline
+ * margin: production's `space-y-6` is a utility the lab's cannot outrank).
  * ★ WITH THE DOORS ON THE COVER (`glass`) nothing stands under it at rest, so
- * the band arrives fixed under the bar once the cover has gone and takes no
- * room in the page; a sticky band appearing in the flow would push the album
- * down by its own height.
+ * the dock arrives fixed under the bar once the capsule has gone under it,
+ * and takes no room in the page.
  */
 export function DoorsRow({
   doors,
-  f,
+  c,
+  name,
   screen,
   stuck,
-  order,
   selected,
   onOpen,
   footRef,
 }: {
   doors: DoorsId;
-  f: HostFacts;
+  c: Case;
+  name: string;
   screen: ScreenId;
   stuck: boolean;
-  order: readonly RoomId[];
   selected?: RoomId | null;
   onOpen?: DoorPress;
   /** A live frame's footprint, which it reads its stuck state off. */
@@ -780,6 +824,7 @@ export function DoorsRow({
 }) {
   const bandRef = useRef<HTMLDivElement | null>(null);
   const [rest, setRest] = useState(0);
+  const phone = screen === "375";
   useLayoutEffect(() => {
     const band = bandRef.current;
     if (!band || stuck || doors === "glass") return;
@@ -791,36 +836,33 @@ export function DoorsRow({
   }, [stuck, doors]);
 
   if (doors === "glass")
-    return (
-      <>
-        <div ref={footRef} aria-hidden className="h-px" />
-        {stuck ? (
-          <div className="fixed inset-x-0 top-14 z-30">
-            <Band
-              doors={doors}
-              f={f}
-              screen={screen}
-              stuck
-              order={order}
-              selected={selected}
-              onOpen={onOpen}
-            />
-          </div>
-        ) : null}
-      </>
-    );
+    return stuck ? (
+      <GlassDock
+        c={c}
+        name={name}
+        phone={phone}
+        selected={selected}
+        onOpen={onOpen}
+      />
+    ) : null;
+
+  const rise = doors === "cards" ? SEAM_RISE[screen] : 0;
   return (
     <div
       ref={footRef}
+      data-eh-row={doors}
       className="pointer-events-none sticky top-14 z-30 -mx-3 sm:-mx-5"
-      style={rest ? { minHeight: rest } : undefined}
+      style={{
+        minHeight: rest || undefined,
+        marginTop: rise ? -(24 + rise) : undefined,
+      }}
     >
       <Band
         doors={doors}
-        f={f}
-        screen={screen}
+        c={c}
+        name={name}
+        phone={phone}
         stuck={stuck}
-        order={order}
         selected={selected}
         onOpen={onOpen}
         bandRef={bandRef}
@@ -831,35 +873,83 @@ export function DoorsRow({
 
 function Band({
   doors,
-  f,
-  screen,
+  c,
+  name,
+  phone,
   stuck,
-  order,
   selected,
   onOpen,
   bandRef,
 }: {
-  doors: DoorsId;
-  f: HostFacts;
-  screen: ScreenId;
+  doors: "cards" | "windows";
+  c: Case;
+  name: string;
+  phone: boolean;
   stuck: boolean;
-  order: readonly RoomId[];
   selected?: RoomId | null;
   onOpen?: DoorPress;
   bandRef?: RefObject<HTMLDivElement | null>;
 }) {
-  const faces = facesOf(f);
-  const phone = screen === "375";
-  const restingWindows = doors === "windows" && !stuck;
+  const faces = facesOf(c);
+  const seam = doors === "cards";
+  const doorOf = (room: RoomId): ReactNode => {
+    const face = faces[room];
+    const on = selected === room;
+    if (seam)
+      return stuck ? (
+        <SeamPill
+          key={room}
+          room={room}
+          face={face}
+          phone={phone}
+          selected={on}
+          onOpen={onOpen}
+        />
+      ) : (
+        <SeamCard
+          key={room}
+          room={room}
+          face={face}
+          phone={phone}
+          selected={on}
+          onOpen={onOpen}
+        />
+      );
+    return stuck ? (
+      <WindowPill
+        key={room}
+        room={room}
+        face={face}
+        c={c}
+        phone={phone}
+        selected={on}
+        onOpen={onOpen}
+      />
+    ) : (
+      <WindowDoor
+        key={room}
+        room={room}
+        face={face}
+        c={c}
+        phone={phone}
+        selected={on}
+        onOpen={onOpen}
+      />
+    );
+  };
   return (
     <div
       ref={bandRef}
       data-eh-band=""
       data-stuck={stuck || undefined}
       className={cn(
-        "pointer-events-auto border-b border-transparent transition-[box-shadow,border-color,background-color] duration-200",
+        "pointer-events-auto transition-[background-color,border-color] duration-200",
         phone ? "px-3 py-2" : "px-5 py-2",
-        stuck && "border-border bg-background/85 backdrop-blur",
+        stuck
+          ? seam
+            ? "eh-fade-band"
+            : "border-b border-border bg-background/85 backdrop-blur"
+          : "border-b border-transparent",
       )}
     >
       <div
@@ -867,54 +957,25 @@ function Band({
         role="group"
         aria-label="This event"
         className={cn(
-          restingWindows
+          stuck
             ? phone
-              ? "flex items-start justify-between gap-1.5 py-1"
-              : "flex gap-3 py-0.5"
-            : doors === "cards" && !stuck
-              ? roomRowLayout(false)
-              : "flex items-center gap-2 overflow-hidden py-0.5",
+              ? // In a hand the band runs past the screen's edge and fades there, as production's does.
+                "eh-shelf -mx-3 flex items-center gap-1.5 overflow-x-auto px-3 py-0.5"
+              : "flex items-center gap-2 overflow-hidden py-0.5"
+            : seam
+              ? phone
+                ? "eh-shelf -mx-3 flex gap-2.5 overflow-x-auto px-3 pt-0.5 pb-3"
+                : "flex gap-3 pt-0.5 pb-2"
+              : phone
+                ? "flex items-start justify-between gap-1.5 py-1"
+                : "flex gap-2.5 py-0.5",
         )}
       >
-        {stuck ? <BandLead f={f} /> : null}
-        {order.map((room) => {
-          const face = faces[room];
-          if (doors === "windows")
-            return stuck ? (
-              <WindowPill
-                key={room}
-                room={room}
-                face={face}
-                f={f}
-                selected={selected === room}
-                onOpen={onOpen}
-              />
-            ) : (
-              <WindowDoor
-                key={room}
-                room={room}
-                face={face}
-                f={f}
-                small={phone}
-                selected={selected === room}
-                onOpen={onOpen}
-              />
-            );
-          return (
-            <CardDoor
-              key={room}
-              room={room}
-              face={face}
-              f={f}
-              stuck={stuck}
-              selected={selected === room}
-              onOpen={onOpen}
-            />
-          );
-        })}
+        {stuck ? <BandLead c={c} name={name} phone={phone} /> : null}
+        {ROOM_ORDER.map(doorOf)}
         {stuck ? (
           <CodeChip
-            aria-label={`Show the code for ${EVENT.name}`}
+            aria-label={`Show the code for ${name}`}
             title="Invite"
             className="ml-0.5"
           />
@@ -925,23 +986,56 @@ function Band({
 }
 
 /** The band's lead once the cover has gone: its first photograph and the event's name. */
-function BandLead({ f }: { f: HostFacts }) {
+function BandLead({
+  c,
+  name,
+  phone,
+  onGlass = false,
+}: {
+  c: Case;
+  name: string;
+  phone: boolean;
+  onGlass?: boolean;
+}) {
+  const face = c.stills[0]?.tile;
   return (
     <span
       data-band-lead=""
-      className="flex min-w-0 shrink-0 items-center gap-2.5 pr-1"
+      className={cn(
+        "flex min-w-0 shrink-0 items-center gap-2.5",
+        onGlass ? "ps-0 pe-2" : "pr-1",
+        phone && "pe-1",
+      )}
     >
-      {f.photos > 0 ? (
+      {face ? (
         // eslint-disable-next-line @next/next/no-img-element -- the cover's first still
         <img
-          src={COVER[0].tile}
+          src={face}
           alt=""
-          className="size-9 shrink-0 rounded-lg object-cover"
+          className={cn(
+            "size-9 shrink-0 object-cover",
+            onGlass ? "rounded-full" : "rounded-lg",
+          )}
         />
-      ) : null}
-      <span className="max-w-48 truncate font-heading text-card-title">
-        {EVENT.name}
-      </span>
+      ) : (
+        <span
+          aria-hidden
+          className={cn(
+            "size-9 shrink-0",
+            onGlass ? "rounded-full bg-white/15" : "rounded-lg bg-muted",
+          )}
+        />
+      )}
+      {phone ? null : (
+        <span
+          className={cn(
+            "max-w-48 truncate font-heading text-card-title",
+            onGlass && "text-white",
+          )}
+        >
+          {name}
+        </span>
+      )}
     </span>
   );
 }

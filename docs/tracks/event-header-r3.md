@@ -81,5 +81,7 @@ working.
 
 ## Where I am
 
-- Booted, synced onto identity-wiring (`8c2dce39`), Questions written. Next: the board's r3 (spec, fixtures for the six
-  cases, the four facts, the three doors with their bands), then the gate and the lab steps on :3134.
+- Board r3 drawn (WIP): `facts` (strip, faces, latest, colours) on six albums, `doors` (cards over the seam, quiet
+  windows, one glass capsule) with Try it and the stuck form; Screen, Ground and Moment knobs. Registry and queue
+  tests green. Next: visual polish from captures (`../partyreel-wt/_scratch/event-header-r3/shoot.mjs`), then the
+  whole gate, `lab:smoke`, `lab:demo` at 1440 and 375, the Handoff.

@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { ChevronLeft, ImageUp, Play, QrCode, X } from "lucide-react";
+import { ImageUp, Play, QrCode, X } from "lucide-react";
 
 import {
   AtTheDoor,
@@ -425,19 +425,5 @@ export function GuestAlbum({
         </div>
       )}
     </div>
-  );
-}
-
-/** Her way back from her own album as a guest's, in the photograph's glass. */
-export function BackToHub({ onClose }: { onClose?: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClose}
-      className="flex h-9 shrink-0 items-center gap-1 rounded-full glass pr-3.5 pl-2.5 text-sm font-medium text-white"
-    >
-      <ChevronLeft className="size-4" aria-hidden />
-      Back to your hub
-    </button>
   );
 }

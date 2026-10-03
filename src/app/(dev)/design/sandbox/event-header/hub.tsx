@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  type CSSProperties,
   type ReactNode,
   type RefObject,
   useCallback,
@@ -8,7 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { ChevronLeft, ExternalLink, X } from "lucide-react";
+import { ExternalLink, X } from "lucide-react";
 
 import { EventChecklist } from "@/components/app/event-feed/checklist";
 import { HostAddProvider } from "@/components/app/host-add-provider";
@@ -17,7 +18,6 @@ import { EventShareProvider } from "@/components/app/share/event-share-provider"
 import { UserMenu } from "@/components/app/user-menu";
 import { AppShell } from "@/components/shared/app-shell";
 import { SetCrumbs } from "@/components/shared/crumbs";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 import { Frame } from "@/components/lab";
@@ -28,14 +28,12 @@ import {
   type DoorsId,
   GlassDoors,
   ROOM_LABEL,
-  ROOM_ORDER,
   type RoomId,
-  UNDER_ORDER,
 } from "./doors";
-import { EVENT, HOST, MOMENTS, type Moment } from "./fixtures";
-import { type FactsId, HubHead } from "./head";
+import type { FactsId } from "./facts";
+import { type Case, HOST } from "./fixtures";
+import { HubHead } from "./head";
 import {
-  BackToHub,
   GuestAlbum,
   GuestsBody,
   ReelView,
@@ -45,55 +43,49 @@ import {
 import type { ScreenId } from "./scene";
 
 /**
- * MAYA'S HUB, AND THE THREE WAYS A DOOR OPENS ITS ROOM.
+ * HER HUB, AS ROOMS-WIRING WIRED IT: production's own order
+ * (`dashboard/[eventId]/page.tsx`): the app's chrome (`AppShell`, the crumbs,
+ * the bell, her menu), the cover, the doors going sticky, the checklist while
+ * the event is not ready (production's `EventChecklist`), and the album. A
+ * frame is drawn in both decisions at once: the cover's `facts` and the row's
+ * `doors`.
  *
- * The page is production's in its own order (`dashboard/[eventId]/page.tsx`):
- * the app's chrome (`AppShell`, the crumbs, the bell, her menu), the cover,
- * the row of doors going sticky, the checklist while the event is not ready
- * (production's `EventChecklist`), and the album. A frame is drawn in all
- * three decisions at once: the cover's `facts`, the row's `doors`, and what a
- * press does, `rooms`.
+ * ★ EVERY ROOM OPENS OVER THE HUB (his `rooms=over`, wired): Review, Guests
+ * and Settings in one panel at a desk and the whole screen in a hand, the
+ * reel full screen, See it as a guest a phone over the dimmed hub. Only Try
+ * it opens one, on a press.
  *
- *  - `today`: Review and Guests are pages under their crumb, Settings is the
- *    settings kind (a panel at a desk, the whole screen in a hand), and the
- *    reel and a guest's view leave the hub for the guests' album;
- *  - `over`: every room is a place over the hub in that one kind, the reel
- *    and the guests' album over the whole screen, and each closes back to
- *    the hub as she left it (`ui/popup-kinds.ts` is the table it would join);
- *  - `under`: the doors are tabs, the album is one of them, and a room takes
- *    the album's place under the band; the reel plays in the cover grown to
- *    the screen, and See it as a guest turns the whole page into hers.
+ * ★ ON THE GROUND THE BOARD ASKS FOR (paper, or the room), whatever the lab
+ * itself wears: the frame's page takes the ground's class, and `--eh-page`
+ * carries the page's own colour into the cover (which is the room in both),
+ * so a seam that fades into the page fades into the right one.
  *
  * ★ A LAYER STANDS IN THE FRAME'S OWN VIEWPORT: `fixed` inside the frame's
- * document is fixed to the frame, so a panel, a screen, the reel and the
- * phone are drawn where production would draw them, over the hub, which stays
- * mounted and scrolled behind (`data-eh-behind`).
+ * document is fixed to the frame, so a panel, the reel and the phone are drawn
+ * where production would draw them, over the hub, which stays mounted and
+ * scrolled behind (`data-eh-behind`).
  */
 
-export type RoomsId = "today" | "over" | "under";
+export type Ground = "paper" | "room";
 
 export type HubDraw = {
   facts: FactsId;
   doors: DoorsId;
-  rooms: RoomsId;
-  moment: Moment;
+  c: Case;
   screen: ScreenId;
+  ground: Ground;
 };
-
-/** The crumb a room page wears, and the one its links answer to in a live frame. */
-const HUB_HREF = "/dashboard/eh-maya-and-jay";
 
 /* ── the host app around every drawing ────────────────────────────────────── */
 
 function HostApp({
-  trail,
-  onCrumb,
+  name,
+  ground,
   children,
   layer,
 }: {
-  trail: { label: string; href?: string }[];
-  /** A live frame's crumbs go back to the hub (a still frame's go nowhere). */
-  onCrumb?: () => void;
+  name: string;
+  ground: Ground;
   children: ReactNode;
   /** What stands over the page, outside the shell's stacking. */
   layer?: ReactNode;
@@ -102,15 +94,12 @@ function HostApp({
     <EventShareProvider initialSheet={null}>
       <HostAddProvider>
         <div
-          className="relative min-h-screen bg-background text-foreground"
-          onClickCapture={
-            onCrumb
-              ? (e) => {
-                  const a = (e.target as Element).closest("header a[href]");
-                  if (a) onCrumb();
-                }
-              : undefined
-          }
+          data-eh-ground={ground}
+          className={cn(
+            ground === "room" ? "dark" : "surface-paper",
+            "relative min-h-screen bg-background text-foreground",
+          )}
+          style={{ "--eh-page": "var(--background)" } as CSSProperties}
         >
           <AppShell
             headerActions={
@@ -126,7 +115,9 @@ function HostApp({
               </>
             }
           >
-            <SetCrumbs trail={trail} />
+            <SetCrumbs
+              trail={[{ label: "Partyreel", href: "/dashboard" }, { label: name }]}
+            />
             {children}
           </AppShell>
           {layer}
@@ -136,31 +127,19 @@ function HostApp({
   );
 }
 
-const HUB_TRAIL = [
-  { label: "Partyreel", href: "/dashboard" },
-  { label: EVENT.name },
-];
+/* ── the rooms, over the hub ──────────────────────────────────────────────── */
 
-/* ── the containers ───────────────────────────────────────────────────────── */
-
-/** A working room's body: Review, Guests or Settings, production's own. */
-function RoomBody({ room, d }: { room: RoomId; d: HubDraw }) {
-  const f = MOMENTS[d.moment];
-  if (room === "review") return <ReviewBody f={f} />;
-  if (room === "guests") return <GuestsBody f={f} />;
-  return <SettingsBody f={f} />;
+function RoomBody({ room, c }: { room: RoomId; c: Case }) {
+  if (room === "review") return <ReviewBody f={c} />;
+  if (room === "guests") return <GuestsBody f={c} />;
+  return <SettingsBody f={c} />;
 }
 
 /**
- * THE SETTINGS KIND (`popup-kinds.ts`: a panel at a desk, the whole screen in
- * a hand): the room's own heading leads it, and a hand's bar names where its
- * arrow returns. Its scrim takes a press as the close.
- *
- * ★ ONE PANEL FOR EVERY ROOM, A STEP WIDER THAN SETTINGS' TODAY (512 where
- * the kind's panel is 448), because Review's grid and the Guests room's rows
- * are working rooms; Settings opening in it is 64px wider than it ships.
+ * THE ONE PANEL (`share/room-panel.tsx`): a panel at a desk, the whole screen
+ * in a hand, its scrim a close.
  */
-function PlaceLayer({
+function PanelLayer({
   room,
   d,
   onClose,
@@ -170,93 +149,43 @@ function PlaceLayer({
   onClose?: () => void;
 }) {
   const desk = d.screen === "1440";
-  if (desk)
-    return (
-      <div className="eh-layer fixed inset-0 z-50">
-        <div
-          aria-hidden
-          className="eh-scrim absolute inset-0 bg-black/40"
-          onClick={onClose}
-        />
-        <aside
-          data-eh-room={ROOM_LABEL[room]}
-          data-eh-shape="a panel"
-          className="eh-panel absolute inset-y-0 right-0 flex w-3/4 max-w-lg flex-col border-l bg-popover text-popover-foreground shadow-layer"
-        >
-          {/* The close stands just outside the panel's edge, over the dimmed hub it returns to,
-              so the room's own heading row keeps the panel's whole width. */}
-          <button
-            type="button"
-            aria-label="Close"
-            onClick={onClose}
-            className="absolute top-4 -left-14 flex size-10 items-center justify-center rounded-full bg-popover text-popover-foreground shadow-layer ring-1 ring-border hover:bg-muted"
-          >
-            <X className="size-4" />
-          </button>
-          <div className="flex-1 overflow-y-auto px-6 pt-6 pb-8">
-            <RoomBody room={room} d={d} />
-          </div>
-        </aside>
-      </div>
-    );
   return (
-    <div
-      data-eh-room={ROOM_LABEL[room]}
-      data-eh-shape="the whole screen"
-      className="eh-screen fixed inset-0 z-50 flex flex-col bg-background"
-    >
-      <div className="flex h-13 shrink-0 items-center border-b px-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onClose}
-          className="gap-0.5 px-1.5 text-muted-foreground"
-        >
-          <ChevronLeft className="size-5" />
-          {EVENT.name}
-        </Button>
-      </div>
-      <div className="flex-1 overflow-y-auto px-3 pt-5 pb-8">
-        <RoomBody room={room} d={d} />
-      </div>
-    </div>
-  );
-}
-
-/** The reel over the whole screen, risen from the foot (the `cover` shape). */
-function ReelLayer({
-  d,
-  closeTo,
-  onClose,
-}: {
-  d: HubDraw;
-  closeTo: string;
-  onClose?: () => void;
-}) {
-  return (
-    <div
-      data-eh-room="Highlight reel"
-      data-eh-shape="the whole screen"
-      className="eh-cover fixed inset-0 z-50"
-    >
-      <ReelView
-        f={MOMENTS[d.moment]}
-        desk={d.screen === "1440"}
-        closeTo={closeTo}
-        onClose={onClose}
+    <div className="eh-layer fixed inset-0 z-50">
+      <div
+        aria-hidden
+        className="eh-scrim absolute inset-0 bg-black/50"
+        onClick={onClose}
       />
+      <aside
+        data-eh-room={ROOM_LABEL[room]}
+        className={cn(
+          "eh-panel absolute flex flex-col bg-popover text-popover-foreground shadow-layer",
+          desk ? "inset-y-0 right-0 w-3/4 max-w-lg border-l" : "inset-0",
+        )}
+      >
+        <button
+          type="button"
+          aria-label="Close"
+          onClick={onClose}
+          className="absolute top-4 right-4 z-10 flex size-9 items-center justify-center rounded-full bg-muted text-foreground hover:bg-accent"
+        >
+          <X className="size-4" />
+        </button>
+        <div
+          className={cn(
+            "flex-1 overflow-y-auto pb-8",
+            desk ? "px-6 pt-6" : "px-3 pt-5",
+          )}
+        >
+          <RoomBody room={room} c={d.c} />
+        </div>
+      </aside>
     </div>
   );
 }
 
-/**
- * SEE IT AS A GUEST, OVER THE HUB. At a desk her album stands in a phone over
- * the dimmed hub, a real 390 by 844 viewport (a frame inside the frame, so the
- * cover lays out as a phone does), scrollable, the payoff of the row; in a
- * hand it is the whole screen, the way back to her hub floating over it.
- */
+/** See it as a guest: a phone over the dimmed hub at a desk, the whole screen in a hand. */
 function GuestLayer({ d, onClose }: { d: HubDraw; onClose?: () => void }) {
-  const f = MOMENTS[d.moment];
   if (d.screen === "1440")
     return (
       <div className="eh-layer fixed inset-0 z-50 flex items-center justify-center">
@@ -275,14 +204,13 @@ function GuestLayer({ d, onClose }: { d: HubDraw; onClose?: () => void }) {
         </button>
         <div
           data-eh-room="See it as a guest"
-          data-eh-shape="a phone over the hub"
           className="eh-phone relative flex flex-col items-center gap-4"
         >
           <p className="text-sm text-white/75">What your guests see</p>
           <div className="eh-phone-body overflow-hidden rounded-[46px] bg-black p-2.5 shadow-2xl ring-1 ring-white/15">
             <div className="overflow-hidden rounded-[36px]">
               <Frame id="eh-guest-phone" w={390} h={844} title="">
-                <GuestAlbum f={f} screen="375" />
+                <GuestAlbum f={d.c} screen="375" />
               </Frame>
             </div>
           </div>
@@ -296,123 +224,55 @@ function GuestLayer({ d, onClose }: { d: HubDraw; onClose?: () => void }) {
   return (
     <div
       data-eh-room="See it as a guest"
-      data-eh-shape="the whole screen"
       className="eh-cover fixed inset-0 z-50 overflow-y-auto bg-background"
     >
-      <GuestAlbum f={f} screen="375" back={<BackToHub onClose={onClose} />} />
+      <GuestAlbum
+        f={d.c}
+        screen="375"
+        back={
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-9 shrink-0 items-center gap-1 rounded-full glass pr-3.5 pl-2.5 text-sm font-medium text-white"
+          >
+            <X className="size-4" aria-hidden />
+            Back to your hub
+          </button>
+        }
+      />
     </div>
   );
+}
+
+function LayerFor({
+  open,
+  d,
+  onClose,
+}: {
+  open: RoomId;
+  d: HubDraw;
+  onClose?: () => void;
+}) {
+  if (open === "reel")
+    return (
+      <div data-eh-room="Highlight reel" className="eh-cover fixed inset-0 z-50">
+        <ReelView
+          f={d.c}
+          desk={d.screen === "1440"}
+          closeTo="Back to your hub"
+          onClose={onClose}
+        />
+      </div>
+    );
+  if (open === "guest") return <GuestLayer d={d} onClose={onClose} />;
+  return <PanelLayer room={open} d={d} onClose={onClose} />;
 }
 
 /* ── the hub ──────────────────────────────────────────────────────────────── */
 
 /**
- * THE HUB'S OWN PAGE: the cover, the doors, then what stands under them,
- * which is the checklist and the album, or (every room under the band) the
- * room whose tab is pressed.
- */
-function HubPage({
-  d,
-  open,
-  stuck,
-  onOpen,
-  footRef,
-  behind,
-}: {
-  d: HubDraw;
-  open: RoomId | null;
-  stuck: boolean;
-  onOpen?: (room: RoomId) => void;
-  footRef?: RefObject<HTMLDivElement | null>;
-  /** A layer stands over the page. */
-  behind: boolean;
-}) {
-  const f = MOMENTS[d.moment];
-  const under = d.rooms === "under";
-  const order = under ? UNDER_ORDER : ROOM_ORDER;
-  const selected = under ? (open ?? "album") : null;
-  const glass =
-    d.doors === "glass" ? (
-      <GlassDoors
-        f={f}
-        screen={d.screen}
-        order={order}
-        selected={selected}
-        onOpen={onOpen}
-      />
-    ) : undefined;
-  const inPlace = under && open && open !== "album" && open !== "reel";
-  const head =
-    under && open === "reel" ? (
-      <section
-        data-eh-head=""
-        data-eh-room="Highlight reel"
-        data-eh-shape="the cover, grown to the screen"
-        className="eh-grown relative -mx-3 overflow-hidden sm:-mx-5"
-        style={{
-          marginTop: -32,
-          height:
-            d.screen === "1440"
-              ? "calc(100vh - 56px - 136px)"
-              : "calc(100vh - 56px - 108px)",
-        }}
-      >
-        <ReelView
-          f={f}
-          desk={d.screen === "1440"}
-          closeTo="Back to the album"
-          onClose={() => onOpen?.("album")}
-        />
-      </section>
-    ) : (
-      <HubHead facts={d.facts} f={f} screen={d.screen} doorsOnCover={glass} />
-    );
-  return (
-    <div
-      data-app-wide
-      data-eh-behind={behind || undefined}
-      className="space-y-6"
-    >
-      {head}
-      <DoorsRow
-        doors={d.doors}
-        f={f}
-        screen={d.screen}
-        stuck={stuck}
-        order={order}
-        selected={selected}
-        onOpen={onOpen}
-        footRef={footRef}
-      />
-      {inPlace ? (
-        <div
-          data-eh-room={ROOM_LABEL[open]}
-          data-eh-shape="in place, under the band"
-          className={cn("eh-swap", open === "settings" && "max-w-2xl")}
-        >
-          <RoomBody room={open} d={d} />
-        </div>
-      ) : (
-        <>
-          {d.moment === "before" ? (
-            <EventChecklist
-              eventId="eh-maya-and-jay"
-              facts={f.ready}
-              over={false}
-              plan={{ tier: "pro", hasBilling: true }}
-            />
-          ) : null}
-          <HubAlbum f={f} screen={d.screen} />
-        </>
-      )}
-    </div>
-  );
-}
-
-/**
- * ONE FRAME OF THE HUB, in all three decisions, with `open` the room standing
- * open (null: the hub at rest). Every option's still frames are this; Try it
- * is this with its state its own.
+ * ONE FRAME OF THE HUB, in both decisions, with `open` the room standing open
+ * over it (null: the hub at rest).
  */
 export function Hub({
   d,
@@ -421,6 +281,7 @@ export function Hub({
   onOpen,
   onClose,
   footRef,
+  capsuleRef,
 }: {
   d: HubDraw;
   open?: RoomId | null;
@@ -428,141 +289,55 @@ export function Hub({
   onOpen?: (room: RoomId) => void;
   onClose?: () => void;
   footRef?: RefObject<HTMLDivElement | null>;
+  capsuleRef?: RefObject<HTMLDivElement | null>;
 }) {
-  const desk = d.screen === "1440";
-  const f = MOMENTS[d.moment];
-
-  /* TODAY: two pages, a panel, and a trip to the guests' album. */
-  if (d.rooms === "today") {
-    if (open === "review" || open === "guests")
-      return (
-        <HostApp
-          trail={[
-            { label: "Partyreel", href: "/dashboard" },
-            { label: EVENT.name, href: HUB_HREF },
-            { label: ROOM_LABEL[open] },
-          ]}
-          onCrumb={onClose}
-        >
-          <div
-            data-eh-room={ROOM_LABEL[open]}
-            data-eh-shape="a page of its own"
-            className="eh-page mx-auto max-w-5xl"
-          >
-            <RoomBody room={open} d={d} />
-          </div>
-        </HostApp>
-      );
-    if (open === "reel" || open === "guest")
-      return (
-        <TripToTheGuests
-          d={d}
-          reel={open === "reel"}
-          onClose={onClose}
-          desk={desk}
-        />
-      );
-  }
-
-  /* UNDER: See it as a guest turns the whole page into hers. */
-  if (d.rooms === "under" && open === "guest")
-    return (
+  const c = d.c;
+  const layer = open ? <LayerFor open={open} d={d} onClose={onClose} /> : null;
+  return (
+    <HostApp name={c.name} ground={d.ground} layer={layer}>
       <div
-        data-eh-room="See it as a guest"
-        data-eh-shape="the whole page, turned"
-        className="eh-turn"
+        data-app-wide
+        data-eh-behind={layer ? "" : undefined}
+        className="space-y-6"
       >
-        <GuestAlbum
-          f={f}
+        <HubHead
+          facts={d.facts}
+          doors={d.doors}
+          c={c}
           screen={d.screen}
-          back={<BackToHub onClose={onClose} />}
+          doorsOnCover={
+            d.doors === "glass" ? (
+              <GlassDoors
+                c={c}
+                screen={d.screen}
+                selected={open}
+                onOpen={onOpen}
+                capsuleRef={capsuleRef}
+              />
+            ) : undefined
+          }
         />
-      </div>
-    );
-
-  const layer =
-    open && open !== "album" ? (
-      d.rooms === "over" ? (
-        open === "reel" ? (
-          <ReelLayer d={d} closeTo="Back to your hub" onClose={onClose} />
-        ) : open === "guest" ? (
-          <GuestLayer d={d} onClose={onClose} />
-        ) : (
-          <PlaceLayer room={open} d={d} onClose={onClose} />
-        )
-      ) : d.rooms === "today" && open === "settings" ? (
-        <PlaceLayer room="settings" d={d} onClose={onClose} />
-      ) : null
-    ) : null;
-
-  return (
-    <HostApp trail={HUB_TRAIL} layer={layer}>
-      <HubPage
-        d={d}
-        open={d.rooms === "under" ? open : null}
-        stuck={stuck}
-        onOpen={onOpen}
-        footRef={footRef}
-        behind={Boolean(layer)}
-      />
-    </HostApp>
-  );
-}
-
-/**
- * TODAY'S TRIP TO THE GUESTS' ALBUM. The reel's card opens the guests' album
- * with its view over it (`/e/<token>?reel`), whose close lands on that album,
- * not on her hub; the link opens the album in a new tab. Either way her hub
- * is a Back (or a tab) away, and the line at the foot is that trip, said.
- */
-function TripToTheGuests({
-  d,
-  reel,
-  onClose,
-  desk,
-}: {
-  d: HubDraw;
-  reel: boolean;
-  onClose?: () => void;
-  desk: boolean;
-}) {
-  const f = MOMENTS[d.moment];
-  const [watching, setWatching] = useState(reel);
-  return (
-    <div
-      data-eh-room={reel ? "Highlight reel" : "See it as a guest"}
-      data-eh-shape={
-        reel
-          ? "the guests' album, its reel open"
-          : "the guests' album, in a new tab"
-      }
-      className="relative"
-    >
-      <GuestAlbum f={f} screen={d.screen} />
-      {watching ? (
-        <div className="fixed inset-0 z-50">
-          <ReelView
-            f={f}
-            desk={desk}
-            closeTo="Back to the album"
-            onClose={() => setWatching(false)}
+        <DoorsRow
+          doors={d.doors}
+          c={c}
+          name={c.name}
+          screen={d.screen}
+          stuck={stuck}
+          selected={open}
+          onOpen={onOpen}
+          footRef={footRef}
+        />
+        {c.photos === 0 ? (
+          <EventChecklist
+            eventId="eh-maya-and-jay"
+            facts={c.ready}
+            over={false}
+            plan={{ tier: "pro", hasBilling: true }}
           />
-        </div>
-      ) : (
-        <div className="fixed inset-x-0 bottom-4 z-40 flex justify-center px-4">
-          <div className="flex items-center gap-3 rounded-full bg-popover py-1.5 pr-1.5 pl-4 text-sm text-popover-foreground shadow-layer ring-1 ring-border">
-            <span>
-              {reel
-                ? "The guests' album. Your hub is a Back away."
-                : "A new tab. Your hub is in the other one."}
-            </span>
-            <Button size="sm" variant="outline" onClick={onClose}>
-              {reel ? "Back" : "Close the tab"}
-            </Button>
-          </div>
-        </div>
-      )}
-    </div>
+        ) : null}
+        <HubAlbum f={c} screen={d.screen} album={c.album} />
+      </div>
+    </HostApp>
   );
 }
 
@@ -571,38 +346,45 @@ function TripToTheGuests({
 /**
  * A FRAME'S OWN STUCK STATE, off its own scroll. Production asks an
  * IntersectionObserver with the bar's height as its margin; a root margin
- * does not reach into a frame's document, so a live frame reads the
- * footprint's top against the bar on every scroll instead.
+ * does not reach into a frame's document, so a live frame reads its mark's
+ * top against the bar on every scroll instead: the row's footprint, or where
+ * the doors are glass, the capsule itself (it docks the moment it reaches the
+ * bar).
  */
-function useStuckIn(footRef: RefObject<HTMLDivElement | null>, key: unknown) {
+function useStuckIn(
+  mark: RefObject<HTMLDivElement | null>,
+  at: number,
+  key: unknown,
+) {
   const [stuck, setStuck] = useState(false);
   useEffect(() => {
-    const foot = footRef.current;
-    const win = foot?.ownerDocument.defaultView;
-    if (!foot || !win) return;
-    const read = () => setStuck(foot.getBoundingClientRect().top <= 57);
+    const el = mark.current;
+    const win = el?.ownerDocument.defaultView;
+    if (!el || !win) return;
+    const read = () => setStuck(el.getBoundingClientRect().top <= at);
     read();
     win.addEventListener("scroll", read, { passive: true });
     return () => win.removeEventListener("scroll", read);
-  }, [footRef, key]);
+  }, [mark, at, key]);
   return stuck;
 }
 
 /**
- * TRY IT: the hub running in one rooms option. Every door opens its room the
- * way that option opens it, Esc and the room's own close bring her back, and
- * the frame's scroll folds the doors into the band as production's does.
+ * TRY IT: the hub running. Scroll it and the doors fold into their band (or
+ * the capsule docks under the bar); press a door and its room opens over the
+ * hub as wired; Esc and the room's own close bring her back.
  */
 export function TryHub({ d }: { d: HubDraw }) {
   const [open, setOpen] = useState<RoomId | null>(null);
   const footRef = useRef<HTMLDivElement | null>(null);
-  const stuck = useStuckIn(footRef, `${d.rooms}-${open}`);
-  const root = useRef<HTMLSpanElement | null>(null);
-
-  const press = useCallback(
-    (room: RoomId) => setOpen(room === "album" ? null : room),
-    [],
+  const capsuleRef = useRef<HTMLDivElement | null>(null);
+  const glass = d.doors === "glass";
+  const stuck = useStuckIn(
+    glass ? capsuleRef : footRef,
+    glass ? 64 : 57,
+    `${d.doors}-${open}`,
   );
+  const root = useRef<HTMLSpanElement | null>(null);
   const close = useCallback(() => setOpen(null), []);
 
   useEffect(() => {
@@ -615,14 +397,6 @@ export function TryHub({ d }: { d: HubDraw }) {
     return () => win.removeEventListener("keydown", onKey);
   }, []);
 
-  // A room that is a page of its own, or a trip, starts at its top.
-  useEffect(() => {
-    const win = root.current?.ownerDocument.defaultView;
-    if (!win) return;
-    if (d.rooms === "today" && open && open !== "settings")
-      win.scrollTo({ top: 0, behavior: "instant" });
-  }, [d.rooms, open]);
-
   return (
     <>
       <span ref={root} hidden />
@@ -630,9 +404,10 @@ export function TryHub({ d }: { d: HubDraw }) {
         d={d}
         open={open}
         stuck={stuck}
-        onOpen={press}
+        onOpen={setOpen}
         onClose={close}
         footRef={footRef}
+        capsuleRef={capsuleRef}
       />
     </>
   );
