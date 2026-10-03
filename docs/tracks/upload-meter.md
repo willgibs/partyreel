@@ -81,14 +81,41 @@ and how the meter counts is a fact no host can feel).
 8. **A retry counts again:** the uploader asks a new presign for a retried file, so a guest whose PUT dropped spends her
    file twice (the meter never refunds). Recommended to accept (a 3× month); the alternative is the uploader
    re-trying its live PUT URL before a new presign (a client change, Deferred).
+9. ★ **The count at presign opens a griefing door (found in this lane's own red-team; the brief's design, built as
+   briefed).** A declared size costs nothing to claim, so anyone holding a ticket to an album can spend its host's month
+   with presigns she never fills: a Pro 100 GB month (300 GiB) in 30 requests of 10 GiB, an Event Pass's (225 GiB) in
+   23, Free's (300 MiB) in 3 (each presign may declare up to the room left, which a phantom never fills). Default albums
+   need a confirmed account for a ticket (one ticket an account an album), so one account is enough; a name-only album's
+   tickets are free. Today the same harm needs the bytes themselves (300 GiB of real uploads for Pro 100 GB). And with no
+   meter in `/admin` and no override, a host so spent cannot upload until the month turns: the one outcome PRICING.md
+   says is worth engineering against. Pre-launch nobody is exposed. **Recommended: ship this count now (it closes the
+   abandoned-upload cost hole, which is real today), and before launch move the count to what landed, by staging:** a
+   single PUT goes to a `staging/` key the backup never copies and a bucket rule deletes after a day, and the complete
+   copies it into place and counts its real bytes (a multipart never becomes an object until the complete assembles
+   it), so an unsent byte never counts and an abandoned one never persists; `meter_upload` then keeps the breaker and the
+   would-it-fit refusal at presign and counts nothing. Its cost: one copy a single PUT (≈$0.0045 a thousand), a lifecycle
+   rule and the backup Worker's filter (backup-prune's), a heavier complete. The alternative: a reservation a presign,
+   settled at complete, released by a nightly check when nothing landed, plus a per-ticket bound on unfinished bytes
+   (a new table, a job and its `/admin` card, and a phantom still holds the month for a day). Either is Will's call
+   with the Advisor; the migration's header names the risk so its review sees it.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/billing-caps.md`, The cap model: "`create_media` enforces two bounds" became "Two bounds on every
+  upload"; a ★ bullet on the month counted at the presign (`meter_upload`, its one writer, fail closed, the routes'
+  words, the seed, the cost named); a bullet on the two breakers; the three counters' ledger line says it is what was
+  presigned; the clip line says its presign counts it.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Launch checkpoint: a presign's declared bytes can be spent by a ticket that never sends them (upload-meter Q9):
+  before launch, count what landed (staging recommended) or reserve and release.
+- Now: the uploader retries a dropped PUT on its live URL before it asks a new presign, so a flaky network spends a
+  file once (upload-meter Q8).
+- Now: an upload reads the host's active bytes three times (the context, the meter, create_media), each a sum over her
+  media under her lock but the first; one maintained counter (PRICING lever 7's per-event sums) makes each O(1).
+- Now: the venue-shaped limiter kinds still sized for a 400-join venue (rename and attach_email 60, export 100 a
+  quarter-hour per address and album) meet the 2,000-guest wedding's end of night; size them as the join was.
 
 ## Handoff (replaces the chat report)
 

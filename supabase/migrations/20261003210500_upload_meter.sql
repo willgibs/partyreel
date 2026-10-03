@@ -27,6 +27,11 @@
 --
 -- Neither breaker is published (PRICING.md, "(c) Bounds"); each number is this file's constant and its WHY.
 --
+-- ★ THE RISK THIS FILE TAKES (docs/tracks/upload-meter.md, Question 9): a declared size costs nothing to claim, so a
+-- ticket holder can spend a host's month with presigns she never fills (a Pro 100 GB month in 30 of 10 GiB, Free's in
+-- 3), where counting at complete made the same harm cost the bytes themselves. Pre-launch nobody is exposed; the lane
+-- recommends moving the count to what landed (a staged PUT copied into place at complete) before launch.
+--
 -- ★ APPLY BEFORE PUSH (database-security.md, Workflow): the lane's presign calls `meter_upload` and fails CLOSED
 -- without it (503, "Couldn't start the upload. Please try again."), so a deployment of that code against a database
 -- without this file refuses every upload. The reverse order leaves a window: from this apply until a deployment runs

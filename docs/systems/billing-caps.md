@@ -19,16 +19,34 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   defining it and throws on anything it cannot read. A limit only TypeScript knows is a suggestion: the clip's length
   cap is mirrored in SQL and reaches the creator only as the server's tier-derived `ClipFacts`, never the client's.
   Changing the function's return columns is DROP + CREATE (grants: [database-security.md](database-security.md)).
-- **`create_media` enforces two bounds.** ACTIVE bytes (`host_active_bytes()`: non-removed media in non-deleted
-  events) against the cap plus a 10% write headroom (`capWithWriteHeadroom` mirrors it, so the over-cap sweep engages
-  at the same line), and a monthly INGRESS meter (`storage_ledger.cumulative_bytes`) against
-  `monthly_ingress_cap()`: a multiple of the effective cap on every tier, Free included (the static
-  `monthly_ingress_bytes` column stays, null everywhere, for a tier that takes one back), so the abuse bound scales
-  with the room. The ingress bound is a backstop, never marketed (`content-policy.test.ts` fails content that names
-  it). `host_active_bytes()` is the one SQL definition every cap check reads.
+- **Two bounds on every upload.** ACTIVE bytes (`host_active_bytes()`: non-removed media in non-deleted events) against
+  the cap plus a 10% write headroom (`capWithWriteHeadroom` mirrors it, so the over-cap sweep engages at the same
+  line), and a monthly INGRESS meter (`storage_ledger.cumulative_bytes`) against `monthly_ingress_cap()`: a multiple of
+  the effective cap on every tier, Free included (the static `monthly_ingress_bytes` column stays, null everywhere, for
+  a tier that takes one back), so the abuse bound scales with the room. The ingress bound is a backstop, never marketed
+  (`content-policy.test.ts` fails content that names it). `host_active_bytes()` is the one SQL definition every cap
+  check reads.
+- ★ **The month is counted at the presign, never at the complete** (`meter_upload`, 20261003210500). The engine
+  (`upload/server-pipeline.ts`) meters after every gate of its route and before any URL exists: under the host's
+  profiles lock it refuses past the hour's breaker, past the month (the month's bytes plus this file's past
+  `monthly_ingress_cap()`) or past the room (active bytes plus this file's past the cap and its 10%), else adds the
+  DECLARED bytes and the item to the month's row. The presigned PUT binds its Content-Length to those bytes, so what
+  counts is what can land, and an upload abandoned, refused later or retried has counted (the meter never refunds).
+  `create_media*` neither check nor count the month; they still bind the room on the HEAD's size. `meter_upload` is
+  the ledger's only writer (`server-pipeline-meter-migration.test.ts`), and the call fails CLOSED: nothing behind it
+  counts. Each presign route says its refusals in its own words, a guest's naming the album and never the plan
+  (`meterRefusal`). The demo seed meters each file the same way. The cost: a declared size costs nothing to claim, so a
+  ticket holder can spend a host's month with presigns she never fills (the lane's Question 9, open before launch).
+- **Two breakers far past any party, unpublished, refused in words.** An account's uploads a clock hour, 20,000, every
+  guest's and her own into all her events, counted on the month's row (`hour_started_at`, `hour_uploads`) by
+  `meter_upload` and refused at presign (429 with `Retry-After` to the hour's end). An account's events created in any
+  24 hours, 100, a deleted one included, in `enforce_event_limit` on a creation alone (its undelete trigger is a
+  restore) and after the plan's own limit; the create action prints its sentence, never the plan limit's, since a Pro
+  host has no event limit to upgrade past (`mutations/events.ts`). Each number is its migration's constant and WHY.
 - **Three counters, deliberately different; never reconcile them.** The cap reads active bytes, so a delete frees
-  room at once; the monthly ledger never decrements (it is also the delete-and-re-upload churn defense);
-  `storage_used_bytes` is the PHYSICAL meter only (up on create, down only in `purge_media_rows`) and gates nothing.
+  room at once; the monthly ledger is what was presigned, never decrements (it is also the delete-and-re-upload churn
+  defense) and is what the spend watch's upload readings diff; `storage_used_bytes` is the PHYSICAL meter only (up on
+  create, down only in `purge_media_rows`) and gates nothing.
 - ★ **Every storage figure a host or the storage guard reads is `host_storage_summary(uuid)`** (through
   `getHostStorageSummary`, on the admin client with the `getUser()` id): one sum each for active and Deleted bytes,
   whatever the album's size. Deleted is only what the host can restore: a guest's own withdrawal counts in neither
@@ -50,8 +68,8 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
 - The `tier_type` enum carries an unused `max`: coerce a database tier with `toBillingTier()` (`max` becomes
   `pro`, anything unknown `free`) before indexing `tiers.ts`. Dropping an enum value is not worth its risk.
 - A Free profile's null `storage_cap_bytes` falls back to the `tier_limits()` default.
-- **A clip added to an event is an ordinary video:** `create_media*` meters it against the cap and the monthly meter
-  like any upload, and the video gate refuses it on Free. The live reel and a clip kept on a device store nothing, so
+- **A clip added to an event is an ordinary video:** its presign counts it against the month and `create_media*`
+  binds it to the cap like any upload, and the video gate refuses it on Free. The live reel and a clip kept on a device store nothing, so
   they cost nothing ([reel.md](reel.md)).
 
 ## Plan changes
