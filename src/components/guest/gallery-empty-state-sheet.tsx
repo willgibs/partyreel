@@ -2,6 +2,7 @@
 
 import "./gallery-empty-state.css";
 
+import { Play } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -27,6 +28,8 @@ import {
   type WaitClock,
 } from "@/lib/disposable/wait-words";
 import { formatCount } from "@/lib/format/count";
+import { GLASS_MARK, GLASS_MARK_LIT } from "@/lib/glass";
+import { videoPosterSrc } from "@/lib/media/poster";
 import { cn } from "@/lib/utils";
 
 /**
@@ -70,6 +73,68 @@ function useWellWidth(
     observer.current = ro;
   }, []);
   return [width, ref];
+}
+
+/** This device's own file is an object URL (`pendingUrls`): for a video, the video itself, never a picture of it. */
+const isOwnFile = (src: string) => src.startsWith("blob:");
+
+/**
+ * ★ ONE OF HERS, DRAWN FROM WHAT IT IS (red-team 46's MEDIUM: her own video was an `<img>` of a video file, the browser's
+ * broken-image glyph in the fourth lit square). A shot's picture is this device's own FILE or a still presigned for her
+ * alone (a photograph's tile, a video's poster), and only a still is a picture an `<img>` can draw. Her video's file
+ * draws as its first frame instead: a muted, inline, paused `<video>` with no controls, nothing playing (the fragment
+ * `videoPosterSrc` adds is what makes iOS paint a frame rather than black). A picture that cannot be drawn (a clip this
+ * browser cannot decode, a link that has expired) leaves its square bare, never broken: `onError` is the only honest
+ * test, as `PickPreview` answers the same moment. The caller keys it by `src`, so a new picture gets its chance.
+ */
+function HerPicture({ src, video }: { src: string; video: boolean }) {
+  const [drawable, setDrawable] = useState(true);
+  if (!drawable) return null;
+  return video && isOwnFile(src) ? (
+    <video
+      src={videoPosterSrc(src)}
+      muted
+      playsInline
+      preload="metadata"
+      tabIndex={-1}
+      draggable={false}
+      onError={() => setDrawable(false)}
+    />
+  ) : (
+    // eslint-disable-next-line @next/next/no-img-element -- her own picture: this device's file or a tile presigned for her alone
+    <img
+      src={src}
+      alt=""
+      loading="lazy"
+      decoding="async"
+      draggable={false}
+      onError={() => setDrawable(false)}
+    />
+  );
+}
+
+/**
+ * HER VIDEO'S MARK: the album's own (`CornerPlayBadge`'s glass and glyph, one of Will's three permitted marks) in the
+ * corner the album puts it, a share of a square about thirty pixels wide rather than the tile's 20 px.
+ */
+function VideoMark() {
+  return (
+    <span
+      aria-hidden
+      data-wait-video=""
+      className={cn(
+        "pointer-events-none absolute bottom-[8%] left-[8%] flex aspect-square w-[44%] items-center justify-center rounded-full",
+        GLASS_MARK,
+      )}
+    >
+      <Play
+        className={cn(
+          "ml-px h-auto w-1/2 fill-white text-white",
+          GLASS_MARK_LIT,
+        )}
+      />
+    </span>
+  );
 }
 
 /**
@@ -150,6 +215,15 @@ export function ContactSheet({
       : null;
   const clockText = countdown ? `${clockLine} · ${countdown}` : clockLine;
   const folded = sheet.folded;
+  // Everyone's squares are numbers, so the count's noun is only as exact as hers: a video among hers makes "photos" a
+  // lie (red-team 46's NIT), said the way the dashboard's claims say a mix of the two ("photo or video", "photos and videos").
+  const noun = hers.some((s) => !s.sending && s.video)
+    ? sheet.count === 1
+      ? "photo or video"
+      : "photos and videos"
+    : sheet.count === 1
+      ? "photo"
+      : "photos";
 
   const yours =
     sheet.hers > 0 ? (
@@ -196,7 +270,7 @@ export function ContactSheet({
     >
       {/* What a screen reader hears of it: the sheet's facts in one sentence, the squares themselves only a picture. */}
       <p className="sr-only">
-        {`${formatCount(sheet.count)} ${sheet.count === 1 ? "photo" : "photos"} developing${sheet.hers > 0 ? `, ${formatCount(sheet.hers)} of them yours` : ""}. ${clockText}.`}
+        {`${formatCount(sheet.count)} ${noun} developing${sheet.hers > 0 ? `, ${formatCount(sheet.hers)} of them yours` : ""}. ${clockText}.`}
       </p>
       <div
         className={cn(
@@ -274,15 +348,13 @@ export function ContactSheet({
                 }
               >
                 {cell.src && (
-                  // eslint-disable-next-line @next/next/no-img-element -- her own picture: this device's file or a tile presigned for her alone
-                  <img
+                  <HerPicture
+                    key={cell.src}
                     src={cell.src}
-                    alt=""
-                    loading="lazy"
-                    decoding="async"
-                    draggable={false}
+                    video={cell.video}
                   />
                 )}
+                {cell.video && <VideoMark />}
               </span>
             ),
           )}
