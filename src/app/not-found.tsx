@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 // admin branch below is the portal, which follows the operator's theme, so it
 // inherits the root layout's light/dark pair rather than being pinned to paper.
 export const viewport: Viewport =
-  surface() === "admin" ? {} : { themeColor: "#fdfdff" };
+  surface() === "admin" ? {} : { themeColor: "#f5f5f7" };
 
 // ★ ONE FILE, TWO SURFACES (Will, `admin-404=portal`, 2026-09-19). The admin
 // deployment's proxy REWRITES every path outside its allow-list to a sentinel

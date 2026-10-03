@@ -116,17 +116,31 @@
   --shadow-lift: var(--shadow-lift);
   --shadow-layer: var(--shadow-layer);
 
-  /* Skeleton shimmer: a background-position sweep over a 200%-wide gradient
-     (skeleton.tsx). Linear on purpose - it's an ambient loop, not interaction
-     motion, and a strong curve stutters at the loop point. */
-  --animate-shimmer: shimmer 1.8s linear infinite;
+  /* status=lights (identity r2): a skeleton BREATHES rather than sweeps
+     (skeleton.tsx), its opacity rising and falling as a light does, and the
+     live mark's light rings out from it in the recording red (badge.tsx).
+     Both are ambient loops on an even curve, and the reduced-motion guard
+     (globals.css) stands both still: the skeleton at its rest, the live dot
+     lit. The keyframes are the theme's, emitted only where a utility wears
+     them, and named for their atom so no sheet's keyframe can shadow them. */
+  --animate-skeleton-breathe: skeleton-breathe 1.4s ease-in-out infinite
+    alternate;
+  --animate-live-signal: live-signal 1.6s ease-out infinite;
 
-  @keyframes shimmer {
+  @keyframes skeleton-breathe {
     from {
-      background-position: 200% 0;
+      opacity: 0.55;
     }
     to {
-      background-position: -200% 0;
+      opacity: 1;
+    }
+  }
+  @keyframes live-signal {
+    from {
+      box-shadow: 0 0 0 0 color-mix(in oklab, var(--signal) 55%, transparent);
+    }
+    to {
+      box-shadow: 0 0 0 5px color-mix(in oklab, var(--signal) 0%, transparent);
     }
   }
 }

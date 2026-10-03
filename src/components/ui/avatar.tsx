@@ -75,7 +75,11 @@ function Avatar({
           // paint, at a fractional size, is exactly the seam he saw. One clip,
           // here, and children below carry no radius of their own: now there
           // is only ever one edge to anti-alias.
-          "group/avatar relative flex size-8 shrink-0 overflow-hidden rounded-full select-none after:absolute after:inset-0 after:rounded-full after:border after:border-border after:mix-blend-darken data-[size=lg]:size-10 data-[size=sm]:size-6 data-[size=xl]:size-20 dark:after:mix-blend-lighten",
+          //
+          // ★ A FACE CARRIES NO LINE (identity r2, status=lights): the hairline
+          // it wore (a blended `::after` border) is gone; a face is its own
+          // colour or photograph, and in a row the ground parts it (below).
+          "group/avatar relative flex size-8 shrink-0 overflow-hidden rounded-full select-none data-[size=lg]:size-10 data-[size=sm]:size-6 data-[size=xl]:size-20",
           className
         )}
         {...props}
@@ -127,7 +131,9 @@ function AvatarBadge({ className, ...props }: React.ComponentProps<"span">) {
     <span
       data-slot="avatar-badge"
       className={cn(
-        "absolute right-0 bottom-0 z-10 inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground bg-blend-color ring-2 ring-background select-none",
+        // Presence is a light (status=lights): the success green, on the
+        // ground's own ring.
+        "absolute right-0 bottom-0 z-10 inline-flex items-center justify-center rounded-full bg-success text-success-foreground bg-blend-color ring-2 ring-background select-none",
         "group-data-[size=sm]/avatar:size-2 group-data-[size=sm]/avatar:[&>svg]:hidden",
         "group-data-[size=default]/avatar:size-2.5 group-data-[size=default]/avatar:[&>svg]:size-2",
         "group-data-[size=lg]/avatar:size-3 group-data-[size=lg]/avatar:[&>svg]:size-2",
@@ -138,12 +144,18 @@ function AvatarBadge({ className, ...props }: React.ComponentProps<"span">) {
   )
 }
 
+/**
+ * ★ A ROW OF FACES OVERLAPS BY A QUARTER OF THE FACE, NEVER A FIXED 8PX
+ * (identity r2, status=lights): `-space-x-2` hid a third of a 24px face and
+ * its initial. Each size takes its own share (6, 8, 10 and 20px), and the
+ * ground's ring parts each face from the next.
+ */
 function AvatarGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="avatar-group"
       className={cn(
-        "group/avatar-group flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:ring-background",
+        "group/avatar-group flex *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:ring-background [&>[data-slot=avatar][data-size=sm]:not(:last-child)]:-me-1.5 [&>[data-slot=avatar][data-size=default]:not(:last-child)]:-me-2 [&>[data-slot=avatar][data-size=lg]:not(:last-child)]:-me-2.5 [&>[data-slot=avatar][data-size=xl]:not(:last-child)]:-me-5",
         className
       )}
       {...props}
@@ -159,7 +171,10 @@ function AvatarGroupCount({
     <div
       data-slot="avatar-group-count"
       className={cn(
-        "relative flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-sm text-muted-foreground ring-2 ring-background group-has-data-[size=lg]/avatar-group:size-10 group-has-data-[size=sm]/avatar-group:size-6 [&>svg]:size-4 group-has-data-[size=lg]/avatar-group:[&>svg]:size-5 group-has-data-[size=sm]/avatar-group:[&>svg]:size-3",
+        // The count is an unlit light (status=lights): a ring with the number
+        // in it, a readout in the camera's voice (the `label` step, semibold,
+        // tabular figures), on the ground's ring like the faces beside it.
+        "relative flex size-8 shrink-0 items-center justify-center rounded-full bg-transparent text-label font-semibold text-foreground tabular-nums ring-2 ring-background inset-ring-[1.5px] inset-ring-foreground/45 group-has-data-[size=lg]/avatar-group:size-10 group-has-data-[size=sm]/avatar-group:size-6 group-has-data-[size=sm]/avatar-group:text-micro [&>svg]:size-4 group-has-data-[size=lg]/avatar-group:[&>svg]:size-5 group-has-data-[size=sm]/avatar-group:[&>svg]:size-3",
         className
       )}
       {...props}
