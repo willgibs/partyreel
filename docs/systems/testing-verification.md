@@ -167,8 +167,8 @@ function of elapsed time can be frozen at a chosen moment and shot.
 
 Testing that an album survives the evening (refreshed presigns adopted as the 30-minute bucket rolls) has two traps
 that read as "broken":
-- **A tab that goes hidden stops polling, on purpose** (`useLivePoll` stops on the change to hidden and polls again
-  the moment the tab is visible; a tab that LOADS hidden keeps the browser's throttled background interval). A soak
+- **A tab that goes hidden stops polling, on purpose** (`useLivePoll` stops on the change to hidden, starts nothing in
+  a tab that loads hidden, and polls again the moment the tab is visible; the doorbell leaves its channel too). A soak
   tab backgrounded mid-run never adopts refreshed URLs and looks dead once its presigns expire (at most 90 minutes).
   Keep it in the foreground, the real scenario being a host's album up on a screen, and check mid-run with
   `performance.getEntriesByType("resource")` filtered to `/api/album/guest/sync`: zero entries means hidden, not broken.

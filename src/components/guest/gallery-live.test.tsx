@@ -16,9 +16,16 @@
  * - A seed that FAILED leaves the source standing: reported, then read by the store's own first sync, and healed by
  *   the next answer with no refresh, while the album says it could not load.
  */
-import { Component, Suspense, useEffect, type ReactNode } from "react";
+import {
+  Component,
+  createRef,
+  Suspense,
+  useEffect,
+  type ReactNode,
+  type RefObject,
+} from "react";
 import { act, render } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { ManifestEntry } from "@/lib/events/album-wire";
 import type { GalleryReel } from "@/lib/events/gallery-reel";
@@ -44,6 +51,7 @@ vi.mock("@/lib/observability/sentry", () => ({
 }));
 
 const { GalleryLiveProvider, useGalleryLive } = await import("./gallery-live");
+type LiveGalleryHandle = import("./gallery-live").LiveGalleryHandle;
 type Live = NonNullable<ReturnType<typeof useGalleryLive>>;
 
 const REEL: GalleryReel = {
@@ -176,11 +184,13 @@ async function mount(
     access = "full",
     onCountChange,
     onDevelopsAtChange,
+    handle,
   }: {
     first?: GallerySeed | PromiseLike<GallerySeed>;
     access?: "full" | "teaser";
     onCountChange?: (count: number) => void;
     onDevelopsAtChange?: (developsAt: string | null) => void;
+    handle?: RefObject<LiveGalleryHandle | null>;
   } = {},
 ) {
   const promise = (
@@ -193,6 +203,7 @@ async function mount(
       <Catch>
         <Suspense fallback={null}>
           <GalleryLiveProvider
+            ref={handle}
             galleryPromise={promise}
             qrToken="qr-token"
             access={access}
@@ -686,5 +697,150 @@ describe("what waits, as numbers, on the live source", () => {
   it("a teaser carries none", async () => {
     await mount(false, { first: teaserSeed(), access: "teaser" });
     expect(seen.live?.waiting ?? null).toBeNull();
+  });
+});
+
+/**
+ * ★ THE ALBUM, CALMED (album-calm, Will's yes of 2026-10-03). Another guest's photographs reach this album in batches
+ * (the doorbell's clock, `use-gallery-doorbell.test.tsx`); what this source adds on top: a batch arrives in ONE call,
+ * its links riding the delta; her own upload never waits for the clock; and a tab that was hidden for hours comes
+ * back right with one sync at once, its arrivals linked, its aged window re-minted and what waits counted anew.
+ */
+describe("★ the album, calmed", () => {
+  const carried = (i: number) => [
+    uuid(i),
+    `https://r2.test/carried/${i}`,
+    null,
+    `https://r2.test/carried/${i}/dl`,
+    ["Maya", 0],
+  ];
+  const carrying = (ids: number[]) => ({
+    b: Math.floor(Date.now() / 1_800_000),
+    now: Date.now(),
+    links: ids.map(carried),
+  });
+  const media = () => calls.filter((c) => c.url === "/api/album/guest/media");
+  const syncs = () => calls.filter((c) => c.url === "/api/album/guest/sync");
+
+  function setHidden(hidden: boolean) {
+    Object.defineProperty(document, "hidden", {
+      configurable: true,
+      get: () => hidden,
+    });
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      get: () => (hidden ? "hidden" : "visible"),
+    });
+  }
+  async function visibility(hidden: boolean) {
+    await act(async () => {
+      setHidden(hidden);
+      document.dispatchEvent(new Event("visibilitychange"));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+  }
+  async function window_(ids: string[]) {
+    await act(async () => {
+      seen.live!.ensureLinks(ids);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+  }
+
+  it("★ a batch arrives in one call: the delta's own links draw it, and the links route is never asked for them", async () => {
+    await mount();
+    // Two photographs newer than everything the album holds.
+    const fresh = (i: number): ManifestEntry => [uuid(i), 640, 480, 4, T0 + i];
+    answer(
+      delta({
+        upsert: [fresh(20), fresh(21)],
+        total: 5,
+        links: carrying([20, 21]),
+      }),
+    );
+    await ring();
+    expect([...(seen.live?.arrivals ?? [])].sort()).toEqual([
+      uuid(20),
+      uuid(21),
+    ]);
+    // The arrival gate and the window ask for the batch's links, as they always have.
+    await window_([uuid(21), uuid(20)]);
+    expect(media()).toHaveLength(0);
+    expect(syncs()).toHaveLength(1);
+    const byId = new Map(seen.live!.items.map((m) => [m.id, m]));
+    expect(byId.get(uuid(20))?.url).toBe("https://r2.test/carried/20");
+    expect(byId.get(uuid(21))?.url).toBe("https://r2.test/carried/21");
+  });
+
+  it("★ her own upload lands at once: its tile, and a sync with no wait for the batch clock", async () => {
+    const handle = createRef<LiveGalleryHandle>();
+    await mount(false, { handle });
+    answer(304);
+    await act(async () => {
+      handle.current!.notifyUploaded({
+        mediaId: uuid(9),
+        queueId: "q-9",
+        file: new File(["x"], "mine.jpg", { type: "image/jpeg" }),
+        kind: "photo",
+        status: "approved",
+      });
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(seen.live?.items[0].id).toBe(uuid(9));
+    expect(syncs()).toHaveLength(1);
+  });
+
+  describe("★ a tab hidden for hours", () => {
+    const START = new Date("2026-10-03T20:00:00.000Z");
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ["Date"] });
+      vi.setSystemTime(START);
+      setHidden(false);
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+      setHidden(false);
+    });
+
+    it("asks nothing while hidden, then once at once: its arrivals linked by the delta, its aged window re-minted, what waits counted anew", async () => {
+      await mount();
+      // The window holds the seed's photograph (its embedded link answers locally).
+      await window_([uuid(1)]);
+      answer(304);
+      expect(calls).toHaveLength(0);
+
+      await visibility(true);
+      vi.setSystemTime(new Date(START.getTime() + 3 * 60 * 60_000));
+      // Hours pass: no poll (the tab is hidden), and no doorbell (a hidden tab is no listener).
+      expect(calls).toHaveLength(0);
+
+      answer(
+        delta({
+          v: 30,
+          upsert: [entry(0)],
+          total: 4,
+          links: carrying([0]),
+          waiting: { count: 2, minutes: [], developsAt: null },
+        }),
+      );
+      await visibility(false);
+      // ONE sync, at once.
+      expect(syncs()).toHaveLength(1);
+      expect(syncs()[0].body).toMatchObject({ since: 10 });
+      // What it missed arrives through the album's own entry.
+      expect(seen.live?.arrivals).toEqual([uuid(0)]);
+      expect(seen.live?.items[0].id).toBe(uuid(0));
+      // The window's aged link was re-minted (the hourly re-mint holds), and only it: the arrival rode the delta.
+      expect(media().map((c) => c.body.ids)).toEqual([[uuid(1)]]);
+      await window_([uuid(0), uuid(1)]);
+      expect(media()).toHaveLength(1);
+      expect(seen.live?.items[0].url).toBe("https://r2.test/carried/0");
+      expect(seen.live?.items.find((m) => m.id === uuid(1))?.url).toBe(
+        `https://r2.test/fresh/${uuid(1)}`,
+      );
+      // What waits is counted anew.
+      expect(seen.live?.waiting?.count).toBe(2);
+    });
   });
 });
