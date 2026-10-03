@@ -61,6 +61,8 @@ flat; a lane in its gate, or the milestone's full gate, counts as two. Every pro
 | `crumbs-52` | red-team 43's second MEDIUM: the hub's Reel card (a soft navigation) showed the album before the reel; the curtain made to stand from the first frame; the camera's page half and red-team 43's two NITs | MERGED at `1cc96371` (gate 163 green, light: test 9,457; the lane's gate on its synced head: test, build, lab:smoke 148); no SQL | Sonnet, 3134 | `a43b82a5650dc8a64` |
 | `lab-frame` | the lab's Frame a faithful window: a frame-scoped window for the media hooks, Radix's layers inside the frame, a glow filter host; nothing under components/ui | running | Opus, 3131 | `ab041e184bfe9d164` |
 | `crumbs-53` | the next words after round 12: the reel's place and the welcome in help and marketing, reel.md, the welcome cookie's tests, one home for the develop time's words, the hero fill's and pulse's names | MERGED at `57825ec2` (gate 162 green, light: test; the lane's gate on its synced head: test 9,430, build, lab:smoke 150); no SQL | Sonnet, 3133 | `a60b9ee6392ade237` |
+| `redteam-44` | build 44's red-team (`ece3f8a1`): the door's first byte and walk-through, the idle, the name after the email, the album's camera, both of red-team 43's MEDIUMs again, regressions | running (from 01:37Z); brief and ledger `../partyreel-wt/_scratch/redteam-44/` | Opus, Will's Chrome | `a186d402e4367102f` |
+| `desk-premise` | the pre-sitting desk pass's PREMISE re-reads (identity, the-wait, event-header, create-wizard, take-home: their lives moved since their merges; host-dashboard and demo-framing unmoved; no two of the 25 asks one decision) | running, read-only | Opus | `a20a4c46761a0fb61` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Q8
 (round 12's plan) answered with 21 corrections, all folded into the briefs; the next consult is the foundation's
@@ -92,7 +94,7 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team brie
 ## Next, in order
 
 1. **Running:** `lab-frame` (the Frame a faithful window). Integrate it as it hands off (gate 164); it rides build 45.
-2. **Build 44 `[preview]`** at the record of `crumbs-52` (merged `1cc96371`), then its red-team from
+2. **Build 44** (`ece3f8a1`) serves the alias; its red-team walks from
    `../partyreel-wt/_scratch/redteam-44/brief.md` (its stamp `BUILD44` filled in): the door's first byte and
    walk-through, the idle, the name after the email, the camera on a camera album (a fake stream in its own headless
    Chrome), both MEDIUM fixes again, regressions. hi@willgibs.com is back as the Free host (nameless).
@@ -106,9 +108,9 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team brie
 ## Waiting on Will
 
 - **His walks** (2026-10-02): the phone measurement, the real upload, the Save check and the two-Checkout-tabs check
-  are DONE (the last passed whole on 2026-10-03 01:15Z: two live test subscriptions, the newer followed; the followed
+  are DONE (the last passed whole on 2026-10-03: two live test subscriptions, the newer followed; the followed
   one cancelled, the survivor followed with Pro kept; the account deleted, nothing left billing; hi@willgibs.com
-  restored before the purge at his ask, 01:25Z). Owed: Record Video's 1080p size on his iPhone; after build 44, the walk-through when let in,
+  restored before the purge at his ask). Owed: Record Video's 1080p size on his iPhone; after build 44, the walk-through when let in,
   a password door, reduced motion over the door states and the new hub, the camera on his phone.
 - **The calls file** (90 calls, `../partyreel-wt/_scratch/calls/relay-calls.md`): he reviews it today.
 - **His next desk** on build 44.

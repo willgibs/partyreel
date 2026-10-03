@@ -32,8 +32,9 @@ event-header r2, create-wizard r2 (the room's flow) and demo-framing r4 (the her
 - **Prod:** partyreel.com is `main` at tag `milestone-33` (`f210dfaf`, 2026-10-02 19:40Z), both projects READY; the
   read-only walk PASS (the pages, a German browser's dates, /press to /about#press, the demo's door, a dead link's soft
   404, the dashboard and a hub's checklist head signed in); the admin portal waits on partyr33l's session.
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 43 (`96c6dcdc`, 2026-10-02
-  23:15Z): round 12's heads, dashboard, disposable foundation and Save, and four of its boards; its red-team is walking.
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 44 (`ece3f8a1`, 2026-10-03
+  01:35Z): round 12's production whole (the door first, the walk-through, the album's camera, both of red-team 43's
+  MEDIUMs fixed) and its seven boards; its red-team is walking.
   Vercel installs with pnpm 9.14.4, `package.json`'s `packageManager`.
 - **The shared database** runs every migration through 2026-10-02, `disposable_foundation` last (20261002223236: the
   develop and the camera's roll, applied by protocol after the Advisor's Q10); no build of either project reads a
