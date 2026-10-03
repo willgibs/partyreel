@@ -17,6 +17,7 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Guests: the phone's Add sheet (`responsive-menu`'s rows) blurs the cover behind it, so her own Add and the glass rounds go soft the moment she presses; a sheet that dims without blurring would keep the album she is adding to in view (a board idea from `identity-r3`).
 - Host: the hub and the dashboard say the account's storage percent inline; `storageUsedPct` (`lib/events/readiness.ts`) is its one home now (from `wizard-wiring`).
 - Host: Settings' rail maps its steps to the checklist's items itself (`settings-rows.tsx`'s `GROUPS` and `STEP_ITEM`); `SETTINGS_STEP_ITEMS` in readiness is the map Create's beat reads, and Settings could read it too (from `wizard-wiring`).
 - The lab and the kit: a Library specimen of Create's room whole over a stand-in create (the wizard's `create` prop is the seam, the review room's precedent), so `lab:demo` holds the carry and the develop that localhost cannot reach signed in (from `wizard-wiring`).
@@ -61,7 +62,6 @@ below hold the rest by surface.
 - Guests: `lib/guest/reel-tile.ts` is named and described for the retired tile while its `tileStills` is the cover's first pass, and `GuestActionDock` draws the shutter under its old name (kept while the event-header and identity boards import it); both renamed with their next change (from `header-wiring`).
 - Host: on a sealed album the hub's head drops sealed shots in `event-hub-head-stills.ts`'s `isCoverEntry` once the foundation's flag reaches the host's manifest (from `header-wiring`).
 - Design: a cover rendition (about 1600px, one more derivative per photograph) so the album's cover reads sharp across a desk, where the 640px previews soften (a board idea from `header-wiring`).
-- Design: identity's head stand-ins (`views/atoms.tsx`: the shutter, the code mat and chip, the glyph count, the live badge, the on-photo and glass buttons) mount the real atoms header-wiring built (each carries its hook now, the glyph count's `data-n` included), so the board judges the components rather than their stand-ins (from `identity-r2`).
 - Design: wiring identity's picks adds the primitives the board draws on shadcn's hooks that production lacks (`checkbox`, `radio-group-item`, `slider`, and its own `radio-card` and `empty`), and replaces Settings' inline door choices, gates and password state with them (from `identity-r2`).
 - Design: Review's selection marks (the glass circle that turns green) and Settings' step numerals are drawn locally; once identity wires they take the check and readout atoms (a board idea from `identity-r2`).
 - Host: the stage's live read is a Server Function, which Next dispatches one at a time with the page's other actions (a claim pressed mid-poll waits a beat); a GET route handler under `src/app/api/` would run beside them (from `dashboard-wiring`).
