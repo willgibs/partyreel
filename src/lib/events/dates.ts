@@ -99,15 +99,3 @@ export function endForNewStart(
   const moved = shiftDay(wasEnd, wasDate ? daysBetween(wasDate, next) : 0);
   return moved > next ? moved : "";
 }
-
-/**
- * The row's end date, or null. ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: the events row and the album's read
- * carry `event_end_date` from 20261003120000, and `Tables<"events">` learns it at the regeneration; until then the
- * pages read it through here, at run time, as a calendar day or nothing (before the migration is applied the column
- * is absent and every event reads as one day). Drop the callers onto the typed column once it is there.
- */
-export function endDateOf(row: unknown): string | null {
-  if (!row || typeof row !== "object") return null;
-  const value = (row as { event_end_date?: unknown }).event_end_date;
-  return isCalendarDay(value) ? value : null;
-}

@@ -12,7 +12,6 @@ import type { Database } from "@/lib/db/types";
 import { developFactsOf, type Capture } from "@/lib/disposable/facts";
 import type { Door } from "@/lib/event/door/door";
 import type { DoorPass } from "@/lib/event/door/pass.server";
-import { endDateOf } from "@/lib/events/dates";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createAnonClient } from "@/lib/supabase/anon";
@@ -140,22 +139,11 @@ async function rehydrateUnlockedDetails(
   if (!(await isUnlocked(event.id))) return event;
 
   const admin = createAdminClient();
-  // ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: the row learns `event_end_date` (20261003120000) then, and the select
-  // types itself again; drop the override once it has.
   const { data, error } = await admin
     .from("events")
     .select("description, event_date, event_end_date, host_id")
     .eq("id", event.id)
-    .maybeSingle()
-    .overrideTypes<
-      {
-        description: string | null;
-        event_date: string | null;
-        event_end_date: string | null;
-        host_id: string;
-      },
-      { merge: false }
-    >();
+    .maybeSingle();
   if (error || !data) return event; // never fail the page over a cosmetic re-read
 
   let hostDisplayName: string | null = null;
@@ -177,7 +165,7 @@ async function rehydrateUnlockedDetails(
     ...event,
     description: data.description ?? null,
     event_date: data.event_date ?? null,
-    event_end_date: endDateOf(data),
+    event_end_date: data.event_end_date ?? null,
     host_display_name: hostDisplayName,
   };
 }
@@ -215,8 +203,9 @@ export const getEventByQrToken = cache(async function getEventByQrToken(
     require_verified_email: row.require_verified_email,
     require_upload_to_view: row.require_upload_to_view,
     event_date: row.event_date ?? null,
-    // A range's last day (20261003120000), redacted with the date; read through the seam until the types regenerate.
-    event_end_date: endDateOf(row),
+    // A range's last day (20261003120000), redacted with the date. ★ Typed `string` by the generated RETURNS TABLE,
+    // yet NULL for one day and under the redaction: kept as NULL, like `reel_hold_sec`.
+    event_end_date: row.event_end_date ?? null,
     qr_style: row.qr_style,
     host_display_name: row.host_display_name ?? null,
     custom_slug: row.custom_slug ?? null,

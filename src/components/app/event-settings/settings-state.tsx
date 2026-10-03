@@ -26,7 +26,6 @@ import { developState } from "@/lib/disposable/reveal";
 import type { DoorCounts } from "@/lib/db/queries/event-doors";
 import type { HostEvent } from "@/lib/db/queries/events";
 import type { Door } from "@/lib/event/door/door";
-import { endDateOf } from "@/lib/events/dates";
 import type { SettingsFacts } from "@/lib/events/guest-experience-summary";
 import { setReelDefaults } from "@/lib/reel/defaults-action";
 import { REEL_MOOD_IDS, resolveHoldSec } from "@/lib/reel/defaults";
@@ -103,8 +102,7 @@ function valuesOf(
     name: event.name,
     description: event.description ?? "",
     eventDate: event.event_date ?? "",
-    // Read through the seam until the types regenerate (`Tables<"events">` learns the column then).
-    eventEndDate: endDateOf(event) ?? "",
+    eventEndDate: event.event_end_date ?? "",
     door: event.door,
     hasPassword: event.has_password,
     requireVerifiedEmail: event.require_verified_email,

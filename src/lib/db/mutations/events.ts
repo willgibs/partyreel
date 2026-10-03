@@ -93,6 +93,11 @@ export async function createEvent(
     name: values.name,
     description: values.description || null,
     event_date: values.event_date || null,
+    // A range's last day (20261003120000): none for one day, so a range said twice is the one day it is.
+    event_end_date: endToStore(
+      values.event_date || null,
+      values.event_end_date,
+    ),
     // A brand-new event can't be password-protected (no hash exists yet; the password
     // is set later via set_event_password). Clamp defensively — the wizard sends 'open'.
     visibility: values.visibility === "password" ? "open" : values.visibility,
@@ -106,15 +111,9 @@ export async function createEvent(
     qr_style: values.qr_style,
   };
 
-  // A range's last day (20261003120000), only where one was named: a create that names none never names the column.
-  // ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `TablesInsert<"events">` learns `event_end_date` then (assign it on
-  // `insert` and drop this record).
-  const end = endToStore(values.event_date || null, values.event_end_date);
-  const dates: Record<string, unknown> = end ? { event_end_date: end } : {};
-
   const { data, error } = await supabase
     .from("events")
-    .insert({ ...insert, ...dates } as TablesInsert<"events">)
+    .insert(insert)
     .select("*")
     .single();
 
@@ -180,11 +179,9 @@ export async function updateEvent(
   if (values.event_date !== undefined)
     patch.event_date = values.event_date || null;
   // A range's last day (20261003120000), written only where the save names it: the schema has made it travel with its
-  // first day, and a range said twice is stored as the one day it is (`endToStore`). ★ THE TYPED SEAM, UNTIL THE TYPES
-  // REGENERATE: `TablesUpdate<"events">` learns `event_end_date` then (assign it on `patch` and drop this record).
-  const dates: Record<string, unknown> = {};
+  // first day, and a range said twice is stored as the one day it is (`endToStore`).
   if (values.event_end_date !== undefined)
-    dates.event_end_date = endToStore(
+    patch.event_end_date = endToStore(
       values.event_date || null,
       values.event_end_date,
     );
@@ -252,7 +249,7 @@ export async function updateEvent(
 
   const { data, error } = await supabase
     .from("events")
-    .update({ ...patch, ...dates } as TablesUpdate<"events">)
+    .update(patch)
     .eq("id", id)
     .is("deleted_at", null)
     .select("*")

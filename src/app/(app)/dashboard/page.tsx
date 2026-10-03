@@ -82,7 +82,6 @@ import {
   getMyGuestEventCards,
 } from "@/lib/db/queries/social";
 import { getHostStorageSummary } from "@/lib/db/queries/storage";
-import { endDateOf } from "@/lib/events/dates";
 import { guestCount } from "@/lib/events/event-guests";
 import { uploadsLabel } from "@/lib/events/visibility-labels";
 import { formatCount } from "@/lib/format/count";
@@ -262,8 +261,8 @@ export default async function DashboardPage({
   let hosted: HostedEvent[] = events.map((event) => {
     const stats = eventStats.get(event.id);
     const lastAt = lastArrivals.get(event.id) ?? null;
-    // A range's last day (20261003120000), read through the seam until the types regenerate.
-    const endDate = endDateOf(event);
+    // A range's last day (20261003120000), null for one day.
+    const endDate = event.event_end_date;
     return {
       id: event.id,
       name: event.name,
@@ -405,9 +404,9 @@ export default async function DashboardPage({
     id: event.id,
     name: event.name,
     date: event.event_date,
-    endDate: endDateOf(event),
+    endDate: event.event_end_date,
     dateLabel: event.event_date
-      ? formatEventDate(event.event_date, endDateOf(event))
+      ? formatEventDate(event.event_date, event.event_end_date)
       : "No date set",
     coverUrl: binCovers.get(event.id) ?? null,
     deletedAt: event.deleted_at ?? event.created_at,

@@ -42,7 +42,7 @@ describe("the hub's ready wiring", () => {
     // Reshaped on purpose (lane `event-dates`): a range's checklist stands through its last day, so the page hands
     // `checklistOver` the end beside the date.
     expect(
-      /const over = checklistOver\(\s*event\.event_date,\s*today,\s*endDateOf\(event\),?\s*\)/.test(
+      /const over = checklistOver\(\s*event\.event_date,\s*today,\s*event\.event_end_date,?\s*\)/.test(
         PAGE,
       ),
     ).toBe(true);

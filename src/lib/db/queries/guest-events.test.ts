@@ -379,6 +379,25 @@ describe("getEventByQrToken: the live reel's event facts", () => {
     expect(odd.ok && odd.data).toMatchObject({ capture: "upload", roll_size: null });
   });
 
+  // A RANGE'S LAST DAY (20261003120000), the read's last column, redacted with the date: carried as the read answers
+  // it, and NULL for one day (typed `string` by the generated RETURNS TABLE, as the hold is).
+  it("carries a range's last day, and none for one day or under the date's redaction", async () => {
+    answer(
+      eventRow({ event_date: "2026-10-02", event_end_date: "2026-10-04" }),
+    );
+    const range = await getEventByQrToken(OPEN_QR);
+    expect(range.ok && range.data).toMatchObject({
+      event_date: "2026-10-02",
+      event_end_date: "2026-10-04",
+    });
+    answer(eventRow({ event_date: "2026-10-02", event_end_date: null }));
+    const oneDay = await getEventByQrToken(OPEN_QR);
+    expect(oneDay.ok && oneDay.data.event_end_date).toBeNull();
+    answer(eventRow());
+    const unread = await getEventByQrToken(OPEN_QR);
+    expect(unread.ok && unread.data.event_end_date).toBeNull();
+  });
+
   // ★ RESHAPED ON PURPOSE (crumbs-17, crumbs-15's dead seam; scar kept: the reel's switch reads as the host
   // left it). This read "an RPC from before the column as the defaults"; the reel's migrations are applied
   // and typed, so the switch comes back on every answer, off included.

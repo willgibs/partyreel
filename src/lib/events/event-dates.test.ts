@@ -5,7 +5,6 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import {
   daysBetween,
-  endDateOf,
   endForNewStart,
   endToStore,
   eventDays,
@@ -90,15 +89,6 @@ describe("an event's days", () => {
     // A cleared date takes its end with it; one day stays one day.
     expect(endForNewStart("", "2026-10-02", "2026-10-04")).toBe("");
     expect(endForNewStart("2026-10-09", "2026-10-02", "")).toBe("");
-  });
-
-  it("read the row's end through the seam: a calendar day or nothing", () => {
-    expect(endDateOf({ event_end_date: "2026-10-05" })).toBe("2026-10-05");
-    // Before the migration is applied the column is absent: every event reads as one day.
-    expect(endDateOf({ event_date: "2026-10-03" })).toBeNull();
-    expect(endDateOf({ event_end_date: null })).toBeNull();
-    expect(endDateOf({ event_end_date: 20261005 })).toBeNull();
-    expect(endDateOf(null)).toBeNull();
   });
 });
 
@@ -291,7 +281,7 @@ describe("★ an end date never touches the lifecycle (no end, no lock, no archi
     const named = files
       .filter((f) => /\.tsx?$/.test(f) && !/\.test\.tsx?$/.test(f))
       .filter((f) =>
-        /event_end_date|eventEndDate|lastDayOf|eventDays|endDateOf/.test(
+        /event_end_date|eventEndDate|lastDayOf|eventDays/.test(
           readFileSync(f, "utf8"),
         ),
       )

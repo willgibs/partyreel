@@ -119,11 +119,11 @@ function datesPage(dates: { date: string | null; end?: string | null }) {
     setReel: vi.fn(),
     setProfile: vi.fn(),
   } as never;
-  const event = {
-    ...hostEvent({ id: "event-1", event_date: dates.date }),
-    // The row's end, read through the seam until the types regenerate (`endDateOf`).
+  const event = hostEvent({
+    id: "event-1",
+    event_date: dates.date,
     event_end_date: dates.end ?? null,
-  } as never;
+  });
   const view = render(
     <SettingsProvider
       event={event}
