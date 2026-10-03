@@ -247,7 +247,9 @@ export const touchSays: Reader = (root, win) => {
     );
   const lean = (o: HTMLElement) => {
     const el = o.querySelector("[data-df-covers]");
-    return el ? new win.DOMMatrix(win.getComputedStyle(el).transform).a : 1;
+    // The frame's own constructor: the reader runs against the frame's window.
+    const Matrix = (win as Window & typeof globalThis).DOMMatrix;
+    return el ? new Matrix(win.getComputedStyle(el).transform).a : 1;
   };
   if (objects[0].querySelector(".door-way")) {
     const [a, b] = [leaf(objects[0]), leaf(objects[1])];
