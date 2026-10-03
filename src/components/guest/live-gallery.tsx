@@ -16,14 +16,26 @@
  * Mounted under the page's provider (which carries key={access}, so an access flip re-seeds both
  * the album and the reel). Standalone, with no provider above it (its test file), it wraps itself
  * in one built from its own props, so `galleryPromise` and the handle `ref` work the same either way.
+ *
+ * ★ SELECT, THEN SAVE (take-home r1, `guest=select`, Will's note: "the slight friction could reduce our resource
+ * expenditure massively if less guests grab everything just because it's an easy 1-click, once they're selecting
+ * they may as well get exactly what they want"): Select takes Download all's place in the album's own row. In
+ * select mode a bar stands at the top of the screen (Cancel, what she has picked, Yours and All), every tile is a
+ * check, and the foot's shutter turns to Save (`guest-action-dock.tsx`); what Save does is `live-gallery-save.tsx`,
+ * and the mode itself one store both read (`live-gallery-select.ts`).
  */
-import { useCallback, useMemo, useState, useTransition } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useTransition,
+} from "react";
 import type { CSSProperties, Ref } from "react";
 
-import { Download } from "lucide-react";
+import { ListChecks } from "lucide-react";
 
 import { setRowStepAction } from "@/app/(guest)/e/[token]/actions";
-import { ExportDialog } from "@/components/app/export/export-dialog";
 import type { GridMedia } from "@/components/app/media-grid";
 import { AlbumFailedCard } from "@/components/guest/album-boundary";
 import { GalleryEmptyState } from "@/components/guest/gallery-empty-state";
@@ -36,6 +48,11 @@ import {
   type LiveGalleryHandle as LiveGalleryHandleType,
 } from "@/components/guest/gallery-live";
 import { GalleryRows, type PendingTile } from "@/components/guest/gallery-rows";
+import { GuestSaveChoice } from "@/components/guest/live-gallery-save";
+import {
+  guestSelect,
+  useGuestSelect,
+} from "@/components/guest/live-gallery-select";
 import { rememberAlbumWidth } from "@/components/shared/album-window-plan";
 import {
   ViewMenu,
@@ -366,6 +383,29 @@ function LiveGalleryView({
     ownedCount: yours.count,
   });
 
+  // SELECT MODE (take-home r1): her picks as the tiles read them, and the album's own way out of it.
+  const select = useGuestSelect();
+  const picked = useMemo(() => new Set(select.picks), [select.picks]);
+  const selection = useMemo(
+    () =>
+      select.active
+        ? { selected: picked, onToggle: (id: string) => guestSelect.toggle(id) }
+        : undefined,
+    [select.active, picked],
+  );
+  useEffect(() => {
+    if (!select.active) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && guestSelect.get().run.kind === "idle") {
+        guestSelect.exit();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [select.active]);
+  // An album that goes leaves no select mode behind it.
+  useEffect(() => () => guestSelect.exit(), []);
+
   // ★ AN ALBUM ITS SOURCE COULD NOT READ (crumbs-30; the provider's note on a seed that failed): the
   // skeleton the page's Suspense draws, while the source's own first read is in flight, so a read that
   // heals at once never flashes a failure; then the album boundary's own card, in the reading column
@@ -391,29 +431,37 @@ function LiveGalleryView({
         // Likes: anonymous guests get the like button -> the create-account flow; signed-in guests
         // toggle in place; the hearts are seeded for the window (and the viewer's reach) alone.
         <LikesProvider mediaIds={likeIds as string[]}>
-          {/* THE ALBUM'S OWN COUNT, beside a subtle "Download all" and the ONE View menu (both hidden
+          {/* THE ALBUM'S OWN COUNT, beside a quiet Select and the ONE View menu (both hidden
               in the demo and on a locked gallery). The count is the header's number, worded with the
               header's and the CTA's always-both-nouns rule. */}
-          {access !== "none" && items.length > 0 && (
+          {access !== "none" && items.length > 0 && select.active && !isDemo ? (
+            <SelectBar
+              picks={select.picks}
+              items={yours.items}
+              ownIds={ownIds}
+              qrToken={qrToken}
+            />
+          ) : access !== "none" && items.length > 0 ? (
             <div className="mb-3 flex flex-wrap items-center justify-between gap-1.5">
               <p className="px-0.5 text-working text-muted-foreground tabular-nums">
                 {formatMediaCount(count)}
               </p>
               {!isDemo && (
                 <div className="ml-auto flex items-center gap-1.5">
-                  <ExportDialog scope="guest" albumKey={qrToken}>
-                    <button
-                      type="button"
-                      className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-muted-foreground transition-colors hover:text-save active:scale-[0.98]"
-                    >
-                      <Download className="size-4" /> Download all
-                    </button>
-                  </ExportDialog>
+                  {/* SELECT, where Download all stood (take-home r1): her way to take photos home. */}
+                  <button
+                    type="button"
+                    data-guest-select=""
+                    onClick={() => guestSelect.enter()}
+                    className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-muted-foreground transition-colors hover:text-save active:scale-[0.98] motion-reduce:active:scale-100"
+                  >
+                    <ListChecks className="size-4" /> Select
+                  </button>
                   <ViewMenu groups={viewGroups} />
                 </div>
               )}
             </div>
-          )}
+          ) : null}
           {/* THE YOURS LINE, for the View-menu filter (`mine=none`): a line and not a chip, only
               while the filter is live, and its only exit. */}
           {yours.on && (
@@ -459,6 +507,7 @@ function LiveGalleryView({
               // apply (the demo, a locked gallery) rather than passed with an empty set.
               canDelete={canRemove ? (item) => ownIds.has(item.id) : undefined}
               onDeleteItem={canRemove ? (id) => void removeOwn(id) : undefined}
+              selection={selection}
             />
           </DeleteConsequence.Provider>
         </LikesProvider>
@@ -499,5 +548,107 @@ function AlbumUnread({ retry }: { retry: () => Promise<void> }) {
     <div className="-mx-3 max-w-2xl px-5 sm:-mx-5">
       <AlbumFailedCard retrying={retrying} onRetry={() => startRetry(retry)} />
     </div>
+  );
+}
+
+/**
+ * SELECT MODE'S BAR (take-home r1, the board's own): the album's row turned over to her selection and stuck to the
+ * screen's top while she scrolls, so what she has and how to leave are always in view. Cancel where a phone keeps
+ * it, what she has picked in the middle (her newest three as pictures before a number, bible 6), and the two
+ * shortcuts: Yours, every photograph of hers, and All. Each is a toggle: pressed again, it lets its set go.
+ */
+function SelectBar({
+  picks,
+  items,
+  ownIds,
+  qrToken,
+}: {
+  picks: readonly string[];
+  /** What the album shows (Showing: Everyone's, or hers). */
+  items: readonly GridMedia[];
+  ownIds: ReadonlySet<string>;
+  qrToken: string;
+}) {
+  const picked = new Set(picks);
+  const byId = new Map(items.map((i) => [i.id, i]));
+  const mine = items.filter((i) => ownIds.has(i.id)).map((i) => i.id);
+  const all = items.map((i) => i.id);
+  const allPicked = all.length > 0 && all.every((id) => picked.has(id));
+  const minePicked = mine.length > 0 && mine.every((id) => picked.has(id));
+  // Her newest picks that have a picture to show (a link lands with its window).
+  const faces = [...picks]
+    .reverse()
+    .map((id) => byId.get(id))
+    .filter((i): i is GridMedia => !!i && !!(i.previewUrl || i.url))
+    .slice(0, 3)
+    .reverse();
+  return (
+    <>
+      <div
+        data-select-bar=""
+        className="sticky top-0 z-30 -mx-3 mb-3 flex h-12 items-center justify-between gap-2 border-b border-border/60 bg-background/90 px-3 backdrop-blur-md sm:-mx-5 sm:px-5"
+      >
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="-ml-1.5 text-sm"
+          onClick={() => guestSelect.exit()}
+        >
+          Cancel
+        </Button>
+        <span className="flex min-w-0 items-center gap-2" aria-live="polite">
+          {faces.length > 0 && (
+            <span aria-hidden className="flex">
+              {faces.map((item, k) => (
+                // eslint-disable-next-line @next/next/no-img-element -- a presigned tile, never next/image (media-cost-policy)
+                <img
+                  key={item.id}
+                  src={item.previewUrl ?? item.url}
+                  alt=""
+                  draggable={false}
+                  className="size-6 rounded-[5px] object-cover ring-2 ring-background"
+                  style={{ marginLeft: k === 0 ? 0 : -8 }}
+                />
+              ))}
+            </span>
+          )}
+          <span className="truncate text-sm font-semibold tabular-nums">
+            {picks.length === 0
+              ? "Select photos"
+              : `${formatCount(picks.length)} selected`}
+          </span>
+        </span>
+        <span className="flex items-center gap-1.5">
+          {mine.length > 0 && (
+            <Button
+              type="button"
+              variant={minePicked ? "default" : "secondary"}
+              size="sm"
+              aria-pressed={minePicked}
+              className="rounded-full px-3 text-sm"
+              onClick={() =>
+                minePicked ? guestSelect.unpick(mine) : guestSelect.pick(mine)
+              }
+            >
+              Yours
+            </Button>
+          )}
+          <Button
+            type="button"
+            variant={allPicked ? "default" : "secondary"}
+            size="sm"
+            aria-pressed={allPicked}
+            className="rounded-full px-3 text-sm"
+            onClick={() =>
+              allPicked ? guestSelect.unpick(all) : guestSelect.pick(all)
+            }
+          >
+            All
+          </Button>
+        </span>
+      </div>
+      <GuestSaveChoice qrToken={qrToken} items={items} />
+    </>
   );
 }

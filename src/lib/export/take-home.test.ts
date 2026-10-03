@@ -82,6 +82,7 @@ describe("takeHomeSizes and saveHints: each choice shows its size", () => {
       original: Math.round(24 * 2.9 * MB),
       phone: Math.round(24 * 0.55 * MB),
       photosPhone: Math.round(24 * 0.55 * MB),
+      clipBytes: 0,
     });
     expect(saveHints(sizes)).toEqual({
       photos: "24 photos · 13.2 MB",

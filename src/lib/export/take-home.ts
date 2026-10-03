@@ -77,6 +77,8 @@ export type TakeHomeSizes = {
   phone: number;
   /** The photographs alone at phone size: a host's Phone size set. */
   photosPhone: number;
+  /** The clips alone, as taken (a clip's size is the same at both). */
+  clipBytes: number;
 };
 
 export function takeHomeSizes(
@@ -95,6 +97,7 @@ export function takeHomeSizes(
     original: photo.bytes + video.bytes,
     phone: photo.phone + video.phone,
     photosPhone: photo.phone,
+    clipBytes: video.bytes,
   };
 }
 
