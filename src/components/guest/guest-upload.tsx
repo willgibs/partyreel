@@ -3,6 +3,7 @@
 import {
   lazy,
   Suspense,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useRef,
@@ -133,6 +134,7 @@ export function GuestUpload({
   capBytes = null,
   isOwner = false,
   onOwnRemoved,
+  onCameraOpenChange,
 }: {
   ref?: Ref<GuestUploadHandle>;
   event: GuestEvent;
@@ -187,6 +189,11 @@ export function GuestUpload({
   isOwner?: boolean;
   /** One of hers was taken back inside the camera (the page's own-removal handler, as her tracker's Remove calls it). */
   onOwnRemoved?: (mediaId: string, remaining: number) => void;
+  /**
+   * The camera opened or closed: the page holds what would rise over it while she shoots (the door's keep, which her
+   * first landed shot makes due) until she closes it.
+   */
+  onCameraOpenChange?: (open: boolean) => void;
 }) {
   const items = queue;
   const [addOpen, setAddOpen] = useState(false);
@@ -202,6 +209,7 @@ export function GuestUpload({
       }
       setCameraOpenedAt(Date.now());
       setCameraOpen(true);
+      onCameraOpenChange?.(true);
     },
     retry: onRetry,
   }));
@@ -209,6 +217,15 @@ export function GuestUpload({
   useEffect(() => {
     if (camera) void loadCamera();
   }, [camera]);
+  // A slot that goes with the camera open (a re-gate) closes it for the page too, so nothing is held for it.
+  const cameraOpenNow = useRef({ open: cameraOpen, tell: onCameraOpenChange });
+  useEffect(() => {
+    cameraOpenNow.current = { open: cameraOpen, tell: onCameraOpenChange };
+  });
+  const closeCameraForPage = useCallback(() => {
+    if (cameraOpenNow.current.open) cameraOpenNow.current.tell?.(false);
+  }, []);
+  useEffect(() => closeCameraForPage, [closeCameraForPage]);
 
   /* ────────────────────────────────────────────────────────────────────────
      THE END OF A RUN, which is the only moment the failure sheet opens on.
@@ -346,7 +363,10 @@ export function GuestUpload({
             <AlbumCamera
               open={cameraOpen}
               openedAt={cameraOpenedAt}
-              onOpenChange={setCameraOpen}
+              onOpenChange={(next) => {
+                setCameraOpen(next);
+                onCameraOpenChange?.(next);
+              }}
               event={event}
               qrToken={qrToken}
               queue={queue}

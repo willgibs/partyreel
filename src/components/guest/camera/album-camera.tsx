@@ -142,12 +142,31 @@ export function AlbumCamera({
       Boolean(id && (removed.has(id) || removedIds?.has(id))),
     [removed, removedIds],
   );
+  /* ★ A SHOT THE QUEUE HELD AND HOLDS NO MORE WAS DISMISSED (the failure sheet's Not now, a refusal put down): it
+     left the queue for good, so it leaves her roll here too, never "sending" for ever. A shot the queue has not held
+     yet (her first shot's silent join still out) is on its way. Which shots the queue has held is remembered the
+     render it is first seen (the sanctioned adjust-state-during-render pattern). */
+  const [held, setHeld] = useState<ReadonlySet<string>>(() => new Set());
+  const raw = useMemo(
+    () => shots.map((shot) => ({ shot, state: shotState(shot, queue) })),
+    [shots, queue],
+  );
+  const newlyHeld = raw.filter(
+    ({ shot, state }) => state.queueId && !held.has(shot.key),
+  );
+  if (newlyHeld.length > 0) {
+    setHeld(
+      (prev) => new Set([...prev, ...newlyHeld.map(({ shot }) => shot.key)]),
+    );
+  }
   const states = useMemo(
     () =>
-      shots
-        .map((shot) => ({ shot, state: shotState(shot, queue) }))
-        .filter(({ state }) => !gone(state.mediaId)),
-    [shots, queue, gone],
+      raw.filter(
+        ({ shot, state }) =>
+          !gone(state.mediaId) &&
+          !(state.status === "sending" && !state.queueId && held.has(shot.key)),
+      ),
+    [raw, gone, held],
   );
   const counted = states.filter(({ state }) => state.status !== "failed");
   const guest = rollView({
@@ -180,7 +199,8 @@ export function AlbumCamera({
   }, [rollRefusals]);
   useEffect(() => {
     // ★ ONLY WHILE NOTHING OF HERS IS IN THE AIR: an older shot is then either counted or refused (the head note).
-    if (!open || busy || !wanted.current || isDemo) return;
+    // Never for the host: no roll counts her shots, and none of her rows here is a guest's.
+    if (!open || busy || !wanted.current || isDemo || isOwner) return;
     wanted.current = false;
     const id = ++readId.current;
     const from = Date.now();
@@ -189,7 +209,7 @@ export function AlbumCamera({
       setRoll({ server: answer.roll, readFrom: from });
       setOwn(answer.shots);
     });
-  }, [open, busy, readTick, qrToken, sessionToken, isDemo]);
+  }, [open, busy, readTick, qrToken, sessionToken, isDemo, isOwner]);
 
   /* ── a shot, as the screen takes it ────────────────────────────────────────────────────────── */
   const justTimers = useRef(new Set<number>());
