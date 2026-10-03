@@ -51,7 +51,7 @@ plan's whole text (lane splits, the Advisor's Q11 corrections, Will's answers) i
 | `cost-model` | research: the per-event and per-month cost model across every vendor, the levers ranked, into PRICING.md | MERGED at `cdefd776` (light gate: test 9,577; the lane's: test, typecheck, lint; every price read from its vendor's raw page 2026-10-03, one invented WebFetch summary caught); his decisions in the morning message | Opus, none | `adc26155bbe485569` |
 | `create-wizard-r3` | board create-wizard r3 [desk 60]: the add step's second exploration, four polished options in the wired room (styles recommended: Settings' album-style cards) | MERGED at `97798963` (gate 173 green, light: test; the lane's: test 9,733, build, lab:smoke, lab:demo at 1440 and 375); lab only; on his next desk | Opus, 3135 | `a5c57d3cc25a5c81c` |
 | `demo-framing-r5` | board demo-framing r5 [desk 90]: the hero's stage, a more polished set from r4's five | MERGED at `bf26d730` (gate 177 green: lint, test, build, lab:smoke, lab:demo demo-framing); lab only; on his next desk | Opus, 3136 | `a8f0856b99cc9ed00` |
-| `event-header-r3` | board event-header r3 [desk 50]: facts (the strip free of a timeline, new ideas; the dial banked) and doors (app-store depth, quieter windows, polished glass, each with its sticky form); ranges drawn | running (cut at `518aff34`); WIP pushes each milestone | Opus, 3134 | `ac26dc46271773f37` |
+| `event-header-r3` | board event-header r3 [desk 50]: facts (the strip free of a timeline, new ideas; the dial banked) and doors (three refined, each with its sticky form) | MERGED at `a2affb3d` (gate 179 green, light: test); lab only; on his next desk | Opus, 3134 | `ac26dc46271773f37` |
 | `crumbs-55` | four crumbs: frame-ancestors and X-Frame-Options against clickjacking (both projects), the next-step chip's room link, the brand kit's fifth ground and tokens, How it works' Create picture | MERGED at `599ede52` (gate 176 green: lint, test, build, lab:smoke, lab:demo all) | Sonnet, 3131 | `af911157a822471ec` |
 | `host-dashboard-r3` | board host-dashboard r3 [desk 25]: events for 1 to 10 scaling to hundreds, the empty featured stage, the feature's rule as a choice | MERGED at `a8b21659` (gate 178 green: lint, test, build, lab:smoke, lab:demo host-dashboard); lab only; on his next desk | Opus, 3135 | `a96b83311939a385c` |
 | `event-dates` | an optional end date read everywhere (Settings' range, the dashboard's week, live today and stage, the formatter's ranges, the develop default after the last day; never the lifecycle); lead=made; its migration for the Orchestrator | running (cut at `9af92e54`); WIP pushes each milestone | Opus, 3132 | `a4f91d827093a1238` |
@@ -85,15 +85,15 @@ with a `## Where I am` note, for the weekly's limit.
 If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` holds a merge made after this note (push
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
 staged, uncommitted merge is finished by `usher/kit/merge-lane.sh`'s own steps or reset with `git merge --abort`.
-This session's scratchpad holds the specs (`specs-r12/`) and gate logs (the next gate is 179, the calls file numbers on
-from 126); nothing there is needed that these lines and the manifests do not carry. Everything a successor reads lives
+This session's scratchpad holds the specs (`specs-r12/`) and gate logs (the next gate is 180, the calls file numbers on
+from 127); nothing there is needed that these lines and the manifests do not carry. Everything a successor reads lives
 in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team briefs and ledgers).
 
 ## Next, in order
 
 0. **Now (11:20Z):** every wave-1 lane is merged and both migrations are applied (types regenerated at `e0cbda7d`;
    take-home's typed seams one ROADMAP line), and the export Worker is deployed (version 955ce073). Build 46 (`9af92e54`)
-   serves the alias; red-team 46 walks it from `../partyreel-wt/_scratch/redteam-46/brief.md`. Running: `event-header-r3`, `event-dates` (its migration for the Advisor,
+   serves the alias; red-team 46 walks it from `../partyreel-wt/_scratch/redteam-46/brief.md`. Running: `event-dates` (its migration for the Advisor,
    then apply by protocol) and `the-wait-r2`. The Advisor's Q13: the backup Worker's originals-only filter is never
    deployed (nothing server-side remakes a preview or a phone copy).
 1. **Running** (the In-flight table; integrate each as it hands off, gates from 173): `wait-wiring` and
