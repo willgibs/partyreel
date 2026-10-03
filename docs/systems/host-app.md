@@ -23,20 +23,33 @@ explain: `require_verified_email` is the one identity switch (An email first); `
 its gate (below); `allow_videos` is the Videos switch, binding guests only, as `max_upload_bytes` caps each GUEST upload
 (the host's own are exempt); `qr_style` is plain text, app-validated, so presets grow without a migration.
 
-- **The sole create path is the `/dashboard/new` wizard** (`create-event-wizard.tsx`): Name, Style, then the beat. It
-  creates once, at commit (an abandoned wizard leaves no row), through the non-redirecting `createEventInWizard`, which
-  returns the id and token so the beat can draw the real code. Only the name is required; everything else is edited in
-  Settings (below). `enforce_event_limit` guards `MAX_EVENTS` in SQL. ★ So the Style step's swatches are samples and
-  say so: they encode the stand-in link (`previewJoinUrl`, as long as a real one, naming nobody's album), which a
-  test-scan meets as a 404.
-- ★ **The beat happens once in an event's life, by construction**: only pressing Create reaches it. It draws the real
-  code in a plain mat, two doors out (print the table cards; share the link), then hands over: what is left before
-  guests arrive (the checklist's open rows, read from what Create sent, `newEventFacts`) and Get it ready into
-  Settings' first step, the event itself a quieter press beside it. The custom link belongs to the share sheet.
+- **The sole create path is `/dashboard/new`** (`create-event-wizard.tsx`, its screens in `create-event-wizard/`), a
+  room of its own, dark in both themes, in Will's layout (the steppers, the question in one place, the answer in the
+  centre, one button at the foot): the name, the code's look, then the beat. It creates once, at commit (an abandoned
+  Create leaves no row), through the non-redirecting `createEventInWizard`, which returns the id and token so the beat
+  can draw the real code. Only the name is required; everything else is edited in Settings (below).
+  `enforce_event_limit` guards `MAX_EVENTS` in SQL. ★ So the look step's codes are samples and say so in one word on
+  the pictured code: they encode the stand-in link (`previewJoinUrl`, as long as a real one, naming nobody's album),
+  which a test-scan meets as a 404.
+- ★ **The room is `fixed` over the (app) shell, and the shell's bar steps aside in CSS** (`data-app-room` on the room,
+  `group-has-[[data-app-room]]/shell:hidden` on the header: the wide page's own way of asking), so nothing of the app
+  stands around Create or waits in the tab order behind it. It stands on a phone's keyboard (`useKeyboardInset` lifts
+  its foot), and the route waits in its own room (`RouteSkeleton`'s `room`), never the dashboard's paper skeleton.
+- ★ **The carry (`carry.ts`) photographs the leaving screen and flies her name between the field and the head** on the
+  Web Animations API, measured off both (the field's invisible mirror, `[data-room-name-text]`), the arriving screen
+  live from its first frame; a new change finishes a running one (`settle`), and reduced motion (or no `animate`)
+  cuts. Back exists on the look alone: never on the name, never once the event exists.
+- ★ **The beat happens once in an event's life, by construction**: only Create event reaches it. It lands at once on
+  the sample she styled while the event is made (nothing says live before it is; a refused or rejected Create returns
+  to the look, her name and look kept), develops into the real code (what mounts with the event arrives on
+  `@starting-style`, the code's bloom igniting with it), then Print and Share as rounds, Settings' five laid flat
+  (`settingsSteps`) over the checklist's line, room beside them past the dashboard's threshold (`newEventFacts` with
+  the route's `storageUsedPct`), and Get it ready into Settings' first step; the room's close leaves for the event.
+  The custom link belongs to the share sheet.
 - ★ **The cap is a door, not a dead button**: a host never does the work of an event and only then learns the plan cannot
   hold it. The route computes `atCap` with the dashboard's own math (`profile.event_slots ?? MAX_EVENTS[tier]`, as
   `enforce_event_limit` does), and the wizard renders the refusal (the plan's number, the event holding the slot, Delete,
-  Pro) instead of the form, so New event stays a live link; `enforce_event_limit` stays the guard behind the door.
+  Pro) in the room, unlit, instead of its screens, so New event stays a live link; `enforce_event_limit` stays the guard behind the door.
 - ★ **The wizard route never guards at-cap with a `redirect`, and the wizard snapshots `atCap` at mount**: a Server
   Action refreshes its route, so after Create `atCap` is true, and a redirect would bounce the host before the beat while
   a live prop would swap the beat for the refusal (`create-flow.test.tsx` flips the flag). The general rule: a route

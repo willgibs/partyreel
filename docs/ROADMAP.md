@@ -17,6 +17,8 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Security: the app answers any site's frame (no `frame-ancestors`, no `X-Frame-Options`), so a page can be clickjacked; `frame-ancestors 'self'` (and `X-Frame-Options: SAMEORIGIN`) in `next.config.ts`'s headers keeps See it as a guest's own frame and refuses every other (from `rooms-wiring`).
+- Host: the dashboard's next-step chip (`lib/dashboard/next-step.ts`) still links `/guests#at-the-door`, answered by the route's redirect; `roomHref` would save the hop (from `rooms-wiring`).
 - Guests: the phone's Add sheet (`responsive-menu`'s rows) blurs the cover behind it, so her own Add and the glass rounds go soft the moment she presses; a sheet that dims without blurring would keep the album she is adding to in view (a board idea from `identity-r3`).
 - Host: the hub and the dashboard say the account's storage percent inline; `storageUsedPct` (`lib/events/readiness.ts`) is its one home now (from `wizard-wiring`).
 - Host: Settings' rail maps its steps to the checklist's items itself (`settings-rows.tsx`'s `GROUPS` and `STEP_ITEM`); `SETTINGS_STEP_ITEMS` in readiness is the map Create's beat reads, and Settings could read it too (from `wizard-wiring`).
