@@ -7,7 +7,7 @@ import {
 } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { developTimeWords } from "@/lib/disposable/develop-words";
+import { waitRule } from "@/lib/disposable/wait-words";
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
 
 import {
@@ -100,9 +100,7 @@ describe("the button", () => {
     ]);
     mount();
     await waitFor(() =>
-      expect(tracker()).toHaveAccessibleName(
-        "Your uploads, 2 waiting for approval",
-      ),
+      expect(tracker()).toHaveAccessibleName("Your uploads, 2 developing"),
     );
     expect(
       document.querySelector("[data-upload-tracker-count]")?.textContent,
@@ -169,9 +167,7 @@ describe("the button", () => {
     statuses([{ id: "m1", status: "pending" }]);
     const view = mount();
     await waitFor(() =>
-      expect(tracker()).toHaveAccessibleName(
-        "Your uploads, 1 waiting for approval",
-      ),
+      expect(tracker()).toHaveAccessibleName("Your uploads, 1 developing"),
     );
     // Her rows' next read never answers: whatever moves the badge now is the album's.
     vi.mocked(global.fetch).mockReturnValue(new Promise<Response>(() => {}));
@@ -206,9 +202,7 @@ describe("the button", () => {
     ]);
     const view = mount();
     await waitFor(() =>
-      expect(tracker()).toHaveAccessibleName(
-        "Your uploads, 2 waiting for approval",
-      ),
+      expect(tracker()).toHaveAccessibleName("Your uploads, 2 developing"),
     );
     expect(global.fetch).toHaveBeenCalledTimes(1);
     // Maya lets m1 in and leaves m2 out; the album's sync brings m1, and only her rows say m2.
@@ -248,9 +242,7 @@ describe("the button", () => {
     live.current.serverIds = new Set(["m1"]);
     mount();
     await waitFor(() =>
-      expect(tracker()).toHaveAccessibleName(
-        "Your uploads, 1 waiting for approval",
-      ),
+      expect(tracker()).toHaveAccessibleName("Your uploads, 1 developing"),
     );
     // Give a stray re-read the chance to fire before saying it did not.
     await act(async () => {
@@ -309,7 +301,8 @@ describe("the list", () => {
       ...document.querySelectorAll("[data-upload-tracker-row]"),
     ].map((row) => row.getAttribute("data-upload-tracker-row"));
     expect(rows).toEqual(["waiting", "refused", "approved"]);
-    expect(screen.getByText("Waiting for approval")).toBeInTheDocument();
+    // `model=time` (the-wait r1): a held one is developing, a refused one keeps its plain word.
+    expect(screen.getByText("Developing")).toBeInTheDocument();
     expect(screen.getByText("Not approved")).toBeInTheDocument();
     expect(screen.getByText("In the album")).toBeInTheDocument();
     // The album's own link draws what is in it; nothing else is ever presigned for a guest.
@@ -357,10 +350,12 @@ describe("the list", () => {
  * does not. Nothing in the album, or still sending, has one: the album's own Delete is that door.
  */
 /* ★ RED-TEAM 43'S MEDIUM: on an album with a develop time ahead, her own shots are approved and sealed until it
-   develops; her rows' read says so (`sealed: true`), and each waits in its own words, counted, hers to take back,
-   under the album's sentence for the develop, never "In the album" and never "waiting for approval". */
+   develops; her rows' read says so (`sealed: true`), and each waits, counted, hers to take back, under the album's
+   sentence for the develop, never "In the album". RESHAPED (the-wait r1, `model=time`): its own words were "Waiting to
+   develop" apart from approval's; every wait is "Developing" now, and the album's clock (the head's rule) tells them
+   apart. The scar kept: never "In the album", counted, removable. */
 describe("the develop", () => {
-  it("★ her sealed shots wait to develop: counted, said in their own words, and hers to take back", async () => {
+  it("★ her sealed shots are developing: counted, never in the album, and hers to take back", async () => {
     const ahead = "2026-10-03T13:00:00.000Z";
     vi.mocked(global.fetch).mockResolvedValue({
       ok: true,
@@ -374,9 +369,7 @@ describe("the develop", () => {
     } as Response);
     const view = mount({ developsAt: ahead });
     await waitFor(() =>
-      expect(tracker()).toHaveAccessibleName(
-        "Your uploads, 2 waiting to develop",
-      ),
+      expect(tracker()).toHaveAccessibleName("Your uploads, 2 developing"),
     );
     expect(
       document.querySelector("[data-upload-tracker-count]")?.textContent,
@@ -408,18 +401,53 @@ describe("the develop", () => {
       ...document.querySelectorAll("[data-upload-tracker-row]"),
     ].map((row) => row.getAttribute("data-upload-tracker-row"));
     expect(rows).toEqual(["waiting", "waiting"]);
-    expect(screen.getAllByText("Waiting to develop")).toHaveLength(2);
+    expect(screen.getAllByText("Developing")).toHaveLength(2);
     expect(screen.queryByText("In the album")).toBeNull();
-    expect(screen.queryByText("Waiting for approval")).toBeNull();
     expect(
       screen.getAllByRole("button", { name: "Remove this upload" }),
     ).toHaveLength(2);
-    // The time is the one formatter's (`develop-words`), the same words the host's Settings says it in.
+    // The album's one rule, in the wait's words (`wait-words.ts`), the time in her own clock.
     expect(
       screen.getByText(
-        `Uploads appear in the album when it develops, ${developTimeWords(ahead)}.`,
+        waitRule({ kind: "develop", developsAt: ahead }, Date.now()),
       ),
     ).toBeInTheDocument();
+  });
+
+  /* ★ THE-WAIT R1, `wait=sheet`: her waiting shots light up on the album's contact sheet, each with the picture her
+     rows' read presigned for her alone and when she took it; the tracker publishes them, the sheet reads them. */
+  it("★ publishes her waiting shots, with her own pictures, for the album's contact sheet", async () => {
+    const ahead = "2026-12-03T13:00:00.000Z";
+    vi.mocked(global.fetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        ok: true,
+        items: [
+          {
+            id: "m1",
+            status: "approved",
+            sealed: true,
+            picture: {
+              type: "photo",
+              at: 1_790_000_000_000,
+              tile: "https://r2.example/m1-tile.webp",
+            },
+          },
+          { id: "m2", status: "approved" },
+        ],
+      }),
+    } as Response);
+    live.current.serverIds = new Set(["m2"]);
+    const view = mount({ developsAt: ahead });
+    await waitFor(() => expect(view.store.hers.get()).toHaveLength(1));
+    expect(view.store.hers.get()[0]).toEqual({
+      key: "m1",
+      at: 1_790_000_000_000,
+      src: "https://r2.example/m1-tile.webp",
+      video: false,
+      sending: false,
+    });
+    live.current.serverIds = new Set();
   });
 });
 

@@ -16,6 +16,8 @@ vi.mock("server-only", () => ({}));
 
 const patches: Record<string, unknown>[] = [];
 const reads: string[] = [];
+/** What the next write answers with: the database's own refusal, where a test hands one. */
+let nextError: { code: string; message: string } | null = null;
 
 function eventsBuilder() {
   const builder = {
@@ -29,7 +31,15 @@ function eventsBuilder() {
     },
     eq: () => builder,
     is: () => builder,
-    single: () => Promise.resolve({ data: { id: "event-1" }, error: null }),
+    single: () => {
+      const error = nextError;
+      nextError = null;
+      return Promise.resolve(
+        error
+          ? { data: null, error }
+          : { data: { id: "event-1" }, error: null },
+      );
+    },
     maybeSingle: () =>
       Promise.resolve({
         data: { event_password_hash: "$2b$hash" },
@@ -51,10 +61,13 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 
 const { updateEvent } = await import("@/lib/db/mutations/events");
+const { APPROVAL_NEVER_WITH_A_DEVELOP } =
+  await import("@/lib/disposable/album-style");
 
 beforeEach(() => {
   patches.length = 0;
   reads.length = 0;
+  nextError = null;
 });
 
 describe("updateEvent: the patch is the save, nothing more", () => {
@@ -145,7 +158,10 @@ describe("updateEvent: the reel's defaults patch as sent", () => {
 // rows' rewrite), so the write is the patch and nothing after it.
 describe("updateEvent: the capture and the develop time", () => {
   it("writes the capture alone, and a develop answer's two columns together", async () => {
-    await updateEvent("event-1", updateEventSchema.parse({ capture: "camera" }));
+    await updateEvent(
+      "event-1",
+      updateEventSchema.parse({ capture: "camera" }),
+    );
     const at = new Date(Date.now() + 86_400_000).toISOString();
     await updateEvent(
       "event-1",
@@ -153,12 +169,71 @@ describe("updateEvent: the capture and the develop time", () => {
     );
     await updateEvent(
       "event-1",
-      updateEventSchema.parse({ moderation_mode: "hold_for_approval", develops_at: null }),
+      updateEventSchema.parse({
+        moderation_mode: "hold_for_approval",
+        develops_at: null,
+      }),
     );
     expect(patches).toEqual([
       { capture: "camera" },
       { moderation_mode: "live", develops_at: at },
       { moderation_mode: "hold_for_approval", develops_at: null },
     ]);
+  });
+});
+
+// APPROVAL NEVER STANDS WITH A DEVELOP (the-wait r1, `both=never`; 20261003100000's CHECK): a save asking for both is
+// refused in words before it is written, and a save that would leave the row holding both (one column sent, the other
+// the row's own) is refused by the database's CHECK, read by its name, in the same words.
+describe("updateEvent: approval never stands with a develop", () => {
+  it("★ refuses a patch asking for both, in words, and writes nothing", async () => {
+    const at = new Date(Date.now() + 86_400_000).toISOString();
+    const result = await updateEvent(
+      "event-1",
+      updateEventSchema.parse({
+        moderation_mode: "hold_for_approval",
+        develops_at: at,
+      }),
+    );
+    expect(result).toEqual({
+      ok: false,
+      code: "unknown",
+      message: APPROVAL_NEVER_WITH_A_DEVELOP,
+    });
+    expect(patches).toEqual([]);
+  });
+
+  it("★ the database's refusal of the pair (the row's own develop time) reads as the same words", async () => {
+    nextError = {
+      code: "23514",
+      message:
+        'new row for relation "events" violates check constraint "events_approval_never_develops"',
+    };
+    const result = await updateEvent(
+      "event-1",
+      updateEventSchema.parse({ moderation_mode: "hold_for_approval" }),
+    );
+    expect(result).toEqual({
+      ok: false,
+      code: "unknown",
+      message: APPROVAL_NEVER_WITH_A_DEVELOP,
+    });
+  });
+
+  it("another CHECK's refusal stays the generic sentence (a refusal is read by its name, never guessed)", async () => {
+    nextError = {
+      code: "23514",
+      message:
+        'new row for relation "events" violates check constraint "events_roll_size_range"',
+    };
+    const result = await updateEvent(
+      "event-1",
+      updateEventSchema.parse({ capture: "camera" }),
+    );
+    expect(result).toEqual({
+      ok: false,
+      code: "unknown",
+      message: "Couldn't save your changes. Please try again.",
+    });
   });
 });

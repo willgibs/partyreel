@@ -27,12 +27,15 @@ import {
   PopupHeader,
 } from "@/components/ui/popup";
 import { NOT_APPROVED_HELP_HREF } from "@/lib/content/help-links";
-import { developTimeWords } from "@/lib/disposable/develop-words";
+import type { HerShot } from "@/lib/disposable/contact-sheet";
+import { useWaitClock } from "@/lib/disposable/use-wait-clock";
+import { waitRule, waitWords } from "@/lib/disposable/wait-words";
 import { formatCount } from "@/lib/format/count";
 import {
   buildTrackerRows,
+  herShotsOf,
   newlyInAlbum,
-  TRACKER_SEALED_WORDS,
+  ownUploadOf,
   TRACKER_WORDS,
   trackerShows,
   waitingCount,
@@ -98,13 +101,44 @@ export type ApprovalNews = {
   subscribe: (listener: () => void) => () => void;
 };
 
+/**
+ * Her waiting shots, as the album's contact sheet lights them (`herShotsOf`): published by the tracker, which alone
+ * holds her rows and this visit's queue, and read by the sheet above the album (`gallery-empty-state.tsx`).
+ */
+export type HerShots = {
+  get: () => readonly HerShot[];
+  subscribe: (listener: () => void) => () => void;
+  set: (next: readonly HerShot[]) => void;
+};
+
 export type UploadTrackerStore = {
   getSnapshot: () => TrackerSnapshot;
   subscribe: (listener: () => void) => () => void;
   set: (next: TrackerSnapshot) => void;
   /** Her news this visit (the toast reads it; the button never does). */
   news: ApprovalNews & { add: (ids: readonly string[]) => void };
+  /** Her waiting shots, for the album's contact sheet. */
+  hers: HerShots;
 };
+
+const NO_HERS: readonly HerShot[] = [];
+
+/** Whether two lists of her shots draw the same (a re-render that changed nothing keeps the sheet still). */
+function sameShots(a: readonly HerShot[], b: readonly HerShot[]): boolean {
+  return (
+    a.length === b.length &&
+    a.every((s, i) => {
+      const t = b[i]!;
+      return (
+        s.key === t.key &&
+        s.at === t.at &&
+        s.src === t.src &&
+        s.sending === t.sending &&
+        s.video === t.video
+      );
+    })
+  );
+}
 
 /** The two facts the button needs, and the toast's news, kept outside React state (the page creates one per mount). */
 export function createUploadTrackerStore(): UploadTrackerStore {
@@ -112,6 +146,8 @@ export function createUploadTrackerStore(): UploadTrackerStore {
   const listeners = new Set<() => void>();
   let news = NO_NEWS;
   const newsListeners = new Set<() => void>();
+  let hers = NO_HERS;
+  const hersListeners = new Set<() => void>();
   return {
     getSnapshot: () => snapshot,
     subscribe(listener) {
@@ -146,6 +182,20 @@ export function createUploadTrackerStore(): UploadTrackerStore {
         for (const listener of newsListeners) listener();
       },
     },
+    hers: {
+      get: () => hers,
+      subscribe(listener) {
+        hersListeners.add(listener);
+        return () => {
+          hersListeners.delete(listener);
+        };
+      },
+      set(next) {
+        if (sameShots(hers, next)) return;
+        hers = next.length === 0 ? NO_HERS : next;
+        for (const listener of hersListeners) listener();
+      },
+    },
   };
 }
 
@@ -175,14 +225,19 @@ async function readOwnStatuses(
     if (!res.ok) return null;
     const body = (await res.json()) as {
       ok?: boolean;
-      items?: OwnUploadWire[];
+      items?: unknown[];
       news?: unknown;
     };
     if (!body.ok || !Array.isArray(body.items)) return null;
     const news = Array.isArray(body.news)
       ? body.news.filter((id): id is string => typeof id === "string")
       : [];
-    return { items: body.items, news };
+    // Read defensively (it crosses a process boundary): her picture rides only whole.
+    const items = body.items.flatMap((item) => {
+      const own = ownUploadOf(item);
+      return own ? [own] : [];
+    });
+    return { items, news };
   } catch {
     return null;
   }
@@ -200,6 +255,7 @@ export function UploadTracker({
   isAuthed,
   moderated,
   developsAt = null,
+  hostName = null,
   isDemo,
   isOwner,
   removedIds,
@@ -219,6 +275,8 @@ export function UploadTracker({
   moderated: boolean;
   /** The album's develop time while it is ahead (`uploadsWait`'s `developsAt`): what she adds is sealed until then. */
   developsAt?: string | null;
+  /** The host's name, as the album's clock says it ("As Maya lets them in"); null where she set none. */
+  hostName?: string | null;
   isDemo: boolean;
   isOwner: boolean;
   /** What she removed herself this visit: hers to forget, never listed. */
@@ -282,8 +340,11 @@ export function UploadTracker({
   }, [canAsk, arrivals, qrToken, sessionToken, store]);
 
   const sealing = developsAt !== null;
-  // Said only in the open list, which draws after hydration: her own zone, never the server's.
-  const developWhen = open && sealing ? developTimeWords(developsAt) : null;
+  // The album's one rule, in the wait's own words (`model=time`: "Uploads develop all at once at 9 am" or "as Maya lets
+  // each one in"), the time said in her own clock once hydrated (the list opens only after it anyway).
+  const nowMs = useWaitClock();
+  const clock = waitWords({ waits: moderated, developsAt }, hostName);
+  const rule = clock ? waitRule(clock, nowMs) : null;
   const rows = useMemo(
     () =>
       buildTrackerRows({
@@ -304,6 +365,35 @@ export function UploadTracker({
   }, [store, show, waiting, sealed]);
   // Gone with the album (an access flip remounts it): the button goes with it rather than lingering.
   useEffect(() => () => store.set(HIDDEN), [store]);
+
+  /* ── her waiting shots, for the album's contact sheet (the-wait r1, `wait=sheet`) ─────────────── */
+  // Where what she adds waits, her own light up on the sheet above the album, each with this device's own picture or
+  // the one her rows' read presigned for her alone; never on an album that shows what is added at once.
+  const pendingUrls = live?.pendingUrls;
+  const hers = useMemo(
+    () =>
+      moderated && !isDemo && !isOwner
+        ? herShotsOf({
+            rows,
+            own,
+            localUrl: (queueId) => pendingUrls?.get(queueId),
+          })
+        : [],
+    [moderated, isDemo, isOwner, rows, own, pendingUrls],
+  );
+  useEffect(() => {
+    store.hers.set(hers);
+  }, [store, hers]);
+  useEffect(() => () => store.hers.set([]), [store]);
+  const ownPicture = useMemo(
+    () =>
+      new Map(
+        (own ?? []).flatMap((o) =>
+          o.picture ? [[o.id, o.picture.tile] as const] : [],
+        ),
+      ),
+    [own],
+  );
 
   /* ── the pictures: this visit's own files, or the album's links for what is in it ──────────── */
   const byId = useMemo(() => {
@@ -381,9 +471,10 @@ export function UploadTracker({
         <PopupHeader
           title="Your uploads"
           description={
-            sealing
-              ? `Uploads appear in the album when it develops${developWhen ? `, ${developWhen}` : ""}.`
-              : "The host reviews uploads before they appear in the album."
+            rule ??
+            (sealing
+              ? "Uploads develop all at once."
+              : "Uploads develop as the host lets each one in.")
           }
           back="Album"
         />
@@ -395,7 +486,12 @@ export function UploadTracker({
                 ? live?.pendingUrls.get(row.queueId)
                 : undefined;
               const linked = row.mediaId ? byId?.get(row.mediaId) : undefined;
-              const src = linked ? linked.previewUrl || linked.url : "";
+              // In the album, its own link; waiting, the picture her rows' read presigned for her alone.
+              const src = linked
+                ? linked.previewUrl || linked.url
+                : row.mediaId
+                  ? (ownPicture.get(row.mediaId) ?? "")
+                  : "";
               return (
                 <TrackerRowView
                   key={row.key}
@@ -478,8 +574,8 @@ function TrackerRowView({
       )}
     >
       <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-tile bg-muted">
-        {/* A held or refused photograph from an earlier visit has no picture here: nothing that
-            is not in the album is ever presigned for a guest (`r2/grid-items.ts`). */}
+        {/* A waiting photograph wears the picture her rows' read presigned for her alone; a refused one
+            has none here (an operator's takedown is never presigned, even to its uploader). */}
         {picture ?? (
           <ImageIcon className="size-4 text-muted-foreground/60" aria-hidden />
         )}
@@ -500,9 +596,7 @@ function TrackerRowView({
         <span className="truncate text-foreground">
           {removing === "failed"
             ? "Couldn't remove it"
-            : row.sealed
-              ? TRACKER_SEALED_WORDS
-              : TRACKER_WORDS[row.status]}
+            : TRACKER_WORDS[row.status]}
         </span>
       </p>
       {onRemove && (
@@ -572,19 +666,14 @@ export function UploadTrackerButton({
   onOpen: () => void;
   look?: "row" | "glass" | "round";
 }) {
-  const { show, waiting, sealed } = useSyncExternalStore(
+  const { show, waiting } = useSyncExternalStore(
     store.subscribe,
     store.getSnapshot,
     () => HIDDEN,
   );
   if (!show) return null;
-  // What hers wait for, in her rows' own words: the host's approval, the develop, or both at once.
-  const waitsFor =
-    sealed === 0
-      ? ` ${TRACKER_WORDS.waiting.toLowerCase()}`
-      : sealed === waiting
-        ? ` ${TRACKER_SEALED_WORDS.toLowerCase()}`
-        : " waiting";
+  // What hers wait for, in her rows' one word (`model=time`): every wait is developing, the host's or the develop's.
+  const waitsFor = ` ${TRACKER_WORDS.waiting.toLowerCase()}`;
   return (
     <Button
       type="button"

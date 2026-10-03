@@ -61,6 +61,7 @@ import { unstable_rethrow } from "next/navigation";
 import { toast } from "sonner";
 
 import { removeMyUploadGuestAction } from "@/app/(guest)/e/[token]/actions";
+import { AlbumWaitingProvider } from "@/components/guest/gallery-empty-state-yield";
 import type { UploadedItem } from "@/components/guest/guest-upload";
 import type { ClipResolver } from "@/lib/album/resolver";
 import {
@@ -69,6 +70,7 @@ import {
   type SyncResult,
 } from "@/lib/album/store";
 import { guestAlbumTransport } from "@/lib/album/transport";
+import type { GuestWaiting } from "@/lib/disposable/facts";
 import { entryId, type GuestFullSync } from "@/lib/events/album-wire";
 import type { GalleryAccess } from "@/lib/events/gallery-access";
 import type { GalleryItem, GalleryReel } from "@/lib/events/gallery-reel";
@@ -294,6 +296,15 @@ export type GalleryLive = {
   albumRead: AlbumRead;
   /** Read the album again now: the store's own sync (Try again on an album that could not load). */
   retryAlbum: () => Promise<void>;
+  /**
+   * ★ WHAT WAITS, AS A GUEST MAY KNOW IT (the-wait r1, Will's `wait=sheet`): everyone's waiting rows, held for the host
+   * or sealed for the develop, as the last full answer counted them (the count, its minutes and the develop time;
+   * never an id, `GuestFullSync.waiting`), the seed's from the first paint. The album's contact sheet draws everyone's
+   * from it, so a guest with none of her own still reads what waits. Null where nothing waits and no develop time is
+   * set, and at a teaser or a lock (which never carry it). Optional so a stand-in source (a test's, the lab's) need not
+   * name it: absent reads as nothing waiting.
+   */
+  waiting?: GuestWaiting | null;
 };
 
 const GalleryLiveContext = createContext<GalleryLive | null>(null);
@@ -454,8 +465,16 @@ export function GalleryLiveProvider({
       seeded: seed !== null,
     };
   });
+  // The seed's snapshot, with what waits as the seed's own full answer said it (the store's answer carries it from its
+  // first sync; the seed's stands in before that, so the first paint draws the wait the server read).
   const seedSnap = useMemo(
-    () => (seed ? seedSnapshot(seed) : unread),
+    () =>
+      seed
+        ? {
+            ...seedSnapshot(seed),
+            waiting: seed.kind === "full" ? seed.sync.waiting : undefined,
+          }
+        : unread,
     [seed, unread],
   );
   // The seed's links, dated once on this device's clock, for the renders before the link store has
@@ -922,6 +941,7 @@ export function GalleryLiveProvider({
         ? "failed"
         : "trying";
   const retryAlbum = useCallback(() => store.sync(), [store]);
+  const waiting = shown.waiting ?? null;
 
   const value = useMemo<GalleryLive>(
     () => ({
@@ -950,6 +970,7 @@ export function GalleryLiveProvider({
       reportPossibleExpiry,
       albumRead,
       retryAlbum,
+      waiting,
     }),
     [
       qrToken,
@@ -977,8 +998,20 @@ export function GalleryLiveProvider({
       reportPossibleExpiry,
       albumRead,
       retryAlbum,
+      waiting,
     ],
   );
 
-  return <GalleryLiveContext value={value}>{children}</GalleryLiveContext>;
+  // What waits, for the album's contact sheet (`gallery-empty-state-wait.tsx`), in its own light context.
+  const albumWaiting = useMemo(
+    () => ({ access: shown.access ?? access, waiting }),
+    [shown.access, access, waiting],
+  );
+  return (
+    <GalleryLiveContext value={value}>
+      <AlbumWaitingProvider value={albumWaiting}>
+        {children}
+      </AlbumWaitingProvider>
+    </GalleryLiveContext>
+  );
 }

@@ -108,22 +108,22 @@ const ENTRIES: ParityEntry[] = [
     appFile: "src/components/guest/door/welcome.tsx",
     literal: "Continue",
   },
-  // voice-guest r2 (`held=uploads`, `status=approval`): the album's waiting tile retired, and a held
-  // photograph shows only in her uploads, so the phone plate quotes her uploads' row and the
-  // switch's hint names it in the same words.
+  // voice-guest r2 (`held=uploads`): a held photograph shows only in her uploads, so the phone plate quotes her
+  // uploads' row and the switch's hint names it in the same words. ★ Reshaped by wait-wiring (the-wait r1,
+  // `model=time`): every wait is "Developing" now, a held one's included; the pin follows the word.
   {
     label: "album review switch guest's uploads row",
     marketingFile:
       "src/components/marketing/sections/features/album/review-switch.tsx",
     appFile: "src/lib/guest/upload-tracker.ts",
-    literal: "Waiting for approval",
+    literal: "Developing",
   },
   {
     label: "album your-call review hint",
     marketingFile:
       "src/components/marketing/sections/features/album/album-copy.ts",
     appFile: "src/lib/guest/upload-tracker.ts",
-    literal: "Waiting for approval",
+    literal: "Developing",
   },
   {
     label: "album review switch bulk-approve button",

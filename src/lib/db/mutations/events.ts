@@ -11,6 +11,11 @@
 import "server-only";
 
 import type { Tables, TablesInsert, TablesUpdate } from "@/lib/db/types";
+import {
+  APPROVAL_NEVER_WITH_A_DEVELOP,
+  APPROVAL_NEVER_WITH_A_DEVELOP_CHECK,
+  approvalWithADevelop,
+} from "@/lib/disposable/album-style";
 import { createClient } from "@/lib/supabase/server";
 import type {
   CreateEventValues,
@@ -101,6 +106,28 @@ export async function createEvent(
   return { ok: true, data };
 }
 
+/**
+ * ★ APPROVAL NEVER STANDS WITH A DEVELOP (the-wait r1, Will's `both=never`): when everyone sees is one answer, so a
+ * save asking for approval and a develop time together is refused here, in words, before it is written; one asking for
+ * either while the row holds the other is refused by the database's CHECK (`events_approval_never_develops`,
+ * 20261003100000), read by its name and said in the same words. Settings never asks for both (each answer is one
+ * save of both columns); the review room's "Turn on review" on a develop album is the path that meets it.
+ */
+const APPROVAL_REFUSED = {
+  ok: false as const,
+  code: "unknown" as const,
+  message: APPROVAL_NEVER_WITH_A_DEVELOP,
+};
+
+/** Whether a write's error is the CHECK refusing approval with a develop time: its code and its own name. */
+function approvalRefusal(error: { code?: string; message?: string }): boolean {
+  return (
+    error.code === CHECK_VIOLATION &&
+    typeof error.message === "string" &&
+    error.message.includes(APPROVAL_NEVER_WITH_A_DEVELOP_CHECK)
+  );
+}
+
 export async function updateEvent(
   id: string,
   values: UpdateEventValues,
@@ -110,6 +137,8 @@ export async function updateEvent(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
+
+  if (approvalWithADevelop(values)) return APPROVAL_REFUSED;
 
   // Only patch keys that were provided: updateEventSchema is partial with NO defaults, so a
   // defined key here is one the caller sent (validation/event.ts owns why). Nullable text columns
@@ -191,6 +220,7 @@ export async function updateEvent(
     .single();
 
   if (error) {
+    if (approvalRefusal(error)) return APPROVAL_REFUSED;
     return {
       ok: false,
       code: "unknown",

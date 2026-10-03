@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, type ReactNode } from "react";
+import { Suspense, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { ArrowUp, Camera, ChevronLeft, ImageUp, Play } from "lucide-react";
 
@@ -15,6 +15,10 @@ import {
 } from "@/components/guest/event-experience-head";
 import { GallerySkeleton } from "@/components/guest/gallery-skeleton";
 import { GuestActionDock } from "@/components/guest/guest-action-dock";
+import {
+  AlbumWait,
+  AlbumWaitSource,
+} from "@/components/guest/gallery-empty-state-wait";
 import { GalleryLiveProvider } from "@/components/guest/gallery-live";
 import { GuestShare } from "@/components/guest/guest-share";
 import {
@@ -30,7 +34,10 @@ import {
 } from "@/components/social/guest-list";
 import { Button } from "@/components/ui/button";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
+import { useWaitClock } from "@/lib/disposable/use-wait-clock";
+import { coverEyebrow, waitWords } from "@/lib/disposable/wait-words";
 import { useDoorHues } from "@/lib/guest/door-light";
+import { uploadsWait } from "@/lib/guest/upload-tracker";
 import { DEFAULT_ROW_STEP, type RowStep } from "@/lib/shared/album-rows";
 import { useInViewSentinel } from "@/lib/shared/use-in-view-sentinel";
 import { cn } from "@/lib/utils";
@@ -52,6 +59,8 @@ export type AsGuestEvent = Pick<
   | "accepting_uploads"
   | "show_reel"
   | "capture"
+  | "moderation_mode"
+  | "develops_at"
 >;
 
 const noop = () => {};
@@ -177,6 +186,26 @@ function AlbumAsGuest({
     : empty
       ? "Add the first photo"
       : "Add photos";
+  /* ★ WHAT WAITS, AS A GUEST MEETS IT (the-wait r1, `wait=sheet`, `name=disposable`): the contact sheet over the album
+     wherever photos wait, off the guests' own live source (numbers only; nothing of hers: no ticket), the album's rule
+     before anything waits, and the cover's word over the name on a disposable. Read on the reader's clock once it is
+     known, as the guest page reads it (`event-experience.tsx`). */
+  const wallClock = useWaitClock();
+  const clock = useMemo(
+    () =>
+      waitWords(
+        uploadsWait(event, wallClock ?? undefined),
+        event.host_display_name ?? null,
+      ),
+    [event, wallClock],
+  );
+  const eyebrow = coverEyebrow(
+    {
+      capture: event.capture ?? "upload",
+      developsAt: event.develops_at ?? null,
+    },
+    wallClock,
+  );
   // The reel's round, on the guest page's own first guess (the host's switch and two photographs).
   const reelRound = event.show_reel && mediaCount >= 2;
   const listSaysCount = guests.length > GUEST_LIST_FACES_THRESHOLD;
@@ -202,6 +231,7 @@ function AlbumAsGuest({
               eventId={event.id}
             />
           }
+          eyebrow={eyebrow}
           name={event.name}
           host={
             event.host_display_name?.trim()
@@ -281,21 +311,32 @@ function AlbumAsGuest({
               onCountChange={setMediaCount}
               onGuestCountChange={setGuestCount}
             >
-              {/* The shutter's light, the album's three newest, as the guest page samples it. */}
-              <AlbumLightSampler />
-              <div className={cn(BLEED, "mt-5")}>
-                <LiveGallery
-                  galleryPromise={galleryPromise}
-                  qrToken={event.qr_token}
-                  access="full"
-                  isDemo={false}
-                  onOpenGate={noop}
-                  joinUrl={joinUrl}
-                  initialRowStep={rowStep}
-                  firstPaintWidth={firstPaintWidth}
-                  rhythmSeed={rhythmSeed}
+              <AlbumWaitSource
+                clock={clock}
+                hers={null}
+                firstPaintWidth={firstPaintWidth}
+                rule={canUpload}
+              >
+                {/* The shutter's light, the album's three newest, as the guest page samples it. */}
+                <AlbumLightSampler />
+                <AlbumWait
+                  className={cn(BLEED, "mt-5")}
+                  ruleClassName={cn(COLUMN, "mt-5")}
                 />
-              </div>
+                <div className={cn(BLEED, "mt-5")}>
+                  <LiveGallery
+                    galleryPromise={galleryPromise}
+                    qrToken={event.qr_token}
+                    access="full"
+                    isDemo={false}
+                    onOpenGate={noop}
+                    joinUrl={joinUrl}
+                    initialRowStep={rowStep}
+                    firstPaintWidth={firstPaintWidth}
+                    rhythmSeed={rhythmSeed}
+                  />
+                </div>
+              </AlbumWaitSource>
             </GalleryLiveProvider>
           </Suspense>
         </AlbumBoundary>

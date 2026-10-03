@@ -1,3 +1,4 @@
+import { AlbumWaitYield } from "@/components/guest/gallery-empty-state-yield";
 import { River, type RiverFrame } from "@/components/shared/river/river";
 import { Button } from "@/components/ui/button";
 
@@ -62,12 +63,27 @@ export function GhostRiver() {
   );
 }
 
+/**
+ * ★ AND IT YIELDS TO THE WAIT (the-wait r1, Will's `wait=sheet`). An album that holds photos back, for the host's
+ * approval or a develop time, has nothing in it a guest can see yet, and today it read as this empty album even under
+ * a guest who had just added to it (Will's walk: it "landed", then "vanished back to the empty state ... a new guest
+ * would likely think that's a bug"). Wherever the wait stands, the contact sheet above the album IS the album's state
+ * (`gallery-empty-state-wait.tsx`), and this promise steps aside; an album that waits with nothing in it yet keeps it.
+ */
 export function GalleryEmptyState({
   onAddFirst,
 }: {
   /** Present only when the viewer can upload — drives the CTA. */
   onAddFirst?: () => void;
 }) {
+  return (
+    <AlbumWaitYield>
+      <EmptyAlbum onAddFirst={onAddFirst} />
+    </AlbumWaitYield>
+  );
+}
+
+function EmptyAlbum({ onAddFirst }: { onAddFirst?: () => void }) {
   return (
     <div className="relative">
       {/* The river is SQUARE here (its default ratio). It takes its width from

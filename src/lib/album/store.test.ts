@@ -1,7 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { isOrdered } from "@/lib/album/manifest";
-import { createAlbumStore, type AlbumTransport } from "@/lib/album/store";
+import {
+  createAlbumStore,
+  type AlbumTransport,
+  type SyncResult,
+} from "@/lib/album/store";
 import {
   AlbumSim,
   simTransport,
@@ -289,5 +293,120 @@ describe("the links follow the album", () => {
     sim.commit([{ op: "status", id: a.id, status: "removed" }]);
     await store.sync();
     expect(store.links.get(a.id)).toBeUndefined();
+  });
+});
+
+/* ★ WHAT WAITS REACHES THE PAGE (the-wait r1, Will's `wait=sheet`): the sync's waiting facts (`GuestFullSync.waiting`,
+   held and sealed rows counted together, as a number and its minutes, never an id) ride every full answer into the
+   snapshot, so the album's contact sheet draws everyone's from them; a 304 keeps what was said, a teaser or a lock
+   says nothing of it, and the host's scope never carries it (her hub reads her own manifest). */
+describe("what waits rides the guest's full answer, as numbers", () => {
+  const WAITING = {
+    count: 5,
+    minutes: [
+      [1_790_000_040_000, 2],
+      [1_790_000_100_000, 3],
+    ] as [number, number][],
+    developsAt: "2026-10-11T16:00:00.000Z",
+  };
+
+  function guestTransport(
+    answers: SyncResult[],
+  ): AlbumTransport<GuestWhoTuple> {
+    return {
+      sync: () => Promise.resolve(answers.shift() ?? { status: 304 }),
+      manifest: () => Promise.reject(new Error("no pages")),
+      links: () => Promise.reject(new Error("no links")),
+    };
+  }
+
+  const manifest = (waiting?: typeof WAITING): SyncResult => ({
+    status: 200,
+    etag: "e1",
+    body: {
+      kind: "manifest",
+      v: 1,
+      attr: 0,
+      entries: [],
+      next: null,
+      ok: true,
+      access: "full",
+      gate: null,
+      total: 0,
+      reel: null,
+      ...(waiting ? { waiting } : {}),
+    },
+  });
+
+  it("★ adopts the count and its minutes from a manifest, and no id of what waits rides it", async () => {
+    const store = createAlbumStore({
+      transport: guestTransport([manifest(WAITING)]),
+    });
+    await store.sync();
+    const snap = store.getSnapshot();
+    expect(snap.waiting).toEqual(WAITING);
+    // Nothing that waits is an entry: the album holds only what a guest sees.
+    expect(snap.entries).toEqual([]);
+    expect(JSON.stringify(snap.waiting)).not.toMatch(
+      /[0-9a-f]{8}-[0-9a-f]{4}-/,
+    );
+  });
+
+  it("a delta carries the newest word; a 304 keeps it; an answer without it says nothing waits", async () => {
+    const delta: SyncResult = {
+      status: 200,
+      etag: "e2",
+      body: {
+        kind: "delta",
+        v: 2,
+        attr: 0,
+        upsert: [],
+        remove: [],
+        ok: true,
+        access: "full",
+        gate: null,
+        total: 0,
+        reel: null,
+        waiting: { ...WAITING, count: 6 },
+      },
+    };
+    const store = createAlbumStore({
+      transport: guestTransport([
+        manifest(WAITING),
+        delta,
+        { status: 304 },
+        manifest(),
+      ]),
+    });
+    await store.sync();
+    await store.sync();
+    expect(store.getSnapshot().waiting?.count).toBe(6);
+    await store.sync();
+    expect(store.getSnapshot().waiting?.count).toBe(6);
+    await store.sync();
+    expect(store.getSnapshot().waiting).toBeUndefined();
+  });
+
+  it("a teaser or a lock says nothing of what waits", async () => {
+    const store = createAlbumStore({
+      transport: guestTransport([
+        manifest(WAITING),
+        {
+          status: 200,
+          etag: null,
+          body: { ok: true, kind: "locked", access: "none", gate: null },
+        },
+      ]),
+    });
+    await store.sync();
+    await store.sync();
+    expect(store.getSnapshot().waiting).toBeUndefined();
+  });
+
+  it("the host's scope never carries it", async () => {
+    const { sim, store } = setup({ scope: "host" });
+    sim.commit([{ op: "insert", media: photo("pending") }]);
+    await store.sync();
+    expect(store.getSnapshot().waiting).toBeUndefined();
   });
 });
