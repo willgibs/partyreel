@@ -67,4 +67,4 @@ working.
 
 ## Where I am
 
-- WIP 1: the board redrawn for round 3 in its folder (spec, fixtures for 1/3/10/40/200 events with ranges, model with the four rules and the collection's filter/sort/group/find, Recent collapsible, four ways to shape the collection, four empty stages, four places for the rule, readers); `model.test.ts` and `registry.test.ts` green, typecheck clean for the folder. Next: lint, look at every frame on :3135 at 1440 and 375 in both themes, fix, then the gate and `lab:smoke`/`lab:demo`.
+- WIP 2: every option drawn and `lab:demo --board host-dashboard` green at 1440 and at 375 (`--state screen=375 --width 375`), shots in `../partyreel-wt/_scratch/host-dashboard-r3/shots-*`; first visual fixes in (short rail words, Ready said once, Rae's target in late 2023, Recent read by the captions). Next: phone and paper passes on the shots, then the gate and `lab:smoke`, then the Handoff.

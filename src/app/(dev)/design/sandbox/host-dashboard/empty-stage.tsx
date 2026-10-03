@@ -195,11 +195,14 @@ function Acts({
   share,
   facts,
   centred,
+  quiet,
 }: {
   event: HostedEvent;
   share: ShareFacts;
   facts: Facts;
   centred?: boolean;
+  /** The rail already says Ready for guests. */
+  quiet?: boolean;
 }) {
   const { primary, secondary } = facts.acts;
   const door = (
@@ -228,7 +231,7 @@ function Acts({
     >
       {door(primary, "default")}
       {secondary && door(secondary, "secondary")}
-      {facts.ticks?.ready && !facts.item && (
+      {facts.ticks?.ready && !facts.item && !quiet && (
         <span className="ml-1 flex items-center gap-1.5 text-sm text-gallery-muted">
           <Check className="size-3.5 text-success" aria-hidden />
           Ready for guests
@@ -295,6 +298,15 @@ function Plate({
 
 /* ── 1. the code, lit by its own lamp ─────────────────────────────────── */
 
+/** Each of Settings' five steps in a word, the stage's own (`stage.ts` says Door, Uploads, Code). */
+const STEP_WORDS: Record<string, string> = {
+  door: "Door",
+  adds: "Uploads",
+  photos: "First photos",
+  welcome: "Welcome",
+  code: "Code",
+};
+
 /**
  * SETTINGS' FIVE STEPS LAID FLAT (Create's beat draws the same rail): a number,
  * a tick once done, joined by a line, the checklist's one line under them.
@@ -340,7 +352,7 @@ function Rail({ facts }: { facts: Facts }) {
               )}
             >
               <span className="sr-only">{s.done ? "Done: " : "To do: "}</span>
-              {s.title}
+              {STEP_WORDS[s.item] ?? s.title}
             </span>
           </li>
         ))}
@@ -400,7 +412,7 @@ function Lit({
         <Words event={event} facts={facts} />
         <div className="flex flex-col gap-6">
           <Rail facts={facts} />
-          <Acts event={event} share={share} facts={facts} />
+          <Acts event={event} share={share} facts={facts} quiet />
         </div>
       </div>
       <div className="relative order-first flex h-72 flex-col items-center justify-center gap-4 lg:order-none lg:h-auto">
@@ -439,7 +451,7 @@ function Pane({
         className="absolute -inset-1/4"
         style={
           {
-            background: `radial-gradient(55% 55% at 35% 40%, ${lamp(hue, 30)}, transparent 70%), radial-gradient(45% 50% at 75% 75%, ${lamp(nextLamp(hue), 20)}, transparent 70%)`,
+            background: `radial-gradient(55% 55% at 35% 40%, ${lamp(hue, 40)}, transparent 70%), radial-gradient(45% 50% at 75% 75%, ${lamp(nextLamp(hue), 28)}, transparent 70%)`,
             animationDelay: `${delay}s`,
           } as CSSProperties
         }
@@ -558,7 +570,7 @@ function GuestPhone({ event }: { event: HostedEvent }) {
   return (
     <div
       data-hd-guest-phone=""
-      className="relative w-[190px] rounded-[2rem] border border-white/15 bg-black p-1.5 shadow-lift lg:w-[210px]"
+      className="relative w-[176px] rounded-[2rem] border border-white/15 bg-black p-1.5 shadow-lift lg:w-[184px]"
     >
       <div className="flex aspect-[9/17] flex-col justify-between overflow-hidden rounded-[1.6rem] bg-gallery px-4 pt-8 pb-5">
         <div className="space-y-2">

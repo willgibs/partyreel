@@ -228,14 +228,14 @@ const ruleShots = (way: RuleWay): Shot[] => [
       way === "settings"
         ? "Nia, in Settings"
         : way === "tabs"
-          ? "Nia, Upcoming pressed"
+          ? "Nia, Latest photos pressed"
           : "Nia, its menu open",
     read: readRule,
     start:
       way === "settings"
         ? { settings: true }
         : way === "tabs"
-          ? { rule: "upcoming" }
+          ? { rule: "photos" }
           : { ruleOpen: true },
   },
   {

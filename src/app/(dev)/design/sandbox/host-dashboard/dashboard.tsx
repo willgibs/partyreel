@@ -229,7 +229,6 @@ export function Dashboard({
         ref={root}
         onClickCapture={onClickCapture}
         data-hd-page={hostId}
-        data-hd-events={answers.events}
         data-hd-lead={lead?.id ?? ""}
       >
         {open && <StandIn host={host} id={open} wide={wide} onBack={back} />}

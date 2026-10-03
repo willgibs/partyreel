@@ -154,10 +154,10 @@ export function readEvents(target?: string): Reader {
     const menu = root.ownerDocument.querySelector("[data-radix-popper-content-wrapper]");
     if (menu) parts.push("its menu open");
     if (target) {
-      const els = (all.get(target) ?? []).filter((el) => !el.closest("[data-hd-recent]"));
+      const els = all.get(target) ?? [];
       const on = els.some((el) => seen(el, win));
-      const inRecent = (all.get(target) ?? []).some(
-        (el) => el.closest("[data-hd-recent]") && seen(el, win),
+      const inRecent = (eventLinks(root, "[data-hd-recent]").get(target) ?? []).some(
+        (el) => seen(el, win),
       );
       parts.push(
         on

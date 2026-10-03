@@ -1016,7 +1016,7 @@ function raeSpecs(): Spec[] {
   out.push({
     id: RAE_TARGET,
     name: "Theo & Ana's Wedding",
-    date: "2023-09-16",
+    date: "2023-11-18",
     made: "2023-05-02",
     look: ["wedding", 2],
     approved: 688,

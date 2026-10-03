@@ -289,7 +289,7 @@ export const HOST_DASHBOARD = defineExploration({
       question:
         "Where should a host choose the stage's rule (newest, upcoming, last opened, latest photos), so it stays hers without a list of events?",
       where: ["Host", "The dashboard", "The stage"],
-      when: "Nia would rather see her next party than her newest; Jo, forty events in, wants the one she was in last.",
+      when: "Nia would rather see the album photos last landed in than her empty newest; Jo, forty in, wants the one she was in last.",
       matters:
         "The stage is the first thing the dashboard shows, and no one rule fits every host.",
       lands:
