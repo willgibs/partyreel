@@ -36,13 +36,13 @@ import type { AlbumFillView, AlbumTile } from "./use-album-fill";
  * past the foot are clipped, not shrunk. `--fill-scale` lets a narrow viewport
  * scale every authored height at once.
  *
- * ★ `peek` MAKES THE TILES OPENABLE, and it is the Everywhere stage's alone (the
- * hero's grid passes none and stays plain): a press on any tile hands the caller
- * what it needs to show that photograph larger, and the newest landed tile wears
- * a quiet corner mark saying so (`loose-ends` r1, `everywhere-pill=corner`, with
- * his easter egg). Pointer-only on purpose: both grids sit in an `aria-hidden`
- * stage, so a tile is never a tab stop (a focusable inside aria-hidden is worse
- * than none), and the mark is drawn, not announced.
+ * ★ `peek` MAKES THE TILES OPENABLE (the Everywhere stage passes it; a grid
+ * without it stays plain): a press on any tile hands the caller what it needs to
+ * show that photograph larger, and the newest landed tile wears a quiet corner
+ * mark saying so (`loose-ends` r1, `everywhere-pill=corner`, with his easter
+ * egg). Pointer-only on purpose: both grids sit in an `aria-hidden` stage, so a
+ * tile is never a tab stop (a focusable inside aria-hidden is worse than none),
+ * and the mark is drawn, not announced.
  */
 
 /** What a press on a tile hands its caller. */
@@ -225,8 +225,8 @@ export function AlbumFillGrid({
   className?: string;
 }) {
   const register = useFlip(view.layoutKey);
-  // A 2-column grid folds the third column in: the product's phone album is
-  // `columns-2`, and the fixtures are authored on three.
+  // A 2-column grid folds the third column in: the product's phone album lays
+  // two a row at its default step, and the fixtures are authored on three.
   const columns =
     cols === 3
       ? view.columns

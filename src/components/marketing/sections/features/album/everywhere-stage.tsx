@@ -24,9 +24,9 @@ import { useAlbumFill } from "./use-album-fill";
  * Simultaneity is structural, not timed: ONE useAlbumFill feeds two grids, so
  * both commit in the same React pass and their FLIPs run in the same frame.
  * The phone takes two columns, the product's own default on a phone (two
- * photographs a row); the laptop keeps the hero's three. Quiet by design: no lamp, no count line,
- * no Replay, no upload prelude, a slower beat, and a loop bounded to four
- * tiles a column so the DOM never grows.
+ * photographs a row); the laptop takes the three the fixtures are authored on.
+ * Quiet by design: no count line, no upload prelude, a slower beat, and a loop
+ * bounded to four tiles a column so the DOM never grows.
  *
  * ★ THE EASTER EGG (`loose-ends` r1, `everywhere-pill=corner`): the newest tile
  * on each screen wears a small expand mark, and a press on any tile opens that
@@ -63,7 +63,7 @@ export function EverywhereStage() {
       aria-hidden
       className="flex items-end justify-center gap-4 [--fill-scale:0.62] sm:gap-5 sm:[--fill-scale:0.8]"
     >
-      {/* The laptop keeps the hero's three columns; the phone takes the
+      {/* The laptop takes the fixtures' three columns; the phone, the
           product's two. The pair is sized so the phone reads as a phone (its
           screen about a third of the laptop's) rather than a sliver: at the
           split's ~640px the laptop is ~420 and the phone ~190. */}
