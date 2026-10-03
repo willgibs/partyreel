@@ -39,6 +39,16 @@ ledger and enforces the caps. Guests (the session-token capability) and hosts (a
   Without the variant pin, completing with the preview as the key
   meters 2 MB while a 10 GB original goes uncounted; without the kind pin, video completes as a photo row past the
   Free tier's photos-only gate. Refuse, never repair.
+- ★ **A complete for an upload already recorded is its row's to answer** (crumbs-62, red-team 49's LOW): after the
+  request's own shape and before any gate, copy or withdrawal, the engine reads the row by its id
+  (`readRecordedUpload`, the admin client) and answers `recorded`, whoever sends it, with no cookie and no forensic
+  record (both the first landing's), and a key that is not its row's is refused; a refused or failed record takes its
+  copies back out of `events/` only once the row is read and there is none (`withdrawUnlessRecorded`: a twin that
+  recorded meanwhile makes it `recorded` too, and a read that fails takes nothing, left to the orphan sweep). A phone
+  replays a complete whose answer it lost, and anyone who knows the key a tile's link shows can send one on any ticket:
+  re-landed, it met each gate as it stood then (the roll its own shot filled, the album closed, a cap its own bytes
+  reached, a dead ticket) and the refusal withdrew the files the row names. A recorded clip's replay neither meets nor
+  spends `reel_clip_add`.
 - **The size is the R2 HEAD's** at complete, never the client's claim ([database-security.md](database-security.md));
   `duration_seconds`, `width` and `height` stay client-supplied and non-authoritative, the byte cap being the cost
   boundary.
@@ -197,7 +207,9 @@ it: one file, because the backfill loads it through Node's type stripping, which
 
 A guest takes photos home by Select, then Save (take-home r1, `guest=select`): Select stands where Download all did,
 the album's row turns into a bar stuck to the screen's top (Cancel, her picks, Yours and All) and every tile into a
-check, and the foot's shutter turns to Save (`live-gallery-select.ts`, the store the album and the dock share).
+check, and the foot's shutter turns to Save (`live-gallery-select.ts`, the store the album and the dock share), naming
+her set as the album names it (`setNoun`: the dock stands outside the album's live source, so the album's kinds reach it
+through a page store said from inside that source while she selects, `guest-action-dock-kinds.ts`).
 - ★ **On a phone her Save asks one quick choice, each way with its size** (`save=light`, `live-gallery-save.tsx`): Save to
   Photos, at phone size through the phone's own sheet, beside Save to Files, the originals as one zip ("24 photos ·
   13.8 MB" beside "Originals · 84 MB", the server's `summary` of her `ids`), so Files reads as the full-quality path. A

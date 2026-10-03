@@ -42,11 +42,16 @@ import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 
 import {
+  useSaveKinds,
+  type AlbumKinds,
+} from "@/components/guest/guest-action-dock-kinds";
+import {
   guestSelect,
   useGuestSelect,
   type GuestSelect,
 } from "@/components/guest/live-gallery-select";
 import { Shutter, type ShutterState } from "@/components/ui/shutter";
+import { setNoun } from "@/lib/export/take-home";
 import { formatCount } from "@/lib/format/count";
 import {
   type QueueItem,
@@ -72,6 +77,7 @@ export function GuestActionDock({
   hues,
   more = true,
   camera = false,
+  kinds,
 }: {
   /** The cover's row is still on screen: the cluster waits, inert, off the bottom edge. */
   hidden: boolean;
@@ -102,6 +108,11 @@ export function GuestActionDock({
    * and wears the camera on its face, as the cover's Add does. The atom's face is already its `children`.
    */
   camera?: boolean;
+  /**
+   * The album's kinds, as its live source says them (the page's store, `guest-action-dock-kinds.ts`): her Save names
+   * what she picked, photos, videos or both. Without it every pick reads as a photo.
+   */
+  kinds?: AlbumKinds;
 }) {
   const select = useGuestSelect();
   const progress = useRunProgress(
@@ -129,7 +140,7 @@ export function GuestActionDock({
   }, [done]);
 
   if (select.active)
-    return <SaveDock select={select} hues={hues} more={more} />;
+    return <SaveDock select={select} hues={hues} more={more} kinds={kinds} />;
 
   // Nothing to stand at the foot is nothing to draw, fade included.
   if (!onAdd && !invite) return null;
@@ -206,10 +217,12 @@ function SaveDock({
   select,
   hues,
   more,
+  kinds,
 }: {
   select: GuestSelect;
   hues?: readonly number[];
   more: boolean;
+  kinds?: AlbumKinds;
 }) {
   const count = select.picks.length;
   const run = select.run;
@@ -220,7 +233,10 @@ function SaveDock({
     : run.kind === "done"
       ? "done"
       : "idle";
-  const what = count === 1 ? "1 photo" : `${formatCount(count)} photos`;
+  // ★ WHAT HER PICKS HOLD, IN THE ALBUM'S OWN WORDS (red-team 49's NIT): "Save 15 photos" stood over 12 photos and 3
+  // videos; `setNoun` says the set the way the album's line and the Save sheet's title say it.
+  const { photos, clips } = useSaveKinds(kinds, select.picks);
+  const what = setNoun(photos, clips);
   const label = getting
     ? `Saving ${what}. Tap to stop.`
     : ready
