@@ -58,6 +58,8 @@ export const MEDIA_HOST_COLUMNS =
 // `purge_asked_at` (admin-triage r2, 20260929140000) too: a permanent delete a hold or an open report defers,
 // and a host who could read it would learn that something keeps her row. `let_in_at` (crumbs-38,
 // 20261001203810) too: the guest's "told on her return" record, the service role's alone, which no client grant reads.
+// `phone_key` and `phone_bytes` (take-home-wiring, 20261003110000) too: the phone copy is minted and read by the
+// service role alone (its links on a Save), and no client grant names it.
 export type MediaRow = Omit<
   Tables<"media">,
   | "legal_hold_at"
@@ -67,6 +69,8 @@ export type MediaRow = Omit<
   | "status_before_removed"
   | "purge_asked_at"
   | "let_in_at"
+  | "phone_key"
+  | "phone_bytes"
 >;
 
 /** A keyset cursor: the last row's raw timestamp string and its id (the tiebreak). */

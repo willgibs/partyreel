@@ -746,6 +746,8 @@ export type Database = {
           legal_hold_reason: string | null
           let_in_at: string | null
           original_key: string
+          phone_bytes: number | null
+          phone_key: string | null
           preview_key: string | null
           purge_asked_at: string | null
           purge_at: string | null
@@ -775,6 +777,8 @@ export type Database = {
           legal_hold_reason?: string | null
           let_in_at?: string | null
           original_key: string
+          phone_bytes?: number | null
+          phone_key?: string | null
           preview_key?: string | null
           purge_asked_at?: string | null
           purge_at?: string | null
@@ -804,6 +808,8 @@ export type Database = {
           legal_hold_reason?: string | null
           let_in_at?: string | null
           original_key?: string
+          phone_bytes?: number | null
+          phone_key?: string | null
           preview_key?: string | null
           purge_asked_at?: string | null
           purge_at?: string | null
@@ -1515,6 +1521,8 @@ export type Database = {
           p_height?: number
           p_media_id: string
           p_original_key: string
+          p_phone_bytes?: number
+          p_phone_key?: string
           p_preview_key?: string
           p_reel_eligible?: boolean
           p_session_token: string
@@ -1532,6 +1540,8 @@ export type Database = {
           p_host_id: string
           p_media_id: string
           p_original_key: string
+          p_phone_bytes?: number
+          p_phone_key?: string
           p_preview_key?: string
           p_reel_eligible?: boolean
           p_type: Database["public"]["Enums"]["media_type"]
