@@ -42,7 +42,21 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **The strip's axis.** Recommended: the album's own order, photo by photo (first photo at the left, newest at the
+  right end, each mark as tall as how many photos landed with it), never the clock, so a morning, a weekend, an undated
+  album and a trickle all fill the same line and none has a start, an end or a gap. Built; his to overrule.
+- **The facts' new ideas.** Recommended three beside the strip: the faces along the foot (who made the album), the
+  newest in a line (the latest photo, who and when, then the totals), and the album's colours (one ribbon of each
+  photo's own colour). Today's line and the name alone leave (he called both bland); the dial is banked, drawn nowhere.
+- **What the doors' frames wear for the facts, and the facts' frames for the doors.** Recommended: each other's
+  recommendation, since no option of either ask is production any more (`today` undeclared); his pick replaces it the
+  moment he answers.
+- **Glass's sticky form.** Recommended: the capsule itself floats on under the bar (the lead, the doors and the code's
+  chip in one glass capsule over the album), rather than a full-width band holding it. Built; his to overrule.
+- **The ground.** Recommended: a Ground knob (paper, the room), opening in the room as identity's does; the cover is
+  the room in both.
+- **Date ranges.** Drawn as settled with the board's own formatter ("October 2–4, 2026", an en dash, no times);
+  `event-dates` wires the real one.
 
 ## System-doc edits (in place, owned facts only)
 
@@ -64,3 +78,8 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am
+
+- Booted, synced onto identity-wiring (`8c2dce39`), Questions written. Next: the board's r3 (spec, fixtures for the six
+  cases, the four facts, the three doors with their bands), then the gate and the lab steps on :3134.
