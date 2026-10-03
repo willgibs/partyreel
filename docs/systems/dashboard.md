@@ -24,7 +24,7 @@ pure under `lib/dashboard/` (`when.ts`, `attention.ts`, `moment.ts`, `seasons.ts
   (the event a host is setting up). Before its day it is the code on its plate and readiness's
   essentials as ticks; on its day the live wall (nine at a desk, three in a hand, calm until nine have landed); after,
   the calm album and its numbers ("in the album", never "photos": it counts video). Its line under the name says the
-  whole range ("Friday, October 2 to Sunday, October 4"), its word counts down to the first day and dates the past from
+  whole range ("Friday, October 2 – Sunday, October 4"), its word counts down to the first day and dates the past from
   the last. Its acts are its one item's, else its phase's own.
 - ★ **The live wall listens, it never refreshes the page.** On its day the stage hears the album's doorbell and asks
   `readStageLiveAction` (`lib/dashboard/stage-action.ts`) for its nine, its counts, its door and its last hour, on the
@@ -49,7 +49,9 @@ pure under `lib/dashboard/` (`when.ts`, `attention.ts`, `moment.ts`, `seasons.ts
 - **A tile** is its photograph, or its date (a range's first day) before it has one, its name and when, and at most a
   mark in each top corner (Live; what waits, or its step while the week holds it); narrower than 15rem a mark is a dot
   with its words for a reader. A range's when is where it stands on its days ("Day 2 of 3"), its weekdays inside the
-  week ahead ("Fri to Sun"), else its dates ("Oct 3 to 5"): "to", never a dash. The tile is the dashboard's own atom: `EventCard` still draws a profile's public cards. ★ The tiles take
+  week ahead ("Fri–Sun"), else its dates ("Oct 3–5", "Oct 30 – Nov 2"); every range's dash is `dashRange`'s
+  (`lib/utils.ts`, shared with `formatEventDate`): the en dash, closed up between single terms and spaced where a side
+  holds a space. The tile is the dashboard's own atom: `EventCard` still draws a profile's public cards. ★ The tiles take
   turns (`cover-cycle.tsx`): every 3.5 s one tile dissolves to its next still, in reading order; one still or off
   screen sits out, and nothing moves in a hidden tab or under reduced motion. The wall's tiles keep the
   `[data-media-tile]` arrival fade; every other host tile is `data-static`.

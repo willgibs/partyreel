@@ -116,7 +116,7 @@ describe("the words over a range of days", () => {
         homeEvent({ date: "2026-10-02", endDate: "2026-10-04" }),
         FRIDAY,
       ),
-    ).toBe("Friday, October 2 to Sunday, October 4");
+    ).toBe("Friday, October 2 – Sunday, October 4");
   });
 });
 

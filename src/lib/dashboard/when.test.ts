@@ -190,23 +190,28 @@ describe("a range of days", () => {
   it("says its weekdays inside the week ahead, its dates further off, and its month once a past year has turned", () => {
     // Seen on the Tuesday before.
     expect(whenOf("2026-10-02", "2026-09-29", false, "2026-10-04")).toBe(
-      "Fri to Sun",
+      "Fri–Sun",
     );
     // Starting inside the week but running past it: the dates, since a weekday a week on would read as this one.
     expect(whenOf("2026-10-02", "2026-09-29", false, "2026-10-09")).toBe(
-      "Oct 2 to 9",
+      "Oct 2–9",
     );
     expect(whenOf("2026-10-30", FRIDAY, false, "2026-11-02")).toBe(
-      "Oct 30 to Nov 2",
+      "Oct 30 – Nov 2",
     );
-    expect(whenOf("2026-09-25", FRIDAY, false, "2026-09-27")).toBe(
-      "Sep 25 to 27",
-    );
+    expect(whenOf("2026-09-25", FRIDAY, false, "2026-09-27")).toBe("Sep 25–27");
     expect(whenOf("2027-01-09", FRIDAY, false, "2027-01-11")).toBe(
-      "Jan 9 to 11, 2027",
+      "Jan 9–11, 2027",
     );
     expect(whenOf("2026-12-30", "2026-08-01", false, "2027-01-02")).toBe(
-      "Dec 30 to Jan 2",
+      "Dec 30 – Jan 2",
+    );
+    // A range to come in another year than this one, beyond the month: the year once if it keeps to one, else both.
+    expect(whenOf("2027-03-30", FRIDAY, false, "2027-04-02")).toBe(
+      "Mar 30 – Apr 2, 2027",
+    );
+    expect(whenOf("2027-12-30", FRIDAY, false, "2028-01-02")).toBe(
+      "Dec 30, 2027 – Jan 2, 2028",
     );
     expect(whenOf("2025-06-06", FRIDAY, false, "2025-06-08")).toBe("Jun 2025");
   });
@@ -219,16 +224,35 @@ describe("a range of days", () => {
 
   it("heads a stage with the whole range, and the years where they are not this one", () => {
     expect(longDays("2026-10-02", "2026-10-04", FRIDAY)).toBe(
-      "Friday, October 2 to Sunday, October 4",
+      "Friday, October 2 – Sunday, October 4",
     );
     expect(longDays("2027-10-01", "2027-10-03", FRIDAY)).toBe(
-      "Friday, October 1 to Sunday, October 3, 2027",
+      "Friday, October 1 – Sunday, October 3, 2027",
     );
     expect(longDays("2026-12-30", "2027-01-02", FRIDAY)).toBe(
-      "Wednesday, December 30, 2026 to Saturday, January 2, 2027",
+      "Wednesday, December 30, 2026 – Saturday, January 2, 2027",
     );
     expect(longDays("2026-10-02", "2026-10-02", FRIDAY)).toBe(
       "Friday, October 2",
     );
+  });
+
+  it("★ says every range with the en dash itself, never the word to, a hyphen or an em dash", () => {
+    // crumbs-58: a range's dash is `dashRange`'s (its rule is pinned at `formatEventDate`); this holds that each rung of
+    // the ladder goes through it. A hyphen or an em dash looks the same in a diff, so the glyph is read off the string.
+    const said = [
+      whenOf("2026-10-02", "2026-09-29", false, "2026-10-04"),
+      whenOf("2026-10-02", "2026-09-29", false, "2026-10-09"),
+      whenOf("2026-10-30", FRIDAY, false, "2026-11-02"),
+      whenOf("2027-03-30", FRIDAY, false, "2027-04-02"),
+      whenOf("2027-12-30", FRIDAY, false, "2028-01-02"),
+      longDays("2026-10-02", "2026-10-04", FRIDAY),
+      longDays("2027-10-01", "2027-10-03", FRIDAY),
+      longDays("2026-12-30", "2027-01-02", FRIDAY),
+    ];
+    for (const line of said) {
+      expect(line.replace(/[A-Za-z0-9, ]/g, ""), line).toBe("\u2013");
+      expect(line, line).not.toMatch(/\bto\b/);
+    }
   });
 });
