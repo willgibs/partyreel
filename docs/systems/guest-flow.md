@@ -320,11 +320,12 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
   address only once it rests
   (300ms: the browsers' history APIs cap how fast it can move, Chrome past 200 calls in 10s and Safari past 100), and
   waits out a popup the viewer opened; the way back mounts the closed item's tile (`scrollToId`). ★ **SHARE SENDS
-  THE FILE** (fetched on the tap with `cache: "no-store"`, never prefetched; over 100 MB it falls back), then the
-  link, then a copy; Copy link copies the PUBLIC album link (`shareUrl`, the event JOIN url, never a presigned media
+  THE FILE** (a photograph's is the original the viewer already holds, so the sheet opens inside the tap; a clip's is
+  read on the tap, its progress drawn and stoppable, over 100 MB falling back: [uploads-and-r2.md](uploads-and-r2.md)),
+  then the link, then a copy; Copy link copies the PUBLIC album link (`shareUrl`, the event JOIN url, never a presigned media
   URL or a dashboard URL) with `?photo=` on an approved item; Save offers the system sheet in one tap on iOS (its
   Save Image or Save Video is the one web path into Photos, and the same sheet already carries Save to Files) and
-  the plain download elsewhere; a tap whose activation lapses
+  the plain download elsewhere; a file that lands after the tap's activation lapsed
   leaves a one-tap Ready. The guest album and the host gallery pass `shareUrl`; the personal Uploads and the recovery
   bin omit it.
 - Each tile (desktop hover-reveal) + the lightbox carry a **like** button, except an item marked `likeable: false`:
