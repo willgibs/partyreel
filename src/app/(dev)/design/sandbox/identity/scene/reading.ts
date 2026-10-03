@@ -3,11 +3,12 @@ import { READING_MESSAGE, type ViewId } from "../model";
 /**
  * WHAT A FRAME SAYS UNDER ITSELF, READ OFF ITS OWN DOCUMENT.
  *
- * An option's words claim things a reader can check ("a pill", "four corner
- * marks", "the display, near-black on paper"), so each caption is the computed
- * style of the parts those words are about, never the words themselves. If a
- * caption and an option's words disagree, the caption is the truth. (A step
- * hides the captions from the reviewer; `lab:demo --verbose` prints them.)
+ * An option's words claim things a reader can check ("a pill", "the lock",
+ * "turns to ink", "graphite in the room", "the light edge"), so each caption
+ * is the computed style of the parts those words are about, never the words
+ * themselves. If a caption and an option's words disagree, the caption is the
+ * truth. (A step hides the captions from the reviewer; `lab:demo --verbose`
+ * prints them.)
  */
 
 const px = (v: string) => Math.round(Number.parseFloat(v) * 10) / 10 || 0;
@@ -36,6 +37,21 @@ function marked(el: Element, pseudo?: string): boolean {
   return ink !== "" && ink !== "transparent" && !/rgba\(0, 0, 0, 0\)/.test(ink);
 }
 
+/** Whether a pseudo-element draws production's light edge: a masked radial falloff. */
+function lit(el: Element): boolean {
+  return ["::after", "::before"].some((p) => {
+    const cs = getComputedStyle(el, p);
+    return (
+      cs.content !== "none" &&
+      /radial-gradient/.test(cs.backgroundImage) &&
+      /exclude|xor/.test(
+        cs.getPropertyValue("mask-composite") ||
+          cs.getPropertyValue("-webkit-mask-composite"),
+      )
+    );
+  });
+}
+
 /** A computed shadow list as offsets: `[x, y, blur, spread, inset]` each, its colour dropped. */
 function shadowsOf(
   el: Element,
@@ -50,9 +66,10 @@ function shadowsOf(
   });
 }
 
-/** How a box ends: marks, a ring, a hairline, a bevel, a line, a shadow, its tone. */
+/** How a box ends: the light edge, marks, a ring, a hairline, a bevel, a shadow, its tone. */
 function edge(el: Element): string {
   const parts: string[] = [];
+  if (lit(el)) parts.push("the light edge");
   if (marked(el) || marked(el, "::before")) parts.push("four corner marks");
   const shadows = shadowsOf(el);
   const ring = shadows.filter(
@@ -64,6 +81,7 @@ function edge(el: Element): string {
   if (widest >= 1.4) parts.push(`a ${widest}px ring`);
   else if (widest > 0) parts.push("a hairline");
   if (above && below) parts.push("a bevel");
+  else if (above) parts.push("a light line above");
   else if (below) parts.push("a line underneath");
   if (shadows.some((s) => !s.inset && (s.blur > 0 || s.y !== 0)))
     parts.push("a shadow");
@@ -75,45 +93,38 @@ function edge(el: Element): string {
 function face(el: Element): string {
   const cs = getComputedStyle(el);
   const family = /urbanist/i.test(cs.fontFamily) ? "Urbanist" : "Inter";
-  const caps = cs.textTransform === "uppercase" ? " capitals" : "";
-  const track = px(cs.letterSpacing) / Math.max(1, px(cs.fontSize));
-  const tracked =
-    track > 0.05 ? ` tracked ${Math.round(track * 100) / 100}em` : "";
-  return `${family} ${cs.fontWeight} at ${px(cs.fontSize)}px${caps}${tracked}`;
+  return `${family} ${cs.fontWeight} at ${px(cs.fontSize)}px`;
 }
 
-/**
- * Light, dark or clear, off a background colour. A token resolves to the
- * colour space it was written in, so an `oklch()` reads its lightness and an
- * `rgb()` its luminance.
- */
-function tone(el: Element): string {
-  const bg = getComputedStyle(el).backgroundColor;
-  const n = (bg.match(/-?[\d.]+/g) ?? []).map(Number);
-  if (!n.length) return "clear";
-  const alpha = /\//.test(bg) || /rgba/.test(bg) ? (n[3] ?? 1) : 1;
-  if (alpha < 0.2) return "clear";
-  const l = /^oklch|^oklab/.test(bg)
+/** Lightness of a colour as the browser computed it (an oklch's L, an rgb's luminance), with its alpha. */
+function lightness(colour: string): { l: number; a: number } | null {
+  const n = (colour.match(/-?[\d.]+/g) ?? []).map(Number);
+  if (!n.length) return null;
+  const a = /\//.test(colour) || /rgba/.test(colour) ? (n[3] ?? 1) : 1;
+  const l = /^oklch|^oklab/.test(colour)
     ? n[0]
     : (0.2126 * n[0] + 0.7152 * n[1] + 0.0722 * n[2]) / 255;
-  return l < 0.4 ? "dark" : l > 0.75 ? "light" : "mid-grey";
+  return { l, a };
 }
 
-/** The meter's build, off the voice's own variables. */
-function meter(el: Element): string {
-  const cs = getComputedStyle(el);
-  const mask = cs.getPropertyValue("--vf-meter-mask").trim();
-  if (mask && mask !== "none") return `frames, ${px(cs.height)}px tall`;
-  if (px(cs.borderTopLeftRadius) > 1) return `a bar, ${px(cs.height)}px tall`;
-  return `tape, ${px(cs.height)}px tall`;
+/** Light, dark, graphite or clear, off a background colour. */
+function tone(el: Element): string {
+  const t = lightness(getComputedStyle(el).backgroundColor);
+  if (!t || t.a < 0.2) return "clear";
+  if (t.l < 0.22) return "near-black";
+  if (t.l < 0.45) return "graphite";
+  return t.l > 0.75 ? "white" : "mid-grey";
 }
 
-/** The lock's kind, off a pinned focus. */
-function lock(el: Element | null): string {
+/** The focus mark a pinned focus draws: the lock, a ring, or ink with the cursor inside. */
+function focusMark(el: Element | null): string {
   if (!el) return "not drawn";
-  const after = getComputedStyle(el, "::after");
-  if (marked(el, "::after") && after.opacity !== "0")
-    return `four marks ${-px(after.top)}px out`;
+  for (const p of ["::after", "::before"]) {
+    const cs = getComputedStyle(el, p);
+    if (marked(el, p) && cs.opacity !== "0")
+      return `the lock, four marks ${-px(cs.top)}px out`;
+  }
+  if (marked(el)) return "the lock's four marks on its corners";
   const cs = getComputedStyle(el);
   if (
     cs.outlineStyle !== "none" &&
@@ -121,101 +132,85 @@ function lock(el: Element | null): string {
     !/0\)$/.test(cs.outlineColor)
   )
     return `a ring ${px(cs.outlineOffset)}px out`;
+  const inner = shadowsOf(el).filter((s) => s.inset && s.spread >= 3);
+  if (inner.length) return `it turns ${tone(el)}, the cursor inside`;
+  if (shadowsOf(el).some((s) => !s.inset && s.spread >= 3))
+    return "an ink ring round it";
   return "not drawn";
 }
 
 const ROOM = '[data-ground="room"]';
+const PAPER = '[data-ground="paper"]';
 
 /** The reading for one view, or null while it has not settled. */
 export function readView(view: ViewId, doc: Document): string | null {
-  if (view === "voice") {
-    const label = q(doc, '[data-slot="label"]', ROOM);
-    const badge = q(doc, '[data-slot="badge"]', ROOM);
-    const progress = q(doc, '[data-slot="progress"]', ROOM);
-    const link = q(doc, '[data-variant="link"]', ROOM);
-    if (!label || !badge || !progress) return null;
-    const mark = link ? getComputedStyle(link, "::before").content : "none";
-    const said =
-      mark === "none" || mark === '""' || mark === "normal" ? "none" : mark;
-    return `Labels in ${face(label)}; readouts in ${face(badge)}; the meter as ${meter(progress)}; a link's mark ${said}`;
-  }
   if (view === "actions") {
+    const within = q(doc, ROOM) ? ROOM : undefined;
     const primary = q(
       doc,
       '[data-variant="default"][data-size="default"]',
-      ROOM,
+      within,
     );
     const outline = q(
       doc,
       '[data-variant="outline"][data-size="default"]',
-      ROOM,
+      within,
     );
-    const dial = q(doc, '[data-size="icon"]', ROOM);
-    const focus = q(doc, '[data-variant="default"][data-demo~="focus"]', ROOM);
+    const dial = q(doc, '[data-size="icon"]', within);
+    const focus = q(
+      doc,
+      '[data-variant="outline"][data-demo~="focus"]',
+      within,
+    );
     if (!primary || !outline) return null;
-    return `Primary ${primary.offsetHeight}px, ${corner(primary)}, ${face(primary)}; outline ends in ${edge(outline)}; a dial is ${dial ? corner(dial) : "absent"}; focus is ${lock(focus)}`;
+    return `Primary ${primary.offsetHeight}px, ${corner(primary)}, ${face(primary)}; outline ends in ${edge(outline)}; a dial is ${dial ? corner(dial) : "absent"}; focus: ${focusMark(focus)}`;
   }
   if (view === "fields") {
-    const input = q(doc, '[data-slot="input"]', ROOM);
-    const sw = q(doc, '[data-slot="switch"]', ROOM);
-    const check = q(doc, '[data-slot="checkbox"]', ROOM);
+    const within = q(doc, ROOM) ? ROOM : undefined;
+    const input = q(doc, '[data-slot="input"]', within);
+    const focused = q(doc, '[data-slot="input"][data-demo~="focus"]', within);
+    const sw = q(doc, '[data-slot="switch"]', within);
+    const check = q(doc, '[data-slot="checkbox"]', within);
     if (!input || !sw || !check) return null;
-    return `A field ${input.offsetHeight}px, ${corner(input)}, ${tone(input) === "clear" ? "open" : "filled"}, ends in ${edge(input)}; a switch ${sw.offsetWidth}×${sw.offsetHeight}, ${corner(sw)}; a check ${corner(check)}`;
+    return `A field ${input.offsetHeight}px, ${corner(input)}, ${tone(input) === "clear" ? "open" : "filled"}, ends in ${edge(input)}; focus: ${focusMark(focused)}; a switch ${sw.offsetWidth}×${sw.offsetHeight}, ${corner(sw)}; a check ${corner(check)}`;
   }
   if (view === "layers") {
-    const card = q(doc, '[data-slot="card"]', ROOM);
     const roomMenu = q(doc, '[data-slot="dropdown-menu-content"]', ROOM);
-    const paperMenu = q(
-      doc,
-      '[data-slot="dropdown-menu-content"]',
-      '[data-ground="paper"]',
-    );
+    const paperMenu = q(doc, '[data-slot="dropdown-menu-content"]', PAPER);
     const menu = roomMenu ?? paperMenu;
-    if (!card || !menu) return null;
-    return `A card ends in ${edge(card)}, ${corner(card)}; a menu is ${roomMenu ? tone(roomMenu) : "?"} in the room${paperMenu ? ` and ${tone(paperMenu)} on paper` : ""}, ${corner(menu)}, ending in ${edge(menu)}`;
-  }
-  if (view === "status") {
-    const badge = q(doc, '[data-slot="badge"][data-variant="success"]', ROOM);
-    const face1 = doc.querySelector<HTMLElement>(
-      `${ROOM} [data-slot="avatar-group"] > [data-slot="avatar"][data-size="default"]`,
-    );
-    const glyph = q(doc, '[data-slot="empty-glyph"]', ROOM);
-    if (!badge || !face1 || !glyph) return null;
-    const share = Math.round(
-      (-px(getComputedStyle(face1).marginInlineEnd) /
-        Math.max(1, face1.offsetWidth)) *
-        100,
-    );
-    return `A badge has ${tone(badge) === "clear" ? "no plate" : "a plate"} and ends in ${edge(badge)}; faces overlap ${share}% of a face; the empty place's glyph ${glyph.offsetWidth}×${glyph.offsetHeight}, ${corner(glyph)}`;
+    const card = q(doc, '[data-slot="card"]', q(doc, ROOM) ? ROOM : undefined);
+    if (!menu || !card) return null;
+    return `A menu is ${roomMenu ? tone(roomMenu) : "?"} in the room${paperMenu ? ` and ${tone(paperMenu)} on paper` : ""}, ${corner(menu)}, ending in ${edge(menu)}; a card ends in ${edge(card)}`;
   }
   // A screen: the atoms the page is made of, as this identity draws them.
   const primary = q(doc, '[data-slot="button"][data-variant="default"]');
-  const field = q(doc, '[data-slot="input"]');
+  const field = q(doc, '[data-slot="input"]:not([data-demo])');
+  const focused = q(doc, '[data-slot="input"][data-demo~="focus"]');
   const panel = q(
     doc,
-    '[data-slot="popup-content"], [data-slot="responsive-menu"], [data-slot="responsive-menu-rows"] > *',
+    '[data-slot="dropdown-menu-content"], [data-slot="responsive-menu"], [data-slot="responsive-menu-rows"] > *, [data-slot="popup-content"], [data-sonner-toast]',
   );
+  const glass = q(doc, '[data-variant="glass"]');
+  const card = q(doc, '[data-slot="card"]');
   const parts = [
     primary ? `primary ${primary.offsetHeight}px, ${corner(primary)}` : null,
     field ? `a field ${field.offsetHeight}px, ${corner(field)}` : null,
-    panel ? `the layer ${tone(panel)}, ${corner(panel)}` : null,
+    focused ? `the field in use: ${focusMark(focused)}` : null,
+    panel ? `the layer ${tone(panel)}, ending in ${edge(panel)}` : null,
+    card ? `a card ends in ${edge(card)}` : null,
+    view === "cover" && glass ? `a glass round ends in ${edge(glass)}` : null,
   ].filter(Boolean) as string[];
   if (view === "door") {
     const seg = q(doc, '[data-slot="toggle-group-item"][data-state="on"]');
     const gate = q(doc, '[data-slot="radio-card"][data-state="on"]');
-    if (!seg || !gate) return null;
+    if (!seg || !gate || !focused) return null;
     parts.push(
-      `the door's choice ${corner(seg)}; its gate ends in ${edge(gate)}`,
+      `the door's choice ${corner(seg)}, ${tone(seg)}; its gate ${tone(gate)}, ending in ${edge(gate)}`,
     );
   }
-  if (view === "review") {
-    const count = q(doc, '[data-review-room] [data-slot="badge"]');
-    if (!count) return null;
-    parts.push(
-      `the queue's count ${tone(count) === "clear" ? "a light" : "a plate"}`,
-    );
-  }
-  if (view === "add" && !panel) return null;
+  if ((view === "add" || view === "cover" || view === "menu") && !panel)
+    return null;
+  if ((view === "account" || view === "gate") && !focused) return null;
   return parts.length ? parts.join("; ") : null;
 }
 

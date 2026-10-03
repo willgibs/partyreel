@@ -1,31 +1,33 @@
 import { defineExploration } from "@/components/lab/exploration";
 
-import { GROUND, SCREEN, SHOW } from "./knobs";
+import { GROUND, LIT, NIGHT, SCREEN, SHOW } from "./knobs";
 
 /**
- * PARTYREEL'S OWN ATOMS, ROUND TWO (the identity track, 2026-10-02).
+ * PARTYREEL'S OWN ATOMS, ROUND THREE (the identity track, 2026-10-03).
  *
- * Will picked `viewfinder` in round one ("the most themed/bespoke, minimal yet
- * high-info-density-conveyance, sleek direction"), asked for it to be made
- * "individually perfect" through the lab, atom by atom, and set the test for
- * all of it: bespoke, never "too dev-tool-ish", a modern consumer app for a
- * crowd of about 18 to 50.
+ * Round two drew viewfinder atom by atom. Will picked the camera voice, the
+ * display for every pop-out and status as lights (wired at the source by
+ * `identity-wiring`), left actions and fields open with one note for both, and
+ * asked two things of the layers. This round answers those three.
  *
- * ★ THE VOICE FIRST, AS A LAYER. How loudly the camera's language speaks is
- * the dev-tool question, and it is not an atom: it is the case, size, tracking
- * and figures of every label and readout, and the build of every meter. So it
- * is a layer of variables every atom reads (`sheet/voice.ts`), asked first,
- * and every atom group after it is drawn in the voice he picks. It is a pure
- * layer, so nothing binds: any build of any group renders in any voice.
+ * ★ ACTIONS AND FIELDS ARE ONE DECISION NOW. His note: rings for both read
+ * modern but sit back near the generic shadcn look; rings for actions beside
+ * wells for fields leaves "some focuses rings, some corners, which is bad"; he
+ * likes wells and does not mind the corners as a focus mark only. So each
+ * option is a whole system with ONE focus mark across every action and field
+ * (`sheet/system.ts`): keys and wells (the lock), all rings (a ring), and ink,
+ * this lane's own idea (the cursor). No corner is a style anywhere and
+ * nothing loads by moving one (`identity.test.ts` holds both).
  *
- * ★ FOUR ATOM GROUPS, THREE BUILDS EACH, ALL INSIDE VIEWFINDER: r1's own
- * drawing refined (keys, wells, matte panels, readouts), a phone camera's
- * (rings, rings, the display, lights) and the viewfinder's own frame taken
- * furthest (corners), so a sitting can keep one line through all four or mix
- * them. Each build is a stylesheet over production's atoms by their hooks
- * (`sheet/`), drawn on every state on paper and in the room, then on the real
- * screens nobody rewires this round (Settings' door and event pages, the
- * guest's Add, Account and billing, Review), so a pick wires at its source.
+ * ★ IN USE, NOT ONLY IN STATES: every system is shown on three real screens
+ * no round-13 lane rewires, caught mid-task (Account with a name being typed,
+ * Settings' door with its password being changed, a guest typing the album's
+ * password at its door), and on every atom in every state one press away.
+ *
+ * ★ THE LAYERS' TWO EXTRAS: what a pop-out is in the room (the display's
+ * inverse he asked about, beside a one-step lift and the display as wired),
+ * and how far the light edge he liked reaches (`sheet/room.ts`,
+ * `sheet/edge.ts`); the edge is drawn on the room's answer.
  */
 export const IDENTITY = defineExploration({
   id: "identity",
@@ -41,12 +43,18 @@ export const IDENTITY = defineExploration({
     "src/app/(dev)/design/(shell)/library/components/",
   ],
   round: {
-    n: 2,
-    date: "2026-10-02",
+    n: 3,
+    date: "2026-10-03",
     changed:
-      "Inside your viewfinder pick: its voice asked first as a layer, then actions, fields, layers and status, three builds each drawn in that voice on every state, on paper and in the room, and on five real screens.",
+      "Actions and fields asked as one system in three directions (keys and wells, all rings, and ink, a new idea), each shown in use on Account, Settings' door and the guest's door; then the room's pop-out and how far the light edge reaches.",
   },
   history: [
+    {
+      n: 2,
+      date: "2026-10-02",
+      changed:
+        "Viewfinder atom by atom: the voice, then actions, fields, layers and status. You picked the camera voice, the display and lights, and asked for actions and fields again, together.",
+    },
     {
       n: 1,
       date: "2026-10-02",
@@ -56,345 +64,253 @@ export const IDENTITY = defineExploration({
   ],
   opening: {
     about:
-      "Viewfinder made ours atom by atom: first how loudly the camera's language speaks, then actions, fields, layers and status, each in that voice.",
+      "Round three of Partyreel's own atoms: actions and fields as one system, then what a pop-out is in the room and how far the light edge reaches.",
     settled: [
-      "Viewfinder is the family: its matte body, silver on paper and near-black in the room, the recording red, and photographs at its 2px.",
-      "Two faces stay, state keeps its colour, and every action keeps production's height (the 32px button, the 44px call to action).",
-      "Pages are their boards': the dashboard, the hub's head, Create and the hero draw in production's atoms this round.",
-      "The voice is a pure layer: every build below reads it, so any pick renders in any voice and nothing binds.",
+      "Viewfinder is the family: a matte body, silver on paper and near-black in the room, the recording red, photographs at their 2px.",
+      "Your round-two picks are wired at the source: the camera voice, the display for every pop-out, and status as lights.",
+      "The viewfinder's corners survive only as a focus mark, never a style, and nothing loads by moving them.",
+      "Actions keep production's heights (the 32px button, the 44px call to action); every field grows to 40px.",
     ],
     earlier: [
-      "Your r1 pick, viewfinder: the most themed and bespoke, minimal yet high-information, and in need of refinement and polish.",
-      "Your note: build it through the lab so every atomic element of the new foundation is individually perfect.",
-      "This round's test, in your words: bespoke without getting too dev-tool-ish, a modern consumer app for about 18 to 50.",
+      "Round two: voice=camera, layers=display, status=lights; actions and fields left open for this round, together.",
+      "Your note: rings for both feel modern but near the generic shadcn look; you like wells, and the corners for focus only.",
+      "On the display: curious about white pop-outs on the black body, and about the light edge carried beyond media cards.",
     ],
   },
   terms: [
     {
-      term: "voice",
+      term: "key",
       means:
-        "How the words and numbers on every control are set: case, size, tracking, figures, and how a meter is built.",
+        "An action that stands up out of the body in a bevel and sinks a pixel when pressed.",
     },
     {
-      term: "readout",
+      term: "well",
       means:
-        "A value a camera prints: a count, the live mark, a time, a percentage.",
+        "A field sunk into the body, a shade inside its top edge: a subtle step darker than the page.",
     },
     {
-      term: "lock",
+      term: "the lock",
       means:
-        "Viewfinder's focus: four corner marks that close in on whatever has focus.",
+        "Four corner marks that close in on whatever has focus: the viewfinder's one surviving mark.",
     },
     {
-      term: "meter",
-      means: "A bar that measures: sending, storage used.",
+      term: "ink",
+      means:
+        "The house's primary colour: near-black on paper, white in the room.",
     },
     {
-      term: "corner marks",
-      means: "The four L-shaped marks a camera draws round what it focuses on.",
+      term: "the cursor",
+      means:
+        "Ink's focus mark: the control turns to ink with a thin ring of the inverse inside it.",
+    },
+    {
+      term: "pop-out",
+      means:
+        "A layer a press opens and the next press closes: a menu, a tooltip, a toast, the Add's rows.",
     },
     {
       term: "the display",
       means:
-        "A camera's own screen: near-black with light type, the same on paper and in the room.",
+        "The camera's own screen: near-black with light type, your pick for every pop-out.",
+    },
+    {
+      term: "graphite",
+      means: "A lit grey one step above the room's black.",
+    },
+    {
+      term: "the light edge",
+      means:
+        "One pixel of light along a dark surface's top, fading down its sides, as photographs wear it today.",
     },
   ],
   carried: [
     {
-      id: "rings-lock",
-      question: "Does every build lock focus with the four marks?",
+      id: "one-focus-mark",
+      question:
+        "Does each system keep one focus mark on every action and field?",
       taken:
-        "Keys and corners lock with the marks; rings lock with a ring closing in, since marks cannot sit on a rounded field.",
-      overrule: "The four marks lock focus in every build, rings included.",
+        "Yes: keys lock with the corners, rings with a ring, ink with the cursor (inside a key or a field, round a switch or a check).",
+      overrule: "A field and an action may each keep their own focus mark.",
     },
     {
-      id: "live-red",
-      question: "Is the live mark the recording red or today's green?",
+      id: "head-atoms",
+      question:
+        "Does a system redraw the shutter, the glass rounds and the white primary?",
       taken:
-        "The recording red, r1's signal light, the same red as delete so the palette gains no hue.",
-      overrule: "The live mark stays today's green dot.",
+        "No: they keep the surfaces event-header wired; a system gives them its shape, its press and its focus mark only.",
+      overrule: "Each system redraws the head's atoms in its own build.",
     },
     {
-      id: "door-parts",
-      question: "Do Settings' own parts wear the atoms on the screens?",
+      id: "in-use",
+      question: "Are the screens drawn at rest or in use?",
       taken:
-        "Yes: the door's choice of what the link opens draws as a segmented control and its gates as radio cards, as wiring would make them.",
-      overrule:
-        "Only today's atoms change; the door's own parts keep their look until its board.",
+        "In use: a name typed on Account, the password changed on Settings' door, a guest typing it at the album's door: a system judged mid-task.",
+      overrule: "Draw each screen at rest, as it first opens.",
     },
     {
       id: "field-height",
       question: "Do fields keep production's 32px height?",
       taken:
-        "No: every build grows a field to 38 or 40px, so it is found and pressed in a hand; actions keep their heights.",
-      overrule: "Fields keep production's 32px in every build.",
-    },
-    {
-      id: "one-empty",
-      question: "How many ways is an empty place drawn?",
-      taken:
-        "One, in every status build: a glyph, a title, a line and an action, never a dashed box; the four drawings today become it.",
-      overrule: "Keep each surface's own empty drawing.",
+        "No, as in round two: every system grows a field to 40px, so it is found and pressed in a hand; actions keep their heights.",
+      overrule: "Fields keep production's 32px in every system.",
     },
   ],
   asks: [
-    /* ── 1. The voice ────────────────────────────────────────────────── */
+    /* ── 1. Actions and fields, one system ───────────────────────────── */
     {
-      id: "voice",
-      label: "The voice",
-      question:
-        "How loudly should the camera's own language speak on every control?",
-      where: ["Shared", "Every control's words", "Labels, counts, meters"],
-      when: "Anywhere a host or a guest reads a label, a button, a count, the live mark or a meter, on the app and the site alike.",
+      id: "system",
+      label: "Actions and fields",
+      question: "Which system should every Partyreel action and field share?",
+      where: ["Shared", "Every action and field", "Pressing and typing"],
+      when: "Every press and every field on the app and the site: a button, a chip, a segment, a name typed, a switch flipped, a gate chosen.",
       matters:
-        "The voice is what reads as a camera or as a dev tool, and every atom below wears whichever you pick.",
+        "Actions and fields are most of what a hand touches; one system with one focus mark is what reads as a product, not a kit.",
       lands:
-        "Partyreel's text roles (label, readout, word) and its meter's build, as tokens every atom in src/components/ui reads.",
+        "Button, ToggleGroup's chips and segments, Input, Textarea, Select, Switch and Tabs, and the check, radio and slider primitives.",
       context:
-        "Every place the voice speaks, on paper and in the room, in the recommended builds; Show puts it on the real screens. Between the options only the words change.",
-      options: [
-        {
-          id: "instrument",
-          label: "The instrument: everything a readout",
-          means:
-            "R1's voice as drawn: every label, tab, chip, badge and count in small spaced capitals, zeros slashed, links arrowed, meters as tape.",
-          gains: "The most themed: every word reads off a camera's top plate.",
-          costs:
-            "Spaced capitals on every label read as a bench instrument, the dev-tool risk.",
-        },
-        {
-          id: "camera",
-          label: "A camera in your hand",
-          means:
-            "Words in sentence case at reading weight; spaced capitals only where a camera prints them (counts, live, time); plain figures; meters as frames.",
-          gains:
-            "Reads as the camera everyone owns: friendly words, precise readouts.",
-          costs:
-            "Less themed at a glance: the camera shows in its readouts and marks.",
-        },
-        {
-          id: "display",
-          label: "The top screen: numbers speak",
-          means:
-            "No capitals at all: words quiet in sentence case, every count and status set bold in the loud face, the meter one lit bar.",
-          gains:
-            "The fewest words to read: our own loud face carries the numbers.",
-          costs:
-            "The loudest numbers: a screen full of counts can shout over its photos.",
-        },
-      ],
-      recommended: "camera",
-      because:
-        "It keeps the camera where a camera speaks (counts, live, time) and talks like a modern app everywhere else: your not-a-dev-tool test.",
-      overrule:
-        "If the camera should be unmistakable on every control, the instrument.",
-      configs: [SHOW, SCREEN, GROUND],
-    },
-
-    /* ── 2. Actions ──────────────────────────────────────────────────── */
-    {
-      id: "actions",
-      label: "Actions",
-      question:
-        "Which build should Partyreel's buttons, chips and segmented choices take?",
-      where: ["Shared", "Every action", "From rest to pressed"],
-      when: "Every press on the app and the site: a primary, a secondary, an icon, a chip, a segment, a link, the shutter.",
-      matters:
-        "Actions are pressed more than any other atom; their build is most of what makes the app feel like a camera.",
-      lands:
-        "Button's variants and sizes, ToggleGroup's chips and segments, and the head's shutter, white primary, glass round and code chip.",
-      context:
-        "Drawn in your voice: every action in every state (rest, hover, press, focus, off, loading, error) on paper and in the room, then on the real screens.",
-      after: { ask: "voice" },
+        "Each system drawn whole: on Account, Settings' door and the guest's door, each caught in use (a field being typed in), and on every action and field in every state, on paper and in the room.",
       options: [
         {
           id: "keys",
-          label: "Keys: machined and pressable",
+          label: "Keys and wells: carved",
           means:
-            "R1's keys refined: rounded rectangles in a machined bevel that travel a pixel when pressed, round dials for icons, the lock on focus.",
+            "What you press stands up as a bevelled key and sinks a pixel; what holds a value is a well a shade below the page; the lock is the one focus mark.",
           gains:
-            "The most tactile: every action reads as a physical key you press.",
+            "The most tactile and the most ours: a field is never mistaken for a button.",
           costs:
-            "A bevel on every control is ornament a flat page does not need.",
+            "A bevel on every key is ornament a flat page could live without.",
         },
         {
           id: "rings",
-          label: "Rings: a phone camera's round controls",
+          label: "All rings: drawn in line",
           means:
-            "Pills and circles: the primary in solid ink, an outline as a ring you see through, a ring closing in on focus, the shutter as a phone's.",
+            "Pills and soft outlines: the primary solid ink, an outline a ring you see the page through, a field a soft ring; focus is a ring closing in.",
           gains:
-            "The camera everyone holds: modern, familiar in a hand, quiet in a row.",
+            "The camera everyone holds: modern, light, familiar in a hand.",
           costs:
-            "The least novel shape: the bespoke part is the voice and the marks.",
+            "The nearest to the generic shadcn look you wanted to leave behind.",
         },
         {
-          id: "corners",
-          label: "Corners: the viewfinder's own frame",
+          id: "ink",
+          label: "Ink: tone at rest, ink in use",
           means:
-            "The primary a crisp ink plate; every other action drawn as four corner marks that close in when pressed, a chosen segment wearing the frame.",
+            "Every control rests as a quiet tone with no line; the one you press, choose or type in turns to solid ink, and the cursor marks focus.",
           gains:
-            "Unmistakably ours: the viewfinder's frame is the action itself.",
+            "The calmest page, and your display's black exactly where you work.",
           costs:
-            "A page of framed actions reads busier, and a bare frame is a quieter target.",
+            "Every press blinks to ink: the boldest moment of the three, and the newest to learn.",
         },
       ],
-      recommended: "rings",
+      recommended: "keys",
       because:
-        "Guests hold a phone, and a phone camera's controls are round: rings feel native in a hand while the voice and the marks keep it ours.",
-      overrule: "If every action should be a physical key, keys.",
+        "Your own lean, and the one where a field never reads as a button: carved keys, recessed wells, one lock for focus.",
+      overrule: "If a bevel is too much ornament for billing, ink.",
       configs: [SHOW, SCREEN, GROUND],
     },
 
-    /* ── 3. Fields ───────────────────────────────────────────────────── */
+    /* ── 2. The room's pop-outs ──────────────────────────────────────── */
     {
-      id: "fields",
-      label: "Fields",
-      question:
-        "Which build should Partyreel's fields, switches, checks and sliders take?",
-      where: ["Shared", "Every field", "Typing and choosing"],
-      when: "Every time a host names an event, sets the door, flips a switch or types an address, and a guest types a name.",
+      id: "room",
+      label: "The room's pop-outs",
+      question: "In the room, what should a pop-out be made of?",
+      where: ["Shared", "Everything that pops out", "In the room"],
+      when: "Every menu, tooltip, toast and the Add's rows opened in the room: the app's dark theme, and a guest's album at night.",
       matters:
-        "A field has to be found and trusted at a glance; its build sets how calm or how technical a form feels.",
+        "On paper a black pop-out takes the eye; in the room its colour decides whether it is found, or flashes in a dark venue.",
       lands:
-        "Input, Textarea, Select, Switch and Tabs, and the check, radio, radio card and slider primitives the product adds.",
+        "The room's tokens for the display, worn by every menu, popover, select, tooltip, toast and the Add's rows in the dark theme.",
       context:
-        "Drawn in your voice: every field and choice in every state (rest, hover, focus, off, loading, error) on paper and in the room, then on Settings and Account, where fields live.",
-      after: { ask: "voice" },
+        "Paper's display drawn beside the room's option on one sheet of every pop-out, then the guest's Add rising at the thumb and a host's account menu, both in the room.",
       options: [
-        {
-          id: "wells",
-          label: "Wells: recessed into the body",
-          means:
-            "R1's wells refined: every field a recess with a shade inside its edge, the lock's marks on its corners, a switch's thumb riding in a groove.",
-          gains:
-            "The calmest: a filled field reads as a field, apart from the actions.",
-          costs:
-            "The most familiar build: a well is close to many apps' filled fields.",
-        },
-        {
-          id: "rings",
-          label: "Rings: soft outlines",
-          means:
-            "A field is a soft-cornered ring you see the body through; focus inks it and a faint ring closes in; switches are pills, checks circles.",
-          gains: "The lightest page: the body shows through every field.",
-          costs:
-            "Outlines beside ring actions make fields and buttons alike at a glance.",
-        },
-        {
-          id: "corners",
-          label: "Corners: frame and line",
-          means:
-            "A field is four corner marks over a line to write on; focus thickens the marks; a check is a frame that fills, a slider an exposure scale.",
-          gains:
-            "The most bespoke form there is: a camera framing what you type.",
-          costs:
-            "An empty field is only its corners: clear at a desk, quieter in sun.",
-        },
-      ],
-      recommended: "wells",
-      because:
-        "A filled field is found at a glance and never mistaken for a button, and its recess is viewfinder's own matte body.",
-      overrule: "If fields should match ring actions, rings.",
-      configs: [SHOW, SCREEN, GROUND],
-    },
-
-    /* ── 4. Layers ───────────────────────────────────────────────────── */
-    {
-      id: "layers",
-      label: "Layers",
-      question:
-        "What should Partyreel's cards, menus, toasts and sheets be made of?",
-      where: ["Shared", "Every surface", "Cards and what opens"],
-      when: "Every card on a page and everything that opens over one: a menu, a popover, a tooltip, a toast, a dialog, a panel, a sheet.",
-      matters:
-        "Layers are where a host works and where every quick choice opens; their material is the app's depth.",
-      lands:
-        "Card, the floating layers (menus, popovers, selects, tooltips, toasts), the popup's shapes and its overlay, and the code mat.",
-      context:
-        "Drawn in your voice: a card, a menu, a popover, a tooltip, a toast, a dialog, the Add's rows and the code's mat, on paper and in the room, then on Settings, the Add and Account.",
-      after: { ask: "voice" },
-      options: [
-        {
-          id: "matte",
-          label: "Matte: the body's own panels",
-          means:
-            "R1's panels refined: every layer in the body's material, a hairline and a light edge above, a menu's chosen row marked by an ink tick.",
-          gains: "One material everywhere: calm, consistent, nothing to learn.",
-          costs:
-            "The quietest: the camera shows in the type and marks, not the surfaces.",
-        },
         {
           id: "display",
-          label: "The display: the camera's own screen",
+          label: "The display: near-black, as wired",
           means:
-            "Every quick layer (menu, tooltip, toast, the Add's rows) is the camera's screen, near-black on paper and in the room; cards lie flat as tone.",
+            "The same camera's screen on both grounds: a near-black panel over the black room, parted from it by its edge and its shadow.",
           gains:
-            "A signature moment: every quick choice opens the camera's own screen.",
+            "One object on both grounds: the display is the display, day or night.",
           costs:
-            "Dark menus on a light page are a strong contrast; in the room they part by edge.",
+            "Near-black on black is the quietest: a pop-out parts from the room by a hairline.",
         },
         {
-          id: "corners",
-          label: "Corners: framed, not boxed",
+          id: "graphite",
+          label: "Graphite: one step up",
           means:
-            "A card is its four corner marks alone, no fill, no line; panels are square-cornered and framed; the chosen row wears the frame.",
-          gains: "The most bespoke surfaces: framed like a viewfinder.",
-          costs: "Marks on every card and panel add up to a busy page.",
+            "In the room a pop-out lifts one step to graphite, a lit grey the eye finds at once, its words still light on dark.",
+          gains:
+            "Found at a glance in a dark room, with no flash in a dim venue.",
+          costs:
+            "Black on paper and graphite in the room: one object in two tones.",
+        },
+        {
+          id: "white",
+          label: "White: the display's inverse",
+          means:
+            "Paper's pop-out mirrored: in the room every pop-out is white with ink words, the brightest thing on the screen.",
+          gains:
+            "The strongest attention there is: what pops out is never missed.",
+          costs:
+            "A white sheet flashes at a dark party, lighting a dimmed phone's whole screen.",
         },
       ],
-      recommended: "display",
+      recommended: "graphite",
       because:
-        "It turns every quick choice into the camera's own screen, one object on both grounds, so the product has a signature without a costume.",
-      overrule: "If layers should stay in the page's own material, matte.",
-      configs: [SHOW, SCREEN, GROUND],
+        "It gets the attention you liked on paper without the flash: a lit grey is found at once in the dark and lets the photographs stay brightest.",
+      overrule:
+        "If a pop-out should be the same object on both grounds, the display.",
+      configs: [NIGHT, SCREEN],
     },
 
-    /* ── 5. Status ───────────────────────────────────────────────────── */
+    /* ── 3. The light edge ───────────────────────────────────────────── */
     {
-      id: "status",
-      label: "Status",
-      question: "How should Partyreel show status, faces and an empty place?",
-      where: ["Shared", "Every mark", "Badges, faces, empty"],
-      when: "Wherever something has a state (live, waiting, failed), something is loading, a row of faces stands, or nothing is there yet.",
+      id: "edge",
+      label: "The light edge",
+      question: "How far beyond photographs should the light edge reach?",
+      where: ["Shared", "Every dark surface", "Lit from above"],
+      when: "Wherever a dark surface stands: a pop-out on paper or in the room, a sheet or a panel, a card and a cover's glass at night.",
       matters:
-        "Status is the information density you asked for: read in a glance, never a wall of plates.",
+        "You said the edge makes media richer; carried further it becomes the material's signature, or a third outline if it goes too far.",
       lands:
-        "Badge and its live mark, the meter's colours, Skeleton, the face row's overlap, the glyph count, and one empty atom for four drawings.",
+        "globals.css's bright edge (data-lit), carried from media to the surfaces the answer names, on dark grounds only.",
       context:
-        "Drawn in your voice: badges, the live mark, meters, loading, faces, the glyph count and the one empty place, on paper and in the room, then on the Add, Review, Settings and Account.",
-      after: { ask: "voice" },
+        "Every pop-out and surface on paper and in the room, then the album's cover with its glass rounds and the Add open, and Account's cards, drawn on the room's answer.",
+      after: { ask: "room" },
       options: [
         {
-          id: "readouts",
-          label: "Readouts: printed on a plate",
+          id: "media",
+          label: "Media only, as built",
           means:
-            "R1's readouts refined: a badge is a small plate with its word, a state's colour in an LED beside it; faces overlap by a fifth; empty is a well.",
-          gains: "Every status reads as a label you can scan in a list.",
-          costs: "Plates add up: a row of badges is a row of boxes.",
-        },
-        {
-          id: "lights",
-          label: "Lights: status as light",
-          means:
-            "A badge is an LED and its word, no plate; the live mark breathes; a meter fills in its state's light; faces overlap by a quarter; empty is a lens.",
+            "The edge stays where it is today: photographs, players, framed screens and the code's card, on a dark ground.",
           gains:
-            "The lightest status: colour where it means something, nothing else.",
-          costs: "An LED is small: state rests on a dot and its word.",
+            "Nothing to change: the edge stays the photographs' own signature.",
+          costs: "Menus, sheets and cards stay flat beside lit photographs.",
         },
         {
-          id: "corners",
-          label: "Corners: status framed",
+          id: "floating",
+          label: "Everything that floats",
           means:
-            "A badge is its word inside small marks in its colour; a skeleton an empty frame; faces in square frames; empty is an empty viewfinder.",
-          gains: "The frame runs through status too, the most of a piece.",
-          costs: "Small marks round small words can read as noise.",
+            "The edge also lights every pop-out, on paper and in the room, and every sheet, panel and dialog in the room, in place of its hairline.",
+          gains:
+            "What opens over the page reads lit and of a piece with the photographs.",
+          costs:
+            "Cards on the page stay flat: the light marks only what floats.",
+        },
+        {
+          id: "every",
+          label: "Every dark surface",
+          means:
+            "Everything that floats, plus every card in the room and the glass rounds on a cover: one light from above over the whole dark app.",
+          gains:
+            "The richest room: the light you liked is the material everywhere.",
+          costs:
+            "On a page of cards the edges add up, and past a few they read as frames.",
         },
       ],
-      recommended: "lights",
+      recommended: "floating",
       because:
-        "A camera speaks status as light, and a light needs no plate, so a busy screen stays quiet and colour appears only where it means something.",
-      overrule: "If status should scan as labels in a list, readouts.",
-      configs: [SHOW, SCREEN, GROUND],
+        "It keeps the light where it says 'this floats over the page', so the edge stays a signature rather than a pattern.",
+      overrule: "If the room should feel lit everywhere, every dark surface.",
+      configs: [LIT, SCREEN, GROUND],
     },
   ],
 });

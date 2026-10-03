@@ -1,36 +1,42 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Eye, ImageUp, Images, QrCode, Users } from "lucide-react";
+import { ImageUp, Play, QrCode } from "lucide-react";
+import { toast } from "sonner";
 
+import {
+  AlbumCover,
+  type HeadStill,
+  HeadStills,
+} from "@/components/guest/event-experience-head";
 import { UploadIntentSheet } from "@/components/guest/upload/intent-sheet";
 import { Logo } from "@/components/shared/logo";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { cn, formatEventDate } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 import { ALBUM, DATE, NAME, PHOTO } from "../fixtures";
 import type { Width } from "../model";
 
-import { GlassButton, GlyphCount, Live, PhotoSurface } from "./atoms";
+import { MediaTile } from "./atoms";
+import { useInUse } from "./in-use";
 
 /**
  * THE GUEST'S ADD, OVER THE ALBUM: Sam holds the wedding open and presses Add
  * photos.
  *
- * ★ THE SHEET IS PRODUCTION'S (`UploadIntentSheet`, every Add on the guest
- * page): at a desk a menu under the Add pressed, in a hand two rows rising to
- * the thumb with Cancel beneath. It opens the real way, by a press on the
- * page's Add, so it anchors where production anchors it.
- *
- * ★ THE ALBUM'S HEAD IS A STAND-IN FOR THE COVER `header-wiring` builds this
- * round (event-header's `guest=cover`): the name on the reel's still, the
- * white Add and the glass rounds standing on it, the counts as glyphs. It is
- * drawn only as far as the atoms it holds, which are this board's to dress;
- * its composition is that lane's. The album is the justified rows' look over
- * the bootstrap stills, at the photograph's 2px.
+ * ★ THE COVER AND THE SHEET ARE PRODUCTION'S (`AlbumCover` over `HeadStills`,
+ * `event-header`'s wiring; `UploadIntentSheet`, every Add on the guest page):
+ * the name on the reel's stills with the white Add and the glass rounds
+ * standing on it, and the Add pressed the real way, so at a desk a menu opens
+ * under it and in a hand two rows rise to the thumb with Cancel beneath. The
+ * album under the cover is the justified rows' look over the bootstrap
+ * stills, each tile lit as production's album tile is (`data-lit`).
  */
 
-const COLUMN = "w-full max-w-2xl px-5";
+/** The cover's stills: the reel's opening, three of the bootstrap stills. */
+export const STILLS: HeadStill[] = [PHOTO.toast, PHOTO.hall, PHOTO.golden].map(
+  (tile, i) => ({ id: `identity-still-${i}`, tile }),
+);
 
 function Rows({ w }: { w: Width }) {
   const perRow = w === 1440 ? 4 : 2;
@@ -49,24 +55,12 @@ function Rows({ w }: { w: Width }) {
           style={{ gap: "var(--gap-gallery)", height: w === 1440 ? 250 : 150 }}
         >
           {row.map((p) => (
-            <div
+            <MediaTile
               key={p.src}
-              data-media-tile=""
-              data-static=""
-              className="relative overflow-hidden bg-black/10"
-              style={{
-                flex: `${p.ratio} 1 0`,
-                borderRadius: "var(--radius-tile)",
-              }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element -- a bootstrap still, as every board draws one */}
-              <img
-                src={p.src}
-                alt=""
-                className="size-full object-cover"
-                style={{ objectPosition: p.pos ?? "50% 50%" }}
-              />
-            </div>
+              src={p.src}
+              pos={p.pos}
+              style={{ flex: `${p.ratio} 1 0` }}
+            />
           ))}
         </div>
       ))}
@@ -74,25 +68,33 @@ function Rows({ w }: { w: Width }) {
   );
 }
 
-export function AddScreen({ w }: { w: Width }) {
+/**
+ * The moment the cover is caught in: `open`, the Add pressed and its sheet up
+ * (the room's question, a pop-out at night); `sent`, the cover at rest with
+ * the toast her upload raises, so the glass rounds stand clear of any sheet's
+ * blur and a pop-out still floats over the page (the edge's question).
+ */
+export type AddMoment = "open" | "sent";
+
+export function AddScreen({ w, moment }: { w: Width; moment: AddMoment }) {
   const desk = w === 1440;
   const [open, setOpen] = useState(false);
   const add = useRef<HTMLButtonElement | null>(null);
   // The real press, once the page has settled: the sheet records the button
   // pressed and opens under it (`usePressedAnchor`), as it does for a guest.
-  // ★ AND THEN THE FOCUS IS LET GO: after a script's click (no pointer the
-  // browser saw) the first row is drawn lit, which no guest ever sees.
+  useInUse(moment === "open" ? [[450, () => add.current?.click()]] : []);
   useEffect(() => {
-    const press = window.setTimeout(() => add.current?.click(), 450);
-    const letGo = window.setTimeout(
-      () => (document.activeElement as HTMLElement | null)?.blur(),
-      900,
-    );
+    if (moment !== "sent") return;
+    let id: string | number | undefined;
+    // A beat late: the page's Toaster subscribes in its own effect, after this one.
+    const t = window.setTimeout(() => {
+      id = toast("Your 3 photos are in the album", { duration: Infinity });
+    }, 400);
     return () => {
-      window.clearTimeout(press);
-      window.clearTimeout(letGo);
+      window.clearTimeout(t);
+      if (id !== undefined) toast.dismiss(id);
     };
-  }, []);
+  }, [moment]);
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <header className="flex items-center justify-between gap-2 border-b border-border/60 px-5 py-3">
@@ -101,51 +103,38 @@ export function AddScreen({ w }: { w: Width }) {
           Start for free
         </Button>
       </header>
-      <PhotoSurface
-        src={PHOTO.toast}
-        pos="50% 40%"
-        style={{ height: desk ? 300 : 340 }}
-      >
-        <div
-          className={cn(
-            "mx-auto flex h-full flex-col justify-between pt-5 pb-6",
-            COLUMN,
-          )}
-        >
-          <div className="flex items-center justify-between">
-            <Live />
-            <div className="flex items-center gap-4">
-              <GlyphCount icon={Images} n={214} words="photos and videos" />
-              <GlyphCount icon={Users} n={38} words="guests" />
-              <GlyphCount icon={Eye} n={1204} words="views" />
-            </div>
-          </div>
-          <div className="space-y-4">
-            <div>
-              <h1 className="font-heading text-page text-balance text-white">
-                {NAME}
-              </h1>
-              <p className="mt-1 text-sm text-white/80">
-                Hosted by Maya · {formatEventDate(DATE)}
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                ref={add}
-                type="button"
-                data-slot="button"
-                data-variant="on-photo"
-                data-size="lg"
-                className={cn(buttonVariants({ size: "lg" }), "min-w-0 flex-1")}
-                onClick={() => setOpen(true)}
-              >
-                <ImageUp /> Add photos
-              </button>
-              <GlassButton icon={QrCode} label="Invite" />
-            </div>
-          </div>
-        </div>
-      </PhotoSurface>
+      <AlbumCover
+        ground={<HeadStills stills={STILLS} />}
+        name={NAME}
+        host={{ name: "Maya", avatarUrl: null, seed: "identity-host" }}
+        date={DATE}
+        description="Everything from tonight, in one place. Add what you take, whenever you get to it."
+        mediaCount={214}
+        guestCount={38}
+        actions={
+          <>
+            <Button
+              ref={add}
+              variant="on-photo"
+              size="cta"
+              className={cn("min-w-0", desk ? "md:flex-none" : "flex-1")}
+              onClick={() => setOpen(true)}
+            >
+              <ImageUp /> Add photos
+            </Button>
+            <Button
+              variant="glass"
+              size="icon-cta"
+              aria-label="Watch the highlight reel"
+            >
+              <Play className="fill-current" />
+            </Button>
+            <Button variant="glass" size="icon-cta" aria-label="Invite">
+              <QrCode />
+            </Button>
+          </>
+        }
+      />
       <div className="relative w-full flex-1 pt-3 pb-12">
         <Rows w={w} />
       </div>

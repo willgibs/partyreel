@@ -11,26 +11,26 @@ import {
 } from "@/components/lab";
 
 import { OptionFrames } from "./frames";
-import { screenOf, showOf } from "./knobs";
-import { choiceOf, type Choice, groundOf, type SheetView } from "./model";
+import { litOf, nightOf, screenOf, showOf } from "./knobs";
+import { type Choice, choiceOf, groundOf, type ViewId } from "./model";
 import { IDENTITY } from "./spec";
 
 /**
- * THE PREVIEWS: every option is one stylesheet over production, drawn on its
- * atoms (every state, paper and the room) or on a real screen (the Show
- * knob), at 1440 or 375 (Screen) and, for a screen, on paper or in the room
- * (Ground).
+ * THE PREVIEWS: every option is one stylesheet over production, drawn on a
+ * real screen caught in use or on its atoms in every state (the system's Show
+ * knob), or on every pop-out and surface, paper beside the room, and the
+ * screens they open over (the room's and the edge's), at 1440 or 375 (Screen)
+ * and, for a screen, on paper or in the room (Ground).
  *
  * ★ A STAGED DECISION IS DRAWN IN THE WORLD IT WAITS ON (`exploration.ts`'s
- * `Preview`): every atom group wears the voice held for `voice`, and each
- * group the builds held for the groups before it, so a sitting builds one
- * identity as it goes. Until an answer is held, a part wears its
+ * `Preview`): every frame wears the board's state, so the edge is drawn on the
+ * pop-out the room holds, and any part not yet answered wears its
  * recommendation, the kit's own rule (`choiceOf`).
  */
 
-type AskId = "voice" | Exclude<keyof Choice, "voice">;
+type AskId = keyof Choice;
 
-/** An option's name off the spec, cut at its colon ("Rings"). */
+/** An option's name off the spec, cut at its colon ("Keys and wells"). */
 const NAME = (ask: AskId, option: string): string => {
   const found = IDENTITY.asks
     .find((a) => a.id === ask)
@@ -38,37 +38,51 @@ const NAME = (ask: AskId, option: string): string => {
   return (found ? optionLabel(found) : option).split(":")[0];
 };
 
+/** What each place is called in a frame's title. */
+const WHAT: Record<ViewId, string> = {
+  account: "Account and billing, in use",
+  door: "Settings' door, in use",
+  gate: "the guest's door, in use",
+  add: "the guest's Add, open",
+  cover: "the album's cover, after an upload",
+  actions: "every action",
+  fields: "every field",
+  layers: "every pop-out and surface",
+  menu: "a host's menu",
+};
+
+function viewFor(ask: AskId, s: BoardState): ViewId {
+  if (ask === "system") return showOf(s.show);
+  if (ask === "room") return nightOf(s.night);
+  return litOf(s.lit);
+}
+
 function preview(ask: AskId, option: string, s: BoardState): ReactNode {
   const choice = choiceOf({ ...s, [ask]: option });
-  const part: SheetView = ask === "voice" ? "voice" : ask;
+  const view = viewFor(ask, s);
   return (
     <OptionFrames
       choice={choice}
-      part={part}
-      show={showOf(s.show)}
+      view={view}
+      what={WHAT[view]}
       w={screenOf(s.screen)}
-      ground={groundOf(s.ground)}
+      // The room is asked about the room, so its screens are always in it.
+      ground={ask === "room" ? "room" : groundOf(s.ground)}
       name={NAME(ask, option)}
     />
   );
 }
 
 const PREVIEWS: PreviewsFor<typeof IDENTITY> = {
-  "voice.instrument": (s) => preview("voice", "instrument", s),
-  "voice.camera": (s) => preview("voice", "camera", s),
-  "voice.display": (s) => preview("voice", "display", s),
-  "actions.keys": (s) => preview("actions", "keys", s),
-  "actions.rings": (s) => preview("actions", "rings", s),
-  "actions.corners": (s) => preview("actions", "corners", s),
-  "fields.wells": (s) => preview("fields", "wells", s),
-  "fields.rings": (s) => preview("fields", "rings", s),
-  "fields.corners": (s) => preview("fields", "corners", s),
-  "layers.matte": (s) => preview("layers", "matte", s),
-  "layers.display": (s) => preview("layers", "display", s),
-  "layers.corners": (s) => preview("layers", "corners", s),
-  "status.readouts": (s) => preview("status", "readouts", s),
-  "status.lights": (s) => preview("status", "lights", s),
-  "status.corners": (s) => preview("status", "corners", s),
+  "system.keys": (s) => preview("system", "keys", s),
+  "system.rings": (s) => preview("system", "rings", s),
+  "system.ink": (s) => preview("system", "ink", s),
+  "room.display": (s) => preview("room", "display", s),
+  "room.graphite": (s) => preview("room", "graphite", s),
+  "room.white": (s) => preview("room", "white", s),
+  "edge.media": (s) => preview("edge", "media", s),
+  "edge.floating": (s) => preview("edge", "floating", s),
+  "edge.every": (s) => preview("edge", "every", s),
 };
 
 export function IdentityBoard() {

@@ -20,12 +20,15 @@ import { formatBytes } from "@/lib/utils";
 
 import { ACCOUNT } from "../fixtures";
 
+import { useInUse } from "./in-use";
 import { HostFrame } from "./settings";
 
 /**
  * ACCOUNT AND BILLING: Maya's Account on an Event Pass, its Plan card first
  * (billing's home: there is no billing page, and the user menu's Plan row
- * opens this card).
+ * opens this card), caught IN USE: she is renaming herself, the field in
+ * focus and Save ready. With `menu`, her account menu stands open over it
+ * instead (the room ask's host pop-out).
  *
  * ★ THE PAGE IS QUOTED, NOT MOUNTED. `account/page.tsx` is a server component
  * reading a session, and its forms write to the signed-in account (a name, an
@@ -64,8 +67,24 @@ function Pref({
   );
 }
 
-export function AccountScreen() {
+/** Opens the account menu the way a mouse does: Radix's trigger answers a pointer's press. */
+function openAccountMenu() {
+  const trigger = document.querySelector<HTMLElement>(
+    'header [data-slot="dropdown-menu-trigger"]',
+  );
+  trigger?.dispatchEvent(
+    new PointerEvent("pointerdown", {
+      bubbles: true,
+      button: 0,
+      pointerType: "mouse",
+    }),
+  );
+}
+
+export function AccountScreen({ menu = false }: { menu?: boolean }) {
   const pass = planById("event_pass");
+  const [name, setName] = useState("Maya Okafor-Reyes");
+  useInUse(menu ? [[800, openAccountMenu]] : []);
   return (
     <HostFrame>
       <div className="mx-auto max-w-2xl space-y-6">
@@ -144,10 +163,12 @@ export function AccountScreen() {
               <div className="flex gap-2">
                 <Input
                   id="identity-display-name"
-                  defaultValue={ACCOUNT.displayName}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   autoComplete="off"
+                  data-demo={menu ? undefined : "focus"}
                 />
-                <Button disabled>Save</Button>
+                <Button disabled={name === ACCOUNT.displayName}>Save</Button>
               </div>
               <p className="text-xs text-muted-foreground">
                 How you appear to guests on your events and your photos.
