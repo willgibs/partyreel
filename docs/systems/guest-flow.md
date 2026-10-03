@@ -81,7 +81,8 @@ stranger has not seen yet.
 ★ **THE KEEP IS THE CAPTURE FLOW** (confirm an email and the uploads, with the event they went into, stay in the
 account; then follow the host; the copy says "in your account", never "on your profile", since a profile publishes
 nothing until its owner chooses). It is due the instant a signed-out guest's first file lands this visit, from the
-door's upload step or the album's Add, never in the demo or for the host (`keepDue`, `event-experience.tsx`): the door
+door's upload step or the album's Add, never in the demo or for the host, and held while the album's camera is open
+(`keepDue` and `onCameraOpenChange`, `event-experience.tsx`: it rises the moment she closes the camera): the door
 reopens on "Sent", beside a check blooming in the album's light, over what went ("Your photo joined Maya's album.",
 or, where what she adds waits, her uploads' own words: "Your photo is waiting for approval." where uploads are held,
 "Your 2 photos are waiting to develop, Sat, Oct 3, 9:00 AM." on an album with a develop time ahead; never "joined"),
@@ -194,7 +195,8 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
   as the hub's Add and the reel's Add to event do: approved, metered on her storage, credited as the host) with no
   ticket, no join and no door, since a guest ticket at her own door is held by every door that holds a newcomer
   (`create_guest` never counts the host in). Three surfaces and one session rule:
-  - ★ **THE ADD CHOICE**: every Add opens
+  - ★ **THE ADD CHOICE**: every Add (but where the host chose the album's camera, which opens in its place:
+    [disposable-mode.md](disposable-mode.md)) opens
     [`upload/intent-sheet.tsx`](../../src/components/guest/upload/intent-sheet.tsx) on the responsive menu,
     *Take a photo* over *Choose from your album*, then the terms line
     ([`upload-terms.ts`](../../src/components/guest/upload/upload-terms.ts): the kinds, and the host's own per-file
@@ -277,7 +279,10 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
   the flow (the guest surface belongs to the host's event, so no Partyreel demo code sits in a host's own
   album). ★ It draws no button of its own: the cover's Add is the one Add on every album, saying "Add the first
   photo" while the album is empty and nothing of hers is in flight or waiting (`galleryEmpty`), and "Add photos"
-  otherwise, so there is always exactly one Add, in the first screen. ★ An earlier visit's waiting uploads count from
+  otherwise, so there is always exactly one Add, in the first screen. ★ A landing the server sealed until a develop
+  (`mediaStatus === "sealed"`) is hers waiting like a held one, so one she has shot or sent this visit ends "the first
+  photo"; where the Add opens the album's camera it says "Take the first photo" / "Take photos" with the camera glyph,
+  and the shutter's face the same (the dock's `camera`). ★ An earlier visit's waiting uploads count from
   the first paint: on an empty album where what she adds waits (held for the host, or sealed for a develop ahead) the
   page's server render asks whether any of hers wait (`waitingOnArrival`,
   [`waiting-on-arrival.server.ts`](../../src/lib/guest/waiting-on-arrival.server.ts): her ticket as far as it is hers,

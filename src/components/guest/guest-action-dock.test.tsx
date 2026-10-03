@@ -84,6 +84,61 @@ describe("the dock carries the row's own two actions", () => {
   });
 });
 
+/**
+ * ★ WHERE THE ALBUM'S ADD OPENS ITS CAMERA the shutter says so (crumbs-52, `disposable-camera`'s Question): Take photos,
+ * the camera on its face, the count on its shoulder worded the same; every other album keeps the upload shutter.
+ */
+describe("on an album whose Add opens its camera", () => {
+  it("★ the shutter says Take photos and wears the camera, its count worded the same", () => {
+    const { rerender } = render(
+      <GuestActionDock
+        hidden={false}
+        uploadingCount={0}
+        onAdd={() => {}}
+        camera
+      />,
+    );
+    const shutter = screen.getByRole("button", { name: "Take photos" });
+    expect(shutter.querySelector("svg.lucide-camera")).not.toBeNull();
+    expect(shutter.querySelector("svg.lucide-image-up")).toBeNull();
+    expect(screen.queryByRole("button", { name: /Add photos/ })).toBeNull();
+    rerender(
+      <GuestActionDock
+        hidden={false}
+        uploadingCount={2}
+        onAdd={() => {}}
+        camera
+      />,
+    );
+    expect(
+      screen.getByRole("button", { name: "Take photos, 2 uploading" }),
+    ).toHaveAttribute("data-state", "sending");
+  });
+
+  it("is the upload shutter on every other album", () => {
+    render(
+      <GuestActionDock hidden={false} uploadingCount={0} onAdd={() => {}} />,
+    );
+    const shutter = screen.getByRole("button", { name: "Add photos" });
+    expect(shutter.querySelector("svg.lucide-image-up")).not.toBeNull();
+    expect(shutter.querySelector("svg.lucide-camera")).toBeNull();
+  });
+
+  it("presses the same Add", () => {
+    const onAdd = vi.fn();
+    render(
+      <GuestActionDock
+        hidden={false}
+        uploadingCount={0}
+        onAdd={onAdd}
+        camera
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Take photos" }));
+    expect(onAdd).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe("hidden means GONE, not merely invisible", () => {
   it("is inert while the row is still on screen, and live once it leaves", () => {
     const { rerender } = render(

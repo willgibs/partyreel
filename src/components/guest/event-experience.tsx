@@ -11,7 +11,14 @@ import {
 } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowUp, ImageUp, Laptop, Play, Smartphone } from "lucide-react";
+import {
+  ArrowUp,
+  Camera,
+  ImageUp,
+  Laptop,
+  Play,
+  Smartphone,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { AlbumBoundary } from "@/components/guest/album-boundary";
@@ -635,12 +642,20 @@ export function EventExperience({
   // flight (the head's stack), AND anything a hold-for-approval event finished
   // but is keeping back, which draws nowhere in the album (`held=uploads`) but
   // keeps its object URL alive for her uploads' picture of it, and counts
-  // toward her own-delete consequence, until the host decides. ★ Never one she
-  // took back from her list (her tracker's Remove): it is hers no longer, so it
-  // neither counts toward that consequence nor keeps the album from being empty.
+  // toward her own-delete consequence, until the host decides. ★ AND A LANDING
+  // THE SERVER SEALED UNTIL THE ALBUM DEVELOPS (`mediaStatus === "sealed"`, the
+  // queue's `landedAs`: any album with a develop time ahead, the camera's shots
+  // and a free upload alike) is kept the same way: nothing draws it, her tracker
+  // draws this visit's picture of it, and the cover says Add photos once she has
+  // shot, never "the first photo" over an album she has added to (red-team 43).
+  // ★ Never one she took back from her list (her tracker's Remove, or the
+  // camera's, `onOwnRemoved`): it is hers no longer, so it neither counts toward
+  // that consequence nor keeps the album from being empty.
   const inFlightUploads = queue.filter(
     (it) =>
-      (it.status !== "done" || it.mediaStatus === "pending") &&
+      (it.status !== "done" ||
+        it.mediaStatus === "pending" ||
+        it.mediaStatus === "sealed") &&
       !(it.mediaId && removedIds.has(it.mediaId)),
   );
 
@@ -658,6 +673,18 @@ export function EventExperience({
      crumbs-43's `waitingOnArrival`), so a guest always has exactly one Add in front of her. */
   const galleryEmpty =
     mediaCount === 0 && inFlightUploads.length === 0 && !waitingOnArrival;
+  /* ★ WHERE THE ADD OPENS THE ALBUM'S CAMERA it says so (`disposable-camera`'s Question, taken): "Take photos"
+     with the camera glyph, on the cover's white Add and on the shutter's face (the dock's `camera`), the first
+     of them asked for while nothing is on the roll. The one Add is `GuestUpload.openAdd`, which opens the camera
+     for any viewer of such an album, the host's included. */
+  const cameraAlbum = event.capture === "camera";
+  const addWords = cameraAlbum
+    ? galleryEmpty
+      ? "Take the first photo"
+      : "Take photos"
+    : galleryEmpty
+      ? "Add the first photo"
+      : "Add photos";
   // Her tracker (`guest-capture` r1, `tracker=button`): the two facts its button needs, kept
   // outside the page's state so a sync re-renders the tracker and never this shell.
   const [trackerStore] = useState(createUploadTrackerStore);
@@ -879,6 +906,10 @@ export function EventExperience({
      ──────────────────────────────────────────────────────────────────────── */
   const keepPutDown = useKeepAskPutDown(qrToken);
   const [keepAnswered, setKeepAnswered] = useState(false);
+  /* ★ THE KEEP WAITS WHILE SHE SHOOTS (`disposable-camera`'s Question, taken). A signed-out guest's first landed
+     shot makes it due, and its sheet used to open over the camera mid-shoot; `GuestUpload` says when the camera
+     is open (`onCameraOpenChange`), the keep is held until she closes it, and it comes the moment she does. */
+  const [cameraOpen, setCameraOpen] = useState(false);
   const landedCount = queue.filter(
     (it) => it.status === "done" && !(it.mediaId && removedIds.has(it.mediaId)),
   ).length;
@@ -888,7 +919,8 @@ export function EventExperience({
     !isAuthed &&
     !keepPutDown &&
     !keepAnswered &&
-    landedCount > 0;
+    landedCount > 0 &&
+    !cameraOpen;
   const onKeepAnswered = useCallback(() => setKeepAnswered(true), []);
 
   /* ────────────────────────────────────────────────────────────────────────
@@ -1324,8 +1356,7 @@ export function EventExperience({
                     onClick={openAdd}
                     className="min-w-0 flex-1 md:flex-none"
                   >
-                    <ImageUp />{" "}
-                    {galleryEmpty ? "Add the first photo" : "Add photos"}
+                    {cameraAlbum ? <Camera /> : <ImageUp />} {addWords}
                   </Button>
                 )}
                 <UploadTrackerButton
@@ -1402,6 +1433,12 @@ export function EventExperience({
                       onAccountRenamed={handleAccountRenamed}
                       removedIds={removedIds}
                       capBytes={hostCap}
+                      // The album's host (never the demo's visitor, who owns nothing): her camera keeps no roll.
+                      isOwner={isOwner && !isDemo}
+                      // A shot taken back inside the camera is the page's removal too, as her tracker's Remove is.
+                      onOwnRemoved={handleOwnRemoved}
+                      // The door's keep is held while she shoots (`keepDue`).
+                      onCameraOpenChange={setCameraOpen}
                     />
                   </div>
                 ) : (
@@ -1571,6 +1608,7 @@ export function EventExperience({
             hidden={headerActionsInView || stageUp}
             uploadingCount={uploadingCount}
             onAdd={canUpload ? openAdd : undefined}
+            camera={cameraAlbum}
             run={shutterRun}
             hues={albumHues}
             more={!albumEndInView}
