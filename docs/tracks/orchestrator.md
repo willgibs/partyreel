@@ -71,6 +71,8 @@ plan's whole text (lane splits, the Advisor's Q11 corrections, Will's answers) i
 | `upload-meter` | the pricing invariant's preconditions: abandoned uploads never stored or backed up unmetered, a preview never heavier than its original, an account's uploads an hour (20,000) and events a day (100) as unpublished breakers, the join limiter sized for a 2,000-guest wedding on one Wi-Fi (3,000) | MERGED at `656712bb` (gate 192 green: lint, test, build, lab:smoke, lab:demo four boards); its migration APPLIED (20261003213849, Q21 safe as written, md5 64e799ef), types and its seam after; the R2 rule `staging-expire` set (staging/, a day) | Opus, 3131 | `a84dc730135e7cf76` |
 | `crumbs-61` | red-team 48's LOWs and NITs: one link for a guest's own upload, a range keeping its length when its start moves, Develop now to every guest together, the waiting sheet's footer at 375, the guest page's Add in a newcomer's words, the guest album's noun | MERGED at `e9f56432` (gate 193 green: lint, test, build, lab:smoke, lab:demo seven boards); its migration APPLIED (`doorbell_moment`, 20261003214116, Q22 safe as written, md5 780f930d) | Sonnet, 3133 | `ae9df0b537793d0ea` |
 | `redteam-49` | build 49's red-team (`e795ad07`): uploads through staging (the month counted once at complete, an abandoned upload stored and counted nowhere, no staging key in the backup), Settings' develop time (crumbs-60), Develop now to every guest together, crumbs-61's fixes, `/admin/jobs` read only, regressions | running (from 22:12Z); brief and ledger `../partyreel-wt/_scratch/redteam-49/` | Opus, Will's Chrome | `aea8819888948ba5c` |
+| `trash-in-storage` | Will's word (2026-10-03): Deleted counts in storage (the cap holds albums and Deleted together, deleting frees nothing until an item leaves Deleted for good), an account setting freeing the oldest of Deleted first when an upload needs room, the chart used and deleted apart; the standby budget and the re-delete guard retire; its migration for the Orchestrator | running (cut at `e9b006e4`); WIP pushes each milestone | Opus, 3131 | `ae451b0bbdbee9503` |
+| `pricing-research` | context for Will's deferred ladder and renewal: the market's prices for event photo sharing, what a host compares us to (cloud storage, photographers' galleries), each ladder for and against with Deleted inside the cap, new ideas; for him in `../partyreel-wt/_scratch/pricing-research/` | running (cut at `e9b006e4`); research, no port | Opus, none | `a2673136580ea64fb` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Q15
 (pricing and cost bounds, 17:45Z) answered: three rules (one marketed axis, storage; no plan's worst-case month above its
@@ -132,12 +134,14 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team brie
 
 ## Waiting on Will
 
-- **His walks** (2026-10-02): the phone measurement, the real upload, the Save check and the two-Checkout-tabs check
-  are DONE (the last passed whole on 2026-10-03: two live test subscriptions, the newer followed; the followed
-  one cancelled, the survivor followed with Pro kept; the account deleted, nothing left billing; hi@willgibs.com
-  restored before the purge at his ask). Owed: Record Video's 1080p size on his iPhone; after build 44, the walk-through when let in,
-  a password door, reduced motion over the door states and the new hub, the camera on his phone.
-- **The calls file** (90 calls, `../partyreel-wt/_scratch/calls/relay-calls.md`): he reviews it today.
-- **His next desk** on build 44.
-- **Asks that come due later**: Libraries.dev access for a lane (when the help chat is cut), any F1 frames he loves
-  (when the admin look is cut), asset 38 (the privacy hero's photograph).
+- **His pricing pick** (deferred 2026-10-03, his word: "Really want to put time into thinking about this one so we aren't
+  flip-flopping later on"): the ladder (A, B or C; `../partyreel-wt/_scratch/cost-atlas/ladders.md`) and the pass's
+  renewal ($15 or $19). Settled: the pass counts its uploads over its year; Deleted counts in storage (`trash-in-storage`);
+  limits published, never hidden. `pricing-research` brings him context; he also reviews PRICING.md's "What it costs us".
+- **The calls file** (`../partyreel-wt/_scratch/calls/relay-calls.md`, calls 1 to 133): he reviews in batches, with
+  comments where needed. Direct questions go to him in chat, never only in the file.
+- **His desk** tonight on build 49 (six boards).
+- **His walks:** the camera on his iPhone (a held-shutter video on a waiting sheet), Save into Photos, Record Video's
+  size, a deletion and its Cancel deletion on hi@willgibs.com, and the spend watch's uploads switch off and on
+  (red-team 48 could not press it).
+- **His yes for milestone 35** once red-team 49 is clean.
