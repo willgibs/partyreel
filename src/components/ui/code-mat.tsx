@@ -17,6 +17,9 @@ import { cn } from "@/lib/utils"
  * place on the page. The words for why live on the caller's corner mark, beside the mat (`children`
  * of the caller, never inside: a mark on the modules or the quiet zone would break the scan).
  *
+ * ★ A CARD OF WHITE (identity r2, layers=display): the mat wears the flat card's softer corner (`2xl`)
+ * and the LIFT, the small shadow of one object standing on another, rather than a layer's.
+ *
  * Press feedback is the house's 150ms scale on the strong curve, held still under reduced motion.
  */
 function CodeMat({
@@ -34,7 +37,7 @@ function CodeMat({
       data-slot="code-mat"
       data-dimmed={dimmed ? "" : undefined}
       className={cn(
-        "group/code-mat relative block shrink-0 rounded-lg bg-white p-2 text-neutral-950 shadow-layer outline-none",
+        "group/code-mat relative block shrink-0 rounded-2xl bg-white p-2 text-neutral-950 shadow-lift outline-none",
         "transition-transform duration-150 ease-emphasis hover:scale-[1.02] active:scale-[0.98]",
         "focus-visible:ring-3 focus-visible:ring-ring/50",
         "motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100",

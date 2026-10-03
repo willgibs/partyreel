@@ -82,8 +82,26 @@ export function ToastDemo() {
       >
         Error
       </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => toast.warning("Photo hidden")}
+      >
+        Warning
+      </Button>
       <Button variant="outline" size="sm" onClick={() => toast("Heads up")}>
         Default
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() =>
+          toast("Photo hidden from the album", {
+            action: { label: "Undo", onClick: () => {} },
+          })
+        }
+      >
+        With its Undo
       </Button>
     </Row>
   );

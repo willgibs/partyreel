@@ -1,6 +1,5 @@
 "use client"
 
-import { useTheme } from "next-themes"
 import { DismissableLayer } from "radix-ui/internal"
 import { Toaster as Sonner, toast, type ToasterProps } from "sonner"
 import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon } from "lucide-react"
@@ -41,8 +40,6 @@ if (!patchableToast[ERROR_PATCHED]) {
 }
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme()
-
   return (
     // ★ A TOAST IS PRESSABLE OVER AN OPEN MODAL, AND A PRESS ON ONE IS INSIDE
     // EVERY LAYER. An open Radix modal (a popup, the Dialog, the Sheet, the
@@ -58,7 +55,12 @@ const Toaster = ({ ...props }: ToasterProps) => {
     // while a modal holds focus: Radix's focus trap pulls sonner's alt+T back.
     <DismissableLayer.Branch asChild>
       <Sonner
-        theme={theme as ToasterProps["theme"]}
+        // ★ ALWAYS SONNER'S DARK, because a toast is the display (identity r2,
+        // layers=display): the camera's own screen, one near-black on paper and
+        // in the room. Sonner's light theme paints a description and the close
+        // button's glyph in near-black ink, which on the display is nothing; its
+        // dark theme reads every part off the `--normal-*` colours below.
+        theme="dark"
         className="toaster group"
         // Top centre, at both sizes: a band under the header, clear of every
         // fixed-bottom control on the page (the guest's action dock, and the
@@ -102,11 +104,15 @@ const Toaster = ({ ...props }: ToasterProps) => {
             <Loader2Icon className="size-4 animate-spin" />
           ),
         }}
+        // The display's own colours, which are the same on every ground (the
+        // `--display*` tokens are theme-independent, so they resolve here as
+        // they would anywhere). A toast's state is its glyph lit in the
+        // state's colour (globals.css), never a filled slab.
         style={
           {
-            "--normal-bg": "var(--popover)",
-            "--normal-text": "var(--popover-foreground)",
-            "--normal-border": "var(--border)",
+            "--normal-bg": "var(--display)",
+            "--normal-text": "var(--display-foreground)",
+            "--normal-border": "var(--display-edge)",
             "--border-radius": "var(--radius-float)",
             // Above an open modal's scrim, as above the page (see the branch).
             pointerEvents: "auto",
@@ -114,7 +120,9 @@ const Toaster = ({ ...props }: ToasterProps) => {
         }
         toastOptions={{
           classNames: {
-            toast: "cn-toast",
+            // The display's ground, so a toast's parts (its glyph's state
+            // colour, its Undo's ink) read the screen's tokens.
+            toast: "cn-toast surface-display",
           },
         }}
         {...props}

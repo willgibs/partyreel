@@ -9,7 +9,10 @@ import { cn } from "@/lib/utils"
 import { useKeyboardInset } from "@/lib/use-keyboard-inset"
 import { useMediaQuery } from "@/lib/use-media-query"
 import { Button } from "@/components/ui/button"
-import { floatingPopupShapes } from "@/components/ui/floating-layer"
+import {
+  floatingPopupShapes,
+  floatingScrim,
+} from "@/components/ui/floating-layer"
 import { EPHEMERAL_ROLES } from "@/components/ui/layer-is-up"
 import { useBackCloses } from "@/components/ui/popup-back"
 import {
@@ -213,14 +216,14 @@ function PopupClose({
 }
 
 /**
- * The scrim: the Dialog's and the Sheet's own (10 percent, a hair of blur), on
- * the clock of the shape it sits under. A whole screen needs none, and a
- * full-viewport blur behind an opaque screen is a cost paid every frame for
- * nothing, so it stands but is not drawn there (it stays MOUNTED: Radix's
- * scroll lock rides on it).
+ * The scrim: the Dialog's and the Sheet's own (the contract's `floatingScrim`,
+ * the page half-dimmed and sharp), on the clock of the shape it sits under. A
+ * whole screen needs none, so it stands but is not drawn there (it stays
+ * MOUNTED: Radix's scroll lock rides on it).
  */
 const OVERLAY = cn(
-  "fixed inset-0 z-50 bg-black/10 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+  "fixed inset-0 z-50 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+  floatingScrim,
   "duration-300 data-closed:duration-200",
   "data-[shape=dialog]:ease-emphasis data-[shape=dialog]:duration-200 data-[shape=dialog]:data-closed:duration-150 data-[shape=wide]:ease-emphasis data-[shape=wide]:duration-200 data-[shape=wide]:data-closed:duration-150",
   "data-[shape=screen]:invisible data-[shape=cover]:invisible"
