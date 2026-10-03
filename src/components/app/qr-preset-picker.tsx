@@ -1,7 +1,6 @@
 "use client";
 
-import { type CSSProperties } from "react";
-import { Check } from "lucide-react";
+import { RadioGroup as RadioGroupPrimitive } from "radix-ui";
 
 import {
   QR_PRESETS,
@@ -15,105 +14,85 @@ type QrPresetPickerProps = {
   value: QrStyleKey;
   onChange: (value: QrStyleKey) => void;
   /**
-   * The link every swatch encodes. Before an event exists (the wizard) it is the stand-in
-   * (`previewJoinUrl`), as long as a real one so each swatch draws the real code's density, and
-   * opening no event: the wizard's step says its swatches are samples.
+   * The link every swatch encodes. Before an event exists (Create's look step) it is the stand-in
+   * (`previewJoinUrl`), as long as a real one so each corner draws the real code's density, and opening
+   * no event: the step says its codes are samples.
    */
   joinUrl: string;
+  className?: string;
 };
 
 /**
- * THE STYLE STEP, REDESIGNED (Will, `style=step`, 2026-09-21: "The picker needs
- * a redesign. Choosing this selection because it makes more sense to handle it
- * up front. Hosts may not know they can adjust it later. This introduces the
- * feature").
+ * THE FOUR LOOKS, AS FOUR CORNERS (create-wizard r2 `look=places`, Will 2026-10-03: four swatches under
+ * the two places her code goes, re-dressing both as she picks; the step itself is first-event's
+ * `style=step`, "This introduces the feature").
  *
- * His verdict keeps the step and asks the drawing to earn it, and his note says
- * what the step is FOR: introducing a feature a host would otherwise never find.
- * So the swatches got big enough to read as a choice rather than four
- * thumbnails, each one says what it is, and the step says out loud that the
- * choice is not final — which is the exact fear the note names.
+ * ★ A CORNER, NEVER A WHOLE CODE. Four whole codes at a swatch's size read as the same grey noise four
+ * times; a window onto the top left of each look's own code, drawn at nearly three times the window,
+ * shows what tells them apart: a rounded finder reads as rounded, Bold's coral as coral, the dots as
+ * dots. The pictures above the swatches carry the whole code, so a swatch only has to name its look.
  *
- * ★ THE CODE SIZES ITSELF IN CSS, NOT IN JS, and that is what lets one picker
- * fit both consumers. `StyledQr` renders a fixed-pixel SVG from its `size` prop,
- * so a picker that wanted 96 px inside a ~460 px designer dialog and 160 inside
- * the wizard would have to measure its container and re-render the code. One
- * `w-full` on the svg does it with no layout effect and no second render: the
- * swatch is as big as its cell, with a cap so a wide container does not turn
- * four codes into four posters, and it never overflows at 375. `size` is still
- * passed, because it sets the rendered resolution and the quiet zone the
- * generator bakes in; the CSS only scales what it already drew. A square viewBox
- * with `h-auto` keeps it square at every width, and a code that is not square
- * does not scan (the mini-modal's own precedent, share.css).
+ * ★ ONE CHOICE OF FOUR, SAID AS ONE: a radio group, so a screen reader hears "one of four" and the
+ * arrows move between the looks, choosing as they go (Radix's roving focus). The chosen corner wears a
+ * ring offset from it in the ground's own ink, its name in the foreground.
  *
- * ★ A CONTAINER QUERY, NEVER A VIEWPORT BREAKPOINT. This grid lives in a 576 px
- * wizard card and in a ~460 px dialog, both of which are narrow on a wide
- * screen: a `sm:grid-cols-4` once forced four 96 px previews into the dialog and
- * clipped them (P5 S3·3b). `@3xl` asks the CELL's own container, so four-across
- * arrives only where four actually fit.
+ * ★ ITS SIZE IS SET IN CSS, NEVER BY RE-RENDERING (host-app.md): `StyledQr` draws once at a fixed
+ * resolution and the window scales it, so a swatch at a phone and one at a desk are the same drawing.
  *
- * Presentational and controlled: no event, no save, and NO new prop: `value` /
- * `onChange` / `joinUrl` are exactly what the Library's composition and the
- * designer dialog already pass. The step's one reassuring line ("You can change
- * this later from Share") belongs to the WIZARD, not here — inside the share
- * sheet's own designer it would be a surface telling you to visit itself.
+ * Presentational and controlled: no event, no save; `value`, `onChange` and `joinUrl` are what the
+ * Library's composition passes too. The step's own words ("Change it any time from Share") are Create's,
+ * never this picker's.
  */
 export function QrPresetPicker({
   value,
   onChange,
   joinUrl,
+  className,
 }: QrPresetPickerProps) {
   return (
-    <div className="@container">
-      <div className="grid grid-cols-2 gap-3 @3xl:grid-cols-4">
-        {QR_STYLE_KEYS.map((key, i) => {
-          const preset = QR_PRESETS[key];
-          const selected = key === value;
-          return (
-            <button
-              key={key}
-              type="button"
-              onClick={() => onChange(key)}
-              aria-pressed={selected}
-              // Cascade in when the designer opens (S4·A4): each swatch carries its
-              // index for the stagger (a keyframe, so transition-colors stays intact).
-              data-preset-arrive
-              style={{ "--arrive-i": i } as CSSProperties}
+    <RadioGroupPrimitive.Root
+      value={value}
+      onValueChange={(v) => onChange(v as QrStyleKey)}
+      aria-label="The code's look"
+      orientation="horizontal"
+      loop
+      className={cn("flex justify-center gap-5 md:gap-7", className)}
+    >
+      {QR_STYLE_KEYS.map((key) => {
+        const preset = QR_PRESETS[key];
+        return (
+          <RadioGroupPrimitive.Item
+            key={key}
+            value={key}
+            data-look={key}
+            className="group/look flex cursor-pointer flex-col items-center gap-2 rounded-lg outline-none"
+          >
+            <span
+              aria-hidden
               className={cn(
-                "relative flex flex-col items-center gap-2 rounded-xl border-2 p-3 text-center transition-colors",
-                selected
-                  ? "border-brand"
-                  : "border-border hover:border-foreground/30",
+                "relative block size-[3.375rem] overflow-hidden rounded-[22%] bg-white md:size-16",
+                "outline-2 outline-offset-3 outline-transparent transition-[outline-color] duration-150",
+                "group-data-[state=checked]/look:outline-foreground",
+                "group-focus-visible/look:ring-3 group-focus-visible/look:ring-ring/50",
               )}
             >
-              <span className="block w-full rounded-lg bg-white p-2">
+              {/* The look's own code at 2.7 times the window, its quiet zone pulled past the edge, so
+                  the window shows the finder and the first modules. */}
+              <span className="absolute -top-[14.85%] -left-[14.85%] block w-[270%]">
                 <StyledQr
                   value={joinUrl}
-                  size={160}
+                  size={176}
                   style={preset.options}
-                  className="mx-auto w-full max-w-[160px] [&>svg]:h-auto [&>svg]:w-full"
+                  className="[&>svg]:block [&>svg]:h-auto [&>svg]:w-full"
                 />
               </span>
-              <span className="block">
-                <span className="block text-sm font-medium">
-                  {preset.label}
-                </span>
-                <span className="block text-caption text-muted-foreground">
-                  {preset.description}
-                </span>
-              </span>
-              {selected && (
-                <span
-                  data-check-pop
-                  className="absolute top-1.5 right-1.5 rounded-full bg-brand p-0.5 text-brand-foreground"
-                >
-                  <Check className="size-3" />
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-    </div>
+            </span>
+            <span className="text-caption text-muted-foreground transition-colors duration-150 group-data-[state=checked]/look:font-medium group-data-[state=checked]/look:text-foreground">
+              {preset.label}
+            </span>
+          </RadioGroupPrimitive.Item>
+        );
+      })}
+    </RadioGroupPrimitive.Root>
   );
 }
