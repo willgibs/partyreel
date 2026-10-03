@@ -18,7 +18,12 @@ import {
   MAX_EXPORT_ITEMS,
 } from "@/lib/export/build-manifest";
 import { formatCount } from "@/lib/format/count";
-import { SHARE_FILE_MAX_BYTES } from "@/lib/media/share-save";
+import {
+  canShareFileNamed,
+  detectPlatform,
+  type NavigatorLike,
+  SHARE_FILE_MAX_BYTES,
+} from "@/lib/media/share-save";
 import { formatBytes } from "@/lib/utils";
 
 /** One file a Save hands the phone: where its bytes are, the name it travels under, what it weighs. */
@@ -130,4 +135,15 @@ export function saveHints(sizes: TakeHomeSizes): {
     photos: `${setNoun(sizes.photos, sizes.clips)} · ${formatBytes(sizes.phone)}`,
     originals: `Originals · ${formatBytes(sizes.original)}`,
   };
+}
+
+/**
+ * Whether this device's own sheet can take her photographs: a phone (an iPhone's sheet holds Save Images, the web's
+ * one way into Photos; an Android's hands them to its photo apps) whose sheet takes a JPEG. A desk, or a phone browser
+ * whose sheet takes no file, saves the originals' zip instead.
+ */
+export function sheetCanSave(nav: NavigatorLike): boolean {
+  return (
+    detectPlatform(nav) !== "desktop" && canShareFileNamed("photo.jpg", nav)
+  );
 }

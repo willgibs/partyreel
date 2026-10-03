@@ -6,6 +6,7 @@ import {
   SAVE_MAX_ITEMS,
   saveHints,
   setNoun,
+  sheetCanSave,
   SHEET_BYTES,
   takeHomeSizes,
 } from "@/lib/export/take-home";
@@ -107,5 +108,34 @@ describe("takeHomeSizes and saveHints: each choice shows its size", () => {
     expect(setNoun(0, 1)).toBe("1 video");
     expect(setNoun(0, 3)).toBe("3 videos");
     expect(setNoun(2000, 0)).toBe("2,000 photos");
+  });
+});
+
+describe("sheetCanSave: where a Save can go into Photos", () => {
+  const IPHONE =
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1";
+  const DESK =
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36";
+  const sheet = { share: async () => {}, canShare: () => true };
+
+  it("a phone whose sheet takes a JPEG", () => {
+    expect(
+      sheetCanSave({ userAgent: IPHONE, maxTouchPoints: 5, ...sheet }),
+    ).toBe(true);
+  });
+
+  it("never a desk, and never a phone whose sheet takes no file", () => {
+    expect(sheetCanSave({ userAgent: DESK, maxTouchPoints: 0, ...sheet })).toBe(
+      false,
+    );
+    expect(
+      sheetCanSave({
+        userAgent: IPHONE,
+        maxTouchPoints: 5,
+        share: async () => {},
+        canShare: () => false,
+      }),
+    ).toBe(false);
+    expect(sheetCanSave({ userAgent: IPHONE, maxTouchPoints: 5 })).toBe(false);
   });
 });

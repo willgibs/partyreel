@@ -44,15 +44,12 @@ import type { ExportSummary } from "@/lib/export/build-manifest";
 import {
   saveHints,
   setNoun,
+  sheetCanSave,
   takeHomeSizes,
   type TakeHomeSizes,
 } from "@/lib/export/take-home";
 import { downloadPlaceFor } from "@/lib/export/walk";
-import {
-  canShareFileNamed,
-  detectPlatform,
-  type NavigatorLike,
-} from "@/lib/media/share-save";
+import { detectPlatform } from "@/lib/media/share-save";
 
 /** How long the shutter holds its check once everything went, before select mode closes (the dock's own beat). */
 const DONE_HOLD_MS = 1600;
@@ -84,13 +81,6 @@ function downloadFile(url: string) {
   document.body.appendChild(a);
   a.click();
   a.remove();
-}
-
-/** Whether this device's own sheet can take her photographs: a phone, and a sheet that takes a JPEG. */
-export function sheetCanSave(nav: NavigatorLike): boolean {
-  return (
-    detectPlatform(nav) !== "desktop" && canShareFileNamed("photo.jpg", nav)
-  );
 }
 
 export function GuestSaveChoice({

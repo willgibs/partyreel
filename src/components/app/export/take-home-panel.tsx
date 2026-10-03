@@ -29,7 +29,6 @@ import {
   type TakeHomeSaver,
 } from "@/components/app/export/take-home-save";
 import { useExportDownload } from "@/components/app/export/use-export-download";
-import { sheetCanSave } from "@/components/guest/live-gallery-save";
 import { Button } from "@/components/ui/button";
 import {
   Popup,
@@ -41,7 +40,11 @@ import {
 import { DESK_QUERY } from "@/components/ui/popup-kinds";
 import { Switch } from "@/components/ui/switch";
 import type { ExportSummary } from "@/lib/export/build-manifest";
-import { SAVE_MAX_ITEMS, takeHomeSizes } from "@/lib/export/take-home";
+import {
+  SAVE_MAX_ITEMS,
+  sheetCanSave,
+  takeHomeSizes,
+} from "@/lib/export/take-home";
 import { formatCount, formatMediaCount } from "@/lib/format/count";
 import { PHONE_MAX_EDGE } from "@/lib/media/preview-size";
 import { useMediaQuery } from "@/lib/use-media-query";
