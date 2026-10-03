@@ -98,3 +98,15 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am
+
+- Done: all six builds, committed and pushed (fc2dfd7a, 27f1cf0e); the migration written and proved by a rolled-back
+  MCP check (red 6/7 on today's schema, green 7/7 with it; `_scratch/wait-wiring/sql/check-results.txt`). On 27f1cf0e:
+  typecheck 0, lint 0, test 0 (9,667), build 0 (`_scratch/wait-wiring/build-1.log`, same tree), lab:smoke 0 (167
+  checks).
+- Remains: `pnpm lab:demo --board the-wait` at 1440 and 375 (PREMISE drift); the captures (a guest's wait on a
+  disposable and a reviewed album, Settings' album styles, the host's cover covered and looked; the driver is
+  `_scratch/wait-wiring/cap/cdp.mjs`); this manifest's Questions, doc edits, Deferred and Handoff; crumbs-52's
+  ROADMAP line retired; the sync and the gate on it.
+- Running: one dev server, `pnpm dev -p 3132` in this worktree (kill by port).
