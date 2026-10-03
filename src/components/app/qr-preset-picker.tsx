@@ -70,7 +70,8 @@ export function QrPresetPicker({
             <span
               aria-hidden
               className={cn(
-                "relative block size-[3.375rem] overflow-hidden rounded-[22%] bg-white md:size-16",
+                // The ring is the hairline every surface ends on: on paper it is the white corner's only edge.
+                "relative block size-[3.375rem] overflow-hidden rounded-[22%] bg-white ring-1 ring-foreground/10 md:size-16",
                 "outline-2 outline-offset-3 outline-transparent transition-[outline-color] duration-150",
                 "group-data-[state=checked]/look:outline-foreground",
                 "group-focus-visible/look:ring-3 group-focus-visible/look:ring-ring/50",
