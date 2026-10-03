@@ -42,8 +42,9 @@ working.
 
 - Item 1 built and green at `0272498c` (unit + live on :3133): reds in `_scratch/crumbs-62/red-item1.log` and
   `red.json` (today's code deleted a recorded row's files on a byte-for-byte replay after the album closed, and on a
-  stranger's dead-ticket replay); greens in `green-item1.log` and `green.json`. Next: items 2 and 3 (red first), the
-  system doc, the gate.
+  stranger's dead-ticket replay); greens in `green-item1.log` and `green.json`.
+- Items 2 and 3 built and green (reds `red-item2.log`, `red-item3.log`; greens `green-item2.log`, `green-item3.log`).
+  Next: live looks at 2 and 3 on :3133, the system doc, the gate, the Handoff.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 

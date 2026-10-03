@@ -47,6 +47,8 @@ import {
 } from "@/components/guest/event-experience-wait";
 import type { FollowMomentHost } from "@/components/guest/follow-moment-card";
 import { GuestActionDock } from "@/components/guest/guest-action-dock";
+import { createAlbumKinds } from "@/components/guest/guest-action-dock-kinds";
+import { AlbumKindsSource } from "@/components/guest/guest-action-dock-kinds-source";
 import { publishCoverUnderHeader } from "@/components/guest/guest-header-cover";
 import {
   AlbumWait,
@@ -746,6 +748,9 @@ export function EventExperience({
      its button's two facts through `trackerStore`. Null until the album has mounted. */
   const [headBridge] = useState(createHeadBridge);
   const head = useHeadBridge(headBridge);
+  // ★ WHAT HER PICKS HOLD, FOR THE FOOT'S SAVE (red-team 49's NIT; `guest-action-dock-kinds.ts`): the album's kinds,
+  // said from inside its live source while she selects, so her Save names photos, videos or both.
+  const [albumKinds] = useState(createAlbumKinds);
   /* Whether the album has a reel to play from the cover's round: the album's own word once it has one,
      and until then the page's guess from what it knows at render (the host's switch, and two photos at
      least), so the round stands from the first paint rather than pushing Add over when the album lands.
@@ -1294,7 +1299,10 @@ export function EventExperience({
         returning={returning}
         uploadsOpen={event.accepting_uploads}
         requireUpload={event.require_upload_to_view}
-        albumEmpty={mediaCount === 0}
+        // ★ EMPTY AS THE COVER'S ADD READS IT (red-team 49's NIT): the cover's one source, `galleryEmpty` (what shows,
+        // her files on their way, what waits), so the door's upload step never offers "the first photo" over shots
+        // that wait for the develop, one screen before the page's own Add says "Take photos" over them.
+        albumEmpty={galleryEmpty}
         isOwner={isOwner}
         isDemo={isDemo}
         isVerified={isVerified}
@@ -1599,6 +1607,8 @@ export function EventExperience({
                     {/* The door's light takes its colour from here, the album's three newest (it draws
                   nothing; `door/album-light.tsx`). */}
                     <AlbumLightSampler />
+                    {/* The album's kinds for the foot's Save, said while she selects (it draws nothing). */}
+                    <AlbumKindsSource store={albumKinds} />
                     {/* Her tracker's list, inside the one live source it reads (its button sits on the
                   cover and the shutter, above this provider, reading `trackerStore`). */}
                     <UploadTracker
@@ -1704,6 +1714,7 @@ export function EventExperience({
             camera={cameraAlbum}
             run={shutterRun}
             hues={albumHues}
+            kinds={albumKinds}
             more={!albumEndInView}
             invite={
               <GuestShare
