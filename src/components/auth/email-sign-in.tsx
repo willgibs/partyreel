@@ -7,6 +7,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
+import { isUserBanned } from "@/app/(auth)/account-deleting";
+import { AccountDeletingNotice } from "@/app/(auth)/account-deleting-notice";
 import { checkExistingAccount } from "@/app/(auth)/actions";
 import {
   FailurePaths,
@@ -36,6 +38,7 @@ import {
   retryAfterSeconds,
   type DoorFailureKind,
 } from "@/lib/auth/door-failure";
+import { nextPurgeWindow } from "@/lib/lifecycle/purge-time";
 import { useHydrated } from "@/lib/shared/use-hydrated";
 import { createClient } from "@/lib/supabase/client";
 import { isTextField } from "@/lib/use-keyboard-inset";
@@ -206,6 +209,15 @@ export function EmailSignIn({
     kind: DoorFailureKind;
     seconds?: number;
   } | null>(null);
+  // ★ AN ADDRESS WHOSE ACCOUNT IS STILL BEING ERASED (lp/account-exit). GoTrue refuses a deleted
+  // account's address at the verify, whatever code was typed, until the nightly purge: no wrong
+  // code, and no resend or retry passes it. So the door goes back to the email step with the reason
+  // and the time it can start fresh (`account-deleting.ts`), and the field is the way on.
+  const [deleting, setDeleting] = useState<{
+    email: string;
+    endsAt: number;
+    at: number;
+  } | null>(null);
   const otpRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   // Whether a field held focus when the form was sent (read at the submit event, synchronously).
@@ -304,7 +316,10 @@ export function EmailSignIn({
     if (await sendCode(values.email)) {
       const handOver = fieldAtSubmit.current || codeFocus === "always";
       swapScreen(
-        () => openCodeScreen(values.email),
+        () => {
+          setDeleting(null);
+          openCodeScreen(values.email);
+        },
         () => otpRef.current,
         handOver,
       );
@@ -325,6 +340,25 @@ export function EmailSignIn({
     if (error) {
       setVerifying(false);
       setCode("");
+      if (isUserBanned(error)) {
+        const refused = sentTo;
+        const at = Date.now();
+        swapScreen(
+          () => {
+            setSentTo(null);
+            sentAt?.(null);
+            setDeleting({
+              email: refused,
+              endsAt: nextPurgeWindow(at).end.getTime(),
+              at,
+            });
+            form.reset({ email: "" });
+          },
+          () => emailRef.current,
+          isTextField(document.activeElement),
+        );
+        return;
+      }
       setFailure({ kind: "wrong_code" });
       return;
     }
@@ -504,6 +538,13 @@ export function EmailSignIn({
             failure={doorFailure(failure.kind, failure.seconds)}
             handlers={handlers}
             suppress={NOT_MINE}
+          />
+        )}
+        {deleting && (
+          <AccountDeletingNotice
+            email={deleting.email}
+            endsAt={deleting.endsAt}
+            now={deleting.at}
           />
         )}
         {leading}

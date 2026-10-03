@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { ACCOUNT_DELETING } from "@/app/(auth)/account-deleting";
+import { AccountDeletingNotice } from "@/app/(auth)/account-deleting-notice";
 import { LoginForm } from "@/components/auth/login-form";
 import { Logo } from "@/components/shared/logo";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,8 +16,23 @@ import {
   marketingImage,
   type MarketingImage,
 } from "@/lib/constants/marketing-media";
+import {
+  resolveViewerZone,
+  serverZone,
+  VIEWER_ZONE_HEADER,
+} from "@/lib/dashboard/viewer-day";
+import { nextPurgeWindow } from "@/lib/lifecycle/purge-time";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
+
+/**
+ * The purge's time for `/login`'s answer to a deleted account's sign-in, reckoned once on the
+ * server and handed down whole, so the server's paint and the browser's agree on the day.
+ */
+function deletingTimes(): { endsAt: number; now: number } {
+  const now = Date.now();
+  return { endsAt: nextPurgeWindow(now).end.getTime(), now };
+}
 
 export const metadata: Metadata = { title: "Log in" };
 
@@ -133,8 +150,8 @@ export default async function LoginPage({
   searchParams,
 }: {
   searchParams: Promise<{
-    error?: string;
-    intent?: string;
+    error?: string | string[];
+    intent?: string | string[];
     next?: string | string[];
   }>;
 }) {
@@ -146,10 +163,30 @@ export default async function LoginPage({
   // `?next=` is the page a gate sent a signed-out visitor from (a mail's button,
   // crumbs-11): kept only when it is on the return allow-list, and otherwise
   // dropped without a word, so a hostile value reads exactly like none.
-  const { error, intent, next } = await searchParams;
+  const params = await searchParams;
+  // ★ A REPEATED PARAM ARRIVES AS A LIST (`?error=a&error=b`), and the failure table lower-cases a
+  // string: the list answered 500. The first value is the one read, as the callback reads its own.
+  const [error, intent] = [params.error, params.intent].map((value) =>
+    Array.isArray(value) ? value[0] : value,
+  );
+  const { next } = params;
+  const request = await headers();
   // Each host returns to its own pages: the portal's on the admin host, the app's elsewhere.
-  const onAdminHost = isAdminHost((await headers()).get("host"));
+  const onAdminHost = isAdminHost(request.get("host"));
   const returnTo = signInReturn(next, onAdminHost);
+  // A deleted account's link or Google, refused until the purge (the callback says so). Its words
+  // are conditional, so this param paints nothing alarming however it got here
+  // (`account-deleting.ts`); the zone is the request's, until the browser's own takes over.
+  const deleting =
+    error === ACCOUNT_DELETING
+      ? {
+          ...deletingTimes(),
+          zone: resolveViewerZone(
+            request.get(VIEWER_ZONE_HEADER),
+            serverZone(),
+          ),
+        }
+      : null;
 
   // Already signed in? Skip the form and go where they were going — so a logged-in
   // visitor clicking "Log in" from marketing isn't forced through sign-in again
@@ -178,6 +215,14 @@ export default async function LoginPage({
           </div>
           <Card>
             <CardContent>
+              {deleting && (
+                <AccountDeletingNotice
+                  endsAt={deleting.endsAt}
+                  now={deleting.now}
+                  serverZone={deleting.zone}
+                  className="mb-6"
+                />
+              )}
               <LoginForm
                 intent={intent === "create" ? "create" : "signin"}
                 failure={doorFailureKind(error)}
