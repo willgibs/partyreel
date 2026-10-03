@@ -1,20 +1,16 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import {
-  ALBUM_REFUSED,
-  readGuestAlbumMedia,
-} from "@/lib/db/queries/album-guest";
-import { toGuestAlbumLinks } from "@/lib/events/album-guest-links";
+import { ALBUM_REFUSED } from "@/lib/db/queries/album-guest";
 import { resolveAlbumViewer } from "@/lib/events/album-viewer.server";
 import {
   ALBUM_MEDIA_MAX_IDS,
   isAlbumId,
   type AlbumLinksBody,
 } from "@/lib/events/album-wire";
+import { mintGuestAlbumLinks } from "@/lib/events/album-wire-links.server";
 import type { GalleryAccess, GalleryGate } from "@/lib/events/gallery-access";
 import { reportAlbumRefused } from "@/lib/events/gallery-access.server";
-import { presignDownload } from "@/lib/r2/presign";
 import { presignBucketId } from "@/lib/r2/presign-bucket";
 
 export const runtime = "nodejs";
@@ -31,7 +27,8 @@ export const dynamic = "force-dynamic";
  * gone, held, hidden or another album's is `missing` too, so the answer says nothing about which.
  * The rows are read by id (`inChunks`), minted in the current presign bucket (`b`, read before
  * minting, so a bucket that rolls mid-request only makes a link outlive the client's estimate), and
- * attributed by name and two flags, never an address (`album-guest-links.ts`).
+ * attributed by name and two flags, never an address: `mintGuestAlbumLinks`, the one home this
+ * answer shares with the links a delta carries for its new items (album-calm).
  *
  * Nothing here writes a cookie: the heal is the poll's (album-viewer.server.ts).
  */
@@ -63,32 +60,23 @@ export async function POST(request: Request) {
     return nothing(ids, viewer.decision.access, viewer.decision.gate);
   }
 
-  const bucket = Number(presignBucketId(Date.now()));
-  const now = Date.now();
-  const read = await readGuestAlbumMedia(viewer.event, ids, {
-    attribute: !viewer.isDemo,
+  const minted = await mintGuestAlbumLinks(viewer.event, ids, {
+    isDemo: viewer.isDemo,
   });
   // The reads' own gate refused a viewer the decision let in: locked, and reported (album-guest.ts).
-  if (!read) {
+  if (!minted) {
     reportAlbumRefused(viewer.event.id, "media");
     return nothing(ids, ALBUM_REFUSED.access, ALBUM_REFUSED.gate);
   }
 
-  const links = await toGuestAlbumLinks(read.rows, {
-    eventName: viewer.event.name,
-    presign: (key, downloadFilename) =>
-      presignDownload({ key, stable: true, downloadFilename }),
-    identities: read.identities,
-  });
-  const found = new Set(read.rows.map((r) => r.id));
   const payload: AlbumLinksBody = {
     ok: true,
     access: "full",
     gate: null,
-    b: bucket,
-    now,
-    links,
-    missing: ids.filter((id) => !found.has(id)),
+    b: minted.b,
+    now: minted.now,
+    links: minted.links,
+    missing: ids.filter((id) => !minted.found.has(id)),
   };
   return NextResponse.json(payload, {
     headers: { "Cache-Control": "private, no-store" },

@@ -14,19 +14,24 @@ import {
 } from "@/lib/db/queries/album-guest";
 import { developIfDue } from "@/lib/disposable/develop.server";
 import { developFactsOf, waitingFor } from "@/lib/disposable/facts";
+import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import { guestAlbumEtag } from "@/lib/events/album-validator";
 import { resolveAlbumViewer } from "@/lib/events/album-viewer.server";
 import type {
+  AlbumCarriedLinks,
   GuestFullSync,
   GuestLockedSync,
   GuestTeaserSync,
 } from "@/lib/events/album-wire";
+import { carriedIds } from "@/lib/events/album-wire-carry";
+import { mintGuestAlbumLinks } from "@/lib/events/album-wire-links.server";
 import { TEASER_LIMIT } from "@/lib/events/gallery-access";
 import {
   loadGalleryReel,
   reportAlbumRefused,
 } from "@/lib/events/gallery-access.server";
 import { guestCookieHeaderValue } from "@/lib/guest/session-cookie";
+import { captureError } from "@/lib/observability/sentry";
 import { toGridItems } from "@/lib/r2/grid-items";
 import { presignBucketId } from "@/lib/r2/presign-bucket";
 
@@ -46,7 +51,12 @@ export const dynamic = "force-dynamic";
  *    size and the photo total), because no link route serves a viewer still at the door;
  *  - `full`: the paged album (album-sync.ts): a MANIFEST on a first load or a resync, else the DELTA
  *    since `since`, with the album's approved count read in the same snapshot and the live reel's
- *    facts.
+ *    facts. ★ A delta CARRIES ITS NEW ITEMS' LINKS (album-calm, PRICING lever 1c): the newest
+ *    upserts' (`carriedIds`), minted exactly as the links route mints them (`mintGuestAlbumLinks`,
+ *    through the reads' own gate: a held, sealed or removed id gets none), so a batch of photographs
+ *    arrives in this one call where it took two. A refusal carries none (the links route answers for
+ *    itself), a failed read is reported and costs the delta nothing, and the validator never moves
+ *    for them: a 304 carries nothing.
  *
  * ★ A QUIET POLL IS ONE ROW. At full access the validator is built from the event's `album_state`
  * row and the decision (album-validator.ts), read BEFORE anything else, so a matching
@@ -198,7 +208,11 @@ export async function POST(request: Request) {
       }),
     );
   }
-  const guestCount = isDemo ? undefined : await getGuestCount(event);
+  const carry = plan.part.kind === "delta" ? carriedIds(plan.part.upsert) : [];
+  const [guestCount, links] = await Promise.all([
+    isDemo ? Promise.resolve(undefined) : getGuestCount(event),
+    carry.length > 0 ? carriedLinks(event, carry, isDemo) : null,
+  ]);
   const waiting = waitingFor(develop, plan.waiting);
   const payload: GuestFullSync = {
     ...plan.part,
@@ -209,8 +223,32 @@ export async function POST(request: Request) {
     reel,
     ...(guestCount === undefined ? {} : { guestCount }),
     ...(waiting ? { waiting } : {}),
+    ...(links ? { links } : {}),
   };
   return NextResponse.json(payload, { headers });
+}
+
+/**
+ * A delta's carried links (see the head note), or null for none: the reads' gate refused them (the links route will
+ * answer that viewer for itself), the read found none of them, or it FAILED, which is reported and never takes the
+ * delta down with it (the client then asks the links route, as it always has).
+ */
+async function carriedLinks(
+  event: GuestEvent,
+  ids: string[],
+  isDemo: boolean,
+): Promise<AlbumCarriedLinks | null> {
+  try {
+    const minted = await mintGuestAlbumLinks(event, ids, { isDemo });
+    if (!minted || minted.links.length === 0) return null;
+    return { b: minted.b, now: minted.now, links: minted.links };
+  } catch (error) {
+    captureError("media", error, {
+      eventId: event.id,
+      seam: "album sync: a delta's carried links",
+    });
+    return null;
+  }
 }
 
 /** The reads refused a viewer the decision let in: locked behind the password, and reported. */

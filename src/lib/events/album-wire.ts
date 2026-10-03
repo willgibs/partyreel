@@ -12,7 +12,8 @@
  * album is a handful of ids. So:
  *   - the MANIFEST is every approved item as a five-number tuple, newest first, with no key and no
  *     link: the windowed grid needs every item's geometry to lay the rows out, and nothing more;
- *   - LINKS are minted per window by id (`AlbumLinkTuple`), at most `ALBUM_MEDIA_MAX_IDS` a call;
+ *   - LINKS are minted per window by id (`AlbumLinkTuple`), at most `ALBUM_MEDIA_MAX_IDS` a call, and
+ *     a guest's delta carries its newest items' own (`AlbumCarriedLinks`), so a batch is one call;
  *   - a POLL asks what changed since the album version the client holds, and answers `delta`
  *     (upserts and removals by id) or a fresh `manifest` when the gap is too wide to be worth it.
  *
@@ -341,6 +342,27 @@ export type AlbumDeltaPart = {
   remove: string[];
 };
 
+/**
+ * THE LINKS A DELTA CARRIES (album-calm, PRICING lever 1c): its newest upserts' links, minted exactly as the links
+ * route mints them (`album-wire-links.server.ts`, the one home for both), with the bucket and the server's clock they
+ * were minted under, so a batch of new photographs arrives in ONE call where it took two (the delta, then the links
+ * route for its ids). The client holds them for the link store's next ask (`album-wire-carry.ts`) and never past the
+ * re-mint time they are dated to; the links route stays for windows and re-mints. The validator never moves for them:
+ * a 304 carries nothing.
+ */
+export type AlbumCarriedLinks<Who = GuestWhoTuple> = Pick<
+  AlbumLinksBody<Who>,
+  "b" | "now" | "links"
+>;
+
+/**
+ * A delta carries links for at most this many of its upserts, the newest first: a screenful at the album's head at
+ * the densest step (the first paint's own budget, `FIRST_PAINT`), which is where new photographs land and what the
+ * arrival gate and the window ask for first. A bigger batch (a tab back from hours away) carries the head's, and the
+ * window asks for the rest only if the reader goes to them.
+ */
+export const ALBUM_DELTA_LINKS_MAX = 48;
+
 /** A guest poll at full access: the album part, the album's size and the live reel's facts. */
 export type GuestFullSync = (AlbumManifestPart | AlbumDeltaPart) & {
   ok: true;
@@ -357,6 +379,11 @@ export type GuestFullSync = (AlbumManifestPart | AlbumDeltaPart) & {
    * validator hashes the develop time, and every change to what waits moves `v`.
    */
   waiting?: GuestWaiting;
+  /**
+   * A DELTA'S new items' links (`AlbumCarriedLinks`). Absent from a manifest, from a delta with nothing new, when the
+   * reads' own gate refused them, and from an older server: a client then asks the links route, as it always has.
+   */
+  links?: AlbumCarriedLinks;
 };
 
 /** A guest poll at the teaser: today's tiny inline payload, links and all. */
