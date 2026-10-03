@@ -548,6 +548,61 @@ export function pruneBreakerEmail(opts: {
 }
 
 /**
+ * THE BACKUP PRUNE HELD ITS BACKLOG (durability-backups.md, "The deletion-aware prune"; the Advisor's Q20): a run
+ * found far more gone than usual, deleted nothing, and waits for a person, because a hold never releases itself. It
+ * says what was held and the two ways on: Release the hold on the prune's card if the clear-out is real, or pause the
+ * prune if it looks like a loss. No button (an operator alert's shape); the jobs console rides the foot. Sent once a
+ * run through sendOnce (`prune_breaker`), so a hold that stands is mailed again each week.
+ */
+export function pruneHoldEmail(opts: {
+  heldMedia: number | null;
+  heldKeys: number | null;
+  threshold: number | null;
+  /** The held run's own line from the jobs console, when it sent one. */
+  runNote: string | null;
+  jobsUrl: string;
+}): Mail {
+  const count = (n: number | null) =>
+    n === null ? "unknown" : n.toLocaleString("en-US");
+  const what =
+    opts.heldMedia === null
+      ? "its backlog waits"
+      : `${count(opts.heldMedia)} items wait`;
+  return composeMail({
+    subject: `${OPERATOR_TAG} Backup prune held: ${what} for a person`,
+    heading: "The backup prune is holding its backlog",
+    blocks: [
+      p(
+        "The weekly prune found far more backup copies to delete than usual: either a real clear-out or rows and objects lost together, which every check it makes would read the same way. ",
+        strong("Nothing was deleted."),
+        " It holds until a person releases it.",
+      ),
+      {
+        kind: "fields",
+        rows: [
+          { label: "Items held", value: count(opts.heldMedia) },
+          { label: "Backup copies held", value: count(opts.heldKeys) },
+          { label: "It holds past", value: count(opts.threshold) },
+          ...(opts.runNote
+            ? [{ label: "The run's note", value: opts.runNote }]
+            : []),
+        ],
+      },
+      p(
+        strong("What to check:"),
+        " that the ",
+        code("media"),
+        " table and the primary bucket are intact (not mid-restore, not a bad migration, not a purge bug). If the clear-out is real, press Release the hold on the backup prune's card and the next run deletes them, each checked again first. If it looks like a loss, pause the prune there and restore from the backup.",
+      ),
+    ],
+    foot: {
+      line: "Partyreel operations alert (backup-prune hold, durability-backups.md). Sent once a run while the hold stands.",
+      link: { href: opts.jobsUrl, label: "Open the backup prune" },
+    },
+  });
+}
+
+/**
  * THE SPEND WATCH TRIPPED (admin-observability.md, "The spend watch"): a reading went past ten times its busiest of
  * the week, or past its floor on a quiet one. It says what tripped, what the watch paused on its own and what it
  * left for a person (guest uploads, since a false alarm there would stop a real party). No button (an operator

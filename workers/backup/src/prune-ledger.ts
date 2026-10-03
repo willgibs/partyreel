@@ -11,9 +11,12 @@
 // together by a bug or a stolen key, so both existence checks agree) but also bounded honest churn far below what a
 // single heavy host deletes. Any FIXED number does one or the other. So the clamp is sized to the deletions
 // themselves: a run that finds more gone than ten times the usual (the median of the last runs, never under a
-// party's worth) deletes NOTHING, reads "Needs a look" on /admin/jobs, and goes ahead only on a run at least six
-// days later, so an operator has a week to pause it. Honest growth moves the median; one big clear-out waits a
-// week, which costs a week of Infrequent Access storage and nothing else.
+// party's worth) deletes NOTHING and reads "Needs a look" on /admin/jobs, with a Sentry warning and the ops mail.
+// ★ A HOLD NEVER RELEASES ITSELF (the Advisor's Q20): a backlog that may be a disaster waits for a person, however
+// long, because a clock that lets it through deletes the last copy of whatever nobody looked at. The person's act is
+// Release the hold on the prune's card, a stamp the job heartbeat's start answer carries (`releasedAtMs`); the pause
+// switch stays the brake. Honest growth moves the median; one big clear-out costs Infrequent Access storage until
+// someone presses the release, and nothing else.
 
 /** A run's verdict on its backlog, recorded so the next runs know what usual looks like. */
 export type PruneRunRecord = {
@@ -25,7 +28,7 @@ export type PruneRunRecord = {
   live: boolean;
 };
 
-/** A live run's held backlog: deletes nothing until a run at least `PRUNE_HOLD_RELEASE_MS` after `sinceMs`. */
+/** A live run's held backlog: deletes nothing until an operator's release stamped after `sinceMs`. */
 export type PruneHold = { sinceMs: number; goneMedia: number };
 
 export type PruneLedger = {
@@ -58,9 +61,6 @@ export const PRUNE_HOLD_MULTIPLIER = 10;
  * backlog never holds, so a quiet history (a few media a week) cannot hold every ordinary clear-out.
  */
 export const PRUNE_HOLD_FLOOR_MEDIA = 2_000;
-
-/** A hold goes ahead on the first run this long after it began: the next weekly run, with a day of slack. */
-export const PRUNE_HOLD_RELEASE_MS = 6 * 24 * 60 * 60 * 1000;
 
 /** The longest cursor kept: a backup key is far shorter (about 100 characters); anything longer is not ours. */
 const MAX_CURSOR_LENGTH = 1024;
@@ -170,23 +170,28 @@ export function holdThreshold(history: readonly PruneRunRecord[]): number {
 export type HoldDecision = {
   /**
    * `proceed`: the backlog is usual (or the run is dry and it is). `hold`: delete nothing this run (a dry run only
-   * reports that a live one would). `release`: a hold at least `PRUNE_HOLD_RELEASE_MS` old goes ahead.
+   * reports that a live one would). `released`: an operator released this hold after it began, so it goes ahead.
    */
-  verdict: "proceed" | "hold" | "release";
+  verdict: "proceed" | "hold" | "released";
   threshold: number;
   usual: number;
-  /** The hold the ledger keeps after this run. A dry run never sets or clears a live hold. */
+  /** The hold the ledger keeps after this run. A dry run never sets, clears or releases a live hold. */
   nextHold: PruneHold | null;
 };
 
-/** Decide what a run that confirmed `goneMedia` gone may do with them. */
+/**
+ * Decide what a run that confirmed `goneMedia` gone may do with them. `releasedAtMs` is the last "Release the hold"
+ * pressed on /admin/jobs (null for none), honoured only when it is newer than the standing hold: a press made before
+ * a hold began, or before any hold, never lets a later one through, so every hold needs its own press.
+ */
 export function decideHold(input: {
   goneMedia: number;
   ledger: PruneLedger;
   nowMs: number;
   live: boolean;
+  releasedAtMs: number | null;
 }): HoldDecision {
-  const { goneMedia, ledger, nowMs, live } = input;
+  const { goneMedia, ledger, nowMs, live, releasedAtMs } = input;
   const usual = usualGoneMedia(ledger.history);
   const threshold = holdThreshold(ledger.history);
   if (goneMedia <= threshold) {
@@ -200,8 +205,12 @@ export function decideHold(input: {
   if (!live) {
     return { verdict: "hold", threshold, usual, nextHold: ledger.hold };
   }
-  if (ledger.hold && nowMs - ledger.hold.sinceMs >= PRUNE_HOLD_RELEASE_MS) {
-    return { verdict: "release", threshold, usual, nextHold: null };
+  if (
+    ledger.hold &&
+    releasedAtMs !== null &&
+    releasedAtMs > ledger.hold.sinceMs
+  ) {
+    return { verdict: "released", threshold, usual, nextHold: null };
   }
   return {
     verdict: "hold",

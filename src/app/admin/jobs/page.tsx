@@ -48,7 +48,13 @@ import {
   type JobId,
   type JobReading,
 } from "./catalog";
-import { JobKillSwitch, RunJobNowButton } from "./job-controls";
+import {
+  JobKillSwitch,
+  PruneHoldControl,
+  RunJobNowButton,
+} from "./job-controls";
+import { readLastPruneReport, readPruneHoldReleasedAtMs } from "./prune-hold";
+import { pruneHoldView, type PruneHoldView } from "./prune-hold-view";
 import {
   SpendWatchReadings,
   SpendWatchSwitches,
@@ -224,12 +230,32 @@ async function loadWatchData(): Promise<{
   };
 }
 
+/**
+ * The backup prune's hold, for its card: its last report from a run that ran and the last release pressed. A hold
+ * read that fails draws no control rather than a wrong one; a stamp that cannot be read reads as none, so a hold
+ * still offers its release (pressing again only stamps again).
+ */
+async function loadPruneHold(): Promise<PruneHoldView> {
+  const [report, released] = await Promise.allSettled([
+    readLastPruneReport(),
+    readPruneHoldReleasedAtMs(),
+  ]);
+  if (report.status === "rejected") return null;
+  return pruneHoldView({
+    counts: report.value,
+    releasedAtMs: released.status === "fulfilled" ? released.value : null,
+  });
+}
+
 export default async function JobsPage() {
   const ctx = await requireAdmin();
   if (ctx.aal !== "aal2") return null;
 
-  const [{ flags, states, recent, signals, nowMs, unavailable }, watch] =
-    await Promise.all([loadPageData(), loadWatchData()]);
+  const [
+    { flags, states, recent, signals, nowMs, unavailable },
+    watch,
+    pruneHold,
+  ] = await Promise.all([loadPageData(), loadWatchData(), loadPruneHold()]);
 
   // Health resolves in TWO passes because a `derived` reading inherits the health of the run that
   // carried it: the Worker's own verdict has to exist before the queue and dead-letter cards can say
@@ -488,6 +514,12 @@ export default async function JobsPage() {
                     latest={watch.latest?.run ?? null}
                     unreadable={watch.switchesError}
                   />
+                </div>
+              ) : null}
+
+              {def.id === "backup_prune" && pruneHold ? (
+                <div className="border-t border-border pt-3">
+                  <PruneHoldControl view={pruneHold} />
                 </div>
               ) : null}
 

@@ -294,7 +294,10 @@ type PruneOutcome = {
   counts: Record<string, number | string | boolean>;
 };
 
-async function pruneRun(env: Env): Promise<PruneOutcome> {
+async function pruneRun(
+  env: Env,
+  releasedAtMs: number | null,
+): Promise<PruneOutcome> {
   if (!env.PRUNE_API_URL || !env.PRUNE_API_SECRET) {
     console.error(
       "prune: PRUNE_API_URL / PRUNE_API_SECRET not set; skipping run",
@@ -339,7 +342,7 @@ async function pruneRun(env: Env): Promise<PruneOutcome> {
       confirm: (ids, scanned) => confirmGone(env, ids, scanned, mode),
       now: () => Date.now(),
     },
-    { mode, ledger: parsed.ledger, startedAtMs: Date.now() },
+    { mode, ledger: parsed.ledger, startedAtMs: Date.now(), releasedAtMs },
   );
   console.log("prune: done", result.counts);
 
@@ -386,7 +389,7 @@ async function prune(env: Env): Promise<void> {
   const depths: DepthCounts = await readQueueDepths(env);
 
   try {
-    const outcome = await pruneRun(env);
+    const outcome = await pruneRun(env, gate.releasedAtMs);
     await jobFinish(env, "backup_prune", gate.run, {
       ...outcome,
       counts: { ...outcome.counts, ...depths },

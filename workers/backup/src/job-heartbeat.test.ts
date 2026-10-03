@@ -62,7 +62,7 @@ describe("jobStart", () => {
     expect(res).toEqual({ ok: true, paused: true, run: null });
   });
 
-  it("returns the run handle when the job may proceed", async () => {
+  it("returns the run handle when the job may proceed, and no release when none was stamped", async () => {
     stubFetch(() => ({
       body: { ok: true, paused: false, runId: "run-1", startedAtMs: 1000 },
     }));
@@ -71,7 +71,40 @@ describe("jobStart", () => {
       ok: true,
       paused: false,
       run: { runId: "run-1", startedAtMs: 1000 },
+      releasedAtMs: null,
     });
+  });
+
+  it("carries the operator's release stamp the start answer holds (the prune's hold)", async () => {
+    stubFetch(() => ({
+      body: {
+        ok: true,
+        paused: false,
+        runId: "run-2",
+        startedAtMs: 2000,
+        releasedAtMs: 1500,
+      },
+    }));
+    const res = await jobStart(CONFIGURED, "backup_prune");
+    expect(res).toMatchObject({ ok: true, paused: false, releasedAtMs: 1500 });
+  });
+
+  it("reads a stamp that is not a time as no release at all", async () => {
+    for (const releasedAtMs of ["1500", -1, Number.NaN, null, {}, true]) {
+      stubFetch(() => ({
+        body: {
+          ok: true,
+          paused: false,
+          runId: "r",
+          startedAtMs: 1,
+          releasedAtMs,
+        },
+      }));
+      const res = await jobStart(CONFIGURED, "backup_prune");
+      expect(res, JSON.stringify(releasedAtMs)).toMatchObject({
+        releasedAtMs: null,
+      });
+    }
   });
 
   it("reports not-ok on a non-2xx so the caller can pick its own posture", async () => {

@@ -100,7 +100,8 @@ pure engine (`src/prune-run.ts`, its tests `src/prune-run.test.ts`); `src/index.
   anything restored since the listing.
 - **A doubt deletes nothing.** Deletes happen once, at the end of the run: a confirm that is down or answers
   in the wrong shape, the app's breaker (`media_table_empty`, which also emails an operator), an id it was
-  never asked about, or a listing that does not move forward aborts the run with nothing deleted.
+  never asked about, or a listing that does not move forward aborts the run with nothing deleted. A HEAD
+  that fails keeps that one item; the run deletes the others it confirmed and closes as an error.
 - **Age gate + Bucket Lock.** Only objects older than 36 days (one day past the 35-day lock) are ever
   candidates. (A still-locked delete is a silent no-op, so the age gate is the correctness gate.)
 - **It keeps up.** Its ledger (`src/prune-ledger.ts`, stored in the `PruneState` Durable Object,
@@ -108,8 +109,10 @@ pure engine (`src/prune-run.ts`, its tests `src/prune-run.test.ts`); `src/index.
   ends or its deadline (12 min), subrequest budget (95,000) or delete cap (30,000 media,
   `src/prune-strategy.ts`) stops it with a counted `remaining`.
 - **The hold.** A backlog over ten times the usual (the median of the last eight runs, never under 2,000
-  media) deletes nothing and reads "Needs a look" on `/admin/jobs`; the first run six days later goes ahead
-  unless the prune is paused there. Expect one at the launch switch.
+  media) deletes nothing, reads "Needs a look" on `/admin/jobs`, and raises a Sentry warning and the ops
+  mail. It never releases itself: a person presses Release the hold on the prune's card, the heartbeat's
+  start answer carries that stamp (`releasedAtMs`), and the next run goes ahead only if the press came after
+  the hold began. Expect one at the launch switch.
 
 **The Durable Object needs no setup:** `wrangler.jsonc`'s `migrations` (tag `v1`) creates the class on the
 first deploy that carries it. A later change to the class takes a new tag, never an edit of `v1`.
