@@ -39,8 +39,9 @@ Empty until round 13's boards land: identity r3 (actions and fields as one syste
   the hub, Create as a room, the frame headers); red-team 46 walks it.
   Vercel installs with pnpm 9.14.4, `package.json`'s `packageManager`.
 - **The shared database** runs every migration through 2026-10-03: `disposable_foundation` (20261002223236),
-  `deletion_requested_at`'s comment (20261003030842), `approval_never_with_a_develop` (20261003103742) and
-  `phone_copy` (20261003104506), each by protocol; no build of either project reads a dropped thing. The album-log prune runs nightly with the purge,
+  `deletion_requested_at`'s comment (20261003030842), `approval_never_with_a_develop` (20261003103742),
+  `phone_copy` (20261003104506) and `event_end_date` (20261003154825, an expand milestone 34 never names), each by
+  protocol; no build of either project reads a dropped thing. The album-log prune runs nightly with the purge,
   its first production run green (2026-10-02 04:48Z: one row pruned over 58 albums).
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in

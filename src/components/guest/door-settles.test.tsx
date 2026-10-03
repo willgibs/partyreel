@@ -473,7 +473,9 @@ describe("the door as the page, at the page", () => {
    reading says waits (`uploadsWait`), her tracker mounts on it and the keep says it waits, and for the develop. */
 describe("what she adds waits: her tracker and the keep are told", () => {
   it("★ an album with a develop time ahead: the tracker asks after hers, and the keep says the develop", async () => {
-    const ahead = "2026-10-03T13:00:00.000Z";
+    // A day past the test's own clock: a fixed time read "ahead" only until it passed (13:00Z on 2026-10-03, which
+    // turned this red for every lane), and the page reads the develop against the live clock.
+    const ahead = new Date(Date.now() + 86_400_000).toISOString();
     render(
       <Page
         seed={seed()}

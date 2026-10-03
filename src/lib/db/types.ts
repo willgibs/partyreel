@@ -364,6 +364,7 @@ export type Database = {
           develops_at: string | null
           display_in_profile: boolean
           event_date: string | null
+          event_end_date: string | null
           event_password_hash: string | null
           gate: Database["public"]["Enums"]["event_gate"] | null
           host_id: string
@@ -395,6 +396,7 @@ export type Database = {
           develops_at?: string | null
           display_in_profile?: boolean
           event_date?: string | null
+          event_end_date?: string | null
           event_password_hash?: string | null
           gate?: Database["public"]["Enums"]["event_gate"] | null
           host_id: string
@@ -426,6 +428,7 @@ export type Database = {
           develops_at?: string | null
           display_in_profile?: boolean
           event_date?: string | null
+          event_end_date?: string | null
           event_password_hash?: string | null
           gate?: Database["public"]["Enums"]["event_gate"] | null
           host_id?: string
@@ -1683,6 +1686,7 @@ export type Database = {
           develop_due: boolean
           develops_at: string
           event_date: string
+          event_end_date: string
           has_password: boolean
           host_display_name: string
           id: string
