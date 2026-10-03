@@ -1,6 +1,6 @@
 ---
 track: event-dates
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "9af92e54"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -63,9 +63,11 @@ working.
 - **A longest span?** Recommended and built: none. The CHECK holds only "on or after the start, and nothing without
   one"; a trip or a festival can run weeks, and nothing reads the end but the words and the dashboard's own rules, so a
   cap guards nothing (a wrong year reads live until she fixes it).
-- **Settings' range control.** Recommended and built: the date as today, and under it a quiet "Add an end date" that
-  opens the last day beside it, removable; the last day cannot fall before the first (the picker's own minimum), and
-  clearing the date clears its end in the same save. Overrule: two fields always shown.
+- **Settings' range control.** Recommended and built: the date as today, and beside it a quiet "Add an end date" that
+  opens the last day ("to", then the field and its ×); the last day cannot fall before the first (the picker's own
+  minimum, and a typed one is refused under the field); a moved first day keeps an end still after it and moves one it
+  reaches or passes along with it (a weekend rescheduled stays a weekend); a cleared date clears its end, saved when the
+  field is left. Overrule: two fields always shown, or a moved first day that always keeps the range's length.
 - **lead=made on a quiet day replaces both quiet steps.** Recommended and built, exactly as host-dashboard r2's `made`
   drew it (Jo's undated launch over her holiday party 32 days out): with nothing on its day and nothing within a month
   either way, the newest made leads, ahead of the next dated party however far and of the latest arrival. Overrule:
@@ -73,31 +75,120 @@ working.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/dashboard.md`, four passages refined in place, by their new opening words: "**An event's days are the
+  dates its host set, else the viewer's calendar day of its newest approved upload**" (a range: live on any day of it,
+  its month after from its last day, as near as its nearest day, its year the one it began; an end date only says
+  when); "**The stage** leads with `momentEvent`: the one on its day (a host's date first, any day of a range" (lead=made
+  on a quiet day; its line under the name says the whole range); "**This week** is every other party within seven days
+  of its nearest day"; "**A tile** is its photograph, or its date (a range's first day)" (a range's when, "to").
+- For the Orchestrator, in docs this lane does not own (each the line it refines):
+  - `host-app.md`, "The checklist stands at the head of the hub": "from the day after the event's date it is not drawn"
+    becomes "from the day after the event's last day (a range's end)"; and Settings' This event page: the date takes an
+    optional end (Add an end date; never before the date; a moved date keeps an end still after it and moves one it
+    passes, keeping the range's length; a cleared date clears its end; the two saved together, refused in words by the
+    CHECK's name, `events_end_date_on_or_after`).
+  - `guest-flow.md`, the locked page's REDACTED `shellEvent`: `event_end_date` is blanked with `event_date`; the door's
+    re-read (`readDoorEventDetails`) and the unlocked album's (`rehydrateUnlockedDetails`) carry it; the album head and
+    the welcome's byline say the range.
+  - `database-security.md`: in the anon reads' bullet, `get_event_by_qr_token` redacts "the date and its end"; under
+    value gates, `events_end_date_on_or_after` (an end on or after the date, and none without one).
+  - `profiles-social.md`: `get_public_profile`'s hosted cards and attended lines carry `event_end_date` beside
+    `event_date`, and a `/u/` card says the range.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: Guests: the account's other lists still say a range's first day alone: the claims card (`list_guest_rows_by_email`
+  answers `event_date` only), the As a guest cards (`getMyGuestEventCards`' select) and the credits on Yours and likes
+  (`get_my_uploads`, `get_my_likes`); each read carries `event_end_date` beside the date and hands it to
+  `formatEventDate` (from `event-dates`).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed on `lp/event-dates`:** the migration `2403e461` (its check revised `3a50d4de`), the rules red then
+  green `cde2ad6f`, the readers and Settings `916c679c`, the guards `38858215`, the doc `e1867c69`, the time bomb
+  `0b14f31b` (picked onto launch-prep as `14a0caa7`), the seams dropped `ec275044`; syncs `5c556b22` (host-dashboard-r3,
+  event-header-r3), `cc3d5f99` (the migration applied, its types), `dcc99968` (the-wait-r2), `d6004157` (crumbs-56: its
+  `develop` object and my range both kept in the hub page and the head, no conflict). launch-prep has since moved only by
+  records (`f6bd644b`).
+- **Gates on `d6004157`, each on its own exit code** (logs `../partyreel-wt/_scratch/event-dates/sync2-*.log`):
+  typecheck 0; lint 0 (0 warnings); test 0 (849 files, 10,057 tests); `build-lock.sh pnpm build` 0; `lab:smoke --base
+  http://localhost:3132` 0 (157 checks, 0 failing); `lab:demo` 0 at 1440 and 0 at `--width 375` (11 steps each, 0
+  failing; scope: create-wizard, demo-framing, event-header, host-dashboard, identity, take-home, the-wait, the Library,
+  the shell). Port 3132 freed; no Chrome of mine left running.
+- **The migration** (`20261003120000_event_end_date.sql`, applied by the Orchestrator as `20261003154825`, frozen):
+  drift read first (the two bodies e944c879 / cf141ab3 = the repo's); the rolled-back check at its foot RED on the live
+  schema before (0 fixtures ok; 1 to 6 red, the column missing) and GREEN 7/7 with the file (the CHECK in its own name;
+  insert, update and select as the date holds them, another account's session 0 rows, anon 42501; the album's read
+  answering the end LAST, blanked for password and private to anon, whole to the owner, ACL the four holders; both
+  profile arms carrying it; a range long over moving no lifecycle column, read by no function but the two, no trigger,
+  no policy), rolled back clean each time (log `_scratch/event-dates/proof-log.md`); advisors 19 / 4 / 35 before.
+- **Live, after the apply** (local dev on the real column, then restored): a name-only album dated October 2 to 4 says
+  "Hosted by Will Gibson · October 2 to 4, 2026" at its door and in its head, and `/u/willg` its card the same
+  (`captures/live-door-range-1440.png`, `live-profile-range-1440.png`); a password album given November 27 to 29
+  carries neither day in its locked page (only `"event_end_date":null`), and a direct anon PostgREST call answers both
+  null. Both events restored (dates null, the listing off), checked by select.
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): the owned paths, this file, and these exceptions:
+  - accepted by the brief: `event-feed/event-hub-head.tsx`, `guest/event-experience-head.tsx`, `guest/door/welcome.tsx`
+    (an optional `endDate` into `formatEventDate`).
+  - the readers that hand the end to what the brief asked to say it: `app/(app)/dashboard/page.tsx` (`HomeEvent.endDate`,
+    the rows' label), `app/(app)/dashboard/[eventId]/page.tsx` (the head, readiness's welcome, `checklistOver`'s last
+    day) and its source test (`page.test.tsx`, its `checklistOver` pin reshaped), `components/guest/event-experience.tsx`
+    and `entry-modal.tsx` (to the head and the door), `app/(as-guest)/.../as-guest/page.tsx` and `share/as-guest-view.tsx`
+    (See it as a guest draws the guest head), `app/(guest)/u/[slug]/page.tsx`, `party-cards.ts` and its test (the brief's
+    `/u/` cards, under `reads`), `lib/db/queries/social.ts` (the profile payload's hand-written types, two optional keys).
+  - ★ `app/(guest)/e/[token]/page.tsx` and `page.redaction.test.tsx`: the locked shell blanks `event_end_date` with the
+    date, or a gated album's end would ride its flight payload.
+  - the reads that carry it: `lib/db/queries/guest-events.ts` and its test (the album's read, the unlocked re-read),
+    `lib/db/queries/event-doors.ts` (the door's re-read).
+  - Settings: `event-settings/settings-state.tsx` (the value, its write with the date, its sentence);
+    `event-settings/camera-settings.tsx` and `lib/disposable/album-style.ts` (the develop default's two callers).
+  - guards reshaped on purpose, the album's read and the profile's arm now this file's: `lib/db/migration-guards.test.ts`,
+    `lib/db/guest-cap-and-faces-guards.test.ts`, `lib/disposable/migration-guards.test.ts`,
+    `lib/db/queries/profile.private-count.test.ts`.
+- **The items:**
+  - The migration: `events.event_end_date` under `events_end_date_on_or_after`, the date's column grants, the album's
+    read answering it last under the date's redaction, the profile's cards carrying it.
+  - One shape (`lib/events/dates.ts`: `eventDays`, `lastDayOf`, `endToStore`, `endForNewStart`), the words
+    (`formatEventDate(date, end)`: "October 3 to 5, 2026"), and the dashboard's one reader (`when.ts`: `spanOf`,
+    `daysToEvent`, `whenOf`'s range ladder, `longDays`) under the week, the stage, the groups, the marks and the moment.
+  - lead=made: a quiet day's stage leads with the newest made (`moment.ts`; two r1 tests reshaped on purpose, their
+    far party and late upload kept as what no longer leads).
+  - Readiness's welcome and `checklistOver` read the last day; the develop default is 9 am after the last day.
+  - Settings' range control (`event-page.tsx`), the schema's refusals in words, the write's one spelling.
+  - The heads, the door, See it as a guest and `/u/` cards say the range; the locked shell blanks it.
+  - ★ The lifecycle guard (`event-dates.test.ts`): no SQL but the column's own statements and the two reads names
+    `event_end_date`, and no lifecycle home in the app (the crons, `lib/lifecycle`, the develop and the seal, R2's
+    delete, account deletion) reads an end date.
+  - The time bomb outside the lane: `door-settles.test.tsx` pinned a develop time "ahead" at 13:00Z today, red for every
+    lane once it passed; it reads against the test's own clock now.
+- **Seams:** gone on the regenerated types: the pages, Settings' state, the write (typed insert and patch), the door's and
+  the unlocked album's reads (their `overrideTypes`), and `endDateOf` itself. Kept: a reader at the album's RPC read,
+  `row.event_end_date ?? null`, since its Returns types the end a non-null `string` though it is NULL for one day and
+  under the redaction (as `reel_hold_sec` is), pinned in `guest-events.test.ts`.
+- **Captures** (`../partyreel-wt/_scratch/event-dates/captures/`): Settings' range at 1440 and 375
+  (`settings-range-1440.png`, `settings-range-375.png`), its sentence ("Maya & Jay's Wedding, October 10 to 11, 2026",
+  `settings-rows-range-375.png`), its refusal (`settings-refused-375.png`), one day (`settings-one-day-1440.png`); the
+  dashboard with a weekend on its stage at 1440 and 375 ("Live today", "Friday, October 2 to Sunday, October 4"; the
+  week's "Day 3 of 5", "Tue to Thu", "Sep 25 to 27": `dashboard-stage-range-1440.png`, `dashboard-full-1440.png`,
+  `dashboard-stage-range-375.png`, `dashboard-week-range-375.png`), drawn from production's composition on fixtures by
+  a scratch page never committed (a dashboard needs a sign-in localhost cannot make); the live door and profile above.
+- Assets requested from Will: none.
+- **Board ideas:**
+  - The event-header and host-dashboard boards draw a range with their own words and an en dash (`Host.ends`,
+    `ranged()`, "October 2–4, 2026"); production's `HomeEvent.endDate` and `formatEventDate` carry it now, so a board
+    can draw production's words, and "to" against a dash is one question for his desk.
+  - The stage on a range's day could say where it stands ("Live today · day 2 of 3"), as its tiles do.
+  - Settings' two native date fields could be one range picker (a calendar that takes two presses), and Create could
+    offer the date with its end.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none (the migration stands as applied).
+- **Calls his to overrule:** "to", never a dash; "Day 2 of 3" on a range's tile and week card, the stage's "Live
+  today"; no longest span; Settings' control as above; lead=made ahead of both quiet steps; a range folds into the year
+  it began and its month after counts from its last day; the stage's word counts down to the first day and dates the
+  past from the last ("Yesterday" the day after a weekend); a cover-less tile's face is the first day; an end equal to
+  the date is stored as one day.
+- **Look at first:** `captures/settings-range-375.png` and `dashboard-full-1440.png`; the shell's line in
+  `app/(guest)/e/[token]/page.tsx`; `lib/dashboard/when.ts`'s `rangeWhen`; `moment.ts`'s third step.
 
 ## Where I am
 
-- Booted on `lp/event-dates` from `772dabea`. The migration is written and proved rolled back, red then green (the
-  log: `_scratch/event-dates/proof-log.md`; the check sits at the file's foot); never applied.
-- Next: the pure rules red first (`formatEventDate`'s ranges, `lib/events/dates.ts`, `when.ts`'s span reader and
-  every reader of it, `readiness.ts`, `reveal.ts`, lead=made), then the plumbing (validation, the mutation, the typed
-  seam `endDateOf`, the pages and heads), then Settings' range, then the gate and the captures.
-- The range reaches its readers through files outside `owns` (the dashboard and hub pages, Settings' state, the guest
-  page's redaction and its two re-reads, the door, `/u/`, the camera settings): each is listed in the Handoff with why.
+- Handed off on `lp/event-dates`; nothing in flight.
