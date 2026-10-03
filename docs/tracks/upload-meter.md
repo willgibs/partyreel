@@ -48,166 +48,148 @@ working.
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
 Each is built as recommended and listed as Will's to overrule; none is a one-way door (the breakers are unpublished,
-and how the meter counts is a fact no host can feel).
+and how the meter counts is a fact no host can feel). The first handoff (`fec419da`) counted the month at the presign;
+the Advisor's Q19 overruled it for the reason its own Question 9 found (a ticket holder could spend a host's month with
+presigns she never fills), and this handoff is that rework.
 
-1. **Where the count lives.** The presign writes the ledger (the declared bytes and the item) through one new
-   service-role RPC, `meter_upload`, under the host's profiles lock, after every gate and before any URL is minted;
-   `create_media*` no longer read or write the monthly meter. Recommended. Its cost: from the migration's apply until
-   this code runs on a deployment, an upload that deployment starts counts nowhere (its old presign meters nothing, its
-   complete no longer does), and partyreel.com shares the database, so it should be redeployed with the alias.
-   Rejected: a per-upload presign record so the complete could tell (a table, its prune, and a late complete that
-   counts twice).
-2. **The presign refuses a file that will not fit the storage cap** (active bytes plus the declared ones past the cap
-   and its 10%) before it counts it. Today that file uploads whole and is refused at complete; once the presign counts,
-   every such try would also spend the month's uploads for nothing (fifty guests' 2 GB clips at a nearly full album, a
-   third of a Pro 100 GB month). Recommended.
-3. **A preview heavier than its original refuses the preview, never the upload:** no PUT is minted for it, the original
-   uploads and its tile serves the original, and the presign's answer says why in `preview_refused` (a 2 MB-plus one
-   too). The browser's 640 px WebP can outweigh a small, heavily compressed original, so refusing the upload would fail
-   a real guest's photo. Recommended.
-4. **An account's uploads an hour: 20,000** (every upload into its events, the host's and her guests'), counted on the
-   month's ledger row by clock hour, refused at presign (429, Retry-After to the hour's end) in words, a guest's about
-   the album. The 2,000-guest wedding averages ≈2,000 an hour and might peak near 4,000; a venue with three at once
-   ≈12,000; the busiest hour on record is 1,200 (a seeded album). Recommended.
-5. **An account's events a day: 100** in any 24 hours, a deleted one included (a create-and-delete loop counts),
-   in `enforce_event_limit` on a creation only (a restore is not one), after the plan's own limit (the published
-   sentence when both hold), refused in words. The busiest day on record is 34 (the red-teams' host). Recommended.
-6. **The join limiter's backstop: 3,000 a quarter-hour per (address, event)**, from 400: every guest of the 2,000-guest
-   wedding joining in one quarter-hour on one Wi-Fi, with half again for a second phone, a re-join, an ask or a remove,
-   which ride the same count (and it gates every guest's own-uploads read there). Breadth unchanged. Recommended.
-7. **The meter fails CLOSED:** a meter that cannot answer refuses the presign (503, "Couldn't start the upload. Please
-   try again.") and is reported, because nothing behind it counts the upload any more; the limiters fail open because
-   a capability stands behind each. Recommended.
-8. **A retry counts again:** the uploader asks a new presign for a retried file, so a guest whose PUT dropped spends her
-   file twice (the meter never refunds). Recommended to accept (a 3× month); the alternative is the uploader
-   re-trying its live PUT URL before a new presign (a client change, Deferred).
-9. ★ **The count at presign opens a griefing door (found in this lane's own red-team; the brief's design, built as
-   briefed).** A declared size costs nothing to claim, so anyone holding a ticket to an album can spend its host's month
-   with presigns she never fills: a Pro 100 GB month (300 GiB) in 30 requests of 10 GiB, an Event Pass's (225 GiB) in
-   23, Free's (300 MiB) in 3 (each presign may declare up to the room left, which a phantom never fills). Default albums
-   need a confirmed account for a ticket (one ticket an account an album), so one account is enough; a name-only album's
-   tickets are free. Today the same harm needs the bytes themselves (300 GiB of real uploads for Pro 100 GB). And with no
-   meter in `/admin` and no override, a host so spent cannot upload until the month turns: the one outcome PRICING.md
-   says is worth engineering against. Pre-launch nobody is exposed. **Recommended: ship this count now (it closes the
-   abandoned-upload cost hole, which is real today), and before launch move the count to what landed, by staging:** a
-   single PUT goes to a `staging/` key the backup never copies and a bucket rule deletes after a day, and the complete
-   copies it into place and counts its real bytes (a multipart never becomes an object until the complete assembles
-   it), so an unsent byte never counts and an abandoned one never persists; `meter_upload` then keeps the breaker and the
-   would-it-fit refusal at presign and counts nothing. Its cost: one copy a single PUT (≈$0.0045 a thousand), a lifecycle
-   rule and the backup Worker's filter (backup-prune's), a heavier complete. The alternative: a reservation a presign,
-   settled at complete, released by a nightly check when nothing landed, plus a per-ticket bound on unfinished bytes
-   (a new table, a job and its `/admin` card, and a phantom still holds the month for a day). Either is Will's call
-   with the Advisor; the migration's header names the risk so its review sees it.
+1. **Where the count lives: at complete, on what landed, once** (Q19, built). `create_media*` stay exactly as applied;
+   every single PUT is minted at its key's `staging/` twin and the complete copies it into `events/` before the row, so
+   an unsent byte never counts, a phantom presign stores nothing, a retried PUT counts once and an abandoned one never
+   reaches `events/`. The month's allowance reads as it always did, since it is the same check on the same size.
+2. **The room and the month refused at presign, advisory** (kept): `meter_upload` refuses a file that will not fit
+   before a byte moves, in the route's words; `create_media*` hold both for real at complete.
+3. **A preview heavier than its original refuses the preview, never the upload** (kept): `preview_refused` in words,
+   the original presigned; past 2 MB says so too.
+4. **An account's uploads an hour: 20,000** (kept), tallied by the meter, refused at presign (429, Retry-After).
+5. **An account's events a day: 100** (kept), on a creation only, after the plan's own limit, in words.
+6. **The join backstop: 3,000 a quarter-hour per (address, event)** (kept): the wedding's 2,000 at once, half again
+   to spare.
+7. **The meter fails OPEN** (Q19, reversed from the first handoff's closed): the complete's count and caps stand
+   behind it, so an outage or a database without the migration lets the presign through, reported as a warning.
+8. **A retry counts once** (dissolved by staging): whether the uploader re-PUTs or asks a new presign, only the
+   complete that lands a file counts it.
+9. **The griefing door** (closed by staging): declaring a size spends nothing, so a grief needs the bytes themselves,
+   as before this lane.
+10. **Completed uploads' staged objects wait for the lifecycle rule** rather than being deleted at complete: a day of
+    a second copy of every single PUT (≈1/30 of a month's bytes for what is uploaded, R2 Standard), in exchange for a
+    complete with no extra request. Recommended; the alternative is a best-effort `DeleteObjects` after the record
+    (deletes are free, one request a complete).
+11. **The staging copy's cost:** one CopyObject (Class A) a staged single PUT, so three a photograph with its preview
+    and phone copy: ≈$0.0135 a thousand photographs, about a quarter more than the atlas's $0.056 for an upload's
+    operations. Recommended (the bound it buys is worth it); PRICING's atlas line to refine (Docs below).
 
 ## System-doc edits (in place, owned facts only)
 
-- `docs/systems/billing-caps.md`, The cap model: "`create_media` enforces two bounds" became "Two bounds on every
-  upload"; a ★ bullet on the month counted at the presign (`meter_upload`, its one writer, fail closed, the routes'
-  words, the seed, the cost named); a bullet on the two breakers; the three counters' ledger line says it is what was
-  presigned; the clip line says its presign counts it.
+- `docs/systems/billing-caps.md`, The cap model: "`create_media*` enforce two bounds, on the HEAD's size, at
+  complete"; a ★ bullet on the month counting what landed and staging; a bullet on the presign's advisory meter (no
+  month, no lock, fail open, the routes' words); the two breakers with their constants (`c_uploads_an_hour`,
+  `c_events_a_day`) as unpublished, so "no guest limit" and "unlimited events" stay true. The three-counters and clip
+  lines are as before.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- Launch checkpoint: a presign's declared bytes can be spent by a ticket that never sends them (upload-meter Q9):
-  before launch, count what landed (staging recommended) or reserve and release.
-- Now: the uploader retries a dropped PUT on its live URL before it asks a new presign, so a flaky network spends a
-  file once (upload-meter Q8).
-- Now: an upload reads the host's active bytes three times (the context, the meter, create_media), each a sum over her
-  media under her lock but the first; one maintained counter (PRICING lever 7's per-event sums) makes each O(1).
+- Now: an upload reads the host's active bytes three times (the context, the meter, create_media), the last under her
+  lock; one maintained counter (PRICING lever 7's per-event sums) makes each O(1).
 - Now: the venue-shaped limiter kinds still sized for a 400-join venue (rename and attach_email 60, export 100 a
   quarter-hour per address and album) meet the 2,000-guest wedding's end of night; size them as the join was.
+- Now: a host's month in `/admin` (bytes, items, the hour's tally) with an operator's reset, since PRICING says nothing
+  shows a host's meter and there is no override.
 
 ## Handoff (replaces the chat report)
 
-- **Look at first:** Question 9, before the migration is applied: counting a presign's declared bytes lets anyone
-  holding a ticket spend a host's month with presigns she never fills (a Pro 100 GB month in 30 requests), where today
-  that harm costs the bytes themselves. Built as briefed (pre-launch, nobody exposed); staging recommended before
-  launch. Then the apply order: APPLY BEFORE PUSH, and redeploy partyreel.com in the same sitting (below).
-- **Commits**, pushed to `origin/lp/upload-meter`: `a4684412` the work; `b0a24025` billing-caps.md, Question 9 (named
-  in the migration's header) and the Deferred lines; `c759a682` the host breaker's words ("Your albums have taken a lot
-  of uploads this hour") and two wording fixes. No sync: since the cut, launch-prep moved only by record commits
-  (`881ab2d5`, `7cf4045c`, docs/tracks alone). The head is this manifest's commit, in the chat line.
-- **Gates on `c759a682`**, each on its own exit code, logs in `../_scratch/upload-meter/`: `pnpm typecheck` 0
-  (`gate-typecheck.log`), `pnpm lint` 0 (`gate-lint.log`), `pnpm test` 0, 871 files and 10,385 tests
-  (`gate-test.log`), `zsh scripts/build-lock.sh pnpm build` 0 (`gate-build.log`), `pnpm lab:smoke --base
-  http://localhost:3131` 0, 148 checks and 0 failing (`gate-lab-smoke.log`). No board, so no lab:demo.
-- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`, 20 paths): owned, the migration, the two presign
-  and complete route dirs' files, the five `src/lib/upload/server-pipeline*` files, the two
-  `src/lib/security/abuse-rate-limit*` files, `docs/systems/billing-caps.md` and this file. Seven exceptions, each why:
-  - `src/app/api/host/r2/presign-upload/route.ts`: the host strategy's words for the meter's refusals (the engine's new
-    required `meterRefusal`; the brief's "the host's and the guest's paths both"), its month sentence one constant.
-  - `src/lib/db/mutations/events.ts` and `events.test.ts`: the create action prints the daily breaker's sentence ahead
-    of its plan-limit branch, which would tell a Pro host "the event limit for your plan" and offer an Upgrade; the
-    test's fake builder gains `insert`.
-  - `src/lib/db/migration-guards.test.ts`: the create_media* "ingress meter" guard reshaped on purpose (the check moved
-    to the presign), its scar kept.
-  - `src/lib/upload/phone-copy-migration.test.ts`: "never metered" no longer pins the ledger's insert (gone from
-    create_media*), and "who may call them" reads the grants in the winning file; scars kept.
-  - `src/app/api/r2/phone-copy.test.ts`: one line, its admin stub answers the meter.
-  - `scripts/seed-demo-event.mjs`: meters each file before its PUT, since it drives the product's write path and
-    create_media no longer counts. Not run (it reseeds the marketing demo, the Orchestrator's); `node --check` only.
+- **Look at first, the deploy's three dependencies:**
+  1. **The R2 lifecycle rule, the Orchestrator's to set, before (or with) the deploy that serves this code:**
+     `npx wrangler r2 bucket lifecycle add partyreel staging-expire staging/ --expire-days 1` (bucket `partyreel`, rule
+     `staging-expire`, prefix `staging/`, objects expire a day after their upload; R2 applies it within its own
+     lifecycle cadence). Without it `staging/` keeps every single PUT's twin for good (never backed up, but stored).
+     Check with `npx wrangler r2 bucket lifecycle list partyreel`. The bucket's default rule already aborts an
+     abandoned multipart after 7 days (R2's own default).
+  2. **The backup never copies `staging/`:** the notification subscription's `--prefix events/`
+     (`workers/backup/README.md:57-58`, set outside the repo; `npx wrangler r2 bucket notification list partyreel`
+     shows it) and, since backup-prune's `921a2135` (merged at `17e5faba`), the queue's own `isBackedUpKey`; the
+     reconcile and the orphan sweep list `events/` alone (`index.ts`, `sweeps/orphans.ts`). I found the queue relied on
+     the subscription alone and backup-prune closed it in code; confirm the deployed Worker carries it (the pickup's
+     dry deploy). A CopyObject into `events/` is the object-create the backup copies (`R2EventMessage.action`).
+  3. **The migration is an expand:** any order against the alias and partyreel.com, before build 49. The code without
+     it fails open (verified live: 10/10 with no `meter_upload`).
+- **Commits**, pushed to `origin/lp/upload-meter`: `423ded56` the rework (the migration as an expand, staging, the
+  meter fail-open, the reverts, billing-caps.md); `1a7234ae` the sync merge of `origin/launch-prep` (backup-prune's
+  merge touched `src/lib/r2/delete.ts`, which the complete's withdrawal uses). The head is this manifest's commit, in
+  the chat line. The first handoff's commits (`a4684412`, `b0a24025`, `c759a682`) are under the rework.
+- **Gates on the synced tree `1a7234ae`**, each on its own exit code, logs in `../_scratch/upload-meter/`:
+  `pnpm typecheck` 0 (`gate3-typecheck.log`), `pnpm lint` 0 (`gate3-lint.log`), `pnpm test` 0, 871 files and 10,411
+  tests (`gate3-test.log`), `zsh scripts/build-lock.sh pnpm build` 0 (`gate3-build.log`), `pnpm lab:smoke --base
+  http://localhost:3131` 0, 152 checks and 0 failing (`gate3-lab-smoke.log`). No board, so no lab:demo.
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): owned, the migration, the presign and complete
+  route dirs' files, the `src/lib/upload/server-pipeline*` files, the two `src/lib/security/abuse-rate-limit*` files,
+  `docs/systems/billing-caps.md` and this file. Exceptions, each why:
+  - `src/lib/r2/keys.ts`: `STAGING_PREFIX` and `stagingKeyFor` (the one home for key layout).
+  - `src/lib/r2/presign.ts`: `copyObject`, beside the HEADs it serves (one Class A, no byte through a function).
+  - `src/app/api/host/r2/presign-upload/route.ts`: the host strategy's words for the meter's refusals.
+  - `src/app/api/host/r2/complete-upload/route.test.ts`: its R2 stub gains `headObject` and `copyObject` (two lines).
+  - `src/app/api/r2/phone-copy.test.ts`: reshaped on purpose for staging (scar kept: both caps, both checks, no copy
+    ever refusing the photograph).
+  - `src/lib/db/mutations/events.ts` and `events.test.ts`: the create action prints the daily breaker's sentence
+    ahead of its plan-limit branch (which would offer a Pro host an Upgrade).
+  - Reverted to `launch-prep`, no longer in the diff: `migration-guards.test.ts`, `phone-copy-migration.test.ts`,
+    `scripts/seed-demo-event.mjs` (create_media counts again, as applied).
 - **The items:**
-  1. The presign counts: `meter_upload` (migration `20261003210500_upload_meter.sql`, called by
-     `src/lib/upload/server-pipeline-meter.ts` from the engine after every gate and before any URL) counts the declared
-     bytes and the item under the host's profiles lock, after the breaker, the month (the same `monthly_ingress_cap()`
-     and strict line create_media read at complete) and the room (the cap and its 10%, so a file the complete would
-     refuse never spends the month); `create_media*` neither check nor count the month. Host and guest both. Never
-     twice: the complete never asks the meter (`complete-upload/route.test.ts`), and no winning body but
-     `meter_upload` writes the ledger (`server-pipeline-meter-migration.test.ts`). It fails CLOSED.
-  2. A preview never heavier than its original: refused at presign in words (`preview_refused`, in the preview's slot),
-     the original presigned and counted; a preview past 2 MB now says so too (it was silent).
-  3. The breakers: an account's uploads a clock hour, 20,000 (`meter_upload`; 429 with `Retry-After`; a guest's words
-     name the album, the host's her albums), and its creations in 24 hours, 100 (`enforce_event_limit` on INSERT only,
-     after the plan's limit; the wizard prints "You've created a lot of events today. Try again tomorrow.").
-  4. The join backstop: 400 to 3,000 a quarter-hour per (address, event), breadth unchanged.
-  5. `billing-caps.md` in place (System-doc edits).
+  1. The month counts what landed, once, at complete: staging (`server-pipeline.ts`: every single PUT minted at its
+     staging twin; the complete HEADs it there, copies it into `events/` before the row, and withdraws its copies when
+     the record is refused or throws; a multipart and a pre-staging PUT land as before), `create_media*` untouched.
+  2. The presign's meter: `meter_upload` (migration `20261003210500`, an expand) refuses past the hour's breaker, the
+     month and the room in each route's words and tallies the hour; no month, no lock; fails open.
+  3. A preview never heavier than its original: refused in words (`preview_refused`), the original presigned.
+  4. The breakers: 20,000 uploads a clock hour an account; 100 creations in 24 hours an account, on INSERT only.
+  5. The join backstop: 400 to 3,000 a quarter-hour per (address, event).
+  6. `billing-caps.md` in place (System-doc edits).
 - **Red first, then green** (`../_scratch/upload-meter/red-green.log`):
-  - the live red walk on today's code (`meter-walk.mjs --mode red`: real guest routes on localhost:3131 against the
-    live database and R2): the presign +0, the complete +101,450, an abandoned 242,662 bytes in R2 counted nothing, a
-    2,000,000-byte preview beside a 1,000-byte original minted (5/5);
-  - the migration's rolled-back proof on the live schema: red 11/11 failing on what each lacks, green 12/12 (both at
-    the file's foot), nothing persisted after either (checked); the green run's bodies hash as the file's
-    (`fnhash.mjs`);
-  - TS: 34 red with the implementation stashed (`red-ts.log`), the touched suites 507/507 green (`green-ts.log`), then
-    the whole suite;
-  - live, this code against the unmigrated database: the presign fails CLOSED (503 `server_error`, nothing minted, the
-    ledger unchanged), on `b0a24025`'s tree and again on `c759a682`'s (`closed-check.mjs`).
-- **Pending the apply (the brief's last Verify on):** a real upload, guest and host, counted once at presign and never
-  at complete, needs the migration applied and this code deployed (without it the presign fails closed, by design).
-  Its SQL is proved by the rolled-back proof (steps 3 and 4: the meter +3,000,000 bytes and +1 item; the host's and the
-  guest's completes +0 with the physical and active bytes +5,400,000) and its routes in Vitest; the live walk is one
-  command for the guest (`node ../_scratch/upload-meter/meter-walk.mjs --base <alias> --event
-  340fcc7b-6c41-48f6-a143-6ef9f6724f4b --mode green`) and two console steps for the host with the ledger's SQL
-  (`../_scratch/upload-meter/host-walk.md`).
-- **Live test data left**, all in the export wiring probe (disposable): the red walk's photograph (media
-  `89c38bbb-ece9-4d81-9652-4b91d50c0633`, 101,450 B, its object in R2), three name-only guest rows ("Meter walk",
-  "Meter closed" twice), and willg97's October ledger +101,450 (the meter never refunds). The abandoned object was
-  deleted from R2.
+  - the first handoff's live red walk on today's code (presign +0, complete +101,450, an abandoned 242,662 bytes
+    stored and uncounted, a 2 MB preview beside 1,000 bytes minted);
+  - the reworked migration's rolled-back proof on the live schema: red 10/10 of its steps failing on what each lacks
+    (11 holds in both runs by design), green 12/12, nothing persisted (checked); the meter leaves the month and the
+    host's row untouched (`xmax` unchanged across it, the control's lock visible), the complete counts once on its
+    real size, host and guest; the bodies hash as the file (`meter_upload d13b9822…`, `enforce_event_limit 42fb725f…`,
+    `create_media*` still `e83666cd…` / `21f0397f…`);
+  - TS: the reworked tests 35 red against `fec419da`'s implementation (`red-ts-v2.log`), 569/569 green on the
+    touched suites (`green-ts-v2.log`), then the whole suite;
+  - live, the staging walk (`staging-walk.mjs`, real guest uploads through the reworked routes on localhost:3131
+    against the live database and bucket, no migration, so the meter failing open): 10/10 on the rework and again on
+    the synced tree: the PUTs at the staging twins, the presign +0, a twice-PUT original in `staging/` alone, the
+    complete copying it and its preview into `events/` and counting +101,450 once, the row on the `events/` keys, an
+    abandoned upload in `staging/` alone and uncounted, a phantom 99 MB presign storing and counting nothing, the
+    heavy preview refused in words.
+- **Pending a deploy:** the host's real upload through the alias (its path is the same engine, proved in Vitest and
+  by the SQL proof's step 4): two console steps with the ledger's SQL, `../_scratch/upload-meter/host-walk.md`.
+- **Live test data left**, all in the export wiring probe (disposable): three photographs (`89c38bbb…` from the first
+  red walk, `de18a083…` and `1b5384fc…` from the staging walks), five name-only guest rows ("Meter walk", "Meter
+  closed" twice, "Staging walk" twice), willg97's October ledger +304,350 (the meter never refunds). Every staged
+  object the walks made was deleted (the lifecycle rule is not set yet).
 - **Assets requested from Will:** none.
-- **Board ideas:**
-  - A host's month in `/admin` (its bytes, its items, the hour) with an operator's reset for a griefed or mistaken
-    month: PRICING says nothing shows a host's meter and there is no override, and Question 9 makes one urgent.
-  - Staged uploads (Question 9's recommendation) as their own lane before launch, with backup-prune's Worker filter.
-- **Proposed migrations / Worker / Vercel / Stripe / env changes:** `supabase/migrations/20261003210500_upload_meter.sql`,
-  APPLY BEFORE PUSH (this code fails closed without it), and redeploy partyreel.com in the same sitting: it shares the
-  database, and until it runs this code its uploads count nowhere. Its drift check (verified live 2026-10-03):
-  create_media `e83666cd…`, create_media_as_host `21f0397f…`, enforce_event_limit `0bc03722…`; after it, the four bodies
-  hash `81d65fec…`, `db8c00fa…`, `42fb725f…` and meter_upload `d7015409…`; advisors expected 19 / 4 / 35, unchanged.
-  Then regenerate the types and drop the `untyped` seam in `src/lib/upload/server-pipeline-meter.ts`. No Worker,
-  Vercel, Stripe or env change.
-- **Docs outside the lane this makes stale** (the Orchestrator's to refine; each a line):
-  - `uploads-and-r2.md`: the complete route "records the row through `create_media*`, which writes the ledger" (the
-    presign's meter writes it now); "No request rate limiter sits on the four routes but one" (the presign's hourly
-    breaker, in SQL); the preview bullet (capped at its original too, refused in words).
-  - `database-security.md`: `meter_upload` joins the service-role-only inventory and the one-profiles-lock list.
-  - `PRICING.md`, What it costs us: the copies' preview, "An upload", "An upload never completed", "A guest" (400 is
-    3,000), "(c) Bounds" and the preconditions still name these as to add.
-- **Calls his to overrule:** Questions 1 to 9, each built as recommended: the count at presign and its window; the
-  room checked before the count; the preview refused, never the upload; 20,000 an hour; 100 a day; 3,000 a
-  quarter-hour; fail closed; a retry counts again; ship the count now and stage before launch.
+- **Board ideas:** a host's month in `/admin` with an operator's reset (Deferred above).
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** `supabase/migrations/20261003210500_upload_meter.sql`
+  (an expand; drift check: `enforce_event_limit` `0bc03722…`, no `meter_upload`, no `hour_*` column; after it,
+  `meter_upload d13b9822…`, `enforce_event_limit 42fb725f…`; advisors 19 / 4 / 35 expected; then regenerate the types
+  and drop the `untyped` seam in `src/lib/upload/server-pipeline-meter.ts`). The R2 lifecycle rule above. No Worker
+  change (backup-prune's `isBackedUpKey` is the one this relies on), no Vercel, Stripe or env change.
+- **Docs outside the lane this makes stale** (the Orchestrator's to refine):
+  - `uploads-and-r2.md`: "The browser uploads straight to R2" and the complete "records the row through
+    `create_media*`, which writes the ledger" (true, with staging between: a single PUT lands in `staging/` and the
+    complete copies it in); the preview and phone-copy bullets (staged, the preview capped at its original too and
+    refused in words, an over-cap staged copy never copied in); "No request rate limiter sits on the four routes but
+    one" (the presign's hourly breaker).
+  - `database-security.md`: `meter_upload` joins the service-role-only inventory (it takes no profiles lock, so it is
+    in no lock list).
+  - `PRICING.md`, What it costs us: "An upload" (three copies a photograph, the hourly breaker), "An upload never
+    completed" (staging and its rule, done), the copies' preview, "A guest" (400 is 3,000), "(c) Bounds" and the
+    preconditions (three of the four done).
+  - `keys.ts`'s preservation comment says the backup replicates `preservation/` "like any object", which the
+    subscription's prefix and now the queue's `isBackedUpKey` both contradict.
+- **Calls his to overrule:** Questions 2 to 6 and 10 to 11 (the room and the month refused early; the preview refused
+  alone; 20,000 an hour; 100 a day; 3,000 a quarter-hour; staged twins left to the rule; the copy's cost).
 
 ## Where I am
 
-- 2026-10-03: booted; plan and Questions written (above).
-- 2026-10-03 20:35Z: the work committed at `a4684412`; red and green logged.
-- 2026-10-03 21:00Z: handed off (the Handoff above).
+- 2026-10-03: booted; plan and Questions written; the first handoff at `fec419da` (the count at presign).
+- 2026-10-03 21:30Z: reworked on the Advisor's Q19 (`423ded56`), synced (`1a7234ae`), the gate green on it; handed
+  off again (the Handoff above).
