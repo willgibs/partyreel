@@ -22,7 +22,17 @@
  * ★ A PHOTOGRAPH SHE REMOVED HERSELF IS NOT LISTED: it is hers to forget.
  */
 
-export type TrackerStatus = "sending" | "waiting" | "approved" | "refused";
+/**
+ * ★ `developing` IS HER UPLOAD SEALED UNTIL THE ALBUM DEVELOPS (build 43's red-team, the upload half): it waits in her
+ * tracker as a held one does (listed, counted on the badge, hers to take back), in its own word, since no host is
+ * deciding it. The queue tells such a landing `sealed` (`landedAs`) and her own rows' read marks it `sealed`.
+ */
+export type TrackerStatus =
+  | "sending"
+  | "waiting"
+  | "developing"
+  | "approved"
+  | "refused";
 
 /**
  * ★ WHETHER HER TRACKER TELLS HER A PHOTOGRAPH WAS REFUSED: the one line that carries
@@ -46,6 +56,7 @@ export const TRACKER_TELLS_REFUSAL = true;
 export const TRACKER_WORDS: Record<TrackerStatus, string> = {
   sending: "Sending…",
   waiting: "Waiting for approval",
+  developing: "Developing",
   approved: "In the album",
   refused: "Not approved",
 };
@@ -54,6 +65,8 @@ export const TRACKER_WORDS: Record<TrackerStatus, string> = {
 export type OwnUploadWire = {
   id: string;
   status: "pending" | "approved" | "refused";
+  /** Approved, and sealed until the album develops (the read says it only when true). */
+  sealed?: boolean;
 };
 
 /** The slice of a queue item the tracker reads. */
@@ -89,19 +102,25 @@ export function buildTrackerRows(input: {
   removed: ReadonlySet<string>;
 }): TrackerRow[] {
   const { queue, own, album, approvedOnce, removed } = input;
-  const server = new Map((own ?? []).map((o) => [o.id, o.status]));
+  const server = new Map(
+    (own ?? []).map((o): [string, OwnUploadWire["status"] | "sealed"] => [
+      o.id,
+      o.status === "approved" && o.sealed === true ? "sealed" : o.status,
+    ]),
+  );
   const rows: TrackerRow[] = [];
   const seen = new Set<string>();
 
   const statusOf = (
     id: string,
-    fallback: OwnUploadWire["status"] | null,
+    fallback: OwnUploadWire["status"] | "sealed" | null,
   ): TrackerStatus => {
-    // The album is live and her rows' read is a moment old: an id in the album is in it.
+    // The album is live and her rows' read is a moment old: an id in the album is in it (a sealed one, developed).
     if (album.has(id)) return "approved";
     const said = server.get(id) ?? fallback;
     // Refused on her row, or in the album once and gone from it while still hers.
     if (said === "refused" || approvedOnce.has(id)) return "refused";
+    if (said === "sealed") return "developing";
     if (said === "approved") return "approved";
     return "waiting";
   };
@@ -127,7 +146,9 @@ export function buildTrackerRows(input: {
         ? "approved"
         : item.mediaStatus === "pending"
           ? "pending"
-          : null;
+          : item.mediaStatus === "sealed"
+            ? "sealed"
+            : null;
     rows.push({
       key: id,
       mediaId: id,
@@ -185,9 +206,10 @@ export function newlyInAlbum(input: {
   return { ids, arrived };
 }
 
-/** The badge's number: her photographs waiting for approval (number only, never "sending"). */
+/** The badge's number: her photographs that wait, for the host or for the develop (number only, never "sending"). */
 export function waitingCount(rows: readonly TrackerRow[]): number {
-  return rows.filter((r) => r.status === "waiting").length;
+  return rows.filter((r) => r.status === "waiting" || r.status === "developing")
+    .length;
 }
 
 /**

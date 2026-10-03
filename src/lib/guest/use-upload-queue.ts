@@ -115,9 +115,26 @@ export type QueueItem = {
    * album IS an upload like any other (guest-flow.md).
    */
   reelEligible?: false;
-  /** The clip's poster, drawn by its creator: the album's preview for it (uploader.ts). */
+  /** The clip's poster, drawn by its creator: the album's preview for it (uploader.ts). A camera video's first frame. */
   poster?: Blob;
 };
+
+/** What a caller may hand the queue with its files (`addFiles`): a camera video's first frame, as its poster. */
+export type FileExtra = Pick<QueueItem, "poster">;
+
+/**
+ * ★ THE STATUS A LANDING IS TOLD AS: the server's own, except an approved row SEALED until its album develops (any
+ * album with a develop time ahead: a camera's shot or a free upload, the door's first photograph included), which is
+ * `sealed` (build 43's red-team, the upload half). The completion says `sealed` as the write did (`create_media`'s
+ * answer, `server-pipeline.ts`); an approved landing is otherwise drawn into the album at once for this device
+ * (`notifyUploaded`), and a sealed one stood there for her alone, counted in the album's number, until a reload took
+ * it away, as if the roll had developed. `sealed` is no album status: nothing draws it, her tracker keeps it as it
+ * keeps a held one (`upload-tracker.ts`), and the album's sync brings it when the album develops. A held row stays
+ * `pending`, sealed or not: the host decides it first.
+ */
+export function landedAs(status: string, sealed: boolean | undefined): string {
+  return status === "approved" && sealed === true ? "sealed" : status;
+}
 
 /**
  * ★ A PROGRESS TICK IS NOT A QUEUE CHANGE. The uploader reports progress about once a frame, and the
@@ -324,7 +341,10 @@ export type UploadedItem = {
   queueId: string;
   file: File;
   kind: "photo" | "video";
-  /** create_media status: 'approved' (live) or 'pending' (hold_for_approval). */
+  /**
+   * create_media status: 'approved' (live) or 'pending' (hold_for_approval), or 'sealed' for an approved row its
+   * album keeps until it develops (`landedAs`), which nothing draws.
+   */
   status: string;
 };
 
@@ -446,8 +466,8 @@ export function useUploadQueue({
   useEffect(() => {
     sessionRef.current = sessionToken;
   }, [sessionToken]);
-  // Files picked before a session exists — uploaded once the session is created.
-  const pendingFilesRef = useRef<File[]>([]);
+  // Files picked before a session exists — uploaded once the session is created (each with what it was handed).
+  const pendingFilesRef = useRef<{ file: File; extra: FileExtra }[]>([]);
   // The same stash for a clip (it carries its poster and its reel flag with it).
   const pendingClipsRef = useRef<{ file: File; poster: Blob }[]>([]);
   // One silent re-join per run at most: a signed-in guest whose row predates the
@@ -657,10 +677,12 @@ export function useUploadQueue({
         if (outcome.ok) {
           // A file landed on this ticket: any later refusal is a new chain.
           silentJoinSpentRef.current = false;
+          // A row the album keeps until it develops lands as `sealed` (`landedAs`), drawn nowhere.
+          const landed = landedAs(outcome.status, outcome.sealed);
           patch(next.id, {
             status: "done",
             progress: 100,
-            mediaStatus: outcome.status,
+            mediaStatus: landed,
             mediaId: outcome.mediaId,
           });
           onUploaded({
@@ -668,7 +690,7 @@ export function useUploadQueue({
             queueId: next.id,
             file: next.file,
             kind: outcome.kind,
-            status: outcome.status,
+            status: landed,
           });
           continue;
         }
@@ -860,14 +882,20 @@ export function useUploadQueue({
       sessionRef.current = token; // runQueue (called below) sees it immediately
       const stashed = pendingFilesRef.current;
       pendingFilesRef.current = [];
-      if (stashed.length) enqueue(stashed);
+      if (stashed.length) {
+        sync([
+          ...itemsRef.current,
+          ...stashed.map(({ file, extra }) => queueItem(file, extra)),
+        ]);
+        void runQueue();
+      }
       const clips = pendingClipsRef.current;
       pendingClipsRef.current = [];
       for (const clip of clips) {
         enqueue([clip.file], { reelEligible: false, poster: clip.poster });
       }
     },
-    [onSession, enqueue],
+    [onSession, enqueue, runQueue, sync],
   );
 
   /**
@@ -882,7 +910,7 @@ export function useUploadQueue({
     pendingClipsRef.current = [];
     sync([
       ...itemsRef.current,
-      ...files.map((file) => queueItem(file)),
+      ...files.map(({ file, extra }) => queueItem(file, extra)),
       ...clips.map((clip) =>
         queueItem(clip.file, { reelEligible: false, poster: clip.poster }),
       ),
@@ -930,12 +958,24 @@ export function useUploadQueue({
    * as `acquireTicket` hands the same refusal over: the page re-reads who is
    * here, the door asks her name, and its join hands down the ticket they go on.
    */
+  /* ★ ONE JOIN IN FLIGHT, AND IT TAKES EVERYTHING STASHED BEHIND IT (the camera's shots). A camera hands the queue a
+     shot a press, so a signed-in guest's second shot can arrive while her first one's join is still out: that shot
+     joins the stash, and the join that lands takes the whole stash, where a second join would mint a second ticket
+     and a stash written over would lose the first shot. */
+  const joiningRef = useRef(false);
   const joinSilently = useCallback(async () => {
     if (isDemo) {
       handleJoined("demo");
       return;
     }
-    const joined = await joinEvent({ qrToken });
+    if (joiningRef.current) return;
+    joiningRef.current = true;
+    let joined: Awaited<ReturnType<typeof joinEvent>>;
+    try {
+      joined = await joinEvent({ qrToken });
+    } finally {
+      joiningRef.current = false;
+    }
     if (!joined.ok) {
       if (joined.refusal.kind === "name_required") {
         holdPicksForDoor();
@@ -965,15 +1005,22 @@ export function useUploadQueue({
     handleJoined(joined.guest.sessionToken);
   }, [isDemo, qrToken, handleJoined, holdPicksForDoor, onVerificationRequired]);
 
+  /**
+   * Her files into the queue. `extra` rides each of them (`FileExtra`): a camera video's poster. Additive: every caller
+   * before the camera hands files alone.
+   */
   const addFiles = useCallback(
-    (files: File[]) => {
+    (files: File[], extra: FileExtra = {}) => {
       // The owner needs no ticket to go (the head note); anyone else with one goes on it.
       if (ownerEventId || sessionRef.current) {
-        enqueue(files);
+        enqueue(files, extra);
         return;
       }
-      // No session yet → silent join (account-required events are gated at the page).
-      pendingFilesRef.current = files;
+      // No session yet → silent join (account-required events are gated at the page), the stash growing while it is out.
+      pendingFilesRef.current = [
+        ...pendingFilesRef.current,
+        ...files.map((file) => ({ file, extra })),
+      ];
       void joinSilently();
     },
     [enqueue, joinSilently, ownerEventId],

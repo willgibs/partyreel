@@ -413,6 +413,7 @@ export function UploadTracker({
 const ICON: Record<TrackerStatus, typeof Check> = {
   sending: Loader2,
   waiting: Clock,
+  developing: Clock,
   approved: Check,
   refused: XCircle,
 };
@@ -420,17 +421,21 @@ const ICON: Record<TrackerStatus, typeof Check> = {
 const TONE: Record<TrackerStatus, string> = {
   sending: "text-muted-foreground",
   waiting: "text-warning",
+  developing: "text-muted-foreground",
   approved: "text-success",
   refused: "text-muted-foreground",
 };
 
 /**
  * Whether she may take one of hers back here: it is on the server (it has its row) and not in the album
- * yet, where the album's own Delete would be its door. Held for the host today; a disposable album's
- * sealed ones read as waiting too until it develops.
+ * yet, where the album's own Delete would be its door: held for the host, or sealed until the album
+ * develops (`developing`, a camera's shot giving its frame back).
  */
 function removable(row: TrackerRow): boolean {
-  return row.status === "waiting" && Boolean(row.mediaId);
+  return (
+    (row.status === "waiting" || row.status === "developing") &&
+    Boolean(row.mediaId)
+  );
 }
 
 /** One of hers: the picture (or a plain tile where none can be shown), and where it stands. */

@@ -273,3 +273,48 @@ describe("the empty sets it is handed", () => {
     ).toEqual([]);
   });
 });
+
+/* ★ A ROW SEALED UNTIL ITS ALBUM DEVELOPS (build 43's red-team, the upload half): it waits in her tracker as a held one
+   does, listed, counted on the badge and hers to take back, in its own word; never "In the album". */
+describe("a sealed upload", () => {
+  it("waits as Developing, from this visit's landing", () => {
+    const out = rows({
+      queue: [q("q1", "done", { mediaId: "m1", mediaStatus: "sealed" })],
+    });
+    expect(out[0].status).toBe("developing");
+    expect(TRACKER_WORDS[out[0].status]).toBe("Developing");
+  });
+
+  it("★ waits as Developing from her own rows' read, which says it approved and sealed (never In the album)", () => {
+    const out = rows({
+      queue: [q("q1", "done", { mediaId: "m1", mediaStatus: "approved" })],
+      own: [
+        { id: "m1", status: "approved", sealed: true },
+        { id: "m2", status: "approved", sealed: true },
+      ],
+    });
+    expect(out.map((r) => [r.key, r.status])).toEqual([
+      ["m1", "developing"],
+      ["m2", "developing"],
+    ]);
+  });
+
+  it("is in the album once it develops (its id turns up in the album's sync)", () => {
+    const out = rows({
+      queue: [q("q1", "done", { mediaId: "m1", mediaStatus: "sealed" })],
+      own: [{ id: "m1", status: "approved", sealed: true }],
+      album: ["m1"],
+    });
+    expect(out[0].status).toBe("approved");
+  });
+
+  it("counts on the badge beside what waits for the host", () => {
+    const out = rows({
+      queue: [
+        q("q1", "done", { mediaId: "m1", mediaStatus: "sealed" }),
+        q("q2", "done", { mediaId: "m2", mediaStatus: "pending" }),
+      ],
+    });
+    expect(waitingCount(out)).toBe(2);
+  });
+});
