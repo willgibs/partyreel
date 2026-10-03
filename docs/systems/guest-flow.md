@@ -316,8 +316,11 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
   her tracker publishes them (`HerShots`: this visit's file, or the tile her rows' read presigned for her alone), what
   she is sending at the end, breathing, and her landing takes one pass of light. ★ Capped: a few rows of squares at
   its own columns (twelve at a phone to thirty at a desk, `columnsFor`), the oldest folding into one "+N" while the
-  count climbs. "Yours · N" opens her uploads. "+1 just now" says the count climbing while she looks. The page mounts
-  its source inside the album's live provider (`AlbumWaitSource`, one reading for the sheet and the yield).
+  count climbs. "Yours · N" opens her uploads. "+1 just now" says the count climbing while she looks. ★ The album's
+  one rule is the wait's line: before anything waits, where she can add, it stands in the sheet's place, in the words'
+  column ("Uploads develop all at once at 9 am.", `waitRule`), and the sheet's clock says it from the moment the sheet
+  stands (the Add slot said it beside the sheet, twice). The page mounts its source inside the album's live provider
+  (`AlbumWaitSource`, one reading for the sheet, the rule and the yield).
 - **Lightbox** (the SHARED [`media-lightbox.tsx`](../../src/components/shared/media-lightbox.tsx), its parts in
   `media-lightbox-parts/`): the photograph GROWS out of the tile it was tapped on (`origin`: the tile's rect and a
   `returnTo` that finds the tile of whichever photograph shows at close; the live reel passes its frame's rect and a
@@ -1149,7 +1152,7 @@ had" holds only when this device holds a guest ticket a claim would move.
     (`useLiveUploadsWait`, red-team 44: read once, a page open across a develop kept its promise over the developed album):
     the develop time coming on the device's clock ends it, and every full sync's word on the develop moves it (the
     provider taps each answer, `developsAtOf`: a Develop now, a time set, moved or taken away), approve-each keeping hers
-    waiting for as long as the page's event says so; the slot's line and the camera, the album's head, the tracker, the
+    waiting for as long as the page's event says so; the album's rule and the camera, the album's head, the tracker, the
     keep and the failure sheet all read it, with no reload. A shot approved and sealed for the develop (her rows' read
     says `sealed`, or this visit's file on an album that seals what is added, `sealing`) waits as a held one does,
     "Developing", counted and hers to take back. ★ What waits for the host is still hers to take back (Will's live walk: "Definitely

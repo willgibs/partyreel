@@ -26,6 +26,11 @@ export type AlbumWaitState = {
   hers: readonly HerShot[];
   /** What hers wait for here, or null where nothing waits. */
   clock: WaitClock | null;
+  /**
+   * The album's one rule is said in the sheet's place until the sheet stands: the album waits and she can add to it
+   * here ("Uploads develop all at once at 9 am."). Once the sheet stands, its clock says it.
+   */
+  rule: boolean;
   /** Opens her uploads, her door to take one back. */
   onOpenHers?: () => void;
   /** The album's last laid width on this device, for the first paint's columns. */

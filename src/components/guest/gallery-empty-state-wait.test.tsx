@@ -37,16 +37,23 @@ function mount({
   clock = HELD,
   hers = [],
   onOpenHers,
+  rule,
 }: {
   waiting: GuestWaiting | null;
   access?: "full" | "teaser";
   clock?: WaitClock | null;
   hers?: HerShot[];
   onOpenHers?: () => void;
+  rule?: boolean;
 }) {
   return render(
     <AlbumWaitingProvider value={{ access, waiting }}>
-      <AlbumWaitSource clock={clock} hers={shots(hers)} onOpenHers={onOpenHers}>
+      <AlbumWaitSource
+        clock={clock}
+        hers={shots(hers)}
+        onOpenHers={onOpenHers}
+        rule={rule}
+      >
         <AlbumWait />
         <GalleryEmptyState />
       </AlbumWaitSource>
@@ -166,5 +173,51 @@ describe("and nowhere else", () => {
   it("with no source above it (a standalone album, the Library), the empty album stands", () => {
     render(<GalleryEmptyState />);
     expect(screen.getByText("The album starts with you")).toBeInTheDocument();
+  });
+});
+
+/* MOVED HERE FROM THE ADD SLOT (`guest-upload.test.tsx`'s "moderation copy" and "an album that develops later", their
+   scars kept: only an album that waits says a rule, and a develop that has come says none). The slot said the rule
+   beside the sheet, which said it again under its count (the-wait r1's pick draws one clock, the sheet's): the rule
+   is the wait's own line now, said in the sheet's place until the sheet stands. */
+describe("the album's one rule: said before anything waits, then the sheet's clock says it", () => {
+  const AHEAD: WaitClock = {
+    kind: "develop",
+    developsAt: new Date(Date.now() + 6 * 3_600_000).toISOString(),
+  };
+
+  it("★ before anything waits, a held album says how uploads develop here, over its empty state", () => {
+    const { container } = mount({ waiting: waiting(0, []), rule: true });
+    expect(
+      screen.getByText("Uploads develop as Maya lets each one in."),
+    ).toBeInTheDocument();
+    expect(container.querySelector("[data-wait-rule]")).toHaveAttribute(
+      "data-wait-rule",
+      "held",
+    );
+    expect(screen.getByText("The album starts with you")).toBeInTheDocument();
+  });
+
+  it("★ an album with a develop time ahead says its uploads develop all at once", () => {
+    mount({ waiting: waiting(0, []), rule: true, clock: AHEAD });
+    expect(screen.getByText(/^Uploads develop all at once/)).toBeInTheDocument();
+    expect(screen.queryByText(/lets each one in/)).toBeNull();
+  });
+
+  it("★ once the sheet stands, the rule steps aside: the sheet's clock says it, once", () => {
+    mount({ waiting: waiting(3, [[T0, 3]]), rule: true });
+    expect(screen.queryByText(/^Uploads develop/)).toBeNull();
+    expect(screen.getByText("As Maya lets them in")).toBeInTheDocument();
+  });
+
+  it("no rule where nothing waits (a live album, a develop that has come), where she cannot add, or at the door", () => {
+    const live = mount({ waiting: waiting(0, []), rule: true, clock: null });
+    expect(screen.queryByText(/^Uploads develop/)).toBeNull();
+    live.unmount();
+    const closed = mount({ waiting: waiting(0, []), rule: false });
+    expect(screen.queryByText(/^Uploads develop/)).toBeNull();
+    closed.unmount();
+    mount({ waiting: waiting(0, []), rule: true, access: "teaser" });
+    expect(screen.queryByText(/^Uploads develop/)).toBeNull();
   });
 });

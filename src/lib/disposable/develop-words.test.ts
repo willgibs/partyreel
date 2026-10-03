@@ -53,11 +53,11 @@ describe("one home for each side's develop words", () => {
     "src/components/app/event-settings/camera-settings.tsx",
   ];
   const GUEST = [
-    // Her tracker, the keep, the failure sheet, the Add slot and the album's sheet: the wait's one set of words.
+    // Her tracker, the keep, the failure sheet, the album's rule and its sheet: the wait's one set of words.
     "src/components/guest/upload-tracker.tsx",
     "src/components/guest/save-account-prompt.tsx",
     "src/components/guest/upload/failure-sheet.tsx",
-    "src/components/guest/guest-upload.tsx",
+    "src/components/guest/gallery-empty-state-wait.tsx",
     "src/components/guest/gallery-empty-state-sheet.tsx",
   ];
 

@@ -642,14 +642,14 @@ describe("GuestUpload: demo mode", () => {
   });
 });
 
-// RESHAPED (the-wait r1, `model=time`): the notice said "The host reviews uploads before they appear in the album.";
-// a held album's rule is the wait's now, its clock the host's (`wait-words.ts`). The scar kept: only a held album says it.
+// RESHAPED TWICE (the-wait r1, `model=time`): the notice said "The host reviews uploads before they appear in the
+// album.", then the wait's rule ("Uploads develop as Maya lets each one in."), here, beside the sheet that said it again.
+// The rule is the album's wait's line now (`gallery-empty-state-wait.test.tsx`, where its scars moved: only an album
+// that waits says it, and a develop that has come says none). The scar kept here: the slot says no rule of its own.
 describe("GuestUpload: moderation copy", () => {
-  it("hold_for_approval says its rule, how uploads develop; a live album says none", () => {
+  it("says no rule of its own, held or live: the album's wait says it", () => {
     const { unmount } = mount({ event: HOLD_EVENT });
-    expect(
-      screen.getByText(/^Uploads develop as .+ lets each one in\.$/),
-    ).toBeInTheDocument();
+    expect(screen.queryByText(/^Uploads develop/)).not.toBeInTheDocument();
     unmount();
 
     mount();
@@ -1327,7 +1327,7 @@ describe("GuestUpload: the album's camera", () => {
 
 /* ── ★ AN ALBUM THAT DEVELOPS LATER (build 43's red-team, the upload half): "delayed" is approve-each OR a develop
    time ahead. What she adds there is sealed by the server; it lands `sealed` (no album tile, never "joined"), and the
-   album's slot says so before her first add, where it said nothing (only the review switch was read). ── */
+   album says so before her first add (its wait's rule, `gallery-empty-state-wait.test.tsx`). ── */
 
 describe("GuestUpload: an album that develops later", () => {
   const DEVELOP_EVENT = {
@@ -1336,24 +1336,14 @@ describe("GuestUpload: an album that develops later", () => {
     develops_at: new Date(Date.now() + 6 * 3_600_000).toISOString(),
   } as unknown as GuestEvent;
 
-  it("★ says what she adds develops all at once, before her first add", () => {
-    mount({ event: DEVELOP_EVENT });
-    expect(
-      screen.getByText(/^Uploads develop all at once/),
-    ).toBeInTheDocument();
-    expect(screen.queryByText(/lets each one in/)).toBeNull();
-  });
-
   /* ★ RED-TEAM 44'S LOW: the line read the event the page rendered with, so it promised a develop over an album that
-     had developed while the page stood open. It is the page's live reading's now (`useLiveUploadsWait`). */
-  it("★ follows the page's live reading: a develop that has come says nothing of a develop, and the camera hears it too", async () => {
+     had developed while the page stood open. It is the page's live reading's now (`useLiveUploadsWait`), and the line
+     itself the album's wait's (`gallery-empty-state-wait.test.tsx`); the camera hears the same reading. */
+  it("★ follows the page's live reading: a develop that has come is the camera's too", async () => {
     const { rerender, handleRef } = mount({
       event: { ...DEVELOP_EVENT, capture: "camera" },
       uploadsWait: { waits: true, developsAt: DEVELOP_EVENT.develops_at },
     });
-    expect(
-      screen.getByText(/^Uploads develop all at once/),
-    ).toBeInTheDocument();
     rerender(
       <Harness
         handleRef={handleRef}
@@ -1363,19 +1353,8 @@ describe("GuestUpload: an album that develops later", () => {
         uploadsWait={{ waits: false, developsAt: null }}
       />,
     );
-    expect(screen.queryByText(/^Uploads develop/)).toBeNull();
     await openCamera(handleRef);
     expect(camera.event?.develops_at).toBeNull();
-  });
-
-  it("says nothing of a develop that has already happened (new uploads show at once)", () => {
-    mount({
-      event: {
-        ...DEVELOP_EVENT,
-        develops_at: new Date(Date.now() - 3_600_000).toISOString(),
-      },
-    });
-    expect(screen.queryByText(/^Uploads develop/)).toBeNull();
   });
 
   it("★ a run that ends with a refusal says the rest waits for the develop, never that it is in the album (red-team 44)", async () => {

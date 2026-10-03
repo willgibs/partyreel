@@ -11,7 +11,8 @@ import {
 } from "@/components/guest/gallery-empty-state-yield";
 import type { HerShots } from "@/components/guest/upload-tracker";
 import { type HerShot, waitStands } from "@/lib/disposable/contact-sheet";
-import type { WaitClock } from "@/lib/disposable/wait-words";
+import { useWaitClock } from "@/lib/disposable/use-wait-clock";
+import { type WaitClock, waitRule } from "@/lib/disposable/wait-words";
 
 /**
  * THE ALBUM'S WAIT: THE CONTACT SHEET (the-wait r1, Will's `wait=sheet`, his disposable-mode r3 pick ported to the
@@ -46,6 +47,7 @@ export function AlbumWaitSource({
   hers: hersStore,
   onOpenHers,
   firstPaintWidth = null,
+  rule = false,
   children,
 }: {
   /** The album's live reading as a clock (`waitWords`): the host's approval, or a develop time ahead; null for none. */
@@ -55,6 +57,8 @@ export function AlbumWaitSource({
   onOpenHers?: () => void;
   /** The width the album's rows last laid at on this device (the page's `pr_album_w`). */
   firstPaintWidth?: number | null;
+  /** She can add here (full access, uploads open): the album's rule is hers to read before anything waits. */
+  rule?: boolean;
   children: ReactNode;
 }) {
   const live = useAlbumWaiting();
@@ -74,26 +78,42 @@ export function AlbumWaitSource({
       sending,
       landed: hers.length - sending,
     });
+  const says = full && rule && clock !== null;
   const state = useMemo<AlbumWaitState>(
     () => ({
       stands,
       waiting,
       hers,
       clock,
+      rule: says,
       onOpenHers,
       firstPaintWidth,
     }),
-    [stands, waiting, hers, clock, onOpenHers, firstPaintWidth],
+    [stands, waiting, hers, clock, says, onOpenHers, firstPaintWidth],
   );
   return (
     <AlbumWaitStateProvider value={state}>{children}</AlbumWaitStateProvider>
   );
 }
 
-/** The album's wait, above its rows: the sheet while it stands, nothing otherwise. */
-export function AlbumWait({ className }: { className?: string }) {
+/**
+ * The album's wait, above its rows: the sheet while it stands; before anything waits, the album's one rule in its
+ * place (`ruleClassName`, the page's words column), so a guest reads how uploads develop here before her first add,
+ * and reads it once: the sheet's clock says it from the moment the sheet stands.
+ */
+export function AlbumWait({
+  className,
+  ruleClassName,
+}: {
+  className?: string;
+  ruleClassName?: string;
+}) {
   const state = useAlbumWaitState();
-  if (!state?.stands || !state.clock) return null;
+  if (!state?.clock) return null;
+  if (!state.stands)
+    return state.rule ? (
+      <WaitRuleLine clock={state.clock} className={ruleClassName ?? className} />
+    ) : null;
   return (
     <div className={className} data-album-wait={state.clock.kind}>
       <ContactSheet
@@ -103,6 +123,31 @@ export function AlbumWait({ className }: { className?: string }) {
         onOpenHers={state.onOpenHers}
         firstPaintWidth={state.firstPaintWidth}
       />
+    </div>
+  );
+}
+
+/**
+ * THE ALBUM'S ONE RULE, in the wait's words (the-wait r1, `model=time`): how uploads develop here, the time in her own
+ * clock once it is known (`useWaitClock`; the server's render says the rule without it).
+ */
+function WaitRuleLine({
+  clock,
+  className,
+}: {
+  clock: WaitClock;
+  className?: string;
+}) {
+  const nowMs = useWaitClock();
+  return (
+    <div className={className}>
+      <p
+        data-develop-note={clock.kind === "develop" ? "" : undefined}
+        data-wait-rule={clock.kind}
+        className="rounded-md bg-muted px-3 py-2 text-center text-reading text-muted-foreground"
+      >
+        {waitRule(clock, nowMs)}
+      </p>
     </div>
   );
 }

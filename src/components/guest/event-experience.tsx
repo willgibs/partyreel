@@ -1581,6 +1581,7 @@ export function EventExperience({
                     hers={trackerStore.hers}
                     onOpenHers={openTracker}
                     firstPaintWidth={firstPaintWidth}
+                    rule={canUpload && !isDemo}
                   >
                     {/* The door's light takes its colour from here, the album's three newest (it draws
                   nothing; `door/album-light.tsx`). */}
@@ -1639,7 +1640,10 @@ export function EventExperience({
                       )}
                       {/* ★ THE WAIT OVER THE ALBUM (the-wait r1, `wait=sheet`): the contact sheet wherever photos wait,
                       hers lit, everyone's counted; the empty album under it yields to it. */}
-                      <AlbumWait className={cn(BLEED, "mt-5")} />
+                      <AlbumWait
+                        className={cn(BLEED, "mt-5")}
+                        ruleClassName={cn(COLUMN, "mt-5")}
+                      />
                       <div className={cn(BLEED, aboveAlbum ? "mt-4" : "mt-5")}>
                         <LiveGallery
                           galleryPromise={galleryPromise}
