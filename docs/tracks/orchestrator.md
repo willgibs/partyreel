@@ -60,7 +60,7 @@ flat; a lane in its gate, or the milestone's full gate, counts as two. Every pro
 | `crumbs-51` | words made true after round 12's merges: four help articles and the admin switch on the retired reel tile and the welcome screen, careers, two hero comments, host-app.md's pulse | MERGED at `86dfef81` (gate 159 green; the lane's gate: typecheck, lint, test, build, lab:smoke); no SQL | Sonnet, 3133 | `ae456d79d5e6fcd48` |
 | `crumbs-52` | red-team 43's second MEDIUM: the hub's Reel card (a soft navigation) shows the album before the reel; the curtain made to stand from the first frame | running | Sonnet, 3134 | `a43b82a5650dc8a64` |
 | `lab-frame` | the lab's Frame a faithful window: a frame-scoped window for the media hooks, Radix's layers inside the frame, a glow filter host; nothing under components/ui | running | Opus, 3131 | `ab041e184bfe9d164` |
-| `crumbs-53` | the next words after round 12: five help articles and three marketing lines (the reel's place, the welcome), reel.md's tile, the welcome cookie's tests, one home for the develop time's words, the hero fill's and the pulse's last names | running | Sonnet, 3133 | `a60b9ee6392ade237` |
+| `crumbs-53` | the next words after round 12: the reel's place and the welcome in help and marketing, reel.md, the welcome cookie's tests, one home for the develop time's words, the hero fill's and pulse's names | MERGED at `57825ec2` (gate 162 green, light: test; the lane's gate on its synced head: test 9,430, build, lab:smoke 150); no SQL | Sonnet, 3133 | `a60b9ee6392ade237` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Q8
 (round 12's plan) answered with 21 corrections, all folded into the briefs; the next consult is the foundation's
