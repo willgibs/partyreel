@@ -51,6 +51,7 @@ plan's whole text (lane splits, the Advisor's Q11 corrections, Will's answers) i
 | `cost-model` | research: the per-event and per-month cost model across every vendor, the levers ranked, into PRICING.md | MERGED at `cdefd776` (light gate: test 9,577; the lane's: test, typecheck, lint; every price read from its vendor's raw page 2026-10-03, one invented WebFetch summary caught); his decisions in the morning message | Opus, none | `adc26155bbe485569` |
 | `create-wizard-r3` | board create-wizard r3 [desk 60]: the add step's second exploration, polished, in the wired room and the-wait's model (album styles; Disposable) | running (cut at `c5f341f4`); WIP pushes each milestone (the weekly's limit) | Opus, 3135 | `a5c57d3cc25a5c81c` |
 | `demo-framing-r5` | board demo-framing r5 [desk 90]: the hero's stage, a more polished set of three or four from r4's five | running (respawned 09:43Z after a memory stop at its boot; its worktree at the cut reused); WIP pushes each milestone | Opus, 3136 | `a8f0856b99cc9ed00` |
+| `event-header-r3` | board event-header r3 [desk 50]: facts (the strip free of a timeline, new ideas; the dial banked) and doors (app-store depth, quieter windows, polished glass, each with its sticky form); ranges drawn | running (cut at `518aff34`); WIP pushes each milestone | Opus, 3134 | `ac26dc46271773f37` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Q8
 (round 12's plan) answered with 21 corrections, all folded into the briefs; the next consult is the foundation's
