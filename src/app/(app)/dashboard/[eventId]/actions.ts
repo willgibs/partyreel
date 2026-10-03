@@ -1,11 +1,20 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 
 import { z } from "zod";
 
 import { type ActionResult } from "@/app/(app)/dashboard/actions";
+import {
+  readGuestsRoom,
+  type GuestsRoomData,
+} from "@/app/(app)/dashboard/[eventId]/guests/room.server";
+import {
+  resolveViewerZone,
+  serverZone,
+  VIEWER_ZONE_HEADER,
+} from "@/lib/dashboard/viewer-day";
 import {
   approveBulk,
   hideBulk,
@@ -435,4 +444,36 @@ export async function setEventDoorAction(
     emailHeld: result.data.emailHeld,
     admitted: result.data.admitted,
   };
+}
+
+/**
+ * THE GUESTS ROOM, READ FOR A CARD THAT OPENED IT IN PLACE (event-header r2, `rooms=over`). The room stands over the
+ * hub on the hub's own address, and a card's press writes that address without asking the server, so the room asks
+ * here for what the hub's render reads whenever its address names the room (`room.server.ts`, one read for both).
+ * A public endpoint like every Server Function: the id is parsed, the session re-verified with `getUser()`, the event
+ * read through RLS before any of the room's service-role reads; anything else answers nothing, in no detail.
+ */
+export async function readGuestsRoomAction(
+  eventId: unknown,
+): Promise<{ ok: true; room: GuestsRoomData } | { ok: false }> {
+  const parsed = z.uuid().safeParse(eventId);
+  if (!parsed.success) return { ok: false };
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false };
+  const event = await getEvent(parsed.data);
+  if (!event) return { ok: false };
+  try {
+    // The blocked list's dates in the host's own zone (the dashboard's day rule, viewer-day.ts).
+    const zone = resolveViewerZone(
+      (await headers()).get(VIEWER_ZONE_HEADER),
+      serverZone(),
+    );
+    return { ok: true, room: await readGuestsRoom(event.id, zone) };
+  } catch (error) {
+    captureError("db", error, { action: "guests_room_read", eventId });
+    return { ok: false };
+  }
 }

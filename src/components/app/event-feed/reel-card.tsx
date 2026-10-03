@@ -34,6 +34,7 @@ import {
   REEL_MINIMUM,
   type ReelState,
 } from "@/lib/event/reel-progress";
+import { roomHref } from "@/lib/event/sections";
 import { formatCount } from "@/lib/format/count";
 import { cn } from "@/lib/utils";
 
@@ -342,6 +343,7 @@ function CountingCard({
 }) {
   const [open, setOpen] = useState(false);
   const add = useHostAdd();
+  const { openSheet } = useEventShare();
   const trigger = useRef<HTMLButtonElement>(null);
   // Add photos closed the guidance: its focus goes home without moving the page (the content's note).
   const adding = useRef(false);
@@ -461,8 +463,17 @@ function CountingCard({
             {reel.pending > 0 && (
               <>
                 {" "}
+                {/* ★ REVIEW OPENS OVER THE HUB (event-header r2, `rooms=over`), the guidance folding away as it
+                    does: the room's own address, so a modified click is a tab of its own. */}
                 <Link
-                  href={`/dashboard/${eventId}/review`}
+                  href={roomHref(eventId, "review")}
+                  onClick={(e) => {
+                    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0)
+                      return;
+                    e.preventDefault();
+                    setOpen(false);
+                    openSheet("review");
+                  }}
                   className="font-medium text-foreground underline underline-offset-4"
                 >
                   {formatCount(reel.pending)} waiting in Review

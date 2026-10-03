@@ -80,3 +80,37 @@ describe("the hub's ready wiring", () => {
     expect(handed).toContain("waiting={code.waiting}");
   });
 });
+
+/**
+ * EVERY ROOM OVER THE HUB (Will, event-header r2 `rooms=over`): the place the address names is read once on the server,
+ * its room's own data comes with it, and the old deep links land in their rooms. Behaviour is the island's and the
+ * rooms' own tests'; what only the page can say is pinned here.
+ */
+describe("the hub's rooms", () => {
+  it("★ reads the Guests room with the hub while the address names it, and never otherwise", () => {
+    expect(PAGE).toMatch(/const place = resolveEventSheet\(room\)/);
+    expect(PAGE).toMatch(
+      /place === "guests"\s*\?\s*\(async \(\) =>\s*readGuestsRoom\(/,
+    );
+    expect(PAGE).toMatch(/guestsRoom=\{guestsRoom\}/);
+  });
+
+  it("★ mints Review's queue with the first window when the address names Review", () => {
+    expect(PAGE).toMatch(
+      /if \(place === "review"\) \{[\s\S]*?ENTRY_PENDING[\s\S]*?firstWindow\.push/,
+    );
+    expect(PAGE).toMatch(/readHostLinksBody\(supabase, event, firstWindow\)/);
+  });
+
+  it("hands the island the event, so a press on an old way into a room inside the hub opens it in place", () => {
+    expect(PAGE).toMatch(
+      /<EventShareProvider initialSheet=\{place\} eventId=\{event\.id\}>/,
+    );
+  });
+
+  it("sends a retired ?section= or ?eventTab= link to the room that holds it now", () => {
+    expect(PAGE).toMatch(
+      /const legacy = legacyRoomAddress\(eventId, section, eventTab\);\s*if \(legacy\) redirect\(legacy\);/,
+    );
+  });
+});

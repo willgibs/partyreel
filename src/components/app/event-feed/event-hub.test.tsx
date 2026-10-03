@@ -87,21 +87,26 @@ describe("the cards row", () => {
       /role="tab(list)?"/.test(src),
       "the row became tabs: three of its four cards are rooms you navigate to",
     ).toBe(false);
-    // Settings opens a sheet and is STILL an anchor, so middle-click and
-    // open-in-new-tab do the honest thing and the URL is real.
-    // Every card, Settings included, renders as one <Link> whose href the
-    // sheet-vs-room branch above it decides.
+    // Every room opens over the hub and its door is STILL an anchor, so middle-click and open-in-new-tab do the
+    // honest thing and the URL is real. ★ RESHAPED ON PURPOSE (event-header r2, `rooms=over`): this pinned the
+    // sheet-vs-room branch (Review and Guests linked to routes of their own, Settings to `?room=settings`); every
+    // room stands on the hub's address now, so every door's href is the one builder's (`roomHref`), See it as a
+    // guest's included.
     expect(/<Link\b/.test(src), "a card stopped being a link").toBe(true);
     expect(
-      /const href = room\.segment[\s\S]{0,200}\?room=settings/.test(src),
-      "the Settings card stopped carrying a real URL",
+      /href: roomHref\(eventId, room\)/.test(src),
+      "a door stopped carrying the room's real URL",
+    ).toBe(true);
+    expect(
+      /roomDoor\(eventId, AS_GUEST_DOOR\.id/.test(src),
+      "See it as a guest stopped being a door at the row's end",
     ).toBe(true);
     // Whitespace-tolerant: the formatter breaks the condition across lines once
     // the row's JSX nests it deeper (reel-host-wiring), and a pin on a line
     // break would fail on formatting rather than on the guard going.
     expect(
       /e\.metaKey\s*\|\|\s*e\.ctrlKey\s*\|\|\s*e\.shiftKey/.test(src),
-      "a modified click on Settings no longer falls through to a navigation",
+      "a modified click on a door no longer falls through to a navigation",
     ).toBe(true);
   });
 
@@ -647,9 +652,10 @@ describe("the settings sheet", () => {
     const redirect = read(
       "src/app/(app)/dashboard/[eventId]/settings/page.tsx",
     );
-    expect(
-      /redirect\(`\/dashboard\/\$\{eventId\}\?room=settings`\)/.test(redirect),
-    ).toBe(true);
+    // The room's one address (`roomHref`, `rooms=over`): the route spells it as the hub does.
+    expect(/redirect\(roomHref\(eventId, "settings"\)\)/.test(redirect)).toBe(
+      true,
+    );
   });
 
   it("closes from any page, with nothing to discard", () => {

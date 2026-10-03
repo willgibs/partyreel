@@ -23,6 +23,7 @@
  * read in `getNotificationData`. Keep it that simple.
  */
 import { peopleWaiting } from "@/lib/event/door/words";
+import { roomHref } from "@/lib/event/sections";
 import { RECOVERY_PURGE_NUDGE_DAYS } from "@/lib/lifecycle/recently-deleted";
 import { RENEWAL_NUDGE_DAYS } from "@/lib/lifecycle/renewal";
 
@@ -170,7 +171,8 @@ export function buildNotifications(
 
   // ★ PEOPLE AT THE DOOR, FIRST OF THE QUEUES (the doors, event-settings r1: a waiting newcomer
   // counts wherever the host is told about held uploads): one row per event, opening its Guests
-  // room at At the door, the badge counting every person as the Guests card does.
+  // room over the hub (event-header r2, `rooms=over`), At the door its first section, the badge
+  // counting every person as the Guests card does.
   let waitingPeople = 0;
   for (const door of signals.doorByEvent ?? []) {
     if (door.waiting <= 0) continue;
@@ -179,14 +181,14 @@ export function buildNotifications(
       kind: "door",
       title: peopleAtTheDoor(door.waiting),
       body: door.eventName,
-      href: `/dashboard/${door.eventId}/guests#at-the-door`,
+      href: roomHref(door.eventId, "guests"),
       unread: true,
     });
     waitingPeople += door.waiting;
   }
 
   // A waiting queue: one row per event when the caller knows them, each opening that event's
-  // Review room, the badge counting every upload so it reads the card's and the room's number.
+  // Review room over its hub, the badge counting every upload so it reads the card's and the room's number.
   let waitingUploads = 0;
   if (signals.pendingByEvent) {
     for (const queue of signals.pendingByEvent) {
@@ -196,7 +198,7 @@ export function buildNotifications(
         kind: "review",
         title: uploadsToReview(queue.pending),
         body: queue.eventName,
-        href: `/dashboard/${queue.eventId}/review`,
+        href: roomHref(queue.eventId, "review"),
         unread: true,
       });
       waitingUploads += queue.pending;
