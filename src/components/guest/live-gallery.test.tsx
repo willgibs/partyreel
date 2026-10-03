@@ -516,6 +516,26 @@ describe("LiveGallery: the teaser's one true count", () => {
   });
 });
 
+/* ── ★ THE ALBUM'S OWN COUNT LINE NAMES WHAT IT HOLDS (crumbs-61, red-team 48's NIT): it said "12 photos & videos" over
+   twelve photographs, where the host's Download panel said "12 photos". The words are the source's (`albumCountWords`,
+   `gallery-live.test.tsx` pins them); this is the line saying them. ── */
+
+describe("LiveGallery: the album's own count line", () => {
+  it("★ says what the album holds: photographs are '2 photos', never 'photos & videos'", async () => {
+    await mount();
+    expect(screen.getByText("2 photos")).toBeInTheDocument();
+    expect(screen.queryByText(/photos & videos/)).toBeNull();
+  });
+
+  it("says both nouns where it cannot see into the album: a teaser's count is a total of kinds unknown", async () => {
+    await mount(
+      {},
+      teaserSeed({ items: ["m1", "m2"], teaserTotal: 44, approvedTotal: 50 }),
+    );
+    expect(screen.getByText("50 photos & videos")).toBeInTheDocument();
+  });
+});
+
 /* ── THE RENAME PATCH: a rename patches this device's own credits at once, with no request. ── */
 
 describe("LiveGallery: renameMine patches this device's own credits", () => {

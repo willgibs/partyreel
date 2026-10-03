@@ -7,7 +7,7 @@
  * Function, never look: what it says and what it draws, not its sizes or its light.
  */
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { HerShots } from "@/components/guest/upload-tracker";
 import type { HerShot } from "@/lib/disposable/contact-sheet";
@@ -39,6 +39,7 @@ function mount({
   hers = [],
   onOpenHers,
   rule,
+  firstPaintWidth,
 }: {
   waiting: GuestWaiting | null;
   access?: "full" | "teaser";
@@ -46,6 +47,8 @@ function mount({
   hers?: HerShot[];
   onOpenHers?: () => void;
   rule?: boolean;
+  /** The well's first-paint width: jsdom lays nothing out, so a desk's is told rather than measured. */
+  firstPaintWidth?: number;
 }) {
   return render(
     <AlbumWaitingProvider value={{ access, waiting }}>
@@ -54,6 +57,7 @@ function mount({
         hers={shots(hers)}
         onOpenHers={onOpenHers}
         rule={rule}
+        firstPaintWidth={firstPaintWidth}
       >
         <AlbumWait />
         <GalleryEmptyState />
@@ -360,5 +364,103 @@ describe("the album's one rule: said before anything waits, then the sheet's clo
     closed.unmount();
     mount({ waiting: waiting(0, []), rule: true, access: "teaser" });
     expect(screen.queryByText(/^Uploads develop/)).toBeNull();
+  });
+});
+
+/* ★ THE CLOCK NEVER BREAKS INSIDE A PHRASE (crumbs-61, red-team 48's NIT). At a phone's 375 with tomorrow's clock the footer
+   wrapped "Yours · 3" over two lines and "All at once tomorrow at 9 am · in 17 h 5 min" mid-phrase ("in 17 h 5" over
+   "min"); the desk's side column broke "in 16 h" from "16 min" the same way. jsdom lays nothing out, so what is pinned is
+   the mechanism the capture proves at 375 (`_scratch/crumbs-61/cap-4-*.jpg`): her count is one unbreakable run, the
+   clock's two phrases are unbreakable runs, the footer lets the clock take a row of its own, and the narrow side column
+   stacks the phrases as two lines. */
+describe("★ the sheet's clock breaks at its phrases, never inside one", () => {
+  // 3:55 pm on a Saturday, her clock; the album develops tomorrow at 9 am, 17 h 5 min on.
+  const NOW = new Date(2026, 9, 3, 15, 55, 0).getTime();
+  const TOMORROW: WaitClock = {
+    kind: "develop",
+    developsAt: new Date(2026, 9, 4, 9, 0).toISOString(),
+  };
+  const hers = (n: number): HerShot[] =>
+    Array.from({ length: n }, (_, i) => ({
+      key: `h${i}`,
+      at: T0 + 5_000,
+      src: null,
+      video: false,
+      sending: false,
+    }));
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(NOW);
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("★ a phone's footer: her count is one run that never wraps, and the clock is its two phrases, each whole", () => {
+    const { container } = mount({
+      waiting: waiting(12, [[T0, 12]]),
+      clock: TOMORROW,
+      hers: hers(3),
+    });
+    const yours = container.querySelector("[data-wait-yours]");
+    expect(yours).toHaveTextContent("Yours · 3");
+    expect(yours).toHaveClass("whitespace-nowrap", "shrink-0");
+    const clock = container.querySelector("[data-wait-clock]")!;
+    expect(
+      Array.from(clock.querySelectorAll(".whitespace-nowrap")).map(
+        (run) => run.textContent,
+      ),
+    ).toEqual(["All at once tomorrow at 9 am", "in 17 h 5 min"]);
+    // Both sit in one footer that lets the clock take a row of its own when it does not fit beside her count.
+    expect(clock.parentElement).toHaveClass("flex-wrap");
+    expect(clock.parentElement).toContainElement(yours as HTMLElement);
+  });
+
+  it("alone (none of hers) the clock keeps the right edge it always stood on, and a clock with no countdown is one phrase", () => {
+    const alone = mount({
+      waiting: waiting(12, [[T0, 12]]),
+      clock: TOMORROW,
+    });
+    expect(alone.container.querySelector("[data-wait-clock]")).toHaveClass(
+      "ml-auto",
+      "text-right",
+    );
+    alone.unmount();
+    const held = mount({ waiting: waiting(3, [[T0, 3]]), hers: hers(1) });
+    const clock = held.container.querySelector("[data-wait-clock]")!;
+    expect(clock).toHaveTextContent("As Maya lets them in");
+    expect(clock.querySelectorAll(".whitespace-nowrap")).toHaveLength(0);
+  });
+
+  it("★ the desk's side column stacks the two phrases as two lines, never one broken in the middle", () => {
+    const { container } = mount({
+      waiting: waiting(12, [[T0, 12]]),
+      clock: TOMORROW,
+      hers: hers(3),
+      firstPaintWidth: 1100,
+    });
+    const clock = container.querySelector("[data-wait-clock]")!;
+    expect(
+      Array.from(clock.querySelectorAll(".block")).map(
+        (line) => line.textContent,
+      ),
+    ).toEqual(["All at once tomorrow at 9 am", "in 17 h 5 min"]);
+    // The words still read as one sentence to anything that reads the text.
+    expect(clock.textContent).toBe("All at once tomorrow at 9 am in 17 h 5 min");
+  });
+
+  it("what a screen reader hears is the sheet's own sentence, the dot kept, once", () => {
+    const { container } = mount({
+      waiting: waiting(12, [[T0, 12]]),
+      clock: TOMORROW,
+      hers: hers(3),
+    });
+    expect(container.querySelector("p.sr-only")?.textContent).toBe(
+      "12 photos developing, 3 of them yours. All at once tomorrow at 9 am · in 17 h 5 min.",
+    );
+    // The visible dot is for the eye: a reader never hears it twice.
+    expect(
+      container.querySelector("[data-wait-clock] [aria-hidden]"),
+    ).toHaveTextContent("·");
   });
 });

@@ -38,6 +38,17 @@ working.
 
 **Verify on.** The gate on the synced tree, each step on its own exit code; `pnpm lab:smoke --base http://localhost:3133`; red first for 1, 2, 3, 5 and 6 (logged); captures at 375 for 4, 5 and 6; for 1, the links calls counted for one guest's 5 uploads before and after.
 
+## Where I am
+
+WIP, milestone 1 (items 2, 4, 5 and 6 built and green; items 1 and 3 next, then the docs, the gate and the handoff):
+- 2 `endForNewStart` keeps the range's length both ways (red log `_scratch/crumbs-61/red-2-dates.log`).
+- 4 the waiting sheet's footer: her count is one run, the clock a row of its own when it does not fit, the desk's side
+  column stacks the two phrases (captures `_scratch/crumbs-61/cap-4-{before-351,after-351,after-320,after-desk}.jpg`,
+  red `red-4-footer.log`).
+- 5 the Add's words are `addWords`, and the page follows the sync's word on what waits (`onWaitingChange`; red
+  `red-5-add.log`).
+- 6 the count names what the album holds (`albumCountWords` over `setNoun`; red `red-6-count.log`, `red-6-line.log`).
+
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
 - none yet

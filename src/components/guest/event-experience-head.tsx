@@ -220,6 +220,7 @@ export function AlbumCover({
   endDate,
   description,
   mediaCount,
+  mediaWords,
   guestCount,
   actions,
   actionsRef,
@@ -241,6 +242,11 @@ export function AlbumCover({
   endDate?: string | null;
   description: string | null;
   mediaCount: number;
+  /**
+   * What the count holds, said as the album's source names it ("12 photos": `albumCountWords`); both nouns where it has
+   * not told, since the first paint knows a total and never its kinds.
+   */
+  mediaWords?: string;
   guestCount: number;
   /** The cover's actions (Add photos white on it, the glass rounds beside). */
   actions: ReactNode;
@@ -302,7 +308,7 @@ export function AlbumCover({
                   <GlyphCount
                     icon={<Images />}
                     count={mediaCount}
-                    label={formatMediaCount(mediaCount)}
+                    label={mediaWords ?? formatMediaCount(mediaCount)}
                   />
                   {guestCount > 0 && (
                     <GlyphCount

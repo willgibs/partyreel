@@ -24,7 +24,7 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
-import { act, render } from "@testing-library/react";
+import { act, cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { ManifestEntry } from "@/lib/events/album-wire";
@@ -50,7 +50,8 @@ vi.mock("@/lib/observability/sentry", () => ({
   captureError: (...args: unknown[]) => captureError(...args),
 }));
 
-const { GalleryLiveProvider, useGalleryLive } = await import("./gallery-live");
+const { albumCountWords, GalleryLiveProvider, useGalleryLive } =
+  await import("./gallery-live");
 type LiveGalleryHandle = import("./gallery-live").LiveGalleryHandle;
 type Live = NonNullable<ReturnType<typeof useGalleryLive>>;
 
@@ -183,13 +184,17 @@ async function mount(
     first = seed(),
     access = "full",
     onCountChange,
+    onCountWordsChange,
     onDevelopsAtChange,
+    onWaitingChange,
     handle,
   }: {
     first?: GallerySeed | PromiseLike<GallerySeed>;
     access?: "full" | "teaser";
     onCountChange?: (count: number) => void;
+    onCountWordsChange?: (words: string) => void;
     onDevelopsAtChange?: (developsAt: string | null) => void;
+    onWaitingChange?: (waits: boolean) => void;
     handle?: RefObject<LiveGalleryHandle | null>;
   } = {},
 ) {
@@ -209,7 +214,9 @@ async function mount(
             access={access}
             isDemo={isDemo}
             onCountChange={onCountChange}
+            onCountWordsChange={onCountWordsChange}
             onDevelopsAtChange={onDevelopsAtChange}
+            onWaitingChange={onWaitingChange}
           >
             <Probe />
           </GalleryLiveProvider>
@@ -697,6 +704,137 @@ describe("what waits, as numbers, on the live source", () => {
   it("a teaser carries none", async () => {
     await mount(false, { first: teaserSeed(), access: "teaser" });
     expect(seen.live?.waiting ?? null).toBeNull();
+  });
+
+  /* ★ WHETHER ANYTHING WAITS, TOLD TO THE PAGE (crumbs-61, red-team 48's NIT): a guest who joined an empty album kept the
+     cover's "Take the first photo" over her own sheet of developing shots, since the page's word on whether anything
+     waits was the server's at render. The source tells it each change of it (the seed's word at mount, then each full
+     answer's), and never the count: at a busy party the count climbs every beat, and the page re-renders on a flip alone. */
+  it("★ tells the page each change of whether anything waits, and never each count", async () => {
+    const told = vi.fn();
+    await mount(false, { onWaitingChange: told });
+    // An album with nothing waiting says nothing: the page's own word starts as none.
+    expect(told).not.toHaveBeenCalled();
+    answer(delta({ waiting: { ...WAITING, count: 1 } }));
+    await ring();
+    expect(told.mock.calls).toEqual([[true]]);
+    // The count climbing is no news; the album that develops (nothing waits) is.
+    answer(delta({ v: 12, waiting: { ...WAITING, count: 5 } }));
+    await ring();
+    answer(delta({ v: 13, waiting: { ...WAITING, count: 9 } }));
+    await ring();
+    expect(told.mock.calls).toEqual([[true]]);
+    answer(delta({ v: 14 }));
+    await ring();
+    expect(told.mock.calls).toEqual([[true], [false]]);
+  });
+
+  it("tells a seed that already says something waits at mount, and a 304's silence changes nothing", async () => {
+    const told = vi.fn();
+    await mount(false, { first: waitingSeed(), onWaitingChange: told });
+    expect(told.mock.calls).toEqual([[true]]);
+    answer(304);
+    await ring();
+    expect(told.mock.calls).toEqual([[true]]);
+  });
+
+  it("a teaser has no word on what waits, so it tells none", async () => {
+    const told = vi.fn();
+    await mount(false, {
+      first: teaserSeed(),
+      access: "teaser",
+      onWaitingChange: told,
+    });
+    expect(told).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * ★ THE GUEST'S COUNT NAMES WHAT THE ALBUM HOLDS (crumbs-61, red-team 48's NIT): the album's line said "12 photos & videos"
+ * over twelve photographs, where the host's Download panel said "12 photos" (`setNoun`, crumbs-57's). Where the source can
+ * see into the album (a full answer: the manifest is the whole album) its count is worded by the kinds it holds, from that
+ * one home; where it cannot (a teaser's nine, a lock) it says both, as it always has, since a lone "photo" would lie when
+ * the one item is a video. The words always name exactly the number the header shows.
+ */
+describe("★ the count names what the album holds", () => {
+  const photo = (i: number): ManifestEntry => entry(i);
+  const video = (i: number): ManifestEntry => entry(i, 1 | 4);
+
+  it("photographs only: photos, never 'photos & videos'", async () => {
+    await mount(false, { first: seedOf([photo(1), photo(2), photo(3)]) });
+    expect(seen.live?.count).toBe(3);
+    expect(seen.live?.countWords).toBe("3 photos");
+  });
+
+  it("a lone item is named by what it is: '1 photo', '1 video'", async () => {
+    await mount(false, { first: seedOf([photo(1)]) });
+    expect(seen.live?.countWords).toBe("1 photo");
+    cleanup();
+    await mount(false, { first: seedOf([video(1)]) });
+    expect(seen.live?.countWords).toBe("1 video");
+  });
+
+  it("videos only: videos; both kinds: photos & videos, counted together", async () => {
+    await mount(false, { first: seedOf([video(1), video(2)]) });
+    expect(seen.live?.countWords).toBe("2 videos");
+    cleanup();
+    await mount(false, { first: seedOf([photo(1), video(2), photo(3)]) });
+    expect(seen.live?.countWords).toBe("3 photos & videos");
+  });
+
+  it("★ follows the album: a video arriving turns 'photos' into 'photos & videos', and its removal turns it back", async () => {
+    const told = vi.fn();
+    await mount(false, {
+      first: seedOf([photo(1), photo(2)]),
+      onCountWordsChange: told,
+    });
+    expect(seen.live?.countWords).toBe("2 photos");
+    expect(told).toHaveBeenLastCalledWith("2 photos");
+    answer(delta({ v: 11, upsert: [video(9)], total: 3 }));
+    await ring();
+    expect(seen.live?.countWords).toBe("3 photos & videos");
+    expect(told).toHaveBeenLastCalledWith("3 photos & videos");
+    answer(delta({ v: 12, remove: [uuid(9)], total: 2 }));
+    await ring();
+    expect(seen.live?.countWords).toBe("2 photos");
+    expect(told).toHaveBeenLastCalledWith("2 photos");
+  });
+
+  it("her own landing counts as the kind it is, the moment it lands", async () => {
+    const handle = createRef<LiveGalleryHandle>();
+    await mount(false, { first: seedOf([photo(1)]), handle });
+    answer(304);
+    await act(async () => {
+      handle.current!.notifyUploaded({
+        mediaId: uuid(9),
+        queueId: "q-9",
+        file: new File(["x"], "mine.mp4", { type: "video/mp4" }),
+        kind: "video",
+        status: "approved",
+      });
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(seen.live?.count).toBe(2);
+    expect(seen.live?.countWords).toBe("2 photos & videos");
+  });
+
+  it("a teaser cannot see into its count: both nouns, never a guess at one", async () => {
+    await mount(false, { first: teaserSeed(), access: "teaser" });
+    expect(seen.live?.count).toBe(2);
+    expect(seen.live?.countWords).toBe("2 photos & videos");
+  });
+
+  it("the words name exactly the count they stand beside: kinds that do not add up to it say both nouns", () => {
+    expect(
+      albumCountWords({ count: 12, kinds: { photos: 12, videos: 0 } }),
+    ).toBe("12 photos");
+    expect(
+      albumCountWords({ count: 13, kinds: { photos: 12, videos: 0 } }),
+    ).toBe("13 photos & videos");
+    expect(albumCountWords({ count: 1, kinds: null })).toBe("1 photo or video");
+    expect(albumCountWords({ count: 1_249, kinds: null })).toBe(
+      "1,249 photos & videos",
+    );
   });
 });
 
