@@ -44,10 +44,10 @@ working.
 
 ## Where I am
 
-- 2026-10-03, milestone 1: the market captured. 31 vendor pages read raw and rendered (headless Chromium, their own
-  JS run) into `../partyreel-wt/_scratch/pricing-research/pages/` by `fetch.sh` and `render.sh`; every price pinned to
-  a line there. Next: the cost model with Deleted inside the cap (`model.mjs` copied, the ladders recomputed), then the
-  summary and the detail.
+- 2026-10-03, milestone 2: written. `summary.md` (799 words), `detail.md`, `sources.md` in
+  `../partyreel-wt/_scratch/pricing-research/`, over 44 vendor pages (`pages/`, listed in `pages.tsv`, re-read by
+  `render-all.sh`) and two scripts (`deleted-inside.mjs`, `market.mjs`, their `.out.md` beside them). Next: the gate's
+  `pnpm test`, then the Handoff.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
