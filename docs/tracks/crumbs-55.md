@@ -4,7 +4,6 @@ status: open            # open -> handed-off; deleted in the merge commit that i
 cut: "8c2dce39"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
-  - next.config.ts
   - src/lib/security-headers
   - src/lib/dashboard/next-step
   - src/app/(dev)/design/(shell)/library/foundations/
@@ -27,7 +26,7 @@ reads:                  # single-sources you depend on: never duplicate, never e
 ## The brief
 
 **Why.** Tonight's merges (round 13's `rooms-wiring`, `identity-wiring`, `wizard-wiring`) left these crumbs, each a ROADMAP line:
-1. **Security** (from `rooms-wiring`): the app answers any site's frame (no `frame-ancestors`, no `X-Frame-Options`), so a page can be clickjacked. Add `Content-Security-Policy: frame-ancestors 'self'` and `X-Frame-Options: SAMEORIGIN` to every response through `next.config.ts`'s `headers()`, beside what it already sends (read it first; keep every existing header). See it as a guest (`/dashboard/<id>/as-guest`, `src/app/(as-guest)/`) frames the app's own pages and must keep working, so check how it draws before choosing. A test pins both headers on a page, an API route and the as-guest frame. Check the admin project too (same repo, its own config?): name what it sends in your Handoff.
+1. **Security** (from `rooms-wiring`): the app answers any site's frame (no `frame-ancestors`, no `X-Frame-Options`), so a page can be clickjacked. Add `Content-Security-Policy: frame-ancestors 'self'` and `X-Frame-Options: SAMEORIGIN` to every response through `next.config.ts`'s `headers()` (a root file no manifest may own: it is accepted outside your owns, for this alone), beside what it already sends (read it first; keep every existing header). See it as a guest (`/dashboard/<id>/as-guest`, `src/app/(as-guest)/`) frames the app's own pages and must keep working, so check how it draws before choosing. A test pins both headers on a page, an API route and the as-guest frame. Check the admin project too (same repo, its own config?): name what it sends in your Handoff.
 2. **The dashboard's next-step chip** (from `rooms-wiring`): `lib/dashboard/next-step.ts` still links `/guests#at-the-door`, answered by the route's redirect. Link the room directly with `sections.ts`'s `roomHref`, the hop gone.
 3. **The brand kit** (from `identity-wiring`): the Library's foundations list four grounds and no `--signal` or `--display*`. Add the fifth ground (`.surface-display`) and the new tokens, as `globals.css` now has them. Two comments still name the old room's `#040405` (`about/page.tsx`, `legal-document.tsx`): make them true, comments only (the legal text itself is never edited before launch).
 4. **How it works' Create picture** (from `wizard-wiring`): `host-pictures.tsx`'s `CreatePicture` still draws a Details, Design, Share rail Create has not had since first-event. Draw the room as `create-event-wizard/` now has it: steppers on top, the question in one place, the answer in the centre, one button at the foot.
