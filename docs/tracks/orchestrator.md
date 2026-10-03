@@ -50,7 +50,7 @@ plan's whole text (lane splits, the Advisor's Q11 corrections, Will's answers) i
 | `identity-r3` | board identity r3 [desk 10]: system (keys and wells recommended, all rings, ink), room (graphite recommended), edge (everything that floats recommended) | MERGED at `792dbc05` (gate 170 green: lint, test, build, lab:smoke, lab:demo identity 3 steps; the lane's: test 9,585, lab:demo eight runs at 1440, 375 and its knobs); lab only; on his next desk | Opus, 3136 | `a4b60128e7777e310` |
 | `cost-model` | research: the per-event and per-month cost model across every vendor, the levers ranked, into PRICING.md | MERGED at `cdefd776` (light gate: test 9,577; the lane's: test, typecheck, lint; every price read from its vendor's raw page 2026-10-03, one invented WebFetch summary caught); his decisions in the morning message | Opus, none | `adc26155bbe485569` |
 | `create-wizard-r3` | board create-wizard r3 [desk 60]: the add step's second exploration, four polished options in the wired room (styles recommended: Settings' album-style cards) | MERGED at `97798963` (gate 173 green, light: test; the lane's: test 9,733, build, lab:smoke, lab:demo at 1440 and 375); lab only; on his next desk | Opus, 3135 | `a5c57d3cc25a5c81c` |
-| `demo-framing-r5` | board demo-framing r5 [desk 90]: the hero's stage, a more polished set of three or four from r4's five | running (respawned 09:43Z after a memory stop at its boot; its worktree at the cut reused); WIP pushes each milestone | Opus, 3136 | `a8f0856b99cc9ed00` |
+| `demo-framing-r5` | board demo-framing r5 [desk 90]: the hero's stage, a more polished set from r4's five | MERGED at `bf26d730` (gate 177 green: lint, test, build, lab:smoke, lab:demo demo-framing); lab only; on his next desk | Opus, 3136 | `a8f0856b99cc9ed00` |
 | `event-header-r3` | board event-header r3 [desk 50]: facts (the strip free of a timeline, new ideas; the dial banked) and doors (app-store depth, quieter windows, polished glass, each with its sticky form); ranges drawn | running (cut at `518aff34`); WIP pushes each milestone | Opus, 3134 | `ac26dc46271773f37` |
 | `crumbs-55` | four crumbs: frame-ancestors and X-Frame-Options against clickjacking (both projects), the next-step chip's room link, the brand kit's fifth ground and tokens, How it works' Create picture | MERGED at `599ede52` (gate 176 green: lint, test, build, lab:smoke, lab:demo all) | Sonnet, 3131 | `af911157a822471ec` |
 | `host-dashboard-r3` | board host-dashboard r3 [desk 25]: events (a collapsible Recent row over one gallery/table/list, 1 to 200 events), the empty featured stage, the feature's rule as a choice; ranges and lead=made drawn as settled | running (cut at `499612e4`, ahead of event-dates by the Orchestrator's call); WIP pushes each milestone | Opus, 3135 | `a96b83311939a385c` |
@@ -82,8 +82,8 @@ with a `## Where I am` note, for the weekly's limit.
 If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` holds a merge made after this note (push
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
 staged, uncommitted merge is finished by `usher/kit/merge-lane.sh`'s own steps or reset with `git merge --abort`.
-This session's scratchpad holds the specs (`specs-r12/`) and gate logs (the next gate is 176, the calls file numbers on
-from 124); nothing there is needed that these lines and the manifests do not carry. Everything a successor reads lives
+This session's scratchpad holds the specs (`specs-r12/`) and gate logs (the next gate is 178, the calls file numbers on
+from 125); nothing there is needed that these lines and the manifests do not carry. Everything a successor reads lives
 in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team briefs and ledgers).
 
 ## Next, in order
