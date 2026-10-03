@@ -78,10 +78,12 @@ function routes(dir: string, found: { page: string[]; handler: string[] }) {
     const path = join(dir, entry.name);
     if (entry.isDirectory()) {
       routes(path, found);
-    } else if (entry.name === "page.tsx" || entry.name === "route.ts") {
+    } else if (/^(page\.tsx|route\.tsx?)$/.test(entry.name)) {
       const address = addressOf(path);
       if (address)
-        (entry.name === "route.ts" ? found.handler : found.page).push(address);
+        (entry.name.startsWith("route") ? found.handler : found.page).push(
+          address,
+        );
     }
   }
   return found;
