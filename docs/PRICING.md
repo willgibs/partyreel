@@ -199,7 +199,7 @@ cycle ([cost control](https://supabase.com/docs/guides/platform/cost-control)): 
 run out mid-month and albums fall back to their poll, and past 100,000 MAU (about 1,000 parties a month) new
 sign-ins stop; it must be off before launch traffic, with a budget alert. Then **Realtime's ceiling**, 500
 connections and 500 messages a second with the cap, 10,000 and 2,500 without
-([limits](https://supabase.com/docs/guides/realtime/limits)), against 100,000 hosts' Saturday peak of ~37,000 open
+([limits](https://supabase.com/docs/guides/realtime/limits)), against 100,000 hosts' Saturday peak of ≈37,000 open
 albums (a refused socket falls back to the 12 s poll: graceful, and dearer). Then **the database**: ~4 ms a sync or
 links call, so that peak (~3,900 calls a second) keeps ~16 vCPUs busy.
 
@@ -232,7 +232,8 @@ links call, so that peak (~3,900 calls a second) keeps ~16 vCPUs busy.
    the WAF [runs before the cache](https://developers.cloudflare.com/ruleset-engine/reference/phases-list/)) serves
    tiles from the edge with no Class B on a hit (~$800 a month at 100,000 hosts), over HTTP/2 and 3 instead of R2's six
    HTTP/1.1 connections, with a CORS answer a browser may keep, so the `no-store` re-reads end. Small in dollars, large
-   in speed.
+   in speed. A Worker checking the signature instead bills every request, a cache hit too, at $0.30 a million: nearly
+   the $0.36 of the Class B read it saves.
 5. **A lean presigner:** SigV4 by hand (`node:crypto`, the day's key cached) signs in ~4 µs against the SDK's ~170 µs
    (measured): ~$100 to $200 a month at 100,000 hosts, and a 200-id batch ~100 ms sooner.
 6. **The site's own images:** 33 local files, each transformation kept 31 days in two formats
