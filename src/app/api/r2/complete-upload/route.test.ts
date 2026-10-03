@@ -306,3 +306,27 @@ describe("the roll's refusal at the complete", () => {
     expect(body.code).toBe("roll_spent");
   });
 });
+
+// ★ A ROW SEALED UNTIL ITS ALBUM DEVELOPS (build 43's red-team, the upload half): the complete says `sealed` as the
+// write did, so the guest's queue draws no album tile for a shot nobody may see yet. Said only when true: every other
+// answer is byte for byte the one it was.
+describe("a sealed landing", () => {
+  it("answers `sealed` beside its status", async () => {
+    createMedia.mockResolvedValue({
+      ok: true,
+      data: { media_id: MEDIA, status: "approved", sealed: true },
+    });
+    const { status, body } = await complete();
+    expect(status).toBe(200);
+    expect(body).toEqual({ ok: true, status: "approved", sealed: true });
+  });
+
+  it("says nothing of a seal where the write made none", async () => {
+    createMedia.mockResolvedValue({
+      ok: true,
+      data: { media_id: MEDIA, status: "approved", sealed: false },
+    });
+    const { body } = await complete();
+    expect(body).toEqual({ ok: true, status: "approved" });
+  });
+});

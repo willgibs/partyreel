@@ -6,7 +6,8 @@ Open this before you:
 - touch `develops_at`, `capture`, `roll_size` or `sealed_from` on `events`, or `sealed_until` on `media`;
 - change the paged album's guest scope, its validator or the doorbell;
 - change how guests add (the roll, its ceiling, a camera video's bounds) or her own withdrawal of a shot;
-- build the camera, the waiting room, the reveal or the host's cover (the design boards after this foundation).
+- change the album's camera (`components/guest/camera/`, `lib/guest/camera/`), or build the waiting room, the reveal or
+  the host's cover (the design boards after this foundation).
 
 Elsewhere: the paged album and the doorbell ([guest-flow.md](guest-flow.md)), the upload pipeline
 ([uploads-and-r2.md](uploads-and-r2.md)), the grants and the RPC inventory ([database-security.md](database-security.md)),
@@ -112,6 +113,30 @@ A lazy predicate alone reaches nobody: the guest poll's quiet path reads one row
 - A camera video is one shot of up to 10 s (with half a second's grace) and 128 MB, since its length is the client's
   word (`media/limits.ts`, mirrored in `create_media` under `roll.test.ts`). The host's own uploads are exempt from the
   roll, the ceiling and the video bounds, and seal with everyone's.
+
+## The guest's camera
+
+On an album whose `capture` is `camera`, `GuestUpload`'s one Add (the cover's and the shutter's) opens the album's own
+camera ([`album-camera.tsx`](../../src/components/guest/camera/album-camera.tsx), a lazy chunk fetched as such an album
+mounts) in place of the add sheet; a free-upload album never loads it.
+- **Every shot rides the page's one queue as it is taken** (`addFiles`, a video's first frame as its `poster`), so the
+  join, the retry and the failure sheet are any upload's; the sheet waits while the camera is open. ★ **A landing the
+  album keeps sealed is told `sealed`** by the server's own word (`create_media` answers `sealed`, the complete passes
+  it, the uploader carries it, the queue's `landedAs`), on any album with a develop time ahead, whichever surface sent
+  it: nothing draws it, so no tile stands in the album for her alone, and her tracker lists it as "Waiting to
+  develop" from the moment it lands, counted and removable.
+- **The count is the server's roll** (`roll-view.ts`): `/api/guests/mine` with `statuses` (★ never `tell`, which would
+  mark her approval news told), read at the opening, after she takes a shot back and after a roll refusal, ★ and only
+  while nothing of hers is in the air, so the shots taken since the read began are added and none is counted twice.
+  The host's own camera keeps no roll (`isOwner`) and asks nothing.
+- **Full size**: a photo is the stream's own frame cropped to the box she framed (3:4 upright, 4:3 on its side), JPEG
+  0.92, unless `ImageCapture` offers half again the pixels in the same orientation (`frame-math.ts`). A video is the
+  picture redrawn at 1080 on its short side and recorded (MP4 where the browser can, else WebM), ending itself at the
+  ten seconds; the microphone is asked only on a hold (★ Permissions-Policy grants the site `camera` and `microphone`)
+  and a hold it keeps waiting past 1.5 s films without sound. A hold under a second takes the photo meant.
+- The camera is let go whenever the page hides or the camera closes, and Back, Escape and its close close it. Her shots
+  (this visit's from the frames they froze on, an earlier visit's from her read's presigned pictures) open from the reel
+  and the roll's end; a shot the album cannot show yet (sealed or held) is hers to remove there, freeing its frame.
 
 ## The host's control
 

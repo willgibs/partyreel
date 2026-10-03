@@ -46,11 +46,18 @@ type PresignResponse =
   | { ok: false; code: string; message: string };
 
 type CompleteResponse =
-  | { ok: true; status: string }
+  | { ok: true; status: string; sealed?: boolean }
   | { ok: false; code: string; message: string };
 
 export type UploadOutcome =
-  | { ok: true; status: string; mediaId: string; kind: "photo" | "video" }
+  | {
+      ok: true;
+      status: string;
+      mediaId: string;
+      kind: "photo" | "video";
+      /** Sealed until its album develops (the complete's own word): approved, and no album content yet. */
+      sealed?: boolean;
+    }
   // `code` is the SERVER's own refusal code when the refusal came from one of
   // the two routes (absent for a local validation or a transport failure),
   // passed through verbatim from presign OR complete, since either can refuse.
@@ -400,5 +407,11 @@ async function runUpload(args: {
 
   // mediaId + kind let the caller optimistically render the upload in the gallery
   // (and dedupe it against the server poll by id).
-  return { ok: true, status: complete.status, mediaId: presign.media_id, kind };
+  return {
+    ok: true,
+    status: complete.status,
+    mediaId: presign.media_id,
+    kind,
+    ...(complete.sealed === true ? { sealed: true } : {}),
+  };
 }

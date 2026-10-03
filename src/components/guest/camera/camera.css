@@ -1,0 +1,631 @@
+/* THE ALBUM'S CAMERA, ITS OWN SHEET (`album-camera.tsx`; disposable-mode r3's `camera=timeline`, ported from the
+   board's `dm-cam` and `dm-tl` drawings and polished in its wiring).
+
+   ★ BLACK, AS EVERY CAMERA IS: the photograph is the only colour on the screen (bible 6). The other hues are a
+   light's: the recording red and the flash's lamp.
+
+   ★ THE PICTURE IS CONTAINED, NEVER FULL BLEED (Will: "I like having the camera preview contained, as that's the
+   native and expected experience on iPhones"): 3:4 upright, 4:3 on its side, as large as the screen allows after the
+   bar, the reel and the shutter, so the shutter is always in the thumb's reach and nothing ever scrolls. What the box
+   shows is exactly what a shot keeps (`frame-math.ts`'s `cropRect`).
+
+   ★ ON ITS SIDE, AND AT A DESK, THE CONTROLS STAND BESIDE IT (`orientation: landscape`): the picture 4:3 with the
+   reel under it and the shutter at its right, the way a phone's camera turns.
+
+   ★ MOTION ONLY WHERE IT SHOWS STATE, AND ONLY WITH MOTION ALLOWED (bible 5): the flash of a shot, the reel gliding on
+   a frame, the frozen frame sealing into glass, a frame's sending dot. Under reduced motion each is its end state at
+   once, and the camera says the same in words (`aria-live`).
+
+   ★ UNLAYERED, so its rules beat a utility on the same element: no element here is also positioned by a utility. */
+
+.cam-screen {
+  /* A reel frame has the picture's own shape: upright on a phone held up, on its side on its side. */
+  --cam-cell-w: 32px;
+  --cam-cell-h: 42px;
+  --cam-pitch: 38px;
+  --cam-gutter: 10px;
+  --cam-bar: 56px;
+  --cam-roll: 92px;
+  --cam-controls: 150px;
+  --cam-side: 136px;
+  --cam-safe: calc(env(safe-area-inset-top) + env(safe-area-inset-bottom));
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: var(--cam-bar) auto auto minmax(var(--cam-controls), 1fr);
+  grid-template-areas: "bar" "picture" "roll" "controls";
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  background: #000;
+  color: #fff;
+  /* A thumb that shoots twice in a row zooms nothing, selects nothing and calls up no menu. */
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* ── the bar ─────────────────────────────────────────────────────────────────────────────────── */
+
+.cam-bar {
+  grid-area: bar;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  align-items: center;
+  padding-inline: 12px;
+}
+.cam-flash-on {
+  color: #ffd27a;
+}
+
+/* ── the picture ─────────────────────────────────────────────────────────────────────────────── */
+
+.cam-picture {
+  grid-area: picture;
+  justify-self: center;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: 22px;
+  background: #0c0c0d;
+  aspect-ratio: 3 / 4;
+  width: min(
+    calc(100vw - 2 * var(--cam-gutter)),
+    calc(
+      (
+          100dvh - var(--cam-bar) - var(--cam-roll) - var(--cam-controls) -
+            var(--cam-safe)
+        ) *
+        3 / 4
+    )
+  );
+}
+.cam-picture > video {
+  display: block;
+  transition: filter 200ms ease-out;
+}
+/* The camera turning round: the frozen last frame softens while the other camera's picture is asked for. */
+.cam-picture-turning {
+  filter: blur(14px) brightness(0.7);
+}
+
+/* The moment a photograph is taken: the picture flashes white and settles (drawn at rest as nothing at all). */
+.cam-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+}
+/* The front camera's flash is the screen itself, lit for the instant the picture exposes to it. */
+.cam-screen-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: #fff;
+  pointer-events: none;
+}
+
+/* The filming mark: a red dot and the clock against its ten seconds. */
+.cam-rec {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  z-index: 2;
+  translate: -50% 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 5px 11px;
+  background: rgb(0 0 0 / 0.55);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.cam-rec-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #ff3b30;
+}
+
+/* A refusal of the album itself, in the server's words, over the top of the picture. */
+.cam-banner {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  z-index: 2;
+  border-radius: 14px;
+  padding: 10px 14px;
+  background: rgb(0 0 0 / 0.66);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  text-align: center;
+  text-wrap: pretty;
+}
+
+/* A picture the roll is finished with: blurred and dimmed behind its end. */
+.cam-dim {
+  z-index: 2;
+  background: rgb(0 0 0 / 0.55);
+  -webkit-backdrop-filter: blur(16px) saturate(0.8);
+  backdrop-filter: blur(16px) saturate(0.8);
+}
+
+/* ── the reel as a timeline ──────────────────────────────────────────────────────────────────── */
+
+.cam-roll {
+  grid-area: roll;
+  padding-top: 14px;
+  min-width: 0;
+}
+.cam-reel {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 58px;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 14%,
+    #000 86%,
+    transparent
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 14%,
+    #000 86%,
+    transparent
+  );
+}
+.cam-reel:focus-visible {
+  outline: 2px solid rgb(255 255 255 / 0.7);
+  outline-offset: -2px;
+  border-radius: 12px;
+}
+/* The track glides so the frame she is on (`--c`) stands at the reel's centre; each frame stands at its own place on
+   the roll (`--n`), a pitch apart. */
+.cam-reel-track {
+  position: absolute;
+  inset: 0;
+  transform: translateX(
+    calc(50% - (var(--c, 1) - 1) * var(--cam-pitch) - var(--cam-cell-w) / 2)
+  );
+}
+.cam-cell {
+  position: absolute;
+  top: calc((58px - var(--cam-cell-h)) / 2);
+  left: calc((var(--n, 1) - 1) * var(--cam-pitch));
+  width: var(--cam-cell-w);
+  height: var(--cam-cell-h);
+  border-radius: 8px;
+  overflow: hidden;
+}
+/* A spent frame: sealed glass, lit faintly from above, the minute she took it at its foot. */
+.cam-cell[data-state="exposed"] {
+  background:
+    radial-gradient(
+      120% 70% at 50% 0%,
+      rgb(255 255 255 / 0.12),
+      transparent 70%
+    ),
+    linear-gradient(180deg, #25252a, #131316);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.1);
+}
+.cam-cell[data-state="fresh"] {
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.17);
+}
+/* Still on its way to the album: a quiet dot in the corner. */
+.cam-cell[data-sending]::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.85);
+}
+.cam-cell-time {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 3px;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1px;
+  font-size: var(--text-micro);
+  line-height: var(--text-micro--line-height);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: rgb(255 255 255 / 0.6);
+  font-variant-numeric: tabular-nums;
+}
+/* The frozen frame, sealing: the moment she pressed, fading into the glass under it. */
+.cam-cell-pic {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+.cam-cell-frozen {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* The frame she is on: the live picture, standing still at the reel's centre while the track glides under it. */
+.cam-reel-live {
+  position: absolute;
+  top: calc((58px - var(--cam-cell-h)) / 2);
+  left: 50%;
+  width: var(--cam-cell-w);
+  height: var(--cam-cell-h);
+  margin-left: calc(var(--cam-cell-w) / -2);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #0c0c0d;
+  box-shadow: 0 0 0 2px #fff;
+  scale: 1.14;
+  opacity: 0;
+}
+.cam-reel-live[data-on] {
+  opacity: 1;
+}
+.cam-reel-live[data-rolling] {
+  box-shadow: 0 0 0 2px #ff3b30;
+}
+.cam-reel-fill {
+  position: absolute;
+  inset: 0;
+  background: rgb(255 59 48 / 0.32);
+  transform-origin: left center;
+}
+.cam-caption {
+  margin-top: 6px;
+  min-height: 16px;
+  text-align: center;
+  font-size: var(--text-micro);
+  line-height: var(--text-micro--line-height);
+  color: rgb(255 255 255 / 0.5);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── the count, the shutter, the turn ────────────────────────────────────────────────────────── */
+
+.cam-controls {
+  grid-area: controls;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-areas: "count shutter turn" "hint hint hint";
+  align-content: center;
+  align-items: center;
+  column-gap: 16px;
+  row-gap: 12px;
+  padding-inline: 28px;
+  padding-bottom: 8px;
+}
+.cam-count {
+  grid-area: count;
+  justify-self: start;
+  transition: opacity 200ms ease-out;
+}
+.cam-controls[data-off] .cam-count {
+  opacity: 0.35;
+}
+.cam-turn {
+  grid-area: turn;
+  justify-self: end;
+}
+.cam-hint {
+  grid-area: hint;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  min-height: 24px;
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  color: rgb(255 255 255 / 0.62);
+  text-align: center;
+}
+.cam-hint-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  border-radius: 999px;
+  padding: 0 10px;
+  background: rgb(255 255 255 / 0.14);
+  color: #fff;
+  font-weight: 600;
+}
+.cam-hint-action:focus-visible {
+  outline: 2px solid rgb(255 255 255 / 0.7);
+  outline-offset: 2px;
+}
+
+/* The shutter: a white ring round a white face; held, the face turns the recording red and a red ring fills to the
+   video's ten seconds round it. */
+.cam-shutter {
+  grid-area: shutter;
+  justify-self: center;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 78px;
+  height: 78px;
+  border-radius: 999px;
+  border: 4px solid #fff;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.cam-shutter:focus-visible {
+  outline: 2px solid rgb(255 255 255 / 0.85);
+  outline-offset: 5px;
+}
+.cam-shutter:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.cam-shutter-face {
+  width: 62px;
+  height: 62px;
+  border-radius: 999px;
+  background: #fff;
+}
+.cam-shutter[data-pressed] .cam-shutter-face {
+  scale: 0.9;
+}
+.cam-shutter[data-filming] .cam-shutter-face {
+  background: #ff3b30;
+  scale: 0.82;
+}
+.cam-shutter-ring {
+  position: absolute;
+  inset: -13px;
+  width: calc(100% + 26px);
+  height: calc(100% + 26px);
+  pointer-events: none;
+  overflow: visible;
+}
+.cam-shutter-progress {
+  stroke: #ff3b30;
+}
+
+/* ── her shots, over the camera ──────────────────────────────────────────────────────────────── */
+
+.cam-shots {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  padding-top: env(safe-area-inset-top);
+  background: #050506;
+}
+.cam-shots-bar {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  align-items: center;
+  height: 56px;
+  flex-shrink: 0;
+  padding-inline: 12px;
+}
+.cam-shots-body {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px 14px calc(24px + env(safe-area-inset-bottom));
+}
+.cam-shots-grid {
+  margin: 16px auto 0;
+  max-width: 720px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 10px;
+}
+.cam-shot {
+  position: relative;
+  min-width: 0;
+}
+.cam-shot-pic {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 12px;
+  background:
+    radial-gradient(
+      120% 70% at 50% 0%,
+      rgb(255 255 255 / 0.1),
+      transparent 70%
+    ),
+    linear-gradient(180deg, #25252a, #131316);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08);
+}
+.cam-shot[data-removing="working"] .cam-shot-pic {
+  opacity: 0.55;
+}
+.cam-shot-kind {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  border-radius: 999px;
+  padding: 2px 6px;
+  background: rgb(0 0 0 / 0.55);
+  font-size: var(--text-micro);
+  line-height: var(--text-micro--line-height);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.cam-shot-words {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  color: rgb(255 255 255 / 0.62);
+}
+.cam-shot[data-status="failed"] .cam-shot-words,
+.cam-shot[data-removing="failed"] .cam-shot-words {
+  color: #ffb4ad;
+}
+.cam-shot-remove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.6);
+  color: #fff;
+  -webkit-tap-highlight-color: transparent;
+}
+/* The tap target is the size of a thumb, the glyph's round stays small. */
+.cam-shot-remove::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+}
+.cam-shot-remove:focus-visible {
+  outline: 2px solid rgb(255 255 255 / 0.8);
+  outline-offset: 2px;
+}
+.cam-shot-remove:disabled {
+  opacity: 0.5;
+}
+
+/* ── on its side, and at a desk ──────────────────────────────────────────────────────────────── */
+
+@media (orientation: landscape) {
+  .cam-screen {
+    --cam-cell-w: 44px;
+    --cam-cell-h: 33px;
+    --cam-pitch: 50px;
+    grid-template-columns: minmax(0, 1fr) var(--cam-side);
+    grid-template-rows: var(--cam-bar) minmax(0, 1fr) auto;
+    grid-template-areas: "bar bar" "picture controls" "roll controls";
+  }
+  .cam-picture {
+    align-self: center;
+    aspect-ratio: 4 / 3;
+    width: min(
+      calc(100vw - var(--cam-side) - 2 * var(--cam-gutter)),
+      calc(
+        (100dvh - var(--cam-bar) - var(--cam-roll) - var(--cam-safe)) * 4 / 3
+      )
+    );
+  }
+  .cam-roll {
+    justify-self: center;
+    width: min(100%, 980px);
+    padding-bottom: 6px;
+  }
+  .cam-controls {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto auto;
+    grid-template-areas: "turn" "shutter" "count" "hint";
+    justify-items: center;
+    align-content: center;
+    row-gap: 18px;
+    padding-inline: 8px;
+  }
+  .cam-count,
+  .cam-turn {
+    justify-self: center;
+    text-align: center;
+  }
+}
+
+/* ── motion, only where it is allowed ────────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: no-preference) {
+  .cam-reel-track {
+    transition: transform 260ms var(--ease-emphasis);
+  }
+  .cam-flash {
+    animation: cam-flash 260ms ease-out;
+  }
+  .cam-cell-pic {
+    animation: cam-seal 900ms ease-out;
+  }
+  .cam-cell[data-sending]::after {
+    animation: cam-pulse 1.2s ease-in-out infinite;
+  }
+  .cam-rec-dot {
+    animation: cam-blink 1s steps(2, jump-none) infinite;
+  }
+  .cam-reel-live {
+    transition: opacity 160ms ease-out;
+  }
+  .cam-reel-fill {
+    transition: transform 200ms linear;
+  }
+  .cam-shutter-face {
+    transition:
+      scale 140ms var(--ease-emphasis),
+      background-color 160ms ease-out;
+  }
+  .cam-shutter-progress {
+    transition: stroke-dashoffset 200ms linear;
+  }
+}
+
+@keyframes cam-flash {
+  0% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes cam-seal {
+  0%,
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes cam-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes cam-blink {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.25;
+  }
+}

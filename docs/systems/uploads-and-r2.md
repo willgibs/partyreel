@@ -69,7 +69,9 @@ ledger and enforces the caps. Guests (the session-token capability) and hosts (a
   camera on, a guest's shot also meets her roll (live shots against `roll_size`) and its ceiling (three rolls' worth a
   period, in the `camera_rolls` ledger), and a camera video 10 s and 128 MB. The presign refuses each first in the
   server's own words (`cameraShotRefusal`, from `get_upload_context`'s `roll`), and the complete answers the race it
-  loses with 409 `roll_spent`; the host's own uploads meet none of them.
+  loses with 409 `roll_spent`; the host's own uploads meet none of them. ★ The complete answers `sealed: true` beside
+  `approved` for a row sealed at insert (nothing else changes in its answer), and the guest queue tells that landing
+  `sealed`, which no album surface draws (disposable-mode.md, "The guest's camera").
 
 ## The EXIF strip
 

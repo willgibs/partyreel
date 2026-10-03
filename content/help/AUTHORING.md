@@ -210,6 +210,7 @@ Ten categories in lifecycle order; the article order within each is the
 6. profiles-guest-lists-and-following
 7. what-guests-can-and-cant-see
 8. report-a-problem-as-a-guest
+9. the-disposable-camera
 
 ### 04 Event album
 
