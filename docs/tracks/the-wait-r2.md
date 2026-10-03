@@ -1,6 +1,6 @@
 ---
 track: the-wait-r2
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "9af92e54"            # the launch-prep SHA the branch was cut from
 board: the-wait
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -57,7 +57,7 @@ answered (the board's `carried`), each his to overrule:
 - **What does it load?** Built: its order and shapes come from the album's own first read (the manifest); the squares
   that fill with photographs load those photos' small previews, at most the sheet's cap (the album's newest 93 at a
   phone, 177 at a desk, which the album would load as she scrolls); `light` and `place` load nothing early. A tiny
-  rendition made at upload would make the photo takes cost a few hundred KB: a Proposed line, not built. Overrule:
+  rendition made at upload would make the photo takes cost a few hundred KB: a board idea below, not built. Overrule:
   only the first screen's squares fill with photographs, the rest with light.
 - **Does Maya's hub develop too?** Built (as a call, drawn with the wiring): her cover is the guests' sheet
   (`cover=guests`), so her first open after the develop develops it the same way. Overrule: her hub simply shows the
@@ -68,32 +68,72 @@ answered (the board's `carried`), each his to overrule:
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none: an exploration ships no production byte (`disposable-mode.md` keeps "build the reveal (the-wait r2)" for the
+  wiring of his pick)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- none
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits**, pushed on `lp/the-wait-r2`: the work `793c54f9` (the plan), `502a9738` (round two drawn), `18963411`
+  (the sheet first, then the prints; the Skips placed; held frames), `e5b832f9` (the darkroom's sheet before its dark,
+  the luminous wash, reduced motion fade-only); the syncs `31d57713` (launch-prep at `9aa2928c`: event-header-r3,
+  host-dashboard-r3 and records) and `adf082c1` (launch-prep at `14a0caa7`: door-settles' own clock), no conflicts,
+  nothing in the-wait's reads moved. This manifest's commit is the head.
+- **Gates on `adf082c1`**, the synced tree, each on its own exit code (logs: `_scratch/the-wait-r2/gate-*.log`):
+  through `zsh scripts/build-lock.sh`, `pnpm typecheck` 0, `pnpm lint` 0 (no warnings), `pnpm test` 0 (846 files,
+  9,984 tests), `pnpm build` 0; then `pnpm lab:smoke --base http://localhost:3133` 0 (16 checks; the board 755 of
+  1,200 words) and `pnpm lab:demo --board the-wait --base http://localhost:3133` 0 at 1440, at `--width 375` and
+  wearing `--state screen=1440` (1 step, 5 options of 4 frames, the stage moving by up to 96 to 99%, starting 0.30
+  down at 1440 and 0.38 at 375, 18 px clear of the dock).
+- **Lane check**: `git diff --name-only origin/launch-prep...HEAD` = `src/app/(dev)/design/sandbox/the-wait/` (19
+  paths, 8 of them round one's drawings deleted: `arrival`, `guest`, `host`, `model`, `settings`, `wait`, `words`)
+  and this file; no exceptions.
+- **The items**:
+  - `spec.ts`: round 2, one ask (`arrival`, five options, `in-place` recommended); round one's five answered asks
+    retired into `opening.settled`, his arrival note in `opening.earlier`, round one in `history`, eight terms, the
+    five calls above as `carried`.
+  - `board.tsx`: each option is four frames at the Screen knob's size (375 by 812 or 1440 by 900): her first open
+    after 9 am playing, the same held at its turn, reduced motion as its own pass, Monday's second open (plain);
+    every caption read off the frame (`frameSays`: the squares, the folded, hers, what has come up, the album's words,
+    the cover's word).
+  - `album.tsx`: production's page the morning after: the real `AlbumCover` with `coverEyebrow`'s words ("Disposable
+    · developed at 9 am", then "developed Sunday") and the real `HeadStills`; the album's head row and tiles quoted.
+  - `geometry.ts`: the sheet by production's `layoutSheet`, `columnsFor` and `sheetCapFor` (93 squares and +121 folded
+    at a phone, 177 and +37 at a desk), the rows by `layoutRows`, `perRowFor` and `pickFeatures`, both over one night
+    (`fixtures.ts`'s `ROLL`: 214 shots from 14 guests, Priya's nine), so a square and its tile are one photograph.
+  - `develop.tsx`: the three develops; a growing tile starts on its square, measured where the square is drawn, and
+    grows by its box with its picture covering it, so the square's crop opens into the tile's without a jump.
+  - `premiere.tsx`: the reel's chrome as `live-reel-view.tsx` draws it (its 132 by 34 bar, no event name), the beat,
+    The album, the drop into the newest tile; reduced, it waits paused with its dock up. `place.tsx`: production's
+    regular open, its numbers mirrored as keyframes: every option's second open.
+  - `motion.tsx` and `the-wait.css`: one clock (`--tw-d` less `--tw-at`), so one drawing plays live, holds at a moment
+    or runs its reduced pass; a hidden option draws nothing until shown and stands still while hidden; every keyframe
+    `tw-`.
+  - For the wiring, whichever he picks: the album stands complete under the develop (bible 5: a crawler, a throttled
+    tab, reduced motion and a scroll all get the album at once), the first open's mark is the device's, the sheet is
+    re-laid from the developed rows' minutes and hers, and the develop waits for the first screen's pictures to move.
+- **Assets requested from Will**: none (the twelve marketing stills and the ghost pack's nine stand in; the Higgsfield
+  month's party sets swap by id).
+- **Board ideas**:
+  - A tiny rendition (a 64 px WebP made at upload beside the 640 preview) would let any sheet of squares draw
+    photographs for a few hundred KB: the wait's, the develop's, the host's cover, a filmstrip.
+  - The develop mail (ROADMAP's launch line) lands on the first open: its link could open the develop on any device,
+    whatever this device's mark says.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes**: none.
+- **Calls his to overrule**:
+  - The recommendation, `in-place`: the darkroom for a ceremony, out of the light to load nothing early.
+  - When: each device's first open after the develop, however late; live in place at 9 am; every later open plain.
+  - Stop: any press, scroll or key ends it on its last frame; the full-screen takes carry The album.
+  - Load: the sheet's squares load their small previews, at most 93 at a phone and 177 at a desk.
+  - Hub: Maya's hub develops the same way (her cover is the guests' sheet), drawn with the wiring.
+  - Batch: a Reviewed album's approvals arrive as production's arrivals; only a roll develops.
+- **Look at first**: `/design/lab/the-wait?session=the-wait.arrival`, option 1's first frame (her first open,
+  playing) at 375, then the Screen knob's 1440; then the darkroom's held frame (the whole roll developing full
+  screen).
 
 ## Where I am
 
-- Drawn and committed: `spec.ts` (round 2, one ask, five options, r1's picks settled), `board.tsx`, the drawings
-  (`album.tsx` the page, `develop.tsx` the three develops, `premiere.tsx`, `place.tsx`, `motion.tsx` the clock,
-  `geometry.ts` production's sheet and rows arithmetic). Typecheck, lint and the registry tests green; lab:smoke and
-  lab:demo green at 1440 and 375 (and wearing screen=1440) on `18963411`.
-- This milestone: the darkroom's sheet fades before its dark (no squares over the cover's words), the light's wash
-  made luminous, reduced motion fade-only everywhere (a CSS belt, and the count's word fades), prettier on the folder.
-- Next: captures at 375 and 1440 of the premiere's drop and the light (`_scratch/the-wait-r2/cap.mjs`), then the whole
-  gate through `zsh scripts/build-lock.sh`, a sync with `origin/launch-prep`, the Handoff.
+- Handed off: the Handoff above is the state; nothing is in flight.
