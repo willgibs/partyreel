@@ -38,18 +38,18 @@ working.
 - The sheet's picture rules (`.wait-cell > img`, sending's dim and breathing) widened to `video` in `src/components/guest/gallery-empty-state.css` (three selectors; the sheet's one stylesheet sits outside the owned prefix): an exception listed in the Handoff.
 - Red-team 46's NIT (the sheet's screen-reader sentence said "4 photos developing, 4 of them yours" for three photographs and a video): once any of hers is a video it says "photos and videos" ("photo or video" for one), the dashboard claims' own words (`claims-card.tsx`); photographs alone read as before. His to overrule.
 - Hers that cannot be drawn (a clip this browser cannot decode, an expired link) leave their lit square bare rather than the browser's broken glyph (`onError`, as `PickPreview` does); a video square keeps its mark either way.
-
-## Where I am
-
-- The sheet's video fix is built and green on its own tests (`gallery-empty-state-wait.test.tsx`, six new, red on today's code first: `_scratch/crumbs-56/red-before.log`); `pnpm typecheck` green. Not yet done: the live capture (three photographs and a video at 375), the second MEDIUM, the full gate, the Handoff.
+- The second MEDIUM asked for "a row waits by its seal (`sealed_until`)", but the HOST'S manifest cannot say it: its entries are `[id, w, h, flags, t]` with a status flag and no seal, the host's scope never sees the seal (`album-sim.ts`), and the host's version never moves on a seal alone, so the cover (and the head, through the one `entryWaits`) had nothing to read it from. Two ways to bring it: (a) a host-only `ENTRY_SEALED` flag on the manifest, read with the manifest pages and decorated onto the delta in the host sync route (three sync files outside this lane), which a long-lived tab holds stale across a develop (rows flagged in one period read as waiting in the next until a reload); or (b) the hub page reads the rows' seals itself beside the develop facts and hands the ids down. Recommended and built: (b). `readJoinedIds` (`src/lib/disposable/host-cover.server.ts`, an owned new file) reads the approved rows sealed now that were created before `sealed_from`, whole (`readAllPages`), only while a develop time is ahead, a failed read answering none (captured); the page hands them with the develop facts as `joined`; `waitsOf` is the one test the cover's count and the head's photographs share. They are as fresh as the page (every save of the develop time reads it afresh; nothing can join the roll while a develop time is ahead), so no flag outlives its period. Exceptions listed in the Handoff: `src/app/(app)/dashboard/[eventId]/page.tsx`, `src/components/app/event-feed/event-hub-head.tsx` (the head's stills and the facts it publishes for the band), and two tests those touch.
+- The same read also catches a camera's shots between a develop time and its restamped period (sealed, created before `sealed_from`), which the cover's old caveat called rare and under-read: that caveat is gone from the doc.
+- Proved against the real rows, rolled back: a Reviewed event with 3 approved and 4 held photographs switched to a develop time in one save leaves 0 pending, 4 approved, sealed and created before `sealed_from` (`let_in_at = sealed_from`), the 3 earlier approved unsealed, and 0 rows the old rule (approved since `sealed_from`) would count: the "0 developing" of the ledger, and the read's predicate picking exactly the four.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/disposable-mode.md`, "The host's cover": the rule refined in place (a row waits by its seal; the period is the floor; the roll the page reads; `waitsOf`), and the camera-restamp caveat deleted (the same read catches it).
+- `docs/systems/guest-flow.md`, "The album's wait: the contact sheet": one clause (a video's file is no picture an `<img>` can draw: its first frame, its mark, a bare square for a picture that cannot be drawn).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: the waiting sheet could draw a camera video's own poster Blob (`QueueItem.poster`, the first frame the camera keeps) rather than decoding the file: `HerShot.poster`, `herShotsOf` and the object-URL ledger in `gallery-live.tsx` carry it (from `crumbs-56`).
 
 ## Handoff (replaces the chat report)
 
@@ -63,3 +63,7 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am
+
+- The first MEDIUM (the sheet's video) is committed and pushed at `5fd7ebf3`. The second (the host's cover after the switch) is built and green on its own tests, red first (`_scratch/crumbs-56/red2-before.log`), uncommitted until the next commit. Still to do, in order: the live capture at 375 for both (dev server on 3131, uploads stood in at the network), the full gate on a tree synced with `origin/launch-prep` (only records had landed at `e4d09269`), then this Handoff and `status: handed-off`.

@@ -314,7 +314,11 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
   (`waiting`, absent where nothing waits) and the live source (`GalleryLive.waiting`, the seed's from the first paint,
   and a light context, `AlbumWaitingProvider`, for the wait); hers are lit with her own pictures at their minutes, as
   her tracker publishes them (`HerShots`: this visit's file, or the tile her rows' read presigned for her alone), what
-  she is sending at the end, breathing, and her landing takes one pass of light. ★ Capped: a few rows of squares at
+  she is sending at the end, breathing, and her landing takes one pass of light. ★ **A video's file is no picture an
+  `<img>` can draw** (red-team 46: the browser's broken glyph from her filming until a reload): it draws as its first
+  frame, a muted, inline, paused `<video>` (`videoPosterSrc`), the poster her rows' read presigns as the still it is,
+  a picture that cannot be drawn leaves its square bare, and every video of hers wears the album tile's play mark.
+  ★ Capped: a few rows of squares at
   its own columns (twelve at a phone to thirty at a desk, `columnsFor`), the oldest folding into one "+N" while the
   count climbs. "Yours · N" opens her uploads. "+1 just now" says the count climbing while she looks. ★ The album's
   one rule is the wait's line: before anything waits, where she can add, it stands in the sheet's place, in the words'
