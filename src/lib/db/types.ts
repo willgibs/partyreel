@@ -1909,6 +1909,14 @@ export type Database = {
         Args: { p_email: string; p_session_token: string }
         Returns: Json
       }
+      spend_watch_readings: {
+        Args: { p_lifecycle_kinds: string[]; p_now: string }
+        Returns: Json
+      }
+      spend_watch_sign_ins: {
+        Args: { p_now: string; p_since: string }
+        Returns: number
+      }
       standby_hosts: {
         Args: { p_after?: string; p_limit?: number }
         Returns: {

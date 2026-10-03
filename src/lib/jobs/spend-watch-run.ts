@@ -12,8 +12,6 @@
  */
 import "server-only";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-
 import { jobById, jobHealth } from "@/app/admin/jobs/catalog";
 import { ADMIN_HOST } from "@/lib/auth/admin-host";
 import { SITE_URL, SUPPORT_EMAIL } from "@/lib/constants/site";
@@ -60,14 +58,6 @@ import { createAdminClient } from "@/lib/supabase/admin";
 type AdminClient = ReturnType<typeof createAdminClient>;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-
-/**
- * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `spend_watch_readings` arrives with migration 20261003190000, so the
- * call that names it goes through this untyped client (drop the cast then).
- */
-function untyped(admin: AdminClient): SupabaseClient {
-  return admin as unknown as SupabaseClient;
-}
 
 /** A heartbeat write that did not land: never fatal, never silent (the purge cron's rule). */
 function reportHeartbeat(error: string | null, phase: string): void {
@@ -134,7 +124,7 @@ async function readDb(
   now: Date,
 ): Promise<{ db: DbReadings | null; error?: string }> {
   try {
-    const { data, error } = await untyped(admin).rpc("spend_watch_readings", {
+    const { data, error } = await admin.rpc("spend_watch_readings", {
       p_now: now.toISOString(),
       p_lifecycle_kinds: [...LIFECYCLE_MAIL_KINDS],
     });
