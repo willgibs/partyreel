@@ -63,7 +63,7 @@ plan's whole text (lane splits, the Advisor's Q11 corrections, Will's answers) i
 (round 12's plan) answered with 21 corrections, all folded into the briefs; the next consult is the foundation's
 migrations before they are applied. From another session, respawn it from `usher/kit/advisor-prompt.txt`.
 
-**Handoff across accounts** (2026-10-03 11:31Z: this account's weekly at 99%, the auto-kill imminent; memory 55% free after a 09:30Z squeeze; Will's rule: watch from 96%, refresh this block often from 98%). The Orchestrator session is `2ba90542-62d6-487c-8c79-3657619f9133` (hi@willgibs.com,
+**Handoff across accounts** (2026-10-03 11:52Z: this account's weekly at 100%, the auto-kill at hand: respawn from here; memory 55% free after a 09:30Z squeeze; Will's rule: watch from 96%, refresh this block often from 98%). The Orchestrator session is `2ba90542-62d6-487c-8c79-3657619f9133` (hi@willgibs.com,
 seated 2026-10-01 18:08Z; its weekly resets Tuesday 2026-10-06 21:00Z, willg97's Sunday 2026-10-04 13:00Z; Will hands
 off only when one maxes its weekly limit). willg97's `157caa18` stays idle and `b01c012e` stays retired. From another
 session, respawn each running lane per the runbook's "Resume a lane": kill by port any dev server left on 3131 to 3136
