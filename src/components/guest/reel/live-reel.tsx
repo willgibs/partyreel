@@ -63,7 +63,11 @@ import type { ClipResolver } from "@/lib/album/resolver";
 import { liveReelAvailable } from "@/lib/events/gallery-reel";
 import { setReelDefaults } from "@/lib/reel/defaults-action";
 import { stillUrlFor, type LiveMediaItem } from "@/lib/reel/live/items";
-import { useReelParam, type ReelMode } from "@/lib/guest/reel-url";
+import {
+  reelOfAddress,
+  useReelParam,
+  type ReelMode,
+} from "@/lib/guest/reel-url";
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
 
 import { REEL_CREATOR } from "./creator-seam";
@@ -207,6 +211,13 @@ export function LiveReel({
   // door. `viewAsked` is the address's own word (`?reel` stands), which drops the moment the reel is
   // closed or turns out not to play, so the page's curtain for an owner arriving from her hub
   // stands exactly as long as the view is on its way or open.
+  //
+  // ★ AND THE WORD IS READ WHEN IT IS TOLD, NEVER COPIED FROM THIS RENDER (crumbs-52, red-team 43's second
+  // MEDIUM). An album that mounts in the commit of a soft navigation renders against the page it is leaving
+  // (`reel-url.ts`'s header: Next writes the new address in that commit), so this render's `mode` said "no
+  // `?reel`" while the address, by the time this effect ran, already did; told as it was, the page took it for
+  // "the address stopped asking" and let its curtain go in the same task, and the album painted bare for the
+  // 0.3 to 1 s before the view. `mode` is here only to run the effect again when the address moves.
   const stills = useCoverStills(live, playable, eventId, available);
   const viewAsked = mode !== null;
   useEffect(() => {
@@ -218,7 +229,7 @@ export function LiveReel({
         available,
         open: () => open("hand"),
         preload: preloadView,
-        viewAsked,
+        viewAsked: reelOfAddress() !== null,
       },
     });
   }, [

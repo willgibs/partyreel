@@ -1294,12 +1294,15 @@ The view that is also the wall, the approval toast and the creator's seam are [r
 owes the reel: the gallery payload carries its facts (the one live source, above), the reel lives in the head (the
 cover's stills and its round, and the shutter's twin, told through the head's bridge: no tile stands above the
 album, and the creator's door is the view's Make your own), and the welcome comes before any reel, `?reel=screen`
-included. ★ **The owner arriving on `?reel` meets the reel, never her album**: the hub's Reel card opens
-`/e/<token>?reel`, and the view is a lazy chunk that opens after hydration, so the album painted first and flashed
-under it. The page's server knows the owner asked (`reelAsked`: she never owes the door, where a guest's welcome comes
-first), so the view's own black stands from the first byte (`data-reel-curtain`) and the view opens over it; the
-curtain goes the moment the address stops asking (the view closed, or the reel turned out not to play) and never
-comes back for that visit.
+included. ★ **The owner arriving on `?reel` meets the reel, never her album**: the hub's Reel card is a `<Link>` to
+`/e/<token>?reel` (a soft navigation, kept one), and the view is a lazy chunk that opens after the page mounts, so the
+album painted first and flashed under it. The page's server knows the owner asked (`reelAsked`: she never owes the
+door, where a guest's welcome comes first), so the view's own black stands from the first byte of a hard load and the
+first commit of a soft one (`data-reel-curtain`) and the view opens over it; the curtain goes the moment the address
+stops asking (the view closed, or the reel turned out not to play) and never comes back for that visit. It stands on
+the album's word to the head, which is the address as it stands when told ([reel.md](reel.md)'s address: a soft
+navigation's first render reads the address it left, and a copied "absent" took the black away in the task it was
+drawn in); `event-experience.curtain.test.tsx` pins both orders.
 
 ## See also
 

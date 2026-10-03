@@ -93,7 +93,11 @@ The reel stores nothing, so the server says only WHETHER a viewer's album has on
   deep link REPLACES the address, so closing never leaves the page. Whose entry it is stands on `lib/history-entry.ts`
   (shared with the hub's sheets and a phone's popups): a `router.refresh()` takes the marker off, so the page keeps its
   own word and gives the entry its marker back, and a close after a refresh or a reload still goes Back, once, however
-  many times the X is tapped. Only the `reel` segment is touched, never a re-serialised query.
+  many times the X is tapped. Only the `reel` segment is touched, never a re-serialised query. ★ A page that
+  arrives by a soft navigation (the hub's Reel card is a `<Link>`) RENDERS against the address it is leaving, since Next
+  writes the new one in that commit: `useReelParam().mode` is right a pass late there, so what is told to another
+  component or acted on for good reads `reelOfAddress()` when it acts, never a render's copy (the album's word to the
+  head, `viewAsked`, is the one that matters: the owner's curtain stands on it).
   - **The chrome**: a slim glass bar at rest (play and progress) that pointer movement, or a tap on touch, grows into
     the dock (a `clip-path` morph, [`live-reel.css`](../../src/components/guest/reel/live-reel.css), instant under
     reduced motion); a resting pointer settles it back (2.4 s; 4.2 s after a touch). Every control has a tooltip.

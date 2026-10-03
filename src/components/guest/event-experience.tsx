@@ -685,7 +685,12 @@ export function EventExperience({
      owes the door, with `?reel` in the address), so the view's own black stands from the first byte and
      the view opens over it. The curtain goes the moment the address stops asking (the view closed, or
      the reel turned out not to play and the album dropped `?reel`), and never comes back: a reel she
-     opens later from the cover opens over the album, as it should. */
+     opens later from the cover opens over the album, as it should.
+     ★ THE HUB'S REEL CARD IS A `<Link>`, A SOFT NAVIGATION, AND THE BLACK STANDS THROUGH IT TOO (crumbs-52,
+     red-team 43): the album mounts in the commit that writes `?reel` to the address, so its first render
+     reads the address it left. The line below drops the curtain on the album's word alone, so that word is the
+     address read when it is told (`live-reel.tsx`), never a render's copy: a copied "absent" let the curtain
+     go in the very task it was drawn in. */
   const [curtainDown, setCurtainDown] = useState(!reelAsked);
   if (!curtainDown && head && !head.reel.viewAsked) setCurtainDown(true);
   const reelCurtain = !curtainDown;
