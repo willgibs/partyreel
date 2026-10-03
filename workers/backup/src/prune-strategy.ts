@@ -31,10 +31,11 @@ export const PRUNE_RUN_DEADLINE_MS = 12 * 60 * 1000;
 export const PRUNE_SUBREQUEST_BUDGET = 95_000;
 
 // The most media one run deletes: the delete set is held in memory until the hold has judged it (an isolate has
-// 128 MB; 30,000 media is about 90,000 keys, some 10 MB), and its HEADs are the run's longest step (six in flight,
-// about 75 seconds at R2's latency). About 120 GB of photographs a run: a 100 GB plan re-filled three times a
-// month deletes about 19,000 media a week (PRICING.md, "Re-uploading"). Past it, the run stops with a counted
-// `remaining` and the next run carries on. The name is the one the app's confirm route and breaker cite.
+// 128 MB; 30,000 media is about 90,000 keys, some 10 MB), and its HEADs are the run's longest step (six in flight:
+// at 20 ms an R2 call from inside Cloudflare, about five minutes for a full cap; the deadline stops it either way).
+// About 120 GB of photographs at 4 MB each: a 100 GB plan re-filled three times a month deletes about 19,000 a
+// week (PRICING.md, "Re-uploading"). Past it the run stops with a counted `remaining` and the next run carries
+// on. The name is the one the app's confirm route and breaker cite.
 export const PRUNE_DELETE_CAP_PER_RUN = 30_000;
 
 // Ids a confirm call carries: the app's confirm route refuses more than MAX_ROWS (1,000) in one body.

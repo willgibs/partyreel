@@ -156,7 +156,7 @@ const STOP_WORDS: Record<Stop, string> = {
 type Candidate = {
   mediaId: string;
   keys: string[];
-  /** The listing position before the page that held its first key: where a run that did not reach it resumes. */
+  /** The key listed just before its first key: where a run that did not reach it resumes (null is the head). */
   from: string | null;
 };
 
@@ -408,9 +408,13 @@ export async function runPrune(
         stop = "subrequests";
         break;
       }
-      const from = position;
+      // `previous` walks one key behind: a candidate resumes right after the key listed before its first one,
+      // since everything up to there is settled (dismissed, or a candidate judged before it).
+      let previous = position;
       for (const obj of page.objects) {
         tally.scanned += 1;
+        const before = previous;
+        previous = obj.key;
         const mediaId = parseMediaIdFromKey(obj.key);
         if (!mediaId) continue; // not our layout: never a candidate
         if (!isPrunableAge(obj.uploaded, input.startedAtMs)) continue; // inside the lock
@@ -418,7 +422,7 @@ export async function runPrune(
         tally.absent += 1;
         const known = pending.get(mediaId);
         if (known) known.keys.push(obj.key);
-        else pending.set(mediaId, { mediaId, keys: [obj.key], from });
+        else pending.set(mediaId, { mediaId, keys: [obj.key], from: before });
       }
       position = last;
       await flush(false);
@@ -520,7 +524,7 @@ export async function runPrune(
   if (stop) counts.stopped_early = true;
   if (tally.absent > 0) counts.absent_from_primary = tally.absent;
   if (tally.primaryMissing > 0) counts.primary_missing = tally.primaryMissing;
-  if (tally.keptOnHead > 0) counts.kept_on_head = tally.keptOnHead;
+  if (tally.keptOnHead > 0) counts.kept_on_recheck = tally.keptOnHead;
   if (tally.checksFailed > 0) counts.checks_failed = tally.checksFailed;
   if (!live && decision.verdict === "hold") {
     counts.would_hold = true;

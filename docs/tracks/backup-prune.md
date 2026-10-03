@@ -54,15 +54,51 @@ limits), its ledger (`prune-ledger.ts`: cursor, the last runs, the hold) in a Du
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each built as recommended; each Will's to overrule. None is a one-way door: the prune ships dry.
+
+1. **What sizes the clamp to the deletions?** Built: a hold. A run whose backlog passes ten times the usual (the
+   median of its last eight runs, dry ones included, never under 2,000 media) deletes nothing, reads "Needs a look",
+   and goes ahead on the first run six days later unless paused on `/admin/jobs`. Why: a fixed number either throttles
+   real churn (the old 500 a week, against about 19,000 a week for one 100 GB plan re-filled three times a month) or
+   lets a disaster (rows and objects deleted together, where every existence check agrees) through whole. The other
+   real option: every delete waits for a second sighting a run later, volume-blind but keeping every purged byte a
+   week longer (PRICING's 43 days become about 50). His: the 10x, the 2,000, the six days, and whether a hold should
+   ever release itself (the alternative waits for a person, which needs an `/admin` release control).
+2. **Where does the prune remember where it stopped?** Built: a SQLite Durable Object the Worker's own deploy creates
+   (`PruneState`), holding the cursor, the last runs and the hold. The other option is `job_runs`, through
+   `/api/internal/job-run`, whose start answers no state today: two app files outside this lane, and a cursor saved
+   only at a run's end. Recommended: the Durable Object.
+3. **Primary first?** Built: a run lists the primary over each backup page's key range and asks the app only about
+   keys the primary lacks; the old order sent every age-eligible id every week, the whole live set at scale.
+   Recommended: as built.
+4. **Weekly still?** Built: weekly (PRICING's 43 days rest on it), a run bounded by its deadline (12 of the cron's 15
+   minutes), its subrequest budget and a 30,000-media delete cap. Past what one run reaches, the card reads stopped
+   early every week, and a daily cadence is a three-line catalog change. Recommended: weekly now.
+5. **A ledger the Worker cannot read?** Built: that run goes dry and saves nothing (a doubt about whether a hold
+   stands); one that reads back damaged is repaired to the safe defaults (the head, the floor, no hold) and closes as
+   an error. Recommended: as built.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/durability-backups.md` (owned): "The deletion-aware prune" (three readings, a doubt deletes nothing,
+  the hold, the cursor and the budget), Restore (pause the prune first), Cost & scaling (the merge's cost; the orphan
+  sweep resumes, the reconcile still restarts).
+- `docs/systems/lifecycle-recovery.md` (a `reads` doc, one sentence): the orphan sweep's own line, false since this
+  lane, now says it rotates by position. The orphan sweep is this lane's code; its fact lives there.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- QA hardening: #38 (the orphan sweep's cursor) is done; #37, the reconcile's, remains, and it can take the prune's
+  merge (both buckets listed over one range, no HEAD per object) and ledger.
+- Admin portal: when the Worker reports a held prune (`breaker_tripped` on `backup_prune`), `/api/internal/job-run`
+  raises a Sentry warning and the operator email the way it raises the dead letters; and an `/admin` release control
+  if Will wants a hold to wait for a person.
+- Admin portal: the prune's `primary_missing` (keys whose row lives while the primary lost the object, the backup the
+  only copy) as a durability alert with a restore path, beside the dead letters.
+- The scale line ("the prune and reconcile bucket scans move to a merge-join..."): the prune is the merge-join now;
+  only the reconcile's scan is left.
+- Launch checkpoint, the `PRUNE_MODE=live` line: the first live run after the test-data reset holds for a week (its
+  backlog passes the hold), as designed.
 
 ## Handoff (replaces the chat report)
 

@@ -366,6 +366,52 @@ describe("fails closed: a doubt deletes nothing", () => {
   });
 });
 
+describe("the merge", () => {
+  it("reads the primary over a backup page's whole range, however many of its pages that takes", async () => {
+    const w = makeWorld();
+    for (let i = 1; i <= 30; i++) addLive(w, uuid(i));
+    // The primary also holds objects the backup has not copied yet, interleaved through the range.
+    for (let i = 1; i <= 30; i++) {
+      const k = key(uuid(i), "phone.jpg");
+      w.primary.objects.set(k, { key: k, uploaded: OLD });
+    }
+    const gone = addGone(w, uuid(31));
+    w.primary.pageCap = 7; // the range now spans many primary pages
+    w.backup.pageCap = 25;
+    const result = await run(w);
+    expect(deletedKeys(w.backup).sort()).toEqual([...gone].sort());
+    expect(w.confirmCalls.flat()).toEqual([uuid(31)]);
+    expect(result.counts.absent_from_primary).toBe(2);
+  });
+
+  it("deletes nothing when the backup's listing comes back empty but unfinished", async () => {
+    const w = makeWorld();
+    addLive(w, uuid(1));
+    addGone(w, uuid(2));
+    w.ports.backup.list = async () => ({ objects: [], truncated: true });
+    const result = await run(w);
+    expect(result.status).toBe("error");
+    expect(result.ledger).toBeNull();
+    expect(deletedKeys(w.backup)).toEqual([]);
+  });
+
+  it("deletes nothing when the primary's listing does not move forward", async () => {
+    const w = makeWorld();
+    for (let i = 1; i <= 10; i++) addLive(w, uuid(i));
+    addGone(w, uuid(11));
+    w.primary.pageCap = 2;
+    const real = w.ports.primary.list;
+    let calls = 0;
+    w.ports.primary.list = async (o) =>
+      // The probe, then a listing that answers its first page whatever it is asked.
+      ++calls === 1 ? real(o) : real({ ...o, startAfter: undefined });
+    const result = await run(w);
+    expect(result.status).toBe("error");
+    expect(result.note).toMatch(/primary's listing did not move forward/);
+    expect(deletedKeys(w.backup)).toEqual([]);
+  });
+});
+
 describe("the cursor", () => {
   it("carries on where the last run stopped, never from the head", async () => {
     const w = makeWorld();
@@ -438,10 +484,8 @@ describe("caps sized to the deletions", () => {
     expect(deletedKeys(w.backup).length).toBe(20);
     expect(first.counts.stopped_early).toBe(true);
     expect(first.counts.remaining).toBeGreaterThan(0);
-    // Nothing it left is past its cursor: the next run starts at or before the first item it did not reach (here
-    // the head, since all of it was on the first page).
-    const resumeAt = first.ledger!.cursor;
-    expect(resumeAt === null || resumeAt < key(uuid(12))).toBe(true);
+    // The next run starts right after the last key settled: just before the first item it did not reach.
+    expect(first.ledger!.cursor).toBe(key(uuid(11), "preview.webp"));
     expect(first.counts.pass_complete).toBe(false);
     const second = await run(w, {
       ledger: first.ledger!,

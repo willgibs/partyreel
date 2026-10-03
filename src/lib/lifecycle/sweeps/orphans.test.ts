@@ -243,6 +243,17 @@ describe("the orphan sweep's cursor", () => {
     expect(state.listCalls[0].startAfter).toBe(position);
   });
 
+  it("hands the next run the head when its cursor is past the end of the bucket", async () => {
+    const world = fixture();
+    const tally = await sweepOrphans(world.client, NOW, {
+      resumeAfter: "events/zzzzzzzz",
+    });
+    expect(tally.scanned_pages).toBe(1);
+    expect(tally.objects_scanned).toBe(0);
+    expect(tally.resume_after).toBeNull();
+    expect(tally.stopped_early).toBeUndefined();
+  });
+
   it("reads its own cursor from the purge's last run when the route passes none", async () => {
     const world = fixture([
       purgeRun(60 * 24, {
