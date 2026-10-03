@@ -64,6 +64,38 @@ describe("defaultDevelopAt: 9 am the day after the party, in her own zone", () =
     }
   });
 
+  it("★ 9 am the morning after the LAST day of a range, whenever she sets it up", () => {
+    const now = new Date(2026, 9, 2, 20, 0);
+    // A weekend ahead: Friday 9 to Sunday 11 develops Monday 12 at 9.
+    const weekend = defaultDevelopAt({
+      eventDate: "2026-10-09",
+      eventEndDate: "2026-10-11",
+      now,
+    });
+    expect([weekend.getMonth(), weekend.getDate(), weekend.getHours()]).toEqual([9, 12, 9]);
+    // Under way: began yesterday, ends Sunday the 4th, so Monday the 5th.
+    const underway = defaultDevelopAt({
+      eventDate: "2026-10-01",
+      eventEndDate: "2026-10-04",
+      now,
+    });
+    expect([underway.getMonth(), underway.getDate(), underway.getHours()]).toEqual([9, 5, 9]);
+    // Over: tomorrow morning, as a past party's is.
+    const over = defaultDevelopAt({
+      eventDate: "2026-09-20",
+      eventEndDate: "2026-09-22",
+      now,
+    });
+    expect([over.getMonth(), over.getDate()]).toEqual([9, 3]);
+    // An end it cannot stand behind is the one day.
+    const odd = defaultDevelopAt({
+      eventDate: "2026-10-10",
+      eventEndDate: "2026-10-08",
+      now,
+    });
+    expect([odd.getMonth(), odd.getDate()]).toEqual([9, 11]);
+  });
+
   it("crosses a month's end", () => {
     const at = defaultDevelopAt({ eventDate: "2026-10-31", now: new Date(2026, 9, 2) });
     expect([at.getMonth(), at.getDate()]).toEqual([10, 1]);

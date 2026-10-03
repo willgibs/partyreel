@@ -83,6 +83,43 @@ describe("the words over the name", () => {
   });
 });
 
+describe("the words over a range of days", () => {
+  it("★ says live today on any day of it, and tonight from the evening of each", () => {
+    const weekend = homeEvent({ date: "2026-10-01", endDate: "2026-10-03" });
+    expect(words(weekend).word).toBe("Today");
+    expect(words(weekend, evening)).toEqual({
+      word: "Live tonight",
+      live: true,
+      pulse: null,
+    });
+    expect(
+      words({ ...weekend, arrivals: { today: 12, lastHour: 3 } }),
+    ).toEqual({ word: "Live today", live: true, pulse: 3 });
+  });
+
+  it("counts down to its first day, and dates its past from its last", () => {
+    expect(
+      words(homeEvent({ date: "2026-10-03", endDate: "2026-10-05" })).word,
+    ).toBe("Tomorrow");
+    expect(
+      words(homeEvent({ date: "2026-10-14", endDate: "2026-10-16" })).word,
+    ).toBe("In 12 days");
+    // Began on Monday, ended yesterday: the stage says when it ended.
+    expect(
+      words(homeEvent({ date: "2026-09-28", endDate: "2026-10-01" })).word,
+    ).toBe("Yesterday");
+  });
+
+  it("dates the line under the name as the whole range", () => {
+    expect(
+      stageDateLine(
+        homeEvent({ date: "2026-10-02", endDate: "2026-10-04" }),
+        FRIDAY,
+      ),
+    ).toBe("Friday, October 2 to Sunday, October 4");
+  });
+});
+
 describe("the numbers that move", () => {
   it("count the album, never as photos, with who came and who waits", () => {
     const e = homeEvent({

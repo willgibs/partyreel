@@ -178,6 +178,54 @@ describe("a planner's week", () => {
   });
 });
 
+describe("a range of days on the page", () => {
+  const events = [
+    hostedEvent({ id: "tonight", date: FRIDAY, approved: 40 }),
+    // A conference on its middle day, a weekend wedding ahead in the week, and a trip just past.
+    hostedEvent({ id: "conference", date: "2026-10-01", endDate: "2026-10-03" }),
+    hostedEvent({ id: "wedding", date: "2026-10-04", endDate: "2026-10-06" }),
+    hostedEvent({
+      id: "trip",
+      date: "2026-09-10",
+      endDate: "2026-09-27",
+      approved: 212,
+    }),
+  ];
+  const view = build(events, {
+    deleted: [
+      {
+        ...binned,
+        date: "2026-08-01",
+        endDate: "2026-08-03",
+        dateLabel: "August 1 to 3, 2026",
+      },
+    ],
+  });
+
+  it("★ says a range in the week by where it stands: its day of its days, its weekdays ahead, its dates behind", () => {
+    expect(view.week.map((c) => [c.id, c.when, c.live])).toEqual([
+      ["conference", "Day 2 of 3", true],
+      ["wedding", "Sun to Tue", false],
+      ["trip", "Sep 10 to 27", false],
+    ]);
+    // A range's face is its first day, as an invitation sets it.
+    expect(view.week.find((c) => c.id === "wedding")?.face).toEqual({
+      weekday: "Sun",
+      month: "Oct",
+      day: "4",
+    });
+  });
+
+  it("says it on the tiles and on the bin's rows", () => {
+    expect(view.events.rows.find((r) => r.id === "conference")?.when).toBe(
+      "Day 2 of 3",
+    );
+    expect(view.events.rows.find((r) => r.id === "d1")?.when).toBe(
+      "Aug 1 to 3",
+    );
+  });
+});
+
 describe("an account with no hosted event", () => {
   it("has no stage, and its events are its own", () => {
     const view = build([], { guests: [guest()] });

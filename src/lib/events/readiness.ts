@@ -5,6 +5,7 @@ import {
   SETTINGS_GROUP_TITLES,
   type SettingsGroup,
 } from "@/lib/events/guest-experience-summary";
+import { lastDayOf } from "@/lib/events/dates";
 import { DOOR_STEP_LINES, GATE_LINES } from "@/lib/events/visibility-labels";
 import { formatCount } from "@/lib/format/count";
 import { formatEventDate } from "@/lib/utils";
@@ -53,8 +54,10 @@ export type ReadyFacts = {
   showReel: boolean;
   /** The platform lever (`ops_flags.live_reel_enabled`). */
   liveReelEnabled: boolean;
-  /** `YYYY-MM-DD`, or null. */
+  /** `YYYY-MM-DD`, or null: a range's first day. */
   eventDate: string | null;
+  /** The last day of a range (`YYYY-MM-DD`), or null; absent reads as one day. */
+  eventEndDate?: string | null;
   description: string | null;
   /** Visits to the event's link, the host's own included. */
   opened: number;
@@ -207,7 +210,7 @@ function welcomeItem(f: ReadyFacts): ReadyItem {
   const date = Boolean(f.eventDate);
   const done = note && date;
   const line = done
-    ? `${formatEventDate(f.eventDate!)}, and a note guests read first.`
+    ? `${formatEventDate(f.eventDate!, f.eventEndDate)}, and a note guests read first.`
     : !note && !date
       ? "The date under the name, and a note guests read first."
       : !note
@@ -384,14 +387,18 @@ export function stepWants(
 /**
  * ★ BEFORE GUESTS ARRIVE IS MOOT ONCE THEY HAVE: the checklist steps aside from the day after the event's
  * date, done or not (an album a host pauses once the party is over, as the help advises, is finished, not
- * unready). An undated event keeps it until it is done. `today` is the viewer's calendar day
- * (`viewer-day.ts`), both as `YYYY-MM-DD`, so the comparison is the strings'.
+ * unready), and from the day after a range's LAST day (lane `event-dates`: a weekend's checklist stands
+ * through its Sunday). An undated event keeps it until it is done. `today` is the viewer's calendar day
+ * (`viewer-day.ts`), every day a `YYYY-MM-DD`, so the comparison is the strings'. It only hides a list:
+ * nothing about the event changes on its last day.
  */
 export function checklistOver(
   eventDate: string | null,
   today: string,
+  eventEndDate?: string | null,
 ): boolean {
-  return eventDate !== null && eventDate < today;
+  const last = lastDayOf(eventDate, eventEndDate);
+  return last !== null && last < today;
 }
 
 /**
@@ -406,6 +413,7 @@ export function newEventFacts(
     visibility: string;
     accepting_uploads: boolean;
     event_date?: string | null;
+    event_end_date?: string | null;
     description?: string | null;
   },
   /** The account's storage used (`storageUsedPct`), 0 where nobody read it. */
@@ -427,6 +435,7 @@ export function newEventFacts(
     showReel: true,
     liveReelEnabled: true,
     eventDate: created.event_date || null,
+    eventEndDate: created.event_end_date || null,
     description: created.description || null,
     opened: 0,
     storagePct,

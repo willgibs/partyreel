@@ -131,43 +131,64 @@ describe("the nearest within the month", () => {
   });
 });
 
-describe("with nothing near", () => {
-  it("is the next one coming, however far", () => {
+describe("with nothing near: lead=made", () => {
+  /**
+   * ★ ON A QUIET DAY THE NEWEST MADE LEADS (Will's lead=made, host-dashboard r2, 2026-10-03: "I think it makes sense
+   * to default to the newest event here, generally expecting a host to continue preparing it"). These two cases are
+   * the retired rule's own (the next party however far, then the latest activity), reshaped on purpose: the far party
+   * and the late upload still stand here, and now the event she made last leads past both.
+   */
+  it("★ is the newest made, ahead of the next party however far", () => {
     const events = [
       homeEvent({
         id: "june",
         date: "2026-06-01",
         approved: 300,
         lastArrival: landed("2026-06-01"),
+        createdAt: "2026-05-01T00:00:00Z",
       }),
-      homeEvent({ id: "december", date: "2026-12-31" }),
-      homeEvent({ id: "march", date: "2027-03-01" }),
+      homeEvent({
+        id: "december",
+        date: "2026-12-31",
+        createdAt: "2026-08-01T00:00:00Z",
+      }),
+      homeEvent({
+        id: "launch",
+        createdAt: "2026-09-27T00:00:00Z",
+      }),
+      homeEvent({
+        id: "march",
+        date: "2027-03-01",
+        createdAt: "2026-07-01T00:00:00Z",
+      }),
     ];
     expect(momentEvent(events, FRIDAY)).toMatchObject({
-      event: { id: "december" },
+      event: { id: "launch" },
       phase: "before",
     });
   });
 
-  it("★ is the latest activity when none is dated or near (the working rule his r2 decides)", () => {
+  it("★ is the newest made, ahead of the album a photograph last landed in", () => {
     const events = [
       homeEvent({
         id: "spring",
         date: "2026-04-01",
         approved: 90,
         lastArrival: landed("2026-04-02"),
+        createdAt: "2026-03-01T00:00:00Z",
       }),
       homeEvent({
         id: "late-upload",
         date: "2025-12-31",
         approved: 500,
         lastArrival: landed("2026-07-14"),
+        createdAt: "2025-12-01T00:00:00Z",
       }),
-      homeEvent({ id: "undated-empty" }),
+      homeEvent({ id: "undated-empty", createdAt: "2026-09-29T00:00:00Z" }),
     ];
     expect(momentEvent(events, FRIDAY)).toMatchObject({
-      event: { id: "late-upload" },
-      phase: "past",
+      event: { id: "undated-empty" },
+      phase: "before",
     });
   });
 
@@ -180,6 +201,48 @@ describe("with nothing near", () => {
     expect(momentEvent(events, FRIDAY)).toMatchObject({
       event: { id: "newest" },
       phase: "before",
+    });
+  });
+
+  it("never outranks a party on its day or within the month: time decides whenever it can", () => {
+    const events = [
+      homeEvent({ id: "made-today", createdAt: "2026-10-02T09:00:00Z" }),
+      homeEvent({
+        id: "three-weeks",
+        date: "2026-10-23",
+        createdAt: "2026-06-01T00:00:00Z",
+      }),
+    ];
+    expect(momentEvent(events, FRIDAY)?.event.id).toBe("three-weeks");
+  });
+});
+
+describe("a range of days", () => {
+  it("★ leads on any day of it, as the one on its day", () => {
+    const events = [
+      homeEvent({ id: "tomorrow", date: "2026-10-03" }),
+      homeEvent({
+        id: "weekend",
+        date: "2026-10-01",
+        endDate: "2026-10-03",
+        createdAt: "2026-01-01T00:00:00Z",
+      }),
+    ];
+    expect(momentEvent(events, FRIDAY)).toMatchObject({
+      event: { id: "weekend" },
+      phase: "live",
+    });
+  });
+
+  it("weighs from its last day once it is over: a weekend just ended beats a party two days out", () => {
+    const events = [
+      homeEvent({ id: "sunday", date: "2026-10-04" }),
+      homeEvent({ id: "conference", date: "2026-09-28", endDate: "2026-10-01" }),
+    ];
+    // The conference ended yesterday (a day behind weighs 1.5) where its first day was four days back (6).
+    expect(momentEvent(events, FRIDAY)).toMatchObject({
+      event: { id: "conference" },
+      phase: "after",
     });
   });
 });

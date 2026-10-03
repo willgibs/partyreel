@@ -62,6 +62,11 @@ const eventFields = {
   // expire; see tiers.ts anti-abuse note). "" is allowed so a cleared date input
   // round-trips; the mutation normalizes "" → null before it hits the DB.
   event_date: z.union([z.iso.date(), z.literal("")]).optional(),
+  // ★ THE LAST DAY OF A RANGE OF DAYS (lane `event-dates`, 20261003120000), as informational as the date: it says
+  // when the event happens and never ends, locks or purges anything. It travels with its first day (`datesInOrder`
+  // below, the CHECK `events_end_date_on_or_after` the boundary); "" clears it, and the mutation stores a range said
+  // twice as the one day it is.
+  event_end_date: z.union([z.iso.date(), z.literal("")]).optional(),
   // 3-state access (open|password|private), sourced from the generated DB Constants
   // so it stays in lockstep with the Postgres event_visibility enum. 'password' is a
   // valid shape, but the mutation only persists it when a hash already exists — the
@@ -102,19 +107,51 @@ const eventFields = {
   qr_style: z.enum(QR_STYLE_KEYS),
 };
 
+/** The refusals of a range in words, said on its last day where the field sits. */
+export const LAST_DAY_BEFORE_FIRST = "The last day can't be before the first.";
+export const LAST_DAY_WITHOUT_FIRST = "Set the first day before the last.";
+
+/**
+ * ★ AN END TRAVELS WITH ITS START, AND NEVER BEFORE IT. A save or a create that names a last day names its first
+ * beside it (Settings sends the two together), so the order is checked here, in words, before the database's CHECK
+ * (`events_end_date_on_or_after`) would refuse it; a cleared last day ("") asks nothing. Applied after the object
+ * is whole (and after the update's `.partial()`): zod 4 refuses to pick, omit or partial a refined object.
+ */
+function datesInOrder(
+  v: { event_date?: string; event_end_date?: string },
+  ctx: z.RefinementCtx,
+) {
+  if (!v.event_end_date) return;
+  if (!v.event_date) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["event_end_date"],
+      message: LAST_DAY_WITHOUT_FIRST,
+    });
+  } else if (v.event_end_date < v.event_date) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["event_end_date"],
+      message: LAST_DAY_BEFORE_FIRST,
+    });
+  }
+}
+
 /**
  * A CREATE: the fields, with the defaults a new event needs (each mirrors its column default), so
  * a create that names only the event lands every setting a host who never touched one gets.
  */
-export const createEventSchema = z.object({
-  ...eventFields,
-  visibility: eventFields.visibility.default("open"),
-  accepting_uploads: eventFields.accepting_uploads.default(true),
-  require_verified_email: eventFields.require_verified_email.default(true),
-  require_upload_to_view: eventFields.require_upload_to_view.default(false),
-  moderation_mode: eventFields.moderation_mode.default("live"),
-  qr_style: eventFields.qr_style.default("classic"),
-});
+export const createEventSchema = z
+  .object({
+    ...eventFields,
+    visibility: eventFields.visibility.default("open"),
+    accepting_uploads: eventFields.accepting_uploads.default(true),
+    require_verified_email: eventFields.require_verified_email.default(true),
+    require_upload_to_view: eventFields.require_upload_to_view.default(false),
+    moderation_mode: eventFields.moderation_mode.default("live"),
+    qr_style: eventFields.qr_style.default("classic"),
+  })
+  .superRefine(datesInOrder);
 
 // The reel's event-wide defaults (Will, reel-host `style=both`): what every viewer STARTS on, each
 // viewer's own change staying on their device. Update-only (see the header).
@@ -171,7 +208,8 @@ const developFields = {
  */
 export const updateEventSchema = z
   .object({ ...eventFields, ...reelFields, ...videoFields, ...developFields })
-  .partial();
+  .partial()
+  .superRefine(datesInOrder);
 
 /**
  * `setReelDefaults`' input (lib/reel/defaults-action.ts), the one write both the view's "Set for
