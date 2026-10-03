@@ -61,6 +61,7 @@ export function ShutDoor({
   signedIn,
   returnTo,
   ask = null,
+  phase,
 }: {
   previous: boolean;
   signedIn: boolean;
@@ -68,10 +69,12 @@ export function ShutDoor({
   returnTo: string;
   /** The unlisted reader's foot: the album to ask at, and the host she asks. */
   ask?: { qrToken: string; hostName: string | null } | null;
+  /** Where on the wheel the light under the door starts its turn (the page draws one per visit). */
+  phase?: number;
 }) {
   const copy = shutDoorCopy(previous);
   return (
-    <DoorColumn doorway={<Doorway state="shut" />}>
+    <DoorColumn doorway={<Doorway state="shut" phase={phase} />}>
       <DoorWords title={copy.title} titleAs="h1" lines={[copy.description]} />
       <div data-door-foot="" className={DOOR_FOOT}>
         {ask ? (

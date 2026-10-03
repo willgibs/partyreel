@@ -1,6 +1,7 @@
 import { Suspense, use, type ReactNode } from "react";
 import { act, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { uploadsWait } from "@/lib/guest/upload-tracker";
 
 import type { HeadBridge } from "@/components/guest/event-experience-head";
 import { useCoverUnderHeader } from "@/components/guest/guest-header-cover";
@@ -186,6 +187,7 @@ async function page(
             canDeleteIds={[]}
             isAuthed={false}
             reelAsked={over.reelAsked}
+            uploadsWait={uploadsWait(event)}
           />
         </Suspense>
       </TooltipProvider>,

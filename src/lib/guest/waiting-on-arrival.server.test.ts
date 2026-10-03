@@ -60,6 +60,16 @@ describe("hasWaitingUploads", () => {
     ).resolves.toBe(false);
   });
 
+  it("★ a shot sealed until the album develops waits too: approved, and in nobody's album yet (red-team 43)", async () => {
+    readOwnUploads.mockResolvedValue({
+      items: [{ id: "m1", status: "approved", sealed: true }],
+      news: [],
+    });
+    await expect(
+      hasWaitingUploads({ eventId: EVENT, userId: null, ticket: TICKET }),
+    ).resolves.toBe(true);
+  });
+
   it("a ticket that is not hers is set aside for a signed-in viewer, whose account's rows still count", async () => {
     sortTickets.mockResolvedValue({ hers: [], others: [TICKET] });
     readOwnUploads.mockResolvedValue({

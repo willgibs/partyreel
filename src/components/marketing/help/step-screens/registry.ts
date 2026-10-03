@@ -27,7 +27,7 @@ export const PHONE_SCREENS = {
   "door-chooser":
     "How do you want to join? Continue as guest, Create account or Log in",
   "door-name": "What should we call you?, with the optional email",
-  "door-email": "Almost in: your name and email, and Email me a code",
+  "door-email": "Almost in: your email, and Email me a code",
   "door-code": "Check your email, six boxes for the code",
   "door-code-address": "The code screen, the address it went to picked out",
   "door-code-resend": "The code screen counting down to Resend code",

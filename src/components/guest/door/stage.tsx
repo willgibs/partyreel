@@ -11,7 +11,6 @@ import {
 } from "react";
 import type { LucideIcon } from "lucide-react";
 
-import { useDoorView } from "@/components/guest/door/album-view";
 import {
   DOOR_MAIN,
   DoorColumn,
@@ -31,15 +30,24 @@ import { cn } from "@/lib/utils";
  * (`e/[token]/not-found.screen.tsx`).
  *
  * ★ IT STANDS OVER THE ALBUM, NEVER IN PLACE OF IT. The album keeps its layout under the stage (the
- * light's sample and the reveal's choreography both read it), and the page holds to one screen while the
- * stage is open (`doorway.css`), so nothing scrolls past the door; the album under it is `inert` (the
- * page's to set). At a gate it stands over its own server-drawn twin (`at="gate"`): the door and the
- * album's name in the same place from the first paint, so the stage arrives with no fade and only its
- * words rise.
+ * light's sample and the walk's landing both read it), and the page holds to one screen while the stage
+ * is open (`doorway.css`), so nothing scrolls past the door; the album under it is `inert` (the page's to
+ * set).
+ *
+ * ★ THE FIRST BYTE IS THE DOOR (door-reveal; Will's rule: "the album is never visible before any door/gate
+ * that should be encountered first"). The page decides on the server what a newcomer meets first
+ * (`entry-steps.ts`'s `doorArrival`), and the stage is in that very HTML (`first`): opaque from the first
+ * frame, with no fade of its own, its words rising and its door swinging as it lands. Every gate's door
+ * stands the same way.
+ *
+ * ★ THE WALK THROUGH (`locked-door` r3, `reveal=through`): where the door opens onto the album (a Public
+ * album's Continue, the moment she is let in), the stage does not fade: the camera walks through the doorway
+ * onto the album's cover (`stage-walk.ts`), and only then goes, in a breath (`walked`).
  *
  * ★ THE ITINERARY'S OTHER STEPS STAY IN THE SHEET (the password, the chooser, the name, the email, the
  * upload, the keep), rising over the album at a Public album she has walked into, and over the door at
- * a gate she is still outside (`RestWords`): the doorway keeps the state above them.
+ * a gate she is still outside (`RestWords` under it until the sheet rises): the doorway keeps the state
+ * above them.
  */
 
 /**
@@ -55,8 +63,8 @@ export const STAGE_SCRIM =
 export type StageDoor = {
   state: DoorwayState;
   /**
-   * The album's own light and its newest photographs through the opening: only where she may see the
-   * album (a Public album's welcome, the moment she is let in). Otherwise the house five, and nothing.
+   * The album's own light and its cover through the opening: only where she may see the album (a Public
+   * album's welcome, the moment she is let in). Otherwise the house five, and nothing.
    */
   album: boolean;
   /** Where an opening door swings from: the door she waited at swings the rest of the way. */
@@ -71,11 +79,17 @@ export function DoorStage({
   focusKey,
   aside = false,
   modal = true,
+  first = false,
+  view,
+  phase,
+  walk = false,
+  walked = false,
+  stageRef,
   className,
   children,
 }: {
   open: boolean;
-  /** Over a Public album she may see (`album`), or over a gate's own server-drawn door (`gate`). */
+  /** Over a Public album she may see (`album`), or at a gate, with nothing of the album behind it (`gate`). */
   at: "album" | "gate";
   door: StageDoor;
   /** The step's way back (the ask's chevron to the welcome), at the column's top left. */
@@ -93,11 +107,21 @@ export function DoorStage({
   /**
    * ★ THE DOOR HOLDS HER, AS THE SHEET DID (a dialog, modal): the album behind it is `inert`, and every
    * surface that waits for "another layer" before it speaks (`ui/layer-is-up.ts`: the claim's own ask,
-   * the album's keys and address) sees the door as one. False for the page's own server-drawn twin of
-   * a gate's door, which is the page itself before the door's island has arrived.
+   * the album's keys and address) sees the door as one.
    */
   modal?: boolean;
-  /** The stage's layer, for the page's own server-drawn twin of a gate's door (one step below). */
+  /** The page's first byte drew this stage: opaque from the first frame, no fade of its own. */
+  first?: boolean;
+  /** The album's cover, for the open door's opening (`CoverPicture`): only where `door.album`. */
+  view?: ReactNode;
+  /** Where on the wheel the resting light starts its turn (the page draws one per visit). */
+  phase?: number;
+  /** She is walking through the open door (`stage-walk.ts`, run by the door): nothing on it takes a press. */
+  walk?: boolean;
+  /** She walked through: the stage is the album's own picture, and goes in a breath. */
+  walked?: boolean;
+  /** The stage's own box, for the walk through it (`walkThrough`). */
+  stageRef?: (el: HTMLDivElement | null) => void;
   className?: string;
   children: ReactNode;
 }) {
@@ -134,28 +158,42 @@ export function DoorStage({
 
   return (
     <div
-      ref={ref}
+      ref={(el) => {
+        ref.current = el;
+        stageRef?.(el);
+      }}
       data-door-stage=""
       data-state={open ? "open" : "closed"}
       data-door-stage-at={at}
       data-door-stage-aside={aside ? "" : undefined}
+      data-door-stage-first={first ? "" : undefined}
+      data-door-walked={walked ? "" : undefined}
       role={modal && open ? "dialog" : undefined}
       aria-modal={modal && open ? true : undefined}
-      inert={!open || undefined}
+      inert={!open || walk || undefined}
       className={cn(
         "absolute inset-0 overflow-y-auto overscroll-contain bg-background text-foreground",
-        // Over the page's own twin of it, which stands a step below (`EventExperience`'s gate).
+        // Over the album, under the page's own floating layers.
         "z-30",
         className,
       )}
+      style={
+        phase === undefined
+          ? undefined
+          : ({ "--door-phase": phase } as CSSProperties)
+      }
     >
-      <div className={cn(DOOR_MAIN, "min-h-full")}>
+      <div data-door-camera="" className={cn(DOOR_MAIN, "min-h-full")}>
         <div
           data-door-stage-column=""
           className="relative w-full max-w-sm sm:max-w-md"
         >
-          {back && <div className="absolute top-0 left-0 z-10">{back}</div>}
-          <DoorColumn doorway={<StageDoorway door={door} />}>
+          {back && (
+            <div data-door-stage-back="" className="absolute top-0 left-0 z-10">
+              {back}
+            </div>
+          )}
+          <DoorColumn doorway={<StageDoorway door={door} view={view} />}>
             {children}
           </DoorColumn>
         </div>
@@ -164,10 +202,16 @@ export function DoorStage({
   );
 }
 
-/** The stage's doorway: the house five, or the album's own light with the album through the opening. */
-export function StageDoorway({ door }: { door: StageDoor }) {
+/** The stage's doorway: the house five, or the album's own light with its cover through the opening. */
+export function StageDoorway({
+  door,
+  view,
+}: {
+  door: StageDoor;
+  view?: ReactNode;
+}) {
   return door.album ? (
-    <AlbumDoorway door={door} />
+    <AlbumDoorway door={door} view={view} />
   ) : (
     <Doorway state={door.state} from={door.from} />
   );
@@ -175,15 +219,14 @@ export function StageDoorway({ door }: { door: StageDoor }) {
 
 /**
  * THE DOORWAY IN THE ALBUM'S OWN LIGHT: it registers as a lit lamp (`useLampLit`), which is what lets
- * the album spend a sample on its colour, and shows the album's newest previews through the opening
- * (`album-view.ts`): only ever where she may see the album, which the caller answers.
+ * the album spend a sample on its colour, and shows the album's cover through the opening (`view`): only
+ * ever where she may see the album, which the caller answers.
  */
-function AlbumDoorway({ door }: { door: StageDoor }) {
+function AlbumDoorway({ door, view }: { door: StageDoor; view?: ReactNode }) {
   useLampLit();
   const { hues } = useDoorHues();
-  const photos = useDoorView();
   return (
-    <Doorway state={door.state} from={door.from} hues={hues} photos={photos} />
+    <Doorway state={door.state} from={door.from} hues={hues} view={view} />
   );
 }
 
@@ -209,10 +252,9 @@ export function StageGlyph({
 }
 
 /**
- * THE DOOR AT REST, AT A GATE: the album's name and what it holds, under the doorway, while a step of the
- * door's sheet (the password, the email) rises over it, and as the page's first paint before any step
- * has arrived. Today's locked page in the doorway's grammar: the name and the count, nothing else of the
- * album (its host, its date, its photographs) and the house light.
+ * THE DOOR AT REST, AT A GATE: the album's name and what it holds, under the doorway, before a step of the
+ * door's sheet (the password, the email) rises over it. Today's locked page in the doorway's grammar: the
+ * name and the count, nothing else of the album (its host, its date, its photographs) and the house light.
  */
 export function RestWords({
   eventName,
