@@ -48,13 +48,17 @@ describe("the event object hero", () => {
     expect(source).not.toContain("badgeQrCells");
   });
 
-  it("encodes /demo rather than the event link", () => {
+  it("encodes /demo rather than the event link, and its door goes to the event itself", () => {
     // `opens=short` (river-card): 25 modules against 33, so a plate
     // this size stays well above the screen-scanning floor. /demo is a 307 to
     // the configured event.
     expect(source).toContain("`${SITE_URL}/demo`");
     expect(source).not.toContain("DEMO_EVENT_URL}`");
-    expect(source).toContain('href="/demo"');
+    // The door round the code is a `DemoDoor` (crumbs-50: it was a same-tab link to `/demo`) handed
+    // the event's own address, as every other door is: a phone opens it in a new tab one hop sooner,
+    // and the modal a desk's press opens still draws the short code. The short door stays the CODE's.
+    expect(source).toMatch(/<DemoDoor\s[^>]*href=\{DEMO_EVENT_URL\}/);
+    expect(source).not.toContain('href="/demo"');
   });
 
   it("shows no code and no dead link when no demo is configured", () => {
@@ -74,12 +78,13 @@ describe("the event object hero", () => {
   });
 
   it("gives the code an accessible name, and never hides it from a reader", () => {
-    // The drawn parts are aria-hidden; the link is not. A focusable control
+    // The drawn parts are aria-hidden; the door is not. A focusable control
     // inside an aria-hidden subtree is the keyboard trap this refuses.
     expect(source).toContain('aria-label="Open the live demo album"');
-    const linkOpen = source.indexOf("<Link");
-    const beforeLink = source.slice(0, linkOpen);
-    expect(beforeLink).not.toMatch(/aria-hidden[\s\S]{0,200}$/);
+    const doorOpen = source.indexOf("<DemoDoor");
+    expect(doorOpen, "the object's door is not a DemoDoor").toBeGreaterThan(-1);
+    const beforeDoor = source.slice(0, doorOpen);
+    expect(beforeDoor).not.toMatch(/aria-hidden[\s\S]{0,200}$/);
   });
 
   it("knows an object for every type, and takes its stills from events.ts", () => {

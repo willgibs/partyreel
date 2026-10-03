@@ -1,7 +1,7 @@
 import { Container } from "@/components/shared/container";
 import { Logo } from "@/components/shared/logo";
 
-import { ChromeLink as Link } from "./chrome-link";
+import { HomeLink } from "./chrome-link";
 import { HeaderShell } from "./header-shell";
 import { MarketingNavDesktop, type MarketingSkin } from "./marketing-nav";
 import { MarketingNavMobile } from "./mobile-menu";
@@ -36,9 +36,12 @@ export function MarketingHeader({
   return (
     <HeaderShell overlay={overlay}>
       <Container className="flex h-[var(--mkt-header-h,4rem)] items-center justify-between gap-4">
-        <Link href="/" aria-label="Partyreel home" className="shrink-0">
+        {/* The wordmark's door to `/`, drawn by `HomeLink`: it fetches on intent, never on sight (its viewport
+            prefetch put the home's three sheets into every other page, drawn by none), and answers a slow
+            press. */}
+        <HomeLink className="shrink-0">
           <Logo />
-        </Link>
+        </HomeLink>
         {/* Desktop panels render in-flow (no skin prop needed since the
             NavigationMenu flip); the mobile menu still portals and threads
             `skin` for THE PORTAL RULE. */}

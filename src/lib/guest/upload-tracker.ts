@@ -22,6 +22,8 @@
  * ★ A PHOTOGRAPH SHE REMOVED HERSELF IS NOT LISTED: it is hers to forget.
  */
 
+import { developState } from "@/lib/disposable/reveal";
+
 export type TrackerStatus = "sending" | "waiting" | "approved" | "refused";
 
 /**
@@ -50,10 +52,64 @@ export const TRACKER_WORDS: Record<TrackerStatus, string> = {
   refused: "Not approved",
 };
 
+/**
+ * The words a SEALED one wears (red-team 43): on an album with a develop time ahead, what she adds is in nobody's album
+ * until it develops, so hers wait for that, never for a host. One state, one name: her row, the badge's spoken count
+ * and the keep's Sent line (`save-account-prompt.tsx`) all say it.
+ */
+export const TRACKER_SEALED_WORDS = "Waiting to develop";
+
+/**
+ * ★ WHETHER WHAT SHE ADDS WAITS, AND FOR WHAT (red-team 43's MEDIUM: on an album with a develop time ahead, her
+ * shots showed as joined and then vanished, because the page read "delayed" as the host's approval alone). It waits
+ * for the host's approval (`moderation_mode`), or for the album's develop time while it is ahead (`developState`,
+ * the foundation's one reading of `develops_at`: a time reached has developed, and what is added shows at once).
+ * Either way nothing of hers stands in the album yet: her tracker is where it shows, and the keep never says it
+ * joined. `developsAt` is the develop time while it is ahead, the stronger promise and the one said, else null.
+ * Read once by the page's server, on the album's own clock, and handed down.
+ */
+export type UploadsWait = { waits: boolean; developsAt: string | null };
+
+export function uploadsWait(
+  event: { moderation_mode: string; develops_at?: string | null },
+  nowMs: number = Date.now(),
+): UploadsWait {
+  const develop = developState(event.develops_at ?? null, nowMs);
+  const developsAt = develop.kind === "waiting" ? develop.developsAt : null;
+  return {
+    waits: event.moderation_mode === "hold_for_approval" || developsAt !== null,
+    developsAt,
+  };
+}
+
+/** Nothing she adds waits: it is in the album the moment it lands. */
+export const NOTHING_WAITS: UploadsWait = { waits: false, developsAt: null };
+
+// The develop time as a guest reads it, in her own zone (a sheet draws it, after hydration), in the product's
+// pinned language: the host's Settings says it the same way ("Develops Sat, Oct 3, 9:00 AM.").
+const DEVELOPS_AT = new Intl.DateTimeFormat("en-US", {
+  weekday: "short",
+  month: "short",
+  day: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+});
+
+/** "Sat, Oct 3, 9:00 AM", or null for a time it cannot read. */
+export function developTimeWords(
+  iso: string | null | undefined,
+): string | null {
+  if (!iso) return null;
+  const at = new Date(iso);
+  return Number.isFinite(at.getTime()) ? DEVELOPS_AT.format(at) : null;
+}
+
 /** Where one of her rows stands on the server (the wire of `/api/guests/mine`'s `statuses`). */
 export type OwnUploadWire = {
   id: string;
   status: "pending" | "approved" | "refused";
+  /** Approved and sealed until the album develops: in nobody's album yet, hers included. */
+  sealed?: boolean;
 };
 
 /** The slice of a queue item the tracker reads. */
@@ -73,6 +129,8 @@ export type TrackerRow = {
   queueId: string | null;
   kind: "photo" | "video" | null;
   status: TrackerStatus;
+  /** Waiting for the album to develop, never for the host (`TRACKER_SEALED_WORDS`). */
+  sealed?: true;
 };
 
 /**
@@ -87,23 +145,36 @@ export function buildTrackerRows(input: {
   album: ReadonlySet<string>;
   approvedOnce: ReadonlySet<string>;
   removed: ReadonlySet<string>;
+  /**
+   * The album seals what is added until it develops (a develop time ahead, `uploadsWait`): one of this visit's
+   * files the server answered `approved` is sealed until then, before her rows' next read says so.
+   */
+  sealing?: boolean;
 }): TrackerRow[] {
-  const { queue, own, album, approvedOnce, removed } = input;
-  const server = new Map((own ?? []).map((o) => [o.id, o.status]));
+  const { queue, own, album, approvedOnce, removed, sealing = false } = input;
+  const server = new Map((own ?? []).map((o) => [o.id, o]));
   const rows: TrackerRow[] = [];
   const seen = new Set<string>();
 
-  const statusOf = (
+  const placeOf = (
     id: string,
     fallback: OwnUploadWire["status"] | null,
-  ): TrackerStatus => {
+    sealedHere: boolean,
+  ): Pick<TrackerRow, "status" | "sealed"> => {
     // The album is live and her rows' read is a moment old: an id in the album is in it.
-    if (album.has(id)) return "approved";
-    const said = server.get(id) ?? fallback;
+    if (album.has(id)) return { status: "approved" };
+    const wire = server.get(id);
+    const said = wire?.status ?? fallback;
     // Refused on her row, or in the album once and gone from it while still hers.
-    if (said === "refused" || approvedOnce.has(id)) return "refused";
-    if (said === "approved") return "approved";
-    return "waiting";
+    if (said === "refused" || approvedOnce.has(id))
+      return { status: "refused" };
+    // ★ APPROVED AND SEALED IS NOT IN THE ALBUM: it waits for the develop (her rows' read says so, or this visit's
+    // file on an album that seals what is added), and is hers to take back like anything waiting.
+    if (said === "approved" && (wire ? wire.sealed === true : sealedHere)) {
+      return { status: "waiting", sealed: true };
+    }
+    if (said === "approved") return { status: "approved" };
+    return { status: "waiting" };
   };
 
   for (let i = queue.length - 1; i >= 0; i--) {
@@ -133,7 +204,7 @@ export function buildTrackerRows(input: {
       mediaId: id,
       queueId: item.id,
       kind: item.kind,
-      status: statusOf(id, fallback),
+      ...placeOf(id, fallback, sealing),
     });
   }
 
@@ -145,7 +216,7 @@ export function buildTrackerRows(input: {
       mediaId: o.id,
       queueId: null,
       kind: null,
-      status: statusOf(o.id, o.status),
+      ...placeOf(o.id, o.status, false),
     });
   }
   // `never` (see the flag): a refusal is not hers to learn, so it is not listed at all.
@@ -181,19 +252,22 @@ export function newlyInAlbum(input: {
   for (const item of queue) {
     if (item.mediaId) take(item.mediaId, item.mediaStatus === "pending");
   }
-  for (const o of own ?? []) take(o.id, o.status === "pending");
+  // A sealed one turning up in the album has developed: out of waiting, like an approval.
+  for (const o of own ?? [])
+    take(o.id, o.status === "pending" || o.sealed === true);
   return { ids, arrived };
 }
 
-/** The badge's number: her photographs waiting for approval (number only, never "sending"). */
+/** The badge's number: her photographs waiting, for approval or the develop (number only, never "sending"). */
 export function waitingCount(rows: readonly TrackerRow[]): number {
   return rows.filter((r) => r.status === "waiting").length;
 }
 
 /**
- * Whether the tracker shows at all: only where she has something sent at a MODERATED event
- * (everywhere else a sent photograph is simply in the album, and the album already says so), never
- * in the demo (nothing it sends is kept) and never for the host (whose own uploads never wait).
+ * Whether the tracker shows at all: only where she has something sent at an event where what she adds waits
+ * (`moderated`: `uploadsWait`'s `waits`, the host's approval or a develop ahead; everywhere else a sent photograph is
+ * simply in the album, and the album already says so), never in the demo (nothing it sends is kept) and never for
+ * the host (whose own uploads never wait).
  */
 export function trackerShows(input: {
   moderated: boolean;

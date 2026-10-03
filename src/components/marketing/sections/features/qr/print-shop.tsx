@@ -50,10 +50,7 @@ export function PrintShop() {
       >
         <Reveal className="flex flex-col gap-4">
           <Eyebrow {...rise(0)}>Print it</Eyebrow>
-          <h2
-            {...rise(1)}
-            className="font-heading text-section text-balance"
-          >
+          <h2 {...rise(1)} className="font-heading text-section text-balance">
             It was made to be printed.
           </h2>
           <p {...rise(2)} className="text-pretty text-muted-foreground">
@@ -84,7 +81,15 @@ function PrintMocks() {
       {/* The welcome sign: big type first, then the code. R4 / review B9 — the
           88px code used to sit hard LEFT under a left-set headline, stranding a
           tiny mark in a wide white field. Centered and scaled up, it composes
-          like the table card in front of it: type, then code, on one axis. */}
+          like the table card in front of it: type, then code, on one axis.
+
+          ★ THE SIGN'S TYPE IS OFF THE LADDER ON PURPOSE (design-system.md,
+          "Three things sit off the ladder on purpose": type drawn inside a
+          picture, a printed sign among them). "Add your photos" is the print's
+          headline at the print's own size, the sign being a fixed `w-64` /
+          `sm:w-72` card, so a step's viewport clamp would size it by the wrong
+          box: the same sign would print smaller at a phone than at a desk.
+          It is not a pull quote, and no step by role fits a poster. */}
       <div
         data-mkt-reveal
         className="absolute top-0 left-0 w-64 rotate-1 overflow-hidden rounded-lg border bg-white p-6 text-center text-neutral-900 shadow-lift sm:w-72"

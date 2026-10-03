@@ -2,23 +2,27 @@ import {
   OBJECT_EVENT,
   STREAM_FRAMES,
 } from "@/components/marketing/sections/home/hero-stream";
+import { slugify } from "@/lib/slug";
 
 /**
- * THE DEMO, ROUND THREE: the demo's own address and the hosts' addresses the
- * hero types, each party with the photographs its stream pours and the guest
- * who added each one (the credit in the photograph's corner).
+ * THE DEMO, ROUND FOUR: the demo's own address and the hosts' addresses the
+ * hero types, each party with what its event card says (its cover, its day,
+ * how many came), the hues its light is drawn in, and the photographs its
+ * stream pours with the guest who added each one (the credit in the
+ * photograph's corner).
  *
  * ★ EVERY PHOTOGRAPH IS A STAND-IN, AND WHICH ONE DOES NOT MATTER (his round
  * one note: the whole media kit is replaced before launch). The band's twelve
  * stills are the only photographs the lab may show (bible 9), so a lake or a
  * reunion leans on the nearest still; what tells one party from the next on
- * this board is its address, its code and the names on its photographs. The
- * month makes each party's own set (the Handoff's asset line).
+ * this board is its address, its code, its card and the names on its
+ * photographs. The month makes each party's own set (the Handoff's asset line).
  *
  * ★ PLACEHOLDER COPY IS JUDGED FOR ITS SIZE AND WRAPPING: every address runs
- * to the length a host would really type, and every guest's name to a first
- * name's, because the credit chip is measured against the smallest
- * photograph it rides on.
+ * to the length a host would really type, every guest's name to a first
+ * name's, and every card's line to the longest a real one would carry,
+ * because the credit chip and the card are measured against the smallest
+ * frame they ride on.
  */
 
 export type Guest = {
@@ -35,9 +39,21 @@ export type Pour = {
   readonly guest: Guest;
 };
 
-/** One party the hero types: its address and its album. */
+/** One party the hero types: its address, its card and its album. */
 export type Party = {
   readonly slug: string;
+  /** The card's cover: a `marketing-media.ts` id. */
+  readonly cover: string;
+  /** The card's day, as a host would print it. */
+  readonly when: string;
+  /** How many guests the card counts. */
+  readonly guests: number;
+  /**
+   * Its light's three hues (OKLCH degrees), read by eye off its cover: the
+   * door's room and the lamp take them, as production's door samples an
+   * album's own (`door-light.ts`).
+   */
+  readonly hues: readonly [number, number, number];
   readonly pours: readonly Pour[];
 };
 
@@ -100,6 +116,10 @@ const pours = (
  */
 export const OWN: Party = {
   slug: DEMO_SLUG,
+  cover: "wedding-toast",
+  when: "Sat, Oct 17",
+  guests: OBJECT_EVENT.guests,
+  hues: [70, 30, 300],
   pours: pours(STREAM_FRAMES, OWN_GUESTS),
 };
 
@@ -112,10 +132,14 @@ export const OWN: Party = {
 export const HOSTS: readonly Party[] = [
   {
     slug: "our-wedding",
+    cover: "wedding-petals",
+    when: "Sat, Jun 13",
+    guests: 86,
+    hues: [60, 20, 350],
     pours: pours(
       [
-        "wedding-golden",
         "wedding-petals",
+        "wedding-golden",
         "reception-hall",
         "wedding-rings",
         "wedding-arch",
@@ -127,10 +151,14 @@ export const HOSTS: readonly Party[] = [
   },
   {
     slug: "my-30th",
+    cover: "party-balloons",
+    when: "Fri, Sep 4",
+    guests: 41,
+    hues: [340, 250, 300],
     pours: pours(
       [
-        "party-dj",
         "party-balloons",
+        "party-dj",
         "concert-confetti",
         "festival-lights",
         "reception-table",
@@ -141,6 +169,10 @@ export const HOSTS: readonly Party[] = [
   },
   {
     slug: "lake-weekend",
+    cover: "festival-crowd",
+    when: "Fri, Aug 21",
+    guests: 12,
+    hues: [55, 35, 230],
     pours: pours(
       [
         "festival-crowd",
@@ -154,6 +186,10 @@ export const HOSTS: readonly Party[] = [
   },
   {
     slug: "our-reunion",
+    cover: "reception-table",
+    when: "Sat, Jul 11",
+    guests: 57,
+    hues: [45, 140, 20],
     pours: pours(
       [
         "reception-table",
@@ -168,6 +204,10 @@ export const HOSTS: readonly Party[] = [
   },
   {
     slug: "team-party",
+    cover: "party-dj",
+    when: "Thu, Dec 10",
+    guests: 64,
+    hues: [270, 230, 320],
     pours: pours(
       [
         "party-dj",
@@ -188,64 +228,49 @@ export const PARTIES: readonly Party[] = [OWN, ...HOSTS];
 /** The address's quiet half, as every event link prints it. */
 export const DOMAIN = OBJECT_EVENT.domain;
 
-/* ── the demo's door (the `door` decision) ───────────────────────────────── */
-
-export type Person = {
-  readonly name: string;
-  readonly seed: string;
-  readonly initial: string;
-};
-
-/** Portrait, square and landscape as a phone album mixes them. */
-const P = 4 / 5;
-const S = 1;
-const L = 3 / 2;
-
-/** One photograph at the album's head: its stand-in and the shape it is laid at. */
-export type AlbumStill = {
-  readonly photo: string;
-  /** width / height, as the phone took it (the tile is object-cover). */
-  readonly ratio: number;
-  readonly video?: boolean;
-};
+/**
+ * What an address's code encodes: the link exactly as the hero prints it,
+ * whatever origin the page is served from, so the code a visitor scans is
+ * always the address they are reading (on a preview too).
+ */
+export const linkOf = (slug: string) => `https://${DOMAIN}${slug}`;
 
 /**
- * ★ THE DEMO'S HOST IS A PERSONA (round one's carried call `host`, standing):
- * a demo account of its own, never Will's. Under the `brand` door the host is
- * Partyreel itself, which is that option's whole point.
+ * The longest address a visitor may type into the field: every code is one
+ * fixed grid (`qr.ts`), which holds the link to a slug of this length. The
+ * product takes custom links to 50 characters, so the field carries what
+ * they typed into the real flow, where the full rule applies.
  */
-export const DEMO_HOST: Person = {
-  name: "Sam Okafor",
-  seed: "df-sam",
-  initial: "S",
-};
+export const TYPED_MAX = 22;
 
-export const PARTYREEL_HOST: Person = {
-  name: "Partyreel",
-  seed: "df-partyreel",
-  initial: "P",
-};
+/**
+ * A visitor's keystrokes as a slug, through the product's own `slugify`
+ * (apostrophes dropped, the rest to hyphens), keeping one trailing hyphen so
+ * a separator can be typed before the word after it.
+ */
+export function typedSlugOf(raw: string): string {
+  const tail = /[\s_-]$/.test(raw) ? "-" : "";
+  const body = slugify(raw, TYPED_MAX);
+  return (body ? body + tail : "").slice(0, TYPED_MAX);
+}
 
-/** The album behind the door: its head and its first rows. */
-export const ALBUM: {
-  readonly items: number;
-  readonly guests: number;
-  readonly description: string;
-  readonly stills: readonly AlbumStill[];
-  /** The four the open door shows through it, newest first. */
-  readonly through: readonly string[];
-} = {
-  items: 48,
-  guests: 24,
-  description:
-    "Everything from the night, in one place. Add whatever you took, whenever you get to it.",
-  stills: [
-    { photo: "party-dj", ratio: L },
-    { photo: "wedding-petals", ratio: P },
-    { photo: "festival-crowd", ratio: S },
-    { photo: "reception-table", ratio: L },
-    { photo: "wedding-toast", ratio: P, video: true },
-    { photo: "party-balloons", ratio: L },
-  ],
-  through: ["wedding-toast", "party-dj", "wedding-petals", "festival-crowd"],
-};
+/**
+ * A card's name, read off its address the way a host's own words read:
+ * `our-wedding` is "Our wedding", `my-30th` is "My 30th". The card that types
+ * along with the address takes each prefix through this as it is typed.
+ */
+export function titleOf(slug: string): string {
+  const words = slug.replace(/-+/g, " ").trimStart();
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
+/** The first faces a card shows, in the order the party's guests added. */
+export function facesOf(party: Party, n: number): readonly Guest[] {
+  const seen: Guest[] = [];
+  for (const p of party.pours) {
+    if (seen.some((s) => s.name === p.guest.name)) continue;
+    seen.push(p.guest);
+    if (seen.length === n) break;
+  }
+  return seen;
+}

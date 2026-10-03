@@ -1,45 +1,68 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  type AlbumFixture,
   EVERYWHERE_FIXTURES,
   EVERYWHERE_SEED_COUNT,
-  HERO_FIXTURES,
-  HERO_SEED_COUNT,
 } from "./album-fill-fixtures";
 import { deriveAlbumFill, endTick, stillAlbumFill } from "./use-album-fill";
 
-const hero = { fixtures: HERO_FIXTURES, seedCount: HERO_SEED_COUNT };
+/**
+ * THE DERIVATION'S OWN TABLE: a resting album of six (two a column) and six arrivals, one guest
+ * landing twice (Jay) so "a returning guest is counted once" has something to count, and a video
+ * among them. It was the album page's hero table until the hero became the live stream; nothing
+ * renders it any more, so it lives where it is read, with the numbers the assertions below rest on
+ * (five guests at rest, seven at the end). The everywhere pair's real table is the loop's.
+ */
+const SEED_COUNT = 6;
+const FIXTURES: readonly AlbumFixture[] = [
+  // The resting album.
+  { id: "wedding-golden", col: 0, h: 196, by: "Maya" },
+  { id: "reception-table", col: 1, h: 206, by: "Jay" },
+  { id: "party-balloons", col: 2, h: 182, by: "Priya" },
+  { id: "reception-hall", col: 0, h: 186, by: "Sam" },
+  { id: "party-dj", col: 1, h: 176, by: "Theo" },
+  { id: "wedding-arch", col: 2, h: 200, by: "Maya" },
+  // The arrivals, newest first as they land.
+  { id: "wedding-toast", col: 1, h: 160, by: "Maya" },
+  { id: "wedding-rings", col: 0, h: 152, by: "Jay" },
+  { id: "concert-confetti", col: 2, h: 168, by: "Noor", kind: "video" },
+  { id: "festival-crowd", col: 1, h: 150, by: "Priya" },
+  { id: "wedding-petals", col: 0, h: 172, by: "Jay" },
+  { id: "festival-lights", col: 2, h: 144, by: "Alex" },
+];
+const table = { fixtures: FIXTURES, seedCount: SEED_COUNT };
 
 describe("the filling album's derivation", () => {
   it("renders the resting album alone at tick 0", () => {
-    const v = deriveAlbumFill(0, hero);
-    expect(v.photos).toBe(HERO_SEED_COUNT);
+    const v = deriveAlbumFill(0, table);
+    expect(v.photos).toBe(SEED_COUNT);
     expect(v.columns.flat().every((t) => t.status === "seed")).toBe(true);
     // Oldest at the BOTTOM: the first fixture is the last tile of its column.
     const col0 = v.columns[0];
-    expect(col0[col0.length - 1].fixture.id).toBe(HERO_FIXTURES[0].id);
+    expect(col0[col0.length - 1].fixture.id).toBe(FIXTURES[0].id);
     expect(v.guests).toBe(5); // Maya, Jay, Priya, Sam, Theo
   });
 
   it("mounts the next arrival at the HEAD of its column on the odd tick, then lands it on the same key", () => {
-    const up = deriveAlbumFill(1, hero);
-    const next = HERO_FIXTURES[HERO_SEED_COUNT];
+    const up = deriveAlbumFill(1, table);
+    const next = FIXTURES[SEED_COUNT];
     const head = up.columns[next.col][0];
     expect(head.status).toBe("uploading");
     expect(head.fixture.id).toBe(next.id);
-    expect(up.photos).toBe(HERO_SEED_COUNT); // not counted until it lands
+    expect(up.photos).toBe(SEED_COUNT); // not counted until it lands
 
-    const landed = deriveAlbumFill(2, hero);
+    const landed = deriveAlbumFill(2, table);
     expect(landed.columns[next.col][0].key).toBe(head.key);
     expect(landed.columns[next.col][0].status).toBe("landed");
     expect(landed.columns[next.col][0].check).toBe(true);
-    expect(landed.photos).toBe(HERO_SEED_COUNT + 1);
+    expect(landed.photos).toBe(SEED_COUNT + 1);
   });
 
   it("changes the layout key on the mount, not on the landing", () => {
-    const a = deriveAlbumFill(0, hero).layoutKey;
-    const b = deriveAlbumFill(1, hero).layoutKey;
-    const c = deriveAlbumFill(2, hero).layoutKey;
+    const a = deriveAlbumFill(0, table).layoutKey;
+    const b = deriveAlbumFill(1, table).layoutKey;
+    const c = deriveAlbumFill(2, table).layoutKey;
     expect(b).not.toBe(a);
     expect(c).toBe(b);
   });
@@ -47,13 +70,13 @@ describe("the filling album's derivation", () => {
   it("clears the check after the window and counts a new guest only once", () => {
     const beats = Math.ceil(2500 / 800);
     const landedAt = 2;
-    const later = deriveAlbumFill(landedAt + 2 * beats, hero);
+    const later = deriveAlbumFill(landedAt + 2 * beats, table);
     const first = later.columns.flat().find((t) => t.key.endsWith("#0"));
     expect(first?.check).toBe(false);
     // Two arrivals by Jay add no second guest.
-    const all = deriveAlbumFill(endTick(hero), hero);
+    const all = deriveAlbumFill(endTick(table), table);
     expect(all.guests).toBe(7);
-    expect(all.photos).toBe(HERO_FIXTURES.length);
+    expect(all.photos).toBe(FIXTURES.length);
     expect(all.done).toBe(true);
     expect(all.columns.flat().some((t) => t.check)).toBe(false);
   });
@@ -107,17 +130,17 @@ describe("the filling album's derivation", () => {
   it("names the newest landed tile, the resting album's last seed before any lands", () => {
     // The everywhere pair hints "open me" on this tile: it must exist from the
     // first frame, and an uploading tile (not landed yet) must never take it.
-    const rest = deriveAlbumFill(0, hero);
-    expect(rest.newest).toBe(`seed:${HERO_FIXTURES[HERO_SEED_COUNT - 1].id}`);
-    expect(deriveAlbumFill(1, hero).newest).toBe(rest.newest);
+    const rest = deriveAlbumFill(0, table);
+    expect(rest.newest).toBe(`seed:${FIXTURES[SEED_COUNT - 1].id}`);
+    expect(deriveAlbumFill(1, table).newest).toBe(rest.newest);
 
-    const first = HERO_FIXTURES[HERO_SEED_COUNT];
-    const landed = deriveAlbumFill(2, hero);
+    const first = FIXTURES[SEED_COUNT];
+    const landed = deriveAlbumFill(2, table);
     expect(landed.newest).toBe(`${first.id}#0`);
     // It is a tile that is really on screen: the head of its own column.
     expect(landed.columns[first.col][0].key).toBe(landed.newest);
-    const next = HERO_FIXTURES[HERO_SEED_COUNT + 1];
-    expect(deriveAlbumFill(4, hero).newest).toBe(`${next.id}#1`);
+    const next = FIXTURES[SEED_COUNT + 1];
+    expect(deriveAlbumFill(4, table).newest).toBe(`${next.id}#1`);
   });
 
   it("keeps the newest on screen in a bounded loop and in a looping fill's still", () => {

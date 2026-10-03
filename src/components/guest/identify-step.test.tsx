@@ -1,9 +1,11 @@
 /**
- * IDENTIFY, AGAINST THE REAL DOOR: a name and an email on one screen, one code request that
- * carries the name, the keyboard handed from the email field to the code field only when it was
- * already up, and "the account you already had" speaking only when this device holds something a
- * claim would move. Supabase and the server action are stand-ins; `AccountDoor` and `EmailSignIn`
- * are the shipped ones.
+ * IDENTIFY, AGAINST THE REAL DOOR: on a name-only event's Create account a name and an email on one
+ * screen, one code request that carries the name; on an email-first event the email alone, its name
+ * asked after the code, only of an account that has none (Will, 2026-10-02: "where verification is
+ * required i think it makes more sense to handle name after"). The keyboard handed from the email field
+ * to the code field only when it was already up, and "the account you already had" speaking only when
+ * this device holds something a claim would move. Supabase and the server action are stand-ins;
+ * `AccountDoor` and `EmailSignIn` are the shipped ones.
  */
 import {
   act,
@@ -48,7 +50,8 @@ function mount(props: Partial<React.ComponentProps<typeof IdentifyStep>> = {}) {
   render(
     <IdentifyStep
       qrToken={QR}
-      verification
+      // Create account on a name-only event: the screen that still carries the name.
+      verification={false}
       onTypedName={onTypedName}
       onVerified={onVerified}
       {...props}
@@ -84,6 +87,32 @@ async function typeCode(code = "123456") {
   const input = await screen.findByLabelText("Your code");
   fireEvent.change(input, { target: { value: code } });
 }
+
+describe("★ an email-first event: the email alone, the name after the code", () => {
+  it("asks the address and nothing else, and its code request carries no name", async () => {
+    const { onTypedName } = mount({ verification: true, mediaTotal: 4 });
+    expect(screen.queryByLabelText("Your name")).toBeNull();
+    expect(screen.queryByText(/its name is the one that shows/i)).toBeNull();
+    fireEvent.change(emailField(), { target: { value: "priya@example.com" } });
+    send();
+    await screen.findByText("Check your email");
+    expect(auth.signInWithOtp).toHaveBeenCalledTimes(1);
+    expect(auth.signInWithOtp).toHaveBeenCalledWith({
+      email: "priya@example.com",
+      options: {
+        shouldCreateUser: true,
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/e/${QR}`,
+      },
+    });
+    expect(onTypedName).not.toHaveBeenCalled();
+  });
+
+  it("at a gate the host answers too (the email step where she asks)", () => {
+    mount({ verification: true, door: "approve", hostName: "Maya" });
+    expect(screen.queryByLabelText("Your name")).toBeNull();
+    expect(emailField()).toBeInTheDocument();
+  });
+});
 
 describe("one screen, one code request", () => {
   it("sends ONE code request, carrying the name as the new account's door_name", async () => {
@@ -218,7 +247,10 @@ describe("'the account you already had' speaks only when it guards something", (
 describe("the code screen heads itself 'Check your email'", () => {
   async function toCode(verification: boolean) {
     mount({ verification, mediaTotal: 4 });
-    fireEvent.change(nameField(), { target: { value: "Priya" } });
+    // An email-first event asks no name here (it comes after the code).
+    if (!verification) {
+      fireEvent.change(nameField(), { target: { value: "Priya" } });
+    }
     fireEvent.change(emailField(), { target: { value: "priya@example.com" } });
     send();
     return screen.findByText("Check your email");
@@ -304,7 +336,8 @@ describe("identifyCopy at a gate (the doors, event-settings r1): who lets her in
 
   it("with no host name, the host", () => {
     expect(
-      identifyCopy({ verification: true, door: "approve", hostName: " " }).title,
+      identifyCopy({ verification: true, door: "approve", hostName: " " })
+        .title,
     ).toMatch(/^The host/);
   });
 });

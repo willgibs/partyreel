@@ -5,11 +5,12 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import type { JoinResult } from "@/lib/guest/join";
+import { NOTHING_WAITS, type UploadsWait } from "@/lib/guest/upload-tracker";
 
 /**
  * THE DOOR SETTLES ON WHO IS HERE BEFORE IT ASKS (crumbs-29, build 30's red-team), pinned on the page itself.
@@ -47,9 +48,15 @@ vi.mock("@/components/guest/reel/live-reel", () => ({
   LiveReel: wrap,
   LiveReelTile: part,
 }));
+const trackerNow = vi.hoisted(() => ({
+  handed: null as Record<string, unknown> | null,
+}));
 vi.mock("@/components/guest/upload-tracker", () => ({
   createUploadTrackerStore: () => ({}),
-  UploadTracker: part,
+  UploadTracker: (props: Record<string, unknown>) => {
+    trackerNow.handed = props;
+    return null;
+  },
   UploadTrackerButton: part,
 }));
 vi.mock("@/components/guest/guest-upload", () => ({
@@ -75,17 +82,33 @@ vi.mock("@/components/guest/gallery-empty-state", () => ({
 }));
 // The door: the name it is handed, and clear of steps once it has mounted (so the page's own join may run).
 // It reports its stage as the test sets it (`stageNow`), before paint, as the real one does.
-const stageNow = vi.hoisted(() => ({ open: false }));
+const stageNow = vi.hoisted(() => ({
+  open: false,
+  handed: {} as {
+    arrival?: unknown;
+    welcomeSeen?: boolean;
+    view?: unknown;
+    keepHeld?: boolean;
+    keepDevelopsAt?: string | null;
+  },
+}));
 vi.mock("@/components/guest/entry-modal", () => ({
   EntryModal: ({
     storedName,
     onPendingChange,
     onStageChange,
+    ...rest
   }: {
     storedName?: string | null;
     onPendingChange?: (pending: boolean) => void;
     onStageChange?: (open: boolean) => void;
+    arrival?: unknown;
+    welcomeSeen?: boolean;
+    view?: unknown;
+    keepHeld?: boolean;
+    keepDevelopsAt?: string | null;
   }) => {
+    stageNow.handed = rest;
     useEffect(() => onPendingChange?.(false), [onPendingChange]);
     useLayoutEffect(() => onStageChange?.(stageNow.open), [onStageChange]);
     return <p data-testid="door-name">{storedName ?? "(no name)"}</p>;
@@ -104,6 +127,17 @@ const queueOptions = vi.hoisted(() => ({
     onDoorNeeded?: (ticketDown?: Promise<void>) => void;
     ownerEventId?: string | null;
   },
+  addFiles: vi.fn(),
+}));
+// Her choice at the held door, kept on the device (`door/wait-picks-store.ts`).
+const heldPicks = vi.hoisted(() => ({
+  files: null as File[] | null,
+  forget: vi.fn(async () => {}),
+}));
+vi.mock("@/components/guest/door/wait-picks-store", () => ({
+  doorOwner: async () => "u-lena",
+  readHeldPicks: async () => heldPicks.files,
+  forgetHeldPicks: heldPicks.forget,
 }));
 vi.mock("@/lib/guest/use-upload-queue", () => ({
   useUploadQueue: (options: {
@@ -114,7 +148,7 @@ vi.mock("@/lib/guest/use-upload-queue", () => ({
     return {
       items: [],
       progress: {},
-      addFiles: vi.fn(),
+      addFiles: queueOptions.addFiles,
       addClip: vi.fn(),
       retry: vi.fn(),
       dismiss: vi.fn(),
@@ -201,6 +235,9 @@ function Page({
   access = "full",
   gate = null,
   event = EVENT,
+  arrival,
+  welcomeSeen,
+  uploadsWait = NOTHING_WAITS,
 }: {
   seed: Promise<never>;
   verified: boolean;
@@ -208,6 +245,9 @@ function Page({
   access?: "none" | "teaser" | "full";
   gate?: "password" | "account" | "waiting" | "ask" | null;
   event?: GuestEvent;
+  arrival?: { face: "welcome" | "rest" | null; scrim: boolean };
+  welcomeSeen?: boolean;
+  uploadsWait?: UploadsWait;
 }) {
   return (
     <Suspense fallback={null}>
@@ -226,6 +266,9 @@ function Page({
         canDeleteIds={[]}
         isAuthed={verified}
         isVerified={verified}
+        arrival={arrival}
+        welcomeSeen={welcomeSeen}
+        uploadsWait={uploadsWait}
       />
     </Suspense>
   );
@@ -246,6 +289,8 @@ class NoIntersections {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  trackerNow.handed = null;
+  heldPicks.files = null;
   queueOptions.current = null;
   stageNow.open = false;
   phoneName.set(null);
@@ -334,10 +379,10 @@ describe("the page's one queue, for the album's owner", () => {
 });
 
 /**
- * ★ THE DOOR AS THE PAGE, AT THE PAGE (`locked-door` r2, `shape=shared`): at a gate the page draws the
- * door itself from its first paint (the doorway, the album's name and what it holds, and nothing else of
- * the album), which gives way the moment the door's own stage arrives; and an album under an open stage
- * is `inert`, so nothing behind the door can be reached until it lets her through.
+ * ★ THE DOOR AS THE PAGE, AT THE PAGE (`locked-door` r2, `shape=shared`; door-reveal's first byte): the page hands
+ * the door what its first byte draws (`arrival`, the server's), and stands the album under it from that byte:
+ * `inert`, and its words held so the walk through lands on the cover's photographs alone. At a gate nothing of the
+ * album's own page is drawn at all (the door's stage is the page). An album under no stage is the page.
  */
 describe("the door as the page, at the page", () => {
   /** A gate's event as the page hands it: the locked redaction (no host, no date). */
@@ -348,51 +393,31 @@ describe("the door as the page, at the page", () => {
     event_date: null,
   } as unknown as GuestEvent;
 
-  it("★ at a gate the page draws the door itself: the doorway, the album's name and its count, nothing of its host", async () => {
+  it("★ the first byte's door is the door's to draw: the page hands it the arrival and the welcome's word", async () => {
+    stageNow.open = true;
+    const arrival = { face: "welcome" as const, scrim: false };
     const view = render(
       <Page
         seed={seed()}
         verified={false}
-        access="none"
-        gate="password"
-        event={GATED}
+        arrival={arrival}
+        welcomeSeen={false}
       />,
     );
     await screen.findByTestId("door-name");
-    const door = view.container.querySelector(
-      '[data-door-stage][data-door-stage-at="gate"]',
-    );
-    expect(door?.getAttribute("data-state")).toBe("open");
+    expect(stageNow.handed.arrival).toEqual(arrival);
+    expect(stageNow.handed.welcomeSeen).toBe(false);
+    // The album's own cover rides into the open door (the walk lands on it).
+    expect(stageNow.handed.view).toBeTruthy();
+    // Under the welcome the album is laid out, inert, and its words wait for her.
+    const box = view.container.querySelector("[data-guest-experience]");
+    expect(box?.hasAttribute("data-reveal-curtain")).toBe(true);
     expect(
-      door?.querySelector("[data-door-way]")?.getAttribute("data-door-way"),
-    ).toBe("shut");
-    expect(door?.querySelector("h1")?.textContent).toBe("Maya's 30th");
-    expect(door?.textContent).toContain("3 photos & videos inside");
-    expect(view.container.textContent).not.toContain("Maya ");
-    expect(view.container.textContent).not.toContain("Hosted by");
-    // Nothing of the album's own page is drawn behind a gate.
-    expect(view.container.querySelector("[data-door-behind]")).toBeNull();
+      view.container.querySelector("[data-door-behind]")?.hasAttribute("inert"),
+    ).toBe(true);
   });
 
-  it("the held door's own twin stands ajar", async () => {
-    const view = render(
-      <Page
-        seed={seed()}
-        verified
-        access="none"
-        gate="waiting"
-        event={GATED}
-      />,
-    );
-    await screen.findByTestId("door-name");
-    expect(
-      view.container
-        .querySelector("[data-door-stage] [data-door-way]")
-        ?.getAttribute("data-door-way"),
-    ).toBe("ajar");
-  });
-
-  it("gives way the moment the door's own stage arrives", async () => {
+  it("★ at a gate nothing of the album's own page is drawn, and the door is handed no album to show", async () => {
     stageNow.open = true;
     const view = render(
       <Page
@@ -401,13 +426,16 @@ describe("the door as the page, at the page", () => {
         access="none"
         gate="password"
         event={GATED}
+        arrival={{ face: "rest", scrim: false }}
       />,
     );
     await screen.findByTestId("door-name");
-    expect(view.container.querySelector("[data-door-stage]")).toBeNull();
+    expect(view.container.querySelector("[data-door-behind]")).toBeNull();
+    expect(view.container.textContent).not.toContain("Hosted by");
+    expect(stageNow.handed.view).toBeUndefined();
   });
 
-  it("★ an album under an open stage is inert; under none, it is the page", async () => {
+  it("★ an album under an open stage is inert with its words held; under none, it is the page", async () => {
     stageNow.open = true;
     const staged = render(<Page seed={seed()} verified={false} />);
     await screen.findByTestId("door-name");
@@ -416,6 +444,11 @@ describe("the door as the page, at the page", () => {
         .querySelector("[data-door-behind]")
         ?.hasAttribute("inert"),
     ).toBe(true);
+    expect(
+      staged.container
+        .querySelector("[data-guest-experience]")
+        ?.hasAttribute("data-reveal-curtain"),
+    ).toBe(true);
     staged.unmount();
     stageNow.open = false;
     const open = render(<Page seed={seed()} verified={false} />);
@@ -423,5 +456,76 @@ describe("the door as the page, at the page", () => {
     expect(
       open.container.querySelector("[data-door-behind]")?.hasAttribute("inert"),
     ).toBe(false);
+    expect(
+      open.container
+        .querySelector("[data-guest-experience]")
+        ?.hasAttribute("data-reveal-curtain"),
+    ).toBe(false);
+  });
+});
+
+/**
+ * ★ HER CHOICE FROM THE HELD DOOR, SENT ON HER RETURN (door-reveal): she chose at the door and left, the host let
+ * her in meanwhile, and the album she comes back to sends what she chose, once, put down on the device first.
+ */
+/* ★ RED-TEAM 43'S MEDIUM, AT THE PAGE: on an album with a develop time ahead her shots read as joined and vanished on
+   a reload, with no tracker, because the page read "delayed" as the host's approval alone. Whatever the page's
+   reading says waits (`uploadsWait`), her tracker mounts on it and the keep says it waits, and for the develop. */
+describe("what she adds waits: her tracker and the keep are told", () => {
+  it("★ an album with a develop time ahead: the tracker asks after hers, and the keep says the develop", async () => {
+    const ahead = "2026-10-03T13:00:00.000Z";
+    render(
+      <Page
+        seed={seed()}
+        verified={false}
+        uploadsWait={{ waits: true, developsAt: ahead }}
+      />,
+    );
+    await waitFor(() => expect(trackerNow.handed).not.toBeNull());
+    expect(trackerNow.handed).toMatchObject({
+      moderated: true,
+      developsAt: ahead,
+    });
+    expect(stageNow.handed).toMatchObject({
+      keepHeld: true,
+      keepDevelopsAt: ahead,
+    });
+  });
+
+  it("an album that shows what is added at once: no tracker to ask, and the keep says it joined", async () => {
+    render(<Page seed={seed()} verified={false} />);
+    await waitFor(() => expect(trackerNow.handed).not.toBeNull());
+    expect(trackerNow.handed).toMatchObject({
+      moderated: false,
+      developsAt: null,
+    });
+    expect(stageNow.handed).toMatchObject({
+      keepHeld: false,
+      keepDevelopsAt: null,
+    });
+  });
+});
+
+describe("her choice from the held door", () => {
+  it("★ the album she returns to sends it, once, and puts it down", async () => {
+    const files = [new File(["a"], "a.jpg", { type: "image/jpeg" })];
+    heldPicks.files = files;
+    render(<Page seed={seed()} verified />);
+    await waitFor(() =>
+      expect(queueOptions.addFiles).toHaveBeenCalledWith(files),
+    );
+    expect(heldPicks.forget).toHaveBeenCalledWith(EVENT.qr_token);
+    expect(queueOptions.addFiles).toHaveBeenCalledOnce();
+  });
+
+  it("nothing is sent from a door she is still outside, or for a visitor who was never at one", async () => {
+    heldPicks.files = [new File(["a"], "a.jpg", { type: "image/jpeg" })];
+    render(<Page seed={seed()} verified access="none" gate="waiting" />);
+    await screen.findByTestId("door-name");
+    cleanup();
+    render(<Page seed={seed()} verified={false} />);
+    await screen.findByTestId("door-name");
+    await act(async () => {});
+    expect(queueOptions.addFiles).not.toHaveBeenCalled();
   });
 });

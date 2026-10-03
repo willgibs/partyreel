@@ -24,9 +24,10 @@ import { cn } from "@/lib/utils";
  *
  * ★ CLEANER, SO IT IS PART OF THE DOOR, NOT A WIDGET UNDER IT: no card and no heading of its own, in the
  * door's centred column. Before she chooses, one quiet outline button and one line saying nothing is sent
- * until she is in; once she has, her photographs in a row, how many, a Change, and the one thing she
- * must know: her choice waits in this tab (a picked file lives in the page that picked it, so a reload or
- * a closed tab loses it, and the door says so where she makes it).
+ * until she is in; once she has, her photographs in a row, how many, a Change, and when they go. ★ HER
+ * CHOICE OUTLIVES THE TAB (door-reveal, ROADMAP's line from door-wiring): it is kept on the device
+ * (`wait-picks-store.ts`), so a reload or a closed tab keeps it and the door no longer asks her to keep the
+ * tab open; only where the device could not keep it (no storage) does it still say so.
  *
  * ★ ONE INPUT, IN THE PAGE, CLICKED INSIDE THE TAP (the intent sheet's own rule): Safari opens a picker
  * only inside the gesture that asked for it, and an input that unmounts before its picker answers never
@@ -62,11 +63,14 @@ export function pickedLine(picks: readonly Pick<WaitPick, "kind">[]): string {
 export function WaitPicks({
   picks,
   onPick,
+  kept = null,
   acceptsVideo = true,
 }: {
   picks: readonly WaitPick[];
   /** Her choice, held for the door (it replaces the last one: a Change is a new choice). */
   onPick?: (files: File[]) => void;
+  /** The device could not keep her choice (`false`): it lives in this tab alone, and the door says so. */
+  kept?: boolean | null;
   /** Whether this album takes a video from a guest: the picker offers only what it takes. */
   acceptsVideo?: boolean;
 }) {
@@ -109,7 +113,8 @@ export function WaitPicks({
             </button>
           </p>
           <p className="mt-1 text-sm text-balance text-muted-foreground">
-            They go in the moment you&rsquo;re let in. Keep this tab open.
+            They go in the moment you&rsquo;re let in.
+            {kept === false && " Keep this tab open."}
           </p>
         </>
       ) : (

@@ -1,12 +1,11 @@
 import Image from "next/image";
-import Link from "next/link";
 import type { CSSProperties } from "react";
 
 import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
 import { FooterQr } from "@/components/marketing/chrome/footer-qr";
 import { Caption } from "@/components/marketing/system/caption";
+import { DemoDoor as DemoDoorLink } from "@/components/marketing/system/demo-modal/demo-door";
 import { SectionShell } from "@/components/marketing/system/section-shell";
-import { trackAttrs } from "@/lib/analytics/events";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { SITE_URL } from "@/lib/constants/site";
 import { DEMO_EVENT_URL } from "@/lib/demo";
@@ -45,6 +44,10 @@ import { cn } from "@/lib/utils";
  * ★ THE CODE ENCODES /demo, NEVER THE EVENT LINK (Will, river-card
  * `opens=short`): 25 modules against 33, so the plate can be small and still
  * scan. `/demo` is a 307 to the configured event (src/app/demo/route.ts).
+ *
+ * ★ THE PRESS IS A DEMO DOOR (`system/demo-modal/`), as every pointer to the
+ * demo is: the modal at a desk, the demo itself in a new tab on a phone. It was
+ * a same-tab link to `/demo`, so this one press took a reader off the walkthrough.
  *
  * ★ NO DEMO CONFIGURED, NO DOOR (the DemoCtaLink contract). With the env
  * unset the album still stands, full width, and the section simply stops
@@ -136,10 +139,10 @@ export function DemoDoor() {
               phone and the demo opens in their hand while this page stays
               where it was. A white plate with a baked quiet zone, because a
               scanner needs both (footer-qr.tsx). */}
-          <Link
-            href="/demo"
+          <DemoDoorLink
+            href={DEMO_EVENT_URL}
+            source="how-it-works-proof"
             aria-label="Open the live demo album"
-            {...trackAttrs("demo_open", { source: "how-it-works-proof" })}
             className="group flex flex-col items-center gap-4 text-center sm:flex-row sm:gap-5 sm:text-left"
           >
             <span className="rounded-2xl bg-white p-3 ring-1 ring-white/15 transition-transform duration-150 ease-emphasis group-active:scale-[0.98] motion-reduce:transition-none motion-reduce:group-active:scale-100">
@@ -160,7 +163,7 @@ export function DemoDoor() {
                 </span>
               </Caption>
             </span>
-          </Link>
+          </DemoDoorLink>
         </div>
       )}
     </SectionShell>

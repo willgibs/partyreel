@@ -2,6 +2,7 @@ import { Suspense, use, type ReactNode } from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { act, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { uploadsWait } from "@/lib/guest/upload-tracker";
 
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 
@@ -176,6 +177,7 @@ async function page(
             canDeleteIds={[]}
             isAuthed={false}
             waitingOnArrival={over.waitingOnArrival}
+            uploadsWait={uploadsWait(event)}
           />
         </Suspense>
       </TooltipProvider>,

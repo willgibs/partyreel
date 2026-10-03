@@ -553,6 +553,50 @@ export function UiLabel({ children }: { children: ReactNode }) {
   );
 }
 
+// ── InlineCode — a value that must look like one, on the muted plate ───────────────
+// A link's address, a file extension, an email's shape ("partyreel.com/e/maya-and-sam", ".heic",
+// "you@gmail.com"): the house's value plate (`rounded bg-muted px-1.5 py-0.5`, the legal text's and
+// the portal's, with `select-all` so one press takes the whole value). It was a bare <code> that the
+// typography plugin drew bold between two literal backticks and the pages' `prose-code:font-sans`
+// set in the body face and nothing more.
+//
+// ★ `not-prose` IS THE PLATE'S GROUND RULE: it takes the element out of every `prose` code rule at
+// once (the weight, the colour, and the two backticks the plugin prints in `::before` and `::after`,
+// which a plate makes a double border), so the plate is the whole of its look and no utility has to
+// out-shout the plugin. `font-sans` stays (a bare <code> falls to the preflight's mono stack, and
+// this site has no mono face), and `box-decoration-clone` gives each line of a plate that wraps its
+// own padding and corners.
+//
+// ★ A FENCED BLOCK IS NOT A VALUE. MDX hands a ```block``` to this same map as <pre><code>, so
+// `CodeBlock` stands each block's code bare again (the plugin's own `pre code` rules), instead of
+// laying a grey plate inside the block's ground.
+export function InlineCode({ className, ...props }: ComponentProps<"code">) {
+  return (
+    <code
+      {...props}
+      className={cn(
+        "not-prose rounded bg-muted box-decoration-clone px-1.5 py-0.5 font-sans text-[0.85em] font-medium break-words text-foreground select-all",
+        className,
+      )}
+    />
+  );
+}
+
+export function CodeBlock({ children, ...props }: ComponentProps<"pre">) {
+  return (
+    <pre {...props}>
+      {Children.map(children, (child) =>
+        isValidElement<ComponentProps<"code">>(child) &&
+        child.type === InlineCode ? (
+          <code {...child.props} />
+        ) : (
+          child
+        ),
+      )}
+    </pre>
+  );
+}
+
 // Internal links route through Next <Link> (client nav); external links open safely.
 function MdxLink({ href = "", children, ...props }: ComponentProps<"a">) {
   if (href.startsWith("/")) {
@@ -573,6 +617,8 @@ function MdxLink({ href = "", children, ...props }: ComponentProps<"a">) {
 // The shared half of the map; mdx-components.tsx composes it with the lane files.
 export const sharedComponents = {
   a: MdxLink,
+  code: InlineCode,
+  pre: CodeBlock,
   h2: H2,
   h3: H3,
   Callout,

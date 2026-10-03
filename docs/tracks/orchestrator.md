@@ -47,14 +47,18 @@ flat; a lane in its gate, or the milestone's full gate, counts as two. Every pro
 | `disposable-foundation` | Q9's two answers, the per-row seal from one predicate, develop as a write, the roll on live shots with its ceiling, her own held and sealed items, Settings' control | MERGED at `e1b2ad2e` (gate 152 green: lint, test, build, lab:smoke 161, lab:demo on five boards; the lane's gate on its synced head: test 9,191, build, lab:smoke 163); its migration applied by protocol after the Advisor's Q10 (disposable_foundation 20261002223236, md5 the file's b2510738; advisors 19/4/35), the types regenerated and its six seams dropped (`2c32edb6`) | Opus, 3133 | `a3c3c52d33e26b082` |
 | `identity-r2` | board identity r2 [desk 10]: voice as a layer, then actions, fields, layers and status in his voice | MERGED at `3af9a608` (gate 149 green: test, build, lab:smoke 22, lab:demo on identity; the lane's gate: test 8,907, build, lab:smoke 7, lab:demo 5 steps at 1440 and 375 with its knobs); lab only; on the desk at build 44 | Opus, 3134 | `a3fb5687c66a613b9` |
 | `create-wizard-r2` | board create-wizard r2 [desk 60]: the room's flow screen by screen in his layout (flow, add, look, beat) | MERGED at `34dba1fa` (gate 147 green, light: test, the merge adding only docs to its gated head; the lane's gate: test 8,902, build, lab:smoke 22, lab:demo 4 steps at 1440 and 375); lab only; on the desk at build 44 | Opus, 3135 | `aaa11532349605aa9` |
-| `demo-r4` | board demo-framing r4 [desk 90]: the centre object nailed, the mini-event card, two or three new heroes | running | Opus, 3136 | `a557d2f6e3b8e9fd8` |
+| `demo-r4` | board demo-framing r4 [desk 90]: five heroes (card recommended, plate, field, wall, door), each live at 1440, a tablet and 375 | MERGED at `31b93027` (gate 154 green: test, build, lab:smoke 18, lab:demo on demo-framing; the lane's gate: test 8,905, build, lab:smoke 3, lab:demo 1 step of 5 options); lab only; on the desk at build 44; its photographs asked (ASSETS 39 to 41) | Opus, 3136 | `a557d2f6e3b8e9fd8` |
 | `save-speed` | the viewer's Save immediate: his iPhone's 30 s measured to its cause (a second download on the tap behind R2's HTTP/1.1 connections, WebKit's 5 s activation) and fixed by holding the original the viewer draws | MERGED at `b86572ce` (gate 153 green: lint, test, build, lab:smoke 152, lab:demo on three boards; the lane's gate on its synced head: test 9,083, build, lab:smoke 134); its uploads-and-r2.md lines placed at the record, its guest-flow.md viewer line waits for door-reveal's merge (door-reveal owns the doc) | Opus, 3135 | `a4d3efdea8ef3c604` |
 | `host-dashboard-r2` | board host-dashboard r2 [desk 25]: events at forty (Recent on top recommended), what the stage leads with on a quiet day, whether she pins it | MERGED at `63885f15` (gate 151 green: test, build, lab:smoke 21, lab:demo on host-dashboard; the lane's gate: test 8,970, build, lab:smoke 21, lab:demo 3 steps at 1440 and 375); lab only; on the desk at build 44 | Opus, 3132 | `aea1e17a667c43dfd` |
-| `crumbs-50` | fourteen off-round ROADMAP crumbs (marketing preloads, demo pointers, type steps, tokens, dead fixtures, a help line, legal print, inline code, the sign-in cue, the nav's one source, the blog's tags) | running | Sonnet, 3134 | `ad78669c34ed8b55e` |
-| `door-reveal` | locked-door r3's picks (the walk-through onto the cover, the turning breathing idle), the door always the first paint (his walk), the name after the email where verification is on, the chooser's photos across a reload; retires the board | running | Opus, 3131 | `aec876b5d6becfb32` |
-| `event-header-r2` | board event-header r2 [desk 50]: the hub head's facts (the night on a dial among them) and one predictable way every room opens | running | Opus, 3133 | `a65948cf0ee9a18da` |
+| `crumbs-50` | fourteen off-round crumbs (the home's prefetch on intent, demo doors, type steps, tokens, dead fixtures, a help line, legal print, inline code, the sign-in cue, the nav's one source, the blog's trips) | MERGED at `318493d5` (gate 155 green: test, build, lab:smoke 154, lab:demo on four boards; the lane's gate: test 9,000, build, lab:smoke 130); no SQL | Sonnet, 3134 | `ad78669c34ed8b55e` |
+| `door-reveal` | locked-door r3's picks (the walk-through onto the cover, the turning breathing idle), the door always the first byte, the name after the email, the chooser's photos across a reload, red-team 43's MEDIUM page half; the board retired | MERGED at `d3d172fd` (gate 158 green: lint, test, build, lab:smoke 157, lab:demo on five boards; the lane's gate: test 9,324, build, lab:smoke 155); PREMISE re-read for take-home at the desk pass; the locked-door ledger retired; no SQL | Opus, 3131 | `aec876b5d6becfb32` |
+| `event-header-r2` | board event-header r2 [desk 50]: the hub head's facts (the night on a dial recommended), its doors, one way every room opens | MERGED at `50e7a359` (gate 156 green: test, build, lab:smoke 19, lab:demo on event-header; the lane's gate: test 9,051, build, lab:smoke 5, lab:demo 3 steps at 1440, 375 and the week before); lab only; on the desk at build 44 | Opus, 3133 | `a65948cf0ee9a18da` |
 | `the-wait` | board the-wait [desk 35]: the one waiting experience of a delayed album, the mental model first (his to find), then her wait, the arrival, the host's cover and the words | running | Opus, 3132 | `a9256f068ba6dbfb9` |
 | `disposable-camera` | disposable-mode r3's camera wired (the reel as a timeline, hold to film, a video one shot, the roll's end) at full size on the server's roll; Add opens it on a camera album; retires the board | running | Opus, 3135 | `a420bc1f815081dce` |
+| `take-home` | board take-home [desk 70], new: how photographs leave (guest=select, save=light, host=two recommended) | MERGED at `303c6e82` (gate 157 green: test, build, lab:smoke 19, lab:demo on take-home; the lane's gate: test 9,269, build, lab:smoke 5, lab:demo 3 steps at 1440 and 375); lab only; on the desk at build 44 | Opus, 3136 | `af6d50656e540a41c` |
+| `redteam-43` | build 43's red-team (`96c6dcdc` on the alias): the disposable leak matrix live first, the cover and shutter, the hub, the dashboard, Save; brief and ledger in `../partyreel-wt/_scratch/redteam-43/` | running | Opus, Will's Chrome | `a7abfa3530cd42e8c` |
+| `crumbs-51` | words made true after round 12's merges: four help articles and the admin switch on the retired reel tile and the welcome screen, careers, two hero comments, host-app.md's pulse | running | Sonnet, 3133 | `ae456d79d5e6fcd48` |
+| `crumbs-52` | red-team 43's second MEDIUM: the hub's Reel card (a soft navigation) shows the album before the reel; the curtain made to stand from the first frame | running | Sonnet, 3134 | `a43b82a5650dc8a64` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Q8
 (round 12's plan) answered with 21 corrections, all folded into the briefs; the next consult is the foundation's
@@ -71,19 +75,13 @@ commits, what remains, its predecessor's transcript at
 account. Connectors follow the account: Claude in Chrome (every red-team needs it), the Supabase MCP on
 `ddafaemglzmuekbtjwzn`, the Vercel MCP on his personal team (deploys ride `$VERCEL_TOKEN`; only runtime logs need P3).
 
-Relays that live only in an agent (2026-10-02, from Will's walk and answers):
-- `disposable-foundation`, Q9's model (21:10Z, superseding the 20:20Z and 20:55Z relays):
-  - **Two axes**, disposable a preset, no `mode` column:
-    - `events.capture` (text CHECK upload or camera) and `roll_size`;
-    - `moderation_mode` untouched;
-    - `develops_at` (develop applies to free uploads too) and a server-stamped `sealed_from`;
-    - all three in both column grants and returned by `get_event_by_qr_token` (Q7 pattern).
-  - **The predicate:** `status = 'approved' and (sealed_until is null or sealed_until <= now() or host)` in every SQL home and the four app-side reads.
-  - **The sync's `waiting: {count, minutes}`:** pending and sealed together, full access only, in the ETag, no ids.
-  - **The roll counts live shots** (his overrule: a deleted shot frees its slot), with a withdrawn camera shot purged at once and a lifetime ceiling of `roll_size * 3` under the lock.
-  - **Settings:** two questions on `adds-page` (how guests add; when everyone sees, one three-way choice), mountable for the wizard.
-  - Her pending items' read and remove already exist (`guest-media.ts:357`, `remove_my_upload*`).
-- `header-wiring` (21:10Z): a Remove in her tracker on each of her own items not yet in the album (held, later sealed), on the existing `remove_my_upload*` paths, with state while it works.
+Relays that live only in an agent (2026-10-02): red-team 43's MEDIUM (23:38Z, `../partyreel-wt/_scratch/redteam-43/
+ledger.txt`): on an album with a develop time ahead the guest page reads "delayed" as approve-each only, so her sealed
+shots show as album tiles and "joined the album", then vanish, with no tracker. The fix, "delayed" = approve-each OR a
+develop time ahead from `lib/disposable/reveal.ts`, red first: `door-reveal` takes the page half
+(`event-experience.tsx` :1117 keepHeld and :1406 the tracker's `moderated`, `page.tsx` :614, `save-account-prompt.tsx`'s
+`keepSentLine`, accepted outside its owns); `disposable-camera` the upload half (`guest-upload.tsx` :252 and the queue's
+optimistic tile, honouring `create_media`'s `sealed`). Earlier relays are merged (the foundation's, header-wiring's).
 
 **Q9 is answered** (the Advisor, 21:05Z) and acted on above. The waiting experience itself goes to a design board (below).
 

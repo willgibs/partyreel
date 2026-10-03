@@ -894,9 +894,8 @@ export function useUploadQueue({
    * ★ HER CHOICE AT THE HELD DOOR (`locked-door` r2, Will's `wait=pick`: "adds a lot of value to the
    * waiting door"): what she picked while the host decides, held here as `queued` and sent the moment the
    * door lets her through (the flip above), never before (the runner's door guard). A new choice replaces
-   * the last one (her Change), so what is held is always exactly what the door shows her. ★ IN THIS TAB
-   * ALONE: a File lives in the page that picked it, so a reload or a closed tab loses the choice, and the
-   * door says so where she makes it.
+   * the last one (her Change), so what is held is always exactly what the door shows her. A copy waits on
+   * the device for a reload or a closed tab (`door/wait-picks-store.ts`, the door's own).
    */
   const holdAtDoor = useCallback(
     (files: File[]) => {
