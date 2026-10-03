@@ -18,12 +18,12 @@ export function LiveReelKillSwitch({ enabled }: { enabled: boolean }) {
       description={
         enabled
           ? "On. The reel, the screen and Make your own play on every event."
-          : "Paused. No tile, view, screen or Make your own on any event."
+          : "Paused. No reel, screen or Make your own on any event."
       }
       ariaLabel="Toggle the live reel"
       sheet={{
         title: "Pause the live reel?",
-        lede: "Every event loses its reel tile, its screen and Make your own until you turn this back on. Nothing is deleted.",
+        lede: "Every event loses its reel (the cover's play button and the shutter's), its screen and Make your own until you turn this back on. Nothing is deleted.",
         verb: "Pause the reel",
         touches: [
           "Every host and every guest, on every event",

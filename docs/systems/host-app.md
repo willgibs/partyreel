@@ -316,8 +316,8 @@ visitor-facing "Private" never collides.
   waiting in but an ask a block holds (`events_door_opened`; every door act that lets asks in or counts them reads one
   set, `event_door_asks`), so a declined newcomer's ask waits through a Public trip for Let back in rather than walking
   her into an album its host never let her into; a password ends every ask
-  (`events_door_to_password`: nobody waits on the host there), so they leave At the door, the pulse and the bell, and
-  meet the password like anyone new.
+  (`events_door_to_password`: nobody waits on the host there), so they leave At the door, the dashboard and the bell,
+  and meet the password like anyone new.
 - **The Guests room's At the door** heads it (`queue=room`): Let in (`let_in_at_door`) opens her door on every device,
   and her held door opens by itself at its next check-in; ★ Decline is a block (the account where there is one, else
   the row), with Undo on its toast and Let back in under Blocked, so a declined newcomer meets the one shut screen and
@@ -330,8 +330,8 @@ visitor-facing "Private" never collides.
   the host opens it; and a newcomer whose ask stands at Only me, which keeps its asks, hears she is back at the door
   and that letting her in there meets that closed album, `door_only_me`). The door is read once for everyone in the Blocked list, since it decides every landing. A
   waiting newcomer counts on
-  the hub's Guests card, the pulse (its first step, opening `#at-the-door`) and the bell (a row per event), and sends
-  no mail.
+  the hub's Guests card, the dashboard (the stage's or the week's step, opening `#at-the-door`, else a mark on the
+  event's tile) and the bell (a row per event), and sends no mail.
 - **Invited** (`editor=both`): one field takes a typed address or a pasted list (`readAddresses`: the readable saved at
   once and counted by the database, the unreadable kept as flagged chips), capped at `INVITE_LIST_CAP`; each address
   reads Joined or Not yet, since it matches only once its guest confirms it, so removing one never puts out someone it
