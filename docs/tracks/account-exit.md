@@ -89,17 +89,25 @@ Will answered all three as recommended, with three more rulings (2026-10-03); bu
 - Launch checkpoint: `/privacy` and `/terms` say what a deletion now does: everything anyone can see goes at once and the
   nightly purge erases the rest, after which the address can start fresh; her uploads in other albums can go in the same
   step (`legal-privacy.tsx`'s "Delete your account", `legal-terms.tsx`'s "Deletion is immediate and permanent").
-- Lifecycle: `purgeAccount` re-reads an account's stamp before it purges it, so a Cancel deletion that lands between
-  the cancellation's run check and a run reading the queue can never lose the account it restored.
 
 ## Handoff (replaces the chat report)
 
-- **Commits:** the work `c61630d6` and this manifest, pushed to `lp/account-exit`. launch-prep moved since the cut
-  (lab-frame, desk-tune-4, docs) but nothing in this lane's owns or reads and no conflict, so no sync.
-- **Gates on `c61630d6`, each on its own exit code:** `pnpm typecheck` 0; `pnpm lint` 0 (no warnings); `pnpm test` 0
-  (808 files, 9,539 tests); `zsh scripts/build-lock.sh pnpm build` 0; `pnpm lab:smoke --base http://localhost:3134` 0
-  (161 checks, 0 failing). Logs: `/Users/gibby/local/ai/partyreel-wt/_scratch/account-exit/gate-*.log`.
-- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` is owned paths only, plus this file.
+- **Commits:** the work `c61630d6`, the Orchestrator's three follow-ups `f001689e`, and this manifest, pushed to
+  `lp/account-exit`. launch-prep moved since the cut (lab-frame, desk-tune-4, docs) but nothing in this lane's owns or
+  reads and no conflict, so no sync.
+- **Gates on `f001689e`, each on its own exit code:** `pnpm typecheck` 0; `pnpm lint` 0 (no warnings); `pnpm test` 0
+  (808 files, 9,542 tests); `zsh scripts/build-lock.sh pnpm build` 0. `pnpm lab:smoke --base http://localhost:3134` 0
+  (161 checks, 0 failing) on `c61630d6`, not re-run: `f001689e` changes `src/` only under `lib/lifecycle`. Logs:
+  `/Users/gibby/local/ai/partyreel-wt/_scratch/account-exit/gate-*.log` and `gate2-*.log`.
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` is owned paths, this file, and the three the
+  Orchestrator accepted: `src/lib/lifecycle/account-deletion.ts`, its test, and the new migration file.
+- **A restored account is never erased** (`f001689e`): `purgeAccount` reads the account's stamp again before the
+  re-anonymise or any delete, and an account whose stamp is gone is `skipped` (tallied `accounts_skipped`, never a
+  backlog), so a Cancel deletion that lands after a run read its queue leaves it whole. Red first: three tests in
+  `account-deletion.test.ts` (the sweep with the stamp cleared just after its queue read, `purgeAccount` alone, the
+  read's place before every destructive step), all three red on the old purge
+  (`_scratch/account-exit/red-stamp-reread.log`), green on the fix. `account-deletion.ts`'s header now says what is
+  reversible: the operator's Cancel deletion reverses the ban and the stamp before the purge, and nothing else.
 - **The dialog** (`account-delete-card.tsx`): the plan line (cancelled now, never refunded), the events line, "Your
   account is erased for good by <time>, in our nightly cleanup" with the email locked until then and free after, and the
   choice "Also remove the 12 photos and 1 video I added to other people's albums" (only when she has any, off). Its count
@@ -143,19 +151,16 @@ Will answered all three as recommended, with three more rulings (2026-10-03); bu
   others' albums; `/admin/accounts/<id>` on an unstamped account shows no Cancel.
 - **For the Orchestrator's records (outside this lane):** `testing-verification.md`'s hi@willgibs line restores "by SQL":
   Cancel deletion on `/admin/accounts/[id]` is that restore now. `admin-observability.md`'s "No operator audit table"
-  line may note the cancellation's Sentry line. `account-deletion.ts`'s header says none of the request is reversible
-  (the ban and the stamp now are, by the operator).
+  line may note the cancellation's Sentry line.
 - **Assets requested from Will:** none.
 - **Board ideas:** a slot in the account door for a page's own answer under its heading, where the door's failures stand
   (`/login`'s deletion notice sits above the heading today, the door being another lane's).
-- **Proposed migrations:** one comment, no schema: `profiles.deletion_requested_at` still says "Set once, never cleared".
-  `comment on column public.profiles.deletion_requested_at is 'When the account holder (or an operator on their behalf)
-  asked for deletion. Non-null means the profile is anonymised, any subscription is cancelled, every hosted event is
-  soft-deleted and the auth user is banned; sweepDeletedAccounts then hard-deletes R2-first and removes the auth.users row
-  once the account has ZERO events left (a forensic hold on one of its events holds the whole account open until the hold
-  lifts, ADR-0020). Cleared only by the operator''s Cancel deletion (cancelAccountDeletion) before the purge.
-  SERVICE-ROLE WRITE ONLY by construction: profiles writes are table-revoked with a column allowlist that deliberately
-  leaves this column out, so there is no client un-request path.';` No Worker, Vercel, Stripe or env change.
+- **Proposed migrations:** `supabase/migrations/20261003030000_deletion_requested_at_comment.sql`, for you to apply
+  (never applied here): one `comment on column public.profiles.deletion_requested_at`, no schema, so no types to
+  regenerate. The column said "Set once, never cleared"; it now names the operator's Cancel deletion as the one thing
+  that clears it, before the purge. Held rolled back on the live schema in one `execute_sql` (`begin;` the statement
+  `rollback;`): the comment read 721 characters before and 699 after inside the transaction, and the live comment still
+  reads "Set once, never cleared" afterwards, so nothing persisted. No Worker, Vercel, Stripe or env change.
 - **Calls his to overrule:**
   - The code screen names the address ("The old account for maya@example.com is still being erased"): GoTrue answers
     `user_banned` before it checks the code, so anyone who sends that address a code learns its account is being
