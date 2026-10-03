@@ -358,8 +358,9 @@ names the event in a hand (`share/as-guest-stage.tsx`, Radix's Dialog in a shape
   counted (her Views would count her own look), no ticket read or minted, no claim. The one write anywhere under it is
   the develop a guest's first read runs when one is due.
 - ★ **A look, never a door** (`share/as-guest-view.tsx`): the guest page's own pieces in its order (the guest's header
-  as a signed-out guest sees it, the cover, the album through the guests' own live source asked as a guest, the Guests
-  list, the shutter, the report line), the whole of it `inert`, so nothing pressed there writes as a guest; it mounts
+  as a signed-out guest sees it, the cover, the album through the guests' own live source asked as a guest with the
+  guests' wait over it where photos wait (the contact sheet, numbers alone, and the album's rule, `AlbumWaitSource`;
+  the cover's word over the name on a disposable), the Guests list, the shutter, the report line), the whole of it `inert`, so nothing pressed there writes as a guest; it mounts
   none of the guest page's hands (the door, the upload queue, the keep, the claims, the tracker, the reel's controller).
   Uploads closed shows the guest's closed line and no Add; the camera's album says Take photos. ★ Only me is the shut
   door, because that is what every guest meets there, and nothing is read for it.
