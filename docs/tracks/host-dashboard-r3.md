@@ -1,6 +1,6 @@
 ---
 track: host-dashboard-r3
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "499612e4"            # the launch-prep SHA the branch was cut from
 board: host-dashboard
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -42,29 +42,78 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each is built as recommended and drawn on the board as a carried call, his to overrule there; none is a one-way door.
+
+- `kept`: where are a host's choices kept (her layout, order and filters, her views, the stage's rule, Recent folded)?
+  Recommended: on her account, so her phone opens the way her laptop left it (a profiles column, the Orchestrator's
+  migration in the wiring round). Overrule: per device, in a cookie, as the view toggle is kept today.
+- `default`: how do her events open before she shapes them? Recommended: covers, the newest first, nothing grouped
+  or filtered (his "over-organizing"). Overrule: grouped by when, as it ships.
+- `recent`: from how many events does Recent show, and what does it hold? Recommended: from seven, the last four she
+  opened, never the stage's or this week's (below seven every event fits her first screen). Overrule: from her second.
+- `newest`: what does the default rule do when a party is near? Recommended: Newest keeps a party within a month
+  first, exactly as `lead=made` settled for a quiet day (and as `event-dates` wires it); Upcoming, Last opened and
+  Latest photos say exactly what they name, a party on its own day leading under all four. Overrule: Newest is the
+  newest made, always.
+- `light`: where does an empty event's colour come from? Recommended: one of the house's five lamps, picked by its id
+  and never changing, only ever as light in a gradient (bible 6); its photographs take over. Overrule: her pick of
+  the five, in Settings.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none (an exploration ships no production byte; `dashboard.md` describes production)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- none
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
-
-## Where I am
-
-- WIP 2: every option drawn and `lab:demo --board host-dashboard` green at 1440 and at 375 (`--state screen=375 --width 375`), shots in `../partyreel-wt/_scratch/host-dashboard-r3/shots-*`; first visual fixes in (short rail words, Ready said once, Rae's target in late 2023, Recent read by the captions). Next: phone and paper passes on the shots, then the gate and `lab:smoke`, then the Handoff.
+- Work: `93009429` (the board redrawn), `8c0d1b46` (every option pressed at 1440 and 375, the first look's fixes),
+  `e1e54dc9` (her events start under the app's bar; the rail's words wrap at a phone), `9b981820` (Newest's line
+  fits its menu), pushed on `lp/host-dashboard-r3`, cut from `9d3bf168`. No sync: launch-prep moved (wait-wiring
+  `c02893c1`, take-home-wiring `f8f23300`, types `e0cbda7d`) but nothing under my reads nor any module the board
+  imports changed, and `git merge-tree --write-tree HEAD origin/launch-prep` exits 0.
+- Gates on `9b981820`, each its own exit code, logs in `../partyreel-wt/_scratch/host-dashboard-r3/`: `pnpm
+  typecheck` 0 (`typecheck2.log`); `pnpm lint` 0 (`lint2.log`); `pnpm test` 0, 825 files and 9,740 tests
+  (`test2.log`); `zsh scripts/build-lock.sh pnpm build` 0 (`build2.log`); `pnpm lab:smoke --base
+  http://localhost:3135` 21 checks, 0 failing, the board's reading 788 of 1,200 words (`smoke2.log`); `pnpm lab:demo
+  --board host-dashboard --base http://localhost:3135` 3 steps, 0 failing (`demo2-1440.log`), and with `--width 375
+  --state screen=375` 3 steps, 0 failing (`demo2-375.log`). `registry.test.ts`, `queue.test.ts` and the board's
+  `model.test.ts` (14) are in the test run.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `src/app/(dev)/design/sandbox/host-dashboard/`
+  (board, collection, dashboard, empty-stage, fixtures, model, model.test, prefs, scene, shell, spec, stage-slot)
+  and this file; no exceptions.
+- `spec.ts`: round 3, three open asks with their context layer: `events` (four ways to shape one collection under
+  Recent; `menu` recommended), `stage` (four ways to draw an event with no photos; `lit` recommended), `rule` (four
+  places to choose the stage's rule; `corner` recommended); r2's answered asks retired into `opening.settled`, his r2
+  notes quoted in `opening.earlier`, `history` r2 and r1, five carried calls (the Questions above).
+- `fixtures.ts`: six hosts on the quiet Tuesday: Maya 1, Nia 3 (her wedding made last night), Nia a week on (the
+  wedding dated Saturday to Sunday, door set, code opened 12 times), Ari 10, Jo 40, Rae 200 (a seeded generator,
+  every name unique); ranges drawn as settled through `Host.ends`, lead=made through the Newest rule.
+- `model.ts`: `leadOf` (the four rules, a party on its own day always leading), a range's words (`rangeWhen`,
+  `rangeLabel`, `rangeLine`) laid over production's rows and week, `homeAround` (production's composition around any
+  lead), Recent, her prefs (layout, order and direction, lens, when, year, group, cover size), `findIn` (a year and
+  the words upcoming, past, waiting, undated as filters), starter views, `lampOf`.
+- `collection.tsx`: Recent folds to a line of its covers, each still a press away; gallery (production's tile),
+  table (its heads the sorts) and list (production's rows view); the four ways: one Display menu with a line saying
+  what is set, a toolbar with chips, views as tabs with Edit view, one field that finds with suggestions.
+- `empty-stage.tsx`: lit (the plate in the event's lamp, Settings' five steps laid flat, the light igniting once
+  from Create), album (the stage's own frames waiting, the code in the first), card (the name set like an
+  invitation, lit from above), guest (her guests' first screen beside the code); every way says production's
+  words, ticks and acts, its colour only light.
+- `stage-slot.tsx` and `prefs.tsx`: the rule as four sentences, each showing what it would lead with today, in the
+  stage's corner, as a row over the stage, in the page head's Customize (with Recent's switch), or in a Settings
+  stand-in that the stage's corner opens.
+- Captions read off every frame (`scene.tsx`): events on screen of how many and in what layout, Recent open or
+  folded, what is set, the old wedding's reach; the stage's event, word, way, lamp and steps; the rule and its lead.
+  Verified by hand on :3135 in paper and room: picking Upcoming moves Jo's stage to the Harbour & Co Holiday Party;
+  Display, Table, 2025 leaves Ari's three of that year; Recent folds; an event opens and Your events comes back.
+- Assets requested from Will: none.
+- Board ideas: `event-dates`' wiring can start from this board's range words (`rangeWhen` for a tile, `rangeLabel`
+  for a row, `rangeLine` for the stage's date line), drawn and tested here (`model.test.ts`).
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none for the exploration; if `kept` stands, the
+  wiring round's profiles column for her dashboard preferences is the Orchestrator's migration.
+- Calls his to overrule: `kept`, `default`, `recent`, `newest`, `light` (the Questions above, drawn on the board).
+- Look at first: `events` at 1440 on Rae's two hundred (the Display menu open on 2023, her old wedding on screen),
+  then `stage`, lit beside the invitation, just made and the week before.
