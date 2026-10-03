@@ -47,7 +47,40 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each is built as recommended and listed as Will's to overrule; none is a one-way door (the breakers are unpublished,
+and how the meter counts is a fact no host can feel).
+
+1. **Where the count lives.** The presign writes the ledger (the declared bytes and the item) through one new
+   service-role RPC, `meter_upload`, under the host's profiles lock, after every gate and before any URL is minted;
+   `create_media*` no longer read or write the monthly meter. Recommended. Its cost: from the migration's apply until
+   this code runs on a deployment, an upload that deployment starts counts nowhere (its old presign meters nothing, its
+   complete no longer does), and partyreel.com shares the database, so it should be redeployed with the alias.
+   Rejected: a per-upload presign record so the complete could tell (a table, its prune, and a late complete that
+   counts twice).
+2. **The presign refuses a file that will not fit the storage cap** (active bytes plus the declared ones past the cap
+   and its 10%) before it counts it. Today that file uploads whole and is refused at complete; once the presign counts,
+   every such try would also spend the month's uploads for nothing (fifty guests' 2 GB clips at a nearly full album, a
+   third of a Pro 100 GB month). Recommended.
+3. **A preview heavier than its original refuses the preview, never the upload:** no PUT is minted for it, the original
+   uploads and its tile serves the original, and the presign's answer says why in `preview_refused` (a 2 MB-plus one
+   too). The browser's 640 px WebP can outweigh a small, heavily compressed original, so refusing the upload would fail
+   a real guest's photo. Recommended.
+4. **An account's uploads an hour: 20,000** (every upload into its events, the host's and her guests'), counted on the
+   month's ledger row by clock hour, refused at presign (429, Retry-After to the hour's end) in words, a guest's about
+   the album. The 2,000-guest wedding averages ≈2,000 an hour and might peak near 4,000; a venue with three at once
+   ≈12,000; the busiest hour on record is 1,200 (a seeded album). Recommended.
+5. **An account's events a day: 100** in any 24 hours, a deleted one included (a create-and-delete loop counts),
+   in `enforce_event_limit` on a creation only (a restore is not one), after the plan's own limit (the published
+   sentence when both hold), refused in words. The busiest day on record is 34 (the red-teams' host). Recommended.
+6. **The join limiter's backstop: 3,000 a quarter-hour per (address, event)**, from 400: every guest of the 2,000-guest
+   wedding joining in one quarter-hour on one Wi-Fi, with half again for a second phone, a re-join, an ask or a remove,
+   which ride the same count (and it gates every guest's own-uploads read there). Breadth unchanged. Recommended.
+7. **The meter fails CLOSED:** a meter that cannot answer refuses the presign (503, "Couldn't start the upload. Please
+   try again.") and is reported, because nothing behind it counts the upload any more; the limiters fail open because
+   a capability stands behind each. Recommended.
+8. **A retry counts again:** the uploader asks a new presign for a retried file, so a guest whose PUT dropped spends her
+   file twice (the meter never refunds). Recommended to accept (a 3× month); the alternative is the uploader
+   re-trying its live PUT URL before a new presign (a client change, Deferred).
 
 ## System-doc edits (in place, owned facts only)
 
@@ -69,3 +102,8 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am
+
+- 2026-10-03: booted; plan and Questions written (above). Next: the tests red first (logged at
+  `../_scratch/upload-meter/red-green.log`), the migration `20261003210500_upload_meter.sql`, the engine's meter step.
