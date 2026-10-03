@@ -60,15 +60,45 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **See it as a guest, its design** (the brief's Question). BUILT, recommended: a page of its own,
+  `/dashboard/<id>/as-guest`, in a route group without the host's shell (`(as-guest)`, `(print)`'s reason), framed
+  in the hub's stage: a phone over the dimmed hub at a desk (390x844 fitted to the window, "What your guests see"
+  and the door's words over it, Back to your hub, Open it in a new tab), the whole screen under a bar naming the
+  event in a hand. A LOOK, NEVER A DOOR: the guests' own read (the door's pass, the guests' seed loader, decided as a
+  guest past every step, never the owner), the guest page's own pieces drawn inert; she scrolls it, presses nothing
+  (no join, ticket, upload, like, report, claim or download; no visit counted). Only me is the shut door every guest
+  meets. Overrule: let her open a photograph and play the reel inside it (a read-only mode in the guest page's own
+  components, wait-wiring's and take-home's files), or add what a NEW guest meets first (the welcome, the ask) as a
+  second view.
+- **One panel for the three rooms.** BUILT, recommended: Review and Guests stand in Settings' panel as it ships (the
+  settings kind's 448px, its head: the room's name over the event's, the close in its corner), so the three are one
+  panel to the pixel; Review's own row keeps its count in words and its actions, two tiles across. The board drew each
+  room's own page heading leading a 512px panel, its close outside the panel's edge. Overrule: the board's (one
+  `floating-layer.ts` row for the width, identity's; the head in `room-panel.tsx` and Settings' sheet).
+- **The reel's door.** BUILT, recommended: the guests' own view at `/e/<token>?reel`, full screen with its black from
+  the first frame (crumbs-52, crumbs-54), its owner's close going Back to the hub, which returns from the router's
+  cache. Overrule: a reel layer over the hub, the hub never unmounting (mounting the guests' live album and the reel's
+  controller in the hub: a second copy of the guest page's reel machinery).
+- **A room handing over to another** (Settings' "Let them in from Guests", the Guests room's "Change who can get in",
+  a code card's Everything). BUILT, recommended: it replaces the room, so the close always lands on the hub.
+  Overrule: stack them, Back returning to the room before.
+- **The fifth door on a phone.** BUILT, recommended: as the board drew it, the third row's first place at half
+  width. Overrule: the full row.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/host-app.md`: the event page's intro and not-found line, the cards row (the fifth door, room
+  addresses, intent warming), every room as a place over the hub (one panel, the reel's door, the old routes'
+  redirects, the panel's keys), every place on `?room=` (hand-overs replace, old links open in place), the Guests
+  room's read, the Review room's queue off the hub's album and its untitled head, the keys in the panel, and a new
+  "See it as a guest" section.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Security: the app answers any site's frame (no `frame-ancestors`, no `X-Frame-Options`); `frame-ancestors 'self'`
+  keeps See it as a guest's own frame and refuses every other (next.config.ts, take-home's and cost-model's file).
+- Host: the dashboard's next-step chip (`lib/dashboard/next-step.ts`) still links `/guests#at-the-door`, answered by
+  the route's redirect; `roomHref` would save the hop.
 
 ## Handoff (replaces the chat report)
 
@@ -82,3 +112,15 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am
+
+- DONE (pushed, `lp/rooms-wiring` at 53d34c97 and earlier): the rooms over the hub (Review, Guests, Settings in one
+  panel), every old way in, the reel's door kept, See it as a guest (route, read, view, stage, fifth door), tests
+  (red first: sections, the provider, the bell, the routes' redirects; then the rooms, the read's pins), host-app.md.
+  Typecheck, lint, test and `pnpm build` green on 53d34c97 (build log `../_scratch/rooms-wiring/build.log`).
+- REMAINS: `pnpm lab:smoke` and `pnpm lab:demo --board event-header` at 1440 and 375 (dev server on 3134:
+  `pnpm dev -p 3134`, logging to `../_scratch/rooms-wiring/dev.log`); the sync onto identity-wiring when it merges;
+  the Handoff. Captures so far: `../_scratch/rooms-wiring/cap/` (a scratch harness of production's pieces over
+  fixtures, kept OUT of the repo in `../_scratch/rooms-wiring/harness/tmp-rooms`; copy it to
+  `src/app/(dev)/design/tmp-rooms` to re-shoot, and delete it before any commit or gate).
