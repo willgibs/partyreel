@@ -47,9 +47,29 @@ working.
 
 **Verify on.** The gate on the synced tree, each step on its own exit code; `pnpm lab:smoke --base http://localhost:3132`; red first for the batch, the hidden tab's silence and its catch-up, and the delta's links (tests failing on today's code, logged); the before/after measurement logged in your scratch; a capture of a batch landing and of the catch-up after a hidden spell, at 375 and 1440.
 
+## Where I am
+
+- Built and unit-green (WIP commit): the batch clock (`refresh-coalescer.ts`, `ALBUM_BATCH_MS`), the doorbell that
+  leaves its channel while hidden (`use-gallery-doorbell.ts`), the poll that never starts hidden (`use-live-poll.ts`),
+  the host album on the shared poll, the stage's guard gone, and a delta carrying its new items' links
+  (`album-wire-carry.ts`, `album-wire-links.server.ts`, the sync route). Red logged before the build:
+  `_scratch/album-calm/red-before.log` (33 failing on today's code).
+- Before measured on a base `next start` (`_scratch/album-calm/measure-before.log`); the after build is next, then the
+  after measurement, the captures, the docs (guest-flow.md, PRICING lever 1) and the gate.
+
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **Does another guest's first photograph after a quiet spell wait for the clock too?** Recommended and built: yes.
+  Every ping waits for the device's next tick (a uniform 0 to 15 s, 7.5 s on average), and the ticks fall at a phase
+  each device draws, so a venue of phones never asks in one stampede. The alternative, a leading edge (the first ping
+  at once, then 15 s batches), costs one more sync a burst on every device, lands a burst as "one, then the rest", and
+  sends every phone to the server in the same second. Will's to overrule.
+- **Does a tab leave the channel the instant it hides?** Recommended and built: yes, with no grace before leaving (a
+  phone suspends its page seconds after hiding, so a delayed leave would never run there); a returning tab keeps its
+  Live mark up to 3 s while it rejoins (`REJOIN_GRACE_MS`), so the host's pip does not blink on every return.
+- **How many new items does a delta carry links for?** Recommended and built: the newest 48 (`ALBUM_DELTA_LINKS_MAX`,
+  the first paint's own screenful); a bigger batch (a tab back from hours away) carries the head's, and the window asks
+  the links route for the rest only if the reader goes there.
 
 ## System-doc edits (in place, owned facts only)
 

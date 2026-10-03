@@ -17,9 +17,11 @@ import { useLivePoll } from "@/lib/shared/use-live-poll";
  * nothing while the tab is hidden, and once the moment it returns. Every other day it listens to
  * nothing.
  *
- * ★ ONE ASK AT A TIME: a ping that lands while an answer is on its way asks once more when it arrives,
- * never alongside it, so a burst of photographs is two reads, not twenty. And a ping heard in a hidden
- * tab waits for the tab: the return's own catch-up covers it.
+ * ★ THE ALBUM'S OWN RULES (album-calm): the doorbell answers in calm batches on the device's clock, so
+ * a wall left open all night (visible, so it batches) moves about every fifteen seconds while guests
+ * upload, never a photograph a second; and a hidden tab is no listener at all, its return's catch-up
+ * covering what it missed. ★ ONE ASK AT A TIME besides: a batch that lands while an answer is on its
+ * way asks once more when it arrives, never alongside it.
  */
 export function useStageLive({
   eventId,
@@ -62,9 +64,7 @@ export function useStageLive({
   const { live } = useGalleryDoorbell({
     qrToken,
     enabled,
-    onRefresh: () => {
-      if (!document.hidden) void poll();
-    },
+    onRefresh: () => void poll(),
   });
   useLivePoll({
     enabled,

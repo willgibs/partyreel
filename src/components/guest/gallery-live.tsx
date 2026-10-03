@@ -12,8 +12,10 @@
  *   - a quiet album answers 304 having read one row (the version) on the server;
  *   - a change answers the DELTA since the version this device holds, merged by id and checked
  *     against the server's count (a mismatch heals with a fresh manifest, never drawn);
- *   - links ride separate asks, per window, re-minted before they age, so no poll ever carries one.
- * The doorbell and the fallback poll both call it; the store coalesces overlapping calls.
+ *   - links ride separate asks, per window, re-minted before they age; only a delta carries its new items'
+ *     own, so a batch arrives in one call (album-calm, `album-wire-carry.ts`).
+ * The doorbell (in calm batches, and silent in a hidden tab: `use-gallery-doorbell.ts`) and the fallback poll
+ * both call it, and the store coalesces overlapping calls; her own upload syncs at once, never on the clock.
  *
  * ★ THE FIRST PAINT IS THE SERVER'S ANSWER, NOT A LOADING STATE. The page embeds the manifest and
  * the first window's links (`gallery-seed.ts`); the store adopts them through its own first sync,
@@ -72,6 +74,7 @@ import {
 import { guestAlbumTransport } from "@/lib/album/transport";
 import type { GuestWaiting } from "@/lib/disposable/facts";
 import { entryId, type GuestFullSync } from "@/lib/events/album-wire";
+import { carryingTransport } from "@/lib/events/album-wire-carry";
 import type { GalleryAccess } from "@/lib/events/gallery-access";
 import type { GalleryItem, GalleryReel } from "@/lib/events/gallery-reel";
 import {
@@ -446,8 +449,12 @@ export function GalleryLiveProvider({
         return answer;
       },
     };
+    // ★ ONE CALL A BATCH (album-calm): a delta carries its new items' links, and this outermost layer answers the
+    // link store's ask for them itself (`album-wire-carry.ts`), so a batch lands with no second call. Its `forget`
+    // (the watchdog's) lets a carried link go and passes on to the seed's.
+    const carrying = carryingTransport(tapped);
     const store = createAlbumStore({
-      transport: tapped,
+      transport: carrying,
       // A delta that left the album a different size than the server counted can only be a lost
       // or doubled change: never silent, and the store heals it with a fresh manifest first.
       onIntegrityMiss: (detail) =>
@@ -458,7 +465,7 @@ export function GalleryLiveProvider({
         ),
     });
     return {
-      transport: tapped,
+      transport: carrying,
       store,
       // The store's own answer before it has one: what an unread album draws from.
       unread: store.getSnapshot(),

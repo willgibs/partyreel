@@ -21,11 +21,20 @@ const planRead = vi.fn();
 const planPage = vi.fn();
 const planGuestAlbumSync = vi.fn();
 const readGuestAttribution = vi.fn();
+// The rows behind a delta's carried links, through the reads' own gate (album-calm): what it leaves out (held,
+// sealed, removed, another album's) carries no link.
+const readGuestAlbumMedia = vi.fn();
 vi.mock("@/lib/db/queries/album-guest", () => ({
   ALBUM_REFUSED: { access: "none", gate: "password" },
   readGuestAlbumVersions: (...a: unknown[]) => readGuestAlbumVersions(...a),
   planGuestAlbumSync: (...a: unknown[]) => planGuestAlbumSync(...a),
   readGuestAttribution: (...a: unknown[]) => readGuestAttribution(...a),
+  readGuestAlbumMedia: (...a: unknown[]) => readGuestAlbumMedia(...a),
+}));
+const captureError = vi.fn();
+vi.mock("@/lib/observability/sentry", () => ({
+  captureError: (...a: unknown[]) => captureError(...a),
+  captureWarning: vi.fn(),
 }));
 const getApprovedPhotoTeaser = vi.fn();
 const countApprovedMedia = vi.fn();
@@ -502,7 +511,10 @@ describe("the develop and what waits (20261002200000)", () => {
     viewer({ develop_due: true });
     await post({ qr_token: "qr-1" });
     expect(developIfDue).toHaveBeenCalledTimes(1);
-    expect(developIfDue.mock.calls[0][0]).toMatchObject({ id: EVENT.id, develop_due: true });
+    expect(developIfDue.mock.calls[0][0]).toMatchObject({
+      id: EVENT.id,
+      develop_due: true,
+    });
     expect(developIfDue.mock.invocationCallOrder[0]).toBeLessThan(
       readGuestAlbumVersions.mock.invocationCallOrder[0],
     );
@@ -510,14 +522,25 @@ describe("the develop and what waits (20261002200000)", () => {
 
   it("★ at full access, what waits rides the answer with the develop time, as numbers and never an id", async () => {
     viewer({ develops_at: DEVELOPS, capture: "camera", roll_size: 24 });
-    waiting = { count: 3, minutes: [[1_790_000_000_000, 2], [1_790_000_060_000, 1]] };
+    waiting = {
+      count: 3,
+      minutes: [
+        [1_790_000_000_000, 2],
+        [1_790_000_060_000, 1],
+      ],
+    };
     const body = await (await post({ qr_token: "qr-1" })).json();
     expect(body.waiting).toEqual({
       count: 3,
-      minutes: [[1_790_000_000_000, 2], [1_790_000_060_000, 1]],
+      minutes: [
+        [1_790_000_000_000, 2],
+        [1_790_000_060_000, 1],
+      ],
       developsAt: DEVELOPS,
     });
-    expect(JSON.stringify(body.waiting)).not.toMatch(/[0-9a-f]{8}-[0-9a-f]{4}-/);
+    expect(JSON.stringify(body.waiting)).not.toMatch(
+      /[0-9a-f]{8}-[0-9a-f]{4}-/,
+    );
   });
 
   it("a held row waits with no develop time: the count rides, the time is none", async () => {
@@ -542,12 +565,20 @@ describe("the develop and what waits (20261002200000)", () => {
   it("★ the validator hashes the develop time: a host's new one reaches a parked page on its next poll", async () => {
     viewer({ develops_at: DEVELOPS });
     const etag = (await post({ qr_token: "qr-1" })).headers.get("etag")!;
-    const quiet = await post({ qr_token: "qr-1", since: 5 }, { "If-None-Match": etag });
+    const quiet = await post(
+      { qr_token: "qr-1", since: 5 },
+      { "If-None-Match": etag },
+    );
     expect(quiet.status).toBe(304);
     viewer({ develops_at: "2026-10-04T09:00:00.000Z" });
-    const moved = await post({ qr_token: "qr-1", since: 5 }, { "If-None-Match": etag });
+    const moved = await post(
+      { qr_token: "qr-1", since: 5 },
+      { "If-None-Match": etag },
+    );
     expect(moved.status).toBe(200);
-    expect((await moved.json()).waiting.developsAt).toBe("2026-10-04T09:00:00.000Z");
+    expect((await moved.json()).waiting.developsAt).toBe(
+      "2026-10-04T09:00:00.000Z",
+    );
   });
 
   it("never on the teaser: what waits is a full album's alone", async () => {
@@ -556,5 +587,210 @@ describe("the develop and what waits (20261002200000)", () => {
     const body = await (await post({ qr_token: "qr-1" })).json();
     expect(body.kind).toBe("teaser");
     expect(body).not.toHaveProperty("waiting");
+  });
+});
+
+/**
+ * ★ ONE CALL A BATCH (album-calm, PRICING lever 1c): a delta carries its new items' links, so a batch of photographs
+ * arrives in the poll's one answer where it took two calls (the delta, then the links route for its ids). Minted as
+ * the links route mints them (`album-wire-links.server.ts`, the one home for both): through the reads' own gate, three
+ * stable presigns an item, a name with no address, in the bucket read before minting with the server's clock beside it.
+ */
+describe("★ a delta carries its new items' links (album-calm)", () => {
+  const id = (n: number) =>
+    `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
+  const key = (n: number, v = "original") =>
+    `events/${EVENT.id}/photo/${id(n)}/${v}.jpg`;
+  /** One change a new photograph, created at `n` microseconds past a moment (a bigger n is newer). */
+  const change = (n: number, status = "approved") => ({
+    mediaId: id(n),
+    version: 6,
+    status,
+    type: "photo",
+    width: 4,
+    height: 3,
+    durationSeconds: null,
+    hasPreview: n % 2 === 1,
+    reelEligible: true,
+    createdAt: 1_790_206_284_644_108 + n,
+    guestId: null,
+  });
+  const changes = (list: ReturnType<typeof change>[]) =>
+    planRead.mockImplementation(async (_after: number, limit: number) =>
+      limit === 0 ? read() : read({ albumMax: 9, approved: 3, changes: list }),
+    );
+  /** The read returns what is approved, unsealed and this album's: anything else is simply absent. */
+  const rows = (ns: number[], who = true) =>
+    readGuestAlbumMedia.mockResolvedValue({
+      rows: ns.map((n) => ({
+        id: id(n),
+        type: "photo",
+        original_key: key(n),
+        preview_key: n % 2 === 1 ? key(n, "preview") : null,
+      })),
+      identities: who
+        ? new Map(
+            ns.map((n) => [
+              id(n),
+              {
+                displayName: `Guest ${n}`,
+                email: `g${n}@example.com`,
+                isHost: false,
+                isVerified: true,
+              },
+            ]),
+          )
+        : null,
+    });
+
+  it("★ carries a tile, a view, a download and a name for each new photograph, dated by its bucket and the server's clock", async () => {
+    changes([change(7), change(8)]);
+    rows([7, 8]);
+    const before = Date.now();
+    const res = await post({ qr_token: "qr-1", since: 5 });
+    const text = await res.clone().text();
+    const body = JSON.parse(text);
+    expect(body.kind).toBe("delta");
+    expect(body.upsert.map((e: unknown[]) => e[0]).sort()).toEqual([
+      id(7),
+      id(8),
+    ]);
+    expect(Number.isInteger(body.links.b)).toBe(true);
+    expect(body.links.now).toBeGreaterThanOrEqual(before);
+    expect(body.links.b).toBe(Math.floor(body.links.now / 1_800_000));
+    const byId = new Map(body.links.links.map((l: unknown[]) => [l[0], l]));
+    // 7 has a preview: the tile is the preview, the view the original. 8 has none: the view rides as null.
+    expect(byId.get(id(7))).toEqual([
+      id(7),
+      `https://r2.test/${key(7, "preview")}?sig`,
+      `https://r2.test/${key(7)}?sig`,
+      `https://r2.test/${key(7)}?sig&dl`,
+      ["Guest 7", 2],
+    ]);
+    expect(byId.get(id(8))).toEqual([
+      id(8),
+      `https://r2.test/${key(8)}?sig`,
+      null,
+      `https://r2.test/${key(8)}?sig&dl`,
+      ["Guest 8", 2],
+    ]);
+    // ★ Never an address, never a raw key outside its signed link.
+    expect(text).not.toContain("@example.com");
+    expect(text).not.toMatch(/"(original_key|preview_key)"/);
+    expect(
+      text.replace(/https:\/\/r2\.test\/events\/[^"]+/g, ""),
+    ).not.toContain("events/");
+  });
+
+  it("★ only through the reads' own gate: a held, sealed or removed photograph carries no link", async () => {
+    // 9 came back into the delta's upserts, but the gated read leaves it out (sealed for the develop, say).
+    changes([change(7), change(9)]);
+    rows([7]);
+    const body = await (await post({ qr_token: "qr-1", since: 5 })).json();
+    expect(readGuestAlbumMedia).toHaveBeenCalledTimes(1);
+    const [event, ids, opts] = readGuestAlbumMedia.mock.calls[0];
+    expect(event).toMatchObject({ id: EVENT.id });
+    expect([...ids].sort()).toEqual([id(7), id(9)]);
+    expect(opts).toEqual({ attribute: true });
+    expect(body.links.links.map((l: unknown[]) => l[0])).toEqual([id(7)]);
+  });
+
+  it("★ the newest first, at most a screenful (ALBUM_DELTA_LINKS_MAX)", async () => {
+    const { ALBUM_DELTA_LINKS_MAX } = await import("@/lib/events/album-wire");
+    // In change order, oldest first, as the log hands them over.
+    changes(Array.from({ length: 60 }, (_, i) => change(100 + i)));
+    rows([]);
+    await post({ qr_token: "qr-1", since: 5 });
+    const ids = readGuestAlbumMedia.mock.calls[0][1] as string[];
+    expect(ids).toHaveLength(ALBUM_DELTA_LINKS_MAX);
+    expect(ids[0]).toBe(id(159));
+    expect(ids).not.toContain(id(100));
+  });
+
+  it("the demo's carried links name nobody", async () => {
+    resolveAlbumViewer.mockResolvedValue({
+      kind: "viewer",
+      event: EVENT,
+      decision: { access: "full", gate: null },
+      isDemo: true,
+      heal: null,
+    });
+    changes([change(7)]);
+    rows([7], false);
+    const body = await (await post({ qr_token: "qr-1", since: 5 })).json();
+    expect(readGuestAlbumMedia.mock.calls[0][2]).toEqual({ attribute: false });
+    expect(body.links.links[0][4]).toBeNull();
+  });
+
+  it("a manifest, a delta with nothing new and a removal carry none, and read nothing for them", async () => {
+    const first = await (await post({ qr_token: "qr-1" })).json();
+    expect(first.kind).toBe("manifest");
+    expect(first).not.toHaveProperty("links");
+    changes([]);
+    const quiet = await (await post({ qr_token: "qr-1", since: 5 })).json();
+    expect(quiet.kind).toBe("delta");
+    expect(quiet).not.toHaveProperty("links");
+    changes([change(7, "removed")]);
+    const gone = await (await post({ qr_token: "qr-1", since: 5 })).json();
+    expect(gone.remove).toEqual([id(7)]);
+    expect(gone).not.toHaveProperty("links");
+    expect(readGuestAlbumMedia).not.toHaveBeenCalled();
+  });
+
+  it("a teaser carries none (its nine ride inline), and a lock nothing at all", async () => {
+    resolveAlbumViewer.mockResolvedValue({
+      kind: "viewer",
+      event: EVENT,
+      decision: { access: "teaser", gate: "upload" },
+      isDemo: false,
+      heal: null,
+    });
+    const teaser = await (await post({ qr_token: "qr-1", since: 5 })).json();
+    expect(teaser.kind).toBe("teaser");
+    expect(teaser).not.toHaveProperty("links");
+    expect(readGuestAlbumMedia).not.toHaveBeenCalled();
+  });
+
+  it("a refused read carries none, and the delta still lands (the links route answers for itself)", async () => {
+    changes([change(7)]);
+    readGuestAlbumMedia.mockResolvedValue(null);
+    const res = await post({ qr_token: "qr-1", since: 5 });
+    const body = await res.json();
+    expect(body.kind).toBe("delta");
+    expect(body.upsert).toHaveLength(1);
+    expect(body).not.toHaveProperty("links");
+  });
+
+  it("★ a read that FAILS is reported, never silent, and costs the delta nothing", async () => {
+    changes([change(7)]);
+    readGuestAlbumMedia.mockRejectedValue(new Error("album: guest links"));
+    const res = await post({ qr_token: "qr-1", since: 5 });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.kind).toBe("delta");
+    expect(body).not.toHaveProperty("links");
+    expect(captureError).toHaveBeenCalledWith(
+      "media",
+      expect.any(Error),
+      expect.objectContaining({ eventId: EVENT.id }),
+    );
+  });
+
+  it("the validator does not move for the links (a quiet album still answers 304)", async () => {
+    changes([change(7)]);
+    rows([7]);
+    const etag = (await post({ qr_token: "qr-1", since: 5 })).headers.get(
+      "etag",
+    )!;
+    readGuestAlbumVersions.mockResolvedValue({
+      version: 9,
+      albumMax: 9,
+      attrVersion: 2,
+    });
+    const quiet = await post(
+      { qr_token: "qr-1", since: 9 },
+      { "If-None-Match": etag },
+    );
+    expect(quiet.status).toBe(304);
   });
 });
