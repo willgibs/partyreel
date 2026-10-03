@@ -17,6 +17,7 @@ import {
   type CreatedEvent,
 } from "@/app/(app)/dashboard/actions";
 import { DEFAULT_QR_PRESET, type QrStyleKey } from "@/lib/constants/qr-presets";
+import { DEFAULT_ERROR_MESSAGE } from "@/lib/errors/codes";
 import { type Tier } from "@/lib/constants/tiers";
 import {
   newEventFacts,
@@ -214,7 +215,15 @@ export function CreateEventWizard({
     setLeft(readiness(newEventFacts(values, storagePct)));
     setStep("beat");
     startTransition(async () => {
-      const result = await create(values);
+      // ★ A DROPPED CONNECTION REJECTS THE ACTION RATHER THAN ANSWERING IT, and the beat must never
+      // develop for ever over a promise that failed: a throw reads as the failure it is.
+      const result = await create(values).catch(
+        (): Awaited<ReturnType<typeof create>> => ({
+          ok: false,
+          code: "unknown",
+          message: DEFAULT_ERROR_MESSAGE,
+        }),
+      );
       creating.current = false;
       if (result.ok) {
         setCreated(result.event);

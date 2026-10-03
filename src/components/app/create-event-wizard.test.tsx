@@ -276,6 +276,31 @@ describe("the way on", () => {
     expect(push).not.toHaveBeenCalled();
   });
 
+  it("★ never develops for ever over a dropped connection: a rejected Create reads as the failure it is", async () => {
+    createEventInWizard.mockRejectedValue(new TypeError("Failed to fetch"));
+    renderWizard();
+    await toTheLook();
+    await userEvent.click(
+      screen.getByRole("button", { name: /^create event$/i }),
+    );
+    expect(
+      await screen.findByRole("button", { name: /^create event$/i }),
+    ).toBeInTheDocument();
+    expect(document.querySelector("[data-beat]")).toBeNull();
+    expect(toast.error).toHaveBeenCalledWith(
+      expect.stringMatching(/couldn.t create/i),
+      expect.objectContaining({ description: expect.any(String) }),
+    );
+    // And she can press it again: the one-create guard let go with the failure.
+    createEventInWizard.mockResolvedValue({ ok: true, event: EVENT });
+    await userEvent.click(
+      screen.getByRole("button", { name: /^create event$/i }),
+    );
+    expect(
+      await screen.findByRole("button", { name: /^get it ready$/i }),
+    ).toBeInTheDocument();
+  });
+
   it("sends her to her events with the plan's sentence when a slot was spent elsewhere (the guard behind the door)", async () => {
     createEventInWizard.mockResolvedValue({
       ok: false,
