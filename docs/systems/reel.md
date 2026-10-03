@@ -148,8 +148,9 @@ A host has no reel to create, only a state to read and a few defaults to set.
   makes the guest's tile appear. The dashboard asks the same in SQL (`getReelProgress`: one row per event, at most two
   media embedded).
 - **The Reel card counts to two** ([`event-feed/reel-card.tsx`](../../src/components/app/event-feed/reel-card.tsx)):
-  dashed at none ("Starts at 2 photos"), the one photo under an overlay at one, then the living card ("Live for guests")
-  dissolving through the reel's own take. Before two a press opens guidance (what is left, Add photos, and on a
+  dashed at none ("Starts at 2 photos"), the one photo under an overlay at one, then the living card ("Live for guests",
+  or "Live at the develop" while the album's develop time is ahead, since no guest sees a photograph before it; the page
+  hands `developsAt`, and the card turns the moment it comes) dissolving through the reel's own take. Before two a press opens guidance (what is left, Add photos, and on a
   moderated event that a guest's photo counts once approved); from two it opens `/e/<token>?reel`, where the owner
   passes every gate (a soft navigation, kept one: a plain press asks for the view's lazy chunk at once, so it lands
   inside the album's server render and the curtain's black is a beat, [guest-flow.md](guest-flow.md)); off, it opens

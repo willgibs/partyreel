@@ -26,6 +26,7 @@ import {
   useHubCounts,
   useHubEntries,
 } from "@/components/app/event-feed/host-album";
+import { developState } from "@/lib/disposable/reveal";
 import {
   isPlayableEntry,
   photosToGo,
@@ -60,6 +61,12 @@ export type ReelCardData = {
   moderated: boolean;
   /** What waits in Review now, so the guidance can point at it. */
   pending: number;
+  /**
+   * The album's develop time (ISO) when one is set. Until it every guest's album, and so their reel, is empty (what
+   * they add waits sealed), so the live card says it goes live at the develop rather than that it is live for guests
+   * (red-team 43). Absent where there is none.
+   */
+  developsAt?: string | null;
 };
 
 const LABEL = "Highlight reel";
@@ -219,9 +226,32 @@ function warmReelView(e: ReactMouseEvent) {
   void import("@/components/guest/reel/live-reel-view").catch(() => {});
 }
 
+/** setTimeout holds a delay of 2^31 - 1 ms at most; a develop time farther off re-reads at the ceiling. */
+const MAX_TIMER_MS = 2 ** 31 - 1;
+
+/**
+ * Whether the album's develop time is still ahead, read again the moment it comes: a hub left open across the develop
+ * must stop saying the reel waits (the one lie this card exists to not tell, turned round).
+ */
+function useDevelopWait(developsAt: string | null): boolean {
+  const [now, setNow] = useState(() => Date.now());
+  const waiting = developState(developsAt, now).kind === "waiting";
+  useEffect(() => {
+    if (!developsAt || !waiting) return;
+    const left = Date.parse(developsAt) - Date.now();
+    const timer = window.setTimeout(
+      () => setNow(Date.now()),
+      Math.min(Math.max(left, 0) + 50, MAX_TIMER_MS),
+    );
+    return () => window.clearTimeout(timer);
+  }, [developsAt, waiting, now]);
+  return waiting;
+}
+
 function LiveCard({ reel, stuck }: { reel: ReelCardData; stuck: boolean }) {
   const { ref, at } = useLivingClock<HTMLAnchorElement>(reel.stills.length);
   const living = !stuck && reel.stills.length > 0;
+  const developing = useDevelopWait(reel.developsAt ?? null);
   return (
     <Link
       ref={ref}
@@ -259,7 +289,7 @@ function LiveCard({ reel, stuck }: { reel: ReelCardData; stuck: boolean }) {
           living ? "text-white/85" : "text-muted-foreground",
         )}
       >
-        Live for guests
+        {developing ? "Live at the develop" : "Live for guests"}
       </span>
     </Link>
   );

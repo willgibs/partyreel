@@ -341,6 +341,8 @@ export default async function EventDetailPage({
     viewHref: `/e/${event.qr_token}?reel`,
     moderated: isModerationOn,
     pending: pendingCount,
+    // Until a develop time ahead, no guest sees a photograph, so the card says it goes live then (red-team 43).
+    developsAt: event.develops_at,
   };
 
   // ★ THE HUB'S COVER (`event-header` r1, `host=shared`): the album's own head, her tools on it. Its

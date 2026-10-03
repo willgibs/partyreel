@@ -287,6 +287,67 @@ describe("the live card's press", () => {
   });
 });
 
+/**
+ * ★ WHAT IS TRUE UNTIL THE DEVELOP (crumbs-52; red-team 43's NIT: "the Highlight reel card reads 'Live for guests' on a
+ * sealed album whose guests see no photograph"). On an album whose develop time is ahead every guest's reel is empty
+ * until it, so the live card says it goes live at the develop, and says "Live for guests" again the moment the time is
+ * reached, with no reload. The card still opens the view (the host's own reel plays her whole album). The page hands the
+ * time (`developsAt`); an album with none, or one reached, reads as it always has.
+ */
+describe("the live card on an album that develops later", () => {
+  const liveCard = (developsAt?: string | null) => (
+    <ReelCard
+      eventId="e1"
+      reel={{
+        ...base,
+        state: "live",
+        have: 2,
+        stills: ["s1", "s2"],
+        developsAt,
+      }}
+      stuck={false}
+    />
+  );
+  const ahead = (ms: number) => new Date(Date.now() + ms).toISOString();
+
+  it("★ says it goes live at the develop, not that it is live for guests, and still opens the view", () => {
+    render(liveCard(ahead(3_600_000)));
+    const link = screen.getByRole("link");
+    expect(link).toHaveTextContent("Live at the develop");
+    expect(link).not.toHaveTextContent("Live for guests");
+    expect(link).toHaveAttribute("href", "/e/token123?reel");
+  });
+
+  it("says what it always has with no develop time, or one reached", () => {
+    const { unmount } = render(liveCard(null));
+    expect(screen.getByRole("link")).toHaveTextContent("Live for guests");
+    unmount();
+    const { unmount: second } = render(liveCard(undefined));
+    expect(screen.getByRole("link")).toHaveTextContent("Live for guests");
+    second();
+    render(liveCard(ahead(-60_000)));
+    expect(screen.getByRole("link")).toHaveTextContent("Live for guests");
+  });
+
+  it("★ turns to live for guests the moment the develop time comes, with the hub left open", () => {
+    vi.useFakeTimers();
+    try {
+      render(liveCard(ahead(90_000)));
+      expect(screen.getByRole("link")).toHaveTextContent("Live at the develop");
+      act(() => {
+        vi.advanceTimersByTime(89_000);
+      });
+      expect(screen.getByRole("link")).toHaveTextContent("Live at the develop");
+      act(() => {
+        vi.advanceTimersByTime(2_000);
+      });
+      expect(screen.getByRole("link")).toHaveTextContent("Live for guests");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
 describe("switched off, the card opens Settings", () => {
   it("carries the real Settings URL and opens the sheet on a plain click", () => {
     render(
