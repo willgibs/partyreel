@@ -1,6 +1,6 @@
 ---
 track: desk-tune-4
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "8fef7143"            # the launch-prep SHA the branch was cut from
 board: the-wait
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -40,25 +40,86 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- The held album's Reel card on the hub: production draws a card with nothing in it as the counting card (dashed, its
+  two pips from `sm`, `reel-card.tsx`'s `CountingCard`), and the rooms row here draws every card in the one plain shell,
+  so the held half now says production's words ("Starts at 2 photos") in that shell. Recommended: leave the shell, since
+  the row is `event-header`'s and no ask here is about a card's look. Built so; his to overrule.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/design-system.md`: the event head's hook table names the glyph count's number, `data-n`, in the atom's
+  one row (the hook identity's voice and status sheets style; a rename moves both).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now, Design: the-wait's hub quote draws the held album's Reel card in the plain shell where production's counting card
+  is dashed with its two pips from `sm` (`reel-card.tsx`); draw both when a board next asks the hub's cards (from
+  `desk-tune-4`).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
+Scratch artifacts below live in `/Users/gibby/local/ai/partyreel-wt/_scratch/desk-tune-4/` (`S/`), pruned with the lane.
+
+- Commits, pushed to `origin/lp/desk-tune-4`: the work `31dde69b`; the sync `699fa3dc` (launch-prep had moved: lab-frame's
+  Frame, merged `0d69c92b`; the merge was clean and the design-system.md row survived); this manifest alone is the handoff
+  commit. The gates ran on `699fa3dc`; typecheck, lint and test were also green on `31dde69b` before the sync (800 files,
+  9462 tests).
+- Gates on the synced tree `699fa3dc`, each on its own exit code: `pnpm typecheck` 0 (`S/typecheck-2.log`); `pnpm lint`
+  0, no warning (`S/lint-2.log`); `pnpm test` 0, 801 files and 9469 tests (`S/test-2.log`);
+  `zsh scripts/build-lock.sh pnpm build` 0 (`S/build.log`); `pnpm lab:smoke --base http://localhost:3132` 0, 151 checks and
+  0 failing, the-wait's reading 853 words of 1200 (`S/smoke.log`); `pnpm lab:demo --board the-wait` 0, 6 steps and 0
+  failing, at the 1440 window (`S/gate-demo-the-wait.log`), at `--width 375` (`S/gate-demo-the-wait-375.log`) and wearing
+  `screen=1440` (`S/gate-demo-the-wait-s1440.log`); `--board identity` 0, 5 steps and 0 failing
+  (`S/gate-demo-identity.log`); and, since they draw the real glyph count, `--board event-header,take-home` 0, 6 steps and
+  0 failing (`S/gate-demo-glyph-boards.log`).
+- Lane check, `git diff --name-only origin/launch-prep...HEAD`: `the-wait/`'s `album.tsx`, `arrival.tsx`, `guest.tsx`,
+  `host.tsx`, `spec.ts` and `words.tsx`; `src/components/ui/glyph-count.tsx` and its `.test.tsx`;
+  `docs/systems/design-system.md` (listed under System-doc edits); this file. No exception.
+- The items:
+  1. `album.tsx`: `GuestPage` takes `camera`: the cover's Add says "Take photos" with the Camera glyph, as
+     `event-experience.tsx` words it, and the real dock gets its own `camera` (the shutter's words and glyph). No frame is
+     an empty album, so an empty camera album's "Take the first photo" is never drawn.
+  2. `camera` is set on the developing album wherever it is drawn: `guest.tsx`'s `WaitPage`, the three 9 am pages of
+     `arrival.tsx` (the develop leaves the album a camera's: `event.capture` does not change), `NameFrame`'s cover and
+     morning and `TwiceWait` in `words.tsx`.
+  3. `host.tsx`: the Reel card says "Live at the develop" on the developing album and "Starts at 2 photos" on the held
+     one (`REEL_MINIMUM`); the Settings card says the door, "Public" (`doorLabel`, the hub page's own function).
+  4. `words.tsx`: the name's cover frame draws her uploads' round (6, waiting to develop) beside the Add, as the carried
+     call `round` says production does.
+  5. `spec.ts`: the context reads "(the cover and its Add, Take photos on the camera's album, her uploads' round, the
+     shutter)"; the `disposable` option drops "As built:" (the name step reads 150 words, from 152).
+  6. `ui/glyph-count.tsx`: the number's span carries `data-n=""`, an attribute only (identity's own stand-in writes it the
+     same way); `glyph-count.test.tsx` pins it (red on the old atom, "expected to have a length of 1 but got +0", green
+     with it); the design-system.md row names it.
+- Before and after, every changed frame: the BEFORE is the base's board and atom (`540d6baf`, put back into the tree from
+  git) captured on the synced tree and the same warm server as the AFTER, so a pair differs by this lane's edits alone.
+  Composites (before left, after right, the changed region) and a browsable `index.html`:
+  `S/compare/control-vs-after2_w1440/` (the 375 frames: 61, 38 changed, 23 identical) and
+  `S/compare/control-vs-after2_s1440/` (the 1440 frames: 61, 44 changed, 17 identical); the raw frames are
+  `S/control/{w1440,s1440}` and `S/after2/{w1440,s1440}`. The changed frames are the ones the items reach (35 of 38 and
+  42 of 44): every developing album's cover Add and shutter (the model step's "developing, 10:40 pm", the wait step's
+  "developing, scrolled" and "taking one back", the arrival step's 9 am, the name step's cover and morning, the both
+  step's Priya's album) and every hub's rooms row (the cover step's nine, the both step's host frames, the hub behind
+  Settings at 1440). The rest are three Settings frames at 375 (40, 76 and 78 px, antialiasing on the switches' rounded edges, nothing
+  visible) and two at 1440 (2 and 32 px of edge pixels): two captures of the unchanged base differ the same way
+  (`S/compare/before-vs-control_w1440`: 13 frames, 1 to 431 px). The held frames, Create's cards and the premiere are
+  identical.
+- The glyph count reaches identity's sheets: the real atom answers `[data-slot="glyph-count"] [data-n]` (5 of 5 on the
+  Library's page, 0 before), and with the identity board's own stylesheet injected its number takes the voice's readout
+  (11.5px, 600, 1.15px tracking, uppercase; 14px, 400, normal before): `S/data-n-probe.txt`. Identity's own frames draw
+  its stand-in, which already wore the hook, so its demo is unchanged. lab:smoke's PREMISE line (identity's five open
+  asks describe design-system.md and `ui/`, which this change touched) re-read: the sheets already style the hook, so no
+  ask's premise moves.
+- Assets requested from Will: none
+- Board ideas: the Reel card's words are written by hand in three drawings (`event-header/doors.tsx` and the help center's
+  desk screens say "Live for guests", `the-wait/host.tsx` the rest); `reel-card.tsx` could export its value words as one
+  pure function of (state, have, of, developing), as `doorLabel` and `reviewCardFace` already do for two of the row's other
+  cards, so the next word change reaches every drawing. And the ROADMAP's identity stand-ins line: the glyph count's
+  blocker is gone, the real atom carries the hook.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- Calls his to overrule: the held hub's Reel card is plain, not dashed with pips (the question above); the name's cover
+  frame now carries her round, as the carried call `round` says; `TwiceWait` (approval plus a develop) is drawn as the
+  camera album, like every other frame of the wedding's developing album.
+- Look at first: the model step's "developing, 10:40 pm" (Take photos with the camera, her round beside it), the wait
+  step's "developing, scrolled" (the shutter wears the camera), then the cover step's three hubs ("Live at the develop";
+  "Starts at 2 photos" on the held one; "Public") and the name step's cover.
