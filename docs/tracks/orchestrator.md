@@ -44,7 +44,7 @@ plan's whole text (lane splits, the Advisor's Q11 corrections, Will's answers) i
 | --- | --- | --- | --- | --- |
 | `identity-wiring` | identity r2's voice=camera, layers=display, status=lights at the source; corners only as focus | MERGED at `3d80670e` (gate 172 green: lint, test, build, lab:smoke, lab:demo all; the lane's: test 9,590, build, lab:smoke 193, all 25 desk steps at 1440 and 375) | Opus, 3131 | `afc6d0be1a26b1f6f` |
 | `wait-wiring` | the-wait's picks: time on the guest screens, Settings' album styles, the contact sheet, the host's cover as guests see it, "Disposable", approval never with a develop (a CHECK migration; held photos join the roll at the switch) | MERGED at `c02893c1` (gate 174 green, light: test; the lane's gate on its synced head); its migration `20261003100000_approval_never_with_a_develop.sql` waits for the Advisor's Q12, then apply by protocol | Opus, 3132 | `af468aba998f4f11a` |
-| `take-home-wiring` | take-home's picks: Select then Save, Save into Photos at phone size with sizes, the host's Originals and Phone size; the phone copy (a migration, the export Worker, every reader of the stored copies); the media-cost guard | running | Opus, 3133 | `aa8ae040fb361d3c6` |
+| `take-home-wiring` | take-home's picks: Select then Save, Save into Photos at phone size with sizes, the host's Originals and Phone size; the phone copy; the media-cost guard | MERGED at `f8f23300` (gate 175 green: lint, test, build, lab:smoke, lab:demo on five boards; the lane's: test 9,862); its migration `phone_copy` APPLIED by protocol after the Advisor's Q13 (20261003104506, md5 the file's f999035b; one `create_media` and one `create_media_as_host`, 12 and 13 args); wait-wiring's `approval_never_with_a_develop` APPLIED after Q12 (20261003103742, md5 86ac4dea); types and seams next, then the export Worker | Opus, 3133 | `aa8ae040fb361d3c6` |
 | `rooms-wiring` | event-header's rooms=over: Review, Guests and Settings in one panel over the hub, the reel full screen, See it as a guest (a true guest render) | MERGED at `d6452566` (gate 171 green: lint, test, build, lab:smoke, lab:demo on four boards; the lane's: test 9,670, build, lab:smoke 163); See it as a guest gated on the host's own event read (`getEvent`, RLS) and drawn inert; wizard-wiring's host-app.md lines placed with it | Opus, 3134 | `ac7150b41d7dc7ae0` |
 | `wizard-wiring` | Create as the room with flow=carry, look=places, beat=develop; the add step waits for create-wizard r3 | MERGED at `feca808e` (gate 169 green, light: test 9,621; the lane's gate: test 9,625, build, lab:smoke 151, lab:demo each step pressed at 1440 and 375; 49 tests red against production first); its host-app.md lines (its manifest, `feca808e^2`, from line 76) placed at rooms-wiring's record, which owns the doc | Opus, 3135 | `afd8421950f236037` |
 | `identity-r3` | board identity r3 [desk 10]: system (keys and wells recommended, all rings, ink), room (graphite recommended), edge (everything that floats recommended) | MERGED at `792dbc05` (gate 170 green: lint, test, build, lab:smoke, lab:demo identity 3 steps; the lane's: test 9,585, lab:demo eight runs at 1440, 375 and its knobs); lab only; on his next desk | Opus, 3136 | `a4b60128e7777e310` |
@@ -82,18 +82,18 @@ with a `## Where I am` note, for the weekly's limit.
 If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` holds a merge made after this note (push
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
 staged, uncommitted merge is finished by `usher/kit/merge-lane.sh`'s own steps or reset with `git merge --abort`.
-This session's scratchpad holds the specs (`specs-r12/`) and gate logs (the next gate is 175, the calls file numbers on
-from 123); nothing there is needed that these lines and the manifests do not carry. Everything a successor reads lives
+This session's scratchpad holds the specs (`specs-r12/`) and gate logs (the next gate is 176, the calls file numbers on
+from 124); nothing there is needed that these lines and the manifests do not carry. Everything a successor reads lives
 in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team briefs and ledgers).
 
 ## Next, in order
 
-0. **Now (10:45Z):** `wait-wiring` MERGED at `c02893c1` (gate 174 green); `take-home-wiring`
-   handed off at `b003383a`, to integrate next. The Advisor reads both migrations (Q12 `20261003100000_approval_never_
-   with_a_develop.sql`, Q13 `20261003110000_phone_copy.sql`); apply both by protocol BEFORE any build ships their code
-   (take-home's code fails without its migration: PGRST202 on uploads, 42703 on purges), regenerate types, drop
-   take-home's typed seams (its Deferred), deploy `workers/export` (it refuses the `phone` key until then), then
-   build 46 and red-team 46. The backup Worker's originals-only filter (take-home's Handoff) waits for Will's yes.
+0. **Now (10:55Z):** both migrations APPLIED by protocol (wait's 20261003103742, take-home's 20261003104506, md5
+   proofs held); next: regenerate types and drop take-home's typed seams (its Deferred: `.overrideTypes` in four
+   reads and more), the advisors' counts, deploy `workers/export` (it refuses the `phone` key until then; `wrangler
+   whoami` first), integrate `crumbs-55` (handed off at `de3a3ad7`), then build 46 and red-team 46. The Advisor's
+   Q13: the backup Worker's originals-only filter is NOT safe (nothing server-side remakes a preview or phone copy):
+   never deployed; call 116's item 2 corrected in the calls file.
 1. **Running** (the In-flight table; integrate each as it hands off, gates from 173): `wait-wiring` and
    `take-home-wiring` each bring a migration (the Advisor reads it, then apply by protocol: verbatim, the md5 proof,
    advisors, types regenerated and their seams dropped) and take-home a `workers/export` change I deploy (`wrangler
