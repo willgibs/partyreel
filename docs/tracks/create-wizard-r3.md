@@ -70,3 +70,11 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am
+
+WIP at `708ec79d` (synced with `origin/launch-prep` at `7e4f6b2e`, identity-wiring and rooms-wiring in): the r3 board
+draws (spec r3, one ask `add`: pair, styles (recommended), one, strip; each in production's room, Try it live from the
+add step through the beat; styles adds Settings on paper). Registry, queue and kit tests green; typecheck and lint
+green on `67669aae`. Remaining: a polish pass on the frames, the full gate, `lab:smoke`, `lab:demo` at 1440 and 375,
+the Questions and the Handoff. Captures and the capture script live in `../partyreel-wt/_scratch/create-wizard-r3/`.
