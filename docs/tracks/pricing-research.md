@@ -42,6 +42,13 @@ working.
 
 **Verify on.** `pnpm test` green on your tree (the manifest policies read your file); every price with its URL and the date read; every recomputed number reproducible from your scratch scripts; the summary and the detail named in your Handoff.
 
+## Where I am
+
+- 2026-10-03, milestone 1: the market captured. 31 vendor pages read raw and rendered (headless Chromium, their own
+  JS run) into `../partyreel-wt/_scratch/pricing-research/pages/` by `fetch.sh` and `render.sh`; every price pinned to
+  a line there. Next: the cost model with Deleted inside the cap (`model.mjs` copied, the ladders recomputed), then the
+  summary and the detail.
+
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
 - none yet
