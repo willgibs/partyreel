@@ -37,6 +37,36 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 2,
+      "opened": "2026-10-03",
+      "answers": [
+        {
+          "ask": "events",
+          "choice": "recent",
+          "note": "All of these still feel like they're over-organizing the experience in one way or another. At least for launch, we should design for users with 1 to maybe 10 events in mind as the primary expectation, but ensure it scales up to dozens or hundreds of events if needed for power users. I'm thinking we have a recent row as collapsible (keeps last few quickly accessible), then simply a gallery/table/list with deep sort/filter/display customization for how hosts prefer to organize the rest of their events. Another exploration please.",
+          "by": "Will",
+          "at": "2026-10-03T07:37:09Z"
+        },
+        {
+          "ask": "lead",
+          "choice": "made",
+          "note": "We should ensure featured events with no uploaded media yet still look beautiful as featured in the dashboard. Worth a dedicated exploration. I think it makes sense to default to the newest event here, generally expecting a host to continue preparing it.",
+          "by": "Will",
+          "at": "2026-10-03T07:37:09Z"
+        },
+        {
+          "ask": "pick",
+          "choice": "kept",
+          "note": "Very nice, because I doubt every host will want their newest always as the featured year. Rather than directly selecting an event, these could be more like sort options, such as: newest, last opened, upcoming, etc. This helps it continue to be a reliable featured, but for accounts with 100 events, doesn't result in a mega dropdown to choose. More algorithmic, repeatable solution.",
+          "by": "Will",
+          "at": "2026-10-03T07:37:09Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }

@@ -1,0 +1,33 @@
+{
+  "board": "take-home",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-10-03",
+      "answers": [
+        {
+          "ask": "guest",
+          "choice": "select",
+          "by": "Will",
+          "at": "2026-10-03T07:37:09Z"
+        },
+        {
+          "ask": "save",
+          "choice": "light",
+          "note": "However, let's subtly preview the file size beside images versus files options so they can clearly see that saving to files seems to be a more \"high quality\" download if needed, such as deciding the optimized photos into images may not fully cut it. otherwise it's easy to assume it's the same quality and only a path selection, with no way to get higher quality.",
+          "by": "Will",
+          "at": "2026-10-03T07:37:09Z"
+        },
+        {
+          "ask": "host",
+          "choice": "two",
+          "by": "Will",
+          "at": "2026-10-03T07:37:09Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
+    }
+  ]
+}

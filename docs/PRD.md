@@ -27,7 +27,8 @@ next host. **North-star metric: a host creates a second event.**
   carries a name, and the events a guest added to are what their account keeps.
 - **Who it is built to delight**: hosts and guests from about 18 (a party) to about 50 (a wedding, a conference). The
   product aims to feel modern and cool to them rather than designed down to the least technical guest; the core path
-  (scan, add, view) stays plain enough for anyone, grandparents included.
+  (scan, add, view) stays plain enough for anyone, grandparents included. A host is designed for with 1 to about 10
+  events first, and everything she manages still scales to hundreds.
 
 ## The core loop
 
@@ -56,7 +57,8 @@ Pro's case and the Stripe setup are in [`PRICING.md`](PRICING.md).
 
 - **Total storage caps, not item counts**: a plan is total stored bytes against a cap; the pricing page shows the GB
   with a friendly translation into photos and hours of video.
-- **Events persist until the host deletes them; there is no event end date.** An "ended" event that kept its media
+- **Events persist until the host deletes them; nothing ends them.** An event's dates (a day, or a range of days)
+  only say when it happens and never expire it. An "ended" event that kept its media
   would let a user fill, end, create, repeat; only deletion (or the lifecycle below) frees space, and a deletion ends
   in the media's destruction once its recovery window closes.
 - **A monthly upload meter, unmarketed**, against fill, delete, re-upload bandwidth burn: generous, never refunded on

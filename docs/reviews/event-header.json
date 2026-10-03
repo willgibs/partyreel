@@ -29,6 +29,36 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 2,
+      "opened": "2026-10-03",
+      "answers": [
+        {
+          "ask": "facts",
+          "choice": "strip",
+          "note": "I think something like this is super cool. It makes the feature card feel more alive while reducing the crowded UI, leading to cleaner presentation overall. However, we need to ensure the final design spanning the card isn't reliant on a 'timeline' - think a multi-day event/trip with slow trickle, an event with no date set, a morning event (all uploads concentrated in one early part of day), we don't do event time ranges/multiple days right now (is it worth adding?), lots of edge cases where a timeline-based idea can break. Curious what else you could think of. Options 1 and 4 felt too bland, the dial from 2 just has a weird sundial feel in that spot and also suffers from the same, if not more of the timeline-based downsides (what's stat and end, what's range, etc). still love it as an analytics visual somehow. worst case, we bank in library.",
+          "by": "Will",
+          "at": "2026-10-03T07:37:09Z"
+        },
+        {
+          "ask": "doors",
+          "choice": null,
+          "note": "I'd like to see a second-round iteration of each before deciding. For today's cards, I don't love filling the highlight reel anymore. we have images in event head and gallery below, this crowds it too much. should get closer to rest of cards. for 1's design overall, I fee like there a very apple tv UI-esque way to update this where we work with some wort of gradient overlay fades, cards covering seams, beautiful almost 'app store' display. For option 2, windows into each room, I think this helps visualize the idea of each card much better than the icons, but the designs should be a bit more subtle themselves to not fight with the head or gallery media-forwardness. highlight reel card should also fall in line here as mentioned previously, so it isn't drawing a ton of attention versus the rest of the page as it currently is. should have its own card design within this option. for option 3, on the cover in glass, this is my favorite safe option that stays a bit minimalist, good info conveyance, and slides right into the sticky menu on scroll (important for all options to have their version in cleanly doing so). would like to see this more polished as the 3rd option re-exploration.",
+          "by": "Will",
+          "at": "2026-10-03T07:37:09Z"
+        },
+        {
+          "ask": "rooms",
+          "choice": "over",
+          "note": "This feels phenomenally more fluid, natural, and intuitive. As a guest screen is a really cool idea.",
+          "by": "Will",
+          "at": "2026-10-03T07:37:09Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }

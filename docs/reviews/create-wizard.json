@@ -29,6 +29,41 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 2,
+      "opened": "2026-10-03",
+      "answers": [
+        {
+          "ask": "flow",
+          "choice": "carry",
+          "by": "Will",
+          "at": "2026-10-03T07:37:09Z"
+        },
+        {
+          "ask": "add",
+          "choice": null,
+          "note": "These are all presented well already. This is really tough for me to decide, so let's run a second exploration so I can pick from an even more polished option set. Really important we can cleanly (yet beautifully) nail the distinction for hosts here, without overcomplicating or decision paralysis.",
+          "by": "Will",
+          "at": "2026-10-03T07:37:09Z"
+        },
+        {
+          "ask": "look",
+          "choice": "places",
+          "by": "Will",
+          "at": "2026-10-03T07:37:09Z"
+        },
+        {
+          "ask": "beat",
+          "choice": "develop",
+          "note": "This is a beautiful screen and allows everything to breathe, with lots of our aurora identity infused. The steps beneath could be designed better, while remaining somewhat minimal.",
+          "by": "Will",
+          "at": "2026-10-03T07:37:09Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }

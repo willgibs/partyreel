@@ -86,7 +86,8 @@ actually running.
 - ★ Never trust the client for tier or entitlements: the Stripe webhook is the sole writer of `profiles.tier` and
   `storage_cap_bytes` ([billing-caps.md](docs/systems/billing-caps.md)). Before any Stripe MCP work, confirm
   `livemode` is false (`list_available_accounts_or_orgs`).
-- Events have no end date; deletion is the only lifecycle exit (the anti-abuse core).
+- Events never expire (their dates, a day or a range, only say when they happen); deletion is the only lifecycle exit
+  (the anti-abuse core).
 
 ## Project traps
 

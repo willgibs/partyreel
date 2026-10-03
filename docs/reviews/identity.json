@@ -16,6 +16,48 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 2,
+      "opened": "2026-10-03",
+      "answers": [
+        {
+          "ask": "voice",
+          "choice": "camera",
+          "by": "Will",
+          "at": "2026-10-03T07:37:09Z"
+        },
+        {
+          "ask": "actions",
+          "choice": null,
+          "note": "Please see next question's note for both answers. However, the 'corners' options here is what inspired my 'not devtool ish' comment in the last review batch, particularly the corners and loading state, so exclude that moving forward. Will mention options 1 and 2 next.",
+          "by": "Will",
+          "at": "2026-10-03T07:37:09Z"
+        },
+        {
+          "ask": "fields",
+          "choice": null,
+          "note": "I'm split on last question and this one. Rings for both feels like the easiest for 'modern consumer', but also puts us back closer to the generic shadcn look we wanted to break away from. Rings for last but wells as you recommend here leaves some focuses rings, some corners, which is bad. I like wells (especially recessed inputs for subtle difference against page color) and don't mind using the viewfinder corners for focus only, including last answer. Let's launch another exploration, exploring the keys (last) plus wells (this) direction together versus all rings, plus a new third idea of anything you can think of, and including a couple in UI examples to get a feel for both in use. Like the corners last question, we can drop the corners here too, too close in the devtool direction.",
+          "by": "Will",
+          "at": "2026-10-03T07:37:09Z"
+        },
+        {
+          "ask": "layers",
+          "choice": "display",
+          "note": "I like the slightly cleaner design of this one (and black surfaces getting attention on white body when popped in), but curious if doing the same for those opposite (white surface popouts to get attention on black body) would also look good, worth an exploration and curious to hear your thoughts. I also really did like the light edge and wouldn't mind an exploration around potentially keeping that infused beyond media cards. It makes the media card themselves look much more rich.",
+          "by": "Will",
+          "at": "2026-10-03T07:37:09Z"
+        },
+        {
+          "ask": "status",
+          "choice": "lights",
+          "by": "Will",
+          "at": "2026-10-03T07:37:09Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }
