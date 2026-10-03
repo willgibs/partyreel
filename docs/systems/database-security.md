@@ -242,8 +242,8 @@ a table created since starts with no client grant, so its migration grants exact
 - ★ **A `date` or `timestamptz` column admits `'infinity'`, which passes any `>=` CHECK:** a range's end of `'infinity'`
   was on or after every date, an owner's raw write stored it, and every reader silently fell back on a value that is no
   day. So each such column names `isfinite(...)` (`events_develops_at_finite`, `media_sealed_until_finite`,
-  `events_event_date_finite`, and `events_end_date_on_or_after` for the end), under the app's own window of years
-  (`lib/events/dates.ts`) that the column leaves to the app.
+  `events_event_date_finite`, and `events_end_date_on_or_after` for the end); how far a day may be from today is the app's
+  window (`lib/events/dates.ts`), never the column's.
 
 ## Rate limits
 
