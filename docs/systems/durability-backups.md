@@ -31,7 +31,8 @@ A PUT to the primary (`events/…`) fires an `object-created` notification into 
 `partyreel-backup` Worker copies the object to the `partyreel-backup` bucket (WNAM, Infrequent Access, Bucket Lock:
 35-day WORM); a failed copy retries into a dead-letter queue, and a daily 05:00 UTC reconcile re-copies anything the
 live path missed. Avatars are not in it: they live in Supabase Storage, are derivable, and overwrite in place, which
-the lock would refuse.
+the lock would refuse. Only `events/` is ever copied, listed or pruned: the subscription is filtered to it and the
+queue skips any other key in code (`isBackedUpKey`), so an upload's day-long `staging/` object never reaches the lock.
 - **Bucket Lock makes the backup keep-all and immutable for 35 days;** the lifecycle purge never touches it, and the
   deletion-aware prune below is the one sanctioned backup-delete path.
 - ★ **The Worker reports the queue and dead-letter depths on every scheduled run** (`queue-metrics.ts`, through
@@ -51,22 +52,38 @@ the lock would refuse.
 
 The backup is accrue-only: an age rule would delete backups of media still live, so when media leaves the primary its
 copy stays, and backup storage climbs with churn. The weekly prune (Mondays 06:00 UTC, after the purge and the
-reconcile) bounds it. It is the inverse of the orphan sweep and the most dangerous job in the system, the only one
-that deletes from the last-resort copy, so its guards are layered:
-- **A dual existence check, never an age rule:** an object is reclaimed only when its `media` row is gone (the app's
-  confirm endpoint, `/api/internal/backup-prune`) AND its primary object is absent (a HEAD). Either source alone says
-  keep, so no single-source fault can prune.
+reconcile) bounds it to the live set and about 43 days of uploads (the gate and the cadence). It is the inverse of the
+orphan sweep and the most dangerous job in the system, the only one that deletes from the last-resort copy, so its
+guards are layered (`workers/backup/src/prune-run.ts`, a pure engine under test):
+- **Three readings, never an age rule:** a run lists a page of the backup, then the primary over the same key range,
+  and only a key the primary does not list is a candidate; the app's confirm endpoint (`/api/internal/backup-prune`)
+  is asked about candidates only, never the live set; and a HEAD of the primary right before the delete keeps anything
+  restored since the listing. Either source alone says keep, so no single-source fault can prune.
+- ★ **A doubt deletes nothing.** Deletes happen once, at the run's end, so a confirm that is down or answers in the
+  wrong shape, the app's breaker, an id it was never asked about, or a listing that does not move forward aborts the
+  whole run with nothing deleted and the cursor where it was; a failed HEAD keeps its item and fails the run.
 - **An app-side breaker** (`evaluatePrune`): an empty `media` table beside candidates deletes nothing and alerts. The
-  orphan sweep's fractional cap is deliberately absent, because for an accrue-only backup the gone fraction is
-  legitimately large; a per-run clamp (`PRUNE_DELETE_CAP_PER_RUN`, enforced Worker-side across batches) bounds the
-  volume instead.
+  orphan sweep's fractional cap is deliberately absent: the gone fraction is legitimately large after a clear-out.
+- **The hold is the clamp, sized to the deletions:** a run whose backlog passes ten times the usual (the median of its
+  last eight runs, dry ones included, never under 2,000 media: `prune-ledger.ts`) deletes nothing, reads attention,
+  and goes ahead only on a run six days later, a week for an operator to pause it. It guards what the readings cannot:
+  rows and objects deleted together (a purge bug, a stolen key), so all three agree. A fixed per-run number either
+  throttles real churn (the old 500) or lets a disaster's whole volume through. The test-data reset's backlog holds
+  the first live run after the launch switch for a week.
 - **A 36-day age gate, one day past the lock.** A delete of a still-locked object is a silent no-op that returns
   success, so the age gate, not the lock, is what makes the prune correct.
-- ★ **Dry-run by default** (`PRUNE_MODE = "dryrun"`: the whole pipeline runs and logs what it would delete). Before
+- ★ **Dry-run by default** (`PRUNE_MODE = "dryrun"`: the whole pipeline runs and reports what it would delete). Before
   launch the primary is near-empty, so a naive run would delete the ENTIRE backup; dry-run, the breaker and an
   empty-primary early-out are three independent guards. Flipping to `"live"` is a launch switch (ROADMAP), and it
   lifts the pre-launch test-data reset's "at least 35 days before launch" constraint. The Worker and Vercel share
   `PRUNE_API_SECRET`.
+- ★ **It keeps up: a cursor, and caps that are its budget.** Its ledger lives in a SQLite Durable Object
+  (`PruneState`, created by the deploy's own migration; the Worker cannot reach the database and the heartbeat answers
+  nothing back): the listing position, the last runs and the hold. A run walks on from the cursor until the listing
+  ends (the next pass starts at the head) or its deadline (12 of the cron's 15 minutes), its subrequest budget (95,000
+  under `wrangler.jsonc`'s 100,000) or its delete cap (30,000 media) stops it, which reads attention with a counted
+  `remaining`. A ledger it cannot read makes the run dry and saves nothing; one that reads back damaged falls back to
+  the head, the floor and no hold, the safe direction each.
 
 ## Pillar C: the database backup
 
@@ -80,9 +97,11 @@ the database password rotates until its secret follows (the app's API keys are s
 ## Restore
 
 Rows come from the Supabase backup or the `db/` dump; bytes by copying `partyreel-backup` into `partyreel`. A full
-restore needs BOTH halves. Media's recovery point is seconds on the live path (the daily reconcile the backstop), the
-database's up to a day, and the recovery time is a bucket-to-bucket copy on free in-region egress. Pillar A protects
-the objects while the rows are transiently wrong, which is exactly when a restore is under way.
+restore needs BOTH halves, and the prune is paused from `/admin/jobs` first: mid-restore, rows and objects are missing
+together, which is exactly what it reads as gone. Media's recovery point is seconds on the live path (the daily
+reconcile the backstop), the database's up to a day, and the recovery time is a bucket-to-bucket copy on free
+in-region egress. Pillar A protects the objects while the rows are transiently wrong, which is exactly when a restore
+is under way.
 
 ## Cost & scaling
 
@@ -91,11 +110,14 @@ the objects while the rows are transiently wrong, which is exactly when a restor
 - ★ **The R2 overview page's "Billable usage" donut is a forecast artifact** that can show a scary number on
   near-zero usage; the truth is Billing, Billable usage. A $10 usage budget alert to partyr33l@gmail.com guards a real
   runaway.
-- **The prune's cost shape is its DB-first ordering:** the Worker lists the backup, filters by age and key, posts the
-  candidate ids to the app to confirm the rows are gone, and HEADs the primary only for that confirmed set, so there
-  is no HEAD per live object: a bucket list plus batched lookups, about $0 into tens of millions of objects (the
-  next step past that is on the ROADMAP).
-- **The scans restart at the head of the bucket.** The reconcile examines at most `RECONCILE_MAX_PER_RUN` (5,000)
-  objects a run and the orphan sweep 20 pages, each from the start of the listing, so past the cap the tail is never
-  examined (the reconcile's "next run continues" log line is false; a capped run reports `capped: true`). The
-  pagination cursor is on the ROADMAP.
+- **The prune's cost shape is its primary-first merge:** two listings a thousand keys (Class A), a confirm call only
+  for candidates and a HEAD only for a key about to go, so neither the app nor the primary is asked about a live
+  object: about $0 into tens of millions of objects. Its deadline bounds a run to what two list calls a thousand keys
+  can reach in 12 minutes (millions at a Worker's R2 latency); past that a pass spans runs, deleted bytes outlive the
+  43 days, and the card reads `stopped_early` every week: the cue for a daily cadence (a catalog change).
+- **The orphan sweep resumes; the reconcile still restarts at the head.** The sweep hands back the key it stopped at
+  (`resume_after`, stored on the purge run's row under `orphans` and read back by `readOrphanCursor`), so 20 pages a
+  night cover the bucket in turn and an abandoned upload waits at most one cycle (the bucket's objects over 20,000 a
+  night). The reconcile examines at most `RECONCILE_MAX_PER_RUN` (5,000) objects a run from the start of the listing,
+  so past it the tail is never examined (its "next run continues" log line is false; a capped run reports
+  `capped: true`); its cursor is on the ROADMAP.
