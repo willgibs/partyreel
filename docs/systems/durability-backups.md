@@ -61,15 +61,22 @@ guards are layered (`workers/backup/src/prune-run.ts`, a pure engine under test)
   restored since the listing. Either source alone says keep, so no single-source fault can prune.
 - ★ **A doubt deletes nothing.** Deletes happen once, at the run's end, so a confirm that is down or answers in the
   wrong shape, the app's breaker, an id it was never asked about, or a listing that does not move forward aborts the
-  whole run with nothing deleted and the cursor where it was; a failed HEAD keeps its item and fails the run.
+  whole run with nothing deleted and the cursor where it was; a failed HEAD keeps that one item while the run still
+  deletes the others it confirmed, and closes as an error.
 - **An app-side breaker** (`evaluatePrune`): an empty `media` table beside candidates deletes nothing and alerts. The
   orphan sweep's fractional cap is deliberately absent: the gone fraction is legitimately large after a clear-out.
 - **The hold is the clamp, sized to the deletions:** a run whose backlog passes ten times the usual (the median of its
   last eight runs, dry ones included, never under 2,000 media: `prune-ledger.ts`) deletes nothing, reads attention,
-  and goes ahead only on a run six days later, a week for an operator to pause it. It guards what the readings cannot:
-  rows and objects deleted together (a purge bug, a stolen key), so all three agree. A fixed per-run number either
-  throttles real churn (the old 500) or lets a disaster's whole volume through. The test-data reset's backlog holds
-  the first live run after the launch switch for a week.
+  and raises a Sentry warning (`backup_prune_held`) and the ops mail where its report lands (`/api/internal/job-run`),
+  each run it holds. It guards what the readings cannot: rows and objects deleted together (a purge bug, a stolen
+  key), so all three agree. A fixed per-run number either throttles real churn (the old 500) or lets a disaster's
+  whole volume through. The test-data reset's backlog holds the first live run after the launch switch.
+- ★ **A hold never releases itself:** a clock that let it through would delete the last copy of whatever nobody looked
+  at. A person presses Release the hold on the prune's card (`src/app/admin/jobs/prune-hold.ts`: a stamp, the
+  `updated_at` of the `ops_flags` row `backup_prune_hold_released`), the job heartbeat's start answer carries it
+  (`releasedAtMs`), and the Worker honours it only when it is newer than the hold, so every hold takes its own press.
+  The pause switch stays the brake. Every report while a hold stands carries it (`held_since`, exact, and
+  `held_media`), so the card offers the release even after a paused or aborted run.
 - **A 36-day age gate, one day past the lock.** A delete of a still-locked object is a silent no-op that returns
   success, so the age gate, not the lock, is what makes the prune correct.
 - ★ **Dry-run by default** (`PRUNE_MODE = "dryrun"`: the whole pipeline runs and reports what it would delete). Before

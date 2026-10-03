@@ -14,7 +14,6 @@ import { describe, expect, it } from "vitest";
 import {
   EMPTY_LEDGER,
   PRUNE_HOLD_FLOOR_MEDIA,
-  PRUNE_HOLD_RELEASE_MS,
   type PruneLedger,
 } from "./prune-ledger";
 import {
@@ -161,6 +160,7 @@ async function run(
     ledger?: PruneLedger;
     limits?: Partial<PruneLimits>;
     at?: number;
+    releasedAtMs?: number | null;
   } = {},
 ) {
   if (opts.at !== undefined) {
@@ -172,6 +172,7 @@ async function run(
     ledger: opts.ledger ?? EMPTY_LEDGER,
     startedAtMs: w.clock.t,
     limits: opts.limits,
+    releasedAtMs: opts.releasedAtMs ?? null,
   });
 }
 
@@ -558,7 +559,7 @@ describe("caps sized to the deletions", () => {
   });
 });
 
-describe("the hold: a backlog far over the usual waits a week", () => {
+describe("the hold: a backlog far over the usual waits for a person", () => {
   const backlog = PRUNE_HOLD_FLOOR_MEDIA + 1;
 
   function bigWorld() {
@@ -584,28 +585,73 @@ describe("the hold: a backlog far over the usual waits a week", () => {
     expect(result.status).toBe("ok");
     expect(result.ledger?.hold).toEqual({ sinceMs: NOW, goneMedia: backlog });
     expect(result.ledger?.cursor).toBeNull();
+    // The standing hold rides the report, exactly, so the card can offer its release.
+    expect(result.counts.held_since).toBe(new Date(NOW).toISOString());
+    expect(result.counts.held_media).toBe(backlog);
   });
 
-  it("goes ahead on a run at least six days after the hold began", async () => {
+  it("reports a standing hold on every run until it clears, even one that aborts", async () => {
+    const hold = { sinceMs: NOW - 8 * DAY, goneMedia: backlog };
+    const w = bigWorld();
+    w.confirm = "down";
+    const aborted = await run(w, { ledger: { ...EMPTY_LEDGER, hold } });
+    expect(aborted.status).toBe("error");
+    expect(aborted.counts.held_since).toBe(
+      new Date(hold.sinceMs).toISOString(),
+    );
+    expect(aborted.counts.held_media).toBe(backlog);
+    // A usual backlog clears it, and the report says nothing of a hold.
+    const quiet = makeWorld();
+    addLive(quiet, uuid(1));
+    addGone(quiet, uuid(2));
+    const cleared = await run(quiet, { ledger: { ...EMPTY_LEDGER, hold } });
+    expect(cleared.ledger?.hold).toBeNull();
+    expect(cleared.counts.held_since).toBeUndefined();
+  });
+
+  it("stays held on every later run, however long, until a person releases it", async () => {
+    for (const age of [2 * DAY, 7 * DAY, 60 * DAY]) {
+      const w = bigWorld();
+      const held: PruneLedger = {
+        ...EMPTY_LEDGER,
+        hold: { sinceMs: NOW - age, goneMedia: backlog },
+      };
+      const result = await run(w, { ledger: held });
+      expect(deletedKeys(w.backup), `${age / DAY} days`).toEqual([]);
+      expect(result.counts.breaker_tripped).toBe(true);
+      expect(result.ledger?.hold?.sinceMs).toBe(NOW - age);
+      expect(result.note).toMatch(/Release the hold/);
+    }
+  });
+
+  it("goes ahead on the run after an operator released it, and clears the hold", async () => {
     const w = bigWorld();
     const held: PruneLedger = {
       ...EMPTY_LEDGER,
-      hold: { sinceMs: NOW - PRUNE_HOLD_RELEASE_MS, goneMedia: backlog },
+      hold: { sinceMs: NOW - 8 * DAY, goneMedia: backlog },
     };
-    const result = await run(w, { ledger: held });
+    const result = await run(w, {
+      ledger: held,
+      releasedAtMs: NOW - 1 * DAY,
+    });
     expect(deletedKeys(w.backup).length).toBe(backlog * 2);
     expect(result.ledger?.hold).toBeNull();
+    expect(result.counts.breaker_tripped).toBeUndefined();
+    expect(result.note).toMatch(/released/i);
   });
 
-  it("keeps holding a run that comes sooner", async () => {
+  it("never lets a release pressed before the hold pass it", async () => {
     const w = bigWorld();
     const held: PruneLedger = {
       ...EMPTY_LEDGER,
-      hold: { sinceMs: NOW - 2 * DAY, goneMedia: backlog },
+      hold: { sinceMs: NOW - 8 * DAY, goneMedia: backlog },
     };
-    const result = await run(w, { ledger: held });
+    const result = await run(w, {
+      ledger: held,
+      releasedAtMs: NOW - 20 * DAY,
+    });
     expect(deletedKeys(w.backup)).toEqual([]);
-    expect(result.ledger?.hold?.sinceMs).toBe(NOW - 2 * DAY);
+    expect(result.ledger?.hold?.sinceMs).toBe(NOW - 8 * DAY);
   });
 
   it("reports in a dry run that a live run would hold, without setting a hold", async () => {

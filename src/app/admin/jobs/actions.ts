@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { type ActionResult } from "@/app/(app)/dashboard/actions";
 import { jobById } from "@/app/admin/jobs/catalog";
+import { stampPruneHoldRelease } from "@/app/admin/jobs/prune-hold";
 import { requireAdminAction } from "@/lib/auth/admin-context";
 import { setJobEnabled } from "@/lib/db/queries/jobs";
 import { assertCronEnv } from "@/lib/env";
@@ -80,6 +81,30 @@ export async function toggleWatchSwitchAction(
       ok: false,
       code: "unknown",
       message: "Couldn't update the switch. Please try again.",
+    };
+  }
+
+  revalidatePath("/admin/jobs");
+  return { ok: true };
+}
+
+/**
+ * RELEASE THE BACKUP PRUNE'S HOLD (the Advisor's Q20; `prune-hold.ts`). The hold never lets a backlog through by
+ * itself, so this stamp is the act that does: the Worker's next run reads it from its heartbeat's start answer and
+ * goes ahead only if it was pressed after the hold began. It starts nothing (the app cannot start a Cloudflare job),
+ * and it changes no switch: a paused prune stays paused, and the pause is the brake if the backlog looks wrong.
+ */
+export async function releasePruneHoldAction(): Promise<ActionResult> {
+  const auth = await requireAdminAction();
+  if (!auth.ok) return auth.result;
+
+  const { error } = await stampPruneHoldRelease();
+  if (error) {
+    captureError("admin", new Error(error), { action: "release_prune_hold" });
+    return {
+      ok: false,
+      code: "unknown",
+      message: "Couldn't release it, so it is still held. Please try again.",
     };
   }
 

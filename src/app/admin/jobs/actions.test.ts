@@ -5,6 +5,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const setJobEnabled = vi.fn();
+const stampPruneHoldRelease = vi.fn();
 const fetchMock = vi.fn();
 let authorized = true;
 
@@ -22,6 +23,9 @@ vi.mock("@/lib/auth/admin-context", () => ({
 vi.mock("@/lib/db/queries/jobs", () => ({
   setJobEnabled: (...a: unknown[]) => setJobEnabled(...a),
 }));
+vi.mock("@/app/admin/jobs/prune-hold", () => ({
+  stampPruneHoldRelease: (...a: unknown[]) => stampPruneHoldRelease(...a),
+}));
 vi.mock("@/lib/env", () => ({
   assertCronEnv: () => ({ CRON_SECRET: "cron-secret" }),
 }));
@@ -30,13 +34,14 @@ vi.mock("@/lib/site-url", () => ({
   getSiteUrl: async () => "https://partyreel.com",
 }));
 
-const { runJobNowAction, toggleWatchSwitchAction } =
+const { releasePruneHoldAction, runJobNowAction, toggleWatchSwitchAction } =
   await import("@/app/admin/jobs/actions");
 
 beforeEach(() => {
   vi.clearAllMocks();
   authorized = true;
   setJobEnabled.mockResolvedValue({ error: null });
+  stampPruneHoldRelease.mockResolvedValue({ error: null });
   fetchMock.mockResolvedValue(new Response("{}", { status: 200 }));
   vi.stubGlobal("fetch", fetchMock);
 });
@@ -92,5 +97,27 @@ describe("Run now", () => {
     const res = await runJobNowAction("backup_prune");
     expect(res).toMatchObject({ ok: false });
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("Release the hold (the backup prune's)", () => {
+  it("stamps one release, behind admin + AAL2, and touches no switch", async () => {
+    expect(await releasePruneHoldAction()).toEqual({ ok: true });
+    expect(stampPruneHoldRelease).toHaveBeenCalledTimes(1);
+    expect(setJobEnabled).not.toHaveBeenCalled();
+  });
+
+  it("stamps nothing without an admin at AAL2", async () => {
+    authorized = false;
+    expect(await releasePruneHoldAction()).toMatchObject({ ok: false });
+    expect(stampPruneHoldRelease).not.toHaveBeenCalled();
+  });
+
+  it("says so when the stamp cannot be written: the hold stands", async () => {
+    stampPruneHoldRelease.mockResolvedValue({ error: "ops_flags unreachable" });
+    expect(await releasePruneHoldAction()).toMatchObject({
+      ok: false,
+      message: expect.stringMatching(/still held/i),
+    });
   });
 });

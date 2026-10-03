@@ -6,10 +6,12 @@
  *
  * Two phases, one route:
  *
- *   { phase: "start", job }   -> { ok, paused, runId, startedAtMs }
+ *   { phase: "start", job }   -> { ok, paused, runId, startedAtMs[, releasedAtMs] }
  *       Reads the job's `ops_flags` switch. Paused: this route writes the `skipped` row ITSELF and
  *       answers `paused: true`, so a paused job reports in even if the caller does nothing else.
- *       Running: opens a `running` row and hands back its id.
+ *       Running: opens a `running` row and hands back its id. For the backup prune it also carries
+ *       `releasedAtMs`, the last "Release the hold" pressed on /admin/jobs (null for none): the Worker
+ *       never lets a held backlog through by itself (the Advisor's Q20), and this is how a person does.
  *
  *   { phase: "finish", runId, startedAtMs, status, counts?, note? }  -> { ok }
  *       Closes the row with a duration and the job's own tallies.
@@ -28,12 +30,16 @@
 import { z } from "zod";
 
 import {
+  BREAKER_TRIPPED_KEY,
   DEPTH_AGE_COUNT_KEYS,
   DEPTH_COUNT_KEYS,
   JOBS,
   QUEUE_BACKLOG_ATTENTION,
   jobById,
 } from "@/app/admin/jobs/catalog";
+import { readPruneHoldReleasedAtMs } from "@/app/admin/jobs/prune-hold";
+import { ADMIN_HOST } from "@/lib/auth/admin-host";
+import { SITE_URL, SUPPORT_EMAIL } from "@/lib/constants/site";
 import { constantTimeEquals } from "@/lib/crypto/constant-time";
 import {
   finishJobRun,
@@ -41,7 +47,9 @@ import {
   recordSkippedRun,
   startJobRun,
 } from "@/lib/db/queries/jobs";
-import { assertPruneApiEnv } from "@/lib/env";
+import { sendOnce } from "@/lib/email/send";
+import { pruneHoldEmail } from "@/lib/email/templates";
+import { assertPruneApiEnv, serverEnv } from "@/lib/env";
 import { captureError, captureWarning } from "@/lib/observability/sentry";
 
 // The service-role admin client requires the Node runtime; never edge.
@@ -115,6 +123,76 @@ function alertOnDepths(
       oldest_minutes: numberAt(DEPTH_AGE_COUNT_KEYS.backup_queue),
       threshold: QUEUE_BACKLOG_ATTENTION,
     });
+  }
+}
+
+/** The one job a hold can stop, and so the one whose start answer carries a release. */
+const HELD_JOB = "backup_prune";
+
+/**
+ * The last "Release the hold" pressed, for the prune's start answer. An unreadable stamp reads as none, and says
+ * so: a release that cannot be read leaves the hold standing (the safe side, a week of backup storage), never a
+ * failed start, which would skip the whole run.
+ */
+async function releaseStamp(job: string): Promise<number | null> {
+  try {
+    return await readPruneHoldReleasedAtMs();
+  } catch (e) {
+    captureWarning("cron", "prune_hold_release_unreadable", {
+      job,
+      error: String(e).slice(0, 300),
+    });
+    return null;
+  }
+}
+
+/**
+ * THE HELD PRUNE'S ALERT, raised where the report arrives (the Advisor's Q20), like the dead letters above: the
+ * Worker cannot reach Sentry or the mail, and a hold waits for a person, so the person is told. A Sentry warning on
+ * every held run, and the ops mail once a run (deduplicated on the run's day, so a retried report never mails twice;
+ * a hold that stands is mailed again each week until someone releases or pauses it). Numbers only, and the run's
+ * own note. A mail that fails never costs the run its row.
+ */
+async function alertOnHold(
+  job: string,
+  startedAtMs: number,
+  counts: Record<string, number | string | boolean> | undefined,
+  note: string | undefined,
+): Promise<void> {
+  if (job !== HELD_JOB || counts?.[BREAKER_TRIPPED_KEY] !== true) return;
+  const numberAt = (key: string): number | null => {
+    const raw = counts[key];
+    return typeof raw === "number" && Number.isFinite(raw) ? raw : null;
+  };
+  const heldMedia = numberAt("gone_media");
+  const heldKeys = numberAt("remaining");
+  const threshold = numberAt("hold_threshold");
+  captureWarning("cron", "backup_prune_held", {
+    job,
+    held_media: heldMedia,
+    held_keys: heldKeys,
+    hold_threshold: threshold,
+  });
+  try {
+    const mail = pruneHoldEmail({
+      heldMedia,
+      heldKeys,
+      threshold,
+      runNote: note ?? null,
+      jobsUrl: ADMIN_HOST
+        ? `https://${ADMIN_HOST}/admin/jobs#job-${HELD_JOB}`
+        : `${SITE_URL}/admin/jobs#job-${HELD_JOB}`,
+    });
+    await sendOnce({
+      kind: "prune_breaker",
+      dedupeKey: `hold:${new Date(startedAtMs).toISOString().slice(0, 10)}`,
+      to: serverEnv.CONTACT_NOTIFY_EMAIL ?? SUPPORT_EMAIL,
+      subject: mail.subject,
+      html: mail.html,
+      text: mail.text,
+    });
+  } catch (e) {
+    captureError("cron", e, { job, phase: "hold_alert" });
   }
 }
 
@@ -194,12 +272,15 @@ export async function POST(request: Request): Promise<Response> {
       paused: false,
       runId: run.runId,
       startedAtMs: run.startedAtMs,
+      ...(job === HELD_JOB ? { releasedAtMs: await releaseStamp(job) } : {}),
     });
   }
 
-  // Alert BEFORE the write, so a depth reading still pages even if the heartbeat row cannot be
-  // stored: the Cloudflare queue's state is the fact, and the row is only how the console shows it.
+  // Alert BEFORE the write, so a depth reading or a hold still pages even if the heartbeat row cannot
+  // be stored: the Cloudflare queue's state, and the hold, are the facts; the row is how the console
+  // shows them.
   alertOnDepths(job, body.counts);
+  await alertOnHold(job, body.startedAtMs, body.counts, body.note);
 
   const done = await finishJobRun(
     { runId: body.runId, startedAtMs: body.startedAtMs, heartbeatError: null },

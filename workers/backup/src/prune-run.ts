@@ -22,9 +22,9 @@
  * on; a run that reaches the end of the listing completes the pass and the next starts at the head.
  */
 import {
-  PRUNE_HOLD_RELEASE_MS,
   decideHold,
   nextLedger,
+  type PruneHold,
   type PruneLedger,
 } from "./prune-ledger";
 import {
@@ -98,6 +98,11 @@ export type PruneRunInput = {
   ledger: PruneLedger;
   /** The age gate's reference and the run's record time. */
   startedAtMs: number;
+  /**
+   * The last "Release the hold" pressed on /admin/jobs, as the job heartbeat's start answer carries it (epoch ms),
+   * or null for none: `decideHold` honours it only when it is newer than the standing hold.
+   */
+  releasedAtMs?: number | null;
   limits?: Partial<PruneLimits>;
 };
 
@@ -190,7 +195,7 @@ export async function runPrune(
     return {
       status: "ok",
       note: "Primary empty under events/, nothing to compare against.",
-      counts: { scanned: 0, mode },
+      counts: { scanned: 0, mode, ...holdCounts(input.ledger.hold) },
       ledger: null,
     };
   }
@@ -439,7 +444,12 @@ export async function runPrune(
     return {
       status: "error",
       note: err.message,
-      counts: { scanned: tally.scanned, mode, deleted: 0 },
+      counts: {
+        scanned: tally.scanned,
+        mode,
+        deleted: 0,
+        ...holdCounts(input.ledger.hold),
+      },
       ledger: null,
     };
   }
@@ -452,6 +462,7 @@ export async function runPrune(
     ledger: input.ledger,
     nowMs: input.startedAtMs,
     live,
+    releasedAtMs: input.releasedAtMs ?? null,
   });
   const record = { atMs: input.startedAtMs, goneMedia, live };
   const passComplete = reachedEnd && resumeFrom === undefined;
@@ -459,23 +470,22 @@ export async function runPrune(
     resumeFrom !== undefined ? resumeFrom : reachedEnd ? null : position;
 
   if (live && decision.verdict === "hold") {
-    const releaseAt = new Date(
-      (decision.nextHold?.sinceMs ?? input.startedAtMs) + PRUNE_HOLD_RELEASE_MS,
-    )
+    const since = new Date(decision.nextHold?.sinceMs ?? input.startedAtMs)
       .toISOString()
       .slice(0, 10);
     return {
       status: "ok",
       note:
-        `Held: ${fmt(goneMedia)} items gone against a usual ${fmt(decision.usual)} (it holds past ` +
-        `${fmt(decision.threshold)}), deleted nothing. The first run from ${releaseAt} deletes them unless the ` +
-        "prune is paused here.",
+        `Held since ${since}: ${fmt(goneMedia)} items gone against a usual ${fmt(decision.usual)} (it holds past ` +
+        `${fmt(decision.threshold)}), deleted nothing. It waits for Release the hold here; pause the prune if the ` +
+        "backlog looks wrong.",
       counts: {
         remaining: deleteKeys.length + tally.leftKeys,
         gone_media: goneMedia,
         scanned: tally.scanned,
         mode,
         hold_threshold: decision.threshold,
+        ...holdCounts(decision.nextHold),
         breaker_tripped: true,
         ...(stop ? { stopped_early: true } : {}),
       },
@@ -530,6 +540,7 @@ export async function runPrune(
     counts.would_hold = true;
     counts.hold_threshold = decision.threshold;
   }
+  Object.assign(counts, holdCounts(decision.nextHold));
   counts.subrequests = used;
 
   const lines: string[] = [
@@ -537,6 +548,9 @@ export async function runPrune(
       ? `Deleted ${fmt(deleted)} keys of ${fmt(goneMedia)} items.`
       : `Dry run, deleted nothing: ${fmt(deleteKeys.length)} keys of ${fmt(goneMedia)} items would go.`,
   ];
+  if (decision.verdict === "released") {
+    lines.push("The hold was released on /admin/jobs, so this run went ahead.");
+  }
   if (passComplete) lines.push("The pass reached the end of the backup.");
   else if (stop) {
     lines.push(
@@ -585,4 +599,18 @@ function assertAdvances(objects: ListedObject[], after: string | null): void {
 
 function fmt(n: number): string {
   return n.toLocaleString("en-US");
+}
+
+/**
+ * The standing hold, on every report while it stands (held, aborted or dry alike): `held_since` exact to the
+ * millisecond, since the card offers Release the hold by comparing the last press with it exactly as `decideHold`
+ * does, and the count it kept. Nothing at all once it clears.
+ */
+function holdCounts(hold: PruneHold | null): Record<string, number | string> {
+  return hold
+    ? {
+        held_since: new Date(hold.sinceMs).toISOString(),
+        held_media: hold.goneMedia,
+      }
+    : {};
 }

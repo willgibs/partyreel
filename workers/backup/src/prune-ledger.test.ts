@@ -5,7 +5,6 @@ import {
   PRUNE_HOLD_FLOOR_MEDIA,
   PRUNE_HOLD_HISTORY_RUNS,
   PRUNE_HOLD_MULTIPLIER,
-  PRUNE_HOLD_RELEASE_MS,
   decideHold,
   holdThreshold,
   nextLedger,
@@ -125,6 +124,7 @@ describe("decideHold", () => {
       ledger: ledger({ hold: { sinceMs: NOW - DAY, goneMedia: 99_999 } }),
       nowMs: NOW,
       live: true,
+      releasedAtMs: null,
     });
     expect(d.verdict).toBe("proceed");
     expect(d.nextHold).toBeNull();
@@ -136,43 +136,75 @@ describe("decideHold", () => {
       ledger: ledger(),
       nowMs: NOW,
       live: true,
+      releasedAtMs: null,
     });
     expect(d.verdict).toBe("hold");
     expect(d.nextHold).toEqual({ sinceMs: NOW, goneMedia: threshold + 1 });
   });
 
-  it("keeps holding until the hold is six days old, then goes ahead", () => {
-    const since = NOW - PRUNE_HOLD_RELEASE_MS + 1;
-    const early = decideHold({
-      goneMedia: threshold + 1,
-      ledger: ledger({ hold: { sinceMs: since, goneMedia: threshold + 1 } }),
-      nowMs: NOW,
-      live: true,
-    });
-    expect(early.verdict).toBe("hold");
-    expect(early.nextHold?.sinceMs).toBe(since);
-    const due = decideHold({
-      goneMedia: threshold + 1,
-      ledger: ledger({
-        hold: {
-          sinceMs: NOW - PRUNE_HOLD_RELEASE_MS,
-          goneMedia: threshold + 1,
-        },
-      }),
-      nowMs: NOW,
-      live: true,
-    });
-    expect(due.verdict).toBe("release");
-    expect(due.nextHold).toBeNull();
+  it("never releases a hold by itself, however old it is", () => {
+    for (const age of [DAY, 7 * DAY, 90 * DAY]) {
+      const hold = { sinceMs: NOW - age, goneMedia: threshold + 1 };
+      const d = decideHold({
+        goneMedia: threshold + 1,
+        ledger: ledger({ hold }),
+        nowMs: NOW,
+        live: true,
+        releasedAtMs: null,
+      });
+      expect(d.verdict, `${age / DAY} days`).toBe("hold");
+      expect(d.nextHold).toEqual(hold);
+    }
   });
 
-  it("only reports in a dry run: it never sets, ages or clears a live hold", () => {
+  it("goes ahead once an operator released it after it began", () => {
+    const hold = { sinceMs: NOW - 9 * DAY, goneMedia: threshold + 1 };
+    const d = decideHold({
+      goneMedia: threshold + 1,
+      ledger: ledger({ hold }),
+      nowMs: NOW,
+      live: true,
+      releasedAtMs: NOW - 2 * DAY,
+    });
+    expect(d.verdict).toBe("released");
+    expect(d.nextHold).toBeNull();
+  });
+
+  it("honours only a release newer than the hold: one pressed before it, or at its instant, keeps it", () => {
+    const hold = { sinceMs: NOW - 9 * DAY, goneMedia: threshold + 1 };
+    for (const releasedAtMs of [NOW - 30 * DAY, hold.sinceMs]) {
+      const d = decideHold({
+        goneMedia: threshold + 1,
+        ledger: ledger({ hold }),
+        nowMs: NOW,
+        live: true,
+        releasedAtMs,
+      });
+      expect(d.verdict).toBe("hold");
+      expect(d.nextHold).toEqual(hold);
+    }
+  });
+
+  it("never lets an old release pass a new hold: the run that finds one holds it", () => {
+    const d = decideHold({
+      goneMedia: threshold + 1,
+      ledger: ledger({ hold: null }),
+      nowMs: NOW,
+      live: true,
+      releasedAtMs: NOW - DAY,
+    });
+    expect(d.verdict).toBe("hold");
+    expect(d.nextHold).toEqual({ sinceMs: NOW, goneMedia: threshold + 1 });
+  });
+
+  it("only reports in a dry run: it never sets, clears or releases a live hold", () => {
     const standing = { sinceMs: NOW - DAY, goneMedia: 7 };
     const over = decideHold({
       goneMedia: threshold + 1,
       ledger: ledger({ hold: standing }),
       nowMs: NOW,
       live: false,
+      releasedAtMs: NOW,
     });
     expect(over.verdict).toBe("hold");
     expect(over.nextHold).toBe(standing);
@@ -181,6 +213,7 @@ describe("decideHold", () => {
       ledger: ledger({ hold: standing }),
       nowMs: NOW,
       live: false,
+      releasedAtMs: null,
     });
     expect(under.verdict).toBe("proceed");
     expect(under.nextHold).toBe(standing);

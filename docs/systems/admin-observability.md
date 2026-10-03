@@ -120,9 +120,10 @@ three definitions of healthy:
 - ★ **The missed-run signal rides the purge cron,** the only scheduled app-side code: each run checks every job for a
   terminal row within 1.5 times its cadence and raises one `job_missed_run` warning per silent job, judged by
   `jobHealth`. ★ **A freshness rule can page only on SILENCE,** so the kinds that are never silent alert at their
-  source: a depth reading raises `job_dead_letters_pending` or `job_queue_backlog` inside `/api/internal/job-run` as
-  the Worker hands it over, and a signal failure raises where it happens (`jobs/failure-log.ts`). `jobHealth` without
-  its inputs returns `never`, not `missed`, so the scan never pages on a number it did not take.
+  source: a depth reading raises `job_dead_letters_pending` or `job_queue_backlog` inside `/api/internal/job-run` as the
+  Worker hands it over, as does a held backup prune (`backup_prune_held` and the ops mail), and a signal failure raises
+  where it happens (`jobs/failure-log.ts`). `jobHealth` without its inputs returns `never`, not `missed`, so the scan
+  never pages on a number it did not take.
 - **A sub-sweep is a job:** the purge sweeps that loop over accounts (orphans, account deletion, inactivity,
   over-capacity), the album change log's prune (`purge_album_log`, which writes in the album's live core) and the
   develop (`develop_rolls`, which reveals photographs) open and close their own row inside the parent run through
@@ -146,11 +147,13 @@ three definitions of healthy:
   failure this surface exists to prevent.
 - **A job that cannot reach the database** (the backup Worker, the GitHub Action) reports through
   `/api/internal/job-run` with the internal-jobs bearer (`PRUNE_API_SECRET`). The endpoint can pause a job but never
-  start one, so those jobs show no Run now (a button that lies is worse than a sentence that explains), and only a
-  `scheduled` job may open a run there, since a start against a signal or a reading would leave a `running` row
-  nothing closes. ★ The export Worker is the exception: its daily heartbeat (the `export` job) rides its own signed
-  report (`/api/export/report`, [uploads-and-r2.md](uploads-and-r2.md)) and is written as one closed row, so a Worker
-  whose export secret drifted from the app's reads Missed, where a second bearer would have let it check in healthy.
+  start one, so those jobs show no Run now (a button that lies is worse than a sentence that explains); its one other
+  answer is the backup prune's release stamp, carried as its run starts (Release the hold, on its card,
+  [durability-backups.md](durability-backups.md)), and only a `scheduled` job may open a run there, since a start
+  against a signal or a reading would leave a `running` row nothing closes. ★ The export Worker is the exception: its
+  daily heartbeat (the `export` job) rides its own signed report (`/api/export/report`,
+  [uploads-and-r2.md](uploads-and-r2.md)) and is written as one closed row, so a Worker whose export secret drifted from
+  the app's reads Missed, where a second bearer would have let it check in healthy.
 - ★ **A missing reading is never a zero:** an unreadable queue contributes no key and the card says "No reading", and
   a stale reading inherits its source's health.
 
