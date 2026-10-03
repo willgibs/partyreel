@@ -41,15 +41,60 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each is built as recommended and is Will's to overrule; none is a one-way door.
+
+- **Does viewfinder's material wire with the picks?** Recommended and built: yes. It is r1's settled family (r2's
+  `opening.settled`: "its matte body, silver on paper and near-black in the room, the recording red, and photographs at
+  its 2px"), every r2 option was drawn on it, and display's flat card needs its body/card step (on Graphite paper the
+  card is the page's own white, so a card with no line vanishes). Paper is a silver 0.972 with cards at 0.993, the room
+  0.085 with cards at 0.15, lines ink at an alpha, `--signal`, tiles at 2px (the gap 3px), viewfinder's shadows. The
+  marketing site moves with it (one `:root`). Overrule: Graphite's palette and 4px tiles stay, and a card keeps a
+  hairline on paper.
+- **Does the surface radius move to viewfinder's 6px?** Recommended and built: no, `--radius` stays 8px. Display draws
+  its own rounder corners (cards 12, menus 16, dialogs 20), and the 6px reached fields (identity r3's) and every screen's
+  own `rounded-*`. Overrule: 6px.
+- **Is a toast's state still a filled slab?** Recommended and built: no. Every toast is the display, and its state is
+  its glyph lit in green, amber or red (status=lights: colour where it means something); 172 of the 190 `toast` calls
+  are typed, so keeping the slabs would have left display on 11 toasts. The board drew only a plain toast. Overrule:
+  success, warning and error keep their filled slabs on the display's shape.
+- **Does the live mark breathe?** Recommended and built: yes, as lights drew it (the recording red rings out from the
+  dot every 1.6 s, still under reduced motion). Its old reason against ("a host keeps the hub open all night, and a light
+  that beat for hours would pull her eye off the album") is the call to weigh. Overrule: a still red dot.
+- **Which empty drawings become the one empty atom?** Recommended and built: the shared `EmptyState` (the likes page,
+  a profile's sections) and the feed's section empty (Review, Uploads) are `ui/empty.tsx`, the lens. The dashboard's
+  two photographic teasers (the ghost grid behind "Your first album starts here", the Uploads/Likes strip in its dashed
+  box) are the dashboard's own page parts ("Pages are their boards'"), so they stay. Overrule: they become the atom too
+  (their dashed box goes either way when the dashboard board next draws an empty account).
+- **Readouts at the board's 10.5px?** Recommended and built: no, on the house `label` step (12px, 0.08em, Will's
+  body-type label), semibold, tabular: the camera's spaced capitals on the ladder, never an off-ladder size. Labels and
+  words were already camera's (sentence case, reading weight), so nothing else in the voice moved. Overrule: a `readout`
+  step at 10.5px (theme.css plus `TYPE_STEPS`).
+- **A work layer's scrim**: built as display drew it, the page half-dimmed and sharp (was 10 percent and a blur), on the
+  popup, the Dialog and the Sheet (the marketing mobile menu's too); a door's own `overlayClassName` still wins.
+  Overrule: the old light, blurred scrim.
+- **Hand-rolled card surfaces**: Settings' step list and cards, the hub's checklist and the attended-events tile draw
+  `bg-card ring-1 ring-foreground/10` themselves, so they keep their hairline (a class-coupled global rule would also
+  have caught marketing's black media frames). Recommended: each becomes the `Card` atom in its surface's next lane
+  (Deferred). Overrule: one scoped global rule lays them flat now.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/design-system.md`: the identity paragraph (viewfinder wired with r2's three picks; r3 owns actions and
+  fields); five grounds (the display, and a ground's whole pairs with `--signal`); the faint contrast numbers; status as
+  light and the one empty place; readouts in the camera's voice; the rounding tokens (tile 2px, float 16px and its
+  derivations, the card's `2xl`); the elevation contract (a card flat as its tone, where the ring is left); the line
+  exception to "no surface token is translucent"; glass and the work scrim; the atom contract's table (code mat, glyph
+  count, the live mark) and which hooks are r3's; the floating-layer contract's two materials; toasts as the display.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Design: Settings' step list and cards (`settings-rows.tsx`, `settings-furniture.tsx`, `delete-event-row.tsx`), the
+  hub's checklist and `attended-events-visibility.tsx` hand-roll the card with a ring; each becomes `Card` (flat).
+- Design: the help articles' pictured menus (`help/step-screens/desk-screens.tsx`) draw the body's `floatingPanel`;
+  the real menus are the display now.
+- Design: the brand kit (`/design/library` foundations) lists four grounds and no `--signal` or `--display*`; add the
+  display ground and its tokens.
+- Design: two comments still name the old room's `#040405` (`about/page.tsx`, `legal-document.tsx`).
 
 ## Handoff (replaces the chat report)
 
@@ -63,3 +108,12 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am
+
+- Done and pushed: the work commit `b613fdab` (all wiring, tests, docs, Library). Gate on it: typecheck 0, lint 0,
+  test 0 (813 files, 9,590 tests), build 0.
+- Remaining: `lab:smoke --base http://localhost:3131` and `lab:demo --all` at 1440 and `--width 375` (dev server on
+  3131: `rm -rf .next/dev && pnpm dev -p 3131`), then the Handoff below and `status: handed-off`.
+- Captures: `../partyreel-wt/_scratch/identity-wiring/before/` and `after/` (the harness `shoot.mjs` needs an
+  uncommitted scratch route, `src/app/(dev)/design/zz-identity-scratch/`, deleted before the gate).
