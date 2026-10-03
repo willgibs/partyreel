@@ -42,7 +42,29 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+The board's one ask is `arrival`, five options: three takes on his develop (`in-place`, it develops where it stood;
+`darkroom`, the whole roll full screen first; `light`, the album rises out of the sheet's light, as Maya's Look lifts
+her cover) and the two fallbacks refined (`premiere`, `place`). Recommended: `in-place`. The calls below are drawn as
+answered (the board's `carried`), each his to overrule:
+
+- **When does the develop play?** Built: on each guest's first open after the develop time, on that device (a mark
+  this browser keeps, keyed by the album and its develop time: no server write, no account), however late that open
+  is; live and in place for a guest on the page as the time comes; every later open is the album's regular open.
+  Overrule: once per guest across her devices (a mark on her ticket), or only within a day of the develop.
+- **Can she stop it?** Built: any press, scroll or key ends it on its last frame at once, so the album is never held
+  behind it; in place there is nothing to find, and the full-screen takes carry a Skip ("The album"). Overrule: it
+  always plays through.
+- **What does it load?** Built: its order and shapes come from the album's own first read (the manifest); the squares
+  that fill with photographs load those photos' small previews, at most the sheet's cap (the album's newest 93 at a
+  phone, 177 at a desk, which the album would load as she scrolls); `light` and `place` load nothing early. A tiny
+  rendition made at upload would make the photo takes cost a few hundred KB: a Proposed line, not built. Overrule:
+  only the first screen's squares fill with photographs, the rest with light.
+- **Does Maya's hub develop too?** Built (as a call, drawn with the wiring): her cover is the guests' sheet
+  (`cover=guests`), so her first open after the develop develops it the same way. Overrule: her hub simply shows the
+  album.
+- **Does a Reviewed album's batch develop?** Built: no, Maya's approvals arrive as production's arrivals (the push and
+  the glow) as she lets each in; the develop is a roll's. Overrule: a batch she lets in develops on the sheet the same
+  way.
 
 ## System-doc edits (in place, owned facts only)
 
@@ -64,3 +86,8 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am
+
+- Booted on `lp/the-wait-r2` from `9d52a3ba`; the plan is the Questions above. Next: rewrite the board folder as one
+  ask (`arrival`, five options) on production's page as wired, r1's answered asks retired into `opening.settled`.
