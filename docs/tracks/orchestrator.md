@@ -62,9 +62,13 @@ plan's whole text (lane splits, the Advisor's Q11 corrections, Will's answers) i
 | `redteam-47` | build 47's red-team (`e5be373c`): the range on the host's and the guest's sides, what a locked or private album withholds, writes that must not land, never the lifecycle, red-team 46's MEDIUMs re-walked, regressions near the change (partyreel.com's milestone 34 against the migrated database) | running (from 17:05Z); brief and ledger `../partyreel-wt/_scratch/redteam-47/` (its ledger is its handoff) | Opus, Will's Chrome | `aa3af4ec8f0a0ff01` |
 | `album-calm` | Will's yes (2026-10-03): others' arrivals in calm batches about every 15 s (hers at once), a hidden tab neither syncs nor listens and catches up at once with the new-media entry, a delta carrying its links (one call a batch); before/after measured into PRICING's lever 1 | running (cut at `1d3f081f`); WIP pushes each milestone | Opus, 3132 | `a6e0909d097507e47` |
 | `crumbs-58` | Will's pick (2026-10-03): ranges as X–Y ("October 2–4, 2026") in `formatEventDate` and the dashboard's range words | running (cut at `1d3f081f`); WIP pushes each milestone | Sonnet, 3133 | `a205a24fd2bb55889` |
+| `cost-atlas` | Will's pricing rethink (2026-10-03): the atlas of every cost a host can drive and the invariant (no plan's worst case above its price), the archetypes to the 2,000-guest wedding, the breakeven and light-per-heavy math, each vendor's guard posture, two or three ladders with one recommended (scratch, for his pick); from the Advisor's Q15 | running (cut at `7e89d732`); research, no port | Opus, none | `a3c565b506baefbf0` |
+| `spend-watch` | Will's guards (2026-10-03): our own spend watch (alerts past 10× the trailing peak, a floor for quiet weeks), the switches that stop a vector (mail, crons, exports auto; uploads alert-only with a one-tap switch), each with its `/admin` card; vendor settings stay human | running (cut at `7e89d732`); WIP pushes each milestone | Opus, 3134 | `a9df5f4a8d4e3701f` |
 
-**The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Q14
-(event-dates' migration) answered safe as written, and applied. From another session, respawn it from `usher/kit/advisor-prompt.txt`.
+**The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Q15
+(pricing and cost bounds, 17:45Z) answered: three rules (one marketed axis, storage; no plan's worst-case month above its
+price; guards as circuit breakers), its model at `../partyreel-wt/_scratch/pricing/q15-advisor.md`; it reads cost-atlas's
+ladders before Will sees them. From another session, respawn it from `usher/kit/advisor-prompt.txt`.
 
 **Handoff across accounts** (the weekly hit 100% at 11:52Z and killed four agents; Will reset it on this account at
 ~15:30Z, and all four resumed by SendMessage at 15:40Z with their transcripts; Will's rule: watch from 96%, refresh
