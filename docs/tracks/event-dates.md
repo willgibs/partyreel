@@ -52,7 +52,24 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **A range's words: "to" or a dash?** Recommended and built: "to", as the brief writes it ("October 3 to 5, 2026",
+  "October 30 to November 2, 2026", "December 30, 2026 to January 2, 2027"; a tile's "Oct 3 to 5", "Fri to Sun"): a
+  screen reader says it, and the product writes words, not marks. event-header r3 and host-dashboard r3 drew en dashes
+  ("October 2–4, 2026", "Nov 14 – 15"); his pick there is a swap in `formatEventDate` and `whenOf` alone.
+- **A range in progress, on its tile and its week card: "Day 2 of 3"?** Recommended and built: "Day 2 of 3" beside the
+  Live mark (exact, and a wristband's small delight), where a one-day party says Today or Tonight; the stage keeps
+  "Live today" (the brief's words) over a date line that says the range. Overrule: "Today" as a one-day party says it,
+  or "Until Sunday".
+- **A longest span?** Recommended and built: none. The CHECK holds only "on or after the start, and nothing without
+  one"; a trip or a festival can run weeks, and nothing reads the end but the words and the dashboard's own rules, so a
+  cap guards nothing (a wrong year reads live until she fixes it).
+- **Settings' range control.** Recommended and built: the date as today, and under it a quiet "Add an end date" that
+  opens the last day beside it, removable; the last day cannot fall before the first (the picker's own minimum), and
+  clearing the date clears its end in the same save. Overrule: two fields always shown.
+- **lead=made on a quiet day replaces both quiet steps.** Recommended and built, exactly as host-dashboard r2's `made`
+  drew it (Jo's undated launch over her holiday party 32 days out): with nothing on its day and nothing within a month
+  either way, the newest made leads, ahead of the next dated party however far and of the latest arrival. Overrule:
+  the next dated party still first.
 
 ## System-doc edits (in place, owned facts only)
 
@@ -74,3 +91,13 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am
+
+- Booted on `lp/event-dates` from `772dabea`. The migration is written and proved rolled back, red then green (the
+  log: `_scratch/event-dates/proof-log.md`; the check sits at the file's foot); never applied.
+- Next: the pure rules red first (`formatEventDate`'s ranges, `lib/events/dates.ts`, `when.ts`'s span reader and
+  every reader of it, `readiness.ts`, `reveal.ts`, lead=made), then the plumbing (validation, the mutation, the typed
+  seam `endDateOf`, the pages and heads), then Settings' range, then the gate and the captures.
+- The range reaches its readers through files outside `owns` (the dashboard and hub pages, Settings' state, the guest
+  page's redaction and its two re-reads, the door, `/u/`, the camera settings): each is listed in the Handoff with why.
