@@ -22,7 +22,7 @@ vi.mock("@/app/(app)/dashboard/[eventId]/actions", () => ({
 }));
 vi.mock("@/lib/reel/defaults-action", () => ({ setReelDefaults: vi.fn() }));
 
-const { EventPage } = await import("./event-page");
+const { EventPage, PICK_SETTLE_MS } = await import("./event-page");
 const { SettingsProvider } = await import("./settings-state");
 const { hostEvent, NO_COUNTS } = await import("./testing/host-event");
 
@@ -252,5 +252,247 @@ describe("the event's dates", () => {
     await vi.waitFor(() =>
       expect(updateEvent).toHaveBeenCalledWith("event-1", { event_date: "" }),
     );
+  });
+});
+
+/**
+ * ★ A DATE SAVES ONCE SHE HAS FINISHED IT, NEVER ON A KEYSTROKE (crumbs-59, red-team 47's MEDIUM). Chrome's date field
+ * fires a COMPLETE date on every keystroke that makes one, so a year typed digit by digit passes 0002, 0020 and 0202 on
+ * its way to 2027, and a field that saved each change stored 2027-10-02 to 3851-10-05 after four saves; the day typed
+ * as 12 saved 12 to 15 (the "1" made October 1, the end stayed, then the day moved from there); an end day typed as 20
+ * closed the range at the "2". Measured on Chrome 154, one real key press at a time: `keydown`, then `input` and
+ * `change` with the whole date in the same millisecond, then `keyup`. A change no key made (a picker's choice) is a
+ * finished date; one a key made waits to be left, or Entered.
+ *
+ * What is pinned is the writes, keystroke by keystroke in the order Chrome fires them.
+ */
+type Press = [key: string, dateAfter: string];
+
+/** Real key presses into a date field: each is the keydown, the complete date it makes, and the keyup. */
+function typeInto(field: HTMLInputElement, presses: Press[]) {
+  for (const [key, value] of presses) {
+    fireEvent.keyDown(field, { key });
+    fireEvent.change(field, { target: { value } });
+    fireEvent.keyUp(field, { key });
+  }
+}
+
+/** 2027 into the year of October 2, a digit at a time (the ledger's own walk). */
+const TYPE_2027: Press[] = [
+  ["2", "0002-10-02"],
+  ["0", "0020-10-02"],
+  ["2", "0202-10-02"],
+  ["7", "2027-10-02"],
+];
+
+const rest = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const WEEKEND = { date: "2026-10-02", end: "2026-10-04" };
+
+describe("★ a date saves once she has finished it", () => {
+  it("saves a year typed digit by digit once, when the field is left: never 0002, 0020 or 0202", async () => {
+    const { start, updateEvent } = datesPage(WEEKEND);
+    typeInto(start, TYPE_2027);
+    // The field shows what she typed, and nothing is on its way while she is still in it, past any beat.
+    expect(start.value).toBe("2027-10-02");
+    await rest(PICK_SETTLE_MS + 100);
+    expect(updateEvent).not.toHaveBeenCalled();
+    fireEvent.blur(start);
+    await vi.waitFor(() => expect(updateEvent).toHaveBeenCalledTimes(1));
+    // The weekend moved a year on, still a weekend: the end follows the saved length, not a keystroke's.
+    expect(updateEvent).toHaveBeenCalledWith("event-1", {
+      event_date: "2027-10-02",
+      event_end_date: "2027-10-04",
+    });
+  });
+
+  it("saves the day typed as 12 once, October 12 to 14: the weekend it was, never 12 to 15", async () => {
+    const { start, updateEvent } = datesPage(WEEKEND);
+    typeInto(start, [
+      ["1", "2026-10-01"],
+      ["2", "2026-10-12"],
+    ]);
+    expect(updateEvent).not.toHaveBeenCalled();
+    fireEvent.blur(start);
+    await vi.waitFor(() => expect(updateEvent).toHaveBeenCalledTimes(1));
+    expect(updateEvent).toHaveBeenCalledWith("event-1", {
+      event_date: "2026-10-12",
+      event_end_date: "2026-10-14",
+    });
+  });
+
+  it("keeps an end day typed as 20 under her fingers: the 2 never closes the range, and the field saves once", async () => {
+    const { start, updateEvent } = datesPage(WEEKEND);
+    const end = endField();
+    fireEvent.keyDown(end, { key: "2" });
+    fireEvent.change(end, { target: { value: "2026-10-02" } });
+    fireEvent.keyUp(end, { key: "2" });
+    // "2" made the end the date itself, which on a finished field is one day; mid-typing it is only a stop on the way.
+    await rest(PICK_SETTLE_MS + 100);
+    expect(updateEvent).not.toHaveBeenCalled();
+    expect(document.body.contains(end)).toBe(true);
+    expect(end.value).toBe("2026-10-02");
+    typeInto(end, [["0", "2026-10-20"]]);
+    fireEvent.blur(end);
+    await vi.waitFor(() => expect(updateEvent).toHaveBeenCalledTimes(1));
+    expect(updateEvent).toHaveBeenCalledWith("event-1", {
+      event_date: "2026-10-02",
+      event_end_date: "2026-10-20",
+    });
+    expect(start.value).toBe("2026-10-02");
+  });
+
+  it("saves the arrow keys' year once too: each ArrowUp is a whole date, and none of them is a save", async () => {
+    const { start, updateEvent } = datesPage(WEEKEND);
+    typeInto(start, [
+      ["ArrowUp", "2027-10-02"],
+      ["ArrowUp", "2028-10-02"],
+    ]);
+    expect(updateEvent).not.toHaveBeenCalled();
+    fireEvent.blur(start);
+    await vi.waitFor(() => expect(updateEvent).toHaveBeenCalledTimes(1));
+    expect(updateEvent).toHaveBeenCalledWith("event-1", {
+      event_date: "2028-10-02",
+      event_end_date: "2028-10-04",
+    });
+  });
+
+  it("saves on Return, with the focus kept where she is typing", async () => {
+    const { start, updateEvent } = datesPage(WEEKEND);
+    start.focus();
+    typeInto(start, TYPE_2027);
+    expect(updateEvent).not.toHaveBeenCalled();
+    fireEvent.keyDown(start, { key: "Enter" });
+    await vi.waitFor(() => expect(updateEvent).toHaveBeenCalledTimes(1));
+    expect(updateEvent).toHaveBeenCalledWith("event-1", {
+      event_date: "2027-10-02",
+      event_end_date: "2027-10-04",
+    });
+    expect(document.activeElement).toBe(start);
+  });
+
+  it("saves a picker's choice (a change no key made) a beat after it, and a wheel's every notch as the one it rests on", async () => {
+    const { start, updateEvent } = datesPage(WEEKEND);
+    // One pick: saved, with no need to leave the field.
+    fireEvent.change(start, { target: { value: "2026-10-09" } });
+    await vi.waitFor(() => expect(updateEvent).toHaveBeenCalledTimes(1));
+    expect(updateEvent).toHaveBeenLastCalledWith("event-1", {
+      event_date: "2026-10-09",
+      event_end_date: "2026-10-11",
+    });
+    // A wheel that reports each notch as it turns (a phone's picker): one save, the day it rests on, taken from what
+    // was last SAVED, so the end's rule never sees a notch on the way.
+    for (const day of ["2026-10-08", "2026-10-07", "2026-10-06"]) {
+      fireEvent.change(start, { target: { value: day } });
+    }
+    await rest(PICK_SETTLE_MS - 100);
+    expect(updateEvent).toHaveBeenCalledTimes(1);
+    await vi.waitFor(() => expect(updateEvent).toHaveBeenCalledTimes(2));
+    await rest(PICK_SETTLE_MS + 100);
+    expect(updateEvent).toHaveBeenCalledTimes(2);
+  });
+
+  it("★ never saves a year outside the window, and says so under the field in words", async () => {
+    const { start, updateEvent } = datesPage(WEEKEND);
+    typeInto(start, TYPE_2027.slice(0, 3));
+    fireEvent.blur(start);
+    expect(
+      await screen.findByText("Pick a year from 1900 to 2100."),
+    ).toBeTruthy();
+    expect(start.getAttribute("aria-invalid")).toBe("true");
+    await rest(PICK_SETTLE_MS + 100);
+    expect(updateEvent).not.toHaveBeenCalled();
+    // The year finished, the words go and the date saves.
+    typeInto(start, [["7", "2027-10-02"]]);
+    expect(screen.queryByText("Pick a year from 1900 to 2100.")).toBeNull();
+    fireEvent.blur(start);
+    await vi.waitFor(() => expect(updateEvent).toHaveBeenCalledTimes(1));
+    expect(updateEvent).toHaveBeenCalledWith("event-1", {
+      event_date: "2027-10-02",
+      event_end_date: "2027-10-04",
+    });
+  });
+
+  it("refuses a year of five digits (a stray key past the fourth) the same way", async () => {
+    const { start, updateEvent } = datesPage(WEEKEND);
+    typeInto(start, [...TYPE_2027, ["7", "20277-10-02"]]);
+    fireEvent.blur(start);
+    expect(
+      await screen.findByText("Pick a year from 1900 to 2100."),
+    ).toBeTruthy();
+    await rest(50);
+    expect(updateEvent).not.toHaveBeenCalled();
+  });
+
+  it("refuses the end's year the same way, under the end", async () => {
+    const { updateEvent } = datesPage(WEEKEND);
+    const end = endField();
+    typeInto(end, [
+      ["2", "0002-10-04"],
+      ["0", "0020-10-04"],
+    ]);
+    fireEvent.blur(end);
+    expect(
+      await screen.findByText("Pick a year from 1900 to 2100."),
+    ).toBeTruthy();
+    expect(end.getAttribute("aria-invalid")).toBe("true");
+    await rest(50);
+    expect(updateEvent).not.toHaveBeenCalled();
+  });
+
+  it("shows what is saved again once the other field saves: a year left at 0202 never lingers, unsaved and unmarked", async () => {
+    const { start, updateEvent } = datesPage(WEEKEND);
+    typeInto(start, TYPE_2027.slice(0, 3));
+    fireEvent.blur(start);
+    expect(
+      await screen.findByText("Pick a year from 1900 to 2100."),
+    ).toBeTruthy();
+    expect(start.value).toBe("0202-10-02");
+    // She moves on to the end and picks a day there (a pick comes well after any key she pressed): that is a save, and
+    // the start is the saved date again.
+    await rest(200);
+    fireEvent.change(endField(), { target: { value: "2026-10-06" } });
+    await vi.waitFor(() => expect(updateEvent).toHaveBeenCalledTimes(1));
+    expect(updateEvent).toHaveBeenCalledWith("event-1", {
+      event_date: "2026-10-02",
+      event_end_date: "2026-10-06",
+    });
+    expect(start.value).toBe("2026-10-02");
+    expect(screen.queryByText("Pick a year from 1900 to 2100.")).toBeNull();
+  });
+
+  it("★ closing the panel mid-year saves nothing, and closing on a finished year saves it", async () => {
+    const half = datesPage(WEEKEND);
+    typeInto(half.start, TYPE_2027.slice(0, 3));
+    half.view.unmount();
+    await rest(50);
+    expect(half.updateEvent).not.toHaveBeenCalled();
+    cleanup();
+    const whole = datesPage(WEEKEND);
+    typeInto(whole.start, TYPE_2027);
+    whole.view.unmount();
+    await vi.waitFor(() => expect(whole.updateEvent).toHaveBeenCalledTimes(1));
+    expect(whole.updateEvent).toHaveBeenCalledWith("event-1", {
+      event_date: "2027-10-02",
+      event_end_date: "2027-10-04",
+    });
+  });
+
+  it("never saves a date she has not finished as a cleared one, and says to finish it or clear it", async () => {
+    const { start, updateEvent } = datesPage(WEEKEND);
+    // Backspace on a segment: the field's value is empty because it is half empty, not because it was cleared.
+    fireEvent.keyDown(start, { key: "Backspace" });
+    Object.defineProperty(start, "validity", {
+      configurable: true,
+      value: { badInput: true },
+    });
+    fireEvent.change(start, { target: { value: "" } });
+    fireEvent.keyUp(start, { key: "Backspace" });
+    fireEvent.blur(start);
+    expect(
+      await screen.findByText("Finish the date, or clear it."),
+    ).toBeTruthy();
+    expect(start.getAttribute("aria-invalid")).toBe("true");
+    await rest(50);
+    expect(updateEvent).not.toHaveBeenCalled();
   });
 });

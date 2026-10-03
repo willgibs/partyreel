@@ -185,6 +185,9 @@ export async function updateEvent(
       values.event_date || null,
       values.event_end_date,
     );
+  // ★ A CLEARED DATE TAKES ITS END WITH IT: an end never stands alone, and the CHECK would refuse the date alone in words
+  // about an end the host may not even be shown (a stale page, a build before the range, a crafted call; crumbs-59).
+  else if (values.event_date === "") patch.event_end_date = null;
   // open/private patch freely; 'password' is reachable ONLY when a hash already
   // exists (set_event_password is the sole creator). This allows editing an existing
   // password event (which resubmits visibility='password' unchanged) and re-activating

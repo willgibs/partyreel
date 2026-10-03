@@ -113,6 +113,8 @@ describe("updateEvent: the patch is the save, nothing more", () => {
         name: "Backyard party",
         description: null,
         event_date: null,
+        // The one key that carries another: a cleared date takes its end with it (crumbs-59; the dates' own tests below).
+        event_end_date: null,
         visibility: "private",
         accepting_uploads: false,
         require_verified_email: false,
@@ -275,6 +277,14 @@ describe("updateEvent: the event's dates", () => {
       { event_date: "2026-10-03", event_end_date: null },
       { event_date: null, event_end_date: null },
     ]);
+  });
+
+  // red-team 47's NIT: a date cleared alone over a stored end (a stale page that never saw the end, or a crafted call) was
+  // refused as "The end date can't be before the event date.", words about an end the host may not even be shown. An end
+  // never stands alone, so the date's clearing carries it: the same write, never the CHECK's refusal.
+  it("★ takes a cleared date's end with it, so a date cleared alone never meets the CHECK", async () => {
+    await updateEvent("event-1", updateEventSchema.parse({ event_date: "" }));
+    expect(patches).toEqual([{ event_date: null, event_end_date: null }]);
   });
 
   it("★ reads the database's refusal of a range by its name, in the schema's own words", async () => {

@@ -1,0 +1,199 @@
+-- =============================================================================================
+-- AN EVENT'S DAYS ARE FINITE (lane `crumbs-59`; red-team 47's NIT, build 47). `events_end_date_on_or_after` (20261003120000)
+-- says an end is on or after its first day, and Postgres's `date` has two more members than the calendar: 'infinity' and
+-- '-infinity'. 'infinity' is on or after every date, so the CHECK passed it; the red-team's probe wrote one as the owner,
+-- a raw PostgREST PATCH past the app's schema (`z.iso.date` never sends one), and every reader answered one day: the door,
+-- the heads, /u/ and the dashboard (`isCalendarDay` reads `YYYY-MM-DD` only). Nothing broke, and nothing says so: an
+-- end that is no day is a row the database should refuse, as it refuses an end before its date.
+--
+-- WHAT CHANGES, AND ONLY THIS (no grant, function, policy, trigger, column or row):
+--   1. `events_end_date_on_or_after` is re-said IN ITS OWN NAME with the end finite: null, or (a date, and the end finite
+--      and on or after it). The app reads this CHECK by name (`RANGE_CHECK` in `lib/db/mutations/events.ts`) and said its
+--      refusal in words, and `event-dates.test.ts` holds every statement that names the column to that name, so the
+--      name stays and the body tightens.
+--   2. `events_event_date_finite`: the first day finite too (null, or `isfinite`), the same shape and name as the develop
+--      time's (`events_develops_at_finite`, 20261002200000). The range's CHECK cannot say it alone: an undated end is
+--      already refused, but a first day of 'infinity' with no end passes any range.
+--   The window of years an event may name (1900 to 2100, `lib/events/dates.ts`) stays the app's: a day's job here is only
+--   to say when, so the column asks only that it be one, never how far it is.
+--
+-- A TIGHTENING THE DEPLOYED BUILDS ALREADY LIVE BY: partyreel.com's build (milestone 34) and the alias's never write a day
+-- `z.iso.date` refuses, and 'infinity' is none of its shapes, so no write either sends meets the new CHECKs. What
+-- partyreel.com loses meanwhile: nothing. Rows: none non-finite (read 2026-10-03, 119 events: 0 first days, 0 ends).
+--
+-- LOCKS AT APPLY: `alter table` on events takes ACCESS EXCLUSIVE for an instant; each added CHECK scans the table (~120
+-- rows) under it. Types: a CHECK moves none, so nothing is regenerated.
+--
+-- APPLY PROTOCOL (database-security.md -> Workflow):
+--   (0) No ordering against any build: it only refuses what no build sends.
+--   (1) drift, read-only (2026-10-03): `events_end_date_on_or_after` is
+--       CHECK (((event_end_date IS NULL) OR ((event_date IS NOT NULL) AND (event_end_date >= event_date)))) and no other
+--       CHECK on events names either date; and the two counts that make the ADD safe read 0:
+--         select count(*) filter (where event_date is not null and not isfinite(event_date)),
+--                count(*) filter (where event_end_date is not null and not isfinite(event_end_date)) from public.events;
+--       (a row that fails either would fail the whole apply, with nothing changed: it is one transaction).
+--   (2) the rolled-back check at the foot: red on today's schema (0 fixtures green; 1 and 3 red: the old CHECK, the owner's
+--       raw infinity accepted; 2 green, since every ordinary shape passes both), green with this file between `begin;` and
+--       the block; then apply verbatim.
+--   (3) get_advisors, EXPECTED DELTA: none (no function, table, policy or grant moves).
+-- =============================================================================================
+
+-- =============================================================================================
+-- 1. The range's CHECK, finite, in its own name; and the first day's beside it.
+-- =============================================================================================
+alter table public.events
+  drop constraint events_end_date_on_or_after,
+  add constraint events_end_date_on_or_after
+    check (event_end_date is null or (event_date is not null and isfinite(event_end_date) and event_end_date >= event_date));
+
+alter table public.events
+  add constraint events_event_date_finite
+    check (event_date is null or isfinite(event_date));
+
+-- =============================================================================================
+-- THE ROLLED-BACK CHECK. Proved before applying, each run ONE execute_sql call of `begin;`, the block below and
+-- `rollback;` (GREEN: this file's statements between `begin;` and the block; RED: the block alone, where steps 1 and 3 fail
+-- on today's schema). Fixtures: a Pro host with one dated event; each step traps its own failure into `proof`, and the last
+-- statement reads it. Step 3 is the red-team's own probe: the owner's session writing 'infinity' straight to the table.
+--
+-- -- THE END DATE'S FINITE CHECK: fresh fixtures (a Pro host with one dated event), then the two CHECKs, every shape they
+-- -- still take and refuse, and the owner's own raw writes of Postgres's infinity, each step trapping its own failure into
+-- -- `proof`; the last statement reads it.
+-- create temp table proof (n serial, step text, ok boolean, detail text) on commit drop;
+-- create temp table fx (k text primary key, id uuid) on commit drop;
+--
+-- do $$
+-- declare
+--   v_host uuid := 'ec590000-0000-4000-8000-000000000001';
+--   v_event uuid := 'ec590000-0000-4000-8000-0000000000e1';
+-- begin
+--   insert into auth.users (id, email, email_confirmed_at) values (v_host, 'ec59-host@check.invalid', now());
+--   update public.profiles set tier = 'pro', display_name = 'Check Host', slug = 'ec59-check-host' where id = v_host;
+--   insert into public.events (id, host_id, name, event_date) values (v_event, v_host, 'Finite check', '2026-10-03');
+--   insert into fx values ('host', v_host), ('event', v_event);
+--   insert into proof (step, ok, detail) values ('0 fixtures', true, 'a host and one dated event');
+-- exception when others then insert into proof (step, ok, detail) values ('0 fixtures', false, sqlerrm);
+-- end $$;
+--
+-- -- ── 1. the two CHECKs, in their own names, as the file says them, and validated against every row ──
+-- do $$
+-- declare r text; f text; r_ok boolean; f_ok boolean;
+-- begin
+--   select pg_get_constraintdef(oid), convalidated into r, r_ok from pg_constraint
+--    where conrelid = 'public.events'::regclass and conname = 'events_end_date_on_or_after';
+--   if r is distinct from 'CHECK (((event_end_date IS NULL) OR ((event_date IS NOT NULL) AND isfinite(event_end_date) AND (event_end_date >= event_date))))' then
+--     raise exception 'range check %', coalesce(r, 'missing');
+--   end if;
+--   select pg_get_constraintdef(oid), convalidated into f, f_ok from pg_constraint
+--    where conrelid = 'public.events'::regclass and conname = 'events_event_date_finite';
+--   if f is distinct from 'CHECK (((event_date IS NULL) OR isfinite(event_date)))' then
+--     raise exception 'first-day check %', coalesce(f, 'missing');
+--   end if;
+--   if not r_ok or not f_ok then raise exception 'not validated'; end if;
+--   insert into proof (step, ok, detail) values ('1 the two CHECKs, in their own names, validated', true, r || ' / ' || f);
+-- exception when others then insert into proof (step, ok, detail) values ('1 the two CHECKs, in their own names, validated', false, sqlerrm);
+-- end $$;
+--
+-- -- ── 2. every shape the CHECK took it still takes, and the three wrong shapes still out, in its own name ──
+-- do $$
+-- declare v uuid; bad text := ''; d date; ed date;
+-- begin
+--   select id into v from fx where k = 'event';
+--   update public.events set event_date = '2026-10-03', event_end_date = '2026-10-05' where id = v; -- a range
+--   update public.events set event_end_date = '2026-10-03' where id = v; -- one day, said twice, still legal
+--   update public.events set event_date = '2026-12-30', event_end_date = '2027-01-02' where id = v; -- across a year
+--   update public.events set event_date = '1900-01-01', event_end_date = '2100-12-31' where id = v; -- the app's window, whole
+--   begin
+--     update public.events set event_end_date = '1899-12-31' where id = v;
+--     bad := bad || ' end-before-start';
+--   exception when check_violation then
+--     if sqlerrm not like '%events_end_date_on_or_after%' then bad := bad || ' words:' || sqlerrm; end if;
+--   end;
+--   begin
+--     update public.events set event_date = null where id = v;
+--     bad := bad || ' start-cleared-under-an-end';
+--   exception when check_violation then null;
+--   end;
+--   update public.events set event_date = null, event_end_date = null where id = v; -- both cleared together
+--   begin
+--     update public.events set event_end_date = '2026-10-05' where id = v;
+--     bad := bad || ' end-without-start';
+--   exception when check_violation then null;
+--   end;
+--   select event_date, event_end_date into d, ed from public.events where id = v;
+--   if d is not null or ed is not null then bad := bad || ' clear-both'; end if;
+--   if bad <> '' then raise exception 'shapes:%', bad; end if;
+--   insert into proof (step, ok, detail) values ('2 ranges in, the three wrong shapes still out', true,
+--     'a range, one day, a year crossed, the window whole; end before start, a start cleared under an end, an end alone refused');
+-- exception when others then insert into proof (step, ok, detail) values ('2 ranges in, the three wrong shapes still out', false, sqlerrm);
+-- end $$;
+--
+-- -- ── 3. the owner's raw writes of infinity (the red-team's own probe: PATCH as the host, past the app's schema) ──
+-- do $$
+-- declare v uuid; v_host uuid; bad text := ''; d date; ed date; n int;
+-- begin
+--   select id into v from fx where k = 'event';
+--   select id into v_host from fx where k = 'host';
+--   update public.events set event_date = '2026-10-03', event_end_date = '2026-10-05' where id = v;
+--
+--   set local role authenticated;
+--   perform set_config('request.jwt.claim.sub', v_host::text, true);
+--   -- A finite write still lands as the owner: the baseline the refusals below are measured from.
+--   update public.events set event_end_date = '2026-10-06' where id = v;
+--   get diagnostics n = row_count;
+--   if n <> 1 then bad := bad || ' owner-finite-write'; end if;
+--
+--   begin
+--     update public.events set event_end_date = 'infinity' where id = v;
+--     bad := bad || ' end-infinity';
+--   exception when check_violation then
+--     if sqlerrm not like '%events_end_date_on_or_after%' then bad := bad || ' end-infinity-words:' || sqlerrm; end if;
+--   end;
+--   begin
+--     update public.events set event_end_date = '-infinity' where id = v;
+--     bad := bad || ' end-minus-infinity';
+--   exception when check_violation then null;
+--   end;
+--   begin
+--     update public.events set event_date = 'infinity', event_end_date = 'infinity' where id = v;
+--     bad := bad || ' both-infinity';
+--   exception when check_violation then null;
+--   end;
+--   begin
+--     update public.events set event_date = 'infinity', event_end_date = null where id = v;
+--     bad := bad || ' start-infinity';
+--   exception when check_violation then
+--     if sqlerrm not like '%events_event_date_finite%' then bad := bad || ' start-infinity-words:' || sqlerrm; end if;
+--   end;
+--   begin
+--     update public.events set event_date = '-infinity', event_end_date = null where id = v;
+--     bad := bad || ' start-minus-infinity';
+--   exception when check_violation then
+--     if sqlerrm not like '%events_event_date_finite%' then bad := bad || ' start-minus-infinity-words:' || sqlerrm; end if;
+--   end;
+--   begin
+--     insert into public.events (host_id, name, event_date, event_end_date) values (v_host, 'Finite check insert', '2026-11-14', 'infinity');
+--     bad := bad || ' insert-end-infinity';
+--   exception when check_violation then null;
+--   end;
+--   begin
+--     insert into public.events (host_id, name, event_date) values (v_host, 'Finite check insert', 'infinity');
+--     bad := bad || ' insert-start-infinity';
+--   exception when check_violation then null;
+--   end;
+--   reset role;
+--   perform set_config('request.jwt.claim.sub', '', true);
+--
+--   select event_date, event_end_date into d, ed from public.events where id = v;
+--   if d is distinct from '2026-10-03'::date or ed is distinct from '2026-10-06'::date then
+--     bad := bad || ' row-moved:' || coalesce(d::text, 'null') || '/' || coalesce(ed::text, 'null');
+--   end if;
+--   if bad <> '' then raise exception 'infinity:%', bad; end if;
+--   insert into proof (step, ok, detail) values ('3 the owner''s raw infinity, in each day and each write, refused', true,
+--     'end, -end, both, start, -start by update; end and start by insert; the row still 2026-10-03 to 2026-10-06');
+-- exception when others then
+--   reset role;
+--   insert into proof (step, ok, detail) values ('3 the owner''s raw infinity, in each day and each write, refused', false, sqlerrm);
+-- end $$;
+--
+-- select n, step, ok, detail from proof order by n;

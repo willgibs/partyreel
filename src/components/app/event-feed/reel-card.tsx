@@ -188,9 +188,20 @@ export function ReelCard({
   reel: ReelCardData;
   stuck: boolean;
 }) {
-  if (reel.state === "live") return <LiveCard reel={reel} stuck={stuck} />;
-  if (reel.state === "off") return <OffCard eventId={eventId} stuck={stuck} />;
-  return <CountingCard eventId={eventId} reel={reel} stuck={stuck} />;
+  // ★ THE CARD RESPECTS THE COVER (crumbs-59, red-team 47's NIT). The reel's take is planned on the host's own scope, which
+  // sees every photograph she has (she is exempt from the seal), so on an album whose develop time is ahead its stills are
+  // exactly what her guests cannot see yet: the live card dissolved through them, and the counting card's one photograph sat
+  // under its overlay, "the one picture of what waits that needs no Look". Her hub wears her guests' view meanwhile (the
+  // head, its band and the album's cover), so the card draws no photograph until the develop, and the stills come in the
+  // moment the time is reached. It follows the develop, as the head and the band do, not Look: Look lifts the album's cover
+  // for a visit, and the head stays her guests' while she looks.
+  const developing = useDevelopWait(reel.developsAt ?? null);
+  const shown =
+    developing && reel.stills.length > 0 ? { ...reel, stills: [] } : reel;
+  if (shown.state === "live")
+    return <LiveCard reel={shown} developing={developing} stuck={stuck} />;
+  if (shown.state === "off") return <OffCard eventId={eventId} stuck={stuck} />;
+  return <CountingCard eventId={eventId} reel={shown} stuck={stuck} />;
 }
 
 /** The label: a card title at rest, a control label stuck (two roles, two elements, one ladder). */
@@ -249,10 +260,18 @@ function useDevelopWait(developsAt: string | null): boolean {
   return waiting;
 }
 
-function LiveCard({ reel, stuck }: { reel: ReelCardData; stuck: boolean }) {
+function LiveCard({
+  reel,
+  developing,
+  stuck,
+}: {
+  reel: ReelCardData;
+  /** The album's develop time is still ahead (`useDevelopWait`): the card says so, and draws no still (`ReelCard`). */
+  developing: boolean;
+  stuck: boolean;
+}) {
   const { ref, at } = useLivingClock<HTMLAnchorElement>(reel.stills.length);
   const living = !stuck && reel.stills.length > 0;
-  const developing = useDevelopWait(reel.developsAt ?? null);
   return (
     <Link
       ref={ref}

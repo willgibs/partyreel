@@ -190,7 +190,9 @@ develop time is ahead, her hub's album is the very contact sheet her guests meet
 own lit by their links' host mark; Look lifts it for the visit into her album (the album rising out of a wash of light,
 none under reduced motion), a line and, once it scrolls away, a pill keep Cover it one press away, and Develop now asks
 first. Her hub's head and its band wear only what her guests can see meanwhile (`useHubCoverStills`; the head is handed
-the develop facts and publishes them for the band). ★ **A row waits by its seal, and her manifest never sees it** (the
+the develop facts and publishes them for the band), and so does the Reel card: its stills are the reel's take on her own
+scope, sealed shots included, so it draws no photograph while a develop time is ahead (`reel-card.tsx`; it follows the
+develop, as the head does, never Look). ★ **A row waits by its seal, and her manifest never sees it** (the
 host's scope): the period is the floor, and the held photos a switch put in the roll (and a camera's shots between a
 develop time and its restamped period) are sealed yet created BEFORE `sealed_from`, so by the period alone they read as
 seen ("0 developing" over the 195 her guests read, red-team 46). The page reads them off the rows beside the develop
