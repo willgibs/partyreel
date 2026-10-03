@@ -34,8 +34,8 @@ model Will seats (Fable or Opus); nothing here depends on which.
 ## In flight
 
 Round 13 (Will's desk on build 45, answered 2026-10-03 06:30Z and transcribed at `5dc4dee8`; approving its plan was his
-yes to run continuously to the round's close overnight; Moltbook's hourly passes only after it). Milestone 34 merged
-to `main` at `2aae7331` (tag `milestone-34`, gate 168 green). Up to six lanes plus the research lane while
+yes to run continuously to the round's close overnight; Moltbook's hourly passes only after it). Milestone 34 is live
+at `2aae7331` (tag `milestone-34`, gate 168 green, the walk PASS). Up to six lanes plus the research lane while
 `memory_pressure` reads at least 50% free; every production build takes turns through `scripts/build-lock.sh`. The
 plan's whole text (lane splits, the Advisor's Q11 corrections, Will's answers) is
 `~/.claude/plans/please-resume-your-role-gentle-crown.md`; the briefs carry it.
@@ -78,8 +78,8 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team brie
 
 ## Next, in order
 
-1. **Milestone 34:** production READY at `2aae7331`, then the read-only partyreel.com walk; `launch-prep` fast-forwards
-   to `main`; STATUS's prod line.
+1. **Milestone 34 is DONE:** production READY at `2aae7331` (07:50Z), the read-only walk PASS (no console error),
+   `main` merged back into `launch-prep` (`0034ea75`).
 2. **Integrate wave 1** as each hands off (gates from 169), `identity-wiring` first and the others synced onto it. Two
    migrations (wait-wiring's CHECK, take-home-wiring's phone copy): the Advisor reads each, then apply by protocol;
    take-home's export Worker deployed by me (`wrangler whoami` first).
