@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  comingAt,
   DOWN_MS,
   DRIFT,
   ERASE_MS,
@@ -13,8 +14,6 @@ import {
   WARP_OUT_MS,
   warpAt,
   warpSince,
-  WAVE_MS,
-  waveAt,
 } from "./typing";
 
 /**
@@ -23,8 +22,8 @@ import {
  * here: the loop visits every address once and closes on the demo's own, the
  * text is always a prefix of the address it is about, the stream drifts
  * (never stops) while an address types and leaves each landing at lightspeed
- * before settling, and a wall of photographs rests whenever the address is not
- * standing and fills anew as the next lands.
+ * before settling, and the object's light turns to the next party from the
+ * beat before its first key.
  */
 const PACE = { hold: 3000, restHold: 4000 };
 const LIST = ["our-party", "our-wedding", "my-30th"];
@@ -129,20 +128,21 @@ describe("the typewriter's score", () => {
     expect(one.steps).toHaveLength(1);
     expect(typedAt(one, 123_456).text).toBe("our-party");
     expect(warpAt(one, 99_999)).toBe(1);
-    expect(waveAt(one, 99_999)).toEqual({ since: WAVE_MS * 4, rest: 0 });
+    expect(comingAt(one, 99_999)).toBe(0);
   });
 
-  it("fills a wall anew from each landing and rests it while the next types", () => {
-    const hold = score.steps.find((s) => s.phase === "hold" && s.party === 1)!;
-    expect(waveAt(score, hold.from + 10)).toEqual({ since: 10, rest: 0 });
-    // The arrival's wall is already full.
-    expect(waveAt(score, 10).since).toBeGreaterThan(WAVE_MS);
-    for (let t = 0; t < score.loop * 2; t += 11) {
-      const w = waveAt(score, t);
-      expect(w.rest).toBeGreaterThanOrEqual(0);
-      expect(w.rest).toBeLessThanOrEqual(1);
-      if (stepAt(score, t).phase !== "hold") expect(w.rest).toBe(1);
+  it("wears the next party's light from the beat on the bare domain, and the standing one's until then", () => {
+    for (let t = 0; t < score.loop * 2; t += 7) {
+      const typed = typedAt(score, t);
+      const c = comingAt(score, t);
+      if (typed.phase === "gap" || typed.phase === "type") {
+        // The light is the arriving party's: the one the keys are spelling.
+        expect(c).not.toBe(typed.standing);
+        expect(LIST[c].startsWith(typed.text)).toBe(true);
+      } else expect(c).toBe(typed.standing);
     }
-    expect(waveAt(score, hold.to - 1).rest).toBeGreaterThan(0.9);
+    const gap = score.steps.find((s) => s.phase === "gap" && s.party === 1)!;
+    expect(comingAt(score, gap.from - 1)).toBe(0);
+    expect(comingAt(score, gap.from)).toBe(1);
   });
 });

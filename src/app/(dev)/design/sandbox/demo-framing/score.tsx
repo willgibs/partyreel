@@ -1,23 +1,14 @@
 "use client";
 
-import {
-  DRIFT,
-  type Score,
-  secondsOf,
-  stepAt,
-  WARP,
-  WAVE_MS,
-  waveAt,
-  warpAt,
-} from "./typing";
+import { DRIFT, type Score, secondsOf, stepAt, WARP, warpAt } from "./typing";
 
 /**
  * THE LOOP'S SCORE, UNDER A HERO: what moves when, over one loop, so the
  * turns can be seen in a still as well as in the frames. It is drawn from the
  * very table the frames run (`typing.ts`), sampled, so the score and the
  * motion cannot disagree: the address's lane (standing, or changing), the
- * object's (what it does at each turn), and the album's (the stream's pace,
- * its warps standing out of it, or how full a wall of photographs is).
+ * object's (what it does at each turn), and the stream's (its pace, its warps
+ * standing out of it).
  *
  * Plain SVG in the lab's own ink (`currentColor`), so it reads on the lab's
  * light and dark alike.
@@ -31,17 +22,12 @@ const LABEL = 132;
 /** A span of the loop as x on the chart. */
 const xOf = (ms: number, loop: number) => LABEL + ((W - LABEL) * ms) / loop;
 
-/** How each hero's album moves, for its score: a stream, or a wall that fills. */
-export type Album = "stream" | "wall";
-
 export function LoopScore({
   score,
-  album,
   object,
   caption,
 }: {
   score: Score;
-  album: Album;
   /** The object's lane: its name, and what it does while an address stands. */
   object: string;
   caption: string;
@@ -55,11 +41,7 @@ export function LoopScore({
 
   // A later pass, where every landing warps (the first opens at full).
   const later = (ms: number) => ms + loop;
-  const level = (ms: number) => {
-    if (album === "stream") return warpAt(score, later(ms)) / WARP;
-    const w = waveAt(score, later(ms));
-    return Math.min(1, w.since / WAVE_MS) * (1 - w.rest * 0.6);
-  };
+  const level = (ms: number) => warpAt(score, later(ms)) / WARP;
   const pts: string[] = [];
   for (let ms = 0; ms <= loop; ms += 20) {
     const y = y3 + LANE - level(ms) * LANE;
@@ -82,7 +64,6 @@ export function LoopScore({
 
   const ticks: number[] = [];
   for (let s = 0; s * 1000 <= loop; s += 5) ticks.push(s * 1000);
-  const lane3 = album === "stream" ? "The stream" : "The album";
 
   return (
     <figure className="flex max-w-5xl flex-col gap-2">
@@ -95,7 +76,7 @@ export function LoopScore({
         {[
           ["The address", y1],
           [object, y2],
-          [lane3, y3],
+          ["The stream", y3],
         ].map(([label, y]) => (
           <text
             key={label}
@@ -175,7 +156,7 @@ export function LoopScore({
         ))}
       </svg>
       <figcaption className="text-xs text-pretty text-muted-foreground">
-        {captionOf(score, album, caption)}
+        {captionOf(score, caption)}
       </figcaption>
     </figure>
   );
@@ -196,10 +177,8 @@ function spansOf(
   return out;
 }
 
-function captionOf(score: Score, album: Album, object: string): string {
+function captionOf(score: Score, object: string): string {
   const s = secondsOf(score);
   const drift = Math.round(DRIFT * 100);
-  return album === "stream"
-    ? `One loop, ${s} s, read off the table the frames run: ${object}; the stream eases to ${drift}% while the next address is typed, and leaves each landing at ${WARP} times its pace before settling.`
-    : `One loop, ${s} s, read off the table the frames run: ${object}; the album steps back while the next address is typed, and fills anew from the link as it lands.`;
+  return `One loop, ${s} s, read off the table the frames run: ${object}; the stream eases to ${drift}% while the next address is typed, and leaves each landing at ${WARP} times its pace before settling.`;
 }
