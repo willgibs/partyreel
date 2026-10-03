@@ -54,8 +54,9 @@ Each is built as recommended and is Will's to overrule; none is a one-way door.
   its own rounder corners (cards 12, menus 16, dialogs 20), and the 6px reached fields (identity r3's) and every screen's
   own `rounded-*`. Overrule: 6px.
 - **Is a toast's state still a filled slab?** Recommended and built: no. Every toast is the display, and its state is
-  its glyph lit in green, amber or red (status=lights: colour where it means something); 172 of the 190 `toast` calls
-  are typed, so keeping the slabs would have left display on 11 toasts. The board drew only a plain toast. Overrule:
+  its glyph lit in green, amber or red (status=lights: colour where it means something); 175 of the product's 190
+  toast calls are a success, a warning or an error, so keeping the slabs would have left the display to the 15 plain and
+  info toasts. The board drew only a plain toast. Overrule:
   success, warning and error keep their filled slabs on the display's shape.
 - **Does the live mark breathe?** Recommended and built: yes, as lights drew it (the recording red rings out from the
   dot every 1.6 s, still under reduced motion). Its old reason against ("a host keeps the hub open all night, and a light
