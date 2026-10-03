@@ -65,7 +65,8 @@ const hostPresignStrategy: PresignStrategy<typeof hostPresignUploadSchema> = {
   },
   // ★ THE METER'S REFUSALS, IN THE PLAN'S WORDS (upload-meter, the engine's meter): she is the owner, so her plan may
   // be named, and the meter judges THIS file, so the room's sentence says the file will not fit. An event deleted since
-  // the gates reads as the not-owner 404 above (existence never leaks); the breaker's is a retry, `Retry-After` its hour.
+  // the gates reads as the not-owner 404 above (existence never leaks); the breaker's is a retry, `Retry-After` its hour,
+  // and it says her albums, since it counts her guests' uploads with her own.
   meterRefusal(refusal) {
     switch (refusal.reason) {
       case "storage":
@@ -82,7 +83,7 @@ const hostPresignStrategy: PresignStrategy<typeof hostPresignUploadSchema> = {
           status: 429,
           code: "rate_limited",
           message:
-            "You've uploaded a lot this hour. Try again in a little while.",
+            "Your albums have taken a lot of uploads this hour. Try again in a little while.",
         };
       case "event_gone":
         return {

@@ -21,7 +21,7 @@ describe("abuseRateDecision", () => {
 
   it("★ the 2,000-guest wedding joins on one venue Wi-Fi in one quarter-hour, with half again to spare (upload-meter)", () => {
     // PRICING.md's largest archetype, every guest arriving on the venue's one address inside the same quarter-hour
-    // (a toast's "scan the code now"), plus a second phone, a re-join, an ask or a remove each for half of them: the
+    // (a speech's "scan the code now"), plus a second phone, a re-join, an ask or a remove each for half of them: the
     // join, the ask and the remove ride this one count, and every guest's own-uploads read there checks it.
     const WEDDING = 2_000;
     for (const hits of [0, WEDDING, WEDDING * 1.5 - 1]) {

@@ -85,8 +85,6 @@ export type PipelineRefusal = {
   message: string;
 };
 
-export type { MeterRefusal };
-
 /** `retryAfterSec` rides as `Retry-After` (the hourly breaker's refusal says when the hour ends). */
 function refuse(r: PipelineRefusal, retryAfterSec?: number) {
   return NextResponse.json(

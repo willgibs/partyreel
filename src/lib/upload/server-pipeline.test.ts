@@ -142,7 +142,7 @@ describe("the host's presign counts too", () => {
       { ok: false, reason: "hourly", retryAfterSec: 60 },
       429,
       "rate_limited",
-      "You've uploaded a lot this hour. Try again in a little while.",
+      "Your albums have taken a lot of uploads this hour. Try again in a little while.",
     ],
     [
       "event_gone",
