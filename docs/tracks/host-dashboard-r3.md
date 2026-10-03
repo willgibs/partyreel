@@ -64,3 +64,7 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am
+
+- WIP 1: the board redrawn for round 3 in its folder (spec, fixtures for 1/3/10/40/200 events with ranges, model with the four rules and the collection's filter/sort/group/find, Recent collapsible, four ways to shape the collection, four empty stages, four places for the rule, readers); `model.test.ts` and `registry.test.ts` green, typecheck clean for the folder. Next: lint, look at every frame on :3135 at 1440 and 375 in both themes, fix, then the gate and `lab:smoke`/`lab:demo`.

@@ -1,5 +1,9 @@
-import type { EventListRow, EventSeason } from "@/lib/dashboard/events-view";
-import { sortEventRows } from "@/lib/dashboard/events-view";
+import {
+  type EventListRow,
+  type EventsFilter,
+  filterEventRows,
+  searchEventRows,
+} from "@/lib/dashboard/events-view";
 import {
   buildHomeView,
   type HomeInput,
@@ -7,13 +11,7 @@ import {
   type HostedEvent,
 } from "@/lib/dashboard/home-view";
 import { momentEvent } from "@/lib/dashboard/moment";
-import {
-  AFTER_DAYS,
-  dayOf,
-  daysFrom,
-  phaseOfEvent,
-  WEEK_DAYS,
-} from "@/lib/dashboard/when";
+import { dayOf, daysFrom, phaseOfEvent, whenOf } from "@/lib/dashboard/when";
 import { eventUrl } from "@/lib/events/share-urls";
 
 import type { Host } from "./fixtures";
@@ -23,111 +21,164 @@ import type { Host } from "./fixtures";
  *
  * The page is production's composition (`buildHomeView`) over production's
  * rules (`momentEvent`, `seasonsOf`, `weekEvents`, `marksOf`); this file adds
- * only what a round-two option changes: which event leads on a quiet day, the
- * host's own pick, and how the collection lays the same rows out (a Recent row,
- * a Display menu, a list for the past). `model.test.ts` holds that the page as
- * built is production's to the byte.
+ * only what a round-three option changes: which event the stage features by
+ * the host's rule, how her events lay out (filtered, sorted, grouped, in a
+ * gallery, a table or a list), the Recent row, and the words of a range of
+ * days (`event-dates`, drawn as settled). `model.test.ts` holds that the page
+ * around production's own lead is production's to the byte.
  */
 
 export const SITE = "https://partyreel.com";
 
 /* ── the answers a frame is drawn in ──────────────────────────────────── */
 
-/** How the collection works at forty (`events`). */
-export type EventsWay = "built" | "recent" | "display" | "index";
-/** What the stage leads with on a quiet day (`lead`). */
-export type QuietRule = "time" | "made" | "left" | "rest";
-/** Whether she can choose the stage's event herself (`pick`). */
-export type PickWay = "none" | "kept" | "step";
+/** How her events are customized (`events`). */
+export type EventsWay = "menu" | "bar" | "views" | "find";
+/** How the stage of an event with no photographs is drawn (`stage`). */
+export type StageWay = "lit" | "album" | "card" | "guest";
+/** Where the feature's rule is set (`rule`). */
+export type RuleWay = "corner" | "tabs" | "head" | "settings";
 
-export type Answers = { events: EventsWay; lead: QuietRule; pick: PickWay };
+export type Answers = { events: EventsWay; stage: StageWay; rule: RuleWay };
 
-/* ── which event leads ────────────────────────────────────────────────── */
+/* ── the feature's rule ───────────────────────────────────────────────── */
 
-/** Within `days` of the viewer's day, by the event's own day (`dayOf`). */
-function within(e: HostedEvent, today: string, days: number): boolean {
-  const day = dayOf(e);
-  return day !== null && Math.abs(daysFrom(today, day)) <= days;
-}
+export type RuleId = "newest" | "upcoming" | "opened" | "photos";
+
+/**
+ * THE RULES A HOST CHOOSES AMONG (his r2 note on `pick`: "Rather than directly
+ * selecting an event, these could be more like sort options, such as: newest,
+ * last opened, upcoming, etc."). Each is a sentence she can predict, and a
+ * party on its own day leads under every one of them (the live wall, settled).
+ * `newest` is the default and is the settled `lead=made` as `event-dates`
+ * wires it: a party within a month first, else the newest made.
+ */
+export const RULES: readonly { id: RuleId; label: string; line: string }[] = [
+  {
+    id: "newest",
+    label: "Newest",
+    line: "Your newest event, or a party within a month",
+  },
+  { id: "upcoming", label: "Upcoming", line: "Your next party by its date" },
+  { id: "opened", label: "Last opened", line: "The event you were in last" },
+  { id: "photos", label: "Latest photos", line: "Where photos last landed" },
+];
+
+export const ruleLabel = (id: RuleId): string =>
+  RULES.find((r) => r.id === id)?.label ?? id;
 
 const newestMade = (a: HostedEvent, b: HostedEvent) =>
   Date.parse(b.createdAt) - Date.parse(a.createdAt);
 
+const AFTER = 30;
+
 /**
- * THE QUIET DAY'S RULE. Production's moment decides whenever time can (a party
- * on its day, else the nearest within a month); a quiet day is one where it
- * cannot, and each rule answers it its own way:
- *  - `time`, as built: the next dated party however far, else the album photos
- *    last landed in, else the newest made (`moment.ts`'s steps 3 to 5);
- *  - `made`: the event she made last, dated or not;
- *  - `left`: a party within a week still leads; otherwise the event she last
- *    opened (a new event counts as opened: Create lands her in it);
- *  - `rest`: time's own pick, drawn as one line rather than a stage from nine
- *    events (`rests`), so a planner's events lead a quiet day's page.
+ * THE STAGE'S EVENT UNDER A RULE. A party on its own day always leads (a host
+ * date first, then an undated album landing today: `momentEvent`'s first
+ * step); every other day, the rule:
+ *  - `newest`: production's moment within a month (the nearest party either
+ *    way), else the newest made (`lead=made`, settled);
+ *  - `upcoming`: the soonest dated party ahead, else the newest made;
+ *  - `opened`: the event she was in last (Create lands her in a new one, so a
+ *    new event counts as opened), else the newest made;
+ *  - `photos`: the album photographs last landed in, else the newest made.
  */
-export function ruleLead(
-  rule: QuietRule,
+export function leadOf(
   host: Pick<Host, "hosted" | "ctx">,
+  rule: RuleId,
   trail: readonly string[],
 ): HostedEvent | null {
   const { hosted, ctx } = host;
-  const moment = momentEvent(hosted, ctx.today)?.event ?? null;
-  if (!moment || rule === "time" || rule === "rest") return moment;
-  if (rule === "made") {
-    if (within(moment, ctx.today, AFTER_DAYS)) return moment;
-    return [...hosted].sort(newestMade)[0] ?? moment;
+  if (hosted.length === 0) return null;
+  const moment = momentEvent(hosted, ctx.today);
+  if (moment?.phase === "live") return moment.event;
+  const newest = [...hosted].sort(newestMade)[0]!;
+  if (rule === "newest") {
+    const day = moment ? dayOf(moment.event) : null;
+    const near = day !== null && Math.abs(daysFrom(ctx.today, day)) <= AFTER;
+    return near ? moment!.event : newest;
   }
-  if (within(moment, ctx.today, WEEK_DAYS)) return moment;
-  const last = trail
-    .map((id) => hosted.find((e) => e.id === id))
-    .find((e): e is HostedEvent => Boolean(e));
-  return last ?? moment;
+  if (rule === "upcoming") {
+    const next = hosted
+      .filter((e) => e.date !== null && daysFrom(ctx.today, e.date) > 0)
+      .sort((a, b) => a.date!.localeCompare(b.date!))[0];
+    return next ?? newest;
+  }
+  if (rule === "opened") {
+    const last = trail
+      .map((id) => hosted.find((e) => e.id === id))
+      .find((e): e is HostedEvent => Boolean(e));
+    return last ?? newest;
+  }
+  const latest = hosted
+    .filter((e) => e.lastArrival !== null)
+    .sort((a, b) => b.lastArrival!.at.localeCompare(a.lastArrival!.at))[0];
+  return latest ?? newest;
 }
 
-/**
- * WHETHER THE STAGE RESTS (`rest`): on a quiet day, for a host with nine events
- * or more (the round's threshold, `NEW_PIECES_FROM`), the stage folds to one
- * line. Under nine, and on any day time can speak, it stands as built: a host
- * with one wedding keeps the page that is that party.
- */
-export function rests(
-  rule: QuietRule,
-  host: Pick<Host, "hosted" | "ctx">,
-): boolean {
-  if (rule !== "rest" || host.hosted.length < NEW_PIECES_FROM) return false;
-  const moment = momentEvent(host.hosted, host.ctx.today)?.event;
-  return Boolean(moment) && !within(moment!, host.ctx.today, AFTER_DAYS);
-}
-
-/** Whether a party is on its own day: the one thing a pick never overrides. */
+/** Whether a party is on its own day: the one thing no rule overrides. */
 export function partyOnItsDay(host: Pick<Host, "hosted" | "ctx">): boolean {
   return host.hosted.some((e) => phaseOfEvent(e, host.ctx.today) === "live");
 }
 
+/* ── a range of days (`event-dates`, drawn as settled) ────────────────── */
+
+const fmt = (o: Intl.DateTimeFormatOptions) =>
+  new Intl.DateTimeFormat("en-US", { ...o, timeZone: "UTC" });
+const WD = fmt({ weekday: "short" });
+const WD_LONG = fmt({ weekday: "long" });
+const MD = fmt({ month: "short", day: "numeric" });
+const D = fmt({ day: "numeric" });
+const MY = fmt({ month: "short", year: "numeric" });
+const MDY_LONG = fmt({ month: "long", day: "numeric", year: "numeric" });
+const MD_LONG = fmt({ month: "long", day: "numeric" });
+const LONG = fmt({ weekday: "long", month: "long", day: "numeric" });
+
+const at = (day: string) => {
+  const [y, m, d] = day.split("-").map(Number);
+  return new Date(Date.UTC(y!, m! - 1, d!));
+};
+const sameMonth = (a: string, b: string) => a.slice(0, 7) === b.slice(0, 7);
+
 /**
- * THE STAGE'S CONTENDERS, for a host who steps through them (`pick=step`) or
- * picks one (`pick=kept`): the rule's lead, then the next dated party, the
- * newest made and the album photos last landed in, each once.
+ * A RANGE'S WHEN, IN THE TILE'S FEWEST WORDS (`whenOf`'s ladder, widened to two
+ * days): "Sat – Sun" inside the week, "Nov 14 – 15" inside the month or this
+ * year, "May 2025" once its year has gone (its days no longer matter).
  */
-export function contenders(
-  rule: QuietRule,
-  host: Pick<Host, "hosted" | "ctx">,
-  trail: readonly string[],
-  count = 3,
-): HostedEvent[] {
-  const { hosted, ctx } = host;
-  const lead = ruleLead(rule, host, trail);
-  const next = hosted
-    .filter((e) => e.date !== null && daysFrom(ctx.today, e.date) > 0)
-    .sort((a, b) => a.date!.localeCompare(b.date!))[0];
-  const made = [...hosted].sort(newestMade)[0];
-  const photos = hosted
-    .filter((e) => e.lastArrival !== null)
-    .sort((a, b) => b.lastArrival!.at.localeCompare(a.lastArrival!.at))[0];
-  const out: HostedEvent[] = [];
-  for (const e of [lead, next, made, photos, ...hosted])
-    if (e && !out.some((x) => x.id === e.id)) out.push(e);
-  return out.slice(0, count);
+export function rangeWhen(start: string, end: string, today: string): string {
+  const d = daysFrom(today, start);
+  const span = sameMonth(start, end)
+    ? `${MD.format(at(start))} – ${D.format(at(end))}`
+    : `${MD.format(at(start))} – ${MD.format(at(end))}`;
+  if (d > 1 && d < 7)
+    return `${WD.format(at(start))} – ${WD.format(at(end))}`;
+  if (start.slice(0, 4) === today.slice(0, 4) || d > 0) return span;
+  return MY.format(at(start));
+}
+
+/** A range in full, the rows' and the table's date: "October 6 – 7, 2026". */
+export function rangeLabel(start: string, end: string): string {
+  if (sameMonth(start, end))
+    return `${MD_LONG.format(at(start))} – ${D.format(at(end))}, ${start.slice(0, 4)}`;
+  return `${MD_LONG.format(at(start))} – ${MDY_LONG.format(at(end))}`;
+}
+
+/** The stage's date line for a range: "Saturday, November 14 to Sunday, November 15". */
+export const rangeLine = (start: string, end: string): string =>
+  `${LONG.format(at(start))} to ${LONG.format(at(end))}`;
+
+/** The weekday words of a range a week out: "Saturday to Sunday". */
+export const rangeDays = (start: string, end: string): string =>
+  `${WD_LONG.format(at(start))} to ${WD_LONG.format(at(end))}`;
+
+/** An event's when, a range's where it has one: what every drawing of the board says. */
+export function whenFor(
+  e: Pick<HostedEvent, "id" | "date">,
+  ends: Record<string, string>,
+  today: string,
+): string {
+  const end = ends[e.id];
+  return e.date && end ? rangeWhen(e.date, end, today) : whenOf(e.date, today);
 }
 
 /* ── the page, around a lead ──────────────────────────────────────────── */
@@ -162,20 +213,18 @@ export function homeInput(host: Host, leadId?: string | null): HomeInput {
  * and busier than any, so production's moment always leads with it), which
  * draws every real event as a row, a week card and a group member through
  * production's own rules; the chosen lead is then lifted out of the rows, the
- * week and its group, exactly as production leaves its own lead out.
+ * week and its group, exactly as production leaves its own lead out. A range's
+ * words are then laid over the rows and the week (`ranged`).
  */
 export function homeAround(host: Host, leadId: string | null): HomeView {
   const base = buildHomeView(homeInput(host, leadId));
   const lead = host.hosted.find((e) => e.id === leadId);
-  if (!lead || base.stage?.event.id === lead.id) return base;
-  return lifted(host, lead);
+  const view =
+    !lead || base.stage?.event.id === lead.id ? base : lifted(host, lead);
+  return ranged(view, host);
 }
 
-/**
- * The page with `lead` on the stage, by way of the decoy. Exported for the
- * test that holds it to production: lifted around production's own lead, it IS
- * production's page.
- */
+/** The page with `lead` on the stage, by way of the decoy. Exported for the test that holds it to production. */
 export function lifted(host: Host, lead: HostedEvent): HomeView {
   const input = homeInput(host, lead.id);
   const decoy: HostedEvent = {
@@ -211,13 +260,46 @@ export function lifted(host: Host, lead: HostedEvent): HomeView {
   };
 }
 
-/* ── the collection, laid out ─────────────────────────────────────────── */
+/** A range's words over production's rows and week cards (production has no end date yet). */
+function ranged(view: HomeView, host: Host): HomeView {
+  if (Object.keys(host.ends).length === 0) return view;
+  const today = host.ctx.today;
+  const startOf = new Map(host.hosted.map((e) => [e.id, e.date]));
+  return {
+    ...view,
+    week: view.week.map((c) => {
+      const start = startOf.get(c.id);
+      const end = host.ends[c.id];
+      return start && end ? { ...c, when: rangeWhen(start, end, today) } : c;
+    }),
+    events: {
+      ...view.events,
+      rows: view.events.rows.map((r) => {
+        const start = r.kind === "hosted" ? startOf.get(r.id) : null;
+        const end = host.ends[r.id];
+        return start && end
+          ? {
+              ...r,
+              when: rangeWhen(start, end, today),
+              dateLabel: rangeLabel(start, end),
+            }
+          : r;
+      }),
+    },
+  };
+}
 
-/** From this many events the round's new pieces show, with the search (`EVENTS_SEARCH_FROM`). */
-export const NEW_PIECES_FROM = 9;
+/* ── the Recent row ───────────────────────────────────────────────────── */
 
-/** How many events the Recent row holds. */
-export const RECENT_MAX = 6;
+/** How many events the Recent row holds: one row of covers at a desk. */
+export const RECENT_MAX = 4;
+
+/**
+ * From this many events (hosted and added to) the Recent row shows: below it
+ * every event is on the first screen of her events anyway, and a row of the
+ * last few would only repeat them.
+ */
+export const RECENT_FROM = 7;
 
 /**
  * THE RECENT ROW: the events she opened lately, newest first, as the rows the
@@ -244,135 +326,270 @@ export function recentRows(
   return out.slice(0, max);
 }
 
-export type Show = "covers" | "list";
-export type Grouping = "when" | "year" | "none";
-export type Order = "date" | "name" | "waiting";
-export type Display = { show: Show; group: Grouping; order: Order };
+/* ── her events, laid out her way ─────────────────────────────────────── */
 
-export const DISPLAY_DEFAULT: Display = {
-  show: "covers",
-  group: "when",
-  order: "date",
+export type Layout = "gallery" | "table" | "list";
+export type SortKey = "made" | "date" | "opened" | "name" | "photos" | "waiting";
+export type WhenFilter = "any" | "upcoming" | "past" | "undated";
+export type GroupBy = "none" | "year";
+export type TileScale = "s" | "m" | "l";
+
+/** One host's way of seeing her events: kept on her account (the carried `kept`). */
+export type Prefs = {
+  layout: Layout;
+  sort: SortKey;
+  /** Newest, latest, largest or Z first; a press on the sort flips it. */
+  desc: boolean;
+  lens: EventsFilter;
+  when: WhenFilter;
+  year: string | null;
+  group: GroupBy;
+  scale: TileScale;
 };
 
-/** One group as an option lays it out: its words, how large its tiles draw, its rows. */
-export type Laid = {
+/**
+ * THE QUIET DEFAULT (his r2 note: "All of these still feel like they're
+ * over-organizing"): covers, the newest first, nothing grouped and nothing
+ * filtered, so a host with three events sees three covers and nothing to set.
+ */
+export const PREFS_DEFAULT: Prefs = {
+  layout: "gallery",
+  sort: "made",
+  desc: true,
+  lens: "all",
+  when: "any",
+  year: null,
+  group: "none",
+  scale: "m",
+};
+
+export const SORTS: readonly { id: SortKey; label: string }[] = [
+  { id: "made", label: "Newest" },
+  { id: "date", label: "Event date" },
+  { id: "opened", label: "Last opened" },
+  { id: "name", label: "Name" },
+  { id: "photos", label: "Most photos" },
+  { id: "waiting", label: "Waiting" },
+];
+
+export const sortLabel = (id: SortKey): string =>
+  SORTS.find((s) => s.id === id)?.label ?? id;
+
+export const WHENS: readonly { id: WhenFilter; label: string }[] = [
+  { id: "any", label: "Any time" },
+  { id: "upcoming", label: "Upcoming" },
+  { id: "past", label: "Past" },
+  { id: "undated", label: "No date" },
+];
+
+/** What a sort and a filter read that a row does not carry: its day, its host's date, her opens. */
+export type Facts = {
+  /** The day it sits on (`dayOf`, or a guest album's last upload). */
+  day: ReadonlyMap<string, string | null>;
+  /** Whether its host set a date. */
+  dated: ReadonlySet<string>;
+  /** Her opens, by recency: 0 is the last she opened. */
+  opened: ReadonlyMap<string, number>;
+  today: string;
+};
+
+export function factsOf(host: Host, trail: readonly string[]): Facts {
+  const day = new Map<string, string | null>();
+  for (const e of host.hosted) day.set(e.id, dayOf(e));
+  for (const g of host.guests) day.set(g.eventId, g.lastUploadAt.slice(0, 10));
+  for (const d of host.deleted) day.set(d.id, d.date);
+  return {
+    day,
+    dated: new Set([
+      ...host.hosted.filter((e) => e.date !== null).map((e) => e.id),
+      ...host.guests.map((g) => g.eventId),
+    ]),
+    opened: new Map(trail.map((id, i) => [id, i])),
+    today: host.ctx.today,
+  };
+}
+
+const yearOf = (r: EventListRow, f: Facts) =>
+  f.day.get(r.id)?.slice(0, 4) ?? null;
+
+/** The years her events sit in, newest first: the filter's chips. */
+export function yearsOf(rows: readonly EventListRow[], f: Facts): string[] {
+  return [
+    ...new Set(rows.map((r) => yearOf(r, f)).filter((y): y is string => !!y)),
+  ].sort((a, b) => b.localeCompare(a));
+}
+
+function passesWhen(r: EventListRow, w: WhenFilter, f: Facts): boolean {
+  if (w === "any") return true;
+  const day = f.day.get(r.id) ?? null;
+  if (w === "undated") return r.kind === "hosted" && !f.dated.has(r.id);
+  if (w === "upcoming") return day === null || daysFrom(f.today, day) >= 0;
+  return day !== null && daysFrom(f.today, day) < 0;
+}
+
+/** The rows a host's filter keeps: production's lens, then when, then the year. */
+export function filtered(
+  rows: readonly EventListRow[],
+  p: Pick<Prefs, "lens" | "when" | "year">,
+  f: Facts,
+): EventListRow[] {
+  return filterEventRows([...rows], p.lens).filter(
+    (r) => passesWhen(r, p.when, f) && (!p.year || yearOf(r, f) === p.year),
+  );
+}
+
+/**
+ * HER ORDER, every key with a direction. A key a row has nothing for (an
+ * undated event by date, one she never opened) sorts after the rest either
+ * way, and a tie keeps the newest made first, so a sort never shuffles.
+ */
+export function sorted(
+  rows: readonly EventListRow[],
+  sort: SortKey,
+  desc: boolean,
+  f: Facts,
+): EventListRow[] {
+  const made = (a: EventListRow, b: EventListRow) =>
+    a.sortDate < b.sortDate ? 1 : a.sortDate > b.sortDate ? -1 : 0;
+  const dir = desc ? -1 : 1;
+  const keyed = (
+    key: (r: EventListRow) => number | string | null,
+  ): ((a: EventListRow, b: EventListRow) => number) => {
+    return (a, b) => {
+      const x = key(a);
+      const y = key(b);
+      if (x === null && y === null) return made(a, b);
+      if (x === null) return 1;
+      if (y === null) return -1;
+      if (x < y) return -dir;
+      if (x > y) return dir;
+      return made(a, b);
+    };
+  };
+  const out = [...rows];
+  if (sort === "made") out.sort((a, b) => (desc ? made(a, b) : made(b, a)));
+  else if (sort === "date") out.sort(keyed((r) => f.day.get(r.id) ?? null));
+  else if (sort === "opened")
+    // The last opened is rank 0, so "most recent first" is the smaller rank.
+    out.sort(keyed((r) => (f.opened.has(r.id) ? -f.opened.get(r.id)! : null)));
+  else if (sort === "name")
+    out.sort((a, b) =>
+      desc
+        ? b.name.localeCompare(a.name, undefined, { numeric: true })
+        : a.name.localeCompare(b.name, undefined, { numeric: true }),
+    );
+  else if (sort === "photos")
+    out.sort(keyed((r) => (r.kind === "hosted" ? r.items : null)));
+  else out.sort(keyed((r) => r.pending + r.waiting || null));
+  return out;
+}
+
+export type Group = { id: string; label: string; rows: EventListRow[] };
+
+/** Her events, filtered, sorted and grouped as she set them. */
+export function arrange(
+  rows: readonly EventListRow[],
+  p: Prefs,
+  f: Facts,
+  query = "",
+): Group[] {
+  const kept = searchEventRows(filtered(rows, p, f), query);
+  const ordered = sorted(kept, p.sort, p.desc, f);
+  if (p.group === "none") return [{ id: "all", label: "", rows: ordered }];
+  const groups = new Map<string, EventListRow[]>();
+  for (const r of ordered) {
+    const y = yearOf(r, f) ?? "No date yet";
+    groups.set(y, [...(groups.get(y) ?? []), r]);
+  }
+  return [...groups.entries()].map(([id, list]) => ({
+    id,
+    label: id,
+    rows: list,
+  }));
+}
+
+/** Prefs that differ from the quiet default: what a Display button counts and a line names. */
+export function changed(p: Prefs): string[] {
+  const out: string[] = [];
+  if (p.layout !== PREFS_DEFAULT.layout)
+    out.push(p.layout === "table" ? "Table" : "List");
+  if (p.sort !== PREFS_DEFAULT.sort || p.desc !== PREFS_DEFAULT.desc)
+    out.push(`${sortLabel(p.sort)}${p.desc ? "" : ", reversed"}`);
+  if (p.lens !== "all") out.push(p.lens === "hosting" ? "Hosting" : p.lens);
+  if (p.when !== "any") out.push(WHENS.find((w) => w.id === p.when)!.label);
+  if (p.year) out.push(p.year);
+  if (p.group !== "none") out.push("By year");
+  return out;
+}
+
+/* ── one field that finds (`find`) ────────────────────────────────────── */
+
+/**
+ * WHAT A WORD IN THE FIELD MEANS: a year is a filter, the words upcoming,
+ * past, waiting and undated are filters, and every other word is part of a
+ * name (production's own folded search, `searchEventRows`).
+ */
+export function findIn(
+  rows: readonly EventListRow[],
+  query: string,
+  f: Facts,
+): { rows: EventListRow[]; chips: string[] } {
+  const words = query.toLowerCase().split(/\s+/).filter(Boolean);
+  const chips: string[] = [];
+  let kept = filterEventRows([...rows], "all");
+  const rest: string[] = [];
+  for (const w of words) {
+    if (/^(19|20)\d\d$/.test(w)) {
+      chips.push(w);
+      kept = kept.filter((r) => yearOf(r, f) === w);
+    } else if (w === "upcoming" || w === "past" || w === "undated") {
+      chips.push(w[0]!.toUpperCase() + w.slice(1));
+      kept = kept.filter((r) => passesWhen(r, w as WhenFilter, f));
+    } else if (w === "waiting") {
+      chips.push("Waiting");
+      kept = kept.filter((r) => r.pending + r.waiting > 0);
+    } else rest.push(w);
+  }
+  return { rows: searchEventRows(kept, rest.join(" ")), chips };
+}
+
+/* ── saved views (`views`) ────────────────────────────────────────────── */
+
+export type View = {
   id: string;
   label: string;
-  size: "large" | "medium" | "small";
-  rows: EventListRow[];
+  prefs: Prefs;
+  /** A view she made, rather than one every host starts with. */
+  hers?: boolean;
+  /** Words her view finds in a name (a wedding planner's "Weddings"). */
+  query?: string;
 };
 
-type Days = ReadonlyMap<string, string | null>;
+/** Every host's views: all of them, what is coming, and what has been. */
+export const STARTER_VIEWS: readonly View[] = [
+  { id: "all", label: "All", prefs: PREFS_DEFAULT },
+  {
+    id: "upcoming",
+    label: "Upcoming",
+    prefs: { ...PREFS_DEFAULT, when: "upcoming", sort: "date", desc: false },
+  },
+  {
+    id: "past",
+    label: "Past",
+    prefs: { ...PREFS_DEFAULT, when: "past", sort: "date", desc: true },
+  },
+];
 
-/** Newest day first, the undated first of all (they are still being set up). */
-function byDay(rows: readonly EventListRow[], days: Days): EventListRow[] {
-  const key = (r: EventListRow) => days.get(r.id) ?? "9999";
-  return [...rows].sort((a, b) => key(b).localeCompare(key(a)));
-}
-
-function ordered(
-  rows: readonly EventListRow[],
-  order: Order,
-  days: Days,
-): EventListRow[] {
-  // Name and Most waiting are production's own orders (`sortEventRows`).
-  return order === "date"
-    ? byDay(rows, days)
-    : sortEventRows([...rows], order === "name" ? "name" : "waiting");
-}
+/* ── an event's own light ─────────────────────────────────────────────── */
 
 /**
- * THE DISPLAY MENU'S LAYOUT: the rows grouped by when (production's groups,
- * every year open), by year, or not at all, in her order. By when, the date
- * order is each group's own (production's, by when).
+ * AN EVENT'S OWN LAMP: one of the house's five (`--lamp-1` to `--lamp-5`,
+ * light and never UI), picked by its id so it never changes, which lights its
+ * stage until its own photographs do (bible 6: "where there is no photograph,
+ * light brings color with a source and a direction").
  */
-export function displayGroups(
-  rows: readonly EventListRow[],
-  seasons: readonly EventSeason[],
-  days: Days,
-  d: Display,
-): Laid[] {
-  if (d.group === "none")
-    return [
-      {
-        id: "all",
-        label: "Every event",
-        size: "small",
-        rows: ordered(rows, d.order, days),
-      },
-    ];
-  if (d.group === "year") {
-    const yearOf = (r: EventListRow) =>
-      days.get(r.id)?.slice(0, 4) ?? "No date";
-    const years = [...new Set(rows.map(yearOf))].sort((a, b) =>
-      a === "No date" ? -1 : b === "No date" ? 1 : b.localeCompare(a),
-    );
-    return years.map((y) => ({
-      id: `y-${y}`,
-      label: y === "No date" ? "No date yet" : y,
-      size: "small",
-      rows: ordered(
-        rows.filter((r) => yearOf(r) === y),
-        d.order,
-        days,
-      ),
-    }));
-  }
-  const byKey = new Map(rows.map((r) => [`${r.kind}-${r.id}`, r]));
-  return seasons
-    .map((s) => {
-      const inIt = s.ids
-        .map((id) =>
-          byKey.get(`${s.id === "guest" ? "guest" : "hosted"}-${id}`),
-        )
-        .filter((r): r is EventListRow => Boolean(r));
-      return {
-        id: s.id,
-        label: s.label,
-        size: s.size === "folded" ? ("small" as const) : s.size,
-        rows: d.order === "date" ? inIt : ordered(inIt, d.order, days),
-      };
-    })
-    .filter((g) => g.rows.length > 0);
-}
-
-/** The list's own orders, by its column heads. */
-export type ListSort = "date" | "name" | "size";
-
-/**
- * COVERS NEAR, A LIST FOR THE PAST: what is coming and what just happened stay
- * production's groups of covers; everything older, and the events she added
- * to, is one list, filtered by year and sorted by a column.
- */
-export function indexOf(
-  rows: readonly EventListRow[],
-  seasons: readonly EventSeason[],
-  days: Days,
-): { near: Laid[]; past: EventListRow[]; years: string[] } {
-  const near = displayGroups(
-    rows,
-    seasons.filter((s) => s.id === "coming" || s.id === "recent"),
-    days,
-    DISPLAY_DEFAULT,
-  );
-  const nearIds = new Set(near.flatMap((g) => g.rows.map((r) => r.id)));
-  const past = byDay(
-    rows.filter((r) => !nearIds.has(r.id)),
-    days,
-  );
-  const years = [...new Set(past.map((r) => days.get(r.id)?.slice(0, 4) ?? ""))]
-    .filter(Boolean)
-    .sort((a, b) => b.localeCompare(a));
-  return { near, past, years };
-}
-
-export function sortList(
-  rows: readonly EventListRow[],
-  sort: ListSort,
-  days: Days,
-): EventListRow[] {
-  if (sort === "date") return byDay(rows, days);
-  if (sort === "name") return sortEventRows([...rows], "name");
-  return [...rows].sort((a, b) => b.items - a.items);
+export function lampOf(id: string): 1 | 2 | 3 | 4 | 5 {
+  let h = 0;
+  for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return ((h % 5) + 1) as 1 | 2 | 3 | 4 | 5;
 }

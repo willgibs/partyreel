@@ -3,36 +3,35 @@ import { defineExploration } from "@/components/lab/exploration";
 import { SCREEN } from "./knobs";
 
 /**
- * THE HOST DASHBOARD, ROUND TWO: ON THE PAGE AS IT NOW SHIPS.
+ * THE HOST DASHBOARD, ROUND THREE: FROM ONE EVENT TO TWO HUNDRED.
  *
- * Will answered round one on 2026-10-02 (`docs/reviews/host-dashboard.json`):
- * `purpose=stage`, `needs=week`, `events=seasons`, `arrivals=live`, and
- * `dashboard-wiring` built all four. His two open notes are this round:
- *  - on `events=seasons`: a host "may have custom preferences on (such as
- *    filter, sort, gallery vs table/list, etc)", and at forty "the host isn't
- *    always having to scroll to the very bottom if they're trying to bounce
- *    between old events back-to-back"; "likely some Frankenstein across all
- *    three";
- *  - on `purpose=stage`: "We'll have to decide which one gets featured in
- *    different cases, such as no dates on multiple events."
+ * Will answered round two on 2026-10-03 (`docs/reviews/host-dashboard.json`):
+ * `events=recent` with a new direction ("All of these still feel like they're
+ * over-organizing ... a recent row as collapsible (keeps last few quickly
+ * accessible), then simply a gallery/table/list with deep sort/filter/display
+ * customization ... Another exploration please"), `lead=made` ("We should
+ * ensure featured events with no uploaded media yet still look beautiful ...
+ * Worth a dedicated exploration"), and `pick=kept` ("these could be more like
+ * sort options, such as: newest, last opened, upcoming, etc.").
  *
- * ★ THREE DECISIONS, ONE PAGE, NOTHING STAGED. `events` is the collection at
- * forty, four ways (as built, a Recent row, a Display menu, a list for the
- * past), each with what it remembers. The stage's question is two: `lead`, the
- * rule on a quiet day (as built, the newest event, where she left off), and
- * `pick`, whether she can choose it herself (no, a pick she keeps, a step
- * through its contenders). Each is drawn in what the board holds for the
- * others: as built until he answers (`today`), his pick after.
+ * ★ THREE DECISIONS, ONE PAGE, NOTHING STAGED. `events` is where a host shapes
+ * one collection under a collapsible Recent row (a Display menu, a toolbar in
+ * the open, saved views, one field that finds), drawn at 1, 3, 10, 40 and 200
+ * events. `stage` is the stage of an event with no photographs, just made and
+ * the week before. `rule` is where the stage's rule is chosen among four
+ * sentences she can predict, never a list of her events. Each is drawn wearing
+ * the board's answers to the other two (the recommendation until he answers).
  *
- * ★ EVERY FRAME IS PRODUCTION'S PAGE. The head, the stage, the week, the tile,
- * the rows view and `EventsSection` are production's components, composed by
- * production's `buildHomeView` over production's rules from fixtures in its
- * own shapes (`model.ts`, `model.test.ts`); an option adds only its piece. Try
- * it frames run: press any event to open its page, come back.
+ * ★ EVERY FRAME IS PRODUCTION'S PAGE. The head, the week, the tile, the rows
+ * view, the stage with photographs and every rule under them are production's,
+ * composed by `buildHomeView` from fixtures in production's own shapes
+ * (`model.ts`, `model.test.ts`); an option adds only its piece. Ranges of days
+ * and the newest leading on a quiet day are drawn as settled (`event-dates`
+ * wires both this round).
  *
  * Nothing here asks what another board asks: the atoms are `identity`'s, the
- * hub's head is `event-header`'s, saving photographs is `take-home`'s and the
- * waiting album is `the-wait`'s; the event page Try it opens is a stand-in.
+ * hub's head is `event-header`'s, the guest's screens are `the-wait`'s and
+ * `identity`'s, and the event page Try it opens is a stand-in.
  */
 export const HOST_DASHBOARD = defineExploration({
   id: "host-dashboard",
@@ -47,12 +46,18 @@ export const HOST_DASHBOARD = defineExploration({
     "docs/systems/dashboard.md",
   ],
   round: {
-    n: 2,
-    date: "2026-10-02",
+    n: 3,
+    date: "2026-10-03",
     changed:
-      "From your round one notes, on the dashboard as it ships: your events made quick at forty, four ways to try (press an event, come back), which event leads the stage on a quiet day, and whether a host can choose it herself.",
+      "From your round two notes: your events for a host of one to ten that still scale to two hundred (Recent over one collection she shapes), the stage before its first photo, and the stage's rule as a choice.",
   },
   history: [
+    {
+      n: 2,
+      date: "2026-10-03",
+      changed:
+        "Getting back to old events at forty, and which event leads the stage. You asked for Recent over one shaped collection, the newest leading, and a rule rather than a pick.",
+    },
     {
       n: 1,
       date: "2026-10-02",
@@ -61,30 +66,54 @@ export const HOST_DASHBOARD = defineExploration({
     },
   ],
   context:
-    "Round two, on the dashboard as it ships: every frame is production's page (its head, stage, week and events) for three hosts on Tuesday 10 November, a quiet day with no party on it: Maya with one event, Nia with three and none dated, and Jo with forty. Try it frames run: press any event to open its page, then Your events to come back. The Screen knob draws a phone. Each caption is read off its frame.",
+    "Round three, on the dashboard as it ships, for five hosts on Tuesday 10 November, a quiet day: Maya with one event, Nia with three (her wedding made last night), Ari ten, Jo forty and Rae two hundred. Every frame runs: press any event to open it, then come back. Ranges of days and the newest leading the stage are drawn as settled. The Screen knob draws a phone. Each caption is read off its frame.",
   opening: {
     about:
-      "The dashboard as it ships, round two: getting back to an old event fast at forty, and which event the stage leads with when time cannot say.",
+      "Round three: your events for a host of one to ten that scale to hundreds, the stage before its first photo, and the stage's rule as a choice.",
     settled: [
-      "Your four picks are built: the party of the moment on its stage, this week's parties, your events grouped by when, the live wall.",
-      "A party on its own day always leads the stage; of two on one night the busier, the other first in This week.",
-      "The tile and its marks, the lens and the search from nine events stay as built; the atoms are identity's.",
-      "The hub's head is event-header's and saving photos is take-home's; the event page in Try it is a stand-in.",
+      "Your round one picks are built: the party of the moment on its stage, this week's parties and the live wall; grouped by when gives way.",
+      "The newest event leads the stage on a quiet day, and a party on its own day always leads.",
+      "An event may run over a range of days, no times; event-dates wires it and the newest lead this round, drawn here as settled.",
+      "The tile, the lens and the search from nine events stay as built; the atoms are identity's.",
     ],
     earlier: [
-      "On grouped by when: 'This feels like something a host may have custom preferences on (such as filter, sort, gallery vs table/list, etc).'",
-      "'Ideally it's a bit customizable, so in a layout with 40 events as you presented, the host isn't always having to scroll to the very bottom'",
-      "'...if they're trying to bounce between old events back-to-back (like saving old photos from old events).'",
-      "'Best selection is likely some Frankenstein across all three, but if that fails, we can always revert back to an option here.'",
-      "On the stage: 'We'll have to decide which one gets featured in different cases, such as no dates on multiple events.'",
-      "The wiring found Create asks no date, so several undated events is every new host's case, not an edge.",
+      "On your events: 'All of these still feel like they're over-organizing the experience in one way or another.'",
+      "'We should design for users with 1 to maybe 10 events in mind as the primary expectation, but ensure it scales up to dozens or hundreds'",
+      "'A recent row as collapsible ... then simply a gallery/table/list with deep sort/filter/display customization'",
+      "On the lead: 'Ensure featured events with no uploaded media yet still look beautiful as featured in the dashboard.'",
+      "On the pick: 'Rather than directly selecting an event, these could be more like sort options, such as: newest, last opened, upcoming'",
     ],
   },
   terms: [
     {
+      term: "Recent",
+      means:
+        "A row over your events holding the four you opened lately, newest first; it folds to one line.",
+    },
+    {
+      term: "Display menu",
+      means:
+        "One menu over your events: the layout, the order, what shows, the groups and the cover size.",
+    },
+    {
+      term: "view",
+      means:
+        "A saved way of seeing your events (its layout, order and filter), kept as a tab.",
+    },
+    {
       term: "stage",
       means:
         "The dark band leading the dashboard: one event, drawn from its own photographs.",
+    },
+    {
+      term: "lamp",
+      means:
+        "One of the house's five colours of light; an event's own lights its stage until photos do.",
+    },
+    {
+      term: "rule",
+      means:
+        "How the stage picks its event: Newest, Upcoming, Last opened or Latest photos.",
     },
     {
       term: "quiet day",
@@ -93,217 +122,218 @@ export const HOST_DASHBOARD = defineExploration({
     {
       term: "Try it",
       means:
-        "A frame that is the dashboard running: press any event to open its page, then come back.",
-    },
-    {
-      term: "Recent",
-      means:
-        "A row over your events holding the ones you opened lately, newest first.",
-    },
-    {
-      term: "Display menu",
-      means:
-        "One menu over your events: covers or a list, how they group, and their order.",
-    },
-    {
-      term: "lens",
-      means:
-        "The row of counts over your events: All, Hosting, Guest, Deleted.",
+        "A frame that is the dashboard running: press anything, open an event, then come back.",
     },
   ],
   carried: [
     {
       id: "kept",
-      question: "Where does the page keep what it remembers of her?",
+      question: "Where are her choices kept?",
       taken:
         "On her account, so her phone opens the way her laptop left it: a column on her profile, the Orchestrator's migration.",
       overrule:
         "On this device, in a cookie, as the view toggle is kept today.",
     },
     {
-      id: "back",
-      question: "Does Back bring her to the page as she left it?",
+      id: "default",
+      question: "How do her events open before she shapes them?",
       taken:
-        "Yes, in every new option: her scroll and a year she opened come back with her.",
-      overrule:
-        "As built: the page draws fresh after Back, a year she opened folded again.",
+        "Covers, the newest first, nothing grouped or filtered: a host with ten sees ten covers and nothing to set.",
+      overrule: "Grouped by when, as the page ships today.",
     },
     {
-      id: "nine",
-      question: "From how many events do the new pieces show?",
+      id: "recent",
+      question: "From how many events does Recent show, and what does it hold?",
       taken:
-        "From nine, with the search: below that every event fits a screen or two.",
-      overrule: "From her first event.",
+        "From seven, the last four she opened, never the stage's or this week's: below seven every event fits her first screen.",
+      overrule: "From her second event.",
+    },
+    {
+      id: "newest",
+      question: "What does Newest lead with when a party is near?",
+      taken:
+        "A party within a month first, as the quiet-day rule settled; the other rules say exactly what they name.",
+      overrule: "The newest made, always, a party's own day aside.",
+    },
+    {
+      id: "light",
+      question: "Where does an empty event's colour come from?",
+      taken:
+        "One of the house's five lamps, picked by the event and never changing, as light only; its photos take over.",
+      overrule: "Her pick of the five, in Settings.",
     },
   ],
   asks: [
-    /* ── 1. Your events at forty ─────────────────────────────────────────── */
+    /* ── 1. Your events, one to two hundred ─────────────────────────────── */
     {
       id: "events",
-      label: "Your events at forty",
+      label: "Your events, 1 to 200",
       question:
-        "How should forty events work, so she can bounce between old ones without scrolling to the foot?",
+        "How should a host shape her events, so ten read simply and two hundred still reach an old party in a press or two?",
       where: ["Host", "The dashboard", "Your events"],
-      when: "Jo, forty events in, is saving the photos of three 2025 weddings, one after another, from her dashboard.",
+      when: "Under the stage and this week: Maya's one, Nia's three, Ari's ten, Jo's forty and Rae's two hundred.",
       matters:
-        "Grouped by when folds old years at the foot, so each old party is a scroll and a press, again after every Back.",
+        "Most hosts have one to ten events and every one meets this list; a planner lives in it.",
       lands:
-        "How your events lay out at forty, what sits at their top, and what the page remembers of her choice.",
+        "How your events lay out under Recent, where a host shapes them, and what the page keeps of her choice.",
       context:
-        "Three frames each: Try it on Jo's forty (press any event, then Your events to come back), the page as she comes back from Theo & Ana's 2025 wedding, and Maya with her one event. The stage is as built.",
+        "Five frames scrolled to Your events: Maya (1), Nia (3), Ari (10, Try it), Jo (40, back from three 2025 weddings) and Rae (200, back to a 2023 wedding). Recent is the same in each; what moves is where her choices live.",
       options: [
         {
-          id: "built",
-          label: "Grouped by when, as built",
+          id: "menu",
+          label: "One Display menu",
           means:
-            "As it ships: coming up, just past, this year, then each year folded into a line, the list one toggle away.",
+            "Covers, the newest first; one Display button holds the layout, the order, what shows and the groups, and a line says what is set.",
           gains:
-            "The parties near today draw large, and there is nothing new to learn.",
+            "Quiet at ten, one button; deep at two hundred, every choice in one place.",
           costs:
-            "An old party is a scroll and a fold away, folded again after every Back.",
+            "What is set hides behind a press, said only in a small line under the head.",
         },
         {
-          id: "recent",
-          label: "Recent on top",
+          id: "bar",
+          label: "Everything in the open",
           means:
-            "The events she opened lately ride one row over the groups by when, a press each; a year she opened stays open.",
-          gains:
-            "Bouncing between old events is a press each, with nothing to set up.",
-          costs: "One more row, and what she opens is kept on her account.",
+            "The layout, the order and Filter stand in a row over her events, each filter a chip she can clear.",
+          gains: "What is set is always in sight, one press each.",
+          costs:
+            "A row of controls even for three events, and chips that crowd a phone.",
         },
         {
-          id: "display",
-          label: "Shown her way",
+          id: "views",
+          label: "Her ways, saved as views",
           means:
-            "A Display menu: covers or a list, grouped by when, by year or not at all, in her order, kept for her account.",
+            "All, Upcoming and Past as tabs, and any she saves (Weddings, by date); each view keeps its own layout, order and filter.",
           gains:
-            "Each host shapes it once: covers for a wedding, a list by year for a planner.",
-          costs: "A menu to learn, and an old party is still a scroll away.",
+            "A planner keeps several ways at once and switches in one press.",
+          costs: "A word to learn (view), and tabs that organize again.",
         },
         {
-          id: "index",
-          label: "Covers near, a list for the past",
+          id: "find",
+          label: "One field that finds",
           means:
-            "What is coming and just past stay covers; everything older is one list, its years as tabs, sorted by any column.",
-          gains:
-            "Every old event sits in one short list, sortable, never folded.",
-          costs: "Two looks on one page, and the past reads as a tool.",
+            "One wide field takes a name, a year or a word (2023, upcoming, waiting); the layout and the order sit beside it.",
+          gains: "Any old party is a few letters away, with nothing to set.",
+          costs:
+            "Typing on a phone, and the words it knows have to be learned.",
         },
       ],
-      recommended: "recent",
-      today: "built",
+      recommended: "menu",
       because:
-        "Bouncing is a working set: the page keeps the events she opened on top, and the groups by when stay as you picked them.",
-      overrule: "If she should shape the page herself, shown her way.",
+        "One quiet button for the host with ten; for the planner with two hundred every choice in one place, and what is set said in a line.",
+      overrule: "If what is set should always show, everything in the open.",
       configs: [SCREEN],
     },
 
-    /* ── 2. The stage on a quiet day ─────────────────────────────────────── */
+    /* ── 2. The stage before its first photo ────────────────────────────── */
     {
-      id: "lead",
-      label: "The stage on a quiet day",
+      id: "stage",
+      label: "The stage before its first photo",
       question:
-        "On a quiet day, with no party on its day or within a month, what should the stage lead with?",
+        "How should the stage draw an event with no photos yet, so it looks beautiful the night she makes it and the week before?",
       where: ["Host", "The dashboard", "The stage"],
-      when: "Nia has three events and dated none; Jo's forty are in a November lull, her next party 32 days away.",
+      when: "Nia made her wedding last night, so it leads her dashboard as her newest event, and its album is still empty.",
       matters:
-        "Create asks no date, so most hosts meet this case first, and the stage is the first thing the dashboard shows.",
+        "Every new host meets this stage first, and with the newest leading, most new events stand on it.",
       lands:
-        "The stage's rule for a quiet day: which event leads when time cannot pick, or whether it rests.",
+        "What the stage draws before photographs: the code, readiness, the event's own light and its one delight.",
       context:
-        "Two frames each: Nia's three undated events (a wedding she made last night, still empty, and two older albums), and Try it on Jo's forty: open an old wedding, come back, and see what the stage does.",
+        "Nia's dashboard, two frames: her wedding just made (no date, the code never opened) and the week before (Saturday to Sunday, the door set, opened 12 times). Each way says production's words, ticks and acts.",
       options: [
         {
-          id: "time",
-          label: "The next party, else the latest photos",
+          id: "lit",
+          label: "The code, lit by its own lamp",
           means:
-            "As built: the next dated party however far, else the album photos last landed in, else the newest made.",
+            "The code on its plate in the event's own light, Settings' five steps under the name: Create's last screen, carried here.",
           gains:
-            "Nothing new: the stage follows the calendar, then the camera.",
+            "What guests need, beautiful, and one look from Create to here.",
+          costs: "The code still leads, so it reads as setup until photos land.",
+        },
+        {
+          id: "album",
+          label: "The album, waiting",
+          means:
+            "The stage's own photo frames, empty and softly lit, the code in the first: the first photos land here.",
+          gains: "Shows what the stage becomes; photos fill the very frames.",
+          costs: "Empty frames can read as missing pictures.",
+        },
+        {
+          id: "card",
+          label: "Set like an invitation",
+          means:
+            "The name large and centred, its date set like an invitation's, lit from above; the code small beside readiness.",
+          gains: "The party itself leads, beautiful with nothing in it.",
           costs:
-            "Nia's new wedding waits behind an old album until it has photos.",
+            "The code is smaller, and the stage changes shape once photos land.",
         },
         {
-          id: "made",
-          label: "The newest event",
+          id: "guest",
+          label: "What guests will see",
           means:
-            "On a quiet day the event she made last leads, dated or not: the one she is setting up.",
-          gains: "What she is setting up leads the moment she makes it.",
-          costs: "A test event made after the real one takes the stage.",
-        },
-        {
-          id: "left",
-          label: "Where she left off",
-          means:
-            "A party within a week still leads; otherwise the event she last opened, a new one counting as opened.",
-          gains:
-            "The stage is whatever she is working on, with nothing to set.",
-          costs: "The stage changes each time she comes back from an event.",
-        },
-        {
-          id: "rest",
-          label: "The stage rests",
-          means:
-            "From nine events, a quiet day's stage folds to one line (the next party and its act), and her events lead the page.",
-          gains:
-            "On a quiet day a planner's events reach the first screen, even on a phone.",
+            "Her guests' first screen on a phone beside the code that opens it: the name, her welcome, Add photos.",
+          gains: "The empty event made concrete, and a missing welcome shows.",
           costs:
-            "Quiet days lose the photograph, and under nine events today's rule stays.",
+            "A phone drawn in a page, a stand-in of another board's screen.",
         },
       ],
-      recommended: "made",
-      today: "time",
+      recommended: "lit",
       because:
-        "Every new host meets undated events first, and the one she just made is the one she needs next.",
-      overrule: "If the calendar should always decide, the next party.",
+        "The code is what an empty event needs, so it leads, lit by its own lamp: one look from Create's last screen to the dashboard.",
+      overrule: "If the party should lead before its setup, the invitation.",
       configs: [SCREEN],
     },
 
-    /* ── 3. Her own choice ───────────────────────────────────────────────── */
+    /* ── 3. The stage's rule ────────────────────────────────────────────── */
     {
-      id: "pick",
-      label: "Her own choice",
+      id: "rule",
+      label: "The stage's rule",
       question:
-        "Should a host be able to choose which event leads the stage herself?",
+        "Where should a host choose the stage's rule (newest, upcoming, last opened, latest photos), so it stays hers without a list of events?",
       where: ["Host", "The dashboard", "The stage"],
-      when: "The stage leads with the rule's pick, and she would rather see another of her events there.",
+      when: "Nia would rather see her next party than her newest; Jo, forty events in, wants the one she was in last.",
       matters:
-        "No rule fits every host: a test album after the real one, an anniversary, a party she is planning.",
+        "The stage is the first thing the dashboard shows, and no one rule fits every host.",
       lands:
-        "Whether the stage carries a control, and whether her choice is kept.",
+        "Where the rule is set and kept: on the stage, over it, in the page's head or in Settings.",
       context:
-        "Two frames each: Nia's three undated events with the control in use (Change open, or one step on), and Try it on Jo's forty, where the stage's top corner works.",
+        "Two frames each: Nia's three with the control in use, and Try it on Jo's forty, where a rule moves the stage at once. Each rule says what it would lead with today; a party on its own day always leads.",
       options: [
         {
-          id: "none",
-          label: "The rule alone",
+          id: "corner",
+          label: "A menu in the stage's corner",
           means:
-            "No control: the stage leads with the rule's pick on every visit.",
-          gains: "Nothing to learn, and nothing on the stage but the party.",
-          costs: "When the rule picks wrong for her, she cannot fix it.",
+            "The rule's word on the stage's glass (Newest); its menu lists the four, each with what it would lead with today.",
+          gains: "Set where it shows, one press from the stage.",
+          costs: "A control on the stage, over its photograph.",
         },
         {
-          id: "kept",
-          label: "Hers, until she lifts it",
+          id: "tabs",
+          label: "The four over the stage",
           means:
-            "Change in the stage's corner lists her events; the one she picks leads until she lifts it, a party's own day aside.",
-          gains: "One press fixes any misfire, and it stays fixed.",
-          costs: "A control on the stage, and a pick can outlive its reason.",
+            "Lead with: Newest, Upcoming, Last opened and Latest photos as a row over the stage, the one on pressed.",
+          gains: "Every rule seen and one press away, nothing hidden.",
+          costs: "A row of words over the stage on every visit.",
         },
         {
-          id: "step",
-          label: "Step through, nothing kept",
+          id: "head",
+          label: "In the page's Customize",
           means:
-            "Arrows in the stage's corner step through its next two contenders; every visit opens on the rule's pick.",
-          gains: "She sees the alternatives in place, with nothing to undo.",
-          costs: "Arrows on the stage, and her choice is gone next visit.",
+            "Customize in the page head, beside New event, holds the rule and the Recent row: the page's own preferences.",
+          gains: "The stage stays pure; the page's preferences live together.",
+          costs: "The rule sits away from the stage, so fewer hosts find it.",
+        },
+        {
+          id: "settings",
+          label: "In Settings",
+          means:
+            "Settings gains a Your dashboard section; the stage's corner names the rule and opens it.",
+          gains: "Set once, out of sight, with the account's other choices.",
+          costs: "Two pages away from the stage it changes.",
         },
       ],
-      recommended: "kept",
-      today: "none",
+      recommended: "corner",
       because:
-        "The rule is right most days; when it is not, she says so once, on the stage itself, and it stays said.",
-      overrule: "If the stage should stay pure, the rule alone.",
+        "Your pick on the stage, now a rule: set where it shows, one press away, and never a list of her events.",
+      overrule: "If the stage should carry nothing, the page's Customize.",
       configs: [SCREEN],
     },
   ],
