@@ -4,7 +4,8 @@ Open this before you:
 - touch the upload pipeline (presign, complete, the shared uploader) for guests or hosts;
 - add an R2 key, a variant or a client, or anything that fetches a presigned URL;
 - touch the EXIF strip;
-- change how media renders (tiles, previews, video posters, the viewer) or downloads (Save, Download all).
+- change how media renders (tiles, previews, video posters, the viewer) or how photos are taken home (Save, a
+  guest's Select then Save, a host's two sets, the zips).
 
 Elsewhere: cap and ingress enforcement ([billing-caps.md](billing-caps.md)), the purge and reclaim ([lifecycle-recovery.md](lifecycle-recovery.md)), the backups
 ([durability-backups.md](durability-backups.md)), the grants and the server-mediated RPCs ([database-security.md](database-security.md)), forensic capture
@@ -33,8 +34,9 @@ ledger and enforces the caps. Guests (the session-token capability) and hosts (a
   key and destroy that object from its own bin.
 - ★ **The complete seam pins the key to what presign minted: the key IS the issuance record.** Presign builds
   `events/<eventId>/<kind>/<mediaId>/<variant>.<ext>` from that request's `content_type`, so completion re-derives
-  `<kind>` and `<ext>` from its echoed `content_type` and requires the `original` variant (`preview` for the preview):
-  zero stored state (`checkCompleteKeyConsistency`). Without the variant pin, completing with the preview as the key
+  `<kind>` and `<ext>` from its echoed `content_type` and requires the `original` variant (`preview` for the preview,
+  `phone` for the phone copy, a photograph's alone and a `.jpg`): zero stored state (`checkCompleteKeyConsistency`).
+  Without the variant pin, completing with the preview as the key
   meters 2 MB while a 10 GB original goes uncounted; without the kind pin, video completes as a photo row past the
   Free tier's photos-only gate. Refuse, never repair.
 - **The size is the R2 HEAD's** at complete, never the client's claim ([database-security.md](database-security.md));
@@ -48,6 +50,16 @@ ledger and enforces the caps. Guests (the session-token capability) and hosts (a
 - ★ **The preview PUT is size-bound and capped too** (`MAX_PREVIEW_BYTES`, 2 MB; the preview presign is skipped over it
   and the original still uploads): the preview is not metered, so an unbounded one at its server-built key would be
   cap evasion. Its bytes go uncounted, an accepted under-count.
+- ★ **Every new photograph has a phone-size copy, never metered, so capped twice** (take-home r1, 20261003110000): a
+  2048 px JPEG made in the browser after the preview (`generatePhoneCopy`, `media/preview-size.ts`), PUT size-bound at
+  `events/<event>/photo/<id>/phone.jpg` (`phoneKeyFor`), recorded as `media.phone_key` with its HEAD size
+  (`phone_bytes`) in the same `create_media*` insert. It fits only within 4 MB AND half its original's bytes
+  (`phoneCopyFits`), checked at presign on the declared sizes, at complete on the HEAD's (a multipart original can land
+  shorter than declared), in the RPC and by the row's own CHECKs: an uncapped copy beside a tiny original would be
+  storage nobody pays for. A copy past either cap at complete is dropped and its object deleted, a missing one dropped,
+  and the photograph lands without one; the ledger, `storage_used_bytes` and every cap read `file_size_bytes` alone.
+  Videos stay as taken, and no row is backfilled: a photograph without a copy serves its original everywhere. ★ The app
+  names the two RPC arguments whenever a copy exists, so the migration is applied before the push.
 - ★ **A locked event gates UPLOADS, not just viewing.** The three guest seams (the `/api/guests` mint, presign and
   complete) each re-check `mayUploadPastLock(eventId)`: `private` refuses every guest write (the owner uploads through
   the host routes), and `password` needs the signed unlock cookie OR the host, by the page's own owner answer
@@ -156,8 +168,9 @@ it: one file, because the backfill loads it through Node's type stripping, which
   feeds carry none, but for the owner's own events' uploads in her Uploads, which wear her own name and face with no
   door, credited "You" (`ownUploadCredit`). A host with no name wears no disc, never a "?" standing in for one.
 - **Tile previews are made in the browser at upload** (a ~640px WebP: a resize for photos, a frame-grab for videos)
-  and PUT as the reserved `preview` variant: $0 and predictable, with no transform fee to meter against a
-  storage-billed plan. Tiles serve `previewUrl ?? url` (an `onError` falls back to the original); the viewer draws the
+  and PUT as the reserved `preview` variant, and a photograph's phone copy beside it (above): $0 and predictable, with
+  no transform fee to meter against a storage-billed plan (measured at 375 with 4x CPU on a 12 MP photograph: the copy
+  601,592 B of 3,671,488 B in about 290 ms, the preview 46 KB in about 100 ms). Tiles serve `previewUrl ?? url` (an `onError` falls back to the original); the viewer draws the
   original and Save and Share send it (below); a row with no preview serves the original, which the viewer then draws
   from the tile's cached copy rather than holding it twice.
 - **`videoPosterSrc()` appends `#t=0.1`:** iOS Safari paints a paused `<video>` black unless the src asks it to seek
@@ -180,9 +193,38 @@ it: one file, because the backfill loads it through Node's type stripping, which
   cannot hold (over 32 MB, a body quiet for 15 s, a refused read) is drawn and saved the plain way, and two refused
   reads before any success (an origin R2's CORS does not list, localhost among them) turn holding off for the page.
 
-## Download all
+## Taking photos home
 
-"Download all" zips an album off Vercel, on the streaming export Worker (`partyreel-export`, on `*.workers.dev`).
+A guest takes photos home by Select, then Save (take-home r1, `guest=select`): Select stands where Download all did,
+the album's row turns into a bar stuck to the screen's top (Cancel, her picks, Yours and All) and every tile into a
+check, and the foot's shutter turns to Save (`live-gallery-select.ts`, the store the album and the dock share).
+- ★ **On a phone her Save asks one quick choice, each way with its size** (`save=light`, `live-gallery-save.tsx`): Save to
+  Photos, at phone size through the phone's own sheet, beside Save to Files, the originals as one zip ("24 photos ·
+  13.8 MB" beside "Originals · 84 MB", the server's `summary` of her `ids`), so Files reads as the full-quality path. A
+  desk, or a phone whose sheet takes no file, gets the originals' zip and no question.
+- ★ **Photos goes through one engine** (`take-home-save.ts`, the host's Phone size in a hand too): the links are minted
+  only when she saves (`step: "save"`: phone copy, else original, a clip as taken, at most 2,000), the files fetched
+  three at a time (`fetchMediaFile`, `no-store`) into sheets of at most 100 MB (`packSheets`; a clip heavier than a
+  sheet downloads plainly), the shutter's ring and the toast counting the bytes. The sheet opens inside the tap while
+  its activation holds; past it (WebKit's five seconds) the toast and the shutter say Ready and the next press opens it
+  with the files in hand, never fetched twice; a dismissed sheet keeps them the same way; a part past the first is a
+  tap ("Get part 2"); the x stops every read.
+- **A host's Download opens her two sets** (`host=two`, `take-home-panel.tsx`, the plan popup): Originals, to keep for
+  good (one zip), and Phone size, to post tonight (the photographs at 2048 px: a zip at a desk, a Save into Photos on a
+  phone that can), each pictured by the album's newest tiles (`summary`'s `pictures`) with its size; clips come as
+  taken, with the originals; Include hidden items when anything is hidden. Every summary bucket says both sizes
+  (`phone`), and a mint takes `size` (a phone-size zip of the copies, measured by their bytes).
+- ★ **Every purge deletes all three stored copies** (`MEDIA_KEY_COLUMNS`, `mediaKeysOf`): the sweeps, account deletion,
+  the bin's Delete permanently (the copies read on the admin client for the rows her own read proved hers: no client
+  role holds `phone_key`) and the demo seed's held keys. `r2/stored-copies-policy.test.ts` refuses a purge that can
+  forget one and a reader of `preview_key` that never names the third (display readers listed with why), in TS and
+  SQL; a copy reads from its key alone (`isDerivedCopyKey`, `DERIVED_COPY_RE`), so a filter that keeps originals only
+  needs no row.
+- ★ **No guest byte is billed by Vercel** (`media-cost-policy.test.ts`): no remote pattern, domain or loader for the image
+  optimizer, no `next/image` fed a link or beside a presigner, and `GetObjectCommand` only signed, in `r2/presign.ts`.
+
+The zips go off Vercel, on the streaming export Worker (`partyreel-export`, on `*.workers.dev`), which accepts the
+`phone` key (and so deploys before an app that signs one: `compat.test.ts`).
 - **The app is the one authorization oracle.** The mint route (`/api/export/host`: `getUser()` and ownership;
   `/api/export/guest`: the token, `resolveViewerDecision` and `loadGalleryRowsForAccess`, so a guest never exceeds
   what the gallery shows) builds the manifest and HMAC-signs it into an opaque token; the Worker authorizes nothing,

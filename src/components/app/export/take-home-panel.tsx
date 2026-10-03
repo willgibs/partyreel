@@ -328,9 +328,13 @@ function Mosaic({
       )}
     >
       {Array.from({ length: n }, (_, k) => {
-        const src =
-          pictures.length > 0
-            ? pictures[(from + k * 2) % pictures.length]
+        // Each card its own run of the album's pictures (the second starts halfway), never one picture twice
+        // in a card: an album with fewer pictures than cells leaves the rest on the muted ground.
+        const enough = pictures.length >= n;
+        const src = enough
+          ? pictures[(from * 3 + k) % pictures.length]
+          : k < pictures.length
+            ? pictures[(from + k) % pictures.length]
             : null;
         return src ? (
           // eslint-disable-next-line @next/next/no-img-element -- a presigned tile, never next/image (media-cost-policy)
