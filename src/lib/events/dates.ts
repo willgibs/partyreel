@@ -12,6 +12,12 @@
  *
  * Pure and node-safe, and every day is a `YYYY-MM-DD` string compared as one: the format sorts as the calendar does,
  * so no `Date` (and no zone) is ever read to order two days.
+ *
+ * ★ A DAY AN EVENT MAY NAME IS A REAL ONE IN A WINDOW OF YEARS (`isSaneDay`, crumbs-59). A date field passes through
+ * days it was never meant to save: Chrome's fires a complete date on every keystroke, so 2027 typed a digit at a time
+ * is 0002, 0020, 0202, then 2027. Settings' field no longer saves a keystroke (`event-page.tsx`), and a day outside the
+ * window is refused wherever one is taken: under the field, in the schema's own words (`validation/event.ts`), and
+ * (finite only) by the database's CHECK (`20261003200000`).
  */
 
 /** An event's days as the host set them: the first and the last, the same day for a one-day event. */
@@ -22,6 +28,29 @@ const CALENDAR_DAY = /^\d{4}-\d{2}-\d{2}$/;
 /** Whether a value is a calendar day as the date columns print it (`YYYY-MM-DD`). */
 export const isCalendarDay = (value: unknown): value is string =>
   typeof value === "string" && CALENDAR_DAY.test(value);
+
+/**
+ * THE YEARS AN EVENT'S DAYS MAY NAME, BOTH ENDS IN. Wide on purpose: a day's job here is only to say when, so the window
+ * refuses garbage (a year typed half way, a stray fifth digit, a date nobody holds a party on), never a date that is
+ * merely far off. It is a century either side of the product, and not a rule about the present: no clock reads it.
+ */
+export const FIRST_EVENT_YEAR = 1900;
+export const LAST_EVENT_YEAR = 2100;
+export const EARLIEST_EVENT_DAY = `${FIRST_EVENT_YEAR}-01-01`;
+export const LATEST_EVENT_DAY = `${LAST_EVENT_YEAR}-12-31`;
+
+/**
+ * Whether a value is a day an event may name: a real calendar day (never "2026-02-30", never Postgres's own
+ * `'infinity'`, never a time) inside the window of years. The year is four digits, so a fifth typed by a slip is not a day.
+ */
+export function isSaneDay(value: unknown): value is string {
+  return (
+    isCalendarDay(value) &&
+    value >= EARLIEST_EVENT_DAY &&
+    value <= LATEST_EVENT_DAY &&
+    shiftDay(value, 0) === value
+  );
+}
 
 /**
  * The host's days, or null for an undated event. An end that is missing, unreadable, or no later than the first day
@@ -54,10 +83,16 @@ export function isRange(
 
 const DAY_MS = 86_400_000;
 
-/** A `YYYY-MM-DD` day as a UTC instant, from its parts alone (never `new Date(str)`, which reads a zone). */
+/**
+ * A `YYYY-MM-DD` day as a UTC instant, from its parts alone: never `new Date(str)`, which reads a zone, and never
+ * `Date.UTC(y, ...)`, which reads a year from 0 to 99 as 1900 to 1999 (so "0002-10-02", the first stop of a year typed a
+ * digit at a time, was counted from 1902 and a range measured from it came out a century and a half wrong).
+ */
 function utc(day: string): number {
   const [y, m, d] = day.split("-").map(Number);
-  return Date.UTC(y ?? 0, (m ?? 1) - 1, d ?? 1);
+  const at = new Date(0);
+  at.setUTCFullYear(y ?? 0, (m ?? 1) - 1, d ?? 1);
+  return at.getTime();
 }
 
 /** The day `by` days from `day` (negative goes back), by the date parts alone, so a clock change never moves it. */
@@ -88,6 +123,9 @@ export function endToStore(
  * end still after the new day stays (a host moving her first day earlier keeps her Sunday); one the new day reaches or
  * passes moves with it, keeping the range's length (a weekend rescheduled is still a weekend); a cleared date takes its
  * end with it, since an end never stands alone.
+ *
+ * ★ `wasDate` AND `wasEnd` ARE WHAT WAS LAST SAVED, AND `next` A DATE SHE FINISHED: the length it keeps is the range's as
+ * the host last had it, never a stop a keystroke passed on the way (the field hands it nothing else, `event-page.tsx`).
  */
 export function endForNewStart(
   next: string,
