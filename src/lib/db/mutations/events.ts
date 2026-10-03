@@ -16,10 +16,12 @@ import {
   APPROVAL_NEVER_WITH_A_DEVELOP_CHECK,
   approvalWithADevelop,
 } from "@/lib/disposable/album-style";
+import { endToStore } from "@/lib/events/dates";
 import { createClient } from "@/lib/supabase/server";
-import type {
-  CreateEventValues,
-  UpdateEventValues,
+import {
+  type CreateEventValues,
+  LAST_DAY_BEFORE_FIRST,
+  type UpdateEventValues,
 } from "@/lib/validation/event";
 
 export type EventRow = Tables<"events">;
@@ -54,6 +56,27 @@ const UNAUTHORIZED = {
   message: "Please sign in and try again.",
 };
 
+/**
+ * ★ A RANGE'S LAST DAY NEVER FALLS BEFORE ITS FIRST, NOR STANDS WITHOUT ONE (20261003120000): the schema refuses a
+ * save that would, in words; the database's CHECK (`events_end_date_on_or_after`) refuses one that meets the row's own
+ * days (a first day moved past a stored last one by a page that never saw it), read by its name and said the same way.
+ */
+const RANGE_CHECK = "events_end_date_on_or_after";
+const RANGE_REFUSED = {
+  ok: false as const,
+  code: "unknown" as const,
+  message: LAST_DAY_BEFORE_FIRST,
+};
+
+/** Whether a write's error is the CHECK refusing a range's days: its code and its own name. */
+function rangeRefusal(error: { code?: string; message?: string }): boolean {
+  return (
+    error.code === CHECK_VIOLATION &&
+    typeof error.message === "string" &&
+    error.message.includes(RANGE_CHECK)
+  );
+}
+
 export async function createEvent(
   values: CreateEventValues,
 ): Promise<MutationResult<EventRow>> {
@@ -70,6 +93,11 @@ export async function createEvent(
     name: values.name,
     description: values.description || null,
     event_date: values.event_date || null,
+    // A range's last day (20261003120000): none for one day, so a range said twice is the one day it is.
+    event_end_date: endToStore(
+      values.event_date || null,
+      values.event_end_date,
+    ),
     // A brand-new event can't be password-protected (no hash exists yet; the password
     // is set later via set_event_password). Clamp defensively — the wizard sends 'open'.
     visibility: values.visibility === "password" ? "open" : values.visibility,
@@ -90,6 +118,7 @@ export async function createEvent(
     .single();
 
   if (error) {
+    if (rangeRefusal(error)) return RANGE_REFUSED;
     if (error.code === CHECK_VIOLATION) {
       return {
         ok: false,
@@ -149,6 +178,13 @@ export async function updateEvent(
     patch.description = values.description || null;
   if (values.event_date !== undefined)
     patch.event_date = values.event_date || null;
+  // A range's last day (20261003120000), written only where the save names it: the schema has made it travel with its
+  // first day, and a range said twice is stored as the one day it is (`endToStore`).
+  if (values.event_end_date !== undefined)
+    patch.event_end_date = endToStore(
+      values.event_date || null,
+      values.event_end_date,
+    );
   // open/private patch freely; 'password' is reachable ONLY when a hash already
   // exists (set_event_password is the sole creator). This allows editing an existing
   // password event (which resubmits visibility='password' unchanged) and re-activating
@@ -221,6 +257,7 @@ export async function updateEvent(
 
   if (error) {
     if (approvalRefusal(error)) return APPROVAL_REFUSED;
+    if (rangeRefusal(error)) return RANGE_REFUSED;
     return {
       ok: false,
       code: "unknown",

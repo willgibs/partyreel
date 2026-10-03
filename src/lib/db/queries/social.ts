@@ -292,6 +292,8 @@ export type PublicProfileHostedEvent = {
   id: string;
   name: string;
   event_date: string | null;
+  /** A range's last day (20261003120000), or null for one day; absent before the migration. */
+  event_end_date?: string | null;
   visibility: Database["public"]["Enums"]["event_visibility"];
   /** The album link capability. Present because the HOST chose display_in_profile
    *  (publishing the link is the point: link-in-bio); password/private events
@@ -304,6 +306,8 @@ export type PublicProfileAttendedEvent = {
   id: string;
   name: string;
   event_date: string | null;
+  /** A range's last day (20261003120000), or null for one day; absent before the migration. */
+  event_end_date?: string | null;
   // Deliberately NO qr_token: attendance is not a capability grant (the RPC
   // never hands out an album link the host didn't publish). The id IS returned
   // and is safe to hold: it opens nothing on its own, and the cover presign

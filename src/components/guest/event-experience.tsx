@@ -1315,6 +1315,7 @@ export function EventExperience({
         // itself there - the privacy rule needs no extra guard.
         hostName={event.host_display_name}
         eventDate={event.event_date}
+        eventEndDate={event.event_end_date}
         onHoldingChange={setHoldCurtain}
         onStageChange={setStageUp}
         // Her choice at the held door: the queue holds it until the door lets her in.
@@ -1399,6 +1400,7 @@ export function EventExperience({
                 : null
             }
             date={event.event_date}
+            endDate={event.event_end_date}
             description={event.description}
             mediaCount={mediaCount}
             guestCount={guestCount}

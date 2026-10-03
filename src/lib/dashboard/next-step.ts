@@ -47,7 +47,7 @@ export type NextStepEvent = {
   liveReelEnabled: boolean;
   /** Items that can play in the live reel, counted to its minimum (`getReelProgress`). */
   reelItems: number;
-  /** `YYYY-MM-DD`, or null when the host never set one. */
+  /** `YYYY-MM-DD`, or null when the host never set one: a range's first day. */
   eventDate: string | null;
 };
 
@@ -59,7 +59,8 @@ export const STORAGE_STEP_PCT = 85;
 
 /**
  * ONE STEP PER EVENT, IN HIS ORDER: a queue waiting, then uploads paused, then
- * a reel one photo short, then an event dated tomorrow. First match wins,
+ * a reel one photo short, then an event dated tomorrow (a range by its first
+ * day: the code goes out before the party starts). First match wins,
  * because a host with four events and four steps each is back to an inbox.
  *
  * ★ PEOPLE AT THE DOOR LEAD THE QUEUES (the doors, event-settings r1: a waiting newcomer counts

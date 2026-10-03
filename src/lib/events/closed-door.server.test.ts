@@ -112,6 +112,8 @@ const DETAILS = {
   name: "Maya's 30th",
   description: "Bring a sweater",
   eventDate: "2026-10-10",
+  // A weekend of it (20261003120000): the end rides the date wherever the date goes, and nowhere it does not.
+  eventEndDate: "2026-10-11",
   customSlug: "mayas-30th",
   hostDisplayName: "Maya",
 };
@@ -310,6 +312,7 @@ describe("what the door shows of the event", () => {
     expect(door.event.host_display_name).toBe("Maya");
     expect(door.event.description).toBeNull();
     expect(door.event.event_date).toBeNull();
+    expect(door.event.event_end_date ?? null).toBeNull();
     expect(door.event.custom_slug).toBeNull();
     expect(door.event.door).toBe("approve");
     expect(holdsDoorPass(door.event)).toBe(false);
@@ -326,6 +329,8 @@ describe("what the door shows of the event", () => {
     expect(door.decision).toEqual({ kind: "through", admitted: true });
     expect(door.event.name).toBe("Maya's 30th");
     expect(door.event.description).toBe("Bring a sweater");
+    expect(door.event.event_date).toBe("2026-10-10");
+    expect(door.event.event_end_date).toBe("2026-10-11");
     expect(door.event.custom_slug).toBe("mayas-30th");
     expect(holdsDoorPass(door.event)).toBe(true);
     // A pass names its event: carried onto another album it opens nothing.

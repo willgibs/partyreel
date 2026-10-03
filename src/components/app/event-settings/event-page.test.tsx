@@ -104,3 +104,153 @@ describe("a typed field saves itself", () => {
     expect(updateEvent).not.toHaveBeenCalled();
   });
 });
+
+/**
+ * ★ THE EVENT'S DATES (lane `event-dates`): the date as it always was, and for a weekend, a conference or a trip its
+ * end beside it, offered, never asked. A picked day saves at once, the two together whenever a range is in play, so
+ * the row never holds half of one; a cleared field waits until it is left; an end before the date is refused where
+ * the eye is and never written.
+ */
+function datesPage(dates: { date: string | null; end?: string | null }) {
+  const updateEvent = vi.fn(async () => ({ ok: true as const }));
+  const writes = {
+    updateEvent,
+    setDoor: vi.fn(),
+    setReel: vi.fn(),
+    setProfile: vi.fn(),
+  } as never;
+  const event = hostEvent({
+    id: "event-1",
+    event_date: dates.date,
+    event_end_date: dates.end ?? null,
+  });
+  const view = render(
+    <SettingsProvider
+      event={event}
+      tier="pro"
+      counts={NO_COUNTS}
+      pendingCount={0}
+      social={null}
+      reelSample={null}
+      writes={writes}
+    >
+      <EventPage />
+    </SettingsProvider>,
+  );
+  const start = screen.getByLabelText(/^Event date/) as HTMLInputElement;
+  return { view, start, updateEvent };
+}
+
+const endField = () => screen.getByLabelText("End date") as HTMLInputElement;
+
+describe("the event's dates", () => {
+  it("saves a date alone as it always has, and offers no end before there is a date", async () => {
+    const { start, updateEvent } = datesPage({ date: null });
+    expect(
+      screen.queryByRole("button", { name: "Add an end date" }),
+    ).toBeNull();
+    fireEvent.change(start, { target: { value: "2026-10-02" } });
+    await vi.waitFor(() =>
+      expect(updateEvent).toHaveBeenCalledWith("event-1", {
+        event_date: "2026-10-02",
+      }),
+    );
+  });
+
+  it("★ opens an end on asking, and saves the range's two days together", async () => {
+    const { updateEvent } = datesPage({ date: "2026-10-02" });
+    fireEvent.click(screen.getByRole("button", { name: "Add an end date" }));
+    const end = endField();
+    expect(end.min).toBe("2026-10-02");
+    fireEvent.change(end, { target: { value: "2026-10-04" } });
+    await vi.waitFor(() =>
+      expect(updateEvent).toHaveBeenCalledWith("event-1", {
+        event_date: "2026-10-02",
+        event_end_date: "2026-10-04",
+      }),
+    );
+  });
+
+  it("★ keeps an end still after a moved date, and moves one the date passes with it", async () => {
+    const earlier = datesPage({ date: "2026-10-02", end: "2026-10-04" });
+    fireEvent.change(earlier.start, { target: { value: "2026-10-01" } });
+    await vi.waitFor(() =>
+      expect(earlier.updateEvent).toHaveBeenCalledWith("event-1", {
+        event_date: "2026-10-01",
+        event_end_date: "2026-10-04",
+      }),
+    );
+    cleanup();
+    const later = datesPage({ date: "2026-10-02", end: "2026-10-04" });
+    fireEvent.change(later.start, { target: { value: "2026-10-09" } });
+    await vi.waitFor(() =>
+      expect(later.updateEvent).toHaveBeenCalledWith("event-1", {
+        event_date: "2026-10-09",
+        event_end_date: "2026-10-11",
+      }),
+    );
+  });
+
+  it("refuses an end before the date under the field, and never writes it", async () => {
+    const { updateEvent } = datesPage({
+      date: "2026-10-02",
+      end: "2026-10-04",
+    });
+    const end = endField();
+    fireEvent.change(end, { target: { value: "2026-09-30" } });
+    expect(
+      await screen.findByText("The end date can't be before the event date."),
+    ).toBeTruthy();
+    expect(end.getAttribute("aria-invalid")).toBe("true");
+    await new Promise((r) => setTimeout(r, 20));
+    expect(updateEvent).not.toHaveBeenCalled();
+  });
+
+  it("takes the end away on ×, and reads an end on the date itself as the one day it is", async () => {
+    const removed = datesPage({ date: "2026-10-02", end: "2026-10-04" });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Remove the end date" }),
+    );
+    await vi.waitFor(() =>
+      expect(removed.updateEvent).toHaveBeenCalledWith("event-1", {
+        event_date: "2026-10-02",
+        event_end_date: "",
+      }),
+    );
+    cleanup();
+    const same = datesPage({ date: "2026-10-02", end: "2026-10-04" });
+    fireEvent.change(endField(), { target: { value: "2026-10-02" } });
+    await vi.waitFor(() =>
+      expect(same.updateEvent).toHaveBeenCalledWith("event-1", {
+        event_date: "2026-10-02",
+        event_end_date: "",
+      }),
+    );
+  });
+
+  it("★ clears the date only once it is left, and its end goes with it", async () => {
+    const { start, updateEvent } = datesPage({
+      date: "2026-10-02",
+      end: "2026-10-04",
+    });
+    fireEvent.change(start, { target: { value: "" } });
+    await new Promise((r) => setTimeout(r, 20));
+    expect(updateEvent).not.toHaveBeenCalled();
+    fireEvent.blur(start);
+    await vi.waitFor(() =>
+      expect(updateEvent).toHaveBeenCalledWith("event-1", {
+        event_date: "",
+        event_end_date: "",
+      }),
+    );
+  });
+
+  it("commits a cleared date as the panel closes, which leaves the field too", async () => {
+    const { view, start, updateEvent } = datesPage({ date: "2026-10-02" });
+    fireEvent.change(start, { target: { value: "" } });
+    view.unmount();
+    await vi.waitFor(() =>
+      expect(updateEvent).toHaveBeenCalledWith("event-1", { event_date: "" }),
+    );
+  });
+});

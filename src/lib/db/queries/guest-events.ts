@@ -39,6 +39,12 @@ export type GuestEvent = {
   /** Require an upload to view: ON, a guest sees the full album only once one upload of theirs completed; the gate fails open while uploads are closed or the album is full. */
   require_upload_to_view: boolean;
   event_date: string | null;
+  /**
+   * The last day of a range of days (20261003120000), or null for one day; redacted with the date (the read blanks
+   * both for a gated album's non-owner, and the page's locked shell blanks both). Optional because a GuestEvent built
+   * anywhere but this read (a fixture, a stand-in) need not say it: absent reads as one day.
+   */
+  event_end_date?: string | null;
   // Cosmetic QR preset (for the in-page share QR). Plain text; resolveQrPreset()
   // falls back to 'classic' for null/legacy values.
   qr_style: string;
@@ -106,7 +112,7 @@ export type GuestEventResult =
 /**
  * The unlock-aware other half of get_event_by_qr_token's redaction (migration 20260729180000).
  *
- * The RPC is anon-executable, so it withholds `description` / `event_date` /
+ * The RPC is anon-executable, so it withholds `description` / `event_date` (and its end) /
  * `host_display_name` from any NON-OWNER of a password or private event: a direct PostgREST call
  * with nothing but a link (or a guessed custom slug) would otherwise return all three, which is
  * strictly more than the locked page ever renders. The RPC cannot see the unlock COOKIE, so it has
@@ -135,7 +141,7 @@ async function rehydrateUnlockedDetails(
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("events")
-    .select("description, event_date, host_id")
+    .select("description, event_date, event_end_date, host_id")
     .eq("id", event.id)
     .maybeSingle();
   if (error || !data) return event; // never fail the page over a cosmetic re-read
@@ -159,6 +165,7 @@ async function rehydrateUnlockedDetails(
     ...event,
     description: data.description ?? null,
     event_date: data.event_date ?? null,
+    event_end_date: data.event_end_date ?? null,
     host_display_name: hostDisplayName,
   };
 }
@@ -196,6 +203,9 @@ export const getEventByQrToken = cache(async function getEventByQrToken(
     require_verified_email: row.require_verified_email,
     require_upload_to_view: row.require_upload_to_view,
     event_date: row.event_date ?? null,
+    // A range's last day (20261003120000), redacted with the date. ★ Typed `string` by the generated RETURNS TABLE,
+    // yet NULL for one day and under the redaction: kept as NULL, like `reel_hold_sec`.
+    event_end_date: row.event_end_date ?? null,
     qr_style: row.qr_style,
     host_display_name: row.host_display_name ?? null,
     custom_slug: row.custom_slug ?? null,

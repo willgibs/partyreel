@@ -65,6 +65,7 @@ export default async function AsGuestPage({ params, searchParams }: PageProps) {
         name: event.name,
         description: event.description,
         event_date: event.event_date,
+        event_end_date: event.event_end_date,
         host_display_name: event.host_display_name,
         qr_style: event.qr_style,
         accepting_uploads: event.accepting_uploads,

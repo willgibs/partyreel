@@ -140,6 +140,31 @@ describe("this week", () => {
   });
 });
 
+describe("this week, with a range of days", () => {
+  it("★ holds a range by its nearest day: on any day of it first, then by its first day ahead or its last behind", () => {
+    const events = [
+      // Started nine days ago, ends tomorrow: on its days, so in the week, first.
+      homeEvent({ id: "festival", date: "2026-09-23", endDate: "2026-10-03" }),
+      // Began ten days ago and ended six days ago: its last day is inside the week.
+      homeEvent({ id: "retreat", date: "2026-09-22", endDate: "2026-09-26" }),
+      // Its first day is nine days out, however long it runs: not this week.
+      homeEvent({ id: "trip", date: "2026-10-11", endDate: "2026-10-25" }),
+      homeEvent({ id: "tomorrow", date: "2026-10-03" }),
+    ];
+    expect(weekEvents(events, FRIDAY).map((e) => e.id)).toEqual([
+      "festival",
+      "tomorrow",
+      "retreat",
+    ]);
+  });
+
+  it("wears Live on any day of a range", () => {
+    const weekend = homeEvent({ date: "2026-10-01", endDate: "2026-10-03" });
+    expect(marksOf(weekend, ctx, true).live).toBe(true);
+    expect(marksOf(weekend, homeContext("2026-10-04"), true).live).toBe(false);
+  });
+});
+
 describe("a tile's marks", () => {
   it("wears Live on its day, and what waits on any event", () => {
     const old = homeEvent({ date: "2025-06-01", pending: 4 });

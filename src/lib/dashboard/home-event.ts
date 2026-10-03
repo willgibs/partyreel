@@ -73,6 +73,7 @@ export function readyFactsOf(
     showReel: e.showReel,
     liveReelEnabled: ctx.liveReelEnabled,
     eventDate: e.date,
+    eventEndDate: e.endDate ?? null,
     description: e.description,
     opened: e.ready.opened,
     storagePct: ctx.storagePct,

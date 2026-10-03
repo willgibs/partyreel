@@ -217,6 +217,7 @@ export function AlbumCover({
   name,
   host,
   date,
+  endDate,
   description,
   mediaCount,
   guestCount,
@@ -236,6 +237,8 @@ export function AlbumCover({
   /** The byline's host: null where she set no name (no byline name, no face). */
   host: CoverHost | null;
   date: string | null;
+  /** The last day of a range (`events.event_end_date`), or null for one day. */
+  endDate?: string | null;
   description: string | null;
   mediaCount: number;
   guestCount: number;
@@ -288,7 +291,7 @@ export function AlbumCover({
                   ·
                 </span>
               )}
-              {date && <span>{formatEventDate(date)}</span>}
+              {date && <span>{formatEventDate(date, endDate)}</span>}
               {mediaCount > 0 && (
                 <span className="hidden items-center gap-x-2.5 md:flex">
                   {(host || date) && (

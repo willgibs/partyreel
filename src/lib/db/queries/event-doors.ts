@@ -215,6 +215,8 @@ export type DoorEventDetails = {
   name: string;
   description: string | null;
   eventDate: string | null;
+  /** The last day of a range (20261003120000), or null for one day. */
+  eventEndDate: string | null;
   customSlug: string | null;
   hostDisplayName: string | null;
 };
@@ -232,7 +234,9 @@ export async function readDoorEventDetails(
   const event = await mustQuery(
     admin
       .from("events")
-      .select("name, description, event_date, custom_slug, host_id")
+      .select(
+        "name, description, event_date, event_end_date, custom_slug, host_id",
+      )
       .eq("id", eventId)
       .is("deleted_at", null)
       .maybeSingle(),
@@ -255,6 +259,7 @@ export async function readDoorEventDetails(
     name: event.name,
     description: event.description ?? null,
     eventDate: event.event_date ?? null,
+    eventEndDate: event.event_end_date ?? null,
     customSlug: event.custom_slug ?? null,
     hostDisplayName,
   };

@@ -9,17 +9,23 @@ photographs, this week's other parties each with its one step, then everything e
 pure under `lib/dashboard/` (`when.ts`, `attention.ts`, `moment.ts`, `seasons.ts`, `stage.ts`, composed by
 `home-view.ts`), the page only reads, and the composition is `components/app/dashboard/home.tsx`.
 
-- **An event's day is the date its host set, else the viewer's calendar day of its newest approved upload** (`dayOf`;
-  `getLastArrivals`, one row an event). Create asks no date, so most events start undated: an undated album is live
-  on a day photographs land, just past the week after, and folds into its year; an undated empty album has no day and
-  waits under Coming up. ★ The inferred day places an event, it never dates one: `whenOf` reads the host's date only
-  ("No date"), the stage never says "tonight" of an undated album, and the week holds dated parties only.
-- **The stage** leads with `momentEvent`: the one on its day (a host's date first, then an undated album landing
-  today; two on one night, the busier: people waiting, then today's arrivals), else the nearest within 30 days either
-  way (a day behind weighs 1.5 days ahead), else the next coming, else the latest activity, else the newest made. Before
-  its day it is the code on its plate and readiness's essentials as ticks; on its day the live wall (nine at a desk,
-  three in a hand, calm until nine have landed); after, the calm album and its numbers ("in the album", never
-  "photos": it counts video). Its acts are its one item's, else its phase's own.
+- **An event's days are the dates its host set, else the viewer's calendar day of its newest approved upload**
+  (`spanOf`; `getLastArrivals`, one row an event). A host may date a range of days, no times (`event_end_date`, its
+  one shape `lib/events/dates.ts`): it is live on any day of it, its month after counts from its last day, and it is
+  as near as its nearest day (`daysToEvent`), which the week, the stage and the groups all read; it folds into the
+  year it began. Create asks no date, so most events start undated: an undated album is live on a day photographs
+  land, just past the week after, and folds into its year; an undated empty album has no day and waits under Coming
+  up. ★ The inferred day places an event, it never dates one: `whenOf` reads the host's dates only ("No date"), the
+  stage never says "tonight" of an undated album, and the week holds dated parties only. ★ An end date only says when
+  an event happens: nothing here (or anywhere) ends, locks, archives or purges by it.
+- **The stage** leads with `momentEvent`: the one on its day (a host's date first, any day of a range, then an
+  undated album landing today; two on one night, the busier: people waiting, then today's arrivals), else the nearest
+  within 30 days either way (a day behind weighs 1.5 days ahead), else, on a quiet day, the newest made, dated or not
+  (the event a host is setting up). Before its day it is the code on its plate and readiness's
+  essentials as ticks; on its day the live wall (nine at a desk, three in a hand, calm until nine have landed); after,
+  the calm album and its numbers ("in the album", never "photos": it counts video). Its line under the name says the
+  whole range ("Friday, October 2 to Sunday, October 4"), its word counts down to the first day and dates the past from
+  the last. Its acts are its one item's, else its phase's own.
 - ★ **The live wall listens, it never refreshes the page.** On its day the stage hears the album's doorbell and asks
   `readStageLiveAction` (`lib/dashboard/stage-action.ts`) for its nine, its counts, its door and its last hour, on the
   product's hybrid cadence (`useLivePoll`); the stage keeps its facts and re-runs the same pure rules, so a person at
@@ -29,8 +35,9 @@ pure under `lib/dashboard/` (`when.ts`, `attention.ts`, `moment.ts`, `seasons.ts
   photo short on its day, and before its day the first essential readiness leaves undone (readiness is
   `lib/events/readiness.ts`, never a copy), then the code printed the day before. ★ A party long over speaks only when
   someone waits: a paused album after its day is a finished party, never a step. Room is the ring's, never an item.
-- **This week** is every other party within seven days of its date, either way, each with its item or its quiet line
-  (Ready for guests, or the album's count). A queue on a party further off waits on its tile's mark and in the bell.
+- **This week** is every other party within seven days of its nearest day, either way, each with its item or its quiet
+  line (Ready for guests, or the album's count). A queue on a party further off waits on its tile's mark and in the
+  bell.
 - **The reads go only where the page will speak.** Readiness's own reads (`getOpenedCounts`, the hub's opens; a closed
   door's count) are made for the week's parties before their day and a stage before its own, at most 12; the day's
   counts for events on their day, at most 6; the wall and the guest count for the stage alone. A rule never guesses an
@@ -39,9 +46,10 @@ pure under `lib/dashboard/` (`when.ts`, `attention.ts`, `moment.ts`, `seasons.ts
   folded) and laid out on the client through the lens (one row of counts: All, Hosting, Guest, Deleted) and, from
   nine events, a search, both instant. The rows view (sorted by Newest, Most waiting, Name) stays one toggle away,
   the choice in a cookie read before the first paint. ★ The stage's event is never drawn below it.
-- **A tile** is its photograph, or its date before it has one, its name and when, and at most a mark in each top
-  corner (Live; what waits, or its step while the week holds it); narrower than 15rem a mark is a dot with its words for
-  a reader. The tile is the dashboard's own atom: `EventCard` still draws a profile's public cards. ★ The tiles take
+- **A tile** is its photograph, or its date (a range's first day) before it has one, its name and when, and at most a
+  mark in each top corner (Live; what waits, or its step while the week holds it); narrower than 15rem a mark is a dot
+  with its words for a reader. A range's when is where it stands on its days ("Day 2 of 3"), its weekdays inside the
+  week ahead ("Fri to Sun"), else its dates ("Oct 3 to 5"): "to", never a dash. The tile is the dashboard's own atom: `EventCard` still draws a profile's public cards. ★ The tiles take
   turns (`cover-cycle.tsx`): every 3.5 s one tile dissolves to its next still, in reading order; one still or off
   screen sits out, and nothing moves in a hidden tab or under reduced motion. The wall's tiles keep the
   `[data-media-tile]` arrival fade; every other host tile is `data-static`.

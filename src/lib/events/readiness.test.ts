@@ -265,6 +265,44 @@ describe("when the checklist steps aside", () => {
     expect(checklistOver("2025-12-31", "2026-01-01")).toBe(true);
     expect(checklistOver(null, "2026-10-11")).toBe(false);
   });
+
+  it("★ from the day after the LAST day of a range: a weekend's checklist stands through its Sunday", () => {
+    expect(checklistOver("2026-10-09", "2026-10-10", "2026-10-11")).toBe(false);
+    expect(checklistOver("2026-10-09", "2026-10-11", "2026-10-11")).toBe(false);
+    expect(checklistOver("2026-10-09", "2026-10-12", "2026-10-11")).toBe(true);
+    // An end it cannot stand behind is the one day.
+    expect(checklistOver("2026-10-09", "2026-10-10", "2026-10-08")).toBe(true);
+  });
+});
+
+describe("the welcome, with a range of days", () => {
+  it("says the whole range it found", () => {
+    const welcome = readiness({
+      ...FRESH,
+      description: "Add everything you take this weekend.",
+      eventDate: "2026-10-09",
+      eventEndDate: "2026-10-11",
+    }).items.find((i) => i.id === "welcome");
+    expect(welcome).toMatchObject({
+      done: true,
+      line: "October 9 to 11, 2026, and a note guests read first.",
+    });
+  });
+
+  it("a new event's facts carry an end Create was handed", () => {
+    expect(
+      newEventFacts({
+        visibility: "open",
+        accepting_uploads: true,
+        event_date: "2026-10-09",
+        event_end_date: "2026-10-11",
+      }).eventEndDate,
+    ).toBe("2026-10-11");
+    expect(
+      newEventFacts({ visibility: "open", accepting_uploads: true })
+        .eventEndDate,
+    ).toBeNull();
+  });
 });
 
 describe("a new event, as Create hands it over", () => {

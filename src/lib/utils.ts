@@ -1,6 +1,8 @@
 import { clsx, type ClassValue } from "clsx";
 import { extendTailwindMerge } from "tailwind-merge";
 
+import { eventDays } from "@/lib/events/dates";
+
 /**
  * ★ THE TYPE LADDER HAS TO BE DECLARED HERE OR `cn()` EATS IT (measured at the
  * type wiring, 2026-09-17). tailwind-merge does not read our stylesheet, so any
@@ -159,15 +161,46 @@ const MONTH = new Intl.DateTimeFormat(DATE_LOCALE, {
   month: "long",
 });
 
+/** A month and its day, "October 30": a range's first day where its year is said once, at its end. */
+const MONTH_DAY = new Intl.DateTimeFormat(DATE_LOCALE, {
+  timeZone: DATE_ZONE,
+  month: "long",
+  day: "numeric",
+});
+
+/** The day of the month alone, "5": a range's last day inside its first day's month. */
+const DAY_OF_MONTH = new Intl.DateTimeFormat(DATE_LOCALE, {
+  timeZone: DATE_ZONE,
+  day: "numeric",
+});
+
+/** A `YYYY-MM-DD` calendar day at UTC midnight, from its own parts. */
+function calendarDay(date: string): Date {
+  const [year, month, day] = date.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day));
+}
+
 /**
- * Formats an `events.event_date` ("YYYY-MM-DD", a date-only column) for display: "June 1, 2026".
+ * Formats an `events.event_date` ("YYYY-MM-DD", a date-only column) for display: "June 1, 2026", and with the event's
+ * last day (`events.event_end_date`) a range of days in the fewest words that are still exact: "October 3 to 5,
+ * 2026", "October 30 to November 2, 2026", "December 30, 2026 to January 2, 2027" (lane `event-dates`; "to", never a
+ * dash, so a screen reader says it). An end that is missing, unreadable or no later than the date is the one day
+ * (`eventDays`, the range's one shape).
  * WHY split-and-construct instead of `new Date(str)`: the column is a calendar day, not an instant, so it is built
  * at UTC midnight from its own parts and read back in UTC, which is that same day whatever zone the page renders
  * in (a midnight read in another zone would be the day before, or after).
  */
-export function formatEventDate(date: string): string {
-  const [year, month, day] = date.split("-").map(Number);
-  return DAY.format(new Date(Date.UTC(year, month - 1, day)));
+export function formatEventDate(date: string, endDate?: string | null): string {
+  const days = eventDays(date, endDate);
+  if (!days || days.last === days.first) return DAY.format(calendarDay(date));
+  const first = calendarDay(days.first);
+  const last = calendarDay(days.last);
+  const year = days.first.slice(0, 4);
+  if (days.last.slice(0, 4) !== year)
+    return `${DAY.format(first)} to ${DAY.format(last)}`;
+  if (days.last.slice(0, 7) !== days.first.slice(0, 7))
+    return `${MONTH_DAY.format(first)} to ${MONTH_DAY.format(last)}, ${year}`;
+  return `${MONTH_DAY.format(first)} to ${DAY_OF_MONTH.format(last)}, ${year}`;
 }
 
 /** An instant's month and year, "September 2026" (a profile's Joined), read in UTC like every pinned date. */

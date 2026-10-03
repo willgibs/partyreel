@@ -44,9 +44,12 @@ export function welcomeAddLine(acceptsVideo: boolean): string {
 export function HostedBy({
   hostName,
   eventDate,
+  eventEndDate,
 }: {
   hostName?: string | null;
   eventDate?: string | null;
+  /** The last day of a range, or null for one day. */
+  eventEndDate?: string | null;
 }) {
   const host = hostName?.trim();
   if (!host && !eventDate) return null;
@@ -58,7 +61,7 @@ export function HostedBy({
         </>
       )}
       {host && eventDate && " · "}
-      {eventDate && formatEventDate(eventDate)}
+      {eventDate && formatEventDate(eventDate, eventEndDate)}
     </p>
   );
 }
@@ -85,6 +88,7 @@ export function WelcomeWords({
   eventName,
   hostName,
   eventDate,
+  eventEndDate,
   mediaTotal = 0,
   acceptsVideo,
   onContinue,
@@ -93,6 +97,8 @@ export function WelcomeWords({
   /** Null at a gate (the page's redaction), where the byline hides itself. */
   hostName?: string | null;
   eventDate?: string | null;
+  /** The last day of a range, blanked with the date at a gate. */
+  eventEndDate?: string | null;
   /** The album's live count, the header's own number. */
   mediaTotal?: number;
   /** Whether this album takes a video from a guest: the invitation promises only what the picker takes. */
@@ -101,7 +107,11 @@ export function WelcomeWords({
 }) {
   const byline =
     hostName?.trim() || eventDate ? (
-      <HostedBy hostName={hostName} eventDate={eventDate} />
+      <HostedBy
+        hostName={hostName}
+        eventDate={eventDate}
+        eventEndDate={eventEndDate}
+      />
     ) : undefined;
   return (
     <div data-welcome-step="" className="flex w-full flex-col items-center">

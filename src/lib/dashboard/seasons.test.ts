@@ -72,3 +72,38 @@ describe("seasonsOf", () => {
     expect(seasonsOf([], FRIDAY)).toEqual([]);
   });
 });
+
+describe("seasonsOf, with a range of days", () => {
+  const ranged = (
+    id: string,
+    date: string,
+    endDate: string,
+    createdAt = "2026-01-01T00:00:00Z",
+  ) => ({ id, date, endDate, lastArrival: null, createdAt });
+
+  it("★ keeps a range on its days in Coming up, and counts its month after from its last day", () => {
+    const seasons = seasonsOf(
+      [
+        ranged("festival", "2026-09-23", "2026-10-03"),
+        at("tomorrow", "2026-10-03"),
+        // Began forty days ago, ended three days ago: just past, by its last day.
+        ranged("summer-trip", "2026-08-23", "2026-09-29"),
+        // Ended forty days ago: earlier this year.
+        ranged("tour", "2026-08-10", "2026-08-23"),
+      ],
+      FRIDAY,
+    );
+    const ids = (id: string) => seasons.find((g) => g.id === id)?.ids;
+    expect(ids("coming")).toEqual(["festival", "tomorrow"]);
+    expect(ids("recent")).toEqual(["summer-trip"]);
+    expect(ids("year-2026")).toEqual(["tour"]);
+  });
+
+  it("folds a range into the year it began", () => {
+    const seasons = seasonsOf(
+      [ranged("new-year", "2024-12-30", "2025-01-02")],
+      FRIDAY,
+    );
+    expect(seasons.map((g) => g.id)).toEqual(["year-2024"]);
+  });
+});

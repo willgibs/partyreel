@@ -38,9 +38,13 @@ describe("the hub's ready wiring", () => {
     expect(/ready=\{readyFacts\}/.test(PAGE)).toBe(true);
   });
 
-  it("lets the checklist and the Settings card step aside together once the event's date is behind", () => {
+  it("lets the checklist and the Settings card step aside together once the event's last day is behind", () => {
+    // Reshaped on purpose (lane `event-dates`): a range's checklist stands through its last day, so the page hands
+    // `checklistOver` the end beside the date.
     expect(
-      /const over = checklistOver\(event\.event_date, today\)/.test(PAGE),
+      /const over = checklistOver\(\s*event\.event_date,\s*today,\s*event\.event_end_date,?\s*\)/.test(
+        PAGE,
+      ),
     ).toBe(true);
     expect(/over=\{over\}/.test(PAGE)).toBe(true);
     expect(

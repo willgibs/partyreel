@@ -1,10 +1,18 @@
+import { lastDayOf } from "@/lib/events/dates";
 import type { ReadyFacts } from "@/lib/events/readiness";
 import { readiness } from "@/lib/events/readiness";
 import { formatCount } from "@/lib/format/count";
 
 import type { Item, ItemTarget } from "./attention";
 import type { HomeContext, HomeEvent } from "./home-event";
-import { daysFrom, longDate, type Phase, WEEK_DAYS, whenOf } from "./when";
+import {
+  daysFrom,
+  longDate,
+  longDays,
+  type Phase,
+  WEEK_DAYS,
+  whenOf,
+} from "./when";
 
 /**
  * THE STAGE'S WORDS, AS PURE FUNCTIONS (host-dashboard r1, `purpose=stage`): a phase, a name, a date,
@@ -55,6 +63,8 @@ export function stageWordsOf(
     };
   }
   if (!e.date) return { word: "No date yet", live: false, pulse: null };
+  // ★ A RANGE COUNTS DOWN TO ITS FIRST DAY AND DATES ITS PAST FROM ITS LAST (lane `event-dates`): the line
+  // under the name says the whole range, so the word over it says only how near its edge is.
   if (phase === "before") {
     const d = daysFrom(ctx.today, e.date);
     return {
@@ -64,12 +74,24 @@ export function stageWordsOf(
       pulse: null,
     };
   }
-  return { word: whenOf(e.date, ctx.today), live: false, pulse: null };
+  return {
+    word: whenOf(lastDayOf(e.date, e.endDate) ?? e.date, ctx.today),
+    live: false,
+    pulse: null,
+  };
 }
 
-/** The line under the name: the date in full, or null for an undated event (its words say so). */
-export const stageDateLine = (e: HomeEvent, today: string): string | null =>
-  e.date ? longDate(e.date, today) : null;
+/**
+ * The line under the name: the date in full ("Friday, October 2"), a range's two days in full ("Friday, October 2
+ * to Sunday, October 4"), or null for an undated event (its words say so).
+ */
+export function stageDateLine(e: HomeEvent, today: string): string | null {
+  if (!e.date) return null;
+  const last = lastDayOf(e.date, e.endDate);
+  return last && last !== e.date
+    ? longDays(e.date, last, today)
+    : longDate(e.date, today);
+}
 
 export type StageNumber = {
   key: "album" | "guests" | "door" | "review";

@@ -237,3 +237,60 @@ describe("updateEvent: approval never stands with a develop", () => {
     });
   });
 });
+
+// AN EVENT'S OPTIONAL END DATE (20261003120000): the last day travels with its first (the schema refuses one alone),
+// a range said twice is stored as the one day it is, and the database's CHECK is read by its name, in words.
+describe("updateEvent: the event's dates", () => {
+  it("writes a range's two days together, and a date alone as the date alone", async () => {
+    await updateEvent(
+      "event-1",
+      updateEventSchema.parse({
+        event_date: "2026-10-03",
+        event_end_date: "2026-10-05",
+      }),
+    );
+    await updateEvent(
+      "event-1",
+      updateEventSchema.parse({ event_date: "2026-10-03" }),
+    );
+    expect(patches).toEqual([
+      { event_date: "2026-10-03", event_end_date: "2026-10-05" },
+      { event_date: "2026-10-03" },
+    ]);
+  });
+
+  it("stores a range said twice as the one day it is, and a cleared pair as none", async () => {
+    await updateEvent(
+      "event-1",
+      updateEventSchema.parse({
+        event_date: "2026-10-03",
+        event_end_date: "2026-10-03",
+      }),
+    );
+    await updateEvent(
+      "event-1",
+      updateEventSchema.parse({ event_date: "", event_end_date: "" }),
+    );
+    expect(patches).toEqual([
+      { event_date: "2026-10-03", event_end_date: null },
+      { event_date: null, event_end_date: null },
+    ]);
+  });
+
+  it("★ reads the database's refusal of a range by its name, in the schema's own words", async () => {
+    nextError = {
+      code: "23514",
+      message:
+        'new row for relation "events" violates check constraint "events_end_date_on_or_after"',
+    };
+    const result = await updateEvent(
+      "event-1",
+      updateEventSchema.parse({ event_date: "2026-10-09" }),
+    );
+    expect(result).toEqual({
+      ok: false,
+      code: "unknown",
+      message: "The end date can't be before the event date.",
+    });
+  });
+});

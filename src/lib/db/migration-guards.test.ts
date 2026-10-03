@@ -2061,16 +2061,17 @@ describe("the host's reel defaults (20260925100000)", () => {
     it("returns the hold after the reel's two settings, as a SECURITY DEFINER read with an empty search_path", () => {
       // ★ Reshaped by the doors (20260929120000), which append the guest picker's flag
       // (`accepts_video`) after the hold, by the host's cap (20261001233000, crumbs-43), which
-      // appends `max_upload_bytes` after the flag, and by disposable-foundation (20261002200000), which appends
-      // whether a develop is due, the develop time, the capture and the roll's size after the cap: the hold still follows the reel's two
-      // settings, and nothing but those comes after it (the later columns' own pins: guest-cap-and-faces-guards.test.ts
-      // and src/lib/disposable/migration-guards.test.ts).
+      // appends `max_upload_bytes` after the flag, by disposable-foundation (20261002200000), which appends
+      // whether a develop is due, the develop time, the capture and the roll's size after the cap, and by event-dates
+      // (20261003120000), which appends a range's last day after the roll: the hold still follows the reel's two
+      // settings, and nothing but those comes after it (the later columns' own pins: guest-cap-and-faces-guards.test.ts,
+      // src/lib/disposable/migration-guards.test.ts and src/lib/events/event-dates.test.ts).
       const body = code("get_event_by_qr_token");
       expect(body).toContain(
-        "show_reel boolean, reel_style_id text, reel_hold_sec numeric, accepts_video boolean, max_upload_bytes bigint, develop_due boolean, develops_at timestamptz, capture text, roll_size integer) language sql stable security definer set search_path to ''",
+        "show_reel boolean, reel_style_id text, reel_hold_sec numeric, accepts_video boolean, max_upload_bytes bigint, develop_due boolean, develops_at timestamptz, capture text, roll_size integer, event_end_date date) language sql stable security definer set search_path to ''",
       );
       expect(body).toContain(
-        "e.show_reel, e.reel_style_id, e.reel_hold_sec, (e.allow_videos and coalesce(p.tier <> 'free', false)), e.max_upload_bytes, public.seal_disagrees(e), e.develops_at, e.capture, e.roll_size from public.events e",
+        "e.show_reel, e.reel_style_id, e.reel_hold_sec, (e.allow_videos and coalesce(p.tier <> 'free', false)), e.max_upload_bytes, public.seal_disagrees(e), e.develops_at, e.capture, e.roll_size, case when r.hide_meta then null else e.event_end_date end from public.events e",
       );
       expect(body).toContain(
         "order by (e.qr_token = p_qr_token) desc limit 1;",

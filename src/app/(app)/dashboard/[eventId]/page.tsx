@@ -332,6 +332,8 @@ export default async function EventDetailPage({
     showReel: event.show_reel,
     liveReelEnabled: liveReelFacts.liveReelEnabled,
     eventDate: event.event_date,
+    // A range's last day (20261003120000), null for one day.
+    eventEndDate: event.event_end_date,
     description: event.description,
     opened: views,
     storagePct,
@@ -344,7 +346,7 @@ export default async function EventDetailPage({
     serverZone(),
   );
   const { today } = calendarDayInZone(new Date().getTime(), viewerZone);
-  const over = checklistOver(event.event_date, today);
+  const over = checklistOver(event.event_date, today, event.event_end_date);
   const guestNeeds = over ? 0 : stepsLeft(readyFacts);
 
   const cards = [
@@ -450,6 +452,7 @@ export default async function EventDetailPage({
           <HubCover
             name={event.name}
             date={event.event_date}
+            endDate={event.event_end_date}
             counts={{
               album: seed.sync.counts.album,
               guests: guestsCount,

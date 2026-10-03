@@ -2,15 +2,22 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
+import { X } from "lucide-react";
 
 import {
   SettingsCard,
   SwitchSetting,
 } from "@/components/app/event-settings/settings-furniture";
 import { PROFILE_SETUP_PATH } from "@/app/(app)/account/profile/invite";
-import { useSettings } from "@/components/app/event-settings/settings-state";
+import {
+  type SettingsValues,
+  useSettings,
+} from "@/components/app/event-settings/settings-state";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { endForNewStart } from "@/lib/events/dates";
+import { LAST_DAY_BEFORE_FIRST } from "@/lib/validation/event";
 
 /** The update schema's own bounds (validation/event.ts), checked here so the field can say so in place. */
 const NAME_MAX = 80;
@@ -32,7 +39,6 @@ function SavingField({
   optional = false,
   value,
   multiline = false,
-  type,
   line,
   check,
   onSave,
@@ -41,7 +47,6 @@ function SavingField({
   optional?: boolean;
   value: string;
   multiline?: boolean;
-  type?: "date";
   line?: string;
   /** The field's own refusal of what was typed, or null to save it. */
   check: (typed: string) => string | null;
@@ -59,7 +64,7 @@ function SavingField({
 
   async function commit(raw: string) {
     pending.current = null;
-    const next = type === "date" ? raw : raw.trim();
+    const next = raw.trim();
     if (next === value) {
       setTyped(null);
       setError(null);
@@ -127,13 +132,9 @@ function SavingField({
       ) : (
         <Input
           {...common}
-          type={type}
-          onChange={(e) => {
-            onTyped(e.target.value);
-            // A date picker commits a whole value at once, and a phone's may never blur: it saves as
-            // it changes. A typed name saves when it is left, or when Return is pressed.
-            if (type === "date") void commit(e.target.value);
-          }}
+          // A typed name saves when it is left, or when Return is pressed (the date's own field is
+          // `EventDatesField`, whose picker saves as it changes).
+          onChange={(e) => onTyped(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") (e.target as HTMLInputElement).blur();
           }}
@@ -147,6 +148,196 @@ function SavingField({
           {line}
         </p>
       ) : null}
+      <p
+        id={errorId}
+        aria-live="polite"
+        className="text-caption text-pretty text-destructive empty:hidden"
+      >
+        {error ?? ""}
+      </p>
+    </div>
+  );
+}
+
+type Dates = Pick<SettingsValues, "eventDate" | "eventEndDate">;
+
+/**
+ * THE EVENT'S DATES (lane `event-dates`, Will 2026-10-03: a range of days, no times): the date as it always was, and
+ * for a weekend, a conference or a trip, its end beside it. The end is offered, never asked: "Add an end date" opens
+ * it, × takes it away. The two are written together in one save whenever a range is in play, so the row never holds
+ * half of one (the database's CHECK refuses an end before its date, or without one).
+ *
+ * ★ A PICKED DAY SAVES AT ONCE, A CLEARED FIELD WHEN IT IS LEFT. A picker commits a whole value and a phone's may never
+ * blur, so a day saves as it is picked; but a keyboard clears a field on its way to the next date, and a cleared date
+ * takes its end with it, so a clear waits until the field is left (or the panel closes, which leaves it too). An end
+ * before the date is refused under the field, where the eye already is (the picker's own minimum stops a picked one);
+ * an end on the date itself is the one day it is.
+ */
+function EventDatesField() {
+  const s = useSettings();
+  const v = s.values;
+  const id = useId();
+  const lineId = `${id}-line`;
+  const errorId = `${id}-error`;
+  const endRef = useRef<HTMLInputElement>(null);
+  const [adding, setAdding] = useState(false);
+  const [typedStart, setTypedStart] = useState<string | null>(null);
+  const [typedEnd, setTypedEnd] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const shownStart = typedStart ?? v.eventDate;
+  const shownEnd = typedEnd ?? v.eventEndDate;
+  const open = adding || Boolean(v.eventEndDate);
+
+  // A clear not yet committed, and the latest commits, for the close below.
+  const pending = useRef<{ start: string | null; end: string | null }>({
+    start: null,
+    end: null,
+  });
+  const latest = useRef<{
+    start: (next: string) => void;
+    end: (next: string) => void;
+  }>({ start: () => {}, end: () => {} });
+
+  function save(next: Dates) {
+    if (next.eventDate === v.eventDate && next.eventEndDate === v.eventEndDate)
+      return;
+    // The date alone where no range was or is (one column, as it always saved); both together otherwise.
+    void s.saveEvent(
+      !next.eventEndDate && !v.eventEndDate
+        ? { eventDate: next.eventDate }
+        : next,
+    );
+  }
+
+  function commitStart(next: string) {
+    pending.current.start = null;
+    setTypedStart(null);
+    setError(null);
+    const dates: Dates = {
+      eventDate: next,
+      eventEndDate: endForNewStart(next, v.eventDate, v.eventEndDate),
+    };
+    if (!dates.eventEndDate) setAdding(false);
+    save(dates);
+  }
+
+  function commitEnd(next: string) {
+    pending.current.end = null;
+    if (next && v.eventDate && next < v.eventDate) {
+      setTypedEnd(next);
+      setError(LAST_DAY_BEFORE_FIRST);
+      return;
+    }
+    setTypedEnd(null);
+    setError(null);
+    // An end on the date itself is the one day it is.
+    const end = next === v.eventDate ? "" : next;
+    if (!end) setAdding(false);
+    save({ eventDate: v.eventDate, eventEndDate: end });
+  }
+
+  useEffect(() => {
+    latest.current = { start: commitStart, end: commitEnd };
+  });
+  useEffect(
+    () => () => {
+      const { start, end } = pending.current;
+      if (start !== null) latest.current.start(start);
+      else if (end !== null) latest.current.end(end);
+    },
+    [],
+  );
+
+  // Add an end date opens the field and its picker at once (where the browser lets a page open it).
+  useEffect(() => {
+    if (!adding) return;
+    const field = endRef.current;
+    field?.focus();
+    try {
+      field?.showPicker?.();
+    } catch {
+      // Some browsers open a date picker only from a press on the field itself: focus is the way in then.
+    }
+  }, [adding]);
+
+  const describedBy = (withError: boolean) =>
+    [lineId, withError && error ? errorId : null].filter(Boolean).join(" ");
+
+  return (
+    <div className="space-y-1.5 px-4 py-3">
+      <label htmlFor={id} className="text-sm font-medium">
+        Event date
+        <span className="font-normal text-muted-foreground"> (optional)</span>
+      </label>
+      <div className="flex flex-wrap items-center gap-2">
+        <Input
+          id={id}
+          type="date"
+          value={shownStart}
+          aria-describedby={describedBy(false)}
+          className="w-auto min-w-36 flex-1"
+          onChange={(e) => {
+            const next = e.target.value;
+            setTypedStart(next);
+            if (next) commitStart(next);
+            else pending.current.start = "";
+          }}
+          onBlur={() => {
+            if (pending.current.start !== null) commitStart("");
+          }}
+        />
+        {open ? (
+          <div className="flex min-w-48 flex-1 items-center gap-2">
+            <span aria-hidden className="text-sm text-muted-foreground">
+              to
+            </span>
+            <Input
+              ref={endRef}
+              type="date"
+              aria-label="End date"
+              min={v.eventDate || undefined}
+              value={shownEnd}
+              aria-invalid={error ? true : undefined}
+              aria-describedby={describedBy(true)}
+              className="w-auto min-w-0 flex-1"
+              onChange={(e) => {
+                const next = e.target.value;
+                setTypedEnd(next);
+                if (next) commitEnd(next);
+                else pending.current.end = "";
+              }}
+              onBlur={() => {
+                if (pending.current.end !== null) commitEnd("");
+                else if (adding && !v.eventEndDate && !typedEnd)
+                  setAdding(false);
+              }}
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Remove the end date"
+              onClick={() => {
+                setAdding(false);
+                commitEnd("");
+              }}
+            >
+              <X aria-hidden />
+            </Button>
+          </div>
+        ) : v.eventDate ? (
+          <button
+            type="button"
+            className="text-sm text-muted-foreground underline decoration-muted-foreground/40 underline-offset-4 outline-none hover:text-foreground focus-visible:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+            onClick={() => setAdding(true)}
+          >
+            Add an end date
+          </button>
+        ) : null}
+      </div>
+      <p id={lineId} className="text-caption text-pretty text-muted-foreground">
+        For your reference only: events never expire.
+      </p>
       <p
         id={errorId}
         aria-live="polite"
@@ -197,15 +388,7 @@ export function EventPage() {
         }
         onSave={(typed) => s.saveEvent({ description: typed })}
       />
-      <SavingField
-        label="Event date"
-        optional
-        type="date"
-        value={v.eventDate}
-        line="For your reference only: events never expire."
-        check={() => null}
-        onSave={(typed) => s.saveEvent({ eventDate: typed })}
-      />
+      <EventDatesField />
       {v.displayInProfile !== null ? (
         <SwitchSetting
           label="Show on my profile"
