@@ -34,7 +34,7 @@ const CAP_HIGH = UPLOAD_CAP_PRESETS[1].label;
 /** Getting in: the phone's index. Media-split column, two rows each. */
 export const GETTING_IN = {
   subhead:
-    "Guests point a camera at the code, land on a welcome screen, and start adding. New events ask for an email first.",
+    "Guests point a camera at the code, land on the event's welcome, and start adding. New events ask for an email first.",
   facts: [
     {
       title: "No app, ever",

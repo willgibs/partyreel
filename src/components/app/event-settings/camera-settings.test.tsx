@@ -6,6 +6,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { developTimeWords } from "@/lib/disposable/develop-words";
 import { defaultDevelopAt } from "@/lib/disposable/reveal";
 
 // The bound control's Settings state reaches the server's actions; the mountable one under test takes a save.
@@ -24,6 +25,7 @@ const { CaptureAndReveal } = await import("./camera-settings");
 
 const NOW = new Date("2026-10-02T20:00:00Z");
 const AHEAD = "2026-10-03T16:00:00.000Z";
+const PAST = "2026-10-01T16:00:00.000Z";
 
 type Value = Parameters<typeof CaptureAndReveal>[0]["value"];
 
@@ -122,9 +124,16 @@ describe("when everyone sees what's added: one choice of three", () => {
   });
 
   it("no Develop now once developed, and the time says so", () => {
-    mount({ developsAt: "2026-10-01T16:00:00.000Z" });
+    mount({ developsAt: PAST });
     expect(screen.queryByRole("button", { name: "Develop now" })).toBeNull();
-    expect(screen.getByText(/^Developed .*New ones show straight away\.$/)).toBeInTheDocument();
+    expect(
+      screen.getByText(`Developed ${developTimeWords(PAST)}. New ones show straight away.`),
+    ).toBeInTheDocument();
+  });
+
+  it("says the time as the guest's own tracker does: one formatter (`develop-words`) for both sides", () => {
+    mount({ developsAt: AHEAD });
+    expect(screen.getByText(`Develops ${developTimeWords(AHEAD)}.`)).toBeInTheDocument();
   });
 
   it("a develop time picked in her own zone saves when she leaves the field; one out of reach saves nothing", () => {

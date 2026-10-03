@@ -127,7 +127,7 @@ const GUEST_STEPS: readonly LoopStep[] = [
   {
     id: "door",
     title: "Step inside",
-    body: "A welcome screen names the event and asks what to call you, then for a first photo, and the album opens. When the host asks guests to verify, a one-time code by email is the whole sign-in.",
+    body: "The welcome names the event. Say what to call you, add a first photo, and the album opens. When the host asks guests to verify, a one-time code by email is the whole sign-in.",
     href: "/features/guests",
     linkLabel: "What guests see",
   },
@@ -155,7 +155,7 @@ const GUEST_STEPS: readonly LoopStep[] = [
   {
     id: "clip",
     title: "Make your clip",
-    body: "The reel plays at the top of the album. Tap Make your own, pick the moments, a look and a length, and your phone makes the clip to save or send to whoever missed it.",
+    body: "Open the reel from the album's cover. Tap Make your own, pick the moments, a look and a length, and your phone makes the clip to save or send to whoever missed it.",
     href: "/reel",
     linkLabel: "Everything about the reel",
   },
