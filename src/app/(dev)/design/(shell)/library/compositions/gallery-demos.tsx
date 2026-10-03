@@ -365,14 +365,14 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
   {
     id: "qr-preset-picker",
     file: "src/components/app/qr-preset-picker.tsx",
-    for: "the four code styles as a choice rather than four thumbnails: a container-query grid, each swatch as big as its cell through CSS rather than a re-render, every preview drawn on this event's real join URL. Controlled: the parent owns the value and the saving",
-    test: "src/app/(app)/dashboard/new/create-flow.test.tsx",
+    for: "the four code looks as one choice of four: a radio group of corners, each a window onto its own look's code (a rounded finder reads as rounded, Bold's coral as coral), sized in CSS rather than by a re-render, every corner drawn on the link it is handed. Controlled: the parent owns the value and the saving",
+    test: "src/components/app/qr-preset-picker.test.tsx",
     family: "compositions",
     section: "Share suite",
     title: "QrPresetPicker",
     // No variants axis for the same reason as the filter chips: the four style
     // keys live in src/lib/constants/qr-presets, not in this file.
-    lede: "The style step of the create flow, and the styler inside the share sheet's designer: every preset previewed on this event's real join URL, controlled by the parent.",
+    lede: "The four swatches under Create's look step, re-dressing her code where guests meet it: the arrows move between the looks, choosing as they go, and the parent owns the pick.",
     specimens: [
       {
         label: "QR preset picker",

@@ -1,0 +1,217 @@
+/*
+  THE CREATE ROOM'S OWN SHEET: what a utility cannot say. Every rule hangs off a `cr-` hook or the
+  room's own data attributes, so nothing here reaches another surface.
+
+  ★ EVERYTHING THAT MOVES IS GATED (bible 5). The hairlines' fill, the name's rule and the develop are
+  transitions the global reduced-motion guard clamps to an instant; the develop's breath is an
+  animation declared only where motion is welcome; and the carry's flight (carry.ts) asks for itself.
+
+  ★ THE VISIBLE STATE IS THE DEFAULT (design-system.md, "Motion"): what the beat brings in arrives on
+  `@starting-style`, so a browser that never runs a script's timer still shows every word, and the
+  failure mode is "no animation", never "no content".
+*/
+
+/* ── the steppers ─────────────────────────────────────────────────────── */
+
+.cr-fill {
+  transform-origin: left center;
+  scale: 0 1;
+  transition: scale 300ms var(--ease-emphasis);
+}
+[data-room-step][data-state="done"] .cr-fill,
+[data-room-step][data-state="current"] .cr-fill {
+  scale: 1 1;
+}
+
+/* ── the name ─────────────────────────────────────────────────────────── */
+
+/* The field is the name at the size it will be, its caret the room's warm lamp. */
+.cr-name-field {
+  caret-color: var(--lamp-2);
+}
+.cr-name-field::placeholder {
+  color: color-mix(in oklch, var(--foreground) 26%, transparent);
+}
+
+/* The rule it stands on: quiet at rest, lit while she types, red when it is refused. */
+.cr-name-rule {
+  background: color-mix(in oklch, var(--foreground) 32%, transparent);
+  transition: background-color 150ms var(--ease-emphasis);
+}
+.cr-name:focus-within + .cr-name-rule {
+  background: var(--foreground);
+}
+.cr-name[data-invalid] + .cr-name-rule {
+  background: var(--destructive);
+}
+
+/* ── the look: her code where guests meet it ──────────────────────────── */
+
+/*
+  THE TWO PLACES, AS ONE PICTURE SIZED BY THE ROOM: at a phone the room's screen stands behind and her
+  phone in front of its lower left; from a tablet up they stand side by side, the phone over the
+  screen's edge. The picture is as wide as the room allows and as tall as its height leaves above the
+  swatches and the foot, so a short phone draws it smaller rather than pushing the swatches off the
+  screen; every mark inside is in the picture's own `cqw`.
+*/
+.cr-places {
+  position: relative;
+  container-type: inline-size;
+  width: min(300px, 100%, calc((100dvh - 23rem) * 0.86));
+  aspect-ratio: 0.86;
+}
+.cr-places-screen {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100cqw;
+}
+.cr-places-phone {
+  position: absolute;
+  bottom: 0;
+  left: 6cqw;
+  width: 48.7cqw;
+}
+@media (min-width: 48rem) {
+  .cr-places {
+    width: min(604px, 100%, calc((100dvh - 24rem) * 1.687));
+    aspect-ratio: 1.687;
+  }
+  .cr-places-screen {
+    top: 50%;
+    translate: 0 -50%;
+    width: 82.8cqw;
+  }
+  .cr-places-phone {
+    top: 0;
+    bottom: auto;
+    left: 0;
+    width: 27.8cqw;
+  }
+}
+
+/* A phone, drawn as a device: a black body with one hairline of light on its rim, the island at its head. */
+.cr-phone {
+  aspect-ratio: 9 / 19.2;
+  padding: 2.6cqw;
+  border-radius: 14cqw;
+  background: oklch(0.12 0 0);
+  box-shadow:
+    inset 0 0 0 0.45cqw oklch(1 0 0 / 0.14),
+    0 1px 0 0 oklch(1 0 0 / 0.06),
+    0 18px 40px -12px oklch(0 0 0 / 0.7);
+}
+.cr-phone-glass {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 11.6cqw;
+}
+.cr-phone-island {
+  position: absolute;
+  top: 2.6cqw;
+  left: 50%;
+  width: 26cqw;
+  height: 7.4cqw;
+  translate: -50% 0;
+  border-radius: 9999px;
+  background: #000;
+}
+
+/* ── the beat: the sample develops into her code ──────────────────────── */
+
+/*
+  WHILE CREATE RUNS the sample breathes, the way a print comes up in the tray (under reduced motion it
+  stands, and the status line says what is happening). ONCE IT IS HERS her own code comes up sharp under
+  the sample, the sample softens away over it, its one word goes, and then the question, what is below
+  and the foot arrive in that order. What mounts with the event (her code, the foot's button) arrives on
+  `@starting-style`, so its visible state is its default; what the developing screen already holds (the
+  sample, its word, the question and what stands under the code, kept in place unseen) changes when the
+  beat says it has arrived, a render's attribute and never a timer's. Under reduced motion no transition
+  is declared: the beat simply stands, whole.
+*/
+.cr-question[data-held] {
+  opacity: 0;
+  translate: 0 8px;
+}
+[data-beat="arrived"] .cr-sample-code,
+.cr-sample-word[data-state="gone"] {
+  opacity: 0;
+}
+/* What stands under the code keeps its place while the code develops, unseen, so nothing moves when it
+   arrives. */
+[data-beat="developing"] .cr-beat-below {
+  visibility: hidden;
+  opacity: 0;
+  translate: 0 10px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-beat="developing"] .cr-sample-code {
+    animation: cr-develop-breath 1.6s var(--ease-in-out-strong) infinite
+      alternate;
+  }
+  [data-beat="arrived"] .cr-sample-code {
+    filter: blur(4px);
+    transition:
+      opacity 560ms var(--ease-in-out-strong) 120ms,
+      filter 560ms var(--ease-in-out-strong) 120ms;
+  }
+  .cr-sample-word[data-state="gone"] {
+    transition: opacity 240ms ease-out 200ms;
+  }
+  .cr-real-code {
+    transition: filter 640ms var(--ease-emphasis) 160ms;
+    @starting-style {
+      filter: blur(6px);
+    }
+  }
+  [data-room="beat"] .cr-question:not([data-held]) {
+    transition:
+      opacity 420ms var(--ease-emphasis) 480ms,
+      translate 420ms var(--ease-emphasis) 480ms;
+    @starting-style {
+      opacity: 0;
+      translate: 0 8px;
+    }
+  }
+  [data-beat="arrived"] .cr-beat-below {
+    transition:
+      opacity 480ms var(--ease-emphasis) 720ms,
+      translate 480ms var(--ease-emphasis) 720ms;
+  }
+  .cr-beat-go {
+    transition:
+      opacity 480ms var(--ease-emphasis) 760ms,
+      translate 480ms var(--ease-emphasis) 760ms;
+    @starting-style {
+      opacity: 0;
+      translate: 0 10px;
+    }
+  }
+}
+@keyframes cr-develop-breath {
+  to {
+    opacity: 0.72;
+  }
+}
+
+/* An act on the beat: a round of the room's own material, its word under it. */
+.cr-round {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: color-mix(in oklch, var(--foreground) 9%, transparent);
+  box-shadow: inset 0 0 0 1px
+    color-mix(in oklch, var(--foreground) 12%, transparent);
+  transition:
+    background-color 150ms var(--ease-emphasis),
+    scale 150ms var(--ease-emphasis);
+}
+.cr-act:hover .cr-round {
+  background: color-mix(in oklch, var(--foreground) 14%, transparent);
+}
+.cr-act:active .cr-round {
+  scale: 0.97;
+}

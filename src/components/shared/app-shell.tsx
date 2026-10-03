@@ -57,7 +57,7 @@ export function AppShell({ children, headerActions }: AppShellProps) {
   return (
     <CrumbsProvider>
       <div className="group/shell flex min-h-full flex-col">
-        <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur">
+        <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur group-has-[[data-app-room]]/shell:hidden">
           <Container
             className={cn("flex h-14 items-center gap-4", WIDE_WHEN_ASKED)}
           >
