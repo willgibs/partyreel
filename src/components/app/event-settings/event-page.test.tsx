@@ -171,13 +171,24 @@ describe("the event's dates", () => {
     );
   });
 
-  it("★ keeps an end still after a moved date, and moves one the date passes with it", async () => {
+  // RESHAPED ON PURPOSE (crumbs-61, red-team 48's LOW): an end still after the moved date used to stay, which left a start
+  // retyped a year earlier with a range 369 days long; the range keeps its length in both directions (`dates.test.ts`).
+  it("★ moves the whole range with a moved date, a day earlier, a week on or a year back", async () => {
     const earlier = datesPage({ date: "2026-10-02", end: "2026-10-04" });
     fireEvent.change(earlier.start, { target: { value: "2026-10-01" } });
     await vi.waitFor(() =>
       expect(earlier.updateEvent).toHaveBeenCalledWith("event-1", {
         event_date: "2026-10-01",
-        event_end_date: "2026-10-04",
+        event_end_date: "2026-10-03",
+      }),
+    );
+    cleanup();
+    const yearBack = datesPage({ date: "2027-10-05", end: "2027-10-09" });
+    fireEvent.change(yearBack.start, { target: { value: "2026-10-05" } });
+    await vi.waitFor(() =>
+      expect(yearBack.updateEvent).toHaveBeenCalledWith("event-1", {
+        event_date: "2026-10-05",
+        event_end_date: "2026-10-09",
       }),
     );
     cleanup();

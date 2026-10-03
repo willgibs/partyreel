@@ -21,8 +21,8 @@ class FakeChannel {
   leaving = false;
   gone = false;
   constructor(readonly topic: string) {}
-  on(_type: string, _filter: unknown, cb: () => void) {
-    this.ping = cb;
+  on(_type: string, _filter: unknown, cb: (message?: unknown) => void) {
+    this.ping = cb as () => void;
     return this;
   }
   subscribe(cb: (status: Status) => void) {
@@ -36,9 +36,12 @@ class FakeChannel {
   answer(status: Status) {
     if (!this.gone) this.status?.(status);
   }
-  /** A ping on the wire, delivered whether or not anyone still wants it. */
-  ring() {
-    this.ping?.();
+  /**
+   * A ping on the wire, delivered whether or not anyone still wants it: with the message supabase-js hands a broadcast's
+   * listener (`{ type, event, payload }`, the payload the sender's own), or none, as an arrival's contentless ping.
+   */
+  ring(message?: unknown) {
+    (this.ping as ((message?: unknown) => void) | null)?.(message);
   }
 }
 
@@ -162,6 +165,62 @@ describe("a visible album", () => {
     expect(fire).toHaveBeenCalledTimes(2);
   });
 
+  /* ★ A MOMENT IS ONE WRITE, NEVER A STREAM (crumbs-61, red-team 48's LOW): the develop's ring (`album_doorbell`, the one ring
+     for a write that moved many rows) says so in its payload, and the album asks at once, where an arrival's contentless
+     ping waits for the tick: the cover lifts on the host's screen and every guest learns it in the same second. */
+  it("★ a ring that says it is a moment (a develop) asks at once, never at the tick", () => {
+    const { fire, current } = setup();
+    current().answer("SUBSCRIBED");
+    current().ring({
+      type: "broadcast",
+      event: "ping",
+      payload: { moment: true },
+    });
+    expect(fire).toHaveBeenCalledTimes(1);
+    // And it spent the batch it would have joined: no second sync at the tick for the same ring.
+    vi.advanceTimersByTime(10 * ALBUM_BATCH_MS);
+    expect(fire).toHaveBeenCalledTimes(1);
+  });
+
+  it("★ a moment covers the arrivals that were waiting for the tick, and what comes after it waits as ever", () => {
+    const { fire, current } = setup();
+    current().answer("SUBSCRIBED");
+    current().ring();
+    vi.advanceTimersByTime(1_000);
+    current().ring({ payload: { moment: true } });
+    expect(fire).toHaveBeenCalledTimes(1);
+    // The tick the first ping was waiting for (7,500 on this device's phase) has nothing left to ask for it: only a ping
+    // after the moment rides it.
+    vi.advanceTimersByTime(10_000);
+    expect(fire).toHaveBeenCalledTimes(1);
+    // It is 11,000 now; the device's next tick is 22,500 (7,500, then every fifteen seconds).
+    current().ring();
+    vi.advanceTimersByTime(11_499);
+    expect(fire).toHaveBeenCalledTimes(1);
+    vi.advanceTimersByTime(1);
+    expect(fire).toHaveBeenCalledTimes(2);
+  });
+
+  it("an arrival's ping says nothing (or says something else), and waits for the tick like every ping", () => {
+    const { fire, current } = setup();
+    current().answer("SUBSCRIBED");
+    for (const message of [
+      undefined,
+      {},
+      { type: "broadcast", event: "ping", payload: {} },
+      { payload: { moment: false } },
+      { payload: { moment: "yes" } },
+      { payload: null },
+      null,
+      "ping",
+    ]) {
+      current().ring(message);
+    }
+    expect(fire).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(ALBUM_BATCH_MS);
+    expect(fire).toHaveBeenCalledTimes(1);
+  });
+
   it("a socket that drops says so (the poll's fast cadence takes over)", () => {
     const { live, current } = setup();
     current().answer("SUBSCRIBED");
@@ -183,6 +242,15 @@ describe("★ a hidden album is no listener", () => {
     current().answer("SUBSCRIBED");
     page.set(true);
     current().ring();
+    vi.advanceTimersByTime(10 * ALBUM_BATCH_MS);
+    expect(fire).not.toHaveBeenCalled();
+  });
+
+  it("★ nor on a moment already on the wire when it hid: the return's catch-up is the one sync, and it carries the develop", () => {
+    const { page, fire, current } = setup();
+    current().answer("SUBSCRIBED");
+    page.set(true);
+    current().ring({ payload: { moment: true } });
     vi.advanceTimersByTime(10 * ALBUM_BATCH_MS);
     expect(fire).not.toHaveBeenCalled();
   });

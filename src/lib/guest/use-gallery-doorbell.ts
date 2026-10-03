@@ -12,6 +12,11 @@
  *   ping heard before this device's next tick is answered by one sync at the tick, about every fifteen seconds while
  *   guests upload, and a quiet album asks nothing. The coalescer lives inside one join of the channel, so its life is
  *   exactly the channel's.
+ * - ★ A MOMENT RINGS AT ONCE (crumbs-61, red-team 48's LOW): the batch clock is for a stream of arrivals, and a develop is
+ *   one write that moves every sealed shot, so its ring (`album_doorbell`, the one ring for a write that held its per-row
+ *   pings) says so in its payload (`{ moment: true }`; an arrival's is contentless) and the album asks at once, the sync
+ *   covering every ping heard before it. A ring that says nothing (every arrival, and a database that has not yet been
+ *   told to say it) waits for the tick as before, so a deploy of this ahead of its migration changes nothing.
  * - ★ A HIDDEN TAB IS NO LISTENER (album-calm; Will: "background tabs can stop syncing, that's needlessly draining
  *   resources for something that isn't being watched"). A broadcast is billed one message a listener, so the moment
  *   the tab hides it LEAVES the channel and drops a batch waiting for its tick; a ping already on the wire is never
@@ -36,6 +41,7 @@ import { useEffect, useEffectEvent, useState } from "react";
 
 import {
   createRefreshCoalescer,
+  isMoment,
   type RefreshCoalescer,
 } from "@/lib/guest/refresh-coalescer";
 import { createClient } from "@/lib/supabase/client";
@@ -116,8 +122,10 @@ export function connectDoorbell({
     channel = joined;
     joined
       // A ping on the wire for a channel this line has left is never answered: the return's catch-up covers it.
-      .on("broadcast", { event: "ping" }, () => {
-        if (channel === joined) pings.ping();
+      .on("broadcast", { event: "ping" }, (message: unknown) => {
+        if (channel !== joined) return;
+        if (isMoment(message)) pings.moment();
+        else pings.ping();
       })
       .subscribe((status) => {
         // A channel this line has left: its CLOSED is the leave's own, not the socket dropping.

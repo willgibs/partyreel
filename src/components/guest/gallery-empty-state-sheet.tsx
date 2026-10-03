@@ -138,6 +138,38 @@ function VideoMark() {
 }
 
 /**
+ * ★ THE CLOCK'S WORDS BREAK AT THEIR PHRASES, NEVER INSIDE ONE (crumbs-61, red-team 48's NIT): "All at once tomorrow at 9 am
+ * · in 17 h 5 min" is two phrases, and at a phone's 375 the footer wrapped it mid-phrase ("in 17 h 5" over "min"), and the
+ * desk's side column the same ("in 16 h" over "16 min"). Each phrase is one unbreakable run: the footer gives the clock a
+ * row of its own when it does not fit beside her count (`flex-wrap`), where it stands whole, and the side column, which is
+ * narrower than the clock by design, stacks the two as the two lines they are (`stacked`: the dot gives way to the
+ * break). What a screen reader hears is the sheet's own sentence, which keeps the dot.
+ */
+function ClockWords({
+  line,
+  countdown,
+  stacked = false,
+}: {
+  line: string;
+  countdown: string | null;
+  stacked?: boolean;
+}) {
+  if (!countdown) return line;
+  return stacked ? (
+    <>
+      <span className="block">{line}</span>{" "}
+      <span className="block">{countdown}</span>
+    </>
+  ) : (
+    <>
+      <span className="whitespace-nowrap">{line}</span>
+      <span aria-hidden> · </span>
+      <span className="whitespace-nowrap">{countdown}</span>
+    </>
+  );
+}
+
+/**
  * ONE CONTACT SHEET: the count and the wait's word over (or, at a desk, beside) a sheet of squares, the oldest folding
  * away past a few rows while the count climbs (Will's cover note: "a max visual size then just let the count increase"),
  * hers lit, the clock and her own under it. `onOpenHers` makes "Yours" the door to her list; without it, it is a count.
@@ -233,7 +265,7 @@ export function ContactSheet({
           type="button"
           onClick={onOpenHers}
           data-wait-yours=""
-          className="wait-muted -mx-1 flex items-center gap-1.5 rounded-md px-1 py-0.5 transition-colors hover:text-[var(--gallery-foreground)] focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:outline-none"
+          className="wait-muted -mx-1 flex shrink-0 items-center gap-1.5 rounded-md px-1 py-0.5 whitespace-nowrap transition-colors hover:text-[var(--gallery-foreground)] focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:outline-none"
         >
           <span className="wait-key" aria-hidden />
           {`${yoursLabel} · ${formatCount(sheet.hers)}`}
@@ -241,7 +273,7 @@ export function ContactSheet({
       ) : (
         <span
           data-wait-yours=""
-          className="wait-muted flex items-center gap-1.5"
+          className="wait-muted flex shrink-0 items-center gap-1.5 whitespace-nowrap"
         >
           <span className="wait-key" aria-hidden />
           {`${yoursLabel} · ${formatCount(sheet.hers)}`}
@@ -300,7 +332,7 @@ export function ContactSheet({
             </span>
             {yours}
             <p className="wait-muted" data-wait-clock="">
-              {clockText}
+              <ClockWords line={clockLine} countdown={countdown} stacked />
             </p>
           </div>
         )}
@@ -361,10 +393,15 @@ export function ContactSheet({
           )}
         </div>
         {!wide && (
-          <div className="mt-3 flex items-center justify-between gap-3 text-xs">
-            <span className="min-w-0">{yours}</span>
-            <span className="wait-muted text-right" data-wait-clock="">
-              {clockText}
+          // Her count never wraps, and the clock takes a row of its own when it does not fit beside it (a 375 phone with
+          // tomorrow's clock is five pixels short): alone, it stays at the right edge as it always stood.
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs">
+            {yours}
+            <span
+              className={cn("wait-muted", !yours && "ml-auto text-right")}
+              data-wait-clock=""
+            >
+              <ClockWords line={clockLine} countdown={countdown} />
             </span>
           </div>
         )}

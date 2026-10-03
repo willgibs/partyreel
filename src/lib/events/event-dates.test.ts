@@ -69,14 +69,16 @@ describe("an event's days", () => {
     expect(endToStore("2026-10-03", "2026-10-01")).toBe("2026-10-01");
   });
 
-  it("★ follow a moved first day: an end still after it stays, one it reaches or passes keeps the range's length", () => {
-    // Friday 2 to Sunday 4, the first day moved a day earlier: Sunday stays.
+  // RESHAPED ON PURPOSE (crumbs-61, red-team 48's LOW): "an end still after the new first day stays" is gone, since a start
+  // retyped a year earlier kept its end a year on (369 days); the length is kept in both directions (`dates.test.ts`).
+  it("★ follow a moved first day, keeping the range's length in both directions", () => {
+    // Friday 2 to Sunday 4, the first day moved a day earlier: Thursday to Saturday, still two days.
     expect(endForNewStart("2026-10-01", "2026-10-02", "2026-10-04")).toBe(
-      "2026-10-04",
+      "2026-10-03",
     );
-    // Moved inside the range: the end stays.
+    // Moved inside the range: the range moves with it.
     expect(endForNewStart("2026-10-03", "2026-10-02", "2026-10-04")).toBe(
-      "2026-10-04",
+      "2026-10-05",
     );
     // Rescheduled a week on: still a weekend.
     expect(endForNewStart("2026-10-09", "2026-10-02", "2026-10-04")).toBe(

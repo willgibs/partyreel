@@ -119,10 +119,16 @@ export function endToStore(
 }
 
 /**
- * WHERE A NEW FIRST DAY LEAVES A RANGE'S END (Settings' range control; days as its fields hold them, "" for none): an
- * end still after the new day stays (a host moving her first day earlier keeps her Sunday); one the new day reaches or
- * passes moves with it, keeping the range's length (a weekend rescheduled is still a weekend); a cleared date takes its
- * end with it, since an end never stands alone.
+ * WHERE A NEW FIRST DAY LEAVES A RANGE'S END (Settings' range control; days as its fields hold them, "" for none): the
+ * end follows the first day by the range's length, in both directions, so a weekend rescheduled is still a weekend a day
+ * earlier, a week later or a year back. A cleared date takes its end with it, since an end never stands alone, and a
+ * range of one day (no end, or one no later than the first day: `eventDays`' reading) has none to follow.
+ *
+ * ★ THE END NEVER STAYS WHERE IT WAS (crumbs-61, red-team 48's LOW). An end still after the new first day used to stay
+ * ("a host moving her first day earlier keeps her Sunday"), however far the day had moved: a start retyped a year earlier
+ * (2027-10-05 to 09, the year corrected to 2026) saved 2026-10-05 to 2027-10-09, a range of 369 days that every guest
+ * surface printed until she fixed the end too. One rule has no distance to judge: a host who moves her first day earlier
+ * to ADD a day sets the end again, where one who corrects a year never has to.
  *
  * ★ `wasDate` AND `wasEnd` ARE WHAT WAS LAST SAVED, AND `next` A DATE SHE FINISHED: the length it keeps is the range's as
  * the host last had it, never a stop a keystroke passed on the way (the field hands it nothing else, `event-page.tsx`).
@@ -132,8 +138,7 @@ export function endForNewStart(
   wasDate: string,
   wasEnd: string,
 ): string {
-  if (!next || !wasEnd) return "";
-  if (wasEnd > next) return wasEnd;
-  const moved = shiftDay(wasEnd, wasDate ? daysBetween(wasDate, next) : 0);
-  return moved > next ? moved : "";
+  if (!next || !wasDate || !wasEnd) return "";
+  const length = daysBetween(wasDate, wasEnd);
+  return length > 0 ? shiftDay(next, length) : "";
 }

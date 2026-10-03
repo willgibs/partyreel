@@ -54,6 +54,8 @@ const seen = vi.hoisted(() => ({
   gallery: null as Record<string, unknown> | null,
   tracker: null as Record<string, unknown> | null,
   developsAtChange: null as ((developsAt: string | null) => void) | null,
+  waitingChange: null as ((waits: boolean) => void) | null,
+  countWordsChange: null as ((words: string) => void) | null,
 }));
 
 vi.mock("@/components/guest/gallery-live", () => ({
@@ -62,17 +64,25 @@ vi.mock("@/components/guest/gallery-live", () => ({
     galleryPromise,
     pendingUploads,
     onDevelopsAtChange,
+    onWaitingChange,
+    onCountWordsChange,
     children,
   }: {
     galleryPromise: Promise<unknown>;
     pendingUploads?: unknown[];
     onDevelopsAtChange?: (developsAt: string | null) => void;
+    onWaitingChange?: (waits: boolean) => void;
+    onCountWordsChange?: (words: string) => void;
     children: ReactNode;
   }) => {
     use(galleryPromise);
     seen.pending = pendingUploads ?? [];
     // The album's sync, as the source tells the page what it carries about the develop.
     seen.developsAtChange = onDevelopsAtChange ?? null;
+    // ... and whether anything waits in the album, everyone's (each change of it, never each count).
+    seen.waitingChange = onWaitingChange ?? null;
+    // ... and the words its count is said in, by what the album holds (`albumCountWords`).
+    seen.countWordsChange = onCountWordsChange ?? null;
     return <div data-testid="album">{children}</div>;
   },
 }));
@@ -283,6 +293,8 @@ beforeEach(() => {
   seen.gallery = null;
   seen.tracker = null;
   seen.developsAtChange = null;
+  seen.waitingChange = null;
+  seen.countWordsChange = null;
 });
 
 const keepDue = () => seen.door?.keepDue;
@@ -334,6 +346,44 @@ describe("her own sealed shots, which the album shows nowhere", () => {
     await page({ event: DEVELOPS });
     expect(cover()).toHaveTextContent("Add photos");
     expect(cover()).not.toHaveTextContent("first");
+  });
+
+  /* ★ THE FIRST PHOTO FOLLOWS WHAT WAITS, LIVE (crumbs-61, red-team 48's NIT): a guest who joined an empty album kept "Take
+     the first photo" over her own live sheet ("3 photos developing") once others' shots waited, since the page's word on
+     whether anything waits was the server's, at render. The source tells the page each change of it (`onWaitingChange`),
+     and the Add says what a newcomer's does: Take photos. */
+  it("★ stops asking for the first photo the moment others' shots wait, and asks again if nothing does", async () => {
+    await page({ event: CAMERA });
+    expect(cover()).toHaveTextContent("Take the first photo");
+    expect(typeof seen.waitingChange).toBe("function");
+    act(() => seen.waitingChange?.(true));
+    expect(cover()).toHaveTextContent("Take photos");
+    expect(cover()).not.toHaveTextContent("first");
+    act(() => seen.waitingChange?.(false));
+    expect(cover()).toHaveTextContent("Take the first photo");
+  });
+
+  it("★ says it for a free-upload album that develops later too: Add photos, never the first photo", async () => {
+    await page({ event: DEVELOPS });
+    expect(cover()).toHaveTextContent("Add the first photo");
+    act(() => seen.waitingChange?.(true));
+    expect(cover()).toHaveTextContent("Add photos");
+  });
+
+  /* ★ THE COVER'S COUNT SAYS WHAT THE ALBUM HOLDS (crumbs-61, red-team 48's NIT): the glyph's words are "12 photos & videos"
+     from the first paint (the server knows a total, never its kinds) until the album's source names what it holds. */
+  it("★ names its count by what the album holds once the source says it, and both nouns until then", async () => {
+    await page({ event: DEVELOPS, approvedTotal: 12 });
+    expect(
+      screen.getByRole("button", { name: "12 photos & videos" }),
+    ).toBeInTheDocument();
+    act(() => seen.countWordsChange?.("12 photos"));
+    expect(
+      screen.getByRole("button", { name: "12 photos" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "12 photos & videos" }),
+    ).toBeNull();
   });
 
   it("a shot she takes back is hers no longer: nothing keeps it, and the cover asks for the first again", async () => {

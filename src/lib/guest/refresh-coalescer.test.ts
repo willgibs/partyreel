@@ -127,3 +127,65 @@ describe("the batch clock", () => {
     expect(fires).toEqual([]);
   });
 });
+
+/**
+ * ★ A MOMENT IS ONE WRITE, NEVER A STREAM (crumbs-61, red-team 48's LOW). A Develop now (or a develop time reached) opens
+ * every sealed shot of an album in one write and rings the doorbell once: the cover lifts on the host's screen and every
+ * guest's eyebrow should say developed in the same second, where the batch clock had each guest learn it on her own beat
+ * (+0.38 s, +0.84 s and +7.2 s measured, up to fifteen by design). The batch is for a stream of arrivals; one ring that
+ * stands for a whole write asks at once, and the sync it makes covers every ping heard before it.
+ */
+describe("★ a moment asks at once", () => {
+  it("asks at the moment itself, never at the tick, on a device that heard nothing before it", () => {
+    const { c, fires, advance } = harness(0.5);
+    c.moment();
+    expect(fires).toEqual([1_000]);
+    advance(10 * ALBUM_BATCH_MS);
+    expect(fires).toEqual([1_000]);
+  });
+
+  it("★ the sync it makes covers every ping heard before it: the batch that was waiting for its tick is spent", () => {
+    const { c, fires, advance } = harness(0.5);
+    c.ping();
+    advance(2_000);
+    c.moment();
+    expect(fires).toEqual([3_000]);
+    // The tick that ping was waiting for (8,500) never fires a second sync for it.
+    advance(10 * ALBUM_BATCH_MS);
+    expect(fires).toEqual([3_000]);
+  });
+
+  it("a ping after a moment waits for the batch clock as ever", () => {
+    const { c, fires, advance } = harness(0.5);
+    c.moment();
+    advance(1_000);
+    c.ping();
+    advance(ALBUM_BATCH_MS);
+    // Ticks fall at 1000 + 7,500 + k * 15,000: the next one past 2,000 is 8,500.
+    expect(fires).toEqual([1_000, 8_500]);
+  });
+
+  it("two moments are two syncs: each is a write of its own", () => {
+    const { c, fires, advance } = harness(0.5);
+    c.moment();
+    advance(5_000);
+    c.moment();
+    expect(fires).toEqual([1_000, 6_000]);
+  });
+
+  it("a stream of arrivals around a moment still lands one batch a tick", () => {
+    const { c, fires, advance } = harness(0);
+    for (let i = 0; i < 5; i++) {
+      c.ping();
+      advance(2_000);
+    }
+    c.moment();
+    for (let i = 0; i < 5; i++) {
+      c.ping();
+      advance(500);
+    }
+    advance(ALBUM_BATCH_MS);
+    // The moment's sync at 11,000 spends the five pings before it; the five after it ride the next tick (16,000).
+    expect(fires).toEqual([11_000, 16_000]);
+  });
+});

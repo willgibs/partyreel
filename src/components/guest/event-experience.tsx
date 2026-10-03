@@ -91,6 +91,7 @@ import { useInViewSentinel } from "@/lib/shared/use-in-view-sentinel";
 import { DEFAULT_ROW_STEP, type RowStep } from "@/lib/shared/album-rows";
 import { useWaitClock } from "@/lib/disposable/use-wait-clock";
 import { coverEyebrow, waitWords } from "@/lib/disposable/wait-words";
+import { addWords } from "@/lib/guest/camera/words";
 import { claimLeftForAnotherAddress } from "@/lib/guest/claim-uploads";
 import {
   confirmBeatToast,
@@ -368,6 +369,14 @@ export function EventExperience({
   // guest's own first upload makes them one, and only the server can tell a
   // first upload from a returning contributor's.
   const [mediaCount, setMediaCount] = useState(stats.approvedTotal);
+  // ★ WHAT THAT COUNT SAYS IT HOLDS (`albumCountWords`, crumbs-61): the album's source names the kinds it can see ("12
+  // photos"), told with each count so the cover and the album's own line say one thing. Null until the album has
+  // told it, and the cover then says both nouns, as the server's first paint does (it knows a total, never its kinds).
+  const [mediaWords, setMediaWords] = useState<string | null>(null);
+  // ★ WHETHER ANYTHING WAITS IN THE ALBUM, AS ITS SYNC LAST SAID IT (`onWaitingChange`): the server's read at render
+  // (`waitingOnArrival`) is the first paint's word, and this is the live one, so the cover's Add stops asking for "the
+  // first photo" the moment others' shots begin to wait, as a newcomer's never did.
+  const [waitsLive, setWaitsLive] = useState(false);
   const [guestCount, setGuestCount] = useState(stats.guestCount);
   // A refresh re-renders the page with a fresh server count: adopt it (the sanctioned
   // adjust-state-during-render pattern, as `contributionSeen` below), so the poll's number and
@@ -709,24 +718,23 @@ export function EventExperience({
     [],
   );
   /* ★ THE COVER'S ADD IS THE ONE ADD (`event-header` r1, `guest=cover`). The album's empty state draws
-     its river and its words and no button of its own: the cover's white Add says "Add the first photo"
-     on an album with nothing in it yet, in the first screen, and "Add photos" once anything is (her own
+     its river and its words and no button of its own: the cover's white Add asks for the first photo
+     on an album with nothing in it yet, in the first screen, and says its ordinary words once anything is (her own
      files on their way, held for the host, or waiting from an earlier visit count from the first paint,
-     crumbs-43's `waitingOnArrival`), so a guest always has exactly one Add in front of her. */
+     crumbs-43's `waitingOnArrival`; and anyone's shots that begin to wait while she watches, `waitsLive`), so a guest
+     always has exactly one Add in front of her. Its words are `addWords`'. */
   const galleryEmpty =
-    mediaCount === 0 && inFlightUploads.length === 0 && !waitingOnArrival;
-  /* ★ WHERE THE ADD OPENS THE ALBUM'S CAMERA it says so (`disposable-camera`'s Question, taken): "Take photos"
+    mediaCount === 0 &&
+    inFlightUploads.length === 0 &&
+    !waitingOnArrival &&
+    !waitsLive;
+  /* ★ WHERE THE ADD OPENS THE ALBUM'S CAMERA it says so (`disposable-camera`'s Question, taken): Take, not Add,
      with the camera glyph, on the cover's white Add and on the shutter's face (the dock's `camera`), the first
      of them asked for while nothing is on the roll. The one Add is `GuestUpload.openAdd`, which opens the camera
      for any viewer of such an album, the host's included. */
   const cameraAlbum = event.capture === "camera";
-  const addWords = cameraAlbum
-    ? galleryEmpty
-      ? "Take the first photo"
-      : "Take photos"
-    : galleryEmpty
-      ? "Add the first photo"
-      : "Add photos";
+  // ★ THE ADD'S WORDS ARE `addWords`', ONE HOME (crumbs-61): the page and See it as a guest say one thing.
+  const addLabel = addWords({ camera: cameraAlbum, empty: galleryEmpty });
   // Her tracker (`guest-capture` r1, `tracker=button`): the two facts its button needs, kept
   // outside the page's state so a sync re-renders the tracker and never this shell.
   const [trackerStore] = useState(createUploadTrackerStore);
@@ -1403,6 +1411,7 @@ export function EventExperience({
             endDate={event.event_end_date}
             description={event.description}
             mediaCount={mediaCount}
+            mediaWords={mediaWords ?? undefined}
             guestCount={guestCount}
             actionsRef={sentinelRef}
             actions={
@@ -1415,7 +1424,7 @@ export function EventExperience({
                     onClick={openAdd}
                     className="min-w-0 flex-1 md:flex-none"
                   >
-                    {cameraAlbum ? <Camera /> : <ImageUp />} {addWords}
+                    {cameraAlbum ? <Camera /> : <ImageUp />} {addLabel}
                   </Button>
                 )}
                 <UploadTrackerButton
@@ -1564,6 +1573,8 @@ export function EventExperience({
                   isDemo={isDemo}
                   onAccessDrift={handleAccessDrift}
                   onCountChange={setMediaCount}
+                  onCountWordsChange={setMediaWords}
+                  onWaitingChange={setWaitsLive}
                   pendingUploads={inFlightUploads}
                   uploadProgress={uploadProgress}
                   canDeleteIds={canDeleteIds}

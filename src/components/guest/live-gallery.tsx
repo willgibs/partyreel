@@ -265,6 +265,7 @@ function LiveGalleryView({
     pendingUrls,
     uploadProgress,
     ensureLinks,
+    countWords,
   } = live;
 
   // What the viewer's delete confirm adds on such an album, for the one item whose removal closes it
@@ -432,8 +433,8 @@ function LiveGalleryView({
         // toggle in place; the hearts are seeded for the window (and the viewer's reach) alone.
         <LikesProvider mediaIds={likeIds as string[]}>
           {/* THE ALBUM'S OWN COUNT, beside a quiet Select and the ONE View menu (both hidden
-              in the demo and on a locked gallery). The count is the header's number, worded with the
-              header's and the CTA's always-both-nouns rule. */}
+              in the demo and on a locked gallery). The count is the header's number, worded as the source
+              words it (`albumCountWords`): by what the album holds, both nouns only where it cannot see in. */}
           {access !== "none" && items.length > 0 && select.active && !isDemo ? (
             <SelectBar
               picks={select.picks}
@@ -444,7 +445,7 @@ function LiveGalleryView({
           ) : access !== "none" && items.length > 0 ? (
             <div className="mb-3 flex flex-wrap items-center justify-between gap-1.5">
               <p className="px-0.5 text-working text-muted-foreground tabular-nums">
-                {formatMediaCount(count)}
+                {countWords ?? formatMediaCount(count)}
               </p>
               {!isDemo && (
                 <div className="ml-auto flex items-center gap-1.5">

@@ -98,6 +98,14 @@ describe("a day is counted from its own parts, whatever the year", () => {
   });
 });
 
+/**
+ * ★ A RANGE KEEPS ITS LENGTH WHEREVER ITS FIRST DAY GOES (crumbs-61, red-team 48's LOW). The rule had a second arm: an end
+ * still after the new first day stayed ("a host moving her first day earlier keeps her Sunday"), however far the day had
+ * moved, so a start retyped a YEAR earlier (2027-10-05 to 09, the year corrected to 2026) saved 2026-10-05 to 2027-10-09, a
+ * range of 369 days that every guest surface then printed. RESHAPED ON PURPOSE: the scar kept is crumbs-59's (the end
+ * follows the day it was SAVED from, never a stop on the way); the expired reason is the arm that kept an end where it
+ * stood, which a day earlier or a year earlier could not tell apart.
+ */
 describe("a range follows its first day by the length it was last saved with", () => {
   it("★ is the same weekend a year on, never a range a millennium long", () => {
     // The ledger's own walk: October 2 to 4 with the year typed to 2027. The end moves with the day it was saved from.
@@ -110,14 +118,45 @@ describe("a range follows its first day by the length it was last saved with", (
     );
   });
 
-  it("keeps the rule it has: an end still after the new day stays, one it reaches or passes moves", () => {
-    expect(endForNewStart("2026-10-01", "2026-10-02", "2026-10-04")).toBe(
-      "2026-10-04",
+  it("★ is the same range a year EARLIER too, never one 369 days long (red-team 48's own walk)", () => {
+    // L: 2027-10-05 to 09, the start's year retyped 2026 and finished. The end used to stay in 2027.
+    expect(endForNewStart("2026-10-05", "2027-10-05", "2027-10-09")).toBe(
+      "2026-10-09",
     );
-    expect(endForNewStart("2026-10-04", "2026-10-02", "2026-10-04")).toBe(
-      "2026-10-06",
+    // The same walk the other way, so the two directions are one rule.
+    expect(endForNewStart("2027-10-05", "2026-10-05", "2026-10-09")).toBe(
+      "2027-10-09",
     );
+  });
+
+  it("keeps the length in both directions, a day or a year, across a month, a year's turn and a leap day", () => {
+    // Friday 2 to Sunday 4: a day earlier, inside the range, onto its own last day, a week on.
+    for (const [next, end] of [
+      ["2026-10-01", "2026-10-03"],
+      ["2026-10-03", "2026-10-05"],
+      ["2026-10-04", "2026-10-06"],
+      ["2026-10-09", "2026-10-11"],
+    ] as const) {
+      expect(endForNewStart(next, "2026-10-02", "2026-10-04"), next).toBe(end);
+      // Whatever the move, the length is what it was.
+      expect(daysBetween(next, end), next).toBe(2);
+    }
+    expect(endForNewStart("2026-12-30", "2026-10-05", "2026-10-09")).toBe(
+      "2027-01-03",
+    );
+    expect(endForNewStart("2028-02-27", "2027-10-05", "2027-10-09")).toBe(
+      "2028-03-02",
+    );
+  });
+
+  it("a cleared date takes its end with it, and an end never stands alone: one day stays one day", () => {
     expect(endForNewStart("", "2026-10-02", "2026-10-04")).toBe("");
+    expect(endForNewStart("2026-10-09", "2026-10-02", "")).toBe("");
+    // An end with no first day saved is no range at all (`eventDays`' own reading).
+    expect(endForNewStart("2026-10-09", "", "2026-10-04")).toBe("");
+    // An end that is no later than its first day reads as one day, and a moved day makes no range of it.
+    expect(endForNewStart("2026-10-09", "2026-10-04", "2026-10-04")).toBe("");
+    expect(endForNewStart("2026-10-09", "2026-10-04", "2026-10-02")).toBe("");
   });
 });
 

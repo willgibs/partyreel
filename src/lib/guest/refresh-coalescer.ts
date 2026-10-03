@@ -17,16 +17,41 @@
  * interval however many guests are uploading.
  *
  * Never batched, because none of it is a ping: her own upload (the provider syncs on `notifyUploaded`), a host's own
- * write, a tab's return (`use-live-poll.ts`'s catch-up) and Try again. Pure, with an injectable clock and timers, so
- * the rules are Vitest-pinnable.
+ * write, a tab's return (`use-live-poll.ts`'s catch-up) and Try again.
+ *
+ * ★ A MOMENT IS ONE WRITE, NEVER A STREAM (crumbs-61, red-team 48's LOW). A ring that stands for a whole write (a Develop
+ * now, a develop time reached, a hold released: `album_doorbell`, which says so in its payload, `use-gallery-doorbell.ts`)
+ * is not one more arrival, and a device that waited for its tick learned it up to fifteen seconds after the host's own
+ * screen did (+0.38 s, +0.84 s and +7.2 s measured on three guests): `moment()` asks at once, and the sync it makes
+ * covers every ping heard before it, so the batch that was waiting is spent. Pings after it wait for the next tick as
+ * ever. Pure, with an injectable clock and timers, so the rules are Vitest-pinnable.
  */
 
 /** THE BATCH CLOCK, named once: how often another guest's arrivals land, together, on a device that is listening. */
 export const ALBUM_BATCH_MS = 15_000;
 
+/**
+ * Whether a ping says it stands for ONE WRITE that moved many rows (`album_doorbell`: a develop, a hold released), as
+ * supabase-js hands a broadcast to its listener: `{ type, event, payload }`, the payload the sender's own (with the id
+ * `realtime.send` stamps beside it). An arrival's ping is contentless, so anything but a payload that says `moment: true`
+ * is an arrival. The key is the database's (`20261003211000_doorbell_moment.sql`), held to it by
+ * `use-gallery-doorbell.sql.test.ts`.
+ */
+export function isMoment(message: unknown): boolean {
+  if (typeof message !== "object" || message === null) return false;
+  const payload = (message as { payload?: unknown }).payload;
+  return (
+    typeof payload === "object" &&
+    payload !== null &&
+    (payload as { moment?: unknown }).moment === true
+  );
+}
+
 export type RefreshCoalescer = {
-  /** A doorbell ping arrived. */
+  /** A doorbell ping arrived (an arrival): it waits for this device's next tick. */
   ping: () => void;
+  /** A ring that stands for one whole write arrived (a develop): ask at once, and spend the batch that was waiting. */
+  moment: () => void;
   /** Cancel the pending batch (a tab gone hidden, an unmount): whatever comes next catches up on its own. */
   dispose: () => void;
 };
@@ -72,6 +97,14 @@ export function createRefreshCoalescer(
         },
         nextTick(t) - t,
       );
+    },
+    moment() {
+      // The sync made now answers every ping heard before it: the tick that batch waited for has nothing left to ask.
+      if (pending) {
+        clearT(pending);
+        pending = null;
+      }
+      fire();
     },
     dispose() {
       if (pending) {

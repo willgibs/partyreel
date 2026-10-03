@@ -138,14 +138,18 @@ describe("the album's one Add", () => {
     );
   });
 
-  it("★ the guest page says the same four phrases, so the view and the page cannot word it apart again", () => {
+  /* ★ RESHAPED ON PURPOSE (crumbs-61, red-team 48's NIT): the page carried the four phrases inline and a grep held them to
+     this function's, which is two homes for one string. Its scar is kept (the view and the page cannot word the Add apart
+     again) the surer way: the page CALLS the function, and none of its phrases is written there. */
+  it("★ the guest page words it from this function, never from four phrases of its own", () => {
     const page = readFileSync(
       join(process.cwd(), "src/components/guest/event-experience.tsx"),
       "utf8",
     );
+    expect(page).toContain("addWords({");
     for (const camera of [true, false]) {
       for (const empty of [true, false]) {
-        expect(page).toContain(`"${addWords({ camera, empty })}"`);
+        expect(page).not.toContain(`"${addWords({ camera, empty })}"`);
       }
     }
   });
