@@ -1771,17 +1771,14 @@ describe("the live reel: the expand (20260924100000) and the drop (2026092411000
       },
     } as const;
     // Both paths: the key binding, the ceiling, QA #17's lock, the paid-only video gate (which is
-    // what keeps a saved cut to a paid event) and the active-bytes cap. ★ RESHAPED ON PURPOSE by
-    // upload-meter (20261003210500; scar kept: every other guard, the lock before the cap): the
-    // monthly ingress check left both bodies with the ledger's write, for the presign's
-    // `meter_upload`, which counts a file's declared bytes once, before its URL exists (its pins:
-    // src/lib/upload/server-pipeline-meter-migration.test.ts); a complete counts nothing again.
+    // what keeps a saved cut to a paid event), the ingress meter and the active-bytes cap.
     const shared = [
       "if p_original_key not like 'events/' || v_event.id::text || '/%' then raise exception 'Object key does not belong to this event.'",
       "if p_preview_key is not null and p_preview_key not like 'events/' || v_event.id::text || '/%' then raise exception 'Preview key does not belong to this event.'",
       "if p_file_size_bytes > c_max_upload_bytes then raise exception 'File exceeds the 10 GB maximum.'",
       "from public.profiles where id = v_event.host_id for update;",
       "if p_type = 'video' and v_profile.tier = 'free' then raise exception 'Video uploads are available on paid plans.'",
+      "if coalesce(v_month_bytes, 0) + p_file_size_bytes > v_ingress_cap then raise exception 'Monthly upload limit reached for this plan.'",
       "if public.host_active_bytes(v_event.host_id) + p_file_size_bytes > v_cap + (v_cap / 10) then raise exception 'Storage capacity exceeded for this plan.'",
     ];
 

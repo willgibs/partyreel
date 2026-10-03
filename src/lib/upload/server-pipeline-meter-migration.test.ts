@@ -1,13 +1,16 @@
 /**
- * THE PRESIGN COUNTS: THE SQL FACTS (lane `upload-meter`, 20261003210500), pinned LATEST-WINS across the whole
- * migration set the way `src/lib/db/migration-guards.test.ts` pins its own: each pin reads CODE (comments stripped,
- * whitespace collapsed), a body is its last definition and a grant its file's, so a later file that drops a clause
- * fails here. The lane's own file, beside the meter's call (`server-pipeline-meter.ts`).
+ * THE PRESIGN'S METER AND TWO BREAKERS: THE SQL FACTS (lane `upload-meter`, 20261003210500, reworked on the Advisor's
+ * Q19), pinned LATEST-WINS across the whole migration set the way `src/lib/db/migration-guards.test.ts` pins its own:
+ * each pin reads CODE (comments stripped, whitespace collapsed), a body is its last definition and a grant its file's,
+ * so a later file that drops a clause fails here. The lane's own file, beside the meter's call
+ * (`server-pipeline-meter.ts`).
  *
  * What they hold:
- *   1. THE METER: `meter_upload` counts the declared bytes and the item under the host's one lock, after the breaker,
- *      the month (today's inequality on today's allowance) and the storage it must fit, and is the service role's alone.
- *   2. ONE WRITER: no other winning body writes the ledger, and `create_media*` neither check nor count the month.
+ *   1. THE METER: `meter_upload` refuses past the hour's breaker, the month (the complete's own line) and the room, and
+ *      tallies the hour in one atomic upsert; it counts NOTHING of the month and takes no profiles lock; it is the
+ *      service role's alone.
+ *   2. THE MONTH IS THE COMPLETE'S: `create_media*` are 20261003110000's, untouched, still the only writers of the
+ *      month's bytes and items; the meter writes the hour's columns alone.
  *   3. THE BREAKERS: an account's uploads a clock hour (20,000) and its creations a day (100), the second on a creation
  *      alone, after the plan's own limit, in words the create action reads.
  */
@@ -80,24 +83,18 @@ describe("1. the meter", () => {
     );
   });
 
-  it("★ takes the host's profiles lock FIRST and alone, before it reads the month, and never locks the event row", () => {
+  it("★ takes no row lock at all: with no month to spend, its reads are plain and its one write is its own upsert", () => {
     const body = latest("meter_upload").body;
-    const lock = body.indexOf(
-      "select * into v_profile from public.profiles where id = v_event.host_id for update;",
-    );
-    expect(lock).toBeGreaterThan(-1);
-    expect(lock).toBeLessThan(
-      body.indexOf("select * into v_ledger from public.storage_ledger"),
-    );
-    expect(
-      body.match(/\bfor (update|share|no key update|key share)\b/g),
-    ).toEqual(["for update"]);
+    expect(body).not.toMatch(/\bfor (update|share|no key update|key share)\b/);
     expect(body).toContain(
-      "select * into v_event from public.events where id = p_event_id and deleted_at is null;",
+      "select e.host_id into v_host from public.events e where e.id = p_event_id and e.deleted_at is null;",
+    );
+    expect(body).toContain(
+      "select p.tier, p.storage_cap_bytes into v_tier, v_storage_cap from public.profiles p where p.id = v_host;",
     );
   });
 
-  it("★ refuses in one order (the breaker, the month, the room), and only then counts", () => {
+  it("★ refuses in one order (the breaker's early read, the month, the room), and only then tallies the hour", () => {
     const body = latest("meter_upload").body;
     const at = (needle: string) => {
       const i = body.indexOf(needle);
@@ -111,42 +108,44 @@ describe("1. the meter", () => {
       "if v_ingress_cap is not null and coalesce(v_ledger.cumulative_bytes, 0) + p_bytes > v_ingress_cap then return jsonb_build_object('ok', false, 'reason', 'monthly');",
     );
     const room = at(
-      "if v_cap is not null and public.host_active_bytes(v_event.host_id) + p_bytes > v_cap + (v_cap / 10) then return jsonb_build_object('ok', false, 'reason', 'storage');",
+      "if v_cap is not null and public.host_active_bytes(v_host) + p_bytes > v_cap + (v_cap / 10) then return jsonb_build_object('ok', false, 'reason', 'storage');",
     );
-    const count = at("insert into public.storage_ledger as l (");
+    const tally = at("insert into public.storage_ledger as l (");
     expect(breaker).toBeLessThan(month);
     expect(month).toBeLessThan(room);
-    expect(room).toBeLessThan(count);
+    expect(room).toBeLessThan(tally);
   });
 
-  it("★ reads the month's allowance exactly as the complete read it: the same cap, the same line, the same key", () => {
+  it("★ reads the month exactly as the complete holds it: the same cap, the same strict line, the same key", () => {
     const body = latest("meter_upload").body;
     expect(body).toContain(
-      "v_ingress_cap := public.monthly_ingress_cap(v_profile.tier, v_profile.storage_cap_bytes);",
+      "v_ingress_cap := public.monthly_ingress_cap(v_tier, v_storage_cap);",
     );
     expect(body).toContain("v_period text := to_char(now(), 'YYYY-MM');");
-    // The room is the complete's too: the cap and its 10% write headroom (capWithWriteHeadroom).
     expect(body).toContain(
-      "v_cap := coalesce(v_profile.storage_cap_bytes, v_limits.default_storage_cap_bytes);",
+      "v_cap := coalesce(v_storage_cap, (select l.default_storage_cap_bytes from public.tier_limits(v_tier) l));",
     );
-    // And the previous file's complete read the month on the same function and the same strict line.
-    const before = collapse(
-      strip(
-        readFileSync(
-          join(MIGRATIONS_DIR, "20261003110000_phone_copy.sql"),
-          "utf8",
-        ),
-      ),
-    );
-    expect(before).toContain(
-      "if coalesce(v_month_bytes, 0) + p_file_size_bytes > v_ingress_cap then raise exception 'Monthly upload limit reached for this plan.'",
-    );
+    for (const name of ["create_media", "create_media_as_host"]) {
+      const complete = latest(name).body;
+      expect(complete, name).toContain(
+        "v_ingress_cap := public.monthly_ingress_cap(v_profile.tier, v_profile.storage_cap_bytes);",
+      );
+      expect(complete, name).toContain(
+        "if coalesce(v_month_bytes, 0) + p_file_size_bytes > v_ingress_cap then raise exception 'Monthly upload limit reached for this plan.'",
+      );
+      expect(complete, name).toContain(
+        "if public.host_active_bytes(v_event.host_id) + p_file_size_bytes > v_cap + (v_cap / 10) then raise exception 'Storage capacity exceeded for this plan.'",
+      );
+    }
   });
 
-  it("counts the declared bytes and the item, and the hour's tally (a new hour starting again at one)", () => {
+  it("★ the hour's tally is one upsert, atomic on its row: its WHERE refuses the 20,001st even past a raced early read", () => {
     const body = latest("meter_upload").body;
     expect(body).toContain(
-      "insert into public.storage_ledger as l ( host_id, period, cumulative_bytes, photo_count, video_count, hour_started_at, hour_uploads ) values ( v_event.host_id, v_period, p_bytes, case when p_type = 'photo' then 1 else 0 end, case when p_type = 'video' then 1 else 0 end, v_hour, 1 ) on conflict (host_id, period) do update set cumulative_bytes = l.cumulative_bytes + excluded.cumulative_bytes, photo_count = l.photo_count + excluded.photo_count, video_count = l.video_count + excluded.video_count, hour_uploads = case when l.hour_started_at = excluded.hour_started_at then l.hour_uploads + 1 else 1 end, hour_started_at = excluded.hour_started_at, updated_at = now();",
+      "insert into public.storage_ledger as l (host_id, period, hour_started_at, hour_uploads) values (v_host, v_period, v_hour, 1) on conflict (host_id, period) do update set hour_uploads = case when l.hour_started_at = excluded.hour_started_at then l.hour_uploads + 1 else 1 end, hour_started_at = excluded.hour_started_at where l.hour_started_at is distinct from excluded.hour_started_at or l.hour_uploads < c_uploads_an_hour returning l.hour_uploads into v_tallied;",
+    );
+    expect(body).toContain(
+      "if v_tallied is null then return jsonb_build_object( 'ok', false, 'reason', 'hourly',",
     );
     expect(body).toContain(
       "v_hour timestamptz := pg_catalog.date_trunc('hour', now(), 'UTC');",
@@ -192,46 +191,32 @@ describe("1. the meter", () => {
   });
 });
 
-describe("2. one writer", () => {
-  it("★ no winning body but meter_upload writes the ledger: a file counts once, at its presign", () => {
-    const writers = [...WINNING]
-      .filter(([, { body }]) =>
-        /\b(insert into|update|delete from) public\.storage_ledger\b/.test(
-          body,
-        ),
-      )
-      .map(([name]) => name);
-    expect(writers).toEqual(["meter_upload"]);
-  });
-
+describe("2. the month is the complete's", () => {
   it.each(["create_media", "create_media_as_host"])(
-    "★ %s neither checks nor counts the month, and still binds the room and the physical meter on the HEAD's size",
+    "★ %s is 20261003110000's, untouched by this file",
     (name) => {
-      const { body, file } = latest(name);
-      expect(file).toBe(FILE);
-      expect(body).not.toMatch(
-        /storage_ledger|monthly_ingress_cap|v_month_bytes/,
-      );
-      expect(body).not.toContain("Monthly upload limit");
-      expect(body).toContain(
-        "if public.host_active_bytes(v_event.host_id) + p_file_size_bytes > v_cap + (v_cap / 10) then raise exception 'Storage capacity exceeded for this plan.'",
-      );
-      expect(body).toContain(
-        "set storage_used_bytes = storage_used_bytes + p_file_size_bytes where id = v_event.host_id;",
-      );
+      expect(latest(name).file).toBe("20261003110000_phone_copy.sql");
+      expect(fileSql()).not.toContain(`function public.${name}(`);
     },
   );
 
-  it("the readers of the month still read the row the meter writes (the advisories and the gate)", () => {
-    for (const name of [
-      "get_upload_context",
-      "get_host_upload_context",
-      "get_upload_gate",
-    ]) {
-      expect(latest(name).body, name).toContain(
-        "v_ingress_cap := public.monthly_ingress_cap(v_profile.tier, v_profile.storage_cap_bytes);",
-      );
-    }
+  it("★ the month's bytes and items have two writers, the completes; the meter writes the hour's columns alone", () => {
+    const monthWriters = [...WINNING]
+      .filter(([, { body }]) =>
+        /\binsert into public\.storage_ledger \(host_id, period, cumulative_bytes\b/.test(
+          body,
+        ),
+      )
+      .map(([name]) => name)
+      .sort();
+    expect(monthWriters).toEqual(["create_media", "create_media_as_host"]);
+    const meter = latest("meter_upload").body;
+    expect(meter).not.toMatch(
+      /\b(cumulative_bytes|photo_count|video_count)\s*=/,
+    );
+    expect(meter).not.toMatch(
+      /insert into public\.storage_ledger[^;]*\b(cumulative_bytes|photo_count|video_count)\b[^;]*values/,
+    );
   });
 });
 

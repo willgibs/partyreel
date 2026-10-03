@@ -44,10 +44,12 @@ vi.mock("@/lib/observability/sentry", () => ({
 vi.mock("@/lib/forensics/capture", () => ({
   captureUploadForensics: vi.fn(),
 }));
+const createMultipartUpload = vi.fn();
+const presignUploadPart = vi.fn();
 vi.mock("@/lib/r2/presign", () => ({
   presignUpload: (...args: unknown[]) => presignUpload(...args),
-  presignUploadPart: vi.fn(),
-  createMultipartUpload: vi.fn(),
+  presignUploadPart: (...args: unknown[]) => presignUploadPart(...args),
+  createMultipartUpload: (...args: unknown[]) => createMultipartUpload(...args),
   completeMultipartUpload: vi.fn(),
   sumMultipartParts: vi.fn(),
   abortMultipartUpload: vi.fn(),
@@ -392,9 +394,11 @@ describe("the platform's uploads switch (spend-watch)", () => {
 });
 
 /**
- * THE PRESIGN COUNTS (upload-meter, 20261003210500): the declared bytes are counted against the host's month after
- * every gate and before any URL is minted (the engine's meter), and every refusal it makes reaches the guest in the
- * album's words, never the plan's, with nothing presigned. The meter's own SQL is its migration's rolled-back proof.
+ * THE PRESIGN'S METER (upload-meter, 20261003210500, reworked on the Advisor's Q19): after every gate and before any
+ * URL is minted, the engine asks the meter about the declared bytes; every refusal it makes reaches the guest in the
+ * album's words, never the plan's, with nothing presigned, and a meter that cannot answer lets the upload go (fail
+ * OPEN: the complete counts the month on the bytes that landed). The meter's own SQL is its migration's rolled-back
+ * proof.
  */
 describe("the meter", () => {
   async function presignWith(over: Record<string, unknown>) {
@@ -423,7 +427,7 @@ describe("the meter", () => {
     };
   }
 
-  it("★ counts the declared bytes once, for the event the ticket resolved, before any URL is minted", async () => {
+  it("★ asks the meter once, with the declared bytes, for the event the ticket resolved, before any URL is minted", async () => {
     const { status } = await presignWith({
       content_type: "video/mp4",
       size_bytes: 52_428_800,
@@ -497,16 +501,12 @@ describe("the meter", () => {
     },
   );
 
-  it("★ a meter that cannot answer refuses the upload (fail CLOSED), nothing presigned", async () => {
+  it("★ a meter that cannot answer lets the upload go (fail OPEN), minted at its staging twin as ever", async () => {
     meterUpload.mockResolvedValue({ ok: false, reason: "unavailable" });
     const res = await presignWith({});
-    expect(res.status).toBe(503);
-    expect(res.body).toEqual({
-      ok: false,
-      code: "server_error",
-      message: "Couldn't start the upload. Please try again.",
-    });
-    expect(presignUpload).not.toHaveBeenCalled();
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(presignUpload).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -606,5 +606,95 @@ describe("the preview", () => {
     expect(body.preview).toBeUndefined();
     expect(body.preview_refused).toBeUndefined();
     expect(Object.keys(body)).not.toContain("preview_refused");
+  });
+});
+
+/**
+ * ★ EVERY SINGLE PUT LANDS IN STAGING (upload-meter, the Advisor's Q19): the original under the multipart threshold,
+ * its preview and its phone copy are each minted at their key's `staging/` twin, which the backup and the orphan sweep
+ * never read and a lifecycle rule empties a day on; the answer still names the `events/` keys, which the client echoes
+ * at complete, where the copy into `events/` happens. A multipart original targets its key directly: nothing becomes
+ * an object there until the complete assembles it.
+ */
+describe("staging", () => {
+  async function presignWith(over: Record<string, unknown>) {
+    const res = await POST(
+      new Request("https://partyreel.com/api/r2/presign-upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_token: TOKEN,
+          content_type: "image/jpeg",
+          ...over,
+        }),
+      }),
+    );
+    return {
+      status: res.status,
+      body: (await res.json()) as {
+        ok: boolean;
+        strategy?: string;
+        media_id?: string;
+        key?: string;
+        preview?: { key: string; url: string };
+        phone?: { key: string; url: string };
+      },
+    };
+  }
+  const MB = 1024 * 1024;
+  const stagedTwin = (key: string) => key.replace(/^events\//, "staging/");
+
+  it("★ mints a single PUT, its preview and its phone copy at their staging twins; the answer names the events/ keys", async () => {
+    presignUpload.mockImplementation(async (p: { key: string }) => ({
+      url: `https://r2.example/put/${p.key}`,
+      headers: {},
+    }));
+    const { status, body } = await presignWith({
+      size_bytes: 3 * MB,
+      preview_size_bytes: 40_000,
+      phone_size_bytes: 600_000,
+    });
+    expect(status).toBe(200);
+    expect(body.strategy).toBe("single");
+    expect(body.key).toBe(
+      `events/${EVENT}/photo/${body.media_id}/original.jpg`,
+    );
+    expect(body.preview?.key).toBe(
+      `events/${EVENT}/photo/${body.media_id}/preview.webp`,
+    );
+    expect(body.phone?.key).toBe(
+      `events/${EVENT}/photo/${body.media_id}/phone.jpg`,
+    );
+    const minted = presignUpload.mock.calls.map(
+      (c) => (c[0] as { key: string }).key,
+    );
+    expect(minted.sort()).toEqual(
+      [body.key!, body.preview!.key, body.phone!.key].map(stagedTwin).sort(),
+    );
+    for (const key of minted) expect(key.startsWith("staging/")).toBe(true);
+    expect(body.preview?.url).toBe(
+      `https://r2.example/put/${stagedTwin(body.preview!.key)}`,
+    );
+  });
+
+  it("a multipart original goes to its own key (nothing lands there until the complete), its preview to staging", async () => {
+    createMultipartUpload.mockResolvedValue({ uploadId: "upload-1" });
+    presignUploadPart.mockResolvedValue({ url: "https://r2.example/part" });
+    const { status, body } = await presignWith({
+      content_type: "video/mp4",
+      size_bytes: 120 * MB,
+      preview_size_bytes: 40_000,
+    });
+    expect(status).toBe(200);
+    expect(body.strategy).toBe("multipart");
+    expect(createMultipartUpload).toHaveBeenCalledWith({
+      key: body.key,
+      contentType: "video/mp4",
+    });
+    expect(body.key!.startsWith("events/")).toBe(true);
+    expect(presignUpload).toHaveBeenCalledTimes(1);
+    expect(presignUpload.mock.calls[0]![0]).toMatchObject({
+      key: stagedTwin(body.preview!.key),
+    });
   });
 });

@@ -174,17 +174,14 @@ describe("2. the writers record it in the same insert, after their own check", (
 });
 
 describe("3. never metered", () => {
-  // ★ RESHAPED ON PURPOSE by upload-meter (20261003210500; scar kept: storage_used_bytes and the cap read the
-  // original's bytes alone, and the copy's bytes reach no meter): the monthly ledger is no writer's here any more.
-  // The presign's `meter_upload` counts the original's DECLARED bytes, and never a copy's, before any URL exists.
   it.each(WRITERS)(
-    "%s meters the original alone: storage_used_bytes and the cap read p_file_size_bytes, the month is the presign's",
+    "%s meters the original alone: the ledger, storage_used_bytes and both caps read p_file_size_bytes",
     (name) => {
       const body = latest(name).body;
       expect(body).toContain(
         "set storage_used_bytes = storage_used_bytes + p_file_size_bytes where id = v_event.host_id;",
       );
-      expect(body).not.toContain("storage_ledger");
+      expect(body).toContain("v_event.host_id, v_period, p_file_size_bytes,");
       expect(body).toContain(
         "if public.host_active_bytes(v_event.host_id) + p_file_size_bytes > v_cap + (v_cap / 10) then",
       );
@@ -208,9 +205,6 @@ describe("3. never metered", () => {
 });
 
 describe("4. who may call them", () => {
-  // ★ RESHAPED ON PURPOSE by upload-meter (20261003210500; scar kept: this file drops each old signature before it
-  // creates the new, and the signature with the pair is the service role's alone): a later file replaces both bodies
-  // in place, so the grants are read in whichever file wins, which must restate them, as every replace restates them.
   it("drops each old signature before creating the new one, in this file", () => {
     const sql = fileSql();
     const shapes = {
@@ -225,21 +219,13 @@ describe("4. who may call them", () => {
       expect(dropped).toBeLessThan(
         sql.indexOf(`create function public.${name}(`),
       );
+      expect(latest(name).file).toBe(FILE);
       // The new signature: the old one, then the copy's two (`p_phone_key`, `p_phone_bytes`).
       const after = `${before}, text, bigint`;
       expect(sql).toContain(
         `revoke execute on function public.${name}(${after}) from public, anon, authenticated;`,
       );
       expect(sql).toContain(
-        `grant execute on function public.${name}(${after}) to service_role;`,
-      );
-      const winner = collapse(
-        strip(readFileSync(join(MIGRATIONS_DIR, latest(name).file), "utf8")),
-      );
-      expect(winner, latest(name).file).toContain(
-        `revoke execute on function public.${name}(${after}) from public, anon, authenticated;`,
-      );
-      expect(winner, latest(name).file).toContain(
         `grant execute on function public.${name}(${after}) to service_role;`,
       );
       expect(everything()).not.toMatch(

@@ -1,12 +1,12 @@
 /**
  * THE PRESIGN'S METER, READ AND CALLED (upload-meter, 20261003210500). `meter_upload`'s answer is read by one pure
- * ladder, and the call fails CLOSED: an error, a missing answer or one it does not know is `unavailable` (the presign
- * then refuses), reported every time, and never a count the meter did not make.
+ * ladder, and the call fails OPEN (the Advisor's Q19): an error, a missing answer or one it does not know is
+ * `unavailable`, which the engine lets through, reported every time as a warning, never silently.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const rpc = vi.fn();
-const captureError = vi.fn();
+const captureWarning = vi.fn();
 
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/supabase/admin", () => ({
@@ -15,8 +15,8 @@ vi.mock("@/lib/supabase/admin", () => ({
   }),
 }));
 vi.mock("@/lib/observability/sentry", () => ({
-  captureError: (...args: unknown[]) => captureError(...args),
-  captureWarning: vi.fn(),
+  captureError: vi.fn(),
+  captureWarning: (...args: unknown[]) => captureWarning(...args),
 }));
 
 const { meterUpload, parseMeterAnswer } =
@@ -63,7 +63,7 @@ describe("parseMeterAnswer", () => {
     ).toEqual({ ok: false, reason: "hourly", retryAfterSec: 13 });
   });
 
-  it("★ anything it does not know is unavailable, never a count", () => {
+  it("★ anything it does not know is unavailable, never a refusal it did not make", () => {
     for (const answer of [
       null,
       undefined,
@@ -96,7 +96,7 @@ describe("meterUpload", () => {
       p_type: "video",
       p_bytes: 123_456_789,
     });
-    expect(captureError).not.toHaveBeenCalled();
+    expect(captureWarning).not.toHaveBeenCalled();
 
     rpc.mockResolvedValue({
       data: { ok: false, reason: "monthly" },
@@ -106,10 +106,10 @@ describe("meterUpload", () => {
       meterUpload({ eventId: EVENT, kind: "photo", bytes: 1 }),
     ).resolves.toEqual({ ok: false, reason: "monthly" });
     // A refusal the meter made is an answer, not a failure: nothing is reported.
-    expect(captureError).not.toHaveBeenCalled();
+    expect(captureWarning).not.toHaveBeenCalled();
   });
 
-  it("★ fails CLOSED on an error, and says so", async () => {
+  it("★ fails OPEN on an error (unavailable, which refuses nothing), and says so", async () => {
     rpc.mockResolvedValue({
       data: null,
       error: { code: "PGRST202", message: "Could not find the function" },
@@ -117,11 +117,14 @@ describe("meterUpload", () => {
     await expect(
       meterUpload({ eventId: EVENT, kind: "photo", bytes: 1000 }),
     ).resolves.toEqual({ ok: false, reason: "unavailable" });
-    expect(captureError).toHaveBeenCalledTimes(1);
-    expect(captureError.mock.calls[0]![0]).toBe("upload");
+    expect(captureWarning).toHaveBeenCalledTimes(1);
+    expect(captureWarning.mock.calls[0]![0]).toBe("upload");
+    expect(captureWarning.mock.calls[0]![1]).toBe(
+      "meter_unavailable_fail_open",
+    );
   });
 
-  it("★ fails CLOSED on a throw and on an answer it does not know, and says so each time", async () => {
+  it("★ fails OPEN on a throw and on an answer it does not know, and says so each time", async () => {
     rpc.mockRejectedValue(new Error("fetch failed"));
     await expect(
       meterUpload({ eventId: EVENT, kind: "photo", bytes: 1000 }),
@@ -130,6 +133,6 @@ describe("meterUpload", () => {
     await expect(
       meterUpload({ eventId: EVENT, kind: "photo", bytes: 1000 }),
     ).resolves.toEqual({ ok: false, reason: "unavailable" });
-    expect(captureError).toHaveBeenCalledTimes(2);
+    expect(captureWarning).toHaveBeenCalledTimes(2);
   });
 });
