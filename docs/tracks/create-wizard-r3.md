@@ -1,6 +1,6 @@
 ---
 track: create-wizard-r3
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "c5f341f4"            # the launch-prep SHA the branch was cut from
 board: create-wizard
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -48,33 +48,76 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each is built as recommended and stands on the board as a carried call (`spec.ts` `carried`), his to overrule there.
+
+- **What does the add step ask, now its answer is an album style?** Recommended and built: "Pick your album's style"
+  (Settings' own word) over "Change it any time in Settings"; r2's "How will guests add photos?" no longer fits,
+  since Reviewed is not a way to add. Overrule: r2's question back.
+- **Does the night name clock times?** Recommended and built: no; its moments are Arriving, The party and Next
+  morning (the round's "nothing depends on a timeline"), the disposable's develop time still 9 am the morning after.
+  Overrule: 8 pm, 10:40 pm and 9 am, as r2 drew it.
+- **Which style stands picked as the step opens?** Recommended and built: Live (the schema's own default; Continue
+  alone keeps it). Overrule: none picked, Continue waiting for her.
+- **What does Continue carry into the head off the add step?** Recommended and built: the pick's own picture,
+  dropping into its hairline as the look arrives (`carry.ts` left it to this round). Overrule: the hairline fills
+  alone.
+- **Does Create offer Reviewed?** Answered by his pick: `styles` and `one` offer Settings' three, `pair` and `strip`
+  the two experiences with Reviewed left to Settings. Recommended: `styles` (three, Settings' own cards).
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none (an exploration ships no production byte; `host-app.md`'s add-step lines are the wiring's)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- none
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
-
-## Where I am
-
-WIP at `708ec79d` (synced with `origin/launch-prep` at `7e4f6b2e`, identity-wiring and rooms-wiring in): the r3 board
-draws (spec r3, one ask `add`: pair, styles (recommended), one, strip; each in production's room, Try it live from the
-add step through the beat; styles adds Settings on paper). Registry, queue and kit tests green; typecheck and lint
-green on `67669aae`. Remaining: a polish pass on the frames, the full gate, `lab:smoke`, `lab:demo` at 1440 and 375,
-the Questions and the Handoff. Captures and the capture script live in `../partyreel-wt/_scratch/create-wizard-r3/`.
+- **Commits**, pushed on `lp/create-wizard-r3`: the work `67669aae` (the board r3, the pick's light inside its box
+  and Settings' cards larger at a desk included), `708ec79d` (the three moments each drawn once: Disposable picked as
+  guests arrive; its message also names two changes `67669aae` already held), `f5dd84a1` (a moment comes up like a
+  print); the sync `7e4f6b2e` (`origin/launch-prep` at `e459ca50`: identity-wiring and rooms-wiring in). Since then
+  launch-prep moved only by records (`ed7b480d`, `3e19e858`: `docs/tracks/orchestrator.md`), so no second sync.
+- **Gates on `f5dd84a1`**, each its own exit code 0: `pnpm typecheck`; `pnpm lint`; `pnpm test` (825 files, 9,733
+  tests); `zsh scripts/build-lock.sh pnpm build`; `pnpm lab:smoke --base http://localhost:3135` (19 checks, 0
+  failing; create-wizard 660 words of 1,200); `pnpm lab:demo --board create-wizard --base http://localhost:3135` at
+  1440 and `--width 375` (1 step, 0 failing; the stage 0.30 down at a desk, 0.38 at a phone, 18 px to the dock), and
+  wearing `--state screen=1440` on `708ec79d` (0 failing). Logs: `../partyreel-wt/_scratch/create-wizard-r3/gate-*.log`.
+- **Lane check**: `git diff --name-only origin/launch-prep...HEAD` = `src/app/(dev)/design/sandbox/create-wizard/`
+  (add, board, create-wizard.css, fixtures, paper (new), pictures, room, scene, spec; beat, look, name, wizard
+  deleted) + this file. No exceptions.
+- **The board, round 3** (`spec.ts`): one ask, `add`, "How should the add step show Live, Reviewed and Disposable, so
+  a host tells them apart at a glance and picks one?"; r2's answered asks (flow, look, beat) retired into the
+  opening's settled lines, r1 and r2 in `history`, his r2 add note and his the-wait Settings note in `earlier`.
+- **Drawn in the room as wired** (`room.tsx`): production's `RoomGround`, `RoomHead`, `RoomPage`, `RoomFoot`, `useCarry`,
+  `NameStep`, `LookStep` and the beat's `BeatCode`/`BeatActs`/`BeatSteps`, four hairlines, the add step between the
+  name and the look; the room's light is the Aurora's own field (the frame's filter host). Every link in a frame is
+  held, so no press leaves the board.
+- **Four options** (`add.tsx`), each Try it (Create running from the add step: the night plays once, pick, drag,
+  Continue with the pick dropping into its hairline, Back to the name, Create event into the beat over a stand-in
+  event, Get it ready again), then Disposable picked as guests arrive (its camera and its develop time), then slid to
+  the morning:
+  - `pair`: Live and Disposable as two phones, a line each at that moment ("Only their own until 9 am");
+  - `styles` (recommended): Settings' three cards, `wait-wiring`'s picture and lines, the night moving every picture,
+    plus Settings on paper (production's settings popup and furniture) with the same cards;
+  - `one`: one phone, Live / Reviewed / Disposable a switch over it; at a desk the phone stands tall beside the rest;
+  - `strip`: the night laid out, a row of three moments for each of the two, nothing to drag.
+- **The-wait's words throughout** (`pictures.tsx`, `fixtures.ts`): the guests' screens say Developing with its clock
+  ("As Maya lets them in", "All at once at 9 am") and "Disposable · develops 9 am"; the style names and lines are
+  `wait-wiring`'s `lib/disposable/album-style.ts`, retyped until it merges (the file says so).
+- **Verified**: Try it driven end to end in a headless Chrome (pick, the night, Continue with the pick's flight seen,
+  Back twice to the name, forward, Create event developing then arrived, Get it ready back to Live); every option at
+  375 and 1440 captured and read; reduced motion stands whole. Captures:
+  `../partyreel-wt/_scratch/create-wizard-r3/` (`r3b-*`, `step-*`, `demo-1440/`).
+- **Assets requested from Will**: none (the marketing stills and the guest ghost pack stand in, as every board's).
+- **Board ideas**: if `styles` wins, the wiring mounts Settings' own `StyleCard`/`StylePicture` (exported from
+  `camera-settings.tsx`, room-dressed) so Create and Settings stay one component, not two drawings of one; the
+  lab's breakpoint split (`design.css`: a board's `md:` loses to production's base class) cost this lane a capture
+  round, and a `/design/lab/kit` line pointing at it where boards start would save the next.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes**: none (the wiring sends the style's three columns
+  through `createEventInWizard`; the schema already holds them).
+- **Calls his to overrule**: the step's words; moments without clocks; Live preselected; the pick's drop into its
+  hairline; the recommendation (`styles` over `pair`).
+- **Look at first**: `/design/lab/create-wizard?key=…&session=create-wizard.add`, `styles` at 375: press Disposable,
+  slide the night, then Continue to watch the pick drop into its hairline; then `pair` against it.
