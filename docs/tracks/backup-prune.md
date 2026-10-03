@@ -43,6 +43,14 @@ working.
 
 **Verify on.** The gate on the synced tree, each step on its own exit code (the Worker's own tests included); red first for the cursor's resume, the caps, every safety rule and the fail-closed doubt; the dry-run log against a real listing; no live delete ever.
 
+## Where I am
+
+Booted at `015ff8e6`; read the brief, PRICING's atlas, the Worker, the confirm and job-run routes, the purge route
+and its runner. Measured the real buckets read-only (2026-10-03 19:58Z): primary 2,954 objects, backup 3,358; 41
+backup keys of 31 media are 36+ days old with no primary object and no row (the prunable set today). Building: the
+Worker's prune (cursor in a Durable Object, primary-first merge, budget from the Worker's limits, a hold sized to
+the trailing deletions), then the orphan sweep's cursor, then the dry-run evidence and the doc.
+
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
 - none yet
