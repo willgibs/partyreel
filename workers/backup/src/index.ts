@@ -22,15 +22,19 @@
  * reconciliation sweep lists only `events/`, so avatars never reach this Worker.
  */
 import { jobFinish, jobStart } from "./job-heartbeat";
-import { COPY_PART_BYTES, needsMultipart, partRanges } from "./strategy";
 import {
-  PRUNE_DELETE_CAP_PER_RUN,
-  PRUNE_LIST_MAX_PER_RUN,
-  isPrunableAge,
-  parseMediaIdFromKey,
-  shouldDelete,
-} from "./prune-strategy";
+  COPY_PART_BYTES,
+  isBackedUpKey,
+  needsMultipart,
+  partRanges,
+} from "./strategy";
+import { parseLedger } from "./prune-ledger";
+import { readConfirmAnswer, runPrune, type ConfirmAnswer } from "./prune-run";
+import { PRUNE_STATE_NAME, PruneState } from "./prune-state";
 import { depthNote, readQueueDepths, type DepthCounts } from "./queue-metrics";
+
+// The prune's ledger lives in this Durable Object class; a Worker exports the classes its bindings name.
+export { PruneState };
 
 export type Env = {
   /** Source bucket (the live `partyreel` bucket), bound read-only in practice. */
@@ -50,6 +54,12 @@ export type Env = {
    */
   BACKUP_QUEUE?: Queue;
   BACKUP_DLQ?: Queue;
+  /**
+   * The prune's ledger (prune-state.ts): its cursor, its last runs and its hold. OPTIONAL so a deploy whose
+   * wrangler.jsonc predates it still backs media up; the prune then runs dry and says why (it will not delete
+   * without knowing whether a hold stands).
+   */
+  PRUNE_STATE?: DurableObjectNamespace<PruneState>;
 };
 
 /**
@@ -68,7 +78,8 @@ type R2EventMessage = {
 // lower storage price applies and its retrieval fee effectively never does.
 const STORAGE_CLASS = "InfrequentAccess" as const;
 
-// Only ever touch the event-media prefix (defense in depth — the subscription is already prefixed).
+// Only ever touch the event-media prefix: the reconcile lists under it, and the queue skips any key outside it
+// (isBackedUpKey), so the subscription's own `--prefix events/` is never the only fence.
 const MEDIA_PREFIX = "events/";
 
 // Reconciliation: cap objects examined per run so a daily sweep stays bounded. If we hit this, the
@@ -79,9 +90,6 @@ const RECONCILE_MAX_PER_RUN = 5000;
 // The prune runs on a SEPARATE weekly cron (Mondays 06:00 UTC, after the app's 04:00 purge + the
 // 05:00 reconcile). scheduled() branches on controller.cron to pick reconcile vs prune.
 const PRUNE_CRON = "0 6 * * 1";
-
-// R2's binding delete() accepts up to 1000 keys per call.
-const MAX_DELETE_KEYS = 1000;
 
 type CopyResult = "copied" | "exists" | "missing";
 
@@ -240,23 +248,19 @@ function joinNotes(
   return kept.length ? kept.join("; ").slice(0, 500) : undefined;
 }
 
-type ConfirmResult =
-  | { trip: true; reason: string }
-  | { trip: false; goneIds: string[] };
-
 /**
- * Ask the app which of these mediaIds are GONE (no media row) and run the prune circuit-breaker — the
- * authoritative row count lives in the DB, which this Worker cannot reach. Fails CLOSED: any transport
- * or non-2xx error returns null so the caller aborts the run and deletes nothing.
+ * Ask the app which of these mediaIds have no `media` row (it also runs the prune's circuit-breaker on the real row
+ * count, which this Worker cannot reach). Any transport error, non-2xx or answer of the wrong shape is
+ * `unavailable`, and the run deletes nothing (prune-run.ts).
  */
 async function confirmGone(
   env: Env,
   mediaIds: string[],
   objectsScanned: number,
   mode: string,
-): Promise<ConfirmResult | null> {
+): Promise<ConfirmAnswer> {
   try {
-    // URL is guaranteed set by prune()'s guard before this is ever called.
+    // URL and secret are guaranteed set by pruneRun()'s guard before this is ever called.
     const res = await fetch(env.PRUNE_API_URL as string, {
       method: "POST",
       headers: {
@@ -266,37 +270,23 @@ async function confirmGone(
       body: JSON.stringify({ mediaIds, objectsScanned, mode }),
     });
     if (!res.ok) {
-      console.error(
-        `prune: confirm HTTP ${res.status}; aborting (deleted nothing)`,
-      );
-      return null;
+      await res.body?.cancel();
+      return { kind: "unavailable", detail: `HTTP ${res.status}` };
     }
-    return (await res.json()) as ConfirmResult;
+    return readConfirmAnswer(await res.json());
   } catch (err) {
-    console.error("prune: confirm request failed; aborting (deleted nothing)", {
-      err: String(err),
-    });
-    return null;
+    return { kind: "unavailable", detail: String(err).slice(0, 120) };
   }
 }
 
 /**
- * Deletion-aware prune (durability-backups.md, Pillar B) — the INVERSE of reconcile(): reclaim a backup object once
- * its source is gone. The ONLY job that deletes from the last-resort backup, so it is defense-in-depth:
- *   1. dry-run by default (PRUNE_MODE !== "live" deletes nothing — shouldDelete);
- *   2. an AGE gate (36-day margin past the 35-day Bucket Lock — isPrunableAge);
- *   3. a KEY-RECOGNITION gate (never delete a key we can't identify — parseMediaIdFromKey);
- *   4. a DUAL existence check: prune only when BOTH the primary R2 object is absent AND the media row
- *      is gone (the app confirms the row half + runs the breaker);
- *   5. an app-side circuit-breaker (media_table_empty) that fails CLOSED + alerts an operator;
- *   6. a per-run delete cap (PRUNE_DELETE_CAP_PER_RUN, enforced here across batches).
- * The Bucket Lock physically protects anything inside the 35-day window even if this logic is wrong.
+ * Deletion-aware prune (durability-backups.md, Pillar B): the INVERSE of reconcile(), reclaiming a backup object
+ * once its source is gone, and the ONLY job that deletes from the last-resort backup. The run itself is
+ * prune-run.ts (primary first, three readings before a delete, a doubt deletes nothing, its caps its budget); this
+ * is its wiring: the bindings, the confirm route, and the ledger it resumes from.
  *
- * DB-first ordering: we HEAD the primary only for confirmed-gone items, so there is no per-live-object
- * HEAD (see docs/systems/durability-backups.md "Cost & scaling").
- *
- * The heartbeat wrapper is prune() below; this is the sweep, and every exit reports an outcome so a
- * fail-closed abort is visible on /admin/jobs instead of looking like a run that never happened.
+ * Every exit reports an outcome, so a fail-closed abort is visible on /admin/jobs instead of looking like a run that
+ * never happened.
  */
 type PruneOutcome = {
   status: "ok" | "error";
@@ -304,7 +294,7 @@ type PruneOutcome = {
   counts: Record<string, number | string | boolean>;
 };
 
-async function pruneSweep(env: Env): Promise<PruneOutcome> {
+async function pruneRun(env: Env): Promise<PruneOutcome> {
   if (!env.PRUNE_API_URL || !env.PRUNE_API_SECRET) {
     console.error(
       "prune: PRUNE_API_URL / PRUNE_API_SECRET not set; skipping run",
@@ -315,167 +305,59 @@ async function pruneSweep(env: Env): Promise<PruneOutcome> {
       counts: {},
     };
   }
-  const mode = env.PRUNE_MODE ?? "dryrun";
-  const live = shouldDelete(env.PRUNE_MODE);
 
-  // Cheap early-out (defense-in-depth vs the "primary is 0 B" landmine): if the primary has no event
-  // media at all, the source is gone/uninitialized — never prune. The authoritative empty-trip is
-  // media_table_empty app-side.
-  const probe = await env.PRIMARY.list({ prefix: MEDIA_PREFIX, limit: 1 });
-  if (probe.objects.length === 0) {
-    console.warn(
-      "prune: primary empty under events/; skipping (no source to compare against)",
-    );
-    return {
-      status: "ok",
-      note: "Primary empty under events/, nothing to compare against",
-      counts: { scanned: 0, mode },
-    };
-  }
-
-  const now = Date.now();
-  // Confirmed-gone candidates accumulated across batches: mediaId -> its age-eligible backup keys.
-  const goneByMediaId = new Map<string, string[]>();
-  let scanned = 0;
-  let moreRemain = false;
-  let done = false;
-  let cursor: string | undefined;
-
-  while (!done) {
-    const listed: R2Objects = await env.BACKUP.list({
-      prefix: MEDIA_PREFIX,
-      cursor,
-      limit: 1000,
-    });
-
-    // Group this page's age-eligible, recognized keys by mediaId (original + preview share one).
-    const keysByMediaId = new Map<string, string[]>();
-    for (const obj of listed.objects) {
-      if (scanned >= PRUNE_LIST_MAX_PER_RUN) {
-        moreRemain = true;
-        done = true;
-        console.warn(
-          `prune: hit per-run scan cap (${PRUNE_LIST_MAX_PER_RUN}); next run continues`,
-        );
-        break;
-      }
-      scanned++;
-      if (!isPrunableAge(obj.uploaded, now)) continue; // inside the lock window — physically protected
-      const mediaId = parseMediaIdFromKey(obj.key);
-      if (!mediaId) continue; // not our layout — never delete
-      const arr = keysByMediaId.get(mediaId) ?? [];
-      arr.push(obj.key);
-      keysByMediaId.set(mediaId, arr);
-    }
-
-    if (keysByMediaId.size > 0) {
-      const result = await confirmGone(
-        env,
-        [...keysByMediaId.keys()],
-        scanned,
-        mode,
-      );
-      if (!result || result.trip) {
-        if (result?.trip) {
-          console.error(
-            `prune: circuit-breaker tripped (${result.reason}); deleted nothing`,
-          );
-        }
-        // Fail closed — confirm unavailable or breaker tripped. Reported as an ERROR run so the
-        // abort is visible on /admin/jobs; the app has already raised its own Sentry + email alert.
-        return {
-          status: "error",
-          counts: { scanned, mode, deleted: 0 },
-          note: result?.trip
-            ? `Circuit-breaker tripped: ${result.reason}`
-            : "Confirm endpoint unavailable, deleted nothing",
-        };
-      }
-      for (const mediaId of result.goneIds) {
-        const keys = keysByMediaId.get(mediaId);
-        if (keys) goneByMediaId.set(mediaId, keys);
-      }
-      if (goneByMediaId.size >= PRUNE_DELETE_CAP_PER_RUN) {
-        moreRemain = true;
-        done = true;
-      }
-    }
-
-    if (!done) {
-      if (listed.truncated) cursor = listed.cursor;
-      else done = true;
-    }
-  }
-
-  // Clamp to the per-run cap, then the SECOND gate: HEAD the primary and keep only keys whose primary
-  // object is ALSO absent (the dual-gate). Only confirmed-gone items are HEADed -> no per-live HEAD.
-  const cappedMediaIds = [...goneByMediaId.keys()].slice(
-    0,
-    PRUNE_DELETE_CAP_PER_RUN,
-  );
-  const toDelete: string[] = [];
-  for (const mediaId of cappedMediaIds) {
-    for (const key of goneByMediaId.get(mediaId) ?? []) {
-      if (!(await env.PRIMARY.head(key))) toDelete.push(key); // primary also gone -> safe to prune
-    }
-  }
-
-  if (!live) {
-    console.log("prune: dry-run (set PRUNE_MODE=live to enable deletes)", {
-      scanned,
-      gone_media: goneByMediaId.size,
-      would_delete_keys: toDelete.length,
-      more_remain: moreRemain,
-    });
-    return {
-      status: "ok",
-      note: "Dry run, deleted nothing",
-      counts: {
-        scanned,
-        mode,
-        gone_media: goneByMediaId.size,
-        would_delete_keys: toDelete.length,
-        more_remain: moreRemain,
-      },
-    };
-  }
-
-  // Live: delete from BACKUP in <=1000-key chunks. The binding delete() returns void, and a
-  // still-locked delete is a silent no-op, so a thrown chunk (transient error) is logged + counted,
-  // never retried-to-crash; the age gate already kept us outside the lock window.
-  let deleted = 0;
-  let errored = 0;
-  for (let i = 0; i < toDelete.length; i += MAX_DELETE_KEYS) {
-    const chunk = toDelete.slice(i, i + MAX_DELETE_KEYS);
+  // THE LEDGER. A store that cannot be read is a doubt about whether a hold stands, so the run goes ahead DRY
+  // (it still reports what it would do) and saves nothing over what it could not read. A store that reads back
+  // damaged is repaired: parseLedger's fallbacks are all the safe direction (the head, the floor, a fresh hold).
+  const notes: string[] = [];
+  let mode = env.PRUNE_MODE ?? "dryrun";
+  let raw: unknown = null;
+  let readable = true;
+  const store = env.PRUNE_STATE
+    ? env.PRUNE_STATE.get(env.PRUNE_STATE.idFromName(PRUNE_STATE_NAME))
+    : null;
+  if (!store) {
+    readable = false;
+    notes.push("No ledger binding: ran dry from the head, deleted nothing.");
+  } else {
     try {
-      await env.BACKUP.delete(chunk);
-      deleted += chunk.length;
+      raw = await store.load();
     } catch (err) {
-      errored += chunk.length;
-      console.error("prune: delete chunk failed", {
-        count: chunk.length,
-        err: String(err),
-      });
+      readable = false;
+      console.error("prune: ledger unreadable", { err: String(err) });
+      notes.push("Ledger unreadable: ran dry from the head, deleted nothing.");
     }
   }
-  console.log("prune: done", {
-    scanned,
-    gone_media: goneByMediaId.size,
-    deleted,
-    errored,
-    more_remain: moreRemain,
-  });
-  return {
-    status: errored > 0 ? "error" : "ok",
-    note: errored > 0 ? `${errored} key(s) failed to delete` : undefined,
-    counts: {
-      scanned,
-      mode,
-      gone_media: goneByMediaId.size,
-      deleted,
-      errored,
-      more_remain: moreRemain,
+  if (!readable) mode = "dryrun";
+  const parsed = parseLedger(raw);
+  if (parsed.note) notes.push(parsed.note);
+
+  const result = await runPrune(
+    {
+      backup: env.BACKUP,
+      primary: env.PRIMARY,
+      confirm: (ids, scanned) => confirmGone(env, ids, scanned, mode),
+      now: () => Date.now(),
     },
+    { mode, ledger: parsed.ledger, startedAtMs: Date.now() },
+  );
+  console.log("prune: done", result.counts);
+
+  let status = result.status;
+  if (!readable || parsed.note) status = "error";
+  if (result.ledger && store && readable) {
+    try {
+      await store.save(result.ledger);
+    } catch (err) {
+      status = "error";
+      console.error("prune: ledger not saved", { err: String(err) });
+      notes.push("Ledger not saved: the next run judges this ground again.");
+    }
+  }
+  return {
+    status,
+    note: joinNotes(...notes, result.note),
+    counts: result.counts,
   };
 }
 
@@ -504,7 +386,7 @@ async function prune(env: Env): Promise<void> {
   const depths: DepthCounts = await readQueueDepths(env);
 
   try {
-    const outcome = await pruneSweep(env);
+    const outcome = await pruneRun(env);
     await jobFinish(env, "backup_prune", gate.run, {
       ...outcome,
       counts: { ...outcome.counts, ...depths },
@@ -528,6 +410,13 @@ export default {
       if (!key) {
         // Malformed / unexpected payload — ack so it doesn't poison the queue (nothing to copy).
         console.warn("queue: message had no object key", { id: message.id });
+        message.ack();
+        continue;
+      }
+      if (!isBackedUpKey(key)) {
+        // Outside `events/` (an upload's `staging/` object, an avatar): never copied into the locked bucket,
+        // whatever the subscription lets through. Acked, since a retry could only dead-letter it.
+        console.warn("queue: skipped a key outside events/", { key });
         message.ack();
         continue;
       }

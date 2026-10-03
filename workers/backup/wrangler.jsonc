@@ -41,6 +41,19 @@
     ],
   },
 
+  // The prune's ledger (src/prune-state.ts): its cursor through the backup's listing, its last runs and its hold,
+  // in one SQLite-backed Durable Object. The migration below creates the class on the first deploy that carries it;
+  // a later change to the class needs a new tag, never an edit of this one.
+  "durable_objects": {
+    "bindings": [{ "name": "PRUNE_STATE", "class_name": "PruneState" }],
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["PruneState"] }],
+
+  // Every R2 call, confirm and ledger call is a subrequest. The paid default is 10,000 an invocation; the prune's
+  // run keeps its own count under 95,000 (src/prune-strategy.ts, PRUNE_SUBREQUEST_BUDGET), so this limit is the
+  // platform's backstop above it, never the thing that stops a run.
+  "limits": { "subrequests": 100000 },
+
   // Two scheduled crons share scheduled() (it branches on controller.cron):
   //   05:00 UTC daily   — reconciliation sweep (backstop for any missed event + the initial seed).
   //   06:00 UTC Mondays — the deletion-aware prune (bounds the keep-all backup as media churns).

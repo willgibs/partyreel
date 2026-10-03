@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   COPY_PART_BYTES,
   SINGLE_PUT_MAX_BYTES,
+  isBackedUpKey,
   needsMultipart,
   partRanges,
 } from "./strategy";
@@ -71,5 +72,25 @@ describe("partRanges", () => {
     expect(ranges[ranges.length - 1].length).toBeLessThanOrEqual(
       COPY_PART_BYTES,
     );
+  });
+});
+
+describe("isBackedUpKey", () => {
+  it("backs up event media and nothing else, whatever a notification names", () => {
+    expect(
+      isBackedUpKey(
+        "events/11111111-2222-4333-8444-555555555555/photo/11111111-2222-4333-8444-555555555555/original.jpg",
+      ),
+    ).toBe(true);
+    for (const key of [
+      "staging/11111111-2222-4333-8444-555555555555/original.jpg",
+      "avatars/user-1/avatar.webp",
+      "preservation/x",
+      "eventsx/y",
+      "event/y",
+      "",
+    ]) {
+      expect(isBackedUpKey(key), key).toBe(false);
+    }
   });
 });
