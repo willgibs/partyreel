@@ -17,6 +17,9 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- QA hardening: the backup reconcile's scan (#37) can take the prune's merge-join (both buckets listed over one range, no HEAD per object) and its ledger (from `backup-prune`).
+- Admin portal: the prune's `primary_missing` (keys whose row lives while the primary lost the object, the backup the only copy) as a durability alert with a restore path, beside the dead letters (from `backup-prune`).
+- Launch checkpoint: `PRUNE_MODE=live`'s first run after the test-data reset holds for a week (its backlog passes the hold), as designed (from `backup-prune`).
 - Host: the develop time saves on leaving the field or Return only (Escape or Back with a time typed and not left drops it, and a phone's picker may never blur it: unmeasured on a real iPhone); the date's beat and close-save, lifted out of `EventDatesField` into one hook both fields use, would settle it, and a real iPhone is the test (from `crumbs-60`).
 - Host: the Reel card could wear the head's own filter (only the stills her guests can see while a develop time is ahead) rather than none, if the hub page hands `HubDevelopFacts` to `EventCardsRow` and on to `ReelCard` (from `crumbs-59`).
 - Accessibility: Settings' page-level head names no description (`event-settings-sheet.tsx`, `aria-describedby={undefined}`); `PopupHeader` could draw the event's name there as a screen-reader-only description (from `crumbs-59`).
