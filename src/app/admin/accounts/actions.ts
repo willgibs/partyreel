@@ -4,9 +4,13 @@ import { revalidatePath } from "next/cache";
 
 import { type ActionResult } from "@/app/(app)/dashboard/actions";
 import { requireAdminAction } from "@/lib/auth/admin-context";
-import { requestAccountDeletion } from "@/lib/db/mutations/account";
+import {
+  cancelAccountDeletion,
+  requestAccountDeletion,
+} from "@/lib/db/mutations/account";
 import { getAccountDetail } from "@/lib/db/queries/accounts";
-import { captureError } from "@/lib/observability/sentry";
+import { captureError, captureWarning } from "@/lib/observability/sentry";
+import { isUuidShape } from "@/lib/validation/uuid-shape";
 
 /**
  * The operator trigger behind /admin/accounts/[id]. Same request path as the
@@ -68,6 +72,61 @@ export async function deleteAccountAsOperatorAction(
       ok: false,
       code: "unknown",
       message: "The deletion failed. Check Sentry before retrying.",
+    };
+  }
+}
+
+/**
+ * The operator's Cancel deletion: the private failsafe for an account whose deletion was asked for
+ * by mistake (Will, 2026-10-03: never offered to the person, and the whole recovery is done here,
+ * no SQL). `cancelAccountDeletion` does the work and refuses what it cannot honestly do: an account
+ * not being deleted, one the purge already took, or a purge run under way.
+ *
+ * ★ requireAdminAction() FIRST (admin + AAL2), like the delete beside it. No typed confirmation:
+ * the act is reversible (the account can be deleted again) and its record is anonymised, so there
+ * is no address left to retype; the panel says what comes back and what does not instead.
+ *
+ * ★ AUDITED LIKE THE DELETE: there is no operator audit table (admin-observability.md), so the act
+ * is its effect plus one Sentry line naming who and whom by id, a cancellation being the one
+ * operator act that brings back data someone asked to have erased.
+ */
+export async function cancelAccountDeletionAsOperatorAction(
+  userId: string,
+): Promise<ActionResult> {
+  const auth = await requireAdminAction();
+  if (!auth.ok) return auth.result;
+  // An id that is not one names no account and is never read (the page's own rule).
+  if (!isUuidShape(userId)) {
+    return { ok: false, code: "unknown", message: "No such account." };
+  }
+
+  try {
+    const result = await cancelAccountDeletion(userId);
+    if (!result.ok) {
+      if (result.code === "half") {
+        captureError("admin", new Error("account deletion half-cancelled"), {
+          action: "operator_cancel_deletion",
+          user_id: userId,
+        });
+      }
+      return { ok: false, code: "unknown", message: result.message };
+    }
+    captureWarning("admin", "operator_cancelled_account_deletion", {
+      user_id: userId,
+      operator_id: auth.ctx.userId,
+    });
+    revalidatePath("/admin/accounts/[id]", "page");
+    revalidatePath("/admin/accounts");
+    return { ok: true };
+  } catch (error) {
+    captureError("admin", error, {
+      action: "operator_cancel_deletion",
+      user_id: userId,
+    });
+    return {
+      ok: false,
+      code: "unknown",
+      message: "The cancellation failed. Check Sentry before retrying.",
     };
   }
 }

@@ -202,13 +202,22 @@ Dashboard state, held nowhere in the repo, that the code assumes:
 
 ## Deleting an account
 
-- **Deletion is immediate, has no undo, and cancels an active plan.** The request cancels FIRST every subscription
-  of its customer that has not ended, not only the one the profile follows (two Checkout tabs can leave two;
-  crumbs-41), and refuses everything if Stripe will not, the list's failure included, so "deleted but still billed"
-  is unreachable; then it stamps `deletion_requested_at`, bins every hosted event, removes the newsletter address,
-  anonymises the profile (never an entitlement column) and bans the auth user. Cancelling an already-canceled
-  subscription raises `resource_missing`, which `cancelSubscriptionsForDeletion` counts as success so a retry does not
-  abort.
+- **What anyone can see goes at once; the nightly purge erases the rest, and the person has no undo.** If she turned
+  it on in the dialog (off by default: she can take any upload back herself, ever), the request first takes her
+  uploads out of other people's albums through her own `removeMyUpload`, read whole, and refuses everything if one is
+  left. Then it cancels every subscription of its customer that has not ended, not only the one the profile follows
+  (two Checkout tabs can leave two; crumbs-41), and refuses everything if Stripe will not, the list's failure
+  included, so "deleted but still billed" is unreachable; then it stamps `deletion_requested_at`, bins every hosted
+  event, removes the newsletter address, anonymises the profile (never an entitlement column) and bans the auth user.
+  The plan is never refunded (Will, 2026-10-03: a host could buy on the day of the event and claim a refund days
+  later), and the dialog says so. Cancelling an already-canceled subscription raises `resource_missing`, which
+  `cancelSubscriptionsForDeletion` counts as success so a retry does not abort.
+- ★ **The purge's time has one home, `lib/lifecycle/purge-time.ts`,** held to vercel.json's cron by its test. Hobby
+  fires a daily cron anywhere inside its hour, so the purge runs inside 04:00 to 05:00 UTC, and every word that
+  promises it (the dialog, its done screen, a refused sign-in) names the window's END in the reader's own zone, the
+  first window that STARTS after the moment asked about (one under way may already have run). The window is never
+  lengthened nor a minimum wait added, even with minutes to go (Will, 2026-10-03: privacy-first deletion); what the
+  words cannot know (a hold, a very large account, a paused run) moves the next reading on, never the words.
 - ★ **The `auth.users` row is deleted only by the sweep, and only at ZERO remaining events.** The chain
   `auth.users → profiles → events → media` cascades, so an early delete destroys the keys the R2 delete still
   needs; the zero is a `mustCount`, because a failed count reads as a confident zero. A forensic hold on any of the
@@ -229,3 +238,23 @@ Dashboard state, held nowhere in the repo, that the code assumes:
 - **A GoTrue ban kills a LIVE token,** because `getUser()` re-validates on every call: a deleted, not-yet-swept
   account has no window in which a cached session works, and a `getSession()` anywhere in the authz path would
   reopen it.
+- ★ **A sign-in during the wait says why and when, never a dead end** (`src/app/(auth)/account-deleting.ts`). GoTrue
+  answers a banned address `user_banned` at the code's verify, at a tapped link and at Google (both a redirect to
+  `/auth/callback` with `error_code=user_banned`, which goes to `/login?error=account_deleting`), and at a password;
+  `signInWithOtp` never refuses, so the code is sent. The verify and the password check the ban BEFORE the code or the
+  password, so the answer is public: GoTrue's own verify tells anyone, silently, that an address is being deleted.
+  The code screen says so of the address it was sent (anyone who probes through it mails her a code); `/login`'s
+  words are conditional ("If you deleted your account...") because its URL is anyone's to write; the password door
+  stays generic by rule, and its Send a new code lands on the code screen. Each names the purge window's end and one
+  way out, a contact line for an address still refused after it, and nothing more: a forensic hold keeps the ban past
+  every window and is never told (Will, 2026-10-03: a held account stays blocked).
+- **The operator's Cancel deletion is the private failsafe** (Will, 2026-10-03: never offered to the person, and the
+  whole recovery done from /admin, no SQL). `cancelAccountDeletion`, on `/admin/accounts/[id]` through
+  `requireAdminAction()`, lifts the ban, clears the stamp and puts the auth user's address back on the profile (the
+  lifecycle and billing mails read `profiles.email`); the binned events wait in Deleted on their own 30 days. The ban
+  lifts first and a stamp that will not clear puts it back, so "can sign in" never stands while still queued; it
+  refuses while a purge run is under way, and the purge reads each account's stamp again before it touches it
+  (`purgeAccount`), so one that lands after a run read its queue still finds the account whole. Its panel lists
+  what stays gone: name, photo and handle, the plan, the newsletter signup, the names on her guest rows, and any
+  uploads she took out of other albums. Audited as the delete is: its effect, and one Sentry line naming who and
+  whom by id (there is no operator audit table).

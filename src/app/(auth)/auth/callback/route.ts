@@ -1,5 +1,10 @@
 import { after, NextResponse } from "next/server";
 
+import {
+  ACCOUNT_DELETING,
+  isBannedRedirect,
+  isUserBanned,
+} from "@/app/(auth)/account-deleting";
 import { adoptDoorName } from "@/app/(auth)/adopt-door-name";
 import { isAdminHost } from "@/lib/auth/admin-host";
 import { doorFailureKind } from "@/lib/auth/door-failure";
@@ -81,6 +86,12 @@ export async function GET(request: Request) {
     return res;
   };
 
+  // ★ AN ACCOUNT STILL BEING ERASED (lp/account-exit): GoTrue refuses a deleted account's tapped
+  // link and its Google sign-in with `user_banned` until the nightly purge, and that is no failed
+  // link or failed Google. `/login` says why and when (`account-deleting.ts`, which also says why
+  // its words there are conditional: this query is one anyone can write).
+  const deleting = withReturn(`/login?error=${ACCOUNT_DELETING}`, next);
+
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
@@ -91,11 +102,14 @@ export async function GET(request: Request) {
       if (landing.startsWith("/e/")) await adoptDoorName();
       return go(landing);
     }
+    if (isUserBanned(error)) return go(deleting);
     // An exchange that fails on a present code is an aged-out or already-spent
     // link, which is the one thing a host can act on: send a new code. The page it
     // was going to rides along, so the new code still lands there.
     return go(withReturn("/login?error=expired_link", next));
   }
+
+  if (isBannedRedirect(url.searchParams)) return go(deleting);
 
   // No code at all: either the provider refused (Supabase puts its own reason in
   // the query) or the link was truncated. Map what we were told, and fall back

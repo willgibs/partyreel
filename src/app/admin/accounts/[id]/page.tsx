@@ -16,14 +16,23 @@ import {
 import { requireAdmin } from "@/lib/auth/admin-context";
 import { getAccountDetail } from "@/lib/db/queries/accounts";
 import { getAccountDeletionState } from "@/lib/lifecycle/account-deletion";
+import { nextPurgeWindow } from "@/lib/lifecycle/purge-time";
 import { formatAdminDate, formatAdminTimestamp } from "@/lib/format/admin-time";
 import { formatCount } from "@/lib/format/count";
 import { formatBytes } from "@/lib/utils";
 import { isUuidShape } from "@/lib/validation/uuid-shape";
 import { PageHeading } from "@/components/shared/page-heading";
-import { DeleteAccountControl } from "./delete-account-control";
+import {
+  CancelDeletionControl,
+  DeleteAccountControl,
+} from "./delete-account-control";
 
 export const dynamic = "force-dynamic";
+
+/** When tonight's purge has run, as the operator reads it (the window's end, `purge-time.ts`). */
+function nextPurgeBy(): string {
+  return formatAdminTimestamp(nextPurgeWindow(Date.now()).end);
+}
 
 /** The account, read once a request for the page and its title (React's cache shares it within the render). */
 const readAccount = cache(getAccountDetail);
@@ -179,8 +188,9 @@ export default async function AdminAccountDetailPage({
 
       {/* The operator half of self-serve deletion: for the person who writes in
           from an address they can no longer sign in with, and for a takedown
-          that ends in closing the account. Once requested there is no trigger
-          left to press, only the state, because deletion has no undo. */}
+          that ends in closing the account. Once requested, the one control left
+          is the private failsafe, Cancel deletion, until the purge has run (a
+          profile row here means the sign-in still exists). */}
       <Card className="border-destructive/30">
         <CardHeader>
           <CardTitle className="text-destructive">
@@ -201,11 +211,17 @@ export default async function AdminAccountDetailPage({
               <Row label="Events left to purge">
                 {formatCount(deletion.eventCount)}
               </Row>
-              {deletion.heldEventCount > 0 && (
+              {deletion.heldEventCount > 0 ? (
                 <Row label="Blocked by a legal hold">
                   <Badge variant="secondary">
                     {formatCount(deletion.heldEventCount)}
                   </Badge>
+                </Row>
+              ) : (
+                // What the person was told: the sign-in goes by this time, and only then can the
+                // address start fresh (a held account waits for its hold, and is never told).
+                <Row label="Purged by">
+                  <span>{nextPurgeBy()}</span>
                 </Row>
               )}
               {deletion.eventCount === 0 && (
@@ -214,6 +230,12 @@ export default async function AdminAccountDetailPage({
                   record.
                 </p>
               )}
+              <div className="pt-1">
+                <CancelDeletionControl
+                  userId={profile.id}
+                  eventCount={deletion.eventCount}
+                />
+              </div>
             </>
           ) : (
             <DeleteAccountControl
