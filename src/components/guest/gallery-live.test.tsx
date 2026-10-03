@@ -632,3 +632,59 @@ describe("when the album develops, told to the page", () => {
     expect(told).not.toHaveBeenCalled();
   });
 });
+
+/**
+ * ★ WHAT WAITS REACHES THE PAGE (the-wait r1, Will's `wait=sheet`; crumbs-52's deferred line, retired here): the sync's
+ * waiting facts (everyone's held and sealed rows, as a count and its minutes, never an id) ride the live source from
+ * the seed's first paint and every full answer after it, so the album's contact sheet draws everyone's for a guest with
+ * none of her own; a teaser never carries them.
+ */
+describe("what waits, as numbers, on the live source", () => {
+  const WAITING = {
+    count: 3,
+    minutes: [
+      [1_790_000_040_000, 1],
+      [1_790_000_100_000, 2],
+    ] as [number, number][],
+    developsAt: "2026-10-11T16:00:00.000Z",
+  };
+  const waitingSeed = () => {
+    const full = seed() as Extract<GallerySeed, { kind: "full" }>;
+    return {
+      ...full,
+      sync: { ...full.sync, waiting: WAITING },
+    } as GallerySeed;
+  };
+
+  it("★ is the seed's from the first paint, and carries no id of anything that waits", async () => {
+    await mount(false, { first: waitingSeed() });
+    expect(seen.live?.waiting).toEqual(WAITING);
+    // Nothing that waits is an item: the album holds only what a guest sees.
+    expect(seen.live?.items.map((m) => m.id)).toEqual([
+      uuid(1),
+      uuid(2),
+      uuid(3),
+    ]);
+    expect(JSON.stringify(seen.live?.waiting)).not.toMatch(
+      /[0-9a-f]{8}-[0-9a-f]{4}-/,
+    );
+  });
+
+  it("follows each full answer: the count climbs, and an answer with none says nothing waits", async () => {
+    await mount(false, { first: waitingSeed() });
+    answer(delta({ waiting: { ...WAITING, count: 4 } }));
+    await ring();
+    expect(seen.live?.waiting?.count).toBe(4);
+    answer(304);
+    await ring();
+    expect(seen.live?.waiting?.count).toBe(4);
+    answer(delta({ v: 14 }));
+    await ring();
+    expect(seen.live?.waiting).toBeNull();
+  });
+
+  it("a teaser carries none", async () => {
+    await mount(false, { first: teaserSeed(), access: "teaser" });
+    expect(seen.live?.waiting ?? null).toBeNull();
+  });
+});

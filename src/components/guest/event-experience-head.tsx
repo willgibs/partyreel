@@ -213,6 +213,7 @@ export type CoverHost = {
 export function AlbumCover({
   ref,
   ground,
+  eyebrow,
   name,
   host,
   date,
@@ -226,6 +227,11 @@ export function AlbumCover({
   /** The cover's own box (the demo's pinned header watches it). */
   ref?: Ref<HTMLElement>;
   ground?: ReactNode;
+  /**
+   * A word over the event's name: the preset named where a guest meets it, with when it develops (the-wait r1's name
+   * ask: "Disposable · develops 9 am", `coverEyebrow`). Nothing for an album that never develops.
+   */
+  eyebrow?: ReactNode;
   name: string;
   /** The byline's host: null where she set no name (no byline name, no face). */
   host: CoverHost | null;
@@ -243,6 +249,16 @@ export function AlbumCover({
     <EventHead ref={ref} side="album" ground={ground} className={className}>
       <div className="px-5 pb-6 md:flex md:items-end md:justify-between md:gap-10 md:pb-9">
         <div className="min-w-0 md:max-w-2xl">
+          {eyebrow ? (
+            <p
+              data-arrive
+              data-cover-eyebrow=""
+              style={{ "--arrive-i": 0 } as CSSProperties}
+              className="mb-2 text-label font-medium tracking-[0.14em] text-white/80 uppercase"
+            >
+              {eyebrow}
+            </p>
+          ) : null}
           <h1
             data-arrive
             style={{ "--arrive-i": 0 } as CSSProperties}

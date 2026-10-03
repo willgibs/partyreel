@@ -1203,7 +1203,7 @@ describe("the keep: the door's last screen", () => {
   it("on an event that holds uploads, never says it joined the album", () => {
     atKeep({ keepHeld: true, keepCount: 1 });
     expect(
-      screen.getByText("Your photo is waiting for approval."),
+      screen.getByText("Your photo develops as Maya lets it in."),
     ).toBeInTheDocument();
     expect(screen.getAllByText("Keep this event").length).toBeGreaterThan(0);
   });

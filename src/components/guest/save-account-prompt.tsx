@@ -9,12 +9,9 @@ import { DoorCheck } from "@/components/guest/door/lit";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { useWaitClock } from "@/lib/disposable/use-wait-clock";
+import { keepWaitLine } from "@/lib/disposable/wait-words";
 import { formatCount, formatKindCount } from "@/lib/format/count";
-import {
-  developTimeWords,
-  TRACKER_SEALED_WORDS,
-  TRACKER_WORDS,
-} from "@/lib/guest/upload-tracker";
 
 /**
  * THE KEEP: THE DOOR'S LAST SCREEN (`guest-capture` r1, Will's `moment=first` and
@@ -103,9 +100,10 @@ export function keepCopy(
 
 /**
  * Where what she sent went: into the album (the host's, by name, when the host has one), or, where what she adds
- * waits, waiting in her uploads' own words for it (one state, one name): for the album to develop, with its time,
- * on an album with a develop time ahead (`TRACKER_SEALED_WORDS`, red-team 43), else for approval
- * (`TRACKER_WORDS.waiting`). Never "joined the album" for a photograph the album does not show yet.
+ * waits, how it develops (the-wait r1, `model=time`: every wait is developing, and only the clock says which): with
+ * everyone's at the develop time, on an album with one ahead (red-team 43), else as the host lets it in. Never "joined
+ * the album" for a photograph the album does not show yet. The time is said in her own clock (`nowMs`), and not at all
+ * before it is known.
  */
 export function keepSentLine(input: {
   count: number;
@@ -115,18 +113,29 @@ export function keepSentLine(input: {
   hostName?: string | null;
   /** What she sent (`yours`): her photos, videos, uploads or shots. */
   sent?: KeepSent | null;
+  /** The reader's clock, for when it develops; null says no time (before hydration). Now, unless told. */
+  nowMs?: number | null;
 }): string {
   const { count, held } = input;
   const host = input.hostName?.trim();
   const named = yours(count, input.sent);
   const subject = named.charAt(0).toUpperCase() + named.slice(1);
-  const verb = count === 1 ? "is" : "are";
+  const nowMs = input.nowMs === undefined ? Date.now() : input.nowMs;
   if (input.developsAt) {
-    const when = developTimeWords(input.developsAt);
-    return `${subject} ${verb} ${TRACKER_SEALED_WORDS.toLowerCase()}${when ? `, ${when}` : ""}.`;
+    return keepWaitLine({
+      subject,
+      one: count === 1,
+      clock: { kind: "develop", developsAt: input.developsAt },
+      nowMs,
+    });
   }
   if (held) {
-    return `${subject} ${verb} ${TRACKER_WORDS.waiting.toLowerCase()}.`;
+    return keepWaitLine({
+      subject,
+      one: count === 1,
+      clock: { kind: "held", hostName: host ?? null },
+      nowMs,
+    });
   }
   return `${subject} joined ${host ? `${host}’s album` : "the album"}.`;
 }
@@ -166,6 +175,8 @@ export function KeepOffer({
   onLater: () => void;
 }) {
   const copy = keepCopy(count, eventName, sent);
+  // When it develops is said in her own clock, once it is known.
+  const nowMs = useWaitClock();
   return (
     <div data-keep-step="offer" className="flex flex-col gap-5">
       {/* WHAT WENT: the beat of her first photo sent. A check in the album's light blooms beside
@@ -177,7 +188,14 @@ export function KeepOffer({
         <div className="flex min-w-0 flex-col gap-0.5">
           <p className="font-heading text-card-title text-foreground">Sent</p>
           <p className="text-working text-muted-foreground">
-            {keepSentLine({ count, held, developsAt, hostName, sent })}
+            {keepSentLine({
+              count,
+              held,
+              developsAt,
+              hostName,
+              sent,
+              nowMs,
+            })}
           </p>
         </div>
       </div>

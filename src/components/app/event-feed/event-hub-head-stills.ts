@@ -34,14 +34,18 @@ export function isCoverEntry(e: ManifestEntry): boolean {
   return true;
 }
 
-/** The newest cover entries whose still is in hand (`tileOf`), newest first, at most six. */
+/**
+ * The newest cover entries whose still is in hand (`tileOf`), newest first, at most six. `waits` leaves out what her
+ * guests cannot see yet (the host's cover, the-wait r1: while her album develops, her hub's head is her guests').
+ */
 export function newestCoverStills(
   entries: readonly ManifestEntry[],
   tileOf: (id: string) => string | null | undefined,
+  waits?: (e: ManifestEntry) => boolean,
 ): HeadStill[] {
   const out: HeadStill[] = [];
   for (const e of entries) {
-    if (!isCoverEntry(e)) continue;
+    if (!isCoverEntry(e) || waits?.(e)) continue;
     const tile = tileOf(e[0]);
     if (!tile) continue;
     out.push({ id: e[0], tile });

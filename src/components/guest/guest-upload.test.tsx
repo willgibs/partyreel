@@ -642,22 +642,18 @@ describe("GuestUpload: demo mode", () => {
   });
 });
 
+// RESHAPED (the-wait r1, `model=time`): the notice said "The host reviews uploads before they appear in the album.";
+// a held album's rule is the wait's now, its clock the host's (`wait-words.ts`). The scar kept: only a held album says it.
 describe("GuestUpload: moderation copy", () => {
-  it("hold_for_approval shows the review notice; auto_approve does not", () => {
+  it("hold_for_approval says its rule, how uploads develop; a live album says none", () => {
     const { unmount } = mount({ event: HOLD_EVENT });
     expect(
-      screen.getByText(
-        "The host reviews uploads before they appear in the album.",
-      ),
+      screen.getByText(/^Uploads develop as .+ lets each one in\.$/),
     ).toBeInTheDocument();
     unmount();
 
     mount();
-    expect(
-      screen.queryByText(
-        "The host reviews uploads before they appear in the album.",
-      ),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/^Uploads develop/)).not.toBeInTheDocument();
   });
 });
 
@@ -1340,16 +1336,12 @@ describe("GuestUpload: an album that develops later", () => {
     develops_at: new Date(Date.now() + 6 * 3_600_000).toISOString(),
   } as unknown as GuestEvent;
 
-  it("★ says what she adds waits for the develop, before her first add", () => {
+  it("★ says what she adds develops all at once, before her first add", () => {
     mount({ event: DEVELOP_EVENT });
     expect(
-      screen.getByText(/^Uploads appear in the album when it develops/),
+      screen.getByText(/^Uploads develop all at once/),
     ).toBeInTheDocument();
-    expect(
-      screen.queryByText(
-        "The host reviews uploads before they appear in the album.",
-      ),
-    ).toBeNull();
+    expect(screen.queryByText(/lets each one in/)).toBeNull();
   });
 
   /* ★ RED-TEAM 44'S LOW: the line read the event the page rendered with, so it promised a develop over an album that
@@ -1359,7 +1351,9 @@ describe("GuestUpload: an album that develops later", () => {
       event: { ...DEVELOP_EVENT, capture: "camera" },
       uploadsWait: { waits: true, developsAt: DEVELOP_EVENT.develops_at },
     });
-    expect(screen.getByText(/when it develops/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/^Uploads develop all at once/),
+    ).toBeInTheDocument();
     rerender(
       <Harness
         handleRef={handleRef}
@@ -1369,7 +1363,7 @@ describe("GuestUpload: an album that develops later", () => {
         uploadsWait={{ waits: false, developsAt: null }}
       />,
     );
-    expect(screen.queryByText(/when it develops/)).toBeNull();
+    expect(screen.queryByText(/^Uploads develop/)).toBeNull();
     await openCamera(handleRef);
     expect(camera.event?.develops_at).toBeNull();
   });
@@ -1381,7 +1375,7 @@ describe("GuestUpload: an album that develops later", () => {
         develops_at: new Date(Date.now() - 3_600_000).toISOString(),
       },
     });
-    expect(screen.queryByText(/when it develops/)).toBeNull();
+    expect(screen.queryByText(/^Uploads develop/)).toBeNull();
   });
 
   it("★ a run that ends with a refusal says the rest waits for the develop, never that it is in the album (red-team 44)", async () => {
@@ -1404,7 +1398,7 @@ describe("GuestUpload: an album that develops later", () => {
       expect(screen.getByText("1 of 2 didn't upload")).toBeInTheDocument(),
     );
     expect(
-      screen.getByText(/^Everything else is waiting to develop, /),
+      screen.getByText(/^Everything else develops with everyone's/),
     ).toBeInTheDocument();
     expect(screen.queryByText(/Everything else is in /)).toBeNull();
   });

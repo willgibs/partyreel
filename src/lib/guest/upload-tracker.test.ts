@@ -3,7 +3,9 @@ import { describe, expect, it } from "vitest";
 import {
   buildTrackerRows,
   developTimeWords,
+  herShotsOf,
   newlyInAlbum,
+  ownUploadOf,
   TRACKER_SEALED_WORDS,
   TRACKER_WORDS,
   trackerShows,
@@ -172,9 +174,14 @@ describe("buildTrackerRows: the develop", () => {
     ).toEqual({ ids: ["m1"], arrived: true });
   });
 
-  it("names its wait apart from the host's: the develop is nobody's decision", () => {
-    expect(TRACKER_SEALED_WORDS).toBe("Waiting to develop");
-    expect(TRACKER_SEALED_WORDS).not.toBe(TRACKER_WORDS.waiting);
+  // RESHAPED (the-wait r1, Will's `model=time`): a sealed one said "Waiting to develop" apart from a held one's
+  // "Waiting for approval" (red-team 43's scar: it must never read as the host's decision, nor as in the album). Every
+  // wait is one word now, and only the album's clock tells them apart (`wait-words.ts`): the scar kept is that a sealed
+  // one is still a wait, never "In the album".
+  it("wears every wait's one word, never the album's", () => {
+    expect(TRACKER_SEALED_WORDS).toBe("Developing");
+    expect(TRACKER_SEALED_WORDS).toBe(TRACKER_WORDS.waiting);
+    expect(TRACKER_SEALED_WORDS).not.toBe(TRACKER_WORDS.approved);
   });
 });
 
@@ -294,12 +301,14 @@ describe("trackerShows", () => {
 });
 
 describe("the words each status wears", () => {
-  // voice-guest r2, Will's `status=approval`: both lines name the review she read about when she
-  // sent them. One state, one name: the badge's spoken count and the keep's Sent line say it too.
-  it("names the review for a held photograph and for one the host left out", () => {
-    expect(TRACKER_WORDS.waiting).toBe("Waiting for approval");
+  // RESHAPED (the-wait r1, `model=time`): a held photograph said "Waiting for approval" (voice-guest r2's
+  // `status=approval`); every wait is "Developing" now, and the refusal keeps its plain word (the scar kept: a photo
+  // turned down never reads as one still developing). One state, one name: the badge, the sheet and the camera say it.
+  it("one word for a wait, a plain one for a refusal", () => {
+    expect(TRACKER_WORDS.waiting).toBe("Developing");
     expect(TRACKER_WORDS.refused).toBe("Not approved");
     expect(TRACKER_WORDS.approved).toBe("In the album");
+    expect(TRACKER_WORDS.refused).not.toBe(TRACKER_WORDS.waiting);
   });
 });
 
@@ -434,5 +443,107 @@ describe("a landing the queue told sealed", () => {
       removed: new Set(),
     });
     expect(out[0].status).toBe("approved");
+  });
+});
+
+describe("herShotsOf: her waiting shots, for the album's contact sheet", () => {
+  const rows = buildTrackerRows({
+    queue: [
+      { id: "q2", status: "uploading", kind: "photo" },
+      {
+        id: "q1",
+        status: "done",
+        kind: "video",
+        mediaId: "m9",
+        mediaStatus: "sealed",
+      },
+    ],
+    own: [
+      { id: "m9", status: "approved", sealed: true },
+      {
+        id: "m1",
+        status: "pending",
+        picture: {
+          type: "photo",
+          at: 1_790_000_000_000,
+          tile: "https://r2/m1.webp",
+        },
+      },
+      { id: "m2", status: "approved" },
+      { id: "m3", status: "refused" },
+    ],
+    album: new Set(["m2"]),
+    approvedOnce: EMPTY,
+    removed: EMPTY,
+  });
+
+  it("★ only hers that wait or are on their way, each with its picture and when she took it", () => {
+    const shots = herShotsOf({
+      rows,
+      own: [
+        { id: "m9", status: "approved", sealed: true },
+        {
+          id: "m1",
+          status: "pending",
+          picture: {
+            type: "photo",
+            at: 1_790_000_000_000,
+            tile: "https://r2/m1.webp",
+          },
+        },
+      ],
+      localUrl: (q) =>
+        q === "q1" ? "blob:q1" : q === "q2" ? "blob:q2" : undefined,
+    });
+    // Her list's own order (this visit's newest sent first, then her rows); the sheet places each by when.
+    expect(shots).toEqual([
+      { key: "m9", at: null, src: "blob:q1", video: true, sending: false },
+      { key: "q2", at: null, src: "blob:q2", video: false, sending: true },
+      {
+        key: "m1",
+        at: 1_790_000_000_000,
+        src: "https://r2/m1.webp",
+        video: false,
+        sending: false,
+      },
+    ]);
+  });
+
+  it("never one in the album, nor one turned down", () => {
+    const keys = herShotsOf({ rows, own: null, localUrl: () => undefined }).map(
+      (s) => s.key,
+    );
+    expect(keys).not.toContain("m2");
+    expect(keys).not.toContain("m3");
+  });
+});
+
+describe("ownUploadOf: her rows off the wire, read defensively", () => {
+  it("keeps a picture only whole, and drops a row it cannot read", () => {
+    expect(
+      ownUploadOf({
+        id: "m1",
+        status: "pending",
+        picture: { type: "photo", at: 5, tile: "https://r2/x" },
+      }),
+    ).toEqual({
+      id: "m1",
+      status: "pending",
+      picture: { type: "photo", at: 5, tile: "https://r2/x" },
+    });
+    expect(
+      ownUploadOf({
+        id: "m1",
+        status: "approved",
+        sealed: true,
+        picture: { type: "gif", at: 5, tile: "x" },
+      }),
+    ).toEqual({
+      id: "m1",
+      status: "approved",
+      sealed: true,
+    });
+    expect(ownUploadOf({ id: 4, status: "pending" })).toBeNull();
+    expect(ownUploadOf({ id: "m1", status: "lost" })).toBeNull();
   });
 });

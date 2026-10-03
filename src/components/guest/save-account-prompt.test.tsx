@@ -6,20 +6,16 @@
  *
  *   1. IT OFFERS THE EVENT (voice-guest r2, Will's `keep=warm`), by name, and counts what landed
  *      inside it, the singular reading as a singular.
- *   2. IT SAYS WHERE WHAT SHE SENT WENT: into the host's album, or, on an event that holds uploads,
- *      waiting for approval in her uploads' own words (never "joined the album" for a photograph
- *      the album does not show).
+ *   2. IT SAYS WHERE WHAT SHE SENT WENT: into the host's album, or, where it waits, how it develops
+ *      (the-wait r1, `model=time`: as the host lets it in, or with everyone's at the develop time),
+ *      never "joined the album" for a photograph the album does not show.
  *   3. ITS CONFIRM IS THE ACCOUNT DOOR IN THIS SHEET: the address typed at the door this visit in
  *      its field, the newsletter switch off until she turns it on.
  */
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  developTimeWords,
-  TRACKER_SEALED_WORDS,
-  TRACKER_WORDS,
-} from "@/lib/guest/upload-tracker";
+import { developsWhen } from "@/lib/guest/camera/words";
 
 import {
   KeepConfirm,
@@ -86,49 +82,46 @@ describe("keepSentLine", () => {
     );
   });
 
-  it("never says it joined the album on an event that holds uploads for the host", () => {
+  // RESHAPED (the-wait r1, `model=time`): a held one said "is waiting for approval" in her uploads' words; every wait
+  // develops now, and the clock is the host's. The scar kept: never "joined" for a photograph the album does not show.
+  it("never says it joined the album on an event that holds uploads: it develops as the host lets it in", () => {
     expect(keepSentLine({ count: 1, held: true, hostName: "Maya" })).toBe(
-      "Your photo is waiting for approval.",
+      "Your photo develops as Maya lets it in.",
     );
     expect(keepSentLine({ count: 2, held: true, hostName: "Maya" })).toBe(
-      "Your 2 photos are waiting for approval.",
+      "Your 2 photos develop as Maya lets them in.",
     );
-  });
-
-  // One state, one name (voice-guest r2 `status=approval`): the Sent line on a held event says
-  // what her uploads call the same photograph a moment later.
-  it("names a held photograph in her uploads' own words", () => {
-    expect(keepSentLine({ count: 1, held: true })).toContain(
-      TRACKER_WORDS.waiting.toLowerCase(),
+    expect(keepSentLine({ count: 1, held: true })).toBe(
+      "Your photo develops as the host lets it in.",
     );
   });
 
   /* ★ RED-TEAM 43'S MEDIUM: on an album with a develop time ahead, her shots are sealed until it develops, and the
-     Sent line said "Your 2 photos joined Will Gibson's album." Now it says they wait for the develop, and when. */
-  it("★ a sealed shot waits for the develop, with its time, and never joined", () => {
+     Sent line said "Your 2 photos joined Will Gibson's album." Now it says they develop with everyone's, and when. */
+  it("★ a sealed shot develops with everyone's, at its time in her clock, and never joined", () => {
+    const now = Date.parse("2026-10-02T20:00:00.000Z");
     const at = "2026-10-03T13:00:00.000Z";
     const line = keepSentLine({
       count: 2,
       held: true,
       developsAt: at,
       hostName: "Will Gibson",
+      nowMs: now,
     });
     expect(line).toBe(
-      `Your 2 photos are ${TRACKER_SEALED_WORDS.toLowerCase()}, ${developTimeWords(at)}.`,
+      `Your 2 photos develop with everyone's ${developsWhen(at, now)}.`,
     );
     expect(line).not.toContain("joined");
     expect(
-      keepSentLine({ count: 1, held: true, developsAt: at, hostName: null }),
-    ).toBe(`Your photo is waiting to develop, ${developTimeWords(at)}.`);
-    // A time it cannot read still waits, and says no time.
+      keepSentLine({ count: 1, held: true, developsAt: at, nowMs: now }),
+    ).toBe(`Your photo develops with everyone's ${developsWhen(at, now)}.`);
+    // Before her clock is known, and for a time it cannot read, it still develops, and says no time.
     expect(
-      keepSentLine({
-        count: 1,
-        held: true,
-        developsAt: "soon",
-        hostName: null,
-      }),
-    ).toBe("Your photo is waiting to develop.");
+      keepSentLine({ count: 1, held: true, developsAt: at, nowMs: null }),
+    ).toBe("Your photo develops with everyone's.");
+    expect(
+      keepSentLine({ count: 1, held: true, developsAt: "soon", nowMs: now }),
+    ).toBe("Your photo develops with everyone's.");
   });
 });
 
@@ -181,7 +174,9 @@ describe("KeepOffer", () => {
     const sent = container.querySelector("[data-keep-sent]");
     expect(sent?.querySelector('[data-door-check="sent"]')).not.toBeNull();
     expect(sent?.closest("[aria-hidden]")).toBeNull();
-    expect(sent).toHaveTextContent("SentYour photo is waiting for approval.");
+    expect(sent).toHaveTextContent(
+      "SentYour photo develops as Maya lets it in.",
+    );
   });
 });
 
@@ -195,11 +190,13 @@ describe("what she sent, named", () => {
   const photo = "photo" as const;
   const video = "video" as const;
 
+  const NOW = Date.parse("2026-10-02T20:00:00.000Z");
+
   it("★ calls a camera album's shots, whatever each one is", () => {
     const sent = { kinds: [photo, photo, photo, photo, video], camera: true };
-    expect(keepSentLine({ count: 5, held: true, developsAt: AT, sent })).toBe(
-      `Your 5 shots are waiting to develop, ${developTimeWords(AT)}.`,
-    );
+    expect(
+      keepSentLine({ count: 5, held: true, developsAt: AT, sent, nowMs: NOW }),
+    ).toBe(`Your 5 shots develop with everyone's ${developsWhen(AT, NOW)}.`);
     expect(keepCopy(5, "Maya & Jay", sent).reason).toMatch(
       /with your 5 shots,/,
     );
@@ -209,15 +206,16 @@ describe("what she sent, named", () => {
         held: true,
         developsAt: AT,
         sent: { kinds: [video], camera: true },
+        nowMs: NOW,
       }),
-    ).toBe(`Your shot is waiting to develop, ${developTimeWords(AT)}.`);
+    ).toBe(`Your shot develops with everyone's ${developsWhen(AT, NOW)}.`);
   });
 
   it("★ names a mix as uploads, never photos", () => {
     const sent = { kinds: [photo, photo, video], camera: false };
-    expect(keepSentLine({ count: 3, held: true, developsAt: AT, sent })).toBe(
-      `Your 3 uploads are waiting to develop, ${developTimeWords(AT)}.`,
-    );
+    expect(
+      keepSentLine({ count: 3, held: true, developsAt: AT, sent, nowMs: NOW }),
+    ).toBe(`Your 3 uploads develop with everyone's ${developsWhen(AT, NOW)}.`);
     expect(
       keepSentLine({ count: 3, held: false, hostName: "Maya", sent }),
     ).toBe("Your 3 uploads joined Maya\u2019s album.");
@@ -233,7 +231,7 @@ describe("what she sent, named", () => {
         held: true,
         sent: { kinds: [video], camera: false },
       }),
-    ).toBe("Your video is waiting for approval.");
+    ).toBe("Your video develops as the host lets it in.");
     expect(
       keepSentLine({
         count: 2,
@@ -274,10 +272,9 @@ describe("what she sent, named", () => {
         onLater={vi.fn()}
       />,
     );
+    // Rendered after hydration, so the time is said in the reader's clock.
     expect(
-      screen.getByText(
-        `Your 2 shots are waiting to develop, ${developTimeWords(AT)}.`,
-      ),
+      screen.getByText(/^Your 2 shots develop with everyone's/),
     ).toBeInTheDocument();
     expect(
       screen.getByText(

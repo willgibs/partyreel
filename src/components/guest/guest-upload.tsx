@@ -21,12 +21,12 @@ import { UploadFailureSheet } from "@/components/guest/upload/failure-sheet";
 import { UploadIntentSheet } from "@/components/guest/upload/intent-sheet";
 import { Button } from "@/components/ui/button";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
+import { useWaitClock } from "@/lib/disposable/use-wait-clock";
+import { waitRule, waitWords } from "@/lib/disposable/wait-words";
 import {
-  developTimeWords,
   uploadsWait as uploadsWaitOf,
   type UploadsWait,
 } from "@/lib/guest/upload-tracker";
-import { useHydrated } from "@/lib/shared/use-hydrated";
 // The queue MACHINE lives in `event-experience.tsx`; only its types are read
 // here.
 import type { FileExtra, QueueItem } from "@/lib/guest/use-upload-queue";
@@ -39,16 +39,6 @@ export type { UploadedItem } from "@/lib/guest/use-upload-queue";
  * never downloads a byte of it.
  */
 const loadCamera = () => import("@/components/guest/camera/album-camera");
-
-/**
- * The develop's own line, before a first add: what she adds waits until the album develops, and when (once the reader's
- * clock is known). Her tracker's own sentence for the same rule (`upload-tracker.tsx`'s header), so one rule has one
- * wording on the page.
- */
-function developNote(developsAt: string | null): string {
-  const when = developTimeWords(developsAt);
-  return `Uploads appear in the album when it develops${when ? `, ${when}` : ""}.`;
-}
 
 const AlbumCamera = lazy(() =>
   loadCamera().then((m) => ({ default: m.AlbumCamera })),
@@ -347,13 +337,12 @@ export function GuestUpload({
     (it) =>
       it.status === "done" && !(it.mediaId && removedIds?.has(it.mediaId)),
   ).length;
-  const holdForApproval = event.moderation_mode === "hold_for_approval";
   /* ★ "DELAYED" IS APPROVE-EACH OR A DEVELOP TIME AHEAD (build 43's red-team, the upload half), read off the page's
      live reading (`uploadsWait`, the foundation's own reading of the develop time behind it), never the review switch
      alone: on an album that develops later what she adds waits out of sight as a held upload does (the queue tells it
      `sealed`, her tracker keeps it), and this line says so before her first add, and stops saying it the moment the
      album develops (red-team 44: it promised a develop over the developed album until a reload). The time is said only
-     once hydrated: "at 9 am" is the reader's own clock, which the server's render cannot know. */
+     once the reader's clock is known (`useWaitClock`): "at 9 am" is hers, which the server's render cannot know. */
   const wait = uploadsWait ?? uploadsWaitOf(event);
   const developsAt = wait.developsAt;
   // The camera hears the same develop: its words and its reveal end with it (a time reached reads as developed).
@@ -364,8 +353,11 @@ export function GuestUpload({
         : { ...event, develops_at: developsAt },
     [event, developsAt],
   );
-  const hydrated = useHydrated();
   const hostName = event.host_display_name ?? "the host";
+  // The album's one rule, in the wait's words (the-wait r1, `model=time`): how uploads develop here, the time in her own
+  // clock once it is known (`useWaitClock`; the server's render says the rule without it).
+  const nowMs = useWaitClock();
+  const clock = waitWords(wait, event.host_display_name ?? null);
 
   return (
     <div className="space-y-4">
@@ -423,22 +415,17 @@ export function GuestUpload({
         onRetry={onRetry}
       />
 
-      {developsAt !== null ? (
+      {clock && (
+        // The one place the rule can be read BEFORE a first upload: her uploads say what happened to YOURS, this says
+        // what happens on this album at all, in her tracker's own sentence for it (one rule, one wording). `model=time`:
+        // a develop time and the host's approval read as one wait, told apart by their clock alone.
         <p
-          data-develop-note=""
+          data-develop-note={clock.kind === "develop" ? "" : undefined}
+          data-wait-rule={clock.kind}
           className="rounded-md bg-muted px-3 py-2 text-center text-reading text-muted-foreground"
         >
-          {developNote(hydrated ? developsAt : null)}
+          {waitRule(clock, nowMs)}
         </p>
-      ) : (
-        holdForApproval && (
-          // The one place the rule can be read BEFORE a first upload. Her
-          // uploads say what happened to YOURS; this says what happens on this
-          // event at all.
-          <p className="rounded-md bg-muted px-3 py-2 text-center text-reading text-muted-foreground">
-            The host reviews uploads before they appear in the album.
-          </p>
-        )
       )}
 
       {/* The post-upload slot, one card at a time. ClaimHandlePrompt resolves

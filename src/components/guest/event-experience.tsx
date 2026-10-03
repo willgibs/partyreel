@@ -48,6 +48,10 @@ import {
 import type { FollowMomentHost } from "@/components/guest/follow-moment-card";
 import { GuestActionDock } from "@/components/guest/guest-action-dock";
 import { publishCoverUnderHeader } from "@/components/guest/guest-header-cover";
+import {
+  AlbumWait,
+  AlbumWaitSource,
+} from "@/components/guest/gallery-empty-state-wait";
 import { GallerySkeleton } from "@/components/guest/gallery-skeleton";
 import { GalleryLiveProvider } from "@/components/guest/gallery-live";
 import { GuestShare } from "@/components/guest/guest-share";
@@ -85,6 +89,8 @@ import type { GalleryAccess, GalleryGate } from "@/lib/events/gallery-access";
 import { formatCount } from "@/lib/format/count";
 import { useInViewSentinel } from "@/lib/shared/use-in-view-sentinel";
 import { DEFAULT_ROW_STEP, type RowStep } from "@/lib/shared/album-rows";
+import { useWaitClock } from "@/lib/disposable/use-wait-clock";
+import { coverEyebrow, waitWords } from "@/lib/disposable/wait-words";
 import { claimLeftForAnotherAddress } from "@/lib/guest/claim-uploads";
 import {
   confirmBeatToast,
@@ -670,12 +676,30 @@ export function EventExperience({
      the slot's line and the camera, the album's head, her tracker, the keep and the failure sheet. And what hers wait
      for, as it falls on this viewer (`addsWaitFor`): where they wait, the album draws nothing of hers in the air
      either (her tracker has it from the press), and the failure sheet says the rest waits. */
-  const { reading: liveWait, onSynced: onDevelopsAtChange } =
-    useLiveUploadsWait({
-      initial: uploadsWait,
-      moderationMode: event.moderation_mode,
-    });
+  const {
+    reading: liveWait,
+    onSynced: onDevelopsAtChange,
+    developsAt: liveDevelopsAt,
+  } = useLiveUploadsWait({
+    initial: uploadsWait,
+    moderationMode: event.moderation_mode,
+  });
   const addsWait = addsWaitFor({ uploadsWait: liveWait, isOwner, isDemo });
+  /* ★ THE WAIT, ONE QUESTION OF TIME (the-wait r1, Will's `model=time`): the album's live reading as a clock, the host's
+     approval or a develop time ahead, so the album's contact sheet, her tracker and the slot all say one wait,
+     "Developing", told apart by its clock alone ("As Maya lets them in", "All at once at 9 am"). */
+  const waitClock = useMemo(
+    () => waitWords(liveWait, event.host_display_name ?? null),
+    [liveWait, event.host_display_name],
+  );
+  /* ★ THE PRESET NAMED ON THE COVER (Will's `name=disposable`): "Disposable · develops at 9 am" over the event's name on
+     an album with its camera and a develop time, "developed" the morning after; the time in her own clock, so only once
+     it is known (the server's render names the preset alone). */
+  const wallClock = useWaitClock();
+  const eyebrow = coverEyebrow(
+    { capture: event.capture ?? "upload", developsAt: liveDevelopsAt },
+    wallClock,
+  );
 
   // The header's own name menu is a SIBLING island and cannot reach the modal's
   // handle; `lib/guest/name-door.ts` is the one channel between them (the same
@@ -1356,6 +1380,7 @@ export function EventExperience({
           <AlbumCover
             ref={setCoverEl}
             className="-mt-14"
+            eyebrow={eyebrow}
             ground={
               <CoverGround
                 seed={galleryPromise}
@@ -1549,79 +1574,92 @@ export function EventExperience({
                   // The album's sync's word on its develop: the page's live reading follows it.
                   onDevelopsAtChange={onDevelopsAtChange}
                 >
-                  {/* The door's light takes its colour from here, the album's three newest (it draws
-                  nothing; `door/album-light.tsx`). */}
-                  <AlbumLightSampler />
-                  {/* Her tracker's list, inside the one live source it reads (its button sits on the
-                  cover and the shutter, above this provider, reading `trackerStore`). */}
-                  <UploadTracker
-                    store={trackerStore}
-                    queue={queue}
-                    qrToken={qrToken}
-                    sessionToken={sessionToken}
-                    isAuthed={isAuthed}
-                    moderated={liveWait.waits}
-                    developsAt={liveWait.developsAt}
-                    isDemo={isDemo}
-                    isOwner={isOwner}
-                    removedIds={removedIds}
-                    // Her Remove on what waits for the host: the page's own record of what she took back.
-                    onOwnRemoved={handleOwnRemoved}
-                    open={trackerOpen}
-                    onOpenChange={setTrackerOpen}
-                  />
-                  <LiveReel
-                    eventId={event.id}
-                    eventName={event.name}
-                    joinUrl={joinUrl}
-                    displayAddress={displayAddress}
-                    qrStyle={event.qr_style}
-                    isDemo={isDemo}
-                    moderated={event.moderation_mode !== "live"}
-                    onAddYours={canUpload ? openAdd : undefined}
-                    // A clip is a video: with the host's Videos off (`accepts_video`), a guest's clip
-                    // stays hers to save or share, rather than an Add the upload would refuse.
-                    addClipToAlbum={
-                      canUpload && event.accepts_video ? addClipToAlbum : null
-                    }
-                    queue={queue}
-                    // Her tracker's own-rows read carries the server's news (what a decision let in since
-                    // she was last told): the toast says it on her return too (crumbs-38).
-                    approvalNews={trackerStore.news}
-                    welcomePending={welcomePending}
-                    isOwner={isOwner}
-                    // The cover's photographs and the reel's door, told to the head above the album.
-                    headBridge={headBridge}
+                  {/* ★ THE ALBUM'S WAIT READS HERE (the-wait r1, `wait=sheet`): what waits off the album's sync,
+                  hers off her tracker, one reading for the sheet over the rows and the empty album under it. */}
+                  <AlbumWaitSource
+                    clock={waitClock}
+                    hers={trackerStore.hers}
+                    onOpenHers={openTracker}
+                    firstPaintWidth={firstPaintWidth}
                   >
-                    {/* The demo's turn card or the phone pair: one card directly
+                    {/* The door's light takes its colour from here, the album's three newest (it draws
+                  nothing; `door/album-light.tsx`). */}
+                    <AlbumLightSampler />
+                    {/* Her tracker's list, inside the one live source it reads (its button sits on the
+                  cover and the shutter, above this provider, reading `trackerStore`). */}
+                    <UploadTracker
+                      store={trackerStore}
+                      queue={queue}
+                      qrToken={qrToken}
+                      sessionToken={sessionToken}
+                      isAuthed={isAuthed}
+                      moderated={liveWait.waits}
+                      developsAt={liveWait.developsAt}
+                      hostName={event.host_display_name ?? null}
+                      isDemo={isDemo}
+                      isOwner={isOwner}
+                      removedIds={removedIds}
+                      // Her Remove on what waits for the host: the page's own record of what she took back.
+                      onOwnRemoved={handleOwnRemoved}
+                      open={trackerOpen}
+                      onOpenChange={setTrackerOpen}
+                    />
+                    <LiveReel
+                      eventId={event.id}
+                      eventName={event.name}
+                      joinUrl={joinUrl}
+                      displayAddress={displayAddress}
+                      qrStyle={event.qr_style}
+                      isDemo={isDemo}
+                      moderated={event.moderation_mode !== "live"}
+                      onAddYours={canUpload ? openAdd : undefined}
+                      // A clip is a video: with the host's Videos off (`accepts_video`), a guest's clip
+                      // stays hers to save or share, rather than an Add the upload would refuse.
+                      addClipToAlbum={
+                        canUpload && event.accepts_video ? addClipToAlbum : null
+                      }
+                      queue={queue}
+                      // Her tracker's own-rows read carries the server's news (what a decision let in since
+                      // she was last told): the toast says it on her return too (crumbs-38).
+                      approvalNews={trackerStore.news}
+                      welcomePending={welcomePending}
+                      isOwner={isOwner}
+                      // The cover's photographs and the reel's door, told to the head above the album.
+                      headBridge={headBridge}
+                    >
+                      {/* The demo's turn card or the phone pair: one card directly
                     above the album's first tile — the photograph a visitor just
                     added IS that tile (the album is newest first), so whatever is
                     said here is said right beside it. It keeps the ALBUM's own box
                     (BLEED), not the words' column, so it lines up with the
                     photographs under it; the album itself is one CSS multi-column
                     box and nothing can be put in the middle of one. */}
-                    {aboveAlbum && (
-                      <div className={cn(BLEED, "mt-5")}>{aboveAlbum}</div>
-                    )}
-                    <div className={cn(BLEED, aboveAlbum ? "mt-4" : "mt-5")}>
-                      <LiveGallery
-                        galleryPromise={galleryPromise}
-                        qrToken={qrToken}
-                        access={access}
-                        isDemo={isDemo}
-                        onOpenGate={() => entryRef.current?.openToGate()}
-                        // ★ No Add of its own: the cover's is the one Add (see `galleryEmpty`).
-                        onAddFirst={undefined}
-                        joinUrl={joinUrl}
-                        initialRowStep={rowStep}
-                        firstPaintWidth={firstPaintWidth}
-                        rhythmSeed={visitSeed}
-                        closesOnLastRemoval={closesOnLastRemoval}
-                        // Where hers wait, nothing of hers in the air stands at the album's head (red-team 44).
-                        addsWait={addsWait.waits}
-                      />
-                    </div>
-                  </LiveReel>
+                      {aboveAlbum && (
+                        <div className={cn(BLEED, "mt-5")}>{aboveAlbum}</div>
+                      )}
+                      {/* ★ THE WAIT OVER THE ALBUM (the-wait r1, `wait=sheet`): the contact sheet wherever photos wait,
+                      hers lit, everyone's counted; the empty album under it yields to it. */}
+                      <AlbumWait className={cn(BLEED, "mt-5")} />
+                      <div className={cn(BLEED, aboveAlbum ? "mt-4" : "mt-5")}>
+                        <LiveGallery
+                          galleryPromise={galleryPromise}
+                          qrToken={qrToken}
+                          access={access}
+                          isDemo={isDemo}
+                          onOpenGate={() => entryRef.current?.openToGate()}
+                          // ★ No Add of its own: the cover's is the one Add (see `galleryEmpty`).
+                          onAddFirst={undefined}
+                          joinUrl={joinUrl}
+                          initialRowStep={rowStep}
+                          firstPaintWidth={firstPaintWidth}
+                          rhythmSeed={visitSeed}
+                          closesOnLastRemoval={closesOnLastRemoval}
+                          // Where hers wait, nothing of hers in the air stands at the album's head (red-team 44).
+                          addsWait={addsWait.waits}
+                        />
+                      </div>
+                    </LiveReel>
+                  </AlbumWaitSource>
                 </GalleryLiveProvider>
               </Suspense>
             </AlbumBoundary>
