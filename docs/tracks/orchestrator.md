@@ -48,7 +48,7 @@ flat; a lane in its gate, or the milestone's full gate, counts as two. Every pro
 | `identity-r2` | board identity r2 [desk 10]: voice as a layer, then actions, fields, layers and status in his voice | MERGED at `3af9a608` (gate 149 green: test, build, lab:smoke 22, lab:demo on identity; the lane's gate: test 8,907, build, lab:smoke 7, lab:demo 5 steps at 1440 and 375 with its knobs); lab only; on the desk at build 44 | Opus, 3134 | `a3fb5687c66a613b9` |
 | `create-wizard-r2` | board create-wizard r2 [desk 60]: the room's flow screen by screen in his layout (flow, add, look, beat) | MERGED at `34dba1fa` (gate 147 green, light: test, the merge adding only docs to its gated head; the lane's gate: test 8,902, build, lab:smoke 22, lab:demo 4 steps at 1440 and 375); lab only; on the desk at build 44 | Opus, 3135 | `aaa11532349605aa9` |
 | `demo-r4` | board demo-framing r4 [desk 90]: five heroes (card recommended, plate, field, wall, door), each live at 1440, a tablet and 375 | MERGED at `31b93027` (gate 154 green: test, build, lab:smoke 18, lab:demo on demo-framing; the lane's gate: test 8,905, build, lab:smoke 3, lab:demo 1 step of 5 options); lab only; on the desk at build 44; its photographs asked (ASSETS 39 to 41) | Opus, 3136 | `a557d2f6e3b8e9fd8` |
-| `save-speed` | the viewer's Save immediate: his iPhone's 30 s measured to its cause (a second download on the tap behind R2's HTTP/1.1 connections, WebKit's 5 s activation) and fixed by holding the original the viewer draws | MERGED at `b86572ce` (gate 153 green: lint, test, build, lab:smoke 152, lab:demo on three boards; the lane's gate on its synced head: test 9,083, build, lab:smoke 134); its uploads-and-r2.md lines placed at the record, its guest-flow.md viewer line waits for door-reveal's merge (door-reveal owns the doc) | Opus, 3135 | `a4d3efdea8ef3c604` |
+| `save-speed` | the viewer's Save immediate: his iPhone's 30 s measured to its cause (a second download on the tap behind R2's HTTP/1.1 connections, WebKit's 5 s activation) and fixed by holding the original the viewer draws | MERGED at `b86572ce` (gate 153 green: lint, test, build, lab:smoke 152, lab:demo on three boards; the lane's gate on its synced head: test 9,083, build, lab:smoke 134); its uploads-and-r2.md and guest-flow.md lines placed | Opus, 3135 | `a4d3efdea8ef3c604` |
 | `host-dashboard-r2` | board host-dashboard r2 [desk 25]: events at forty (Recent on top recommended), what the stage leads with on a quiet day, whether she pins it | MERGED at `63885f15` (gate 151 green: test, build, lab:smoke 21, lab:demo on host-dashboard; the lane's gate: test 8,970, build, lab:smoke 21, lab:demo 3 steps at 1440 and 375); lab only; on the desk at build 44 | Opus, 3132 | `aea1e17a667c43dfd` |
 | `crumbs-50` | fourteen off-round crumbs (the home's prefetch on intent, demo doors, type steps, tokens, dead fixtures, a help line, legal print, inline code, the sign-in cue, the nav's one source, the blog's trips) | MERGED at `318493d5` (gate 155 green: test, build, lab:smoke 154, lab:demo on four boards; the lane's gate: test 9,000, build, lab:smoke 130); no SQL | Sonnet, 3134 | `ad78669c34ed8b55e` |
 | `door-reveal` | locked-door r3's picks (the walk-through onto the cover, the turning breathing idle), the door always the first byte, the name after the email, the chooser's photos across a reload, red-team 43's MEDIUM page half; the board retired | MERGED at `d3d172fd` (gate 158 green: lint, test, build, lab:smoke 157, lab:demo on five boards; the lane's gate: test 9,324, build, lab:smoke 155); PREMISE re-read for take-home at the desk pass; the locked-door ledger retired; no SQL | Opus, 3131 | `aec876b5d6becfb32` |
@@ -58,7 +58,7 @@ flat; a lane in its gate, or the milestone's full gate, counts as two. Every pro
 | `take-home` | board take-home [desk 70], new: how photographs leave (guest=select, save=light, host=two recommended) | MERGED at `303c6e82` (gate 157 green: test, build, lab:smoke 19, lab:demo on take-home; the lane's gate: test 9,269, build, lab:smoke 5, lab:demo 3 steps at 1440 and 375); lab only; on the desk at build 44 | Opus, 3136 | `af6d50656e540a41c` |
 | `redteam-43` | build 43's red-team (`96c6dcdc`) | DONE 2026-10-03 00:50Z: two MEDIUMs (the develop album's tracker, fixed in door-reveal and the camera; the hub's Reel card flash, `crumbs-52`), a LOW and four NITs; the leak matrix PASS on every route; RT43 events deleted; ledger `../partyreel-wt/_scratch/redteam-43/ledger.txt` | Opus, Will's Chrome | `a7abfa3530cd42e8c` |
 | `crumbs-51` | words made true after round 12's merges: four help articles and the admin switch on the retired reel tile and the welcome screen, careers, two hero comments, host-app.md's pulse | MERGED at `86dfef81` (gate 159 green; the lane's gate: typecheck, lint, test, build, lab:smoke); no SQL | Sonnet, 3133 | `ae456d79d5e6fcd48` |
-| `crumbs-52` | red-team 43's second MEDIUM: the hub's Reel card (a soft navigation) shows the album before the reel; the curtain made to stand from the first frame | running | Sonnet, 3134 | `a43b82a5650dc8a64` |
+| `crumbs-52` | red-team 43's second MEDIUM: the hub's Reel card (a soft navigation) showed the album before the reel; the curtain made to stand from the first frame; the camera's page half and red-team 43's two NITs | MERGED at `1cc96371` (gate 163 green, light: test 9,457; the lane's gate on its synced head: test, build, lab:smoke 148); no SQL | Sonnet, 3134 | `a43b82a5650dc8a64` |
 | `lab-frame` | the lab's Frame a faithful window: a frame-scoped window for the media hooks, Radix's layers inside the frame, a glow filter host; nothing under components/ui | running | Opus, 3131 | `ab041e184bfe9d164` |
 | `crumbs-53` | the next words after round 12: the reel's place and the welcome in help and marketing, reel.md, the welcome cookie's tests, one home for the develop time's words, the hero fill's and pulse's names | MERGED at `57825ec2` (gate 162 green, light: test; the lane's gate on its synced head: test 9,430, build, lab:smoke 150); no SQL | Sonnet, 3133 | `a60b9ee6392ade237` |
 
@@ -77,38 +77,30 @@ commits, what remains, its predecessor's transcript at
 account. Connectors follow the account: Claude in Chrome (every red-team needs it), the Supabase MCP on
 `ddafaemglzmuekbtjwzn`, the Vercel MCP on his personal team (deploys ride `$VERCEL_TOKEN`; only runtime logs need P3).
 
-Relays that live only in an agent (2026-10-02): red-team 43's MEDIUM (23:38Z, `../partyreel-wt/_scratch/redteam-43/
-ledger.txt`): on an album with a develop time ahead the guest page reads "delayed" as approve-each only, so her sealed
-shots show as album tiles and "joined the album", then vanish, with no tracker. The fix, "delayed" = approve-each OR a
-develop time ahead from `lib/disposable/reveal.ts`, red first: `door-reveal` takes the page half
-(`event-experience.tsx` :1117 keepHeld and :1406 the tracker's `moderated`, `page.tsx` :614, `save-account-prompt.tsx`'s
-`keepSentLine`, accepted outside its owns); `disposable-camera` the upload half (`guest-upload.tsx` :252 and the queue's
-optimistic tile, honouring `create_media`'s `sealed`). Earlier relays are merged (the foundation's, header-wiring's).
+Relays that live only in an agent: none (red-team 43's two MEDIUMs are merged: the develop album's tracker in
+`door-reveal` and `disposable-camera`, the hub's Reel card in `crumbs-52`).
 
 **Q9 is answered** (the Advisor, 21:05Z) and acted on above. The waiting experience itself goes to a design board (below).
 
 If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` holds a merge made after this note (push
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
 staged, uncommitted merge is finished by `usher/kit/merge-lane.sh`'s own steps or reset with `git merge --abort`.
-This session's scratchpad holds the specs (`specs-r12/`) and gate logs (the next gate is 146, the calls file numbers on
-from 91); nothing there is needed that these lines and the manifests do not carry. Everything a successor reads lives
+This session's scratchpad holds the specs (`specs-r12/`) and gate logs (the next gate is 164, the calls file numbers on
+from 110); nothing there is needed that these lines and the manifests do not carry. Everything a successor reads lives
 in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team briefs and ledgers).
 
 ## Next, in order
 
-1. **Running:** `crumbs-52` (red-team 43's hub Reel-card curtain on a soft navigation, then the camera's five page lines
-   in `event-experience.tsx` and two NITs, relayed 2026-10-03 01:00Z: sync first) and `lab-frame` (the Frame a
-   faithful window). Integrate each as it hands off (gates from 163).
-2. **Build 44 `[preview]`** once `crumbs-52` merges, then its red-team (a fresh brief in
-   `../partyreel-wt/_scratch/redteam-44/`, modelled on 43's): the door's first byte and walk-through (375 and 1440,
-   reduced motion), the idle, the name after the email, the camera on a camera album (a fake stream in a headless
-   Chrome; the roll, hold to film), both MEDIUM fixes (the develop album's tracker; the hub's Reel card from the
-   first frame), Save. hi@willgibs.com is back as the Free host.
+1. **Running:** `lab-frame` (the Frame a faithful window). Integrate it as it hands off (gate 164); it rides build 45.
+2. **Build 44 `[preview]`** at the record of `crumbs-52` (merged `1cc96371`), then its red-team from
+   `../partyreel-wt/_scratch/redteam-44/brief.md` (its stamp `BUILD44` filled in): the door's first byte and
+   walk-through, the idle, the name after the email, the camera on a camera album (a fake stream in its own headless
+   Chrome), both MEDIUM fixes again, regressions. hi@willgibs.com is back as the Free host (nameless).
 3. **The pre-sitting desk pass:** `board-card.mjs --desk` over the seven boards (identity r2 10, host-dashboard r2 25,
    the-wait 35, event-header r2 50, create-wizard r2 60, take-home 70, demo-framing r4 90) and `lab-scope --since`
    their cuts; PREMISE re-reads named at the gates (identity, create-wizard, take-home, the-wait); a desk-tune lane only
    if a drawn claim moved. Then the final `[preview]` (45) for his sitting, identity first.
-4. **The close:** STATUS rewritten, the calls file sent (91 to 108 tonight), his morning message; then Moltbook one
+4. **The close:** STATUS rewritten, the calls file sent (91 to 109 tonight), his morning message; then Moltbook one
    pass an hour.
 
 ## Waiting on Will
