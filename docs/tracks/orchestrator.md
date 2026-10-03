@@ -62,8 +62,7 @@ plan's whole text (lane splits, the Advisor's Q11 corrections, Will's answers) i
 (round 12's plan) answered with 21 corrections, all folded into the briefs; the next consult is the foundation's
 migrations before they are applied. From another session, respawn it from `usher/kit/advisor-prompt.txt`.
 
-**Handoff across accounts** (2026-10-03 11:11Z: this account's weekly at 98%, the auto-kill likely within the
-hour; memory 55% free after a 09:30Z squeeze; Will's rule: watch from 96%, refresh this block often from 98%). The Orchestrator session is `2ba90542-62d6-487c-8c79-3657619f9133` (hi@willgibs.com,
+**Handoff across accounts** (2026-10-03 11:31Z: this account's weekly at 99%, the auto-kill imminent; memory 55% free after a 09:30Z squeeze; Will's rule: watch from 96%, refresh this block often from 98%). The Orchestrator session is `2ba90542-62d6-487c-8c79-3657619f9133` (hi@willgibs.com,
 seated 2026-10-01 18:08Z; its weekly resets Tuesday 2026-10-06 21:00Z, willg97's Sunday 2026-10-04 13:00Z; Will hands
 off only when one maxes its weekly limit). willg97's `157caa18` stays idle and `b01c012e` stays retired. From another
 session, respawn each running lane per the runbook's "Resume a lane": kill by port any dev server left on 3131 to 3136
@@ -91,6 +90,11 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team brie
 
 ## Next, in order
 
+0. **Red-team 46's MEDIUM (11:30Z, its ledger):** the waiting contact sheet draws her own VIDEO as a broken image
+   (`src/components/guest/gallery-empty-state-sheet.tsx`: every lit `[data-hers] .wait-cell` is an `<img src={cell.src}>`,
+   `HerShot.video` ignored; a camera album's hold-to-film shot is `video/mp4`). The fix: draw a video's first frame (its
+   poster, or a muted `<video>` paused at its first frame), red first: cut `crumbs-56` (Sonnet) for it, plus whatever
+   else red-team 46 ledgers, once it reports.
 0. **Now (11:20Z):** every wave-1 lane is merged and both migrations are applied (types regenerated at `e0cbda7d`;
    take-home's typed seams one ROADMAP line), and the export Worker is deployed (version 955ce073). Build 46 (`9af92e54`)
    serves the alias; red-team 46 walks it from `../partyreel-wt/_scratch/redteam-46/brief.md`. Running: `event-dates` (its migration for the Advisor,
