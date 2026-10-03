@@ -17,6 +17,9 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Uploads: an upload reads the host's active bytes three times (the context, the meter, create_media), the last under her lock; one maintained counter (PRICING lever 7's per-event sums) makes each O(1) (from `upload-meter`).
+- Launch checkpoint: the venue-shaped limiter kinds still sized for a 400-join venue (rename and attach_email 60, export 100 a quarter-hour per address and album) meet the 2,000-guest wedding's end of night; size them as the join was (from `upload-meter`).
+- Admin portal: a host's month in `/admin` (bytes, items, the hour's tally) with an operator's reset, since nothing shows a host's meter and there is no override (from `upload-meter`).
 - QA hardening: the backup reconcile's scan (#37) can take the prune's merge-join (both buckets listed over one range, no HEAD per object) and its ledger (from `backup-prune`).
 - Admin portal: the prune's `primary_missing` (keys whose row lives while the primary lost the object, the backup the only copy) as a durability alert with a restore path, beside the dead letters (from `backup-prune`).
 - Launch checkpoint: `PRUNE_MODE=live`'s first run after the test-data reset holds for a week (its backlog passes the hold), as designed (from `backup-prune`).
