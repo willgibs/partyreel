@@ -212,8 +212,11 @@ describe("what rides the URL, and what does not", () => {
       join(ROOT, "src/app/(app)/dashboard/[eventId]/page.tsx"),
       "utf8",
     );
+    // The place the address names is read once on the server (`rooms=over`: its room's own data rides with it) and
+    // handed to the island as its initial state.
     expect(
-      /initialSheet=\{resolveEventSheet\(room\)\}/.test(page),
+      /const place = resolveEventSheet\(room\)/.test(page) &&
+        /initialSheet=\{place\}/.test(page),
       "?room= is no longer resolved server-side into the island's initial state",
     ).toBe(true);
   });

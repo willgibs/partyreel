@@ -194,7 +194,11 @@ describe("before two, the card is guidance", () => {
     const guidance = await openGuidance();
     expect(guidance).toHaveTextContent(/count once you approve them/i);
     const review = screen.getByRole("link", { name: /3 waiting in review/i });
-    expect(review).toHaveAttribute("href", "/dashboard/e1/review");
+    // Review stands over the hub (event-header r2, `rooms=over`): the link is its real address, and a press opens it
+    // in place.
+    expect(review).toHaveAttribute("href", "/dashboard/e1?room=review");
+    fireEvent.click(review);
+    expect(openSheet).toHaveBeenCalledWith("review");
   });
 
   it("points at no queue that is not there", async () => {

@@ -228,7 +228,10 @@ export default async function FoundationsPage({
               <li>Sheets, reveals: 200 to 280ms (exits faster)</li>
             </ul>
           </Specimen>
-          <Specimen label="Shimmer" hint="--animate-shimmer · linear">
+          <Specimen
+            label="Breathe"
+            hint="--animate-skeleton-breathe · ease-in-out"
+          >
             <div className="space-y-2">
               <Skeleton className="h-4 w-3/4" />
               <Skeleton className="h-4 w-1/2" />

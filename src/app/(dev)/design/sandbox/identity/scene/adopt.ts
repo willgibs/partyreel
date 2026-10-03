@@ -68,14 +68,6 @@ const RULES: Rule[] = [
     sel: "label[for]:not([data-slot])",
     adopt: (el) => set(el, "data-slot", "label"),
   },
-  {
-    // Review's head: the queue's count is a badge, in the waiting tone.
-    sel: "[data-review-room] h1 + span",
-    adopt: (el) => {
-      set(el, "data-slot", "badge");
-      set(el, "data-variant", "warning");
-    },
-  },
 ];
 
 function adoptAll(root: ParentNode) {

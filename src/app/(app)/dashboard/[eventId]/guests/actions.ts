@@ -47,12 +47,15 @@ function failed(result: BlockFailure, action: string): BlockActionFailure {
   return { ok: false, message: result.message };
 }
 
-/** Every room a block changes: the hub's counts and album, the Guests room, Review's queue. */
+/**
+ * Every room a block changes (the hub's counts and album, the Guests room, Review's queue) is the HUB now (event-header
+ * r2, `rooms=over`: each room stands over the hub on its address), so one revalidation re-renders them all, in the
+ * act's own answer: the Guests room's rows come back with it while its address names the room (`page.tsx`). The old
+ * room routes only redirect, and hold nothing to refresh.
+ */
 function revalidateEvent(eventId: string) {
   if (!eventId) return;
   revalidatePath(`/dashboard/${eventId}`);
-  revalidatePath(`/dashboard/${eventId}/guests`);
-  revalidatePath(`/dashboard/${eventId}/review`);
 }
 
 /** What pressing Block would do, from the act itself: the confirm's name, count and offer. */
@@ -154,9 +157,7 @@ export async function declineAtDoorAction(
   if (!parsed.success) return BAD_REQUEST;
   const { eventId, guestId, userId } = parsed.data;
   const result = await blockFromEvent(
-    userId
-      ? { kind: "account", eventId, userId }
-      : { kind: "row", guestId },
+    userId ? { kind: "account", eventId, userId } : { kind: "row", guestId },
     // The address gates already hold the email step on; a decline changes no switch.
     { requireVerifiedEmail: false },
   );
@@ -194,7 +195,10 @@ export async function removeInviteAction(
 ): Promise<{ ok: true } | BlockActionFailure> {
   const parsed = inviteRemove.safeParse(input);
   if (!parsed.success) return BAD_REQUEST;
-  const result = await removeEventInvite(parsed.data.eventId, parsed.data.email);
+  const result = await removeEventInvite(
+    parsed.data.eventId,
+    parsed.data.email,
+  );
   if (!result.ok) return doorFailed(result, "remove_event_invite");
   revalidateEvent(parsed.data.eventId);
   return { ok: true };

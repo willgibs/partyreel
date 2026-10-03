@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 
+import { roomHref } from "@/lib/event/sections";
+
 // Next 16: params is a Promise — await it.
 type PageProps = { params: Promise<{ eventId: string }> };
 
@@ -21,5 +23,5 @@ type PageProps = { params: Promise<{ eventId: string }> };
  */
 export default async function EventSettingsRedirect({ params }: PageProps) {
   const { eventId } = await params;
-  redirect(`/dashboard/${eventId}?room=settings`);
+  redirect(roomHref(eventId, "settings"));
 }

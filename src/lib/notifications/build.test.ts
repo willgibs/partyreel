@@ -46,7 +46,7 @@ describe("buildNotifications", () => {
     expect(r.badgeCount).toBe(3);
   });
 
-  it("names each event with a queue and opens that event's Review room", () => {
+  it("names each event with a queue and opens that event's Review room, over its hub", () => {
     const r = buildNotifications(
       signals({
         pendingCount: 5,
@@ -58,9 +58,15 @@ describe("buildNotifications", () => {
       }),
     );
     const rows = r.items.filter((i) => i.kind === "review");
+    // ★ RESHAPED ON PURPOSE (event-header r2, `rooms=over`): Review left its route page for a panel over the hub,
+    // so the row opens the hub with the room on it (`roomHref`), one hop, never through the old route's redirect.
     expect(rows.map((i) => [i.title, i.body, i.href])).toEqual([
-      ["3 uploads to review", "Mia & Theo's wedding", "/dashboard/e1/review"],
-      ["2 uploads to review", "Ruby's 30th", "/dashboard/e2/review"],
+      [
+        "3 uploads to review",
+        "Mia & Theo's wedding",
+        "/dashboard/e1?room=review",
+      ],
+      ["2 uploads to review", "Ruby's 30th", "/dashboard/e2?room=review"],
     ]);
     // Keys stay unique per event, so two queues are two rows.
     expect(new Set(rows.map((i) => i.key)).size).toBe(2);
@@ -196,7 +202,7 @@ describe("buildNotifications", () => {
 });
 
 describe("people at the door (the doors, event-settings r1)", () => {
-  it("★ one row per event, opening its At the door, the badge counting each person", () => {
+  it("★ one row per event, opening its Guests room (At the door heads it), the badge counting each person", () => {
     const r = buildNotifications(
       signals({
         doorByEvent: [
@@ -210,7 +216,8 @@ describe("people at the door (the doors, event-settings r1)", () => {
     expect(doors[0]).toMatchObject({
       title: "2 people at the door",
       body: "Maya's 30th",
-      href: "/dashboard/e1/guests#at-the-door",
+      // Reshaped on purpose (`rooms=over`): the Guests room stands over the hub, At the door its first section.
+      href: "/dashboard/e1?room=guests",
       unread: true,
     });
     expect(r.badgeCount).toBe(2);
@@ -220,7 +227,9 @@ describe("people at the door (the doors, event-settings r1)", () => {
     const r = buildNotifications(
       signals({
         pendingCount: 3,
-        pendingByEvent: [{ eventId: "e1", eventName: "Maya's 30th", pending: 3 }],
+        pendingByEvent: [
+          { eventId: "e1", eventName: "Maya's 30th", pending: 3 },
+        ],
         doorByEvent: [{ eventId: "e1", eventName: "Maya's 30th", waiting: 1 }],
       }),
     );

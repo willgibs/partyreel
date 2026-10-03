@@ -5,7 +5,6 @@ import {
   Camera,
   Columns3,
   Download,
-  Eye,
   Globe,
   Heart,
   ImageUp,
@@ -14,21 +13,16 @@ import {
   LayoutGrid,
   Lock,
   MoreHorizontal,
+  Play,
   Plus,
+  QrCode,
   Rows3,
   Share,
   Trash2,
   UserRound,
-  Users,
 } from "lucide-react";
 
-import {
-  Avatar,
-  AvatarBadge,
-  AvatarFallback,
-  AvatarGroup,
-  AvatarGroupCount,
-} from "@/components/ui/avatar";
+import { StyledQr } from "@/components/app/styled-qr";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,6 +33,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { CodeChip } from "@/components/ui/code-chip";
+import { CodeMat } from "@/components/ui/code-mat";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -54,7 +50,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -62,7 +57,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Shutter } from "@/components/ui/shutter";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
@@ -72,31 +67,26 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { resolveQrPreset } from "@/lib/constants/qr-presets";
 import { cn } from "@/lib/utils";
 
-import { PHOTO } from "../fixtures";
+import { JOIN_URL, PHOTO } from "../fixtures";
 import type { GroundId, SheetView, Width } from "../model";
 
 import {
   Check,
-  CodeChip,
-  CodeMat,
-  Empty,
-  GlassButton,
-  GlyphCount,
-  Live,
-  OnPhotoButton,
+  MediaTile,
   PhotoSurface,
   Radio,
   RadioCard,
-  Shutter,
   Slider,
 } from "./atoms";
 import { Ground, TOAST_BAND, useHeldToast } from "./ground";
 
 /**
  * THE SHEETS: every atom of one part, in every state, on paper and in the
- * room; and the voice's own sheet, every place the voice speaks.
+ * room: the system's actions, its fields, and every layer the room and the
+ * light edge are asked about.
  *
  * ★ THE SAME MARKUP UNDER EVERY OPTION. This file is production's atoms (and
  * the stand-ins) laid out and nothing else: an option is the stylesheet the
@@ -378,7 +368,7 @@ function ActionsSheet({ w, page }: { w: Width; page: Page }) {
               </div>
             </Part>
           </div>
-          <Part title="On a photograph: the white primary, glass rounds, the shutter (idle, sending, sent), the code as a chip">
+          <Part title="On a photograph: the white primary, glass rounds (rest, focus), the shutter (idle, sending, sent), the code as a chip (rest, focus)">
             <div
               className={cn("flex gap-4", desk ? "items-stretch" : "flex-col")}
             >
@@ -386,7 +376,7 @@ function ActionsSheet({ w, page }: { w: Width; page: Page }) {
                 src={PHOTO.golden}
                 pos="50% 38%"
                 className="flex-1 rounded-[var(--radius-tile)]"
-                style={{ height: desk ? 132 : 176 }}
+                style={{ height: desk ? 132 : 196 }}
               >
                 <div
                   className={cn(
@@ -397,31 +387,54 @@ function ActionsSheet({ w, page }: { w: Width; page: Page }) {
                   )}
                 >
                   <div className="flex items-center gap-2">
-                    <OnPhotoButton>
+                    <Button variant="on-photo" size="cta">
                       <ImageUp /> Add photos
-                    </OnPhotoButton>
-                    <GlassButton icon={Heart} label="Like" />
-                    <GlassButton
-                      icon={MoreHorizontal}
-                      label="More"
-                      demo="hover"
-                    />
+                    </Button>
+                    <Button
+                      variant="glass"
+                      size="icon-cta"
+                      aria-label="Watch the reel"
+                    >
+                      <Play className="fill-current" />
+                    </Button>
+                    <Button
+                      variant="glass"
+                      size="icon-cta"
+                      aria-label="Invite"
+                      data-demo="focus"
+                      tabIndex={-1}
+                    >
+                      <QrCode />
+                    </Button>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Shutter />
-                    <Shutter state="sending" progress={0.62} />
-                    <Shutter state="done" progress={1} />
+                  <div className="flex items-center gap-4">
+                    <Shutter aria-label="Add photos" />
+                    <Shutter
+                      state="sending"
+                      progress={0.62}
+                      count={3}
+                      aria-label="Add photos, 3 sending"
+                    />
+                    <Shutter
+                      state="done"
+                      progress={1}
+                      aria-label="Add photos, all sent"
+                    />
                   </div>
                 </div>
               </PhotoSurface>
               <div
                 className={cn(
-                  "flex items-center justify-center gap-4",
-                  desk ? "flex-col px-2" : "justify-start py-1",
+                  "flex items-center justify-center gap-5",
+                  desk ? "flex-col px-3" : "justify-start py-1",
                 )}
               >
-                <CodeChip />
-                <CodeChip demo="focus" />
+                <CodeChip aria-label="Show the code" />
+                <CodeChip
+                  aria-label="Show the code"
+                  data-demo="focus"
+                  tabIndex={-1}
+                />
                 {desk ? null : <Note>the code as a chip: rest, focus</Note>}
               </div>
             </div>
@@ -479,7 +492,7 @@ function FieldsSheet({ w, page }: { w: Width; page: Page }) {
             </Field>
             <Field label="A note for guests" line="focus">
               <Input
-                placeholder="Under the name, on the page they open"
+                defaultValue="Dance floor opens at nine"
                 data-demo="focus"
                 tabIndex={-1}
               />
@@ -685,42 +698,80 @@ function RowsInPlace() {
   );
 }
 
+/**
+ * THE LOUPE: a small surface magnified, as a photographer checks an edge,
+ * because the light edge is one pixel and a frame drawn at a stage's scale
+ * shows it at less than one. Each window holds the very atom hook the sheet
+ * styles (a pop-out, a card, a photograph), small enough that its top and
+ * the sides it falls away down are in the window, so what it magnifies is
+ * the rule, never a picture of it.
+ */
+function Loupe({
+  children,
+  name,
+  k,
+}: {
+  children: ReactNode;
+  name: string;
+  k: number;
+}) {
+  return (
+    <figure className="flex min-w-0 flex-1 flex-col gap-1">
+      <div
+        className="relative overflow-hidden rounded-[6px] bg-background"
+        style={{
+          height: Math.round(44 * k),
+          boxShadow: "inset 0 0 0 1px var(--border)",
+        }}
+      >
+        <div className="absolute top-2 left-1/2 -translate-x-1/2">
+          <div style={{ zoom: k }}>{children}</div>
+        </div>
+      </div>
+      <Note>{`${name}, ×${k}`}</Note>
+    </figure>
+  );
+}
+
+function Loupes({ w }: { w: Width }) {
+  const desk = w === 1440;
+  const k = desk ? 2.5 : 1.75;
+  return (
+    <div className={cn("grid gap-2", desk ? "grid-cols-4" : "grid-cols-2")}>
+      <Loupe name="a pop-out" k={k}>
+        <div data-slot="dropdown-menu-content" className="h-16 w-20" />
+      </Loupe>
+      <Loupe name="a card" k={k}>
+        <div data-slot="card" className="h-16 w-20" />
+      </Loupe>
+      <Loupe name="a photograph" k={k}>
+        <MediaTile src={PHOTO.golden} pos="8% 40%" className="h-16 w-20" />
+      </Loupe>
+      <Loupe name="a glass round" k={k}>
+        <PhotoSurface
+          src={PHOTO.golden}
+          pos="30% 40%"
+          className="flex h-16 w-20 items-center justify-center rounded-[var(--radius-tile)]"
+        >
+          <Button variant="glass" size="icon-cta" aria-label="Watch">
+            <Play className="fill-current" />
+          </Button>
+        </PhotoSurface>
+      </Loupe>
+    </div>
+  );
+}
+
 function LayersSheet({ g, w, page }: { g: GroundId; w: Width; page: Page }) {
   const desk = w === 1440;
-  useHeldToast(g, "Photo hidden from the album", shows(page, 2));
+  useHeldToast(g, "Photo hidden from the album", shows(page, 1));
   return (
     <div className={cn("grid gap-6", desk ? "grid-cols-2" : "grid-cols-1")}>
       {shows(page, 1) ? (
-        <div className="flex min-w-0 flex-col gap-5">
-          <Card size="sm">
-            <CardHeader>
-              <CardTitle>The highlight reel</CardTitle>
-              <CardDescription>Plays every approved photo.</CardDescription>
-              <CardAction>
-                <Badge variant="secondary">On</Badge>
-              </CardAction>
-            </CardHeader>
-            <CardFooter className="justify-between gap-2">
-              <span className="text-caption text-muted-foreground">
-                2 photos to go
-              </span>
-              <Button size="sm" variant="outline">
-                Watch
-              </Button>
-            </CardFooter>
-          </Card>
-          <DialogInPlace />
-          <div className="flex items-center gap-5">
-            <CodeMat px={desk ? 96 : 112} />
-            <Note>the code on its white mat</Note>
-          </div>
-        </div>
-      ) : null}
-      {shows(page, 2) ? (
         <div className="flex min-w-0 flex-col gap-4">
           <div
             className="flex items-start justify-between gap-3"
-            style={{ height: 186 }}
+            style={{ height: desk ? 176 : 186 }}
           >
             <DropdownMenu open modal={false}>
               <DropdownMenuTrigger asChild>
@@ -755,7 +806,7 @@ function LayersSheet({ g, w, page }: { g: GroundId; w: Width; page: Page }) {
               <TooltipContent side="left">Download</TooltipContent>
             </Tooltip>
           </div>
-          <div style={{ height: 118 }}>
+          <div style={{ height: desk ? 104 : 112 }}>
             <Popover open>
               <PopoverTrigger asChild>
                 <Button
@@ -782,299 +833,64 @@ function LayersSheet({ g, w, page }: { g: GroundId; w: Width; page: Page }) {
           <RowsInPlace />
         </div>
       ) : null}
-    </div>
-  );
-}
-
-/* ── STATUS ───────────────────────────────────────────────────────────── */
-
-const FACES = ["Maya", "Jay", "Sam", "Ines", "Theo"];
-
-function Faces({ size, n }: { size: "sm" | "default"; n: number }) {
-  return (
-    <AvatarGroup>
-      {FACES.slice(0, n).map((f) => (
-        <Avatar key={f} size={size} seed={`identity-${f}`}>
-          <AvatarFallback>{f[0]}</AvatarFallback>
-        </Avatar>
-      ))}
-      <AvatarGroupCount>+12</AvatarGroupCount>
-    </AvatarGroup>
-  );
-}
-
-function Meter({
-  label,
-  value,
-  failed = false,
-}: {
-  label: string;
-  value: number;
-  failed?: boolean;
-}) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <div className="flex items-baseline justify-between text-caption">
-        <span className={failed ? "text-destructive" : undefined}>{label}</span>
-        <span data-role="readout" className="text-muted-foreground">
-          {value}%
-        </span>
-      </div>
-      <Progress value={value} aria-invalid={failed || undefined} />
-    </div>
-  );
-}
-
-function StatusSheet({ w, page }: { w: Width; page: Page }) {
-  const desk = w === 1440;
-  return (
-    <div className="flex flex-col gap-5">
-      {shows(page, 1) ? (
-        <>
-          <Part title="Badges, and the live mark">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <Badge>Pro</Badge>
-              <Badge variant="secondary">Draft</Badge>
-              <Badge variant="outline">Private</Badge>
-              <Badge variant="success">Approved</Badge>
-              <Badge variant="warning">12 waiting</Badge>
-              <Badge variant="destructive">Failed</Badge>
-              <Badge variant="info">New</Badge>
-              <Live />
-            </div>
-          </Part>
-          <PhotoSurface
-            src={PHOTO.confetti}
-            pos="50% 55%"
-            className="rounded-[var(--radius-tile)]"
-            style={{ height: desk ? 92 : 112 }}
-          >
-            <div className="flex h-full flex-wrap items-end justify-between gap-3 p-3.5">
-              <Live />
-              <div className="flex items-center gap-4">
-                <GlyphCount icon={Images} n={214} words="photos and videos" />
-                <GlyphCount icon={Users} n={38} words="guests" />
-                <GlyphCount icon={Eye} n={1204} words="views" />
-              </div>
-            </div>
-          </PhotoSurface>
-        </>
-      ) : null}
-      <div className={cn("grid gap-5", desk ? "grid-cols-2" : "grid-cols-1")}>
-        {shows(page, 1) ? (
-          <>
-            <Part title="Meters: sending, sent, failed">
-              <div className="flex flex-col gap-3.5">
-                <Meter label="Sending 5 of 8" value={62} />
-                <Meter label="All 8 sent" value={100} />
-                <Meter label="2 did not send" value={40} failed />
-              </div>
-            </Part>
-            <Part title="Loading">
-              <div className="flex items-center gap-3">
-                <Skeleton className="size-14 shrink-0" />
-                <div className="flex flex-1 flex-col gap-2">
-                  <Skeleton className="h-3.5 w-4/5" />
-                  <Skeleton className="h-3.5 w-1/2" />
-                </div>
-              </div>
-            </Part>
-          </>
-        ) : null}
-        {shows(page, 2) ? (
-          <>
-            <Part title="Faces, a row of them, and a count by its glyph (rest, its words on hover, focus)">
-              <div className="flex flex-wrap items-center gap-4">
-                <Faces size="sm" n={5} />
-                <Faces size="default" n={4} />
-                <Avatar size="lg" seed="identity-Maya">
-                  <AvatarFallback>M</AvatarFallback>
-                  <AvatarBadge />
-                </Avatar>
-              </div>
-              <div className="flex items-center gap-6 pt-1 pb-8">
-                <GlyphCount icon={Images} n={214} words="photos and videos" />
-                <GlyphCount
-                  icon={Users}
-                  n={38}
-                  words="guests"
-                  demo="hover"
-                  open
-                />
-                <GlyphCount icon={Eye} n={1204} words="views" demo="focus" />
-              </div>
-            </Part>
-            <Part title="Nothing here yet: one way, everywhere">
-              <Empty
-                icon={Images}
-                title="Nothing waiting"
-                line="Photos you hold for review land here."
-                action={
-                  <Button size="sm" variant="outline">
-                    Open the album
-                  </Button>
-                }
-                className="py-3"
-              />
-            </Part>
-          </>
-        ) : null}
-      </div>
-    </div>
-  );
-}
-
-/* ── THE VOICE: every place it speaks ─────────────────────────────────── */
-
-function VoiceSheet({ g, w, page }: { g: GroundId; w: Width; page: Page }) {
-  const desk = w === 1440;
-  useHeldToast(g, "Photo hidden from the album", shows(page, 2));
-  return (
-    <div className="flex flex-col gap-5">
-      {shows(page, 1) ? (
-        <>
-          <Part title="Words: what a press does">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <Button>
-                <ImageUp /> Add photos
+      {shows(page, 2) ? (
+        <div className="flex min-w-0 flex-col gap-4">
+          <Card size="sm">
+            <CardHeader>
+              <CardTitle>The highlight reel</CardTitle>
+              <CardDescription>Plays every approved photo.</CardDescription>
+              <CardAction>
+                <Badge variant="success">On</Badge>
+              </CardAction>
+            </CardHeader>
+            <CardFooter className="justify-between gap-2">
+              <span className="text-caption text-muted-foreground">
+                2 photos to go
+              </span>
+              <Button size="sm" variant="outline">
+                Watch
               </Button>
-              <Button variant="outline">Invite</Button>
-              <Button variant="ghost">Skip</Button>
-              <Button variant="link">See every guest</Button>
-            </div>
-          </Part>
-          <div
-            className={cn("grid gap-5", desk ? "grid-cols-2" : "grid-cols-1")}
-          >
-            <Part title="Labels: the name of a thing">
-              <Field label="Event name">
-                <Input defaultValue="Maya & Jay's Wedding" />
-              </Field>
-              <Tabs defaultValue="album">
-                <TabsList>
-                  <TabsTrigger value="album">Album</TabsTrigger>
-                  <TabsTrigger value="review">Review</TabsTrigger>
-                  <TabsTrigger value="reel">Reel</TabsTrigger>
-                </TabsList>
-              </Tabs>
-              <ToggleGroup
-                type="multiple"
-                variant="outline"
-                size="sm"
-                defaultValue={["photos"]}
-                aria-label="Show"
-              >
-                <ToggleGroupItem value="photos">Photos</ToggleGroupItem>
-                <ToggleGroupItem value="videos">Videos</ToggleGroupItem>
-                <ToggleGroupItem value="liked">Liked</ToggleGroupItem>
-              </ToggleGroup>
-            </Part>
-            <Part title="Readouts: what a camera prints">
-              <div className="flex flex-wrap items-center gap-2.5">
-                <Badge>Pro</Badge>
-                <Badge variant="warning">12 waiting</Badge>
-                <Badge variant="destructive">Failed</Badge>
-                <Live />
-              </div>
-              <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
-                <GlyphCount icon={Images} n={214} words="photos and videos" />
-                <GlyphCount icon={Users} n={38} words="guests" />
-                <GlyphCount icon={Eye} n={1204} words="views" />
-                <Faces size="sm" n={3} />
-              </div>
-              <div className="flex items-baseline gap-4 text-sm text-muted-foreground">
-                <span data-role="readout">8:40 pm</span>
-                <span data-role="readout">2 Oct 2026</span>
-                <span data-role="readout">00:42</span>
-              </div>
-              <Meter label="Sending 5 of 8" value={62} />
-            </Part>
+            </CardFooter>
+          </Card>
+          <DialogInPlace />
+          <div className="flex items-center gap-3">
+            <MediaTile
+              src={PHOTO.toast}
+              className="h-24 flex-[1.5]"
+              pos="50% 40%"
+            />
+            <MediaTile src={PHOTO.rings} className="h-24 flex-1" />
+            <PhotoSurface
+              src={PHOTO.hall}
+              className="flex h-24 flex-[1.5] items-center justify-center gap-2 rounded-[var(--radius-tile)]"
+            >
+              <Button variant="glass" size="icon-cta" aria-label="Like">
+                <Heart />
+              </Button>
+              <Button variant="glass" size="icon-cta" aria-label="Watch">
+                <Play className="fill-current" />
+              </Button>
+            </PhotoSurface>
+            {desk ? (
+              <CodeMat aria-label="The event's code">
+                <StyledQr
+                  value={JOIN_URL}
+                  size={80}
+                  style={resolveQrPreset("classic")}
+                />
+              </CodeMat>
+            ) : null}
           </div>
-        </>
+          <Note>
+            photographs (lit as built), a glass round on one, the code on its
+            white mat
+          </Note>
+        </div>
       ) : null}
       {shows(page, 2) ? (
-        <>
-          <div
-            className={cn("grid gap-5", desk ? "grid-cols-2" : "grid-cols-1")}
-          >
-            <Part title="A menu's heading, a tooltip, and a toast (above)">
-              <div
-                className="flex items-start justify-between gap-3"
-                style={{ height: 150 }}
-              >
-                <DropdownMenu open modal={false}>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      <MoreHorizontal /> More
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="start"
-                    className="w-52"
-                    onCloseAutoFocus={(e) => e.preventDefault()}
-                  >
-                    <DropdownMenuLabel>This photo</DropdownMenuLabel>
-                    <DropdownMenuItem>
-                      <Download /> Download the original
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Share /> Copy link
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <Tooltip open>
-                  <TooltipTrigger asChild>
-                    <Button size="icon" variant="ghost" aria-label="Like">
-                      <Heart />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="left">Like this photo</TooltipContent>
-                </Tooltip>
-              </div>
-            </Part>
-            <Part title="A sentence stays words: a switch's name and its line">
-              <div className="flex items-start justify-between gap-4">
-                <Label className="min-w-0 flex-1 flex-col items-start gap-1 font-normal">
-                  <span className="text-sm font-medium text-foreground">
-                    A photo first
-                  </span>
-                  <span className="text-caption text-pretty text-muted-foreground">
-                    Guests add one photo or video of their own before they see
-                    everything.
-                  </span>
-                </Label>
-                <Switch aria-label="A photo first" defaultChecked />
-              </div>
-              <Empty
-                icon={Images}
-                title="Nothing waiting"
-                line="Photos you hold for review land here."
-                className="py-1"
-              />
-            </Part>
-          </div>
-          <Part title="On a photograph: the live mark, the counts, the white primary">
-            <PhotoSurface
-              src={PHOTO.confetti}
-              pos="50% 55%"
-              className="rounded-[var(--radius-tile)]"
-              style={{ height: desk ? 88 : 124 }}
-            >
-              <div className="flex h-full flex-wrap items-end justify-between gap-3 p-3.5">
-                <div className="flex items-center gap-3">
-                  <Live />
-                  <OnPhotoButton size="sm">
-                    <ImageUp /> Add photos
-                  </OnPhotoButton>
-                </div>
-                <div className="flex items-center gap-4">
-                  <GlyphCount icon={Images} n={214} words="photos and videos" />
-                  <GlyphCount icon={Users} n={38} words="guests" />
-                </div>
-              </div>
-            </PhotoSurface>
-          </Part>
-        </>
+        <div className={desk ? "col-span-2" : undefined}>
+          <Loupes w={w} />
+        </div>
       ) : null}
     </div>
   );
@@ -1083,15 +899,13 @@ function VoiceSheet({ g, w, page }: { g: GroundId; w: Width; page: Page }) {
 /* ── the sheet, on its grounds ────────────────────────────────────────── */
 
 const TITLE: Record<SheetView, string> = {
-  voice: "Every place the voice speaks",
   actions: "Actions, every state",
   fields: "Fields and choices, every state",
-  layers: "Cards and layers",
-  status: "Status, faces and the empty place",
+  layers: "Every pop-out and surface",
 };
 
 /** Which sheets hold a toast up, and so keep a band clear for it under their title. */
-const HOLDS_TOAST: readonly SheetView[] = ["voice", "layers"];
+const HOLDS_TOAST: readonly SheetView[] = ["layers"];
 
 function SheetOn({
   view,
@@ -1108,12 +922,8 @@ function SheetOn({
     <ActionsSheet w={w} page={page} />
   ) : view === "fields" ? (
     <FieldsSheet w={w} page={page} />
-  ) : view === "layers" ? (
-    <LayersSheet g={g} w={w} page={page} />
-  ) : view === "status" ? (
-    <StatusSheet w={w} page={page} />
   ) : (
-    <VoiceSheet g={g} w={w} page={page} />
+    <LayersSheet g={g} w={w} page={page} />
   );
 }
 
@@ -1135,7 +945,7 @@ export function Sheet({
   const desk = w === 1440;
   const grounds: GroundId[] = desk ? ["paper", "room"] : [ground];
   const at: Page = desk ? 0 : page;
-  const band = HOLDS_TOAST.includes(view) && shows(at, 2);
+  const band = HOLDS_TOAST.includes(view) && shows(at, 1);
   return (
     <main
       className="grid min-h-screen"

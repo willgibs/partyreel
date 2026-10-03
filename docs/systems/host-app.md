@@ -6,7 +6,8 @@ Open this before you:
 - change the QR designer, a code's size or the print sheet;
 - touch the custom event link;
 - change the first-time welcome;
-- change the event page: its header, cards row, sheets, checklist, album or live refresh;
+- change the event page: its header, cards row, its rooms over the hub (Review, Guests, Settings, See it as a guest),
+  checklist, album or live refresh;
 - change host moderation, a tile verb or bulk select;
 - change the hub's door into the highlight reel (the reel itself, the Reel card and Settings' Highlight reel section are
   [reel.md](reel.md)'s).
@@ -22,20 +23,33 @@ explain: `require_verified_email` is the one identity switch (An email first); `
 its gate (below); `allow_videos` is the Videos switch, binding guests only, as `max_upload_bytes` caps each GUEST upload
 (the host's own are exempt); `qr_style` is plain text, app-validated, so presets grow without a migration.
 
-- **The sole create path is the `/dashboard/new` wizard** (`create-event-wizard.tsx`): Name, Style, then the beat. It
-  creates once, at commit (an abandoned wizard leaves no row), through the non-redirecting `createEventInWizard`, which
-  returns the id and token so the beat can draw the real code. Only the name is required; everything else is edited in
-  Settings (below). `enforce_event_limit` guards `MAX_EVENTS` in SQL. ★ So the Style step's swatches are samples and
-  say so: they encode the stand-in link (`previewJoinUrl`, as long as a real one, naming nobody's album), which a
-  test-scan meets as a 404.
-- ★ **The beat happens once in an event's life, by construction**: only pressing Create reaches it. It draws the real
-  code in a plain mat, two doors out (print the table cards; share the link), then hands over: what is left before
-  guests arrive (the checklist's open rows, read from what Create sent, `newEventFacts`) and Get it ready into
-  Settings' first step, the event itself a quieter press beside it. The custom link belongs to the share sheet.
+- **The sole create path is `/dashboard/new`** (`create-event-wizard.tsx`, its screens in `create-event-wizard/`), a
+  room of its own, dark in both themes, in Will's layout (the steppers, the question in one place, the answer in the
+  centre, one button at the foot): the name, the code's look, then the beat. It creates once, at commit (an abandoned
+  Create leaves no row), through the non-redirecting `createEventInWizard`, which returns the id and token so the beat
+  can draw the real code. Only the name is required; everything else is edited in Settings (below).
+  `enforce_event_limit` guards `MAX_EVENTS` in SQL. ★ So the look step's codes are samples and say so in one word on
+  the pictured code: they encode the stand-in link (`previewJoinUrl`, as long as a real one, naming nobody's album),
+  which a test-scan meets as a 404.
+- ★ **The room is `fixed` over the (app) shell, and the shell's bar steps aside in CSS** (`data-app-room` on the room,
+  `group-has-[[data-app-room]]/shell:hidden` on the header: the wide page's own way of asking), so nothing of the app
+  stands around Create or waits in the tab order behind it. It stands on a phone's keyboard (`useKeyboardInset` lifts
+  its foot), and the route waits in its own room (`RouteSkeleton`'s `room`), never the dashboard's paper skeleton.
+- ★ **The carry (`carry.ts`) photographs the leaving screen and flies her name between the field and the head** on the
+  Web Animations API, measured off both (the field's invisible mirror, `[data-room-name-text]`), the arriving screen
+  live from its first frame; a new change finishes a running one (`settle`), and reduced motion (or no `animate`)
+  cuts. Back exists on the look alone: never on the name, never once the event exists.
+- ★ **The beat happens once in an event's life, by construction**: only Create event reaches it. It lands at once on
+  the sample she styled while the event is made (nothing says live before it is; a refused or rejected Create returns
+  to the look, her name and look kept), develops into the real code (what mounts with the event arrives on
+  `@starting-style`, the code's bloom igniting with it), then Print and Share as rounds, Settings' five laid flat
+  (`settingsSteps`) over the checklist's line, room beside them past the dashboard's threshold (`newEventFacts` with
+  the route's `storageUsedPct`), and Get it ready into Settings' first step; the room's close leaves for the event.
+  The custom link belongs to the share sheet.
 - ★ **The cap is a door, not a dead button**: a host never does the work of an event and only then learns the plan cannot
   hold it. The route computes `atCap` with the dashboard's own math (`profile.event_slots ?? MAX_EVENTS[tier]`, as
   `enforce_event_limit` does), and the wizard renders the refusal (the plan's number, the event holding the slot, Delete,
-  Pro) instead of the form, so New event stays a live link; `enforce_event_limit` stays the guard behind the door.
+  Pro) in the room, unlit, instead of its screens, so New event stays a live link; `enforce_event_limit` stays the guard behind the door.
 - ★ **The wizard route never guards at-cap with a `redirect`, and the wizard snapshots `atCap` at mount**: a Server
   Action refreshes its route, so after Create `atCap` is true, and a redirect would bounce the host before the beat while
   a live prop would swap the beat for the refusal (`create-flow.test.tsx` flips the flag). The general rule: a route
@@ -139,11 +153,12 @@ drift is linear and motion-gated, a breath rather than feedback, so the 300ms ce
 ## The event page
 
 `/dashboard/[eventId]` is a hub under the album's own head: the cover with the event's name, its facts and link and
-the live code on its white mat, a row of cards into the event's rooms, and the album beneath, newest first.
+the live code on its white mat, a row of cards into the event's rooms, and the album beneath, newest first. Every room
+opens OVER the hub and closes back to it (event-header r2, `rooms=over`).
 
-- ★ **An event that is gone, never this host's, or no id at all draws the group's not-found itself**, on the hub and
-  each room (Review, Guests, the reel's old room; Settings redirects to the hub) and on the print sheet (in the shell's
-  gutter, as `(print)` draws no shell; thrown, it was the root's error shell). `getEvent` answers a malformed id null
+- ★ **An event that is gone, never this host's, or no id at all draws the group's not-found itself**, on the hub, the
+  reel's old room and See it as a guest (Review, Guests and Settings only redirect into the hub, which draws it for them)
+  and on the print sheet (in the shell's gutter, as `(print)` draws no shell; thrown, it was the root's error shell). `getEvent` answers a malformed id null
   before any read (`isUuidShape`: Postgres refusing the cast threw the page into its error screen, untitled, and filed
   an error each hit), as the portal's record pages do theirs. Never through `notFound()`: thrown under the
   hub's `loading.tsx` it landed after the skeleton had streamed, a 200 whose screen the client drew once it had run,
@@ -178,8 +193,12 @@ the live code on its white mat, a row of cards into the event's rooms, and the a
   needs while Settings' steps are not all ticked ("2 left", in the foreground, never the waiting amber), then names the
   door (`doorLabel`). The link row shows the readable URL and copies the permanent one, confirmed in place, never by a
   toast.
-- **The cards row** (Highlight reel, Guests, Review, Settings) is a group of links, never tabs, since nothing switches
-  a panel in place. ★ The Guests card and the header read THE ONE COUNT (`getEventGuests`, the album header's own
+- **The cards row** (Highlight reel, Guests, Review, Settings, then See it as a guest, `AS_GUEST_DOOR`, the payoff at the
+  row's end and never one of `EVENT_ROOMS`, so every drawing that maps the four rooms keeps drawing four) is a group of
+  links, never tabs, since nothing switches a panel in place: each door is the room's real address (`roomHref`), its
+  ordinary press opening the room in place and a modified click a tab of its own. ★ A room's code is a chunk of its
+  own, asked for on intent (`share/room-chunks.ts`: a pointer over the door or a keyboard's focus), and what it shows
+  as the press begins (Review's queue's links, the Guests room's read), so a panel opens on its room. ★ The Guests card and the header read THE ONE COUNT (`getEventGuests`, the album header's own
   function), so the hub, the Guests room and the album say one number. The row is sticky and condenses in place,
   because a remount would drop the code chip's `view-transition-name` mid-morph. ★ It condenses inside a footprint that
   holds the resting row's height (`useStuckBand`): a condense that moved the album let scroll anchoring carry a jump
@@ -189,16 +208,31 @@ the live code on its white mat, a row of cards into the event's rooms, and the a
   access"): the cover's first photograph and the name lead it, and the code closes it as a chip (`ui/code-chip.tsx`,
   the glyph on white, never a shrunken code), which exists only while the head's code is off screen and carries the
   morph's name while it is the code on screen. On a phone at rest the row is a 2x2 grid of two-line cards
-  (`event-feed/room-card.ts`), so all four doors show at 375.
-- **Review and Guests are rooms (routes with a crumb); Settings and the share kit are places in the settings kind (a panel at a desk, the whole screen in a hand); the Highlight reel is a door.**
-  ★ The crumb trail lands at hydration (a page cannot hand a prop up, and CSS cannot carry an event's name); the bar's
+  (`event-feed/room-card.ts`), so all four rooms show at 375 and See it as a guest takes the third row's first place.
+- **Every room is a place over the hub, one way in and out** (Will, event-header r2 `rooms=over`: "This feels
+  phenomenally more fluid, natural, and intuitive"): Review, Guests and Settings stand in ONE panel (`share/room-panel.tsx`
+  for the first two: Settings' own kind and head, the room's name over the event's, the close in its corner, so the
+  three are one panel to the pixel), the share kit where it always was, See it as a guest in a phone over the dimmed hub
+  (below), and the Highlight reel is a door: the guests' own view at `?reel`, full screen with its black from the first
+  frame (reel.md), its owner's close going Back to the hub. The old room routes (`/review`, `/guests`, `/settings`) only
+  redirect to `roomHref`: they are in histories, mails and the sign-in's return (which carries a path, never a query).
+  ★ A room's panel names its room on the dialog (`data-room-panel`), so the room's own keys read that panel as their
+  page and never as another layer up (`review-keys.ts`). ★ The crumb trail is the hub's alone now, and lands at
+  hydration (a page cannot hand a prop up, and CSS cannot carry an event's name); the bar's
   fixed height keeps it from shifting anything. ★ It is drawn only while its route's `SetCrumbs` is mounted, so a route
   that sets none, an error and a not-found page draw none; `RouteSkeleton` holds the last trail through a
   `loading.tsx`'s wait (`CrumbsHold`), because the new address commits with the skeleton on screen and the page lands
   later, so a bar that followed the address or let go with the old page blinked for the whole wait
   (`shared/crumbs.tsx`).
-- ★ **The two places ride `?room=`, and it IS the state** (`share/event-share-provider.tsx`, read from `useSearchParams`
-  with no mirrored `useState`, so the page a settings action re-renders cannot close the panel). ★ Nothing in a sheet
+- ★ **Every place rides `?room=`, and it IS the state** (`share/event-share-provider.tsx`, read from `useSearchParams`
+  with no mirrored `useState`, so the page a settings action re-renders cannot close the panel). ★ One room handing
+  over to another (Settings' door page into Guests, the Guests room's "Change who can get in" into Settings' door page,
+  a code card's Everything) REPLACES the entry, so a close always lands on the hub, never on the room before. ★ Every
+  old way into a room that a press inside the hub still reaches opens the room in place (`useRoomLinks`: a capture
+  listener reads the link as this event's room, a retired room route or `roomHref`, `roomOfHref` in `sections.ts`, and
+  carries its Settings page and its section, `#invited`, which the room scrolls to once drawn), so a link never trips
+  through a redirect and back; a modified click, a target and another event's room stay the browser's, and Next's
+  `<Link>` stands down on the prevented press. ★ Nothing in a sheet
   refreshes the router: every Settings save re-renders the hub in its action's own answer, the reel switch's included
   (`setReelDefaults` revalidates the hub for the switch), which Next replays when a tap moves the address mid-save; a
   refresh in flight turned a tap on the page's back arrow or a row into a reload, or dropped the refresh
@@ -300,6 +334,36 @@ the live code on its white mat, a row of cards into the event's rooms, and the a
   in [architecture.md](architecture.md)): one mounts there only after hydration (`useHydrated`, the bulk bar, the
   code's mark and the head's glyph counts); rich client UI is safe inside its islands.
 
+## See it as a guest
+
+Her album exactly as a let-in guest meets it, opened from her hub (event-header r2's carried call `guest-door`: the
+last door, the payoff at the row's end): a phone over the dimmed hub at a desk, the whole screen under a bar whose arrow
+names the event in a hand (`share/as-guest-stage.tsx`, Radix's Dialog in a shape of its own, as the code card is), on
+`?room=as-guest`, closing onto the hub as she left it (its way back, Escape, Back, a press on the dimmed hub).
+
+- ★ **The phone holds a page of its own, never the guest page** (`/dashboard/<id>/as-guest`, framed with `?in=hub`, the
+  hub's stage carrying the way back; "Open it in a new tab" opens it bare, where its header carries it). On the guest
+  page her session is the owner: no door, her own uploads hers to delete, the reel's host extras. A real phone's
+  viewport is the reason it is a page in a frame: the guest page's layout reads the viewport, which a narrow box in the
+  hub's own page could never be. ★ It is a route group of its own, `(as-guest)`, for `(print)`'s reason: a guest's phone
+  never wears the host's shell, so its layout re-declares the `getUser()` gate and the page proves the event through RLS.
+  Its URL keeps `/dashboard`, the surface rule's; a signed-out visit signs in to the dashboard (the return carries
+  allow-listed shapes alone).
+- ★ **The read is a let-in guest's, never the owner's** (`as-guest.server.ts`, pinned end to end on the fake PostgREST
+  in `as-guest.server.test.ts`): `getEvent` (RLS) first, then the door's own resolution (`pageDoor`, which lets her
+  through as the host and issues its pass, the proof a gated album's reads ask for), then the guests' own seed loader
+  (`streamGallerySeed`: the service role, approved and unsealed only, so no held, hidden or sealed shot reaches it
+  whoever asks), decided for a guest past every step (`letInGuestDecision`, `isOwner` false). Nothing of hers rides it
+  (no list of her own uploads, no follow card), the pass is stripped before the view, and it writes nothing: no visit
+  counted (her Views would count her own look), no ticket read or minted, no claim. The one write anywhere under it is
+  the develop a guest's first read runs when one is due.
+- ★ **A look, never a door** (`share/as-guest-view.tsx`): the guest page's own pieces in its order (the guest's header
+  as a signed-out guest sees it, the cover, the album through the guests' own live source asked as a guest, the Guests
+  list, the shutter, the report line), the whole of it `inert`, so nothing pressed there writes as a guest; it mounts
+  none of the guest page's hands (the door, the upload queue, the keep, the claims, the tracker, the reel's controller).
+  Uploads closed shows the guest's closed line and no Add; the camera's album says Take photos. ★ Only me is the shut
+  door, because that is what every guest meets there, and nothing is read for it.
+
 ## The door, the host's side
 
 Who can get in is one door of six (`lib/event/door/door.ts`; what a guest meets is [guest-flow.md](guest-flow.md)'s),
@@ -318,6 +382,12 @@ visitor-facing "Private" never collides.
   her into an album its host never let her into; a password ends every ask
   (`events_door_to_password`: nobody waits on the host there), so they leave At the door, the dashboard and the bell,
   and meet the password like anyone new.
+- ★ **The Guests room is read where it opens, over the hub** (`guests/room.server.ts`, one read, after `getEvent` has
+  proved the host): by the hub's own render whenever its address names the room (a link, a reload, and every act in
+  it, whose action revalidates the hub, the one page the rooms stand on), and by its own ask (`readGuestsRoomAction`,
+  started as the card's press begins) when a card opens it in place, a press that writes the address without the
+  server. The panel draws the newer of the two (each says when the server read it) and shows the last read at once on
+  a reopen; a read that fails says so with Try again, never an empty room.
 - **The Guests room's At the door** heads it (`queue=room`): Let in (`let_in_at_door`) opens her door on every device,
   and her held door opens by itself at its next check-in; ★ Decline is a block (the account where there is one, else
   the row), with Undo on its toast and Let back in under Blocked, so a declined newcomer meets the one shut screen and
@@ -330,8 +400,8 @@ visitor-facing "Private" never collides.
   the host opens it; and a newcomer whose ask stands at Only me, which keeps its asks, hears she is back at the door
   and that letting her in there meets that closed album, `door_only_me`). The door is read once for everyone in the Blocked list, since it decides every landing. A
   waiting newcomer counts on
-  the hub's Guests card, the dashboard (the stage's or the week's step, opening `#at-the-door`, else a mark on the
-  event's tile) and the bell (a row per event), and sends no mail.
+  the hub's Guests card, the dashboard (the stage's or the week's step, opening the Guests room over the hub, else a
+  mark on the event's tile) and the bell (a row per event), and sends no mail.
 - **Invited** (`editor=both`): one field takes a typed address or a pasted list (`readAddresses`: the readable saved at
   once and counted by the database, the unreadable kept as flagged chips), capped at `INVITE_LIST_CAP`; each address
   reads Joined or Not yet, since it matches only once its guest confirms it, so removing one never puts out someone it
@@ -351,13 +421,18 @@ visitor-facing "Private" never collides.
 `media.status` is `pending | approved | hidden | removed`; `create_media` sets pending or approved from the event's
 `moderation_mode`.
 
-- **The Review room** reads and presigns the `pending` slice alone, whole, and credits it by those ids alone
-  (`readAlbumAttribution`, never the whole album's); its states (pending, caught up, moderation
-  off with a one-tap "Turn on review", the all-caught-up beat) live in `use-review-triage.ts`, its pure rules in
-  `review-queue.ts`. ★ The room draws its own title, the page's one heading, in every state, with the queue's count
-  beside it and its actions on its row (the page drew one over the room's amber label: Review twice); in a hand the
-  actions take their own row, since the bulk bar is wider than the browse duo and beside the title it wrapped the row
-  on Select. Its grid is the shared `SelectableMediaGrid` on the uniform layout, because uniform tiles
+- **The Review room stands over the hub and reads its queue off the hub's own album** (`review-room.tsx`'s
+  `ReviewRoomFromHub`): the uploads the manifest holds waiting, newest first, their tiles minted by the host's links
+  route by id with each one's credit (never the whole album's attribution), so opening Review asks for the queue's
+  links and nothing else; a deep link onto the room (the bell) finds them minted with the hub's first window
+  (`page.tsx`). ★ The queue is seeded once, whole: the room ranks what it is first handed and holds anything a later
+  render brings behind its line, so it mounts once the queue's links are in, its shimmer standing meanwhile, and a queue
+  none of whose links came back says so with Try again, never "all caught up". Its states (pending, caught up,
+  moderation off with a one-tap "Turn on review", the all-caught-up beat) live in `use-review-triage.ts`, its pure rules
+  in `review-queue.ts`. ★ Its panel titles it, as Settings' does, so the room's own row keeps the queue's count in words
+  and its actions (`review-section.tsx`'s `titled`, false over the hub; the room as a page drew its own title, and a page
+  heading over the room's amber label once said Review twice); in a hand the actions take their own row, since the bulk
+  bar is wider than the browse duo and beside the count it wrapped the row on Select. Its grid is the shared `SelectableMediaGrid` on the uniform layout, because uniform tiles
   standardize the selection targets and scan fast. Over the queue, while there is one, sits its one line of advice,
   "Anything you approve can still be hidden later." (`REVIEW_NOTE`, Will's host note: so a host is lenient toward
   approve-and-hide over reject), a sentence and never a hint row.
@@ -366,8 +441,8 @@ visitor-facing "Private" never collides.
   the verdict (Reject, Approve) under the photograph at every width and moves on to the next upload once one is
   decided. ★ **The keys** (`review-keys.ts`): arrows move a focused tile, Enter approves, Backspace or Delete rejects,
   Space peeks; no hint row, only the verdict buttons' tooltips (and a screen reader's line) say so. They act only on a
-  tile, in the peek, or (the room's page alone) with nothing focused, never on another control, and never give a verdict
-  on a selection. In the peek a focused button keeps only its own Enter and Space, and a verdict pressed there hands
+  tile, in the peek, or (the room's own place alone) with nothing focused, the panel itself counting as nothing, never
+  on another control, and never give a verdict on a selection. In the peek a focused button keeps only its own Enter and Space, and a verdict pressed there hands
   focus back to the look (`review-section.tsx`), since a browser focuses the button a pointer presses. ★ The peek is
   `aria-modal`, so it holds Tab while it is up (Radix's FocusScope, trapped and looping; a layer opened over it, the
   credit's look, pauses it). The trap takes the opening focus itself (the look, or a verdictless look's close button),
@@ -382,9 +457,9 @@ visitor-facing "Private" never collides.
   act's replacing it). Undo puts the uploads back in place, then `returnToReviewAction` returns them to `pending` from
   the state that verdict left (`returnToReview`, scoped to it), refused once the event stopped reviewing. Review's verbs
   revalidate nothing: a revalidating action refreshes the route that called it, which re-ran the room's page per key.
-- ★ **The room is live, on the hub's own signal**: the page seeds `HostAlbumProvider` as the hub does (the manifest, no
-  links) and `review-live.ts` reads the queue off it, so an arrival reaches the room when it reaches the hub's Review
-  card. It never joins the grid on its own: a glass pill floating over the grid's head counts it ("3 new"), taking no
+- ★ **The room is live, on the hub's own signal**: it stands inside the hub's own `HostAlbumProvider` (a room on a
+  page of its own seeds one from the page, as the Library's does) and `review-live.ts` reads the queue off it, so an
+  arrival reaches the room when it reaches the hub's Review card. It never joins the grid on its own: a glass pill floating over the grid's head counts it ("3 new"), taking no
   room so no tile moves as it appears, and a tap folds it in at the head.
   An upload decided elsewhere or taken back leaves the grid; one the room acted on does not while that write (or its
   Undo) is unread, its own write being its truth against a poll read before it landed. ★ **Only until the album has

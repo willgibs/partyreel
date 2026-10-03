@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 
-import { cn } from "@/lib/utils";
+import { Empty } from "@/components/ui/empty";
 
 type EmptyStateProps = {
   icon?: LucideIcon;
@@ -9,15 +9,17 @@ type EmptyStateProps = {
   /** Optional CTA (e.g. a <Button>) rendered below the copy. */
   action?: React.ReactNode;
   /**
-   * "quiet" (default): typographic, no icon chip - the V1 mono treatment.
-   * "icon": the legacy icon-in-a-circle treatment, kept for surfaces that
-   * lean on the pictogram (existing call sites pass `icon` and get it).
+   * "icon" (the default): the glyph in its lens. "quiet": the title and the
+   * line alone; what makes it quiet is the missing glyph, never a lighter title.
    */
   variant?: "quiet" | "icon";
   className?: string;
 };
 
-/** Neutral placeholder for empty galleries, dashboards, and lists. */
+/**
+ * Neutral placeholder for empty galleries, dashboards, and lists: the one
+ * empty place (`ui/empty.tsx`, identity r2's `one-empty`), never a dashed box.
+ */
 export function EmptyState({
   icon: Icon,
   title,
@@ -27,35 +29,12 @@ export function EmptyState({
   className,
 }: EmptyStateProps) {
   return (
-    <div
-      className={cn(
-        "flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed px-6 py-16 text-center",
-        className,
-      )}
-    >
-      {variant === "icon" && Icon && (
-        <div className="flex size-11 items-center justify-center rounded-full bg-muted text-muted-foreground">
-          <Icon className="size-5" />
-        </div>
-      )}
-      <div className="space-y-1.5">
-        {/* An empty state's title is a heading in BOTH variants, so both wear
-            the ladder's `subsection` step, the app's quiet middle, at the
-            heading face's one weight. The icon variant's used to stay Inter at
-            a stock 14px as "a label", but it names the state from inside an h3,
-            and every heading is on the ladder (Will, 2026-09-18: no one-off
-            sizes). The quiet variant's `font-normal` went with the thin
-            headings (Will, 2026-09-29: "it looks very bad compared to our
-            standard heavier weight"): what makes it quiet is the missing icon
-            chip, not a lighter title. */}
-        <h3 className="font-heading text-subsection">{title}</h3>
-        {description && (
-          <p className="mx-auto max-w-sm text-sm text-muted-foreground">
-            {description}
-          </p>
-        )}
-      </div>
-      {action}
-    </div>
+    <Empty
+      icon={variant === "icon" && Icon ? <Icon /> : undefined}
+      title={title}
+      line={description}
+      action={action}
+      className={className}
+    />
   );
 }

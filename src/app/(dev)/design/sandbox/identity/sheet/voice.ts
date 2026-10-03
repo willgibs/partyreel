@@ -1,16 +1,13 @@
-import type { VoiceId } from "../model";
-
 import { BTN, TOAST } from "./states";
 
 /**
  * THE VOICE: HOW LOUDLY THE CAMERA'S LANGUAGE SPEAKS, AS A LAYER OF VARIABLES.
  *
- * ★ A PURE LAYER, SO NOTHING BINDS. Every atom option reads these and never a
+ * ★ A PURE LAYER, SO NOTHING BINDS. Every atom reads these and never a
  * literal: a label's case, size, weight and tracking, a readout's (what a
  * camera prints: a count, the live mark, a time), how figures are set, the
  * words on a button or a row, what a tooltip or a toast says, a link's mark,
- * and the meter's build. So every atom option renders in every voice, and the
- * voice can be picked first and worn by everything picked after it.
+ * and the meter's build. So every system the board draws speaks in it.
  *
  * Three roles carry it (`ROLES_CSS`): a LABEL names a thing (a field, a tab, a
  * chip, a menu's heading, a link), a READOUT is a value a camera would print,
@@ -26,39 +23,21 @@ import { BTN, TOAST } from "./states";
  */
 const ROOTS = ":root, .surface-paper, .dark";
 
-/** The meter as tape: thin ticks, the measured part in thick ones (r1's). */
-const TAPE = `
-  --vf-meter-h: 10px; --vf-meter-r: 0px; --vf-meter-mask: none;
-  --vf-meter-tick: 1px; --vf-meter-fill-tick: 3px; --vf-meter-pitch: 6px;
-`;
 /** The meter as frames: twelve frames that fill, as a roll fills. */
 const FRAMES = `
   --vf-meter-h: 6px; --vf-meter-r: 0px;
   --vf-meter-mask: repeating-linear-gradient(90deg, #000 0 calc(100% / 12 - 3px), transparent calc(100% / 12 - 3px) calc(100% / 12));
   --vf-meter-tick: 100%; --vf-meter-fill-tick: 100%; --vf-meter-pitch: 100%;
 `;
-/** The meter as one lit bar. */
-const BAR = `
-  --vf-meter-h: 4px; --vf-meter-r: 999px; --vf-meter-mask: none;
-  --vf-meter-tick: 100%; --vf-meter-fill-tick: 100%; --vf-meter-pitch: 100%;
-`;
 
-export const VOICE_CSS: Record<VoiceId, string> = {
-  /* r1's voice as drawn: every label, tab, chip, badge and count in small
-     spaced capitals, zeros slashed, links arrowed, meters as tape. */
-  instrument: `${ROOTS} {
-    --vf-label-case: uppercase; --vf-label-size: 10.5px; --vf-label-weight: 600; --vf-label-track: 0.14em; --vf-label-face: var(--font-sans); --vf-label-ink: var(--muted-foreground);
-    --vf-readout-case: uppercase; --vf-readout-size: 10.5px; --vf-readout-weight: 600; --vf-readout-track: 0.14em; --vf-readout-face: var(--font-sans);
-    --vf-count-size: 11px; --vf-figures: tabular-nums slashed-zero;
-    --vf-word-size: 13px; --vf-word-weight: 600; --vf-word-track: 0.005em;
-    --vf-say-case: uppercase; --vf-say-size: 10.5px; --vf-say-weight: 600; --vf-say-track: 0.13em;
-    --vf-link-mark: "→";
-    ${TAPE}
-  }`,
-  /* The camera in a hand: words in sentence case at reading weight, spaced
-     capitals only where a camera prints them (counts, live, time), plain
-     figures, meters as frames. */
-  camera: `${ROOTS} {
+/**
+ * ★ ROUND TWO'S PICK, `camera` (Will, 2026-10-03): words in sentence case at
+ * reading weight, spaced capitals only where a camera prints them (counts,
+ * live, time), plain figures, meters as frames. Drawn here until
+ * `identity-wiring` wires it at the source; then this sheet is the
+ * production one's and leaves.
+ */
+export const VOICE_CSS = `${ROOTS} {
     --vf-label-case: none; --vf-label-size: 13px; --vf-label-weight: 500; --vf-label-track: -0.003em; --vf-label-face: var(--font-sans); --vf-label-ink: currentColor;
     --vf-readout-case: uppercase; --vf-readout-size: 10.5px; --vf-readout-weight: 600; --vf-readout-track: 0.1em; --vf-readout-face: var(--font-sans);
     --vf-count-size: 11.5px; --vf-figures: tabular-nums;
@@ -66,19 +45,7 @@ export const VOICE_CSS: Record<VoiceId, string> = {
     --vf-say-case: none; --vf-say-size: 13px; --vf-say-weight: 500; --vf-say-track: 0em;
     --vf-link-mark: "";
     ${FRAMES}
-  }`,
-  /* The top screen: no capitals anywhere, words quiet in sentence case, every
-     count and status set bold in the loud face, meters one lit bar. */
-  display: `${ROOTS} {
-    --vf-label-case: none; --vf-label-size: 13px; --vf-label-weight: 500; --vf-label-track: -0.005em; --vf-label-face: var(--font-sans); --vf-label-ink: currentColor;
-    --vf-readout-case: none; --vf-readout-size: 13px; --vf-readout-weight: 700; --vf-readout-track: -0.01em; --vf-readout-face: var(--font-display, var(--font-sans));
-    --vf-count-size: 17px; --vf-figures: tabular-nums;
-    --vf-word-size: 14px; --vf-word-weight: 600; --vf-word-track: -0.006em;
-    --vf-say-case: none; --vf-say-size: 13px; --vf-say-weight: 500; --vf-say-track: 0em;
-    --vf-link-mark: "";
-    ${BAR}
-  }`,
-};
+  }`;
 
 const LABEL = `
   text-transform: var(--vf-label-case); font-size: var(--vf-label-size); font-weight: var(--vf-label-weight);

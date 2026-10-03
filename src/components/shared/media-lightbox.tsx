@@ -203,7 +203,7 @@ const drawerEase = () =>
   token("--ease-drawer", "cubic-bezier(0.32, 0.72, 0, 1)");
 const emphasisEase = () =>
   token("--ease-emphasis", "cubic-bezier(0.23, 1, 0.32, 1)");
-const tileRadius = () => parseFloat(token("--radius-tile", "4px")) || 4;
+const tileRadius = () => parseFloat(token("--radius-tile", "2px")) || 2;
 
 const canAnimate = (el: Element | null): el is HTMLElement =>
   !!el && typeof (el as HTMLElement).animate === "function";

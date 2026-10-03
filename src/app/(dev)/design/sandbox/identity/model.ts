@@ -1,39 +1,34 @@
 /**
- * WHAT ONE FRAME DRAWS, AS DATA: a voice and an option for each of the four
- * atom groups, a view, a width and a ground. The board builds a frame's
- * address from these and the scene route reads them back, so the two can
- * never disagree about what a frame is.
+ * WHAT ONE FRAME DRAWS, AS DATA: a system for actions and fields, a pop-out
+ * for the room, a reach for the light edge, a view, a width and a ground. The
+ * board builds a frame's address from these and the scene route reads them
+ * back, so the two can never disagree about what a frame is.
  *
  * Pure (no React, no CSS): the spec's knobs, the board and the scene all read
  * it, and the registry hands the spec to a server page.
+ *
+ * ★ ROUND TWO'S PICKS ARE NOT IN HERE: the voice (camera), the layers (the
+ * display) and status (lights) are settled, so every frame wears them and no
+ * frame asks about them (`sheet/index.ts`).
  */
 
-export const VOICE_IDS = ["instrument", "camera", "display"] as const;
-export type VoiceId = (typeof VOICE_IDS)[number];
+/** Actions and fields as one system: carved, drawn in line, or toned with ink where you are. */
+export const SYSTEM_IDS = ["keys", "rings", "ink"] as const;
+export type SystemId = (typeof SYSTEM_IDS)[number];
 
-export const ACTIONS_IDS = ["keys", "rings", "corners"] as const;
-export type ActionsId = (typeof ACTIONS_IDS)[number];
+/** What a pop-out is made of in the room: the display as on paper, a step up, or its inverse. */
+export const ROOM_IDS = ["display", "graphite", "white"] as const;
+export type RoomId = (typeof ROOM_IDS)[number];
 
-export const FIELDS_IDS = ["wells", "rings", "corners"] as const;
-export type FieldsId = (typeof FIELDS_IDS)[number];
+/** How far the light edge reaches: media alone, everything that floats, every dark surface. */
+export const EDGE_IDS = ["media", "floating", "every"] as const;
+export type EdgeId = (typeof EDGE_IDS)[number];
 
-export const LAYERS_IDS = ["matte", "display", "corners"] as const;
-export type LayersId = (typeof LAYERS_IDS)[number];
-
-export const STATUS_IDS = ["readouts", "lights", "corners"] as const;
-export type StatusId = (typeof STATUS_IDS)[number];
-
-/** The four atom groups, in the order the board asks them. */
-export const GROUPS = ["actions", "fields", "layers", "status"] as const;
-export type GroupId = (typeof GROUPS)[number];
-
-/** One whole identity: a voice and one build per group. */
+/** One whole identity's open parts. */
 export type Choice = {
-  voice: VoiceId;
-  actions: ActionsId;
-  fields: FieldsId;
-  layers: LayersId;
-  status: StatusId;
+  system: SystemId;
+  room: RoomId;
+  edge: EdgeId;
 };
 
 /**
@@ -43,11 +38,9 @@ export type Choice = {
  * and `identity.test.ts` holds the two together.
  */
 export const RECOMMENDED: Choice = {
-  voice: "camera",
-  actions: "rings",
-  fields: "wells",
-  layers: "display",
-  status: "lights",
+  system: "keys",
+  room: "graphite",
+  edge: "floating",
 };
 
 const pick = <T extends string>(all: readonly T[], v: unknown, or: T): T =>
@@ -56,38 +49,35 @@ const pick = <T extends string>(all: readonly T[], v: unknown, or: T): T =>
 /** A choice read from anything (a query, the board's state), each part falling back to the recommendation. */
 export function choiceOf(v: Partial<Record<keyof Choice, unknown>>): Choice {
   return {
-    voice: pick(VOICE_IDS, v.voice, RECOMMENDED.voice),
-    actions: pick(ACTIONS_IDS, v.actions, RECOMMENDED.actions),
-    fields: pick(FIELDS_IDS, v.fields, RECOMMENDED.fields),
-    layers: pick(LAYERS_IDS, v.layers, RECOMMENDED.layers),
-    status: pick(STATUS_IDS, v.status, RECOMMENDED.status),
+    system: pick(SYSTEM_IDS, v.system, RECOMMENDED.system),
+    room: pick(ROOM_IDS, v.room, RECOMMENDED.room),
+    edge: pick(EDGE_IDS, v.edge, RECOMMENDED.edge),
   };
 }
 
 /**
  * THE VIEWS. A sheet draws every atom of one part in every state on both
- * grounds (`voice` is the sheet of every place the voice speaks); the rest are
- * production's screens nobody rewires this round.
+ * grounds (at a desk side by side, in a hand one ground, two pages); the rest
+ * are production's screens no round-13 lane rewires.
  */
 export const VIEW_IDS = [
-  "voice",
   "actions",
   "fields",
   "layers",
-  "status",
-  "door",
-  "event",
-  "add",
   "account",
-  "review",
+  "door",
+  "gate",
+  "add",
+  "menu",
 ] as const;
 export type ViewId = (typeof VIEW_IDS)[number];
-export const viewOf = (v: unknown): ViewId => pick(VIEW_IDS, v, "voice");
+export const viewOf = (v: unknown): ViewId => pick(VIEW_IDS, v, "account");
 
-/** A sheet: one part's atoms (or the voice's places), drawn on both grounds. */
-export type SheetView = "voice" | GroupId;
+/** A sheet: one part's atoms, drawn on both grounds. */
+export const SHEETS = ["actions", "fields", "layers"] as const;
+export type SheetView = (typeof SHEETS)[number];
 export const isSheet = (v: ViewId): v is SheetView =>
-  v === "voice" || (GROUPS as readonly string[]).includes(v);
+  (SHEETS as readonly string[]).includes(v);
 
 export type Width = 1440 | 375;
 export const widthOf = (v: unknown): Width =>
@@ -117,11 +107,9 @@ export function sceneSrc(
   key: string | null | undefined,
 ): string {
   const q = new URLSearchParams({
-    voice: frame.voice,
-    actions: frame.actions,
-    fields: frame.fields,
-    layers: frame.layers,
-    status: frame.status,
+    system: frame.system,
+    room: frame.room,
+    edge: frame.edge,
     view: frame.view,
     w: String(frame.w),
     ground: frame.ground,

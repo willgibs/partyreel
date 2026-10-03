@@ -10,8 +10,9 @@ import { Button } from "@/components/ui/button"
 import {
   floatingClock,
   floatingEntrance,
-  floatingPanel,
   floatingPopupShapes,
+  floatingScrim,
+  floatingWorkSurface,
 } from "@/components/ui/floating-layer"
 import { XIcon } from "lucide-react"
 
@@ -47,7 +48,8 @@ function DialogOverlay({
     <DialogPrimitive.Overlay
       data-slot="dialog-overlay"
       className={cn(
-        "fixed inset-0 isolate z-50 bg-black/10 ease-emphasis supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+        "fixed inset-0 isolate z-50 ease-emphasis data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+        floatingScrim,
         // The scrim shares the panel's clock, or the page dims on one beat and
         // the dialog lands on another.
         floatingClock.standard,
@@ -139,14 +141,15 @@ function DialogContent({
               // whole-screen zoom reads wrong, which is why this one shape sits
               // outside the shared entrance rather than pretending to be in it.
               "fixed inset-0 z-50 flex flex-col bg-background ease-emphasis outline-none data-open:animate-in data-open:fade-in-0 data-open:slide-in-from-bottom-2 data-closed:animate-out data-closed:fade-out-0 data-closed:slide-out-to-bottom-2"
-            : // The floating layer: the family's corner, material and light,
-              // and its entrance (the `data-[side]` travel in that language
-              // simply never matches a centred panel); where it stands, how
-              // wide it is and its cap are the `dialog` shape's. A dialog
-              // taller than what is left of the screen scrolls inside itself.
+            : // A work layer: the body's ink and the layer's light, and the
+              // family's entrance (the `data-[side]` travel in that language
+              // simply never matches a centred panel); its corner, where it
+              // stands, how wide it is and its cap are the `dialog` shape's. A
+              // dialog taller than what is left of the screen scrolls inside
+              // itself.
               cn(
                 "fixed z-50 grid gap-4 overflow-x-hidden overflow-y-auto overscroll-contain p-4 text-sm outline-none",
-                floatingPanel,
+                floatingWorkSurface,
                 floatingEntrance,
                 floatingPopupShapes
               ),
@@ -195,7 +198,7 @@ function DialogFooter({
     <div
       data-slot="dialog-footer"
       className={cn(
-        "-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-float border-t bg-muted/50 p-4 sm:flex-row sm:justify-end",
+        "-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-[calc(var(--radius-float)*1.25)] border-t bg-muted/50 p-4 sm:flex-row sm:justify-end",
         className
       )}
       {...props}
