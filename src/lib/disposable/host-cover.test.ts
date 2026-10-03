@@ -9,6 +9,7 @@ import {
   coverWaitingOf,
   entryWaits,
   hubCovered,
+  waitsOf,
 } from "@/lib/disposable/host-cover";
 import {
   ENTRY_HIDDEN,
@@ -88,5 +89,84 @@ describe("coverWaitingOf: her guests' sheet, from her manifest", () => {
     ]);
     // The ids of what waits, newest first, are hers (the host's) to read: her own manifest.
     expect(facts.ids).toEqual(["c", "b", "a"]);
+  });
+});
+
+/* RED-TEAM 46's MEDIUM (an album with 195 photos held, switched from approving each to a develop time: its guests read
+   "195 photos developing", her cover said "0 developing" and her head wore six of them). The switch approves every
+   held photograph and seals it with the develop (`events_hold_released`, `media_seal_on_approval`), but the period
+   (`events.sealed_from`) is stamped BY the switch, after they were created: every one read as seen. A row waits by its
+   seal, and her manifest never sees the seal (the host's scope), so the page reads the rows a switch put in the roll
+   (`joined`: approved, sealed, created before the period) beside the develop facts. */
+describe("★ a switched album: held photos that joined the roll wait by their seal, not by when they were created", () => {
+  // Created BEFORE the period began (SEALED_FROM is T0 + 10 min), as the held ones were.
+  const heldThenJoined = [
+    entry("j1", T0 + 2 * MIN_US),
+    entry("j2", T0 + 2 * MIN_US + 5_000_000),
+    entry("j3", T0 + 4 * MIN_US),
+    entry("j4", T0 + 6 * MIN_US),
+  ];
+  // Approved by her before the switch: her guests saw these, and see them still.
+  const approvedBefore = [
+    entry("s1", T0 + 3 * MIN_US),
+    entry("s2", T0 + 5 * MIN_US),
+  ];
+  const JOINED = heldThenJoined.map((e) => e[0]);
+
+  it("entryWaits: an approved row from before the period waits when the roll holds it, and one the roll does not hold is still seen", () => {
+    const joined = new Set(JOINED);
+    expect(entryWaits(heldThenJoined[0]!, SEALED_FROM, joined)).toBe(true);
+    expect(entryWaits(approvedBefore[0]!, SEALED_FROM, joined)).toBe(false);
+    // Without the roll it reads as it always did: before the period, seen.
+    expect(entryWaits(heldThenJoined[0]!, SEALED_FROM)).toBe(false);
+  });
+
+  it("★ coverWaitingOf: the switched album reads what its guests read, the held photographs all developing and the approved ones seen", () => {
+    const facts = coverWaitingOf(
+      [...approvedBefore, ...heldThenJoined].sort((a, b) => b[4] - a[4]),
+      { develops_at: AHEAD, sealed_from: SEALED_FROM, joined: JOINED },
+    );
+    expect(facts.count).toBe(4);
+    // Placed by the minute each was created, as her guests' sync places them (numbers, oldest first).
+    expect(facts.minutes).toEqual([
+      [(T0 + 2 * MIN_US) / 1000, 2],
+      [(T0 + 4 * MIN_US) / 1000, 1],
+      [(T0 + 6 * MIN_US) / 1000, 1],
+    ]);
+    expect(facts.ids).toEqual(["j4", "j3", "j2", "j1"]);
+  });
+
+  it("it adds to the period's own: photographs added since it began wait beside the joined ones", () => {
+    const facts = coverWaitingOf(
+      [entry("new", T0 + 20 * MIN_US), ...heldThenJoined, ...approvedBefore],
+      { develops_at: AHEAD, sealed_from: SEALED_FROM, joined: JOINED },
+    );
+    expect(facts.count).toBe(5);
+    expect(facts.ids).toContain("new");
+  });
+
+  it("a joined photograph the manifest no longer holds (taken back) counts nothing, and a hidden one is never counted", () => {
+    const hidden = entry("j1", T0 + 2 * MIN_US);
+    const flagged: ManifestEntry = [hidden[0], 4, 3, ENTRY_HIDDEN, hidden[4]];
+    const facts = coverWaitingOf(
+      [flagged, heldThenJoined[1]!, ...approvedBefore],
+      {
+        develops_at: AHEAD,
+        sealed_from: SEALED_FROM,
+        joined: [...JOINED, "taken-back"],
+      },
+    );
+    expect(facts.count).toBe(1);
+    expect(facts.ids).toEqual(["j2"]);
+  });
+
+  it("waitsOf: one test for the cover and the head, reading the facts once; no roll reads as before", () => {
+    const waits = waitsOf({ sealed_from: SEALED_FROM, joined: JOINED });
+    expect(waits(heldThenJoined[2]!)).toBe(true);
+    expect(waits(approvedBefore[1]!)).toBe(false);
+    expect(waits(entry("new", T0 + 20 * MIN_US))).toBe(true);
+    const plain = waitsOf({ sealed_from: SEALED_FROM });
+    expect(plain(heldThenJoined[2]!)).toBe(false);
+    expect(waitsOf(null)(entry("x", T0))).toBe(true);
   });
 });

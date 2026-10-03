@@ -79,7 +79,9 @@
 .wait-cell[data-hers]::after {
   display: none;
 }
-.wait-cell > img {
+/* Her picture: a photograph, or a video's first frame (`<video>`, her own file). */
+.wait-cell > img,
+.wait-cell > video {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -90,7 +92,8 @@
 .wait-cell[data-sending] {
   box-shadow: 0 0 0 1.5px rgb(255 255 255 / 0.45);
 }
-.wait-cell[data-sending] > img {
+.wait-cell[data-sending] > img,
+.wait-cell[data-sending] > video {
   opacity: 0.45;
 }
 /* The one pass of light her own landing takes (the album's `data-landed`, in the dark). */
@@ -132,7 +135,8 @@
   .wait-cell[data-landing] {
     animation: wait-arrive 700ms var(--ease-emphasis, ease-out) both;
   }
-  .wait-cell[data-sending] > img {
+  .wait-cell[data-sending] > img,
+  .wait-cell[data-sending] > video {
     animation: wait-breathe 1800ms ease-in-out infinite;
   }
   .wait-pill {

@@ -79,13 +79,17 @@ export function HostAlbumCover({
   const entries = useHubEntries(album);
   const developsAt = develop.develops_at;
   const sealedFrom = develop.sealed_from;
+  // ★ WHAT WAITS IS READ BY THE SEAL (red-team 46's MEDIUM): the period's rule, and the held photographs a switch put in
+  // the roll (`joined`, read by the page: her manifest never sees the seal), so her count is her guests'.
+  const joined = develop.joined;
   const facts = useMemo(
     () =>
       coverWaitingOf(entries ?? [], {
         develops_at: developsAt,
         sealed_from: sealedFrom,
+        joined,
       }),
-    [entries, developsAt, sealedFrom],
+    [entries, developsAt, sealedFrom, joined],
   );
 
   // Her own among the newest that wait: their links say whose each is, asked for once (the album's own store).

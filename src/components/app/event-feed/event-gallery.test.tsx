@@ -94,7 +94,11 @@ const entry = (id: string, t: number): ManifestEntry => [
 ];
 
 function mount(
-  develop: { develops_at: string | null; sealed_from: string | null } | null,
+  develop: {
+    develops_at: string | null;
+    sealed_from: string | null;
+    joined?: readonly string[];
+  } | null,
 ) {
   return render(
     <EventGallery
@@ -160,6 +164,28 @@ describe("★ before the develop, her album's place is what her guests see", () 
     // Nothing to select or download under the cover: Look first.
     expect(screen.queryByRole("button", { name: "Select" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Download all" })).toBeNull();
+  });
+
+  it("★ a switched album: the held photographs that joined the roll are developing under her cover, as her guests read them (red-team 46's MEDIUM)", () => {
+    // `old1` and `old2` were held when she went from approving each to a develop time: created BEFORE the period the
+    // switch stamped, approved and sealed by it. By the period alone every one read as seen, "0 developing".
+    fx.entries = [
+      entry("w1", T0 + 10 * MIN_US),
+      entry("old2", T0 - 10 * MIN_US),
+      entry("old1", T0 - 20 * MIN_US),
+      entry("seen", T0 - 30 * MIN_US),
+    ];
+    const { container } = mount({
+      develops_at: AHEAD,
+      sealed_from: SEALED_FROM,
+      joined: ["old1", "old2"],
+    });
+    expect(container.querySelector("[data-wait-count]")).toHaveAttribute(
+      "data-wait-count",
+      "3",
+    );
+    // What waits is asked about, newest first, to learn which are hers; the one her guests saw is not.
+    expect(fx.ensure).toHaveBeenCalledWith(["w1", "old2", "old1"]);
   });
 
   it("★ Look lifts it into her album as it is, for the visit, and Cover it puts it back", () => {

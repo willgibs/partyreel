@@ -60,6 +60,8 @@ vi.mock("@/lib/event/host-album.server", () => ({
   seedFrom: later,
 }));
 vi.mock("@/lib/event/host-links.server", () => ({ readHostLinksBody: later }));
+// The cover's roll (the rows a switch to a develop time sealed), read beside the album once the event is found.
+vi.mock("@/lib/disposable/host-cover.server", () => ({ readJoinedIds: later }));
 // The rooms' and the guests' view's own reads: asked only once the event is found.
 vi.mock("@/app/(app)/dashboard/[eventId]/guests/room.server", () => ({
   readGuestsRoom: later,

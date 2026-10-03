@@ -66,6 +66,20 @@ describe("the hub's ready wiring", () => {
     );
   });
 
+  it("★ reads the roll a switch to a develop time made and hands it, with the develop facts, to the head and the album's cover", () => {
+    // Red-team 46's MEDIUM: her manifest never sees the seal, so the held photographs that joined the roll (created before
+    // the period) read as seen: "0 developing" under the cover and a head wearing them. The page reads them off the
+    // rows (`readJoinedIds`, in the parallel batch, never after the album) and both consumers get the one object.
+    expect(/readJoinedIds\(supabase, event\)/.test(PAGE)).toBe(true);
+    expect(
+      /const develop: HubDevelopFacts = \{[^}]*sealed_from: event\.sealed_from,[^}]*joined,/.test(
+        PAGE,
+      ),
+    ).toBe(true);
+    expect(PAGE.match(/develop=\{develop\}/g)).toHaveLength(2);
+    expect(PAGE).not.toMatch(/develop=\{event\}/);
+  });
+
   it("dresses the code in its door and who waits at it", () => {
     // ★ Reshaped on purpose (`event-header` r1, `host=shared`): the code stands on the head's cover
     // (`HubCover`), so the page hands the door and its waiting count to the head, and the head hands

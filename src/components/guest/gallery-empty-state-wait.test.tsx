@@ -6,13 +6,14 @@
  *
  * Function, never look: what it says and what it draws, not its sizes or its light.
  */
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import type { HerShots } from "@/components/guest/upload-tracker";
 import type { HerShot } from "@/lib/disposable/contact-sheet";
 import type { GuestWaiting } from "@/lib/disposable/facts";
 import type { WaitClock } from "@/lib/disposable/wait-words";
+import { videoPosterSrc } from "@/lib/media/poster";
 
 import { GalleryEmptyState } from "./gallery-empty-state";
 import { AlbumWait, AlbumWaitSource } from "./gallery-empty-state-wait";
@@ -144,6 +145,144 @@ describe("the sheet stands where photos wait", () => {
     );
     expect(drawn).toBeLessThanOrEqual(12 * 8);
     expect(drawn + folded).toBe(1000);
+  });
+});
+
+/* RED-TEAM 46's MEDIUM (a ticket guest on a camera album with a develop ahead took three photographs and held the
+   shutter for a video; her sheet showed three photographs and, in the fourth lit square, the browser's broken-image
+   glyph). The only picture this device holds of a video she just took or added is her own FILE (an object URL of the
+   video), which no `<img>` can draw; her rows' read, once it comes back, presigns the video's poster instead, a still.
+   So a video is drawn from what it is, and marked as one the way the album's tiles are (`CornerPlayBadge`). */
+describe("★ her video on the sheet draws its first frame, never a broken image", () => {
+  const her = (key: string, over: Partial<HerShot> = {}): HerShot => ({
+    key,
+    at: T0 + 5_000,
+    src: `blob:${key}`,
+    video: false,
+    sending: false,
+    ...over,
+  });
+  const lit = (container: HTMLElement) =>
+    Array.from(container.querySelectorAll(".wait-cell[data-hers]"));
+
+  it("★ three photographs and a video: the video's square draws a muted, inline, paused video at its first frame", () => {
+    const { container } = mount({
+      waiting: waiting(4, [[T0, 4]]),
+      hers: [
+        her("p1"),
+        her("p2"),
+        her("p3"),
+        her("v1", { src: "blob:v1", video: true }),
+      ],
+    });
+    const squares = lit(container);
+    expect(squares).toHaveLength(4);
+    // The photographs stay pictures of themselves, unmarked.
+    expect(
+      container.querySelectorAll(".wait-cell[data-hers] img"),
+    ).toHaveLength(3);
+    expect(container.querySelectorAll("video")).toHaveLength(1);
+    expect(container.querySelectorAll("[data-wait-video]")).toHaveLength(1);
+    // The video's own square: no `<img>` of a video file, its first frame instead, and the video's mark.
+    const square = squares.find((s) => s.querySelector("video"))!;
+    expect(square.querySelector("img")).toBeNull();
+    expect(square.querySelector("[data-wait-video]")).not.toBeNull();
+    const video = square.querySelector("video") as HTMLVideoElement;
+    expect(video).toHaveAttribute("src", videoPosterSrc("blob:v1"));
+    expect(video.muted).toBe(true);
+    expect(video).toHaveAttribute("playsinline");
+    expect(video).toHaveAttribute("preload", "metadata");
+    expect(video).not.toHaveAttribute("controls");
+    expect(video).not.toHaveAttribute("autoplay");
+    expect(video.paused).toBe(true);
+  });
+
+  it("a video whose picture is already a still (the poster her rows' read presigned) draws that, and is marked as a video", () => {
+    const { container } = mount({
+      waiting: waiting(2, [[T0, 2]]),
+      hers: [
+        her("v1", { src: "https://r2.example/v1-poster.webp", video: true }),
+      ],
+    });
+    const square = lit(container)[0]!;
+    expect(square.querySelector("img")).toHaveAttribute(
+      "src",
+      "https://r2.example/v1-poster.webp",
+    );
+    expect(square.querySelector("video")).toBeNull();
+    expect(square.querySelector("[data-wait-video]")).not.toBeNull();
+  });
+
+  it("★ a video she is still sending draws its first frame too, in the square that breathes until it lands", () => {
+    const { container } = mount({
+      waiting: waiting(0, []),
+      hers: [
+        her("q1", { at: null, src: "blob:q1", video: true, sending: true }),
+      ],
+    });
+    const square = container.querySelector(".wait-cell[data-sending]")!;
+    expect(square.querySelector("img")).toBeNull();
+    expect(square.querySelector("video")).toHaveAttribute(
+      "src",
+      videoPosterSrc("blob:q1"),
+    );
+    expect(square.querySelector("[data-wait-video]")).not.toBeNull();
+  });
+
+  it("a video with no picture in hand stands as a lit square with its mark, nothing broken in it", () => {
+    const { container } = mount({
+      waiting: waiting(2, [[T0, 2]]),
+      hers: [her("v1", { src: null, video: true })],
+    });
+    const square = lit(container)[0]!;
+    expect(square.querySelector("img")).toBeNull();
+    expect(square.querySelector("video")).toBeNull();
+    expect(square.querySelector("[data-wait-video]")).not.toBeNull();
+  });
+
+  it("★ a picture that cannot be drawn (a clip the browser cannot decode, a link that expired) leaves a clean square, never the browser's broken glyph", () => {
+    const { container } = mount({
+      waiting: waiting(3, [[T0, 3]]),
+      hers: [
+        her("v1", { src: "blob:v1", video: true }),
+        her("p1", { src: "https://r2.example/p1.webp" }),
+      ],
+    });
+    fireEvent.error(container.querySelector("video")!);
+    fireEvent.error(container.querySelector("img")!);
+    expect(container.querySelector("video")).toBeNull();
+    expect(container.querySelector(".wait-cell img")).toBeNull();
+    // The square stays, lit, and the video still says it is one.
+    expect(lit(container)).toHaveLength(2);
+    expect(container.querySelectorAll("[data-wait-video]")).toHaveLength(1);
+  });
+
+  it("what a screen reader hears says videos too once one of hers is, and is unchanged for photographs alone", () => {
+    const said = (container: HTMLElement) =>
+      container.querySelector("p.sr-only")?.textContent;
+    const photos = mount({
+      waiting: waiting(4, [[T0, 4]]),
+      hers: [her("p1"), her("p2"), her("p3"), her("p4")],
+    });
+    expect(said(photos.container)).toMatch(
+      /^4 photos developing, 4 of them yours\./,
+    );
+    photos.unmount();
+    const mixed = mount({
+      waiting: waiting(4, [[T0, 4]]),
+      hers: [her("p1"), her("p2"), her("p3"), her("v1", { video: true })],
+    });
+    expect(said(mixed.container)).toMatch(
+      /^4 photos and videos developing, 4 of them yours\./,
+    );
+    mixed.unmount();
+    const alone = mount({
+      waiting: waiting(1, [[T0, 1]]),
+      hers: [her("v1", { video: true })],
+    });
+    expect(said(alone.container)).toMatch(
+      /^1 photo or video developing, 1 of them yours\./,
+    );
   });
 });
 
