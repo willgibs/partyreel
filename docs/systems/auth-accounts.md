@@ -253,7 +253,8 @@ Dashboard state, held nowhere in the repo, that the code assumes:
   `requireAdminAction()`, lifts the ban, clears the stamp and puts the auth user's address back on the profile (the
   lifecycle and billing mails read `profiles.email`); the binned events wait in Deleted on their own 30 days. The ban
   lifts first and a stamp that will not clear puts it back, so "can sign in" never stands while still queued; it
-  refuses while a purge run is under way (the account sweep purges the queue it read at its start). Its panel lists
+  refuses while a purge run is under way, and the purge reads each account's stamp again before it touches it
+  (`purgeAccount`), so one that lands after a run read its queue still finds the account whole. Its panel lists
   what stays gone: name, photo and handle, the plan, the newsletter signup, the names on her guest rows, and any
   uploads she took out of other albums. Audited as the delete is: its effect, and one Sentry line naming who and
   whom by id (there is no operator audit table).
