@@ -212,11 +212,16 @@ export function ReviewRoomFromHub({
   }
   if (queue.state === "reading") return <RoomShimmer shape="grid" />;
   return (
-    <ReviewRoom
-      eventId={eventId}
-      moderationOn={moderationOn}
-      pendingItems={queue.items}
-      titled={false}
-    />
+    // ★ TWO TILES ACROSS IN THE PANEL (`--album-column`, the grids' own knob, `masonry.tsx`): the uniform grid's
+    // floor is a page's 220px, which a panel's 416px body lays out one tile wide (measured at 1440). At 180 the
+    // panel holds two of about 206px, the page's own tile size and the board's two across; a phone keeps its three.
+    <div style={{ ["--album-column" as string]: "180px" }}>
+      <ReviewRoom
+        eventId={eventId}
+        moderationOn={moderationOn}
+        pendingItems={queue.items}
+        titled={false}
+      />
+    </div>
   );
 }

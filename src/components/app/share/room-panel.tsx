@@ -68,8 +68,9 @@ export function RoomShimmer({ shape }: { shape: "grid" | "list" }) {
       {shape === "grid" ? (
         <>
           <Skeleton className="h-4 w-64 max-w-full" />
-          <div className="grid grid-cols-3 gap-1.5">
-            {Array.from({ length: 9 }, (_, i) => (
+          {/* Review's own grid: three across in a hand, two in the panel at a desk (`review-room.tsx`). */}
+          <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-2">
+            {Array.from({ length: 6 }, (_, i) => (
               <Skeleton key={i} className="aspect-square rounded-md" />
             ))}
           </div>
