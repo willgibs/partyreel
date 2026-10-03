@@ -1,6 +1,6 @@
 ---
 track: identity-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "5dc4dee8"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -51,16 +51,16 @@ Each is built as recommended and is Will's to overrule; none is a one-way door.
   marketing site moves with it (one `:root`). Overrule: Graphite's palette and 4px tiles stay, and a card keeps a
   hairline on paper.
 - **Does the surface radius move to viewfinder's 6px?** Recommended and built: no, `--radius` stays 8px. Display draws
-  its own rounder corners (cards 12, menus 16, dialogs 20), and the 6px reached fields (identity r3's) and every screen's
-  own `rounded-*`. Overrule: 6px.
+  its own rounder corners (cards 12, menus 16, dialogs 20), and the 6px reached fields (identity r3's) and every
+  screen's own `rounded-*`. Overrule: 6px.
 - **Is a toast's state still a filled slab?** Recommended and built: no. Every toast is the display, and its state is
   its glyph lit in green, amber or red (status=lights: colour where it means something); 175 of the product's 190
   toast calls are a success, a warning or an error, so keeping the slabs would have left the display to the 15 plain and
   info toasts. The board drew only a plain toast. Overrule:
   success, warning and error keep their filled slabs on the display's shape.
 - **Does the live mark breathe?** Recommended and built: yes, as lights drew it (the recording red rings out from the
-  dot every 1.6 s, still under reduced motion). Its old reason against ("a host keeps the hub open all night, and a light
-  that beat for hours would pull her eye off the album") is the call to weigh. Overrule: a still red dot.
+  dot every 1.6 s, still under reduced motion). Its old reason against ("a host keeps the hub open all night, and a
+  light that beat for hours would pull her eye off the album") is the call to weigh. Overrule: a still red dot.
 - **Which empty drawings become the one empty atom?** Recommended and built: the shared `EmptyState` (the likes page,
   a profile's sections) and the feed's section empty (Review, Uploads) are `ui/empty.tsx`, the lens. The dashboard's
   two photographic teasers (the ghost grid behind "Your first album starts here", the Uploads/Likes strip in its dashed
@@ -100,15 +100,16 @@ Each is built as recommended and is Will's to overrule; none is a one-way door.
 ## Handoff (replaces the chat report)
 
 - **Commits**, pushed to `origin/lp/identity-wiring`: `b613fdab` (the wiring), `bce3e9af` (the Library foundations'
-  skeleton specimen), and the manifest's own commits. **No sync**: launch-prep moved since the base `c925e48f`
-  (wizard-wiring merged at `feca808e`, plus records), but none of it touches this lane's `reads`, and
-  `git merge-tree --write-tree HEAD origin/launch-prep` merges clean (exit 0). The Create room it brought reads the
-  room's tokens through its own `.dark`, so it wears viewfinder's room at the merge.
-- **Gates on `GATE_SHA`**, each on its own exit code (logs `../partyreel-wt/_scratch/identity-wiring/gate-*.log`):
-  typecheck 0; lint 0 (no warnings); test 0 (TEST_LINE); `build-lock.sh pnpm build` 0; `lab:smoke --base
-  http://localhost:3131` 0 (SMOKE_LINE). `lab:demo --all` finds no open step (every ask on the desk is answered), so
-  every board's answered steps were pressed by `--only`, all 25 on seven boards, at 1440 and with `--width 375`:
-  DEMO_LINE (`gate-demo-steps.log`).
+  skeleton specimen), `45eaa96a` (two doc lines rewrapped), and the manifest's own commits. **No sync**: launch-prep
+  moved since the base `c925e48f` (wizard-wiring merged at `feca808e`, plus records), but none of it touches this lane's
+  `reads`, and `git merge-tree --write-tree HEAD origin/launch-prep` merges clean (exit 0). The Create room it brought
+  reads the room's tokens through its own `.dark`, so it wears viewfinder's room at the merge.
+- **Gates on `45eaa96a`**, each on its own exit code (logs `../partyreel-wt/_scratch/identity-wiring/gate3-*.log`):
+  typecheck 0; lint 0 (no warnings); test 0 (813 files, 9,590 tests); `build-lock.sh pnpm build` 0; `lab:smoke --base
+  http://localhost:3131` 0 (193 checks, 0 failing). `lab:demo --all` finds no open step (every ask on the desk is
+  answered), so every board's answered steps were pressed by `--only`, all 25 on seven boards, at 1440 and with `--width
+  375`: 50 runs, 0 failing, every step drawing its options (`gate-demo-steps.log`, on the atoms of `b613fdab`; the later
+  commits touch only the Library's foundations page and docs).
 - **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): every path under `owns`, this manifest, the two
   new test files beside the atoms, and these exceptions:
   - `src/components/shared/empty-state.tsx` and `src/components/app/event-feed/feed-section-empty.tsx`: the carried
@@ -184,9 +185,5 @@ Each is built as recommended and is Will's to overrule; none is a one-way door.
 
 ## Where I am
 
-- Done and pushed: `b613fdab` (the wiring), `bce3e9af` (the foundations specimen). On `bce3e9af`: typecheck 0, lint 0
-  (`gate2-*.log`); on `b613fdab`: test 0 (9,590), build 0, `lab:smoke` 0 (193 checks).
-- Running: the 25 answered desk steps pressed by `--only` at 1440 and 375 (`_scratch/identity-wiring/demo-all.sh`, log
-  `gate-demo-steps.log`), on a dev server on 3131.
-- Remaining: the test suite and the build on the final head, `lab:smoke` again, the Handoff's numbers (GATE_SHA,
-  TEST_LINE, SMOKE_LINE, DEMO_LINE), `status: handed-off`.
+- Handed off: the Handoff above is the whole state. No process left running (the dev server on 3131 and every
+  headless Chrome stopped).
