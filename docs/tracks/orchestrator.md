@@ -53,7 +53,7 @@ plan's whole text (lane splits, the Advisor's Q11 corrections, Will's answers) i
 | `demo-framing-r5` | board demo-framing r5 [desk 90]: the hero's stage, a more polished set from r4's five | MERGED at `bf26d730` (gate 177 green: lint, test, build, lab:smoke, lab:demo demo-framing); lab only; on his next desk | Opus, 3136 | `a8f0856b99cc9ed00` |
 | `event-header-r3` | board event-header r3 [desk 50]: facts (the strip free of a timeline, new ideas; the dial banked) and doors (app-store depth, quieter windows, polished glass, each with its sticky form); ranges drawn | running (cut at `518aff34`); WIP pushes each milestone | Opus, 3134 | `ac26dc46271773f37` |
 | `crumbs-55` | four crumbs: frame-ancestors and X-Frame-Options against clickjacking (both projects), the next-step chip's room link, the brand kit's fifth ground and tokens, How it works' Create picture | MERGED at `599ede52` (gate 176 green: lint, test, build, lab:smoke, lab:demo all) | Sonnet, 3131 | `af911157a822471ec` |
-| `host-dashboard-r3` | board host-dashboard r3 [desk 25]: events (a collapsible Recent row over one gallery/table/list, 1 to 200 events), the empty featured stage, the feature's rule as a choice; ranges and lead=made drawn as settled | running (cut at `499612e4`, ahead of event-dates by the Orchestrator's call); WIP pushes each milestone | Opus, 3135 | `a96b83311939a385c` |
+| `host-dashboard-r3` | board host-dashboard r3 [desk 25]: events for 1 to 10 scaling to hundreds, the empty featured stage, the feature's rule as a choice | MERGED at `a8b21659` (gate 178 green: lint, test, build, lab:smoke, lab:demo host-dashboard); lab only; on his next desk | Opus, 3135 | `a96b83311939a385c` |
 | `event-dates` | an optional end date read everywhere (Settings' range, the dashboard's week, live today and stage, the formatter's ranges, the develop default after the last day; never the lifecycle); lead=made; its migration for the Orchestrator | running (cut at `9af92e54`); WIP pushes each milestone | Opus, 3132 | `a4f91d827093a1238` |
 | `the-wait-r2` | board the-wait r2 [desk 35]: the arrival, his first choice drawn properly (the develop as the album's first load, two or three takes), the premiere first and into place refined | running (cut at `9af92e54`); WIP pushes each milestone | Opus, 3133 | `a0a9f95e641174de4` |
 
@@ -84,8 +84,8 @@ with a `## Where I am` note, for the weekly's limit.
 If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` holds a merge made after this note (push
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
 staged, uncommitted merge is finished by `usher/kit/merge-lane.sh`'s own steps or reset with `git merge --abort`.
-This session's scratchpad holds the specs (`specs-r12/`) and gate logs (the next gate is 178, the calls file numbers on
-from 125); nothing there is needed that these lines and the manifests do not carry. Everything a successor reads lives
+This session's scratchpad holds the specs (`specs-r12/`) and gate logs (the next gate is 179, the calls file numbers on
+from 126); nothing there is needed that these lines and the manifests do not carry. Everything a successor reads lives
 in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team briefs and ledgers).
 
 ## Next, in order
