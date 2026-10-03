@@ -1,6 +1,6 @@
 ---
 track: album-calm
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "ac73941e"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -47,16 +47,6 @@ working.
 
 **Verify on.** The gate on the synced tree, each step on its own exit code; `pnpm lab:smoke --base http://localhost:3132`; red first for the batch, the hidden tab's silence and its catch-up, and the delta's links (tests failing on today's code, logged); the before/after measurement logged in your scratch; a capture of a batch landing and of the catch-up after a hidden spell, at 375 and 1440.
 
-## Where I am
-
-- Built and unit-green (WIP commit): the batch clock (`refresh-coalescer.ts`, `ALBUM_BATCH_MS`), the doorbell that
-  leaves its channel while hidden (`use-gallery-doorbell.ts`), the poll that never starts hidden (`use-live-poll.ts`),
-  the host album on the shared poll, the stage's guard gone, and a delta carrying its new items' links
-  (`album-wire-carry.ts`, `album-wire-links.server.ts`, the sync route). Red logged before the build:
-  `_scratch/album-calm/red-before.log` (33 failing on today's code).
-- Before measured on a base `next start` (`_scratch/album-calm/measure-before.log`); the after build is next, then the
-  after measurement, the captures, the docs (guest-flow.md, PRICING lever 1) and the gate.
-
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
 - **Does another guest's first photograph after a quiet spell wait for the clock too?** Recommended and built: yes.
@@ -70,24 +60,94 @@ working.
 - **How many new items does a delta carry links for?** Recommended and built: the newest 48 (`ALBUM_DELTA_LINKS_MAX`,
   the first paint's own screenful); a bigger batch (a tab back from hours away) carries the head's, and the window asks
   the links route for the rest only if the reader goes there.
+- **Who writes the before/after into PRICING.md?** Recommended and done: not this lane. `cost-atlas`, cut after this
+  brief, owns PRICING.md and is rewriting "What it costs us" with this lane's after-state as its baseline, so an edit
+  here would conflict with its rewrite. The measurement is in the Handoff, and the lever-1 and "An open album" edits
+  this lane drafted are a diff for it to take or leave (`_scratch/album-calm/pricing-lever1-proposed.diff`). Until it
+  lands, PRICING's "syncs within ~2.4 s", "a hidden tab whose socket lives too" and "the client then asks links for the
+  new ids" describe the album before this lane.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/guest-flow.md`, the live gallery: the doorbell's calm batches and the hidden tab that is no listener
+  (the bullet "The doorbell"), the poll's one catch-up on a return and that it never starts hidden ("The conditional
+  poll"), a batch as one call ("A link is read by id"), and the arrival gate's sentence on a delta's link.
+- `docs/systems/testing-verification.md`, the presign-roll soak: its one line on what a hidden tab does (a tab that
+  loads hidden no longer keeps a throttled interval: it starts none), a fact of this lane's `use-live-poll.ts`.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Host: the host's delta could carry its new items' links as the guest's does (`/api/album/host/<id>/sync` with
+  `album-wire-carry.ts`), one call a batch on the hub too (from `album-calm`).
+- Guests: the reel tile re-deals its six stills on every arrival (`reel-tile.ts`, `planTake` over the whole album),
+  and a re-dealt still no window linked costs a links call: 8 of the 26 calls in the after measurement; a deal that
+  keeps the stills that still play would make every batch one call (from `album-calm`).
+- Platform: the doorbell rings each visible listener once a changed row; a ping coalesced server-side (one an album a
+  few seconds, `media_gallery_doorbell`, a migration) would cut the visible albums' Realtime messages as the batch
+  clock cut their calls (from `album-calm`).
+- Tooling: `scripts/album-perf.mjs --arrive` waits 15 s for the hide and for the arrival to reach the page, which the
+  batch clock can now just exceed (a tick up to 15 s, then a round trip): its waits want 20 s (from `album-calm`).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits**, pushed on `lp/album-calm`: `fa7f6334` (the machinery and its tests), `1d523b68` (the system docs and the
+  doorbell's socket note), `4837da8d` (guest-flow's double-join line), then this manifest alone. **No sync**:
+  launch-prep moved (crumbs-57 at `66b656ff`, crumbs-58 at `3d3e3507`, records), but nothing it brought touches this
+  lane's paths or machinery (`git diff --name-only 1d3f081f origin/launch-prep` shares no path with the lane's).
+- **Gates on `1d523b68`**, each on its own exit code (logs `_scratch/album-calm/gate-*.log`): typecheck 0; lint 0;
+  test 0 (852 files, 10,115 tests); `zsh scripts/build-lock.sh pnpm build` 0; `pnpm lab:smoke --base
+  http://localhost:3132` against `pnpm dev` 0 (157 checks), and against that build with `--production --key` 0 (163
+  checks). `4837da8d` after it is one doc line no test reads. No board, so no `lab:demo`.
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): the owned prefixes, this manifest and
+  `docs/systems/testing-verification.md` (listed under System-doc edits: its one line on a hidden tab is this lane's
+  `use-live-poll.ts`). PRICING.md is untouched (the Questions).
+- **Red first**, on today's code: `_scratch/album-calm/red-before.log`, 33 failing (the batch clock, the doorbell's
+  hidden silence and its return, the poll that started under a hidden tab, the delta's links at the route and in the
+  album, the hidden-for-hours catch-up); green on the build after: `green-1.log`.
+- **Measured** on production builds (`measure-before.log`, `measure-after.log`, `compare.log`, `bodies-after.json` in
+  `_scratch/album-calm/`): one guest's 20 uploads through the product's write path, about 4.5 s apart, four albums open
+  as four devices (V1 at 375 and V2 at 1440 visible; H at 1440 and L at 375 hidden; L shown after ten minutes):
+  - the two visible albums: calls 84 to 26 (syncs 44 to 18: 14 on the 15 s ticks, 4 the minute's net; links calls 40
+    to 8, every one a reel tile's re-dealt still, none a new photo), bytes 68 to 51-56 KB each;
+  - the two hidden ones: calls 81 to 1 (L's return: one sync carrying all 20 links, 35.7 KB, no links call); pings
+    heard 40 to 0;
+  - Realtime messages 100 to 60 (20 sends, deliveries 80 to 40); quiet minutes unchanged (one 304 a minute a visible
+    album); function invocations, twice the calls with the proxy, 330 to 54.
+- **Captured** (`_scratch/album-calm/captures/after/`): `batch-375.mp4` and `batch-1440.mp4` (five photos landing
+  together on the tick, the sixth one tick later), `return-375.mp4` and `return-1440.mp4` (a minute hidden, then one
+  sync and six arrivals through the album's push), contact sheets `*-sheet.png`, the 375 landing at 30 fps
+  `return-375-landing30.png`.
+- **Items:**
+  - The batch clock (`refresh-coalescer.ts`, `ALBUM_BATCH_MS` 15 s, named once): every ping waits for the device's
+    next tick at a phase it draws, one sync a tick, nothing for a quiet album; hers, a host's write and a return never
+    wait.
+  - The doorbell (`use-gallery-doorbell.ts`): a hidden tab leaves the channel and syncs nothing; a join waits for any
+    leave of its topic (a blink, a `key={access}` remount, React's dev double mount: each would have sat deaf); Live
+    holds 3 s while it rejoins.
+  - The poll (`use-live-poll.ts`): starts nothing in a tab that opens hidden, restarts nothing under a hidden tab; the
+    host album runs on it (its own copy gone), and the stage's hidden guard went with its reason.
+  - One call a batch: a delta carries its newest 48 upserts' links (`album-wire-carry.ts` `carriedIds`, the sync
+    route), minted by the links route's own `mintGuestAlbumLinks` (`album-wire-links.server.ts`, the reads' gate: a
+    held, sealed or removed id gets none); the guest album's transport answers the link store's ask for them itself
+    (`carryingTransport`: dated exactly, once, never past its re-mint time); a failed carry is reported and costs the
+    delta nothing.
+- **Disposable data**: the event "album-calm probe" (`c8a79523-3a0e-4e3b-bdbb-a7075142e86a`, willg97's, name-only,
+  live, open; its token only in `_scratch/album-calm/probe.json`) with about 90 numbered photos and eight name-only
+  "Calm" guests, all through the product's write path: ready for the alias walk with two phones, and to delete after
+  (the host's Settings, Delete).
+- **Assets requested from Will**: none.
+- **Board ideas:**
+  - How a batch lands: at 375 a batch of six opens the whole head at once, and for about 150 ms of the 400 ms push the
+    head is mostly ground, each tile revealing from its left edge (`return-375-landing30.png`); `arrival=push` was drawn
+    for one arrival: a push together, a stagger or one fade for a batch.
+  - At 1440 one arrival at the head re-flowed the rows on screen from 6-5-5 to 3-5-3 (`b1440-stack.png`): batching
+    makes that once a batch, but whether a head arrival should keep the rows below it is a question of its own.
+  - The marketing's "Uploads appear the moment guests take them" (`review-modes.tsx`, `album-copy.ts`) now means
+    within about 15 s on another phone (hers at once): the voice's call whether the words move.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes**: none.
+- **Calls his to overrule**: the clock with no leading edge; the leave the instant a tab hides, with Live held 3 s on a
+  return; 48 links carried a delta; PRICING.md left to `cost-atlas` with the measurement and a drafted diff
+  (`_scratch/album-calm/pricing-lever1-proposed.diff`). Each is in the Questions.
+- **Look at first**: `return-375.mp4` and `batch-375.mp4`; then `use-gallery-doorbell.ts`'s `settle` and `leave` (the
+  join that waits for any leave of its topic); then the sync route's `carriedLinks`; the alias walk: two phones on the
+  probe, one locked a minute while the other uploads, then unlocked.
