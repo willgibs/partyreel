@@ -1300,8 +1300,8 @@ export function EventExperience({
         uploadsOpen={event.accepting_uploads}
         requireUpload={event.require_upload_to_view}
         // ★ EMPTY AS THE COVER'S ADD READS IT (red-team 49's NIT): the cover's one source, `galleryEmpty` (what shows,
-        // her files on their way, what waits), so the door's upload step never offers "the first photo" over shots
-        // that wait for the develop, one screen before the page's own Add says "Take photos" over them.
+        // her files on their way, what waits), so the door's upload step never offers the first photo over shots that
+        // wait for the develop, one screen before the page's own Add (`addWords`) asks for hers among them.
         albumEmpty={galleryEmpty}
         isOwner={isOwner}
         isDemo={isDemo}
