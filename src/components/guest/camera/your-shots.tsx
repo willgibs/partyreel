@@ -49,7 +49,9 @@ function TilePicture({ tile }: { tile: ShotTile }) {
   if (tile.srcIsVideo) {
     return (
       <video
-        src={tile.src}
+        // A fragment past zero, so a phone draws the first frame without playing it (the fragment never reaches the
+        // server, so the presigned link stays valid).
+        src={`${tile.src}#t=0.1`}
         muted
         playsInline
         preload="metadata"
