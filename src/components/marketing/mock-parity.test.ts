@@ -349,6 +349,29 @@ const ENTRIES: ParityEntry[] = [
     appFile: "src/components/app/event-settings/reel-page.tsx",
     literal: "Where every guest starts.",
   },
+  // crumbs-55: the Create step's picture is the room's look screen now, so its words are the room's own. The
+  // rail it drew before (Details, Design, Share) outlived the wizard that had it, and nothing went red.
+  {
+    label: "how-it-works host create step, the room's question",
+    marketingFile:
+      "src/components/marketing/sections/how-it-works/host-pictures.tsx",
+    appFile: "src/components/app/create-event-wizard.tsx",
+    literal: "Pick the code's look",
+  },
+  {
+    label: "how-it-works host create step, the line under the question",
+    marketingFile:
+      "src/components/marketing/sections/how-it-works/host-pictures.tsx",
+    appFile: "src/components/app/create-event-wizard.tsx",
+    literal: "Change it any time from Share",
+  },
+  {
+    label: "how-it-works host create step, the foot's one button",
+    marketingFile:
+      "src/components/marketing/sections/how-it-works/host-pictures.tsx",
+    appFile: "src/components/app/create-event-wizard.tsx",
+    literal: "Create event",
+  },
   {
     label: "home live demo payoff card, the reel's own heading",
     marketingFile: "src/components/marketing/sections/home/live-demo.tsx",
