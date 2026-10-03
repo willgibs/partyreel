@@ -18,9 +18,9 @@ reads:                  # single-sources you depend on: never duplicate, never e
 
 ## Where I am
 
-- Booted: worktree `crumbs-60` on `lp/crumbs-60`, pushed from 256ee171; read the manifest, `camera-settings.tsx`, `EventDatesField`, `dates.ts`, `reveal.ts`, the hub's Develop now, the two SQL triggers.
-- Red reproduced live before any change (the Library's Settings demo, Chrome 152, real key presses): `0 2 0 2` into the develop time's year, then leaving, saved a develop (the page read "Developed", the field went blank): `_scratch/crumbs-60/red-live-0202-left-develops-the-album.jpg`. Chrome 152's `datetime-local` types a year as a blank (`0` makes year 0, `badInput`), then 0002, 0020, 0202, each `input` in the key's own millisecond, as the date field's did.
-- Next: the tests red against today's code (logged), then the build, the doc, the gate.
+- Red first, logged: 14 of the new component tests fail on today's code (`_scratch/crumbs-60/red-1-component-tests-on-todays-code.log`): twelve because it wrote a develop (`developsAt: "0202-10-03T16:56:02.000Z"`, `"2026-10-01T20:00:00.000Z"`) or asked nothing, two on the words alone (a blank field never saved: it already refused, with the wrong sentence).
+- Built and green: `DevelopTimeControl` judged by `camera-settings-develop-time.ts`; 37 + 19 tests in the lane, 868 files and 10335 tests in the whole suite, typecheck and lint clean (logs in `_scratch/crumbs-60/`). Real Chrome 154, real key presses, on the Library's Settings demo: 0202 refused, a past month asks, Develop now writes now, a cleared segment refused, a typed day saved (`verify.mjs`, captures at 1024 and 375 in the scratch folder).
+- Next: the gate on the synced tree (build, `lab:smoke`), then the handoff.
 
 ## The brief
 
@@ -48,7 +48,7 @@ working.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/disposable-mode.md`, "The host's control, and her cover": the develop time is sent only when plainly meant (judged once on leaving or Return, never on a keystroke or a close; the refusals; the question and what it writes), and "nothing else asks" now names it.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 

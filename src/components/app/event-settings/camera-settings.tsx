@@ -4,6 +4,10 @@ import { useId, useState, type ReactNode } from "react";
 import { Check, ChevronDown, Clock } from "lucide-react";
 
 import {
+  DEVELOP_NOW_QUESTION,
+  judgeDevelopTime,
+} from "@/components/app/event-settings/camera-settings-develop-time";
+import {
   SettingsCard,
   SettingsNote,
   StackSetting,
@@ -28,7 +32,6 @@ import type { Capture } from "@/lib/disposable/facts";
 import {
   defaultDevelopAt,
   developState,
-  developTimeWithinReach,
   revealOf,
   type Reveal,
 } from "@/lib/disposable/reveal";
@@ -706,9 +709,22 @@ function toLocalInput(iso: string): string {
 }
 
 /**
- * THE DEVELOP TIME, picked in her own zone and saved when she leaves the field, and Develop now while it waits (asking
+ * THE DEVELOP TIME, picked in her own zone and saved once she has finished it, and Develop now while it waits (asking
  * first: every photo added so far shows at once). It still moves whenever she needs longer (Will's `both=never`: "the
  * date can always be pushed back by the host if more review time is needed").
+ *
+ * ★ A DEVELOP CANNOT BE UNDONE, SO A TIME REACHES THE WRITE ONLY WHEN IT IS PLAINLY MEANT (crumbs-60, the date field's
+ * twin): the database stores a time at or before its own now as now and opens every sealed row in that same save, so a
+ * year left half typed (Chrome types 2027 as 0002, 0020, 0202, each a whole time) or any past time was Develop now with
+ * no question asked. What she types is a draft the field shows and nothing sends; it is judged once, when she has finished
+ * it (leaving the field, or Return), by `judgeDevelopTime`:
+ *   - A year outside the date's window (`isSaneDay`), a blank or half filled field, a time beyond a year ahead, and a
+ *     past time on an album that has already developed are said under the field in words and never written.
+ *   - A time the database would store as now, on an album that still waits, asks Develop now's own question (the button's,
+ *     the hub's: one sentence, one answer), and Develop now writes now, never the time she typed.
+ * Unlike the date, closing the panel with a time typed and not left drops it: a develop time moves what guests see, a
+ * close could not ask, and the field also goes when another control clears the time (a style switch), where a late write
+ * would put a time back over her choice.
  */
 function DevelopTimeControl({
   developsAt,
@@ -724,29 +740,55 @@ function DevelopTimeControl({
   onSave: (developsAt: string) => void;
 }) {
   const shown = hydrated && developsAt ? toLocalInput(developsAt) : "";
+  // What she typed and has not finished: the field shows it, nothing sends it.
   const [draft, setDraft] = useState<string | null>(null);
-  const [invalid, setInvalid] = useState(false);
-  const [askingNow, setAskingNow] = useState(false);
+  // Why what she finished is not saved, said under the field.
+  const [refusal, setRefusal] = useState<string | null>(null);
+  // Develop now's question: the button's own, or the one a time that would develop the album at once brings.
+  const [asking, setAsking] = useState<"button" | "time" | null>(null);
   const value = draft ?? shown;
   const state = hydrated ? developState(developsAt).kind : "none";
   const fieldId = useId();
+  const lineId = `${fieldId}-line`;
+  const refusalId = `${fieldId}-refusal`;
   // Said in her own zone, so only after hydration: the server cannot know what "9 am" means to her.
   const when = hydrated ? developTimeWords(developsAt) : null;
 
-  const commit = () => {
-    if (draft === null || draft === shown) {
-      setDraft(null);
+  /** She has left the field, or pressed Return in it: what it holds is finished, and is judged. */
+  const finish = () => {
+    if (draft === null) return;
+    const verdict = judgeDevelopTime({
+      typed: draft,
+      shown,
+      developsAt,
+      nowMs: Date.now(),
+    });
+    if (verdict.kind === "refuse") {
+      // The draft stays in the field, marked, until she types again.
+      setRefusal(verdict.words);
       return;
     }
-    const at = new Date(draft);
-    const iso = Number.isFinite(at.getTime()) ? at.toISOString() : null;
-    if (!iso || !developTimeWithinReach(iso)) {
-      setInvalid(true);
+    setRefusal(null);
+    if (verdict.kind === "ask") {
+      setAsking("time");
       return;
     }
-    setInvalid(false);
     setDraft(null);
-    onSave(iso);
+    if (verdict.kind === "save") onSave(verdict.iso);
+  };
+
+  const developNow = () => {
+    setAsking(null);
+    setDraft(null);
+    setRefusal(null);
+    // The database stores a develop time this close to its own clock as its own now: it writes now, never the time she typed.
+    onSave(new Date().toISOString());
+  };
+
+  /** Keep it as it is: the question goes, and a time it asked about goes with it, back to what is saved. */
+  const keepAsItIs = () => {
+    if (asking === "time") setDraft(null);
+    setAsking(null);
   };
 
   return (
@@ -760,41 +802,44 @@ function DevelopTimeControl({
           type="datetime-local"
           value={value}
           disabled={!hydrated || saving}
-          aria-invalid={invalid || undefined}
+          aria-invalid={refusal ? true : undefined}
+          aria-describedby={refusal ? `${lineId} ${refusalId}` : lineId}
           onChange={(e) => {
-            setInvalid(false);
+            // A new time is a new question: the old words and the old question go.
+            setRefusal(null);
+            setAsking((a) => (a === "time" ? null : a));
             setDraft(e.target.value);
           }}
-          onBlur={commit}
+          onBlur={finish}
           onKeyDown={(e) => {
-            if (e.key === "Enter") commit();
+            if (e.key === "Enter") finish();
           }}
           className="max-w-60"
         />
-        <p className="text-caption text-muted-foreground">
+        <p id={lineId} className="text-caption text-muted-foreground">
           {!when
             ? " "
-            : invalid
-              ? "Pick a time within a year."
-              : state === "developed"
-                ? `Developed ${when}. ${review ? "New ones wait for your approval." : "New ones show straight away."}`
-                : `Develops ${when}.`}
+            : state === "developed"
+              ? `Developed ${when}. ${review ? "New ones wait for your approval." : "New ones show straight away."}`
+              : `Develops ${when}.`}
+        </p>
+        <p
+          id={refusalId}
+          aria-live="polite"
+          className="text-caption text-pretty text-destructive empty:hidden"
+        >
+          {refusal ?? ""}
         </p>
       </div>
       {state === "waiting" ? (
-        askingNow ? (
+        asking ? (
           <ConsequenceLine
             confirmLabel="Develop now"
-            onConfirm={() => {
-              setAskingNow(false);
-              // The database stores a develop time this close to its own clock as its own now.
-              onSave(new Date().toISOString());
-            }}
-            onCancel={() => setAskingNow(false)}
+            onConfirm={developNow}
+            onCancel={keepAsItIs}
             busy={saving}
           >
-            Every photo added so far shows now, to every guest. New ones show
-            straight away.
+            {DEVELOP_NOW_QUESTION}
           </ConsequenceLine>
         ) : (
           <Button
@@ -802,7 +847,7 @@ function DevelopTimeControl({
             variant="outline"
             disabled={saving}
             data-develop-now=""
-            onClick={() => setAskingNow(true)}
+            onClick={() => setAsking("button")}
           >
             Develop now
           </Button>
