@@ -29,6 +29,7 @@
  * gesture eats the gesture): the fade and the band are `pointer-events-none`, so a press between the
  * rounds lands on the photograph under it.
  */
+import { Camera } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 
@@ -57,6 +58,7 @@ export function GuestActionDock({
   run,
   hues,
   more = true,
+  camera = false,
 }: {
   /** The cover's row is still on screen: the cluster waits, inert, off the bottom edge. */
   hidden: boolean;
@@ -82,6 +84,11 @@ export function GuestActionDock({
   hues?: readonly number[];
   /** More album lies below the screen: the foot's fade stands. */
   more?: boolean;
+  /**
+   * The album's Add opens its camera (`capture = 'camera'`, the page's `cameraAlbum`): the shutter says Take photos
+   * and wears the camera on its face, as the cover's Add does. The atom's face is already its `children`.
+   */
+  camera?: boolean;
 }) {
   const progress = useRunProgress(
     run?.items ?? NO_ITEMS,
@@ -111,6 +118,7 @@ export function GuestActionDock({
   if (!onAdd && !invite) return null;
 
   const state: ShutterState = sending > 0 ? "sending" : done ? "done" : "idle";
+  const addWords = camera ? "Take photos" : "Add photos";
   return (
     <div
       data-guest-dock=""
@@ -162,10 +170,12 @@ export function GuestActionDock({
             onClick={onAdd}
             aria-label={
               sending > 0
-                ? `Add photos, ${formatCount(sending)} uploading`
-                : "Add photos"
+                ? `${addWords}, ${formatCount(sending)} uploading`
+                : addWords
             }
-          />
+          >
+            {camera ? <Camera className="size-6" /> : undefined}
+          </Shutter>
         )}
         {twin}
         {tracker}

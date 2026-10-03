@@ -19,6 +19,16 @@
  * `window.location` is the one source of truth, read through `useSyncExternalStore` (the server
  * snapshot is null, so the first client render matches the HTML), with `popstate` and this module's
  * own writes as the change signal.
+ *
+ * ★ A RENDER READS THE PAGE IT IS LEAVING, WHEN THE PAGE ARRIVES BY A SOFT NAVIGATION (crumbs-52; red-team 43's
+ * hub Reel card, measured under `next dev`). Next writes the new address in the commit that mounts the page
+ * (`HistoryUpdater`, an insertion effect in `app-router.js`), so a page a `<Link>` mounts renders against the OLD
+ * address: `mode` is null in the very render that mounts the album for an owner who pressed `/e/<token>?reel`,
+ * and the layout and passive effects of that commit read the new one. React's own re-check after the commit
+ * puts `mode` right a pass later, so whatever a render DRAWS from it corrects itself; what does not is a value
+ * COPIED OUT of that render and acted on for good (the album's word to the page's curtain, `live-reel.tsx`, which
+ * let the curtain go on it). A reader that wants the address for a decision outside a render (an effect, an
+ * event) asks `reelOfAddress()`, which reads it as it stands when asked, never a render's copy of it.
  */
 import { useCallback, useEffect, useSyncExternalStore } from "react";
 
@@ -82,7 +92,9 @@ function subscribe(onChange: () => void): () => void {
   };
 }
 
-const snapshot = () => readReelParam(window.location.search);
+/** The mode the address asks for AS IT STANDS NOW: the store's snapshot, and what an effect or an event asks (the header says why never a render's copy). */
+export const reelOfAddress = (): ReelMode | null =>
+  readReelParam(window.location.search);
 const serverSnapshot = () => null;
 
 /** The reel's mode from the address, and the two writes that change it. */
@@ -91,7 +103,7 @@ export function useReelParam(): {
   open: (mode: ReelMode) => void;
   close: (opts?: { returnBack?: boolean }) => void;
 } {
-  const mode = useSyncExternalStore(subscribe, snapshot, serverSnapshot);
+  const mode = useSyncExternalStore(subscribe, reelOfAddress, serverSnapshot);
   const entry = useOwnedEntry(PUSHED_KEY);
   // After each render: an entry that carries the key is ours (a reload, a Forward), and one this page pushed
   // that a router refresh rewrote is given it back; with the reel closed it lets go (crumbs-19).
@@ -102,7 +114,7 @@ export function useReelParam(): {
   const open = useCallback(
     (next: ReelMode) => {
       const href = withReelParam(window.location.href, next);
-      if (readReelParam(window.location.search) === null) {
+      if (reelOfAddress() === null) {
         entry.push(href);
       } else {
         // A move between postures: the same entry, still ours exactly when it was.
@@ -115,7 +127,7 @@ export function useReelParam(): {
 
   const close = useCallback(
     (opts?: { returnBack?: boolean }) => {
-      if (readReelParam(window.location.search) === null) return;
+      if (reelOfAddress() === null) return;
       // The owner's Close goes back to where they came from (the event's hub links here) whenever
       // there is somewhere to go back to; a guest's deep link never leaves the page.
       const back = Boolean(opts?.returnBack) && window.history.length > 1;

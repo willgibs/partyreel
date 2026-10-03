@@ -134,6 +134,12 @@ mounts) in place of the add sheet; a free-upload album never loads it.
   picture redrawn at 1080 on its short side and recorded (MP4 where the browser can, else WebM), ending itself at the
   ten seconds; the microphone is asked only on a hold (★ Permissions-Policy grants the site `camera` and `microphone`)
   and a hold it keeps waiting past 1.5 s films without sound. A hold under a second takes the photo meant.
+- ★ **The page's half** (`event-experience.tsx`): the door's keep, which a signed-out guest's first landed shot makes
+  due, is held while the camera is open (`onCameraOpenChange`) and comes when she closes it; a `sealed` landing is kept
+  in `inFlightUploads` as a held one is (her tracker's picture of it, and the cover says Add photos once she has shot);
+  `GuestUpload` is handed `isOwner && !isDemo` (the host's camera keeps no roll) and `onOwnRemoved` (a shot taken back
+  inside the camera is the page's removal, so a require-an-upload album re-asks its door); and where the Add opens the
+  camera the cover's Add and the shutter say Take photos with the camera glyph.
 - The camera is let go whenever the page hides or the camera closes, and Back, Escape and its close close it. Her shots
   (this visit's from the frames they froze on, an earlier visit's from her read's presigned pictures) open from the reel
   and the roll's end; a shot the album cannot show yet (sealed or held) is hers to remove there, freeing its frame.
