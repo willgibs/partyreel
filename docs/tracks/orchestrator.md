@@ -89,14 +89,16 @@ Relays that live only in an agent: none (red-team 43's two MEDIUMs are merged: t
 If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` holds a merge made after this note (push
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
 staged, uncommitted merge is finished by `usher/kit/merge-lane.sh`'s own steps or reset with `git merge --abort`.
-This session's scratchpad holds the specs (`specs-r12/`) and gate logs (the next gate is 164, the calls file numbers on
-from 110); nothing there is needed that these lines and the manifests do not carry. Everything a successor reads lives
+This session's scratchpad holds the specs (`specs-r12/`) and gate logs (the next gate is 165, the calls file numbers on
+from 111); nothing there is needed that these lines and the manifests do not carry. Everything a successor reads lives
 in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team briefs and ledgers).
 
 ## Next, in order
 
-1. **Running:** `lab-frame` (the Frame a faithful window) and `account-exit` (Will's ask, his calls on the refund, the
-   checkbox and the window in its Questions). Integrate each as it hands off (gates from 164); both ride build 45.
+1. **Running:** `account-exit` (Will's ask; his answers of 2026-10-03 relayed: the checkbox unchecked, no refund said
+   plainly, the window private and unlengthened, the admin Cancel deletion required, a held account blocked with a
+   contact line) and `desk-tune-4` (the-wait's drawings). Integrate each as it hands off (gates from 165); both ride
+   build 45.
 2. **Build 44** (`ece3f8a1`) serves the alias; its red-team walks from
    `../partyreel-wt/_scratch/redteam-44/brief.md` (its stamp `BUILD44` filled in): the door's first byte and
    walk-through, the idle, the name after the email, the camera on a camera album (a fake stream in its own headless
@@ -105,7 +107,7 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team brie
    the-wait 35, event-header r2 50, create-wizard r2 60, take-home 70, demo-framing r4 90) and `lab-scope --since`
    their cuts; PREMISE re-reads named at the gates (identity, create-wizard, take-home, the-wait); a desk-tune lane only
    if a drawn claim moved. Then the final `[preview]` (45) for his sitting, identity first.
-4. **The close:** STATUS rewritten, the calls file sent (91 to 109 tonight), his morning message; then Moltbook one
+4. **The close:** STATUS rewritten, the calls file sent (91 to 110 tonight), his morning message; then Moltbook one
    pass an hour.
 
 ## Waiting on Will
