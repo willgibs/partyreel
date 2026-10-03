@@ -42,7 +42,7 @@ describe("RouteSkeleton", () => {
     }
   });
 
-  it("draws the pulse and the hub as bare app-shell content, never a fixed takeover", () => {
+  it("draws every shape as bare app-shell content, never a fixed takeover", () => {
     // The (app) layout's AppShell already supplies <main> + Container chrome
     // for every one of them — a `fixed` root here would double up with it.
     for (const variant of SHAPES) {

@@ -6,6 +6,7 @@ import { useSettings } from "@/components/app/event-settings/settings-state";
 import { Button } from "@/components/ui/button";
 import { ConsequenceLine } from "@/components/ui/consequence-line";
 import { Input } from "@/components/ui/input";
+import { developTimeWords } from "@/lib/disposable/develop-words";
 import type { Capture } from "@/lib/disposable/facts";
 import {
   defaultDevelopAt,
@@ -340,15 +341,6 @@ function toLocalInput(iso: string): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-// The host's own zone (the browser's: this renders only after hydration), in the product's pinned language.
-const DEVELOPS = new Intl.DateTimeFormat("en-US", {
-  weekday: "short",
-  month: "short",
-  day: "numeric",
-  hour: "numeric",
-  minute: "2-digit",
-});
-
 /** The develop time, picked in her own time zone and saved when she leaves the field. */
 function DevelopTime({
   developsAt,
@@ -368,6 +360,8 @@ function DevelopTime({
   const [invalid, setInvalid] = useState(false);
   const value = draft ?? shown;
   const state = hydrated ? developState(developsAt).kind : "none";
+  // Said in her own zone, so only after hydration: the server cannot know what "9 am" means to her.
+  const when = hydrated ? developTimeWords(developsAt) : null;
 
   const commit = () => {
     if (draft === null || draft === shown) {
@@ -407,13 +401,13 @@ function DevelopTime({
         className="max-w-60"
       />
       <p className="text-caption text-muted-foreground">
-        {!hydrated || !developsAt
+        {!when
           ? " "
           : invalid
             ? "Pick a time within a year."
             : state === "developed"
-              ? `Developed ${DEVELOPS.format(new Date(developsAt))}. ${review ? "New ones wait for your approval." : "New ones show straight away."}`
-              : `Develops ${DEVELOPS.format(new Date(developsAt))}.`}
+              ? `Developed ${when}. ${review ? "New ones wait for your approval." : "New ones show straight away."}`
+              : `Develops ${when}.`}
       </p>
     </div>
   );

@@ -85,24 +85,9 @@ export function uploadsWait(
 /** Nothing she adds waits: it is in the album the moment it lands. */
 export const NOTHING_WAITS: UploadsWait = { waits: false, developsAt: null };
 
-// The develop time as a guest reads it, in her own zone (a sheet draws it, after hydration), in the product's
-// pinned language: the host's Settings says it the same way ("Develops Sat, Oct 3, 9:00 AM.").
-const DEVELOPS_AT = new Intl.DateTimeFormat("en-US", {
-  weekday: "short",
-  month: "short",
-  day: "numeric",
-  hour: "numeric",
-  minute: "2-digit",
-});
-
-/** "Sat, Oct 3, 9:00 AM", or null for a time it cannot read. */
-export function developTimeWords(
-  iso: string | null | undefined,
-): string | null {
-  if (!iso) return null;
-  const at = new Date(iso);
-  return Number.isFinite(at.getTime()) ? DEVELOPS_AT.format(at) : null;
-}
+// The develop time as a guest reads it ("Sat, Oct 3, 9:00 AM", in her own zone) is the host's Settings' too: one
+// formatter, in `lib/disposable/develop-words.ts`, handed on from here to the tracker's other readers.
+export { developTimeWords } from "@/lib/disposable/develop-words";
 
 /** Where one of her rows stands on the server (the wire of `/api/guests/mine`'s `statuses`). */
 export type OwnUploadWire = {
