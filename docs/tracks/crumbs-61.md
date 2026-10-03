@@ -1,6 +1,6 @@
 ---
 track: crumbs-61
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "015ff8e6"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -72,13 +72,65 @@ Each is built as recommended and listed as Will's to overrule; none is a one-way
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+Artifacts live in `../partyreel-wt/_scratch/crumbs-61/` (called `scratch/` below): the red logs `red-*.log`, the captures
+`cap-*`, the measures `item*-measure.txt`, the gates `final-*.log`.
+
+- **Commits, pushed:** the work `e8d30cc2` (items 2, 4, 5, 6), `31b47cd7` (items 1 and 3, the system doc), `b76334a1` (page-level
+  tests, the ROADMAP line), `5f13c2b3` (this manifest's Questions); the sync `ff0628f1` (launch-prep at `98fd4780`, backup-prune's
+  merge: nothing of this lane's paths or reads moved; launch-prep has not moved since, behind 0). The head is in the chat line.
+- **Gates on `5f13c2b3`** (the handoff commit after it changes this file alone), each on its own exit code: `pnpm typecheck` 0,
+  `pnpm lint` 0 (no warnings), `pnpm test` 0 (869 files, 10,389 tests), `zsh scripts/build-lock.sh pnpm build` 0,
+  `pnpm lab:smoke --base http://localhost:3133` 0 (158 checks, 0 failing): `scratch/final-{typecheck,lint,test,build,smoke}.log`.
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): the owned paths and this file, plus eight exceptions, each the
+  smallest edit its item needed: `docs/ROADMAP.md` (one line retired, the `addWords` line item 5 fixes; wait-wiring retired its own the
+  same way); `src/lib/events/event-dates.test.ts` and `src/components/app/event-settings/event-page.test.tsx` (one test each,
+  reshaped on purpose: they pinned the retired "an end still after the new day stays" arm; their scar, the end following the day it
+  was saved from, is kept in `dates.test.ts`); `src/components/guest/event-experience.camera.test.tsx` (the page's own tests: its live
+  source records the two new callbacks, three new tests); `src/components/guest/event-experience-head.tsx` (one optional prop,
+  `mediaWords`, Q3); `src/components/guest/live-gallery.tsx` (the count line reads the source's words: one destructure, one expression,
+  one comment) and `src/components/guest/live-gallery.test.tsx` (two tests for that line); `supabase/migrations/20261003211000_doorbell_moment.sql`
+  (the path the brief names, written for the Orchestrator).
+- **The items**, each red first (`red-*.log`), the real browser against the real shell where it shows:
+  1. **LOW, her own upload mints its link once.** `gallery-live.tsx`'s `owedLinks`: an id is owed from `notifyUploaded` until the sync
+     after it has answered, the window's ask for her optimistic tile waits and is then answered by the carry, a sync that fails or carries
+     no link still lets the ask go, a take-back cancels it. Red `scratch/red-1-links.log` (the links route asked for her own id before each
+     delta). **Measured** in a headless Chrome at 375 (`scratch/item1.mjs`, `item1-measure.txt`) over a modelled server (sync 400 ms, links
+     230 ms, the ledger's), the real shell, provider, store, carry and grid: one guest's five uploads cost 4 syncs and **5 links calls, all
+     her own ids, before; 4 syncs and 0 after**. **The cost line it saves:** one links call per approved upload (a function run, twice with
+     the proxy; ≈4 ms of database, PRICING's figure for a links call; three presigns; a JSON body): the 2,000-guest wedding's ≈10,000
+     uploads ≈ 10,000 calls ≈ $0.04 at PRICING's ≈$4 a million and ≈40 s of database; the red-team's ledger, 20 photos and 40 links calls,
+     is 20 now (the window's asks for older ids stay). Her tile draws the blob until the delta lands, where the separate ask landed ≈170 ms
+     sooner: the same picture.
+  2. **LOW, a range keeps its length.** `dates.ts`'s `endForNewStart`; the ledger's own walk (2027-10-05 to 09, the year retyped 2026)
+     is 2026-10-05 to 09 now, in `dates.test.ts` and Settings' own test. Red `scratch/red-2-dates.log`.
+  3. **LOW, Develop now asks at once.** The doorbell cannot tell a develop's ring from an arrival, so a migration: `album_doorbell`
+     says `{"moment": true}` (written, NOT applied), and `isMoment` + the coalescer's `moment()` + `connectDoorbell` ask at once for it;
+     `use-gallery-doorbell.sql.test.ts` holds the SQL's key to the client's reader. Red `scratch/red-3-moment.log`. The migration's
+     rolled-back check on the live schema: RED step 1 false, GREEN all true, nothing persisted (`scratch/proof-results.txt`, and the
+     file's own foot). **Measured** on a real subscribed client (`scratch/item3.mjs`, `item3-measure.txt`): a plain ping waited 11.6 s
+     and 14.2 s for its batch tick, a moment's sync began the same millisecond it arrived; the delivered message is
+     `{ type, event, payload: { ...the sender's, id }, meta }`.
+  4. **NIT, the waiting sheet's footer at 375.** `gallery-empty-state-sheet.tsx` (`ClockWords`): "Yours · N" one run, the clock a row of its
+     own when it does not fit, the desk's side column stacked (it broke "in 16 h" from "16 min" too). Red `scratch/red-4-footer.log`.
+     Captures at 375 on the real shell in the red-team's own state (three of hers, tomorrow's clock): `cap-4-real-before-375.png`
+     ("Yours ·" over "3", "in 15 h 43" over "min"), `cap-4-real-after-375.png`; the sheet at 296, 351, 366, 406 and 1100:
+     `cap-4-before-351.jpg`, `cap-4-after-{351,320,desk}.jpg`.
+  5. **NIT, the real page's Add.** `event-experience.tsx` calls `addWords` and follows the sync's word on what waits (`onWaitingChange`,
+     told on a flip, never a count); `words.test.ts`'s grep is reshaped to "the page calls the function". Red `scratch/red-5-add.log`.
+     Real shell at 375 over a sync that says 3 shots wait: old `cap-5-old-after-flip-375.png` ("Take the first photo" over "3 Developing"),
+     new `cap-5-after-flip-375.png` ("Take photos"). The ROADMAP line is retired.
+  6. **NIT, the count names what the album holds.** `gallery-live.tsx`'s `albumCountWords` over `setNoun`, in the album's line
+     (`countWords`) and the cover's glyph (`onCountWordsChange`); both nouns where the source cannot see in (a teaser). Red
+     `scratch/red-6-{count,line,glyph}.log`. Real page at 375 on "guest-view-menu QA" (11 photos): `cap-6-before-375-photos-only.jpg`
+     ("11 photos & videos"), `cap-6-after-375-photos-only.jpg` ("11 photos"); its mixed twin reads "58 photos & videos" (DOM text).
+- **Assets requested from Will:** none.
+- **Board ideas:** none beyond the lane.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** `supabase/migrations/20261003211000_doorbell_moment.sql` (Q2): apply
+  by name through `apply_migration`, then match the live body to the file's; no types to regenerate. No Worker, Vercel, Stripe or env change.
+- **Calls his to overrule:** Questions 1 to 4 above, and item 1's blob-then-delta swap.
+- **Left behind, all disposable:** a guest row "Crumbs61 Test" with no upload on the "guest-view-menu QA" event (joined through my local
+  dev server's door for the 375 capture), and five broadcasts on the topic `gallery:scratchcrumbs61000000000000000aa1`, which names no
+  event; the rolled-back checks left nothing. No row was deleted by hand. The scratch routes that drove the real-browser measures
+  (`scratch/scratch-routes/`) were never committed.
+- **Look at first:** `scratch/cap-4-real-after-375.png` and `scratch/cap-5-after-flip-375.png` (the two states the red-team walked),
+  then `scratch/item1-measure.txt`.
