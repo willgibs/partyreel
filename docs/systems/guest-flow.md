@@ -1073,19 +1073,34 @@ had" holds only when this device holds a guest ticket a claim would move.
   provider's
   watchdog (`reportPossibleExpiry`) treats any image or reader failure as a possible expired presign (a tab
   asleep past the 90-minute expiry answers a CORS-shaped failure with no status) and re-mints only the ids
-  whose picture failed, at most once a minute each, never in the demo.
+  whose picture failed, at most once a minute each, never in the demo. ★ **A batch is one call** (album-calm): a
+  delta carries its newest upserts' links (at most `ALBUM_DELTA_LINKS_MAX`, 48, the first paint's screenful), minted
+  by the links route's own `mintGuestAlbumLinks` (`events/album-wire-links.server.ts`: the reads' gate, so a held,
+  sealed or removed id gets none), and the provider's transport answers the link store's ask for them itself
+  (`events/album-wire-carry.ts`: dated exactly as the server dated them, never past their re-mint time, once each,
+  dropped with the id, an attribution move, a manifest, a teaser or a lock). The links route stays for windows, the
+  reel tile's stills and re-mints; a failed carry is reported and costs the delta nothing.
 - **The doorbell:** the `media_gallery_doorbell` DB trigger sends a contentless `ping` on the PUBLIC
   Realtime broadcast channel `gallery:<qr_token>` whenever what a guest's album shows changes: the visible set
   (uploads, moderation flips, restores, purges) or what waits (a held upload, its approval or refusal, a row sealed
   for the develop: their count rides the sync, [disposable-mode.md](disposable-mode.md)); hidden-internal
   transitions stay silent. The token IS the channel capability; the ping carries no data, the refetch is
   access-gated server-side.
-  Client: [`use-gallery-doorbell.ts`](../../src/lib/guest/use-gallery-doorbell.ts) + a leading-edge
-  coalescer ([`refresh-coalescer.ts`](../../src/lib/guest/refresh-coalescer.ts): immediate refetch, ~2 s
-  suppression + jitter, one trailing flush for bursts).
+  Client: [`use-gallery-doorbell.ts`](../../src/lib/guest/use-gallery-doorbell.ts), the one doorbell of the guest's
+  album, the host's and the dashboard's stage. ★ **Pings land in calm batches** (album-calm, Will's yes): every ping
+  waits for the device's next tick of the batch clock ([`refresh-coalescer.ts`](../../src/lib/guest/refresh-coalescer.ts),
+  `ALBUM_BATCH_MS`, 15 s, named once), one sync a tick and none for a quiet album, the ticks at a phase each device
+  draws so a venue never asks in one stampede; her own upload, a host's own write, a return and Try again never wait.
+  ★ **A hidden tab is no listener**: it leaves the channel the moment it hides (a broadcast is billed a message a
+  listener; supabase-js closes the emptied socket 50 s later), syncs nothing on a ping, and joins again on its return
+  once any leave of its topic has landed (supabase-js hands back a channel still leaving by its topic, which never
+  subscribes again: a blink of the tab or a `key={access}` remount would sit deaf); its Live word holds up to 3 s
+  while it rejoins (`REJOIN_GRACE_MS`), so the host's pip never blinks on a return.
 - **The conditional poll** (the shared [`use-live-poll.ts`](../../src/lib/shared/use-live-poll.ts)): the
   fallback cadence keys solely off the channel state — **60 s** while `SUBSCRIBED` (a safety net), **12 s**
-  when the socket is down; it stops when the tab goes hidden and polls again when it is shown. Every poll sends
+  when the socket is down; it stops when the tab goes hidden (and never starts in a tab that opens hidden) and polls
+  once, at once, when it is shown: the hidden tab's one catch-up, what it missed arriving through the album's
+  new-media entry, its window's aged links re-minted after it, what waits counted anew. Every poll sends
   `If-None-Match`; a quiet album answers a **bare 304** having read one row, its version; a change answers the
   DELTA since the version this device holds, merged by id and checked against the server's count read in the
   same snapshot (a mismatch heals at once with a fresh manifest, never drawn); see the ETag invariant below.
@@ -1196,8 +1211,9 @@ had" holds only when this device holds a guest ticket a claim would move.
   ★ **An arrival lands COMPLETE, or not until it can** (`shared/use-arrival-gate.ts`, in `GalleryRows`, which takes
   `arrivals` rather than the glow's set and writes the glow itself; the host's album runs the same gate,
   [host-app.md](host-app.md)). A delta brings the manifest's tuple with no
-  link (`url: ""`; only a window asks for links), so an arrival pushed at once drew a shimmer and then faded its
-  photograph in after the wipe was over. The gate holds each arrival the grammar names out of the rows, asks for its
+  link on the item (`url: ""` until the link store is asked; a guest's delta carries the link, so the ask is answered
+  at once, but nothing has fetched or decoded the photograph), so an arrival pushed at once drew a shimmer and then
+  faded its photograph in after the wipe was over. The gate holds each arrival the grammar names out of the rows, asks for its
   link (`onNeedLinks`, `ensureLinks`), fetches and decodes its photograph into the document at the tile's own address
   (`decodeTileImage`, `tileImageSrc`), and lets it in when that is done, so `MediaTile` finds it complete
   (`data-instant`) and the push reveals a photograph. It waits at most `ARRIVAL_DECODE_WAIT_MS` (2s; a failed decode

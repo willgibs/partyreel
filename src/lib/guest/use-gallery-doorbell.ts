@@ -14,10 +14,12 @@
  *   exactly the channel's.
  * - ★ A HIDDEN TAB IS NO LISTENER (album-calm; Will: "background tabs can stop syncing, that's needlessly draining
  *   resources for something that isn't being watched"). A broadcast is billed one message a listener, so the moment
- *   the tab hides it LEAVES the channel (supabase-js closes the socket once no channel is left) and drops a batch
- *   waiting for its tick; a ping already on the wire is never answered. It joins again when the tab comes back. The
- *   catch-up is NOT this hook's: the live poll's return (`use-live-poll.ts`) asks once, at once, so a return is one
- *   sync, and what it missed arrives through the album's own new-media entry.
+ *   the tab hides it LEAVES the channel and drops a batch waiting for its tick; a ping already on the wire is never
+ *   answered. supabase-js keeps the empty socket 50 s (`disconnectOnEmptyChannelsAfterMs`, twice its heartbeat,
+ *   measured: a tab back inside it rejoins on the same socket) and then closes it, so a long hidden spell holds no
+ *   connection either. It joins again when the tab comes back. The catch-up is NOT this hook's: the live poll's
+ *   return (`use-live-poll.ts`) asks once, at once, so a return is one sync, and what it missed arrives through the
+ *   album's own new-media entry.
  * - ★ A JOIN WAITS FOR ANY LEAVE OF ITS TOPIC. supabase-js hands back the SAME channel while one by that topic is
  *   still in its list, and a channel still leaving ignores `subscribe`, so a join made inside a leave's round trip
  *   would sit deaf for good: a tab hidden and shown in a blink, and a remount (the album's `key={access}` flip, React's
