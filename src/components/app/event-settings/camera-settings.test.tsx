@@ -328,10 +328,10 @@ describe("album styles: one pick of a named album", () => {
  * half typed is no time, a time already past asks Develop now's own question first, and a blank or half filled field
  * says what is missing.
  *
- * What is pinned is the writes, keystroke by keystroke in the order Chrome 152 fires them on a `datetime-local`
- * (measured on the Library's Settings with real key presses): `keydown`, then `input` and `change` with the whole value
- * in the same millisecond, then `keyup`; a year segment typed "0202" reads blank first (year 0 is no year), then 0002,
- * 0020 and 0202.
+ * What is pinned is the writes, keystroke by keystroke in the order Chrome fires them on a `datetime-local` (measured on
+ * Chrome 152 and 154, on the Library's Settings, with real key presses): `keydown`, then `input` and `change` with the
+ * whole value in the same millisecond, then `keyup`; a year segment typed "0202" reads blank first (year 0 is no year),
+ * then 0002, 0020 and 0202.
  */
 type Press = [key: string, valueAfter: string];
 

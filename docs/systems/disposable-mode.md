@@ -187,18 +187,18 @@ develop time the held photos "join the roll" (the release above); a develop time
 
 ★ **The develop time is sent only when it is plainly meant** (`DevelopTimeControl`, judged by
 `camera-settings-develop-time.ts`): a save of a time at or before the database's now IS Develop now, and a year left
-half typed is such a time (Chrome types 2027 into a year as a blank, 0002, 0020, 0202, each a whole value fired in the
-key's own millisecond, so a field left at 0202 developed the album for every guest). What she types is a draft nothing
-sends, judged once, when she leaves the field or presses Return: never on a keystroke and, unlike the date's field
-(`EventDatesField`), never as the panel closes (a close could not ask, and the field also unmounts when another control
-clears the time, where a late write would put it back over her choice). Refused in words under the field, never written:
-a blank or half filled field, a year outside the date's window (`isSaneDay`, read and never forked), a time beyond what
-a develop may reach, and a past time on an album that has already developed (nothing waits, so Develop now's question
-would be untrue). A time the database would store as now (past, or under the minute `events_reveal_stamp` allows:
-`DEVELOPS_NOW_WITHIN_MS`, pinned to the SQL) on an album that still waits asks Develop now's own question, the hub's
-sentence, and its answer writes now, never the typed time. The question is the app's: the schema still accepts a past
-`develops_at` (Develop now writes the browser's now through it), so an older build or a crafted request develops without
-asking.
+half typed is such a time (Chrome types 2027 into a year as 0002, 0020, 0202 on the way, each a whole value fired in the
+key's own millisecond, and a leading 0 reads blank, so a field left at 0202 developed the album for every guest). What
+she types is a draft nothing sends, judged once, when she leaves the field or presses Return: never on a keystroke and,
+unlike the date's field (`EventDatesField`), never as the panel closes (a close could not ask, and the field also
+unmounts when another control clears the time, where a late write would put it back over her choice). Refused in words
+under the field, never written: a blank or half filled field, a year outside the date's window (`isSaneDay`, read and
+never forked), a time beyond what a develop may reach, and a past time on an album that has already developed (nothing
+waits, so Develop now's question would be untrue). A time the database would store as now (past, or under the minute
+`events_reveal_stamp` allows: `DEVELOPS_NOW_WITHIN_MS`, pinned to the SQL) on an album that still waits asks Develop
+now's own question, the hub's sentence, and its answer writes now, never the typed time. The question is the app's: the
+schema still accepts a past `develops_at` (Develop now writes the browser's now through it), so an older build or a
+crafted request develops without asking.
 
 **The host's cover** (Will's `cover=guests`; `event-hub-head-cover.tsx`, mounted by `event-gallery.tsx`): while a
 develop time is ahead, her hub's album is the very contact sheet her guests meet, counted from her own manifest
