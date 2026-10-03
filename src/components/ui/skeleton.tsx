@@ -4,11 +4,12 @@ function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="skeleton"
-      // Shimmer = a background-position sweep (animate-shimmer in globals.css);
-      // the foreground-tinted sheen reads in both modes. Reduced motion drops
-      // to the static muted block.
+      // A placeholder BREATHES (identity r2, status=lights): its opacity rises
+      // and falls on an even curve (`animate-skeleton-breathe`, theme.css), a
+      // light waiting rather than a sheen sweeping across it. Reduced motion
+      // stands it still at its full tone.
       className={cn(
-        "animate-shimmer rounded-md bg-muted bg-[linear-gradient(100deg,transparent_38%,--alpha(var(--color-foreground)/5%)_50%,transparent_62%)] bg-[length:200%_100%] motion-reduce:animate-none",
+        "animate-skeleton-breathe rounded-md bg-muted motion-reduce:animate-none",
         className
       )}
       {...props}

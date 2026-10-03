@@ -8,8 +8,8 @@ import { SearchIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
   floatingClock,
+  floatingDisplayPanel,
   floatingEntrance,
-  floatingPanel,
   floatingRow,
 } from "@/components/ui/floating-layer"
 
@@ -166,7 +166,9 @@ function CommandPaletteContent({
           // under it, and a palette that grows from the middle of the screen
           // pushes its own first row out from under the cursor.
           "fixed top-[12vh] left-1/2 z-50 flex w-[min(40rem,calc(100vw-2rem))] -translate-x-1/2 flex-col overflow-hidden outline-none",
-          floatingPanel,
+          // The display (layers=display): a quick layer, the camera's own
+          // screen, its active row lit as a menu's chosen row is.
+          floatingDisplayPanel,
           floatingEntrance,
           // Opened a few times a session, and worth a beat.
           floatingClock.standard,
@@ -332,7 +334,7 @@ function CommandPaletteGroup({
       className={cn("pb-1", className)}
       {...props}
     >
-      <p className="px-3 pt-2 pb-1.5 text-label font-medium text-muted-foreground uppercase">
+      <p className="px-3 pt-2 pb-1.5 text-xs text-foreground opacity-70">
         {heading}
       </p>
       {children}
@@ -380,7 +382,7 @@ function CommandPaletteItem({
     className: cn(
       "flex cursor-pointer items-center gap-3 px-3 py-2.5 text-sm select-none",
       floatingRow,
-      active && "bg-muted",
+      active && "bg-accent ring-[1.5px] ring-foreground/50 ring-inset",
       disabled && "pointer-events-none opacity-50",
       className
     ),

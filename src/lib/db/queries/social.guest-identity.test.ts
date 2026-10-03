@@ -1202,7 +1202,8 @@ describe("get_public_profile: no address in the payload, no address read", () =>
    braces balanced, so a spread counts as a way in too.
    ──────────────────────────────────────────────────────────────────────────── */
 describe("the album never passes `emails` to GuestList", () => {
-  const ROOM = "src/app/(app)/dashboard/[eventId]/guests/page.tsx";
+  // The Guests room's own drawing (event-header r2, `rooms=over`: the room stands over the hub, its page a redirect).
+  const ROOM = "src/app/(app)/dashboard/[eventId]/guests/guests-room.tsx";
   const ALBUM = "src/app/(guest)/e/[token]/page.tsx";
 
   function files(dir: string): string[] {
@@ -1263,7 +1264,7 @@ describe("the album never passes `emails` to GuestList", () => {
     expect(passing).toEqual([ROOM]);
   });
 
-  it("★ and the credit's look (with its Block) is mounted by the host's two pages alone", () => {
+  it("★ and the credit's look (with its Block) is mounted by the host's hub alone: its page, and Review over it", () => {
     const mounting = files(join(process.cwd(), "src"))
       .filter((file) => !file.endsWith(".test.tsx"))
       .filter((file) =>
@@ -1271,9 +1272,11 @@ describe("the album never passes `emails` to GuestList", () => {
       )
       .map((file) => relative(process.cwd(), file))
       .sort();
+    // Reshaped on purpose (`rooms=over`): Review left its page for the hub's panel, where the hub's sheets mount
+    // its look (`event-sheets.tsx`); both are the host's own hub.
     expect(mounting).toEqual([
       "src/app/(app)/dashboard/[eventId]/page.tsx",
-      "src/app/(app)/dashboard/[eventId]/review/page.tsx",
+      "src/components/app/share/event-sheets.tsx",
     ]);
   });
 });

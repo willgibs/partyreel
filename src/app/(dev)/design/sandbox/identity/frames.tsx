@@ -9,7 +9,6 @@ import {
 
 import { CANVAS, Fit, Frame } from "@/components/lab";
 
-import type { ShowId } from "./knobs";
 import {
   type Choice,
   type GroundId,
@@ -17,7 +16,6 @@ import {
   isSheet,
   type PageNo,
   sceneSrc,
-  type SheetView,
   type ViewId,
   type Width,
 } from "./model";
@@ -77,11 +75,9 @@ export function SceneFrame({
     w,
     ground,
     page,
-    choice.voice,
-    choice.actions,
-    choice.fields,
-    choice.layers,
-    choice.status,
+    choice.system,
+    choice.room,
+    choice.edge,
   ].join("-");
   const [caption, setCaption] = useState("reading the frame");
   useEffect(() => {
@@ -120,27 +116,27 @@ const GROUND_NAME: Record<GroundId, string> = {
 };
 
 /**
- * AN OPTION, DRAWN: its atoms (paper and the room in one desk's frame, a phone
- * of each in a hand) or one of the real screens, at the width and on the
- * ground the knobs hold.
+ * AN OPTION, DRAWN: one view at the width and on the ground the knobs hold.
+ * A sheet is paper and the room in one desk's frame, or two phone pages on
+ * one ground; a screen is one frame.
  */
 export function OptionFrames({
   choice,
-  part,
-  show,
+  view,
+  what,
   w,
   ground,
   name,
 }: {
   choice: Choice;
-  /** The sheet the atoms view draws: the voice's places, or one atom group. */
-  part: SheetView;
-  show: ShowId;
+  view: ViewId;
+  /** What the view is, in words, for the frame's title. */
+  what: string;
   w: Width;
   ground: GroundId;
   name: string;
 }) {
-  const frame = (view: ViewId, g: GroundId, what: string, page: PageNo = 1) => (
+  const frame = (g: GroundId, words: string, page: PageNo = 1) => (
     <SceneFrame
       key={`${view}-${g}-${page}`}
       choice={choice}
@@ -148,42 +144,18 @@ export function OptionFrames({
       w={w}
       ground={g}
       page={page}
-      title={`${name}: ${what}`}
+      title={`${name}: ${words}`}
     />
   );
-  if (show === "atoms")
+  if (isSheet(view))
     return (
       <Story>
         {w === 1440
-          ? frame(part, ground, "the atoms, on paper and in the room")
+          ? frame(ground, `${what}, on paper and in the room`)
           : ([1, 2] as const).map((p) =>
-              frame(
-                part,
-                ground,
-                `the atoms, ${p} of 2, ${GROUND_NAME[ground]}`,
-                p,
-              ),
+              frame(ground, `${what}, ${p} of 2, ${GROUND_NAME[ground]}`, p),
             )}
       </Story>
     );
-  if (show === "settings")
-    return (
-      <Story>
-        {frame("door", ground, `Settings on the door, ${GROUND_NAME[ground]}`)}
-        {frame(
-          "event",
-          ground,
-          `Settings on the event, ${GROUND_NAME[ground]}`,
-        )}
-      </Story>
-    );
-  const what =
-    show === "add"
-      ? "the guest's Add"
-      : show === "account"
-        ? "Account and billing"
-        : "Review";
-  return (
-    <Story>{frame(show, ground, `${what}, ${GROUND_NAME[ground]}`)}</Story>
-  );
+  return <Story>{frame(ground, `${what}, ${GROUND_NAME[ground]}`)}</Story>;
 }

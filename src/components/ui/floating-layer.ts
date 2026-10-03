@@ -26,13 +26,25 @@
  */
 
 /**
- * THE CORNER (`radius=nested`, confirmed by `roundness=nested`, 2026-09-17;
- * sized by the corner ladder's family C, 2026-09-18): a 12px panel around 8px
- * rows. The panel keeps the corner it ships, `--radius-float` in globals.css,
- * so the retune is that one token (C moved it from 8 to 12 and the rows came
- * along from 4 to 8, which is the derivation below doing its job).
+ * THE CORNER (`radius=nested`, confirmed by `roundness=nested`, 2026-09-17):
+ * a 16px panel around 12px rows, the display's (identity r2, layers=display).
+ * The panel keeps the corner it ships, `--radius-float` in globals.css, so the
+ * retune is that one token (the display moved it from 12 to 16 and the rows
+ * came along from 8 to 12, which is the derivation below doing its job).
+ *
+ * Two corners derive from the same token, so the family still moves as one:
+ * a tooltip's capsule, 6px tighter, so a label a line high reads as a label
+ * rather than a pill (`floatingTipCorner`, the display's 10px); and a WORK
+ * layer's (a dialog, a panel, a sheet), a quarter rounder, since a host works
+ * inside it and it is a size up (the display's 20px). A work layer's corner is
+ * spelled where its shape is (`floatingPopupShapes`, the responsive sheet
+ * below) as `calc(var(--radius-float)*1.25)`, because a class must be whole in
+ * the source for Tailwind to find it.
  */
 export const floatingCorner = "rounded-float"
+
+/** A tooltip's corner: see the corner above. */
+export const floatingTipCorner = "rounded-[calc(var(--radius-float)_-_6px)]"
 
 /**
  * THE ROW'S CORNER, DERIVED, NEVER TYPED. A nested corner shares
@@ -49,16 +61,49 @@ export const floatingCorner = "rounded-float"
 export const floatingRow = "rounded-[calc(var(--radius-float)_-_4px)]"
 
 /**
- * THE MATERIAL: opaque popover ink, a hairline ring, and the LAYER shadow (the
- * light board's rule: the larger of the two shadows goes under
- * anything the page keeps living behind). `src/lib/elevation-policy.test.ts`
- * owns the shadow half and this module never re-declares it.
+ * TWO MATERIALS, BY WHAT A LAYER IS FOR (identity r2, layers=display, wired
+ * 2026-10-03). Both opaque, both under the LAYER shadow (the light board's
+ * rule: the larger of the two shadows goes under anything the page keeps
+ * living behind), whose value is the ground's own.
+ *
+ * THE DISPLAY, for the QUICK layers, what a press opens and the next press
+ * closes (a menu, a popover, a select, the Add's rows, the palette; the
+ * tooltip and the toast wear it too): the camera's own screen, one near-black
+ * on paper and in the room (`.surface-display` in globals.css re-declares every
+ * token inside it), parted from the room by its edge.
+ */
+export const floatingDisplay =
+  "surface-display bg-popover text-popover-foreground ring-1 ring-border"
+
+/** A quick panel: the corner, the display and the light, in one. */
+export const floatingDisplayPanel = `${floatingCorner} ${floatingDisplay} shadow-layer`
+
+/** A tooltip: a capsule's corner, the display and the light. */
+export const floatingTip = `${floatingTipCorner} ${floatingDisplay} shadow-layer`
+
+/**
+ * THE BODY'S OWN, for a panel that is not a quick choice (the marketing nav's
+ * panel, the code card): the ground's popover ink and a hairline ring. A WORK
+ * layer (`PopupContent`, the Dialog, the Sheet) stands on the same ink with no
+ * ring at all, a host's room set off by its overlay (`floatingWorkSurface`).
  */
 export const floatingSurface =
   "bg-popover text-popover-foreground ring-1 ring-foreground/10"
 
-/** A panel: the corner, the material and the light, in one. */
+/** A body panel: the corner, the material and the light, in one. */
 export const floatingPanel = `${floatingCorner} ${floatingSurface} shadow-layer`
+
+/** A work layer's material and light; its corner is its shape's. */
+export const floatingWorkSurface =
+  "bg-popover text-popover-foreground shadow-layer"
+
+/**
+ * THE SCRIM UNDER A WORK LAYER (layers=display): the page dimmed by half and
+ * left sharp, so the room a host works in is the one lit thing (the display's
+ * overlay; a blur behind an opaque layer was a cost paid every frame for a
+ * difference nobody reads through a half-black scrim).
+ */
+export const floatingScrim = "bg-black/50"
 
 /**
  * THE ENTRANCE LANGUAGE for a surface that opens BESIDE a trigger or in the
@@ -120,9 +165,11 @@ export const floatingEdgeEntrance = [
  * what `marketing/chrome/mobile-menu.tsx` and the design shell keep drawing.
  *
  * ★ THE CORNER IS THE FAMILY'S TOKEN, not one of its own. A bottom sheet's top
- * edge is the only edge of it that is not the viewport's, so that edge — and
- * only that edge — takes `--radius-float` through the same token `floatingCorner`
- * reads. A radius typed here would be the tenth className nobody can hold.
+ * edge is the only edge of it that is not the viewport's, so that edge, and
+ * only that edge, takes a work layer's corner (`--radius-float` a quarter
+ * rounder, see THE CORNER); a desk's panel takes it on the edge it opens from.
+ * Neither draws a line where it stands (layers=display): the overlay sets it
+ * off, as it does the popup's own panel and sheet.
  *
  * ★ IT STANDS ON THE KEYBOARD (door-flow: the door's sheet "feels super buggy
  * when the mobile keyboard opens to type"). The sheet writes `--kb-inset`,
@@ -145,10 +192,10 @@ export const floatingEdgeEntrance = [
  * from it).
  */
 export const floatingEdgeEntranceResponsive = [
-  "data-[side=responsive]:max-sm:inset-x-0 data-[side=responsive]:max-sm:top-auto data-[side=responsive]:max-sm:bottom-[var(--kb-inset,0px)] data-[side=responsive]:max-sm:h-auto data-[side=responsive]:max-sm:max-h-[min(85svh,calc(var(--vv-h,100svh)_-_12px))] data-[side=responsive]:max-sm:w-full data-[side=responsive]:max-sm:border-t",
+  "data-[side=responsive]:max-sm:inset-x-0 data-[side=responsive]:max-sm:top-auto data-[side=responsive]:max-sm:bottom-[var(--kb-inset,0px)] data-[side=responsive]:max-sm:h-auto data-[side=responsive]:max-sm:max-h-[min(85svh,calc(var(--vv-h,100svh)_-_12px))] data-[side=responsive]:max-sm:w-full",
   "data-[side=responsive]:[transition:bottom_200ms_var(--ease-emphasis),top_200ms_var(--ease-emphasis),max-height_200ms_var(--ease-emphasis)]",
-  "data-[side=responsive]:max-sm:rounded-t-float",
-  "data-[side=responsive]:sm:top-[var(--vv-top,0px)] data-[side=responsive]:sm:bottom-[var(--kb-inset,0px)] data-[side=responsive]:sm:right-0 data-[side=responsive]:sm:h-auto data-[side=responsive]:sm:w-3/4 data-[side=responsive]:sm:max-w-md data-[side=responsive]:sm:border-l",
+  "data-[side=responsive]:max-sm:rounded-t-[calc(var(--radius-float)*1.25)]",
+  "data-[side=responsive]:sm:top-[var(--vv-top,0px)] data-[side=responsive]:sm:bottom-[var(--kb-inset,0px)] data-[side=responsive]:sm:right-0 data-[side=responsive]:sm:h-auto data-[side=responsive]:sm:w-3/4 data-[side=responsive]:sm:max-w-md data-[side=responsive]:sm:rounded-l-[calc(var(--radius-float)*1.25)]",
   "data-[side=responsive]:max-sm:data-open:slide-in-from-bottom-10 data-[side=responsive]:max-sm:data-closed:slide-out-to-bottom-10",
   "data-[side=responsive]:sm:data-open:slide-in-from-right-10 data-[side=responsive]:sm:data-closed:slide-out-to-right-10",
 ].join(" ")
@@ -187,16 +234,18 @@ export const floatingPopupShapes = [
   // dialog: centred, sized to what it says (`data-size`), capped and scrolled.
   "data-[shape=dialog]:top-[calc(var(--vv-top,0px)_+_var(--vv-h,100%)_/_2)] data-[shape=dialog]:left-1/2 data-[shape=dialog]:w-[calc(100%_-_2rem)] data-[shape=dialog]:max-h-[calc(var(--vv-h,100%)_-_2rem)] data-[shape=dialog]:-translate-x-1/2 data-[shape=dialog]:-translate-y-1/2",
   "data-[shape=dialog]:max-w-sm data-[shape=dialog]:data-[size=md]:max-w-md data-[shape=dialog]:data-[size=lg]:max-w-xl",
-  "data-[shape=dialog]:rounded-float data-[shape=dialog]:ring-1 data-[shape=dialog]:ring-foreground/10",
+  // A work layer draws no line of its own (layers=display): its corner is a
+  // quarter rounder than a quick layer's, and the overlay sets it off.
+  "data-[shape=dialog]:rounded-[calc(var(--radius-float)*1.25)]",
   "data-[shape=dialog]:ease-emphasis data-[shape=dialog]:duration-200 data-[shape=dialog]:data-closed:duration-150 data-[shape=dialog]:data-open:zoom-in-95 data-[shape=dialog]:data-closed:zoom-out-95",
   "data-[shape=dialog]:[transition:top_200ms_var(--ease-emphasis),max-height_200ms_var(--ease-emphasis)]",
   // wide: the dialog, wide enough for a plan's cards stacked (a desk only).
   "data-[shape=wide]:top-[calc(var(--vv-top,0px)_+_var(--vv-h,100%)_/_2)] data-[shape=wide]:left-1/2 data-[shape=wide]:w-[calc(100%_-_2rem)] data-[shape=wide]:max-w-xl data-[shape=wide]:max-h-[calc(var(--vv-h,100%)_-_4rem)] data-[shape=wide]:-translate-x-1/2 data-[shape=wide]:-translate-y-1/2",
-  "data-[shape=wide]:rounded-float data-[shape=wide]:ring-1 data-[shape=wide]:ring-foreground/10",
+  "data-[shape=wide]:rounded-[calc(var(--radius-float)*1.25)]",
   "data-[shape=wide]:ease-emphasis data-[shape=wide]:duration-200 data-[shape=wide]:data-closed:duration-150 data-[shape=wide]:data-open:zoom-in-95 data-[shape=wide]:data-closed:zoom-out-95",
   "data-[shape=wide]:[transition:top_200ms_var(--ease-emphasis),max-height_200ms_var(--ease-emphasis)]",
   // panel: beside the screen from its right edge (the responsive sheet's desk half).
-  "data-[shape=panel]:top-[var(--vv-top,0px)] data-[shape=panel]:bottom-[var(--kb-inset,0px)] data-[shape=panel]:right-0 data-[shape=panel]:w-3/4 data-[shape=panel]:max-w-md data-[shape=panel]:border-l",
+  "data-[shape=panel]:top-[var(--vv-top,0px)] data-[shape=panel]:bottom-[var(--kb-inset,0px)] data-[shape=panel]:right-0 data-[shape=panel]:w-3/4 data-[shape=panel]:max-w-md data-[shape=panel]:rounded-l-[calc(var(--radius-float)*1.25)]",
   "data-[shape=panel]:ease-drawer data-[shape=panel]:duration-300 data-[shape=panel]:data-closed:duration-200 data-[shape=panel]:data-open:slide-in-from-right-10 data-[shape=panel]:data-closed:slide-out-to-right-10",
   "data-[shape=panel]:[transition:top_200ms_var(--ease-emphasis),bottom_200ms_var(--ease-emphasis)]",
   // screen: the whole screen, pushed in from the right like any screen a phone
@@ -210,7 +259,7 @@ export const floatingPopupShapes = [
   "data-[shape=cover]:ease-drawer data-[shape=cover]:duration-300 data-[shape=cover]:data-closed:duration-200 data-[shape=cover]:data-open:slide-in-from-bottom-10 data-[shape=cover]:data-closed:slide-out-to-bottom-10",
   "data-[shape=cover]:[transition:top_200ms_var(--ease-emphasis),bottom_200ms_var(--ease-emphasis)]",
   // sheet: the bottom sheet, the responsive sheet's phone half exactly.
-  "data-[shape=sheet]:inset-x-0 data-[shape=sheet]:bottom-[var(--kb-inset,0px)] data-[shape=sheet]:max-h-[min(85svh,calc(var(--vv-h,100svh)_-_12px))] data-[shape=sheet]:rounded-t-float data-[shape=sheet]:border-t",
+  "data-[shape=sheet]:inset-x-0 data-[shape=sheet]:bottom-[var(--kb-inset,0px)] data-[shape=sheet]:max-h-[min(85svh,calc(var(--vv-h,100svh)_-_12px))] data-[shape=sheet]:rounded-t-[calc(var(--radius-float)*1.25)]",
   "data-[shape=sheet]:ease-drawer data-[shape=sheet]:duration-300 data-[shape=sheet]:data-closed:duration-200 data-[shape=sheet]:data-open:slide-in-from-bottom-10 data-[shape=sheet]:data-closed:slide-out-to-bottom-10",
   "data-[shape=sheet]:[transition:bottom_200ms_var(--ease-emphasis),max-height_200ms_var(--ease-emphasis)]",
 ].join(" ")

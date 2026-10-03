@@ -6,6 +6,7 @@ import { UserPlus } from "lucide-react";
 import { CodeCard, readableLink } from "@/components/app/share/code-card";
 import { Button } from "@/components/ui/button";
 import { trackAttrs } from "@/lib/analytics/events";
+import { roomHref } from "@/lib/event/sections";
 
 /**
  * INVITE, IN GUESTS, ON EVERY DOOR (event-settings r1, `editor=both` with Will's note: "the guests page
@@ -24,6 +25,7 @@ export function GuestsInvite({
   joinUrl,
   qrStyle,
   prominent,
+  onEverything,
 }: {
   eventId: string;
   eventName: string;
@@ -32,6 +34,11 @@ export function GuestsInvite({
   qrStyle: string;
   /** The room is empty: Invite is its main action. */
   prominent: boolean;
+  /**
+   * The card's Everything. Over the hub (`rooms=over`) it hands the room to the share kit in place; anywhere else it
+   * goes to the hub with the kit open.
+   */
+  onEverything?: () => void;
 }) {
   const router = useRouter();
   return (
@@ -42,7 +49,9 @@ export function GuestsInvite({
       prettyUrl={readableLink(joinUrl)}
       qrStyle={qrStyle}
       location="guests-room"
-      onEverything={() => router.push(`/dashboard/${eventId}?room=share`)}
+      onEverything={
+        onEverything ?? (() => router.push(roomHref(eventId, "share")))
+      }
       trigger={
         <Button
           type="button"

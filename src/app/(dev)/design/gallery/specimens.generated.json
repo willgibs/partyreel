@@ -52,7 +52,7 @@
       "<Row>\n  <Button disabled>Default</Button>\n  <Button variant=\"outline\" disabled>\n    Outline\n  </Button>\n</Row>"
     ],
     "badge": [
-      "<Row>\n  <Badge variant=\"live\">Live</Badge>\n  <Badge variant=\"secondary\">Draft</Badge>\n  <Badge variant=\"outline\">Private</Badge>\n  <Badge variant=\"destructive\">Over cap</Badge>\n</Row>"
+      "<Row>\n  <Badge variant=\"live\">Live</Badge>\n  <Badge variant=\"success\">Approved</Badge>\n  <Badge variant=\"warning\">12 waiting</Badge>\n  <Badge variant=\"destructive\">Over cap</Badge>\n  <Badge variant=\"secondary\">Draft</Badge>\n  <Badge variant=\"outline\">Private</Badge>\n</Row>"
     ],
     "input": [
       "<div className=\"space-y-2\">\n  <Label htmlFor=\"ref-name\">Event name</Label>\n  <Input id=\"ref-name\" placeholder=\"Maya & Jay's Wedding\" />\n</div>",
@@ -85,7 +85,9 @@
     "card": [
       "<Card>\n  <CardHeader>\n    <CardTitle>Maya &amp; Jay&rsquo;s Wedding</CardTitle>\n    <CardDescription>\n      128 photos and videos from 43 guests\n    </CardDescription>\n  </CardHeader>\n  <CardContent className=\"text-sm text-muted-foreground\">\n    Card content sits here, on the card surface.\n  </CardContent>\n  <CardFooter>\n    <Button size=\"sm\" variant=\"outline\">\n      <Calendar /> June 14\n    </Button>\n  </CardFooter>\n</Card>"
     ],
-    "avatar": [],
+    "avatar": [
+      "<Row>\n  {([\"sm\", \"default\"] as const).map((size) => (\n    <AvatarGroup key={size}>\n      {[\"Maya\", \"Jay\", \"Sam\", \"Ines\"].map((name) => (\n        <Avatar key={name} size={size} seed={`library-${name}`}>\n          <AvatarFallback>{name[0]}</AvatarFallback>\n        </Avatar>\n      ))}\n      <AvatarGroupCount>+12</AvatarGroupCount>\n    </AvatarGroup>\n  ))}\n  <Avatar size=\"lg\" seed=\"library-Maya\">\n    <AvatarFallback>M</AvatarFallback>\n    <AvatarBadge />\n  </Avatar>\n</Row>"
+    ],
     "separator": [
       "<div className=\"text-sm text-muted-foreground\">\n  Above\n  <Separator className=\"my-3\" />\n  Below\n</div>"
     ],
@@ -110,7 +112,11 @@
       "<NavigationMenu>\n  <NavigationMenuList>\n    <NavigationMenuItem>\n      <NavigationMenuTrigger>Features</NavigationMenuTrigger>\n      <NavigationMenuContent>\n        <ul className=\"grid w-72 gap-1 p-2 text-sm\">\n          <li className=\"rounded-md px-3 py-2 hover:bg-muted\">\n            Uploads\n          </li>\n          <li className=\"rounded-md px-3 py-2 hover:bg-muted\">\n            Curation\n          </li>\n          <li className=\"rounded-md px-3 py-2 hover:bg-muted\">\n            Sharing\n          </li>\n        </ul>\n      </NavigationMenuContent>\n    </NavigationMenuItem>\n    <NavigationMenuItem>\n      <NavigationMenuTrigger>Events</NavigationMenuTrigger>\n      <NavigationMenuContent>\n        <ul className=\"grid w-72 gap-1 p-2 text-sm\">\n          <li className=\"rounded-md px-3 py-2 hover:bg-muted\">\n            Weddings\n          </li>\n          <li className=\"rounded-md px-3 py-2 hover:bg-muted\">\n            Parties\n          </li>\n        </ul>\n      </NavigationMenuContent>\n    </NavigationMenuItem>\n    <NavigationMenuItem>\n      <NavigationMenuLink className={navigationMenuTriggerStyle()}>\n        Pricing\n      </NavigationMenuLink>\n    </NavigationMenuItem>\n  </NavigationMenuList>\n</NavigationMenu>"
     ],
     "progress": [
-      "<div className=\"space-y-3\">\n  <Progress value={32} />\n  <Progress value={72} />\n</div>"
+      "<div className=\"space-y-3\">\n  <Progress value={32} />\n  <Progress value={72} />\n  <Progress value={40} aria-invalid />\n</div>"
+    ],
+    "empty": [
+      "<Empty\n  icon={<Images />}\n  title=\"Nothing waiting\"\n  line=\"Photos you hold for review land here.\"\n  action={\n    <Button size=\"sm\" variant=\"outline\">\n      Open the album\n    </Button>\n  }\n/>",
+      "<Empty\n  title=\"No likes yet\"\n  line=\"Tap the heart on any photo or video to save it here.\"\n/>"
     ],
     "consequence-line": [
       "<ConsequenceLineDemo />"

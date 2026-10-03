@@ -7,15 +7,16 @@ import { usePortalContainer } from "@/components/ui/portal-container"
 import { cn } from "@/lib/utils"
 import {
   floatingClock,
-  floatingCorner,
   floatingEntrance,
+  floatingTip,
 } from "@/components/ui/floating-layer"
 
 /**
- * The one panel in the family that is INVERTED on purpose: a tooltip is a label
- * for the thing under the cursor, not a surface you act on, so it takes the ink
- * rather than the popover. It still rides the contract's corner, entrance and
- * light; only the material differs, and it says why here.
+ * A tooltip is the display (identity r2, layers=display): a label for the thing
+ * under the cursor, on the camera's own screen, the same near-black on paper
+ * and in the room (it was the ink, inverted, which in the room was a white
+ * capsule over the dark). Its corner is a capsule's (`floatingTipCorner`); it
+ * rides the contract's entrance and light like every panel.
  */
 
 function TooltipProvider({
@@ -97,8 +98,8 @@ function TooltipContent({
         data-slot="tooltip-content"
         sideOffset={sideOffset}
         className={cn(
-          "z-50 inline-flex w-fit max-w-xs origin-(--radix-tooltip-content-transform-origin) items-center gap-1.5 bg-foreground px-3 py-1.5 text-xs text-background shadow-layer has-data-[slot=kbd]:pr-1.5 **:data-[slot=kbd]:relative **:data-[slot=kbd]:isolate **:data-[slot=kbd]:z-50 **:data-[slot=kbd]:rounded-sm",
-          floatingCorner,
+          "z-50 inline-flex w-fit max-w-xs origin-(--radix-tooltip-content-transform-origin) items-center gap-1.5 px-3 py-1.5 text-xs has-data-[slot=kbd]:pr-1.5 **:data-[slot=kbd]:relative **:data-[slot=kbd]:isolate **:data-[slot=kbd]:z-50 **:data-[slot=kbd]:rounded-sm",
+          floatingTip,
           floatingEntrance,
           // The most-opened surface in the product, and the only one opened by
           // a cursor passing over something. Anything slower reads as lag.
@@ -115,7 +116,7 @@ function TooltipContent({
         {children}
         <TooltipPrimitive.Arrow
           data-slot="tooltip-arrow"
-          className="pointer-events-none z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px] bg-foreground fill-foreground"
+          className="pointer-events-none z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px] bg-popover fill-popover"
         />
       </TooltipPrimitive.Content>
     </TooltipPrimitive.Portal>

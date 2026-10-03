@@ -354,10 +354,10 @@ const GROUP_LIST: Group[] = [
       "src/components/shared/not-found-screen.tsx",
       "src/components/ui/button.tsx",
     ],
+    // Review and Guests stand over the hub now (event-header r2, `rooms=over`): their routes only redirect into
+    // it, and the hub draws the screen for them.
     drawnBy: [
       "src/app/(app)/dashboard/[eventId]/page.tsx",
-      "src/app/(app)/dashboard/[eventId]/review/page.tsx",
-      "src/app/(app)/dashboard/[eventId]/guests/page.tsx",
       "src/app/(app)/dashboard/[eventId]/reel/page.tsx",
     ]
       .map((page) => ({
@@ -370,6 +370,12 @@ const GROUP_LIST: Group[] = [
         // sheet every client part the screen has.
         page: "src/app/(print)/dashboard/[eventId]/print/page.tsx",
         line: "if (!event) return <PrintNotFound />;",
+      })
+      .concat({
+        // See it as a guest, the event's page in a group of its own for the same reason (`rooms=over`): no host
+        // shell over a guest's view, so the screen stands in the guest canvas (`AsGuestNotFound`).
+        page: "src/app/(as-guest)/dashboard/[eventId]/as-guest/page.tsx",
+        line: "if (!view) return <AsGuestNotFound />;",
       }),
   },
   {

@@ -38,11 +38,18 @@ import { River } from "@/components/shared/river/river";
 import { Trail } from "@/components/shared/trail/trail";
 import { StyledQr } from "@/components/app/styled-qr";
 import { resolveQrPreset } from "@/lib/constants/qr-presets";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Avatar,
+  AvatarBadge,
+  AvatarFallback,
+  AvatarGroup,
+  AvatarGroupCount,
+} from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CodeChip } from "@/components/ui/code-chip";
 import { CodeMat } from "@/components/ui/code-mat";
+import { Empty } from "@/components/ui/empty";
 import { GlyphCount } from "@/components/ui/glyph-count";
 import { Shutter } from "@/components/ui/shutter";
 import {
@@ -437,7 +444,7 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
     family: "components",
     section: "The event's head",
     title: "GlyphCount",
-    lede: "Will's note on the code's mark, taken by the heads: icons work nearly every time, and a tooltip clarifies. The glance is the glyph; the words are the button's name and its tooltip, which a tap opens and shuts too (the tooltip primitive refuses a finger on purpose, so the atom answers it). It takes its ink from where it stands.",
+    lede: "Will's note on the code's mark, taken by the heads: icons work nearly every time, and a tooltip clarifies. The glance is the glyph; the words are the button's name and its tooltip, which a tap opens and shuts too (the tooltip primitive refuses a finger on purpose, so the atom answers it). The number is a readout in the camera's voice (the `label` step, semibold, tabular figures) in the ground's ink, the glyph a step back in the muted grey; on a photograph both are white.",
     specimens: [
       {
         label: "On paper",
@@ -458,7 +465,7 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
       },
       {
         label: "On a photograph",
-        hint: '`data-surface="photo"`: the room\'s ink, white at 85%',
+        hint: '`data-surface="photo"`: the glyph and the number white',
         node: (
           <OnAPhoto>
             <span className="flex items-center gap-3 text-sm text-white/85">
@@ -930,7 +937,7 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
   {
     id: "badge",
     file: "src/components/ui/badge.tsx",
-    for: "the small status pill; the admin portal's states are most of its work",
+    for: "a state as a light and its word (status=lights): the admin portal's states are most of its work, and the live mark breathes in the recording red",
     family: "components",
     section: "Actions",
     play: "badge",
@@ -946,13 +953,15 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
     specimens: [
       {
         label: "In a row",
-        hint: "inline status; state earns color",
+        hint: "an LED beside a readout: colour only where a state means it, an unlit ring where it has none",
         node: (
           <Row>
             <Badge variant="live">Live</Badge>
+            <Badge variant="success">Approved</Badge>
+            <Badge variant="warning">12 waiting</Badge>
+            <Badge variant="destructive">Over cap</Badge>
             <Badge variant="secondary">Draft</Badge>
             <Badge variant="outline">Private</Badge>
-            <Badge variant="destructive">Over cap</Badge>
           </Row>
         ),
       },
@@ -1156,7 +1165,7 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
     specimens: [
       {
         label: "Card",
-        hint: "CardTitle takes the heading face",
+        hint: "flat as its tone alone, no line and no shadow; CardTitle takes the heading face",
         node: (
           <Card>
             <CardHeader>
@@ -1199,7 +1208,30 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
         ),
       },
     ],
-    specimens: [],
+    specimens: [
+      {
+        label: "A row of faces, and one present",
+        hint: "a face carries no line; a row overlaps by a quarter of a face, parted by the ground, its count an unlit ring; presence is a green light",
+        node: (
+          <Row>
+            {(["sm", "default"] as const).map((size) => (
+              <AvatarGroup key={size}>
+                {["Maya", "Jay", "Sam", "Ines"].map((name) => (
+                  <Avatar key={name} size={size} seed={`library-${name}`}>
+                    <AvatarFallback>{name[0]}</AvatarFallback>
+                  </Avatar>
+                ))}
+                <AvatarGroupCount>+12</AvatarGroupCount>
+              </AvatarGroup>
+            ))}
+            <Avatar size="lg" seed="library-Maya">
+              <AvatarFallback>M</AvatarFallback>
+              <AvatarBadge />
+            </Avatar>
+          </Row>
+        ),
+      },
+    ],
   },
   {
     id: "separator",
@@ -1223,13 +1255,13 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
   {
     id: "skeleton",
     file: "src/components/ui/skeleton.tsx",
-    for: "the loading block: a shimmer sweep that goes static under reduced motion",
+    for: "the loading block: it breathes, a light waiting, and stands still under reduced motion",
     family: "components",
     section: "Surfaces",
     specimens: [
       {
         label: "Skeleton",
-        hint: "--animate-shimmer",
+        hint: "--animate-skeleton-breathe",
         node: (
           <div className="space-y-2">
             <Skeleton className="h-4 w-3/4" />
@@ -1449,18 +1481,58 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
   {
     id: "progress",
     file: "src/components/ui/progress.tsx",
-    for: "the determinate bar: an upload's bytes, a reel's stitch, a guest's download",
+    for: "the meter as twelve frames that fill as a roll fills, in the state's light: an upload's bytes, a reel's stitch, a guest's download",
     family: "components",
     section: "Feedback",
     play: "progress",
     specimens: [
       {
-        label: "Two fills",
+        label: "Filling, and failed",
+        hint: "`aria-invalid` on the meter fills it in the failure red",
         node: (
           <div className="space-y-3">
             <Progress value={32} />
             <Progress value={72} />
+            <Progress value={40} aria-invalid />
           </div>
+        ),
+      },
+    ],
+  },
+  {
+    id: "empty",
+    file: "src/components/ui/empty.tsx",
+    for: "the one empty place, everywhere nothing is here yet: a glyph in its lens, a title, a line and the one act that starts it, never a dashed box",
+    badge: "new",
+    family: "components",
+    section: "Feedback",
+    title: "Empty",
+    lede: "Identity r2's `one-empty`, in its lights build: a camera shows nothing as a lens with nothing in front of it. The shared EmptyState and the feed's section empty are this atom; the glyph is an element, so a server page hands it one.",
+    specimens: [
+      {
+        label: "With its glyph and its act",
+        hint: "`icon`, `title`, `line`, `action`",
+        node: (
+          <Empty
+            icon={<Images />}
+            title="Nothing waiting"
+            line="Photos you hold for review land here."
+            action={
+              <Button size="sm" variant="outline">
+                Open the album
+              </Button>
+            }
+          />
+        ),
+      },
+      {
+        label: "Quiet",
+        hint: "no glyph: the title and the line alone, never a lighter title",
+        node: (
+          <Empty
+            title="No likes yet"
+            line="Tap the heart on any photo or video to save it here."
+          />
         ),
       },
     ],
@@ -1500,7 +1572,7 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
     id: "sonner",
     file: "src/components/ui/sonner.tsx",
     title: "Toaster",
-    for: "the themed Toaster: top-center under the tallest bar in the product, always expanded rather than sonner's hover-to-open pile, an error held open behind a close control until dismissed while every other kind clears on its own clock, and one trailing action slot every toast reserves (a named door, Undo, Retry)",
+    for: "the Toaster, every toast the display with its state a lit glyph: top-center under the tallest bar in the product, always expanded rather than sonner's hover-to-open pile, an error held open behind a close control until dismissed while every other kind clears on its own clock, and one trailing action slot every toast reserves (a named door, Undo, Retry)",
     test: "src/components/ui/sonner.test.tsx",
     family: "components",
     section: "Feedback",

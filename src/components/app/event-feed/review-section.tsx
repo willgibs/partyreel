@@ -42,22 +42,38 @@ export const REVIEW_NOTE = "Anything you approve can still be hidden later.";
 function RoomHead({
   waiting,
   action,
+  titled = true,
 }: {
   /** Uploads in the queue: a count beside the title while any wait. */
   waiting?: number;
   action?: React.ReactNode;
+  /**
+   * ★ THE ROOM OVER THE HUB IS TITLED BY ITS PANEL (event-header r2, `rooms=over`): there the panel's head says
+   * Review, as Settings' says Settings, so the room's own row keeps the count, in words, and its actions.
+   */
+  titled?: boolean;
 }) {
+  if (!titled && !waiting && !action) return null;
   return (
     <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-      <div className="flex min-w-0 items-center gap-2">
-        <PageHeading>Review</PageHeading>
-        {waiting ? (
-          <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-warning/15 px-2 text-sm font-semibold text-warning tabular-nums">
-            {formatCount(waiting)}
-            <span className="sr-only"> waiting</span>
-          </span>
-        ) : null}
-      </div>
+      {titled ? (
+        <div className="flex min-w-0 items-center gap-2">
+          <PageHeading>Review</PageHeading>
+          {waiting ? (
+            <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-warning/15 px-2 text-sm font-semibold text-warning tabular-nums">
+              {formatCount(waiting)}
+              <span className="sr-only"> waiting</span>
+            </span>
+          ) : null}
+        </div>
+      ) : (
+        <p
+          data-review-waiting=""
+          className="text-sm font-medium text-warning tabular-nums"
+        >
+          {waiting ? `${formatCount(waiting)} waiting` : null}
+        </p>
+      )}
       {action}
     </div>
   );
@@ -75,12 +91,15 @@ export function ReviewSection({
   onEnableModeration,
   enabling,
   keys = false,
+  titled = true,
 }: {
   triage: ReviewTriage;
   onEnableModeration: () => void;
   enabling: boolean;
   /** The room's keyboard is on (`review-keys.ts`), so a tile says what its keys do. */
   keys?: boolean;
+  /** The room draws its own title; false where a panel titles it (`RoomHead`). */
+  titled?: boolean;
 }) {
   const {
     visualState,
@@ -102,7 +121,7 @@ export function ReviewSection({
   if (visualState === "moderation-off") {
     return (
       <section className="space-y-2.5">
-        <RoomHead />
+        <RoomHead titled={titled} />
         <FeedSectionEmpty
           icon={ShieldCheck}
           title="Review uploads before they appear"
@@ -126,7 +145,7 @@ export function ReviewSection({
   if (visualState === "beat") {
     return (
       <section className="space-y-2.5">
-        <RoomHead />
+        <RoomHead titled={titled} />
         <div
           data-unlock-success
           className="flex flex-col items-center gap-3 py-6 text-center"
@@ -149,7 +168,7 @@ export function ReviewSection({
   if (visualState === "caught-up") {
     return (
       <section className="space-y-2.5">
-        <RoomHead />
+        <RoomHead titled={titled} />
         <FeedSectionEmpty
           icon={Check}
           title="You're all caught up"
@@ -193,6 +212,7 @@ export function ReviewSection({
       <RoomHead
         waiting={pending.length}
         action={<ReviewActions triage={triage} />}
+        titled={titled}
       />
       {/* The host note: one quiet sentence where approvals are made, only while there is a queue
           to judge, and never a hint row (`keys=arrows` gave the keys none). It sits above the

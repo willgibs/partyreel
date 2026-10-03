@@ -12,12 +12,13 @@ function Card({
       data-slot="card"
       data-size={size}
       className={cn(
-        // A card is a SURFACE, so it wears the surface token itself: `lg` is
-        // --radius (8px under family C, Will's 2026-09-18 ruling, which is
-        // what "an 8px card" meant): tokens, never literals. It
-        // wore the generator's `rounded-xl`, a step off the token, which put
-        // it at 2.8px under the old base. The parts' corners follow it.
-        "group/card flex flex-col gap-4 overflow-hidden rounded-lg bg-card py-4 text-sm text-card-foreground ring-1 ring-foreground/10 has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:gap-3 data-[size=sm]:py-3 data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-lg *:[img:last-child]:rounded-b-lg",
+        // A card LIES FLAT AS ITS TONE ALONE (identity r2, layers=display):
+        // the card is a step whiter than paper's silver body and a step above
+        // the room, so it needs no line and no shadow (a surface lying flat
+        // takes neither). Its corner is the surface ladder's top step, `2xl`
+        // (1.5x --radius, 12px under family C's 8px), the display's softer
+        // card: tokens, never literals. The parts' corners follow it.
+        "group/card flex flex-col gap-4 overflow-hidden rounded-2xl bg-card py-4 text-sm text-card-foreground has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:gap-3 data-[size=sm]:py-3 data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-2xl *:[img:last-child]:rounded-b-2xl",
         className
       )}
       {...props}
@@ -30,7 +31,7 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card-header"
       className={cn(
-        "group/card-header @container/card-header grid auto-rows-min items-start gap-1 rounded-t-lg px-4 group-data-[size=sm]/card:px-3 has-data-[slot=card-action]:grid-cols-[1fr_auto] has-data-[slot=card-description]:grid-rows-[auto_auto] [.border-b]:pb-4 group-data-[size=sm]/card:[.border-b]:pb-3",
+        "group/card-header @container/card-header grid auto-rows-min items-start gap-1 rounded-t-2xl px-4 group-data-[size=sm]/card:px-3 has-data-[slot=card-action]:grid-cols-[1fr_auto] has-data-[slot=card-description]:grid-rows-[auto_auto] [.border-b]:pb-4 group-data-[size=sm]/card:[.border-b]:pb-3",
         className
       )}
       {...props}
@@ -98,7 +99,9 @@ function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card-footer"
       className={cn(
-        "flex items-center rounded-b-lg border-t bg-muted/50 p-4 group-data-[size=sm]/card:p-3",
+        // The footer is a wash of the card's own ink, with no rule above it:
+        // a band on a flat card, not a second surface.
+        "flex items-center rounded-b-2xl bg-foreground/6 p-4 group-data-[size=sm]/card:p-3",
         className
       )}
       {...props}

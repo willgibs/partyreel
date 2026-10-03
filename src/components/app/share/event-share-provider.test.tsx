@@ -34,6 +34,7 @@
  * the bar; its own test fails when Next's file stops matching. What still needs Next itself is checked
  * under `next dev`.
  */
+import Link from "next/link";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -77,10 +78,28 @@ function Probe() {
     codeOpen,
     openCode,
     closeCode,
+    takeAnchor,
   } = useEventShare();
   return (
     <div>
       <p data-testid="sheet">{sheet ?? "none"}</p>
+      <button type="button" onClick={() => openSheet("review")}>
+        open review
+      </button>
+      <button type="button" onClick={() => openSheet("guests")}>
+        open guests
+      </button>
+      <button type="button" onClick={() => openSheet("as-guest")}>
+        open as a guest
+      </button>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.currentTarget.dataset.took = takeAnchor() ?? "none";
+        }}
+      >
+        take the anchor
+      </button>
       <p data-testid="code">{codeOpen ? "open" : "closed"}</p>
       <button type="button" onClick={openCode}>
         open the code
@@ -105,18 +124,21 @@ function Probe() {
   );
 }
 
-function hubTree(initialSheet: "settings" | "share" | null) {
+type Initial = "settings" | "share" | "review" | "guests" | "as-guest" | null;
+
+function hubTree(initialSheet: Initial, links: React.ReactNode = null) {
   return (
     <NextRouterStandIn>
-      <EventShareProvider initialSheet={initialSheet}>
+      <EventShareProvider initialSheet={initialSheet} eventId="e1">
         <Probe />
+        {links}
       </EventShareProvider>
     </NextRouterStandIn>
   );
 }
 
-function hub(initialSheet: "settings" | "share" | null) {
-  return render(hubTree(initialSheet));
+function hub(initialSheet: Initial, links: React.ReactNode = null) {
+  return render(hubTree(initialSheet, links));
 }
 
 const shown = () => screen.getByTestId("sheet").textContent;
@@ -480,5 +502,196 @@ describe("the mini-modal is a look, never a destination", () => {
     expect(replace).not.toHaveBeenCalled();
     expect(window.history.length).toBe(before);
     expect(window.location.pathname).toBe("/dashboard/e1");
+  });
+});
+
+/* ── Every room over the hub (event-header r2, `rooms=over`) ─────────────────────────────────────── */
+
+describe("Review and Guests open over the hub, one way in and out, as Settings does", () => {
+  it.each(["review", "guests", "as-guest"] as const)(
+    "★ %s opens on the hub's own address and closes by going Back, the page never reloaded",
+    async (room) => {
+      next.land("/dashboard/e1");
+      hub(null);
+      // A push, never a replace: what the close goes Back over. (Counted on the call: an earlier test's Back can
+      // leave a forward entry that a push truncates, so the history's length says nothing here.)
+      const push = vi.spyOn(window.history, "pushState");
+      press(room === "as-guest" ? "open as a guest" : `open ${room}`);
+      expect(push).toHaveBeenCalledTimes(1);
+      push.mockRestore();
+      expect(shown()).toBe(room);
+      expect(barParam("room")).toBe(room);
+      expect(routerParam("room")).toBe(room);
+      expect(window.location.pathname).toBe("/dashboard/e1");
+      expect(ourMarker()).toBe(true);
+      await pressAndWaitForPopstate("close");
+      expect(window.location.search).toBe("");
+      expect(shown()).toBe("none");
+      expect(next.reloads).toBe(0);
+    },
+  );
+
+  it.each(["review", "guests", "as-guest"] as const)(
+    "%s landed on from a link (the bell, a dashboard act) closes in place and never leaves the hub",
+    (room) => {
+      next.land(`/dashboard/e1?room=${room}`);
+      hub(room);
+      expect(shown()).toBe(room);
+      const back = vi.spyOn(window.history, "back");
+      press("close");
+      expect(back).not.toHaveBeenCalled();
+      expect(window.location.pathname).toBe("/dashboard/e1");
+      expect(window.location.search).toBe("");
+      expect(shown()).toBe("none");
+    },
+  );
+
+  it("★ one room handing over to another replaces its entry, so a close still lands on the hub", async () => {
+    next.land("/elsewhere");
+    window.history.pushState(null, "", "/dashboard/e1");
+    next.land("/dashboard/e1");
+    hub(null);
+    press("open settings");
+    press("open the door page");
+    const push = vi.spyOn(window.history, "pushState");
+    // Settings' door page says "Let them in from Guests": the room is handed over, never stacked.
+    press("open guests");
+    expect(push).not.toHaveBeenCalled();
+    push.mockRestore();
+    expect(shown()).toBe("guests");
+    expect(barParam("room")).toBe("guests");
+    expect(barParam("setting")).toBeNull();
+    expect(routerParam("room")).toBe("guests");
+    expect(ourMarker()).toBe(true);
+    const back = vi.spyOn(window.history, "back");
+    await pressAndWaitForPopstate("close");
+    expect(back).toHaveBeenCalledTimes(1);
+    expect(window.location.pathname).toBe("/dashboard/e1");
+    expect(window.location.search).toBe("");
+    expect(shown()).toBe("none");
+  });
+
+  it("a room handed over from a deep-linked one still closes in place", () => {
+    next.land("/dashboard/e1?room=settings");
+    hub("settings");
+    press("open review");
+    expect(shown()).toBe("review");
+    expect(ourMarker()).toBe(false);
+    const back = vi.spyOn(window.history, "back");
+    press("close");
+    expect(back).not.toHaveBeenCalled();
+    expect(window.location.search).toBe("");
+    expect(shown()).toBe("none");
+  });
+});
+
+describe("★ every old way in inside the hub opens its room in place (the sheet's guests link, the reel's guidance)", () => {
+  const click = (name: string, init: MouseEventInit = {}) => {
+    let event!: MouseEvent;
+    act(() => {
+      const link = screen.getByRole("link", { name });
+      event = new MouseEvent("click", {
+        bubbles: true,
+        cancelable: true,
+        button: 0,
+        ...init,
+      });
+      link.dispatchEvent(event);
+    });
+    return event;
+  };
+  const LINKS = (
+    <nav>
+      <Link href="/dashboard/e1/guests#at-the-door">
+        Let them in from Guests
+      </Link>
+      <Link href="/dashboard/e1/guests#invited">Manage in Guests</Link>
+      <Link href="/dashboard/e1/review">3 waiting in Review</Link>
+      <Link href="/dashboard/e1?room=review">Review</Link>
+      <Link href="/dashboard/e1/settings">Settings</Link>
+      <Link href="/dashboard/e1?room=settings&setting=door">
+        Change who can get in
+      </Link>
+      <Link href="/dashboard/e2/review">Another event</Link>
+      <Link href="/dashboard/e1/print">Print</Link>
+      <Link href="/dashboard/e1/review" target="_blank" rel="noreferrer">
+        Review in a tab
+      </Link>
+    </nav>
+  );
+
+  it.each([
+    ["Let them in from Guests", "guests"],
+    ["Manage in Guests", "guests"],
+    ["3 waiting in Review", "review"],
+    ["Review", "review"],
+    ["Settings", "settings"],
+  ])("%s opens %s over the hub, no navigation", (name, room) => {
+    next.land("/dashboard/e1");
+    hub(null, LINKS);
+    const event = click(name);
+    expect(event.defaultPrevented).toBe(true);
+    expect(shown()).toBe(room);
+    expect(window.location.pathname).toBe("/dashboard/e1");
+    expect(barParam("room")).toBe(room);
+    expect(next.reloads).toBe(0);
+  });
+
+  it("★ a link to a Settings page opens Settings on that page (the Guests room's Change who can get in)", () => {
+    next.land("/dashboard/e1");
+    hub(null, LINKS);
+    act(() => {
+      fireEvent.click(screen.getByRole("button", { name: "open guests" }));
+    });
+    const push = vi.spyOn(window.history, "pushState");
+    const event = click("Change who can get in");
+    expect(event.defaultPrevented).toBe(true);
+    expect(shown()).toBe("settings");
+    expect(pageShown()).toBe("door");
+    expect(barParam("setting")).toBe("door");
+    expect(routerParam("setting")).toBe("door");
+    // Handed over from Guests: still one entry deep.
+    expect(push).not.toHaveBeenCalled();
+  });
+
+  it("hands the room the section its link named, once", () => {
+    next.land("/dashboard/e1");
+    hub(null, LINKS);
+    click("Manage in Guests");
+    expect(shown()).toBe("guests");
+    const take = screen.getByRole("button", { name: "take the anchor" });
+    act(() => {
+      fireEvent.click(take);
+    });
+    expect(take.dataset.took).toBe("invited");
+    act(() => {
+      fireEvent.click(take);
+    });
+    expect(take.dataset.took).toBe("none");
+  });
+
+  it("leaves a modified click, a new tab, another event and a page that is no room to the browser", () => {
+    next.land("/dashboard/e1");
+    hub(null, LINKS);
+    expect(
+      click("3 waiting in Review", { metaKey: true }).defaultPrevented,
+    ).toBe(false);
+    expect(click("Review in a tab").defaultPrevented).toBe(false);
+    expect(click("Another event").defaultPrevented).toBe(false);
+    expect(click("Print").defaultPrevented).toBe(false);
+    expect(shown()).toBe("none");
+  });
+
+  it("asks nothing of a hub that names no event (the Library's specimens)", () => {
+    next.land("/dashboard/e1");
+    render(
+      <NextRouterStandIn>
+        <EventShareProvider initialSheet={null}>
+          <Probe />
+          {LINKS}
+        </EventShareProvider>
+      </NextRouterStandIn>,
+    );
+    expect(click("3 waiting in Review").defaultPrevented).toBe(false);
   });
 });
