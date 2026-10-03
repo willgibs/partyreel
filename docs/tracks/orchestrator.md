@@ -67,7 +67,11 @@ commits, what remains, its predecessor's transcript at
 account. Connectors follow the account: Claude in Chrome (every red-team needs it), the Supabase MCP on
 `ddafaemglzmuekbtjwzn`, the Vercel MCP on his personal team (deploys ride `$VERCEL_TOKEN`; only runtime logs need P3).
 
-Relays that live only in an agent: none (red-team 44's LOWs relayed to `crumbs-54` are merged with it).
+Relays that live only in an agent (2026-10-03): to `take-home-wiring` (08:30Z), from the cost model: the `phone` key shaped
+so a one-line filter in the `partyreel-backup` Worker could skip it as it could the preview (a variant segment readable
+from the key alone), the exact filter written under its Handoff's Proposed Worker changes; the backup Worker itself
+unchanged ("back up only originals" is Will's to decide). To every running lane (09:20Z): WIP pushed at each milestone
+with a `## Where I am` note, for the weekly's limit.
 
 **Q9 is answered** (the Advisor, 21:05Z) and acted on above. The waiting experience itself goes to a design board (below).
 
