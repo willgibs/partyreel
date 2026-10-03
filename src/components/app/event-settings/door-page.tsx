@@ -246,7 +246,9 @@ export function DoorPage({ guestsHref }: { guestsHref: string }) {
                   choose(doorForStep(next as DoorStep, v.door, v.hasPassword));
                 }}
                 aria-label="What the link opens"
-                className="grid grid-cols-3 gap-1 rounded-lg bg-muted p-1"
+                // ★ THE CONTROL MEASURES ITSELF (`@container`): what a choice can hold depends on the width the control
+                // is given (a phone's card is 220 to 280 px of it), so its icons answer to that width, below.
+                className="@container grid grid-cols-3 gap-1 rounded-lg bg-muted p-1"
               >
                 {STEPS.map((st) => {
                   const Icon = STEP_ICON[st];
@@ -256,13 +258,21 @@ export function DoorPage({ guestsHref }: { guestsHref: string }) {
                       value={st}
                       data-door-choice={st}
                       className={cn(
-                        "flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-sm font-medium text-muted-foreground transition-colors outline-none motion-reduce:transition-none",
+                        // ★ A CHOICE SITS ON ONE LINE (red-team 46's NIT: "Only me" wrapped beside "Public" and "Private"
+                        // at 375): its words never wrap, and its small padding leaves them the whole third.
+                        "flex items-center justify-center gap-1 rounded-md px-1 py-1.5 text-sm font-medium whitespace-nowrap text-muted-foreground transition-colors outline-none motion-reduce:transition-none",
                         "hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50",
                         "data-[state=on]:bg-background data-[state=on]:text-foreground",
                         "active:scale-[0.98] motion-reduce:active:scale-100",
                       )}
                     >
-                      <Icon className="size-3.5" aria-hidden />
+                      {/* The icon is for the room that has it: a third of a narrow control (a 320 phone's is 69 px) holds
+                          "Only me" and nothing beside it, so the words stand alone there, and the icon comes where the
+                          control is wide enough to hold both (264 px and up, a 375 phone's included). */}
+                      <Icon
+                        className="hidden size-3.5 shrink-0 @min-[16.5rem]:block"
+                        aria-hidden
+                      />
                       {DOOR_STEP_LABELS[st]}
                     </ToggleGroupPrimitive.Item>
                   );

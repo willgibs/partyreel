@@ -228,9 +228,9 @@ describe("the album's camera", () => {
       expect(screen.getByText("Frame 7 of 24")).toBeInTheDocument(),
     );
     expect(screen.getByText("18")).toBeInTheDocument();
-    expect(
-      screen.getByText("Develops at", { exact: false }),
-    ).toBeInTheDocument();
+    // The develop is six hours ahead: today's or tomorrow's by the hour the test runs, and the camera says which
+    // (`developsWhen`: the calendar's days, red-team 46's NIT), so only its shape is pinned here.
+    expect(screen.getByText(/^Develops (tomorrow )?at /)).toBeInTheDocument();
     // Her roll is asked with the ticket in the body, and never for her news.
     const body = JSON.parse(String((mine()[0][1] as RequestInit).body));
     expect(body).toEqual({

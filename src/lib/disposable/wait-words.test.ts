@@ -19,6 +19,13 @@ import {
 /** 10:40 pm on the party's night, in the test's own zone (the words are said in the reader's clock). */
 const NIGHT = new Date(2026, 9, 10, 22, 40).getTime();
 const NINE_AM = new Date(2026, 9, 11, 9, 0).toISOString();
+/**
+ * ★ RESHAPED ON PURPOSE (red-team 46's NIT; scar kept: every line says the develop time from now, in her own clock, and
+ * only after hydration): the night's develop is the NEXT morning's, which these lines said as "at 9 am" because it is
+ * under a day away, and the expired reason is that a day was 24 hours. A day is the calendar's in her clock, so the
+ * night before says "tomorrow at 9 am" and the morning of says "at 9 am" (`MORNING_OF`, below).
+ */
+const MORNING_OF = new Date(2026, 9, 11, 7, 0).getTime();
 
 describe("one word for every wait, and the clock that tells them apart", () => {
   it("is Developing, whether the host lets each in or the album develops at a time", () => {
@@ -33,6 +40,26 @@ describe("one word for every wait, and the clock that tells them apart", () => {
       "As the host lets them in",
     );
     expect(waitClockLine({ kind: "develop", developsAt: NINE_AM }, NIGHT)).toBe(
+      "All at once tomorrow at 9 am",
+    );
+    expect(
+      waitClockLine({ kind: "develop", developsAt: NINE_AM }, MORNING_OF),
+    ).toBe("All at once at 9 am");
+  });
+
+  it("★ the day turns at her midnight, in the sheet's own line too (red-team 46's NIT)", () => {
+    // Saturday 11:50 am, a Sunday 9 am develop 21 h on: "at 9 am" read as three hours after today's.
+    const sat1150 = new Date(2026, 9, 10, 11, 50).getTime();
+    expect(
+      waitClockLine({ kind: "develop", developsAt: NINE_AM }, sat1150),
+    ).toBe("All at once tomorrow at 9 am");
+    expect(countdownWords(NINE_AM, sat1150)).toBe("in 21 h 10 min");
+    const before = new Date(2026, 9, 10, 23, 59).getTime();
+    const after = new Date(2026, 9, 11, 0, 1).getTime();
+    expect(
+      waitClockLine({ kind: "develop", developsAt: NINE_AM }, before),
+    ).toBe("All at once tomorrow at 9 am");
+    expect(waitClockLine({ kind: "develop", developsAt: NINE_AM }, after)).toBe(
       "All at once at 9 am",
     );
   });
@@ -64,6 +91,9 @@ describe("the rule, before her first add and atop her uploads (one rule, one wor
       "Uploads develop as Maya lets each one in.",
     );
     expect(waitRule({ kind: "develop", developsAt: NINE_AM }, NIGHT)).toBe(
+      "Uploads develop all at once tomorrow at 9 am.",
+    );
+    expect(waitRule({ kind: "develop", developsAt: NINE_AM }, MORNING_OF)).toBe(
       "Uploads develop all at once at 9 am.",
     );
     // Before hydration the time is not hers to say yet.
@@ -98,7 +128,7 @@ describe("where what she sent went: the keep and the failure sheet", () => {
         clock: { kind: "develop", developsAt: NINE_AM },
         nowMs: NIGHT,
       }),
-    ).toBe("Your 5 shots develop with everyone's at 9 am.");
+    ).toBe("Your 5 shots develop with everyone's tomorrow at 9 am.");
     expect(
       keepWaitLine({
         subject: "Your shot",
@@ -114,7 +144,7 @@ describe("where what she sent went: the keep and the failure sheet", () => {
       "Everything else develops as Maya lets it in.",
     );
     expect(restWaitLine({ kind: "develop", developsAt: NINE_AM }, NIGHT)).toBe(
-      "Everything else develops with everyone's at 9 am.",
+      "Everything else develops with everyone's tomorrow at 9 am.",
     );
   });
 });
@@ -123,6 +153,9 @@ describe("the cover names the preset (Will's `name=disposable`): 'Disposable · 
   it("★ a camera with a develop time ahead is the Disposable, and says when", () => {
     expect(
       coverEyebrow({ capture: "camera", developsAt: NINE_AM }, NIGHT),
+    ).toBe("Disposable · develops tomorrow at 9 am");
+    expect(
+      coverEyebrow({ capture: "camera", developsAt: NINE_AM }, MORNING_OF),
     ).toBe("Disposable · develops at 9 am");
     expect(coverEyebrow({ capture: "camera", developsAt: NINE_AM }, null)).toBe(
       "Disposable",
@@ -136,7 +169,7 @@ describe("the cover names the preset (Will's `name=disposable`): 'Disposable · 
     ).toBe("Disposable · developed at 9 am");
     expect(
       coverEyebrow({ capture: "upload", developsAt: NINE_AM }, NIGHT),
-    ).toBe("Develops at 9 am");
+    ).toBe("Develops tomorrow at 9 am");
     expect(
       coverEyebrow({ capture: "upload", developsAt: NINE_AM }, morning),
     ).toBeNull();
@@ -164,6 +197,28 @@ describe("the cover names the preset (Will's `name=disposable`): 'Disposable · 
         month: "short",
         day: "numeric",
       }).format(new Date(NINE_AM)),
+    );
+  });
+
+  /* ★ THE SAME DAY, LOOKING BACK (red-team 46's NIT, mirrored): "developed at 9 pm" at 12:10 am read as tonight's 9 pm,
+     three hours on. A develop is said by clock only on its own day; the day before is yesterday. */
+  it("★ says developed at 9 am only on that day, and yesterday the day after, either side of midnight", () => {
+    const saturday9pm = new Date(2026, 9, 10, 21, 0).toISOString();
+    const lateSaturday = new Date(2026, 9, 10, 23, 59).getTime();
+    const justAfter = new Date(2026, 9, 11, 0, 10).getTime();
+    expect(developedWhen(saturday9pm, lateSaturday)).toBe("at 9 pm");
+    expect(developedWhen(saturday9pm, justAfter)).toBe("yesterday");
+    expect(
+      coverEyebrow({ capture: "camera", developsAt: saturday9pm }, justAfter),
+    ).toBe("Disposable · developed yesterday");
+    // Monday 8 am, Sunday 9 am's develop: 23 hours on, and yesterday's.
+    const sunday9 = new Date(2026, 9, 11, 9, 0).toISOString();
+    expect(developedWhen(sunday9, new Date(2026, 9, 12, 8, 0).getTime())).toBe(
+      "yesterday",
+    );
+    // Two days on is its weekday, however few hours short of 48 it is.
+    expect(developedWhen(sunday9, new Date(2026, 9, 13, 8, 0).getTime())).toBe(
+      "Sunday",
     );
   });
 });

@@ -1,6 +1,7 @@
 "use client";
 
-import Image from "next/image";
+import Image, { getImageProps } from "next/image";
+import { preload } from "react-dom";
 import { Copy, QrCode, Share2 } from "lucide-react";
 
 import { QrPresetPicker } from "@/components/app/qr-preset-picker";
@@ -30,10 +31,32 @@ import { QR_PRESETS, type QrStyleKey } from "@/lib/constants/qr-presets";
  * sized in the picture's own `cqw` (design-system.md's carve-out for type drawn inside a picture), so
  * one drawing reads the same at every size the room gives it. The photograph on the screen is a stand-in
  * from the marketing set (ASSETS: the room's screen at a party).
+ *
+ * ★ THE STEP OPENS ON ITS PHOTOGRAPH (red-team 46's NIT: the room's screen was black for about a second after
+ * Continue): the photograph is eager and decoded with the step, and the page asks for it before the step, while
+ * she names the event. It is our own marketing still through the optimizer, the one use of `next/image` the
+ * product allows; no user media ever goes through it (`media-cost-policy.test.ts`).
  */
 
 /** The photograph the room's screen shows behind the code (a stand-in until the slot's own is made). */
 const PARTY = marketingImage("party-dj");
+
+/** How wide the room's screen stands, which picks the optimizer's file for it. */
+const ROOM_SIZES = "(min-width: 768px) 500px, 300px";
+
+// ★ ASKED FOR BEFORE THE STEP: this module loads with the page that holds the wizard, long before Continue mounts
+// the step, so the browser fetches the very file the step will draw (the same `srcset` and `sizes` `Image` makes
+// from these props, which is what lets the step's `img` take it from the fetch). A server render has nothing to
+// fetch for, and a page that never reaches the step has asked for 40 KB.
+if (typeof window !== "undefined") {
+  const { src, srcSet } = getImageProps({
+    src: PARTY.src,
+    alt: "",
+    fill: true,
+    sizes: ROOM_SIZES,
+  }).props;
+  preload(src, { as: "image", imageSrcSet: srcSet, imageSizes: ROOM_SIZES });
+}
 
 /** The readable link a picture shows: the site's own host, the rest hers once the event exists. */
 function pictureLink(siteUrl: string): string {
@@ -129,7 +152,11 @@ function RoomScreenPicture({
         src={PARTY.src}
         alt=""
         fill
-        sizes="(min-width: 768px) 500px, 300px"
+        sizes={ROOM_SIZES}
+        // Eager and high, decoded with the step's own frame: a lazy image waits for its fetch after the step opens.
+        loading="eager"
+        fetchPriority="high"
+        decoding="sync"
         className="object-cover"
         draggable={false}
       />
