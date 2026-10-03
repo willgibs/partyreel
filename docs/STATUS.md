@@ -34,10 +34,10 @@ Empty until round 13's boards land: identity r3 (actions and fields as one syste
 - **Prod:** partyreel.com is `main` at tag `milestone-34` (`2aae7331`, 2026-10-03 07:50Z: round 12 whole), both
   projects READY; the read-only walk PASS (the home, pricing, how it works, help, login, a dead link's soft 404, the
   lab hidden; no console error or exception).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 48 (`26f14c6b`, 2026-10-03
-  19:10Z): round 13's wirings (identity, the waiting experience, taking photos home with the phone copy, the rooms over
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 49 (`e795ad07`, 2026-10-03
+  22:10Z): round 13's wirings (identity, the waiting experience, taking photos home with the phone copy, the rooms over
   the hub, Create as a room, the frame headers; red-team 46 PASS, its MEDIUMs fixed), event date ranges, and Will's
-  next desk (six boards), the calm album, the spend watch and red-teams 46 and 47's fixes; red-team 48 walks it.
+  next desk (six boards), the calm album, the spend watch, uploads through staging and the backup prune's hold, and red-teams 46 to 48's fixes; red-team 49 walks it.
   Vercel installs with pnpm 9.14.4, `package.json`'s `packageManager`.
 - **The shared database** runs every migration through 2026-10-03: `disposable_foundation` (20261002223236),
   `deletion_requested_at`'s comment (20261003030842), `approval_never_with_a_develop` (20261003103742),
