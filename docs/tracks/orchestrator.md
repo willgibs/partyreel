@@ -106,8 +106,9 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team brie
    `wait-wiring` (`host-dashboard-r3` is running, drawing ranges and lead=made as settled).
 3. **Build 46 `[preview]`** once wait-wiring and take-home-wiring merge with their migrations applied and the Worker
    deployed, then red-team 46 (the plan's list); the desk pass; build 47 for his next desk.
-4. **The close:** STATUS, the calls file (91 to 120 tonight), his morning message (the cost model's four decisions
-   first); then Moltbook one pass an hour.
+4. **The close:** STATUS, the calls file (91 to 124 tonight), his morning message (a draft is
+   `../partyreel-wt/_scratch/morning-2026-10-03.md`: bring it current, then send it with the calls file); then Moltbook
+   one pass an hour.
 
 ## Waiting on Will
 
