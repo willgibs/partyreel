@@ -151,7 +151,9 @@ A host has no reel to create, only a state to read and a few defaults to set.
   dashed at none ("Starts at 2 photos"), the one photo under an overlay at one, then the living card ("Live for guests")
   dissolving through the reel's own take. Before two a press opens guidance (what is left, Add photos, and on a
   moderated event that a guest's photo counts once approved); from two it opens `/e/<token>?reel`, where the owner
-  passes every gate; off, it opens Settings. The band's step says "1 more photo starts the reel" while one short and is
+  passes every gate (a soft navigation, kept one: a plain press asks for the view's lazy chunk at once, so it lands
+  inside the album's server render and the curtain's black is a beat, [guest-flow.md](guest-flow.md)); off, it opens
+  Settings. The band's step says "1 more photo starts the reel" while one short and is
   gone once it plays; `/dashboard/<id>/reel` is a redirect for old links (into the view once it plays, else the hub).
 - **Settings' Highlight reel section** ([`event-settings/highlight-reel-card.tsx`](../../src/components/app/event-settings/highlight-reel-card.tsx))
   is an instant-save card: Show the reel, the look every guest starts on (each shown on the event's own photo under that

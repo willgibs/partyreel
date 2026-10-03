@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MouseEvent as ReactMouseEvent,
+} from "react";
 import Link from "next/link";
 import { Clapperboard, ImagePlus } from "lucide-react";
 
@@ -198,6 +204,21 @@ function Overlay() {
   );
 }
 
+/**
+ * ★ THE VIEW'S CHUNK STARTS WITH THE PRESS (crumbs-52). The card is a soft navigation to the album's `?reel`, and the
+ * view is a lazy chunk that asks for itself only once the album has mounted, so the reel's black (the guest page's
+ * curtain) stood over nothing until it landed: on a slow phone (4x CPU, 1.6 Mbps, 150 ms) 1.0 s unwarmed against 0.3 s
+ * warmed, measured on a production build. The album's server render is the longer wait, so the chunk is asked for now
+ * and lands inside it. A modified click opens a new tab, which loads its own; a failed warm-up is the view's own ask's to
+ * retry. (The cover's round warms the same chunk on hover, `live-reel.tsx`.)
+ */
+function warmReelView(e: ReactMouseEvent) {
+  if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) {
+    return;
+  }
+  void import("@/components/guest/reel/live-reel-view").catch(() => {});
+}
+
 function LiveCard({ reel, stuck }: { reel: ReelCardData; stuck: boolean }) {
   const { ref, at } = useLivingClock<HTMLAnchorElement>(reel.stills.length);
   const living = !stuck && reel.stills.length > 0;
@@ -205,6 +226,7 @@ function LiveCard({ reel, stuck }: { reel: ReelCardData; stuck: boolean }) {
     <Link
       ref={ref}
       href={reel.viewHref}
+      onClick={warmReelView}
       data-reel-card="live"
       className={cn(
         ROOM_CARD_BASE,

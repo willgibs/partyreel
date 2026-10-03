@@ -14,7 +14,7 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { HubAlbumSeed } from "@/lib/event/hub-album";
 import {
@@ -35,6 +35,13 @@ vi.mock("@/components/app/host-add-provider", () => ({
 vi.mock("@/components/app/share/event-share-provider", () => ({
   useEventShare: () => ({ openSheet }),
 }));
+
+// The reel view's chunk, counted as it loads: the live card's press warms it (a module loads once).
+const viewLoads = vi.hoisted(() => ({ count: 0 }));
+vi.mock("@/components/guest/reel/live-reel-view", () => {
+  viewLoads.count += 1;
+  return { LiveReelView: () => null };
+});
 
 // The live card's one server read, and the album store's live channel.
 const refreshHubReelAction = vi.fn();
@@ -236,6 +243,47 @@ describe("from two, the card is the door to the view", () => {
       "/e/token123?reel",
     );
     expect(document.querySelector("[data-living]")).toBeNull();
+  });
+});
+
+/**
+ * ★ THE PRESS WARMS THE VIEW (crumbs-52): the card is a soft navigation, and the view's chunk, which the album asks
+ * for only once it has mounted, is what the reel's black waits on after the page commits. A plain press asks for it
+ * at once, so it lands inside the album's server render; the card stays a real link into the album.
+ */
+describe("the live card's press", () => {
+  const liveCard = (
+    <ReelCard
+      eventId="e1"
+      reel={{ ...base, state: "live", have: 2, stills: ["s1", "s2"] }}
+      stuck={false}
+    />
+  );
+  // jsdom has no navigation: the browser's own is what a click on a link leaves standing.
+  const stopNavigation = (e: Event) => e.preventDefault();
+  beforeEach(() => document.addEventListener("click", stopNavigation));
+  afterEach(() => document.removeEventListener("click", stopNavigation));
+  const settle = () =>
+    act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    });
+
+  // First, since a chunk that has loaded stays loaded for the rest of the file.
+  it("a modified click opens a tab that loads its own: nothing is warmed here", async () => {
+    render(liveCard);
+    fireEvent.click(screen.getByRole("link"), { button: 0, metaKey: true });
+    fireEvent.click(screen.getByRole("link"), { button: 0, shiftKey: true });
+    fireEvent.click(screen.getByRole("link"), { button: 1 });
+    await settle();
+    expect(viewLoads.count).toBe(0);
+  });
+
+  it("★ a plain press asks for the reel view's chunk, and the card stays a link into the album", async () => {
+    render(liveCard);
+    const link = screen.getByRole("link");
+    fireEvent.click(link, { button: 0 });
+    await waitFor(() => expect(viewLoads.count).toBe(1));
+    expect(link).toHaveAttribute("href", "/e/token123?reel");
   });
 });
 
