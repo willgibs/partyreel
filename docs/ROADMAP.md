@@ -17,6 +17,10 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Design: Settings' step list and cards (`settings-rows.tsx`, `settings-furniture.tsx`, `delete-event-row.tsx`), the hub's checklist and `attended-events-visibility.tsx` hand-roll the card with a ring; each becomes `Card` (flat) (from `identity-wiring`).
+- Design: the help articles' pictured menus (`help/step-screens/desk-screens.tsx`) draw the body's `floatingPanel`; the real menus are the display now (from `identity-wiring`).
+- Design: the brand kit (`/design/library` foundations) lists four grounds and no `--signal` or `--display*`; add the display ground and its tokens (from `identity-wiring`).
+- Design: two comments still name the old room's `#040405` (`about/page.tsx`, `legal-document.tsx`) (from `identity-wiring`).
 - Security: the app answers any site's frame (no `frame-ancestors`, no `X-Frame-Options`), so a page can be clickjacked; `frame-ancestors 'self'` (and `X-Frame-Options: SAMEORIGIN`) in `next.config.ts`'s headers keeps See it as a guest's own frame and refuses every other (from `rooms-wiring`).
 - Host: the dashboard's next-step chip (`lib/dashboard/next-step.ts`) still links `/guests#at-the-door`, answered by the route's redirect; `roomHref` would save the hop (from `rooms-wiring`).
 - Guests: the phone's Add sheet (`responsive-menu`'s rows) blurs the cover behind it, so her own Add and the glass rounds go soft the moment she presses; a sheet that dims without blurring would keep the album she is adding to in view (a board idea from `identity-r3`).
