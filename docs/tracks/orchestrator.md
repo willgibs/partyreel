@@ -54,16 +54,17 @@ plan's whole text (lane splits, the Advisor's Q11 corrections, Will's answers) i
 | `event-header-r3` | board event-header r3 [desk 50]: facts (the strip free of a timeline, new ideas; the dial banked) and doors (three refined, each with its sticky form) | MERGED at `a2affb3d` (gate 179 green, light: test); lab only; on his next desk | Opus, 3134 | `ac26dc46271773f37` |
 | `crumbs-55` | four crumbs: frame-ancestors and X-Frame-Options against clickjacking (both projects), the next-step chip's room link, the brand kit's fifth ground and tokens, How it works' Create picture | MERGED at `599ede52` (gate 176 green: lint, test, build, lab:smoke, lab:demo all) | Sonnet, 3131 | `af911157a822471ec` |
 | `host-dashboard-r3` | board host-dashboard r3 [desk 25]: events for 1 to 10 scaling to hundreds, the empty featured stage, the feature's rule as a choice | MERGED at `a8b21659` (gate 178 green: lint, test, build, lab:smoke, lab:demo host-dashboard); lab only; on his next desk | Opus, 3135 | `a96b83311939a385c` |
-| `event-dates` | an optional end date read everywhere (Settings' range, the dashboard's week, live today and stage, the formatter's ranges, the develop default after the last day; never the lifecycle); lead=made; its migration for the Orchestrator | running (cut at `9af92e54`); WIP pushes each milestone | Opus, 3132 | `a4f91d827093a1238` |
-| `the-wait-r2` | board the-wait r2 [desk 35]: the arrival, his first choice drawn properly (the develop as the album's first load, two or three takes), the premiere first and into place refined | running (cut at `9af92e54`); WIP pushes each milestone | Opus, 3133 | `a0a9f95e641174de4` |
-| `redteam-46` | build 46's red-team (`9af92e54`): the waiting room and the develop, the pair refused, taking photos home (the phone copy, the host's two sets), the rooms and See it as a guest, Create, identity across the app, the frame headers, regressions | running (from 11:35Z); brief and ledger `../partyreel-wt/_scratch/redteam-46/` (its ledger is its handoff) | Opus, Will's Chrome | `a8acc8ebda6e32988` |
-| `crumbs-56` | red-team 46's MEDIUM: the waiting contact sheet draws her own video as a broken image; a video draws its first frame | running (cut at `15259241`); WIP pushes each milestone | Sonnet, 3131 | `aa29965c66e3771f2` |
+| `event-dates` | an optional end date read everywhere (Settings' range, the dashboard's week, live today and stage, the formatter's ranges, the develop default after the last day; never the lifecycle); lead=made; its migration for the Orchestrator | running (cut at `9af92e54`; resumed 15:40Z at `3a50d4de`, at its gate); its migration with the Advisor (Q14) | Opus, 3132 | `a4f91d827093a1238` |
+| `the-wait-r2` | board the-wait r2 [desk 35]: the arrival, his first choice drawn properly (the develop as the album's first load, two or three takes), the premiere first and into place refined | running (cut at `9af92e54`; resumed 15:40Z at `18963411` with its uncommitted refinements) | Opus, 3133 | `a0a9f95e641174de4` |
+| `redteam-46` | build 46's red-team (`9af92e54`): the waiting room and the develop, the pair refused, taking photos home (the phone copy, the host's two sets), the rooms and See it as a guest, Create, identity across the app, the frame headers, regressions | running (from 11:10Z; W1 to W3 PASS with 2 MEDIUMs, 1 LOW, 3 NITs; resumed 15:40Z at W4); brief and ledger `../partyreel-wt/_scratch/redteam-46/` (its ledger is its handoff) | Opus, Will's Chrome | `a8acc8ebda6e32988` |
+| `crumbs-56` | red-team 46's MEDIUM: the waiting contact sheet draws her own video as a broken image; a video draws its first frame | running (cut at `15259241`; the first MEDIUM at `5fd7ebf3`, the second in its tree; resumed 15:40Z) | Sonnet, 3131 | `aa29965c66e3771f2` |
 
-**The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Q8
-(round 12's plan) answered with 21 corrections, all folded into the briefs; the next consult is the foundation's
-migrations before they are applied. From another session, respawn it from `usher/kit/advisor-prompt.txt`.
+**The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Q14
+(event-dates' migration, 15:40Z) is open; it is applied only on its answer. From another session, respawn it from `usher/kit/advisor-prompt.txt`.
 
-**Handoff across accounts** (2026-10-03 11:52Z: this account's weekly at 100%, the auto-kill at hand: respawn from here; memory 55% free after a 09:30Z squeeze; Will's rule: watch from 96%, refresh this block often from 98%). The Orchestrator session is `2ba90542-62d6-487c-8c79-3657619f9133` (hi@willgibs.com,
+**Handoff across accounts** (the weekly hit 100% at 11:52Z and killed four agents; Will reset it on this account at
+~15:30Z, and all four resumed by SendMessage at 15:40Z with their transcripts; Will's rule: watch from 96%, refresh
+this block often from 98%). The Orchestrator session is `2ba90542-62d6-487c-8c79-3657619f9133` (hi@willgibs.com,
 seated 2026-10-01 18:08Z; its weekly resets Tuesday 2026-10-06 21:00Z, willg97's Sunday 2026-10-04 13:00Z; Will hands
 off only when one maxes its weekly limit). willg97's `157caa18` stays idle and `b01c012e` stays retired. From another
 session, respawn each running lane per the runbook's "Resume a lane": kill by port any dev server left on 3131 to 3136
@@ -91,31 +92,32 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team brie
 
 ## Next, in order
 
-0. **Red-team 46's MEDIUM (11:30Z, its ledger):** the waiting contact sheet draws her own VIDEO as a broken image
-   (`src/components/guest/gallery-empty-state-sheet.tsx`: every lit `[data-hers] .wait-cell` is an `<img src={cell.src}>`,
-   `HerShot.video` ignored; a camera album's hold-to-film shot is `video/mp4`). Its fix is `crumbs-56` (running). Relayed to it
-   too (11:43Z): red-team 46's second MEDIUM, the host's cover after the switch that puts held photos in the roll
-   reading "0 developing" and wearing the sealed photos (`host-cover.ts`'s `entryWaits` compares `created_at` with
-   `sealed_from`; a row should wait by its seal), with `host-cover.ts` and `event-hub-head-cover.tsx` accepted outside
-   its owns.
-0. **Now (11:20Z):** every wave-1 lane is merged and both migrations are applied (types regenerated at `e0cbda7d`;
-   take-home's typed seams one ROADMAP line), and the export Worker is deployed (version 955ce073). Build 46 (`9af92e54`)
-   serves the alias; red-team 46 walks it from `../partyreel-wt/_scratch/redteam-46/brief.md`. Running: `event-dates` (its migration for the Advisor,
-   then apply by protocol) and `the-wait-r2`. The Advisor's Q13: the backup Worker's originals-only filter is never
-   deployed (nothing server-side remakes a preview or a phone copy).
-1. **Running** (the In-flight table; integrate each as it hands off, gates from 173): `wait-wiring` and
-   `take-home-wiring` each bring a migration (the Advisor reads it, then apply by protocol: verbatim, the md5 proof,
-   advisors, types regenerated and their seams dropped) and take-home a `workers/export` change I deploy (`wrangler
-   whoami` first); `create-wizard-r3`, `demo-framing-r5`, `event-header-r3` (boards for his next desk) and `crumbs-55`.
-   Merged tonight: milestone 34, cost-model, wizard-wiring, identity-r3, rooms-wiring, identity-wiring.
-2. **Wave 2 still to cut** (briefs from the plan file, ports as seats free, memory at least 50%): `event-dates` once
-   `wait-wiring` merges (its migration by protocol; lead=made in `moment.ts`), then `the-wait-r2` (arrival) after
-   `wait-wiring` (`host-dashboard-r3` is running, drawing ranges and lead=made as settled).
-3. **Build 46 `[preview]`** once wait-wiring and take-home-wiring merge with their migrations applied and the Worker
-   deployed, then red-team 46 (the plan's list); the desk pass; build 47 for his next desk.
-4. **The close:** STATUS, the calls file (91 to 124 tonight), his morning message (a draft is
-   `../partyreel-wt/_scratch/morning-2026-10-03.md`: bring it current, then send it with the calls file); then Moltbook
-   one pass an hour.
+0. **Running** (resumed 15:40Z; integrate each as it hands off, gates from 180):
+   - `event-dates`: its gate, then its migration (`20261003120000_event_end_date.sql`) on Q14's answer, by protocol
+     (verbatim, the md5 proof, advisors, types regenerated, the typed seam `endDateOf` dropped), before build 47;
+   - `the-wait-r2`: refining, then its gate;
+   - `crumbs-56`: red-team 46's two MEDIUMs;
+   - `redteam-46`: W4 to W8 on build 46, then its restore and verdict.
+   The Advisor's Q13 stands: the backup Worker's originals-only filter is never deployed before a remake job exists
+   (PRICING.md's lever 2a).
+1. **`crumbs-57`** (Sonnet), cut at red-team 46's verdict, for its LOWs and NITs:
+   - the host's cover standing up to 30 s after her own Develop now;
+   - the sheet's screen-reader "photos" for a video;
+   - the Download panel's "photos & videos" when there's no video;
+   - whatever W4 to W8 add.
+   It rides build 47 if it hands off in time, else build 48.
+2. **Build 47 `[preview]`** once crumbs-56, event-dates (migration applied, types regenerated) and the-wait-r2 merge
+   and red-team 46 closes. Then:
+   - the desk pass (`board-card.mjs --desk`, PREMISE re-reads);
+   - `lab:demo` on the alias at 1440 and 375;
+   - his desk-ready message by push, with the calls file. The draft is
+     `../partyreel-wt/_scratch/morning-2026-10-03.md`; bring it current first.
+3. **Red-team 47 on the delta** while he is at his desk:
+   - event-dates' range everywhere;
+   - both MEDIUMs re-walked;
+   - crumbs-57's items.
+   Milestone 35 waits on its verdict and his yes.
+4. **The close:** STATUS, the calls file (from 127), this pickup; then Moltbook one pass an hour.
 
 ## Waiting on Will
 

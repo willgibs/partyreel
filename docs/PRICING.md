@@ -215,9 +215,11 @@ links call, so that peak (~3,900 calls a second) keeps ~16 vCPUs busy.
    ([outgoing messages free](https://developers.cloudflare.com/durable-objects/platform/pricing/)), ~$0.50 a party and
    ~$12,000 a month at 100,000, clear of both ceilings; weeks, and a new moving part. (e) Bill Vercel's CDN on
    demand while the app is request-heavy and byte-light: $71 against Flat Rate's $100 tier at 1,000 hosts.
-2. **The backup**, 40% of storage and accrue-only. (a) Back up originals alone (previews and phone copies are remade,
-   or fall back to the original): a sixth of its bytes and two thirds of its writes, ~$6,000 a month at 100,000 hosts,
-   ~$60 at 1,000; a line in the Worker. (b) Let the prune keep up: it runs dry until the launch switch, deletes at most
+2. **The backup**, 40% of storage and accrue-only. (a) Back up originals alone, but only once something can remake
+   the copies: today a preview and a phone copy are made in the uploader's browser and nothing server-side remakes
+   either (a video's poster least of all), so a restore from originals alone leaves every tile and poster blank (the
+   Advisor, Q13: the Worker's filter is never deployed before a remake job exists). With one: a sixth of its bytes and
+   two thirds of its writes, ~$6,000 a month at 100,000 hosts, ~$60 at 1,000. (b) Let the prune keep up: it runs dry until the launch switch, deletes at most
    500 media a week and rescans from the head, so a deleted byte otherwise stays at $0.01 a GB-month; it needs a cursor
    and caps sized to the deletions. (c) Past ~100 TB (~$1,000 a month), a cheaper home:
    [B2](https://www.backblaze.com/cloud-storage/pricing) at $6.95 a TB with free API calls and
