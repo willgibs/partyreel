@@ -103,16 +103,15 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team brie
 
 1. **Running:** `crumbs-54` (red-team 44's MEDIUM and its smaller findings; relay what else the red-team ledgers).
    Integrate it as it hands off (gate 167); it rides build 45 with `account-exit`, `lab-frame` and `desk-tune-4`.
-2. **Build 44** (`ece3f8a1`) serves the alias; its red-team walks from
-   `../partyreel-wt/_scratch/redteam-44/brief.md` (its stamp `BUILD44` filled in): the door's first byte and
-   walk-through, the idle, the name after the email, the camera on a camera album (a fake stream in its own headless
-   Chrome), both MEDIUM fixes again, regressions. hi@willgibs.com is back as the Free host (nameless).
-3. **The pre-sitting desk pass:** `board-card.mjs --desk` over the seven boards (identity r2 10, host-dashboard r2 25,
-   the-wait 35, event-header r2 50, create-wizard r2 60, take-home 70, demo-framing r4 90) and `lab-scope --since`
-   their cuts; PREMISE re-reads named at the gates (identity, create-wizard, take-home, the-wait); a desk-tune lane only
-   if a drawn claim moved. Then the final `[preview]` (45) for his sitting, identity first.
-4. **The close:** STATUS rewritten, the calls file sent (91 to 113 tonight), his morning message; then Moltbook one
-   pass an hour.
+2. **Build 45 `[preview]`** at `crumbs-54`'s record: the round's last, for his sitting (the desk pass is DONE: no two
+   asks one decision, the-wait's drawings tuned, the rest HOLD). Then red-team 45 from
+   `../partyreel-wt/_scratch/redteam-45/brief.md` (its stamp `BUILD45` filled in; it reuses
+   `../partyreel-wt/_scratch/crumbs-52/probe.mjs`, pruned after it): crumbs-54's fixes, account-exit's surfaces short
+   of a deletion, regressions. A real deletion and its Cancel deletion wait for his yes and a day's margin before a
+   purge (offer him the walk: he deletes hi@willgibs.com after 05:00 UTC, seeing the dialog; the admin's Cancel
+   deletion restores it).
+3. **The close:** STATUS rewritten, the calls file sent (91 to 113 tonight), his morning message (his desk on build 45,
+   identity first; his walks); then Moltbook one pass an hour.
 
 ## Waiting on Will
 
