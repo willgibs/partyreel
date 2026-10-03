@@ -734,3 +734,84 @@ describe("the Download all Worker (export-ends)", () => {
     });
   });
 });
+
+describe("the spend watch (spend-watch)", () => {
+  it("is a scheduled app cron with its own switch, never a ride on the purge's run", () => {
+    expect(defOf("spend_watch")).toMatchObject({
+      kind: "scheduled",
+      host: "vercel_cron",
+      flagKey: "spend_watch_enabled",
+      canRunNow: true,
+      runPath: "/api/cron/spend-watch",
+      expectedEveryMs: DAY,
+    });
+    // It must run while the purge is paused, and it may be the one pausing it.
+    expect(defOf("spend_watch").runPath).not.toBe(defOf("purge_cron").runPath);
+  });
+
+  it("★ gives every job the app can start the route vercel.json schedules, on the catalog's own cron", async () => {
+    const { existsSync, readFileSync } = await import("node:fs");
+    const { join } = await import("node:path");
+    const vercel = JSON.parse(
+      readFileSync(join(process.cwd(), "vercel.json"), "utf8"),
+    ) as { crons?: { path: string; schedule: string }[] };
+    for (const job of JOBS.filter((j) => j.canRunNow)) {
+      expect(job.runPath, job.id).toBeDefined();
+      const crons = (vercel.crons ?? []).filter((c) => c.path === job.runPath);
+      expect(crons, job.id).toHaveLength(1);
+      expect(crons[0].schedule, job.id).toBe(job.cron);
+      expect(
+        existsSync(join(process.cwd(), `src/app${job.runPath}/route.ts`)),
+        job.id,
+      ).toBe(true);
+    }
+    // And nothing vercel.json schedules goes without a card.
+    for (const cron of vercel.crons ?? []) {
+      expect(
+        JOBS.some((j) => j.runPath === cron.path),
+        cron.path,
+      ).toBe(true);
+    }
+  });
+
+  it("★ reads attention while a reading trips or a pause of its own stands, through the breaker's own key", async () => {
+    const { runCounts } = await import("@/lib/jobs/spend-watch");
+    const tripped = runCounts({
+      nowMs: NOW,
+      baseline: null,
+      verdicts: [
+        {
+          id: "downloads",
+          state: "tripped",
+          value: 900,
+          atLeast: false,
+          peak: 10,
+          ceiling: 100,
+          basis: "peak",
+        },
+      ],
+      snap: {},
+      pausedAt: {},
+    });
+    const quiet = runCounts({
+      nowMs: NOW,
+      baseline: null,
+      verdicts: [],
+      snap: {},
+      pausedAt: {},
+    });
+    const health = (counts: unknown) =>
+      jobHealth({
+        def: defOf("spend_watch"),
+        enabled: true,
+        lastRun: {
+          ...run("ok", 60_000, 59_000),
+          breakerTripped: countsBreakerTripped(counts),
+        },
+        lastFinishedAtMs: NOW - 59_000,
+        nowMs: NOW,
+      });
+    expect(health(tripped)).toBe("attention");
+    expect(health(quiet)).toBe("ok");
+  });
+});

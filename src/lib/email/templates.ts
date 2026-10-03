@@ -548,6 +548,74 @@ export function pruneBreakerEmail(opts: {
 }
 
 /**
+ * THE SPEND WATCH TRIPPED (admin-observability.md, "The spend watch"): a reading went past ten times its busiest of
+ * the week, or past its floor on a quiet one. It says what tripped, what the watch paused on its own and what it
+ * left for a person (guest uploads, since a false alarm there would stop a real party). No button (an operator
+ * alert's shape); the jobs console rides the foot. Sent at most once a day per set of readings through sendOnce.
+ */
+export function spendWatchEmail(opts: {
+  tripped: { label: string; reading: string; ceiling: string }[];
+  /** What it paused on its own, in the console's words. */
+  paused: string[];
+  /** What it left for a person to pause. */
+  offered: string[];
+  /** Pauses it tried and could not write. */
+  failed: string[];
+  jobsUrl: string;
+}): Mail {
+  const names = opts.tripped.map((t) => t.label.toLowerCase()).join(", ");
+  return composeMail({
+    subject: `${OPERATOR_TAG} Spend watch: ${names} past the ceiling`,
+    heading: "The spend watch tripped",
+    blocks: [
+      p(
+        "A reading went past ten times its busiest of the past week, or past its floor on a quiet week: ",
+        strong("the shape of a runaway, not of growth."),
+      ),
+      {
+        kind: "fields",
+        rows: opts.tripped.map((t) => ({
+          label: t.label,
+          value: `${t.reading} (ceiling ${t.ceiling})`,
+        })),
+      },
+      ...(opts.paused.length > 0
+        ? [
+            p(
+              strong("Paused on its own: "),
+              `${opts.paused.join(", ")}. It stays off until you turn it back on.`,
+            ),
+          ]
+        : []),
+      ...(opts.offered.length > 0
+        ? [
+            p(
+              strong("Left for you: "),
+              `${opts.offered.join(", ")}. A false alarm there would stop a real party, so the watch never pauses it; pause it from the spend watch's card if this is a runaway.`,
+            ),
+          ]
+        : []),
+      ...(opts.failed.length > 0
+        ? [
+            p(
+              strong("Could not pause: "),
+              `${opts.failed.join(", ")}. Pause it by hand.`,
+            ),
+          ]
+        : []),
+      p(
+        strong("What to check:"),
+        " each reading's line on the card says where its number comes from and what usually drives it.",
+      ),
+    ],
+    foot: {
+      line: "Partyreel operations alert (the spend watch, admin-observability.md). Sent at most once a day per set of readings.",
+      link: { href: opts.jobsUrl, label: "Open the spend watch" },
+    },
+  });
+}
+
+/**
  * A REPORT THAT CANNOT WAIT FOR THE MORNING (admin-triage r2, his word in chat): a child-abuse report, whether
  * its confirmed reporter's instant hide took the item down or it arrived unconfirmed and is still up. It goes to
  * the ops inbox at once, beside the portal's own count, so a false hide lasts minutes and a real one is acted on.
