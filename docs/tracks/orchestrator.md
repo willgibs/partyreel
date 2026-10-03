@@ -54,6 +54,8 @@ plan's whole text (lane splits, the Advisor's Q11 corrections, Will's answers) i
 | `event-header-r3` | board event-header r3 [desk 50]: facts (the strip free of a timeline, new ideas; the dial banked) and doors (app-store depth, quieter windows, polished glass, each with its sticky form); ranges drawn | running (cut at `518aff34`); WIP pushes each milestone | Opus, 3134 | `ac26dc46271773f37` |
 | `crumbs-55` | four crumbs: frame-ancestors and X-Frame-Options against clickjacking (both projects), the next-step chip's room link, the brand kit's fifth ground and tokens, How it works' Create picture | MERGED at `599ede52` (gate 176 green: lint, test, build, lab:smoke, lab:demo all) | Sonnet, 3131 | `af911157a822471ec` |
 | `host-dashboard-r3` | board host-dashboard r3 [desk 25]: events (a collapsible Recent row over one gallery/table/list, 1 to 200 events), the empty featured stage, the feature's rule as a choice; ranges and lead=made drawn as settled | running (cut at `499612e4`, ahead of event-dates by the Orchestrator's call); WIP pushes each milestone | Opus, 3135 | `a96b83311939a385c` |
+| `event-dates` | an optional end date read everywhere (Settings' range, the dashboard's week, live today and stage, the formatter's ranges, the develop default after the last day; never the lifecycle); lead=made; its migration for the Orchestrator | running (cut at `9af92e54`); WIP pushes each milestone | Opus, 3132 | `a4f91d827093a1238` |
+| `the-wait-r2` | board the-wait r2 [desk 35]: the arrival, his first choice drawn properly (the develop as the album's first load, two or three takes), the premiere first and into place refined | running (cut at `9af92e54`); WIP pushes each milestone | Opus, 3133 | `a0a9f95e641174de4` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Q8
 (round 12's plan) answered with 21 corrections, all folded into the briefs; the next consult is the foundation's
@@ -88,12 +90,12 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team brie
 
 ## Next, in order
 
-0. **Now (10:55Z):** both migrations APPLIED by protocol (wait's 20261003103742, take-home's 20261003104506, md5
-   proofs held); next: regenerate types and drop take-home's typed seams (its Deferred: `.overrideTypes` in four
-   reads and more), the advisors' counts, deploy `workers/export` (it refuses the `phone` key until then; `wrangler
-   whoami` first), integrate `crumbs-55` (handed off at `de3a3ad7`), then build 46 and red-team 46. The Advisor's
-   Q13: the backup Worker's originals-only filter is NOT safe (nothing server-side remakes a preview or phone copy):
-   never deployed; call 116's item 2 corrected in the calls file.
+0. **Now (11:20Z):** every wave-1 lane is merged and both migrations are applied (types regenerated at `e0cbda7d`;
+   take-home's typed seams one ROADMAP line), and the export Worker is deployed (version 955ce073). Build 46 `[preview]`
+   is `9af92e54`, deploying to the alias; then red-team 46 from `../partyreel-wt/_scratch/redteam-46/brief.md` (its stamp
+   `BUILD46` filled in). Running: `event-header-r3`, `host-dashboard-r3`, `event-dates` (its migration for the Advisor,
+   then apply by protocol) and `the-wait-r2`. The Advisor's Q13: the backup Worker's originals-only filter is never
+   deployed (nothing server-side remakes a preview or a phone copy).
 1. **Running** (the In-flight table; integrate each as it hands off, gates from 173): `wait-wiring` and
    `take-home-wiring` each bring a migration (the Advisor reads it, then apply by protocol: verbatim, the md5 proof,
    advisors, types regenerated and their seams dropped) and take-home a `workers/export` change I deploy (`wrangler
