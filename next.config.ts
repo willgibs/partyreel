@@ -22,11 +22,13 @@ import {
  * one-way door for the domain and every future subdomain, so it belongs to the launch checklist, not
  * to a hardening pass. `max-age` is two years, which is the value the list would require anyway.
  *
- * Permissions-Policy denies what the product genuinely does not use (verified: no getUserMedia, no
- * geolocation, no Payment Request; Stripe is a redirect to its own domain, and guest capture is the
- * file picker's `capture` attribute, not the camera API). `camera` and `payment` are `self` rather
- * than empty so a same-origin feature can never be broken by this file from a distance; the third
- * parties an empty list would block are already blocked by having no iframes.
+ * Permissions-Policy denies what the product genuinely does not use (verified: no geolocation, no
+ * Payment Request; Stripe is a redirect to its own domain). `camera` and `microphone` are `self`: the
+ * album's own camera (`components/guest/camera/`) asks for the camera with getUserMedia, and for the
+ * microphone only while a guest holds the shutter to film (an empty `microphone` list refused even the
+ * site itself, so every camera video would have been silent). `payment` is `self` so a same-origin
+ * feature can never be broken by this file from a distance; the third parties an empty list would
+ * block are already blocked by having no iframes.
  */
 const SECURITY_HEADERS = [
   {
@@ -38,7 +40,7 @@ const SECURITY_HEADERS = [
   {
     key: "Permissions-Policy",
     value:
-      "camera=(self), microphone=(), geolocation=(), payment=(self), usb=(), browsing-topics=()",
+      "camera=(self), microphone=(self), geolocation=(), payment=(self), usb=(), browsing-topics=()",
   },
 ];
 

@@ -386,3 +386,53 @@ describe("the empty sets it is handed", () => {
     ).toEqual([]);
   });
 });
+
+/* ★ A LANDING THE QUEUE TOLD SEALED (disposable-camera, red-team 43's upload half): the server answered `sealed` and
+   the queue said so, so it waits for the develop from the moment it lands, before her rows' next read, whatever the
+   page read of the album. */
+describe("a landing the queue told sealed", () => {
+  it("waits to develop at once, counted and hers to take back", () => {
+    const out = buildTrackerRows({
+      queue: [
+        {
+          id: "q1",
+          status: "done",
+          kind: "photo",
+          mediaId: "m1",
+          mediaStatus: "sealed",
+        },
+      ],
+      own: null,
+      album: new Set(),
+      approvedOnce: new Set(),
+      removed: new Set(),
+    });
+    expect(out).toEqual([
+      expect.objectContaining({
+        mediaId: "m1",
+        status: "waiting",
+        sealed: true,
+      }),
+    ]);
+    expect(waitingCount(out)).toBe(1);
+  });
+
+  it("is in the album once it develops (its id turns up in the album's sync)", () => {
+    const out = buildTrackerRows({
+      queue: [
+        {
+          id: "q1",
+          status: "done",
+          kind: "photo",
+          mediaId: "m1",
+          mediaStatus: "sealed",
+        },
+      ],
+      own: [{ id: "m1", status: "approved", sealed: true }],
+      album: new Set(["m1"]),
+      approvedOnce: new Set(),
+      removed: new Set(),
+    });
+    expect(out[0].status).toBe("approved");
+  });
+});
