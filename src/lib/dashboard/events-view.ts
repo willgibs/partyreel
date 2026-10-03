@@ -122,7 +122,7 @@ export type EventListRow = {
    * (`getEventCardStills`). Empty on guest and deleted rows, which hold their cover.
    */
   stills: string[];
-  /** The rows view's date in full ("October 3, 2026", "October 3 to 5, 2026", "No date set"), or a guest album's line. */
+  /** The rows view's date in full ("October 3, 2026", "October 3–5, 2026", "No date set"), or a guest album's line. */
   dateLabel: string;
   /** The tile's when, in the fewest exact words (`whenOf`): "Tomorrow", "Sat, Sep 26", "Day 2 of 3", "No date". */
   when: string;

@@ -26,6 +26,7 @@
  */
 
 import { type EventDays, eventDays } from "@/lib/events/dates";
+import { dashRange } from "@/lib/utils";
 
 /** An event's phase on the viewer's day. */
 export type Phase = "before" | "live" | "after" | "past";
@@ -143,18 +144,19 @@ export const longDate = (day: string, today?: string) =>
   );
 
 /**
- * A range as a heading says it: "Friday, October 2 to Sunday, October 4", the year said once at its end when it is
- * not this year's, and on each day when the range turns a year. One day is `longDate`'s.
+ * A range as a heading says it: "Friday, October 2 – Sunday, October 4", the year said once at its end when it is
+ * not this year's, and on each day when the range turns a year. One day is `longDate`'s. Its dash is `dashRange`'s
+ * (`lib/utils.ts`), as every range's is.
  */
 export function longDays(first: string, last: string, today?: string): string {
   if (last <= first) return longDate(first, today);
   const a = new Date(utc(first));
   const b = new Date(utc(last));
   if (first.slice(0, 4) !== last.slice(0, 4))
-    return `${LONG_YEAR.format(a)} to ${LONG_YEAR.format(b)}`;
+    return dashRange(LONG_YEAR.format(a), LONG_YEAR.format(b));
   if (today && first.slice(0, 4) !== today.slice(0, 4))
-    return `${LONG.format(a)} to ${LONG_YEAR.format(b)}`;
-  return `${LONG.format(a)} to ${LONG.format(b)}`;
+    return dashRange(LONG.format(a), LONG_YEAR.format(b));
+  return dashRange(LONG.format(a), LONG.format(b));
 }
 
 /** A date face's three parts, "Sat", "Oct", "3": what a tile wears before it has a photograph. */
@@ -201,10 +203,11 @@ export function whenOf(
 
 /**
  * A RANGE'S WHEN, the single day's ladder widened to two days: on its days, where it stands ("Day 2 of 3", beside its
- * Live mark); inside the week ahead, its weekdays ("Fri to Sun", the whole range inside it, since a weekday a week on
- * would read as this one); else its dates ("Oct 3 to 5", "Oct 30 to Nov 2"), with the year once a range to come is in
+ * Live mark); inside the week ahead, its weekdays ("Fri–Sun", the whole range inside it, since a weekday a week on
+ * would read as this one); else its dates ("Oct 3–5", "Oct 30 – Nov 2"), with the year once a range to come is in
  * another year beyond the month, and once a past year has turned and the month after is gone, the month and year it
- * began (its days no longer matter). "To", never a dash: a screen reader says it.
+ * began (its days no longer matter). Its dash is `dashRange`'s (`lib/utils.ts`): closed up between single terms,
+ * spaced where a side holds a space.
  */
 function rangeWhen({ first, last }: EventDays, today: string): string {
   const ahead = daysFrom(today, first);
@@ -214,17 +217,18 @@ function rangeWhen({ first, last }: EventDays, today: string): string {
   const a = new Date(utc(first));
   const b = new Date(utc(last));
   if (ahead > 0 && behind < WEEK_DAYS)
-    return `${WEEKDAY_SHORT.format(a)} to ${WEEKDAY_SHORT.format(b)}`;
+    return dashRange(WEEKDAY_SHORT.format(a), WEEKDAY_SHORT.format(b));
+  // A same-month range says its month once and dashes its two day numbers ("Oct 3–5"); across months, its two dates.
   const span =
     first.slice(0, 7) === last.slice(0, 7)
-      ? `${MONTH_DAY.format(a)} to ${DAY_NUMBER.format(b)}`
-      : `${MONTH_DAY.format(a)} to ${MONTH_DAY.format(b)}`;
+      ? `${MONTH_SHORT.format(a)} ${dashRange(DAY_NUMBER.format(a), DAY_NUMBER.format(b))}`
+      : dashRange(MONTH_DAY.format(a), MONTH_DAY.format(b));
   const year = today.slice(0, 4);
   if (ahead > 0) {
     if (first.slice(0, 4) === year || ahead <= AFTER_DAYS) return span;
     return first.slice(0, 4) === last.slice(0, 4)
       ? `${span}, ${last.slice(0, 4)}`
-      : `${MONTH_DAY_YEAR.format(a)} to ${MONTH_DAY_YEAR.format(b)}`;
+      : dashRange(MONTH_DAY_YEAR.format(a), MONTH_DAY_YEAR.format(b));
   }
   if (last.slice(0, 4) === year || -behind <= AFTER_DAYS) return span;
   return MONTH_YEAR.format(a);

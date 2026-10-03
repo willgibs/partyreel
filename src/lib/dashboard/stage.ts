@@ -82,8 +82,8 @@ export function stageWordsOf(
 }
 
 /**
- * The line under the name: the date in full ("Friday, October 2"), a range's two days in full ("Friday, October 2
- * to Sunday, October 4"), or null for an undated event (its words say so).
+ * The line under the name: the date in full ("Friday, October 2"), a range's two days in full ("Friday, October 2 –
+ * Sunday, October 4"), or null for an undated event (its words say so).
  */
 export function stageDateLine(e: HomeEvent, today: string): string | null {
   if (!e.date) return null;

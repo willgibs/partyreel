@@ -285,7 +285,7 @@ describe("the welcome, with a range of days", () => {
     }).items.find((i) => i.id === "welcome");
     expect(welcome).toMatchObject({
       done: true,
-      line: "October 9 to 11, 2026, and a note guests read first.",
+      line: "October 9–11, 2026, and a note guests read first.",
     });
   });
 

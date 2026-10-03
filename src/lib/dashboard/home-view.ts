@@ -43,7 +43,7 @@ export type HostedEvent = HomeEvent & {
   stills: string[];
   /** Open or Paused (`uploadsLabel`, the hub code's word): the rows view's state. */
   uploadsLabel: string;
-  /** The rows view's full date: "October 3, 2026", "October 3 to 5, 2026", "No date set". */
+  /** The rows view's full date: "October 3, 2026", "October 3–5, 2026", "No date set". */
   dateLabel: string;
 };
 

@@ -168,7 +168,13 @@ const MONTH_DAY = new Intl.DateTimeFormat(DATE_LOCALE, {
   day: "numeric",
 });
 
-/** The day of the month alone, "5": a range's last day inside its first day's month. */
+/** A month's name alone, "October": the lead a same-month range says once, before its two day numbers. */
+const MONTH_NAME = new Intl.DateTimeFormat(DATE_LOCALE, {
+  timeZone: DATE_ZONE,
+  month: "long",
+});
+
+/** The day of the month alone, "5": a same-month range's two days, said after its month once. */
 const DAY_OF_MONTH = new Intl.DateTimeFormat(DATE_LOCALE, {
   timeZone: DATE_ZONE,
   day: "numeric",
@@ -181,11 +187,32 @@ function calendarDay(date: string): Date {
 }
 
 /**
+ * ★ A RANGE'S DASH, BY THE TYPOGRAPHER'S RULE (crumbs-58, Will 2026-10-03: "let's go 'X-Y', it presents cleaner than 'X
+ * to Y'. Less space, more compact."): the en dash (U+2013), closed up between two single terms ("3–5", "Tue–Thu") and
+ * spaced where either side holds a space ("October 30 – November 2"). Every range the product says goes through here
+ * (`formatEventDate`, the dashboard's `lib/dashboard/when.ts`), so each surface follows with no edit of its own; a range
+ * that shares a lead (the month of "October 3–5") passes only the two terms the dash stands between.
+ *
+ * ★ NEVER `Intl.DateTimeFormat#formatRange`: it spaces the dash on THIN spaces (U+2009: "October 3 – 5, 2026", measured
+ * on Node 22 / ICU 77), which a closed-up range never has, and its spacing is the runtime's ICU's, so a server and a
+ * browser could print one range two ways (the drift the pinned formats above close). Plain U+0020 only.
+ *
+ * ★ A SCREEN READER MAY NOT SAY "TO" FOR IT (measured, crumbs-58): macOS's voice reads "October 3–5" as "3 to 5" but says
+ * nothing for a spaced dash, and no "to" between weekday names; NVDA lists the en dash under "most" punctuation, so its
+ * default level ("some") skips it.
+ */
+export function dashRange(from: string, to: string): string {
+  return /\s/.test(from) || /\s/.test(to)
+    ? `${from} \u2013 ${to}`
+    : `${from}\u2013${to}`;
+}
+
+/**
  * Formats an `events.event_date` ("YYYY-MM-DD", a date-only column) for display: "June 1, 2026", and with the event's
- * last day (`events.event_end_date`) a range of days in the fewest words that are still exact: "October 3 to 5,
- * 2026", "October 30 to November 2, 2026", "December 30, 2026 to January 2, 2027" (lane `event-dates`; "to", never a
- * dash, so a screen reader says it). An end that is missing, unreadable or no later than the date is the one day
- * (`eventDays`, the range's one shape).
+ * last day (`events.event_end_date`) a range of days in the fewest words that are still exact: "October 3–5, 2026",
+ * "October 30 – November 2, 2026", "December 30, 2026 – January 2, 2027" (lane `event-dates`; the dash is
+ * `dashRange`'s). An end that is missing, unreadable or no later than the date is the one day (`eventDays`, the
+ * range's one shape).
  * WHY split-and-construct instead of `new Date(str)`: the column is a calendar day, not an instant, so it is built
  * at UTC midnight from its own parts and read back in UTC, which is that same day whatever zone the page renders
  * in (a midnight read in another zone would be the day before, or after).
@@ -197,10 +224,14 @@ export function formatEventDate(date: string, endDate?: string | null): string {
   const last = calendarDay(days.last);
   const year = days.first.slice(0, 4);
   if (days.last.slice(0, 4) !== year)
-    return `${DAY.format(first)} to ${DAY.format(last)}`;
+    return dashRange(DAY.format(first), DAY.format(last));
   if (days.last.slice(0, 7) !== days.first.slice(0, 7))
-    return `${MONTH_DAY.format(first)} to ${MONTH_DAY.format(last)}, ${year}`;
-  return `${MONTH_DAY.format(first)} to ${DAY_OF_MONTH.format(last)}, ${year}`;
+    return `${dashRange(MONTH_DAY.format(first), MONTH_DAY.format(last))}, ${year}`;
+  const dates = dashRange(
+    DAY_OF_MONTH.format(first),
+    DAY_OF_MONTH.format(last),
+  );
+  return `${MONTH_NAME.format(first)} ${dates}, ${year}`;
 }
 
 /** An instant's month and year, "September 2026" (a profile's Joined), read in UTC like every pinned date. */

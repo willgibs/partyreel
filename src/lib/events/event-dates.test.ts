@@ -13,7 +13,7 @@ import {
   shiftDay,
 } from "@/lib/events/dates";
 import { runAsGermanRuntime } from "@/lib/test-utils/german-runtime";
-import { formatEventDate } from "@/lib/utils";
+import { dashRange, formatEventDate } from "@/lib/utils";
 
 /**
  * AN EVENT'S OPTIONAL END DATE (lane `event-dates`, Will 2026-10-03): a range of days, no times, read everywhere a
@@ -106,14 +106,31 @@ describe("formatEventDate says a range", () => {
 
   it("says a range in one month, across months, and across a year's turn", () => {
     expect(formatEventDate("2026-10-03", "2026-10-05")).toBe(
-      "October 3 to 5, 2026",
+      "October 3–5, 2026",
     );
     expect(formatEventDate("2026-10-30", "2026-11-02")).toBe(
-      "October 30 to November 2, 2026",
+      "October 30 – November 2, 2026",
     );
     expect(formatEventDate("2026-12-30", "2027-01-02")).toBe(
-      "December 30, 2026 to January 2, 2027",
+      "December 30, 2026 – January 2, 2027",
     );
+  });
+
+  it("★ is the en dash itself, on plain spaces: never the word to, a hyphen, an em dash or a thin space", () => {
+    // crumbs-58 (Will: "'X-Y' presents cleaner than 'X to Y'"). `Intl`'s own `formatRange` would print "October 3 – 5,
+    // 2026" on THIN spaces (U+2009, measured on Node 22.21 / ICU 77), spacing a range closed-up never is and one that
+    // is the runtime's ICU to decide, so a server and a browser could print it differently: the dash is `dashRange`'s.
+    // A hyphen or an em dash looks the same in a diff, so the glyph is read off the string: of everything printed
+    // but letters, digits, commas and U+0020, only one U+2013 is left.
+    for (const [from, to] of [
+      ["2026-10-03", "2026-10-05"],
+      ["2026-10-30", "2026-11-02"],
+      ["2026-12-30", "2027-01-02"],
+    ] as const) {
+      const said = formatEventDate(from, to);
+      expect(said.replace(/[A-Za-z0-9, ]/g, ""), said).toBe("\u2013");
+      expect(said, said).not.toMatch(/\bto\b/);
+    }
   });
 
   it("never prints an end it cannot stand behind: an earlier or unreadable one is the one day", () => {
@@ -132,12 +149,37 @@ describe("formatEventDate says a range", () => {
     ]) {
       process.env.TZ = tz;
       expect(formatEventDate("2026-10-30", "2026-11-02"), tz).toBe(
-        "October 30 to November 2, 2026",
+        "October 30 – November 2, 2026",
       );
       expect(formatEventDate("2026-12-31", "2027-01-01"), tz).toBe(
-        "December 31, 2026 to January 1, 2027",
+        "December 31, 2026 – January 1, 2027",
       );
     }
+  });
+});
+
+/**
+ * ★ A RANGE'S DASH IS ONE RULE, THE TYPOGRAPHER'S (crumbs-58): closed up between two single terms ("3–5", "Tue–Thu"),
+ * spaced where either side holds a space ("October 30 – November 2"). Every range the product says goes through
+ * `dashRange` (`formatEventDate` and the dashboard's `lib/dashboard/when.ts`), so what holds here holds on every
+ * surface that says one.
+ */
+describe("a range's dash", () => {
+  it("closes up between two single terms", () => {
+    expect(dashRange("3", "5")).toBe("3–5");
+    expect(dashRange("Tue", "Thu")).toBe("Tue–Thu");
+  });
+
+  it("spaces where either side holds a space, so a whole date on one side stays whole", () => {
+    expect(dashRange("October 30", "November 2")).toBe(
+      "October 30 – November 2",
+    );
+    expect(dashRange("December 30, 2026", "January 2, 2027")).toBe(
+      "December 30, 2026 – January 2, 2027",
+    );
+    // One side is enough: "30–November 2" would hang a bare day off the name beside it.
+    expect(dashRange("30", "November 2")).toBe("30 – November 2");
+    expect(dashRange("October 30", "2")).toBe("October 30 – 2");
   });
 });
 

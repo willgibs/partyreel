@@ -201,7 +201,7 @@ describe("a range of days on the page", () => {
         ...binned,
         date: "2026-08-01",
         endDate: "2026-08-03",
-        dateLabel: "August 1 to 3, 2026",
+        dateLabel: "August 1–3, 2026",
       },
     ],
   });
@@ -209,8 +209,8 @@ describe("a range of days on the page", () => {
   it("★ says a range in the week by where it stands: its day of its days, its weekdays ahead, its dates behind", () => {
     expect(view.week.map((c) => [c.id, c.when, c.live])).toEqual([
       ["conference", "Day 2 of 3", true],
-      ["wedding", "Sun to Tue", false],
-      ["trip", "Sep 10 to 27", false],
+      ["wedding", "Sun–Tue", false],
+      ["trip", "Sep 10–27", false],
     ]);
     // A range's face is its first day, as an invitation sets it.
     expect(view.week.find((c) => c.id === "wedding")?.face).toEqual({
@@ -224,9 +224,7 @@ describe("a range of days on the page", () => {
     expect(view.events.rows.find((r) => r.id === "conference")?.when).toBe(
       "Day 2 of 3",
     );
-    expect(view.events.rows.find((r) => r.id === "d1")?.when).toBe(
-      "Aug 1 to 3",
-    );
+    expect(view.events.rows.find((r) => r.id === "d1")?.when).toBe("Aug 1–3");
   });
 });
 
