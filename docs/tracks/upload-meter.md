@@ -1,7 +1,7 @@
 ---
 track: upload-meter
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "ada60bba"            # the launch-prep SHA the branch was cut from
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
+cut: "015ff8e6"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   - src/app/api/r2/presign-upload/
@@ -119,22 +119,95 @@ and how the meter counts is a fact no host can feel).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Look at first:** Question 9, before the migration is applied: counting a presign's declared bytes lets anyone
+  holding a ticket spend a host's month with presigns she never fills (a Pro 100 GB month in 30 requests), where today
+  that harm costs the bytes themselves. Built as briefed (pre-launch, nobody exposed); staging recommended before
+  launch. Then the apply order: APPLY BEFORE PUSH, and redeploy partyreel.com in the same sitting (below).
+- **Commits**, pushed to `origin/lp/upload-meter`: `a4684412` the work; `b0a24025` billing-caps.md, Question 9 (named
+  in the migration's header) and the Deferred lines; `c759a682` the host breaker's words ("Your albums have taken a lot
+  of uploads this hour") and two wording fixes. No sync: since the cut, launch-prep moved only by record commits
+  (`881ab2d5`, `7cf4045c`, docs/tracks alone). The head is this manifest's commit, in the chat line.
+- **Gates on `c759a682`**, each on its own exit code, logs in `../_scratch/upload-meter/`: `pnpm typecheck` 0
+  (`gate-typecheck.log`), `pnpm lint` 0 (`gate-lint.log`), `pnpm test` 0, 871 files and 10,385 tests
+  (`gate-test.log`), `zsh scripts/build-lock.sh pnpm build` 0 (`gate-build.log`), `pnpm lab:smoke --base
+  http://localhost:3131` 0, 148 checks and 0 failing (`gate-lab-smoke.log`). No board, so no lab:demo.
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`, 20 paths): owned, the migration, the two presign
+  and complete route dirs' files, the five `src/lib/upload/server-pipeline*` files, the two
+  `src/lib/security/abuse-rate-limit*` files, `docs/systems/billing-caps.md` and this file. Seven exceptions, each why:
+  - `src/app/api/host/r2/presign-upload/route.ts`: the host strategy's words for the meter's refusals (the engine's new
+    required `meterRefusal`; the brief's "the host's and the guest's paths both"), its month sentence one constant.
+  - `src/lib/db/mutations/events.ts` and `events.test.ts`: the create action prints the daily breaker's sentence ahead
+    of its plan-limit branch, which would tell a Pro host "the event limit for your plan" and offer an Upgrade; the
+    test's fake builder gains `insert`.
+  - `src/lib/db/migration-guards.test.ts`: the create_media* "ingress meter" guard reshaped on purpose (the check moved
+    to the presign), its scar kept.
+  - `src/lib/upload/phone-copy-migration.test.ts`: "never metered" no longer pins the ledger's insert (gone from
+    create_media*), and "who may call them" reads the grants in the winning file; scars kept.
+  - `src/app/api/r2/phone-copy.test.ts`: one line, its admin stub answers the meter.
+  - `scripts/seed-demo-event.mjs`: meters each file before its PUT, since it drives the product's write path and
+    create_media no longer counts. Not run (it reseeds the marketing demo, the Orchestrator's); `node --check` only.
+- **The items:**
+  1. The presign counts: `meter_upload` (migration `20261003210500_upload_meter.sql`, called by
+     `src/lib/upload/server-pipeline-meter.ts` from the engine after every gate and before any URL) counts the declared
+     bytes and the item under the host's profiles lock, after the breaker, the month (the same `monthly_ingress_cap()`
+     and strict line create_media read at complete) and the room (the cap and its 10%, so a file the complete would
+     refuse never spends the month); `create_media*` neither check nor count the month. Host and guest both. Never
+     twice: the complete never asks the meter (`complete-upload/route.test.ts`), and no winning body but
+     `meter_upload` writes the ledger (`server-pipeline-meter-migration.test.ts`). It fails CLOSED.
+  2. A preview never heavier than its original: refused at presign in words (`preview_refused`, in the preview's slot),
+     the original presigned and counted; a preview past 2 MB now says so too (it was silent).
+  3. The breakers: an account's uploads a clock hour, 20,000 (`meter_upload`; 429 with `Retry-After`; a guest's words
+     name the album, the host's her albums), and its creations in 24 hours, 100 (`enforce_event_limit` on INSERT only,
+     after the plan's limit; the wizard prints "You've created a lot of events today. Try again tomorrow.").
+  4. The join backstop: 400 to 3,000 a quarter-hour per (address, event), breadth unchanged.
+  5. `billing-caps.md` in place (System-doc edits).
+- **Red first, then green** (`../_scratch/upload-meter/red-green.log`):
+  - the live red walk on today's code (`meter-walk.mjs --mode red`: real guest routes on localhost:3131 against the
+    live database and R2): the presign +0, the complete +101,450, an abandoned 242,662 bytes in R2 counted nothing, a
+    2,000,000-byte preview beside a 1,000-byte original minted (5/5);
+  - the migration's rolled-back proof on the live schema: red 11/11 failing on what each lacks, green 12/12 (both at
+    the file's foot), nothing persisted after either (checked); the green run's bodies hash as the file's
+    (`fnhash.mjs`);
+  - TS: 34 red with the implementation stashed (`red-ts.log`), the touched suites 507/507 green (`green-ts.log`), then
+    the whole suite;
+  - live, this code against the unmigrated database: the presign fails CLOSED (503 `server_error`, nothing minted, the
+    ledger unchanged), on `b0a24025`'s tree and again on `c759a682`'s (`closed-check.mjs`).
+- **Pending the apply (the brief's last Verify on):** a real upload, guest and host, counted once at presign and never
+  at complete, needs the migration applied and this code deployed (without it the presign fails closed, by design).
+  Its SQL is proved by the rolled-back proof (steps 3 and 4: the meter +3,000,000 bytes and +1 item; the host's and the
+  guest's completes +0 with the physical and active bytes +5,400,000) and its routes in Vitest; the live walk is one
+  command for the guest (`node ../_scratch/upload-meter/meter-walk.mjs --base <alias> --event
+  340fcc7b-6c41-48f6-a143-6ef9f6724f4b --mode green`) and two console steps for the host with the ledger's SQL
+  (`../_scratch/upload-meter/host-walk.md`).
+- **Live test data left**, all in the export wiring probe (disposable): the red walk's photograph (media
+  `89c38bbb-ece9-4d81-9652-4b91d50c0633`, 101,450 B, its object in R2), three name-only guest rows ("Meter walk",
+  "Meter closed" twice), and willg97's October ledger +101,450 (the meter never refunds). The abandoned object was
+  deleted from R2.
+- **Assets requested from Will:** none.
+- **Board ideas:**
+  - A host's month in `/admin` (its bytes, its items, the hour) with an operator's reset for a griefed or mistaken
+    month: PRICING says nothing shows a host's meter and there is no override, and Question 9 makes one urgent.
+  - Staged uploads (Question 9's recommendation) as their own lane before launch, with backup-prune's Worker filter.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** `supabase/migrations/20261003210500_upload_meter.sql`,
+  APPLY BEFORE PUSH (this code fails closed without it), and redeploy partyreel.com in the same sitting: it shares the
+  database, and until it runs this code its uploads count nowhere. Its drift check (verified live 2026-10-03):
+  create_media `e83666cd…`, create_media_as_host `21f0397f…`, enforce_event_limit `0bc03722…`; after it, the four bodies
+  hash `81d65fec…`, `db8c00fa…`, `42fb725f…` and meter_upload `d7015409…`; advisors expected 19 / 4 / 35, unchanged.
+  Then regenerate the types and drop the `untyped` seam in `src/lib/upload/server-pipeline-meter.ts`. No Worker,
+  Vercel, Stripe or env change.
+- **Docs outside the lane this makes stale** (the Orchestrator's to refine; each a line):
+  - `uploads-and-r2.md`: the complete route "records the row through `create_media*`, which writes the ledger" (the
+    presign's meter writes it now); "No request rate limiter sits on the four routes but one" (the presign's hourly
+    breaker, in SQL); the preview bullet (capped at its original too, refused in words).
+  - `database-security.md`: `meter_upload` joins the service-role-only inventory and the one-profiles-lock list.
+  - `PRICING.md`, What it costs us: the copies' preview, "An upload", "An upload never completed", "A guest" (400 is
+    3,000), "(c) Bounds" and the preconditions still name these as to add.
+- **Calls his to overrule:** Questions 1 to 9, each built as recommended: the count at presign and its window; the
+  room checked before the count; the preview refused, never the upload; 20,000 an hour; 100 a day; 3,000 a
+  quarter-hour; fail closed; a retry counts again; ship the count now and stage before launch.
 
 ## Where I am
 
 - 2026-10-03: booted; plan and Questions written (above).
-- 2026-10-03 20:35Z: the work is committed at `a4684412` (the migration with its live red 11/11 and green 12/12
-  rolled-back proof at its foot; the engine's meter; both strategies' words; the preview; both breakers; the join
-  backstop; the create action's words; the seed; two reshaped pins). Red and green logged at
-  `../_scratch/upload-meter/red-green.log` (the live red walk, the SQL red and green, the TS red 34 failing and green
-  507/507). Typecheck and lint green. Next: billing-caps.md, the whole gate, lab:smoke, the Handoff.
+- 2026-10-03 20:35Z: the work committed at `a4684412`; red and green logged.
+- 2026-10-03 21:00Z: handed off (the Handoff above).
