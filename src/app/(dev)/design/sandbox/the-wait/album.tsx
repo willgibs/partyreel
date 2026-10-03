@@ -1,7 +1,13 @@
 "use client";
 
 import type { CSSProperties, ReactNode, Ref } from "react";
-import { Camera, ListChecks, Play, QrCode, SlidersHorizontal } from "lucide-react";
+import {
+  Camera,
+  ListChecks,
+  Play,
+  QrCode,
+  SlidersHorizontal,
+} from "lucide-react";
 
 import {
   AlbumCover,
@@ -90,7 +96,9 @@ export function CoverGround({ developAt }: { developAt: number | null }) {
     <div
       className="tw-a tw-cover-develop absolute inset-0"
       data-tw-cover="develop"
-      style={at(developAt, { "--tw-cover-d": `${developAt}ms` } as CSSProperties)}
+      style={at(developAt, {
+        "--tw-cover-d": `${developAt}ms`,
+      } as CSSProperties)}
     >
       <HeadStills stills={stills} />
     </div>
@@ -242,7 +250,10 @@ export function TileBox({
       ref={ref}
       {...data}
       data-tw-tile={tile.photo.id}
-      className={cn("absolute overflow-hidden rounded-tile bg-muted", className)}
+      className={cn(
+        "absolute overflow-hidden rounded-tile bg-muted",
+        className,
+      )}
       style={{
         left: tile.x,
         top: tile.y,

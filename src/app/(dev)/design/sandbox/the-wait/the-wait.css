@@ -54,6 +54,22 @@
 .tw-play[data-tw-motion="reduced"] [data-reveal] {
   transition: opacity 200ms ease-out !important;
 }
+/* ★ AND NOTHING OF THE BOARD'S OWN MOVES IN IT, whichever part a drawing hands it: a rise is a fade, a sink a fade
+   out, a growth or a wall standing where it ends (the components draw that pass's own timings; this is the belt). */
+.tw-play[data-tw-motion="reduced"] .tw-rise-in,
+.tw-play[data-tw-motion="reduced"] .tw-tile-in,
+.tw-play[data-tw-motion="reduced"] .tw-beat {
+  animation-name: tw-fade-in;
+}
+.tw-play[data-tw-motion="reduced"] .tw-sink {
+  animation-name: tw-fade-out;
+}
+.tw-play[data-tw-motion="reduced"] .tw-grow,
+.tw-play[data-tw-motion="reduced"] .tw-shrink,
+.tw-play[data-tw-motion="reduced"] .tw-fit,
+.tw-play[data-tw-motion="reduced"] .tw-drop {
+  animation: none;
+}
 
 /* A live frame playing again: it fades in, never cuts from the album back to the sheet. */
 .tw-replay {
@@ -161,19 +177,21 @@
   animation-duration: 900ms;
   animation-timing-function: var(--ease-emphasis);
 }
-/* The well filling with light, from its lamp. */
+/* The well filling with light, from its lamp: brightest under the lamp, warming toward the edges, and spilling past
+   them a little, as a lit sheet on a light table does. */
 .tw-wash {
   position: absolute;
   inset: 0;
   z-index: 3;
   pointer-events: none;
-  border-radius: inherit;
+  border-radius: calc(var(--radius-tile) * 3);
   background: radial-gradient(
-    120% 90% at 50% 0%,
-    oklch(0.98 0.02 80 / 0.98),
-    oklch(0.95 0.03 70 / 0.9) 55%,
-    oklch(0.9 0.04 60 / 0.82)
+    130% 100% at 50% 0%,
+    oklch(0.99 0.012 85 / 0.98),
+    oklch(0.95 0.035 72 / 0.94) 50%,
+    oklch(0.86 0.07 50 / 0.88)
   );
+  box-shadow: 0 0 56px 6px oklch(0.9 0.08 60 / 0.32);
 }
 .tw-wash.tw-a {
   animation-name: tw-fade-in;

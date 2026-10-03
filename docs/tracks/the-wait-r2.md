@@ -89,7 +89,11 @@ answered (the board's `carried`), each his to overrule:
 
 ## Where I am
 
-- First pass drawn and committed: `spec.ts` (round 2, one ask, five options, r1's picks settled), `board.tsx`, the
-  drawings (`album.tsx` the page, `develop.tsx` the three develops, `premiere.tsx`, `place.tsx`, `motion.tsx` the
-  clock, `geometry.ts` production's sheet and rows arithmetic). Typecheck, lint and the registry tests green on it.
-  Next: refine each take at 375 and 1440 from captures (`_scratch/the-wait-r2/cap.mjs`), then the gate and handoff.
+- Drawn and committed: `spec.ts` (round 2, one ask, five options, r1's picks settled), `board.tsx`, the drawings
+  (`album.tsx` the page, `develop.tsx` the three develops, `premiere.tsx`, `place.tsx`, `motion.tsx` the clock,
+  `geometry.ts` production's sheet and rows arithmetic). Typecheck, lint and the registry tests green; lab:smoke and
+  lab:demo green at 1440 and 375 (and wearing screen=1440) on `18963411`.
+- This milestone: the darkroom's sheet fades before its dark (no squares over the cover's words), the light's wash
+  made luminous, reduced motion fade-only everywhere (a CSS belt, and the count's word fades), prettier on the folder.
+- Next: captures at 375 and 1440 of the premiere's drop and the light (`_scratch/the-wait-r2/cap.mjs`), then the whole
+  gate through `zsh scripts/build-lock.sh`, a sync with `origin/launch-prep`, the Handoff.

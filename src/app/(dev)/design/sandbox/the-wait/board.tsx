@@ -12,12 +12,7 @@ import {
   type PreviewsFor,
 } from "@/components/lab";
 
-import {
-  DEVELOP_MS,
-  type DevelopId,
-  DevelopFrame,
-  TURN_MS,
-} from "./develop";
+import { DEVELOP_MS, type DevelopId, DevelopFrame, TURN_MS } from "./develop";
 import { FIRST_OPEN_MS, SECOND_OPEN_MS } from "./fixtures";
 import { screenOf, type ScreenId } from "./knobs";
 import { held, LIVE, Play } from "./motion";
@@ -108,7 +103,9 @@ const frameSays: Reader = (root, win) => {
         parts.push(`${shown(lit, win)} of ${lit.length} turned to light`);
       const ground = root.querySelector(".wait-well");
       if (ground)
-        parts.push(`the well ${Math.round(seenOpacity(ground, win) * 100)}% there`);
+        parts.push(
+          `the well ${Math.round(seenOpacity(ground, win) * 100)}% there`,
+        );
     }
   }
   if (grows.length)
@@ -130,7 +127,9 @@ const frameSays: Reader = (root, win) => {
   const skip = textOf(root.querySelector("[data-tw-skip]"));
   if (skip) parts.push(`Skip: "${skip}"`);
 
-  const tiles = [...root.querySelectorAll<HTMLElement>("[data-tw-rows] > [data-tw-tile]")];
+  const tiles = [
+    ...root.querySelectorAll<HTMLElement>("[data-tw-rows] > [data-tw-tile]"),
+  ];
   if (tiles.length) {
     const perRow = tiles.filter((t) => t.style.top === "0px").length;
     const count = textOf(root.querySelector("[data-tw-album-count]"));
@@ -187,9 +186,7 @@ const TAKES: Record<
     turnWords: "the reel playing, The album in reach",
   },
   place: {
-    first: (screen) => (
-      <OpenFrame screen={screen} nowMs={FIRST_OPEN_MS} />
-    ),
+    first: (screen) => <OpenFrame screen={screen} nowMs={FIRST_OPEN_MS} />,
     ms: OPEN_MS,
     turn: OPEN_TURN_MS,
     lead: 0,

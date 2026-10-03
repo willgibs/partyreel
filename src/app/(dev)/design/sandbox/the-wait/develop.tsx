@@ -114,12 +114,19 @@ function Yours({ n }: { n: number }) {
 
 /** The count's word, turning from "Developing" to the take's own once the roll has developed. */
 function Word({ to, at: when }: { to: string; at: number }) {
+  const { reduced } = usePlay();
   return (
     <span className="grid" data-tw-word={to}>
       <span className="tw-a tw-fade-out [grid-area:1/1]" style={at(when)}>
         {WAIT_TITLE}
       </span>
-      <span className="tw-a tw-rise-in [grid-area:1/1]" style={at(when + 60)}>
+      <span
+        className={cn(
+          "tw-a [grid-area:1/1]",
+          reduced ? "tw-fade-in" : "tw-rise-in",
+        )}
+        style={at(when + 60)}
+      >
         {to}
       </span>
     </span>
@@ -298,7 +305,11 @@ function PageSheet({
       ? undefined
       : { className: "tw-a tw-fade-out", style: at(wordsOut) };
   const count = (
-    <div aria-hidden className={wordsLeave?.className} style={wordsLeave?.style}>
+    <div
+      aria-hidden
+      className={wordsLeave?.className}
+      style={wordsLeave?.style}
+    >
       <p
         data-wait-count={plan.count}
         className="font-heading leading-none tabular-nums"
@@ -397,13 +408,22 @@ const HEAD_PX = 44;
  * out of the squares they were (`in-place`) or rising out of the light
  * (`light`).
  */
-function InPlaceStage({ take, screen }: { take: "in-place" | "light"; screen: ScreenId }) {
+function InPlaceStage({
+  take,
+  screen,
+}: {
+  take: "in-place" | "light";
+  screen: ScreenId;
+}) {
   const { reduced } = usePlay();
   const frame = SCREENS[screen];
   const box = albumWidth(frame.w);
   const wide = wideWell(box);
   const sheet = useMemo(() => pageSheet(ROLL, box), [box]);
-  const album = useMemo(() => planAlbum(ALBUM, box, frame.h * 1.4), [box, frame.h]);
+  const album = useMemo(
+    () => planAlbum(ALBUM, box, frame.h * 1.4),
+    [box, frame.h],
+  );
   const t = TIMES[take][reduced ? "reduced" : "full"];
 
   // The first screen's tiles: what a guest sees of the album as it lands.
@@ -452,15 +472,24 @@ function InPlaceStage({ take, screen }: { take: "in-place" | "light"; screen: Sc
   const slotWave = new Map(
     sheet.cells.map((c, i) => [
       c.photo.id,
-      { wave: waveAt(i, sheet.cells.length, t.wave, t.spread), hers: c.kind === "hers" },
+      {
+        wave: waveAt(i, sheet.cells.length, t.wave, t.spread),
+        hers: c.kind === "hers",
+      },
     ]),
   );
-  const albumAt = (tile: Tile, k: number): { className?: string; style?: CSSProperties } => {
+  const albumAt = (
+    tile: Tile,
+    k: number,
+  ): { className?: string; style?: CSSProperties } => {
     if (reduced) return {};
     if (take === "light")
       return { className: "tw-a tw-from-light", style: at(t.open + k * 60) };
     if (slots.has(tile.photo.id)) return {};
-    return { className: "tw-a tw-tile-in", style: at(t.open + 480 + Math.min(k * 45, 540)) };
+    return {
+      className: "tw-a tw-tile-in",
+      style: at(t.open + 480 + Math.min(k * 45, 540)),
+    };
   };
 
   return (
@@ -494,7 +523,11 @@ function InPlaceStage({ take, screen }: { take: "in-place" | "light"; screen: Sc
           wordsOut={grows ? t.open : null}
         >
           {take === "light" && (
-            <span aria-hidden className="tw-wash tw-a" style={at(reduced ? 600 : t.open - 500)} />
+            <span
+              aria-hidden
+              className="tw-wash tw-a"
+              style={at(reduced ? 600 : t.open - 500)}
+            />
           )}
         </PageSheet>
       </div>
@@ -506,10 +539,20 @@ function InPlaceStage({ take, screen }: { take: "in-place" | "light"; screen: Sc
         data-tw-album=""
       >
         <AlbumHead
-          className={cn(!reduced && "tw-a", !reduced && (take === "light" ? "tw-from-light" : "tw-rise-in"))}
-          style={reduced ? undefined : at(take === "light" ? t.open : t.open + 380)}
+          className={cn(
+            !reduced && "tw-a",
+            !reduced && (take === "light" ? "tw-from-light" : "tw-rise-in"),
+          )}
+          style={
+            reduced ? undefined : at(take === "light" ? t.open : t.open + 380)
+          }
         />
-        <div ref={rows} className="relative" style={{ height: album.height }} data-tw-rows="">
+        <div
+          ref={rows}
+          className="relative"
+          style={{ height: album.height }}
+          data-tw-rows=""
+        >
           {album.tiles.map((tile, k) => {
             if (slots.has(tile.photo.id)) {
               const sq = slotWave.get(tile.photo.id);
@@ -528,7 +571,11 @@ function InPlaceStage({ take, screen }: { take: "in-place" | "light"; screen: Sc
                   {sq?.hers ? (
                     <>
                       <Picture photo={tile.photo} />
-                      <span aria-hidden className="tw-rim tw-a" style={at(growAt(order))} />
+                      <span
+                        aria-hidden
+                        className="tw-rim tw-a"
+                        style={at(growAt(order))}
+                      />
                     </>
                   ) : (
                     <>
@@ -537,7 +584,11 @@ function InPlaceStage({ take, screen }: { take: "in-place" | "light"; screen: Sc
                         className="tw-a tw-sq-develop"
                         style={at(sq?.wave ?? 0)}
                       />
-                      <span aria-hidden className="tw-a tw-flash" style={at(sq?.wave ?? 0)} />
+                      <span
+                        aria-hidden
+                        className="tw-a tw-flash"
+                        style={at(sq?.wave ?? 0)}
+                      />
                     </>
                   )}
                 </TileBox>
@@ -545,7 +596,12 @@ function InPlaceStage({ take, screen }: { take: "in-place" | "light"; screen: Sc
             }
             const shown = albumAt(tile, k);
             return (
-              <TileBox key={tile.photo.id} tile={tile} className={shown.className} style={shown.style} />
+              <TileBox
+                key={tile.photo.id}
+                tile={tile}
+                className={shown.className}
+                style={shown.style}
+              />
             );
           })}
         </div>
@@ -568,7 +624,10 @@ function Darkroom({ screen }: { screen: ScreenId }) {
   const frame = SCREENS[screen];
   const wide = frame.w >= 1024;
   const content = Math.min(frame.w - 40, 980);
-  const sheet = useMemo(() => planSheet(ROLL, columnsFor(content), null), [content]);
+  const sheet = useMemo(
+    () => planSheet(ROLL, columnsFor(content), null),
+    [content],
+  );
   const t = TIMES.darkroom[reduced ? "reduced" : "full"];
   const group = useRef<HTMLDivElement | null>(null);
 
@@ -591,21 +650,26 @@ function Darkroom({ screen }: { screen: ScreenId }) {
         className={cn("absolute inset-0", !reduced && "tw-a tw-shrink")}
         style={reduced ? undefined : at(t.open)}
       >
+        {/* Its dark goes last, after its sheet, so the cover's photograph comes up under the dark, never under the
+            squares. */}
         <div
-          className="tw-a tw-fade-out-slow absolute inset-0"
-          style={at(reduced ? t.open : t.open + 650)}
+          className="tw-a tw-fade-out-slow absolute inset-0 overflow-hidden bg-[var(--gallery)]"
+          style={at(reduced ? t.open : t.open + 800)}
         >
-          <div className="absolute inset-0 overflow-hidden bg-[var(--gallery)]">
-            {/* The darkroom's light: the house's coral from above, the lamp the well always had, larger. */}
-            <div
-              aria-hidden
-              className="absolute inset-x-[-20%] top-[-45%] h-[90%]"
-              style={{
-                background:
-                  "radial-gradient(closest-side, oklch(0.72 0.12 25 / 0.2), oklch(0.72 0.12 25 / 0.05) 60%, transparent)",
-              }}
-            />
-          </div>
+          {/* The darkroom's light: the house's coral from above, the lamp the well always had, larger. */}
+          <div
+            aria-hidden
+            className="absolute inset-x-[-20%] top-[-45%] h-[90%]"
+            style={{
+              background:
+                "radial-gradient(closest-side, oklch(0.72 0.12 25 / 0.2), oklch(0.72 0.12 25 / 0.05) 60%, transparent)",
+            }}
+          />
+        </div>
+        <div
+          className="tw-a tw-fade-out absolute inset-0"
+          style={at(reduced ? t.open : t.open + 600)}
+        >
           <div
             ref={group}
             className={cn(
@@ -615,7 +679,9 @@ function Darkroom({ screen }: { screen: ScreenId }) {
             style={{ width: content, ...(reduced ? null : at(t.open)) }}
             data-tw-group=""
           >
-            <p className="wait-muted text-label font-medium uppercase">{EVENT.name}</p>
+            <p className="wait-muted text-label font-medium uppercase">
+              {EVENT.name}
+            </p>
             <div className="mt-3 flex items-end justify-between gap-3">
               <div>
                 <p
@@ -644,7 +710,13 @@ function Darkroom({ screen }: { screen: ScreenId }) {
         </div>
       </div>
       <div className="tw-a tw-fade-out tw-skip-row" style={at(t.open)}>
-        <Button type="button" variant="glass" size="cta" tabIndex={-1} data-tw-skip="">
+        <Button
+          type="button"
+          variant="glass"
+          size="cta"
+          tabIndex={-1}
+          data-tw-skip=""
+        >
           The album <SkipForward />
         </Button>
       </div>
@@ -658,7 +730,13 @@ function Darkroom({ screen }: { screen: ScreenId }) {
  * HER FIRST OPEN AFTER THE DEVELOP, ONE TAKE: production's page, the cover on
  * the house light it stood on all night, and the take drawn in.
  */
-export function DevelopFrame({ take, screen }: { take: DevelopId; screen: ScreenId }) {
+export function DevelopFrame({
+  take,
+  screen,
+}: {
+  take: DevelopId;
+  screen: ScreenId;
+}) {
   const { reduced } = usePlay();
   const t = TIMES[take][reduced ? "reduced" : "full"];
   if (take === "darkroom") {
@@ -673,13 +751,20 @@ export function DevelopFrame({ take, screen }: { take: DevelopId; screen: Screen
       >
         <section className="mt-3">
           <AlbumHead />
-          <OpenRows tiles={album.tiles} height={album.height} from={t.open + 200} />
+          <OpenRows
+            tiles={album.tiles}
+            height={album.height}
+            from={t.open + 200}
+          />
         </section>
       </GuestPage>
     );
   }
   return (
-    <GuestPage nowMs={FIRST_OPEN_MS} ground={<CoverGround developAt={t.cover} />}>
+    <GuestPage
+      nowMs={FIRST_OPEN_MS}
+      ground={<CoverGround developAt={t.cover} />}
+    >
       <InPlaceStage take={take} screen={screen} />
     </GuestPage>
   );

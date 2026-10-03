@@ -148,10 +148,7 @@ function Premiere() {
 
   if (reduced)
     return (
-      <div
-        className="fixed inset-0 z-40 bg-black"
-        data-tw-premiere="paused"
-      >
+      <div className="fixed inset-0 z-40 bg-black" data-tw-premiere="paused">
         {/* eslint-disable-next-line @next/next/no-img-element -- the reel's first photograph, a stand-in */}
         <img
           src={FRAMES[0]!.src}
@@ -165,8 +162,14 @@ function Premiere() {
     );
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-40" data-tw-premiere="playing">
-      <div className="tw-a tw-fade-out absolute inset-0 bg-black" style={at(DROP)} />
+    <div
+      className="pointer-events-none fixed inset-0 z-40"
+      data-tw-premiere="playing"
+    >
+      <div
+        className="tw-a tw-fade-out absolute inset-0 bg-black"
+        style={at(DROP)}
+      />
       {FRAMES.slice(0, -1).map((f, k) => (
         // eslint-disable-next-line @next/next/no-img-element -- the reel's frame, a stand-in photograph
         <img
@@ -174,7 +177,9 @@ function Premiere() {
           src={f.src}
           alt=""
           className="tw-a tw-reel-frame absolute inset-0 size-full object-cover"
-          style={at(k * HOLD, { "--tw-hold": `${HOLD + 320}ms` } as CSSProperties)}
+          style={at(k * HOLD, {
+            "--tw-hold": `${HOLD + 320}ms`,
+          } as CSSProperties)}
           data-tw-frame={k}
         />
       ))}
@@ -191,7 +196,9 @@ function Premiere() {
           className="tw-a tw-reel-last absolute inset-0 size-full object-cover"
           style={{
             objectPosition: ALBUM[0]!.focus,
-            ...at((FRAMES.length - 1) * HOLD, { "--tw-hold": `${HOLD}ms` } as CSSProperties),
+            ...at((FRAMES.length - 1) * HOLD, {
+              "--tw-hold": `${HOLD}ms`,
+            } as CSSProperties),
           }}
           data-tw-frame={FRAMES.length - 1}
         />
