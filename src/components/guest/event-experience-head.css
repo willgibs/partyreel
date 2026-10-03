@@ -10,6 +10,14 @@
    ★ EVERY KEYFRAME CARRIES THE `head-` PREFIX: names are document-global
    (`keyframe-uniqueness.test.ts`). */
 
+/* THE ALBUM COVER'S HEIGHT, its one home: most of a phone's first screen, a
+   band at a desk. The door draws the cover through its opening at this same
+   height (`door/doorway.css`'s `.door-way-view`), so the walk through lands
+   the doorway's picture on the cover to the pixel. */
+:root {
+  --cover-h: clamp(26rem, 74svh, 34rem);
+}
+
 /* ══ THE COVER'S PHOTOGRAPHS ═══════════════════════════════════════════════
 
    The reel's own stills, six slots of one keyframe, each phase-shifted into its

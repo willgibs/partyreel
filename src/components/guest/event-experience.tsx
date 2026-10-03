@@ -2,7 +2,6 @@
 
 import {
   Suspense,
-  lazy,
   useCallback,
   useEffect,
   useMemo,
@@ -18,11 +17,20 @@ import { toast } from "sonner";
 import { AlbumBoundary } from "@/components/guest/album-boundary";
 import { ClaimHandlePrompt } from "@/components/guest/claim-handle-prompt";
 import { AlbumLightSampler } from "@/components/guest/door/album-light";
-import { DoorStage, RestWords } from "@/components/guest/door/stage";
-import type { EntryModalHandle } from "@/components/guest/entry-modal";
+import { pickedLine } from "@/components/guest/door/wait-picks";
+import {
+  doorOwner,
+  forgetHeldPicks,
+  readHeldPicks,
+} from "@/components/guest/door/wait-picks-store";
+import {
+  EntryModal,
+  type EntryModalHandle,
+} from "@/components/guest/entry-modal";
 import {
   AlbumCover,
   CoverGround,
+  CoverPicture,
   createHeadBridge,
   useHeadBridge,
 } from "@/components/guest/event-experience-head";
@@ -80,11 +88,15 @@ import {
 import { closesOnLastRemoval as lastRemovalCloses } from "@/lib/guest/delete-consequence";
 import { createDoorHold, heldDoorName } from "@/lib/guest/door-hold";
 import { useDoorHues, useLampLit } from "@/lib/guest/door-light";
-import { contributionAnswered } from "@/lib/guest/entry-steps";
+import {
+  contributionAnswered,
+  type DoorArrival,
+} from "@/lib/guest/entry-steps";
 import { joinEvent, passedTicket } from "@/lib/guest/join";
 import { useKeepAskPutDown } from "@/lib/guest/keep-ask";
 import { onNameDoorRequest } from "@/lib/guest/name-door";
 import { settleConfirmedName } from "@/lib/guest/settle-name";
+import type { UploadsWait } from "@/lib/guest/upload-tracker";
 import { useConfirmReturn } from "@/lib/guest/use-confirm-return";
 import { useLiveQueue, useUploadQueue } from "@/lib/guest/use-upload-queue";
 import {
@@ -126,16 +138,17 @@ const BLEED = "px-3 sm:px-5";
 // stable subscribe, never a resubscribe every render).
 const subscribeNoop = () => () => {};
 
-// Code split: the entry-modal tree (welcome/password/account steps)
-// only matters pre-gate; React.lazy (NOT next/dynamic - the modal is a
-// forwardRef and dynamic() doesn't forward refs) moves it out of first-load
-// JS. Its auto-open already waits for hydration, so the async chunk just
-// shifts that by a beat.
-const EntryModalLazy = lazy(() =>
-  import("@/components/guest/entry-modal").then((m) => ({
-    default: m.EntryModal,
-  })),
-);
+/** A page with nothing to say about the door's first paint (the tests', and the demo's own page). */
+const NO_ARRIVAL: DoorArrival = { face: null, scrim: false };
+
+/** The albums whose held-door choice is being sent right now (one sending per album, whatever mounts). */
+const deliveringPicks = new Set<string>();
+
+// ★ THE DOOR IS IN THE FIRST BYTE, SO IT IS NOT A LAZY CHUNK ANY MORE (door-reveal). The entry-modal tree
+// was split out of first-load JS when it only ever opened after hydration; the door's page is now the
+// server's own first paint (the welcome, a gate's door at rest, the ask, the wait), so the server renders
+// it in the shell and the hydration needs its code at once. Its heavy pieces (the account door, the upload
+// sheets, the keep) were already in the page's JS through the header's name menu and the album's Add.
 
 // The guest event SHELL (the streaming split): header + entry modal +
 // upload slot render immediately; the presign-heavy gallery streams in behind
@@ -166,6 +179,10 @@ export function EventExperience({
   albumFull = false,
   waitingOnArrival = false,
   reelAsked = false,
+  welcomeSeen = false,
+  arrival = NO_ARRIVAL,
+  doorPhase,
+  uploadsWait,
 }: {
   event: GuestEvent;
   qrToken: string;
@@ -251,6 +268,22 @@ export function EventExperience({
    * the album flashing under a view still loading (see the curtain below).
    */
   reelAsked?: boolean;
+  /** The request carried this album's welcome cookie (the door's word on whether she has met it). */
+  welcomeSeen?: boolean;
+  /**
+   * ★ WHAT THE FIRST BYTE DRAWS FOR THE DOOR (`entry-steps.ts`'s `doorArrival`, decided by the page): the
+   * door's page standing over the album (inert under it, its words held), or the door's scrim over it, so
+   * the album is never visible before a door she should meet first.
+   */
+  arrival?: DoorArrival;
+  /** Where on the wheel the resting door's light starts its turn (the page draws one per visit). */
+  doorPhase?: number;
+  /**
+   * ★ WHETHER WHAT SHE ADDS WAITS, AND FOR WHAT (`upload-tracker.ts`'s `uploadsWait`, read by the page's server):
+   * the host's approval, or the album's develop time ahead. Where it waits, her tracker is where hers show and the
+   * keep says they wait, never that they joined (red-team 43: a develop album's shots read as joined, then vanished).
+   */
+  uploadsWait: UploadsWait;
 }) {
   const router = useRouter();
   // ONE resolution of the step for both boxes the album occupies: the skeleton
@@ -418,6 +451,48 @@ export function EventExperience({
      reads for itself. The door's upload step draws a bar a pick off the items, so while it is on
      screen (and only then) it gets the queue with live progress folded in. */
   const doorQueue = useLiveQueue(queue, uploadProgress, uploadStepActive);
+  /* ★ HER CHOICE FROM THE HELD DOOR, SENT ON HER RETURN (`door/wait-picks-store.ts`): she chose what she would
+     add while the host decided, then left (a closed tab, her phone in her pocket), and the host let her in
+     meanwhile; the album she comes back to (the let-in mail, a reload) sends that choice, once, as the door
+     would have the moment it opened. Put down on the device first, so a second tab never sends it twice. */
+  const queueNow = useRef(queue);
+  useEffect(() => {
+    queueNow.current = queue;
+  });
+  useEffect(() => {
+    if (isDemo || isOwner || !isVerified || access === "none") return;
+    if (!event.accepting_uploads || deliveringPicks.has(qrToken)) return;
+    deliveringPicks.add(qrToken);
+    void (async () => {
+      try {
+        const owner = await doorOwner();
+        const files = owner ? await readHeldPicks(qrToken, owner) : null;
+        if (!files?.length) return;
+        await forgetHeldPicks(qrToken);
+        // The tab that waited still holds her choice in its queue: that copy goes, never both.
+        if (queueNow.current.length > 0) return;
+        addFiles(files);
+        toast.success(
+          `Sending your ${pickedLine(
+            files.map((file) => ({
+              kind: file.type.startsWith("video/") ? "video" : "photo",
+            })),
+          )} from the door`,
+        );
+      } finally {
+        deliveringPicks.delete(qrToken);
+      }
+    })();
+  }, [
+    access,
+    addFiles,
+    event.accepting_uploads,
+    isDemo,
+    isOwner,
+    isVerified,
+    qrToken,
+  ]);
+
   /* THIS DEVICE HAS PUT SOMETHING IN, this visit, before any refresh has landed. It is the client
      half of the server's `hasContributed`, and either one closes the door's upload step. */
   const contributed = queue.some((it) => it.status === "done");
@@ -687,9 +762,13 @@ export function EventExperience({
   // playing invisibly behind it during the refresh roundtrip.
   const [holdCurtain, setHoldCurtain] = useState(false);
   /* ★ THE DOOR STANDS AS THE PAGE (`locked-door` r2, `door/stage.tsx`), as the door itself reports it
-     (EntryModal's `onStageChange`, before paint): the album keeps its layout under the stage and goes
-     `inert` there, and a gate's own server-drawn door gives way to the stage the moment it arrives. */
-  const [stageUp, setStageUp] = useState(false);
+     (EntryModal's `onStageChange`, before paint), and from the page's first byte where the server put it
+     there (`arrival`): the album keeps its layout under the stage and goes `inert` there. */
+  const [stageUp, setStageUp] = useState(arrival.face !== null);
+  /* ★ AND THE ALBUM'S WORDS WAIT FOR HER (door-reveal): while the door stands over an album she may see,
+     the cover is only its photographs (its name, byline and actions held, the album below it too), so the
+     walk through lands on exactly the picture the doorway showed, and the words rise as she arrives. */
+  const curtain = holdCurtain || (stageUp && access !== "none");
   // ★ THE WELCOME COMES FIRST: whether this visitor still owes the door, as the door itself reports
   // it (EntryModal's `onPendingChange`). OWED until its first report, because the door is a lazy
   // chunk and a hydrating page cannot know yet: a `?reel` waits a beat for the owner rather than
@@ -1080,83 +1159,99 @@ export function EventExperience({
           ? "pb-[calc(7.5rem+env(safe-area-inset-bottom))]"
           : "pt-8 pb-8",
       )}
-      data-reveal-curtain={holdCurtain ? "" : undefined}
+      data-reveal-curtain={curtain ? "" : undefined}
     >
-      <Suspense fallback={null}>
-        {/* The heal holds the door (see its own note): a sheet that appears and vanishes half a
-            second later is worse than one that arrives a beat late. */}
-        {!healing && (
-          <EntryModalLazy
-            ref={entryRef}
-            qrToken={qrToken}
-            eventName={event.name}
-            access={access}
-            gate={gate}
-            doorGate={doorGate}
-            acceptsVideo={event.accepts_video}
-            capBytes={hostCap}
-            hasContributed={serverContributed}
-            contributed={clientContributed}
-            returning={returning}
-            uploadsOpen={event.accepting_uploads}
-            requireUpload={event.require_upload_to_view}
-            albumEmpty={mediaCount === 0}
-            isOwner={isOwner}
-            isDemo={isDemo}
-            isVerified={isVerified}
-            // A confirmed account WITHOUT a profile name is the door's `profile` name step; with
-            // one, the name is a fact about the person and is never asked for again.
-            hasProfileName={!needsName}
-            queue={doorQueue}
-            onSend={addFiles}
-            onRetry={retry}
-            onDismissFailures={dismiss}
-            onUploadStepActive={onUploadStepActive}
-            keepDue={keepDue}
-            keepCount={landedCount}
-            keepHeld={event.moderation_mode === "hold_for_approval"}
-            // The address typed under her name a few minutes ago, so the keep's account door
-            // opens on it instead of asking twice.
-            hintEmail={attachedEmail}
-            onKeepAnswered={onKeepAnswered}
-            // The header's own live number, so a door opened over the teaser
-            // never says a different size than the line beside it.
-            mediaTotal={mediaCount}
-            // The welcome's byline. On a locked page `event` is the REDACTED
-            // shellEvent (host_display_name null), so the host name hides
-            // itself there - the privacy rule needs no extra guard.
-            hostName={event.host_display_name}
-            eventDate={event.event_date}
-            onHoldingChange={setHoldCurtain}
-            onStageChange={setStageUp}
-            // Her choice at the held door: the queue holds it until the door lets her in.
-            onHold={holdAtDoor}
-            onPendingChange={setWelcomePending}
-            sessionToken={sessionToken}
-            // Held while the page re-reads who is here (`doorName`, the hold above).
-            storedName={doorName}
-            onNamed={({
-              sessionToken: token,
-              displayName,
-              source,
-              emailAttached,
-              email,
-            }) => {
-              // The row carries a name now. Adopt the session this device just
-              // minted (a rename hands back the one it already had).
-              if (token) setSessionToken(token);
-              /* The device flag and the in-memory address, in that order. The
+      {/* ★ THE DOOR, IN THE PAGE'S FIRST BYTE: its page (the welcome, the ask, the wait, a gate's door at
+          rest) and the scrim of a sheet step that comes first are the server's, drawn here before any
+          script, and the hydration draws the same (`arrival`). The heal holds only the sheet (see its own
+          note): a sheet that appears and vanishes half a second later is worse than one a beat late. */}
+      <EntryModal
+        ref={entryRef}
+        arrival={arrival}
+        welcomeSeen={welcomeSeen}
+        healing={healing}
+        phase={doorPhase}
+        // The album's cover through the open door, where she may see it: the cover's own photographs,
+        // from the same seed and the same live album (`CoverPicture`), so the walk lands on them.
+        view={
+          access !== "none" ? (
+            <CoverPicture
+              seed={galleryPromise}
+              bridge={headBridge}
+              eventId={event.id}
+            />
+          ) : undefined
+        }
+        qrToken={qrToken}
+        eventName={event.name}
+        access={access}
+        gate={gate}
+        doorGate={doorGate}
+        acceptsVideo={event.accepts_video}
+        capBytes={hostCap}
+        hasContributed={serverContributed}
+        contributed={clientContributed}
+        returning={returning}
+        uploadsOpen={event.accepting_uploads}
+        requireUpload={event.require_upload_to_view}
+        albumEmpty={mediaCount === 0}
+        isOwner={isOwner}
+        isDemo={isDemo}
+        isVerified={isVerified}
+        // A confirmed account WITHOUT a profile name is the door's `profile` name step; with
+        // one, the name is a fact about the person and is never asked for again.
+        hasProfileName={!needsName}
+        queue={doorQueue}
+        onSend={addFiles}
+        onRetry={retry}
+        onDismissFailures={dismiss}
+        onUploadStepActive={onUploadStepActive}
+        keepDue={keepDue}
+        keepCount={landedCount}
+        keepHeld={uploadsWait.waits}
+        keepDevelopsAt={uploadsWait.developsAt}
+        // The address typed under her name a few minutes ago, so the keep's account door
+        // opens on it instead of asking twice.
+        hintEmail={attachedEmail}
+        onKeepAnswered={onKeepAnswered}
+        // The header's own live number, so a door opened over the teaser
+        // never says a different size than the line beside it.
+        mediaTotal={mediaCount}
+        // The welcome's byline. On a locked page `event` is the REDACTED
+        // shellEvent (host_display_name null), so the host name hides
+        // itself there - the privacy rule needs no extra guard.
+        hostName={event.host_display_name}
+        eventDate={event.event_date}
+        onHoldingChange={setHoldCurtain}
+        onStageChange={setStageUp}
+        // Her choice at the held door: the queue holds it until the door lets her in.
+        onHold={holdAtDoor}
+        onPendingChange={setWelcomePending}
+        sessionToken={sessionToken}
+        // Held while the page re-reads who is here (`doorName`, the hold above).
+        storedName={doorName}
+        onNamed={({
+          sessionToken: token,
+          displayName,
+          source,
+          emailAttached,
+          email,
+        }) => {
+          // The row carries a name now. Adopt the session this device just
+          // minted (a rename hands back the one it already had).
+          if (token) setSessionToken(token);
+          /* The device flag and the in-memory address, in that order. The
                FLAG is what the header's menu island reads (it subscribes to the
                same store the name does); the ADDRESS never leaves this state.
                Only a true attach writes either: a door that offered the field
                and got nothing leaves both exactly as they were, so a guest who
                added an address a week ago and skipped it tonight keeps the
                menu row they earned. */
-              if (emailAttached) {
-                setStoredEmailAttached(qrToken, true);
-                setAttachedEmail(email);
-              }
-              /* ──────────────────────────────────────────────────────────────
+          if (emailAttached) {
+            setStoredEmailAttached(qrToken, true);
+            setAttachedEmail(email);
+          }
+          /* ──────────────────────────────────────────────────────────────
                THE RENAME PATCH: "Change name" updates the header chip and
                localStorage at once, so the loaded credits follow at once too,
                or the lightbox pill would read the old name until the next poll
@@ -1170,35 +1265,16 @@ export function EventExperience({
                until a guest happens to reload. It is safe here specifically
                because a rename never changes `access`, so `key={access}` never
                remounts the gallery (unlike a looser access flip, which does). */
-              if (displayName) galleryRef.current?.renameMine(displayName);
-              /* ★ THE REFRESH IS ONLY THE RENAME'S. The door's own name STEP must not refresh: it
+          if (displayName) galleryRef.current?.renameMine(displayName);
+          /* ★ THE REFRESH IS ONLY THE RENAME'S. The door's own name STEP must not refresh: it
                hands forward to the next step in the same sheet, and a refresh there would remount
                the gallery under an open door for nothing. A rename from the album menu still needs
                one (the server-baked Guests list has no live subscription of its own), and the
                CONFIRMATION sequence issues its own inside the hold. So this only fires when there
                is no step behind the name. */
-              if (source === "edit") router.refresh();
-            }}
-          />
-        )}
-      </Suspense>
-      {/* ★ AT A GATE THE DOOR IS THE PAGE FROM THE FIRST PAINT (`locked-door` r2, `shape=shared`): the
-          doorway, shut (ajar while the host decides), in the house light, over the album's name and
-          what it holds, and nothing else of the album (the locked redaction: no host, no date, no
-          photograph). Drawn here, on the server, so a cold phone meets the door before the door's own
-          island has loaded; that island's stage then stands over it in the same place (`at="gate"`),
-          and this one gives way. Act 1, the stage; Act 2, the door's words. */}
-      {access === "none" && !stageUp && (
-        <DoorStage
-          open
-          at="gate"
-          door={{ state: gate === "waiting" ? "ajar" : "shut", album: false }}
-          modal={false}
-          className="z-20"
-        >
-          <RestWords eventName={event.name} mediaTotal={stats.approvedTotal} />
-        </DoorStage>
-      )}
+          if (source === "edit") router.refresh();
+        }}
+      />
       {access !== "none" && (
         // ★ THE ALBUM UNDER AN OPEN STAGE IS `inert`: the door is the page, so nothing behind it can be
         // reached by a tab or read aloud until the door lets her through.
@@ -1289,64 +1365,67 @@ export function EventExperience({
             }
           />
 
-          {/* Upload area: only at `full` access (a `teaser` viewer is still at the door, which owns every
+          {/* ★ EVERYTHING BELOW THE COVER WAITS WITH ITS WORDS (`data-door-below`, `door.css`): while the
+              door stands over the album, and on a success beat, the page under the cover is its ground
+              alone, so the walk through lands on the picture the doorway showed, and the album rises in. */}
+          <div data-door-below="">
+            {/* Upload area: only at `full` access (a `teaser` viewer is still at the door, which owns every
               step in front of them). Uploads off => a quiet view-only line. ★ NO SAVE, AND NO INLINE "Add
               your name to upload" PANEL: a confirmed account with no profile name is asked at the DOOR,
               as its name step in `profile` mode, like every other guest and before the album. */}
-          <div className={COLUMN}>
-            {access === "full" &&
-              (event.accepting_uploads ? (
-                <div className="mt-5 empty:hidden">
-                  <GuestUpload
-                    ref={uploadRef}
-                    event={event}
-                    qrToken={qrToken}
-                    queue={queue}
-                    onAddFiles={addFiles}
-                    onRetry={retry}
-                    onDismiss={dismiss}
-                    // The door's own step is showing this run's failures, or its keep stands in
-                    // front of the album: one run never gets two surfaces, and the failure sheet
-                    // waits for the keep to be answered (see the one queue's note above).
-                    suppressFailures={uploadStepActive || keepDue}
-                    onFailuresClosed={flushPendingVerification}
-                    isDemo={isDemo}
-                    host={hostCard}
-                    moment={moment}
-                    elsewhere={elsewhere}
-                    onAccountRenamed={handleAccountRenamed}
-                    removedIds={removedIds}
-                    capBytes={hostCap}
-                  />
-                </div>
-              ) : (
-                !isDemo && (
-                  <>
-                    <p className="mt-5 text-center text-reading text-muted-foreground">
-                      The host has closed uploads. You can still browse the
-                      album.
-                    </p>
-                    {/* A confirmation from the name menu or the mark can land
+            <div className={COLUMN}>
+              {access === "full" &&
+                (event.accepting_uploads ? (
+                  <div className="mt-5 empty:hidden">
+                    <GuestUpload
+                      ref={uploadRef}
+                      event={event}
+                      qrToken={qrToken}
+                      queue={queue}
+                      onAddFiles={addFiles}
+                      onRetry={retry}
+                      onDismiss={dismiss}
+                      // The door's own step is showing this run's failures, or its keep stands in
+                      // front of the album: one run never gets two surfaces, and the failure sheet
+                      // waits for the keep to be answered (see the one queue's note above).
+                      suppressFailures={uploadStepActive || keepDue}
+                      onFailuresClosed={flushPendingVerification}
+                      isDemo={isDemo}
+                      host={hostCard}
+                      moment={moment}
+                      elsewhere={elsewhere}
+                      onAccountRenamed={handleAccountRenamed}
+                      removedIds={removedIds}
+                      capBytes={hostCap}
+                    />
+                  </div>
+                ) : (
+                  !isDemo && (
+                    <>
+                      <p className="mt-5 text-center text-reading text-muted-foreground">
+                        The host has closed uploads. You can still browse the
+                        album.
+                      </p>
+                      {/* A confirmation from the name menu or the mark can land
                       here too, on an album whose uploads have since closed:
                       the moment still plays, in the slot's place. */}
-                    {moment && (
-                      <div className="mt-4">
-                        <ClaimHandlePrompt
-                          doneCount={0}
-                          qrToken={qrToken}
-                          host={hostCard}
-                          moment
-                          elsewhere={elsewhere}
-                          onAccountRenamed={handleAccountRenamed}
-                        />
-                      </div>
-                    )}
-                  </>
-                )
-              ))}
-          </div>
+                      {moment && (
+                        <div className="mt-4">
+                          <ClaimHandlePrompt
+                            doneCount={0}
+                            qrToken={qrToken}
+                            host={hostCard}
+                            moment
+                            elsewhere={elsewhere}
+                            onAccountRenamed={handleAccountRenamed}
+                          />
+                        </div>
+                      )}
+                    </>
+                  )
+                ))}
+            </div>
 
-          <>
             {/* THE ALBUM, and nothing else, leaves the column to run the window's
               width. It is a sibling of the words box, not a block inside it. */}
             {/* ★ ONE LIVE SOURCE BELOW THE COVER, FOR THE ALBUM AND THE REEL. The provider owns the
@@ -1403,7 +1482,8 @@ export function EventExperience({
                     qrToken={qrToken}
                     sessionToken={sessionToken}
                     isAuthed={isAuthed}
-                    moderated={event.moderation_mode === "hold_for_approval"}
+                    moderated={uploadsWait.waits}
+                    developsAt={uploadsWait.developsAt}
                     isDemo={isDemo}
                     isOwner={isOwner}
                     removedIds={removedIds}
@@ -1473,99 +1553,101 @@ export function EventExperience({
               competing with the media. Server-composed slot; null = key off.
               It is words, so it keeps the column. */}
             {guestListSlot && <div className={COLUMN}>{guestListSlot}</div>}
+          </div>
 
-            {/* WHAT STAYS (`event-header` r1, `stays=shutter`): the cover's row sits on landing, and
+          {/* WHAT STAYS (`event-header` r1, `stays=shutter`): the cover's row sits on landing, and
               the shutter takes its place the moment it leaves the screen (mounted-but-inert until
               then, so it travels in rather than appearing): Invite on its left, the round Add in the
               album's light at the centre, its ring the progress of hers on their way, and Invite's
               twin on its right, the reel's round (or, on an album with no reel, the way back to the
               cover). The page's ground rises under them while more album lies below. */}
-            <GuestActionDock
-              // Under an open stage the door is the page, so the shutter waits with the rest of the album.
-              hidden={headerActionsInView || stageUp}
-              uploadingCount={uploadingCount}
-              onAdd={canUpload ? openAdd : undefined}
-              run={shutterRun}
-              hues={albumHues}
-              more={!albumEndInView}
-              invite={
-                <GuestShare
-                  look="round"
-                  joinUrl={shareUrl}
-                  qrStyle={event.qr_style}
-                  eventName={event.name}
-                />
-              }
-              twin={
-                reelRound ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon-cta"
-                    aria-label="Watch the highlight reel"
-                    title="Watch the highlight reel"
-                    onClick={openReel}
-                    onPointerEnter={preloadReel}
-                    onFocus={preloadReel}
-                    className="bg-background shadow-layer"
-                  >
-                    <Play className="fill-current" />
-                  </Button>
-                ) : (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon-cta"
-                    aria-label="Back to the top"
-                    title="Back to the top"
-                    onClick={backToCover}
-                    className="bg-background shadow-layer"
-                  >
-                    <ArrowUp />
-                  </Button>
-                )
-              }
-              tracker={
-                <UploadTrackerButton
-                  look="round"
-                  store={trackerStore}
-                  onOpen={openTracker}
-                />
-              }
-            />
-            {/* The album's light is asked for only while the shutter stands to wear it. */}
-            {!(headerActionsInView || stageUp) && <LampWhileShown />}
-            {/* The reel's own black, for an owner arriving on `?reel` (the curtain's note above), under
-              the view's own overlay (z-50) and over everything else on the page. */}
-            {reelCurtain && (
-              <div
-                aria-hidden
-                data-reel-curtain=""
-                className="fixed inset-0 z-[49] bg-black"
+          <GuestActionDock
+            // Under an open stage the door is the page, so the shutter waits with the rest of the album.
+            hidden={headerActionsInView || stageUp}
+            uploadingCount={uploadingCount}
+            onAdd={canUpload ? openAdd : undefined}
+            run={shutterRun}
+            hues={albumHues}
+            more={!albumEndInView}
+            invite={
+              <GuestShare
+                look="round"
+                joinUrl={shareUrl}
+                qrStyle={event.qr_style}
+                eventName={event.name}
               />
-            )}
+            }
+            twin={
+              reelRound ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon-cta"
+                  aria-label="Watch the highlight reel"
+                  title="Watch the highlight reel"
+                  onClick={openReel}
+                  onPointerEnter={preloadReel}
+                  onFocus={preloadReel}
+                  className="bg-background shadow-layer"
+                >
+                  <Play className="fill-current" />
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon-cta"
+                  aria-label="Back to the top"
+                  title="Back to the top"
+                  onClick={backToCover}
+                  className="bg-background shadow-layer"
+                >
+                  <ArrowUp />
+                </Button>
+              )
+            }
+            tracker={
+              <UploadTrackerButton
+                look="round"
+                store={trackerStore}
+                onOpen={openTracker}
+              />
+            }
+          />
+          {/* The album's light is asked for only while the shutter stands to wear it. */}
+          {!(headerActionsInView || stageUp) && <LampWhileShown />}
+          {/* The reel's own black, for an owner arriving on `?reel` (the curtain's note above), under
+              the view's own overlay (z-50) and over everything else on the page. */}
+          {reelCurtain && (
+            <div
+              aria-hidden
+              data-reel-curtain=""
+              className="fixed inset-0 z-[49] bg-black"
+            />
+          )}
 
-            {/* Discreet anonymous report path (the report capability is the qr_token), never
+          {/* Discreet anonymous report path (the report capability is the qr_token), never
               for the album's own host: without it no photo offers Report to her either
               (build 23's BUG-3, `ReportFoot`). */}
+          <ToldNameForm
+            onRenamed={(renamed) => {
+              galleryRef.current?.renameMine(renamed);
+              router.refresh();
+            }}
+          />
+          <div data-door-below="">
             <ReportFoot qrToken={qrToken} isOwner={isOwner} isDemo={isDemo} />
-            <ToldNameForm
-              onRenamed={(renamed) => {
-                galleryRef.current?.renameMine(renamed);
-                router.refresh();
-              }}
-            />
             {/* The demo's closing card at the foot, in the slot a real event gives
-              the report footer (hidden here — nothing to report in a demo) and,
-              once uploads are ever closed, the reel. Below the whole album on
-              purpose: the ask belongs after a visitor has actually seen what
-              they came to see. */}
+                the report footer (hidden here — nothing to report in a demo) and,
+                once uploads are ever closed, the reel. Below the whole album on
+                purpose: the ask belongs after a visitor has actually seen what
+                they came to see. */}
             {isDemo && (
               <div className={COLUMN}>
                 <ClosingCard guestCount={guestCount} />
               </div>
             )}
-          </>
+          </div>
         </div>
       )}
     </div>

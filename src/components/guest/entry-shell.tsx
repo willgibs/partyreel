@@ -14,6 +14,7 @@ import {
   SheetDescription,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
 
 /**
  * The entry surface's HONEST-AFFORDANCE contract:
@@ -85,6 +86,7 @@ export function EntryShell({
   description,
   lamp = "base",
   scrim = "album",
+  arriving = false,
   children,
 }: {
   /** The panel, for the modal's own "is focus inside the door" checks. */
@@ -103,6 +105,12 @@ export function EntryShell({
    * gate (`STAGE_SCRIM`, a light dim that leaves the door and its light legible above the sheet).
    */
   scrim?: "album" | "door";
+  /**
+   * ★ THE SHEET RISES INTO A SCRIM ALREADY STANDING (door-reveal): where the page's first byte drew the
+   * album behind the door's scrim (`entry-modal.tsx`'s `arrival.scrim`), the sheet's own scrim takes its
+   * place standing, with no fade of its own, so the album never shows between the two.
+   */
+  arriving?: boolean;
   children: React.ReactNode;
 }) {
   const held = dismissMode === "held";
@@ -119,7 +127,10 @@ export function EntryShell({
         responsive
         data-entry-sheet
         showCloseButton={!held}
-        overlayClassName={scrim === "door" ? STAGE_SCRIM : DOOR_SCRIM}
+        overlayClassName={cn(
+          scrim === "door" ? STAGE_SCRIM : DOOR_SCRIM,
+          arriving && "data-open:animate-none!",
+        )}
         onInteractOutside={held ? (e) => e.preventDefault() : undefined}
         onEscapeKeyDown={held ? (e) => e.preventDefault() : undefined}
         // No field autofocuses on open (the Sheet puts focus on the panel).

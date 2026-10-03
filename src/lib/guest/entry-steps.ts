@@ -1,26 +1,33 @@
 /**
  * THE DOOR, AS AN ITINERARY.
  *
- * Pure step-derivation for the guest entry sheet (`entry-modal.tsx`). Kept separate + pure so it is
+ * Pure step-derivation for the guest door (`entry-modal.tsx`). Kept separate + pure so it is
  * unit-testable and has no client/server imports.
  *
- * The door is ONE HELD SHEET WITH NO EXIT that a guest passes through BEFORE the album: the
- * welcome, the password when the event has one, then who they are, the first upload asked
- * actively, and, once her first file lands, the ask to keep what she added. The album sits blurred
- * behind it the whole way. There is no way out because the album is what justifies the name and
- * email friction, and a "just browsing" exit would defeat that purpose.
+ * The door is THE DOORWAY'S PAGE AND THE HELD SHEETS OVER IT, WITH NO EXIT, that a guest passes
+ * through BEFORE the album: the welcome, the password when the event has one, then who they are, the
+ * first upload asked actively, and, once her first file lands, the ask to keep what she added. The
+ * welcome, the ask and the wait stand on the doorway's page (`door/stage.tsx`); the other steps rise as
+ * the sheet, over the album she walked into or over the door at a gate. There is no way out because the
+ * album is what justifies the name and email friction, and a "just browsing" exit would defeat that
+ * purpose.
  *
  * ★ WHO THEY ARE IS ASKED TWO WAYS, BY THE HOST'S SWITCH (Will, `identity-door` r1 `nudge`: "let's
  * simply have a screen for guests to select how to proceed"):
  *   - a NAME-ONLY event offers the chooser: Continue as guest (the name, with the optional email),
  *     Create account (a name and an email, confirmed by code), or Log in;
- *   - a VERIFICATION event has one path, `identify`, a name and an email confirmed by code, the
- *     same for a new guest and a returning member, because a code creates or signs in alike.
+ *   - a VERIFICATION event has one path, `identify`: the EMAIL, confirmed by code, the same for a new
+ *     guest and a returning member, because a code creates or signs in alike; then the NAME, asked only
+ *     of an account that has none (Will, 2026-10-02: "where verification is required i think it makes
+ *     more sense to handle name after so we aren't handling two different versions for every new event
+ *     on that account").
  *
  * ★ THE MACHINE IS HALF SERVER AND HALF CLIENT, AND THAT IS THE ONE STRUCTURAL FACT HERE. The
- * server knows the password and the email (they change `gate`, and the RSC drop re-derives); it
- * cannot know whether THIS BROWSER typed a name, or which way in the guest just picked. So the
- * ordered steps are derived from BOTH: the server's decision, and the client's own facts.
+ * server knows the password and the email (they change `gate`, and the RSC drop re-derives) and,
+ * since the welcome's flag is a cookie, whether this person has met the welcome; it cannot know
+ * whether THIS BROWSER typed a name, or which way in the guest just picked. So the ordered steps are
+ * derived from BOTH: the server's decision, and the client's own facts. What the page draws FIRST is
+ * the server's alone (`doorArrival`, below).
  */
 import type { GalleryAccess, GalleryGate } from "@/lib/events/gallery-access";
 
@@ -301,4 +308,99 @@ export function contributionAnswered(input: {
     input.answered ||
     (input.requireUpload && input.contributed && input.gate !== "upload")
   );
+}
+
+/**
+ * What stands on the door's page, the doorway's own (`door/stage.tsx`): the welcome (the demo's role step,
+ * `role`), the ask, the wait, the moment the door she waited at opens (`beat`), and at a gate the door at rest
+ * under a step of the sheet (`rest`).
+ */
+export type StageFace =
+  | "welcome"
+  | "role"
+  | "ask"
+  | "waiting"
+  | "beat"
+  | "rest";
+
+/** The stage face a step of the machine stands on, when it is the current step (no review, no beat). */
+export function stageFaceOf(input: {
+  current: EntryStep | null;
+  access: GalleryAccess;
+  isDemo: boolean;
+}): StageFace | null {
+  const { current, access, isDemo } = input;
+  if (current === "welcome") return isDemo ? "role" : "welcome";
+  if (current === "waiting" || current === "ask") return current;
+  // At a gate every other step rises over the door at rest; past it, over the album.
+  if (access === "none" && current !== null) return "rest";
+  return null;
+}
+
+/** What the page's FIRST BYTE draws for the door (`doorArrival`). */
+export type DoorArrival = {
+  /** The door's page standing from the first byte, or null. */
+  face: StageFace | null;
+  /**
+   * The door's scrim over the album from the first byte: the album sits behind a sheet step the door
+   * still owes (the email step, the name, the first photo), so it is drawn blurred until that sheet
+   * rises into the scrim, never bare.
+   */
+  scrim: boolean;
+};
+
+/**
+ * ★ THE ALBUM IS NEVER VISIBLE BEFORE A DOOR SHE SHOULD MEET FIRST (Will, 2026-10-02: "let's ensure that the
+ * album is never visible before any door/gate that should be encountered first. Very bad UX for both
+ * revealing the album (could catch screen recording) and the guest flow 'what just happened? i saw the
+ * album, now i'm out'"). The page answers this ON THE SERVER, from what the request carries, so the first
+ * byte draws the door: the welcome's open door for a newcomer at a Public album (its flag is a cookie,
+ * `use-welcome-seen-cookie.ts`), the door at rest at every gate, the ask and the wait, and, where a sheet
+ * step is first, the album behind the door's scrim. A returning guest who owes nothing lands on her album at
+ * once.
+ *
+ * The client's own facts are the server's best reading of them: a ticket cookie stands for a name and a
+ * return (the door mints the ticket only after the name), and a confirmed account's name is its profile's.
+ * Where they turn out wrong the door corrects after hydration (a scrim that owed nothing fades; a sheet the
+ * server could not foresee rises over the album, as before), never the other way round for a newcomer, who
+ * holds no ticket and meets the welcome first. The shut door is the page's own early return, server-drawn.
+ */
+export function doorArrival(input: {
+  gate: GalleryGate | null;
+  access: GalleryAccess;
+  isOwner: boolean;
+  isDemo: boolean;
+  /** The request carried this album's welcome cookie (the demo never has: every demo visit is fresh). */
+  welcomeSeen: boolean;
+  /** The viewer holds a CONFIRMED account. */
+  isVerified: boolean;
+  /** A confirmed account with no profile name (the page's `needsName`). */
+  needsName: boolean;
+  /** The request carried this album's guest ticket (`pr_guest_<eventId>`). */
+  ticketHeld: boolean;
+  uploadsOpen: boolean;
+  requireUpload: boolean;
+  /** The server's half of "has contributed" (with the switch on, its gate is not `upload`). */
+  hasContributed: boolean;
+}): DoorArrival {
+  const { access, isDemo, isVerified } = input;
+  const { steps } = computeDoor({
+    gate: input.gate,
+    access,
+    hasContributed: input.hasContributed,
+    uploadsOpen: input.uploadsOpen,
+    requireUpload: input.requireUpload,
+    welcomeSeen: input.welcomeSeen && !isDemo,
+    hasName: isVerified ? !input.needsName : input.ticketHeld,
+    isVerified,
+    path: null,
+    contributed: false,
+    skipped: false,
+    returning: input.ticketHeld,
+    isOwner: input.isOwner,
+    isDemo,
+  });
+  const current = steps[0] ?? null;
+  const face = stageFaceOf({ current, access, isDemo });
+  return { face, scrim: current !== null && face === null };
 }

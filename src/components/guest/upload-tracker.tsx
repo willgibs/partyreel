@@ -30,7 +30,9 @@ import { NOT_APPROVED_HELP_HREF } from "@/lib/content/help-links";
 import { formatCount } from "@/lib/format/count";
 import {
   buildTrackerRows,
+  developTimeWords,
   newlyInAlbum,
+  TRACKER_SEALED_WORDS,
   TRACKER_WORDS,
   trackerShows,
   waitingCount,
@@ -83,9 +85,10 @@ import { cn } from "@/lib/utils";
  * once, and the page's shell never re-renders for it.
  */
 
-type TrackerSnapshot = { show: boolean; waiting: number };
+/** Whether it shows, how many of hers wait, and how many of those wait for the album to develop. */
+type TrackerSnapshot = { show: boolean; waiting: number; sealed: number };
 
-const HIDDEN: TrackerSnapshot = { show: false, waiting: 0 };
+const HIDDEN: TrackerSnapshot = { show: false, waiting: 0, sealed: 0 };
 
 const NO_NEWS: readonly string[] = [];
 
@@ -118,7 +121,11 @@ export function createUploadTrackerStore(): UploadTrackerStore {
       };
     },
     set(next) {
-      if (next.show === snapshot.show && next.waiting === snapshot.waiting) {
+      if (
+        next.show === snapshot.show &&
+        next.waiting === snapshot.waiting &&
+        next.sealed === snapshot.sealed
+      ) {
         return;
       }
       snapshot = next;
@@ -192,6 +199,7 @@ export function UploadTracker({
   sessionToken,
   isAuthed,
   moderated,
+  developsAt = null,
   isDemo,
   isOwner,
   removedIds,
@@ -207,8 +215,10 @@ export function UploadTracker({
   sessionToken: string | null;
   /** Signed in: the account speaks for its own rows (the route asks `getUser()`). */
   isAuthed: boolean;
-  /** The event holds uploads for the host. */
+  /** What she adds waits (`uploadsWait`'s `waits`): for the host's approval, or for a develop time ahead. */
   moderated: boolean;
+  /** The album's develop time while it is ahead (`uploadsWait`'s `developsAt`): what she adds is sealed until then. */
+  developsAt?: string | null;
   isDemo: boolean;
   isOwner: boolean;
   /** What she removed herself this visit: hers to forget, never listed. */
@@ -271,6 +281,9 @@ export function UploadTracker({
     };
   }, [canAsk, arrivals, qrToken, sessionToken, store]);
 
+  const sealing = developsAt !== null;
+  // Said only in the open list, which draws after hydration: her own zone, never the server's.
+  const developWhen = open && sealing ? developTimeWords(developsAt) : null;
   const rows = useMemo(
     () =>
       buildTrackerRows({
@@ -279,14 +292,16 @@ export function UploadTracker({
         album,
         approvedOnce,
         removed: removedIds,
+        sealing,
       }),
-    [queue, own, album, approvedOnce, removedIds],
+    [queue, own, album, approvedOnce, removedIds, sealing],
   );
   const waiting = waitingCount(rows);
+  const sealed = rows.filter((row) => row.sealed).length;
   const show = trackerShows({ moderated, isDemo, isOwner, rows });
   useEffect(() => {
-    store.set({ show, waiting });
-  }, [store, show, waiting]);
+    store.set({ show, waiting, sealed });
+  }, [store, show, waiting, sealed]);
   // Gone with the album (an access flip remounts it): the button goes with it rather than lingering.
   useEffect(() => () => store.set(HIDDEN), [store]);
 
@@ -361,10 +376,15 @@ export function UploadTracker({
   return (
     <Popup open={open && show} onOpenChange={onOpenChange}>
       <PopupContent kind="list" data-upload-tracker-sheet>
-        {/* The album's own sentence for this event's rule, so one rule has one wording. */}
+        {/* The album's own sentence for this event's rule, so one rule has one wording: the host's review, or the
+            develop (the album's time ahead, said in her own zone). */}
         <PopupHeader
           title="Your uploads"
-          description="The host reviews uploads before they appear in the album."
+          description={
+            sealing
+              ? `Uploads appear in the album when it develops${developWhen ? `, ${developWhen}` : ""}.`
+              : "The host reviews uploads before they appear in the album."
+          }
           back="Album"
         />
         <PopupBody>
@@ -480,7 +500,9 @@ function TrackerRowView({
         <span className="truncate text-foreground">
           {removing === "failed"
             ? "Couldn't remove it"
-            : TRACKER_WORDS[row.status]}
+            : row.sealed
+              ? TRACKER_SEALED_WORDS
+              : TRACKER_WORDS[row.status]}
         </span>
       </p>
       {onRemove && (
@@ -533,8 +555,8 @@ function TrackerRowView({
 }
 
 /**
- * THE ROUND BUTTON BESIDE ADD PHOTOS, with its count: the number of hers waiting for approval, the
- * number only, like a notification badge; a screen reader hears the list's own words for it.
+ * THE ROUND BUTTON BESIDE ADD PHOTOS, with its count: the number of hers waiting (for approval, or for the album to
+ * develop), the number only, like a notification badge; a screen reader hears the list's own words for it.
  * Nothing to count, no badge; nothing of hers sent at a moderated event, no button at all.
  *
  * ★ IT WEARS WHERE IT STANDS (`event-header` r1): the glass round beside the cover's Add, on the
@@ -550,12 +572,19 @@ export function UploadTrackerButton({
   onOpen: () => void;
   look?: "row" | "glass" | "round";
 }) {
-  const { show, waiting } = useSyncExternalStore(
+  const { show, waiting, sealed } = useSyncExternalStore(
     store.subscribe,
     store.getSnapshot,
     () => HIDDEN,
   );
   if (!show) return null;
+  // What hers wait for, in her rows' own words: the host's approval, the develop, or both at once.
+  const waitsFor =
+    sealed === 0
+      ? ` ${TRACKER_WORDS.waiting.toLowerCase()}`
+      : sealed === waiting
+        ? ` ${TRACKER_SEALED_WORDS.toLowerCase()}`
+        : " waiting";
   return (
     <Button
       type="button"
@@ -565,7 +594,7 @@ export function UploadTrackerButton({
       data-upload-tracker
       aria-label={
         waiting > 0
-          ? `Your uploads, ${formatCount(waiting)} waiting for approval`
+          ? `Your uploads, ${formatCount(waiting)}${waitsFor}`
           : "Your uploads"
       }
       className={cn(

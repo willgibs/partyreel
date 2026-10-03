@@ -355,6 +355,70 @@ describe("the list", () => {
  * works, leaves her list through the page's own record when the server agrees, and offers Try again when it
  * does not. Nothing in the album, or still sending, has one: the album's own Delete is that door.
  */
+/* ★ RED-TEAM 43'S MEDIUM: on an album with a develop time ahead, her own shots are approved and sealed until it
+   develops; her rows' read says so (`sealed: true`), and each waits in its own words, counted, hers to take back,
+   under the album's sentence for the develop, never "In the album" and never "waiting for approval". */
+describe("the develop", () => {
+  it("★ her sealed shots wait to develop: counted, said in their own words, and hers to take back", async () => {
+    const ahead = "2026-10-03T13:00:00.000Z";
+    vi.mocked(global.fetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        ok: true,
+        items: [
+          { id: "m1", status: "approved", sealed: true },
+          { id: "m2", status: "approved", sealed: true },
+        ],
+      }),
+    } as Response);
+    const view = mount({ developsAt: ahead });
+    await waitFor(() =>
+      expect(tracker()).toHaveAccessibleName(
+        "Your uploads, 2 waiting to develop",
+      ),
+    );
+    expect(
+      document.querySelector("[data-upload-tracker-count]")?.textContent,
+    ).toBe("2");
+
+    act(() => {
+      view.rerender(
+        <>
+          <UploadTrackerButton store={view.store} onOpen={() => {}} />
+          <UploadTracker
+            store={view.store}
+            queue={[]}
+            qrToken={QR}
+            sessionToken={TOKEN}
+            isAuthed={false}
+            moderated
+            developsAt={ahead}
+            isDemo={false}
+            isOwner={false}
+            removedIds={new Set()}
+            open
+            onOpenChange={() => {}}
+          />
+        </>,
+      );
+    });
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(2));
+    const rows = [
+      ...document.querySelectorAll("[data-upload-tracker-row]"),
+    ].map((row) => row.getAttribute("data-upload-tracker-row"));
+    expect(rows).toEqual(["waiting", "waiting"]);
+    expect(screen.getAllByText("Waiting to develop")).toHaveLength(2);
+    expect(screen.queryByText("In the album")).toBeNull();
+    expect(screen.queryByText("Waiting for approval")).toBeNull();
+    expect(
+      screen.getAllByRole("button", { name: "Remove this upload" }),
+    ).toHaveLength(2);
+    expect(
+      screen.getByText(/^Uploads appear in the album when it develops, /),
+    ).toBeInTheDocument();
+  });
+});
+
 describe("taking one of hers back", () => {
   /** The list open over her rows: m1 held, m3 in the album. */
   async function openList(
