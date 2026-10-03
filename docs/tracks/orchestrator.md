@@ -93,8 +93,11 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team brie
 
 0. **Red-team 46's MEDIUM (11:30Z, its ledger):** the waiting contact sheet draws her own VIDEO as a broken image
    (`src/components/guest/gallery-empty-state-sheet.tsx`: every lit `[data-hers] .wait-cell` is an `<img src={cell.src}>`,
-   `HerShot.video` ignored; a camera album's hold-to-film shot is `video/mp4`). Its fix is `crumbs-56` (running); relay to it
-   whatever else red-team 46 ledgers.
+   `HerShot.video` ignored; a camera album's hold-to-film shot is `video/mp4`). Its fix is `crumbs-56` (running). Relayed to it
+   too (11:43Z): red-team 46's second MEDIUM, the host's cover after the switch that puts held photos in the roll
+   reading "0 developing" and wearing the sealed photos (`host-cover.ts`'s `entryWaits` compares `created_at` with
+   `sealed_from`; a row should wait by its seal), with `host-cover.ts` and `event-hub-head-cover.tsx` accepted outside
+   its owns.
 0. **Now (11:20Z):** every wave-1 lane is merged and both migrations are applied (types regenerated at `e0cbda7d`;
    take-home's typed seams one ROADMAP line), and the export Worker is deployed (version 955ce073). Build 46 (`9af92e54`)
    serves the alias; red-team 46 walks it from `../partyreel-wt/_scratch/redteam-46/brief.md`. Running: `event-dates` (its migration for the Advisor,
