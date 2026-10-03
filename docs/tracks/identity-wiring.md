@@ -99,22 +99,94 @@ Each is built as recommended and is Will's to overrule; none is a one-way door.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits**, pushed to `origin/lp/identity-wiring`: `b613fdab` (the wiring), `bce3e9af` (the Library foundations'
+  skeleton specimen), and the manifest's own commits. **No sync**: launch-prep moved since the base `c925e48f`
+  (wizard-wiring merged at `feca808e`, plus records), but none of it touches this lane's `reads`, and
+  `git merge-tree --write-tree HEAD origin/launch-prep` merges clean (exit 0). The Create room it brought reads the
+  room's tokens through its own `.dark`, so it wears viewfinder's room at the merge.
+- **Gates on `GATE_SHA`**, each on its own exit code (logs `../partyreel-wt/_scratch/identity-wiring/gate-*.log`):
+  typecheck 0; lint 0 (no warnings); test 0 (TEST_LINE); `build-lock.sh pnpm build` 0; `lab:smoke --base
+  http://localhost:3131` 0 (SMOKE_LINE). `lab:demo --all` finds no open step (every ask on the desk is answered), so
+  every board's answered steps were pressed by `--only`, all 25 on seven boards, at 1440 and with `--width 375`:
+  DEMO_LINE (`gate-demo-steps.log`).
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): every path under `owns`, this manifest, the two
+  new test files beside the atoms, and these exceptions:
+  - `src/components/shared/empty-state.tsx` and `src/components/app/event-feed/feed-section-empty.tsx`: the carried
+    call `one-empty` makes them the one empty atom, so each now composes `ui/empty.tsx` (their callers untouched);
+  - `src/components/shared/tooltip-slide.tsx`: the bulk bar's sliding tooltip reads the tooltip's material from the
+    contract (`floatingTip`), or it would stay a white capsule in the room beside every other tooltip on the display;
+  - the grounds' literal mirrors, each a line or two: the theme-color hexes in `src/app/layout.tsx`,
+    `src/app/not-found.tsx` and `src/app/(marketing)/(cinema)/layout.tsx` (parsed before any stylesheet), the two
+    `body:has(...)` grounds in `src/app/(marketing)/marketing.css`, the lab cinema stage's room in
+    `src/components/lab/stage.tsx`;
+  - `src/components/dev/motion-tuner-config.ts` (the tuner's baked tile and float defaults) and
+    `src/components/shared/media-lightbox.tsx` (the tile radius's JS fallback): a baked value moves in three places;
+  - `src/app/(dev)/design/gallery/specimens.generated.json` (regenerated from the Library's entries) and
+    `src/app/(dev)/design/(shell)/library/foundations/page.tsx` (its skeleton specimen named the retired shimmer).
+- **The items:**
+  - Viewfinder's body (`globals.css`): paper a silver 0.972 with the card a step whiter, the room 0.085 with the card a
+    step lighter, lines ink at an alpha, `--signal` beside `--destructive` in every set, tiles at 2px (gap 3px),
+    viewfinder's two shadows on each ground; the mat and the slab's shadows follow.
+  - The display: `--display*` on `:root` and the fifth ground `.surface-display` (whole pairs, the room's state lights,
+    `color-scheme: dark`); `floating-layer.ts` gains `floatingDisplay(Panel)`, `floatingTip`, `floatingWorkSurface` and
+    `floatingScrim`; `--radius-float` 16px, rows 12, a tooltip 10, a work layer a quarter rounder.
+  - Quick layers on the display: the dropdown and its submenu, the select's list, the popover, the responsive menu
+    (desk menu, hand rows, Cancel), the admin palette, the tooltip and the bulk bar's, every toast; the chosen row a
+    light wash with a 1.5px light outline (a destructive row's in red); the palette's group heading in sentence case.
+  - Work layers (the popup's shapes, the Dialog, the responsive Sheet): the body's popover, no ring or border, the
+    work corner, over a half-black sharp scrim (`overlayClassName` still wins).
+  - Card flat as its tone (`2xl`, no ring, a footer wash); the code mat on the card's corner with the lift.
+  - Status as light: the Badge an LED and its word (readout: `label` step, spaced capitals, semibold, tabular; unlit
+    ring for secondary, outline, ghost), the live mark in the recording red breathing (`live-signal`), Progress as
+    twelve frames in success or (`aria-invalid`) the failure red, Skeleton breathing (`skeleton-breathe`), faces with
+    no line overlapping by a quarter, the count an unlit ring, presence green, the glyph count's number a readout with
+    its glyph a step back (white on a photograph).
+  - Toasts: the display with sonner's dark theme always, each state's glyph lit in its colour, the Undo a small pill.
+  - `ui/empty.tsx`, the one empty place (a glyph in its lens, a title, a line, an act), worn by the shared
+    `EmptyState` (the likes page, a profile's sections) and the feed's section empty (Review, Uploads).
+  - The Library: badge, card, avatar (a row of faces), skeleton, progress (a failed meter), the toaster (warning and
+    Undo added), glyph count and the new Empty entry, all true to the atoms; `design-system.md` refined in place.
+  - Tests red on the old code: `ui/display.test.ts` (the display's whole token set, `--signal` beside every
+    `--destructive`, the quick layers on the display and the work layers off it) and `ui/empty.test.tsx`.
+  - No viewfinder corner styling existed in production's atoms to remove (`git grep` for the marks' `--m-c`, `--m-a`,
+    `lockAt` and `viewfinder` in `src/components/ui/`, `globals.css` and `theme.css` finds none; the "corner mark"
+    production names is the code's door glyph beside it, a badge, not the frame); actions and fields keep their build
+    until identity r3.
+- **For the lanes that sync onto this**: a quick layer now carries `.surface-display` on its own element, so a lab sheet
+  that redraws one (identity r3's `room`, the white pop-out) re-declares the tokens on the layer itself; an ancestor's
+  set never reaches inside. The take-home board's drawn menus (`floatingPanel`) still show the body's material, where
+  production's real menus are the display.
+- **Verified**, headless at 1440x900 and 375x812, reduced motion, paper and room, before (build 45, the old code) and
+  after: the dashboard, a hub, a guest album's Add sheet, cover and shutter (the demo event), Settings' door page,
+  Account, Review, a menu with its chosen row, a popover, a tooltip, toasts (plain with Undo, success, error), badges
+  and the live mark, meters, loading, faces, cards, the code mat and every empty drawing; and /pricing, /help and the
+  404 (before from the alias). The contact sheet is `../partyreel-wt/_scratch/identity-wiring/captures.html`
+  (`before/`, `after/`). Computed styles read in a live tab (`probe.mjs`): the menu's display ground, 16px, its edge
+  and the ground's layer shadow on both grounds, the focused row's wash and inset outline, the live dot's
+  `live-signal` at 1.6 s, the readout at 12px/600/0.96px uppercase, the meter's 12-frame mask, the tooltip's 10px,
+  sonner's `data-sonner-theme="dark"`, the success and error glyphs green and red, the card flat at 12px, the skeleton
+  breathing with no gradient.
+- **Assets requested from Will**: none.
+- **Board ideas**:
+  - The room went from 0.105 to 0.085: the Aurora and the lamps were measured on the old room (glow-contrast's
+    tables), so a quick re-measure of the cinema chapters' light on the new room.
+  - The hand-rolled card surfaces (Settings' steps and cards, the hub's checklist, the attended-events tile) as one
+    sweep onto the `Card` atom, so every card lies flat.
+  - identity r3's `room` ask now has production's display to set the white pop-out against.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes**: none.
+- **Calls his to overrule** (each a Question above, built as recommended): the material wired (silver paper, the
+  near-black room, 2px tiles), the surface radius kept at 8px, a toast's state as its lit glyph, the live mark
+  breathing, the dashboard's two teasers kept, readouts on the 12px label step, the half-black sharp scrim, the
+  hand-rolled cards keeping their hairline until they become `Card`.
+- **Look at first**: the hub in the room at 375 (the live mark's red light and the counts as readouts, then a menu
+  on the display), Settings on paper at a desk (the silver body, the panel's corner over the half-black scrim), then
+  a toast with its Undo.
 
 ## Where I am
 
-- Done and pushed: the work commit `b613fdab` (all wiring, tests, docs, Library). Gate on it: typecheck 0, lint 0,
-  test 0 (813 files, 9,590 tests), build 0.
-- Remaining: `lab:smoke --base http://localhost:3131` and `lab:demo --all` at 1440 and `--width 375` (dev server on
-  3131: `rm -rf .next/dev && pnpm dev -p 3131`), then the Handoff below and `status: handed-off`.
-- Captures: `../partyreel-wt/_scratch/identity-wiring/before/` and `after/` (the harness `shoot.mjs` needs an
-  uncommitted scratch route, `src/app/(dev)/design/zz-identity-scratch/`, deleted before the gate).
+- Done and pushed: `b613fdab` (the wiring), `bce3e9af` (the foundations specimen). On `bce3e9af`: typecheck 0, lint 0
+  (`gate2-*.log`); on `b613fdab`: test 0 (9,590), build 0, `lab:smoke` 0 (193 checks).
+- Running: the 25 answered desk steps pressed by `--only` at 1440 and 375 (`_scratch/identity-wiring/demo-all.sh`, log
+  `gate-demo-steps.log`), on a dev server on 3131.
+- Remaining: the test suite and the build on the final head, `lab:smoke` again, the Handoff's numbers (GATE_SHA,
+  TEST_LINE, SMOKE_LINE, DEMO_LINE), `status: handed-off`.
