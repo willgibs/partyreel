@@ -40,15 +40,20 @@
 -- scans the table (~110 rows) under it; the function swap holds its own lock until COMMIT.
 --
 -- APPLY PROTOCOL (database-security.md -> Workflow):
+--   (0) ★ APPLY BEFORE THE ALIAS BUILD THAT CARRIES THE LANE: two of its explicit reads name the column (the unlocked
+--       album's re-read, `rehydrateUnlockedDetails`, and the door's, `readDoorEventDetails`, which throws on a schema
+--       without it), and Settings' date save names it whenever a range is in play.
 --   (1) drift, read-only (2026-10-03): the two bodies this file replaces hash as 20261002200000 writes them,
 --       whitespace collapsed (raw): get_event_by_qr_token e944c879 (dc71ffcc), get_public_profile cf141ab3
 --       (05b92e3c); and no `event_end_date` column exists.
 --   (2) the rolled-back check at the foot: red on today's schema (0 fixtures green; 1 to 6 red, the column missing),
 --       green with this file between `begin;` and the block; then apply verbatim.
---   (3) get_advisors, EXPECTED DELTA: none (19 / 4 / 35): no new function, table or policy; get_event_by_qr_token
---       keeps its four holders, so 0028 and 0029 list what they listed.
+--   (3) get_advisors, EXPECTED DELTA: none (19 / 4 / 35, read 2026-10-03): no new function, table or policy;
+--       get_event_by_qr_token keeps its four holders, so 0028 and 0029 list what they listed.
 --   (4) regenerate src/lib/db/types.ts (events: event_end_date; get_event_by_qr_token's Returns: event_end_date), then
---       drop the typed seams the lane names in its handoff (`endDateOf`'s callers read the typed column).
+--       drop the typed seams the lane names in its handoff (`endDateOf`'s callers read the typed column). The lane
+--       typechecked its tree against those types added by hand (then discarded): green, so the seams may go one by
+--       one.
 -- =============================================================================================
 
 -- =============================================================================================
@@ -439,10 +444,11 @@ grant execute on function public.get_public_profile(text) to anon, authenticated
 --
 -- -- ── 3. the grants: the host writes it as she writes the date (insert and update), anon never ──
 -- do $$
--- declare v uuid; v_host uuid; n int; bad text := '';
+-- declare v uuid; v_host uuid; v_g1 uuid; n int; bad text := '';
 -- begin
 --   select id into v from fx where k = 'open';
 --   select id into v_host from fx where k = 'host';
+--   select id into v_g1 from fx where k = 'g1';
 --   if not has_column_privilege('authenticated', 'public.events', 'event_end_date', 'INSERT') then bad := bad || ' auth-insert'; end if;
 --   if not has_column_privilege('authenticated', 'public.events', 'event_end_date', 'UPDATE') then bad := bad || ' auth-update'; end if;
 --   if not has_column_privilege('authenticated', 'public.events', 'event_end_date', 'SELECT') then bad := bad || ' auth-select'; end if;
@@ -467,6 +473,14 @@ grant execute on function public.get_public_profile(text) to anon, authenticated
 --   if n <> 1 then bad := bad || ' host-insert'; end if;
 --   reset role;
 --
+--   -- Another account's session moves nothing on her event: the grant names the column, RLS names the rows.
+--   set local role authenticated;
+--   perform set_config('request.jwt.claim.sub', v_g1::text, true);
+--   update public.events set event_end_date = '2026-10-09' where id = v;
+--   get diagnostics n = row_count;
+--   if n <> 0 then bad := bad || ' cross-tenant-update'; end if;
+--   reset role;
+--
 --   set local role anon;
 --   perform set_config('request.jwt.claim.sub', '', true);
 --   begin
@@ -475,9 +489,12 @@ grant execute on function public.get_public_profile(text) to anon, authenticated
 --   exception when insufficient_privilege then null;
 --   end;
 --   reset role;
+--   if (select event_end_date from public.events where id = v) is distinct from '2026-10-05'::date then
+--     bad := bad || ' moved-by-another';
+--   end if;
 --   if bad <> '' then raise exception 'grants:%', bad; end if;
 --   insert into proof (step, ok, detail) values ('3 the grants: the date''s own, anon none', true,
---     'authenticated insert, update, select; her update and her insert land; anon 42501');
+--     'authenticated insert, update, select; her update and her insert land; another account moves 0 rows; anon 42501');
 -- exception when others then
 --   reset role;
 --   insert into proof (step, ok, detail) values ('3 the grants: the date''s own, anon none', false, sqlerrm);
