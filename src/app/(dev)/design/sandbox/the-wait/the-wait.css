@@ -1,0 +1,442 @@
+/* THE WAIT'S OWN SHEET: what this board draws that production has no piece for
+   yet (the four waits, the arrival's develop, the host's covers, the model's
+   Settings). Everything production already draws (the cover, its buttons, the
+   shutter, her uploads' round, the album's rows) wears production's own
+   components and classes.
+
+   ★ UNLAYERED ON PURPOSE. A lab utility compiles into the `utilities.lab`
+   sub-layer and loses to production's own layer on the same element
+   (`design.css`'s landmine), so every rule a proposal adds lives here, where an
+   unlayered rule wins. No rule here sets `position` on an element a caller
+   positions with a utility.
+
+   ★ COLOUR COMES FROM THE PHOTOGRAPHS AND FROM LIGHT (bible 6). Everyone's
+   waiting photos are in the dark (the media well, `--gallery*`, dark in both
+   themes); hers are lit with her own photographs; the only other light is the
+   house's coral (the cover's own `HouseLight`, hue 25) and the album's.
+
+   ★ MOTION ONLY WHERE IT SHOWS STATE, AND NONE UNDER REDUCED MOTION (bible 5):
+   the photo just landed, the count ticking on, the develop filling in. Every
+   frame stands complete at rest, which is also what `lab:demo` compares. */
+
+/* ── the well: where everyone's waiting photos are, in the dark ────────── */
+
+.tw-well {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: calc(var(--radius-tile) * 3);
+  background: var(--gallery);
+  color: var(--gallery-foreground);
+  box-shadow: inset 0 0 0 1px var(--gallery-border);
+}
+/* A well that is a card's picture runs to the card's edges. */
+.tw-well.tw-flush {
+  border-radius: 0;
+  box-shadow: none;
+}
+/* The well's one light: the house's coral from above, a lamp over a sheet. */
+.tw-well::before {
+  content: "";
+  position: absolute;
+  inset: -60% -10% auto;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    closest-side,
+    oklch(0.72 0.12 25 / 0.16),
+    oklch(0.72 0.12 25 / 0.04) 60%,
+    transparent
+  );
+}
+/* The darkroom's own light, where the preset is named for it: the safelight's red. */
+.tw-well[data-light="safe"]::before {
+  background: radial-gradient(
+    closest-side,
+    oklch(0.6 0.2 28 / 0.42),
+    oklch(0.6 0.2 28 / 0.1) 60%,
+    transparent
+  );
+}
+.tw-muted {
+  color: var(--gallery-muted);
+}
+
+/* ── the contact sheet ─────────────────────────────────────────────────── */
+
+.tw-sheet {
+  display: grid;
+  gap: 3px;
+}
+.tw-cell {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 3px;
+  background: oklch(0.2 0.006 286);
+  box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.05);
+}
+/* The newest squares are still warm with being shot, cooling as more land. */
+.tw-cell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: oklch(0.93 0.04 60 / calc(var(--warm, 0) * 0.18));
+}
+.tw-cell[data-mine] {
+  z-index: 1;
+  box-shadow:
+    0 0 0 1.5px #fff,
+    0 0 12px rgb(255 255 255 / 0.3);
+}
+.tw-cell[data-mine]::after {
+  display: none;
+}
+.tw-cell[data-new] {
+  background: oklch(0.32 0.008 286);
+  box-shadow:
+    0 0 0 1.5px rgb(255 255 255 / 0.85),
+    0 0 14px oklch(0.9 0.06 60 / 0.6);
+}
+.tw-cell[data-mine][data-new] {
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 18px rgb(255 255 255 / 0.55);
+}
+/* A square that has developed: its photograph, lit. */
+.tw-cell > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.tw-cell[data-developed] {
+  box-shadow: none;
+}
+.tw-cell[data-developed]::after {
+  display: none;
+}
+.tw-key {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: linear-gradient(135deg, #e9b27a, #6c7fd8);
+  box-shadow: 0 0 0 1.5px #fff;
+}
+
+/* ── the stack: everyone's, one tile that thickens ─────────────────────── */
+
+.tw-stack {
+  position: relative;
+  padding: 7px 7px 0 0;
+}
+/* The edges behind it: production's stack tile's own two (`stack-tile.tsx`, the muted ink at 25 and 40). */
+.tw-stack-edge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: calc(100% - 7px);
+  height: calc(100% - 7px);
+  border-radius: var(--radius-tile);
+  background: color-mix(in oklab, var(--muted-foreground) 25%, transparent);
+}
+.tw-stack-edge + .tw-stack-edge {
+  top: 3.5px;
+  right: 3.5px;
+  background: color-mix(in oklab, var(--muted-foreground) 40%, transparent);
+}
+.tw-stack-face {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  height: 100%;
+  border-radius: var(--radius-tile);
+  background: var(--gallery);
+  color: var(--gallery-foreground);
+  box-shadow: inset 0 0 0 1px var(--gallery-border);
+}
+.tw-stack-face::before {
+  content: "";
+  position: absolute;
+  inset: -30% -40% auto;
+  height: 90%;
+  z-index: -1;
+  background: radial-gradient(
+    closest-side,
+    oklch(0.72 0.12 25 / 0.22),
+    oklch(0.72 0.12 25 / 0.05) 60%,
+    transparent
+  );
+}
+/* The stack's edge lines: one hairline for every ten photos waiting. */
+.tw-stack-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 10px;
+}
+.tw-stack-lines > span {
+  height: 1px;
+  background: rgb(255 255 255 / 0.14);
+}
+.tw-stack-lines > span:last-child {
+  background: rgb(255 255 255 / 0.32);
+}
+
+/* Her photo, in the album, waiting: lit, with its mark. */
+.tw-hers {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-tile);
+  background: oklch(0.2 0.006 286);
+}
+.tw-hers > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* The one pass of light her own landing takes (production's `data-landed`, quoted). */
+.tw-hers[data-landing]::after,
+.tw-cell[data-mine][data-new]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 2px rgb(255 255 255 / 0.9);
+  border-radius: inherit;
+}
+
+/* ── the night's reel ──────────────────────────────────────────────────── */
+
+.tw-reel {
+  position: relative;
+  height: 112px;
+}
+.tw-reel-bar {
+  position: absolute;
+  bottom: 30px;
+  width: 3px;
+  border-radius: 2px;
+  background: rgb(255 255 255 / 0.28);
+}
+.tw-reel-bar[data-new] {
+  background: oklch(0.9 0.08 60);
+  box-shadow: 0 0 10px oklch(0.9 0.08 60 / 0.7);
+}
+.tw-reel-axis {
+  position: absolute;
+  right: 0;
+  bottom: 24px;
+  left: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: rgb(255 255 255 / 0.12);
+}
+.tw-reel-past {
+  position: absolute;
+  bottom: 24px;
+  left: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: rgb(255 255 255 / 0.55);
+}
+.tw-reel-frame {
+  position: absolute;
+  bottom: 30px;
+  width: 22px;
+  height: 22px;
+  overflow: hidden;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1.5px #fff,
+    0 4px 12px rgb(0 0 0 / 0.5);
+}
+.tw-reel-frame > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.tw-reel-now {
+  position: absolute;
+  bottom: 19px;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgb(255 255 255 / 0.16);
+}
+.tw-reel-end {
+  position: absolute;
+  right: 0;
+  bottom: 20px;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 2px rgb(255 255 255 / 0.6);
+}
+.tw-reel-label {
+  position: absolute;
+  bottom: 0;
+  font-size: 11px;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+  color: var(--gallery-muted);
+  white-space: nowrap;
+}
+/* Her frames in a row under it, the camera reel's rounded frames. */
+.tw-frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  aspect-ratio: 1;
+  background: oklch(0.2 0.006 286);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.12);
+}
+.tw-frame > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ── the loupe: one of hers, opened where it stands ────────────────────── */
+
+.tw-loupe {
+  border-radius: 18px;
+  background: oklch(0.16 0.006 286 / 0.92);
+  color: #f4f4f5;
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.12),
+    0 24px 60px rgb(0 0 0 / 0.55);
+  backdrop-filter: blur(18px) saturate(1.2);
+}
+
+/* ── the host's frost ──────────────────────────────────────────────────── */
+
+.tw-frost {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: calc(var(--radius-tile) * 3);
+}
+.tw-frost-pane {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: oklch(0.12 0.006 286 / 0.38);
+  backdrop-filter: blur(22px) saturate(1.25);
+}
+.tw-frost[data-peek] .tw-frost-pane {
+  background: transparent;
+  backdrop-filter: none;
+}
+
+/* ── the settings' time track ──────────────────────────────────────────── */
+
+.tw-track {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-radius: 14px;
+  padding: 4px;
+  background: var(--muted);
+}
+.tw-track-stop {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  border-radius: 10px;
+  padding: 8px 4px;
+  text-align: center;
+}
+.tw-track-stop[data-on] {
+  background: var(--background);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.08),
+    0 0 0 1px var(--border);
+}
+/* A style card's picture: a small album drawn in light. */
+.tw-style-pic {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--gallery);
+}
+
+/* ── motion: only with motion allowed ──────────────────────────────────── */
+
+@media (prefers-reduced-motion: no-preference) {
+  .tw-cell[data-new],
+  .tw-hers[data-landing] {
+    animation: tw-land 2.8s var(--ease-emphasis, ease-out) infinite;
+  }
+  .tw-pill-new {
+    animation: tw-tick 2.8s var(--ease-emphasis, ease-out) infinite;
+  }
+  .tw-reel-now {
+    animation: tw-breathe 2.8s ease-in-out infinite;
+  }
+  .tw-develop-cell {
+    animation: tw-develop 1.4s var(--ease-emphasis, ease-out) both;
+    animation-delay: var(--tw-delay, 0ms);
+  }
+}
+
+@keyframes tw-land {
+  0% {
+    transform: scale(0.82);
+    opacity: 0;
+  }
+  18% {
+    transform: scale(1.04);
+    opacity: 1;
+  }
+  30%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes tw-tick {
+  0%,
+  8% {
+    transform: translateY(4px);
+    opacity: 0;
+  }
+  20%,
+  80% {
+    transform: none;
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.85;
+  }
+}
+@keyframes tw-breathe {
+  0%,
+  100% {
+    box-shadow: 0 0 0 4px rgb(255 255 255 / 0.16);
+  }
+  50% {
+    box-shadow: 0 0 0 9px rgb(255 255 255 / 0.04);
+  }
+}
+@keyframes tw-develop {
+  from {
+    opacity: 0;
+    filter: brightness(2.2) saturate(0);
+  }
+  to {
+    opacity: 1;
+    filter: none;
+  }
+}

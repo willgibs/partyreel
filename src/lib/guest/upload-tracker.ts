@@ -178,8 +178,11 @@ export function buildTrackerRows(input: {
     const id = item.mediaId;
     if (!id || removed.has(id)) continue;
     seen.add(id);
+    // A landing the queue told `sealed` (the server's own answer, `landedAs`) is approved and sealed, whatever the
+    // page read of the album: it waits for the develop until her rows' next read says otherwise.
+    const sealedLanding = item.mediaStatus === "sealed";
     const fallback =
-      item.mediaStatus === "approved"
+      item.mediaStatus === "approved" || sealedLanding
         ? "approved"
         : item.mediaStatus === "pending"
           ? "pending"
@@ -189,7 +192,7 @@ export function buildTrackerRows(input: {
       mediaId: id,
       queueId: item.id,
       kind: item.kind,
-      ...placeOf(id, fallback, sealing),
+      ...placeOf(id, fallback, sealing || sealedLanding),
     });
   }
 
