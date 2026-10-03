@@ -22,7 +22,12 @@
  * reconciliation sweep lists only `events/`, so avatars never reach this Worker.
  */
 import { jobFinish, jobStart } from "./job-heartbeat";
-import { COPY_PART_BYTES, needsMultipart, partRanges } from "./strategy";
+import {
+  COPY_PART_BYTES,
+  isBackedUpKey,
+  needsMultipart,
+  partRanges,
+} from "./strategy";
 import { parseLedger } from "./prune-ledger";
 import { readConfirmAnswer, runPrune, type ConfirmAnswer } from "./prune-run";
 import { PRUNE_STATE_NAME, PruneState } from "./prune-state";
@@ -73,7 +78,8 @@ type R2EventMessage = {
 // lower storage price applies and its retrieval fee effectively never does.
 const STORAGE_CLASS = "InfrequentAccess" as const;
 
-// Only ever touch the event-media prefix (defense in depth — the subscription is already prefixed).
+// Only ever touch the event-media prefix: the reconcile lists under it, and the queue skips any key outside it
+// (isBackedUpKey), so the subscription's own `--prefix events/` is never the only fence.
 const MEDIA_PREFIX = "events/";
 
 // Reconciliation: cap objects examined per run so a daily sweep stays bounded. If we hit this, the
@@ -404,6 +410,13 @@ export default {
       if (!key) {
         // Malformed / unexpected payload — ack so it doesn't poison the queue (nothing to copy).
         console.warn("queue: message had no object key", { id: message.id });
+        message.ack();
+        continue;
+      }
+      if (!isBackedUpKey(key)) {
+        // Outside `events/` (an upload's `staging/` object, an avatar): never copied into the locked bucket,
+        // whatever the subscription lets through. Acked, since a retry could only dead-letter it.
+        console.warn("queue: skipped a key outside events/", { key });
         message.ack();
         continue;
       }

@@ -31,7 +31,8 @@ A PUT to the primary (`events/…`) fires an `object-created` notification into 
 `partyreel-backup` Worker copies the object to the `partyreel-backup` bucket (WNAM, Infrequent Access, Bucket Lock:
 35-day WORM); a failed copy retries into a dead-letter queue, and a daily 05:00 UTC reconcile re-copies anything the
 live path missed. Avatars are not in it: they live in Supabase Storage, are derivable, and overwrite in place, which
-the lock would refuse.
+the lock would refuse. Only `events/` is ever copied, listed or pruned: the subscription is filtered to it and the
+queue skips any other key in code (`isBackedUpKey`), so an upload's day-long `staging/` object never reaches the lock.
 - **Bucket Lock makes the backup keep-all and immutable for 35 days;** the lifecycle purge never touches it, and the
   deletion-aware prune below is the one sanctioned backup-delete path.
 - ★ **The Worker reports the queue and dead-letter depths on every scheduled run** (`queue-metrics.ts`, through
