@@ -47,27 +47,21 @@ import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion
 
 import { showCode } from "./code";
 import { type Guest, type Party, titleOf } from "./fixtures";
-import {
-  type FieldHands,
-  HeroObject,
-  type Stand,
-  STANDS,
-  type TakeId,
-} from "./objects";
+import { HeroObject, type Stand, STANDS, type TakeId } from "./objects";
 import { CinemaRoom, useOffStage } from "./scene";
-import { DRIFT, type Score, typedAt, warpAt, warpSince } from "./typing";
+import { comingAt, type Score, typedAt, warpAt } from "./typing";
 
 /**
  * THE HOME'S FIRST SCREEN, AS PRODUCTION DRAWS IT, WITH AN OBJECT OF ROUND
- * FOUR ON ITS AXIS.
+ * FIVE ON ITS AXIS.
  *
  * Everything is `cinema-hero.tsx` as it ships (the site header over it, the
  * band on `hero-stream.ts`'s own three tables, the block at the measured clear
- * line, without the eyebrow his round one note dropped) except what round
- * four draws: the object (`objects.tsx`), the turns (the stream drifting while
- * an address types and leaving it at lightspeed as it lands, `warpAt`), a
- * guest's credit inside every photograph's corner, and a lamp lit in the
- * standing party's own hues.
+ * line, without the eyebrow his round one note dropped) except what the
+ * round draws: the object (`objects.tsx`), the turns (the stream drifting
+ * while an address types and leaving it at lightspeed as it lands, `warpAt`),
+ * a guest's credit inside every photograph's corner, and a lamp lit in the
+ * party's own hues.
  *
  * ★ THE STREAM IS BORN BEHIND THE OBJECT, ON ITS AXIS. The object stands on
  * the band's axis at the point its stand names (`STANDS`), never floated to
@@ -76,10 +70,14 @@ import { DRIFT, type Score, typedAt, warpAt, warpSince } from "./typing";
  * so it always clears the header.
  *
  * ★ ONE CLOCK. The loop reads the typewriter's score (`typing.ts`) and writes
- * the address, the card's name, the code and the band from it each frame; a
- * photograph born after a landing is that party's, and a landing's warp
- * sweeps the old party's out ahead of it. The field hands the clock to its
- * visitor while it is theirs: their pause is their landing.
+ * the address, the card's name and the band from it each frame, and the
+ * code once a landing; a photograph born after a landing is that party's,
+ * and a landing's warp sweeps the old party's out ahead of it.
+ *
+ * ★ A CODE IS NEVER EMPTIED. It is rewritten as an address lands (`showCode`
+ * with the new address, the dots that differ turning in a ripple from its
+ * heart) and never folded away while the next is typed: round four's empty
+ * tile read as a code still loading.
  *
  * ★ A CREDIT IN EVERY PHOTOGRAPH'S CORNER, INSIDE IT (his round two note): the
  * guest's face and first name on the glass's tint and edges, sized in the
@@ -115,9 +113,6 @@ const OVERSHOOT = 10;
  */
 const CREDIT_FROM = 0.3;
 const CREDIT_TO = 0.46;
-
-/** How long a visitor's pause must last for what they typed to land. */
-const SETTLE_MS = 650;
 
 const mod = (a: number, n: number) => ((a % n) + n) % n;
 
@@ -397,62 +392,14 @@ export function HeroStage({
   const still = paused || off;
 
   const [standing, setStanding] = useState(0);
+  // Whose light the object wears: the arriving party's while it is typed.
+  const [coming, setComing] = useState(0);
   const [up, setUp] = useState(true);
   const [hovered, setHovered] = useState(false);
   // Which party each photograph is: the stream turns over one photograph at a
   // time, as each is born after a landing.
   const [who, setWho] = useState<readonly number[]>(() => FRAMES.map(() => 0));
-  const shown = useRef({ standing: 0, up: true });
-
-  // THE FIELD'S VISITOR: their address, when they last typed, and whether
-  // what they typed has landed (and when).
-  const [mine, setMine] = useState<string | null>(null);
-  const visitor = useRef({
-    mine: null as string | null,
-    key: 0,
-    landed: -1,
-    force: false,
-  });
-  const inputRef = useRef<HTMLInputElement | null>(null);
-  // The frame's own clock: a handler runs in the lab page's realm, but the
-  // loop's timestamps are the frame window's, and the two origins differ.
-  const nowOf = () =>
-    section.current?.ownerDocument.defaultView?.performance.now() ?? 0;
-  const hands: FieldHands | undefined =
-    take === "field"
-      ? {
-          mine,
-          inputRef,
-          take: () => {
-            visitor.current = {
-              mine: "",
-              key: nowOf(),
-              landed: -1,
-              force: false,
-            };
-            setMine("");
-            // Focus once the input exists (it replaces the typed line).
-            requestAnimationFrame(() => inputRef.current?.focus());
-          },
-          type: (value) => {
-            visitor.current = {
-              ...visitor.current,
-              mine: value,
-              key: nowOf(),
-              landed: -1,
-              force: false,
-            };
-            setMine(value);
-          },
-          land: () => {
-            visitor.current = { ...visitor.current, force: true };
-          },
-          release: () => {
-            visitor.current = { mine: null, key: 0, landed: -1, force: false };
-            setMine(null);
-          },
-        }
-      : undefined;
+  const shown = useRef({ standing: 0, coming: 0, up: true });
 
   const setRefs = useMemo(
     () =>
@@ -462,8 +409,6 @@ export function HeroStage({
     [],
   );
   const layout = useMemo(() => layoutOf(STANDS[take]), [take]);
-  // The pane is glass: the album is seen through it from its birth.
-  const seenThrough = take === "plate";
 
   useEffect(() => {
     const root = section.current;
@@ -478,14 +423,17 @@ export function HeroStage({
       }
       const title = titleOf(text);
       for (const el of all<HTMLElement>("[data-df-title]")) {
-        if (el.textContent !== title) el.textContent = title;
+        const node = el.firstChild;
+        if (node && node.nodeValue !== title) node.nodeValue = title;
+        else if (!node && title) el.textContent = title;
       }
       for (const el of all<HTMLElement>("[data-df-caret]")) {
         const o = caret.toFixed(2);
         if (el.style.opacity !== o) el.style.opacity = o;
       }
     };
-    const code = (slug: string | null, photo: string) => {
+    // Idempotent: a code already showing the address is not touched.
+    const code = (slug: string, photo: string) => {
       for (const el of all<SVGSVGElement>("svg[data-df-live]"))
         showCode(el, slug, photo);
     };
@@ -500,7 +448,7 @@ export function HeroStage({
       zNow.current = [];
       creditNow.current = [];
       write(parties[0]?.slug ?? "", 0);
-      code(parties[0]?.slug ?? null, parties[0]?.cover ?? "");
+      if (parties[0]) code(parties[0].slug, parties[0].cover);
       return;
     }
     if (still) return;
@@ -524,36 +472,32 @@ export function HeroStage({
       raf = win.requestAnimationFrame(tick);
       const dt = last === 0 ? 0 : Math.min(now - last, 50);
       last = now;
-      const v = visitor.current;
-      // A visitor's field holds the typewriter where it stood.
-      if (v.mine === null) elapsed.current += dt;
+      elapsed.current += dt;
       const t = elapsed.current;
 
       let pace = 1;
       let nowStanding = 0;
+      let nowComing = 0;
       let nowUp = true;
-      if (v.mine !== null) {
-        // Their pause (or Enter) is their landing: the code blooms with
-        // their address and the album leaves it, the demo's photographs
-        // standing in for theirs.
-        if (v.landed < 0 && v.mine && (v.force || now - v.key > SETTLE_MS))
-          v.landed = now;
-        const landed = v.landed >= 0;
-        pace = landed ? warpSince(now - v.landed) : DRIFT;
-        nowUp = landed;
-        code(landed ? v.mine : null, parties[0]?.cover ?? "");
-      } else if (typing) {
+      if (typing) {
         const typed = typedAt(typing, t);
         write(typed.text, typed.caret);
         nowStanding = typed.standing;
+        nowComing = comingAt(typing, t);
         nowUp = typed.phase === "hold";
         pace = warpAt(typing, t);
+        // The code is rewritten as its address lands, and stands whole (the
+        // party standing) while the next is typed.
         const p = parties[typed.standing] ?? parties[0];
-        code(nowUp ? p.slug : null, p.cover);
+        if (nowUp && p) code(p.slug, p.cover);
       }
       if (nowStanding !== shown.current.standing) {
         shown.current.standing = nowStanding;
         setStanding(nowStanding);
+      }
+      if (nowComing !== shown.current.coming) {
+        shown.current.coming = nowComing;
+        setComing(nowComing);
       }
       if (nowUp !== shown.current.up) {
         shown.current.up = nowUp;
@@ -578,7 +522,7 @@ export function HeroStage({
         }
         const f = frameAt(c, at, g, box[i].fit);
         el.style.transform = f.transform;
-        el.style.opacity = String(seenThrough ? 1 : f.opacity);
+        el.style.opacity = String(f.opacity);
         if (zNow.current[i] !== f.z) {
           zNow.current[i] = f.z;
           el.style.zIndex = String(f.z);
@@ -612,7 +556,7 @@ export function HeroStage({
       tablet.removeEventListener("change", onChange);
       desk.removeEventListener("change", onChange);
     };
-  }, [reduced, still, score, parties, seenThrough]);
+  }, [reduced, still, score, parties]);
 
   // A pointer lifts the object only at a desk's width, which is the frame's.
   const deskWide = () =>
@@ -630,16 +574,20 @@ export function HeroStage({
 
   // Reduced motion reads the demo's own address, card and album.
   const party = parties[reduced ? 0 : standing] ?? parties[0];
+  const arriving = parties[reduced ? 0 : coming] ?? party;
+  // The lamp is the object's own light: the card's and the door's turn to
+  // the arriving party as its name is typed; the pane's is the party it shows.
+  const lamp = take === "plate" ? party : arriving;
   const object = (
     <HeroObject
       take={take}
       parties={parties}
-      hands={hands}
       live={{
         party,
+        coming: arriving,
         addresses,
         up: reduced ? true : up,
-        lifted: forceLift || (hovered && mine === null),
+        lifted: forceLift || hovered,
         still: still || reduced,
       }}
     />
@@ -664,7 +612,7 @@ export function HeroStage({
           className="hhs-hero relative -mt-[var(--mkt-header-h,4rem)] overflow-clip bg-background"
         >
           <div className="absolute left-1/2" style={AT_OBJECT}>
-            <Lamps parties={parties} party={party} />
+            <Lamps parties={parties} party={lamp} />
           </div>
           <div
             aria-hidden
@@ -692,22 +640,16 @@ export function HeroStage({
             className="absolute left-1/2 z-10 -translate-x-1/2 -translate-y-1/2"
             style={AT_OBJECT}
           >
-            {take === "field" ? (
-              <div data-df-door="" {...lift}>
-                {object}
-              </div>
-            ) : (
-              <Link
-                href="/demo"
-                aria-label="Open the live demo"
-                data-df-door=""
-                className="block rounded-[28px] outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-4 focus-visible:ring-offset-background active:scale-[0.99]"
-                style={{ transition: "scale 150ms var(--ease-emphasis)" }}
-                {...lift}
-              >
-                {object}
-              </Link>
-            )}
+            <Link
+              href="/demo"
+              aria-label="Open the live demo"
+              data-df-door=""
+              className="block rounded-[28px] outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-4 focus-visible:ring-offset-background active:scale-[0.99]"
+              style={{ transition: "scale 150ms var(--ease-emphasis)" }}
+              {...lift}
+            >
+              {object}
+            </Link>
           </div>
 
           <div

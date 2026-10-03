@@ -4,36 +4,39 @@ import "./demo-framing.css";
 
 import { ArrowUpRight } from "lucide-react";
 import Image from "next/image";
-import type { CSSProperties, RefObject } from "react";
+import type { CSSProperties } from "react";
 
 import { Doorway } from "@/components/guest/door/doorway";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Input } from "@/components/ui/input";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { cn } from "@/lib/utils";
 
 import { LiveCode } from "./code";
-import {
-  DOMAIN,
-  facesOf,
-  type Party,
-  titleOf,
-  TYPED_MAX,
-  typedSlugOf,
-} from "./fixtures";
+import { DOMAIN, facesOf, type Party, titleOf } from "./fixtures";
 
 /**
- * THE HERO'S OBJECTS, ROUND FOUR: what each hero stands on the stream's axis.
+ * THE HERO'S OBJECTS, ROUND FIVE: round four's three strongest, each taken
+ * further, standing on the stream's axis.
  *
- *  - `plate`: his centre object nailed. The link and its code as ONE thing, a
- *    pane of the product's own glass holding the designed code on its white
- *    tile with the address set under it; it never changes shape, its code
- *    redraws in place (`code.tsx`), and the album glows through it.
- *  - `card`: his second direction. A mini event card (the party's cover, its
- *    name and its day, the first faces in) that types its name along with the
- *    address, over the link set minimal in white on the night.
- *  - `field`: the link as a field the visitor can take over and type their
- *    own party into, its code a small picture at the field's head.
+ *  - `card` (his second direction, recommended): the product's own event card
+ *    at a hero's size. The party's photograph fills it, its name is set on the
+ *    photograph's own dark foot (the dashboard card's grammar), its faces and
+ *    its album's count under the name and its code in the corner; the link
+ *    minimal under it, on the night.
+ *  - `plate` (his first): the code and its link as one pane of the product's
+ *    glass, lit from inside by its party's photograph, the address one line
+ *    under the code with its arrow after it.
+ *  - `door`: production's doorway at a hero's size, open on its party's cover,
+ *    the link lit on its threshold.
+ *
+ * ★ NOTHING EVER STANDS EMPTY OR SOFT. Round four's weakest parts were each a
+ * picture of something loading: the card's cover blurred out of focus while
+ * an address typed, the pane's tile gone dark to an empty code, the door shut
+ * to a dark slab. Between two parties the card now holds the next party's
+ * light with its name typing on it, the code stays whole, and the door stands
+ * ajar in the next party's light; as an address lands the photograph develops
+ * in, the code is rewritten in a ripple from its heart (`code.tsx`) and the
+ * door swings open.
  *
  * ★ THE ADDRESS IS A SIZE DOWN FROM ROUND TWO'S STAGE (settled): 21 px at a
  * desk, 15 at a phone, in every object; the caption reads it off the frame.
@@ -43,12 +46,12 @@ import {
  * shipped card does, so one object in the markup serves three geometries.
  *
  * ★ THE MOTION IS CSS ON STATE THE LOOP SETS ONCE A TURN (`up`, the standing
- * party), never a per-frame write, so the browser runs every transition on
- * its own clock; under reduced motion or in a paused frame nothing moves and
- * the object simply stands, whole.
+ * party, the coming one), never a per-frame write, so the browser runs every
+ * transition on its own clock; under reduced motion or in a paused frame
+ * nothing moves and the object simply stands, whole.
  */
 
-export type TakeId = "plate" | "card" | "field" | "door";
+export type TakeId = "card" | "plate" | "door";
 
 /** One length at every geometry, as the hero's `--hhs-k` picks it. */
 export function len(base: number, lg: number): string {
@@ -68,8 +71,13 @@ const FONT = { base: 15, lg: 21 } as const;
 export const LINE = { base: 20, lg: 28 } as const;
 
 export type ObjectLive = {
-  /** The address standing: whose code, cover and picture are shown. */
+  /** The address standing: whose photograph, code and album are out. */
   readonly party: Party;
+  /**
+   * Whose light the object wears: the party whose address is being typed,
+   * from the beat on the bare domain, and the standing one otherwise.
+   */
+  readonly coming: Party;
   /** Every address the loop types: a line is as wide as the widest. */
   readonly addresses: readonly string[];
   /** An address stands (its album pours); false while the next is typed. */
@@ -130,19 +138,11 @@ function Caret({ night }: { night: boolean }) {
 }
 
 /** The settled arrow: it nudges toward where it goes under a pointer. */
-function Arrow({
-  lifted,
-  night,
-  className,
-}: {
-  lifted: boolean;
-  night: boolean;
-  className?: string;
-}) {
+function Arrow({ lifted, night }: { lifted: boolean; night: boolean }) {
   return (
     <span
       data-df-touch="arrow"
-      className={cn("flex shrink-0 items-center justify-center", className)}
+      className="flex shrink-0 items-center justify-center"
       style={{
         transform: lifted ? "translate(0.08em, -0.08em)" : "none",
         transition: `transform ${LIFT_MS}ms var(--ease-emphasis)`,
@@ -168,25 +168,22 @@ function Arrow({
 }
 
 /**
- * THE TYPED LINE, ONE ROW: the domain in the quiet step, the slug in ink (or
- * white on the night), the caret, the arrow. Invisible copies of every address
- * the loop types, stacked in one cell, give the line its width, so the object
- * never changes size under a key and no address is ever cut. Centred under a
- * centred object, so it moves half a letter a key while it types.
+ * THE TYPED LINE, ONE ROW: the domain in the quiet step, the slug in white,
+ * the caret, the arrow. Invisible copies of every address the loop types,
+ * stacked in one cell, give the line its width, so the object never changes
+ * size under a key and no address is ever cut. Centred under a centred
+ * object, so it moves half a letter a key while it types.
  */
 export function LinkLine({
   slug,
   addresses,
   night,
   lifted,
-  arrow = true,
 }: {
   slug: string;
   addresses: readonly string[];
   night: boolean;
   lifted: boolean;
-  /** The arrow after it (a field carries its arrow in a well of its own). */
-  arrow?: boolean;
 }) {
   const parts = (typed: string, sizer: boolean) => (
     <>
@@ -211,15 +208,13 @@ export function LinkLine({
       ) : (
         <Caret night={night} />
       )}
-      {arrow ? (
-        <span style={{ marginLeft: "0.16em" }} className="flex">
-          {sizer ? (
-            <span style={{ width: "0.86em" }} />
-          ) : (
-            <Arrow lifted={lifted} night={night} />
-          )}
-        </span>
-      ) : null}
+      <span style={{ marginLeft: "0.16em" }} className="flex">
+        {sizer ? (
+          <span style={{ width: "0.86em" }} />
+        ) : (
+          <Arrow lifted={lifted} night={night} />
+        )}
+      </span>
     </>
   );
   return (
@@ -242,214 +237,18 @@ export function LinkLine({
   );
 }
 
-/* ── plate: the code and its link, one pane ───────────────────────────── */
-
-const PLATE = {
-  pad: { base: 12, lg: 16 },
-  tilePad: { base: 10, lg: 14 },
-  code: { base: 132, lg: 168 },
-  // Concentric with the pane: its radius less the inset between them.
-  tileR: { base: 14, lg: 18 },
-  r: { base: 26, lg: 34 },
-  gap: { base: 11, lg: 15 },
-  domain: { base: 11, lg: 13 },
-  domainLine: { base: 14, lg: 17 },
-  inset: { base: 4, lg: 6 },
-  chip: { base: 26, lg: 34 },
-  foot: { base: 13, lg: 18 },
-} as const;
-
-const PLATE_TILE = sum(PLATE.code, PLATE.tilePad, PLATE.tilePad);
-const PLATE_W = sum(PLATE_TILE, PLATE.pad, PLATE.pad);
-const PLATE_H = sum(
-  PLATE.pad,
-  PLATE_TILE,
-  PLATE.gap,
-  PLATE.domainLine,
-  LINE,
-  PLATE.foot,
-);
-/** The axis, from the pane's foot: the middle of its two-line address. */
-const PLATE_AXIS: Pair = {
-  base: PLATE.foot.base + (PLATE.domainLine.base + LINE.base) / 2,
-  lg: PLATE.foot.lg + (PLATE.domainLine.lg + LINE.lg) / 2,
-};
-
 /**
- * THE PLATE. A pane of the product's one glass (`.glass`: Crystal, the glass
- * board's pick) is legitimate exactly here, where a photograph is the
- * ground: the album is born behind it on the axis and seen through it, so the
- * pane is never a bland white card, it is lit by whichever party stands. The
- * code sits on its own white tile inside the pane (dark modules on white, the
- * presets' one rule) with two and a half modules of quiet zone; the address
- * reads under it in two lines, the domain over the slug the way the shipped
- * card sets it, with the arrow in its own round well beside them.
- *
- * ★ THE CODE SWITCHES ON, NEVER RISES. While the next address is typed the
- * tile goes dark to the pane's own glass, its eyes with it; as the address
- * lands the tile lights white and the new code blooms out of its party's
- * picture (`code.tsx`). One silhouette for every address: nothing about the
- * object moves but the light in it.
+ * Every party's photograph, laid in one place, the standing party's on: all
+ * of them are drawn so the next is already loaded when its address lands (the
+ * wiring loads only the next ahead of its landing; ROADMAP's line). `data-df-on`
+ * is what the sheet develops in.
  */
-function PlateObject({ live }: { live: ObjectLive }) {
-  const { party, lifted, still, up } = live;
-  return (
-    <span
-      aria-hidden
-      data-hero-object=""
-      data-df-object="plate"
-      data-df-lifted={lifted ? "" : undefined}
-      className="relative block"
-      style={{
-        width: at(PLATE_W),
-        height: at(PLATE_H),
-        transform: liftOf(lifted),
-        transition: `transform ${LIFT_MS}ms var(--ease-emphasis)`,
-      }}
-    >
-      <span
-        data-df-pane=""
-        className="absolute inset-0 block glass"
-        style={{
-          borderRadius: at(PLATE.r),
-          boxShadow: lifted
-            ? `inset 0 1px 0 0 rgb(255 255 255 / 0.34), inset 0 0 0 1px rgb(255 255 255 / 0.14), ${PAPER.lifted}`
-            : `inset 0 1px 0 0 rgb(255 255 255 / 0.28), inset 0 0 0 1px rgb(255 255 255 / 0.1), ${PAPER.rest}`,
-          transition: `box-shadow ${LIFT_MS}ms var(--ease-emphasis)`,
-        }}
-      />
-      {still ? null : (
-        // The light the pane catches as a new code switches on: one sweep
-        // across the glass and the tile, once a landing.
-        <span
-          key={party.slug}
-          aria-hidden
-          data-df-sheen=""
-          className="pointer-events-none absolute inset-0 z-10 block overflow-hidden"
-          style={{ borderRadius: at(PLATE.r) }}
-        />
-      )}
-      <span className="absolute flex flex-col" style={{ inset: at(PLATE.pad) }}>
-        <span
-          data-df-tile=""
-          data-df-lit={up ? "" : undefined}
-          className="block shrink-0"
-          style={{
-            padding: at(PLATE.tilePad),
-            borderRadius: at(PLATE.tileR),
-          }}
-        >
-          <LiveCode
-            slug={party.slug}
-            photo={party.cover}
-            motion={!still}
-            style={{ width: at(PLATE.code), height: at(PLATE.code) }}
-          />
-        </span>
-        <span
-          className="flex items-center"
-          style={{
-            marginTop: at(PLATE.gap),
-            paddingLeft: at(PLATE.inset),
-            gap: len(6, 8),
-          }}
-        >
-          <span className="flex min-w-0 flex-1 flex-col text-left">
-            <span
-              data-df-domain=""
-              className="text-white/55"
-              style={{
-                fontSize: at(PLATE.domain),
-                lineHeight: at(PLATE.domainLine),
-              }}
-            >
-              {DOMAIN}
-            </span>
-            <span
-              data-df-line=""
-              className="flex items-center whitespace-nowrap"
-              style={{ fontSize: at(FONT), lineHeight: at(LINE) }}
-            >
-              <span
-                data-df-typed=""
-                data-df-own={party.slug}
-                className="font-semibold tracking-[-0.01em] text-white"
-              >
-                {party.slug}
-              </span>
-              <Caret night />
-            </span>
-          </span>
-          <span
-            className={cn(
-              "flex shrink-0 items-center justify-center rounded-full transition-colors",
-              lifted ? "bg-white/22" : "bg-white/12",
-            )}
-            style={{
-              width: at(PLATE.chip),
-              height: at(PLATE.chip),
-              fontSize: at(FONT),
-              transitionDuration: `${LIFT_MS}ms`,
-            }}
-          >
-            <Arrow lifted={lifted} night />
-          </span>
-        </span>
-      </span>
-    </span>
-  );
-}
-
-/* ── card: a mini event card over a minimal link ──────────────────────── */
-
-const CARD = {
-  w: { base: 176, lg: 236 },
-  inset: { base: 7, lg: 9 },
-  coverH: { base: 118, lg: 160 },
-  r: { base: 22, lg: 29 },
-  coverR: { base: 15, lg: 20 },
-  padX: { base: 10, lg: 14 },
-  padTop: { base: 10, lg: 13 },
-  title: { base: 18, lg: 24 },
-  titleLine: { base: 22, lg: 29 },
-  meta: { base: 11, lg: 13 },
-  metaLine: { base: 15, lg: 18 },
-  rowGap: { base: 9, lg: 12 },
-  face: { base: 20, lg: 26 },
-  /** The code in the card's corner: a picture of the party's own code. */
-  code: { base: 26, lg: 34 },
-  foot: { base: 11, lg: 14 },
-  /** The card's foot to the link's line, on the night. */
-  linkGap: { base: 14, lg: 18 },
-} as const;
-
-const CARD_H = sum(
-  CARD.inset,
-  CARD.coverH,
-  CARD.padTop,
-  CARD.titleLine,
-  CARD.metaLine,
-  CARD.rowGap,
-  CARD.face,
-  CARD.foot,
-);
-
-/** How many faces a card shows before its count. */
-const FACES = 4;
-
-/**
- * One party's cover, laid over the last: a new party's fades in over the old
- * one with a breath of scale, so the card turns to its new event as one
- * gesture rather than blinking.
- */
-function Covers({
+function Photographs({
   parties,
   party,
-  still,
 }: {
   parties: readonly Party[];
   party: Party;
-  still: boolean;
 }) {
   return (
     <>
@@ -459,20 +258,12 @@ function Covers({
           <Image
             key={p.slug}
             data-df-cover={on ? p.cover : undefined}
+            data-df-on={on ? "" : undefined}
             src={marketingImage(p.cover).src}
             alt=""
             fill
             unoptimized
             className="object-cover"
-            style={{
-              opacity: on ? 1 : 0,
-              transform: on ? "scale(1)" : "scale(1.06)",
-              transition: still
-                ? "none"
-                : on
-                  ? "opacity 520ms var(--ease-emphasis), transform 900ms var(--ease-emphasis)"
-                  : "opacity 380ms ease-in 140ms, transform 520ms ease-in 140ms",
-            }}
           />
         );
       })}
@@ -480,18 +271,66 @@ function Covers({
   );
 }
 
+/* ── card: the event card over its link ───────────────────────────────── */
+
+const CARD = {
+  w: { base: 192, lg: 248 },
+  h: { base: 240, lg: 310 },
+  r: { base: 22, lg: 28 },
+  padX: { base: 12, lg: 17 },
+  padB: { base: 12, lg: 16 },
+  title: { base: 21, lg: 28 },
+  titleLine: { base: 25, lg: 32 },
+  meta: { base: 11, lg: 13 },
+  metaLine: { base: 16, lg: 19 },
+  rowGap: { base: 6, lg: 8 },
+  face: { base: 18, lg: 22 },
+  /** The code's white mat in the cover's corner: a picture at this size. */
+  chip: { base: 40, lg: 52 },
+  chipPad: { base: 4, lg: 5 },
+  chipInset: { base: 10, lg: 12 },
+  chipR: { base: 10, lg: 13 },
+  /** The card's foot to the link's line, on the night. */
+  linkGap: { base: 14, lg: 18 },
+} as const;
+
+/** How many faces the card shows before its counts. */
+const FACES = 3;
+
 /**
- * THE CARD. White paper, as the shipped card is on the cinema ground, the
- * party's cover inset at its head like a print, then what an invitation says
- * in the fewest words: its name (in the loud face, typed along with the
- * address, since the address IS the host's name for it), its day and how
- * many came, and the first faces in. Under it, on the night, the link in
- * white at the settled size: minimal, the card above it the thing to look at.
+ * A PARTY'S LIGHT, POOLED ON THE CARD: its three hues at the lamp's register,
+ * where its photograph will stand, the way a lit room looks before its
+ * pictures are hung. It is the colour the lamp behind the card already throws
+ * (`lampOf`), so the card and the room agree while a name is typed.
+ */
+function lightOf(p: Party): string {
+  const h = (x: number) => ((x % 360) + 360) % 360;
+  const [a, b, c] = p.hues;
+  return [
+    `radial-gradient(95% 70% at 24% 20%, oklch(0.76 0.14 ${h(a)} / 0.95), transparent 68%)`,
+    `radial-gradient(85% 75% at 86% 44%, oklch(0.64 0.17 ${h(b)} / 0.85), transparent 70%)`,
+    `radial-gradient(130% 85% at 40% 112%, oklch(0.46 0.16 ${h(c)} / 0.95), transparent 72%)`,
+    `oklch(0.2 0.05 ${h(c)})`,
+  ].join(", ");
+}
+
+/**
+ * THE CARD (his second direction, nailed). The product's own event card at a
+ * hero's size, portrait like an invitation: the party's photograph fills it,
+ * its name sits on the photograph's own dark foot in the loud face (the
+ * dashboard card's grammar, `event-card.tsx`), its first faces and its counts
+ * under the name, its code on a white mat in the cover's corner. Under it, on
+ * the night, the link in white at the settled size: minimal, the card above
+ * it the thing to look at. Never a date (round thirteen: nothing depends on a
+ * timeline), so an undated party and a weekend read alike.
  *
- * ★ THE EVENT COMES INTO FOCUS AS ITS LINK LANDS. While an address is typed,
- * its name types on the card and the rest of the card (the cover, the day,
- * the faces) goes soft, out of focus, the last party's still; as the address
- * lands the new party's cover sharpens in over it and its lines arrive.
+ * ★ THE CARD IS WRITTEN, THEN DEVELOPED. While an address is erased and the
+ * next typed, the card holds a party's light (`lightOf`): the standing one's
+ * as its name erases, the arriving one's from the beat on the bare domain,
+ * the name typing on it in white, its faces, counts and code gone with the
+ * party they belonged to. As the address lands its photograph develops in
+ * over the light (from bright and pale to itself), its faces and code arrive,
+ * and the album leaves it at lightspeed.
  */
 function CardObject({
   live,
@@ -500,20 +339,8 @@ function CardObject({
   live: ObjectLive;
   parties: readonly Party[];
 }) {
-  const { party, addresses, lifted, still, up } = live;
+  const { party, coming, addresses, lifted, still, up } = live;
   const faces = facesOf(party, FACES);
-  const rest = party.guests - faces.length;
-  const meta = (
-    <span
-      key={party.slug}
-      data-df-meta=""
-      data-df-swap={still ? undefined : ""}
-      className="block truncate text-muted-foreground tabular-nums"
-      style={{ fontSize: at(CARD.meta), lineHeight: at(CARD.metaLine) }}
-    >
-      {party.when} · {party.guests} guests
-    </span>
-  );
   return (
     <span
       aria-hidden
@@ -529,95 +356,124 @@ function CardObject({
       <span
         data-df-card=""
         data-df-up={up ? "" : undefined}
-        className="surface-paper relative block bg-white text-foreground"
+        className="relative block overflow-hidden bg-black"
         style={{
           width: at(CARD.w),
-          height: at(CARD_H),
+          height: at(CARD.h),
           borderRadius: at(CARD.r),
           boxShadow: lifted ? PAPER.lifted : PAPER.rest,
           transition: `box-shadow ${LIFT_MS}ms var(--ease-emphasis)`,
         }}
       >
+        {parties.map((p) => (
+          <span
+            key={p.slug}
+            data-df-light={p.slug === coming.slug ? p.slug : undefined}
+            className="df-light absolute inset-0 block"
+            style={{
+              background: lightOf(p),
+              opacity: p.slug === coming.slug ? 1 : 0,
+            }}
+          />
+        ))}
+        <span data-df-covers="" className="absolute inset-0 block">
+          <Photographs parties={parties} party={party} />
+        </span>
+        {/* The foot's shade, the product card's own: what the name stands on. */}
         <span
-          className="absolute block overflow-hidden bg-muted"
+          className="pointer-events-none absolute inset-0 block"
           style={{
-            left: at(CARD.inset),
-            right: at(CARD.inset),
-            top: at(CARD.inset),
-            height: at(CARD.coverH),
-            borderRadius: at(CARD.coverR),
+            background:
+              "linear-gradient(to top, rgb(0 0 0 / 0.66) 0%, rgb(0 0 0 / 0.2) 40%, transparent 62%)",
+          }}
+        />
+        <span
+          className="pointer-events-none absolute inset-0 block"
+          style={{
+            borderRadius: at(CARD.r),
+            boxShadow:
+              "inset 0 0 0 1px rgb(255 255 255 / 0.12), inset 0 1px 0 0 rgb(255 255 255 / 0.2)",
+          }}
+        />
+        <span
+          data-df-chip=""
+          className="absolute block bg-white"
+          style={{
+            top: at(CARD.chipInset),
+            right: at(CARD.chipInset),
+            width: at(CARD.chip),
+            height: at(CARD.chip),
+            padding: at(CARD.chipPad),
+            borderRadius: at(CARD.chipR),
+            boxShadow: "0 2px 8px -2px rgb(0 0 0 / 0.4)",
           }}
         >
-          <span data-df-covers="" className="absolute inset-0 block">
-            <Covers parties={parties} party={party} still={still} />
-          </span>
+          <LiveCode
+            slug={party.slug}
+            photo={party.cover}
+            motion={!still}
+            style={{ width: "100%", height: "100%" }}
+          />
         </span>
         <span
-          className="absolute inset-x-0 bottom-0 flex flex-col text-left"
+          className="absolute inset-x-0 bottom-0 flex flex-col text-left text-white"
           style={{
-            top: `calc(${at(CARD.inset)} + ${at(CARD.coverH)})`,
-            paddingTop: at(CARD.padTop),
             paddingInline: at(CARD.padX),
+            paddingBottom: at(CARD.padB),
           }}
         >
           <span
-            className="flex items-center font-heading tracking-[-0.015em] whitespace-nowrap"
-            style={{ fontSize: at(CARD.title), lineHeight: at(CARD.titleLine) }}
+            className="block font-heading whitespace-nowrap"
+            style={{
+              fontSize: at(CARD.title),
+              lineHeight: at(CARD.titleLine),
+              letterSpacing: "-0.015em",
+              textShadow: "0 1px 14px rgb(0 0 0 / 0.28)",
+            }}
           >
             <span data-df-title="">{titleOf(party.slug)}</span>
           </span>
-          {/* The dimming rides a wrapper: a line's arrival is an animation,
-              whose fill would outrank a dim set on the line itself. */}
+          {/* The fading rides a wrapper: a line's arrival is an animation,
+              whose fill would outrank a fade set on the line itself. */}
           <span data-df-dims="" className="block">
-            {meta}
             <span
-              key={`faces-${party.slug}`}
+              key={party.slug}
+              data-df-meta=""
               data-df-swap={still ? undefined : ""}
               className="flex items-center"
-              style={{ marginTop: at(CARD.rowGap), animationDelay: "60ms" }}
+              style={{ marginTop: at(CARD.rowGap), gap: len(6, 8) }}
             >
-              {faces.map((f, i) => (
-                <Avatar
-                  key={f.name}
-                  size="sm"
-                  seed={f.seed}
-                  className="ring-2 ring-white"
-                  style={{
-                    width: at(CARD.face),
-                    height: at(CARD.face),
-                    marginLeft: i === 0 ? 0 : len(-6, -8),
-                    zIndex: FACES - i,
-                  }}
-                >
-                  <AvatarFallback
-                    className="font-semibold"
-                    style={{ fontSize: len(8, 10) }}
+              <span className="flex shrink-0">
+                {faces.map((f, i) => (
+                  <Avatar
+                    key={f.name}
+                    size="sm"
+                    seed={f.seed}
+                    className="ring-[1.5px] ring-white/85"
+                    style={{
+                      width: at(CARD.face),
+                      height: at(CARD.face),
+                      marginLeft: i === 0 ? 0 : len(-5, -7),
+                      zIndex: FACES - i,
+                    }}
                   >
-                    {f.name.slice(0, 1)}
-                  </AvatarFallback>
-                </Avatar>
-              ))}
+                    <AvatarFallback
+                      className="font-semibold"
+                      style={{ fontSize: len(8, 10) }}
+                    >
+                      {f.name.slice(0, 1)}
+                    </AvatarFallback>
+                  </Avatar>
+                ))}
+              </span>
               <span
-                className="font-semibold text-muted-foreground tabular-nums"
+                className="truncate font-medium text-white/80 tabular-nums"
                 style={{
-                  fontSize: len(10, 12),
-                  marginLeft: len(5, 7),
+                  fontSize: at(CARD.meta),
+                  lineHeight: at(CARD.metaLine),
                 }}
               >
-                +{rest}
-              </span>
-              {/* Its code in the corner, as an invitation prints one: a
-                picture at this size, the card being the thing to press. */}
-              <span
-                className="ml-auto block"
-                style={{ width: at(CARD.code), height: at(CARD.code) }}
-              >
-                <LiveCode
-                  slug={party.slug}
-                  photo={party.cover}
-                  motion={!still}
-                  style={{ width: "100%", height: "100%" }}
-                />
+                {party.guests} guests · {party.photos} photos
               </span>
             </span>
           </span>
@@ -638,207 +494,115 @@ function CardObject({
   );
 }
 
-/* ── field: the link, yours to type ───────────────────────────────────── */
+/* ── plate: the code and its link, one pane ───────────────────────────── */
 
-const FIELD = {
-  h: { base: 52, lg: 64 },
-  padL: { base: 6, lg: 8 },
-  chipEdge: { base: 40, lg: 48 },
-  chipPad: { base: 3, lg: 4 },
-  chipR: { base: 12, lg: 15 },
-  gap: { base: 10, lg: 14 },
-  go: { base: 40, lg: 48 },
-  padR: { base: 6, lg: 8 },
+const PLATE = {
+  padX: { base: 14, lg: 20 },
+  padT: { base: 14, lg: 20 },
+  padB: { base: 11, lg: 15 },
+  /** The white mat round the code: a little over two modules of quiet zone. */
+  matPad: { base: 9, lg: 12 },
+  code: { base: 124, lg: 160 },
+  // Concentric with the pane: its radius less the inset between them.
+  matR: { base: 14, lg: 16 },
+  r: { base: 28, lg: 36 },
+  gap: { base: 11, lg: 15 },
 } as const;
 
-export type FieldHands = {
-  /** The visitor's own address, or null while the field is the demo's. */
-  readonly mine: string | null;
-  readonly take: () => void;
-  readonly type: (value: string) => void;
-  /** Land what they typed now (Enter), rather than after their pause. */
-  readonly land: () => void;
-  readonly release: () => void;
-  readonly inputRef: RefObject<HTMLInputElement | null>;
-};
+const PLATE_MAT = sum(PLATE.code, PLATE.matPad, PLATE.matPad);
+const PLATE_H = sum(PLATE.padT, PLATE_MAT, PLATE.gap, LINE, PLATE.padB);
 
 /**
- * THE FIELD. The link as a real field on paper: its code a small picture at
- * its head (a picture at this size, not a scan: the field is the thing to
- * press), the address typing itself until a visitor takes it, and the arrow
- * in its round dark well at its end. Pressed, the field is theirs: a real
- * input after the domain, their code redrawn as they pause, their album
- * leaving it; the arrow opens the demo while the field is the demo's and
- * starts their own party with their link once they have typed.
+ * THE PANE (his first direction, nailed). One piece of the product's glass
+ * (`.glass`, Crystal) lit from inside by its party's own photograph, far out
+ * of focus, so the pane is never a dark box: it is the colour of the party
+ * standing, and turns with it. The code stands on its white mat (dark modules
+ * on white, the presets' one rule), the party's picture at its heart; under
+ * it the address reads as one line, the link it is, with its arrow after it.
+ *
+ * ★ THE CODE STAYS WHOLE. While the next address is typed the pane holds the
+ * party standing, code and light alike, and the typing has the stage; as the
+ * address lands the code is rewritten in a ripple from its heart (only the
+ * dots that differ turn, ring by ring), the glass is relit by the new party's
+ * photograph and one sheen crosses it. One silhouette for every address.
  */
-function FieldObject({
+function PlateObject({
   live,
-  hands,
+  parties,
 }: {
   live: ObjectLive;
-  hands?: FieldHands;
+  parties: readonly Party[];
 }) {
   const { party, addresses, lifted, still } = live;
-  const mine = hands?.mine ?? null;
-  const theirs = mine !== null && mine.length > 0;
-  // The well is the arrow while the field is the demo's, and grows into the
-  // field's own Start once the visitor has typed a party of theirs.
-  const chip = (
-    <span
-      data-df-go={theirs ? "start" : "demo"}
-      className={cn(
-        "flex shrink-0 items-center justify-center rounded-full font-semibold whitespace-nowrap text-white transition-colors",
-        lifted || theirs ? "bg-foreground" : "bg-foreground/85",
-      )}
-      style={{
-        minWidth: at(FIELD.go),
-        height: at(FIELD.go),
-        paddingInline: theirs ? len(14, 18) : 0,
-        gap: len(4, 6),
-        fontSize: theirs ? len(13, 15) : at(FONT),
-        transitionDuration: `${LIFT_MS}ms`,
-      }}
-    >
-      {theirs ? "Start" : null}
-      <Arrow lifted={lifted || theirs} night />
-    </span>
-  );
   return (
     <span
+      aria-hidden
       data-hero-object=""
-      data-df-object="field"
-      data-df-mine={mine === null ? undefined : mine}
+      data-df-object="plate"
       data-df-lifted={lifted ? "" : undefined}
-      className="relative block"
+      className="relative flex flex-col items-center"
       style={{
+        height: at(PLATE_H),
+        paddingInline: at(PLATE.padX),
+        paddingTop: at(PLATE.padT),
         transform: liftOf(lifted),
         transition: `transform ${LIFT_MS}ms var(--ease-emphasis)`,
       }}
     >
       <span
-        data-df-field=""
-        className="surface-paper relative flex items-center rounded-full bg-white text-foreground"
+        data-df-pane=""
+        className="absolute inset-0 block overflow-hidden"
         style={{
-          height: at(FIELD.h),
-          paddingLeft: at(FIELD.padL),
-          paddingRight: at(FIELD.padR),
-          gap: at(FIELD.gap),
-          boxShadow:
-            mine !== null
-              ? `0 0 0 3px rgb(255 255 255 / 0.22), ${PAPER.lifted}`
-              : lifted
-                ? PAPER.lifted
-                : PAPER.rest,
+          borderRadius: at(PLATE.r),
+          boxShadow: lifted ? PAPER.lifted : PAPER.rest,
           transition: `box-shadow ${LIFT_MS}ms var(--ease-emphasis)`,
         }}
       >
-        <span
-          aria-hidden
-          className="block shrink-0 bg-white ring-1 ring-black/10"
-          style={{
-            width: at(FIELD.chipEdge),
-            height: at(FIELD.chipEdge),
-            padding: at(FIELD.chipPad),
-            borderRadius: at(FIELD.chipR),
-          }}
-        >
-          <LiveCode
-            slug={party.slug}
-            photo={party.cover}
-            motion={!still}
-            style={{ width: "100%", height: "100%" }}
-          />
+        <span data-df-pane-light="" className="absolute block">
+          <Photographs parties={parties} party={party} />
         </span>
-        {mine === null ? (
-          <button
-            type="button"
-            data-df-claim=""
-            aria-label="Type your own party's link"
-            onClick={hands?.take}
-            className="relative flex min-w-0 flex-1 cursor-text items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
-          >
-            <span aria-hidden className="flex">
-              <LinkLine
-                slug={party.slug}
-                addresses={addresses}
-                night={false}
-                lifted={false}
-                arrow={false}
-              />
-            </span>
-          </button>
-        ) : (
-          <label
-            className="relative flex min-w-0 flex-1 items-center whitespace-nowrap"
-            style={{ fontSize: at(FONT), lineHeight: at(LINE) }}
-          >
-            {/* The sizers, as the typed line has them: the field keeps the
-                width the demo's addresses gave it while it is theirs. */}
-            <span aria-hidden className="invisible flex">
-              <LinkLine
-                slug={party.slug}
-                addresses={addresses}
-                night={false}
-                lifted={false}
-                arrow={false}
-              />
-            </span>
-            <span className="absolute inset-0 flex items-center">
-              <span data-df-domain="" className="text-faint">
-                {DOMAIN}
-              </span>
-              <Input
-                ref={hands?.inputRef}
-                data-df-input=""
-                aria-label="Your party's link"
-                value={mine}
-                placeholder="your-party"
-                autoCapitalize="none"
-                autoCorrect="off"
-                autoComplete="off"
-                spellCheck={false}
-                maxLength={TYPED_MAX}
-                enterKeyHint="go"
-                inputMode="url"
-                onChange={(e) => hands?.type(typedSlugOf(e.target.value))}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") hands?.land();
-                  if (e.key === "Escape") hands?.release();
-                }}
-                onBlur={() => {
-                  if (!mine) hands?.release();
-                }}
-                // The product's field, unframed: it is the address's own line,
-                // so it wears the line's size and weight and no box of its own.
-                className="h-auto flex-1 rounded-none border-0 bg-transparent p-0 font-semibold tracking-[-0.01em] text-foreground caret-foreground shadow-none placeholder:font-normal placeholder:text-faint focus-visible:ring-0 md:text-[length:inherit] dark:bg-transparent"
-                style={{ fontSize: "inherit", lineHeight: "inherit" }}
-              />
-            </span>
-          </label>
+        <span
+          className="absolute inset-0 block glass"
+          style={{ borderRadius: at(PLATE.r) }}
+        />
+        {still ? null : (
+          // The light the pane catches as a new code is written: one sweep
+          // across the glass, once a landing.
+          <span
+            key={party.slug}
+            aria-hidden
+            data-df-sheen=""
+            className="pointer-events-none absolute inset-0 z-10 block overflow-hidden"
+          />
         )}
-        <a
-          href={theirs ? `/login?link=${encodeURIComponent(mine)}` : "/demo"}
-          aria-label={theirs ? `Start ${DOMAIN}${mine}` : "Open the live demo"}
-          className="ml-auto rounded-full outline-none focus-visible:ring-2 focus-visible:ring-foreground/40"
-        >
-          {chip}
-        </a>
       </span>
-      {/* What the field is, said once a pointer finds it: it types itself,
-          so a visitor may not guess it is theirs to type. */}
       <span
-        aria-hidden
-        data-df-hint=""
-        className="pointer-events-none absolute inset-x-0 top-full flex justify-center text-white/65"
+        data-df-tile=""
+        className="relative block shrink-0 bg-white"
         style={{
-          marginTop: len(10, 12),
-          fontSize: len(12, 13),
-          opacity: lifted && mine === null ? 1 : 0,
-          transform: lifted && mine === null ? "none" : "translateY(-3px)",
-          transition: `opacity ${LIFT_MS}ms var(--ease-emphasis), transform ${LIFT_MS}ms var(--ease-emphasis)`,
+          padding: at(PLATE.matPad),
+          borderRadius: at(PLATE.matR),
+          boxShadow:
+            "0 1px 2px rgb(0 0 0 / 0.22), 0 8px 20px -8px rgb(0 0 0 / 0.5)",
         }}
       >
-        Press to type your own party
+        <LiveCode
+          slug={party.slug}
+          photo={party.cover}
+          motion={!still}
+          style={{ width: at(PLATE.code), height: at(PLATE.code) }}
+        />
+      </span>
+      <span
+        className="relative flex items-center"
+        style={{ marginTop: at(PLATE.gap), height: at(LINE) }}
+      >
+        <LinkLine
+          slug={party.slug}
+          addresses={addresses}
+          night
+          lifted={lifted}
+        />
       </span>
     </span>
   );
@@ -854,21 +618,20 @@ const DOOR = {
   linkGap: { base: 22, lg: 30 },
 } as const;
 
-/** The album seen through an open door: its first four photographs. */
-const throughOf = (party: Party) =>
-  party.pours.slice(0, 4).map((p) => marketingImage(p.photo).src);
-
 /**
- * THE DOOR (a new hero of the lane's own). Production's doorway, the door
- * every guest meets (his `family=doorway`, "a big win for our design
- * assets"), stood on the home's axis at a hero's size: the party's own light
- * in its room, its album seen through the open leaf, and the link on its
- * threshold. Each address is its own party's door: it swings to while the
- * next is typed, its light a line under it, and opens on the new party's
- * light and album as it lands, the album leaving through it.
+ * THE DOOR. Production's doorway (his `family=doorway`, "a big win for our
+ * design assets"), the door every guest meets, stood on the home's axis at a
+ * hero's size: open on its party's light with its cover through the leaf, and
+ * the link on its threshold, in the light the doorway throws on the floor.
+ *
+ * ★ NEVER A DARK SLAB. Round four shut the door while an address typed, which
+ * drew a dark panel where the party had been; now it stands AJAR, its light a
+ * line round the leaf in the arriving party's hues (the doorway's own resting
+ * state), and swings open onto the new party's cover as its address lands.
+ * Under a pointer it opens a little wider, the welcome the door is for.
  */
 function DoorObject({ live }: { live: ObjectLive }) {
-  const { party, addresses, lifted, up } = live;
+  const { party, coming, addresses, lifted, up } = live;
   return (
     <span
       aria-hidden
@@ -893,9 +656,9 @@ function DoorObject({ live }: { live: ObjectLive }) {
         }
       >
         <Doorway
-          state={up ? "open" : "shut"}
-          hues={party.hues}
-          photos={throughOf(party)}
+          state={up ? "open" : "ajar"}
+          hues={(up ? party : coming).hues}
+          photos={[marketingImage(party.cover).src]}
         />
       </span>
       <span
@@ -919,27 +682,37 @@ function DoorObject({ live }: { live: ObjectLive }) {
 const AIR = { base: 40, lg: 64 } as const;
 
 /** The card and its link: the card's box, the gap and the link's line. */
-const CARD_BOX = sum(CARD_H, CARD.linkGap, LINE);
+const CARD_BOX = sum(CARD.h, CARD.linkGap, LINE);
+
+/** Where the stream is born in the card: its photograph's middle, over the name. */
+const CARD_EYE = 0.44;
 
 export const STANDS: Record<TakeId, { base: Stand; lg: Stand }> = {
-  // Through the address, under the code, as his round two note put the
-  // code over the input: the album is born behind the pane's glass there and
-  // seen through it as it leaves, the lit code standing over the stream.
-  plate: {
-    base: { box: PLATE_H.base, axis: PLATE_AXIS.base, air: AIR.base },
-    lg: { box: PLATE_H.lg, axis: PLATE_AXIS.lg, air: AIR.lg },
-  },
-  // Behind the card's cover: the link under the card stands on the night
-  // below the stream's reach (the caption measures its clearance).
+  // Behind the photograph, over its name: the link under the card stands on
+  // the night below the stream's reach (the caption measures the headline).
   card: {
     base: {
       box: CARD_BOX.base,
-      axis: CARD_BOX.base - CARD.inset.base - CARD.coverH.base / 2,
+      axis: CARD_BOX.base - CARD.h.base * CARD_EYE,
       air: AIR.base,
     },
     lg: {
       box: CARD_BOX.lg,
-      axis: CARD_BOX.lg - CARD.inset.lg - CARD.coverH.lg / 2,
+      axis: CARD_BOX.lg - CARD.h.lg * CARD_EYE,
+      air: AIR.lg,
+    },
+  },
+  // Through the code's heart, as his round two note had the stream leave the
+  // code and its link: the album is born behind the pane and leaves its sides.
+  plate: {
+    base: {
+      box: PLATE_H.base,
+      axis: PLATE.padB.base + LINE.base + PLATE.gap.base + PLATE_MAT.base / 2,
+      air: AIR.base,
+    },
+    lg: {
+      box: PLATE_H.lg,
+      axis: PLATE.padB.lg + LINE.lg + PLATE.gap.lg + PLATE_MAT.lg / 2,
       air: AIR.lg,
     },
   },
@@ -957,27 +730,18 @@ export const STANDS: Record<TakeId, { base: Stand; lg: Stand }> = {
       air: AIR.lg,
     },
   },
-  // Through the field's middle, as the shipped card's axis runs.
-  field: {
-    base: { box: FIELD.h.base, axis: FIELD.h.base / 2, air: AIR.base },
-    lg: { box: FIELD.h.lg, axis: FIELD.h.lg / 2, air: AIR.lg },
-  },
 };
 
 export function HeroObject({
   take,
   live,
   parties,
-  hands,
 }: {
   take: TakeId;
   live: ObjectLive;
   parties: readonly Party[];
-  /** The field's visitor, where the hero hands it one. */
-  hands?: FieldHands;
 }) {
-  if (take === "plate") return <PlateObject live={live} />;
   if (take === "card") return <CardObject live={live} parties={parties} />;
-  if (take === "door") return <DoorObject live={live} />;
-  return <FieldObject live={live} hands={hands} />;
+  if (take === "plate") return <PlateObject live={live} parties={parties} />;
+  return <DoorObject live={live} />;
 }

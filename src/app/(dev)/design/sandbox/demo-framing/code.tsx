@@ -40,14 +40,14 @@ import {
  * an address changes and only the data dots move: a new code blooms out of
  * the old one's place instead of the whole code re-gridding under a key.
  *
- * ★ IT BREATHES WITH THE TURNS, ON THE COMPOSITOR'S CLOCK. As an address is
- * erased its dots fold into the heart, edge first, and the heart closes; while
- * the next is typed the code waits empty (the plate's tile goes dark with it);
- * as it lands the new party's picture opens at the heart and its dots bloom
- * out of it, ring by ring, as its album leaves at lightspeed. The loop sets two
- * attributes a turn (`showCode`), and the board's sheet (`demo-framing.css`)
- * runs every dot; reduced motion and a paused frame draw the standing code
- * still.
+ * ★ IT IS REWRITTEN, NEVER EMPTIED (round five: round four folded it into its
+ * heart while the next address typed, and the empty tile read as a code still
+ * loading). The code stands whole, the party standing, while the next address
+ * is typed; as it lands the new party's picture beats at the heart and the
+ * dots that differ turn, in a ripple out from it, ring by ring, as the album
+ * leaves at lightspeed. The loop sets a few attributes a landing
+ * (`showCode`), and the board's sheet (`demo-framing.css`) runs every dot;
+ * reduced motion and a paused frame draw the standing code still.
  */
 
 /**
@@ -178,10 +178,12 @@ function dotsOf(svg: SVGSVGElement): SVGCircleElement[] {
 }
 
 /**
- * Turn a live code to an address (it blooms out of its heart, centre first)
- * or to none (it folds into its heart, edge first, and the heart closes).
- * `photo` swaps the heart's picture as it opens. Idempotent: a code already
- * showing the value is not touched, so the loop may call it every frame.
+ * Rewrite a live code to an address: the dots that differ turn in a ripple
+ * out from its heart, centre first, and the heart beats as `photo` swaps its
+ * picture. `null` folds it into its heart, edge first (no hero does now; the
+ * sheet keeps the fold for a code that has nothing to say). Idempotent: a
+ * code already showing the value is not touched, so the loop may call it
+ * every frame.
  */
 export function showCode(
   svg: SVGSVGElement,
@@ -191,6 +193,12 @@ export function showCode(
   const value = slug === null ? "" : linkOf(slug);
   if (svg.getAttribute("data-df-code") === value) return;
   svg.setAttribute("data-df-code", value);
+  // The heart's beat: two names for one keyframe, so each rewrite restarts it.
+  if (slug !== null)
+    svg.setAttribute(
+      "data-df-beat",
+      svg.getAttribute("data-df-beat") === "a" ? "b" : "a",
+    );
   svg.setAttribute("data-df-dir", slug === null ? "in" : "out");
   if (slug === null) svg.removeAttribute("data-df-open");
   else {

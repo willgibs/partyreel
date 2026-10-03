@@ -72,3 +72,15 @@ working.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
+
+## Where I am
+
+- WIP 1 (pushed): the board restructured for round five. `stage` asks between three heroes, each taken further:
+  `card` (recommended; the product's event card, photograph-forward, its name typed on the photograph's foot, its
+  light while the next name types, the photograph developing in on landing), `plate` (the pane lit by its party's
+  photograph, the code always whole and rewritten in a ripple from its heart, the address one line under it), `door`
+  (ajar in the arriving party's light while its address types, open on its cover). The field and the wall are retired
+  (`tiles.tsx` deleted; `waveAt`, `TYPED_MAX`, `typedSlugOf` gone). Typecheck, lint and the board's tests green.
+- Next: verify the typing states (the card's light, the door ajar) and each hero at the tablet and 375; tune the
+  card's height against the header, the pane's light; the close frames; then the gate and the Handoff.
+- Captures and the capture harness: `_scratch/demo-framing-r5/` (`tour.mjs <prefix> <opts> <frames> <times>`).

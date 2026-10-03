@@ -1,27 +1,22 @@
 import { defineExploration } from "@/components/lab/exploration";
 
 /**
- * THE DEMO'S STORY, ROUND FOUR (his round three answers, 2026-10-02).
+ * THE DEMO'S STORY, ROUND FIVE (his round four answer, 2026-10-03).
  *
- * His words. `stage`, none picked: "None of these are perfect, but I think two
- * directions have potential. First, for options 1 and 2, the link and QR
- * don't feel like a beautiful, cohesive item for the photos to stream from.
- * The code rising out doesn't feel very premium, and the code opening on its
- * invite leaves a very bland big card in the center when fully open, doesn't
- * feel polished at all. If we could nail this switching center item, both of
- * these directions could lead to something nice. Second, for option 3, I do
- * like keeping the link more minimal under a more prominent QR that adjusts.
- * However, the QR itself looks pretty bad, and a far more well designed
- * mini-event card that updates off the slug typing would feel much more
- * beautiful. I also don't like the streaming *into* the QR ... However, if you
- * have any brand new home hero ideas, I'd also love to see those so we aren't
- * knocking our head against a wall on one idea in a world of infinite."
- * `door=brand`: the demo's door stays as today, met through the regular
- * experience first.
+ * His words. `stage`, none picked: "I'm jokingly mad at you for making this
+ * decision so hard. Let's run another round on these so we can pick from an
+ * even more polished group of options. I truly cannot wait to see them."
  *
- * ★ ONE DECISION. `stage` is his two directions, each nailed, beside new
- * heroes of the lane's own, each the whole home's first screen. The door is
- * answered (`brand`) and is no longer drawn.
+ * ★ ONE DECISION, A MORE POLISHED THREE. Round four's strongest heroes are
+ * taken further, each one's weakest part fixed: the card (his second
+ * direction, recommended again), the pane (his first) and the door. Round
+ * four's weakest parts were each a picture of something loading (the card's
+ * cover blurred out of focus while an address typed, the pane's tile gone
+ * dark to an empty code, the door shut to a dark slab), and nothing stands
+ * empty or soft now. The field and the wall are retired: the field read as a
+ * browser's address bar and made a press type rather than open the demo, and
+ * the wall gave up the lightspeed tunnel he named. No new idea earned a place
+ * beside these three.
  *
  * ★ SETTLED AND DRAWN IN EVERY HERO, NEVER ASKED: the address `our-party`;
  * the arrow after it and its hover (the object lifts, the arrow nudges); no
@@ -49,12 +44,18 @@ export const DEMO_FRAMING = defineExploration({
     "scripts/seed-demo-event.mjs",
   ],
   round: {
-    n: 4,
-    date: "2026-10-02",
+    n: 5,
+    date: "2026-10-03",
     changed:
-      "From your round three notes: your two directions nailed (the code and its link as one pane, and a mini event card over a minimal link) beside three new heroes of mine; every stream leaves each address at lightspeed.",
+      "From your round four note: the three strongest heroes taken further (the card, the pane and the door), each one's weakest part fixed, so nothing stands empty or soft between two parties; the field and the wall retired.",
   },
   history: [
+    {
+      n: 4,
+      date: "2026-10-02",
+      changed:
+        "From your round three notes: your two directions nailed (the code and its link as one pane, and a mini event card over a minimal link) beside three new heroes of mine; every stream leaves each address at lightspeed.",
+    },
     {
       n: 3,
       date: "2026-10-02",
@@ -75,10 +76,10 @@ export const DEMO_FRAMING = defineExploration({
     },
   ],
   context:
-    "Round four, from your round three notes. Every photograph is a stand-in from the band's twelve stills and every guest a persona: the kit is replaced before launch, so judge the object, the motion and the words. Each code is the real code of the address beside it, and each frame's caption says what the browser's own barcode reader read off it.",
+    "Round five, from your round four note. Every photograph is still a stand-in from the band's twelve stills and every guest a persona (ASSETS 39 to 41 make each party's own), so judge the object, the motion and the words. A real cover changes the card most (its name stands on the photograph's own dark foot), then the pane (its glass is lit by the cover) and the door (the cover is what you see through it). Each code is the real code of the address beside it, read back in its caption.",
   opening: {
     about:
-      "The home's first screen: your two directions for the object the album leaves, each nailed, and three new heroes of mine beside them.",
+      "The home's first screen, round five: round four's three strongest heroes, each taken further and its weakest part fixed.",
     settled: [
       "The demo's address is partyreel.com/e/our-party, and every address the hero types is reserved to the demo, so each one opens it.",
       "An arrow after the address says it opens; under a pointer the object lifts and the arrow nudges toward where it goes.",
@@ -87,11 +88,10 @@ export const DEMO_FRAMING = defineExploration({
       "The demo's door stays as today (your pick), so the demo is met through the regular experience first.",
     ],
     earlier: [
+      "Round four: 'I'm jokingly mad at you for making this decision so hard. Let's run another round on these.'",
       "'The link and QR don't feel like a beautiful, cohesive item for the photos to stream from.'",
-      "'The code opening on its invite leaves a very bland big card in the center when fully open.'",
       "'A far more well designed mini-event card that updates off the slug typing would feel much more beautiful.'",
       "'I also don't like the streaming into the QR' next to 'the lightspeed tunnel the stream out version creates'.",
-      "'If you have any brand new home hero ideas, I'd also love to see those.'",
     ],
   },
   terms: [
@@ -128,12 +128,22 @@ export const DEMO_FRAMING = defineExploration({
     {
       term: "pane",
       means:
-        "One piece of the product's own glass, the album seen blurred through it as it passes behind.",
+        "One piece of the product's own glass, lit from inside by its party's photograph, far out of focus.",
+    },
+    {
+      term: "develops",
+      means:
+        "A photograph arriving as a print does: from bright and pale to itself, over the light it stood in.",
+    },
+    {
+      term: "ajar",
+      means:
+        "The doorway's resting state: the door a little open, its light a line round the leaf.",
     },
     {
       term: "reduced motion",
       means:
-        "A visitor's setting asking for less motion: they see the demo's own address and code, and the stream at rest.",
+        "A visitor's setting asking for less motion: they see the demo's own address, its object whole, and the stream at rest.",
     },
   ],
   carried: [
@@ -160,6 +170,22 @@ export const DEMO_FRAMING = defineExploration({
         "The address read as words, typed along with it: our-wedding is Our wedding, our-party is Our party.",
       overrule:
         "The event's own name (Partyreel Demo for the demo's), set once the address lands.",
+    },
+    {
+      id: "card-line",
+      question: "What does the card say under its name?",
+      taken:
+        "Its first faces, its guests and its photographs, never a date: nothing depends on a timeline, so a weekend and an undated party read alike.",
+      overrule:
+        "Its day as a host prints it (an undated party shows none), or the faces alone.",
+    },
+    {
+      id: "whole",
+      question: "What does a code do while the next address is typed?",
+      taken:
+        "It stands whole, the party standing, and is rewritten in a ripple from its heart as the address lands: never emptied.",
+      overrule:
+        "Round four's: it folds into its heart while the next is typed and blooms out as it lands.",
     },
     {
       id: "lamp",
@@ -194,63 +220,44 @@ export const DEMO_FRAMING = defineExploration({
       matters:
         "It is every visitor's first picture of the product: one link, its code, and everyone's photographs going into one album.",
       context:
-        "Each hero live at 1440, on a tablet held upright and at 375, its loop's score under the laptop, then its object close, at rest and under the pointer. Reduced motion stands each still: the demo's own address, every photograph credited.",
+        "Each hero live at 1440, a tablet held upright and 375, its loop's score under the laptop, then its object close, at rest and under the pointer. Watch one turn and its landing; reduced motion stands each still and whole.",
       options: [
-        {
-          id: "plate",
-          label: "One pane: the code and its link",
-          means:
-            "The code over its link in one pane of the product's glass; each address's code switches on and blooms out of its party's picture as it lands.",
-          gains:
-            "One object that never changes shape: only the light in it moves, per address.",
-          costs:
-            "The code is the loudest thing on the screen; the link reads second, under it.",
-        },
         {
           id: "card",
           label: "An event card over its link",
           means:
-            "A mini event card (its cover, its name typed with the address, its day, faces and code) over the link set minimal; it comes into focus as each lands.",
-          gains: "Every address reads as a real event, at a glance.",
+            "The product's own event card: its name typed on its party's photograph, which develops in as the address lands, its faces, counts and code; the link under it.",
+          gains:
+            "Every address reads as a real event, and the card is the one a host gets.",
           costs:
             "Its code is a picture, not a scan: a desk visitor scans in the demo's modal.",
         },
         {
-          id: "field",
-          label: "The link, yours to type",
+          id: "plate",
+          label: "One pane: the code and its link",
           means:
-            "The link as a field that types the demo's addresses until a visitor takes it and types their own party's, their code blooming as they pause.",
+            "The code over its link in one pane of the product's glass, lit by its party's photograph; the code rewritten in a ripple from its heart as each lands.",
           gains:
-            "The first screen is the product's first step, in the visitor's own words.",
+            "The scan itself, one object that never changes shape: a desk visitor's phone opens it.",
           costs:
-            "A press types rather than opens the demo; only its arrow opens the demo.",
-        },
-        {
-          id: "wall",
-          label: "The album fills from its code",
-          means:
-            "Two level rows of the party's photographs with its code at their heart, filling anew outward from the code as each address lands.",
-          gains:
-            "The album itself is the picture: everyone's photographs, at once, live.",
-          costs:
-            "No lightspeed: the calmest motion, and the most photographs to load.",
+            "The code is the loudest thing on the screen: it says link before it says party.",
         },
         {
           id: "door",
           label: "Every link a door to its party",
           means:
-            "The door every guest meets, open on its party's light and album, the link on its threshold; it shuts while an address types and opens on the next.",
+            "The door every guest meets, open on its party's cover with the link on its threshold; ajar in the next party's light while its address types.",
           gains:
             "The home shows the very door the demo, and every guest, walks through.",
           costs:
-            "A drawing of a door, not the link's own code: nothing on it scans.",
+            "A drawing of a door, not the link's own code or event: nothing on it scans.",
         },
       ],
       recommended: "card",
       because:
-        "An address reads as an event: its cover, its name in the host's own words, its faces and code, the album leaving it at lightspeed.",
+        "An address reads as an event, in the card the host will get: its photograph, its name in the host's own words, its faces, the album leaving it.",
       overrule:
-        "If the hero should show the scan itself, the pane; the album over its link, the wall; the visitor's own first step, the field.",
+        "If the hero should show the scan itself, the pane; if it should show the guest's way in, the door.",
       lands:
         "cinema-hero.tsx's object and loop, cinema-hero-card.tsx, a designed code per address (reserved to the demo), hero-stream.ts's geometry.",
     },
