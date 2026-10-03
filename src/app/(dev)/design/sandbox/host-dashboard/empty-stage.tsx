@@ -347,7 +347,7 @@ function Rail({ facts }: { facts: Facts }) {
             </span>
             <span
               className={cn(
-                "max-w-full truncate pr-2 text-xs",
+                "max-w-full pr-1 text-[11px] leading-tight sm:text-xs",
                 s.done ? "text-gallery-foreground" : "text-gallery-muted",
               )}
             >

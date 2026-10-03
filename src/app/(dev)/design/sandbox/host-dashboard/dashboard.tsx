@@ -168,10 +168,12 @@ export function Dashboard({
     if (!doc || !win) return;
     const place = () => {
       const top = doc.querySelector<HTMLElement>("[data-hd-collection]");
+      // The app's bar stays at the top as the page scrolls, so her events start under it.
+      const bar = doc.querySelector("header")?.getBoundingClientRect().height ?? 0;
       if (top)
         win.scrollTo(
           0,
-          Math.max(0, top.getBoundingClientRect().top + win.scrollY - 20),
+          Math.max(0, top.getBoundingClientRect().top + win.scrollY - bar - 16),
         );
     };
     // Once the stills have their size, and again once the faces have landed.
