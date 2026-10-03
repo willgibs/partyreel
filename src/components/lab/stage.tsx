@@ -67,7 +67,7 @@ const GROUND: Record<
     style: {
       // The room, from globals.css (.dark). The stage stands OUTSIDE the
       // marketing wrappers, so it cannot inherit the skin's ground.
-      "--background": "oklch(0.105 0.0053 286)",
+      "--background": "oklch(0.085 0.003 286)",
       colorScheme: "dark",
     } as React.CSSProperties,
   },

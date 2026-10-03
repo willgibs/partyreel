@@ -7,8 +7,8 @@ import { usePortalContainer } from "@/components/ui/portal-container"
 import { cn } from "@/lib/utils"
 import {
   floatingClock,
+  floatingDisplayPanel,
   floatingEntrance,
-  floatingPanel,
   floatingRow,
 } from "@/components/ui/floating-layer"
 import { CheckIcon, ChevronRightIcon } from "lucide-react"
@@ -37,9 +37,16 @@ import { CheckIcon, ChevronRightIcon } from "lucide-react"
  * padding) and nothing in this file is translucent. The Glass exploration he
  * banked owns the material.
  *
- * The corner, the entrance and the light are NOT here: they are the
- * floating-layer contract (`floating-layer.ts`), shared with the select, the
- * popover, the tooltip, the dialog and the sheet, and held by
+ * ★ IT OPENS ON THE DISPLAY (identity r2, layers=display): the camera's own
+ * screen, near-black on paper and in the room, its chosen row a light wash
+ * with a light outline (`focus:` is the row Radix holds highlighted, by the
+ * pointer or the keys). Every part above reads the display's own tokens, so
+ * none of them names a colour for it; the label's 70 percent of the screen's
+ * ink is the display's muted grey.
+ *
+ * The corner, the material, the entrance and the light are NOT here: they are
+ * the floating-layer contract (`floating-layer.ts`), shared with the select,
+ * the popover, the tooltip, the dialog and the sheet, and held by
  * `floating-layer.test.ts`.
  */
 
@@ -84,7 +91,8 @@ function DropdownMenuContent({
           // The panel's 4px of padding IS the row's corner offset.
           // Move it and `floatingRow` is wrong by the difference.
           "z-50 max-h-(--radix-dropdown-menu-content-available-height) w-(--radix-dropdown-menu-trigger-width) min-w-32 origin-(--radix-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto p-1 data-[state=closed]:overflow-hidden",
-          floatingPanel,
+          // The display (layers=display): a menu is the camera's own screen.
+          floatingDisplayPanel,
           floatingEntrance,
           // The surface a host opens most, and the one they open by mistake.
           floatingClock.instant,
@@ -195,7 +203,7 @@ function DropdownMenuItem({
         // glyph is quiet and 16px wide, so every label in a menu starts at the
         // same x and a call site never types `text-muted-foreground` on an icon
         // again. `data-inset` puts a row with no icon on that same x.
-        "group/dropdown-menu-item relative flex cursor-default items-center gap-2 px-2 py-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground not-data-[variant=destructive]:focus:**:text-accent-foreground data-inset:pl-8 data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-destructive dark:data-[variant=destructive]:focus:bg-destructive/20 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&>svg:first-child]:text-muted-foreground data-[variant=destructive]:*:[svg]:text-destructive",
+        "group/dropdown-menu-item relative flex cursor-default items-center gap-2 px-2 py-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground focus:ring-[1.5px] focus:ring-foreground/50 focus:ring-inset not-data-[variant=destructive]:focus:**:text-accent-foreground data-inset:pl-8 data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/20 data-[variant=destructive]:focus:text-destructive data-[variant=destructive]:focus:ring-destructive/50 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&>svg:first-child]:text-muted-foreground data-[variant=destructive]:*:[svg]:text-destructive",
         floatingRow,
         className
       )}
@@ -239,7 +247,7 @@ function DropdownMenuCheckboxItem({
       data-slot="dropdown-menu-checkbox-item"
       data-inset={inset}
       className={cn(
-        "relative flex cursor-default items-center gap-2 py-1.5 pr-8 pl-2 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground focus:**:text-accent-foreground data-inset:pl-8 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&>svg:first-child]:text-muted-foreground",
+        "relative flex cursor-default items-center gap-2 py-1.5 pr-8 pl-2 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground focus:ring-[1.5px] focus:ring-foreground/50 focus:ring-inset focus:**:text-accent-foreground data-inset:pl-8 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&>svg:first-child]:text-muted-foreground",
         floatingRow,
         className
       )}
@@ -284,7 +292,7 @@ function DropdownMenuRadioItem({
       data-slot="dropdown-menu-radio-item"
       data-inset={inset}
       className={cn(
-        "relative flex cursor-default items-center gap-2 py-1.5 pr-8 pl-2 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground focus:**:text-accent-foreground data-inset:pl-8 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&>svg:first-child]:text-muted-foreground",
+        "relative flex cursor-default items-center gap-2 py-1.5 pr-8 pl-2 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground focus:ring-[1.5px] focus:ring-foreground/50 focus:ring-inset focus:**:text-accent-foreground data-inset:pl-8 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&>svg:first-child]:text-muted-foreground",
         floatingRow,
         className
       )}
@@ -389,7 +397,7 @@ function DropdownMenuSubTrigger({
       data-slot="dropdown-menu-sub-trigger"
       data-inset={inset}
       className={cn(
-        "flex cursor-default items-center gap-2 px-2 py-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground not-data-[variant=destructive]:focus:**:text-accent-foreground data-inset:pl-8 data-open:bg-accent data-open:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&>svg:first-child]:text-muted-foreground",
+        "flex cursor-default items-center gap-2 px-2 py-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground focus:ring-[1.5px] focus:ring-foreground/50 focus:ring-inset not-data-[variant=destructive]:focus:**:text-accent-foreground data-inset:pl-8 data-open:bg-accent data-open:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&>svg:first-child]:text-muted-foreground",
         floatingRow,
         className
       )}
@@ -444,7 +452,7 @@ function DropdownMenuSubContent({
           // leaves about 119px to its left; the theme picker measures about
           // 109px and fits. A floor of 160px would not have.
           "z-50 min-w-24 origin-(--radix-dropdown-menu-content-transform-origin) overflow-hidden p-1",
-          floatingPanel,
+          floatingDisplayPanel,
           floatingEntrance,
           floatingClock.instant,
           className

@@ -30,15 +30,18 @@
       --like rose, --destructive red — punctuation only, never a wash.
       "Saturate your neutrals" (Hobday) was consciously DECLINED: zero-chroma
       purity IS the brand point.
-    • Both modes are one system: light = paper + hairline borders, dark =
-      near-black + translucent card + lighter-is-closer elevation. No pure
-      black/white anywhere (bg 0.99 / card 0.997 in light; fg 0.96 in dark).
+    • Both modes are one system, VIEWFINDER'S (identity r1's family, its r2
+      picks wired 2026-10-03): light = a silver body with cards a step
+      whiter, dark = a near-black room with cards a step lighter, a card its
+      tone alone in both; every quick layer is THE DISPLAY, the camera's own
+      near-black screen on either ground. No pure black/white anywhere.
     • THE ROUNDING SYSTEM (family C, the derived
-      steps in quarters): an 8px surface (--radius: cards, inputs, panels), a
-      12px floating layer (--radius-float: menus, tooltips, toasts, dialogs,
-      the guest entry sheet; a ROW inside one is 4px tighter, derived), a 4px
-      photograph (--radius-tile, with --gap-gallery pinned to it so four
-      corners never open a hole) and actions at 0.4 of their height
+      steps in quarters): an 8px surface (--radius: inputs, panels; a card is
+      the ladder's 2xl), a 16px floating layer (--radius-float: menus,
+      popovers, toasts; a ROW inside one is 4px tighter, a tooltip 6px, a work
+      layer a quarter rounder, all derived), a 2px photograph (--radius-tile,
+      with --gap-gallery pinned to it so four corners never open a hole) and
+      actions at 0.4 of their height
       (--radius-action: 16px @ the 40px button, -sm @32px, 1.1x for the 44px
       `cta` size). A control is still twice as round as the surface under it,
       so the contrast still says "pressable". rounded-sm..2xl climb in
@@ -46,13 +49,13 @@
       corners follow inner = outer − gap (Hobday); an action rides its HEIGHT
       instead, the system's one deliberate exception to that math.
     • THE ELEVATION CONTRACT: FOUR techniques, one
-      per height, never rivals. The STEP (a panel is a shade lighter than the
-      page) and the RING (a hairline marks an edge) ship on every surface. The
-      LIFT (--shadow-lift) goes only where one object overlaps another of its
-      own lightness; the LAYER (--shadow-layer) goes under anything the page
-      keeps living behind. A flat surface takes neither shadow, in either
-      mode. One geometry (blur = 2× offset, single top light source), two
-      sizes, one alpha ramp per ground.
+      per height, never rivals. The STEP (a surface is a shade off its
+      ground) is how a card lies flat; the RING (a hairline marks an edge) is
+      left to what the step cannot part (a body panel, the display's edge in
+      the room). The LIFT (--shadow-lift) goes only where one object overlaps
+      another; the LAYER (--shadow-layer) goes under anything the page keeps
+      living behind. A flat surface takes neither shadow, in either mode. One
+      top light source, two sizes, one alpha ramp per ground.
     • TYPE: Urbanist is the heading face via the `font-heading` utility below
       (bold 700 at -3% tracking), ONE weight for every heading, page titles
       and card titles alike; per-setting LABELS stay Inter 500 (FormLabel).
@@ -101,41 +104,48 @@
    tuner override on <html> pierces every paper subtree. */
 :root,
 .surface-paper {
-  /* Light = paper, the PEARL register (the palette's round eight, named
-     Graphite). Two things changed and both are deliberate. The page
-     is the brightest thing in the product at 0.995 and a CARD IS THE SAME
-     WHITE: a card is defined by its hairline, never by a step of 0.007 that no
-     eye resolves (and never by a shadow: a surface
-     lying flat takes none, see THE TWO SHADOWS below). And every fill BELOW the page is one of Apple's
-     cool greys at hue 286 (their grey, not their blue at 258), so a panel and a
-     hover fill are 0.040 apart instead of 0.005. The menu is the one surface
-     brighter than the page, because a menu is genuinely above it. */
-  --background: oklch(0.995 0.002 286);
-  --foreground: oklch(0.145 0.006 286);
-  --card: oklch(0.995 0.002 286);
-  --card-foreground: oklch(0.145 0.006 286);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0.006 286);
-  --primary: oklch(0.145 0.006 286);
-  --primary-foreground: oklch(0.995 0.002 286);
-  --secondary: oklch(0.923 0.0067 286);
-  --secondary-foreground: oklch(0.145 0.006 286);
-  --muted: oklch(0.963 0.0066 286);
-  --muted-foreground: oklch(0.46 0.009 286);
+  /* Light = paper, VIEWFINDER'S MATTE BODY (identity r1's family, wired with
+     r2's picks, 2026-10-03): a silver body at 0.972 and a card a step WHITER
+     than it, so a card lies flat as its tone alone, with no line and no shadow
+     (layers=display; a surface lying flat takes no shadow, see THE TWO SHADOWS
+     below). The fills below the body are its cool greys at hue 286, at the
+     body's low chroma. The menu's ground is the display, not this set
+     (`.surface-display` below); a dialog, a panel and a sheet stand on
+     --popover, a hair brighter than the card. */
+  --background: oklch(0.972 0.002 286);
+  --foreground: oklch(0.14 0.004 286);
+  --card: oklch(0.993 0.001 286);
+  --card-foreground: oklch(0.14 0.004 286);
+  --popover: oklch(0.996 0.001 286);
+  --popover-foreground: oklch(0.14 0.004 286);
+  --primary: oklch(0.14 0.004 286);
+  --primary-foreground: oklch(0.985 0.001 286);
+  --secondary: oklch(0.93 0.003 286);
+  --secondary-foreground: oklch(0.14 0.004 286);
+  --muted: oklch(0.948 0.003 286);
+  --muted-foreground: oklch(0.43 0.006 286);
   /* THE THIRD TEXT STEP (faint=in). A timestamp, a caption and
      a hint are all dimmer than the second grey, and ~37 places used to fade it
      by hand with an alpha. An alpha composites against WHATEVER IS BEHIND IT,
      so the same line was a different grey on a card than on the page; one token
-     is one grey on all three grounds. Measured on this register: 3.21:1 on the
-     page, 2.92:1 on the mat. That is a caption colour - never body copy, never
+     is one grey on all three grounds. Measured on this register: 3.64:1 on the
+     body, 3.87:1 on a card. That is a caption colour - never body copy, never
      a control's only label, and never stacked with another alpha. */
-  --faint: oklch(0.648 0.0073 286);
-  --accent: oklch(0.923 0.0067 286);
-  --accent-foreground: oklch(0.145 0.006 286);
-  --destructive: oklch(0.55 0.21 27);
-  --border: oklch(0.89 0.0068 286);
-  --input: oklch(0.862 0.0068 286);
-  --ring: oklch(0.3 0.008 286);
+  --faint: oklch(0.6 0.006 286);
+  --accent: oklch(0.912 0.003 286);
+  --accent-foreground: oklch(0.14 0.004 286);
+  --destructive: oklch(0.56 0.21 27);
+  /* THE RECORDING RED, viewfinder's one signal light (the live mark): delete's
+     own red, so the palette gains no hue. Declared beside --destructive in every
+     set that declares it, because a var() in a custom property resolves where
+     it is declared and would carry this ground's red into another. */
+  --signal: var(--destructive);
+  /* The LINES are ink at an alpha, the one place a token here is not opaque: a
+     line has to read on the body and on a card a step whiter, and one opaque
+     grey reads on only one of them. A line is never a surface. */
+  --border: oklch(0.14 0.004 286 / 12%);
+  --input: oklch(0.14 0.004 286 / 22%);
+  --ring: oklch(0.14 0.004 286);
   /* The admin chart ramp is still at chroma 0: the palette's paste covers the
      surface and text tokens, and a cast on five chart greys nobody has settled
      on would be a value invented in a wiring round. Deferred, ROADMAP > Design. */
@@ -167,31 +177,26 @@
   --reel: oklch(0.62 0.2 300);
 
   /* ─── THE TWO SHADOWS, BY ROLE: a small shadow
-     where one card sits on another, and a larger one under menus, dialogs and
-     toasts. ONE geometry (blur = 2x offset, single top light source), TWO
-     sizes, ONE alpha ramp per ground.
+     where one object sits on another, and a larger one under menus, dialogs
+     and toasts. Each is viewfinder's: a tight contact shadow under a soft fall
+     from one top light, TWO sizes, ONE alpha ramp per ground.
 
-       LIFT   separates two objects of the same lightness that really overlap:
-              stacked photographs, a print deck, a card overhanging a seam.
+       LIFT   separates two objects that really overlap: stacked photographs,
+              a print deck, a card overhanging a seam, the code's white mat.
        LAYER  detaches anything the page keeps living behind: a menu, a
               dialog, a sheet, a toast, a bar floating over the gallery.
        A flat surface takes NEITHER, in either mode. A card on a page is its
-       step and its ring; a shadow under it is a smudge in dark and a fifth
+       tone alone; a shadow under it is a smudge in dark and a fifth
        technique in light. The role is the call site's to declare, by wearing
-       `shadow-lift` or `shadow-layer` (theme.css), and a raw Tailwind shadow
-       anywhere else is refused by src/lib/elevation-policy.test.ts.
+       `shadow-lift` or `shadow-layer` (theme.css).
 
-     ★ PAPER DID NOT MOVE. The lift here is the retired single shadow's value
-     to the byte, and the layer is that geometry at double the offsets. What
-     was added is the DARK ramp (see .dark): 6 percent of black over a
-     0.105 room is arithmetically invisible, which is the whole reason dark
-     read as shadowless. (The old single-shadow name is gone;
-     elevation-policy.test.ts refuses it coming back.)
+     The room carries its own, darker ramp (see .dark): 6 percent of black over
+     a near-black room is arithmetically invisible.
      ─── */
   --shadow-lift:
-    0 2px 4px -1px oklch(0 0 0 / 0.06), 0 4px 8px -2px oklch(0 0 0 / 0.1);
+    0 1px 2px oklch(0 0 0 / 0.08), 0 4px 10px -2px oklch(0 0 0 / 0.1);
   --shadow-layer:
-    0 4px 8px -2px oklch(0 0 0 / 0.09), 0 8px 16px -4px oklch(0 0 0 / 0.13);
+    0 2px 6px oklch(0 0 0 / 0.1), 0 12px 28px -6px oklch(0 0 0 / 0.2);
 
   /* Gallery canvas — identical in light & dark (media-first, theme-independent).
      ★ THE WELL SPLIT OFF THE SLAB at the palette's round eight. These were one
@@ -254,7 +259,7 @@
   --radius: 0.5rem; /* 8px: every surface, and the base the rounded-* quarters derive from */
   --radius-action: 1rem; /* 16px @ h-10 (40px); ratio ~0.4 x height */
   --radius-action-sm: 0.8rem; /* @ h-8 (32px) */
-  --radius-tile: 4px; /* a photograph */
+  --radius-tile: 2px; /* a photograph, at viewfinder's 2px (identity r1's family) */
   /* The ONE gap for every media-tile grid (masonry + the dense triage grids;
      use gap-[var(--gap-gallery)], and mb-[...] where a masonry lays out in
      columns). ★ PINNED TO THE TILE, never typed: below
@@ -263,7 +268,24 @@
      the 3px gap is the album tell. Retune --radius-tile and this moves too
      (both sit on <html>, which is where the tuner writes). */
   --gap-gallery: max(3px, var(--radius-tile));
-  --radius-float: 0.75rem; /* 12px: menus, tooltips, toasts, dialogs, the guest sheet */
+  /* 16px: the display's corner (layers=display, identity r2): a menu, a
+     popover, a select, a toast. The rest of the floating family derives from
+     it in `floating-layer.ts`: a row 4px tighter, a tooltip's capsule 6px
+     tighter, and a work layer (a dialog, a panel, a sheet) a quarter rounder. */
+  --radius-float: 1rem;
+
+  /* THE DISPLAY: the camera's own screen (layers=display, identity r2), one
+     near-black on paper and in the room, which is what the quick layers (a
+     menu, a popover, a select, a tooltip, a toast, the Add's rows) are made
+     of. Theme-independent by definition, so declared here once; the ground
+     that wears them is `.surface-display` (below). Kept out of `@theme`: no
+     `bg-display` utility exists, a surface reaches the display by wearing its
+     ground. */
+  --display: oklch(0.165 0.004 286);
+  --display-step: oklch(0.235 0.004 286);
+  --display-foreground: oklch(0.975 0.002 286);
+  --display-muted: oklch(0.72 0.005 286);
+  --display-edge: oklch(1 0 0 / 11%);
   /* The lamps' cadence, ONE token: every shipped lamp (the
      footer seam, the film strip, the reel pool, the feature heroes' screen
      lamps) passes --glw-dur: var(--spill-cadence), so the whole page moves on
@@ -304,21 +326,18 @@
 }
 
 .dark {
-  /* Dark = the night system, the GRAPHITE room.
-     ONE room at 0.105 for the whole product: the app used to sit 0.030 lighter
-     than a marketing chapter for no stated reason, and marketing's own deeper
-     value is what the whole product now wears. Deep enough to be a GROUND
-     rather than a grey, with every surface above it carrying hue 286 at half
-     again Apple's tint - because our surfaces sit on a blacker ground than
-     theirs and a tint disappears into black, so a card has to read as cool
-     rather than as merely lighter. The ladder is 0.105 -> 0.175 -> 0.225 ->
-     0.27 -> 0.315: the first step is the big one, so a panel separates from the
-     room and everything above it is a close ladder. Depth in dark is LIGHT
-     FIRST: the surface steps and the hairlines carry it, and the two
-     shadows below are for the two cases they cannot reach (an overlap, a
-     layer), never for a flat surface. */
-  --background: oklch(0.105 0.0053 286);
-  --foreground: oklch(0.965 0.0045 286);
+  /* Dark = the room, VIEWFINDER'S NEAR-BLACK BODY (identity r1's family, wired
+     with r2's picks, 2026-10-03). ONE room for the whole product, the app and
+     every cinema chapter. Deep enough that a photograph is the brightest thing
+     in it, and still a step above the media well (--gallery, 0.065). The
+     ladder is 0.085 -> 0.125 -> 0.15 -> 0.175 -> 0.21 -> 0.245: a card is
+     its tone alone, a short close step off the room (layers=display: no line),
+     and a dialog stands one step above a card. Depth in dark is LIGHT FIRST:
+     the surface steps carry it, and the two shadows below are for the two
+     cases they cannot reach (an overlap, a layer), never for a flat surface.
+     The menus are the display's ground, not this set (`.surface-display`). */
+  --background: oklch(0.085 0.003 286);
+  --foreground: oklch(0.97 0.002 286);
   /* ★ THE VEIL RETIRED, AND THE GLASS IT HINTED AT NOW EXISTS ELSEWHERE
      (card=declared: "If we ever need to design that glass style
      over photos, we can design that custom."; designed and named Crystal).
@@ -328,25 +347,26 @@
      everywhere now, and that is still the rule: the custom glass he asked for is
      `.glass` (THE GLASS MATERIAL below), it is MEDIA chrome only, and a surface
      token never carries an alpha to get it. */
-  --card: oklch(0.225 0.006 286);
-  --card-foreground: oklch(0.965 0.0045 286);
-  --popover: oklch(0.27 0.006 286);
-  --popover-foreground: oklch(0.965 0.0045 286);
-  --primary: oklch(0.965 0.0045 286);
-  --primary-foreground: oklch(0.105 0.0053 286);
-  --secondary: oklch(0.315 0.006 286);
-  --secondary-foreground: oklch(0.965 0.0045 286);
-  --muted: oklch(0.175 0.0053 286);
-  --muted-foreground: oklch(0.715 0.0105 286);
-  /* The third text step in the room (see :root). 4.47:1 on the room, 3.75:1 on
+  --card: oklch(0.15 0.004 286);
+  --card-foreground: oklch(0.97 0.002 286);
+  --popover: oklch(0.175 0.004 286);
+  --popover-foreground: oklch(0.97 0.002 286);
+  --primary: oklch(0.97 0.002 286);
+  --primary-foreground: oklch(0.1 0.003 286);
+  --secondary: oklch(0.21 0.004 286);
+  --secondary-foreground: oklch(0.97 0.002 286);
+  --muted: oklch(0.125 0.004 286);
+  --muted-foreground: oklch(0.71 0.006 286);
+  /* The third text step in the room (see :root). 3.92:1 on the room, 3.72:1 on
      a card: a caption colour, never body copy. */
-  --faint: oklch(0.565 0.0075 286);
-  --accent: oklch(0.315 0.006 286);
-  --accent-foreground: oklch(0.965 0.0045 286);
-  --destructive: oklch(0.7 0.19 22);
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 16%);
-  --ring: oklch(0.865 0.0105 286);
+  --faint: oklch(0.53 0.006 286);
+  --accent: oklch(0.245 0.004 286);
+  --accent-foreground: oklch(0.97 0.002 286);
+  --destructive: oklch(0.68 0.2 24);
+  --signal: var(--destructive);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 18%);
+  --ring: oklch(0.97 0.002 286);
 
   /* Charts re-ramp BRIGHTER on near-black (the light ramp disappears). */
   --chart-1: oklch(0.92 0 0);
@@ -371,15 +391,12 @@
   --save-foreground: oklch(0.13 0 0);
   --reel: oklch(0.72 0.18 300);
 
-  /* THE RAMP DARK NEVER HAD (the light board's depth pass). The
-     geometry is the light block's, to the pixel; only the alpha changes,
-     because a shadow has to be darker than what it falls on. Judged on two
-     mid-key photographs and on a menu over a busy page, which are the only
-     two places these are allowed to land. */
+  /* The room's ramp: paper's geometry, a little wider, at the alphas a shadow
+     needs to be darker than the near-black it falls on. */
   --shadow-lift:
-    0 2px 4px -1px oklch(0 0 0 / 0.45), 0 4px 8px -2px oklch(0 0 0 / 0.55);
+    0 1px 2px oklch(0 0 0 / 0.5), 0 4px 12px -2px oklch(0 0 0 / 0.6);
   --shadow-layer:
-    0 4px 8px -2px oklch(0 0 0 / 0.5), 0 8px 16px -4px oklch(0 0 0 / 0.62);
+    0 2px 8px oklch(0 0 0 / 0.55), 0 16px 36px -6px oklch(0 0 0 / 0.75);
 
   /* --gallery* intentionally NOT overridden: galleries stay dark in every theme. */
 }
@@ -394,10 +411,10 @@
 /* `.surface-mat` (the palette's round eight): the LIGHT set-apart ground, as a
    register rather than as an alpha. The product marks a band as set apart with
    `bg-muted/N` at six different alphas, which is six greys doing one job and
-   none of them a surface a card can sit on. This is the one ground: Apple's
-   gray6 at 0.963, with the card pushed back to the page's own white so a card
-   ON a mat still lifts, and the hover fill moved up a step so a band and a
-   hover are 0.040 apart instead of 0.005.
+   none of them a surface a card can sit on. This is the one ground: a step
+   below the silver body at 0.948 (the body's own muted), with the card the
+   body's so a card ON a mat still lifts, and the hover fill moved down a step
+   with it. Its lines are the body's (ink at an alpha), inherited.
 
    ★ IT IS DECLARED, NOT YET WORN. The ~35 `bg-muted/N` call sites become
    sections carrying this class as a mechanical follow-up (ROADMAP > Design);
@@ -405,15 +422,13 @@
    values, so a `.dark` subtree inside it keeps the room's ladder. Placed after
    .surface-paper and before .surface-ink so an ink leaf on a mat still wins. */
 .surface-mat {
-  --background: oklch(0.963 0.0066 286);
-  --card: oklch(0.995 0.002 286);
-  --popover: oklch(1 0 0);
-  --muted: oklch(0.923 0.0067 286);
-  --secondary: oklch(0.895 0.0068 286);
-  --accent: oklch(0.895 0.0068 286);
-  --faint: oklch(0.648 0.0073 286);
-  --border: oklch(0.862 0.0068 286);
-  --input: oklch(0.862 0.0068 286);
+  --background: oklch(0.948 0.003 286);
+  --card: oklch(0.993 0.001 286);
+  --popover: oklch(0.996 0.001 286);
+  --muted: oklch(0.93 0.003 286);
+  --secondary: oklch(0.912 0.003 286);
+  --accent: oklch(0.912 0.003 286);
+  --faint: oklch(0.6 0.006 286);
 }
 
 /* `.surface-ink` (the library phase, 2026-09-11): the always-dark slab set in
@@ -430,7 +445,8 @@
    were one value. Graphite splits them (the well at 0.065, the slab at 0.165),
    so deriving would drag this leaf down to the well with it and a footer at the
    bottom of a paper page would read as a hole rather than as a step. This is
-   the SLAB register of the dark set, verbatim.
+   the slab's own register, a step above the room (the room went deeper with
+   viewfinder's body; a leaf on paper did not need to).
 
    --brand is redeclared DIRECTLY here, and via --primary declared in this same
    block: a var() inside a custom property is substituted where it is DECLARED,
@@ -458,13 +474,67 @@
   --ring: oklch(0.965 0.0045 286);
   --brand: var(--primary);
   --brand-foreground: var(--primary-foreground);
-  /* The dark ramp, re-declared like everything else here: on a paper page the
-     leaf would otherwise inherit paper's 6 and 10 percent, which is nothing on
-     a slab (the footer's photo pile is an overlap, so it is a real reader). */
+  /* The room's ramp, re-declared like everything else here: on a paper page the
+     leaf would otherwise inherit paper's alphas, which are nothing on a slab
+     (the footer's photo pile is an overlap, so it is a real reader). */
   --shadow-lift:
-    0 2px 4px -1px oklch(0 0 0 / 0.45), 0 4px 8px -2px oklch(0 0 0 / 0.55);
+    0 1px 2px oklch(0 0 0 / 0.5), 0 4px 12px -2px oklch(0 0 0 / 0.6);
   --shadow-layer:
-    0 4px 8px -2px oklch(0 0 0 / 0.5), 0 8px 16px -4px oklch(0 0 0 / 0.62);
+    0 2px 8px oklch(0 0 0 / 0.55), 0 16px 36px -6px oklch(0 0 0 / 0.75);
+}
+
+/* `.surface-display` (identity r2, layers=display, wired 2026-10-03): THE
+   DISPLAY, the camera's own screen, which every quick layer is made of: a menu
+   and its submenu, a select's list, a popover, the Add's rows, a tooltip, a
+   toast (`floatingDisplay` in `ui/floating-layer.ts`). One near-black on paper
+   and in the room, so a quick choice opens the same object on both grounds:
+   on paper it gets attention by contrast, in the room it parts by its edge.
+   A work layer (a dialog, a panel, a sheet) is not this: a host works there,
+   in the body's own material.
+
+   ★ EVERY TOKEN A PART READS, IN WHOLE PAIRS, as `.surface-ink` does: a row's
+   glyph, a muted line, a separator, a destructive row, a switch among the rows
+   and a button in a popover all read the screen's own greys with no rule of
+   their own. --background is the screen too, so an outline button inside one
+   is not a hole cut to the page. The state colours are the room's brighter
+   ones (a state is a light on a dark screen, on paper as in the room), and
+   --signal and --brand are re-declared beside what they alias, since a var()
+   in a custom property resolves where it is declared.
+
+   ★ IT IS NOT `.dark`. Its grounds' shadows stay the ground's (the layer
+   shadow under a display on paper is paper's), and a `dark:` utility inside
+   fires only in the room: anything inside reads tokens, never a variant. */
+.surface-display {
+  --background: var(--display);
+  --foreground: var(--display-foreground);
+  --card: var(--display-step);
+  --card-foreground: var(--display-foreground);
+  --popover: var(--display);
+  --popover-foreground: var(--display-foreground);
+  --primary: var(--display-foreground);
+  --primary-foreground: var(--display);
+  --secondary: var(--display-step);
+  --secondary-foreground: var(--display-foreground);
+  --muted: var(--display-step);
+  --muted-foreground: var(--display-muted);
+  --faint: oklch(0.56 0.005 286);
+  /* A chosen row's wash: light on the screen, inside an opaque panel. */
+  --accent: oklch(1 0 0 / 9%);
+  --accent-foreground: var(--display-foreground);
+  --destructive: oklch(0.7 0.19 24);
+  --signal: var(--destructive);
+  --border: var(--display-edge);
+  --input: oklch(1 0 0 / 20%);
+  --ring: var(--display-foreground);
+  --brand: var(--primary);
+  --brand-foreground: var(--primary-foreground);
+  --success: oklch(0.7 0.16 150);
+  --success-foreground: oklch(0.13 0 0);
+  --warning: oklch(0.84 0.14 82);
+  --warning-foreground: oklch(0.25 0.05 70);
+  --info: oklch(0.72 0.14 250);
+  --info-foreground: oklch(0.13 0 0);
+  color-scheme: dark;
 }
 
 @layer base {
@@ -1099,36 +1169,33 @@
   }
 }
 
-/* STATE-COLORED TOASTS (global policy, S4): map sonner's data-type to the design
-   system's STATE colors - success = green, warning = amber, error/destructive = red.
-   Plain/info toasts keep the neutral --normal-* treatment (the "current default" for
-   non-state notifiers). The state tokens already brighten under .dark, so the toasts
-   adapt to theme for free.
-   WHY this shape (verified live): target sonner's OWN guaranteed `[data-sonner-toast]`
-   + `[data-type]` (not the cn-toast classNames hook - it wasn't winning), and use
-   `!important` - sonner injects its neutral `--normal-bg` rule at runtime (unlayered,
-   non-important), which beat the earlier class rule on layer/order. !important on a
-   more-specific selector wins regardless of layer/order. `[data-icon]` keeps the
-   leading state icon on the same ink as the text. */
-[data-sonner-toast][data-type="success"] {
-  background: var(--success) !important;
-  color: var(--success-foreground) !important;
-  border-color: color-mix(in oklch, var(--success), black 12%) !important;
+/* A TOAST IS THE DISPLAY, AND ITS STATE IS A LIGHT (layers=display with
+   status=lights, identity r2, wired 2026-10-03): every toast is the camera's
+   own screen (`ui/sonner.tsx` hands sonner the display's colours and dresses
+   each toast in `.surface-display`), and a success, a warning or a failure
+   speaks as its glyph lit in the state's colour, never as a filled green,
+   amber or red slab: colour where it means something, nothing else. The words
+   stay the screen's ink. An error still waits for a press (sonner.tsx).
+   THREE ATTRIBUTES DEEP, for the reason the layer's rule below gives: sonner
+   appends its sheet after ours, and its own (0,2,0) rules win a tie. */
+[data-sonner-toaster] [data-sonner-toast][data-type="success"] [data-icon] {
+  color: var(--success);
 }
-[data-sonner-toast][data-type="warning"] {
-  background: var(--warning) !important;
-  color: var(--warning-foreground) !important;
-  border-color: color-mix(in oklch, var(--warning), black 12%) !important;
+[data-sonner-toaster] [data-sonner-toast][data-type="warning"] [data-icon] {
+  color: var(--warning);
 }
-[data-sonner-toast][data-type="error"] {
-  background: var(--destructive) !important;
-  color: oklch(0.99 0 0) !important;
-  border-color: color-mix(in oklch, var(--destructive), black 12%) !important;
+[data-sonner-toaster] [data-sonner-toast][data-type="error"] [data-icon] {
+  color: var(--destructive);
 }
-[data-sonner-toast][data-type="success"] [data-icon],
-[data-sonner-toast][data-type="warning"] [data-icon],
-[data-sonner-toast][data-type="error"] [data-icon] {
-  color: inherit !important;
+[data-sonner-toaster] [data-sonner-toast][data-type="info"] [data-icon] {
+  color: var(--info);
+}
+/* The toast's one action (an Undo) is a small pill in the screen's own ink:
+   sonner draws it inverted already, so only its shape is ours. */
+[data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-button] {
+  height: 26px;
+  padding-inline: 10px;
+  border-radius: 999px;
 }
 
 /* THE TOAST IS A LAYER (the two-shadows rule: "a larger one under

@@ -1,9 +1,15 @@
 import { DashboardSkeleton } from "@/components/app/dashboard/dashboard-skeleton";
+import { RoomWait } from "@/components/app/create-event-wizard/room";
 import { CrumbsHold } from "@/components/shared/crumbs";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export type RouteSkeletonVariant = "pulse" | "hub" | "account" | "welcome";
+export type RouteSkeletonVariant =
+  | "pulse"
+  | "hub"
+  | "account"
+  | "welcome"
+  | "room";
 
 /**
  * ONE ROUTE SKELETON, ONE SHAPE PER ROUTE WITH A WAIT (`app-vocabulary` r1,
@@ -36,6 +42,8 @@ export function RouteSkeleton({ variant }: { variant: RouteSkeletonVariant }) {
         <HubSkeleton />
       ) : variant === "account" ? (
         <AccountSkeleton />
+      ) : variant === "room" ? (
+        <RoomWait />
       ) : (
         <WelcomeSkeleton />
       )}

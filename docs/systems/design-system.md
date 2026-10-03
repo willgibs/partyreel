@@ -24,22 +24,33 @@ the colour and only state and actions are coloured.
 The component library is a working version that still reads as the shadcn foundation at the atomic level, and nothing
 in it is protected. An identity is pursued as the sum of every part read together: primitives, materials, type, motion
 and composition. A button made different on its own is not an identity, and atoms left at a generator's defaults read
-as generic however custom the layout above them. The direction is a camera's own instruments (identity r1 picked
-`viewfinder`; its atoms are refined in the lab one group at a time before they wire at the source), pitched at a modern
-consumer app for the crowd that actually comes, about 18 at a party to about 50 at a wedding or a conference: it reads
-as bespoke and current to them and never as a developer's tool (no bench readouts for their own sake; the viewfinder's
-corner marks survive only as a focus mark, never as a style), and it is never
-flattened into a lowest-common-denominator app, since the core path (scan, add, view) is plain to anyone already.
+as generic however custom the layout above them. The direction is a camera's own instruments, identity's `viewfinder`
+(r1's family: a matte body, silver on paper and near-black in the room, the recording red, photographs at 2px), wired at
+the source with r2's three picks: the voice `camera` (words in sentence case, spaced capitals only where a camera prints
+them: a state, a count, live), the layers `display` (every quick layer the camera's own near-black screen) and the
+status `lights` (a state is a light and its word); actions and fields keep their shadcn build until identity r3 picks
+theirs. It is pitched at a modern consumer app for the crowd that actually comes, about 18 at a party to about 50 at a
+wedding or a conference: it reads as bespoke and current to them and never as a developer's tool (no bench readouts for
+their own sake; the viewfinder's corner marks survive only as a focus mark, never as a style), and it is never flattened
+into a lowest-common-denominator app, since the core path (scan, add, view) is plain to anyone already.
 
-- **Four grounds, four classes**: the page `:root, .surface-paper` (the card is the page's own white), the room
-  `.dark` (one room for the app and every cinema chapter), the slab `.surface-ink` (an always-dark leaf on paper, such
-  as the footer) and the mat `.surface-mat` (declared, worn nowhere yet). `--gallery*` is the media well, always dark in
-  both themes.
+- **Five grounds, five classes**: the page `:root, .surface-paper` (a silver body, the card a step whiter), the room
+  `.dark` (one near-black room for the app and every cinema chapter, the card a step lighter), the slab `.surface-ink`
+  (an always-dark leaf on paper, such as the footer), the mat `.surface-mat` (declared, worn nowhere yet) and the
+  display `.surface-display` (the quick layers' near-black screen, the same on paper and in the room; the floating-layer
+  contract below). `--gallery*` is the media well, always dark in both themes and still the deepest ground.
+  ★ A ground re-declares every token a part inside it reads, in whole pairs, and `--signal` beside `--destructive`:
+  a pair left out resolves to the ground beneath (`ui/display.test.ts` holds the display's).
 - **Three text steps**: `--foreground`, `--muted-foreground` and `--faint`, each one grey on every ground where a
-  hand-set alpha composites against whatever is behind it. `--faint` reads about 3.2:1 on the page (2.9:1 on the mat,
-  4.5:1 in the room, 3.75:1 on a dark card): captions and hints only, never body copy, a control's only label, or under
-  a further alpha. A sentence in it moves up to `--muted-foreground` (`faint-copy-policy.test.tsx` reads /pricing and
-  the album page's strip for one).
+  hand-set alpha composites against whatever is behind it. `--faint` reads about 3.6:1 on the body (3.9:1 on a card,
+  3.9:1 in the room, 3.7:1 on a dark card, 4.1:1 on the display): captions and hints only, never body copy, a control's
+  only label, or under a further alpha. A sentence in it moves up to `--muted-foreground` (`faint-copy-policy.test.tsx`
+  reads /pricing and the album page's strip for one).
+- **Status is light** (status=lights): a badge is an LED and its word (an unlit ring where a state has no colour),
+  a meter twelve frames filling in its state's light, a skeleton breathes, a face carries no line and a row of them
+  overlaps by a quarter of a face, and "nothing here yet" is ONE atom, `ui/empty.tsx` (a glyph in its lens, a title, a
+  line, the one act; never a dashed box), which the shared `EmptyState` and the feed's section empty are; the
+  dashboard's two photographic teasers stay its board's.
 - **The brand is the wordmark alone**: `src/lib/brand/wordmark.ts` holds the export's single SVG path, `Logo` inlines it
   in `currentColor` sized by height, the social card draws the same path, and every door mounts `<Logo />`. ★ Never
   retype or optimise the path: replace the whole string from the next export. The mark (`markOnly`) is a stand-in
@@ -245,15 +256,20 @@ button it reads as decoration on a control rather than light from a thing).
   through them); a number that is the subject of its block in the display face with tabular figures (prices,
   `StatBand`); a value that must look like one (a digest, an id, a key) on a muted plate, `rounded bg-muted px-1.5
   py-0.5`, with `select-all` unless the person must retype it as a guard. `Caption` is the one caption atom.
+- **A readout is the camera's voice** (voice=camera): what a camera prints (a badge's state, a count beside its glyph, a
+  face row's count, the live mark) is the `label` step in spaced capitals, semibold, tabular figures; every other label
+  and every word on a control stays in sentence case at reading weight, as production already set them.
 
 ## Rounding: sharp surfaces, round actions
 
 Every corner comes from one of four token families in globals.css's own `:root` block: `--radius` (surfaces; the base
 the `sm`..`2xl` steps multiply), `--radius-action` and `-sm` (0.4 of an action's height; `button.tsx` derives every
 other size from it, and `ctaCorner` exports the 44px corner for a non-`Button` action), `--radius-tile` with
-`--gap-gallery` (every media tile; the gap is `max(3px, var(--radius-tile))`, pinned to the corner because four corners
-meeting below it open a diamond) and `--radius-float` (the floating layer). An action riding its height is the
-deliberate exception to nested-corner math: a control reads twice as round as the surface under it.
+`--gap-gallery` (every media tile at viewfinder's 2px; the gap is `max(3px, var(--radius-tile))`, pinned to the corner
+because four corners meeting below it open a diamond) and `--radius-float` (the floating layer, the display's 16px; a
+row is 4px tighter, a tooltip's capsule 6px, and a work layer, a dialog, a panel or a sheet, a quarter rounder, all
+derived in `floating-layer.ts`). A card is the surface ladder's `2xl`. An action riding its height is the deliberate
+exception to nested-corner math: a control reads twice as round as the surface under it.
 
 - **A ring, glow or bloom at offset N takes the object's radius plus N**, never a literal, or the two read as two shapes
   once colour lands in a corner. `BorderBeam` reads its child's radius when the prop is omitted, and is authored for
@@ -271,13 +287,15 @@ deliberate exception to nested-corner math: a control reads twice as round as th
 
 ## Elevation contract (four heights, one job each)
 
-Four techniques, one job each, the same in both modes: the **step** (a panel a shade lighter than its ground), the
-**ring** (the hairline where every surface ends), the **lift** (`shadow-lift`, only where one object truly overlaps
-another of its own lightness: stacked photographs, a card across a chapter cut, a chip on a photograph) and the
-**layer** (`shadow-layer`, under anything the page lives behind: menus, dialogs, sheets, tooltips, toasts). In light
-the card is the page's own white, so the ring carries the edge; a surface lying flat takes no shadow in either mode.
+Four techniques, one job each, the same in both modes: the **step** (a surface a shade off its ground), the **ring**
+(a hairline at an edge), the **lift** (`shadow-lift`, only where one object truly overlaps another: stacked
+photographs, a card across a chapter cut, a chip on a photograph, the code's white mat) and the **layer**
+(`shadow-layer`, under anything the page lives behind: menus, dialogs, sheets, tooltips, toasts). A card LIES FLAT AS
+ITS TONE ALONE (layers=display): a step whiter than paper's silver body and a step above the room, with no ring and no
+shadow; the ring is left to what a step cannot part (a body panel such as the marketing nav's, the display's edge in
+the room, a surface a screen still hand-rolls). A surface lying flat takes no shadow in either mode.
 
-- **One geometry, two sizes, one alpha ramp per ground**, all in globals.css; `.dark` and `.surface-ink` carry a darker
+- **One light, two sizes, one alpha ramp per ground**, all in globals.css; `.dark` and `.surface-ink` carry a darker
   ramp, since six percent black over the dark room is invisible. A call site names a role, never a stock or arbitrary
   Tailwind shadow or an inline `box-shadow` (`shadow-float` is retired). A lift over a photograph that reads weak in
   light gets a ramp declared on the media ground, never a raw shadow.
@@ -290,7 +308,9 @@ the card is the page's own white, so the ring carries the edge; a surface lying 
   stock `shadow-md` a generator wrote onto a component. The names live in `SHADOW_TOKENS` (`src/lib/utils.ts`), pinned
   against theme.css by `type-ladder-policy.test.ts`: a new elevation utility joins it in the same change.
 - ★ **No surface token is translucent**: an alpha reads solid over a page and turns to glass over a photograph. Glass is
-  its own material, worn only as media chrome.
+  its own material, worn only as media chrome. The lines are the exception, and only because they are never surfaces:
+  paper's `--border` and `--input` are ink at an alpha so one line reads on the body and on a card a step whiter, and
+  the display's row wash (`--accent`) is light inside an opaque panel.
 
 ### The bright edge (`data-lit`): material, not elevation
 
@@ -322,10 +342,10 @@ and `lib/glass.ts` names the classes the product wears. `PosterCardChip` (the st
   brightest photograph, and white fails the same way on a pale sky. A tint strong enough would sink every dark
   photograph, so the glyph wears a halo. Judge over the raw photograph, never an already-dimmed album.
 - **Dark in both themes**: chrome over a photograph is the same on any page, so `.dark` redeclares no `--glass-*`.
-- **Glass is media chrome, and not yet a popover's**: a floating panel is opaque with a step and a ring, and
-  `floating-layer.ts` carries no backdrop filter until the banked Glass exploration (ROADMAP's glass line) designs
-  the material across marketing and app; one added there first would be a one-off on every panel at once. A scrim's
-  blur is not a panel's material.
+- **Glass is media chrome, and not yet a popover's**: a floating panel is opaque (the display, or the body's popover),
+  and `floating-layer.ts` carries no backdrop filter until the banked Glass exploration (ROADMAP's glass line) designs
+  the material across marketing and app; one added there first would be a one-off on every panel at once. A work
+  layer's scrim is the page half-dimmed and sharp (`floatingScrim`), never a blur.
 - **The section plate's two numbers are local and measured** (`backdrop/photo-section.css`: reading copy over a
   full-bleed photograph needs a darker brightness and tint to clear 4.5:1); retune them by measuring.
 - **A phone pays nothing measurable for the ground**: the viewer's swipe holds 16.7ms frames blurred or flat, even at
@@ -335,8 +355,9 @@ and `lib/glass.ts` names the classes the product wears. `PosterCardChip` (the st
 
 The album's cover and the hub's head (`event-header` r1; [guest-flow.md](guest-flow.md),
 [host-app.md](host-app.md)) stand their controls on a photograph, which no paper atom was made for. Their atoms live
-in `src/components/ui/` under ONE contract, the hooks identity r2 styles in the lab while production draws them, so a
-name here never moves without both:
+in `src/components/ui/` under ONE contract, the hooks identity's boards style in the lab while production draws them,
+so a name here never moves without both (the shutter, the white primary, the glass round and the code chip are
+actions, whose build identity r3 picks; the code mat, the count and the live mark wear r2's wired picks):
 
 | Hook | The atom |
 | --- | --- |
@@ -344,10 +365,10 @@ name here never moves without both:
 | `data-surface="photo"` | any container standing on a photograph (`EventHead`, the guest header on the cover) |
 | Button `data-variant="on-photo"` | the white primary on a photograph |
 | Button `data-variant="glass"` (with `size="icon-cta"`, the 44px round) | the glass round beside it |
-| `data-slot="code-mat"` | `ui/code-mat.tsx`: a scannable code on its white mat, always a button |
+| `data-slot="code-mat"` | `ui/code-mat.tsx`: a scannable code on its white mat, always a button; the flat card's corner and the lift |
 | `data-slot="code-chip"` | `ui/code-chip.tsx`: the code's glyph on white in a sticky bar, never a shrunken code |
-| `data-slot="glyph-count"`, its number's `data-n` | `ui/glyph-count.tsx`: an icon and a number, its words on hover, focus and a tap |
-| Badge `data-variant="live"` | the live mark: a still dot and the word, never a pulse |
+| `data-slot="glyph-count"`, its number's `data-n` | `ui/glyph-count.tsx`: an icon and a number (a readout, the glyph a step back), its words on hover, focus and a tap |
+| Badge `data-variant="live"` | the live mark: the recording red (`--signal`) and the word as a readout, its light breathing out from the dot (lights), still under reduced motion |
 
 - ★ **A photograph is the room**: a head wears `dark` with `data-surface="photo"`, in both themes, so every token its
   words and atoms read is the room's; white ink over paper tokens (a `text-white` beside paper's muted ink and
@@ -505,11 +526,19 @@ primitives name their transition properties, never `transition-all`.
 `floatingCorner` (`rounded-float`) around rows derived from the panel's own padding; `floatingEntrance` (anchored: a
 fade, a hair of scale, 8px from the anchor) and `floatingEdgeEntrance` (the sheet's slide); and `floatingClock`, whose
 three rungs follow frequency: instant for what opens dozens of times an hour (a tooltip, a dropdown, a select),
-standard for a popover or dialog, edge for the sheet. The light is `shadow-layer`, and every panel is opaque until the
-Glass exploration answers its material.
+standard for a popover or dialog, edge for the sheet. The light is `shadow-layer`, the ground's own, and every panel is
+opaque until the Glass exploration answers its material.
 `sonner.tsx` sits outside the family by name; the QR mini-modal's View Transition is its one sanctioned hole
 ([host-app.md](host-app.md)).
 
+- **Two materials, by what a layer is for** (layers=display). A QUICK layer, what a press opens and the next press
+  closes (a menu and its submenu, a select's list, a popover, the Add's rows, the palette, a tooltip, a toast), is
+  THE DISPLAY: `floatingDisplayPanel` (`floatingTip` for a tooltip's capsule), the `.surface-display` ground, one
+  near-black screen on paper and in the room, parted from the room by its edge, its chosen row a light wash with a
+  light outline. A WORK layer, where a host does something (a dialog, the popup's shapes, the Sheet), is the body's:
+  `floatingWorkSurface`, no ring, a quarter-rounder corner, over `floatingScrim`. A body panel that is neither (the
+  marketing nav's, the code card) keeps `floatingPanel`, the ground's popover and its ring. Whatever a quick layer
+  holds reads the screen's tokens and names no colour of its own, which `ui/display.test.ts` holds.
 - **The product has ONE responsive `Sheet`** (`ui/sheet.tsx`, opted into with `responsive`): a side panel at a desk, a
   bottom sheet in a hand. It emits `data-side="responsive"`, so none of the fixed-side rules can race it, and its
   posture pair lives in `floating-layer.ts`; the guest's door and its held sheets and the upload failure sheet wear it;
@@ -591,10 +620,14 @@ Its 5rem offset cannot read `--mkt-header-h`, which is scoped to `[data-mkt]`, a
   chip beneath in a hand. The band takes pointer events back itself and is a Radix `DismissableLayer.Branch`
   (`radix-ui/internal`, the mechanism Radix's own Toast wears), in `ui/sonner.tsx` alone; `sonner.test.tsx` pins both
   halves. A keyboard still cannot reach a toast while a modal holds focus (its trap pulls sonner's alt+T back).
-- **Colour is state**: success green (a destructive action that succeeded is a success), warning amber (a Hide), error
-  red for failure only. ★ The colours target sonner's `[data-sonner-toast][data-type]` with `!important`, because sonner
-  injects a runtime `--normal-bg` rule that beats a class; verify a toast's computed background, not that the rule
-  loaded.
+- **Every toast is the display, and its state is a light** (layers=display with status=lights): the camera's own
+  near-black screen on both grounds, and a success, a warning or a failure is its glyph lit in the state's colour
+  (green, amber, red for failure only; a destructive act that succeeded is a success), never a filled slab. The
+  Toaster hands sonner the display's colours as its `--normal-*` and dresses each toast in `.surface-display`.
+  ★ Sonner runs its DARK theme always: its light theme inks the description and the close glyph near-black, which on
+  the display is nothing. ★ Sonner appends its sheet after ours at runtime, so a rule on a toast's parts is three
+  attributes deep (`[data-sonner-toaster] [data-sonner-toast]...`) to win on weight, and a check reads the computed
+  colour, not that the rule loaded.
 - The only helpers are `showErrorToast` and `showActionError` (`lib/errors/toast.ts`), and the one Undo,
   `showUndoToast` (`shared/undo-toast.ts`): an act that already landed, named on its surface's one toast, whose Undo
   puts the items back first and then reverses on the server. `vitest.setup.ts` mocks sonner globally for the component

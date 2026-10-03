@@ -1,4 +1,3 @@
-import type { GridMedia } from "@/components/app/media-grid";
 import {
   hostEvent,
   NO_COUNTS,
@@ -10,9 +9,9 @@ import { marketingImage } from "@/lib/constants/marketing-media";
  * ONE WEDDING, ON ITS NIGHT, BEHIND EVERY FRAME.
  *
  * Maya and Jay marry today, 2 October 2026. Maya opens Settings on the door
- * (a password, 31 guests already in, two at the door), then its event page; a
- * guest, Sam, holds the album open on his phone and presses Add; Maya's
- * Review holds twelve uploads; her Account is on an Event Pass.
+ * (a password, 31 guests already in, two at the door) and changes the
+ * password; a guest, Sam, holds the album open on his phone and presses Add;
+ * Maya's Account is on an Event Pass, and she is renaming herself.
  *
  * ★ THE SAME FACTS IN EVERY OPTION, so a frame differs from its neighbour by
  * the atoms alone. ★ NOTHING HERE IS A REAL PERSON, and every photograph is
@@ -70,37 +69,6 @@ export const ALBUM: readonly { src: string; ratio: number; pos?: string }[] = [
   { src: PHOTO.lights, ratio: 1 },
   { src: PHOTO.confetti, ratio: 1.5 },
 ];
-
-/**
- * REVIEW'S QUEUE: twelve uploads waiting on Maya, each credited to a guest
- * (a name only, never an address on a picture of a page).
- */
-const SENDERS = ["Sam Reyes", "Ines Duarte", "Theo Park", "Priya Shah"];
-const QUEUE_STILLS = [
-  PHOTO.toast,
-  PHOTO.golden,
-  PHOTO.table,
-  PHOTO.rings,
-  PHOTO.petals,
-  PHOTO.hall,
-  PHOTO.arch,
-  PHOTO.dj,
-  PHOTO.lights,
-  PHOTO.confetti,
-  PHOTO.toast,
-  PHOTO.rings,
-];
-export const QUEUE: GridMedia[] = QUEUE_STILLS.map((src, i) => ({
-  id: `identity-queue-${i}`,
-  type: "photo",
-  url: src,
-  downloadUrl: src,
-  status: "pending",
-  width: i % 3 === 1 ? 1200 : 1600,
-  height: i % 3 === 1 ? 1600 : 1067,
-  uploaderName: SENDERS[i % SENDERS.length],
-  isVerified: true,
-}));
 
 /** Account and billing: Maya on an Event Pass, a third of its 75 GB used. */
 export const ACCOUNT = {

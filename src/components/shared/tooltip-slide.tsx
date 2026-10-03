@@ -7,8 +7,8 @@ import { usePortalContainer } from "@/components/ui/portal-container";
 
 import {
   floatingClock,
-  floatingCorner,
   floatingCrossSlide,
+  floatingTip,
 } from "@/components/ui/floating-layer";
 import { cn } from "@/lib/utils";
 
@@ -103,14 +103,14 @@ export function TooltipSlide({
           data-motion={motion ?? undefined}
           sideOffset={0}
           className={cn(
-            "z-50 inline-flex w-fit max-w-xs items-center gap-1.5 bg-foreground px-3 py-1.5 text-xs text-background shadow-layer",
-            floatingCorner,
+            "z-50 inline-flex w-fit max-w-xs items-center gap-1.5 px-3 py-1.5 text-xs",
+            floatingTip,
             floatingClock.instant,
             floatingCrossSlide,
           )}
         >
           {label}
-          <TooltipPrimitive.Arrow className="z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px] bg-foreground fill-foreground" />
+          <TooltipPrimitive.Arrow className="z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px] bg-popover fill-popover" />
         </TooltipPrimitive.Content>
       </TooltipPrimitive.Portal>
     </TooltipPrimitive.Root>

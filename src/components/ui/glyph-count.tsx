@@ -31,13 +31,16 @@ import { cn } from "@/lib/utils"
  * surface left the host page unhydrated in production): the server's paint carries the browser's
  * own `title`, and the swap is an ordinary later render.
  *
- * ★ ITS NUMBER IS A HOOK, `data-n` (an attribute and no style: the atom looks the same without it). The
- * voice's sheets (identity r2) style `[data-slot="glyph-count"] [data-n]` for the readout's face, size and
- * ink; a rule that names a hook the atom does not draw reaches nothing, and says nothing. The glyph has
- * none of its own: it is the button's `svg`. Listed with the head's other hooks in `design-system.md`.
+ * ★ ITS NUMBER IS A HOOK, `data-n`, the contract's (identity's lab sheets style
+ * `[data-slot="glyph-count"] [data-n]`; a rule that names a hook the atom does not draw reaches
+ * nothing, and says nothing). The glyph has none of its own: it is the button's `svg`. Listed with the
+ * head's other hooks in `design-system.md`.
  *
- * It takes its ink from where it stands (`currentColor`), so the same atom reads on paper, in the
- * room and on a photograph (`data-surface="photo"`).
+ * ★ A READOUT BESIDE ITS GLYPH (identity r2: voice=camera, status=lights): the number is what a
+ * camera prints, on the house's `label` step, semibold, in tabular figures, in the ground's ink, and
+ * the glyph beside it sits a step back in the muted grey, so the count is what the eye lands on. On
+ * a photograph (`data-surface="photo"`, the contract's hook) both are white. Focus is a ring round
+ * the whole count, the light's own shape.
  */
 function GlyphCount({
   icon,
@@ -91,8 +94,8 @@ function GlyphCount({
         else setOpen(true)
       }}
       className={cn(
-        "relative inline-flex shrink-0 items-center gap-1.5 rounded-sm tabular-nums outline-none",
-        "focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent",
+        "relative inline-flex shrink-0 items-center gap-1.5 rounded-full tabular-nums outline-none",
+        "focus-visible:outline-[1.5px] focus-visible:outline-offset-2 focus-visible:outline-foreground focus-visible:outline-solid",
         // A finger's target past the glyph, without growing the line it sits in.
         "before:absolute before:-inset-x-1.5 before:-inset-y-2 before:content-['']",
         className
@@ -101,11 +104,17 @@ function GlyphCount({
     >
       <span
         aria-hidden
-        className="flex shrink-0 [&_svg]:size-3.5 [&_svg]:shrink-0"
+        className="flex shrink-0 text-muted-foreground in-data-[surface=photo]:text-white [&_svg]:size-3.5 [&_svg]:shrink-0"
       >
         {icon}
       </span>
-      <span aria-hidden data-n="">{formatCount(count)}</span>
+      <span
+        aria-hidden
+        data-n=""
+        className="text-label font-semibold text-foreground uppercase tabular-nums in-data-[surface=photo]:text-white"
+      >
+        {formatCount(count)}
+      </span>
     </button>
   )
 

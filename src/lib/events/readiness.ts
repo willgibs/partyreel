@@ -1,6 +1,10 @@
 import { STORAGE_STEP_PCT } from "@/lib/dashboard/next-step";
 import { type Door, doorOf, stepOf } from "@/lib/event/door/door";
 import { photosToGo, reelState } from "@/lib/event/reel-progress";
+import {
+  SETTINGS_GROUP_TITLES,
+  type SettingsGroup,
+} from "@/lib/events/guest-experience-summary";
 import { DOOR_STEP_LINES, GATE_LINES } from "@/lib/events/visibility-labels";
 import { formatCount } from "@/lib/format/count";
 import { formatEventDate } from "@/lib/utils";
@@ -392,15 +396,21 @@ export function checklistOver(
 
 /**
  * A NEW EVENT'S FACTS, from what Create sent (the create schema's defaults filled): nothing in it yet,
- * nobody in, never opened. Create's hand-off lists what is left from these; the account's storage is the
- * hub's to read, so room is not among them.
+ * nobody in, never opened. Create's hand-off lists what is left from these. ★ The account's storage is
+ * the route's to read and hand over (create-wizard r2's carried `room`, taken): past the dashboard's own
+ * threshold room joins what is left on the beat, as it does on the hub, said beside Settings' steps
+ * because it is the plan's, never a step.
  */
-export function newEventFacts(created: {
-  visibility: string;
-  accepting_uploads: boolean;
-  event_date?: string | null;
-  description?: string | null;
-}): ReadyFacts {
+export function newEventFacts(
+  created: {
+    visibility: string;
+    accepting_uploads: boolean;
+    event_date?: string | null;
+    description?: string | null;
+  },
+  /** The account's storage used (`storageUsedPct`), 0 where nobody read it. */
+  storagePct = 0,
+): ReadyFacts {
   return {
     // A new event cannot hold a password (`createEvent` stores a password request as open).
     door: doorOf(
@@ -419,6 +429,59 @@ export function newEventFacts(created: {
     eventDate: created.event_date || null,
     description: created.description || null,
     opened: 0,
-    storagePct: 0,
+    storagePct,
   };
+}
+
+/**
+ * THE ACCOUNT'S STORAGE, AS THE WHOLE PERCENT `ReadyFacts.storagePct` READS: active bytes against the
+ * effective cap (what the cap is enforced against, so deleting visibly frees room), rounded, never past
+ * 100, and 0 where there is no cap to run short of. The dashboard meter's own math, in one place for the
+ * route that hands it to a checklist (`/dashboard/new`; the hub and the dashboard still say it inline).
+ */
+export function storageUsedPct(
+  activeBytes: number,
+  capBytes: number | null,
+): number {
+  if (!capBytes || capBytes <= 0) return 0;
+  return Math.min(100, Math.round((activeBytes / capBytes) * 100));
+}
+
+/**
+ * SETTINGS' FIVE STEPS, IN ITS RAIL'S ORDER (event-ready `guide=steps`): each step is the checklist item it
+ * finishes (who can get in, what guests can add, the reel's first photos, the welcome), then the code. A
+ * surface that draws them (Create's beat, under the code: create-wizard r2 `beat=develop`) reads them here,
+ * titled as Settings titles its rows, so the rail a host is shown is the rail Get it ready opens onto.
+ * Room is never a step: it is the plan's, said beside them.
+ */
+export const SETTINGS_STEP_ITEMS = [
+  { item: "door", group: "door" },
+  { item: "adds", group: "adds" },
+  { item: "photos", group: "reel" },
+  { item: "welcome", group: "event" },
+  { item: "code", group: null },
+] as const satisfies readonly {
+  item: Exclude<ReadyItemId, "room">;
+  group: SettingsGroup | null;
+}[];
+
+export type SettingsStep = {
+  /** Its number on the rail, 1 to 5. */
+  n: number;
+  item: Exclude<ReadyItemId, "room">;
+  title: string;
+  done: boolean;
+};
+
+export function settingsSteps(r: Readiness): SettingsStep[] {
+  return SETTINGS_STEP_ITEMS.map(({ item, group }, i) => {
+    const it = r.items.find((x) => x.id === item);
+    return {
+      n: i + 1,
+      item,
+      // The four groups are titled as Settings' rows are; the code is its own item's title.
+      title: group ? SETTINGS_GROUP_TITLES[group] : (it?.title ?? item),
+      done: it?.done ?? false,
+    };
+  });
 }

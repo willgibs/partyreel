@@ -13,8 +13,8 @@ import {
 import { sheetFor } from "../sheet";
 import { AccountScreen } from "../views/account";
 import { AddScreen } from "../views/add";
+import { GuestGateScreen } from "../views/gate";
 import { GROUND_TOASTS } from "../views/ground";
-import { ReviewScreen } from "../views/review";
 import { SettingsScreen } from "../views/settings";
 import { Sheet } from "../views/sheets";
 
@@ -57,7 +57,8 @@ export function SceneRoot({
   id: string;
 }) {
   const sheet = isSheet(view);
-  useHeldGround(sheet ? "room" : ground);
+  // A desk's sheet draws both grounds inside a room document; a phone's draws its own.
+  useHeldGround(sheet && w === 1440 ? "room" : ground);
   useAdopt(!sheet);
 
   useEffect(() => {
@@ -95,15 +96,13 @@ export function SceneRoot({
       {sheet ? (
         <Sheet view={view} w={w} ground={ground} page={page} />
       ) : view === "door" ? (
-        <SettingsScreen w={w} page="door" />
-      ) : view === "event" ? (
-        <SettingsScreen w={w} page="event" />
+        <SettingsScreen w={w} />
+      ) : view === "gate" ? (
+        <GuestGateScreen />
       ) : view === "add" ? (
         <AddScreen w={w} />
-      ) : view === "account" ? (
-        <AccountScreen />
       ) : (
-        <ReviewScreen />
+        <AccountScreen menu={view === "menu"} />
       )}
     </div>
   );

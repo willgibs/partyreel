@@ -1665,12 +1665,12 @@
 }
 
 body:has([data-mkt-skin="cinema"]) {
-  background: oklch(0.105 0.0053 286);
+  background: oklch(0.085 0.003 286);
   color-scheme: dark;
 }
 
 body:has([data-mkt-skin="paper"]) {
-  background: oklch(0.995 0.002 286);
+  background: oklch(0.972 0.002 286);
   color-scheme: light;
 }
 

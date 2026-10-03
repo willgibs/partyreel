@@ -289,7 +289,9 @@ describe("getConfirmedGuestAddresses: every row, past the row cap", () => {
     expect(addresses.get("u2499")).toBe("guest2499@example.com");
     const guestReads = fake.requests.filter((r) => r.name === "guests");
     expect(guestReads.map((r) => r.returned)).toEqual([1000, 1000, 500]);
-    expect(guestReads.some((r) => r.filters.some((f) => f.op === "in"))).toBe(false);
+    expect(guestReads.some((r) => r.filters.some((f) => f.op === "in"))).toBe(
+      false,
+    );
   });
 
   it("answers an ordinary party in one request", async () => {
@@ -306,7 +308,9 @@ describe("getConfirmedGuestAddresses: every row, past the row cap", () => {
    ──────────────────────────────────────────────────────────────────────────── */
 describe("where an address may go", () => {
   const SRC = join(process.cwd(), "src");
-  const ALLOWED = ["src/app/(app)/dashboard/[eventId]/guests/page.tsx"];
+  // The Guests room's read: the room stands over the hub (event-header r2, `rooms=over`), read where it opens (the
+  // hub's render, the room's own ask), so its one read moved from the room's page into `room.server.ts`.
+  const ALLOWED = ["src/app/(app)/dashboard/[eventId]/guests/room.server.ts"];
 
   function sourceFiles(dir: string): string[] {
     return readdirSync(dir).flatMap((entry) => {

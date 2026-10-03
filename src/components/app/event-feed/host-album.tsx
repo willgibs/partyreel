@@ -169,7 +169,7 @@ function createHubAlbum(
 
 const HostAlbumContext = createContext<HubAlbum | null>(null);
 
-/** The hub's album, or null off the hub (the Library's grids, the Review room). */
+/** The hub's album, or null off the hub (the Library's grids; the rooms over the hub stand inside it). */
 export function useHostAlbum(): HubAlbum | null {
   return useContext(HostAlbumContext);
 }

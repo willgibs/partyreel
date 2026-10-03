@@ -1,74 +1,60 @@
 "use client";
 
-import { useState, useSyncExternalStore, useTransition } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useWatch } from "react-hook-form";
 import {
-  ArrowLeft,
-  ArrowRight,
-  Check,
-  Copy,
-  Printer,
-  Share2,
-  Trash2,
-} from "lucide-react";
+  type ReactNode,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import {
   createEventInWizard,
   type CreatedEvent,
 } from "@/app/(app)/dashboard/actions";
-import {
-  DEFAULT_QR_PRESET,
-  resolveQrPreset,
-  type QrStyleKey,
-} from "@/lib/constants/qr-presets";
+import { DEFAULT_QR_PRESET, type QrStyleKey } from "@/lib/constants/qr-presets";
+import { DEFAULT_ERROR_MESSAGE } from "@/lib/errors/codes";
 import { type Tier } from "@/lib/constants/tiers";
 import {
   newEventFacts,
   type Readiness,
   readiness,
-  readyHead,
 } from "@/lib/events/readiness";
 import { eventUrl, previewJoinUrl } from "@/lib/events/share-urls";
-import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
-import {
-  createEventSchema,
-  type CreateEventInput,
-  type CreateEventValues,
-} from "@/lib/validation/event";
-import { cn } from "@/lib/utils";
+import { createEventSchema } from "@/lib/validation/event";
 import { trackAttrs } from "@/lib/analytics/events";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { settingsPageHref } from "@/components/app/event-settings/settings-pages";
 import { PricingSheet } from "@/components/app/pricing/pricing-sheet";
-import { QrPresetPicker } from "@/components/app/qr-preset-picker";
-import { StyledQr } from "@/components/app/styled-qr";
-import { useCopyLink } from "@/components/app/share/use-copy-link";
 
-const STEP_LABELS = ["Name", "Style", "Ready"] as const;
+import { BeatActs, BeatCode, BeatSteps } from "./create-event-wizard/beat";
+import { CapDoor, type CappedEvent } from "./create-event-wizard/cap-door";
+import { useCarry } from "./create-event-wizard/carry";
+import { LookStep } from "./create-event-wizard/look-step";
+import { NameStep } from "./create-event-wizard/name-step";
+import {
+  footButton,
+  RoomFoot,
+  RoomGround,
+  RoomHead,
+  RoomPage,
+  RoomStage,
+} from "./create-event-wizard/room";
 
-/** One event already filling a slot, as the door names it. */
-export type CappedEvent = { id: string; name: string };
+export type { CappedEvent };
+
+/**
+ * CREATE'S SCREENS, IN ORDER. The add step (how guests add: the album or the camera, his night slider,
+ * and the camera's develop time) joins between the name and the look once create-wizard r3 picks how it
+ * reads; every hairline, Back and the carry count from this list.
+ */
+const STEPS = ["name", "look", "beat"] as const;
+type Step = (typeof STEPS)[number];
 
 type CreateEventWizardProps = {
   siteUrl: string;
@@ -80,37 +66,39 @@ type CreateEventWizardProps = {
   maxEvents: number | null;
   /** The events already filling the plan, so the door can name one. */
   cappedEvents: CappedEvent[];
+  /** The account's storage used, as a whole percent: room joins what is left past the threshold. */
+  storagePct?: number;
+  /**
+   * The Server Action that makes the event: the route's own. A specimen hands a stand-in that answers
+   * after a real round trip's wait and makes nothing (the review room's Library precedent), so Create can
+   * be drawn whole, its beat included, with no row written.
+   */
+  create?: typeof createEventInWizard;
 };
 
 /**
- * THE CREATE FLOW (the `first-event` board, ruled whole by Will 2026-09-21).
+ * THE CREATE FLOW, AS A ROOM OF ITS OWN (create-wizard r1 and r2, Will 2026-10-02/03, over the
+ * `first-event` board's verdicts of 2026-09-21).
  *
- * Four of his eight verdicts land in this one file:
+ * What his picks made of it, each in its own file beside this one:
  *
- *  ★ `asks=one` — "Name it and it exists", with his note: "the option 3 design
- *    feels much more exciting along the way. Would love to use that bigger name
- *    edit field." So step 1 is ONE field, drawn as option 3's name-under-a-
- *    cursor: the name at the size it will be on the event, on a rule rather than
- *    in a box. The note and the date LEFT the wizard — they are edited on the
- *    event, under the header that shows them, through the settings sheet that
- *    already holds both.
+ *  ★ `shape=screen`, in his layout (`room.tsx`): the whole screen, dark, the subtle steppers on top, the
+ *    question just under them in one place, the answer in the centre, one button at the foot.
+ *  ★ `flow=carry` (`carry.ts`): each answer rises into the head, above hairlines that press back; the
+ *    name she typed titles the room from then on, and the head is the way back.
+ *  ★ `look=places` (`look-step.tsx`): her code where guests meet it, her phone and the room's screen,
+ *    four swatches re-dressing both (`qr-preset-picker.tsx`).
+ *  ★ `beat=develop` (`beat.tsx`): the sample develops into her code where it stands while Create runs;
+ *    Print and Share as rounds; Settings' steps beneath, kept minimal; Get it ready at the foot.
  *
- *  ★ `style=step` — the step stays, redesigned (qr-preset-picker.tsx), because
- *    his note says what it is for: "Hosts may not know they can adjust it later.
- *    This introduces the feature."
+ * And the verdicts it keeps: `asks=one` (the name alone), `style=step` (the look a step of its own, on
+ * samples), `landing=beat` (Create ends on ONE screen, once in an event's life, by construction: only
+ * Create event reaches it), `create=hand` (it hands over into Settings' first step) and `limit=door`
+ * (`cap-door.tsx`: the refusal before the work).
  *
- *  ★ `limit=door` — the refusal arrives before the form, not after the work.
- *
- *  ★ `landing=beat` — Create ends on ONE screen for the one job that is next,
- *    shown exactly once in an event's life. By construction, not by a flag: only
- *    pressing Create reaches step 3, and the route has no other way into it.
- *    Since event-ready's `create=hand` (2026-10-02) the beat hands over: the code
- *    first, then what is left before guests arrive, then Get it ready, into
- *    Settings' first step.
- *
- * The event is still created ONCE, at commit, so an abandoned wizard leaves no
- * row (`createEventInWizard` RETURNS the event rather than redirecting, which is
- * what lets the beat draw the real code).
+ * The event is still created ONCE, at commit, so an abandoned Create leaves no row
+ * (`createEventInWizard` RETURNS the event rather than redirecting, which is what lets the beat draw the
+ * real code).
  */
 export function CreateEventWizard({
   siteUrl,
@@ -119,17 +107,28 @@ export function CreateEventWizard({
   atCap,
   maxEvents,
   cappedEvents,
+  storagePct = 0,
+  create = createEventInWizard,
 }: CreateEventWizardProps) {
   const router = useRouter();
-  const [step, setStep] = useState(1);
-  const [createdEvent, setCreatedEvent] = useState<CreatedEvent | null>(null);
-  // What is left on the new event, read from what Create sent (the schema's defaults filled).
+  const [step, setStep] = useState<Step>("name");
+  const [name, setName] = useState("");
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [look, setLook] = useState<QrStyleKey>(DEFAULT_QR_PRESET);
+  const [created, setCreated] = useState<CreatedEvent | null>(null);
+  // What is left on the new event, read from what Create sent (the schema's defaults filled) and the
+  // account's storage, known the moment Create is pressed.
   const [left, setLeft] = useState<Readiness | null>(null);
-  // The cap refusal's Upgrade no longer LEAVES for /pricing (`first=trigger`):
-  // the sheet opens on `room`, knowing the host ran out of events. A toast
-  // action has no element to hang a trigger on, so this one is controlled.
+  // The cap refusal's Upgrade and room's See plans open the sheet here (`first=trigger`), knowing the
+  // host ran out of room; a toast's action has no element to hang a trigger on, so this one is controlled.
   const [pricingOpen, setPricingOpen] = useState(false);
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
+  const creating = useRef(false);
+  const room = useRef<HTMLDivElement | null>(null);
+  const carry = useCarry();
+  const questionId = useId();
+  const formId = useId();
+  const errorId = useId();
 
   /**
    * ★ THE DOOR IS DECIDED ONCE, AT MOUNT, AND THAT IS LOAD-BEARING
@@ -148,38 +147,90 @@ export function CreateEventWizard({
    */
   const [wasAtCap] = useState(() => atCap);
 
-  const form = useForm<CreateEventInput, unknown, CreateEventValues>({
-    resolver: zodResolver(createEventSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      event_date: "",
-      qr_style: DEFAULT_QR_PRESET,
-    },
-  });
+  // The screen just changed: play the change, then put her where the new screen begins. Never on the
+  // first paint, which belongs to the name's field (`autoFocus`).
+  const moved = useRef(false);
+  const { land, take, settle } = carry;
+  useLayoutEffect(() => {
+    land(room.current);
+  }, [step, land]);
+  useEffect(() => {
+    if (!moved.current) return;
+    if (step === "name") {
+      room.current
+        ?.querySelector<HTMLInputElement>("[data-room-name-input]")
+        ?.focus({ preventScroll: true });
+    } else if (step === "look") {
+      document.getElementById(questionId)?.focus({ preventScroll: true });
+    }
+  }, [step, questionId]);
+  // The beat's question takes focus once it is true, not while the code develops.
+  useEffect(() => {
+    if (created) {
+      document.getElementById(questionId)?.focus({ preventScroll: true });
+    }
+  }, [created, questionId]);
 
-  // useWatch (not form.watch) so the subscription is a proper hook — keeps the
-  // picker's selection reactive and satisfies the react-hooks compiler lint.
-  const qrStyle = (useWatch({ control: form.control, name: "qr_style" }) ??
-    DEFAULT_QR_PRESET) as QrStyleKey;
-  const eventLink = createdEvent
-    ? eventUrl(siteUrl, createdEvent.qr_token)
-    : null;
+  const trimmed = name.trim();
+  const sampleUrl = previewJoinUrl(siteUrl);
 
-  async function goToStyle() {
-    // Only the name gates progress; validate just it before advancing.
-    if (await form.trigger("name")) setStep(2);
+  function goTo(next: Step) {
+    if (next === step) return;
+    take(room.current, STEPS.indexOf(next) > STEPS.indexOf(step) ? 1 : -1);
+    moved.current = true;
+    setStep(next);
   }
 
-  function onCreate(values: CreateEventValues) {
+  function refuseName(message: string) {
+    setNameError(message);
+    room.current
+      ?.querySelector<HTMLInputElement>("[data-room-name-input]")
+      ?.focus();
+  }
+
+  function onContinue() {
+    const parsed = createEventSchema.shape.name.safeParse(name);
+    if (!parsed.success) {
+      refuseName(parsed.error.issues[0]?.message ?? "Give your event a name.");
+      return;
+    }
+    setNameError(null);
+    goTo("look");
+  }
+
+  function onCreate() {
+    if (creating.current) return;
+    const parsed = createEventSchema.safeParse({ name, qr_style: look });
+    if (!parsed.success) {
+      goTo("name");
+      setNameError(parsed.error.issues[0]?.message ?? null);
+      return;
+    }
+    const values = parsed.data;
+    creating.current = true;
+    // The beat lands at once, the sample developing while the event is made: the change into it is the
+    // code's own arrival, never a carry.
+    settle();
+    moved.current = true;
+    setLeft(readiness(newEventFacts(values, storagePct)));
+    setStep("beat");
     startTransition(async () => {
-      const result = await createEventInWizard(values);
+      // ★ A DROPPED CONNECTION REJECTS THE ACTION RATHER THAN ANSWERING IT, and the beat must never
+      // develop for ever over a promise that failed: a throw reads as the failure it is.
+      const result = await create(values).catch(
+        (): Awaited<ReturnType<typeof create>> => ({
+          ok: false,
+          code: "unknown",
+          message: DEFAULT_ERROR_MESSAGE,
+        }),
+      );
+      creating.current = false;
       if (result.ok) {
-        setCreatedEvent(result.event);
-        setLeft(readiness(newEventFacts(values)));
-        setStep(3);
+        setCreated(result.event);
         return;
       }
+      // Nothing was made: back to the look, her name and her look as she left them.
+      setStep("look");
       if (result.code === "limit_reached") {
         // The server's enforce_event_limit stays the guard BEHIND the door: a
         // second tab, a slot spent elsewhere, a page left open for an hour.
@@ -206,8 +257,8 @@ export function CreateEventWizard({
     />
   );
 
-  // THE DOOR, before the form opens — and never after a creation in this session.
-  if (wasAtCap && !createdEvent) {
+  // THE DOOR, before the room opens — and never after a creation in this session.
+  if (wasAtCap && !created) {
     return (
       <>
         {pricing}
@@ -221,424 +272,160 @@ export function CreateEventWizard({
     );
   }
 
-  return (
-    <>
-      {pricing}
-      <Card className="mx-auto w-full max-w-xl">
-        <CardHeader>
-          <CardTitle>
-            {step === 3 && createdEvent
-              ? `${createdEvent.name} is live`
-              : "Create an event"}
-          </CardTitle>
-          <CardDescription>
-            {step === 3
-              ? "Get the code out, then finish what is left before guests arrive."
-              : "Name it, pick a style for the code, and you're collecting photos."}
-          </CardDescription>
-          <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 pt-2 text-xs">
-            {STEP_LABELS.map((label, i) => {
-              const n = i + 1;
-              const active = n === step;
-              const done = n < step;
-              return (
-                <li key={label} className="flex items-center gap-2">
-                  <span
-                    className={cn(
-                      "flex size-5 items-center justify-center rounded-full text-micro font-medium",
-                      active
-                        ? "bg-brand text-brand-foreground"
-                        : done
-                          ? "bg-foreground text-background"
-                          : "bg-muted text-muted-foreground",
-                    )}
-                  >
-                    {done ? <Check className="size-3" /> : n}
-                  </span>
-                  <span
-                    className={cn(
-                      active
-                        ? "font-medium text-foreground"
-                        : "text-muted-foreground",
-                    )}
-                  >
-                    {label}
-                  </span>
-                  {n < STEP_LABELS.length && (
-                    <ArrowRight className="size-3 text-muted-foreground" />
-                  )}
-                </li>
-              );
-            })}
-          </ol>
-        </CardHeader>
+  const at = STEPS.indexOf(step) + 1;
+  const onLook = step === "look";
+  const onBeat = step === "beat";
+  const arrived = onBeat && created !== null;
+  const eventName = created?.name ?? trimmed;
+  const realUrl = created ? eventUrl(siteUrl, created.qr_token) : null;
 
-        <Form {...form}>
-          {step === 1 && (
-            <>
-              <CardContent>
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      {/* The label is the question, because the field under it
-                          is the screen's subject rather than one row of a form. */}
-                      <FormLabel className="font-normal text-muted-foreground">
-                        What are you collecting photos for?
-                      </FormLabel>
-                      <FormControl>
-                        {/* ★ THE NAME AT THE SIZE IT WILL BE (his "bigger name
-                            edit field"). Borderless on a rule: a box would make
-                            this one field of a form, and the whole verdict is
-                            that it is not. The focus state thickens the RULE
-                            rather than drawing a ring — a ring around a
-                            borderless field is the box coming back. */}
-                        <Input
-                          autoFocus
-                          placeholder="Maya & Sam's Wedding"
-                          className="h-auto rounded-none border-0 border-b-2 border-border bg-transparent px-0 py-2 font-heading !text-section shadow-none transition-colors focus-visible:border-brand focus-visible:ring-0"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-              <CardFooter className="justify-between">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => router.push("/dashboard")}
-                >
-                  Cancel
-                </Button>
-                <Button type="button" onClick={goToStyle}>
-                  Continue <ArrowRight />
-                </Button>
-              </CardFooter>
-            </>
-          )}
-
-          {step === 2 && (
-            <>
-              <CardContent className="space-y-3">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">
-                    Pick a style for the code
-                  </p>
-                  {/* ★ THE SWATCHES ARE SAMPLES, AND THE STEP SAYS SO (crumbs-42).
-                      They encode the stand-in link (`previewJoinUrl`), since the
-                      event and its link exist only once Create is pressed, and a
-                      host who test-scanned one met a 404 under "This is what your
-                      guests scan". The real code is the very next screen's. */}
-                  <p className="text-sm text-muted-foreground">
-                    These are samples. Your event&apos;s own code comes when you
-                    create it, and you can change its style later from Share.
-                  </p>
-                </div>
-                <QrPresetPicker
-                  value={qrStyle}
-                  onChange={(k) => form.setValue("qr_style", k)}
-                  joinUrl={previewJoinUrl(siteUrl)}
-                />
-              </CardContent>
-              <CardFooter className="justify-between">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setStep(1)}
-                >
-                  <ArrowLeft /> Back
-                </Button>
-                <Button
-                  type="button"
-                  disabled={isPending}
-                  onClick={form.handleSubmit(onCreate)}
-                >
-                  {isPending ? "Creating…" : "Create event"}
-                </Button>
-              </CardFooter>
-            </>
-          )}
-
-          {step === 3 && createdEvent && eventLink && left && (
-            <TheBeat
-              eventId={createdEvent.id}
-              eventName={createdEvent.name}
-              joinUrl={eventLink}
-              qrStyle={createdEvent.qr_style}
-              left={left}
-              onGo={() => router.push(`/dashboard/${createdEvent.id}`)}
-              onGetReady={() =>
-                router.push(settingsPageHref(createdEvent.id, "door"))
-              }
+  let page: ReactNode;
+  let foot: ReactNode;
+  if (step === "name") {
+    page = (
+      <RoomPage key="name" question="Name your event" questionId={questionId}>
+        <NameStep
+          formId={formId}
+          questionId={questionId}
+          errorId={errorId}
+          name={name}
+          error={nameError}
+          onName={(v) => {
+            setName(v);
+            if (nameError) setNameError(null);
+          }}
+          onSubmit={onContinue}
+        />
+      </RoomPage>
+    );
+    foot = (
+      <Button type="submit" form={formId} size="cta" className={footButton}>
+        Continue
+      </Button>
+    );
+  } else if (step === "look") {
+    page = (
+      <RoomPage
+        key="look"
+        question="Pick the code's look"
+        questionId={questionId}
+        sub="Change it any time from Share"
+      >
+        <LookStep
+          look={look}
+          onLook={setLook}
+          name={trimmed}
+          siteUrl={siteUrl}
+          joinUrl={sampleUrl}
+        />
+      </RoomPage>
+    );
+    foot = (
+      <Button
+        type="button"
+        size="cta"
+        onClick={onCreate}
+        className={footButton}
+      >
+        Create event
+      </Button>
+    );
+  } else {
+    page = (
+      <RoomPage
+        key="beat"
+        question={`${eventName} is live`}
+        questionId={questionId}
+        questionHidden={!arrived}
+      >
+        <div
+          data-beat={arrived ? "arrived" : "developing"}
+          className="flex w-full flex-col items-center"
+        >
+          <BeatCode
+            look={look}
+            name={eventName}
+            sampleUrl={sampleUrl}
+            realUrl={realUrl}
+          />
+          {/* Held, unseen and out of reach, until the event exists: its place kept, so the code never
+              moves when the doors and the steps arrive under it. */}
+          <div
+            aria-hidden={arrived ? undefined : true}
+            inert={!arrived}
+            className="cr-beat-below mt-9 flex w-full flex-col items-center gap-7 md:mt-11 md:gap-9"
+          >
+            <BeatActs
+              eventId={created?.id ?? ""}
+              eventName={eventName}
+              joinUrl={realUrl ?? sampleUrl}
             />
-          )}
-        </Form>
-      </Card>
-    </>
-  );
-}
-
-/**
- * THE BEAT (`landing=beat`). One screen, once: the code the host now owns, and
- * the two ways it leaves the screen.
- *
- * ★ THE MAT IS `DemoFrame`'S COMPOSITION, NOT ITS COMPONENT. That object is a
- * photograph in a mat with the code tucked into a corner, and this event has no
- * photograph — it has nothing at all yet, which is the point of the beat. So the
- * mat is borrowed (a card of its own lightness, the layer shadow, the white
- * plate with its contact shadow and hairline on top of it) and the code is its
- * SUBJECT rather than its accent, at a size a phone across a table reads.
- *
- * ★ `EventSlugControl` IS NOT HERE. It rode the old share step; it belongs to
- * the share sheet, where the readable link already lives and where a host comes
- * back to claim one. A beat with a text input on it is not a beat.
- *
- * ★ IT HANDS OVER (event-ready `create=hand`, Will 2026-10-02). The code stays
- * the subject, first and whole; under its two doors stands what is left before
- * guests arrive (the checklist's rows still open, titles only, from the one
- * function the hub and Settings read), and the way on is Get it ready, into
- * Settings' first step, the event itself one quieter press beside it.
- */
-function TheBeat({
-  eventId,
-  eventName,
-  joinUrl,
-  qrStyle,
-  left,
-  onGo,
-  onGetReady,
-}: {
-  eventId: string;
-  eventName: string;
-  joinUrl: string;
-  qrStyle: string;
-  /** The new event's readiness: what the hand-off lists. */
-  left: Readiness;
-  onGo: () => void;
-  onGetReady: () => void;
-}) {
-  const { copied, copy } = useCopyLink(joinUrl);
-  const canShare = useSyncExternalStore(
-    () => () => {},
-    () => typeof navigator !== "undefined" && "share" in navigator,
-    () => false,
-  );
-
-  async function shareOrCopy() {
-    if (canShare) {
-      try {
-        await navigator.share({
-          title: eventName,
-          text: `Add your photos and videos to ${eventName}`,
-          url: joinUrl,
-        });
-        return;
-      } catch {
-        // Dismissed, or refused. The clipboard is the same intent, so fall to it
-        // rather than leaving the press with nothing to show for itself.
-      }
-    }
-    void copy();
+            {left ? (
+              <BeatSteps r={left} onPlans={() => setPricingOpen(true)} />
+            ) : null}
+          </div>
+        </div>
+      </RoomPage>
+    );
+    foot = arrived ? (
+      <Button
+        type="button"
+        size="cta"
+        onClick={() => router.push(settingsPageHref(created.id, "door"))}
+        className={cn(footButton, "cr-beat-go")}
+        {...trackAttrs("cta_click", {
+          cta: "get-it-ready",
+          location: "create-beat",
+        })}
+      >
+        Get it ready
+      </Button>
+    ) : (
+      <p aria-hidden className="text-working text-muted-foreground">
+        Creating your event…
+      </p>
+    );
   }
 
   return (
     <>
-      <CardContent className="space-y-5">
-        <div className="flex justify-center">
-          <span className="inline-flex flex-col items-center gap-3 rounded-[var(--radius-tile)] border bg-card p-3 shadow-layer">
-            <span className="rounded-md bg-white p-3 shadow-lift ring-1 ring-border">
-              <StyledQr
-                value={joinUrl}
-                size={240}
-                style={resolveQrPreset(qrStyle)}
-                className="[&>svg]:block"
-              />
-            </span>
-            <span className="max-w-[240px] truncate text-center text-sm font-medium">
-              {eventName}
-            </span>
-          </span>
+      {pricing}
+      <RoomGround
+        onRoom={(el) => {
+          room.current = el;
+        }}
+        screen={step}
+        light={onBeat ? "low" : "floor"}
+        busy={onBeat && !arrived}
+      >
+        <RoomHead
+          step={{ at, of: STEPS.length }}
+          name={onLook ? trimmed : undefined}
+          onBack={onLook ? () => goTo("name") : undefined}
+          onStep={onLook ? (n) => goTo(STEPS[n - 1]) : undefined}
+          onName={onLook ? () => goTo("name") : undefined}
+          close={
+            arrived
+              ? { href: `/dashboard/${created.id}`, label: "Go to your event" }
+              : { href: "/dashboard", label: "Close" }
+          }
+        />
+        <div
+          data-room-body=""
+          className="relative flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain"
+        >
+          {page}
+          <RoomStage ghostRef={carry.ghosts} flyerRef={carry.flyers} />
         </div>
-        <div className="grid gap-2 sm:grid-cols-2">
-          <Button variant="outline" asChild>
-            <Link
-              href={`/dashboard/${eventId}/print`}
-              target="_blank"
-              rel="noopener noreferrer"
-              {...trackAttrs("cta_click", {
-                cta: "print-stock",
-                location: "create-beat",
-              })}
-            >
-              <Printer /> Print the table cards
-            </Link>
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={shareOrCopy}
-            {...trackAttrs("cta_click", {
-              cta: "copy-event-link",
-              location: "create-beat",
-            })}
-          >
-            <span data-copy-pop={copied ? "on" : undefined} className="flex">
-              {copied ? <Check /> : canShare ? <Share2 /> : <Copy />}
-            </span>
-            {copied ? "Copied" : "Share the link"}
-          </Button>
-        </div>
-        <span aria-live="polite" className="sr-only">
-          {copied ? "Link copied" : ""}
+        <RoomFoot>{foot}</RoomFoot>
+        <span role="status" className="sr-only">
+          {onBeat
+            ? arrived
+              ? `${eventName} is live`
+              : `Creating ${trimmed}…`
+            : ""}
         </span>
-        <WhatIsLeft r={left} />
-      </CardContent>
-      <CardFooter className="flex-col-reverse items-stretch gap-2 sm:flex-row sm:justify-end">
-        <Button type="button" variant="ghost" onClick={onGo}>
-          Go to your event
-        </Button>
-        <Button
-          type="button"
-          onClick={onGetReady}
-          {...trackAttrs("cta_click", {
-            cta: "get-it-ready",
-            location: "create-beat",
-          })}
-        >
-          Get it ready <ArrowRight />
-        </Button>
-      </CardFooter>
+      </RoomGround>
     </>
-  );
-}
-
-/**
- * WHAT IS LEFT, UNDER THE CODE: the checklist's head, then its rows still open, titles only, what a guest
- * needs in the foreground and what is worth doing said so, quieter. The rows' own doors wait in Settings'
- * steps and on the hub; this screen's one way on is Get it ready.
- */
-function WhatIsLeft({ r }: { r: Readiness }) {
-  const head = readyHead(r);
-  if (r.left.length === 0) return null;
-  return (
-    <div data-handoff="" className="rounded-lg bg-muted/40 px-3 py-2.5">
-      <p className="text-sm font-medium">{head.title}</p>
-      <p className="text-caption text-muted-foreground">{head.line}</p>
-      <ul aria-label="What is left" className="mt-2 space-y-1">
-        {r.left.map((item) => (
-          <li
-            key={item.id}
-            data-handoff-item={item.id}
-            className={cn(
-              "flex items-center gap-2 text-caption",
-              item.essential ? "text-foreground" : "text-muted-foreground",
-            )}
-          >
-            <span
-              aria-hidden
-              className="size-3.5 shrink-0 rounded-full ring-[1.5px] ring-foreground/25 ring-inset"
-            />
-            <span>
-              {item.essential ? item.title : `${item.title}, worth doing`}
-            </span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-/**
- * THE DOOR (`limit=door`, Will: "Should handle upfront with actions to
- * address"). The refusal arrives BEFORE the form, names the plan's real number
- * and the event already holding the slot, and offers both ways forward.
- *
- * ★ THE COPY COMES FROM THE NUMBER, NEVER FROM A LITERAL "ONE". Free holds one
- * event today and an Event Pass holds one, but `profiles.event_slots` is the
- * webhook-derived concurrent-pass count and overrides both (billing-caps.md), so
- * a host who stacked three passes must read "holds 3 events". A sentence with
- * "one" written into it is a sentence that lies the first time somebody stacks.
- */
-function CapDoor({
-  planName,
-  maxEvents,
-  events,
-  onUpgrade,
-}: {
-  planName: string;
-  maxEvents: number | null;
-  events: CappedEvent[];
-  onUpgrade: () => void;
-}) {
-  const limit = maxEvents ?? events.length;
-  const holds = limit === 1 ? "one event" : `${limit} events`;
-  const named = events[0];
-  const rest = events.length - 1;
-
-  return (
-    <Card className="mx-auto w-full max-w-xl">
-      <CardHeader>
-        <CardTitle>
-          {planName} holds {holds}
-        </CardTitle>
-        <CardDescription>
-          {named
-            ? rest > 0
-              ? `You have ${named.name} and ${rest} more. Pro holds as many events as you want.`
-              : `You have ${named.name}. Pro holds as many events as you want.`
-            : "Pro holds as many events as you want."}
-        </CardDescription>
-      </CardHeader>
-      {named && (
-        <CardContent className="space-y-3">
-          <ul className="space-y-2">
-            {events.map((event) => (
-              <li key={event.id}>
-                <Link
-                  href={`/dashboard/${event.id}`}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2.5 text-sm transition-colors hover:border-foreground/30"
-                >
-                  <span className="min-w-0 truncate font-medium">
-                    {event.name}
-                  </span>
-                  <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
-                </Link>
-              </li>
-            ))}
-          </ul>
-          {/* The place deleted events wait has one name in the app, "Deleted"
-              (the dashboard's filter, the lifecycle emails), and its window
-              is the lifecycle constant, never a typed number. */}
-          <p className="text-sm text-muted-foreground">
-            Deleting an event frees its slot. It waits in Deleted for{" "}
-            {RECENTLY_DELETED_WINDOW_DAYS} days first, so nothing is gone the
-            moment you press it.
-          </p>
-        </CardContent>
-      )}
-      <CardFooter className="flex-col items-stretch gap-2 sm:flex-row sm:justify-end">
-        {named && (
-          <Button variant="ghost" asChild>
-            <Link href={`/dashboard/${named.id}?room=settings`}>
-              <Trash2 /> Delete it
-            </Link>
-          </Button>
-        )}
-        <Button
-          type="button"
-          onClick={onUpgrade}
-          {...trackAttrs("cta_click", {
-            cta: "upgrade",
-            location: "create-cap-door",
-          })}
-        >
-          See Pro
-        </Button>
-      </CardFooter>
-    </Card>
   );
 }

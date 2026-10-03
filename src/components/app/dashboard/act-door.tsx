@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { trackAttrs } from "@/lib/analytics/events";
 import type { ItemTarget } from "@/lib/dashboard/attention";
 import type { ShareFacts } from "@/lib/dashboard/home-view";
+import { roomHref } from "@/lib/event/sections";
 
 /** Where a target leads on an event's hub, as a link (Invite opens the code card instead). */
 export function targetHref(
@@ -17,10 +18,12 @@ export function targetHref(
   to: Exclude<ItemTarget, "invite">,
 ): string {
   switch (to) {
+    // ★ THE ROOMS STAND OVER THE HUB (event-header r2, `rooms=over`): the hub's own address with the room on it,
+    // one hop, At the door the Guests room's first section.
     case "guests":
-      return `/dashboard/${eventId}/guests#at-the-door`;
+      return roomHref(eventId, "guests");
     case "review":
-      return `/dashboard/${eventId}/review`;
+      return roomHref(eventId, "review");
     case "door":
     case "adds":
       return settingsPageHref(eventId, to);
@@ -66,7 +69,7 @@ export function ActDoor({
         prettyUrl={readableLink(share.joinUrl)}
         qrStyle={share.qrStyle}
         location={location}
-        onEverything={() => router.push(`/dashboard/${eventId}?room=share`)}
+        onEverything={() => router.push(roomHref(eventId, "share"))}
         trigger={
           <Button type="button" {...button} {...track}>
             {label}
