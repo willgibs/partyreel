@@ -58,8 +58,8 @@ plan's whole text (lane splits, the Advisor's Q11 corrections, Will's answers) i
 (round 12's plan) answered with 21 corrections, all folded into the briefs; the next consult is the foundation's
 migrations before they are applied. From another session, respawn it from `usher/kit/advisor-prompt.txt`.
 
-**Handoff across accounts** (2026-10-03 08:42Z: this account's weekly at 88%, on pace for 96% near 09:50Z and the
-auto-kill near 10:25Z; memory at 45% free, so wave 2 waits for a seat and 50%; Will's rule: watch from 96%, refresh this block often from 98%). The Orchestrator session is `2ba90542-62d6-487c-8c79-3657619f9133` (hi@willgibs.com,
+**Handoff across accounts** (2026-10-03 10:01Z: this account's weekly at 94%, on pace for 96% near 10:30Z and the
+auto-kill near 11:30Z; memory 55% free after a 09:30Z squeeze; Will's rule: watch from 96%, refresh this block often from 98%). The Orchestrator session is `2ba90542-62d6-487c-8c79-3657619f9133` (hi@willgibs.com,
 seated 2026-10-01 18:08Z; its weekly resets Tuesday 2026-10-06 21:00Z, willg97's Sunday 2026-10-04 13:00Z; Will hands
 off only when one maxes its weekly limit). willg97's `157caa18` stays idle and `b01c012e` stays retired. From another
 session, respawn each running lane per the runbook's "Resume a lane": kill by port any dev server left on 3131 to 3136
@@ -87,17 +87,18 @@ in the repo or in `../partyreel-wt/_scratch/` (the calls file, the red-team brie
 
 ## Next, in order
 
-1. **Milestone 34 is DONE:** production READY at `2aae7331` (07:50Z), the read-only walk PASS (no console error),
-   `main` merged back into `launch-prep` (`0034ea75`).
-2. **Integrate wave 1** as each hands off (gates from 169), `identity-wiring` first and the others synced onto it. Two
-   migrations (wait-wiring's CHECK, take-home-wiring's phone copy): the Advisor reads each, then apply by protocol;
-   take-home's export Worker deployed by me (`wrangler whoami` first).
-3. **Wave 2** as seats free: `event-dates` after wait-wiring and rooms-wiring (its migration by protocol; lead=made in
-   `moment.ts`), then the boards: host-dashboard r3 (after event-dates), demo-framing r5, event-header r3 (after
-   rooms-wiring), the-wait r2 (after wait-wiring), create-wizard r3 (after wizard-wiring). Briefs from the plan file.
-4. **Build 46 `[preview]`** when the wirings merge, then red-team 46 (the plan's list); build 47 with the new boards for
-   his next desk after the desk pass; the close (STATUS, the calls file, his morning message with the cost model's
-   summary); then Moltbook one pass an hour.
+1. **Running** (the In-flight table; integrate each as it hands off, gates from 173): `wait-wiring` and
+   `take-home-wiring` each bring a migration (the Advisor reads it, then apply by protocol: verbatim, the md5 proof,
+   advisors, types regenerated and their seams dropped) and take-home a `workers/export` change I deploy (`wrangler
+   whoami` first); `create-wizard-r3`, `demo-framing-r5`, `event-header-r3` (boards for his next desk) and `crumbs-55`.
+   Merged tonight: milestone 34, cost-model, wizard-wiring, identity-r3, rooms-wiring, identity-wiring.
+2. **Wave 2 still to cut** (briefs from the plan file, ports as seats free, memory at least 50%): `event-dates` once
+   `wait-wiring` merges (its migration by protocol; lead=made in `moment.ts`), then `the-wait-r2` (arrival) after
+   `wait-wiring`, and `host-dashboard-r3` after `event-dates`.
+3. **Build 46 `[preview]`** once wait-wiring and take-home-wiring merge with their migrations applied and the Worker
+   deployed, then red-team 46 (the plan's list); the desk pass; build 47 for his next desk.
+4. **The close:** STATUS, the calls file (91 to 120 tonight), his morning message (the cost model's four decisions
+   first); then Moltbook one pass an hour.
 
 ## Waiting on Will
 
