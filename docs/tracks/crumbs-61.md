@@ -38,28 +38,37 @@ working.
 
 **Verify on.** The gate on the synced tree, each step on its own exit code; `pnpm lab:smoke --base http://localhost:3133`; red first for 1, 2, 3, 5 and 6 (logged); captures at 375 for 4, 5 and 6; for 1, the links calls counted for one guest's 5 uploads before and after.
 
-## Where I am
-
-WIP, milestone 1 (items 2, 4, 5 and 6 built and green; items 1 and 3 next, then the docs, the gate and the handoff):
-- 2 `endForNewStart` keeps the range's length both ways (red log `_scratch/crumbs-61/red-2-dates.log`).
-- 4 the waiting sheet's footer: her count is one run, the clock a row of its own when it does not fit, the desk's side
-  column stacks the two phrases (captures `_scratch/crumbs-61/cap-4-{before-351,after-351,after-320,after-desk}.jpg`,
-  red `red-4-footer.log`).
-- 5 the Add's words are `addWords`, and the page follows the sync's word on what waits (`onWaitingChange`; red
-  `red-5-add.log`).
-- 6 the count names what the album holds (`albumCountWords` over `setNoun`; red `red-6-count.log`, `red-6-line.log`).
-
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each is built as recommended and listed as Will's to overrule; none is a one-way door.
+
+1. **A range keeps its length wherever its first day goes** (item 2, the brief's own rule). A host who moves her first day
+   earlier to ADD a day (a Thursday before her Friday to Sunday weekend) now sees the end move with it and sets the end again;
+   the old arm kept her Sunday, and kept it a year on when a year was corrected (369 days). *Recommended: yes*, since the
+   alternative (keep the end while the move is small) needs a distance Will would have to pick.
+2. **Apply `20261003211000_doorbell_moment.sql`** (item 3: the ring cannot be told from an arrival without a migration).
+   *Recommended: apply it by name (`doorbell_moment`)*: an expand (one body, the payload `{"moment": true}`), proven rolled back
+   on the live schema both ways, safe in either order with the build, no type moves. And **no spread on the at-once ask**: a
+   200-tab wedding develops once with 200 syncs inside about a second (≈15x the post-calm average, ≈4x the pre-calm one,
+   PRICING's 960,000 syncs over five hours); if the first live develop at scale strains the database, a jittered ask is one
+   constant in `refresh-coalescer.ts`.
+3. **The cover's desk glyph names the kinds too** (item 6 beyond the album's own line, so one page never counts one album two
+   ways). *Recommended: yes*: one optional prop on `event-experience-head.tsx`; its first paint says both nouns (the server
+   knows a total, never its kinds) and flips after hydration (its words show on a hover or a tap only).
+4. **The desk's side column always stacks the clock as two lines** (item 4): a short clock that fit on one line ("All at once at
+   11:59 pm · in 7 h 15 min") is two lines there now, one shape instead of a clock that sometimes broke mid-phrase.
+   *Recommended: yes.*
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/guest-flow.md`: six refinements, each in the line it belongs to: the cover's Add follows the sync's word on what
+  waits and is `addWords` (Empty state); the sheet's clock breaks at its phrases, its quote now "tomorrow at 9 am" (the contact
+  sheet); her own upload's link is minted once (`owedLinks`, Live gallery); a moment rings at once (the doorbell); the album's
+  count line and the cover's glyph say `albumCountWords` (Stats; One true count).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Guests: the cover's desk glyph says both nouns until the album's source tells it its kinds, since the first paint's `getGalleryStats` knows only `approvedTotal`; carrying the photo and video counts there would name them from the first byte (from `crumbs-61`).
 
 ## Handoff (replaces the chat report)
 
