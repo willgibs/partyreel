@@ -1089,8 +1089,14 @@ describe("★ the album, calmed", () => {
     it("a photograph she takes back before the answer lands is owed nothing: no ask is made for it afterwards", async () => {
       const handle = createRef<LiveGalleryHandle>();
       await windowed(handle);
-      // The delta that lands brings neither her photograph nor a link (the server hid it already).
-      answer(slow(delta({ v: 11, upsert: [], total: 2 })));
+      // Her sync is held in the air; the delta that lands brings neither her photograph nor a link (the server hid it already).
+      let land: () => void = () => {};
+      answer(
+        () =>
+          new Promise<Record<string, unknown>>((resolve) => {
+            land = () => resolve(delta({ v: 11, upsert: [], total: 2 }));
+          }) as unknown as Answer,
+      );
       await upload(handle, 9);
       // The window asked for her tile while the answer was in the air (held back), and she takes it back.
       await act(async () => {
@@ -1100,8 +1106,10 @@ describe("★ the album, calmed", () => {
         await seen.live!.removeOwn(uuid(9));
       });
       await act(async () => {
-        await sleep(60);
+        land();
+        await sleep(40);
       });
+      expect(syncs()).toHaveLength(1);
       expect(asked()).toEqual([]);
     });
 

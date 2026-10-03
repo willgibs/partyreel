@@ -128,7 +128,7 @@ export function endToStore(
  * ("a host moving her first day earlier keeps her Sunday"), however far the day had moved: a start retyped a year earlier
  * (2027-10-05 to 09, the year corrected to 2026) saved 2026-10-05 to 2027-10-09, a range of 369 days that every guest
  * surface printed until she fixed the end too. One rule has no distance to judge: a host who moves her first day earlier
- * to ADD a day sets the end again (its field is one tap away), where one who corrects a year never has to.
+ * to ADD a day sets the end again, where one who corrects a year never has to.
  *
  * ★ `wasDate` AND `wasEnd` ARE WHAT WAS LAST SAVED, AND `next` A DATE SHE FINISHED: the length it keeps is the range's as
  * the host last had it, never a stop a keystroke passed on the way (the field hands it nothing else, `event-page.tsx`).

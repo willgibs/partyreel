@@ -142,8 +142,8 @@ function VideoMark() {
  * · in 17 h 5 min" is two phrases, and at a phone's 375 the footer wrapped it mid-phrase ("in 17 h 5" over "min"), and the
  * desk's side column the same ("in 16 h" over "16 min"). Each phrase is one unbreakable run: the footer gives the clock a
  * row of its own when it does not fit beside her count (`flex-wrap`), where it stands whole, and the side column, which is
- * narrower than the clock by design, stacks the two as the two lines they are (`stacked`, the dot a line break's work).
- * What a screen reader hears is the sheet's own sentence, which keeps the dot.
+ * narrower than the clock by design, stacks the two as the two lines they are (`stacked`: the dot gives way to the
+ * break). What a screen reader hears is the sheet's own sentence, which keeps the dot.
  */
 function ClockWords({
   line,
