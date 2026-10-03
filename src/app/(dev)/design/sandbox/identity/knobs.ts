@@ -9,12 +9,13 @@ import type { Control } from "@/components/lab/exploration";
  * both in use"). The system is shown on a real screen by default, caught in
  * use, and its atoms in every state are one press away; the room and the edge
  * open on the sheet of every pop-out and surface, paper beside the room, and
- * their screens are one press away. Every frame comes at 1440 and at 375;
- * Ground picks a screen's one (a desk's sheet draws both).
+ * their screens are one press away, in the room. Every frame comes at 1440
+ * and at 375; Ground picks the system's screens' one (a desk's sheet draws
+ * both).
  *
- * ★ ONE SHOW KNOB PER ASK, EACH UNDER ITS OWN ID: the three ask about
- * different things, so each shows its own places, and the kit refuses two
- * different knobs under one id (`exploration.ts`).
+ * ★ ONE PLACES KNOB PER ASK, EACH UNDER ITS OWN ID AND NAME (Show, At night,
+ * Lit): the three ask about different things, so each shows its own places,
+ * and the kit refuses two different knobs under one id (`exploration.ts`).
  */
 export const SHOW: Control = {
   id: "show",
@@ -43,7 +44,7 @@ export const showOf = (v: unknown): ShowId =>
 /** The room's places: every pop-out (paper beside it), the guest's Add at night, a host's menu. */
 export const NIGHT: Control = {
   id: "night",
-  label: "Show",
+  label: "At night",
   options: [
     { id: "layers", label: "Every pop-out" },
     { id: "add", label: "The guest's Add" },
@@ -57,19 +58,26 @@ export type NightId = (typeof NIGHT_IDS)[number];
 export const nightOf = (v: unknown): NightId =>
   (NIGHT_IDS as readonly unknown[]).includes(v) ? (v as NightId) : "layers";
 
-/** The edge's places: every surface (paper beside the room), the album's cover, Account's cards. */
+/**
+ * The edge's places, both in the room (a light surface takes no edge, so paper
+ * has only the display's pop-outs to show, and the sheet draws those beside
+ * the room): every surface with its loupes, and a host's menu over Account's
+ * cards. ★ ONE PIXEL NEEDS ITS SCALE: a whole screen at a desk is drawn at
+ * about half size on a step, where an edge is under a pixel, so the loupes
+ * carry the comparison and the screen its overall feel (`lab:demo` read the
+ * guest's Add at 1440 as one picture under all three, and it left).
+ */
 export const LIT: Control = {
   id: "lit",
-  label: "Show",
+  label: "Lit",
   options: [
     { id: "layers", label: "Every surface" },
-    { id: "cover", label: "The album's cover" },
-    { id: "account", label: "Account's cards" },
+    { id: "menu", label: "A host's menu" },
   ],
   default: "layers",
 };
 
-export const LIT_IDS = ["layers", "cover", "account"] as const;
+export const LIT_IDS = ["layers", "menu"] as const;
 export type LitId = (typeof LIT_IDS)[number];
 export const litOf = (v: unknown): LitId =>
   (LIT_IDS as readonly unknown[]).includes(v) ? (v as LitId) : "layers";

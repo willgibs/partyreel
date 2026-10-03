@@ -44,7 +44,6 @@ const WHAT: Record<ViewId, string> = {
   door: "Settings' door, in use",
   gate: "the guest's door, in use",
   add: "the guest's Add, open",
-  cover: "the album's cover, after an upload",
   actions: "every action",
   fields: "every field",
   layers: "every pop-out and surface",
@@ -66,8 +65,9 @@ function preview(ask: AskId, option: string, s: BoardState): ReactNode {
       view={view}
       what={WHAT[view]}
       w={screenOf(s.screen)}
-      // The room is asked about the room, so its screens are always in it.
-      ground={ask === "room" ? "room" : groundOf(s.ground)}
+      // The room and the edge are asked about dark surfaces, so their screens
+      // are always in the room (a desk's sheet draws paper beside it).
+      ground={ask === "system" ? groundOf(s.ground) : "room"}
       name={NAME(ask, option)}
     />
   );

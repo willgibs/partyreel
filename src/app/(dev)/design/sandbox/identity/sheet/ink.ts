@@ -71,14 +71,23 @@ const CURSOR = (c = "var(--ink-fg)") =>
 const AROUND = "0 0 0 2px var(--background), 0 0 0 3.5px var(--ink)";
 
 /**
- * Working: the plate stays ink, its words kept, and a line of light fills
- * along its floor from the left (`vf-ink-fill`); still, it rests part full,
- * which reads as working on its own.
+ * Working: the plate stays ink, its words kept, and a line of light fills a
+ * faint track along its floor from the left (`vf-ink-fill`), a meter of the
+ * work; still, it rests part full, which reads as working on its own. A round
+ * key's track is short and centred under its glyph.
  */
+const TRACK = "color-mix(in oklab, var(--ink-fg) 28%, transparent)";
 const FILLING = `
-  background-image: linear-gradient(var(--ink-fg) 0 0);
-  background-repeat: no-repeat; background-size: calc((100% - 16px) * 0.42) 2px; background-position: 8px calc(100% - 4px);
+  background-image: linear-gradient(var(--ink-fg) 0 0), linear-gradient(${TRACK} 0 0);
+  background-repeat: no-repeat;
+  background-size: calc((100% - 20px) * 0.42) 2px, calc(100% - 20px) 2px;
+  background-position: 10px calc(100% - 5px), 10px calc(100% - 5px);
   animation: vf-ink-fill 1.3s var(--ease-in-out-strong) infinite;
+`;
+const FILLING_ROUND = `
+  background-size: 5px 2px, 12px 2px;
+  background-position: calc(50% - 6px) calc(100% - 6px), calc(50% - 6px) calc(100% - 6px);
+  animation-name: vf-ink-fill-round;
 `;
 
 const ACTIONS = `
@@ -126,6 +135,7 @@ ${btn("link")}${FOCUS} { background: var(--ink); color: var(--ink-fg); box-shado
 
 ${BTN}${OFF} { opacity: 0.38; }
 ${BTN}${BUSY}:not([data-variant="link"]) { cursor: progress; background-color: var(--ink); color: var(--ink-fg); box-shadow: none; ${FILLING} }
+${BTN}${BUSY}:is([data-size="icon"],[data-size="icon-xs"],[data-size="icon-sm"],[data-size="icon-lg"],[data-size="icon-cta"]) { ${FILLING_ROUND} }
 ${btn("destructive")}${BUSY} { background-color: var(--destructive); color: oklch(1 0 0); --ink-fg: oklch(1 0 0); }
 ${BTN}${ERROR} { box-shadow: inset 0 0 0 1.5px var(--destructive); }
 ${btn("default")}${ERROR} { box-shadow: inset 0 0 0 2px var(--ink), inset 0 0 0 3.5px var(--destructive); }
@@ -248,7 +258,11 @@ ${each(FIELDS, BUSY)} {
 [data-slot="tabs-trigger"][data-state="active"] { background: var(--ink) !important; color: var(--ink-fg); }
 [data-slot="tabs-trigger"]${FOCUS} { outline: none; background: var(--ink) !important; color: var(--ink-fg); box-shadow: ${CURSOR()} !important; }
 
-@keyframes vf-ink-fill { from { background-size: 0 2px; } to { background-size: calc(100% - 16px) 2px; } }
+@keyframes vf-ink-fill {
+  from { background-size: 0 2px, calc(100% - 20px) 2px; }
+  to { background-size: calc(100% - 20px) 2px, calc(100% - 20px) 2px; }
+}
+@keyframes vf-ink-fill-round { from { background-size: 0 2px, 12px 2px; } to { background-size: 12px 2px, 12px 2px; } }
 @keyframes vf-ink-line { from { background-size: 0% 2px; } to { background-size: 100% 2px; } }
 `;
 

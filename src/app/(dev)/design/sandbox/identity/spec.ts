@@ -273,7 +273,7 @@ export const IDENTITY = defineExploration({
       lands:
         "globals.css's bright edge (data-lit), carried from media to the surfaces the answer names, on dark grounds only.",
       context:
-        "Every pop-out and surface on paper and in the room, then the album's cover with its glass rounds and the Add open, and Account's cards, drawn on the room's answer.",
+        "Every pop-out and surface on paper and in the room, with a loupe on a pop-out, a card, a photograph and a glass round; then a host's menu over Account's cards in the room, on the room's answer.",
       after: { ask: "room" },
       options: [
         {
@@ -299,7 +299,7 @@ export const IDENTITY = defineExploration({
           id: "every",
           label: "Every dark surface",
           means:
-            "Everything that floats, plus every card in the room and the glass rounds on a cover: one light from above over the whole dark app.",
+            "Everything that floats, plus every card in the room, and the cover's glass rounds lit brighter: one light from above over the whole dark app.",
           gains:
             "The richest room: the light you liked is the material everywhere.",
           costs:
@@ -310,7 +310,7 @@ export const IDENTITY = defineExploration({
       because:
         "It keeps the light where it says 'this floats over the page', so the edge stays a signature rather than a pattern.",
       overrule: "If the room should feel lit everywhere, every dark surface.",
-      configs: [LIT, SCREEN, GROUND],
+      configs: [LIT, SCREEN],
     },
   ],
 });

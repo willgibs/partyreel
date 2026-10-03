@@ -20,7 +20,8 @@ import { btn, CARDS, QUICK, TOAST, WORK } from "./states";
  *    tooltip, a toast, the Add's rows, on both grounds, since the display is
  *    dark on paper too) and, in the room, the work layers (a dialog, a panel,
  *    a sheet);
- *  - `every`: every dark surface, the cards and the cover's glass rounds too.
+ *  - `every`: every dark surface, the cards too, and the cover's glass rounds'
+ *    own lip of light brighter.
  *
  * ★ THE EDGE REPLACES THE HAIRLINE, IT IS NEVER A THIRD OUTLINE (the bright
  * edge's own rule): a surface that takes it gives up its uniform ring, so it
@@ -74,9 +75,10 @@ ${inRoom(CARDS)
   .split(/,(?![^(]*\))/)
   .map((s) => `${s.trim()}::after`)
   .join(", ")} { ${FALLOFF} }
-${btn("glass")} {
-  box-shadow: inset 0 1px 0 oklch(1 0 0 / 42%), inset 0 0 0 1px oklch(1 0 0 / 12%), 0 1px 2px oklch(0 0 0 / 25%);
-}
+/* Crystal already wears a lip of light (globals.css's glass: --glass-lip over
+   a --glass-hairline); carried, the lip brightens and the ring under it fades,
+   so the round is lit from above as the photographs are. */
+${btn("glass")} { --glass-lip: 0.5; --glass-hairline: 0.04; }
 `;
 
 export const EDGE_CSS: Record<EdgeId, string> = {

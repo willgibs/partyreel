@@ -734,9 +734,10 @@ function Loupe({
 }
 
 function Loupes({ w }: { w: Width }) {
-  const k = w === 1440 ? 2.5 : 1.5;
+  const desk = w === 1440;
+  const k = desk ? 2.5 : 1.75;
   return (
-    <div className="flex gap-2">
+    <div className={cn("grid gap-2", desk ? "grid-cols-4" : "grid-cols-2")}>
       <Loupe name="a pop-out" k={k}>
         <div data-slot="dropdown-menu-content" className="h-16 w-20" />
       </Loupe>
@@ -744,7 +745,18 @@ function Loupes({ w }: { w: Width }) {
         <div data-slot="card" className="h-16 w-20" />
       </Loupe>
       <Loupe name="a photograph" k={k}>
-        <MediaTile src={PHOTO.hall} pos="50% 30%" className="h-16 w-20" />
+        <MediaTile src={PHOTO.golden} pos="8% 40%" className="h-16 w-20" />
+      </Loupe>
+      <Loupe name="a glass round" k={k}>
+        <PhotoSurface
+          src={PHOTO.golden}
+          pos="30% 40%"
+          className="flex h-16 w-20 items-center justify-center rounded-[var(--radius-tile)]"
+        >
+          <Button variant="glass" size="icon-cta" aria-label="Watch">
+            <Play className="fill-current" />
+          </Button>
+        </PhotoSurface>
       </Loupe>
     </div>
   );

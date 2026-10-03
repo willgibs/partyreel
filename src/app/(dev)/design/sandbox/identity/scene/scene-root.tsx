@@ -99,8 +99,8 @@ export function SceneRoot({
         <SettingsScreen w={w} />
       ) : view === "gate" ? (
         <GuestGateScreen />
-      ) : view === "add" || view === "cover" ? (
-        <AddScreen w={w} moment={view === "add" ? "open" : "sent"} />
+      ) : view === "add" ? (
+        <AddScreen w={w} />
       ) : (
         <AccountScreen menu={view === "menu"} />
       )}

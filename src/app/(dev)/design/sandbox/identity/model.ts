@@ -68,7 +68,6 @@ export const VIEW_IDS = [
   "door",
   "gate",
   "add",
-  "cover",
   "menu",
 ] as const;
 export type ViewId = (typeof VIEW_IDS)[number];

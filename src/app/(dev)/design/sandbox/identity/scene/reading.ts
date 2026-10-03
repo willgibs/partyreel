@@ -188,9 +188,8 @@ export function readView(view: ViewId, doc: Document): string | null {
   const focused = q(doc, '[data-slot="input"][data-demo~="focus"]');
   const panel = q(
     doc,
-    '[data-slot="dropdown-menu-content"], [data-slot="responsive-menu"], [data-slot="responsive-menu-rows"] > *, [data-slot="popup-content"], [data-sonner-toast]',
+    '[data-slot="dropdown-menu-content"], [data-slot="responsive-menu"], [data-slot="responsive-menu-rows"] > *, [data-slot="popup-content"]',
   );
-  const glass = q(doc, '[data-variant="glass"]');
   const card = q(doc, '[data-slot="card"]');
   const parts = [
     primary ? `primary ${primary.offsetHeight}px, ${corner(primary)}` : null,
@@ -198,7 +197,6 @@ export function readView(view: ViewId, doc: Document): string | null {
     focused ? `the field in use: ${focusMark(focused)}` : null,
     panel ? `the layer ${tone(panel)}, ending in ${edge(panel)}` : null,
     card ? `a card ends in ${edge(card)}` : null,
-    view === "cover" && glass ? `a glass round ends in ${edge(glass)}` : null,
   ].filter(Boolean) as string[];
   if (view === "door") {
     const seg = q(doc, '[data-slot="toggle-group-item"][data-state="on"]');
@@ -208,8 +206,7 @@ export function readView(view: ViewId, doc: Document): string | null {
       `the door's choice ${corner(seg)}, ${tone(seg)}; its gate ${tone(gate)}, ending in ${edge(gate)}`,
     );
   }
-  if ((view === "add" || view === "cover" || view === "menu") && !panel)
-    return null;
+  if ((view === "add" || view === "menu") && !panel) return null;
   if ((view === "account" || view === "gate") && !focused) return null;
   return parts.length ? parts.join("; ") : null;
 }

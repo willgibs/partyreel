@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { ImageUp, Play, QrCode } from "lucide-react";
-import { toast } from "sonner";
 
 import {
   AlbumCover,
@@ -68,33 +67,13 @@ function Rows({ w }: { w: Width }) {
   );
 }
 
-/**
- * The moment the cover is caught in: `open`, the Add pressed and its sheet up
- * (the room's question, a pop-out at night); `sent`, the cover at rest with
- * the toast her upload raises, so the glass rounds stand clear of any sheet's
- * blur and a pop-out still floats over the page (the edge's question).
- */
-export type AddMoment = "open" | "sent";
-
-export function AddScreen({ w, moment }: { w: Width; moment: AddMoment }) {
+export function AddScreen({ w }: { w: Width }) {
   const desk = w === 1440;
   const [open, setOpen] = useState(false);
   const add = useRef<HTMLButtonElement | null>(null);
   // The real press, once the page has settled: the sheet records the button
   // pressed and opens under it (`usePressedAnchor`), as it does for a guest.
-  useInUse(moment === "open" ? [[450, () => add.current?.click()]] : []);
-  useEffect(() => {
-    if (moment !== "sent") return;
-    let id: string | number | undefined;
-    // A beat late: the page's Toaster subscribes in its own effect, after this one.
-    const t = window.setTimeout(() => {
-      id = toast("Your 3 photos are in the album", { duration: Infinity });
-    }, 400);
-    return () => {
-      window.clearTimeout(t);
-      if (id !== undefined) toast.dismiss(id);
-    };
-  }, [moment]);
+  useInUse([[450, () => add.current?.click()]]);
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <header className="flex items-center justify-between gap-2 border-b border-border/60 px-5 py-3">
