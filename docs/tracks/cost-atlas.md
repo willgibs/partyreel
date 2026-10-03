@@ -1,6 +1,6 @@
 ---
 track: cost-atlas
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "4c23717e"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -58,36 +58,107 @@ working.
 
 **Verify on.** `pnpm typecheck`, `pnpm lint` and `pnpm test` green on the synced tree (a doc lane still runs them: the record-depth and doc policies read PRICING.md); every price with its URL and date; every count with its file:line; the ladders and the summary in your scratch, named in your Handoff.
 
-## Where I am
-
-- Booted on `lp/cost-atlas` at `afcd2875`. Scratch: `../partyreel-wt/_scratch/cost-atlas/` (`vendors/` holds every
-  vendor page read raw on 2026-10-03, with `fetch.sh`). The code facts are gathered (uploads, the live album, the
-  dashboards, the reel and the screen, zips, the backup, jobs, email, every limiter and every published promise).
-- Will's relay (17:25Z) taken in: a limit a host could meet is a published, gracious row with a hover explainer;
-  PRICING.md's "unmarketed" ingress line gets refined in place.
-- Next: prices out of the raw pages, the model (`model.mjs` in scratch), then PRICING.md, the ladders, the summary.
-
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **The ladder** (`../partyreel-wt/_scratch/cost-atlas/ladders.md`): A, B or C? Recommended **A**: Free 100 MB; the
+  Event Pass $29 once, 25 GB, 50 GB of uploads over its year, renewed for $15; Pro 50 GB $9 or $90 a year with 100 GB of
+  uploads a month; Pro 200 GB $29 or $290 with 200 GB; Pro 1 TB $99 or $990 with 500 GB. Every plan covers its own
+  worst month at its published limits (1.02x to 1.86x net of Stripe), typical margins run 84 to 91%, and each step is a
+  host's next natural use. Its cost: Pro's first step halves at $9, the pass shrinks from 75 to 25 GB and rises to $29,
+  the 2 TB plan goes. A one-way door at launch.
+- **The pass's uploads counted over its year, not a month** (A: 50 GB)? Recommended: more room in the event's own month,
+  less where nobody needs it, and the only way a one-time price carries a year; the meter reads the trailing year.
+- **Deleted stays "up to your plan's size, for 30 days"**, published as a row, and a re-delete within 30 days keeps its
+  first date (an unpublished breaker)? Recommended. Counting Deleted inside the plan instead cuts a fifth of the worst
+  month, but a delete would no longer free room at once.
+- **"No guest limit" and "unlimited events" kept?** Recommended: a confirmed guest is ≈$0.004 at scale and an event
+  costs nothing until it holds media; unpublished breakers (≈100 events a day an account, an account's uploads an hour)
+  stop scripts, never hosts.
+- **The launch guard postures** (PRICING.md, "Each vendor's guard"; `spend-watch` builds ours): Supabase's cap off with
+  `spend-watch` at 10x the trailing peak; Auth's email limit at ≈2,000 an hour (10x the trailing peak hour, never under
+  the largest door expected); Vercel Pro with Spend Management at ≈10x the trailing month's on-demand, its webhook to
+  `spend-watch` and the pause on as the ceiling; Cloudflare budget alerts at $25, $100 and $500; Resend Pro with overage
+  on; Sentry Team with on-demand off. Recommended; each is the Orchestrator's or Will's to set.
+- **The levers' order:** the preconditions first (the prune's cursor and caps with `PRUNE_MODE=live`, presigned bytes
+  counted, a preview never heavier than its original, the re-delete's first date, the upload and event breakers); then
+  the guest count once a beat and the proxy off the API routes (small, and both faster for guests); then one ping a
+  beat, a lean presigner, attribution in the sync, the dashboard and storage list paged, the resting screen; the
+  Durable Object push and the media domain at the DNS move; originals-only backup after a remake job; an Auth-less
+  confirm near 70,000 MAU. Recommended.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- None: this lane owns `docs/PRICING.md` alone. The wiring of the picked ladder refines, together with the table's row:
+  `docs/systems/billing-caps.md:27-28` ("never marketed"), `docs/PRD.md:64` ("unmarketed") and the fence at
+  `src/lib/content-policy.test.ts:164`.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Billing follow-ons: the ladder Will picks, wired (`tiers.ts` and `tier_limits()`, the Stripe prices, the pricing
+  table's Uploads and Deleted rows with their hover lines, the fair-use line, the ingress fence and "unmarketed" lines).
+- Launch checkpoint: Supabase Auth's email limit at ≈2,000 an hour; Vercel Spend Management at ≈10x the trailing month
+  with the pause on; Cloudflare budget alerts at $25, $100, $500; Resend Pro with overage on.
+- Durability: the prune's cursor and caps sized to the deletions before `PRUNE_MODE=live` (rule 2's precondition); the
+  orphan sweep's and the reconcile's cursors; the `db/` dumps pruned past 35 days.
+- Uploads: a presign's declared bytes counted against the month's uploads; a preview never heavier than its original;
+  an account's uploads-an-hour breaker.
+- Live album: the guest count once a beat (a counter beside `album_state`'s version, or a cache keyed by it);
+  attribution in the sync; one ping a beat in the doorbell trigger, then one push per album (a Durable Object).
+- Platform: the proxy off the API routes and one `getUser()` a request (auth-adjacent review); a lean SigV4 presigner.
+- Dashboard: the dashboard, the bell and the storage list paged; the hub's Reel card from the take's head; an
+  events-a-day breaker.
+- Lifecycle: a re-delete within 30 days keeps its first date.
+- Guest door: the join limiter's 400 a quarter-hour per address and event can refuse a big event's arrival on one
+  venue Wi-Fi.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- Work commits `cf62d5c3` (PRICING.md rewritten) and `16ee5f58` (Realtime's two ceilings), on `afcd2875`. No sync:
+  launch-prep moved (crumbs-57, crumbs-58, records) but touched no read and no owned path
+  (`git diff --name-only afcd2875 origin/launch-prep` names none). The head is in the chat line.
+- Gates on `16ee5f58`, each on its own exit code: `pnpm typecheck` 0, `pnpm lint` 0, `pnpm test` 0 (849 files, 10,065
+  tests); logs `../partyreel-wt/_scratch/cost-atlas/{typecheck,lint,test}.log`. After this manifest,
+  `track-manifests.test.ts` and `docs.test.ts` again: 0.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/PRICING.md`, `docs/tracks/cost-atlas.md`.
+- PRICING.md "What it costs us", rewritten in place: the three rules (class (c) now Will's published limit, or a breaker
+  no real host meets); every price read raw on 2026-10-03 (the pages and `fetch.sh` in `_scratch/cost-atlas/vendors/`,
+  the digest `prices.md`); the atlas, each vector with its price, class, bound at file:line, worst and what bounds it
+  better; the worst month per GB of cap and every plan's against its price; the archetypes from a Free event to the
+  2,000-guest wedding and a venue; the breakeven (14 typical Pro hosts on ≈$98 fixed) and light-per-heavy lever by
+  lever (12.4 typical hosts per heavy one as built, 1.1 after the levers at $9); each vendor's guard before and at
+  launch; the levers (preconditions, then the win-wins ranked, each with saving, effort and what a guest or host feels);
+  what breaks first. Refined beside it: the Model's ingress line (published, Will's relay), the annual line's pointer,
+  the renewal line (a full 75 GB pass ≈$32 a year against $15) and the email limit line (verified).
+- The ten corrections: (1) re-uploading in the worst month; (2) Stripe on every price, margins net of it; (3) Supabase
+  has no budget alert, so ours (the guard table); (4) fixed costs and the breakeven; (5) the 2,000-guest wedding as its
+  own row, the push its fix; (6) events per account and the always-open screen as vectors; (7) every vendor's posture,
+  Hobby non-commercial; (8) the published promises beside the Terms' clause; (9) originals-only backup still gated on a
+  remake job, the prune's cursor moved up as the precondition; (10) Auth's email limit verified (project-wide, an hour)
+  as the code emails' bound.
+- Verified on the vendors' docs: Auth's email limit (`rate_limit_email_sent`, per project an hour); the Management API
+  reads request counts and Prometheus metrics, never billable usage or the cap; Vercel Pro's Spend Management (a
+  budget, notices at 50, 75 and 100%, a webhook, pause every project); Cloudflare's budget alerts (informational) and
+  usage notifications (Pro zones), no cap.
+- Beyond the Advisor's model: the guest count walks every guest upload on every sync and page load (the wedding's
+  biggest live cost); attribution's re-mint storm; uploads never completed are unmetered yet backed up; a preview's
+  2 MB at no ratio to its original; restore-and-re-delete holds Deleted full; the orphan sweep and the reconcile never
+  pass their first-page caps; `db/` dumps are never pruned; a signed-in album request asks Auth three times; the join
+  limiter at a venue's Wi-Fi.
+- The ladders: `../partyreel-wt/_scratch/cost-atlas/ladders.md` (A recommended), each with its plans, multipliers,
+  margins at the worst and typical, who each step is for, Free, the published limits row by row with hover lines, the
+  promises kept, the one-way doors and the fair-use line. The model: `model.mjs`, `atlas.mjs`, `ladders.mjs` and their
+  outputs, beside it.
+- Will's one page: the harness refused the scratch file `summary.md` (a subagent may not write report files), so its
+  text travels in this lane's handback report to the Orchestrator.
+- Assets requested from Will: none.
+- Board ideas: the pricing table with its Uploads and Deleted rows and their hover lines (the picked ladder's wiring).
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none in code; the launch vendor settings are Question
+  five's.
+- Calls his to overrule: the worst month counts Deleted full and the month's whole allowance at once (the rules' worst,
+  not a real host's); the live album rests on ≈20 tabs at the reference party and ≈200 at the wedding (75% visible) and
+  the guest walk counted gzipped (28 B a row; raw doubles the wedding's live cost to $65); per-guest costs are priced at
+  scale (past 100,000 MAU and Resend Pro's 50,000), $0 below; "a month at scale" gave way to the archetypes and the
+  breakeven; the levers are renumbered (`orchestrator.md:109`'s "lever 2a" is now win-win 10, and `album-calm`'s
+  before and after lands in win-win 1; on a conflict, keep this section and put its numbers in that line); the fixed
+  costs assume Sentry Team and Resend Pro at launch.
+- Look at first: PRICING.md "The worst month" and "Each vendor's guard"; `ladders.md`, Ladder A.
