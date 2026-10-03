@@ -57,7 +57,7 @@ export const RULES: readonly { id: RuleId; label: string; line: string }[] = [
   {
     id: "newest",
     label: "Newest",
-    line: "Your newest event, or a party within a month",
+    line: "Your newest, or a party within a month",
   },
   { id: "upcoming", label: "Upcoming", line: "Your next party by its date" },
   { id: "opened", label: "Last opened", line: "The event you were in last" },
