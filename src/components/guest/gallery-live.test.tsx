@@ -149,6 +149,28 @@ function Probe() {
   return null;
 }
 
+/**
+ * ★ THE ALBUM'S WINDOW, AS THE GRID ASKS (`album-window.tsx`'s `onWindowChange` -> `ensureLinks`): when the ids it mounts
+ * change, it asks for their links. Opt-in (`mount`'s `window`), since a window asks for what no seed has linked.
+ */
+function WindowProbe({ size }: { size: number }) {
+  const live = useGalleryLive();
+  const ids = live
+    ? live.items
+        .slice(0, size)
+        .map((m) => m.id)
+        .join(",")
+    : "";
+  const ensure = live?.ensureLinks;
+  // A macrotask after the commit, as the grid's own report follows its layout: never before the store has adopted its seed.
+  useEffect(() => {
+    if (!ids || !ensure) return;
+    const timer = setTimeout(() => ensure(ids.split(",")), 0);
+    return () => clearTimeout(timer);
+  }, [ids, ensure]);
+  return null;
+}
+
 /** Whatever the provider throws, kept here rather than taking the test down (a failed seed used to throw). */
 const thrown: { error: unknown } = { error: null };
 class Catch extends Component<{ children: ReactNode }, { failed: boolean }> {
@@ -188,9 +210,12 @@ async function mount(
     onDevelopsAtChange,
     onWaitingChange,
     handle,
+    window: windowSize,
   }: {
     first?: GallerySeed | PromiseLike<GallerySeed>;
     access?: "full" | "teaser";
+    /** Mount a window of this many tiles over the album, asking for its links as the grid does. */
+    window?: number;
     onCountChange?: (count: number) => void;
     onCountWordsChange?: (words: string) => void;
     onDevelopsAtChange?: (developsAt: string | null) => void;
@@ -219,6 +244,7 @@ async function mount(
             onWaitingChange={onWaitingChange}
           >
             <Probe />
+            {windowSize ? <WindowProbe size={windowSize} /> : null}
           </GalleryLiveProvider>
         </Suspense>
       </Catch>,
@@ -927,6 +953,182 @@ describe("★ the album, calmed", () => {
     });
     expect(seen.live?.items[0].id).toBe(uuid(9));
     expect(syncs()).toHaveLength(1);
+  });
+
+  /* ★ HER OWN UPLOAD MINTS ITS LINK ONCE (crumbs-61, red-team 48's LOW). Her photograph is in the grid the moment it lands
+     (the optimistic tile), so the window asked the links route for its link ~10 ms after her sync began, while that sync's
+     delta carries the very same link (album-calm): twenty photographs cost forty links calls, ten of them for links the
+     deltas already held. An ask for a link the album's next answer is about to carry waits for that answer, and then asks,
+     which the carry answers itself: one link for one photograph. */
+  describe("★ her own upload mints its link once", () => {
+    const fresh = (i: number): ManifestEntry => [uuid(i), 640, 480, 4, T0 + i];
+    type Upload = Parameters<LiveGalleryHandle["notifyUploaded"]>[0];
+    const own = (i: number): Upload => ({
+      mediaId: uuid(i),
+      queueId: `q-${i}`,
+      file: new File(["x"], `${i}.jpg`, { type: "image/jpeg" }),
+      kind: "photo",
+      status: "approved",
+    });
+    const asked = (log = calls) =>
+      log
+        .filter((c) => c.url === "/api/album/guest/media")
+        .flatMap((c) => c.body.ids as string[]);
+    /** A sync answer that takes a network's while (the ledger's: ~400 ms), so the window asks before it lands. */
+    const slow =
+      (body: Record<string, unknown>, ms = 25) =>
+      () =>
+        new Promise<Record<string, unknown>>((resolve) =>
+          setTimeout(() => resolve(body), ms),
+        ) as unknown as Answer;
+    const sleep = (ms: number) =>
+      new Promise((resolve) => setTimeout(resolve, ms));
+    /** The album as the page seeded it (nothing linked), with its window mounted and its first ask for links answered. */
+    async function windowed(handle: RefObject<LiveGalleryHandle | null>) {
+      await mount(false, {
+        handle,
+        window: 8,
+        first: seedOf([fresh(1), fresh(2)]),
+      });
+      await act(async () => {
+        await sleep(20);
+      });
+      expect(asked()).toEqual([uuid(1), uuid(2)]);
+    }
+    /** Her upload completes: the tile and the sync start, and the grid's effects have run when this returns. */
+    const upload = (
+      handle: RefObject<LiveGalleryHandle | null>,
+      i: number,
+      over: Partial<Upload> = {},
+    ) =>
+      act(async () => {
+        handle.current!.notifyUploaded({ ...own(i), ...over });
+      });
+
+    it("★ the window's ask for her tile waits for the delta that carries its link: the links route is never asked for it", async () => {
+      const handle = createRef<LiveGalleryHandle>();
+      await windowed(handle);
+      // Her sync is still in the air when the grid mounts her tile and asks for its link (the ledger's own ordering).
+      let land: (body: Record<string, unknown>) => void = () => {};
+      answer(
+        () =>
+          new Promise<Record<string, unknown>>((resolve) => {
+            land = resolve;
+          }) as unknown as Answer,
+      );
+      await upload(handle, 9);
+      // Her tile is in the grid, and the window has had its turn to ask while the sync is in the air.
+      await act(async () => {
+        await sleep(20);
+      });
+      expect(seen.live?.items[0].id).toBe(uuid(9));
+      expect(syncs()).toHaveLength(1);
+      expect(asked()).toEqual([]);
+      // The delta lands carrying her link: it draws her tile, and the route is still never asked.
+      await act(async () => {
+        land(
+          delta({ v: 11, upsert: [fresh(9)], total: 3, links: carrying([9]) }),
+        );
+        await sleep(20);
+      });
+      expect(asked()).toEqual([]);
+      expect(syncs()).toHaveLength(1);
+      expect(seen.live?.items.find((m) => m.id === uuid(9))?.url).toBe(
+        "https://r2.test/carried/9",
+      );
+    });
+
+    it("★ five uploads in a row: five syncs, and not one links ask for her own photographs", async () => {
+      const handle = createRef<LiveGalleryHandle>();
+      await windowed(handle);
+      const log: typeof calls = [];
+      for (let k = 0; k < 5; k++) {
+        const i = 10 + k;
+        answer(
+          slow(
+            delta({
+              v: 11 + k,
+              upsert: [fresh(i)],
+              total: 3 + k,
+              links: carrying([i]),
+            }),
+          ),
+        );
+        await upload(handle, i);
+        await act(async () => {
+          await sleep(60);
+        });
+        log.push(...calls);
+      }
+      expect(log.filter((c) => c.url === "/api/album/guest/sync")).toHaveLength(
+        5,
+      );
+      // Her own five, each drawn from its delta's link; before this, every one cost a links call of its own.
+      expect(asked(log)).toEqual([]);
+      for (let k = 0; k < 5; k++)
+        expect(seen.live?.items.find((m) => m.id === uuid(10 + k))?.url).toBe(
+          `https://r2.test/carried/${10 + k}`,
+        );
+    });
+
+    it("an ask her window made while the link was owed is made once the answer is in, and the route answers it when the delta carried nothing", async () => {
+      const handle = createRef<LiveGalleryHandle>();
+      await windowed(handle);
+      // A sync that brings her photograph but no link (a delta past the carry's bound, a failed carry): the ask goes.
+      answer(slow(delta({ v: 11, upsert: [fresh(9)], total: 3 })));
+      await upload(handle, 9);
+      await act(async () => {
+        await sleep(60);
+      });
+      expect(asked()).toEqual([uuid(9)]);
+      expect(seen.live?.items.find((m) => m.id === uuid(9))?.url).toBe(
+        `https://r2.test/fresh/${uuid(9)}`,
+      );
+    });
+
+    it("a photograph she takes back before the answer lands is owed nothing: no ask is made for it afterwards", async () => {
+      const handle = createRef<LiveGalleryHandle>();
+      await windowed(handle);
+      // The delta that lands brings neither her photograph nor a link (the server hid it already).
+      answer(slow(delta({ v: 11, upsert: [], total: 2 })));
+      await upload(handle, 9);
+      // The window asked for her tile while the answer was in the air (held back), and she takes it back.
+      await act(async () => {
+        await sleep(20);
+      });
+      await act(async () => {
+        await seen.live!.removeOwn(uuid(9));
+      });
+      await act(async () => {
+        await sleep(60);
+      });
+      expect(asked()).toEqual([]);
+    });
+
+    it("a sync that fails still lets her tile ask for its link: nothing is held back for good", async () => {
+      const handle = createRef<LiveGalleryHandle>();
+      await windowed(handle);
+      answer(500);
+      await upload(handle, 9);
+      await act(async () => {
+        await sleep(60);
+      });
+      expect(asked()).toEqual([uuid(9)]);
+    });
+
+    it("only her own approved upload is owed: a held one has no tile to ask for, but her sync still runs", async () => {
+      const handle = createRef<LiveGalleryHandle>();
+      await windowed(handle);
+      answer(304);
+      await upload(handle, 9, { status: "pending" });
+      await act(async () => {
+        await sleep(40);
+      });
+      // A held upload shows only in her uploads: no tile, so no ask, and the sync (the host's approval may follow) runs.
+      expect(seen.live?.items.map((m) => m.id)).toEqual([uuid(1), uuid(2)]);
+      expect(syncs()).toHaveLength(1);
+      expect(asked()).toEqual([]);
+    });
   });
 
   describe("★ a tab hidden for hours", () => {

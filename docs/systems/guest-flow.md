@@ -171,8 +171,9 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
   `onGuestCountChange`: a guest's
   own first upload moves M without a reload, and only the server can tell a first upload from a returning
   contributor's. It stays outside the ETag: whatever moves M changes the payload the ETag already hashes.
-  ★ The album carries N as its own quiet label, left of "Download all" and the View menu, worded like the
-  cover's glyph and the teaser CTA, so the page never counts one album two ways.
+  ★ The album carries N as its own quiet label, left of "Download all" and the View menu, worded as the source words
+  it (`albumCountWords`, "One true count" below) and the cover's glyph says the same, so the page never counts one album
+  two ways.
 - **The album, in justified rows** ([`gallery-rows.tsx`](../../src/components/guest/gallery-rows.tsx) over the
   SHARED `MasonryColumns` `layout="rows"` ([`shared/masonry.tsx`](../../src/components/shared/masonry.tsx)),
   windowed by [`album-window.tsx`](../../src/components/shared/album-window.tsx)): `album-columns` r2's picks (an
@@ -297,7 +298,12 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
   empty to the eye where what is added waits (held for the host, or sealed for a develop ahead) the page's server
   render asks whether anything waits at all, hers or anyone's (`waitingOnArrival`,
   [`waiting.server.ts`](../../src/lib/disposable/waiting.server.ts)'s `albumWaits`: one indexed read, a yes or a no,
-  the host's own view included), so the cover never says "the first photo" over an album others have added to. ★ **It
+  the host's own view included), so the cover never says "the first photo" over an album others have added to. ★ **And it
+  follows the sync after that** (crumbs-61, red-team 48): a guest who joined an empty album kept "Take the first photo"
+  over her own sheet of developing shots once others' shots waited, the server's read being the first paint's word, so the
+  live source tells the page each flip of whether anything waits (`onWaitingChange`, never each count: `waitsLive`) and the
+  Add says what a newcomer's does. Its words are `addWords`' ([`camera/words.ts`](../../src/lib/guest/camera/words.ts)),
+  the one home See it as a guest shares. ★ **It
   yields to the wait** (`AlbumWaitYield`, [`gallery-empty-state-yield.tsx`](../../src/components/guest/gallery-empty-state-yield.tsx),
   a light module so the Library's server pages still draw it): wherever the album's contact sheet stands, the promise
   steps aside, and an album that waits with nothing in it yet keeps it. ★
@@ -309,7 +315,10 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
   [`contact-sheet.ts`](../../src/lib/disposable/contact-sheet.ts)): wherever what is added waits (the page's live
   reading, `waitClock`) and something does, or she is sending to it (`waitStands`), one square a photo stands over the
   album's rows in the order the night took them, the count and "Developing" over it, the clock under it ("As Maya lets
-  them in", "All at once at 9 am · in 10 h 20 min", `wait-words.ts`). ★ Everyone's squares are the sync's numbers
+  them in", "All at once tomorrow at 9 am · in 10 h 20 min", `wait-words.ts`). ★ **The clock breaks at its phrases, never
+  inside one** (crumbs-61, red-team 48's NIT: "in 17 h 5" over "min" at 375): "Yours · N" never wraps, a phone's foot gives
+  the clock a row of its own when it does not fit beside it (with tomorrow's clock a 375 phone is five pixels short), and
+  the desk's side column stacks its two phrases as two lines (`ClockWords`). ★ Everyone's squares are the sync's numbers
   alone (`GuestFullSync.waiting`: the count and its minutes, never an id), carried by the album store's snapshot
   (`waiting`, absent where nothing waits) and the live source (`GalleryLive.waiting`, the seed's from the first paint,
   and a light context, `AlbumWaitingProvider`, for the wait); hers are lit with her own pictures at their minutes, as
@@ -577,7 +586,13 @@ unchanged nine moves nothing else. `GalleryLiveProvider` reports that number plu
 arrived (an approved upload's optimistic tile in, the guest's own removal out: `albumCount`) through
 `onCountChange`, at `teaser` AND `full`; the CTA says the same number, "See all N photos & videos" ("Confirm your
 email to see everything" when nothing more is withheld), and so does the door (its `mediaTotal` is the header's
-live count); one item reads "1 photo or video" (`formatMediaCount`), never a "photo" that may be a video. A payload without `approvedTotal` (an older server mid-deploy) falls back to the shell's
+live count). ★ **The count names what the album holds** (crumbs-61, red-team 48's NIT: "12 photos & videos" over twelve
+photographs, where the host's Download panel said "12 photos"): where the source can see into the album (a full answer, whose
+manifest is the whole album) it is worded by the kinds in it, from the one home every set shares (`albumCountWords` over
+`setNoun`: "12 photos", "1 video", "58 photos & videos"; the provider's `countWords` for the album's line, `onCountWordsChange`
+for the cover's glyph), and always names exactly the number beside it. Where it cannot see in (a teaser's nine, a lock, an
+unread album) it says both, and one such item reads "1 photo or video" (`formatMediaCount`), never a "photo" that may be a
+video. A payload without `approvedTotal` (an older server mid-deploy) falls back to the shell's
 `stats.approvedTotal` at `teaser`, then the photo-only `teaserTotal`. At `none` no gallery mounts and no poll
 runs: the lock line says the render's head count.
 
@@ -1079,7 +1094,13 @@ had" holds only when this device holds a guest ticket a claim would move.
   sealed or removed id gets none), and the provider's transport answers the link store's ask for them itself
   (`events/album-wire-carry.ts`: dated exactly as the server dated them, never past their re-mint time, once each,
   dropped with the id, an attribution move, a manifest, a teaser or a lock). The links route stays for windows, the
-  reel tile's stills and re-mints; a failed carry is reported and costs the delta nothing.
+  reel tile's stills and re-mints; a failed carry is reported and costs the delta nothing. ★ **Her own upload's link is
+  minted once** (crumbs-61, red-team 48): her approved upload is in the grid the moment it lands (the optimistic tile), so
+  the window asked the links route for its link ~10 ms after her own sync began, while that very sync's delta carries it.
+  An id is OWED from `notifyUploaded` until the sync after it has answered (`owedLinks`; only her own approved upload,
+  never the demo's): an ask for it meanwhile is written down and made once the answer is in, which the carry answers
+  itself, and a sync that fails or carries no link still lets the ask go. Five uploads of one guest, measured in a real
+  browser over a modelled server: five links calls, none now.
 - **The doorbell:** the `media_gallery_doorbell` DB trigger sends a contentless `ping` on the PUBLIC
   Realtime broadcast channel `gallery:<qr_token>` whenever what a guest's album shows changes: the visible set
   (uploads, moderation flips, restores, purges) or what waits (a held upload, its approval or refusal, a row sealed
@@ -1091,6 +1112,12 @@ had" holds only when this device holds a guest ticket a claim would move.
   waits for the device's next tick of the batch clock ([`refresh-coalescer.ts`](../../src/lib/guest/refresh-coalescer.ts),
   `ALBUM_BATCH_MS`, 15 s, named once), one sync a tick and none for a quiet album, the ticks at a phase each device
   draws so a venue never asks in one stampede; her own upload, a host's own write, a return and Try again never wait.
+  ★ **A moment rings at once** (crumbs-61, red-team 48's LOW: a Develop now reached each guest on her own beat, +0.38 s to
+  +7.2 s): the ring for a write that moved many rows (`album_doorbell`: a Develop now, a develop time reached, a hold
+  released) says `{"moment": true}` (`20261003211000`) where an arrival's ping is contentless, and the device asks at once
+  (`isMoment`, the coalescer's `moment()`: the sync covers every ping heard before it, so the batch that was waiting is
+  spent). Measured on a real subscribed client: an arrival's ping waited for the tick (11.6 s and 14.2 s), a moment's asked
+  the same millisecond it arrived. A deploy ahead of the migration changes nothing (a ring that says nothing is batched).
   ★ **A hidden tab is no listener**: it leaves the channel the moment it hides (a broadcast is billed a message a
   listener; supabase-js closes the emptied socket 50 s later), syncs nothing on a ping, and joins again on its return
   once any leave of its topic has landed (supabase-js hands back a channel still leaving by its topic, which never

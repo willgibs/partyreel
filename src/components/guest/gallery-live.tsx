@@ -14,8 +14,10 @@
  *     against the server's count (a mismatch heals with a fresh manifest, never drawn);
  *   - links ride separate asks, per window, re-minted before they age; only a delta carries its new items'
  *     own, so a batch arrives in one call (album-calm, `album-wire-carry.ts`).
- * The doorbell (in calm batches, and silent in a hidden tab: `use-gallery-doorbell.ts`) and the fallback poll
- * both call it, and the store coalesces overlapping calls; her own upload syncs at once, never on the clock.
+ * The doorbell (in calm batches, asking at once for a develop's moment, and silent in a hidden tab:
+ * `use-gallery-doorbell.ts`) and the fallback poll both call it, and the store coalesces overlapping calls; her own
+ * upload syncs at once, never on the clock, and her photograph's link rides that sync's delta, so the window's ask for
+ * it waits for the answer (`owedLinks`).
  *
  * ★ THE FIRST PAINT IS THE SERVER'S ANSWER, NOT A LOADING STATE. The page embeds the manifest and
  * the first window's links (`gallery-seed.ts`); the store adopts them through its own first sync,
@@ -667,6 +669,17 @@ export function GalleryLiveProvider({
     };
   }, []);
 
+  /**
+   * ★ A LINK THE ALBUM'S NEXT ANSWER IS ABOUT TO CARRY IS NOT ASKED FOR (crumbs-61, red-team 48's LOW). Her own approved
+   * upload is in the grid the moment it lands (the optimistic tile), so the window asks for its link ~10 ms after her
+   * sync began, while that very sync's delta carries it (album-calm): the links route minted it a second time, for every
+   * photograph she added (twenty photographs, forty links calls). An id is OWED from `notifyUploaded` until the sync
+   * that follows it has answered; an ask for it meanwhile is written down (the value: whether one was made) and made
+   * once the answer is in, which the carrying transport answers itself. Only her own approved upload is ever owed, and a
+   * sync that fails or carries no link still lets the ask go: held back for an answer, never for good.
+   */
+  const owedLinks = useRef(new Map<string, boolean>());
+
   /* ── a guest's own photographs: removable ever, and final for the host too ── */
   const [sessionMine, setSessionMine] = useState<ReadonlySet<string>>(
     () => new Set(),
@@ -745,6 +758,8 @@ export function GalleryLiveProvider({
    */
   const removeOwn = useCallback(
     async (id: string) => {
+      // A photograph she takes back before its sync has answered is owed no link (`owedLinks`).
+      owedLinks.current.delete(id);
       setRemovedLocal((prev) => new Set(prev).add(id));
       setOptimistic((prev) => prev.filter((m) => m.id !== id));
       let ok = false;
@@ -823,7 +838,16 @@ export function GalleryLiveProvider({
         // Removable (and marked) the instant it lands, on either identity.
         if (!isDemo) setAddedMine((prev) => new Set(prev).add(u.mediaId));
       }
-      if (!isDemo) void store.sync();
+      if (isDemo) return;
+      // Her link rides the delta this sync brings (`owedLinks`): an ask for it waits for the answer, then goes.
+      const owed = owedLinks.current;
+      if (u.status === "approved" && !owed.has(u.mediaId))
+        owed.set(u.mediaId, false);
+      void store.sync().then(() => {
+        const asked = owed.get(u.mediaId);
+        owed.delete(u.mediaId);
+        if (asked) void store.links.ensure([u.mediaId]);
+      });
     },
     renameMine(displayName) {
       setRenamed({ name: displayName, ids: ownIds });
@@ -937,8 +961,14 @@ export function GalleryLiveProvider({
 
   const ensureLinks = useCallback(
     (ids: readonly string[]) => {
-      if (ids.length > 0 && shown.status === "ready")
-        void store.links.ensure(ids);
+      if (ids.length === 0 || shown.status !== "ready") return;
+      const owed = owedLinks.current;
+      const ask = ids.filter((id) => {
+        if (!owed.has(id)) return true;
+        owed.set(id, true);
+        return false;
+      });
+      if (ask.length > 0) void store.links.ensure(ask);
     },
     [store, shown.status],
   );
@@ -996,8 +1026,7 @@ export function GalleryLiveProvider({
     () =>
       albumCountWords({
         count,
-        kinds:
-          shown.status === "ready" && !teaserItems ? kindsOf(items) : null,
+        kinds: shown.status === "ready" && !teaserItems ? kindsOf(items) : null,
       }),
     [count, items, shown.status, teaserItems],
   );
