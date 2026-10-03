@@ -178,10 +178,9 @@ export async function createGuest(input: {
 }
 
 /** A mint's payload (create_guest's and ask_to_join's are one shape), read defensively. */
-function readMinted(data: unknown): Extract<
-  CreateGuestResult,
-  { ok: true }
->["data"] {
+function readMinted(
+  data: unknown,
+): Extract<CreateGuestResult, { ok: true }>["data"] {
   const minted = data as unknown as {
     session_token: string;
     guest_id: string;
@@ -234,7 +233,11 @@ export async function askToJoin(input: {
     if (error.code === CHECK_VIOLATION) {
       const m = error.message.toLowerCase();
       if (m.includes("private")) {
-        return { ok: false, code: "unauthorized", message: "This event is private." };
+        return {
+          ok: false,
+          code: "unauthorized",
+          message: "This event is private.",
+        };
       }
       return {
         ok: false,
@@ -515,6 +518,9 @@ export async function createMedia(input: {
   originalKey: string;
   fileSizeBytes: number;
   previewKey?: string | null;
+  /** The phone-size copy (take-home r1): its key and its HEAD size, both or neither (create_media refuses one alone). */
+  phoneKey?: string | null;
+  phoneBytes?: number | null;
   durationSeconds?: number | null;
   width?: number | null;
   height?: number | null;
@@ -524,7 +530,11 @@ export async function createMedia(input: {
   // be called directly via PostgREST with a spoofed size — the complete-upload route HEADs R2 for the real
   // size and calls here via the admin client. The session_token in the body remains the guest capability.
   const supabase = createAdminClient();
-  const { data, error } = await supabase.rpc("create_media", {
+  // ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE: `p_phone_key` and `p_phone_bytes` arrive with migration
+  // 20261003110000, so the arguments are built beside the call (an argument the generated Args do not name yet is
+  // then an extra field, which TypeScript allows off a literal); fold them back into the call once it knows them.
+  // Absent (no copy), they are left out of the body, so PostgREST resolves the same function either way.
+  const args = {
     p_session_token: input.sessionToken,
     p_media_id: input.mediaId,
     p_type: input.type,
@@ -535,7 +545,10 @@ export async function createMedia(input: {
     p_width: input.width ?? undefined,
     p_height: input.height ?? undefined,
     p_reel_eligible: input.reelEligible,
-  });
+    p_phone_key: input.phoneKey ?? undefined,
+    p_phone_bytes: input.phoneBytes ?? undefined,
+  };
+  const { data, error } = await supabase.rpc("create_media", args);
 
   if (error) {
     // Retry idempotency: a duplicate media_id means create_media already ran for

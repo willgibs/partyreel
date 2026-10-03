@@ -23,7 +23,10 @@ function b64url(bytes: Uint8Array): string {
 
 // Sign with Web Crypto in the SAME format the app's node:crypto signer emits — base64url(payload) + "." +
 // hmac-sha256 hex. (HMAC-SHA256 is spec-deterministic, so this exercises the exact format the app produces.)
-async function sign(secret: string, payload: ExportManifestPayload): Promise<string> {
+async function sign(
+  secret: string,
+  payload: ExportManifestPayload,
+): Promise<string> {
   const body = b64url(enc.encode(JSON.stringify(payload)));
   const key = await crypto.subtle.importKey(
     "raw",
@@ -39,7 +42,9 @@ async function sign(secret: string, payload: ExportManifestPayload): Promise<str
   return `${body}.${macHex}`;
 }
 
-function payload(over: Partial<ExportManifestPayload> = {}): ExportManifestPayload {
+function payload(
+  over: Partial<ExportManifestPayload> = {},
+): ExportManifestPayload {
   return {
     v: EXPORT_TOKEN_VERSION,
     jti: "abc",
@@ -55,16 +60,31 @@ function payload(over: Partial<ExportManifestPayload> = {}): ExportManifestPaylo
 describe("isValidExportKey", () => {
   it("accepts canonical keys, rejects traversal / non-event / wrong-kind", () => {
     expect(isValidExportKey(KEY)).toBe(true);
-    expect(isValidExportKey(`events/${EID}/video/${MID}/preview.webp`)).toBe(true);
+    expect(isValidExportKey(`events/${EID}/video/${MID}/preview.webp`)).toBe(
+      true,
+    );
     expect(isValidExportKey(`secrets/${MID}/x.env`)).toBe(false);
     expect(isValidExportKey(`events/${EID}/photo/${MID}/../x.jpg`)).toBe(false);
-    expect(isValidExportKey(`events/bad/photo/${MID}/original.jpg`)).toBe(false);
+    expect(isValidExportKey(`events/bad/photo/${MID}/original.jpg`)).toBe(
+      false,
+    );
+  });
+
+  it("accepts a photograph's phone-size copy (take-home r1), the app's own third variant", () => {
+    expect(isValidExportKey(`events/${EID}/photo/${MID}/phone.jpg`)).toBe(true);
+    expect(isValidExportKey(`events/${EID}/photo/${MID}/phones.jpg`)).toBe(
+      false,
+    );
   });
 });
 
 describe("worker verifyExportToken (Web Crypto)", () => {
   it("verifies a properly signed token", async () => {
-    const r = await verifyExportToken(SECRET, await sign(SECRET, payload()), NOW);
+    const r = await verifyExportToken(
+      SECRET,
+      await sign(SECRET, payload()),
+      NOW,
+    );
     expect(r.ok).toBe(true);
     if (r.ok) expect(r.payload.eventId).toBe(EID);
   });
@@ -77,22 +97,43 @@ describe("worker verifyExportToken (Web Crypto)", () => {
 
   it("rejects expired / bad-version / non-canonical-key / empty-items", async () => {
     expect(
-      (await verifyExportToken(SECRET, await sign(SECRET, payload({ exp: NOW - 1 })), NOW)).ok,
-    ).toBe(false);
-    expect(
-      (await verifyExportToken(SECRET, await sign(SECRET, payload({ v: 9 })), NOW)).ok,
-    ).toBe(false);
-    expect(
       (
         await verifyExportToken(
           SECRET,
-          await sign(SECRET, payload({ items: [{ key: `secrets/x.env`, name: "x" }] })),
+          await sign(SECRET, payload({ exp: NOW - 1 })),
           NOW,
         )
       ).ok,
     ).toBe(false);
     expect(
-      (await verifyExportToken(SECRET, await sign(SECRET, payload({ items: [] })), NOW)).ok,
+      (
+        await verifyExportToken(
+          SECRET,
+          await sign(SECRET, payload({ v: 9 })),
+          NOW,
+        )
+      ).ok,
+    ).toBe(false);
+    expect(
+      (
+        await verifyExportToken(
+          SECRET,
+          await sign(
+            SECRET,
+            payload({ items: [{ key: `secrets/x.env`, name: "x" }] }),
+          ),
+          NOW,
+        )
+      ).ok,
+    ).toBe(false);
+    expect(
+      (
+        await verifyExportToken(
+          SECRET,
+          await sign(SECRET, payload({ items: [] })),
+          NOW,
+        )
+      ).ok,
     ).toBe(false);
   });
 
@@ -101,7 +142,9 @@ describe("worker verifyExportToken (Web Crypto)", () => {
     const tampered = t.slice(0, -1) + (t.at(-1) === "a" ? "b" : "a");
     expect((await verifyExportToken(SECRET, tampered, NOW)).ok).toBe(false);
     expect((await verifyExportToken(SECRET, null, NOW)).ok).toBe(false);
-    expect((await verifyExportToken(SECRET, "onlyonepart", NOW)).ok).toBe(false);
+    expect((await verifyExportToken(SECRET, "onlyonepart", NOW)).ok).toBe(
+      false,
+    );
     expect((await verifyExportToken("", t, NOW)).ok).toBe(false);
   });
 });

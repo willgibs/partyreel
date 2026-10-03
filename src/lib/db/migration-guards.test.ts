@@ -1737,11 +1737,15 @@ describe("the live reel: the expand (20260924100000) and the drop (2026092411000
     });
   });
 
+  // ★ RESHAPED ON PURPOSE (take-home-wiring, 20261003110000; scar kept: every earlier parameter by name with
+  // p_reel_eligible defaulting to true, every guard, the insert's columns in their order, service role only). The
+  // phone-size copy's two defaulted arguments now follow p_reel_eligible, its two columns end the insert, and its file
+  // (a DROP and CREATE) is the one that restates the grants, for the signature with the pair.
   describe("create_media and create_media_as_host: p_reel_eligible, last, every guard kept", () => {
     const shapes = {
       create_media: {
         params:
-          "p_session_token text, p_media_id uuid, p_type public.media_type, p_original_key text, p_file_size_bytes bigint, p_preview_key text default null, p_duration_seconds double precision default null, p_width integer default null, p_height integer default null, p_reel_eligible boolean default true",
+          "p_session_token text, p_media_id uuid, p_type public.media_type, p_original_key text, p_file_size_bytes bigint, p_preview_key text default null, p_duration_seconds double precision default null, p_width integer default null, p_height integer default null, p_reel_eligible boolean default true, p_phone_key text default null, p_phone_bytes bigint default null",
         before:
           "text, uuid, public.media_type, text, bigint, text, double precision, integer, integer",
         guest: "v_guest.id",
@@ -1756,7 +1760,7 @@ describe("the live reel: the expand (20260924100000) and the drop (2026092411000
       },
       create_media_as_host: {
         params:
-          "p_host_id uuid, p_event_id uuid, p_media_id uuid, p_type public.media_type, p_original_key text, p_file_size_bytes bigint, p_preview_key text default null, p_duration_seconds double precision default null, p_width integer default null, p_height integer default null, p_reel_eligible boolean default true",
+          "p_host_id uuid, p_event_id uuid, p_media_id uuid, p_type public.media_type, p_original_key text, p_file_size_bytes bigint, p_preview_key text default null, p_duration_seconds double precision default null, p_width integer default null, p_height integer default null, p_reel_eligible boolean default true, p_phone_key text default null, p_phone_bytes bigint default null",
         before:
           "uuid, uuid, uuid, public.media_type, text, bigint, text, double precision, integer, integer",
         guest: "null",
@@ -1779,7 +1783,7 @@ describe("the live reel: the expand (20260924100000) and the drop (2026092411000
     ];
 
     for (const [name, shape] of Object.entries(shapes)) {
-      const after = `${shape.before}, boolean`;
+      const after = `${shape.before}, boolean, text, bigint`;
 
       it(`${name}: every earlier parameter by name, then p_reel_eligible defaulting to true`, () => {
         // PostgREST resolves by argument names, so the deployed calls (without the new one) still
@@ -1804,7 +1808,7 @@ describe("the live reel: the expand (20260924100000) and the drop (2026092411000
       // column and value where it was.
       it(`${name}: writes reel_eligible, and an explicit null reads as the default`, () => {
         expect(code(name)).toContain(
-          `insert into public.media ( id, event_id, guest_id, type, original_key, preview_key, file_size_bytes, duration_seconds, width, height, status, reel_eligible, sealed_until ) values ( p_media_id, v_event.id, ${shape.guest}, p_type, p_original_key, p_preview_key, p_file_size_bytes, p_duration_seconds, p_width, p_height, v_status, coalesce(p_reel_eligible, true), v_sealed_until );`,
+          `insert into public.media ( id, event_id, guest_id, type, original_key, preview_key, file_size_bytes, duration_seconds, width, height, status, reel_eligible, sealed_until, phone_key, phone_bytes ) values ( p_media_id, v_event.id, ${shape.guest}, p_type, p_original_key, p_preview_key, p_file_size_bytes, p_duration_seconds, p_width, p_height, v_status, coalesce(p_reel_eligible, true), v_sealed_until, p_phone_key, p_phone_bytes );`,
         );
       });
 

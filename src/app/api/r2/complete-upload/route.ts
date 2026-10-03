@@ -38,7 +38,7 @@ const guestCompleteSchema = completeUploadSchema.extend({
 const guestCompleteStrategy: CompleteStrategy<typeof guestCompleteSchema> = {
   schema: guestCompleteSchema,
   captureLabel: "create_media",
-  async createRecord(parsed, kind, realSize) {
+  async createRecord(parsed, kind, realSize, phone) {
     // The write path inherits the read gate (database-security.md), so the door is re-checked at
     // COMPLETION too: a presigned URL outlives a host's change by up to 2h, and this is the write
     // that counts (the media row + ledger; the bytes an already-issued URL can land become a swept
@@ -102,6 +102,9 @@ const guestCompleteStrategy: CompleteStrategy<typeof guestCompleteSchema> = {
       width: parsed.width ?? null,
       height: parsed.height ?? null,
       previewKey: parsed.preview_key ?? null,
+      // The phone-size copy the engine verified on its HEAD (take-home r1), or none.
+      phoneKey: phone?.key ?? null,
+      phoneBytes: phone?.bytes ?? null,
       // Only a clip says anything here; every other upload leaves the column's default.
       reelEligible: parsed.reel_eligible,
     });

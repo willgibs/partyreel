@@ -69,6 +69,15 @@ vi.mock("@/lib/export/export-service", () => ({
     new Response(JSON.stringify({ ok: true }), { status: 200 }),
 }));
 
+// Her Save's links and the phone copies' read (take-home-wiring): the presigner and the capture stood in.
+vi.mock("@/lib/r2/presign", () => ({
+  presignDownload: async (p: { key: string }) => `https://r2.example/${p.key}`,
+}));
+vi.mock("@/lib/observability/sentry", () => ({
+  captureWarning: () => {},
+  captureError: () => {},
+}));
+
 /** The fake the admin client answers from; each test seeds its own. */
 let fake: FakePostgrest;
 vi.mock("@/lib/supabase/admin", () => ({
@@ -123,6 +132,10 @@ function post(body: unknown) {
     }),
   );
 }
+
+/** The size reads alone (the phone copies' read rides beside them, take-home-wiring). */
+const sizeReads = () =>
+  fake.requests.filter((r) => r.url.includes("file_size_bytes"));
 
 function galleryOf(rows: ReturnType<typeof album>["rows"]) {
   return {
@@ -183,8 +196,9 @@ describe("the size read reaches every item (C11)", () => {
     expect(photo.count + video.count).toBe(2300);
     expect(photo.bytes + video.bytes).toBe(bytes);
     expect(video.count).toBe(230);
-    // Ceil(2,300 / 150) requests, each at most IN_CHUNK ids and under the URL limit, none failed.
-    expect(fake.requests).toHaveLength(Math.ceil(2300 / IN_CHUNK));
+    // Ceil(2,300 / 150) size requests, each at most IN_CHUNK ids and under the URL limit, none failed (reshaped
+    // by take-home-wiring: the photographs' phone-size copies are read beside them, in id chunks of their own).
+    expect(sizeReads()).toHaveLength(Math.ceil(2300 / IN_CHUNK));
     for (const request of fake.requests) {
       const ids = request.filters.find((f) => f.op === "in")?.value as string[];
       expect(ids.length).toBeLessThanOrEqual(IN_CHUNK);
@@ -251,7 +265,7 @@ describe("the size read reaches every item (C11)", () => {
     };
 
     expect(summary.shown.photo.count + summary.shown.video.count).toBe(9);
-    expect(fake.requests).toHaveLength(1);
+    expect(sizeReads()).toHaveLength(1);
   });
 
   it("a locked album is refused before anything is read", async () => {
@@ -330,8 +344,16 @@ describe("Yours: her own uploads, filtered on the server", () => {
       body.summary.shown.photo.count + body.summary.shown.video.count,
     ).toBe(30);
     // Every tenth row from the first is a video (uid 1 and uid 11); uid(999) is not in the album.
-    expect(body.yours?.shown.photo).toEqual({ count: 1, bytes: 1001 });
-    expect(body.yours?.shown.video).toEqual({ count: 2, bytes: 1000 + 1010 });
+    expect(body.yours?.shown.photo).toEqual({
+      count: 1,
+      bytes: 1001,
+      phone: 1001,
+    });
+    expect(body.yours?.shown.video).toEqual({
+      count: 2,
+      bytes: 1000 + 1010,
+      phone: 1000 + 1010,
+    });
   });
 
   it("the summary says no Yours when she has nothing here", async () => {
@@ -448,13 +470,20 @@ describe("Yours: her own uploads, filtered on the server", () => {
       yours: ReturnType<typeof summarizeMedia> | null;
     };
     // Asked of exactly the ids the server found hers, never a request's.
-    expect(readOwnSealedMedia).toHaveBeenCalledWith("evt-1", [uid(2), uid(500)]);
+    expect(readOwnSealedMedia).toHaveBeenCalledWith("evt-1", [
+      uid(2),
+      uid(500),
+    ]);
     // The album's summary is the album: thirty, her sealed shot none of it.
     expect(
       body.summary.shown.photo.count + body.summary.shown.video.count,
     ).toBe(30);
     // Yours: her one photo in the album, and her sealed one.
-    expect(body.yours?.shown.photo).toEqual({ count: 2, bytes: 1001 + 5000 });
+    expect(body.yours?.shown.photo).toEqual({
+      count: 2,
+      bytes: 1001 + 5000,
+      phone: 1001 + 5000,
+    });
 
     mintExport.mockResolvedValue({ ok: true, token: "t", workerUrl: "w" });
     await post({ step: "mint", qr_token: QR, set: "yours", part: 1 });
@@ -472,7 +501,9 @@ describe("Yours: her own uploads, filtered on the server", () => {
     readOwnSealedMedia.mockResolvedValue([rows[1]]);
     const body = await (await post({ step: "summary", qr_token: QR })).json();
     expect(body.yours.shown.photo.count + body.yours.shown.video.count).toBe(1);
-    expect(body.summary.shown.photo.count + body.summary.shown.video.count).toBe(3);
+    expect(
+      body.summary.shown.photo.count + body.summary.shown.video.count,
+    ).toBe(3);
   });
 
   it("an album zip never asks who she is", async () => {

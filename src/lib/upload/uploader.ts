@@ -3,9 +3,10 @@
  * client component. The caller passes the endpoint pair + identity fields (guest =
  * { session_token }; host = { event_id }) — the two pipelines are otherwise identical.
  *
- * Per file: measure dimensions/duration → client-validate → POST presign →
- * upload bytes DIRECTLY to R2 (single PUT or multipart, via XHR for progress) →
- * POST complete (which records the media row). The server derives the R2 key from
+ * Per file: measure dimensions/duration → client-validate → make the preview (and,
+ * for a photograph, its phone-size copy) → POST presign → upload bytes DIRECTLY to
+ * R2 (single PUT or multipart, via XHR for progress) → POST complete (which
+ * records the media row). The server derives the R2 key from
  * the identity (token or owned event); this module never constructs keys.
  *
  * XHR (not fetch) because only XHR exposes upload progress events. Reading a
@@ -14,11 +15,18 @@
 import { stripFileMetadata } from "@/lib/media/strip-metadata";
 import { classifyMime, validateUpload } from "@/lib/media/validators";
 import { getDeviceId } from "@/lib/upload/device-id";
-import { generatePreview, posterPreview } from "@/lib/upload/preview";
+import {
+  generatePhoneCopy,
+  generatePreview,
+  posterPreview,
+} from "@/lib/upload/preview";
 
 type Measured = { width?: number; height?: number; duration?: number };
 
-/** The optional preview PUT the presign route issues when the client declared a (capped) preview size. */
+/**
+ * An optional derivative's PUT the presign route issues when the client declared its (capped) size: the
+ * tile's preview, or a photograph's phone-size copy (take-home r1).
+ */
 type PreviewPut = { key: string; url: string; headers: Record<string, string> };
 
 type PresignResponse =
@@ -31,6 +39,7 @@ type PresignResponse =
       url: string;
       headers: Record<string, string>;
       preview?: PreviewPut;
+      phone?: PreviewPut;
     }
   | {
       ok: true;
@@ -42,6 +51,7 @@ type PresignResponse =
       part_size_bytes: number;
       parts: { partNumber: number; url: string }[];
       preview?: PreviewPut;
+      phone?: PreviewPut;
     }
   | { ok: false; code: string; message: string };
 
@@ -295,6 +305,10 @@ async function runUpload(args: {
   const preview =
     (poster ? await posterPreview(poster) : null) ??
     (await generatePreview(file, kind, measured));
+  // 0c. A photograph's phone-size copy (take-home r1): 2048 px, a JPEG, from the same stripped file, made
+  //    after the preview so one photograph is decoded at a time. Best-effort the same way: null for a clip
+  //    (videos stay as taken), for a photograph already phone size, or for a copy past its caps.
+  const phone = await generatePhoneCopy(file, kind, measured);
 
   // 1. Presign (server validates identity + caps and builds the key; issues an optional preview PUT).
   const presign = await postJson<PresignResponse>(endpoints.presign, {
@@ -303,6 +317,7 @@ async function runUpload(args: {
     size_bytes: file.size,
     duration_seconds: measured.duration,
     preview_size_bytes: preview?.blob.size,
+    phone_size_bytes: phone?.blob.size,
   });
   if (!presign.ok) {
     return {
@@ -364,19 +379,27 @@ async function runUpload(args: {
   // 2b. Upload the preview (best-effort). A failure here NEVER fails the upload — the original is what
   //     matters; a missing preview just falls back to the original tile. preview_key is recorded only on
   //     a confirmed PUT.
-  let previewKey: string | undefined;
-  if (presign.preview && preview) {
+  //     The phone copy goes beside it, the same way: named at complete only once its PUT has landed.
+  const derived = async (
+    put: PreviewPut | undefined,
+    made: { blob: Blob } | null,
+  ): Promise<string | undefined> => {
+    if (!put || !made) return undefined;
     try {
       await putWithProgress({
-        url: presign.preview.url,
-        body: preview.blob,
-        headers: presign.preview.headers,
+        url: put.url,
+        body: made.blob,
+        headers: put.headers,
       });
-      previewKey = presign.preview.key;
+      return put.key;
     } catch {
-      // swallow — no preview this time
+      return undefined; // swallow: no derivative this time, the original is what matters
     }
-  }
+  };
+  const [previewKey, phoneKey] = await Promise.all([
+    derived(presign.preview, preview),
+    derived(presign.phone, phone),
+  ]);
 
   // 3. Complete (assembles multipart in R2, then records the media row).
   const complete = await postJson<CompleteResponse>(endpoints.complete, {
@@ -389,6 +412,7 @@ async function runUpload(args: {
     width: measured.width,
     height: measured.height,
     preview_key: previewKey,
+    phone_key: phoneKey,
     // Only a clip says anything (the live reel never plays a reel); every other body is unchanged.
     ...(reelEligible === false ? { reel_eligible: false } : {}),
     upload_id: presign.strategy === "multipart" ? presign.upload_id : null,

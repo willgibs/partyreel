@@ -29,12 +29,12 @@ const summary = (
   hidden = 0,
 ): ExportSummary => ({
   shown: {
-    photo: { count: photos, bytes: photos * 4 * MB },
-    video: { count: videos, bytes: videos * 90 * MB },
+    photo: { count: photos, bytes: photos * 4 * MB, phone: photos * MB },
+    video: { count: videos, bytes: videos * 90 * MB, phone: videos * 90 * MB },
   },
   hidden: {
-    photo: { count: hidden, bytes: hidden * MB },
-    video: { count: 0, bytes: 0 },
+    photo: { count: hidden, bytes: hidden * MB, phone: hidden * MB },
+    video: { count: 0, bytes: 0, phone: 0 },
   },
 });
 

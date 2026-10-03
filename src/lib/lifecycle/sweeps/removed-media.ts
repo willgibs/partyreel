@@ -29,6 +29,7 @@ import { MAX_ROWS, readAllPages, type AllPages } from "@/lib/db/read-all";
 import {
   addReclaimed,
   emptyReclaimed,
+  MEDIA_KEY_COLUMNS,
   reclaimMedia,
   type AdminClient,
   type MediaKeyRow,
@@ -59,7 +60,7 @@ export function dueRemovedMediaPage(
 ) {
   let query = admin
     .from("media")
-    .select("id, original_key, preview_key, purge_at")
+    .select(`${MEDIA_KEY_COLUMNS}, purge_at`)
     .eq("status", "removed")
     .not("purge_at", "is", null)
     .lte("purge_at", now.toISOString())
@@ -72,7 +73,11 @@ export function dueRemovedMediaPage(
       `purge_at.gt.${after.at},and(purge_at.eq.${after.at},id.gt.${after.id})`,
     );
   }
-  return query;
+  // The typed seam (`MEDIA_KEY_COLUMNS`): the rows typed here until the types know `phone_key`.
+  return query.overrideTypes<
+    (MediaKeyRow & { purge_at: string | null })[],
+    { merge: false }
+  >();
 }
 
 /**
@@ -86,14 +91,15 @@ export function askedMediaPage(
 ) {
   let query = admin
     .from("media")
-    .select("id, original_key, preview_key")
+    .select(MEDIA_KEY_COLUMNS)
     .eq("status", "removed")
     .filter("purge_asked_at", "not.is", null)
     .filter("legal_hold_at", "is", null)
     .order("id", { ascending: true })
     .limit(limit);
   if (after) query = query.gt("id", after);
-  return query;
+  // The typed seam (`MEDIA_KEY_COLUMNS`): the rows typed here until the types know `phone_key`.
+  return query.overrideTypes<MediaKeyRow[], { merge: false }>();
 }
 
 /** Every removed row still due (a head count): what a stopped sweep left. */

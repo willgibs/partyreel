@@ -14,7 +14,10 @@
  * INVARIANTS THIS FILE OWNS (must survive any edit — docs/systems/
  * uploads-and-r2.md):
  * - The client NEVER influences the key (server-built via mediaObjectKey).
- * - file_size_bytes comes from headObjectSize, never the client.
+ * - file_size_bytes comes from headObjectSize, never the client; so does the phone copy's phone_bytes.
+ * - The phone copy (take-home r1) is never metered, so it is capped twice (`phoneCopyFits`): its PUT is
+ *   minted only within 4 MB and half the declared original, and complete records it only within both on
+ *   the HEAD sizes, else drops it (deleting its object) and lands the photograph without one.
  * - An over-stuffed multipart is ABORTED, never assembled.
  * - Response JSON shapes/key order are the uploadFile() client contract.
  *   Do not reorder fields.
@@ -33,7 +36,11 @@ import {
 } from "@/lib/forensics/capture";
 import { MAX_UPLOAD_BYTES, extForMime } from "@/lib/media/limits";
 import type { MediaKind } from "@/lib/media/limits";
-import { MAX_PREVIEW_BYTES } from "@/lib/media/preview-size";
+import {
+  MAX_PREVIEW_BYTES,
+  PHONE_FORMAT,
+  phoneCopyFits,
+} from "@/lib/media/preview-size";
 import { classifyMime, validateUpload } from "@/lib/media/validators";
 import {
   applyGuestCookies,
@@ -45,12 +52,14 @@ import {
   mediaObjectKey,
   parseEventIdFromKey,
   parseMediaIdFromKey,
+  phoneKeyFor,
 } from "@/lib/r2/keys";
 import { checkCompleteKeyConsistency } from "@/lib/upload/complete-key-check";
 import {
   abortMultipartUpload,
   completeMultipartUpload,
   createMultipartUpload,
+  headObject,
   headObjectSize,
   presignUpload,
   presignUploadPart,
@@ -80,6 +89,8 @@ type PresignCommon = {
   size_bytes: number;
   /** The client-generated WebP preview's byte size, so the preview PUT binds content-length. */
   preview_size_bytes?: number;
+  /** The client-generated phone-size JPEG's byte size (photos only), so its PUT binds content-length too. */
+  phone_size_bytes?: number;
 };
 
 export type PresignStrategy<Schema extends z.ZodType<PresignCommon>> = {
@@ -181,6 +192,27 @@ export async function runPresignPipeline<
       }
     : {};
 
+  // ★ THE PHONE-SIZE COPY (take-home r1): a photograph's 2048 px JPEG, best-effort like the preview. Its PUT is
+  // minted only within both caps on the declared sizes (`phoneCopyFits`: 4 MB, and half the original), bound to
+  // its exact length, at the photograph's own key; past either, the original simply uploads without one. A clip
+  // never asks (videos stay as taken), and an old client never sends the size, so its answer is unchanged.
+  const phoneSize = parsed.data.phone_size_bytes;
+  const phoneKey = phoneKeyFor({ eventId: resolved.eventId, mediaId });
+  const phone =
+    kind === "photo" &&
+    phoneSize !== undefined &&
+    phoneCopyFits(phoneSize, size_bytes)
+      ? await presignUpload({
+          key: phoneKey,
+          contentType: PHONE_FORMAT,
+          contentLength: phoneSize,
+        })
+      : null;
+  // Last in the answer, so every earlier field keeps its place (the uploadFile() contract).
+  const phoneField = phone
+    ? { phone: { key: phoneKey, url: phone.url, headers: phone.headers } }
+    : {};
+
   if (uploadStrategyFor(size_bytes) === "single") {
     const { url, headers } = await presignUpload({
       key,
@@ -196,6 +228,7 @@ export async function runPresignPipeline<
       url,
       headers,
       ...previewField,
+      ...phoneField,
     });
   }
 
@@ -229,6 +262,7 @@ export async function runPresignPipeline<
     part_size_bytes: plan[0],
     parts,
     ...previewField,
+    ...phoneField,
   });
 }
 
@@ -243,6 +277,8 @@ type CompleteCommon = {
   height?: number;
   /** The preview R2 key (set only when the client uploaded one); recorded as media.preview_key. */
   preview_key?: string;
+  /** The phone-size copy's key (set only on a confirmed PUT); recorded as media.phone_key with its HEAD size. */
+  phone_key?: string;
   /**
    * `media.reel_eligible` for the row this completion creates (the live reel): sent as
    * false ONLY for a clip added to the album (`addClipToAlbum`), so the live reel never plays a reel;
@@ -275,13 +311,23 @@ type CreateRecordOutcome =
     }
   | { ok: false; code: string; message: string };
 
+/**
+ * A photograph's phone-size copy as the complete seam verified it: its key (the photograph's own) and the
+ * bytes R2 holds for it, both caps met. Null when the upload has none to record.
+ */
+export type PhoneCopy = { key: string; bytes: number };
+
 export type CompleteStrategy<Schema extends z.ZodType<CompleteCommon>> = {
   schema: Schema;
-  /** The authoritative record write (create_media / create_media_as_host wrapper). */
+  /**
+   * The authoritative record write (create_media / create_media_as_host wrapper). `phone` is the verified
+   * phone-size copy, recorded in the same insert (`p_phone_key`, `p_phone_bytes`), or null for none.
+   */
   createRecord(
     parsed: z.output<Schema>,
     kind: MediaKind,
     realSize: number,
+    phone: PhoneCopy | null,
   ): Promise<CreateRecordOutcome>;
   /** HTTP status per failure code — each route's own mapping. */
   errorStatus(code: string): number;
@@ -351,6 +397,25 @@ export async function runCompletePipeline<
       message: "That preview key doesn't match this upload.",
     });
   }
+  // The phone copy is bound the same way: this upload's own, in this upload's event (its variant, kind and
+  // ext are the consistency check's below). A stranger's key here is the same plant the preview's binding stops.
+  const phoneKey = parsed.data.phone_key;
+  if (
+    phoneKey &&
+    (!isValidMediaKey(phoneKey, keyEventId) ||
+      parseMediaIdFromKey(phoneKey) !== media_id)
+  ) {
+    captureWarning("upload", "complete_phone_key_mismatch", {
+      key,
+      phoneKey,
+      media_id,
+    });
+    return refuse({
+      status: 400,
+      code: "bad_key",
+      message: "That upload key doesn't match this upload.",
+    });
+  }
 
   // size_bytes is still accepted by the schemas (the presign step uses it) but is
   // NOT trusted here — the authoritative size comes from R2 below.
@@ -375,6 +440,7 @@ export async function runCompletePipeline<
   const keyProblem = checkCompleteKeyConsistency({
     key,
     previewKey,
+    phoneKey,
     kind,
     ext: extForMime(content_type),
   });
@@ -382,6 +448,7 @@ export async function runCompletePipeline<
     captureWarning("upload", `complete_key_inconsistent: ${keyProblem}`, {
       key,
       previewKey: previewKey ?? null,
+      phoneKey: phoneKey ?? null,
       media_id,
       content_type,
     });
@@ -446,7 +513,16 @@ export async function runCompletePipeline<
     });
   }
 
-  const result = await strategy.createRecord(parsed.data, kind, realSize);
+  const phone = phoneKey
+    ? await verifyPhoneCopy({ phoneKey, realSize, media_id })
+    : null;
+
+  const result = await strategy.createRecord(
+    parsed.data,
+    kind,
+    realSize,
+    phone,
+  );
 
   if (!result.ok) {
     // Routine user rejections (cap/limits/closed/session/ownership) are expected;
@@ -491,4 +567,49 @@ export async function runCompletePipeline<
   });
   if (result.setCookies?.length) applyGuestCookies(response, result.setCookies);
   return response;
+}
+
+/**
+ * ★ THE PHONE COPY, CHECKED ON THE BYTES R2 HOLDS (take-home r1). The presign bound its PUT to the declared
+ * sizes, but a multipart original can land shorter than declared, and the copy is never metered: so it is
+ * measured here, beside the original's HEAD, and recorded only within both caps (`phoneCopyFits`). A copy that is
+ * not there lands the photograph without one; a copy past either cap is dropped AND its object deleted, since
+ * an unrecorded object under a recorded row is one no purge would ever reach. Best-effort throughout: nothing
+ * about a phone copy ever refuses the photograph itself.
+ */
+async function verifyPhoneCopy(args: {
+  phoneKey: string;
+  realSize: number;
+  media_id: string;
+}): Promise<PhoneCopy | null> {
+  const { phoneKey, realSize, media_id } = args;
+  const head = await headObject({ key: phoneKey });
+  if (!head || head.size <= 0) {
+    captureWarning("upload", "phone_copy_missing", { key: phoneKey, media_id });
+    return null;
+  }
+  if (phoneCopyFits(head.size, realSize)) {
+    return { key: phoneKey, bytes: head.size };
+  }
+  captureWarning("upload", "phone_copy_over_cap", {
+    key: phoneKey,
+    media_id,
+    phoneBytes: head.size,
+    originalBytes: realSize,
+  });
+  try {
+    // Loaded only on this rare path: every completion that records its copy, or has none, never needs it.
+    const { deleteR2Objects } = await import("@/lib/r2/delete");
+    const out = await deleteR2Objects([phoneKey]);
+    if (out.errored.length > 0)
+      throw new Error(out.errored[0]?.code ?? "errored");
+  } catch (e) {
+    // Left in place under a live row (the orphan sweep reclaims it once the row is gone): said, never silent.
+    captureWarning("upload", "phone_copy_delete_failed", {
+      key: phoneKey,
+      media_id,
+      error: e instanceof Error ? e.message : String(e),
+    });
+  }
+  return null;
 }

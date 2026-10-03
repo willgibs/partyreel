@@ -383,6 +383,10 @@ describe("purgeAccount on the clamping fake", () => {
       media,
     });
     const handled = new Set<string>();
+    // What the purge takes, read before it runs (the fake deletes the rows it purges in place).
+    const purged = media
+      .filter((row) => row.event_id !== b.id)
+      .map((row) => ({ ...row }));
 
     const result = await purgeAccount(w.client, user, handled);
 
@@ -404,6 +408,17 @@ describe("purgeAccount on the clamping fake", () => {
     });
     expect(Math.max(...w.purgeCallSizes)).toBeLessThanOrEqual(MAX_ROWS);
     expect(everyRequestFits(w.fake)).toBe(true);
+    // ★ Every stored copy of every purged row went (take-home-wiring): the phone-size copy beside the
+    // original and the preview, so nothing is left in R2 under a row that is gone.
+    const deleted = new Set(
+      w.log.flatMap((entry) => (entry.kind === "r2" ? entry.keys : [])),
+    );
+    expect(purged).toHaveLength(3_700);
+    for (const m of purged) {
+      expect(deleted.has(String(m.original_key)), String(m.id)).toBe(true);
+      expect(deleted.has(String(m.preview_key)), String(m.id)).toBe(true);
+      expect(deleted.has(String(m.phone_key)), String(m.id)).toBe(true);
+    }
   });
 
   it("purges an account of 1,200 events (past one read) and deletes the auth user last", async () => {

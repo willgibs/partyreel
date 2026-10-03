@@ -109,7 +109,7 @@ describe("sweepExpiredEvents", () => {
       events: 321,
       hold_blocked_events: 2,
       media_rows: 2_500,
-      r2_deleted: 2 * 2_500, // original + preview each
+      r2_deleted: 3 * 2_500, // original + preview + phone copy each (take-home-wiring, 2026-10-03)
       r2_errored: 0,
       freed_bytes: 2_500 * 7,
     });
