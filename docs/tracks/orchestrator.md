@@ -58,7 +58,7 @@ flat; a lane in its gate, or the milestone's full gate, counts as two. Every pro
 | `take-home` | board take-home [desk 70], new: how photographs leave (guest=select, save=light, host=two recommended) | MERGED at `303c6e82` (gate 157 green: test, build, lab:smoke 19, lab:demo on take-home; the lane's gate: test 9,269, build, lab:smoke 5, lab:demo 3 steps at 1440 and 375); lab only; on the desk at build 44 | Opus, 3136 | `af6d50656e540a41c` |
 | `redteam-43` | build 43's red-team (`96c6dcdc` on the alias): the disposable leak matrix live first, the cover and shutter, the hub, the dashboard, Save; brief and ledger in `../partyreel-wt/_scratch/redteam-43/` | running | Opus, Will's Chrome | `a7abfa3530cd42e8c` |
 | `crumbs-51` | words made true after round 12's merges: four help articles and the admin switch on the retired reel tile and the welcome screen, careers, two hero comments, host-app.md's pulse | running | Sonnet, 3133 | `ae456d79d5e6fcd48` |
-| `crumbs-52` | red-team 43's second MEDIUM: the hub's Reel card (a soft navigation) shows the album before the reel; the curtain made to stand from the first frame | running | Sonnet, 3134 | `(spawning)` |
+| `crumbs-52` | red-team 43's second MEDIUM: the hub's Reel card (a soft navigation) shows the album before the reel; the curtain made to stand from the first frame | running | Sonnet, 3134 | `a43b82a5650dc8a64` |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a2e44f7ad679754e8`, this session. Q8
 (round 12's plan) answered with 21 corrections, all folded into the briefs; the next consult is the foundation's
