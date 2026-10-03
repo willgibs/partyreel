@@ -731,3 +731,48 @@ describe("the readings themselves", () => {
     );
   });
 });
+
+describe("what a run left for a person", () => {
+  it("names the offered switch once, with every reading that tripped it", async () => {
+    const { offeredSwitches } = await import("@/lib/jobs/spend-watch");
+    expect(
+      offeredSwitches(
+        run(0, {
+          uploads: tripped(4_000),
+          upload_bytes: tripped(1e12),
+          downloads: tripped(900),
+          sign_ins: ok(2),
+        }),
+      ),
+    ).toEqual([
+      { key: "uploads_enabled", readings: ["uploads", "upload_bytes"] },
+    ]);
+    expect(offeredSwitches(run(0, { uploads: ok(4) }))).toEqual([]);
+  });
+});
+
+describe("guest uploads off", () => {
+  it("★ holds the watch at attention while uploads are paused, whoever paused them", () => {
+    const counts = runCounts({
+      nowMs: NOW,
+      baseline: null,
+      verdicts: [],
+      snap: {},
+      pausedAt: {},
+      uploadsPaused: true,
+    });
+    expect(counts).toMatchObject({
+      uploads_paused: true,
+      breaker_tripped: true,
+    });
+    expect(
+      runCounts({
+        nowMs: NOW,
+        baseline: null,
+        verdicts: [],
+        snap: {},
+        pausedAt: {},
+      }),
+    ).not.toHaveProperty("breaker_tripped");
+  });
+});

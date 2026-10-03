@@ -485,7 +485,7 @@ export default async function JobsPage() {
                   />
                   <SpendWatchSwitches
                     switches={watch.switches}
-                    pausedAt={watch.latest?.run.pausedAt ?? {}}
+                    latest={watch.latest?.run ?? null}
                     unreadable={watch.switchesError}
                   />
                 </div>

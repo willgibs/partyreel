@@ -428,6 +428,12 @@ export async function runSpendWatch(opts: {
   const missing = verdicts.filter((v) => v.state === "missing");
   const status =
     missing.length > 0 || failed.length > 0 || !historyRead ? "error" : "ok";
+  const uploadsPaused = switches?.uploads_enabled?.enabled === false;
+  if (uploadsPaused) {
+    extra.push(
+      "Guest uploads are paused: every guest is refused until a person turns them back on.",
+    );
+  }
   const note = noteFor({
     verdicts,
     paused: pausedNow,
@@ -439,6 +445,7 @@ export async function runSpendWatch(opts: {
     nowMs,
     baseline,
     verdicts,
+    uploadsPaused,
     snap: {
       ...(db?.ledger ? { ledger: db.ledger } : {}),
       ...(db?.album !== undefined ? { album: db.album } : {}),

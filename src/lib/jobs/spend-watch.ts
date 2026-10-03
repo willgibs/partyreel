@@ -766,6 +766,26 @@ export function carryPaused(input: {
   return out;
 }
 
+/**
+ * The switches a run's trips left for a person (an `offer` reading that tripped), so the console can say so beside
+ * the switch itself, where the one press is.
+ */
+export function offeredSwitches(run: StoredRun): {
+  key: SwitchKey;
+  readings: ReadingId[];
+}[] {
+  const out: { key: SwitchKey; readings: ReadingId[] }[] = [];
+  for (const def of READINGS) {
+    if (def.stop.kind !== "offer") continue;
+    if (run.readings[def.id]?.state !== "tripped") continue;
+    const key = def.stop.switch;
+    const entry = out.find((o) => o.key === key);
+    if (entry) entry.readings.push(def.id);
+    else out.push({ key, readings: [def.id] });
+  }
+  return out;
+}
+
 // ── The run's own record ──────────────────────────────────────────────────────────────────────────
 
 /** `job_runs.counts` for a run, in the shape `parseStoredRun` reads back. */
@@ -775,6 +795,11 @@ export function runCounts(input: {
   verdicts: readonly Verdict[];
   snap: Snapshot;
   pausedAt: Partial<Record<SwitchKey, string>>;
+  /**
+   * Guest uploads are off, whoever paused them. Every guest is refused while it lasts, so a pause nobody remembers
+   * must keep ringing: it holds the watch at attention until a person turns uploads back on.
+   */
+  uploadsPaused?: boolean;
 }): Record<string, unknown> {
   const readings: Record<string, StoredReading> = {};
   for (const v of input.verdicts) {
@@ -796,9 +821,12 @@ export function runCounts(input: {
     tripped,
     missing,
     paused,
-    // The orphan breaker's flag, shared: a trip, or a pause of the watch's still standing, is a person's call, and
-    // `jobHealth` reads it as attention (the bell and the band).
-    ...(tripped > 0 || paused > 0 ? { breaker_tripped: true } : {}),
+    // The orphan breaker's flag, shared: a trip, a pause of the watch's still standing, or guest uploads off is a
+    // person's call, and `jobHealth` reads it as attention (the bell and the band).
+    ...(input.uploadsPaused ? { uploads_paused: true } : {}),
+    ...(tripped > 0 || paused > 0 || input.uploadsPaused
+      ? { breaker_tripped: true }
+      : {}),
     window: {
       from: input.baseline
         ? new Date(input.baseline.readAtMs).toISOString()

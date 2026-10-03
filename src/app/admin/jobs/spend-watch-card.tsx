@@ -17,6 +17,8 @@ import {
   SWITCH_LABEL,
   formatAmount,
   formatReading,
+  offeredSwitches,
+  readingById,
   type ReadingDef,
   type StoredReading,
   type StoredRun,
@@ -87,12 +89,12 @@ const SWITCH_LINE: Record<
   export_enabled: {
     line: "The watch pauses it on its own.",
     href: "/admin/exports#downloads",
-    place: "On Exports",
+    place: "Open Exports",
   },
   purge_cron_enabled: {
     line: "The watch pauses it on its own.",
     href: "/admin/jobs#job-purge_cron",
-    place: "On its card",
+    place: "Open its card",
   },
 };
 
@@ -128,11 +130,14 @@ function NowCell({
     );
   }
   return (
-    <span className="flex flex-wrap items-center gap-2 tabular-nums">
-      {reading.at_least ? "at least " : ""}
-      {formatReading(def, reading.value)}
+    <span className="flex flex-wrap items-center gap-x-2 gap-y-1 tabular-nums">
+      {/* A reading and its unit stay one line; only the badge and the reasons wrap. */}
+      <span className="whitespace-nowrap">
+        {reading.at_least ? "at least " : ""}
+        {formatReading(def, reading.value)}
+      </span>
       {reading.state === "tripped" ? (
-        <Badge variant="warning">Past the ceiling</Badge>
+        <Badge variant="warning">Tripped</Badge>
       ) : null}
     </span>
   );
@@ -144,10 +149,10 @@ function ReadingsTable({ latest }: { latest: LatestWatchRun }) {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Reading</TableHead>
-          <TableHead>Now</TableHead>
-          <TableHead>Ceiling</TableHead>
-          <TableHead className="hidden sm:table-cell">
+          <TableHead className="px-2 sm:px-3">Reading</TableHead>
+          <TableHead className="px-2 sm:px-3">Now</TableHead>
+          <TableHead className="px-2 sm:px-3">Ceiling</TableHead>
+          <TableHead className="hidden px-2 sm:table-cell sm:px-3">
             Busiest this week
           </TableHead>
         </TableRow>
@@ -158,8 +163,11 @@ function ReadingsTable({ latest }: { latest: LatestWatchRun }) {
           if (!reading) {
             return (
               <TableRow key={def.id}>
-                <TableCell>{def.label}</TableCell>
-                <TableCell colSpan={3} className="text-muted-foreground">
+                <TableCell className="px-2 sm:px-3">{def.label}</TableCell>
+                <TableCell
+                  colSpan={3}
+                  className="px-2 text-muted-foreground sm:px-3"
+                >
                   Not in this run
                 </TableCell>
               </TableRow>
@@ -173,16 +181,16 @@ function ReadingsTable({ latest }: { latest: LatestWatchRun }) {
                 : undefined;
           return (
             <TableRow key={def.id} tone={tone}>
-              <TableCell className="align-top">
+              <TableCell className="px-2 align-top sm:px-3">
                 <span className="font-medium">{def.label}</span>
                 <span className="block max-w-72 text-caption whitespace-normal text-muted-foreground">
                   {reading.state === "tripped" ? def.remedy : def.source}
                 </span>
               </TableCell>
-              <TableCell className="align-top whitespace-normal">
+              <TableCell className="px-2 align-top whitespace-normal sm:px-3">
                 <NowCell def={def} reading={reading} />
               </TableCell>
-              <TableCell className="align-top tabular-nums">
+              <TableCell className="px-2 align-top whitespace-normal tabular-nums sm:px-3">
                 {reading.ceiling !== undefined ? (
                   <>
                     {formatAmount(def, reading.ceiling)}
@@ -196,7 +204,7 @@ function ReadingsTable({ latest }: { latest: LatestWatchRun }) {
                   <span className="text-muted-foreground">Unknown</span>
                 )}
               </TableCell>
-              <TableCell className="hidden align-top tabular-nums sm:table-cell">
+              <TableCell className="hidden px-2 align-top tabular-nums sm:table-cell sm:px-3">
                 {reading.peak !== null && reading.peak !== undefined ? (
                   formatAmount(def, reading.peak)
                 ) : (
@@ -253,17 +261,32 @@ export function SpendWatchReadings({
   );
 }
 
-/** The switches the watch can stop, with the pauses that are still its own. */
+/** The band's own voice for a line that needs a look: a tinted ground and a dot, the words in the ground's ink. */
+function AttentionLine({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="mt-1 flex items-start gap-2 rounded-sm bg-warning/8 px-2 py-1 text-caption">
+      <span
+        aria-hidden
+        className="mt-1.5 size-1.5 shrink-0 rounded-full bg-warning"
+      />
+      <span>{children}</span>
+    </p>
+  );
+}
+
+/** The switches the watch can stop, with the pauses that are still its own and the ones its trips left for you. */
 export function SpendWatchSwitches({
   switches,
-  pausedAt,
+  latest,
   unreadable,
 }: {
   switches: SwitchStates | null;
-  /** The watch's own record of what it paused (its last run's `paused_at`). */
-  pausedAt: Partial<Record<SwitchKey, string>>;
+  /** The watch's last run: what it paused (`paused_at`) and what its trips left for a person. */
+  latest: StoredRun | null;
   unreadable: string | null;
 }) {
+  const pausedAt = latest?.pausedAt ?? {};
+  const offered = latest ? offeredSwitches(latest) : [];
   return (
     <section aria-labelledby="spend-watch-switches" className="space-y-2">
       <h3 id="spend-watch-switches" className="text-sm font-medium">
@@ -286,6 +309,7 @@ export function SpendWatchSwitches({
               !state.enabled &&
               state.updatedAtMs === Date.parse(watchAt);
             const line = SWITCH_LINE[key];
+            const offer = on ? offered.find((o) => o.key === key) : undefined;
             return (
               <li
                 key={key}
@@ -298,18 +322,19 @@ export function SpendWatchSwitches({
                     {line.line}
                   </p>
                   {stillTheWatchs ? (
-                    // The band's own voice: a tinted ground and a dot, the words in the ground's ink.
-                    <p className="mt-1 flex items-start gap-2 rounded-sm bg-warning/8 px-2 py-1 text-caption">
-                      <span
-                        aria-hidden
-                        className="mt-1.5 size-1.5 shrink-0 rounded-full bg-warning"
-                      />
-                      <span>
-                        Paused by the spend watch,{" "}
-                        {formatAdminTimestamp(watchAt)}. It stays off until you
-                        turn it back on.
-                      </span>
-                    </p>
+                    <AttentionLine>
+                      Paused by the spend watch, {formatAdminTimestamp(watchAt)}
+                      . It stays off until you turn it back on.
+                    </AttentionLine>
+                  ) : null}
+                  {offer ? (
+                    <AttentionLine>
+                      {offer.readings
+                        .map((id) => readingById(id)?.label ?? id)
+                        .join(" and ")}{" "}
+                      went past the ceiling. Pause it here if this is a runaway,
+                      not a party.
+                    </AttentionLine>
                   ) : null}
                 </div>
                 {key === "uploads_enabled" ||

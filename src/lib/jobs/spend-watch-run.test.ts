@@ -340,6 +340,25 @@ describe("a trip", () => {
   });
 });
 
+describe("guest uploads off", () => {
+  it("★ keeps ringing while a person's pause of guest uploads stands, and says so", async () => {
+    readSwitches.mockResolvedValue({
+      ...allOn,
+      uploads_enabled: { enabled: false, updatedAtMs: NOW.getTime() - 3 * DAY },
+    });
+    const outcome = await runSpendWatch({ trigger: "schedule", now: NOW });
+    expect(outcome.status).toBe("ok");
+    const run = finished();
+    expect(run.counts).toMatchObject({
+      uploads_paused: true,
+      breaker_tripped: true,
+    });
+    expect(run.note).toBe(
+      "Guest uploads are paused: every guest is refused until a person turns them back on.",
+    );
+  });
+});
+
 describe("a reading it could not take", () => {
   it("★ fails the run and never passes the readings as zero when the reading RPC is missing", async () => {
     rpc.mockResolvedValue({

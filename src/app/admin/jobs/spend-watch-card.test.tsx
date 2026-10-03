@@ -16,7 +16,7 @@ const { SpendWatchReadings, SpendWatchSwitches } =
 
 /**
  * THE SPEND WATCH'S CARD (admin-observability.md, "The spend watch"): a reading is drawn as what it is (a number
- * against its ceiling, "Past the ceiling" with what to check, "No reading" with why, "Warming up"), never as a number
+ * against its ceiling, "Tripped" with what to check, "No reading" with why, "Warming up"), never as a number
  * it is not; and a switch is never drawn ON when it could not be read. The watch's own pause shows only while it is
  * still the watch's.
  */
@@ -83,7 +83,7 @@ describe("the readings", () => {
         "under the vendor's own daily stop",
       ),
     ).toBeInTheDocument();
-    expect(screen.queryByText("Past the ceiling")).toBeNull();
+    expect(screen.queryByText("Tripped")).toBeNull();
     for (const tr of screen.getAllByRole("row")) {
       expect(tr).not.toHaveAttribute("data-tone");
     }
@@ -107,7 +107,7 @@ describe("the readings", () => {
     );
     const tripped = row("Download all");
     expect(tripped).toHaveAttribute("data-tone", "warning");
-    expect(within(tripped).getByText("Past the ceiling")).toBeInTheDocument();
+    expect(within(tripped).getByText("Tripped")).toBeInTheDocument();
     expect(
       within(tripped).getByText(/A client minting over and over is the shape/),
     ).toBeInTheDocument();
@@ -174,7 +174,7 @@ const allOn: SwitchStates = {
 describe("what it can stop", () => {
   it("offers its two switches in place, and sends the other two to their homes", () => {
     render(
-      <SpendWatchSwitches switches={allOn} pausedAt={{}} unreadable={null} />,
+      <SpendWatchSwitches switches={allOn} latest={null} unreadable={null} />,
     );
     expect(
       screen.getByRole("switch", { name: "Toggle Guest uploads" }),
@@ -182,11 +182,11 @@ describe("what it can stop", () => {
     expect(
       screen.getByRole("switch", { name: "Toggle Lifecycle mail" }),
     ).toBeChecked();
-    expect(screen.getByRole("link", { name: "On Exports" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Open Exports" })).toHaveAttribute(
       "href",
       "/admin/exports#downloads",
     );
-    expect(screen.getByRole("link", { name: "On its card" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Open its card" })).toHaveAttribute(
       "href",
       "/admin/jobs#job-purge_cron",
     );
@@ -201,7 +201,7 @@ describe("what it can stop", () => {
           ...allOn,
           export_enabled: { enabled: false, updatedAtMs: Date.parse(at) },
         }}
-        pausedAt={{ export_enabled: at }}
+        latest={latest({}, { pausedAt: { export_enabled: at } }).run}
         unreadable={null}
       />,
     );
@@ -217,18 +217,58 @@ describe("what it can stop", () => {
             updatedAtMs: Date.parse(at) + 60_000,
           },
         }}
-        pausedAt={{ export_enabled: at }}
+        latest={latest({}, { pausedAt: { export_enabled: at } }).run}
         unreadable={null}
       />,
     );
     expect(screen.queryByText(/Paused by the spend watch/)).toBeNull();
   });
 
+  it("★ says beside the uploads switch when a trip left it for a person, and only while it is on", () => {
+    const tripped = latest({
+      uploads: {
+        state: "tripped",
+        value: 4_210,
+        ceiling: 1_000,
+        basis: "floor",
+        peak: 22,
+      },
+      upload_bytes: {
+        state: "tripped",
+        value: 12 * 1024 ** 3,
+        ceiling: 10 * 1024 ** 3,
+        basis: "floor",
+        peak: 1,
+      },
+    }).run;
+    const { rerender } = render(
+      <SpendWatchSwitches
+        switches={allOn}
+        latest={tripped}
+        unreadable={null}
+      />,
+    );
+    expect(
+      screen.getByText(/Uploads and Bytes uploaded went past the ceiling/),
+    ).toBeInTheDocument();
+    rerender(
+      <SpendWatchSwitches
+        switches={{
+          ...allOn,
+          uploads_enabled: { enabled: false, updatedAtMs: AT },
+        }}
+        latest={tripped}
+        unreadable={null}
+      />,
+    );
+    expect(screen.queryByText(/went past the ceiling/)).toBeNull();
+  });
+
   it("★ never draws a switch it could not read as on", () => {
     render(
       <SpendWatchSwitches
         switches={null}
-        pausedAt={{}}
+        latest={null}
         unreadable="connection refused"
       />,
     );
