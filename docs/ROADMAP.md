@@ -17,6 +17,11 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Lifecycle: a one-time lifecycle notice (a grace's start, an inactivity removal, a reduce) is lost on a night its send fails, since its sweep never meets the state again: a Resend outage drops it for good (from `spend-watch`).
+- Admin: the palette could name the spend watch's two switches (`lib/admin/palette.ts`), jumping to `/admin/jobs#switch-uploads_enabled` and `#switch-lifecycle_mail_enabled` (from `spend-watch`).
+- The lab: a Library specimen of the spend watch's card (healthy, tripped, a reading missing), so `lab:smoke` renders it; the card is presentation-only (`spend-watch-card.tsx`) for exactly that (from `spend-watch`).
+- Docs: `lifecycle-recovery.md`'s "Sending email" could name the lifecycle-mail hold, whose home is `admin-observability.md` "The spend watch" (from `spend-watch`).
+- Launch checkpoint: the spend watch hourly at the Vercel Pro cutover (`0 * * * *` in `vercel.json` and the catalog, `expectedEveryMs` an hour, the cadence words), `RESEND_DAILY_QUOTA` null at the Resend Pro cutover, and Supabase Auth's email limit at ≥2,000 an hour (the Advisor's Q17, against the 2,000-guest wedding's arrival hour; verify the dashboard's maximum) (from `spend-watch`).
 - Host: the host's delta could carry its new items' links as the guest's does (`/api/album/host/<id>/sync` with `album-wire-carry.ts`), one call a batch on the hub too (from `album-calm`).
 - Guests: the reel tile re-deals its six stills on every arrival (`reel-tile.ts`, `planTake` over the whole album), and a re-dealt still no window linked costs a links call (8 of the 26 calls measured); a deal that keeps the stills that still play makes every batch one call (from `album-calm`).
 - Platform: the doorbell rings each visible listener once a changed row; a ping coalesced server-side (one an album a few seconds, `media_gallery_doorbell`, a migration) would cut the visible albums' Realtime messages as the batch clock cut their calls (from `album-calm`).
