@@ -9,15 +9,19 @@
  * ★ A REFUSAL KEEPS ITS OWN PLAIN WORD ("Not approved", her tracker's): approval reads as developing, so a photo the
  * host turns down must never read as one still developing (the board's own cost for this model).
  *
- * ★ THE DEVELOP TIME IS SAID FROM NOW, IN HER OWN CLOCK (the camera's own phrasing, `developsWhen`: "at 9 am" inside a
- * day, "Saturday at 9 am" inside a week, then the date), so every caller says it only after hydration; before it, each
- * line reads whole without the time (`nowMs: null`).
+ * ★ THE DEVELOP TIME IS SAID FROM NOW, IN HER OWN CLOCK (the camera's own phrasing, `developsWhen`: "at 9 am" today,
+ * "tomorrow at 9 am", "Saturday at 9 am" inside a week, then the date; the calendar's days, never 24 hours), so every
+ * caller says it only after hydration; before it, each line reads whole without the time (`nowMs: null`).
  *
  * Pure and isomorphic.
  */
 import { PRESET_NAME } from "@/lib/disposable/album-style";
 import type { Capture } from "@/lib/disposable/facts";
-import { clockWords, developsWhen } from "@/lib/guest/camera/words";
+import {
+  calendarDaysBetween,
+  clockWords,
+  developsWhen,
+} from "@/lib/guest/camera/words";
 import { TRACKER_WORDS } from "@/lib/guest/upload-tracker";
 
 /**
@@ -124,12 +128,17 @@ const DATE = new Intl.DateTimeFormat("en-US", {
   day: "numeric",
 });
 
-/** When an album developed, from now: "at 9 am" inside a day, its weekday inside a week, then its date. */
+/**
+ * When an album developed, from now, by the calendar's days as `developsWhen` says them ahead: "at 9 am" on its own
+ * day, "yesterday" the day after, its weekday inside a week, then its date. ★ "At 9 pm" at 12:10 am read as tonight's
+ * 9 pm, three hours on (the same NIT as a develop ahead, red-team 46), so a clock is said only for today.
+ */
 export function developedWhen(developsAt: string, nowMs: number): string {
   const at = new Date(developsAt);
-  const ago = nowMs - at.getTime();
-  if (ago < 86_400_000) return `at ${clockWords(at)}`;
-  if (ago < 7 * 86_400_000) return WEEKDAY.format(at);
+  const ago = calendarDaysBetween(at, new Date(nowMs));
+  if (ago <= 0) return `at ${clockWords(at)}`;
+  if (ago === 1) return "yesterday";
+  if (ago < 7) return WEEKDAY.format(at);
   return DATE.format(at);
 }
 

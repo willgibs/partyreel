@@ -80,6 +80,34 @@ beforeEach(() => {
   });
 });
 
+describe("★ each choice of step one sits on one line (red-team 46's NIT)", () => {
+  // "Only me" wrapped onto two lines beside "Public" and "Private" at 375, where a card gives the control 279 px (224 at
+  // 320). Layout is the browser's, and the captures at both widths hold it; what is pinned is the cause that would bring
+  // it back: a choice's words may wrap, or a choice's icon take the room the words need.
+  it("★ the words are the three the door has always had, none of them allowed to wrap", () => {
+    const { container } = page();
+    const choices = [
+      ...container.querySelectorAll<HTMLElement>("[data-door-choice]"),
+    ];
+    expect(choices.map((c) => c.textContent)).toEqual([
+      "Public",
+      "Private",
+      "Only me",
+    ]);
+    for (const c of choices) expect(c.className).toContain("whitespace-nowrap");
+  });
+
+  it("★ the icons are drawn for the screen only where the control has the room for them", () => {
+    const { container } = page();
+    for (const icon of container.querySelectorAll("[data-door-choice] > svg")) {
+      expect(icon).toHaveAttribute("aria-hidden", "true");
+      // Hidden until the control itself (a container query, not the window) is wide enough for icon and words.
+      expect(icon.getAttribute("class")).toMatch(/\bhidden\b/);
+      expect(icon.getAttribute("class")).toMatch(/@min-\[[\d.]+rem\]:block/);
+    }
+  });
+});
+
 describe("step one, and the rule for everyone already in", () => {
   it("★ Only me with guests inside says it closes them out, and writes nothing until confirmed", async () => {
     page({}, { in: 31 });

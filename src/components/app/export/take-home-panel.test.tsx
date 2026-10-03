@@ -179,6 +179,66 @@ describe("at her desk", () => {
   });
 });
 
+/* ★ THE HEAD NAMES WHAT THE ALBUM HOLDS (red-team 46's NIT): "28 photos & videos" stood over an album of 28 photos and no
+   video. The panel knows the kinds (the summary counts photographs and clips apart), so the noun follows them as the
+   rest of the app words a set (`setNoun`): photos, videos, or both. */
+describe("★ the head says what the album holds", () => {
+  beforeEach(() => setViewportWidth(1440));
+
+  /** An album's summary of photographs and clips, nothing hidden. */
+  const holding = (photos: number, clips: number) => ({
+    shown: {
+      photo: { count: photos, bytes: photos * 3 * MB, phone: photos * MB },
+      video: { count: clips, bytes: clips * 20 * MB, phone: clips * 20 * MB },
+    },
+    hidden: {
+      photo: { count: 0, bytes: 0, phone: 0 },
+      video: { count: 0, bytes: 0, phone: 0 },
+    },
+  });
+
+  /** The line under "Take it home", the popup's own description. */
+  async function headSays(summary: ReturnType<typeof holding>) {
+    global.fetch = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({ ok: true, summary, pictures: PICTURES }),
+          { status: 200 },
+        ),
+    ) as unknown as typeof fetch;
+    render(<GalleryDownloadAllButton eventId="evt-1" />);
+    fireEvent.click(screen.getByRole("button", { name: "Download" }));
+    const dialog = await screen.findByRole("dialog");
+    await waitFor(() =>
+      expect(dialog.querySelector("[data-set-facts]")?.textContent).not.toBe(
+        "Adding it up",
+      ),
+    );
+    return document.getElementById(dialog.getAttribute("aria-describedby")!)
+      ?.textContent;
+  }
+
+  it("★ photographs only: photos, never 'photos & videos'", async () => {
+    expect(await headSays(holding(28, 0))).toBe("28 photos");
+  });
+
+  it("one photograph is a photograph", async () => {
+    expect(await headSays(holding(1, 0))).toBe("1 photo");
+  });
+
+  it("★ clips only: videos", async () => {
+    expect(await headSays(holding(0, 3))).toBe("3 videos");
+  });
+
+  it("one clip is a video", async () => {
+    expect(await headSays(holding(0, 1))).toBe("1 video");
+  });
+
+  it("both kinds: photos & videos, counted together", async () => {
+    expect(await headSays(holding(196, 18))).toBe("214 photos & videos");
+  });
+});
+
 describe("on her phone", () => {
   beforeEach(() => {
     setViewportWidth(375);

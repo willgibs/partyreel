@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo, useState, type ReactNode } from "react";
+import { Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { ArrowUp, Camera, ChevronLeft, ImageUp, Play } from "lucide-react";
 
@@ -19,7 +19,10 @@ import {
   AlbumWait,
   AlbumWaitSource,
 } from "@/components/guest/gallery-empty-state-wait";
-import { GalleryLiveProvider } from "@/components/guest/gallery-live";
+import {
+  GalleryLiveProvider,
+  useGalleryLive,
+} from "@/components/guest/gallery-live";
 import { GuestShare } from "@/components/guest/guest-share";
 import {
   LiveGallery,
@@ -36,6 +39,7 @@ import { Button } from "@/components/ui/button";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import { useWaitClock } from "@/lib/disposable/use-wait-clock";
 import { coverEyebrow, waitWords } from "@/lib/disposable/wait-words";
+import { addWords } from "@/lib/guest/camera/words";
 import { useDoorHues } from "@/lib/guest/door-light";
 import { uploadsWait } from "@/lib/guest/upload-tracker";
 import { DEFAULT_ROW_STEP, type RowStep } from "@/lib/shared/album-rows";
@@ -141,6 +145,19 @@ export function AsGuestView({
   );
 }
 
+/**
+ * WHAT WAITS, TOLD TO THE COVER: the guests' own live source holds how many photographs wait in the album (numbers only,
+ * never an id: `GuestFullSync.waiting`, the seed's from the first paint), and the cover's Add stands outside it, so this
+ * hands the count up. Drawn nowhere.
+ */
+function WaitingBridge({ onWaiting }: { onWaiting: (count: number) => void }) {
+  const count = useGalleryLive()?.waiting?.count ?? 0;
+  useEffect(() => {
+    onWaiting(count);
+  }, [count, onWaiting]);
+  return null;
+}
+
 function AlbumAsGuest({
   event,
   joinUrl,
@@ -179,14 +196,12 @@ function AlbumAsGuest({
   // The guest page's own words for its one Add (`event-experience.tsx`): the album's camera says Take photos.
   const canUpload = event.accepting_uploads;
   const camera = event.capture === "camera";
-  const empty = mediaCount === 0;
-  const addWords = camera
-    ? empty
-      ? "Take the first photo"
-      : "Take photos"
-    : empty
-      ? "Add the first photo"
-      : "Add photos";
+  // ★ "THE FIRST PHOTO" ONLY OVER AN ALBUM NOTHING HAS BEEN ADDED TO, VISIBLE OR WAITING (red-team 46's NIT: this view
+  // said it over 102 developing shots, where a newcomer to the same album reads "Take photos"). What waits is read off the
+  // guests' own live source (`waiting.count`, the fact the guest page's `albumWaits` asks the same albums), told up by
+  // `WaitingBridge` once the source has it; until then the Add stands on the visible count alone, as every album's did.
+  const [waiting, setWaiting] = useState(0);
+  const empty = mediaCount === 0 && waiting === 0;
   /* ★ WHAT WAITS, AS A GUEST MEETS IT (the-wait r1, `wait=sheet`, `name=disposable`): the contact sheet over the album
      wherever photos wait, off the guests' own live source (numbers only; nothing of hers: no ticket), the album's rule
      before anything waits, and the cover's word over the name on a disposable. Read on the reader's clock once it is
@@ -258,7 +273,8 @@ function AlbumAsGuest({
                   size="cta"
                   className="min-w-0 flex-1 md:flex-none"
                 >
-                  {camera ? <Camera /> : <ImageUp />} {addWords}
+                  {camera ? <Camera /> : <ImageUp />}{" "}
+                  {addWords({ camera, empty })}
                 </Button>
               )}
               {reelRound && (
@@ -319,6 +335,7 @@ function AlbumAsGuest({
                 firstPaintWidth={firstPaintWidth}
                 rule={canUpload}
               >
+                <WaitingBridge onWaiting={setWaiting} />
                 {/* The shutter's light, the album's three newest, as the guest page samples it. */}
                 <AlbumLightSampler />
                 <AlbumWait

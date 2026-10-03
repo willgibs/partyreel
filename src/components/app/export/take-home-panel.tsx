@@ -42,10 +42,11 @@ import { Switch } from "@/components/ui/switch";
 import type { ExportSummary } from "@/lib/export/build-manifest";
 import {
   SAVE_MAX_ITEMS,
+  setNoun,
   sheetCanSave,
   takeHomeSizes,
 } from "@/lib/export/take-home";
-import { formatCount, formatMediaCount } from "@/lib/format/count";
+import { formatCount } from "@/lib/format/count";
 import { PHONE_MAX_EDGE } from "@/lib/media/preview-size";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { cn, formatBytes } from "@/lib/utils";
@@ -218,10 +219,10 @@ export function TakeHomePanel({
       <PopupContent kind="plan" data-take-home="">
         <PopupHeader
           title="Take it home"
+          // ★ WHAT THE ALBUM HOLDS, BY ITS KINDS (red-team 46's NIT): "28 photos & videos" stood over 28 photos and no
+          // video. The summary counts photographs and clips apart, so the set is named as the rest of the app names one.
           description={
-            sizes
-              ? formatMediaCount(sizes.photos + sizes.clips)
-              : "Your album, two ways"
+            sizes ? setNoun(sizes.photos, sizes.clips) : "Your album, two ways"
           }
         />
         <PopupBody className="flex flex-col gap-3">
