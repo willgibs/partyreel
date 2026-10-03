@@ -1,6 +1,6 @@
 ---
 track: account-exit
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "891767cc"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -63,25 +63,111 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Will answered all three as recommended, with three more rulings (2026-10-03); built as settled:
+- **The checkbox:** offered only when she has any, off by default ("since a user could delete their uploads to other
+  events at anytime"). Built as a labelled Switch row, the confirm's own option control (`DestructiveSheet`'s
+  `option`): production has no checkbox primitive yet.
+- **The refund:** none, said plainly in the dialog; the plan is cancelled at once (a host could upgrade on the event's
+  day and claim most of it back days later).
+- **The window stays private:** never offered to the person; the operator's Cancel deletion is the occasional failsafe.
+- **The window's length stays as it is,** even with minutes to go: never lengthened, no minimum wait ("would rather lean
+  into privacy-first deletions than hang onto their data longer").
+- **Cancel deletion is required:** the whole recovery from /admin, no SQL, saying plainly what comes back and what does not.
+- **A held account stays blocked,** and the sign-in's words stay true without telling the hold: after "you can start
+  fresh after <time>", one line, "If it's still blocked after that, contact us" (linking `/contact`), never more.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/auth-accounts.md`, "Deleting an account": its first line refined (what goes at once, her uploads
+  elsewhere taken out first when she asks, no refund and why); three lines added: the purge's time
+  (`purge-time.ts`), a sign-in during the wait (where GoTrue refuses, the public answer, why `/login`'s words are
+  conditional, the contact line for a hold), and the operator's Cancel deletion (what it restores, its order, its
+  refusal during a run, its audit line).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Launch checkpoint: `/privacy` and `/terms` say what a deletion now does: everything anyone can see goes at once and the
+  nightly purge erases the rest, after which the address can start fresh; her uploads in other albums can go in the same
+  step (`legal-privacy.tsx`'s "Delete your account", `legal-terms.tsx`'s "Deletion is immediate and permanent").
+- Lifecycle: `purgeAccount` re-reads an account's stamp before it purges it, so a Cancel deletion that lands between
+  the cancellation's run check and a run reading the queue can never lose the account it restored.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits:** the work `c61630d6` and this manifest, pushed to `lp/account-exit`. launch-prep moved since the cut
+  (lab-frame, desk-tune-4, docs) but nothing in this lane's owns or reads and no conflict, so no sync.
+- **Gates on `c61630d6`, each on its own exit code:** `pnpm typecheck` 0; `pnpm lint` 0 (no warnings); `pnpm test` 0
+  (808 files, 9,539 tests); `zsh scripts/build-lock.sh pnpm build` 0; `pnpm lab:smoke --base http://localhost:3134` 0
+  (161 checks, 0 failing). Logs: `/Users/gibby/local/ai/partyreel-wt/_scratch/account-exit/gate-*.log`.
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` is owned paths only, plus this file.
+- **The dialog** (`account-delete-card.tsx`): the plan line (cancelled now, never refunded), the events line, "Your
+  account is erased for good by <time>, in our nightly cleanup" with the email locked until then and free after, and the
+  choice "Also remove the 12 photos and 1 video I added to other people's albums" (only when she has any, off). Its count
+  and time come from `getDeletionFactsAction` as it opens (hover and focus ask first; one answer serves 30 s); the done
+  screen repeats when the email can start fresh and stays until she leaves (Done, the corner ×, Escape all go home).
+  Pinned: `account-delete-card.test.tsx`, `actions.test.ts`.
+- **The removal** (`requestAccountDeletion`, step 2): her own `removeMyUpload` for each upload of hers in another
+  host's live album, read whole by keyset, before the plan and the stamp; the end state decides (any left refuses the
+  whole request, "your account wasn't deleted", with a Sentry warning). Pinned on the clamping fake: 1,200 removed and
+  no one else's touched; one left refuses with no plan cancelled, no stamp, no bin, no ban; a retry finishes it
+  (`account.test.ts`). The predicate was read live, service role and read-only: its counts agree with the RPC's guest arm
+  rebuilt by hand for every account that has guest rows (`_scratch/account-exit/probe-queries.mjs`).
+- **The purge's time** (`src/lib/lifecycle/purge-time.ts`): parity with vercel.json's cron, the window and the words in
+  New York, Los Angeles, Berlin, Kolkata, Sydney, Chicago (midnight) and Bangkok (noon), before, inside and after the
+  window, and across Eastern's fall-back (`purge-time.test.ts`).
+- **A sign-in during the wait** (`src/app/(auth)/account-deleting.ts`, `account-deleting-notice.tsx`): the code screen
+  (and every guest door sharing it) goes back to the email step naming the address; the callback sends a banned link or
+  Google, and a banned exchange, to `/login?error=account_deleting`, whose conditional words sit above the door. GoTrue's
+  shapes pinned from its v2.197.0 source, the version live (`/auth/v1/health`): `email-sign-in.deleting.test.tsx`,
+  `route.test.ts`, `account-deleting.test.ts`, `account-deleting-notice.test.tsx` (server paint, clean hydration, then
+  the browser's zone), `login/page.test.tsx`. `signInWithOtp` does not refuse a banned user (GoTrue's `MagicLink` has no
+  ban check), so the send needs no mapping.
+- **`/login?error=a&error=b` answered 500** (the failure table lower-cased a list); it now reads the first value
+  (`login/page.test.tsx`; probed on the dev server before and after).
+- **Cancel deletion** (`cancelAccountDeletion`, `cancelAccountDeletionAsOperatorAction`, the control beside Delete in
+  `delete-account-control.tsx`): unban, then clear the stamp and put the auth user's address back on the profile (the
+  lifecycle and billing mails read it); a stamp that will not clear puts the ban back; refused while a purge run is under
+  way; the panel lists what comes back and what stays gone, verb "Keep the account". Its refusal for the signed-out, a
+  non-admin and an admin at AAL1, through the real seam: `src/app/admin/accounts/actions.test.ts`; the rest
+  `account.test.ts`, `cancel-deletion-control.test.tsx`. The card shows "Purged by <UTC>" for an unheld account.
+- **Words:** `content/help/your-data-and-deleting-your-account.mdx` (the section rewritten, "Starting fresh with the
+  same email" added) and `auth-accounts.md`.
+- **Captures** at 1440 and 375 from my dev server, headless Chrome of my own (America/New_York): `/login`'s notice, the
+  code screen's, the dialog, its choice on, its done screen, and the operator's panel, in
+  `/Users/gibby/local/ai/partyreel-wt/_scratch/account-exit/captures/`. The dialog and the panel need a session the dev
+  server cannot give, so they ran on an uncommitted harness page, their two Server Function answers rewritten in the
+  browser; GoTrue's `/otp` and `/verify` were answered in the browser too (`capture.mjs`): no account touched, no mail sent.
+- **Live:** the alias serves launch-prep, not this branch, so the walk is the red-team's after the merge: `/login`'s
+  notice from a forged `/auth/callback?error=access_denied&error_code=user_banned`; a normal Google sign-in still lands;
+  the dialog with willg97 (Google chooser) up to its confirm, never pressed, the choice offered only if he has uploads in
+  others' albums; `/admin/accounts/<id>` on an unstamped account shows no Cancel.
+- **For the Orchestrator's records (outside this lane):** `testing-verification.md`'s hi@willgibs line restores "by SQL":
+  Cancel deletion on `/admin/accounts/[id]` is that restore now. `admin-observability.md`'s "No operator audit table"
+  line may note the cancellation's Sentry line. `account-deletion.ts`'s header says none of the request is reversible
+  (the ban and the stamp now are, by the operator).
+- **Assets requested from Will:** none.
+- **Board ideas:** a slot in the account door for a page's own answer under its heading, where the door's failures stand
+  (`/login`'s deletion notice sits above the heading today, the door being another lane's).
+- **Proposed migrations:** one comment, no schema: `profiles.deletion_requested_at` still says "Set once, never cleared".
+  `comment on column public.profiles.deletion_requested_at is 'When the account holder (or an operator on their behalf)
+  asked for deletion. Non-null means the profile is anonymised, any subscription is cancelled, every hosted event is
+  soft-deleted and the auth user is banned; sweepDeletedAccounts then hard-deletes R2-first and removes the auth.users row
+  once the account has ZERO events left (a forensic hold on one of its events holds the whole account open until the hold
+  lifts, ADR-0020). Cleared only by the operator''s Cancel deletion (cancelAccountDeletion) before the purge.
+  SERVICE-ROLE WRITE ONLY by construction: profiles writes are table-revoked with a column allowlist that deliberately
+  leaves this column out, so there is no client un-request path.';` No Worker, Vercel, Stripe or env change.
+- **Calls his to overrule:**
+  - The code screen names the address ("The old account for maya@example.com is still being erased"): GoTrue answers
+    `user_banned` before it checks the code, so anyone who sends that address a code learns its account is being
+    deleted, which GoTrue's own public verify already tells anyone, silently. `/login`'s words are conditional instead
+    ("If you deleted your account..."), since a forged link can reach them.
+  - The password door stays generic on a ban (its refusal is generic by rule, and GoTrue checks the ban before the
+    password); its first way out, a code, reaches the code screen's words.
+  - The removal runs before the plan, and its refusal says "your account wasn't deleted" (some photos may already be
+    out, as she asked), not "nothing was deleted".
+  - Cancel deletion also puts the account's own address back on the profile, and refuses during a purge run.
+  - The purge's word is "erased" ("erased for good by 1:00 AM tomorrow"), days are today, tonight and tomorrow, and
+    midnight and noon are words.
+  - The done screen stays until she leaves it, where it flashed for 1.6 s.
+- **Look at first:** `captures/375-dialog.png` and `375-code-screen-account-deleting.png`, then
+  `src/components/app/account-delete-card.tsx` and `cancelAccountDeletion` in `src/lib/db/mutations/account.ts`.
