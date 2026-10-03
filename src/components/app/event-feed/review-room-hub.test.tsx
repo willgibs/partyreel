@@ -192,3 +192,48 @@ describe("★ the queue is the hub's own album's", () => {
     expect(tileIds()).toEqual(["first"]);
   });
 });
+
+describe("★ the room's keys in its own panel (`review-keys.ts`)", () => {
+  /** The room as the hub stands it: inside its panel, a dialog that names the room. */
+  function inPanel(entries: ManifestEntry[]) {
+    return render(
+      <TooltipProvider>
+        <HostAlbumProvider seed={seedOf(entries)} qrToken="qr">
+          <div role="dialog" data-room-panel="review" tabIndex={-1}>
+            <ReviewRoomFromHub eventId="ev-1" moderationOn />
+          </div>
+        </HostAlbumProvider>
+      </TooltipProvider>,
+    );
+  }
+  const focusedTile = () =>
+    (document.activeElement?.closest("[data-tile-id]") as HTMLElement | null)
+      ?.dataset.tileId ?? null;
+
+  it("reads its panel as its page: an arrow from the panel itself puts the cursor on the first tile", async () => {
+    inPanel([entry("a", ENTRY_PENDING, 2), entry("b", ENTRY_PENDING, 1)]);
+    await waitFor(() => expect(tileIds()).toEqual(["a", "b"]));
+    const panel = screen.getByRole("dialog");
+    panel.focus();
+    fireEvent.keyDown(panel, { key: "ArrowRight" });
+    expect(focusedTile()).toBe("a");
+    fireEvent.keyDown(document.activeElement!, { key: "ArrowRight" });
+    expect(focusedTile()).toBe("b");
+  });
+
+  it("still leaves every key to a confirm standing over its panel", async () => {
+    inPanel([entry("a"), entry("b")]);
+    await waitFor(() => expect(tileIds()).toEqual(["a", "b"]));
+    const panel = screen.getByRole("dialog");
+    const confirm = document.createElement("div");
+    confirm.setAttribute("role", "alertdialog");
+    document.body.appendChild(confirm);
+    try {
+      panel.focus();
+      fireEvent.keyDown(panel, { key: "ArrowRight" });
+      expect(focusedTile()).toBeNull();
+    } finally {
+      confirm.remove();
+    }
+  });
+});
