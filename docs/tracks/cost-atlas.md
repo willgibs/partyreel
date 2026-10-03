@@ -58,6 +58,15 @@ working.
 
 **Verify on.** `pnpm typecheck`, `pnpm lint` and `pnpm test` green on the synced tree (a doc lane still runs them: the record-depth and doc policies read PRICING.md); every price with its URL and date; every count with its file:line; the ladders and the summary in your scratch, named in your Handoff.
 
+## Where I am
+
+- Booted on `lp/cost-atlas` at `afcd2875`. Scratch: `../partyreel-wt/_scratch/cost-atlas/` (`vendors/` holds every
+  vendor page read raw on 2026-10-03, with `fetch.sh`). The code facts are gathered (uploads, the live album, the
+  dashboards, the reel and the screen, zips, the backup, jobs, email, every limiter and every published promise).
+- Will's relay (17:25Z) taken in: a limit a host could meet is a published, gracious row with a hover explainer;
+  PRICING.md's "unmarketed" ingress line gets refined in place.
+- Next: prices out of the raw pages, the model (`model.mjs` in scratch), then PRICING.md, the ladders, the summary.
+
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
 - none yet
