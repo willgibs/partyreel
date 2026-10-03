@@ -17,6 +17,11 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Host: the host's delta could carry its new items' links as the guest's does (`/api/album/host/<id>/sync` with `album-wire-carry.ts`), one call a batch on the hub too (from `album-calm`).
+- Guests: the reel tile re-deals its six stills on every arrival (`reel-tile.ts`, `planTake` over the whole album), and a re-dealt still no window linked costs a links call (8 of the 26 calls measured); a deal that keeps the stills that still play makes every batch one call (from `album-calm`).
+- Platform: the doorbell rings each visible listener once a changed row; a ping coalesced server-side (one an album a few seconds, `media_gallery_doorbell`, a migration) would cut the visible albums' Realtime messages as the batch clock cut their calls (from `album-calm`).
+- Tooling: `scripts/album-perf.mjs --arrive` waits 15 s for the hide and the arrival, which the batch clock can just exceed: its waits want 20 s (from `album-calm`).
+- Marketing: "Uploads appear the moment guests take them" now means within about 15 s on another phone (album-calm's beat); say it true (from `album-calm`).
 - The lab: host-dashboard's `model.ts` (`rangeWhen`, `rangeLabel`, `rangeLine`, `rangeDays`) and event-header's `whenOf` draw a range their own way (spaced en dashes, "to"); production's words are `dashRange`'s now, so a refresh draws `whenOf` with the end, `longDays` and `formatEventDate` themselves (from `crumbs-58`).
 - Accessibility: a range's dash loses its "to" in screen readers (the macOS voice reads a spaced en dash as nothing, NVDA skips it by default): a spoken twin (visually hidden "to") beside `dashRange`'s visible dash, on Will's word (calls 131; from `crumbs-58`).
 - Help: the help center and the blog still say "Events have no end date" where Settings offers "Add an end date" (event-dates): say a range only says when, never ends anything (from `crumbs-58`).

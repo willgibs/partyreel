@@ -223,12 +223,15 @@ bounds it better. ≈ The operations behind the per-item figures: a call ≈3 ms
   Better: the media domain, where an edge hit costs no GET.
 - **The live album.** One broadcast per guest-visible change (the trigger,
   `supabase/migrations/20260611220000_gallery_doorbell.sql:70-72`; the send,
-  `20261002200000_disposable_foundation.sql:477`), billed one plus one a listener. As built, every connected tab listens
-  and syncs within ≈2.2 s (`guest/refresh-coalescer.ts:38-39`), hidden ones too (`guest/use-gallery-doorbell.ts:19`; no
-  visibility check, `src/components/guest/gallery-live.tsx:558-562`), and each delta asks a second call for its new ids'
-  links, so calls and messages grow as uploads × tabs. A sync costs ≈$3.50 a million as a 304 and $4 as a delta, each
-  run twice with the proxy (`src/proxy.ts:118,133-134`). Worst: the 2,000-guest wedding, ≈$33 in an evening. Better:
-  `album-calm` (visible tabs only, a 15 s beat, the delta carrying its links), then one ping a beat or one push per album.
+  `20261002200000_disposable_foundation.sql:477`), billed one plus one a listener. Since `album-calm` (merged at
+  `fdd0dc9b`), only a visible tab listens: it syncs once a batch, at its next tick of a 15 s clock with its own phase
+  (`guest/refresh-coalescer.ts`, `ALBUM_BATCH_MS`), her own upload, a host's own write and a tab's return at once; a
+  hidden tab leaves the channel and asks nothing until its return's one catch-up (`guest/use-gallery-doorbell.ts`,
+  `shared/use-live-poll.ts`); a delta carries its newest 48 items' links (`events/album-wire-links.server.ts`), so a
+  links call is left for windows, the reel tile's stills and re-mints. Calls and messages still grow as uploads × visible
+  tabs, a beat apart. A sync costs ≈$3.50 a million as a 304 and $4 as a delta, each run twice with the proxy
+  (`src/proxy.ts:118,133-134`). Worst: the 2,000-guest wedding, ≈$33 in an evening before `album-calm`, ≈$11 after.
+  Next: one ping a beat or one push per album.
 - **The guest count on every sync.** Every 200 sync, and every page load, walks every guest upload and guest row of
   its event to print "from M guests" (`src/app/api/album/guest/sync/route.ts:201`,
   `db/queries/guest-events-admin.ts:229-234`, `db/queries/social.ts:941-989`): ≈96 B a row of JSON, ≈28 gzipped, of
@@ -368,9 +371,11 @@ them.
 
 **The win-wins, by saving** (each cuts our cost and is something a guest or a host feels):
 
-1. **`album-calm`** (building): others' arrivals in a 15 s beat, a hidden tab silent and off its channel, the delta
-   carrying its links. The wedding's live album from ≈$33 to ≈$7, the reference party's from $0.76 to $0.18, fewer
-   sockets at the peak; a big party stops machine-gunning tiles. Its before and after are measured into this line.
+1. **`album-calm`** (merged at `fdd0dc9b`): others' arrivals in a 15 s beat, a hidden tab silent and off its channel,
+   the delta carrying its links. Measured on production builds, one guest's 20 uploads with four albums open: the two
+   visible albums' calls 84 to 26 (the 8 links calls left are the reel tile re-picking its stills), the two hidden
+   ones' 81 to 1 (the return's one sync, carrying all 20 links), Realtime messages 100 to 60. Fewer sockets at the
+   peak; a big party stops machine-gunning tiles.
 2. **The guest count once a beat:** count an album's guests once a beat (a counter beside its version, or a cache keyed
    by it), never by walking every guest upload on every sync and page load. ≈$2.30 of egress and ≈0.9 billion row reads
    a wedding after `album-calm` (≈5 billion as built), and the database's next step at scale. Small. Big albums open
